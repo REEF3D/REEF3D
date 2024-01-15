@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 class lexer;
-class fdm;
+class fdm_ptf;
 class ghostcell;
 class solver;
 class convection;
@@ -37,9 +37,9 @@ using namespace std;
 class ptf
 {
 public:
-	virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*)=0;
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, onephase*)=0;
-    virtual void inidisc(lexer*, fdm*, ghostcell*)=0;
+	virtual void start(lexer*, fdm_ptf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*)=0;
+    virtual void ini(lexer*, fdm_ptf*, ghostcell*, ioflow*, reini*, onephase*)=0;
+    virtual void inidisc(lexer*, fdm_ptf*, ghostcell*)=0;
 
 };
 

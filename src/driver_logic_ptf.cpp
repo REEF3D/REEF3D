@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"momentum_header.h"
 #include"pressure_header.h"
 #include"fdm_header.h"
+#include"ptf_timestep.h"
 #include"sediment_header.h"
 #include"convection_header.h"
 #include"solver_header.h"
@@ -38,7 +39,7 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"waves_header.h"
 
-void driver::logic_ptf()
+void driver::logic_ptf(fdm_ptf *a_tempo)
 {    
     if(p->mpirank==0)
     cout<<"creating objects"<<endl;
@@ -50,14 +51,15 @@ void driver::logic_ptf()
 	pini->start(a,p,pgc);
 
 // time stepping
-    if(p->N48==0)
-	ptstep=new fixtimestep(p);
+    //if(p->N48==0)
+	//ptstep=new fixtimestep(p);
 
-	if(p->N48==1)
-	ptstep=new pftimestep(p);
+	//if(p->N48==1)
+	pptf_timestep=
+    new ptf_timestep(p);
     
 // Printer
-	pprint = new vtu3D(p,a,pgc);
+	pprint = new vtu3D(p,a_tempo,pgc);
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )
@@ -84,17 +86,17 @@ void driver::logic_ptf()
     
 //  Free Surface
     if(p->A10!=4)
-    poneph = new onephase_v(p,a,pgc);
+    poneph = new onephase_v(p,a_tempo,pgc);
     
     if(p->A10==4)
-    poneph = new onephase_f(p,a,pgc);
+    poneph = new onephase_f(p,a_tempo,pgc);
     
 //  Laplace Solver	
 	if(p->N10==0)
-	plapsolv = new solver_void(p,a,pgc);
+	plapsolv = new solver_void(p,a_tempo,pgc);
 	
 	if(p->N10==1)
-	plapsolv = new bicgstab_ijk(p,a,pgc);
+	plapsolv = new bicgstab_ijk(p,a_tempo,pgc);
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>10 && p->N10<=20)
@@ -103,17 +105,17 @@ void driver::logic_ptf()
     
     #ifdef HYPRE_COMPILATION
 	if(p->N10>20 && p->N10<=30)
-	plapsolv = new hypre_aij(p,a,pgc);
+	plapsolv = new hypre_aij(p,a_tempo,pgc);
 	#endif
     
 //  Voids
-	pturb = new kepsilon_void(p,a,pgc);
+	pturb = new kepsilon_void(p,a_tempo,pgc);
     
-    pdata = new data_void(p,a,pgc);
+    pdata = new data_void(p,a_tempo,pgc);
     
-    pconc = new concentration_void(p,a,pgc);
+    pconc = new concentration_void(p,a_tempo,pgc);
     
-    pheat = new heat_void(p,a,pgc);
+    pheat = new heat_void(p,a_tempo,pgc);
     
     psed = new sediment_void();
     
@@ -125,9 +127,9 @@ void driver::logic_ptf()
     
 //  Wave Models
     if(p->A310==3)
-    pptf = new ptf_RK3(p,a,pgc);
+    pptf = new ptf_RK3(p,a_tempo,pgc);
         
     if(p->A310==4)
-    pptf = new ptf_RK4(p,a,pgc);
+    pptf = new ptf_RK4(p,a_tempo,pgc);
     
 }

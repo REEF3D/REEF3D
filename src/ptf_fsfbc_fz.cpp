@@ -22,9 +22,9 @@ Author: Hans Bihs
 
 #include"ptf_fsfbc.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 
-double ptf_fsfbc::fz(lexer *p, fdm *a, field &f, slice &Fifsf)
+double ptf_fsfbc::fz(lexer *p, fdm_ptf *a, field &f, slice &Fifsf)
 {
     grad=0.0;
     teta=0.0;

@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"printer.h"
 #include"nodefill.h"
 #include"field5.h"
+#include"fdm_ptf.h"
 
 class turbulence;
 class heat;

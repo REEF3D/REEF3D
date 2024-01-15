@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"ptf_laplace_cds4.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"solver.h"
 #include"ghostcell.h"
 
@@ -34,7 +34,7 @@ ptf_laplace_cds4::~ptf_laplace_cds4()
 {
 }
 
-void ptf_laplace_cds4::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, field &f, slice &Fifsf, slice &eta)
+void ptf_laplace_cds4::start(lexer* p, fdm_ptf *a, ghostcell *pgc, solver *psolv, field &f, slice &Fifsf, slice &eta)
 {
     // see p. 1130-1132
     n=0;

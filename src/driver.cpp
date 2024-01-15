@@ -231,17 +231,17 @@ void driver::ptf_driver()
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
 
-    a=new fdm_ptf(p);
+    a_tempo=new fdm_ptf(p);
 
-    aa=a;
-    pgc->fdm_update(a);
+    aa=a_tempo;
+    pgc->fdm_update(a_tempo);
 
-    logic_ptf();
+    logic_ptf(a_tempo);
 
-    driver_ini_ptf();
+    driver_ini_ptf(a_tempo);
 
     // Start MAINLOOP
-    loop_ptf(a);
+    loop_ptf(a_tempo);
 }
 
 void driver::sflow_driver()

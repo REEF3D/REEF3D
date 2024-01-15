@@ -86,15 +86,16 @@ public:
     field3 fbh3;
     field4 fbh4;
     field4 fbh5;
-    slice4 eta;
+  
     
     
-    // PTF
-    /*
+    
     slice4 eta,eta_n,depth;
-    slice4 Fifsf;
+    sliceint4 etaloc;
+    // PTF
+    /*slice4 Fifsf;
     slice4 K;
-    sliceint4 etaloc; */
+    */
     
     slice1 P;
     slice2 Q;

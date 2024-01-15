@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"iowave.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_ptf.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 
@@ -177,7 +178,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
         if(p->A10==3)
         H=1.0;
 		
-		a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z)*H;
+		// a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z)*H;
 	}
     
     // eta
@@ -192,6 +193,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     }
     
     // Fifsf
+    /*
     SLICELOOP4
     {
         xg = xgen(p);
@@ -202,10 +204,10 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
         z = a->eta(i,j);
 
 		a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
-    }
+    }*/
 }
 
-void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
+void iowave::full_initialize_ptf(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"full NWT initialize"<<endl;

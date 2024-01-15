@@ -34,9 +34,9 @@ public:
 	ptf_void();
 	virtual ~ptf_void();
     
-    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, convection*);
-    virtual void inidisc(lexer*, fdm*, ghostcell*);
+    virtual void start(lexer*, fdm_ptf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void ini(lexer*, fdm_ptf*, ghostcell*, ioflow*, reini*, convection*);
+    virtual void inidisc(lexer*, fdm_ptf*, ghostcell*);
     
 
 };

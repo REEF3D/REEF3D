@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"onephase.h"
 #include"increment.h"
 #include"slice4.h"
+#include"fdm_ptf.h"
 
 class field;
 class fnpf_convection;
@@ -35,11 +36,11 @@ using namespace std;
 class ptf_bed_update : public increment
 {
 public:
-    ptf_bed_update(lexer*, fdm*, ghostcell*);
+    ptf_bed_update(lexer*, fdm_ptf*, ghostcell*);
 	virtual ~ptf_bed_update();
     
-	virtual void bedbc(lexer*, fdm*, ghostcell*,field&);
-    virtual void waterdepth(lexer*, fdm*, ghostcell*);
+	virtual void bedbc(lexer*, fdm_ptf*, ghostcell*,field&);
+    virtual void waterdepth(lexer*, fdm_ptf*, ghostcell*);
 
 private: 
     

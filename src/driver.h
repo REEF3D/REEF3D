@@ -72,6 +72,7 @@ class sflow;
 class fnpf_vtu3D;
 class fnpf_timestep;
 class nhflow_timestep;
+class ptf_timestep;
 class grid;
 class patchBC_interface;
 class nhflow;
@@ -115,11 +116,11 @@ public:
     void loop_cfd_sf(fdm*);
     void loop_nsewave(fdm*);
     void loop_nhflow();
-    void loop_ptf(fdm*);
+    void loop_ptf(fdm_ptf*);
     void loop_fnpf();
     
 	void logic_cfd();
-    void logic_ptf();
+    void logic_ptf(fdm_ptf*);
     void logic_fnpf();
     void logic_nhflow();
     void logic_sflow();
@@ -130,7 +131,7 @@ public:
     void driver_ini_nhflow();
     void driver_ini_nsewave();
     void driver_ini_fnpf();
-    void driver_ini_ptf();
+    void driver_ini_ptf(fdm_ptf*);
     void driver_ini_sflow();
     
 	void log_ini();
@@ -160,13 +161,11 @@ public:
 	diffusion* pturbdiff;
 	diffusion* pconcdiff;
 	diffusion* psuspdiff;
-    if(p->A10==4)
-        fdm_ptf* a;
-    else
-        fdm* a;
+    fdm* a;
     fdm2D* b;
     fdm_fnpf *c;
     fdm_nhf *d;
+    fdm_ptf *a_tempo;
 	lexer* p;
 	momentum* pmom;
 	ioflow* pflow;
@@ -200,6 +199,7 @@ public:
 	concentration *pconc;
     fnpf *ppfsg;
     ptf *pptf;
+    ptf_timestep *pptf_timestep;
     onephase *poneph;
     nsewave *pnse;
     nhflow_fsf *pnhfsf;

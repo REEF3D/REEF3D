@@ -35,15 +35,15 @@ using namespace std;
 class ptf_fsfbc : public increment
 {
 public:
-	ptf_fsfbc(lexer*, fdm*, ghostcell*);
+	ptf_fsfbc(lexer*, fdm_ptf*, ghostcell*);
 	virtual ~ptf_fsfbc();
     
     
-    void fsfdisc(lexer*,fdm*,ghostcell*,slice&,slice&,field&);
-    void kfsfbc(lexer*,fdm*,ghostcell*);
-    void dfsfbc(lexer*,fdm*,ghostcell*,slice&);
-    void fsfwvel(lexer*,fdm*,ghostcell*,slice&,slice&);
-    double fz(lexer*,fdm*,field&,slice&);
+    void fsfdisc(lexer*,fdm_ptf*,ghostcell*,slice&,slice&,field&);
+    void kfsfbc(lexer*,fdm_ptf*,ghostcell*);
+    void dfsfbc(lexer*,fdm_ptf*,ghostcell*,slice&);
+    void fsfwvel(lexer*,fdm_ptf*,ghostcell*,slice&,slice&);
+    double fz(lexer*,fdm_ptf*,field&,slice&);
 
     fnpf_convection *pconvec;
 

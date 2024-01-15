@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 class lexer;
 class fdm;
+class fdm_ptf;
 class ghostcell;
 class field;
 class vec;
@@ -110,7 +111,7 @@ public:
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&)=0;
     virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
     
-    virtual void ini_ptf(lexer*,fdm*,ghostcell*)=0;
+    virtual void ini_ptf(lexer*,fdm_ptf*,ghostcell*)=0;
     
     // nhflow
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;

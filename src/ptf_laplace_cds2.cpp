@@ -22,13 +22,13 @@ Author: Hans Bihs
 
 #include"ptf_laplace_cds2.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"solver.h"
 #include"convection.h"
 #include"fnpf_weno5.h"
 
-ptf_laplace_cds2::ptf_laplace_cds2(lexer *p, fdm* a, ghostcell *pgc) : bc(p)
+ptf_laplace_cds2::ptf_laplace_cds2(lexer *p, fdm_ptf* a, ghostcell *pgc) : bc(p)
 {
     // bc ini
     SLICELOOP4
@@ -59,7 +59,7 @@ ptf_laplace_cds2::~ptf_laplace_cds2()
 {
 }
 
-void ptf_laplace_cds2::start(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &f, slice &Fifsf, slice &eta)
+void ptf_laplace_cds2::start(lexer* p, fdm_ptf* a, ghostcell *pgc, solver *psolv, field &f, slice &Fifsf, slice &eta)
 {
     
 

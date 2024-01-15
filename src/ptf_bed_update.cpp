@@ -23,13 +23,13 @@ Author: Hans Bihs
 #include"ptf_bed_update.h"
 #include"fnpf_fsfbc.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 
-ptf_bed_update::ptf_bed_update(lexer *p, fdm *a, ghostcell *pgc) 
+ptf_bed_update::ptf_bed_update(lexer *p, fdm_ptf *a, ghostcell *pgc) 
 {    
     if(p->A313==2)
     pconvec = new fnpf_cds2(p);
@@ -42,7 +42,7 @@ ptf_bed_update::~ptf_bed_update()
 {
 }
 
-void ptf_bed_update::bedbc(lexer *p, fdm *a, ghostcell *pgc, field &Fi)
+void ptf_bed_update::bedbc(lexer *p, fdm_ptf *a, ghostcell *pgc, field &Fi)
 {
     double Fval;
     
@@ -64,7 +64,7 @@ void ptf_bed_update::bedbc(lexer *p, fdm *a, ghostcell *pgc, field &Fi)
 }
 
 
-void ptf_bed_update::waterdepth(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_bed_update::waterdepth(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {
     SLICELOOP4
 	a->depth(i,j) = p->wd - a->bed(i,j);

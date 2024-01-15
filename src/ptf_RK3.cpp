@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"ptf_RK3.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"field4.h"
 #include"convection.h"
@@ -35,7 +35,7 @@ Author: Hans Bihs
 #include"ptf_fsf_update.h"
 #include"ptf_bed_update.h"
 
-ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),erk2(p),frk1(p),frk2(p)
+ptf_RK3::ptf_RK3(lexer *p, fdm_ptf *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),erk2(p),frk1(p),frk2(p)
 {
     gcval=250;
     
@@ -77,7 +77,7 @@ ptf_RK3::~ptf_RK3()
 {
 }
 
-void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
     
@@ -208,7 +208,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
 
-void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
+void ptf_RK3::ini(lexer *p, fdm_ptf *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
 {	
     pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
@@ -234,6 +234,6 @@ void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
 
-void ptf_RK3::inidisc(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_RK3::inidisc(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {	
 }

@@ -129,7 +129,7 @@ public:
 	virtual int iozonecheck(lexer*,fdm*);
 	virtual void full_initialize(lexer*,fdm*,ghostcell*);
     void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
-    void full_initialize_ptf(lexer*,fdm*,ghostcell*);
+    void full_initialize_ptf(lexer*,fdm_ptf*,ghostcell*);
 	virtual void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -138,7 +138,7 @@ public:
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
-    virtual void ini_ptf(lexer*,fdm*,ghostcell*);
+    virtual void ini_ptf(lexer*,fdm_ptf*,ghostcell*);
     
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 

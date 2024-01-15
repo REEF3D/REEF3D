@@ -18,24 +18,24 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
---------------------------------------------------------------------
+--------------------------------------------------------------------*/
 
-#include"pftimestep.h"
+#include"ptf_timestep.h"
 #include<iomanip>
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"turbulence.h"
 
-pftimestep::pftimestep(lexer* p):epsi(1.0e-19),maxtimestep(p->N49),c0_orig(p->N47)
+ptf_timestep::ptf_timestep(lexer* p):epsi(1.0e-19),maxtimestep(p->N49),c0_orig(p->N47)
 {
 }
 
-pftimestep::~pftimestep()
+ptf_timestep::~ptf_timestep()
 {
 }
 
-void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
+void ptf_timestep::start(fdm_ptf *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 {
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;
@@ -141,7 +141,7 @@ void pftimestep::start(fdm *a, lexer *p,ghostcell *pgc, turbulence *pturb)
 	a->maxH=0.0;
 }
 
-void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
+void ptf_timestep::ini(fdm_ptf* a, lexer* p,ghostcell* pgc)
 {
     cu=cv=1.0e10;
     p->umax=p->vmax=0.0;
@@ -212,7 +212,7 @@ void pftimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 
 }
 
-double pftimestep::min(double val1,double val2,double val3)
+double ptf_timestep::min(double val1,double val2,double val3)
 {
 	double mini;
 
@@ -230,7 +230,7 @@ double pftimestep::min(double val1,double val2,double val3)
 	return mini;
 }
 
-double pftimestep::min(double val1,double val2)
+double ptf_timestep::min(double val1,double val2)
 {
 	double mini;
 
@@ -245,7 +245,7 @@ double pftimestep::min(double val1,double val2)
 	return mini;
 }
 
-double pftimestep::max(double val1,double val2,double val3)
+double ptf_timestep::max(double val1,double val2,double val3)
 {
 	double maxi;
 
@@ -263,7 +263,7 @@ double pftimestep::max(double val1,double val2,double val3)
 	return maxi;
 }
 
-double pftimestep::max(double val1,double val2)
+double ptf_timestep::max(double val1,double val2)
 {
 	double maxi;
 
@@ -278,4 +278,3 @@ double pftimestep::max(double val1,double val2)
 	return maxi;
 }
 
-*/

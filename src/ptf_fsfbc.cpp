@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"ptf_fsfbc.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"field4.h"
 #include"convection.h"
@@ -37,7 +37,7 @@ Author: Hans Bihs
 #include"fnpf_weno5.h"
 #include"fnpf_weno7.h"
 
-ptf_fsfbc::ptf_fsfbc(lexer *p, fdm *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p)
+ptf_fsfbc::ptf_fsfbc(lexer *p, fdm_ptf *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p)
 {    
     if(p->A311==0)
     pconvec = new fnpf_voiddisc(p);
@@ -63,7 +63,7 @@ ptf_fsfbc::~ptf_fsfbc()
 {
 }
 
-void ptf_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fifsf, field &Fi)
+void ptf_fsfbc::fsfdisc(lexer *p, fdm_ptf *a, ghostcell *pgc, slice &eta, slice &Fifsf, field &Fi)
 {
     // 3D
     if(p->j_dir==1)
@@ -94,7 +94,7 @@ void ptf_fsfbc::fsfdisc(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fif
     pgc->gcsl_start4(p,Ey,1);
 }
 
-void ptf_fsfbc::fsfwvel(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fifsf)
+void ptf_fsfbc::fsfwvel(lexer *p, fdm_ptf *a, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     // fi
     FILOOP4
@@ -113,7 +113,7 @@ void ptf_fsfbc::fsfwvel(lexer *p, fdm *a, ghostcell *pgc, slice &eta, slice &Fif
     }
 }
 
-void ptf_fsfbc::kfsfbc(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_fsfbc::kfsfbc(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {
     SLICELOOP4
     a->K(i,j) = - Fx(i,j)*Ex(i,j) - Fy(i,j)*Ey(i,j) 
@@ -121,7 +121,7 @@ void ptf_fsfbc::kfsfbc(lexer *p, fdm *a, ghostcell *pgc)
                 + Fz(i,j)*(1.0 + pow(Ex(i,j),2.0) + pow(Ey(i,j),2.0));
 }
 
-void ptf_fsfbc::dfsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &eta)
+void ptf_fsfbc::dfsfbc(lexer *p, fdm_ptf *a, ghostcell *pgc, slice &eta)
 {
     SLICELOOP4
     a->K(i,j) = - 0.5*pow(Fx(i,j),2.0) - 0.5*pow(Fy(i,j),2.0) 

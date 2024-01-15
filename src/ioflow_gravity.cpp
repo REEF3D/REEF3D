@@ -505,7 +505,7 @@ void ioflow_gravity::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
-void ioflow_gravity::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
+void ioflow_gravity::ini_ptf(lexer *p, fdm_ptf* a, ghostcell* pgc)
 {
     
 }

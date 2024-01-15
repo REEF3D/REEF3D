@@ -38,11 +38,11 @@ public:
     ~fdm_ptf();
 
     // PTF
-    slice4 eta,eta_n,depth;
+   // slice4 eta,eta_n,depth;
     slice4 Fifsf;
     slice4 K;
     sliceint4 etaloc;
-    
+    /*
     slice1 P;
     slice2 Q;
     
@@ -57,6 +57,7 @@ public:
     double wd_criterion;
 	
 	double t1,t2,t3,t4,t5;
+     */
 };
 
 #endif

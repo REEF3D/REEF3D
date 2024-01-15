@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"momentum_header.h"
 #include"pressure_header.h"
 #include"fdm_header.h"
+#include"fdm_ptf.h"
 #include"sediment_header.h"
 #include"heat_header.h"
 #include"concentration_header.h"
@@ -38,7 +39,7 @@ Author: Hans Bihs
 #include"waves_header.h"
 #include"lexer.h"
 
-void driver::loop_ptf(fdm* a)
+void driver::loop_ptf(fdm_ptf* a)
 {
 //-----------MAINLOOP PTF----------------------------
     

@@ -66,8 +66,8 @@
           <File Name="ptf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="ptf_timestep.h"/>
           <File Name="fdm_ptf.h"/>
-          <VirtualDirectory Name="Time"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
@@ -1109,6 +1109,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="FDM">
+          <File Name="ptf_timestep.cpp"/>
           <File Name="fdm_ptf.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Breaking"/>

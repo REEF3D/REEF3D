@@ -30,16 +30,16 @@ ptf_void::~ptf_void()
 {
 }
 
-void ptf_void::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+void ptf_void::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
 {	
 	
 }
 
-void ptf_void::ini(lexer *p, fdm *a, ghostcell *pgc,ioflow *pflow, reini *preini, convection *pconvec)
+void ptf_void::ini(lexer *p, fdm_ptf *a, ghostcell *pgc,ioflow *pflow, reini *preini, convection *pconvec)
 {	
 }
 
-void ptf_void::inidisc(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_void::inidisc(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {	
     
 }

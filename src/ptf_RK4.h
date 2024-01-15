@@ -37,12 +37,12 @@ using namespace std;
 class ptf_RK4 : public ptf, public ptf_fsfbc
 {
 public:
-	ptf_RK4(lexer*, fdm*, ghostcell*);
+	ptf_RK4(lexer*, fdm_ptf*, ghostcell*);
 	virtual ~ptf_RK4();
     
-    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, onephase*);
-    virtual void inidisc(lexer*, fdm*, ghostcell*);
+    virtual void start(lexer*, fdm_ptf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void ini(lexer*, fdm_ptf*, ghostcell*, ioflow*, reini*, onephase*);
+    virtual void inidisc(lexer*, fdm_ptf*, ghostcell*);
     
     
 private:

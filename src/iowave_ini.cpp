@@ -68,7 +68,7 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	full_initialize_fnpf(p,c,pgc);
 }
 
-void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
+void iowave::ini_ptf(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {
     wavegen_precalc_ini(p,pgc);
     wavegen_precalc_relax_func_nhflow(p,pgc);

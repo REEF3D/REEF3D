@@ -20,27 +20,42 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ptf_laplace.h"
 #include"increment.h"
 
-#ifndef PTF_LAPLACE_CDS4_H_
-#define PTF_LAPLACE_CDS4_H_
+class fdm_ptf;
+class lexer;
+class ghostcell;
+class turbulence;
 
 using namespace std;
 
-class ptf_laplace_cds4 : public ptf_laplace, public increment
+#ifndef PTF_TIMESTEP_H_
+#define PTF_TIMESTEP_H_
+
+class ptf_timestep : public increment
 {
 public:
-    ptf_laplace_cds4 ();
-	virtual ~ptf_laplace_cds4();
+	ptf_timestep(lexer*);
+	virtual ~ptf_timestep();
+	virtual void start(fdm_ptf*, lexer*,ghostcell*,turbulence*);
+	virtual void ini(fdm_ptf*, lexer*,ghostcell*);
 
-    virtual void start(lexer *,fdm_ptf*,ghostcell*,solver*,field&,slice&,slice&);
-    
+
 private:
-    
-    double X1,X2,X3,X4,X0;
-    double Y1,Y2,Y3,Y4,Y0;
-    double Z1,Z2,Z3,Z4,Z0;
+	double max(double,double,double);
+	double max(double,double);
+	double min(double,double,double);
+	double min(double,double);
+
+	double visccrit,sqd,wallu,wallv,wallw;
+	double uplus;
+	double cu,cv,cw;
+	const double epsi;
+	double isor,jsor,ksor;
+	double irsm,jrsm,krsm;
+    const double maxtimestep, c0_orig;
+    double dx;
+    double depthmax;
 
 };
 

@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 #include"ptf_fsf_update.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_ptf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"onephase.h"
@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"reinifluid_RK3.h"
 
 
-ptf_fsf_update::ptf_fsf_update(lexer *p, fdm *a, ghostcell *pgc)
+ptf_fsf_update::ptf_fsf_update(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {
     gcval_u = 10;
     gcval_v = 11;
@@ -43,7 +43,7 @@ ptf_fsf_update::~ptf_fsf_update()
 
 }
 
-void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, onephase *poneph, slice &eta)
+void ptf_fsf_update::fsfupdate(lexer *p, fdm_ptf *a, ghostcell *pgc, ioflow *pflow, onephase *poneph, slice &eta)
 {
     // update phi
     FLUIDLOOP
@@ -57,7 +57,7 @@ void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     poneph->update(p,a,pgc,pflow);
 }
 
-void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
+void ptf_fsf_update::etaloc(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {
     // find k location for eta, i.e. zero level set
     SLICELOOP4
@@ -67,7 +67,7 @@ void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)
     a->etaloc(i,j) = MAX(a->etaloc(i,j),k);
 }
 
-void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi, slice &eta)
+void ptf_fsf_update::fsfbc(lexer *p, fdm_ptf *a, ghostcell *pgc, slice &Fifsf, field &Fi, slice &eta)
 {
     AIRLOOP
     Fi(i,j,k)=0.0;
@@ -210,7 +210,7 @@ void ptf_fsf_update::fsfbc(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field
     
 }
 
-void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
+void ptf_fsf_update::fsfbc0(lexer *p, fdm_ptf *a, ghostcell *pgc, slice &Fifsf, field &Fi)
 {
     AIRLOOP
     Fi(i,j,k)=0.0;
@@ -223,7 +223,7 @@ void ptf_fsf_update::fsfbc0(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, fiel
     }
 }
 
-void ptf_fsf_update::fsfbc1(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, field &Fi)
+void ptf_fsf_update::fsfbc1(lexer *p, fdm_ptf *a, ghostcell *pgc, slice &Fifsf, field &Fi)
 {
     AIRLOOP
     Fi(i,j,k)=0.0;
@@ -249,11 +249,11 @@ void ptf_fsf_update::fsfbc1(lexer *p, fdm *a, ghostcell *pgc, slice &Fifsf, fiel
     }
 }
 
-void ptf_fsf_update::fsfepol(lexer *p, fdm *a, ghostcell *pgc, slice &eta, field &Fi)
+void ptf_fsf_update::fsfepol(lexer *p, fdm_ptf *a, ghostcell *pgc, slice &eta, field &Fi)
 {
 }
 
-void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
+void ptf_fsf_update::velcalc(lexer *p, fdm_ptf *a, ghostcell *pgc, field &f)
 {
     
     if(true)
@@ -323,7 +323,7 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
 
 }
 /*
-void ptf_fsf_update::presscalc(lexer *p, fdm *a, ghostcell *pgc, field &Firk_0, field &Firk_1, field &Firk_2, field &Firk_3, slice &eta)
+void ptf_fsf_update::presscalc(lexer *p, fdm_ptf *a, ghostcell *pgc, field &Firk_0, field &Firk_1, field &Firk_2, field &Firk_3, slice &eta)
 {   
     double DFiDt;
     if(p->A401==1)
