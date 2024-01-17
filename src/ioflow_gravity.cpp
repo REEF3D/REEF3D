@@ -95,13 +95,13 @@ void ioflow_gravity::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 	// ------- 
     // translation 
     if(p->B181==1)
-    a->gi += -p->B181_1*(2.0*PI*p->B181_2)*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3);
+    a->gi += -p->B181_1*pow(2.0*PI*p->B181_2,2.0)*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3);
     
     if(p->B182==1)
-    a->gj += -p->B182_1*(2.0*PI*p->B182_2)*sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3);
+    a->gj += -p->B182_1*pow(2.0*PI*p->B182_2,2.0)*sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3);
 
     if(p->B183==1)
-    a->gk += -p->B183_1*(2.0*PI*p->B183_2)*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3);
+    a->gk += -p->B183_1*pow(2.0*PI*p->B183_2,2.0)*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3);
     
     
     // -------

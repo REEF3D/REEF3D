@@ -141,9 +141,17 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,3,WLRK1);
 	pnhfdiff->diff_w(p,d,pgc,psolv,WHDIFF,d->WH,d->UH,d->VH,d->WH,1.0);
 
+    if(p->A521==1)
 	LOOP
 	WHRK1[IJK] = WHDIFF[IJK]
 				+ p->dt*CPORNH*d->H[IJK];
+                
+    if(p->A521==2)
+    {
+	NHFWLOOP // bed + 1
+	WHRK1[IJK] = WHDIFF[IJK]
+				+ p->dt*CPORNH*d->H[IJK] - p->dt*CPORNH*d->H[IJKm1];
+    }
 	
     p->wtime=pgc->timer()-starttime;
 
@@ -234,9 +242,17 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pconvec->start(p,d,3,d->WL);
 	pnhfdiff->diff_w(p,d,pgc,psolv,WHDIFF,WHRK1,UHRK1,VHRK1,WHRK1,0.5);
 
+    if(p->A521==1)
 	LOOP
 	d->WH[IJK] = 0.5*d->WH[IJK] + 0.5*WHDIFF[IJK]
 				+ 0.5*p->dt*CPORNH*d->H[IJK];
+                
+    if(p->A521==2)
+    {
+	NHFWLOOP // bed + 1
+	d->WH[IJK] = 0.5*d->WH[IJK] + 0.5*WHDIFF[IJK]
+				+ 0.5*p->dt*CPORNH*d->H[IJK] - 0.5*p->dt*CPORNH*d->H[IJKm1];
+    }
 	
     p->wtime+=pgc->timer()-starttime;
     

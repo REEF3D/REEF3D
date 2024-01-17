@@ -116,9 +116,7 @@ void wave_lib_elliptic::elliptic(lexer *p, double u, double &sn, double &cn, dou
 		sn = SIGN(sinu)/sqrt(1.0 + c[n]*c[n]);
 		cn = c[n]*sn;		
 		}
-		
 	}
-    
 }
 
 double wave_lib_elliptic::K_elliptic_1(double m)

@@ -41,6 +41,55 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="NGX">
+        <VirtualDirectory Name="Turbulence"/>
+        <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="VTU"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Pressure">
+          <File Name="ngx_pressure.h"/>
+          <VirtualDirectory Name="Reference"/>
+          <VirtualDirectory Name="Poisson"/>
+          <VirtualDirectory Name="Density"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Momentum">
+          <File Name="ngx_momentum_RK3.h"/>
+          <File Name="ngx_momentum_RK2.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Reinitialization">
+            <VirtualDirectory Name="Reinidisc">
+              <File Name="ngx_reinidisc_f.h"/>
+              <File Name="ngx_reinidisc.h"/>
+            </VirtualDirectory>
+            <File Name="ngx_reini_RK3.h"/>
+            <File Name="ngx_reini.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Level Set">
+            <File Name="ngx_levelset_RK3.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Timestep"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Diffusion"/>
+        <VirtualDirectory Name="Convect">
+          <File Name="ngx_HLL.h"/>
+          <File Name="ngx_flux_build_f.h"/>
+          <File Name="ngx_convection.h"/>
+          <File Name="ngx_convection_void.h"/>
+          <File Name="ngx_fluid_build.h"/>
+          <VirtualDirectory Name="Signal Speed">
+            <File Name="ngx_signal_speed.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Reconstruct">
+            <File Name="ngx_reconstruct_hires.h"/>
+            <File Name="ngx_reconstruct_WENO.h"/>
+            <File Name="ngx_reconstruct_FOU.h"/>
+            <File Name="ngx_reconstruct.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="PIC">
         <File Name="pic_f.h"/>
         <File Name="pic_v.h"/>
@@ -1102,6 +1151,39 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="NGX">
+        <VirtualDirectory Name="Turbulence"/>
+        <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="VTU"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Pressure">
+          <VirtualDirectory Name="Reference"/>
+          <VirtualDirectory Name="Poisson"/>
+          <VirtualDirectory Name="Density"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Momentum">
+          <File Name="ngx_momentum_RK3.cpp"/>
+          <File Name="ngx_momentum_RK2.cpp"/>
+          <VirtualDirectory Name="Forcing"/>
+          <VirtualDirectory Name="BC"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Reinitialization"/>
+          <VirtualDirectory Name="Level Set"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FDM">
+          <File Name="ngx_fdm.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Diffusion"/>
+        <VirtualDirectory Name="Convect">
+          <VirtualDirectory Name="Signal Speed"/>
+          <VirtualDirectory Name="Reconstruct">
+            <File Name="ngx_reconstruct_WENO.cpp"/>
+            <File Name="ngx_reconstruct_hires.cpp"/>
+            <File Name="ngx_reconstruct_FOU.cpp"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="PIC">
         <File Name="pic_v.cpp"/>
         <File Name="pic_f.cpp"/>
@@ -2577,12 +2659,14 @@
       <File Name="driver.cpp"/>
       <File Name="lexer.cpp" ExcludeProjConfig=""/>
       <VirtualDirectory Name="Logic">
+        <File Name="driver_logic_ngx.cpp"/>
         <File Name="driver_logic_nhflow.cpp"/>
         <File Name="driver_logic_fnpf.cpp"/>
         <File Name="driver_logic_ptf.cpp"/>
         <File Name="driver_logic_cfd.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
+        <File Name="driver_loop_ngx.cpp"/>
         <File Name="driver_loop_cfd_sf.cpp"/>
         <File Name="driver_loop_fnpf.cpp"/>
         <File Name="driver_loop_cfd_df.cpp"/>
