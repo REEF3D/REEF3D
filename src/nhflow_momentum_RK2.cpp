@@ -155,10 +155,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	
     p->wtime=pgc->timer()-starttime;
 
-    // fsfcorr
-    pfsf->ucorr(p,d,UHRK1,WLRK1,1.0);
-    pfsf->vcorr(p,d,VHRK1,WLRK1,1.0);
-
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
     //pflow->pressure_io(p,a,pgc);
@@ -255,10 +251,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     }
 	
     p->wtime+=pgc->timer()-starttime;
-    
-    // fsfcorr
-    pfsf->ucorr(p,d,d->UH,d->WL,0.5);
-    pfsf->vcorr(p,d,d->VH,d->WL,0.5);
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
     
