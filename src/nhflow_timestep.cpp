@@ -86,6 +86,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<"omegamax: "<<setprecision(3)<<p->omegamax<<endl;
     cout<<"recontime: "<<p->recontime<<endl;
     cout<<"fsftime: "<<p->fsftime<<endl;
+    //cout<<"c_shallow: "<<sqrt(9.81*depthmax)<<" c: "<<p->wC<<endl;
     //cout<<"depthmax: "<<setprecision(3)<<depthmax<<endl;
     }
 	

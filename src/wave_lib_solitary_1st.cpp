@@ -32,7 +32,7 @@ wave_lib_solitary_1st::wave_lib_solitary_1st(lexer *p, ghostcell *pgc) : wave_li
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: 1st-order solitary wave "<<endl;
-    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<endl;
+    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
