@@ -72,7 +72,6 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     pwsf=new nhflow_print_wsf(p,d);
 
-    
     pwsf_theory=new nhflow_print_wsf_theory(p,d,pgc);
 
     pwsfline=new nhflow_print_wsfline(p,d,pgc);

@@ -98,7 +98,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
     
     
     // 2nd step
-    velcalc(p,d,pgc,UH,VH,WH,WL);
+    /*velcalc(p,d,pgc,UH,VH,WH,WL);
     
     
     
@@ -126,7 +126,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 	p->poissontime=endtime-starttime;
 
 	if(p->mpirank==0 && p->count%p->P12==0)
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;*/
 }
 
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, double *PCORR, double alpha)
