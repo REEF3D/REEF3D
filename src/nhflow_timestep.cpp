@@ -40,7 +40,6 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     double posx,posy,posz;
     int posi,posj,posk;
 
-
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=p->omegamax=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;
 	p->dt_old=p->dt;
@@ -53,25 +52,11 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	depthmax=MAX(depthmax,d->depth(i,j));
 	
 	depthmax=pgc->globalmax(depthmax);
-
-	LOOP
-    if(fabs(d->U[IJK])>p->umax)
-    {
-	p->umax=fabs(d->U[IJK]);
-    posx=p->XP[IP];
-    posy=p->YP[JP];
-    posz=p->ZP[KP];
     
-    posi = i + p->origin_i;
-    posj = j + p->origin_j;
-    posk = k + p->origin_k;
-    }
-    
+    //cout<<p->mpirank<<" "<<depthmax<<endl;
 
-
-    //LOOP
-	//p->umax=MAX(p->umax,fabs(d->U[IJK]));
-
+    LOOP
+	p->umax=MAX(p->umax,fabs(d->U[IJK]));
 
 	p->umax=pgc->globalmax(p->umax);
 
@@ -101,6 +86,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<"omegamax: "<<setprecision(3)<<p->omegamax<<endl;
     cout<<"recontime: "<<p->recontime<<endl;
     cout<<"fsftime: "<<p->fsftime<<endl;
+    //cout<<"c_shallow: "<<sqrt(9.81*depthmax)<<" c: "<<p->wC<<endl;
     //cout<<"depthmax: "<<setprecision(3)<<depthmax<<endl;
     }
 	
@@ -140,7 +126,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==1 )
     cu = MIN(cu,cv);
     
-    //cu = MIN(cu,cw);
+    cu = MIN(cu,cw);
     
     //cu = MIN(cu,co);
     
@@ -230,7 +216,7 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     cu = MIN(cu,co);
     
-   	p->dt=p->N47*cu;
+   	p->dt=0.75*p->N47*cu;
     
 	p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);

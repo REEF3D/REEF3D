@@ -66,6 +66,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
   	wf = ww/(2.0*PI);
     wT = 1.0/wf;
+    wC = wL/wT;
 
         // 5th-order Stokes
         if(wtype==5)
@@ -91,6 +92,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 	   }
        
     p->wT = wT;
+    p->wC = wC;
     }
 
 // Wave Period given
@@ -168,12 +170,14 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
 		wf = 1.0/wT;
 		ww = wf*2.0*PI;
+         wC = wL/wT;
 
 		wk= (2.0*PI)/(wL>1.0e-20?wL:1.0e20);
 
         if(wtype==5)
         {
         wf = 1.0/wT;
+        ww = 2.0*PI*wf;
         ww = 2.0*PI*wf;
 
         wC = ww/wk;
@@ -189,6 +193,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
     p->wL = wL;
     p->wk = wk;
     p->ww = ww;
+    p->wC = wC;
 
     if(p->B92>30 && p->B92!=70)
     {

@@ -32,7 +32,7 @@ wave_lib_Stokes_5th_SH::wave_lib_Stokes_5th_SH(lexer *p, ghostcell *pgc) : wave_
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: 5th-order Stokes SH waves "<<endl;
-    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<endl;
+    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
     cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
     

@@ -442,6 +442,30 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         // directional spreading
         directional_spreading(p);
 				print_spreading(p);
+                
+                
+    // peak wave speed
+    double wdt,wL;
+    
+    if(p->B94==0)
+	wdt=p->phimean;
+
+	if(p->B94==1)
+	wdt=p->B94_wdt;
+
+		wL0 = (9.81/(2.0*PI))*p->wTp*p->wTp;
+		k0 = (2.0*PI)/wL0;
+		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+
+		wL = wL0*tanh(S0);
+
+        for(int qn=0; qn<500; ++qn)
+        wL = wL0*tanh(2.0*PI*wdt/wL);
+
+        
+        p->wC = wL/p->wTp;
+        
+    
 }
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)

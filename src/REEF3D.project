@@ -323,6 +323,8 @@
             <File Name="nhflow_vtp_bed.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
+            <File Name="nhflow_print_wsfline_y.h"/>
+            <File Name="nhflow_print_wsfline.h"/>
             <File Name="nhflow_print_wsf_theory.h"/>
             <File Name="nhflow_print_wsf.h"/>
           </VirtualDirectory>
@@ -1423,6 +1425,8 @@
             <File Name="nhflow_vtp_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
+            <File Name="nhflow_print_wsfline_y.cpp"/>
+            <File Name="nhflow_print_wsfline.cpp"/>
             <File Name="nhflow_print_wsf_theory.cpp"/>
             <File Name="nhflow_print_wsf.cpp"/>
           </VirtualDirectory>

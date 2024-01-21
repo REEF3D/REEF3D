@@ -30,9 +30,9 @@ Author: Hans Bihs
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_vtp_bed.h"
 #include"nhflow_print_wsf_theory.h"
-/*#include"nhflow_print_wsfline.h"
+#include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
-#include"nhflow_breaking_log.h"
+/*#include"nhflow_breaking_log.h"
 #include"potentialfile_out.h"
 #include"nhflow_state.h"*/
 #include<sys/stat.h>
@@ -72,13 +72,12 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     pwsf=new nhflow_print_wsf(p,d);
 
-    
     pwsf_theory=new nhflow_print_wsf_theory(p,d,pgc);
-/*
+
     pwsfline=new nhflow_print_wsfline(p,d,pgc);
 
     pwsfline_y=new nhflow_print_wsfline_y(p,d,pgc);
-
+/*
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,d,pgc);
 
@@ -171,7 +170,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
         if(p->count==0)
 		pbed->start(p,d,pgc);
 
-/*
+
     // Gages
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline->start(p,d,pgc,pflow,d->eta);
@@ -179,7 +178,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,d,pgc,pflow,d->eta);
 
-
+/*
     // Print state out based on iteration
     if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 &&)
     {

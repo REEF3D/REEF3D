@@ -34,7 +34,7 @@ wave_lib_Stokes_5th::wave_lib_Stokes_5th(lexer *p, ghostcell *pgc) : pshift(p->B
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: 5th-order Stokes waves "<<endl;
-    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<endl;
+    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
     cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
     
@@ -770,6 +770,7 @@ void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
     p->wL = wL;
     p->wk = wk;
     p->ww = ww;
+    p->wC = wC;
 }
     
 void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
