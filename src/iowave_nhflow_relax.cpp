@@ -73,7 +73,7 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             // Zone 1
             if(dg<1.0e20)
             {
-            U[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
+            U[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
             UH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*UHval[count] + relax4_wg(i,j)*UH[IJK];
             ++count;
             }
@@ -93,7 +93,7 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 }
 
 void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
-{
+{   
     count=0;
     if(p->j_dir==1)
     LOOP
@@ -107,7 +107,7 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             // Zone 1
             if(dg<1.0e20)
             {
-            V[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
+            V[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
             VH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*VHval[count] + relax4_wg(i,j)*VH[IJK];
             ++count;
             }
@@ -128,7 +128,7 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
 }
 
 void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
-{
+{    
     count=0;
     LOOP
     {
@@ -141,7 +141,7 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             // Zone 1
             if(dg<1.0e20)
             {
-            W[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
+            W[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
             WH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*WHval[count] + relax4_wg(i,j)*WH[IJK];
             ++count;
             }
