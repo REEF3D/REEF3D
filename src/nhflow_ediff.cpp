@@ -46,31 +46,31 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     /*
 	starttime=pgc->timer();
     
-    ULOOP
-	{
-    d->F(i,j,k) += 2.0*((UH[IJK]-UH[IJK])*((a->visc(i+1,j,k)+a->eddyv(i+1,j,k))/p->DXN[IP1])
-                        -(u_ijk-u(i-1,j,k))*((visc_ijk+ev_ijk)/p->DXN[IP]))/p->DXP[IP]
-
-        +   ((u(i,j+1,k)-u_ijk)*(visc_ddy_p/p->DYP[JP])
-
-            -(u_ijk-u(i,j-1,k))*(visc_ddy_m/p->DYP[JM1]))/p->DYN[JP]
-
-        +   ((u(i,j,k+1)-u_ijk)*(visc_ddz_p/p->DZP[KP])
-
-            -(u_ijk-u(i,j,k-1))*(visc_ddz_m/p->DZP[KM1]))/p->DZN[KP]
-
-
-        + ((v(i+1,j,k)-v(i,j,k))*(visc_ddy_p/p->DXP[IP]) - (v(i+1,j-1,k)-v(i,j-1,k))*(visc_ddy_m/p->DXP[IP]))/p->DYN[JP]
-
-        + ((w(i+1,j,k)-w(i,j,k))*(visc_ddz_p/p->DXP[IP]) - (w(i+1,j,k-1)-w(i,j,k-1))*(visc_ddz_m/p->DXP[IP]))/p->DZN[KP];
-		
-	}
-
-    
     LOOP
     UHdiff[IJK] = UHin[IJK];
     
     pgc->start4V(p,UHdiff,gcval_uh);
+    
+    LOOP
+	{
+    visc = d->VISC[IJK];
+    
+    d->F(i,j,k) += 2.0*visc*((UH[Im1JK] - 2.0*UH[IJK] + UH[Ip1JK])/(p->XP[IM1] - 2.0*p->XP[IP] + p->XP[IP1]))
+                       
+        +   visc*((VH[IJm1K] - 2.0*VH[IJK] + VH[IJp1K])/(p->YP[JM1] - 2.0*p->YP[JP] + p->YP[JP1]))
+
+        +   visc*((WH[IJKm1] - 2.0*WH[IJK] + ¨WH[IJKp1])/(p->ZP[KM1] - 2.0*p->ZP[KP] + p->ZP[KP1]))
+
+
+        + visc*(VH[Ip1Jp1K]-VH[Im1Jp1K] - VH[Ip1Jm1K]+VH[Im1Jm1K])/(2.0*p->DXP[IP]*p->DYN[JP])
+        
+        + visc*(WH[Ip1JKp1]-WH[Im1JKp1] - WH[Ip1JKm1]+WH[Im1JKm1])/(2.0*p->DXP[IP]*p->DZN[JP]);
+		
+	}
+
+    
+
+    
 
     n=0;
     LOOP
@@ -118,83 +118,7 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        if(p->wet[IJ]==0  || p->flag4[IJK]<0 || d->breaking(i,j)==1)
-        {
-        d->M.p[n]  =  1.0;
-
-
-        d->M.n[n] = 0.0;
-        d->M.s[n] = 0.0;
-
-        d->M.w[n] = 0.0;
-        d->M.e[n] = 0.0;
-
-        d->M.t[n] = 0.0;
-        d->M.b[n] = 0.0;
-        
-        d->rhsvec.V[n] =  0.0;
-        }
-        
-	++n;
-	}
-    
-    
-    
-    n=0;
-	LOOP
-	{
-        if(p->wet[IJ]==1 && d->breaking(i,j)==0)
-        {
-            if(p->flag4[Im1JK]<0)
-            {
-            d->rhsvec.V[n] -= d->M.s[n]*UH[Im1JK];
-            d->M.s[n] = 0.0;
-            }
-            
-            if(p->flag4[Ip1JK]<0)
-            {
-            d->rhsvec.V[n] -= d->M.n[n]*UH[Ip1JK];
-            d->M.n[n] = 0.0;
-            }
-            
-            if(p->flag4[IJm1K]<0)
-            {
-            d->rhsvec.V[n] -= d->M.e[n]*UH[IJm1K]*p->y_dir;
-            d->M.e[n] = 0.0;
-            }
-            
-            if(p->flag4[IJp1K]<0)
-            {
-            d->rhsvec.V[n] -= d->M.w[n]*UH[IJp1K]*p->y_dir;
-            d->M.w[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKm1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.b[n]*UH[IJKm1];
-            d->M.b[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0)
-            {
-            d->rhsvec.V[n] -= d->M.t[n]*UH[IJKp1];
-            d->M.t[n] = 0.0;
-            }
-  
-        }
-	++n;
-	}
-	
-    psolv->startV(p,pgc,UHdiff,d->rhsvec,d->M,4);
-    
-	
-    pgc->start4V(p,UHdiff,gcval_uh);
-    
-    
-	time=pgc->timer()-starttime;
-	p->uiter=p->solveriter;
-	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;*/
+*/
 }
 
 void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, double alpha)
