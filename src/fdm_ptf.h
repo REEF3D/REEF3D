@@ -42,6 +42,8 @@ public:
     slice4 Fifsf;
     slice4 K;
     sliceint4 etaloc;
+    double *Fi_,*Uin_,*Uout_,*U_,*V_,*W_;
+    
     /*
     slice1 P;
     slice2 Q;

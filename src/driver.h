@@ -84,6 +84,7 @@ class momentum_RKLS3_sf;
 class nhflow_vtu3D;
 class sixdof;
 class particle_base;
+class iowave;
 
 #include<iostream>
 #include<fstream>
@@ -169,6 +170,7 @@ public:
 	lexer* p;
 	momentum* pmom;
 	ioflow* pflow;
+    iowave* pwave;
 	pressure* ppress;
 	poisson* ppois;
 	convection* pconvec;

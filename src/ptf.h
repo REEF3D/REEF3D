@@ -25,7 +25,7 @@ class fdm_ptf;
 class ghostcell;
 class solver;
 class convection;
-class ioflow;
+class iowave;
 class reini;
 class onephase;
 
@@ -37,8 +37,8 @@ using namespace std;
 class ptf
 {
 public:
-	virtual void start(lexer*, fdm_ptf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*)=0;
-    virtual void ini(lexer*, fdm_ptf*, ghostcell*, ioflow*, reini*, onephase*)=0;
+	virtual void start(lexer*, fdm_ptf*, ghostcell*, solver*, convection*, iowave*, reini*,onephase*)=0;
+    virtual void ini(lexer*, fdm_ptf*, ghostcell*, iowave*, reini*, onephase*)=0;
     virtual void inidisc(lexer*, fdm_ptf*, ghostcell*)=0;
 
 };

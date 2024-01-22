@@ -30,6 +30,12 @@ fdm_ptf::fdm_ptf(lexer *p):fdm(p),Fifsf(p),K(p),etaloc(p)
 	maxG=0.0; 
 	maxH=0.0;
     
+    p->Darray(U_,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(V_,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(W_,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Fi_,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Uin_,p->imax*p->jmax*(p->kmax+2));
+    
 	gi=p->W20;
 	gj=p->W21;
 	gk=p->W22;

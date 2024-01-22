@@ -185,6 +185,16 @@ public:
     void wavegen_precalc_decomp_relax_fnpf(lexer*,ghostcell*);
     void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);
     
+    //PTF
+    virtual void inflow_ptf(lexer*,fdm_ptf*,ghostcell*,double*,double*,slice&,slice&);
+    virtual void rkinflow_ptf(lexer*,fdm_ptf*,ghostcell*,slice&,slice&);
+    void wavegen_precalc_decomp_space_dirichlet_ptf(lexer*,ghostcell*);
+    void dirichlet_wavegen_ptf(lexer*,fdm_ptf*,ghostcell*,double*,double*,slice&,slice&);
+    void wavegen_precalc_decomp_dirichlet_ptf(lexer*,ghostcell*);
+    void ptf_precalc_dirichlet_ini(lexer*,ghostcell*);
+    void ptf_precalc_dirichlet(lexer*,ghostcell*);
+    void active_beach_ptf(lexer*, fdm_ptf*, ghostcell*, double*, double*, slice&, slice&);
+    
     // NHFLOW
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);

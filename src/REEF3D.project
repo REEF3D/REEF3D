@@ -2824,6 +2824,13 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <VirtualDirectory Name="PTF">
+            <File Name="active_beach_ptf.cpp"/>
+            <File Name="iowave_ptf_active-wavegen.cpp"/>
+            <File Name="iowave_ptf_dirichlet-wavegen.cpp"/>
+            <File Name="iowave_ptf_inflow.cpp"/>
+            <File Name="iowave_ptf_fullini.cpp"/>
+          </VirtualDirectory>
           <File Name="iowave_timeseries.cpp"/>
           <File Name="iowave_precalc_decomp_space_dirichlet.cpp"/>
           <File Name="iowave_precalc_relax_func.cpp"/>

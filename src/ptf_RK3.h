@@ -40,8 +40,8 @@ public:
 	ptf_RK3(lexer*, fdm_ptf*, ghostcell*);
 	virtual ~ptf_RK3();
     
-    virtual void start(lexer*, fdm_ptf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
-    virtual void ini(lexer*, fdm_ptf*, ghostcell*, ioflow*, reini*, onephase*);
+    virtual void start(lexer*, fdm_ptf*, ghostcell*, solver*, convection*, iowave*, reini*,onephase*);
+    virtual void ini(lexer*, fdm_ptf*, ghostcell*, iowave*, reini*, onephase*);
     virtual void inidisc(lexer*, fdm_ptf*, ghostcell*);
     
 private:

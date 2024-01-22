@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_ptf.h"
 #include"ghostcell.h"
-#include"ioflow.h"
+#include"iowave.h"
 #include"onephase.h"
 #include"slice.h"
 #include"reinifluid_RK3.h"
@@ -43,18 +43,18 @@ ptf_fsf_update::~ptf_fsf_update()
 
 }
 
-void ptf_fsf_update::fsfupdate(lexer *p, fdm_ptf *a, ghostcell *pgc, ioflow *pflow, onephase *poneph, slice &eta)
+void ptf_fsf_update::fsfupdate(lexer *p, fdm_ptf *a, ghostcell *pgc, iowave *pwave, onephase *poneph, slice &eta)
 {
     // update phi
     FLUIDLOOP
     a->phi(i,j,k) = eta(i,j) + p->phimean - p->pos_z();
     
-    //preini->start(a,p, a->phi, pgc, pflow);
+    //preini->start(a,p, a->phi, pgc, pwave);
 
     pgc->start4(p,a->phi,50);
 
     // update onephase
-    poneph->update(p,a,pgc,pflow);
+    poneph->update(p,a,pgc,pwave);
 }
 
 void ptf_fsf_update::etaloc(lexer *p, fdm_ptf *a, ghostcell *pgc)

@@ -129,7 +129,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm_ptf* a, ghostcell *pgc, solver *psolv
 
             if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1)
             {
-            a->rhsvec.V[n] += a->M.s[n]*a->u(i-1,j,k)*p->DXP[IP];
+          //  a->rhsvec.V[n] += a->M.s[n]*a->u(i-1,j,k)*p->DXP[IP];
+            a->rhsvec.V[n] += a->M.s[n]*a->Uin_[Im1JK]*p->DXP[IP];
             a->M.p[n] += a->M.s[n];
             a->M.s[n] = 0.0;
             }
@@ -147,7 +148,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm_ptf* a, ghostcell *pgc, solver *psolv
 
             if(p->flag4[Ip1JK]<AIR && bc(i+1,j)==2)
             {
-            a->rhsvec.V[n] -= a->M.n[n]*a->u(i+1,j,k)*p->DXP[IP1];
+            //a->rhsvec.V[n] -= a->M.n[n]*a->u(i+1,j,k)*p->DXP[IP1];
+            a->rhsvec.V[n] -= a->M.n[n]*a->Uin_[Ip1JK]*p->DXP[IP1];
             a->M.p[n] += a->M.n[n];
             a->M.n[n] = 0.0;
             }

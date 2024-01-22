@@ -26,7 +26,7 @@ class lexer;
 class fdm_ptf;
 class ghostcell;
 class onephase;
-class ioflow;
+class iowave;
 class slice;
 class field;
 class reinifluid_RK3;
@@ -43,7 +43,7 @@ public:
 	virtual ~ptf_fsf_update();
     
     void fsfepol(lexer*, fdm_ptf*, ghostcell*,slice&,field&);
-	void fsfupdate(lexer*, fdm_ptf*, ghostcell*,ioflow*,onephase*,slice&);
+	void fsfupdate(lexer*, fdm_ptf*, ghostcell*,iowave*,onephase*,slice&);
     void etaloc(lexer*, fdm_ptf*, ghostcell*);
     void fsfbc(lexer*, fdm_ptf*, ghostcell*,slice&,field&,slice&);
     void fsfbc0(lexer*, fdm_ptf*, ghostcell*,slice&,field&);

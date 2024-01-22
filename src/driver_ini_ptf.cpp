@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"benchmark_header.h"
 #include"6DOF_header.h"
 #include"waves_header.h"
+#include"iowave.h" 
 #include"lexer.h"
 #include"cart1.h"
 #include"cart2.h"
@@ -71,14 +72,14 @@ cout<<"starting driver_ini_PTF"<<endl;
     if(p->solidread==1)
     {
     solid solid_object(p,a,pgc);
-    solid_object.start(p,a,pgc,pflow,pconvec,preto);
+    solid_object.start(p,a,pgc,pwave,pconvec,preto);
     }
     
     // Geotopo
     if(p->toporead>0)
     {
     geotopo gtopo(p,a,pgc);
-    gtopo.start(p,a,pgc,pflow,preto,pvrans);
+    gtopo.start(p,a,pgc,pwave,preto,pvrans);
     }
     SLICELOOP4
     p->wet[IJ]=1;
@@ -86,22 +87,22 @@ cout<<"starting driver_ini_PTF"<<endl;
     SLICELOOP4
 	a->bed(i,j) = p->bed[IJ];
     
-    pflow->ini_ptf(p,a,pgc);
-    pptf->ini(p,a,pgc,pflow,preini,poneph); 
-    pflow->ini_ptf(p,a,pgc);
+    pwave->ini_ptf(p,a,pgc);
+    pptf->ini(p,a,pgc,pwave,preini,poneph); 
+    pwave->ini_ptf(p,a,pgc);
     pptf_timestep->ini(a,p,pgc);
-    pptf->ini(p,a,pgc,pflow,preini,poneph);  // --- 
-    pflow->eta_relax(p,pgc,a->eta);
-    pflow->fi_relax(p,pgc,a->Fi,a->phi);
+    pptf->ini(p,a,pgc,pwave,preini,poneph);  // --- 
+   // pwave->eta_relax(p,pgc,a->eta);
+   // pwave->fi_relax(p,pgc,a->Fi,a->phi);
 
 
     pgc->start4(p,a->Fi,250);
     
-    pflow->gcio_update(p,a,pgc);
-	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+    pwave->gcio_update(p,a,pgc);
+//	pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,a->Fifsf,a->eta);
 
     pptf->inidisc(p,a,pgc);
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+    pprint->start(a,p,pgc,pturb,pheat,pwave,psolv,pdata,pconc,pmp,psed);
 
 	p->gctime=0.0;
     p->xtime=0.0;

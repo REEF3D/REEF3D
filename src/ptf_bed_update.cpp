@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_ptf.h"
 #include"ghostcell.h"
-#include"ioflow.h"
+#include"iowave.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 

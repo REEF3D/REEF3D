@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"waves_header.h"
 #include"lexer.h"
+#include"iowave.h"
 
 void driver::loop_ptf(fdm_ptf* a)
 {
@@ -64,10 +65,10 @@ void driver::loop_ptf(fdm_ptf* a)
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
-        pflow->wavegen_precalc(p,pgc);
+        pwave->wavegen_precalc(p,pgc);
 
         // PFLOW
-		pptf->start(p,a,pgc,plapsolv,pfsfdisc,pflow,preini,poneph);
+		pptf->start(p,a,pgc,plapsolv,pfsfdisc,pwave,preini,poneph);
     
         //timestep control
         p->simtime+=p->dt;
@@ -75,7 +76,7 @@ void driver::loop_ptf(fdm_ptf* a)
         
         
         // printer
-        pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+        pprint->start(a,p,pgc,pturb,pheat,pwave,psolv,pdata,pconc,pmp,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

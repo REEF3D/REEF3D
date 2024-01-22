@@ -38,6 +38,8 @@
 /Users/fk/Codefiles/REEF3D/src/iowave_sflow_relax.cpp
 /Users/fk/Codefiles/REEF3D/src/iowave_sflow_waterlevel.cpp
 /Users/fk/Codefiles/REEF3D/src/iowave_sflow_wavegen.cpp
+/Users/fk/Codefiles/REEF3D/src/iowave_ptf_active-wavegen.cpp
+/Users/fk/Codefiles/REEF3D/src/active_beach_ptf.cpp
 /Users/fk/Codefiles/REEF3D/src/gcbslice2.cpp
 /Users/fk/Codefiles/REEF3D/src/ggcslicepol4.cpp
 /Users/fk/Codefiles/REEF3D/src/ggcslicepol2.cpp
@@ -460,6 +462,7 @@
 /Users/fk/Codefiles/REEF3D/src/vrans_net.cpp
 /Users/fk/Codefiles/REEF3D/src/vrans_net_ini.cpp
 /Users/fk/Codefiles/REEF3D/src/bc_concentration.cpp
+/Users/fk/Codefiles/REEF3D/src/iowave_ptf_fullini.cpp
 /Users/fk/Codefiles/REEF3D/src/6DOF_df_interface.cpp
 /Users/fk/Codefiles/REEF3D/src/gcsl_epol1.cpp
 /Users/fk/Codefiles/REEF3D/src/6DOF_df_rotation.cpp
@@ -768,6 +771,7 @@
 /Users/fk/Codefiles/REEF3D/src/mgc2.h
 /Users/fk/Codefiles/REEF3D/src/fsf_triangulation.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_idiff_w.cpp
+/Users/fk/Codefiles/REEF3D/src/iowave_ptf_inflow.cpp
 /Users/fk/Codefiles/REEF3D/src/benchmark.h
 /Users/fk/Codefiles/REEF3D/src/6DOF_df_forcing.cpp
 /Users/fk/Codefiles/REEF3D/src/heat_print.h
@@ -1577,6 +1581,7 @@
 /Users/fk/Codefiles/REEF3D/src/wave_lib_deep.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_f.cpp
 /Users/fk/Codefiles/REEF3D/src/vrans_header.h
+/Users/fk/Codefiles/REEF3D/src/iowave_ptf_dirichlet-wavegen.cpp
 /Users/fk/Codefiles/REEF3D/src/vrans_f.cpp
 /Users/fk/Codefiles/REEF3D/src/vrans_veg.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_print_wsf_theory.cpp

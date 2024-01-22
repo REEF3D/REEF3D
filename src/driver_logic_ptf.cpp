@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"benchmark_header.h"
 #include"6DOF_header.h"
 #include"waves_header.h"
+#include"iowave.h"
 
 void driver::logic_ptf(fdm_ptf *a)
 {    
@@ -61,11 +62,11 @@ void driver::logic_ptf(fdm_ptf *a)
 	pprint = new vtu3D(p,a_tempo,pgc);
     
 //IOFlow
-	if(p->B60==0 && p->B90==0 && p->B180==0 )
-	pflow = new ioflow_v(p,pgc,pBC);
+	//if(p->B60==0 && p->B90==0 && p->B180==0 )
+	//pflow = new ioflow_v(p,pgc,pBC);
 
-	if(p->B90>=1)
-	pflow= new iowave(p,pgc,pBC);
+	//if(p->B90>=1)
+	pwave= new iowave(p,pgc,pBC);
     
 // Geodat
     if(p->G1==0)

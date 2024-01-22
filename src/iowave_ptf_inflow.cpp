@@ -19,26 +19,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"ptf.h"
-
-
-using namespace std;
-
-#ifndef PTF_VOID_H_
-#define PTF_VOID_H_
-
-class ptf_void : public ptf
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm_ptf.h"
+#include"ghostcell.h"
+void iowave::inflow_ptf(lexer *p, fdm_ptf *a, ghostcell *pgc, double *Fi_, double *Uin_, slice &Fifsf, slice &eta)
 {
-public:
-	ptf_void();
-	virtual ~ptf_void();
+    if(p->B98==3 || p->B98==4)
+	dirichlet_wavegen_ptf(p,a,pgc,Fi_,Uin_,Fifsf,eta);
     
-    virtual void start(lexer*, fdm_ptf*, ghostcell*, solver*, convection*, iowave*, reini*,onephase*);
-    virtual void ini(lexer*, fdm_ptf*, ghostcell*, iowave*, reini*, convection*);
-    virtual void inidisc(lexer*, fdm_ptf*, ghostcell*);
+    if(p->B99==3||p->B99==4||p->B99==5)
+	active_beach_ptf(p,a,pgc,Fi_,Uin_,Fifsf,eta);
+}
+
+void iowave::rkinflow_ptf(lexer *p, fdm_ptf *a, ghostcell *pgc, slice &frk, slice &f)
+{
+    for(n=0;n<p->gcslin_count;n++)
+    {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        frk(i-1,j) = f(i-1,j);
+        frk(i-2,j) = f(i-2,j);
+        frk(i-3,j) = f(i-3,j);
+    }
     
-
-};
-
-#endif
+}

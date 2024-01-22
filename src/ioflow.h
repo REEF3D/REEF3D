@@ -113,6 +113,7 @@ public:
     
     virtual void ini_ptf(lexer*,fdm_ptf*,ghostcell*)=0;
     
+    
     // nhflow
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
