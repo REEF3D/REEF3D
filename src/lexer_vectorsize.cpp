@@ -82,7 +82,7 @@ void lexer::vecsize(ghostcell *pgc)
 
     veclength = cellnum + gcbnum*margin + gcpara_sum*4  + gcbextra;
     
-    cout<<mpirank<<" CELLNUM: "<<cellnum<<" veclength: "<<veclength<<" gcextra0: "<<gcbextra0<<" gcextra: "<<gcbextra<<" tot_gcbextra_est: "<<tot_gcbextra_est<<endl;
+    //cout<<mpirank<<" CELLNUM: "<<cellnum<<" veclength: "<<veclength<<" gcextra0: "<<gcbextra0<<" gcextra: "<<gcbextra<<" tot_gcbextra_est: "<<tot_gcbextra_est<<endl;
     
     //gcbextra=gcbextra0;
     
