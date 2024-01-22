@@ -61,7 +61,7 @@ void nhflow_HLLC::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta)
     aij_E(p,d,4);
 }
 
-double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, int ipol)
+void nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, int ipol)
 {
     // HLLC flux 
     pflux->start_U(p,d,pgc);
@@ -80,7 +80,7 @@ double nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, int ipol)
     }    
 }
 
-double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, int ipol)
+void nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, int ipol)
 {
     // HLLC flux 
     if(p->j_dir==1)
@@ -113,7 +113,7 @@ double nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, int ipol)
     }  
 }
 
-double nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, int ipol)
+void nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, int ipol)
 {
     // HLLC flux 
     pflux->start_W(p,d,pgc);
@@ -133,7 +133,7 @@ double nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, int ipol)
     }    
 }
 
-double nhflow_HLLC::aij_E(lexer* p,fdm_nhf* d, int ipol)
+void nhflow_HLLC::aij_E(lexer* p,fdm_nhf* d, int ipol)
 {
     // HLLC flux 
     pflux->start_E(p,d,pgc);
@@ -159,7 +159,7 @@ double nhflow_HLLC::aij_E(lexer* p,fdm_nhf* d, int ipol)
     pgc->start2V(p,d->Fy,14); 
 }
 
-double nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, double *Uw, double *SSxs, double *SSxn, double *SSye, double *SSyw)
+void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, double *Uw, double *SSxs, double *SSxn, double *SSye, double *SSyw)
 {
     // HLLC flux
     ULOOP
@@ -249,7 +249,7 @@ double nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue
     }
 }
 
-double nhflow_HLLC::HLLC_E(lexer* p,fdm_nhf* d)
+void nhflow_HLLC::HLLC_E(lexer* p,fdm_nhf* d)
 {
     
     // HLLC flux
@@ -340,7 +340,7 @@ double nhflow_HLLC::HLLC_E(lexer* p,fdm_nhf* d)
     }
 }
 
-double nhflow_HLLC::HLL(lexer *p,fdm_nhf *&d, double *Us, double *Un, double *Ue, double *Uw)
+void nhflow_HLLC::HLL(lexer *p,fdm_nhf *&d, double *Us, double *Un, double *Ue, double *Uw)
 {
     // HLL flux
     ULOOP

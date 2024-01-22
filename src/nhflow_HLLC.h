@@ -48,15 +48,15 @@ public:
 
 private:
 
-    double aij_U(lexer*, fdm_nhf*, int);
-    double aij_V(lexer*, fdm_nhf*, int);
-    double aij_W(lexer*, fdm_nhf*, int);
-    double aij_E(lexer*, fdm_nhf*, int);
+    void aij_U(lexer*, fdm_nhf*, int);
+    void aij_V(lexer*, fdm_nhf*, int);
+    void aij_W(lexer*, fdm_nhf*, int);
+    void aij_E(lexer*, fdm_nhf*, int);
     
-    double HLLC(lexer*, fdm_nhf*, double*, double*, double*, double*, double*, double*, double*, double*);
-    double HLLC_E(lexer*, fdm_nhf*);
+    void HLLC(lexer*, fdm_nhf*, double*, double*, double*, double*, double*, double*, double*, double*);
+    void HLLC_E(lexer*, fdm_nhf*);
     
-    double HLL(lexer*, fdm_nhf*&, double*, double*, double*, double*);
+    void HLL(lexer*, fdm_nhf*&, double*, double*, double*, double*);
     
 	double dx,dy,dz;
 	double udir,vdir,wdir;
