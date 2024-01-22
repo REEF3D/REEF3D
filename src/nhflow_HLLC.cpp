@@ -46,7 +46,7 @@ void nhflow_HLLC::precalc(lexer* p, fdm_nhf* d, int ipol, slice &eta)
 {
 }
 
-void nhflow_HLLC::start(lexer* p, fdm_nhf *&d, int ipol, slice &eta)
+void nhflow_HLLC::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta)
 {
     if(ipol==1)
     aij_U(p,d,1);
