@@ -143,8 +143,6 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     // HLL flux 
     pflux->start_E(p,d,pgc);
     
-    //cout<<p->mpirank<<"aij_E "<<endl;
-    
     HLL_E(p,d);  // -----
     
     LOOP
@@ -213,13 +211,6 @@ void nhflow_HLL::HLL(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, 
 
 void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
 {
-    
-    int maxijk=0;
-    
-    ULOOP
-    maxijk = MAX(IJK, maxijk);
-    
-    cout<<p->mpirank<<" maxijk: "<<maxijk<<endl;
     
     // HLL flux
     ULOOP

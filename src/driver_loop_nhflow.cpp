@@ -103,9 +103,10 @@ void driver::loop_nhflow()
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
 		
-		if(p->B90>0)
+		
         if(p->count%p->P12==0)
         {
+        if(p->B90>0)
 		cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
 		
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
