@@ -127,13 +127,30 @@ void ptf_laplace_cds2::start(lexer* p, fdm_ptf* a, ghostcell *pgc, solver *psolv
             }
             
 
-            if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1)
+            /*if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1)
             {
           //  a->rhsvec.V[n] += a->M.s[n]*a->u(i-1,j,k)*p->DXP[IP];
             a->rhsvec.V[n] += a->M.s[n]*a->Uin_[Im1JK]*p->DXP[IP];
             a->M.p[n] += a->M.s[n];
             a->M.s[n] = 0.0;
+            }*/
+            
+            if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1  && p->A329<=1 && k>0)
+            {
+            a->rhsvec.V[n] += a->M.s[n]*a->Uin_[Im1JK]*p->DXP[IM1];
+            a->M.p[n] += a->M.s[n];
+            a->M.s[n] = 0.0;
             }
+            
+            if(p->flag4[Im1JK]<AIR && bc(i-1,j)==1  && p->A329>=2 && k>0)
+            {
+            denom = -1.5*p->XP[IM1] + 2.0*p->XP[IP] - 0.5*p->XP[IP1];
+            
+            a->rhsvec.V[n] += (2.0/3.0)*a->M.s[n]*a->Uin_[Im1JK]*denom;
+            a->M.p[n] += (4.0/3.0)*a->M.s[n];
+            a->M.n[n] -= (1.0/3.0)*a->M.s[n];
+            a->M.s[n] = 0.0;
+            }  
 
             // north
             if(p->flag4[Ip1JK]<AIR && bc(i+1,j)==0)
@@ -146,11 +163,28 @@ void ptf_laplace_cds2::start(lexer* p, fdm_ptf* a, ghostcell *pgc, solver *psolv
             a->M.n[n] = 0.0;
             }
 
-            if(p->flag4[Ip1JK]<AIR && bc(i+1,j)==2)
+          /*  if(p->flag4[Ip1JK]<AIR && bc(i+1,j)==2)
             {
             //a->rhsvec.V[n] -= a->M.n[n]*a->u(i+1,j,k)*p->DXP[IP1];
             a->rhsvec.V[n] -= a->M.n[n]*a->Uin_[Ip1JK]*p->DXP[IP1];
             a->M.p[n] += a->M.n[n];
+            a->M.n[n] = 0.0;
+            } */
+            
+            if(p->flag4[Ip1JK]<AIR && bc(i+1,j)==2  && p->A329<=1)
+            {
+            a->rhsvec.V[n] -= a->M.n[n]*a->Uin_[Ip1JK]*p->DXP[IP1];
+            a->M.p[n] += a->M.n[n];
+            a->M.n[n] = 0.0;
+            }
+            
+            if(p->flag4[Ip1JK]<AIR && bc(i+1,j)==2  && p->A329>=2)
+            {
+            denom = -0.5*p->XP[IM1] + 2.0*p->XP[IP] - 1.5*p->XP[IP1];
+            
+            a->rhsvec.V[n] += (2.0/3.0)*a->M.n[n]*a->Uin_[Ip1JK]*denom;
+            a->M.p[n] += (4.0/3.0)*a->M.n[n];
+            a->M.s[n] -= (1.0/3.0)*a->M.n[n];
             a->M.n[n] = 0.0;
             }
 

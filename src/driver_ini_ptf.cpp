@@ -92,8 +92,8 @@ cout<<"starting driver_ini_PTF"<<endl;
     pwave->ini_ptf(p,a,pgc);
     pptf_timestep->ini(a,p,pgc);
     pptf->ini(p,a,pgc,pwave,preini,poneph);  // --- 
-   // pwave->eta_relax(p,pgc,a->eta);
-   // pwave->fi_relax(p,pgc,a->Fi,a->phi);
+    pwave->eta_relax(p,pgc,a->eta);
+    pwave->fifsf_relax(p,pgc,a->Fifsf);
 
 
     pgc->start4(p,a->Fi,250);

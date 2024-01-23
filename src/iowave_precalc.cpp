@@ -94,7 +94,7 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
             ptf_precalc_dirichlet(p,pgc);
         }
         
-        /*
+    
         if(p->B89==1)
         {
             if(p->B98==2)
@@ -109,7 +109,7 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
             wavegen_precalc_decomp_dirichlet_fnpf(p,pgc);
             }
         }
-        */
+        
         
     }
     

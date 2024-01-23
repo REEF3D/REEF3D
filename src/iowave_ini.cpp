@@ -71,10 +71,11 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 void iowave::ini_ptf(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {
     wavegen_precalc_ini(p,pgc);
-    //wavegen_precalc_relax_func_ptf(p,pgc); //was relax_func_nhflow before
+    wavegen_precalc_relax_func_ptf(p,pgc); //was relax_func_nhflow before
     
-    //if(p->B89==1 && p->B98==2)
-    //wavegen_precalc_decomp_space_fnpf(p,pgc);
+    if(p->B89==1 && p->B98==2)
+    wavegen_precalc_decomp_space_ptf(p,pgc);
+    
     if(p->B89==1 && p->B98==3)
     wavegen_precalc_decomp_space_dirichlet_ptf(p,pgc);
 

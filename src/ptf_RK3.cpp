@@ -100,21 +100,20 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
 
     // Set Boundary Conditions
+    pwave->eta_relax(p,pgc,erk1);
+    pgc->gcsl_start4(p,erk1,gcval_eta);
+    pwave->fifsf_relax(p,pgc,frk1);
+    pgc->gcsl_start4(p,frk1,gcval_fifsf);
    // pwave->fifsf_relax(p,pgc,frk1);
-   cout<<"up to fiexchange works"<<endl;
-   pgc->start4(p,a->Fi,50);
-   FLUIDLOOP
+    pgc->start4(p,a->Fi,50);
+    FLUIDLOOP
         a->Fi_[IJK]=a->Fi(i,j,k);
     pgc->start4V(p,a->Fi_,50);
-    cout<<"fiexchange  works"<<endl;
     pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,frk1,erk1);
     pgc->start4V(p,a->Fi_,50);
-    cout<<"inflow works"<<endl;
     FLUIDLOOP
         a->Fi(i,j,k)=a->Fi_[IJK];
     pgc->start4(p,a->Fi,50);
-    cout<<"fiexchange 2 works"<<endl;
-    cout<<"1 works"<<endl;
     pfsfupdate->fsfupdate(p,a,pgc,pwave,poneph,erk1);
     pfsfupdate->etaloc(p,a,pgc);
     pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi,erk1);
@@ -151,17 +150,17 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     
     // Set Boundary Conditions
-  //  pwave->eta_relax(p,pgc,erk2);
-  //  pwave->fifsf_relax(p,pgc,frk2);
+    pwave->eta_relax(p,pgc,erk2);
+    pgc->gcsl_start4(p,erk2,gcval_eta);
+    pwave->fifsf_relax(p,pgc,frk2);
+    pgc->gcsl_start4(p,frk2,gcval_fifsf);
     pfsfupdate->fsfupdate(p,a,pgc,pwave,poneph,erk2);
     pfsfupdate->etaloc(p,a,pgc);
-    cout<<"2 test"<<endl;
     FLUIDLOOP
         a->Fi_[IJK]=a->Fi(i,j,k);
     pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,frk2,erk2);
     FLUIDLOOP
         a->Fi(i,j,k)=a->Fi_[IJK];
-    cout<<"2 works"<<endl;
     pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi,erk2);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
@@ -196,8 +195,10 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     pgc->gcsl_start4(p,a->Fifsf,gcval_fifsf);
     
     // Set Boundary Conditions
-  //  pwave->eta_relax(p,pgc,a->eta);
-  //  pwave->fifsf_relax(p,pgc,a->Fifsf);
+    pwave->eta_relax(p,pgc,a->eta);
+    pgc->gcsl_start4(p,a->eta,gcval_eta);
+    pwave->fifsf_relax(p,pgc,a->Fifsf);
+    pgc->gcsl_start4(p,a->Fifsf,gcval_fifsf);
     pfsfupdate->fsfupdate(p,a,pgc,pwave,poneph,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
     FLUIDLOOP
@@ -257,7 +258,6 @@ void ptf_RK3::ini(lexer *p, fdm_ptf *a, ghostcell *pgc, iowave *pwave, reini *pr
     a->test(i,j,k) = a->Fifsf(i,j);
     
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
-    cout<<"ini works"<<endl;
 }
 
 void ptf_RK3::inidisc(lexer *p, fdm_ptf *a, ghostcell *pgc)
