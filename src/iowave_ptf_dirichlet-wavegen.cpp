@@ -101,7 +101,7 @@ void iowave::wavegen_precalc_decomp_space_dirichlet_ptf(lexer* p ,ghostcell* pgc
             KLOOP
             PCHECK
             {
-            z=p->ZSN[FIJK]-p->phimean;
+            z=p->ZSN[IJK]-p->phimean;
 
                 for(qn=0;qn<wave_comp;++qn)
                 {
@@ -236,7 +236,7 @@ void iowave::ptf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             KLOOP
             PCHECK
             {
-            z=p->ZSN[FIJK]-p->phimean;
+            z=p->ZSN[IJK]-p->phimean;
 
             Uinval[count] = wave_u(p,pgc,xg,yg,z);
             ++count;
@@ -356,4 +356,89 @@ void iowave::dirichlet_wavegen_ptf(lexer *p, fdm_ptf *a, ghostcell* pgc, double 
         ++count;
         }
     }
+}
+
+void iowave::wavegen_precalc_decomp_dirichlet_ptf(lexer *p, ghostcell *pgc)
+{
+    int qn;
+        
+        // eta and Fifsfval
+        count=0;
+		for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+
+        eta(i,j) = 0.0;
+        etaval[count] = 0.0;
+            
+        for(qn=0;qn<wave_comp;++qn)
+        {
+        eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
+        etaval[count] = eta(i,j);
+        }
+        
+        z = eta(i,j);
+        
+        time_1=time_0;
+        time_0=p->simtime;
+        time_n=p->simtime+p->dt;
+        Fifsfval1[count] = Fifsfval0[count];
+        Fifsfval0[count] = Fifsfval[count];
+        
+        
+        Fifsfval[count]=0.0;
+        
+        
+        for(qn=0;qn<wave_comp;++qn)
+        Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_cos[qn] - Fifsfval_S_sin[count][qn]*Fifsfval_T_sin[qn];
+        
+        ++count;
+        }
+        
+        // Uin
+        count=0;
+		for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+            Uinval[count]=0.0;
+        
+            KLOOP
+            PCHECK
+            {
+            for(qn=0;qn<wave_comp;++qn)
+            Uinval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
+            
+            ++count;
+            }
+        }
+        
+    
+    // beach
+    count=0;
+    ILOOP 
+    JLOOP 
+    {
+
+		db = distbeach(p);
+        
+        KLOOP 
+        PCHECK
+        {
+                    
+            if(p->B99==1||p->B99==2)
+            {
+                // Zone 2
+                if(db<dist2)
+                {
+                rb3val[count] = rb3(p,db);
+                ++count;
+                }
+            }
+        }
+    }
+   
+
 }

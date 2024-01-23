@@ -87,8 +87,8 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
     {
         if(p->B89==0 )
         {
-           /* if(p->B98==2)
-            fnpf_precalc_relax(p,pgc);*/
+           if(p->B98==2)
+            ptf_precalc_relax(p,pgc);
             
             if(p->B98==3 || p->B98==4)
             ptf_precalc_dirichlet(p,pgc);
@@ -99,14 +99,14 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
         {
             if(p->B98==2)
             {
-            wavegen_precalc_decomp_time_fnpf(p,pgc);
-            wavegen_precalc_decomp_relax_fnpf(p,pgc);
+            wavegen_precalc_decomp_time_ptf(p,pgc);
+            wavegen_precalc_decomp_relax_ptf(p,pgc);
             }
             
             if(p->B98==3 || p->B98==4)
             {
-            wavegen_precalc_decomp_time_fnpf(p,pgc);
-            wavegen_precalc_decomp_dirichlet_fnpf(p,pgc);
+            wavegen_precalc_decomp_time_ptf(p,pgc);
+            wavegen_precalc_decomp_dirichlet_ptf(p,pgc);
             }
         }
         

@@ -87,14 +87,23 @@ cout<<"starting driver_ini_PTF"<<endl;
     SLICELOOP4
 	a->bed(i,j) = p->bed[IJ];
     
+  
     pwave->ini_ptf(p,a,pgc);
+
     pptf->ini(p,a,pgc,pwave,preini,poneph); 
+
     pwave->ini_ptf(p,a,pgc);
+
     pptf_timestep->ini(a,p,pgc);
-    pptf->ini(p,a,pgc,pwave,preini,poneph);  // --- 
+    
+    pptf->ini(p,a,pgc,pwave,preini,poneph);
+
     pwave->eta_relax(p,pgc,a->eta);
     pwave->fifsf_relax(p,pgc,a->Fifsf);
-
+  
+    pgc->gcsl_start4(p,a->eta,50);
+    pgc->gcsl_start4(p,a->Fifsf,50);
+   
 
     pgc->start4(p,a->Fi,250);
     

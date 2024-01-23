@@ -77,6 +77,7 @@ void iowave::full_initialize_ptf(lexer *p, fdm_ptf *a, ghostcell *pgc)
 
    // pgc->start4(p,a->eta,50);
     pgc->start4(p,a->Fi,50);
-  //  pgc->start4(p,a->Fifsf,50);
+    pgc->gcsl_start4(p,a->Fifsf,50);
+    pgc->gcsl_start4(p,a->eta,50);
 
 }

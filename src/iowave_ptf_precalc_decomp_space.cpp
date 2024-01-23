@@ -59,7 +59,7 @@ void iowave::wavegen_precalc_decomp_space_ptf(lexer *p, ghostcell *pgc)
 
     //FI
     count=0;
-    FLOOP
+    LOOP
     {
 		
         xg = xgen(p);
@@ -67,7 +67,7 @@ void iowave::wavegen_precalc_decomp_space_ptf(lexer *p, ghostcell *pgc)
         dg = distgen(p);
 		db = distbeach(p);
         
-        z=p->ZSN[FIJK]-p->phimean;
+        z=p->ZSN[IJK]-p->phimean;
 		
 		// Wave Generation
 		if(p->B98==2)

@@ -29,7 +29,7 @@ void iowave::ptf_precalc_relax_ini(lexer *p, ghostcell *pgc)
 {
     // count number of relax points
     // allocate double* array
-    
+
     int dbcount=0;
     
     upt_count=vpt_count=wpt_count=ppt_count=ept_count=0;
@@ -45,7 +45,8 @@ void iowave::ptf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     }
     
     // FI ------------------------------------------------
-    FLOOP
+
+    LOOP
     {
 		dg = distgen(p); 
         db = distbeach(p); 
@@ -151,19 +152,19 @@ void iowave::ptf_precalc_relax(lexer *p, ghostcell *pgc)
     count=0;
     dbcount=0;
 
-    FILOOP 
-    FJLOOP 
+    ILOOP 
+    JLOOP 
     {
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
-        FKLOOP 
-        FPCHECK
+        KLOOP 
+        PCHECK
         {
         
-            z=p->ZSN[FIJK]-p->phimean;
+            z=p->ZSN[IJK]-p->phimean;
 
             
             // Wave Generation
@@ -269,17 +270,17 @@ void iowave::wavegen_precalc_decomp_relax_ptf(lexer *p, ghostcell *pgc)
     count=0;
     int dbcount=0;
     
-    FILOOP 
-    FJLOOP 
+    ILOOP 
+    JLOOP 
     {
         dg = distgen(p);
 		db = distbeach(p);
         
-        FKLOOP 
-        FPCHECK
+        KLOOP 
+        PCHECK
         {
         
-        z=p->ZSN[FIJK]-p->phimean;
+        z=p->ZSN[IJK]-p->phimean;
 
 		
 		if(p->B98==2 && f_switch==1)
