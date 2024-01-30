@@ -412,7 +412,7 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 		}
 		
 		// Numerical Beach
-        if(((p->A10!=3 && p->A10!=4) || p->A348==1 || p->A348==3 ))
+        if(p->A10!=3|| p->A348==1 || p->A348==3 )
         if(p->B99==1||p->B99==2||beach_relax==1)
 		{
             // Zone 2

@@ -59,7 +59,7 @@ void iowave::wavegen_precalc_decomp_space_ptf(lexer *p, ghostcell *pgc)
 
     //FI
     count=0;
-    LOOP
+    FLUIDLOOP
     {
 		
         xg = xgen(p);

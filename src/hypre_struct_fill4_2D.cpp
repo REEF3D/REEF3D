@@ -40,7 +40,7 @@ void hypre_struct::fill_matrix4_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f
     
     for (j = 0; j < nentries; j++)
     stencil_indices[j] = j;
-
+  
     count=0;
     KJILOOP
     {
@@ -82,7 +82,7 @@ void hypre_struct::fill_matrix4_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f
 		++count;  
 		}    
     }
-	
+   
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
     
@@ -99,10 +99,10 @@ void hypre_struct::fill_matrix4_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f
 	
     ++count;
     }
-
+    
     HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
     HYPRE_StructVectorAssemble(x);
-    
+   
     
     count=0; 
 	KJILOOP
@@ -121,6 +121,7 @@ void hypre_struct::fill_matrix4_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f
     
     HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
     HYPRE_StructVectorAssemble(b);
+    
 }
 
 

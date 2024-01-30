@@ -46,7 +46,7 @@ void iowave::ptf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     
     // FI ------------------------------------------------
 
-    LOOP
+    FLUIDLOOP
     {
 		dg = distgen(p); 
         db = distbeach(p); 
@@ -68,7 +68,7 @@ void iowave::ptf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     }	
 
 // ETA ------------------------------------------------
-    SLICEBASELOOP
+    SLICELOOP4
     {
 		dg = distgen(p); 
 
@@ -161,7 +161,7 @@ void iowave::ptf_precalc_relax(lexer *p, ghostcell *pgc)
 		db = distbeach(p);
         
         KLOOP 
-        PCHECK
+        PFLUIDCHECK
         {
         
             z=p->ZSN[IJK]-p->phimean;
@@ -277,7 +277,7 @@ void iowave::wavegen_precalc_decomp_relax_ptf(lexer *p, ghostcell *pgc)
 		db = distbeach(p);
         
         KLOOP 
-        PCHECK
+        PFLUIDCHECK
         {
         
         z=p->ZSN[IJK]-p->phimean;

@@ -7,7 +7,7 @@ OBJ_DIR   := $(BUILD)
 APP_DIR   := $(BIN)
 HYPRE_DIR := /usr/local/hypre
 EIGEN_DIR := ThirdParty/eigen-3.3.8 
-CXXFLAGS := -w -std=c++11 -O3 
+CXXFLAGS := -w -std=c++11 -O3 -g
 LDFLAGS  := -L ${HYPRE_DIR}/lib/ -lHYPRE
 INCLUDE  := -I ${HYPRE_DIR}/include -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
 SRC      := $(wildcard src/*.cpp)

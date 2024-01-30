@@ -38,8 +38,10 @@ Author: Hans Bihs
 ptf_RK3::ptf_RK3(lexer *p, fdm_ptf *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),erk2(p),frk1(p),frk2(p)
 {
     gcval=250;
+    if(p->j_dir==0)
+    gcval=150;
     
-    if(p->F50==1)
+   /* if(p->F50==1)
 	gcval_eta = 51;
     
     if(p->F50==2)
@@ -49,7 +51,7 @@ ptf_RK3::ptf_RK3(lexer *p, fdm_ptf *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1
 	gcval_eta = 53;
     
     if(p->F50==4)
-	gcval_eta = 54;
+	gcval_eta = 54;*/
     
     // 3D
     gcval_eta = 55;
@@ -82,38 +84,32 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     //pwave->inflow(p,a,pgc,a->u,a->v,a->w);
    // pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,a->Fifsf,a->eta);
 // Step 1
-    
     // fsf eta
     kfsfbc(p,a,pgc);
 
     SLICELOOP4
 	erk1(i,j) = a->eta(i,j) + p->dt*a->K(i,j);
     
-    pgc->gcsl_start4(p,erk1,gcval_eta);
-
     // fsf Fi
     dfsfbc(p,a,pgc,a->eta);
 
     SLICELOOP4
 	frk1(i,j) = a->Fifsf(i,j) + p->dt*a->K(i,j);
-    
-    pgc->gcsl_start4(p,frk1,gcval_fifsf);
 
     // Set Boundary Conditions
+    
     pwave->eta_relax(p,pgc,erk1);
     pgc->gcsl_start4(p,erk1,gcval_eta);
     pwave->fifsf_relax(p,pgc,frk1);
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
+    
    // pwave->fifsf_relax(p,pgc,frk1);
-    pgc->start4(p,a->Fi,50);
-    FLUIDLOOP
-        a->Fi_[IJK]=a->Fi(i,j,k);
-    pgc->start4V(p,a->Fi_,50);
+
+    LOOP
+        a->Fi_[IJK]=a->Fi(i,j,k)*1.0;
     pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,frk1,erk1);
-    pgc->start4V(p,a->Fi_,50);
-    FLUIDLOOP
-        a->Fi(i,j,k)=a->Fi_[IJK];
-    pgc->start4(p,a->Fi,50);
+    LOOP
+        a->Fi(i,j,k)=a->Fi_[IJK]*1.0;
     pfsfupdate->fsfupdate(p,a,pgc,pwave,poneph,erk1);
     pfsfupdate->etaloc(p,a,pgc);
     pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi,erk1);
@@ -126,13 +122,16 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     // solve Fi
    // pwave->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
+    pgc->gcsl_start4(p,erk1,gcval_eta);
+    pgc->gcsl_start4(p,frk1,gcval_fifsf);
+    pgc->start4V(p,a->Uin_,gcval);
     plap->start(p,a,pgc,psolv,a->Fi,frk1,erk1);
     pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi,erk1);
     pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,erk1,frk1);
 
 // Step 2
-    
+
     // fsf eta
     kfsfbc(p,a,pgc);
     
@@ -171,13 +170,15 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     // solve Fi
   //  pwave->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
+    pgc->gcsl_start4(p,erk2,gcval_eta);
+    pgc->gcsl_start4(p,frk2,gcval_fifsf);
     plap->start(p,a,pgc,psolv,a->Fi,frk2,erk2);
     pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi,erk2);
     pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,erk2,frk2);
 
 // Step 3  
-
+  
     // fsf eta
     kfsfbc(p,a,pgc);
     
@@ -216,6 +217,8 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     // solve Fi
   //  pwave->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
+    pgc->gcsl_start4(p,a->eta,gcval_eta);
+    pgc->gcsl_start4(p,a->Fifsf,gcval_fifsf);
     plap->start(p,a,pgc,psolv,a->Fi,a->Fifsf,a->eta);
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi,a->eta);
     pgc->start4(p,a->Fi,gcval);
@@ -230,8 +233,9 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     a->test(i,j,k) = 1.0;
     
     }
-    
+  
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
+
 }
 
 void ptf_RK3::ini(lexer *p, fdm_ptf *a, ghostcell *pgc, iowave *pwave, reini *preini, onephase *poneph)

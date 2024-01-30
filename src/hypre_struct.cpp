@@ -179,23 +179,20 @@ void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec&
 	p->solveriter=0;
 	
     create_solver5(p,pgc);
-    
     if(p->j_dir==1)
     fill_matrix4(p,a,pgc,f);
     
     if(p->j_dir==0)
     fill_matrix4_2Dvert(p,a,pgc,f);
-
+    
     solve(p,pgc);
-	
+
 	p->solveriter=num_iterations;
         
     fillbackvec4(p,f,var);
-	
 	delete_solver5(p,pgc);
-    
     precon_switch(p,pgc);
-    
+
 }
 
 void hypre_struct::start_solver4V(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)

@@ -93,20 +93,22 @@ void driver::logic_ptf(fdm_ptf *a)
     
 //  Laplace Solver	
 	if(p->N10==0)
-	plapsolv = new solver_void(p,a_tempo,pgc);
+        plapsolv = new solver_void(p,a_tempo,pgc);
 	
 	if(p->N10==1)
-	plapsolv = new bicgstab_ijk(p,a_tempo,pgc);
+        plapsolv = new bicgstab_ijk(p,a_tempo,pgc);
 	
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>10 && p->N10<=20)
-    plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
+       plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
+       cout<<"Ja "<<p->N10<<" "<<p->N11;
     #endif
     
     #ifdef HYPRE_COMPILATION
 	if(p->N10>20 && p->N10<=30)
-	plapsolv = new hypre_aij(p,a_tempo,pgc);
+        plapsolv = new hypre_aij(p,a_tempo,pgc);
 	#endif
+    
     
 //  Voids
 	pturb = new kepsilon_void(p,a_tempo,pgc);
