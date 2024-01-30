@@ -36,7 +36,7 @@ public:
 	nhflow_momentum_RK2(lexer*, fdm_nhf*, ghostcell*, sixdof*);
 	virtual ~nhflow_momentum_RK2();
     
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
     virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
 
     double *UHDIFF;

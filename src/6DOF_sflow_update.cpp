@@ -37,7 +37,6 @@ void sixdof_sflow::updateFSI(lexer *p, ghostcell* pgc)
     //maxvel(p,a,pgc);
 }
 
-
 void sixdof_sflow::updatePosition(lexer *p, ghostcell *pgc)
 {
 	// Calculate Euler angles from quaternion
@@ -89,7 +88,6 @@ void sixdof_sflow::updatePosition(lexer *p, ghostcell *pgc)
 	ray_cast(p,pgc);
 	reini(p,pgc,fb);
 }
-
 
 void sixdof_sflow::updateForcing_hemisphere(lexer *p, ghostcell *pgc)
 {
@@ -188,8 +186,7 @@ void sixdof_sflow::updateForcing_oned(lexer *p, ghostcell *pgc)
     }
 
     pgc->gcsl_start4(p,press,50);
-};
-
+}
 
 double sixdof_sflow::Hsolidface(lexer *p, int aa, int bb)
 {

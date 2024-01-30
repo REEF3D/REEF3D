@@ -46,7 +46,7 @@ Author: Hans Bihs
 void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     // Open File
-	filename(p,a,pgc,p->I41);
+	filename(p,a,pgc,p->I41);
 	
 	
 	ifstream result;

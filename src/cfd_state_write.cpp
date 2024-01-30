@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-
 void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     // Open File
