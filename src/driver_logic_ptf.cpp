@@ -101,7 +101,6 @@ void driver::logic_ptf(fdm_ptf *a)
 	#ifdef HYPRE_COMPILATION
 	if(p->N10>10 && p->N10<=20)
        plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
-       cout<<"Ja "<<p->N10<<" "<<p->N11;
     #endif
     
     #ifdef HYPRE_COMPILATION
