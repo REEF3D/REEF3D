@@ -454,6 +454,8 @@ public:
 	double P22,P30,P34,P42;
 	double *P35_ts,*P35_te,*P35_dt;
     double P43_xs,P43_xe,P43_ys,P43_ye;
+    int P46,P46_is,P46_ie;
+    int P47,P47_ts,P47_te;
 	double *P50_x,*P50_y;
 	double *P51_x,*P51_y;
 	double *P52_y,*P56_x;

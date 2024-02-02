@@ -984,6 +984,18 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = P45;
 	ii++;
+    ictrl[ii] = P46;
+	ii++;
+    ictrl[ii] = P46_is;
+	ii++;
+    ictrl[ii] = P46_ie;
+	ii++;
+    ictrl[ii] = P47;
+	ii++;
+    dctrl[dd] = P47_ts;
+	dd++;
+    dctrl[dd] = P47_te;
+	dd++;
     ictrl[ii] = P50;
 	ii++;
 	ictrl[ii] = P51;

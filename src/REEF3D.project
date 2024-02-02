@@ -584,8 +584,7 @@
         <File Name="6DOF_df_void.h"/>
         <File Name="6DOF_df_base.h"/>
         <VirtualDirectory Name="Common">
-          <VirtualDirectory Name="Objects"/>
-          <VirtualDirectory Name="Ray Cast"/>
+          <File Name="6DOF_motion-file.h"/>
         </VirtualDirectory>
         <File Name="6DOF_sflow.h"/>
         <File Name="6DOF_df_object.h"/>
@@ -1797,8 +1796,11 @@
           <File Name="6DOF_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Common">
-          <VirtualDirectory Name="Geometry"/>
-          <VirtualDirectory Name="Ray Cast"/>
+          <VirtualDirectory Name="Motion File">
+            <File Name="6DOF_motion-file_ipol.cpp"/>
+            <File Name="6DOF_motion-file_read.cpp"/>
+            <File Name="6DOF_motion-file.cpp"/>
+          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="SFLOW 6DOF ">
           <File Name="6DOF_sflow_motion.cpp"/>
