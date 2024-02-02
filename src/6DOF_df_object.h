@@ -113,11 +113,12 @@ private:
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
     void update_Position(lexer*, fdm*, ghostcell*, bool);
-    void prescribedMotion(lexer*, fdm*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
+    void prescribedMotion_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
+    void prescribedMotion_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
     void quat_matrices(const Eigen::Vector4d&);
 
-    void get_trans(lexer*, fdm*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
-    void get_rot(Eigen::Vector3d&, Eigen::Vector4d&, const Eigen::Vector3d&, const Eigen::Vector4d&);
+    void get_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
+    void get_rot(Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Vector3d&, Eigen::Vector4d&);
     Eigen::Matrix3d quatRotMat;
     
     /*Eigen::Vector3d ab4_3

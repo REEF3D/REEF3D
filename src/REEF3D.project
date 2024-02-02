@@ -587,7 +587,6 @@
           <VirtualDirectory Name="Objects"/>
           <VirtualDirectory Name="Ray Cast"/>
         </VirtualDirectory>
-        <File Name="6DOF_precalc.h"/>
         <File Name="6DOF_sflow.h"/>
         <File Name="6DOF_df_object.h"/>
         <File Name="6DOF_df.h"/>
@@ -1800,21 +1799,6 @@
         <VirtualDirectory Name="Common">
           <VirtualDirectory Name="Geometry"/>
           <VirtualDirectory Name="Ray Cast"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Precalc">
-          <File Name="6DOF_precalc_ray_io_z.cpp"/>
-          <File Name="6DOF_precalc_ray_io_y.cpp"/>
-          <File Name="6DOF_precalc_ray_io_x.cpp"/>
-          <File Name="6DOF_precalc_ray.cpp"/>
-          <File Name="6DOF_precalc_sym.cpp"/>
-          <File Name="6DOF_precalc_wedge.cpp"/>
-          <File Name="6DOF_precalc_STL_read.cpp"/>
-          <File Name="6DOF_precalc_objects.cpp"/>
-          <File Name="6DOF_precalc_hexahedron.cpp"/>
-          <File Name="6DOF_precalc_geometry_ini.cpp"/>
-          <File Name="6DOF_precalc_cylinder.cpp"/>
-          <File Name="6DOF_precalc_box.cpp"/>
-          <File Name="6DOF_precalc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="SFLOW 6DOF ">
           <File Name="6DOF_sflow_motion.cpp"/>

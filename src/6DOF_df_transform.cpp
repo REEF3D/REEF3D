@@ -42,16 +42,16 @@ void sixdof_df_object::transform(lexer *p, fdm *a, ghostcell* pgc, bool finalise
     maxvel(p,a,pgc);
 }
 
-void sixdof_df_object::get_trans(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc, const Eigen::Vector3d& pp, const Eigen::Vector3d& c)
+void sixdof_df_object::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc, Eigen::Vector3d& pp, Eigen::Vector3d& c)
 {
     dp = Ffb_; 
     dc = pp/Mass_fb;
 
 	// Prescribed motions
-	prescribedMotion(p,a,pgc,dp,dc);
+	prescribedMotion_trans(p,pgc,dp,dc);
 } 
 
-void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, const Eigen::Vector3d& h, const Eigen::Vector4d& e)
+void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, Eigen::Vector3d& h, Eigen::Vector4d& e)
 {
     // Update Euler parameter matrices
     quat_matrices(e);
@@ -66,6 +66,9 @@ void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, const E
              -de(3), de(2),-de(1), de(0); 
    
     dh = 2.0*Gdot_*G_.transpose()*h + Rinv_*Mfb_;
+    
+    // Prescribed motions
+    prescribedMotion_rot(p,dh,h,de);
 } 
 
 void sixdof_df_object::quat_matrices(const Eigen::Vector4d& e)

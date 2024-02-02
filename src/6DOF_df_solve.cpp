@@ -43,7 +43,7 @@ void sixdof_df_object::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter
 
 void sixdof_df_object::rkls3(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {
-    get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+    get_trans(p,pgc, dp_, dc_, p_, c_);    
     get_rot(dh_, de_, h_, e_);
 
     p_ = p_ + gamma[iter]*p->dt*dp_ + zeta[iter]*p->dt*pk_;
@@ -66,7 +66,7 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
         hk_ = h_;
         ek_ = e_;
         
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+        get_trans(p,pgc, dp_, dc_, p_, c_);    
         get_rot(dh_, de_, h_, e_);
         
         p_ = p_ + p->dt*dp_;
@@ -77,7 +77,7 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     
     if(iter==1)
     {
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+        get_trans(p,pgc, dp_, dc_, p_, c_);    
         get_rot(dh_, de_, h_, e_);
     
         p_ = 0.75*pk_ + 0.25*p_ + 0.25*p->dt*dp_;
@@ -88,7 +88,7 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     
     else
     {
-        get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+        get_trans(p,pgc, dp_, dc_, p_, c_);    
         get_rot(dh_, de_, h_, e_);
         
         p_ = (1.0/3.0)*pk_ + (2.0/3.0)*p_ + (2.0/3.0)*p->dt*dp_;
@@ -100,7 +100,7 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
 
 void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {   
-    get_trans(p,a,pgc, dp_, dc_, p_, c_);    
+    get_trans(p,pgc, dp_, dc_, p_, c_);    
     get_rot(dh_, de_, h_, e_);
         
     if (iter==0)

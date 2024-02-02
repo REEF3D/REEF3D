@@ -25,7 +25,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
+void sixdof_df_object::prescribedMotion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
 {
     
     if (p->X11_u == 2)
@@ -45,25 +45,30 @@ void sixdof_df_object::prescribedMotion(lexer *p, fdm *a, ghostcell *pgc, Eigen:
         dp(2) = 0.0; 
         dc(2) = Wext*ramp_vel(p);
     }
-    
+}
+
+void sixdof_df_object::prescribedMotion_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de)
+{
+
     if(p->X11_p==2)
     {
-        //Pext;
-        cout<<"not implemented yet"<<endl;
+        dh(0) = 0.0; 
+        h_(0) = Pext*ramp_vel(p);
     }
                 
     if(p->X11_q==2)
     {
-        //Qext;
-        cout<<"not implemented yet"<<endl;
+        dh(1) = 0.0; 
+        h_(1) = Qext*ramp_vel(p);
     }
     
     if(p->X11_r==2)
     {
-        //Rext;
-        cout<<"not implemented yet"<<endl;
+        dh(2) = 0.0; 
+        h_(2) = Rext*ramp_vel(p);
     }
     
+    de = 0.5*G_.transpose()*I_.inverse()*h;
 }
 
 double sixdof_df_object::ramp_vel(lexer *p)
