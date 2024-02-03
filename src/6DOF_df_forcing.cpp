@@ -340,28 +340,25 @@ double sixdof_df_object::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_fb,dirac;
 	
+
+    if(p->j_dir==0)
+    psi = 0.5*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+    
+    if(p->j_dir==1)
     psi = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-    if (p->knoy == 1)
-    {
-        psi = 0.5*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-    }
 
     // Construct solid heaviside function
     phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
 	
-    if (-phival_fb > psi)
-    {
-        H = 1.0;
-    }
-    else if (-phival_fb < -psi)
-    {
-        H = 0.0;
-    }
+    if(-phival_fb > psi)
+    H = 1.0;
+
+    else if(-phival_fb < -psi)
+    H = 0.0;
+
     else
-    {
-        H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
-    }
+    H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
 	
     return H;
 }
