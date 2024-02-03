@@ -1796,6 +1796,8 @@
           <File Name="6DOF_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Common">
+          <File Name="6DOF_velsource.cpp"/>
+          <File Name="6DOF_main.cpp"/>
           <VirtualDirectory Name="Motion File">
             <File Name="6DOF_motion-file_ipol.cpp"/>
             <File Name="6DOF_motion-file_read.cpp"/>
@@ -1828,7 +1830,7 @@
           <File Name="6DOF_sflow_initialize.cpp"/>
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="DirectForcing">
+        <VirtualDirectory Name="6DOF Object">
           <File Name="6DOF_df_externvel.cpp"/>
           <File Name="6DOF_df_updatepos.cpp"/>
           <VirtualDirectory Name="Initialize">
@@ -1838,14 +1840,12 @@
           </VirtualDirectory>
           <File Name="6DOF_df_transform.cpp"/>
           <File Name="6DOF_df_forcing.cpp"/>
-          <File Name="6DOF_df_main.cpp"/>
           <VirtualDirectory Name="Print">
             <File Name="6DOF_df_print_normals_vtp.cpp"/>
             <File Name="6DOF_df_print_ini.cpp"/>
             <File Name="6DOF_df_print_stl.cpp"/>
             <File Name="6DOF_df_print_vtp.cpp"/>
           </VirtualDirectory>
-          <File Name="6DOF_df_velsource.cpp"/>
           <File Name="6DOF_df_object.cpp"/>
           <VirtualDirectory Name="RayCast">
             <File Name="6DOF_df_reini_RK2.cpp"/>

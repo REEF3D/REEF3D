@@ -30,7 +30,7 @@ Author: Tobias Martin
 sixdof_df::sixdof_df(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->mpirank==0)
-    cout<<"6DOF_df startup ..."<<endl;
+    cout<<"6DOF startup ..."<<endl;
     
     number6DOF = 1;
     
@@ -97,13 +97,9 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
     pgc->start2(p,a->fbh2,11);
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
-    
-    double starttime,endtime;
- 
+
     for (int nb=0; nb<number6DOF;++nb)
     {
-        starttime=pgc->timer();
-        
         // Calculate forces
         p_df_obj[nb]->forces_stl(p,a,pgc,alpha[iter],uvel,vvel,wvel);
         
@@ -119,7 +115,7 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         // Save and print
         p_df_obj[nb]->interface(p,true);
         
-        if (finalise == true)
+        if(finalise == true)
         {
             p_df_obj[nb]->saveTimeStep(p,alpha[iter]);
             
@@ -132,7 +128,6 @@ void sixdof_df::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
             p_df_obj[nb]->print_parameter(p, a, pgc);
         }
         
-        endtime=pgc->timer();
     }
     
     // ghostcell update
