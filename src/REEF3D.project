@@ -1794,9 +1794,9 @@
           <File Name="6DOF_nhflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface CFD">
-          <File Name="6DOF_CFD__velsource.cpp"/>
-          <File Name="6DOF_CFD__setup.cpp"/>
-          <File Name="6DOF_CFD_.cpp"/>
+          <File Name="6DOF_cfd_velsource.cpp"/>
+          <File Name="6DOF_cfd_setup.cpp"/>
+          <File Name="6DOF_cfd.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="6DOF_void.cpp"/>
