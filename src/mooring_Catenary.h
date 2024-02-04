@@ -45,17 +45,17 @@ public:
 	mooring_Catenary(int);
 	virtual ~mooring_Catenary();
 	
-	virtual void start(lexer*, fdm*, ghostcell*);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, ghostcell*);
+	virtual void initialize(lexer*, ghostcell*);
 	virtual void mooringForces(double&, double&, double&);
 	
-	void getForce(lexer*, fdm*, ghostcell*, double&, double&);
-	void getShape(lexer*, fdm*, ghostcell*, double*&, double*&, double*&, double*&);
-	void iniShape(lexer*, fdm*, ghostcell*, Eigen::VectorXd&, Eigen::VectorXd&, Eigen::VectorXd&);
+	void getForce(lexer*, ghostcell*, double&, double&);
+	void getShape(lexer*, ghostcell*, double*&, double*&, double*&, double*&);
+	void iniShape(lexer*, ghostcell*, Eigen::VectorXd&, Eigen::VectorXd&, Eigen::VectorXd&);
 	
 private:	
 
-    void calcForce(lexer*, fdm*, ghostcell*);
+    void calcForce(lexer*, ghostcell*);
 
 	// Print
 	void print(lexer*);

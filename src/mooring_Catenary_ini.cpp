@@ -22,11 +22,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include"mooring_Catenary.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 
-void mooring_Catenary::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_Catenary::initialize(lexer *p, ghostcell *pgc)
 {
 	double rho_f = 1000.0;
 	

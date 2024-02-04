@@ -29,6 +29,7 @@ Author: Tobias Martin
 #include"slice4.h"
 #include"sliceint5.h"
 #include"ddweno_f_nug.h"
+#include"6DOF_obj.h"
 
 class lexer;
 class fdm2D;

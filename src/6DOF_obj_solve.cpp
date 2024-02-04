@@ -29,19 +29,19 @@ void sixdof_obj::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter, vran
 {
     externalForces(p, a, pgc, alpha[0], pvrans, pnet);
     
-    updateForces(a);
+    updateForces();
     
     if(p->N40==2 || p->N40==22)
-    rk2(p,a,pgc,iter);
+    rk2(p,pgc,iter);
     
     if(p->N40==3 || p->N40==23 || p->N40==33)
-    rk3(p,a,pgc,iter);
+    rk3(p,pgc,iter);
    
     if(p->N40==4)
-    rkls3(p,a,pgc,iter);
+    rkls3(p,pgc,iter);
 }
 
-void sixdof_obj::rkls3(lexer *p, fdm *a, ghostcell *pgc, int iter)
+void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
 {
     get_trans(p,pgc, dp_, dc_, p_, c_);    
     get_rot(dh_, de_, h_, e_);
@@ -57,7 +57,7 @@ void sixdof_obj::rkls3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     ek_ = de_;
 }
     
-void sixdof_obj::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
+void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
 {   
     if(iter==0)
     {
@@ -98,7 +98,7 @@ void sixdof_obj::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     }
 }
 
-void sixdof_obj::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
+void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
 {   
     get_trans(p,pgc, dp_, dc_, p_, c_);    
     get_rot(dh_, de_, h_, e_);

@@ -49,8 +49,8 @@ public:
     mooring_dynamic(int);
 	virtual ~mooring_dynamic();
 	
-	virtual void start(lexer*, fdm*, ghostcell*);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, ghostcell*);
+	virtual void initialize(lexer*, ghostcell*);
 	virtual void mooringForces(double&, double&, double&);
     
     void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
@@ -59,11 +59,11 @@ public:
 private:
 
 	// Initialisation
-	void ini_parallel(lexer*, fdm*, ghostcell*);
+	void ini_parallel(lexer*, ghostcell*);
 
 	// Runtime
-    void updateFields(lexer*, fdm*, ghostcell*);
-    void updateFluidVel(lexer*, fdm*, ghostcell*, int);
+    void updateFields(lexer*, ghostcell*);
+    void updateFluidVel(lexer*, ghostcell*, int);
     void saveMooringPoint(lexer*);
 
 	// ------ 

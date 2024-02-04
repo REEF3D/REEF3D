@@ -35,7 +35,7 @@ void sixdof_obj::externalForces(lexer *p,fdm* a, ghostcell *pgc, double alpha, v
     // Mooring forces
 	if (p->X310 > 0)
 	{
-		mooringForces(p,a,pgc,alpha);
+		mooringForces(p,pgc,alpha);
 	} 
 	
     // Net forces
@@ -45,7 +45,7 @@ void sixdof_obj::externalForces(lexer *p,fdm* a, ghostcell *pgc, double alpha, v
 	}
 }
 
-void sixdof_obj::mooringForces(lexer *p, fdm* a, ghostcell *pgc, double alpha)
+void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
 {
 	for (int ii=0; ii<p->mooring_count; ii++)
 	{
@@ -59,7 +59,7 @@ void sixdof_obj::mooringForces(lexer *p, fdm* a, ghostcell *pgc, double alpha)
         p->X311_ze[ii] = point(2) + c_(2);
 
         // Advance in time
-        pmooring[ii]->start(p, a, pgc);
+        pmooring[ii]->start(p, pgc);
                 
         // Get forces
         pmooring[ii]->mooringForces(Xme[ii],Yme[ii],Zme[ii]);

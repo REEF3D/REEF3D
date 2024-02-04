@@ -34,8 +34,8 @@ class mooring
 {
 public:
 
-	virtual void start(lexer*, fdm*, ghostcell*)=0;
-	virtual void initialize(lexer*, fdm*, ghostcell*)=0;	
+	virtual void start(lexer*, ghostcell*)=0;
+	virtual void initialize(lexer*, ghostcell*)=0;	
 	virtual void mooringForces(double&, double&, double&)=0;
 };
 

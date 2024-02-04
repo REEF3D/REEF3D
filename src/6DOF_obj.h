@@ -81,9 +81,9 @@ private:
     void maxvel(lexer*, fdm*, ghostcell*);
     
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
-    void mooringForces(lexer*, fdm*, ghostcell*, double);
+    void mooringForces(lexer*,  ghostcell*, double);
     void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
-    void updateForces(fdm*);
+    void updateForces();
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
     
@@ -122,50 +122,10 @@ private:
     void get_rot(Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Vector3d&, Eigen::Vector4d&);
     Eigen::Matrix3d quatRotMat;
     
-    /*Eigen::Vector3d ab4_3
-    (   
-        lexer*,
-        const Eigen::Vector3d&, 
-        const Eigen::Vector3d&, 
-        const Eigen::Vector3d&, 
-        const Eigen::Vector3d&,
-        double alpha
-    );
-    Eigen::Vector4d ab4_4
-    (
-        lexer*,
-        const Eigen::Vector4d&, 
-        const Eigen::Vector4d&, 
-        const Eigen::Vector4d&, 
-        const Eigen::Vector4d&,
-        double alpha
-    );
-    Eigen::Vector3d am4_3
-    (
-        lexer*,
-        const Eigen::Vector3d&, 
-        const Eigen::Vector3d&, 
-        const Eigen::Vector3d&, 
-        const Eigen::Vector3d&,
-        double alpha
-    );
-    Eigen::Vector4d am4_4
-    (
-        lexer*,
-        const Eigen::Vector4d&, 
-        const Eigen::Vector4d&, 
-        const Eigen::Vector4d&, 
-        const Eigen::Vector4d&,
-        double alpha
-    );
-    void abam4(lexer*, fdm*, ghostcell*, double);
-    void rk2(lexer*, fdm*, ghostcell*,double);
-    void rk4(lexer*, fdm*, ghostcell*,double);
-    */
     
-    void rk2(lexer*, fdm*, ghostcell*,int);
-    void rk3(lexer*, fdm*, ghostcell*,int);
-    void rkls3(lexer*, fdm*, ghostcell*,int);
+    void rk2(lexer*, ghostcell*,int);
+    void rk3(lexer*, ghostcell*,int);
+    void rkls3(lexer*, ghostcell*,int);
 
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
    

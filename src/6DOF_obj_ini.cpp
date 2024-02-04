@@ -154,7 +154,7 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
 			X311_yen[i] = p->X311_ye[i] - p->yg;
 			X311_zen[i] = p->X311_ze[i] - p->zg;
 		
-			pmooring[i]->initialize(p,a,pgc);
+			pmooring[i]->initialize(p,pgc);
 		}
 	}	
 

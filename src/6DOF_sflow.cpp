@@ -35,6 +35,14 @@ sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc):press(p),ddweno_f_nug(p),fr
     p->Darray(tri_xn,trisum,3);
 	p->Darray(tri_yn,trisum,3);
 	p->Darray(tri_zn,trisum,3);
+    /*
+    if(p->mpirank==0)
+    cout<<"6DOF startup ..."<<endl;
+    
+    number6DOF = 1;
+    
+    for (int nb = 0; nb < number6DOF; nb++)
+    fb_obj.push_back(new sixdof_obj(p,a,pgc,nb));*/
 }
 
 sixdof_sflow::~sixdof_sflow()

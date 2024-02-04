@@ -44,8 +44,8 @@ public:
 	mooring_Spring(int);
 	virtual ~mooring_Spring();
 	
-	virtual void start(lexer*, fdm*, ghostcell*);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, ghostcell*);
+	virtual void initialize(lexer*, ghostcell*);
 	virtual void mooringForces(double&, double&, double&);
 	
 private:	
