@@ -21,7 +21,7 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_cfd.h"
-#include"6DOF_df_object.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"

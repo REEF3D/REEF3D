@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_df_object.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_obj::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
+void sixdof_obj::ray_cast_io_ycorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -44,7 +44,13 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	int ir,insidecheck;
 	double u,v,w;
 	double denom;
-	double psi = 1.0e-8*p->DXM;	
+	double psi = 1.0e-8*p->DXM;
+
+    ALOOP
+	{
+	cutl(i,j,k)=0;
+	cutr(i,j,k)=0;
+	}
 
 	for(n=ts; n<te; ++n)
 	{
@@ -151,28 +157,33 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			
 			Ry = u*Ay + v*By + w*Cy;
 			
-			
-            j = p->posf_j(Ry);
             
-            int distcheck=1;
-  
-            
-            if(Ry<p->YP[JP])
-            if(j>=0 && j<p->knoy)
-            if(fbio(i,j,k)<0 && fbio(i,j-1,k)<0)
-            distcheck=0;
-            
-            if(Ry>=p->YP[JP])
-            if(j>=0 && j<p->knoy)
-            if(fbio(i,j,k)<0 && fbio(i,j+1,k)<0)
-            distcheck=0;
-
-            if(distcheck==1)
 			for(j=0;j<p->knoy;++j)
-			a->fb(i,j,k)=MIN(fabs(Ry-p->YP[JP]),fabs(a->fb(i,j,k)));
+            {
+				if(p->YP[JP]<Ry)
+				cutr(i,j,k) += 1;
+				
+				if(p->YP[JP]>=Ry)
+				cutl(i,j,k) += 1;
+            }
+            
 			}
 		}
 	}
-
+    
+    ALOOP
+	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
+	fbio(i,j,k)=-1;
+    
+    /*
+    count=0;
+	ALOOP
+	if(a->fb(i,j,k)>0)
+	++count;
+    
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0)
+    cout<<"Number of active cells after fb_ray_io_y_corr: "<<count<<endl;*/
 
 }

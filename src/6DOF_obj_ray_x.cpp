@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_df_object.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
+void sixdof_obj::ray_cast_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -41,16 +41,11 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
 	int js,je,ks,ke;
+	int ir;
 	double u,v,w;
 	double denom;	
 	int insidecheck;
 	double psi = 1.0e-8*p->DXM;
-    
-    ALOOP
-	{
-	cutl(i,j,k)=0;
-	cutr(i,j,k)=0;
-	}
 
 	for(n=ts; n<te; ++n)
 	{
@@ -85,13 +80,12 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks + marge];
 	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke + marge];
 
-
-
 	js = p->posf_j(ys);
 	je = p->posf_j(ye);
 	
 	ks = p->posf_k(zs);
 	ke = p->posf_k(ze);	
+
 	
 	js = MAX(js,0);
 	je = MIN(je,p->knoy);
@@ -99,7 +93,6 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	ks = MAX(ks,0);
 	ke = MIN(ke,p->knoz);			
 	
-    
 		for(j=js;j<je;j++)
 		for(k=ks;k<ke;k++)
 		{
@@ -156,35 +149,27 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			w *= denom;
 			
 			Rx = u*Ax + v*Bx + w*Cx;
+			
+            i = p->posf_i(Rx);
             
+            int distcheck=1;
+  
+            
+            if(Rx<p->XP[IP])
+            if(i>=0 && i<p->knox)
+            if(fbio(i,j,k)<0 && fbio(i-1,j,k)<0)
+            distcheck=0;
+            
+            if(Rx>=p->XP[IP])
+            if(i>=0 && i<p->knox)
+            if(fbio(i,j,k)<0 && fbio(i+1,j,k)<0)
+            distcheck=0;
+
+            if(distcheck==1)
 			for(i=0;i<p->knox;++i)
-            {
-				if(p->XP[IP]<Rx)
-				cutr(i,j,k) += 1;
-				
-				if(p->XP[IP]>=Rx)
-				cutl(i,j,k) += 1;
-            }
-            
-            
+			a->fb(i,j,k)=MIN(fabs(Rx-p->XP[IP]),fabs(a->fb(i,j,k)));
 			}
 		}
 	}
-    
-    
-    ALOOP
-	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
-	fbio(i,j,k)=-1;
-	
-	/*
-	count=0;
-	ALOOP
-	if(fbio(i,j,k)<0)
-	++count;
-    
-    count=pgc->globalisum(count);
-    
-    if(p->mpirank==0)
-    cout<<"Number of floating body cells after fb_ray_io_x: "<<count<<endl;*/
 	
 }

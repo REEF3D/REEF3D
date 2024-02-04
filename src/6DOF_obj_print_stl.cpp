@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<iostream>
 #include<fstream>
-#include"6DOF_df_object.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"

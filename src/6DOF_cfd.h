@@ -21,7 +21,7 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF.h"
-#include"6DOF_df_object.h"
+#include"6DOF_obj.h"
 #include<vector>
 
 class mooring;

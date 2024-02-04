@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_df_object.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc.h"
 
-void sixdof_obj::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field& b)
+void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field& b)
 {	
 	n=0;
 	ALOOP
@@ -56,21 +56,22 @@ void sixdof_obj::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field& b)
 
     for(int q=0;q<reiniter;++q)
 	{
+        // Step 1
 		prdisc->start(p,a,pgc,f,L,5);
 
-		if(q==0)
 		NLOOP4A
-		frk1.V[n]=L.V[n];
+		frk1.V[n] = f.V[n] + dt.V[n]*L.V[n];
 
+         pgc->start4avec(p,frk1,50);
+        
+        
+        // Step 2
+		prdisc->start(p,a,pgc,frk1,L,5);
 
 		NLOOP4A
-		{
-		f.V[n] += dt.V[n]*0.5*(3.0*L.V[n] - frk1.V[n]);
+		f.V[n] = 0.5*f.V[n] + 0.5*frk1.V[n] + 0.5*dt.V[n]*L.V[n];
 
-		frk1.V[n]=L.V[n];
-		}
-
-	pgc->start4avec(p,f,50);
+        pgc->start4avec(p,f,50);
 	}
 		
 	n=0;

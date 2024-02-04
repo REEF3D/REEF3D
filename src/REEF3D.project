@@ -581,13 +581,13 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <File Name="6DOF_obj.h"/>
         <File Name="6DOF_nhflow.h"/>
         <File Name="6DOF_cfd.h"/>
         <VirtualDirectory Name="Common">
           <File Name="6DOF_motion-file.h"/>
         </VirtualDirectory>
         <File Name="6DOF_sflow.h"/>
-        <File Name="6DOF_df_object.h"/>
         <VirtualDirectory Name="Mooring">
           <File Name="mooring_dynamic.h"/>
           <File Name="mooring_Spring.h"/>
@@ -1853,15 +1853,15 @@
             <File Name="6DOF_obj_print_ini.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="RayCast">
-            <File Name="6DOF_df_reini_RK2.cpp"/>
-            <File Name="6DOF_df_reini_AB2.cpp"/>
-            <File Name="6DOF_df_ray_z.cpp"/>
-            <File Name="6DOF_df_ray_y.cpp"/>
-            <File Name="6DOF_df_ray_x.cpp"/>
-            <File Name="6DOF_df_ray_io_zcorr.cpp"/>
-            <File Name="6DOF_df_ray_io_ycorr.cpp"/>
-            <File Name="6DOF_df_ray_io_x.cpp"/>
-            <File Name="6DOF_df_ray.cpp"/>
+            <File Name="6DOF_obj_reini_RK2.cpp"/>
+            <File Name="6DOF_obj_reini_AB2.cpp"/>
+            <File Name="6DOF_obj_ray_z.cpp"/>
+            <File Name="6DOF_obj_ray_y.cpp"/>
+            <File Name="6DOF_obj_ray_x.cpp"/>
+            <File Name="6DOF_obj_ray_io_zcorr.cpp"/>
+            <File Name="6DOF_obj_ray_io_ycorr.cpp"/>
+            <File Name="6DOF_obj_ray_io_x.cpp"/>
+            <File Name="6DOF_obj_ray.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Forces">
             <File Name="6DOF_obj_forces_stl.cpp"/>
