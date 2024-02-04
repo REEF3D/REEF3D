@@ -28,7 +28,7 @@ Author: Tobias Martin
 void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
     for (int nb = 0; nb < number6DOF; nb++)
-    p_df_obj[nb]->initialize(p, a, pgc, pnet);
+    fb_obj[nb]->initialize(p, a, pgc, pnet);
 }
 
 void sixdof_cfd::ini(lexer *p, ghostcell *pgc)

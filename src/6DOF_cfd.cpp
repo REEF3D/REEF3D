@@ -35,46 +35,45 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
     number6DOF = 1;
     
     for (int nb = 0; nb < number6DOF; nb++)
-    p_df_obj.push_back(new sixdof_obj(p,a,pgc,nb));
+    fb_obj.push_back(new sixdof_obj(p,a,pgc,nb));
 }
     
 sixdof_cfd::~sixdof_cfd()
 {
 }
 
-	
 void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
 {
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        p_df_obj[nb]->forces_stl(p,a,pgc,uvel,vvel,wvel,iter);
+        fb_obj[nb]->forces_stl(p,a,pgc,uvel,vvel,wvel,iter);
         
         // Advance body in time
-        p_df_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);
+        fb_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);
         
         // Update position and fb level set
-        p_df_obj[nb]->transform(p,a,pgc,finalise);  //----> main time consumer
+        fb_obj[nb]->transform(p,a,pgc,finalise);  //----> main time consumer
         
         // Update forcing terms
-        p_df_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+        fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
         
-        // Save and print
-        p_df_obj[nb]->interface(p,true);
+        // Save
+        fb_obj[nb]->interface(p,true);
         
+        // Print
         if(finalise==true)
         {
-            p_df_obj[nb]->saveTimeStep(p,iter);
+            fb_obj[nb]->saveTimeStep(p,iter);
             
             if(p->X50==1)
-            p_df_obj[nb]->print_vtp(p,a,pgc);
+            fb_obj[nb]->print_vtp(p,a,pgc);
             
             if(p->X50==2)
-            p_df_obj[nb]->print_stl(p,a,pgc);
+            fb_obj[nb]->print_stl(p,a,pgc);
             
-            p_df_obj[nb]->print_parameter(p, a, pgc);
+            fb_obj[nb]->print_parameter(p, a, pgc);
         }
-        
     }
     
     // ghostcell update

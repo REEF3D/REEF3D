@@ -36,14 +36,11 @@ void sixdof_obj::update_Position(lexer *p, fdm *a, ghostcell *pgc, bool finalise
 	double arg = 2.0*(e_(0)*e_(2) - e_(1)*e_(3));
 	
 	if (fabs(arg) >= 1.0)
-	{
-		theta = SIGN(arg)*PI/2.0;
-	}
+	theta = SIGN(arg)*PI/2.0;
     
 	else
-	{
-		theta = asin(arg);														
-	}	
+	theta = asin(arg);														
+	
 		
 	// around new x-axis
 	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));

@@ -1802,6 +1802,7 @@
           <File Name="6DOF_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface SFLOW">
+          <File Name="6DOF_sflow_forcing.cpp"/>
           <File Name="6DOF_sflow_velsource.cpp"/>
           <File Name="6DOF_sflow_motion.cpp"/>
           <VirtualDirectory Name="Print">
@@ -1823,13 +1824,12 @@
           </VirtualDirectory>
           <File Name="6DOF_sflow_rotation.cpp"/>
           <File Name="6DOF_sflow_reini.cpp"/>
-          <File Name="6DOF_sflow_update.cpp"/>
           <File Name="6DOF_sflow_initialize.cpp"/>
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
+          <File Name="6DOF_obj_update_pos.cpp"/>
           <File Name="6DOF_obj_prescribed-motion.cpp"/>
-          <File Name="6DOF_obj_updatepos.cpp"/>
           <File Name="6DOF_obj_transform.cpp"/>
           <File Name="6DOF_obj_solve.cpp"/>
           <File Name="6DOF_obj_rotation.cpp"/>

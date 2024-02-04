@@ -137,7 +137,7 @@ void sixdof_sflow::updateForcing_box(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_sflow::updateForcing_ship(lexer *p, ghostcell *pgc)
+void sixdof_sflow::updateForcing_stl(lexer *p, ghostcell *pgc)
 {
     // Calculate ship-like pressure field
     double H, press0, xpos, ypos, as, cl, cb;

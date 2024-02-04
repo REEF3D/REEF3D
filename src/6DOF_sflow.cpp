@@ -46,19 +46,19 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
 
 // FB/Ship location
 
-    // Move body
+    // Move body  -> obj_transform
     p->xg += ramp_vel(p)*Uext*p->dt;
     p->yg += ramp_vel(p)*Vext*p->dt;
 
     // Update position
-   // Update transformation matrix (Shivarama PhD thesis, p. 19)
+   // Update transformation matrix (Shivarama PhD thesis, p. 19)  -> obj
     quat_matrices(e_);
 
-    // Calculate new position
+    // Calculate new position -> obj
     updatePosition(p,pgc);
     
 // --------------------------
-
+// Forcing ->sflow
     // Update pressure field
     if (p->X400 == 1)
     {
@@ -77,9 +77,10 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
     
     else if (p->X400 == 10)
     {
-        updateForcing_ship(p,pgc);
+        updateForcing_stl(p,pgc);
     }
 
+// ->obj 
     // Print
     print_parameter(p,pgc);
     
