@@ -52,7 +52,7 @@ public:
     
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	
-    sixdof_obj(lexer*, fdm*, ghostcell*, int);
+    sixdof_obj(lexer*, ghostcell*, int);
 	virtual ~sixdof_obj();
 	
 	virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,int,vrans*,vector<net*>&);

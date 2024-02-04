@@ -174,16 +174,5 @@ void sixdof_obj::ray_cast_io_ycorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
     ALOOP
 	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
 	fbio(i,j,k)=-1;
-    
-    /*
-    count=0;
-	ALOOP
-	if(a->fb(i,j,k)>0)
-	++count;
-    
-    count=pgc->globalisum(count);
-    
-    if(p->mpirank==0)
-    cout<<"Number of active cells after fb_ray_io_y_corr: "<<count<<endl;*/
 
 }

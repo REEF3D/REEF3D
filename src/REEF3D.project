@@ -1828,12 +1828,12 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
+          <File Name="6DOF_obj.cpp"/>
           <File Name="6DOF_obj_update_pos.cpp"/>
           <File Name="6DOF_obj_prescribed-motion.cpp"/>
           <File Name="6DOF_obj_transform.cpp"/>
           <File Name="6DOF_obj_solve.cpp"/>
           <File Name="6DOF_obj_rotation.cpp"/>
-          <File Name="6DOF_obj_object.cpp"/>
           <File Name="6DOF_obj_interface.cpp"/>
           <File Name="6DOF_obj_forcing.cpp"/>
           <VirtualDirectory Name="Motion File">
