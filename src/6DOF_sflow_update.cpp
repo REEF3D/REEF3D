@@ -24,19 +24,6 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"ghostcell.h"
 
-void sixdof_sflow::updateFSI(lexer *p, ghostcell* pgc)
-{
-    // Update transformation matrix (Shivarama PhD thesis, p. 19)
-    quat_matrices(e_);
-
-    // Calculate new position
-    updatePosition(p,pgc);
-      
-    // Global body variables
-    //interface(p,false);    
-    //maxvel(p,a,pgc);
-}
-
 void sixdof_sflow::updatePosition(lexer *p, ghostcell *pgc)
 {
 	// Calculate Euler angles from quaternion

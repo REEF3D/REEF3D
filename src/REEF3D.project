@@ -1794,15 +1794,15 @@
           <File Name="6DOF_nhflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface CFD">
-          <File Name="6DOF_CFD.cpp"/>
-          <File Name="6DOF_CFD_velsource.cpp"/>
-          <File Name="6DOF_CFD_setup.cpp"/>
+          <File Name="6DOF_CFD__velsource.cpp"/>
+          <File Name="6DOF_CFD__setup.cpp"/>
+          <File Name="6DOF_CFD_.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="6DOF_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface SFLOW">
-          <File Name="6DOF_sflow_forcing.cpp"/>
+          <File Name="6DOF_sflow_velsource.cpp"/>
           <File Name="6DOF_sflow_motion.cpp"/>
           <VirtualDirectory Name="Print">
             <File Name="6DOF_sflow_print_stl.cpp"/>

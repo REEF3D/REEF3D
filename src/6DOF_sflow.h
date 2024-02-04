@@ -101,7 +101,6 @@ private:
     void time_preproc(lexer*);
 
     double Hsolidface(lexer*, int,int);
-    void updateFSI(lexer*, ghostcell*);
     void updatePosition(lexer*, ghostcell*);
     void updateForcing_hemisphere(lexer*, ghostcell*);
     void updateForcing_box(lexer*, ghostcell*);

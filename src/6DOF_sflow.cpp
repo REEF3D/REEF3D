@@ -51,7 +51,11 @@ void sixdof_sflow::start(lexer *p, ghostcell *pgc)
     p->yg += ramp_vel(p)*Vext*p->dt;
 
     // Update position
-    updateFSI(p,pgc);
+   // Update transformation matrix (Shivarama PhD thesis, p. 19)
+    quat_matrices(e_);
+
+    // Calculate new position
+    updatePosition(p,pgc);
     
 // --------------------------
 
