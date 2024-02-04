@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_df_object::triangle_switch_ray(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::triangle_switch_ray(lexer *p, fdm *a, ghostcell *pgc)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;

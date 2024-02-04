@@ -26,7 +26,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"ghostcell.h"
 
 
-void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::geometry(lexer *p, fdm *a, ghostcell *pgc)
 {
     double x0, x1, x2, y0, y1, y2, z0, z1, z2;
     double n0, n1, n2;
@@ -200,7 +200,7 @@ void sixdof_df_object::geometry(lexer *p, fdm *a, ghostcell *pgc)
 	}
 }
 
-void sixdof_df_object::geometry_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::geometry_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->X180==1)
     {
@@ -240,7 +240,7 @@ void sixdof_df_object::geometry_stl(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
-void sixdof_df_object::geometry_f(double& w0, double& w1, double& w2, double& f1, double& f2, double& f3, double& g0, double& g1, double& g2)
+void sixdof_obj::geometry_f(double& w0, double& w1, double& w2, double& f1, double& f2, double& f3, double& g0, double& g1, double& g2)
 {
 	double temp0 = w0 + w1;
     f1 = temp0 + w2;
@@ -253,7 +253,7 @@ void sixdof_df_object::geometry_f(double& w0, double& w1, double& w2, double& f1
     g2 = f2 + w2 * (f1 + w2);
 }
 
-void sixdof_df_object::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Total Volume
 	double H;

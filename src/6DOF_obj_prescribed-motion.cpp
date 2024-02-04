@@ -25,7 +25,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::prescribedMotion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
+void sixdof_obj::prescribedMotion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
 {
     
     if (p->X11_u == 2)
@@ -47,7 +47,7 @@ void sixdof_df_object::prescribedMotion_trans(lexer *p, ghostcell *pgc, Eigen::V
     }
 }
 
-void sixdof_df_object::prescribedMotion_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de)
+void sixdof_obj::prescribedMotion_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de)
 {
 
     if(p->X11_p==2)
@@ -71,7 +71,7 @@ void sixdof_df_object::prescribedMotion_rot(lexer *p, Eigen::Vector3d& dh, Eigen
     de = 0.5*G_.transpose()*I_.inverse()*h;
 }
 
-double sixdof_df_object::ramp_vel(lexer *p)
+double sixdof_obj::ramp_vel(lexer *p)
 {
     double f=1.0;
     
@@ -92,5 +92,23 @@ double sixdof_df_object::ramp_vel(lexer *p)
 }
 
 
-
+double sixdof_obj::ramp_draft(lexer *p)
+{
+    double f=1.0;
+    
+    if(p->X205==1 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
+    {
+    f = p->simtime/(p->X207_te-p->X207_ts);
+    }
+    
+    if(p->X205==2 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
+    {
+    f = p->simtime/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X207_te-p->X207_ts)));
+    }
+    
+    if(p->X207==1 && p->simtime<p->X207_ts)
+    f=0.0;
+    
+    return f;
+}
 

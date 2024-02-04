@@ -35,7 +35,7 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
     number6DOF = 1;
     
     for (int nb = 0; nb < number6DOF; nb++)
-    p_df_obj.push_back(new sixdof_df_object(p,a,pgc,nb));
+    p_df_obj.push_back(new sixdof_obj(p,a,pgc,nb));
 }
     
 sixdof_cfd::~sixdof_cfd()

@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"reinidisc.h"
 
-void sixdof_df_object::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field& b)
+void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field& b)
 {	
 	n=0;
 	ALOOP

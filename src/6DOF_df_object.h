@@ -43,17 +43,17 @@ class vrans;
  
 using namespace std;
 
-#ifndef SIXDOF_DF_OBJECT_H_
-#define SIXDOF_DF_OBJECT_H_
+#ifndef SIXDOF_OBJ_H_
+#define SIXDOF_OBJ_H_
 
-class sixdof_df_object : public gradient
+class sixdof_obj : public gradient
 {
 public:
     
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	
-    sixdof_df_object(lexer*, fdm*, ghostcell*, int);
-	virtual ~sixdof_df_object();
+    sixdof_obj(lexer*, fdm*, ghostcell*, int);
+	virtual ~sixdof_obj();
 	
 	virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,int,vrans*,vector<net*>&);
 	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
@@ -85,6 +85,7 @@ private:
     void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void updateForces(fdm*);
     double ramp_vel(lexer*);
+    double ramp_draft(lexer*);
     
     void objects_create(lexer*, fdm*, ghostcell*);
     void objects_allocate(lexer*, fdm*, ghostcell*);

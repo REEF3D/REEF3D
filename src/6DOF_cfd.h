@@ -60,7 +60,7 @@ private:
    void setup(lexer*,fdm*,ghostcell*);
    
     int number6DOF;
-    vector<sixdof_df_object*> p_df_obj;
+    vector<sixdof_obj*> p_df_obj;
 
 };
 

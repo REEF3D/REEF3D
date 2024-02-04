@@ -25,7 +25,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter, vrans *pvrans, vector<net*>& pnet)
+void sixdof_obj::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter, vrans *pvrans, vector<net*>& pnet)
 {
     externalForces(p, a, pgc, alpha[0], pvrans, pnet);
     
@@ -41,7 +41,7 @@ void sixdof_df_object::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter
     rkls3(p,a,pgc,iter);
 }
 
-void sixdof_df_object::rkls3(lexer *p, fdm *a, ghostcell *pgc, int iter)
+void sixdof_obj::rkls3(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {
     get_trans(p,pgc, dp_, dc_, p_, c_);    
     get_rot(dh_, de_, h_, e_);
@@ -57,7 +57,7 @@ void sixdof_df_object::rkls3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     ek_ = de_;
 }
     
-void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
+void sixdof_obj::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {   
     if(iter==0)
     {
@@ -98,7 +98,7 @@ void sixdof_df_object::rk3(lexer *p, fdm *a, ghostcell *pgc, int iter)
     }
 }
 
-void sixdof_df_object::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
+void sixdof_obj::rk2(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {   
     get_trans(p,pgc, dp_, dc_, p_, c_);    
     get_rot(dh_, de_, h_, e_);

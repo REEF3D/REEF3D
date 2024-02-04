@@ -27,7 +27,7 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include<sys/stat.h>
 
-void sixdof_df_object::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Store initial position of triangles
     

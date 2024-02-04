@@ -26,7 +26,7 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"reinidisc_fsf.h"
 
-sixdof_df_object::sixdof_df_object(lexer *p, fdm *a, ghostcell *pgc,int number) : gradient(p), dt(p), L(p), 
+sixdof_obj::sixdof_obj(lexer *p, fdm *a, ghostcell *pgc,int number) : gradient(p), dt(p), L(p), 
                                                                                 f(p), frk1(p), cutl(p), cutr(p), 
                                                                                 fbio(p),n6DOF(number),
                                                                                 epsifb(1.6*p->DXM), epsi(1.6)
@@ -62,5 +62,5 @@ sixdof_df_object::sixdof_df_object(lexer *p, fdm *a, ghostcell *pgc,int number) 
     zeta[2] = -5.0/12.0;
 }
 
-sixdof_df_object::~sixdof_df_object(){}
+sixdof_obj::~sixdof_obj(){}
     

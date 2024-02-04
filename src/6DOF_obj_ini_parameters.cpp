@@ -27,7 +27,7 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include<sys/stat.h>
   
-void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
 {
 
     // Rigid body motion ini
@@ -119,7 +119,7 @@ void sixdof_df_object::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
     p->printcount_sixdof = 0;
 }
 
-void sixdof_df_object::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
     
     

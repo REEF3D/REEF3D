@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::objects_create(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::objects_create(lexer *p, fdm *a, ghostcell *pgc)
 {
     int qn;
 
@@ -105,7 +105,7 @@ void sixdof_df_object::objects_create(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
 }
 
-void sixdof_df_object::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     

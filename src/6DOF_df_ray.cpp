@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_df_object::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 {
 	ALOOP
 	{

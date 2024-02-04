@@ -25,7 +25,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::interface(lexer *p, bool final)         
+void sixdof_obj::interface(lexer *p, bool final)         
 {
     // Velocities
 
@@ -65,7 +65,7 @@ void sixdof_df_object::interface(lexer *p, bool final)
     }    
 }
 
-void sixdof_df_object::saveTimeStep(lexer *p, int iter)
+void sixdof_obj::saveTimeStep(lexer *p, int iter)
 {
     deltan3_ = deltan2_;
     deltan2_ = deltan1_;
@@ -103,7 +103,7 @@ void sixdof_df_object::saveTimeStep(lexer *p, int iter)
 }
 
 
-void sixdof_df_object::maxvel(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::maxvel(lexer *p, fdm *a, ghostcell *pgc)
 {
 	p->ufbmax = p->ufbi;
     p->vfbmax = p->vfbi;

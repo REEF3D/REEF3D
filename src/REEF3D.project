@@ -1790,16 +1790,19 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
-        <VirtualDirectory Name="Interface NHFLOW"/>
+        <VirtualDirectory Name="Interface NHFLOW">
+          <File Name="6DOF_nhflow.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Interface CFD">
+          <File Name="6DOF_CFD.cpp"/>
           <File Name="6DOF_CFD_velsource.cpp"/>
-          <File Name="6DOF_CFD_main.cpp"/>
           <File Name="6DOF_CFD_setup.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="6DOF_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface SFLOW">
+          <File Name="6DOF_sflow_forcing.cpp"/>
           <File Name="6DOF_sflow_motion.cpp"/>
           <VirtualDirectory Name="Print">
             <File Name="6DOF_sflow_print_stl.cpp"/>
@@ -1820,12 +1823,12 @@
           </VirtualDirectory>
           <File Name="6DOF_sflow_rotation.cpp"/>
           <File Name="6DOF_sflow_reini.cpp"/>
-          <File Name="6DOF_sflow_velsource.cpp"/>
           <File Name="6DOF_sflow_update.cpp"/>
           <File Name="6DOF_sflow_initialize.cpp"/>
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
+          <File Name="6DOF_obj_prescribed-motion.cpp"/>
           <File Name="6DOF_obj_updatepos.cpp"/>
           <File Name="6DOF_obj_transform.cpp"/>
           <File Name="6DOF_obj_solve.cpp"/>
@@ -1833,7 +1836,6 @@
           <File Name="6DOF_obj_object.cpp"/>
           <File Name="6DOF_obj_interface.cpp"/>
           <File Name="6DOF_obj_forcing.cpp"/>
-          <File Name="6DOF_obj_externvel.cpp"/>
           <VirtualDirectory Name="Motion File">
             <File Name="6DOF_obj_motion-file_read.cpp"/>
             <File Name="6DOF_obj_motion-file_ipol.cpp"/>

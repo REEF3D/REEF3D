@@ -25,7 +25,7 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
+void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
     // Determine floating body velocities
     Eigen::Matrix<double, 6, 1> u_fb;
@@ -305,7 +305,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uve
     pgc->start3(p,fz,12);         
 };
 
-double sixdof_df_object::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
+double sixdof_obj::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_fb,dirac;
 	
@@ -335,7 +335,7 @@ double sixdof_df_object::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     return H;
 }
 
-double sixdof_df_object::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
+double sixdof_obj::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_fb,dirac;
 	

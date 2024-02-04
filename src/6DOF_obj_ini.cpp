@@ -38,7 +38,7 @@ Author: Tobias Martin
 #include"net_barDyn.h"
 #include"net_sheet.h"
 
-void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
@@ -214,7 +214,7 @@ void sixdof_df_object::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>
     pgc->gcdf_update(p,a);
 }
 
-void sixdof_df_object::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
 {
     p->Darray(xstart, p->mpi_size);
     p->Darray(xend, p->mpi_size);

@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::print_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int num=0;
     int printflag=0;
@@ -110,7 +110,7 @@ void sixdof_df_object::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_df_object::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
 {
 	if(p->mpirank == 0 && p->count%p->X19==0)
     {

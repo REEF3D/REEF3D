@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
 {
 	if(p->mpirank==0 && p->P14==1)
     {
@@ -77,7 +77,7 @@ void sixdof_df_object::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	printtime_wT[qn]=p->P35_ts[qn];
 }
 
-void sixdof_df_object::print_ini_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_ini_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
 	if(p->mpirank==0 && p->P14==1)
     {

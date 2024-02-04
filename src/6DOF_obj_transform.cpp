@@ -25,7 +25,7 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::transform(lexer *p, fdm *a, ghostcell* pgc, bool finalise)
+void sixdof_obj::transform(lexer *p, fdm *a, ghostcell* pgc, bool finalise)
 {
     // Update transformation matrix (Shivarama PhD thesis, p. 19)
     quat_matrices(e_);
@@ -42,7 +42,7 @@ void sixdof_df_object::transform(lexer *p, fdm *a, ghostcell* pgc, bool finalise
     maxvel(p,a,pgc);
 }
 
-void sixdof_df_object::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc, Eigen::Vector3d& pp, Eigen::Vector3d& c)
+void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc, Eigen::Vector3d& pp, Eigen::Vector3d& c)
 {
     dp = Ffb_; 
     dc = pp/Mass_fb;
@@ -51,7 +51,7 @@ void sixdof_df_object::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, 
 	prescribedMotion_trans(p,pgc,dp,dc);
 } 
 
-void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, Eigen::Vector3d& h, Eigen::Vector4d& e)
+void sixdof_obj::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, Eigen::Vector3d& h, Eigen::Vector4d& e)
 {
     // Update Euler parameter matrices
     quat_matrices(e);
@@ -71,7 +71,7 @@ void sixdof_df_object::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, Eigen::
     prescribedMotion_rot(p,dh,h,de);
 } 
 
-void sixdof_df_object::quat_matrices(const Eigen::Vector4d& e)
+void sixdof_obj::quat_matrices(const Eigen::Vector4d& e)
 {
     E_ << -e(1), e(0), -e(3), e(2),
           -e(2), e(3), e(0), -e(1),

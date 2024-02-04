@@ -28,7 +28,7 @@ Author: Tobias Martin
 #include"net.h"
 #include"vrans.h"
 
-void sixdof_df_object::updateForces(fdm *a)
+void sixdof_obj::updateForces(fdm *a)
 {
     // Forces in inertial system
     Ffb_ << 0.0, 0.0, 0.0;

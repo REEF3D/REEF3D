@@ -25,7 +25,7 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::update_Position(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
+void sixdof_obj::update_Position(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
 {
 	// Calculate Euler angles from quaternion
 	

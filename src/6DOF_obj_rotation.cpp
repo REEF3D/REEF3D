@@ -25,7 +25,7 @@ Author: Tobias Martin
 #include<math.h>
 
 
-void sixdof_df_object::rotation_tri
+void sixdof_obj::rotation_tri
 (
     lexer *p,
     double phi_,double theta_,double psi_, 

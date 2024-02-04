@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::wedge_sym(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_obj::wedge_sym(lexer *p, fdm *a, ghostcell *pgc, int id)
 {
 	double xm;
 		

@@ -28,7 +28,7 @@ Author: Tobias Martin
 #include"net.h"
 #include"vrans.h"
 
-void sixdof_df_object::externalForces(lexer *p,fdm* a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
+void sixdof_obj::externalForces(lexer *p,fdm* a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
 
@@ -45,7 +45,7 @@ void sixdof_df_object::externalForces(lexer *p,fdm* a, ghostcell *pgc, double al
 	}
 }
 
-void sixdof_df_object::mooringForces(lexer *p, fdm* a, ghostcell *pgc, double alpha)
+void sixdof_obj::mooringForces(lexer *p, fdm* a, ghostcell *pgc, double alpha)
 {
 	for (int ii=0; ii<p->mooring_count; ii++)
 	{
@@ -95,7 +95,7 @@ void sixdof_df_object::mooringForces(lexer *p, fdm* a, ghostcell *pgc, double al
     }
 }
 
-void sixdof_df_object::netForces(lexer *p, fdm* a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
+void sixdof_obj::netForces(lexer *p, fdm* a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
 {
     for (int ii = 0; ii < p->net_count; ii++)
     {
