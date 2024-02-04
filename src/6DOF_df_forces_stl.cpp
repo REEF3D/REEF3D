@@ -26,11 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include <math.h>
 
-void sixdof_df_object::forces_stl
-(
-    lexer* p, fdm *a, ghostcell *pgc, double alpha,
-    field& uvel, field& vvel, field& wvel
-)
+void sixdof_df_object::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
@@ -50,7 +46,7 @@ void sixdof_df_object::forces_stl
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
     // Set new time
-    curr_time += alpha*p->dt; 
+    curr_time += alpha[iter]*p->dt; 
 
 
     for (int n = 0; n < tricount; ++n)

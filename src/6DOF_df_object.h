@@ -60,10 +60,10 @@ public:
     
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
-    void updateForcing(lexer*, fdm*, ghostcell*,double,field&,field&,field&,field&,field&,field&);
-	void forces_stl(lexer*, fdm*, ghostcell*,double,field&,field&,field&);
+    void updateForcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
+	void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
     
-    void saveTimeStep(lexer*,double);
+    void saveTimeStep(lexer*,int);
     void print_parameter(lexer*,fdm*,ghostcell*);
     void print_ini_vtp(lexer*,fdm*,ghostcell*);
 	void print_vtp(lexer*,fdm*,ghostcell*);

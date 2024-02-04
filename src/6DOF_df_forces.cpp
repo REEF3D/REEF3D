@@ -31,21 +31,25 @@ Author: Tobias Martin
 void sixdof_df_object::updateForces(fdm *a)
 {
     // Forces in inertial system
-
     Ffb_ << 0.0, 0.0, 0.0;
     Mfb_ << 0.0, 0.0, 0.0;
 
-    if(p->X11_u == 1)
+    if(p->X11_u==1)
     Ffb_(0) = Xext + Xe - p->X26_Cu*p_(0)/Mass_fb; 
-    if(p->X11_v == 1)
-    Ffb_(1) = Yext + Ye - p->X26_Cv*p_(1)/Mass_fb;
-    if(p->X11_w == 1)
-    Ffb_(2) = Zext + Ze - p->X26_Cw*p_(2)/Mass_fb; 
     
-    if(p->X11_p == 1)
+    if(p->X11_v==1)
+    Ffb_(1) = Yext + Ye - p->X26_Cv*p_(1)/Mass_fb;
+    
+    if(p->X11_w==1)
+    Ffb_(2) = Zext + Ze - p->X26_Cw*p_(2)/Mass_fb;
+ 
+    
+    if(p->X11_p==1)
     Mfb_(0) = Kext + Ke - p->X25_Cp*omega_I(0); 
-    if(p->X11_q == 1)
+    
+    if(p->X11_q==1)
     Mfb_(1) = Mext + Me - p->X25_Cq*omega_I(1);
-    if(p->X11_r == 1)
+    
+    if(p->X11_r==1)
     Mfb_(2) = Next + Ne - p->X25_Cr*omega_I(2);
 }

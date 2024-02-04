@@ -65,7 +65,7 @@ void sixdof_df_object::interface(lexer *p, bool final)
     }    
 }
 
-void sixdof_df_object::saveTimeStep(lexer *p, double alpha)
+void sixdof_df_object::saveTimeStep(lexer *p, int iter)
 {
     deltan3_ = deltan2_;
     deltan2_ = deltan1_;
@@ -99,7 +99,7 @@ void sixdof_df_object::saveTimeStep(lexer *p, double alpha)
     
     dtn3 = dtn2;
     dtn2 = dtn1;
-    dtn1 = alpha*p->dt;   
+    dtn1 = alpha[iter]*p->dt;   
 }
 
 

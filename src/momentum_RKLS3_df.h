@@ -38,7 +38,7 @@ class turbulence;
 class solver;
 class density;
 class poisson;
-class sixdof_df_base;
+class sixdof;
 class net;
 class fsi;
 
@@ -55,7 +55,7 @@ public:
 
 	momentum_RKLS3_df(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_RKLS3_df();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof_df_base*,vector<net*>&);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
 	virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
@@ -63,7 +63,7 @@ public:
     virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
     virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
-	void starti(lexer*, fdm*, ghostcell*, sixdof_df_base*, vrans*, vector<net*>&, fsi*);
+	void starti(lexer*, fdm*, ghostcell*, sixdof*, vrans*, vector<net*>&, fsi*);
 
 private:
 

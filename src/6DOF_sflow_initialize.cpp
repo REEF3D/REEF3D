@@ -78,6 +78,10 @@ void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
     print_stl(p,pgc);
 }
 
+void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+{
+}
+
 void sixdof_sflow::ini_parameter(lexer *p, ghostcell *pgc)
 {
     // Prescribed motions
@@ -360,4 +364,8 @@ void sixdof_sflow::create_triangle
 	tri_x_r.push_back(tri_x_new);
 	tri_y_r.push_back(tri_y_new);
 	tri_z_r.push_back(tri_z_new);
+}
+
+void sixdof_sflow::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
+{
 }

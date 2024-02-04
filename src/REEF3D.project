@@ -581,14 +581,13 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
-        <File Name="6DOF_df_void.h"/>
-        <File Name="6DOF_df_base.h"/>
+        <File Name="6DOF_nhflow.h"/>
+        <File Name="6DOF_cfd.h"/>
         <VirtualDirectory Name="Common">
           <File Name="6DOF_motion-file.h"/>
         </VirtualDirectory>
         <File Name="6DOF_sflow.h"/>
         <File Name="6DOF_df_object.h"/>
-        <File Name="6DOF_df.h"/>
         <VirtualDirectory Name="Mooring">
           <File Name="mooring_dynamic.h"/>
           <File Name="mooring_Spring.h"/>
@@ -1791,20 +1790,16 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Interface NHFLOW"/>
+        <VirtualDirectory Name="Interface CFD">
+          <File Name="6DOF_CFD_velsource.cpp"/>
+          <File Name="6DOF_CFD_main.cpp"/>
+          <File Name="6DOF_CFD_setup.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Void">
-          <File Name="6DOF_df_void.cpp"/>
           <File Name="6DOF_void.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Common">
-          <File Name="6DOF_velsource.cpp"/>
-          <File Name="6DOF_main.cpp"/>
-          <VirtualDirectory Name="Motion File">
-            <File Name="6DOF_motion-file_ipol.cpp"/>
-            <File Name="6DOF_motion-file_read.cpp"/>
-            <File Name="6DOF_motion-file.cpp"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="SFLOW 6DOF ">
+        <VirtualDirectory Name="Interface SFLOW">
           <File Name="6DOF_sflow_motion.cpp"/>
           <VirtualDirectory Name="Print">
             <File Name="6DOF_sflow_print_stl.cpp"/>
@@ -1831,6 +1826,11 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
+          <VirtualDirectory Name="Motion File">
+            <File Name="6DOF_motion-file_read.cpp"/>
+            <File Name="6DOF_motion-file_ipol.cpp"/>
+            <File Name="6DOF_motion-file.cpp"/>
+          </VirtualDirectory>
           <File Name="6DOF_df_externvel.cpp"/>
           <File Name="6DOF_df_updatepos.cpp"/>
           <VirtualDirectory Name="Initialize">

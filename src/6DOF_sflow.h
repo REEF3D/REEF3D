@@ -35,6 +35,7 @@ class fdm2D;
 class ghostcell;
 class net;
 class slice;
+class fdm;
 
 using namespace std;
 
@@ -51,7 +52,10 @@ public:
     virtual ~sixdof_sflow();
     
     virtual void start(lexer*,ghostcell*);
+    virtual void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
+    
 	virtual void ini(lexer*,ghostcell*);
+    virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
 	
     
     virtual void isource(lexer*,fdm*,ghostcell*);

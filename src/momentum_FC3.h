@@ -40,7 +40,7 @@ class reini;
 class picard;
 class heat;
 class concentration;
-class sixdof_df_base;
+class sixdof;
 class fsi;
 
 using namespace std;
@@ -54,7 +54,7 @@ public:
 	momentum_FC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_FC3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof_df_base*,vector<net*>&);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
@@ -87,7 +87,7 @@ private:
 	ioflow *pflow;
     nhflow *pnh;
     reini *preini;
-    sixdof_df_base *p6dof_df;
+    sixdof *p6dof;
     fsi *pfsi;
     
 };

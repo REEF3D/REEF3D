@@ -73,7 +73,7 @@ void driver::loop_nsewave(fdm* a)
 			fill_vel(p,a,pgc);
         
         // Wave Models
-        pnse->start(p,a,pgc,pmom,pdiff,pturb,pconvec,ppress,ppois,ppoissonsolv,psolv,pflow,pvrans,p6dof_df,pnet);
+        pnse->start(p,a,pgc,pmom,pdiff,pturb,pconvec,ppress,ppois,ppoissonsolv,psolv,pflow,pvrans,p6dof,pnet);
         poneph->update(p,a,pgc,pflow);
 			
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);

@@ -36,7 +36,7 @@ class solver;
 class poisson;
 class fluid_update;
 class nhflow;
-class sixdof_df_base;
+class sixdof;
 class fsi;
 
 using namespace std;
@@ -50,7 +50,7 @@ public:
 	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, onephase*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof_df_base*,vector<net*>&);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);

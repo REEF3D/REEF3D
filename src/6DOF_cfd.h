@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_df_base.h"
+#include"6DOF.h"
 #include"6DOF_df_object.h"
 #include<vector>
 
@@ -30,31 +30,37 @@ class ddweno_f_nug;
 
 using namespace std;
 
-#ifndef SIXDOF_DF_H_
-#define SIXDOF_DF_H_
+#ifndef SIXDOF_CFD_H_
+#define SIXDOF_CFD_H_
 
-class sixdof_df : public sixdof_df_base, public increment
+class sixdof_cfd : public sixdof, public increment
 {
 public:
-	sixdof_df(lexer*, fdm*, ghostcell*);
-	virtual ~sixdof_df();
-	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
-	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
-    
+	sixdof_cfd(lexer*, fdm*, ghostcell*);
+	virtual ~sixdof_cfd();
+
     void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
+    virtual void start(lexer*,ghostcell*);
+    
+    virtual void ini(lexer*,ghostcell*);
+    virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);
     virtual void ksource(lexer*,fdm*,ghostcell*);
     
+    virtual void isource(lexer*,fdm_nhf*,ghostcell*);
+    virtual void jsource(lexer*,fdm_nhf*,ghostcell*);
+    virtual void ksource(lexer*,fdm_nhf*,ghostcell*);
+    
     virtual void isource2D(lexer*,fdm2D*,ghostcell*);
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
 
 private:
+   void setup(lexer*,fdm*,ghostcell*);
    
     int number6DOF;
     vector<sixdof_df_object*> p_df_obj;
-    double alpha[3],gamma[3],zeta[3];
 
 };
 

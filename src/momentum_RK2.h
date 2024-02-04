@@ -33,7 +33,7 @@ class pressure;
 class turbulence;
 class solver;
 class poisson;
-class sixdof_df_base;
+class sixdof;
 class fsi;
 
 using namespace std;
@@ -47,7 +47,7 @@ public:
 	momentum_RK2(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, 
                 solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK2();
-	virtual void start(lexer*, fdm*, ghostcell*,vrans*,sixdof_df_base*,vector<net*>&);
+	virtual void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
@@ -72,7 +72,7 @@ private:
 	solver *psolv;
     solver *ppoissonsolv;
 	ioflow *pflow;
-    sixdof_df_base *p6dof_df;
+    sixdof *p6dof;
     fsi *pfsi;
 };
 

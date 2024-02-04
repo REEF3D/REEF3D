@@ -30,7 +30,7 @@ momentum_void::~momentum_void()
 {
 }
 
-void momentum_void::start(lexer *p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof_df_base *p6dof_df, vector<net*>& pnet)
+void momentum_void::start(lexer *p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof *p6dof, vector<net*>& pnet)
 {
 }
 

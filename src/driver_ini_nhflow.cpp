@@ -121,7 +121,7 @@ void driver::driver_ini_nhflow()
     d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
     
     //6DOF ini
-    p6dof_sflow->ini(p,pgc);
+    p6dof->ini(p,pgc);
     
     pnhfprint->start(p,d,pgc,pflow);
 

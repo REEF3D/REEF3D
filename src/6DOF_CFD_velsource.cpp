@@ -20,28 +20,41 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
+#include"6DOF_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-void sixdof_df::isource(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_cfd::isource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void sixdof_df::jsource(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_cfd::jsource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void sixdof_df::ksource(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_cfd::ksource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void sixdof_df::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_cfd::isource(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
-void sixdof_df::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_cfd::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+}
+
+void sixdof_cfd::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+}
+
+void sixdof_cfd::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+}
+
+void sixdof_cfd::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 }

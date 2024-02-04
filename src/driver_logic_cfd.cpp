@@ -611,10 +611,10 @@ void driver::logic_cfd()
     
 // 6DOF
     if(p->X10==0)
-    p6dof_df = new sixdof_df_void(p,a,pgc);
+    p6dof = new sixdof_void(p,pgc);
     
     if(p->X10==1)
-    p6dof_df = new sixdof_df(p,a,pgc);
+    p6dof = new sixdof_cfd(p,a,pgc);
 
 // FSI
     if(p->Z10==0)

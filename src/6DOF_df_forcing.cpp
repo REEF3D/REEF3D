@@ -25,8 +25,7 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double alpha,
-                                     field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz)
+void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
     // Determine floating body velocities
     Eigen::Matrix<double, 6, 1> u_fb;
@@ -91,7 +90,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
         H = Hsolidface(p,a,1,0,0);
        
-        fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt);   
+        fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);   
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
     VLOOP
@@ -99,7 +98,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         H = Hsolidface(p,a,0,1,0);
        
-        fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt);
+        fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
     }
     WLOOP
@@ -107,7 +106,7 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
         H = Hsolidface(p,a,0,0,1);
 
-        fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt);
+        fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }
     LOOP
@@ -162,15 +161,15 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 		if (phival_fb < 0)
 		{
-			fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt); 
+			fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt); 
 		}
 		else if (phival_fb >0 && phival_fb<psi )
 		{
             if(p->X14==2)
-			fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt);
+			fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
             
             if(p->X14==3)
-			fx(i,j,k) +=   (fabs(nx)*H + ((1.0-fabs(nx))*Ht))*(uf - uvel(i,j,k))/(alpha*p->dt);
+			fx(i,j,k) +=   (fabs(nx)*H + ((1.0-fabs(nx))*Ht))*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
 		}
 		else
 		{
@@ -206,15 +205,15 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 	    if (phival_fb < 0)
 		{
-			fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt); 
+			fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt); 
 		}
 		else if (phival_fb >0 && phival_fb<psi )
 		{
             if(p->X14==2)
-            fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
+            fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
             
             if(p->X14==3)
-            fy(i,j,k) +=   (fabs(ny)*H + ((1.0-fabs(ny))*Ht))*(vf - vvel(i,j,k))/(alpha*p->dt);
+            fy(i,j,k) +=   (fabs(ny)*H + ((1.0-fabs(ny))*Ht))*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
 		}
 		else
 		{
@@ -252,15 +251,15 @@ void sixdof_df_object::updateForcing(lexer *p, fdm *a, ghostcell *pgc, double al
 
 		if (phival_fb < 0)
 		{
-			fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt); 
+			fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt); 
 		}
 		else if (phival_fb >0 && phival_fb<psi )
 		{
             if(p->X14==2)
-            fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
+            fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
             
             if(p->X14==3)
-            fz(i,j,k) +=   (fabs(nz)*H + ((1.0-fabs(nz))*Ht))*(wf - wvel(i,j,k))/(alpha*p->dt);
+            fz(i,j,k) +=   (fabs(nz)*H + ((1.0-fabs(nz))*Ht))*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
 		}
 		else
 		{

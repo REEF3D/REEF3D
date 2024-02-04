@@ -17,34 +17,45 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Tobias Martin
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_df_base.h"
+#include"6DOF_cfd.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-using namespace std;
-
-#ifndef SIXDOF_DF_VOID_H_
-#define SIXDOF_DF_VOID_H_
-
-class sixdof_df_void : public sixdof_df_base
+void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
-public:
-    sixdof_df_void(lexer*, fdm*, ghostcell*);
-	virtual ~sixdof_df_void();
+    for (int nb = 0; nb < number6DOF; nb++)
+    p_df_obj[nb]->initialize(p, a, pgc, pnet);
+}
 
-    virtual void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
-	
-    virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
-	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
+void sixdof_cfd::ini(lexer *p, ghostcell *pgc)
+{
+}
+
+void sixdof_cfd::start(lexer *p, ghostcell *pgc)
+{
+}
+
+void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
+{
+    // Reset heaviside field
+    ULOOP
+    a->fbh1(i,j,k) = 0.0;
+
+    VLOOP
+    a->fbh2(i,j,k) = 0.0;
     
-    virtual void isource(lexer*,fdm*,ghostcell*);
-    virtual void jsource(lexer*,fdm*,ghostcell*);
-    virtual void ksource(lexer*,fdm*,ghostcell*);
-    
-    virtual void isource2D(lexer*,fdm2D*,ghostcell*);
-    virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
+    WLOOP
+    a->fbh3(i,j,k) = 0.0;
 
-};
+    LOOP
+    a->fbh4(i,j,k) = 0.0;
 
-#endif
+    pgc->start1(p,a->fbh1,10);
+    pgc->start2(p,a->fbh2,11);
+    pgc->start3(p,a->fbh3,12);
+    pgc->start4(p,a->fbh4,40);
+}
