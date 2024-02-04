@@ -39,8 +39,8 @@ using namespace std;
 class sixdof
 {
 public:
-    virtual void start_forcing(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool)=0;
-    virtual void start(lexer*,ghostcell*)=0;
+    virtual void start_twoway(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool)=0;
+    virtual void start_oneway(lexer*,ghostcell*)=0;
     
     virtual void ini(lexer*,ghostcell*)=0;
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&)=0;

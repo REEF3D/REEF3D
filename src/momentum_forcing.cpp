@@ -64,7 +64,7 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         if(p->G3==1)
         pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);         
         
-        p6dof->start_forcing(p,a,pgc,pvrans,pnet,iter,u,v,w,fx,fy,fz,final);
+        p6dof->start_twoway(p,a,pgc,pvrans,pnet,iter,u,v,w,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
  

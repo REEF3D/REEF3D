@@ -41,7 +41,7 @@ sixdof_sflow::~sixdof_sflow()
 {
 }
 
-void sixdof_sflow::start(lexer *p, ghostcell *pgc)
+void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
 {
 
 // FB/Ship location

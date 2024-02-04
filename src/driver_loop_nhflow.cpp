@@ -73,7 +73,7 @@ void driver::loop_nhflow()
         //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
         
         // 6DOF
-        p6dof->start(p,pgc);
+        p6dof->start_oneway(p,pgc);
         
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
                        pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 

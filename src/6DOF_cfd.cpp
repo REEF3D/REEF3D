@@ -43,7 +43,7 @@ sixdof_cfd::~sixdof_cfd()
 }
 
 	
-void sixdof_cfd::start_forcing(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
+void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
 {
     for (int nb=0; nb<number6DOF;++nb)
     {
