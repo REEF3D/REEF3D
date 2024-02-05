@@ -53,6 +53,9 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	p->Darray(printtime_wT,p->P35);
     p->Iarray(printfsfiter_wI,p->P184);
     p->Darray(printfsftime_wT,p->P185);
+    
+    
+    p->Iarray(printfsfiter_wI,p->P184);
 
 	for(int qn=0; qn<p->P35; ++qn)
 	printtime_wT[qn]=p->P35_ts[qn];
@@ -112,6 +115,8 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 
     if(p->P50>0)
     pwsf_theory->height_gauge(p,d,pgc,pflow);
+    
+    pfsf->preproc(p,d,pgc);
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)

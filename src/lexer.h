@@ -476,6 +476,7 @@ public:
 	double *P121_x,*P121_y;
 	double *P123_y,*P124_x;
 	double *P125_x,*P125_y;
+    int P131,P132,P133;
 	double P182;
     int *P184_its,*P184_ite,*P184_dit;
     double *P185_ts,*P185_te,*P185_dt;

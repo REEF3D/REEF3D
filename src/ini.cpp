@@ -545,6 +545,7 @@ void lexer::ini_default()
 	P124=0;             // int topoline in y-direction
 	P125=0;             // int bed shear stress gages
 	P126=0;             // int bed shear stress maxval
+    P131=0;             // int max wetdry
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data

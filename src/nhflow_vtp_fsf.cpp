@@ -50,6 +50,16 @@ nhflow_vtp_fsf::nhflow_vtp_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
     gcval_eta = 155;
     gcval_fifsf = 160;
     }
+    
+    if(p->P131==1)
+    {
+    p->Iarray(wetmax,p->imax*p->jmax);
+    
+    SLICELOOP4
+    wetmax[IJ] = 0;
+    
+    pgc->gcsl_start4Vint(p,wetmax,50);
+    }
 }
 
 nhflow_vtp_fsf::~nhflow_vtp_fsf()
@@ -141,6 +151,13 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
     }
+    
+    // wetdry_max
+    if(p->P131==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
 	
 	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
@@ -186,6 +203,11 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     if(p->P110==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    if(p->P131==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"wetdry_max\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
     result<<"</PointData>"<<endl;
@@ -354,6 +376,18 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
     }
+    
+    //  wetdry_max
+    if(p->P131==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+    ffn = 0.25*float((wetmax[IJ]+wetmax[Ip1J]+wetmax[IJp1]+wetmax[Ip1Jp1]));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
 
     //  Connectivity
     iin=4*(p->polygon_sum)*3;
@@ -408,6 +442,18 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	
 	++printcount;
 
+}
+
+void nhflow_vtp_fsf::preproc(lexer *p, fdm_nhf *d, ghostcell* pgc)
+{	
+    if(p->P131==1)
+    {
+    SLICELOOP4
+    wetmax[IJ] = MAX(wetmax[IJ],p->wet[IJ]);
+    
+    pgc->gcsl_start4Vint(p,wetmax,50);    
+    }
+    
 }
 
 
