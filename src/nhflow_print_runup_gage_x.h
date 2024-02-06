@@ -20,44 +20,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
+#include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
 
 class lexer;
-class fdm_fnpf;
+class fdm_nhf;
 class ghostcell;
+class field;
+class ioflow;
+class wave_theory;
 class slice;
 
 using namespace std;
 
-#ifndef FNPF_PRINT_WSF_H_
-#define FNPF_PRINT_WSF_H_
+#ifndef NHFLOW_PRINT_RUNUP_GAGE_X_H_
+#define NHFLOW_PRINT_RUNUP_GAGE_X_H_
 
-class fnpf_print_wsf : public increment
+class nhflow_print_runup_gage_x : public boundarycheck
 {
 public:
-    fnpf_print_wsf(lexer*,fdm_fnpf*);
-	virtual ~fnpf_print_wsf();
+    nhflow_print_runup_gage_x(lexer*,fdm_nhf*,ghostcell*);
+	virtual ~nhflow_print_runup_gage_x();
 
-	void height_gauge(lexer*, fdm_fnpf*, ghostcell*,slice&);
+	void start(lexer*, fdm_nhf*, ghostcell*,ioflow*,slice &f);
 
 
 private:
-    void ini_location(lexer*, fdm_fnpf*);
-    void fill_eta(lexer*, fdm_fnpf*, ghostcell*,slice&);
-    void fill_deta(lexer*, fdm_fnpf*, ghostcell*,slice&);
-    void fill_Uhorz(lexer*, fdm_fnpf*, ghostcell*,slice&);
-    
-	double *x,*y;
-	int gauge_num;
+    void ini_location(lexer*, fdm_nhf*, ghostcell*);
+    void sort(double*, double*, int*, int,int);
+    void remove_multientry(lexer*,double*, double*, int*, int&);
 
-    int *iloc,*jloc,*flag;
-    double *wsf,*deta,*Uhorz;
-    int n;
-    ofstream wsfout,detaout,Uhorzout;
-    
+    int *jloc,**flag,**flag_all,*rowflag,*wsfpoints;
+    double **wsf,**wsf_all;
+    double **xloc, **xloc_all;
+    double *yloc;
+    int n,q;
+    ofstream wsfout;
+
+    double xcoor;
+	
+	wave_theory *pwave;
+
+    int maxknox,sumknox;
 
 };
 
 #endif
+

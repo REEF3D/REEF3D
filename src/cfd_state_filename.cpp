@@ -245,12 +245,12 @@ void cfd_state::filename_single(lexer *p, fdm *a, ghostcell *pgc, int num)
 {
     if(p->P14==0)
     {
-    sprintf(name,"REEF3D_CFD-State-%08d-%05d.r3d",num,p->mpirank+1);
+    sprintf(name,"REEF3D_CFD-State-%08i-%05i.r3d",num,p->mpirank+1);
     }
     
     if(p->P14==1)
     {
-    sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%08d-%05d.r3d",num,p->mpirank+1);
+    sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%08i-%05i.r3d",num,p->mpirank+1);
     }
 }
 
@@ -258,12 +258,12 @@ void cfd_state::filename_continuous(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->P14==0)
     {
-    sprintf(name,"REEF3D_CFD-State-%05d.r3d",p->mpirank+1);
+    sprintf(name,"REEF3D_CFD-State-%05i.r3d",p->mpirank+1);
     }
     
     if(p->P14==1)
     {
-    sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%05d.r3d",p->mpirank+1);
+    sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%05i.r3d",p->mpirank+1);
     }
 }
 
@@ -271,12 +271,12 @@ void cfd_state::filename_header(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->P14==0)
     {
-	sprintf(name,"REEF3D-CFD-State-Header-%05d.r3d",p->mpirank+1);
+	sprintf(name,"REEF3D-CFD-State-Header-%05i.r3d",p->mpirank+1);
     }
     
     if(p->P14==1)
     {
-	sprintf(name,"./REEF3D_CFD_STATE/REEF3D-CFD-State-Header-%05d.r3d",p->mpirank+1);
+	sprintf(name,"./REEF3D_CFD_STATE/REEF3D-CFD-State-Header-%05i.r3d",p->mpirank+1);
     }
 }
 
