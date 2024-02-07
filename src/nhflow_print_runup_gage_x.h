@@ -49,14 +49,14 @@ public:
 private:
     void ini_location(lexer*, fdm_nhf*, ghostcell*);
     void sort(double*, double*, int*, int,int);
-    void remove_multientry(lexer*,double*, double*, int*, int&);
 
-    int *jloc,**flag,**flag_all,*rowflag,*wsfpoints;
-    double **wsf,**wsf_all;
-    double **xloc, **xloc_all;
+    double *xloc;
     double *yloc;
+    double *zloc;
+    int *jloc,*flag;
     int n,q;
     ofstream wsfout;
+    char name[250];
 
     double xcoor;
 	

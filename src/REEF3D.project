@@ -316,6 +316,10 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Runup">
+            <File Name="nhflow_print_runup_gage_x.h"/>
+            <File Name="nhflow_print_runup.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="nhflow_vtp_fsf.h"/>
           </VirtualDirectory>
@@ -323,8 +327,6 @@
             <File Name="nhflow_vtp_bed.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
-            <File Name="nhflow_print_runup.h"/>
-            <File Name="nhflow_print_runup_gage_x.h"/>
             <File Name="nhflow_print_wsfline_y.h"/>
             <File Name="nhflow_print_wsfline.h"/>
             <File Name="nhflow_print_wsf_theory.h"/>
@@ -1413,6 +1415,10 @@
           <File Name="nhflow_HLL.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Runup">
+            <File Name="nhflow_print_runup.cpp"/>
+            <File Name="nhflow_print_runup-gage_x.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="nhflow_vtp_bed_pvtp.cpp"/>
             <File Name="nhflow_vtp_bed_header.cpp"/>
@@ -1424,8 +1430,6 @@
             <File Name="nhflow_vtp_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
-            <File Name="nhflow_print_runup.cpp"/>
-            <File Name="nhflow_print_runup-gage_x.cpp"/>
             <File Name="nhflow_print_wsfline_y.cpp"/>
             <File Name="nhflow_print_wsfline.cpp"/>
             <File Name="nhflow_print_wsf_theory.cpp"/>
