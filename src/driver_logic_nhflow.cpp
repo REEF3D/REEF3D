@@ -175,17 +175,17 @@ void driver::logic_nhflow()
     
 //6DOF
     if(p->X10!=3)
-    p6dof_sflow = new sixdof_void();
+    p6dof = new sixdof_void(p,pgc);
     
     if(p->X10==3)
-    p6dof_sflow = new sixdof_sflow(p,pgc);
+    p6dof = new sixdof_sflow(p,pgc);
     
 //Momentum
     if(p->A510==2)
-	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof_sflow);
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof);
     
     if(p->A510==3)
-	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof_sflow);
+	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof);
     
     
     

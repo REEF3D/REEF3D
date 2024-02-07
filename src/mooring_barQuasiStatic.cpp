@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -21,14 +21,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"mooring_barQuasiStatic.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 mooring_barQuasiStatic::mooring_barQuasiStatic(int number):line(number){}
 
 mooring_barQuasiStatic::~mooring_barQuasiStatic(){}
 
-void mooring_barQuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_barQuasiStatic::start(lexer *p, ghostcell *pgc)
 {
     // Current time
     curr_time = p->simtime;
@@ -50,7 +49,7 @@ void mooring_barQuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
         for (int it = 0; it < 1000; it++)
         {	
             // Reconstruct current line
-            buildLine(p,a,pgc);
+            buildLine(p,pgc);
             
             // Calculating velocities at knots
             // updateVel(p, a, pgc, 0);
@@ -240,13 +239,13 @@ void mooring_barQuasiStatic::start(lexer *p, fdm *a, ghostcell *pgc)
 	Zme_ = -fabs(A[sigma-1][sigma])*f[sigma][2];
 		
 	// Plotting mooring line	
-	print(p,a,pgc);	
+	print(p,pgc);	
 }
 
 
-void mooring_barQuasiStatic::updateVel(lexer *p, fdm *a, ghostcell *pgc, int cmp)
+void mooring_barQuasiStatic::updateVel(lexer *p, ghostcell *pgc, int cmp)
 {
-	int *recVel, *count;
+	/*int *recVel, *count;
 	
 	p->Iarray(count,p->mpi_size);
 	p->Iarray(recVel,sigma + 2);
@@ -408,7 +407,7 @@ void mooring_barQuasiStatic::updateVel(lexer *p, fdm *a, ghostcell *pgc, int cmp
 	delete [ ] recvVel;
 	
 	p->del_Iarray(count,p->mpi_size);
-	p->del_Iarray(recVel,sigma + 2);
+	p->del_Iarray(recVel,sigma + 2);*/
 }
 
 

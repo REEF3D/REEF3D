@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -22,9 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include"mooring_Spring.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
-
 
 void mooring_Spring::print(lexer *p)
 {

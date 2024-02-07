@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -45,23 +45,23 @@ public:
 	mooring_barQuasiStatic(int);
 	virtual ~mooring_barQuasiStatic();
 	
-	virtual void start(lexer*, fdm*, ghostcell*);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, ghostcell*);
+	virtual void initialize(lexer*, ghostcell*);
 	virtual void mooringForces(double&, double&, double&);
 	
 private:
 
 	// Preprocessing
-	void ini_parallel(lexer*, fdm*, ghostcell*);
+	void ini_parallel(lexer*, ghostcell*);
 	
 	// Runtime
 	vector< vector<double> > solveGauss(vector< vector<double> >, vector< vector<double> >);
-    void updateVel(lexer*, fdm*, ghostcell*, int);
- 	void getVel(lexer*, fdm*, ghostcell*);
+    void updateVel(lexer*, ghostcell*, int);
+ 	void getVel(lexer*, ghostcell*);
         vector<double> getC(double);
-    void print(lexer*,fdm*,ghostcell*);
-    void buildLine(lexer*,fdm*,ghostcell*);
-    void checkBottom(lexer*,fdm*,ghostcell*);
+    void print(lexer*,ghostcell*);
+    void buildLine(lexer*,ghostcell*);
+    void checkBottom(lexer*,ghostcell*);
 	
 	// ------ 
 	

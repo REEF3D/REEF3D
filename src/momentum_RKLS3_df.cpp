@@ -35,7 +35,7 @@ Author: Tobias Martin, Hans Bihs
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
-#include"6DOF_df_base.h"
+#include"6DOF.h"
 #include"net.h"
 #include"FSI.h"
 
@@ -75,9 +75,9 @@ momentum_RKLS3_df::momentum_RKLS3_df
 momentum_RKLS3_df::~momentum_RKLS3_df(){}
 
 
-void momentum_RKLS3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof_df_base *p6dof_df, vector<net*>& pnet){}
+void momentum_RKLS3_df::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof *p6dof, vector<net*>& pnet){}
 
-void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df_base* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
+void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
 {	
     // Set inflow 
     double udisctime=0.0;
@@ -206,7 +206,7 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof_df_base*
         pgc->start3(p,fz,12);           
         
 
-        p6dof_df->start_forcing(p,a,pgc,pvrans,pnet,loop,urk,vrk,wrk,fx,fy,fz,final);
+        p6dof->start_twoway(p,a,pgc,pvrans,pnet,loop,urk,vrk,wrk,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);
  

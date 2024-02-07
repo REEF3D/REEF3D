@@ -49,8 +49,6 @@ private:
     void fill_deta(lexer*, fdm_fnpf*, ghostcell*,slice&);
     void fill_Uhorz(lexer*, fdm_fnpf*, ghostcell*,slice&);
     
-    int conv(double);
-	
 	double *x,*y;
 	int gauge_num;
 

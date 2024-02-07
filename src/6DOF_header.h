@@ -20,8 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_df.h"
-#include"6DOF_df_void.h"
+#include"6DOF_cfd.h"
+#include"6DOF_sflow.h"
+#include"6DOF_nhflow.h"
 #include"6DOF_void.h"
 
 

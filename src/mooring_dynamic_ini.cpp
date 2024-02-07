@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -22,10 +22,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include"mooring_dynamic.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void mooring_dynamic::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_dynamic::initialize(lexer *p, ghostcell *pgc)
 {
 	// Initialise parameter
 	gamma = p->X311_w[line];			// specific weight [kg/m]
@@ -52,7 +51,7 @@ void mooring_dynamic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     Eigen::VectorXd zIni = Eigen::VectorXd::Zero(Ne+1);   
 	mooring_Catenary *pcatenary;
 	pcatenary = new mooring_Catenary(line);
-    pcatenary->iniShape(p,a,pgc,xIni,yIni,zIni);
+    pcatenary->iniShape(p,pgc,xIni,yIni,zIni);
     Eigen::Vector3d d0;  d0 << 1, 0, 0;
     meshBeam(xIni, yIni, zIni, d0);
 
@@ -60,7 +59,7 @@ void mooring_dynamic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     iniSolver();
 	
 	// Initialise communication 
-	ini_parallel(p, a, pgc);
+	ini_parallel(p, pgc);
 
     // Initialise print
 	if(p->mpirank==0 && p->P14==1)
@@ -94,7 +93,7 @@ void mooring_dynamic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     breakTime = p->X315 > 0 ? p->X315_t[line]: 0.0;
 }
 
-void mooring_dynamic::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_dynamic::ini_parallel(lexer *p, ghostcell *pgc)
 {
 	p->Darray(xstart, p->mpi_size);
 	p->Darray(xend, p->mpi_size);

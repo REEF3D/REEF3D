@@ -75,7 +75,7 @@ nhflow_momentum_RK3::~nhflow_momentum_RK3()
 
 void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss,
                                      nhflow_reconstruct *precon, nhflow_convection *pconvec, nhflow_diffusion *pnhfdiff, 
-                                     nhflow_pressure *ppress, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, nhflow_turbulence *pnhfturb, vrans *pvrans)
+                                     nhflow_pressure *ppress, solver *ppoissonsolv, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf, nhflow_turbulence *pnhfturb, vrans *pvrans)
 {	
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
@@ -159,7 +159,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     
     //pflow->pressure_io(p,a,pgc);
-	ppress->start(p,d,psolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
+	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
 	
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
 
@@ -252,7 +252,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
  
     //pflow->pressure_io(p,a,pgc);
-	ppress->start(p,d,psolv,pgc,pflow,WLRK2,UHRK2,VHRK2,WHRK2,0.25);
+	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK2,UHRK2,VHRK2,WHRK2,0.25);
     
     velcalc(p,d,pgc,UHRK2,VHRK2,WHRK2,WLRK2);
 	
@@ -344,7 +344,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     
 	//pflow->pressure_io(p,a,pgc);
-    ppress->start(p,d,psolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,2.0/3.0);
+    ppress->start(p,d,ppoissonsolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,2.0/3.0);
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
 	

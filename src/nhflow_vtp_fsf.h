@@ -40,6 +40,7 @@ public:
 	
     virtual void start(lexer*,fdm_nhf*,ghostcell*);
     virtual void print2D(lexer*,fdm_nhf*,ghostcell*);
+    void preproc(lexer*,fdm_nhf*,ghostcell*);
 	
 private:
 	
@@ -60,6 +61,8 @@ private:
     int gcval_eta, gcval_fifsf;
     int printcount;
     int jj;
+    
+    int *wetmax;
 	
 
 };

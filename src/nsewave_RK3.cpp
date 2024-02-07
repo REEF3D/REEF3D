@@ -87,7 +87,7 @@ nsewave_RK3::~nsewave_RK3()
 
 void nsewave_RK3::start(lexer* p, fdm* a, ghostcell* pgc, momentum *pmom, diffusion *pdiff, turbulence *pturb,
                       convection* pconvec, pressure *ppress, poisson *ppois, solver *ppoissonsolv, solver *psolv, 
-                      ioflow* pflow, vrans* pvrans, sixdof_df_base *p6dof_df, vector<net*>& pnet)
+                      ioflow* pflow, vrans* pvrans, sixdof *p6dof, vector<net*>& pnet)
 {
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);

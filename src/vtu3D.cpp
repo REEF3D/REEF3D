@@ -360,13 +360,13 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
         pflowfile->start(p,a,pgc,pturb);
 
 		// Print state out based on iteration
-        if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0)
+        if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
 		{
         pstate->write(p,a,pgc,pturb,psed);
 		}
 
 		// Print state out based on time
-        if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
+        if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<<p->P47_te)))
         {
         pstate->write(p,a,pgc,pturb,psed);
 

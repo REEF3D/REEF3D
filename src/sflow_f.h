@@ -96,7 +96,7 @@ private:
     
     patchBC_interface *pBC;
     
-    sixdof *p6dof_sflow;
+    sixdof *p6dof;
 	
 	double starttime, endtime;
     

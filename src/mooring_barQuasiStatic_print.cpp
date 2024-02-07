@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -22,11 +22,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include"mooring_barQuasiStatic.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 
-void mooring_barQuasiStatic::print(lexer *p,fdm *a, ghostcell *pgc)
+void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
 {
 	int num=0;
 	
@@ -40,8 +39,8 @@ void mooring_barQuasiStatic::print(lexer *p,fdm *a, ghostcell *pgc)
 	num=0;
 	
     // Check bottom and switch to catenary if necessary
-    buildLine(p,a,pgc);
-    checkBottom(p,a,pgc);
+    buildLine(p,pgc);
+    checkBottom(p,pgc);
    
 
     // Print tension forces
@@ -125,7 +124,7 @@ void mooring_barQuasiStatic::print(lexer *p,fdm *a, ghostcell *pgc)
 }
 
 
-void mooring_barQuasiStatic::buildLine(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_barQuasiStatic::buildLine(lexer *p, ghostcell *pgc)
 {
 	x[0] = p->X311_xs[line];
 	y[0] = p->X311_ys[line];
@@ -152,19 +151,14 @@ void mooring_barQuasiStatic::buildLine(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void mooring_barQuasiStatic::checkBottom
-(
-    lexer *p, 
-    fdm *a, 
-    ghostcell *pgc
-)
+void mooring_barQuasiStatic::checkBottom(lexer *p, ghostcell *pgc)
 {
     for(int n=0; n<sigma+2; ++n)
     {
         if (z[n] < -0.01)
         {
             if (p->mpirank == 0 && broken == false) cout<<"Catenary solution"<<endl;
-            pcatenary->getShape(p,a,pgc,x,y,z,T);
+            pcatenary->getShape(p,pgc,x,y,z,T);
             break;
         }
     }

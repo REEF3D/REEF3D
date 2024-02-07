@@ -55,7 +55,7 @@ void driver::loop_nhflow()
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
-		cout<<"timestep: "<<p->dt<<endl;
+        cout<<"timestep: "<<p->dt<<endl;
         
 		if(p->B90>0 && p->B92<=11)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;
@@ -73,10 +73,10 @@ void driver::loop_nhflow()
         //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
         
         // 6DOF
-        p6dof_sflow->start(p,pgc);
+        p6dof->start_oneway(p,pgc);
         
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
-                       pnhpress,ppoissonsolv,pnhf,pnhfsf,pnhfturb,pvrans); 
+                       pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
 
         //save previous timestep
         //pturb->ktimesave(p,a,pgc);

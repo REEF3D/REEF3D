@@ -76,11 +76,9 @@ class patchBC_interface;
 class nhflow;
 class multiphase;
 class nhflow_momentum;
-class sixdof_df_base;
 class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
 class nhflow_vtu3D;
-class sixdof;
 class particle_base;
 
 #include<iostream>
@@ -215,10 +213,9 @@ public:
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
     nhflow_vtu3D *pnhfprint;
-    sixdof_df_base *p6dof_df;
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
-    sixdof *p6dof_sflow;
+    sixdof *p6dof;
     particle_base *ppart;
 
 private:

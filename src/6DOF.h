@@ -29,6 +29,7 @@ class fdm2D;
 class ghostcell;
 class vrans;
 class net;
+class field;
 
 using namespace std;
 
@@ -38,10 +39,12 @@ using namespace std;
 class sixdof
 {
 public:
-
-    virtual void ini(lexer*,ghostcell*)=0;
-	virtual void start(lexer*,ghostcell*)=0;
+    virtual void start_twoway(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool)=0;
+    virtual void start_oneway(lexer*,ghostcell*)=0;
     
+    virtual void ini(lexer*,ghostcell*)=0;
+    virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&)=0;
+	
     virtual void isource(lexer*,fdm*,ghostcell*)=0;
     virtual void jsource(lexer*,fdm*,ghostcell*)=0;
     virtual void ksource(lexer*,fdm*,ghostcell*)=0;

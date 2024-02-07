@@ -1,4 +1,4 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2024 Hans Bihs
 
@@ -979,6 +979,18 @@ void lexer::ctrlrecv()
 	ii++;
     P45 = ictrl[ii];
 	ii++;
+    P46 = ictrl[ii];
+	ii++;
+    P46_is = ictrl[ii];
+	ii++;
+    P46_ie = ictrl[ii];
+	ii++;
+    P47 = ictrl[ii];
+	ii++;
+    P47_ts = dctrl[dd];
+	dd++;
+    P47_te = dctrl[dd];
+	dd++;
     P50 = ictrl[ii];
 	ii++;
 	P51 = ictrl[ii];
@@ -1006,6 +1018,8 @@ void lexer::ctrlrecv()
     P63 = ictrl[ii];
 	ii++;
     P64 = ictrl[ii];
+	ii++;
+    P65 = ictrl[ii];
 	ii++;
 	P66 = ictrl[ii];
 	ii++;
@@ -1072,6 +1086,14 @@ void lexer::ctrlrecv()
 	P125 = ictrl[ii];
 	ii++;
 	P126 = ictrl[ii];
+	ii++;
+    P131 = ictrl[ii];
+	ii++;
+    P132 = ictrl[ii];
+	ii++;
+    P133 = ictrl[ii];
+	ii++;
+    P134 = ictrl[ii];
 	ii++;
 	P151 = ictrl[ii];
 	ii++;
@@ -2237,6 +2259,13 @@ void lexer::ctrlrecv()
 	Darray(P64_y,P64); 
 	Darray(P64_z,P64);  
 	}
+    
+    if(P65>0)
+	{
+    Darray(P65_x,P65);  
+	Darray(P65_y,P65); 
+	Darray(P65_z,P65);  
+	}
 	
 	if(P67>0)
 	Darray(P67_x,P67); 
@@ -2286,6 +2315,12 @@ void lexer::ctrlrecv()
     Darray(P125_x,P125);  
 	Darray(P125_y,P125);  
 	}
+    
+    if(P133>0)
+	Darray(P133_y,P133);
+    
+    if(P134>0)
+	Darray(P134_x,P134);
     
     if(P184>0)
 	{
@@ -3239,6 +3274,16 @@ for(n=0;n<F369;++n)
 	P64_z[n] = dctrl[dd];
     dd++;
     }
+    
+    for(n=0;n<P65;++n)
+    {
+    P65_x[n] = dctrl[dd];
+    dd++;
+    P65_y[n] = dctrl[dd];
+    dd++;
+	P65_z[n] = dctrl[dd];
+    dd++;
+    }
 	
 	for(n=0;n<P67;++n)
     {
@@ -3311,6 +3356,18 @@ for(n=0;n<F369;++n)
     P125_x[n] = dctrl[dd];
     dd++;
     P125_y[n] = dctrl[dd];
+    dd++;
+    }
+    
+    for(n=0;n<P133;++n)
+    {
+    P133_y[n] = dctrl[dd];
+    dd++;
+    }
+    
+    for(n=0;n<P134;++n)
+    {
+    P134_x[n] = dctrl[dd];
     dd++;
     }
     

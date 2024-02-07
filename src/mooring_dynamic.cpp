@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"mooring_dynamic.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 mooring_dynamic::mooring_dynamic(int number):line(number),beam(number)
@@ -29,7 +28,7 @@ mooring_dynamic::mooring_dynamic(int number):line(number),beam(number)
 
 mooring_dynamic::~mooring_dynamic(){}
 
-void mooring_dynamic::start(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_dynamic::start(lexer *p, ghostcell *pgc)
 {
 	// Set mooring time step
 	phi_mooring = 0.0;
@@ -37,7 +36,7 @@ void mooring_dynamic::start(lexer *p, fdm *a, ghostcell *pgc)
 	t_mooring = phi_mooring*p->simtime + (1.0 - phi_mooring)*(p->simtime + p->dt);
 
 	// Update fields
-    updateFields(p, a, pgc);
+    updateFields(p, pgc);
 	
 	// Update boundary conditions
     fixPoint << p->X311_xe[line], p->X311_ye[line], p->X311_ze[line]; 
@@ -52,8 +51,9 @@ void mooring_dynamic::start(lexer *p, fdm *a, ghostcell *pgc)
 	print(p);
 }
 
-void mooring_dynamic::updateFluidVel(lexer *p, fdm *a, ghostcell *pgc, int cmp)
+void mooring_dynamic::updateFluidVel(lexer *p, ghostcell *pgc, int cmp)
 {
+    /*
 	int *recVel, *count;
 	
 	p->Iarray(count,p->mpi_size);
@@ -218,19 +218,19 @@ void mooring_dynamic::updateFluidVel(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	delete [ ] recvVel;
 	
 	p->del_Iarray(count,p->mpi_size);
-	p->del_Iarray(recVel,Ne + 1);
+	p->del_Iarray(recVel,Ne + 1);*/
 }
 
 
-void mooring_dynamic::updateFields(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_dynamic::updateFields(lexer *p, ghostcell *pgc)
 {
     // Get position of points
     getTransPos(c_moor);
 	
     // Fluid velocity
-	updateFluidVel(p, a, pgc, 0);
-	updateFluidVel(p, a, pgc, 1);
-	updateFluidVel(p, a, pgc, 2);	
+	updateFluidVel(p, pgc, 0);
+	updateFluidVel(p, pgc, 1);
+	updateFluidVel(p, pgc, 2);	
 	
     // Fluid acceleration
 	for (int i = 0; i < Ne + 1; i++)

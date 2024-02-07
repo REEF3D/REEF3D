@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"nhflow_print_wsf_theory.h"
 #include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
+#include"nhflow_print_runup_gage_x.h"
 /*#include"nhflow_breaking_log.h"
 #include"potentialfile_out.h"
 #include"nhflow_state.h"*/
@@ -53,6 +54,9 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	p->Darray(printtime_wT,p->P35);
     p->Iarray(printfsfiter_wI,p->P184);
     p->Darray(printfsftime_wT,p->P185);
+    
+    
+    p->Iarray(printfsfiter_wI,p->P184);
 
 	for(int qn=0; qn<p->P35; ++qn)
 	printtime_wT[qn]=p->P35_ts[qn];
@@ -77,6 +81,8 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pwsfline=new nhflow_print_wsfline(p,d,pgc);
 
     pwsfline_y=new nhflow_print_wsfline_y(p,d,pgc);
+    
+    prunupx=new nhflow_print_runup_gage_x(p,d,pgc);
 /*
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,d,pgc);
@@ -112,6 +118,12 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 
     if(p->P50>0)
     pwsf_theory->height_gauge(p,d,pgc,pflow);
+    
+    if(p->P133>0)
+	prunupx->start(p,d,pgc,pflow,d->eta);
+    
+    
+    pfsf->preproc(p,d,pgc);
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
@@ -180,13 +192,13 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 
 /*
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 &&)
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
     {
     pstate->write(p,d,pgc);
     }
 
     // Print sate out based on time
-    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
+    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<<p->P47_te)))
     {
     pstate->write(p,d,pgc);
 

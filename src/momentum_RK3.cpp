@@ -69,7 +69,7 @@ momentum_RK3::~momentum_RK3()
 {
 }
 
-void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof_df_base *p6dof_df, vector<net*>& pnet)
+void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, vector<net*>& pnet)
 {	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -138,7 +138,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     poneph->vvel(p,a,pgc,vrk1);
     poneph->wvel(p,a,pgc,wrk1);
     
-    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
     pflow->pressure_io(p,a,pgc);
@@ -221,7 +221,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     poneph->vvel(p,a,pgc,vrk2);
     poneph->wvel(p,a,pgc,wrk2);
     
-    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
     pflow->pressure_io(p,a,pgc);
@@ -304,7 +304,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     poneph->vvel(p,a,pgc,a->v);
     poneph->wvel(p,a,pgc,a->w);
     
-    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
 	pflow->pressure_io(p,a,pgc);

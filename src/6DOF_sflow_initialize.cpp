@@ -78,6 +78,10 @@ void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
     print_stl(p,pgc);
 }
 
+void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+{
+}
+
 void sixdof_sflow::ini_parameter(lexer *p, ghostcell *pgc)
 {
     // Prescribed motions
@@ -150,12 +154,9 @@ void sixdof_sflow::iniPosition_RBM(lexer *p, ghostcell *pgc)
 	
 		for (n=0; n<tricount; ++n)
 		{
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][0],tri_y[n][0],tri_z[n][0],p->xg,p->yg,p->zg);
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][1],tri_y[n][1],tri_z[n][1],p->xg,p->yg,p->zg);
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][2],tri_y[n][2],tri_z[n][2],p->xg,p->yg,p->zg);
+			rotation_tri(p,-phi,-theta,-psi,tri_x[n][0],tri_y[n][0],tri_z[n][0],p->xg,p->yg,p->zg);
+			rotation_tri(p,-phi,-theta,-psi,tri_x[n][1],tri_y[n][1],tri_z[n][1],p->xg,p->yg,p->zg);
+			rotation_tri(p,-phi,-theta,-psi,tri_x[n][2],tri_y[n][2],tri_z[n][2],p->xg,p->yg,p->zg);
 		}
 	}
 	
@@ -360,4 +361,8 @@ void sixdof_sflow::create_triangle
 	tri_x_r.push_back(tri_x_new);
 	tri_y_r.push_back(tri_y_new);
 	tri_z_r.push_back(tri_z_new);
+}
+
+void sixdof_sflow::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
+{
 }

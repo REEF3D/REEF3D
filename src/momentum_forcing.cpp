@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"momentum_forcing.h"
-#include"6DOF_df_base.h"
+#include"6DOF.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -39,7 +39,7 @@ momentum_forcing::~momentum_forcing()
 {
 }
 
-void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, sixdof_df_base* p6dof_df, vrans* pvrans, vector<net*>& pnet, fsi* pfsi,
+void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, sixdof* p6dof, vrans* pvrans, vector<net*>& pnet, fsi* pfsi,
                                               field &u, field &v, field &w, field &fx, field &fy, field &fz, int iter, double alpha, bool final)
 {
     if(p->X10==1 || p->Z10>0 || p->G3==1)
@@ -64,7 +64,7 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         if(p->G3==1)
         pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);         
         
-        p6dof_df->start_forcing(p,a,pgc,pvrans,pnet,iter,u,v,w,fx,fy,fz,final);
+        p6dof->start_twoway(p,a,pgc,pvrans,pnet,iter,u,v,w,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
  

@@ -316,6 +316,10 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Runup">
+            <File Name="nhflow_print_runup_gage_x.h"/>
+            <File Name="nhflow_print_runup.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="nhflow_vtp_fsf.h"/>
           </VirtualDirectory>
@@ -360,7 +364,6 @@
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <File Name="nhflow_momentum_RKCT2.h"/>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.h"/>
           </VirtualDirectory>
@@ -391,6 +394,7 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <File Name="fnpf_point_probe.h"/>
           <File Name="force_ale.h"/>
           <File Name="fnpf_print_Hs.h"/>
           <File Name="fnpf_breaking_log.h"/>
@@ -582,16 +586,13 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
-        <File Name="6DOF_df_void.h"/>
-        <File Name="6DOF_df_base.h"/>
+        <File Name="6DOF_obj.h"/>
+        <File Name="6DOF_nhflow.h"/>
+        <File Name="6DOF_cfd.h"/>
         <VirtualDirectory Name="Common">
-          <VirtualDirectory Name="Objects"/>
-          <VirtualDirectory Name="Ray Cast"/>
+          <File Name="6DOF_motion-file.h"/>
         </VirtualDirectory>
-        <File Name="6DOF_precalc.h"/>
         <File Name="6DOF_sflow.h"/>
-        <File Name="6DOF_df_object.h"/>
-        <File Name="6DOF_df.h"/>
         <VirtualDirectory Name="Mooring">
           <File Name="mooring_dynamic.h"/>
           <File Name="mooring_Spring.h"/>
@@ -1414,6 +1415,10 @@
           <File Name="nhflow_HLL.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Runup">
+            <File Name="nhflow_print_runup_gage_x.cpp"/>
+            <File Name="nhflow_print_runup.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="nhflow_vtp_bed_pvtp.cpp"/>
             <File Name="nhflow_vtp_bed_header.cpp"/>
@@ -1471,7 +1476,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <File Name="nhflow_momentum_RKCT2.cpp"/>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.cpp"/>
           </VirtualDirectory>
@@ -1517,6 +1521,9 @@
           <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Probes">
+            <File Name="fnpf_point_probe.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Force ALE">
             <File Name="force_ale_print.cpp"/>
             <File Name="force_ale_force.cpp"/>
@@ -1795,30 +1802,20 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Interface NHFLOW">
+          <File Name="6DOF_nhflow.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Interface CFD">
+          <File Name="6DOF_cfd_velsource.cpp"/>
+          <File Name="6DOF_cfd_setup.cpp"/>
+          <File Name="6DOF_cfd.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Void">
-          <File Name="6DOF_df_void.cpp"/>
           <File Name="6DOF_void.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Common">
-          <VirtualDirectory Name="Geometry"/>
-          <VirtualDirectory Name="Ray Cast"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Precalc">
-          <File Name="6DOF_precalc_ray_io_z.cpp"/>
-          <File Name="6DOF_precalc_ray_io_y.cpp"/>
-          <File Name="6DOF_precalc_ray_io_x.cpp"/>
-          <File Name="6DOF_precalc_ray.cpp"/>
-          <File Name="6DOF_precalc_sym.cpp"/>
-          <File Name="6DOF_precalc_wedge.cpp"/>
-          <File Name="6DOF_precalc_STL_read.cpp"/>
-          <File Name="6DOF_precalc_objects.cpp"/>
-          <File Name="6DOF_precalc_hexahedron.cpp"/>
-          <File Name="6DOF_precalc_geometry_ini.cpp"/>
-          <File Name="6DOF_precalc_cylinder.cpp"/>
-          <File Name="6DOF_precalc_box.cpp"/>
-          <File Name="6DOF_precalc.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="SFLOW 6DOF ">
+        <VirtualDirectory Name="Interface SFLOW">
+          <File Name="6DOF_sflow_forcing.cpp"/>
+          <File Name="6DOF_sflow_velsource.cpp"/>
           <File Name="6DOF_sflow_motion.cpp"/>
           <VirtualDirectory Name="Print">
             <File Name="6DOF_sflow_print_stl.cpp"/>
@@ -1839,62 +1836,63 @@
           </VirtualDirectory>
           <File Name="6DOF_sflow_rotation.cpp"/>
           <File Name="6DOF_sflow_reini.cpp"/>
-          <File Name="6DOF_sflow_velsource.cpp"/>
-          <File Name="6DOF_sflow_update.cpp"/>
           <File Name="6DOF_sflow_initialize.cpp"/>
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="DirectForcing">
-          <File Name="6DOF_df_externvel.cpp"/>
-          <File Name="6DOF_df_updatepos.cpp"/>
+        <VirtualDirectory Name="6DOF Object">
+          <File Name="6DOF_obj.cpp"/>
+          <File Name="6DOF_obj_update_pos.cpp"/>
+          <File Name="6DOF_obj_prescribed-motion.cpp"/>
+          <File Name="6DOF_obj_transform.cpp"/>
+          <File Name="6DOF_obj_solve.cpp"/>
+          <File Name="6DOF_obj_rotation.cpp"/>
+          <File Name="6DOF_obj_interface.cpp"/>
+          <File Name="6DOF_obj_forcing.cpp"/>
+          <VirtualDirectory Name="Motion File">
+            <File Name="6DOF_obj_motion-file_read.cpp"/>
+            <File Name="6DOF_obj_motion-file_ipol.cpp"/>
+            <File Name="6DOF_obj_motion-file.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Initialize">
-            <File Name="6DOF_df_ini_position.cpp"/>
-            <File Name="6DOF_df_ini_parameters.cpp"/>
-            <File Name="6DOF_df_ini.cpp"/>
+            <File Name="6DOF_obj_ini_position.cpp"/>
+            <File Name="6DOF_obj_ini_parameters.cpp"/>
+            <File Name="6DOF_obj_ini.cpp"/>
           </VirtualDirectory>
-          <File Name="6DOF_df_transform.cpp"/>
-          <File Name="6DOF_df_forcing.cpp"/>
-          <File Name="6DOF_df_main.cpp"/>
           <VirtualDirectory Name="Print">
-            <File Name="6DOF_df_print_normals_vtp.cpp"/>
-            <File Name="6DOF_df_print_ini.cpp"/>
-            <File Name="6DOF_df_print_stl.cpp"/>
-            <File Name="6DOF_df_print_vtp.cpp"/>
+            <File Name="6DOF_obj_print_vtp.cpp"/>
+            <File Name="6DOF_obj_print_stl.cpp"/>
+            <File Name="6DOF_obj_print_normals_vtp.cpp"/>
+            <File Name="6DOF_obj_print_ini.cpp"/>
           </VirtualDirectory>
-          <File Name="6DOF_df_velsource.cpp"/>
-          <File Name="6DOF_df_object.cpp"/>
           <VirtualDirectory Name="RayCast">
-            <File Name="6DOF_df_reini_RK2.cpp"/>
-            <File Name="6DOF_df_reini_AB2.cpp"/>
-            <File Name="6DOF_df_ray_z.cpp"/>
-            <File Name="6DOF_df_ray_y.cpp"/>
-            <File Name="6DOF_df_ray_x.cpp"/>
-            <File Name="6DOF_df_ray_io_zcorr.cpp"/>
-            <File Name="6DOF_df_ray_io_ycorr.cpp"/>
-            <File Name="6DOF_df_ray_io_x.cpp"/>
-            <File Name="6DOF_df_ray.cpp"/>
+            <File Name="6DOF_obj_reini_RK2.cpp"/>
+            <File Name="6DOF_obj_reini_AB2.cpp"/>
+            <File Name="6DOF_obj_ray_z.cpp"/>
+            <File Name="6DOF_obj_ray_y.cpp"/>
+            <File Name="6DOF_obj_ray_x.cpp"/>
+            <File Name="6DOF_obj_ray_io_zcorr.cpp"/>
+            <File Name="6DOF_obj_ray_io_ycorr.cpp"/>
+            <File Name="6DOF_obj_ray_io_x.cpp"/>
+            <File Name="6DOF_obj_ray.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Forces">
-            <File Name="6DOF_df_forces.cpp"/>
-            <File Name="6DOF_df_forces_external.cpp"/>
-            <File Name="6DOF_df_forces_stl.cpp"/>
+            <File Name="6DOF_obj_forces_stl.cpp"/>
+            <File Name="6DOF_obj_forces_external.cpp"/>
+            <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
-            <File Name="6DOF_df_triangle_switch_lsm.cpp"/>
-            <File Name="6DOF_df_triangle_switch_ray.cpp"/>
-            <File Name="6DOF_df_objects_refinement.cpp"/>
-            <File Name="6DOF_df_STL.cpp"/>
-            <File Name="6DOF_df_wedge_sym.cpp"/>
-            <File Name="6DOF_df_wedge.cpp"/>
-            <File Name="6DOF_df_objects.cpp"/>
-            <File Name="6DOF_df_hexahedron.cpp"/>
-            <File Name="6DOF_df_geometry.cpp"/>
-            <File Name="6DOF_df_cylinder.cpp"/>
-            <File Name="6DOF_df_box.cpp"/>
+            <File Name="6DOF_obj_wedge_sym.cpp"/>
+            <File Name="6DOF_obj_wedge.cpp"/>
+            <File Name="6DOF_obj_triangle_switch_ray.cpp"/>
+            <File Name="6DOF_obj_triangle_switch_lsm.cpp"/>
+            <File Name="6DOF_obj_STL.cpp"/>
+            <File Name="6DOF_obj_objects_refinement.cpp"/>
+            <File Name="6DOF_obj_objects.cpp"/>
+            <File Name="6DOF_obj_hexahedron.cpp"/>
+            <File Name="6DOF_obj_geometry.cpp"/>
+            <File Name="6DOF_obj_cylinder.cpp"/>
+            <File Name="6DOF_obj_box.cpp"/>
           </VirtualDirectory>
-          <File Name="6DOF_df_solve.cpp"/>
-          <File Name="6DOF_df_rotation.cpp"/>
-          <File Name="6DOF_df_interface.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Net">
           <VirtualDirectory Name="StaticSheet">
@@ -2322,13 +2320,13 @@
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
         <File Name="gcx_paraxvec.cpp"/>
-        <File Name="gxc_verticalmax.cpp"/>
+        <File Name="gcx_verticalmax.cpp"/>
         <File Name="gcx_parax_generic.cpp"/>
         <File Name="gcx_crs.cpp"/>
         <File Name="gcx_facenbx.cpp"/>
         <File Name="gcx_rownum.cpp"/>
         <File Name="gcx_parax_test.cpp"/>
-        <File Name="gxc_verticalsum.cpp"/>
+        <File Name="gcx_verticalsum.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Topoupdate">
         <File Name="gctopo_buildflag.cpp"/>

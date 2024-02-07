@@ -101,6 +101,8 @@ void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
     if(p->P110==1)
     result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
+    if(p->P131==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"wetdry_max\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
 	result<<"<Polys>"<<endl;

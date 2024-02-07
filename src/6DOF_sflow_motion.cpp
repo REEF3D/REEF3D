@@ -63,7 +63,5 @@ double sixdof_sflow::ramp_draft(lexer *p)
     if(p->X207==1 && p->simtime<p->X207_ts)
     f=0.0;
     
-    //cout<<"RAMP F: "<<f<<endl;
-
     return f;
 }

@@ -200,25 +200,3 @@ void fnpf_print_wsf::ini_location(lexer *p, fdm_fnpf *c)
     flag[n]=1;
     }
 }
-
-int fnpf_print_wsf::conv(double a)
-{
-
-    int b,c;
-    double d,diff;
-
-    c= int( a);
-    d=double(c);
-    diff=a-d;
-
-    b=c;
-
-    if(diff>0.5)
-    b=c+1;
-
-    if(diff<=-0.5)
-    b=c-1;
-
-    return b;
-
-}

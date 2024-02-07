@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"mooring_Catenary.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include <Eigen/Dense>
 
@@ -29,21 +28,21 @@ mooring_Catenary::mooring_Catenary(int number):line(number){}
 
 mooring_Catenary::~mooring_Catenary(){}
 
-void mooring_Catenary::start(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_Catenary::start(lexer *p, ghostcell *pgc)
 {
     curr_time = p->simtime;
 
     FH_0 = 0.01;
     FV_0 = 0.01;
 
-    calcForce(p,a,pgc);
+    calcForce(p,pgc);
 		
 	// Print mooring line
 	print(p);
 }
 
 
-void mooring_Catenary::calcForce(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_Catenary::calcForce(lexer *p, ghostcell *pgc)
 {
     Eigen::MatrixXd A_eigen = Eigen::MatrixXd::Zero(2,2); 
     Eigen::VectorXd B_eigen = Eigen::VectorXd::Zero(2);    
@@ -165,7 +164,7 @@ void mooring_Catenary::mooringForces
 }
 
 
-void mooring_Catenary::getForce(lexer *p, fdm *a, ghostcell *pgc, double& FH_, double& FV_)
+void mooring_Catenary::getForce(lexer *p, ghostcell *pgc, double& FH_, double& FV_)
 {
     // Ini line
 	double rho_f = 1000.0;
@@ -186,7 +185,7 @@ void mooring_Catenary::getForce(lexer *p, fdm *a, ghostcell *pgc, double& FH_, d
     // Calculate shape
     FH_0 = 0.01;
     FV_0 = 0.01;
-	calcForce(p, a, pgc);
+	calcForce(p, pgc);
 
     // Return values
 	FH_ = FH;
@@ -194,11 +193,7 @@ void mooring_Catenary::getForce(lexer *p, fdm *a, ghostcell *pgc, double& FH_, d
 }
 
 
-void mooring_Catenary::getShape
-(
-    lexer *p, fdm *a, ghostcell *pgc,
-    double*& x_, double*& y_, double*& z_, double*& T_
-)
+void mooring_Catenary::getShape(lexer *p, ghostcell *pgc, double*& x_, double*& y_, double*& z_, double*& T_)
 {
     // Ini line
 	double rho_f = 1000.0;
@@ -226,7 +221,7 @@ void mooring_Catenary::getShape
     FH_0 = T_[H-1]*dxy_/mag;
     FV_0 = T_[H-1]*dz_/mag;
 
-    calcForce(p, a, pgc);
+    calcForce(p, pgc);
 
     // Return values
     x_ = x;
@@ -236,11 +231,7 @@ void mooring_Catenary::getShape
 }
 
 
-void mooring_Catenary::iniShape
-(
-    lexer *p, fdm *a, ghostcell *pgc,
-    Eigen::VectorXd& x_, Eigen::VectorXd& y_, Eigen::VectorXd& z_
-)
+void mooring_Catenary::iniShape(lexer *p, ghostcell *pgc,Eigen::VectorXd& x_, Eigen::VectorXd& y_, Eigen::VectorXd& z_)
 {
     // Ini line
 	double rho_f = 1000.0;
@@ -261,7 +252,7 @@ void mooring_Catenary::iniShape
     FH_0 = 1.0;
     FV_0 = 1.0; 
 
-    calcForce(p, a, pgc);
+    calcForce(p, pgc);
 
     // Return values
     for (int ii = 0; ii < H; ii++)

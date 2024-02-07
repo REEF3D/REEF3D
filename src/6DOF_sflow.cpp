@@ -35,26 +35,38 @@ sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc):press(p),ddweno_f_nug(p),fr
     p->Darray(tri_xn,trisum,3);
 	p->Darray(tri_yn,trisum,3);
 	p->Darray(tri_zn,trisum,3);
+    /*
+    if(p->mpirank==0)
+    cout<<"6DOF startup ..."<<endl;
+    
+    number6DOF = 1;
+    
+    for (int nb = 0; nb < number6DOF; nb++)
+    fb_obj.push_back(new sixdof_obj(p,a,pgc,nb));*/
 }
 
 sixdof_sflow::~sixdof_sflow()
 {
 }
 
-void sixdof_sflow::start(lexer *p, ghostcell *pgc)
+void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
 {
 
 // FB/Ship location
 
-    // Move body
+    // Move body  -> obj_transform
     p->xg += ramp_vel(p)*Uext*p->dt;
     p->yg += ramp_vel(p)*Vext*p->dt;
 
     // Update position
-    updateFSI(p,pgc);
+   // Update transformation matrix (Shivarama PhD thesis, p. 19)  -> obj
+    quat_matrices(e_);
+
+    // Calculate new position -> obj
+    updatePosition(p,pgc);
     
 // --------------------------
-
+// Forcing ->sflow
     // Update pressure field
     if (p->X400 == 1)
     {
@@ -73,9 +85,10 @@ void sixdof_sflow::start(lexer *p, ghostcell *pgc)
     
     else if (p->X400 == 10)
     {
-        updateForcing_ship(p,pgc);
+        updateForcing_stl(p,pgc);
     }
 
+// ->obj 
     // Print
     print_parameter(p,pgc);
     

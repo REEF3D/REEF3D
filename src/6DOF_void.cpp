@@ -37,13 +37,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
     
-sixdof_void::sixdof_void(){}
+sixdof_void::sixdof_void(lexer*,ghostcell*)
+{
+}
 
 sixdof_void::~sixdof_void()
 {
 }
 
-void sixdof_void::start(lexer *p, ghostcell *pgc)
+void sixdof_void::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field& uvel, field& vvel, field& wvel, field& fx, field& fy, field& fz, bool finalise)
+{
+}
+
+void sixdof_void::start_oneway(lexer *p, ghostcell *pgc)
+{
+}
+
+void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
 }
 

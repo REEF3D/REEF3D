@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -21,7 +21,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"mooring_Spring.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 mooring_Spring::mooring_Spring(int number):line(number){}
@@ -29,7 +28,7 @@ mooring_Spring::mooring_Spring(int number):line(number){}
 mooring_Spring::~mooring_Spring(){}
 
 
-void mooring_Spring::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_Spring::initialize(lexer *p, ghostcell *pgc)
 {   
     curr_time = p->simtime;
 
@@ -59,7 +58,7 @@ void mooring_Spring::initialize(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void mooring_Spring::start(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_Spring::start(lexer *p, ghostcell *pgc)
 {
 	//- Calculate distance between start and mooring points
     dx = p->X311_xe[line] - p->X311_xs[line];			
