@@ -29,6 +29,7 @@ class nhflow_print_wsf;
 class nhflow_print_wsf_theory;
 class nhflow_print_wsfline;
 class nhflow_print_wsfline_y;
+class nhflow_print_runup_gage_x;
 class nhflow_vtp_fsf;
 class nhflow_vtp_bed;
 class nhflow_state;
@@ -74,6 +75,7 @@ private:
     nhflow_print_wsf_theory *pwsf_theory;
     nhflow_print_wsfline *pwsfline;
     nhflow_print_wsfline_y *pwsfline_y;
+    nhflow_print_runup_gage_x *prunupx;
     potentialfile_out *ppotentialfile;
     nhflow_vtp_fsf *pfsf;
     nhflow_vtp_bed *pbed;

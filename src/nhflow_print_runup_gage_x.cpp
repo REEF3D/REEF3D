@@ -40,8 +40,12 @@ nhflow_print_runup_gage_x::nhflow_print_runup_gage_x(lexer *p, fdm_nhf *d, ghost
     p->Darray(xloc,p->P133+1);
     p->Darray(yloc,p->P133+1);
     p->Darray(zloc,p->P133+1);
+    
+    p->Darray(xloc_all,p->P133+1,p->M10+1);
+    p->Darray(zloc_all,p->P133+1,p->M10+1);
 
     p->Iarray(flag,p->P133+1);
+    p->Iarray(flag_all,p->P133+1,p->M10+1);
 
 
     ini_location(p,d,pgc);
@@ -102,6 +106,13 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
     zloc[q] = -1.0e20;
     flag[q] = 0;
     }
+    
+    for(q=0;q<p->P133;++q)
+    for(n=0;n<p->M10;++n)
+    {
+    xloc_all[q][n]=0.0;
+    zloc_all[q][n]=0.0;
+    }
 
     for(q=0;q<p->P133;++q)
     {
@@ -115,82 +126,51 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
             xloc[q] = p->XN[IP1];
             zloc[q] = 0.5*(f(i,j)+f(i+1,j))+p->phimean;
             flag[q] = 1;
-            //cout<<p->mpirank<<" wsf[q][i]: "<<wsf[q][i]<<" "<<f(i,j)<<" "<<p->phimean<<" "<<p->wd<<endl;
+            //cout<<p->mpirank<<" xloc[q]: "<<xloc[q]<<" zloc[q]: "<<zloc[q]<<endl;
             }
         }
     }
 	
 	
     // gather
-    /*for(q=0;q<p->P133;++q)
+    for(q=0;q<p->P133;++q)
     {
-    pgc->gather_double(xloc[q],maxknox,xloc_all[q],maxknox);
-    pgc->gather_double(wsf[q],maxknox,wsf_all[q],maxknox);
-	pgc->gather_int(flag[q],maxknox,flag_all[q],maxknox);
-
-		
-        if(p->mpirank==0)
+    pgc->gather_double(&xloc[q],1,xloc_all[q],1);
+    pgc->gather_double(&zloc[q],1,zloc_all[q],1);
+	pgc->gather_int(&flag[q],1,flag_all[q],1);
+    }
+    
+    if(p->mpirank==0)
+    {
+        for(q=0;q<p->P133;++q)
+        for(n=0;n<p->M10;++n)
         {
-        sort(xloc_all[q], wsf_all[q], flag_all[q], 0, wsfpoints[q]-1);
-        remove_multientry(p,xloc_all[q], wsf_all[q], flag_all[q], wsfpoints[q]); 
+        cout<<p->mpirank<<" xloc_all[q]: "<<xloc_all[q][n]<<endl;
+
+        if(xloc_all[q][n]>xloc[q])
+        {
+        xloc[q] = xloc_all[q][n];
+        zloc[q] = zloc_all[q][n];
         }
-		
-    }*/
+        }
+        
+    }
+    
+    
 	
     // write to file
     if(p->mpirank==0)
     {
-		for(n=0;n<sumknox;++n)
-		rowflag[n]=0;
-		
-		for(n=0;n<sumknox;++n)
-        {
-			check=0;
-		    for(q=0;q<p->P133;++q)
-			if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
-			check=1;
-			
-			if(check==1)
-			rowflag[n]=1;
-		}
-
-        for(n=0;n<sumknox;++n)
-        {
-			check=0;
-		    for(q=0;q<p->P133;++q)
-			{
-				if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
-				{
-				wsfout<<setprecision(5)<<xloc_all[q][n]<<" \t ";
-				wsfout<<setprecision(5)<<wsf_all[q][n]<<" \t  ";
-				
-				
-					if(p->P53==1)
-					wsfout<<pflow->wave_fsf(p,pgc,xloc_all[q][n])<<" \t  ";
-					
-				check=1;
-				}
-				
-				if((flag_all[q][n]<0 || xloc_all[q][n]>=1.0e20) && rowflag[n]==1)
-				{
-					wsfout<<setprecision(5)<<" \t ";
-					wsfout<<setprecision(5)<<" \t ";
-					
-				}
-			}
-
-            
-			if(check==1)
-            wsfout<<endl;
-        }
-
-    wsfout.close();
+    wsfout<<setprecision(9)<<p->simtime<<"\t";
+    for(q=0;q<p->P133;++q)
+    wsfout<<setprecision(9)<<xloc[q]<<"  \t  "<<zloc[q];
+    wsfout<<endl;
     }
 }
 
 void nhflow_print_runup_gage_x::ini_location(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-   /* int check,count;
+    int check,count;
     
     
     for(q=0;q<p->P133;++q)
@@ -205,12 +185,8 @@ void nhflow_print_runup_gage_x::ini_location(lexer *p, fdm_nhf *d, ghostcell *pg
         if(p->j_dir==1)
         jloc[q]=p->posc_j(p->P133_y[q]);
 
-
-        if(jloc[q]>=0 && jloc[q]<p->knoy)
-        flag[q][count]=1;
-
         ++count;
         }
-    }*/
+    }
 }
 

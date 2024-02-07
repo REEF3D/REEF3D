@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"boundarycheck.h"
+#include"increment.h"
 #include<iostream>
 #include<fstream>
 
@@ -37,7 +37,7 @@ using namespace std;
 #ifndef NHFLOW_PRINT_RUNUP_GAGE_X_H_
 #define NHFLOW_PRINT_RUNUP_GAGE_X_H_
 
-class nhflow_print_runup_gage_x : public boundarycheck
+class nhflow_print_runup_gage_x : public increment
 {
 public:
     nhflow_print_runup_gage_x(lexer*,fdm_nhf*,ghostcell*);
@@ -50,10 +50,10 @@ private:
     void ini_location(lexer*, fdm_nhf*, ghostcell*);
     void sort(double*, double*, int*, int,int);
 
-    double *xloc;
+    double *xloc,**xloc_all;
     double *yloc;
-    double *zloc;
-    int *jloc,*flag;
+    double *zloc,**zloc_all;
+    int *jloc,*flag,**flag_all;
     int n,q;
     ofstream wsfout;
     char name[250];

@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"nhflow_print_wsf_theory.h"
 #include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
+#include"nhflow_print_runup_gage_x.h"
 /*#include"nhflow_breaking_log.h"
 #include"potentialfile_out.h"
 #include"nhflow_state.h"*/
@@ -80,6 +81,8 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pwsfline=new nhflow_print_wsfline(p,d,pgc);
 
     pwsfline_y=new nhflow_print_wsfline_y(p,d,pgc);
+    
+    prunupx=new nhflow_print_runup_gage_x(p,d,pgc);
 /*
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,d,pgc);
@@ -115,6 +118,10 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 
     if(p->P50>0)
     pwsf_theory->height_gauge(p,d,pgc,pflow);
+    
+    if(p->P133>0)
+	prunupx->start(p,d,pgc,pflow,d->eta);
+    
     
     pfsf->preproc(p,d,pgc);
 
