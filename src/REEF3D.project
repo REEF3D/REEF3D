@@ -2320,13 +2320,13 @@
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
         <File Name="gcx_paraxvec.cpp"/>
-        <File Name="gxc_verticalmax.cpp"/>
+        <File Name="gcx_verticalmax.cpp"/>
         <File Name="gcx_parax_generic.cpp"/>
         <File Name="gcx_crs.cpp"/>
         <File Name="gcx_facenbx.cpp"/>
         <File Name="gcx_rownum.cpp"/>
         <File Name="gcx_parax_test.cpp"/>
-        <File Name="gxc_verticalsum.cpp"/>
+        <File Name="gcx_verticalsum.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Topoupdate">
         <File Name="gctopo_buildflag.cpp"/>
