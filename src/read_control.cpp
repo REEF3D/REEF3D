@@ -2616,7 +2616,7 @@ void lexer::read_control()
 	Darray(P125_y,P125);
     
     Darray(P133_y,P133);
-    Darray(P134_x,P134);
+    Darray(P134_y,P134);
 
     Iarray(P184_its,P184);
 	Iarray(P184_ite,P184);
@@ -3186,7 +3186,7 @@ void lexer::read_control()
                         ++countP133;
 						 clear(c,numint);
 						 break;
-               case 134: control>>P134_x[countP134];
+               case 134: control>>P134_y[countP134];
                         ++countP134;
 						 clear(c,numint);
 						 break;

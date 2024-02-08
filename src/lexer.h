@@ -479,7 +479,7 @@ public:
 	double *P125_x,*P125_y;
     int P131,P132,P133,P134;
     double *P133_y;
-    double *P134_x;
+    double *P134_y;
 	double P182;
     int *P184_its,*P184_ite,*P184_dit;
     double *P185_ts,*P185_te,*P185_dt;
