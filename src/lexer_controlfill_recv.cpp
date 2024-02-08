@@ -2320,7 +2320,7 @@ void lexer::ctrlrecv()
 	Darray(P133_y,P133);
     
     if(P134>0)
-	Darray(P134_x,P134);
+	Darray(P134_y,P134);
     
     if(P184>0)
 	{
@@ -3367,7 +3367,7 @@ for(n=0;n<F369;++n)
     
     for(n=0;n<P134;++n)
     {
-    P134_x[n] = dctrl[dd];
+    P134_y[n] = dctrl[dd];
     dd++;
     }
     

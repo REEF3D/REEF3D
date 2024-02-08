@@ -2599,7 +2599,7 @@ void lexer::ctrlsend()
     
     for(n=0;n<P134;++n)
 	{
-    dctrl[dd] = P134_x[n];
+    dctrl[dd] = P134_y[n];
 	dd++;
 	}
     
