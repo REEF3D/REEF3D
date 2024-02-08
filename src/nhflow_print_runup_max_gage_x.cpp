@@ -130,7 +130,7 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
             xloc[q] = p->XN[IP1];
             zloc[q] = 0.5*(f(i,j)+f(i+1,j))+p->phimean;
             flag[q] = 1;
-            T=p->simtime;
+            
             //cout<<p->mpirank<<" xloc[q]: "<<xloc[q]<<" zloc[q]: "<<zloc[q]<<endl;
             }
         }
@@ -156,6 +156,7 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
         {
         xloc[q] = xloc_all[q][n];
         zloc[q] = zloc_all[q][n];
+        T=p->simtime;
         }
         }
         
