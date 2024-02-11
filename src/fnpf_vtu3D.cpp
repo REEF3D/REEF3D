@@ -208,16 +208,17 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     pbreaklog->write(p,c,pgc);
 	
 	// ALE force
-	  if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
-	  {
-		for(n=0;n<p->P85;++n)
-        pforce_ale[n]->ini(p,c,pgc);
-	  }
-        if(p->count>0 && p->P85>0)
-		{
-        for(n=0;n<p->P85;++n)
-        pforce_ale[n]->start(p,c,pgc);
-		}
+    if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
+    {
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->ini(p,c,pgc);
+    }
+    
+    if(p->count>0 && p->P85>0)
+    {
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->start(p,c,pgc);
+    }
 }
 
 void fnpf_vtu3D::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
@@ -414,8 +415,23 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 //  Fi
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
+    if(p->j_dir==1)
 	TPLOOP
 	{
+    ffn=float(c->Fi[FIJKp1]);
+
+    if(k==-1 && j==-1)
+	ffn=float(c->Fi[FIJp1Kp1]);
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    if(p->j_dir==0)
+	TPLOOP
+	{
+    if(j==-1)
+    ffn=float(c->Fi[FIJp1Kp1]);
+    
+    if(j==0)
     ffn=float(c->Fi[FIJKp1]);
 
     if(k==-1 && j==-1)
