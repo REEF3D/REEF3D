@@ -1808,6 +1808,9 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="External Motion">
+          <VirtualDirectory Name="Motion Fixed">
+            <File Name="6DOF_external_motion_fixed.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Motion File">
             <File Name="6DOF_obj_motion-file_read.cpp"/>
             <File Name="6DOF_obj_motion-file_ipol.cpp"/>

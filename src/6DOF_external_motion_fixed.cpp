@@ -17,37 +17,53 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Tobias Martin, Hans Bihs
+Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_external_motion_fixed.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::external_motion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
+void sixdof_external_motion_fixed::ini(lexer *p, ghostcell *pgc)
+{
+    if (p->X210 == 1)
+    {
+        Uext = p->X210_u;
+        Vext = p->X210_v;
+        Wext = p->X210_w;
+    }
+    if (p->X211 == 1)
+    {
+        Pext = p->X211_p;
+        Qext = p->X211_q;
+        Rext = p->X211_r;
+    }
+}
+
+void sixdof_external_motion_fixed::external_motion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
 {
     
-    if (p->X11_u==2)
+    if (p->X11_u == 2)
     {
         dp(0) = 0.0; 
         dc(0) = Uext*ramp_vel(p);
     }
     
-    if (p->X11_v==2)
+    if (p->X11_v == 2)
     {
         dp(1) = 0.0; 
         dc(1) = Vext*ramp_vel(p);
     }
 
-    if (p->X11_w==2)
+    if (p->X11_w == 2)
     {
         dp(2) = 0.0; 
         dc(2) = Wext*ramp_vel(p);
     }
 }
 
-void sixdof_obj::external_motion_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de)
+void sixdof_external_motion_fixed::external_motion_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
     if(p->X11_p==2)
     {
@@ -70,7 +86,7 @@ void sixdof_obj::external_motion_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vecto
     de = 0.5*G_.transpose()*I_.inverse()*h;
 }
 
-double sixdof_obj::ramp_vel(lexer *p)
+double sixdof_external_motion_fixed::ramp_vel(lexer *p)
 {
     double f=1.0;
     
@@ -90,7 +106,7 @@ double sixdof_obj::ramp_vel(lexer *p)
     return f;
 }
 
-double sixdof_obj::ramp_draft(lexer *p)
+double sixdof_external_motion_fixed::ramp_draft(lexer *p)
 {
     double f=1.0;
     
@@ -109,4 +125,3 @@ double sixdof_obj::ramp_draft(lexer *p)
     
     return f;
 }
-
