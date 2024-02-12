@@ -48,7 +48,7 @@ void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen:
     dc = pp/Mass_fb;
 
 	// Prescribed motions
-	prescribedMotion_trans(p,pgc,dp,dc);
+	external_motion_trans(p,pgc,dp,dc);
 } 
 
 void sixdof_obj::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, Eigen::Vector3d& h, Eigen::Vector4d& e)
@@ -68,7 +68,7 @@ void sixdof_obj::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, Eigen::Vector
     dh = 2.0*Gdot_*G_.transpose()*h + Rinv_*Mfb_;
     
     // Prescribed motions
-    prescribedMotion_rot(p,dh,h,de);
+    external_motion_rot(p,dh,h,de);
 } 
 
 void sixdof_obj::quat_matrices(const Eigen::Vector4d& e)

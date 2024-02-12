@@ -25,7 +25,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::prescribedMotion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
+void sixdof_obj::external_motion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
 {
     
     if (p->X11_u == 2)
@@ -47,9 +47,8 @@ void sixdof_obj::prescribedMotion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3
     }
 }
 
-void sixdof_obj::prescribedMotion_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de)
+void sixdof_obj::external_motion_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de)
 {
-
     if(p->X11_p==2)
     {
         dh(0) = 0.0; 

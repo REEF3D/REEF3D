@@ -114,8 +114,8 @@ private:
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
     void update_Position(lexer*, fdm*, ghostcell*, bool);
-    void prescribedMotion_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
-    void prescribedMotion_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
+    void external_motion_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
+    void external_motion_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
     void quat_matrices(const Eigen::Vector4d&);
 
     void get_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
@@ -140,7 +140,6 @@ private:
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
     
     
-
     /* Rigid body motion
         - e: quaternions
         - h: angular momentum in body-fixed coordinates

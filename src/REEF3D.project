@@ -587,12 +587,15 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="External Motion">
+          <File Name="6DOF_external_motion_coupling.h"/>
+          <File Name="6DOF_external_motion_file.h"/>
+          <File Name="6DOF_external_motion_fixed.h"/>
+          <File Name="6DOF_external_motion.h"/>
+        </VirtualDirectory>
         <File Name="6DOF_obj.h"/>
         <File Name="6DOF_nhflow.h"/>
         <File Name="6DOF_cfd.h"/>
-        <VirtualDirectory Name="Common">
-          <File Name="6DOF_motion-file.h"/>
-        </VirtualDirectory>
         <File Name="6DOF_sflow.h"/>
         <VirtualDirectory Name="Mooring">
           <File Name="mooring_dynamic.h"/>
@@ -1804,6 +1807,7 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Common"/>
         <VirtualDirectory Name="Interface NHFLOW">
           <File Name="6DOF_nhflow.cpp"/>
         </VirtualDirectory>
@@ -1842,6 +1846,13 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
+          <VirtualDirectory Name="External Motion">
+            <VirtualDirectory Name="Motion File">
+              <File Name="6DOF_obj_motion-file_read.cpp"/>
+              <File Name="6DOF_obj_motion-file_ipol.cpp"/>
+              <File Name="6DOF_obj_motion-file.cpp"/>
+            </VirtualDirectory>
+          </VirtualDirectory>
           <File Name="6DOF_obj.cpp"/>
           <File Name="6DOF_obj_update_pos.cpp"/>
           <File Name="6DOF_obj_prescribed-motion.cpp"/>
@@ -1850,11 +1861,6 @@
           <File Name="6DOF_obj_rotation.cpp"/>
           <File Name="6DOF_obj_interface.cpp"/>
           <File Name="6DOF_obj_forcing.cpp"/>
-          <VirtualDirectory Name="Motion File">
-            <File Name="6DOF_obj_motion-file_read.cpp"/>
-            <File Name="6DOF_obj_motion-file_ipol.cpp"/>
-            <File Name="6DOF_obj_motion-file.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Initialize">
             <File Name="6DOF_obj_ini_position.cpp"/>
             <File Name="6DOF_obj_ini_parameters.cpp"/>

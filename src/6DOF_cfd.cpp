@@ -79,3 +79,7 @@ void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
     // ghostcell update
     pgc->gcdf_update(p,a);
 }
+
+void sixdof_cfd::start_twoway(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
+{
+}
