@@ -1807,7 +1807,13 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
-        <VirtualDirectory Name="Common"/>
+        <VirtualDirectory Name="External Motion">
+          <VirtualDirectory Name="Motion File">
+            <File Name="6DOF_obj_motion-file_read.cpp"/>
+            <File Name="6DOF_obj_motion-file_ipol.cpp"/>
+            <File Name="6DOF_obj_motion-file.cpp"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
         <VirtualDirectory Name="Interface NHFLOW">
           <File Name="6DOF_nhflow.cpp"/>
         </VirtualDirectory>
@@ -1846,13 +1852,6 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
-          <VirtualDirectory Name="External Motion">
-            <VirtualDirectory Name="Motion File">
-              <File Name="6DOF_obj_motion-file_read.cpp"/>
-              <File Name="6DOF_obj_motion-file_ipol.cpp"/>
-              <File Name="6DOF_obj_motion-file.cpp"/>
-            </VirtualDirectory>
-          </VirtualDirectory>
           <File Name="6DOF_obj.cpp"/>
           <File Name="6DOF_obj_update_pos.cpp"/>
           <File Name="6DOF_obj_prescribed-motion.cpp"/>
