@@ -41,49 +41,49 @@ void sixdof_external_motion_fixed::ini(lexer *p, ghostcell *pgc)
     }
 }
 
-void sixdof_external_motion_fixed::external_motion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
+void sixdof_external_motion_fixed::external_motion_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
     
     if (p->X11_u == 2)
     {
-        dp(0) = 0.0; 
-        dc(0) = Uext*ramp_vel(p);
+        dp_(0) = 0.0; 
+        dc_(0) = Uext*ramp_vel(p);
     }
     
     if (p->X11_v == 2)
     {
-        dp(1) = 0.0; 
-        dc(1) = Vext*ramp_vel(p);
+        dp_(1) = 0.0; 
+        dc_(1) = Vext*ramp_vel(p);
     }
 
     if (p->X11_w == 2)
     {
-        dp(2) = 0.0; 
-        dc(2) = Wext*ramp_vel(p);
+        dp_(2) = 0.0; 
+        dc_(2) = Wext*ramp_vel(p);
     }
 }
 
-void sixdof_external_motion_fixed::external_motion_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
+void sixdof_external_motion_fixed::external_motion_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
     if(p->X11_p==2)
     {
-        dh(0) = 0.0; 
-        h(0) = Pext*ramp_vel(p);
+        dh_(0) = 0.0; 
+        h_(0) = Pext*ramp_vel(p);
     }
                 
     if(p->X11_q==2)
     {
-        dh(1) = 0.0; 
-        h(1) = Qext*ramp_vel(p);
+        dh_(1) = 0.0; 
+        h_(1) = Qext*ramp_vel(p);
     }
     
     if(p->X11_r==2)
     {
-        dh(2) = 0.0; 
-        h(2) = Rext*ramp_vel(p);
+        dh_(2) = 0.0; 
+        h_(2) = Rext*ramp_vel(p);
     }
     
-    de = 0.5*G_.transpose()*I_.inverse()*h;
+    de_ = 0.5*G_.transpose()*I_.inverse()*h_;
 }
 
 double sixdof_external_motion_fixed::ramp_vel(lexer *p)
@@ -91,14 +91,10 @@ double sixdof_external_motion_fixed::ramp_vel(lexer *p)
     double f=1.0;
     
     if(p->X205==1 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
-    {
     f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts);
-    }
     
     if(p->X205==2 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
-    {
     f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts)-(1.0/PI)*sin(PI*(p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts));
-    }
     
     if(p->X206==1 && p->simtime<p->X206_ts)
     f=0.0;
@@ -111,14 +107,10 @@ double sixdof_external_motion_fixed::ramp_draft(lexer *p)
     double f=1.0;
     
     if(p->X205==1 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    {
     f = p->simtime/(p->X207_te-p->X207_ts);
-    }
     
     if(p->X205==2 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    {
     f = p->simtime/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X207_te-p->X207_ts)));
-    }
     
     if(p->X207==1 && p->simtime<p->X207_ts)
     f=0.0;
