@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"6DOF_motionext.h"
+#include <Eigen/Dense>
+
 class lexer;
 class fdm;
 class fdm_nhf;
@@ -28,20 +31,25 @@ class ghostcell;
 class vrans;
 class net;
 class field;
-#include <Eigen/Dense>
 
 using namespace std;
 
-#ifndef SIXDOF_EXTERNAL_MOTION_H_
-#define SIXDOF_EXTERNAL_MOTION_H_
+#ifndef SIXDOF_MOTIONEXT_VOID_H_
+#define SIXDOF_MOTIONEXT_VOID_H_
 
-class sixdof_external_motion
+class sixdof_motionext_void : public sixdof_motionext
 {
 public:
-    virtual void external_motion_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&)=0;
-    virtual void external_motion_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&)=0;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    
+    virtual void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
+    virtual void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&);
 
-    virtual void ini(lexer*,ghostcell*)=0;
+    virtual void ini(lexer*,ghostcell*);
+    
+    sixdof_motionext_void(lexer*, ghostcell*);
+	virtual ~sixdof_motionext_void();
+    
 };
 
 #endif

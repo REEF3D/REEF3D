@@ -588,10 +588,11 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="External Motion">
-          <File Name="6DOF_external_motion_coupling.h"/>
-          <File Name="6DOF_external_motion_file.h"/>
-          <File Name="6DOF_external_motion_fixed.h"/>
-          <File Name="6DOF_external_motion.h"/>
+          <File Name="6DOF_motionext_void.h"/>
+          <File Name="6DOF_motionext_file.h"/>
+          <File Name="6DOF_motionext_fixed.h"/>
+          <File Name="6DOF_motionext_coupling.h"/>
+          <File Name="6DOF_motionext.h"/>
         </VirtualDirectory>
         <File Name="6DOF_obj.h"/>
         <File Name="6DOF_nhflow.h"/>
@@ -1809,7 +1810,8 @@
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="External Motion">
           <VirtualDirectory Name="Motion Fixed">
-            <File Name="6DOF_external_motion_fixed.cpp"/>
+            <File Name="6DOF_motionext_fixed.cpp"/>
+            <File Name="6DOF_motionext_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Motion File">
             <File Name="6DOF_obj_motion-file_read.cpp"/>
@@ -1857,7 +1859,6 @@
         <VirtualDirectory Name="6DOF Object">
           <File Name="6DOF_obj.cpp"/>
           <File Name="6DOF_obj_update_pos.cpp"/>
-          <File Name="6DOF_obj_prescribed-motion.cpp"/>
           <File Name="6DOF_obj_transform.cpp"/>
           <File Name="6DOF_obj_solve.cpp"/>
           <File Name="6DOF_obj_rotation.cpp"/>

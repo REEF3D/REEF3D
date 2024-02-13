@@ -34,31 +34,25 @@ void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fie
         if(p->X11_u==0)
         u_fb(0) = 0.0;
         
-        if(p->X11_u==1)
+        if(p->X11_u>=1)
         u_fb(0) = p_(0)/Mass_fb;
         
-        if(p->X11_u==2)
-        u_fb(0) = Uext*ramp_vel(p);
         
         // V
         if(p->X11_v==0 || p->j_dir==0)
         u_fb(1) = 0.0;
         
-        if(p->X11_u==1 && p->j_dir==1)
+        if(p->X11_u>=1 && p->j_dir==1)
         u_fb(1) = p_(1)/Mass_fb;
         
-        if(p->X11_u==2 && p->j_dir==1)
-        u_fb(1) = Vext*ramp_vel(p);
         
         // W
         if(p->X11_w==0)
         u_fb(2) = 0.0;
         
-        if(p->X11_w==1)
+        if(p->X11_w>=1)
         u_fb(2) = p_(2)/Mass_fb;
         
-        if(p->X11_w==2)
-        u_fb(2) = Wext*ramp_vel(p);
         
         // rotation
         if(p->j_dir==0)

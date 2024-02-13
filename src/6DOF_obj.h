@@ -40,6 +40,7 @@ class reinidisc;
 class mooring;
 class net;
 class vrans;
+class sixdof_motionext;
  
 using namespace std;
 
@@ -114,8 +115,8 @@ private:
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
     void update_Position(lexer*, fdm*, ghostcell*, bool);
-    void external_motion_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
-    void external_motion_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
+    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
+    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
     void quat_matrices(const Eigen::Vector4d&);
 
     void get_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
@@ -165,6 +166,10 @@ private:
     double Uext, Vext, Wext, Pext, Qext, Rext;
     
     double dtn1, dtn2, dtn3;
+    
+    
+    // extmotion
+    sixdof_motionext *pmotion;
 
     
     // Raycast

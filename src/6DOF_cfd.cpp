@@ -27,6 +27,7 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"ddweno_f_nug.h"
 
+
 sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->mpirank==0)

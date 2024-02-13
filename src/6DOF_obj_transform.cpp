@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"6DOF_motionext.h"
 
 void sixdof_obj::transform(lexer *p, fdm *a, ghostcell* pgc, bool finalise)
 {
@@ -42,33 +43,33 @@ void sixdof_obj::transform(lexer *p, fdm *a, ghostcell* pgc, bool finalise)
     maxvel(p,a,pgc);
 }
 
-void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc, Eigen::Vector3d& pp, Eigen::Vector3d& c)
+void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_, Eigen::Vector3d& pp_, Eigen::Vector3d& c_)
 {
-    dp = Ffb_; 
-    dc = pp/Mass_fb;
+    dp_ = Ffb_; 
+    dc_ = pp_/Mass_fb;
 
-	// Prescribed motions
-	external_motion_trans(p,pgc,dp,dc);
+	// External motions
+	pmotion->motionext_trans(p,pgc,dp_,dc_);
 } 
 
-void sixdof_obj::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de, Eigen::Vector3d& h, Eigen::Vector4d& e)
+void sixdof_obj::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de_, Eigen::Vector3d& h_, Eigen::Vector4d& e_)
 {
     // Update Euler parameter matrices
-    quat_matrices(e);
+    quat_matrices(e_);
 
     // RHS of e
-    de = 0.5*G_.transpose()*I_.inverse()*h;
+    de_ = 0.5*G_.transpose()*I_.inverse()*h_;
     
     // RHS of h
     // Transforming torsion into body fixed system (Shivarama and Schwab)
-    Gdot_ << -de(1), de(0), de(3),-de(2),
-             -de(2),-de(3), de(0), de(1),
-             -de(3), de(2),-de(1), de(0); 
+    Gdot_ << -de_(1), de_(0), de_(3),-de_(2),
+             -de_(2),-de_(3), de_(0), de_(1),
+             -de_(3), de_(2),-de_(1), de_(0); 
    
-    dh = 2.0*Gdot_*G_.transpose()*h + Rinv_*Mfb_;
+    dh_ = 2.0*Gdot_*G_.transpose()*h_ + Rinv_*Mfb_;
     
-    // Prescribed motions
-    external_motion_rot(p,dh,h,de);
+    // External motions
+    pmotion->motionext_rot(p,dh_,h_,de_,G_,I_);
 } 
 
 void sixdof_obj::quat_matrices(const Eigen::Vector4d& e)
