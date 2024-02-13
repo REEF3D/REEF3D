@@ -25,6 +25,8 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc_fsf.h"
+#include"6DOF_motionext_fixed.h"
+#include"6DOF_motionext_void.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc,int number) : gradient(p), dt(p), L(p), 
                                                                                 f(p), frk1(p), cutl(p), cutr(p), 
@@ -60,6 +62,13 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc,int number) : gradient(p), dt(p)
     zeta[0] = 0.0;
     zeta[1] = -17.0/60.0;
     zeta[2] = -5.0/12.0;
+    
+    
+    if(p->X210==0 && p->X211==0)
+    pmotion = new sixdof_motionext_void(p,pgc);
+    
+    if(p->X210==1 ||p->X211==1)
+    pmotion = new sixdof_motionext_fixed(p,pgc);
 }
 
 sixdof_obj::~sixdof_obj(){}
