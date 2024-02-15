@@ -45,7 +45,7 @@ void sixdof_motionext_fixed::ini(lexer *p, ghostcell *pgc)
         Rext = p->X211_r;
 }
 
-void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
+void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
 
     if (p->X11_u==2)
@@ -67,7 +67,7 @@ void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Ve
     }
 }
 
-void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
+void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
     if(p->X11_p==2)
     {
