@@ -39,10 +39,8 @@ sflow_vtp_bed::sflow_vtp_bed(lexer *p, fdm2D *b)
 	printbedcount=0;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_VTP_BED",0777);
-	
-	
 }
 
 sflow_vtp_bed::~sflow_vtp_bed()

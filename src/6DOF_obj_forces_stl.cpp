@@ -394,9 +394,6 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
         ofstream print;
         char str[1000];
        
-        if(p->P14==0)
-        sprintf(str,"REEF3D_6DOF_forces_%i.dat",n6DOF);
-        if(p->P14==1)
         sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 
         print.open(str, std::ofstream::out | std::ofstream::app);

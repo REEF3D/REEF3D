@@ -35,16 +35,12 @@ bedprobe_point::bedprobe_point(lexer *p, fdm* a, ghostcell *pgc)
 	p->Darray(wsf,p->P121);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_SedimentPoint",0777);
 	
     if(p->mpirank==0 && p->P121>0)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-Sediment-Point.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_CFD_SedimentPoint/REEF3D-CFD-Sediment-Point.dat");
 
     wsfout<<"number of gauges:  "<<p->P121<<endl<<endl;

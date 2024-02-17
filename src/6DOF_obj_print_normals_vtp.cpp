@@ -52,26 +52,8 @@ void sixdof_obj::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
         
         char path[300];
         
-        if(p->P14==1)
-        {
-            if(num<10)
-            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-00000%i.vtp",n6DOF,num);
-
-            if(num<100&&num>9)
-            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-0000%i.vtp",n6DOF,num);
-
-            if(num<1000&&num>99)
-            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-000%i.vtp",n6DOF,num);
-
-            if(num<10000&&num>999)
-            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-00%i.vtp",n6DOF,num);
-
-            if(num<100000&&num>9999)
-            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-0%i.vtp",n6DOF,num);
-
-            if(num>99999)
-            sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-%i.vtp",n6DOF,num);
-        }
+        sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-%06i.vtp",n6DOF,num);
+            
 
         ofstream result;
         result.open(path, ios::binary);

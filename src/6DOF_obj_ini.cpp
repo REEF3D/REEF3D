@@ -121,10 +121,8 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
 		Mme.resize(p->mooring_count);
 		Nme.resize(p->mooring_count);
 
-		if(p->mpirank==0 && p->P14==1)
-		{
-			mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
-		}		
+		if(p->mpirank==0)
+		mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
 
 		pmooring.reserve(p->mooring_count);
 		X311_xen.resize(p->mooring_count,0.0);
@@ -177,10 +175,7 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
 
         if(p->mpirank==0)
         {
-            if(p->P14==1)
-            {
-                mkdir("./REEF3D_CFD_6DOF_Net",0777);	
-            }
+            mkdir("./REEF3D_CFD_6DOF_Net",0777);	
         }
         else
         {

@@ -188,18 +188,11 @@ void wave_lib_spectrum::print_amplitude_spectrum(lexer *p)
 	double xval=ws;
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_Log-Wave",0777);
 	
     if(p->mpirank==0)
-    {
-    // open file
-	if(p->P14==0)
-    result.open("REEF3D_amplitude-spectrum.dat");
-	
-	if(p->P14==1)
-	result.open("./REEF3D_Log-Wave/REEF3D_amplitude-spectrum.dat");
-	}	
+    result.open("./REEF3D_Log-Wave/REEF3D_amplitude-spectrum.dat");
 
 	for(int n=0;n<p->wN;++n)
 	{

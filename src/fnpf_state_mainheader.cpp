@@ -33,10 +33,6 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     ofstream mainout;
     
     // open file
-	if(p->P14==0)
-    mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
-
-	if(p->P14==1)
 	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
 
 
@@ -77,10 +73,6 @@ void fnpf_state::write_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     ofstream mainout;
     
     // open file
-	if(p->P14==0)
-    mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
-
-	if(p->P14==1)
 	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
 
     iin=p->count;

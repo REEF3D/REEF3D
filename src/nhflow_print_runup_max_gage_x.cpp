@@ -51,13 +51,11 @@ nhflow_print_runup_max_gage_x::nhflow_print_runup_max_gage_x(lexer *p, fdm_nhf *
     ini_location(p,d,pgc);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_RUNUP",0777);
     
     
-    
-    
-    
+
     for(q=0;q<p->P134;++q)
     {
     xloc[q] = -1.0e20;
@@ -89,13 +87,7 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     if(p->mpirank==0)
     {
 		// open file
-		if(p->P14==0)
-		sprintf(name,"REEF3D-NHFLOW-runup-max-x.dat");
-
-
-		if(p->P14==1)
 		sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-max-x.dat");
-
 		
 		wsfout.open(name);
 

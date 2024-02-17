@@ -44,47 +44,7 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
     if(p->P15==2)
     num = p->count;
 
-	if(p->P14==0)
-	{
-    if(num<10)
-	sprintf(name,"REEF3D-CFD-00000%i.pvtu",num);
-
-	if(num<100&&num>9)
-	sprintf(name,"REEF3D-CFD-0000%i.pvtu",num);
-
-	if(num<1000&&num>99)
-	sprintf(name,"REEF3D-CFD-000%i.pvtu",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"REEF3D-CFD-00%i.pvtu",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"REEF3D-CFD-0%i.pvtu",num);
-
-	if(num>99999)
-	sprintf(name,"REEF3D-CFD-%i.pvtu",num);
-	}
-
-	if(p->P14==1)
-	{
-    if(num<10)
-	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-00000%i.pvtu",num);
-
-	if(num<100&&num>9)
-	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-0000%i.pvtu",num);
-
-	if(num<1000&&num>99)
-	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-000%i.pvtu",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-00%i.pvtu",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-0%i.pvtu",num);
-
-	if(num>99999)
-	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-%i.pvtu",num);
-	}
+	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-%08i.pvtu",num);
 
 	ofstream result;
 	result.open(name);

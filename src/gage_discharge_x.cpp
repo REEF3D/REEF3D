@@ -34,16 +34,12 @@ gage_discharge_x::gage_discharge_x(lexer *p, fdm* a, ghostcell *pgc)
 	p->Darray(q,p->P67);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_Log",0777);
 	
     if(p->mpirank==0 && p->P67>0)
     {
     // open file
-	if(p->P14==0)
-    qout.open("REEF3D-discharge_x.dat");
-	
-	if(p->P14==1)
 	qout.open("./REEF3D_Log/REEF3D-discharge_x.dat");
 
     qout<<"number of x-discharge gages:  "<<p->P67<<endl<<endl;

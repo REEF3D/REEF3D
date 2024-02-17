@@ -35,47 +35,9 @@ void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     if(p->P15==2)
     num = p->count;
 	
-	if(p->P14==0)
-	{
-    if(num<10)
-	sprintf(name,"REEF3D-SFLOW-BED-00000%i.pvtp",num);
 
-	if(num<100&&num>9)
-	sprintf(name,"REEF3D-SFLOW-BED-0000%i.pvtp",num);
+	sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-%08i.pvtp",num);
 
-	if(num<1000&&num>99)
-	sprintf(name,"REEF3D-SFLOW-BED-000%i.pvtp",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"REEF3D-SFLOW-BED-00%i.pvtp",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"REEF3D-SFLOW-BED-0%i.pvtp",num);
-
-	if(num>99999)
-	sprintf(name,"REEF3D-SFLOW-BED-%i.pvtp",num);
-	}
-
-	if(p->P14==1)
-	{
-    if(num<10)
-	sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-00000%i.pvtp",num);
-
-	if(num<100&&num>9)
-	sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-0000%i.pvtp",num);
-
-	if(num<1000&&num>99)
-	sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-000%i.pvtp",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-00%i.pvtp",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-0%i.pvtp",num);
-
-	if(num>99999)
-	sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-%i.pvtp",num);
-	}
 
 	ofstream result;
 	result.open(name);

@@ -215,15 +215,12 @@ void sflow_f::print_debug(lexer *p, fdm2D* b, ghostcell* pgc)
 	ofstream debug;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_Log",0777);
 	
 	
 	sprintf(name,"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
 
-	if(p->P14==0)
-	sprintf(name,"/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
-	if(p->P14==1)
 	sprintf(name,"./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
 		
 		
@@ -241,14 +238,11 @@ void sflow_f::log_ini(lexer *p)
 {
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_Log",0777);
 
     if(p->mpirank==0)
     {
-    if(p->P14==0)
-    mainlogout.open("REEF3D_SFLOW_mainlog.dat");
-    if(p->P14==1)
     mainlogout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat");
 
     mainlogout<<"number of cells:  "<<p->cellnumtot2D<<endl;

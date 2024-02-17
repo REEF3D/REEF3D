@@ -31,7 +31,7 @@ void flowfile_out::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
     filecount=0;
     
-    if(p->mpirank==0 && p->P14==1)
+    if(p->mpirank==0)
 	mkdir("./REEF3D_FlowFile",0777);
 	
 	if(p->mpirank==0 && p->P230>0)

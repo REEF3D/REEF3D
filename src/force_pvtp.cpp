@@ -36,47 +36,7 @@ void force::pvtp(lexer* p, fdm* a, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 	
-	if(p->P14==0)
-	{
-    if(num<10)
-	sprintf(name,"REEF3D-SOLID-00000%i-%i.pvtp",num,ID);
-
-	if(num<100&&num>9)
-	sprintf(name,"REEF3D-SOLID-0000%i-%i.pvtp",num,ID);
-
-	if(num<1000&&num>99)
-	sprintf(name,"REEF3D-SOLID-000%i-%i.pvtp",num,ID);
-
-	if(num<10000&&num>999)
-	sprintf(name,"REEF3D-SOLID-00%i-%i.pvtp",num,ID);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"REEF3D-SOLID-0%i-%i.pvtp",num,ID);
-
-	if(num>99999)
-	sprintf(name,"REEF3D-SOLID-%i-%i.pvtp",num,ID);
-	}
-
-	if(p->P14==1)
-	{
-    if(num<10)
-	sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-00000%i-%i.pvtp",num,ID);
-
-	if(num<100&&num>9)
-	sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-0000%i-%i.pvtp",num,ID);
-
-	if(num<1000&&num>99)
-	sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-000%i-%i.pvtp",num,ID);
-
-	if(num<10000&&num>999)
-	sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-00%i-%i.pvtp",num,ID);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-0%i-%i.pvtp",num,ID);
-
-	if(num>99999)
-	sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-%i-%i.pvtp",num,ID);
-	}
+	sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-%08i-%06i.pvtp",num,ID);
 
 	ofstream result;
 	result.open(name);

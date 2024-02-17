@@ -30,7 +30,7 @@ Author: Hans Bihs
 void print_porous::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_Porous",0777);
     
 	sprintf(name,"./REEF3D_CFD_Porous/REEF3D_Porous-Object.vtp");

@@ -528,7 +528,7 @@ void net_barQuasiStatic::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
 
 
     // Initialise print
-    if(p->mpirank==0 && p->P14==1)
+    if(p->mpirank==0)
     {
         char str[1000];
         sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);

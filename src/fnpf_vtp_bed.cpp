@@ -37,10 +37,8 @@ fnpf_vtp_bed::fnpf_vtp_bed(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	printcount=0;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_FNPF_VTP_BED",0777);
-	
-	
 }
 
 fnpf_vtp_bed::~fnpf_vtp_bed()

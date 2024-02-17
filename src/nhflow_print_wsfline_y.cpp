@@ -67,7 +67,7 @@ nhflow_print_wsfline_y::nhflow_print_wsfline_y(lexer *p, fdm_nhf *d, ghostcell *
     ini_location(p,d,pgc);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_WSFLINE_Y",0777);
 }
 
@@ -88,47 +88,7 @@ void nhflow_print_wsfline_y::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow 
     if(p->mpirank==0)
     {
 		// open file
-		if(p->P14==0)
-		{
-		if(num<10)
-		sprintf(name,"REEF3D-NHFLOW-wsfline_y-00000%i.dat",num);
-
-		if(num<100&&num>9)
-		sprintf(name,"REEF3D-NHFLOW-wsfline_y-0000%i.dat",num);
-
-		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-NHFLOW-wsfline_y-000%i.dat",num);
-
-		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-NHFLOW-wsfline_y-00%i.dat",num);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-NHFLOW-wsfline_y-0%i.dat",num);
-
-		if(num>99999)
-		sprintf(name,"REEF3D-NHFLOW-wsfline_y-%i.dat",num);
-		}
-		
-		if(p->P14==1)
-		{
-		if(num<10)
-		sprintf(name,"./REEF3D_NHFLOW_WSFLINE_Y/REEF3D-NHFLOW-wsfline_y-00000%i.dat",num);
-
-		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_NHFLOW_WSFLINE_Y/REEF3D-NHFLOW-wsfline_y-0000%i.dat",num);
-
-		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_NHFLOW_WSFLINE_Y/REEF3D-NHFLOW-wsfline_y-000%i.dat",num);
-
-		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_NHFLOW_WSFLINE_Y/REEF3D-NHFLOW-wsfline_y-00%i.dat",num);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_NHFLOW_WSFLINE_Y/REEF3D-NHFLOW-wsfline_y-0%i.dat",num);
-
-		if(num>99999)
-		sprintf(name,"./REEF3D_NHFLOW_WSFLINE_Y/REEF3D-NHFLOW-wsfline_y-%i.dat",num);
-		}
+		sprintf(name,"./REEF3D_NHFLOW_WSFLINE_Y/REEF3D-NHFLOW-wsfline_y-%08i.dat",num);
 		
 		wsfout.open(name);
 

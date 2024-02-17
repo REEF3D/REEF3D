@@ -32,7 +32,7 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 {
 	linecount=0;
 	
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0 )
 	mkdir("./REEF3D_CFD_ProbeLine",0777);
 	
 	if(p->mpirank==0 && p->P62>0)
@@ -188,47 +188,9 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		if(p->mpirank==0)
 		{
 			// open file
-			if(p->P14==0)
-			{
-			if(num<10)
-			sprintf(name,"REEF3D-CFD-probeline-%i-00000%i.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-%08i.dat",n+1,num);
 
-			if(num<100&&num>9)
-			sprintf(name,"REEF3D-CFD-probeline-%i-0000%i.dat",n+1,num);
 
-			if(num<1000&&num>99)
-			sprintf(name,"REEF3D-CFD-probeline-%i-000%i.dat",n+1,num);
-
-			if(num<10000&&num>999)
-			sprintf(name,"REEF3D-CFD-probeline-%i-00%i.dat",n+1,num);
-
-			if(num<100000&&num>9999)
-			sprintf(name,"REEF3D-CFD-probeline-%i-0%i.dat",n+1,num);
-
-			if(num>99999)
-			sprintf(name,"REEF3D-CFD-probeline-%i-%i.dat",n+1,num);
-			}
-			
-			if(p->P14==1)
-			{
-			if(num<10)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-00000%i.dat",n+1,num);
-
-			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-0000%i.dat",n+1,num);
-
-			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-000%i.dat",n+1,num);
-
-			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-00%i.dat",n+1,num);
-
-			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-0%i.dat",n+1,num);
-
-			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-%i.dat",n+1,num);
-			}
 			
 			lineout[n].open(name);
 

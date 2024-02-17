@@ -35,47 +35,9 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 	
-	if(p->P14==0)
-	{
-    if(num<10)
-	sprintf(name,"REEF3D-NHFLOW-00000%i.pvtu",num);
 
-	if(num<100&&num>9)
-	sprintf(name,"REEF3D-NHFLOW-0000%i.pvtu",num);
+	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-%08i.pvtu",num);
 
-	if(num<1000&&num>99)
-	sprintf(name,"REEF3D-NHFLOW-000%i.pvtu",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"REEF3D-NHFLOW-00%i.pvtu",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"REEF3D-NHFLOW-0%i.pvtu",num);
-
-	if(num>99999)
-	sprintf(name,"REEF3D-NHFLOW-%i.pvtu",num);
-	}
-
-	if(p->P14==1)
-	{
-    if(num<10)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-00000%i.pvtu",num);
-
-	if(num<100&&num>9)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-0000%i.pvtu",num);
-
-	if(num<1000&&num>99)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-000%i.pvtu",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-00%i.pvtu",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-0%i.pvtu",num);
-
-	if(num>99999)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-%i.pvtu",num);
-	}
 
 	ofstream result;
 	result.open(name);

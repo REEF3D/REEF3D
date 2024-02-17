@@ -66,7 +66,7 @@ print_wsfline_y::print_wsfline_y(lexer *p, fdm* a, ghostcell *pgc)
     ini_location(p,a,pgc);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_WSFLINE_Y",0777);
 }
 
@@ -87,48 +87,8 @@ void print_wsfline_y::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     if(p->mpirank==0)
     {
 		// open file
-		if(p->P14==0)
-		{
-		if(num<10)
-		sprintf(name,"REEF3D-CFD-wsfline_y-00000%i.dat",num);
+		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-%08i.dat",num);
 
-		if(num<100&&num>9)
-		sprintf(name,"REEF3D-CFD-wsfline_y-0000%i.dat",num);
-
-		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-CFD-wsfline_y-000%i.dat",num);
-
-		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-CFD-wsfline_y-00%i.dat",num);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-CFD-wsfline_y-0%i.dat",num);
-
-		if(num>99999)
-		sprintf(name,"REEF3D-CFD-wsfline_y-%i.dat",num);
-		}
-		
-		if(p->P14==1)
-		{
-		if(num<10)
-		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-00000%i.dat",num);
-
-		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-0000%i.dat",num);
-
-		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-000%i.dat",num);
-
-		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-00%i.dat",num);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-0%i.dat",num);
-
-		if(num>99999)
-		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-%i.dat",num);
-		}
-		
 		wsfout.open(name);
 
 		wsfout<<"simtime:  "<<p->simtime<<endl;

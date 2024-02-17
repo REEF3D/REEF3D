@@ -51,7 +51,7 @@ nhflow_print_runup_gage_x::nhflow_print_runup_gage_x(lexer *p, fdm_nhf *d, ghost
     ini_location(p,d,pgc);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_RUNUP",0777);
     
     
@@ -59,14 +59,8 @@ nhflow_print_runup_gage_x::nhflow_print_runup_gage_x(lexer *p, fdm_nhf *d, ghost
     if(p->mpirank==0)
     {
 		// open file
-		if(p->P14==0)
-		sprintf(name,"REEF3D-NHFLOW-runup-x.dat");
-
-
-		if(p->P14==1)
 		sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-x.dat");
 
-		
 		wsfout.open(name);
 
 		wsfout<<"number of runup-probes:  "<<p->P133<<endl<<endl;

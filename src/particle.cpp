@@ -53,7 +53,7 @@ particle_pls::particle_pls(lexer* p, fdm *a, ghostcell* pgc) : norm_vec(p), phim
 	gcval_phi=54;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_PLS",0777);
 }
 

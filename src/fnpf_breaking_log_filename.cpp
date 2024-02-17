@@ -25,44 +25,7 @@ Author: Hans Bihs
 
 void fnpf_breaking_log::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    
-    if(p->P14==0)
-    {
-        if(p->mpirank<9)
-        sprintf(name,"REEF3D_FNPF-Breaking-Log-0000%i.r3d",p->mpirank+1);
-
-        if(p->mpirank<99&&p->mpirank>8)
-        sprintf(name,"REEF3D_FNPF-Breaking-Log-000%i.r3d",p->mpirank+1);
-
-        if(p->mpirank<999&&p->mpirank>98)
-        sprintf(name,"REEF3D_FNPF-Breaking-Log-00%i.r3d",p->mpirank+1);
-
-        if(p->mpirank<9999&&p->mpirank>998)
-        sprintf(name,"REEF3D_FNPF-Breaking-Log-0%i.r3d",p->mpirank+1);
-
-        if(p->mpirank>9998)
-        sprintf(name,"REEF3D_FNPF-Breaking-Log-%i.r3d",p->mpirank+1);
-    }
-    
-    if(p->P14==1)
-    {
-        if(p->mpirank<9)
-        sprintf(name,"./REEF3D_FNPF_Breaking_Log/REEF3D_FNPF-Breaking-Log-0000%i.r3d",p->mpirank+1);
-
-        if(p->mpirank<99&&p->mpirank>8)
-        sprintf(name,"./REEF3D_FNPF_Breaking_Log/REEF3D_FNPF-Breaking-Log-000%i.r3d",p->mpirank+1);
-
-        if(p->mpirank<999&&p->mpirank>98)
-        sprintf(name,"./REEF3D_FNPF_Breaking_Log/REEF3D_FNPF-Breaking-Log-00%i.r3d",p->mpirank+1);
-
-        if(p->mpirank<9999&&p->mpirank>998)
-        sprintf(name,"./REEF3D_FNPF_Breaking_Log/REEF3D_FNPF-Breaking-Log-0%i.r3d",p->mpirank+1);
-
-        if(p->mpirank>9998)
-        sprintf(name,"./REEF3D_FNPF_Breaking_Log/REEF3D_FNPF-Breaking-Log-%i.r3d",p->mpirank+1);
-
-    }
-
+    sprintf(name,"./REEF3D_FNPF_Breaking_Log/REEF3D_FNPF-Breaking-Log-%06i.r3d",p->mpirank+1);
 }
 
 

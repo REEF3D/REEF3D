@@ -36,16 +36,12 @@ bedshear_probe::bedshear_probe(lexer *p, fdm* a, ghostcell *pgc)
 	p->Darray(bsg,p->P125);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_SedimentPoint",0777);
 	
     if(p->mpirank==0 && p->P125>0)
     {
     // open file
-	if(p->P14==0)
-    bsgout.open("REEF3D-CFD-Sediment-Bedshear.dat");
-	
-	if(p->P14==1)
 	bsgout.open("./REEF3D_CFD_SedimentPoint/REEF3D-CFD-Sediment-Bedshear.dat");
 
     bsgout<<"number of gauges:  "<<p->P125<<endl<<endl;

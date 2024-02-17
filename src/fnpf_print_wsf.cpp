@@ -36,16 +36,12 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
 
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_FNPF_WSF",0777);
 	
     if(p->mpirank==0 && p->P51>0)
     {
     // open WSF file
-	if(p->P14==0)
-    wsfout.open("REEF3D-FNPF-WSF-HG.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -65,10 +61,6 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
         if(p->P57==1 || p->P57==3)
         {
         // open rise velovity file
-        if(p->P14==0)
-        detaout.open("REEF3D-FNPF-Rise-Velocity.dat");
-        
-        if(p->P14==1)
         detaout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-Rise-Velocity.dat");
 
         detaout<<"number of rise velocity gauges:  "<<gauge_num<<endl<<endl;
@@ -88,10 +80,6 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
         if(p->P57==2 || p->P57==3)
         {
         // open horizontal velocity file
-        if(p->P14==0)
-        Uhorzout.open("REEF3D-FNPF-Horiontal-FSF-Velocity.dat");
-        
-        if(p->P14==1)
         Uhorzout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-Horiontal-FSF-Velocity.dat");
 
         Uhorzout<<"number of horizontal fsf velocity gauges:  "<<gauge_num<<endl<<endl;

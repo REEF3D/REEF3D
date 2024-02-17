@@ -1267,7 +1267,7 @@
             <File Name="sflow_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
-            <File Name="sflow_vtp_fsf_pvtu.cpp"/>
+            <File Name="sflow_vtp_fsf_pvtp.cpp"/>
             <File Name="sflow_vtp_fsf_header.cpp"/>
             <File Name="sflow_vtp_fsf.cpp"/>
           </VirtualDirectory>
@@ -1431,6 +1431,7 @@
             <File Name="nhflow_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
+            <File Name="nhflow_vtp_fsf_pvd.cpp"/>
             <File Name="nhflow_vtp_fsf_pvtp.cpp"/>
             <File Name="nhflow_vtp_fsf_header.cpp"/>
             <File Name="nhflow_vtp_fsf.cpp"/>

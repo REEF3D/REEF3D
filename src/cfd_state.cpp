@@ -32,7 +32,7 @@ Author: Hans Bihs
 cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
 {	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_STATE",0777);
 	
 	printcount=0;

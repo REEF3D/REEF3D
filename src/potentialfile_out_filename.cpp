@@ -31,50 +31,8 @@ void potentialfile_out::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     num = p->count;
 
-			// open file
-			if(p->P14==0)
-			{
-			if(num<10)
-			sprintf(name,"REEF3D-potentialfile-%i-00000%i.r3d",n+1,num);
- 
-			if(num<100&&num>9)
-			sprintf(name,"REEF3D-potentialfile-%i-0000%i.r3d",n+1,num);
-
-			if(num<1000&&num>99)
-			sprintf(name,"REEF3D-potentialfile-%i-000%i.r3d",n+1,num);
-
-			if(num<10000&&num>999)
-			sprintf(name,"REEF3D-potentialfile-%i-00%i.r3d",n+1,num);
-
-			if(num<100000&&num>9999)
-			sprintf(name,"REEF3D-potentialfile-%i-0%i.r3d",n+1,num);
-
-			if(num>99999)
-			sprintf(name,"REEF3D-potentialfile-%i-%i.r3d",n+1,num);
-			}
-			
-			if(p->P14==1)
-			{
-			if(num<10)
-			sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialfile-%i-00000%i.r3d",n+1,num);
-
-			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialfile-%i-0000%i.r3d",n+1,num);
-
-			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialfile-%i-000%i.r3d",n+1,num);
-
-			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialfile-%i-00%i.r3d",n+1,num);
-
-			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialfile-%i-0%i.r3d",n+1,num);
-
-			if(num>99999)
-			sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialfile-%i-%i.r3d",n+1,num);
-			}
-		
-    
+    // open file
+    sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialfile-%i-%08i.r3d",n+1,num);
 }
 
 

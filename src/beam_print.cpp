@@ -46,27 +46,7 @@ void beam::print(lexer *p)
 	{
 		printtime+=p->P30;
 		
-		if(p->P14==1)
-		{
-			if(num<10)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-00000%i.vtk",nBeam,num);
-
-			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-0000%i.vtk",nBeam,num);
-
-			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-000%i.vtk",nBeam,num);
-
-			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-00%i.vtk",nBeam,num);
-
-			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-0%i.vtk",nBeam,num);
-
-			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-%i.vtk",nBeam,num);
-		}	
-
+		sprintf(name,"./REEF3D_CFD_Beam/REEF3D-Beam-%i-%06i.vtk",nBeam,num);
 
 		ofstream result;
 		result.open(name, ios::binary);
