@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
+#include<fstream>
 
 class lexer;
 class fdm_nhf;
@@ -46,6 +47,7 @@ private:
 	
 	void etend(lexer*,fdm_nhf*,ghostcell*);
 	void pvtu(lexer*,fdm_nhf*,ghostcell*);
+    void pvd(lexer*,fdm_nhf*,ghostcell*);
 	void name_iter(lexer*,fdm_nhf*,ghostcell*);
     void piecename(lexer*,fdm_nhf*,ghostcell*,int);
 	
@@ -63,6 +65,8 @@ private:
     int jj;
     
     int *wetmax;
+    
+    ofstream pvdout;
 	
 
 };

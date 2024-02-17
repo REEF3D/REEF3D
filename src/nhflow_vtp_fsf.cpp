@@ -92,7 +92,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     d->eta.ggcpol(p);
     
 	if(p->mpirank==0)
+    {
     pvtu(p,d,pgc);
+    //pvd(p,d,pgc);
+    }
     
 	name_iter(p,d,pgc);
 	

@@ -25,64 +25,39 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-/*
-void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
-{	
-	int num=0;
 
+void nhflow_vtp_fsf::pvd(lexer *p, fdm_nhf *d, ghostcell* pgc)
+{	
+    int num=0;
     if(p->P15==1)
     num = printcount;
 
     if(p->P15==2)
     num = p->count;
-	
+    
+    
+    if(p->count==0)
+    {
+	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF.pvd",num);
 
-	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-00000%i.pvtp",num);
+	pvdout.open(name);
 
-
-	ofstream result;
-	result.open(name);
-
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
-	
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
-	
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"detadt\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"WL\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"wetdry\"/>"<<endl;
-    if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
-    if(p->P110==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
-    if(p->P131==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"wetdry_max\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
-	
-	result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
-	result<<"</Polys>"<<endl;
-
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(p,d,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+	pvdout<<"<?xml version=\"1.0\"?>"<<endl;
+	pvdout<<"<VTKFile type=\"Collection\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt64\">"<<endl;
 	}
+	
+    // timestep="0.000800035" part="0" file="pvdoutput/pvdoutput_0_8.pvtu"/>
+    sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp",num);
+    
+	pvdout<<"<timestep=\""<<p->simtime<<"\" part=\"0\" file="<<name<<"\"/>"<<endl;
 
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
 
-	result.close();
+/*
+	pvdout<<"</Collection>"<<endl;
+	pvdout<<"</VTKFile>"<<endl;
+
+    
+	pvdout.close();*/
 
 }
-*/
+
