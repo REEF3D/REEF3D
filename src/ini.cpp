@@ -794,6 +794,11 @@ void lexer::ini_default()
     X210_w=0.0; // double fixed w vel
 	X211=0;		// int give fixed angular velocity
     X240=0;     // int read 6DOF motion file
+    X241=0.0;     // double delta t for motion file
+    X242_x=0.0;     // double delta x for motion file
+    X242_y=0.0;     // double delta x for motion file
+    X242_z=0.0;     // double delta x for motion file
+    X243=0.0;     // double delta CoG for motion file
     X311=0;     // int number of simple taut mooring lines
     X312=0;     // int number of springs
     X313=0;     // int initial rotation of mooring end points with 6DOF body

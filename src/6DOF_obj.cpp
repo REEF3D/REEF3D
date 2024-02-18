@@ -71,7 +71,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc,int number) : gradient(p), dt(p)
     if(p->X210==1 || p->X211==1)
     pmotion = new sixdof_motionext_fixed(p,pgc);
     
-    if(p->X210==1 || p->X211==1)
+    if(p->X240>0)
     pmotion = new sixdof_motionext_file(p,pgc);
 }
 

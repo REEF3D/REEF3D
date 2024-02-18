@@ -25,22 +25,59 @@ Authors: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc)
-{
-    ini(p,pgc);
-}
-
-sixdof_motionext_file::~sixdof_motionext_file()
-{
-}
-
 void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
 {
-    Uext = p->X210_u;
-    Vext = p->X210_v;
-    Wext = p->X210_w;
+    char name[100];
+	double val,val0,val1;
+    double sign,beta,s;
+	int count;
+	
+	sprintf(name,"6DOF_motion.dat");
 
-    Pext = p->X211_p;
-    Qext = p->X211_q;
-    Rext = p->X211_r;
+// open file and count
+	ifstream file(name, ios_base::in);
+	
+	if(!file)
+	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+
+    
+    count=0;
+	while(!file.eof())
+	{
+        for(qn=0;qn<colnum;++qn)
+        file>>val;
+    
+	++count;
+	}
+	ptnum=count;
+    
+	file.close();
+    
+// allocate
+    p->Darray(data,val,colnum);
+    
+
+// re.open file
+    file.open (name, ios_base::in);
+	
+	if(!file)
+	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+    
+ // read file   
+    rowcount=colcount=0;
+	while(!file.eof())
+	{
+        for(qn=0;qn<colnum;++qn)
+        file>>data[rowcount][qn];
+        
+        ++rowcount;
+	}
+    
+    ts = data[0][0];
+    te = data[ptnum-1][0];
+    
+// add deltas
+    for(qn=0;qn<ptnum;++qn)
+    data[qn][0] += p->X241;
+    
 }

@@ -28,6 +28,22 @@ Authors: Hans Bihs
 sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc)
 {
     ini(p,pgc);
+    
+    // number of file columns
+    if(p->X240==1)
+    colnum = 3;
+    
+    if(p->X240==2)
+    colnum = 4;
+    
+    if(p->X240==3)
+    colnum = 4;
+    
+    if(p->X240==4)
+    colnum = 5;
+    
+    timecount_old=0;
+	timecount=1;
 }
 
 sixdof_motionext_file::~sixdof_motionext_file()
@@ -47,21 +63,45 @@ void sixdof_motionext_file::ini(lexer *p, ghostcell *pgc)
 
 void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
-
-    if (p->X11_u==2)
+    // find correct time step
+    if((p->simtime>data[timecount][0]))
+    timecount_old=timecount;
+    
+	while(p->simtime>data[timecount][0])
+	++timecount;
+    
+    
+    if(p->X11_u==2)
     {
+        Uext = 0.0;
+        
+        if(p->simtime>=ts && p->simtime<=te)
+        Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+        
         dp_(0) = 0.0;
         dc_(0) = Uext*ramp_vel(p);
+        
+        
     }
 
     if (p->X11_v==2)
     {
+        Vext = 0.0;
+        
+        if(p->simtime>=ts && p->simtime<=te)
+        Vext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
+        
         dp_(1) = 0.0;
         dc_(1) = Vext*ramp_vel(p);
     }
 
     if (p->X11_w==2)
     {
+        Wext = 0.0;
+        
+        if(p->simtime>=ts && p->simtime<=te)
+        Wext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
+        
         dp_(2) = 0.0;
         dc_(2) = Wext*ramp_vel(p);
     }

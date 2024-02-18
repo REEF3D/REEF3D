@@ -1782,7 +1782,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Motion File">
             <File Name="6DOF_motion-file_read.cpp"/>
-            <File Name="6DOF_motion-file_open.cpp"/>
             <File Name="6DOF_motion-file_ipol.cpp"/>
             <File Name="6DOF_motion-file.cpp"/>
           </VirtualDirectory>

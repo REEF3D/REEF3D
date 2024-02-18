@@ -593,6 +593,7 @@ public:
 	double X210_u,X210_v,X210_w;
 	double X211_p,X211_q,X211_r;
     int X240;
+    double X241,X242_x,X242_y,X242_z,X243;
     double *X311_xs,*X311_xe,*X311_ys,*X311_ye,*X311_zs,*X311_ze;
     double *X311_w,*X311_rho_c,*X311_EA,*X311_d,*X311_l,*X311_H,*X311_P,*X311_facT;
     double *X312_k,*X312_T0;

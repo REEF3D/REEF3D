@@ -1675,7 +1675,7 @@ void lexer::ctrlrecv()
 	X211_r = dctrl[dd];
 	dd++;	
     X240 = ictrl[ii];
-	ii++;
+	ii++;    X241 = dctrl[dd];	dd++;    X242_x = dctrl[dd];	dd++;    X242_y = dctrl[dd];	dd++;    X242_z = dctrl[dd];	dd++;    X243 = dctrl[dd];	dd++;
 	X310 = ictrl[ii];
 	ii++;	
     X311 = ictrl[ii];

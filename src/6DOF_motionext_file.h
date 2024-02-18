@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_motionext.h"
+#include<fstream>
 #include <Eigen/Dense>
 
 class lexer;
@@ -47,6 +48,8 @@ public:
 
     virtual void ini(lexer*,ghostcell*);
     
+    
+    
     sixdof_motionext_file(lexer*, ghostcell*);
 	virtual ~sixdof_motionext_file();
     
@@ -54,6 +57,18 @@ private:
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
     
+    void read_format_1(lexer*,ghostcell*);
+    void read_format_2(lexer*,ghostcell*);
+    
+    ofstream file;
+    char name[200];
+    int qn,count,ptnum;
+    int rowcount,colcount;
+    int colnum;
+    double val;
+    double **data;
+    double ts,te;
+    int timecount,timecount_old;
     
     double Uext, Vext, Wext, Pext, Qext, Rext;
 };
