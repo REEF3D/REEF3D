@@ -29,7 +29,7 @@ Author: Hans Bihs
 void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
     // relax_ini OR dirichlet_ini
-    if(p->A10==55  || p->A10==6)
+    if(p->A10==6)
     {
     wavegen_precalc_ini(p,pgc);
     wavegen_precalc_relax_func(p,pgc);

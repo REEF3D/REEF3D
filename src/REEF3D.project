@@ -262,20 +262,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>
-      <VirtualDirectory Name="NSEWAVE">
-        <VirtualDirectory Name="Wetdry">
-          <File Name="nsewave_wetdry_v.h"/>
-          <File Name="nsewave_wetdry_f.h"/>
-          <File Name="nsewave_wetdry.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Free Surface">
-          <File Name="nsewave_v.h"/>
-          <File Name="nsewave_RK3.h"/>
-          <File Name="nsewave_geo.h"/>
-          <File Name="nsewave_f.h"/>
-          <File Name="nsewave.h"/>
-        </VirtualDirectory>
-      </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Turbulence">
           <VirtualDirectory Name="Strain">
@@ -1372,18 +1358,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>
-      <VirtualDirectory Name="NSEWAVE">
-        <VirtualDirectory Name="Wetdry">
-          <File Name="nsewave_wetdry_v.cpp"/>
-          <File Name="nsewave_wetdry_f.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Free Surface">
-          <File Name="nsewave_v.cpp"/>
-          <File Name="nsewave_RK3.cpp"/>
-          <File Name="nsewave_geo.cpp"/>
-          <File Name="nsewave_f.cpp"/>
-        </VirtualDirectory>
-      </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Turbulence">
           <VirtualDirectory Name="Strain">
@@ -2415,7 +2389,6 @@
       <VirtualDirectory Name="Ini">
         <File Name="driver_ini_sflow.cpp"/>
         <File Name="driver_ini_ptf.cpp"/>
-        <File Name="driver_ini_nsewave.cpp"/>
         <File Name="driver_ini_nhflow.cpp"/>
         <File Name="driver_ini_fnpf.cpp"/>
         <File Name="driver_ini_cfd.cpp"/>
@@ -2681,14 +2654,13 @@
         <File Name="driver_logic_cfd.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
+        <File Name="driver_loop_ptf.cpp"/>
         <File Name="driver_loop_ngx.cpp"/>
         <File Name="driver_loop_cfd_sf.cpp"/>
         <File Name="driver_loop_fnpf.cpp"/>
         <File Name="driver_loop_cfd_df.cpp"/>
-        <File Name="driver_loop_ptf.cpp"/>
         <File Name="driver_loop_nhflow.cpp"/>
         <File Name="driver_loop_cfd.cpp"/>
-        <File Name="driver_loop_nsewave.cpp"/>
       </VirtualDirectory>
       <File Name="ini.cpp"/>
     </VirtualDirectory>

@@ -142,8 +142,6 @@ void driver::driver_ini_cfd()
 	pdata->start(p,a,pgc);
     
 
-    pnse->ini(p,a,pgc,pflow);     
-	
     pheat->heat_ini(p,a,pgc,pheat);
     pmp->ini(p,a,pgc,pflow,pprint,pconvec,psolv);
 	pconc->ini(p,a,pgc,pconc);
