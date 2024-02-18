@@ -91,11 +91,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>
-      <VirtualDirectory Name="PIC">
-        <File Name="pic_f.h"/>
-        <File Name="pic_v.h"/>
-        <File Name="pic.h"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.h"/>
@@ -1178,10 +1173,6 @@
             <File Name="ngx_reconstruct_FOU.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
-      </VirtualDirectory>
-      <VirtualDirectory Name="PIC">
-        <File Name="pic_v.cpp"/>
-        <File Name="pic_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Breaking"/>
