@@ -20,21 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_motionext_fixed.h"
+#include"6DOF_motionext_file.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-sixdof_motionext_fixed::sixdof_motionext_fixed(lexer *p, ghostcell *pgc)
+sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc)
 {
     ini(p,pgc);
 }
 
-sixdof_motionext_fixed::~sixdof_motionext_fixed()
+sixdof_motionext_file::~sixdof_motionext_file()
 {
 }
 
-void sixdof_motionext_fixed::ini(lexer *p, ghostcell *pgc)
+void sixdof_motionext_file::ini(lexer *p, ghostcell *pgc)
 {
     Uext = p->X210_u;
     Vext = p->X210_v;
@@ -45,7 +45,7 @@ void sixdof_motionext_fixed::ini(lexer *p, ghostcell *pgc)
     Rext = p->X211_r;
 }
 
-void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
+void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
 
     if (p->X11_u==2)
@@ -67,7 +67,7 @@ void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Ve
     }
 }
 
-void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
+void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
     if(p->X11_p==2)
     {
@@ -90,7 +90,7 @@ void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen
     de_ = 0.5*G_.transpose()*I_.inverse()*h_;
 }
 
-double sixdof_motionext_fixed::ramp_vel(lexer *p)
+double sixdof_motionext_file::ramp_vel(lexer *p)
 {
     double f=1.0;
 
@@ -106,7 +106,7 @@ double sixdof_motionext_fixed::ramp_vel(lexer *p)
     return f;
 }
 
-double sixdof_motionext_fixed::ramp_draft(lexer *p)
+double sixdof_motionext_file::ramp_draft(lexer *p)
 {
     double f=1.0;
 

@@ -2094,8 +2094,7 @@ void lexer::read_control()
 						 X211=1;
 						 clear(c,numint);
 						 break;
-                case  221: control>>X221_xs>>X221_xe>>X221_ys>>X221_ye>>X221_zs>>X221_ze;
-						 X221=1;
+                 case  240: ++X312;
 						 clear(c,numint);
 						 break;
 				case  310: control>>X310;

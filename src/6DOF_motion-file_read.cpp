@@ -17,45 +17,30 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_motionext.h"
-#include <Eigen/Dense>
+#include"6DOF_motionext_file.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-class lexer;
-class fdm;
-class fdm_nhf;
-class fdm2D;
-class ghostcell;
-class vrans;
-class net;
-class field;
-
-using namespace std;
-
-#ifndef SIXDOF_MOTIONEXT_FIXED_H_
-#define SIXDOF_MOTIONEXT_FIXED_H_
-
-class sixdof_motionext_fixed : public sixdof_motionext
+sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc)
 {
-public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    
-    virtual void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
-    virtual void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&);
+    ini(p,pgc);
+}
 
-    virtual void ini(lexer*,ghostcell*);
-    
-    sixdof_motionext_fixed(lexer*, ghostcell*);
-	virtual ~sixdof_motionext_fixed();
-    
-private:
-    double ramp_vel(lexer*);
-    double ramp_draft(lexer*);
-    
-    
-    double Uext, Vext, Wext, Pext, Qext, Rext;
-};
+sixdof_motionext_file::~sixdof_motionext_file()
+{
+}
 
-#endif
+void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
+{
+    Uext = p->X210_u;
+    Vext = p->X210_v;
+    Wext = p->X210_w;
+
+    Pext = p->X211_p;
+    Qext = p->X211_q;
+    Rext = p->X211_r;
+}
