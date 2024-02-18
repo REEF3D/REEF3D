@@ -70,6 +70,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="fdm_ngx.h"/>
           <VirtualDirectory Name="Timestep"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion"/>
@@ -1180,7 +1181,7 @@
           <VirtualDirectory Name="Level Set"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
-          <File Name="ngx_fdm.cpp"/>
+          <File Name="fdm_ngx.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion"/>
         <VirtualDirectory Name="Convect">
