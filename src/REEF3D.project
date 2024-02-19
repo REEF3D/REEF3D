@@ -1122,6 +1122,8 @@
           <File Name="ptf_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
+          <File Name="ptf_fsfbc_damping.cpp"/>
+          <File Name="ptf_fsfbc_breaking.cpp"/>
           <File Name="ptf_fsfbc_fz.cpp"/>
           <File Name="ptf_fsfbc.cpp"/>
         </VirtualDirectory>

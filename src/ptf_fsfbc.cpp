@@ -36,8 +36,10 @@ Author: Hans Bihs
 #include"fnpf_cds6.h"
 #include"fnpf_weno5.h"
 #include"fnpf_weno7.h"
+#include"sflow_bicgstab.h"
+#include"hypre_struct2D.h"
 
-ptf_fsfbc::ptf_fsfbc(lexer *p, fdm_ptf *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p)
+ptf_fsfbc::ptf_fsfbc(lexer *p, fdm_ptf *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p),bx(p),by(p)
 {    
     if(p->A311==0)
     pconvec = new fnpf_voiddisc(p);
@@ -56,6 +58,9 @@ ptf_fsfbc::ptf_fsfbc(lexer *p, fdm_ptf *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),E
     
     if(p->A311==7)
     pconvec = new fnpf_weno7(p);
+    
+    if(p->A350==1)
+    psolv =  new sflow_bicgstab(p,pgc);
     
 }
 

@@ -86,12 +86,14 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
 // Step 1
     // fsf eta
     kfsfbc(p,a,pgc);
+    damping(p,a,pgc,a->eta,gcval_eta,1.0);
 
     SLICELOOP4
 	erk1(i,j) = a->eta(i,j) + p->dt*a->K(i,j);
     
     // fsf Fi
     dfsfbc(p,a,pgc,a->eta);
+    damping(p,a,pgc,a->Fifsf,gcval_fifsf,1.0);
 
     SLICELOOP4
 	frk1(i,j) = a->Fifsf(i,j) + p->dt*a->K(i,j);
@@ -104,7 +106,8 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     
    // pwave->fifsf_relax(p,pgc,frk1);
-
+    breaking(p, a, pgc, erk1, a->eta, frk1,1.0);
+    
     LOOP
         a->Fi_[IJK]=a->Fi(i,j,k)*1.0;
     pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,frk1,erk1);
@@ -134,6 +137,7 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
 
     // fsf eta
     kfsfbc(p,a,pgc);
+    damping(p,a,pgc,erk1,gcval_eta,0.25);
     
     SLICELOOP4
 	erk2(i,j) = 0.75*a->eta(i,j) + 0.25*erk1(i,j) + 0.25*p->dt*a->K(i,j);
@@ -142,6 +146,7 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     
     // fsf Fi
     dfsfbc(p,a,pgc,erk1);
+    damping(p,a,pgc,frk1,gcval_fifsf,0.25);
     
     SLICELOOP4
 	frk2(i,j) = 0.75*a->Fifsf(i,j) + 0.25*frk1(i,j) + 0.25*p->dt*a->K(i,j);
@@ -153,13 +158,17 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     pgc->gcsl_start4(p,erk2,gcval_eta);
     pwave->fifsf_relax(p,pgc,frk2);
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
+    
+    breaking(p, a, pgc, erk2, erk1, frk2, 0.25);
+    
+    LOOP
+        a->Fi_[IJK]=a->Fi(i,j,k)*1.0;
+    pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,frk2,erk2);
+    LOOP
+        a->Fi(i,j,k)=a->Fi_[IJK]*1.0;
+    
     pfsfupdate->fsfupdate(p,a,pgc,pwave,poneph,erk2);
     pfsfupdate->etaloc(p,a,pgc);
-    FLUIDLOOP
-        a->Fi_[IJK]=a->Fi(i,j,k);
-    pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,frk2,erk2);
-    FLUIDLOOP
-        a->Fi(i,j,k)=a->Fi_[IJK];
     pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi,erk2);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
@@ -181,6 +190,7 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
   
     // fsf eta
     kfsfbc(p,a,pgc);
+    damping(p,a,pgc,erk2,gcval_eta,2.0/3.0);
     
     SLICELOOP4
 	a->eta(i,j) = (1.0/3.0)*a->eta(i,j) + (2.0/3.0)*erk2(i,j) + (2.0/3.0)*p->dt*a->K(i,j);
@@ -189,6 +199,7 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     
     // fsf Fi
     dfsfbc(p,a,pgc,erk2);
+    damping(p,a,pgc,frk2,gcval_fifsf,2.0/3.0);
     
     SLICELOOP4
 	a->Fifsf(i,j) = (1.0/3.0)*a->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*a->K(i,j);
@@ -200,13 +211,17 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     pgc->gcsl_start4(p,a->eta,gcval_eta);
     pwave->fifsf_relax(p,pgc,a->Fifsf);
     pgc->gcsl_start4(p,a->Fifsf,gcval_fifsf);
+    
+    breaking(p, a, pgc, a->eta, erk2,a->Fifsf,2.0/3.0);
+    
+    LOOP
+        a->Fi_[IJK]=a->Fi(i,j,k)*1.0;
+    pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,a->Fifsf,a->eta);
+    LOOP
+        a->Fi(i,j,k)=a->Fi_[IJK]*1.0;
+    
     pfsfupdate->fsfupdate(p,a,pgc,pwave,poneph,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
-    FLUIDLOOP
-        a->Fi_[IJK]=a->Fi(i,j,k);
-    pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,a->Fifsf,a->eta);
-    FLUIDLOOP
-        a->Fi(i,j,k)=a->Fi_[IJK];
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi,a->eta);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);

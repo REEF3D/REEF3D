@@ -22,10 +22,12 @@ Author: Hans Bihs
 
 #include"ptf.h"
 #include"slice4.h"
+#include"sliceint4.h"
 
 class ptf_laplace;
 class field;
 class fnpf_convection;
+class solver2D;
 
 using namespace std;
 
@@ -44,6 +46,10 @@ public:
     void dfsfbc(lexer*,fdm_ptf*,ghostcell*,slice&);
     void fsfwvel(lexer*,fdm_ptf*,ghostcell*,slice&,slice&);
     double fz(lexer*,fdm_ptf*,field&,slice&);
+    
+    void breaking(lexer*,fdm_ptf*,ghostcell*,slice&,slice&,slice&,double);
+    virtual void damping(lexer*,fdm_ptf*,ghostcell*,slice&,int,double);
+    void filter(lexer*, fdm_ptf*,ghostcell*, slice&);
 
     fnpf_convection *pconvec;
 
@@ -51,7 +57,9 @@ public:
     
     slice4 Fx,Fy,Fz;
     slice4 Ex,Ey;
-    
+    sliceint4 bx,by;
+    solver2D *psolv;
+    double visc;
     double grad, teta;
 
 };

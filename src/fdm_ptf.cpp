@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"fdm_ptf.h"
 #include"lexer.h"
 
-fdm_ptf::fdm_ptf(lexer *p):fdm(p),Fifsf(p),K(p),etaloc(p)
+fdm_ptf::fdm_ptf(lexer *p):fdm(p),Fifsf(p),K(p),WL(p),etaloc(p),breaking(p),breaklog(p),vb(p),rvec(p),xvec(p),N(p)
 {
     
 	maxF=0.0;

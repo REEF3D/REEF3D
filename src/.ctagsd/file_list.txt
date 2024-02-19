@@ -1,3 +1,5 @@
+/Users/fk/Codefiles/REEF3D/src/ptf_fsfbc_damping.cpp
+/Users/fk/Codefiles/REEF3D/src/ptf_fsfbc_breaking.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_bc_ikomega.cpp
 /Users/fk/Codefiles/REEF3D/src/sflow_limiter_smart.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_bc_ikomega.h

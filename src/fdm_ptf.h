@@ -22,6 +22,9 @@ Author: Hans Bihs
 
 
 #include"fdm.h"
+#include"matrix2D.h"
+#include"vec2D.h"
+#include"cpt2D.h"
 
 class lexer;
 
@@ -41,8 +44,13 @@ public:
    // slice4 eta,eta_n,depth;
     slice4 Fifsf;
     slice4 K;
-    sliceint4 etaloc;
+    slice4 WL;
+    sliceint4 etaloc, breaking, breaklog;
+    slice4 vb;
     double *Fi_,*Uin_,*Uout_,*U_,*V_,*W_;
+    
+    matrix2D N;
+    vec2D xvec,rvec;
     
     /*
     slice1 P;
