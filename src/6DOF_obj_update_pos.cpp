@@ -42,7 +42,6 @@ void sixdof_obj::update_position(lexer *p, fdm *a, ghostcell *pgc, bool finalise
     maxvel(p,a,pgc);
 }
 
-
 void sixdof_obj::update_Euler_angles(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
 {
 	// Calculate Euler angles from quaternion

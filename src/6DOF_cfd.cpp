@@ -56,7 +56,7 @@ void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         // Update transformation matrices
         fb_obj[nb]->quat_matrices();
         
-        // Update position and fb level set
+        // Update position and trimesh
         fb_obj[nb]->update_position(p,a,pgc,finalise);  //----> main time consumer
         
         // Update forcing terms

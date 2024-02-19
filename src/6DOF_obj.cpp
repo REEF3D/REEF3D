@@ -29,7 +29,7 @@ Author: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_file.h"
 #include"6DOF_motionext_void.h"
 
-sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc,int number) : gradient(p), dt(p), L(p), 
+sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : gradient(p), dt(p), L(p), 
                                                                                 f(p), frk1(p), cutl(p), cutr(p), 
                                                                                 fbio(p),n6DOF(number),
                                                                                 epsifb(1.6*p->DXM), epsi(1.6)
@@ -43,19 +43,6 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc,int number) : gradient(p), dt(p)
     alpha[1] = 2.0/15.0;
     alpha[2] = 2.0/6.0;
     
-    if(p->N40==3 || p->N40==23 || p->N40==33)
-    {
-    alpha[0] = 1.0;
-    alpha[1] = 0.25;
-    alpha[2] = 2.0/3.0;
-    }
-    
-    if(p->N40==2 || p->N40==22)
-    {
-    alpha[0] = 1.0;
-    alpha[1] = 0.5;
-    }
-    
     gamma[0] = 8.0/15.0;
     gamma[1] = 5.0/12.0;
     gamma[2] = 3.0/4.0;
@@ -63,6 +50,35 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc,int number) : gradient(p), dt(p)
     zeta[0] = 0.0;
     zeta[1] = -17.0/60.0;
     zeta[2] = -5.0/12.0;
+    
+    if(p->N40==3 || p->N40==23 || p->N40==33)
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 0.25;
+    alpha[2] = 2.0/3.0;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
+    
+    if(p->N40==2 || p->N40==22)
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 0.5;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
     
     
     if(p->X210==0 && p->X211==0)
