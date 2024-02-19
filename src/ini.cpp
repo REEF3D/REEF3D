@@ -116,7 +116,8 @@ void lexer::ini_default()
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance
     A543=1;		// int NHFLOW wetting & drying or coastline
-    A544=0.001; // double wetting & drying criterion
+    A544=0.001;  // double wetting & drying criterion
+    A545=10.0;   // double deep criterion
     
     A550=0;      // int turn on breaking (which method)
     A551=0;      // int type of breaking detection (deep / shallow)

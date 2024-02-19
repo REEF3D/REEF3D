@@ -57,6 +57,7 @@ void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *p
     pturb->name_pvtp(p,b,pgc,result);
 	result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"waterlevel\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"wetdry\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
     
     if(p->P23==1)
