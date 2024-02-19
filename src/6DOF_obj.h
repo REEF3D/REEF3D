@@ -61,8 +61,10 @@ public:
     
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
-    void updateForcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
+    void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
 	void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
+    void quat_matrices();
+    void update_position(lexer*, fdm*, ghostcell*, bool);
     
     void saveTimeStep(lexer*,int);
     void print_parameter(lexer*,fdm*,ghostcell*);
@@ -71,7 +73,7 @@ public:
     void print_normals_vtp(lexer*,fdm*,ghostcell*);
     void print_ini_stl(lexer*,fdm*,ghostcell*);
 	void print_stl(lexer*,fdm*,ghostcell*);
-	void interface(lexer*, bool);
+	void update_fbvel(lexer*);
     
     double Mass_fb, Vfb, Rfb;
 
@@ -114,10 +116,11 @@ private:
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
-    void update_Position(lexer*, fdm*, ghostcell*, bool);
+    void update_Euler_angles(lexer*, fdm*, ghostcell*, bool);
+    void update_trimesh(lexer*, fdm*, ghostcell*, bool);
     void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
     void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
-    void quat_matrices(const Eigen::Vector4d&);
+    
 
     void get_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
     void get_rot(Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Vector3d&, Eigen::Vector4d&);
@@ -158,6 +161,8 @@ private:
     Eigen::Matrix3d R_, I_, Rinv_;
     
     Eigen::Vector3d omega_B, omega_I;
+    
+    Eigen::Matrix<double, 6, 1> u_fb;
     
     int tricount, entity_count;
     

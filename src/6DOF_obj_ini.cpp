@@ -76,7 +76,7 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
     pgc->start4a(p,a->fb,50);
     
     // Initialise global variables
-	interface(p,true);
+	update_fbvel(p);
 	maxvel(p,a,pgc);
    
     // Initialise floating fields

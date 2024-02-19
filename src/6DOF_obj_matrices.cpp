@@ -26,22 +26,6 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"6DOF_motionext.h"
 
-void sixdof_obj::transform(lexer *p, fdm *a, ghostcell* pgc, bool finalise)
-{
-    // Update transformation matrix (Shivarama PhD thesis, p. 19)
-    quat_matrices(e_);
-
-    // Calculate new position
-    update_Position(p, a, pgc, finalise);
-
-    // Update angular velocities 
-    omega_B = I_.inverse()*h_;
-    omega_I = R_*omega_B;
-      
-    // Global body variables
-    interface(p,false);    
-    maxvel(p,a,pgc);
-}
 
 void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_, Eigen::Vector3d& pp_, Eigen::Vector3d& c_)
 {
@@ -55,7 +39,7 @@ void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen
 void sixdof_obj::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de_, Eigen::Vector3d& h_, Eigen::Vector4d& e_)
 {
     // Update Euler parameter matrices
-    quat_matrices(e_);
+    quat_matrices();
 
     // RHS of e
     de_ = 0.5*G_.transpose()*I_.inverse()*h_;
@@ -72,15 +56,16 @@ void sixdof_obj::get_rot(Eigen::Vector3d& dh, Eigen::Vector4d& de_, Eigen::Vecto
     pmotion->motionext_rot(p,dh_,h_,de_,G_,I_);
 } 
 
-void sixdof_obj::quat_matrices(const Eigen::Vector4d& e)
+void sixdof_obj::quat_matrices()
 {
-    E_ << -e(1), e(0), -e(3), e(2),
-          -e(2), e(3), e(0), -e(1),
-          -e(3), -e(2), e(1), e(0); 
+    // Update transformation matrix (Shivarama PhD thesis, p. 19)
+    E_ << -e_(1), e_(0), -e_(3), e_(2),
+          -e_(2), e_(3), e_(0), -e_(1),
+          -e_(3), -e_(2), e_(1), e_(0); 
 
-    G_ << -e(1), e(0), e(3), -e(2),
-          -e(2), -e(3), e(0), e(1),
-          -e(3), e(2), -e(1), e(0); 
+    G_ << -e_(1), e_(0), e_(3), -e_(2),
+          -e_(2), -e_(3), e_(0), e_(1),
+          -e_(3), e_(2), -e_(1), e_(0); 
 
     R_ = E_*G_.transpose(); 
     Rinv_ = R_.inverse();

@@ -25,49 +25,9 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
+void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
-    // Determine floating body velocities
-    Eigen::Matrix<double, 6, 1> u_fb;
     
-        // U
-        if(p->X11_u==0)
-        u_fb(0) = 0.0;
-        
-        if(p->X11_u>=1)
-        u_fb(0) = p_(0)/Mass_fb;
-        
-        
-        // V
-        if(p->X11_v==0 || p->j_dir==0)
-        u_fb(1) = 0.0;
-        
-        if(p->X11_u>=1 && p->j_dir==1)
-        u_fb(1) = p_(1)/Mass_fb;
-        
-        
-        // W
-        if(p->X11_w==0)
-        u_fb(2) = 0.0;
-        
-        if(p->X11_w>=1)
-        u_fb(2) = p_(2)/Mass_fb;
-        
-        
-        // rotation
-        if(p->j_dir==0)
-        {
-        u_fb(3) = 0.0;
-        u_fb(4) = omega_I(1);
-        u_fb(5) = 0.0;
-        }
-        
-        if(p->j_dir==1)
-        {
-        u_fb(3) = omega_I(0);
-        u_fb(4) = omega_I(1);
-        u_fb(5) = omega_I(2);
-        }
         
 
 // Calculate forcing fields

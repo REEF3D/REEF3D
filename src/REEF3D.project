@@ -1824,12 +1824,12 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
+          <File Name="6DOF_obj_fbvel.cpp"/>
+          <File Name="6DOF_obj_matrices.cpp"/>
           <File Name="6DOF_obj.cpp"/>
           <File Name="6DOF_obj_update_pos.cpp"/>
-          <File Name="6DOF_obj_transform.cpp"/>
           <File Name="6DOF_obj_solve.cpp"/>
           <File Name="6DOF_obj_rotation.cpp"/>
-          <File Name="6DOF_obj_interface.cpp"/>
           <File Name="6DOF_obj_forcing.cpp"/>
           <VirtualDirectory Name="Initialize">
             <File Name="6DOF_obj_ini_position.cpp"/>
@@ -2247,14 +2247,12 @@
         <File Name="gc_largeval.cpp"/>
         <File Name="gc_largevaladd.cpp"/>
         <File Name="gc_neumann_all.cpp"/>
-        <File Name="gc_neumann_press.cpp"/>
         <File Name="gc_noslip.cpp"/>
         <File Name="gc_potential.cpp"/>
         <File Name="gc_start.cpp"/>
         <File Name="gc_atmosphere.cpp"/>
         <File Name="gc_outflow.cpp"/>
         <File Name="gc_fbvel.cpp"/>
-        <File Name="gc_fbpress.cpp"/>
         <File Name="gc_gravity_press.cpp"/>
         <File Name="gc_lsm.cpp"/>
         <File Name="gc_neumann.cpp"/>
@@ -2323,15 +2321,7 @@
         <File Name="gc_count_pt_resize.cpp"/>
         <File Name="gc_cval_parax.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="FBupdate">
-        <File Name="gcfb_gcx_fb.cpp"/>
-        <File Name="gcfb_update.cpp"/>
-        <File Name="gcfb_buildflag.cpp"/>
-        <File Name="gcfb_dist.cpp"/>
-        <File Name="gcfb_gcb.cpp"/>
-        <File Name="gcfb_cellmem.cpp"/>
-        <File Name="gcfb_gcb_fb.cpp"/>
-      </VirtualDirectory>
+      <VirtualDirectory Name="FBupdate"/>
       <File Name="ghostcell.cpp"/>
       <VirtualDirectory Name="Solidupdate">
         <File Name="gcsolid_gcb_update.cpp"/>

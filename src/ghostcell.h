@@ -181,6 +181,7 @@ public:
     void gcxsd_update(lexer*,fdm*,field&);
     void gcbsd_seed(lexer*,fdm*);
     void gcbsd_update(lexer*,fdm*,field&);
+    void gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb);
 
 // topo update
 	void topo_update(lexer*,fdm*);
@@ -199,21 +200,6 @@ public:
 // 6DOF update gcdf
 	void gcdf_update(lexer*,fdm*);
     
-// 6DOF update gcfb
-	void gcfb_update(lexer*,fdm*);
-	void gcfb_buildflag(lexer*,fdm*, int**, int&);
-	void gcfb_velflag1(lexer*,fdm*, int **, int&);
-	void gcfb_velflag2(lexer*,fdm*, int **, int&);
-	void gcfb_velflag3(lexer*,fdm*, int **, int&);
-	void gcfb_seed(lexer*,fdm*);
-	void gcfb_b_paraseed(lexer*,fdm*);
-	void gcfb_x_paraseed(lexer*,fdm*);
-	void gcfb_dist(lexer*,fdm*);
-	void gcfb_velupdate(lexer*, fdm*, int **, int ,double, double, double, int);
-	void gcfb_scalarupdate(lexer*, fdm*, int **, int, field&);
-    void gcfb_update_extra_gcb(lexer*,fdm*,field&);
-    void gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb);
-    void gcb_generic_fbpress(lexer* p,field& f,int *gcb_count, int ***gcb);
 
 // IBM
     void flagfield(lexer*);
@@ -389,7 +375,6 @@ public:
 	void dirichlet_ortho_reflect(lexer*,field&,double,int,int,int);
 	void neumann(field&,int,int,int);
     void gcb_debug(field&,int,int,int);
-	void neumann_press(lexer*,field&,double,int,int,int);
 	void extend(lexer*,field&,double,int,int,int);
     void extendV(lexer*,fdm*,vec&,double,int,int,int);
 	void largeval(field&,double,int,int,int);
@@ -408,7 +393,6 @@ public:
 	void fbvel1(lexer*,field&,double,int,int,int);
 	void fbvel2(lexer*,field&,double,int,int,int);
 	void fbvel3(lexer*,field&,double,int,int,int);
-	void fbpress(lexer*,field&,double,int,int,int);
 	void gravity_press(lexer*,field&,double,int,int,int);
     void nhpress(lexer*,field&,double,int,int,int);
     void kinematic_bed(lexer*,field&,double,int,int,int);

@@ -539,8 +539,6 @@ public:
 	double pfb,qfb,rfb;
 	double ufbi,vfbi,wfbi;
 	double pfbi,qfbi,rfbi;
-	double ufbn,vfbn,wfbn;
-	double pfbn,qfbn,rfbn;
 	double xg,yg,zg;
 	double xgn,ygn,zgn;
 	double phi_fb,theta_fb,psi_fb;

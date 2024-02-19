@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
@@ -75,5 +75,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc,int number) : gradient(p), dt(p)
     pmotion = new sixdof_motionext_file(p,pgc);
 }
 
-sixdof_obj::~sixdof_obj(){}
+sixdof_obj::~sixdof_obj()
+{
+}
     

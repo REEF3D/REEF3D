@@ -53,14 +53,17 @@ void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         // Advance body in time
         fb_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);
         
+        // Update transformation matrices
+        fb_obj[nb]->quat_matrices();
+        
         // Update position and fb level set
-        fb_obj[nb]->transform(p,a,pgc,finalise);  //----> main time consumer
+        fb_obj[nb]->update_position(p,a,pgc,finalise);  //----> main time consumer
         
         // Update forcing terms
-        fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+        fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
         
         // Save
-        fb_obj[nb]->interface(p,true);
+        fb_obj[nb]->update_fbvel(p);
         
         // Print
         if(finalise==true)

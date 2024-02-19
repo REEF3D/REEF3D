@@ -25,10 +25,50 @@ Authors: Hans Bihs, Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::interface(lexer *p, bool final)         
+void sixdof_obj::update_fbvel(lexer *p)         
 {
+    // Determine floating body velocities
+        // U
+        if(p->X11_u==0)
+        u_fb(0) = 0.0;
+        
+        if(p->X11_u>=1)
+        u_fb(0) = p_(0)/Mass_fb;
+        
+        
+        // V
+        if(p->X11_v==0 || p->j_dir==0)
+        u_fb(1) = 0.0;
+        
+        if(p->X11_u>=1 && p->j_dir==1)
+        u_fb(1) = p_(1)/Mass_fb;
+        
+        
+        // W
+        if(p->X11_w==0)
+        u_fb(2) = 0.0;
+        
+        if(p->X11_w>=1)
+        u_fb(2) = p_(2)/Mass_fb;
+        
+        
+        // rotation
+        if(p->j_dir==0)
+        {
+        u_fb(3) = 0.0;
+        u_fb(4) = omega_I(1);
+        u_fb(5) = 0.0;
+        }
+        
+        if(p->j_dir==1)
+        {
+        u_fb(3) = omega_I(0);
+        u_fb(4) = omega_I(1);
+        u_fb(5) = omega_I(2);
+        }
+        
+        
     // Velocities
-
 	p->ufbi = p_(0)/Mass_fb;
 	p->vfbi = p_(1)/Mass_fb;
 	p->wfbi = p_(2)/Mass_fb;
@@ -39,7 +79,6 @@ void sixdof_obj::interface(lexer *p, bool final)
 
 
     // Position
-    
 	p->xg = c_(0);
 	p->yg = c_(1);
 	p->zg = c_(2);
@@ -47,22 +86,6 @@ void sixdof_obj::interface(lexer *p, bool final)
 	p->phi_fb = phi;
 	p->theta_fb = theta;
 	p->psi_fb = psi;
-    
-    
-    if (final == true)
-    {
-        p->ufbn = p->ufbi;
-        p->vfbn = p->vfbi;
-        p->wfbn = p->wfbi;
-            
-        p->pfbn = p->pfbi;
-        p->qfbn = p->qfbi;
-        p->rfbn = p->rfbi;
-        
-        p->xgn = c_(0);
-        p->ygn = c_(1);
-        p->zgn = c_(2);
-    }    
 }
 
 void sixdof_obj::saveTimeStep(lexer *p, int iter)

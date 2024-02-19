@@ -118,6 +118,9 @@ private:
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
 
+    int number6DOF;
+    vector<sixdof_obj*> fb_obj;
+    
     double phi, theta, psi;
     double Uext, Vext, Wext, Pext, Qext, Rext;
     Eigen::Matrix3d quatRotMat;
