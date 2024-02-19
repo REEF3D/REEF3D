@@ -103,7 +103,6 @@ private:
 
     double Hsolidface(lexer*, int,int);
     void updatePosition(lexer*, ghostcell*);
-    void updateForcing_hemisphere(lexer*, ghostcell*);
     void updateForcing_box(lexer*, ghostcell*);
     void updateForcing_stl(lexer*, ghostcell*);
     void updateForcing_oned(lexer*, ghostcell*);

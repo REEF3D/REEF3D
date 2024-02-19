@@ -57,7 +57,7 @@ void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         fb_obj[nb]->quat_matrices();
         
         // Update position and trimesh
-        fb_obj[nb]->update_position(p,a,pgc,finalise);  //----> main time consumer
+        fb_obj[nb]->update_position_3D(p,a,pgc,finalise);  //----> main time consumer
         
         // Update forcing terms
         fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
@@ -71,12 +71,12 @@ void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
             fb_obj[nb]->saveTimeStep(p,iter);
             
             if(p->X50==1)
-            fb_obj[nb]->print_vtp(p,a,pgc);
+            fb_obj[nb]->print_vtp(p,pgc);
             
             if(p->X50==2)
-            fb_obj[nb]->print_stl(p,a,pgc);
+            fb_obj[nb]->print_stl(p,pgc);
             
-            fb_obj[nb]->print_parameter(p, a, pgc);
+            fb_obj[nb]->print_parameter(p,pgc);
         }
     }
     

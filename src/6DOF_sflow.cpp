@@ -52,26 +52,23 @@ sixdof_sflow::~sixdof_sflow()
 
 void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
 {
-    /*
+    
     for (int nb=0; nb<number6DOF;++nb)
     {
-        // Calculate forces
-        fb_obj[nb]->forces_stl(p,a,pgc,uvel,vvel,wvel,iter);
-        
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);
+        fb_obj[nb]->solve_eqmotion_oneway(p,pgc);
         
         // Update position and fb level set
-        fb_obj[nb]->transform(p,a,pgc,finalise);  //----> main time consumer
+        //fb_obj[nb]->transform(p,a,pgc,finalise);  //----> main time consumer
         
         // Update forcing terms
-        fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+        //fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
         
         // Save
         fb_obj[nb]->update_fbvel(p);
         
         // Print
-        if(finalise==true)
+        /*if(finalise==true)
         {
             fb_obj[nb]->saveTimeStep(p,iter);
             
@@ -82,13 +79,10 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
             fb_obj[nb]->print_stl(p,a,pgc);
             
             fb_obj[nb]->print_parameter(p, a, pgc);
-        }
+        }*/
     }
     
-    // ghostcell update
-    pgc->gcdf_update(p,a);
-    
-    */
+
 
 // FB/Ship location
 
@@ -106,12 +100,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
 // --------------------------
 // Forcing ->sflow
     // Update pressure field
-    if (p->X400 == 1)
-    {
-        updateForcing_hemisphere(p,pgc);
-    }
-    
-    else if (p->X400 == 2)
+    if (p->X400 == 2)
     {
         updateForcing_box(p,pgc);
     }

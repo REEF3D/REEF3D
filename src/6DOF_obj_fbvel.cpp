@@ -126,7 +126,7 @@ void sixdof_obj::saveTimeStep(lexer *p, int iter)
 }
 
 
-void sixdof_obj::maxvel(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
 {
 	p->ufbmax = p->ufbi;
     p->vfbmax = p->vfbi;

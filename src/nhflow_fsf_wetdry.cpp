@@ -58,29 +58,13 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
         if(WL(i,j)<=p->A544)
         {
         temp[IJ]=0;
-        d->eta(i,j) = p->A544 - d->depth(i,j);
+        d->eta(i,j) = p->A544-eps - d->depth(i,j);
         WL(i,j) = d->eta(i,j) + d->depth(i,j);
-        //cout<<d->eta(i,j)<<" "<<WL(i,j)<<endl;
         }
     }
     
     SLICELOOP4
     p->wet[IJ] = temp[IJ];
-    
-    //------------
-    /*
-    SLICELOOP4
-    {
-        if(WL(i,j)>=p->A544)
-        p->wet[IJ]=1;
-               
-        if(WL(i,j)<p->A544)
-        {
-        p->wet[IJ]=0;
-        d->eta(i,j) = p->A544 - d->depth(i,j);
-        WL(i,j) = d->eta(i,j) + d->depth(i,j);
-        }
-    }*/
     
     //------------
     LOOP

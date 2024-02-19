@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
@@ -25,13 +25,13 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_position(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
+void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
 {
     // Calculate new position
-    update_Euler_angles(p, a, pgc, finalise);
+    update_Euler_angles(p,pgc,finalise);
     
     // Update STL mesh
-    update_trimesh(p, a, pgc, finalise);
+    update_trimesh_3D(p,a,pgc,finalise);
 
     // Update angular velocities 
     omega_B = I_.inverse()*h_;
@@ -39,10 +39,10 @@ void sixdof_obj::update_position(lexer *p, fdm *a, ghostcell *pgc, bool finalise
       
     // Global body variables
     update_fbvel(p);    
-    maxvel(p,a,pgc);
+    maxvel(p,pgc);
 }
 
-void sixdof_obj::update_Euler_angles(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
+void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc, bool finalise)
 {
 	// Calculate Euler angles from quaternion
 	
@@ -69,7 +69,7 @@ void sixdof_obj::update_Euler_angles(lexer *p, fdm *a, ghostcell *pgc, bool fina
     }
 }
 
-void sixdof_obj::update_trimesh(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
+void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
 {
 	// Update position of triangles 
 	for(n=0; n<tricount; ++n)

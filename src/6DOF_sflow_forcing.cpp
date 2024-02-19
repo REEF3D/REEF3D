@@ -76,34 +76,6 @@ void sixdof_sflow::updatePosition(lexer *p, ghostcell *pgc)
 	reini(p,pgc,fb);
 }
 
-void sixdof_sflow::updateForcing_hemisphere(lexer *p, ghostcell *pgc)
-{
-    // Calculate hemisphere pressure field
-    double H, press0, r, xpos, ypos, dist;
-
-    press0 = p->X401_p0;
-    r = p->X133_rad;
-   
-    SLICELOOP4
-    {
-        xpos = p->pos_x() - p->xg;
-        ypos = p->pos_y() - p->yg;
-        dist = xpos*xpos + ypos*ypos;
-        H = Hsolidface(p,0,0);
-       
-        if (dist < r*r)
-        {
-            press(i,j) = -H*press0*sqrt(1.0 - dist/(r*r))*ramp_draft(p);
-        }
-        else
-        {
-            press(i,j) = 0.0;
-        }
-    }
-    
-    pgc->gcsl_start4(p,press,50);
-}
-
 void sixdof_sflow::updateForcing_box(lexer *p, ghostcell *pgc)
 {
     // Calculate ship-like pressure field
@@ -140,12 +112,7 @@ void sixdof_sflow::updateForcing_box(lexer *p, ghostcell *pgc)
 void sixdof_sflow::updateForcing_stl(lexer *p, ghostcell *pgc)
 {
     // Calculate ship-like pressure field
-    double H, press0, xpos, ypos, as, cl, cb;
-
-    press0 = p->X401_p0;
-    as = p->X401_a; 
-    cl = p->X401_cl;
-    cb = p->X401_cb;
+    double H;
 
 	SLICELOOP4
     {

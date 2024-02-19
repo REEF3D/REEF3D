@@ -26,7 +26,6 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"6DOF_motionext.h"
 
-
 void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_, Eigen::Vector3d& pp_, Eigen::Vector3d& c_)
 {
     dp_ = Ffb_; 

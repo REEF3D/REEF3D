@@ -64,15 +64,17 @@ public:
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
 	void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
     void quat_matrices();
-    void update_position(lexer*, fdm*, ghostcell*, bool);
+    void update_position_3D(lexer*, fdm*, ghostcell*, bool);
+    
+    void solve_eqmotion_oneway(lexer*,ghostcell*);
     
     void saveTimeStep(lexer*,int);
-    void print_parameter(lexer*,fdm*,ghostcell*);
-    void print_ini_vtp(lexer*,fdm*,ghostcell*);
-	void print_vtp(lexer*,fdm*,ghostcell*);
-    void print_normals_vtp(lexer*,fdm*,ghostcell*);
-    void print_ini_stl(lexer*,fdm*,ghostcell*);
-	void print_stl(lexer*,fdm*,ghostcell*);
+    void print_parameter(lexer*,ghostcell*);
+    void print_ini_vtp(lexer*,ghostcell*);
+	void print_vtp(lexer*,ghostcell*);
+    void print_normals_vtp(lexer*,ghostcell*);
+    void print_ini_stl(lexer*,ghostcell*);
+	void print_stl(lexer*,ghostcell*);
 	void update_fbvel(lexer*);
     
     double Mass_fb, Vfb, Rfb;
@@ -81,7 +83,7 @@ private:
 
 	void ini_parameter_stl(lexer*, fdm*, ghostcell*);
     void ini_fbvel(lexer*, fdm*, ghostcell*);
-    void maxvel(lexer*, fdm*, ghostcell*);
+    void maxvel(lexer*, ghostcell*);
     
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void mooringForces(lexer*,  ghostcell*, double);
@@ -116,8 +118,8 @@ private:
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
-    void update_Euler_angles(lexer*, fdm*, ghostcell*, bool);
-    void update_trimesh(lexer*, fdm*, ghostcell*, bool);
+    void update_Euler_angles(lexer*, ghostcell*, bool);
+    void update_trimesh_3D(lexer*, fdm*, ghostcell*, bool);
     void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
     void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
     

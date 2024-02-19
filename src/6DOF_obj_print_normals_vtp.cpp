@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::print_normals_vtp(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_normals_vtp(lexer *p, ghostcell *pgc)
 {
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;

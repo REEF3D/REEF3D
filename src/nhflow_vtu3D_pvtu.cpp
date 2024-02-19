@@ -81,12 +81,11 @@ void nhflow_vtu3D::piecename(lexer *p, ghostcell *pgc, int n)
 {
     int num=0;
 
-
     if(p->P15==1)
     num = printcount;
 
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"REEF3D-NHFLOW-%08i-%06i.vtp",num,n+1);
+	sprintf(pname,"REEF3D-NHFLOW-%08i-%06i.vtu",num,n+1);
 }

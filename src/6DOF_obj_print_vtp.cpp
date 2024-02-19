@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 {
     // print normals
     //print_normals_vtp(p,a,pgc);

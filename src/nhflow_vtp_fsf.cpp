@@ -276,7 +276,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     {
 	jj=j;
     j=0;
-	ffn=float(d->UH[IJK]);
+	ffn=float(d->V[IJK]);
     j=jj;
     }
     

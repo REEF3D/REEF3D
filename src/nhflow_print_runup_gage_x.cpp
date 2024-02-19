@@ -55,7 +55,6 @@ nhflow_print_runup_gage_x::nhflow_print_runup_gage_x(lexer *p, fdm_nhf *d, ghost
 	mkdir("./REEF3D_NHFLOW_RUNUP",0777);
     
     
-    
     if(p->mpirank==0)
     {
 		// open file
@@ -147,9 +146,7 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
         zloc[q] = zloc_all[q][n];
         }
         }
-        
     }
-    
     
 	
     // write to file

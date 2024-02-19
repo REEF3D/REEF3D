@@ -45,10 +45,10 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
     
     // Initialise folder structure
     if(p->X50==1)
-	print_ini_vtp(p,a,pgc);
+	print_ini_vtp(p,pgc);
     
     if(p->X50==2)
-    print_ini_stl(p,a,pgc);
+    print_ini_stl(p,pgc);
  
     // Initialise processor boundaries
     ini_parallel(p,a,pgc);
@@ -77,7 +77,7 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
     
     // Initialise global variables
 	update_fbvel(p);
-	maxvel(p,a,pgc);
+	maxvel(p,pgc);
    
     // Initialise floating fields
      ULOOP
@@ -99,10 +99,10 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
 
     // Print initial body 
     if(p->X50==1)
-    print_vtp(p,a,pgc);
+    print_vtp(p,pgc);
     
     if(p->X50==2)
-    print_stl(p,a,pgc);
+    print_stl(p,pgc);
 
 	// Mooring
 	if(p->X310==0)
