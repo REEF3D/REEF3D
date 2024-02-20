@@ -1840,23 +1840,33 @@
             <File Name="6DOF_obj_print_normals_vtp.cpp"/>
             <File Name="6DOF_obj_print_ini.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="RayCast">
-            <File Name="6DOF_obj_reini_RK2.cpp"/>
-            <File Name="6DOF_obj_reini_AB2.cpp"/>
-            <File Name="6DOF_obj_ray_z.cpp"/>
-            <File Name="6DOF_obj_ray_y.cpp"/>
-            <File Name="6DOF_obj_ray_x.cpp"/>
-            <File Name="6DOF_obj_ray_io_zcorr.cpp"/>
-            <File Name="6DOF_obj_ray_io_ycorr.cpp"/>
-            <File Name="6DOF_obj_ray_io_x.cpp"/>
-            <File Name="6DOF_obj_ray.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Forces">
             <File Name="6DOF_obj_forces_stl.cpp"/>
             <File Name="6DOF_obj_forces_external.cpp"/>
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
+            <VirtualDirectory Name="Reini">
+              <File Name="6DOF_obj_reini_RK2.cpp"/>
+              <File Name="6DOF_obj_reini_AB2.cpp"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="Ray Cast 3D">
+              <File Name="6DOF_obj_ray3D_z.cpp"/>
+              <File Name="6DOF_obj_ray3D_y.cpp"/>
+              <File Name="6DOF_obj_ray3D_x.cpp"/>
+              <File Name="6DOF_obj_ray3D_io_zcorr.cpp"/>
+              <File Name="6DOF_obj_ray3D_io_ycorr.cpp"/>
+              <File Name="6DOF_obj_ray3D_io_x.cpp"/>
+              <File Name="6DOF_obj_ray3D.cpp"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="Ray Cast 2D">
+              <File Name="6DOF_obj_ray2D_z.cpp"/>
+              <File Name="6DOF_obj_ray2D_y.cpp"/>
+              <File Name="6DOF_obj_ray2D_x.cpp"/>
+              <File Name="6DOF_obj_ray2D_io_y.cpp"/>
+              <File Name="6DOF_obj_ray2D_io_x.cpp"/>
+              <File Name="6DOF_obj_ray2D.cpp"/>
+            </VirtualDirectory>
             <File Name="6DOF_obj_wedge_sym.cpp"/>
             <File Name="6DOF_obj_wedge.cpp"/>
             <File Name="6DOF_obj_triangle_switch_ray.cpp"/>
