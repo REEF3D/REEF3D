@@ -57,7 +57,7 @@ void driver::loop_cfd(fdm* a)
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
+        cout<<"simtime: "<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
         if(p->X10>0)
