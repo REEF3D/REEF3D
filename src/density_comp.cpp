@@ -31,6 +31,8 @@ density_comp::density_comp(lexer* p)
         
         if(p->j_dir==1)
         psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+        
+        H=0.0;
 }
 
 density_comp::~density_comp()

@@ -27,13 +27,15 @@ Author: Hans Bihs
 
 density_conc::density_conc(lexer* p, concentration *& ppconc) 
 {
-    pconc = ppconc;
+        pconc = ppconc;
     
         if(p->j_dir==0)        
         psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
         
         if(p->j_dir==1)
         psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+        
+        H=0.0;
 }
 
 density_conc::~density_conc()
