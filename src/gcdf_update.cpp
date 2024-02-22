@@ -92,6 +92,8 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     p->gcdf4_count=count;
     }
     
+    
+    
     //cout<<p->mpirank<<" p->gcdf4_count: "<<p->gcdf4_count<<endl;
     
     // assign gcdf entries

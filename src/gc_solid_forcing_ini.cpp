@@ -44,7 +44,7 @@ void ghostcell::solid_forcing_ini(lexer *p, fdm *a)
      LOOP
      {
      a->fbh4(i,j,k) = H = Hsolidface(p,a,0,0,0);
-     a->test(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+     //a->test(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
      }
 
      start1(p,a->fbh1,10);
