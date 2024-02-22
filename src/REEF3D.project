@@ -2330,7 +2330,6 @@
         <File Name="gc_count_pt_resize.cpp"/>
         <File Name="gc_cval_parax.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="FBupdate"/>
       <File Name="ghostcell.cpp"/>
       <VirtualDirectory Name="Solidupdate">
         <File Name="gcsolid_gcb_update.cpp"/>
