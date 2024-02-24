@@ -519,9 +519,7 @@ void lexer::ini_default()
     P63=0;			  // int print depth averaged point probe
     P64=0;			  // int print pressure probes
     P65=0;			  // int print velocity probes
-	P66=0;			  // int print discharge to terminal
-	P67=0;			  // int discharge gages in x-direction
-    P68=0;			  // int discharge gages in x-direction
+	
     P71=0;           // int print viscosity to vtu
     P72=0;           // int print vof function
     P73=0;           // int print hx and hy for sflow vtp
@@ -553,6 +551,9 @@ void lexer::ini_default()
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data
+    P166=0;			  // int print discharge to terminal
+	P167=0;			  // int discharge gages in x-direction
+    P168=0;			  // int discharge gages in x-direction
 	P180=0;			  // int print fsf
 	P181=-10;		  // int ith iteration fsf printed
 	P182=-1.0;       // double time between fsf file printout in seconds

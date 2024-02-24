@@ -29,28 +29,28 @@ Author: Hans Bihs
 
 gage_discharge_x::gage_discharge_x(lexer *p, fdm* a, ghostcell *pgc)
 {
-	p->Iarray(iloc,p->P67);
-	p->Iarray(flag,p->P67);
-	p->Darray(q,p->P67);
+	p->Iarray(iloc,p->P167);
+	p->Iarray(flag,p->P167);
+	p->Darray(q,p->P167);
 	
 	// Create Folder
 	if(p->mpirank==0)
 	mkdir("./REEF3D_Log",0777);
 	
-    if(p->mpirank==0 && p->P67>0)
+    if(p->mpirank==0 && p->P167>0)
     {
     // open file
 	qout.open("./REEF3D_Log/REEF3D-discharge_x.dat");
 
-    qout<<"number of x-discharge gages:  "<<p->P67<<endl<<endl;
+    qout<<"number of x-discharge gages:  "<<p->P167<<endl<<endl;
     qout<<"x_coord  "<<endl;
-    for(n=0;n<p->P67;++n)
-    qout<<n+1<<"\t "<<p->P67_x[n]<<endl;
+    for(n=0;n<p->P167;++n)
+    qout<<n+1<<"\t "<<p->P167_x[n]<<endl;
 
     qout<<endl<<endl;
 
     qout<<"iter";
-    for(n=0;n<p->P67;++n)
+    for(n=0;n<p->P167;++n)
     qout<<"\t P"<<n+1;
 
     qout<<endl<<endl;
@@ -68,11 +68,11 @@ void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
 {
     double epsi,H;
 
-    for(n=0;n<p->P67;++n)
+    for(n=0;n<p->P167;++n)
     q[n]=0.0;
 
 	
-    for(n=0;n<p->P67;++n)
+    for(n=0;n<p->P167;++n)
     {
 	area=0.0;
 	Ai=0.0;
@@ -126,18 +126,18 @@ void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
     }
 	
 	
-    for(n=0;n<p->P67;++n)
+    for(n=0;n<p->P167;++n)
     q[n]=pgc->globalsum(q[n]);
 	
-	if(p->mpirank==0 && p->P66==1)
-	for(n=0;n<p->P67;++n)
+	if(p->mpirank==0 && p->P166==1)
+	for(n=0;n<p->P167;++n)
 	cout<<n+1<<setprecision(6)<<" Qi: "<<q[n]<<endl;  
 
     // write to file
     if(p->mpirank==0)
     {
     qout<<setprecision(9)<<p->count<<"\t";
-    for(n=0;n<p->P67;++n)
+    for(n=0;n<p->P167;++n)
     qout<<setprecision(6)<<q[n]<<"  \t  ";
     qout<<endl;
     }
@@ -146,12 +146,12 @@ void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
 void gage_discharge_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
 	
-	for(n=0;n<p->P67;++n)
+	for(n=0;n<p->P167;++n)
 	flag[n]=0;
 
-    for(n=0;n<p->P67;++n)
+    for(n=0;n<p->P167;++n)
     {
-    iloc[n] = p->posc_i(p->P67_x[n]);
+    iloc[n] = p->posc_i(p->P167_x[n]);
 	
 	if(iloc[n]>=0 && iloc[n]<p->knox)
 	flag[n]=1;

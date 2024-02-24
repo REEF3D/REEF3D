@@ -129,20 +129,3 @@ void iowave::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
     }
 }
 
-double iowave::wave_fsf(lexer *p, ghostcell *pgc, double x)
-{
-    double val=0.0;
-    int jmem=j;
-    int imem=i;
-    
-    i=0;//int((x-p->originx-0.5*p->DXM)/p->DXM);
-    j=0;
-    
-    val = wave_h(p,pgc,x,0.0,0.0);
-    
-    j=jmem;
-    i=imem;
-
-    return val;
-}
-

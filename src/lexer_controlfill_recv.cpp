@@ -1019,12 +1019,6 @@ void lexer::ctrlrecv()
 	ii++;
     P65 = ictrl[ii];
 	ii++;
-	P66 = ictrl[ii];
-	ii++;
-	P67 = ictrl[ii];
-	ii++;
-    P68 = ictrl[ii];
-	ii++;
     P71 = ictrl[ii];
 	ii++;
     P72 = ictrl[ii];
@@ -1092,7 +1086,7 @@ void lexer::ctrlrecv()
     P133 = ictrl[ii];
 	ii++;
     P134 = ictrl[ii];
-	ii++;
+	ii++;    P166 = ictrl[ii];	ii++;	P167 = ictrl[ii];	ii++;    P168 = ictrl[ii];	ii++;
 	P151 = ictrl[ii];
 	ii++;
 	P152 = ictrl[ii];
@@ -2253,16 +2247,6 @@ void lexer::ctrlrecv()
 	Darray(P65_z,P65);  
 	}
 	
-	if(P67>0)
-	Darray(P67_x,P67); 
-
-    if(P68>0)
-    {
-	Darray(P68_x,P68);
-    Darray(P68_zs,P68);
-    Darray(P68_ze,P68);
-    }
-	
 	if(P81>0)
 	{
 	Darray(P81_xs,P81); 
@@ -2291,7 +2275,7 @@ void lexer::ctrlrecv()
 	}
 	
 	if(P123>0)
-	Darray(P123_y,P123);
+    Darray(P123_y,P123);
 	
 	if(P124>0)
 	Darray(P124_x,P124);
@@ -2306,7 +2290,7 @@ void lexer::ctrlrecv()
 	Darray(P133_y,P133);
     
     if(P134>0)
-	Darray(P134_y,P134);
+    Darray(P134_y,P134);	if(P167>0)	Darray(P167_x,P167);     if(P168>0)    {	Darray(P168_x,P168);    Darray(P168_zs,P168);    Darray(P168_ze,P168);    }
     
     if(P184>0)
 	{
@@ -3271,22 +3255,6 @@ for(n=0;n<F369;++n)
     dd++;
     }
 	
-	for(n=0;n<P67;++n)
-    {
-    P67_x[n] = dctrl[dd];
-    dd++;
-    }
-
-    for(n=0;n<P68;++n)
-    {
-    P68_x[n] = dctrl[dd];
-    dd++;
-    P68_zs[n] = dctrl[dd];
-    dd++;
-    P68_ze[n] = dctrl[dd];
-    dd++;
-    }
-	
 	for(n=0;n<P81;++n)
     {
     P81_xs[n] = dctrl[dd];
@@ -3355,7 +3323,7 @@ for(n=0;n<F369;++n)
     {
     P134_y[n] = dctrl[dd];
     dd++;
-    }
+    }    for(n=0;n<P167;++n)    {    P167_x[n] = dctrl[dd];    dd++;    }    for(n=0;n<P168;++n)    {    P168_x[n] = dctrl[dd];    dd++;    P168_zs[n] = dctrl[dd];    dd++;    P168_ze[n] = dctrl[dd];    dd++;    }
     
     for(n=0;n<P184;++n)
     {
@@ -3732,4 +3700,4 @@ for(n=0;n<F369;++n)
     Z11_n[n] = dctrl[dd];
     dd++;
     }
-}
+}

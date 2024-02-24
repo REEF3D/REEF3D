@@ -2880,6 +2880,7 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_probes.cpp"/>
           <File Name="iowave_timeseries.cpp"/>
           <File Name="iowave_precalc_decomp_space_dirichlet.cpp"/>
           <File Name="iowave_precalc_relax_func.cpp"/>

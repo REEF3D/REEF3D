@@ -261,10 +261,10 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
         if(p->P64>0)
         ppressprobe->start(p,a,pgc,pturb);
 
-		if(p->P67>0)
+		if(p->P167>0)
 		pq->start(p,a,pgc);
         
-        if(p->P68>0)
+        if(p->P168>0)
 		pqw->start(p,a,pgc);
 
         if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
