@@ -72,7 +72,6 @@ fnpf_print_wsf_theory::~fnpf_print_wsf_theory()
 
 void fnpf_print_wsf_theory::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
 {
-
     // write to file
     if(p->mpirank==0)
     {

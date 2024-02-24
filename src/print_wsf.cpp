@@ -200,7 +200,7 @@ void print_wsf::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     if(p->j_dir==1)
     jloc[n] = p->posc_j(y[n]); 
 
-    check=ij_boundcheck(p,a,iloc[n],jloc[n],0);
+    check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
     if(check==1)
     flag[n]=1;

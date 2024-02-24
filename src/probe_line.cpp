@@ -436,10 +436,10 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 			kkloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20));
 			
             if(p->j_dir==0)
-			check=boundcheck_ik(p,a,iiloc,jjloc,kkloc,1);
+			check=boundcheck_ik(p,iiloc,jjloc,kkloc,1);
             
             if(p->j_dir==1)
-			check=boundcheck(p,a,iiloc,jjloc,kkloc,1);
+			check=boundcheck(p,iiloc,jjloc,kkloc,1);
             
             //if(n==3 && p->mpirank==3)
             //cout<<p->mpirank<<" n: "<<n<<" i: "<<iiloc<<" j: "<<jjloc<<" k: "<<kkloc<<" check: "<<check<<" p->originx: "<<p->originx<<" p->endx: "<<p->endx<<endl;

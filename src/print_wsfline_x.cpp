@@ -231,7 +231,7 @@ void print_wsfline_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
         if(p->j_dir==1)
         jloc[q]=p->posc_j(p->P52_y[q]);
 
-        check=ij_boundcheck(p,a,i,jloc[q],0);
+        check=ij_boundcheck(p,i,jloc[q],0);
 
         if(check==1)
         flag[q][count]=1;

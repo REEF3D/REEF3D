@@ -123,7 +123,7 @@ int particle_pls::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
                 ii=int((pos[posmem[pcount]][0])/dx);
                 jj=int((pos[posmem[pcount]][1])/dx);
                 kk=int((pos[posmem[pcount]][2])/dx);
-                check=boundcheck(p,a,ii,jj,kk,0);
+                check=boundcheck(p,ii,jj,kk,0);
                 if(check==0)
                 break;
 
@@ -167,7 +167,7 @@ int particle_pls::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
                 ii=int((pos[posactive][0])/dx);
                 jj=int((pos[posactive][1])/dx);
                 kk=int((pos[posactive][2])/dx);
-                check=boundcheck(p,a,ii,jj,kk,0);
+                check=boundcheck(p,ii,jj,kk,0);
                 if(check==0)
                 break;
 
@@ -223,7 +223,7 @@ int particle_pls::negseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
                 ii=int((neg[negmem[ncount]][0])/dx);
                 jj=int((neg[negmem[ncount]][1])/dx);
                 kk=int((neg[negmem[ncount]][2])/dx);
-                check=boundcheck(p,a,ii,jj,kk,0);
+                check=boundcheck(p,ii,jj,kk,0);
                 if(check==0)
                 break;
 
@@ -268,7 +268,7 @@ int particle_pls::negseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
                 ii=int((neg[negactive][0])/dx);
                 jj=int((neg[negactive][1])/dx);
                 kk=int((neg[negactive][2])/dx);
-                check=boundcheck(p,a,ii,jj,kk,0);
+                check=boundcheck(p,ii,jj,kk,0);
                 if(check==0)
                 break;
 

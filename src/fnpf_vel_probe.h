@@ -20,44 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include<math.h>
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
-void particle_f::xupdate(lexer* p, fdm* a, ghostcell* pgc)
+class lexer;
+class fdm_fnpf;
+class ghostcell;
+class slice;
+
+using namespace std;
+
+#ifndef FNPF_VEL_PROBE_H_
+#define FNPF_VEL_PROBE_H_
+
+class fnpf_vel_probe : public boundarycheck
 {
-    removed = 0;
+public:
+    fnpf_vel_probe(lexer*,fdm_fnpf*);
+	virtual ~fnpf_vel_probe();
 
-    for(n=0;n<posactive;++n)
-    {
-        // POS
-        if(posflag[n]>0)
-        {
-            i = p->posc_i(pos[n][0]);
-            j = p->posc_j(pos[n][1]);
-            k = p->posc_k(pos[n][2]);
+	void start(lexer*, fdm_fnpf*, ghostcell*);
 
-            check=boundcheck(p,i,j,k,1);
-			
-			// remove particle_fs, which have been sent off
-			if(check==1)
-            if(posflag[n]==2)
-            {
-			pcount++;
-            posflag[n]=0;
-            posmem[pcount]=n;
-            removed++;
-            }
-			
-			check=boundcheck(p,i,j,k,0);
-			
-			// reinstate received particle_fs, after they have left the para zone
-			if(check==1)
-            if(posflag[n]==3)
-            posflag[n]=1;
-        }
-    }
 
-}
+private:
+    void ini_location(lexer*, fdm_fnpf*);
+
+
+	char name[100];
+
+    int *iloc,*jloc,*kloc,*flag;
+    int n,q;
+	const int probenum;
+    ofstream *pout;
+	
+	double uval,vval,wval,pval,kval,eval,edval;
+    
+    
+    
+
+};
+
+#endif

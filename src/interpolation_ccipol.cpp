@@ -305,6 +305,77 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     return value;
 }
 
+double interpolation::ccipol7V(double *f, double xp, double yp, double zp)
+{
+    ii=i;
+    jj=j;
+    kk=k;
+    
+    i = p->posc_i(xp);
+    j = p->posc_j(yp);
+    k = p->posf_sig(i,j,zp);
+		
+    // wa
+    wa = (p->XP[IP1]-xp)/p->DXN[IP];
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
+    {
+    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
+    ++i;
+    }
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
+    {
+    wa = (p->XP[IP]-xp)/p->DXN[IM1];
+    --i;
+    }
+    
+    // wb
+    wb = (p->YP[JP1]-yp)/p->DYN[JP];
+    
+    if((p->YP[JP1]-yp)/p->DYN[JP]<0.0)
+    {
+    wb = (p->YP[JP2]-yp)/p->DYN[JP1];
+    ++j;
+    }
+    
+    if((p->YP[JP1]-yp)/p->DYN[JP]>1.0)
+    {
+    wb = (p->YP[JP]-yp)/p->DYN[JM1];
+    --j;
+    }
+
+    
+    //wc
+    wc = (p->ZN[KP1]-zp)/p->DZP[KP1];
+    
+    if((p->ZN[KP1]-zp)/p->DZP[KP]<0.0)
+    {
+    wc = (p->ZN[KP2]-zp)/p->DZP[KP1];
+    ++k;
+    }
+    
+    if((p->ZN[KP1]-zp)/p->DZP[KP]>1.0)
+    {
+    wc = (p->ZN[KP]-zp)/p->DZP[KM1];
+    --k;
+    }
+    
+
+    if(p->j_dir==0)
+    value = lint7V_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint7V(f,i,j,k,wa,wb,wc);
+
+    i=ii;
+    j=jj;
+    k=kk;
+    
+
+    return value;
+}
+
 double interpolation::ccipol4phi(fdm *a,field& f, double xp, double yp, double zp)
 {
     ii=i;

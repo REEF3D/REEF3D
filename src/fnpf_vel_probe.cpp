@@ -20,92 +20,93 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"probe_pressure.h"
+#include"fnpf_vel_probe.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include"turbulence.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P64)
+fnpf_vel_probe::fnpf_vel_probe(lexer *p, fdm_fnpf *c) : probenum(p->P65)
 {
+
     p->Iarray(iloc,probenum);
 	p->Iarray(jloc,probenum);
 	p->Iarray(kloc,probenum);
 	p->Iarray(flag,probenum);
 	
-    //cout<<p->mpirank<<" pressure probepoint_num: "<<probenum<<endl;
-    
 	// Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_PressureProbe",0777);
+	mkdir("./REEF3D_FNPF_ProbePoint",0777);
 	
-	pout = new ofstream[probenum+1];
+	pout = new ofstream[probenum];
 	
     if(p->mpirank==0 && probenum>0)
     {
+		cout<<"probepoint_num: "<<probenum<<endl;
 		// open file
 		for(n=0;n<probenum;++n)
-		{     
-		sprintf(name,"./REEF3D_CFD_PressureProbe/REEF3D-CFD-Probe-Pressure-%i.dat",n+1);
-        
-        
-		pout[n].open(name,std::fstream::out);
+		{
+		sprintf(name,"./REEF3D_FNPF_ProbePoint/REEF3D-FNPF-Probe-Point-%i.dat",n+1);
+		
+		pout[n].open(name);
         
         //cout<<pout[n].is_open()<<" "<<n+1<<endl;
-		}
-        
-        
-		for(n=0;n<probenum;++n)
-		{
-	    pout[n]<<"Point Probe ID:  "<<n+1<<endl<<endl;
+
+	    pout[n]<<"Point Probe ID:  "<<n<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
 		
-		pout[n]<<n+1<<"\t "<<p->P64_x[n]<<"\t "<<p->P64_y[n]<<"\t "<<p->P64_z[n]<<endl;
+		pout[n]<<n+1<<"\t "<<p->P65_x[n]<<"\t "<<p->P65_y[n]<<"\t "<<p->P65_z[n]<<endl;
 
 		pout[n]<<endl<<endl;
+		
+		pout[n]<<"t \t U \t V \t W "<<endl;
+		
 		}
     }
 	
-    ini_location(p,a,pgc);
 }
 
-probe_pressure::~probe_pressure()
+fnpf_vel_probe::~fnpf_vel_probe()
 {
-	for(n=0;n<probenum;++n)
+    for(n=0;n<probenum;++n)
     pout[n].close();
+    
+    delete [] pout;
 }
 
-void probe_pressure::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-	double xp,yp,zp;
+    double xp,yp,zp;
+    
+    ini_location(p,c);
 	
 	for(n=0;n<probenum;++n)
 	{
-	uval=vval=wval=pval=kval=eval=edval=-1.0e20;
+	uval=vval=wval=-1.0e20;
 	
 		if(flag[n]>0)
 		{
-		xp=p->P64_x[n];
-		yp=p->P64_y[n];
-		zp=p->P64_z[n];
-		
-		pval = p->ccipol4_a(a->press, xp, yp, zp) - p->pressgage;
+		xp=p->P65_x[n];
+		yp=p->P65_y[n];
+		zp=p->P65_z[n];
+    
+		uval = p->ccipol7V(c->U, xp, yp, zp);
+		vval = p->ccipol7V(c->V, xp, yp, zp);
+		wval = p->ccipol7V(c->W, xp, yp, zp);
 		}
 	
-	pval=pgc->globalmax(pval);
+	uval=pgc->globalmax(uval);
+	vval=pgc->globalmax(vval);
+	wval=pgc->globalmax(wval);
+
 	
 	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<pval<<endl;
-	}		
+	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<endl;
+	}	
 }
 
-void probe_pressure::write(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void probe_pressure::ini_location(lexer *p, fdm *a, ghostcell *pgc)
+void fnpf_vel_probe::ini_location(lexer *p, fdm_fnpf *c)
 {
     int check;
 
@@ -113,21 +114,19 @@ void probe_pressure::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     {
     check=0;
     
-    iloc[n]=p->posc_i(p->P64_x[n]);
+    iloc[n]=p->posc_i(p->P65_x[n]);
     
     if(p->j_dir==0)
     jloc[n]=0;
     
     if(p->j_dir==1)
-    jloc[n]=p->posc_j(p->P64_y[n]);
+    jloc[n]=p->posc_j(p->P65_y[n]);
     
-	kloc[n]=p->posc_k(p->P64_z[n]);
+	kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P65_z[n]);
 
     check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
-
+    cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
     if(check==1)
     flag[n]=1;
     }
 }
-
-

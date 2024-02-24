@@ -222,7 +222,7 @@ void bedprobe_line_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
         {
         jloc[q]=p->posc_j(p->P123_y[q]);
 
-        check=ij_boundcheck_topo(p,a,i,jloc[q],0);
+        check=ij_boundcheck_topo(p,i,jloc[q],0);
 
         if(check==1)
         flag[q][count]=1;
