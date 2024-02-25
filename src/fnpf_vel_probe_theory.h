@@ -20,50 +20,46 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
-double iowave::wave_fsf(lexer *p, ghostcell *pgc, double x)
+class lexer;
+class fdm_fnpf;
+class ghostcell;
+class slice;
+class ioflow;
+
+using namespace std;
+
+#ifndef FNPF_VEL_PROBE_THEORY_H_
+#define FNPF_VEL_PROBE_THEORY_H_
+
+class fnpf_vel_probe_theory : public boundarycheck
 {
-    double val=0.0;
+public:
+    fnpf_vel_probe_theory(lexer*,fdm_fnpf*);
+	virtual ~fnpf_vel_probe_theory();
+
+	void start(lexer*, fdm_fnpf*, ghostcell*,ioflow*);
+
+
+private:
+    void ini_location(lexer*, fdm_fnpf*);
+
+
+	char name[100];
+
+    int *iloc,*jloc,*kloc,*flag;
+    int n,q;
+	const int probenum;
+    ofstream *pout;
+	
+	double uval,vval,wval,pval,kval,eval,edval;
     
-    val = wave_h(p,pgc,x,0.0,0.0);
-
-    return val;
-}
-
-double iowave::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
-{
-    double val=0.0;
     
-    z -= p->phimean;
     
-    val = wave_u(p,pgc,x,y,z);
 
-    return val;
-}
+};
 
-double iowave::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
-{
-    double val=0.0;
-    
-    z -= p->phimean;
-    
-    val = wave_v(p,pgc,x,y,z);
-
-    return val;
-}
-
-double iowave::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
-{
-    double val=0.0;
-    
-    z -= p->phimean;
-    
-    val = wave_w(p,pgc,x,y,z);
-
-    return val;
-}
-
+#endif

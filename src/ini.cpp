@@ -519,7 +519,7 @@ void lexer::ini_default()
     P63=0;			  // int print depth averaged point probe
     P64=0;			  // int print pressure probes
     P65=0;			  // int print velocity probes
-	
+	P66=0;			  // int print velocity probes from wave theory
     P71=0;           // int print viscosity to vtu
     P72=0;           // int print vof function
     P73=0;           // int print hx and hy for sflow vtp

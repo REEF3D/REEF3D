@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"fnpf_breaking_log.h"
 #include"fnpf_print_Hs.h"
 #include"fnpf_vel_probe.h"
+#include"fnpf_vel_probe_theory.h"
 #include"potentialfile_out.h"
 #include"fnpf_state.h"
 #include<sys/stat.h>
@@ -82,6 +83,8 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     pwsfline_y=new fnpf_print_wsfline_y(p,c,pgc);
     
     pvel=new fnpf_vel_probe(p,c);
+    
+    pveltheo=new fnpf_vel_probe_theory(p,c);
 
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,c,pgc);
@@ -126,6 +129,9 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     
     if(p->P65>0)
 	pvel->start(p,c,pgc);
+    
+    if(p->P66>0)
+	pveltheo->start(p,c,pgc,pflow);
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)

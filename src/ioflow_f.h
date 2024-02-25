@@ -112,6 +112,10 @@ public:
 	virtual void Qout_nhf(lexer*,fdm_nhf*,ghostcell*);
     
     virtual double wave_fsf(lexer*,ghostcell*,double);
+    virtual double wave_xvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_yvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_zvel(lexer*,ghostcell*,double,double,double);
+    
 	virtual int iozonecheck(lexer*,fdm*);
     
     virtual void ini(lexer*,fdm*,ghostcell*);

@@ -20,14 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_vel_probe.h"
+#include"fnpf_vel_probe_theory.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
+#include"ioflow.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fnpf_vel_probe::fnpf_vel_probe(lexer *p, fdm_fnpf *c) : probenum(p->P65)
+fnpf_vel_probe_theory::fnpf_vel_probe_theory(lexer *p, fdm_fnpf *c) : probenum(p->P66)
 {
 
     p->Iarray(iloc,probenum);
@@ -47,16 +48,16 @@ fnpf_vel_probe::fnpf_vel_probe(lexer *p, fdm_fnpf *c) : probenum(p->P65)
 		// open file
 		for(n=0;n<probenum;++n)
 		{
-		sprintf(name,"./REEF3D_FNPF_ProbePoint/REEF3D-FNPF-Vel-Probe-%i.dat",n+1);
+		sprintf(name,"./REEF3D_FNPF_ProbePoint/REEF3D-FNPF-Vel-Probe-Theory-%i.dat",n+1);
 		
 		pout[n].open(name);
         
         //cout<<pout[n].is_open()<<" "<<n+1<<endl;
 
-	    pout[n]<<"Vel Probe ID:  "<<n<<endl<<endl;
+	    pout[n]<<"Vel Probe Theory ID:  "<<n<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
 		
-		pout[n]<<n+1<<"\t "<<p->P65_x[n]<<"\t "<<p->P65_y[n]<<"\t "<<p->P65_z[n]<<endl;
+		pout[n]<<n+1<<"\t "<<p->P66_x[n]<<"\t "<<p->P66_y[n]<<"\t "<<p->P66_z[n]<<endl;
 
 		pout[n]<<endl<<endl;
 		
@@ -67,7 +68,7 @@ fnpf_vel_probe::fnpf_vel_probe(lexer *p, fdm_fnpf *c) : probenum(p->P65)
 	
 }
 
-fnpf_vel_probe::~fnpf_vel_probe()
+fnpf_vel_probe_theory::~fnpf_vel_probe_theory()
 {
     for(n=0;n<probenum;++n)
     pout[n].close();
@@ -75,7 +76,7 @@ fnpf_vel_probe::~fnpf_vel_probe()
     delete [] pout;
 }
 
-void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_vel_probe_theory::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
 {
     double xp,yp,zp;
     
@@ -87,13 +88,13 @@ void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	
 		if(flag[n]>0)
 		{
-		xp=p->P65_x[n];
-		yp=p->P65_y[n];
-		zp=p->P65_z[n];
+		xp=p->P66_x[n];
+		yp=p->P66_y[n];
+		zp=p->P66_z[n];
     
-		uval = p->ccipol7V(c->U, xp, yp, zp);
-		vval = p->ccipol7V(c->V, xp, yp, zp);
-		wval = p->ccipol7V(c->W, xp, yp, zp);
+		uval = pflow->wave_xvel(p,pgc, xp, yp, zp);
+		vval = pflow->wave_yvel(p,pgc, xp, yp, zp);
+		wval = pflow->wave_zvel(p,pgc, xp, yp, zp);
 		}
 	
 	uval=pgc->globalmax(uval);
@@ -106,7 +107,7 @@ void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	}	
 }
 
-void fnpf_vel_probe::ini_location(lexer *p, fdm_fnpf *c)
+void fnpf_vel_probe_theory::ini_location(lexer *p, fdm_fnpf *c)
 {
     int check;
 
@@ -114,15 +115,15 @@ void fnpf_vel_probe::ini_location(lexer *p, fdm_fnpf *c)
     {
     check=0;
     
-    iloc[n]=p->posc_i(p->P65_x[n]);
+    iloc[n]=p->posc_i(p->P66_x[n]);
     
     if(p->j_dir==0)
     jloc[n]=0;
     
     if(p->j_dir==1)
-    jloc[n]=p->posc_j(p->P65_y[n]);
+    jloc[n]=p->posc_j(p->P66_y[n]);
     
-	kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P65_z[n]);
+	kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P66_z[n]);
 
     check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
     //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
