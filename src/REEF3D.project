@@ -298,6 +298,10 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="State">
+            <File Name="nhflow_state.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Probes"/>
           <VirtualDirectory Name="Runup">
             <File Name="nhflow_print_runup_max_gage_x.h"/>
             <File Name="nhflow_print_runup_gage_x.h"/>
@@ -376,20 +380,34 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
-          <File Name="fnpf_vel_probe_theory.h"/>
-          <File Name="fnpf_vel_probe.h"/>
-          <File Name="force_ale.h"/>
-          <File Name="fnpf_print_Hs.h"/>
-          <File Name="fnpf_breaking_log.h"/>
-          <File Name="potentialfile_out.h"/>
-          <File Name="fnpf_vtu3D.h"/>
-          <File Name="fnpf_vtp_fsf.h"/>
-          <File Name="fnpf_vtp_bed.h"/>
-          <File Name="fnpf_state.h"/>
-          <File Name="fnpf_print_wsfline_y.h"/>
-          <File Name="fnpf_print_wsfline.h"/>
-          <File Name="fnpf_print_wsf_theory.h"/>
-          <File Name="fnpf_print_wsf.h"/>
+          <VirtualDirectory Name="ALE Force">
+            <File Name="force_ale.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="State">
+            <File Name="fnpf_state.h"/>
+            <File Name="potentialfile_out.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="WSF">
+            <File Name="fnpf_breaking_log.h"/>
+            <File Name="fnpf_print_wsfline_y.h"/>
+            <File Name="fnpf_print_wsfline.h"/>
+            <File Name="fnpf_print_wsf_theory.h"/>
+            <File Name="fnpf_print_wsf.h"/>
+            <File Name="fnpf_print_Hs.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTP BED">
+            <File Name="fnpf_vtp_bed.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTP FSF">
+            <File Name="fnpf_vtp_fsf.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTU">
+            <File Name="fnpf_vtu3D.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Probes">
+            <File Name="fnpf_vel_probe.h"/>
+            <File Name="fnpf_vel_probe_theory.h"/>
+          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_laplace_cds4_bc2.h"/>
@@ -924,6 +942,7 @@
         </VirtualDirectory>
         <File Name="printer.h"/>
         <VirtualDirectory Name="Probes">
+          <File Name="probe_vel.h"/>
           <File Name="probe_pressure.h"/>
           <File Name="probe_point.h"/>
           <File Name="probe_line.h"/>
@@ -1386,6 +1405,13 @@
           <File Name="nhflow_HLL.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="State">
+            <File Name="nhflow_state.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Probes">
+            <File Name="nhflow_vel_probe_theory.cpp"/>
+            <File Name="nhflow_vel_probe.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="nhflow_print_runup_max_gage_x.cpp"/>
             <File Name="nhflow_print_runup_gage_x.cpp"/>

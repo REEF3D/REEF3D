@@ -347,17 +347,20 @@ double interpolation::ccipol7V(double *f, double xp, double yp, double zp)
 
     
     //wc
-    wc = (p->ZN[KP1]-zp)/p->DZP[KP1];
+    if(p->j_dir==0)
+    j=0;
     
-    if((p->ZN[KP1]-zp)/p->DZP[KP]<0.0)
+    wc = (p->ZSN[FIJKp1]-zp)/(p->ZSP[IJKp2]-p->ZSP[IJKp1]);
+    
+    if((p->ZSN[FIJKp1]-zp)/(p->ZSP[IJKp1]-p->ZSP[IJK])<0.0)
     {
-    wc = (p->ZN[KP2]-zp)/p->DZP[KP1];
+    wc = (p->ZSN[FIJKp2]-zp)/(p->ZSP[IJKp2]-p->ZSP[IJKp1]);
     ++k;
     }
     
-    if((p->ZN[KP1]-zp)/p->DZP[KP]>1.0)
+    if((p->ZSN[FIJKp1]-zp)/(p->ZSP[IJKp1]-p->ZSP[IJK])>1.0)
     {
-    wc = (p->ZN[KP]-zp)/p->DZP[KM1];
+    wc = (p->ZSN[FIJK]-zp)/(p->ZSP[IJK]-p->ZSP[IJKm1]);
     --k;
     }
     
