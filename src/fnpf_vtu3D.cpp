@@ -82,8 +82,10 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 
     pwsfline_y=new fnpf_print_wsfline_y(p,c,pgc);
     
+    if(p->P65>0)
     pvel=new fnpf_vel_probe(p,c);
     
+    if(p->P66>0)
     pveltheo=new fnpf_vel_probe_theory(p,c);
 
     if(p->P230>0)

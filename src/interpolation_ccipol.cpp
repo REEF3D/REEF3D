@@ -591,7 +591,7 @@ double interpolation::ccipol4press(fdm *a,field& f, double xp, double yp, double
     }
     
     //if(p->mpirank==0)
-    //cout<<"wa: "<<wa<<" wb: "<<wb<<" 🙂 "<<wc<<endl<<endl;
+    //cout<<"wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<endl<<endl;
 
     value =  lint4phi(a,f,i,j,k,wa,wb,wc);
 

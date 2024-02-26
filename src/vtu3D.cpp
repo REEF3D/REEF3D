@@ -51,6 +51,8 @@ Author: Hans Bihs
 #include"bedshear_max.h"
 #include"bedprobe_line_x.h"
 #include"bedprobe_line_y.h"
+#include"probe_vel.h"
+#include"probe_vel_theory.h"
 #include"multiphase.h"
 #include"sediment.h"
 #include"sloshing_force.h"
@@ -131,6 +133,12 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     
     if(p->P190==1)
 	ptopo = new topo_vtp(p,a,pgc);
+    
+    if(p->P65>0)
+    pvel=new probe_vel(p,a);
+    
+    if(p->P66>0)
+    pveltheo=new probe_vel_theory(p,a);
 
 	if(p->P75==0)
 	pvort = new vorticity_void(p,a);
@@ -260,6 +268,12 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
         
         if(p->P64>0)
         ppressprobe->start(p,a,pgc,pturb);
+        
+        if(p->P65>0)
+        pvel->start(p,a,pgc);
+        
+        if(p->P66>0)
+        pveltheo->start(p,a,pgc,pflow);
 
 		if(p->P167>0)
 		pq->start(p,a,pgc);

@@ -82,8 +82,10 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
     pwsfline_y=new nhflow_print_wsfline_y(p,d,pgc);
     
+    if(p->P65>0)
     pvel=new nhflow_vel_probe(p,d);
     
+    if(p->P66>0)
     pveltheo=new nhflow_vel_probe_theory(p,d);
     
     prunupx=new nhflow_print_runup_gage_x(p,d,pgc);
