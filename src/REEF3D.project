@@ -942,6 +942,7 @@
         </VirtualDirectory>
         <File Name="printer.h"/>
         <VirtualDirectory Name="Probes">
+          <File Name="probe_vel_theory.h"/>
           <File Name="probe_vel.h"/>
           <File Name="probe_pressure.h"/>
           <File Name="probe_point.h"/>
@@ -1406,6 +1407,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="State">
+            <File Name="nhflow_state_header.cpp"/>
+            <File Name="nhflow_state_filename.cpp"/>
             <File Name="nhflow_state.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
@@ -1557,8 +1560,8 @@
             <File Name="fnpf_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
-            <File Name="fnpf_state_write.cpp"/>
             <File Name="fnpf_state_mainheader.cpp"/>
+            <File Name="fnpf_state_write.cpp"/>
             <File Name="fnpf_state_header.cpp"/>
             <File Name="fnpf_state_filename.cpp"/>
             <File Name="fnpf_state.cpp"/>
@@ -2599,6 +2602,8 @@
         </VirtualDirectory>
         <File Name="vtu3D.cpp"/>
         <VirtualDirectory Name="Probes">
+          <File Name="probe_vel_theory.cpp"/>
+          <File Name="probe_vel.cpp"/>
           <File Name="probe_pressure.cpp"/>
           <File Name="probe_line.cpp"/>
           <File Name="probe_point.cpp"/>
