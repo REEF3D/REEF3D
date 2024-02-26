@@ -30,9 +30,6 @@ void sediment_f::log_ini(lexer *p)
 {
     if(p->mpirank==0)
     {
-    if(p->P14==0)
-    sedlogout.open("REEF3D_sedimentlog.dat");
-    if(p->P14==1)
     sedlogout.open("./REEF3D_Log/REEF3D_sedimentlog.dat");
 
     sedlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;

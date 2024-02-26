@@ -35,47 +35,9 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 	
-	if(p->P14==0)
-	{
-    if(num<10)
-	sprintf(name,"REEF3D-NHFLOW-00000%i.pvtu",num);
 
-	if(num<100&&num>9)
-	sprintf(name,"REEF3D-NHFLOW-0000%i.pvtu",num);
+	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-%08i.pvtu",num);
 
-	if(num<1000&&num>99)
-	sprintf(name,"REEF3D-NHFLOW-000%i.pvtu",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"REEF3D-NHFLOW-00%i.pvtu",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"REEF3D-NHFLOW-0%i.pvtu",num);
-
-	if(num>99999)
-	sprintf(name,"REEF3D-NHFLOW-%i.pvtu",num);
-	}
-
-	if(p->P14==1)
-	{
-    if(num<10)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-00000%i.pvtu",num);
-
-	if(num<100&&num>9)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-0000%i.pvtu",num);
-
-	if(num<1000&&num>99)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-000%i.pvtu",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-00%i.pvtu",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-0%i.pvtu",num);
-
-	if(num>99999)
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-%i.pvtu",num);
-	}
 
 	ofstream result;
 	result.open(name);
@@ -119,116 +81,11 @@ void nhflow_vtu3D::piecename(lexer *p, ghostcell *pgc, int n)
 {
     int num=0;
 
-
     if(p->P15==1)
     num = printcount;
 
     if(p->P15==2)
     num = p->count;
 
-	if(n<9)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-00000%i-0000%i.vtu",num,n+1);
-
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-0000%i-0000%i.vtu",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-000%i-0000%i.vtu",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-00%i-0000%i.vtu",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-0%i-0000%i.vtu",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-%i-0000%i.vtu",num,n+1);
-	}
-
-	if(n<99&&n>8)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-00000%i-000%i.vtu",num,n+1);
-
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-0000%i-000%i.vtu",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-000%i-000%i.vtu",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-00%i-000%i.vtu",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-0%i-000%i.vtu",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-%i-000%i.vtu",num,n+1);
-	}
-	if(n<999&&n>98)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-00000%i-00%i.vtu",num,n+1);
-
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-0000%i-00%i.vtu",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-000%i-00%i.vtu",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-00%i-00%i.vtu",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-0%i-00%i.vtu",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-%i-00%i.vtu",num,n+1);
-	}
-
-	if(n<9999&&n>998)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-00000%i-0%i.vtu",num,n+1);
-
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-0000%i-0%i.vtu",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-000%i-0%i.vtu",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-00%i-0%i.vtu",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-0%i-0%i.vtu",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-%i-0%i.vtu",num,n+1);
-	}
-
-	if(n>9998)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-00000%i-%i.vtu",num,n+1);
-
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-0000%i-%i.vtu",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-000%i-%i.vtu",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-00%i-%i.vtu",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-0%i-%i.vtu",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-%i-%i.vtu",num,n+1);
-	}
-
-
+	sprintf(pname,"REEF3D-NHFLOW-%08i-%06i.vtu",num,n+1);
 }

@@ -178,6 +178,60 @@ double interpolation::lint_a_2D(field& f, int& i,int& j, int& k, double wa, doub
 
     value = wc*x1 +(1.0-wc)*x2;
 
- return value;
+    return value;
 
+}
+
+double interpolation::lint4V_2D(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    v1=v2=v3=v4=0.0;
+    
+    jj=j;
+    j=0;
+
+    v1=f[IJK];
+
+    v2=f[IJKp1];
+
+    v3=f[Ip1JK];
+
+    v4=f[Ip1JKp1];
+
+    j=jj;
+    
+    //cout<<" wa: "<<wa<<" wc: "<<wc<<endl;
+
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+    
+    value = wc*x1 +(1.0-wc)*x2;
+
+    return value;
+}
+
+double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    v1=v2=v3=v4=0.0;
+    
+    jj=j;
+    j=0;
+
+    v1=f[FIJK];
+
+    v2=f[FIJKp1];
+
+    v3=f[FIp1JK];
+
+    v4=f[FIp1JKp1];
+
+    j=jj;
+    
+    cout<<" wa: "<<wa<<" wc: "<<wc<<endl;
+
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+    
+    value = wc*x1 +(1.0-wc)*x2;
+
+    return value;
 }

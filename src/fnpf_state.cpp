@@ -32,7 +32,7 @@ Author: Hans Bihs
 fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_FNPF_STATE",0777);
 	
 	printcount=0;

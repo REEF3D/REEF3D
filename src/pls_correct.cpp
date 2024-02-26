@@ -80,7 +80,7 @@ void particle_pls::parcorr(lexer *p,fdm* a,ioflow *pflow,double sign,double* f,i
     j=j1;
     k=k1;
 	
-    check=boundcheck(p,a,i,j,k,1);
+    check=boundcheck(p,i,j,k,1);
 	
 	if(check==1)
 	check=pflow->iozonecheck(p,a);

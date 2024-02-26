@@ -36,16 +36,12 @@ sflow_print_bed::sflow_print_bed(lexer *p, fdm2D* b)
 
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_BED",0777);
 	
     if(p->mpirank==0 && p->P121>0)
     {
     // open file
-	if(p->P14==0)
-    bedout.open("REEF3D-SFLOW-BED-HG.dat");
-	
-	if(p->P14==1)
 	bedout.open("./REEF3D_SFLOW_BED/REEF3D-SFLOW-BED-HG.dat");
 
     bedout<<"number of gauges:  "<<gauge_num<<endl<<endl;

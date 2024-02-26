@@ -34,9 +34,8 @@ Author: Hans Bihs
 #include"nhflow_print_wsfline_y.h"
 #include"nhflow_print_runup_gage_x.h"
 #include"nhflow_print_runup_max_gage_x.h"
-/*#include"nhflow_breaking_log.h"
-#include"potentialfile_out.h"
-#include"nhflow_state.h"*/
+#include"nhflow_vel_probe.h"
+#include"nhflow_vel_probe_theory.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -72,7 +71,7 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	printcount=0;
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_VTU",0777);
     
     pwsf=new nhflow_print_wsf(p,d);
@@ -82,6 +81,12 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pwsfline=new nhflow_print_wsfline(p,d,pgc);
 
     pwsfline_y=new nhflow_print_wsfline_y(p,d,pgc);
+    
+    if(p->P65>0)
+    pvel=new nhflow_vel_probe(p,d);
+    
+    if(p->P66>0)
+    pveltheo=new nhflow_vel_probe_theory(p,d);
     
     prunupx=new nhflow_print_runup_gage_x(p,d,pgc);
     
@@ -128,6 +133,11 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     if(p->P134>0)
 	prunupmaxx->start(p,d,pgc,pflow,d->eta);
     
+    if(p->P65>0)
+	pvel->start(p,d,pgc);
+    
+    if(p->P66>0)
+	pveltheo->start(p,d,pgc,pflow);
     
     pfsf->preproc(p,d,pgc);
 

@@ -34,9 +34,6 @@ nhflow_print_runup_max_gage_x::nhflow_print_runup_max_gage_x(lexer *p, fdm_nhf *
 {	
 	p->Iarray(jloc,p->P134);
 
-    maxknox=pgc->globalimax(p->knox);
-    sumknox=pgc->globalisum(maxknox);
-	
     p->Darray(xloc,p->P134+1);
     p->Darray(yloc,p->P134+1);
     p->Darray(zloc,p->P134+1);
@@ -44,25 +41,19 @@ nhflow_print_runup_max_gage_x::nhflow_print_runup_max_gage_x(lexer *p, fdm_nhf *
     p->Darray(xloc_all,p->P134+1,p->M10+1);
     p->Darray(zloc_all,p->P134+1,p->M10+1);
 
-    p->Iarray(flag,p->P134+1);
-    p->Iarray(flag_all,p->P134+1,p->M10+1);
-
 
     ini_location(p,d,pgc);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_RUNUP",0777);
     
     
-    
-    
-    
+
     for(q=0;q<p->P134;++q)
     {
     xloc[q] = -1.0e20;
     zloc[q] = -1.0e20;
-    flag[q] = 0;
     }
     
     for(q=0;q<p->P134;++q)
@@ -89,13 +80,7 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     if(p->mpirank==0)
     {
 		// open file
-		if(p->P14==0)
-		sprintf(name,"REEF3D-NHFLOW-runup-max-x.dat");
-
-
-		if(p->P14==1)
 		sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-max-x.dat");
-
 		
 		wsfout.open(name);
 
@@ -129,8 +114,7 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
             {
             xloc[q] = p->XN[IP1];
             zloc[q] = 0.5*(f(i,j)+f(i+1,j))+p->phimean;
-            flag[q] = 1;
-            
+
             //cout<<p->mpirank<<" xloc[q]: "<<xloc[q]<<" zloc[q]: "<<zloc[q]<<endl;
             }
         }
@@ -142,7 +126,6 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     {
     pgc->gather_double(&xloc[q],1,xloc_all[q],1);
     pgc->gather_double(&zloc[q],1,zloc_all[q],1);
-	pgc->gather_int(&flag[q],1,flag_all[q],1);
     }
     
     if(p->mpirank==0)

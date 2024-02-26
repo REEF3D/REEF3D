@@ -70,6 +70,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="fdm_ngx.h"/>
           <VirtualDirectory Name="Timestep"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion"/>
@@ -89,11 +90,6 @@
             <File Name="ngx_reconstruct.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
-      </VirtualDirectory>
-      <VirtualDirectory Name="PIC">
-        <File Name="pic_f.h"/>
-        <File Name="pic_v.h"/>
-        <File Name="pic.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Update">
@@ -261,20 +257,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>
-      <VirtualDirectory Name="NSEWAVE">
-        <VirtualDirectory Name="Wetdry">
-          <File Name="nsewave_wetdry_v.h"/>
-          <File Name="nsewave_wetdry_f.h"/>
-          <File Name="nsewave_wetdry.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Free Surface">
-          <File Name="nsewave_v.h"/>
-          <File Name="nsewave_RK3.h"/>
-          <File Name="nsewave_geo.h"/>
-          <File Name="nsewave_f.h"/>
-          <File Name="nsewave.h"/>
-        </VirtualDirectory>
-      </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Turbulence">
           <VirtualDirectory Name="Strain">
@@ -316,10 +298,16 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="State">
+            <File Name="nhflow_state.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Probes">
+            <File Name="nhflow_vel_probe.h"/>
+            <File Name="nhflow_vel_probe_theory.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="nhflow_print_runup_max_gage_x.h"/>
             <File Name="nhflow_print_runup_gage_x.h"/>
-            <File Name="nhflow_print_runup.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="nhflow_vtp_fsf.h"/>
@@ -395,19 +383,34 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
-          <File Name="fnpf_point_probe.h"/>
-          <File Name="force_ale.h"/>
-          <File Name="fnpf_print_Hs.h"/>
-          <File Name="fnpf_breaking_log.h"/>
-          <File Name="potentialfile_out.h"/>
-          <File Name="fnpf_vtu3D.h"/>
-          <File Name="fnpf_vtp_fsf.h"/>
-          <File Name="fnpf_vtp_bed.h"/>
-          <File Name="fnpf_state.h"/>
-          <File Name="fnpf_print_wsfline_y.h"/>
-          <File Name="fnpf_print_wsfline.h"/>
-          <File Name="fnpf_print_wsf_theory.h"/>
-          <File Name="fnpf_print_wsf.h"/>
+          <VirtualDirectory Name="ALE Force">
+            <File Name="force_ale.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="State">
+            <File Name="fnpf_state.h"/>
+            <File Name="potentialfile_out.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="WSF">
+            <File Name="fnpf_breaking_log.h"/>
+            <File Name="fnpf_print_wsfline_y.h"/>
+            <File Name="fnpf_print_wsfline.h"/>
+            <File Name="fnpf_print_wsf_theory.h"/>
+            <File Name="fnpf_print_wsf.h"/>
+            <File Name="fnpf_print_Hs.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTP BED">
+            <File Name="fnpf_vtp_bed.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTP FSF">
+            <File Name="fnpf_vtp_fsf.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTU">
+            <File Name="fnpf_vtu3D.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Probes">
+            <File Name="fnpf_vel_probe.h"/>
+            <File Name="fnpf_vel_probe_theory.h"/>
+          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
           <File Name="fnpf_laplace_cds4_bc2.h"/>
@@ -587,12 +590,16 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="External Motion">
+          <File Name="6DOF_motionext_void.h"/>
+          <File Name="6DOF_motionext_file.h"/>
+          <File Name="6DOF_motionext_fixed.h"/>
+          <File Name="6DOF_motionext_coupling.h"/>
+          <File Name="6DOF_motionext.h"/>
+        </VirtualDirectory>
         <File Name="6DOF_obj.h"/>
         <File Name="6DOF_nhflow.h"/>
         <File Name="6DOF_cfd.h"/>
-        <VirtualDirectory Name="Common">
-          <File Name="6DOF_motion-file.h"/>
-        </VirtualDirectory>
         <File Name="6DOF_sflow.h"/>
         <VirtualDirectory Name="Mooring">
           <File Name="mooring_dynamic.h"/>
@@ -938,6 +945,8 @@
         </VirtualDirectory>
         <File Name="printer.h"/>
         <VirtualDirectory Name="Probes">
+          <File Name="probe_vel_theory.h"/>
+          <File Name="probe_vel.h"/>
           <File Name="probe_pressure.h"/>
           <File Name="probe_point.h"/>
           <File Name="probe_line.h"/>
@@ -1176,7 +1185,7 @@
           <VirtualDirectory Name="Level Set"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
-          <File Name="ngx_fdm.cpp"/>
+          <File Name="fdm_ngx.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion"/>
         <VirtualDirectory Name="Convect">
@@ -1187,10 +1196,6 @@
             <File Name="ngx_reconstruct_FOU.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
-      </VirtualDirectory>
-      <VirtualDirectory Name="PIC">
-        <File Name="pic_v.cpp"/>
-        <File Name="pic_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Breaking"/>
@@ -1263,7 +1268,7 @@
             <File Name="sflow_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
-            <File Name="sflow_vtp_fsf_pvtu.cpp"/>
+            <File Name="sflow_vtp_fsf_pvtp.cpp"/>
             <File Name="sflow_vtp_fsf_header.cpp"/>
             <File Name="sflow_vtp_fsf.cpp"/>
           </VirtualDirectory>
@@ -1367,18 +1372,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>
-      <VirtualDirectory Name="NSEWAVE">
-        <VirtualDirectory Name="Wetdry">
-          <File Name="nsewave_wetdry_v.cpp"/>
-          <File Name="nsewave_wetdry_f.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Free Surface">
-          <File Name="nsewave_v.cpp"/>
-          <File Name="nsewave_RK3.cpp"/>
-          <File Name="nsewave_geo.cpp"/>
-          <File Name="nsewave_f.cpp"/>
-        </VirtualDirectory>
-      </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Turbulence">
           <VirtualDirectory Name="Strain">
@@ -1416,10 +1409,18 @@
           <File Name="nhflow_HLL.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="State">
+            <File Name="nhflow_state_header.cpp"/>
+            <File Name="nhflow_state_filename.cpp"/>
+            <File Name="nhflow_state.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Probes">
+            <File Name="nhflow_vel_probe_theory.cpp"/>
+            <File Name="nhflow_vel_probe.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="nhflow_print_runup_max_gage_x.cpp"/>
             <File Name="nhflow_print_runup_gage_x.cpp"/>
-            <File Name="nhflow_print_runup.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="nhflow_vtp_bed_pvtp.cpp"/>
@@ -1427,6 +1428,7 @@
             <File Name="nhflow_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
+            <File Name="nhflow_vtp_fsf_pvd.cpp"/>
             <File Name="nhflow_vtp_fsf_pvtp.cpp"/>
             <File Name="nhflow_vtp_fsf_header.cpp"/>
             <File Name="nhflow_vtp_fsf.cpp"/>
@@ -1524,7 +1526,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Probes">
-            <File Name="fnpf_point_probe.cpp"/>
+            <File Name="fnpf_vel_probe_theory.cpp"/>
+            <File Name="fnpf_vel_probe.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Force ALE">
             <File Name="force_ale_print.cpp"/>
@@ -1560,8 +1563,8 @@
             <File Name="fnpf_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
-            <File Name="fnpf_state_write.cpp"/>
             <File Name="fnpf_state_mainheader.cpp"/>
+            <File Name="fnpf_state_write.cpp"/>
             <File Name="fnpf_state_header.cpp"/>
             <File Name="fnpf_state_filename.cpp"/>
             <File Name="fnpf_state.cpp"/>
@@ -1804,6 +1807,17 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="External Motion">
+          <VirtualDirectory Name="Motion Fixed">
+            <File Name="6DOF_motionext_fixed.cpp"/>
+            <File Name="6DOF_motionext_void.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Motion File">
+            <File Name="6DOF_motion-file_read.cpp"/>
+            <File Name="6DOF_motion-file_ipol.cpp"/>
+            <File Name="6DOF_motion-file.cpp"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
         <VirtualDirectory Name="Interface NHFLOW">
           <File Name="6DOF_nhflow.cpp"/>
         </VirtualDirectory>
@@ -1842,19 +1856,13 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
+          <File Name="6DOF_obj_trans_matrices.cpp"/>
+          <File Name="6DOF_obj_fbvel.cpp"/>
           <File Name="6DOF_obj.cpp"/>
           <File Name="6DOF_obj_update_pos.cpp"/>
-          <File Name="6DOF_obj_prescribed-motion.cpp"/>
-          <File Name="6DOF_obj_transform.cpp"/>
           <File Name="6DOF_obj_solve.cpp"/>
           <File Name="6DOF_obj_rotation.cpp"/>
-          <File Name="6DOF_obj_interface.cpp"/>
           <File Name="6DOF_obj_forcing.cpp"/>
-          <VirtualDirectory Name="Motion File">
-            <File Name="6DOF_obj_motion-file_read.cpp"/>
-            <File Name="6DOF_obj_motion-file_ipol.cpp"/>
-            <File Name="6DOF_obj_motion-file.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Initialize">
             <File Name="6DOF_obj_ini_position.cpp"/>
             <File Name="6DOF_obj_ini_parameters.cpp"/>
@@ -1866,23 +1874,33 @@
             <File Name="6DOF_obj_print_normals_vtp.cpp"/>
             <File Name="6DOF_obj_print_ini.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="RayCast">
-            <File Name="6DOF_obj_reini_RK2.cpp"/>
-            <File Name="6DOF_obj_reini_AB2.cpp"/>
-            <File Name="6DOF_obj_ray_z.cpp"/>
-            <File Name="6DOF_obj_ray_y.cpp"/>
-            <File Name="6DOF_obj_ray_x.cpp"/>
-            <File Name="6DOF_obj_ray_io_zcorr.cpp"/>
-            <File Name="6DOF_obj_ray_io_ycorr.cpp"/>
-            <File Name="6DOF_obj_ray_io_x.cpp"/>
-            <File Name="6DOF_obj_ray.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Forces">
             <File Name="6DOF_obj_forces_stl.cpp"/>
             <File Name="6DOF_obj_forces_external.cpp"/>
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
+            <VirtualDirectory Name="Reini">
+              <File Name="6DOF_obj_reini_RK2.cpp"/>
+              <File Name="6DOF_obj_reini_AB2.cpp"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="Ray Cast 3D">
+              <File Name="6DOF_obj_ray3D_z.cpp"/>
+              <File Name="6DOF_obj_ray3D_y.cpp"/>
+              <File Name="6DOF_obj_ray3D_x.cpp"/>
+              <File Name="6DOF_obj_ray3D_io_zcorr.cpp"/>
+              <File Name="6DOF_obj_ray3D_io_ycorr.cpp"/>
+              <File Name="6DOF_obj_ray3D_io_x.cpp"/>
+              <File Name="6DOF_obj_ray3D.cpp"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="Ray Cast 2D">
+              <File Name="6DOF_obj_ray2D_z.cpp"/>
+              <File Name="6DOF_obj_ray2D_y.cpp"/>
+              <File Name="6DOF_obj_ray2D_x.cpp"/>
+              <File Name="6DOF_obj_ray2D_io_y.cpp"/>
+              <File Name="6DOF_obj_ray2D_io_x.cpp"/>
+              <File Name="6DOF_obj_ray2D.cpp"/>
+            </VirtualDirectory>
             <File Name="6DOF_obj_wedge_sym.cpp"/>
             <File Name="6DOF_obj_wedge.cpp"/>
             <File Name="6DOF_obj_triangle_switch_ray.cpp"/>
@@ -2234,6 +2252,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Forcing">
+        <File Name="gc_solid_forcing_lsm.cpp"/>
         <File Name="gc_solid_forcing_topo_update.cpp"/>
         <File Name="gcdf_update.cpp"/>
         <File Name="gc_solid_forcing_interface.cpp"/>
@@ -2271,14 +2290,12 @@
         <File Name="gc_largeval.cpp"/>
         <File Name="gc_largevaladd.cpp"/>
         <File Name="gc_neumann_all.cpp"/>
-        <File Name="gc_neumann_press.cpp"/>
         <File Name="gc_noslip.cpp"/>
         <File Name="gc_potential.cpp"/>
         <File Name="gc_start.cpp"/>
         <File Name="gc_atmosphere.cpp"/>
         <File Name="gc_outflow.cpp"/>
         <File Name="gc_fbvel.cpp"/>
-        <File Name="gc_fbpress.cpp"/>
         <File Name="gc_gravity_press.cpp"/>
         <File Name="gc_lsm.cpp"/>
         <File Name="gc_neumann.cpp"/>
@@ -2347,15 +2364,6 @@
         <File Name="gc_count_pt_resize.cpp"/>
         <File Name="gc_cval_parax.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="FBupdate">
-        <File Name="gcfb_gcx_fb.cpp"/>
-        <File Name="gcfb_update.cpp"/>
-        <File Name="gcfb_buildflag.cpp"/>
-        <File Name="gcfb_dist.cpp"/>
-        <File Name="gcfb_gcb.cpp"/>
-        <File Name="gcfb_cellmem.cpp"/>
-        <File Name="gcfb_gcb_fb.cpp"/>
-      </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
       <VirtualDirectory Name="Solidupdate">
         <File Name="gcsolid_gcb_update.cpp"/>
@@ -2404,7 +2412,6 @@
       <VirtualDirectory Name="Ini">
         <File Name="driver_ini_sflow.cpp"/>
         <File Name="driver_ini_ptf.cpp"/>
-        <File Name="driver_ini_nsewave.cpp"/>
         <File Name="driver_ini_nhflow.cpp"/>
         <File Name="driver_ini_fnpf.cpp"/>
         <File Name="driver_ini_cfd.cpp"/>
@@ -2598,6 +2605,8 @@
         </VirtualDirectory>
         <File Name="vtu3D.cpp"/>
         <VirtualDirectory Name="Probes">
+          <File Name="probe_vel_theory.cpp"/>
+          <File Name="probe_vel.cpp"/>
           <File Name="probe_pressure.cpp"/>
           <File Name="probe_line.cpp"/>
           <File Name="probe_point.cpp"/>
@@ -2670,14 +2679,13 @@
         <File Name="driver_logic_cfd.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
+        <File Name="driver_loop_ptf.cpp"/>
         <File Name="driver_loop_ngx.cpp"/>
         <File Name="driver_loop_cfd_sf.cpp"/>
         <File Name="driver_loop_fnpf.cpp"/>
         <File Name="driver_loop_cfd_df.cpp"/>
-        <File Name="driver_loop_ptf.cpp"/>
         <File Name="driver_loop_nhflow.cpp"/>
         <File Name="driver_loop_cfd.cpp"/>
-        <File Name="driver_loop_nsewave.cpp"/>
       </VirtualDirectory>
       <File Name="ini.cpp"/>
     </VirtualDirectory>
@@ -2908,6 +2916,7 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_probes.cpp"/>
           <File Name="iowave_timeseries.cpp"/>
           <File Name="iowave_precalc_decomp_space_dirichlet.cpp"/>
           <File Name="iowave_precalc_relax_func.cpp"/>

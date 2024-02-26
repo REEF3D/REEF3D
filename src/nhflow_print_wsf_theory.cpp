@@ -42,17 +42,13 @@ nhflow_print_wsf_theory::nhflow_print_wsf_theory(lexer *p, fdm_nhf *d, ghostcell
 	}
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_WSF",0777);
 
     if(p->mpirank==0 && p->P50>0)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-NHFLOW-WSF-HG-THEORY.dat");
-
-	if(p->P14==1)
-	  wsfout.open("./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG-THEORY.dat");
+    wsfout.open("./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG-THEORY.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;

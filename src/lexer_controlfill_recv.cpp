@@ -204,7 +204,7 @@ void lexer::ctrlrecv()
     A543 = ictrl[ii];
 	ii++;
     A544 = dctrl[dd];
-	dd++;
+	dd++;    A545 = dctrl[dd];	dd++;
     A550 = ictrl[ii];
 	ii++;
     A551 = ictrl[ii];
@@ -927,8 +927,6 @@ void lexer::ctrlrecv()
 	ii++;
     P12 = ictrl[ii];
 	ii++;
-	P14 = ictrl[ii];
-	ii++;
     P15 = ictrl[ii];
 	ii++;
 	P18 = ictrl[ii];
@@ -1020,13 +1018,7 @@ void lexer::ctrlrecv()
     P64 = ictrl[ii];
 	ii++;
     P65 = ictrl[ii];
-	ii++;
-	P66 = ictrl[ii];
-	ii++;
-	P67 = ictrl[ii];
-	ii++;
-    P68 = ictrl[ii];
-	ii++;
+	ii++;    P66 = ictrl[ii];	ii++;
     P71 = ictrl[ii];
 	ii++;
     P72 = ictrl[ii];
@@ -1098,7 +1090,7 @@ void lexer::ctrlrecv()
 	P151 = ictrl[ii];
 	ii++;
 	P152 = ictrl[ii];
-	ii++;
+	ii++;    P166 = ictrl[ii];	ii++;	P167 = ictrl[ii];	ii++;    P168 = ictrl[ii];	ii++;
 	P180 = ictrl[ii];
 	ii++;
 	P181 = ictrl[ii];
@@ -1676,20 +1668,8 @@ void lexer::ctrlrecv()
 	dd++;
 	X211_r = dctrl[dd];
 	dd++;	
-    X221 = ictrl[ii];
-	ii++;
-	X221_xs = dctrl[dd];
-	dd++;
-    X221_xe = dctrl[dd];
-	dd++;
-    X221_ys = dctrl[dd];
-	dd++;
-    X221_ye = dctrl[dd];
-	dd++;
-    X221_zs = dctrl[dd];
-	dd++;
-    X221_ze = dctrl[dd];
-	dd++;
+    X240 = ictrl[ii];
+	ii++;    X241 = dctrl[dd];	dd++;    X242_x = dctrl[dd];	dd++;    X242_y = dctrl[dd];	dd++;    X242_z = dctrl[dd];	dd++;    X243 = dctrl[dd];	dd++;
 	X310 = ictrl[ii];
 	ii++;	
     X311 = ictrl[ii];
@@ -2265,17 +2245,7 @@ void lexer::ctrlrecv()
     Darray(P65_x,P65);  
 	Darray(P65_y,P65); 
 	Darray(P65_z,P65);  
-	}
-	
-	if(P67>0)
-	Darray(P67_x,P67); 
-
-    if(P68>0)
-    {
-	Darray(P68_x,P68);
-    Darray(P68_zs,P68);
-    Darray(P68_ze,P68);
-    }
+	}    if(P66>0)	{    Darray(P66_x,P66);  	Darray(P66_y,P66); 	Darray(P66_z,P66);  	}
 	
 	if(P81>0)
 	{
@@ -2305,7 +2275,7 @@ void lexer::ctrlrecv()
 	}
 	
 	if(P123>0)
-	Darray(P123_y,P123);
+    Darray(P123_y,P123);
 	
 	if(P124>0)
 	Darray(P124_x,P124);
@@ -2320,7 +2290,7 @@ void lexer::ctrlrecv()
 	Darray(P133_y,P133);
     
     if(P134>0)
-	Darray(P134_y,P134);
+    Darray(P134_y,P134);	if(P167>0)	Darray(P167_x,P167);     if(P168>0)    {	Darray(P168_x,P168);    Darray(P168_zs,P168);    Darray(P168_ze,P168);    }
     
     if(P184>0)
 	{
@@ -3283,23 +3253,7 @@ for(n=0;n<F369;++n)
     dd++;
 	P65_z[n] = dctrl[dd];
     dd++;
-    }
-	
-	for(n=0;n<P67;++n)
-    {
-    P67_x[n] = dctrl[dd];
-    dd++;
-    }
-
-    for(n=0;n<P68;++n)
-    {
-    P68_x[n] = dctrl[dd];
-    dd++;
-    P68_zs[n] = dctrl[dd];
-    dd++;
-    P68_ze[n] = dctrl[dd];
-    dd++;
-    }
+    }    for(n=0;n<P66;++n)    {    P66_x[n] = dctrl[dd];    dd++;    P66_y[n] = dctrl[dd];    dd++;	P66_z[n] = dctrl[dd];    dd++;    }
 	
 	for(n=0;n<P81;++n)
     {
@@ -3369,7 +3323,7 @@ for(n=0;n<F369;++n)
     {
     P134_y[n] = dctrl[dd];
     dd++;
-    }
+    }    for(n=0;n<P167;++n)    {    P167_x[n] = dctrl[dd];    dd++;    }    for(n=0;n<P168;++n)    {    P168_x[n] = dctrl[dd];    dd++;    P168_zs[n] = dctrl[dd];    dd++;    P168_ze[n] = dctrl[dd];    dd++;    }
     
     for(n=0;n<P184;++n)
     {
@@ -3746,4 +3700,4 @@ for(n=0;n<F369;++n)
     Z11_n[n] = dctrl[dd];
     dd++;
     }
-}
+}

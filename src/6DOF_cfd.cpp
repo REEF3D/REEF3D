@@ -27,6 +27,7 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"ddweno_f_nug.h"
 
+
 sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->mpirank==0)
@@ -52,14 +53,17 @@ void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
         // Advance body in time
         fb_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);
         
-        // Update position and fb level set
-        fb_obj[nb]->transform(p,a,pgc,finalise);  //----> main time consumer
+        // Update transformation matrices
+        fb_obj[nb]->quat_matrices();
+        
+        // Update position and trimesh
+        fb_obj[nb]->update_position_3D(p,a,pgc,finalise);  //----> main time consumer
         
         // Update forcing terms
-        fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+        fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
         
         // Save
-        fb_obj[nb]->interface(p,true);
+        fb_obj[nb]->update_fbvel(p);
         
         // Print
         if(finalise==true)
@@ -67,15 +71,19 @@ void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
             fb_obj[nb]->saveTimeStep(p,iter);
             
             if(p->X50==1)
-            fb_obj[nb]->print_vtp(p,a,pgc);
+            fb_obj[nb]->print_vtp(p,pgc);
             
             if(p->X50==2)
-            fb_obj[nb]->print_stl(p,a,pgc);
+            fb_obj[nb]->print_stl(p,pgc);
             
-            fb_obj[nb]->print_parameter(p, a, pgc);
+            fb_obj[nb]->print_parameter(p,pgc);
         }
     }
     
     // ghostcell update
     pgc->gcdf_update(p,a);
+}
+
+void sixdof_cfd::start_twoway(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
+{
 }

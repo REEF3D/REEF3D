@@ -36,47 +36,8 @@ void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 	
-	if(p->P14==0)
-	{
-    if(num<10)
-	sprintf(name,"REEF3D-NHFLOW-FSF-00000%i.pvtp",num);
+	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp",num);
 
-	if(num<100&&num>9)
-	sprintf(name,"REEF3D-NHFLOW-FSF-0000%i.pvtp",num);
-
-	if(num<1000&&num>99)
-	sprintf(name,"REEF3D-NHFLOW-FSF-000%i.pvtp",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"REEF3D-NHFLOW-FSF-00%i.pvtp",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"REEF3D-NHFLOW-FSF-0%i.pvtp",num);
-
-	if(num>99999)
-	sprintf(name,"REEF3D-NHFLOW-FSF-%i.pvtp",num);
-	}
-
-	if(p->P14==1)
-	{
-    if(num<10)
-	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-00000%i.pvtp",num);
-
-	if(num<100&&num>9)
-	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-0000%i.pvtp",num);
-
-	if(num<1000&&num>99)
-	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-000%i.pvtp",num);
-
-	if(num<10000&&num>999)
-	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-00%i.pvtp",num);
-
-	if(num<100000&&num>9999)
-	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-0%i.pvtp",num);
-
-	if(num>99999)
-	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%i.pvtp",num);
-	}
 
 	ofstream result;
 	result.open(name);
@@ -135,109 +96,7 @@ void nhflow_vtp_fsf::piecename(lexer *p, fdm_nhf *d, ghostcell *pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	if(n<9)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00000%i-0000%i.vtp",num,n+1);
 
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0000%i-0000%i.vtp",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-000%i-0000%i.vtp",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00%i-0000%i.vtp",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0%i-0000%i.vtp",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-%i-0000%i.vtp",num,n+1);
-	}
-
-	if(n<99&&n>8)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00000%i-000%i.vtp",num,n+1);
-
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0000%i-000%i.vtp",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-000%i-000%i.vtp",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00%i-000%i.vtp",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0%i-000%i.vtp",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-%i-000%i.vtp",num,n+1);
-	}
-	if(n<999&&n>98)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00000%i-00%i.vtp",num,n+1);
-
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0000%i-00%i.vtp",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-000%i-00%i.vtp",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00%i-00%i.vtp",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0%i-00%i.vtp",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-%i-00%i.vtp",num,n+1);
-	}
-
-	if(n<9999&&n>998)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00000%i-0%i.vtp",num,n+1);
-
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0000%i-0%i.vtp",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-000%i-0%i.vtp",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00%i-0%i.vtp",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0%i-0%i.vtp",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-%i-0%i.vtp",num,n+1);
-	}
-
-	if(n>9998)
-	{
-		if(num<10)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00000%i-%i.vtp",num,n+1);
-
-		if(num<100&&num>9)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0000%i-%i.vtp",num,n+1);
-
-		if(num<1000&&num>99)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-000%i-%i.vtp",num,n+1);
-
-		if(num<10000&&num>999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-00%i-%i.vtp",num,n+1);
-
-		if(num<100000&&num>9999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-0%i-%i.vtp",num,n+1);
-
-		if(num>99999)
-		sprintf(pname,"REEF3D-NHFLOW-FSF-%i-%i.vtp",num,n+1);
-	}
-
+    sprintf(pname,"REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,n+1);
 
 }

@@ -33,6 +33,7 @@ density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->DXM), eps(
 	ro_1 = p->W1;
 	alpha_air = p->H2;
 	alpha_water = p->H1;
+    H=0.0;
 
 	material(p);
     

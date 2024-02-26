@@ -783,6 +783,27 @@ double ioflow_v::wave_fsf(lexer *p, ghostcell *pgc, double x)
     return val;
 }
 
+double ioflow_v::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_v::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_v::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
 int ioflow_v::iozonecheck(lexer *p, fdm*a)
 {	
 	int check =1;

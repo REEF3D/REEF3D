@@ -32,10 +32,6 @@ Author: Hans Bihs
 void potentialfile_in::header_read(lexer *p, ghostcell *pgc)
 {
     // Open File
-	if(p->P14==0)
-    sprintf(name,"REEF3D-potentialheader-%i.r3d",p->I240);
-			
-    if(p->P14==1)
     sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialheader-%i.r3d",p->I240);
 	
     

@@ -117,7 +117,7 @@ void print_1Dline::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     iloc[n]=conv((p->P51_x[n]-p->originx)/p->DXM);
     jloc[n]=conv((p->P51_y[n]-p->originy)/p->DXM);
 
-    check=ij_boundcheck(p,a,iloc[n],jloc[n],0);
+    check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
     if(check==1)
     flag[n]=1;

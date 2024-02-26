@@ -126,57 +126,5 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
          }
     }*/
     
-    // NSEWAVE
-    if(p->A10==55)
-    {
-        for(n=0;n<gcgen4_count;++n)
-		{
-		i=gcgen4[n][0];
-		j=gcgen4[n][1];
-        
-        x=xgen(p);
-        y=ygen(p);
-        
-        a->eta(i-1,j)=a->eta(i-2,j)=a->eta(i-3,j)=wave_eta(p,pgc,x,y);        
-            
-            KLOOP
-            {
-            a->phi(i-1,j,k) = a->eta(i-1,j) + p->phimean - p->pos_z();
-            a->phi(i-2,j,k) = a->eta(i-2,j) + p->phimean - p->pos_z();
-            a->phi(i-3,j,k) = a->eta(i-3,j) + p->phimean - p->pos_z();
-            }
-        }
-        
-
-        for(n=0;n<gcgen1_count;++n)
-		{
-		i=gcgen1[n][0];
-		j=gcgen1[n][1];
-            
-            a->P(i-1,j)=0.0;
-            double d=0.0;
-            double epsi=p->A440*p->DXM;
-            
-            KULOOP
-            {
-            phival = 0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
-            
-                if(phival>epsi)
-                H=1.0;
-
-                if(phival<-epsi)
-                H=0.0;
-
-                if(fabs(phival)<=epsi)
-                H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-                
-                a->P(i-1,j) += a->u(i-1,j,k)*p->DXM*H;
-                d+=p->DXM*H;
-            }
-            a->P(i-1,j)/=d;
-            a->P(i-3,j)=a->P(i-2,j)=a->P(i-1,j);
-
-        }
-        
-    }
+    
 }

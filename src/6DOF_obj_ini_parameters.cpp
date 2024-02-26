@@ -75,13 +75,6 @@ void sixdof_obj::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
         p->rfbi = p->X211_r;
 	}
 
-    p->ufbn = p->ufbi;
-    p->vfbn = p->vfbi;
-    p->wfbn = p->wfbi;
-    p->pfbn = p->pfbi;   
-    p->qfbn = p->qfbi;   
-    p->rfbn = p->rfbi;
-    
     // external velocity
       Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
     
@@ -97,10 +90,10 @@ void sixdof_obj::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
         Qext = p->X211_q;
         Rext = p->X211_r;
     }
-    if (p->X221==1)
+    if (p->X240==1)
     {
         //motion_vec(p,a,pgc);
-        cout<<"not implemented yet"<<endl;
+        cout<<"motion file"<<endl;
     }
     
 

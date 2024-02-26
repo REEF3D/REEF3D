@@ -351,20 +351,6 @@ void driver::logic_cfd()
 	pconcdiff=new idiff2_FS(p);
 
 
-
-// Wave Models
-    if(p->A10==6 || p->A10==0)
-    pnse = new nsewave_v(p,a,pgc,pheat,pconc);
-
-    if(p->A10==55)
-    {
-    if(p->A410==1)
-    pnse = new nsewave_f(p,a,pgc,pheat,pconc);
-
-    if(p->A410==2)
-    pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
-    }
-
 // Free Surface
     if(p->F10==1)
     poneph = new onephase_f(p,a,pgc);

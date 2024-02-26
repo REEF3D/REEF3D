@@ -36,7 +36,7 @@ probe_point::probe_point(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P61)
 	p->Iarray(flag,probenum);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_ProbePoint",0777);
 	
 	pout = new ofstream[probenum];
@@ -47,10 +47,6 @@ probe_point::probe_point(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P61)
 		// open file
 		for(n=0;n<probenum;++n)
 		{
-		if(p->P14==0)
-		sprintf(name,"REEF3D-CFD-Probe-Point-%i.dat",n+1);
-		
-		if(p->P14==1)
 		sprintf(name,"./REEF3D_CFD_ProbePoint/REEF3D-CFD-Probe-Point-%i.dat",n+1);
 		
 		pout[n].open(name);
@@ -137,7 +133,7 @@ void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     
 	kloc[n]=p->posc_k(p->P61_z[n]);
 
-    check=boundcheck(p,a,iloc[n],jloc[n],kloc[n],0);
+    check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
 
     if(check==1)
     flag[n]=1;

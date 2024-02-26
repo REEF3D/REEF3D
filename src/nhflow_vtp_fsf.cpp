@@ -37,7 +37,7 @@ nhflow_vtp_fsf::nhflow_vtp_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	printcount=0;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_VTP_FSF",0777);
     
     // 3D
@@ -92,7 +92,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     d->eta.ggcpol(p);
     
 	if(p->mpirank==0)
+    {
     pvtu(p,d,pgc);
+    //pvd(p,d,pgc);
+    }
     
 	name_iter(p,d,pgc);
 	
@@ -273,7 +276,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     {
 	jj=j;
     j=0;
-	ffn=float(d->UH[IJK]);
+	ffn=float(d->V[IJK]);
     j=jj;
     }
     

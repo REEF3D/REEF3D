@@ -35,7 +35,8 @@ class nhflow_vtp_fsf;
 class nhflow_vtp_bed;
 class nhflow_state;
 class nhflow_breaking_log;
-class potentialfile_out;
+class nhflow_vel_probe;
+class nhflow_vel_probe_theory;
 class ioflow;
 
 #ifndef NHFLOW_VTU3D_H_
@@ -78,12 +79,13 @@ private:
     nhflow_print_wsfline_y *pwsfline_y;
     nhflow_print_runup_gage_x *prunupx;
     nhflow_print_runup_max_gage_x *prunupmaxx;
-    potentialfile_out *ppotentialfile;
     nhflow_vtp_fsf *pfsf;
     nhflow_vtp_bed *pbed;
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
 	force_ale **pforce_ale;
+    nhflow_vel_probe *pvel;
+    nhflow_vel_probe_theory *pveltheo;
 };
 
 #endif

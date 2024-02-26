@@ -34,11 +34,12 @@ driver::driver(int& argc, char **argv)
 {
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
-
+    cout<<fixed;
+    
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2024 Hans Bihs"<<endl;
-    sprintf(version,"v_240207");
+    sprintf(version,"v_240226");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl<<endl;
     }
@@ -60,9 +61,6 @@ driver::driver(int& argc, char **argv)
 
     if(p->A10==4)
     cout<<endl<<"REEF3D::PTF" <<endl<<endl;
-
-    if(p->A10==55)
-    cout<<endl<<"REEF3D::NSEWAVE"<<endl<<endl;
 
     if(p->A10==5)
     cout<<endl<<"REEF3D::NHFLOW"<<endl<<endl;
@@ -117,7 +115,7 @@ driver::driver(int& argc, char **argv)
     }
 
     // fixed grid - PTF & NSEWAVE & CFD
-    if(p->A10==4 || p->A10==55 || p->A10==6)
+    if(p->A10==4 || p->A10==6)
     {
         p->flagini();
         p->gridini_patchBC();
@@ -130,9 +128,6 @@ driver::driver(int& argc, char **argv)
 
         if(p->A10==4)
         ptf_driver();
-
-        if(p->A10==55)
-        nsewave_driver();
 
         if(p->A10==6)
         cfd_driver();
@@ -163,26 +158,6 @@ void driver::cfd_driver()
 
     else
     loop_cfd(a);
-}
-
-void driver::nsewave_driver()
-{
-    if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
-
-	a=new fdm(p);
-
-	aa=a;
-    pgc->fdm_update(a);
-
-    logic_cfd();
-
-    driver_ini_nsewave();
-
-	driver_ini_cfd();
-
-    // Start MAINLOOP
-    loop_nsewave(a);
 }
 
 void driver::nhflow_driver()

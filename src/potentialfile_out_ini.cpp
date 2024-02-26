@@ -30,7 +30,7 @@ void potentialfile_out::initialize(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     filecount=0;
     
-    if(p->mpirank==0 && p->P14==1)
+    if(p->mpirank==0)
 	mkdir("./REEF3D_PotentialFile",0777);
 	
 	if(p->mpirank==0 && p->P240>0)

@@ -31,7 +31,7 @@ Author: Hans Bihs
 topo_vtp::topo_vtp(lexer* p, fdm *a, ghostcell *pgc)
 {
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_Topo",0777);
 	
 	topoprintcount=0;

@@ -55,7 +55,7 @@ void driver::loop_cfd_sf(fdm* a)
             cout<<"------------------------------------"<<endl;
             cout<<p->count<<endl;
 
-            cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
+            cout<<"simtime: "<<p->simtime<<endl;
             cout<<"timestep: "<<p->dt<<endl;
             cout<<"sftimestep: "<<p->sfdt<<" sfmax: "<<p->sfmax<<endl;
             

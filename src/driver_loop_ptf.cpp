@@ -52,7 +52,7 @@ void driver::loop_ptf(fdm* a)
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
+        cout<<"simtime: "<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
 		if(p->B90>0 && p->B92<=11)

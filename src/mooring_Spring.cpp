@@ -40,7 +40,7 @@ void mooring_Spring::initialize(lexer *p, ghostcell *pgc)
 	k = p->X312_k[line];
     T0 = p->X312_T0[line];
 
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	{
 		char str[1000];
 		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);

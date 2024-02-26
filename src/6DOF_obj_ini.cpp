@@ -45,10 +45,10 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
     
     // Initialise folder structure
     if(p->X50==1)
-	print_ini_vtp(p,a,pgc);
+	print_ini_vtp(p,pgc);
     
     if(p->X50==2)
-    print_ini_stl(p,a,pgc);
+    print_ini_stl(p,pgc);
  
     // Initialise processor boundaries
     ini_parallel(p,a,pgc);
@@ -76,8 +76,8 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
     pgc->start4a(p,a->fb,50);
     
     // Initialise global variables
-	interface(p,true);
-	maxvel(p,a,pgc);
+	update_fbvel(p);
+	maxvel(p,pgc);
    
     // Initialise floating fields
      ULOOP
@@ -99,10 +99,10 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
 
     // Print initial body 
     if(p->X50==1)
-    print_vtp(p,a,pgc);
+    print_vtp(p,pgc);
     
     if(p->X50==2)
-    print_stl(p,a,pgc);
+    print_stl(p,pgc);
 
 	// Mooring
 	if(p->X310==0)
@@ -121,10 +121,8 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
 		Mme.resize(p->mooring_count);
 		Nme.resize(p->mooring_count);
 
-		if(p->mpirank==0 && p->P14==1)
-		{
-			mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
-		}		
+		if(p->mpirank==0)
+		mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
 
 		pmooring.reserve(p->mooring_count);
 		X311_xen.resize(p->mooring_count,0.0);
@@ -177,10 +175,7 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
 
         if(p->mpirank==0)
         {
-            if(p->P14==1)
-            {
-                mkdir("./REEF3D_CFD_6DOF_Net",0777);	
-            }
+            mkdir("./REEF3D_CFD_6DOF_Net",0777);	
         }
         else
         {
@@ -240,3 +235,43 @@ void sixdof_obj::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
         MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
     }
 }    
+
+double sixdof_obj::ramp_vel(lexer *p)
+{
+    double f=1.0;
+    
+    if(p->X205==1 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+    {
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts);
+    }
+    
+    if(p->X205==2 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+    {
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts)-(1.0/PI)*sin(PI*(p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts));
+    }
+    
+    if(p->X206==1 && p->simtime<p->X206_ts)
+    f=0.0;
+    
+    return f;
+}
+
+double sixdof_obj::ramp_draft(lexer *p)
+{
+    double f=1.0;
+    
+    if(p->X205==1 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
+    {
+    f = p->simtime/(p->X207_te-p->X207_ts);
+    }
+    
+    if(p->X205==2 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
+    {
+    f = p->simtime/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X207_te-p->X207_ts)));
+    }
+    
+    if(p->X207==1 && p->simtime<p->X207_ts)
+    f=0.0;
+    
+    return f;
+}

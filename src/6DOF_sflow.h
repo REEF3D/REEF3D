@@ -103,7 +103,6 @@ private:
 
     double Hsolidface(lexer*, int,int);
     void updatePosition(lexer*, ghostcell*);
-    void updateForcing_hemisphere(lexer*, ghostcell*);
     void updateForcing_box(lexer*, ghostcell*);
     void updateForcing_stl(lexer*, ghostcell*);
     void updateForcing_oned(lexer*, ghostcell*);
@@ -118,6 +117,9 @@ private:
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
 
+    int number6DOF;
+    vector<sixdof_obj*> fb_obj;
+    
     double phi, theta, psi;
     double Uext, Vext, Wext, Pext, Qext, Rext;
     Eigen::Matrix3d quatRotMat;

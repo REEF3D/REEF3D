@@ -32,7 +32,7 @@ Author: Hans Bihs
 force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
 {
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SOLID",0777);
 	
     forceprintcount=0;

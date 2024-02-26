@@ -28,9 +28,9 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
 {
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
     {
         mkdir("./REEF3D_CFD_6DOF_VTP", 0777);
         mkdir("./REEF3D_CFD_6DOF_Normals_VTP", 0777);
@@ -40,19 +40,12 @@ void sixdof_obj::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
     ofstream print;
     char str[1000];
 
-	if(p->P14==0)
-    sprintf(str,"REEF3D_6DOF_position_%i.dat",n6DOF);
-	if(p->P14==1)
     sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
 	
     print.open(str);
 	print<<"time \t XG \t YG \t ZG \t Phi \t Theta \t Psi"<<endl;
 	print.close();
     
-	
-	if(p->P14==0)
-    sprintf(str,"REEF3D_6DOF_velocity_%i.dat",n6DOF);
-	if(p->P14==1)
     sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
 	
     print.open(str);
@@ -60,9 +53,6 @@ void sixdof_obj::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
     print.close();
     
 
-    if(p->P14==0)
-    sprintf(str,"REEF3D_6DOF_forces_%i.dat",n6DOF);
-	if(p->P14==1)
     sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 	
     print.open(str);
@@ -77,9 +67,9 @@ void sixdof_obj::print_ini_vtp(lexer *p, fdm *a, ghostcell *pgc)
 	printtime_wT[qn]=p->P35_ts[qn];
 }
 
-void sixdof_obj::print_ini_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
 {
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
     {
         mkdir("./REEF3D_CFD_6DOF_STL", 0777);
         mkdir("./REEF3D_CFD_6DOF", 0777);
@@ -88,19 +78,12 @@ void sixdof_obj::print_ini_stl(lexer *p, fdm *a, ghostcell *pgc)
     ofstream print;
     char str[1000];
 
-	if(p->P14==0)
-    sprintf(str,"REEF3D_6DOF_position_%i.dat",n6DOF);
-	if(p->P14==1)
     sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
 	
     print.open(str);
 	print<<"time \t XG \t YG \t ZG \t Phi \t Theta \t Psi"<<endl;
 	print.close();
     
-	
-	if(p->P14==0)
-    sprintf(str,"REEF3D_6DOF_velocity_%i.dat",n6DOF);
-	if(p->P14==1)
     sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
 	
     print.open(str);
@@ -108,9 +91,6 @@ void sixdof_obj::print_ini_stl(lexer *p, fdm *a, ghostcell *pgc)
     print.close();
     
 
-    if(p->P14==0)
-    sprintf(str,"REEF3D_6DOF_forces_%i.dat",n6DOF);
-	if(p->P14==1)
     sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 	
     print.open(str);

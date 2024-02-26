@@ -33,14 +33,8 @@ Author: Hans Bihs
 void potentialfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {    
     
-    
-    // Open File 
-	if(p->P14==0)
-    sprintf(name0,"REEF3D-potentialfile-%i-%i.r3d",p->I230,q0);
-			
-    if(p->P14==1)
+    // Open File
     sprintf(name,"./REEF3D_PotentialFile/REEF3D-flowfile-%i-%i.r3d",p->I230,q0);
-    
     
     // read header part
     potentialfile.open(name, ios::binary);

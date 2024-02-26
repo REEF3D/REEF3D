@@ -29,32 +29,28 @@ Author: Hans Bihs
 
 gage_discharge_window_x::gage_discharge_window_x(lexer *p, fdm* a, ghostcell *pgc)
 {
-	p->Iarray(iloc,p->P68);
-	p->Iarray(flag,p->P68);
-	p->Darray(q,p->P68);
+	p->Iarray(iloc,p->P168);
+	p->Iarray(flag,p->P168);
+	p->Darray(q,p->P168);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_Log",0777);
 	
-    if(p->mpirank==0 && p->P68>0)
+    if(p->mpirank==0 && p->P168>0)
     {
     // open file
-	if(p->P14==0)
-    qout.open("REEF3D-discharge_window_x.dat");
-	
-	if(p->P14==1)
 	qout.open("./REEF3D_Log/REEF3D-discharge_window_x.dat");
 
-    qout<<"number of x-discharge window gages:  "<<p->P68<<endl<<endl;
+    qout<<"number of x-discharge window gages:  "<<p->P168<<endl<<endl;
     qout<<"x_coord   zs   ze"<<endl;
-    for(n=0;n<p->P68;++n)
-    qout<<n+1<<"\t "<<p->P68_x[n]<<" "<<p->P68_zs[n]<<" "<<p->P68_ze[n]<<endl;
+    for(n=0;n<p->P168;++n)
+    qout<<n+1<<"\t "<<p->P168_x[n]<<" "<<p->P168_zs[n]<<" "<<p->P168_ze[n]<<endl;
 
     qout<<endl<<endl;
 
     qout<<"iter";
-    for(n=0;n<p->P68;++n)
+    for(n=0;n<p->P168;++n)
     qout<<"\t P"<<n+1;
 
     qout<<endl<<endl;
@@ -72,11 +68,11 @@ void gage_discharge_window_x::start(lexer *p, fdm *a, ghostcell *pgc)
 {
     double epsi,H;
 
-    for(n=0;n<p->P68;++n)
+    for(n=0;n<p->P168;++n)
     q[n]=0.0;
 
 	
-    for(n=0;n<p->P68;++n)
+    for(n=0;n<p->P168;++n)
     {
 	area=0.0;
 	Ai=0.0;
@@ -108,7 +104,7 @@ void gage_discharge_window_x::start(lexer *p, fdm *a, ghostcell *pgc)
         if(flag[n]==1)
         JLOOP
         KLOOP
-        if(p->ZP[KP]>p->P68_zs[n] && p->ZP[KP]<=p->P68_ze[n])
+        if(p->ZP[KP]>p->P168_zs[n] && p->ZP[KP]<=p->P168_ze[n])
         PCHECK
         {
             epsi = 1.6*p->DXN[KP];
@@ -131,18 +127,18 @@ void gage_discharge_window_x::start(lexer *p, fdm *a, ghostcell *pgc)
     }
 	
 	
-    for(n=0;n<p->P68;++n)
+    for(n=0;n<p->P168;++n)
     q[n]=pgc->globalsum(q[n]);
 	
-	if(p->mpirank==0 && p->P66==1)
-	for(n=0;n<p->P68;++n)
+	if(p->mpirank==0 && p->P166==1)
+	for(n=0;n<p->P168;++n)
 	cout<<n+1<<setprecision(6)<<" Qi: "<<q[n]<<endl;  
 
     // write to file
     if(p->mpirank==0)
     {
     qout<<setprecision(9)<<p->count<<"\t";
-    for(n=0;n<p->P68;++n)
+    for(n=0;n<p->P168;++n)
     qout<<setprecision(6)<<q[n]<<"  \t  ";
     qout<<endl;
     }
@@ -151,12 +147,12 @@ void gage_discharge_window_x::start(lexer *p, fdm *a, ghostcell *pgc)
 void gage_discharge_window_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
 	
-	for(n=0;n<p->P68;++n)
+	for(n=0;n<p->P168;++n)
 	flag[n]=0;
 
-    for(n=0;n<p->P68;++n)
+    for(n=0;n<p->P168;++n)
     {
-    iloc[n] = p->posc_i(p->P68_x[n]);
+    iloc[n] = p->posc_i(p->P168_x[n]);
 	
 	if(iloc[n]>=0 && iloc[n]<p->knox)
 	flag[n]=1;

@@ -47,26 +47,8 @@ void mooring_Catenary::print(lexer *p)
 	{
 		printtime+=p->P30;
 		
-		if(p->P14==1)
-		{
-			if(num<10)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-00000%i.vtk",line,num);
 
-			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-0000%i.vtk",line,num);
-
-			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-000%i.vtk",line,num);
-
-			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-00%i.vtk",line,num);
-
-			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-0%i.vtk",line,num);
-
-			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%i-%i.vtk",line,num);
-		}
+        sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
 		
 		// Reconstruct line
 		buildLine(p);

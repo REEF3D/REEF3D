@@ -35,7 +35,6 @@ void ghostcell::gcparax7co(lexer* p,double *f,int gcv)
     i=p->gcxco7[0][q][0];
     j=p->gcxco7[0][q][1];
     k=p->gcxco7[0][q][2];
-        
 
         send1[count] = f[FIJK];  
         ++count;
@@ -100,7 +99,6 @@ void ghostcell::gcparax7co(lexer* p,double *f,int gcv)
 	MPI_Isend(send2,p->gcxco7_count[1]*paramargin,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
 	MPI_Irecv(recv2,p->gcxco7_count[1]*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
     }
-
 
 
 //  WAIT

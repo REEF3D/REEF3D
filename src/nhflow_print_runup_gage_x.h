@@ -29,7 +29,6 @@ class fdm_nhf;
 class ghostcell;
 class field;
 class ioflow;
-class wave_theory;
 class slice;
 
 using namespace std;
@@ -53,16 +52,14 @@ private:
     double *xloc,**xloc_all;
     double *yloc;
     double *zloc,**zloc_all;
-    int *jloc,*flag,**flag_all;
+    int *jloc;
     int n,q;
     ofstream wsfout;
     char name[250];
 
     double xcoor;
 	
-	wave_theory *pwave;
 
-    int maxknox,sumknox;
 
 };
 

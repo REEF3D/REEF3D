@@ -32,7 +32,7 @@ boundarycheck::~boundarycheck()
 {
 }
 
-int boundarycheck::boundcheck(lexer *p, fdm *a, int ii, int jj, int kk, int margin)
+int boundarycheck::boundcheck(lexer *p,  int ii, int jj, int kk, int margin)
 {
     check=0;
 
@@ -54,7 +54,7 @@ int boundarycheck::boundcheck(lexer *p, fdm *a, int ii, int jj, int kk, int marg
     return check;
 }
 
-int boundarycheck::boundcheck_ik(lexer *p, fdm *a, int ii, int jj, int kk, int margin)
+int boundarycheck::boundcheck_ik(lexer *p, int ii, int jj, int kk, int margin)
 {
     check=0;
 
@@ -73,7 +73,7 @@ int boundarycheck::boundcheck_ik(lexer *p, fdm *a, int ii, int jj, int kk, int m
     return check;
 }
 
-int boundarycheck::positioncheck(lexer *p, fdm *a, double posx, double posy, double posz, int margin)
+int boundarycheck::positioncheck(lexer *p, double posx, double posy, double posz, int margin)
 {
 	int ii,jj,kk;	
     check=0;
@@ -124,7 +124,7 @@ int boundarycheck::maxboundcheck(lexer *p, int ii, int jj, int kk, int margin)
     return check;
 }
 
-int boundarycheck::ij_boundcheck(lexer *p, fdm *a, int ii, int jj, int margin)
+int boundarycheck::ij_boundcheck(lexer *p, int ii, int jj, int margin)
 {
     check=0;
     int c;
@@ -145,7 +145,7 @@ int boundarycheck::ij_boundcheck(lexer *p, fdm *a, int ii, int jj, int margin)
     return check;
 }
 
-int boundarycheck::ij_boundcheck_topo(lexer *p, fdm *a, int ii, int jj, int margin)
+int boundarycheck::ij_boundcheck_topo(lexer *p, int ii, int jj, int margin)
 {
     check=0;
     int c;

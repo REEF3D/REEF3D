@@ -26,6 +26,7 @@ Author: Hans Bihs
 
 density_sf::density_sf(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
+    H=0.0;
 }
 
 density_sf::~density_sf()

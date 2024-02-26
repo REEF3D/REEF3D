@@ -60,27 +60,11 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
         temp[IJ]=0;
         d->eta(i,j) = p->A544 - d->depth(i,j);
         WL(i,j) = d->eta(i,j) + d->depth(i,j);
-        //cout<<d->eta(i,j)<<" "<<WL(i,j)<<endl;
         }
     }
     
     SLICELOOP4
     p->wet[IJ] = temp[IJ];
-    
-    //------------
-    /*
-    SLICELOOP4
-    {
-        if(WL(i,j)>=p->A544)
-        p->wet[IJ]=1;
-               
-        if(WL(i,j)<p->A544)
-        {
-        p->wet[IJ]=0;
-        d->eta(i,j) = p->A544 - d->depth(i,j);
-        WL(i,j) = d->eta(i,j) + d->depth(i,j);
-        }
-    }*/
     
     //------------
     LOOP
@@ -121,7 +105,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     }
     
     SLICELOOP4
-    if(WL(i,j)<=10.0*p->A544)
+    if(WL(i,j)<=p->A545*p->A544)
     p->deep[IJ]=0;
 
     pgc->gcsl_start4Vint(p,p->deep,50);

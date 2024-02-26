@@ -34,6 +34,8 @@ class fnpf_vtp_bed;
 class fnpf_state;
 class fnpf_breaking_log;
 class fnpf_print_Hs;
+class fnpf_vel_probe;
+class fnpf_vel_probe_theory;
 class potentialfile_out;
 class ioflow;
 
@@ -81,6 +83,8 @@ private:
     fnpf_breaking_log *pbreaklog;
 	force_ale **pforce_ale;
     fnpf_print_Hs *phs;
+    fnpf_vel_probe *pvel;
+    fnpf_vel_probe_theory *pveltheo;
 };
 
 #endif

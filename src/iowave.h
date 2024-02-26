@@ -126,6 +126,10 @@ public:
     
 	
     virtual double wave_fsf(lexer*,ghostcell*,double);
+    virtual double wave_xvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_yvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_zvel(lexer*,ghostcell*,double,double,double);
+    
 	virtual int iozonecheck(lexer*,fdm*);
 	virtual void full_initialize(lexer*,fdm*,ghostcell*);
     void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);

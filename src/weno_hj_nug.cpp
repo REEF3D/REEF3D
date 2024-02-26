@@ -271,7 +271,6 @@ void weno_hj_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
 
-
 void weno_hj_nug::is()
 {
 	is1 = tttw*pow(q1-2.0*q2+q3, 2.0) + fourth*pow(q1-4.0*q2+3.0*q3, 2.0);

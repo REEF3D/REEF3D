@@ -40,6 +40,7 @@ class reinidisc;
 class mooring;
 class net;
 class vrans;
+class sixdof_motionext;
  
 using namespace std;
 
@@ -60,17 +61,21 @@ public:
     
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
-    void updateForcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
+    void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
 	void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
+    void quat_matrices();
+    void update_position_3D(lexer*, fdm*, ghostcell*, bool);
+    
+    void solve_eqmotion_oneway(lexer*,ghostcell*);
     
     void saveTimeStep(lexer*,int);
-    void print_parameter(lexer*,fdm*,ghostcell*);
-    void print_ini_vtp(lexer*,fdm*,ghostcell*);
-	void print_vtp(lexer*,fdm*,ghostcell*);
-    void print_normals_vtp(lexer*,fdm*,ghostcell*);
-    void print_ini_stl(lexer*,fdm*,ghostcell*);
-	void print_stl(lexer*,fdm*,ghostcell*);
-	void interface(lexer*, bool);
+    void print_parameter(lexer*,ghostcell*);
+    void print_ini_vtp(lexer*,ghostcell*);
+	void print_vtp(lexer*,ghostcell*);
+    void print_normals_vtp(lexer*,ghostcell*);
+    void print_ini_stl(lexer*,ghostcell*);
+	void print_stl(lexer*,ghostcell*);
+	void update_fbvel(lexer*);
     
     double Mass_fb, Vfb, Rfb;
 
@@ -78,7 +83,7 @@ private:
 
 	void ini_parameter_stl(lexer*, fdm*, ghostcell*);
     void ini_fbvel(lexer*, fdm*, ghostcell*);
-    void maxvel(lexer*, fdm*, ghostcell*);
+    void maxvel(lexer*, ghostcell*);
     
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void mooringForces(lexer*,  ghostcell*, double);
@@ -113,10 +118,11 @@ private:
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
-    void update_Position(lexer*, fdm*, ghostcell*, bool);
-    void prescribedMotion_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
-    void prescribedMotion_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
-    void quat_matrices(const Eigen::Vector4d&);
+    void update_Euler_angles(lexer*, ghostcell*, bool);
+    void update_trimesh_3D(lexer*, fdm*, ghostcell*, bool);
+    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
+    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
+    
 
     void get_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
     void get_rot(Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Vector3d&, Eigen::Vector4d&);
@@ -140,7 +146,6 @@ private:
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
     
     
-
     /* Rigid body motion
         - e: quaternions
         - h: angular momentum in body-fixed coordinates
@@ -159,6 +164,8 @@ private:
     
     Eigen::Vector3d omega_B, omega_I;
     
+    Eigen::Matrix<double, 6, 1> u_fb;
+    
     int tricount, entity_count;
     
     double phi, theta, psi;
@@ -166,6 +173,10 @@ private:
     double Uext, Vext, Wext, Pext, Qext, Rext;
     
     double dtn1, dtn2, dtn3;
+    
+    
+    // extmotion
+    sixdof_motionext *pmotion;
 
     
     // Raycast

@@ -47,7 +47,7 @@ void mooring_Catenary::initialize(lexer *p, ghostcell *pgc)
 	p->Darray(F,2);
 	p->Darray(A,2,2);
 
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	{
 		char str[1000];
 		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);

@@ -26,7 +26,6 @@ Author: Hans Bihs
 
 density_rheo::density_rheo(lexer* p) 
 {
-
 }
 
 density_rheo::~density_rheo()
