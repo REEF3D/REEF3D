@@ -122,7 +122,7 @@ void probe_vel::ini_location(lexer *p, fdm *a)
     if(p->j_dir==1)
     jloc[n]=p->posc_j(p->P65_y[n]);
     
-	kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P65_z[n]);
+	kloc[n]=p->posc_k(p->P65_z[n]);
 
     check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
     //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
