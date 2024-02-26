@@ -34,9 +34,8 @@ Author: Hans Bihs
 #include"nhflow_print_wsfline_y.h"
 #include"nhflow_print_runup_gage_x.h"
 #include"nhflow_print_runup_max_gage_x.h"
-/*#include"nhflow_breaking_log.h"
-#include"potentialfile_out.h"
-#include"nhflow_state.h"*/
+#include"nhflow_vel_probe.h"
+#include"nhflow_vel_probe_theory.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -83,6 +82,10 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
     pwsfline_y=new nhflow_print_wsfline_y(p,d,pgc);
     
+    pvel=new nhflow_vel_probe(p,d);
+    
+    pveltheo=new nhflow_vel_probe_theory(p,d);
+    
     prunupx=new nhflow_print_runup_gage_x(p,d,pgc);
     
     prunupmaxx=new nhflow_print_runup_max_gage_x(p,d,pgc);
@@ -128,6 +131,11 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     if(p->P134>0)
 	prunupmaxx->start(p,d,pgc,pflow,d->eta);
     
+    if(p->P65>0)
+	pvel->start(p,d,pgc);
+    
+    if(p->P66>0)
+	pveltheo->start(p,d,pgc,pflow);
     
     pfsf->preproc(p,d,pgc);
 

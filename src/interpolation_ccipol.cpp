@@ -305,6 +305,81 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     return value;
 }
 
+double interpolation::ccipol4V(double *f, double xp, double yp, double zp)
+{
+    ii=i;
+    jj=j;
+    kk=k;
+    
+    i = p->posc_i(xp);
+    j = p->posc_j(yp);
+    k = p->posf_sig(i,j,zp);
+		
+    // wa
+    wa = (p->XP[IP1]-xp)/p->DXN[IP];
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
+    {
+    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
+    ++i;
+    }
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
+    {
+    wa = (p->XP[IP]-xp)/p->DXN[IM1];
+    --i;
+    }
+    
+    // wb
+    wb = (p->YP[JP1]-yp)/p->DYN[JP];
+    
+    if((p->YP[JP1]-yp)/p->DYN[JP]<0.0)
+    {
+    wb = (p->YP[JP2]-yp)/p->DYN[JP1];
+    ++j;
+    }
+    
+    if((p->YP[JP1]-yp)/p->DYN[JP]>1.0)
+    {
+    wb = (p->YP[JP]-yp)/p->DYN[JM1];
+    --j;
+    }
+
+    
+    //wc
+    if(p->j_dir==0)
+    j=0;
+    
+    wc = (p->ZSP[IJKp1]-zp)/(p->ZSN[FIJKp1]-p->ZSN[FIJK]);
+    
+    if((p->ZSP[IJKp1]-zp)/(p->ZSN[FIJKp1]-p->ZSN[FIJK])<0.0)
+    {
+    wc = (p->ZSP[IJKp2]-zp)/(p->ZSN[FIJKp2]-p->ZSN[FIJKp1]);
+    ++k;
+    }
+    
+    if((p->ZSP[IJKp1]-zp)/(p->ZSN[FIJKp1]-p->ZSN[FIJK])>1.0)
+    {
+    wc = (p->ZSP[IJK]-zp)/(p->ZSN[FIJK]-p->ZSN[FIJKm1]);
+    --k;
+    }
+
+    
+
+    if(p->j_dir==0)
+    value = lint4V_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint4V(f,i,j,k,wa,wb,wc);
+
+    i=ii;
+    j=jj;
+    k=kk;
+    
+
+    return value;
+}
+
 double interpolation::ccipol7V(double *f, double xp, double yp, double zp)
 {
     ii=i;
@@ -516,7 +591,7 @@ double interpolation::ccipol4press(fdm *a,field& f, double xp, double yp, double
     }
     
     //if(p->mpirank==0)
-    //cout<<"wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<endl<<endl;
+    //cout<<"wa: "<<wa<<" wb: "<<wb<<" 🙂 "<<wc<<endl<<endl;
 
     value =  lint4phi(a,f,i,j,k,wa,wb,wc);
 

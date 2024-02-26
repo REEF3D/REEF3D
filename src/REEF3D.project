@@ -301,7 +301,10 @@
           <VirtualDirectory Name="State">
             <File Name="nhflow_state.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Probes"/>
+          <VirtualDirectory Name="Probes">
+            <File Name="nhflow_vel_probe.h"/>
+            <File Name="nhflow_vel_probe_theory.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="nhflow_print_runup_max_gage_x.h"/>
             <File Name="nhflow_print_runup_gage_x.h"/>
