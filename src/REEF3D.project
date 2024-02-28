@@ -1520,6 +1520,7 @@
           <File Name="fnpf_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
+          <File Name="fnpf_vel_update.cpp"/>
           <File Name="fnpf_bed_update.cpp"/>
           <File Name="fnpf_fsf_update.cpp"/>
           <File Name="fnpf_sigma.cpp"/>
