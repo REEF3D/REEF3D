@@ -226,7 +226,7 @@ double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, dou
 
     j=jj;
     
-    cout<<" wa: "<<wa<<" wc: "<<wc<<endl;
+    //cout<<" wa: "<<wa<<" wc: "<<wc<<endl;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;

@@ -31,9 +31,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
     
     ULOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
-        
+
         phival = 0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
 
         if(phival>=-psi)
@@ -93,9 +91,6 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
     count=0;
     VLOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
-        
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j-1,k));
 
         if(phival>=-psi)
@@ -154,9 +149,6 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
     count=0;
     WLOOP
     {
-        dg = distgen(p);
-        db = distbeach(p);
-        
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k-1));
 
         if(phival>=-psi)
@@ -234,8 +226,6 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
     count=0;
     FLUIDLOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
 
         if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
@@ -269,8 +259,6 @@ void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
     count=0;
     FLUIDLOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
 
 		if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
@@ -339,9 +327,7 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
     LOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
-        
+
         phival = -0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
 
         if(phival>=-psi)
@@ -377,10 +363,6 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
     count=0;
     SLICELOOP4
     {
-        dg = distgen(p);
-		db = distbeach(p);
-        z = eta(i,j);
-		
 		// Wave Generation
 		if(p->B98==2 && f_switch==1)
         {

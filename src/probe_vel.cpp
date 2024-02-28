@@ -91,9 +91,9 @@ void probe_vel::start(lexer *p, fdm *a, ghostcell *pgc)
 		yp=p->P65_y[n];
 		zp=p->P65_z[n];
     
-		uval = p->ccipol4(a->u, xp, yp, zp);
-		vval = p->ccipol4(a->v, xp, yp, zp);
-		wval = p->ccipol4(a->w, xp, yp, zp);
+		uval = p->ccipol1(a->u, xp, yp, zp);
+		vval = p->ccipol2(a->v, xp, yp, zp);
+		wval = p->ccipol3(a->w, xp, yp, zp);
 		}
 	
 	uval=pgc->globalmax(uval);
