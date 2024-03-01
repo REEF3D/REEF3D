@@ -1,4 +1,24 @@
 
+24.02
+x added 5th-order Stokes waves tutorial case to User Guide (CFD)
+x fixed VRANS vegetation inertia force (CFD)
+x changed folder and file name numbering
+x removed NSEWAVE
+x fixed 6DOF RK2 and RK3 (CFD)
+x added velocity probe (FNPF, NHFLOW, CFD)
+x added velocity probe wave theory (FNPF, NHFLOW, CFD)
+x moved discharge crossection options (CFD)
+x fixed 2D vtu print out at parallel boundaries for some pararmeters (CFD and FNPF)
+x added runup gages in x-direction cross section (NHFLOW)
+x added maximum runup vtp print out (NHFLOW)
+x reorganized 6DOF algorithm
+x added external constant angular velocities for 6DOF (CFD)
+x added state file print out time and iteration window (FNPF)
+x fixed FNPF state file print out on certain systems 
+x added wsfline print out (NHFLOW)
+x fixed NHFLOW on Ubuntu
+x NHFLOW updates
+
 23.12
 x fixed FNPF coastline bug
 x improved FNPF coastline
