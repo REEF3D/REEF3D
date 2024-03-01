@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -54,6 +54,7 @@ public:
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&);
 
 private:
     
@@ -64,7 +65,9 @@ private:
 	int gcval_u, gcval_v, gcval_w;
     int solver_id;
     double val, denom;
+    double gamma;
     double *PCORR;
+    double wfac;
 
     density *pd;
     nhflow_poisson *ppois;

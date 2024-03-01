@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -308,7 +308,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag1[Im1JK] =-3;
         p->flag1[Im2JK] =-3;
-        p->flag1[Im2JK] =-3;
+        p->flag1[Im3JK] =-3;
         }
         
         if(p->gcb1[n][4]==2)
@@ -319,7 +319,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag1[Ip1JK] =-4;
         p->flag1[Ip2JK] =-4;
-        p->flag1[Ip2JK] =-4;
+        p->flag1[Ip3JK] =-4;
         }    
     }
     
@@ -334,7 +334,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag2[Im1JK] =-3;
         p->flag2[Im2JK] =-3;
-        p->flag2[Im2JK] =-3;
+        p->flag2[Im3JK] =-3;
         }
         
         if(p->gcb2[n][4]==2)
@@ -345,7 +345,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag2[Ip1JK] =-4;
         p->flag2[Ip2JK] =-4;
-        p->flag2[Ip2JK] =-4;
+        p->flag2[Ip3JK] =-4;
         }    
     }
     
@@ -361,7 +361,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag3[Im1JK] =-3;
         p->flag3[Im2JK] =-3;
-        p->flag3[Im2JK] =-3;
+        p->flag3[Im3JK] =-3;
         }
         
         if(p->gcb3[n][4]==2)
@@ -372,7 +372,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag3[Ip1JK] =-4;
         p->flag3[Ip2JK] =-4;
-        p->flag3[Ip2JK] =-4;
+        p->flag3[Ip3JK] =-4;
         }    
     }
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,10 +33,6 @@ void potentialfile_out::header_file_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     for(n=0;n<p->P240;++n)
     {
     // open file
-    if(p->P14==0)
-    sprintf(headername,"REEF3D-potentialheader.r3d");
-			
-    if(p->P14==1)
     sprintf(headername,"./REEF3D_FlowFile/REEF3D-potentialheader.r3d");
 		
     // openfile

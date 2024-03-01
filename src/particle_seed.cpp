@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -121,7 +121,7 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
         //         ii=int((pos[PC][0])/dx);
         //         jj=int((pos[PC][1])/dx);
         //         kk=int((pos[PC][2])/dx);
-        //         check=boundcheck(p,a,ii,jj,kk,0);
+        //         check=boundcheck(p,ii,jj,kk,0);
         //         if(check==0)
         //         break;
 
@@ -164,7 +164,7 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
         //         ii=int((pos[posactive][0])/dx);
         //         jj=int((pos[posactive][1])/dx);
         //         kk=int((pos[posactive][2])/dx);
-        //         check=boundcheck(p,a,ii,jj,kk,0);
+        //         check=boundcheck(p,ii,jj,kk,0);
         //         if(check==0)
         //         break;
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -206,6 +206,27 @@ void ioflow_f::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
 
 
 double ioflow_f::wave_fsf(lexer *p, ghostcell *pgc, double x)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_f::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_f::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_f::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
     double val=0.0;
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -351,20 +351,6 @@ void driver::logic_cfd()
 	pconcdiff=new idiff2_FS(p);
 
 
-
-// Wave Models
-    if(p->A10==6 || p->A10==0)
-    pnse = new nsewave_v(p,a,pgc,pheat,pconc);
-
-    if(p->A10==55)
-    {
-    if(p->A410==1)
-    pnse = new nsewave_f(p,a,pgc,pheat,pconc);
-
-    if(p->A410==2)
-    pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
-    }
-
 // Free Surface
     if(p->F10==1)
     poneph = new onephase_f(p,a,pgc);
@@ -611,10 +597,10 @@ void driver::logic_cfd()
     
 // 6DOF
     if(p->X10==0)
-    p6dof_df = new sixdof_df_void(p,a,pgc);
+    p6dof = new sixdof_void(p,pgc);
     
     if(p->X10==1)
-    p6dof_df = new sixdof_df(p,a,pgc);
+    p6dof = new sixdof_cfd(p,a,pgc);
 
 // FSI
     if(p->Z10==0)

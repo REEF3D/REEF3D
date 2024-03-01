@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -64,7 +64,7 @@ void driver::driver_ini_cfd()
     
     // 6DOF_df and FSI
     if(p->X10==1)
-    p6dof_df->initialize(p, a, pgc, pnet);
+    p6dof->initialize(p, a, pgc, pnet);
      
     if(p->mpirank==0)
     if(p->X10==1 || p->Z10>0)
@@ -142,8 +142,6 @@ void driver::driver_ini_cfd()
 	pdata->start(p,a,pgc);
     
 
-    pnse->ini(p,a,pgc,pflow);     
-	
     pheat->heat_ini(p,a,pgc,pheat);
     pmp->ini(p,a,pgc,pflow,pprint,pconvec,psolv);
 	pconc->ini(p,a,pgc,pconc);

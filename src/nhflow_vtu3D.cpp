@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,11 +30,12 @@ Author: Hans Bihs
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_vtp_bed.h"
 #include"nhflow_print_wsf_theory.h"
-/*#include"nhflow_print_wsfline.h"
+#include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
-#include"nhflow_breaking_log.h"
-#include"potentialfile_out.h"
-#include"nhflow_state.h"*/
+#include"nhflow_print_runup_gage_x.h"
+#include"nhflow_print_runup_max_gage_x.h"
+#include"nhflow_vel_probe.h"
+#include"nhflow_vel_probe_theory.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -53,6 +54,9 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	p->Darray(printtime_wT,p->P35);
     p->Iarray(printfsfiter_wI,p->P184);
     p->Darray(printfsftime_wT,p->P185);
+    
+    
+    p->Iarray(printfsfiter_wI,p->P184);
 
 	for(int qn=0; qn<p->P35; ++qn)
 	printtime_wT[qn]=p->P35_ts[qn];
@@ -67,18 +71,27 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	printcount=0;
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_VTU",0777);
     
     pwsf=new nhflow_print_wsf(p,d);
 
-    
     pwsf_theory=new nhflow_print_wsf_theory(p,d,pgc);
-/*
+
     pwsfline=new nhflow_print_wsfline(p,d,pgc);
 
     pwsfline_y=new nhflow_print_wsfline_y(p,d,pgc);
-
+    
+    if(p->P65>0)
+    pvel=new nhflow_vel_probe(p,d);
+    
+    if(p->P66>0)
+    pveltheo=new nhflow_vel_probe_theory(p,d);
+    
+    prunupx=new nhflow_print_runup_gage_x(p,d,pgc);
+    
+    prunupmaxx=new nhflow_print_runup_max_gage_x(p,d,pgc);
+/*
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,d,pgc);
 
@@ -113,6 +126,20 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 
     if(p->P50>0)
     pwsf_theory->height_gauge(p,d,pgc,pflow);
+    
+    if(p->P133>0)
+	prunupx->start(p,d,pgc,pflow,d->eta);
+    
+    if(p->P134>0)
+	prunupmaxx->start(p,d,pgc,pflow,d->eta);
+    
+    if(p->P65>0)
+	pvel->start(p,d,pgc);
+    
+    if(p->P66>0)
+	pveltheo->start(p,d,pgc,pflow);
+    
+    pfsf->preproc(p,d,pgc);
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
@@ -171,7 +198,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
         if(p->count==0)
 		pbed->start(p,d,pgc);
 
-/*
+
     // Gages
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline->start(p,d,pgc,pflow,d->eta);
@@ -179,15 +206,15 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,d,pgc,pflow,d->eta);
 
-
+/*
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 &&)
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
     {
     pstate->write(p,d,pgc);
     }
 
     // Print sate out based on time
-    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
+    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<<p->P47_te)))
     {
     pstate->write(p,d,pgc);
 

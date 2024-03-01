@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,6 @@ Author: Hans Bihs
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
-
 
 void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {

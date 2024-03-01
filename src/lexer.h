@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -279,10 +279,10 @@ public:
     // NHFLOW
     int A501,A510,A511,A512,A514,A515,A516,A517,A518;
     int A520,A521;
-    double A523;
+    double A522,A523;
     double A531;
     int A540,A543;
-    double A541,A542,A544;
+    double A541,A542,A544,A545;
     int A550,A551,A552,A553;
     
 	// boundary conditions
@@ -448,12 +448,14 @@ public:
 	int M10;
 
 	// Print options
-	int P10,P11,P12,P14,P15,P18,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
-	int P61,P62,P63,P64,P66,P67,P68,P71,P72,P73,P74,P75,P76,P77,P78,P79,P81,P82,P85,P92,P101,P120,P121,P122,P123,P124,P125,P126;
-	int P150,P151,P152,P180,P181,P184,P185,P190,P191,P194,P195,P351,P352;
+	int P10,P11,P12,P15,P18,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
+	int P61,P62,P63,P64,P65,P66,P71,P72,P73,P74,P75,P76,P77,P78,P79,P81,P82,P85,P92,P101,P120,P121,P122,P123,P124,P125,P126;
+	int P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195,P351,P352;
 	double P22,P30,P34,P42;
 	double *P35_ts,*P35_te,*P35_dt;
     double P43_xs,P43_xe,P43_ys,P43_ye;
+    int P46,P46_is,P46_ie;
+    int P47,P47_ts,P47_te;
 	double *P50_x,*P50_y;
 	double *P51_x,*P51_y;
 	double *P52_y,*P56_x;
@@ -463,8 +465,8 @@ public:
 	double *P62_xs,*P62_ys,*P62_zs,*P62_xe,*P62_ye,*P62_ze;
     double *P63_x,*P63_y;
     double *P64_x,*P64_y,*P64_z;
-	double *P67_x;
-    double *P68_x,*P68_zs,*P68_ze;
+    double *P65_x,*P65_y,*P65_z;
+    double *P66_x,*P66_y,*P66_z;
 	double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
 	double *P85_x,*P85_y,*P85_r,*P85_cd,*P85_cm;
 	double P91;
@@ -474,6 +476,11 @@ public:
 	double *P121_x,*P121_y;
 	double *P123_y,*P124_x;
 	double *P125_x,*P125_y;
+    int P131,P132,P133,P134;
+    double *P133_y;
+    double *P134_y;
+    double *P167_x;
+    double *P168_x,*P168_zs,*P168_ze;
 	double P182;
     int *P184_its,*P184_ite,*P184_dit;
     double *P185_ts,*P185_te,*P185_dt;
@@ -533,8 +540,6 @@ public:
 	double pfb,qfb,rfb;
 	double ufbi,vfbi,wfbi;
 	double pfbi,qfbi,rfbi;
-	double ufbn,vfbn,wfbn;
-	double pfbn,qfbn,rfbn;
 	double xg,yg,zg;
 	double xgn,ygn,zgn;
 	double phi_fb,theta_fb,psi_fb;
@@ -586,8 +591,8 @@ public:
     double X206_ts,X206_te,X207_ts,X207_te;
 	double X210_u,X210_v,X210_w;
 	double X211_p,X211_q,X211_r;
-    int X221;
-    double X221_xs,X221_xe,X221_ys,X221_ye,X221_zs,X221_ze;
+    int X240;
+    double X241,X242_x,X242_y,X242_z,X243;
     double *X311_xs,*X311_xe,*X311_ys,*X311_ye,*X311_zs,*X311_ze;
     double *X311_w,*X311_rho_c,*X311_EA,*X311_d,*X311_l,*X311_H,*X311_P,*X311_facT;
     double *X312_k,*X312_T0;
@@ -668,7 +673,7 @@ public:
 
 
 	// wave coefficients
-	double wT,wV,wH,wA,wL,wd,ww,wk;
+	double wT,wV,wH,wA,wL,wd,ww,wk,wC;
 	double wHs,wAs,wwp,ww_s,ww_e,wTp;
 	int wN;
     double wts,wte;

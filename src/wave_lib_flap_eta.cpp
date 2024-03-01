@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,8 +30,7 @@ wave_lib_flap_eta::wave_lib_flap_eta(lexer *p, ghostcell *pgc) : wave_lib_parame
 { 
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: flap_eta wavemaker theory; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<endl;
+    cout<<"Wave_Lib: flap_eta wavemaker theory";
     }
 	
 	timecount=0;

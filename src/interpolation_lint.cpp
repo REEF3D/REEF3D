@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -320,6 +320,87 @@ double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, doubl
     if(p->flagsf4[Ip1Jp1Kp1]<0)
     v8=f(i+1,j+1,k+2);
     pip=0;
+
+
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+
+    x3 = wa*v5 + (1.0-wa)*v7;
+    x4 = wa*v6 + (1.0-wa)*v8;
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+
+
+    value = wc*y1 +(1.0-wc)*y2;
+
+    pip=0;
+ return value;
+
+}
+
+double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
+
+  
+    v1=f[IJK];
+
+    v2=f[IJp1K];
+
+    v3=f[Ip1JK];
+
+    v4=f[Ip1Jp1K];
+  
+    v5=f[IJKp1];
+    
+    v6=f[IJp1Kp1];
+
+    v7=f[Ip1JKp1];
+ 
+    v8=f[Ip1Jp1Kp1];
+  
+
+
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+
+    x3 = wa*v5 + (1.0-wa)*v7;
+    x4 = wa*v6 + (1.0-wa)*v8;
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+
+
+    value = wc*y1 +(1.0-wc)*y2;
+
+    pip=0;
+ return value;
+
+}
+
+
+double interpolation::lint7V(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
+
+  
+    v1=f[FIJK];
+
+    v2=f[FIJp1K];
+
+    v3=f[FIp1JK];
+
+    v4=f[FIp1Jp1K];
+  
+    v5=f[FIJKp1];
+    
+    v6=f[FIJp1Kp1];
+
+    v7=f[FIp1JKp1];
+ 
+    v8=f[FIp1Jp1Kp1];
+  
 
 
     x1 = wa*v1 + (1.0-wa)*v3;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
  *
 This file is part of REEF3D.
 
@@ -108,14 +108,16 @@ void lexer::ini_default()
     A518=2;      // int NHFLOW bed BC
     
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=0;		// int NFHLOW fsf ucorr
-    A523=1.0;    // double blending factor hydrostatic pressure gradient
+    A521=1;		// int NFHLOW KB scheme
+    A522=4.0;    // double p_alpha
+    A523=1.0;    // double p_gamma
     A531=3.0;    // double Fround number limiter
     A540=1;      // int NFHLOW fsf scheme
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance
     A543=1;		// int NHFLOW wetting & drying or coastline
-    A544=0.001; // double wetting & drying criterion
+    A544=0.001;  // double wetting & drying criterion
+    A545=10.0;   // double deep criterion
     
     A550=0;      // int turn on breaking (which method)
     A551=0;      // int type of breaking detection (deep / shallow)
@@ -479,7 +481,6 @@ void lexer::ini_default()
 	P10=1;			 // int print file type
     P11=10;			 // int log print frequency
 	P12=1;			 // int terminal print frequency
-	P14=1;           // int print to folder
 	P15=1;          // int print file numbering
 	P18=2;			// int option for phi print out
 	P20=-10;		// ith iteration file printed
@@ -501,6 +502,8 @@ void lexer::ini_default()
     P43=0;             // int state print out selected area
     P44=0;             // int print out 3D potential for FNPF
     P45=1;             // int print into single or continous state file
+    P46=0;             // int print state iteration window
+    P47=0;             // int print state time window
     P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir
@@ -515,9 +518,8 @@ void lexer::ini_default()
 	P62=0;			  // int print line probes
     P63=0;			  // int print depth averaged point probe
     P64=0;			  // int print pressure probes
-	P66=0;			  // int print discharge to terminal
-	P67=0;			  // int discharge gages in x-direction
-    P68=0;			  // int discharge gages in x-direction
+    P65=0;			  // int print velocity probes
+	P66=0;			  // int print velocity probes from wave theory
     P71=0;           // int print viscosity to vtu
     P72=0;           // int print vof function
     P73=0;           // int print hx and hy for sflow vtp
@@ -542,9 +544,16 @@ void lexer::ini_default()
 	P124=0;             // int topoline in y-direction
 	P125=0;             // int bed shear stress gages
 	P126=0;             // int bed shear stress maxval
+    P131=0;             // int max wetdry in vtp
+    P132=0;             // int max wetdry as file
+    P133=0;             // int runup gage x-crossection
+    P134=0;             // int runup gage y-crossection
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data
+    P166=0;			  // int print discharge to terminal
+	P167=0;			  // int discharge gages in x-direction
+    P168=0;			  // int discharge gages in x-direction
 	P180=0;			  // int print fsf
 	P181=-10;		  // int ith iteration fsf printed
 	P182=-1.0;       // double time between fsf file printout in seconds
@@ -786,7 +795,12 @@ void lexer::ini_default()
     X210_v=0.0; // double fixed v vel
     X210_w=0.0; // double fixed w vel
 	X211=0;		// int give fixed angular velocity
-    X221=0;     // int read vec based motion file
+    X240=0;     // int read 6DOF motion file
+    X241=0.0;     // double delta t for motion file
+    X242_x=0.0;     // double delta x for motion file
+    X242_y=0.0;     // double delta x for motion file
+    X242_z=0.0;     // double delta x for motion file
+    X243=0.0;     // double delta CoG for motion file
     X311=0;     // int number of simple taut mooring lines
     X312=0;     // int number of springs
     X313=0;     // int initial rotation of mooring end points with 6DOF body

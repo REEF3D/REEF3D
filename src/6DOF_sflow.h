@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,12 +29,14 @@ Author: Tobias Martin
 #include"slice4.h"
 #include"sliceint5.h"
 #include"ddweno_f_nug.h"
+#include"6DOF_obj.h"
 
 class lexer;
 class fdm2D;
 class ghostcell;
 class net;
 class slice;
+class fdm;
 
 using namespace std;
 
@@ -50,8 +52,11 @@ public:
     sixdof_sflow(lexer*, ghostcell*);
     virtual ~sixdof_sflow();
     
-    virtual void start(lexer*,ghostcell*);
+    virtual void start_oneway(lexer*,ghostcell*);
+    virtual void start_twoway(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
+    
 	virtual void ini(lexer*,ghostcell*);
+    virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
 	
     
     virtual void isource(lexer*,fdm*,ghostcell*);
@@ -97,11 +102,9 @@ private:
     void time_preproc(lexer*);
 
     double Hsolidface(lexer*, int,int);
-    void updateFSI(lexer*, ghostcell*);
     void updatePosition(lexer*, ghostcell*);
-    void updateForcing_hemisphere(lexer*, ghostcell*);
     void updateForcing_box(lexer*, ghostcell*);
-    void updateForcing_ship(lexer*, ghostcell*);
+    void updateForcing_stl(lexer*, ghostcell*);
     void updateForcing_oned(lexer*, ghostcell*);
     
     // hires gradient
@@ -114,6 +117,9 @@ private:
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
 
+    int number6DOF;
+    vector<sixdof_obj*> fb_obj;
+    
     double phi, theta, psi;
     double Uext, Vext, Wext, Pext, Qext, Rext;
     Eigen::Matrix3d quatRotMat;

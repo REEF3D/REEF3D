@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -86,6 +86,13 @@ private:
 	void iqmax_5(lexer*, fdm*, field&, field&, int);
 	void jqmax_5(lexer*, fdm*, field&, field&, int);
 	void kqmax_5(lexer*, fdm*, field&, field&, int);
+    
+    void iqmin_6(lexer*, fdm*, field&, field&, int);
+	void jqmin_6(lexer*, fdm*, field&, field&, int);
+	void kqmin_6(lexer*, fdm*, field&, field&, int);
+	void iqmax_6(lexer*, fdm*, field&, field&, int);
+	void jqmax_6(lexer*, fdm*, field&, field&, int);
+	void kqmax_6(lexer*, fdm*, field&, field&, int);
 
 
 	double L,grad;

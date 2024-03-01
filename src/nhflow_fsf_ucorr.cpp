@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::ucorr(lexer* p, fdm_nhf* d, double *UH, slice &WL, double alpha)
 {
-    if(p->A521==1)
+    /*if(p->A521==1)
     LOOP
     {
         dfdx_plus = (d->detadt(i+1,j)-d->detadt(i,j))/p->DXP[IP];
@@ -37,13 +37,13 @@ void nhflow_fsf_f::ucorr(lexer* p, fdm_nhf* d, double *UH, slice &WL, double alp
     
         detadx = limiter(dfdx_plus,dfdx_min);
         
-    UH[IJK] -= alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*detadx;
-    }
+    UH[IJK] += 0.25*alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*detadx;
+    }*/
 }
 
 void nhflow_fsf_f::vcorr(lexer* p, fdm_nhf* d, double *VH, slice &WL, double alpha)
 {
-    if(p->A521==1 && p->j_dir==1)
+    /*if(p->A521==1 && p->j_dir==1)
     LOOP
     {
         dfdy_plus = (d->detadt(i,j+1)-d->detadt(i,j))/p->DYP[JP];
@@ -51,6 +51,6 @@ void nhflow_fsf_f::vcorr(lexer* p, fdm_nhf* d, double *VH, slice &WL, double alp
     
         detady = limiter(dfdy_plus,dfdy_min);
         
-    VH[IJK] -= alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*detady;
-    }
+    VH[IJK] += 0.25*alpha*alpha*p->dt*p->dt*WL(i,j)*fabs(p->W22)*detady;
+    }*/
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,6 +43,8 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *
 
     gcval_press=540;
     
+    gamma=0.5;
+    
     
     if(p->D33==0)
     solver_id = 8;
@@ -50,6 +52,11 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *
     if(p->D33==1)
     solver_id = 9;
     
+    if(p->A521==1)
+    wfac=1.0;
+    
+    if(p->A521==2)
+    wfac=2.0;
 
 }
 
@@ -117,43 +124,8 @@ void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double *P, d
     LOOP
     WETDRYDEEP
     if(d->breaking(i,j)==0 && d->breaking(i-1,j)==0 && d->breaking(i+1,j)==0 && d->breaking(i,j-1)==0 && d->breaking(i,j+1)==0)
-	WH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
+	WH[IJK] -= wfac*alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
-
-/*
-void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
-{
-    double U1,U2,V1,V2,fac;
-    n=0;
-    FLOOP
-    {
-	d->rhsvec.V[n]=0.0;
-    ++n;
-    }
-
-    n=0;
-    LOOP
-    {
-    fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-    
-    U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-    U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
-    
-    V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-    V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
-    
-         
-    d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
-                            + p->sigx[FIJK]*(U[IJK]-U[IJKm1])/p->DZP[KM1]
-                            
-                            + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
-                            + p->sigy[FIJK]*(V[IJK]-V[IJKm1])/p->DZP[KM1]
-
-                            + p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1])/(alpha*p->dt);
-                            
-    ++n;
-    }
-}*/
 
 void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
@@ -164,6 +136,7 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     double dUdz,dVdz;
     double z,z0,z1,z2;
     double f0,f1,f2;
+    double dWdz;
     
     n=0;
     FLOOP
@@ -176,13 +149,26 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     LOOP
     {
     fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);    
-    //fac = p->DZN[KP]/(p->DZN[KP]+p->DZN[KM1]);
 
     U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
     U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
     
     V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];     
+    
+    if(k==0)
+    {
+    fac = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
+    
+    U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
+    U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+    
+    
+    fac = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
+    
+    V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
+    V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
+    }
     
     /*Um1 = U[IJKm1];
     Up1 = U[IJK];
@@ -227,6 +213,12 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     dVdz = (V[IJK] - Vp)/p->DZN[KP];
     
     //dUdz = (U[IJK] - U[IJKm1])/p->DZN[KP];
+    
+    if(p->A521==1)
+    dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
+     
+    if(p->A521==2)
+    dWdz = p->sigz[IJ]*(W[IJKp1]-W[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
      
     d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
                             + p->sigx[FIJK]*dUdz
@@ -234,7 +226,7 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
                             + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
                             + p->sigy[FIJK]*dVdz
 
-                            + p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1])/(alpha*p->dt);
+                            + dWdz)/(alpha*p->dt);
                             
     ++n;
     }

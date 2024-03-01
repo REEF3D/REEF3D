@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -22,11 +22,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include<sys/stat.h>
 #include"mooring_Catenary.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 
-void mooring_Catenary::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_Catenary::initialize(lexer *p, ghostcell *pgc)
 {
 	double rho_f = 1000.0;
 	
@@ -48,7 +47,7 @@ void mooring_Catenary::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	p->Darray(F,2);
 	p->Darray(A,2,2);
 
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	{
 		char str[1000];
 		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);

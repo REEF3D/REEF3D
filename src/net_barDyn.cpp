@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -79,14 +79,7 @@ void net_barDyn::initialize(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void net_barDyn::start
-(
-	lexer *p, 
-	fdm *a, 
-	ghostcell *pgc,
-    double alpha,
-    Eigen::Matrix3d quatRotMat
-)
+void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
 {
     double starttime1 = pgc->timer();    
 
@@ -463,9 +456,7 @@ void net_barDyn::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 		recvField[n] = new double[count[n]];
 		
 		for (int m = 0; m < count[n]; ++m)
-		{
-			recvField[n][m] = 0.0;
-		}
+		recvField[n][m] = 0.0;
 	}
 
 	

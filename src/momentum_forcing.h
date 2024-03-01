@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,7 +28,7 @@ class fdm;
 class ghostcell;
 class field;
 class turbulence;
-class sixdof_df_base;
+class sixdof;
 class vrans;
 class mooring;
 class net;
@@ -44,7 +44,7 @@ class momentum_forcing : public increment
 public:
 	momentum_forcing(lexer*);
 	virtual ~momentum_forcing();
-	void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof_df_base*, vrans*, vector<net*>&, fsi*,
+	void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof*, vrans*, vector<net*>&, fsi*,
                                 field&,field&,field&,field&,field&,field&,int,double,bool);
 
 private:

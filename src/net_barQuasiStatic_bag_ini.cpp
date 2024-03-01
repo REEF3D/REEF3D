@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -143,7 +143,7 @@ void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
     iniLSE(p);
 
     // Initialise print
-    if(p->mpirank==0 && p->P14==1)
+    if(p->mpirank==0)
     {
         char str[1000];
         sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);

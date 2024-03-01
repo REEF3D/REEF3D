@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -92,6 +92,8 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     p->gcdf4_count=count;
     }
     
+    
+    
     //cout<<p->mpirank<<" p->gcdf4_count: "<<p->gcdf4_count<<endl;
     
     // assign gcdf entries
@@ -164,9 +166,6 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     fieldint4 cval(p);
     
     count=0;
-    
-    FLUIDLOOP
-    a->test(i,j,k)=0.0;
 
     FLUIDLOOP
 	{
@@ -175,15 +174,12 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     ++count;
 	}
     
-    //LOOP
-    //a->test(i,j,k) = double(p->flagsf4[IJK]);
-    
+
     GCDF4LOOP
     {
     i=p->gcdf4[n][0];
     j=p->gcdf4[n][1];
     k=p->gcdf4[n][2];
-	//a->test(i,j,k)=1.0;
 	p->gcdf4[n][5]=cval(i,j,k);
 	}
     

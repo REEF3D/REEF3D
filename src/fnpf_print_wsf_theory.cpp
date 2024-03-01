@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,17 +42,13 @@ fnpf_print_wsf_theory::fnpf_print_wsf_theory(lexer *p, fdm_fnpf* c, ghostcell *p
 	}
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_FNPF_WSF",0777);
 
     if(p->mpirank==0 && p->P50>0)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-FNPF-WSF-HG-THEORY.dat");
-
-	if(p->P14==1)
-	  wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG-THEORY.dat");
+    wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG-THEORY.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
@@ -76,7 +72,6 @@ fnpf_print_wsf_theory::~fnpf_print_wsf_theory()
 
 void fnpf_print_wsf_theory::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
 {
-
     // write to file
     if(p->mpirank==0)
     {

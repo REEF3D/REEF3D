@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,7 +31,7 @@ wave_lib_void::wave_lib_void(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
     
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: no wave specified; "<<endl;
+    cout<<"Wave_Lib: no wave specified; "<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));

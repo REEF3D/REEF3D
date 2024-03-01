@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -339,12 +339,6 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	if(bc_label==7)
 	potentialbc(p,f,bc,cs);
 
-	if(bc_label==8)
-	neumann_press(p,f,dist,gcv,bc,cs);
-	
-	if(bc_label==9)
-	fbpress(p,f,dist,gcv,bc,cs);
-	
 	if(bc_label==10)
 	gravity_press(p,f,dist,gcv,bc,cs);
     

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,6 +66,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
   	wf = ww/(2.0*PI);
     wT = 1.0/wf;
+    wC = wL/wT;
 
         // 5th-order Stokes
         if(wtype==5)
@@ -91,6 +92,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 	   }
        
     p->wT = wT;
+    p->wC = wC;
     }
 
 // Wave Period given
@@ -118,8 +120,8 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
 		wL = wL0*tanh(S0);
 
-    for(int qn=0; qn<500; ++qn)
-    wL = wL0*tanh(2.0*PI*wdt/wL);
+        for(int qn=0; qn<500; ++qn)
+        wL = wL0*tanh(2.0*PI*wdt/wL);
 		}
 
 
@@ -168,12 +170,14 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
 		wf = 1.0/wT;
 		ww = wf*2.0*PI;
+         wC = wL/wT;
 
 		wk= (2.0*PI)/(wL>1.0e-20?wL:1.0e20);
 
         if(wtype==5)
         {
         wf = 1.0/wT;
+        ww = 2.0*PI*wf;
         ww = 2.0*PI*wf;
 
         wC = ww/wk;
@@ -189,6 +193,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
     p->wL = wL;
     p->wk = wk;
     p->ww = ww;
+    p->wC = wC;
 
     if(p->B92>30 && p->B92!=70)
     {

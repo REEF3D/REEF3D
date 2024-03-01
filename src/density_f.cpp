@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,7 +26,7 @@ Author: Hans Bihs
 
 density_f::density_f(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
-
+    H=0.0;
 }
 
 density_f::~density_f()

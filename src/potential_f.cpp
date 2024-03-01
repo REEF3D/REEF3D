@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -70,9 +70,9 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     pgc->start4(p,psi,gcval_pot);
 	
     itermem=p->N46;
-    p->N46=2500;
+    p->N46=500;
 	
-    for(int qn=0; qn<4;++qn)
+    for(int qn=0; qn<10;++qn)
     {
     laplace(p,a,pgc,psi);
 	psolv->start(p,a,pgc,psi,a->rhsvec,4);

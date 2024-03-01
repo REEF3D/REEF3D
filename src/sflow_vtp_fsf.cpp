@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -49,7 +49,7 @@ sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 	p->printcount=0;
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_VTP_FSF",0777);
 
 
@@ -132,13 +132,13 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
     }
     
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0)
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
     {
     pstate->write(p,b,pgc);
     }
 
     // Print state out based on time
-    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0)
+    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<<p->P47_te)))
     {
     pstate->write(p,b,pgc);
 
@@ -204,24 +204,28 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
 	offset[n]=offset[n-1]+4*(p->pointnum2D)*3+4;
 	++n;
 
-	// wb
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-
     // pressure
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
-
-    // elevation
+    
+    // eddyv
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
-
-	// eddyv
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-
+    
     // k and eps
 	pturb->offset_vtp(p,b,pgc,result,offset,n);
+    
+    // eta
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    
+    // waterlevel
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    
+    // wetdry
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
 
     // breaking
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
@@ -273,6 +277,8 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     result<<"<DataArray type=\"Float32\" Name=\"eta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"waterlevel\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"wetdry\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -371,7 +377,7 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     //  turbulence
     pturb->print_2D(p,b,pgc,result);
 
-    //  Elevation
+    //  Eta
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
@@ -388,7 +394,16 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
 	ffn=float(p->sl_ipol4(b->hp));
 	result.write((char*)&ffn, sizeof (float));
 	}
-
+    
+    //  wetdry
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=0.25*float((p->wet[IJ]+p->wet[Ip1J]+p->wet[IJp1]+p->wet[Ip1Jp1]));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
     //  Breaking
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));

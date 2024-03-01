@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,7 +58,6 @@ class concentration;
 class ptf;
 class fnpf;
 class onephase;
-class nsewave;
 class nhflow_fsf;
 class nhflow_convection;
 class nhflow_signal_speed;
@@ -76,11 +75,9 @@ class patchBC_interface;
 class nhflow;
 class multiphase;
 class nhflow_momentum;
-class sixdof_df_base;
 class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
 class nhflow_vtu3D;
-class sixdof;
 class particle_base;
 
 #include<iostream>
@@ -103,7 +100,6 @@ public:
     void start();
     
     void cfd_driver();
-	void nsewave_driver();
     void nhflow_driver();
     void fnpf_driver();
     void ptf_driver();
@@ -112,7 +108,6 @@ public:
 	void loop_cfd(fdm*);
 	void loop_cfd_df(fdm*);
     void loop_cfd_sf(fdm*);
-    void loop_nsewave(fdm*);
     void loop_nhflow();
     void loop_ptf(fdm*);
     void loop_fnpf();
@@ -127,7 +122,6 @@ public:
     
 	void driver_ini_cfd();
     void driver_ini_nhflow();
-    void driver_ini_nsewave();
     void driver_ini_fnpf();
     void driver_ini_ptf();
     void driver_ini_sflow();
@@ -197,7 +191,6 @@ public:
     fnpf *ppfsg;
     ptf *pptf;
     onephase *poneph;
-    nsewave *pnse;
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_vtu3D *pfprint; 
@@ -215,10 +208,9 @@ public:
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
     nhflow_vtu3D *pnhfprint;
-    sixdof_df_base *p6dof_df;
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
-    sixdof *p6dof_sflow;
+    sixdof *p6dof;
     particle_base *ppart;
 
 private:

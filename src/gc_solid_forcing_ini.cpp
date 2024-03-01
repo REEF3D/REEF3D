@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,7 +44,7 @@ void ghostcell::solid_forcing_ini(lexer *p, fdm *a)
      LOOP
      {
      a->fbh4(i,j,k) = H = Hsolidface(p,a,0,0,0);
-     a->test(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+     //a->test(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
      }
 
      start1(p,a->fbh1,10);

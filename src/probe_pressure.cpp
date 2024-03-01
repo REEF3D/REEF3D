@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,7 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
     //cout<<p->mpirank<<" pressure probepoint_num: "<<probenum<<endl;
     
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_PressureProbe",0777);
 	
 	pout = new ofstream[probenum+1];
@@ -48,10 +48,6 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 		// open file
 		for(n=0;n<probenum;++n)
 		{     
-		if(p->P14==0)
-		sprintf(name,"REEF3D-CFD-Probe-Pressure-%i.dat",n+1);
-		
-		if(p->P14==1)
 		sprintf(name,"./REEF3D_CFD_PressureProbe/REEF3D-CFD-Probe-Pressure-%i.dat",n+1);
         
         
@@ -127,7 +123,7 @@ void probe_pressure::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     
 	kloc[n]=p->posc_k(p->P64_z[n]);
 
-    check=boundcheck(p,a,iloc[n],jloc[n],kloc[n],0);
+    check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
 
     if(check==1)
     flag[n]=1;

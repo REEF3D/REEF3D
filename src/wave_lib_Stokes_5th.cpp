@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,12 +30,12 @@ wave_lib_Stokes_5th::wave_lib_Stokes_5th(lexer *p, ghostcell *pgc) : pshift(p->B
     wave_parameters(p,pgc);
     parameters(p,pgc);
     
-    
     // ----------
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: 5th-order Stokes waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
+    cout<<"Wave_Lib: 5th-order Stokes waves "<<endl;
+    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
+    cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
@@ -693,7 +693,14 @@ void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
         p->wT = wT;
 
         // ini
-		wL = (9.81/(2.0*PI))*wT*wT;
+		wL0 = (9.81/(2.0*PI))*wT*wT;
+		k0 = (2.0*PI)/wL0;
+		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+
+		wL = wL0*tanh(S0);
+
+        for(int qn=0; qn<500; ++qn)
+        wL = wL0*tanh(2.0*PI*wdt/wL);
     
         int qn=0;
             do
@@ -716,14 +723,17 @@ void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
             //if(p->mpirank==0)
             //cout<<"wT_temp: "<<wT_temp<<" wT: "<<wT<<" wL: "<<wL<<" diff: "<<diff<<" qn: "<<qn<<endl;
 
-            if(diff>0.00001)
-            wL-=0.00001;
+            if(diff>0.0001)
+            wL-=0.0001;
 
-            if(diff<-0.00001)
-            wL+=0.00001;
+            if(diff<-0.0001)
+            wL+=0.0001;
                 ++qn;
             
-            }while(fabs(diff)>0.00001 && qn<120000);
+            }while(fabs(diff)>0.0001 && qn<220000);
+            
+            if(p->mpirank==0)
+            cout<<"wT_temp: "<<wT_temp<<" wT: "<<wT<<" wL: "<<wL<<" diff: "<<diff<<" qn: "<<qn<<endl;
             
             
             wf = 1.0/wT;
@@ -760,6 +770,7 @@ void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
     p->wL = wL;
     p->wk = wk;
     p->ww = ww;
+    p->wC = wC;
 }
     
 void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)

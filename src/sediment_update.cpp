@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -48,6 +48,9 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     
     if(p->S10==1 && p->G3==0)
     pgc->topo_update(p,a);
+    
+    /*if(p->S10==1 && p->G3==1)
+    pgc->solid_forcing_topo_update(p,a);*/
     
     if(p->S10==2)
     pvrans->sed_update(p,a,pgc);

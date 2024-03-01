@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -158,7 +158,6 @@ void ioflow_f::outflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
         u(i+2,j,k)=p->Uo*fac;
         u(i+3,j,k)=p->Uo*fac;
         }
-
 
         if(a->phi(i-1,j,k)<-epsi2*p->DXM)
         {

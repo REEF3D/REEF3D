@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,18 +43,20 @@ public:
 	nhflow_HLLC (lexer*,ghostcell*,patchBC_interface*);
 	virtual ~nhflow_HLLC();
 
-    virtual void start(lexer*, fdm_nhf*&, int, slice&);
+    virtual void start(lexer*&, fdm_nhf*&, int, slice&);
     virtual void precalc(lexer*, fdm_nhf*, int, slice&);
 
 private:
 
-    double aij_U(lexer*, fdm_nhf*, int);
-    double aij_V(lexer*, fdm_nhf*, int);
-    double aij_W(lexer*, fdm_nhf*, int);
-    double aij_E(lexer*, fdm_nhf*, int);
+    void aij_U(lexer*, fdm_nhf*, int);
+    void aij_V(lexer*, fdm_nhf*, int);
+    void aij_W(lexer*, fdm_nhf*, int);
+    void aij_E(lexer*, fdm_nhf*, int);
     
-    double HLLC(lexer*, fdm_nhf*, double*, double*, double*, double*, double*, double*, double*, double*);
-    double HLLC_E(lexer*, fdm_nhf*);
+    void HLLC(lexer*, fdm_nhf*, double*, double*, double*, double*, double*, double*, double*, double*);
+    void HLLC_E(lexer*, fdm_nhf*);
+    
+    void HLL(lexer*, fdm_nhf*&, double*, double*, double*, double*);
     
 	double dx,dy,dz;
 	double udir,vdir,wdir;

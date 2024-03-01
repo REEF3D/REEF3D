@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -270,7 +270,6 @@ void weno_hj_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 	q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
-
 
 void weno_hj_nug::is()
 {

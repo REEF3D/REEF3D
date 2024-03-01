@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -49,8 +49,6 @@ private:
     void fill_deta(lexer*, fdm_fnpf*, ghostcell*,slice&);
     void fill_Uhorz(lexer*, fdm_fnpf*, ghostcell*,slice&);
     
-    int conv(double);
-	
 	double *x,*y;
 	int gauge_num;
 

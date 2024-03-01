@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,6 +33,11 @@ Author: Hans Bihs
 
 nhflow_poisson::nhflow_poisson(lexer *p) 
 {
+    if(p->A521==1)
+    KB_fac=1.0;
+    
+    if(p->A521==2)
+    KB_fac=2.0;
 }
 
 nhflow_poisson::~nhflow_poisson()
@@ -46,7 +51,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 	n=0;
     LOOP
 	{
-        if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
+        if(p->wet[IJ]==1 && d->breaking(i,j)==0)
         {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
@@ -57,8 +62,8 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
                         + (CPORNH*PORVALNH)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
                         + (CPORNHm*PORVALNHm)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
-                        + (sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP])
-                        + (sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
+                        + KB_fac*(sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP])
+                        + KB_fac*(sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
 
 
             d->M.n[n] = -(CPORNH*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP]);
@@ -67,10 +72,10 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.w[n] = -(CPORNH*PORVALNH)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
             d->M.e[n] = -(CPORNHm*PORVALNHm)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = -(sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP])     
+            d->M.t[n] = -KB_fac*(sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP])     
                         - CPORNH*PORVALNH*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
                         
-            d->M.b[n] = -(sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
+            d->M.b[n] = -KB_fac*(sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
                         + CPORNH*PORVALNH*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
@@ -95,7 +100,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             }
         }
         
-        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0 || d->breaking(i,j)==1)
+        if(p->wet[IJ]==0 || p->flag7[FIJK]<0 || d->breaking(i,j)==1)
         {
         d->M.p[n]  =  1.0;
 
@@ -147,11 +152,11 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             // BED
             if(p->flag7[FIJKm1]<0)
             {
-            //d->rhsvec.V[n] -= d->M.b[n]*P[FIJK];
-            //d->M.b[n] = 0.0;
-            
-            d->M.p[n] += d->M.b[n];
+            d->rhsvec.V[n] -= d->M.b[n]*P[FIJK];
             d->M.b[n] = 0.0;
+            
+            //d->M.p[n] += d->M.b[n];
+            //d->M.b[n] = 0.0;
             }
             
             // FSFBC

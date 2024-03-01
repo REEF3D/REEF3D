@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -80,7 +80,7 @@ void particle_pls::parcorr(lexer *p,fdm* a,ioflow *pflow,double sign,double* f,i
     j=j1;
     k=k1;
 	
-    check=boundcheck(p,a,i,j,k,1);
+    check=boundcheck(p,i,j,k,1);
 	
 	if(check==1)
 	check=pflow->iozonecheck(p,a);

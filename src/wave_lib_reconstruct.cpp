@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,7 @@ wave_lib_reconstruct::wave_lib_reconstruct(lexer *p, ghostcell *pgc)
 { 
     
     if(p->mpirank==0)
-    cout<<"Wave Tank: reconstruct water waves; "<<endl;
+    cout<<"Wave_Lib: reconstruct water waves; "<<endl;
 
     
     if(p->B92==51)

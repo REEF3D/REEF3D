@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -125,6 +125,11 @@ Author: Hans Bihs
 #define VRAWLOOP IVLOOP JVLOOP KVLOOP 
 #define WRAWLOOP IWLOOP JWLOOP KWLOOP 
 #define RAWLOOP ILOOP JLOOP KLOOP
+
+#define NHFWKLOOP for(k=1; k<=p->knoz; ++k)
+    
+#define NHFWLOOP NHFWKLOOP ILOOP JLOOP NHFWKLOOP PCHECK
+
 
 #define ALOOP ILOOP JLOOP KLOOP PSOLIDCHECK
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,6 +31,8 @@ density_comp::density_comp(lexer* p)
         
         if(p->j_dir==1)
         psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+        
+        H=0.0;
 }
 
 density_comp::~density_comp()

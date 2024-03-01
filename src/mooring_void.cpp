@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -21,18 +21,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"mooring_void.h"
 
-
-void mooring_void::start
-(
-	lexer *p, 
-	fdm *a, 
-	ghostcell *pgc
-)
-{
-	
+void mooring_void::start(lexer *p, ghostcell *pgc)
+{	
 }
 
-void mooring_void::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void mooring_void::initialize(lexer *p, ghostcell *pgc)
 {
 }
 
