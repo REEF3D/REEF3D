@@ -88,9 +88,6 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
     
-    LOOP
-    pcorr(i,j,k)=0.0;
-    pgc->start4(p,pcorr,1);
 	
     ppois->start(p,a,pcorr);
 	
@@ -152,6 +149,11 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
 	
     NLOOP4
 	a->rhsvec.V[n]=0.0;
+    
+    LOOP
+    pcorr(i,j,k)=0.0;
+    
+    pgc->start4(p,pcorr,1);
 	
     pip=p->Y50;
 

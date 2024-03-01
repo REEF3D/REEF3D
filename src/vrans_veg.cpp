@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-vrans_veg::vrans_veg(lexer *p, ghostcell *pgc) : Cval(p->B264), N(p), D(p), Cd(p), un(p), vn(p), wn(p)
+vrans_veg::vrans_veg(lexer *p, ghostcell *pgc) : Cval(p->B264), N(p), D(p), Cd(p), un(p), unn(p), vn(p), vnn(p), wn(p), wnn(p)
 {
 	//initialize(p,a,pgc);
 }
@@ -37,13 +37,22 @@ vrans_veg::~vrans_veg()
 void vrans_veg::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
     ULOOP
+    {
+    unn(i,j,k) = un(i,j,k);
     un(i,j,k) = a->u(i,j,k);
+    }
     
     VLOOP
+    {
+    vnn(i,j,k) = vn(i,j,k);
     vn(i,j,k) = a->v(i,j,k);
+    }
     
     WLOOP
+    {
+    wnn(i,j,k) = wn(i,j,k);
     wn(i,j,k) = a->w(i,j,k);
+    }
 }
 
 void vrans_veg::sed_update(lexer *p, fdm *a, ghostcell *pgc)
