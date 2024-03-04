@@ -45,9 +45,31 @@ ghostcell::~ghostcell()
 {
 }
 
+void ghostcell::mpi_check(lexer* p)
+{
+    int check=1;
+    int ok=0;
+    
+    check=globalisum(check);
+    
+    if(check==p->mpi_size)
+    ok=1;
+    
+    if(p->mpirank==0)
+    cout<<"mpi running - checksum: "<<check<<" vs "<<p->mpi_size;
+    
+    if(p->mpirank==0 && ok==1)
+    cout<<" ... ok";
+    
+    if(p->mpirank==0 && ok==0)
+    cout<<" ... mismatch";
+    
+    if(p->mpirank==0)
+    cout<<endl;
+}
+
 void ghostcell::gcini(lexer* p)
 {
-
     margin=p->margin;
 	paramargin=p->margin;
     gamma=p->B29;

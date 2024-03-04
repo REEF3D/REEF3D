@@ -53,6 +53,7 @@ public:
 	virtual ~ghostcell();
 
 	void gcini(lexer* p);
+    void mpi_check(lexer* p);
 
 	void start1(lexer*,field&, int);
 	void start2(lexer*,field&, int);

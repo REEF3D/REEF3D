@@ -87,10 +87,25 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
 	}
 	
 	
-	double critL = p->DXM*p->X184;
+	double critL = p->DXM*p->X186;
+    
+    double dxmin=1.0e10;
+    
+    ILOOP
+    dxmin = MIN(dxmin,p->DXN[IP]);
+    
+    if(p->j_dir==1)
+    JLOOP
+    dxmin = MIN(dxmin,p->DYN[JP]);
+    
+    KLOOP
+    dxmin = MIN(dxmin,p->DZN[KP]);
+    
 	
+    
 	for (int n = 0; n < tri_x_r.size(); n++)
 	{
+        
 		x0 = tri_x_r[n][0];
 		x1 = tri_x_r[n][1];
 		x2 = tri_x_r[n][2];
@@ -106,6 +121,32 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
 		at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
 		bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
 		ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));   
+        
+        if(p->X185==1)
+        critL = p->DXM*p->X186;
+        
+        if(p->X185==2)
+        critL = dxmin*p->X186;
+        
+        if(p->X185==3)
+        {
+        dxmin=1.0e10;
+        
+        double xm = (1.0/3.0)*(x0+x1+x2);
+        double ym = (1.0/3.0)*(y0+y1+y2);
+        double zm = (1.0/3.0)*(z0+z1+z2);
+        
+        i = p->posc_i(xm);
+        j = p->posc_j(ym);
+        k = p->posc_k(zm);
+        
+        dxmin = MIN(dxmin,p->DXN[IP]);
+        
+        if(p->j_dir==1)
+        dxmin = MIN(dxmin,p->DYN[JP]);
+        
+        dxmin = MIN(dxmin,p->DZN[KP]);
+        }
         
 		// Check size of triangle and split into 4 triangles if too big
 		
