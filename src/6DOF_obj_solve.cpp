@@ -29,7 +29,7 @@ void sixdof_obj::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter, vran
 {
     externalForces(p, a, pgc, alpha[0], pvrans, pnet);
     
-    updateForces();
+    update_forces();
     
     if(p->N40==2 || p->N40==22)
     rk2(p,pgc,iter);

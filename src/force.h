@@ -66,9 +66,9 @@ private:
 	
 	
     void force_calc(lexer*,fdm*,ghostcell*);
+    
 	void print_force(lexer*,fdm*,ghostcell*);
     void print_ini(lexer*,fdm*,ghostcell*);
-    
     void print_vtp(lexer*,fdm*,ghostcell*);
     void pvtp(lexer*,fdm*,ghostcell*);
     void header(lexer*,fdm*,ghostcell*);

@@ -1523,6 +1523,8 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = X50;
 	ii++;
+    ictrl[ii] = X60;
+	ii++;
 	ictrl[ii] = X100;
 	ii++;
 	dctrl[dd] = X100_x;

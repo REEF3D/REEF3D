@@ -754,6 +754,7 @@ void lexer::ini_default()
     X48=0;
     X49=0;
     X50=1;      // int type of print out format for 6DOF structure
+    X60=1;      // int type of print of force calculation
 	X100=0;		// int delta x,y,z
 	X100_x=X100_y=X100_z=0.0;
 	X101=0;		// int ini Euler angles

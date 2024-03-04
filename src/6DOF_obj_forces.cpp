@@ -28,7 +28,17 @@ Author: Tobias Martin
 #include"net.h"
 #include"vrans.h"
 
-void sixdof_obj::updateForces()
+void sixdof_obj::hydrodynamic_forces(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter)
+{
+    if(p->X60==1)
+    forces_stl(p,a,pgc,uvel,vvel,wvel,iter);
+    
+    if(p->X60==2)
+    forces_lsm(p,a,pgc,uvel,vvel,wvel,iter);
+    
+}
+
+void sixdof_obj::update_forces()
 {
     // Forces in inertial system
     Ffb_ << 0.0, 0.0, 0.0;

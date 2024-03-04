@@ -1876,7 +1876,12 @@
             <File Name="6DOF_obj_print_ini.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Forces">
-            <File Name="6DOF_obj_forces_ls_triangulation.cpp"/>
+            <File Name="6DOF_obj_forces_lsm_triangulation.cpp"/>
+            <VirtualDirectory Name="VTP">
+              <File Name="6DOF_obj_forces_lsm_pvtp.cpp"/>
+              <File Name="6DOF_obj_forces_lsm_vtp.cpp"/>
+              <File Name="6DOF_obj_forces_lsm_print.cpp"/>
+            </VirtualDirectory>
             <File Name="6DOF_obj_forces_lsm_reconstruction.cpp"/>
             <File Name="6DOF_obj_forces_lsm.cpp"/>
             <File Name="6DOF_obj_forces_stl.cpp"/>

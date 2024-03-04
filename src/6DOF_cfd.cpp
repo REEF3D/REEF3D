@@ -48,7 +48,7 @@ void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        fb_obj[nb]->forces_stl(p,a,pgc,uvel,vvel,wvel,iter);
+        fb_obj[nb]->hydrodynamic_forces(p,a,pgc,uvel,vvel,wvel,iter);
         
         // Advance body in time
         fb_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);

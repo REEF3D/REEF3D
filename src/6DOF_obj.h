@@ -62,7 +62,8 @@ public:
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
-	void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
+    void hydrodynamic_forces(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
+	
     void quat_matrices();
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     
@@ -88,7 +89,8 @@ private:
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void mooringForces(lexer*,  ghostcell*, double);
     void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
-    void updateForces();
+    void update_forces();
+    
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
     
@@ -116,6 +118,24 @@ private:
     void geometry_stl(lexer*, fdm*, ghostcell*);
 	void geometry_f(double&,double&,double&,double&,double&,double&,double&,double&,double&);
     void geometry_ls(lexer*, fdm*, ghostcell*);
+    
+    // force
+    void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
+    void forces_lsm(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
+    void triangulation(lexer*, fdm*, ghostcell*, field&);
+	void reconstruct(lexer*, fdm*, field&);
+    void addpoint(lexer*,fdm*,int,int);
+    void forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc);
+    
+    void print_force(lexer*,fdm*,ghostcell*);
+    void print_ini(lexer*,fdm*,ghostcell*);
+    void print_vtp(lexer*,fdm*,ghostcell*);
+    void pvtp(lexer*,fdm*,ghostcell*);
+    void header(lexer*,fdm*,ghostcell*);
+    void name_iter(lexer*,fdm*,ghostcell*);
+    void name_time(lexer*,fdm*,ghostcell*);
+    void piecename(lexer*,fdm*,ghostcell*,int);
+    
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
     void update_Euler_angles(lexer*, ghostcell*, bool);
@@ -177,6 +197,30 @@ private:
     
     // extmotion
     sixdof_motionext *pmotion;
+    
+    // forces
+    int **tri, **facet, *confac, *numfac,*numpt;
+	double **ccpt, **pt, *ls;
+	double   dV1,dV2,C1,C2,mi;
+	int numtri,numvert, numtri_mem, numvert_mem;
+	int countM,n,nn;
+	int ccptcount,facount,check;
+	int polygon_sum,polygon_num,vertice_num;
+	const double zero,interfac;
+    double eps;
+    
+    int is,ie,js,je,ks,ke;
+    double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4;
+    double xc,yc,zc;
+    double nx,ny,nz,norm;
+    double nxs,nys,nzs;
+    double uval,vval,wval,pval,viscosity,density,phival;
+    double du,dv,dw;
+    double at,bt,ct,st;
+	
+
+	fieldint5 vertice, nodeflag;
+    field5 eta;
 
     
     // Raycast
