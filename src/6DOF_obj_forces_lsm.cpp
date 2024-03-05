@@ -66,6 +66,19 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
     
+    polygon_num=facount;
+	
+	polygon_sum=0;
+	for(n=0;n<polygon_num;++n)
+	polygon_sum+=numpt[n];
+	
+
+	
+	vertice_num = ccptcount;
+    
+    if(numtri>0)
+    cout<<"FORCES"<<endl;
+    
 
     pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
     a->press.ggcpol(p);

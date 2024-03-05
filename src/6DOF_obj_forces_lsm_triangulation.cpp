@@ -12,7 +12,7 @@ the Free Software Foundation; either version 3 of the License, or
 This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-for more da->solidils.
+for more da->fbils.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
@@ -31,8 +31,8 @@ void sixdof_obj::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 	int negcount, poscount;
     
     NDBASELOOP
-    eta(i,j,k) = 0.125*(a->solid(i,j,k) + a->solid(i+1,j,k) + a->solid(i,j+1,k) + a->solid(i+1,j+1,k)
-                      + a->solid(i,j,k+1) + a->solid(i+1,j,k+1) + a->solid(i,j+1,k+1) + a->solid(i+1,j+1,k+1));
+    eta(i,j,k) = 0.125*(a->fb(i,j,k) + a->fb(i+1,j,k) + a->fb(i,j+1,k) + a->fb(i+1,j+1,k)
+                      + a->fb(i,j,k+1) + a->fb(i+1,j,k+1) + a->fb(i,j+1,k+1) + a->fb(i+1,j+1,k+1));
 	
     NDBASELOOP
     vertice(i,j,k)=-1;
@@ -42,12 +42,12 @@ void sixdof_obj::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 	
 
     BASELOOP
-    if(i>=is && i<=ie && j>=js && j<=je && k>=ks && k<=ke)
     {
         eps = interfac*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
-        if(fabs(a->solid(i,j,k))<eps)
+        if(fabs(a->fb(i,j,k))<eps)
         {
+        
             check=1;
 
             if(eta(i,j,k)<zero && eta(i-1,j,k)<zero && eta(i-1,j-1,k)<zero && eta(i,j-1,k)<zero &&
@@ -57,7 +57,8 @@ void sixdof_obj::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
             if(eta(i,j,k)>zero && eta(i-1,j,k)>zero && eta(i-1,j-1,k)>zero && eta(i,j-1,k)>zero &&
                eta(i,j,k-1)>zero && eta(i-1,j,k-1)>zero && eta(i-1,j-1,k-1)>zero && eta(i,j-1,k-1)>zero)
             check=0;
-
+            
+            //cout<<"HI "<<check<<endl;
             if(check==1)
             {
             nodeflag(i,j,k)=1;
@@ -77,10 +78,15 @@ void sixdof_obj::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     countM=0;
     NDBASELOOP
     if(nodeflag(i,j,k)==1)
+    {
     ++countM;
-
+    }
+    
+    cout<<"countM_final: "<<countM<<endl;
     numtri = 6*countM;
     numvert = countM;
+    
+    cout<<p->mpirank<<" numtri: "<<numtri<<" numvert: "<<numvert<<" countM: "<<countM<<endl;
 
     numtri_mem = numtri;
     numvert_mem = numvert;

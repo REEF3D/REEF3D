@@ -26,6 +26,9 @@ Author: Hans Bihs
 
 void sixdof_obj::reconstruct(lexer *p,fdm* a, field& b)
 {
+    if(numtri>0)
+    cout<<"RECONSTRUCTION"<<endl;
+    
     ccptcount=0;
 
     for(n=0;n<numtri; ++n)
