@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-
 void sixdof_obj::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 {
 	int negcount, poscount;
@@ -40,7 +39,6 @@ void sixdof_obj::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     NDBASELOOP
     nodeflag(i,j,k)=0;
 	
-
     BASELOOP
     {
         eps = interfac*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
@@ -58,7 +56,6 @@ void sixdof_obj::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
                eta(i,j,k-1)>zero && eta(i-1,j,k-1)>zero && eta(i-1,j-1,k-1)>zero && eta(i,j-1,k-1)>zero)
             check=0;
             
-            //cout<<"HI "<<check<<endl;
             if(check==1)
             {
             nodeflag(i,j,k)=1;
@@ -73,7 +70,6 @@ void sixdof_obj::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
         }
     }
 
-	
 	//--------------------
     countM=0;
     NDBASELOOP
@@ -82,11 +78,11 @@ void sixdof_obj::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     ++countM;
     }
     
-    cout<<"countM_final: "<<countM<<endl;
+    //cout<<"countM_final: "<<countM<<endl;
     numtri = 6*countM;
     numvert = countM;
     
-    cout<<p->mpirank<<" numtri: "<<numtri<<" numvert: "<<numvert<<" countM: "<<countM<<endl;
+    //cout<<p->mpirank<<" numtri: "<<numtri<<" numvert: "<<numvert<<" countM: "<<countM<<endl;
 
     numtri_mem = numtri;
     numvert_mem = numvert;

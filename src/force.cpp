@@ -69,6 +69,7 @@ force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),vertice(p),no
 force::~force()
 {
 }
+
 void force::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     triangulation(p,a,pgc,a->phi);

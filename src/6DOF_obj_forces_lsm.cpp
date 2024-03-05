@@ -44,7 +44,6 @@ void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
     p->del_Iarray(numfac,numtri);
 	p->del_Iarray(numpt,numtri);
     p->del_Darray(ccpt,numtri*4,3);
-    
 }
 
 void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
@@ -65,6 +64,9 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
 
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
+    A=0.0;
+    Xe=Ye=Ze=Ke=Me=Ne=0.0;
+    Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
     polygon_num=facount;
 	
@@ -72,19 +74,16 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
 	for(n=0;n<polygon_num;++n)
 	polygon_sum+=numpt[n];
 	
-
 	
 	vertice_num = ccptcount;
     
-    if(numtri>0)
-    cout<<"FORCES"<<endl;
+    //if(numtri>0)
+    //cout<<p->mpirank<<"  FORCES  "<<polygon_num<<endl;
     
 
-    pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
-    a->press.ggcpol(p);
-    
     for(n=0;n<polygon_num;++n)
     {       
+        
             // triangle
             if(numpt[n]==3)
             {
@@ -182,9 +181,9 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
             j = p->posc_j(yc);
             k = p->posc_k(zc);
             
-            sgnx = (a->solid(i+1,j,k)-a->solid(i-1,j,k))/(p->DXP[IM1] + p->DXP[IP]);
-            sgny = (a->solid(i,j+1,k)-a->solid(i,j-1,k))/(p->DYP[JM1] + p->DYP[JP]);
-            sgnz = (a->solid(i,j,k+1)-a->solid(i,j,k-1))/(p->DZP[KM1] + p->DZP[KP]);
+            sgnx = (a->fb(i+1,j,k)-a->fb(i-1,j,k))/(p->DXP[IM1] + p->DXP[IP]);
+            sgny = (a->fb(i,j+1,k)-a->fb(i,j-1,k))/(p->DYP[JM1] + p->DYP[JP]);
+            sgnz = (a->fb(i,j,k+1)-a->fb(i,j,k-1))/(p->DZP[KM1] + p->DZP[KP]);
             
             nx = nx*sgnx/fabs(fabs(sgnx)>1.0e-20?sgnx:1.0e20);
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
@@ -222,22 +221,27 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
             // Force
             if(phival>-1.6*p->DXM || p->P92==1)
             {
-            Fx = -(pval)*A*nx
-                       + density*viscosity*A*(du*ny+du*nz);
+            Fp_x = -(pval)*A*nx;
                        
-            Fy = -(pval)*A*ny
-                       + density*viscosity*A*(dv*nx+dv*nz);
+            Fp_y = -(pval)*A*ny;
                     
-            Fz = -(pval)*A*nz
-                       + density*viscosity*A*(dw*nx+dw*ny);   
+            Fp_z = -(pval)*A*nz;
+
+
+            Fv_x = density*viscosity*A*(du*ny+du*nz);
                        
+            Fv_y = density*viscosity*A*(dv*nx+dv*nz);
+                    
+            Fv_z = density*viscosity*A*(dw*nx+dw*ny); 
+              
+            Fx = Fp_x + Fv_x;
+            Fy = Fp_y + Fv_y;
+            Fz = Fp_z + Fv_z;
             }
     Ax+=A*nx;
     Ay+=A*ny;
     
     Px += pval*nx/fabs(nx);
-    
-    
     
     
     // Add forces to global forces
@@ -284,8 +288,8 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
     A_tot = pgc->globalsum(A_tot);
     Px = pgc->globalsum(Px);
     
-    //if(p->mpirank==0)
-    //cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
+    if(p->mpirank==0)
+    cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
     
     if(p->mpirank==0)
     cout<<"Hydrodynamic Forces:  Fx_p: "<<Xe_p<<" Fy_p: "<<Ye_p<<" Fz_p: "<<Ze_p<<"  |  Fx_v: "<<Xe_v<<" Fy_v: "<<Ye_v<<" Fz_v: "<<Ze_v<<endl;

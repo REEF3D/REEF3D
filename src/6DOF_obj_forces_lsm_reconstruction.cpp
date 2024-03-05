@@ -26,8 +26,8 @@ Author: Hans Bihs
 
 void sixdof_obj::reconstruct(lexer *p,fdm* a, field& b)
 {
-    if(numtri>0)
-    cout<<"RECONSTRUCTION"<<endl;
+    //if(numtri>0)
+    //cout<<"RECONSTRUCTION"<<endl;
     
     ccptcount=0;
 
@@ -84,6 +84,7 @@ void sixdof_obj::addpoint(lexer *p, fdm *a, int q1, int q2)
     }
 
     facet[nn][numpt[nn]] = ccptcount;
+    
 	++numpt[nn];
     ++numfac[n];
 
