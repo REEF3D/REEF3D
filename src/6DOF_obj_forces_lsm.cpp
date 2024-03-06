@@ -67,6 +67,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
+    nx=ny=nz=0.0;
     
     polygon_num=facount;
 	
@@ -76,10 +77,6 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
 	
 	
 	vertice_num = ccptcount;
-    
-    //if(numtri>0)
-    //cout<<p->mpirank<<"  FORCES  "<<polygon_num<<endl;
-    
 
     for(n=0;n<polygon_num;++n)
     {       
@@ -181,6 +178,9 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
             j = p->posc_j(yc);
             k = p->posc_k(zc);
             
+            if(p->j_dir==0)
+            j=0;
+            
             sgnx = (a->fb(i+1,j,k)-a->fb(i-1,j,k))/(p->DXP[IM1] + p->DXP[IP]);
             sgny = (a->fb(i,j+1,k)-a->fb(i,j-1,k))/(p->DYP[JM1] + p->DYP[JP]);
             sgnz = (a->fb(i,j,k+1)-a->fb(i,j,k-1))/(p->DZP[KM1] + p->DZP[KP]);
@@ -188,6 +188,9 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
             nx = nx*sgnx/fabs(fabs(sgnx)>1.0e-20?sgnx:1.0e20);
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
             nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
+            
+            if(p->j_dir==0)
+            ny=0.0;
             
             
             xloc = xc + nx*p->DXP[IP]*p->P91;
@@ -206,6 +209,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
             dv = vval/p->DYN[JP];
             dw = wval/p->DZN[KP];
             
+            
             pval =      p->ccipol4_a(a->press,xloc,yloc,zloc) - p->pressgage;
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
             viscosity = p->ccipol4_a(a->visc,xloc,yloc,zloc);
@@ -219,25 +223,25 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
             k = p->posc_k(zloc);
             
             // Force
-            if(phival>-1.6*p->DXM || p->P92==1)
-            {
             Fp_x = -(pval)*A*nx;
-                       
             Fp_y = -(pval)*A*ny;
-                    
             Fp_z = -(pval)*A*nz;
-
+            
+            //cout<<"nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
+            
+            
 
             Fv_x = density*viscosity*A*(du*ny+du*nz);
-                       
             Fv_y = density*viscosity*A*(dv*nx+dv*nz);
-                    
             Fv_z = density*viscosity*A*(dw*nx+dw*ny); 
+            
+            if(Fv_x!=Fv_x)
+            cout<<"density: "<<density<<" viscosity: "<<viscosity<<" uval: "<<uval<<" du: "<<du<<" i: "<<i<<" p->DXP[IP]: "<<p->DXP[IP]<<endl;
               
             Fx = Fp_x + Fv_x;
             Fy = Fp_y + Fv_y;
             Fz = Fp_z + Fv_z;
-            }
+            
     Ax+=A*nx;
     Ay+=A*ny;
     
@@ -262,7 +266,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
             Ye_v += Fv_y;
             Ze_v += Fv_z;
 							
-			A_tot+=A;
+            A_tot+=A;
     }
     
     // Communication with other processors

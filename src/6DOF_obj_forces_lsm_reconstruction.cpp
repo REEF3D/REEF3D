@@ -26,9 +26,6 @@ Author: Hans Bihs
 
 void sixdof_obj::reconstruct(lexer *p,fdm* a, field& b)
 {
-    //if(numtri>0)
-    //cout<<"RECONSTRUCTION"<<endl;
-    
     ccptcount=0;
 
     for(n=0;n<numtri; ++n)
@@ -61,7 +58,6 @@ void sixdof_obj::reconstruct(lexer *p,fdm* a, field& b)
 void sixdof_obj::addpoint(lexer *p, fdm *a, int q1, int q2)
 {
 	// p. 917
-	
     double dist,xd,dnom;
 
     dnom=ls[q2]-ls[q1];

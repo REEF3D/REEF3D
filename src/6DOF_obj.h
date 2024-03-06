@@ -216,6 +216,7 @@ private:
     double uval,vval,wval,pval,viscosity,density,phival;
     double du,dv,dw;
     double at,bt,ct,st;
+    char name[100],pname[100];
 	
 
 	fieldint5 vertice, nodeflag;

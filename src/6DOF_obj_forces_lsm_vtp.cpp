@@ -27,7 +27,6 @@ Author: Hans Bihs
 
 void sixdof_obj::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
 {
-    /*
 	int polygon_num3,polygon_sum3;
 	if(p->mpirank==0)
     pvtp(p,a,pgc);
@@ -205,6 +204,6 @@ void sixdof_obj::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
 	result<<endl<<"</AppendedData>"<<endl;
     result<<"</VTKFile>"<<endl;
 
-	result.close();	*/
+	result.close();	
 }
 

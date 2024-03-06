@@ -121,6 +121,9 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
 			nz /= norm > 1.0e-20 ? norm : 1.0e20;
             
+            if(p->j_dir==0)
+            ny=0.0;
+            
             // Add normal stress contributions
             xlocp = xc + p->X42*nx*p->DXP[IP];
             ylocp = yc + p->X42*ny*p->DYP[JP];

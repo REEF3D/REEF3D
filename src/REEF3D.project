@@ -1880,7 +1880,6 @@
             <VirtualDirectory Name="VTP">
               <File Name="6DOF_obj_forces_lsm_pvtp.cpp"/>
               <File Name="6DOF_obj_forces_lsm_vtp.cpp"/>
-              <File Name="6DOF_obj_forces_lsm_print.cpp"/>
             </VirtualDirectory>
             <File Name="6DOF_obj_forces_lsm_reconstruction.cpp"/>
             <File Name="6DOF_obj_forces_lsm.cpp"/>
