@@ -33,7 +33,7 @@ void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
     
     //print_vtp(p,a,pgc);
     
-    forces_lsm_calc(p,a,pgc);
+    forces_lsm_calc(p,a,pgc,iter);
     
     
     p->del_Iarray(tri,numtri,4);
@@ -46,7 +46,7 @@ void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
     p->del_Darray(ccpt,numtri*4,3);
 }
 
-void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
+void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
 {
     double ux,vy,wz,vel,pressure,density,viscosity;
     double du,dv,dw;
@@ -61,6 +61,8 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
     double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
     
+    // Set new time
+    curr_time += alpha[iter]*p->dt; 
 
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
@@ -228,8 +230,6 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
             Fp_z = -(pval)*A*nz;
             
             //cout<<"nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
-            
-            
 
             Fv_x = density*viscosity*A*(du*ny+du*nz);
             Fv_y = density*viscosity*A*(dv*nx+dv*nz);
@@ -237,7 +237,14 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
             
             if(Fv_x!=Fv_x)
             cout<<"density: "<<density<<" viscosity: "<<viscosity<<" uval: "<<uval<<" du: "<<du<<" i: "<<i<<" p->DXP[IP]: "<<p->DXP[IP]<<endl;
-              
+            
+            if(Fv_y!=Fv_y)
+            cout<<"density: "<<density<<" viscosity: "<<viscosity<<" vval: "<<uval<<" dv: "<<dv<<" j: "<<j<<" p->DYP[JP]: "<<p->DYP[JP]<<endl;
+            
+            if(Fv_z!=Fv_z)
+            cout<<"density: "<<density<<" viscosity: "<<viscosity<<" wval: "<<wval<<" dw: "<<dw<<" k: "<<k<<" p->DZP[KP]: "<<p->DZP[KP]<<endl;
+            
+            
             Fx = Fp_x + Fv_x;
             Fy = Fp_y + Fv_y;
             Fz = Fp_z + Fv_z;
@@ -301,6 +308,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc)
     Xe += a->gi*Mass_fb;
 	Ye += a->gj*Mass_fb;
 	Ze += a->gk*Mass_fb;
+    
     
     // Print results
 	
