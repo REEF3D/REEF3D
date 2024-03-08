@@ -39,7 +39,6 @@ void sixdof_obj::hydrodynamic_forces(lexer* p, fdm *a, ghostcell *pgc,field& uve
     
     //forces_stl(p,a,pgc,uvel,vvel,wvel,iter);
     }
-    
 }
 
 void sixdof_obj::update_forces()
@@ -66,4 +65,23 @@ void sixdof_obj::update_forces()
     
     if(p->X11_r==1)
     Mfb_(2) = Next + Ne - p->X25_Cr*omega_I(2);
+    
+    if(Ffb_(0) != Ffb_(0))
+    cout<<"Ffb_(0)....###"<<endl;
+    
+    if(Ffb_(1) != Ffb_(1))
+    cout<<"Ffb_(1)....###"<<endl;
+    
+    if(Ffb_(2) != Ffb_(2))
+    cout<<"Ffb_(2)....###"<<endl;
+    
+    
+    if(Mfb_(0) != Mfb_(0))
+    cout<<"Mfb_(0)....###"<<endl;
+    
+    if(Mfb_(1) != Mfb_(1))
+    cout<<"Mfb_(1)....###"<<endl;
+    
+    if(Mfb_(2) != Mfb_(2))
+    cout<<"Mfb_(2)....###"<<endl;
 }

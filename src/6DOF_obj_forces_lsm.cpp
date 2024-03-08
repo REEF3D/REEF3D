@@ -77,7 +77,8 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
 	for(n=0;n<polygon_num;++n)
 	polygon_sum+=numpt[n];
 	
-	
+	cout<<p->mpirank<<" polygon_num: "<<polygon_num<<endl;
+    
 	vertice_num = ccptcount;
 
     for(n=0;n<polygon_num;++n)
@@ -173,6 +174,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
             nx/=norm>1.0e-20?norm:1.0e20;
             ny/=norm>1.0e-20?norm:1.0e20;
             nz/=norm>1.0e-20?norm:1.0e20;
+            
             //----
 
             
@@ -194,6 +196,15 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
             if(p->j_dir==0)
             ny=0.0;
             
+            if(nx!=nx)
+            cout<<"nx ....... ###"<<endl;
+            
+            if(ny!=ny)
+            cout<<"ny ....... ###"<<endl;
+            
+            if(nz!=nz)
+            cout<<"nz ....... ###"<<endl;
+            
             
             xloc = xc + nx*p->DXP[IP]*p->P91;
             yloc = yc + ny*p->DYP[JP]*p->P91;
@@ -203,14 +214,31 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
             ylocvel = yc + ny*p->DYP[JP];
             zlocvel = zc + nz*p->DZP[KP];
             
-            uval = p->ccipol1_a(a->u,xlocvel,ylocvel,zlocvel);
-            vval = p->ccipol2_a(a->v,xlocvel,ylocvel,zlocvel);
-            wval = p->ccipol3_a(a->w,xlocvel,ylocvel,zlocvel);
+            uval = p->ccipol1(a->u,xlocvel,ylocvel,zlocvel);
+            vval = p->ccipol2(a->v,xlocvel,ylocvel,zlocvel);
+            wval = p->ccipol3(a->w,xlocvel,ylocvel,zlocvel);
+            
+            if(uval!=uval)
+            cout<<p->mpirank<<" uval ....... ### "<<" xlocvel: "<<xlocvel<<" ylocvel: "<<ylocvel<<" zlocvel: "<<zlocvel<<endl;
+            
+            if(vval!=vval)
+            cout<<"vval ....... ### "<<endl;
+            
+            if(wval!=wval)
+            cout<<p->mpirank<<" wval ....... ### "<<" xlocvel: "<<xlocvel<<" ylocvel: "<<ylocvel<<" zlocvel: "<<zlocvel<<endl;
+            
+            if(uval!=uval)
+            uval=0.0;
+            
+            if(vval!=vval)
+            vval=0.0;
+            
+            if(wval!=wval)
+            wval=0.0;
             
             du = uval/p->DXN[IP];
             dv = vval/p->DYN[JP];
             dw = wval/p->DZN[KP];
-            
             
             pval =      p->ccipol4_a(a->press,xloc,yloc,zloc) - p->pressgage;
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
@@ -293,6 +321,24 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
 	Xe_v = pgc->globalsum(Xe_v);
 	Ye_v = pgc->globalsum(Ye_v);
 	Ze_v = pgc->globalsum(Ze_v);
+    
+    if(Xe!=Xe)
+    cout<<"Xe ....... ###"<<endl;
+    
+    if(Ye!=Ye)
+    cout<<"Ye ....... ###"<<endl;
+    
+    if(Ze!=Ze)
+    cout<<"Ze ....... ###"<<endl;
+    
+    if(Ke!=Ke)
+    cout<<"Ke ....... ###"<<endl;
+    
+    if(Me!=Me)
+    cout<<"Me ....... ###"<<endl;
+    
+    if(Ne!=Ne)
+    cout<<"Ne ....... ###"<<endl;
     
     Ax = pgc->globalsum(Ax);
     Ay = pgc->globalsum(Ay);
