@@ -77,7 +77,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
 	for(n=0;n<polygon_num;++n)
 	polygon_sum+=numpt[n];
 	
-	cout<<p->mpirank<<" polygon_num: "<<polygon_num<<endl;
+	//cout<<p->mpirank<<" polygon_num: "<<polygon_num<<endl;
     
 	vertice_num = ccptcount;
 
