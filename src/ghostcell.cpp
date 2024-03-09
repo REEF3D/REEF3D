@@ -55,11 +55,11 @@ void ghostcell::mpi_check(lexer* p)
     if(check==p->mpi_size)
     ok=1;
     
-    if(p->mpirank==0)
-    cout<<"mpi running - checksum: "<<check<<" vs "<<p->mpi_size;
+    if(p->mpirank==0 && ok==0)
+    cout<<"mpi - checksum: "<<check<<" vs "<<p->mpi_size;
     
-    if(p->mpirank==0 && ok==1)
-    cout<<" ... ok";
+    //if(p->mpirank==0 && ok==1)
+    //cout<<" ... ok";
     
     if(p->mpirank==0 && ok==0)
     cout<<" ... mismatch";
