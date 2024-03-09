@@ -30,7 +30,7 @@ void sflow_state::filename_single(lexer *p, fdm2D *b, ghostcell *pgc, int num)
 
 void sflow_state::filename_continuous(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    sprintf(name,"./REEF3D_FNPF_SFLOW/REEF3D_SFLOW-State-%06i.r3d",p->mpirank+1);
+    sprintf(name,"./REEF3D_SFLOW_STATE/REEF3D_SFLOW-State-%06i.r3d",p->mpirank+1);
 }
 
 void sflow_state::filename_header(lexer *p, fdm2D *b, ghostcell *pgc)

@@ -163,7 +163,6 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 
     count=0;
 
-	count=0;
     if(p->i_dir==1)
     {
 	ULOOP // 
