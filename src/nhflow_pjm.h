@@ -63,7 +63,6 @@ private:
     int solver_id;
     double val, denom;
     double gamma;
-    double wfac;
 
     density *pd;
     nhflow_poisson *ppois;

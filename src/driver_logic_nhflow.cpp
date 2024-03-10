@@ -86,6 +86,9 @@ void driver::logic_nhflow()
     if(p->A512==0)
     pnhfdiff = new nhflow_diff_void(p);
     
+    if(p->A512==1)
+    pnhfdiff = new nhflow_ediff(p);
+    
     if(p->A512==2)
     pnhfdiff = new nhflow_idiff(p);
     

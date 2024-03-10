@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::ucorr(lexer* p, fdm_nhf* d, double *UH, slice &WL, double alpha)
 {
-    /*if(p->A521==1)
+    /*
     LOOP
     {
         dfdx_plus = (d->detadt(i+1,j)-d->detadt(i,j))/p->DXP[IP];
@@ -43,7 +43,7 @@ void nhflow_fsf_f::ucorr(lexer* p, fdm_nhf* d, double *UH, slice &WL, double alp
 
 void nhflow_fsf_f::vcorr(lexer* p, fdm_nhf* d, double *VH, slice &WL, double alpha)
 {
-    /*if(p->A521==1 && p->j_dir==1)
+    /*if(p->j_dir==1)
     LOOP
     {
         dfdy_plus = (d->detadt(i,j+1)-d->detadt(i,j))/p->DYP[JP];

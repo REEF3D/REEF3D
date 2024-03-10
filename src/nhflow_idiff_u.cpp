@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"slice.h"
 
 nhflow_idiff::nhflow_idiff(lexer* p)
 {
@@ -41,8 +42,7 @@ nhflow_idiff::~nhflow_idiff()
 {
 }
 
-
-void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, double alpha)
+void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
 	starttime=pgc->timer();
 
@@ -80,10 +80,10 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
             d->M.e[n] = -visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
             d->M.t[n] = -(visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP])     
-                        - p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+                        - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]);
                         
             d->M.b[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP]) 
-                        + p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+                        + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]);
             
             
             d->rhsvec.V[n] = visc*((VH[Ip1Jp1K]-VH[Im1Jp1K]) - (VH[Ip1Jm1K]-VH[Im1Jm1K]))/((p->DXP[IP]+p->DXP[IM1])*(p->DYN[JP]+p->DYN[JM1]))
@@ -102,7 +102,6 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
         if(p->wet[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
         {
         d->M.p[n]  =  1.0;
-
 
         d->M.n[n] = 0.0;
         d->M.s[n] = 0.0;
@@ -127,37 +126,37 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
         {
             if(p->flag4[Im1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*UH[Im1JK];
+            d->rhsvec.V[n] -= d->M.s[n]*UH[IJK];
             d->M.s[n] = 0.0;
             }
             
             if(p->flag4[Ip1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*UH[Ip1JK];
+            d->rhsvec.V[n] -= d->M.n[n]*UH[IJK];
             d->M.n[n] = 0.0;
             }
             
             if(p->flag4[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*UH[IJm1K]*p->y_dir;
+            d->rhsvec.V[n] -= d->M.e[n]*UH[IJK]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
             if(p->flag4[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*UH[IJp1K]*p->y_dir;
+            d->rhsvec.V[n] -= d->M.w[n]*UH[IJK]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*UH[IJKm1];
+            d->rhsvec.V[n] -= d->M.b[n]*UH[IJK];
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0)
+            if(p->flag4[IJKp1]<0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*UH[IJKp1];
+            d->rhsvec.V[n] -= d->M.t[n]*UH[IJK];
             d->M.t[n] = 0.0;
             }
   

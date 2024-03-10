@@ -42,7 +42,7 @@ nhflow_diff_void::~nhflow_diff_void()
 }
 
 
-void nhflow_diff_void::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, double alpha)
+void nhflow_diff_void::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     LOOP
     UHdiff[IJK] = UHin[IJK];
@@ -50,7 +50,7 @@ void nhflow_diff_void::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psol
     pgc->start4V(p,UHdiff,gcval_uh);
 }
 
-void nhflow_diff_void::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, double alpha)
+void nhflow_diff_void::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     LOOP
     VHdiff[IJK] = VHin[IJK];
@@ -58,7 +58,7 @@ void nhflow_diff_void::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psol
     pgc->start4V(p,VHdiff,gcval_vh);
 }
 
-void nhflow_diff_void::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, double alpha)
+void nhflow_diff_void::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     LOOP
     WHdiff[IJK] = WHin[IJK];

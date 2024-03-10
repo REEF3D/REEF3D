@@ -42,7 +42,6 @@ public:
 private:
 
 	int count,n,q;
-    double KB_fac;
     
 };
 

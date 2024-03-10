@@ -52,12 +52,6 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *
     if(p->D33==1)
     solver_id = 9;
     
-    if(p->A521==1)
-    wfac=1.0;
-    
-    if(p->A521==2)
-    wfac=2.0;
-
 }
 
 nhflow_pjm::~nhflow_pjm()
@@ -124,7 +118,7 @@ void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double *P, d
     LOOP
     WETDRYDEEP
     if(d->breaking(i,j)==0 && d->breaking(i-1,j)==0 && d->breaking(i+1,j)==0 && d->breaking(i,j-1)==0 && d->breaking(i,j+1)==0)
-	WH[IJK] -= wfac*alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
+	WH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
 
 void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
@@ -214,11 +208,7 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     
     //dUdz = (U[IJK] - U[IJKm1])/p->DZN[KP];
     
-    if(p->A521==1)
     dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
-     
-    if(p->A521==2)
-    dWdz = p->sigz[IJ]*(W[IJKp1]-W[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
      
     d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
                             + p->sigx[FIJK]*dUdz

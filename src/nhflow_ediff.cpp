@@ -41,9 +41,9 @@ nhflow_ediff::~nhflow_ediff()
 {
 }
 
-void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, double alpha)
+void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
-    /*
+    
 	starttime=pgc->timer();
     
     LOOP
@@ -55,23 +55,31 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	{
     visc = d->VISC[IJK];
     
-    d->F(i,j,k) += 2.0*visc*((UH[Im1JK] - 2.0*UH[IJK] + UH[Ip1JK])/(p->XP[IM1] - 2.0*p->XP[IP] + p->XP[IP1]))
+    sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+    
+    d->F[IJK] += 2.0*visc*((UH[Im1JK] - 2.0*UH[IJK] + UH[Ip1JK])/(p->XP[IM1] - 2.0*p->XP[IP] + p->XP[IP1]))
                        
-        +   visc*((VH[IJm1K] - 2.0*VH[IJK] + VH[IJp1K])/(p->YP[JM1] - 2.0*p->YP[JP] + p->YP[JP1]))
+              +     visc*((UH[IJm1K] - 2.0*UH[IJK] + UH[IJp1K])/(p->YP[JM1] - 2.0*p->YP[JP] + p->YP[JP1]))
 
-        +   visc*((WH[IJKm1] - 2.0*WH[IJK] + ¨WH[IJKp1])/(p->ZP[KM1] - 2.0*p->ZP[KP] + p->ZP[KP1]))
+              +     visc*sigxyz2*((UH[IJKm1] - 2.0*UH[IJK] + UH[IJKp1])/(p->ZP[KM1] - 2.0*p->ZP[KP] + p->ZP[KP1]))
 
 
         + visc*(VH[Ip1Jp1K]-VH[Im1Jp1K] - VH[Ip1Jm1K]+VH[Im1Jm1K])/(2.0*p->DXP[IP]*p->DYN[JP])
         
-        + visc*(WH[Ip1JKp1]-WH[Im1JKp1] - WH[Ip1JKm1]+WH[Im1JKm1])/(2.0*p->DXP[IP]*p->DZN[JP]);
+        + visc*(WH[Ip1JKp1]-WH[Im1JKp1] - WH[Ip1JKm1]+WH[Im1JKm1])/(2.0*p->DXP[IP]*p->DZN[JP])
+        
+        + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(UH[Ip1JKp1] - UH[Im1JKp1] - UH[Ip1JKm1] + UH[Im1JKm1])
+                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                        
+        + visc*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(UH[IJp1Kp1] - UH[IJm1Kp1] - UH[IJp1Km1] + UH[IJm1Km1])
+                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
 		
 	}
 
     
 
     
-
+/*
     n=0;
     LOOP
 	{
@@ -121,12 +129,20 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 */
 }
 
-void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, double alpha)
+void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
+    LOOP
+    VHdiff[IJK] = VHin[IJK];
+    
+    pgc->start4V(p,VHdiff,gcval_vh);
 }
 
-void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, double alpha)
+void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
+    LOOP
+    WHdiff[IJK] = WHin[IJK];
+    
+    pgc->start4V(p,WHdiff,gcval_wh);
 }
 
 void nhflow_ediff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UH_in, double *UH, double *VH, double *WH, double alpha)
