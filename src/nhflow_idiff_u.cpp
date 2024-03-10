@@ -71,7 +71,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
                         + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1])
                         
                         + CPORNH*(alpha*p->dt);
-
+            
 
             d->M.n[n] = -2.0*visc/(p->DXP[IP]*p->DXN[IP]);
             d->M.s[n] = -2.0*visc/(p->DXP[IM1]*p->DXN[IP]);
@@ -126,37 +126,37 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
         {
             if(p->flag4[Im1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*UH[IJK];
+            d->rhsvec.V[n] -= d->M.s[n]*UH[Im1JK];
             d->M.s[n] = 0.0;
             }
             
             if(p->flag4[Ip1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*UH[IJK];
+            d->rhsvec.V[n] -= d->M.n[n]*UH[Ip1JK];
             d->M.n[n] = 0.0;
             }
             
             if(p->flag4[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*UH[IJK]*p->y_dir;
+            d->rhsvec.V[n] -= d->M.e[n]*UH[IJm1K]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
             if(p->flag4[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*UH[IJK]*p->y_dir;
+            d->rhsvec.V[n] -= d->M.w[n]*UH[IJp1K]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*UH[IJK];
+            d->rhsvec.V[n] -= d->M.b[n]*UH[IJKm1];
             d->M.b[n] = 0.0;
             }
             
             if(p->flag4[IJKp1]<0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*UH[IJK];
+            d->rhsvec.V[n] -= d->M.t[n]*UH[IJKp1];
             d->M.t[n] = 0.0;
             }
   
@@ -173,5 +173,5 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
+	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(4)<<time<<endl;
 }

@@ -94,7 +94,7 @@ void hypre_struct::fill_matrix4V(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
 		
 		values[count]=0.0;
 		++count;  
-		}    
+		}   
     }
 	
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);

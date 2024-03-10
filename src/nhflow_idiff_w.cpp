@@ -29,7 +29,6 @@ Author: Hans Bihs
 
 void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
-    /*
 	starttime=pgc->timer();
     
     LOOP
@@ -54,7 +53,9 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
                         + visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
                         + 2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
-                        + 2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1]);
+                        + 2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1])
+                        
+                        + CPORNH*(alpha*p->dt);
 
 
             d->M.n[n] = -visc/(p->DXP[IP]*p->DXN[IP]);
@@ -83,7 +84,7 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
+        /*if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
         {
         d->M.p[n]  =  1.0;
 
@@ -98,7 +99,7 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
         d->M.b[n] = 0.0;
         
         d->rhsvec.V[n] =  0.0;
-        }
+        }*/
 	
 	++n;
 	}
@@ -159,5 +160,5 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	time=pgc->timer()-starttime;
 	p->witer=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"wdiffiter: "<<p->witer<<"  wdifftime: "<<setprecision(3)<<time<<endl;*/
+	cout<<"wdiffiter: "<<p->witer<<"  wdifftime: "<<setprecision(4)<<time<<endl;
 }

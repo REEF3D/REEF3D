@@ -28,17 +28,14 @@ Author: Hans Bihs
 
 void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
-    /*
-if(p->j_dir==1)
-{
-	starttime=pgc->timer();
-
+    starttime=pgc->timer();
     
     LOOP
     VHdiff[IJK] = VHin[IJK];
     
-    pgc->start4V(p,VHdiff,gcval_uh);
-
+    pgc->start4V(p,VHdiff,gcval_vh);
+    
+    
     n=0;
     LOOP
 	{
@@ -56,7 +53,9 @@ if(p->j_dir==1)
                         + 2.0*visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
                         + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
-                        + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1]);
+                        + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1])
+                        
+                        + CPORNH*(alpha*p->dt);
 
 
             d->M.n[n] = -visc/(p->DXP[IP]*p->DXN[IP]);
@@ -85,7 +84,7 @@ if(p->j_dir==1)
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
+        /*if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
         {
         d->M.p[n]  =  1.0;
 
@@ -100,7 +99,7 @@ if(p->j_dir==1)
         d->M.b[n] = 0.0;
         
         d->rhsvec.V[n] =  0.0;
-        }
+        }*/
 	
 	++n;
 	}
@@ -161,7 +160,5 @@ if(p->j_dir==1)
 	time=pgc->timer()-starttime;
 	p->viter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
-    
-}*/
+	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(4)<<time<<endl;
 }
