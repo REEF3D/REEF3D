@@ -39,7 +39,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     n=0;
     LOOP
 	{
-        if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
+        if(p->wet[IJ]==1 && d->breaking(i,j)==0)
         {
             visc = d->VISC[IJK];
             
@@ -55,7 +55,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
                         + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
                         + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1])
                         
-                        + CPORNH*(alpha*p->dt);
+                        + CPORNH/(alpha*p->dt);
 
 
             d->M.n[n] = -visc/(p->DXP[IP]*p->DXN[IP]);
@@ -65,10 +65,10 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
             d->M.e[n] = -2.0*visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
             d->M.t[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])     
-                        - p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+                        - 0.0*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
                         
             d->M.b[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1]) 
-                        + p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+                        + 0.0*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
             
             
             d->rhsvec.V[n] = visc*((UH[Ip1Jp1K]-UH[Ip1Jm1K]) - (UH[Im1Jp1K]-UH[Im1Jm1K]))/((p->DYN[JP]+p->DYN[JM1])*(p->DXP[IP]+p->DXP[IM1]))
@@ -84,7 +84,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        /*if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
+        if(p->wet[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
         {
         d->M.p[n]  =  1.0;
 
@@ -99,7 +99,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
         d->M.b[n] = 0.0;
         
         d->rhsvec.V[n] =  0.0;
-        }*/
+        }
 	
 	++n;
 	}

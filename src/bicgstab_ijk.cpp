@@ -43,7 +43,7 @@ bicgstab_ijk::~bicgstab_ijk()
 {
 }
 
-void bicgstab_ijk::setup(lexer* p,fdm* a, ghostcell* pgc, int var)
+void bicgstab_ijk::setup(lexer* p, ghostcell* pgc, int var)
 {
 }
 
@@ -51,7 +51,6 @@ void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
 {
 	p->preconiter=0;
     
-	
 	if(var==1)
     {
     flag = p->flag1;
@@ -89,19 +88,29 @@ void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
     }
     
     fillxvec(p,a,f,rhsvec);
-	solve(p,a,pgc,rhsvec,var,p->solveriter,p->N46,stop_crit);
+	solve(p,pgc,rhsvec,a->M,var,p->solveriter,p->N46,stop_crit);
 	
 	finalize(p,a,f);
 }
 
-void bicgstab_ijk::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+void bicgstab_ijk::startV(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
 {
+    p->preconiter=0;
     
+    flag = p->flag4;
+    ulast=0;
+    vlast=0;
+    wlast=0;
+    stop_crit=p->N43;
+    
+    fillxvecV(p,f,rhsvec);
+	solve(p,pgc,rhsvec,M,var,p->solveriter,p->N46,stop_crit);
+	
+	finalizeV(p,f);
 }
 
 void bicgstab_ijk::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
 {
-    
 }
 
 void bicgstab_ijk::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
@@ -112,20 +121,20 @@ void bicgstab_ijk::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matr
 {
 }
 	
-void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, int &solveriter, int maxiter, double stop_crit)
+void bicgstab_ijk::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &M, int var, int &solveriter, int maxiter, double stop_crit)
 {
 	solveriter=0;
 	residual = 1.0e9;
 
 	// -----------------
-	precon_setup(p,a,pgc);
+	precon_setup(p,pgc,M);
 	// -----------------
 
  restart:
     r_j=norm_r0=0.0;	
 	pgc->gcparaxijk_single(p,x,var);
 	
-	matvec_axb(p,a,x,rj);
+	matvec_axb(p,x,rj,M);
 	
 	FLEXLOOP
 	{
@@ -145,11 +154,11 @@ void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, 
 	    norm_rj=0.0;
 		
 		// -------------------------
-		precon_solve(p,a,pgc,ph,pj);
+		precon_solve(p,pgc,ph,pj,M);
 		pgc->gcparaxijk_single(p,ph,var);				
 		// -------------------------
 		
-		matvec_std(p,a,ph,vj);
+		matvec_std(p,ph,vj,M);
 		
 		FLEXLOOP
 		{
@@ -166,7 +175,7 @@ void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, 
 
 	if(fabs(sigma) <= (1.0e-12*(norm_vj*norm_r0)))
 	{	
-		residual=res_calc(p,a,pgc,x);
+		residual=res_calc(p,pgc,x,M);
 		++solveriter;
 
 		goto restart;
@@ -174,7 +183,7 @@ void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, 
 
     if((fabs(alpha)*norm_vj/(norm_rj==0?1.0e-15:norm_rj))<=0.08)
 	{
-		residual=res_calc(p,a,pgc,x);
+		residual=res_calc(p,pgc,x,M);
 		++solveriter;
 
 		goto restart;
@@ -192,12 +201,12 @@ void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, 
 
     if(norm_sj>stop_crit)
 	{
-		// -------------------------
-		precon_solve(p,a,pgc,sh,sj);
+        // -------------------------
+        precon_solve(p,pgc,sh,sj,M);
         pgc->gcparaxijk_single(p,sh,var);		
-		// -------------------------
+        // -------------------------
 
-		matvec_std(p,a,sh,tj);
+		matvec_std(p,sh,tj,M);
 		
 		w1=w2=0.0;
 		
@@ -265,44 +274,43 @@ void bicgstab_ijk::solve(lexer* p,fdm* a, ghostcell* pgc, vec& rhsvec, int var, 
 	ph[IJK]=0.0;
 	sh[IJK]=0.0;
 	}
-
 }
 
-void bicgstab_ijk::matvec_axb(lexer *p, fdm* a, double *x, double *y)
+void bicgstab_ijk::matvec_axb(lexer *p, double *x, double *y, matrix_diag &M)
 {
     n=0;
 	FLEXLOOP
 	{
 	y[IJK]  = rhs[IJK]
 
-			-(a->M.p[n]*x[IJK]
-			+ a->M.n[n]*x[Ip1JK] 
-			+ a->M.s[n]*x[Im1JK]
-			+ a->M.w[n]*x[IJp1K]
-			+ a->M.e[n]*x[IJm1K]
-			+ a->M.t[n]*x[IJKp1]
-			+ a->M.b[n]*x[IJKm1]);
+			-(M.p[n]*x[IJK]
+			+ M.n[n]*x[Ip1JK] 
+			+ M.s[n]*x[Im1JK]
+			+ M.w[n]*x[IJp1K]
+			+ M.e[n]*x[IJm1K]
+			+ M.t[n]*x[IJKp1]
+			+ M.b[n]*x[IJKm1]);
     ++n;
 	}
 }
 
-void bicgstab_ijk::matvec_std(lexer *p, fdm* a, double *x, double *y)
+void bicgstab_ijk::matvec_std(lexer *p, double *x, double *y, matrix_diag &M)
 {
     n=0;
 	FLEXLOOP
 	{
-	y[IJK]      = a->M.p[n]*x[IJK]
-				+ a->M.n[n]*x[Ip1JK] 
-				+ a->M.s[n]*x[Im1JK]
-				+ a->M.w[n]*x[IJp1K]
-				+ a->M.e[n]*x[IJm1K]
-				+ a->M.t[n]*x[IJKp1]
-				+ a->M.b[n]*x[IJKm1];
+	y[IJK]      = M.p[n]*x[IJK]
+				+ M.n[n]*x[Ip1JK] 
+				+ M.s[n]*x[Im1JK]
+				+ M.w[n]*x[IJp1K]
+				+ M.e[n]*x[IJm1K]
+				+ M.t[n]*x[IJKp1]
+				+ M.b[n]*x[IJKm1];
     ++n;
 	}
 }
 
-double bicgstab_ijk::res_calc(lexer *p, fdm *a, ghostcell *pgc, double *x)
+double bicgstab_ijk::res_calc(lexer *p, ghostcell *pgc, double *x, matrix_diag &M)
 {
 	double y;
 	double resi=0.0;
@@ -312,13 +320,13 @@ double bicgstab_ijk::res_calc(lexer *p, fdm *a, ghostcell *pgc, double *x)
 	{	
 	y  = rhs[IJK]
 
-		-(a->M.p[n]*x[IJK]
-		+ a->M.n[n]*x[Ip1JK] 
-		+ a->M.s[n]*x[Im1JK]
-		+ a->M.w[n]*x[IJp1K]
-		+ a->M.e[n]*x[IJm1K]
-		+ a->M.t[n]*x[IJKp1]
-		+ a->M.b[n]*x[IJKm1]);
+		-(M.p[n]*x[IJK]
+		+ M.n[n]*x[Ip1JK] 
+		+ M.s[n]*x[Im1JK]
+		+ M.w[n]*x[IJp1K]
+		+ M.e[n]*x[IJm1K]
+		+ M.t[n]*x[IJKp1]
+		+ M.b[n]*x[IJKm1]);
 
 	resi+=y*y;
     
@@ -330,17 +338,17 @@ double bicgstab_ijk::res_calc(lexer *p, fdm *a, ghostcell *pgc, double *x)
 	return resi/double(p->cellnumtot);	
 }
 
-void bicgstab_ijk::precon_setup(lexer* p,fdm* a, ghostcell* pgc)
+void bicgstab_ijk::precon_setup(lexer* p, ghostcell* pgc, matrix_diag &M)
 {
     n=0;
 	FLEXLOOP
     {
-	aii[IJK]=-1.0/(a->M.p[n]+epsi);
+	aii[IJK]=-1.0/(M.p[n]+epsi);
     ++n;
     }
 }
 
-void bicgstab_ijk::precon_solve(lexer* p,fdm* a, ghostcell* pgc, double *f, double *b)
+void bicgstab_ijk::precon_solve(lexer* p, ghostcell* pgc, double *f, double *b, matrix_diag &M)
 {
 	FLEXLOOP
 	f[IJK]=b[IJK]*aii[IJK];
@@ -353,17 +361,34 @@ void bicgstab_ijk::fillxvec(lexer* p, fdm* a, field& f, vec &rhsvec)
 	{
 	x[IJK] = f(i,j,k);
     
-        
     rhs[IJK] = rhsvec.V[n];
 
     ++n;
     }
 }
 
-
 void bicgstab_ijk::finalize(lexer *p, fdm *a, field &f)
 {  
-        FLEXLOOP
-        f(i,j,k)=x[IJK];
+    FLEXLOOP
+    f(i,j,k)=x[IJK];
+}
+
+void bicgstab_ijk::fillxvecV(lexer* p, double *f, vec &rhsvec)
+{
+    n=0;
+	FLEXLOOP
+	{
+	x[IJK] = f[IJK];
+    
+    rhs[IJK] = rhsvec.V[n];
+
+    ++n;
+    }
+}
+
+void bicgstab_ijk::finalizeV(lexer *p, double *f)
+{  
+    FLEXLOOP
+    f[IJK]=x[IJK];
 }
 

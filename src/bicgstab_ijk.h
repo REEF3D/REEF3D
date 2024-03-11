@@ -42,18 +42,21 @@ public:
     virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, int, int&,int,double);
-	virtual void setup(lexer*,fdm*, ghostcell*,int);
+	virtual void solve(lexer*, ghostcell*, vec&, matrix_diag&, int, int&,int,double);
+	virtual void setup(lexer*, ghostcell*,int);
 	
 	void fillxvec(lexer*,fdm*,field&,vec&);
 	void finalize(lexer*,fdm*,field&);
-
-	double res_calc(lexer*,fdm*, ghostcell*, double*);
-	void matvec_axb(lexer*,fdm*, double*, double*);
-	void matvec_std(lexer*,fdm* a, double*, double*);
     
-    void precon_setup(lexer*,fdm*,ghostcell*);
-    void precon_solve(lexer*,fdm*,ghostcell*,double*,double*);
+    void fillxvecV(lexer*,double*,vec&);
+	void finalizeV(lexer*,double*);
+
+	double res_calc(lexer*,ghostcell*, double*, matrix_diag&);
+	void matvec_axb(lexer*, double*, double*, matrix_diag&);
+	void matvec_std(lexer*, double*, double*, matrix_diag&);
+    
+    void precon_setup(lexer*,ghostcell*, matrix_diag&);
+    void precon_solve(lexer*,ghostcell*,double*,double*, matrix_diag&);
 	
 	
 
