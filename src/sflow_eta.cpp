@@ -169,6 +169,7 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
 
     if(p->A243>=1)
     wetdry(p,b,pgc,P,Q,ws);
+    
 }
 	
 void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)
