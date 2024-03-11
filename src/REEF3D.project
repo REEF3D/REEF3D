@@ -1500,6 +1500,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
+          <File Name="nhflow_idiff_scalar_2D.cpp"/>
           <File Name="nhflow_ediff.cpp"/>
           <File Name="nhflow_diff_void.cpp"/>
           <File Name="nhflow_idiff_scalar.cpp"/>

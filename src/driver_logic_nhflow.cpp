@@ -89,8 +89,11 @@ void driver::logic_nhflow()
     if(p->A512==1)
     pnhfdiff = new nhflow_ediff(p);
     
-    if(p->A512==2)
+    if(p->A512==2 && p->j_dir==1)
     pnhfdiff = new nhflow_idiff(p);
+    
+    if(p->A512==2 && p->j_dir==0)
+    pnhfdiff = new nhflow_idiff_2D(p);
     
 //pressure scheme
     if(p->A520==0)
