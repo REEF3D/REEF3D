@@ -66,7 +66,7 @@ void driver::driver_ini_fnpf()
 	LOOP
 	++p->cellnum;
     
-    LOOP
+    PLAINLOOP
     ++p->tpcellnum;
     
     p->count=0;

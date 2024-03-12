@@ -207,6 +207,7 @@ public:
     void flagfield(lexer*);
     void flagfield_topo(lexer*);
     void tpflagfield(lexer*);
+    void tpflagfield_sigma(lexer*);
 	void ndflag_update(lexer*);
     void flagbase(lexer*,fdm*);
 

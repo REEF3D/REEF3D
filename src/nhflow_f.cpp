@@ -52,7 +52,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 	LOOP
 	++p->cellnum;
     
-    LOOP
+    PLAINLOOP
     ++p->tpcellnum;
     
     p->count=0;
