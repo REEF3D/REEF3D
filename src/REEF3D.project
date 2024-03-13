@@ -258,6 +258,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Forcing">
+          <File Name="nhflow_forcing.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.h"/>
@@ -1373,6 +1376,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Forcing">
+          <File Name="nhflow_forcing.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.cpp"/>

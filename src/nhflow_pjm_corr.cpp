@@ -249,7 +249,7 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     
     d->F[IJK] -= PORVALNH*(1.0/p->W1)*WL(i,j)*
                 (dPdx
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+                + 0.5*(p->sigx_n[FIJK]+p->sigx_n[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
     }
 }
 
@@ -272,7 +272,7 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     
 	d->G[IJK] -= PORVALNH*(1.0/p->W1)*WL(i,j)*
                 (dPdy
-                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+                + 0.5*(p->sigy_n[FIJK]+p->sigy_n[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
     }
 }
 
@@ -280,7 +280,6 @@ void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
-    if(d->breaking(i,j)==0)
     d->H[IJK] -= PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
 

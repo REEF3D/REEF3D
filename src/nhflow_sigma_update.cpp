@@ -36,6 +36,16 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     double wl,sigval;
     double bx,by,ex,ey;
     
+    // sigy
+    FLOOP
+    {
+    p->sigx_n[FIJK] = p->sigx[FIJK];
+    p->sigy_n[FIJK] = p->sigy[FIJK];
+    }
+    
+    pgc->start7S(p,p->sigx_n,1);
+    pgc->start7S(p,p->sigy_n,1);
+    
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
