@@ -54,7 +54,6 @@ public:
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-    void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&);
 
 private:
     
@@ -67,6 +66,7 @@ private:
     double val, denom;
     double gamma;
     double *PCORR;
+    double dPdx,dPdy,dPdz;
 
     density *pd;
     nhflow_poisson *ppois;

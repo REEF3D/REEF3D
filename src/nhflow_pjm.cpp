@@ -117,7 +117,7 @@ void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double *P, d
 {
     LOOP
     WETDRYDEEP
-    if(d->breaking(i,j)==0 && d->breaking(i-1,j)==0 && d->breaking(i+1,j)==0 && d->breaking(i,j-1)==0 && d->breaking(i,j+1)==0)
+    if(d->breaking(i,j)==0)
 	WH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
 
