@@ -240,7 +240,7 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
                 
     LOOP
-    WETDRY
+    WETDRYDEEP
     {
     dPdx=0.0;
     
@@ -263,7 +263,7 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
        
     if(p->j_dir==1) 
     LOOP
-    WETDRY
+    WETDRYDEEP
     {
     dPdy = 0.0;
     
@@ -279,7 +279,7 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
 void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
-    WETDRY
+    WETDRYDEEP
     d->H[IJK] -= PORVALNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
 
