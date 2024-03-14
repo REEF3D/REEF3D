@@ -36,7 +36,6 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     
     if(p->X14==1)
     {
-        
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
@@ -82,6 +81,9 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     }
     
     }
+    
+    LOOP
+    a->test(i,j,k) = a->fbh4(i,j,k);
 
 // Construct solid heaviside function	
     if(p->X14>=2)
@@ -147,7 +149,7 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
 		nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
         
-        H = Hsolidface(p,a,0,1,0);
+         H = Hsolidface(p,a,0,1,0);
 		Ht = Hsolidface_t(p,a,0,1,0);
 		
       
@@ -263,27 +265,22 @@ double sixdof_obj::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 	
     psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-    if (p->knoy == 1)
-    {
-        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-    }
+    if(p->j_dir==0)
+    psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+
 
     // Construct solid heaviside function
     phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
 	
     if (-phival_fb > psi)
-    {
-        H = 1.0;
-    }
+    H = 1.0;
+
     else if (-phival_fb < -psi)
-    {
-        H = 0.0;
-    }
+    H = 0.0;
+
     else
-    {
-        H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
-    }
-	
+    H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
+
     return H;
 }
 

@@ -32,24 +32,33 @@ void sixdof_obj::update_fbvel(lexer *p)
         if(p->X11_u==0)
         u_fb(0) = 0.0;
         
-        if(p->X11_u>=1)
+        if(p->X11_u==1)
         u_fb(0) = p_(0)/Mass_fb;
+        
+        if(p->X11_u==2)
+        u_fb(0) = dc_(0);
         
         
         // V
         if(p->X11_v==0 || p->j_dir==0)
         u_fb(1) = 0.0;
         
-        if(p->X11_u>=1 && p->j_dir==1)
+        if(p->X11_v==1 && p->j_dir==1)
         u_fb(1) = p_(1)/Mass_fb;
+        
+        if(p->X11_v==2)
+        u_fb(1) = dc_(1);
         
         
         // W
         if(p->X11_w==0)
         u_fb(2) = 0.0;
         
-        if(p->X11_w>=1)
+        if(p->X11_w==1)
         u_fb(2) = p_(2)/Mass_fb;
+        
+        if(p->X11_w==2)
+        u_fb(2) = dc_(2);
         
         
         // rotation
