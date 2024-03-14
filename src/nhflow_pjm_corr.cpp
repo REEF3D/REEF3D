@@ -94,7 +94,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, double *PCORR, double alpha)
 {
 	FLOOP
-    WETDRY
+    WETDRYDEEP
     if(d->breaking(i,j)==0)
     P[FIJK] += PCORR[FIJK];
 }
@@ -191,7 +191,7 @@ void nhflow_pjm_corr::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
 void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *PCORR, double alpha)
 {
 	LOOP
-    WETDRY
+    WETDRYDEEP
     {
     dPdx=0.0;
     
@@ -210,7 +210,7 @@ void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double 
 {
     if(p->j_dir==1)
     LOOP
-    WETDRY
+    WETDRYDEEP
     {
     dPdy = 0.0;
     
@@ -228,7 +228,7 @@ void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double 
 void nhflow_pjm_corr::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double *PCORR, double alpha)
 {
     LOOP
-    WETDRY
+    WETDRYDEEP
 	WH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*(1.0/p->W1)*((PCORR[FIJKp1]-PCORR[FIJK])/(p->DZN[KP]));
 }
 
