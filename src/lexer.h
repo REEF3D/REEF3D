@@ -726,7 +726,6 @@ public:
     double *sig;
     double *sigx,*sigy,*sigz,*sigt;
     double *sigxx;
-    double *sigx_n,*sigy_n;
     
 private:
 	void clear(char&, int&);

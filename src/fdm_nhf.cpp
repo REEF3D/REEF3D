@@ -45,9 +45,6 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray(p->sigt,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(p->sigx_n,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigy_n,p->imax*p->jmax*(p->kmax+2));
-    
     
     p->Darray(U,p->imax*p->jmax*(p->kmax+2));
     p->Darray(V,p->imax*p->jmax*(p->kmax+2));

@@ -100,7 +100,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pnhfturb->isource(p,d);
 	pflow->isource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
-	ppress->upgrad(p,d,d->WL);
+	ppress->upgrad(p,d,WLRK1);
     p6dof->isource(p,d,pgc);
 	irhs(p,d,pgc);
 	pconvec->start(p,d,1,WLRK1);
@@ -118,7 +118,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pnhfturb->jsource(p,d);
 	pflow->jsource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
-    ppress->vpgrad(p,d,d->WL);
+    ppress->vpgrad(p,d,WLRK1);
     p6dof->jsource(p,d,pgc);
 	jrhs(p,d,pgc);
     pconvec->start(p,d,2,WLRK1);
@@ -136,7 +136,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pnhfturb->ksource(p,d);
 	//pflow->ksource_nhflow(p,d,pgc,pvrans); 
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
-	ppress->wpgrad(p,d,d->WL);
+	ppress->wpgrad(p,d,WLRK1);
 	krhs(p,d,pgc);
 	pconvec->start(p,d,3,WLRK1);
 	pnhfdiff->diff_w(p,d,pgc,psolv,WHDIFF,d->WH,d->UH,d->VH,d->WH,WLRK1,1.0);
@@ -189,7 +189,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pnhfturb->isource(p,d);
 	//pflow->isource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
-	ppress->upgrad(p,d,WLRK1);
+	ppress->upgrad(p,d,d->WL);
     p6dof->isource(p,d,pgc);
 	irhs(p,d,pgc);
     pconvec->start(p,d,1,d->WL);
@@ -207,7 +207,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pnhfturb->jsource(p,d);
 	//pflow->jsource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
-	ppress->vpgrad(p,d,WLRK1);
+	ppress->vpgrad(p,d,d->WL);
     p6dof->jsource(p,d,pgc);
 	jrhs(p,d,pgc);
 	pconvec->start(p,d,2,d->WL);
@@ -225,7 +225,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	pnhfturb->ksource(p,d);
 	//pflow->ksource(p,a,pgc,pvrans);
 	//bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
-	ppress->wpgrad(p,d,WLRK1);
+	ppress->wpgrad(p,d,d->WL);
 	krhs(p,d,pgc);
 	pconvec->start(p,d,3,d->WL);
 	pnhfdiff->diff_w(p,d,pgc,psolv,WHDIFF,WHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
