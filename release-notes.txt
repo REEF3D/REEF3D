@@ -1,4 +1,16 @@
 
+24.03
+x fixed 6DOF forcing update (CFD)
+x fixed 6DOF prescribed motion (CFD)
+x added explicit diffusion (NHFLOW)
+x added implicit diffusion (NHFLOW)
+x fixed vtu print out for immersive structures (FNPF and NHFLOW)
+x fixed a problem for SFLOW when wettting and drying is turned off
+x fixed continuous state file folder name (SFLOW)
+x fixed relaxation wave generation (CFD)
+x updated 6DOF STL mesh refinement options 
+x added mpi check at startup
+
 24.02
 x added 5th-order Stokes waves tutorial case to User Guide (CFD)
 x fixed VRANS vegetation inertia force (CFD)
