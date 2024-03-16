@@ -43,9 +43,10 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	int js,je,ks,ke;
 	double u,v,w;
 	double denom;	
-	int insidecheck;
+	int checkin;
 	double psi = 1.0e-8*p->DXM;
     
+
     ALOOP
 	{
 	cutl(i,j,k)=0;
@@ -66,7 +67,25 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	Cy = tri_y[n][2];
 	Cz = tri_z[n][2];
 	
-	
+    checkin = 0;
+    
+	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
+    && Ay>=p->global_ymin && Ay<=p->global_ymax
+    && Az>=p->global_zmin && Az<=p->global_zmax)
+    checkin=1;
+    
+    if(Bx>=p->global_xmin && Bx<=p->global_xmax 
+    && By>=p->global_ymin && By<=p->global_ymax
+    && Bz>=p->global_zmin && Bz<=p->global_zmax)
+    checkin=1;
+    
+    if(Cx>=p->global_xmin && Cx<=p->global_xmax 
+    && Cy>=p->global_ymin && Cy<=p->global_ymax
+    && Cz>=p->global_zmin && Cz<=p->global_zmax)
+    checkin=1;
+        
+    if(checkin==1)
+    {
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	
@@ -170,6 +189,7 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			}
 		}
 	}
+    }
     
     
     ALOOP

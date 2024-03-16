@@ -72,6 +72,9 @@ void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc, bool finalise)
 
 void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
 {
+    double starttime, endtime;
+    starttime=pgc->timer();
+    
 	// Update position of triangles 
 	for(n=0; n<tricount; ++n)
 	{
@@ -95,10 +98,34 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
 			}
         }
 	}
+    
+    endtime=pgc->timer();
+    
+    //if(p->mpirank==0)
+    //cout<<"6DOF update time 1: "<<endtime-starttime<<endl;
+    
+    starttime=pgc->timer();
 	
     // Update floating level set function
 	ray_cast(p,a,pgc);
+    
+    endtime=pgc->timer();
+    
+    //if(p->mpirank==0)
+    //cout<<"6DOF update time 2: "<<endtime-starttime<<endl;
+    
+    starttime=pgc->timer();
+    
+    
 	reini_RK2(p,a,pgc,a->fb);
+    
+    
+    endtime=pgc->timer();
+    
+    //if(p->mpirank==0)
+    //cout<<"6DOF update time 3: "<<endtime-starttime<<endl;
+    
+    
     pgc->start4a(p,a->fb,50);   
 }
 
