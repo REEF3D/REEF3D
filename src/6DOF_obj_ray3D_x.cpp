@@ -150,9 +150,9 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			
 			Rx = u*Ax + v*Bx + w*Cx;
 			
-            i = p->posf_i(Rx);
+             i = p->posf_i(Rx);
             
-            int distcheck=1;
+             int distcheck=1;
   
             
             if(Rx<p->XP[IP])

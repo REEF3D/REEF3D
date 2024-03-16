@@ -160,7 +160,6 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
     
     pgc->start1V(p,Fs,10);
     pgc->start1V(p,Fn,10);
-
 }
 
 void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
