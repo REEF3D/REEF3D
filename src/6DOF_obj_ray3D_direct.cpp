@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
+void sixdof_obj::ray_cast_direct(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -41,15 +41,15 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
 	int is,ie,js,je,ks,ke;
-    int checkin;
+	int ir;
 	double u,v,w;
-	double denom;
+	double denom;	
+	int checkin;
 	double psi = 1.0e-8*p->DXM;
-
+    double dist;
 
 	for(n=ts; n<te; ++n)
-	{ 
-		
+	{
 	Ax = tri_x[n][0];
 	Ay = tri_y[n][0];
 	Az = tri_z[n][0];
@@ -61,7 +61,6 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	Cx = tri_x[n][2];
 	Cy = tri_y[n][2];
 	Cz = tri_z[n][2];
-	
 	
     checkin = 0;
     
@@ -82,120 +81,55 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
         
     if(checkin==1)
     {
-	xs = MIN3(Ax,Bx,Cx); 
+    xs = MIN3(Ax,Bx,Cx);
 	xe = MAX3(Ax,Bx,Cx);
-	
+    
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	
-	is = p->posc_i(xs);
-	ie = p->posc_i(xe);
-	
-	js = p->posc_j(ys);
-	je = p->posc_j(ye);
-		
-	
-    xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is + marge];
-	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie + marge];
-	
-	ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
-	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
+	zs = MIN3(Az,Bz,Cz);
+	ze = MAX3(Az,Bz,Cz);
+    
 
+	is = p->posc_i(xs)-2;
+	ie = p->posc_i(xe)+2;
+    
+    js = p->posc_j(ys)-2;
+	je = p->posc_j(ye)+2;
 	
-	is = p->posc_i(xs);
-	ie = p->posc_i(xe);
-	
-	js = p->posc_j(ys);
-	je = p->posc_j(ye);
-	
+	ks = p->posc_k(zs)-2;
+	ke = p->posc_k(ze)+2;	
+
 	is = MAX(is,0);
 	ie = MIN(ie,p->knox);
-	
+    
 	js = MAX(js,0);
 	je = MIN(je,p->knoy);
 	
-		for(i=is;i<ie;i++)
-		for(j=js;j<je;j++)
-		{
-		Px = p->XP[IP]-psi;
-		Py = p->YP[JP]+psi;
-		Pz = p->global_zmin-10.0*p->DXM ;
-		
-		Qx = p->XP[IP]-psi;
-		Qy = p->YP[JP]+psi;
-		Qz = p->global_zmax+10.0*p->DXM ;
-
-		
-		PQx = Qx-Px;
-		PQy = Qy-Py;
-		PQz = Qz-Pz;
-		
-		PAx = Ax-Px;
-		PAy = Ay-Py;
-		PAz = Az-Pz;
-		
-		PBx = Bx-Px;
-		PBy = By-Py;
-		PBz = Bz-Pz;
-		
-		PCx = Cx-Px;
-		PCy = Cy-Py;
-		PCz = Cz-Pz;
-		
-		// uvw
-		Mx = PQy*Pz - PQz*Py;
-		My = PQz*Px - PQx*Pz;
-		Mz = PQx*Py - PQy*Px;
-
-		
-		u = PQx*(Cy*Bz - Cz*By) + PQy*(Cz*Bx - Cx*Bz) + PQz*(Cx*By - Cy*Bx)
-		  + Mx*(Cx-Bx) + My*(Cy-By) + Mz*(Cz-Bz);
-		  
-		v = PQx*(Ay*Cz - Az*Cy) + PQy*(Az*Cx - Ax*Cz) + PQz*(Ax*Cy - Ay*Cx)
-		  + Mx*(Ax-Cx) + My*(Ay-Cy) + Mz*(Az-Cz);
-		  
-		w = PQx*(By*Az - Bz*Ay) + PQy*(Bz*Ax - Bx*Az) + PQz*(Bx*Ay - By*Ax)
-		  + Mx*(Bx-Ax) + My*(By-Ay) + Mz*(Bz-Az);
+	ks = MAX(ks,0);
+	ke = MIN(ke,p->knoz);			
         
-        int check=1;
-		if(u==0.0 && v==0.0 && w==0.0)
-		check = 0;
+         for(i=is;i<ie;i++)
+		for(j=js;j<je;j++)
+		for(k=ks;k<ke;k++)
+		{
+        xc = p->XP[IP];
+        yc = p->YP[JP];
+        zc = p->ZP[KP];
+        
+        dist = sqrt(pow(xc-Ax,2.0) + pow(yc-Ay,2.0) + pow(zc-Az,2.0));
 
-			if((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0) )//&& check==1)
-			{
-			denom = 1.0/(u+v+w);
-			u *= denom;
-			v *= denom;
-			w *= denom;
-			
-			Rz = u*Az + v*Bz + w*Cz;
-
-            
-            k = p->posc_k(Rz);
-
-			
-            int distcheck=1;
-  
-            
-            if(Rz<p->ZP[KP])
-            if(k>=0 && k<p->knoz)
-            if(fbio(i,j,k)<0 && fbio(i,j,k-1)<0)
-            distcheck=0;
-            
-            if(Rz>=p->ZP[KP])
-            if(k>=0 && k<p->knoz)
-            if(fbio(i,j,k)<0 && fbio(i,j,k+1)<0)
-            distcheck=0;
-
-            //f(distcheck==1)
-			for(k=0;k<p->knoz;++k)
-            a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),a->fb(i,j,k));
-			}
-		
+        a->fb(i,j,k)=MIN(dist,fabs(a->fb(i,j,k)));
+        
+        dist = sqrt(pow(xc-Bx,2.0) + pow(yc-By,2.0) + pow(zc-Bz,2.0));
+        
+        a->fb(i,j,k)=MIN(dist,fabs(a->fb(i,j,k)));
+        
+        dist = sqrt(pow(xc-Cx,2.0) + pow(yc-Cy,2.0) + pow(zc-Cz,2.0));
+        
+        a->fb(i,j,k)=MIN(dist,fabs(a->fb(i,j,k)));
 		}
 	}
     }
-
-
-
+	
 }

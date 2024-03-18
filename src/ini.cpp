@@ -785,6 +785,7 @@ void lexer::ini_default()
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
     X185=1;     // int stl refinement
     X186=0.7;   // double refinement factor
+    X188=1;     // int ray cast algorithm
     X205=1;     // type of ramp up function
     X206=0;     // int ramp up velocity
     X206_ts=0.0;   // double ramp start

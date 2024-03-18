@@ -96,11 +96,11 @@ void sixdof_obj::ray_cast_io_zcorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	
-	is = p->posf_i(xs);
-	ie = p->posf_i(xe);
+	is = p->posc_i(xs);
+	ie = p->posc_i(xe);
 	
-	js = p->posf_j(ys);
-	je = p->posf_j(ye);
+	js = p->posc_j(ys);
+	je = p->posc_j(ye);
 		
 	
     xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is + marge];
@@ -110,11 +110,11 @@ void sixdof_obj::ray_cast_io_zcorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
 	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
 
 	
-	is = p->posf_i(xs);
-	ie = p->posf_i(xe);
+	is = p->posc_i(xs);
+	ie = p->posc_i(xe);
 	
-	js = p->posf_j(ys);
-	je = p->posf_j(ye);
+	js = p->posc_j(ys);
+	je = p->posc_j(ye);
 	
 	is = MAX(is,0);
 	ie = MIN(ie,p->knox);

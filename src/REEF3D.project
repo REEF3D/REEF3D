@@ -1900,6 +1900,7 @@
               <File Name="6DOF_obj_reini_AB2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast 3D">
+              <File Name="6DOF_obj_ray3D_direct.cpp"/>
               <File Name="6DOF_obj_ray3D_z.cpp"/>
               <File Name="6DOF_obj_ray3D_y.cpp"/>
               <File Name="6DOF_obj_ray3D_x.cpp"/>

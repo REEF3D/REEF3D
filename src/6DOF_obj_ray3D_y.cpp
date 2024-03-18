@@ -87,11 +87,11 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	zs = MIN3(Az,Bz,Cz);
 	ze = MAX3(Az,Bz,Cz);	
 	
-	is = p->posf_i(xs);
-	ie = p->posf_i(xe);
+	is = p->posc_i(xs);
+	ie = p->posc_i(xe);
 	
-	ks = p->posf_k(zs);
-	ke = p->posf_k(ze);
+	ks = p->posc_k(zs);
+	ke = p->posc_k(ze);
     
 	xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is +marge];
 	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie +marge];
@@ -100,11 +100,11 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke +marge];
 	
 	
-	is = p->posf_i(xs);
-	ie = p->posf_i(xe);
+	is = p->posc_i(xs);
+	ie = p->posc_i(xe);
 	
-	ks = p->posf_k(zs);
-	ke = p->posf_k(ze);
+	ks = p->posc_k(zs);
+	ke = p->posc_k(ze);
 
 	
 	is = MAX(is,0);
@@ -172,7 +172,7 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			Ry = u*Ay + v*By + w*Cy;
 			
 			
-            j = p->posf_j(Ry);
+            j = p->posc_j(Ry);
             
             int distcheck=1;
   

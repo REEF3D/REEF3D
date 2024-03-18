@@ -46,13 +46,20 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
             ray_cast_io_zcorr(p,a,pgc,tstart[qn],tend[qn]);
             }
         
-            if(rayiter==1)
+            if(rayiter==1 && p->X188==1)
             {
             pgc->gcparaxint(p,fbio,1);
             
             ray_cast_x(p,a,pgc,tstart[qn],tend[qn]);
             ray_cast_y(p,a,pgc,tstart[qn],tend[qn]);
             ray_cast_z(p,a,pgc,tstart[qn],tend[qn]);
+            }
+            
+            if(rayiter==1 && p->X188==2)
+            {
+            pgc->gcparaxint(p,fbio,1);
+            
+            ray_cast_direct(p,a,pgc,tstart[qn],tend[qn]);
             }
         }
     }
