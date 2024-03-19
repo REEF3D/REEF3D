@@ -1872,9 +1872,10 @@
           <File Name="6DOF_obj_rotation.cpp"/>
           <File Name="6DOF_obj_forcing.cpp"/>
           <VirtualDirectory Name="Initialize">
+            <File Name="6DOF_obj_ini_sflow.cpp"/>
+            <File Name="6DOF_obj_ini_cfd.cpp"/>
             <File Name="6DOF_obj_ini_position.cpp"/>
             <File Name="6DOF_obj_ini_parameters.cpp"/>
-            <File Name="6DOF_obj_ini.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Print">
             <File Name="6DOF_obj_print_vtp.cpp"/>

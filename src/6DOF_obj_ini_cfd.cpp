@@ -38,7 +38,7 @@ Author: Tobias Martin
 #include"net_barDyn.h"
 #include"net_sheet.h"
 
-void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
@@ -65,7 +65,7 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
     pgc->start4a(p,a->fb,50);
     
     // Calculate geometrical properties
-	geometry(p,a,pgc);
+	geometry_parameters(p,a,pgc);
     
     // Initialise position of bodies
     iniPosition_RBM(p,a,pgc);

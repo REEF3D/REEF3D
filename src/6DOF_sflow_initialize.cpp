@@ -27,9 +27,12 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"vrans.h"
    
-
 void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
 {
+    
+    for (int nb = 0; nb < number6DOF; nb++)
+    fb_obj[nb]->initialize_sflow(p, pgc);
+    
     // Initialise parameters
 	ini_parameter(p,pgc);
     

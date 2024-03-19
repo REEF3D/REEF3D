@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_sflow.h"
@@ -63,7 +63,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
         
         // Update forcing terms
         //fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
-        
+
         // Save
         fb_obj[nb]->update_fbvel(p);
         
@@ -89,7 +89,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
     // Move body  -> obj_transform
     p->xg += ramp_vel(p)*Uext*p->dt;
     p->yg += ramp_vel(p)*Vext*p->dt;
-
+    
     // Update position
    // Update transformation matrix (Shivarama PhD thesis, p. 19)  -> obj
     quat_matrices(e_);

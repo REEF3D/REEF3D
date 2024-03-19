@@ -20,42 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_cfd.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"momentum.h"
 #include"ghostcell.h"
+#include<sys/stat.h>
 
-void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+
+void sixdof_obj::initialize_sflow(lexer *p, ghostcell *pgc)
 {
-    for (int nb = 0; nb < number6DOF; nb++)
-    fb_obj[nb]->initialize_cfd(p, a, pgc, pnet);
-}
-
-void sixdof_cfd::ini(lexer *p, ghostcell *pgc)
-{
-}
-
-void sixdof_cfd::start_oneway(lexer *p, ghostcell *pgc)
-{
-}
-
-void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
-{
-    // Reset heaviside field
-    ULOOP
-    a->fbh1(i,j,k) = 0.0;
-
-    VLOOP
-    a->fbh2(i,j,k) = 0.0;
+    Mass_fb = 1.0;
+    Vfb = 1.0;
+    Rfb = Mass_fb/Vfb;
     
-    WLOOP
-    a->fbh3(i,j,k) = 0.0;
-
-    LOOP
-    a->fbh4(i,j,k) = 0.0;
-
-    pgc->start1(p,a->fbh1,10);
-    pgc->start2(p,a->fbh2,11);
-    pgc->start3(p,a->fbh3,12);
-    pgc->start4(p,a->fbh4,40);
+    
 }

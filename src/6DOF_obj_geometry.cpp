@@ -26,7 +26,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"ghostcell.h"
 
 
-void sixdof_obj::geometry(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
 {
     double x0, x1, x2, y0, y1, y2, z0, z1, z2;
     double n0, n1, n2;
