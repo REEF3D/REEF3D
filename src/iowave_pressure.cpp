@@ -108,7 +108,7 @@ void iowave::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 {
     double pval=0.0;
     
-    if(p->B76==0 && p->A10 != 5)
+    if(p->B76==0 && p->A10!=5)
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
@@ -146,7 +146,7 @@ void iowave::pressure_wall(lexer *p, fdm *a, ghostcell *pgc)
     double pval=0.0;
 
     GC4LOOP
-    if(p->gcb4[n][3] != 5 && p->gcb4[n][3] != 6 && (p->gcb4[n][4] ==3 && p->gcb4[n][4] ==21 && p->gcb4[n][4] ==22))
+    if(p->gcb4[n][3]!=5 && p->gcb4[n][3]!=6 && (p->gcb4[n][4] ==3 && p->gcb4[n][4] ==21 && p->gcb4[n][4] ==22))
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
@@ -193,7 +193,7 @@ void iowave::pressure_bed(lexer *p, fdm *a, ghostcell *pgc)
     double pval=0.0;
 
     GC4LOOP
-    if(p->gcb4[n][3] == 5 )
+    if(p->gcb4[n][3]==5 )
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];

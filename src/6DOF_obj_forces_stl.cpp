@@ -392,7 +392,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
 
     // Print results
 	
-    if (p->mpirank == 0) 
+    if (p->mpirank==0) 
     {
         ofstream print;
         char str[1000];
@@ -405,6 +405,6 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
         print.close();
     }
 
-	if (p->mpirank == 0)
+	if (p->mpirank==0)
 	cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
 }

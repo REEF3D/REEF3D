@@ -100,17 +100,17 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
 // --------------------------
 // Forcing ->sflow
     // Update pressure field
-    if (p->X400 == 2)
+    if (p->X400==2)
     {
         updateForcing_box(p,pgc);
     }
     
-    else if (p->X400 == 3)
+    else if (p->X400==3)
     {
         updateForcing_oned(p,pgc);
     }
     
-    else if (p->X400 == 10)
+    else if (p->X400==10)
     {
         updateForcing_stl(p,pgc);
     }

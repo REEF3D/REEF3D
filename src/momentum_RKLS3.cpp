@@ -91,7 +91,7 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
 
     for (int loop=0; loop<3; loop++)
     {
-        if (loop == 2) final = true;
+        if (loop==2) final = true;
         
         pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
         

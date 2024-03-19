@@ -41,7 +41,7 @@ fsi_strips::~fsi_strips(){}
 
 void fsi_strips::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
-    if (p->mpirank == 0) cout<<"Initializing strips"<<endl;
+    if (p->mpirank==0) cout<<"Initializing strips"<<endl;
 
     for (int num = 0; num < numberStrips; num++)
     {
@@ -129,7 +129,7 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         starttime=pgc->timer();
 
         // Print
-        if (finalise == true)
+        if (finalise==true)
         {
             pstrip[num]->print_stl(p,a,pgc);
             pstrip[num]->print_parameter(p, a, pgc);

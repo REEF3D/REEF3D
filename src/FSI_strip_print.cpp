@@ -150,7 +150,7 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 
 void fsi_strip::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
 {
-	if(p->mpirank == 0 && p->count%p->X19==0)
+	if(p->mpirank==0 && p->count%p->X19==0)
     {
         ofstream print;
         char str[1000];

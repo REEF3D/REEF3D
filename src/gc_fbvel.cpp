@@ -107,8 +107,8 @@ void ghostcell::fbvel1(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 			if(cs==4) // left side
 			{			
 				int iq1 = IP1;
-				if (q == 1) iq1 = IP2;
-				if (q == 2) iq1 = IP3;			
+				if (q==1) iq1 = IP2;
+				if (q==2) iq1 = IP3;			
 						
 				if ((a->fb(i+q+1,j,k) - p->DXN[iq1]/2.0) > 0.0)
 				{
@@ -227,8 +227,8 @@ void ghostcell::fbvel2(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 			if(cs==2)	// front side --> cs=4 of u
 			{				
 				int jq1 = JP1;
-				if (q == 1) jq1 = JP2;
-				if (q == 2) jq1 = JP3;			
+				if (q==1) jq1 = JP2;
+				if (q==2) jq1 = JP3;			
 						
 				if ((a->fb(i,j+q+1,k) - p->DYN[jq1]/2.0) > 0.0)
 				{
@@ -418,8 +418,8 @@ void ghostcell::fbvel3(lexer *p,field& f, double dist, int gcv, int bc, int cs)
 			if(cs==6)	// bottom --> cs=4 for u
 			{	
 				int kq1 = KP1;
-				if (q == 1) kq1 = KP2;
-				if (q == 2) kq1 = KP3;			
+				if (q==1) kq1 = KP2;
+				if (q==2) kq1 = KP3;			
 						
 				if ((a->fb(i,j,k+q+1) - p->DZN[kq1]/2.0) > 0.0)
 				{

@@ -138,7 +138,7 @@ void net_barDyn::print(lexer *p)
             
 			for (int i = 0; i < nf; ++i)
 			{
-				if (Pi[i] == n || Ni[i] == n)
+				if (Pi[i]==n || Ni[i]==n)
 				{
 					output += T_(i);
 					index++;

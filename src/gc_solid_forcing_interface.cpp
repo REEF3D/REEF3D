@@ -72,7 +72,7 @@ double ghostcell::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 	
     psi = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-    if (p->knoy == 1)
+    if (p->knoy==1)
     {
         psi = 0.5*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
     }

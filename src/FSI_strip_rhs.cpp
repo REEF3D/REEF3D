@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void fsi_strip::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& q0_, Matrix4Xd& qdot_, Matrix3Xd& f_, Matrix4Xd& m0_, Matrix3Xd& rhs_cdot_, double time , int ind)
 {
-    if (ind == 0)
+    if (ind==0)
     {
         //BC: Fixed rotatory end
         Eigen::Vector4d qb; 
@@ -41,17 +41,17 @@ void fsi_strip::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matri
         q_.col(0) = 2.0*qb.dot(q_.col(1))*qb - q_.col(1);
         qdot_.col(0) = J*qdot_.col(1); 
     }
-    else if (ind == 1)
+    else if (ind==1)
     {
         // BC: Free translatory end with vanishing forces
         f_.col(Ne+1) = -f_.col(Ne); // correct?
     }
-    else if (ind == 2)
+    else if (ind==2)
     {
         // BC: Free rotatory end with vanishing moments 
         m0_.col(Ne) = Eigen::Vector4d::Zero(4); q_.col(Ne+1) = q_.col(Ne); q0_.col(Ne+1) = q0_.col(Ne);
     }
-    else if (ind == 3)
+    else if (ind==3)
     {
         // BC: Fixed translatory end
         rhs_cdot_.col(0) = Eigen::Vector3d::Zero(3);
@@ -124,7 +124,7 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
     }
 
     // Assign external moments
-    if (thinStrip == false)
+    if (thinStrip==false)
     {
         for (int eI = 0; eI < Ne+2; eI++)
         {

@@ -41,17 +41,17 @@ void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
     print_ini_stl(p,pgc);
     
     // Initialise object 
-    if (p->X400 == 1)
+    if (p->X400==1)
     {
         cylinder(p,pgc);
     }
     
-    else if (p->X400 == 2)
+    else if (p->X400==2)
     {
         box(p,pgc);
     }
     
-    else if (p->X400 == 10)
+    else if (p->X400==10)
     {
         read_stl(p,pgc);
     }
@@ -76,6 +76,9 @@ void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
     
     if(p->X50==2)
     print_stl(p,pgc);
+    
+    
+    //cout<<"XG: "<<p->xg<<" YG: "<<p->yg<<" ZG: "<<p->zg<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
 }
 
 void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
@@ -87,13 +90,13 @@ void sixdof_sflow::ini_parameter(lexer *p, ghostcell *pgc)
     // Prescribed motions
     Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
     
-    if (p->X210 == 1)
+    if (p->X210==1)
     {
         Uext = p->X210_u;
         Vext = p->X210_v;
         Wext = p->X210_w;
     }
-    if (p->X211 == 1)
+    if (p->X211==1)
     {
         Pext = p->X211_p;
         Qext = p->X211_q;
@@ -119,7 +122,7 @@ void sixdof_sflow::ini_parameter(lexer *p, ghostcell *pgc)
     }
     
     else
-    if(p->X400 != 10)
+    if(p->X400!=10)
     {
          cout<<"Please provide centre of floating body using X 23!"<<endl;
     }
@@ -323,9 +326,9 @@ void sixdof_sflow::create_triangle
 	
 	if 
 	(
-		   SIGN(nx) != SIGN(nx_old) 
-		|| SIGN(ny) != SIGN(ny_old) 
-		|| SIGN(nz) != SIGN(nz_old)
+		   SIGN(nx)!=SIGN(nx_old) 
+		|| SIGN(ny)!=SIGN(ny_old) 
+		|| SIGN(nz)!=SIGN(nz_old)
 	)
 	{
 		tri_x_new[0] = x2;
@@ -361,6 +364,7 @@ void sixdof_sflow::create_triangle
 	tri_x_r.push_back(tri_x_new);
 	tri_y_r.push_back(tri_y_new);
 	tri_z_r.push_back(tri_z_new);
+
 }
 
 void sixdof_sflow::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)

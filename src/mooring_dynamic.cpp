@@ -71,11 +71,11 @@ void mooring_dynamic::updateFluidVel(lexer *p, ghostcell *pgc, int cmp)
 			c_moor(2,i) >= zstart[p->mpirank] && c_moor(2,i) < zend[p->mpirank]
 		)
 		{
-			if (cmp == 0)
+			if (cmp==0)
 			{
 				fluid_vel[i][cmp] = p->ccipol1_a(a->u,c_moor(0,i),c_moor(1,i),c_moor(2,i));
 			}
-			else if (cmp == 1)
+			else if (cmp==1)
 			{
 				fluid_vel[i][cmp] = p->ccipol2_a(a->v,c_moor(0,i),c_moor(1,i),c_moor(2,i));
 			}
@@ -118,7 +118,7 @@ void mooring_dynamic::updateFluidVel(lexer *p, ghostcell *pgc, int cmp)
 	int counts = 0;
 	for (int i = 0; i < Ne + 1; i++)
 	{
-		if (recVel[i] == -1)
+		if (recVel[i]==-1)
 		{
 			sendVel[counts] = fluid_vel[i][cmp];
 			counts++;
@@ -149,7 +149,7 @@ void mooring_dynamic::updateFluidVel(lexer *p, ghostcell *pgc, int cmp)
 	
 	for (int j = 0; j < p->mpi_size; j++)
 	{
-		if (j != p->mpirank)
+		if (j!=p->mpirank)
 		{
 			if (count[p->mpirank] > 0)
 			{
@@ -178,7 +178,7 @@ void mooring_dynamic::updateFluidVel(lexer *p, ghostcell *pgc, int cmp)
 	// Fill velocity vector
 	for (int j = 0; j < p->mpi_size; j++)
 	{
-		if (j != p->mpirank)
+		if (j!=p->mpirank)
 		{
 			count[j] = 0;
 		}
@@ -188,7 +188,7 @@ void mooring_dynamic::updateFluidVel(lexer *p, ghostcell *pgc, int cmp)
 	{
 		for (int j = 0; j < p->mpi_size; j++)
 		{			
-			if (recVel[i] == j)
+			if (recVel[i]==j)
 			{		
 				fluid_vel[i][cmp] = recvVel[j][count[j]];
 				count[j]++;
@@ -248,7 +248,7 @@ void mooring_dynamic::mooringForces
 )
 {
     // Tension forces if line is not broken
-    if (broken == false)
+    if (broken==false)
     {
         Xme = Xme_; 
         Yme = Yme_;

@@ -112,7 +112,7 @@ void net_barDyn::dragForce(lexer *p)
             
             for (int k = 1; k < 5; k++)
             {
-                if (barsiKI[k] == -1) nBars--;
+                if (barsiKI[k]==-1) nBars--;
             }
             
             
@@ -132,11 +132,11 @@ void net_barDyn::dragForce(lexer *p)
         
             //- Add hydrodynamic force contributions from each screen
             
-            if (nBars == 2)         // Corner screens
+            if (nBars==2)         // Corner screens
             {
                 forces_knot.row(i) += screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[1],barsiKI[2]);
             }      
-            else if (nBars == 3)    // Edge screens
+            else if (nBars==3)    // Edge screens
             {
                 forces_knot.row(i) += screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[1],barsiKI[3]);
                 forces_knot.row(i) += screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[2],barsiKI[3]);
@@ -337,7 +337,7 @@ void net_barDyn::screenForceCoeff
     cl = cl0*(b2*sin(2.0*thetan) + b4*sin(4.0*thetan) + b6*sin(6.0*thetan)); 
     
 
-    if(p->Y1 == 1)
+    if(p->Y1==1)
     {
         // Simulation-based screen force model 
 
@@ -391,7 +391,7 @@ void net_barDyn::netForces
     {
         barI = nfbK[knotI];
         // Find bar vector
-        if (Pi[barI] == knotI)
+        if (Pi[barI]==knotI)
         {
             knotJ = Ni[barI];
         }

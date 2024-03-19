@@ -161,7 +161,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
     MPI_Reduce(&velVolAvg, &energy, 1, MPI_DOUBLE, MPI_SUM, 0, pgc->mpi_comm);
     MPI_Reduce(&volTot, &volume, 1, MPI_DOUBLE, MPI_SUM, 0, pgc->mpi_comm);
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         dissipation = p->W2*dissipation/volume;
 
@@ -185,7 +185,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			//double x,y,z;
 			// open file
 
-			if(numberi == 2.0 || numberi == 10001.0)
+			if(numberi==2.0 || numberi==10001.0)
 			{
 			
 			if(numberi<10)
@@ -254,7 +254,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			//double x,y,z;
 			// open file
 
-			if(numberi == 1.0 || numberi == 100000.0)
+			if(numberi==1.0 || numberi==100000.0)
 			{
 			
 			if(numberi<10)
@@ -339,7 +339,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			//double x,y,z;
 			// open file
 
-			if(numberi == p->P20 || numberi == 8001.0 || numberi == 9001.0)
+			if(numberi==p->P20 || numberi==8001.0 || numberi==9001.0)
 			{
 			
 			if(numberi<10)
@@ -443,7 +443,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			//double x,y,z;
 			// open file
 /*
-			if(numberi == p->P20 || numberi == 8001.0 || numberi == 9001.0)
+			if(numberi==p->P20 || numberi==8001.0 || numberi==9001.0)
 			{
 			
 			if(numberi<10)
@@ -525,7 +525,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			// open file
 
 			
-			if(numberi == 5.0)
+			if(numberi==5.0)
 			{
 			
 			if(numberi<10)
@@ -716,7 +716,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
     MPI_Reduce(&vVolAvg, &dissipation, 1, MPI_DOUBLE, MPI_SUM, 0, pgc->mpi_comm);
     MPI_Reduce(&volTot, &volume, 1, MPI_DOUBLE, MPI_SUM, 0, pgc->mpi_comm);
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         dissipation = p->W2*dissipation/volume;
         

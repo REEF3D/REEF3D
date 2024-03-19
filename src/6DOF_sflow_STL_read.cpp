@@ -124,7 +124,7 @@ void sixdof_sflow::read_stl(lexer *p, ghostcell *pgc)
     //tend[entity_count] = tricount;
 	
 	// scale STL model
-	if (p->X181 == 1)
+	if (p->X181==1)
 	for(n=0; n<tricount; ++n)
 	for(int q=0; q<3; ++q)
 	{

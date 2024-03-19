@@ -89,13 +89,13 @@ void pjm::debug(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, 
     {
         if(p->flag4[Im1JK]==SOLID)
 		{
-        if(a->press(i-1,j,k) != a->press(i,j,k))
+        if(a->press(i-1,j,k)!=a->press(i,j,k))
         cout<<p->mpirank<<" P_i: "<<a->press(i,j,k)<<" P_i-1: "<<a->press(i-1,j,k)<<" P_i-2: "<<a->press(i-2,j,k)<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
 		}
 		
 		if(p->flag4[Ip1JK]==SOLID)
 		{
-		if(a->press(i+1,j,k) != a->press(i,j,k))
+		if(a->press(i+1,j,k)!=a->press(i,j,k))
         {
         cout<<p->mpirank<<" P_i: "<<a->press(i,j,k)<<" P_i+1: "<<a->press(i+1,j,k)<<" P_i+2: "<<a->press(i+2,j,k)
         <<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z();
@@ -107,25 +107,25 @@ void pjm::debug(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, 
 		
 		if(p->flag4[IJm1K]==SOLID)
 		{
-		if(a->press(i,j-1,k) != a->press(i,j,k))
+		if(a->press(i,j-1,k)!=a->press(i,j,k))
         cout<<p->mpirank<<" P_j: "<<a->press(i,j,k)<<" P_j-1: "<<a->press(i,j-1,k)<<" P_j-2: "<<a->press(i,j-2,k)<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
 		}
 		
 		if(p->flag4[IJp1K]==SOLID)
 		{
-		if(a->press(i,j+1,k) != a->press(i,j,k))
+		if(a->press(i,j+1,k)!=a->press(i,j,k))
         cout<<p->mpirank<<" P_j: "<<a->press(i,j,k)<<" P_j+1: "<<a->press(i,j+1,k)<<" P_j+2: "<<a->press(i,j+2,k)<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
 		}
 		
 		if(p->flag4[IJKm1]==SOLID)
 		{
-		if(a->press(i,j,k-1) != a->press(i,j,k))
+		if(a->press(i,j,k-1)!=a->press(i,j,k))
         cout<<p->mpirank<<" P_k: "<<a->press(i,j,k)<<" P_k-1: "<<a->press(i,j,k-1)<<" P_k-2: "<<a->press(i,j,k-2)<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
 		}
 		
 		if(p->flag4[IJKp1]==SOLID)
 		{
-		if(a->press(i,j,k+1) != a->press(i,j,k))
+		if(a->press(i,j,k+1)!=a->press(i,j,k))
         cout<<p->mpirank<<" P_k: "<<a->press(i,j,k)<<" P_k+1: "<<a->press(i,j,k+1)<<" P_k+2: "<<a->press(i,j,k+2)<<" | x: "<<p->pos_x()<<" y: "<<p->pos_y()<<" z: "<<p->pos_z()<<endl;
 		}
     }

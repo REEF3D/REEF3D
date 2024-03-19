@@ -44,7 +44,7 @@ void mooring_barQuasiStatic::start(lexer *p, ghostcell *pgc)
 	double length = 0.0;
 
 	// Solving the system of equations
-    if (broken == false)
+    if (broken==false)
     {
         for (int it = 0; it < 1000; it++)
         {	
@@ -190,7 +190,7 @@ void mooring_barQuasiStatic::start(lexer *p, ghostcell *pgc)
 
             if (fabs(error-1.0) < 1e-4)
             {
-                if (p->mpirank == 0)
+                if (p->mpirank==0)
                 {
                     cout<<"Number of iterations = "<<it<<setprecision(6)<<" with error = "<<error-1.0<<endl;
                 }
@@ -228,10 +228,10 @@ void mooring_barQuasiStatic::start(lexer *p, ghostcell *pgc)
     }
     else
     {
-        if (p->mpirank == 0) cout<<"Line "<<line<<" broken"<<endl;
+        if (p->mpirank==0) cout<<"Line "<<line<<" broken"<<endl;
     }
 
-    //if (p->mpirank == 0) cout<<"Current length = "<<length<<endl;
+    //if (p->mpirank==0) cout<<"Current length = "<<length<<endl;
 	
 	// Calculate horizontal and vertical reaction forces at mooring point
 	Xme_ = -fabs(A[sigma-1][sigma])*f[sigma][0];
@@ -260,11 +260,11 @@ void mooring_barQuasiStatic::updateVel(lexer *p, ghostcell *pgc, int cmp)
 			z[i] >= zstart[p->mpirank] && z[i] < zend[p->mpirank]
 		)
 		{
-			if (cmp == 0)
+			if (cmp==0)
 			{
 				v[i][cmp] = p->ccipol1_a(a->u,x[i],y[i],z[i]);
 			}
-			else if (cmp == 1)
+			else if (cmp==1)
 			{
 				v[i][cmp] = p->ccipol2_a(a->v,x[i],y[i],z[i]);
 			}
@@ -307,7 +307,7 @@ void mooring_barQuasiStatic::updateVel(lexer *p, ghostcell *pgc, int cmp)
 	int counts = 0;
 	for (int i = 0; i < sigma + 2; i++)
 	{
-		if (recVel[i] == -1)
+		if (recVel[i]==-1)
 		{
 			sendVel[counts] = v[i][cmp];
 			counts++;
@@ -338,7 +338,7 @@ void mooring_barQuasiStatic::updateVel(lexer *p, ghostcell *pgc, int cmp)
 	
 	for (int j = 0; j < p->mpi_size; j++)
 	{
-		if (j != p->mpirank)
+		if (j!=p->mpirank)
 		{
 			if (count[p->mpirank] > 0)
 			{
@@ -367,7 +367,7 @@ void mooring_barQuasiStatic::updateVel(lexer *p, ghostcell *pgc, int cmp)
 	// Fill velocity vector
 	for (int j = 0; j < p->mpi_size; j++)
 	{
-		if (j != p->mpirank)
+		if (j!=p->mpirank)
 		{
 			count[j] = 0;
 		}
@@ -377,7 +377,7 @@ void mooring_barQuasiStatic::updateVel(lexer *p, ghostcell *pgc, int cmp)
 	{
 		for (int j = 0; j < p->mpi_size; j++)
 		{			
-			if (recVel[i] == j)
+			if (recVel[i]==j)
 			{		
 				v[i][cmp] = recvVel[j][count[j]];
 				count[j]++;
@@ -519,7 +519,7 @@ void mooring_barQuasiStatic::mooringForces
 )
 {
     // Tension forces if line is not broken
-    if (broken == false)
+    if (broken==false)
     {
         Xme = Xme_; 
         Yme = Yme_;

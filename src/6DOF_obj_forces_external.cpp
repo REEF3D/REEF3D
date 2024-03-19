@@ -70,7 +70,7 @@ void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
         Nme[ii] = (p->X311_xe[ii] - c_(0))*Yme[ii] - (p->X311_ye[ii] - c_(1))*Xme[ii];
             
         /*    
-        if( p->mpirank == 0)
+        if( p->mpirank==0)
         {
             cout<<"Xme"<< ii <<" : "<<Xme[ii]<<" Yme"<< ii <<" : "<<Yme[ii]<<" Zme"<< ii <<" : "<<Zme[ii]
             <<" Kme"<< ii <<" : "<<Kme[ii]<<" Mme"<< ii <<" : "<<Mme[ii]<<" Nme"<< ii <<" : "<<Nme[ii]<<endl;		
@@ -106,7 +106,7 @@ void sixdof_obj::netForces(lexer *p, fdm* a, ghostcell *pgc, double alpha, vrans
         pnet[ii]->netForces(p,Xne[ii],Yne[ii],Zne[ii],Kne[ii],Mne[ii],Nne[ii]);
     
         /*
-        if( p->mpirank == 0)
+        if( p->mpirank==0)
         {
             cout<<"Xne"<< ii <<" : "<<Xne[ii]<<" Yne"<< ii <<" : "<<Yne[ii]<<" Zne"<< ii <<" : "<<Zne[ii]
             <<" Kne"<< ii <<" : "<<Kne[ii]<<" Mne"<< ii <<" : "<<Mne[ii]<<" Nne"<< ii <<" : "<<Nne[ii]<<endl;		

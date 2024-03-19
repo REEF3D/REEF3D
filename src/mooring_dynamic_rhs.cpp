@@ -107,7 +107,7 @@ void mooring_dynamic::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const
 
 void mooring_dynamic::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_, Matrix4Xd& q0_, Matrix4Xd& qdot_, Matrix3Xd& f_, Matrix4Xd& m0_, Matrix3Xd& rhs_cdot_, double time , int ind)
 {
-    if (ind == 0)
+    if (ind==0)
     {
         double delta_tm = t_mooring - t_mooring_n;
         double tau = time - t_mooring_n;
@@ -120,18 +120,18 @@ void mooring_dynamic::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_,
         // Linear interpolation in solver
         cdot_.col(Ne) = (fixPoint - c_moor_n.col(Ne))/delta_tm;
     }
-    else if (ind == 1)
+    else if (ind==1)
     {
         // BC: Free translatory end with vanishing forces
         // f.col(Ne+1) = -f.col(Ne); // correct?
     }
-    else if (ind == 2)
+    else if (ind==2)
     {
         // BC: Free rotatory end with vanishing moments 
         m0_.col(0) = Eigen::Vector4d::Zero(4); q_.col(0) = q_.col(1); q0_.col(0) = q0_.col(1); 
         m0_.col(Ne) = Eigen::Vector4d::Zero(4); q_.col(Ne+1) = q_.col(Ne); q0_.col(Ne+1) = q0_.col(Ne);
     }
-    else if (ind == 3)
+    else if (ind==3)
     {
         // BC: Fixed translatory end
         rhs_cdot_.col(0) = Eigen::Vector3d::Zero(3);

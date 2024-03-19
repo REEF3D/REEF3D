@@ -358,7 +358,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
     
     // Print results
 	
-    if (p->mpirank == 0) 
+    if (p->mpirank==0) 
     {
         ofstream print;
         char str[1000];
@@ -371,7 +371,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
         print.close();
     }
 
-	if (p->mpirank == 0)
+	if (p->mpirank==0)
 	cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
     
  

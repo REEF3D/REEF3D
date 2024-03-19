@@ -36,7 +36,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
 
 // Havfarm 2
 /*
-    if (p->mpirank == 0) cout<<"Havfarm 2 sheets"<<endl;
+    if (p->mpirank==0) cout<<"Havfarm 2 sheets"<<endl;
     
     double xm = p->X322_x0[nNet];
     double ym = p->X322_y0[nNet];
@@ -120,7 +120,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
 */
 
 // OceanFarm 1
-    if (p->mpirank == 0) cout<<"OceanFarm 1 sheets"<<endl;
+    if (p->mpirank==0) cout<<"OceanFarm 1 sheets"<<endl;
     // Top cylinder
     double xm = p->X322_x0[nNet];
     double ym = p->X322_y0[nNet];
@@ -309,7 +309,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
 
 /*
 // DeepBlue 1
-    if (p->mpirank == 0) cout<<"DeepBlue 1 sheets"<<endl;
+    if (p->mpirank==0) cout<<"DeepBlue 1 sheets"<<endl;
 
     // Main cylinder
     double xm = p->X322_x0[nNet];
@@ -581,7 +581,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
 */
 /*
 // Estonia fish farm
-    if (p->mpirank == 0) cout<<"Estonia sheets"<<endl;
+    if (p->mpirank==0) cout<<"Estonia sheets"<<endl;
     // Top cylinder
     double xm = p->X322_x0[nNet];
     double ym = p->X322_y0[nNet];
@@ -932,7 +932,7 @@ void net_sheet::triangulation(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
-    if (p->mpirank == 0)
+    if (p->mpirank==0)
     {
         cout<<"Number of net triangles: "<<tend<<endl;
     }
@@ -969,9 +969,9 @@ void net_sheet::create_triangle
 	
 	if 
 	(
-		   SIGN(nx) != SIGN(nx_old) 
-		|| SIGN(ny) != SIGN(ny_old) 
-		|| SIGN(nz) != SIGN(nz_old)
+		   SIGN(nx)!=SIGN(nx_old) 
+		|| SIGN(ny)!=SIGN(ny_old) 
+		|| SIGN(nz)!=SIGN(nz_old)
 	)
 	{
 		tri_x_new[0] = x2;

@@ -57,7 +57,7 @@ void vrans_net::start(lexer *p, fdm *a, ghostcell *pgc, net *&ppnet, int nNet)
         kernel_z(i,j,k) = 0.0;
     }
     
-    if (nNet == 0)
+    if (nNet==0)
     {
         ULOOP
         {
@@ -78,7 +78,7 @@ void vrans_net::start(lexer *p, fdm *a, ghostcell *pgc, net *&ppnet, int nNet)
     {
         const Eigen::Vector3d& forcesI = lagrangeForces[pI];
         
-        if (forcesI.norm() != 0.0)
+        if (forcesI.norm()!=0.0)
         {
             const Eigen::Vector3d& coordI = lagrangePoints[pI];
 
@@ -126,7 +126,7 @@ void vrans_net::start(lexer *p, fdm *a, ghostcell *pgc, net *&ppnet, int nNet)
                         test = forcesI(2)*D/(dx*dy*dz);
                         Fz_net(i_it,j_it,k_it) += test;
 
-                        if (p->mpirank == 1)
+                        if (p->mpirank==1)
                         {
                         //cout<<"in"<<endl;
                         //    cout<<i_it<<" "<<j_it<<" "<<k_it<<" "<<test<<" "<<Fx_net(i_it,j_it,k_it)<<" "<<Fy_net(i_it,j_it,k_it)<<" "<<Fz_net(i_it,j_it,k_it)<<endl;
@@ -149,7 +149,7 @@ void vrans_net::start(lexer *p, fdm *a, ghostcell *pgc, net *&ppnet, int nNet)
     //distributeNetForces_z(p, a, pgc, ppnet, nNet);  
 
     // Distribute collar forces 
-    // if (p->X10 == 10) distributeCollarForces(p, a, pgc, ppnet, nNet);
+    // if (p->X10==10) distributeCollarForces(p, a, pgc, ppnet, nNet);
 }
 
 
@@ -179,7 +179,7 @@ void vrans_net::distributeNetForces_x(lexer *p, fdm *a, ghostcell *pgc, net *&pp
         kernel_x(i,j,k) = 0.0;
     }
     
-    if (nNet == 0)
+    if (nNet==0)
     {
         ULOOP
         {
@@ -240,7 +240,7 @@ void vrans_net::distributeNetForces_y(lexer *p, fdm *a, ghostcell *pgc, net *&pp
         kernel_y(i,j,k) = 0.0;
     }
     
-    if (nNet == 0)
+    if (nNet==0)
     {
         VLOOP
         {
@@ -299,7 +299,7 @@ void vrans_net::distributeNetForces_z(lexer *p, fdm *a, ghostcell *pgc, net *&pp
         kernel_z(i,j,k) = 0.0;
     }
     
-    if (nNet == 0)
+    if (nNet==0)
     {
         WLOOP
         {

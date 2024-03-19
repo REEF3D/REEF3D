@@ -156,7 +156,7 @@ void net_barQuasiStatic::screenForceCoeff
     cl = cl0*(b2*sin(2.0*thetan) + b4*sin(4.0*thetan) + b6*sin(6.0*thetan));
 
 
-    if(p->Y1 == 1)
+    if(p->Y1==1)
     {
         // Simulation-based screen force model 
 

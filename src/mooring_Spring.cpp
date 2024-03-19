@@ -109,7 +109,7 @@ void mooring_Spring::mooringForces
 )
 {
     // Tension forces if line is not broken
-    if (broken == false)
+    if (broken==false)
     {
         Xme = Xme_; 
         Yme = Yme_;

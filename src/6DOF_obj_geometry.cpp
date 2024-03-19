@@ -115,13 +115,13 @@ void sixdof_obj::geometry(lexer *p, fdm *a, ghostcell *pgc)
             Vfb = integ[0]/6.0;
             Rfb = 0.0;
             
-            if (p->X22 == 1)
+            if (p->X22==1)
             {
                 Mass_fb = p->X22_m;
                 Rfb = Mass_fb/Vfb;
             }	
             
-            else if (p->X21 == 1)
+            else if (p->X21==1)
             {
                 Rfb = p->X21_d;
                 Mass_fb = Vfb*Rfb;
@@ -225,13 +225,13 @@ void sixdof_obj::geometry_stl(lexer *p, fdm *a, ghostcell *pgc)
             Vfb += (1.0/6.0)*(-x3*y2*z1 + x2*y3*z1 + x3*y1*z2 - x1*y3*z2 - x2*y1*z3 + x1*y2*z3);
         }
         
-        if (p->X22 == 1)
+        if (p->X22==1)
         {
             Mass_fb = p->X22_m;
             Rfb = Mass_fb/Vfb;
         }	
             
-        else if (p->X21 == 1)
+        else if (p->X21==1)
         {
             Rfb = p->X21_d;
             Mass_fb = Vfb*Rfb;
@@ -300,7 +300,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 
 	// Center of Gravity
 	
-	if (p->X23 == 0)
+	if (p->X23==0)
 	{
 		
 		c_(0) = c_(1) = c_(2) = 0.0;
@@ -330,7 +330,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
         c_(1) += yorig;
         c_(2) += zorig;
 	}
-    else if (p->X23 == 1)
+    else if (p->X23==1)
 	{
 		c_(0) = p->X23_x; 
 		c_(1) = p->X23_y; 
@@ -384,7 +384,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 		I_(0,2) = pgc->globalsum(I_(0,2));
 		I_(1,2) = pgc->globalsum(I_(1,2));	
 	}
-    else if (p->X24 == 1)
+    else if (p->X24==1)
 	{
 		Ix = p->X24_Ix; 
 		Iy = p->X24_Iy; 

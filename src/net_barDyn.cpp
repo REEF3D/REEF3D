@@ -33,19 +33,19 @@ net_barDyn::~net_barDyn(){}
 void net_barDyn::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {    
     //- Initialise net model
-    if (p->X320_type[nNet] == 12)   
+    if (p->X320_type[nNet]==12)   
     {
         cyl_ini(p,a,pgc);
  
         buildNet_cyl(p); 
     }
-    else if (p->X320_type[nNet] == 13)   
+    else if (p->X320_type[nNet]==13)   
     {
         wall_ini(p,a,pgc);
         
         buildNet_wall(p);    
     } 
-    else if (p->X320_type[nNet] == 14)   
+    else if (p->X320_type[nNet]==14)   
     {
         cone_ini(p,a,pgc);
         
@@ -58,7 +58,7 @@ void net_barDyn::initialize(lexer *p, fdm *a, ghostcell *pgc)
     xdotnn_ = xdot_;    
     xdotn_ = xdot_;
     
-    if (p->X325_dt == 0.0)
+    if (p->X325_dt==0.0)
     {   
         dtnn_ = p->dt;
         dtn_ = p->dt;
@@ -93,7 +93,7 @@ void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Ma
 
 	//- Start loop
     int loops = ceil(dtm/dt_);
-    if (dt_ == 0.0) loops = 0;
+    if (dt_==0.0) loops = 0;
     dt_ = dtm/loops;
 
 	Eigen::VectorXi convIt(loops);
@@ -113,11 +113,11 @@ void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Ma
 
     //- Print output
     double endtime1 = pgc->timer() - starttime1; 
-    if (p->mpirank == 0 && convIt.maxCoeff() < 10)
+    if (p->mpirank==0 && convIt.maxCoeff() < 10)
     {
         cout<<"Net converged within "<<convIt.maxCoeff()<<" iterations max, "<<loops<<" steps and "<<endtime1<<" s"<<endl;
     }
-    if (p->mpirank == 0 && convIt.maxCoeff() >= 10)
+    if (p->mpirank==0 && convIt.maxCoeff() >= 10)
     {
         cout<<"Net diverged. Adjust X 325 accordingly!"<<endl; 
     }
@@ -155,7 +155,7 @@ void net_barDyn::startLoop
     getForces(p);
 
     //- Solve dynamics
-    if (p->count < 1 && iter == 0)
+    if (p->count < 1 && iter==0)
     {
         //- Solve linear system
         
@@ -231,7 +231,7 @@ void net_barDyn::startLoop
             xdotdot_ - coeffs_(1)*xdot_ - coeffs_(2)*xdotn_ - coeffs_(3)*xdotnn_
         );
 
-    if (p->X320 == 13)  // 2D solution
+    if (p->X320==13)  // 2D solution
     {
         xdot_.col(1) *= 0.0;
     }
@@ -311,10 +311,10 @@ void net_barDyn::updateAcc(lexer *p, fdm *a, ghostcell *pgc)
             {
                 barI = nfK[knotI - nfK[0][0]][k];
 
-                if (barI != -1)
+                if (barI!=-1)
                 {
                     // Find bar vector
-                    if (Pi[barI] == knotI)
+                    if (Pi[barI]==knotI)
                     {
                         knotJ = Ni[barI];
                     }
@@ -378,19 +378,19 @@ void net_barDyn::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 			x_(i,2) >= zstart[p->mpirank] && x_(i,2) < zend[p->mpirank]
 		)
 		{
-			if (cmp == 0)
+			if (cmp==0)
 			{
 				coupledField[i][cmp] = p->ccipol1_a(a->u,x_(i,0),x_(i,1),x_(i,2));
 			}
-			else if (cmp == 1)
+			else if (cmp==1)
 			{
 				coupledField[i][cmp] = p->ccipol2_a(a->v,x_(i,0),x_(i,1),x_(i,2));
 			}
-			else if (cmp == 2)
+			else if (cmp==2)
 			{
 				coupledField[i][cmp] = p->ccipol3_a(a->w,x_(i,0),x_(i,1),x_(i,2));
 			}
-			else if (cmp == 3)
+			else if (cmp==3)
 			{
 				coupledField[i][cmp] = p->ccipol4_a(a->phi,x_(i,0),x_(i,1),x_(i,2));
                 
@@ -438,7 +438,7 @@ void net_barDyn::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	int counts = 0;
 	for (int i = 0; i < nK; i++)
 	{
-		if (recField[i] == -1)
+		if (recField[i]==-1)
 		{
 			sendField[counts] = coupledField[i][cmp];
 			counts++;
@@ -467,7 +467,7 @@ void net_barDyn::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	
 	for (int j = 0; j < p->mpi_size; j++)
 	{
-		if (j != p->mpirank)
+		if (j!=p->mpirank)
 		{
 			if (count[p->mpirank] > 0)
 			{
@@ -496,7 +496,7 @@ void net_barDyn::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	// Fill velocity vector
 	for (int j = 0; j < p->mpi_size; j++)
 	{
-		if (j != p->mpirank)
+		if (j!=p->mpirank)
 		{
 			count[j] = 0;
 		}
@@ -506,7 +506,7 @@ void net_barDyn::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	{
 		for (int j = 0; j < p->mpi_size; j++)
 		{			
-			if (recField[i] == j)
+			if (recField[i]==j)
 			{		
 				coupledField[i][cmp] = recvField[j][count[j]];
 				count[j]++;
@@ -551,7 +551,7 @@ Eigen::VectorXd net_barDyn::timeWeight(lexer* p)
     double c1 = 1.0;
     double c4 = 0.0;
 
-    if (p->count == 1)
+    if (p->count==1)
     {
         dtn_ = dt_;
         dtnn_ = dt_;
@@ -581,7 +581,7 @@ Eigen::VectorXd net_barDyn::timeWeight(lexer* p)
             c3 = ti(r) - ti(s);
             c2 *= c3;
                 
-            if(s == r-1) 
+            if(s==r-1) 
             {
                 for(int t = mn; t >= 1; t--)
                 {

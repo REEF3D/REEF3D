@@ -33,7 +33,7 @@ void sixdof_obj::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 	
 	// read and count number of triangles
     ifstream stl;
-    if (n6DOF == 0)
+    if (n6DOF==0)
     {
 	    stl.open("floating.stl", ios_base::in);
     }
@@ -82,7 +82,7 @@ void sixdof_obj::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 	tricount=count;
 	
 	// reopen and read triangles
-    if (n6DOF == 0)
+    if (n6DOF==0)
     {
 	    stl.open("floating.stl", ios_base::in);
     }
@@ -121,7 +121,7 @@ void sixdof_obj::read_stl(lexer *p, fdm *a, ghostcell *pgc)
     tend[entity_count] = tricount;
 	
 	// scale STL model
-	if (p->X181 == 1)
+	if (p->X181==1)
 	for(n=0; n<tricount; ++n)
 	for(int q=0; q<3; ++q)
 	{

@@ -54,7 +54,7 @@ void patchBC_2D::patchBC_gcb_count(lexer *p, ghostcell *pgc)
             }
             
         for(qq=0;qq<obj_count;++qq)
-        if(patch[qq]->ID == p->B440_ID[qn])
+        if(patch[qq]->ID==p->B440_ID[qn])
         patch[qq]->gcb_count += count;
 
     }

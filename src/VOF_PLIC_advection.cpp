@@ -46,12 +46,12 @@ void VOF_PLIC::advectPlane
 {
 	//- According to Wang (24,25)
 	
-	if (sweep == 0)
+	if (sweep==0)
 	{
 		nx(i, j, k) /= (1.0 + (Q2 - Q1));
 		alpha(i, j, k) += nx(i, j, k)*Q1;
 	}
-	else if (sweep == 1)
+	else if (sweep==1)
 	{
 		ny(i, j, k) /= (1.0 + (Q2 - Q1));
 		alpha(i, j, k) += ny(i, j, k)*Q1;
@@ -68,7 +68,7 @@ void VOF_PLIC::calcFlux(fdm* a, lexer* p, double& Q1, double& Q2, int sweep)
 {
 	double vell, velr;
 	
-	if (sweep == 0)
+	if (sweep==0)
 	{
 		vell = a->u(i-1, j, k);
 		velr = a->u(i, j, k);
@@ -76,7 +76,7 @@ void VOF_PLIC::calcFlux(fdm* a, lexer* p, double& Q1, double& Q2, int sweep)
 		Q1 = ((velr - vell)*vell*p->dt*p->dt/(2.0*p->DXN[IP]) + vell*p->dt)/p->DXN[IP];
 		Q2 = ((velr - vell)*velr*p->dt*p->dt/(2.0*p->DXN[IP]) + velr*p->dt)/p->DXN[IP];			
 	}
-	else if (sweep == 1)
+	else if (sweep==1)
 	{
 		vell = a->v(i, j-1, k);
 		velr = a->v(i, j, k);

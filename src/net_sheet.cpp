@@ -126,7 +126,7 @@ void net_sheet::start
 
     //- Print output
     double endtime1 = pgc->timer() - starttime1; 
-    if (p->mpirank == 0)
+    if (p->mpirank==0)
     {
         cout<<"Net time: "<<endtime1<<endl;    
     }
@@ -150,19 +150,19 @@ void net_sheet::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 			x_(i,2) >= zstart[p->mpirank] && x_(i,2) < zend[p->mpirank]
 		)
 		{
-			if (cmp == 0)
+			if (cmp==0)
 			{
 				coupledField[i][cmp] = p->ccipol1_a(a->u,x_(i,0),x_(i,1),x_(i,2));
 			}
-			else if (cmp == 1)
+			else if (cmp==1)
 			{
 				coupledField[i][cmp] = p->ccipol2_a(a->v,x_(i,0),x_(i,1),x_(i,2));
 			}
-			else if (cmp == 2)
+			else if (cmp==2)
 			{
 				coupledField[i][cmp] = p->ccipol3_a(a->w,x_(i,0),x_(i,1),x_(i,2));
 			}
-			else if (cmp == 3)
+			else if (cmp==3)
 			{
 				coupledField[i][cmp] = p->ccipol4_a(a->phi,x_(i,0),x_(i,1),x_(i,2));
                 
@@ -210,7 +210,7 @@ void net_sheet::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	int counts = 0;
 	for (int i = 0; i < nK; i++)
 	{
-		if (recField[i] == -1)
+		if (recField[i]==-1)
 		{
 			sendField[counts] = coupledField[i][cmp];
 			counts++;
@@ -241,7 +241,7 @@ void net_sheet::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	
 	for (int j = 0; j < p->mpi_size; j++)
 	{
-		if (j != p->mpirank)
+		if (j!=p->mpirank)
 		{
 			if (count[p->mpirank] > 0)
 			{
@@ -270,7 +270,7 @@ void net_sheet::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	// Fill velocity vector
 	for (int j = 0; j < p->mpi_size; j++)
 	{
-		if (j != p->mpirank)
+		if (j!=p->mpirank)
 		{
 			count[j] = 0;
 		}
@@ -280,7 +280,7 @@ void net_sheet::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	{
 		for (int j = 0; j < p->mpi_size; j++)
 		{			
-			if (recField[i] == j)
+			if (recField[i]==j)
 			{		
 				coupledField[i][cmp] = recvField[j][count[j]];
 				count[j]++;

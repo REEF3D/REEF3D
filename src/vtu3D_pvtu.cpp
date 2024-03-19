@@ -159,6 +159,6 @@ void vtu3D::piecename(fdm* a, lexer* p, ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"REEF3D-CFD-%08i-%06i.vtp",num,n+1);
+	sprintf(pname,"REEF3D-CFD-%08i-%06i.vtu",num,n+1);
 
 }

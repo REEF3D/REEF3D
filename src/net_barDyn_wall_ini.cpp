@@ -147,11 +147,11 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
            
             for (int k = 0; k < nK; k++)
             {
-                if (K[k][0] == coord_owner[0] && K[k][1] == coord_owner[1] && K[k][2] == coord_owner[2])
+                if (K[k][0]==coord_owner[0] && K[k][1]==coord_owner[1] && K[k][2]==coord_owner[2])
                 {
                     Pi[index] = k;
                 }
-                else if (K[k][0] == coord_neigh[0] && K[k][1] == coord_neigh[1] && K[k][2] == coord_neigh[2])
+                else if (K[k][0]==coord_neigh[0] && K[k][1]==coord_neigh[1] && K[k][2]==coord_neigh[2])
                 {
                     Ni[index] = k;
                 }
@@ -176,11 +176,11 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
 
             for (int k = 0; k < nK; k++)
             {
-                if (K[k][0] == coord_owner[0] && K[k][1] == coord_owner[1] && K[k][2] == coord_owner[2])
+                if (K[k][0]==coord_owner[0] && K[k][1]==coord_owner[1] && K[k][2]==coord_owner[2])
                 {
                     Pi[index] = k;
                 }
-                else if (K[k][0] == coord_neigh[0] && K[k][1] == coord_neigh[1] && K[k][2] == coord_neigh[2])
+                else if (K[k][0]==coord_neigh[0] && K[k][1]==coord_neigh[1] && K[k][2]==coord_neigh[2])
                 {
                     Ni[index] = k;
                 }
@@ -214,8 +214,8 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
                 // left half, bar always pointing downwards
                 if 
                 (
-                    v1[0] == K[Pi[s]][0] && v1[1] == K[Pi[s]][1] && v1[2] == K[Pi[s]][2]
-                    && v2[0] == K[Ni[s]][0] && v2[1] == K[Ni[s]][1] && v2[2] == K[Ni[s]][2]
+                    v1[0]==K[Pi[s]][0] && v1[1]==K[Pi[s]][1] && v1[2]==K[Pi[s]][2]
+                    && v2[0]==K[Ni[s]][0] && v2[1]==K[Ni[s]][1] && v2[2]==K[Ni[s]][2]
                 )
                 {
                     meshID[index][0] = Pi[s];
@@ -225,8 +225,8 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
                 // right half, bar always pointing downwards
                 if 
                 (
-                    v4[0] == K[Pi[s]][0] && v4[1] == K[Pi[s]][1] && v4[2] == K[Pi[s]][2]
-                    && v3[0] == K[Ni[s]][0] && v3[1] == K[Ni[s]][1] && v3[2] == K[Ni[s]][2]
+                    v4[0]==K[Pi[s]][0] && v4[1]==K[Pi[s]][1] && v4[2]==K[Pi[s]][2]
+                    && v3[0]==K[Ni[s]][0] && v3[1]==K[Ni[s]][1] && v3[2]==K[Ni[s]][2]
                 )
                 {
                     meshID[index][2] = Pi[s];
@@ -253,11 +253,11 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
 
         for (int k = 0; k < nK; k++)
         {
-            if (K[k][0] == coord_owner[0] && K[k][1] == coord_owner[1] && K[k][2] == coord_owner[2])
+            if (K[k][0]==coord_owner[0] && K[k][1]==coord_owner[1] && K[k][2]==coord_owner[2])
             {
                 Pb[index] = k;
             }
-            else if (K[k][0] == coord_neigh[0] && K[k][1] == coord_neigh[1] && K[k][2] == coord_neigh[2])
+            else if (K[k][0]==coord_neigh[0] && K[k][1]==coord_neigh[1] && K[k][2]==coord_neigh[2])
             {
                 Nb[index] = k;
             }
@@ -287,14 +287,14 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
         // Check whether it is a boundary knot
         for (int k = 0; k < nd; k++)
         {
-            if (i == Pb[k] || i == Nb[k])
+            if (i==Pb[k] || i==Nb[k])
             {
                 bK = true;  // top bar knot
                 
                 // Search for adjoint vertical bar
                 for (int j = 0; j < nf; j++)
                 {
-                    if (Pi[j] == i || Ni[j] == i)
+                    if (Pi[j]==i || Ni[j]==i)
                     {
                         nfbK[indexbK] = j;
                         indexbK++;
@@ -305,7 +305,7 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
             }
         }
 
-        if (bK == false) // then a inner knot
+        if (bK==false) // then a inner knot
         {
 
             nfK[indexK][0] = i;
@@ -314,7 +314,7 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
             index = 1;
             for (int j = 0; j < nf; j++)
             {
-                if (Pi[j] == i || Ni[j] == i)
+                if (Pi[j]==i || Ni[j]==i)
                 {
                     nfK[indexK][index] = j;
                     index++;
@@ -322,7 +322,7 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
             }
             
             // Switch bottom edge knots to be consistent with side edge knots
-            if ((K[i][1] == nl) && (K[i][0] != 0.0) && (K[i][0] != nd))
+            if ((K[i][1]==nl) && (K[i][0]!=0.0) && (K[i][0]!=nd))
             {
                 tmp = nfK[indexK][3];
                 nfK[indexK][3] = nfK[indexK][1];
@@ -348,7 +348,7 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
         
             for (int k = 0; k < nK; k++)
             {
-                if (K[k][0] == i && K[k][1] == j && K[k][2] == 0.0 && transK[k] == 0)
+                if (K[k][0]==i && K[k][1]==j && K[k][2]==0.0 && transK[k]==0)
                 { 
                     K[k][0] = coord_owner[0];
                     K[k][1] = coord_owner[1];
@@ -418,22 +418,22 @@ void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
             
             for (int j = 0; j < nf; j++)
             {
-                if (Pi[j] == nfK[index][0])
+                if (Pi[j]==nfK[index][0])
                 {
                     nBars++;
                 }
-                else if (Ni[j] == nfK[index][0])
+                else if (Ni[j]==nfK[index][0])
                 {
                     nBars++;
                 }
             }
 
             // Calculate total area from bars adjoint to knot nfK[index]
-            if (nBars == 2)
+            if (nBars==2)
             {
                 A_panel = 1.0*0.25*al*ad;
             }
-            else if (nBars == 3)
+            else if (nBars==3)
             {
                 A_panel = 2.0*0.25*al*ad;
             }  

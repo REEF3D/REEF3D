@@ -41,14 +41,14 @@ void sixdof_obj::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
     omega_B << 0.0, 0.0, 0.0;
     omega_I << 0.0, 0.0, 0.0;
     
-	if (p->X102 == 1)
+	if (p->X102==1)
 	{
 		p_(0) += p->X102_u*Mass_fb;
 		p_(1) += p->X102_v*Mass_fb;
 		p_(2) += p->X102_w*Mass_fb;
 	} 
     
-	if (p->X103 == 1)
+	if (p->X103==1)
 	{
 		h_(0) = p->X103_p;
 		h_(1) = p->X103_q;
@@ -78,13 +78,13 @@ void sixdof_obj::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
     // external velocity
       Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
     
-    if (p->X210 == 1)
+    if (p->X210==1)
     {
         Uext = p->X210_u;
         Vext = p->X210_v;
         Wext = p->X210_w;
     }
-    if (p->X211 == 1)
+    if (p->X211==1)
     {
         Pext = p->X211_p;
         Qext = p->X211_q;

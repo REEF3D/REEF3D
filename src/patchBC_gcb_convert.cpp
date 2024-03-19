@@ -49,7 +49,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B440_ID[qn])
+                    if(patch[qq]->ID==p->B440_ID[qn])
                     {
                     // convert gcb
                     p->gcb1[n][4]=patch[qq]->gcb_flag;
@@ -68,7 +68,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B440_ID[qn])
+                    if(patch[qq]->ID==p->B440_ID[qn])
                     {
                     // convert gcb
                     p->gcb2[n][4]=patch[qq]->gcb_flag;
@@ -87,7 +87,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B440_ID[qn])
+                    if(patch[qq]->ID==p->B440_ID[qn])
                     {
                     // convert gcb
                     p->gcb3[n][4]=patch[qq]->gcb_flag;
@@ -106,7 +106,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B440_ID[qn])
+                    if(patch[qq]->ID==p->B440_ID[qn])
                     {
                     // convert gcb
                     p->gcb4[n][4]=patch[qq]->gcb_flag;
@@ -143,7 +143,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B441_ID[qn])
+                    if(patch[qq]->ID==p->B441_ID[qn])
                     {
                     // convert gcb
                     p->gcb1[n][4]=patch[qq]->gcb_flag;
@@ -162,7 +162,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B441_ID[qn])
+                    if(patch[qq]->ID==p->B441_ID[qn])
                     {
                     // convert gcb
                     p->gcb2[n][4]=patch[qq]->gcb_flag;
@@ -181,7 +181,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B441_ID[qn])
+                    if(patch[qq]->ID==p->B441_ID[qn])
                     {
                     // convert gcb
                     p->gcb3[n][4]=patch[qq]->gcb_flag;
@@ -200,7 +200,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                 {
                     
                     for(qq=0;qq<obj_count;++qq)
-                    if(patch[qq]->ID == p->B441_ID[qn])
+                    if(patch[qq]->ID==p->B441_ID[qn])
                     {
                     // convert gcb
                     p->gcb4[n][4]=patch[qq]->gcb_flag;
@@ -231,7 +231,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_x()>p->B442_xm[qn]-p->DXN[IP] && p->pos_x()<=p->B442_xm[qn]+p->DXN[IP] && p->gcb1[n][3]==p->B442_face[qn] && (p->gcb1[n][4]==21||p->gcb1[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb1[n][4]=patch[qq]->gcb_flag;
@@ -247,7 +247,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_y()>p->B442_ym[qn]-p->DYP[JP] && p->pos_y()<=p->B442_ym[qn]+p->DYP[JP] && p->gcb1[n][3]==p->B442_face[qn] && (p->gcb1[n][4]==21||p->gcb1[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb1[n][4]=patch[qq]->gcb_flag;
@@ -263,7 +263,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_z()>p->B442_zm[qn]-p->DZP[KP] && p->pos_z()<=p->B442_zm[qn]+p->DZP[KP] && p->gcb1[n][3]==p->B442_face[qn] && (p->gcb1[n][4]==21||p->gcb1[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb1[n][4]=patch[qq]->gcb_flag;
@@ -287,7 +287,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_x()>p->B442_xm[qn]-p->DXN[IP] && p->pos_x()<=p->B442_xm[qn]+p->DXN[IP] && p->gcb2[n][3]==p->B442_face[qn] && (p->gcb2[n][4]==21||p->gcb2[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb2[n][4]=patch[qq]->gcb_flag;
@@ -303,7 +303,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_y()>p->B442_ym[qn]-p->DYP[JP] && p->pos_y()<=p->B442_ym[qn]+p->DYP[JP] && p->gcb2[n][3]==p->B442_face[qn] && (p->gcb2[n][4]==21||p->gcb2[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb2[n][4]=patch[qq]->gcb_flag;
@@ -319,7 +319,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_z()>p->B442_zm[qn]-p->DZP[KP] && p->pos_z()<=p->B442_zm[qn]+p->DZP[KP] && p->gcb2[n][3]==p->B442_face[qn] && (p->gcb2[n][4]==21||p->gcb2[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb2[n][4]=patch[qq]->gcb_flag;
@@ -343,7 +343,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_x()>p->B442_xm[qn]-p->DXN[IP] && p->pos_x()<=p->B442_xm[qn]+p->DXN[IP] && p->gcb3[n][3]==p->B442_face[qn] && (p->gcb3[n][4]==21||p->gcb3[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb3[n][4]=patch[qq]->gcb_flag;
@@ -359,7 +359,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_y()>p->B442_ym[qn]-p->DYP[JP] && p->pos_y()<=p->B442_ym[qn]+p->DYP[JP] && p->gcb3[n][3]==p->B442_face[qn] && (p->gcb3[n][4]==21||p->gcb3[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb3[n][4]=patch[qq]->gcb_flag;
@@ -375,7 +375,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_z()>p->B442_zm[qn]-p->DZP[KP] && p->pos_z()<=p->B442_zm[qn]+p->DZP[KP] && p->gcb3[n][3]==p->B442_face[qn] && (p->gcb3[n][4]==21||p->gcb3[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb3[n][4]=patch[qq]->gcb_flag;
@@ -399,7 +399,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_x()>p->B442_xm[qn]-p->DXP[IP] && p->pos_x()<=p->B442_xm[qn]+p->DXP[IP] && p->gcb4[n][3]==p->B442_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb4[n][4]=patch[qq]->gcb_flag;
@@ -415,7 +415,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_y()>p->B442_ym[qn]-p->DYP[JP] && p->pos_y()<=p->B442_ym[qn]+p->DYP[JP] && p->gcb4[n][3]==p->B442_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb4[n][4]=patch[qq]->gcb_flag;
@@ -431,7 +431,7 @@ void patchBC::patchBC_gcb_convert(lexer *p, ghostcell *pgc)
                     if(r<=p->B442_r[qn] && p->pos_z()>p->B442_zm[qn]-p->DZP[KP] && p->pos_z()<=p->B442_zm[qn]+p->DZP[KP] && p->gcb4[n][3]==p->B442_face[qn] && (p->gcb4[n][4]==21||p->gcb4[n][4]==22))
                     {
                         for(qq=0;qq<obj_count;++qq)
-                        if(patch[qq]->ID == p->B442_ID[qn])
+                        if(patch[qq]->ID==p->B442_ID[qn])
                         {
                         // convert gcb
                         p->gcb4[n][4]=patch[qq]->gcb_flag;

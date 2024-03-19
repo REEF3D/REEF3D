@@ -174,7 +174,7 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
     SLICELOOP4
     {
             // x
-            if( bx(i+1,j) == 10 && bx(i,j) == 0 && c->Ex(i,j)   < -p->A356*p->A355)
+            if( bx(i+1,j)==10 && bx(i,j)==0 && c->Ex(i,j)   < -p->A356*p->A355)
             {
                 ii=i;
                 
@@ -198,7 +198,7 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
                 i=ii;
             }
             
-            if( bx(i-1,j) == 20 && bx(i,j) == 0 && c->Ex(i,j)   > p->A356*p->A355)
+            if( bx(i-1,j)==20 && bx(i,j)==0 && c->Ex(i,j)   > p->A356*p->A355)
             {
                 ii=i;
                 
@@ -225,7 +225,7 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
             
             // y
             if(p->j_dir==1)
-            if(by(i,j+1) == 10 && by(i,j) == 0 && c->Ey(i,j)   < -p->A356*p->A355)
+            if(by(i,j+1)==10 && by(i,j)==0 && c->Ey(i,j)   < -p->A356*p->A355)
             {
                 jj=j;
                 
@@ -250,7 +250,7 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
             }
             
             if(p->j_dir==1)
-            if(by(i,j-1) == 20 && by(i,j) == 0 && c->Ey(i,j)   > p->A356*p->A355)
+            if(by(i,j-1)==20 && by(i,j)==0 && c->Ey(i,j)   > p->A356*p->A355)
             {
                 jj=j;
                 

@@ -63,7 +63,7 @@ void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc, bool finalise)
 	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));
 
 
-	if(p->mpirank==0 && finalise == true)
+	if(p->mpirank==0 && finalise==true)
     {
         cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
         cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
@@ -92,7 +92,7 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
             tri_z[n][q] = point(2) + c_(2);
 
 			// 2D
-			if(p->X11_v != 1 && p->X11_p != 1 && p->X11_r != 1) 
+			if(p->X11_v!=1 && p->X11_p!=1 && p->X11_r!=1) 
 			{
 				tri_y[n][q] = tri_y0[n][q] + c_(1);	
 			}

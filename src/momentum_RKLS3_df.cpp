@@ -91,7 +91,7 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
 
     for (int loop=0; loop<3; loop++)
     {
-        if (loop == 2) final = true;
+        if (loop==2) final = true;
         
         pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
         

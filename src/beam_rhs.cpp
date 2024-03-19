@@ -96,7 +96,7 @@ Eigen::Vector4d beam::f0_
     force.tail(3) = Ceps*(R(qi).transpose()*dcdz.tail(3) - R(q0i).transpose()*dc0dz.tail(3)) + 2.0*Cepsdot*fdot.tail(3);
 
     // f0 calculation without compression effects 
-    if (compression == false)
+    if (compression==false)
     {
         Eigen::Vector3d f0_ini; f0_ini << 1,0,0;
         Eigen::Vector3d f0_cur = R(qi).transpose()*dcdz.tail(3);

@@ -56,7 +56,7 @@ int beam::dec(const int n, double **A, int *ip)
 
 	ier = 0;
 	ip[n-1] = 1;
-	if (n != 1) {
+	if (n!=1) {
 		nm1 = n - 1;
 		for (k = 0; k < nm1; k++) {
 			kp1 = k + 1;
@@ -66,12 +66,12 @@ int beam::dec(const int n, double **A, int *ip)
 			}
 			ip[k] = m;
 			t = A[m][k];
-			if (m != k) {
+			if (m!=k) {
 				ip[n-1] = -ip[n-1];
 				A[m][k] = A[k][k];
 				A[k][k] = t;
 			}
-			if (t == 0.0) {
+			if (t==0.0) {
 				ier = k;
 				ip[n-1] = 0;
 				return (ier);
@@ -82,14 +82,14 @@ int beam::dec(const int n, double **A, int *ip)
 				t = A[m][j];
 				A[m][j] = A[k][j];
 				A[k][j] = t;
-				if (t != 0.0)
+				if (t!=0.0)
 					for (int i = kp1; i < n; i++)
 						A[i][j] += A[i][k]*t;
 			}
 		}
 	}
 	k = n;
-	if (A[n-1][n-1] == 0.0) {
+	if (A[n-1][n-1]==0.0) {
 		ier = k;
 		ip[n-1] = 0;
 	}
@@ -110,7 +110,7 @@ void beam::sol(const int n, double **A, double *b, int *ip)
 		b		right hand side vector
 		ip		pivot vector obtained from dec
 
-	Do not use if dec has set ier != 0
+	Do not use if dec has set ier!=0
 
 	Output:
 		b		solution vector, x
@@ -120,7 +120,7 @@ void beam::sol(const int n, double **A, double *b, int *ip)
 	int m, kb, km1, nm1, kp1;
 	double t;
 
-	if (n != 1) {
+	if (n!=1) {
 		nm1 = n - 1;
 		for (int k = 0; k < nm1; k++) {
 			kp1 = k + 1;
@@ -184,7 +184,7 @@ int beam::dech(const int n, double **A, int lb, int *ip)
 
 	ier = 0;
 	ip[n-1] = 1;
-	if (n != 1) {
+	if (n!=1) {
 		nm1 = n - 1;
 		for (k = 0; k < nm1; k++) {
 			kp1 = k + 1;
@@ -195,12 +195,12 @@ int beam::dech(const int n, double **A, int lb, int *ip)
 			}
 			ip[k] = m;
 			t = A[m][k];
-			if (m != k) {
+			if (m!=k) {
 				ip[n-1] = -ip[n-1];
 				A[m][k] = A[k][k];
 				A[k][k] = t;
 			}
-			if (t == 0.0) {
+			if (t==0.0) {
 				ier = k;
 				ip[n-1] = 0;
 				return (ier);
@@ -211,14 +211,14 @@ int beam::dech(const int n, double **A, int lb, int *ip)
 				t = A[m][j];
 				A[m][j] = A[k][j];
 				A[k][j] = t;
-				if (t != 0.0)
+				if (t!=0.0)
 					for (int i = kp1; i < na; i++) 
 						A[i][j] += A[i][k]*t;	
 			}	
 		}
 	}
 	k = n;
-	if (A[n-1][n-1] == 0.0) {
+	if (A[n-1][n-1]==0.0) {
 		ier = k;
 		ip[n-1] = 0;
 	}
@@ -241,7 +241,7 @@ void beam::solh(const int n, double **A, int lb, double *b, int *ip)
 		b		right hand side vector
 		ip		pivot vector obtained from dec
 		
-	Do not use if dec has set ier != 0
+	Do not use if dec has set ier!=0
 	
 	Output:
 		b		solution vector, x
@@ -251,7 +251,7 @@ void beam::solh(const int n, double **A, int lb, double *b, int *ip)
 	int m, kb, km1, nm1, kp1, na;
 	double t;
 
-	if (n != 1) {
+	if (n!=1) {
 		nm1 = n - 1;
 		for (int k = 0; k < nm1; k++) {
 			kp1 = k + 1;
@@ -315,7 +315,7 @@ int beam::decc(const int n, double **AR, double **AI, int *ip)
 
 	ier = 0;
 	ip[n-1] = 1;
-	if (n != 1) {
+	if (n!=1) {
 		nm1 = n - 1;
 		for (k = 0; k < nm1; k++) {
 			kp1 = k + 1;
@@ -328,14 +328,14 @@ int beam::decc(const int n, double **AR, double **AI, int *ip)
 			ip[k] = m;
 			tr = AR[m][k];
 			ti = AI[m][k];
-			if (m != k) {
+			if (m!=k) {
 				ip[n-1] = -ip[n-1];
 				AR[m][k] = AR[k][k];
 				AI[m][k] = AI[k][k];
 				AR[k][k] = tr;
 				AI[k][k] = ti;
 			}
-			if ((fabs(tr) + fabs(ti)) == 0.0) {
+			if ((fabs(tr) + fabs(ti))==0.0) {
 				ier = k;
 				ip[n-1] = 0;
 				return (ier);
@@ -356,9 +356,9 @@ int beam::decc(const int n, double **AR, double **AI, int *ip)
 				AI[m][j] = AI[k][j];
 				AR[k][j] = tr;
 				AI[k][j] = ti;
-				if ((fabs(tr) + fabs(ti)) == 0.0) {
+				if ((fabs(tr) + fabs(ti))==0.0) {
 				}
-				else if (ti == 0.0) {
+				else if (ti==0.0) {
 					for (int i = kp1; i < n; i++) {
 						prodr = AR[i][k]*tr;
 						prodi = AI[i][k]*tr;
@@ -366,7 +366,7 @@ int beam::decc(const int n, double **AR, double **AI, int *ip)
 						AI[i][j] += prodi;
 					}
 				}
-				else if (tr == 0.0) {
+				else if (tr==0.0) {
 					for (int i = kp1; i < n; i++) {
 						prodr = -AI[i][k]*ti;
 						prodi = AR[i][k]*ti;
@@ -386,7 +386,7 @@ int beam::decc(const int n, double **AR, double **AI, int *ip)
 		}	
 	}	
 	k = n;
-	if ((fabs(AR[n-1][n-1]) + fabs(AI[n-1][n-1])) == 0.0) {
+	if ((fabs(AR[n-1][n-1]) + fabs(AI[n-1][n-1]))==0.0) {
 		ier = k;
 		ip[n-1] = 0;
 	}
@@ -408,7 +408,7 @@ void beam::solc(const int n, double **AR, double **AI, double *br,
 		br, bi		right hand side vector
 		ip			pivot vector obtained from dec
 		
-	Do not use if decc has set ier != 0
+	Do not use if decc has set ier!=0
 	
 	Output:
 		br, bi		solution vector, x
@@ -418,7 +418,7 @@ void beam::solc(const int n, double **AR, double **AI, double *br,
 	int nm1, kp1, m, kb, km1;
 	double den, prodr, prodi, tr, ti;
 	  
-	if (n != 1) {
+	if (n!=1) {
 		nm1 = n - 1;
 		for (int k = 0; k < nm1; k++) {
 			kp1 = k + 1;
@@ -502,7 +502,7 @@ int beam::dechc(const int n, double **AR, double **AI, int lb, int *ip)
  
 	ier = 0;
 	ip[n-1] = 1;
-	if ((n != 1) && (lb != 0)) {
+	if ((n!=1) && (lb!=0)) {
 		nm1 = n - 1;
 		for (k = 0; k < nm1; k++) {
 			kp1 = k + 1;
@@ -516,14 +516,14 @@ int beam::dechc(const int n, double **AR, double **AI, int lb, int *ip)
 			ip[k] = m;
 			tr = AR[m][k];
 			ti = AI[m][k];
-			if (m != k) {
+			if (m!=k) {
 				ip[n-1] = -ip[n-1];
 				AR[m][k] = AR[k][k];
 				AI[m][k] = AI[k][k];
 				AR[k][k] = tr;
 				AI[k][k] = ti;
 			}
-			if ((fabs(tr) + fabs(ti)) == 0.0) {
+			if ((fabs(tr) + fabs(ti))==0.0) {
 				ier = k;
 				ip[n-1] = 0;
 				return (ier);
@@ -544,9 +544,9 @@ int beam::dechc(const int n, double **AR, double **AI, int lb, int *ip)
 				AI[m][j] = AI[k][j];
 				AR[k][j] = tr;
 				AI[k][j] = ti;
-				if ((fabs(tr) + fabs(ti)) == 0.0) {
+				if ((fabs(tr) + fabs(ti))==0.0) {
 				}
-				else if (ti == 0.0) {
+				else if (ti==0.0) {
 					for (int i = kp1; i < na; i++) {
 						prodr = AR[i][k]*tr;
 						prodi = AI[i][k]*tr;
@@ -554,7 +554,7 @@ int beam::dechc(const int n, double **AR, double **AI, int lb, int *ip)
 						AI[i][j] += prodi;
 					}
 				}
-				else if (tr == 0.0) {
+				else if (tr==0.0) {
 					for (int i = kp1; i < na; i++) {
 						prodr = -AI[i][k]*ti;
 						prodi = AR[i][k]*ti;
@@ -574,7 +574,7 @@ int beam::dechc(const int n, double **AR, double **AI, int lb, int *ip)
 		}	
 	}	
 	k = n;
-	if ((fabs(AR[n-1][n-1]) + fabs(AI[n-1][n-1])) == 0.0) {
+	if ((fabs(AR[n-1][n-1]) + fabs(AI[n-1][n-1]))==0.0) {
 		ier = k;
 		ip[n-1] = 0;
 	}
@@ -597,7 +597,7 @@ void beam::solhc(const int n, double **AR, double **AI, int lb,
 		lb			lower bandwidth of A
 		ip			pivot vector obtained from dec
 		
-	Do not use if dechc has set ier != 0
+	Do not use if dechc has set ier!=0
 	
 	Output:
 		br, bi		solution vector, x
@@ -607,9 +607,9 @@ void beam::solhc(const int n, double **AR, double **AI, int lb,
 	int nm1, kp1, m, kb, km1;
 	double den, prodr, prodi, tr, ti;
 	  
-	if (n != 1) {
+	if (n!=1) {
 		nm1 = n - 1;
-		if (lb != 0) {
+		if (lb!=0) {
 			for (int k = 0; k < nm1; k++) {
 				kp1 = k + 1;
 				m = ip[k];
@@ -700,7 +700,7 @@ int beam::decb(const int n, double **A, int ml, int mu, int *ip)
 	md = ml + mu;
 	md1 = md + 1;
 	ju = 0;
-	if ((n != 1) && (ml != 0)) {
+	if ((n!=1) && (ml!=0)) {
 		if (n >= mu+2)
 			for (int j = mu + 1; j < n; j++) 
 				for (int i = 0; i < ml; i++) 
@@ -715,12 +715,12 @@ int beam::decb(const int n, double **A, int ml, int mu, int *ip)
 			}
 			ip[k] = m + k - md;
 			t = A[m][k];
-			if (m != md) {
+			if (m!=md) {
 				ip[n-1] = -ip[n-1];
 				A[m][k] = A[md][k];
 				A[md][k] = t;
 			}
-			if (t == 0.0) {
+			if (t==0.0) {
 				ier = k;
 				ip[n-1] = 0;
 				return (ier);
@@ -734,11 +734,11 @@ int beam::decb(const int n, double **A, int ml, int mu, int *ip)
 					m = m - 1;
 					mm = mm - 1;
 					t = A[m][j];
-					if (m != mm) {
+					if (m!=mm) {
 						A[m][j] = A[mm][j];
 						A[mm][j] = t;
 					}
-					if (t != 0.0) {
+					if (t!=0.0) {
 						jk = j - k;
 						for (int i = md1; i <= mdl; i++) {
 							ijk = i - jk;
@@ -750,7 +750,7 @@ int beam::decb(const int n, double **A, int ml, int mu, int *ip)
 		}		
 	}
 	k = n;
-	if (A[md][n-1] == 0.0) {
+	if (A[md][n-1]==0.0) {
 		ier = k;
 		ip[n-1] = 0;
 	}
@@ -773,7 +773,7 @@ void beam::solb(const int n, double **A, int ml, int mu, double *b, int *ip)
 		b		right hand side vector
 		ip		pivot vector obtained from dec
 		
-	Do not use if decb has set ier != 0
+	Do not use if decb has set ier!=0
 	
 	Output:
 		b		solution vector, x
@@ -787,8 +787,8 @@ void beam::solb(const int n, double **A, int ml, int mu, double *b, int *ip)
 	md1 = md + 1;
 	mdm = md - 1;
 	nm1 = n - 1;	  
-	if (n != 1) {
-		if (ml != 0) {
+	if (n!=1) {
+		if (ml!=0) {
 			for (int k = 0; k < nm1; k++) {
 				m = ip[k];
 				t = b[m];
@@ -864,7 +864,7 @@ int beam::decbc(const int n, double **AR, double **AI, int ml, int mu, int *ip)
 	md = ml + mu;
 	md1 = md + 1;
 	ju = 0;
-	if ((n != 1) && (ml != 0)) {
+	if ((n!=1) && (ml!=0)) {
 		if (n >= mu+2)
 			for (int j = mu + 1; j < n; j++) 
 				for (int i = 0; i < ml; i++) { 
@@ -884,14 +884,14 @@ int beam::decbc(const int n, double **AR, double **AI, int ml, int mu, int *ip)
 			ip[k] = m + k - md;
 			tr = AR[m][k];
 			ti = AI[m][k];
-			if (m != k) {
+			if (m!=k) {
 				ip[n-1] = -ip[n-1];
 				AR[m][k] = AR[md][k];
 				AI[m][k] = AI[md][k];
 				AR[md][k] = tr;
 				AI[md][k] = ti;
 			}
-			if ((fabs(tr) + fabs(ti)) == 0.0) {
+			if ((fabs(tr) + fabs(ti))==0.0) {
 				ier = k;
 				ip[n-1] = 0;
 				return (ier);
@@ -913,15 +913,15 @@ int beam::decbc(const int n, double **AR, double **AI, int ml, int mu, int *ip)
 					mm--;
 					tr = AR[m][j];
 					ti = AI[m][j];
-					if (m != mm) {
+					if (m!=mm) {
 						AR[m][j] = AR[mm][j];
 						AI[m][j] = AI[mm][j];
 						AR[mm][j] = tr;
 						AI[mm][j] = ti;
 					}
-					if ((fabs(tr) + fabs(ti)) == 0.0) {
+					if ((fabs(tr) + fabs(ti))==0.0) {
 					}
-					else if (ti == 0.0) {
+					else if (ti==0.0) {
 						jk = j - k;
 						for (int i = md1; i <= mdl; i++) { 
 							ijk = i - jk;
@@ -931,7 +931,7 @@ int beam::decbc(const int n, double **AR, double **AI, int ml, int mu, int *ip)
 							AI[ijk][j] += prodi;
 						}
 					}
-					else if (tr == 0.0) {
+					else if (tr==0.0) {
 						jk = j - k;
 						for (int i = md1; i <= mdl; i++) { 
 							ijk = i - jk;
@@ -956,7 +956,7 @@ int beam::decbc(const int n, double **AR, double **AI, int ml, int mu, int *ip)
 		}	
 	}	
 	k = n;
-	if ((fabs(AR[md][n-1]) + fabs(AI[md][n-1])) == 0.0) { 
+	if ((fabs(AR[md][n-1]) + fabs(AI[md][n-1]))==0.0) { 
 		ier = k;
 		ip[n-1] = 0;
 	}
@@ -982,7 +982,7 @@ void beam::solbc(const int n, double **AR, double **AI, int ml, int mu,
 		br, bi		right hand side vector (real and imaginary parts)
 		ip			pivot vector obtained from decbc
 		
-	Do not use if decbc has set ier != 0
+	Do not use if decbc has set ier!=0
 	
 	Output:
 		br, bi		solution vector, x (real and imaginary parts)
@@ -996,8 +996,8 @@ void beam::solbc(const int n, double **AR, double **AI, int ml, int mu,
 	md1 = md + 1;
 	mdm = md - 1;
 	nm1 = n - 1;	  
-	if (n != 1) {
-		if (ml != 0) {
+	if (n!=1) {
+		if (ml!=0) {
 			for (int k = 0; k < nm1; k++) {
 				m = ip[k];
 				tr = br[m];
@@ -1099,7 +1099,7 @@ void beam::elmhes(const int n, int low, int igh, double **A, int *inter)
 			}
 		}
 		inter[m] = ii;
-		if (ii != m) {		
+		if (ii!=m) {		
 //    :::::::::: interchange rows and columns of a ::::::::::
 			for (int j = mm1; j < n; j++) {
 				y = A[ii][j];
@@ -1113,11 +1113,11 @@ void beam::elmhes(const int n, int low, int igh, double **A, int *inter)
 			}
 		}  
 //    :::::::::: end interchange ::::::::::
-		if (x != 0.0) {
+		if (x!=0.0) {
 			mp1 = m + 1;
 			for (int i = mp1; i < igh; i++) {
 				y = A[i][mm1];
-				if (y == 0.0) return;
+				if (y==0.0) return;
 				y = y/x;
 				A[i][mm1] = y;
 				for (int j = m; j < n; j++) A[i][j] -= y*A[m][j];

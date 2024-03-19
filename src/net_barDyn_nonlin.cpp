@@ -92,12 +92,12 @@ void net_barDyn::fillNonLinSystem(lexer *p, fdm *a, ghostcell *pgc)
         
         for (int k = 0; k < niK; k++)
         {
-            if (nfK[k][0] == ownerKnot)
+            if (nfK[k][0]==ownerKnot)
             {
                 ownerBars << nfK[k][0], nfK[k][1], nfK[k][2], nfK[k][3], nfK[k][4];
                 foundOwner = true;
             }
-            else if (nfK[k][0] == neighKnot)
+            else if (nfK[k][0]==neighKnot)
             {
                 neighBars << nfK[k][0], nfK[k][1], nfK[k][2], nfK[k][3], nfK[k][4];
                 foundNeigh = true;
@@ -106,16 +106,16 @@ void net_barDyn::fillNonLinSystem(lexer *p, fdm *a, ghostcell *pgc)
 
         // Add coefficents of neighbour knot bars
         sum_neigh << 0.0, 0.0, 0.0;
-        if (foundNeigh == true)    
+        if (foundNeigh==true)    
         {
             for (int j = 1; j < 5; j++)
             {
                 int& bar_jk = neighBars(j);
                 
-                if (bar_jk != -1)
+                if (bar_jk!=-1)
                 {
                     // Bar vector pointing from neighKnot to otherKnot
-                    if (Pi[bar_jk] == neighKnot)
+                    if (Pi[bar_jk]==neighKnot)
                     {
                         otherKnot = Ni[bar_jk];
                     }
@@ -140,16 +140,16 @@ void net_barDyn::fillNonLinSystem(lexer *p, fdm *a, ghostcell *pgc)
     
         // Add coefficents of owner knot bars
         sum_own << 0.0, 0.0, 0.0;
-        if (foundOwner == true)    
+        if (foundOwner==true)    
         {
             for (int i = 1; i < 5; i++)
             {
                 int& bar_ik = ownerBars(i);
                 
-                if (bar_ik != -1)
+                if (bar_ik!=-1)
                 {
                     // Bar vector pointing from neighKnot to otherKnot
-                    if (Pi[bar_ik] == ownerKnot)
+                    if (Pi[bar_ik]==ownerKnot)
                     {
                         otherKnot = Ni[bar_ik];
                     }
@@ -205,16 +205,16 @@ void net_barDyn::fillNonLinSystem(lexer *p, fdm *a, ghostcell *pgc)
     
  
         // Owner bar coefficients
-        if (foundOwner == true)    
+        if (foundOwner==true)    
         {
             for (int i = 1; i < 5; i++)
             {
                 int& bar_ik = ownerBars(i);
                 
-                if (bar_ik != -1 && bar_ik != barI)
+                if (bar_ik!=-1 && bar_ik!=barI)
                 {
                     // Bar vector pointing from neighKnot to otherKnot
-                    if (Pi[bar_ik] == ownerKnot)
+                    if (Pi[bar_ik]==ownerKnot)
                     {
                         otherKnot = Ni[bar_ik];
                     }
@@ -235,16 +235,16 @@ void net_barDyn::fillNonLinSystem(lexer *p, fdm *a, ghostcell *pgc)
         } 
         
         // Neighbour bar coefficients
-        if (foundNeigh == true)    
+        if (foundNeigh==true)    
         {
             for (int j = 1; j < 5; j++)
             {
                 int& bar_jk = neighBars(j);
                 
-                if (bar_jk != -1 && bar_jk != barI)
+                if (bar_jk!=-1 && bar_jk!=barI)
                 {
                     // Bar vector pointing from neighKnot to otherKnot
-                    if (Pi[bar_jk] == neighKnot)
+                    if (Pi[bar_jk]==neighKnot)
                     {
                         otherKnot = Ni[bar_jk];
                     }
@@ -347,12 +347,12 @@ void net_barDyn::fillNonLinRhs(lexer *p, fdm *a, ghostcell *pgc)
         
         for (int k = 0; k < niK; k++)
         {
-            if (nfK[k][0] == ownerKnot)
+            if (nfK[k][0]==ownerKnot)
             {
                 ownerBars << nfK[k][0], nfK[k][1], nfK[k][2], nfK[k][3], nfK[k][4];
                 foundOwner = true;
             }
-            else if (nfK[k][0] == neighKnot)
+            else if (nfK[k][0]==neighKnot)
             {
                 neighBars << nfK[k][0], nfK[k][1], nfK[k][2], nfK[k][3], nfK[k][4];
                 foundNeigh = true;
@@ -361,16 +361,16 @@ void net_barDyn::fillNonLinRhs(lexer *p, fdm *a, ghostcell *pgc)
   
          // Add coefficents of neighbour knot bars
         sum_neigh << 0.0, 0.0, 0.0;
-        if (foundNeigh == true)    
+        if (foundNeigh==true)    
         {
             for (int j = 1; j < 5; j++)
             {
                 int& bar_jk = neighBars(j);
                 
-                if (bar_jk != -1)
+                if (bar_jk!=-1)
                 {
                     // Bar vector pointing from neighKnot to otherKnot
-                    if (Pi[bar_jk] == neighKnot)
+                    if (Pi[bar_jk]==neighKnot)
                     {
                         otherKnot = Ni[bar_jk];
                     }
@@ -395,16 +395,16 @@ void net_barDyn::fillNonLinRhs(lexer *p, fdm *a, ghostcell *pgc)
     
         // Add coefficents of owner knot bars
         sum_own << 0.0, 0.0, 0.0;
-        if (foundOwner == true)    
+        if (foundOwner==true)    
         {
             for (int i = 1; i < 5; i++)
             {
                 int& bar_ik = ownerBars(i);
                 
-                if (bar_ik != -1)
+                if (bar_ik!=-1)
                 {
                     // Bar vector pointing from neighKnot to otherKnot
-                    if (Pi[bar_ik] == ownerKnot)
+                    if (Pi[bar_ik]==ownerKnot)
                     {
                         otherKnot = Ni[bar_ik];
                     }

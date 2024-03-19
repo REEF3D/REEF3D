@@ -36,19 +36,19 @@ void net_barQuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     prdisc = new reinidisc_fsf(p);    
    
     //- Initialise net model
-    if (p->X320_type[nNet] == 1)
+    if (p->X320_type[nNet]==1)
     {
         bag_ini(p,a,pgc);
         
         buildNet_bag(p);
     }
-    else if (p->X320_type[nNet] == 2)   
+    else if (p->X320_type[nNet]==2)   
     {
         cyl_ini(p,a,pgc);
         
         buildNet_cyl(p); 
     }
-    else if (p->X320_type[nNet] == 3)   
+    else if (p->X320_type[nNet]==3)   
     {
         wall_ini(p,a,pgc);
         
@@ -90,7 +90,7 @@ void net_barQuasiStatic::start
 	while(iter < 200)
 	{
         //- Fill right-hand side Bh with gravity and hydrodynamic forces
-        if (p->X320_type[nNet] == 1)
+        if (p->X320_type[nNet]==1)
         {
             fillRhs_bag(p);
         }
@@ -135,7 +135,7 @@ void net_barQuasiStatic::start
         updateLength();
 	}
    
-    if (p->mpirank == 0)
+    if (p->mpirank==0)
     {
         cout<<"Number of iterations = "<<iter<<setprecision(5)<<" with error = "<<error<<endl;
     }
@@ -152,7 +152,7 @@ void net_barQuasiStatic::start
     
 
     double endtime1 = pgc->timer()-starttime1; 
-    if (p->mpirank == 0) cout<<"Net time: "<<endtime1<<endl;    
+    if (p->mpirank==0) cout<<"Net time: "<<endtime1<<endl;    
 }
 
 
@@ -259,7 +259,7 @@ void net_barQuasiStatic::fillRhs_Screen(lexer *p)
         
         for (int k = 1; k < 5; k++)
         {
-            if (barsiKI[k] == -1) nBars--;
+            if (barsiKI[k]==-1) nBars--;
         }
         
         // Access velocity at knot
@@ -273,11 +273,11 @@ void net_barQuasiStatic::fillRhs_Screen(lexer *p)
         rho = coupledField[kI][3];
  
         // Calculate hydrodynamic forces
-        if (nBars == 2)         // Corner screens
+        if (nBars==2)         // Corner screens
         {
             Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[1],barsiKI[2]);
         }      
-        else if (nBars == 3)    // Edge screens
+        else if (nBars==3)    // Edge screens
         {
             Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[1],barsiKI[3]);
             Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[2],barsiKI[3]);
@@ -308,14 +308,14 @@ void net_barQuasiStatic::fillRhs_bag(lexer *p)
 		
         for (int k = 0; k < 2*nd+2*nl; k++)
         {
-            if (j == Pb[k] || j == Nb[k])
+            if (j==Pb[k] || j==Nb[k])
             {
                 bk = true;
                 break;
             }
         }
 			
-        if (bk == false)
+        if (bk==false)
         {
             Bh.row(index) = B.row(index);
 

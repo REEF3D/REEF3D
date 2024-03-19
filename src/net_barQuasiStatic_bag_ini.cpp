@@ -192,7 +192,7 @@ void net_barQuasiStatic::genericNet()
     
     for (int i = 0; i < 2*nl+1; i++)
     {
-        if (i%2 != 0)   // odd index
+        if (i%2!=0)   // odd index
         {
             for (int q = 0; q < nd; q++)
             {
@@ -238,19 +238,19 @@ void net_barQuasiStatic::iniInnerKnots()
     {
         for (int j = 0; j < nK; j++)
         {
-            if (K[j][0] == i)
+            if (K[j][0]==i)
             {
                 newK = true;
                 
                 for (int w = 0; w < nf; w++)
                 {
-                    if (Pi[w] == j || K[j][1] == K[nK-1][1])
+                    if (Pi[w]==j || K[j][1]==K[nK-1][1])
                     {
                         newK = false;
                     }
                 }
             
-                if (newK == true)
+                if (newK==true)
                 {
                     Pi[k] = j;
                      k++;
@@ -268,19 +268,19 @@ void net_barQuasiStatic::iniInnerKnots()
     {
         for (int j = 0; j < nK; j++)
         {
-            if (K[j][0] == i)
+            if (K[j][0]==i)
             {
                 newK = true;
                 
                 for (int w = 0; w < nf; w++)
                 {
-                    if (Ni[w] == j || K[j][1] == 0)
+                    if (Ni[w]==j || K[j][1]==0)
                     {
                         newK = false;
                     }
                 }
             
-                if (newK == true)
+                if (newK==true)
                 {
                     Ni[k] = j;
                     k++;
@@ -304,19 +304,19 @@ void net_barQuasiStatic::iniInnerKnots()
 
             for (int w = 0; w < nK; w++)
             {
-                if ((K[w][0] == i) && (K[w][1] == j))
+                if ((K[w][0]==i) && (K[w][1]==j))
                 {
                     Kij = w;
                 }
             }
 
-            if (j%2 == 0)   // even index
+            if (j%2==0)   // even index
             {
                 Pi[k] = Kij;
                 
                 for (int w = 0; w < nK; w++)
                 {
-                    if ((K[w][0] == i-1) && (K[w][1] == j+1))
+                    if ((K[w][0]==i-1) && (K[w][1]==j+1))
                     {
                         Ni[k] = w;
                     }
@@ -328,12 +328,12 @@ void net_barQuasiStatic::iniInnerKnots()
             {
                 for (int w = 0; w < nK; w++)
                 {
-                    if ((K[w][0] == i-1) && (K[w][1] == j))
+                    if ((K[w][0]==i-1) && (K[w][1]==j))
                     {
                         Pi[k] = w;
                     }
 
-                    if ((K[w][0] == i) && (K[w][1] == j+1))
+                    if ((K[w][0]==i) && (K[w][1]==j+1))
                     {
                         Ni[k] = w;
                     }
@@ -397,11 +397,11 @@ void net_barQuasiStatic::stretch()
     {
         K[j][2] = 0.0;
         
-        if (j%2 != 0)   // odd index   
+        if (j%2!=0)   // odd index   
         {
             for (int k = 0; k < nK; k++)
             {
-                if (K[k][1] == j)
+                if (K[k][1]==j)
                 {
                     K[k][0] = K[k][0]*beta + beta/2.0;
                     K[k][1] *= gamma/2.0;
@@ -412,7 +412,7 @@ void net_barQuasiStatic::stretch()
         {
             for (int k = 0; k < nK; k++)
             {
-                if (K[k][1] == j)
+                if (K[k][1]==j)
                 {
                     K[k][0] *= beta;
                     K[k][1] *= gamma/2.0; 
@@ -457,25 +457,25 @@ void net_barQuasiStatic::iniLSE(lexer *p)
         
         for (int j = 0; j < 2*nd+2*nl; j++)
         {
-            if (i == Pb[j] || i == Nb[j])
+            if (i==Pb[j] || i==Nb[j])
             {
                 bk = true;
                 break;
             }
         }
         
-        if (bk == false)
+        if (bk==false)
         {
             for (int j = 0; j < nf; j++)
             {
-                if (Pi[j] == i)
+                if (Pi[j]==i)
                 {
                     A(index,j) = Fini;
         
                     nfK[index][numk] = j;
                     numk++;
                 }
-                else if (Ni[j] == i)
+                else if (Ni[j]==i)
                 {
                     A(index,j) = -Fini;
                     
@@ -504,19 +504,19 @@ void net_barQuasiStatic::iniLSE(lexer *p)
         {
             dotProd = fi(j,0)*fb[i][0] + fi(j,1)*fb[i][1] + fi(j,2)*fb[i][2];
             
-            if (Pi[j] == Pb[i] && dotProd > 0)
+            if (Pi[j]==Pb[i] && dotProd > 0)
             {
                 A(index,j) = al;
             }
-            else if (Pi[j] == Nb[i] && dotProd < 0)
+            else if (Pi[j]==Nb[i] && dotProd < 0)
             {
                 A(index,j) = -al;
             }
-            else if (Ni[j] == Pb[i] && dotProd < 0)
+            else if (Ni[j]==Pb[i] && dotProd < 0)
             {
                 A(index,j) = -al;
             }
-            else if (Ni[j] == Nb[i] && dotProd > 0)
+            else if (Ni[j]==Nb[i] && dotProd > 0)
             {
                 A(index,j) = al;
             }
@@ -545,7 +545,7 @@ void net_barQuasiStatic::iniLSE(lexer *p)
   
     while (index < nf)
     {
-        if (currRow%2 == 0)   // even index 
+        if (currRow%2==0)   // even index 
         {
             for (int i = 0; i < nd - 1; i++)
             {
@@ -559,11 +559,11 @@ void net_barQuasiStatic::iniLSE(lexer *p)
                     {
                         for (int k = 0; k < 4; k++)
                         {
-                            if (Pi[j] == knotID[k] && Ni[j] == knotID[k + 1])
+                            if (Pi[j]==knotID[k] && Ni[j]==knotID[k + 1])
                             {
                                 A(index,j) = al;
                             }
-                            else if (Ni[j] == knotID[k] && Pi[j] == knotID[k + 1])
+                            else if (Ni[j]==knotID[k] && Pi[j]==knotID[k + 1])
                             {
                                 A(index,j) = -al;
                             }
@@ -591,11 +591,11 @@ void net_barQuasiStatic::iniLSE(lexer *p)
                     {
                         for (int k = 0; k < 4; k++)
                         {
-                            if (Pi[j] == knotID[k] && Ni[j] == knotID[k + 1])
+                            if (Pi[j]==knotID[k] && Ni[j]==knotID[k + 1])
                             {
                                 A(index,j) = al;
                             }
-                            else if (Ni[j] == knotID[k] && Pi[j] == knotID[k + 1])
+                            else if (Ni[j]==knotID[k] && Pi[j]==knotID[k + 1])
                             {
                                 A(index,j) = -al;
                             }

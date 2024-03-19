@@ -149,17 +149,17 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         we=p->B87_2;
 	}
 
-	if(p->B130 == 0)
+	if(p->B130==0)
     {
     numcomp=p->wN;
     }
 
-    if(p->B130 > 0 && p->B136 != 4)
+    if(p->B130 > 0 && p->B136!=4)
     {
     numcomp=p->wN*p->B133;
     }
 
-    if(p->B130 > 0 && p->B136 == 4)
+    if(p->B130 > 0 && p->B136==4)
     {
     numcomp=p->wN;
     }
@@ -516,7 +516,7 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
         {
             Ai[n] = p->B83/(ki[n]);
 
-            if (p->mpirank == 0) cout<<Ai[n]<<" "<<ki[n]<<" "<<wi[n]<<endl;
+            if (p->mpirank==0) cout<<Ai[n]<<" "<<ki[n]<<" "<<wi[n]<<endl;
         }
     }
 
@@ -542,7 +542,7 @@ void wave_lib_spectrum::phases_irregular(lexer *p)
 void wave_lib_spectrum::phases_focused(lexer *p)
 {
     // make phases
-    if(p->B130 == 0)
+    if(p->B130==0)
     {
         if(p->B82<11)
         {

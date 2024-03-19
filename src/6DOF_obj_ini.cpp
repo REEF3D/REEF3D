@@ -158,7 +158,7 @@ void sixdof_obj::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet
 
 
     // Net
-    if (p->X320 == 0)
+    if (p->X320==0)
     {
         pnet.push_back(new net_void());
     }

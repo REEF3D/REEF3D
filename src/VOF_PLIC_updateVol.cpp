@@ -37,7 +37,7 @@ Author: Tobias Martin
 
 void VOF_PLIC::updateVOF(fdm* a, lexer* p, int sweep)
 {
-	if (sweep == 0)
+	if (sweep==0)
 	{
 		LOOP
 		{
@@ -45,7 +45,7 @@ void VOF_PLIC::updateVOF(fdm* a, lexer* p, int sweep)
 				max(0.0,min(vof3(i-1,j,k) + vof2(i,j,k) + vof1(i+1,j,k), 1.0));
 		}
 	}
-	else if (sweep == 1)
+	else if (sweep==1)
 	{
 		LOOP
 		{
@@ -79,7 +79,7 @@ void VOF_PLIC::updateVolumeFraction
 	double m1 = max(Q1, 0.0);
 	double m2 = 1.0 - m1 + min(0.0, Q2);
 
-	if (sweep == 0)
+	if (sweep==0)
 	{
 		if (Q1 < 0.0)
 		{
@@ -120,7 +120,7 @@ void VOF_PLIC::updateVolumeFraction
 					m2
 				);
 	}
-	else if (sweep == 1)
+	else if (sweep==1)
 	{
 		if (Q1 < 0.0)
 		{

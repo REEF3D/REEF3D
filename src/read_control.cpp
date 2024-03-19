@@ -46,7 +46,7 @@ void lexer::read_control()
 	{
 		control>>c;
 
-	if (c == '/')
+	if (c=='/')
 	{
 	control.ignore(1000, '\n');
 	}
@@ -2929,7 +2929,7 @@ void lexer::read_control()
 	while(!control.eof())
 	{
 		control>>c;
-		if (c == '/')
+		if (c=='/')
 			control.ignore(1000, '\n');
 		else
 		{

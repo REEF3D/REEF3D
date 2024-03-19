@@ -32,13 +32,13 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
     int count;
 
     // calc delta beta
-    if(p->B130 == 0)
+    if(p->B130==0)
     dbeta = 1.0;
 
     if(p->B130>0)
     {
 
-        /*if(p->B133 % 2 == 0)
+        /*if(p->B133 % 2==0)
             p->B133 += 1;*/
 
         if(p->B133 <= 1)
@@ -75,7 +75,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
 
             count = 0;
             // Double Summation Method frequency vector
-            if (p->B136 == 1)
+            if (p->B136==1)
             {
                 for(n = 0; n < p->wN; ++n)
                 {
@@ -87,7 +87,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 }
             }
             // Pascal's Single Summation Method frequency vector
-            if (p->B136 == 2)
+            if (p->B136==2)
             {
                 for(n = 0; n < p->wN; ++n)
                 {
@@ -100,7 +100,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             }
 
             // Yu's Single Summation Method frequency vector
-            if (p->B136 == 3)
+            if (p->B136==3)
             {
                 if(p->B138>0)
                 srand(p->B138_1);
@@ -307,7 +307,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             }
 
             // p->B133 divided by p->wN must be an interger
-            if(p->wN % p->B133 == 0)
+            if(p->wN % p->B133==0)
                 NR=int(p->wN/p->B133);
 
             // create an angular array of the same length as the frequency array
@@ -384,7 +384,7 @@ double wave_lib_spectrum::spreading_function(lexer* p, double beta, double w)
     double D = 0.0;
 
     // PNJ
-    if(p->B130 == 1)
+    if(p->B130==1)
     {
         s_f = p->B134; // CAN BE ANY POSITIVE INTEGER
 
@@ -396,7 +396,7 @@ double wave_lib_spectrum::spreading_function(lexer* p, double beta, double w)
     }
 
     // Mitsuyasu
-    if(p->B130 == 2)
+    if(p->B130==2)
     {
 
         if(p->B134 <= 0.0)  // DON NOT USE THIS OPTION B 135, IT IS WRONG

@@ -58,22 +58,22 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     
     if(p->X15==1)
     {    
-        if (aa == 1)
+        if (aa==1)
         H_fb = a->fbh1(i,j,k);
         
-        else if (aa == -1)
+        else if (aa==-1)
         H_fb = a->fbh1(i-1,j,k);
 
-        else if (bb == 1)
+        else if (bb==1)
         H_fb = a->fbh2(i,j,k);
 
-        else if (bb == -1)
+        else if (bb==-1)
         H_fb = a->fbh2(i,j-1,k);
 
-        else if (cc == 1)
+        else if (cc==1)
         H_fb = a->fbh3(i,j,k);
 
-        else if (cc == -1)
+        else if (cc==-1)
         H_fb = a->fbh3(i,j,k-1);
 
         else
