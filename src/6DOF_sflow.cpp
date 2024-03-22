@@ -58,14 +58,19 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
         // Advance body in time
         fb_obj[nb]->solve_eqmotion_oneway(p,pgc);
         
-        // Update position and fb level set
-        //fb_obj[nb]->transform(p,a,pgc,finalise);  //----> main time consumer
+        // Update transformation matrices
+        fb_obj[nb]->quat_matrices();
+        
+        // Update position and trimesh
+        fb_obj[nb]->update_position_2D(p,pgc);  
+        
+        // Save
+        fb_obj[nb]->update_fbvel(p,pgc);
         
         // Update forcing terms
         //fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
 
-        // Save
-        fb_obj[nb]->update_fbvel(p);
+        
         
         // Print
         /*if(finalise==true)
@@ -91,7 +96,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
     p->yg += ramp_vel(p)*Vext*p->dt;
     
     // Update position
-   // Update transformation matrix (Shivarama PhD thesis, p. 19)  -> obj
+    // Update transformation matrix (Shivarama PhD thesis, p. 19)  -> obj
     quat_matrices(e_);
 
     // Calculate new position -> obj

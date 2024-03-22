@@ -171,6 +171,5 @@ void sixdof_sflow::ray_cast_io_ycorr(lexer* p, ghostcell* pgc, int ts, int te)
     SLICELOOP4
 	if((cutl(i,j)+1)%2==0  && (cutr(i,j)+1)%2==0)
 	fbio(i,j)=-1;
-
 }
 

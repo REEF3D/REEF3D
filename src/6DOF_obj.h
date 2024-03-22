@@ -71,6 +71,8 @@ public:
     void quat_matrices();
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     
+    void update_position_2D(lexer*, ghostcell*);
+    
     void solve_eqmotion_oneway(lexer*,ghostcell*);
     
     void saveTimeStep(lexer*,int);
@@ -80,7 +82,7 @@ public:
     void print_normals_vtp(lexer*,ghostcell*);
     void print_ini_stl(lexer*,ghostcell*);
 	void print_stl(lexer*,ghostcell*);
-	void update_fbvel(lexer*);
+	void update_fbvel(lexer*,ghostcell*);
     
     double Mass_fb, Vfb, Rfb;
 
@@ -142,8 +144,9 @@ private:
     
     
     void iniPosition_RBM(lexer*, fdm*, ghostcell*);
-    void update_Euler_angles(lexer*, ghostcell*, bool);
+    void update_Euler_angles(lexer*, ghostcell*);
     void update_trimesh_3D(lexer*, fdm*, ghostcell*, bool);
+    void update_trimesh_2D(lexer*, ghostcell*);
     void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
     void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
     
@@ -159,6 +162,7 @@ private:
 
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
    
+   // ray cast 3D
     void ray_cast(lexer*, fdm*, ghostcell*);
 	void ray_cast_io_x(lexer*, fdm*, ghostcell*,int,int);
 	void ray_cast_io_ycorr(lexer*, fdm*, ghostcell*,int,int);
@@ -169,6 +173,17 @@ private:
     void ray_cast_direct(lexer*, fdm*, ghostcell*,int,int);
     void reini_AB2(lexer*, fdm*, ghostcell*, field&);
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
+    
+    // ray cast 2D
+    void ray_cast_2D(lexer*, ghostcell*);
+	void ray_cast_2D_io_x(lexer*, ghostcell*,int,int);
+	void ray_cast_2D_io_ycorr(lexer*, ghostcell*,int,int);
+    void ray_cast_2D_x(lexer*, ghostcell*,int,int);
+	void ray_cast_2D_y(lexer*, ghostcell*,int,int);
+    void ray_cast_2D_z(lexer*, ghostcell*,int,int);
+    void reini_2D(lexer*,ghostcell*,slice&);
+    void disc_2D(lexer*,ghostcell*,slice&);
+    
     
     /* Rigid body motion
         - e: quaternions

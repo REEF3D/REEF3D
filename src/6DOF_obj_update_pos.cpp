@@ -28,7 +28,13 @@ Author: Tobias Martin, Hans Bihs
 void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
 {
     // Calculate new position
-    update_Euler_angles(p,pgc,finalise);
+    update_Euler_angles(p,pgc);
+    
+    if(p->mpirank==0 && finalise==true)
+    {
+        cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
+        cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
+    }
     
     // Update STL mesh
     update_trimesh_3D(p,a,pgc,finalise);
@@ -36,13 +42,22 @@ void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool final
     // Update angular velocities 
     omega_B = I_.inverse()*h_;
     omega_I = R_*omega_B;
-      
-    // Global body variables
-    update_fbvel(p);    
-    maxvel(p,pgc);
 }
 
-void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc, bool finalise)
+void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc)
+{
+    // Calculate new position
+    update_Euler_angles(p,pgc);
+    
+    // Update STL mesh
+    update_trimesh_2D(p,pgc);
+
+    // Update angular velocities 
+    omega_B = I_.inverse()*h_;
+    omega_I = R_*omega_B;
+}
+
+void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc)
 {
 	// Calculate Euler angles from quaternion
 	
@@ -61,13 +76,7 @@ void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc, bool finalise)
 		
 	// around new x-axis
 	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));
-
-
-	if(p->mpirank==0 && finalise==true)
-    {
-        cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
-        cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
-    }
+	
 }
 
 void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
@@ -129,4 +138,62 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
     pgc->start4a(p,a->fb,50);   
 }
 
+void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
+{
+   /* double starttime, endtime;
+    starttime=pgc->timer();
+    
+	// Update position of triangles 
+	for(n=0; n<tricount; ++n)
+	{
+        for(int q=0; q<3; q++)
+        {
+            // Update coordinates of triangles 
+            // (tri_x0 is vector between tri_x and xg)
+  
+            Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
+					
+            point = R_*point;
+        
+            tri_x[n][q] = point(0) + c_(0);
+            tri_y[n][q] = point(1) + c_(1);
+            tri_z[n][q] = point(2) + c_(2);
+
+			// 2D
+			if(p->X11_v!=1 && p->X11_p!=1 && p->X11_r!=1) 
+			{
+				tri_y[n][q] = tri_y0[n][q] + c_(1);	
+			}
+        }
+	}
+    
+    endtime=pgc->timer();
+    
+    if(p->mpirank==0)
+    cout<<"6DOF update time 1: "<<endtime-starttime<<endl;
+    
+    starttime=pgc->timer();
+	
+    // Update floating level set function
+	ray_cast_2D(p,pgc);
+    
+    endtime=pgc->timer();
+    
+    if(p->mpirank==0)
+    cout<<"6DOF update time 2: "<<endtime-starttime<<endl;
+    
+    starttime=pgc->timer();
+    
+    
+    //if(p->X188==1)
+	reini_RK2(p,a,pgc,a->fb);
+    
+    endtime=pgc->timer();
+    
+    if(p->mpirank==0)
+    cout<<"6DOF update time 3: "<<endtime-starttime<<endl;
+    
+    
+    pgc->start4a(p,a->fb,50);   */
+}
 

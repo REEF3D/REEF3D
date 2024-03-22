@@ -76,8 +76,7 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
     pgc->start4a(p,a->fb,50);
     
     // Initialise global variables
-	update_fbvel(p);
-	maxvel(p,pgc);
+	update_fbvel(p,pgc);
    
     // Initialise floating fields
      ULOOP

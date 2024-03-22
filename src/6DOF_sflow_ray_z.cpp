@@ -173,9 +173,5 @@ void sixdof_sflow::ray_cast_z(lexer *p, ghostcell *pgc, int ts, int te)
 		
 		}
 	}
-
-
-    
-    
     
 }
