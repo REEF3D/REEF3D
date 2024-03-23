@@ -17,16 +17,18 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
+#include"ddweno_f_nug.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
 #include"field4.h"
 #include"field5.h"
 #include"fieldint5.h"
+#include"slice4.h"
+#include"sliceint5.h"
 #include"vec.h"
 #include<fstream>
 #include<iostream>
@@ -48,7 +50,7 @@ using namespace std;
 #ifndef SIXDOF_OBJ_H_
 #define SIXDOF_OBJ_H_
 
-class sixdof_obj : public gradient
+class sixdof_obj : public ddweno_f_nug
 {
 public:
     
@@ -95,7 +97,7 @@ private:
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void mooringForces(lexer*,  ghostcell*, double);
     void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
-    void update_forces();
+    void update_forces(lexer*);
     
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
@@ -152,7 +154,7 @@ private:
     
 
     void get_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
-    void get_rot(Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Vector3d&, Eigen::Vector4d&);
+    void get_rot(lexer*,Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Vector3d&, Eigen::Vector4d&);
     Eigen::Matrix3d quatRotMat;
     
     
@@ -174,6 +176,27 @@ private:
     void reini_AB2(lexer*, fdm*, ghostcell*, field&);
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
     
+    // Raycast 3D
+    fieldint5 cutl,cutr,fbio;
+    double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
+    int *tri_switch,*tri_switch_id,*tri_switch_local,*tri_switch_local_id;
+    int tricount_local,*tricount_local_list,*tricount_local_displ;
+    int tricount_switch_total;
+	vector<vector<double> > tri_x_r;
+	vector<vector<double> > tri_y_r;
+	vector<vector<double> > tri_z_r;
+    double xs,xe,ys,ye,zs,ze;
+    int entity_sum, count, rayiter;
+    int *tstart,*tend;
+    double epsifb;
+    const double epsi; 
+    
+    // Reini
+    reinidisc *prdisc;
+	vec f, frk1, L, dt; 
+    int reiniter;
+    
+    // -----
     // ray cast 2D
     void ray_cast_2D(lexer*, ghostcell*);
 	void ray_cast_2D_io_x(lexer*, ghostcell*,int,int);
@@ -183,7 +206,14 @@ private:
     void ray_cast_2D_z(lexer*, ghostcell*,int,int);
     void reini_2D(lexer*,ghostcell*,slice&);
     void disc_2D(lexer*,ghostcell*,slice&);
+    void time_preproc_2D(lexer*);
     
+    slice4 press,lrk1,lrk2,K,dts,fs,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax,draft;
+    sliceint5 cl,cr,fsio;
+
+    
+    
+    // -----
     
     /* Rigid body motion
         - e: quaternions
@@ -242,28 +272,10 @@ private:
     field5 eta;
 
     
-    // Raycast
-    fieldint5 cutl,cutr,fbio;
-    double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
-    int *tri_switch,*tri_switch_id,*tri_switch_local,*tri_switch_local_id;
-    int tricount_local,*tricount_local_list,*tricount_local_displ;
-    int tricount_switch_total;
-	vector<vector<double> > tri_x_r;
-	vector<vector<double> > tri_y_r;
-	vector<vector<double> > tri_z_r;
-    double xs,xe,ys,ye,zs,ze;
-    int entity_sum, count, rayiter;
-    int *tstart,*tend;
-    double epsifb;
-    const double epsi; 
     
-	// Parallel	
+    
+    // Parallel	
 	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
-	
-    // Reini
-    reinidisc *prdisc;
-	vec f, frk1, L, dt; 
-    int reiniter;
    
     double kernel(const double&);
 

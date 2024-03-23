@@ -30,11 +30,14 @@ Author: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_file.h"
 #include"6DOF_motionext_void.h"
 
-sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : gradient(p), dt(p), L(p), 
+sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), dt(p), L(p), 
                                                                                 f(p), frk1(p), cutl(p), cutr(p), 
                                                                                 fbio(p),n6DOF(number),
                                                                                 epsifb(1.6*p->DXM), epsi(1.6),vertice(p),
-                                                                                nodeflag(p),interfac(1.6),zero(0.0),eta(p)
+                                                                                nodeflag(p),interfac(1.6),zero(0.0),eta(p),
+                                                                                lrk1(p),lrk2(p),K(p),dts(p),
+                                                                                fs(p),fsio(p),cr(p),cl(p),Ls(p),Bs(p),
+                                                                                Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),draft(p),press(p)
 {
     prdisc = new reinidisc_fsf(p);
     
@@ -91,6 +94,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : gradient(p), dt(p
     
     if(p->X240>0)
     pmotion = new sixdof_motionext_file(p,pgc);
+
 }
 
 sixdof_obj::~sixdof_obj()

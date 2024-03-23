@@ -41,7 +41,7 @@ void sixdof_obj::hydrodynamic_forces(lexer* p, fdm *a, ghostcell *pgc,field& uve
     }
 }
 
-void sixdof_obj::update_forces()
+void sixdof_obj::update_forces(lexer *p)
 {
     // Forces in inertial system
     Ffb_ << 0.0, 0.0, 0.0;

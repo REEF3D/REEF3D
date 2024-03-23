@@ -1896,6 +1896,9 @@
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
+            <VirtualDirectory Name="Reini 2D">
+              <File Name="6DOF_obj_reini_2D_RK3.cpp"/>
+            </VirtualDirectory>
             <VirtualDirectory Name="Reini">
               <File Name="6DOF_obj_reini_RK2.cpp"/>
               <File Name="6DOF_obj_reini_AB2.cpp"/>
