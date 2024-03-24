@@ -29,9 +29,20 @@ Author: Tobias Martin
 
 void sixdof_obj::initialize_sflow(lexer *p, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    cout<<"6DOF_df_ini "<<endl;
+    
     Mass_fb = 1.0;
     Vfb = 1.0;
     Rfb = Mass_fb/Vfb;
+    
+    
+    // Initialise folder structure
+    if(p->X50==1)
+	print_ini_vtp(p,pgc);
+    
+    if(p->X50==2)
+    print_ini_stl(p,pgc);
     
     
 }

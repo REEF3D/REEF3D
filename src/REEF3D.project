@@ -1871,6 +1871,7 @@
             <File Name="6DOF_obj_ini_parameters.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Print">
+            <File Name="6DOF_obj_print_parameters.cpp"/>
             <File Name="6DOF_obj_print_vtp.cpp"/>
             <File Name="6DOF_obj_print_stl.cpp"/>
             <File Name="6DOF_obj_print_normals_vtp.cpp"/>

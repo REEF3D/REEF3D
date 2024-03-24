@@ -29,10 +29,10 @@ Author: Tobias Martin
    
 void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
 {
-/*    
+ 
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_sflow(p, pgc);
-    
+/*    
     // Initialise parameters
 	ini_parameter(p,pgc);
     

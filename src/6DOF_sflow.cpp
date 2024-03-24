@@ -73,18 +73,15 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
         
         
         // Print
-        /*if(finalise==true)
-        {
-            fb_obj[nb]->saveTimeStep(p,iter);
             
             if(p->X50==1)
-            fb_obj[nb]->print_vtp(p,a,pgc);
+            fb_obj[nb]->print_vtp(p,pgc);
             
             if(p->X50==2)
-            fb_obj[nb]->print_stl(p,a,pgc);
+            fb_obj[nb]->print_stl(p,pgc);
             
-            fb_obj[nb]->print_parameter(p, a, pgc);
-        }*/
+            fb_obj[nb]->print_parameter(p,pgc);
+        
     }
     
     
@@ -93,20 +90,14 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
     // Update pressure field
     for (int nb=0; nb<number6DOF;++nb)
     {
-    if (p->X400==2)
-    {
+        if (p->X400==2)
         fb_obj[nb]->updateForcing_box(p,pgc,press);
-    }
-    
-    else if (p->X400==3)
-    {
+        
+        else if (p->X400==3)
         fb_obj[nb]->updateForcing_oned(p,pgc,press);
-    }
-    
-    else if (p->X400==10)
-    {
+        
+        else if (p->X400==10)
         fb_obj[nb]->updateForcing_stl(p,pgc,press);
-    }
     }
 
 

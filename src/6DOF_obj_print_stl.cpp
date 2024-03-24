@@ -60,7 +60,15 @@ void sixdof_obj::print_stl(lexer *p, ghostcell *pgc)
         
         char path[300];
         
+        if(p->A10==2)
+        sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
+        
+        if(p->A10==5)
+        sprintf(path,"./REEF3D_NHFLOW_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
+        
+        if(p->A10==6)
         sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
+
 
         ofstream result;
         result.open(path, ios::binary);
@@ -91,23 +99,3 @@ void sixdof_obj::print_stl(lexer *p, ghostcell *pgc)
 }
 
 
-void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc)
-{
-	if(p->mpirank==0 && p->count%p->X19==0)
-    {
-        ofstream print;
-        char str[1000];
-        
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
-        
-        print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<p->simtime<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
-        print.close();
-        
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
-        
-        print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
-        print.close();
-    }
-}
