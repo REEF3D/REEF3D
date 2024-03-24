@@ -29,7 +29,7 @@ Author: Tobias Martin
    
 void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
 {
-    
+/*    
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_sflow(p, pgc);
     
@@ -78,7 +78,7 @@ void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
     print_vtp(p,pgc);
     
     if(p->X50==2)
-    print_stl(p,pgc);
+    print_stl(p,pgc);*/
     
     
     //cout<<"XG: "<<p->xg<<" YG: "<<p->yg<<" ZG: "<<p->zg<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;

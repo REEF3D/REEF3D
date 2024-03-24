@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"slice.h"
 
 void sixdof_obj::ray_cast_2D_z(lexer *p, ghostcell *pgc, int ts, int te)
-{/*
+{
     double ys,ye,zs,ze;
 	double Px,Py,Pz;
 	double Qx,Qy,Qz;
@@ -158,12 +158,12 @@ void sixdof_obj::ray_cast_2D_z(lexer *p, ghostcell *pgc, int ts, int te)
             
             if(Rz<p->ZP[KP])
             if(k>=0 && k<p->knoz)
-            if(fbio(i,j)<0)
+            if(fsio(i,j)<0)
             distcheck=0;
             
             if(Rz>=p->ZP[KP])
             if(k>=0 && k<p->knoz)
-            if(fbio(i,j)<0)
+            if(fsio(i,j)<0)
             distcheck=0;
 
             if(p->wd-Rz>0.0)
@@ -172,5 +172,5 @@ void sixdof_obj::ray_cast_2D_z(lexer *p, ghostcell *pgc, int ts, int te)
 		
 		}
 	}
-    */
+    
 }

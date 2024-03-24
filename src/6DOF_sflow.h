@@ -91,21 +91,8 @@ private:
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
     void quat_matrices(const Eigen::Vector4d&);
    
-    void ray_cast(lexer*, ghostcell*);
-	void ray_cast_io_x(lexer*, ghostcell*,int,int);
-	void ray_cast_io_ycorr(lexer*, ghostcell*,int,int);
-    void ray_cast_x(lexer*, ghostcell*,int,int);
-	void ray_cast_y(lexer*, ghostcell*,int,int);
-    void ray_cast_z(lexer*, ghostcell*,int,int);
-    void reini(lexer*,ghostcell*,slice&);
-    void disc(lexer*,ghostcell*,slice&);
-    void time_preproc(lexer*);
 
-    double Hsolidface(lexer*, int,int);
-    void updatePosition(lexer*, ghostcell*);
-    void updateForcing_box(lexer*, ghostcell*);
-    void updateForcing_stl(lexer*, ghostcell*);
-    void updateForcing_oned(lexer*, ghostcell*);
+    void time_preproc(lexer*);
     
     // hires gradient
     double limiter(double v1, double v2);

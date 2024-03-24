@@ -20,63 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_sflow.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
-void sixdof_sflow::updatePosition(lexer *p, ghostcell *pgc)
-{
-	// Calculate Euler angles from quaternion
-	
-	// around z-axis
-	psi = atan2(2.0*(e_(1)*e_(2) + e_(3)*e_(0)), 1.0 - 2.0*(e_(2)*e_(2) + e_(3)*e_(3))); 
-	
-	// around new y-axis
-	double arg = 2.0*(e_(0)*e_(2) - e_(1)*e_(3));
-	
-	if (fabs(arg) >= 1.0)
-	{
-		theta = SIGN(arg)*PI/2.0;
-	}
-	else
-	{
-		theta = asin(arg);														
-	}	
-		
-	// around new x-axis
-	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));
-
-	if(p->mpirank==0)
-    {
-        cout<<"XG: "<<p->xg<<" YG: "<<p->yg<<" ZG: "<<p->zg<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
-
-		//cout<<"Ue: "<<p_(0)/Mass_fb<<" Ve: "<<p_(1)/Mass_fb<<" We: "<<p_(2)/Mass_fb<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
-    }
-
-	// Update position of triangles 
-	for(n=0; n<tricount; ++n)
-	{
-        for(int q=0; q<3; q++)
-        {
-            // Update coordinates of triangles 
-            // (tri_x0 is vector between tri_x and xg)
-  
-            Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
-					
-            point = R_*point;
-
-            tri_x[n][q] = point(0) + p->xg;
-            tri_y[n][q] = point(1) + p->yg;
-            tri_z[n][q] = point(2) + p->zg;
-        }
-	}
-	
-    // Update floating level set function
-	ray_cast(p,pgc);
-	reini(p,pgc,fb);
-}
-
-void sixdof_sflow::updateForcing_box(lexer *p, ghostcell *pgc)
+void sixdof_obj::updateForcing_box(lexer *p, ghostcell *pgc, slice &press)
 {
     // Calculate ship-like pressure field
     double H, press0, xpos, ypos, Ls, Bs, as, cl, cb;
@@ -94,7 +42,7 @@ void sixdof_sflow::updateForcing_box(lexer *p, ghostcell *pgc)
     {
         xpos = p->pos_x() - p->xg;
         ypos = p->pos_y() - p->yg;
-        H = Hsolidface(p,0,0);
+        H = Hsolidface_2D(p,0,0);
         
         if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
         {
@@ -109,14 +57,14 @@ void sixdof_sflow::updateForcing_box(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_sflow::updateForcing_stl(lexer *p, ghostcell *pgc)
+void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press)
 {
     // Calculate ship-like pressure field
     double H;
 
 	SLICELOOP4
     {
-        H = Hsolidface(p,0,0);
+        H = Hsolidface_2D(p,0,0);
 
         press(i,j) = -H*fabs(p->W22)*p->W1*draft(i,j)*ramp_draft(p);
     }
@@ -124,7 +72,7 @@ void sixdof_sflow::updateForcing_stl(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_sflow::updateForcing_oned(lexer *p, ghostcell *pgc)
+void sixdof_obj::updateForcing_oned(lexer *p, ghostcell *pgc, slice &press)
 {
     // Calculate 1D pressure field
     double press0, xpos, as;
@@ -142,7 +90,7 @@ void sixdof_sflow::updateForcing_oned(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,press,50);
 }
 
-double sixdof_sflow::Hsolidface(lexer *p, int aa, int bb)
+double sixdof_obj::Hsolidface_2D(lexer *p, int aa, int bb)
 {
     double psi, H, phival_fb;
 
@@ -150,7 +98,7 @@ double sixdof_sflow::Hsolidface(lexer *p, int aa, int bb)
 
     // Construct solid heaviside function
 
-    phival_fb = 0.5*(fb(i,j) + fb(i+aa,j+bb));
+    phival_fb = 0.5*(fs(i,j) + fs(i+aa,j+bb));
     
     if (-phival_fb > psi)
     {

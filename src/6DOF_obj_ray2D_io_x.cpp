@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"slice.h"
 
 void sixdof_obj::ray_cast_2D_io_x(lexer* p, ghostcell* pgc,int ts,int te)
-{/*
+{
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
 	double Qx,Qy,Qz;
@@ -47,8 +47,8 @@ void sixdof_obj::ray_cast_2D_io_x(lexer* p, ghostcell* pgc,int ts,int te)
     
     SLICELOOP4
 	{
-        cutl(i,j) = 0;
-        cutr(i,j) = 0;
+        cl(i,j) = 0;
+        cr(i,j) = 0;
 	}
 
 	for(int n=ts; n<te; ++n)
@@ -151,17 +151,17 @@ void sixdof_obj::ray_cast_2D_io_x(lexer* p, ghostcell* pgc,int ts,int te)
                 for(i=0;i<p->knox;++i)
                 {
                     if(p->XP[IP]<Rx)
-                    cutr(i,j) += 1;
+                    cr(i,j) += 1;
                     
                     if(p->XP[IP]>=Rx)
-                    cutl(i,j) += 1;
+                    cl(i,j) += 1;
                 }
             }
         }
     }
     
     SLICELOOP4
-	if((cutl(i,j)+1)%2==0  && (cutr(i,j)+1)%2==0)
-	fbio(i,j)=-1;
-*/
+	if((cl(i,j)+1)%2==0  && (cr(i,j)+1)%2==0)
+	fsio(i,j)=-1;
+
 }

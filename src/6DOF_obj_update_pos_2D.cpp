@@ -25,48 +25,21 @@ Author: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
+void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc)
 {
     // Calculate new position
     update_Euler_angles(p,pgc);
     
-    if(p->mpirank==0 && finalise==true)
-    {
-        cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
-        cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
-    }
-    
     // Update STL mesh
-    update_trimesh_3D(p,a,pgc,finalise);
+    update_trimesh_2D(p,pgc);
 
     // Update angular velocities 
     omega_B = I_.inverse()*h_;
     omega_I = R_*omega_B;
 }
 
-void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc)
-{
-	// Calculate Euler angles from quaternion
-	
-	// around z-axis
-	psi = atan2(2.0*(e_(1)*e_(2) + e_(3)*e_(0)), 1.0 - 2.0*(e_(2)*e_(2) + e_(3)*e_(3))); 
-	
-	// around new y-axis
-	double arg = 2.0*(e_(0)*e_(2) - e_(1)*e_(3));
-	
-	if (fabs(arg) >= 1.0)
-	theta = SIGN(arg)*PI/2.0;
-    
-	else
-	theta = asin(arg);														
-	
-		
-	// around new x-axis
-	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));
-	
-}
 
-void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalise)
+void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
 {
     double starttime, endtime;
     starttime=pgc->timer();
@@ -103,7 +76,7 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
     starttime=pgc->timer();
 	
     // Update floating level set function
-	ray_cast(p,a,pgc);
+	ray_cast_2D(p,pgc);
     
     endtime=pgc->timer();
     
@@ -114,14 +87,13 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
     
     
     //if(p->X188==1)
-	reini_RK2(p,a,pgc,a->fb);
+	reini_2D(p,pgc,fs);
     
     endtime=pgc->timer();
     
     if(p->mpirank==0)
     cout<<"6DOF update time 3: "<<endtime-starttime<<endl;
     
-    
-    pgc->start4a(p,a->fb,50);   
+    pgc->gcsl_start4(p,fs,50);  
 }
 
