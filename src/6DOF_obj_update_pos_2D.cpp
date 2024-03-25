@@ -25,7 +25,7 @@ Author: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc)
+void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
     // Calculate new position
     update_Euler_angles(p,pgc);
@@ -42,6 +42,11 @@ void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc)
     // Update angular velocities 
     omega_B = I_.inverse()*h_;
     omega_I = R_*omega_B;
+    
+    SLICELOOP4
+    fsglobal(i,j) = fs(i,j);
+    
+    pgc->gcsl_start4(p,fsglobal,50);
 }
 
 

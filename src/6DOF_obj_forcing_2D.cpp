@@ -67,6 +67,9 @@ void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press)
         H = Hsolidface_2D(p,0,0);
 
         press(i,j) = -H*fabs(p->W22)*p->W1*draft(i,j)*ramp_draft(p);
+        
+        //if(H>0.01)
+        //cout<<press(i,j)<<" "<<draft(i,j)<<" "<<ramp_draft(p)<<" "<<endl;
     }
     
     pgc->gcsl_start4(p,press,50);

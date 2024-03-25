@@ -127,7 +127,6 @@ void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
 
 void sixdof_obj::solve_eqmotion_oneway(lexer *p, ghostcell *pgc)
 {
-
     get_trans(p,pgc, dp_, dc_, p_, c_);    
     get_rot(p,dh_, de_, h_, e_);
         

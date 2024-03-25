@@ -73,7 +73,7 @@ public:
     void quat_matrices();
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     
-    void update_position_2D(lexer*, ghostcell*);
+    void update_position_2D(lexer*, ghostcell*,slice&);
     
     void solve_eqmotion_oneway(lexer*,ghostcell*);
     

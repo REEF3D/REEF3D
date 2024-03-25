@@ -62,6 +62,8 @@ void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *p
     
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+    if(p->P23==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"fb\"/>"<<endl;
     if(p->P110==1)
     result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
     

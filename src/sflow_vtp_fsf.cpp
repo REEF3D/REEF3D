@@ -238,6 +238,13 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
 	++n;
     }
     
+    // fb
+    if(p->P28==1)
+    {
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
+    
     // Hs
     if(p->P110==1)
 	{
@@ -288,6 +295,13 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
+    
+    if(p->P28==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"fb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    
     if(p->P110==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -421,6 +435,18 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
 	TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4(b->test));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
+    
+    //  fb
+    if(p->P28==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(b->fs));
 	result.write((char*)&ffn, sizeof (float));
 	}
     }

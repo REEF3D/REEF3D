@@ -62,7 +62,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
         fb_obj[nb]->quat_matrices();
         
         // Update position and trimesh
-        fb_obj[nb]->update_position_2D(p,pgc);  
+        fb_obj[nb]->update_position_2D(p,pgc,fsglobal);  
         
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
@@ -70,7 +70,14 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
         // Update forcing terms
         //fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
 
+        if (p->X400==2)
+        fb_obj[nb]->updateForcing_box(p,pgc,press);
         
+        else if (p->X400==3)
+        fb_obj[nb]->updateForcing_oned(p,pgc,press);
+        
+        else if (p->X400==10)
+        fb_obj[nb]->updateForcing_stl(p,pgc,press);
         
         // Print
             
@@ -85,23 +92,4 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
     }
     
     
-// --------------------------
-// Forcing ->sflow
-    // Update pressure field
-    for (int nb=0; nb<number6DOF;++nb)
-    {
-        if (p->X400==2)
-        fb_obj[nb]->updateForcing_box(p,pgc,press);
-        
-        else if (p->X400==3)
-        fb_obj[nb]->updateForcing_oned(p,pgc,press);
-        
-        else if (p->X400==10)
-        fb_obj[nb]->updateForcing_stl(p,pgc,press);
-    }
-
-    /*SLICELOOP4
-    fsglobal(i,j) = fs(i,j);
-    
-    pgc->gcsl_start4(p,fsglobal,50);*/
 }

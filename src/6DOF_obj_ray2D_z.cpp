@@ -75,12 +75,9 @@ void sixdof_obj::ray_cast_2D_z(lexer *p, ghostcell *pgc, int ts, int te)
     && Cy>=p->global_ymin && Cy<=p->global_ymax)
     checkin=1;
     
-    if(Az>p->wd-psi && Bz>p->wd-psi && Cz>p->wd-psi)
+    if(Az>p->wd+psi &&  Bz>p->wd+psi && Cz>p->wd+psi)
     checkin=0;
-        
-    if(Az<p->wd+psi && Bz<p->wd+psi && Cz<p->wd+psi)
-    checkin=0;
-    
+
 	
     if(checkin==1)
     {  

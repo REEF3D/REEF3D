@@ -215,8 +215,6 @@ void sixdof_obj::geometry_parameters_2D(lexer *p, ghostcell *pgc)
     
     I_ = Eigen::Matrix3d::Zero();
 
-    
-
 		for (int n = 0; n < tricount; ++n)
 		{
 			x0 = tri_x[n][0];
@@ -240,10 +238,7 @@ void sixdof_obj::geometry_parameters_2D(lexer *p, ghostcell *pgc)
             
             zmin = MIN3(z0,z1,z2);
             zmax = MAX3(z0,z1,z2);
-
 		}
-        
-        
         
         if(p->X23!=1)
 		{

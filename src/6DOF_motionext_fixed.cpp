@@ -47,7 +47,6 @@ void sixdof_motionext_fixed::ini(lexer *p, ghostcell *pgc)
 
 void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
-
     if (p->X11_u==2)
     {
         dp_(0) = 0.0;
