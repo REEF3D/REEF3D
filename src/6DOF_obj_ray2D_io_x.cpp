@@ -43,6 +43,7 @@ void sixdof_obj::ray_cast_2D_io_x(lexer* p, ghostcell* pgc,int ts,int te)
 	double u,v,w;
 	double denom;	
 	int insidecheck;
+    int checkin;
 	double psi = 1.0e-8*p->DXM;
     
     SLICELOOP4
@@ -64,18 +65,40 @@ void sixdof_obj::ray_cast_2D_io_x(lexer* p, ghostcell* pgc,int ts,int te)
         Cx = tri_x[n][2];
         Cy = tri_y[n][2];
         Cz = tri_z[n][2];
-	
+
+        checkin = 0;
+    
+        if(Ax>=p->global_xmin && Ax<=p->global_xmax 
+        && Ay>=p->global_ymin && Ay<=p->global_ymax)
+        checkin=1;
+        
+        if(Bx>=p->global_xmin && Bx<=p->global_xmax 
+        && By>=p->global_ymin && By<=p->global_ymax)
+        checkin=1;
+        
+        if(Cx>=p->global_xmin && Cx<=p->global_xmax 
+        && Cy>=p->global_ymin && Cy<=p->global_ymax)
+        checkin=1;
+    
+        if(Az>p->wd-psi && Bz>p->wd-psi && Cz>p->wd-psi)
+        checkin=0;
+        
+        if(Az<p->wd+psi && Bz<p->wd+psi && Cz<p->wd+psi)
+        checkin=0;
+        
+        if(checkin==1)
+        {
         ys = MIN3(Ay,By,Cy);
         ye = MAX3(Ay,By,Cy);
         
         zs = MIN3(Az,Bz,Cz);
         ze = MAX3(Az,Bz,Cz);
         
-        js = p->posf_j(ys);
-        je = p->posf_j(ye);
+        js = p->posc_j(ys);
+        je = p->posc_j(ye);
         
-        ks = p->posf_k(zs);
-        ke = p->posf_k(ze);	
+        ks = p->posc_k(zs);
+        ke = p->posc_k(ze);	
 	
         ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
         ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
@@ -83,11 +106,11 @@ void sixdof_obj::ray_cast_2D_io_x(lexer* p, ghostcell* pgc,int ts,int te)
         zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks + marge];
         ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke + marge];
 
-        js = p->posf_j(ys);
-        je = p->posf_j(ye);
+        js = p->posc_j(ys);
+        je = p->posc_j(ye);
         
-        ks = p->posf_k(zs);
-        ke = p->posf_k(ze);	
+        ks = p->posc_k(zs);
+        ke = p->posc_k(ze);	
         
         js = MAX(js,0);
         je = MIN(je,p->knoy);
@@ -157,6 +180,7 @@ void sixdof_obj::ray_cast_2D_io_x(lexer* p, ghostcell* pgc,int ts,int te)
                     cl(i,j) += 1;
                 }
             }
+        }
         }
     }
     

@@ -22,10 +22,9 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::read_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 {
 	string word;
 	int count, vert_count;

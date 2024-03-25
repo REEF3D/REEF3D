@@ -97,7 +97,7 @@ public:
 private:
 
 	void ini_parameter_stl(lexer*, fdm*, ghostcell*);
-    void ini_fbvel(lexer*, fdm*, ghostcell*);
+    void ini_fbvel(lexer*, ghostcell*);
     void maxvel(lexer*, ghostcell*);
     
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
@@ -108,28 +108,29 @@ private:
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
     
-    void objects_create(lexer*, fdm*, ghostcell*);
-    void objects_allocate(lexer*, fdm*, ghostcell*);
+    void objects_create(lexer*, ghostcell*);
+    void objects_allocate(lexer*, ghostcell*);
 	void geometry_refinement(lexer*,ghostcell*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
-	void box(lexer*, fdm*, ghostcell*,int);
-	void cylinder_x(lexer*, fdm*, ghostcell*,int);
-	void cylinder_y(lexer*, fdm*, ghostcell*,int);
-	void cylinder_z(lexer*, fdm*, ghostcell*,int);
-	void wedge_sym(lexer*, fdm*, ghostcell*,int);
-    void wedge(lexer*, fdm*, ghostcell*,int);
-    void hexahedron(lexer*, fdm*, ghostcell*,int);
-    void read_stl(lexer*, fdm*, ghostcell*);
-    void triangle_switch_lsm(lexer*, fdm*, ghostcell*);
-    void triangle_switch_ray(lexer*, fdm*, ghostcell*);
+	void box(lexer*, ghostcell*,int);
+	void cylinder_x(lexer*, ghostcell*,int);
+	void cylinder_y(lexer*, ghostcell*,int);
+	void cylinder_z(lexer*, ghostcell*,int);
+	void wedge_sym(lexer*, ghostcell*,int);
+    void wedge(lexer*, ghostcell*,int);
+    void hexahedron(lexer*, ghostcell*,int);
+    void read_stl(lexer*, ghostcell*);
+    void triangle_switch_lsm(lexer*, ghostcell*);
+    void triangle_switch_ray(lexer*, ghostcell*);
    
-    void ini_parallel(lexer*, fdm*, ghostcell*);
+    void ini_parallel(lexer*, ghostcell*);
     
     double Hsolidface(lexer*, fdm*, int,int,int);
 	double Hsolidface_t(lexer*, fdm*, int,int,int);
 	
 	void geometry_parameters(lexer*, fdm*, ghostcell*);
-    void geometry_stl(lexer*, fdm*, ghostcell*);
+    void geometry_parameters_2D(lexer*, ghostcell*);
+    void geometry_stl(lexer*, ghostcell*);
 	void geometry_f(double&,double&,double&,double&,double&,double&,double&,double&,double&);
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
@@ -151,7 +152,7 @@ private:
     void piecename(lexer*,fdm*,ghostcell*,int);
     
     
-    void iniPosition_RBM(lexer*, fdm*, ghostcell*);
+    void iniPosition_RBM(lexer*, ghostcell*);
     void update_Euler_angles(lexer*, ghostcell*);
     void update_trimesh_3D(lexer*, fdm*, ghostcell*, bool);
     void update_trimesh_2D(lexer*, ghostcell*);

@@ -41,7 +41,7 @@ public:
 
     void start_twoway(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
     void start_twoway(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
-    virtual void start_oneway(lexer*,ghostcell*);
+    virtual void start_oneway(lexer*,ghostcell*,slice&);
     
     virtual void ini(lexer*,ghostcell*);
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);

@@ -35,7 +35,7 @@ fdm2D::fdm2D(lexer *p)
             bednode(p),
 			 hx(p),hy(p),hp(p),
 			 xvec(p),rhsvec(p),M(p),
-            dpx(p),dpy(p),test(p),Hs(p),
+            dpx(p),dpy(p),test(p),Hs(p),fs(p),
             breaking(p),breaking_print(p),
             wet1(p),wet2(p),
 			 nodeval(p),

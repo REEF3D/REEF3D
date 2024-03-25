@@ -50,7 +50,7 @@ sixdof_sflow::~sixdof_sflow()
 {
 }
 
-void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
+void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
     
     for (int nb=0; nb<number6DOF;++nb)
@@ -100,14 +100,8 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc)
         fb_obj[nb]->updateForcing_stl(p,pgc,press);
     }
 
-
-// ->obj 
-    // Print
-    print_parameter(p,pgc);
+    /*SLICELOOP4
+    fsglobal(i,j) = fs(i,j);
     
-    if(p->X50==1)
-    print_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_stl(p,pgc);
+    pgc->gcsl_start4(p,fsglobal,50);*/
 }

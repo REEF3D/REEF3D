@@ -35,7 +35,7 @@ void sixdof_cfd::ini(lexer *p, ghostcell *pgc)
 {
 }
 
-void sixdof_cfd::start_oneway(lexer *p, ghostcell *pgc)
+void sixdof_cfd::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
 }
 

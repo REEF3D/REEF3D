@@ -22,10 +22,9 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::box(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_obj::box(lexer *p, ghostcell *pgc, int id)
 {
 	xs = p->X110_xs[id];
     xe = p->X110_xe[id];

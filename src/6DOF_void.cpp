@@ -49,7 +49,7 @@ void sixdof_void::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, 
 {
 }
 
-void sixdof_void::start_oneway(lexer *p, ghostcell *pgc)
+void sixdof_void::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
 }
 

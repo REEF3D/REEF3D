@@ -22,10 +22,9 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::wedge_sym(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_obj::wedge_sym(lexer *p, ghostcell *pgc, int id)
 {
 	double xm;
 		

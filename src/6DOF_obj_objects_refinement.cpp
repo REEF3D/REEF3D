@@ -22,7 +22,6 @@ Author: Tobias Martin
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)

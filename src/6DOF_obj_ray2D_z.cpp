@@ -42,6 +42,7 @@ void sixdof_obj::ray_cast_2D_z(lexer *p, ghostcell *pgc, int ts, int te)
 	int is,ie,js,je,ks,ke;
 	double u,v,w;
 	double denom;
+    int checkin;
 	double psi = 1.0e-8*p->DXM;
 
 
@@ -60,18 +61,40 @@ void sixdof_obj::ray_cast_2D_z(lexer *p, ghostcell *pgc, int ts, int te)
 	Cy = tri_y[n][2];
 	Cz = tri_z[n][2];
 	
+    checkin = 0;
+    
+    if(Ax>=p->global_xmin && Ax<=p->global_xmax 
+    && Ay>=p->global_ymin && Ay<=p->global_ymax)
+    checkin=1;
+        
+    if(Bx>=p->global_xmin && Bx<=p->global_xmax 
+    && By>=p->global_ymin && By<=p->global_ymax)
+    checkin=1;
+        
+    if(Cx>=p->global_xmin && Cx<=p->global_xmax 
+    && Cy>=p->global_ymin && Cy<=p->global_ymax)
+    checkin=1;
+    
+    if(Az>p->wd-psi && Bz>p->wd-psi && Cz>p->wd-psi)
+    checkin=0;
+        
+    if(Az<p->wd+psi && Bz<p->wd+psi && Cz<p->wd+psi)
+    checkin=0;
+    
 	
+    if(checkin==1)
+    {  
 	xs = MIN3(Ax,Bx,Cx); 
 	xe = MAX3(Ax,Bx,Cx);
 	
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	
-	is = p->posf_i(xs);
-	ie = p->posf_i(xe);
+	is = p->posc_i(xs);
+	ie = p->posc_i(xe);
 	
-	js = p->posf_j(ys);
-	je = p->posf_j(ye);
+	js = p->posc_j(ys);
+	je = p->posc_j(ye);
 		
 	
     xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is + marge];
@@ -81,11 +104,11 @@ void sixdof_obj::ray_cast_2D_z(lexer *p, ghostcell *pgc, int ts, int te)
 	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
 
 	
-	is = p->posf_i(xs);
-	ie = p->posf_i(xe);
+	is = p->posc_i(xs);
+	ie = p->posc_i(xe);
 	
-	js = p->posf_j(ys);
-	je = p->posf_j(ye);
+	js = p->posc_j(ys);
+	je = p->posc_j(ye);
 	
 	is = MAX(is,0);
 	ie = MIN(ie,p->knox);
@@ -150,7 +173,7 @@ void sixdof_obj::ray_cast_2D_z(lexer *p, ghostcell *pgc, int ts, int te)
 			Rz = u*Az + v*Bz + w*Cz;
 
             
-            k = p->posf_k(Rz);
+            k = p->posc_k(Rz);
 
 			
             int distcheck=1;
@@ -171,6 +194,7 @@ void sixdof_obj::ray_cast_2D_z(lexer *p, ghostcell *pgc, int ts, int te)
 			}
 		
 		}
+    }
 	}
     
 }

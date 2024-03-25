@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"nhflow_header.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 
 void driver::loop_nhflow()
 {
@@ -73,7 +74,7 @@ void driver::loop_nhflow()
         //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
         
         // 6DOF
-        p6dof->start_oneway(p,pgc);
+        p6dof->start_oneway(p,pgc,d->fs);
         
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
                        pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 

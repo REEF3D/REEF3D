@@ -22,62 +22,61 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::objects_create(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
 {
     int qn;
 
-    objects_allocate(p,a,pgc);
+    objects_allocate(p,pgc);
 	
     entity_count=0;
 	
 	for(qn=0;qn<p->X110;++qn)
     {
-        box(p,a,pgc,qn);
+        box(p,pgc,qn);
         ++entity_count;
     }
     
     for(qn=0;qn<p->X131;++qn)
     {
-        cylinder_x(p,a,pgc,qn);
+        cylinder_x(p,pgc,qn);
         ++entity_count;
     }
 	
 	for(qn=0;qn<p->X132;++qn)
     {
-        cylinder_y(p,a,pgc,qn);
+        cylinder_y(p,pgc,qn);
         ++entity_count;
     }
 	
 	for(qn=0;qn<p->X133;++qn)
     {
-        cylinder_z(p,a,pgc,qn);
+        cylinder_z(p,pgc,qn);
         ++entity_count;
     }
 	
 	for(qn=0;qn<p->X153;++qn)
     {
-        wedge_sym(p,a,pgc,qn);
+        wedge_sym(p,pgc,qn);
         ++entity_count;
     }
     
     for(qn=0;qn<p->X163;++qn)
     {
-        wedge(p,a,pgc,qn);
+        wedge(p,pgc,qn);
         ++entity_count;
     }
     
     for(qn=0;qn<p->X164;++qn)
     {
-        hexahedron(p,a,pgc,qn);
+        hexahedron(p,pgc,qn);
         ++entity_count;
     }
     
     if(p->X180==1)
     {
-        read_stl(p,a,pgc);
+        read_stl(p,pgc);
 		++entity_count;
     }
 
@@ -93,10 +92,11 @@ void sixdof_obj::objects_create(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Surface triangles: "<<tricount<<endl;
     
     // Initialise STL geometric parameters
-	geometry_stl(p,a,pgc);
+	geometry_stl(p,pgc);
     
     // Order Triangles for correct inside/outside orientation
-    triangle_switch_ray(p,a,pgc);
+    if(p->A10==6)
+    triangle_switch_ray(p,pgc);
 	
 	// Refine triangles
     if(p->X185>0 && p->X60==1)
@@ -106,7 +106,7 @@ void sixdof_obj::objects_create(lexer *p, fdm *a, ghostcell *pgc)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
 }
 
-void sixdof_obj::objects_allocate(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::objects_allocate(lexer *p, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     

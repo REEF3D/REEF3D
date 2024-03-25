@@ -51,13 +51,13 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
     print_ini_stl(p,pgc);
  
     // Initialise processor boundaries
-    ini_parallel(p,a,pgc);
+    ini_parallel(p,pgc);
     
     // Initialise objects
-	objects_create(p,a,pgc);
+	objects_create(p,pgc);
     
     // Initialise fbvel
-	ini_fbvel(p,a,pgc);
+	ini_fbvel(p,pgc);
     
     // Level Set for floating body
     ray_cast(p,a,pgc);
@@ -68,7 +68,7 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
 	geometry_parameters(p,a,pgc);
     
     // Initialise position of bodies
-    iniPosition_RBM(p,a,pgc);
+    iniPosition_RBM(p,pgc);
 	
 	// Recalculate distances
 	ray_cast(p,a,pgc);
@@ -208,7 +208,7 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
     pgc->gcdf_update(p,a);
 }
 
-void sixdof_obj::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::ini_parallel(lexer *p, ghostcell *pgc)
 {
     p->Darray(xstart, p->mpi_size);
     p->Darray(xend, p->mpi_size);

@@ -61,6 +61,7 @@ public:
     slice4 coastline;
     slice4 vb;
     slice4 test2D;
+    slice4 fs;
     
     slice4 breaking_print,Hs;
     

@@ -22,11 +22,10 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_obj::triangle_switch_ray(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::triangle_switch_ray(lexer *p, ghostcell *pgc)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -53,6 +52,9 @@ void sixdof_obj::triangle_switch_ray(lexer *p, fdm *a, ghostcell *pgc)
     int tricount_local_max,sum;
     int cutnum;
     int domdir;
+    
+    if(p->mpirank==0)
+	cout<<"Triangle Switch "<<endl;
     
     // allocate
     p->Iarray(tricount_local_list,p->M10+1);

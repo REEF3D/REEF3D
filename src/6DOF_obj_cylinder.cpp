@@ -22,10 +22,9 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::cylinder_x(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_obj::cylinder_x(lexer *p, ghostcell *pgc, int id)
 {
 	double U,ds,phi;
 	double xm,ym,zm,x1,x2,r;
@@ -128,7 +127,7 @@ void sixdof_obj::cylinder_x(lexer *p, fdm *a, ghostcell *pgc, int id)
 }
 
 
-void sixdof_obj::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_obj::cylinder_y(lexer *p, ghostcell *pgc, int id)
 {
 	double U,ds,phi;
 	double xm,ym,zm,y1,y2,r;
@@ -231,7 +230,7 @@ void sixdof_obj::cylinder_y(lexer *p, fdm *a, ghostcell *pgc, int id)
 	tend[entity_count]=tricount;
 }
 
-void sixdof_obj::cylinder_z(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_obj::cylinder_z(lexer *p, ghostcell *pgc, int id)
 {
 	double U,ds,phi;
 	double xm,ym,zm,z1,z2,r;

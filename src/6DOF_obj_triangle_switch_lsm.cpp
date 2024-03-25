@@ -22,11 +22,11 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::triangle_switch_lsm(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::triangle_switch_lsm(lexer *p, ghostcell *pgc)
 {
+    /*
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
 	double at,bt,ct,st;
@@ -98,11 +98,7 @@ void sixdof_obj::triangle_switch_lsm(lexer *p, fdm *a, ghostcell *pgc)
     // Exchange 1: switch list count
     pgc->allgather_int(&tricount_local,1,tricount_local_list,1);
     
-    /*
-    for(q=0;q<p->M10;++q)
-    {
-    cout<<p->mpirank<<" tricount_local: "<<tricount_local<<" tricount_local_list: ["<<q<<"] "<<tricount_local_list[q]<<endl;
-    }*/
+
         
     p->Iarray(tri_switch_local,tricount_local);
     p->Iarray(tri_switch_local_id,tricount_local);
@@ -184,18 +180,12 @@ void sixdof_obj::triangle_switch_lsm(lexer *p, fdm *a, ghostcell *pgc)
             {
             tri_switch_local[count] = 0;
             
-            /*cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz;
-            
-            cout<<" | xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<endl;*/
             }
             
             if(fbval<0.0)
             {
             tri_switch_local[count] = 1;
-            
-            /*cout<<"TRIANGLE SWITCH "<<fbval<<" | nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz;
-            
-            cout<<" | xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<endl;*/
+
             }
             
             tri_switch_local_id[count]=n;
@@ -247,5 +237,5 @@ void sixdof_obj::triangle_switch_lsm(lexer *p, fdm *a, ghostcell *pgc)
     p->del_Iarray(tricount_local_list,p->M10+1);
     p->del_Iarray(tricount_local_displ,p->M10+1);
     p->del_Iarray(tri_switch_local,tricount_local);
-    p->del_Iarray(tri_switch_local_id,tricount_local);
+    p->del_Iarray(tri_switch_local_id,tricount_local);*/
 }

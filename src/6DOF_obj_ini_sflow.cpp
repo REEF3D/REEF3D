@@ -32,17 +32,48 @@ void sixdof_obj::initialize_sflow(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
     
-    Mass_fb = 1.0;
-    Vfb = 1.0;
-    Rfb = Mass_fb/Vfb;
-    
-    
     // Initialise folder structure
     if(p->X50==1)
 	print_ini_vtp(p,pgc);
     
     if(p->X50==2)
     print_ini_stl(p,pgc);
+    
+    // Initialise processor boundaries
+    ini_parallel(p,pgc);
+    
+    // Initialise objects
+	objects_create(p,pgc);
+    
+    // Initialise fbvel
+	ini_fbvel(p,pgc);
+    
+    // Raycast
+    ray_cast_2D(p,pgc);
+	reini_2D(p,pgc,fs);
+    pgc->gcsl_start4(p,fs,50);
+    
+    // Calculate geometrical properties
+    geometry_parameters_2D(p,pgc);
+    
+    // Initialise position of bodies
+    iniPosition_RBM(p,pgc);
+    
+    // Raycast
+    ray_cast_2D(p,pgc);
+	reini_2D(p,pgc,fs);
+    pgc->gcsl_start4(p,fs,50);
+    
+    // Initialise global variables
+	update_fbvel(p,pgc);
+    
+    
+    // Print initial body 
+    if(p->X50==1)
+    print_vtp(p,pgc);
+    
+    if(p->X50==2)
+    print_stl(p,pgc);
     
     
 }

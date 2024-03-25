@@ -61,7 +61,7 @@ public:
 	slice2 hy;
 	slice4 hp,dpx,dpy;
     slice4 test;
-    slice4 Hs;
+    slice4 Hs,fs;
     
     slice4 bed,bed0,depth;
     slice4 solidbed,topobed;

@@ -23,11 +23,10 @@ Author: Tobias Martin
 #include"6DOF_obj.h"
 #include"lexer.h"
 #include"momentum.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
   
-void sixdof_obj::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
 {
 
     // Rigid body motion ini
