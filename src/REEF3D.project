@@ -1894,7 +1894,7 @@
             <VirtualDirectory Name="Reini 2D">
               <File Name="6DOF_obj_reini_2D_RK3.cpp"/>
             </VirtualDirectory>
-            <VirtualDirectory Name="Reini">
+            <VirtualDirectory Name="Reini 3D">
               <File Name="6DOF_obj_reini_RK2.cpp"/>
               <File Name="6DOF_obj_reini_AB2.cpp"/>
             </VirtualDirectory>
