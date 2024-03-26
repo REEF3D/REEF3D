@@ -79,6 +79,8 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
     && Cy>=p->global_ymin && Cy<=p->global_ymax
     && Cz>=p->global_zmin && Cz<=p->global_zmax)
     checkin=1;
+    
+    checkin=1;
         
     if(checkin==1)
     {
@@ -186,10 +188,10 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
             if(k>=0 && k<p->knoz)
             if(fbio(i,j,k)<0 && fbio(i,j,k+1)<0)
             distcheck=0;
-
-            //f(distcheck==1)
+            
+             if(distcheck==1)
 			for(k=0;k<p->knoz;++k)
-            a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),a->fb(i,j,k));
+             a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),a->fb(i,j,k));
 			}
 		
 		}
