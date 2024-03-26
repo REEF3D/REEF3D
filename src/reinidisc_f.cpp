@@ -174,7 +174,10 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
     //sign=lsv/sqrt(lsv*lsv+ 20.0*dnorm*dnorm*deltax*deltax);
         
     if(sign!=sign)
+    {
     sign= 1.0;
+    cout<<"SIGN"<<endl;
+    }
     
     double diffterm = 0.0;
     double visc = 0.0005;
