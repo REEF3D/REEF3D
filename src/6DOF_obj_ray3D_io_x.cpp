@@ -44,7 +44,7 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	double u,v,w;
 	double denom;	
 	int checkin;
-	double psi = 1.0e-1*p->DXM;
+	double psi = 1.0e-8*p->DXM;
     
 
     ALOOP

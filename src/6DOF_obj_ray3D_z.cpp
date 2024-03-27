@@ -158,12 +158,13 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		  + Mx*(Bx-Ax) + My*(By-Ay) + Mz*(Bz-Az);
         
         int check=1;
-		if(u==0.0 && v==0.0 && w==0.0)
+		if(fabs(u)<=1.0e-20 && fabs(v)<=1.0e-20 && fabs(w)<=1.0e-20)
 		check = 0;
 
-			if(((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0)) && check==1)
+			if(((u>1.0e-20 && v>1.0e-20 && w>1.0e-20) || (u<-1.0e-20 && v<-1.0e-20 && w<-1.0e-20)) && check==1)
 			{
 			denom = 1.0/(u+v+w);
+            
 			u *= denom;
 			v *= denom;
 			w *= denom;
@@ -187,10 +188,10 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
             if(fbio(i,j,k)<0 && fbio(i,j,k+1)<0)
             distcheck=0;
             
-             if(distcheck==1)
-			for(k=0;k<p->knoz;++k)
-             a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),a->fb(i,j,k));
-			}
+            if(distcheck==1)
+            for(k=0;k<p->knoz;++k)
+            a->fb(i,j,k)=MIN(fabs(Rz-p->ZP[KP]),a->fb(i,j,k));
+            }
 		
 		}
 	}
