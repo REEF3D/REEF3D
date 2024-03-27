@@ -31,8 +31,9 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 	ALOOP
 	{
     fbio(i,j,k)=1;
-	a->fb(i,j,k)=1.0e9;
+	a->fb(i,j,k)=1.0e8;
 	}
+    
 	
     for(rayiter=0; rayiter<2; ++rayiter)
     {
@@ -84,8 +85,7 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 		a->fb(i,j,k)=-10.0*p->DXM;
 	}
     
-	pgc->start4a(p,a->fb,50);
-
+	pgc->start4a(p,a->fb,50); 
 }
 
 

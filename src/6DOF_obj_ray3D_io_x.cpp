@@ -44,7 +44,7 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 	double u,v,w;
 	double denom;	
 	int checkin;
-	double psi = 1.0e-8*p->DXM;
+	double psi = 1.0e-1*p->DXM;
     
 
     ALOOP
@@ -123,12 +123,12 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		for(k=ks;k<ke;k++)
 		{
 		Px = p->global_xmin-10.0*p->DXM;
-		Py = p->YP[JP]+psi;
+		Py = p->YP[JP]-psi;
 		Pz = p->ZP[KP]+psi;
 		
 		Qx = p->global_xmax+10.0*p->DXM;
 		Qy = p->YP[JP]+psi;
-		Qz = p->ZP[KP]+psi;
+		Qz = p->ZP[KP]-psi;
 		
 		
 		PQx = Qx-Px;
@@ -167,7 +167,7 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		if(u==0.0 && v==0.0 && w==0.0)
 		check = 0;
 		
-			if((u>=0.0 && v>=0.0 && w>=0.0) || (u<0.0 && v<0.0 && w<0.0) && check==1)
+			if(((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0)) && check==1)
 			{
 			denom = 1.0/(u+v+w);
 			u *= denom;
@@ -177,13 +177,13 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 			Rx = u*Ax + v*Bx + w*Cx;
             
 			for(i=0;i<p->knox;++i)
-            {
+             {
 				if(p->XP[IP]<Rx)
 				cutr(i,j,k) += 1;
 				
 				if(p->XP[IP]>=Rx)
 				cutl(i,j,k) += 1;
-            }
+             }
             
             
 			}

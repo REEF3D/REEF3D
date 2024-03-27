@@ -121,7 +121,7 @@ void sixdof_obj::ray_cast_2D_y(lexer *p, ghostcell *pgc, int ts, int te)
 		Py = p->global_ymin-10.0*p->DXM;
 		Pz = p->wd+psi;
 		
-		Qx = p->XP[IP]+psi;
+		Qx = p->XP[IP]-psi;
 		Qy = p->global_ymax+10.0*p->DXM;
 		Qz = p->wd+psi;
 		

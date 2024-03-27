@@ -121,8 +121,8 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		Py = p->YP[JP]+psi;
 		Pz = p->global_zmin-10.0*p->DXM ;
 		
-		Qx = p->XP[IP]-psi;
-		Qy = p->YP[JP]+psi;
+		Qx = p->XP[IP]+psi;
+		Qy = p->YP[JP]-psi;
 		Qz = p->global_zmax+10.0*p->DXM ;
 
 		
@@ -161,7 +161,7 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		if(u==0.0 && v==0.0 && w==0.0)
 		check = 0;
 
-			if((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0) && check==1)
+			if(((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0)) && check==1)
 			{
 			denom = 1.0/(u+v+w);
 			u *= denom;
@@ -195,7 +195,5 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 		}
 	}
     }
-
-
 
 }

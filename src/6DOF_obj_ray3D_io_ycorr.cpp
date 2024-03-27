@@ -124,9 +124,9 @@ void sixdof_obj::ray_cast_io_ycorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
 		{
 		Px = p->XP[IP]+psi;
 		Py = p->global_ymin-10.0*p->DXM ;
-		Pz = p->ZP[KP]+psi;
+		Pz = p->ZP[KP]-psi;
 		
-		Qx = p->XP[IP]+psi;
+		Qx = p->XP[IP]-psi;
 		Qy = p->global_ymax+10.0*p->DXM ;
 		Qz = p->ZP[KP]+psi;
 		
@@ -167,7 +167,7 @@ void sixdof_obj::ray_cast_io_ycorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
 		if(u==0.0 && v==0.0 && w==0.0)
 		check = 0;
 		
-			if((u>=0.0 && v>=0.0 && w>=0.0) || (u<0.0 && v<0.0 && w<0.0) && check==1)
+			if(((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0)) && check==1)
 			{
 			denom = 1.0/(u+v+w);
 			u *= denom;

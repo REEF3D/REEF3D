@@ -73,7 +73,6 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
 	
 	// Recalculate distances
 	ray_cast(p,a,pgc);
-    //if(p->X188==1)
 	reini_RK2(p,a,pgc,a->fb);
     pgc->start4a(p,a->fb,50);
     

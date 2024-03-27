@@ -34,12 +34,27 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
 	double psi, phival_fb;
     double dirac;
     
+    H=Ht=0.0;
+    /*cout<<p->mpirank<<" R_ "<<R_(0,0)<<" "<<R_(0,1)<<" "<<R_(0,2)<<" "<<R_(1,0)<<" "<<R_(1,2)<<" "<<R_(1,1)<<" "<<R_(2,0)<<" "<<R_(2,1)<<" "<<R_(2,2)<<" "<<endl;
+    cout<<p->mpirank<<" G_ "<<G_(0,0)<<" "<<G_(0,1)<<" "<<G_(0,2)<<" "<<G_(1,0)<<" "<<G_(1,2)<<" "<<G_(1,1)<<" "<<G_(2,0)<<" "<<G_(2,1)<<" "<<G_(2,2)<<" "<<endl;
+    cout<<p->mpirank<<" E_ "<<E_(0,0)<<" "<<E_(0,1)<<" "<<E_(0,2)<<" "<<E_(1,0)<<" "<<E_(1,2)<<" "<<E_(1,1)<<" "<<E_(2,0)<<" "<<E_(2,1)<<" "<<E_(2,2)<<" "<<endl;*/
+      
     if(p->X14==1)
     {
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+        
+        if(uf!=uf)
+        {
+        cout<<"UF "<<uf<<" "<<u_fb(0)<<" "<<u_fb(4)<<" "<<(p->pos1_z() - c_(2))<<" "<<u_fb(5)<<" "<<(p->pos1_y() - c_(1))<<endl;
+        }
+        
+        
         H = Hsolidface(p,a,1,0,0);
+        
+        if(H!=H)
+        cout<<"H "<<uf<<endl;
        
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);   
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
@@ -47,7 +62,14 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     VLOOP
     {
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
+        
+        if(vf!=vf)
+        cout<<"VF "<<vf<<endl;
+        
         H = Hsolidface(p,a,0,1,0);
+        
+        if(H!=H)
+        cout<<"H "<<uf<<endl;
        
         fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
@@ -55,7 +77,14 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     WLOOP
     {
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
+        
+        if(wf!=wf)
+        cout<<"WF "<<wf<<endl;
+        
         H = Hsolidface(p,a,0,0,1);
+        
+        if(H!=H)
+        cout<<"H "<<uf<<endl;
 
         fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
@@ -92,6 +121,9 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+        
+        if(uf!=uf)
+        cout<<"UF "<<uf<<endl;
         
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
@@ -136,6 +168,8 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     {
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         
+        if(vf!=vf)
+        cout<<"VF "<<vf<<endl;
     
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
@@ -181,7 +215,9 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     {
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
         
-
+        if(wf!=wf)
+        cout<<"WF "<<wf<<endl;
+        
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -280,7 +316,7 @@ double sixdof_obj::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 
     else
     H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
-
+    
     return H;
 }
 

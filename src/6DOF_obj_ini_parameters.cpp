@@ -28,17 +28,59 @@ Author: Tobias Martin
   
 void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
 {
+    // external velocity
+      Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
+    /*
+    if (p->X210==1)
+    {
+        Uext = p->X210_u;
+        Vext = p->X210_v;
+        Wext = p->X210_w;
+    }
+    if (p->X211==1)
+    {
+        Pext = p->X211_p;
+        Qext = p->X211_q;
+        Rext = p->X211_r;
+    }
+    if (p->X240==1)
+    {
+        //motion_vec(p,a,pgc);
+        cout<<"motion file"<<endl;
+    }*/
 
     // Rigid body motion ini
     
     R_ << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
     e_ << 0.0, 0.0, 0.0, 0.0;
-    p_ << Uext*Mass_fb, Vext*Mass_fb, Wext*Mass_fb;
+    p_ << 0.0, 0.0, 0.0;
     c_ << 0.0, 0.0, 0.0;
     h_ << 0.0, 0.0, 0.0;
     
+    dp_   << 0.0, 0.0, 0.0;
+    dpn1_ << 0.0, 0.0, 0.0;
+    dpn2_ << 0.0, 0.0, 0.0;
+    dpn3_ << 0.0, 0.0, 0.0;
+    
+    dc_   << 0.0, 0.0, 0.0;
+    dcn1_ << 0.0, 0.0, 0.0;
+    dcn2_ << 0.0, 0.0, 0.0;
+    dcn3_ << 0.0, 0.0, 0.0;
+    
+    dh_   << 0.0, 0.0, 0.0;
+    dhn1_ << 0.0, 0.0, 0.0;
+    dhn2_ << 0.0, 0.0, 0.0;
+    dhn3_ << 0.0, 0.0, 0.0;
+    
+    de_   << 0.0, 0.0, 0.0, 0.0;
+    den1_ << 0.0, 0.0, 0.0, 0.0;
+    den2_ << 0.0, 0.0, 0.0, 0.0;
+    den3_ << 0.0, 0.0, 0.0, 0.0;
+    
     omega_B << 0.0, 0.0, 0.0;
     omega_I << 0.0, 0.0, 0.0;
+    
+    
     
 	if (p->X102==1)
 	{
@@ -74,31 +116,8 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
         p->rfbi = p->X211_r;
 	}
 
-    // external velocity
-      Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
-    
-    if (p->X210==1)
-    {
-        Uext = p->X210_u;
-        Vext = p->X210_v;
-        Wext = p->X210_w;
-    }
-    if (p->X211==1)
-    {
-        Pext = p->X211_p;
-        Qext = p->X211_q;
-        Rext = p->X211_r;
-    }
-    if (p->X240==1)
-    {
-        //motion_vec(p,a,pgc);
-        cout<<"motion file"<<endl;
-    }
-    
-
     // Positions
     phi = theta = psi = 0.0;
-    
     
     // Forces
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;

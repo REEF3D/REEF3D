@@ -149,7 +149,7 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
         
 		// Check size of triangle and split into 4 triangles if too big
 		
-		if((at + bt + ct)/3.0 > critL)
+		if((at + bt + ct)/3.0 > critL && p->X185>0)
 		{
 			// Half points
 			

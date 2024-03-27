@@ -94,6 +94,8 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     
     if(p->X240>0)
     pmotion = new sixdof_motionext_file(p,pgc);
+    
+    Mass_fb =  Rfb = Vfb =1.0;
 
 }
 

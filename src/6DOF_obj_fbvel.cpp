@@ -140,7 +140,7 @@ void sixdof_obj::saveTimeStep(lexer *p, int iter)
 void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
 {
 	p->ufbmax = p->ufbi;
-    p->vfbmax = p->vfbi;
+    p->vfbmax = p->vfbi; 
     p->wfbmax = p->wfbi;
     
     double uvel,vvel,wvel;

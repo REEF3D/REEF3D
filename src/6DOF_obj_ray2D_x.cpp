@@ -117,7 +117,7 @@ void sixdof_obj::ray_cast_2D_x(lexer *p, ghostcell *pgc, int ts, int te)
 		for(j=js;j<je;j++)
 		{
             Px = p->global_xmin-10.0*p->DXM;
-            Py = p->YP[JP]+psi;
+            Py = p->YP[JP]-psi;
             Pz = p->wd+psi;
             
             Qx = p->global_xmax+10.0*p->DXM;
