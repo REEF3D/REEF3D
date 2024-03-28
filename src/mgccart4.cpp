@@ -723,16 +723,16 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][3]=1;
 		p->gcd4[count]=0.5*p->DXM; 
 		
-			if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==TOPO)
+			if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==TOPO_FLAG)
 			p->gcb4[count][4]=5;
 			
-			if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==OBJ)
+			if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==OBJ_FLAG)
 			p->gcb4[count][4]=21;
             
-            if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
+            if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID_FLAG)
 			p->gcb4[count][4]=22;
 			
-			if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==FLT)
+			if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==FLT_FLAG)
 			p->gcb4[count][4]=41;
 			
 		++count;
@@ -754,16 +754,16 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][3]=2;
 		p->gcd4[count]=0.5*p->DXM; 
 		
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]==TOPO)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]==TOPO_FLAG)
 			p->gcb4[count][4]=5;
 			
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]==OBJ)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]==OBJ_FLAG)
 			p->gcb4[count][4]=21;
             
-            if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]==SOLID)
+            if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]==SOLID_FLAG)
 			p->gcb4[count][4]=22;
 			
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]==FLT)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]==FLT_FLAG)
 			p->gcb4[count][4]=41;
 			
 		++count;
@@ -785,16 +785,16 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][3]=3;
 		p->gcd4[count]=0.5*p->DXM; 
 		
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]==TOPO)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]==TOPO_FLAG)
 			p->gcb4[count][4]=5;
 			
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]==OBJ)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]==OBJ_FLAG)
 			p->gcb4[count][4]=21;
             
-            if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]==SOLID)
+            if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]==SOLID_FLAG)
 			p->gcb4[count][4]=22;
 			
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]==FLT)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]==FLT_FLAG)
 			p->gcb4[count][4]=41;
 			
 		++count;
@@ -816,16 +816,16 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][3]=4;
 		p->gcd4[count]=0.5*p->DXM; 
 		
-			if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==TOPO)
+			if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==TOPO_FLAG)
 			p->gcb4[count][4]=5;
 			
-			if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==OBJ)
+			if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==OBJ_FLAG)
 			p->gcb4[count][4]=21;
             
-            if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
+            if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID_FLAG)
 			p->gcb4[count][4]=22;
 			
-			if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==FLT)
+			if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==FLT_FLAG)
 			p->gcb4[count][4]=41;
 			
 		++count;
@@ -847,16 +847,16 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][3]=5;
 		p->gcd4[count]=0.5*p->DXM; 
 		
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]==TOPO)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]==TOPO_FLAG)
 			p->gcb4[count][4]=5;
 			
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]==SOLID)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]==SOLID_FLAG)
 			p->gcb4[count][4]=21;
             
-            if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]==OBJ)
+            if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]==OBJ_FLAG)
 			p->gcb4[count][4]=22;
 			
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]==FLT)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]==FLT_FLAG)
 			p->gcb4[count][4]=41;
 			
 		++count;
@@ -878,16 +878,16 @@ void mgc4::check_gcb_nbx(lexer *p, ghostcell *gcb)
 		p->gcb4[count][3]=6;
 		p->gcd4[count]=0.5*p->DXM; 
 		
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]==TOPO)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]==TOPO_FLAG)
 			p->gcb4[count][4]=5;
 			
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]==SOLID)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]==SOLID_FLAG)
 			p->gcb4[count][4]=21;
             
-            if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]==OBJ)
+            if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]==OBJ_FLAG)
 			p->gcb4[count][4]=22;
 			
-			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]==FLT)
+			if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]==FLT_FLAG)
 			p->gcb4[count][4]=41;
 			
 		++count;

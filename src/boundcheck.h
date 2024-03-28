@@ -34,7 +34,7 @@ Author: Hans Bihs
 #define JENDCHECK	if(sj<p->knoy)
 #define KSTARTCHECK	if(sk>=0)
 #define KENDCHECK	if(sk<p->knoz)
-#define SOLIDCHECK  if(p->flag4[(si-p->imin)*p->jmax*p->kmax + (sj-p->jmin)*p->kmax + sk-p->kmin]!=OBJ)
+#define SOLIDCHECK  if(p->flag4[(si-p->imin)*p->jmax*p->kmax + (sj-p->jmin)*p->kmax + sk-p->kmin]!=OBJ_FLAG)
 #define BFBCHK ISTARTCHECK IENDCHECK JSTARTCHECK JENDCHECK KSTARTCHECK KENDCHECK SOLIDCHECK
 
 

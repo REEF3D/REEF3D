@@ -92,19 +92,19 @@ void bedslope::slope_weno(lexer *p, ghostcell *pgc, sediment_fdm *s, field &topo
     // bed normal
 	nx0=-(topo(i+1,j,k)-topo(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
     
-    if(p->flag4[Im1JK]<=SOLID)
+    if(p->flag4[Im1JK]<=SOLID_FLAG)
     nx0=-(topo(i+1,j,k)-topo(i,j,k))/(p->DXP[IP]);
     
-    if(p->flag4[Ip1JK]<=SOLID)
+    if(p->flag4[Ip1JK]<=SOLID_FLAG)
     nx0=-(topo(i,j,k)-topo(i-1,j,k))/(p->DXP[IM1]);
     
     
 	ny0=-(topo(i,j+1,k)-topo(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
     
-    if(p->flag4[IJm1K]<=SOLID)
+    if(p->flag4[IJm1K]<=SOLID_FLAG)
     ny0=-(topo(i,j+1,k)-topo(i,j,k))/(p->DYP[JP]);
     
-    if(p->flag4[IJp1K]<=SOLID)
+    if(p->flag4[IJp1K]<=SOLID_FLAG)
     ny0=-(topo(i,j,k)-topo(i,j-1,k))/(p->DYP[JM1]);
     
     

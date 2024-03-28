@@ -159,7 +159,7 @@ int boundarycheck::ij_boundcheck_topo(lexer *p, int ii, int jj, int margin)
     check=0;
 	
     for(c=0; c<p->knoz; ++c)
-    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + c-p->kmin]>SOLID || p->flag5[IJK]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + c-p->kmin]>SOLID_FLAG || p->flag5[IJK]<0)
     check=1;
     }
 

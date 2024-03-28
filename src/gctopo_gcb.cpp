@@ -58,22 +58,22 @@ void ghostcell::gcb_seed(lexer *p, fdm *a)
 	LOOP
     {   
         // Topo
-        if(p->flag4[Im1JK]==TOPO)
+        if(p->flag4[Im1JK]==TOPO_FLAG)
         ++count;
 	
-        if(p->flag4[IJp1K]==TOPO)
+        if(p->flag4[IJp1K]==TOPO_FLAG)
         ++count;
 
-        if(p->flag4[IJm1K]==TOPO)
+        if(p->flag4[IJm1K]==TOPO_FLAG)
         ++count;
 
-        if(p->flag4[Ip1JK]==TOPO)
+        if(p->flag4[Ip1JK]==TOPO_FLAG)
         ++count;
 
-        if(p->flag4[IJKm1]==TOPO)
+        if(p->flag4[IJKm1]==TOPO_FLAG)
         ++count;
 
-        if(p->flag4[IJKp1]==TOPO)
+        if(p->flag4[IJKp1]==TOPO_FLAG)
         ++count;
     }
 	
@@ -86,7 +86,7 @@ void ghostcell::gcb_seed(lexer *p, fdm *a)
 	LOOP
     {
         // Topo
-        if(p->flag4[Im1JK]==TOPO)
+        if(p->flag4[Im1JK]==TOPO_FLAG)
         {
         p->gcb4[count][0]=i;
         p->gcb4[count][1]=j;
@@ -96,7 +96,7 @@ void ghostcell::gcb_seed(lexer *p, fdm *a)
         ++count;
         }
 
-        if(p->flag4[IJp1K]==TOPO)
+        if(p->flag4[IJp1K]==TOPO_FLAG)
         {
         p->gcb4[count][0]=i;
         p->gcb4[count][1]=j;
@@ -106,7 +106,7 @@ void ghostcell::gcb_seed(lexer *p, fdm *a)
         ++count;
         }
 
-        if(p->flag4[IJm1K]==TOPO)
+        if(p->flag4[IJm1K]==TOPO_FLAG)
         {
         p->gcb4[count][0]=i;
         p->gcb4[count][1]=j;
@@ -116,7 +116,7 @@ void ghostcell::gcb_seed(lexer *p, fdm *a)
         ++count;
         }
 
-        if(p->flag4[Ip1JK]==TOPO)
+        if(p->flag4[Ip1JK]==TOPO_FLAG)
         {
         p->gcb4[count][0]=i;
         p->gcb4[count][1]=j;
@@ -126,7 +126,7 @@ void ghostcell::gcb_seed(lexer *p, fdm *a)
         ++count;
         }
 
-        if(p->flag4[IJKm1]==TOPO)
+        if(p->flag4[IJKm1]==TOPO_FLAG)
         {
         p->gcb4[count][0]=i;
         p->gcb4[count][1]=j;
@@ -136,7 +136,7 @@ void ghostcell::gcb_seed(lexer *p, fdm *a)
         ++count;
         }
 
-        if(p->flag4[IJKp1]==TOPO)
+        if(p->flag4[IJKp1]==TOPO_FLAG)
         {
         p->gcb4[count][0]=i;
         p->gcb4[count][1]=j;

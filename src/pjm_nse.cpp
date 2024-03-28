@@ -117,31 +117,31 @@ void pjm_nse::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
         
         if(p->D37==2)
         {
-        if(p->flag4[Ip1JK]==AIR)
+        if(p->flag4[Ip1JK]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
         check=1;
         }
         
-        if(p->flag4[Im1JK]==AIR)
+        if(p->flag4[Im1JK]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
         check=2;
         }
         
-        if(p->flag4[IJp1K]==AIR)
+        if(p->flag4[IJp1K]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k)));
         check=1;
         }
         
-        if(p->flag4[IJm1K]==AIR)
+        if(p->flag4[IJm1K]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k)));
         check=2;
         }
     
-        if(p->flag4[IJKm1]==AIR)
+        if(p->flag4[IJKm1]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
         check=2;
@@ -149,7 +149,7 @@ void pjm_nse::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
         }
         
         
-        if(p->flag4[IJKp1]==AIR)
+        if(p->flag4[IJKp1]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
         check=1;
@@ -192,38 +192,38 @@ void pjm_nse::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
     
         if(p->D37==3)
         {
-        if(p->flag4[Ip1JK]==AIR)
+        if(p->flag4[Ip1JK]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
         check=1;
         }
         
-        if(p->flag4[Im1JK]==AIR)
+        if(p->flag4[Im1JK]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
         check=2;
         }
         
-        if(p->flag4[IJp1K]==AIR)
+        if(p->flag4[IJp1K]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k)));
         check=1;
         }
         
-        if(p->flag4[IJm1K]==AIR)
+        if(p->flag4[IJm1K]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k)));
         check=2;
         }
         
-        if(p->flag4[IJKm1]==AIR)
+        if(p->flag4[IJKm1]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
         check=2;
         }
         }
         
-        if(p->flag4[IJKp1]==AIR)
+        if(p->flag4[IJKp1]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
         check=1;

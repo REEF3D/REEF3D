@@ -51,10 +51,10 @@ void onephase_f::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     FLUIDLOOP
     {
     if(a->phi(i,j,k)<0.0)
-    p->flag4[IJK]=AIR;
+    p->flag4[IJK]=AIR_FLAG;
 
     if(a->phi(i,j,k)>=0.0)
-    p->flag4[IJK]=WATER;
+    p->flag4[IJK]=WATER_FLAG;
     }
     
     pgc->flagx(p,p->flag4);
@@ -77,14 +77,14 @@ void onephase_f::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     
     FLUIDLOOP
 	{
-    if(p->flag4[IJK]==WATER && p->flag4[Ip1JK]==AIR)
-    p->flag1[IJK]=AIR;
+    if(p->flag4[IJK]==WATER_FLAG && p->flag4[Ip1JK]==AIR_FLAG)
+    p->flag1[IJK]=AIR_FLAG;
     
-    if(p->flag4[IJK]==WATER && p->flag4[IJp1K]==AIR)
-    p->flag2[IJK]=AIR;
+    if(p->flag4[IJK]==WATER_FLAG && p->flag4[IJp1K]==AIR_FLAG)
+    p->flag2[IJK]=AIR_FLAG;
     
-    if(p->flag4[IJK]==WATER && p->flag4[IJKp1]==AIR)
-    p->flag3[IJK]=AIR;
+    if(p->flag4[IJK]==WATER_FLAG && p->flag4[IJKp1]==AIR_FLAG)
+    p->flag3[IJK]=AIR_FLAG;
 	}
     
     pgc->flagx(p,p->flag1);

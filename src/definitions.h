@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define WATER      10
-#define AIR        -1
-#define INFLOW    -3
-#define OUTFLOW   -4
-#define FLT       -17
-#define TOPO      -18
-#define SOLID     -19
-#define OBJ       -20
+#define WATER_FLAG      10
+#define AIR_FLAG       -1
+#define INFLOW_FLAG    -3
+#define OUTFLOW_FLAG   -4
+#define FLT_FLAG       -17
+#define TOPO_FLAG      -18
+#define SOLID_FLAG     -19
+#define OBJ_FLAG       -20

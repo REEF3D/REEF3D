@@ -33,13 +33,13 @@ double interpolation::lint1_2D(field& b, int& i,int& j, int& k, double wa, doubl
     j=0;
 
 pip=4;
-    if(p->flag1[IJK]>TOPO)
+    if(p->flag1[IJK]>TOPO_FLAG)
     v1=b(i,j,k);
-    if(p->flag1[IJKp1]>TOPO)
+    if(p->flag1[IJKp1]>TOPO_FLAG)
     v2=b(i,j,k+1);
-    if(p->flag1[Ip1JK]>TOPO)
+    if(p->flag1[Ip1JK]>TOPO_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag1[Ip1JKp1]>TOPO)
+    if(p->flag1[Ip1JKp1]>TOPO_FLAG)
     v4=b(i+1,j,k+1);
 pip=0;
     j=jj;
@@ -60,13 +60,13 @@ double interpolation::lint2_2D(field& b, int& i,int& j, int& k, double wa, doubl
     j=0;
 
 pip=4;
-    if(p->flag2[IJK]>TOPO)
+    if(p->flag2[IJK]>TOPO_FLAG)
     v1=b(i,j,k);
-    if(p->flag2[IJKp1]>TOPO)
+    if(p->flag2[IJKp1]>TOPO_FLAG)
     v2=b(i,j,k+1);
-    if(p->flag2[Ip1JK]>TOPO)
+    if(p->flag2[Ip1JK]>TOPO_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag2[Ip1JKp1]>TOPO)
+    if(p->flag2[Ip1JKp1]>TOPO_FLAG)
     v4=b(i+1,j,k+1);
 pip=0;
     j=jj;
@@ -87,13 +87,13 @@ double interpolation::lint3_2D(field& b, int& i,int& j, int& k, double wa, doubl
     j=0;
 
 pip=4;
-    if(p->flag3[IJK]>TOPO)
+    if(p->flag3[IJK]>TOPO_FLAG)
     v1=b(i,j,k);
-    if(p->flag3[IJKp1]>TOPO)
+    if(p->flag3[IJKp1]>TOPO_FLAG)
     v2=b(i,j,k+1);
-    if(p->flag3[Ip1JK]>TOPO)
+    if(p->flag3[Ip1JK]>TOPO_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag3[Ip1JKp1]>TOPO)
+    if(p->flag3[Ip1JKp1]>TOPO_FLAG)
     v4=b(i+1,j,k+1);
 pip=0;
     j=jj;
@@ -114,13 +114,13 @@ double interpolation::lint4_2D(field& f, int& i,int& j, int& k, double wa, doubl
     j=0;
 
     pip=4;
-    if(p->flag4[IJK]>TOPO)
+    if(p->flag4[IJK]>TOPO_FLAG)
     v1=f(i,j,k);
-    if(p->flag4[IJKp1]>TOPO)
+    if(p->flag4[IJKp1]>TOPO_FLAG)
     v2=f(i,j,k+1);
-    if(p->flag4[Ip1JK]>TOPO)
+    if(p->flag4[Ip1JK]>TOPO_FLAG)
     v3=f(i+1,j,k);
-    if(p->flag4[Ip1JKp1]>TOPO)
+    if(p->flag4[Ip1JKp1]>TOPO_FLAG)
     v4=f(i+1,j,k+1);
     pip=0;
     j=jj;

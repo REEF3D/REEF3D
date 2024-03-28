@@ -89,7 +89,7 @@ void lexer::makeflag( int *field)
 {
     int n;
 	for(n=0;n<imax*jmax*kmax;++n)
-	field[n]=OBJ;
+	field[n]=OBJ_FLAG;
 }
 
 void lexer::parse()
