@@ -39,15 +39,15 @@ void sixdof_cfd::ksource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void sixdof_cfd::isource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_cfd::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
 }
 
-void sixdof_cfd::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_cfd::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
 }
 
-void sixdof_cfd::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_cfd::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
 }
 

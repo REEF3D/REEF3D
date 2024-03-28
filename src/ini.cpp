@@ -26,7 +26,8 @@ void lexer::ini_default()
 {
     // Hydrodynamic Models
     A10=6;       // int turn on wave models
-    A209=2;      // int interpolation sweeps for bed
+    
+    A209=1;      // int interpolation sweeps for bed
     A210=3;		  // int time scheme for SFLOW velocities
     A211=4;		  // int convection scheme for SLOW velocities
     A212=0;		  // int diffusion treatment for SLOW velocities
@@ -36,7 +37,7 @@ void lexer::ini_default()
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
-    A220=1;		  // int non-hydrostatic pressure scheme for SFLOW
+    A220=2;		  // int non-hydrostatic pressure scheme for SFLOW
     A221=1;		  // int hydrostatic pressure scheme for SFLOW
     A223=0.5;    // double blending factor hydrostatic pressure gradient
     A230=0;      // int turn on Boussinesq wave model
@@ -44,7 +45,7 @@ void lexer::ini_default()
     A241=1;		  // int discretization of water level SFLOW
   	A242=0;		  // int hydostatic pressure for shallow areas
     A243=1;      // int turn on wetting-drying
-    A244_val=0.00005; // double absolute wetting criterion value
+    A244_val=0.001; // double absolute wetting criterion value
     A244=1;      // int absolute wetting criterion
     A245=0;      // int dx-based relative wetting citerion
     A245_val=0.001; // double dx-based relative wetting citerion value
