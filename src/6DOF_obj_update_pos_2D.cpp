@@ -84,8 +84,8 @@ void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
     
     endtime=pgc->timer();
     
-    if(p->mpirank==0)
-    cout<<"6DOF update time 1: "<<endtime-starttime<<endl;
+    //if(p->mpirank==0)
+    //cout<<"6DOF update time 1: "<<endtime-starttime<<endl;
     
     starttime=pgc->timer();
 	
@@ -94,8 +94,8 @@ void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
     
     endtime=pgc->timer();
     
-    if(p->mpirank==0)
-    cout<<"6DOF update time 2: "<<endtime-starttime<<endl;
+    //if(p->mpirank==0)
+    //cout<<"6DOF update time 2: "<<endtime-starttime<<endl;
     
     starttime=pgc->timer();
     
@@ -104,8 +104,8 @@ void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
     
     endtime=pgc->timer();
     
-    if(p->mpirank==0)
-    cout<<"6DOF update time 3: "<<endtime-starttime<<endl;
+    //if(p->mpirank==0)
+    //cout<<"6DOF update time 3: "<<endtime-starttime<<endl;
     
     pgc->gcsl_start4(p,fs,50);  
 }

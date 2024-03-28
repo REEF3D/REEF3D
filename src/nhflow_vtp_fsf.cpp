@@ -148,6 +148,13 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	++n;
     }
     
+    // fb
+    if(p->P28==1)
+    {
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
+    
     // Hs
     if(p->P110==1)
 	{
@@ -198,21 +205,31 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"wetdry\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    
     if(p->P23==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
+    
+    if(p->P28==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"fb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    
     if(p->P110==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
+    
     if(p->P131==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"wetdry_max\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
+    
     result<<"</PointData>"<<endl;
 
     
@@ -364,6 +381,18 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4(d->test2D));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
+    
+    //  fb
+    if(p->P28==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(d->fs));
 	result.write((char*)&ffn, sizeof (float));
 	}
     }
