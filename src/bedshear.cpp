@@ -60,7 +60,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	
     if(p->S16==1)
     {
-    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
+    zval = s->bedzh(i,j) + 1.6*p->DZN[KP];
     
         if(p->S33==1)
         {
@@ -90,7 +90,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     visc=p->W2;
     
-    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
+    zval = s->bedzh(i,j) + 1.6*p->DZN[KP];
     
         if(p->S33==1)
         {
@@ -155,7 +155,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	xip= p->XP[IP];
 	yip= p->YP[JP];
 
-    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
+    zval = s->bedzh(i,j) + p->DZN[KP];
 	
         if(p->S33==1)
         {
@@ -184,7 +184,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
 	if(p->S16==4)
     {
-    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
+    zval = s->bedzh(i,j) + p->DZN[KP];
     
     if(p->S33==1)
     tau=density*pturb->kinval(i,j,k)*0.3;
