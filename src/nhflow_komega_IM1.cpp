@@ -110,12 +110,11 @@ void nhflow_komega_IM1::timesource(lexer* p, fdm_nhf* d, double *FN)
 
 void nhflow_komega_IM1::clearrhs(lexer* p, fdm_nhf *d)
 {
-    /*
     count=0;
     LOOP
     {
-    a->rhsvec.V[count]=0.0;
-	a->L(i,j,k)=0.0;
+    d->rhsvec.V[count]=0.0;
+	d->L[IJK]=0.0;
 	++count;
-    }*/
+    }
 }
