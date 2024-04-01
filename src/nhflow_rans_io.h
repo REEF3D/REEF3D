@@ -57,8 +57,8 @@ public:
     virtual void name_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
     
-    double *KIN,*EPS,*EDDYV0;
-    int *wallf;
+    double *KIN,*EPS,*EV0;
+    int *WALLF;
 	
 	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
 	double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;

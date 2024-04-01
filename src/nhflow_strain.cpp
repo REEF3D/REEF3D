@@ -25,8 +25,9 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-nhflow_strain::nhflow_strain(lexer *p, fdm_nhf *d)	: nhflow_gradient(p),epsi(p->F45*p->DXM),Pk(p)
+nhflow_strain::nhflow_strain(lexer *p, fdm_nhf *d)	: nhflow_gradient(p),epsi(p->F45*p->DXM)
 {
+    p->Darray(PK,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_strain::~nhflow_strain()

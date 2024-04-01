@@ -284,6 +284,12 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_advec_CDS2.h"/>
+            <File Name="nhflow_scalar_advec.h"/>
+            <File Name="nhflow_scalar_iweno.h"/>
+            <File Name="nhflow_scalar_convection.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_HLLC.h"/>
           <File Name="nhflow_flux_build.h"/>
           <File Name="nhflow_flux_build_f.h"/>
@@ -1402,6 +1408,10 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_advec_CDS2.cpp"/>
+            <File Name="nhflow_scalar_iweno.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_HLLC.cpp"/>
           <File Name="nhflow_flux_build_f.cpp"/>
           <VirtualDirectory Name="Signal Speed">
