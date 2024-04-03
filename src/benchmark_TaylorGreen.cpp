@@ -381,7 +381,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 
 			    TPLOOP
 				{
-    					vxP=float(p->ipol4(vx));
+                     vxP=float(p->ipol4(vx));
 					vyP=float(p->ipol4(vy));
 					vzP=float(p->ipol4(vz));
 

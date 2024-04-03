@@ -87,8 +87,8 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
     
     pgc->start4a(p,a->topo,150);
     
-    // topoupdate
-    pgc->topo_update(p,a);
+    // topoupdate    if(p->S10!=2)
+    pgc->topo_update(p,a);        if(p->S10==2)    pgc->gcb_velflagio(p,a);
     
     ULOOP
     {

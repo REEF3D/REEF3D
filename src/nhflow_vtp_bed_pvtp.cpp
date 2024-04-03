@@ -44,6 +44,11 @@ void nhflow_vtp_bed::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result<<"<?xml version=\"1.0\"?>"<<endl;
 	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
+    
+    result<<"<FieldData>"<<endl;
+    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+    result<<"</DataArray>"<<endl;
+    result<<"</FieldData>"<<endl;
 	
 	result<<"<PPoints>"<<endl;
 	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
