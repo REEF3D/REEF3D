@@ -563,6 +563,8 @@ void driver::logic_cfd()
 // Printer
 	if(p->P10==2)
 	pprint = new vtr3D(p,a,pgc);
+	else if(p->P10==3)
+	pprint = new vts3D(p,a,pgc);
 	else
 	pprint = new vtu3D(p,a,pgc);
 
