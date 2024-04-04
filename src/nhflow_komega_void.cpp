@@ -34,7 +34,7 @@ nhflow_komega_void::~nhflow_komega_void()
 {
 }
 
-void nhflow_komega_void::start(fdm_nhf* d, lexer* p, nhflow_convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
+void nhflow_komega_void::start(fdm_nhf* d, lexer* p, nhflow_scalar_convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
 {
 }
 void nhflow_komega_void::isource(lexer* p, fdm_nhf* d)

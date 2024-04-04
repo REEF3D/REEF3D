@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 class fdm_nhf;
 class lexer;
-class nhflow_convection;
+class nhflow_scalar_convection;
 class diffusion;
 class solver;
 class ghostcell;
@@ -40,7 +40,7 @@ class nhflow_turbulence
 {
 
 public:
-	virtual void start(fdm_nhf*, lexer*, nhflow_convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*)=0;
+	virtual void start(fdm_nhf*, lexer*, nhflow_scalar_convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*)=0;
 	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*)=0;
 	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*)=0;
 	virtual void isource(lexer*, fdm_nhf*)=0;

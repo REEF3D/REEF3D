@@ -60,6 +60,7 @@ class fnpf;
 class onephase;
 class nhflow_fsf;
 class nhflow_convection;
+class nhflow_scalar_convection;
 class nhflow_signal_speed;
 class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
@@ -199,6 +200,7 @@ public:
     patchBC_interface *pBC;
     nhflow *pnhf;
     nhflow_convection *pnhfconvec;
+    nhflow_scalar_convection *pnhfscalarconvec;
     nhflow_signal_speed *pss;
     nhflow_reconstruct *precon;
     nhflow_pressure *pnhpress;

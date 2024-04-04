@@ -149,6 +149,6 @@ void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	}
 }
 
-void nhflow_ediff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UH_in, double *UH, double *VH, double *WH, double alpha)
+void nhflow_ediff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double alpha)
 {
 }

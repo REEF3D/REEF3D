@@ -39,6 +39,8 @@ Author: Hans Bihs
 #include"nhflow_HLLC.h"
 #include"nhflow_convection_void.h"
 
+#include"nhflow_scalar_iweno.h"
+
 #include"nhflow_diff_void.h"
 #include"nhflow_ediff.h"
 #include"nhflow_idiff.h"

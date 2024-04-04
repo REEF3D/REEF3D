@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_strain.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 nhflow_strain::nhflow_strain(lexer *p, fdm_nhf *d)	: nhflow_gradient(p),epsi(p->F45*p->DXM)
@@ -34,54 +34,61 @@ nhflow_strain::~nhflow_strain()
 {
 }
 
-void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *wallf)
+void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *WALLF)
 {
-	/*int n;
+
 	LOOP
-	wallf(i,j,k)=0;
-	
-	GC4LOOP
-	if((p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5 || p->gcb4[n][4]==41  || p->gcb4[n][4]==42 || p->gcb4[n][4]==43 || p->gcb4[n][4]==6 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8))
-	{
-	i = p->gcb4[n][0];
-	j = p->gcb4[n][1];
-	k = p->gcb4[n][2];
-	
-	wallf(i,j,k)=1;
-	}*/
+	WALLF[IJK]=0;
+    
+    LOOP
+    {  
+        if(p->flag4[Im1JK]<0)
+        WALLF[IJK]=1;
+
+        if(p->flag4[Ip1JK]<0)
+        WALLF[IJK]=1;
+        
+        if(p->flag4[IJm1K]<0)
+        WALLF[IJK]=1;
+        
+        if(p->flag4[IJp1K]<0)
+        WALLF[IJK]=1;
+        
+        if(p->flag4[IJKm1]<0)
+        WALLF[IJK]=1;
+
+        if(p->flag4[IJKp1]<0)
+        WALLF[IJK]=1;
+    }
 }
 
 void nhflow_strain::Pk_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    /*
-	int n;
-	
-	LOOP
+    LOOP
     {
-    if(p->j_dir==1)
-    {
-	s11 = pudx(p,a);
-	s22 = pvdy(p,a);
-	s33 = pwdz(p,a);
-	s12 = (pudy(p,a) + pvdx(p,a));
-	s13 = (pudz(p,a) + pwdx(p,a));
-	s23 = (pvdz(p,a) + pwdy(p,a));
-    }
-    
-    if(p->j_dir==0)
-    {
-	s11 = pudx(p,a);
-	s22 = 0.0;
-	s33 = pwdz(p,a);
-	s12 = 0.0;
-	s13 = (pudz(p,a) + pwdx(p,a));
-	s23 = 0.0;
-    }
-    
+        if(p->j_dir==1)
+        {
+        s11 = dudx(d->U);
+        s22 = dvdy(d->V);
+        s33 = dwdz(d->W);
+        s12 = (dudy(d->U) + dvdx(d->V));
+        s13 = (dudz(d->U) + dwdx(d->W));
+        s23 = (dvdz(d->V) + dwdy(d->W));
+        }
+        
+        if(p->j_dir==0)
+        {
+        s11 = dudx(d->U);
+        s22 = 0.0;
+        s33 = dwdz(d->W);
+        s12 = 0.0;
+        s13 = (dudz(d->U) + dwdx(d->W));
+        s23 = 0.0;
+        }
 
 
-    Pk(i,j,k) = a->eddyv(i,j,k)*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
-    }*/	
+        PK[IJK] = d->EV[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
+    }
 }
 
 double nhflow_strain::sij(lexer *p, fdm_nhf *d, int ii, int jj)
@@ -140,10 +147,7 @@ double nhflow_strain::qij(lexer *p, fdm_nhf *d, int ii, int jj)
 
 double nhflow_strain::pk(lexer *p, fdm_nhf *d)
 { 
-    double val=0.0;
-    
-    return val;
-	//return Pk(i,j,k);
+    return PK[IJK];
 }
 
 double nhflow_strain::pk_k(lexer *p, fdm_nhf *d)
@@ -207,29 +211,29 @@ double nhflow_strain::pk_w(lexer *p, fdm_nhf *d)
 double nhflow_strain::strainterm(lexer *p, fdm_nhf *d)
 {
 	double s=0.0;
-    /*
+    
     if(p->j_dir==1)
     {
-	s11 = pudx(p,a);
-	s22 = pvdy(p,a);
-	s33 = pwdz(p,a);
-	s12 = (pudy(p,a) + pvdx(p,a));
-	s13 = (pudz(p,a) + pwdx(p,a));
-	s23 = (pvdz(p,a) + pwdy(p,a));
+	s11 = dudx(d->U);
+	s22 = dvdy(d->V);
+	s33 = dwdz(d->W);
+	s12 = (dudy(d->U) + dvdx(d->V));
+	s13 = (dudz(d->U) + dwdx(d->W));
+	s23 = (dvdz(d->V) + dwdy(d->W));
     }
     
     if(p->j_dir==0)
     {
-	s11 = pudx(p,a);
+	s11 = dudx(d->U);
 	s22 = 0.0;
-	s33 = pwdz(p,a);
+	s33 = dwdz(d->W);
 	s12 = 0.0;
-	s13 = (pudz(p,a) + pwdx(p,a));
+	s13 = (dudz(d->U) + dwdx(d->W));
 	s23 = 0.0;
     }
 
     s = sqrt(s11*s11 + s22*s22 + s33*s33 + 0.5*s12*s12 + 0.5*s13*s13 + 0.5*s23*s23);
-*/
+
 	return s;
 }
 

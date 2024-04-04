@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 
-void nhflow_idiff_2D::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UH_in, double *UH, double *VH, double *WH, double alpha)
+void nhflow_idiff_2D::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double alpha)
 {
 	/*starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;

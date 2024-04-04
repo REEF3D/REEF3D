@@ -77,10 +77,12 @@ void driver::logic_nhflow()
     
 //Convection	
     if(p->A511==1 || p->A511==8)
-	pnhfconvec=new nhflow_HLL(p,pgc,pBC);
+	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
     
     if(p->A511==2 || p->A511==9)
-	pnhfconvec=new nhflow_HLLC(p,pgc,pBC);
+	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
+    
+    pnhfscalarconvec = new nhflow_scalar_iweno(p);
     
 //Diffusion
     if(p->A512==0)

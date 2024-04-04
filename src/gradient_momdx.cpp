@@ -46,14 +46,14 @@ double gradient::udx(fdm* a)
 
 double gradient::udy(fdm* a)
 {
-	grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYP[JP]+p->DXP[IM1]);
+	grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
 
 	return grad;
 }
 
 double gradient::udz(fdm* a)
 {
-	grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DZP[KP]+p->DZP[KM1]);
+	grad = (a->u(i,j,k+1) - a->u(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
 
 	return grad;
 }

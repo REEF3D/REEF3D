@@ -36,7 +36,8 @@ strain::~strain()
 
 void strain::wallf_update(lexer *p, fdm *a, ghostcell *pgc, fieldint &wallf)
 {
-	int n;
+	int n,q;
+    
 	LOOP
 	wallf(i,j,k)=0;
 	
@@ -46,6 +47,15 @@ void strain::wallf_update(lexer *p, fdm *a, ghostcell *pgc, fieldint &wallf)
 	i = p->gcb4[n][0];
 	j = p->gcb4[n][1];
 	k = p->gcb4[n][2];
+	
+	wallf(i,j,k)=1;
+	}
+    
+    QGCDF4LOOP
+	{
+	i = p->gcdf4[q][0];
+	j = p->gcdf4[q][1];
+	k = p->gcdf4[q][2];
 	
 	wallf(i,j,k)=1;
 	}
