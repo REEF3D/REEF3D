@@ -995,6 +995,9 @@
         <VirtualDirectory Name="VTU">
           <File Name="vtu3D.h"/>
         </VirtualDirectory>
+        <VirtualDirectory Name="VTR">
+          <File Name="vtr3D.h"/>
+        </VirtualDirectory>
         <File Name="print_interface.h"/>
         <VirtualDirectory Name="Force">
           <File Name="force.h"/>
@@ -2627,7 +2630,12 @@
           <File Name="vtu3D_header.cpp"/>
           <File Name="vtu3D_pvtu.cpp"/>
         </VirtualDirectory>
+        <VirtualDirectory Name="VTR">
+          <File Name="vtr3D_header.cpp"/>
+          <File Name="vtr3D_pvtr.cpp"/>
+        </VirtualDirectory>
         <File Name="vtu3D.cpp"/>
+        <File Name="vtr3D.cpp"/>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.cpp"/>
           <File Name="probe_vel.cpp"/>

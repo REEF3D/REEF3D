@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vtu3D.h"
+#include"vtr3D.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -63,7 +63,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
+vtr3D::vtr3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 {
     if(p->F50==1)
 	gcval_phi=51;
@@ -192,210 +192,210 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 
 	// Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_VTU",0777);
+	mkdir("./REEF3D_CFD_VTR",0777);
 }
 
-vtu3D::~vtu3D()
+vtr3D::~vtr3D()
 {
 }
 
-void vtu3D::ini(lexer* p, fdm* a, ghostcell* pgc)
+void vtr3D::ini(lexer* p, fdm* a, ghostcell* pgc)
 {
 }
 
-void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtr3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
-        pgc->gcparax4a(p,a->phi,5);
-        
-        pmean->averaging(p,a,pgc,pheat);
+	pgc->gcparax4a(p,a->phi,5);
+	
+	pmean->averaging(p,a,pgc,pheat);
 
-		// Print out based on iteration
-        if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
-		{
-        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
-		}
+	// Print out based on iteration
+	if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
+	{
+	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+	}
 
-		// Print out based on time
-        if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
-        {
-        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+	// Print out based on time
+	if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==2) || (p->count==0 &&  p->P30>0.0))
+	{
+	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
-        p->printtime+=p->P30;
-        }
+	p->printtime+=p->P30;
+	}
 
-		// Print out based on sediment time
-        if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0 && p->P10==1) || (p->count==0 &&  p->P34>0.0))
-        {
-        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+	// Print out based on sediment time
+	if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0 && p->P10==2) || (p->count==0 &&  p->P34>0.0))
+	{
+	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
-        p->sedprinttime+=p->P34;
-        }
+	p->sedprinttime+=p->P34;
+	}
 
-		// Print out based on time interval
-		if(p->P10==1 && p->P35>0)
-		for(int qn=0; qn<p->P35; ++qn)
-		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
-		{
-		print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+	// Print out based on time interval
+	if(p->P10==2 && p->P35>0)
+	for(int qn=0; qn<p->P35; ++qn)
+	if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+	{
+	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
-		printtime_wT[qn]+=p->P35_dt[qn];
-		}
-
-
-		if((p->P62>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P62>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-        pline->start(p,a,pgc,pturb);
+	printtime_wT[qn]+=p->P35_dt[qn];
+	}
 
 
-		if(p->P50>0)
-        pwsf_theory->height_gauge(p,a,pgc,pflow,a->phi);
+	if((p->P62>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P62>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+	pline->start(p,a,pgc,pturb);
 
-        if(p->P51>0)
-        pwsf->height_gauge(p,a,pgc,a->phi);
 
-		if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-        pwsfline_x->wsfline(p,a,pgc,pflow);
+	if(p->P50>0)
+	pwsf_theory->height_gauge(p,a,pgc,pflow,a->phi);
 
-		if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-        pwsfline_y->wsfline(p,a,pgc,pflow);
+	if(p->P51>0)
+	pwsf->height_gauge(p,a,pgc,a->phi);
 
-		if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
-        {
-        p->probeprinttime+=p->P55;
-        }
+	if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+	pwsfline_x->wsfline(p,a,pgc,pflow);
 
-		if(p->P61>0)
-        pprobe->start(p,a,pgc,pturb);
-        
-        if(p->P64>0)
-        ppressprobe->start(p,a,pgc,pturb);
-        
-        if(p->P65>0)
-        pvel->start(p,a,pgc);
-        
-        if(p->P66>0)
-        pveltheo->start(p,a,pgc,pflow);
+	if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+	pwsfline_y->wsfline(p,a,pgc,pflow);
 
-		if(p->P167>0)
-		pq->start(p,a,pgc);
-        
-        if(p->P168>0)
-		pqw->start(p,a,pgc);
+	if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
+	{
+	p->probeprinttime+=p->P55;
+	}
 
-        if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
-        for(n=0;n<p->P81;++n)
-        pforce[n]->ini(p,a,pgc);
+	if(p->P61>0)
+	pprobe->start(p,a,pgc,pturb);
+	
+	if(p->P64>0)
+	ppressprobe->start(p,a,pgc,pturb);
+	
+	if(p->P65>0)
+	pvel->start(p,a,pgc);
+	
+	if(p->P66>0)
+	pveltheo->start(p,a,pgc,pflow);
 
-        if(p->count>1 && p->P81>0)
-        for(n=0;n<p->P81;++n)
-        pforce[n]->start(p,a,pgc);
+	if(p->P167>0)
+	pq->start(p,a,pgc);
+	
+	if(p->P168>0)
+	pqw->start(p,a,pgc);
 
-        if(p->P101>0)
-        pslosh->start(p,a,pgc);
+	if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
+	for(n=0;n<p->P81;++n)
+	pforce[n]->ini(p,a,pgc);
 
-		// sediment probes
-		if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
-		if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
-		{
-		if(p->P121>0)
-        pbedpt->bed_gauge(p,a,pgc);
+	if(p->count>1 && p->P81>0)
+	for(n=0;n<p->P81;++n)
+	pforce[n]->start(p,a,pgc);
 
-		if(p->P122>0)
-        pbedmax->bed_max(p,a,pgc);
+	if(p->P101>0)
+	pslosh->start(p,a,pgc);
 
-		if(p->P123>0)
-        pbedlinex->start(p,a,pgc,pflow);
+	// sediment probes
+	if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
+	if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
+	{
+	if(p->P121>0)
+	pbedpt->bed_gauge(p,a,pgc);
 
-		if(p->P124>0)
-        pbedliney->start(p,a,pgc,pflow);
+	if(p->P122>0)
+	pbedmax->bed_max(p,a,pgc);
 
-		if(p->P125>0)
-        pbedshear->bedshear_gauge(p,a,pgc,psed);
+	if(p->P123>0)
+	pbedlinex->start(p,a,pgc,pflow);
 
-		if(p->P126>0)
-        pbedshearmax->bedshear_maxval(p,a,pgc,psed);
-		}
+	if(p->P124>0)
+	pbedliney->start(p,a,pgc,pflow);
 
-        // Multiphase
-        pmp->print_file(p,a,pgc);
+	if(p->P125>0)
+	pbedshear->bedshear_gauge(p,a,pgc,psed);
 
-        // Print FSF
-        if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
-		pfsf->start(p,a,pgc);
+	if(p->P126>0)
+	pbedshearmax->bedshear_maxval(p,a,pgc,psed);
+	}
 
-		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
-        {
-        pfsf->start(p,a,pgc);
-        p->fsfprinttime+=p->P182;
-        }
+	// Multiphase
+	pmp->print_file(p,a,pgc);
 
-        if(p->P180==1 && p->P184>0)
-		for(int qn=0; qn<p->P184; ++qn)
-		if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
-		{
-		pfsf->start(p,a,pgc);
-		}
+	// Print FSF
+	if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
+	pfsf->start(p,a,pgc);
 
-        if(p->P180==1 && p->P185>0)
-		for(int qn=0; qn<p->P185; ++qn)
-		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
-		{
-		pfsf->start(p,a,pgc);
+	if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
+	{
+	pfsf->start(p,a,pgc);
+	p->fsfprinttime+=p->P182;
+	}
 
-		printfsftime_wT[qn]+=p->P185_dt[qn];
-		}
-        
-        // Print TOPO
-        if(((p->count%p->P191==0 && p->P182<0.0 && p->P190==1 )|| (p->count==0 &&  p->P192<0.0 && p->P190==1)) && p->P191>0)
-		ptopo->start(p,a,pgc,psed);
+	if(p->P180==1 && p->P184>0)
+	for(int qn=0; qn<p->P184; ++qn)
+	if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
+	{
+	pfsf->start(p,a,pgc);
+	}
 
-		if((p->simtime>p->fsfprinttime && p->P192>0.0 && p->P190==1) || (p->count==0 &&  p->P192>0.0))
-        {
-        ptopo->start(p,a,pgc,psed);
-        p->fsfprinttime+=p->P192;
-        }
+	if(p->P180==1 && p->P185>0)
+	for(int qn=0; qn<p->P185; ++qn)
+	if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+	{
+	pfsf->start(p,a,pgc);
 
-        if(p->P190==1 && p->P194>0)
-		for(int qn=0; qn<p->P194; ++qn)
-		if(p->count%p->P194_dit[qn]==0 && p->count>=p->P194_its[qn] && p->count<=(p->P194_ite[qn]))
-		{
-		ptopo->start(p,a,pgc,psed);
-		}
+	printfsftime_wT[qn]+=p->P185_dt[qn];
+	}
+	
+	// Print TOPO
+	if(((p->count%p->P191==0 && p->P182<0.0 && p->P190==1 )|| (p->count==0 &&  p->P192<0.0 && p->P190==1)) && p->P191>0)
+	ptopo->start(p,a,pgc,psed);
 
-        if(p->P190==1 && p->P195>0)
-		for(int qn=0; qn<p->P195; ++qn)
-		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P195_ts[qn] && p->simtime<=(p->P195_te[qn]+0.5*p->P195_dt[qn]))
-		{
-		ptopo->start(p,a,pgc,psed);
+	if((p->simtime>p->fsfprinttime && p->P192>0.0 && p->P190==1) || (p->count==0 &&  p->P192>0.0))
+	{
+	ptopo->start(p,a,pgc,psed);
+	p->fsfprinttime+=p->P192;
+	}
 
-		printfsftime_wT[qn]+=p->P195_dt[qn];
-		}
+	if(p->P190==1 && p->P194>0)
+	for(int qn=0; qn<p->P194; ++qn)
+	if(p->count%p->P194_dit[qn]==0 && p->count>=p->P194_its[qn] && p->count<=(p->P194_ite[qn]))
+	{
+	ptopo->start(p,a,pgc,psed);
+	}
 
-        if(p->P230>0)
-        pflowfile->start(p,a,pgc,pturb);
+	if(p->P190==1 && p->P195>0)
+	for(int qn=0; qn<p->P195; ++qn)
+	if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P195_ts[qn] && p->simtime<=(p->P195_te[qn]+0.5*p->P195_dt[qn]))
+	{
+	ptopo->start(p,a,pgc,psed);
 
-		// Print state out based on iteration
-        if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
-		{
-        pstate->write(p,a,pgc,pturb,psed);
-		}
+	printfsftime_wT[qn]+=p->P195_dt[qn];
+	}
 
-		// Print state out based on time
-        if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<<p->P47_te)))
-        {
-        pstate->write(p,a,pgc,pturb,psed);
+	if(p->P230>0)
+	pflowfile->start(p,a,pgc,pturb);
 
-        p->stateprinttime+=p->P42;
-        }
+	// Print state out based on iteration
+	if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
+	{
+	pstate->write(p,a,pgc,pturb,psed);
+	}
+
+	// Print state out based on time
+	if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<<p->P47_te)))
+	{
+	pstate->write(p,a,pgc,pturb,psed);
+
+	p->stateprinttime+=p->P42;
+	}
 
 }
 
-void vtu3D::print_stop(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtr3D::print_stop(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
     
 }
 
-void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtr3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     if(p->P180==1)
 	pfsf->start(p,a,pgc);
@@ -403,7 +403,7 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
     print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 }
 
-void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     pgc->start4a(p,a->test,1);
     pgc->start1(p,a->u,110);
@@ -445,10 +445,16 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     
     //pgc->start4a(p,a->topo,159);
 
-     pgc->gcperiodicx(p,a->press,4);
+    pgc->gcperiodicx(p,a->press,4);
+	
+	fextent(p);
+
+    if ( p->mpirank == 0)
+    piextent = (int *)malloc(p->mpi_size*6*sizeof(int)); 
+    pgc->gather_int(iextent,6,piextent,6);
 
     if(p->mpirank==0)
-    pvtu(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+    pvtr(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
 
     name_iter(a,p,pgc);
@@ -579,30 +585,25 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
-		// end scalars
+	
+	// end scalars
+	//---------------------------------------------
 
-	// Points
-    offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
+	//x
+    offset[n]=offset[n-1]+4+4*(p->knox+1); 
     ++n;
-
-	// Cells
-    offset[n]=offset[n-1] + 4*p->tpcellnum*8 + 4;
+	//y
+	offset[n]=offset[n-1]+4+4*(p->knoy+1); 
     ++n;
-    offset[n]=offset[n-1] + 4*(p->tpcellnum) + 4;
-    ++n;
-	offset[n]=offset[n-1] + 4*(p->tpcellnum) + 4;
+	//z
+	offset[n]=offset[n-1]+4+4*(p->knoz+1); 
     ++n;
 	//---------------------------------------------
 
 	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">"<<endl;
-
-	result<<"<FieldData>"<<endl;
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
+	result<<"<VTKFile type=\"RectilinearGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt32\">"<<endl;
+	result<<"<RectilinearGrid WholeExtent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<" "<<"\">"<<endl;
+	result<<"<Piece Extent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">"<<endl;
 
     n=0;
     result<<"<PointData >"<<endl;
@@ -707,22 +708,16 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
     result<<"</PointData>"<<endl;
 
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"</Points>"<<endl;
-
-    result<<"<Cells>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"</Cells>"<<endl;
-
-    result<<"</Piece>"<<endl;
-    result<<"</UnstructuredGrid>"<<endl;
+	result<<"<CellData>"<<endl;
+	result<<"</CellData>"<<endl;
+    result<<"<Coordinates>"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+	n++;
+	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+	n++;
+	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+	n++;
+	result<<"</Coordinates>"<<endl<<"</Piece>"<<endl<<"</RectilinearGrid>"<<endl;
 
 //----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
@@ -942,81 +937,30 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
 
-//  XYZ
-	double theta_y = p->B192_1*(PI/180.0);
-	double omega_y = 2.0*PI*p->B192_2;
-
-    if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
-    phase = omega_y*p->simtime;
-
-
-	iin=4*(p->pointnum)*3;
+	// Coordinates
+	// x
+	iin=4*(p->knox+1);
 	result.write((char*)&iin, sizeof (int));
-    TPLOOP
+    ITLOOP
 	{
- 
-    zcoor=p->ZN[KP1];
-
-    ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3 
-                + p->B181_1*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3));
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->YN[JP1]) + p->B182_1*sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3);
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4
-                + p->B183_1*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3));
+	ffn=float(p->XN[IP]);
 	result.write((char*)&ffn, sizeof (float));
 	}
-
-//  Connectivity
-    iin=4*(p->tpcellnum)*8;
-    result.write((char*)&iin, sizeof (int));
-    BASEREVLOOP
-    if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
+	// y
+	iin=4*(p->knoy+1);
+	result.write((char*)&iin, sizeof (int));
+    JTLOOP
 	{
-	iin=int(a->nodeval(i-1,j-1,k-1)-1);
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i,j-1,k-1))-1;
-	result.write((char*)&iin, sizeof (int));
-
-    iin= int(a->nodeval(i,j,k-1))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i-1,j,k-1))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i-1,j-1,k))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i,j-1,k))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i,j,k))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i-1,j,k))-1;
-	result.write((char*)&iin, sizeof (int));
+	ffn=float(p->YN[JP]);
+	result.write((char*)&ffn, sizeof (float));
 	}
-
-//  Offset of Connectivity
-    iin=4*(p->tpcellnum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->tpcellnum;++n)
-	{
-	iin=(n+1)*8;
+	// z
+	iin=4*(p->knoz+1);
 	result.write((char*)&iin, sizeof (int));
-	}
-
-
-//  Cell types
-    iin=4*(p->tpcellnum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->tpcellnum;++n)
+    KTLOOP
 	{
-	iin=12;
-	result.write((char*)&iin, sizeof (int));
+	ffn=float(p->ZN[KP]);
+	result.write((char*)&ffn, sizeof (float));
 	}
 
 	result<<endl<<"</AppendedData>"<<endl;
