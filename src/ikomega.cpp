@@ -189,12 +189,12 @@ void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
 
     LOOP
     {
-	if(wallf(i,j,k)==0)
-	a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
-	
-	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  += pk(p,a);
-
+        if(wallf(i,j,k)==0)
+        {
+        a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
+        a->rhsvec.V[count]  += pk(p,a);
+        }
+        
 	++count;
     }
     
