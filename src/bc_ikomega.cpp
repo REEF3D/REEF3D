@@ -84,7 +84,7 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
         
-        if((bc==5 || (a->topo(i-1,j,k)<0.0 || a->topo(i+1,j,k-1)<0.0 || a->topo(i,j-1,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k-1)<0.0)) && p->S10>0)
+        if((bc==5 || (a->topo(i-1,j,k)<0.0 || a->topo(i+1,j,k)<0.0 || a->topo(i,j-1,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k-1)<0.0)) && p->S10>0)
         {
         if(p->G3==0)
         zval = a->bed(i,j) + p->T43*p->DZN[KP];
@@ -108,7 +108,6 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
 	
 	a->M.p[id] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;
 	a->rhsvec.V[id] += (tau*u_abs)/dist;
-    
     
 }
 

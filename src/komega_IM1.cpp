@@ -56,6 +56,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
     bckin_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,kin,a->rhsvec,4);
 	pgc->start4(p,kin,gcval_kin);
+    pgc->solid_forcing_lsm(p,a,kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -73,6 +74,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	psolv->start(p,a,pgc,eps,a->rhsvec,4);
 	epsfsf(p,a,pgc);
 	pgc->start4(p,eps,gcval_eps);
+    pgc->solid_forcing_lsm(p,a,eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
