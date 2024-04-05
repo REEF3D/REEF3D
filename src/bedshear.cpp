@@ -156,10 +156,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     {
 	double v_t,v_d;
 		
-	xip= p->XP[IP];
-	yip= p->YP[JP];
+	xip = p->XP[IP];
+	yip = p->YP[JP];
 
-    zval = s->bedzh(i,j) + p->DZN[KP];
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
 	
         if(p->S33==1)
         {
