@@ -20,26 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vtu3D.h"
-#include"vtr3D.h"
 #include"vts3D.h"
+#include<string>
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-#include"ioflow.h"
-#include"ioflow_void.h"
-#include"ioflow_f.h"
-#include"iowave.h"
-#include"ioflow_gravity.h"
-#include"etimestep.h"
-#include"ietimestep.h"
-#include"fixtimestep.h"
-#include"pftimestep.h"
-#include"initialize.h"
+void vts3D::name_iter(fdm* a,lexer* p,ghostcell* pgc)
+{
+    int num=0;
 
-#include"geotopo.h"
-#include"solid.h"
-#include"data_f.h"
-#include"data_void.h"
+    if(p->P15==1)
+    num = p->printcount;
 
-#include"patchBC.h"
-#include"patchBC_2D.h"
-#include"patchBC_void.h"
+    if(p->P15==2)
+    num = p->count;
+
+    sprintf(name,"./REEF3D_CFD_VTS/REEF3D-CFD-%08i-%06i.vts",num,p->mpirank+1);
+
+
+    sprintf(epsvar,"epsilon");
+
+	if(p->T10==2||p->T10==12 || p->T10==22)
+	sprintf(epsvar,"omega");
+
+
+}
+
+void vts3D::name_time(fdm* a,lexer* p,ghostcell* pgc)
+{
+
+}
+
+void vts3D::header(fdm* a,lexer* p,ghostcell* pgc)
+{
+
+}

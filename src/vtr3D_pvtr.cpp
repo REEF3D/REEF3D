@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vtu3D.h"
+#include"vtr3D.h"
 #include<string>
 #include"lexer.h"
 #include"fdm.h"
@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"sediment.h"
 #include"print_averaging.h"
 
-void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtr3D::pvtr(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     int num=0;
 
@@ -44,14 +44,14 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
     if(p->P15==2)
     num = p->count;
 
-	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-%08i.pvtu",num);
+	sprintf(name,"./REEF3D_CFD_VTR/REEF3D-CFD-%08i.pvtr",num);
 
 	ofstream result;
 	result.open(name);
 
 	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
+	result<<"<VTKFile type=\"PRectilinearGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt32\">"<<endl;
+	result<<"<PRectilinearGrid WholeExtent=\"0 "<<p->gknox<<" 0 "<<p->gknoy<<" 0 "<<p->gknoz<<"\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">"<<endl;
 
 	result<<"<FieldData>"<<endl;
     result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
@@ -127,33 +127,29 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	result<<"<PDataArray type=\"Float32\" Name=\"walldist\"/>"<<endl;
 
 	result<<"</PPointData>"<<endl;
+	result<<"<PCellData>"<<endl;
+	result<<"</PCellData>"<<endl;
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
-
-	result<<"<Cells>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
-	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
-    ++n;
-	result<<"</Cells>"<<endl;
+	result<<"<PCoordinates>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"X\" NumberOfComponents=\"1\" format=\"appended\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"Y\" NumberOfComponents=\"1\" format=\"appended\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"Z\" NumberOfComponents=\"1\" format=\"appended\"/>"<<endl;
+    result<<"</PCoordinates>"<<endl;
 
 	for(n=0; n<p->M10; ++n)
 	{
     piecename(a,p,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+	extent(p,n);
+    result<<"<Piece Extent=\""<<pextent<<"\" Source=\""<<pname<<"\"/>"<<endl;
 	}
 
-	result<<"</PUnstructuredGrid>"<<endl;
+	result<<"</PRectilinearGrid>"<<endl;
 	result<<"</VTKFile>"<<endl;
 
 	result.close();
 }
 
-void vtu3D::piecename(fdm* a, lexer* p, ghostcell* pgc, int n)
+void vtr3D::piecename(fdm* a, lexer* p, ghostcell* pgc, int n)
 {
     int num=0;
 
@@ -164,6 +160,20 @@ void vtu3D::piecename(fdm* a, lexer* p, ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"REEF3D-CFD-%08i-%06i.vtu",num,n+1);
+	sprintf(pname,"REEF3D-CFD-%08i-%06i.vtr",num,n+1);
 
+}
+
+void vtr3D::extent(lexer* p, int n)
+{
+	sprintf(pextent,"%i %i %i %i %i %i",piextent[0+6*n],piextent[1+6*n],piextent[2+6*n],piextent[3+6*n],piextent[4+6*n],piextent[5+6*n]);
+}
+void vtr3D::fextent(lexer* p)
+{
+	iextent[0]=p->origin_i;
+	iextent[1]=p->origin_i+p->knox;
+	iextent[2]=p->origin_j;
+	iextent[3]=p->origin_j+p->knoy;
+	iextent[4]=p->origin_k;
+	iextent[5]=p->origin_k+p->knoz;
 }
