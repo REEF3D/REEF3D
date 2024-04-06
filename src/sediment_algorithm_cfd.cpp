@@ -99,21 +99,6 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
-    
-    /*
-    if(p->mpirank==7)
-    {
-     i= p->knox-2;
-     j=15;
-     
-     //cout<<"!! qbe: "<<s->qbe(i-1,j)<<" "<<s->qbe(i,j)<<" "<<s->qbe(i+1,j)<<endl;
-     
-     KLOOP
-     cout<<k<<" !! flag1: "<<p->flag1[IJK]<<" "<<p->flag1[Ip1JK]<<endl;
-        
-        
-    }*/
-    
 }
 
 void sediment_f::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)
