@@ -184,38 +184,38 @@ void nhflow_ikomega::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvran
 }
 
 void nhflow_ikomega::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
-{	/*
+{	
     int count=0;
 
     LOOP
     {
-	if(wallf(i,j,k)==0)
-	a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
-	
-	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  += pk(p,a);
+        if(WALLF[IJK]==0)
+        {
+        d->M.p[count] += p->cmu * MAX(EPS[IJK],0.0);
 
+        d->rhsvec.V[count]  += pk(p,d);
+        }
 	++count;
     }
     
-    pvrans->kw_source(p,a,kin);*/
+    //pvrans->kw_source(p,a,kin);
 }
 
 void nhflow_ikomega::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
-{/*
+{
     count=0;
     double dirac;
 
         LOOP
         {
-		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
+		d->M.p[count] += kw_beta * MAX(EPS[IJK],0.0);
 
-        a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a);
+        d->rhsvec.V[count] +=  kw_alpha * (MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20)))*pk(p,d);
         ++count;
         }
 
     
-    pvrans->omega_source(p,a,kin,eps);*/
+    //pvrans->omega_source(p,a,kin,eps);
 }
 
 void nhflow_ikomega::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)

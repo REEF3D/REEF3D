@@ -28,116 +28,32 @@ Author: Hans Bihs
 
 void nhflow_idiff_2D::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double alpha)
 {
-	/*starttime=pgc->timer();
-	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
-    
-    LOOP
-    UHdiff[IJK] = UH_in[IJK];
-    
-    pgc->start1(p,diff,gcval_u);
+	n=0;
 
-    count=0;
-
-	LOOP // 
+	LOOP
 	{
-	ev_ijk=a->eddyv(i,j,k);
-	ev_ip_j_k=a->eddyv(i+1,j,k);
-	ev_i_jm_k=a->eddyv(i,j-1,k);
-	ev_i_jp_k=a->eddyv(i,j+1,k);
-	ev_i_j_km=a->eddyv(i,j,k-1);
-	ev_i_j_kp=a->eddyv(i,j,k+1);
+	visc = d->VISC[IJK] + d->EV[IJK];
+    
+    sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
 	
-	visc_ijk=a->visc(i,j,k);
-	visc_ip_j_k=a->visc(i+1,j,k);
-	visc_i_jm_k=a->visc(i,j-1,k);
-	visc_i_jp_k=a->visc(i,j+1,k);
-	visc_i_j_km=a->visc(i,j,k-1);
-	visc_i_j_kp=a->visc(i,j,k+1);
+//   M
 	
-	visc_ddy_p = 0.25*(visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k + visc_i_jp_k+ev_i_jp_k + a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k));    
+	d->M.p[n]  +=        visc/(p->DXN[IP]*p->DXP[IM1])
+					+   visc/(p->DXN[IP]*p->DXP[IP])
+					+   visc/(p->DYN[JP]*p->DYP[JM1])*p->y_dir
+					+   visc/(p->DYN[JP]*p->DYP[JP])*p->y_dir
+					+   (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KM1])
+					+   (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
     
-	visc_ddy_m = 0.25*(visc_i_jm_k+ev_i_jm_k  +a->visc(i+1,j-1,k)+a->eddyv(i+1,j-1,k) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
-    
-	visc_ddz_p = 0.25*(visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k + visc_i_j_kp+ev_i_j_kp + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1));
-    
-	visc_ddz_m = 0.25*(visc_i_j_km+ev_i_j_km + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
-
-	a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
-				   + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP])
-				   + visc_ddy_p/(p->DYP[JP]*p->DYN[JP])
-				   + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
-				   + visc_ddz_p/(p->DZP[KP]*p->DZN[KP])
-				   + visc_ddz_m/(p->DZP[KM1]*p->DZN[KP])
-				   + CPOR1/(alpha*p->dt);
-				  
-	a->rhsvec.V[count] +=  ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
-						 + ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
-
-						 + (CPOR1*u_in(i,j,k))/(alpha*p->dt);
-                         
+	 d->M.s[n] -= visc/(p->DXN[IP]*p->DXP[IM1]);
+	 d->M.n[n] -= visc/(p->DXN[IP]*p->DXP[IP]);
 	 
-	 a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP]);
-	 a->M.n[count] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP]);
+	 d->M.b[n] -= (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KM1]);
+	 d->M.t[n] -= (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
+     
+     d->rhsvec.V[n] +=       visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(F[Ip1JKp1] - F[Im1JKp1] - F[Ip1JKm1] + F[Im1JKm1])
+                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]));
 	 
-	 a->M.e[count] = -visc_ddy_m/(p->DYP[JM1]*p->DYN[JP]);
-	 a->M.w[count] = -visc_ddy_p/(p->DYP[JP]*p->DYN[JP]);
-	 
-	 a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
-	 a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
-	 
-     ++count;
-	 }
-    
-    n=0;
-	ULOOP
-	{
-		if(p->flag1[Im1JK]<0)
-		{
-		a->rhsvec.V[n] -= a->M.s[n]*u(i-1,j,k);
-		a->M.s[n] = 0.0;
-		}
-		
-		if(p->flag1[Ip1JK]<0)
-		{
-		a->rhsvec.V[n] -= a->M.n[n]*u(i+1,j,k);
-		a->M.n[n] = 0.0;
-		}
-		
-		if(p->flag1[IJm1K]<0)
-		{
-		a->rhsvec.V[n] -= a->M.e[n]*u(i,j-1,k);
-		a->M.e[n] = 0.0;
-		}
-		
-		if(p->flag1[IJp1K]<0)
-		{
-		a->rhsvec.V[n] -= a->M.w[n]*u(i,j+1,k);
-		a->M.w[n] = 0.0;
-		}
-		
-		if(p->flag1[IJKm1]<0)
-		{
-		a->rhsvec.V[n] -= a->M.b[n]*u(i,j,k-1);
-		a->M.b[n] = 0.0;
-		}
-		
-		if(p->flag1[IJKp1]<0)
-		{
-		a->rhsvec.V[n] -= a->M.t[n]*u(i,j,k+1);
-		a->M.t[n] = 0.0;
-		}
-
-	++n;
+	 ++n;
 	}
-	
-	psolv->start(p,a,pgc,diff,a->rhsvec,1);
-    
-	
-    pgc->start1(p,diff,gcval_u);
-    
-    
-	time=pgc->timer()-starttime;
-	p->uiter=p->solveriter;
-	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;*/
 }

@@ -112,7 +112,15 @@ void driver::logic_nhflow()
 	pnhfturb = new nhflow_komega_void(p,d,pgc);
     
     if(p->T10==2)
+    {
 	pnhfturb = new nhflow_komega_IM1(p,d,pgc);
+    
+        if(p->j_dir==1)
+        pnhfturbdiff = new nhflow_idiff(p);
+        
+        if(p->j_dir==0)
+        pnhfturbdiff = new nhflow_idiff_2D(p);
+    }
 
 //Solver
     if(p->j_dir==0)

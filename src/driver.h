@@ -205,7 +205,7 @@ public:
     nhflow_reconstruct *precon;
     nhflow_pressure *pnhpress;
     nhflow_turbulence *pnhfturb;
-    nhflow_diffusion *pnhfdiff; 
+    nhflow_diffusion *pnhfdiff,*pnhfturbdiff; 
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;

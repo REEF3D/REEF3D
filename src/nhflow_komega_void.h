@@ -35,7 +35,7 @@ public:
 	nhflow_komega_void(lexer *,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_komega_void();
 
-	virtual void start(fdm_nhf*, lexer*, nhflow_scalar_convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*);
 	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*);
 	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*);
 

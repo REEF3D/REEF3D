@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_strain.h"
 #include"solver.h"
-#include"diffusion.h"
+#include"nhflow_diffusion.h"
 #include"ioflow.h"
 #include"nhflow_scalar_convection.h"
 
@@ -40,7 +40,7 @@ nhflow_komega_IM1::~nhflow_komega_IM1()
 {
 }
 
-void nhflow_komega_IM1::start(fdm_nhf* d, lexer* p, nhflow_scalar_convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
+void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans *pvrans)
 {
 	Pk_update(p,d,pgc);
 	wallf_update(p,d,pgc,WALLF);
@@ -49,11 +49,11 @@ void nhflow_komega_IM1::start(fdm_nhf* d, lexer* p, nhflow_scalar_convection* pc
     starttime=pgc->timer();
 	clearrhs(p,d);
     pconvec->start(p,d,KIN,4,d->U,d->V,d->W);
+	pdiff->diff_scalar(p,d,pgc,psolv,KIN,1.0);
+	kinsource(p,d,pvrans);
+	timesource(p,d,KN);
     
-	/*pdiff->idiff_scalar(p,a,pgc,psolv,kin,eddyv0,kw_sigma_k,1.0);
-	kinsource(p,a,pvrans);
-	timesource(p,a,kn);
-    bckomega_start(a,p,kin,eps,gcval_kin);
+    /*bckomega_start(a,p,kin,eps,gcval_kin);
     bckin_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,kin,a->rhsvec,4);
 	pgc->start4(p,kin,gcval_kin);
@@ -98,15 +98,15 @@ void nhflow_komega_IM1::etimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
 
 void nhflow_komega_IM1::timesource(lexer* p, fdm_nhf* d, double *FN)
 {
-    /*count=0;
+    count=0;
     LOOP
     {
-        a->M.p[count] += 1.0/DT;
+        d->M.p[count] += 1.0/DT;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + fn(i,j,k)/DT;
+        d->rhsvec.V[count] += d->L[IJK] + FN[IJK]/DT;
 
 	++count;
-    }*/
+    }
 }
 
 void nhflow_komega_IM1::clearrhs(lexer* p, fdm_nhf *d)
