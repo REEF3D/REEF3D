@@ -32,14 +32,14 @@ class sliceint;
 
 using namespace std;
 
-#ifndef BEDSHEAR_H_
-#define BEDSHEAR_H_
+#ifndef SEDIMENT_BEDSHEAR_H_
+#define SEDIMENT_BEDSHEAR_H_
 
-class bedshear :  public norm_vec
+class sediment_bedshear :  public norm_vec
 {
 public:
-    bedshear(lexer*,turbulence*);
-    virtual ~bedshear();
+    sediment_bedshear(lexer*,turbulence*);
+    virtual ~sediment_bedshear();
 
 	virtual void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
 	virtual void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);

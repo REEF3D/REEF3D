@@ -36,7 +36,7 @@ Author: Hans Bihs
 #include"bedload_EF.h"
 #include"bedload_void.h"
 #include"bedconc.h"
-#include"bedshear.h"
+#include"sediment_bedshear.h"
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
 #include"sandslide_f3.h"
@@ -175,7 +175,7 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     
     prelax = new topo_relax(p);
 	
-	pbedshear  = new bedshear(p,pturb);
+	pbedshear  = new sediment_bedshear(p,pturb);
     
     volume_token=0;
     

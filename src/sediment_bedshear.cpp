@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedshear.h"
+#include"sediment_bedshear.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm2D.h"
@@ -31,18 +31,18 @@ Author: Hans Bihs
 
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
-bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4), taueff_loc(p), taucrit_loc(p)
+sediment_bedshear::sediment_bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4), taueff_loc(p), taucrit_loc(p)
 {
     tau=0.0;
     tauc=0.0;
     pturb=ppturb;
 }
 
-bedshear::~bedshear()
+sediment_bedshear::~sediment_bedshear()
 {
 }
 
-void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sediment_bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	int count;
 	double zval,fac,topoval,taukin,tauvel,density;
@@ -277,7 +277,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     }
 }
 
-void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void sediment_bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	double r,density;
     
@@ -295,18 +295,18 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     }
 }
 
-void bedshear::taubed(lexer*, fdm*, ghostcell*, double &tau_eff)
+void sediment_bedshear::taubed(lexer*, fdm*, ghostcell*, double &tau_eff)
 {
     tau_eff = taueff_loc(i,j);
 }
 
-void bedshear::taucritbed(lexer*, fdm*, ghostcell*, double &tau_crit)
+void sediment_bedshear::taucritbed(lexer*, fdm*, ghostcell*, double &tau_crit)
 {
     tau_crit = taucrit_loc(i,j);
 }
 
 // SFLOW
-void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
+void sediment_bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
     double uabs,cf,manning,tau;
     double U,V;
@@ -357,7 +357,7 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     
 }
 
-void bedshear::taucritbed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
+void sediment_bedshear::taucritbed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
 	double r;
     

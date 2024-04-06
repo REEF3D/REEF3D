@@ -30,7 +30,7 @@ Author: Hans Bihs
 class bedload;class bedconc;
 class sandslide;
 class topo_relax;
-class bedshear;
+class sediment_bedshear;
 class vrans;
 class turbulence;
 class sediment_fdm;
@@ -86,7 +86,7 @@ private:        void log_ini(lexer*);    void sedimentlog(lexer*);
     topo_relax *prelax;
     vrans *pvrans;
     bedshear_reduction *preduce;    topo *ptopo;    suspended *psusp;    diffusion *psuspdiff;    convection *psuspdisc;
-	bedshear *pbedshear;    patchBC_interface *pBC;    ofstream sedlogout;
+	sediment_bedshear *pbedshear;    patchBC_interface *pBC;    ofstream sedlogout;
     
     double starttime;
     

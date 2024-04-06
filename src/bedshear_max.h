@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"boundarycheck.h"
-#include"bedshear.h"
+#include"sediment_bedshear.h"
 #include<iostream>
 #include<fstream>
 
