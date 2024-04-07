@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"suspended.h"
 #include"bedload.h"
 #include"bedconc.h"
-#include"sediment_bedshear.h"
+#include"bedshear.h"
 #include"sandslide.h"
 #include"topo_relax.h"
 #include"bedshear_reduction.h"

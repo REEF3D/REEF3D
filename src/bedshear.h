@@ -35,11 +35,11 @@ using namespace std;
 #ifndef SEDIMENT_BEDSHEAR_H_
 #define SEDIMENT_BEDSHEAR_H_
 
-class sediment_bedshear :  public norm_vec
+class bedshear :  public norm_vec
 {
 public:
-    sediment_bedshear(lexer*,turbulence*);
-    virtual ~sediment_bedshear();
+    bedshear(lexer*,turbulence*);
+    virtual ~bedshear();
 
 	virtual void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
 	virtual void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);

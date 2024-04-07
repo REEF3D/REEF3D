@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"sediment_bedshear.h"
+#include"bedshear.h"
 
 void sediment_f::name_pvtu_bedload(lexer *p, ghostcell *pgc, ofstream &result)
 {

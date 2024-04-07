@@ -521,7 +521,7 @@
           <File Name="bedload_einstein.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedshear">
-          <File Name="sediment_bedshear.h"/>
+          <File Name="bedshear.h"/>
           <File Name="bedshear_reduction.h"/>
           <File Name="bedslope.h"/>
           <File Name="reduction_deyana.h"/>
@@ -1751,7 +1751,7 @@
           <File Name="bedload_einstein.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedshear">
-          <File Name="sediment_bedshear.cpp"/>
+          <File Name="bedshear.cpp"/>
           <File Name="bedslope.cpp"/>
           <File Name="reduction_deyana.cpp"/>
           <File Name="reduction_deyemp.cpp"/>

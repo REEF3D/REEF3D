@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"sediment_bedshear.h"
+#include"bedshear.h"
 #include"suspended.h"
 
 double sediment_f::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)

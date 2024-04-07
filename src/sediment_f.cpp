@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"convection.h"
 #include"ioflow.h"
 #include"topo.h"
-#include"sediment_bedshear.h"
+#include"bedshear.h"
 #include"patchBC_interface.h"
 
 sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC): bedslope(p)
