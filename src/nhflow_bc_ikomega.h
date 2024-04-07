@@ -38,8 +38,8 @@ public:
 	void bckomega_start(lexer*,fdm_nhf*,double*,double*, int);
     void bckin_matrix(lexer*,fdm_nhf*,double*,double*);
     void bcomega_matrix(lexer*,fdm_nhf*,double*,double*);
-	void wall_law_kin(lexer*,fdm_nhf*,double*,double*,int,int,int,int,int,int,double);
-	void wall_law_omega(lexer*,fdm_nhf*,double*,double*,int,int,int,int,int,int,double);
+	void wall_law_kin(lexer*,fdm_nhf*,double*,double*);
+	void wall_law_omega(lexer*,fdm_nhf*,double*,double*);
 
 private:
 	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;

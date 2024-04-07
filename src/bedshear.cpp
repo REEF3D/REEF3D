@@ -189,10 +189,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	if(p->S16==4)
     {
     if(p->G3==0)
-    zval = s->bedzh(i,j) + p->DZN[KP];
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
     
     if(p->G3==1)
-    zval = s->bedzh(i,j) + 1.0*p->DZN[KP];
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
     
     if(p->S33==1)
     tau=density*pturb->kinval(i,j,k)*0.3;

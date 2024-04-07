@@ -126,7 +126,7 @@ void lexer::ini_default()
     A553=0;      // int breaking in very shallow regions turned onf
 
     // Boundary Conditions
-	B10=0;			// int wall laws velocities on/off
+	B10=1;			// int wall laws velocities on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity
     B23=1;            // int ghostcell extrapolation or refective
 	B29=0.5;		// double gamma for gc image point
