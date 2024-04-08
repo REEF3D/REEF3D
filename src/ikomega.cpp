@@ -214,13 +214,11 @@ void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
         ++count;
         }
 
-    
     pvrans->omega_source(p,a,kin,eps);
 }
 
 void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 {
-	
 	if(p->T36>0)
 	LOOP
 	{
