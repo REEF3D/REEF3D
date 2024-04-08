@@ -180,10 +180,13 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result<<"<PolyData>"<<endl;
 	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">"<<endl;
     
+    if(p->P16==1)
+    {
     result<<"<FieldData>"<<endl;
     result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
     result<<"</DataArray>"<<endl;
     result<<"</FieldData>"<<endl;
+    }
     
     n=0;
 	result<<"<Points>"<<endl;

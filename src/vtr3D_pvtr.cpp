@@ -53,10 +53,13 @@ void vtr3D::pvtr(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	result<<"<VTKFile type=\"PRectilinearGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt32\">"<<endl;
 	result<<"<PRectilinearGrid WholeExtent=\"0 "<<p->gknox<<" 0 "<<p->gknoy<<" 0 "<<p->gknoz<<"\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">"<<endl;
 
+    if(p->P16==1)
+    {
 	result<<"<FieldData>"<<endl;
     result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
     result<<"</DataArray>"<<endl;
     result<<"</FieldData>"<<endl;
+    }
 
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;

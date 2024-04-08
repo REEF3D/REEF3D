@@ -177,10 +177,13 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 	result<<"<PolyData>"<<endl;
 	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">"<<endl;
     
+    if(p->P16==1)
+    {
     result<<"<FieldData>"<<endl;
     result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
     result<<"</DataArray>"<<endl;
     result<<"</FieldData>"<<endl;
+    }
     
     n=0;
 	result<<"<Points>"<<endl;

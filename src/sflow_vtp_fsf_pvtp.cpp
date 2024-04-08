@@ -46,10 +46,13 @@ void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *p
 	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
     
+    if(p->P16==1)
+    {
     result<<"<FieldData>"<<endl;
     result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
     result<<"</DataArray>"<<endl;
     result<<"</FieldData>"<<endl;
+    }
 	
 	result<<"<PPoints>"<<endl;
 	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;

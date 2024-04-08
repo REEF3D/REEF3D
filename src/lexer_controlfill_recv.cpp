@@ -928,7 +928,7 @@ void lexer::ctrlrecv()
     P12 = ictrl[ii];
 	ii++;
     P15 = ictrl[ii];
-	ii++;
+	ii++;    P16 = ictrl[ii];	ii++;
 	P18 = ictrl[ii];
 	ii++;
 	P20 = ictrl[ii];
