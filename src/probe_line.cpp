@@ -201,7 +201,7 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 
 			lineout[n]<<endl<<endl;
 			
-			lineout[n]<<"X \t Y \t Z \t U \t V \t W \t P \t Kin \t Epsilon/Omega \t Eddy-viscosity \t LS"<<endl;
+			lineout[n]<<"X \t Y \t Z \t U \t V \t W \t P \t Kin \t Omega \t Eddy-viscosity \t LS"<<endl;
 			
 			lineout[n]<<endl<<endl;
 		}
@@ -218,7 +218,7 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 			V[n][q] = p->ccipol2(a->v, xp, yp, zp);
 			W[n][q] = p->ccipol3(a->w, xp, yp, zp);
 			P[n][q] = p->ccipol4_a(a->press, xp, yp, zp) - p->pressgage;
-			K[n][q] = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
+			K[n][q] = pturb->ccipol_a_kinval(p, pgc, xp, yp, zp);
 			E[n][q] = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
 			VT[n][q] = p->ccipol4_a(a->eddyv, xp, yp, zp);
 			LS[n][q] = p->ccipol4(a->phi, xp, yp, zp);

@@ -45,7 +45,7 @@ bcmom::bcmom(lexer* p):surftens(p),roughness(p),kappa(0.4)
 	if(p->T10>0 || p->T10<20)
 	bckin=1;
 	
-	wallfunc_type=1;
+	wallfunc_type=2;
 
 	if(p->T10==0 || p->T10>=31)
 	wallfunc_type=2;
