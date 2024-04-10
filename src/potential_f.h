@@ -47,8 +47,6 @@ private:
 	void vcalc(lexer*,fdm*,field&);
 	void wcalc(lexer*,fdm*,field&);
     
-    void smoothen(lexer*,fdm*,ghostcell*);
-    
     void laplace(lexer*,fdm*,ghostcell*,field&);
     void ini_bc(lexer*,fdm*,ghostcell*);
     
