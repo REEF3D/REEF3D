@@ -121,10 +121,10 @@ void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 
 	eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
     
-    //a->M.p[id] += 1.0e20;
-    //a->rhsvec.V[id] += eps_star*1.0e20;
+    a->M.p[id] += 1.0e20;
+    a->rhsvec.V[id] += eps_star*1.0e20;
     
-    eps(i,j,k) = eps_star;
+    //eps(i,j,k) = eps_star;
 }
 
 void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
