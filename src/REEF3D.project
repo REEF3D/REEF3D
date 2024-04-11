@@ -486,8 +486,11 @@
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="Particle">
         <File Name="particle.h"/>
+        <File Name="particles_obj.h"/>
+        <File Name="tracers_obj.h"/>
         <File Name="particle_v.h"/>
         <File Name="particle_f.h"/>
+        <File Name="particle_func.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -575,6 +578,9 @@
         <File Name="sediment.h"/>
         <File Name="sediment_f.h"/>
         <File Name="sediment_void.h"/>
+        <VirtualDirectory Name="Particle">
+          <File Name="sedpart.h"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
         <VirtualDirectory Name="BC">
@@ -1677,26 +1683,18 @@
         <VirtualDirectory Name="Print">
           <File Name="particle_printvtu.cpp"/>
           <File Name="particle_printpvtu.cpp"/>
-          <File Name="particle_printascii.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Transport">
-          <File Name="particle_advect.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Util">
-          <File Name="particle_count.cpp"/>
-          <File Name="particle_remove.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Parallel">
-          <File Name="particle_updatex.cpp"/>
-          <File Name="particle_particlex.cpp"/>
+          <File Name="particle_func.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Seed">
-          <File Name="particle_setup.cpp"/>
           <File Name="particle_initialize.cpp"/>
           <File Name="particle_seed.cpp"/>
           <File Name="particle_allocate.cpp"/>
         </VirtualDirectory>
         <File Name="particle_f.cpp"/>
+        <File Name="particles_obj.cpp"/>
+        <File Name="tracers_obj.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -1814,6 +1812,12 @@
           <File Name="sediment_ini.cpp"/>
           <File Name="sediment_filter.cpp"/>
           <File Name="sediment_io.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Particle">
+          <File Name="sedpart_printpvtp.cpp"/>
+          <File Name="sedpart_printvtp.cpp"/>
+          <File Name="sedpart_seed.cpp"/>
+          <File Name="sedpart.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
@@ -2376,6 +2380,8 @@
         <File Name="gcx_rownum.cpp"/>
         <File Name="gcx_parax_test.cpp"/>
         <File Name="gcx_verticalsum.cpp"/>
+        <File Name="gcx_tracers_obj.cpp"/>
+        <File Name="gcx_particles_obj.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Topoupdate">
         <File Name="gctopo_buildflag.cpp"/>

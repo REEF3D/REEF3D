@@ -34,9 +34,14 @@ void particle_f::ini(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
     gpartnum=pgc->globalisum(partnum);
     allocate(p,a,pgc);
     seed(p,a,pgc);
+    make_stationary(p,a,&PP);
     
     // print
-    print_vtu(p,a,pgc,pos,posflag,posactive,1);
-
-
+    print_vtp(p,a,pgc);
+    printcount++;
+    gparticle_active = pgc->globalisum(PP.size);
+    if(p->mpirank==0)
+	{
+        cout<<"Particles: active: "<<gparticle_active<<endl;
+    }
 } 

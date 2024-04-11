@@ -20,26 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle_f.h"
+#include"sedpart.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void particle_f::pvtp_pos(fdm* a, lexer* p, ghostcell* pgc)
+/// @brief Printing partion wrapping pvtp file
+void sedpart::pvtp_pos(lexer* p)
 {
-    int num=0;
 
-    if(p->P15==1)
+    // if(p->P15==1)
     num = printcount;
 
     if(p->P15==2)
     num = p->count;
-
-
-	sprintf(name,"./REEF3D_CFD_Particle/Particle-POS-%08i.pvtp",num);
-
+	
+	sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i.pvtp",num);
+	
 
 	ofstream result;
 	result.open(name);
@@ -53,13 +52,19 @@ void particle_f::pvtp_pos(fdm* a, lexer* p, ghostcell* pgc)
     result<<"</DataArray>"<<endl;
 	result<<"</FieldData>"<<endl;
 
+	result<<"<PPointData>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"Flag\"/>"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>"<<endl;
+	result<<"</PPointData>"<<endl;
+
 	result<<"<PPoints>"<<endl;
 	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"</PPoints>"<<endl;
 
-	for(n=0; n<p->M10; ++n)
+	for(int n=0; n<p->M10; ++n)
 	{
-    piecename_pos(a,p,pgc,n);
+    piecename_pos(p,n);
     result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
 	}
 
@@ -69,34 +74,32 @@ void particle_f::pvtp_pos(fdm* a, lexer* p, ghostcell* pgc)
 	result.close();
 }
 
-
-void particle_f::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
+/// @brief Setting name of indivdual vtp file for pvtp file
+void sedpart::piecename_pos(lexer* p, int n)
 {
-    int num=0;
 
-
-    if(p->P15==1)
+    // if(p->P15==1)
     num = printcount;
 
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"Particle-POS-%08i-%06i.vtp",num,n+1);
+	sprintf(pname,"REEF3D-SedPart-%08i-%06i.vtp",num,n+1);
 
 }
 
-
-void particle_f::header_pos(fdm* a,lexer* p,ghostcell* pgc)
+/// @brief Setting name of indivdual vtp file
+void sedpart::header_pos(lexer* p)
 {
-    int num=0;
 
-    if(p->P15==1)
+    // if(p->P15==1)
     num = printcount;
 
     if(p->P15==2)
     num = p->count;
 
-    sprintf(name,"./REEF3D_CFD_Particle/Particle-POS-%08i-%06i.vtp",num,p->mpirank+1);
+	sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i-%06i.vtp",num,p->mpirank+1);
+	
 }
 
 

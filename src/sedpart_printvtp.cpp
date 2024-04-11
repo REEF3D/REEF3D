@@ -20,59 +20,70 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"particle_f.h"
+#include"sedpart.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void particle_f::print_particles(lexer* p, fdm* a, ghostcell* pgc)
+/// @brief Printing contol function
+void sedpart::print_particles(lexer* p)
 {
-    if(((p->count%p->Q181==0 && p->Q182<0.0 && p->Q180==1 )|| (p->count==0 &&  p->Q182<0.0 && p->Q180==1)) && p->Q181>0)
+    if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
 	{
-    print_vtp(p,a,pgc);
+    print_vtp(p);
 	++printcount;
 	}
     
-    if((p->simtime>p->partprinttime && p->Q182>0.0 && p->Q180==1) || (p->count==0 &&  p->Q182>0.0))
+    if((p->simtime>p->partprinttime || p->count==0) && (p->Q180==1 && p->Q181<0 && p->Q182>0.0))
     {
-    print_vtp(p,a,pgc);
+    print_vtp(p);
     p->partprinttime+=p->Q182;
+	++printcount;
     }
     
 }
 
-void particle_f::print_vtp(lexer* p, fdm* a, ghostcell* pgc)
+/// @brief Printing particle as vtp
+void sedpart::print_vtp(lexer* p)
 {
-    cout<<"PACTIVE-"<<p->mpirank<<": "<<PP.size<<endl;
-
 	int numpt=0;
 	const int print_flag=p->Q183;
-	if(print_flag==0)
-		numpt=PP.size;
-	else
-		PARTLOOP
-			if(PP.Flag[n]>print_flag)
-				numpt++;
+
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	numpt++;
+
+	cout<<"PSed-"<<p->mpirank<<"| printed: "<<numpt<<" not printed: "<<PP.size-numpt<<" | capcaity: "<<PP.capacity<<endl;
+
 	int count;
+	int n=0;
+    int offset[100];
+	int iin;
+	float ffn;
 	
 	if(p->mpirank==0)
-	pvtp_pos(a,p,pgc);
+	pvtp_pos(p);
 
-
-    header_pos(a,p,pgc);
+    header_pos(p);
 
 	ofstream result;
 	result.open(name, ios::binary);
 
-    n=0;
 
 	offset[n]=0;
 	++n;
 	
-	// end scalars
+	offset[n]=offset[n-1]+4*(numpt)+4; //flag
+	++n;
+	offset[n]=offset[n-1]+4*(numpt)*3+4; //velocity
+	++n;
+	offset[n]=offset[n-1]+4*(numpt)+4; //radius
+	++n;
+	
+
     offset[n]=offset[n-1]+4*(numpt)*3+4; //xyz
     ++n;
-    offset[n]=offset[n-1]+4*(numpt)*2+4; //connectivitey
+    offset[n]=offset[n-1]+4*(numpt)+4; //connectivitey
     ++n;
 	offset[n]=offset[n-1]+4*(numpt)+4; //offset connectivity
     ++n;
@@ -88,12 +99,23 @@ void particle_f::print_vtp(lexer* p, fdm* a, ghostcell* pgc)
 	result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
     result<<"</DataArray>"<<endl;
 	result<<"</FieldData>"<<endl;
+	
+	result<<"<PointData >"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"Flag\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	++n;
+    result<<"<DataArray type=\"Float32\" Name=\"radius\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	result<<"</PointData>"<<endl;
+	
 
     result<<"<Points>"<<endl;
     result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"</Points>"<<endl;
 	
+
     result<<"<Verts>"<<endl;
 	result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -104,14 +126,51 @@ void particle_f::print_vtp(lexer* p, fdm* a, ghostcell* pgc)
     result<<"</Piece>"<<endl;
     result<<"</PolyData>"<<endl;
 
-//----------------------------------------------------------------------------
+	//----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+	
+	// flag
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	{
+		ffn=float(PP.Flag[n]);
+		result.write((char*)&ffn, sizeof (float));
+	}
 
-//  XYZ
+	// velocities
 	iin=4*(numpt)*3;
 	result.write((char*)&iin, sizeof (int));
     PARTLOOP
-    if(PP.Flag[n]>print_flag)
+    if(PP.Flag[n]>=print_flag)
+	{
+	ffn=float(PP.U[n]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(PP.V[n]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(PP.W[n]);
+	result.write((char*)&ffn, sizeof (float));
+	}
+
+	// radius
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	{
+		ffn=float(PP.d50/2);
+		result.write((char*)&ffn, sizeof (float));
+	}
+	
+
+	//  XYZ
+	iin=4*(numpt)*3;
+	result.write((char*)&iin, sizeof (int));
+    PARTLOOP
+    if(PP.Flag[n]>=print_flag)
 	{
 	ffn=float(PP.X[n]);
 	result.write((char*)&ffn, sizeof (float));
@@ -123,29 +182,26 @@ void particle_f::print_vtp(lexer* p, fdm* a, ghostcell* pgc)
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
-//  Connectivity
+	//  Connectivity
 	count=0;
-    iin=4*(numpt)*2;
+    iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
 	PARTLOOP
-	if(PP.Flag[n]>print_flag)
+	if(PP.Flag[n]>=print_flag)
 	{
-	iin=int(0);
-	result.write((char*)&iin, sizeof (int));
-
 	iin=int(count);
 	result.write((char*)&iin, sizeof (int));
 	++count;
 	}
 
-//  Offset of Connectivity
-	count=0;
+	//  Offset of Connectivity
+	count=1;
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
 	PARTLOOP
-    if(PP.Flag[n]>print_flag)
+    if(PP.Flag[n]>=print_flag)
 	{
-	iin=(count+1)*2;
+	iin=int(count);
 	result.write((char*)&iin, sizeof (int));
 	++count;
 	}
