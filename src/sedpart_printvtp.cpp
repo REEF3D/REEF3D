@@ -96,8 +96,11 @@ void sedpart::print_vtp(lexer* p)
 	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfVerts=\""<<numpt<<"\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">"<<endl;
 	
 	result<<"<FieldData>"<<endl;
+	if(p->P16==1)
+    {
 	result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
     result<<"</DataArray>"<<endl;
+	}
 	result<<"</FieldData>"<<endl;
 	
 	result<<"<PointData >"<<endl;

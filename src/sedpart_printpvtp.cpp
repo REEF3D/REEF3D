@@ -48,8 +48,11 @@ void sedpart::pvtp_pos(lexer* p)
 	result<<"<PPolyData GhostLevel=\"0\">"<<endl;
 
 	result<<"<FieldData>"<<endl;
+	if(p->P16==1)
+    {
 	result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
     result<<"</DataArray>"<<endl;
+	}
 	result<<"</FieldData>"<<endl;
 
 	result<<"<PPointData>"<<endl;
