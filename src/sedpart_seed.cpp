@@ -35,8 +35,8 @@ void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     // ini
     LOOP
     {
-        active_box(i,j,k) = 0.0;
-        active_topo(i,j,k) = 0.0;
+        active_box(i,j,k) = false;
+        active_topo(i,j,k) = false;
     }
     double minPPC=INT64_MAX;
     
@@ -48,7 +48,7 @@ void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     && p->YN[JP]>=p->Q110_ys[qn] && p->YN[JP1]<=p->Q110_ye[qn]
     && p->ZN[KP1]>=p->Q110_zs[qn] && p->ZN[KP1]<=p->Q110_ze[qn])
     {
-        active_box(i,j,k) = 1.0;
+        active_box(i,j,k) = true;
         ++cellcountBox;
         // minPPC=min(minPPC, maxParticlesPerCell(p,a,PP.d50,false));
     }
@@ -60,7 +60,7 @@ void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     {
         if( (a->topo(i,j,k)<0.5*p->DZN[KP]-tolerance) && (a->topo(i,j,k)>-p->DZN[KP]*ceil(p->Q102)-tolerance) && (a->solid(i,j,k)>=-p->DXM))
         {
-            active_topo(i,j,k) = 1.0;
+            active_topo(i,j,k) = true;
             if(p->flag1[Im1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG)
             active_topo(i,j,k) = 10.0;
             cellcountTopo++;
@@ -91,7 +91,7 @@ void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
         cout<<"Reduced packing factor to "<<p->Q41<<" to stay within max real particles per cell."<<endl;
     }
     
-    int partnum = cellcountBox * ppcell + p->Q102 * cellcountTopo * ppcell;
+    int partnum = cellcountBox * ppcell + cellcountTopo * ppcell;
     maxparticle = ceil(p->Q25*double(pgc->globalisum(partnum)));
 }
 
@@ -134,7 +134,7 @@ void sedpart::posseed_topo(lexer* p, fdm* a)
     seed_srand(p);
 
     PLAINLOOP
-    if(active_topo(i,j,k)>0.0)
+    if(active_topo(i,j,k)>false)
     {
         seed_topo(p,a);
     }
@@ -172,10 +172,11 @@ void sedpart::posseed_suspended(lexer* p, fdm* a)
 /// @brief Seeds particle at points defined using `lexer::Q61`
 void sedpart::point_source(lexer* p, fdm* a)
 {
+    size_t index;
     for(size_t n=0;n<p->Q61;n++)
         if(p->count%p->Q61_i[n]==0)
         {
-            size_t index = PP.add(p->Q61_x[n],p->Q61_y[n],p->Q61_z[n],1,a->u(i,j,k),a->v(i,j,k),a->w(i,j,k),p->Q41);
+            index = PP.add(p->Q61_x[n],p->Q61_y[n],p->Q61_z[n],1,a->u(i,j,k),a->v(i,j,k),a->w(i,j,k),p->Q41);
             cellSum[IJK]+=PP.PackingFactor[index];
         }
 }
@@ -186,12 +187,15 @@ void sedpart::topo_influx(lexer* p, fdm* a)
     seed_srand(p);
     for(int n=0;n<p->gcin_count;n++)
     {
+        if(p->gcin[n][3]>0)
+        {
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
         if(active_topo(i,j,k)>0.0)
         {
             seed_topo(p,a);
+        }
         }
     }
 }
@@ -211,13 +215,14 @@ void sedpart::seed_topo(lexer* p, fdm* a)
     double tolerance = 5e-18;
     double x,y,z,ipolTopo,ipolSolid;
     int flag=0;
+    size_t index;
 
-    if(PP.size+p->Q102*ppcell>0.9*PP.capacity)
+    if(PP.size+ppcell>0.9*PP.capacity)
         PP.reserve();
 
-    for(int qn=0;qn<p->Q102*ppcell*1000;++qn)
+    for(int qn=0;qn<ppcell*1000;++qn)
     {
-        if(cellSum[IJK]>=p->Q102*ppcell)
+        if(cellSum[IJK]>=ppcell)
             break;
         
         x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
@@ -229,8 +234,8 @@ void sedpart::seed_topo(lexer* p, fdm* a)
 
         if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
         { 
-            PP.add(x,y,z,flag,0,0,0,p->Q41);
-            cellSum[IJK]++;
+            index=PP.add(x,y,z,flag,0,0,0,p->Q41);
+            cellSum[IJK]+=PP.PackingFactor[index];
         }
     }
 }
@@ -239,7 +244,7 @@ void sedpart::solid_influx(lexer* p, fdm* a)
 {
     seed_srand(p);
     PLAINLOOP
-    if(active_box(i,j,k)>1.0)
+    if(active_topo(i,j,k)==10.0)
     {
         seed_topo(p,a);
     }

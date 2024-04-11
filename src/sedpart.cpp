@@ -99,8 +99,8 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         point_source(p,a);
         if(p->Q101>0)
         {
-        //     topo_influx(p,a);
-        //     solid_influx(p,a);
+            topo_influx(p,a);
+            solid_influx(p,a);
         }
         particlesPerCell(p,pgc,&PP);
         particleStressTensor(p,a,pgc,&PP);
@@ -134,6 +134,9 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     gremoved = pgc->globalisum(removed);
     gxchange = pgc->globalisum(xchange);
 	p->sedsimtime=pgc->timer()-starttime;
+
+    PLAINLOOP
+    a->test(i,j,k)=active_topo(i,j,k);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<" relative: "<<p->sedsimtime/double(gparticle_active)*(10^3)<<" ms\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
@@ -184,6 +187,8 @@ void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     // if(active_topo(i,j,k)>0)
     // cout<<k<<","<<p->ZN[KP]<<endl;
     // }
+    PLAINLOOP
+    a->test(i,j,k)=active_topo(i,j,k);
 }
 
 /// @brief SFLOW calculation function
@@ -214,13 +219,13 @@ void sedpart::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinit
             a->topo(i,j,k) -= dh;
 
             // Seeding update
-            active_topo(i,j,k) = 0.0;
-            if( (a->topo(i,j,k)<0.5*p->DZN[KP]-tolerance) && (a->topo(i,j,k)>-p->DZN[KP]*ceil(p->Q102)-tolerance) && (a->solid(i,j,k)>=-p->DXM))
-            {
-            active_topo(i,j,k) = 1.0;
-            if(p->flag1[Im1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG)
-            active_topo(i,j,k) = 10.0;
-            }
+            // active_topo(i,j,k) = 0.0;
+            // if( (a->topo(i,j,k)<0.5*p->DZN[KP]-tolerance) && (a->topo(i,j,k)>-p->DZN[KP]*ceil(p->Q102)-tolerance) && (a->solid(i,j,k)>=-p->DXM))
+            // {
+            // active_topo(i,j,k) = 1.0;
+            // if(p->flag1[Im1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG)
+            // active_topo(i,j,k) = 10.0;
+            // }
         }
         volumeChangeTotal += topoVolumeChange[IJ];
 
