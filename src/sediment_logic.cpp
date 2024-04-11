@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"bedload_MPM.h"
 #include"bedload_MPM.h"
 #include"bedload_EF.h"
+#include"bedload_EH.h"
 #include"bedload_void.h"
 #include"bedconc.h"
 #include"bedshear.h"
@@ -82,6 +83,9 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     pbed = new bedload_EF(p);
     
     if(p->S11==4)
+    pbed = new bedload_EH(p);
+    
+    if(p->S11==5)
     pbed = new bedload_einstein(p);
     
     pcbed = new bedconc(p);
