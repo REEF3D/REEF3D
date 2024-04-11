@@ -99,16 +99,20 @@ void driver::driver_ini_cfd()
     pgc->solid_forcing_ini(p,a);
     }
     
-
     // Sediment
 	if(p->S10>0)
     {
-    psed->ini_cfd(p,a,pgc);
-    for(int qn=0;qn<5;++qn)
-    psed->relax(p,pgc);
-    preto->start(p,a,pgc,a->topo);
-    psed->update_cfd(p,a,pgc,pflow,preto);
-    pgc->start4a(p,a->topo,150);
+        if(p->Q10==2)
+            psed->ini_cfd(p,a,pgc);
+        else
+        {
+            psed->ini_cfd(p,a,pgc);
+            for(int qn=0;qn<5;++qn)
+                psed->relax(p,pgc);
+            preto->start(p,a,pgc,a->topo);
+            psed->update_cfd(p,a,pgc,pflow,preto);
+            pgc->start4a(p,a->topo,150);
+        }
     
         // Solid Forcing
         if(p->G3==1)
@@ -200,7 +204,7 @@ void driver::driver_ini_cfd()
     {
 	pini->stateini(p,a,pgc,pturb,psed);
     
-    if(p->S10==1)
+    if(p->S10==1||(p->Q10==2&&p->S10==2))
     psed->ini_cfd(p,a,pgc);
     }
 

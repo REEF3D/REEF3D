@@ -149,6 +149,8 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
     result.read((char*)&ffn, sizeof (float));
     a->conc(i,j,k)=double(ffn);
     }
+
+    psed->read_state_particles(result);
 	
 	int gcval_press, gcval_phi, gcval_topo;
 	

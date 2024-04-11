@@ -140,7 +140,7 @@ void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
     result.write((char*)&ffn, sizeof (float));
     } 
 	
-	
+	psed->write_state_particles(result);
 	
 	result.close();
 	
