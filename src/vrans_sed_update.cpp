@@ -49,7 +49,7 @@ void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
     ALOOP
 	if(a->topo(i,j,k)<0.0)
 	{
-	//a->test(i,j,k)=a->porosity(i,j,k)= p->S24; //porosity
+	a->porosity(i,j,k)= p->S24; //porosity
 	porpart(i,j,k) = p->S20;  //d50
 	alpha(i,j,k) = p->S26_a;  //alpha
 	beta(i,j,k) = p->S26_b;    //beta
