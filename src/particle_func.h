@@ -45,6 +45,7 @@ protected:
     
     // Parallelization
     int remove(lexer* p,tracers_obj* PP);
+    int remove(lexer* p,particles_obj* PP);
     int transfer(lexer* p,ghostcell* pgc, tracers_obj* PP,int);
     int transfer(lexer* p,ghostcell* pgc, particles_obj* PP,int);
 

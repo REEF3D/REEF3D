@@ -318,6 +318,37 @@ int particle_func::remove(lexer* p, tracers_obj* PP)
     return removed;
 }
 
+/// \copydoc particle_func::remove
+int particle_func::remove(lexer* p, particles_obj* PP)
+{
+    bool inBounds=false;
+    int removed=0;
+    int i,j,k;
+    boundarycheck bounderies;
+
+    PARTICLELOOP
+        if(PP->Flag[n]>0)
+        {
+            i = p->posc_i(PP->X[n]);
+            j = p->posc_j(PP->Y[n]);
+            k = p->posc_k(PP->Z[n]);
+
+            inBounds=bounderies.minboundcheck(p,i,j,k,1);
+            if (inBounds)
+                inBounds=bounderies.maxboundcheck(p,i,j,k,1);
+
+			// remove out of bounds particles
+            if(!inBounds)
+            {
+                cellSum[IJK]-=PP->PackingFactor[n];
+                PP->erase(n);
+                removed++;
+            }
+        }
+    
+    return removed;
+}
+
 /// @brief Transfer function
 /** Is responsible to transfer tracers to one of the surrounding partitions*/
 /// @param p partition object

@@ -108,7 +108,6 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         /// transport
         erode(p,a,pgc);
         transport(p,a,&PP);
-        // fixPos(p,a,&PP);
 		xchange=transfer(p,pgc,&PP,maxparticle);
 		removed=remove(p,&PP);
         make_stationary(p,a,&PP);
