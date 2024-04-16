@@ -131,6 +131,7 @@ void vtr3D::pvtr(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 
 	result<<"</PPointData>"<<endl;
 	result<<"<PCellData>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"test2\"/>"<<endl;
 	result<<"</PCellData>"<<endl;
 
 	result<<"<PCoordinates>"<<endl;
