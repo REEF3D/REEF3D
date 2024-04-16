@@ -114,15 +114,6 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
         
         vz =  s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(1.0/(Ls>1.0e-10?Ls:1.0e10))*(s->qb(i,j)-s->qbe(i,j));// + ws*(s->conc(i,j,k) - pcb->cbed(p,pgc,s)); 
         }
-	}
-    
-    /*
-    if(p->mpirank==7)
-    SLICELOOP4
-    if(p->flagslice4[IJ]>0 && p->flagslice4[Ip1J]<0)
-    cout<<s->shields_eff(i-2,j)<<" "<<s->shields_eff(i-1,j)<<" "<<s->shields_eff(i,j)<<" "<<s->shields_eff(i+1,j)<<endl;
-    */
-    
-    
+	}    
 }
 
