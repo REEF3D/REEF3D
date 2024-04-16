@@ -104,7 +104,7 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
     // Exner equations
         // eq
         if(p->S17==0)
-        vz =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy); //+ susp_qb(p,pgc,s);
+        vz =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + susp_qb(p,pgc,s);
         
         
         // non-eq
@@ -122,7 +122,6 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
     if(p->flagslice4[IJ]>0 && p->flagslice4[Ip1J]<0)
     cout<<s->shields_eff(i-2,j)<<" "<<s->shields_eff(i-1,j)<<" "<<s->shields_eff(i,j)<<" "<<s->shields_eff(i+1,j)<<endl;
     */
-    
     
 }
 

@@ -73,7 +73,7 @@ void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
         zdist = (p->ZP[KP]-s->bedzh(i,j));
 
-        s->cb(i,j) = s->cbe(i,j)*pow(((s->waterlevel(i,j)-zdist)/zdist)*(adist/(s->waterlevel(i,j)-adist)),zdist);
+        s->cb(i,j) = s->cbe(i,j)*pow(((s->waterlevel(i,j)-zdist)/zdist)*(adist/(s->waterlevel(i,j)-adist)),1.0);
         
         //cout<<"CB: "<<s->cbe(i,j)<<" "<<s->cb(i,j)<<" "<<zdist<<" "<<adist<<" "<<s->waterlevel(i,j)<<endl;
     }
