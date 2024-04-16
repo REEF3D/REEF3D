@@ -578,10 +578,10 @@
         <File Name="sediment.h"/>
         <File Name="sediment_f.h"/>
         <File Name="sediment_void.h"/>
-        <VirtualDirectory Name="Particle">
+      </VirtualDirectory>
+      <VirtualDirectory Name="Sediment Particle">
           <File Name="sedpart.h"/>
         </VirtualDirectory>
-      </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
         <VirtualDirectory Name="BC">
           <File Name="bcheat.h"/>
@@ -1813,13 +1813,13 @@
           <File Name="sediment_filter.cpp"/>
           <File Name="sediment_io.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Particle">
+      </VirtualDirectory>
+      <VirtualDirectory Name="Sediment Particle">
           <File Name="sedpart_printpvtp.cpp"/>
           <File Name="sedpart_printvtp.cpp"/>
           <File Name="sedpart_seed.cpp"/>
           <File Name="sedpart.cpp"/>
         </VirtualDirectory>
-      </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
         <VirtualDirectory Name="BC">
           <File Name="bcheat.cpp"/>
