@@ -232,21 +232,21 @@ void particle_func::transport(lexer* p, fdm* a, particles_obj* PP, int flag)
 
             if(du2!=du2||du3!=du3)
             {
-                cout<<"Particle velocity component w resulted in NaN."<<endl;
+                cerr<<"Particle velocity component w resulted in NaN."<<endl;
                 exit(1);
             }
             else
                 PP->U[n] += ((2.0/3.0)*du2 + (2.0/3.0)*du3)*p->dt;
             if(dv2!=dv2||dv3!=dv3)
             {
-                cout<<"Particle velocity component w resulted in NaN."<<endl;
+                cerr<<"Particle velocity component w resulted in NaN."<<endl;
                 exit(1);
             }
             else
                 PP->V[n] += ((2.0/3.0)*dv2 + (2.0/3.0)*dv3)*p->dt;
             if(dw2!=dw2||dw3!=dw3)
             {
-                cout<<"Particle velocity component w resulted in NaN."<<endl;
+                cerr<<"Particle velocity component w resulted in NaN."<<endl;
                 exit(1);
             }
             else
@@ -272,7 +272,7 @@ void particle_func::transport(lexer* p, fdm* a, particles_obj* PP, int flag)
             cellSum[IJK]-=PP->PackingFactor[n];
             if(cellSum[IJK]<0)
             {
-                cout<<"cellSum is below zero in cell ("<<p->XN[IP]<<","<<p->YN[JP]<<","<<p->ZN[KP]<<") of partition "<<p->mpirank<<" for particle "<<n<<" at ("<<PP->X[n]<<","<<PP->Y[n]<<","<<PP->Z[n]<<")."<<endl;
+                clog<<"cellSum is below zero in cell ("<<p->XN[IP]<<","<<p->YN[JP]<<","<<p->ZN[KP]<<") of partition "<<p->mpirank<<" for particle "<<n<<" at ("<<PP->X[n]<<","<<PP->Y[n]<<","<<PP->Z[n]<<") "<<solid_new<<"."<<endl;
                 cellSum[IJK]=0;
             }
             particleStressTensorUpdateIJK(p,a,PP);
