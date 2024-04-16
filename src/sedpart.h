@@ -81,6 +81,8 @@ private:
     void seed_topo(lexer*,fdm*);
     void solid_influx(lexer*,fdm*);
 
+    void debug(lexer*,fdm*,ghostcell*);
+
     // PRINT
 	void print_particles(lexer*);
 	void print_vtp(lexer*);

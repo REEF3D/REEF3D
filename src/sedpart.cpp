@@ -188,7 +188,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     // }
     PLAINLOOP
     a->test(i,j,k)=active_topo(i,j,k);
-}
+    }
 
 /// @brief SFLOW calculation function
 void sedpart::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow* pflow, slice &P, slice &Q)
@@ -322,4 +322,17 @@ void sedpart::read_state_particles(ifstream& result)
         packing=double(ffn);
         PP.add(x,y,z,flag,u,v,w,packing);
     } 
+}
+
+void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
+{
+    if(p->mpirank==0)
+    {
+        i=1;
+        j=5;
+        KLOOP
+        {
+            cout<<a->u(i,j,k)<<";"<<a->u(i-1,j,k)<<";"<<a->u(i-2,j,k)<<endl;
+        }
+    }
 }
