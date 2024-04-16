@@ -541,6 +541,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
           <VirtualDirectory Name="bedconc">
+            <File Name="bedconc.h"/>
+            <File Name="bedconc_void.h"/>
             <File Name="bedconc_VR.h"/>
           </VirtualDirectory>
           <File Name="isusprhs.h"/>
@@ -1770,7 +1772,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
           <VirtualDirectory Name="bedconc">
-            <File Name="bedconc.cpp"/>
+            <File Name="bedconc_void.cpp"/>
+            <File Name="bedconc_VR.cpp"/>
           </VirtualDirectory>
           <File Name="isusprhs.cpp"/>
           <File Name="suspended_IM1.cpp"/>
