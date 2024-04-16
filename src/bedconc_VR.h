@@ -26,16 +26,16 @@ class lexer;
 class sediment_fdm;
 class ghostcell;
 
-#ifndef BEDCONC_H_
-#define BEDCONC_H_
+#ifndef BEDCONC_VR_H_
+#define BEDCONC_VR_H_
 
 using namespace std;
 
-class bedconc : public increment
+class bedconc_VR : public increment
 {
 public:
-	bedconc(lexer*);
-	virtual ~bedconc();
+	bedconc_VR(lexer*);
+	virtual ~bedconc_VR();
 	void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:

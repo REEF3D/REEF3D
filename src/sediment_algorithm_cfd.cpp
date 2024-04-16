@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"reinitopo.h"
 #include"suspended.h"
 #include"bedload.h"
-#include"bedconc.h"
+#include"bedconc_VR.h"
 #include"bedshear.h"
 #include"sandslide.h"
 #include"topo_relax.h"

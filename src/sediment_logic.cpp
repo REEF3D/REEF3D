@@ -36,7 +36,7 @@ Author: Hans Bihs
 #include"bedload_EF.h"
 #include"bedload_EH.h"
 #include"bedload_void.h"
-#include"bedconc.h"
+#include"bedconc_VR.h"
 #include"bedshear.h"
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
@@ -88,7 +88,7 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     if(p->S11==5)
     pbed = new bedload_einstein(p);
     
-    pcbed = new bedconc(p);
+    pcbed = new bedconc_VR(p);
     
     
     if(p->S90==0)

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedconc.h"
+#include"bedconc_VR.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-bedconc::bedconc(lexer *p)
+bedconc_VR::bedconc_VR(lexer *p)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -40,11 +40,11 @@ bedconc::bedconc(lexer *p)
     Rstar=(rhosed-rhowat)/rhowat;
 }
 
-bedconc::~bedconc()
+bedconc_VR::~bedconc_VR()
 {
 }
 
-void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
+void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
     SLICELOOP4
     s->cbn(i,j) = s->cbe(i,j);

@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"bedconc.h"
 #include"topo_relax.h"
 #include"sediment_fou.h"
 #include"sediment_cds.h"
@@ -57,8 +56,6 @@ sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),dqx0(p),dqy0(p)
     Ls = p->S20;
     
     
-    pcb = new bedconc(p);
-    
     prelax = new topo_relax(p);
     
     if(p->S32==1)
@@ -89,10 +86,10 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
    
     SLICELOOP4
     {
-		topovel(p,pgc,s,vx,vy,vz);
+        topovel(p,pgc,s,vx,vy,vz);
         dqx0(i,j) = vx;
         dqy0(i,j) = vy;
-		s->vz(i,j) = vz;
+        s->vz(i,j) = vz;
 	}
     
 	pgc->gcsl_start4(p,s->vz,1);

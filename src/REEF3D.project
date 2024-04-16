@@ -541,7 +541,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
           <VirtualDirectory Name="bedconc">
-            <File Name="bedconc.h"/>
+            <File Name="bedconc_VR.h"/>
           </VirtualDirectory>
           <File Name="isusprhs.h"/>
           <File Name="suspended.h"/>

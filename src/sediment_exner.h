@@ -50,7 +50,6 @@ private:
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
     
-    bedconc *pcb;
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;

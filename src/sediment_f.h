@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"bedslope.h"
 
-class bedload;class bedconc;
+class bedload;class bedconc_VR;
 class sandslide;
 class topo_relax;
 class bedshear;
@@ -81,7 +81,7 @@ public:
 
 private:        void log_ini(lexer*);    void sedimentlog(lexer*);
     sediment_fdm *s;
-    bedload *pbed;      bedconc *pcbed;
+    bedload *pbed;      bedconc_VR *pcbed;
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
