@@ -20,18 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"bedconc.h"
 #include"increment.h"
-
-class lexer;
-class sediment_fdm;
-class ghostcell;
 
 #ifndef BEDCONC_VR_H_
 #define BEDCONC_VR_H_
 
 using namespace std;
 
-class bedconc_VR : public increment
+class bedconc_VR : public bedconc, public increment
 {
 public:
 	bedconc_VR(lexer*);
