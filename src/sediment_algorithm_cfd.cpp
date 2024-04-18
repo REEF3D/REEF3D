@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"reinitopo.h"
 #include"suspended.h"
 #include"bedload.h"
-#include"bedconc.h"
+#include"bedconc_VR.h"
 #include"bedshear.h"
 #include"sandslide.h"
 #include"topo_relax.h"
@@ -46,12 +46,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     prep_cfd(p,a,pgc);
     
     // bedslope cds ******
-    if(p->S83==2)
     slope_cds(p,pgc,s);
-    
-    // bedslope weno -------
-    if(p->S83==5)
-    slope_weno(p,pgc,s,a->topo);
     
     // bedslope reduction ******
     preduce->start(p,pgc,s);

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,20 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_exner.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"bedconc_VR.h"
-#include"topo_relax.h"
-#include"sediment_exnerdisc.h"
-#include"sediment_fdm.h"
+#include"bedconc_void.h"
 
-double sediment_exner::susp_qb(lexer* p, ghostcell *pgc, sediment_fdm *s)
+bedconc_void::bedconc_void(lexer *p)
 {
-    double val=0.0;
-    
-    if(p->S34==1)
-    val = s->ws*(s->conc(i,j) - s->cbe(i,j)); 
-    
-    return val;
 }
+
+bedconc_void::~bedconc_void()
+{
+}
+
+void bedconc_void::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
+{
+}
+
+
+
+

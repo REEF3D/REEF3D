@@ -20,73 +20,49 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedconc.h"
+#include"bedload_EH.h"
 #include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-bedconc::bedconc(lexer *p)
+bedload_EH::bedload_EH(lexer *p)
 {
     rhosed=p->S22;
     rhowat=p->W1;
     g=9.81;
     d50=p->S20;
-    shields=p->S30;
     visc=p->W2;
     kappa=0.4;
-    ks=2.5*d50;
-    adist=0.5*d50;
-    deltab=3.0*d50;
+    ks=p->S21*d50;
     Rstar=(rhosed-rhowat)/rhowat;
-}
-
-bedconc::~bedconc()
-{
-}
-
-void bedconc::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
-{
-    SLICELOOP4
-    s->cbn(i,j) = s->cbe(i,j);
-    
-    // cb* van Rijn
-    SLICELOOP4
-    {
-	
-    Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j))/s->tau_crit(i,j),0.0);
-
-
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
-    
-    if(s->active(i,j)==1)
-    s->cbe(i,j) = (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
-    
-    if(s->active(i,j)==0)
-    s->cbe(i,j) = 0.0;
-    }
-    
-    // cb at first cell center
-    SLICELOOP4
-    {
-        k=s->bedk(i,j);
-        
+    fh= 1.0e-8;
+}
 
-        zdist = (p->ZP[KP]-s->bedzh(i,j));
+bedload_EH::~bedload_EH()
+{
+}
 
-        s->cb(i,j) = s->cbe(i,j)*pow(((s->waterlevel(i,j)-zdist)/zdist)*(adist/(s->waterlevel(i,j)-adist)),zdist);
-        
-        //cout<<"CB: "<<s->cbe(i,j)<<" "<<s->cb(i,j)<<" "<<zdist<<" "<<adist<<" "<<s->waterlevel(i,j)<<endl;
-    }
-    
-    if(p->S34==2)
+void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
+{
+	double qb,qbx,qby,Ts,Tb;
+	
+	SLICELOOP4
     {
-    SLICELOOP4
-    s->qbe(i,j) += s->conc(i,j);
+        Ts = s->shields_crit(i,j);
+	    Tb = s->tau_eff(i,j);
+
+        if(Tb>Ts)
+        if(s->active(i,j)==1)
+        qb =  (0.1/fh)*pow((s->tau_eff(i,j)*rhowat)/(g*d50*(rhosed-rhowat)),2.5);
+
+        if(Tb<=Ts || s->active(i,j)==0)
+        qb=0.0;
+	
+        s->qbe(i,j) = qb;
+	}
     
     pgc->gcsl_start4(p,s->qbe,1);
-    }
+    
 }
-
-
-
-

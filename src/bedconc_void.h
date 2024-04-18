@@ -20,20 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_exner.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"bedconc_VR.h"
-#include"topo_relax.h"
-#include"sediment_exnerdisc.h"
-#include"sediment_fdm.h"
+#include"bedconc.h"
+#include"increment.h"
 
-double sediment_exner::susp_qb(lexer* p, ghostcell *pgc, sediment_fdm *s)
+#ifndef BEDCONC_void_H_
+#define BEDCONC_void_H_
+
+using namespace std;
+
+class bedconc_void : public bedconc, public increment
 {
-    double val=0.0;
-    
-    if(p->S34==1)
-    val = s->ws*(s->conc(i,j) - s->cbe(i,j)); 
-    
-    return val;
-}
+public:
+	bedconc_void(lexer*);
+	virtual ~bedconc_void();
+	void start(lexer*,ghostcell*,sediment_fdm*);
+
+
+};
+#endif
+
+
+

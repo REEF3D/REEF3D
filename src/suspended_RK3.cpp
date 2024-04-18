@@ -114,8 +114,49 @@ void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 }
 
 void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
-{    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                conc(i,j,k) =  s->cb(i,j);        conc(i,j,k-1) =  s->cb(i,j);        conc(i,j,k-2) =  s->cb(i,j);        conc(i,j,k-3) =  s->cb(i,j);    }}
-void suspended_RK3::fillconc(lexer* p, fdm* a, sediment_fdm *s){    double dist;    double d50=p->S20;    double adist=0.5*d50;    double deltab=3.0*d50;    double cx,cy;        if(p->S34==1)    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                //s->conc(i,j) = a->conc(i,j,k+1);                dist = p->ZP[KP1]-s->bedzh(i,j)-adist;                s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);        //if(s->conc(i,j)>s->cbe(i,j))        //cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;    }        if(p->S34==2)    ILOOP    JLOOP    {        cx=0.0;        cy=0.0;            KLOOP        PCHECK        {        cx += 0.5*(a->u(i,j,k) + a->u(i-1,j,k))*a->conc(i,j,k)*p->DZN[KP];        cy += 0.5*(a->v(i,j,k) + a->v(i,j-1,k))*a->conc(i,j,k)*p->DZN[KP];        }    s->conc(i,j) = sqrt(cx*cx + cy*cy);    }}
+{
+    
+        
+        
+        
+    if(p->G3==0)    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                conc(i,j,k) =  s->cb(i,j);        conc(i,j,k-1) =  s->cb(i,j);        conc(i,j,k-2) =  s->cb(i,j);        conc(i,j,k-3) =  s->cb(i,j);    }
+    
+    if(p->G3==1)
+    {
+        LOOP
+        if(p->flagsf4[IJK]<0)
+        conc(i,j,k) = 0.0;
+            
+        GCDF4LOOP
+        {
+            i=p->gcdf4[n][0];
+            j=p->gcdf4[n][1];
+            k=p->gcdf4[n][2];
+            
+            conc(i,j,k) =    s->cb(i,j);
+            conc(i,j,k-1) =  s->cb(i,j);
+            conc(i,j,k-2) =  s->cb(i,j);
+            conc(i,j,k-3) =  s->cb(i,j);
+        }
+    }}
+void suspended_RK3::fillconc(lexer* p, fdm* a, sediment_fdm *s){    double dist;    double d50=p->S20;    double adist=0.5*d50;    double deltab=3.0*d50;    double cx,cy;        if(p->S34==1)    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                //s->conc(i,j) = a->conc(i,j,k+1);                dist = 0.5*p->DZN[KP]-adist;                s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);        //if(s->conc(i,j)>s->cbe(i,j))        //cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;    }
+    
+    if(p->S34==1)
+    GCDF4LOOP
+    {
+        i=p->gcdf4[n][0];
+        j=p->gcdf4[n][1];
+        k=p->gcdf4[n][2];
+        
+        //s->conc(i,j) = a->conc(i,j,k+1);
+        
+        dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
+        
+        s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
+        
+        //if(s->conc(i,j)>s->cbe(i,j))
+        //cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;
+    }        if(p->S34==2)    ILOOP    JLOOP    {        cx=0.0;        cy=0.0;            KLOOP        PCHECK        {        cx += 0.5*(a->u(i,j,k) + a->u(i-1,j,k))*a->conc(i,j,k)*p->DZN[KP];        cy += 0.5*(a->v(i,j,k) + a->v(i,j-1,k))*a->conc(i,j,k)*p->DZN[KP];        }    s->conc(i,j) = sqrt(cx*cx + cy*cy);    }}
 void suspended_RK3::sedfsf(lexer* p,fdm* a,field& conc)
 {
     LOOP

@@ -513,6 +513,7 @@
           <File Name="sediment_fdm.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_EH.h"/>
           <File Name="bedload.h"/>
           <File Name="bedload_MPM.h"/>
           <File Name="bedload_void.h"/>
@@ -541,11 +542,12 @@
         <VirtualDirectory Name="Suspended">
           <VirtualDirectory Name="bedconc">
             <File Name="bedconc.h"/>
+            <File Name="bedconc_void.h"/>
+            <File Name="bedconc_VR.h"/>
           </VirtualDirectory>
           <File Name="isusprhs.h"/>
           <File Name="suspended.h"/>
           <File Name="suspended_IM1.h"/>
-          <File Name="suspended_IM2.h"/>
           <File Name="suspended_RK2.h"/>
           <File Name="suspended_RK3.h"/>
           <File Name="suspended_void.h"/>
@@ -1744,6 +1746,7 @@
           <File Name="sediment_fdm.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_EH.cpp"/>
           <File Name="bedload_MPM.cpp"/>
           <File Name="bedload_void.cpp"/>
           <File Name="bedload_VR.cpp"/>
@@ -1768,11 +1771,11 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
           <VirtualDirectory Name="bedconc">
-            <File Name="bedconc.cpp"/>
+            <File Name="bedconc_void.cpp"/>
+            <File Name="bedconc_VR.cpp"/>
           </VirtualDirectory>
           <File Name="isusprhs.cpp"/>
           <File Name="suspended_IM1.cpp"/>
-          <File Name="suspended_IM2.cpp"/>
           <File Name="suspended_RK2.cpp"/>
           <File Name="suspended_RK3.cpp"/>
           <File Name="suspended_void.cpp"/>

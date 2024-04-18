@@ -34,8 +34,10 @@ Author: Hans Bihs
 #include"bedload_MPM.h"
 #include"bedload_MPM.h"
 #include"bedload_EF.h"
+#include"bedload_EH.h"
 #include"bedload_void.h"
-#include"bedconc.h"
+#include"bedconc_void.h"
+#include"bedconc_VR.h"
 #include"bedshear.h"
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
@@ -62,7 +64,6 @@ Author: Hans Bihs
 #include"suspended_RK2.h"
 #include"suspended_RK3.h"
 #include"suspended_IM1.h"
-#include"suspended_IM2.h"
 
 void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
@@ -82,9 +83,16 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     pbed = new bedload_EF(p);
     
     if(p->S11==4)
+    pbed = new bedload_EH(p);
+    
+    if(p->S11==5)
     pbed = new bedload_einstein(p);
     
-    pcbed = new bedconc(p);
+    if(p->S12==0)
+    pcbed = new bedconc_void(p);
+    
+    if(p->S12==1)
+    pcbed = new bedconc_VR(p);
     
     
     if(p->S90==0)
@@ -163,9 +171,6 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 
     if(p->S60==11)
     psusp = new suspended_IM1(p,a);
-
-    if(p->S60==12)
-    psusp = new suspended_IM2(p,a);
     }
     
 	
