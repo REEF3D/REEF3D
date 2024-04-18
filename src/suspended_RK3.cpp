@@ -115,10 +115,6 @@ void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 
 void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {
-    
-        
-        
-        
     if(p->G3==0)    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                conc(i,j,k) =  s->cb(i,j);        conc(i,j,k-1) =  s->cb(i,j);        conc(i,j,k-2) =  s->cb(i,j);        conc(i,j,k-3) =  s->cb(i,j);    }
     
     if(p->G3==1)
