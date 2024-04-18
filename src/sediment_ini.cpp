@@ -90,13 +90,13 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     double cd = 1.5;
     double R = rhosed/rhowat-1.0;
     
-    //s->ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
+    if(p->S25==0)
+    s->ws = p->S23;
     
-    if(p->S23==0)
+    if(p->S25==1)
     s->ws = sqrt(4.0*R*g*d50/(3.0*cd));
     
-    if(p->S23==1)
-    s->ws = p->S23_val;
+    //s->ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
     
     if(p->mpirank==0)
     cout<<"ws: "<<s->ws<<endl;

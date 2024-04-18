@@ -1206,12 +1206,12 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = S22;
 	dd++;
-    ictrl[ii] = S23;
-	ii++;
-    dctrl[dd] = S23_val;
+    dctrl[dd] = S23;
 	dd++;
     dctrl[dd] = S24;
 	dd++;
+    ictrl[ii] = S25;
+	ii++;
     dctrl[dd] = S26_a;
 	dd++;
     dctrl[dd] = S26_b;

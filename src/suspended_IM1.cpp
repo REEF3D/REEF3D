@@ -104,6 +104,7 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 
 void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {
+    if(p->G3==0)
     GC4LOOP
     if(p->gcb4[n][4]==5)
     {
@@ -117,6 +118,7 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         conc(i,j,k-3) =  s->cb(i,j);
     }
     
+    if(p->G3==1)
     GCDF4LOOP
     {
         i=p->gcdf4[n][0];
@@ -132,37 +134,37 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         n=0;
         LOOP
         {
-            if(p->flag4[Im1JK]<0)
+            if(p->flag4[Im1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
             {
             a->rhsvec.V[n] -= a->M.s[n]*conc(i-1,j,k);
             a->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0)
+            if(p->flag4[Ip1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
             {
             a->rhsvec.V[n] -= a->M.n[n]*conc(i+1,j,k);
             a->M.n[n] = 0.0;
             }
             
-            if(p->flag4[IJm1K]<0 && p->j_dir==1)
+            if((p->flag4[IJm1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0)) && p->j_dir==1)
             {
             a->rhsvec.V[n] -= a->M.e[n]*conc(i,j-1,k);
             a->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJp1K]<0 && p->j_dir==1)
+            if((p->flag4[IJp1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0)) && p->j_dir==1)
             {
             a->rhsvec.V[n] -= a->M.w[n]*conc(i,j+1,k);
             a->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0)
+            if(p->flag4[IJKm1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
             {
             a->rhsvec.V[n] -= a->M.b[n]*conc(i,j,k-1);
             a->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0)
+            if(p->flag4[IJKp1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
             {
             a->rhsvec.V[n] -= a->M.t[n]*conc(i,j,k+1);
             a->M.t[n] = 0.0;
@@ -170,6 +172,32 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
 
         ++n;
         }
+        
+        
+    // turn off inside direct forcing body
+    if(p->X10==1 || p->G3==1)
+    {
+        n=0;
+        LOOP
+        {
+            if(p->flagsf4[IJK]<0)
+            {
+            a->M.p[n]  =   1.0;
+
+            a->M.n[n] = 0.0;
+            a->M.s[n] = 0.0;
+
+            a->M.w[n] = 0.0;
+            a->M.e[n] = 0.0;
+
+            a->M.t[n] = 0.0;
+            a->M.b[n] = 0.0;
+            
+            a->rhsvec.V[n] = 0.0;
+            }
+        ++n;
+        }
+    }
 }
 
 void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
@@ -191,7 +219,7 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         
         //s->conc(i,j) = a->conc(i,j,k+1);
         
-        dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
+        dist = 0.5*p->DZN[KP]-adist;
         
         s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
         

@@ -64,7 +64,6 @@ Author: Hans Bihs
 #include"suspended_RK2.h"
 #include"suspended_RK3.h"
 #include"suspended_IM1.h"
-#include"suspended_IM2.h"
 
 void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
@@ -172,9 +171,6 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 
     if(p->S60==11)
     psusp = new suspended_IM1(p,a);
-
-    if(p->S60==12)
-    psusp = new suspended_IM2(p,a);
     }
     
 	
