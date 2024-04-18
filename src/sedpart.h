@@ -61,7 +61,8 @@ public:
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*) override;
     
     // ---
-    void erode(lexer*,fdm*,ghostcell*);
+    void erode(lexer*,fdm*);
+    int deposit(lexer*,fdm*);
 
     void write_state_particles(ofstream&);
     void read_state_particles(ifstream&);

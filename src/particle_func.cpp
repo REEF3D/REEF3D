@@ -272,7 +272,7 @@ void particle_func::transport(lexer* p, fdm* a, particles_obj* PP, int flag)
             cellSum[IJK]-=PP->PackingFactor[n];
             if(cellSum[IJK]<0)
             {
-                clog<<"cellSum is below zero in cell ("<<p->XN[IP]<<","<<p->YN[JP]<<","<<p->ZN[KP]<<") of partition "<<p->mpirank<<" for particle "<<n<<" at ("<<PP->X[n]<<","<<PP->Y[n]<<","<<PP->Z[n]<<") "<<solid_new<<"."<<endl;
+                clog<<"cellSum is below zero in cell ("<<p->XN[IP]<<"-"<<p->XN[IP1]<<","<<p->YN[JP]<<"-"<<p->YN[JP1]<<","<<p->ZN[KP]<<"-"<<p->ZN[KP1]<<") of partition "<<p->mpirank<<" for particle "<<n<<" at ("<<PP->X[n]<<","<<PP->Y[n]<<","<<PP->Z[n]<<") "<<solid_new<<"."<<endl;
                 cellSum[IJK]=0;
             }
             particleStressTensorUpdateIJK(p,a,PP);
@@ -346,6 +346,22 @@ int particle_func::remove(lexer* p, particles_obj* PP)
             }
         }
     
+    return removed;
+}
+
+int particle_func::solid_clean(lexer* p, particles_obj* PP)
+{
+    int removed = 0;
+    // PARTICLELOOP
+    // if(PP->Flag[n]>0)
+    // {
+    //     i = p->posc_i(PP->X[n]);
+    //     j = p->posc_j(PP->Y[n]);
+    //     k = p->posc_k(PP->Z[n]);
+    //     cellSum[IJK]-=PP->PackingFactor[n];
+    //     PP->erase(n);
+    //     removed++;
+    // }
     return removed;
 }
 
@@ -598,18 +614,19 @@ void particle_func::make_stationary(lexer* p, fdm* a, tracers_obj* PP, int minfl
 }
 
 /// @brief Set flag of particle to \p minflag aka stationary and remove velocities
-void particle_func::make_stationary(lexer* p, fdm* a, particles_obj* PP, int minflag)
+void particle_func::make_stationary(lexer* p, fdm* a, particles_obj* PP)
 {
     int i,j;
     PARTICLELOOP
-        if(PP->Flag[n]>0)
-        if (p->ccipol4_b(a->topo,PP->X[n],PP->Y[n],PP->Z[n])<=0||p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n])<=0)
+    if(PP->Flag[n]>0)
+    {
+        i=p->posc_i(PP->X[n]);
+        j=p->posc_j(PP->Y[n]);
+        if (p->ccipol4_b(a->topo,PP->X[n],PP->Y[n],PP->Z[n])-volume(PP,n)/(p->DXN[IP]*p->DYN[JP])<=0||p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n])<=0)
         {
-            PP->Flag[n]=minflag;
+            PP->Flag[n]=0;
             if(p->count!=0)
             {
-                i=p->posc_i(PP->X[n]);
-                j=p->posc_j(PP->Y[n]);
                 topoVolumeChange[IJ]+=volume(PP,n);
             }
             if(PP->entries>PP->tracers_obj::entries)
@@ -620,10 +637,10 @@ void particle_func::make_stationary(lexer* p, fdm* a, particles_obj* PP, int min
             }
             if(p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n])<=0)
             {
-                cout<<"solid stoping"<<endl;
-                PP->Flag[n]=minflag-1;
+                PP->Flag[n]=-1;
             }
         }
+    }
 }
 
 /// @brief Calculates volume of particles
@@ -655,10 +672,14 @@ int particle_func::maxParticlesPerXY(lexer* p, fdm* a, double d50)
 }
 
 /// @brief Count particles in cell
-void particle_func::particlesPerCell(lexer* p, ghostcell* pgc, particles_obj* PP)
+void particle_func::particlesPerCell(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP)
 {
     PLAINLOOP
-    cellSum[IJK]=0;
+    if(a->solid(i,j,k)<=0)
+        cellSum[IJK]=INT32_MAX;
+    else
+        cellSum[IJK]=0;
+    
     PARTICLELOOP
     {
         i=p->posc_i(PP->X[n]);
@@ -666,6 +687,10 @@ void particle_func::particlesPerCell(lexer* p, ghostcell* pgc, particles_obj* PP
         k=p->posc_k(PP->Z[n]);
         cellSum[IJK]+=PP->PackingFactor[n];
     }
+
+    // PLAINLOOP
+    // if(a->topo(i,j,k)<=0&&cellSum[IJK]==0)
+    //     cellSum[IJK]=maxParticlesPerCell(p,a,PP->d50,false);
     pgc->start4V(p,cellSum,10);
 }
 
@@ -703,7 +728,8 @@ void particle_func::particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_ob
 /// @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
 void particle_func::updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
 {
-    double theta=theta_s(p,a,PP,i,j,k);
+    // double theta=theta_s(p,a,PP,i,j,k);
+    double theta = PI*pow(PP->d50,3.0)*cellSum[IJK]/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
     stressTensor[IJK]=Ps*pow(theta,beta)/max(theta_crit-theta,epsilon*(1.0-theta));
 }
 

@@ -46,6 +46,7 @@ protected:
     // Parallelization
     int remove(lexer* p,tracers_obj* PP);
     int remove(lexer* p,particles_obj* PP);
+    int solid_clean(lexer* p, particles_obj* PP);
     int transfer(lexer* p,ghostcell* pgc, tracers_obj* PP,int);
     int transfer(lexer* p,ghostcell* pgc, particles_obj* PP,int);
 
@@ -54,7 +55,7 @@ protected:
     void advect(lexer* p, fdm* a, particles_obj* PP,int=0,double=0,double=0,double=0);
     void transport(lexer* p, fdm* a, particles_obj* PP,int=0);
     void make_stationary(lexer* p, fdm* a, tracers_obj* PP,int=0);
-    void make_stationary(lexer* p, fdm* a, particles_obj* PP,int=0);
+    void make_stationary(lexer* p, fdm* a, particles_obj* PP);
     void make_moving(lexer* p, fdm* a, particles_obj* PP);
 
     // Utility
@@ -64,7 +65,7 @@ protected:
     double volume(particles_obj* PP,int);
     double maxParticlesPerCell(lexer* p, fdm* a, double,bool=true);
     int maxParticlesPerXY(lexer* p, fdm* a, double);
-    void particlesPerCell(lexer* p, ghostcell* pgc, particles_obj* PP);
+    void particlesPerCell(lexer* p, fdm* a,ghostcell* pgc, particles_obj* PP);
     void particleStressTensor(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP);
     void particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_obj* PP);
     void updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP,int,int,int);

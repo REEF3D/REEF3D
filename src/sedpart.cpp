@@ -99,18 +99,19 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         point_source(p,a);
         if(p->Q101>0)
         {
-            topo_influx(p,a);
-            solid_influx(p,a);
+            // topo_influx(p,a);
+            // solid_influx(p,a);
+            // seed_topo(p,a);
         }
-        particlesPerCell(p,pgc,&PP);
+        particlesPerCell(p,a,pgc,&PP);
         particleStressTensor(p,a,pgc,&PP);
 
         /// transport
-        erode(p,a,pgc);
+        erode(p,a);
         transport(p,a,&PP);
 		xchange=transfer(p,pgc,&PP,maxparticle);
 		removed=remove(p,&PP);
-        make_stationary(p,a,&PP);
+        removed += deposit(p,a);
 
         /// topo update
         if(p->Q13==1)
@@ -134,8 +135,9 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     gxchange = pgc->globalisum(xchange);
 	p->sedsimtime=pgc->timer()-starttime;
 
-    PLAINLOOP
-    a->test(i,j,k)=active_topo(i,j,k);
+    // PLAINLOOP
+    // a->test(i,j,k)=active_topo(i,j,k);
+    particle_func::debug(p,a,pgc,&PP);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<" relative: "<<p->sedsimtime/double(gparticle_active)*(10^3)<<" ms\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
@@ -162,7 +164,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 
     if(gparticle_active>0)
     {
-        particlesPerCell(p,pgc,&PP);
+        particlesPerCell(p,a,pgc,&PP);
         particleStressTensor(p,a,pgc,&PP);
     }
     
@@ -186,8 +188,9 @@ void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     // if(active_topo(i,j,k)>0)
     // cout<<k<<","<<p->ZN[KP]<<endl;
     // }
-    PLAINLOOP
-    a->test(i,j,k)=active_topo(i,j,k);
+    // PLAINLOOP
+    // a->test(i,j,k)=active_topo(i,j,k);
+    particle_func::debug(p,a,pgc,&PP);
     }
 
 /// @brief SFLOW calculation function
@@ -247,10 +250,18 @@ void sedpart::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 }
 
 /// @brief Enables erosion of particles
-void sedpart::erode(lexer* p, fdm* a, ghostcell* pgc)
+void sedpart::erode(lexer* p, fdm* a)
 {
     if(p->Q101>0)
         make_moving(p,a,&PP);
+}
+
+/// @brief Deposits moving particles onto topo
+int sedpart::deposit(lexer* p, fdm* a)
+{
+    if(p->Q101>0)
+        make_stationary(p,a,&PP);
+    return solid_clean(p,&PP);
 }
 
 /// @brief Write out particle data to state file
