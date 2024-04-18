@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"patchBC_interface.h"
 
-ioflow_f::ioflow_f(lexer *p, ghostcell *pgc, patchBC_interface *ppBC) 
+ioflow_f::ioflow_f(lexer *p, ghostcell *pgc, patchBC_interface *ppBC) : tolerance(1.0e-20)
 {
 	pBC = ppBC;
     
