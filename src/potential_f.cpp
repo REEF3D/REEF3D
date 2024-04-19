@@ -129,7 +129,7 @@ void potential_f::ucalc(lexer *p, fdm *a, field &phi)
     if(p->S10==2)
 	ULOOP
 	if(0.5*(a->topo(i,j,k)+a->topo(i+1,j,k))<-p->F45*p->DXP[IP])
-	a->u(i,j,k)*=a->porosity(i,j,k);
+	a->u(i,j,k)=0.0;
 }
 
 void potential_f::vcalc(lexer *p, fdm *a, field &phi)
