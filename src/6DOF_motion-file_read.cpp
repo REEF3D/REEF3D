@@ -46,15 +46,16 @@ void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
 	{
         for(qn=0;qn<colnum;++qn)
         file>>val;
-    
 	++count;
 	}
 	ptnum=count;
     
+    //cout<<"6DOF MOTION READ "<<count<<endl;
+    
 	file.close();
     
 // allocate
-    p->Darray(data,val,colnum);
+    p->Darray(data,ptnum,colnum);
     
 
 // re.open file
@@ -75,6 +76,8 @@ void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
     
     ts = data[0][0];
     te = data[ptnum-1][0];
+    
+    //cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<endl;
     
 // add deltas
     for(qn=0;qn<ptnum;++qn)

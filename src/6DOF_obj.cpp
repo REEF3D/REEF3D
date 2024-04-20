@@ -89,13 +89,13 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     if(p->X210==0 && p->X211==0)
     pmotion = new sixdof_motionext_void(p,pgc);
     
-    if(p->X210==1 || p->X211==1)
+    if((p->X210==1 || p->X211==1) && p->X240==0)
     pmotion = new sixdof_motionext_fixed(p,pgc);
     
     if(p->X240>0)
     pmotion = new sixdof_motionext_file(p,pgc);
     
-    Mass_fb =  Rfb = Vfb =1.0;
+    Mass_fb =  Rfb = Vfb = 1.0;
 
 }
 
