@@ -39,12 +39,9 @@ void sixdof_motionext_void::ini(lexer *p, ghostcell *pgc)
 
 void sixdof_motionext_void::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp, Eigen::Vector3d& dc)
 {
-    
-
 }
 
 void sixdof_motionext_void::motionext_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
-
 }
 

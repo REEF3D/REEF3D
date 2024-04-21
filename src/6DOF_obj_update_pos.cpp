@@ -88,10 +88,10 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
             tri_z[n][q] = point(2) + c_(2);
 
 			// 2D
-			if(p->X11_v!=1 && p->X11_p!=1 && p->X11_r!=1) 
+			/*if(p->X11_v!=1 && p->X11_p!=1 && p->X11_r!=1) 
 			{
 				tri_y[n][q] = tri_y0[n][q] + c_(1);	
-			}
+			}*/
         }
 	}
     
