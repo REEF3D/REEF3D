@@ -83,4 +83,10 @@ void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
     for(qn=0;qn<ptnum;++qn)
     data[qn][0] += p->X241;
     
+// convert rotation
+    for(qn=0;qn<ptnum;++qn)
+    {
+    data[qn][3] = (90.0-data[qn][3])*(PI/180.0);
+    }
+    
 }
