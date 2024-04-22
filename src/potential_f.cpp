@@ -249,7 +249,7 @@ void potential_f::laplace(lexer *p, fdm *a, ghostcell *pgc, field &phi)
         {
             
 		if((p->flag4[Im1JK]<0 && bc(i-1,j,k)==0) || (p->X10==1 && a->fb(i-1,j,k)<0.0)
-           || (p->G3==1 && p->flagsf4[Im1JK]<0) || (a->phi(i-1,j,k)<0.0 && p->I21==1))
+           || (p->G3==1 && p->flagsf4[Im1JK]<0)||(a->phi(i-1,j,k)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
@@ -263,7 +263,7 @@ void potential_f::laplace(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 		}
 		
 		if((p->flag4[Ip1JK]<0 && bc(i+1,j,k)==0) || (p->X10==1 && a->fb(i+1,j,k)<0.0)
-           || (p->G3==1 && p->flagsf4[Ip1JK]<0) || (a->phi(i+1,j,k)<0.0 && p->I21==1))
+           || (p->G3==1 && p->flagsf4[Ip1JK]<0)||(a->phi(i+1,j,k)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
@@ -277,28 +277,28 @@ void potential_f::laplace(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 		}
 		
 		if(p->flag4[IJm1K]<0 || (p->X10==1 && a->fb(i,j-1,k)<0.0)
-           || (p->G3==1 && p->flagsf4[IJm1K]<0) || (a->phi(i,j-1,k)<0.0 && p->I21==1))
+           || (p->G3==1 && p->flagsf4[IJm1K]<0)||(a->phi(i,j-1,k)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.e[n];
 		a->M.e[n] = 0.0;
 		}
 		
 		if(p->flag4[IJp1K]<0 || (p->X10==1 && a->fb(i,j+1,k)<0.0)
-           || (p->G3==1 && p->flagsf4[IJp1K]<0) || (a->phi(i,j+1,k)<0.0 && p->I21==1))
+           || (p->G3==1 && p->flagsf4[IJp1K]<0)||(a->phi(i,j+1,k)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.w[n];
 		a->M.w[n] = 0.0;
 		}
 		
 		if(p->flag4[IJKm1]<0 || (p->X10==1 && a->fb(i,j,k-1)<0.0)
-           || (p->G3==1 && p->flagsf4[IJKm1]<0) || (a->phi(i,j,k-1)<0.0 && p->I21==1))
+           || (p->G3==1 && p->flagsf4[IJKm1]<0)||(a->phi(i,j,k-1)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.b[n];
 		a->M.b[n] = 0.0;
 		}
 		
 		if(p->flag4[IJKp1]<0 || (p->X10==1 && a->fb(i,j,k+1)<0.0)
-           || (p->G3==1 && p->flagsf4[IJKp1]<0) || (a->phi(i,j,k+1)<0.0 && p->I21==1))
+           || (p->G3==1 && p->flagsf4[IJKp1]<0)||(a->phi(i,j,k+1)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.t[n];
 		a->M.t[n] = 0.0;
