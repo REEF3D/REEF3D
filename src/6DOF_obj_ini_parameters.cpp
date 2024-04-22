@@ -30,27 +30,8 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
 {
     // external velocity
       Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
-    /*
-    if (p->X210==1)
-    {
-        Uext = p->X210_u;
-        Vext = p->X210_v;
-        Wext = p->X210_w;
-    }
-    if (p->X211==1)
-    {
-        Pext = p->X211_p;
-        Qext = p->X211_q;
-        Rext = p->X211_r;
-    }
-    if (p->X240==1)
-    {
-        //motion_vec(p,a,pgc);
-        cout<<"motion file"<<endl;
-    }*/
 
-    // Rigid body motion ini
-    
+    // Rigid body motion ini    
     R_ << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
     e_ << 0.0, 0.0, 0.0, 0.0;
     p_ << 0.0, 0.0, 0.0;

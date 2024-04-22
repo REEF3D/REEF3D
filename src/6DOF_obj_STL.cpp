@@ -124,7 +124,7 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 	for(n=0; n<tricount; ++n)
 	for(int q=0; q<3; ++q)
 	{
-        tri_x[n][q] *= p->X181_x;
+         tri_x[n][q] *= p->X181_x;
 		tri_y[n][q] *= p->X181_y;
 		tri_z[n][q] *= p->X181_z;
 	}

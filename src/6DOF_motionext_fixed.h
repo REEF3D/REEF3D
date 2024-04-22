@@ -54,6 +54,7 @@ private:
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
     
+    Eigen::Vector3d omega_;
     
     double Uext, Vext, Wext, Pext, Qext, Rext;
 };

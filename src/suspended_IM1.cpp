@@ -223,8 +223,10 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         
         s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
         
+        //s->conc(i,j)=concn(i,j,k);
+        
         //if(s->conc(i,j)>s->cbe(i,j))
-        cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;
+       // cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;
 
     }
     
@@ -240,6 +242,8 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
         
         s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
+        
+        //s->conc(i,j)=concn(i,j,k+1);
         
         //if(s->conc(i,j)>s->cbe(i,j))
         //cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;

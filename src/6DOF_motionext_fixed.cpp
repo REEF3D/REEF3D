@@ -68,23 +68,22 @@ void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Ve
 
 void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
+
     if(p->X11_p==2)
-    {
-        dh_(0) = 0.0;
-        h_(0) = Pext*ramp_vel(p);
-    }
-
+    omega_(0) = Pext*ramp_vel(p);
+    
     if(p->X11_q==2)
-    {
-        dh_(1) = 0.0;
-        h_(1) = Qext*ramp_vel(p);
-    }
-
+    omega_(1) = Qext*ramp_vel(p);
+    
     if(p->X11_r==2)
-    {
-        dh_(2) = 0.0;
-        h_(2) = Rext*ramp_vel(p);
-    }
+    omega_(2) = Rext*ramp_vel(p);
+    
+    h_ = I_*omega_;
+    
+    dh_ << 0.0,0.0,0.0;
+    
+    if(p->mpirank==0)
+    cout<<"MOTIONEXT_ROT: "<<h_(0)<<" "<<h_(1)<<" "<<h_(2)<<endl;
 
     de_ = 0.5*G_.transpose()*I_.inverse()*h_;
 }

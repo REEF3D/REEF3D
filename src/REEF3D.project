@@ -602,6 +602,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="External Motion">
+          <File Name="6DOF_motionext_CoG.h"/>
           <File Name="6DOF_motionext_void.h"/>
           <File Name="6DOF_motionext_file.h"/>
           <File Name="6DOF_motionext_fixed.h"/>
@@ -1834,6 +1835,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="External Motion">
+          <VirtualDirectory Name="Motion File CoG">
+            <File Name="6DOF_motion-file_CoG_read.cpp"/>
+            <File Name="6DOF_motion-file_CoG.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Motion Fixed">
             <File Name="6DOF_motionext_fixed.cpp"/>
             <File Name="6DOF_motionext_void.cpp"/>
