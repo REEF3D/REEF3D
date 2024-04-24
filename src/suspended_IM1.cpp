@@ -104,6 +104,8 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 
 void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {
+    double cval;
+    
     if(p->G3==0)
     GC4LOOP
     if(p->gcb4[n][4]==5)
@@ -112,10 +114,12 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         j=p->gcb4[n][1];
         k=p->gcb4[n][2];
         
-        conc(i,j,k) =    s->cb(i,j);
-        conc(i,j,k-1) =  s->cb(i,j);
-        conc(i,j,k-2) =  s->cb(i,j);
-        conc(i,j,k-3) =  s->cb(i,j);
+        cval = s->cb(i,j);
+        
+        conc(i,j,k)   =  cval;
+        conc(i,j,k-1) =  cval;
+        conc(i,j,k-2) =  cval;
+        conc(i,j,k-3) =  cval;
     }
     
     if(p->G3==1)
@@ -125,10 +129,12 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         j=p->gcdf4[n][1];
         k=p->gcdf4[n][2];
         
-        conc(i,j,k) =    s->cb(i,j);
-        conc(i,j,k-1) =  s->cb(i,j);
-        conc(i,j,k-2) =  s->cb(i,j);
-        conc(i,j,k-3) =  s->cb(i,j);
+        cval = s->cb(i,j);
+        
+        conc(i,j,k)   =  cval;
+        conc(i,j,k-1) =  cval;
+        conc(i,j,k-2) =  cval;
+        conc(i,j,k-3) =  cval;
     }
     
         n=0;
@@ -217,16 +223,18 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         j=p->gcb4[n][1];
         k=p->gcb4[n][2];
         
-        //s->conc(i,j) = a->conc(i,j,k+1);
-        
         dist = 0.5*p->DZN[KP]-adist;
         
         s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
+        
+        //s->conc(i,j) = a->conc(i,j,k);
         
         //s->conc(i,j)=concn(i,j,k);
         
         //if(s->conc(i,j)>s->cbe(i,j))
        // cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;
+       
+       s->conc(i,j) = (a->visc(i,j,k)+a->eddyv(i,j,k))*(a->conc(i,j,k+1) - a->conc(i,j,k))/p->DZP[KP];
 
     }
     
@@ -247,6 +255,8 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         
         //if(s->conc(i,j)>s->cbe(i,j))
         //cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;
+        
+        s->conc(i,j) = (a->visc(i,j,k)+a->eddyv(i,j,k))*(a->conc(i,j,k+1) - a->conc(i,j,k))/p->DZP[KP];
     }
 
     

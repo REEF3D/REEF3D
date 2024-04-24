@@ -182,8 +182,8 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
 				if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
 				{
 
-				wsfout<<setprecision(5)<<xloc_all[q][n]<<" \t ";
-				wsfout<<setprecision(5)<<wsf_all[q][n]<<" \t  ";
+				wsfout<<setprecision(12)<<xloc_all[q][n]<<" \t ";
+				wsfout<<setprecision(12)<<wsf_all[q][n]<<" \t  ";
 				
 				
 					if(p->P53==1)

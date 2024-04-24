@@ -54,7 +54,6 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     {
     Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j))/s->tau_crit(i,j),0.0);
 
-
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     
     if(s->active(i,j)==1)
@@ -71,9 +70,9 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
         
         //zdist = (p->ZP[KP]-s->bedzh(i,j));
         
-        zdist = 0.5*p->DZN[KP];
+        //zdist = 0.5*p->DZN[KP];
         
-        s->cb(i,j) = s->cbe(i,j)*pow(((s->waterlevel(i,j)-zdist)/zdist)*(adist/(s->waterlevel(i,j)-adist)),1.0);
+        //s->cb(i,j) = s->cbe(i,j)*pow(((s->waterlevel(i,j)-zdist)/zdist)*(adist/(s->waterlevel(i,j)-adist)),1.0);
 
         //if(s->cb(i,j)>1.0)
         //cout<<"!! CB: "<<s->cbe(i,j)<<" "<<s->cb(i,j)<<" "<<zdist<<" "<<adist<<" "<<s->waterlevel(i,j)<<endl;

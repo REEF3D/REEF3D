@@ -159,7 +159,7 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	if(p->S60<11 && p->S60>0)
 	psuspdisc=new weno_hj_nug(p);
     
-    if(p->S60>10)
+    if(p->S60>10 && p->S60>0)
 	psuspdisc=new iweno_hj_nug(p);
     
 
