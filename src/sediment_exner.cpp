@@ -101,16 +101,11 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     timestep(p,pgc,s);
 	
 	SLICELOOP4
-    {
-    if(s->active(i,j)==1 || s->vz(i,j)>0.0)
     s->bedzh(i,j) += p->dtsed*s->vz(i,j);
-    }
-    
+
     
     SLICELOOP4
-    {
     s->dh(i,j)=s->vz(i,j);
-    }
 
 	pgc->gcsl_start4(p,s->bedzh,1);
 }

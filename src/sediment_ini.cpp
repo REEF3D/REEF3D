@@ -50,6 +50,7 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     active_ini_cfd(p,a,pgc);
     
     topo_zh_update(p,a,pgc,s);
+    waterlevel(p,a,pgc);
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
