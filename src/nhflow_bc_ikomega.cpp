@@ -54,7 +54,6 @@ void nhflow_bc_ikomega::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *
         
     if(p->flag4[Im1JK]<0 || p->flag4[Ip1JK]<0 || p->flag4[IJm1K]<0 || p->flag4[IJp1K]<0 || p->flag4[IJKm1]<0)
     {  
-    
         
         if(p->flag4[Im1JK]<0)
         dist = 0.5*p->DXN[IP];
@@ -134,92 +133,73 @@ void nhflow_bc_ikomega::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double
 
 void nhflow_bc_ikomega::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    /*
 	int q;
-    
-    // set to zero inside direct forcing body
-    if(p->X10==1)
-    LOOP
-    if(a->fb(i,j,k)<0.0)
-    KIN[IJK]=0.0;
-    
-    // set to zero inside solid forcing body
-    if(p->G3==1)
-    LOOP
-    if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
-    KIN[IJK]=0.0;
-
+        
         n=0;
         LOOP
         {
-            if(p->flag4[Im1JK]<0 || (p->X10==1 && a->fb(i-1,j,k)<0.0)
-            || (p->G3==1 && (a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)))
+            if(p->flag4[Im1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.s[n]*kin(i-1,j,k);
-            a->M.s[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.s[n]*KIN[Im1JK];
+            d->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0 || (p->X10==1 && a->fb(i+1,j,k)<0.0)
-            || (p->G3==1 && (a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0)))
+            if(p->flag4[Ip1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.n[n]*kin(i+1,j,k);
-            a->M.n[n] = 0.0;
-            }
-            
-            if(p->j_dir==1)
-            if(p->flag4[IJm1K]<0 || (p->X10==1 && a->fb(i,j-1,k)<0.0)
-            || (p->G3==1 && (a->solid(i,j-1,k)<0.0 || a->topo(i,j-1,k)<0.0)))
-            {
-            a->rhsvec.V[n] -= a->M.e[n]*kin(i,j-1,k);
-            a->M.e[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.n[n]*KIN[Ip1JK];
+            d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJp1K]<0 || (p->X10==1 && a->fb(i,j+1,k)<0.0)
-            || (p->G3==1 && (a->solid(i,j+1,k)<0.0 || a->topo(i,j+1,k)<0.0)))
+            if(p->flag4[IJm1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.w[n]*kin(i,j+1,k);
-            a->M.w[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.e[n]*KIN[IJm1K];
+            d->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || (p->X10==1 && a->fb(i,j,k-1)<0.0)
-            || (p->G3==1 && (a->solid(i,j,k-1)<0.0 || a->topo(i,j,k-1)<0.0)))
+            if(p->j_dir==1)
+            if(p->flag4[IJp1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.b[n]*kin(i,j,k-1);
-            a->M.b[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.w[n]*KIN[IJp1K];
+            d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0  || (p->X10==1 && a->fb(i,j,k+1)<0.0)
-            || (p->G3==1 && (a->solid(i,j,k+1)<0.0 || a->topo(i,j,k+1)<0.0)))
+            if(p->flag4[IJKm1]<0)
             {
-            a->rhsvec.V[n] -= a->M.t[n]*kin(i,j,k+1);
-            a->M.t[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.b[n]*KIN[IJKm1];
+            d->M.b[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKp1]<0)
+            {
+            d->rhsvec.V[n] -= d->M.t[n]*KIN[IJKp1];
+            d->M.t[n] = 0.0;
             }
 
         ++n;
         }
     
     // turn off inside direct forcing body
-    if((p->X10==1) || (p->G3==1 && (a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)))
+    /*if((p->X10==1) || (p->G3==1 && (d->solid(i,j,k)<0.0 || d->topo(i,j,k)<0.0)))
     {
     
         n=0;
         LOOP
         {
-            if(a->fb(i,j,k)<0.0 || a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
+            if(d->fb(i,j,k)<0.0 || d->solid(i,j,k)<0.0 || d->topo(i,j,k)<0.0)
             {
-            a->M.p[n]  =   1.0;
+            d->M.p[n]  =   1.0;
 
-            a->M.n[n] = 0.0;
-            a->M.s[n] = 0.0;
+            d->M.n[n] = 0.0;
+            d->M.s[n] = 0.0;
 
-            a->M.w[n] = 0.0;
-            a->M.e[n] = 0.0;
+            d->M.w[n] = 0.0;
+            d->M.e[n] = 0.0;
 
-            a->M.t[n] = 0.0;
-            a->M.b[n] = 0.0;
+            d->M.t[n] = 0.0;
+            d->M.b[n] = 0.0;
             
-            a->rhsvec.V[n] = 0.0;
+            d->rhsvec.V[n] = 0.0;
             }
             ++n;
         }
@@ -229,65 +209,48 @@ void nhflow_bc_ikomega::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *
 
 void nhflow_bc_ikomega::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    /*
+    
 	int q;
     
-    // set to zero inside direct forcing body
-    if(p->X10==1)
-    LOOP
-    EPS[IJK]=0.0;
-    
-    // set to zero inside solid forcing body
-    if(p->G3==1)
-    LOOP
-    if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
-    EPS[IJK]=0.0;
-        
         n=0;
         LOOP
         {
-            if(p->flag4[Im1JK]<0 || (p->X10==1 && a->fb(i-1,j,k)<0.0)
-            || (p->G3==1 && (a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0)))
+            if(p->flag4[Im1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.s[n]*eps(i-1,j,k);
-            a->M.s[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.s[n]*EPS[Im1JK];
+            d->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0 || (p->X10==1 && a->fb(i+1,j,k)<0.0)
-            || (p->G3==1 && (a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0)))
+            if(p->flag4[Ip1JK]<0)
             {
-            a->rhsvec.V[n] -= a->M.n[n]*eps(i+1,j,k);
-            a->M.n[n] = 0.0;
-            }
-            
-            if(p->j_dir==1)
-            if(p->flag4[IJm1K]<0 || (p->X10==1 && a->fb(i,j-1,k)<0.0)
-            || (p->G3==1 && (a->solid(i,j-1,k)<0.0 || a->topo(i,j-1,k)<0.0)))
-            {
-            a->rhsvec.V[n] -= a->M.e[n]*eps(i,j-1,k);
-            a->M.e[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.n[n]*EPS[Ip1JK];
+            d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJp1K]<0 || (p->X10==1 && a->fb(i,j+1,k)<0.0)
-            || (p->G3==1 && (a->solid(i,j+1,k)<0.0 || a->topo(i,j+1,k)<0.0)))
+            if(p->flag4[IJm1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.w[n]*eps(i,j+1,k);
-            a->M.w[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.e[n]*EPS[IJm1K];
+            d->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || (p->X10==1 && a->fb(i,j,k-1)<0.0)
-            || (p->G3==1 && (a->solid(i,j,k-1)<0.0 || a->topo(i,j,k-1)<0.0)))
+            if(p->j_dir==1)
+            if(p->flag4[IJp1K]<0)
             {
-            a->rhsvec.V[n] -= a->M.b[n]*eps(i,j,k-1);
-            a->M.b[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.w[n]*EPS[IJp1K];
+            d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0  || (p->X10==1 && a->fb(i,j,k+1)<0.0)
-            || (p->G3==1 && (a->solid(i,j,k+1)<0.0 || a->topo(i,j,k+1)<0.0)))
+            if(p->flag4[IJKm1]<0)
             {
-            a->rhsvec.V[n] -= a->M.t[n]*eps(i,j,k+1);
-            a->M.t[n] = 0.0;
+            d->rhsvec.V[n] -= d->M.b[n]*EPS[IJKm1];
+            d->M.b[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKp1]<0)
+            {
+            d->rhsvec.V[n] -= d->M.t[n]*EPS[IJKp1];
+            d->M.t[n] = 0.0;
             }
 
         ++n;
@@ -295,6 +258,7 @@ void nhflow_bc_ikomega::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double
     
     
     // turn off inside direct forcing body
+    /*
     if((p->X10==1) || (p->G3==1 && (a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)))
     {
         n=0;
