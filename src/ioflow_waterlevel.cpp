@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -53,7 +53,7 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 
         if(a->phi(i-1,j,k)>=0.0 && a->phi(i-1,j,k+1)<0.0)
         {
-        zval+=-(a->phi(i-1,j,k)*p->DXM)/(a->phi(i-1,j,k+1)-a->phi(i-1,j,k)) + p->pos_z();
+        zval+=-(a->phi(i-1,j,k)*p->DZP[KP])/(a->phi(i-1,j,k+1)-a->phi(i-1,j,k)) + p->pos_z();
         ++count;
         }
     }
@@ -89,9 +89,9 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i+1,j,k)>=0.0 && a->phi(i+1,j,k+1)<0.0)
+        if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
         {
-        zval+=-(a->phi(i+1,j,k)*p->DXM)/(a->phi(i+1,j,k+1)-a->phi(i+1,j,k)) + p->pos_z();
+        zval+= -(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z();
         ++count;
         }
     }
@@ -111,7 +111,7 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 
 void ioflow_f::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
-        for(n=0;n<p->gcout_count;++n)
+        /*for(n=0;n<p->gcout_count;++n)
         {
         i=p->gcout[n][0];
         j=p->gcout[n][1];
@@ -120,7 +120,7 @@ void ioflow_f::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
         f(i+1,j,k)=a->phi(i+1,j,k);
         f(i+2,j,k)=a->phi(i+2,j,k);
         f(i+3,j,k)=a->phi(i+3,j,k);
-        }
+        }*/
 }
 
 void ioflow_f::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
@@ -206,6 +206,27 @@ void ioflow_f::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
 
 
 double ioflow_f::wave_fsf(lexer *p, ghostcell *pgc, double x)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_f::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_f::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_f::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
     double val=0.0;
 

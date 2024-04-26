@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,7 +50,6 @@ private:
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
     
-    bedconc *pcb;
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;

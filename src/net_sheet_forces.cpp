@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -189,7 +189,7 @@ void net_sheet::screenForceCoeff
     cl = cl0*(b2*sin(2.0*thetan) + b4*sin(4.0*thetan) + b6*sin(6.0*thetan)); 
     
 
-    if(p->Y1 == 1)
+    if(p->Y1==1)
     {
         // Simulation-based screen force model 
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"ddweno_f_nug.h"
 #include"slice4.h"
 class lexer;
+class fdm_fnpf;
 class slice;
 class sliceint;
 class ghostcell;
@@ -38,7 +39,7 @@ public:
     fnpf_coastline(lexer*);
 	virtual ~fnpf_coastline();
 
-   void start(lexer*,ghostcell*,slice&,int*,sliceint&);
+   void start(lexer*,fdm_fnpf*,ghostcell*,slice&,int*,sliceint&);
    
 private:
    void reini(lexer*,ghostcell*,slice&);

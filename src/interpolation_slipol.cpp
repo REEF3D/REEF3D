@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -487,6 +487,30 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     
     return value;
 }
+
+double interpolation::sl_ipol4eta_wd(int *wet, slice &f, slice &bed)
+{
+    v1=v2=v3=v4=0;
+
+    pip=4;
+    if(wet[IJ]==1)
+    v1=f(i,j);
+    
+    if(wet[Ip1J]==1)
+    v2=f(i+1,j);
+
+    if(wet[IJp1]==1)
+    v3=f(i,j+1);
+
+    if(wet[Ip1Jp1]==1)
+    v4=f(i+1,j+1);
+    pip=0;
+
+    value = 0.25*(v1+v2+v3+v4);
+    
+    return value;
+}
+
 
 double interpolation::sl_ipolint(sliceint &f)
 {

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,10 +37,8 @@ fnpf_vtp_bed::fnpf_vtp_bed(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	printcount=0;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_FNPF_VTP_BED",0777);
-	
-	
 }
 
 fnpf_vtp_bed::~fnpf_vtp_bed()
@@ -95,6 +93,14 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<PolyData>"<<endl;
 	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">"<<endl;
+    
+    if(p->P16==1)
+    {
+    result<<"<FieldData>"<<endl;
+    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+    result<<"</DataArray>"<<endl;
+    result<<"</FieldData>"<<endl;
+    }
     
     n=0;
 	result<<"<Points>"<<endl;

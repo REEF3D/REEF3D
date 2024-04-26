@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -163,7 +163,6 @@ void ghostcell::gcdistro1(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
     if(bc_label==99)
 	gcb_debug(f,gcv,bc,cs);
 }
-
 
 void ghostcell::gcdistro1V(lexer *p, double *f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs)
 {

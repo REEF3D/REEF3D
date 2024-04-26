@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,16 +35,12 @@ bedprobe_point::bedprobe_point(lexer *p, fdm* a, ghostcell *pgc)
 	p->Darray(wsf,p->P121);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_SedimentPoint",0777);
 	
     if(p->mpirank==0 && p->P121>0)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-Sediment-Point.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_CFD_SedimentPoint/REEF3D-CFD-Sediment-Point.dat");
 
     wsfout<<"number of gauges:  "<<p->P121<<endl<<endl;
@@ -121,7 +117,7 @@ void bedprobe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     iloc[n]=conv((p->P121_x[n]-p->originx)/p->DXM);
     jloc[n]=conv((p->P121_y[n]-p->originy)/p->DXM);
 
-    check=ij_boundcheck(p,a,iloc[n],jloc[n],0);
+    check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
     if(check==1)
     flag[n]=1;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"sediment_exner.h"
 #include"lexer.h"
 #include"ghostcell.h"
-#include"bedconc.h"
+#include"bedconc_VR.h"
 #include"topo_relax.h"
 #include"sediment_exnerdisc.h"
 #include"sediment_fdm.h"
@@ -32,14 +32,8 @@ double sediment_exner::susp_qb(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
     double val=0.0;
     
-    
     if(p->S34==1)
     val = s->ws*(s->conc(i,j) - s->cbe(i,j)); 
     
-
     return val;
-    
-    
-    
-    
 }

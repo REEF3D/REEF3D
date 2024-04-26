@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -36,7 +36,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
 
 // Havfarm 2
 /*
-    if (p->mpirank == 0) cout<<"Havfarm 2 sheets"<<endl;
+    if (p->mpirank==0) cout<<"Havfarm 2 sheets"<<endl;
     
     double xm = p->X322_x0[nNet];
     double ym = p->X322_y0[nNet];
@@ -120,7 +120,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
 */
 
 // OceanFarm 1
-    if (p->mpirank == 0) cout<<"OceanFarm 1 sheets"<<endl;
+    if (p->mpirank==0) cout<<"OceanFarm 1 sheets"<<endl;
     // Top cylinder
     double xm = p->X322_x0[nNet];
     double ym = p->X322_y0[nNet];
@@ -309,7 +309,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
 
 /*
 // DeepBlue 1
-    if (p->mpirank == 0) cout<<"DeepBlue 1 sheets"<<endl;
+    if (p->mpirank==0) cout<<"DeepBlue 1 sheets"<<endl;
 
     // Main cylinder
     double xm = p->X322_x0[nNet];
@@ -581,7 +581,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
 */
 /*
 // Estonia fish farm
-    if (p->mpirank == 0) cout<<"Estonia sheets"<<endl;
+    if (p->mpirank==0) cout<<"Estonia sheets"<<endl;
     // Top cylinder
     double xm = p->X322_x0[nNet];
     double ym = p->X322_y0[nNet];
@@ -789,7 +789,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
         }
         
         // Initialise print
-        if(p->mpirank==0 && p->P14==1)
+        if(p->mpirank==0)
         {
             char str[1000];
             sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
@@ -802,7 +802,7 @@ void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
     }
     
     // Initialise force print
-    if(p->mpirank==0 && p->P14==1)
+    if(p->mpirank==0)
     {
         char str[1000];
         sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
@@ -932,7 +932,7 @@ void net_sheet::triangulation(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
-    if (p->mpirank == 0)
+    if (p->mpirank==0)
     {
         cout<<"Number of net triangles: "<<tend<<endl;
     }
@@ -969,9 +969,9 @@ void net_sheet::create_triangle
 	
 	if 
 	(
-		   SIGN(nx) != SIGN(nx_old) 
-		|| SIGN(ny) != SIGN(ny_old) 
-		|| SIGN(nz) != SIGN(nz_old)
+		   SIGN(nx)!=SIGN(nx_old) 
+		|| SIGN(ny)!=SIGN(ny_old) 
+		|| SIGN(nz)!=SIGN(nz_old)
 	)
 	{
 		tri_x_new[0] = x2;

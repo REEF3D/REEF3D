@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -45,7 +45,7 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	Ne = p->Z11_n[nstrip];           // Number of elements
 
     thinStrip = false;
-    if (p->Y2 == 1) thinStrip = true;
+    if (p->Y2==1) thinStrip = true;
 
     gravity_vec << a->gi, a->gj, a->gk;
     rho_f = p->W1;

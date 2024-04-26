@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,6 +38,13 @@ Author: Hans Bihs
 #include"nhflow_HLL.h"
 #include"nhflow_HLLC.h"
 #include"nhflow_convection_void.h"
+
+#include"nhflow_scalar_iweno.h"
+
+#include"nhflow_diff_void.h"
+#include"nhflow_ediff.h"
+#include"nhflow_idiff.h"
+#include"nhflow_idiff_2D.h"
 
 #include"nhflow_momentum_RK2.h"
 #include"nhflow_momentum_RK3.h"

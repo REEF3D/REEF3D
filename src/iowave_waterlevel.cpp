@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -127,22 +127,5 @@ void iowave::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
         f.V[Ip2_J_K_4a]=a->phi(i+2,j,k);
         f.V[Ip3_J_K_4a]=a->phi(i+3,j,k);
     }
-}
-
-double iowave::wave_fsf(lexer *p, ghostcell *pgc, double x)
-{
-    double val=0.0;
-    int jmem=j;
-    int imem=i;
-    
-    i=0;//int((x-p->originx-0.5*p->DXM)/p->DXM);
-    j=0;
-    
-    val = wave_h(p,pgc,x,0.0,0.0);
-    
-    j=jmem;
-    i=imem;
-
-    return val;
 }
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,9 +26,9 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_strain.h"
 #include"solver.h"
-#include"diffusion.h"
+#include"nhflow_diffusion.h"
 #include"ioflow.h"
-#include"nhflow_convection.h"
+#include"nhflow_scalar_convection.h"
 
 nhflow_komega_IM1::nhflow_komega_IM1(lexer* p, fdm_nhf* d, ghostcell *pgc) : nhflow_ikomega(p,d,pgc)
 {
@@ -40,20 +40,21 @@ nhflow_komega_IM1::~nhflow_komega_IM1()
 {
 }
 
-void nhflow_komega_IM1::start(fdm_nhf* d, lexer* p, nhflow_convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
+void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans *pvrans)
 {
-	/*Pk_update(p,a,pgc);
-	wallf_update(p,a,pgc,wallf);
+	Pk_update(p,d,pgc);
+	wallf_update(p,d,pgc,WALLF);
 
 //kin
     starttime=pgc->timer();
-	clearrhs(p,a);
-    pconvec->start(p,a,kin,4,a->u,a->v,a->w);
-	pdiff->idiff_scalar(p,a,pgc,psolv,kin,eddyv0,kw_sigma_k,1.0);
-	kinsource(p,a,pvrans);
-	timesource(p,a,kn);
-    bckomega_start(a,p,kin,eps,gcval_kin);
-    bckin_matrix(a,p,kin,eps);
+	clearrhs(p,d);
+    pconvec->start(p,d,KIN,4,d->U,d->V,d->W);
+	pdiff->diff_scalar(p,d,pgc,psolv,KIN,1.0);
+	kinsource(p,d,pvrans);
+	timesource(p,d,KN);
+    bckomega_start(p,d,KIN,EPS,gcval_kin);
+
+    /*bckin_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,kin,a->rhsvec,4);
 	pgc->start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
@@ -63,7 +64,7 @@ void nhflow_komega_IM1::start(fdm_nhf* d, lexer* p, nhflow_convection* pconvec, 
 
 //omega
     starttime=pgc->timer();
-	clearrhs(p,a);
+	clearrhs(p,d);
     pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,eddyv0,kw_sigma_w,1.0);
 	epssource(p,a,pvrans);
@@ -97,25 +98,24 @@ void nhflow_komega_IM1::etimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
 
 void nhflow_komega_IM1::timesource(lexer* p, fdm_nhf* d, double *FN)
 {
-    /*count=0;
+    count=0;
     LOOP
     {
-        a->M.p[count] += 1.0/DT;
+        d->M.p[count] += 1.0/DT;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + fn(i,j,k)/DT;
+        d->rhsvec.V[count] += d->L[IJK] + FN[IJK]/DT;
 
 	++count;
-    }*/
+    }
 }
 
 void nhflow_komega_IM1::clearrhs(lexer* p, fdm_nhf *d)
 {
-    /*
     count=0;
     LOOP
     {
-    a->rhsvec.V[count]=0.0;
-	a->L(i,j,k)=0.0;
+    d->rhsvec.V[count]=0.0;
+	d->L[IJK]=0.0;
 	++count;
-    }*/
+    }
 }

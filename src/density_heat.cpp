@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,6 +33,7 @@ density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->DXM), eps(
 	ro_1 = p->W1;
 	alpha_air = p->H2;
 	alpha_water = p->H1;
+    H=0.0;
 
 	material(p);
     

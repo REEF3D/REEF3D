@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -110,7 +110,7 @@ void ghostcell::flagbase(lexer *p, fdm *a)
     j=p->gcpara2[n][1];
     k=p->gcpara2[n][2];
 
-    p->flag5[IJK]=TOPO;
+    p->flag5[IJK]=TOPO_FLAG;
 
         for(q=0;q<paramargin;++q)
         p->flag5[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1+q)*p->kmax + k-p->kmin]=-2;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -62,10 +62,12 @@ public:
     int posf_i(double);
     int posf_j(double);
     int posf_k(double);
+    int posf_sig(int,int,double);
     
     int posc_i(double);
     int posc_j(double);
     int posc_k(double);
+    int posc_sig(int,int,double);
     
     int ihalf(int,int);
     

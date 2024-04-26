@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -270,7 +270,7 @@ public:
     int A310,A311,A312,A313,A320,A321,A322,A323,A329,A343,A344,A345,A347,A348;
     double A340,A341,A342,A344_val,A345_val,A346;
     int A350,A351,A352,A353,A357,A361,A362,A363,A368;
-    double A354,A355,A356,A365,A369; 
+    double A354,A355,A356,A365; 
     
     // NSEWAVE
     int A410;
@@ -279,22 +279,21 @@ public:
     // NHFLOW
     int A501,A510,A511,A512,A514,A515,A516,A517,A518;
     int A520,A521;
-    double A523;
+    double A522,A523;
     double A531;
     int A540,A543;
-    double A541,A542,A544;
+    double A541,A542,A544,A545;
     int A550,A551,A552,A553;
     
 	// boundary conditions
 	int B10,B20,B23;
     int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;    
-    int B60,B61,B70,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
+    int B60,B61,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
 	int B136,B138,B138_1,B138_2,B139;
     int B180,B191,B192,B240,B241,B242,B243;
 	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
 	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
-	double *B70_val,*B70_dist,*B70_b,*B70_x,*B70_y;
 	double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
 	double *B106_b,*B106_x,*B106_y;
     double *B107_xs,*B107_xe,*B107_ys, *B107_ye, *B107_d;
@@ -306,7 +305,6 @@ public:
     double B112_zs,B112_z2,B112_ze;
     int B115,B116,B125,B127;
     double B120,B122,B123,B125_y;
-	double B140_1,B140_2,B140_3;
     int B130,B133;
     double B131,B132_s,B132_e;
     double B134,B135;
@@ -353,6 +351,8 @@ public:
     double *B274_xc,*B274_yc,*B274_zs,*B274_ze,*B274_r, *B274_n, *B274_d50, *B274_alpha, *B274_beta;
     int B281;
     double *B281_xs, *B281_xe, *B281_ys, *B281_ye, *B281_zs, *B281_ze, *B281_n, *B281_d50, *B281_alpha, *B281_beta;
+    int B282;
+    double *B282_xs, *B282_xe, *B282_ys, *B282_ye, *B282_zs, *B282_ze, *B282_n, *B282_d50, *B282_alpha, *B282_beta;
 	int B291;
     double *B291_xs, *B291_xe, *B291_ys, *B291_ye, *B291_zs, *B291_ze, *B291_d, *B291_n, *B291_d50, *B291_alpha, *B291_beta;
     int B295;
@@ -360,6 +360,10 @@ public:
     double B309;
     double *B310_xs, *B310_xe, *B310_ys, *B310_ye, *B310_zs, *B310_ze, *B310_N, *B310_D, *B310_Cd;
     double *B311_xm, *B311_ym, *B311_r, *B311_zs, *B311ze, *B311_N, *B311_D, *B311_Cd;
+    int B321;
+    double *B321_xs, *B321_xe, *B321_ys, *B321_ye, *B321_zs, *B321_ze, *B321_N, *B321_D, *B321_Cd;
+    int B322;
+    double *B322_xs, *B322_xe, *B322_ys, *B322_ye, *B322_zs, *B322_ze, *B322_N, *B322_D, *B322_Cd;
 	
     // Concentration Options
 	double C1,C2,C3,C4,C5;
@@ -372,7 +376,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D30,D31,D32,D33,D37;
+	int D10,D11,D20,D21,D30,D31,D33,D37;
 
 	// Free Surface
 	int F10,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
@@ -444,12 +448,14 @@ public:
 	int M10;
 
 	// Print options
-	int P10,P11,P12,P14,P15,P18,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
-	int P61,P62,P63,P64,P66,P67,P68,P71,P72,P73,P74,P75,P76,P77,P78,P79,P81,P82,P85,P92,P101,P120,P121,P122,P123,P124,P125,P126;
-	int P150,P151,P152,P180,P181,P184,P185,P190,P191,P194,P195,P351,P352;
+	int P10,P11,P12,P15,P16,P18,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
+	int P61,P62,P63,P64,P65,P66,P71,P72,P73,P74,P75,P76,P77,P78,P79,P81,P82,P85,P92,P101,P120,P121,P122,P123,P124,P125,P126;
+	int P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195,P351,P352;
 	double P22,P30,P34,P42;
 	double *P35_ts,*P35_te,*P35_dt;
     double P43_xs,P43_xe,P43_ys,P43_ye;
+    int P46,P46_is,P46_ie;
+    int P47,P47_ts,P47_te;
 	double *P50_x,*P50_y;
 	double *P51_x,*P51_y;
 	double *P52_y,*P56_x;
@@ -459,8 +465,8 @@ public:
 	double *P62_xs,*P62_ys,*P62_zs,*P62_xe,*P62_ye,*P62_ze;
     double *P63_x,*P63_y;
     double *P64_x,*P64_y,*P64_z;
-	double *P67_x;
-    double *P68_x,*P68_zs,*P68_ze;
+    double *P65_x,*P65_y,*P65_z;
+    double *P66_x,*P66_y,*P66_z;
 	double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
 	double *P85_x,*P85_y,*P85_r,*P85_cd,*P85_cm;
 	double P91;
@@ -470,6 +476,11 @@ public:
 	double *P121_x,*P121_y;
 	double *P123_y,*P124_x;
 	double *P125_x,*P125_y;
+    int P131,P132,P133,P134;
+    double *P133_y;
+    double *P134_y;
+    double *P167_x;
+    double *P168_x,*P168_zs,*P168_ze;
 	double P182;
     int *P184_its,*P184_ite,*P184_dit;
     double *P185_ts,*P185_te,*P185_dt;
@@ -480,10 +491,25 @@ public:
     double *P230_x,*P240_x;
 	double *P351_x,*P351_y;
 	double *P352_x,*P352_y;
+    
+    // Particles
+    int Q10,Q24,Q29,Q43;
+    double Q21,Q22,Q23,Q25;
+    double Q31;
+    double Q41;
+    
+    int Q101,Q110;
+    double *Q110_xs,*Q110_xe,*Q110_ys,*Q110_ye,*Q110_zs,*Q110_ze;
+    int Q111,Q112,Q113;
+    double Q111_x,Q112_y,Q113_z;
+    
+    int Q180,Q181;
+    double Q182;
+    
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S17,S23,S27,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S77,S78,S79,S80,S83,S84,S90,S91,S100,S101;
-	double S13,S14,S19,S20,S21,S22,S23_val,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93,S116;
+	int S10,S11,S12,S15,S16,S17,S25,S27,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S77,S78,S79,S80,S83,S84,S90,S91,S100,S101;
+	double S13,S14,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
 
@@ -514,15 +540,13 @@ public:
 	double pfb,qfb,rfb;
 	double ufbi,vfbi,wfbi;
 	double pfbi,qfbi,rfbi;
-	double ufbn,vfbn,wfbn;
-	double pfbn,qfbn,rfbn;
 	double xg,yg,zg;
 	double xgn,ygn,zgn;
 	double phi_fb,theta_fb,psi_fb;
 	double ufbmax, vfbmax, wfbmax;
 	//Eigen::Matrix3d quatRotMat;	
-    int X10,X12,X14,X15,X18,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
-    int X39,X40,X45,X46,X47,X48,X49,X50,X110,X120,X131,X132,X133;
+    int X10,X12,X14,X15,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
+    int X39,X40,X45,X46,X47,X48,X49,X50,X60,X110,X120,X131,X132,X133;
 	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
 	int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
 	double X21_d,X22_m;
@@ -560,15 +584,16 @@ public:
     double X181_x,X181_y,X181_z;
     double X182_x,X182_y,X182_z;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
-    double X184;
+    int X185,X188;
+    double X186;
     
     int X205;
     int X206,X207;
     double X206_ts,X206_te,X207_ts,X207_te;
 	double X210_u,X210_v,X210_w;
 	double X211_p,X211_q,X211_r;
-    int X221;
-    double X221_xs,X221_xe,X221_ys,X221_ye,X221_zs,X221_ze;
+    int X240;
+    double X241,X242_x,X242_y,X242_z,X243;
     double *X311_xs,*X311_xe,*X311_ys,*X311_ye,*X311_zs,*X311_ze;
     double *X311_w,*X311_rho_c,*X311_EA,*X311_d,*X311_l,*X311_H,*X311_P,*X311_facT;
     double *X312_k,*X312_T0;
@@ -617,6 +642,7 @@ public:
 	double bedmax,bedmin;
 	double field4time;
     double printtime, sedprinttime,fsfprinttime,probeprinttime,stateprinttime,exportprinttime;
+    double partprinttime;
 
 	// solver watch
 	int uiter,viter,witer;
@@ -636,6 +662,8 @@ public:
 	double lsmtime,heattime,concentrationtime;
 	double printouttime;
 	double phimean,phiout,phiin;
+    double fsfin,fsfout;
+    double fsfinval,fsfoutval;
 	double pcnorm,ucnorm,vcnorm,wcnorm;
     double alpha;
     double pressgage;
@@ -646,17 +674,13 @@ public:
 
 
 	// wave coefficients
-	double wT,wV,wH,wA,wL,wd,ww,wk;
+	double wT,wV,wH,wA,wL,wd,ww,wk,wC;
 	double wHs,wAs,wwp,ww_s,ww_e,wTp;
 	int wN;
     double wts,wte;
     
     // free surface
     double psi,psi0;
-
-
-	int cctt;
-	
 	int pressval;
 
 // Boundary

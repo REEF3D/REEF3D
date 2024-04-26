@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,6 +31,8 @@ density_vof::density_vof(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
         
     if(p->j_dir==1)
     psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    
+    H=0.0;
 }
 
 density_vof::~density_vof()
@@ -45,6 +47,24 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 		H=MIN(H,1.0);
 
     roval = p->W1*H +   p->W3*(1.0-H);
+    
+    /*
+    phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+        
+        psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+    
+        if(phival>psi)
+        H=1.0;
+
+        if(phival<-psi)
+        H=0.0;
+
+        if(fabs(phival)<=psi)
+        H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
+        
+            
+        roval = p->W1*H + p->W3*(1.0-H);
+    */
 	
 	return roval;		
 }

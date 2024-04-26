@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,7 +47,7 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
         if(a->topo(i,j,k)<0.0)
 		{
-        p->flag4[IJK]=TOPO;
+        p->flag4[IJK]=TOPO_FLAG;
 			
 			if(cache>0)
 			{
@@ -61,9 +61,9 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
         if(a->topo(i,j,k)>=0.0)
         {
-        p->flag4[IJK]=WATER;
+        p->flag4[IJK]=WATER_FLAG;
 		
-			if(cache==TOPO)
+			if(cache==TOPO_FLAG)
 			{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -88,26 +88,26 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
         LOOP
         {
             if(p->i_dir==1)
-            if(p->flag4[Im1JK]==TOPO
-            && p->flag4[Ip1JK]==TOPO)
+            if(p->flag4[Im1JK]==TOPO_FLAG
+            && p->flag4[Ip1JK]==TOPO_FLAG)
             {
-            p->flag4[IJK]=TOPO;
+            p->flag4[IJK]=TOPO_FLAG;
             ++count;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]==TOPO
-            && p->flag4[IJp1K]==TOPO)
+            if(p->flag4[IJm1K]==TOPO_FLAG
+            && p->flag4[IJp1K]==TOPO_FLAG)
             {
-            p->flag4[IJK]=TOPO;
+            p->flag4[IJK]=TOPO_FLAG;
             ++count;
             }
 
             if(p->k_dir==1)
-            if(p->flag4[IJKm1]==TOPO
-            && p->flag4[IJKp1]==TOPO)
+            if(p->flag4[IJKm1]==TOPO_FLAG
+            && p->flag4[IJKp1]==TOPO_FLAG)
             {
-            p->flag4[IJK]=TOPO;
+            p->flag4[IJK]=TOPO_FLAG;
             ++count;
             }
         }
@@ -119,7 +119,7 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
             if(p->flag4[Im1JK]<0
             && p->flag4[Ip1JK]<0)
             {
-            p->flag4[IJK]=TOPO;
+            p->flag4[IJK]=TOPO_FLAG;
             ++count;
             }
             
@@ -127,7 +127,7 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
             if(p->flag4[IJm1K]<0
             && p->flag4[IJp1K]<0)
             {
-            p->flag4[IJK]=TOPO;
+            p->flag4[IJK]=TOPO_FLAG;
             ++count;
             }
 
@@ -135,7 +135,7 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
             if(p->flag4[IJKm1]<0
             && p->flag4[IJKp1]<0)
             {
-            p->flag4[IJK]=TOPO;
+            p->flag4[IJK]=TOPO_FLAG;
             ++count;
             }
         }
@@ -170,7 +170,7 @@ void ghostcell::gcb_velflag1(lexer *p, fdm *a, int **cellmem, int& cellcount)
        p->flag1[IJK]=p->flag4[Ip1JK];
 	   
        
-		if(cache>0 && p->flag1[IJK]==TOPO)
+		if(cache>0 && p->flag1[IJK]==TOPO_FLAG)
 		{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -183,9 +183,9 @@ void ghostcell::gcb_velflag1(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     if(p->flag4[IJK]>0 && p->flag4[Ip1JK]>0)
     {
-		p->flag1[IJK]=WATER;
+		p->flag1[IJK]=WATER_FLAG;
 		
-			if(cache==TOPO)
+			if(cache==TOPO_FLAG)
 			{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -219,7 +219,7 @@ void ghostcell::gcb_velflag2(lexer *p, fdm *a, int **cellmem, int& cellcount)
        if(p->flag4[IJK]>0 && p->flag4[IJp1K]<0) 
        p->flag2[IJK]=p->flag4[IJp1K];
 	   
-		if(cache>0 && p->flag2[IJK]==TOPO)
+		if(cache>0 && p->flag2[IJK]==TOPO_FLAG)
 		{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -232,9 +232,9 @@ void ghostcell::gcb_velflag2(lexer *p, fdm *a, int **cellmem, int& cellcount)
 
     if(p->flag4[IJK]>0 && p->flag4[IJp1K]>0)
     {
-		p->flag2[IJK]=WATER;
+		p->flag2[IJK]=WATER_FLAG;
 		
-			if(cache==TOPO)
+			if(cache==TOPO_FLAG)
 			{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -267,7 +267,7 @@ void ghostcell::gcb_velflag3(lexer *p, fdm *a, int **cellmem, int& cellcount)
        if(p->flag4[IJK]>0 && p->flag4[IJKp1]<0) 
        p->flag3[IJK]=p->flag4[IJKp1];
 	   
-		if(cache>0 && p->flag3[IJK]==TOPO)
+		if(cache>0 && p->flag3[IJK]==TOPO_FLAG)
 		{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -279,9 +279,9 @@ void ghostcell::gcb_velflag3(lexer *p, fdm *a, int **cellmem, int& cellcount)
 	   
     if(p->flag4[IJK]>0 && p->flag4[IJKp1]>0)
     {
-		p->flag3[IJK]=WATER;
+		p->flag3[IJK]=WATER_FLAG;
 		
-			if(cache==TOPO)
+			if(cache==TOPO_FLAG)
 			{
             cellmem[count][0]=i;
             cellmem[count][1]=j;
@@ -308,7 +308,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag1[Im1JK] =-3;
         p->flag1[Im2JK] =-3;
-        p->flag1[Im2JK] =-3;
+        p->flag1[Im3JK] =-3;
         }
         
         if(p->gcb1[n][4]==2)
@@ -319,7 +319,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag1[Ip1JK] =-4;
         p->flag1[Ip2JK] =-4;
-        p->flag1[Ip2JK] =-4;
+        p->flag1[Ip3JK] =-4;
         }    
     }
     
@@ -334,7 +334,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag2[Im1JK] =-3;
         p->flag2[Im2JK] =-3;
-        p->flag2[Im2JK] =-3;
+        p->flag2[Im3JK] =-3;
         }
         
         if(p->gcb2[n][4]==2)
@@ -345,7 +345,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag2[Ip1JK] =-4;
         p->flag2[Ip2JK] =-4;
-        p->flag2[Ip2JK] =-4;
+        p->flag2[Ip3JK] =-4;
         }    
     }
     
@@ -361,7 +361,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag3[Im1JK] =-3;
         p->flag3[Im2JK] =-3;
-        p->flag3[Im2JK] =-3;
+        p->flag3[Im3JK] =-3;
         }
         
         if(p->gcb3[n][4]==2)
@@ -372,7 +372,7 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         
         p->flag3[Ip1JK] =-4;
         p->flag3[Ip2JK] =-4;
-        p->flag3[Ip2JK] =-4;
+        p->flag3[Ip3JK] =-4;
         }    
     }
 }

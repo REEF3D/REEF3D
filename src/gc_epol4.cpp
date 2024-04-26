@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -79,7 +79,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     // outflow
     else
 	if(( (bc==2&&pressout_lable==0) ||bc==211||bc==212||bc==112||bc==111) && gcv==40)
-	return gclabel_press;
+    return gclabel_press;
     
     // amtosphere
     else
@@ -339,12 +339,6 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	if(bc_label==7)
 	potentialbc(p,f,bc,cs);
 
-	if(bc_label==8)
-	neumann_press(p,f,dist,gcv,bc,cs);
-	
-	if(bc_label==9)
-	fbpress(p,f,dist,gcv,bc,cs);
-	
 	if(bc_label==10)
 	gravity_press(p,f,dist,gcv,bc,cs);
     

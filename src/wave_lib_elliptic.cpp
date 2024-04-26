@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -116,9 +116,7 @@ void wave_lib_elliptic::elliptic(lexer *p, double u, double &sn, double &cn, dou
 		sn = SIGN(sinu)/sqrt(1.0 + c[n]*c[n]);
 		cn = c[n]*sn;		
 		}
-		
 	}
-    
 }
 
 double wave_lib_elliptic::K_elliptic_1(double m)

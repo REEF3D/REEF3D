@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,7 +50,7 @@ levelset_RK3::levelset_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	gcval_phi=51;
 
 	if(p->F50==2)
-	gcval_phi=52;
+	gcval_phi=54;
 
 	if(p->F50==3)
 	gcval_phi=53;
@@ -107,7 +107,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     pflow->fsfrkout(p,a,pgc,ark1);
     pflow->fsfrkout(p,a,pgc,ark2);
     ppicard->volcalc(p,a,pgc,ls);
-	
+    
 
 // Step 1
     starttime=pgc->timer();
@@ -125,6 +125,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pflow->phi_relax(p,pgc,ark1);
 	
 	pgc->start4(p,ark1,gcval_phi);
+    pgc->solid_forcing_lsm(p,a,ark1);
     
     df_update(p,ark1);
     
@@ -142,6 +143,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pflow->phi_relax(p,pgc,ark2);
 	
 	pgc->start4(p,ark2,gcval_phi);
+    pgc->solid_forcing_lsm(p,a,ark2);
     
     df_update(p,ark2);
 
@@ -158,6 +160,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,ls,gcval_phi);
+    pgc->solid_forcing_lsm(p,a,ls);
     
     df_update(p,ls);
 

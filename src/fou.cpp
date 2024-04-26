@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -94,20 +94,11 @@ double fou::aij(lexer* p,fdm* a,field& f,int ipol, field& uvel, field& vvel, fie
 {
     udir=vdir=wdir=0.0;
     
-        if(p->G2==0)
-        {
-        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
-        pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
-        }
+    pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
+    pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
+    pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
+
         
-        if(p->G2==1)
-        {
-        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
-        pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        pflux->w_flux(a,ipol,a->omega,kvel1,kvel2);
-        }
-    
     // x-dir
     if(0.5*(ivel1+ivel2)>=0.0)
     udir=1.0;

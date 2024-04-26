@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,14 +25,17 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-wave_lib_Stokes_5th::wave_lib_Stokes_5th(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc)
+wave_lib_Stokes_5th::wave_lib_Stokes_5th(lexer *p, ghostcell *pgc) : pshift(p->B120*(PI/180.0))
 {   
+    wave_parameters(p,pgc);
     parameters(p,pgc);
     
+    // ----------
     if(p->mpirank==0)
     {
-    cout<<"Wave Tank: 5th-order Stokes waves; ";
-    cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
+    cout<<"Wave_Lib: 5th-order Stokes waves "<<endl;
+    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
+    cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
@@ -635,6 +638,141 @@ double wave_lib_Stokes_5th::wave_fi_time_cos(lexer *p, int n)
     return vel;
 }
 
+void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
+{
+    
+    p->phiin=p->phimean;
+
+	wtype=p->B92;
+
+    p->wd = p->phimean;
+
+    if(p->B94==0)
+	wdt=p->phimean;
+
+	if(p->B94==1)
+	wdt=p->B94_wdt;
+
+// Wave Length given ----------------------------------------
+    if(p->B91==1)
+    {
+
+     // define wave parameters
+    wa = 0.5*p->B91_1;
+    wH = p->B91_1;
+    wL = p->B91_2;
+
+    wk= (2.0*PI)/(wL>1.0e-20?wL:1.0e20);
+
+        // 5th-order Stokes
+	    eps = 0.5*wk*wH;
+	    S = 1.0/cosh(2.0*wk*wdt);
+	    C = 1.0 - S;
+
+	    c0 = sqrt(tanh(wk*wdt));
+        c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
+        c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
+        
+	    wT= (2.0*PI)/(sqrt(9.81*wk)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
+	    wf = 1.0/wT;
+	    ww = 2.0*PI*wf;
+
+	    wC = ww/wk;
+	    ubar = (c0 + eps*eps*c2 + eps*eps*eps*eps*c4)/sqrt(wk/9.81);
+        
+    p->wT = wT;
+    }
+
+// Wave Period given ----------------------------------------
+    if(p->B93==1)
+    {
+		// define wave parameters
+		wa = 0.5*p->B93_1;
+		wH = p->B93_1;
+		wT = p->B93_2;
+        p->wT = wT;
+
+        // ini
+		wL0 = (9.81/(2.0*PI))*wT*wT;
+		k0 = (2.0*PI)/wL0;
+		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+
+		wL = wL0*tanh(S0);
+
+        for(int qn=0; qn<500; ++qn)
+        wL = wL0*tanh(2.0*PI*wdt/wL);
+    
+        int qn=0;
+            do
+            {
+            wk_temp = (2.0*PI)/(wL>1.0e-20?wL:1.0e20); 
+
+            eps = 0.5*wk_temp*wH;
+            S = 1.0/cosh(2.0*wk_temp*wdt);
+            C = 1.0 - S;
+
+            c0 = sqrt(tanh(wk_temp*wdt));
+            c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
+            c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
+            
+
+            wT_temp = (2.0*PI)/(sqrt(9.81*wk_temp)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
+
+            diff=wT_temp-wT;
+            
+            //if(p->mpirank==0)
+            //cout<<"wT_temp: "<<wT_temp<<" wT: "<<wT<<" wL: "<<wL<<" diff: "<<diff<<" qn: "<<qn<<endl;
+
+            if(diff>0.0001)
+            wL-=0.0001;
+
+            if(diff<-0.0001)
+            wL+=0.0001;
+                ++qn;
+            
+            }while(fabs(diff)>0.0001 && qn<220000);
+            
+            if(p->mpirank==0)
+            cout<<"wT_temp: "<<wT_temp<<" wT: "<<wT<<" wL: "<<wL<<" diff: "<<diff<<" qn: "<<qn<<endl;
+            
+            
+            wf = 1.0/wT;
+            ww = wf*2.0*PI;
+
+            wk= (2.0*PI)/(wL>1.0e-20?wL:1.0e20);
+
+            wf = 1.0/wT;
+            ww = 2.0*PI*wf;
+
+            wC = ww/wk;
+            ubar = (c0 + eps*eps*c2 + eps*eps*eps*eps*c4)/sqrt(wk/9.81);
+		
+        // test
+        // 5th-order Stokes
+	    eps = 0.5*wk*wH;
+	    S = 1.0/cosh(2.0*wk*wdt);
+	    C = 1.0 - S;
+
+	    c0 = sqrt(tanh(wk*wdt));
+        c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
+        c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
+        
+	    wT_test= (2.0*PI)/(sqrt(9.81*wk)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
+        
+        if(p->mpirank==0)
+        cout<<"wT_test: "<<wT_test<<endl;
+    
+    }
+
+    p->wT = wT;
+    p->wH = wH;
+    p->wA = wa;
+    p->wL = wL;
+    p->wk = wk;
+    p->ww = ww;
+    p->wC = wC;
+}
+    
 void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
 {
     eps = 0.5*wk*wH;
@@ -688,7 +826,7 @@ void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
 
     c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
 
-    c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
+    c4 = (c0*(4.0 + 32.0*S - 116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
 
 
     e2 = (tanh(wk*wdt)*(2.0 + 2.0*S + 5.0*S*S))/(4.0*pow(1.0 - S,2.0));

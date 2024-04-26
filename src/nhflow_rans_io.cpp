@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,6 +31,10 @@ nhflow_rans_io::nhflow_rans_io(lexer *p, fdm_nhf *d) : nhflow_strain(p,d),
 									 sst_alpha1(5.0/9.0), sst_alpha2(0.44), sst_beta1(3.0/40.0), sst_beta2(0.0828), 
 									 sst_sigma_k1(0.85), sst_sigma_k2(1.0), sst_sigma_w1(0.5), sst_sigma_w2(0.856)
 {
+    p->Darray(KIN,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(EPS,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(EV0,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(WALLF,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_rans_io::~nhflow_rans_io()

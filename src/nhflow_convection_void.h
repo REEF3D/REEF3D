@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,8 +33,8 @@ public:
 	nhflow_convection_void(lexer*);
 	virtual ~nhflow_convection_void();
 
-	virtual void start(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
-    virtual void precalc(lexer*, fdm_nhf*, double*, int, double*, double*,double*, slice&);
+	virtual void start(lexer*, fdm_nhf*&, int, slice&);
+    virtual void precalc(lexer*, fdm_nhf*, int, slice&);
 
 };
 

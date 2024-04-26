@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -99,9 +99,9 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             j=p->gcin[n][1];
             k=p->gcin[n][2];
             
-            d->eddyv[IJK]=MIN(d->eddyv[IJK],1.0e-4);
+            d->EV[IJK]=MIN(d->EV[IJK],1.0e-4);
             }
-         pgc->start4V(p,d->eddyv,24);
+         pgc->start4V(p,d->EV,24);
 		}
         
 }

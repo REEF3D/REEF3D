@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,7 @@ public:
 	virtual void u_flux(fdm* a,int,field&,double&,double&);
 	virtual void v_flux(fdm* a,int,field&,double&,double&);
 	virtual void w_flux(fdm* a,int,field&,double&,double&);
-    virtual void omega_flux(lexer*,fdm*,int,field&,field&,field&,double&,double&);
+
     
 private:
     lexer *p;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,9 +58,9 @@ public:
 private:
 	
 	field4a N,D,Cd;
-    field1 un;
-    field2 vn;
-    field3 wn;
+    field1 un,unn;
+    field2 vn,vnn;
+    field3 wn,wnn;
 	
 	double Apor(double,double,double,double);
 	double Bpor(double,double,double);

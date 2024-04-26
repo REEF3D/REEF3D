@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -48,10 +48,10 @@ multiphase_f::~multiphase_f()
 {
 }
 
-void multiphase_f::start(lexer *p, fdm *a, ghostcell *pgc, convection *pmpconvec, solver *psolv, ioflow *pflow, reini* preini2, particle_corr* ppart, printer *pprint)
+void multiphase_f::start(lexer *p, fdm *a, ghostcell *pgc, convection *pmpconvec, solver *psolv, ioflow *pflow, reini* preini2, particle_corr* ppls, printer *pprint)
 {
-	pfsf1->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppart,ls1);
-	pfsf2->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppart,ls2);	
+	pfsf1->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppls,ls1);
+	pfsf2->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppls,ls2);	
 	
 	update(p,a,pgc);
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -45,7 +45,7 @@ public:
     virtual void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
     virtual void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&);
     
-    void omega_update(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*);
+    void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
 
         
 private:

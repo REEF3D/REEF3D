@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -102,6 +102,10 @@ public:
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
     
     virtual double wave_fsf(lexer*,ghostcell*,double);
+    virtual double wave_xvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_yvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_zvel(lexer*,ghostcell*,double,double,double);
+    
 	virtual int iozonecheck(lexer*,fdm*);
     
     virtual void ini(lexer*,fdm*,ghostcell*);
@@ -115,7 +119,7 @@ public:
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);    virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);    virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
-    virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 	
 private:

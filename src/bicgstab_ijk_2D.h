@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,20 +39,23 @@ public:
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
     virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, int, int&,int,double);
+	virtual void solve(lexer*, ghostcell*, vec&, matrix_diag&, int, int&,int,double);
 	
 	void fillxvec(lexer*,fdm*,field&,vec&);
 	void finalize(lexer*,fdm*,field&);
 
-	double res_calc(lexer*,fdm*, ghostcell*, double*);
-	void matvec_axb(lexer*,fdm*, double*, double*);
-	void matvec_std(lexer*,fdm* a, double*, double*);
+	void fillxvecV(lexer*,double*,vec&);
+	void finalizeV(lexer*,double*);
+
+	double res_calc(lexer*,ghostcell*, double*, matrix_diag&);
+	void matvec_axb(lexer*, double*, double*, matrix_diag&);
+	void matvec_std(lexer*, double*, double*, matrix_diag&);
     
-    void precon_setup(lexer*,fdm*,ghostcell*);
-    void precon_solve(lexer*,fdm*,ghostcell*,double*,double*);
-	
+    void precon_setup(lexer*,ghostcell*, matrix_diag&);
+    void precon_solve(lexer*,ghostcell*,double*,double*, matrix_diag&);
 	
 
 private:

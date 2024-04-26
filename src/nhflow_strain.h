@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -55,7 +55,8 @@ public:
 	virtual double magSqrSd(lexer*,fdm_nhf*);
     virtual double magSqrSd(lexer*,double*,double*,double*);
 	double strainplain(lexer*,fdm_nhf*);
-	field4 Pk;
+    
+	double *PK;
 
 private:
     double s11,s22,s33,s12,s13,s23;

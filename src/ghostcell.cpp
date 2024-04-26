@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -45,9 +45,31 @@ ghostcell::~ghostcell()
 {
 }
 
+void ghostcell::mpi_check(lexer* p)
+{
+    int check=1;
+    int ok=0;
+    
+    check=globalisum(check);
+    
+    if(check==p->mpi_size)
+    ok=1;
+    
+    if(p->mpirank==0 && ok==0)
+    cout<<"mpi - checksum: "<<check<<" vs "<<p->mpi_size;
+    
+    //if(p->mpirank==0 && ok==1)
+    //cout<<" ... ok";
+    
+    if(p->mpirank==0 && ok==0)
+    cout<<" ... mismatch";
+    
+    if(p->mpirank==0)
+    cout<<endl;
+}
+
 void ghostcell::gcini(lexer* p)
 {
-
     margin=p->margin;
 	paramargin=p->margin;
     gamma=p->B29;
@@ -82,14 +104,15 @@ void ghostcell::gcini(lexer* p)
 
     tag=0;    
 	
-	
+
 	gcx_count[0] = p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin;
 	gcx_count[1] = p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin;
 	gcx_count[2] = p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin;
 	gcx_count[3] = p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin;
 	gcx_count[4] = p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin;
 	gcx_count[5] = p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin;
-	
+    
+
 	p->Darray(send1,(p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin);
 	p->Darray(send2,(p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin);
 	p->Darray(send3,(p->gcpara3_count+p->flast)*paramargin + p->gcparaco3_count*paramargin);
@@ -198,7 +221,7 @@ void ghostcell::gcini(lexer* p)
     gclabel_v_orth=11;
     gclabel_w_orth=11;
     }
-	
+
 
 	gclabel_lsm=4;
 	
@@ -268,7 +291,7 @@ void ghostcell::gcini(lexer* p)
     
     // pressure outflow
     pressout_lable=0;
-	if(p->B77==-1 || p->B77==2)
+	if(p->B77==1 || p->B77==2)
 	pressout_lable=1;
     
     

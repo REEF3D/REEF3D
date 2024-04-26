@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 #include"fnpf_coastline.h"
 #include"lexer.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"slice.h"
 #include"sliceint.h"
@@ -34,17 +35,17 @@ fnpf_coastline::~fnpf_coastline()
 {
 }
 
-void fnpf_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, int *wet, sliceint &wet_n)
+void fnpf_coastline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &coastline, int *wet, sliceint &wet_n)
 {
     if(p->count==0)
     {
         SLICELOOP4
         {
-            if(wet[IJ]==0)
-            coastline(i,j)=-1.0;
-            
-            if(wet[IJ]==1)
+
             coastline(i,j)=1.0;
+            
+            if(p->wd - c->bed(i,j) < c->wd_criterion)
+            coastline(i,j)=-1.0;
    
         }
         reini(p,pgc,coastline);

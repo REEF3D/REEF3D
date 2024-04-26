@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,37 +27,36 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"vrans.h"
    
-
-void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
 {
-}
-    
-void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
-{
+ 
+    for (int nb = 0; nb < number6DOF; nb++)
+    fb_obj[nb]->initialize_sflow(p, pgc);
+/*    
     // Initialise parameters
-	ini_parameter(p,b,pgc);
+	ini_parameter(p,pgc);
     
     // Initialise folder structure
     if(p->X50==1)
-	print_ini_vtp(p,b,pgc);
+	print_ini_vtp(p,pgc);
     
     if(p->X50==2)
-    print_ini_stl(p,b,pgc);
+    print_ini_stl(p,pgc);
     
     // Initialise object 
-    if (p->X400 == 1)
+    if (p->X400==1)
     {
-        cylinder(p,b,pgc);
+        cylinder(p,pgc);
     }
     
-    else if (p->X400 == 2)
+    else if (p->X400==2)
     {
-        box(p,b,pgc);
+        box(p,pgc);
     }
     
-    else if (p->X400 == 10)
+    else if (p->X400==10)
     {
-        read_stl(p,b,pgc);
+        read_stl(p,pgc);
     }
     
     else
@@ -67,48 +66,49 @@ void sixdof_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     //geometry_refinement(p);
 
     // Initialise position of bodies
-    iniPosition_RBM(p,b,pgc);
+    iniPosition_RBM(p,pgc);
 
     // Initialise distance field
-	ray_cast(p,b,pgc);
+	ray_cast(p,pgc);
     time_preproc(p); 
 	reini(p,pgc,fb);
-
-    SLICELOOP4
-    {
-        b->test(i,j) = draft(i,j);
-    }
-    pgc->gcsl_start4(p,b->test,50);
     
     // Print initial body 
     if(p->X50==1)
     print_vtp(p,pgc);
     
     if(p->X50==2)
-    print_stl(p,pgc);
+    print_stl(p,pgc);*/
+    
+    
+    //cout<<"XG: "<<p->xg<<" YG: "<<p->yg<<" ZG: "<<p->zg<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
 }
 
-void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+{
+}
+
+void sixdof_sflow::ini_parameter(lexer *p, ghostcell *pgc)
 {
     // Prescribed motions
     Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
     
-    if (p->X210 == 1)
+    if (p->X210==1)
     {
         Uext = p->X210_u;
         Vext = p->X210_v;
         Wext = p->X210_w;
     }
-    if (p->X211 == 1)
+    if (p->X211==1)
     {
         Pext = p->X211_p;
         Qext = p->X211_q;
         Rext = p->X211_r;
     }
-    if (p->X221==1)
+    if (p->X240==1)
     {
         //motion_vec(p,a,pgc);
-        cout<<"not implemented yet"<<endl;
+        cout<<"motion file"<<endl;
     }
 
     // Position
@@ -125,7 +125,7 @@ void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     
     else
-    if(p->X400 != 10)
+    if(p->X400!=10)
     {
          cout<<"Please provide centre of floating body using X 23!"<<endl;
     }
@@ -138,7 +138,7 @@ void sixdof_sflow::ini_parameter(lexer *p, fdm2D *b, ghostcell *pgc)
     n6DOF = 0;
 }
 
-void sixdof_sflow::iniPosition_RBM(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::iniPosition_RBM(lexer *p, ghostcell *pgc)
 {
     // Store initial position of triangles
 	for(n=0; n<tricount; ++n)
@@ -160,12 +160,9 @@ void sixdof_sflow::iniPosition_RBM(lexer *p, fdm2D *b, ghostcell *pgc)
 	
 		for (n=0; n<tricount; ++n)
 		{
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][0],tri_y[n][0],tri_z[n][0],p->xg,p->yg,p->zg);
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][1],tri_y[n][1],tri_z[n][1],p->xg,p->yg,p->zg);
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][2],tri_y[n][2],tri_z[n][2],p->xg,p->yg,p->zg);
+			rotation_tri(p,-phi,-theta,-psi,tri_x[n][0],tri_y[n][0],tri_z[n][0],p->xg,p->yg,p->zg);
+			rotation_tri(p,-phi,-theta,-psi,tri_x[n][1],tri_y[n][1],tri_z[n][1],p->xg,p->yg,p->zg);
+			rotation_tri(p,-phi,-theta,-psi,tri_x[n][2],tri_y[n][2],tri_z[n][2],p->xg,p->yg,p->zg);
 		}
 	}
 	
@@ -332,9 +329,9 @@ void sixdof_sflow::create_triangle
 	
 	if 
 	(
-		   SIGN(nx) != SIGN(nx_old) 
-		|| SIGN(ny) != SIGN(ny_old) 
-		|| SIGN(nz) != SIGN(nz_old)
+		   SIGN(nx)!=SIGN(nx_old) 
+		|| SIGN(ny)!=SIGN(ny_old) 
+		|| SIGN(nz)!=SIGN(nz_old)
 	)
 	{
 		tri_x_new[0] = x2;
@@ -370,4 +367,9 @@ void sixdof_sflow::create_triangle
 	tri_x_r.push_back(tri_x_new);
 	tri_y_r.push_back(tri_y_new);
 	tri_z_r.push_back(tri_z_new);
+
+}
+
+void sixdof_sflow::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
+{
 }

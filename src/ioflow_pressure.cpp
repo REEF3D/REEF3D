@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -80,18 +80,37 @@ void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 {
     double pval=0.0;
-
+    double diff;
+    
+    
+    if(p->count!=iter0)
+    {
+    diff = p->phiout-p->fsfout;
+    
+    p->fsfoutval -= 0.1*diff;
+    
+    iter0=p->count;
+    
+    //cout<<p->mpirank<<" diff: "<<diff<<" fsfoutval: "<<p->fsfoutval<<" phiout: "<<p->phiout<<endl;
+    }
+    
+    
         for(n=0;n<p->gcout_count;++n)
         {
         i=p->gcout[n][0];
         j=p->gcout[n][1];
         k=p->gcout[n][2];
-		pval=0.0;
+        pval=0.0;
 		
-			if(p->B77==0)
+        
+			if(p->B77==1)
 			{
-			pval=(p->phiout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-			
+                if(p->F50==2 || p->F50==3)
+                pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+                
+                if(p->F50==1 || p->F50==4)
+                pval=a->press(i,j,k);
+            
 			a->press(i+1,j,k)=pval;
 			a->press(i+2,j,k)=pval;
 			a->press(i+3,j,k)=pval;
@@ -114,12 +133,10 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
         
             pval=(1.0-H)*a->press(i,j,k);
             
-             a->press(i,j,k)=pval;
 			a->press(i+1,j,k)=pval;
 			a->press(i+2,j,k)=pval;
 			a->press(i+3,j,k)=pval;
 			}
-			
         }
 }
 
@@ -128,7 +145,7 @@ void ioflow_f::pressure_wall(lexer *p, fdm *a, ghostcell *pgc)
     double pval=0.0;
 
     GC4LOOP
-    if(p->gcb4[n][3] != 5 && p->gcb4[n][3] != 6 && (p->gcb4[n][4] ==3 || p->gcb4[n][4] ==21 || p->gcb4[n][4] ==22))
+    if(p->gcb4[n][3]!=5 && p->gcb4[n][3]!=6 && (p->gcb4[n][4] ==3 || p->gcb4[n][4] ==21 || p->gcb4[n][4] ==22))
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
@@ -175,7 +192,7 @@ void ioflow_f::pressure_bed(lexer *p, fdm *a, ghostcell *pgc)
     double pval=0.0;
 
     GC4LOOP
-    if(p->gcb4[n][3] == 5 )
+    if(p->gcb4[n][3]==5)
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -61,11 +61,11 @@ public:
     slice4 coastline;
     slice4 vb;
     slice4 test2D;
+    slice4 fs;
     
     slice4 breaking_print,Hs;
     
     // NHFLOW
-    slice4 wbed;
     
     vec rhsvec;
     vec2D xvec,rvec;
@@ -74,7 +74,7 @@ public:
     double *U,*V,*W,*omegaF;
     double *UH,*VH,*WH;
     
-    double *P,*ro,*visc,*eddyv;
+    double *P,*RO,*VISC,*EV;
     double *F,*G,*H,*L;
     double *porosity;
     double *test;

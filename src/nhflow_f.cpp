@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -52,7 +52,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 	LOOP
 	++p->cellnum;
     
-    LOOP
+    PLAINLOOP
     ++p->tpcellnum;
     
     p->count=0;

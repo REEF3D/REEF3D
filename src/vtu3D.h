@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -53,6 +53,8 @@ class sloshing_force;
 class print_porous;
 class bedprobe_line_x;
 class bedprobe_line_y;
+class probe_vel;
+class probe_vel_theory;
 class exportfile;
 class flowfile_out;
 class print_averaging;
@@ -118,6 +120,8 @@ private:
     exportfile *pexport;
     flowfile_out *pflowfile;
     print_averaging *pmean;
+    probe_vel *pvel;
+    probe_vel_theory *pveltheo;
 };
 
 #endif

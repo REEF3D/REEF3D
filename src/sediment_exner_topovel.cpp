@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"sediment_exner.h"
 #include"lexer.h"
 #include"ghostcell.h"
-#include"bedconc.h"
+#include"bedconc_VR.h"
 #include"topo_relax.h"
 #include"sediment_exnerdisc.h"
 #include"sediment_fdm.h"
@@ -101,21 +101,18 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
         vx=dqx;
         vy=dqy;
 		
-        // Exner equations
+    // Exner equations
         // eq
         if(p->S17==0)
-        vz =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy); //+ susp_qb(p,pgc,s);
-        
+        vz =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy) + susp_qb(p,pgc,s);
         
         // non-eq
         if(p->S17==1)
         {
         Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
         
-        vz =  s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(1.0/(Ls>1.0e-10?Ls:1.0e10))*(s->qb(i,j)-s->qbe(i,j));// + ws*(s->conc(i,j,k) - pcb->cbed(p,pgc,s)); 
+        vz =  s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(1.0/(Ls>1.0e-10?Ls:1.0e10))*(s->qb(i,j)-s->qbe(i,j)) + susp_qb(p,pgc,s); 
         }
-        
 	}
-    
 }
 

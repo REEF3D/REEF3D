@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -48,7 +48,6 @@ public:
     virtual void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&);
     virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
-    virtual void depthcheck(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     virtual void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&);
     virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&);

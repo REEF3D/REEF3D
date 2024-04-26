@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -94,7 +94,7 @@ levelset_AB2::~levelset_AB2()
 {
 }
 
-void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &ls)
+void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppls, field &ls)
 {
 
     pflow->fsfinflow(p,a,pgc);
@@ -121,14 +121,14 @@ void levelset_AB2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,ls,gcval_phi);
 
-    ppart->start(p,a,pgc,pflow);
+    ppls->start(p,a,pgc,pflow);
 	
 	p->lsmtime=pgc->timer()-starttime;
 
 	preini->start(a,p,ls,pgc,pflow);
 
 	ppicard->correct_ls(p,a,pgc,ls);
-	ppart->picardmove(p,a,pgc);
+	ppls->picardmove(p,a,pgc);
 
 	pupdate->start(p,a,pgc);
 	

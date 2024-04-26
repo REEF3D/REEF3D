@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,27 +42,26 @@ nhflow_HLL::~nhflow_HLL()
 {
 }
 
-void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL, slice &eta)
+void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, int ipolL, slice &eta)
 {
-   
 }
 
-void nhflow_HLL::start(lexer* p, fdm_nhf* d, double *F, int ipol, double *U, double *V, double *W, slice &eta)
+void nhflow_HLL::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta)
 {
-        if(ipol==1)
-        aij_U(p,d,F,1,U,V,W);
+    if(ipol==1)
+    aij_U(p,d,1);
 
-        if(ipol==2 && p->j_dir==1)
-        aij_V(p,d,F,2,U,V,W);
+    if(ipol==2 && p->j_dir==1)
+    aij_V(p,d,2);
 
-        if(ipol==3)
-        aij_W(p,d,F,3,U,V,W);
-        
-        if(ipol==4)
-        aij_E(p,d,F,4,U,V,W);
+    if(ipol==3)
+    aij_W(p,d,3);
+    
+    if(ipol==4)
+    aij_E(p,d,4);
 }
 
-double nhflow_HLL::aij_U(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     pflux->start_U(p,d,pgc);
@@ -91,7 +90,7 @@ double nhflow_HLL::aij_U(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL,
     }    
 }
 
-double nhflow_HLL::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     pflux->start_V(p,d,pgc);
@@ -120,7 +119,7 @@ double nhflow_HLL::aij_V(lexer* p, fdm_nhf* d, double *F, int ipol, double *UVEL
     }    
 }
 
-double nhflow_HLL::aij_W(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     pflux->start_W(p,d,pgc);
@@ -139,12 +138,12 @@ double nhflow_HLL::aij_W(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL,
     }    
 }
 
-double nhflow_HLL::aij_E(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL, double *VVEL, double *WVEL)
+void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     pflux->start_E(p,d,pgc);
-    HLL_E(p,d);
     
+    HLL_E(p,d);  // -----
     
     LOOP
     WETDRY
@@ -166,8 +165,8 @@ double nhflow_HLL::aij_E(lexer *p,fdm_nhf *d, double *F, int ipol, double *UVEL,
     pgc->start2V(p,d->Fy,14); 
 }
 
-double nhflow_HLL::HLL(lexer *p,fdm_nhf *d, double *Us, double *Un, double *Ue, double *Uw)
-{
+void nhflow_HLL::HLL(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, double *Uw)
+{    
     // HLL flux
     ULOOP
     {
@@ -210,9 +209,8 @@ double nhflow_HLL::HLL(lexer *p,fdm_nhf *d, double *Us, double *Un, double *Ue, 
     }
 }
 
-double nhflow_HLL::HLL_E(lexer *p,fdm_nhf *d)
+void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
 {
-    int q=0;
     
     // HLL flux
     ULOOP
@@ -231,14 +229,10 @@ double nhflow_HLL::HLL_E(lexer *p,fdm_nhf *d)
         
         d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
         }
-    ++q;
     }
-    
-    //cout<<p->mpirank<<" q: "<<q<<endl;
     
     // HLL flux y-dir
     if(p->j_dir==1)
-    {
     VLOOP
     {
         if(d->Se[IJK]>=0.0)
@@ -255,6 +249,5 @@ double nhflow_HLL::HLL_E(lexer *p,fdm_nhf *d)
         
         d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
         }
-    }
     }
 }

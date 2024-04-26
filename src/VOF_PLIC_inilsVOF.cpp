@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,30 +41,24 @@ p->phimean=p->F56;
 
     if(p->F50_flag==1)
 	LOOP
-	if(double(i)*dx+p->originx>=p->F51 && double(i)*dx+p->originx<p->F54
-	&& double(j)*dx+p->originy>=p->F52 && double(j)*dx+p->originy<p->F55
-	&& double(k)*dx+p->originz>=p->F53 && double(k)*dx+p->originz<p->F56)
+	if(p->XN[IP]>=p->F51 && p->XN[IP]<p->F54
+	&& p->YN[JP]>=p->F52 && p->YN[JP]<p->F55
+	&& p->ZN[KP]>=p->F53 && p->ZN[KP]<p->F56)
 	a->phi(i,j,k)=1.0;
 
 
 if(p->F57_1>0||p->F57_2>0||p->F57_3>0||p->F57_4>0)
 {
 	LOOP
-	if(p->F57_1*((double(i)+0.5)*dx + p->originx )+ p->F57_2*((double(j)+0.5)*dx + p->originy )+ p->F57_3*((double(k)+0.5)*dx + p->originz ) < p->F57_4)
+	if(p->F57_1*p->XP[IP]+ p->F57_2*p->YP[JP]+ p->F57_3*p->ZP[KP] < p->F57_4)
 	a->phi(i,j,k)=1.0;
 }
 
 if(p->F58_4>0.0)
 {
-    
-    p->F58_1 -= p->originx;
-    p->F58_2 -= p->originy;
-    p->F58_3 -= p->originz;
-	
-
 	LOOP
 	{
-    r = sqrt( pow((double(i)+0.5)*dx-p->F58_1,2.0)+pow((double(j)+0.5)*dx-p->F58_2,2.0)+pow((double(k)+0.5)*dx-p->F58_3,2.0));
+    r = sqrt( pow(p->XP[IP]-p->F58_1,2.0)+pow(p->YP[JP]-p->F58_2,2.0)+pow(p->ZP[KP]-p->F58_3,2.0));
 
 	if(r<=p->F58_4)
 	a->phi(i,j,k)=1.0;
@@ -74,26 +68,23 @@ if(p->F58_4>0.0)
 if(p->F59_r>0.0)
 {
     
-    p->F59_xm -= p->originx;
-    p->F59_ym -= p->originy;
-	
 	LOOP
 	{
-    r = sqrt( pow((double(i)+0.5)*dx-p->F59_xm,2.0)+pow((double(j)+0.5)*dx-p->F59_ym,2.0));
+    r = sqrt( pow(p->XP[IP]-p->F59_xm,2.0)+pow(p->YP[JP]-p->F59_ym,2.0));
 
-	if(r<=p->F59_r && p->pos_z()>p->F59_zs && p->pos_z()<=p->F59_ze)
+    if(r<=p->F59_r && p->pos_z()>p->F59_zs && p->pos_z()<=p->F59_ze)
 	a->phi(i,j,k)=1.0;
 	}
 }
 
-if(p->F60>-1.0e20)
-{
+    if(p->F60>-1.0e20)
+    {
     LOOP
     a->phi(i,j,k)=p->F60-p->pos_z();
 
 	p->phimean=p->F60;
 	
-}
+    }
     double epsi = p->F45*p->DXM;
     
 
@@ -200,14 +191,14 @@ void VOF_PLIC::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
 
     for(qn=0;qn<p->F70;++qn)
     {
-        istart = conv((p->F70_xs[qn]-p->originx)/p->DXM);
-        iend = conv((p->F70_xe[qn]-p->originx)/p->DXM);
-
-        jstart = conv((p->F70_ys[qn]-p->originy)/p->DXM);
-        jend = conv((p->F70_ye[qn]-p->originy)/p->DXM);
-
-        kstart = conv((p->F70_zs[qn]-p->originz)/p->DXM);
-        kend = conv((p->F70_ze[qn]-p->originz)/p->DXM);
+        istart = p->posc_i(p->F70_xs[qn]);
+        iend = p->posc_i(p->F70_xe[qn]);
+        
+        jstart = p->posc_j(p->F70_ys[qn]);
+        jend = p->posc_j(p->F70_ye[qn]);
+        
+        kstart = p->posc_k(p->F70_zs[qn]);
+        kend = p->posc_k(p->F70_ze[qn]);
 
 
         LOOP
@@ -217,14 +208,14 @@ void VOF_PLIC::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
 	
 	for(qn=0;qn<p->F71;++qn)
     {
-        istart = conv((p->F71_xs[qn]-p->originx)/p->DXM);
-        iend = conv((p->F71_xe[qn]-p->originx)/p->DXM);
-
-        jstart = conv((p->F71_ys[qn]-p->originy)/p->DXM);
-        jend = conv((p->F71_ye[qn]-p->originy)/p->DXM);
-
-        kstart = conv((p->F71_zs[qn]-p->originz)/p->DXM);
-        kend = conv((p->F71_ze[qn]-p->originz)/p->DXM);
+        istart = p->posc_i(p->F71_xs[qn]);
+        iend = p->posc_i(p->F71_xe[qn]);
+        
+        jstart = p->posc_j(p->F71_ys[qn]);
+        jend = p->posc_j(p->F71_ye[qn]);
+        
+        kstart = p->posc_k(p->F71_zs[qn]);
+        kend = p->posc_k(p->F71_ze[qn]);
 
 
         LOOP
@@ -234,12 +225,11 @@ void VOF_PLIC::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
 	
 	for(qn=0;qn<p->F72;++qn)
     {
-		istart = conv((p->F72_xs[qn]-p->originx)/p->DXM);
-        iend = conv((p->F72_xe[qn]-p->originx)/p->DXM);
-
-        jstart = conv((p->F72_ys[qn]-p->originy)/p->DXM);
-        jend = conv((p->F72_ye[qn]-p->originy)/p->DXM);
-		
+		istart = p->posc_i(p->F72_xs[qn]);
+        iend = p->posc_i(p->F72_xe[qn]);
+        
+        jstart = p->posc_j(p->F72_ys[qn]);
+        jend = p->posc_j(p->F72_ye[qn]);
 
         LOOP
         if(i>=istart && i<iend && j>=jstart && j<jend)
@@ -256,14 +246,13 @@ void VOF_PLIC::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
 	
     LOOP
 	{
-	dx = (a->phi(i+1,j,k)-a->phi(i-1,j,k))/(2.0*p->DXM);
-	dy = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(2.0*p->DXM);
-	dz = (a->phi(i,j,k+1)-a->phi(i,j,k-1))/(2.0*p->DXM);
+	epsi = (1.6/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+        
+	dx = (a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
+	dy = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
+	dz = (a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
 	
-	dnorm = sqrt(dx*dx + dy*dy + dz*dz);
-	
-	//if(fabs(a->phi(i,j,k))<epsi)
-	//cout<<" dx: "<<dx<<" dy: "<<dy<<" dz: "<<dz<<" dnorm: "<<dnorm<<endl;
+	dnorm = sqrt(p->DXN[IP]*p->DXN[IP] + p->DYN[JP]*p->DYN[JP] + p->DZN[KP]*p->DZN[KP]);
 	
 	dirac=0.0;
 	

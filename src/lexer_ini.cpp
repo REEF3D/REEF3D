@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -63,6 +63,7 @@ void lexer::lexer_ini()
     wH=0.0;
     wL=0.0;
     wd=0.0;
+    wC=0.0;
 	
 	velcorr=1;
 	
@@ -79,7 +80,7 @@ void lexer::lexer_ini()
     if(B98==1)
     B98=2;
     
-    if(A10==3 || A10==5 || A10==444)
+    if(A10==3 || A10==5)
     G2=1;
 		
 }
@@ -88,7 +89,7 @@ void lexer::makeflag( int *field)
 {
     int n;
 	for(n=0;n<imax*jmax*kmax;++n)
-	field[n]=OBJ;
+	field[n]=OBJ_FLAG;
 }
 
 void lexer::parse()

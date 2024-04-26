@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,8 +46,6 @@ private:
 	void ucalc(lexer*,fdm*,field&);
 	void vcalc(lexer*,fdm*,field&);
 	void wcalc(lexer*,fdm*,field&);
-    
-    void smoothen(lexer*,fdm*,ghostcell*);
     
     void laplace(lexer*,fdm*,ghostcell*,field&);
     void ini_bc(lexer*,fdm*,ghostcell*);

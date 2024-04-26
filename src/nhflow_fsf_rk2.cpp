@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,7 +58,6 @@ void nhflow_fsf_f::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 {
 }
 
-
 void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
 {
     SLICELOOP4
@@ -110,23 +109,20 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pflow->fsfinflow_nhflow(p,d,pgc,d->WL);
     pgc->gcsl_start4(p,d->WL,gcval_eta);
     
-    //SLICELOOP4
-    //d->eta_n(i,j) = d->eta(i,j);
-    
     SLICELOOP4
-    d->detadt_n(i,j) = d->detadt(i,j);
+    d->eta_n(i,j) = d->eta(i,j);
     
     SLICELOOP4
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
+    
+    SLICELOOP4
+    d->detadt_n(i,j) = d->detadt(i,j);
     
     SLICELOOP4
     d->detadt(i,j) = K(i,j);
     
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
-    
-    LOOP
-    d->test[IJK] = -p->DZN[KP]*(d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];
     
     wetdry(p,d,pgc,U,V,W,d->WL);
     //breaking(p,d,pgc,d->eta,d->eta_n,1.0);

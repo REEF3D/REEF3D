@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -78,7 +78,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
+        cout<<"simtime: "<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
 		if(p->B90>0)
@@ -120,8 +120,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
         
         // 6DOF
-		if (p->X10==3)
-        p6dof_sflow->start(p,b,pgc);
+        p6dof->start_oneway(p,pgc,b->fs);
 
         // timesave
         pturb->ktimesave(p,b,pgc);
@@ -216,15 +215,12 @@ void sflow_f::print_debug(lexer *p, fdm2D* b, ghostcell* pgc)
 	ofstream debug;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_Log",0777);
 	
 	
 	sprintf(name,"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
 
-	if(p->P14==0)
-	sprintf(name,"/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
-	if(p->P14==1)
 	sprintf(name,"./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
 		
 		
@@ -242,14 +238,11 @@ void sflow_f::log_ini(lexer *p)
 {
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_Log",0777);
 
     if(p->mpirank==0)
     {
-    if(p->P14==0)
-    mainlogout.open("REEF3D_SFLOW_mainlog.dat");
-    if(p->P14==1)
     mainlogout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat");
 
     mainlogout<<"number of cells:  "<<p->cellnumtot2D<<endl;

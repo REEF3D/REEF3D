@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -117,10 +117,10 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	pupdate = new fluid_update_void();
     
     // face density
-    if((p->F80==0||p->A10==51) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==51) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
 	pd = new density_df(p);
     
 	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
@@ -157,7 +157,7 @@ momentum_FCC3::~momentum_FCC3()
 {
 }
 
-void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof_df_base *p6dof_df, vector<net*>& pnet)
+void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, vector<net*>& pnet)
 {	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -345,7 +345,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vrk1,gcval_v);
     pgc->start3(p,wrk1,gcval_w);
     
-    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
     pflow->pressure_io(p,a,pgc);
@@ -540,7 +540,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vrk2,gcval_v);
     pgc->start3(p,wrk2,gcval_w);
     
-    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
     pflow->pressure_io(p,a,pgc);
@@ -734,7 +734,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
     
-    momentum_forcing_start(a, p, pgc, p6dof_df, pvrans, pnet, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
 	pflow->pressure_io(p,a,pgc);

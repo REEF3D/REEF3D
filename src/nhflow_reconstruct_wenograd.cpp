@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -186,8 +186,8 @@ void nhflow_reconstruct_wenograd::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm
     // reconstruct
     WLOOP 
     {
-    Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KP]*DFDXs[IJK]); 
-    Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZP[KP1]*DFDXs[IJKp1]);
+    Fb[IJK] = (Fz[IJK]    + 0.5*p->DZN[KP]*DFDXs[IJK]); 
+    Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDXs[IJKp1]);
     }
 }
 

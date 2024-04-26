@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,16 +36,12 @@ bedshear_probe::bedshear_probe(lexer *p, fdm* a, ghostcell *pgc)
 	p->Darray(bsg,p->P125);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_SedimentPoint",0777);
 	
     if(p->mpirank==0 && p->P125>0)
     {
     // open file
-	if(p->P14==0)
-    bsgout.open("REEF3D-CFD-Sediment-Bedshear.dat");
-	
-	if(p->P14==1)
 	bsgout.open("./REEF3D_CFD_SedimentPoint/REEF3D-CFD-Sediment-Bedshear.dat");
 
     bsgout<<"number of gauges:  "<<p->P125<<endl<<endl;
@@ -123,7 +119,7 @@ void bedshear_probe::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     if(p->j_dir==1)
     jloc[n] = p->posc_j(p->P125_y[n]); 
 
-    check=ij_boundcheck(p,a,iloc[n],jloc[n],0);
+    check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
 	
     if(check==1)

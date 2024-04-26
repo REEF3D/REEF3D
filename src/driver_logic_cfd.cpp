@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -351,20 +351,6 @@ void driver::logic_cfd()
 	pconcdiff=new idiff2_FS(p);
 
 
-
-// Wave Models
-    if(p->A10==6 || p->A10==0)
-    pnse = new nsewave_v(p,a,pgc,pheat,pconc);
-
-    if(p->A10==51)
-    {
-    if(p->A410==1)
-    pnse = new nsewave_f(p,a,pgc,pheat,pconc);
-
-    if(p->A410==2)
-    pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
-    }
-
 // Free Surface
     if(p->F10==1)
     poneph = new onephase_f(p,a,pgc);
@@ -402,10 +388,10 @@ void driver::logic_cfd()
 
 
 	if(p->F31==0)
-	ppart = new particle_pls_void();
+	ppls = new particle_pls_void();
 
 	if(p->F31==1 || p->F31==2)
-	ppart = new particle_pls(p,a,pgc);
+	ppls = new particle_pls(p,a,pgc);
 
 
 	if(p->F80==1)
@@ -469,10 +455,7 @@ void driver::logic_cfd()
     if(p->D30==1 && p->W30==0 && p->F10==1 && p->Z10==0 && p->X10==0)
 	ppress = new pjm_nse(p,a,pheat,pconc);
 
-    if(p->D30==2  && p->Z10==0 && p->X10==0)
-	ppress = new pjm_fsm(p,a,pheat,pconc);
-
-    if((p->D30==3 || p->X10==1 || p->Z10!=0 || p->G3==1))
+    if((p->D30==2 || p->D30==3 || p->X10==1 || p->Z10!=0 || p->G3==1))
 	ppress = new pjm_corr(p,a,pheat,pconc);
 
     if(p->D30==10)
@@ -480,11 +463,11 @@ void driver::logic_cfd()
 
 
 //poisson scheme for pressure
-	if(p->D30<5 && p->F10==2)
+	if(p->D30<=2 && p->F10==2)
 	ppois = new poisson_f(p,pheat,pconc);
-
-    if(p->D30==5 && p->F10==2)
-	ppois = new poisson_f(p,pheat,pconc);
+    
+    if((p->D30==2 || p->D30==3 || p->X10==1 || p->Z10!=0 || p->G3==1))
+	ppois = new poisson_pcorr(p,pheat,pconc);
 
     if(p->D30<9 && p->F10==1)
 	ppois = new poisson_nse(p,pheat,pconc);
@@ -578,6 +561,11 @@ void driver::logic_cfd()
     pbench = new benchmark_convection(p,a);
 
 // Printer
+	if(p->P10==2)
+	pprint = new vtr3D(p,a,pgc);
+	else if(p->P10==3)
+	pprint = new vts3D(p,a,pgc);
+	else
 	pprint = new vtu3D(p,a,pgc);
 
     if(p->P150==0)
@@ -614,10 +602,10 @@ void driver::logic_cfd()
     
 // 6DOF
     if(p->X10==0)
-    p6dof_df = new sixdof_df_void(p,a,pgc);
+    p6dof = new sixdof_void(p,pgc);
     
     if(p->X10==1)
-    p6dof_df = new sixdof_df(p,a,pgc);
+    p6dof = new sixdof_cfd(p,a,pgc);
 
 // FSI
     if(p->Z10==0)
@@ -626,8 +614,15 @@ void driver::logic_cfd()
     if(p->Z10==1)
     pfsi = new fsi_strips(p,pgc);
 
+// Partciles
+    if(p->Q10==0)
+    ppart = new particle_v();
+	
+    if(p->Q10==1)
+    ppart = new particle_f(p,a,pgc);
+
 // Velocities
-	if(p->N40==0 || p->Z10!=0 || p->X10==1 || p->G3==1)
+	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->N40==4))
 	pmom = new momentum_void();
 
     if(p->N40==1)
@@ -636,10 +631,10 @@ void driver::logic_cfd()
 	if(p->N40==2)
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
 
-	if(p->N40==3)
+	if(p->N40==3 && p->X10==0 && p->Z10==0 && p->G3==0)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
     
-    if(p->N40==4 && p->X10==0 && p->G3==0)
+    if(p->N40==4 && p->X10==0 && p->Z10==0 && p->G3==0)
 	pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
     if(p->N40==6)
@@ -660,10 +655,16 @@ void driver::logic_cfd()
     if(p->N40==33)
 	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
-    if(p->G3==1 && p->N40==4)
+    if(p->G3==1 && (p->N40==3))
+    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+    
+    if(p->X10==1 && (p->N40==3))
+    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+    
+    if(p->G3==1 && (p->N40==4))
     pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
     
-    if((p->X10==1 || p->Z10!=0)  && p->N40==4)
+    if((p->X10==1 || p->Z10>0)  && (p->N40==4))
     pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
 
 }
@@ -676,6 +677,6 @@ void driver::patchBC_logic()
     if((p->B440>0 || p->B441>0 || p->B442>0) && p->A10==6)
     pBC = new patchBC(p,pgc);
 
-    if(p->B440==0 && p->B441==0 && p->B442==0)
+    if((p->B440==0 && p->B441==0 && p->B442==0) || (p->A10!=2 && p->A10!=6))
     pBC = new patchBC_void(p);
 }

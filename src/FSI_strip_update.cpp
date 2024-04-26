@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -213,9 +213,6 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);
-
-    ULOOP
-    a->test(i,j,k) = fx(i,j,k); 
     
     pgc->start4(p,a->test,10);
 }

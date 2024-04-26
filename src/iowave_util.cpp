@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -490,17 +490,6 @@ void iowave::gen_ini(lexer *p, fdm *a, ghostcell *pgc)
 				}
         }
     }
-
-	p->Iresize(gcgen1, gcgen1_count,count1, 4, 4); 
-	p->Iresize(gcgen2, gcgen2_count,count2, 4, 4); 
-	p->Iresize(gcgen3, gcgen3_count,count3, 4, 4); 
-	p->Iresize(gcgen4, gcgen4_count,count4, 4, 4); 
-	
-	gcgen1_count=count1;
-	gcgen2_count=count2;
-	gcgen3_count=count3;
-	gcgen4_count=count4;
-	
 	//cout<<p->mpirank<<" GCGEN_COUNT: "<<gcgen4_count<<endl;	
 }
 

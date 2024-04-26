@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -64,7 +64,6 @@ public:
 	field1 u,F;
 	field2 v,G;
 	field3 w,H;
-    field3 omega;
 	field4 press;
     field4 Fi;
 	field4 eddyv;
@@ -78,7 +77,7 @@ public:
 	field4a porosity;
 	field5 walld;
 	 
-	fieldint5 nodeval,flag;
+	fieldint5 nodeval;
     sliceint5 nodeval2D;
    
     // 6DOF

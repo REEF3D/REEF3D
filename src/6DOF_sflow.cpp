@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_sflow.h"
@@ -27,7 +27,7 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"vrans.h"
    
-sixdof_sflow::sixdof_sflow(lexer *p, fdm2D *b, ghostcell *pgc):press(p),ddweno_f_nug(p),frk1(p),frk2(p),L(p),dt(p),
+sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc):press(p),ddweno_f_nug(p),frk1(p),frk2(p),L(p),dt(p),
                                                               fb(p),fbio(p),cutr(p),cutl(p),Ls(p),Bs(p),
                                                               Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),draft(p),epsi(1.6*p->DXM)
 {
@@ -35,57 +35,60 @@ sixdof_sflow::sixdof_sflow(lexer *p, fdm2D *b, ghostcell *pgc):press(p),ddweno_f
     p->Darray(tri_xn,trisum,3);
 	p->Darray(tri_yn,trisum,3);
 	p->Darray(tri_zn,trisum,3);
+    
+    
+    if(p->mpirank==0)
+    cout<<"6DOF startup ..."<<endl;
+    
+    number6DOF = 1;
+    
+    for (int nb = 0; nb < number6DOF; nb++)
+    fb_obj.push_back(new sixdof_obj(p,pgc,nb));
 }
 
 sixdof_sflow::~sixdof_sflow()
 {
 }
 
-void sixdof_sflow::start(lexer *p, fdm *a, ghostcell *pgc,double alpha,vrans *pvrans,vector<net*>& pnet)
-{}
-
-void sixdof_sflow::start(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
-    // Move body
-    p->xg += ramp_vel(p)*Uext*p->dt;
-    p->yg += ramp_vel(p)*Vext*p->dt;
+    
+    for (int nb=0; nb<number6DOF;++nb)
+    {
+        // Advance body in time
+        fb_obj[nb]->solve_eqmotion_oneway(p,pgc);
+        
+        // Update transformation matrices
+        fb_obj[nb]->quat_matrices();
+        
+        // Update position and trimesh
+        fb_obj[nb]->update_position_2D(p,pgc,fsglobal);  
+        
+        // Save
+        fb_obj[nb]->update_fbvel(p,pgc);
+        
+        // Update forcing terms
+        //fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
 
-    // Update position
-    updateFSI(p,b,pgc);
-
-    // Update pressure field
-    if (p->X400 == 1)
-    {
-        updateForcing_hemisphere(p,b,pgc);
+        if (p->X400==2)
+        fb_obj[nb]->updateForcing_box(p,pgc,press);
+        
+        else if (p->X400==3)
+        fb_obj[nb]->updateForcing_oned(p,pgc,press);
+        
+        else if (p->X400==10)
+        fb_obj[nb]->updateForcing_stl(p,pgc,press);
+        
+            // Print
+            if(p->X50==1)
+            fb_obj[nb]->print_vtp(p,pgc);
+            
+            if(p->X50==2)
+            fb_obj[nb]->print_stl(p,pgc);
+            
+            fb_obj[nb]->print_parameter(p,pgc);
+        
     }
     
-    else if (p->X400 == 2)
-    {
-        updateForcing_box(p,b,pgc);
-    }
     
-    else if (p->X400 == 3)
-    {
-        updateForcing_oned(p,b,pgc);
-    }
-    
-    else if (p->X400 == 10)
-    {
-        updateForcing_ship(p,b,pgc);
-    }
-
-    // Print
-    print_parameter(p,pgc);
-    
-    if(p->X50==1)
-    print_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_stl(p,pgc);
-
-    SLICELOOP4
-    {
-        b->test(i,j) = press(i,j);
-    }
-    pgc->gcsl_start4(p,b->test,50);
 }

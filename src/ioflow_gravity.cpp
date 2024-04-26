@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -95,13 +95,13 @@ void ioflow_gravity::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 	// ------- 
     // translation 
     if(p->B181==1)
-    a->gi += -p->B181_1*(2.0*PI*p->B181_2)*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3);
+    a->gi += p->B181_1*pow(2.0*PI*p->B181_2,2.0)*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3*(PI/180.0));
     
     if(p->B182==1)
-    a->gj += -p->B182_1*(2.0*PI*p->B182_2)*sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3);
+    a->gj += p->B182_1*pow(2.0*PI*p->B182_2,2.0)*sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3*(PI/180.0));
 
     if(p->B183==1)
-    a->gk += -p->B183_1*(2.0*PI*p->B183_2)*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3);
+    a->gk += p->B183_1*pow(2.0*PI*p->B183_2,2.0)*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3*(PI/180.0));
     
     
     // -------
@@ -414,6 +414,27 @@ void ioflow_gravity::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 }
 
 double ioflow_gravity::wave_fsf(lexer *p, ghostcell *pgc, double x)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_gravity::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_gravity::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_gravity::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
     double val=0.0;
 

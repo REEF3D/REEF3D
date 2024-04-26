@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -174,20 +174,19 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
     //sign=lsv/sqrt(lsv*lsv+ 20.0*dnorm*dnorm*deltax*deltax);
         
     if(sign!=sign)
+    {
     sign= 1.0;
+    cout<<"SIGN"<<endl;
+    }
     
     double diffterm = 0.0;
     double visc = 0.0005;
-    if(a->fb(i,j,k)<-0.5*p->DXM && p->X47==1)
+    if((a->fb(i,j,k)<-0.5*p->DXM || a->solid(i,j,k)<-0.5*p->DXM) && p->X47==1)
     {
         diffterm =   visc*((b.V[Ip1_J_K] - 2.0*b.V[I_J_K] + b.V[Im1_J_K])/(p->DXN[IP]*p->DXN[IP])
                   +        (b.V[I_Jp1_K] - 2.0*b.V[I_J_K] + b.V[I_Jm1_K])/(p->DYN[JP]*p->DYN[JP])
                   +        (b.V[I_J_Kp1] - 2.0*b.V[I_J_K] + b.V[I_J_Km1])/(p->DZN[KP]*p->DZN[KP]));
-        
-
     }
 
 	L.V[n] = -(sign*dnorm - sign) + diffterm;
-    
-    //a->test(i,j,k) = dz;
 }

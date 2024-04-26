@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,10 +34,10 @@ Author: Hans Bihs
 
 poisson_nse::poisson_nse(lexer * p, heat *&pheat, concentration *&pconc)
 {
-    if((p->F80==0||p->A10==51) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==51) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
 	pd = new density_df(p);
 	
 	if(p->F80==0 && p->H10==0 && p->W30==1)
@@ -108,44 +108,44 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
         if(p->flag4[IJK]>0)
         {
             // Solid boundaries
-            if(p->flag4[Im1JK]<AIR)
+            if(p->flag4[Im1JK]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
             a->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<AIR)
+            if(p->flag4[Ip1JK]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
             a->M.n[n] = 0.0;
             }
             
-            if(p->flag4[IJm1K]<AIR)
+            if(p->flag4[IJm1K]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.e[n]*press(i,j-1,k);
             a->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJp1K]<AIR)
+            if(p->flag4[IJp1K]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.w[n]*press(i,j+1,k);
             a->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<AIR)
+            if(p->flag4[IJKm1]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.b[n]*press(i,j,k-1);
             a->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<AIR)
+            if(p->flag4[IJKp1]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k+1);
             a->M.t[n] = 0.0;
             }
             
             // FSFBC
-            if(p->flag4[Im1JK]==AIR)
+            if(p->flag4[Im1JK]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -166,7 +166,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[Ip1JK]==AIR)
+            if(p->flag4[Ip1JK]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -187,7 +187,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[IJm1K]==AIR)
+            if(p->flag4[IJm1K]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -196,7 +196,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[IJp1K]==AIR)
+            if(p->flag4[IJp1K]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -205,7 +205,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[IJKm1]==AIR)
+            if(p->flag4[IJKm1]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -214,7 +214,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[IJKp1]==AIR)
+            if(p->flag4[IJKp1]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {

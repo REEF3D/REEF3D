@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,6 +47,8 @@ public:
     void make_grid(lexer*, ghostcell*);
 	void fill_matrix(lexer*, ghostcell*, matrix2D&, slice&, vec2D&);
 	
+    void solve(lexer*, ghostcell*);
+    
 	void create_solvers(lexer*,ghostcell*);
     void delete_solvers(lexer*,ghostcell*);
 

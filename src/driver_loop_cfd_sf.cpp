@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -55,7 +55,7 @@ void driver::loop_cfd_sf(fdm* a)
             cout<<"------------------------------------"<<endl;
             cout<<p->count<<endl;
 
-            cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
+            cout<<"simtime: "<<p->simtime<<endl;
             cout<<"timestep: "<<p->dt<<endl;
             cout<<"sftimestep: "<<p->sfdt<<" sfmax: "<<p->sfmax<<endl;
             
@@ -79,7 +79,7 @@ void driver::loop_cfd_sf(fdm* a)
         // Benchmark cases
         pbench->start(p,a,pgc,pconvec);
 
-        pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppart,a->phi);
+        pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
         poneph->update(p,a,pgc,pflow);
 
         // Turbulence computation
@@ -100,7 +100,7 @@ void driver::loop_cfd_sf(fdm* a)
         pfsf->update(p,a,pgc,a->phi);
 	
         // Momentum 
-        pmom_sf->starti(p,a,pgc,p6dof_df,pvrans,pnet,pfsi);
+        pmom_sf->starti(p,a,pgc,p6dof,pvrans,pnet,pfsi);
 
         // Save previous timestep
         pmom_sf->utimesave(p,a,pgc);

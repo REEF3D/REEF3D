@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,8 +38,8 @@ public:
 	void bckomega_start(lexer*,fdm_nhf*,double*,double*, int);
     void bckin_matrix(lexer*,fdm_nhf*,double*,double*);
     void bcomega_matrix(lexer*,fdm_nhf*,double*,double*);
-	void wall_law_kin(lexer*,fdm_nhf*,double*,double*,int,int,int,int,int,int,double);
-	void wall_law_omega(lexer*,fdm_nhf*,double*,double*,int,int,int,int,int,int,double);
+	void wall_law_kin(lexer*,fdm_nhf*,double*,double*);
+	void wall_law_omega(lexer*,fdm_nhf*,double*,double*);
 
 private:
 	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;

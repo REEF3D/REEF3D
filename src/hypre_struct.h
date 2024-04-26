@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -45,10 +45,12 @@ public:
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
     virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver4f(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
+    void start_solver4V(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, int);
     void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
@@ -77,6 +79,8 @@ public:
     void fill_matrix3_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4_2Dvert(lexer*,fdm*, ghostcell*,field&);
+    void fill_matrix4V(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix4V_2D(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix4f(lexer*, ghostcell*,field&, vec&, matrix_diag&);
     void fill_matrix4f_2Dvert(lexer*, ghostcell*,field&, vec&, matrix_diag&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
@@ -90,7 +94,8 @@ public:
     virtual void fillbackvec2(lexer*,field&,int);
     virtual void fillbackvec3(lexer*,field&,int);
     virtual void fillbackvec4(lexer*,field&,int);
-
+    virtual void fillbackvec4V(lexer*,double*,int);
+    
     virtual void fillbackvec7(lexer*,double*,int);
     virtual void fillbackvec8(lexer*,double*,int);
     virtual void fillbackvec9(lexer*,double*,int);
@@ -100,6 +105,8 @@ public:
 
     void create_solver5(lexer*,ghostcell*);
     void delete_solver5(lexer*,ghostcell*);
+    
+    void precon_switch(lexer*,ghostcell*);
     
 
 private:
@@ -125,7 +132,7 @@ private:
    
 	int numiter,count,q;
     
-    const int solve_type,precon_type;
+    int solve_type,precon_type;
     
     
     int *CVAL4;

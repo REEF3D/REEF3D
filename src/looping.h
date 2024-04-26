@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,7 +42,7 @@ Author: Hans Bihs
 #define FSCHECK  if(p->flag7[FIJK]<=0)
 #define FPCHECK  if(p->flag7[FIJK]>0)
 #define SCHECK  if(p->flag4[IJK]<0)
-#define SFLUIDCHECK  if(p->flag4[IJK]<AIR)
+#define SFLUIDCHECK  if(p->flag4[IJK]<AIR_FLAG)
 #define USCHECK  if(p->flag1[IJK]<0)
 #define VSCHECK  if(p->flag2[IJK]<0)
 #define WSCHECK  if(p->flag3[IJK]<0)
@@ -84,7 +84,7 @@ Author: Hans Bihs
 #define ITLOOP for(i=0; i<p->knox+1; ++i)
 #define JTLOOP for(j=0; j<p->knoy+1; ++j)
 #define KTLOOP for(k=0; k<p->knoz+1; ++k)
-#define TCHECK if(p->flag4[IJK]>OBJ)
+#define TCHECK if(p->flag4[IJK]>OBJ_FLAG)
 #define TLOOP ITLOOP JTLOOP KTLOOP
 
 #define IFLEXLOOP	for(i=0; i<p->knox-ulast; ++i)
@@ -111,49 +111,55 @@ Author: Hans Bihs
 #define WCHECK  if(p->flag3[IJK]>0)
 #define WLOOP IWLOOP JWLOOP KWLOOP WCHECK
 
-#define UBASECHECK  if(p->flag1[IJK]>OBJ)
-#define VBASECHECK  if(p->flag2[IJK]>OBJ)
-#define WBASECHECK  if(p->flag3[IJK]>OBJ)
-#define PBASECHECK  if(p->flag4[IJK]>OBJ)
+#define UBASECHECK  if(p->flag1[IJK]>OBJ_FLAG)
+#define VBASECHECK  if(p->flag2[IJK]>OBJ_FLAG)
+#define WBASECHECK  if(p->flag3[IJK]>OBJ_FLAG)
+#define PBASECHECK  if(p->flag4[IJK]>OBJ_FLAG)
 
 #define UBASELOOP IULOOP JULOOP KULOOP UBASECHECK
 #define VBASELOOP IVLOOP JVLOOP KVLOOP VBASECHECK
 #define WBASELOOP IWLOOP JWLOOP KWLOOP WBASECHECK
 #define BASELOOP ILOOP JLOOP KLOOP PBASECHECK
+#define BASEREVLOOP KLOOP JLOOP ILOOP PBASECHECK
 
 #define URAWLOOP IULOOP JULOOP KULOOP
 #define VRAWLOOP IVLOOP JVLOOP KVLOOP 
 #define WRAWLOOP IWLOOP JWLOOP KWLOOP 
 #define RAWLOOP ILOOP JLOOP KLOOP
 
+#define NHFWKLOOP for(k=1; k<=p->knoz; ++k)
+    
+#define NHFWLOOP NHFWKLOOP ILOOP JLOOP NHFWKLOOP PCHECK
+
+
 #define ALOOP ILOOP JLOOP KLOOP PSOLIDCHECK
 
-#define USOLIDCHECK  if(p->flag1[IJK]>SOLID)
-#define VSOLIDCHECK  if(p->flag2[IJK]>SOLID)
-#define WSOLIDCHECK  if(p->flag3[IJK]>SOLID)
-#define PSOLIDCHECK  if(p->flag4[IJK]>SOLID)
+#define USOLIDCHECK  if(p->flag1[IJK]>SOLID_FLAG)
+#define VSOLIDCHECK  if(p->flag2[IJK]>SOLID_FLAG)
+#define WSOLIDCHECK  if(p->flag3[IJK]>SOLID_FLAG)
+#define PSOLIDCHECK  if(p->flag4[IJK]>SOLID_FLAG)
 
 #define USOLIDLOOP IULOOP JULOOP KULOOP USOLIDCHECK
 #define VSOLIDLOOP IVLOOP JVLOOP KVLOOP VSOLIDCHECK
 #define WSOLIDLOOP IWLOOP JWLOOP KWLOOP WSOLIDCHECK
 #define SOLIDLOOP ILOOP JLOOP KLOOP PSOLIDCHECK    
 
-#define UAIRCHECK  if(p->flag1[IJK]==AIR)
-#define VAIRCHECK  if(p->flag2[IJK]==AIR)
-#define WAIRCHECK  if(p->flag3[IJK]==AIR)
-#define PAIRCHECK  if(p->flag4[IJK]==AIR)
+#define UAIR_FLAGCHECK  if(p->flag1[IJK]==AIR_FLAG)
+#define VAIR_FLAGCHECK  if(p->flag2[IJK]==AIR_FLAG)
+#define WAIR_FLAGCHECK  if(p->flag3[IJK]==AIR_FLAG)
+#define PAIR_FLAGCHECK  if(p->flag4[IJK]==AIR_FLAG)
 
-#define UAIRLOOP IULOOP JULOOP KULOOP UAIRCHECK
-#define VAIRLOOP IVLOOP JVLOOP KVLOOP VAIRCHECK
-#define WAIRLOOP IWLOOP JWLOOP KWLOOP WAIRCHECK
-#define AIRLOOP ILOOP JLOOP KLOOP PAIRCHECK    
+#define UAIRLOOP IULOOP JULOOP KULOOP UAIR_FLAGCHECK
+#define VAIRLOOP IVLOOP JVLOOP KVLOOP VAIR_FLAGCHECK
+#define WAIRLOOP IWLOOP JWLOOP KWLOOP WAIR_FLAGCHECK
+#define AIRLOOP ILOOP JLOOP KLOOP PAIR_FLAGCHECK    
 
-#define UFLUIDCHECK  if(p->flag1[IJK]>=AIR)
-#define VFLUIDCHECK  if(p->flag2[IJK]>=AIR)
-#define WFLUIDCHECK  if(p->flag3[IJK]>=AIR)
-#define PFLUIDCHECK  if(p->flag4[IJK]>=AIR)
+#define UFLUIDCHECK  if(p->flag1[IJK]>=AIR_FLAG)
+#define VFLUIDCHECK  if(p->flag2[IJK]>=AIR_FLAG)
+#define WFLUIDCHECK  if(p->flag3[IJK]>=AIR_FLAG)
+#define PFLUIDCHECK  if(p->flag4[IJK]>=AIR_FLAG)
     
-#define PWDFLUIDCHECK  if(p->flag4[IJK]>=AIR && p->wet[IJ]>0)
+#define PWDFLUIDCHECK  if(p->flag4[IJK]>=AIR_FLAG && p->wet[IJ]>0)
 #define FSWDCHECK  if(p->flag7[FIJK]<=0 || p->wet[IJ]==0)
 #define FPWDCHECK  if(p->flag7[FIJK]>0  && p->wet[IJ]>0)
 
@@ -180,9 +186,9 @@ Author: Hans Bihs
 #define JTPLOOP for(j=-1; j<p->knoy; ++j)
 #define KTPLOOP for(k=-1; k<p->knoz; ++k)
 #define TPCHECK  if(p->tpflag[IJK]>0)
-#define TPLOOP ITPLOOP JTPLOOP KTPLOOP TPCHECK
+#define TPLOOP KTPLOOP JTPLOOP ITPLOOP TPCHECK
 
-#define NDBASECHECK  if(p->ndbaseflag[IJK]>OBJ)
+#define NDBASECHECK  if(p->ndbaseflag[IJK]>OBJ_FLAG)
 #define NDBASELOOP ITPLOOP JTPLOOP KTPLOOP NDBASECHECK
 
 #define MAX(aAa,bBb) ((aAa)>(bBb)?(aAa):(bBb))

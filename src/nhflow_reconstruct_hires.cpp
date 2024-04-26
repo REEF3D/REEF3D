@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -57,8 +57,8 @@ void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nh
     // reconstruct
     SLICELOOP1  
     {
-    fs(i,j) = f(i,j)   + 0.5*p->DXP[IP]*dfdx(i,j); 
-    fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP1]*dfdx(i+1,j);
+    fs(i,j) = f(i,j)   + 0.5*p->DXP[IM1]*dfdx(i,j); 
+    fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP]*dfdx(i+1,j);
     }
     
     pgc->gcsl_start1(p,fs,1);
@@ -88,8 +88,8 @@ void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nh
     
     SLICELOOP2 
     {
-    fe(i,j) = f(i,j)   + 0.5*p->DYP[JP]*dfdy(i,j); 
-    fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP1]*dfdy(i,j+1); 
+    fe(i,j) = f(i,j)   + 0.5*p->DYP[JM1]*dfdy(i,j); 
+    fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP]*dfdy(i,j+1); 
     }
     
     pgc->gcsl_start2(p,fe,1);
@@ -149,8 +149,8 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
     // reconstruct
     ULOOP 
     {
-    Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IP]*DFDX[IJK]); 
-    Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP1]*DFDX[Ip1JK]);
+    Fs[IJK] = (Fx[IJK]    + 0.5*p->DXP[IM1]*DFDX[IJK]); 
+    Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP]*DFDX[Ip1JK]);
     }
     
     pgc->start1V(p,Fs,1);
@@ -179,8 +179,8 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
     // reconstruct
     VLOOP
     {
-    Fe[IJK] = (Fy[IJK]    + 0.5*p->DYP[JP]*DFDX[IJK]); 
-    Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP1]*DFDX[IJp1K]);
+    Fe[IJK] = (Fy[IJK]    + 0.5*p->DYP[JM1]*DFDX[IJK]); 
+    Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP]*DFDX[IJp1K]);
     }
     
     pgc->start2V(p,Fe,1);
@@ -208,8 +208,8 @@ void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nh
     // reconstruct
     WLOOP 
     {
-    Fb[IJK] = (Fz[IJK]    + 0.5*p->DZP[KP]*DFDX[IJK]); 
-    Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZP[KP1]*DFDX[IJKp1]);
+    Fb[IJK] = (Fz[IJK]    + 0.5*p->DZN[KP]*DFDX[IJK]); 
+    Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDX[IJKp1]);
     }
 }
 

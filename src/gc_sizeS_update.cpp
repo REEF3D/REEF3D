@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,8 +40,7 @@ void ghostcell::sizeS_update(lexer* p)
 	
 	p->sizeS2[0]=0;
 	p->sizeS2[1]=count;
-    
-    
+
     
     count=0;
 	SLICELOOP4

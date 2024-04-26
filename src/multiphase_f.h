@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -74,7 +74,7 @@ public:
 	multiphase_fluid_update *pupdate;
 	heat *pheat;
 	concentration *pconc;
-	particle_corr *ppart;
+	particle_corr *ppls;
 	print_wsf *pwsf1;
 	print_wsf *pwsf2;
 	

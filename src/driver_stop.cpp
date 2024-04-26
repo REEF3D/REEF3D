@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,8 +58,8 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 
      pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
      
-     pgc->final();
-     exit(0);
+     //pgc->final();
+     //exit(0);
     }
     }
         

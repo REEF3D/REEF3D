@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,6 +41,8 @@ void lexer::vecsize(ghostcell *pgc)
 	gcb_sediment_est = gcb4_count*margin;	
     
     gcb_floating_est=0;
+    
+    //cout<<mpirank<<" solid_gcb_est_max: "<<solid_gcb_est_max<<" topo_gcb_est_max: "<<topo_gcb_est_max<<endl;
     
     
 // gcbextra

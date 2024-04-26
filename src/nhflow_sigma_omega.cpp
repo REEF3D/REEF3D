@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ Author: Hans Bihs
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
 
-void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *U, double *V, double *W)
 { 
     double wval,Pval,Qval,Rval,fac;
     
@@ -76,8 +76,8 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
             Qval = 0.5*(V[IJK]+V[IJKm1]);
             Rval = 0.5*(W[IJK]+W[IJKm1]);
         
-        // omega
-            d->omegaF[FIJK] =  d->WL(i,j)*(p->sigt[FIJK]
+            // omega
+            d->omegaF[FIJK] =  WL(i,j)*(p->sigt[FIJK]
                             
                             +  Pval*p->sigx[FIJK]
                             
@@ -102,30 +102,42 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
                         
                         - p->DZN[KP]*(d->detadt(i,j) 
                         
-                        + ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir));
+                        + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
         }
         
     }
     
     if(p->A517==3)
     {
-    FLOOP
-    d->omegaF[FIJK] = 0.0;
+        FLOOP
+        d->omegaF[FIJK] = 0.0;
+        
+        
+        LOOP
+        {
+        d->omegaF[FIJKp1] =   d->omegaF[FIJK]
+                            
+                            - p->DZN[KP]*(d->detadt(i,j) 
+                            
+                            + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+        }
+    }
     
-    LOOP
+    if(p->A517==4)
     {
-    fac = p->DZN[KP1]/(p->DZN[KP1]+p->DZN[KP]);
-    
-    d->omegaF[FIJKp1] =   d->omegaF[FIJK]
-                        
-                        - p->DZN[KP]*(d->detadt_n(i,j) 
-                        
-                        + fac*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir)
-                        
-                        + (1.0-fac)*((d->Fx[IJKp1] - d->Fx[Im1JKp1])/p->DXN[IP]  + (d->Fy[IJKp1] - d->Fy[IJm1Kp1])/p->DYN[JP]*p->y_dir));
+        FLOOP
+        d->omegaF[FIJK] = 0.0;
+        
+        LOOP
+        {
+        d->omegaF[FIJKp1] =   d->omegaF[FIJK]
+                            
+                            - p->DZN[KP]*(d->detadt_n(i,j) 
+                            
+                            + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+        }
     }
-                        
-    }
+
       
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
@@ -134,7 +146,6 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
     
-        
         k+=1;
         d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKp1] =  0.0;
@@ -150,11 +161,11 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
         
-        
         d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKm1] =  0.0;
         d->omegaF[FIJKm2] =  0.0;
         d->omegaF[FIJKm3] =  0.0;
+        
     }
     
 

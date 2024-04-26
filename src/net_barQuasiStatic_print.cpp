@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -40,15 +40,15 @@ void net_barQuasiStatic::print(lexer *p)
 	num=0;
 	
     // Build current net
-    if (p->X320_type[nNet] == 1)
+    if (p->X320_type[nNet]==1)
     {
         buildNet_bag(p);
     }
-    else if (p->X320_type[nNet] == 2)
+    else if (p->X320_type[nNet]==2)
     {
         buildNet_cyl(p);        
     }
-    else if (p->X320_type[nNet] == 3)
+    else if (p->X320_type[nNet]==3)
     {
         buildNet_wall(p);        
     }    
@@ -78,26 +78,8 @@ void net_barQuasiStatic::print(lexer *p)
 	{
 		printtime+=p->P30;
 		
-		if(p->P14==1)
-		{
-			if(num<10)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-00000%i.vtk",nNet,num);
+		sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
 
-			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-0000%i.vtk",nNet,num);
-
-			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-000%i.vtk",nNet,num);
-
-			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-00%i.vtk",nNet,num);
-
-			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-0%i.vtk",nNet,num);
-
-			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%i-%i.vtk",nNet,num);
-		}	
 
 		// Tension forces
 		double *T;
@@ -201,13 +183,13 @@ void net_barQuasiStatic::buildNet_bag(lexer *p)
 
 	for (int i = 0; i < 50; i++)
 	{
-		if (curRow%2 == 0)   // even index
+		if (curRow%2==0)   // even index
 		{
 			for (int mI = 0; mI < nd - 1; mI++)
 			{
 				for (int fI = 0; fI < nf; fI++)
 				{
-					if (Pi[fI] == leftK && Ni[fI] == leftK + nd + 1 && fillK[leftK + nd + 1] == 0)
+					if (Pi[fI]==leftK && Ni[fI]==leftK + nd + 1 && fillK[leftK + nd + 1]==0)
 					{
 						K_[leftK + nd + 1][0] = K_[leftK][0] + fi(fI,0)*al;	
 						K_[leftK + nd + 1][1] = K_[leftK][1] + fi(fI,1)*al;
@@ -215,7 +197,7 @@ void net_barQuasiStatic::buildNet_bag(lexer *p)
 	
 						fillK[leftK + nd + 1] = 1;
 					}
-					else if (Ni[fI] == leftK && Pi[fI] == leftK + nd + 1 && fillK[leftK + nd + 1] == 0)
+					else if (Ni[fI]==leftK && Pi[fI]==leftK + nd + 1 && fillK[leftK + nd + 1]==0)
 					{
 						K_[leftK + nd + 1][0] = K_[leftK][0] - fi(fI,0)*al;	
 						K_[leftK + nd + 1][1] = K_[leftK][1] - fi(fI,1)*al;
@@ -227,7 +209,7 @@ void net_barQuasiStatic::buildNet_bag(lexer *p)
 
 				for (int fI = 0; fI < nf; fI++)
 				{
-					if (Pi[fI] == leftK + nd + 1 && Ni[fI] == leftK + 1 && fillK[leftK + 1] == 0)
+					if (Pi[fI]==leftK + nd + 1 && Ni[fI]==leftK + 1 && fillK[leftK + 1]==0)
 					{
 						K_[leftK + 1][0] = K_[leftK + nd + 1][0] + fi(fI,0)*al;	
 						K_[leftK + 1][1] = K_[leftK + nd + 1][1] + fi(fI,1)*al;
@@ -235,7 +217,7 @@ void net_barQuasiStatic::buildNet_bag(lexer *p)
 
 						fillK[leftK + 1] = 1;				
 					}
-					else if (Ni[fI] == leftK + nd + 1 && Pi[fI] == leftK + 1 && fillK[leftK + 1] == 0)
+					else if (Ni[fI]==leftK + nd + 1 && Pi[fI]==leftK + 1 && fillK[leftK + 1]==0)
 					{
 						K_[leftK + 1][0] = K_[leftK + nd + 1][0] - fi(fI,0)*al;	
 						K_[leftK + 1][1] = K_[leftK + nd + 1][1] - fi(fI,1)*al;
@@ -255,7 +237,7 @@ void net_barQuasiStatic::buildNet_bag(lexer *p)
 			{
 				for (int fI = 0; fI < nf; fI++)
 				{
-					if (Pi[fI] == leftK && Ni[fI] == leftK + nd + 1 && fillK[leftK + nd + 1] == 0)
+					if (Pi[fI]==leftK && Ni[fI]==leftK + nd + 1 && fillK[leftK + nd + 1]==0)
 					{
 						K_[leftK + nd + 1][0] = K_[leftK][0] + fi(fI,0)*al;	
 						K_[leftK + nd + 1][1] = K_[leftK][1] + fi(fI,1)*al;
@@ -263,7 +245,7 @@ void net_barQuasiStatic::buildNet_bag(lexer *p)
 	
 						fillK[leftK + nd + 1] = 1;
 					}
-					else if (Ni[fI] == leftK && Pi[fI] == leftK + nd + 1 && fillK[leftK + nd + 1] == 0)
+					else if (Ni[fI]==leftK && Pi[fI]==leftK + nd + 1 && fillK[leftK + nd + 1]==0)
 					{
 						K_[leftK + nd + 1][0] = K_[leftK][0] - fi(fI,0)*al;	
 						K_[leftK + nd + 1][1] = K_[leftK][1] - fi(fI,1)*al;
@@ -275,7 +257,7 @@ void net_barQuasiStatic::buildNet_bag(lexer *p)
 
 				for (int fI = 0; fI < nf; fI++)
 				{
-					if (Pi[fI] == leftK + nd + 1 && Ni[fI] == leftK + 1 && fillK[leftK + 1] == 0)
+					if (Pi[fI]==leftK + nd + 1 && Ni[fI]==leftK + 1 && fillK[leftK + 1]==0)
 					{
 						K_[leftK + 1][0] = K_[leftK + nd + 1][0] + fi(fI,0)*al;	
 						K_[leftK + 1][1] = K_[leftK + nd + 1][1] + fi(fI,1)*al;
@@ -283,7 +265,7 @@ void net_barQuasiStatic::buildNet_bag(lexer *p)
 
 						fillK[leftK + 1] = 1;				
 					}
-					else if (Ni[fI] == leftK + nd + 1 && Pi[fI] == leftK + 1 && fillK[leftK + 1] == 0)
+					else if (Ni[fI]==leftK + nd + 1 && Pi[fI]==leftK + 1 && fillK[leftK + 1]==0)
 					{
 						K_[leftK + 1][0] = K_[leftK + nd + 1][0] - fi(fI,0)*al;	
 						K_[leftK + 1][1] = K_[leftK + nd + 1][1] - fi(fI,1)*al;

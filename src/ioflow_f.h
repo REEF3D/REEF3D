@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -112,6 +112,10 @@ public:
 	virtual void Qout_nhf(lexer*,fdm_nhf*,ghostcell*);
     
     virtual double wave_fsf(lexer*,ghostcell*,double);
+    virtual double wave_xvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_yvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_zvel(lexer*,ghostcell*,double,double,double);
+    
 	virtual int iozonecheck(lexer*,fdm*);
     
     virtual void ini(lexer*,fdm*,ghostcell*);
@@ -165,9 +169,9 @@ private:
 	double distcalc(lexer*,double, double, double);
 	double r1(lexer*, double, double);
 
-	double *tan_betaB70,*tan_betaB71;
-	double *betaB70,*betaB71;
-	double *dist_B70,*dist_B71;
+	double *tan_betaB71;
+	double *betaB71;
+	double *dist_B71;
 	
 	double **hydro_in,**hydro_out;
     int hydro_in_count,hydro_out_count;
@@ -176,7 +180,7 @@ private:
     
     double Apor,Bpor,porval,partval;
     
-    double epsi1,epsi2;
+    double epsi1,epsi2;    int iter0;
     
     patchBC_interface *pBC;
 };

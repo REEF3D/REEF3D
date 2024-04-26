@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,7 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"wave_lib.h"
-#include"wave_lib_parameters.h"
 #include"increment.h"
 
 #ifndef WAVE_LIB_STOKES_5TH_H_
@@ -29,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_Stokes_5th : public wave_lib, public wave_lib_parameters, public increment
+class wave_lib_Stokes_5th : public wave_lib, public increment
 {
 public:
     wave_lib_Stokes_5th(lexer*, ghostcell*);
@@ -75,6 +74,7 @@ public:
     virtual double wave_fi_time_cos(lexer*,int);
     
     
+    virtual void wave_parameters(lexer*,ghostcell*);
     virtual void parameters(lexer*,ghostcell*);
     virtual void wave_prestep(lexer*,ghostcell*);
     
@@ -84,6 +84,22 @@ private:
     double e2,e4;
     double singamma,cosgamma;
     double vel,eta,fi,T;
+    
+    int wtype;
+    double diff;
+    double teta;
+    double wk,ww,wdt,wa,wH,wL,wf,wT,wL0,k0,S0;
+    double wk_temp,ww_temp,wL_temp,wT_temp,wT_test,wf_temp;
+    
+    
+    double eps,c0,c2,c4; 
+    double S,C;
+    double wC,ubar;
+    double wS;
+    
+    double X0;
+	
+    const double pshift;
 };
 
 #endif

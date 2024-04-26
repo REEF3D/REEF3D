@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -54,9 +54,9 @@ void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==1)
     VLOOP
     {
-    d->Fe[IJK] = d->UHe[IJK]*d->Ve[IJK];
+    d->Fe[IJK] = d->Ve[IJK]*d->UHe[IJK];
     
-    d->Fw[IJK] = d->UHw[IJK]*d->Vw[IJK];
+    d->Fw[IJK] = d->Vw[IJK]*d->UHw[IJK];
     }
     
     // flux z-dir

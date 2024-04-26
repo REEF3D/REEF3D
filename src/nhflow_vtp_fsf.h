@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
+#include<fstream>
 
 class lexer;
 class fdm_nhf;
@@ -40,6 +41,7 @@ public:
 	
     virtual void start(lexer*,fdm_nhf*,ghostcell*);
     virtual void print2D(lexer*,fdm_nhf*,ghostcell*);
+    void preproc(lexer*,fdm_nhf*,ghostcell*);
 	
 private:
 	
@@ -60,6 +62,10 @@ private:
     int gcval_eta, gcval_fifsf;
     int printcount;
     int jj;
+    
+    int *wetmax;
+    
+    ofstream pvdout;
 	
 
 };

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,11 +30,11 @@ void ghostcell::gcsolid_buildflag(lexer *p, fdm *a, int& cellcount)
     BASELOOP
     {
         if(a->solid(i,j,k)<0.0)
-        p->flag4[IJK]=SOLID;
+        p->flag4[IJK]=SOLID_FLAG;
 			
 
         if(a->solid(i,j,k)>=0.0)
-        p->flag4[IJK]=WATER;
+        p->flag4[IJK]=WATER_FLAG;
     }
     
     //
@@ -59,26 +59,26 @@ void ghostcell::gcsolid_buildflag(lexer *p, fdm *a, int& cellcount)
         LOOP
         {
             if(p->i_dir==1)
-            if(p->flag4[Im1JK]<=SOLID
-            && p->flag4[Ip1JK]<=SOLID)
+            if(p->flag4[Im1JK]<=SOLID_FLAG
+            && p->flag4[Ip1JK]<=SOLID_FLAG)
             {
-            p->flag4[IJK]=SOLID;
+            p->flag4[IJK]=SOLID_FLAG;
             ++count;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]<=SOLID
-            && p->flag4[IJp1K]<=SOLID)
+            if(p->flag4[IJm1K]<=SOLID_FLAG
+            && p->flag4[IJp1K]<=SOLID_FLAG)
             {
-            p->flag4[IJK]=SOLID;
+            p->flag4[IJK]=SOLID_FLAG;
             ++count;
             }
 
             if(p->k_dir==1)
-            if(p->flag4[IJKm1]<=SOLID
-            && p->flag4[IJKp1]<=SOLID)
+            if(p->flag4[IJKm1]<=SOLID_FLAG
+            && p->flag4[IJKp1]<=SOLID_FLAG)
             {
-            p->flag4[IJK]=SOLID;
+            p->flag4[IJK]=SOLID_FLAG;
             ++count;
             }
             
@@ -105,17 +105,17 @@ void ghostcell::gcsolid_velflag1(lexer *p, fdm *a, int& cellcount)
     count=0;
     BASELOOP
     {
-    if(p->flag4[IJK]==SOLID || (p->flag4[IJK]==WATER && p->flag4[Ip1JK]==SOLID))
+    if(p->flag4[IJK]==SOLID_FLAG || (p->flag4[IJK]==WATER_FLAG && p->flag4[Ip1JK]==SOLID_FLAG))
 	{
-       if(p->flag4[IJK]==SOLID) 
-       p->flag1[IJK]=SOLID;
+       if(p->flag4[IJK]==SOLID_FLAG) 
+       p->flag1[IJK]=SOLID_FLAG;
        
-       if(p->flag4[IJK]==WATER && p->flag4[Ip1JK]==SOLID)
-       p->flag1[IJK]=SOLID;
+       if(p->flag4[IJK]==WATER_FLAG && p->flag4[Ip1JK]==SOLID_FLAG)
+       p->flag1[IJK]=SOLID_FLAG;
 	}
 	   
-    if(p->flag4[IJK]==WATER && p->flag4[Ip1JK]==WATER)
-    p->flag1[IJK]=WATER;
+    if(p->flag4[IJK]==WATER_FLAG && p->flag4[Ip1JK]==WATER_FLAG)
+    p->flag1[IJK]=WATER_FLAG;
     }
 }
 
@@ -124,17 +124,17 @@ void ghostcell::gcsolid_velflag2(lexer *p, fdm *a, int& cellcount)
     count=0;
     BASELOOP
     {	
-    if(p->flag4[IJK]==SOLID || (p->flag4[IJK]==WATER && p->flag4[IJp1K]==SOLID))
+    if(p->flag4[IJK]==SOLID_FLAG || (p->flag4[IJK]==WATER_FLAG && p->flag4[IJp1K]==SOLID_FLAG))
 	{
-       if(p->flag4[IJK]==SOLID) 
-       p->flag2[IJK]=SOLID;
+       if(p->flag4[IJK]==SOLID_FLAG) 
+       p->flag2[IJK]=SOLID_FLAG;
        
-       if(p->flag4[IJK]==WATER && p->flag4[IJp1K]==SOLID) 
-       p->flag2[IJK]=SOLID;
+       if(p->flag4[IJK]==WATER_FLAG && p->flag4[IJp1K]==SOLID_FLAG) 
+       p->flag2[IJK]=SOLID_FLAG;
 	}
 
-    if(p->flag4[IJK]==WATER && p->flag4[IJp1K]==WATER)
-    p->flag2[IJK]=WATER;
+    if(p->flag4[IJK]==WATER_FLAG && p->flag4[IJp1K]==WATER_FLAG)
+    p->flag2[IJK]=WATER_FLAG;
     }
 
     cellcount=count;
@@ -145,17 +145,17 @@ void ghostcell::gcsolid_velflag3(lexer *p, fdm *a, int& cellcount)
     count=0;
     BASELOOP
     {
-    if(p->flag4[IJK]==SOLID || (p->flag4[IJK]==WATER && p->flag4[IJKp1]==SOLID))
+    if(p->flag4[IJK]==SOLID_FLAG || (p->flag4[IJK]==WATER_FLAG && p->flag4[IJKp1]==SOLID_FLAG))
 	{
-       if(p->flag4[IJK]==SOLID) 
-       p->flag3[IJK]=SOLID;
+       if(p->flag4[IJK]==SOLID_FLAG) 
+       p->flag3[IJK]=SOLID_FLAG;
        
-       if(p->flag4[IJK]==WATER && p->flag4[IJKp1]==SOLID) 
-       p->flag3[IJK]=SOLID;
+       if(p->flag4[IJK]==WATER_FLAG && p->flag4[IJKp1]==SOLID_FLAG) 
+       p->flag3[IJK]=SOLID_FLAG;
 	}
 	   
-    if(p->flag4[IJK]==WATER && p->flag4[IJKp1]==WATER)
-    p->flag3[IJK]=WATER;
+    if(p->flag4[IJK]==WATER_FLAG && p->flag4[IJKp1]==WATER_FLAG)
+    p->flag3[IJK]=WATER_FLAG;
     }
 
     cellcount=count;

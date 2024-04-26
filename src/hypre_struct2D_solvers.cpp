@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -187,8 +187,6 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
     
     if((p->N10==15 || p->N10==16 || p->N10==17) && p->N11==12)
     HYPRE_StructHybridSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
-	
-	
 	
 }
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,7 +27,6 @@ fdm::fdm(lexer *p)
 			:u(p),F(p),
 			v(p),G(p),
 			w(p),H(p),
-            omega(p),
 			press(p),
             Fi(p),
 			eddyv(p),
@@ -39,7 +38,7 @@ fdm::fdm(lexer *p)
             test(p),
 			fb(p),fbh1(p),fbh2(p),fbh3(p),fbh4(p),fbh5(p),porosity(p),
 			walld(p),
-			nodeval(p),flag(p),nodeval2D(p),etaloc(p),
+			nodeval(p),nodeval2D(p),etaloc(p),
             eta(p),eta_n(p),depth(p),
             Fifsf(p),K(p),
             P(p),Q(p),bed(p),

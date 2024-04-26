@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -119,6 +119,11 @@ void hypre_aij::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag
 
 void hypre_aij::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
 {
+}
+
+void hypre_aij::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+{
+    
 }
 
 void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter)

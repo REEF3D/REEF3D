@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,7 +29,7 @@ void vrans_veg::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int qn;
     double zmin,zmax,slope;
-    double xs,xe;
+    double xs,xe,ys,ye;
 	
 	
 	ALOOP
@@ -62,9 +62,66 @@ void vrans_veg::initialize(lexer *p, fdm *a, ghostcell *pgc)
     a->porosity(i,j,k) =  1.0 - (p->B310_N[qn]*PI*pow(p->B310_D[qn],2.0)*0.25); 
 	}
     
-    if(p->mpirank==0)
-    for(qn=0;qn<p->B310;++qn)
-    cout<<"VEG :  "<<(p->B310_N[qn]*PI*pow(p->B310_D[qn],2.0)*0.25)<<endl;
+    // Wedge x-dir
+    for(qn=0;qn<p->B321;++qn)
+    {
+		zmin=MIN(p->B321_zs[qn],p->B321_ze[qn]);
+        
+            if(p->B321_xs[qn]<=p->B321_xe[qn])
+            {
+            xs = p->B321_xs[qn];
+            xe = p->B321_xe[qn];
+            }
+            
+            if(p->B321_xs[qn]>p->B321_xe[qn])
+            {
+            xs = p->B321_xe[qn];
+            xe = p->B321_xs[qn];
+            }
+
+		slope=(p->B321_ze[qn]-p->B321_zs[qn])/(p->B321_xe[qn]-p->B321_xs[qn]);
+
+		ALOOP
+		if(p->pos_x()>=xs && p->pos_x()<xe
+		&& p->pos_y()>=p->B321_ys[qn] && p->pos_y()<p->B321_ye[qn]
+		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_x()-p->B321_xs[qn])+p->B321_zs[qn] )
+		{
+		N(i,j,k) = p->B321_N[qn];
+         D(i,j,k) = p->B321_D[qn];
+        Cd(i,j,k) = p->B321_Cd[qn];
+		}
+    }
+    
+    // Wedge y-dir
+    for(qn=0;qn<p->B322;++qn)
+    {
+		zmin=MIN(p->B322_zs[qn],p->B322_ze[qn]);
+        
+            if(p->B322_xs[qn]<=p->B322_xe[qn])
+            {
+            ys = p->B322_ys[qn];
+            ye = p->B322_ye[qn];
+            }
+            
+            if(p->B322_xs[qn]>p->B322_xe[qn])
+            {
+            ys = p->B322_ye[qn];
+            ye = p->B322_ys[qn];
+            }
+
+		slope=(p->B322_ze[qn]-p->B322_zs[qn])/(p->B322_ye[qn]-p->B322_ys[qn]);
+
+		ALOOP
+		if(p->pos_x()>=p->B322_xs[qn] && p->pos_x()<p->B322_xe[qn]
+		&& p->pos_y()>=ys && p->pos_y()<ye
+		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B322_ys[qn])+p->B322_zs[qn] )
+		{
+		N(i,j,k) = p->B322_N[qn];
+         D(i,j,k) = p->B322_D[qn];
+        Cd(i,j,k) = p->B322_Cd[qn];
+		}
+    }
+    
 
     
     pgc->start4a(p,a->porosity,1);

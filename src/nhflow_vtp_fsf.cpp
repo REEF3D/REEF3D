@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,7 +37,7 @@ nhflow_vtp_fsf::nhflow_vtp_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	printcount=0;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_VTP_FSF",0777);
     
     // 3D
@@ -49,6 +49,16 @@ nhflow_vtp_fsf::nhflow_vtp_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     gcval_eta = 155;
     gcval_fifsf = 160;
+    }
+    
+    if(p->P131==1)
+    {
+    p->Iarray(wetmax,p->imax*p->jmax);
+    
+    SLICELOOP4
+    wetmax[IJ] = 0;
+    
+    pgc->gcsl_start4Vint(p,wetmax,50);
     }
 }
 
@@ -83,7 +93,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     
 	if(p->mpirank==0)
     pvtu(p,d,pgc);
-    
+
 	name_iter(p,d,pgc);
 	
 	
@@ -135,8 +145,22 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	++n;
     }
     
+    // fb
+    if(p->P28==1)
+    {
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
+    
     // Hs
     if(p->P110==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
+    
+    // wetdry_max
+    if(p->P131==1)
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
@@ -155,6 +179,14 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<PolyData>"<<endl;
 	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">"<<endl;
+    
+    if(p->P16==1)
+    {
+    result<<"<FieldData>"<<endl;
+    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+    result<<"</DataArray>"<<endl;
+    result<<"</FieldData>"<<endl;
+    }
     
     n=0;
 	result<<"<Points>"<<endl;
@@ -178,16 +210,31 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"wetdry\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    
     if(p->P23==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
+    
+    if(p->P28==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"fb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    
     if(p->P110==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
+    
+    if(p->P131==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"wetdry_max\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    
     result<<"</PointData>"<<endl;
 
     
@@ -251,7 +298,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     {
 	jj=j;
     j=0;
-	ffn=float(d->UH[IJK]);
+	ffn=float(d->V[IJK]);
     j=jj;
     }
     
@@ -280,7 +327,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
 	{
-	ffn=float(p->sl_ipol4(d->eta));
+	ffn=float(p->sl_ipol4eta_wd(p->wet,d->eta,d->bed));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -343,7 +390,19 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	}
     }
     
-    //  test
+    //  fb
+    if(p->P28==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(d->fs));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
+    
+    //  Hs
     if(p->P110==1)
     {
 	iin=4*(p->pointnum2D);
@@ -351,6 +410,18 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4(d->Hs));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
+    
+    //  wetdry_max
+    if(p->P131==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+    ffn = 0.25*float((wetmax[IJ]+wetmax[Ip1J]+wetmax[IJp1]+wetmax[Ip1Jp1]));
 	result.write((char*)&ffn, sizeof (float));
 	}
     }
@@ -408,6 +479,18 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	
 	++printcount;
 
+}
+
+void nhflow_vtp_fsf::preproc(lexer *p, fdm_nhf *d, ghostcell* pgc)
+{	
+    if(p->P131==1)
+    {
+    SLICELOOP4
+    wetmax[IJ] = MAX(wetmax[IJ],p->wet[IJ]);
+    
+    pgc->gcsl_start4Vint(p,wetmax,50);    
+    }
+    
 }
 
 

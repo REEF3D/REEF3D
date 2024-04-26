@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -106,10 +106,10 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     c->wd_criterion=0.00005;
     
     if(p->A344==1)
-    c->wd_criterion=p->A244_val;
+    c->wd_criterion=p->A344_val;
     
     if(p->A345==1)
-    c->wd_criterion=p->A245_val*p->DXM;
+    c->wd_criterion=p->A345_val*p->DXM;
     
     pcoast = new fnpf_coastline(p);
     
@@ -235,6 +235,9 @@ void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
+    
+    if(p->wet[IJ]==0)
+    c->K(i,j)=0.0;
     }
 }
 

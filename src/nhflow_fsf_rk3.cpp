@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,10 +44,7 @@ void nhflow_fsf_f::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,WLRK1,gcval_eta);
     
     SLICELOOP4
-    {
     d->eta_n(i,j) = d->eta(i,j);
-    d->detadt_n(i,j) = d->detadt(i,j);
-    }
     
     SLICELOOP4
     d->eta(i,j) = WLRK1(i,j) - d->depth(i,j);
@@ -77,12 +74,6 @@ void nhflow_fsf_f::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pflow->WL_relax(p,pgc,WLRK2,d->depth);
     pflow->fsfinflow_nhflow(p,d,pgc,WLRK2);
     pgc->gcsl_start4(p,WLRK2,gcval_eta);
-    
-    //SLICELOOP4
-    //d->eta_n(i,j) = d->eta(i,j);
-    
-    SLICELOOP4
-    d->detadt_n(i,j) = d->detadt(i,j);
     
     SLICELOOP4
     d->eta(i,j) = WLRK2(i,j) - d->depth(i,j);
@@ -116,10 +107,7 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     //SLICELOOP4
     //d->eta_n(i,j) = d->eta(i,j);
-    
-    SLICELOOP4
-    d->detadt_n(i,j) = d->detadt(i,j);
-    
+
     SLICELOOP4
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
     
@@ -128,10 +116,7 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
-    
-    LOOP
-    d->test[IJK] = (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP];
-    
+
     wetdry(p,d,pgc,U,V,W,d->WL);
     //breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
 }

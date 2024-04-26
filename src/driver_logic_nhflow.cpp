@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,6 +37,8 @@ Author: Hans Bihs
 #include"benchmark_header.h"
 #include"vrans_header.h"
 #include"nhflow_header.h"
+#include"6DOF_void.h"
+#include"6DOF_sflow.h"
 
 void driver::logic_nhflow()
 {    
@@ -73,12 +75,27 @@ void driver::logic_nhflow()
     if(p->A514==5)
     precon = new nhflow_reconstruct_wenograd(p,pBC);
     
-    //Convection	
+//Convection	
     if(p->A511==1 || p->A511==8)
-	pnhfconvec=new nhflow_HLL(p,pgc,pBC);
+	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
     
     if(p->A511==2 || p->A511==9)
-	pnhfconvec=new nhflow_HLLC(p,pgc,pBC);
+	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
+    
+    pnhfscalarconvec = new nhflow_scalar_iweno(p);
+    
+//Diffusion
+    if(p->A512==0)
+    pnhfdiff = new nhflow_diff_void(p);
+    
+    if(p->A512==1)
+    pnhfdiff = new nhflow_ediff(p);
+    
+    if(p->A512==2 && p->j_dir==1)
+    pnhfdiff = new nhflow_idiff(p);
+    
+    if(p->A512==2 && p->j_dir==0)
+    pnhfdiff = new nhflow_idiff_2D(p);
     
 //pressure scheme
     if(p->A520==0)
@@ -95,7 +112,15 @@ void driver::logic_nhflow()
 	pnhfturb = new nhflow_komega_void(p,d,pgc);
     
     if(p->T10==2)
+    {
 	pnhfturb = new nhflow_komega_IM1(p,d,pgc);
+    
+        if(p->j_dir==1)
+        pnhfturbdiff = new nhflow_idiff(p);
+        
+        if(p->j_dir==0)
+        pnhfturbdiff = new nhflow_idiff_2D(p);
+    }
 
 //Solver
     if(p->j_dir==0)
@@ -164,12 +189,19 @@ void driver::logic_nhflow()
 	if(p->B180==1||p->B191==1||p->B192==1)
 	pflow = new ioflow_gravity(p,pgc,pBC);
     
+//6DOF
+    if(p->X10!=3)
+    p6dof = new sixdof_void(p,pgc);
+    
+    if(p->X10==3)
+    p6dof = new sixdof_sflow(p,pgc);
+    
 //Momentum
     if(p->A510==2)
-	pnhfmom = new nhflow_momentum_RK2(p,d,pgc);
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof);
     
     if(p->A510==3)
-	pnhfmom = new nhflow_momentum_RK3(p,d,pgc);
+	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof);
     
     
     

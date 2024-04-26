@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,11 +38,7 @@ void fnpf_ini::fnpf_restart(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // if contiuous file
     if(file_type==2)
     {
-        if(p->P14==0)
-        sprintf(name,"REEF3D_FNPF-State-%05d.r3d",p->mpirank+1);
-        
-        if(p->P14==1)
-        sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-%05d.r3d",p->mpirank+1);
+        sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-%06i.r3d",p->mpirank+1);
     }
 	
     // open file

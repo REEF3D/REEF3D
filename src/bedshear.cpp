@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -60,7 +60,11 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	
     if(p->S16==1)
     {
-    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
+    if(p->G3==0)
+    zval = s->bedzh(i,j) + 1.6*p->DZN[KP];
+    
+    if(p->G3==1)
+    zval = s->bedzh(i,j) + 2.1*p->DZN[KP];
     
         if(p->S33==1)
         {
@@ -90,7 +94,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     visc=p->W2;
     
-    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
+    zval = s->bedzh(i,j) + 1.6*p->DZN[KP];
     
         if(p->S33==1)
         {
@@ -152,10 +156,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     {
 	double v_t,v_d;
 		
-	xip= p->XP[IP];
-	yip= p->YP[JP];
+	xip = p->XP[IP];
+	yip = p->YP[JP];
 
-    zval = s->bedzh(i,j) + p->S116*p->DZN[KP];
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
 	
         if(p->S33==1)
         {
@@ -184,6 +188,21 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
 	if(p->S16==4)
     {
+    if(p->G3==0)
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
+    
+    if(p->G3==1)
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
+    
+    if(p->S33==1)
+    tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
+    
+    if(p->S33==2)
+    tau=density*pturb->kinval(i,j,k)*0.3;
+    }
+    /*
+    if(p->S16==4)
+    {
     zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
     
     if(p->S33==1)
@@ -191,7 +210,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     if(p->S33==2)
     tau=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;
-    }
+    }*/
     
 	
 	if(p->S16==5)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,14 +31,6 @@ void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
 {	
 
     d->wd_criterion=p->A544;
-    
-    p->Darray(p->sig, p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigz,p->imax*p->jmax);
-    p->Darray(p->sigt,p->imax*p->jmax*(p->kmax+2));
-
-    p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+2));
     
 
     FLOOP

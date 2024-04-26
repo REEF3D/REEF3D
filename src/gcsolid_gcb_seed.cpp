@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,12 +37,12 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
         ++count[3];
         
         /*if(p->flag4[IJK]>0)
-        if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
+        if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID_FLAG)
         ++count[0];*/
     }
     
@@ -52,7 +52,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]>0)
         ++count[2];
     }
@@ -63,7 +63,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]>0)
         ++count[1];
     }
@@ -74,12 +74,12 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
         ++count[0];  
         
         /*if(p->flag4[IJK]>0)
-        if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
+        if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID_FLAG)
         ++count[3];  */
     }
     
@@ -89,7 +89,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]>0)
         ++count[5];
     }
@@ -100,7 +100,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]>0)
         ++count[4];
     }
@@ -124,7 +124,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara1[q][1];
     k=p->gcpara1[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
         {
 		gcbsd[3][count[3]][0]=i-1;
@@ -135,7 +135,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
         }
         /*
         if(p->flag4[IJK]>0)
-        if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
+        if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID_FLAG)
         {
         gcbsd[0][count[0]][0]=i;
 		gcbsd[0][count[0]][1]=j;
@@ -151,7 +151,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]>0)
         {
         gcbsd[2][count[2]][0]=j;
@@ -168,7 +168,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara3[q][1];
     k=p->gcpara3[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]>0)
         {
         gcbsd[1][count[1]][0]=i;
@@ -185,7 +185,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
         {
         gcbsd[0][count[0]][0]=i+1;
@@ -197,7 +197,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
         
         /*
         if(p->flag4[IJK]>0)
-        if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID)
+        if(p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]==SOLID_FLAG)
         {
 		gcbsd[3][count[3]][0]=i;
 		gcbsd[3][count[3]][1]=j;
@@ -213,7 +213,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]>0)
         {
         gcbsd[5][count[5]][0]=i;
@@ -230,7 +230,7 @@ void ghostcell::gcbsd_seed(lexer *p, fdm *a)
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
-        if(p->flag4[IJK]==SOLID)
+        if(p->flag4[IJK]==SOLID_FLAG)
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]>0)
         {
         gcbsd[4][count[4]][0]=i;

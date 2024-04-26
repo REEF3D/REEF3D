@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,7 +39,7 @@ reinifluid_RK3::reinifluid_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),f(p),fr
 	gcval_phi=51;
 
 	if(p->F50==2)
-	gcval_phi=52;
+	gcval_phi=54;
 
 	if(p->F50==3)
 	gcval_phi=53;

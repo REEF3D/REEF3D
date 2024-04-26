@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -128,6 +128,9 @@ public:
     virtual void ini2D(lexer*,fdm2D*,ghostcell*)=0;
 
     virtual double wave_fsf(lexer*,ghostcell*,double)=0;
+    virtual double wave_xvel(lexer*,ghostcell*,double,double,double)=0;
+    virtual double wave_yvel(lexer*,ghostcell*,double,double,double)=0;
+    virtual double wave_zvel(lexer*,ghostcell*,double,double,double)=0;
 	
 	virtual int iozonecheck(lexer*,fdm*)=0;
     

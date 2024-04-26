@@ -128,7 +128,7 @@ void beam::resetSolver()
 	if (fabs(delta_t) < 10.0*uround) delta_t = 1.0e-8;
 	
 	// facl, facr--parameters for step size selection
-	if (facl == 0.0) facl = 5.0;
+	if (facl==0.0) facl = 5.0;
 	if (facr == 0.0) facr = 1.0/8.0;
 	if ((facl < 1.0) || (facr > 1.0)) {
 		cout << " curious input facl, facr = " << facl << facr << endl;
@@ -160,7 +160,7 @@ void beam::resetSolver()
 
 	// parameters for second order equations
 	nm1 = n_dim - m1;
-	if (m1 == 0) m2 = n_dim;
+	if (m1==0) m2 = n_dim;
 	if (m2 == 0) m2 = m1;
 	if ((m1 < 0) || (m2 < 0) || (m1 + m2 > n_dim)) {
 		cout << " curious input for m1, m2 = " << m1 << m2 << endl;
@@ -175,7 +175,7 @@ void beam::resetSolver()
 	}
 
 	// quot1 and quot2--if quot1 < hnew/hold < quot2, step size = const
-	if (quot1 == 0.0) quot1 = 1.0;
+	if (quot1==0.0) quot1 = 1.0;
 	if (quot2 == 0.0) quot2 = 1.2;
 	if ((quot1 > 1.0) || (quot2 < 1.0)) {
 		cout << " curious input for quot1, quot2 = " << quot1 << quot2 << endl;

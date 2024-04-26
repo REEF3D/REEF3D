@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -189,12 +189,12 @@ void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
 
     LOOP
     {
-	if(wallf(i,j,k)==0)
-	a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
-	
-	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  += pk(p,a);
-
+        if(wallf(i,j,k)==0)
+        {
+        a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
+        a->rhsvec.V[count]  += pk(p,a);
+        }
+        
 	++count;
     }
     
@@ -214,13 +214,11 @@ void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
         ++count;
         }
 
-    
     pvrans->omega_source(p,a,kin,eps);
 }
 
 void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 {
-	
 	if(p->T36>0)
 	LOOP
 	{

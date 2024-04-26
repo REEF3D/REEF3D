@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -296,8 +296,11 @@ void fnpf_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
     
+    for(int qn=0; qn<10; ++qn)
+    {
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
+    }
     
     
     velcalc_sig(p,c,pgc,c->Fi);

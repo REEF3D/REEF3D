@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,14 +40,23 @@ using namespace std;
 class sixdof_void : public sixdof
 {
 public:
-	sixdof_void();
+	sixdof_void(lexer*,ghostcell*);
 	virtual ~sixdof_void();
-	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&);
-	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&);
+    
+    virtual void start_twoway(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
+    virtual void start_oneway(lexer*,ghostcell*,slice&);
+    
+	virtual void ini(lexer*,ghostcell*);
+    virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
+
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);
     virtual void ksource(lexer*,fdm*,ghostcell*);
+    
+    virtual void isource(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void jsource(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void ksource(lexer*,fdm_nhf*,ghostcell*,slice&);
     
     virtual void isource2D(lexer*,fdm2D*,ghostcell*);
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);

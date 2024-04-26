@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -59,7 +59,7 @@ void driver::driver_ini_nhflow()
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
     
-    
+
     // sigma ini
     pnhfmom->inidisc(p,d,pgc,pnhfsf);
     
@@ -98,6 +98,15 @@ void driver::driver_ini_nhflow()
     
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
+    
+    LOOP
+    {
+    d->RO[IJK] = p->W1;
+    d->VISC[IJK] = p->W2;
+    }
+    
+    pgc->start4V(p,d->RO,1);
+    pgc->start4V(p,d->VISC,1);
 
 	pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
@@ -110,6 +119,9 @@ void driver::driver_ini_nhflow()
     
     SLICELOOP4
     d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
+    
+    //6DOF ini
+    p6dof->ini(p,pgc);
     
     pnhfprint->start(p,d,pgc,pflow);
 

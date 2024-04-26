@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,7 +29,7 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int qn;
     double zmin,zmax,slope;
-    double xs,xe;
+    double xs,xe,ys,ye;
 	
 	ALOOP
 	{
@@ -102,6 +102,37 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		porpart(i,j,k) =p->B281_d50[qn];
 		alpha(i,j,k) = p->B281_alpha[qn];
 		beta(i,j,k) = p->B281_beta[qn];
+		}
+    }
+    
+    // Wedge y-dir
+    for(qn=0;qn<p->B282;++qn)
+    {
+		zmin=MIN(p->B282_zs[qn],p->B282_ze[qn]);
+        
+            if(p->B282_xs[qn]<=p->B282_xe[qn])
+            {
+            ys = p->B282_ys[qn];
+            ye = p->B282_ye[qn];
+            }
+            
+            if(p->B282_xs[qn]>p->B282_xe[qn])
+            {
+            ys = p->B282_ye[qn];
+            ye = p->B282_ys[qn];
+            }
+
+		slope=(p->B282_ze[qn]-p->B282_zs[qn])/(p->B282_ye[qn]-p->B282_ys[qn]);
+
+		ALOOP
+		if(p->pos_x()>=p->B282_xs[qn] && p->pos_x()<p->B282_xe[qn]
+		&& p->pos_y()>=ys && p->pos_y()<ye
+		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B282_ys[qn])+p->B282_zs[qn] )
+		{
+		a->porosity(i,j,k)=p->B282_n[qn];
+		porpart(i,j,k) =p->B282_d50[qn];
+		alpha(i,j,k) = p->B282_alpha[qn];
+		beta(i,j,k) = p->B282_beta[qn];
 		}
     }
     
