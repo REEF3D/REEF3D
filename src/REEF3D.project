@@ -330,8 +330,12 @@
             <File Name="nhflow_print_wsf_theory.h"/>
             <File Name="nhflow_print_wsf.h"/>
           </VirtualDirectory>
+          <File Name="nhflow_printer.h"/>
           <VirtualDirectory Name="VTU">
             <File Name="nhflow_vtu3D.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTS">
+            <File Name="nhflow_vts3D.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -413,8 +417,12 @@
           <VirtualDirectory Name="VTP FSF">
             <File Name="fnpf_vtp_fsf.h"/>
           </VirtualDirectory>
+          <File Name="fnpf_printer.h"/>
           <VirtualDirectory Name="VTU">
             <File Name="fnpf_vtu3D.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTS">
+            <File Name="fnpf_vts3D.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
             <File Name="fnpf_vel_probe.h"/>
@@ -1464,9 +1472,14 @@
             <File Name="nhflow_print_wsf.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_vtu3D.cpp"/>
+          <File Name="nhflow_vts3D.cpp"/>
           <VirtualDirectory Name="VTU">
             <File Name="nhflow_vtu3D_pvtu.cpp"/>
             <File Name="nhflow_vtu3D_header.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTS">
+            <File Name="nhflow_vts3D_pvts.cpp"/>
+            <File Name="nhflow_vts3D_header.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -1568,6 +1581,7 @@
             <File Name="fnpf_breaking_log.cpp"/>
           </VirtualDirectory>
           <File Name="fnpf_vtu3D.cpp"/>
+          <File Name="fnpf_vts3D.cpp"/>
           <VirtualDirectory Name="WSF">
             <File Name="fnpf_print_wsfline_y.cpp"/>
             <File Name="fnpf_print_wsfline.cpp"/>
@@ -1577,6 +1591,10 @@
           <VirtualDirectory Name="VTU">
             <File Name="fnpf_vtu3D_pvtu.cpp"/>
             <File Name="fnpf_vtu3D_header.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="VTS">
+            <File Name="fnpf_vts3D_pvts.cpp"/>
+            <File Name="fnpf_vts3D_header.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="fnpf_vtp_fsf_pvtp.cpp"/>
