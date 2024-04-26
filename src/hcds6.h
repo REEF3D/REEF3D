@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2021 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,38 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"convection_void.h"
-#include"fou.h"
-#include"ifou.h"
-#include"cds2.h"
-#include"hcds6.h"
-#include"cds2_alt.h"
-#include"cds4.h"
-#include"quick.h"
-#include"lust.h"
-#include"weno_hj.h"
-#include"weno_hj_nug.h"
-#include"weno_hj_df_nug.h"
-#include"weno_flux.h"
-#include"weno_flux_nug.h"
-#include"iweno_hj.h"
-#include"iweno_hj_nug.h"
-#include"iweno_hj_df_nug.h"
-#include"weno3_hj.h"
-#include"weno3_flux.h"
-#include"diff_void.h"
-#include"ediff2.h"
-#include"idiff2.h"
-#include"idiff2_FS.h"
-#include"idiff2_FS_2D.h"
+#include"convection.h"
+#include"increment.h"
 
-#include"hires.h"
+class flux;
 
-#include"hric.h"
-#include"hric_mod.h"
-#include"cicsam.h"
+#ifndef HCDS6_H_
+#define HCDS6_H_
 
-#include"potential_v.h"
-#include"potential_f.h"
-#include"potential_water.h"
+using namespace std;
+
+class hcds6 : public convection,  public increment
+{
+
+public:
+
+	hcds6 (lexer *);
+	virtual ~hcds6();
+
+	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+
+private:
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*,double*,double*,double*);
+    
+    double aij_sig(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*,double*,double*,double*);
+
+	double dx,dy,dz;
+	double L;
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+
+    
+    flux *pflux;
+};
+
+#endif
 
