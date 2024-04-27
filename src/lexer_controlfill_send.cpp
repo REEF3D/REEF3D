@@ -220,6 +220,16 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = A553;
 	ii++;
+    ictrl[ii] = A560;
+	ii++;
+    dctrl[dd] = A560_xs;
+    dd++;
+    dctrl[dd] = A560_xe;
+    dd++;
+    dctrl[dd] = A560_ys;
+    dd++;
+    dctrl[dd] = A560_ye;
+    dd++;
 	
     ictrl[ii] = B10;
     ii++;

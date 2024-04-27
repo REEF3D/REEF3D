@@ -211,6 +211,7 @@ public:
     
     //SLICE
     int *flagslice1,*flagslice2,*flagslice4,*tpflagslice;
+    int *flagfsf;
     int *mgcsl1,*mgcsl2,*mgcsl3,*mgcsl4,*mgcsl4a;
     int ***gcslorig1,***gcslorig2,***gcslorig3,***gcslorig4,***gcslorig4a;
 	int gcsldirsize1,gcsldirsize2,gcsldirsize3,gcsldirsize4,gcsldirsize4a;
@@ -284,6 +285,8 @@ public:
     int A540,A543;
     double A541,A542,A544,A545;
     int A550,A551,A552,A553;
+    int A560;
+    double A560_xs,A560_xe,A560_ys,A560_ye;
     
 	// boundary conditions
 	int B10,B20,B23;

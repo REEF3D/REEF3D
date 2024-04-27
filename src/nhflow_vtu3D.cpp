@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"nhflow_print_wsf.h"
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_vtp_bed.h"
+#include"nhflow_state.h"
 #include"nhflow_print_wsf_theory.h"
 #include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
@@ -91,12 +92,12 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     prunupx=new nhflow_print_runup_gage_x(p,d,pgc);
     
     prunupmaxx=new nhflow_print_runup_max_gage_x(p,d,pgc);
+    
+    if(p->P40>0)
+	pstate=new nhflow_state(p,d,pgc);
 /*
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,d,pgc);
-
-    if(p->P40>0)
-	pstate=new nhflow_state(p,d,pgc);
 
     if(p->P59==1)
     pbreaklog=new nhflow_breaking_log(p,d,pgc);
@@ -206,9 +207,9 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,d,pgc,pflow,d->eta);
 
-/*
+
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
     {
     pstate->write(p,d,pgc);
     }
@@ -221,6 +222,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     p->stateprinttime+=p->P42;
     }
 
+/*
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
 

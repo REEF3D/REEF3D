@@ -1435,6 +1435,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="State">
+            <File Name="nhflow_state_write.cpp"/>
+            <File Name="nhflow_state_mainheader.cpp"/>
             <File Name="nhflow_state_header.cpp"/>
             <File Name="nhflow_state_filename.cpp"/>
             <File Name="nhflow_state.cpp"/>
@@ -1511,6 +1513,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_guard.cpp"/>
           <File Name="nhflow_fsf_kbedbc.cpp"/>
           <File Name="nhflow_fsf_ucorr.cpp"/>
           <File Name="nhflow_fsf_wetdry.cpp"/>

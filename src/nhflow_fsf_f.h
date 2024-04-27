@@ -67,6 +67,8 @@ public:
 private: 
     void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
     
+    void fsf_guard(lexer*, fdm_nhf*, ghostcell*, slice&, slice&);
+    
     double limiter(double, double);
     
     patchBC_interface *pBC;
@@ -83,6 +85,8 @@ private:
     double val, denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     double detadx,detady;
+    
+    int guard_is,guard_ie,guard_js,guard_je;
     
     const double eps;
 

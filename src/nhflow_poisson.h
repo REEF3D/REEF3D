@@ -42,6 +42,7 @@ public:
 private:
 
 	int count,n,q;
+    int guard_is,guard_ie,guard_js,guard_je;
     
 };
 

@@ -325,6 +325,9 @@ void lexer::read_control()
                case 553: control>>A553;
                         clear(c,numint);
                         break;
+               case 560: control>>A560_xs>>A560_xe>>A560_ys>>A560_ye;
+                        clear(c,numint);
+                        break;
 				}
 				break;
 		case 'B': control>>numint;

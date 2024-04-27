@@ -124,6 +124,8 @@ void lexer::ini_default()
     A551=0;      // int type of breaking detection (deep / shallow)
     A552=1;      // int additional filtering to viscosity based breaking
     A553=0;      // int breaking in very shallow regions turned onf
+    
+    A560=1;      // int block eta
 
     // Boundary Conditions
 	B10=1;			// int wall laws velocities on/off

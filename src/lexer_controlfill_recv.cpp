@@ -212,7 +212,7 @@ void lexer::ctrlrecv()
     A552 = ictrl[ii];
 	ii++;
     A553 = ictrl[ii];
-	ii++;
+	ii++;    A560 = ictrl[ii];	ii++;    A560_xs = dctrl[dd];	dd++;    A560_xe = dctrl[dd];	dd++;    A560_ys = dctrl[dd];	dd++;    A560_ye = dctrl[dd];	dd++;    
 	
 	
     B10 = ictrl[ii];

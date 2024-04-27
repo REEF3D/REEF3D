@@ -86,7 +86,7 @@ void fnpf_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
 	    Hs(i,j)         = 4.0*sqrt(ETAvar(i,j));
     //}
 	  
-    } //end slice4loop	
+    }
     
    }
    

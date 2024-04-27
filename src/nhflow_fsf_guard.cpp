@@ -20,23 +20,46 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_state.h"
+#include"nhflow_fsf_f.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
-void nhflow_state::filename_single(lexer *p, fdm_nhf *c, ghostcell *pgc, int num)
-{
-    sprintf(name,"./REEF3D_NHFLOW_STATE/REEF3D_NHFLOW-State-%08i-%06i.r3d",num,p->mpirank+1);
+void nhflow_fsf_f::fsf_guard(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& WL, slice &K)
+{   
+    if(p->A560==1)
+    SLICELOOP4
+    if(p->flagfsf[IJ]==0)
+    {
+    
+    WL(i,j) = d->depth(i,j);
+    K(i,j) = 0.0;
+        
+    }
+    
+    LOOP
+    d->test[IJK] = 0.0;
+    
+    if(p->A560==1)
+    LOOP
+    if(p->flagfsf[IJ]==0)
+    d->test[IJK] = 1.0;
+    
+    
+    SLICELOOP4
+    if(p->flagfsf[IJ]==1)
+    {  
+        if(p->flagfsf[Im1J]==0)
+        WL(i-1,j) = WL(i,j);
+
+        if(p->flagfsf[Ip1J]==0)
+        WL(i+1,j) = WL(i,j);
+        
+        if(p->flagfsf[IJm1]==0)
+        WL(i,j-1) = WL(i,j);
+        
+        if(p->flagfsf[IJp1]==0)
+        WL(i,j+1) = WL(i,j);
+    }
+    
 }
-
-void nhflow_state::filename_continuous(lexer *p, fdm_nhf *c, ghostcell *pgc)
-{
-    sprintf(name,"./REEF3D_NHFLOW_STATE/REEF3D_NHFLOW-State-%06i.r3d",p->mpirank+1);
-}
-
-void nhflow_state::filename_header(lexer *p, fdm_nhf *c, ghostcell *pgc)
-{
-	sprintf(name,"./REEF3D_NHFLOW_STATE/REEF3D-NHFLOW-State-Header-%06i.r3d",p->mpirank+1);
-}
-
-
-
