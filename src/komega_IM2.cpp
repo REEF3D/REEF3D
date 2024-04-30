@@ -42,7 +42,6 @@ komega_IM2::~komega_IM2()
 
 void komega_IM2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
 {
-	Pk_update(p,a,pgc);
 	wallf_update(p,a,pgc,wallf);
 
 //kin
