@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"printer.h"
+#include"fnpf_printer.h"
 #include"increment.h"
 
 class fdm_fnpf;
@@ -44,7 +44,7 @@ class ioflow;
 
 using namespace std;
 
-class fnpf_vtu3D : public increment
+class fnpf_vtu3D : public fnpf_printer, public increment
 {
 
 public:

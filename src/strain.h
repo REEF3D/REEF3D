@@ -43,10 +43,9 @@ public:
 
 	double sij(lexer*,fdm*,int,int);
 	double qij(lexer*,fdm*,int,int);
-	double pk(lexer*,fdm*);
+	double pk(lexer*,fdm*,field&);
 	double pk_k(lexer*,fdm*);
 	double pk_w(lexer*,fdm*);
-	void Pk_update(lexer*,fdm*,ghostcell*);
 	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
 	virtual double strainterm(lexer*,fdm*);
     virtual double strainterm(lexer*,field&,field&,field&);
@@ -55,7 +54,6 @@ public:
 	virtual double magSqrSd(lexer*,fdm*);
     virtual double magSqrSd(lexer*,field&,field&,field&);
 	double strainplain(lexer*,fdm*);
-	field4 Pk;
 
 private:
     double s11,s22,s33,s12,s13,s23;

@@ -376,17 +376,6 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         
         H = -2.0*x*x*x + 3.0*x*x;
     
-        /*
-                epsi = p->F45*p->DZN[KP];
-        
-                if(a->phi(i,j,k)>epsi)
-                H=1.0;
-
-                if(a->phi(i,j,k)<-epsi)
-                H=0.0;
-
-                if(fabs(a->phi(i,j,k))<=epsi)
-                H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));*/
 
 		//cout<<p->mpirank<<" eta_R: "<<eta_R<<" x: "<<x<<" r: "<<r<<endl;
 		
@@ -394,12 +383,16 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 			KLOOP 
             PCHECK
 			{
-			pval=(wsf - p->pos_z()+0.5*p->DZP[KP])*a->ro(i,j,k)*fabs(p->W22);
-			
+			pval=(wsf - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+    
 
 			a->press(i+1*aa,j+1*bb,k)=H*pval + (1.0-H)*a->press(i,j,k);
 			a->press(i+2*aa,j+2*bb,k)=H*pval + (1.0-H)*a->press(i,j,k);
 			a->press(i+3*aa,j+3*bb,k)=H*pval + (1.0-H)*a->press(i,j,k);
+            /*
+            a->press(i+1*aa,j+1*bb,k) = pval;
+			a->press(i+2*aa,j+2*bb,k) = pval;
+			a->press(i+3*aa,j+3*bb,k) = pval;*/
             
             /*
             if(p->B30==2)

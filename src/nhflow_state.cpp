@@ -33,11 +33,11 @@ nhflow_state::nhflow_state(lexer *p, fdm_nhf *c, ghostcell *pgc)
 {	
 	// Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_FNPF_STATE",0777);
+	mkdir("./REEF3D_NHFLOW_STATE",0777);
 	
 	printcount=0;
     
-    file_version=4;
+    file_version=5;
     
     file_type=p->P45;
     
