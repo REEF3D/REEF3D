@@ -20,9 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_VTU3D_H_
-#define NHFLOW_VTU3D_H_
-
 #include"nhflow_printer.h"
 #include"increment.h"
 
@@ -42,25 +39,32 @@ class nhflow_vel_probe;
 class nhflow_vel_probe_theory;
 class ioflow;
 
+#ifndef NHFLOW_VTS3D_H_
+#define NHFLOW_VTS3D_H_
+
 using namespace std;
 
-class nhflow_vtu3D : public nhflow_printer, public increment
+class nhflow_vts3D : public nhflow_printer, public increment
 {
 
 public:
-	nhflow_vtu3D(lexer*,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_vtu3D();
+	nhflow_vts3D(lexer*,fdm_nhf*,ghostcell*);
+	virtual ~nhflow_vts3D();
 	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*);
     virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*);
     virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*);
     
 private:
-    void pvtu(lexer*,ghostcell*);
+    void pvts(lexer*,ghostcell*);
     void name_iter(lexer*,ghostcell*);
     void name_time(lexer*,ghostcell*);
     void piecename(lexer*,ghostcell*, int);
+    void extent(lexer*,int);
+    void fextent(lexer*);
 
-    char name[200],pname[200],epsvar[200];
+    char name[200],pname[200],epsvar[200],pextent[20];
+    int iextent[6];
+    int *piextent;
     int n,iin,offset[200];
     float ffn;
     int jj;

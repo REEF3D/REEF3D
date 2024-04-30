@@ -713,18 +713,11 @@ void vts3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result<<"<CellData>"<<endl;
 	result<<"</CellData>"<<endl;
     result<<"<Points>"<<endl;
-	// result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">"<<endl;
-	// KTLOOP
-	// JTLOOP
-	// ITLOOP
-	// TPCHECK
-	// {
-	// result<<float(p->XN[IP])<<" "<<float(p->YN[JP])<<" "<<float(p->ZN[KP])<<endl;
-	// }
-	// result<<"</DataArray>"<<endl;
 	result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
-	result<<"</Points>"<<endl<<"</Piece>"<<endl<<"</StructuredGrid>"<<endl;
+	result<<"</Points>"<<endl;
+	result<<"</Piece>"<<endl;
+	result<<"</StructuredGrid>"<<endl;
 
 //----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
