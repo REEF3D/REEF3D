@@ -102,10 +102,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
         // inflow
 		if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
-		//a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
-		//a->M.s[n] = 0.0;
-        
-        a->M.p[n] += a->M.s[n];
+		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
         
@@ -161,16 +158,11 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		{
 		a->rhsvec.V[n] -= a->M.b[n]*press(i,j,k-1);
 		a->M.b[n] = 0.0;
-        
-        //a->M.p[n] += a->M.b[n];
-		//a->M.b[n] = 0.0;
 		}
 		
 		if(p->flag4[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
 		{
-		//a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k+1);
-        
-        a->M.p[n] += a->M.t[n];
+		a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}
 	++n;
