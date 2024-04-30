@@ -50,7 +50,7 @@ void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
 	}
 	ptnum=count;
     
-    //cout<<"6DOF MOTION READ "<<count<<endl;
+    cout<<"6DOF MOTION READ "<<count<<endl;
     
 	file.close();
     
@@ -77,7 +77,15 @@ void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
     ts = data[0][0];
     te = data[ptnum-1][0];
     
-    //cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<endl;
+    // newline check
+    while(te<1.0e-10 && ptnum>0)
+    {
+    --ptnum;
+    te = data[ptnum-1][0];
+    }
+    
+    
+    cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<" ptnum: "<<ptnum<<endl;
     
 // add deltas
     for(qn=0;qn<ptnum;++qn)
