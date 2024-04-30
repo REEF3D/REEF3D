@@ -20,43 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow.h"
-#include"nhflow_f.h"
-#include"nhflow_v.h"
+#include"fnpf_vts3D.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include<string>
 
-#include"nhflow_fsf.h"
-#include"nhflow_fsf_f.h"
-#include"nhflow_fsf_v.h"
+void fnpf_vts3D::name_iter(lexer *p, ghostcell* pgc)
+{	
+    int num=0;
 
-#include"nhflow_printer.h"
-#include"nhflow_vtu3D.h"
-#include"nhflow_vts3D.h"
-#include"nhflow_timestep.h"
-#include"nhflow_momentum.h"
-#include"nhflow_turbulence.h"
-#include"nhflow_komega_void.h"
-#include"nhflow_komega_IM1.h"
+    if(p->P15==1)
+    num = printcount;
 
-#include"nhflow_HLL.h"
-#include"nhflow_HLLC.h"
-#include"nhflow_convection_void.h"
+    if(p->P15==2)
+    num = p->count;
 
-#include"nhflow_scalar_iweno.h"
+    sprintf(name,"./REEF3D_FNPF_VTS/REEF3D-FNPF-%08i-%06i.vts",num,p->mpirank+1);
 
-#include"nhflow_diff_void.h"
-#include"nhflow_ediff.h"
-#include"nhflow_idiff.h"
-#include"nhflow_idiff_2D.h"
+}
 
-#include"nhflow_momentum_RK2.h"
-#include"nhflow_momentum_RK3.h"
-
-#include"nhflow_pjm.h"
-#include"nhflow_pjm_corr.h"
-#include"nhflow_pjm_hs.h"
-#include"nhflow_poisson.h"
-
-#include"nhflow_signal_speed.h"
-#include"nhflow_reconstruct_hires.h"
-#include"nhflow_reconstruct_wenograd.h"
-#include"nhflow_reconstruct_weno.h"

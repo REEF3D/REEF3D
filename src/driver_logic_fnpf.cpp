@@ -49,6 +49,9 @@ void driver::logic_fnpf()
 	pftstep=new fnpf_timestep(p);
     
 // Printer
+    if(p->P10==2)
+    pfprint = new fnpf_vts3D(p,c,pgc);
+    else
     pfprint = new fnpf_vtu3D(p,c,pgc);
     
 //IOFlow
