@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
@@ -32,6 +32,7 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
 	double nx_old,ny_old,nz_old;	
     double A_triang,A;
     double l0,l1,l2;
+    double tridist;
 
     A=0.0;
     for (int n = 0; n < tricount; ++n)
@@ -100,10 +101,11 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
     KLOOP
     dxmin = MIN(dxmin,p->DZN[KP]);
     
-	
+        
     
 	for (int n = 0; n < tri_x_r.size(); n++)
 	{
+    //cout<<"n: "<<n<<" tri_x_r.size()"<<tri_x_r.size()<<endl;
         
 		x0 = tri_x_r[n][0];
 		x1 = tri_x_r[n][1];
@@ -148,24 +150,33 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
         }
         
 		// Check size of triangle and split into 4 triangles if too big
+        
+        if(p->j_dir==0)
+        tridist=(at + bt + ct)/3.0;
+        
+        if(p->j_dir==1)
+        tridist=(at + bt + ct)/3.0;
 		
-		if((at + bt + ct)/3.0 > critL && p->X185>0)
+		if((at>critL || bt>critL || ct>critL) && p->X185>0)
+        if(tridist>critL && p->X185>0)
 		{
 			// Half points
 			
+            // a
 			x01 = x0 + (x1 - x0)/2.0;
 			y01 = y0 + (y1 - y0)/2.0;
 			z01 = z0 + (z1 - z0)/2.0;
-
+            
+            // c
 			x02 = x0 + (x2 - x0)/2.0;
 			y02 = y0 + (y2 - y0)/2.0;
 			z02 = z0 + (z2 - z0)/2.0;			
-
+            
+            // b
 			x12 = x1 + (x2 - x1)/2.0;
 			y12 = y1 + (y2 - y1)/2.0;
 			z12 = z1 + (z2 - z1)/2.0;
-			
-			
+            			
 			// Old normal vector    
 				
 			nx_old = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
@@ -184,6 +195,25 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
 			create_triangle(x01,y01,z01,x12,y12,z12,x02,y02,z02,nx_old,ny_old,nz_old);
 			create_triangle(x01,y01,z01,x1,y1,z1,x12,y12,z12,nx_old,ny_old,nz_old);
 			create_triangle(x02,y02,z02,x12,y12,z12,x2,y2,z2,nx_old,ny_old,nz_old);
+            
+            /*if(at>=bt && at>=ct)
+            {
+            create_triangle(x0,y0,z0,x01,y01,z01,x2,y2,z2,nx_old,ny_old,nz_old);
+            create_triangle(x01,y01,z01,x1,y1,z1,x2,y2,z2,nx_old,ny_old,nz_old);
+            }
+            
+            if(bt>at && bt>=ct)
+            {
+            create_triangle(x0,y0,z0,x1,y1,z1,x12,y12,z12,nx_old,ny_old,nz_old);
+            create_triangle(x0,y0,z0,x12,y12,z12,x2,y2,z2,nx_old,ny_old,nz_old);
+            }
+            
+            if(ct>at && ct>bt)
+            {
+            create_triangle(x0,y0,z0,x1,y1,z1,x02,y02,z02,nx_old,ny_old,nz_old);
+            create_triangle(x02,y02,z02,x1,y1,z1,x2,y2,z2,nx_old,ny_old,nz_old);
+            }*/
+    
 		
             if (tri_x_r.size() > 100000) break;
 		}

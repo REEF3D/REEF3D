@@ -1916,6 +1916,7 @@
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
+            <File Name="6DOF_obj_refinement.cpp"/>
             <File Name="6DOF_obj_geometry_parameters.cpp"/>
             <VirtualDirectory Name="Reini 2D">
               <File Name="6DOF_obj_reini_2D_RK3.cpp"/>
@@ -1947,7 +1948,6 @@
             <File Name="6DOF_obj_triangle_switch_ray.cpp"/>
             <File Name="6DOF_obj_triangle_switch_lsm.cpp"/>
             <File Name="6DOF_obj_STL.cpp"/>
-            <File Name="6DOF_obj_objects_refinement.cpp"/>
             <File Name="6DOF_obj_objects.cpp"/>
             <File Name="6DOF_obj_hexahedron.cpp"/>
             <File Name="6DOF_obj_geometry.cpp"/>
@@ -2032,6 +2032,7 @@
           <File Name="vrans_v.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Porous Structures">
+          <VirtualDirectory Name="Geometry"/>
           <File Name="vrans_sed_update.cpp"/>
           <File Name="vrans_velsource.cpp"/>
           <File Name="vrans_source_omega.cpp"/>
