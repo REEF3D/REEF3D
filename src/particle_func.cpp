@@ -35,12 +35,14 @@ particle_func::particle_func(lexer* p) : kinVis(p->W1/p->W2), drho(p->W1/p->S22)
 {
     p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
     p->Darray(cellSum,p->imax*p->jmax*p->kmax);
+    p->Darray(cellSumTopo,p->imax*p->jmax*p->kmax);
     p->Darray(topoVolumeChange,p->imax*p->jmax);
 }
 particle_func::~particle_func()
 {
     delete[] stressTensor;
     delete[] cellSum;
+    delete[] cellSumTopo;
     delete[] topoVolumeChange;
 }
 
@@ -660,9 +662,20 @@ void particle_func::cleanup(lexer* p, fdm* a, tracers_obj* PP, int max)
 /// Uses i,j&k from increment to pass cell identifier
 /// @param d50 Sauter diameter of particles
 /// @return Ceil of number of particles in cell IJK
-double particle_func::maxParticlesPerCell(lexer* p, fdm* a, double d50, bool topo)
+double particle_func::maxParticlesPerCell(lexer* p, fdm* a, double d50, bool topo, bool cell)
 {   
-    return 6.0*p->DXN[IP]*p->DYN[JP]*(p->DZN[KP]-(topo?(0.5*p->DZN[KP]+a->topo(i,j,k)):0.0))/((PI*pow(d50,3.0)));
+    // return 6.0*p->DXN[IP]*p->DYN[JP]*(p->DZN[KP]-(topo?(0.5*p->DZN[KP]+a->topo(i,j,k)):0.0))/((PI*pow(d50,3.0)));
+    double DZN=topo?0:p->DZN[KP];
+
+    if(topo)
+    {
+        if (a->topo(i,j,k)<=-0.5*p->DZN[KP]+1.0e-13)
+        DZN=p->DZN[KP];
+        else if(a->topo(i,j,k)<0.5*p->DZN[KP] -5.0e-18)
+        DZN=(p->DZN[KP]*0.5 + a->topo(i,j,k));
+    }
+
+    return 6.0*p->DXN[IP]*p->DYN[JP]*DZN*(1.0+(cell?0:-a->porosity(i,j,k)))/(PI*pow(d50,3.0));
 }
 
 /// @brief Max particles in plane
@@ -675,9 +688,9 @@ int particle_func::maxParticlesPerXY(lexer* p, fdm* a, double d50)
 void particle_func::particlesPerCell(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP)
 {
     PLAINLOOP
-    if(a->solid(i,j,k)<=0)
-        cellSum[IJK]=INT32_MAX;
-    else
+    // if(a->solid(i,j,k)<=0)
+    //     cellSum[IJK]=INT32_MAX;
+    // else
         cellSum[IJK]=0;
     
     PARTICLELOOP
@@ -691,7 +704,22 @@ void particle_func::particlesPerCell(lexer* p, fdm* a, ghostcell* pgc, particles
     // PLAINLOOP
     // if(a->topo(i,j,k)<=0&&cellSum[IJK]==0)
     //     cellSum[IJK]=maxParticlesPerCell(p,a,PP->d50,false);
-    pgc->start4V(p,cellSum,10);
+    // pgc->start4V(p,cellSum,10);
+    int gcv=11;
+    double *f = cellSum;
+    double starttime=pgc->timer();
+    pgc->gcparaxV(p, f, gcv);
+    pgc->gcparacoxV(p, f, gcv);
+    pgc->gcparacoxV(p, f, gcv);
+    pgc->gcparacoxV(p, f, gcv);
+    p->xtime+=pgc->timer()-starttime;
+    f = cellSumTopo;
+    starttime=pgc->timer();
+    pgc->gcparaxV(p, f, gcv);
+    pgc->gcparacoxV(p, f, gcv);
+    pgc->gcparacoxV(p, f, gcv);
+    pgc->gcparacoxV(p, f, gcv);
+    p->xtime+=pgc->timer()-starttime;
 }
 
 /// @brief Calculate complete intra-particle stress trensor
@@ -737,15 +765,15 @@ void particle_func::updateParticleStressTensor(lexer* p, fdm* a, particles_obj* 
 double particle_func::theta_s(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
 {
     double theta;
-    if(a->topo(i,j,k)<=0.5*p->DZN[KP]&&a->topo(i,j,k)>=0.5*p->DZN[KP]) // PLIC stuff
-    {
-        double ratio=(0.5*p->DZN[KP]+a->topo(i,j,k))/p->DZN[KP];
-        theta = (1.0-ratio)*(PI*pow(PP->d50,3.0)*cellSum[IJK]/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]))+ratio*theta_crit;
-    }
-    else if(a->topo(i,j,k)<0.5*p->DZN[KP])
-        theta = theta_crit;
-    else
-        theta = PI*pow(PP->d50,3.0)*cellSum[IJK]/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+    // if(a->topo(i,j,k)<=0.5*p->DZN[KP]&&a->topo(i,j,k)>=0.5*p->DZN[KP]) // PLIC stuff
+    // {
+    //     double ratio=(0.5*p->DZN[KP]+a->topo(i,j,k))/p->DZN[KP];
+    //     theta = (1.0-ratio)*(PI*pow(PP->d50,3.0)*cellSum[IJK]/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]))+ratio*theta_crit;
+    // }
+    // else if(a->topo(i,j,k)<0.5*p->DZN[KP])
+    //     theta = theta_crit;
+    // else
+        theta = PI*pow(PP->d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
     return theta;
 }    
 
