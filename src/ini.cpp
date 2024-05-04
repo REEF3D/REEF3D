@@ -653,13 +653,12 @@ void lexer::ini_default()
 
     // Turbulence
 	T10=0;			    // int turbulence model
-	T11=11;             // int time scheme for 2-eq turbulence models
 	T12=5;              // int convection scheme
     T21=0;              // int type of LES filter
 	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
 	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
     T33=0;               // int kin source
-	T35=0.816; 			// double factor for limiter for eddy limiter near wall
+	T35=0.212; 			// double factor for limiter for eddy limiter near wall
 	T36=0;				// int explciti free surface dampong through dissipation
 	T37=0.07;		    // int damping coefficient for T36
     T38=1.6;            // double epsi fsf turbulence damping
@@ -667,6 +666,7 @@ void lexer::ini_default()
     T41=0;              // int RANS stabilization
     T42=0.05;           // double lambda1 factor
     T43=1.0;            // double komega wall BC velocity factor
+    T44=0;              // int buouncy term
 
     // Water Properties
 	W1=998.2;		// double density water

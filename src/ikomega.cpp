@@ -198,6 +198,16 @@ void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
 	++count;
     }
     
+    count=0;
+    
+    if(p->T44==1)
+    LOOP
+    {
+        a->rhsvec.V[count]  -= pk_b(p,a,a->eddyv);
+        
+	++count;
+    }
+    
     pvrans->kw_source(p,a,kin);
 }
 

@@ -1270,8 +1270,6 @@ void lexer::ctrlrecv()
     
     T10 = ictrl[ii];
     ii++;
-    T11 = ictrl[ii];
-    ii++;
     T12 = ictrl[ii];
     ii++;
     T21 = ictrl[ii];
@@ -1297,7 +1295,7 @@ void lexer::ctrlrecv()
     T42 = dctrl[dd];
     dd++;
     T43 = dctrl[dd];
-    dd++;
+    dd++;    T44 = ictrl[ii];    ii++;
 	
     W1  = dctrl[dd];
     dd++;

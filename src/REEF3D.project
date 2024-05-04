@@ -1094,7 +1094,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
       <VirtualDirectory Name="EARSM">
-        <File Name="EARSM_kw_IM2.h"/>
         <File Name="EARSM_kw_IM1.h"/>
         <File Name="EARSM.h"/>
       </VirtualDirectory>
@@ -1104,14 +1103,12 @@
       <VirtualDirectory Name="Kepsilon">
         <File Name="ikepsilon.h"/>
         <File Name="kepsilon_IM1.h"/>
-        <File Name="kepsilon_IM2.h"/>
         <File Name="kepsilon_void.h"/>
         <File Name="bc_ikepsilon.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Komega">
         <File Name="komega_IM1.h"/>
         <File Name="ikomega.h"/>
-        <File Name="komega_IM2.h"/>
         <File Name="bc_ikomega.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
@@ -2888,7 +2885,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
       <VirtualDirectory Name="EARSM">
-        <File Name="EARSM_kw_IM2.cpp"/>
         <File Name="EARSM_kw_IM1.cpp"/>
         <File Name="EARSM.cpp"/>
       </VirtualDirectory>
@@ -2900,7 +2896,6 @@
       <VirtualDirectory Name="Kepsilon">
         <File Name="ikepsilon.cpp"/>
         <File Name="kepsilon_IM1.cpp"/>
-        <File Name="kepsilon_IM2.cpp"/>
         <File Name="kepsilon_void.cpp"/>
         <VirtualDirectory Name="BC">
           <File Name="bc_ikepsilon.cpp"/>
@@ -2909,7 +2904,6 @@
       <VirtualDirectory Name="Komega">
         <File Name="ikomega.cpp"/>
         <File Name="komega_IM1.cpp"/>
-        <File Name="komega_IM2.cpp"/>
         <VirtualDirectory Name="BC">
           <File Name="bc_ikomega.cpp"/>
         </VirtualDirectory>
@@ -2925,6 +2919,7 @@
         <File Name="LES_smagorinsky.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Strain">
+        <File Name="strain_Pk.cpp"/>
         <File Name="strain.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>

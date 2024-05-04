@@ -46,6 +46,7 @@ public:
 	double pk(lexer*,fdm*,field&);
 	double pk_k(lexer*,fdm*);
 	double pk_w(lexer*,fdm*);
+    double pk_b(lexer*,fdm*,field&);
 	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
 	virtual double strainterm(lexer*,fdm*);
     virtual double strainterm(lexer*,field&,field&,field&);
@@ -56,6 +57,8 @@ public:
 	double strainplain(lexer*,fdm*);
 
 private:
+    double roface(lexer*,fdm*,int,int,int);
+    
     double s11,s22,s33,s12,s13,s23;
     double r11,r22,r33,r12,r13,r23;
     double ss11,ss22,ss33,ss12,ss13,ss23;
@@ -63,8 +66,6 @@ private:
     double q11,q22,q33,q12,q13,q23;
 	double pkterm,s,q,val;
 	const double epsi;
-
-    
 
 };
 

@@ -21,13 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"komega_IM1.h"
-#include"komega_IM2.h"
-
 #include"EARSM_kw_IM1.h"
-#include"EARSM_kw_IM2.h"
-
 #include"kepsilon_IM1.h"
-#include"kepsilon_IM2.h"
 #include"kepsilon_void.h"
 
 #include"LES_smagorinsky.h"
