@@ -366,6 +366,9 @@
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="Forcing">
+            <File Name="nhflow_momentum_forcing.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.h"/>
           </VirtualDirectory>
@@ -1516,6 +1519,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="Forcing">
+            <File Name="nhflow_momentum_forcing.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.cpp"/>
           </VirtualDirectory>

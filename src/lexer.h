@@ -287,6 +287,10 @@ public:
     int A550,A551,A552,A553;
     int A560;
     double A560_xs,A560_xe,A560_ys,A560_ye;
+    int A561;
+    double *A561_xs,*A561_xe,*A561_ys,*A561_ye,*A561_zs,*A561_ze;
+    int A564;
+    double *A564_xc,*A564_yc,*A564_zs,*A564_ze,*A564_r;
     
 	// boundary conditions
 	int B10,B20,B23;

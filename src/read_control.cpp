@@ -328,6 +328,12 @@ void lexer::read_control()
                case 560: control>>A560_xs>>A560_xe>>A560_ys>>A560_ye;
                         clear(c,numint);
                         break;
+               case 561: ++A561;
+                        clear(c,numint);
+                        break;
+               case 564: ++A564;
+                        clear(c,numint);
+                        break;
 				}
 				break;
 		case 'B': control>>numint;
@@ -2241,6 +2247,21 @@ void lexer::read_control()
 
 
     // re-read
+    
+    // A
+    Darray(A561_xs,A561);
+	Darray(A561_xe,A561);
+	Darray(A561_ys,A561);
+	Darray(A561_ye,A561);
+	Darray(A561_zs,A561);
+	Darray(A561_ze,A561);
+    
+    // A
+    Darray(A564_xc,A564);
+	Darray(A564_yc,A564);
+	Darray(A564_zs,A564);
+	Darray(A564_ze,A564);
+    Darray(A564_r,A564);
 
 	// B
 	Darray(B71_val,B71);
@@ -2841,6 +2862,8 @@ void lexer::read_control()
         FSI_count = Z11;
     }
     
+    int countA561=0;
+    int countA564=0;
 	int countB71=0;
 	int countB106=0;
 	int countB107=0;
@@ -2940,6 +2963,20 @@ void lexer::read_control()
 		{
 			switch(c)
 			{
+            case 'A': control>>numint;
+				switch(numint)
+				{
+				case 561: control>>A561_xs[countA561]>>A561_xe[countA561]>>A561_ys[countA561]>>A561_ye[countA561]>>A561_zs[countA561]>>A561_ze[countA561];
+						 ++countA561;
+						 clear(c,numint);
+						 break;
+                 case 564: control>>A564_xc[countA564]>>A564_yc[countA564]>>A564_zs[countA564]>>A564_ze[countA564]>>A564_r[countA564];
+						 ++countA564;
+						 clear(c,numint);
+						 break;
+				}
+				break;
+                
 			case 'B': control>>numint;
 				switch(numint)
 				{
