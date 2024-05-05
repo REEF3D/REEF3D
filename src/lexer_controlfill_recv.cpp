@@ -150,7 +150,7 @@ void lexer::ctrlrecv()
     A356 = dctrl[dd];
 	dd++;
     A357 = ictrl[ii];
-	ii++;
+	ii++;    A358 = ictrl[ii];	ii++;
     A361 = ictrl[ii];
 	ii++;
     A362 = ictrl[ii];

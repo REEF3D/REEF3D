@@ -1642,6 +1642,7 @@
           <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
+          <File Name="fnpf_fsfbc_wd_breaking0.cpp"/>
           <File Name="fnpf_fsfbc_wd_coastline.cpp"/>
           <File Name="fnpf_fsfbc_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd_wetdry.cpp"/>
