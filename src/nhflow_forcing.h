@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"increment.h"
 
 class lexer;
-class fdm;
+class fdm_nhf;
 class ghostcell;
 
 using namespace std;
@@ -40,9 +40,12 @@ public:
     void forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, double*, double*, double*);
     
     void forcing_ini(lexer*, fdm_nhf*);
-
-
+    
 private:
+    void box(lexer*, ghostcell*, int);
+    void cylinder_z(lexer*, ghostcell*, int);
+
+
  
 };
 
