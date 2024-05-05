@@ -366,9 +366,6 @@
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <VirtualDirectory Name="Forcing">
-            <File Name="nhflow_momentum_forcing.h"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.h"/>
           </VirtualDirectory>
@@ -1400,6 +1397,13 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Forcing">
+          <VirtualDirectory Name="Geometry">
+            <File Name="nhflow_forcing_distance.cpp"/>
+            <File Name="nhflow_forcing_raycast.cpp"/>
+            <File Name="nhflow_forcing_cylinder_z.cpp"/>
+            <File Name="nhflow_forcing_box.cpp"/>
+            <File Name="nhflow_forcing_geometry.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
@@ -1519,9 +1523,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <VirtualDirectory Name="Forcing">
-            <File Name="nhflow_momentum_forcing.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.cpp"/>
           </VirtualDirectory>
