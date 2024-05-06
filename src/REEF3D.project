@@ -1398,6 +1398,9 @@
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Forcing">
           <VirtualDirectory Name="Geometry">
+            <File Name="nhflow_forcing_raycast_io.cpp"/>
+            <File Name="nhflow_forcing_raycast_direct.cpp"/>
+            <File Name="nhflow_forcing_objects.cpp"/>
             <File Name="nhflow_forcing_distance.cpp"/>
             <File Name="nhflow_forcing_raycast.cpp"/>
             <File Name="nhflow_forcing_cylinder_z.cpp"/>

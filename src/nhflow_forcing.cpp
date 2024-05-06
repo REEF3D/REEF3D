@@ -38,6 +38,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
 {
 }
 
-void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d)
+void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    objects_create(p, pgc);
 }

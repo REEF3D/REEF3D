@@ -38,12 +38,26 @@ public:
 	virtual ~nhflow_forcing();
     
     void forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, double*, double*, double*);
+
+    void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
     
-    void forcing_ini(lexer*, fdm_nhf*);
+    void ray_cast(lexer*, fdm_nhf*, ghostcell*);
+    void ray_cast_io(lexer*, fdm_nhf*, ghostcell*);
+    void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*);
+    
+    void objects_create(lexer*, ghostcell*);
+    void objects_allocate(lexer*, ghostcell*);
     
 private:
     void box(lexer*, ghostcell*, int);
     void cylinder_z(lexer*, ghostcell*, int);
+    
+    
+    double **tri_x,**tri_y,**tri_z;
+    int *tstart,*tend;
+    int tricount;
+    int entity_count, entity_sum;
+    double xs,xe,ys,ye,zs,ze;
 
 
  

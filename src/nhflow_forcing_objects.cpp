@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"nhflow_forcing.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
+void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
 {
     int qn;
 
@@ -37,65 +38,27 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
         box(p,pgc,qn);
         ++entity_count;
     }
-    
-    for(qn=0;qn<p->X131;++qn)
-    {
-        cylinder_x(p,pgc,qn);
-        ++entity_count;
-    }
-	
-	for(qn=0;qn<p->X132;++qn)
-    {
-        cylinder_y(p,pgc,qn);
-        ++entity_count;
-    }
 	
 	for(qn=0;qn<p->X133;++qn)
     {
         cylinder_z(p,pgc,qn);
         ++entity_count;
     }
-	
-	for(qn=0;qn<p->X153;++qn)
-    {
-        wedge_sym(p,pgc,qn);
-        ++entity_count;
-    }
-    
-    for(qn=0;qn<p->X163;++qn)
-    {
-        wedge(p,pgc,qn);
-        ++entity_count;
-    }
-    
-    for(qn=0;qn<p->X164;++qn)
-    {
-        hexahedron(p,pgc,qn);
-        ++entity_count;
-    }
-    
+	/*
     if(p->X180==1)
     {
         read_stl(p,pgc);
 		++entity_count;
-    }
-
-
-	if (entity_count > 1)
-	{
-		cout<<"Multiple floating bodies are not fully supported yet."<<endl<<endl;
-		//pgc->final();
-		//exit(0);
-	}
+    }*/
 
     if(p->mpirank==0)
 	cout<<"Surface triangles: "<<tricount<<endl;
     
     // Initialise STL geometric parameters
-	geometry_stl(p,pgc);
+	//geometry_stl(p,pgc);
     
     // Order Triangles for correct inside/outside orientation
-    if(p->A10==6)
+    /*if(p->A10==6)
     triangle_switch_ray(p,pgc);
 	
 	// Refine triangles
@@ -103,61 +66,36 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
 	geometry_refinement(p,pgc);	
 
     if(p->mpirank==0)
-	cout<<"Refined surface triangles: "<<tricount<<endl;
+	cout<<"Refined surface triangles: "<<tricount<<endl;*/
 }
 
-void sixdof_obj::objects_allocate(lexer *p, ghostcell *pgc)
+void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     
-    entity_sum = p->X110 + p->X131 + p->X132 + p->X133 + p->X153 + p->X163 + p->X164;
+    entity_sum = p->A561 + p->A564;
 	tricount=0;
     trisum=0;
     
     // box
-    trisum+=12*p->X110;
-    
-    // cylinder_x   
-    r=p->X131_rad;
-	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
-	snum = int(U/ds);
-	trisum+=5*(snum+1)*p->X131;
-    
-    // cylinder_y
-    r=p->X132_rad;
-	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
-	snum = int(U/ds);
-	trisum+=5*(snum+1)*p->X132;
+    trisum+=12*p->A561;
     
     // cylinder_z
     r=p->X133_rad;
 	U = 2.0 * PI * r;
 	ds = 0.75*(U*p->dx);
 	snum = int(U/ds);
-    trisum+=5*(snum+1)*p->X133;
-    
-    // wedge sym
-    trisum+=12*p->X153;
-    
-    // wedge
-    trisum+=8*p->X163;
-    
-    // hexahedron
-    trisum+=12*p->X164;
-    
+    trisum+=5*(snum+1)*p->A564;
+
     // STL
-    if(p->X180==1)
-    entity_sum=1;
+    //if(p->X180==1)
+    //entity_sum=1;
 
     
     p->Darray(tri_x,trisum,3);
 	p->Darray(tri_y,trisum,3);
 	p->Darray(tri_z,trisum,3);
-    p->Darray(tri_x0,trisum,3);
-	p->Darray(tri_y0,trisum,3);
-	p->Darray(tri_z0,trisum,3);    	
+   	
     
 	p->Iarray(tstart,entity_sum);
 	p->Iarray(tend,entity_sum);
