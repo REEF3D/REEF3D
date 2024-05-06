@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -39,6 +39,7 @@ void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	double PBx,PBy,PBz;
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
+    double xc,yc,zc;
 	int is,ie,js,je,ks,ke;
 	int ir;
 	double u,v,w;
@@ -90,14 +91,14 @@ void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	ze = MAX3(Az,Bz,Cz);
     
 
-	is = p->posc_i(xs)-2;
-	ie = p->posc_i(xe)+2;
+	is = p->posc_i(xs)-3;
+	ie = p->posc_i(xe)+3;
     
-    js = p->posc_j(ys)-2;
-	je = p->posc_j(ye)+2;
+    js = p->posc_j(ys)-3;
+	je = p->posc_j(ye)+3;
 	
-	ks = p->posc_k(zs)-2;
-	ke = p->posc_k(ze)+2;	
+	ks = p->posc_k(zs)-3;
+	ke = p->posc_k(ze)+3;	
 
 	is = MAX(is,0);
 	ie = MIN(ie,p->knox);
@@ -114,19 +115,19 @@ void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		{
         xc = p->XP[IP];
         yc = p->YP[JP];
-        zc = p->ZP[KP];
+        zc = p->ZSP[KP];
         
         dist = sqrt(pow(xc-Ax,2.0) + pow(yc-Ay,2.0) + pow(zc-Az,2.0));
 
-        a->fb(i,j,k)=MIN(dist,fabs(a->fb(i,j,k)));
+        d->SOLID[IJK]=MIN(dist,fabs(d->SOLID[IJK]));
         
         dist = sqrt(pow(xc-Bx,2.0) + pow(yc-By,2.0) + pow(zc-Bz,2.0));
         
-        a->fb(i,j,k)=MIN(dist,fabs(a->fb(i,j,k)));
+        d->SOLID[IJK]=MIN(dist,fabs(d->SOLID[IJK]));
         
         dist = sqrt(pow(xc-Cx,2.0) + pow(yc-Cy,2.0) + pow(zc-Cz,2.0));
         
-        a->fb(i,j,k)=MIN(dist,fabs(a->fb(i,j,k)));
+        d->SOLID[IJK]=MIN(dist,fabs(d->SOLID[IJK]));
 		}
 	}
     }

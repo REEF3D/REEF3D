@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -46,10 +46,11 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	double denom;
 	double psi = 1.0e-8*p->DXM;
     
+    
     ALOOP
 	{
-	cutl(i,j,k)=0;
-	cutr(i,j,k)=0;
+	CL[IJK]=0;
+	CR[IJK]=0;
 	}
 
 
@@ -180,10 +181,10 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc)
             for(k=0;k<p->knoz;++k)
             {
 				if(p->ZP[KP]<Rz)
-				cutr(i,j,k) += 1;
+				CL[IJK] += 1;
 				
 				if(p->ZP[KP]>=Rz)
-				cutl(i,j,k) += 1;
+				CR[IJK] += 1;
             }
             }
 		
@@ -192,18 +193,8 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     ALOOP
-	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
-	fbio(i,j,k)=-1;
+	if((CL[IJK]+1)%2==0  && (CR[IJK]+1)%2==0)
+	IO[IJK]=-1;
 
-    /*
-    count=0;
-	ALOOP
-	if(a->fb(i,j,k)>0)
-	++count;
-    
-    count=pgc->globalisum(count);
-    
-    if(p->mpirank==0)
-    cout<<"Number of active cells after fb_ray_io_z_corr: "<<count<<endl;*/
 
 }

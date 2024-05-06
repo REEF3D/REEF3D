@@ -42,8 +42,8 @@ public:
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
     
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
-    void ray_cast_io(lexer*, fdm_nhf*, ghostcell*);
-    void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*);
+    void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*,int,int);
     
     void objects_create(lexer*, ghostcell*);
     void objects_allocate(lexer*, ghostcell*);
@@ -52,12 +52,15 @@ private:
     void box(lexer*, ghostcell*, int);
     void cylinder_z(lexer*, ghostcell*, int);
     
+    int *IO,*CR,*CL;
     
     double **tri_x,**tri_y,**tri_z;
     int *tstart,*tend;
     int tricount;
     int entity_count, entity_sum;
     double xs,xe,ys,ye,zs,ze;
+    
+    const double epsi;
 
 
  

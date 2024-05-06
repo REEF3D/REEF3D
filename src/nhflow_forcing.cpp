@@ -25,9 +25,11 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-nhflow_forcing::nhflow_forcing(lexer *p)
+nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
 {
-
+    p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_forcing::~nhflow_forcing()

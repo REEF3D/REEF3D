@@ -29,10 +29,10 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     ALOOP
 	{
-    io(i,j,k)=1;
+    IO[IJK]=1;
 	d->SOLID[IJK]=1.0e8;
 	}
-    
+    /*
 	
     for(rayiter=0; rayiter<2; ++rayiter)
     {
@@ -85,6 +85,6 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		a->fb(i,j,k)=-10.0*p->DXM;
 	}
     
-	pgc->start4a(p,a->fb,50); 
+	pgc->start4a(p,a->fb,50); */
     
 }
