@@ -756,25 +756,14 @@ void particle_func::particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_ob
 /// @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
 void particle_func::updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
 {
-    // double theta=theta_s(p,a,PP,i,j,k);
-    double theta = PI*pow(PP->d50,3.0)*cellSum[IJK]/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+    double theta=theta_s(p,a,PP,i,j,k);
     stressTensor[IJK]=Ps*pow(theta,beta)/max(theta_crit-theta,epsilon*(1.0-theta));
 }
 
 /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
 double particle_func::theta_s(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
-{
-    double theta;
-    // if(a->topo(i,j,k)<=0.5*p->DZN[KP]&&a->topo(i,j,k)>=0.5*p->DZN[KP]) // PLIC stuff
-    // {
-    //     double ratio=(0.5*p->DZN[KP]+a->topo(i,j,k))/p->DZN[KP];
-    //     theta = (1.0-ratio)*(PI*pow(PP->d50,3.0)*cellSum[IJK]/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]))+ratio*theta_crit;
-    // }
-    // else if(a->topo(i,j,k)<0.5*p->DZN[KP])
-    //     theta = theta_crit;
-    // else
-        theta = PI*pow(PP->d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
-    return theta;
+{   
+    return PI*pow(PP->d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
 }    
 
 /// @brief Calculate drag force parameter
