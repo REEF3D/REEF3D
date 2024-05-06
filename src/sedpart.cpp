@@ -160,7 +160,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
         // seed
         seed_ini(p,a,pgc);
         PP.reserve(maxparticle);
-        if(p->mpirank==0)
+        // if(p->mpirank==0)
         seed(p,a);
         make_stationary(p,a,&PP);
     }
