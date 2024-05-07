@@ -163,6 +163,7 @@ void particle_func::transport(lexer* p, fdm* a, particles_obj* PP, int flag)
     double pressureDivX=0, pressureDivY=0, pressureDivZ=0;
     double stressDivX=0, stressDivY=0, stressDivZ=0;
     double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
+    bool print=true;
 
     PARTICLELOOP
         if(PP->Flag[n]>flag)
@@ -234,25 +235,39 @@ void particle_func::transport(lexer* p, fdm* a, particles_obj* PP, int flag)
 
             if(du2!=du2||du3!=du3)
             {
-                cerr<<"Particle velocity component w resulted in NaN."<<endl;
+                cerr<<"Particle velocity component u resulted in NaN.\n"
+                <<du2<<","<<du3<<"|"<<Dp<<","<<netBuoyX<<","<<pressureDivX<<","<<stressDivX
+                <<endl;
                 exit(1);
             }
             else
                 PP->U[n] += ((2.0/3.0)*du2 + (2.0/3.0)*du3)*p->dt;
             if(dv2!=dv2||dv3!=dv3)
             {
-                cerr<<"Particle velocity component w resulted in NaN."<<endl;
+                cerr<<"Particle velocity component v resulted in NaN.\n"
+                <<dv2<<","<<dv3<<"|"<<Dp<<","<<netBuoyY<<","<<pressureDivY<<","<<stressDivY
+                <<endl;
                 exit(1);
             }
             else
                 PP->V[n] += ((2.0/3.0)*dv2 + (2.0/3.0)*dv3)*p->dt;
             if(dw2!=dw2||dw3!=dw3)
             {
-                cerr<<"Particle velocity component w resulted in NaN."<<endl;
+                cerr<<"Particle velocity component w resulted in NaN.\n"
+                <<dw2<<","<<dw3<<"|"<<Dp<<","<<netBuoyZ<<","<<pressureDivZ<<","<<stressDivZ
+                <<endl;
                 exit(1);
             }
             else
                 PP->W[n] += ((2.0/3.0)*dw2 + (2.0/3.0)*dw3)*p->dt;
+
+            if(print)
+            {
+                cout<<((2.0/3.0)*du2 + (2.0/3.0)*du3)<<","<<((2.0/3.0)*dv2 + (2.0/3.0)*dv3)<<","<<((2.0/3.0)*dw2 + (2.0/3.0)*dw3)<<"\n"
+                <<Dp*dw<<","<<netBuoyZ<<","<<-pressureDivZ/p->S22<<","<<-stressDivZ/((1-thetas)*p->S22)<<"\n"
+                <<stressDivZ<<","<<thetas<<endl;
+                print=false;
+            }
             
             // Pos update
             // Solid check
@@ -763,20 +778,30 @@ void particle_func::updateParticleStressTensor(lexer* p, fdm* a, particles_obj* 
 /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
 double particle_func::theta_s(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
 {   
-    return PI*pow(PP->d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+    double theta = PI*pow(PP->d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+    if(theta>1)
+    theta=1;
+    return theta;
 }    
 
 /// @brief Calculate drag force parameter
 double particle_func::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const
 {
-    const double thetaf = 1.0-thetas;
+    double thetaf = 1.0-thetas;
+    if(thetaf>1.0-theta_crit) // Saveguard
+    thetaf=1.0-theta_crit;
 
     const double dU=sqrt(du*du+dv*dv+dw*dw);
+    if(dU==0) // Saveguard
+    return 0;
 
     const double Rep=dU*d*kinVis;
 
     const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
     const double Dp=Cd*3.0*drho*dU/d/4.0;
+
+    if(Dp!=Dp)
+    cout<<thetaf<<","<<dU<<","<<Rep<<","<<Cd<<"|"<<(dU==0)<<endl;
 
     return Dp;
 }

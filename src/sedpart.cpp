@@ -136,7 +136,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 	p->sedsimtime=pgc->timer()-starttime;
 
     // PLAINLOOP
-    // a->test(i,j,k)=active_topo(i,j,k);
+    // a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
     particle_func::debug(p,a,pgc,&PP);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
@@ -185,15 +185,14 @@ void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     
     ++inicount;
-    // if(p->mpirank==1)
-    // {
-    // i=8;j=12;
-    // KLOOP
-    //     cout<<maxParticlesPerCell(p,a,PP.d50,true)<<"|"<<maxParticlesPerCell(p,a,PP.d50,false,true)<<endl;
-    // }
-    PLAINLOOP
-    a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
-    // particle_func::debug(p,a,pgc,&PP);
+    if(p->mpirank==1)
+    {
+        i=8;j=12;k=2;
+        std::cout<<maxParticlesPerCell(p,a,PP.d50,true)<<"|"<<maxParticlesPerCell(p,a,PP.d50,false,true)<<endl;
+    }
+    // PLAINLOOP
+    // a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
+    particle_func::debug(p,a,pgc,&PP);
     }
 
 /// @brief SFLOW calculation function
