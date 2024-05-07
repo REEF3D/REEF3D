@@ -22,46 +22,38 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
+void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 {
-    // relax_ini OR dirichlet_ini
-    if(p->A10==6)
+    starttime=pgc->timer();
+    
+    count=0;
+    SLICELOOP4
     {
-    wavegen_precalc_ini(p,pgc);
-    wavegen_precalc_relax_func(p,pgc);
-    
-    if(p->B89==1 && p->B98==2)
-    wavegen_precalc_space(p,pgc);
-    
-    if(p->B89==1 && p->B98>=3)
-    wavegen_precalc_space_dirichlet(p,pgc);
-
-    wavegen_precalc(p,pgc);
-    
-    u_relax(p,a,pgc,a->u);
-	v_relax(p,a,pgc,a->v);
-	w_relax(p,a,pgc,a->w);
+        dg = distgen(p);    
+        db = distbeach(p);
+        
+		// Wave Generation
+		if(p->B98==2 && f_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            {
+            f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*Fifsfval[count]  + relax4_wg(i,j)*f(i,j);
+            ++count;
+            }
+		}
+		
+		// Numerical Beach
+        if(p->A10!=3 || p->A348==1 || p->A348==3)
+        if(p->B99==1||p->B99==2||beach_relax==1)
+		{
+            // Zone 2
+            if(db<1.0e20)
+            f(i,j) = relax4_nb(i,j)*f(i,j);
+        }
     }
     
-    if(p->I30==1)
-	full_initialize(p,a,pgc);
+    p->wavetime+=pgc->timer()-starttime;
 }
-
-void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
-{
-    wavegen_precalc_ini(p,pgc);
-    wavegen_precalc_relax_func_nhflow(p,pgc);
-    
-    //if(p->B89==1 && p->B98==2)
-    //wavegen_precalc_decomp_space_fnpf(p,pgc);
-
-    wavegen_precalc(p,pgc);
-    
-    if(p->I30==1)
-	full_initialize_ptf(p,a,pgc);
-}
-

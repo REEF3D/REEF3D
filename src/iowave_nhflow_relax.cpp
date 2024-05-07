@@ -27,6 +27,8 @@ Author: Hans Bihs
 
 void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
+    starttime=pgc->timer();
+    
 	count=0;
     SLICELOOP4
     {
@@ -57,10 +59,13 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             }
         }
     }
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 {
+    starttime=pgc->timer();
+    
     count=0;
     LOOP
     {
@@ -90,10 +95,13 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             }
         }
     }
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
-{   
+{ 
+    starttime=pgc->timer();
+    
     count=0;
     if(p->j_dir==1)
     LOOP
@@ -125,10 +133,13 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             
         }
     }
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
-{    
+{   
+    starttime=pgc->timer();
+    
     count=0;
     LOOP
     {
@@ -157,11 +168,13 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             WH[IJK] = relax4_nb(i,j)*WH[IJK];
             }
         }
-    }		
+    }
+    p->wavetime+=pgc->timer()-starttime;		
 }
 
 void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
 {
+    starttime=pgc->timer();
     FLOOP
     {
         dg = distgen(p);
@@ -176,6 +189,7 @@ void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
             P[FIJK] = relax4_nb(i,j)*P[FIJK];
         }
     }	
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 

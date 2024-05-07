@@ -3055,6 +3055,9 @@
             <File Name="iowave_nhflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FNPF">
+            <File Name="iowave_fnpf_relax.cpp"/>
+            <File Name="iowave_fnpf_precalc.cpp"/>
+            <File Name="iowave_fnpf_ini.cpp"/>
             <File Name="iowave_fnpf_fullini.cpp"/>
             <File Name="iowave_fnpf_precalc_decomp_space_dirichlet.cpp"/>
             <File Name="iowave_fnpf_precalc_relax.cpp"/>

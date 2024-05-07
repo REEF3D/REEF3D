@@ -174,6 +174,7 @@ public:
     
     
     // FNPF
+    virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     void fnpf_precalc_relax(lexer*,ghostcell*);
@@ -266,6 +267,7 @@ private:
 	double tan_alpha,*tan_beta;
 	double wh;
     int beach_relax;
+    double starttime;
 	
 	int gcawa1_count,gcawa2_count,gcawa3_count,gcawa4_count;
 	int **gcawa1,**gcawa2,**gcawa3,**gcawa4;
