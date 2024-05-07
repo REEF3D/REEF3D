@@ -113,7 +113,7 @@ void lexer::ini_default()
     A521=1;		// int
     A522=4.0;    // double p_alpha
     A523=1.0;    // double p_gamma
-    A531=3.0;    // double Fround number limiter
+    A531=3.0;    // double Froude number limiter
     A540=1;      // int NFHLOW fsf scheme
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance
