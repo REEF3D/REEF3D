@@ -35,10 +35,6 @@ void sixdof_cfd::ini(lexer *p, ghostcell *pgc)
 {
 }
 
-void sixdof_cfd::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
-{
-}
-
 void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Reset heaviside field
