@@ -396,6 +396,9 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Runup">
+            <File Name="fnpf_runup.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="ALE Force">
             <File Name="force_ale.h"/>
           </VirtualDirectory>
@@ -1574,6 +1577,11 @@
           <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Runup">
+            <File Name="fnpf_runup_calc.cpp"/>
+            <File Name="fnpf_runup_print.cpp"/>
+            <File Name="fnpf_runup.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Probes">
             <File Name="fnpf_vel_probe_theory.cpp"/>
             <File Name="fnpf_vel_probe.cpp"/>

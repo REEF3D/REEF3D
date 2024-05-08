@@ -1492,6 +1492,12 @@ void lexer::read_control()
                 case 134: ++P134;
 						 clear(c,numint);
 						 break;
+                case 140: ++P140;
+						 clear(c,numint);
+						 break;
+                case 141: control>>P141;
+						 clear(c,numint);
+						 break;
                 case 166: control>>P166;
 						 clear(c,numint);
 						 break;
@@ -2671,6 +2677,9 @@ void lexer::read_control()
     Darray(P133_y,P133);
     Darray(P134_y,P134);
 
+    Darray(P140_x,P140);
+    Darray(P140_y,P140);
+    
     Iarray(P184_its,P184);
 	Iarray(P184_ite,P184);
 	Iarray(P184_dit,P184);
@@ -2934,6 +2943,7 @@ void lexer::read_control()
 	int countP125=0;
     int countP133=0;
     int countP134=0;
+    int countP140=0;
     int countP184=0;
     int countP185=0;
     int countP194=0;
@@ -3256,7 +3266,11 @@ void lexer::read_control()
                         ++countP134;
 						 clear(c,numint);
 						 break;
-				case 167: control>>P167_x[countP167];
+               case 140: control>>P140_x[countP140]>>P140_y[countP140];
+                        ++countP140;
+						 clear(c,numint);
+						 break;
+               case 167: control>>P167_x[countP167];
                         ++countP167;
 						 clear(c,numint);
 						 break;

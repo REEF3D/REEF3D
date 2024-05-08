@@ -26,6 +26,62 @@ Author: Arun Kamath
 #include"ghostcell.h"
 #include <math.h>
 
+void force_ale::force_ale_force(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+{	
+    double ztot=0; // check for strip total
+
+	Fx=Fy=0;
+	
+    for(k=0; k<p->knoz; ++k)
+	{
+        dudsig_= dudsig(p, c, pgc); 
+     // double dudsig2_= dudsig(p, c, pgc); // cleanup alt ddsig. diff values, no change to force
+        dvdsig_= dvdsig(p, c, pgc); 
+        
+        // Term 1 from eqn (9) of Pakozdi et al (2021) MS
+        ax1= (c->U[FIJK] - un[k])/(p->dt);  
+     // ax1= (3*c->U[FIJK] - 4*un[k] + u2n[k])/(p->dt+dtn); // 2nd order backward diff
+        ay1= (c->V[FIJK] - vn[k])/ (p->dt);
+        
+        // Term 2
+        ax2 = c->U[FIJK]*(dudxi(p,c,pgc) + (dudsig_*p->sigx[FIJK]));
+        ay2 = c->V[FIJK]*(dvdxi(p,c,pgc) + (dvdsig_*p->sigy[FIJK]));
+        
+        // Term 3
+        ax3 = (c->W[FIJK] - (p->sig[FIJK]*dndt(p, c, pgc)))* dudsig_*p->sigz[IJ];
+        ay3 = (c->W[FIJK] - (p->sig[FIJK]*dndt(p, c, pgc)))* dvdsig_*p->sigz[IJ];
+      
+        // Sum up acceleration
+        ax = ax1 + ax2 + ax3;
+        ay = ay1 + ay2 + ay3;
+        
+        // Force on current strip
+        Fx1 = c->WL(i,j)*((cm*ax*p->W1*PI*rc*rc*p->DZN[KP]) + (cd*c->U[FIJK]*fabs(c->U[FIJK])*0.5*p->W1*2.0*rc*p->DZN[KP]));
+        Fy1 = c->WL(i,j)*((cm*ay*p->W1*PI*rc*rc*p->DZN[KP]) + (cd*c->V[FIJK]*fabs(c->V[FIJK])*0.5*p->W1*2.0*rc*p->DZN[KP]));
+        
+        // Sum up forces
+        Fx += Fx1;
+        Fy += Fy1;
+        ztot += p->DZN[KP]; // checking total dz=1
+        
+        // Storing current time step information for next time step gradient calculation
+        //dtn=p->dt;
+        //u2n[k]= un[k];
+        un[k] = c->U[FIJK]; 
+        vn[k] = c->V[FIJK];
+	 
+        // cout<< "ax1: "<<ax1<<" ax2: " <<ax2<<" ax3: " <<ax3<< endl;
+	    // cout<<"km1: "<<p->ZN[KM1]<<" Dkm1: "<<p->DZN[KM1]<<" kp: "<<p->ZN[KP]<<" sig: "<<p->sig[FIJK]<<"  uvel: "<<c->U[FIJK]<<"  ax: "<<ax<<endl;
+	}
+	
+	//cout<<"ztot: "<<ztot<<endl;
+	
+	// store current eta value for gradient in next step
+	//eta2n=etan;
+	etan=c->eta(i,j);
+}
+
+
 double force_ale::dndt(lexer *p, fdm_fnpf *c, ghostcell *pgc) // to calculate dn dt for ax3
 {
     double dndt = (c->eta(i,j) - etan)/ p->dt;
@@ -83,60 +139,6 @@ double force_ale::dvdxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dvdxi
     return (c->V[FIJp1K] - c->V[FIJm1K])/(p->DYN[JP1] + p->DYN[JM1]); 
 }
 
-void force_ale::force_ale_force(lexer* p, fdm_fnpf *c, ghostcell *pgc)
-{	
-    double ztot=0; // check for strip total
-
-	Fx=Fy=0;
-	
-    for(k=0; k<p->knoz; ++k)
-	{
-        dudsig_= dudsig(p, c, pgc); 
-     // double dudsig2_= dudsig(p, c, pgc); // cleanup alt ddsig. diff values, no change to force
-        dvdsig_= dvdsig(p, c, pgc); 
-        
-        // Term 1 from eqn (9) of Pakozdi et al (2021) MS
-        ax1= (c->U[FIJK] - un[k])/(p->dt);  
-     // ax1= (3*c->U[FIJK] - 4*un[k] + u2n[k])/(p->dt+dtn); // 2nd order backward diff
-        ay1= (c->V[FIJK] - vn[k])/ (p->dt);
-        
-        // Term 2
-        ax2 = c->U[FIJK]*(dudxi(p,c,pgc) + (dudsig_*p->sigx[FIJK]));
-        ay2 = c->V[FIJK]*(dvdxi(p,c,pgc) + (dvdsig_*p->sigy[FIJK]));
-        
-        // Term 3
-        ax3 = (c->W[FIJK] - (p->sig[FIJK]*dndt(p, c, pgc)))* dudsig_*p->sigz[IJ];
-        ay3 = (c->W[FIJK] - (p->sig[FIJK]*dndt(p, c, pgc)))* dvdsig_*p->sigz[IJ];
-      
-        // Sum up acceleration
-        ax = ax1 + ax2 + ax3;
-        ay = ay1 + ay2 + ay3;
-        
-        // Force on current strip
-        Fx1 = c->WL(i,j)*((cm*ax*p->W1*PI*rc*rc*p->DZN[KP]) + (cd*c->U[FIJK]*fabs(c->U[FIJK])*0.5*p->W1*2.0*rc*p->DZN[KP]));
-        Fy1 = c->WL(i,j)*((cm*ay*p->W1*PI*rc*rc*p->DZN[KP]) + (cd*c->V[FIJK]*fabs(c->V[FIJK])*0.5*p->W1*2.0*rc*p->DZN[KP]));
-        
-        // Sum up forces
-        Fx += Fx1;
-        Fy += Fy1;
-        ztot += p->DZN[KP]; // checking total dz=1
-        
-        // Storing current time step information for next time step gradient calculation
-        //dtn=p->dt;
-        //u2n[k]= un[k];
-        un[k] = c->U[FIJK]; 
-        vn[k] = c->V[FIJK];
-	 
-        // cout<< "ax1: "<<ax1<<" ax2: " <<ax2<<" ax3: " <<ax3<< endl;
-	    // cout<<"km1: "<<p->ZN[KM1]<<" Dkm1: "<<p->DZN[KM1]<<" kp: "<<p->ZN[KP]<<" sig: "<<p->sig[FIJK]<<"  uvel: "<<c->U[FIJK]<<"  ax: "<<ax<<endl;
-	}
-	
-	//cout<<"ztot: "<<ztot<<endl;
-	
-	// store current eta value for gradient in next step
-	//eta2n=etan;
-	etan=c->eta(i,j);
-}
 
 
 

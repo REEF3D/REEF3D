@@ -555,6 +555,8 @@ void lexer::ini_default()
     P132=0;             // int max wetdry as file
     P133=0;             // int runup gage x-crossection
     P134=0;             // int runup gage y-crossection
+    P140=0;             // int runup gage cylinder
+    P141=0;             // int runup cylinder radius
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data
