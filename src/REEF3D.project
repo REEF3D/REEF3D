@@ -339,6 +339,10 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Reinitialization">
+            <File Name="nhflow_reinidisc_fsf.h"/>
+            <File Name="nhflow_reinidisc.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Coastlline">
             <File Name="nhflow_coastline.h"/>
           </VirtualDirectory>
@@ -1401,6 +1405,7 @@
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Forcing">
           <VirtualDirectory Name="Geometry">
+            <File Name="nhflow_forcing_reini_RK2.cpp"/>
             <File Name="nhflow_forcing_raycast_io.cpp"/>
             <File Name="nhflow_forcing_raycast_direct.cpp"/>
             <File Name="nhflow_forcing_objects.cpp"/>
@@ -1495,6 +1500,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Reinitialization">
+            <File Name="nhflow_reinidisc_fsf.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Coastline">
             <File Name="nhflow_coastline_reini.cpp"/>
             <File Name="nhflow_coastline_disc.cpp"/>

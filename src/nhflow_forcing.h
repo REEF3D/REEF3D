@@ -48,6 +48,8 @@ public:
     void objects_create(lexer*, ghostcell*);
     void objects_allocate(lexer*, ghostcell*);
     
+    void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
+    
 private:
     void box(lexer*, ghostcell*, int);
     void cylinder_z(lexer*, ghostcell*, int);
