@@ -183,6 +183,10 @@ void particle_func::transport(lexer* p, fdm* a, particles_obj* PP, int flag)
             stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
             stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DYN[KM1]+p->DYN[KP]);
 
+            // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXN[IP]+p->DXN[IM1]);
+            stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYN[JP]+p->DYN[JM1]);
+            stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
+
             pressureDivX = (a->press(i+1,j,k) - a->press(i,j,k))/(p->DXN[IP]);
             pressureDivY = (0.5*(a->press(i,j+1,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i,j-1,k)+a->press(i+1,j-1,k)))/(p->DYN[JM1]+p->DYN[JP]);
             pressureDivZ = (0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DYN[KM1]+p->DYN[KP]);
@@ -261,25 +265,47 @@ void particle_func::transport(lexer* p, fdm* a, particles_obj* PP, int flag)
             else
                 PP->W[n] += ((2.0/3.0)*dw2 + (2.0/3.0)*dw3)*p->dt;
 
-            if(print)
-            {
-                cout<<((2.0/3.0)*du2 + (2.0/3.0)*du3)<<","<<((2.0/3.0)*dv2 + (2.0/3.0)*dv3)<<","<<((2.0/3.0)*dw2 + (2.0/3.0)*dw3)<<"\n"
-                <<Dp*dw<<","<<netBuoyZ<<","<<-pressureDivZ/p->S22<<","<<-stressDivZ/((1-thetas)*p->S22)<<"\n"
-                <<stressDivZ<<","<<thetas<<endl;
-                print=false;
-            }
+            // if(print)
+            // {
+            //     cout<<((2.0/3.0)*du2 + (2.0/3.0)*du3)<<","<<((2.0/3.0)*dv2 + (2.0/3.0)*dv3)<<","<<((2.0/3.0)*dw2 + (2.0/3.0)*dw3)<<"\n"
+            //     <<Dp*du<<","<<netBuoyX<<","<<-pressureDivX/p->S22<<","<<-stressDivX/((1-thetas)*p->S22)<<"\n"
+            //     <<Dp*dv<<","<<netBuoyY<<","<<-pressureDivY/p->S22<<","<<-stressDivY/((1-thetas)*p->S22)<<"\n"
+            //     <<Dp*dw<<","<<netBuoyZ<<","<<-pressureDivZ/p->S22<<","<<-stressDivZ/((1-thetas)*p->S22)<<"\n"
+            //     <<stressDivZ<<","<<thetas<<"\n"
+            //     <<p->mpirank<<"|"<<i<<","<<j<<","<<k
+            //     <<endl;
+            //     print=false;
+            // }
             
             // Pos update
-            // Solid check
-            double scaler=1.0;
+
+            // Solid forcing
             double solid_old = p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n]);
             double solid_new = p->ccipol4_b(a->solid,PP->X[n]+PP->U[n]*p->dt,PP->Y[n]+PP->V[n]*p->dt,PP->Z[n]+PP->W[n]*p->dt);
-            
             if(solid_new<=0)
-            scaler=solid_old/(solid_old-solid_new);
-            PP->U[n]*=scaler;
-            PP->V[n]*=scaler;
-            PP->W[n]*=scaler;
+            {
+                double solid_x = p->ccipol4_b(a->solid,PP->X[n]+PP->U[n]*p->dt,PP->Y[n],PP->Z[n]);
+                double solid_y = p->ccipol4_b(a->solid,PP->X[n],PP->Y[n]+PP->V[n]*p->dt,PP->Z[n]);
+                double solid_z = p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n]+PP->W[n]*p->dt);
+                if(solid_x<=0)
+                {
+                    double dx = (solid_old)/(solid_old-solid_x)*PP->U[n]*p->dt+(PP->U[n]>=0?-1:1)*PP->d50/2.0;
+                    PP->X[n] += dx;
+                    PP->U[n] = 0;
+                }
+                if(solid_y<=0)
+                {
+                    double dy = (solid_old)/(solid_old-solid_y)*PP->V[n]*p->dt+(PP->V[n]>=0?-1:1)*PP->d50/2.0;
+                    PP->Y[n] += dy;
+                    PP->W[n] = 0;
+                }
+                if(solid_z<=0)
+                {
+                    double dz = (solid_old)/(solid_old-solid_z)*PP->W[n]*p->dt+(PP->W[n]>=0?-1:1)*PP->d50/2.0;
+                    PP->Z[n] += dz;
+                    PP->W[n] = 0;
+                }
+            }
 
             PP->X[n] += PP->U[n]*p->dt;
             PP->Y[n] += PP->V[n]*p->dt;
@@ -703,9 +729,6 @@ int particle_func::maxParticlesPerXY(lexer* p, fdm* a, double d50)
 void particle_func::particlesPerCell(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP)
 {
     PLAINLOOP
-    // if(a->solid(i,j,k)<=0)
-    //     cellSum[IJK]=INT32_MAX;
-    // else
         cellSum[IJK]=0;
     
     PARTICLELOOP
@@ -716,10 +739,6 @@ void particle_func::particlesPerCell(lexer* p, fdm* a, ghostcell* pgc, particles
         cellSum[IJK]+=PP->PackingFactor[n];
     }
 
-    // PLAINLOOP
-    // if(a->topo(i,j,k)<=0&&cellSum[IJK]==0)
-    //     cellSum[IJK]=maxParticlesPerCell(p,a,PP->d50,false);
-    // pgc->start4V(p,cellSum,10);
     int gcv=11;
     double *f = cellSum;
     double starttime=pgc->timer();
