@@ -10,19 +10,44 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Elyas Larkermani
 --------------------------------------------------------------------*/
 
-#include"heat_AB.h"
-#include"heat_RK2.h"
-#include"heat_RK3.h"
-#include"heat_RK3CN.h"
-#include"heat_void.h"
+#include"heat_print.h"
+#include"field4.h"
+#include"bcheat.h"
 
+class heat;
+using namespace std;
+
+#ifndef HEAT_RK3CN_H_
+#define HEAT_RK3CN_H_
+
+class heat_RK3CN :public bcheat, public heat_print
+{
+public:
+    heat_RK3CN(lexer *, fdm*, ghostcell*,heat*&);
+	virtual ~heat_RK3CN();
+    
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
+	virtual void ttimesave(lexer*, fdm*);
+    virtual void diff_update(lexer*, fdm*, ghostcell*);
+    
+    field4 thermdiff;
+    field4 ark1,ark2,Tdiff;
+
+private:
+        void clearrhs(lexer*,fdm*,ghostcell*);
+        void addrhs(lexer*,fdm*,ghostcell*,double);
+	int gcval_heat;
+	double starttime, endtime;
+};
+
+#endif

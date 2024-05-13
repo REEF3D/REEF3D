@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"fou.h"
 #include"ifou.h"
 #include"cds2.h"
+#include"hcds6.h"
 #include"cds2_alt.h"
 #include"cds4.h"
 #include"quick.h"
@@ -42,6 +43,7 @@ Author: Hans Bihs
 #include"ediff2.h"
 #include"idiff2.h"
 #include"idiff2_FS.h"
+#include"idiff2_CN.h"
 #include"idiff2_FS_2D.h"
 
 #include"hires.h"
