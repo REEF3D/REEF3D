@@ -27,64 +27,52 @@ Author: Hans Bihs
 
 void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    ALOOP
+    LOOP
 	{
     IO[IJK]=1;
 	d->SOLID[IJK]=1.0e8;
 	}
-    /*
+    
 	
-    for(rayiter=0; rayiter<2; ++rayiter)
+    for(int rayiter=0; rayiter<2; ++rayiter)
     {
 
         for(int qn=0;qn<entity_sum;++qn)
         {
             if(rayiter==0)
-            {
-            ray_cast_io_x(p,a,pgc,tstart[qn],tend[qn]);
-            
-            if(p->j_dir==1)
-            ray_cast_io_ycorr(p,a,pgc,tstart[qn],tend[qn]);
-            
-            ray_cast_io_zcorr(p,a,pgc,tstart[qn],tend[qn]);
-            }
+            ray_cast_io(p,d,pgc,tstart[qn],tend[qn]);
+
         
-            if(rayiter==1 && p->X188==1)
-            {
-            pgc->gcparaxint(p,fbio,1);
-            
-            ray_cast_z(p,a,pgc,tstart[qn],tend[qn]);
-            }
             
             if(rayiter==1 && p->X188==2)
             {
-            pgc->gcparaxint(p,fbio,1);
+            pgc->gcparaxintV(p,IO,1);
             
-            ray_cast_direct(p,a,pgc,tstart[qn],tend[qn]);
+            ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
             }
+
         }
     }
     
-    ALOOP
+    LOOP
     {
-        if(fbio(i,j,k)==-1)
-        a->fb(i,j,k)=-fabs(a->fb(i,j,k));
+        if(IO[IJK]==-1)
+        d->SOLID[IJK]=-fabs(d->SOLID[IJK]);
         
         
-        if(fbio(i,j,k)==1)
-        a->fb(i,j,k)=fabs(a->fb(i,j,k));
+        if(IO[IJK]==1)
+        d->SOLID[IJK]=fabs(d->SOLID[IJK]);
     }
     
 	
-	ALOOP
+	LOOP
 	{
-		if(a->fb(i,j,k)>10.0*p->DXM)
-		a->fb(i,j,k)=10.0*p->DXM;
+		if(d->SOLID[IJK]>10.0*p->DXM)
+		d->SOLID[IJK]=10.0*p->DXM;
 		
-		if(a->fb(i,j,k)<-10.0*p->DXM)
-		a->fb(i,j,k)=-10.0*p->DXM;
+		if(d->SOLID[IJK]<-10.0*p->DXM)
+		d->SOLID[IJK]=-10.0*p->DXM;
 	}
     
-	pgc->start4a(p,a->fb,50); */
-    
+	pgc->start5V(p,d->SOLID,1); 
 }

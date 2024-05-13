@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,24 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"reinidisc.h"
-#include"ddweno_nug.h"
-#include"vec.h"
+#include"increment.h"
+#include"weno_nug_func.h"
 
-class picard;
+class fdm;
+class field;
+class lexer;
+class ghostcell;
+class vec;
 class cpt;
+
+#ifndef DDWENO_NUG_SIG_H_
+#define DDWENO_NUG_SIG_H_
 
 using namespace std;
 
-#ifndef NHFLOW_REINIDISC_H_
-#define NHFLOW_REINIDISC_H_
-
-class nhflow_reinidisc 
+class ddweno_nug_sig : public weno_nug_func
 {
 public:
 
-	virtual void start(lexer*, fdm*, ghostcell*, vec&, vec&,int);
+	 ddweno_nug_sig(lexer*);
+	 ~ddweno_nug_sig();
 
+	 double ddwenox(double*, double);
+	 double ddwenoy(double*, double);
+	 double ddwenoz(double*, double);
+
+
+	void iqmin(double*);
+	void jqmin(double*);
+	void kqmin(double*);
+	void iqmax(double*);
+	void jqmax(double*);
+	void kqmax(double*);
+
+    double grad;
+    double *DX,*DY,*DZ;
+    
+private:
+    lexer *p;
 };
 
 #endif

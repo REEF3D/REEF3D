@@ -25,6 +25,7 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 class ghostcell;
+class nhflow_reinidisc_fsf;
 
 using namespace std;
 
@@ -55,6 +56,7 @@ private:
     void cylinder_z(lexer*, ghostcell*, int);
     
     int *IO,*CR,*CL;
+    double *FRK1,*dt,*L;
     
     double **tri_x,**tri_y,**tri_z;
     int *tstart,*tend;
@@ -62,7 +64,11 @@ private:
     int entity_count, entity_sum;
     double xs,xe,ys,ye,zs,ze;
     
+    int reiniter;
+    
     const double epsi;
+    
+    nhflow_reinidisc_fsf *prdisc;
 
 
  

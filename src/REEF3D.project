@@ -341,7 +341,6 @@
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Reinitialization">
             <File Name="nhflow_reinidisc_fsf.h"/>
-            <File Name="nhflow_reinidisc.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Coastlline">
             <File Name="nhflow_coastline.h"/>
@@ -674,6 +673,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno_nug_sig.h"/>
         <File Name="ddweno_nug_sf.h"/>
         <File Name="ddweno3_f_nug.h"/>
         <File Name="ddweno_f_nug.h"/>
@@ -2104,6 +2104,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno_nug_sig.cpp"/>
         <File Name="ddweno_nug_sf.cpp"/>
         <File Name="ddweno3_f_nug.cpp"/>
         <File Name="ddweno_f_nug.cpp"/>
@@ -2398,6 +2399,7 @@
         <File Name="gc_ndflag.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_gcparaxintV.cpp"/>
         <File Name="gcx_paracoxV1.cpp"/>
         <File Name="gcx_paraxV1.cpp"/>
         <File Name="gcx_paracoxV.cpp"/>

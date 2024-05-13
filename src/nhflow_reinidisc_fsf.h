@@ -20,28 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"reinidisc.h"
-#include"ddweno_nug.h"
-#include"vec.h"
+#include"ddweno_nug_sig.h"
 
-class picard;
-class cpt;
+class lexer;
+class ghostcell;
 
 using namespace std;
 
 #ifndef NHFLOW_REINIDISC_FSF_H_
 #define NHFLOW_REINIDISC_FSF_H_
 
-class nhflow_reinidisc_fsf : public reinidisc, public ddweno_nug
+class nhflow_reinidisc_fsf : public increment, public ddweno_nug_sig
 {
 public:
 	nhflow_reinidisc_fsf(lexer* p);
 	virtual ~nhflow_reinidisc_fsf();
-	virtual void start(lexer*, fdm*, ghostcell*, vec&, vec&,int);
+    
+	virtual void start(lexer*, ghostcell*, double*, double*);
 	
 private:
 
-	void disc(lexer*, fdm*, ghostcell*, vec&, vec&, int*, int, cpt&);
+	void disc(lexer*, ghostcell*, double*, double*);
 	
 	double xmin,xplus,ymin,yplus,zmin,zplus;
 	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
