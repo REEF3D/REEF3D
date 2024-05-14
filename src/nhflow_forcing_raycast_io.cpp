@@ -162,7 +162,7 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 		w = PQx*(By*Az - Bz*Ay) + PQy*(Bz*Ax - Bx*Az) + PQz*(Bx*Ay - By*Ax)
 		  + Mx*(Bx-Ax) + My*(By-Ay) + Mz*(Bz-Az);
     
-        int check=1;
+         int check=1;
 		if(u==0.0 && v==0.0 && w==0.0)
 		check = 0;
 
@@ -174,8 +174,6 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 			w *= denom;
 			
 			Rz = u*Az + v*Bz + w*Cz;
-			
-            cout<<"Rz: "<<Rz<<endl;
 			
             for(k=0;k<p->knoz;++k)
             {

@@ -37,9 +37,6 @@ nhflow_reinidisc_fsf::~nhflow_reinidisc_fsf()
 void nhflow_reinidisc_fsf::start(lexer *p, ghostcell *pgc, double *F, double *L)
 {
     LOOP
-    L[IJK] = 0.0;
-        
-    LOOP
     disc(p,pgc,F,L);
 }
 
@@ -106,10 +103,10 @@ void nhflow_reinidisc_fsf::disc(lexer *p, ghostcell *pgc, double *F, double *L)
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);
     
     if(p->j_dir==0)
-    deltax = (1.0/2.0)*(p->DXN[IP] + p->DZN[KP]*p->sigz[IJ]);
+    deltax = (1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
 	
     if(p->j_dir==1)
-    deltax = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*p->sigz[IJ]);
+    deltax = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 	
 	sign=lsv/sqrt(lsv*lsv + dnorm*dnorm*deltax*deltax);
     
@@ -117,5 +114,7 @@ void nhflow_reinidisc_fsf::disc(lexer *p, ghostcell *pgc, double *F, double *L)
     sign=1.0;
     
 	L[IJK] = -(sign*dnorm - sign);
+    
+    //cout<<L[IJK]<<endl;
     }
 }

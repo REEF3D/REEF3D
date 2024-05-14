@@ -24,11 +24,22 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
 
 void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
+    
+    // sigz
+    SLICELOOP4
+    {
+    if(p->wet[IJ]==0)
+    p->sigz[IJ] = 0.0;
+    
+    if(p->wet[IJ]==1)
+    p->sigz[IJ] = 1.0/WLVL;
+    }
     
     zmin = 1.0e8;
     zmax = -1.0e8;
@@ -56,11 +67,11 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(rayiter==0)
             ray_cast_io(p,d,pgc,tstart[qn],tend[qn]);
 
-            if(rayiter==1 && p->X188==2)
+            if(rayiter==1)
             {
             pgc->gcparaxintV(p,IO,1);
             
-            ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
+            //ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
             }
         }
     }

@@ -110,7 +110,7 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
 	ke = MIN(ke,p->knoz);			
         
          for(i=is;i<ie;i++)
-		for(j=js;j<je;j++)
+		for(j=js;j<je;j++) 
 		for(k=ks;k<ke;k++)
 		{
         xc = p->XP[IP];
@@ -128,8 +128,6 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
         dist = sqrt(pow(xc-Cx,2.0) + pow(yc-Cy,2.0) + pow(zc-Cz,2.0));
         
         d->SOLID[IJK]=MIN(dist,fabs(d->SOLID[IJK]));
-        
-        cout<<dist<<endl;
 		}
 	}
     }

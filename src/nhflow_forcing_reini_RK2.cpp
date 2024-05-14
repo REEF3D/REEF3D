@@ -29,7 +29,10 @@ Author: Hans Bihs
 void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 {	
     LOOP
-	dt[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*p->sigz[IJ]);
+    {
+	dt[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]/p->sigz[IJ]);
+    //cout<<dt[IJK]<<endl;
+    }
 
 	reiniter=5;
 	
@@ -49,11 +52,11 @@ void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 		LOOP
 		FRK1[IJK] = F[IJK] + dt[IJK]*L[IJK];
 
-         pgc->start5V(p,F,1);
+         pgc->start5V(p,FRK1,1);
         
         
         // Step 2
-		prdisc->start(p,pgc,F,L);
+		prdisc->start(p,pgc,FRK1,L);
 
 		LOOP
 		F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*dt[IJK]*L[IJK];
