@@ -332,6 +332,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
+    
+    // solid
+    if(p->P25==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+	}
 
 	// Points
     offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
@@ -378,6 +385,12 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     if(p->P23==1)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
+    
+    if(p->P25==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
 	
@@ -534,6 +547,28 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     
     if(p->j_dir==1)
 	ffn=float(0.25*(d->test[IJK]+d->test[IJKp1]+d->test[IJp1K]+d->test[IJp1Kp1]));
+    
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+    
+//  solid
+    if(p->P25==1)
+	{
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(d->SOLID[IJK]+d->SOLID[IJKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->SOLID[IJK]+d->SOLID[IJKp1]+d->SOLID[IJp1K]+d->SOLID[IJp1Kp1]));
     
 	result.write((char*)&ffn, sizeof (float));
 	}

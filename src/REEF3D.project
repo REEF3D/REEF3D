@@ -1413,7 +1413,6 @@
             <File Name="nhflow_forcing_raycast.cpp"/>
             <File Name="nhflow_forcing_cylinder_z.cpp"/>
             <File Name="nhflow_forcing_box.cpp"/>
-            <File Name="nhflow_forcing_geometry.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>

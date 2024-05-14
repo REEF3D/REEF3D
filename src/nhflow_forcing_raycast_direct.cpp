@@ -36,7 +36,7 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
 	double Cx,Cy,Cz;
 	double PQx,PQy,PQz;
 	double PAx,PAy,PAz;
-	double PBx,PBy,PBz;
+	double PBx,PBy,PBz; 
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
     double xc,yc,zc;

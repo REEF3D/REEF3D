@@ -63,6 +63,8 @@ void driver::driver_ini_nhflow()
     // sigma ini
     pnhfmom->inidisc(p,d,pgc,pnhfsf);
     
+    // forcing ini
+    pnhfdf->forcing_ini(p,d,pgc);
     
     //ioflow ini
     pflow->ini_nhflow(p,d,pgc);

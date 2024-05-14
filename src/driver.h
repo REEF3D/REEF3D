@@ -67,6 +67,7 @@ class nhflow_fsf_reconstruct;
 class nhflow_turbulence;
 class nhflow_pressure;
 class nhflow_diffusion;
+class nhflow_forcing;
 class sflow;
 class fnpf_printer;
 class fnpf_timestep;
@@ -210,6 +211,7 @@ public:
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
     nhflow_printer *pnhfprint;
+    nhflow_forcing *pnhfdf;
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;

@@ -32,7 +32,6 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     IO[IJK]=1;
 	d->SOLID[IJK]=1.0e8;
 	}
-    
 	
     for(int rayiter=0; rayiter<2; ++rayiter)
     {
@@ -42,15 +41,12 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(rayiter==0)
             ray_cast_io(p,d,pgc,tstart[qn],tend[qn]);
 
-        
-            
             if(rayiter==1 && p->X188==2)
             {
             pgc->gcparaxintV(p,IO,1);
             
             ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
             }
-
         }
     }
     
@@ -63,7 +59,6 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(IO[IJK]==1)
         d->SOLID[IJK]=fabs(d->SOLID[IJK]);
     }
-    
 	
 	LOOP
 	{

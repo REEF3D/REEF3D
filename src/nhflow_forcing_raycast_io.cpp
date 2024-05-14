@@ -47,7 +47,7 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 	double psi = 1.0e-8*p->DXM;
     
     
-    ALOOP
+    LOOP
 	{
 	CL[IJK]=0;
 	CR[IJK]=0;
@@ -192,7 +192,7 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 	}
     }
     
-    ALOOP
+    LOOP
 	if((CL[IJK]+1)%2==0  && (CR[IJK]+1)%2==0)
 	IO[IJK]=-1;
 
