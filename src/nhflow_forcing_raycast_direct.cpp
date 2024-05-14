@@ -66,17 +66,17 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
     
 	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
     && Ay>=p->global_ymin && Ay<=p->global_ymax
-    && Az>=p->global_zmin && Az<=p->global_zmax)
+    && Az>=zmin && Az<=zmax)
     checkin=1;
     
     if(Bx>=p->global_xmin && Bx<=p->global_xmax 
     && By>=p->global_ymin && By<=p->global_ymax
-    && Bz>=p->global_zmin && Bz<=p->global_zmax)
+    && Bz>=zmin && Bz<=zmax)
     checkin=1;
     
     if(Cx>=p->global_xmin && Cx<=p->global_xmax 
     && Cy>=p->global_ymin && Cy<=p->global_ymax
-    && Cz>=p->global_zmin && Cz<=p->global_zmax)
+    && Cz>=zmin && Cz<=zmax)
     checkin=1;
         
     if(checkin==1)
@@ -115,7 +115,7 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
 		{
         xc = p->XP[IP];
         yc = p->YP[JP];
-        zc = p->ZSP[KP];
+        zc = p->ZSP[IJK];
         
         dist = sqrt(pow(xc-Ax,2.0) + pow(yc-Ay,2.0) + pow(zc-Az,2.0));
 
@@ -128,6 +128,8 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
         dist = sqrt(pow(xc-Cx,2.0) + pow(yc-Cy,2.0) + pow(zc-Cz,2.0));
         
         d->SOLID[IJK]=MIN(dist,fabs(d->SOLID[IJK]));
+        
+        cout<<dist<<endl;
 		}
 	}
     }

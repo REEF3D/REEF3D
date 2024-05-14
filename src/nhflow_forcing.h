@@ -63,6 +63,7 @@ private:
     int tricount;
     int entity_count, entity_sum;
     double xs,xe,ys,ye,zs,ze;
+    double zmin,zmax;
     
     int reiniter;
     

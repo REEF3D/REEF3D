@@ -63,8 +63,6 @@ void driver::driver_ini_nhflow()
     // sigma ini
     pnhfmom->inidisc(p,d,pgc,pnhfsf);
     
-    // forcing ini
-    pnhfdf->forcing_ini(p,d,pgc);
     
     //ioflow ini
     pflow->ini_nhflow(p,d,pgc);
@@ -114,6 +112,9 @@ void driver::driver_ini_nhflow()
     pgc->start4V(p,d->V,11);
     pgc->start4V(p,d->W,12);
     pgc->start5V(p,d->P,540);
+    
+    // forcing ini
+    pnhfdf->forcing_ini(p,d,pgc);
 
     pnhfsf->ini(p,d,pgc,pflow,d->U,d->V,d->W);
     pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);

@@ -73,23 +73,21 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
     
 	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
     && Ay>=p->global_ymin && Ay<=p->global_ymax
-    && Az>=p->global_zmin && Az<=p->global_zmax)
+    && Az>=zmin && Az<=zmax)
     checkin=1;
     
     if(Bx>=p->global_xmin && Bx<=p->global_xmax 
     && By>=p->global_ymin && By<=p->global_ymax
-    && Bz>=p->global_zmin && Bz<=p->global_zmax)
+    && Bz>=zmin && Bz<=zmax)
     checkin=1;
     
     if(Cx>=p->global_xmin && Cx<=p->global_xmax 
     && Cy>=p->global_ymin && Cy<=p->global_ymax
-    && Cz>=p->global_zmin && Cz<=p->global_zmax)
+    && Cz>=zmin && Cz<=zmax)
     checkin=1;
         
     if(checkin==1)
     {
-	
-	
 	xs = MIN3(Ax,Bx,Cx); 
 	xe = MAX3(Ax,Bx,Cx);
 	
@@ -127,11 +125,11 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 		{
 		Px = p->XP[IP]-psi;
 		Py = p->YP[JP]+psi;
-		Pz = p->global_zmin-10.0*p->DXM ;
+		Pz = zmin-10.0*p->DXM ;
 		
 		Qx = p->XP[IP]+psi;
 		Qy = p->YP[JP]-psi;
-		Qz = p->global_zmax+10.0*p->DXM ;
+		Qz = zmax+10.0*p->DXM ;
 		
 		PQx = Qx-Px;
 		PQy = Qy-Py;
@@ -177,13 +175,14 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 			
 			Rz = u*Az + v*Bz + w*Cz;
 			
+            cout<<"Rz: "<<Rz<<endl;
 			
             for(k=0;k<p->knoz;++k)
             {
-				if(p->ZP[KP]<Rz)
+				if(p->ZSP[IJK]<Rz)
 				CL[IJK] += 1;
 				
-				if(p->ZP[KP]>=Rz)
+				if(p->ZSP[IJK]>=Rz)
 				CR[IJK] += 1;
             }
             }

@@ -126,9 +126,9 @@ void lexer::ini_default()
     A552=1;      // int additional filtering to viscosity based breaking
     A553=0;      // int breaking in very shallow regions turned onf
     
-    A560=1;      // int block eta
-    A561=1;      // int solid box
-    A564=1;      // int solid vertical cylinder
+    A560=0;      // int block eta
+    A561=0;      // int solid box
+    A564=0;      // int solid vertical cylinder
 
     // Boundary Conditions
 	B10=1;			// int wall laws velocities on/off

@@ -28,14 +28,29 @@ Author: Hans Bihs
 void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     LOOP
+    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
+    
+    zmin = 1.0e8;
+    zmax = -1.0e8;
+    
+    LOOP
+    {
+    zmin = MIN(zmin, p->ZSP[IJK]);
+    zmax = MAX(zmax, p->ZSP[IJK]);
+    }
+    
+    cout<<"ZMIN/ZMAX: "<<zmin<<"  "<<zmax<<endl;
+    
+    LOOP
 	{
     IO[IJK]=1;
 	d->SOLID[IJK]=1.0e8;
 	}
-	
+    
+    	
     for(int rayiter=0; rayiter<2; ++rayiter)
     {
-
+    
         for(int qn=0;qn<entity_sum;++qn)
         {
             if(rayiter==0)
