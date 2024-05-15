@@ -91,14 +91,14 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
 	ze = MAX3(Az,Bz,Cz);
     
 
-	is = p->posc_i(xs)-3;
-	ie = p->posc_i(xe)+3;
+	is = p->posc_i(xs)-5;
+	ie = p->posc_i(xe)+5;
     
-    js = p->posc_j(ys)-3;
-	je = p->posc_j(ye)+3;
+    js = p->posc_j(ys)-5;
+	je = p->posc_j(ye)+5;
 	
-	ks = p->posc_k(zs)-3;
-	ke = p->posc_k(ze)+3;	
+	ks = p->posc_sig(is+5,js+5,zs)-5;
+	ke = p->posc_sig(is+5,js+5,ze)+5;	
 
 	is = MAX(is,0);
 	ie = MIN(ie,p->knox);
@@ -109,9 +109,10 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
 	ks = MAX(ks,0);
 	ke = MIN(ke,p->knoz);			
         
-         for(i=is;i<ie;i++)
+         /*for(i=is;i<ie;i++)
 		for(j=js;j<je;j++) 
-		for(k=ks;k<ke;k++)
+		for(k=ks;k<ke;k++)*/
+        LOOP
 		{
         xc = p->XP[IP];
         yc = p->YP[JP];

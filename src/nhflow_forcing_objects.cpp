@@ -95,7 +95,9 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
     p->Darray(tri_x,trisum,3);
 	p->Darray(tri_y,trisum,3);
 	p->Darray(tri_z,trisum,3);
-   	
+    p->Darray(tri_x0,trisum,3);
+	p->Darray(tri_y0,trisum,3);
+	p->Darray(tri_z0,trisum,3);   
     
 	p->Iarray(tstart,entity_sum);
 	p->Iarray(tend,entity_sum);

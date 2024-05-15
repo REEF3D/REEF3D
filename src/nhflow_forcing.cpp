@@ -51,6 +51,8 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     objects_create(p, pgc);
     
+    geometry_refinement(p,pgc);
+    
     ray_cast(p, d, pgc);
     
     reini_RK2(p, d, pgc, d->SOLID);

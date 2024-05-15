@@ -28,21 +28,19 @@ Author: Hans Bihs
 
 void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 {	
+    if(p->j_dir==0)
     LOOP
-    {
-	dt[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]/p->sigz[IJ]);
-    //cout<<dt[IJK]<<endl;
-    }
+	dt[IJK] = 0.55*MIN(p->DXP[IP],p->DZP[KP]/p->sigz[IJ]);
+    
+    if(p->j_dir==1)
+    LOOP
+	dt[IJK] = 0.55*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]/p->sigz[IJ]);
 
 	reiniter=5;
 	
-	
-	if(p->count==0)
-	{
-    if(p->mpirank==0)
+	if(p->count==0 && p->mpirank==0)
 	cout<<endl<<"initializing reini forcing..."<<endl<<endl;
-	reiniter=5;
-	}
+
 
     for(int q=0;q<reiniter;++q)
 	{
