@@ -593,6 +593,7 @@
         <File Name="sediment_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
+        <File Name="heat_RK3CN.h"/>
         <VirtualDirectory Name="BC">
           <File Name="bcheat.h"/>
         </VirtualDirectory>
@@ -689,6 +690,7 @@
         <File Name="interpolation.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="hcds6.h"/>
         <File Name="iweno_hj_df_nug.h"/>
         <File Name="weno_hj_df_nug.h"/>
         <File Name="lust.h"/>
@@ -727,6 +729,7 @@
         <File Name="weno_flux.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff2_CN.h"/>
         <File Name="idiff2_FS_2D.h"/>
         <File Name="diff_void.h"/>
         <File Name="diffusion.h"/>
@@ -1031,6 +1034,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK3CN.h"/>
       <File Name="momentum_RKLS3.h"/>
       <File Name="momentum_FC2.h"/>
       <File Name="momentum_forcing.h"/>
@@ -1866,6 +1870,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
+        <File Name="heat_RK3CN.cpp"/>
         <VirtualDirectory Name="BC">
           <File Name="bcheat.cpp"/>
         </VirtualDirectory>
@@ -2143,6 +2148,7 @@
         <File Name="interpolation_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Convection">
+        <File Name="hcds6.cpp"/>
         <File Name="iweno_hj_df_nug.cpp"/>
         <File Name="weno_hj_df_nug.cpp"/>
         <File Name="lust.cpp"/>
@@ -2178,6 +2184,10 @@
         <File Name="weno_flux.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff2_CNw.cpp"/>
+        <File Name="idiff2_CNv.cpp"/>
+        <File Name="idiff2_CNu.cpp"/>
+        <File Name="idiff2_CN-scalar.cpp"/>
         <File Name="idiff_FS_2D-scalar.cpp"/>
         <File Name="idiff2_FSu_2D.cpp"/>
         <File Name="idiff2_FSw_2D.cpp"/>
@@ -2786,6 +2796,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK3CN.cpp"/>
       <File Name="momentum_FC2.cpp"/>
       <VirtualDirectory Name="Forcing">
         <File Name="momentum_forcing.cpp"/>
