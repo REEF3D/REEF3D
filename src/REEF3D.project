@@ -1686,6 +1686,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Util">
           <File Name="particle_func.cpp"/>
+          <File Name="particle_func_moving.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Seed">
           <File Name="particle_initialize.cpp"/>
