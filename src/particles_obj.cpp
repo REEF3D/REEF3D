@@ -62,14 +62,14 @@ particles_obj::~particles_obj()
     if(entries>tracers_obj::entries)
     {
         delete[] U;
-        U=0;
+        U=nullptr;
         delete[] V;
-        V=0;
+        V=nullptr;
         delete[] W;
-        W=0;
+        W=nullptr;
 
         delete[] PackingFactor;
-        PackingFactor=0;
+        PackingFactor=nullptr;
     }
 }
 
