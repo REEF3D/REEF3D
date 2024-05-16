@@ -63,7 +63,7 @@ protected:
     double settling_vel(lexer* p, fdm* a, particles_obj* PP,int);
     double drag_coefficient(lexer* p, fdm* a, particles_obj* PP,int);
     double volume(particles_obj* PP,int);
-    double maxParticlesPerCell(lexer* p, fdm* a, double,bool=true);
+    double maxParticlesPerCell(lexer* p, fdm* a, double,bool=true,bool=false);
     int maxParticlesPerXY(lexer* p, fdm* a, double);
     void particlesPerCell(lexer* p, fdm* a,ghostcell* pgc, particles_obj* PP);
     void particleStressTensor(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP);
@@ -81,6 +81,7 @@ protected:
     double* stressTensor;
     /// @brief Number of particles in a cell
     double* cellSum;
+    double* cellSumTopo;
     /// @brief Volume change per column
     double* topoVolumeChange;
 

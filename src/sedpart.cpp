@@ -135,9 +135,9 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     gxchange = pgc->globalisum(xchange);
 	p->sedsimtime=pgc->timer()-starttime;
 
-    // PLAINLOOP
-    // a->test(i,j,k)=active_topo(i,j,k);
-    particle_func::debug(p,a,pgc,&PP);
+    PLAINLOOP
+    a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
+    // particle_func::debug(p,a,pgc,&PP);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<" relative: "<<p->sedsimtime/double(gparticle_active)*(10^3)<<" ms\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
@@ -151,11 +151,16 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 /// Initializes VRANS
 void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
+    // vrans
+    pvrans->sed_update(p,a,pgc);
     if(p->I40!=1)
     {
+        PLAINLOOP
+        cellSumTopo[IJK]=maxParticlesPerCell(p,a,PP.d50);
         // seed
         seed_ini(p,a,pgc);
         PP.reserve(maxparticle);
+        // if(p->mpirank==0)
         seed(p,a);
         make_stationary(p,a,&PP);
     }
@@ -178,19 +183,16 @@ void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
         else if (inicount>0)
             cout<<"Loaded particles "<<gparticle_active<<" from state file."<<endl;
     
-    // vrans
-    pvrans->sed_update(p,a,pgc);
+    
     ++inicount;
-    // if(p->mpirank==1)
-    // {
-    // i=8;j=12;
-    // KLOOP
-    // if(active_topo(i,j,k)>0)
-    // cout<<k<<","<<p->ZN[KP]<<endl;
-    // }
-    // PLAINLOOP
-    // a->test(i,j,k)=active_topo(i,j,k);
-    particle_func::debug(p,a,pgc,&PP);
+    if(p->mpirank==1)
+    {
+        i=8;j=12;k=2;
+        std::cout<<maxParticlesPerCell(p,a,PP.d50,true)<<"|"<<maxParticlesPerCell(p,a,PP.d50,false,true)<<endl;
+    }
+    PLAINLOOP
+    a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
+    // particle_func::debug(p,a,pgc,&PP);
     }
 
 /// @brief SFLOW calculation function

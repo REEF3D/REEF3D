@@ -320,7 +320,7 @@ void ghostcell::para_tracersobj(lexer* p ,particles_obj* s ,particles_obj* r)
         gcwait(p);
 
 
-        // Transfer U
+        // Transfer PackingFactor
         if(p->nb1>=0)
         {
             MPI_Isend(s[0].PackingFactor,send[0],MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
