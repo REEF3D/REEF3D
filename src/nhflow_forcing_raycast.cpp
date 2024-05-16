@@ -50,7 +50,7 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     zmax = MAX(zmax, p->ZSP[IJK]);
     }
     
-    cout<<"ZMIN/ZMAX: "<<zmin<<"  "<<zmax<<endl;
+    //cout<<"ZMIN/ZMAX: "<<zmin<<"  "<<zmax<<endl;
     
     LOOP
 	{

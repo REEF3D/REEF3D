@@ -102,7 +102,7 @@ void nhflow_reinidisc_fsf::disc(lexer *p, ghostcell *pgc, double *F, double *L)
 
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);
     
-    cout<<F[IJK]<<" "<<dnorm<<endl;
+    //cout<<F[IJK]<<" "<<dnorm<<endl;
     
     if(p->j_dir==0)
     deltax = (1.0/2.0)*(p->DXN[IP] + p->DZN[KP]/p->sigz[IJ]);

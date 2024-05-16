@@ -46,6 +46,7 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
 	double denom;	
 	int checkin;
 	double psi = 1.0e-8*p->DXM;
+    int margin = 5;
     double dist;
 
 	for(n=ts; n<te; ++n)
@@ -90,16 +91,20 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
 	zs = MIN3(Az,Bz,Cz);
 	ze = MAX3(Az,Bz,Cz);
     
-
-	is = p->posc_i(xs)-5;
-	ie = p->posc_i(xe)+5;
     
-    js = p->posc_j(ys)-5;
-	je = p->posc_j(ye)+5;
-	
-	ks = p->posc_sig(is+5,js+5,zs)-5;
-	ke = p->posc_sig(is+5,js+5,ze)+5;	
 
+	is = p->posc_i(xs)-margin;
+	ie = p->posc_i(xe)+margin;
+    
+    js = p->posc_j(ys)-margin;
+	je = p->posc_j(ye)+margin;
+	
+	ks = p->posc_sig(is+margin,js+margin,zs)-margin;
+	ke = p->posc_sig(is+margin,js+margin,ze)+margin;	
+
+   // ks=0;
+   // ke=p->knoz;
+    
 	is = MAX(is,0);
 	ie = MIN(ie,p->knox);
     
@@ -107,12 +112,14 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
 	je = MIN(je,p->knoy);
 	
 	ks = MAX(ks,0);
-	ke = MIN(ke,p->knoz);			
+	ke = MIN(ke,p->knoz);		
         
-         /*for(i=is;i<ie;i++)
-		for(j=js;j<je;j++) 
-		for(k=ks;k<ke;k++)*/
-        LOOP
+        //cout<<"xs: "<<xs<<" xe: "<<xe<<" ys: "<<ys<<" ye: "<<ye<<" zs: "<<zs<<" ze: "<<ze<<endl;
+        //cout<<"is: "<<is<<" ie: "<<ie<<" js: "<<js<<" je: "<<je<<" ks: "<<ks<<" ke: "<<ke<<endl;    
+        
+         for(i=is;i<ie;++i)
+		for(j=js;j<je;++j) 
+		for(k=ks;k<ke;++k)
 		{
         xc = p->XP[IP];
         yc = p->YP[JP];

@@ -64,7 +64,7 @@ void nhflow_forcing::geometry_refinement(lexer *p, ghostcell *pgc)
     A = pgc->globalsum(A);
     
     if(p->mpirank==0)
-    cout<<endl<<"A_orig: "<<A<<endl;
+    cout<<"A_orig: "<<A<<endl;
     
 
 	tri_x_r.reserve(3*tricount);
@@ -104,9 +104,7 @@ void nhflow_forcing::geometry_refinement(lexer *p, ghostcell *pgc)
         
     
 	for (int n = 0; n < tri_x_r.size(); n++)
-	{
-    //cout<<"n: "<<n<<" tri_x_r.size()"<<tri_x_r.size()<<endl;
-        
+	{        
 		x0 = tri_x_r[n][0];
 		x1 = tri_x_r[n][1];
 		x2 = tri_x_r[n][2];
@@ -124,7 +122,7 @@ void nhflow_forcing::geometry_refinement(lexer *p, ghostcell *pgc)
 		ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));   
         
         if(p->X185==1)
-        critL = p->DXM*p->X186;
+        critL = p->DXM*1.6;
         
         if(p->X185==2)
         critL = dxmin*p->X186;
@@ -253,6 +251,9 @@ void nhflow_forcing::geometry_refinement(lexer *p, ghostcell *pgc)
     
     if(p->mpirank==0)
     cout<<"A_refined: "<<A<<endl;
+    
+    if(p->mpirank==0)
+	cout<<"Refined surface triangles: "<<tricount<<endl;
 }
 
 
