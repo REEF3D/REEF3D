@@ -1819,6 +1819,7 @@
           <File Name="sedpart_printvtp.cpp"/>
           <File Name="sedpart_seed.cpp"/>
           <File Name="sedpart_state.cpp"/>
+          <File Name="sedpart_cfd.cpp"/>
           <File Name="sedpart.cpp"/>
         </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
