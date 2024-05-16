@@ -25,6 +25,8 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 class ghostcell;
+class nhflow_reinidisc_fsf;
+#include<vector>
 
 using namespace std;
 
@@ -48,19 +50,35 @@ public:
     void objects_create(lexer*, ghostcell*);
     void objects_allocate(lexer*, ghostcell*);
     
+    
+    void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
+    
 private:
     void box(lexer*, ghostcell*, int);
     void cylinder_z(lexer*, ghostcell*, int);
     
-    int *IO,*CR,*CL;
+    void geometry_refinement(lexer*, ghostcell*);
+    void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
     
-    double **tri_x,**tri_y,**tri_z;
+    int *IO,*CR,*CL;
+    double *FRK1,*dt,*L;
+    
+    double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
+    vector<vector<double> > tri_x_r;
+	vector<vector<double> > tri_y_r;
+	vector<vector<double> > tri_z_r;
+    
     int *tstart,*tend;
     int tricount;
     int entity_count, entity_sum;
     double xs,xe,ys,ye,zs,ze;
+    double zmin,zmax;
+    
+    int reiniter;
     
     const double epsi;
+    
+    nhflow_reinidisc_fsf *prdisc;
 
 
  

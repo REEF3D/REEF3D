@@ -72,12 +72,10 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     WETDRY
     K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
-    fsf_guard(p,d,pgc,d->WL,K);
     
     SLICELOOP4
     WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
     
-    fsf_guard(p,d,pgc,WLRK1,K);
      
     pflow->WL_relax(p,pgc,WLRK1,d->depth);
     pflow->fsfinflow_nhflow(p,d,pgc,WLRK1);
@@ -111,13 +109,9 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     WETDRY
     K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
-    fsf_guard(p,d,pgc,WLRK1,K);
-    
     SLICELOOP4
     d->WL(i,j) = 0.5*d->WL(i,j) + 0.5*WLRK1(i,j) + 0.5*p->dt*K(i,j);
     
-    fsf_guard(p,d,pgc,d->WL,K);
-
     pflow->WL_relax(p,pgc,d->WL,d->depth);
     pflow->fsfinflow_nhflow(p,d,pgc,d->WL);
     pgc->gcsl_start4(p,d->WL,gcval_eta);

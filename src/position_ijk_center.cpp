@@ -242,10 +242,16 @@ int position::posc_sig(int ii, int jj, double zs)
     i = ii;
     j = jj;
     
+    i = MAX(i,0);
+	i = MIN(i,p->knox-1);
+    
+	j = MAX(j,0);
+	j = MIN(j,p->knoy-1);
+    
     k = 0;
     int IJK_start = IJK;
     
-    k = p->knoz;
+    k = p->knoz-1;
     int IJK_end = IJK;
     
     stop=0;
@@ -279,7 +285,7 @@ int position::posc_sig(int ii, int jj, double zs)
         {
             kk = p->knoz+1;
             
-            //cout<<"EXIT 0p"<<endl;
+            //cout<<"EXIT 0p "<<" zs: "<<zs<<" p->ZSP[IJK_end]: "<<p->ZSP[IJK_end]<<" i: "<<i<<" j: "<<j<<endl;
    
          stop=1;
          break;   
@@ -289,6 +295,8 @@ int position::posc_sig(int ii, int jj, double zs)
         if(zs<p->ZSP[IJK] && zs>=p->ZSP[IJKm1] && stop==0)
         {
             kk = kloc-1;
+            
+            //cout<<"EXIT 1"<<endl;
             
          stop=1;
          break;   

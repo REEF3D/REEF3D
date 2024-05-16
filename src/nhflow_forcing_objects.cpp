@@ -33,13 +33,13 @@ void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
 	
     entity_count=0;
 	
-	for(qn=0;qn<p->X110;++qn)
+	for(qn=0;qn<p->A561;++qn)
     {
         box(p,pgc,qn);
         ++entity_count;
     }
 	
-	for(qn=0;qn<p->X133;++qn)
+	for(qn=0;qn<p->A564;++qn)
     {
         cylinder_z(p,pgc,qn);
         ++entity_count;
@@ -95,7 +95,9 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
     p->Darray(tri_x,trisum,3);
 	p->Darray(tri_y,trisum,3);
 	p->Darray(tri_z,trisum,3);
-   	
+    p->Darray(tri_x0,trisum,3);
+	p->Darray(tri_y0,trisum,3);
+	p->Darray(tri_z0,trisum,3);   
     
 	p->Iarray(tstart,entity_sum);
 	p->Iarray(tend,entity_sum);

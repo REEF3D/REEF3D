@@ -20,32 +20,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-class lexer;class fdm_nhf;class ghostcell;class ioflow;class poisson;class solver;
+#include"nhflow_forcing.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"nhflow_reinidisc_fsf.h"
 
-#ifndef NHFLOW_POISSON_H_
-#define NHFLOW_POISSON_H_
+void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
+{	
+    if(p->j_dir==0)
+    LOOP
+	dt[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]/p->sigz[IJ]);
+    
+    if(p->j_dir==1)
+    LOOP
+	dt[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]/p->sigz[IJ]);
 
-using namespace std;
+	reiniter=5;
+	
+	if(p->count==0 && p->mpirank==0)
+	cout<<endl<<"initializing reini forcing..."<<endl<<endl;
 
 
-class nhflow_poisson : public increment
-{
+    for(int q=0;q<reiniter;++q)
+	{
+        // Step 1
+		prdisc->start(p,pgc,F,L);
 
-public:
+		LOOP
+		FRK1[IJK] = F[IJK] + dt[IJK]*L[IJK];
 
-	nhflow_poisson (lexer *);
-	virtual ~nhflow_poisson();
+         pgc->start5V(p,FRK1,1);
+        
+        
+        // Step 2
+		prdisc->start(p,pgc,FRK1,L);
 
-	virtual void start(lexer *,fdm_nhf*,double*);
+		LOOP
+		F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*dt[IJK]*L[IJK];
 
-private:
+        pgc->start5V(p,F,1);
+	}
+}
 
-	int count,n,q;
 
-};
-
-#endif
 
 
 

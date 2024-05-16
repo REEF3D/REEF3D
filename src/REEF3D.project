@@ -339,6 +339,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Reinitialization">
+            <File Name="nhflow_reinidisc_fsf.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Coastlline">
             <File Name="nhflow_coastline.h"/>
           </VirtualDirectory>
@@ -670,6 +673,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno_nug_sig.h"/>
         <File Name="ddweno_nug_sf.h"/>
         <File Name="ddweno3_f_nug.h"/>
         <File Name="ddweno_f_nug.h"/>
@@ -1401,6 +1405,8 @@
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Forcing">
           <VirtualDirectory Name="Geometry">
+            <File Name="nhflow_forcing_refinement.cpp"/>
+            <File Name="nhflow_forcing_reini_RK2.cpp"/>
             <File Name="nhflow_forcing_raycast_io.cpp"/>
             <File Name="nhflow_forcing_raycast_direct.cpp"/>
             <File Name="nhflow_forcing_objects.cpp"/>
@@ -1408,7 +1414,6 @@
             <File Name="nhflow_forcing_raycast.cpp"/>
             <File Name="nhflow_forcing_cylinder_z.cpp"/>
             <File Name="nhflow_forcing_box.cpp"/>
-            <File Name="nhflow_forcing_geometry.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>
@@ -1495,6 +1500,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Reinitialization">
+            <File Name="nhflow_reinidisc_fsf.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Coastline">
             <File Name="nhflow_coastline_reini.cpp"/>
             <File Name="nhflow_coastline_disc.cpp"/>
@@ -2096,6 +2104,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="DDWENO">
+        <File Name="ddweno_nug_sig.cpp"/>
         <File Name="ddweno_nug_sf.cpp"/>
         <File Name="ddweno3_f_nug.cpp"/>
         <File Name="ddweno_f_nug.cpp"/>
@@ -2390,6 +2399,7 @@
         <File Name="gc_ndflag.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_gcparaxintV.cpp"/>
         <File Name="gcx_paracoxV1.cpp"/>
         <File Name="gcx_paraxV1.cpp"/>
         <File Name="gcx_paracoxV.cpp"/>

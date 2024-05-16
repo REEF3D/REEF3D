@@ -164,15 +164,6 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
     }
     
-    /*Um1 = U[IJKm1];
-    Up1 = U[IJK];
-    Up = (p->DZN[KP]*Um1 + p->DZN[KM1]*Up1)/(p->DZN[KM1]+p->DZN[KP]);
-    
-    dz1 = 0.5*p->DZN[KM1];
-    dz2 = 0.5*p->DZN[KP];
-    
-    dUdz = (Up1*dz1*dz1 - Um1*dz2*dz2 + Up*(dz2*dz2 - dz1*dz1))/(dz1*dz2*(dz1+dz2));*/
-    
     z0 = p->ZP[KM2];
     z1 = p->ZP[KM1];
     z2 = p->ZP[KP];
@@ -190,23 +181,10 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     f2 = V[IJK];
     
     Vp = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
-    
-    /*
-    z0 = p->ZP[KM1];
-    z1 = p->ZP[KP];
-    z  = p->ZP[KP] - p->DZN[KP];
-    
-    f0 = U[IJKm1];
-    f1 = U[IJK];
 
-    
-    Up = f0*(z-z1)/(z0-z1) + f1*(z-z0)/(z1-z0);*/
-    
     dUdz = (U[IJK] - Up)/p->DZN[KP];
     
     dVdz = (V[IJK] - Vp)/p->DZN[KP];
-    
-    //dUdz = (U[IJK] - U[IJKm1])/p->DZN[KP];
     
     dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
      

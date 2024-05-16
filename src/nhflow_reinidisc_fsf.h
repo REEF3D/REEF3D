@@ -20,32 +20,37 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-class lexer;class fdm_nhf;class ghostcell;class ioflow;class poisson;class solver;
+#include"ddweno_nug_sig.h"
 
-#ifndef NHFLOW_POISSON_H_
-#define NHFLOW_POISSON_H_
+class lexer;
+class ghostcell;
 
 using namespace std;
 
+#ifndef NHFLOW_REINIDISC_FSF_H_
+#define NHFLOW_REINIDISC_FSF_H_
 
-class nhflow_poisson : public increment
+class nhflow_reinidisc_fsf : public increment, public ddweno_nug_sig
 {
-
 public:
-
-	nhflow_poisson (lexer *);
-	virtual ~nhflow_poisson();
-
-	virtual void start(lexer *,fdm_nhf*,double*);
-
+	nhflow_reinidisc_fsf(lexer* p);
+	virtual ~nhflow_reinidisc_fsf();
+    
+	virtual void start(lexer*, ghostcell*, double*, double*);
+	
 private:
 
-	int count,n,q;
-
+	void disc(lexer*, ghostcell*, double*, double*);
+	
+	double xmin,xplus,ymin,yplus,zmin,zplus;
+	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
+	double uwx,uwy,uwz,ddt;
+	double lsv,dv,lsSig;
+	
+	double dx, dy, dz, dnorm, sign;
+	double sx,sy,sz,snorm,op;
+	
+	double deltax,denom;
 };
 
 #endif
-
-
-
