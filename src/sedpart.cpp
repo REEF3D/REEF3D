@@ -80,25 +80,6 @@ sedpart::~sedpart()
     delete pvrans;
 }
 
-
-
-/// @brief SFLOW calculation function
-void sedpart::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow* pflow, slice &P, slice &Q)
-{
-
-}
-
-/// @brief SFLOW initialization function
-void sedpart::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-
-}
-
-/// @brief Updates the topography for the SFLOW solver
-void sedpart::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
-{
-}
-
 /// @brief Enables erosion of particles
 void sedpart::erode(lexer* p, fdm* a)
 {
