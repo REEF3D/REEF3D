@@ -135,9 +135,9 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     gxchange = pgc->globalisum(xchange);
 	p->sedsimtime=pgc->timer()-starttime;
 
-    // PLAINLOOP
-    // a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
-    particle_func::debug(p,a,pgc,&PP);
+    PLAINLOOP
+    a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
+    // particle_func::debug(p,a,pgc,&PP);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<" relative: "<<p->sedsimtime/double(gparticle_active)*(10^3)<<" ms\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
@@ -190,9 +190,9 @@ void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
         i=8;j=12;k=2;
         std::cout<<maxParticlesPerCell(p,a,PP.d50,true)<<"|"<<maxParticlesPerCell(p,a,PP.d50,false,true)<<endl;
     }
-    // PLAINLOOP
-    // a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
-    particle_func::debug(p,a,pgc,&PP);
+    PLAINLOOP
+    a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
+    // particle_func::debug(p,a,pgc,&PP);
     }
 
 /// @brief SFLOW calculation function
