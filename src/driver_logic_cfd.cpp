@@ -82,6 +82,9 @@ void driver::logic_cfd()
 	if(p->D10==2)
 	pconvec=new cds2(p);
 
+	if(p->D10==60)
+	pconvec=new hcds6(p);
+
 	if(p->D10==3)
 	pconvec=new quick(p);
 
@@ -263,6 +266,9 @@ void driver::logic_cfd()
 	if(p->H10==3)
 	pheat =  new heat_RK3(p,a,pgc,pheat);
 
+	if(p->H10==4)
+	pheat =  new heat_RK3CN(p,a,pgc,pheat);
+
     //Convection Heat
 	if(p->H15==0)
 	pheatdisc=new convection_void(p);
@@ -272,6 +278,9 @@ void driver::logic_cfd()
 
 	if(p->H15==2)
 	pheatdisc=new cds2(p);
+
+	if(p->H15==60)
+	pheatdisc=new hcds6(p);
 
 	if(p->H15==3)
 	pheatdisc=new quick(p);
@@ -320,6 +329,9 @@ void driver::logic_cfd()
 
 	if(p->D20==2 && p->j_dir==1)
 	pdiff=new idiff2_FS(p);
+
+	if(p->D20==3 && p->j_dir==1)
+	pdiff=new idiff2_CN(p);
 
     if(p->D20==2 && p->j_dir==0)
 	pdiff=new idiff2_FS_2D(p);
@@ -625,6 +637,9 @@ void driver::logic_cfd()
 	if(p->N40==3 && p->X10==0 && p->Z10==0 && p->G3==0)
 	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
     
+	if(p->N40==5 && p->X10==0 && p->Z10==0 && p->G3==0)
+	pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+
     if(p->N40==4 && p->X10==0 && p->Z10==0 && p->G3==0)
 	pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     

@@ -68,7 +68,7 @@ public:
     field4 Fi;
 	field4 eddyv;
 	field4 L;
-	field4 ro,visc;
+	field4 ro,dro,visc;
 	field4 phi,vof;
 	field4 conc;
     field4 test;

@@ -17,12 +17,39 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Elyas Larkermani
 --------------------------------------------------------------------*/
 
-#include"heat_AB.h"
-#include"heat_RK2.h"
-#include"heat_RK3.h"
-#include"heat_RK3CN.h"
-#include"heat_void.h"
+#include"convection.h"
+#include"increment.h"
+
+class flux;
+
+#ifndef HCDS6_H_
+#define HCDS6_H_
+
+using namespace std;
+
+class hcds6 : public convection,  public increment
+{
+
+public:
+
+	hcds6 (lexer *);
+	virtual ~hcds6();
+
+	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+
+private:
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*,double*,double*,double*);
+
+	double dx,dy,dz;
+	double L;
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+
+    
+    flux *pflux;
+};
+
+#endif
 
