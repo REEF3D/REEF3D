@@ -104,7 +104,12 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     pbreaklog=new fnpf_breaking_log(p,c,pgc);
 	
 	if(p->P85>0)
+    {
 	pforce_ale = new force_ale*[p->P85];
+    
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->ini(p,c,pgc);
+    }
 	
 	for(n=0;n<p->P85;++n)
 	pforce_ale[n]=new force_ale(p,c,pgc,n);
@@ -117,12 +122,6 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	
 	for(n=0;n<p->P140;++n)
 	prunup[n]=new fnpf_runup(p,c,pgc,n);
-    
-    if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
-    {
-    for(n=0;n<p->P85;++n)
-    pforce_ale[n]->ini(p,c,pgc);
-    }
 }
 
 fnpf_vtu3D::~fnpf_vtu3D()
