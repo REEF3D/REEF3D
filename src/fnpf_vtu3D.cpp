@@ -108,11 +108,11 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	pforce_ale = new force_ale*[p->P85];
     
     for(n=0;n<p->P85;++n)
+	pforce_ale[n]=new force_ale(p,c,pgc,n);
+    
+    for(n=0;n<p->P85;++n)
     pforce_ale[n]->ini(p,c,pgc);
     }
-	
-	for(n=0;n<p->P85;++n)
-	pforce_ale[n]=new force_ale(p,c,pgc,n);
     
     if(p->P110==1)
     phs = new fnpf_print_Hs(p,c->Hs);
