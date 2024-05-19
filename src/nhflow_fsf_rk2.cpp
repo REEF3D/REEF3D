@@ -45,10 +45,6 @@ nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, 
     if(p->F50==4)
 	gcval_eta = 54;
 
-    SLICELOOP4
-    p->flagfsf[IJ]=1;
-    
-    pgc->gcslflagx(p,p->flagfsf);
 }
 
 nhflow_fsf_f::~nhflow_fsf_f()
@@ -71,7 +67,6 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     LOOP
     WETDRY
     K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
-    
     
     SLICELOOP4
     WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
@@ -111,7 +106,7 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     SLICELOOP4
     d->WL(i,j) = 0.5*d->WL(i,j) + 0.5*WLRK1(i,j) + 0.5*p->dt*K(i,j);
-    
+
     pflow->WL_relax(p,pgc,d->WL,d->depth);
     pflow->fsfinflow_nhflow(p,d,pgc,d->WL);
     pgc->gcsl_start4(p,d->WL,gcval_eta);
