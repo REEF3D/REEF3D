@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,12 +29,10 @@ Author: Hans Bihs
 
 void hypre_struct::fill_matrix2(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
-    fieldint2 cval2(p);
-    
     count=0;
     VFLUIDLOOP
     {
-    cval2(i,j,k)=count;
+    CVAL4[IJK]=count;
     ++count;
     }
     
@@ -48,7 +46,7 @@ void hypre_struct::fill_matrix2(lexer* p,fdm* a, ghostcell* pgc, field &f)
     {
 		VCHECK
 		{
-		n=cval2(i,j,k);
+		n=CVAL4[IJK];
         
 		values[count]=a->M.p[n];
 		++count;
@@ -123,7 +121,7 @@ void hypre_struct::fill_matrix2(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	{
 		VCHECK
 		{
-		n=cval2(i,j,k);
+		n=CVAL4[IJK];
 		values[count] = a->rhsvec.V[n];
 		}
 		

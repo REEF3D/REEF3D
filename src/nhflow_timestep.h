@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,8 +42,8 @@ public:
 
 
 private:
-	double sqd,wallu,wallv,wallw;
-	double cu,cv,cw;
+	double wallu,wallv,wallw;
+	double cu,cv,cw,co;
 	const double epsi;
 	double isor,jsor,ksor;
 	double irsm,jrsm,krsm;

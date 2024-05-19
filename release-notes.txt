@@ -1,4 +1,124 @@
 
+24.03
+x fixed 6DOF forcing update (CFD)
+x fixed 6DOF prescribed motion (CFD)
+x added explicit diffusion (NHFLOW)
+x added implicit diffusion (NHFLOW)
+x fixed vtu print out for immersive structures (FNPF and NHFLOW)
+x fixed a problem for SFLOW when wettting and drying is turned off
+x fixed continuous state file folder name (SFLOW)
+x fixed relaxation wave generation (CFD)
+x updated 6DOF STL mesh refinement options 
+x added mpi check at startup
+
+24.02
+x added 5th-order Stokes waves tutorial case to User Guide (CFD)
+x fixed VRANS vegetation inertia force (CFD)
+x changed folder and file name numbering
+x removed NSEWAVE
+x fixed 6DOF RK2 and RK3 (CFD)
+x added velocity probe (FNPF, NHFLOW, CFD)
+x added velocity probe wave theory (FNPF, NHFLOW, CFD)
+x moved discharge crossection options (CFD)
+x fixed 2D vtu print out at parallel boundaries for some pararmeters (CFD and FNPF)
+x added runup gages in x-direction cross section (NHFLOW)
+x added maximum runup vtp print out (NHFLOW)
+x reorganized 6DOF algorithm
+x added external constant angular velocities for 6DOF (CFD)
+x added state file print out time and iteration window (FNPF)
+x fixed FNPF state file print out on certain systems 
+x added wsfline print out (NHFLOW)
+x fixed NHFLOW on Ubuntu
+x NHFLOW updates
+
+23.12
+x fixed FNPF coastline bug
+x improved FNPF coastline
+x improved FNPF wetting and drying interface
+x new ioflow outflow boundary condition
+x added automatic preconditioner switch for hypre_struct multigrid
+x removed B70 (CFD)
+x improved elevation vtu printout for NUG (CFD)
+x improved outflow waterlevel calculation (CFD)
+x improved inflow waterlevel calculation (CFD)
+x fixed hypre2D breakdown for newer hypre versions (SFLOW and FNPF)
+x fixed LSRK3 for fluid flow (CFD)
+x fixed sediment transport forcing outflow (CFD)
+
+23.11
+x fixed momentum_RK2 6DOF forcing (CFD)
+x added reini_RK2 to 6DOF fb (CFD)
+x added fullini wave generation (NHFLOW)
+x added ioflow to NHFLOW
+x improved eta print out for vtp (SFLOW and NHFLOW)
+x added wave decomposition generation (NHFLOW)
+x fixed potential flow ini  for solid forcing (CFD)
+x fixed negative currents (NHFLOW)
+x fixed heave decay tutorial controls (CFD)
+x fixed potential flow ini & direct forcing crash (CFD)
+x added 6DOF external velocity ramp up (CFD)
+x updated VOF PLIC density formulation (CFD)
+x updated VOF PLIC initialization for NUG (CFD)
+x added porous wedge in y-direction to VRANS (CFD)
+x added porous wedge in x-direction to vegetation VRANS (CFD)
+x added porous wedge in y-direction to vegetation VRANS (CFD)
+x added particle framework
+x added ship waves to NHFLOW
+x fixed seg fault for comment in ctrl file
+x fixed c_wale coefficient and (CFD)
+x added take absolute value of MagSqrSd to c_wale (CFD)
+x added Dirichlet boundary condition and wavemaker (NHFLOW)
+x improved turbulence modeling for 6DOF (CFD)
+x added relaxation options to coastline and beach (FNPF)
+x fixed low storage RK scheme call (CFD)
+x added NHFLOW pressure correction
+x fixed NHFLOW vertical grid stretching
+x fixed NHFLOW sigma grid for all domain heights
+x improved FNPF wetdry robustness
+x added REEF3D version to mainlog
+x added seed number to multi-directional irregular wave generation
+x fixed AWA beach (CFD)
+x added virtual pressure gage as default
+
+23.08
+x added momentum conservative velocity treatment (CFD)
+x added direct forcing support for all Runge-Kutta schemes (CFD)
+x added fully coupled RK2 scheme (CFD)
+x added low storage RK3 scheme (CFD)
+x added pressure reference gages (CFD)
+x fixed HDC for velocity in y-direction (CFD)
+x updated AWA numerical beach (CFD)
+x improved direct forcing k-omega boundary condition handling (CFD)
+x removed IMEX implicit-explicit Runge-Kutta scheme (CFD)
+x removed fractional step Runge-Kutta scheme (CFD)
+x removed GCIBM 6DOF (CFD)
+x added NHFLOW, an efficient 3D Navier-Stokes solver on a sigma grid
+x deprecated NSEWAVE
+x added TVD schemes to water level reconstruction (SFLOW)
+x added significant wave height Hs print out to SFLOW’s vtp file
+x fixed point probes for 2D simulations
+x fixed vtu print out for 2D grids for density and concentration (CFD)
+x fixed bed shear stress calculation before sediment transport start (CFD)
+x improved FNPF wetdry algorithm
+x improved solid forcing and sediment transport (CFD)
+x fixed a patchBC line crash (CFD)
+x improved zero-pressure contour mapping to free surface (CFD)
+x added continuous file support for FNPF restart
+x updated iogravity for sloshing (CFD)
+x added solid forcing (CFD)
+x updated CFD tutorial cases
+x added new ramp-up functions for 6DOF velocity and draft (SFLOW)
+x fixed potential flow ini for complex geometries (CFD)
+x updated free stream outflow for pressure correction methods (CFD)
+x added HDC option to use slices or convert to 1D
+x added discharge probe windows (CFD)
+x added linear sloshing motion (CFD)
+x Added SGS eddy-viscosity limiter for RANS FSF damping (CFD)
+x fixed ALE force calculation for variable bed elevation (FNPF)
+x fixed walldist related sediment transport crash (CFD)
+x added ramp up function to SFLOW 6DOF draft
+
+
 23.03
 x added time-averaged velocity, pressure and temperature to vtu (CFD)
 x fixed wave period based sediment start up 

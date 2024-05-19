@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,6 +50,8 @@ public:
     void write_header(lexer*,fdm*,ghostcell*);
 	
 private:
+    void filename(lexer*,fdm*,ghostcell*,int);
+    
     void filename_single(lexer*,fdm*,ghostcell*,int);
     void filename_continuous(lexer*,fdm*,ghostcell*);
     void filename_header(lexer*,fdm*,ghostcell*);

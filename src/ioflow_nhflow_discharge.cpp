@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,14 +40,13 @@ void ioflow_f::discharge_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
 	if(p->count>0)
 	if(p->mpirank==0 && (p->count%p->P12==0))
     {
-    cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<" Hi: "<<p->phimean<<endl;
+    cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<" Hi: "<<p->phimean<<" Ai: "<<Ai<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ho: "<<p->phiout<<endl;
     }
     
     // patchBC
     //pBC->patchBC_discharge(p,a,pgc);
 }
-
 
 void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {
@@ -57,6 +56,7 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     p->Ui=0.0;
 
     // in
+    count=0;
     for(n=0;n<p->gcin_count;n++)
     if(p->gcin[n][3]>0)
     {
@@ -65,11 +65,15 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         j=p->gcin[n][1];
         k=p->gcin[n][2];
         
-        area=p->DYN[JP]*p->DZN[KP]*p->sigz[IJ];
+        area=p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+        
+        //cout<<"i: "<<i<<" p->DYN[JP]: "<<p->DYN[JP]<<" k: "<<k<<" p->DZN[KP]*p->sigz[IJ]: "<<p->DZN[KP]*p->sigz[IJ]<<" "<<p->sigz[IJ]<<endl;
 
         Ai+=area;
                 
         p->Qi+=area*d->U[Im1JK];
+        
+        ++count;
     }
 
     Ai=pgc->globalsum(Ai);
@@ -77,6 +81,7 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     
     if(p->B60==1)
     p->Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20); 
+    
     
     if(p->B60==2 || p->B60==4)
     p->Ui=hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/(Ai>1.0e-20?Ai:1.0e20);    
@@ -94,6 +99,7 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     Ao=0.0;
     p->Qo=0.0;
     p->Uo=0.0;
+    
 
     // out
     for(n=0;n<p->gcout_count;n++)
@@ -104,7 +110,7 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         j=p->gcout[n][1];
         k=p->gcout[n][2];
 
-        area=p->DYN[JP]*p->DZN[KP]*p->sigz[IJ];
+        area=p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
 
         Ao+=area;
         p->Qo+=area*d->U[IJK];
@@ -129,4 +135,5 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	
 	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)<<endl;
+    
 }

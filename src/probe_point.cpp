@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,7 +36,7 @@ probe_point::probe_point(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P61)
 	p->Iarray(flag,probenum);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_ProbePoint",0777);
 	
 	pout = new ofstream[probenum];
@@ -47,13 +47,11 @@ probe_point::probe_point(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P61)
 		// open file
 		for(n=0;n<probenum;++n)
 		{
-		if(p->P14==0)
-		sprintf(name,"REEF3D-CFD-Probe-Point-%i.dat",n+1);
-		
-		if(p->P14==1)
 		sprintf(name,"./REEF3D_CFD_ProbePoint/REEF3D-CFD-Probe-Point-%i.dat",n+1);
 		
 		pout[n].open(name);
+        
+        //cout<<pout[n].is_open()<<" "<<n+1<<endl;
 
 	    pout[n]<<"Point Probe ID:  "<<n<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
@@ -93,7 +91,7 @@ void probe_point::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		uval = p->ccipol1(a->u, xp, yp, zp);
 		vval = p->ccipol2(a->v, xp, yp, zp);
 		wval = p->ccipol3(a->w, xp, yp, zp);
-		pval = p->ccipol4_a(a->press, xp, yp, zp);
+		pval = p->ccipol4_a(a->press, xp, yp, zp) - p->pressgage;
 		kval = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
 		eval = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
 		edval = p->ccipol4_a(a->eddyv, xp, yp, zp);
@@ -135,7 +133,7 @@ void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     
 	kloc[n]=p->posc_k(p->P61_z[n]);
 
-    check=boundcheck(p,a,iloc[n],jloc[n],kloc[n],0);
+    check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
 
     if(check==1)
     flag[n]=1;

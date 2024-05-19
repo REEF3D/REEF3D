@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,25 +27,49 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"density_f.h"
 
-ghostcell::ghostcell(int& argc, char **argv,lexer* p):norm_vec(p),size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6),eps(1.0e-10),
+ghostcell::ghostcell(int& argc, char **argv,lexer *pp):size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6),eps(1.0e-10),
 														gcx(1)
 {  
+    p=pp;
+    
 	MPI_Init(&argc,&argv);
+    
     MPI_Comm_rank(MPI_COMM_WORLD,&p->mpirank);
 	MPI_Comm_size(MPI_COMM_WORLD,&p->mpi_size);	
     rank=p->mpirank;
 	
 	mpi_comm = MPI_COMM_WORLD;
-    
 }
 
 ghostcell::~ghostcell()
 {
 }
 
+void ghostcell::mpi_check(lexer* p)
+{
+    int check=1;
+    int ok=0;
+    
+    check=globalisum(check);
+    
+    if(check==p->mpi_size)
+    ok=1;
+    
+    if(p->mpirank==0 && ok==0)
+    cout<<"mpi - checksum: "<<check<<" vs "<<p->mpi_size;
+    
+    //if(p->mpirank==0 && ok==1)
+    //cout<<" ... ok";
+    
+    if(p->mpirank==0 && ok==0)
+    cout<<" ... mismatch";
+    
+    if(p->mpirank==0)
+    cout<<endl;
+}
+
 void ghostcell::gcini(lexer* p)
 {
-
     margin=p->margin;
 	paramargin=p->margin;
     gamma=p->B29;
@@ -80,28 +104,29 @@ void ghostcell::gcini(lexer* p)
 
     tag=0;    
 	
-	
+
 	gcx_count[0] = p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin;
 	gcx_count[1] = p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin;
 	gcx_count[2] = p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin;
 	gcx_count[3] = p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin;
 	gcx_count[4] = p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin;
 	gcx_count[5] = p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin;
-	
-	p->Darray(send1,p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin);
-	p->Darray(send2,p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin);
-	p->Darray(send3,p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin);
-	p->Darray(send4,p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin);
+    
+
+	p->Darray(send1,(p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin);
+	p->Darray(send2,(p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin);
+	p->Darray(send3,(p->gcpara3_count+p->flast)*paramargin + p->gcparaco3_count*paramargin);
+	p->Darray(send4,(p->gcpara4_count+p->flast)*paramargin + p->gcparaco4_count*paramargin);
 	p->Darray(send5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
 	p->Darray(send6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
 	
-	p->Darray(recv1,p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin);
-	p->Darray(recv2,p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin);
-	p->Darray(recv3,p->gcpara3_count*paramargin + p->gcparaco3_count*paramargin);
-	p->Darray(recv4,p->gcpara4_count*paramargin + p->gcparaco4_count*paramargin);
+	p->Darray(recv1,(p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin);
+	p->Darray(recv2,(p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin);
+	p->Darray(recv3,(p->gcpara3_count+p->flast)*paramargin + p->gcparaco3_count*paramargin);
+	p->Darray(recv4,(p->gcpara4_count+p->flast)*paramargin + p->gcparaco4_count*paramargin);
 	p->Darray(recv5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
 	p->Darray(recv6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
-	
+    
 	p->Darray(send,6,gcx_count);
 	p->Darray(recv,6,gcx_count);
 	
@@ -196,16 +221,9 @@ void ghostcell::gcini(lexer* p)
     gclabel_v_orth=11;
     gclabel_w_orth=11;
     }
-	
-	
-	if(p->B26==1 || p->B26==3)
+
+
 	gclabel_lsm=4;
-	
-	if(p->B26==2)
-	gclabel_lsm=3;
-    
-    if(p->B26==0)
-	gclabel_lsm=22;
 	
 	
 	awa_lable=0;
@@ -273,7 +291,7 @@ void ghostcell::gcini(lexer* p)
     
     // pressure outflow
     pressout_lable=0;
-	if(p->B77==-1 || p->B77==2)
+	if(p->B77==1 || p->B77==2)
 	pressout_lable=1;
     
     

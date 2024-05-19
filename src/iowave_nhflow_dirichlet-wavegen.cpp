@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
         count=0;
 		for(n=0;n<p->gcin_count;++n)
@@ -38,9 +38,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
         
-            U[Im1JK]=uvel+p->Ui;
-            U[Im2JK]=uvel+p->Ui;
-            U[Im3JK]=uvel+p->Ui;
+            U[Im1JK]=uvel;
+            U[Im2JK]=uvel;
+            U[Im3JK]=uvel;
             
             V[Im1JK]=vvel;
             V[Im2JK]=vvel;
@@ -49,6 +49,23 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             W[Im1JK]=wvel;
             W[Im2JK]=wvel;
             W[Im3JK]=wvel;
+            
+        uvel=UHval[count]*ramp(p);
+        vvel=VHval[count]*ramp(p);
+        wvel=WHval[count]*ramp(p);
+            
+            
+            UH[Im1JK]=uvel;
+            UH[Im2JK]=uvel;
+            UH[Im3JK]=uvel;
+            
+            VH[Im1JK]=vvel;
+            VH[Im2JK]=vvel;
+            VH[Im3JK]=vvel;
+            
+            WH[Im1JK]=wvel;
+            WH[Im2JK]=wvel;
+            WH[Im3JK]=wvel;
             
         ++count;
 		}
@@ -63,8 +80,8 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             j=p->gcin[n][1];
             k=p->gcin[n][2];
             
-            d->eddyv[IJK]=MIN(d->eddyv[IJK],1.0e-4);
+            d->EV[IJK]=MIN(d->EV[IJK],1.0e-4);
             }
-        pgc->start4V(p,d->eddyv,d->bc,24);
+        pgc->start4V(p,d->EV,24);
 		}
 }

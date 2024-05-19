@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -127,7 +127,7 @@ void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     if(p->T41==1)
     LOOP
 	a->eddyv(i,j,k) = MIN(eddyv0(i,j,k), MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0)
-                                         *(p->cmu*kw_alpha*rotationterm(p,a))/(p->T42*kw_beta*strainterm(p,a)));
+                                         *(p->cmu*kw_alpha*pow(rotationterm(p,a),2.0))/(p->T42*kw_beta*pow(strainterm(p,a),2.0)));
 	
     
     if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
@@ -189,19 +189,29 @@ void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
 
     LOOP
     {
-	if(wallf(i,j,k)==0)
-	a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
-	
-	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  += pk(p,a);
-
+        if(wallf(i,j,k)==0)
+        {
+        a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
+        a->rhsvec.V[count]  += pk(p,a,a->eddyv);
+        }
+        
+	++count;
+    }
+    
+    count=0;
+    
+    if(p->T44==1)
+    LOOP
+    {
+        a->rhsvec.V[count]  -= pk_b(p,a,a->eddyv);
+        
 	++count;
     }
     
     pvrans->kw_source(p,a,kin);
 }
 
-void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans)
+void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
 {
     count=0;
     double dirac;
@@ -210,17 +220,15 @@ void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans)
         {
 		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
 
-        a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a);
+        a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a,eddyv0);
         ++count;
         }
 
-    
     pvrans->omega_source(p,a,kin,eps);
 }
 
 void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 {
-	
 	if(p->T36>0)
 	LOOP
 	{

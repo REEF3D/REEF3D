@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,8 +28,6 @@ Author: Hans Bihs
 vrans_f::vrans_f(lexer *p, ghostcell *pgc) : Cval(p->B264), porpart(p), alpha(p), beta(p)
 {
 	//initialize(p,a,pgc);
-    
-    
 }
 
 vrans_f::~vrans_f()

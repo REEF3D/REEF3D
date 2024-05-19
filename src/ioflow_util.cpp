@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"vrans.h"
+#include"patchBC_interface.h"
 
 void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -52,7 +53,6 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     {
         if(p->gcb4[n][4]==1)
         {
-        //cout<<p->mpirank<<" ioflow  | "<<p->gcb4[n][0]<<" "<<p->gcb4[n][1]<<" "<<p->gcb4[n][2]<<" . "<<p->gcb4[n][3]<<" "<<p->gcb4[n][4]<<endl;
         p->gcin[count1][0]=p->gcb4[n][0];
         p->gcin[count1][1]=p->gcb4[n][1];
         p->gcin[count1][2]=p->gcb4[n][2];
@@ -121,6 +121,89 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
     p->gcin4a_count=count1;
     p->gcout4a_count=count2;
+    
+    
+    // BC update
+    MALOOP
+    p->BC[IJK] = 0;
+    
+    GC4LOOP
+    {
+        if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
+        {
+        i = p->gcb4[n][0];
+        j = p->gcb4[n][1];
+        k = p->gcb4[n][2];
+        
+        // inflow
+        if(p->gcb4[n][3]==1)
+        p->BC[Im1JK] = 1;
+        
+        if(p->gcb4[n][3]==4)
+        p->BC[Ip1JK] = 1;
+        
+        if(p->gcb4[n][3]==3)
+        p->BC[IJm1K] = 1;
+        
+        if(p->gcb4[n][3]==2)
+        p->BC[IJp1K] = 1;
+        
+        if(p->gcb4[n][3]==5)
+        p->BC[IJKm1] = 1;
+        
+        if(p->gcb4[n][3]==6)
+        p->BC[IJKp1] = 1;
+        }
+
+        if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
+        {
+        i = p->gcb4[n][0];
+        j = p->gcb4[n][1];
+        k = p->gcb4[n][2];
+        
+        // outflow
+        if(p->gcb4[n][3]==1)
+        p->BC[Im1JK] = 2;
+        
+        if(p->gcb4[n][3]==4)
+        p->BC[Ip1JK] = 2;
+
+        if(p->gcb4[n][3]==3)
+        p->BC[IJm1K] = 2;
+        
+        if(p->gcb4[n][3]==2)
+        p->BC[IJp1K] = 2;
+        
+        if(p->gcb4[n][3]==5)
+        p->BC[IJKm1] = 2;
+        
+        if(p->gcb4[n][3]==6)
+        p->BC[IJKp1] = 2;
+        }
+    }
+       
+    for(int qq=0;qq<pBC->obj_count;++qq)
+    for(n=0;n<pBC->patch[qq]->gcb_count;++n)
+    {
+    
+    if(pBC->patch[qq]->gcb[n][3]==1)
+    p->BC[Im1JK] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==4)
+    p->BC[Ip1JK] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==3)
+    p->BC[IJm1K] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==2)
+    p->BC[IJp1K] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==5)
+    p->BC[IJKm1] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==6)
+    p->BC[IJKp1] = 1;
+    }
 
 }
 
@@ -186,6 +269,8 @@ void ioflow_f::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 
     p->gcin_count=count1;
     p->gcout_count=count2;
+    
+    
 }
 
 void ioflow_f::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -437,9 +437,9 @@ void net_barDyn::create_triangle
 	
 	if 
 	(
-		   SIGN(nx) != SIGN(nx_old) 
-		|| SIGN(ny) != SIGN(ny_old) 
-		|| SIGN(nz) != SIGN(nz_old)
+		   SIGN(nx)!=SIGN(nx_old) 
+		|| SIGN(ny)!=SIGN(ny_old) 
+		|| SIGN(nz)!=SIGN(nz_old)
 	)
 	{
 		tri_x_new[0] = x2;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,12 +34,7 @@ void cfd_state::ini_mainheader(lexer *p, fdm *a, ghostcell *pgc)
     ofstream mainout;
     
     // open file
-	if(p->P14==0)
-    mainout.open("REEF3D-CFD_State_Mainheader.r3d", ios::binary);
-
-	if(p->P14==1)
 	mainout.open("./REEF3D_CFD_STATE/REEF3D-CFD_State_Mainheader.r3d", ios::binary);
-
 
     // ini write
     iin=p->M10;
@@ -78,10 +73,6 @@ void cfd_state::write_mainheader(lexer *p, fdm *a, ghostcell *pgc)
     ofstream mainout;
     
     // open file
-	if(p->P14==0)
-    mainout.open("REEF3D-CFD_State_Mainheader.r3d", ios::binary | ios::app);
-
-	if(p->P14==1)
 	mainout.open("./REEF3D_CFD_STATE/REEF3D-CFD_State_Mainheader.r3d", ios::binary | ios::app);
 
     iin=p->count;

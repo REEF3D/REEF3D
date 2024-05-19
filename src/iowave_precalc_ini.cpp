@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,6 +26,9 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 {
+    // prestep
+    wave_prestep(p,pgc);
+    
     if(p->A10!=3)
     {
         if(p->B98==2)
@@ -42,15 +45,6 @@ void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
         
         if(p->B98==3 || p->B98==4)
         fnpf_precalc_dirichlet_ini(p,pgc);
-    }
-    
-    if(p->A10==55) // NHFLOW
-    {
-        if(p->B98==2)
-        nhflow_precalc_relax_ini(p,pgc);
-        
-        if(p->B98==3 || p->B98==4)
-        nhflow_precalc_dirichlet_ini(p,pgc);
     }
 }
 
@@ -71,8 +65,9 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
         
     }
     
+
     // U ------------------------------------------------
-    UBASELOOP
+    BASELOOP
     {
         dg = distgen(p);
         
@@ -83,11 +78,10 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
             if(dg<1.0e20)
             ++upt_count;
 		}
-    }
+    }    
     
-    
-    // U ------------------------------------------------
-    VBASELOOP
+    // V ------------------------------------------------
+    BASELOOP
     {
 		dg = distgen(p);
 
@@ -102,7 +96,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
     }
     
     // W ------------------------------------------------
-    WBASELOOP
+    BASELOOP
     {
 		dg = distgen(p); 
 

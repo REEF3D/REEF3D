@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -81,7 +81,7 @@ double rans_io::ccipol_a_kinval(lexer *p, ghostcell *pgc, double xp, double yp, 
 {
     double val;
 
-    val=p->ccipol4_a( kin, xp, yp, zp);
+    val=p->ccipol4_kin( kin, xp, yp, zp);
 
     return val;
 }

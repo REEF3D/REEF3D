@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -152,8 +152,7 @@ wave_interface::~wave_interface()
 
 double wave_interface::wave_u(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
-	starttime=pgc->timer();
-	
+
     double uvel=0.0;
     
     z = MAX(z,-wD);
@@ -161,31 +160,23 @@ double wave_interface::wave_u(lexer *p, ghostcell *pgc, double x, double y, doub
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     uvel = pwave->wave_u(p,x,y,z);
 	
-	p->wavetime+=pgc->timer()-starttime;
-	
     return uvel;
 }
 
 double wave_interface::wave_v(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
-    starttime=pgc->timer();
-	
     double vvel=0.0;
     
     z = MAX(z,-wD);
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     vvel = pwave->wave_v(p,x,y,z);
-	
-	p->wavetime+=pgc->timer()-starttime;
-	
+
     return vvel;
 }
 
 double wave_interface::wave_w(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
-	starttime=pgc->timer();
-	
     double wvel=0.0;
     
     z = MAX(z,-wD);
@@ -193,50 +184,36 @@ double wave_interface::wave_w(lexer *p, ghostcell *pgc, double x, double y, doub
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     wvel = pwave->wave_w(p,x,y,z);
 
-	p->wavetime+=pgc->timer()-starttime;
-
     return wvel;
 }
 
 double wave_interface::wave_h(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
-	starttime=pgc->timer();
-	
     double lsv=p->phimean;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     lsv=p->phimean + pwave->wave_eta(p,x,y);
-	
-	p->wavetime+=pgc->timer()-starttime;
-	
+
     return lsv;
 }
 
 double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
-	starttime=pgc->timer();
-	
     double pval=0.0;
     
     z = MAX(z,-wD);
     
     pval = pwave->wave_fi(p,x,y,z);
 	
-	p->wavetime+=pgc->timer()-starttime;
-
     return pval;
 }
 
 double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
 {
-    starttime=pgc->timer();
-	
     double eta=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     eta = pwave->wave_eta(p,x,y);
-	
-	p->wavetime+=pgc->timer()-starttime;
 	
     return eta;
 }

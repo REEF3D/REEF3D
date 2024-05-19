@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"increment.h"
+#include"pressure_reference.h"
 
 class heat;
 class concentration;
@@ -32,15 +32,16 @@ using namespace std;
 #ifndef PJM_H_
 #define PJM_H_
 
-class pjm : public pressure, public increment
+class pjm : public pressure, public pressure_reference
 {
 
 public:
 
-	pjm(lexer* p, fdm *a, heat*&, concentration*&);
+	pjm(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~pjm();
 
 	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);
+    virtual void ini(lexer*,fdm*,ghostcell*);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void ucorr(lexer*,fdm*,field&,double);
@@ -51,7 +52,6 @@ public:
     virtual void wpgrad(lexer*,fdm*,slice&,slice&);
 
 private:    
-    void normalize(lexer*,fdm*,ghostcell*);
     void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	double starttime,endtime;
 	int count, gcval_press;

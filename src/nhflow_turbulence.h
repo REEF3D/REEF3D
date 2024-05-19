@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,8 +22,8 @@ Author: Hans Bihs
 
 class fdm_nhf;
 class lexer;
-class nhflow_convection;
-class diffusion;
+class nhflow_scalar_convection;
+class nhflow_diffusion;
 class solver;
 class ghostcell;
 class ioflow;
@@ -40,7 +40,7 @@ class nhflow_turbulence
 {
 
 public:
-	virtual void start(fdm_nhf*, lexer*, nhflow_convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*)=0;
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*)=0;
 	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*)=0;
 	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*)=0;
 	virtual void isource(lexer*, fdm_nhf*)=0;

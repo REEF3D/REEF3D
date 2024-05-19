@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,6 +25,8 @@ Author: Hans Bihs
 int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 {
 //	Velocities
+    if(gcv==50)
+	return 4;
     
     // Parallel
 	// Wall
@@ -100,7 +102,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	return 4;
 
 	else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==19 || gcv==3) && p->A10!=3 && p->A10!=55)
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==19 || gcv==3) && p->A10!=3 && p->A10!=5)
 	return 5;
     
     else
@@ -108,7 +110,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 	return 4;
     
     else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==19||gcv==3||gcv==112) && p->A10==55)
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12||gcv==19||gcv==3||gcv==112) && p->A10==5)
 	return 9;
 	
 	else

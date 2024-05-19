@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,9 +23,6 @@ Author: Hans Bihs
 #include"sflow_pressure.h"
 #include"increment.h"
 #include"slice4.h"
-
-class sflow_weno_hj;
-class sflow_gradient_weno;
 
 using namespace std;
 
@@ -62,8 +59,6 @@ private:
 	double solvtime,ptime;
     double wd_criterion;
     
-	sflow_weno_hj *disc;
-    sflow_gradient_weno *pgrad;
     patchBC_interface *pBC;
 
 };

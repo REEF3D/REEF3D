@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,13 +58,16 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     // bedload *******
     pbed->start(p,pgc,s);
 	
+    // relax *******
+	prelax->start(p,pgc,s);
+    
     // Exner *******
     ptopo->start(p,pgc,s);
     
     // sandslide ********
     pslide->start(p,pgc,s);
     
-    // relax bedzh *******
+    // relax *******
 	prelax->start(p,pgc,s);
 	
     // filter bedzh *******

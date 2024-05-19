@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,7 +23,6 @@ Author: Hans Bihs
 #include"6DOF_sflow.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
 #include"vrans.h"
 
@@ -64,7 +63,5 @@ double sixdof_sflow::ramp_draft(lexer *p)
     if(p->X207==1 && p->simtime<p->X207_ts)
     f=0.0;
     
-    //cout<<"RAMP F: "<<f<<endl;
-
     return f;
 }

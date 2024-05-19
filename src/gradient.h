@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -80,17 +80,6 @@ public:
 	 double zdxz(fdm*, field&);
 	 double zdyz(fdm*, field&);
 
-	 double ddwenox(fdm*, field&, double);
-	 double ddwenoy(fdm*, field&, double);
-	 double ddwenoz(fdm*, field&, double);
-	 
-	 double dfwenox(fdm*, field&, double);
-	 double dfwenoy(fdm*, field&, double);
-	 double dfwenoz(fdm*, field&, double);
-     
-     double dslwenox(fdm*, slice&, double);
-	 double dslwenoy(fdm*, slice&, double);
-
 	//--------------------------------
 
 	//p
@@ -154,47 +143,9 @@ public:
 	double grad;
 	const double dx;
 
-	void iqmin(field&, double);
-	void jqmin(field&, double);
-	void kqmin(field&, double);
-	void iqmax(field&, double);
-	void jqmax(field&, double);
-	void kqmax(field&, double);
-    
-    void iqminsl(slice&, double);
-	void jqminsl(slice&, double);
-	void iqmaxsl(slice&, double);
-	void jqmaxsl(slice&, double);
-
-	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-	const double sixten,treten;
-	const double epsilon,smallnum;
-	double is1,is2,is3;
-	double alpha1,alpha2,alpha3;
-	double w1,w2,w3;
-	double q1,q2,q3,q4,q5;
 	double gradx, grady, gradz;
 	double f1,f2,f3,f4;
 	
-	double ddx,ddy,ddz;
-	double fu1,fv1,fw1,fu2,fv2,fw2;
-	double fx(fdm*, field&, double);
-	double fy(fdm*, field&, double);
-	double fz(fdm*, field&, double);
-	void iqfmin(field&);
-	void jqfmin(field&);
-	void kqfmin(field&);
-	void iqfmax(field&);
-	void jqfmax(field&);
-	void kqfmax(field&);
-	void isf(field&);
-	void alphaf();
-	void weightf();
-
-	void is();
-	void alpha();
-	void weight();
-    
     lexer *p;
 };
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -68,22 +68,17 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	
 	if(p->F310==3)
 	preini = new reinifluid_RK3(p,1);
-	
-	if(p->F310==5)
-	preini = new reinivc_RK3(p);
-	
-	if(p->F310==7)
-	preini = new reinigc_RK3(p,a);
+
 	
 	if(p->F310==11 || p->F310==13 || p->F310==14)
 	preini = new directreini(p,a);
 	
 
 	if(p->F31==0)
-	ppart = new particle_pls_void();
+	ppls = new particle_pls_void();
 
 	if(p->F31==1 || p->F31==2)
-	ppart = new particle_pls(p,a,pgc);
+	ppls = new particle_pls(p,a,pgc);
 	
 	if(p->W90==0)
 	pupdate = new multiphase_fluid_update_f(p,a,pgc);

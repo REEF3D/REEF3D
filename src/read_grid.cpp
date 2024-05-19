@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -311,7 +311,6 @@ void lexer::read_grid()
     assign_margin();
 	
 	Iarray(flag4,imax*jmax*kmax);
-    Iarray(flag9,imax*jmax*kmax);
     
     //if(solidread==1)
 	Darray(flag_solid,imax*jmax*kmax);
@@ -324,11 +323,14 @@ void lexer::read_grid()
     Darray(topobed,imax*jmax);
     Darray(bed,imax*jmax);
     Iarray(wet,imax*jmax);
+    Iarray(wet_n,imax*jmax);
+    Iarray(deep,imax*jmax);
     Darray(depth,imax*jmax);
 	Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);
     Iarray(flagslice2,imax*jmax);
     Iarray(flagslice4,imax*jmax);
+    Iarray(flagfsf,imax*jmax);
 	Iarray(tpflagslice,imax*jmax);
 
 	for(i=0;i<imax*jmax*kmax;++i)

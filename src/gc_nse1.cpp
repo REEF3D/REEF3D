@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,6 +29,7 @@ void ghostcell::nse1(lexer *p, fdm *a, field &f, int gcv)
     
     double nx,ny,nz,dnorm;
     double xp, yp, zp;
+    double xc, yc, zc;
     double lsv;
     double psi;
     
@@ -61,15 +62,19 @@ void ghostcell::nse1(lexer *p, fdm *a, field &f, int gcv)
         ny/=dnorm;
         nz/=dnorm;
         
-        xp = p->pos1_x() + nx*(1.0*fabs(lsv)+2.0*p->DXN[IP]);
-        yp = p->pos1_y() + ny*(1.0*fabs(lsv)+2.0*p->DYP[JP]);
-        zp = p->pos1_z() + nz*(1.0*fabs(lsv)+2.0*p->DZP[KP]);
+        xc = p->pos1_x();
+        yc = p->pos1_y();
+        zc = p->pos1_z();
+        
+        xp = p->pos1_x() + nx*(1.0*fabs(lsv)+0.0*p->DXN[IP]);
+        yp = p->pos1_y() + ny*(1.0*fabs(lsv)+0.0*p->DYP[JP]);
+        zp = p->pos1_z() + nz*(1.0*fabs(lsv)+0.0*p->DZP[KP]);
         
         
         f(i,j,k) = p->ccipol1_a(f, xp, yp, zp);
         
         //if(p->mpirank==3)
-        //cout<<" xp: "<<nx<<" yp: "<<yp<<" zp: "<<zp<<" |  nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" lsm: "<<lsv<<" |  "<<p->ccipol1_a(f, xp, yp, zp)<<" "<<p->ccipol4_a(a->phi, xp, yp, zp)<<endl;
+        cout<<" xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<" | "<<" xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<" |  nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" lsm: "<<lsv<<" |  "<<p->ccipol1_a(f, xp, yp, zp)<<" "<<p->ccipol4_a(a->phi, xp, yp, zp)<<endl;
         }
     
     }

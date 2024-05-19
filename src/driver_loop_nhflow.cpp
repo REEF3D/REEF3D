@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,8 +35,9 @@ Author: Hans Bihs
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"
-#include"waves_header.h"
+#include"nhflow_header.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 
 void driver::loop_nhflow()
 {
@@ -55,7 +56,7 @@ void driver::loop_nhflow()
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;
-		cout<<"timestep: "<<p->dt<<endl;
+        cout<<"timestep: "<<p->dt<<endl;
         
 		if(p->B90>0 && p->B92<=11)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;
@@ -65,17 +66,18 @@ void driver::loop_nhflow()
         }
         
         pflow->flowfile(p,a,pgc,pturb);
-        pflow->wavegen_precalc(p,pgc);
-        
-        // Free Surface
-        pnhfsf->start(p,d,pgc,pflow);
+        pflow->wavegen_precalc_nhflow(p,d,pgc);
 			
-        //pnhfturb->start(d,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);        
+        pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pvrans);        
         
 		// Sediment Computation
         //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
-
-        pnhfmom->start(p,d,pgc,pflow,pnhfconvec,pdiff,pnhpress,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
+        
+        // 6DOF
+        p6dof->start_oneway(p,pgc,d->fs);
+        
+        pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
+                       pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
 
         //save previous timestep
         //pturb->ktimesave(p,a,pgc);
@@ -102,12 +104,12 @@ void driver::loop_nhflow()
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
 		
-		if(p->B90>0)
+		
         if(p->count%p->P12==0)
         {
+        if(p->B90>0)
 		cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
 		
-		cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
         cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
 		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;

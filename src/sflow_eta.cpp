@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"sflow_eta_weno.h"
 #include"sflow_hxy_weno.h"
+#include"sflow_hxy_hires.h"
 #include"sflow_hxy_cds.h"
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"
@@ -65,6 +66,9 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
 	
 	if(p->A241==4)
 	phxy = new sflow_hxy_weno(p,pBC);
+    
+    if(p->A241>=6)
+	phxy = new sflow_hxy_hires(p,pBC,p->A241);
     
     wd_criterion=0.00005;
     
@@ -165,6 +169,7 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
 
     if(p->A243>=1)
     wetdry(p,b,pgc,P,Q,ws);
+    
 }
 	
 void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)

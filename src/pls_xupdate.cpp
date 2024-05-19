@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,7 +39,7 @@ void particle_pls::xupdate(lexer* p, fdm* a, ghostcell* pgc)
             j=int((pos[n][1])/dx);
             k=int((pos[n][2])/dx);
 
-            check=boundcheck(p,a,i,j,k,1);
+            check=boundcheck(p,i,j,k,1);
 			
 			// remove particle_plss, which have been sent off
 			if(check==1)
@@ -51,7 +51,7 @@ void particle_pls::xupdate(lexer* p, fdm* a, ghostcell* pgc)
             removed++;
             }
 			
-			check=boundcheck(p,a,i,j,k,0);
+			check=boundcheck(p,i,j,k,0);
 			
 			// reinstate received particle_plss, after they have left the para zone
 			if(check==1)
@@ -70,7 +70,7 @@ void particle_pls::xupdate(lexer* p, fdm* a, ghostcell* pgc)
             j=int((neg[n][1])/dx);
             k=int((neg[n][2])/dx);
 
-            check=boundcheck(p,a,i,j,k,1);
+            check=boundcheck(p,i,j,k,1);
 
             if(check==1)
             if(negflag[n]==2)
@@ -81,7 +81,7 @@ void particle_pls::xupdate(lexer* p, fdm* a, ghostcell* pgc)
             removed++;
             }
 			
-			check=boundcheck(p,a,i,j,k,0);
+			check=boundcheck(p,i,j,k,0);
 			
 			if(check==1)
             if(negflag[n]==3)

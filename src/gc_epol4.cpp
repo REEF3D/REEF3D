@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,13 +29,8 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 //Level Set
 
 	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41||bc==221||bc==211||bc==121||bc==111) 
-        && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26<3 || cs!=5))
+        && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
 	return gclabel_lsm;
-
-	else
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==7||bc==8||bc==9||bc==41||bc==221||bc==211||bc==121||bc==111) 
-        && (gcv==51 || gcv==52 || gcv==53 || gcv==54) && (p->B26==3 && cs==5) && p->count>0)
-	return 3;
 	
 	else
 	if((bc==3||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
@@ -84,25 +79,12 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     // outflow
     else
 	if(( (bc==2&&pressout_lable==0) ||bc==211||bc==212||bc==112||bc==111) && gcv==40)
-	return gclabel_press;
-	
+    return gclabel_press;
     
-    // pressure floating_gc
-	else
-	if((bc==41||bc==42||bc==43) && gcv==40 && (cs==2||cs==3||cs==1||cs==4))
-	return 9;
-    
-	else
-	if((bc==41||bc==42||bc==43) && gcv==40 && (cs==5||cs==6) )
-	return 9;
-	
-	else
-	if((bc==41||bc==42||bc==43) && (cs==5||cs==6) && gcv==401)
-	return 10;
-    
-	else
-	if((bc==41||bc==42||bc==43) && (cs==5||cs==6) && gcv==402)
-	return 9;
+    // amtosphere
+    else
+	if(bc==9 && gcv==40)
+	return 21;
 	
 // ro
     else
@@ -205,7 +187,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	return 4;
 
 	else
-	if(bc==3 && (cs==5||cs==6)&&(gcv==12) && p->A10==55)
+	if(bc==3 && (cs==5||cs==6)&&(gcv==12) && p->A10==5)
 	return 4;
 	
 // VOF
@@ -357,12 +339,6 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	if(bc_label==7)
 	potentialbc(p,f,bc,cs);
 
-	if(bc_label==8)
-	neumann_press(p,f,dist,gcv,bc,cs);
-	
-	if(bc_label==9)
-	fbpress(p,f,dist,gcv,bc,cs);
-	
 	if(bc_label==10)
 	gravity_press(p,f,dist,gcv,bc,cs);
     

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,7 +27,7 @@ Author: Dave Kelly
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fnpf_print_Hs::fnpf_print_Hs(lexer *p, fdm_fnpf *c) : ETAsum(p), ETAmean(p), //DKAF
+fnpf_print_Hs::fnpf_print_Hs(lexer *p, slice &Hs) : ETAsum(p), ETAmean(p), //DKAF
                                                     ETA2sum(p), ETAvar(p)
 {
     NumDT1=0;      
@@ -37,7 +37,6 @@ fnpf_print_Hs::fnpf_print_Hs(lexer *p, fdm_fnpf *c) : ETAsum(p), ETAmean(p), //D
     //T_INTV_mean = 3600.0; // Averaging time for sig. wave height
     wtime=0.0;
     stime = p->P111;        // Start avreging after transients
-    
     
     // Initialise
     wtime  = 0.0;
@@ -50,16 +49,15 @@ fnpf_print_Hs::fnpf_print_Hs(lexer *p, fdm_fnpf *c) : ETAsum(p), ETAmean(p), //D
     ETAmean(i,j)       = 0.0;
     ETA2sum(i,j)       = 0.0;
     ETAvar(i,j)        = 0.0;
-    c->Hs(i,j)         = 0.0;
+    Hs(i,j)            = 0.0;
     }
-	
 }
 
 fnpf_print_Hs::~fnpf_print_Hs()
 {
 }
 
-void fnpf_print_Hs::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
+void fnpf_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
 {
     // RK3
 
@@ -69,17 +67,15 @@ void fnpf_print_Hs::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
     T_sum  += p->dt; //DKAF
     NumDT1 += 1;    //DKAF
     
-    //cout << "%%%%%%%%%%%%%%%%%%%%% " << NumDT1 <<endl;
-    //cout << "%%%%%%%%%%%%%%%%%%%%% " << T_sum <<endl;
     
     SLICELOOP4
     {
 	 // Here we do the wave-averaging NB: c->eta(i,j) is the FS
 	 // variance equation with etamean initially unknown
       
-    ETAsum(i,j)      += c->eta(i,j)*p->dt;
+    ETAsum(i,j)      += eta(i,j)*p->dt;
     ETAmean(i,j)      = ETAsum(i,j)/T_sum;
-    ETA2sum(i,j)     += c->eta(i,j)*c->eta(i,j);
+    ETA2sum(i,j)     += eta(i,j)*eta(i,j);
     
     //cout << "T_sum " << T_sum << " wtim " << wtime <<endl;
     //cin.get();  
@@ -87,26 +83,14 @@ void fnpf_print_Hs::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
     //if(T_sum>=T_INTV_mean)
 	  //{ 
 	    ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1));
-	    c->Hs(i,j)         = 4.0*sqrt(ETAvar(i,j));
+	    Hs(i,j)         = 4.0*sqrt(ETAvar(i,j));
     //}
 	  
-    } //end slice4loop	
- /*
-    if(T_sum>=T_INTV_mean)
-    {
-    T_sum  -= T_INTV_mean; // Doesn't need looping	
-    NumDT1  = 0;
+    }
     
-        SLICELOOP4
-        {
-        ETAsum(i,j)  = 0.0;
-        ETA2sum(i,j) = 0.0;
-        }
-    }	*/
-    
-   }// End check we're past transients
+   }
    
-   pgc->gcsl_start4(p,c->Hs,1);
+   pgc->gcsl_start4(p,Hs,1);
 }
 
 

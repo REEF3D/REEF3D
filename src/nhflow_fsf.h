@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,13 +47,26 @@ class nhflow_fsf
 {
 public:    
     virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
-    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
+    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*)=0;
     
-    virtual void step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
-    virtual void step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
-    virtual void step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
+    virtual void rk2_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
+    virtual void rk2_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
+    
+    virtual void rk3_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
+    virtual void rk3_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
+    virtual void rk3_step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
+    
+    virtual void flux_update(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
+    
+    virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&)=0;
+    virtual void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*)=0;
+    
+    virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&)=0;
+    virtual void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*)=0;
+    
+    virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double)=0;
+    virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double)=0;
 
-        
 
 };
 

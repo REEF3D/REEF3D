@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,21 +29,28 @@ Author: Hans Bihs
 
 onephase_v::onephase_v(lexer *p, fdm *a, ghostcell *pgc) 
 {
-
 }
 
 onephase_v::~onephase_v()
 {
-    
 }
 
 void onephase_v::update(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
-{
-    
+{    
 }
-
 
 void onephase_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
-    
+}
+
+void onephase_v::uvel(lexer*, fdm*, ghostcell*, field&)
+{
+}
+
+void onephase_v::vvel(lexer*, fdm*, ghostcell*, field&)
+{
+}
+
+void onephase_v::wvel(lexer*, fdm*, ghostcell*, field&)
+{
 }

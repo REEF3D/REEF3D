@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,71 +28,72 @@ Author: Hans Bihs
 void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(p->mpirank==0)
-    cout<<"full NWT initialize"<<endl;
+    cout<<"full NWT initialize "<<endl;
     
     // eta
 	SLICELOOP4
+    WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
 
-		d->eta(i,j) = wave_eta(p,pgc,xg,0.0);
+		d->eta(i,j) = wave_eta(p,pgc,xg,yg);
     }
     
     SLICELOOP4
-    d->WL(i,j) = MAX(0.0, d->eta(i,j) + p->wd - d->bed(i,j));
+    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
+
+    FLOOP
+    p->ZSN[FIJK] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
     
-    p->sigma_update(p,d,pgc,d->eta,d->eta,1.0);
+    LOOP
+    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
 	
+    
 	LOOP
+    WETDRY
     {
-		xg = xgen(p);
+        xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
         
         z=p->ZSP[IJK]-p->phimean;
 
-		d->U[IJK] = wave_u(p,pgc,xg,yg,z);
+        d->U[IJK] = wave_u(p,pgc,xg,yg,z);
+        d->UH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->U[IJK];
 	}	
 	
 	LOOP
+    WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
         
-		z=p->ZSP[IJK]-p->phimean;
+        z=p->ZSP[IJK]-p->phimean;
 		
-		d->V[IJK] = wave_v(p,pgc,xg,yg,z);
+        d->V[IJK] = wave_v(p,pgc,xg,yg,z);
+        d->VH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->V[IJK];
 	}
 	
 	LOOP
+    WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
         
-		z=p->ZSP[IJK]-p->phimean;
+        z=p->ZSP[IJK]-p->phimean;
 		
-		d->W[IJK] = wave_w(p,pgc,xg,yg,z);
+        d->W[IJK] = wave_w(p,pgc,xg,yg,z);
+        d->WH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->W[IJK];
 	}
 	
-    //if(p->I10==1 || p->I12==1)
 	FLOOP
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
-		
-		d->P[FIJK] = 0.0;//(wave_h(p,pgc,xg,0.0,0.0) - p->ZN[KP])*a->ro(i,j,k)*fabs(p->W22);
-	}
+    d->P[FIJK] = 0.0;
 	
-	
+    pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
+    pgc->start4V(p,d->W,12);
     
+    pgc->start4V(p,d->UH,10);
+    pgc->start4V(p,d->VH,11);
+    pgc->start4V(p,d->WH,12);
 }

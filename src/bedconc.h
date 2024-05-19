@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,8 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-
 class lexer;
 class sediment_fdm;
 class ghostcell;
@@ -31,21 +29,12 @@ class ghostcell;
 
 using namespace std;
 
-class bedconc : public increment
+class bedconc 
 {
 public:
-	bedconc(lexer*);
-	virtual ~bedconc();
-	void start(lexer*,ghostcell*,sediment_fdm*);
 
-private:
-	int ii,jj,kk;
-	
-	double d50,ks,shields,kappa;
-	double Rstar, g, visc;
-	double rhosed,rhowat;
-	double Ti,Ds;
-    double adist,zdist,deltab;
+	virtual void start(lexer*,ghostcell*,sediment_fdm*)=0;
+
 
 };
 #endif

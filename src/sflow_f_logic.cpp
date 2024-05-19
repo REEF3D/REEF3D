@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -138,6 +138,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	ppress = new sflow_pjm_quad(p,b,pBC);
     
     if(p->A220==3)
+	ppress = new sflow_pjm_corr_lin(p,b,pBC);
+    
+    if(p->A220==5)
 	ppress = new sflow_pjm_sw(p,b,pBC);
     
     // diffusion
@@ -164,7 +167,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     psed = new sediment_void();
 
     if(p->S10>0)
-    psed = new sediment_f(p,aa,pgc,pturbcfd);
+    psed = new sediment_f(p,aa,pgc,pturbcfd,pBC);
 	
 	// solver
 	ppoissonsolv = new hypre_struct2D(p,pgc);
@@ -184,22 +187,26 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	
 	// printer
-	pprint = new sflow_vtp(p,b,pgc);
+	pprint = new sflow_vtp_fsf(p,b,pgc);
 	
 	pprintbed = new sflow_vtp_bed(p,b);
     
     //6DOF
-    p6dof_sflow = new sixdof_sflow(p,b,pgc);
+    if(p->X10!=3)
+    p6dof = new sixdof_void(p,pgc);
+    
+    if(p->X10==3)
+    p6dof = new sixdof_sflow(p,pgc);
 	
 	// momentum
     if(p->A210==1)
-	pmom = new sflow_momentum_AB2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof_sflow);
+	pmom = new sflow_momentum_AB2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof);
     
     if(p->A210==2)
-	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof_sflow);
+	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof);
     
 	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof_sflow);
+	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof);
     
     
     //Potential Flow Solver

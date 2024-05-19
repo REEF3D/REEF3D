@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,7 +46,9 @@ public:
 	virtual ~hypre_sstruct();
     
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, int);

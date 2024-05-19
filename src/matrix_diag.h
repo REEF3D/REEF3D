@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,6 +39,7 @@ public:
 	double *n,*s,*e,*w,*b,*t,*p;
     double *nn,*ss,*ee,*ww,*bb,*tt;
     double *nnn,*sss,*eee,*www,*bbb,*ttt;
+    double *sb,*st,*nb,*nt,*eb,*et,*wb,*wt;
 
 };
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -45,7 +45,8 @@ public:
     virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*);
     
 private:
-
+    void reference_gage(lexer*, fdm_fnpf*, ghostcell*, slice&);
+    
     int gcval,gcval_u,gcval_v,gcval_w;
     int gcval_eta,gcval_fifsf;
     int hypre_type;

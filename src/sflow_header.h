@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -56,7 +56,7 @@ Author: Hans Bihs
 #include"sflow_turb_ke_IM1.h"
 
 #include"sflow_hydrostatic.h"
-#include"sflow_vtp.h"
+#include"sflow_vtp_fsf.h"
 #include"sflow_vtp_bed.h"
 #include"sflow_diffusion_void.h"
 #include"sflow_ediff.h"
@@ -64,6 +64,7 @@ Author: Hans Bihs
 #include"sflow_pjm_lin.h"
 #include"sflow_pjm_quad.h"
 #include"sflow_pjm_sw.h"
+#include"sflow_pjm_corr_lin.h"
 #include"sflow_filter.h"
 
 #include"sediment_f.h"

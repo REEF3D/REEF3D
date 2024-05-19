@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -57,58 +57,20 @@ void pressure_void::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 
 void pressure_void::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
-    if(p->D38==1)
-    ULOOP
-    {
-	a->F(i,j,k)-=PORVAL1*fabs(p->W22)*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP];
-    }
-    
-    if(p->D38==2)
-    ULOOP
-    {
-	a->F(i,j,k)-=PORVAL1*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP];
-    }
 }
 
 void pressure_void::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
-    if(p->D38==1)
-    VLOOP
-    {
-	a->G(i,j,k)-=PORVAL2*fabs(p->W22)*(a->eta(i,j+1)-a->eta(i,j))/p->DYP[JP];
-    }
-    
-    if(p->D38==2)
-    VLOOP
-    {
-	a->G(i,j,k)-=PORVAL2*(a->eta(i,j+1)-a->eta(i,j))/p->DYP[JP];
-    }
 }
 
 void pressure_void::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
-    /*
-    double z1,z2;
-    
-    if(p->D38==1)
-    WLOOP
-    {
-    z1 = p->ZP[KP];
-    z2 = p->ZP[KP1];
-	a->H(i,j,k)-=PORVAL3*fabs(p->W22)*(-z2+z1)/p->DZP[KP];
-    }
-    
-    if(p->D38==2)
-    WLOOP
-    {
-    z1 = p->ZP[KP];
-    z2 = p->ZP[KP1];
-	a->H(i,j,k)-=PORVAL3*(-z2+z1)/p->DZP[KP];
-    }*/
 }
 
 void pressure_void::rhs(lexer *p, fdm* a, ghostcell *pgc, field& uu, field& vv, field& ww, double alpha)
 {
 }
 
-
+void pressure_void::ini(lexer*p,fdm* a, ghostcell *pgc)
+{
+}

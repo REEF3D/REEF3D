@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,10 +34,6 @@ void sflow_state::ini_mainheader(lexer *p, fdm2D *b, ghostcell *pgc)
     ofstream mainout;
     
     // open file
-	if(p->P14==0)
-    mainout.open("REEF3D-SFLOW_State_Mainheader.r3d", ios::binary);
-
-	if(p->P14==1)
 	mainout.open("./REEF3D_SFLOW_STATE/REEF3D-SFLOW_State_Mainheader.r3d", ios::binary);
 
 
@@ -49,6 +45,9 @@ void sflow_state::ini_mainheader(lexer *p, fdm2D *b, ghostcell *pgc)
     iin = flag_all[qn];
     mainout.write((char*)&iin, sizeof (int));
     }
+    
+    ddn=p->wd;
+    mainout.write((char*)&ddn, sizeof (double));
 
     mainout.close();
 }
@@ -58,10 +57,6 @@ void sflow_state::write_mainheader(lexer *p, fdm2D *c, ghostcell *pgc)
     ofstream mainout;
     
     // open file
-	if(p->P14==0)
-    mainout.open("REEF3D-SFLOW_State_Mainheader.r3d", ios::binary | ios::app);
-
-	if(p->P14==1)
 	mainout.open("./REEF3D_SFLOW_STATE/REEF3D-SFLOW_State_Mainheader.r3d", ios::binary | ios::app);
 
     iin=p->count;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,37 +46,60 @@ public:
     fdm_nhf(lexer*);
    
     int *NODEVAL;
-    int *NODEVAL2D;
     
-    slice4 eta,eta_n,WL,WL_n;
+    slice4 eta,eta_n,WL,detadt,detadt_n;
     slice4 bed,depth;
     slice4 K;
-    sliceint4 etaloc,wet_n,breaking,breaklog,bc;
+    sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;
     
-    slice4 Fx,Fy;
     slice4 Ex,Ey;
     slice4 Exx,Eyy;
     slice4 Bx,By;
     slice4 Bxx,Byy;
+    
     slice4 hx,hy;
     slice4 coastline;
     slice4 vb;
+    slice4 test2D;
+    slice4 fs;
     
-    slice4 breaking_print;
+    slice4 breaking_print,Hs;
     
     // NHFLOW
-    slice4 wbed,dwdt;
     
-    cpt2D C4;
-	
     vec rhsvec;
     vec2D xvec,rvec;
     
     // 3D array
-    double *U,*V,*W,*omega,*P,*ro,*visc,*eddyv;
+    double *U,*V,*W,*omegaF;
+    double *UH,*VH,*WH;
+    
+    double *P,*RO,*VISC,*EV;
     double *F,*G,*H,*L;
     double *porosity;
     double *test;
+    
+    double *SOLID,*FB;
+    
+    double *Fx,*Fy,*Fz;
+    double *Fs,*Fn,*Fe,*Fw;
+    double *Ss,*Sn,*Se,*Sw;
+    double *SSx,*SSy;
+    
+    double *Un,*Us,*Ue,*Uw,*Ub,*Ut;
+    double *Vn,*Vs,*Ve,*Vw,*Vb,*Vt;
+    double *Wn,*Ws,*We,*Ww,*Wb,*Wt;
+    
+    double *UHn,*UHs,*UHe,*UHw,*UHb,*UHt;
+    double *VHn,*VHs,*VHe,*VHw,*VHb,*VHt;
+    double *WHn,*WHs,*WHe,*WHw,*WHb,*WHt;
+    
+    slice1 ETAs,ETAn;
+    slice2 ETAe,ETAw;
+    slice1 Ds,Dn;
+    slice2 De,Dw;
+    slice1 dfx;
+    slice2 dfy;
 
     matrix2D N;
 	matrix_diag M;    
@@ -84,6 +107,7 @@ public:
     double gi,gj,gk;
     double maxF,maxG,maxH;
     double wd_criterion;
+    
 };
 
 #endif

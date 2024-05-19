@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,7 +66,7 @@ void driver::driver_ini_fnpf()
 	LOOP
 	++p->cellnum;
     
-    LOOP
+    PLAINLOOP
     ++p->tpcellnum;
     
     p->count=0;
@@ -184,7 +184,7 @@ void driver::driver_ini_fnpf()
      SLICELOOP4
     c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
     
-    p->Darray(p->sigz,p->imax*p->jmax);
+    
     
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"reinitopo.h"
 #include"suspended.h"
 #include"bedload.h"
-#include"bedconc.h"
+#include"bedconc_VR.h"
 #include"bedshear.h"
 #include"sandslide.h"
 #include"topo_relax.h"
@@ -46,12 +46,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     prep_cfd(p,a,pgc);
     
     // bedslope cds ******
-    if(p->S83==2)
     slope_cds(p,pgc,s);
-    
-    // bedslope weno -------
-    if(p->S83==5)
-    slope_weno(p,pgc,s,a->topo);
     
     // bedslope reduction ******
     preduce->start(p,pgc,s);
@@ -66,6 +61,8 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     // suspended load -------
     pcbed->start(p,pgc,s);
     
+    // relax  *******
+	prelax->start(p,pgc,s);
     
     for(int qqn=0;qqn<p->S27;++qqn)
     {
@@ -75,10 +72,11 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     // sandslide ********
     pslide->start(p,pgc,s);
     
-    // control time step
+    // control time step ********
+    p->sedtime+=p->dtsed;
     }
     
-    // relax bedzh *******
+    // relax  *******
 	prelax->start(p,pgc,s);
 	
     // filter bedzh *******
@@ -96,7 +94,6 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
-    
 }
 
 void sediment_f::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)

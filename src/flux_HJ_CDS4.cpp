@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -123,39 +123,6 @@ void flux_HJ_CDS4::w_flux(fdm* a,int ipol,field& wvel, double &wflux1, double &w
 	{
     pip=3;
 	wflux1 = (1.0/16.0)*(-wvel(i,j,k-2)+9.0*wvel(i,j,k-1)+9.0*wvel(i,j,k)-wvel(i,j,k+1));
-    pip=0;
-	}
-}
-
-
-void flux_HJ_CDS4::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, field& w, double &wflux1, double &wflux2)
-{
-
-	if(ipol==1)
-	{
-	pip=3;
-	wflux1 = 0.5*(w(i,j,k) + w(i+1,j,k));
-	pip=0;
-	}
-
-	if(ipol==2)
-	{
-	pip=3;
-	wflux1 = 0.5*(w(i,j,k) + w(i,j+1,k));
-	pip=0;
-	}
-
-	if(ipol==3)
-	{
-    pip=3;
-	wflux1 = 0.5*(w(i,j,k) + w(i,j,k+1));
-    pip=0;
-	}
-
-	if(ipol==4)
-	{
-    pip=3;
-	wflux1 = w(i,j,k);
     pip=0;
 	}
 }

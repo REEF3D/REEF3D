@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,7 +37,17 @@ double superbee::iphi(field& b,int n1, int n2, int q1, int q2)
     denom=(b(i+q1,j,k)-b(i+q2,j,k));
     r=(b(i+n1,j,k)-b(i+n2,j,k))/(fabs(denom)>1.0e-10?denom:1.0e20);
 
-    phi = MAX(0.0, MAX( MIN(2.0*r,1.0), MIN(r,2.0)));
+    if(r<0.0)
+    phi = 0.0;
+    
+    if(r>=0.0 && r<0.5)
+    phi = 2.0*r;
+    
+    if(r>=0.5 && r<1.0)
+    phi = 1.0;
+    
+    if(r>=1.0)
+    phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
 
     return phi;
 }
@@ -47,7 +57,17 @@ double superbee::jphi(field& b,int n1, int n2, int q1, int q2)
     denom=(b(i,j+q1,k)-b(i,j+q2,k));
     r=(b(i,j+n1,k)-b(i,j+n2,k))/(fabs(denom)>1.0e-10?denom:1.0e20);
 
-    phi = MAX(0.0, MAX( MIN(2.0*r,1.0), MIN(r,2.0)));
+    if(r<0.0)
+    phi = 0.0;
+    
+    if(r>=0.0 && r<0.5)
+    phi = 2.0*r;
+    
+    if(r>=0.5 && r<1.0)
+    phi = 1.0;
+    
+    if(r>=1.0)
+    phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
 
     return phi;
 }
@@ -57,7 +77,17 @@ double superbee::kphi(field& b,int n1, int n2, int q1, int q2)
     denom=(b(i,j,k+q1)-b(i,j,k+q2));
     r=(b(i,j,k+n1)-b(i,j,k+n2))/(fabs(denom)>1.0e-10?denom:1.0e20);
 
-    phi = MAX(0.0, MAX( MIN(2.0*r,1.0), MIN(r,2.0)));
+    if(r<0.0)
+    phi = 0.0;
+    
+    if(r>=0.0 && r<0.5)
+    phi = 2.0*r;
+    
+    if(r>=0.5 && r<1.0)
+    phi = 1.0;
+    
+    if(r>=1.0)
+    phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
 
     return phi;
 }

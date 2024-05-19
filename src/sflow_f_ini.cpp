@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,7 @@ Author: Hans Bihs
 #include"sflow_eta.h"
 #include"sflow_hydrostatic.h"
 #include"sflow_potential.h"
-#include"sflow_vtp.h"
+#include"sflow_vtp_fsf.h"
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
 
@@ -108,6 +108,16 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     SLICELOOP4
     p->wet[IJ]=1;
+    
+    SLICELOOP1
+    b->wet1(i,j)=1;
+    
+    SLICELOOP2
+    b->wet2(i,j)=1;
+    
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    pgc->gcsl_start1int(p,b->wet1,50);
+    pgc->gcsl_start2int(p,b->wet2,50);
 
 
     SLICELOOP4
@@ -159,8 +169,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     psed->ini_sflow(p,b,pgc);
 
     //6DOF ini
-    if(p->X10==3)
-    p6dof_sflow->ini(p,b,pgc);
+    p6dof->ini(p,pgc);
 
     // print
     log_ini(p);

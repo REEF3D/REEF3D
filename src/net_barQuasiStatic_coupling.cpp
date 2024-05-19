@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2023 Tobias Martin
+Copyright 2018-2024 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -29,7 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 void net_barQuasiStatic::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
 {
     //- Triangulate net
-    if (p->count == 0) triangulation(p,a,pgc);
+    if (p->count==0) triangulation(p,a,pgc);
     
     //- Save Lagrangian coordinates and forces
      
@@ -374,9 +374,9 @@ void net_barQuasiStatic::create_triangle
 	
 	if 
 	(
-		   SIGN(nx) != SIGN(nx_old) 
-		|| SIGN(ny) != SIGN(ny_old) 
-		|| SIGN(nz) != SIGN(nz_old)
+		   SIGN(nx)!=SIGN(nx_old) 
+		|| SIGN(ny)!=SIGN(ny_old) 
+		|| SIGN(nz)!=SIGN(nz_old)
 	)
 	{
 		tri_x_new[0] = x2;

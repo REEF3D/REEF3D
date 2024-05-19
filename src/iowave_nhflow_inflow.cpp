@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,31 +22,46 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
  
-void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W)
+void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     if(p->I230==0)
     {
     if(p->B98==0)
-    nhflow_inflow_plain(p,d,pgc,U,V,W);
+    nhflow_inflow_plain(p,d,pgc,U,V,W,UH,VH,WH);
     
 	if(p->B98==3)
-	nhflow_dirichlet_wavegen(p,d,pgc,U,V,W);
+	nhflow_dirichlet_wavegen(p,d,pgc,U,V,W,UH,VH,WH);
 	
 	if(p->B98==4)
-	nhflow_active_wavegen(p,d,pgc,U,V,W);
+	nhflow_active_wavegen(p,d,pgc,U,V,W,UH,VH,WH);
 	}
     
 	if(p->B99==3||p->B99==4||p->B99==5)
-	nhflow_active_beach(p,d,pgc,U,V,W);
+	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
     
     //if(p->I230>0)
     //ff_inflow(p,d,pgc,U,V,W);
 }
 
-void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W)
+void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
+    for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+
+        U[Im3JK]=U[Im2JK]=U[Im1JK]=d->U[Im1JK];
+        V[Im3JK]=V[Im2JK]=V[Im1JK]=d->V[Im1JK];
+        W[Im3JK]=W[Im2JK]=W[Im1JK]=d->W[Im1JK];
+        
+        UH[Im3JK]=UH[Im2JK]=UH[Im1JK]=d->UH[Im1JK];
+        VH[Im3JK]=VH[Im2JK]=VH[Im1JK]=d->VH[Im1JK];
+        WH[Im3JK]=WH[Im2JK]=WH[Im1JK]=d->WH[Im1JK];
+    }
 }
 
 void iowave::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -54,7 +69,7 @@ void iowave::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 }
 
-void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W)
+void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     for(n=0;n<p->gcin_count;n++)
     {
@@ -73,5 +88,25 @@ void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U
         W[Im1JK]=0.0;
         W[Im2JK]=0.0;
         W[Im3JK]=0.0;
+        
+        UH[Im1JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
+        UH[Im2JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
+        UH[Im3JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
+		
+        VH[Im1JK]=0.0;
+        VH[Im2JK]=0.0;
+        VH[Im3JK]=0.0;
+		
+        WH[Im1JK]=0.0;
+        WH[Im2JK]=0.0;
+        WH[Im3JK]=0.0;
     }
+}
+
+void iowave::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
+{
+    
+    
+    
+    
 }

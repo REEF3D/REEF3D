@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,27 +31,6 @@ idiff2_FS::idiff2_FS(lexer* p)
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
-    
-    if(p->B21==1)
-    {
-    gcval_udiff=10;
-	gcval_vdiff=11;
-	gcval_wdiff=12;
-    }
-    
-    if(p->B21==2)
-    {
-    gcval_udiff=117;
-	gcval_vdiff=118;
-	gcval_wdiff=119;
-    }
-    
-    if(p->B21==3)
-    {
-    gcval_udiff=110;
-	gcval_vdiff=111;
-	gcval_wdiff=112;
-    }
 }
 
 idiff2_FS::~idiff2_FS()
@@ -62,10 +41,6 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 {
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
-
-    pgc->start1(p,u,gcval_udiff);
-	pgc->start2(p,v,gcval_vdiff);
-	pgc->start3(p,w,gcval_wdiff);
 
     count=0;
 
@@ -96,7 +71,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
     
 	visc_ddz_m = 0.25*(visc_i_j_km+ev_i_j_km + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
 
-	a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
+	a->M.p[count] =   2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
 				   + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP])
 				   + visc_ddy_p/(p->DYP[JP]*p->DYN[JP])
 				   + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
@@ -168,11 +143,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
     }
 	
     pgc->start1(p,u,gcval_u);
-    
-    pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
-	pgc->start3(p,w,gcval_w);
-    
+
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
@@ -180,23 +151,18 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 }
 
 
-void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u, field &v, field &w, double alpha)
+void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u_in, field &u, field &v, field &w, double alpha)
 {
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
     
-    pgc->start1(p,u,gcval_udiff);
-	pgc->start2(p,v,gcval_vdiff);
-	pgc->start3(p,w,gcval_wdiff);
-
     ULOOP
-    diff(i,j,k) = u(i,j,k);
+    diff(i,j,k) = u_in(i,j,k);
     
-    pgc->start1(p,u,gcval_u);
+    pgc->start1(p,diff,gcval_u);
 
     count=0;
 
-	count=0;
     if(p->i_dir==1)
     {
 	ULOOP // 
@@ -223,7 +189,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     
 	visc_ddz_m = 0.25*(visc_i_j_km+ev_i_j_km + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
 
-	a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
+	a->M.p[count] =   2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
 				   + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP])
 				   + visc_ddy_p/(p->DYP[JP]*p->DYN[JP])
 				   + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
@@ -234,7 +200,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 	a->rhsvec.V[count] +=  ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
 						 + ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
 
-						 + (CPOR1*u(i,j,k))/(alpha*p->dt);
+						 + (CPOR1*u_in(i,j,k))/(alpha*p->dt);
                          
 	 
 	 a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP]);
@@ -296,9 +262,6 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 	
     pgc->start1(p,diff,gcval_u);
     
-    pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
-	pgc->start3(p,w,gcval_w);
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;

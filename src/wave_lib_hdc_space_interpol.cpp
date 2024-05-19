@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,24 +41,16 @@ double wave_lib_hdc::space_interpol(lexer *p, double ***F, double x, double y, d
         i = pos_i(p,xp);
         j = pos_j(p,yp);
         
-        //cout<<"xp: "<<xp<<" zp: "<<zp<<" i: "<<i<<" j: "<<j<<" Xstart: "<<Xstart<<" Xend: "<<Xend<<" Zstart: "<<Z[i][j][0]<<" Zend: "<<Z[i][j][Nz-1]<<endl;
-        
-        //cout<<i<<" "<<j<<" ZSE: "<<Z[i][j][Nz-3]<<" "<<Z[i][j][Nz-2]<<endl;
-
         if(file_version!=2)
         {
         k = pos_k(p,zp,i,j);
 
         val=ccpol3D(p,F,x,y,z);
-        
-        //cout<<"$#% SPACEPOLVAL "<<val<<endl;
         }
         
         if(file_version==2)
         {
         val=ccpol2DM(p,F,x,y);
-        
-        //cout<<"$#% SPACEPOLVAL "<<val<<" zp: "<<zp<<" E1: "<<E1[i][j]<<" E2: "<<E2[i][j]<<" E: "<<E[i][j]<<endl;
         }
     }
     
@@ -127,20 +119,10 @@ double wave_lib_hdc::ccpol3D(lexer *p, double ***F, double x, double y, double z
     }
     
     if(xp<=X[0] || i<0)
-    {
     wa=0.0;
     
-    //if(p->mpirank==0 && x>9.99)
-    //cout<<" wa2: "<<wa<<endl;
-    }
-    
     if(xp>=X[Nx-1] || i>=Nx-1)
-    {
     wa=1.0;
-    
-    //if(p->mpirank==0 && x>9.99)
-    //cout<<" wa3: "<<wa<<endl;
-    }
     
     
     // wb
@@ -244,18 +226,6 @@ double wave_lib_hdc::ccpol3D(lexer *p, double ***F, double x, double y, double z
     i=iii;
     j=jjj;
     k=kkk;
-    
-    /*
-    cout<<p->mpirank<<" HDC  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j][k]<<endl;
-    
-    cout<<" HDC 3D: "<<v1<<" "<<v2<<" "<<v3<<" "<<v4<<" "<<v5<<" "<<v6<<" "<<v7<<" "<<v7<<" "<<endl;
-    cout<<" HDC i: "<<i<<" j: "<<j<<" k: "<<k<<" Z[ijk]: "<<Z[i][j][k]<<" z: "<<z<<endl;*/
-    
-    /*
-    if(p->mpirank==0 && x>9.99)
-    cout<<" Nx: "<<Nx<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" X[i]: "<<X[i]<<" | U[i]: "<<U[i][0][2]
-        <<" x: "<<x<<" z: "<<z<<" val: "<<val<<" | wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<endl;*/
-    
 
     return val;
 }

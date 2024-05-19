@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,6 +37,7 @@ public:
 	virtual ~pressure_void();
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
+    virtual void ini(lexer*,fdm*,ghostcell*);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void ucorr(lexer*p,fdm*,field&,double);
 	virtual void vcorr(lexer*p,fdm*,field&,double);

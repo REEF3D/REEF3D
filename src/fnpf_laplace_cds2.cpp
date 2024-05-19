@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,7 +36,7 @@ fnpf_laplace_cds2::~fnpf_laplace_cds2()
 {
 }
 
-void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,fnpf_fsf *pf, double *f)
+void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf)
 {
     double sigxyz2;
     double ab,denom;
@@ -106,26 +106,26 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
             {
             // south
-            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0) && c->bc(i-1,j)==0)
+            if((p->flag7[FIm1JK]<0) && (c->bc(i-1,j)==0 || k==0))
             {
             c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
             }
             
-            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329==1)
+            if((p->wet[Im1J]==0) && (c->bc(i-1,j)==0 || k==0))
             {
-            c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-                        
-            c->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(c->Uin[FIm1JKp1] - c->Uin[FIm1JKm1])
-                        /((p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
-                        
-            c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*1.01*p->DXP[IM1];
             c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
             }
             
-            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329>=2)
+            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329==1 && k>0)
+            {
+            c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1];
+            c->M.p[n] += c->M.s[n];
+            c->M.s[n] = 0.0;
+            }
+            
+            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329>=2 && k>0)
             {
             denom = -1.5*p->XP[IM1] + 2.0*p->XP[IP] - 0.5*p->XP[IP1];
             
@@ -136,7 +136,13 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             }          
             
             // north
-            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
+            if((p->flag7[FIp1JK]<0) && c->bc(i+1,j)==0)
+            {
+            c->M.p[n] += c->M.n[n];
+            c->M.n[n] = 0.0;
+            }
+            
+            if((p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
             {
             c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
@@ -166,14 +172,28 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             }
 
             // east
-            if(p->flag7[FIJm1K]<0 || p->wet[IJm1]==0)
+            if(p->flag7[FIJm1K]<0)
+            {
+            c->M.p[n] += c->M.e[n];
+            c->M.e[n] = 0.0;
+            }
+            
+            // east
+            if(p->wet[IJm1]==0)
             {
             c->M.p[n] += c->M.e[n];
             c->M.e[n] = 0.0;
             }
             
             // west
-            if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0)
+            if(p->flag7[FIJp1K]<0)
+            {
+            c->M.p[n] += c->M.w[n];
+            c->M.w[n] = 0.0;
+            }
+            
+            // west
+            if(p->wet[IJp1]==0)
             {
             c->M.p[n] += c->M.w[n];
             c->M.w[n] = 0.0;

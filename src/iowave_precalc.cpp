@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
     // prestep
     wave_prestep(p,pgc);
     
-    if(p->A10!=3 && p->A10!=55)
+    if(p->A10!=3 && p->A10!=5)
     {
         if(p->B89==0 )
         {
@@ -82,13 +82,6 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
     }
     
     
-    if(p->A10==55)
-    {
-        if(p->B98==2)
-        nhflow_precalc_relax(p,pgc);
-            
-        if(p->B98==3 || p->B98==4)
-        nhflow_precalc_dirichlet(p,pgc);
-    }
+    
 }
     

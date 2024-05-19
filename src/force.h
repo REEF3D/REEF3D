@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,9 +66,9 @@ private:
 	
 	
     void force_calc(lexer*,fdm*,ghostcell*);
+    
 	void print_force(lexer*,fdm*,ghostcell*);
     void print_ini(lexer*,fdm*,ghostcell*);
-    
     void print_vtp(lexer*,fdm*,ghostcell*);
     void pvtp(lexer*,fdm*,ghostcell*);
     void header(lexer*,fdm*,ghostcell*);

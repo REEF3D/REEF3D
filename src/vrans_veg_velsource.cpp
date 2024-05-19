@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,14 +29,14 @@ void vrans_veg::u_source(lexer *p, fdm *a)
 {	
 	// VRANS Vegetation porosity
     count=0;
-    if(p->B310>0)
+    if(p->B310>0 || p->B321>0 || p->B322>0)
     ULOOP
 	{
         Cd_val = 0.5*(Cd(i,j,k) + Cd(i+1,j,k));
         N_val = 0.5*(N(i,j,k) + N(i+1,j,k));
 		D_val = 0.5*(D(i,j,k) + D(i+1,j,k));
         
-        Fi = p->B309*0.25*PI*pow(D_val,2.0)*N_val*((a->u(i,j,k) - un(i,j,k))/p->dt);
+        Fi = p->B309*0.25*PI*pow(D_val,2.0)*N_val*((a->u(i,j,k) - unn(i,j,k))/p->dt);
         
         Fd = 0.5*Cd_val*N_val*D_val*a->u(i,j,k)*fabs(a->u(i,j,k));
         
@@ -50,14 +50,14 @@ void vrans_veg::v_source(lexer *p, fdm *a)
 {
 	// VRANS porosity
     count=0;
-    if(p->B310>0)
+    if(p->B310>0 || p->B321>0 || p->B322>0)
     VLOOP
 	{
         Cd_val = 0.5*(Cd(i,j,k) + Cd(i,j+1,k));
         N_val = 0.5*(N(i,j,k) + N(i,j+1,k));
 		D_val = 0.5*(D(i,j,k) + D(i,j+1,k));
         
-        Fi = p->B309*0.25*PI*pow(D_val,2.0)*N_val*((a->v(i,j,k) - vn(i,j,k))/p->dt);
+        Fi = p->B309*0.25*PI*pow(D_val,2.0)*N_val*((a->v(i,j,k) - vnn(i,j,k))/p->dt);
         
         Fd = 0.5*Cd_val*N_val*D_val*a->v(i,j,k)*fabs(a->v(i,j,k));
 
@@ -70,21 +70,21 @@ void vrans_veg::v_source(lexer *p, fdm *a)
 void vrans_veg::w_source(lexer *p, fdm *a)
 {
 	// VRANS porosity
-    /*count=0;
-    if(p->B310>0)
+    count=0;
+    if(p->B310>0 || p->B321>0 || p->B322>0)
     WLOOP
 	{
         Cd_val = 0.5*(Cd(i,j,k) + Cd(i,j,k+1));
         N_val = 0.5*(N(i,j,k) + N(i,j,k+1));
 		D_val = 0.5*(D(i,j,k) + D(i,j,k+1));
         
-        Fi = p->B309*0.25*PI*pow(D_val,2.0)*N_val*((a->w(i,j,k) - wn(i,j,k))/p->dt);
+        Fi = p->B309*0.25*PI*pow(D_val,2.0)*N_val*((a->w(i,j,k) - wnn(i,j,k))/p->dt);
         
         Fd = 0.5*Cd_val*N_val*D_val*a->w(i,j,k)*fabs(a->w(i,j,k));
 
 	
     a->rhsvec.V[count] -= (-Fi -Fd);
 	++count;
-	}*/
+	}
 }
 

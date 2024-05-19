@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -51,9 +51,9 @@ void ghostcell::nse2(lexer *p, fdm *a, field &f, int gcv)
         ny/=dnorm;
         nz/=dnorm;
         
-        xp = p->pos2_x() + nx*(2.0*fabs(lsv)+2.0*p->DXP[IP]);
-        yp = p->pos2_y() + ny*(2.0*fabs(lsv)+2.0*p->DYN[JP]);
-        zp = p->pos2_z() + nz*(2.0*fabs(lsv)+2.0*p->DZP[KP]);
+        xp = p->pos2_x() + nx*(1.0*fabs(lsv)+0.0*p->DXP[IP]);
+        yp = p->pos2_y() + ny*(1.0*fabs(lsv)+0.0*p->DYN[JP]);
+        zp = p->pos2_z() + nz*(1.0*fabs(lsv)+0.0*p->DZP[KP]);
         
         // chk bounds
         f(i,j,k) = p->ccipol2_a(f, xp, yp, zp);

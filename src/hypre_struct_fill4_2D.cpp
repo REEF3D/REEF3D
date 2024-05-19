@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,7 @@ void hypre_struct::fill_matrix4_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f
     count=0;
     FLUIDLOOP
     {
-    cval4(i,j,k)=count;
+    CVAL4[IJK]=count;
     ++count;
     }
     
@@ -46,7 +46,7 @@ void hypre_struct::fill_matrix4_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f
     {
 		PFLUIDCHECK
 		{
-		n=cval4(i,j,k);
+		n=CVAL4[IJK];
         
 		values[count]=a->M.p[n];
 		++count;
@@ -109,7 +109,7 @@ void hypre_struct::fill_matrix4_2Dvert(lexer* p,fdm* a, ghostcell* pgc, field &f
 	{
 		PFLUIDCHECK
 		{
-		n=cval4(i,j,k);
+		n=CVAL4[IJK];
 		values[count] = a->rhsvec.V[n];
 		}
 		

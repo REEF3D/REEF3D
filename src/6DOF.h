@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,10 +24,13 @@ Author: Hans Bihs
 
 class lexer;
 class fdm;
+class fdm_nhf;
 class fdm2D;
 class ghostcell;
 class vrans;
 class net;
+class field;
+class slice;
 
 using namespace std;
 
@@ -37,13 +40,19 @@ using namespace std;
 class sixdof
 {
 public:
-
-	virtual void start(lexer*,fdm*,ghostcell*,double,vrans*,vector<net*>&)=0;
-	virtual void initialize(lexer*,fdm*,ghostcell*,vector<net*>&)=0;
+    virtual void start_twoway(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool)=0;
+    virtual void start_oneway(lexer*,ghostcell*,slice&)=0;
     
+    virtual void ini(lexer*,ghostcell*)=0;
+    virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&)=0;
+	
     virtual void isource(lexer*,fdm*,ghostcell*)=0;
     virtual void jsource(lexer*,fdm*,ghostcell*)=0;
     virtual void ksource(lexer*,fdm*,ghostcell*)=0;
+    
+    virtual void isource(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
+    virtual void jsource(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
+    virtual void ksource(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
     
     virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;

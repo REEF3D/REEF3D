@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,6 +28,8 @@ Author: Hans Bihs
 
 void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
 {
+    double etax;
+    
     // 
     count=0;
     for(n=0;n<p->gcslin_count;n++)
@@ -46,8 +48,11 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         
         if(h_switch==0)
         {
-        double etax = -(1.0/9.81) * (Fifsfval[count]-Fifsfval0[count])/p->dt;
-
+        if(p->A329==1 || p->count<=2)
+        etax = -(1.0/9.81) * (Fifsfval[count]-Fifsfval0[count])/p->dt;
+        
+        if(p->A329==2 && p->count>2)
+        etax = -(1.0/9.81) * (-1.5*Fifsfval[count] + 2.0*Fifsfval0[count] - 0.5*Fifsfval1[count])/(-1.5*time_n + 2.0*time_0 - 0.5*time_1);
 
         eta(i-1,j) = eta(i,j) + etax*1.0*p->DXP[IM1];
         eta(i-2,j) = eta(i,j) + etax*2.0*p->DXP[IM1];

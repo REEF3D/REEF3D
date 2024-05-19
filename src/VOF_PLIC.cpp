@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -80,7 +80,7 @@ void VOF_PLIC::start
     ghostcell* pgc,
     ioflow* pflow,
     reini* preini,
-    particle_corr* ppart,
+    particle_corr* ppls,
     field &F
 )
 {
@@ -172,24 +172,26 @@ void VOF_PLIC::start
     if(p->mpirank==0)
     cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
 
+    
+    pgc->start4(p,a->vof,50);
+    
     LOOP
+    a->phi(i,j,k) = a->vof(i,j,k);
+    
+    pgc->start4(p,a->phi,50);
+    
+    for (int tt = 0; tt < 2; tt++)
     {
-        //a->test(i,j,k) = a->vof(i,j,k);
-
-        if (a->vof(i,j,k) > 0.5)
-        {
-            a->phi(i,j,k) = 1.0;
-        }
-        else
-        {
-            a->phi(i,j,k) = -1.0;
-        }
+    LOOP
+    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
+    
+    pgc->start4(p,a->phi,50);
     }
-
+    /*
     for (int tt = 0; tt < 10; tt++)
     {
         reini_->start(a,p,a->phi,pgc,pflow);
-    }
+    }*/
 
 }
 

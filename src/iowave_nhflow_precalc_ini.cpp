@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
+void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
 {
     // count number of relax points
     // allocate double* array
@@ -49,11 +49,10 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++upt_count;
 		}
     }
-    
     
     // V ------------------------------------------------
     BASELOOP
@@ -65,7 +64,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++vpt_count;
 		}
     }
@@ -79,7 +78,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++wpt_count;
 
 		}
@@ -94,7 +93,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
 		if(p->B98==2)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             ++ppt_count;
 
 		}
@@ -119,7 +118,12 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(uval,upt_count);
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);
+    p->Darray(UHval,upt_count);
+    p->Darray(VHval,vpt_count);
+    p->Darray(WHval,wpt_count);
     p->Darray(etaval,ept_count);
+    
+    
     
     if(p->B89==1) 
     {
@@ -127,29 +131,25 @@ void iowave::nhflow_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(vval_S_sin,vpt_count,wave_comp);
     p->Darray(wval_S_sin,wpt_count,wave_comp);
     p->Darray(etaval_S_sin,ept_count,wave_comp);
-    p->Darray(Fival_S_sin,ppt_count,wave_comp);
-    
+
     p->Darray(uval_S_cos,upt_count,wave_comp);
     p->Darray(vval_S_cos,vpt_count,wave_comp);
     p->Darray(wval_S_cos,wpt_count,wave_comp);
     p->Darray(etaval_S_cos,ept_count,wave_comp);
-    p->Darray(Fival_S_cos,ppt_count,wave_comp);
-    
+
     p->Darray(uval_T_sin,wave_comp);
     p->Darray(vval_T_sin,wave_comp);
     p->Darray(wval_T_sin,wave_comp);
     p->Darray(etaval_T_sin,wave_comp);
-    p->Darray(Fival_T_sin,wave_comp);
     
     p->Darray(uval_T_cos,wave_comp);
     p->Darray(vval_T_cos,wave_comp);
     p->Darray(wval_T_cos,wave_comp);
     p->Darray(etaval_T_cos,wave_comp);
-    p->Darray(Fival_T_cos,wave_comp);
     }
 }
 
-void iowave::nhflow_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
+void iowave::nhflow_precalc_dirichlet_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // count number of relax points
     // allocate double* array
@@ -169,5 +169,8 @@ void iowave::nhflow_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     p->Darray(uval,upt_count);
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);
+    p->Darray(UHval,upt_count);
+    p->Darray(VHval,vpt_count);
+    p->Darray(WHval,wpt_count);
     p->Darray(etaval,ept_count);
 }

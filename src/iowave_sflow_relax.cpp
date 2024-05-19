@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,8 @@ Author: Hans Bihs
 
 void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 {
+    starttime=pgc->timer();
+    
 	count=0;
     SLICELOOP4
     {
@@ -50,18 +52,22 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 		if(p->B99==1 || p->B99==2)
 		{
             // Zone 2
+            if(p->A10!=3 || p->A348==1 || p->A348==2)
             if(db<1.0e20)
             {
-            
+            if(p->wet[IJ]==1)
             f(i,j) = relax4_nb(i,j)*f(i,j);
             }
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta)
 {
- 
+    starttime=pgc->timer();
+    
     count=0;
     SLICELOOP1
     {
@@ -88,10 +94,14 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
             P(i,j) = relax1_nb(i,j)*P(i,j);
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
 {
+    starttime=pgc->timer();
+    
     count=0;
     SLICELOOP2
     {
@@ -117,10 +127,13 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
             Q(i,j) = relax1_nb(i,j)*Q(i,j);
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta)
 {
+    starttime=pgc->timer();
     
     count=0;
     SLICELOOP4
@@ -148,10 +161,14 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
             W(i,j) = relax4_nb(i,j)*W(i,j);
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta)
 {
+    starttime=pgc->timer();
+    
 	double wval=0.0;
     
     SLICELOOP4
@@ -182,11 +199,14 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
             W(i,j) = relax4_nb(i,j)*W(i,j);
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 {
-	
+	starttime=pgc->timer();
+    
     SLICELOOP4
     {
 		xg = xgen(p);
@@ -210,4 +230,6 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
             f(i,j) = relax4_nb(i,j)*f(i,j);
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }

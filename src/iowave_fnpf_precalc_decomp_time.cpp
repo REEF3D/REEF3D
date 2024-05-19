@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,9 +26,10 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
 {
+    starttime=pgc->timer();
+    
     int qn;
     
-
     for(qn=0;qn<wave_comp;++qn)
     {
     etaval_T_sin[qn] = wave_eta_time_sin(p,pgc,qn);
@@ -53,4 +54,5 @@ void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
     Fifsfval_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
     }
     
+    p->wavetime+=pgc->timer()-starttime;
 }

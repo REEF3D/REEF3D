@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,10 +34,10 @@ Author: Hans Bihs
 
 poisson_nse::poisson_nse(lexer * p, heat *&pheat, concentration *&pconc)
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
 	pd = new density_df(p);
 	
 	if(p->F80==0 && p->H10==0 && p->W30==1)
@@ -62,24 +62,42 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
 	n=0;
     FLUIDLOOP
 	{
-	a->M.p[n]  =   (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir
-                + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir
-                
-                + (CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                + (CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir
-                
-                + (CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir
-                + (CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir;
+        if(p->flag4[IJK]>0)
+        {
+        a->M.p[n]  =   (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir
+                    + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir
+                    
+                    + (CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir
+                    + (CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                    
+                    + (CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir
+                    + (CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir;
 
 
-   	a->M.n[n] = -(CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir;
-	a->M.s[n] = -(CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+        a->M.n[n] = -(CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir;
+        a->M.s[n] = -(CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir;
 
-	a->M.w[n] = -(CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-	a->M.e[n] = -(CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+        a->M.w[n] = -(CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir;
+        a->M.e[n] = -(CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-	a->M.t[n] = -(CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir;
-	a->M.b[n] = -(CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir;
+        a->M.t[n] = -(CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])*p->z_dir;
+        a->M.b[n] = -(CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP])*p->z_dir;
+        }
+        
+        if(p->flag4[IJK]<0)
+        {
+        a->M.p[n] = 1.0;
+
+
+        a->M.n[n] = 0.0;
+        a->M.s[n] = 0.0;
+
+        a->M.w[n] = 0.0;
+        a->M.e[n] = 0.0;
+
+        a->M.t[n] = 0.0;
+        a->M.b[n] = 0.0;
+        }
 	
 	++n;
 	}
@@ -90,44 +108,44 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
         if(p->flag4[IJK]>0)
         {
             // Solid boundaries
-            if(p->flag4[Im1JK]<AIR)
+            if(p->flag4[Im1JK]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
             a->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<AIR)
+            if(p->flag4[Ip1JK]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
             a->M.n[n] = 0.0;
             }
             
-            if(p->flag4[IJm1K]<AIR)
+            if(p->flag4[IJm1K]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.e[n]*press(i,j-1,k);
             a->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJp1K]<AIR)
+            if(p->flag4[IJp1K]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.w[n]*press(i,j+1,k);
             a->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<AIR)
+            if(p->flag4[IJKm1]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.b[n]*press(i,j,k-1);
             a->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<AIR)
+            if(p->flag4[IJKp1]<AIR_FLAG)
             {
             a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k+1);
             a->M.t[n] = 0.0;
             }
             
             // FSFBC
-            if(p->flag4[Im1JK]==AIR)
+            if(p->flag4[Im1JK]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -148,7 +166,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[Ip1JK]==AIR)
+            if(p->flag4[Ip1JK]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -169,7 +187,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[IJm1K]==AIR)
+            if(p->flag4[IJm1K]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -178,7 +196,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[IJp1K]==AIR)
+            if(p->flag4[IJp1K]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -187,7 +205,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[IJKm1]==AIR)
+            if(p->flag4[IJKm1]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {
@@ -196,7 +214,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
                 }
             }
             
-            if(p->flag4[IJKp1]==AIR)
+            if(p->flag4[IJKp1]==AIR_FLAG)
             {
                 if(p->D37==1)
                 {

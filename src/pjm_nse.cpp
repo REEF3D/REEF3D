@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,7 +38,7 @@ Author: Hans Bihs
  
 pjm_nse::pjm_nse(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) 
 {
-	if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))	pd = new density_f(p);        if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  	pd = new density_df(p);
+	if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)	pd = new density_f(p);        if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  	pd = new density_df(p);
     
 	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
 	pd = new density_comp(p);
@@ -117,31 +117,31 @@ void pjm_nse::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
         
         if(p->D37==2)
         {
-        if(p->flag4[Ip1JK]==AIR)
+        if(p->flag4[Ip1JK]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
         check=1;
         }
         
-        if(p->flag4[Im1JK]==AIR)
+        if(p->flag4[Im1JK]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
         check=2;
         }
         
-        if(p->flag4[IJp1K]==AIR)
+        if(p->flag4[IJp1K]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k)));
         check=1;
         }
         
-        if(p->flag4[IJm1K]==AIR)
+        if(p->flag4[IJm1K]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k)));
         check=2;
         }
     
-        if(p->flag4[IJKm1]==AIR)
+        if(p->flag4[IJKm1]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
         check=2;
@@ -149,7 +149,7 @@ void pjm_nse::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
         }
         
         
-        if(p->flag4[IJKp1]==AIR)
+        if(p->flag4[IJKp1]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
         check=1;
@@ -192,38 +192,38 @@ void pjm_nse::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
     
         if(p->D37==3)
         {
-        if(p->flag4[Ip1JK]==AIR)
+        if(p->flag4[Ip1JK]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i+1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
         check=1;
         }
         
-        if(p->flag4[Im1JK]==AIR)
+        if(p->flag4[Im1JK]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i-1,j,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DXN[IP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
         check=2;
         }
         
-        if(p->flag4[IJp1K]==AIR)
+        if(p->flag4[IJp1K]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j+1,k))+fabs(a->phi(i,j,k)));
         check=1;
         }
         
-        if(p->flag4[IJm1K]==AIR)
+        if(p->flag4[IJm1K]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k))) + 0.0001*p->DYN[JP]/(fabs(a->phi(i,j-1,k))+fabs(a->phi(i,j,k)));
         check=2;
         }
         
-        if(p->flag4[IJKm1]==AIR)
+        if(p->flag4[IJKm1]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k-1))+fabs(a->phi(i,j,k)));
         check=2;
         }
         }
         
-        if(p->flag4[IJKp1]==AIR)
+        if(p->flag4[IJKp1]==AIR_FLAG)
         {
         teta = fabs(a->phi(i,j,k))/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k))) + 0.0001*p->DZN[KP]/(fabs(a->phi(i,j,k+1))+fabs(a->phi(i,j,k)));
         check=1;
@@ -261,8 +261,8 @@ void pjm_nse::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
     FLUIDLOOP
     {
     a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
-						   -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
-						   -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+                          -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
+                          -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
                            
     ++count;
     }
@@ -279,64 +279,16 @@ void pjm_nse::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, fi
 
 void pjm_nse::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
-    //dp/dx = g*d(eta-z)/dx
-    
-    if(p->D38==1)
-    ULOOP
-    {
-	a->F(i,j,k)-=PORVAL1*fabs(p->W22)*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP];
-    }
-    
-    if(p->D38==2)
-    ULOOP
-    {
-	a->F(i,j,k)-=PORVAL1*(a->eta(i+1,j)-a->eta(i,j))/p->DXP[IP];
-    }
 }
 
 void pjm_nse::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
-    if(p->D38==1)
-    VLOOP
-    {
-	a->G(i,j,k)-=PORVAL2*fabs(p->W22)*(a->eta(i,j+1)-a->eta(i,j))/p->DYP[JP];
-    }
-    
-    if(p->D38==2)
-    VLOOP
-    {
-	a->G(i,j,k)-=PORVAL2*(a->eta(i,j+1)-a->eta(i,j))/p->DYP[JP];
-    }
 }
 
 void pjm_nse::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
-    /*
-    double z1,z2;
-    
-    if(p->D38==1)
-    WLOOP
-    {
-    z1 = p->ZP[KP];
-    z2 = p->ZP[KP1];
-	a->H(i,j,k)-=PORVAL3*fabs(p->W22)*(-z2+z1)/p->DZP[KP];
-    }
-    
-    if(p->D38==2)
-    WLOOP
-    {
-    z1 = p->ZP[KP];
-    z2 = p->ZP[KP1];
-	a->H(i,j,k)-=PORVAL3*(-z2+z1)/p->DZP[KP];
-    }*/
-    
-	WLOOP
-	{
-	a->H(i,j,k) -= (a->gk)*PORVAL3;
-	}
 }
 
-
-
+void pjm_nse::ini(lexer*p,fdm* a, ghostcell *pgc){}
 
 

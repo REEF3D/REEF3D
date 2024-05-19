@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -55,16 +55,12 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
 	}
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_WSF",0777);
 	
     if(p->mpirank==0 && p->P51>0 && num==0)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -86,10 +82,6 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
 	if(p->mpirank==0 && p->P351>0 && num==1)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG-1.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-1.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -111,10 +103,6 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
 	if(p->mpirank==0 && p->P352>0 && num==2)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG-2.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-2.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -168,7 +156,7 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
         }
     }
     
-    if(p->A10==55 || p->A10==4)
+    if(p->A10==5 || p->A10==4)
     for(n=0;n<gauge_num;++n)
     if(flag[n]>0)
     {
@@ -212,7 +200,7 @@ void print_wsf::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     if(p->j_dir==1)
     jloc[n] = p->posc_j(y[n]); 
 
-    check=ij_boundcheck(p,a,iloc[n],jloc[n],0);
+    check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
     if(check==1)
     flag[n]=1;

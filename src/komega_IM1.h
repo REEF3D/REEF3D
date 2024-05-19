@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,9 +38,6 @@ public:
 	virtual void etimesave(lexer*, fdm*, ghostcell*);
 	void timesource(lexer*,fdm*,field&);
 	void clearrhs(lexer*,fdm*);
-
-	field4 kn,en;
-
 
 private:
     int gcval_kin, gcval_eps;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -95,13 +95,13 @@ void ioflow_gravity::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 	// ------- 
     // translation 
     if(p->B181==1)
-    a->gi += -p->B181_1*(2.0*PI*p->B181_2)*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3);
+    a->gi += p->B181_1*pow(2.0*PI*p->B181_2,2.0)*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3*(PI/180.0));
     
     if(p->B182==1)
-    a->gj += -p->B182_1*(2.0*PI*p->B182_2)*sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3);
+    a->gj += p->B182_1*pow(2.0*PI*p->B182_2,2.0)*sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3*(PI/180.0));
 
     if(p->B183==1)
-    a->gk += -p->B183_1*(2.0*PI*p->B183_2)*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3);
+    a->gk += p->B183_1*pow(2.0*PI*p->B183_2,2.0)*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3*(PI/180.0));
     
     
     // -------
@@ -352,19 +352,23 @@ void ioflow_gravity::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
 }
 
-void ioflow_gravity::U_relax(lexer *p, ghostcell *pgc, double *U)
+void ioflow_gravity::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 {
 }
 
-void ioflow_gravity::V_relax(lexer *p, ghostcell *pgc, double *V)
+void ioflow_gravity::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
 {
 }
 
-void ioflow_gravity::W_relax(lexer *p, ghostcell *pgc, double *W)
+void ioflow_gravity::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
 {
 }
 
 void ioflow_gravity::P_relax(lexer *p, ghostcell *pgc, double *P)
+{
+}
+
+void ioflow_gravity::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
 }
 
@@ -410,6 +414,27 @@ void ioflow_gravity::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 }
 
 double ioflow_gravity::wave_fsf(lexer *p, ghostcell *pgc, double x)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_gravity::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_gravity::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_gravity::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
     double val=0.0;
 
@@ -540,17 +565,32 @@ void ioflow_gravity::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 }
 
-void ioflow_gravity::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void ioflow_gravity::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
 
 }
 
-void ioflow_gravity::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W)
+void ioflow_gravity::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
 
+}
+
+void ioflow_gravity::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    
+}
+
+void ioflow_gravity::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    
 }
 
 void ioflow_gravity::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
 {
     
+}
+
+void ioflow_gravity::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
+{
+
 }

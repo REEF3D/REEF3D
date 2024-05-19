@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -72,8 +72,4 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     s->active(i,j)=1;
-    
-  
-  
-    
 }

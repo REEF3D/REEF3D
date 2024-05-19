@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -82,6 +82,9 @@ void driver::logic_cfd()
 	if(p->D10==2)
 	pconvec=new cds2(p);
 
+	if(p->D10==60)
+	pconvec=new hcds6(p);
+
 	if(p->D10==3)
 	pconvec=new quick(p);
 
@@ -111,8 +114,11 @@ void driver::logic_cfd()
 	if(p->T12==1)
 	pturbdisc=new ifou(p);
 
-	if(p->T12==5)
+	if(p->T12==5 && p->X10==0 && p->G3==0)
 	pturbdisc=new iweno_hj_nug(p);
+    
+    if(p->T12==5 && (p->X10==1 || p->G3==1))
+	pturbdisc=new iweno_hj_df_nug(p);
 
     if(p->T12==55)
 	pturbdisc=new iweno_hj(p);
@@ -133,10 +139,10 @@ void driver::logic_cfd()
 	if(p->F35==4)
 	pfsfdisc=new weno_flux_nug(p);
 
-	if(p->F35==5 && (p->X10==0 || p->X13!=2))
+	if(p->F35==5 && p->X10==0)
 	pfsfdisc=new weno_hj_nug(p);
 
-	if(p->F35==5 && ((p->X10==1 && p->X13==2) || p->G3==1))
+	if(p->F35==5 && (p->X10==1 || p->G3==1))
 	pfsfdisc=new weno_hj_df_nug(p);
 
     if(p->F35==6)
@@ -229,25 +235,16 @@ void driver::logic_cfd()
 	pturb = new kepsilon_void(p,a,pgc);
 
 	//ke
-	if((p->T10==1 || p->T10==21) && p->T11==11)
+	if(p->T10==1 || p->T10==21)
 	pturb = new kepsilon_IM1(p,a,pgc);
 
-	if((p->T10==1 || p->T10==21) && p->T11==12)
-	pturb = new kepsilon_IM2(p,a,pgc);
-
     //kw
-	if((p->T10==2 || p->T10==22) && p->T11==11)
+	if(p->T10==2 || p->T10==22)
 	pturb = new komega_IM1(p,a,pgc);
 
-	if((p->T10==2 || p->T10==22) && p->T11==12)
-	pturb = new komega_IM2(p,a,pgc);
-
     //EARSM
-	if((p->T10==12) && p->T11==11)
+	if(p->T10==12)
 	pturb = new EARSM_kw_IM1(p,a,pgc);
-
-	if((p->T10==12) && p->T11==12)
-	pturb = new EARSM_kw_IM2(p,a,pgc);
 
     // LES
 	if(p->T10==31)
@@ -269,6 +266,9 @@ void driver::logic_cfd()
 	if(p->H10==3)
 	pheat =  new heat_RK3(p,a,pgc,pheat);
 
+	if(p->H10==4)
+	pheat =  new heat_RK3CN(p,a,pgc,pheat);
+
     //Convection Heat
 	if(p->H15==0)
 	pheatdisc=new convection_void(p);
@@ -278,6 +278,9 @@ void driver::logic_cfd()
 
 	if(p->H15==2)
 	pheatdisc=new cds2(p);
+
+	if(p->H15==60)
+	pheatdisc=new hcds6(p);
 
 	if(p->H15==3)
 	pheatdisc=new quick(p);
@@ -318,29 +321,20 @@ void driver::logic_cfd()
 
 //Diffusion
 	// momentum and scalars
-	if(p->D20==0 && p->N40!=4)
+	if(p->D20==0)
 	pdiff=new diff_void;
 
-	if(p->D20==1 && p->N40!=4)
+	if(p->D20==1)
 	pdiff=new ediff2(p);
 
-	if(p->D20==2 && p->j_dir==1 && p->N40!=4)
+	if(p->D20==2 && p->j_dir==1)
 	pdiff=new idiff2_FS(p);
 
-    if(p->D20==2 && p->j_dir==0 && p->N40!=4)
+	if(p->D20==3 && p->j_dir==1)
+	pdiff=new idiff2_CN(p);
+
+    if(p->D20==2 && p->j_dir==0)
 	pdiff=new idiff2_FS_2D(p);
-
-    if(p->D20==3 && p->j_dir==1 && p->N40!=4)
-	pdiff=new idiff2_FS_v2(p);
-
-    if(p->D20==3 && p->j_dir==0 && p->N40!=4)
-	pdiff=new idiff2_FS_2D(p);
-
-    if(p->N40==4 && p->j_dir==1)
-	pdiff=new idiff_IMEX(p,pheat,pconc);
-
-    if(p->N40==4 && p->j_dir==0)
-	pdiff=new idiff_IMEX_2D(p,pheat,pconc);
 
 	// turbulence
 	if(p->D20==0 || p->T10==0)
@@ -360,20 +354,6 @@ void driver::logic_cfd()
 	pconcdiff=new idiff2_FS(p);
 
 
-
-// Wave Models
-    if(p->A10==6 || p->A10==0)
-    pnse = new nsewave_v(p,a,pgc,pheat,pconc);
-
-    if(p->A10==5)
-    {
-    if(p->A410==1)
-    pnse = new nsewave_f(p,a,pgc,pheat,pconc);
-
-    if(p->A410==2)
-    pnse = new nsewave_geo(p,a,pgc,pheat,pconc);
-    }
-
 // Free Surface
     if(p->F10==1)
     poneph = new onephase_f(p,a,pgc);
@@ -381,7 +361,7 @@ void driver::logic_cfd()
     if(p->F10==2)
     poneph = new onephase_v(p,a,pgc);
 
-    if((p->F30==0 && p->F80==0) || p->F11==1)
+    if(p->F30==0 && p->F80==0)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 
 	if(p->F30==1)
@@ -390,10 +370,10 @@ void driver::logic_cfd()
 	if(p->F30==2)
 	pfsf = new levelset_RK2(p,a,pgc,pheat,pconc);
 
-	if(p->F30==3 && p->F11==0 && p->N40!=23)
+	if(p->F30==3 && p->N40!=23)
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
 
-    if(p->F30==3 && p->F11==0 && p->N40==23)
+    if(p->N40==22 || p->N40==23 || p->N40==33)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 
 
@@ -406,24 +386,15 @@ void driver::logic_cfd()
 	if(p->F40==23)
 	preini = new reini_RK3(p,1);
 
-	if(p->F40==5)
-	preini = new reinivc_RK3(p);
-
-	if(p->F40==7)
-	preini = new reinigc_RK3(p,a);
-    
-    if(p->F40==9)
-    preini = new reinisf_RK3(p,1);
-
 	if(p->F40==11)
 	preini = new directreini(p,a);
 
 
 	if(p->F31==0)
-	ppart = new particle_pls_void();
+	ppls = new particle_pls_void();
 
 	if(p->F31==1 || p->F31==2)
-	ppart = new particle_pls(p,a,pgc);
+	ppls = new particle_pls(p,a,pgc);
 
 
 	if(p->F80==1)
@@ -478,33 +449,28 @@ void driver::logic_cfd()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
-	ppress = new pjm(p,a,pheat,pconc);
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->Z10==0 && p->X10==0)
+	ppress = new pjm(p,a,pgc,pheat,pconc);
 
-    if(p->D30==1 && p->W30==1 && p->F10==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
+    if(p->D30==1 && p->W30==1 && p->F10==2 && p->Z10==0 && p->X10==0)
 	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
 
-    if(p->D30==1 && p->F10==1 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
+    if(p->D30==1 && p->W30==0 && p->F10==1 && p->Z10==0 && p->X10==0)
 	ppress = new pjm_nse(p,a,pheat,pconc);
 
-    if(p->D30==2 && p->N40!=4 && p->Z10==0 && (p->X10==0 || p->X13!=2))
-	ppress = new pjm_fsm(p,a,pheat,pconc);
-
-    if((p->D30==3 || (p->X10==1 && p->X13==2) || p->Z10!=0 || p->G3==1) && p->N40!=4)
+    if((p->D30==2 || p->D30==3 || p->X10==1 || p->Z10!=0 || p->G3==1))
 	ppress = new pjm_corr(p,a,pheat,pconc);
 
     if(p->D30==10)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
 
-    if(p->N40==4)
-	ppress = new pjm_IMEX(p,a,pheat,pconc);
 
 //poisson scheme for pressure
-	if(p->D30<5 && p->F10==2)
+	if(p->D30<=2 && p->F10==2)
 	ppois = new poisson_f(p,pheat,pconc);
-
-    if(p->D30==5 && p->F10==2)
-	ppois = new poisson_f(p,pheat,pconc);
+    
+    if((p->D30==2 || p->D30==3 || p->X10==1 || p->Z10!=0 || p->G3==1))
+	ppois = new poisson_pcorr(p,pheat,pconc);
 
     if(p->D30<9 && p->F10==1)
 	ppois = new poisson_nse(p,pheat,pconc);
@@ -598,6 +564,11 @@ void driver::logic_cfd()
     pbench = new benchmark_convection(p,a);
 
 // Printer
+	if(p->P10==2)
+	pprint = new vtr3D(p,a,pgc);
+	else if(p->P10==3)
+	pprint = new vts3D(p,a,pgc);
+	else
 	pprint = new vtu3D(p,a,pgc);
 
     if(p->P150==0)
@@ -611,7 +582,7 @@ void driver::logic_cfd()
     psed = new sediment_void();
 
     if(p->S10>0)
-    psed = new sediment_f(p,a,pgc,pturb);
+    psed = new sediment_f(p,a,pgc,pturb,pBC);
 
 
     if(p->S10>=1 || p->G1==1 || p->toporead==1)
@@ -631,51 +602,13 @@ void driver::logic_cfd()
 
     if(p->solidread==1 && p->G40>0)
     preso = new reinisolid_RK3(p);
-
-
-// Velocities
-	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->X13==2) || p->G3==1)
-	pmom = new momentum_void();
-
-    if(p->N40==1)
-	pmom = new momentum_AB2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-	if(p->N40==2)
-	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-	if(p->N40==3 && p->F11==0)
-	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-    if(p->N40==4 && p->F11==0)
-	pmom = new momentum_IMEX(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-	if(p->N40==6 && p->F11==0)
-	pmom = new momentum_FS3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-    if(p->N40==7 && p->F11==0)
-	pmom = new momentum_RK3_old(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
-    if(p->N40==23)
-	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini);
-    
-    if(p->G3==1)
-    pmom_sf = new momentum_RK3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
     
 // 6DOF
-    if(((p->X10==1 && p->X13==2) || p->Z10!=0))
-    pmom_df = new momentum_RK3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    if(p->X10==0)
+    p6dof = new sixdof_void(p,pgc);
     
-	if(p->X10==0)
-    p6dof = new sixdof_void();
-
-	if(p->X10==1 && p->X13!=2)
-    p6dof = new sixdof_gc(p,a,pgc);
-
-	if(p->X10==1 && p->X13==2)
-    p6dof = new sixdof_void();
-    
-    if(p->X10==1 && p->X13==2)
-    p6dof_df = new sixdof_df(p,a,pgc);
+    if(p->X10==1)
+    p6dof = new sixdof_cfd(p,a,pgc);
 
 // FSI
     if(p->Z10==0)
@@ -683,6 +616,62 @@ void driver::logic_cfd()
 	
     if(p->Z10==1)
     pfsi = new fsi_strips(p,pgc);
+
+// Partciles
+    if(p->Q10==0)
+    ppart = new particle_v();
+	
+    if(p->Q10==1)
+    ppart = new particle_f(p,a,pgc);
+
+// Velocities
+	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->N40==4))
+	pmom = new momentum_void();
+
+    if(p->N40==1)
+	pmom = new momentum_AB2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
+
+	if(p->N40==2)
+	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
+
+	if(p->N40==3 && p->X10==0 && p->Z10==0 && p->G3==0)
+	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+    
+	if(p->N40==5 && p->X10==0 && p->Z10==0 && p->G3==0)
+	pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+
+    if(p->N40==4 && p->X10==0 && p->Z10==0 && p->G3==0)
+	pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
+    
+    if(p->N40==6)
+    {
+        if(p->mpirank==0)
+        cout<<"N 40 6 is no longer supported"<<endl;
+        
+        pgc->final();
+		exit(0);
+    }
+
+    if(p->N40==22)
+	pmom = new momentum_FC2(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    if(p->N40==23)
+	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    if(p->N40==33)
+	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    if(p->G3==1 && (p->N40==3))
+    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+    
+    if(p->X10==1 && (p->N40==3))
+    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+    
+    if(p->G3==1 && (p->N40==4))
+    pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    
+    if((p->X10==1 || p->Z10>0)  && (p->N40==4))
+    pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
 
 }
 
@@ -694,6 +683,6 @@ void driver::patchBC_logic()
     if((p->B440>0 || p->B441>0 || p->B442>0) && p->A10==6)
     pBC = new patchBC(p,pgc);
 
-    if(p->B440==0 && p->B441==0 && p->B442==0)
+    if((p->B440==0 && p->B441==0 && p->B442==0) || (p->A10!=2 && p->A10!=6))
     pBC = new patchBC_void(p);
 }

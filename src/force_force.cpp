@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,9 +43,7 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
     
-    ALOOP
-    a->test(i,j,k)=0.0;
-    
+
     pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
     a->press.ggcpol(p);
     
@@ -173,36 +171,23 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             dv = vval/p->DYN[JP];
             dw = wval/p->DZN[KP];
             
-            pval =      p->ccipol4_a(a->press,xloc,yloc,zloc);
+            pval =      p->ccipol4_a(a->press,xloc,yloc,zloc) - p->pressgage;
             density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
             viscosity = p->ccipol4_a(a->visc,xloc,yloc,zloc);
             phival =    p->ccipol4_a(a->phi,xloc,yloc,zloc);
             
             if(p->P82==1)
             viscosity += p->ccipol4_a(a->eddyv,xloc,yloc,zloc);   
-                
-            //if(k==5)
-            //cout<<pval<<endl;
             
             i = p->posc_i(xloc);
             j = p->posc_j(yloc);
             k = p->posc_k(zloc);
-            
-            //if(p->mpirank==5)
-            //if(i==0&&k==5)
-            //cout<<p->mpirank<<" xloc: "<<xloc<<" yloc: "<<yloc<<" zloc: "<<zloc<<" i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
-            
-            //if(i==0&&k==5)
-            //cout<<p->mpirank<<" xloc: "<<xloc<<" xc: "<<xc<<" nx: "<<nx<<" nx*p->DXP[IP]*p->P91: "<<nx*p->DXP[IP]*p->P91<<" ny: "<<ny<<" pval: "<<pval<<endl;
             
             // Force
             if(phival>-1.6*p->DXM || p->P92==1)
             {
             Fx += -(pval)*A*nx
                        + density*viscosity*A*(du*ny+du*nz);
-                       
-            /*a->test(i,j,k) += -(pval)*A*nx
-                           + density*viscosity*A*(du*ny+du*nz);*/
                        
             Fy += -(pval)*A*ny
                        + density*viscosity*A*(dv*nx+dv*nz);
@@ -231,10 +216,6 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     //if(p->mpirank==0)
     //cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
     
-    LOOP
-    a->test(i,j,k) = a->press(i,j,k) - a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22);
-    
-    pgc->start4(p,a->test,gcval_press);
  
 }
 

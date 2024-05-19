@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,12 +39,12 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
  
-pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcorr(p)
+pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcorr(p), pressure_reference(p)
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
 	pd = new density_df(p);
     
 	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
@@ -88,9 +88,6 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
     
-    LOOP
-    pcorr(i,j,k)=0.0;
-    pgc->start4(p,pcorr,gcval_press);
 	
     ppois->start(p,a,pcorr);
 	
@@ -102,6 +99,7 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     
     pgc->start4(p,pcorr,gcval_press);
     presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
+    reference_start(p,a,pgc);
 	pgc->start4(p,a->press,gcval_press);
 	
 	ucorr(p,a,uvel,alpha);
@@ -114,7 +112,6 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
-    
 }
 
 void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
@@ -140,32 +137,8 @@ void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 
 void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel, field& pcorr, double alpha)
 {
-    double velCorr, rhoU, rhoV, rhoW;
-
     LOOP
-    {
-        a->press(i,j,k) += pcorr(i,j,k); 
-        
-        if(p->D39==1)
-        {
-        rhoU = pd->roface(p,a,1,0,0)*uvel(i,j,k); 
-        i--;
-        rhoU -= pd->roface(p,a,1,0,0)*uvel(i,j,k);
-        i++;
-        
-        rhoV = pd->roface(p,a,0,1,0)*vvel(i,j,k); 
-        j--;
-        rhoV -= pd->roface(p,a,0,1,0)*vvel(i,j,k);
-        j++;
-
-        rhoW = pd->roface(p,a,0,0,1)*wvel(i,j,k); 
-        k--;
-        rhoW -= pd->roface(p,a,0,0,1)*wvel(i,j,k);
-        k++;
-
-       a->press(i,j,k) -=  (a->visc(i,j,k) + a->eddyv(i,j,k))*(rhoU/p->DXN[IP] + rhoV/p->DYN[JP] + rhoW/p->DZN[KP]);
-        }
-    }
+    a->press(i,j,k) += pcorr(i,j,k); 
 }
  
 void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
@@ -175,6 +148,11 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
 	
     NLOOP4
 	a->rhsvec.V[n]=0.0;
+    
+    LOOP
+    pcorr(i,j,k)=0.0;
+    
+    pgc->start4(p,pcorr,1);
 	
     pip=p->Y50;
 
@@ -200,22 +178,25 @@ void pjm_corr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, f
 void pjm_corr::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     ULOOP
-    a->F(i,j,k)-=PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0));
+    a->F(i,j,k) -= PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0));
 }
 
 void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     VLOOP
-    a->G(i,j,k)-=PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
+    a->G(i,j,k) -= PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
 }
 
 void pjm_corr::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
     WLOOP
-    a->H(i,j,k)-=PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));
+    a->H(i,j,k) -= PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));
 }
 
-
+void pjm_corr::ini(lexer*p,fdm* a, ghostcell *pgc)
+{
+    reference_ini(p,a,pgc);
+}
 
 
 

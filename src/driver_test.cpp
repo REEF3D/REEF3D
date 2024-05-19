@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -284,28 +284,27 @@ void driver::mgc_test(lexer *p, fdm *a, ghostcell *pgc)
         
         ULOOP
         {
-        
-        if(p->flag1[UIm1JK]<0)
+        if(p->flag1[Im1JK]<0)
         if(u(i-1,j,k)<10.0 || u(i-2,j,k)<10.0 || u(i-3,j,k)<10.0)
         cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 1"<<endl;
         
-        if(p->flag1[UIp1JK]<0)
+        if(p->flag1[Ip1JK]<0)
         if(u(i+1,j,k)<10.0 || u(i+2,j,k)<10.0 || u(i+3,j,k)<10.0)
         cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 4"<<endl;
         
-        if(p->flag1[UIJm1K]<0)
+        if(p->flag1[IJm1K]<0)
         if(u(i,j-1,k)<10.0 || u(i,j-2,k)<10.0 || u(i,j-3,k)<10.0)
         cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 3"<<endl;
         
-        if(p->flag1[UIJp1K]<0)
+        if(p->flag1[IJp1K]<0)
         if(u(i,j+1,k)<10.0 || u(i,j+2,k)<10.0 || u(i,j+3,k)<10.0)
         cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 2"<<endl;
         
-        if(p->flag1[UIJKm1]<0)
+        if(p->flag1[IJKm1]<0)
         if(u(i,j,k-1)<10.0 || u(i,j,k-2)<10.0 || u(i,j,k-3)<10.0)
         cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 5"<<endl;
         
-        if(p->flag1[UIJKp1]<0)
+        if(p->flag1[IJKp1]<0)
         if(u(i,j,k+1)<10.0 || u(i,j,k+2)<10.0 || u(i,j,k+3)<10.0)
         cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 6"<<endl;
         }
@@ -363,27 +362,27 @@ void driver::mgc_test(lexer *p, fdm *a, ghostcell *pgc)
         VLOOP
         {
         
-        if(p->flag2[VIm1JK]<0)
+        if(p->flag2[Im1JK]<0)
         if(v(i-1,j,k)<10.0 || v(i-2,j,k)<10.0 || v(i-3,j,k)<10.0)
         cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 1"<<endl;
         
-        if(p->flag2[VIp1JK]<0)
+        if(p->flag2[Ip1JK]<0)
         if(v(i+1,j,k)<10.0 || v(i+2,j,k)<10.0 || v(i+3,j,k)<10.0)
         cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 4"<<endl;
         
-        if(p->flag2[VIJm1K]<0)
+        if(p->flag2[IJm1K]<0)
         if(v(i,j-1,k)<10.0 || v(i,j-2,k)<10.0 || v(i,j-3,k)<10.0)
         cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 3"<<endl;
         
-        if(p->flag2[VIJp1K]<0)
+        if(p->flag2[IJp1K]<0)
         if(v(i,j+1,k)<10.0 || v(i,j+2,k)<10.0 || v(i,j+3,k)<10.0)
         cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 2"<<endl;
         
-        if(p->flag2[VIJKm1]<0)
+        if(p->flag2[IJKm1]<0)
         if(v(i,j,k-1)<10.0 || v(i,j,k-2)<10.0 || v(i,j,k-3)<10.0)
         cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 5"<<endl;
         
-        if(p->flag2[VIJKp1]<0)
+        if(p->flag2[IJKp1]<0)
         if(v(i,j,k+1)<10.0 || v(i,j,k+2)<10.0 || v(i,j,k+3)<10.0)
         cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 6"<<endl;
         }
@@ -442,27 +441,27 @@ void driver::mgc_test(lexer *p, fdm *a, ghostcell *pgc)
         WLOOP
         {
         
-        if(p->flag3[WIm1JK]<0)
+        if(p->flag3[Im1JK]<0)
         if(w(i-1,j,k)<10.0 || w(i-2,j,k)<10.0 || w(i-3,j,k)<10.0)
         cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 1"<<endl;
         
-        if(p->flag3[WIp1JK]<0)
+        if(p->flag3[Ip1JK]<0)
         if(w(i+1,j,k)<10.0 || w(i+2,j,k)<10.0 || w(i+3,j,k)<10.0)
         cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 4"<<endl;
         
-        if(p->flag3[WIJm1K]<0)
+        if(p->flag3[IJm1K]<0)
         if(w(i,j-1,k)<10.0 || w(i,j-2,k)<10.0 || w(i,j-3,k)<10.0)
         cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 3"<<endl;
         
-        if(p->flag3[WIJp1K]<0)
+        if(p->flag3[IJp1K]<0)
         if(w(i,j+1,k)<10.0 || w(i,j+2,k)<10.0 || w(i,j+3,k)<10.0)
         cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 2"<<endl;
         
-        if(p->flag3[WIJKm1]<0)
+        if(p->flag3[IJKm1]<0)
         if(w(i,j,k-1)<10.0 || w(i,j,k-2)<10.0 || w(i,j,k-3)<10.0)
         cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 5"<<endl;
         
-        if(p->flag3[WIJKp1]<0)
+        if(p->flag3[IJKp1]<0)
         if(w(i,j,k+1)<10.0 || w(i,j,k+2)<10.0 || w(i,j,k+3)<10.0)
         cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 6"<<endl;
         }

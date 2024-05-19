@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"convection.h"
 
-komega_IM1::komega_IM1(lexer* p, fdm* a, ghostcell *pgc) : ikomega(p,a,pgc),kn(p),en(p)
+komega_IM1::komega_IM1(lexer* p, fdm* a, ghostcell *pgc) : ikomega(p,a,pgc)
 {
 	gcval_kin=20;
 	gcval_eps=30;
@@ -42,7 +42,6 @@ komega_IM1::~komega_IM1()
 
 void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
 {
-	Pk_update(p,a,pgc);
 	wallf_update(p,a,pgc,wallf);
 
 //kin
@@ -51,11 +50,12 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
     pconvec->start(p,a,kin,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,kin,eddyv0,kw_sigma_k,1.0);
 	kinsource(p,a,pvrans);
-	timesource(p,a,kn);
+	timesource(p,a,kin);
     bckomega_start(a,p,kin,eps,gcval_kin);
     bckin_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,kin,a->rhsvec,4);
 	pgc->start4(p,kin,gcval_kin);
+    pgc->solid_forcing_lsm(p,a,kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -66,13 +66,14 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 	clearrhs(p,a);
     pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,eddyv0,kw_sigma_w,1.0);
-	epssource(p,a,pvrans);
-	timesource(p,a,en);
+	epssource(p,a,pvrans,kin);
+	timesource(p,a,eps);
+    bckomega_start(a,p,kin,eps,gcval_eps);
     bcomega_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,eps,a->rhsvec,4);
 	epsfsf(p,a,pgc);
-	bckomega_start(a,p,kin,eps,gcval_eps);
 	pgc->start4(p,eps,gcval_eps);
+    pgc->solid_forcing_lsm(p,a,eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -85,14 +86,12 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 
 void komega_IM1::ktimesave(lexer *p, fdm* a, ghostcell *pgc)
 {
-    LOOP
-    kn(i,j,k)=kin(i,j,k); 
+
 }
 
 void komega_IM1::etimesave(lexer *p, fdm* a, ghostcell *pgc)
 {
-    LOOP
-    en(i,j,k)=eps(i,j,k); 
+ 
 }
 
 void komega_IM1::timesource(lexer* p, fdm* a, field& fn)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -45,7 +45,6 @@ bedload_EF::~bedload_EF()
 
 void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-
 	double qb,qbx,qby,Ts,Tb;
 	
 	SLICELOOP4

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,7 @@ Author: Hans Bihs
 fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_FNPF_STATE",0777);
 	
 	printcount=0;

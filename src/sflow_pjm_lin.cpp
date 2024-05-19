@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,8 +28,6 @@ Author: Hans Bihs
 #include"solver2D.h"
 #include"momentum.h"
 #include"ioflow.h"
-#include"sflow_weno_hj.h"
-#include"sflow_gradient_weno.h"
 #include"patchBC_interface.h"
 
 #define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
@@ -65,12 +63,6 @@ sflow_pjm_lin::sflow_pjm_lin(lexer* p, fdm2D *b, patchBC_interface *ppBC)
 	gcval_v=11;
 	gcval_w=12;
 	
-	disc = new sflow_weno_hj(p);
-    
-    pgrad = new sflow_gradient_weno(p);
-    
-    
-    
     wd_criterion=0.00005;
     
     if(p->A244==1)
@@ -124,11 +116,9 @@ void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha
 {	
 	SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
-	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)));
-          
-    SLICELOOP1
-    if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
-	P(i,j) += alpha*p->dt*((b->press(i+1,j)+b->press(i,j))*(b->depth(i+1,j)-b->depth(i,j))     
+	P(i,j) += -alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)))
+           
+             + alpha*p->dt*((b->press(i+1,j)+b->press(i,j))*(b->depth(i+1,j)-b->depth(i,j))     
 				             /(p->DXM*HPXP*p->W1));
 }
 
@@ -136,11 +126,9 @@ void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha
 {	
 	SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
-	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)));
+	Q(i,j) += -alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)))
                 
-    SLICELOOP2
-    if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
-	Q(i,j) += alpha*p->dt*((b->press(i,j+1)+b->press(i,j))*(b->depth(i,j+1)-b->depth(i,j))
+             + alpha*p->dt*((b->press(i,j+1)+b->press(i,j))*(b->depth(i,j+1)-b->depth(i,j))
                             /(p->DXM*HPYP*p->W1));
 }
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,7 +42,6 @@ kepsilon_IM1::~kepsilon_IM1()
 
 void kepsilon_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
 {
-	Pk_update(p,a,pgc);
 	wallf_update(p,a,pgc,wallf);
 
 // kin

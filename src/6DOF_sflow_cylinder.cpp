@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,13 +21,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"6DOF_sflow.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
-#include"vrans.h"
-   
 
-void sixdof_sflow::cylinder(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::cylinder(lexer *p, ghostcell *pgc)
 {
 	double U,ds,angle;
 	double xm,ym,zm,z1,z2,r;

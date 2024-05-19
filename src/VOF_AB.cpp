@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -57,7 +57,7 @@ VOF_AB::~VOF_AB()
 {
 }
 
-void VOF_AB::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &ls)
+void VOF_AB::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppls, field &ls)
 {
     pflow->fsfinflow(p,a,pgc);
 	

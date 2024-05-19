@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -145,7 +145,7 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
 	result.write((char*)&iin, sizeof (int));
     for(n=0;n<vertice_num;++n)
 	{
-	ffn=float(p->ccipol4(a->press,ccpt[n][0]-p->originx,ccpt[n][1]-p->originy,ccpt[n][2]-p->originz));
+	ffn=float(p->ccipol4(a->press,ccpt[n][0]-p->originx,ccpt[n][1]-p->originy,ccpt[n][2]-p->originz) - p->pressgage);
 	result.write((char*)&ffn, sizeof (float));
 	}
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,10 +41,10 @@ Author: Hans Bihs
  
 pjm_comp::pjm_comp(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : ro_n(p)
 {
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==0 || p->X13!=2))
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && (p->X10==1 || p->X13!=2))  
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
 	pd = new density_df(p);
     
 	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
@@ -214,7 +214,9 @@ void pjm_comp::ptimesave(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start4(p,ro_n,1);
 }
 
-
+void pjm_comp::ini(lexer*p,fdm* a, ghostcell *pgc)
+{
+}
 
 
 

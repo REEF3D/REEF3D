@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
+#include"mgc1.h"
+#include"mgc2.h"
+#include"mgc3.h"
 #include"mgc4.h"
 #include"mgcslice4.h"
 
@@ -39,16 +42,18 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     
     // flag4
     BASELOOP
-    {
-        p->flag7[FIJK]=p->flag4[IJK];
-    }
+    p->flag7[FIJK]=p->flag4[IJK];
     
     // add solid structures
     BASELOOP
-    {
-        if(p->flagslice4[IJ]<0)
-        p->flag7[FIJK]=-10;
-    }
+    if(p->flagslice4[IJ]<0)
+    p->flag7[FIJK]=-10;
+    
+    // add solid structures
+    BASELOOP
+    if(p->flagslice4[IJ]<0)
+    p->flag4[IJK]=-10;
+
     
     k=p->knoz;
     SLICEBASELOOP
@@ -64,8 +69,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 // gcx7 allocation
     xz=yz=0;
     
-    xz = (p->knox+1)*(p->knoz+1);
-    yz = (p->knoy+1)*(p->knoz+1);
+    xz = (p->knox+2)*(p->knoz+2);
+    yz = (p->knoy+2)*(p->knoz+2);
     
     maxnum = MAX(xz,yz);
     
@@ -74,8 +79,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 // gcxco7 allocation
     xz=yz=0;
     
-    xz = 2*(p->knox+p->knoz+8);
-    yz = 2*(p->knoy+p->knoz+8);
+    xz = 2*(p->knox+p->knoz+18);
+    yz = 2*(p->knoy+p->knoz+18);
     
     maxnum = MAX(xz,yz);
     
@@ -97,6 +102,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     p->gcx7_count[0]=q;
     
+
     //nb4
     q=0;
     if(p->nb4>=0)
@@ -120,6 +126,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     p->gcx7[1][q][0] = i;
     p->gcx7[1][q][1] = p->knoy-1;
     p->gcx7[1][q][2] = k;
+    
     ++q;
     }
     p->gcx7_count[1]=q;
@@ -133,11 +140,11 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     p->gcx7[2][q][0] = i;
     p->gcx7[2][q][1] = 0;
     p->gcx7[2][q][2] = k;
+    
     ++q;
     }
     p->gcx7_count[2]=q;
 
-    
 // ---------------
 // gcxco7 
     //nb1
@@ -178,6 +185,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     
     p->gcxco7_count[0]=q;
+    
 
     //nb2
     q=0;
@@ -217,6 +225,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     
     p->gcxco7_count[1]=q;
+    
 
     //nb3
     q=0;
@@ -256,6 +265,8 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     
     p->gcxco7_count[2]=q;
+    
+    //cout<<p->mpirank<<" q3: "<<q<<endl;
 
     //nb4
     q=0;
@@ -294,30 +305,12 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
         }
     }
     p->gcxco7_count[3]=q;
-    
+
     // -----
     pgc->flagx7(p,p->flag7);
-
+    
     // ------
-	mgc4 m4(p);
 
-    pgc->flagx(p,p->flag4);
-    pgc->flagx(p,p->flag);
-	pgc->gcxupdate(p);
-
-    m4.makemgc(p);
-    m4.mgcsetup(p);
-    m4.fillmgc(p);
-    m4.gcdirfill(p);
-	m4.gcsidefill(p);
-
-    m4.make_ggc(p);
-    m4.fill_ggc(p);
-    
-    m4.make_dgc(p);
-    m4.fill_dgc(p);
-    
-    // ---
     p->vecsize(pgc);
 
     p->xcoormax=-1.0e9;
@@ -345,7 +338,10 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 	 p->ycoormin=pgc->globalmin(p->ycoormin);
 	 p->zcoormin=pgc->globalmin(p->zcoormin);
 
-    
+}
+
+void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
+{
     // 2D
     pgc->gcsl_tpflag(p);    
     pgc->gcslflagx(p,p->flagslice4);

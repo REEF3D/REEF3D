@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,8 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pressure.h"
-#include"increment.h"
+#include"pressure_reference.h"
 #include"field4.h"
+
 
 class heat;
 class concentration;
@@ -33,7 +34,7 @@ using namespace std;
 #ifndef PJM_CORR_H_
 #define PJM_CORR_H_
 
-class pjm_corr : public pressure, public increment
+class pjm_corr : public pressure, public pressure_reference
 {
 
 public:
@@ -42,6 +43,7 @@ public:
 	virtual ~pjm_corr();
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);
+    virtual void ini(lexer*,fdm*,ghostcell*);
 	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
     virtual void presscorr(lexer*p,fdm *a,field&,field&,field&,field&, double);

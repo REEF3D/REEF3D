@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,10 +20,11 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"onephase.h"
 #include"increment.h"
 #include"slice4.h"
 
+class lexer;
+class ghostcell;
 class field;
 class vec;
 class fdm_fnpf;

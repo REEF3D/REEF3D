@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,12 +27,14 @@ Author: Hans Bihs
 
 void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 {
+    starttime=pgc->timer();
+    
     count=0;
     
     ULOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);    
+        db = distbeach(p);
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
 
@@ -53,9 +55,6 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 		G=H;
 		}
-		
-		if(p->B121==0 && phival<-epsi)
-		G=1.0;
         
         if(phival>=0.0)
         {
@@ -89,15 +88,19 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
             uvel(i,j,k) = relax1_nb(i,j)*uvel(i,j,k);
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
 {
+    starttime=pgc->timer();
+    
     count=0;
     VLOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);    
+        db = distbeach(p);
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j-1,k));
 
@@ -119,10 +122,6 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
 		G=H;
 		}
 		
-		if(p->B121==0 && phival<-epsi)
-		G=1.0;
-        
-        
         if(phival>=0.0)
         {
         if(p->pos_z()<=p->phimean)
@@ -154,14 +153,18 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
             vvel(i,j,k) = relax2_nb(i,j)*vvel(i,j,k);
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 {
+    starttime=pgc->timer();
+    
     count=0;
     WLOOP
     {
-        dg = distgen(p);
+        dg = distgen(p);    
         db = distbeach(p);
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k-1));
@@ -185,10 +188,6 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 		G=H;
 		}
 		
-		if(p->B121==0 && phival<-epsi)
-		G=1.0;
-        
-        
         if(phival>=0.0)
         {
         if(p->pos_z()<=p->phimean)
@@ -221,10 +220,14 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
             wvel(i,j,k) = relax4_nb(i,j)*wvel(i,j,k);
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
 {
+    starttime=pgc->timer();
+    
     LOOP
     {
         dg = distgen(p);
@@ -235,24 +238,22 @@ void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
         {            
             // Zone 2
             if(db<1.0e20)
-			{
-            if(p->D38==0)
             press(i,j,k) = (1.0-relax4_nb(i,j))*((p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22)) + relax4_nb(i,j)*press(i,j,k);
-            
-            if(p->D38>0)
-            press(i,j,k) = relax4_nb(i,j)*press(i,j,k);
-			}
         }
-    }		
+    }
+
+p->wavetime+=pgc->timer()-starttime;		
 }
 
 void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
 {
+    starttime=pgc->timer();
+    
     count=0;
     FLUIDLOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);    
+        db = distbeach(p);
 
         if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
@@ -279,15 +280,19 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
             f(i,j,k) = (1.0-relax4_nb(i,j)) * (p->phimean-p->pos_z()) + relax4_nb(i,j)*f(i,j,k);
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
 {
+    starttime=pgc->timer();
+    
     count=0;
     FLUIDLOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);    
+        db = distbeach(p);
 
 		if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
@@ -350,15 +355,19 @@ void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
             }
         }
     }
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
+    starttime=pgc->timer();
+    
     LOOP
     {
-        dg = distgen(p);
-		db = distbeach(p);
-        
+        dg = distgen(p);    
+        db = distbeach(p);
+
         phival = -0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
 
         if(phival>=-psi)
@@ -379,112 +388,8 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 
 		}
     }
-}
-
-void iowave::U_relax(lexer *p, ghostcell *pgc, double *U)
-{
-    count=0;
-    LOOP
-    {
-        dg = distgen(p);
-		db = distbeach(p);
-        
-		// Wave Generation
-		if(p->B98==2 && u_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            U[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
-            ++count;
-            }
-		}
-		
-		// Numerical Beach
-        if(p->B99==1||p->B99==2||beach_relax==1)
-		{
-            // Zone 2
-            if(db<1.0e20)
-            U[IJK] = relax4_nb(i,j)*U[IJK];
-        }
-    }
-}
-
-void iowave::V_relax(lexer *p, ghostcell *pgc, double *V)
-{
-    count=0;
-    if(p->j_dir==0)
-    LOOP
-    {
-        dg = distgen(p);
-		db = distbeach(p);
-        
-		// Wave Generation
-		if(p->B98==2 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            V[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
-            ++count;
-            }
-		}
-		
-		// Numerical Beach
-		if(p->B99==1||p->B99==2||beach_relax==1)
-		{	
-            // Zone 2
-            if(db<1.0e20)
-            V[IJK] = relax4_nb(i,j)*V[IJK];
-        }
-    }
-}
-
-void iowave::W_relax(lexer *p, ghostcell *pgc, double *W)
-{
-    count=0;
-    LOOP
-    {
-        dg = distgen(p);
-        db = distbeach(p);
-        
-		// Wave Generation
-		if(p->B98==2 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            W[IJK] = (1.0-relax4_wg(i,j)) * ramp(p)* wval[count] + relax4_wg(i,j)*W[IJK];
-            ++count;
-            }
-		}
-		
-		// Numerical Beach
-        if(p->B99==1||p->B99==2||beach_relax==1)
-		{
-            // Zone 2
-            if(db<1.0e20)
-            W[IJK] = relax4_nb(i,j)*W[IJK];
-        }
-    }		
-}
-
-void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
-{
-    FLOOP
-    {
-        dg = distgen(p);
-        db = distbeach(p);
-        
-        // Numerical Beach
-        if(p->B99==1||p->B99==2||beach_relax==1)
-        {            
-            // Zone 2
-            if(db<1.0e20)
-
-            P[FIJK] = relax4_nb(i,j)*P[FIJK];
-        }
-    }	
+    
+    p->wavetime+=pgc->timer()-starttime;
 }
 
 void iowave::fi_relax(lexer *p, ghostcell *pgc, field& f, field& phi)
@@ -495,39 +400,10 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
 {
 }
 
-void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
-{
-    count=0;
-    SLICELOOP4
-    {
-        dg = distgen(p);
-		db = distbeach(p);
-        z = eta(i,j);
-		
-		// Wave Generation
-		if(p->B98==2 && f_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*Fifsfval[count]  + relax4_wg(i,j)*f(i,j);
-            ++count;
-            }
-		}
-		
-		// Numerical Beach
-        if(p->B99==1||p->B99==2||beach_relax==1)
-		{
-            // Zone 2
-            if(db<1.0e20)
-            f(i,j) = relax4_nb(i,j)*f(i,j);
-        }
-    }
-}
 
 void iowave::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 {
-    count=0;
+    /*count=0;
     SLICELOOP4
     {
         dg = distgen(p);
@@ -538,8 +414,8 @@ void iowave::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 		{
             // Zone 2
             if(db<1.0e20)
-            f(i,j) = relax4_nb(i,j)*f(i,j);
+            f(i,j) = relax4_nb(i,j)*f(i,j) + (1.0-relax4_nb(i,j))*1.86;
         }
-    }
+    }*/
 }
 

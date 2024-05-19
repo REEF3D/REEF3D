@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,7 +46,7 @@ double ddweno3_f_nug::ddwenox(field& f, double uw)
     
 	grad=0.0;
 
-	if(uw>0.0)
+	if(uw>=0.0)
 	{
 	iqmin(p,f);
 	is_min_x();
@@ -81,7 +81,7 @@ double ddweno3_f_nug::ddwenoy(field& f, double uw)
     
 	grad=0.0;
 
-	if(uw>0.0)
+	if(uw>=0.0)
 	{
 	jqmin(p,f);
 	is_min_y();
@@ -116,7 +116,7 @@ double ddweno3_f_nug::ddwenoz(field& f, double uw)
     
 	grad=0.0;
 
-	if(uw>0.0)
+	if(uw>=0.0)
 	{
 	kqmin(p,f);
 	is_min_z();
@@ -153,7 +153,7 @@ double ddweno3_f_nug::dswenox(slice& f, double uw)
     
 	grad=0.0;
 
-	if(uw>0.0)
+	if(uw>=0.0)
 	{
 	isqmin(p,f);
 	is_min_x();
@@ -187,7 +187,7 @@ double ddweno3_f_nug::dswenoy(slice& f, double uw)
     
 	grad=0.0;
 
-	if(uw>0.0)
+	if(uw>=0.0)
 	{
 	jsqmin(p,f);
 	is_min_y();

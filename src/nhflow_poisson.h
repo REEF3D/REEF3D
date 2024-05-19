@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,9 +41,8 @@ public:
 
 private:
 
-	double teta;
 	int count,n,q;
-    
+
 };
 
 #endif

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -333,6 +333,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		
 		//-----------------------------------------------		
 		// PRESSURE
+    
 		for(n=0;n<p->gcslout_count;n++)
 		{
 		i=p->gcslout[n][0];
@@ -355,7 +356,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		wsf=wsfmax[i][j];
         
         
-        
+    
         eta_T = 0.0;
         eta_M = wsf-p->wd; 
         eta_R = fabs(eta_M-eta_T);
@@ -375,17 +376,6 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         
         H = -2.0*x*x*x + 3.0*x*x;
     
-        /*
-                epsi = p->F45*p->DZN[KP];
-        
-                if(a->phi(i,j,k)>epsi)
-                H=1.0;
-
-                if(a->phi(i,j,k)<-epsi)
-                H=0.0;
-
-                if(fabs(a->phi(i,j,k))<=epsi)
-                H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));*/
 
 		//cout<<p->mpirank<<" eta_R: "<<eta_R<<" x: "<<x<<" r: "<<r<<endl;
 		
@@ -393,46 +383,28 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 			KLOOP 
             PCHECK
 			{
-			pval=(wsf - p->pos_z()+0.5*p->DZP[KP])*a->ro(i,j,k)*fabs(p->W22);
-			
+			pval=(wsf - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+    
+
 			a->press(i+1*aa,j+1*bb,k)=H*pval + (1.0-H)*a->press(i,j,k);
 			a->press(i+2*aa,j+2*bb,k)=H*pval + (1.0-H)*a->press(i,j,k);
 			a->press(i+3*aa,j+3*bb,k)=H*pval + (1.0-H)*a->press(i,j,k);
+            /*
+            a->press(i+1*aa,j+1*bb,k) = pval;
+			a->press(i+2*aa,j+2*bb,k) = pval;
+			a->press(i+3*aa,j+3*bb,k) = pval;*/
+            
+            /*
+            if(p->B30==2)
+            {
+            a->press(i+1*aa,j+1*bb,k) = a->press(i,j,k);
+            a->press(i+2*aa,j+2*bb,k) = a->press(i,j,k);
+            a->press(i+3*aa,j+3*bb,k) = a->press(i,j,k);
+            }*/
 			
 			w(i+1*aa,j+1*bb,k)=0.0;
 			w(i+2*aa,j+2*bb,k)=0.0;
 			w(i+3*aa,j+3*bb,k)=0.0;
 			}	
 		}
-        
-        
-        
-        // NSEWAVE
-        if(p->A10==5)
-        for(n=0;n<p->gcslawa1_count;++n)
-		{
-		i=p->gcslawa1[n][0];
-		j=p->gcslawa1[n][1];
-            
-            a->P(i+1,j)=0.0;
-            double d=0.0;
-            double epsi=p->A440*p->DXM;
-            KULOOP
-            {
-            phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
-            
-                if(phival>epsi)
-                H=1.0;
-
-                if(phival<-epsi)
-                H=0.0;
-
-                if(fabs(phival)<=epsi)
-                H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-                
-                a->P(i+1,j) += u(i+1,j,k)*p->DZP[KP]*H;
-                d+=p->DXM*H;
-            }
-            a->P(i+1,j)/=d;
-        }
 }

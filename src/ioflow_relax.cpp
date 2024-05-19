@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -49,41 +49,7 @@ void ioflow_f::p_relax(lexer *p, fdm *a, ghostcell *pgc, field &press)
 void ioflow_f::phi_relax(lexer *p, ghostcell *pgc, field &f)
 {
 	double relax,distot,distcount;
-	
-	if(p->B70>0)
-	LOOP
-    {
-		distot = 0.0;
-		distcount=0;
-		for(n=0;n<p->B70;++n)
-		{
-		dist_B70[n] =  distcalc(p,p->B70_x[n],p->B70_y[n],tan_betaB70[n]);
-		
-			if(dist_B70[n]<p->B70_dist[n])
-			{
-			val = f(i,j,k);
-			f(i,j,k)=0.0;
-			distot += dist_B70[n];
-			++distcount;
-			}
-		}
-		
-		
-		for(n=0;n<p->B70;++n)
-		{
-            if(dist_B70[n]<p->B70_dist[n])
-			{
-			relax = r1(p,dist_B70[n],p->B70_dist[n]);
-			
-			if(distcount==1)
-            f(i,j,k) += (1.0-relax)*(p->B70_val[n]-p->pos_z()) + relax*val;
-			
-			if(distcount>1)
-            f(i,j,k) += ((1.0-relax)*(p->B70_val[n]-p->pos_z()) + relax*val) * (1.0 - dist_B70[n]/(distot>1.0e-10?distot:1.0e20));
-			}
-		}
-		
-    }
+
 	
 	if(p->B71>0 && p->count==0)
 	LOOP
@@ -129,19 +95,23 @@ void ioflow_f::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
 }
 
-void ioflow_f::U_relax(lexer *p, ghostcell *pgc, double *U)
+void ioflow_f::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 {
 }
 
-void ioflow_f::V_relax(lexer *p, ghostcell *pgc, double *V)
+void ioflow_f::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
 {
 }
 
-void ioflow_f::W_relax(lexer *p, ghostcell *pgc, double *W)
+void ioflow_f::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
 {
 }
 
 void ioflow_f::P_relax(lexer *p, ghostcell *pgc, double *P)
+{
+}
+
+void ioflow_f::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
 }
 

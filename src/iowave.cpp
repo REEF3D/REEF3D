@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -243,7 +243,7 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     
     expinverse = 1.0/(exp(1.0)-1.0);
     
-    if(p->mpirank==0 && p->P58>0)
+    if(p->mpirank==0)
     timeseries(p,pgc);
 }
 

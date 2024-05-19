@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -175,6 +175,7 @@ int position::posc_k(double zs)
     do{
     kloc = ihalf(ks,ke);
     
+    
     if(count%3==0)
     kloc+=1;
         
@@ -232,10 +233,102 @@ int position::posc_k(double zs)
     
     kk=MAX(kk,-1);
     kk=MIN(kk,p->knoz+1);
-    
+   
     return kk;
 }
 
+int position::posc_sig(int ii, int jj, double zs)
+{
+    i = ii;
+    j = jj;
+    
+    i = MAX(i,0);
+	i = MIN(i,p->knox-1);
+    
+	j = MAX(j,0);
+	j = MIN(j,p->knoy-1);
+    
+    k = 0;
+    int IJK_start = IJK;
+    
+    k = p->knoz-1;
+    int IJK_end = IJK;
+    
+    stop=0;
+    
+    ks = 0;
+    ke = p->knoz+1;
+
+    count=0;
+    do{
+    kloc = ihalf(ks,ke);
+    
+    if(count%3==0)
+    kloc+=1;
+    
+    k=kloc;
+    
+        
+        // out of bounds
+        if(zs<p->ZSP[IJK_start])
+        {
+            kk = -1;
+            
+            //cout<<"EXIT 0m"<<endl;
+   
+         stop=1;
+         break;   
+        }
+        
+        // out of bounds
+        if(zs>p->ZSP[IJK_end])
+        {
+            kk = p->knoz+1;
+            
+            //cout<<"EXIT 0p "<<" zs: "<<zs<<" p->ZSP[IJK_end]: "<<p->ZSP[IJK_end]<<" i: "<<i<<" j: "<<j<<endl;
+   
+         stop=1;
+         break;   
+        }
+        
+        // matching criterion
+        if(zs<p->ZSP[IJK] && zs>=p->ZSP[IJKm1] && stop==0)
+        {
+            kk = kloc-1;
+            
+            //cout<<"EXIT 1"<<endl;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(zs>=p->ZSP[IJK] && zs<p->ZSP[IJKp1] && stop==0)
+        {
+            kk = kloc;
+            
+            //cout<<"EXIT 2"<<endl;
+   
+         stop=1;
+         break;   
+        }
+        
+        // further divksion
+        if(zs<p->ZSP[IJK] && zs<p->ZSP[IJKm1])
+        ke=kloc;
+        
+        if(zs>p->ZSP[IJK] && zs>p->ZSP[IJKp1])
+        ks=kloc;
+        
+        
+        ++count;
+    }while(stop==0 && count<1000);
+    
+    kk=MAX(kk,-1);
+    kk=MIN(kk,p->knoz+1);
+    
+    
+    return kk;
+}
 
 
 

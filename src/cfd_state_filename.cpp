@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,43 +23,24 @@ Author: Hans Bihs
 #include"cfd_state.h"
 #include"lexer.h"
 
+void cfd_state::filename(lexer *p, fdm *a, ghostcell *pgc, int num)
+{
+    sprintf(name,"./REEF3D_CFD_STATE/REEF3D-CFD-State-%08i-%06i.r3d",num,p->mpirank+1);
+}
+
 void cfd_state::filename_single(lexer *p, fdm *a, ghostcell *pgc, int num)
 {
-    if(p->P14==0)
-    {
-    sprintf(name,"REEF3D_CFD-State-%08d-%05d.r3d",num,p->mpirank+1);
-    }
-    
-    if(p->P14==1)
-    {
-    sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%08d-%05d.r3d",num,p->mpirank+1);
-    }
+    sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%08i-%06i.r3d",num,p->mpirank+1);
 }
 
 void cfd_state::filename_continuous(lexer *p, fdm *a, ghostcell *pgc)
 {
-    if(p->P14==0)
-    {
-    sprintf(name,"REEF3D_CFD-State-%05d.r3d",p->mpirank+1);
-    }
-    
-    if(p->P14==1)
-    {
-    sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%05d.r3d",p->mpirank+1);
-    }
+    sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%06i.r3d",p->mpirank+1);
 }
 
 void cfd_state::filename_header(lexer *p, fdm *a, ghostcell *pgc)
 {
-    if(p->P14==0)
-    {
-	sprintf(name,"REEF3D-CFD-State-Header-%05d.r3d",p->mpirank+1);
-    }
-    
-    if(p->P14==1)
-    {
-	sprintf(name,"./REEF3D_CFD_STATE/REEF3D-CFD-State-Header-%05d.r3d",p->mpirank+1);
-    }
+	sprintf(name,"./REEF3D_CFD_STATE/REEF3D-CFD-State-Header-%06i.r3d",p->mpirank+1);
 }
 
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -70,7 +70,7 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));
 
         // Construct floating body heaviside function if used
-        if (p->X10==1 && p->X13==2)
+        if(p->X10==1)
         {
             if(p->X15==1)
             {

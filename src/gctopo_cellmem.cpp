@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -57,27 +57,23 @@ void ghostcell::velcell_update(lexer *p, fdm *a, int **cellmem, int cellcount,do
 
 			if(dir==1)
 			{			
-			if(p->flag1[UIJKp1]>0) 
+			if(p->flag1[IJKp1]>0) 
 			a->u(i,j,k+1)=0.5*a->u(i,j,k+1);
 			}
 
 			if(dir==2)
 			{
-			if(p->flag2[VIJKp1]>0) 
+			if(p->flag2[IJKp1]>0) 
 			a->v(i,j,k+1)=0.5*a->v(i,j,k+1);			
 			}
 
 			if(dir==3)
 			{
-			if(p->flag3[WIJKp1]>0) 
+			if(p->flag3[IJKp1]>0) 
 			a->w(i,j,k+1)=0.5*a->w(i,j,k+1);
 			}
     }
     
-    // NEW vertical interpolation update
-    
-    
-
 }
 
 void ghostcell::gctopo_scalarupdate(lexer *p, fdm *a, int **cellmem, int cellcount, field &f)

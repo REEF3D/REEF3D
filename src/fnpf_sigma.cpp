@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,11 +40,7 @@ fnpf_sigma::~fnpf_sigma()
 
 void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, slice &eta)
 {	
-    p->Darray(p->sig,p->imax*p->jmax*(p->kmax+1));
-    p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+1));
-    p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+1));
     
-    p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+1));
     
     FLOOP
     p->sig[FIJK] =  p->ZN[KP];
@@ -128,19 +124,6 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
                   - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->By(i,j)*c->Ey(i,j));
     }
     
-    /*
-    FBASELOOP
-    {
-    p->sigxx[FIJK] = - 2.0*((1.0 - p->sig[FIJK])*pow(c->Bx(i,j),2.0)/pow(WLVL,2.0))
-    
-                     + 2.0*(2.0*p->sig[FIJK]-1.0)*(c->Ex(i,j)*c->Bx(i,j))/pow(WLVL,2.0)
-    
-                    + (1.0 - p->sig[FIJK])*c->Bxx(i,j)/WLVL + 2.0*p->sig[FIJK]*pow(c->Ex(i,j),2.0)/pow(WLVL,2.0)
-                    
-                    - p->sig[FIJK]*c->Exx(i,j) /WLVL;              
-    }
-    */
-
     // sig BC
     SLICELOOP4
     {
@@ -183,23 +166,6 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
             p->sigxx[FIJKp2] = p->sigxx[FIJK];
             p->sigxx[FIJKp3] = p->sigxx[FIJK];
     }
-    /*
-    k=p->knoz;
-    SLICELOOP4
-    {
-        if(p->flag7[FIm1JK]<0 || i==0)
-        p->sigz[Im1J] = p->sigz[IJ];
-        
-        if(p->flag7[FIp1JK]<0 || i==p->knox-1)
-        p->sigz[Ip1J] = p->sigz[IJ];
-        
-        if(p->flag7[FIJm1K]<0 || j==0)
-        p->sigz[IJm1] = p->sigz[IJ];
-        
-        if(p->flag7[FIJp1K]<0 || j==p->knoy-1)
-        p->sigz[IJp1] = p->sigz[IJ];
-    }*/
-    
     
     FLOOP
     {
@@ -209,6 +175,9 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
     FSCHECK
     p->ZSN[FIJK] = p->ZN[KP]*(p->wd);
     }
+    
+    LOOP
+    p->ZSP[IJK]  = p->ZP[KP]*c->WL(i,j) + c->bed(i,j);
 }
 
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -65,7 +65,7 @@ void driver::loop_fnpf()
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
-        pflow->wavegen_precalc(p,pgc);
+        pflow->wavegen_precalc_fnpf(p,c,pgc);
         
         
         SLICELOOP4

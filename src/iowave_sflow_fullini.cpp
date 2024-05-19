@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -87,7 +87,7 @@ void iowave::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
 		dg = distgen(p);
 		db = distbeach(p);
 
-		b->eta(i,j) = wave_eta(p,pgc,xg,0.0);
+		b->eta(i,j) = wave_eta(p,pgc,xg,yg);
 
     }
 }

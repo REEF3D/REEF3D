@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,8 +40,8 @@ public:
 
 private:
 
-	virtual double fx(lexer*, slice&, int, double);
-	virtual double fy(lexer*, slice&, int, double);
+	double fx(lexer*, slice&, int, double);
+	double fy(lexer*, slice&, int, double);
 	void iqmin(lexer*, slice&, int);
 	void jqmin(lexer*, slice&, int);
 	void iqmax(lexer*, slice&, int);

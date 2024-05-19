@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,7 +37,42 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
         uvel=uval[count]*ramp(p);
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
+        
+        phival = a->phi(i-1,j,k);
+
+        if(phival>=-psi)
+		H=1.0;
+
+		if(phival<-epsi)
+		H=0.0;
+
+
+		if(phival>=-epsi && phival<-psi)
+		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+
             
+
+			u(i-1,j,k)=uvel*H + p->Ui;
+			u(i-2,j,k)=uvel*H + p->Ui;
+			u(i-3,j,k)=uvel*H + p->Ui;
+            
+             v(i-1,j,k)=vvel*H;
+			v(i-2,j,k)=vvel*H;
+			v(i-3,j,k)=vvel*H;
+			
+			w(i-1,j,k)=wvel*H;
+			w(i-2,j,k)=wvel*H;
+			w(i-3,j,k)=wvel*H;
+			
+            
+            if(p->W50_air==1 && phival<-epsi)
+            {
+            u(i-1,j,k)+=p->W50;
+            u(i-2,j,k)+=p->W50;
+            u(i-3,j,k)+=p->W50;
+            }
+            
+            /*
 			if(a->phi(i-1,j,k)>=0.0)
 			{
 			u(i-1,j,k)=uvel+p->Ui;
@@ -90,7 +125,7 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
 			w(i-1,j,k)=0.0;
 			w(i-2,j,k)=0.0;
 			w(i-3,j,k)=0.0;
-			}
+			}*/
         ++count;
 		}
         
@@ -126,57 +161,5 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
          }
     }*/
     
-    // NSEWAVE
-    if(p->A10==5)
-    {
-        for(n=0;n<gcgen4_count;++n)
-		{
-		i=gcgen4[n][0];
-		j=gcgen4[n][1];
-        
-        x=xgen(p);
-        y=ygen(p);
-        
-        a->eta(i-1,j)=a->eta(i-2,j)=a->eta(i-3,j)=wave_eta(p,pgc,x,y);        
-            
-            KLOOP
-            {
-            a->phi(i-1,j,k) = a->eta(i-1,j) + p->phimean - p->pos_z();
-            a->phi(i-2,j,k) = a->eta(i-2,j) + p->phimean - p->pos_z();
-            a->phi(i-3,j,k) = a->eta(i-3,j) + p->phimean - p->pos_z();
-            }
-        }
-        
-
-        for(n=0;n<gcgen1_count;++n)
-		{
-		i=gcgen1[n][0];
-		j=gcgen1[n][1];
-            
-            a->P(i-1,j)=0.0;
-            double d=0.0;
-            double epsi=p->A440*p->DXM;
-            
-            KULOOP
-            {
-            phival = 0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
-            
-                if(phival>epsi)
-                H=1.0;
-
-                if(phival<-epsi)
-                H=0.0;
-
-                if(fabs(phival)<=epsi)
-                H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-                
-                a->P(i-1,j) += a->u(i-1,j,k)*p->DXM*H;
-                d+=p->DXM*H;
-            }
-            a->P(i-1,j)/=d;
-            a->P(i-3,j)=a->P(i-2,j)=a->P(i-1,j);
-
-        }
-        
-    }
+    
 }

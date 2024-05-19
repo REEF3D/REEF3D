@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -77,13 +77,13 @@ void reinidisc_fsf::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int 
     }
 }
 
-
 void reinidisc_fsf::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *sizeM, int ipol, cpt &C)
 {	
+    L.V[n]=0.0;
     
 	if((b.V[I_J_K]>=0.0 && b.V[Ip1_J_K]>=0.0 && b.V[Im1_J_K]>=0.0 && b.V[I_Jp1_K]>=0.0 && b.V[I_Jm1_K]>=0.0 && b.V[I_J_Kp1]>=0.0 && b.V[I_J_Km1]>=0.0) 
 	|| (b.V[I_J_K]<0.0  && b.V[Ip1_J_K]<0.0  && b.V[Im1_J_K]<0.0  && b.V[I_Jp1_K]<0.0  && b.V[I_Jm1_K]<0.0   && b.V[I_J_Kp1]<0.0  && b.V[I_J_Km1]<0.0)
-    || p->count==0) 
+    ) 
 	{
 	dx=0.0;
 	dy=0.0;
@@ -148,7 +148,7 @@ void reinidisc_fsf::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *
 	sign=lsv/sqrt(lsv*lsv + dnorm*dnorm*deltax*deltax);
     
     if(sign!=sign)
-    sign= 1.0;
+    sign=1.0;
     
 	L.V[n] = -(sign*dnorm - sign);
     }

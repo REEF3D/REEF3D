@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,7 +50,7 @@ Author: Hans Bihs
 #include"fnpf_coastline.h"
 #include"sflow_bicgstab.h"
 
-fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p)
+fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(1.0e-6)
 {    
     if(p->A311==0)
     pconvec = pconeta = new fnpf_voiddisc(p);
@@ -106,10 +106,10 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     c->wd_criterion=0.00005;
     
     if(p->A344==1)
-    c->wd_criterion=p->A244_val;
+    c->wd_criterion=p->A344_val;
     
     if(p->A345==1)
-    c->wd_criterion=p->A245_val*p->DXM;
+    c->wd_criterion=p->A345_val*p->DXM;
     
     pcoast = new fnpf_coastline(p);
     
@@ -132,6 +132,19 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     psolv = new sflow_bicgstab(p,pgc);
     
     count_n=0;
+    
+    p->Iarray(temp,p->imax*p->jmax);
+    
+    // 3D
+    gcval_eta = 55;
+    gcval_fifsf = 60;
+    
+    // 2D
+    if(p->j_dir==0)
+    {
+    gcval_eta = 155;
+    gcval_fifsf = 160;
+    }
 }
 
 fnpf_fsfbc_wd::~fnpf_fsfbc_wd()
@@ -141,7 +154,7 @@ fnpf_fsfbc_wd::~fnpf_fsfbc_wd()
 void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     SLICELOOP4
-    c->WL(i,j) = MAX(0.0, c->eta(i,j) + p->wd - c->bed(i,j));
+    c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
     
     pgc->gcsl_start4(p,c->WL,50);
     
@@ -160,6 +173,9 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     c->Exx(i,j) = pddx->sxx(p,eta);
     c->Eyy(i,j) = pddx->syy(p,eta);
+    
+    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
+    c->By(i,j) = pdx->sy(p,c->depth,1.0);
     }
     
     // 2D
@@ -172,6 +188,8 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Ex(i,j) = pconeta->sx(p,eta,ivel);
     
     c->Exx(i,j) = pddx->sxx(p,eta);
+    
+    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
     }
 }
 
@@ -217,6 +235,9 @@ void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
+    
+    if(p->wet[IJ]==0)
+    c->K(i,j)=0.0;
     }
 }
 

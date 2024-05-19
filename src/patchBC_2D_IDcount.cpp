@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -53,7 +53,7 @@ void patchBC_2D::patchBC_IDcount(lexer *p, ghostcell *pgc)
         for(qn=0;qn<count;++qn)
         {
         
-        if(ID_array[qn] == p->B440_ID[n])
+        if(ID_array[qn]==p->B440_ID[n])
         check=0;
         }
         

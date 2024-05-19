@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,10 +43,10 @@ public:
 
 	double sij(lexer*,fdm*,int,int);
 	double qij(lexer*,fdm*,int,int);
-	double pk(lexer*,fdm*);
+	double pk(lexer*,fdm*,field&);
 	double pk_k(lexer*,fdm*);
 	double pk_w(lexer*,fdm*);
-	void Pk_update(lexer*,fdm*,ghostcell*);
+    double pk_b(lexer*,fdm*,field&);
 	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
 	virtual double strainterm(lexer*,fdm*);
     virtual double strainterm(lexer*,field&,field&,field&);
@@ -55,9 +55,10 @@ public:
 	virtual double magSqrSd(lexer*,fdm*);
     virtual double magSqrSd(lexer*,field&,field&,field&);
 	double strainplain(lexer*,fdm*);
-	field4 Pk;
 
 private:
+    double roface(lexer*,fdm*,int,int,int);
+    
     double s11,s22,s33,s12,s13,s23;
     double r11,r22,r33,r12,r13,r23;
     double ss11,ss22,ss33,ss12,ss13,ss23;
@@ -65,8 +66,6 @@ private:
     double q11,q22,q33,q12,q13,q23;
 	double pkterm,s,q,val;
 	const double epsi;
-
-    
 
 };
 

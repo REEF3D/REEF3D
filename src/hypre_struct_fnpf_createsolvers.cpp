@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -142,11 +142,11 @@ void hypre_struct_fnpf::create_solver5(lexer* p, ghostcell* pgc)
 	HYPRE_StructPFMGSetMaxIter(precond, 1);
 	HYPRE_StructPFMGSetTol(precond, 0.0);
 	HYPRE_StructPFMGSetZeroGuess(precond);		
-	HYPRE_StructPFMGSetRAPType(precond, p->N23);
-	HYPRE_StructPFMGSetRelaxType(precond, p->N22);
+	HYPRE_StructPFMGSetRAPType(precond, 0);
+	HYPRE_StructPFMGSetRelaxType(precond, 3);
 	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
 	HYPRE_StructPFMGSetNumPostRelax(precond, 1);
-	HYPRE_StructPFMGSetSkipRelax(precond, p->N21);
+	HYPRE_StructPFMGSetSkipRelax(precond, 0);
 	HYPRE_StructPFMGSetPrintLevel(precond, 0);
 	HYPRE_StructPFMGSetLogging(precond, 0);
     }

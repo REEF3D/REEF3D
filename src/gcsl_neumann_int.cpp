@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -75,8 +75,8 @@ void ghostcell::gcsl_neumann_V_int(lexer *p,int *f, int gcv, int bc, int cs)
 	for(q=0;q<margin;++q)
 	{
 	f[Ip1J]=f[IJ];
-    f[Ip1J]=f[IJ];
-    f[Ip1J]=f[IJ];
+    f[Ip2J]=f[IJ];
+    f[Ip3J]=f[IJ];
     }
 
 }

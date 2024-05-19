@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 
-void ghostcell::gcparax7(lexer* p,double *f,int gcv)
+void ghostcell::gcparax7(lexer* p,double *&f,int gcv)
 {
     paramargin=2;//margin;
 
@@ -35,7 +35,8 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
     i=p->gcx7[0][q][0];
     j=p->gcx7[0][q][1];
     k=p->gcx7[0][q][2];
-        
+    
+    //cout<<p->mpirank<<" GCX7: "<<i<<" "<<j<<" "<<k<<" | "<<q<<endl;
 
         send1[count] = f[FIJK];  
         ++count;
@@ -118,10 +119,7 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
 	MPI_Irecv(recv2,p->gcx7_count[1]*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
     }
 
-
-
 //  WAIT
-
     gcwait7(p);
 
 //  FILL RECEIVE
@@ -133,14 +131,12 @@ void ghostcell::gcparax7(lexer* p,double *f,int gcv)
     j=p->gcx7[0][q][1];
     k=p->gcx7[0][q][2];
         
-
         f[FIm1JK] = recv1[count];
         ++count;
         f[FIm2JK] = recv1[count];
         ++count;
         //f[FIm3JK] = recv1[count];
         //++count;
-        
     }
 
     count=0;

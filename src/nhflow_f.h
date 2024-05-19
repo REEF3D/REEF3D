@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,8 +36,6 @@ public:
 
     virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     
-    virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*, slice&, slice&, double);
-
 private:
     int q,margin;
         

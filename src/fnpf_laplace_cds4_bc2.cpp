@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -49,7 +49,7 @@ fnpf_laplace_cds4_bc2::~fnpf_laplace_cds4_bc2()
 }
 
 
-void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f)
+void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf)
 {
     // see p. 1130-1132
     

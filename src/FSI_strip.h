@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -87,6 +87,8 @@ private:
     int printcount_fsi;
 	double printtime;
     Matrix3Xd tri_x, tri_y, tri_z;
+    
+    double starttime, endtime;
 };
 
 #endif

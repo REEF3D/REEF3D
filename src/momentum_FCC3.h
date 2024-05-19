@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"momentum.h"
+#include"momentum_forcing.h"
 #include"bcmom.h"
 #include"field1.h"
 #include"field2.h"
@@ -30,6 +31,7 @@ Author: Hans Bihs
 class convection;
 class diffusion;
 class pressure;
+class density;
 class turbulence;
 class solver;
 class poisson;
@@ -39,26 +41,41 @@ class reini;
 class picard;
 class heat;
 class concentration;
+class sixdof;
+class fsi;
 
 using namespace std;
 
 #ifndef MOMENTUM_FCC3_H_
 #define MOMENTUM_FCC3_H_
 
-class momentum_FCC3 : public momentum, public bcmom
+class momentum_FCC3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
-                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*);
+                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_FCC3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field1 udiff,urk1,urk2;
-	field2 vdiff,vrk1,vrk2;
-	field3 wdiff,wrk1,wrk2;
+    field1 ur,udiff,urk1,urk2,fx;
+	field2 vr,vdiff,vrk1,vrk2,fy;
+	field3 wr,wdiff,wrk1,wrk2,fz;
+    
+    field1 Mx,rox;
+    field2 My,roy;
+    field3 Mz,roz;
+    
+    field1 Mx_rk1,Mx_rk2;
+	field2 My_rk1,My_rk2;
+	field3 Mz_rk1,Mz_rk2;
+    
+    field1 rox_rk1,rox_rk2;
+	field2 roy_rk1,roy_rk2;
+	field3 roz_rk1,roz_rk2;
+    
     field4 ls,frk1,frk2;
 
 private:
@@ -69,11 +86,19 @@ private:
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	
-    void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void clear_FGH(lexer*,fdm*);
+    void face_density(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    
+    
+    double vel_limiter(lexer*,fdm*,field&,field&,field&,field&);
+    double ro_filter(lexer*,fdm*,field&);
+
     
 	int gcval_u, gcval_v, gcval_w;
     int gcval_phi;
+    double val;
 	double starttime;
+    double ro_threshold;
 
 	convection *pconvec;
     convection *pfsfdisc;
@@ -86,6 +111,9 @@ private:
 	ioflow *pflow;
     nhflow *pnh;
     reini *preini;
+    density *pd;
+    sixdof *p6dof;
+    fsi *pfsi;
     
 };
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,7 @@ probe_line::probe_line(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P62), eps
 {
 	linecount=0;
 	
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0 )
 	mkdir("./REEF3D_CFD_ProbeLine",0777);
 	
 	if(p->mpirank==0 && p->P62>0)
@@ -188,47 +188,9 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		if(p->mpirank==0)
 		{
 			// open file
-			if(p->P14==0)
-			{
-			if(num<10)
-			sprintf(name,"REEF3D-CFD-probeline-%i-00000%i.dat",n+1,num);
+			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-%08i.dat",n+1,num);
 
-			if(num<100&&num>9)
-			sprintf(name,"REEF3D-CFD-probeline-%i-0000%i.dat",n+1,num);
 
-			if(num<1000&&num>99)
-			sprintf(name,"REEF3D-CFD-probeline-%i-000%i.dat",n+1,num);
-
-			if(num<10000&&num>999)
-			sprintf(name,"REEF3D-CFD-probeline-%i-00%i.dat",n+1,num);
-
-			if(num<100000&&num>9999)
-			sprintf(name,"REEF3D-CFD-probeline-%i-0%i.dat",n+1,num);
-
-			if(num>99999)
-			sprintf(name,"REEF3D-CFD-probeline-%i-%i.dat",n+1,num);
-			}
-			
-			if(p->P14==1)
-			{
-			if(num<10)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-00000%i.dat",n+1,num);
-
-			if(num<100&&num>9)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-0000%i.dat",n+1,num);
-
-			if(num<1000&&num>99)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-000%i.dat",n+1,num);
-
-			if(num<10000&&num>999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-00%i.dat",n+1,num);
-
-			if(num<100000&&num>9999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-0%i.dat",n+1,num);
-
-			if(num>99999)
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-%i.dat",n+1,num);
-			}
 			
 			lineout[n].open(name);
 
@@ -239,7 +201,7 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 
 			lineout[n]<<endl<<endl;
 			
-			lineout[n]<<"X \t Y \t Z \t U \t V \t W \t P \t Kin \t Epsilon/Omega \t Eddy-viscosity \t LS"<<endl;
+			lineout[n]<<"X \t Y \t Z \t U \t V \t W \t P \t Kin \t Omega \t Eddy-viscosity \t LS"<<endl;
 			
 			lineout[n]<<endl<<endl;
 		}
@@ -255,8 +217,8 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 			U[n][q] = p->ccipol1(a->u, xp, yp, zp);
 			V[n][q] = p->ccipol2(a->v, xp, yp, zp);
 			W[n][q] = p->ccipol3(a->w, xp, yp, zp);
-			P[n][q] = p->ccipol4_a(a->press, xp, yp, zp);
-			K[n][q] = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
+			P[n][q] = p->ccipol4_a(a->press, xp, yp, zp) - p->pressgage;
+			K[n][q] = pturb->ccipol_a_kinval(p, pgc, xp, yp, zp);
 			E[n][q] = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
 			VT[n][q] = p->ccipol4_a(a->eddyv, xp, yp, zp);
 			LS[n][q] = p->ccipol4(a->phi, xp, yp, zp);
@@ -474,10 +436,10 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 			kkloc = p->posc_k(p->P62_zs[n] + t*ds[n]*(p->P62_ze[n]-p->P62_zs[n])/(norm[n]>eps?norm[n]:1.0e20));
 			
             if(p->j_dir==0)
-			check=boundcheck_ik(p,a,iiloc,jjloc,kkloc,1);
+			check=boundcheck_ik(p,iiloc,jjloc,kkloc,1);
             
             if(p->j_dir==1)
-			check=boundcheck(p,a,iiloc,jjloc,kkloc,1);
+			check=boundcheck(p,iiloc,jjloc,kkloc,1);
             
             //if(n==3 && p->mpirank==3)
             //cout<<p->mpirank<<" n: "<<n<<" i: "<<iiloc<<" j: "<<jjloc<<" k: "<<kkloc<<" check: "<<check<<" p->originx: "<<p->originx<<" p->endx: "<<p->endx<<endl;

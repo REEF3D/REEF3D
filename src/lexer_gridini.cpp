@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,7 +26,7 @@ Author: Hans Bihs
 void lexer::gridini(ghostcell *pgc)
 {        
     if(G2==1)
-    sigma_coord_ini(this);
+    sigma_coord_ini();
     
     lexer_gridspacing(pgc);
 	parse();	
@@ -36,16 +36,26 @@ void lexer::gridini(ghostcell *pgc)
 void lexer::flagini()
 {
     control_calc();
-
 	gridsize();
-	vellast();
+	
+    
+    //cout<<mpirank<<" imax: "<<imax<<" jmax: "<<jmax<<" kmax: "<<kmax<<" imax*jmax*kmax: "<<imax*jmax*kmax<<endl;
 	
 	Iarray(flag1,imax*jmax*kmax);
 	Iarray(flag2,imax*jmax*kmax);
 	Iarray(flag3,imax*jmax*kmax);
     Iarray(flag5,imax*jmax*kmax);
     Iarray(flag,imax*jmax*kmax);
+    
+    //cout<<mpirank<<" flagini: "<<imax*jmax*kmax<<endl;
 	
+    Iarray(flagsf1,imax*jmax*kmax);
+	Iarray(flagsf2,imax*jmax*kmax);
+	Iarray(flagsf3,imax*jmax*kmax);
+	Iarray(flagsf4,imax*jmax*kmax);
+    
+    Iarray(BC,imax*jmax*kmax);
+    
 	Iarray(tpflag,imax*jmax*kmax);
     Iarray(ndbaseflag,imax*jmax*kmax);
 
@@ -54,8 +64,6 @@ void lexer::flagini()
 	makeflag(flag2);
 	makeflag(flag3);
 	makeflag(tpflag);
-
-	
 	
 	x_dir=y_dir=z_dir=1.0;
 	
@@ -77,7 +85,6 @@ void lexer::flagini()
 
 void lexer::gridini_patchBC()
 {
-
 }
 
 int lexer::conv(double a)
@@ -96,7 +103,6 @@ int lexer::conv(double a)
 
 	if(diff<=-0.5)
 	b=c-1;
-
 
 	return b;
 }
@@ -117,8 +123,17 @@ void lexer::gcd_ini(ghostcell *pgc)
     
     if(gcb4[q][3]==5 || gcb4[q][3]==6)
     gcd4[q] = 0.5*DZP[KP];
-
-
 	}
+}
+
+void lexer::sigma_coord_ini()
+{
+    double L, ZN0temp;
     
+    L = ZN[knoz+marge] - ZN[0+marge];
+    
+    ZN0temp = ZN[0+marge];
+    
+    for(k=-marge;k<knoz+marge;++k)
+    ZN[KP] = (ZN[KP]-ZN0temp)/L;
 }

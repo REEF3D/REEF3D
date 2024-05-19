@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,14 +29,11 @@ Author: Hans Bihs
 
 void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
-    int *cval;
-    
-    p->Iarray(cval,p->imax*p->jmax*(p->kmax+2));
-    
+
     count=0;
-    FLOOP
+    LOOP
     {
-    cval[FIJK]=count;
+    CVAL4[IJK]=count;
     ++count;
     }
     
@@ -46,11 +43,11 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     stencil_indices[j] = j;
 
     count=0;
-    FKJILOOP
+    KJILOOP
     {
-		FPCHECK
+		PCHECK
 		{
-		n=cval[FIJK];
+		n=CVAL4[IJK];
         
 		values[count]=M.p[n];
 		++count;
@@ -74,7 +71,7 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 		++count; 
 		}     
 		
-		FSCHECK
+		SCHECK
 		{
 		values[count]=1.0;
 		++count;
@@ -105,12 +102,12 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     
     // vec
     count=0;
-	FKJILOOP
+	KJILOOP
 	{
-		FPCHECK
-		values[count] = f[FIJK];
+		PCHECK
+		values[count] = f[IJK];
 		
-		FSCHECK
+		SCHECK
 		values[count] = 0.0;
 	
     ++count;
@@ -121,11 +118,11 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     
     
     count=0; 
-	FKJILOOP
+	KJILOOP
 	{
 		FPCHECK
 		{
-		n=cval[FIJK];
+		n=CVAL4[IJK];
 		values[count] = rhs.V[n];
 		}
 		
@@ -137,8 +134,7 @@ void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     
     HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
     HYPRE_StructVectorAssemble(b);
-    
-    p->del_Iarray(cval,p->imax*p->jmax*(p->kmax+1));
+
 }
 
 void hypre_struct::fillbackvec7(lexer *p, double *f, int var)
@@ -146,10 +142,10 @@ void hypre_struct::fillbackvec7(lexer *p, double *f, int var)
 	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
 	
         count=0;
-        FKJILOOP
+        KJILOOP
         {
-		 FPCHECK
-        f[FIJK]=values[count];
+        PCHECK
+        f[IJK]=values[count];
 		
         ++count;
         }

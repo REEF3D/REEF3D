@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -162,10 +162,10 @@ int position::posf_j(double ys)
     return jj;
 }
 
-
-
 int position::posf_k(double zs)
 {
+    if(p->G2==0)
+    {
     stop=0;
 
     ks = 0;
@@ -226,7 +226,154 @@ int position::posf_k(double zs)
     
     kk=MAX(kk,0);
     kk=MIN(kk,p->knoz);
+    }
     
+    if(p->G2==1)
+    {
+    stop=0;
+
+    ks = 0;
+    ke = p->knoz;
+    
+    count=0;
+    do{
+    kloc = ihalf(ks,ke);
+    
+    if(count%3==0)
+    kloc+=1;
+    
+        // out of bounds
+        if(zs<p->ZSP[0+marge])
+        {
+            kk = -1;
+   
+         stop=1;
+         break;   
+        }
+        
+        // out of bounds
+        if(zs>p->ZSP[p->knoz-1+marge])
+        {
+            kk = p->knoz+1;
+
+         stop=1;
+         break;   
+        }
+    
+        // matching criterion
+        if(zs<p->ZSP[kloc+marge] && zs>=p->ZSP[kloc-1+marge])
+        {
+            kk = kloc;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(zs>=p->ZSP[kloc+marge] && zs<p->ZSP[kloc+1+marge])
+        {
+            kk = kloc+1;
+
+         stop=1;
+         break;   
+        }
+        
+        // further divksion
+        if(zs<p->ZSP[kloc+marge] && zs<p->ZSP[kloc-1+marge])
+        ke=kloc;
+        
+        if(zs>p->ZSP[kloc+marge] && zs>p->ZSP[kloc+1+marge])
+        ks=kloc;
+        
+        
+        ++count;
+    }while(stop==0 && count<1000);
+    
+    kk=MAX(kk,0);
+    kk=MIN(kk,p->knoz);
+        
+    }
     
     return kk;
 }
+
+
+int position::posf_sig(int ii, int jj, double zs)
+{
+    
+    i = ii;
+    j = jj;
+    
+    k = 0;
+    int IJK_start = IJK;
+    
+    k = p->knoz-1;
+    int IJK_end = IJK;
+    
+    
+    stop=0;
+
+    ks = 0;
+    ke = p->knoz;
+    
+    count=0;
+    do{
+    kloc = ihalf(ks,ke);
+    
+    if(count%3==0)
+    kloc+=1;
+    
+    k=kloc;
+    
+        // out of bounds
+        if(zs<p->ZSP[IJK_start])
+        {
+            kk = -1;
+   
+         stop=1;
+         break;   
+        }
+        
+        // out of bounds
+        if(zs>p->ZSP[IJK_end])
+        {
+            kk = p->knoz+1;
+
+         stop=1;
+         break;   
+        }
+    
+        // matching criterion
+        if(zs<p->ZSP[IJK] && zs>=p->ZSP[IJKm1])
+        {
+            kk = kloc;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(zs>=p->ZSP[IJK] && zs<p->ZSP[IJKp1])
+        {
+            kk = kloc+1;
+
+         stop=1;
+         break;   
+        }
+        
+        // further divksion
+        if(zs<p->ZSP[IJK] && zs<p->ZSP[IJKm1])
+        ke=kloc;
+        
+        if(zs>p->ZSP[IJK] && zs>p->ZSP[IJKp1])
+        ks=kloc;
+        
+        
+        ++count;
+    }while(stop==0 && count<1000);
+    
+    kk=MAX(kk,0);
+    kk=MIN(kk,p->knoz);
+        
+    
+    return kk;
+}
+

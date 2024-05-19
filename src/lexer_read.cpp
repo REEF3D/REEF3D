@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,7 +29,7 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0)
 	read_control();
 
-	ctrlsize=12500;
+	ctrlsize=22500;
 	
     Iarray(ictrl,ctrlsize);
     Darray(dctrl,ctrlsize);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -113,7 +113,7 @@ void  ikepsilon::kinsource(lexer *p, fdm* a, vrans* pvrans)
     LOOP
     {
 	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  += pk(p,a)
+	a->rhsvec.V[count]  += pk(p,a,a->eddyv)
 						- MAX(eps(i,j,k),0.0);
 	
 	++count;
@@ -132,7 +132,7 @@ void  ikepsilon::epssource(lexer *p, fdm* a, vrans* pvrans)
 	{
     a->M.p[count] += ke_c_2e * MAX((eps(i,j,k))/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)),0.0);
 
-	a->rhsvec.V[count] += ke_c_1e * (eps(i,j,k)/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a);
+	a->rhsvec.V[count] += ke_c_1e * (eps(i,j,k)/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a,a->eddyv);
 
     ++count;
 	}

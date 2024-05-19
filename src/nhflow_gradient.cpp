@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,7 +25,9 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"lexer.h"
 
-nhflow_gradient::nhflow_gradient(lexer* pp)
+nhflow_gradient::nhflow_gradient(lexer* pp) : tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
+			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
+			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20),dx(pp->DXM)
 {
     p=pp;
     
@@ -37,39 +39,84 @@ nhflow_gradient::~nhflow_gradient()
 
 }
 
-// *************************************************************************************
-// *************************************************************************************
-// X X X X X X X
-// *************************************************************************************
-// *************************************************************************************
-
 // **********************************************************
-// UXDX2
+// DUXDX2
 // **********************************************************
 
 double nhflow_gradient::dudx(double *U)
 {
-	//grad = (a->u(i+1,j,k) - a->u(i-1,j,k))/(p->DXN[IP]+p->DXN[IP1]);
+	grad = (U[Ip1JK] - U[Im1JK])/(p->DXP[IP]+p->DXP[IP1]);
 
 	return grad;
 }
 
 double nhflow_gradient::dudy(double *U)
 {
-	//grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYP[JP]+p->DXP[IM1]);
+	grad = (U[IJp1K] - U[IJm1K])/(p->DYP[JP]+p->DYP[JM1]);
 
 	return grad;
 }
 
 double nhflow_gradient::dudz(double *U)
 {
-	//grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DZP[KP]+p->DZP[KM1]);
+	grad = (U[IJKp1] - U[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 
 	return grad;
 }
 
 // **********************************************************
-// UDXX2
+// DVDX2
+// **********************************************************
+
+double nhflow_gradient::dvdx(double *V)
+{
+	grad = (V[Ip1JK] - V[Im1JK])/(p->DXP[IP]+p->DXP[IP1]);
+
+	return grad;
+}
+
+double nhflow_gradient::dvdy(double *V)
+{
+	grad = (V[IJp1K] - V[IJm1K])/(p->DYP[JP]+p->DYP[JM1]);
+
+	return grad;
+}
+
+double nhflow_gradient::dvdz(double *V)
+{
+	grad = (V[IJKp1] - V[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
+
+	return grad;
+}
+
+// **********************************************************
+// DZX2
+// **********************************************************
+
+double nhflow_gradient::dwdx(double *W)
+{
+	grad = (W[Ip1JK] - W[Im1JK])/(p->DXP[IP]+p->DXP[IP1]);
+
+	return grad;
+}
+
+double nhflow_gradient::dwdy(double *W)
+{
+	grad = (W[IJp1K] - W[IJm1K])/(p->DYP[JP]+p->DYP[JM1]);
+
+	return grad;
+}
+
+
+double nhflow_gradient::dwdz(double *W)
+{
+	grad = (W[IJKp1] - W[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
+
+	return grad;
+}
+
+// **********************************************************
+// DUDXX2
 // **********************************************************
 
 double nhflow_gradient::dudxx(double *U)
@@ -93,41 +140,8 @@ double nhflow_gradient::dudzz(double *U)
 	return grad;
 }
 
-
-// *************************************************************************************
-// *************************************************************************************
-// Y Y Y Y Y Y
-// *************************************************************************************
-// *************************************************************************************
-
 // **********************************************************
-// VDX2
-// **********************************************************
-
-double nhflow_gradient::dvdx(double *V)
-{
-	//grad = (a->v(i+1,j,k) - a->v(i-1,j,k))/(p->DXP[IP]+p->DXP[IP1]);
-
-	return grad;
-}
-
-double nhflow_gradient::dvdy(double *V)
-{
-	//grad = (a->v(i,j+1,k) - a->v(i,j-1,k))/(p->DYN[JP]+p->DYN[JP1]);
-
-	return grad;
-}
-
-
-double nhflow_gradient::dvdz(double *V)
-{
-	//grad = (a->v(i,j+1,k) - a->v(i,j-1,k))/(p->DZP[KP]+p->DZP[KP1]);
-
-	return grad;
-}
-
-// **********************************************************
-// VDXX2
+// DVDXX2
 // **********************************************************
 
 double nhflow_gradient::dvdxx(double *V)
@@ -152,40 +166,8 @@ double nhflow_gradient::dvdzz(double *V)
 	return grad;
 }
 
-// *************************************************************************************
-// *************************************************************************************
-// Z Z Z Z Z
-// *************************************************************************************
-// *************************************************************************************
-
 // **********************************************************
-// ZX2
-// **********************************************************
-
-double nhflow_gradient::dwdx(double *W)
-{
-	//grad = (a->w(i+1,j,k) - a->w(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
-
-	return grad;
-}
-
-double nhflow_gradient::dwdy(double *W)
-{
-	//grad = (a->w(i,j+1,k) - a->w(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
-
-	return grad;
-}
-
-
-double nhflow_gradient::dwdz(double *W)
-{
-	//grad = (a->w(i,j,k+1) - a->w(i,j,k-1))/(p->DZN[KP]+p->DZN[KP1]);
-
-	return grad;
-}
-
-// **********************************************************
-// WDXX2
+// DWDXX2
 // **********************************************************
 double nhflow_gradient::dwdxx(double *W)
 {

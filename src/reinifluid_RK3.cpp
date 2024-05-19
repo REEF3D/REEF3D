@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,7 +39,7 @@ reinifluid_RK3::reinifluid_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),f(p),fr
 	gcval_phi=51;
 
 	if(p->F50==2)
-	gcval_phi=52;
+	gcval_phi=54;
 
 	if(p->F50==3)
 	gcval_phi=53;
@@ -92,9 +92,6 @@ reinifluid_RK3::~reinifluid_RK3()
 
 void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow)
 { 
-    pgc->flag9_update(p,a);
-    
-    
 	sizeM=p->sizeM4;
 	
 	ppicard->volcalc(p,a,pgc,a->phi);
@@ -107,7 +104,6 @@ void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow
 	}
     
 	pgc->start4vec(p,f,gcval_iniphi);
-    
     
     startV(a,p,f,pgc,pflow);
     
@@ -127,7 +123,6 @@ void reinifluid_RK3::start(fdm* a,lexer* p,field& b,ghostcell* pgc,ioflow* pflow
 	pgc->start4(p,b,gcval_phi);
     
     ppicard->correct_ls(p,a,pgc,a->phi);
-     
 }
 
 void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
@@ -170,7 +165,7 @@ void reinifluid_RK3::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow
     prdisc->start(p,a,pgc,frk1,L,4);
 
 	NLOOP4
-	frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
+	frk2.V[n] = 0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
 
 	if(p->count==0)
 	pgc->start4vec(p,frk2,gcval_iniphi);

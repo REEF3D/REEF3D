@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,7 +44,7 @@ void sediment_f::waterlevel(lexer *p, fdm *a, ghostcell *pgc)
         {
         zval=MAX(zval,-(a->phi(i-1,j,k)*p->DXM)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
         }
-        
+
     s->waterlevel(i,j) = zval-s->bedzh(i,j);
     }
 }

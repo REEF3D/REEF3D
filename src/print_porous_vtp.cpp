@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,7 +29,11 @@ Author: Hans Bihs
 
 void print_porous::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
 {
-	sprintf(name,"REEF3D_Porous-Object.vtp");
+    // Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_CFD_Porous",0777);
+    
+	sprintf(name,"./REEF3D_CFD_Porous/REEF3D_Porous-Object.vtp");
 
 	ofstream result;
 	result.open(name, ios::binary);

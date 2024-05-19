@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,10 +39,8 @@ sflow_vtp_bed::sflow_vtp_bed(lexer *p, fdm2D *b)
 	printbedcount=0;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_VTP_BED",0777);
-	
-	
 }
 
 sflow_vtp_bed::~sflow_vtp_bed()
@@ -178,6 +176,14 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<PolyData>"<<endl;
 	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">"<<endl;
+    
+    if(p->P16==1)
+    {
+    result<<"<FieldData>"<<endl;
+    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+    result<<"</DataArray>"<<endl;
+    result<<"</FieldData>"<<endl;
+    }
     
     n=0;
 	result<<"<Points>"<<endl;

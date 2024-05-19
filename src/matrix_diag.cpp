@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,7 @@ matrix_diag::matrix_diag(lexer *pp)
 	pp->Darray(b,pp->veclength);
 	pp->Darray(p,pp->veclength);
     
-    if(pp->A320>=2 ||pp->D30==5)
+    if(pp->A320>=2)
     {
     pp->Darray(nn,pp->veclength);
     pp->Darray(ss,pp->veclength);
@@ -48,6 +48,18 @@ matrix_diag::matrix_diag(lexer *pp)
 	pp->Darray(www,pp->veclength);
 	pp->Darray(ttt,pp->veclength);
 	pp->Darray(bbb,pp->veclength);*/
+    }
+    
+    if(pp->D33==1)
+    {
+    pp->Darray(sb,pp->veclength);
+    pp->Darray(st,pp->veclength);
+    pp->Darray(nb,pp->veclength);
+    pp->Darray(nt,pp->veclength);
+    pp->Darray(eb,pp->veclength);
+    pp->Darray(et,pp->veclength);
+    pp->Darray(wb,pp->veclength);
+    pp->Darray(wt,pp->veclength);
     }
     
 }

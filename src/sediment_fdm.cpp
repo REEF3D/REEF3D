@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,7 @@ sediment_fdm::sediment_fdm(lexer *p) : P(p),Q(p),
                                        active(p),
                                        bedk(p),slideflag(p),
                                        cbe(p),cb(p),cbn(p),conc(p),
-                                       waterlevel(p)
+                                       waterlevel(p),guard(p)
 {
 
 }

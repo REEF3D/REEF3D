@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,10 +28,13 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"topo.h"
 #include"bedshear.h"
+#include"patchBC_interface.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb): bedslope(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC): bedslope(p)
 {
 
+    pBC = ppBC;
+    
     sediment_logic(p,a,pgc,pturb);
 
 	p->gcin4a_count=p->gcin_count;
@@ -71,7 +74,11 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, rein
 	}
     
     if(sedcalc==0)
+    {
+    fill_bedk(p,a,pgc);
+    waterlevel(p,a,pgc);
     pbedshear->taubed(p,a,pgc,s);
+    }
 }
 
 void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)

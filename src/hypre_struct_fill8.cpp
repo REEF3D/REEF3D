@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,7 +34,7 @@ void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     count=0;
     LOOP
     {
-    cval4(i,j,k)=count;
+    CVAL4[IJK]=count;
     ++count;
     }
     
@@ -48,7 +48,7 @@ void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
     {
 		FPWDCHECK
 		{
-		n=cval4(i,j,k);
+		n=CVAL4[IJK];
         
 		values[count]=M.p[n];
 		++count;
@@ -123,7 +123,7 @@ void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 	{
 		FPWDCHECK
 		{
-		n=cval4(i,j,k);
+		n=CVAL4[IJK];
 		values[count] = rhs.V[n];
 		}
 		

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,7 +40,7 @@ public:
 
 	virtual void start(lexer*,fdm*,ghostcell*)=0;
 	virtual void initialize(lexer*,fdm*,ghostcell*)=0;
-    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field1&,field2&,field3&,bool)=0;
+    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool)=0;
 };
 
 #endif

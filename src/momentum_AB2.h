@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,7 +42,7 @@ class momentum_AB2 : public momentum, public bcmom
 public:
 	momentum_AB2(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_AB2();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
 	virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);

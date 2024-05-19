@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,7 +40,7 @@ void flux_face_QOU::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double 
 	{
         pip=1;
         
-        if(p->flag1[UIm1JK]>0)
+        if(p->flag1[Im1JK]>0)
         {
         if(0.5*(uvel(i,j,k)+uvel(i-1,j,k)) >= 0.0)
         uflux1 = (1.0/16.0)*(5.0*uvel(i,j,k) + 15.0*uvel(i-1,j,k) - 5.0*uvel(i-2,j,k) + uvel(i-3,j,k));
@@ -49,11 +49,11 @@ void flux_face_QOU::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double 
         uflux1 = (1.0/16.0)*(5.0*uvel(i-1,j,k) + 15.0*uvel(i,j,k) - 5.0*uvel(i+1,j,k) + uvel(i+2,j,k));
         }
         
-        if(p->flag1[UIm1JK]<0)
+        if(p->flag1[Im1JK]<0)
         uflux1= 0.5*(uvel(i,j,k)+uvel(i-1,j,k));
         
         
-        if(p->flag1[UIp1JK]>0)
+        if(p->flag1[Ip1JK]>0)
         {
         if(0.5*(uvel(i,j,k)+uvel(i+1,j,k)) >= 0.0)
         uflux2 = (1.0/16.0)*(5.0*uvel(i+1,j,k) + 15.0*uvel(i,j,k) - 5.0*uvel(i-1,j,k) + uvel(i-2,j,k));
@@ -62,7 +62,7 @@ void flux_face_QOU::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double 
         uflux2 = (1.0/16.0)*(5.0*uvel(i,j,k) + 15.0*uvel(i+1,j,k) - 5.0*uvel(i+2,j,k) + uvel(i+3,j,k));
         }
         
-        if(p->flag1[UIp1JK]<0)
+        if(p->flag1[Ip1JK]<0)
         uflux2= 0.5*(uvel(i,j,k)+uvel(i+1,j,k));
 
         pip=0;
@@ -108,7 +108,7 @@ void flux_face_QOU::v_flux(fdm* a, int ipol, field& vvel, double &vflux1, double
 	{
         pip=2;
         
-        if(p->flag2[VIJm1K]>0)
+        if(p->flag2[IJm1K]>0)
         {
         if(0.5*(vvel(i,j,k)+vvel(i,j-1,k)) >= 0.0)
         vflux1 = (1.0/16.0)*(5.0*vvel(i,j,k) + 15.0*vvel(i,j-1,k) - 5.0*vvel(i,j-2,k) + vvel(i,j-3,k));
@@ -117,12 +117,12 @@ void flux_face_QOU::v_flux(fdm* a, int ipol, field& vvel, double &vflux1, double
         vflux1 = (1.0/16.0)*(5.0*vvel(i,j-1,k) + 15.0*vvel(i,j,k) - 5.0*vvel(i,j+1,k) + vvel(i,j+2,k));
         }
         
-        if(p->flag2[VIJm1K]<0)
+        if(p->flag2[IJm1K]<0)
         vflux1= 0.5*(vvel(i,j,k)+vvel(i,j-1,k));
             
             
             
-        if(p->flag2[VIJp1K]>0)
+        if(p->flag2[IJp1K]>0)
         {
         if(0.5*(vvel(i,j,k)+vvel(i,j+1,k)) >= 0.0)
         vflux2 = (1.0/16.0)*(5.0*vvel(i,j+1,k) + 15.0*vvel(i,j,k) - 5.0*vvel(i,j-1,k) + vvel(i,j-2,k));
@@ -131,7 +131,7 @@ void flux_face_QOU::v_flux(fdm* a, int ipol, field& vvel, double &vflux1, double
         vflux2 = (1.0/16.0)*(5.0*vvel(i,j,k) + 15.0*vvel(i,j+1,k) - 5.0*vvel(i,j+2,k) + vvel(i,j+3,k));
         }
         
-        if(p->flag2[VIJp1K]<0)
+        if(p->flag2[IJp1K]<0)
         vflux2= 0.5*(vvel(i,j,k)+vvel(i,j+1,k));
         
         pip=0;
@@ -177,7 +177,7 @@ void flux_face_QOU::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, double
 	{
         pip=3;
         
-        if(p->flag3[WIJKm1]>0)
+        if(p->flag3[IJKm1]>0)
         {
         if(0.5*(wvel(i,j,k)+wvel(i,j,k-1))>=0.0)
         wflux1 = (1.0/16.0)*(5.0*wvel(i,j,k) + 15.0*wvel(i,j,k-1) - 5.0*wvel(i,j,k-2) + wvel(i,j,k-3));
@@ -186,10 +186,10 @@ void flux_face_QOU::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, double
         wflux1 = (1.0/16.0)*(5.0*wvel(i,j,k-1) + 15.0*wvel(i,j,k) - 5.0*wvel(i,j,k+1) + wvel(i,j,k+2));
         }
         
-        if(p->flag3[WIJKm1]<0)
+        if(p->flag3[IJKm1]<0)
         wflux1= 0.5*(wvel(i,j,k)+wvel(i,j,k-1));
         
-        if(p->flag3[WIJKp1]>0)
+        if(p->flag3[IJKp1]>0)
         {
         if(0.5*(wvel(i,j,k)+wvel(i,j,k+1))>=0.0)
         wflux2 = (1.0/16.0)*(5.0*wvel(i,j,k+1) + 15.0*wvel(i,j,k) - 5.0*wvel(i,j,k-1) + wvel(i,j,k-2));
@@ -198,7 +198,7 @@ void flux_face_QOU::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, double
         wflux2 = (1.0/16.0)*(5.0*wvel(i,j,k) + 15.0*wvel(i,j,k+1) - 5.0*wvel(i,j,k+2) + wvel(i,j,k+3));
         }
         
-        if(p->flag3[WIJKp1]<0)
+        if(p->flag3[IJKp1]<0)
         wflux2= 0.5*(wvel(i,j,k)+wvel(i,j,k+1));
 
         pip=0;
@@ -212,40 +212,3 @@ void flux_face_QOU::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, double
         pip=0;
 	}
 }
-
-void flux_face_QOU::omega_flux(lexer *p, fdm* a, int ipol, field &u, field &v, field& w, double &wflux1, double &wflux2)
-{
-
-	if(ipol==1)
-	{
-	pip=3;
-	wflux1= 0.25*(w(i,j,k-1)+w(i+1,j,k-1)+w(i,j,k)+w(i+1,j,k));
-	wflux2= 0.25*(w(i,j,k)+w(i+1,j,k)+w(i,j,k+1)+w(i+1,j,k+1));
-	pip=0;
-	}
-
-	if(ipol==2)
-	{
-	pip=3;
-	wflux1= 0.25*(w(i,j,k-1)+w(i,j+1,k-1)+w(i,j,k)+w(i,j+1,k));
-	wflux2= 0.25*(w(i,j,k)+w(i,j+1,k)+w(i,j,k+1)+w(i,j+1,k+1));
-	pip=0;
-	}
-
-	if(ipol==3)
-	{
-    pip=3;
-	wflux1= w(i,j,k);
-	wflux2= w(i,j,k+1);
-	pip=0;
-	}
-
-	if(ipol==4)
-	{
-    pip=3;
-	wflux1= 0.5*(w(i,j,k-1)+w(i,j,k));
-	wflux2= 0.5*(w(i,j,k)+w(i,j,k+1));
-    pip=0;
-	}
-}
-

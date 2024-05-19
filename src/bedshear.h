@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,8 +32,8 @@ class sliceint;
 
 using namespace std;
 
-#ifndef BEDSHEAR_H_
-#define BEDSHEAR_H_
+#ifndef SEDIMENT_BEDSHEAR_H_
+#define SEDIMENT_BEDSHEAR_H_
 
 class bedshear :  public norm_vec
 {

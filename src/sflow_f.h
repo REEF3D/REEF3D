@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,7 +36,7 @@ class sflow_pressure;
 class solver2D;
 class ioflow;
 class sflow_fsf;
-class sflow_vtp;
+class sflow_vtp_fsf;
 class sflow_vtp_bed;
 class sflow_convection;
 class sflow_diffusion;
@@ -45,7 +45,7 @@ class sflow_turbulence;
 class sediment;
 class turbulence;
 class patchBC_interface;
-class sixdof_sflow;
+class sixdof;
 
 using namespace std;
 
@@ -82,7 +82,7 @@ private:
 	solver2D *ppoissonsolv;
 	ioflow *pflow;
 	sflow_fsf *pfsf;
-	sflow_vtp *pprint;
+	sflow_vtp_fsf *pprint;
 	sflow_vtp_bed *pprintbed;
 	sflow_convection *pconvec;
 	sflow_diffusion *pdiff;
@@ -96,7 +96,7 @@ private:
     
     patchBC_interface *pBC;
     
-    sixdof_sflow *p6dof_sflow;
+    sixdof *p6dof;
 	
 	double starttime, endtime;
     

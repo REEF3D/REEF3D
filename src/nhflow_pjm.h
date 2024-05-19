@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,6 +26,7 @@ Author: Hans Bihs
 class density;
 class solver;
 class nhflow_poisson;
+class patchBC_interface;
 
 using namespace std;
 
@@ -37,32 +38,35 @@ class nhflow_pjm : public nhflow_pressure, public increment
 
 public:
 
-	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*);
+	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*,patchBC_interface*);
 	virtual ~nhflow_pjm();
 
-	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,double*,double*,double*,double);
-	virtual void ucorr(lexer*p,fdm_nhf*,double*,double);
-	virtual void vcorr(lexer*p,fdm_nhf*,double*,double);
-	virtual void wcorr(lexer*p,fdm_nhf*,double*,double);
-	virtual void upgrad(lexer*,fdm_nhf*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm_nhf*,slice&,slice&);
-    virtual void wpgrad(lexer*,fdm_nhf*,slice&,slice&);
+	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double);
+	virtual void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+	virtual void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+	virtual void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+	virtual void upgrad(lexer*,fdm_nhf*,slice&);
+	virtual void vpgrad(lexer*,fdm_nhf*,slice&);
+    virtual void wpgrad(lexer*,fdm_nhf*,slice&);
     
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
+    
 	double starttime,endtime;
     const double teta;
     int check;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
-	
-	void debug(lexer*,fdm_nhf*);
-    
+    int solver_id;
+    double val, denom;
+    double gamma;
+
     density *pd;
     nhflow_poisson *ppois;
+    patchBC_interface *pBC;
 
 };
 

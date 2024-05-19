@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,25 +50,19 @@ void driver::log_ini()
 {
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_Log",0777);
 
     if(p->mpirank==0)
     {
-    if(p->P14==0)
-    mainlogout.open("REEF3D_mainlog.dat");
-    if(p->P14==1)
     mainlogout.open("./REEF3D_Log/REEF3D_mainlog.dat");
-
+    mainlogout<<"REEF3D version:  "<<version<<endl<<endl;
     mainlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
     mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Volume 1 \t #Volume2 \t #Inflow \t #Outflow \t #Ui \t #Phimean \t #Phiout "<<endl;
     }
 
     if(p->mpirank==0)
     {
-    if(p->P14==0)
-    maxlogout.open("REEF3D_maxlog.dat");
-    if(p->P14==1)
     maxlogout.open("./REEF3D_Log/REEF3D_maxlog.dat");
 
     maxlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
@@ -77,9 +71,6 @@ void driver::log_ini()
 
     if(p->mpirank==0)
     {
-    if(p->P14==0)
-    solvlogout.open("REEF3D_solverlog.dat");
-    if(p->P14==1)
     solvlogout.open("./REEF3D_Log/REEF3D_solverlog.dat");
 
     solvlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
@@ -98,8 +89,8 @@ void driver::mainlog(lexer *p)
 	 mainlogout<<fixed<<setprecision(4)<<p->itertime<<" \t ";
 	 mainlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
      mainlogout<<fixed<<setprecision(4)<<p->volume1<<" \t "<<setprecision(4)<<p->volume2<<" \t ";
-     mainlogout<<fixed<<setprecision(4)<<p->Qi<<" \t "<<setprecision(4)<<p->Qo<<" \t ";
-	 mainlogout<<fixed<<setprecision(4)<<p->Ui<<" \t "<<setprecision(4)<<p->phimean<<" \t "<<setprecision(4)<<p->phiout;
+     mainlogout<<fixed<<setprecision(6)<<p->Qi<<" \t "<<setprecision(6)<<p->Qo<<" \t ";
+	 mainlogout<<fixed<<setprecision(4)<<p->Ui<<" \t "<<setprecision(6)<<p->phimean<<" \t "<<setprecision(6)<<p->phiout;
 	 mainlogout<<endl;
 	 }
 }

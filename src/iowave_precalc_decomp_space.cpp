@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -166,8 +166,6 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
 		}
     }	
 
-
-    
     count=0;
     if(f_switch==1)
     LOOP

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,7 @@ class momentum_void : public momentum
 public:
 	momentum_void();
 	virtual ~momentum_void();
-	virtual void start(lexer*, fdm*, ghostcell*,vrans*);
+	virtual void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);

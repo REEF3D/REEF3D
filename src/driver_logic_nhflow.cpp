@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,90 +35,95 @@ Author: Hans Bihs
 #include"heat_header.h"
 #include"concentration_header.h"
 #include"benchmark_header.h"
-#include"6DOF_header.h"
 #include"vrans_header.h"
-#include"waves_header.h"
+#include"nhflow_header.h"
+#include"6DOF_void.h"
+#include"6DOF_sflow.h"
 
 void driver::logic_nhflow()
 {    
 	if(p->mpirank==0)
     cout<<"creating objects"<<endl;
     
-    p->phimean = p->F60;
+    p->phimean = p->wd = p->F60;
     
 // nhflow
-    if(p->A10!=55)
+    if(p->A10!=5)
     pnhf=new nhflow_v(p,d,pgc);
     
-    if(p->A10==55)
+    if(p->A10==5)
     pnhf=new nhflow_f(p,d,pgc);
     
-    if(p->A10==55)
-    {
-    if(p->A540==1)
-    pnhfsf = new nhflow_fsf_rk(p,d,pgc,pflow,pBC);
+// forcing
+    pnhfdf=new nhflow_forcing(p);
     
-    if(p->A540==2)
-    pnhfsf = new nhflow_fsf_fsm(p,d,pgc,pflow,pBC);
-    }
+// FSF
+    pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
 // time stepping
     // time stepping
 	pnhfstep=new nhflow_timestep(p);
 
 //discretization scheme
-
-    //Convection	
-	if(p->D10==0)
-	pnhfconvec=new nhflow_convection_void(p);
-/*
-	if(p->D10==1)
-	pconvec=new fou(p);
-
-	if(p->D10==2)
-	pconvec=new cds2(p);
-
-	if(p->D10==3)
-	pconvec=new quick(p);
-
-	if(p->D10==4 && p->G2==0)
-	pconvec=new weno_flux_nug(p);*/
+    // signal speed
+    pss = new nhflow_signal_speed(p);
     
-    if(p->D10==4)
-	pnhfconvec=new nhflow_weno_flux(p);
-	
-	/*if(p->D10==5)
-	pconvec=new weno_hj_nug(p);
-	
-	if(p->D10==6)
-	pconvec=new cds4(p);
+    // reconstruction
+    if(p->A514<=3)
+    precon = new nhflow_reconstruct_hires(p,pBC);
     
-    if(p->D10==7)
-	pconvec=new weno3_flux(p);
+    if(p->A514==4)
+    precon = new nhflow_reconstruct_weno(p,pBC);
     
-    if(p->D10==8)
-	pconvec=new weno3_hj(p);
-	
-	if(p->D10>=10 && p->D10<30)
-	pconvec=new hires(p,p->D10);*/
+    if(p->A514==5)
+    precon = new nhflow_reconstruct_wenograd(p,pBC);
     
+//Convection	
+    if(p->A511==1 || p->A511==8)
+	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
+    
+    if(p->A511==2 || p->A511==9)
+	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
+    
+    pnhfscalarconvec = new nhflow_scalar_iweno(p);
+    
+//Diffusion
+    if(p->A512==0)
+    pnhfdiff = new nhflow_diff_void(p);
+    
+    if(p->A512==1)
+    pnhfdiff = new nhflow_ediff(p);
+    
+    if(p->A512==2 && p->j_dir==1)
+    pnhfdiff = new nhflow_idiff(p);
+    
+    if(p->A512==2 && p->j_dir==0)
+    pnhfdiff = new nhflow_idiff_2D(p);
     
 //pressure scheme
-
-    if(p->D30==1)    pnhpress = new nhflow_pjm(p,d,pgc);
+    if(p->A520==0)
+	pnhpress = new nhflow_pjm_hs(p,d,pBC);
     
-    if(p->D30==4)
-	pnhpress = new nhflow_pjm_ss(p,d,pgc);
-
-    if(p->D30==10)
-	pnhpress = new nhflow_pjm_hs(p,d);
+    if(p->A520==1)
+    pnhpress = new nhflow_pjm(p,d,pgc,pBC);
+    
+    if(p->A520==2)
+    pnhpress = new nhflow_pjm_corr(p,d,pgc,pBC);
 
 //Turbulence
     if(p->T10==0)
 	pnhfturb = new nhflow_komega_void(p,d,pgc);
     
     if(p->T10==2)
+    {
 	pnhfturb = new nhflow_komega_IM1(p,d,pgc);
+    
+        if(p->j_dir==1)
+        pnhfturbdiff = new nhflow_idiff(p);
+        
+        if(p->j_dir==0)
+        pnhfturbdiff = new nhflow_idiff_2D(p);
+    }
 
 //Solver
     if(p->j_dir==0)
@@ -159,6 +164,9 @@ void driver::logic_nhflow()
 	if(p->P150>0)
 	pdata = new data_f(p,a,pgc);
     
+    if(p->P10==2)
+    pnhfprint = new nhflow_vts3D(p,d,pgc);
+    else
     pnhfprint = new nhflow_vtu3D(p,d,pgc);
     
 //VRANS
@@ -187,8 +195,20 @@ void driver::logic_nhflow()
 	if(p->B180==1||p->B191==1||p->B192==1)
 	pflow = new ioflow_gravity(p,pgc,pBC);
     
+//6DOF
+    if(p->X10!=3)
+    p6dof = new sixdof_void(p,pgc);
+    
+    if(p->X10==3)
+    p6dof = new sixdof_sflow(p,pgc);
+    
 //Momentum
-    //if(p->N40==3)
-	pnhfmom = new nhflow_momentum_RK3(p,d,pgc);
+    if(p->A510==2)
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof);
+    
+    if(p->A510==3)
+	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof);
+    
+    
     
 }

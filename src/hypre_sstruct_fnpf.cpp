@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -57,7 +57,6 @@ void hypre_sstruct_fnpf::startF(lexer* p, ghostcell* pgc, double *f, double *rhs
 {
     start_solver8(p,pgc,f,rhs,M);
 }
-
 
 void hypre_sstruct_fnpf::start_solver5(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {

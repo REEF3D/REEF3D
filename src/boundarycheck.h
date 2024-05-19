@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,14 +36,14 @@ public:
     boundarycheck();
 	virtual ~boundarycheck();
 
-	int boundcheck(lexer*,fdm*,int,int,int,int);
-    int boundcheck_ik(lexer*,fdm*,int,int,int,int);
-	int positioncheck(lexer*,fdm*,double,double,double,int);
+	int boundcheck(lexer*,int,int,int,int);
+    int boundcheck_ik(lexer*,int,int,int,int);
+	int positioncheck(lexer*,double,double,double,int);
 	int minboundcheck(lexer*,int,int,int,int);
 	int maxboundcheck(lexer*,int,int,int,int);
 
-	int ij_boundcheck(lexer*,fdm*,int,int,int);
-	int ij_boundcheck_topo(lexer*,fdm*,int,int,int);
+	int ij_boundcheck(lexer*,int,int,int);
+	int ij_boundcheck_topo(lexer*,int,int,int);
 
 private:
     int ilow,ilim,jlow,jlim,klow,klim;

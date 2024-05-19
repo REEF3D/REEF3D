@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,7 +43,7 @@ public:
 private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	const double dx,visc_air,visc_water,ro_air,ro_water;
+	const double dx,visc_air,visc_water,ro_air,ro_water,visc_body;
     double epsi;
 
 };

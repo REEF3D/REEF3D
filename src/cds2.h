@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,8 +42,6 @@ public:
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
-    
-    double aij_sig(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
 
 	double dx,dy,dz;
 	double L;

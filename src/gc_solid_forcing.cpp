@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,6 +29,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 {
     // ghostcell update
     gcdf_update(p,a);
+    gcb_velflagio(p,a);
     
      // Reset heaviside field
     ULOOP
@@ -65,6 +66,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt);   
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
+    
     VLOOP
     {
         vf = 0.0;
@@ -73,6 +75,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
     }
+    
     WLOOP
     {
         wf = 0.0;
@@ -81,10 +84,12 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }
+    
     LOOP
     {
         H = Hsolidface(p,a,0,0,0);
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+        //a->test(i,j,k) = a->fbh4(i,j,k) ;
     }
     	
     psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
@@ -99,7 +104,6 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
         
         a->fbh5(i,j,k) = 1.0-MIN(dirac,1.0);
-        //a->test(i,j,k) = a->fbh5(i,j,k) ;
     }
     
     }
@@ -113,9 +117,9 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         uf = 0.0;
         
 		// Normal vectors calculation 
-		nx = -(a->solid(i+1,j,k) - a->solid(i-1,j,k))/(2.0*p->DXN[IP]);
-		ny = -(a->solid(i,j+1,k) - a->solid(i,j-1,k))/(2.0*p->DYN[JP]);
-		nz = -(a->solid(i,j,k+1) - a->solid(i,j,k-1))/(2.0*p->DZN[KP]);
+		nx = -(a->topo(i+1,j,k) - a->topo(i-1,j,k))/(2.0*p->DXN[IP]);
+		ny = -(a->topo(i,j+1,k) - a->topo(i,j-1,k))/(2.0*p->DYN[JP]);
+		nz = -(a->topo(i,j,k+1) - a->topo(i,j,k-1))/(2.0*p->DZN[KP]);
 
 		norm = sqrt(nx*nx + ny*ny + nz*nz);
                 
@@ -131,33 +135,32 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         
 
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-		if (phival_sf < 0)
+		if (phival_sf < 0.0)
 		{
 			fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt); 
 		}
+        
 		else if (phival_sf >0 && phival_sf<psi )
 		{
-            if(p->B20==1)
 			fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt);
-            
-            //if(p->X14==3)
-			//fx(i,j,k) +=   (fabs(nx)*H + ((1.0-fabs(nx))*Ht))*(uf - uvel(i,j,k))/(alpha*p->dt);
 		}
+        
 		else
 		{
-			fx(i,j,k) += 0;
+			fx(i,j,k) += 0.0;
 		}
 	
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
+    
     VLOOP
     {
         vf = 0.0;
     
 		// Normal vectors calculation 
-		nx = -(a->solid(i+1,j,k) - a->solid(i-1,j,k))/(2.0*p->DXN[IP]);
-		ny = -(a->solid(i,j+1,k) - a->solid(i,j-1,k))/(2.0*p->DYN[JP]);
-		nz = -(a->solid(i,j,k+1) - a->solid(i,j,k-1))/(2.0*p->DZN[KP]);
+		nx = -(a->topo(i+1,j,k) - a->topo(i-1,j,k))/(2.0*p->DXN[IP]);
+		ny = -(a->topo(i,j+1,k) - a->topo(i,j-1,k))/(2.0*p->DYN[JP]);
+		nz = -(a->topo(i,j,k+1) - a->topo(i,j,k-1))/(2.0*p->DZN[KP]);
 
 		norm = sqrt(nx*nx + ny*ny + nz*nz);
                 
@@ -166,7 +169,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 		nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
         
-        H = Hsolidface(p,a,0,1,0);
+         H = Hsolidface(p,a,0,1,0);
 		Ht = Hsolidface_t(p,a,0,1,0);
 		
       
@@ -174,21 +177,18 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 		phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i,j+1,k)), 0.5*(a->topo(i,j,k) + a->topo(i,j+1,k)));
 	  
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-	    if (phival_sf < 0)
+	    if (phival_sf < 0.0)
 		{
 			fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt); 
 		}
 		else if (phival_sf >0 && phival_sf<psi )
 		{
-            if(p->B20==1)
             fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
             
-            //if(p->X14==3)
-            //fy(i,j,k) +=   (fabs(ny)*H + ((1.0-fabs(ny))*Ht))*(vf - vvel(i,j,k))/(alpha*p->dt);
 		}
 		else
 		{
-			fy(i,j,k) += 0;
+			fy(i,j,k) += 0.0;
 		}
 	  
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H , 1.0); 
@@ -199,9 +199,9 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         wf = 0.0;
         
 		// Normal vectors calculation 
-		nx = -(a->solid(i+1,j,k) - a->solid(i-1,j,k))/(2.0*p->DXN[IP]);
-		ny = -(a->solid(i,j+1,k) - a->solid(i,j-1,k))/(2.0*p->DYN[JP]);
-		nz = -(a->solid(i,j,k+1) - a->solid(i,j,k-1))/(2.0*p->DZN[KP]);
+		nx = -(a->topo(i+1,j,k) - a->topo(i-1,j,k))/(2.0*p->DXN[IP]);
+		ny = -(a->topo(i,j+1,k) - a->topo(i,j-1,k))/(2.0*p->DYN[JP]);
+		nz = -(a->topo(i,j,k+1) - a->topo(i,j,k-1))/(2.0*p->DZN[KP]);
 
 		norm = sqrt(nx*nx + ny*ny + nz*nz);
                 
@@ -219,21 +219,17 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 
-		if (phival_sf < 0)
+		if (phival_sf < 0.0)
 		{
 			fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt); 
 		}
 		else if (phival_sf >0 && phival_sf<psi )
 		{
-            if(p->B20==1)
             fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
-            
-            //if(p->X14==3)
-            //fz(i,j,k) +=   (fabs(nz)*H + ((1.0-fabs(nz))*Ht))*(wf - wvel(i,j,k))/(alpha*p->dt);
 		}
 		else
 		{
-			fz(i,j,k) += 0;
+			fz(i,j,k) += 0.0;
 		}
 	
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H , 1.0); 

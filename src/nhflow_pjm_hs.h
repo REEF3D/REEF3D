@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,32 +21,33 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_pressure.h"
-#include"increment.h"
+#include"nhflow_gradient.h"
 
 class density;
 class solver;
 class nhflow_poisson;
+class patchBC_interface;
 
 using namespace std;
 
 #ifndef NHFLOW_PJM_HS_H_
 #define NHFLOW_PJM_HS_H_
 
-class nhflow_pjm_hs : public nhflow_pressure, public increment
+class nhflow_pjm_hs : public nhflow_pressure, public nhflow_gradient
 {
 
 public:
 
-	nhflow_pjm_hs(lexer* p, fdm_nhf*);
+	nhflow_pjm_hs(lexer* p, fdm_nhf*,patchBC_interface*);
 	virtual ~nhflow_pjm_hs();
 
-	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,double*,double*,double*,double);
-	virtual void ucorr(lexer*p,fdm_nhf*,double*,double);
-	virtual void vcorr(lexer*p,fdm_nhf*,double*,double);
-	virtual void wcorr(lexer*p,fdm_nhf*,double*,double);
-	virtual void upgrad(lexer*,fdm_nhf*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm_nhf*,slice&,slice&);
-    virtual void wpgrad(lexer*,fdm_nhf*,slice&,slice&);
+	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double);
+	virtual void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+	virtual void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+	virtual void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+	virtual void upgrad(lexer*,fdm_nhf*,slice&);
+	virtual void vpgrad(lexer*,fdm_nhf*,slice&);
+    virtual void wpgrad(lexer*,fdm_nhf*,slice&);
     
 	void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
@@ -54,13 +55,15 @@ public:
 
 
 private:
+
 	double starttime,endtime;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
-	
-	void debug(lexer*,fdm_nhf*);
+    double val, denom;
+    
     
     density *pd;
+    patchBC_interface *pBC;
 };
 
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -149,17 +149,17 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         we=p->B87_2;
 	}
 
-	if(p->B130 == 0)
+	if(p->B130==0)
     {
     numcomp=p->wN;
     }
 
-    if(p->B130 > 0 && p->B136 != 4)
+    if(p->B130 > 0 && p->B136!=4)
     {
     numcomp=p->wN*p->B133;
     }
 
-    if(p->B130 > 0 && p->B136 == 4)
+    if(p->B130 > 0 && p->B136==4)
     {
     numcomp=p->wN;
     }
@@ -442,6 +442,30 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         // directional spreading
         directional_spreading(p);
 				print_spreading(p);
+                
+                
+    // peak wave speed
+    double wdt,wL;
+    
+    if(p->B94==0)
+	wdt=p->phimean;
+
+	if(p->B94==1)
+	wdt=p->B94_wdt;
+
+		wL0 = (9.81/(2.0*PI))*p->wTp*p->wTp;
+		k0 = (2.0*PI)/wL0;
+		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+
+		wL = wL0*tanh(S0);
+
+        for(int qn=0; qn<500; ++qn)
+        wL = wL0*tanh(2.0*PI*wdt/wL);
+
+        
+        p->wC = wL/p->wTp;
+        
+    
 }
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)
@@ -492,7 +516,7 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
         {
             Ai[n] = p->B83/(ki[n]);
 
-            if (p->mpirank == 0) cout<<Ai[n]<<" "<<ki[n]<<" "<<wi[n]<<endl;
+            if (p->mpirank==0) cout<<Ai[n]<<" "<<ki[n]<<" "<<wi[n]<<endl;
         }
     }
 
@@ -518,7 +542,7 @@ void wave_lib_spectrum::phases_irregular(lexer *p)
 void wave_lib_spectrum::phases_focused(lexer *p)
 {
     // make phases
-    if(p->B130 == 0)
+    if(p->B130==0)
     {
         if(p->B82<11)
         {
@@ -552,18 +576,11 @@ void wave_lib_spectrum::print_spectrum(lexer *p)
 	double xval=ws;
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_Log-Wave",0777);
 
-  if(p->mpirank==0)
-  {
-  	// open file
-   	if(p->P14==0)
-   	result.open("REEF3D_wave-spectrum.dat");
-
-	  if(p->P14==1)
+    if(p->mpirank==0)
   	result.open("./REEF3D_Log-Wave/REEF3D_wave-spectrum.dat");
-	}
 
 	for(int n=0;n<p->wN;++n)
 	{
@@ -582,18 +599,12 @@ void wave_lib_spectrum::print_components(lexer *p)
 	double xval=ws;
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_Log-Wave",0777);
 
-  if(p->mpirank==0)
-  {
-    // open file
-		if(p->P14==0)
-    	result.open("REEF3D_wave-components.dat");
+    if(p->mpirank==0)
+    result.open("./REEF3D_Log-Wave/REEF3D_wave-components.dat");
 
-		if(p->P14==1)
-			result.open("./REEF3D_Log-Wave/REEF3D_wave-components.dat");
-	}
 
 	for(int n=0;n<p->wN;++n)
 	{
@@ -611,18 +622,12 @@ void wave_lib_spectrum::print_spreading(lexer *p)
 	// double xval=p->B132_s;
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_Log-Wave",0777);
 
-  if(p->mpirank==0)
-  {
-    // open file
-		if(p->P14==0)
-    	result.open("REEF3D_spreading-function.dat");
+    if(p->mpirank==0)
+    result.open("./REEF3D_Log-Wave/REEF3D_spreading-function.dat");
 
-		if(p->P14==1)
-			result.open("./REEF3D_Log-Wave/REEF3D_spreading-function.dat");
-	}
 
 	for(int n=0;n<p->B133;++n)
 	{

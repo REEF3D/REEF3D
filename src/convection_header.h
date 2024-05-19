@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"fou.h"
 #include"ifou.h"
 #include"cds2.h"
+#include"hcds6.h"
 #include"cds2_alt.h"
 #include"cds4.h"
 #include"quick.h"
@@ -35,16 +36,15 @@ Author: Hans Bihs
 #include"weno_flux_nug.h"
 #include"iweno_hj.h"
 #include"iweno_hj_nug.h"
+#include"iweno_hj_df_nug.h"
 #include"weno3_hj.h"
 #include"weno3_flux.h"
 #include"diff_void.h"
 #include"ediff2.h"
 #include"idiff2.h"
 #include"idiff2_FS.h"
-#include"idiff2_FS_v2.h"
+#include"idiff2_CN.h"
 #include"idiff2_FS_2D.h"
-#include"idiff_IMEX.h"
-#include"idiff_IMEX_2D.h"
 
 #include"hires.h"
 

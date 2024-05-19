@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,7 +29,7 @@ Author: Hans Bihs
 void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
     // relax_ini OR dirichlet_ini
-    if(p->A10==5  || p->A10==55 || p->A10==6)
+    if(p->A10==6)
     {
     wavegen_precalc_ini(p,pgc);
     wavegen_precalc_relax_func(p,pgc);
@@ -37,7 +37,7 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
     if(p->B89==1 && p->B98==2)
     wavegen_precalc_space(p,pgc);
     
-    if(p->B89==1 && p->B98==3)
+    if(p->B89==1 && p->B98>=3)
     wavegen_precalc_space_dirichlet(p,pgc);
 
     wavegen_precalc(p,pgc);
@@ -49,45 +49,6 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
     
     if(p->I30==1)
 	full_initialize(p,a,pgc);
-}
-
-void iowave::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc)
-{
-    // relax_ini OR dirichlet_ini
-    wavegen_precalc_ini(p,pgc);
-    wavegen_precalc_relax_func_nhflow(p,pgc);
-    
-    /*if(p->B89==1 && p->B98==2)
-    nhflow_wavegen_precalc_decomp_space(p,pgc);
-    
-    if(p->B89==1 && p->B98==3)
-    nhflow_wavegen_precalc_decomp_space_dirichlet(p,pgc);*/
-    
-    wavegen_precalc(p,pgc);
-    
-    U_relax(p,pgc,d->U);
-    V_relax(p,pgc,d->V);
-    W_relax(p,pgc,d->W);
-
-    if(p->I30==1)
-	full_initialize_nhflow(p,d,pgc);
-}
-
-void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-    wavegen_precalc_ini(p,pgc);
-    wavegen_precalc_relax_func_fnpf(p,pgc);
-    
-    if(p->B89==1 && p->B98==2)
-    wavegen_precalc_decomp_space_fnpf(p,pgc);
-    
-    if(p->B89==1 && p->B98==3)
-    wavegen_precalc_decomp_space_dirichlet_fnpf(p,pgc);
-
-    wavegen_precalc(p,pgc);
-
-    if(p->I30==1)
-	full_initialize_fnpf(p,c,pgc);
 }
 
 void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)

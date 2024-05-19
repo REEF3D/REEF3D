@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -95,26 +95,6 @@ double weno_hj_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& v
         L -= jadvec*fy(p,a,b,vvel,ipol,jadvec);
         
         L -= kadvec*fz(p,a,b,wvel,ipol,kadvec);
-        
-		return L;
-}
-
-double weno_hj_nug::aij_sig(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DXD,double *DYD, double *DZD)
-{
-        DX=DXD;
-        DY=DYD;
-        DZ=DZD;
-        
-		pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
-        pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
-        pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
-		
-		L = -iadvec*fx(p,a,b,uvel,ipol,iadvec) + p->sigmax(p,ipol)*iadvec;
-        
-        if(p->j_dir==1)
-        L -= jadvec*fy(p,a,b,vvel,ipol,jadvec) + p->sigmay(p,ipol)*jadvec;
-        
-        L -= kadvec*fz(p,a,b,wvel,ipol,kadvec)*p->sigmaz(p,ipol);
         
 		return L;
 }
@@ -290,7 +270,6 @@ void weno_hj_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 	q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
-
 
 void weno_hj_nug::is()
 {

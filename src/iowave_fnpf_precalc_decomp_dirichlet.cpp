@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -45,7 +45,13 @@ void iowave::wavegen_precalc_decomp_dirichlet_fnpf(lexer *p, ghostcell *pgc)
         }
         
         z = eta(i,j);
+        
+        time_1=time_0;
+        time_0=p->simtime;
+        time_n=p->simtime+p->dt;
+        Fifsfval1[count] = Fifsfval0[count];
         Fifsfval0[count] = Fifsfval[count];
+        
         
         Fifsfval[count]=0.0;
         

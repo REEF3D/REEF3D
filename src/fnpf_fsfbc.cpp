@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -45,7 +45,7 @@ Author: Hans Bihs
 #include"sflow_bicgstab.h"
 #include"hypre_struct2D.h"
 
-fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p)
+fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(1.0e-6)
 {    
     if(p->A311==0)
     {
@@ -127,6 +127,20 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p)
     
     if(p->A350==1)
     psolv =  new sflow_bicgstab(p,pgc);
+    
+    
+    p->Iarray(temp,p->imax*p->jmax);
+    
+    // 3D
+    gcval_eta = 55;
+    gcval_fifsf = 60;
+    
+    // 2D
+    if(p->j_dir==0)
+    {
+    gcval_eta = 155;
+    gcval_fifsf = 160;
+    }
 }
 
 fnpf_fsfbc::~fnpf_fsfbc()
@@ -235,14 +249,68 @@ void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 
 void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
+    
     SLICELOOP4
     p->wet[IJ]=1;
     
     pgc->gcsl_start4Vint(p,p->wet,50);
+    
+    /*
+
+    SLICELOOP4
+    c->WL(i,j) = eta(i,j) + p->wd - c->bed(i,j);
+
+    
+    pgc->gcsl_start4(p,c->WL,50);
+      
+    
+    SLICELOOP4
+    {
+    p->wet_n[IJ] = p->wet[IJ];
+    temp[IJ] = p->wet[IJ];
+    }
+     
+    SLICELOOP4
+    {
+        if(p->wet[IJ]==0)
+        {
+            if(p->wet[Ip1J]==1 && eta(i,j)<eta(i+1,j) && c->WL(i+1,j)>c->wd_criterion+eps)
+            temp[IJ]=1;
+            
+            if(p->wet[Im1J]==1 && eta(i,j)<eta(i-1,j) && c->WL(i-1,j)>c->wd_criterion+eps)
+            temp[IJ]=1;
+            
+            if(p->wet[IJp1]==1 && eta(i,j)<eta(i,j+1) && c->WL(i,j+1)>c->wd_criterion+eps && p->j_dir==1)
+            temp[IJ]=1;
+            
+            if(p->wet[IJm1]==1 && eta(i,j)<eta(i,j-1) && c->WL(i,j-1)>c->wd_criterion+eps && p->j_dir==1)
+            temp[IJ]=1;
+        }
+        
+        else              
+        if(c->WL(i,j)<=c->wd_criterion)
+        {
+        temp[IJ]=0;
+        eta(i,j) = c->wd_criterion - c->depth(i,j);
+        c->WL(i,j) = eta(i,j) + c->depth(i,j);
+        }
+    }
+    
+    SLICELOOP4
+    p->wet[IJ] = temp[IJ];
+    
+
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    pgc->gcsl_start4(p,eta,gcval_eta);
+    pgc->gcsl_start4(p,c->WL,gcval_eta);*/
+      
+    SLICELOOP4
+    c->test2D(i,j) = double (p->wet[IJ]);
 }
 
+
 void fnpf_fsfbc::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
-{   
+{  
 }
 
 void fnpf_fsfbc::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,10 +21,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include"6DOF_sflow.h"
 #include"lexer.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
 
-void sixdof_sflow::read_stl(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_sflow::read_stl(lexer *p, ghostcell *pgc)
 {
 	string word;
 	int count, vert_count;
@@ -125,7 +124,7 @@ void sixdof_sflow::read_stl(lexer *p, fdm2D *b, ghostcell *pgc)
     //tend[entity_count] = tricount;
 	
 	// scale STL model
-	if (p->X181 == 1)
+	if (p->X181==1)
 	for(n=0; n<tricount; ++n)
 	for(int q=0; q<3; ++q)
 	{
@@ -151,25 +150,14 @@ void sixdof_sflow::read_stl(lexer *p, fdm2D *b, ghostcell *pgc)
     p->X183_theta *= -(PI/180.0);
     p->X183_psi *= -(PI/180.0);
     
-	if (p->X13 == 0)
-	{
-		for(int qr=0;qr<tricount;++qr)
-		{
-			rotation_stl(p,tri_x[qr][0],tri_y[qr][0],tri_z[qr][0]);
-			rotation_stl(p,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1]);
-			rotation_stl(p,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2]);
-		}
-	}
-	else if (p->X13 == 1)
-	{
-		for(int qr=0;qr<tricount;++qr)
-		{
-            rotation_stl_quaternion(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],p->X183_x,p->X183_y,p->X183_z);
-            rotation_stl_quaternion(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],p->X183_x,p->X183_y,p->X183_z);
-            rotation_stl_quaternion(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->X183_x,p->X183_y,p->X183_z);
-		}
-	}
-    
+
+    for(int qr=0;qr<tricount;++qr)
+    {
+        rotation_stl_quaternion(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],p->X183_x,p->X183_y,p->X183_z);
+        rotation_stl_quaternion(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],p->X183_x,p->X183_y,p->X183_z);
+        rotation_stl_quaternion(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->X183_x,p->X183_y,p->X183_z);
+    }
+
     // xg analysis
     STL_xmin=1.0e10;
     STL_xmax=-1.0e10;

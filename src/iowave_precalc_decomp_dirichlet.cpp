@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -98,7 +98,9 @@ int qn;
         if(zloc4>fsfloc)
         z = eta(i,j);
         
-        
+        uval[count] = 0.0;
+        vval[count] = 0.0;
+        wval[count] = 0.0;
         
     // U
         if(zloc4<=fsfloc+epsi)
@@ -107,8 +109,6 @@ int qn;
             
         if(zloc4>fsfloc+epsi)
         uval[count] = 0.0;
-        
-        
 
     // V
         if(zloc4<=fsfloc+epsi)
@@ -118,8 +118,6 @@ int qn;
         if(zloc4>fsfloc+epsi)
         vval[count] = 0.0;
         
-        
-        
     // W
         if(zloc4<=fsfloc+epsi)
         for(qn=0;qn<wave_comp;++qn)
@@ -128,11 +126,8 @@ int qn;
         if(zloc4>fsfloc+epsi)
         wval[count] = 0.0;
         
-        
-        
     // LS
         lsval[count] = eta(i,j) + p->phimean - p->pos_z();
-            
 
         ++count;
         }

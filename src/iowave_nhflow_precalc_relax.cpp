@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,13 +22,14 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
+void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     double fsfloc;
     
-    // pre-calc every iteration
+// ETA
     count=0;
     SLICELOOP4
     {
@@ -51,6 +52,7 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
     }
     pgc->gcsl_start4(p,eta,50);
     
+// U
     count=0;
     LOOP
     {
@@ -68,13 +70,15 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
             if(dg<1.0e20)
             {
             uval[count] = wave_u(p,pgc,xg,yg,z) + p->Ui;
-        
+            UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
             ++count;
             }
 		}
     }
 		
+// V
     count=0;
+    if(p->j_dir==1)
     LOOP
     {
         xg = xgen(p);
@@ -91,12 +95,13 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
             if(dg<1.0e20)
             {
             vval[count] = wave_v(p,pgc,xg,yg,z);
-            
+            VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
             ++count;
             }
 		}
     }
-
+    
+// W
     count=0;
     LOOP
     {
@@ -110,7 +115,6 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
 
         z=p->ZSP[IJK]-p->phimean;
 
-
 		// Wave Generation		
 		if(p->B98==2 && w_switch==1)
         {
@@ -118,10 +122,11 @@ void iowave::nhflow_precalc_relax(lexer *p, ghostcell *pgc)
             if(dg<1.0e20)
             {
             wval[count] = wave_w(p,pgc,xg,yg,z);
-
+            WHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
             ++count;
             }
 		}
     }	
+    
 }
     

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -60,6 +60,9 @@ void driver::loop_cfd(fdm* a)
         cout<<"simtime: "<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
+        if(p->X10>0)
+        cout<<"fbtimestep: "<<p->fbdt<<" fbmax: "<<p->fbmax<<endl;
+        
 		if(p->B90>0 && p->B92<=11)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;
         
@@ -74,21 +77,21 @@ void driver::loop_cfd(fdm* a)
             
 			fill_vel(p,a,pgc);
 			
-            pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppart,a->phi);
+            pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
             poneph->update(p,a,pgc,pflow);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
             pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-            pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini,ppart,pprint);
+            pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini,ppls,pprint);
         
         psed->start_susp(p,a,pgc,pflow,psolv);
         psed->start_cfd(p,a,pgc,pflow,preto,psolv);
+        ppart->start(p,a,pgc,pflow);
         pflow->u_relax(p,a,pgc,a->u);
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
-        p6dof->start(p,a,pgc,1.0,pvrans,pnet);
-        pmom->start(p,a,pgc,pvrans); 
+        pmom->start(p,a,pgc,pvrans,p6dof,pnet); 
         pbench->start(p,a,pgc,pconvec);
 		
         //save previous timestep
@@ -121,7 +124,8 @@ void driver::loop_cfd(fdm* a)
             {
             if(p->B90>0)
             cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
-            
+            if(p->X10>0)
+            cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
             cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
             cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		

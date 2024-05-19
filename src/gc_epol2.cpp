@@ -1,6 +1,6 @@
-/*--------------------------------------------------------------------
+/*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2022 Hans Bihs
+Copyright 2008-202 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,7 @@ Author: Hans Bihs
 
 int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 {
-//	Velocities
+//	Velocities    if(gcv==50)	return 4;
 
     // Parallel
 	//Wall

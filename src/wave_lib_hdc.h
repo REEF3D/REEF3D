@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -92,7 +92,6 @@ private:
     
     
     // variables
-    double singamma,cosgamma;
     double t_start,t_end;
     int endseries;
     double val;

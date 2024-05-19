@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,7 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"printer.h"
+#ifndef NHFLOW_VTU3D_H_
+#define NHFLOW_VTU3D_H_
+
+#include"nhflow_printer.h"
 #include"increment.h"
 
 class fdm_nhf;
@@ -29,19 +32,19 @@ class nhflow_print_wsf;
 class nhflow_print_wsf_theory;
 class nhflow_print_wsfline;
 class nhflow_print_wsfline_y;
+class nhflow_print_runup_gage_x;
+class nhflow_print_runup_max_gage_x;
 class nhflow_vtp_fsf;
 class nhflow_vtp_bed;
 class nhflow_state;
 class nhflow_breaking_log;
-class potentialfile_out;
+class nhflow_vel_probe;
+class nhflow_vel_probe_theory;
 class ioflow;
-
-#ifndef NHFLOW_VTU3D_H_
-#define NHFLOW_VTU3D_H_
 
 using namespace std;
 
-class nhflow_vtu3D : public increment
+class nhflow_vtu3D : public nhflow_printer, public increment
 {
 
 public:
@@ -49,6 +52,7 @@ public:
 	virtual ~nhflow_vtu3D();
 	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*);
     virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*);
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*);
     
 private:
     void pvtu(lexer*,ghostcell*);
@@ -59,6 +63,7 @@ private:
     char name[200],pname[200],epsvar[200];
     int n,iin,offset[200];
     float ffn;
+    int jj;
     int gcval_phi,gcval_phiext;
 	double *printtime_wT;
     double *printfsftime_wT;
@@ -72,12 +77,15 @@ private:
     nhflow_print_wsf_theory *pwsf_theory;
     nhflow_print_wsfline *pwsfline;
     nhflow_print_wsfline_y *pwsfline_y;
-    potentialfile_out *ppotentialfile;
+    nhflow_print_runup_gage_x *prunupx;
+    nhflow_print_runup_max_gage_x *prunupmaxx;
     nhflow_vtp_fsf *pfsf;
     nhflow_vtp_bed *pbed;
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
 	force_ale **pforce_ale;
+    nhflow_vel_probe *pvel;
+    nhflow_vel_probe_theory *pveltheo;
 };
 
 #endif

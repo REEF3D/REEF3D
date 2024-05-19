@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -165,11 +165,11 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 	HYPRE_StructPFMGSetMaxIter(precond, 1);
 	HYPRE_StructPFMGSetTol(precond, 0.0);
 	HYPRE_StructPFMGSetZeroGuess(precond);		
-	HYPRE_StructPFMGSetRAPType(precond, p->N23);    // now: 0; before: 0
-	HYPRE_StructPFMGSetRelaxType(precond, p->N22);  // now: 3; before: 1
+	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
+	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
 	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
 	HYPRE_StructPFMGSetNumPostRelax(precond, 1);
-	HYPRE_StructPFMGSetSkipRelax(precond, p->N21);  // now: 0; before: 0
+	HYPRE_StructPFMGSetSkipRelax(precond, 0);  // now: 0; before: 0
 	HYPRE_StructPFMGSetPrintLevel(precond, 0);
 	HYPRE_StructPFMGSetLogging(precond, 0);
     }
@@ -260,7 +260,17 @@ void hypre_struct::delete_solver5(lexer* p,ghostcell* pgc)
     
     if(precon_type==12)
     HYPRE_StructSMGDestroy(precond);
+}
+
+void hypre_struct::precon_switch(lexer* p,ghostcell* pgc)
+{
+    if(num_iterations>20 && precon_type==11)
+    {
+    precon_type=12;
     
+    if(p->mpirank==0)
+    cout<<"!!! Preconditioner switch !!!"<<endl;
+    }
 }
 
 #endif

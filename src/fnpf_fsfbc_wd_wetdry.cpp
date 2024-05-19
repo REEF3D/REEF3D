@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,84 +28,95 @@ Author: Hans Bihs
 
 void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
+    /*
+    SLICELOOP4
+    c->WL(i,j) = eta(i,j) + p->wd - c->bed(i,j);
+
+    
+    pgc->gcsl_start4(p,c->WL,50);
+      
+    
+    SLICELOOP4
+    {
+    p->wet_n[IJ] = p->wet[IJ];
+    temp[IJ] = p->wet[IJ];
+    }
+     
+    SLICELOOP4
+    {
+        if(p->wet[IJ]==0)
+        {
+            if(p->wet[Ip1J]==1 && eta(i,j)<eta(i+1,j) && c->WL(i+1,j)>c->wd_criterion+eps)
+            temp[IJ]=1;
+            
+            if(p->wet[Im1J]==1 && eta(i,j)<eta(i-1,j) && c->WL(i-1,j)>c->wd_criterion+eps)
+            temp[IJ]=1;
+            
+            if(p->wet[IJp1]==1 && eta(i,j)<eta(i,j+1) && c->WL(i,j+1)>c->wd_criterion+eps && p->j_dir==1)
+            temp[IJ]=1;
+            
+            if(p->wet[IJm1]==1 && eta(i,j)<eta(i,j-1) && c->WL(i,j-1)>c->wd_criterion+eps && p->j_dir==1)
+            temp[IJ]=1;
+        }
+        
+        else              
+        if(c->WL(i,j)<=c->wd_criterion)
+        {
+        temp[IJ]=0;
+        eta(i,j) = c->wd_criterion - c->depth(i,j);
+        c->WL(i,j) = eta(i,j) + c->depth(i,j);
+        }
+    }
+    
+    SLICELOOP4
+    p->wet[IJ] = temp[IJ];
+    
+
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    pgc->gcsl_start4(p,eta,gcval_eta);
+    pgc->gcsl_start4(p,c->WL,gcval_eta);*/
+    
+    // wetdry old
+    
       SLICELOOP4
       c->wet_n(i,j)=p->wet[IJ];
       
+      if(p->count<2)
       SLICELOOP4
       {     
           p->wet[IJ]=1;
           
           if(p->A343>=1)
-          if(eta(i,j) + p->wd - c->bed(i,j) < c->wd_criterion)
+          if(p->wd - c->bed(i,j) < c->wd_criterion)
           p->wet[IJ]=0;
+          
+        //if(p->wet[IJ]==0)
+        //Fifsf(i,j) = 0.0;
 
       } 
       
       pgc->gcsl_start4Vint(p,p->wet,50);
       
-      pcoast->start(p,pgc,c->coastline,p->wet,c->wet_n);
-}
-
-void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
-{
-    SLICELOOP4
-    {
-        if(c->coastline(i,j)>=0.0)
-        {
-            db = c->coastline(i,j);
-            
-            if(db<dist3)
-            {
-            f(i,j) = rb3(p,db)*f(i,j);
-        
-            }
-        }
-        
-        if(c->coastline(i,j)<0.0 && p->A343==1)
-        f(i,j)=0.0;
-    }
-}
-
-void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
-{
-    SLICELOOP4
-    {
-        if(c->coastline(i,j)>=0.0)
-        {
-            db = c->coastline(i,j);
-            
-            if(db<dist4)
-            {
-            f(i,j) = rb4(p,db)*f(i,j);
-        
-            }
-        }
-        
-        if(c->coastline(i,j)<0.0 && p->A343==1)
-        f(i,j)=0.0;
-    }
-}
-
-double fnpf_fsfbc_wd::rb3(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=(dist3-fabs(x))/(dist3);
-    x=MAX(x,0.0);
+      pcoast->start(p,c,pgc,c->coastline,p->wet,c->wet_n);
+      
+      
     
-    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
+    // check
+    /*SLICELOOP4
+    {
+    eta(i,j) = MAX(eta(i,j), -p->wd + c->bed(i,j) + c->wd_criterion);
 
-	return r;
-}
-
-double fnpf_fsfbc_wd::rb4(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=(dist4-fabs(x))/(dist4);
-    x=MAX(x,0.0);
+    c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
     
-    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
-
-	return r;
+    //p->wet[IJ]=1;
+    
+    //if(p->wet[IJ]==0)
+    //Fifsf(i,j) = 0.0;
+    }*/
+    
+    
+    SLICELOOP4
+    c->test2D(i,j) = double (p->wet[IJ]);
+    
 }
+
