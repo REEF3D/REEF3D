@@ -21,10 +21,10 @@ Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include "particle_func.h"
+
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
-#include "tracers_obj.h"
 #include "boundarycheck.h"
 
 #define PARTICLELOOP for(size_t n=0;n<PP->loopindex;n++) if(PP->Flag[n]>INT32_MIN)
