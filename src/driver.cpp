@@ -35,15 +35,15 @@ driver::driver(int& argc, char **argv)
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
     cout<<fixed;
-
+    
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2024 Hans Bihs"<<endl;
-    sprintf(version,"v_240516");
+    sprintf(version,"v_240519");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<version<<endl<<endl;
+    cout<<endl<<version<<"; "<<BRANCH<<"; "<<VERSION<<endl<<endl;
     }
-
+    
     pgc->mpi_check(p);
 	p->lexer_read(pgc);
     p->vellast();
