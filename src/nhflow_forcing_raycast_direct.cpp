@@ -117,9 +117,10 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
         //cout<<"xs: "<<xs<<" xe: "<<xe<<" ys: "<<ys<<" ye: "<<ye<<" zs: "<<zs<<" ze: "<<ze<<endl;
         //cout<<"is: "<<is<<" ie: "<<ie<<" js: "<<js<<" je: "<<je<<" ks: "<<ks<<" ke: "<<ke<<endl;    
         
-         for(i=is;i<ie;++i)
+         /*for(i=is;i<ie;++i)
 		for(j=js;j<je;++j) 
-		for(k=ks;k<ke;++k)
+		for(k=ks;k<ke;++k)*/
+        LOOP
 		{
         xc = p->XP[IP];
         yc = p->YP[JP];

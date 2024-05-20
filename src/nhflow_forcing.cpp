@@ -32,6 +32,10 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
     p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
     
+    p->Darray(FX,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(FY,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(FZ,p->imax*p->jmax*(p->kmax+2));
+    
     p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(dt,p->imax*p->jmax*(p->kmax+2));
     p->Darray(L,p->imax*p->jmax*(p->kmax+2));
@@ -43,12 +47,22 @@ nhflow_forcing::~nhflow_forcing()
 {
 }
 
-void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *U, double *V, double *W, double *FX, double *FY, double *FZ)
+void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *U, double *V, double *W)
 {
+    // update direct forcing function
+    ray_cast(p, d, pgc);
+    reini_RK2(p, d, pgc, d->SOLID);
+    
+    // update Heaviside
+    
+    // add forcing term to RHS
 }
 
 void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    LOOP
+    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
+    
     objects_create(p, pgc);
     
     geometry_refinement(p,pgc);

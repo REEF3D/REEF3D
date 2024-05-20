@@ -37,10 +37,11 @@ Author: Hans Bihs
 #include"nhflow_turbulence.h"
 #include"vrans.h"
 #include"6DOF.h"
+#include"nhflow_forcing.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
-nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof)
+nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof, nhflow_forcing *ppnhfdf)
                                                     : bcmom(p), nhflow_sigma(p), WLRK1(p)
 {
 	gcval_u=10;
@@ -62,6 +63,7 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     sigma_ini(p,d,pgc,d->eta);
     
     p6dof = pp6dof;
+    pnhfdf = ppnhfdf;
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
@@ -148,6 +150,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     p->wtime=pgc->timer()-starttime;
 
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
+    
+    pnhfdf->forcing(p, d, pgc, 1.0, UHRK1, VHRK1, WHRK1);
     
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
@@ -237,6 +241,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     p->wtime+=pgc->timer()-starttime;
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
+    
+    pnhfdf->forcing(p, d, pgc, 1.0, d->UH, d->VH, d->WH);
     
 	//pflow->pressure_io(p,a,pgc);
     ppress->start(p,d,ppoissonsolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,0.5);

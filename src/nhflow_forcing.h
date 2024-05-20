@@ -39,7 +39,7 @@ public:
 	nhflow_forcing(lexer*);
 	virtual ~nhflow_forcing();
     
-    void forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, double*, double*, double*);
+    void forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*);
 
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
     
@@ -62,6 +62,7 @@ private:
     
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
+    double *FX,*FY,*FZ;
     
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
     vector<vector<double> > tri_x_r;

@@ -28,8 +28,7 @@ Author: Hans Bihs
 
 void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    LOOP
-    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
+    
     
     // sigz
     SLICELOOP4
