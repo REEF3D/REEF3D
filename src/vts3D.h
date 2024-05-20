@@ -20,113 +20,37 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"printer.h"
-#include"nodefill.h"
-#include"field5.h"
+#ifndef VTS3D_H_
+#define VTS3D_H_
 
-class turbulence;
-class heat;
-class suspended;
-class bedload;
-class topo;
-class print_wsf;
-class print_wsf_theory;
-class print_wsfline_x;
-class print_wsfline_y;
-class force;
-class force;
-class vorticity;
-class solver;
-class probe_point;
-class probe_pressure;
-class probe_line;
-class bedprobe_point;
-class bedprobe_max;
-class gage_discharge_x;
-class gage_discharge_window_x;
-class fsf_vtp;
-class topo_vtp;
-class cfd_state;
-class bedshear_probe;
-class bedshear_max;
-class sloshing_force;
-class print_porous;
-class bedprobe_line_x;
-class bedprobe_line_y;
-class probe_vel;
-class probe_vel_theory;
-class exportfile;
-class flowfile_out;
-class print_averaging;
+#include "vtk3D.h"
+#include "increment.h"
 
-#ifndef vts3D_H_
-#define vts3D_H_
+class lexer;
+class fdm;
+class ghostcell;
 
-using namespace std;
-
-class vts3D : public printer, public nodefill 
+class vts3D : public vtk3D , increment
 {
-
-public:
-	vts3D(lexer*,fdm*,ghostcell*);
-	virtual ~vts3D();
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-    virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-    virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-	virtual void ini(lexer*,fdm*,ghostcell*);
-
-private:
-    void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,multiphase*,sediment*);
-    void pvts(fdm*,lexer*,ghostcell*,turbulence*,heat*,data*,concentration*,multiphase*,sediment*);
-    void header(fdm*,lexer*,ghostcell*);
-    void name_iter(fdm*,lexer*,ghostcell*);
-    void name_time(fdm*,lexer*,ghostcell*);
-    void piecename(fdm*,lexer*,ghostcell*, int);
-    void extent(lexer*,int);
-    void fextent(lexer*);
-
-    char name[200],pname[200],epsvar[200],pextent[20];
-    int iextent[6];
-    int *piextent;
-    int n,iin,offset[300];
-    float ffn;
-    int gcval_phi,gcval_phiext;
-	double *printtime_wT;
-    double *printfsftime_wT;
-    int *printfsfiter_wI;
-    double phase;
-    double zcoor;
-	
-	field5 eta;
-
-    print_wsf *pwsf;
-	print_wsf_theory *pwsf_theory;
-    print_wsfline_x *pwsfline_x;
-	print_wsfline_y *pwsfline_y;
-    force **pforce;
-    vorticity *pvort;
-	probe_point *pprobe;
-    probe_pressure *ppressprobe;
-	probe_line *pline;
-	bedprobe_point *pbedpt;
-	bedprobe_line_x *pbedlinex;
-	bedprobe_line_y *pbedliney;
-	bedprobe_max *pbedmax;
-	bedshear_probe *pbedshear;
-	bedshear_max *pbedshearmax;
-	gage_discharge_x *pq;
-    gage_discharge_window_x *pqw;
-	fsf_vtp *pfsf;
-    topo_vtp *ptopo;
-	cfd_state *pstate;
-    sloshing_force *pslosh;
-	print_porous *ppor;
-    exportfile *pexport;
-    flowfile_out *pflowfile;
-    print_averaging *pmean;
-    probe_vel *pvel;
-    probe_vel_theory *pveltheo;
+    public:
+        vts3D();
+        ~vts3D();
+    public:
+        void folder();
+        void offset(lexer*, int*, int&);
+        void structureWrite(lexer*, fdm*, std::ofstream&);
+        void extent(lexer* ,ghostcell*);
+        
+        void beginning(lexer*, std::ofstream&);
+        void beginningParallel(lexer*, std::ofstream&);
+        void ending(std::ofstream&, int*, int&);
+        void endingParallel(std::ofstream&, int&, int&);
+        void fileName(char *name, int &num, int &rank){sprintf(name,"./REEF3D_CFD_VTS/REEF3D-CFD-%08i-%06i.vts",num,rank);};
+        void parallelFileName(char *name, int &num){sprintf(name,"./REEF3D_CFD_VTS/REEF3D-CFD-%08i.pvts",num);};
+    private:
+        int *piextent;
+        char pname[50];
+        char pextent[200];
 };
 
 #endif
-

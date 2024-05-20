@@ -974,6 +974,8 @@
           <File Name="vorticity_void.h"/>
         </VirtualDirectory>
         <File Name="printer.h"/>
+        <File Name="print_interface.h"/>
+        <File Name="printerCFD.h"/>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.h"/>
           <File Name="probe_vel.h"/>
@@ -1013,16 +1015,13 @@
         <VirtualDirectory Name="Porous Geometry">
           <File Name="print_porous.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="VTU">
+        <VirtualDirectory Name="ParaView">
+          <File Name="vtk3D.h"/>
+          <File Name="vtks.h"/>
           <File Name="vtu3D.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="VTR">
           <File Name="vtr3D.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="VTS">
           <File Name="vts3D.h"/>
         </VirtualDirectory>
-        <File Name="print_interface.h"/>
         <VirtualDirectory Name="Force">
           <File Name="force.h"/>
         </VirtualDirectory>
@@ -2695,21 +2694,13 @@
           <File Name="vorticity_f.cpp"/>
           <File Name="vorticity_void.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="VTU">
-          <File Name="vtu3D_header.cpp"/>
-          <File Name="vtu3D_pvtu.cpp"/>
+        <VirtualDirectory Name="ParaView">
+          <File Name="vtu3D.cpp"/>
+          <File Name="vtr3D.cpp"/>
+          <File Name="vts3D.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="VTR">
-          <File Name="vtr3D_header.cpp"/>
-          <File Name="vtr3D_pvtr.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="VTS">
-          <File Name="vts3D_header.cpp"/>
-          <File Name="vts3D_pvts.cpp"/>
-        </VirtualDirectory>
-        <File Name="vtu3D.cpp"/>
-        <File Name="vtr3D.cpp"/>
-        <File Name="vts3D.cpp"/>
+        <File Name="printerCFD.cpp"/>
+        <File Name="printerCFD_parallel.cpp"/>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.cpp"/>
           <File Name="probe_vel.cpp"/>
