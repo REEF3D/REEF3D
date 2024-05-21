@@ -45,6 +45,8 @@ public:
     
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
     void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*,int,int);
     

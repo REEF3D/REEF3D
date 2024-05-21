@@ -56,7 +56,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     {
     // update direct forcing function
     ray_cast(p, d, pgc);
-    //reini_RK2(p, d, pgc, d->SOLID);
+    reini_RK2(p, d, pgc, d->SOLID);
     
     // update Heaviside
     
@@ -77,6 +77,6 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     ray_cast(p, d, pgc);
     
-    //reini_RK2(p, d, pgc, d->SOLID);
+    reini_RK2(p, d, pgc, d->SOLID);
     }
 }
