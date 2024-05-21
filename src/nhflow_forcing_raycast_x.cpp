@@ -40,12 +40,11 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
 	int is,ie,js,je,ks,ke;
-    int checkin;
+    int checkin,ii;
 	double u,v,w;
 	double denom;
 	double psi = 1.0e-8*p->DXM;
-
-
+    
 	for(n=ts; n<te; ++n)
 	{
 	Ax = tri_x[n][0];
@@ -76,21 +75,34 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
     && Cy>=p->global_ymin && Cy<=p->global_ymax
     && Cz>=p->global_zmin && Cz<=p->global_zmax)
     checkin=1;
+    
+    //checkin=1;
         
     if(checkin==1)
     {
-	
+    xs = MIN3(Ax,Bx,Cx); 
+	xe = MAX3(Ax,Bx,Cx);
+    
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	
 	zs = MIN3(Az,Bz,Cz);
 	ze = MAX3(Az,Bz,Cz);
+    
+    is = p->posc_i(xs);
+	ie = p->posc_i(xe);
 	
 	js = p->posc_j(ys);
 	je = p->posc_j(ye);
 	
 	ks = p->posc_k(zs);
 	ke = p->posc_k(ze);	
+    
+    //ks = p->posc_sig(is+margin,js+margin,zs)-margin;
+	//ke = p->posc_sig(is+margin,js+margin,ze)+margin;	
+    
+    xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is + marge];
+	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie + marge];
 	
 	ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
 	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
@@ -98,29 +110,52 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 	zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks + marge];
 	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke + marge];
 
+    is = p->posc_i(xs);
+	ie = p->posc_i(xe);
+    
 	js = p->posc_j(ys);
 	je = p->posc_j(ye);
 	
 	ks = p->posc_k(zs);
 	ke = p->posc_k(ze);	
 
-	
+	is = MAX(is,0);
+	ie = MIN(ie,p->knox);
+    
 	js = MAX(js,0);
 	je = MIN(je,p->knoy);
 	
 	ks = MAX(ks,0);
-	ke = MIN(ke,p->knoz);			
-	
-		for(j=js;j<je;j++)
-		for(k=ks;k<ke;k++)
-		{
-		Px = p->global_xmin-10.0*p->DXM;
+	ke = MIN(ke,p->knoz);		
+    
+    for(i=is;i<ie;i++)
+    for(j=js;j<je;j++)
+    for(k=ks;k<ke;k++)
+    if((IO[IJK]>0 && IO[Im1JK]<0) || (IO[IJK]>0 && IO[Ip1JK]<0))
+    {
+    
+    
+        if(IO[IJK]>0 && IO[Im1JK]<0)
+        {
+		Px = p->XP[IP]-psi;
 		Py = p->YP[JP]-psi;
-		Pz = p->ZP[KP]+psi;
+		Pz = p->ZSP[IJK]+psi;
 		
-		Qx = p->global_xmax+10.0*p->DXM;
+		Qx = p->XP[IM1]+psi;
 		Qy = p->YP[JP]+psi;
-		Qz = p->ZP[KP]-psi;
+		Qz = p->ZSP[Im1JK]-psi;
+        }
+        
+        if(IO[IJK]>0 && IO[Ip1JK]<0)
+        {
+		Px = p->XP[IP]-psi;
+		Py = p->YP[JP]-psi;
+		Pz = p->ZSP[IJK]+psi;
+		
+		Qx = p->XP[IP1]+psi;
+		Qy = p->YP[JP]+psi;
+		Qz = p->ZSP[Ip1JK]-psi;
+        }
 		
 		
 		PQx = Qx-Px;
@@ -168,7 +203,9 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 			
 			Rx = u*Az + v*Bz + w*Cz;
             
-             i = p->posc_i(Rx);
+            cout<<"Rx: "<<Rx<<endl;
+            
+            /* i = p->posc_i(Rx);
 
             int distcheck=1;
   
@@ -182,9 +219,13 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
             if(IO[IJK]<0 && IO[Ip1JK]<0)
             distcheck=0;
             
-            if(distcheck==1)
+            if(distcheck==1)*/
+            ii=i;
+            
             for(i=0;i<p->knox;++i)
             d->SOLID[IJK]=MIN(fabs(Rx-p->XP[IP]),d->SOLID[IJK]);
+            
+            i=ii;
             }
 		
 		}
