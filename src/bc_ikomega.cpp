@@ -104,7 +104,6 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
 	
 	a->M.p[id] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;
 	a->rhsvec.V[id] += (tau*u_abs)/dist;
-    
 }
 
 void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs, int bc, int id, double dist)

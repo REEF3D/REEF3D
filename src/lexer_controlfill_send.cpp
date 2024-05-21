@@ -156,6 +156,8 @@ void lexer::ctrlsend()
 	dd++;
     ictrl[ii] = A357;
 	ii++;
+    ictrl[ii] = A358;
+	ii++;
     ictrl[ii] = A361;
 	ii++;
     ictrl[ii] = A362;
@@ -219,6 +221,20 @@ void lexer::ctrlsend()
     ictrl[ii] = A552;
 	ii++;
     ictrl[ii] = A553;
+	ii++;
+    ictrl[ii] = A560;
+	ii++;
+    dctrl[dd] = A560_xs;
+    dd++;
+    dctrl[dd] = A560_xe;
+    dd++;
+    dctrl[dd] = A560_ys;
+    dd++;
+    dctrl[dd] = A560_ye;
+    dd++;
+    ictrl[ii] = A561;
+	ii++;
+    ictrl[ii] = A564;
 	ii++;
 	
     ictrl[ii] = B10;
@@ -1098,6 +1114,10 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = P134;
 	ii++;
+    ictrl[ii] = P140;
+	ii++;
+    dctrl[dd] = P141;
+	dd++;
 	ictrl[ii] = P151;
 	ii++;
 	ictrl[ii] = P152;
@@ -1218,12 +1238,12 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = S22;
 	dd++;
-    ictrl[ii] = S23;
-	ii++;
-    dctrl[dd] = S23_val;
+    dctrl[dd] = S23;
 	dd++;
     dctrl[dd] = S24;
 	dd++;
+    ictrl[ii] = S25;
+	ii++;
     dctrl[dd] = S26_a;
 	dd++;
     dctrl[dd] = S26_b;
@@ -1303,8 +1323,6 @@ void lexer::ctrlsend()
 
     ictrl[ii] = T10;
     ii++;
-    ictrl[ii] = T11;
-    ii++;
     ictrl[ii] = T12;
     ii++;
     ictrl[ii] = T21;
@@ -1331,6 +1349,8 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = T43;
     dd++;
+    ictrl[ii] = T44;
+    ii++;
     
     dctrl[dd] = W1;
     dd++;
@@ -1803,7 +1823,36 @@ void lexer::ctrlsend()
 	
 // --------------------------
 
-	
+	for(n=0;n<A561;++n)
+    {
+	dctrl[dd] = A561_xs[n];
+    dd++;
+    dctrl[dd] = A561_xe[n];
+    dd++;
+    dctrl[dd] = A561_ys[n];
+    dd++;
+    dctrl[dd] = A561_ye[n];
+    dd++;
+    dctrl[dd] = A561_zs[n];
+    dd++;
+    dctrl[dd] = A561_ze[n];
+    dd++;
+    }
+    
+    for(n=0;n<A564;++n)
+    {
+	dctrl[dd] = A564_xc[n];
+    dd++;
+    dctrl[dd] = A564_yc[n];
+    dd++;
+    dctrl[dd] = A564_zs[n];
+    dd++;
+    dctrl[dd] = A564_ze[n];
+    dd++;
+    dctrl[dd] = A564_r[n];
+    dd++;
+    }
+    
 	for(n=0;n<B71;++n)
     {
     dctrl[dd] = B71_val[n];
@@ -2631,11 +2680,19 @@ void lexer::ctrlsend()
 	dd++;
 	}
     
+    for(n=0;n<P140;++n)
+	{
+    dctrl[dd] = P140_x[n];
+	dd++;
+    dctrl[dd] = P140_y[n];
+	dd++;
+	}
+    
     for(n=0;n<P184;++n)
     {
-    ictrl[ii]  = P184_its[n];
+    ictrl[ii] = P184_its[n];
 	ii++;
-	ictrl[ii]  = P184_ite[n];
+	ictrl[ii] = P184_ite[n];
 	ii++;
     ictrl[ii] = P184_dit[n];
 	ii++;

@@ -60,6 +60,8 @@ private:
     void read_format_1(lexer*,ghostcell*);
     void read_format_2(lexer*,ghostcell*);
     
+    Eigen::Vector3d omega_;
+    
     ofstream file;
     char name[200];
     int qn,count,ptnum;

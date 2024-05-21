@@ -28,12 +28,15 @@ Author: Hans Bihs
 #include"nhflow_fsf_f.h"
 #include"nhflow_fsf_v.h"
 
+#include"nhflow_printer.h"
 #include"nhflow_vtu3D.h"
+#include"nhflow_vts3D.h"
 #include"nhflow_timestep.h"
 #include"nhflow_momentum.h"
 #include"nhflow_turbulence.h"
 #include"nhflow_komega_void.h"
 #include"nhflow_komega_IM1.h"
+#include"nhflow_forcing.h"
 
 #include"nhflow_HLL.h"
 #include"nhflow_HLLC.h"

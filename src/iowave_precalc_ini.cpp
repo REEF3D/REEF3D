@@ -78,8 +78,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
             if(dg<1.0e20)
             ++upt_count;
 		}
-    }
-    
+    }    
     
     // V ------------------------------------------------
     BASELOOP

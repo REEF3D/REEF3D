@@ -53,10 +53,9 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	kinsource(p,d,pvrans);
 	timesource(p,d,KN);
     bckomega_start(p,d,KIN,EPS,gcval_kin);
-
-    /*bckin_matrix(a,p,kin,eps);
-	psolv->start(p,a,pgc,kin,a->rhsvec,4);
-	pgc->start4(p,kin,gcval_kin);
+    bckin_matrix(p,d,KIN,EPS);
+	//psolv->start(p,a,pgc,kin,a->rhsvec,4);
+	/*pgc->start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))

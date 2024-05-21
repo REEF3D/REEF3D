@@ -36,6 +36,7 @@ Author: Hans Bihs
 #include"fnpf_print_Hs.h"
 #include"fnpf_vel_probe.h"
 #include"fnpf_vel_probe_theory.h"
+#include"fnpf_runup.h"
 #include"potentialfile_out.h"
 #include"fnpf_state.h"
 #include<sys/stat.h>
@@ -103,14 +104,24 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     pbreaklog=new fnpf_breaking_log(p,c,pgc);
 	
 	if(p->P85>0)
+    {
 	pforce_ale = new force_ale*[p->P85];
-	
-	for(n=0;n<p->P85;++n)
+    
+    for(n=0;n<p->P85;++n)
 	pforce_ale[n]=new force_ale(p,c,pgc,n);
+    
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->ini(p,c,pgc);
+    }
     
     if(p->P110==1)
     phs = new fnpf_print_Hs(p,c->Hs);
-
+    
+    if(p->P140>0)
+	prunup = new fnpf_runup*[p->P140];
+	
+	for(n=0;n<p->P140;++n)
+	prunup[n]=new fnpf_runup(p,c,pgc,n);
 }
 
 fnpf_vtu3D::~fnpf_vtu3D()
@@ -221,18 +232,15 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     if(p->P59==1)
     pbreaklog->write(p,c,pgc);
 	
-	// ALE force
-    if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
-    {
-    for(n=0;n<p->P85;++n)
-    pforce_ale[n]->ini(p,c,pgc);
-    }
-    
-    if(p->count>0 && p->P85>0)
-    {
+	// ALE force    
+    if(p->count>0)
     for(n=0;n<p->P85;++n)
     pforce_ale[n]->start(p,c,pgc);
-    }
+    
+    // Runup  
+    if(p->count>0)
+    for(n=0;n<p->P140;++n)
+    prunup[n]->start(p,c,pgc);
 }
 
 void fnpf_vtu3D::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
@@ -529,7 +537,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
     zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j);
 
-    ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
+    ffn=float((p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
 	result.write((char*)&ffn, sizeof (float));
 
 	ffn=float(p->YN[JP1]);

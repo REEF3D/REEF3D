@@ -119,6 +119,7 @@ public:
 	virtual int iozonecheck(lexer*,fdm*);
     
     virtual void ini(lexer*,fdm*,ghostcell*);
+    virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*){};
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);

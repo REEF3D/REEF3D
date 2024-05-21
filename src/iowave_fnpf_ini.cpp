@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,31 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ikepsilon.h"
-#include"field4.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
 
-using namespace std;
-
-#ifndef KEPSILON_IM2_H_
-#define KEPSILON_IM2_H_
-
-class kepsilon_IM2 : public ikepsilon
+void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-public:
-	kepsilon_IM2(lexer*,fdm*,ghostcell*);
-	virtual ~kepsilon_IM2();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
-	void timesource(lexer*,fdm*,field&,field&);
-	void clearrhs(lexer*,fdm*);
-	field4 kn,knn,en,enn;
+    wavegen_precalc_ini(p,pgc);
+    wavegen_precalc_relax_func_fnpf(p,pgc);
+    
+    if(p->B89==1 && p->B98==2)
+    wavegen_precalc_decomp_space_fnpf(p,pgc);
+    
+    if(p->B89==1 && p->B98==3)
+    wavegen_precalc_decomp_space_dirichlet_fnpf(p,pgc);
 
-private:
-    int gcval_kin, gcval_eps;
-    int count,q;
-    double aii;
-};
+    wavegen_precalc_fnpf(p,c,pgc);
 
-#endif
+    if(p->I30==1)
+	full_initialize_fnpf(p,c,pgc);
+}
 

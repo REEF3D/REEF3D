@@ -64,6 +64,9 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     iin = flag_all[qn];
     mainout.write((char*)&iin, sizeof (int));
     }
+    
+    ddn=p->wd;
+    mainout.write((char*)&ddn, sizeof (double));
 
     mainout.close();
 }

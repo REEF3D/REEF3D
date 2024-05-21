@@ -79,8 +79,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
         else if (p->X400==10)
         fb_obj[nb]->updateForcing_stl(p,pgc,press);
         
-        // Print
-            
+            // Print
             if(p->X50==1)
             fb_obj[nb]->print_vtp(p,pgc);
             

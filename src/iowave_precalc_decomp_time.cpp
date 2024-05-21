@@ -26,6 +26,8 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_time(lexer *p, ghostcell *pgc)
 {
+    starttime=pgc->timer();
+    
     int qn;
     
     for(qn=0;qn<wave_comp;++qn)
@@ -58,4 +60,5 @@ void iowave::wavegen_precalc_time(lexer *p, ghostcell *pgc)
     Fival_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
     }
     
+    p->wavetime+=pgc->timer()-starttime;
 }

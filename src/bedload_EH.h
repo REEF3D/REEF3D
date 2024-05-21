@@ -20,32 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ikomega.h"
-#include"field4.h"
-
+#include"bedload.h"
+#include"increment.h"
 
 using namespace std;
 
-#ifndef KOMEGA_IM2_H_
-#define KOMEGA_IM2_H_
+#ifndef BEDLOAD_EH_H_
+#define BEDLOAD_EH_H_
 
-class komega_IM2 : public ikomega
+class bedload_EH : public bedload, public increment
 {
 public:
-	komega_IM2(lexer *, fdm*, ghostcell*);
-	virtual ~komega_IM2();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
-	void timesource(lexer*,fdm*,field&,field&);
-	void clearrhs(lexer*,fdm*);
 
-	field4 kn,knn,en,enn;
+    bedload_EH(lexer*);
+    virtual ~bedload_EH();
+
+	virtual void start(lexer*, ghostcell*, sediment_fdm*);
 
 private:
-    int gcval_kin, gcval_eps;
-    int count,q;
-    double aii;
+    double rhosed,rhowat,Rstar,Ds;
+    double g,d50;
+    double visc;
+    double kappa,u_plus,ks;
+    double tau_eff, shearvel_eff, shields_eff;
+    double tau_crit, shearvel_crit, shields_crit;
+    double fh;
 };
 
 #endif
+
+

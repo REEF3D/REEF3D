@@ -20,42 +20,43 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"suspended.h"
-#include"increment.h"
-#include"field3.h"
-#include"field4.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
 
-using namespace std;
-
-#ifndef SUSPENDED_IM2_H_
-#define SUSPENDED_IM2_H_
-
-class suspended_IM2 : public suspended, public increment
+void iowave::wavegen_precalc_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-public:
-	suspended_IM2(lexer *, fdm*);
-	virtual ~suspended_IM2();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
-	virtual void ctimesave(lexer*, fdm*);
+    starttime=pgc->timer();
     
-    void suspsource(lexer*,fdm*,field&,sediment_fdm*);
-    void bcsusp_start(lexer*,fdm*,ghostcell*,sediment_fdm*,field&);
-	void sedfsf(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
-    void fillconc(lexer*,fdm*,sediment_fdm*);
-
-	field4 concn,concnn;
-
-	int gcval_susp;
-private:
-    void timesource(lexer* p, fdm* a, field& fn);
-    double starttime;
-    void fill_wvel(lexer*,fdm*,ghostcell*,sediment_fdm*); 
-    field3 wvel;
+    // prestep
+    wave_prestep(p,pgc);
     
-    int count,q;
 
-};
+        if(p->B89==0 )
+        {
+            if(p->B98==2)
+            fnpf_precalc_relax(p,pgc);
+            
+            if(p->B98==3 || p->B98==4)
+            fnpf_precalc_dirichlet(p,pgc);
+        }
+        
+        if(p->B89==1)
+        {
+            if(p->B98==2)
+            {
+            wavegen_precalc_decomp_time_fnpf(p,pgc);
+            wavegen_precalc_decomp_relax_fnpf(p,pgc);
+            }
+            
+            if(p->B98==3 || p->B98==4)
+            {
+            wavegen_precalc_decomp_time_fnpf(p,pgc);
+            wavegen_precalc_decomp_dirichlet_fnpf(p,pgc);
+            }
+        }
 
-#endif
-
+    p->wavetime+=pgc->timer()-starttime;
+}
+    

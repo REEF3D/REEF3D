@@ -51,23 +51,6 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
 	full_initialize(p,a,pgc);
 }
 
-void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-    wavegen_precalc_ini(p,pgc);
-    wavegen_precalc_relax_func_fnpf(p,pgc);
-    
-    if(p->B89==1 && p->B98==2)
-    wavegen_precalc_decomp_space_fnpf(p,pgc);
-    
-    if(p->B89==1 && p->B98==3)
-    wavegen_precalc_decomp_space_dirichlet_fnpf(p,pgc);
-
-    wavegen_precalc(p,pgc);
-
-    if(p->I30==1)
-	full_initialize_fnpf(p,c,pgc);
-}
-
 void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
 {
     wavegen_precalc_ini(p,pgc);

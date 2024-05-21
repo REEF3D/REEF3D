@@ -20,7 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"printer.h"
+#ifndef NHFLOW_VTU3D_H_
+#define NHFLOW_VTU3D_H_
+
+#include"nhflow_printer.h"
 #include"increment.h"
 
 class fdm_nhf;
@@ -39,12 +42,9 @@ class nhflow_vel_probe;
 class nhflow_vel_probe_theory;
 class ioflow;
 
-#ifndef NHFLOW_VTU3D_H_
-#define NHFLOW_VTU3D_H_
-
 using namespace std;
 
-class nhflow_vtu3D : public increment
+class nhflow_vtu3D : public nhflow_printer, public increment
 {
 
 public:

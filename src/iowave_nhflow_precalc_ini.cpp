@@ -54,7 +54,6 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
 		}
     }
     
-    
     // V ------------------------------------------------
     BASELOOP
     {

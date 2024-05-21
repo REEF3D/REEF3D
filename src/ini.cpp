@@ -87,6 +87,7 @@ void lexer::ini_default()
     A355=1.25;   // double breaking parameter slope alpha
     A356=0.1;   // double breaking parameter slope beta
     A357=1;     // int breaking for Fi and eta
+    A358=1;     // int breaking algorithm version
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter
     A363=1;      // int breaking filter width
@@ -112,7 +113,7 @@ void lexer::ini_default()
     A521=1;		// int
     A522=4.0;    // double p_alpha
     A523=1.0;    // double p_gamma
-    A531=3.0;    // double Fround number limiter
+    A531=3.0;    // double Froude number limiter
     A540=1;      // int NFHLOW fsf scheme
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance
@@ -124,6 +125,10 @@ void lexer::ini_default()
     A551=0;      // int type of breaking detection (deep / shallow)
     A552=1;      // int additional filtering to viscosity based breaking
     A553=0;      // int breaking in very shallow regions turned onf
+    
+    A560=0;      // int block eta
+    A561=0;      // int solid box
+    A564=0;      // int solid vertical cylinder
 
     // Boundary Conditions
 	B10=1;			// int wall laws velocities on/off
@@ -483,7 +488,7 @@ void lexer::ini_default()
     P11=10;			 // int log print frequency
 	P12=1;			 // int terminal print frequency
 	P15=1;          // int print file numbering
-    P16=0;          // int print file numbering
+    P16=0;          // int add timestamp to paraview files
 	P18=2;			// int option for phi print out
 	P20=-10;		// ith iteration file printed
     P21=0;          // int time averaged vtu print out
@@ -550,6 +555,8 @@ void lexer::ini_default()
     P132=0;             // int max wetdry as file
     P133=0;             // int runup gage x-crossection
     P134=0;             // int runup gage y-crossection
+    P140=0;             // int runup gage cylinder
+    P141=0;             // int runup cylinder radius
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data
@@ -613,8 +620,9 @@ void lexer::ini_default()
 	S20=0.001;          // double sediment d50
 	S21=3.0;          // double factor for d50 for calculation of ks in bedshear routine
     S22=2650.0;        // double sediment density
-    S23=0;     // int sediment fall velocity
+    S23=0.001;     // double sediment fall velocity
     S24=0.5;               // double porosity of sediment layer
+    S25=0;     // int automatic sediment fall velocity
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
     S27=1;              // int number of inner iterations
@@ -656,13 +664,12 @@ void lexer::ini_default()
 
     // Turbulence
 	T10=0;			    // int turbulence model
-	T11=11;             // int time scheme for 2-eq turbulence models
 	T12=5;              // int convection scheme
     T21=0;              // int type of LES filter
 	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
 	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
     T33=0;               // int kin source
-	T35=0.816; 			// double factor for limiter for eddy limiter near wall
+	T35=0.212; 			// double factor for limiter for eddy limiter near wall
 	T36=0;				// int explciti free surface dampong through dissipation
 	T37=0.07;		    // int damping coefficient for T36
     T38=1.6;            // double epsi fsf turbulence damping
@@ -670,6 +677,7 @@ void lexer::ini_default()
     T41=0;              // int RANS stabilization
     T42=0.05;           // double lambda1 factor
     T43=1.0;            // double komega wall BC velocity factor
+    T44=0;              // int buouncy term
 
     // Water Properties
 	W1=998.2;		// double density water

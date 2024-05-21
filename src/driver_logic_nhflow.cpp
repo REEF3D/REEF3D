@@ -54,6 +54,9 @@ void driver::logic_nhflow()
     if(p->A10==5)
     pnhf=new nhflow_f(p,d,pgc);
     
+// forcing
+    pnhfdf=new nhflow_forcing(p);
+    
 // FSF
     pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
@@ -161,6 +164,9 @@ void driver::logic_nhflow()
 	if(p->P150>0)
 	pdata = new data_f(p,a,pgc);
     
+    if(p->P10==2)
+    pnhfprint = new nhflow_vts3D(p,d,pgc);
+    else
     pnhfprint = new nhflow_vtu3D(p,d,pgc);
     
 //VRANS
@@ -198,7 +204,7 @@ void driver::logic_nhflow()
     
 //Momentum
     if(p->A510==2)
-	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof);
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pnhfdf);
     
     if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof);

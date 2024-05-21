@@ -23,5 +23,6 @@ Author: Hans Bihs
 #include"heat_AB.h"
 #include"heat_RK2.h"
 #include"heat_RK3.h"
+#include"heat_RK3CN.h"
 #include"heat_void.h"
 

@@ -76,6 +76,7 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, rein
     if(sedcalc==0)
     {
     fill_bedk(p,a,pgc);
+    waterlevel(p,a,pgc);
     pbedshear->taubed(p,a,pgc,s);
     }
 }

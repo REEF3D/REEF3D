@@ -17,33 +17,23 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"komega_IM2.h"
-#include"EARSM.h"
+#include"bedconc_void.h"
 
-class multiphase;
-
-using namespace std;
-
-#ifndef EARSM_KW_IM2_H_
-#define EARSM_KW_IM2_H_
-
-
-class EARSM_kw_IM2 : public komega_IM2, public EARSM
+bedconc_void::bedconc_void(lexer *p)
 {
+}
 
-public:
-	EARSM_kw_IM2(lexer *,fdm*,ghostcell*);
-	virtual ~EARSM_kw_IM2();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void aniso(fdm*);
-	virtual double tau(fdm*);
-    
-private:
-	int gcval_earsm;
-    const double cmu;
-};
+bedconc_void::~bedconc_void()
+{
+}
 
-#endif
+void bedconc_void::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
+{
+}
+
+
+
 

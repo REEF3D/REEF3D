@@ -55,7 +55,40 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
         
-        
+        phival = a->phi(i-1,j,k);
+
+        if(phival>=-psi)
+		H=1.0;
+
+		if(phival<-epsi)
+		H=0.0;
+
+
+		if(phival>=-epsi && phival<-psi)
+		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+
+            
+
+			u(i-1,j,k)=uvel*H + p->Ui;
+			u(i-2,j,k)=uvel*H + p->Ui;
+			u(i-3,j,k)=uvel*H + p->Ui;
+            
+             v(i-1,j,k)=vvel*H;
+			v(i-2,j,k)=vvel*H;
+			v(i-3,j,k)=vvel*H;
+			
+			w(i-1,j,k)=wvel*H;
+			w(i-2,j,k)=wvel*H;
+			w(i-3,j,k)=wvel*H;
+			
+            
+            if(p->W50_air==1 && phival<-epsi)
+            {
+            u(i-1,j,k)+=p->W50;
+            u(i-2,j,k)+=p->W50;
+            u(i-3,j,k)+=p->W50;
+            }
+            /*
 
 			if(a->phi(i-1,j,k)>=0.0)
 			{
@@ -104,7 +137,7 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 			w(i-1,j,k)=0.0;
 			w(i-2,j,k)=0.0;
 			w(i-3,j,k)=0.0;
-			}
+			}*/
             
                 
                 // fsf deviation

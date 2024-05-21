@@ -30,18 +30,18 @@ void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool final
     // Calculate new position
     update_Euler_angles(p,pgc);
     
-    if(p->mpirank==0 && finalise==true)
-    {
-        cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
-        cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
-    }
-    
     // Update STL mesh
     update_trimesh_3D(p,a,pgc,finalise);
 
     // Update angular velocities 
     omega_B = I_.inverse()*h_;
     omega_I = R_*omega_B;
+    
+    if(p->mpirank==0 && finalise==true)
+    {
+        cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
+        cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
+    }
 }
 
 void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc)
@@ -88,10 +88,10 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
             tri_z[n][q] = point(2) + c_(2);
 
 			// 2D
-			if(p->X11_v!=1 && p->X11_p!=1 && p->X11_r!=1) 
+			/*if(p->X11_v!=1 && p->X11_p!=1 && p->X11_r!=1) 
 			{
 				tri_y[n][q] = tri_y0[n][q] + c_(1);	
-			}
+			}*/
         }
 	}
     

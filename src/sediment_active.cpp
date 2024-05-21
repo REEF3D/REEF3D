@@ -72,8 +72,4 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     s->active(i,j)=1;
-    
-  
-  
-    
 }

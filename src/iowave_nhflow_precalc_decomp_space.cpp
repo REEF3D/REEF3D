@@ -131,5 +131,4 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
             }
 		}
     }	
-    
 }

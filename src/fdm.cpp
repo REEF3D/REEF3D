@@ -31,7 +31,7 @@ fdm::fdm(lexer *p)
             Fi(p),
 			eddyv(p),
 			L(p),
-			ro(p),visc(p),
+			ro(p),dro(p),visc(p),
 			phi(p),vof(p),
 			conc(p),
             topo(p),solid(p),

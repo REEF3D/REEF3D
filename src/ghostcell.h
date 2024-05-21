@@ -71,6 +71,7 @@ public:
     void start2V(lexer*,double*,int);
     void start3V(lexer*,double*,int);
     void start4V(lexer*,double*,int);
+    void start4V_par(lexer*,double*,int);
     void start4S(lexer*,double*,int);
     void start4P(lexer*,double*,int);
     void start5V(lexer*,double*,int);
@@ -78,6 +79,8 @@ public:
     void start7V(lexer*,double*,sliceint&, int);
     void start7S(lexer*,double*, int);
     void start7P(lexer*,double*, int);
+    
+    void startintV(lexer*,int*,int);
 
 
 	void final();
@@ -229,6 +232,7 @@ public:
 	void gcparaxvec_sr(lexer*, vec&,cpt&,int);
     void gcparax4a(lexer*, field&, int);
     void gcparaxV(lexer*, double*, int);
+    void gcparaxintV(lexer*, int*, int);
     void gcparaxV1(lexer*, double*, int);
 	void gcparacox(lexer*, field&, int);
     void gcparacoxV(lexer*, double*, int);

@@ -42,7 +42,7 @@ public:
 private:
 
 	int count,n,q;
-    
+
 };
 
 #endif

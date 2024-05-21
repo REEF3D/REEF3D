@@ -131,7 +131,7 @@ void sixdof_obj::objects_allocate(lexer *p, ghostcell *pgc)
 	snum = int(U/ds);
 	trisum+=5*(snum+1)*p->X132;
     
-    // cylinder_y
+    // cylinder_z
     r=p->X133_rad;
 	U = 2.0 * PI * r;
 	ds = 0.75*(U*p->dx);

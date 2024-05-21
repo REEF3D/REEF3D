@@ -41,7 +41,6 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
         if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
         h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
 		}
-		
 		s->bedzh(i,j)=h;
         s->bedzh0(i,j)=h;
 	}
@@ -51,6 +50,7 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     active_ini_cfd(p,a,pgc);
     
     topo_zh_update(p,a,pgc,s);
+    waterlevel(p,a,pgc);
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
@@ -88,18 +88,18 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     double visc=p->W2;
     double Ls = p->S20;
     double cd = 1.5;
+    double R = rhosed/rhowat-1.0;
+    
+    if(p->S25==0)
+    s->ws = p->S23;
+    
+    if(p->S25==1)
+    s->ws = sqrt(4.0*R*g*d50/(3.0*cd));
     
     //s->ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
     
-    if(p->S23==0)
-    s->ws = sqrt(4.0*(rhosed/rhowat-1.0)*g*d50/(3.0*cd));
-    
-    if(p->S23==1)
-    s->ws = p->S23_val;
-    
     if(p->mpirank==0)
     cout<<"ws: "<<s->ws<<endl;
-    
 }
 
 void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
