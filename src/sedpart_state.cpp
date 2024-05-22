@@ -21,10 +21,11 @@ Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include "sedpart.h"
+#include "sedpart_movement.h"
 
 /// @brief Write out particle data to state file
 /// @param result statefile
-void sedpart::write_state_particles(ofstream& result)
+void sedpart::write_state_particles(ofstream &result)
 {
     float ffn=num;
     result.write((char*)&ffn, sizeof (float));
@@ -53,6 +54,7 @@ void sedpart::write_state_particles(ofstream& result)
         ffn=PP.PackingFactor[n];
         result.write((char*)&ffn, sizeof (float));
     }
+    movement->writeState(result);
 }
 
 /// @brief Read in particle data from state file
@@ -90,5 +92,6 @@ void sedpart::read_state_particles(ifstream& result)
         result.read((char*)&ffn, sizeof (float));
         packing=double(ffn);
         PP.add(x,y,z,flag,u,v,w,packing);
-    } 
+    }
+    movement->readState(result);
 }

@@ -27,6 +27,8 @@ Author: Alexander Hanke
 #include "ghostcell.h"
 #include "boundarycheck.h"
 
+#include "sedpart_movement.h"
+
 #define PARTICLELOOP for(size_t n=0;n<PP->loopindex;n++) if(PP->Flag[n]>INT32_MIN)
 
 /// @brief Functions to manipulate particle containing objects
@@ -208,11 +210,11 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, tracers_obj* PP, int maxco
 
     for(int n=0;n<6;n++)
     {   
-        for(size_t n=0;n<Recv[n].loopindex;n++)
+        for(size_t m=0;m<Recv[n].loopindex;m++)
         {
-            i = p->posc_i(Recv[n].X[n]);
-            j = p->posc_j(Recv[n].Y[n]);
-            k = p->posc_k(Recv[n].Z[n]);
+            i = p->posc_i(Recv[n].X[m]);
+            j = p->posc_j(Recv[n].Y[m]);
+            k = p->posc_k(Recv[n].Z[m]);
             cellSum[IJK]++;
         }
         PP->add_obj(&Recv[n]);
@@ -229,7 +231,7 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, tracers_obj* PP, int maxco
 /// @param PP particles_obj contains particle information
 /// @param maxcount maximum number of particles which could be transfered
 /// @return number of send of particles
-int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, int maxcount)
+int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, sediment_particle::movement::base movement, int maxcount)
 {
     int xchange=0;
 
@@ -305,11 +307,12 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, int max
 
     for(int n=0;n<6;n++)
     {
-        for(size_t n=0;n<Recv[n].loopindex;n++)
+        for(size_t m=0;m<Recv[n].loopindex;m++)
         {
-            i = p->posc_i(Recv[n].X[n]);
-            j = p->posc_j(Recv[n].Y[n]);
-            k = p->posc_k(Recv[n].Z[n]);
+            i = p->posc_i(Recv[n].X[m]);
+            j = p->posc_j(Recv[n].Y[m]);
+            k = p->posc_k(Recv[n].Z[m]);
+            movement.transfer(p,Recv[n],m);
             cellSum[IJK]+=Recv[n].PackingFactor[n];
         }
         PP->add_obj(&Recv[n]);

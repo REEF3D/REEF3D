@@ -596,8 +596,9 @@
         <File Name="sediment_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
-          <File Name="sedpart.h"/>
-        </VirtualDirectory>
+        <File Name="sedpart_movement.h"/>
+        <File Name="sedpart.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
         <File Name="heat_RK3CN.h"/>
         <VirtualDirectory Name="BC">
@@ -1870,14 +1871,17 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
-          <File Name="sedpart_printpvtp.cpp"/>
-          <File Name="sedpart_printvtp.cpp"/>
-          <File Name="sedpart_seed.cpp"/>
-          <File Name="sedpart_state.cpp"/>
-          <File Name="sedpart_cfd.cpp"/>
-          <File Name="sedpart_sflow.cpp"/>
-          <File Name="sedpart.cpp"/>
+        <VirtualDirectory Name="Movement">
+          <File Name="sedpart_movement.cpp"/>
         </VirtualDirectory>
+        <File Name="sedpart_printpvtp.cpp"/>
+        <File Name="sedpart_printvtp.cpp"/>
+        <File Name="sedpart_seed.cpp"/>
+        <File Name="sedpart_state.cpp"/>
+        <File Name="sedpart_cfd.cpp"/>
+        <File Name="sedpart_sflow.cpp"/>
+        <File Name="sedpart.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
         <File Name="heat_RK3CN.cpp"/>
         <VirtualDirectory Name="BC">

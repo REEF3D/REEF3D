@@ -20,11 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs & Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"sedpart.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include<math.h>
+#include "sedpart.h"
+#include "sedpart_movement.h"
+
+#include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include <math.h>
 
 using std::cout;
 using std::endl;
@@ -111,6 +113,7 @@ void sedpart::posseed_box(lexer* p, fdm* a)
 	
     double x,y,z;
     int flag=1;
+    size_t index;
 
     LOOP
         if(active_box(i,j,k)>0.0)
@@ -123,8 +126,8 @@ void sedpart::posseed_box(lexer* p, fdm* a)
                 y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
                 z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
 
-                PP.add(x,y,z,flag,a->u(i,j,k),a->v(i,j,k),a->w(i,j,k),p->Q41);
-                cellSum[IJK]++;
+                index = PP.add(x,y,z,flag,a->u(i,j,k),a->v(i,j,k),a->w(i,j,k),p->Q41);
+                movement->seeding(p, PP, index, ppcell);
             }
 }
 
@@ -163,7 +166,7 @@ void sedpart::posseed_suspended(lexer* p, fdm* a)
                     y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
                     z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
                     index=PP.add(x,y,z,1,a->u(i-1,j,k),a->v(i-1,j,k),a->w(i-1,j,k),p->Q41);
-                    cellSum[IJK]+=PP.PackingFactor[index];
+                    movement->seeding(p, PP, index, ppcell);
                 }
             }
         }
@@ -177,7 +180,7 @@ void sedpart::point_source(lexer* p, fdm* a)
         if(p->count%p->Q61_i[n]==0)
         {
             index = PP.add(p->Q61_x[n],p->Q61_y[n],p->Q61_z[n],1,a->u(i,j,k),a->v(i,j,k),a->w(i,j,k),p->Q41);
-            cellSum[IJK]+=PP.PackingFactor[index];
+            movement->seeding(p, PP, index, ppcell);
         }
 }
 
@@ -217,16 +220,13 @@ void sedpart::seed_topo(lexer* p, fdm* a)
     int flag=0;
     size_t index;
 
-    double ini = cellSum[IJK];
+    // double ini = cellSum[IJK];
 
     if(PP.size+ppcell>0.9*PP.capacity)
         PP.reserve();
 
     for(int qn=0;qn<ppcell*1000;++qn)
-    {
-        if(cellSum[IJK]>=ppcell)
-            break;
-        
+    {   
         x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
         y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
         z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
@@ -235,12 +235,17 @@ void sedpart::seed_topo(lexer* p, fdm* a)
         ipolSolid = p->ccipol4_b(a->solid,x,y,z);
 
         if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
-        { 
+        {
             index=PP.add(x,y,z,flag,0,0,0,p->Q41);
-            cellSum[IJK]+=PP.PackingFactor[index];
+            if(movement->seeding(p, PP, index, ppcell))
+            break;
+            // cellSum[IJK]+=PP.PackingFactor[index];
         }
+        
+        // if(++n==ppcell)
+        //     break;
     }
-    cellSumTopo[IJK]-=(cellSum[IJK]-ini);
+    // cellSumTopo[IJK]-=(cellSum[IJK]-ini);
 }
 
 void sedpart::solid_influx(lexer* p, fdm* a)

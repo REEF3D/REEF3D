@@ -21,6 +21,7 @@ Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include "sedpart.h"
+#include "sedpart_movement.h"
 
 #include "lexer.h"
 #include "ghostcell.h"
@@ -35,29 +36,25 @@ Author: Alexander Hanke
 /// Seeds the particles
 /// Prepares particles and particle related variables for simulation
 /// Initializes VRANS
-void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
+void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     // vrans
     pvrans->sed_update(p,a,pgc);
+    movement->setup(p,a,PP.d50);
     if(p->I40!=1)
     {
-        PLAINLOOP
-        cellSumTopo[IJK]=maxParticlesPerCell(p,a,PP.d50);
+        // PLAINLOOP
+        // cellSumTopo[IJK]=maxParticlesPerCell(p,a,PP.d50);
         // seed
         seed_ini(p,a,pgc);
         PP.reserve(maxparticle);
-        // if(p->mpirank==0)
         seed(p,a);
         make_stationary(p,a,&PP);
     }
-    
+
     gparticle_active = pgc->globalisum(PP.size);
 
-    if(gparticle_active>0)
-    {
-        particlesPerCell(p,a,pgc,&PP);
-        particleStressTensor(p,a,pgc,&PP);
-    }
+    movement->move(p,a,pgc,&PP);
     
     // print
     if((p->I40!=1)||(p->I40==1&&inicount>0))
@@ -71,14 +68,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     
     ++inicount;
-    if(p->mpirank==1)
-    {
-        i=8;j=12;k=2;
-        std::cout<<maxParticlesPerCell(p,a,PP.d50,true)<<"|"<<maxParticlesPerCell(p,a,PP.d50,false,true)<<endl;
-    }
-    PLAINLOOP
-    a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
-    // particle_func::debug(p,a,pgc,&PP);
+    movement->debug(p,a,pgc,&PP);
 }
 
 /// @brief CFD calculation function
@@ -104,26 +94,23 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
             // solid_influx(p,a);
             // seed_topo(p,a);
         }
-        particlesPerCell(p,a,pgc,&PP);
-        particleStressTensor(p,a,pgc,&PP);
 
         /// transport
         erode(p,a);
-        transport(p,a,&PP);
-		xchange=transfer(p,pgc,&PP,maxparticle);
+        movement->move(p,a,pgc,&PP);
+		xchange=transfer(p,pgc,&PP, *movement, maxparticle);
 		removed=remove(p,&PP);
         removed += deposit(p,a);
 
         /// topo update
-        if(p->Q13==1)
-            update_cfd(p,a,pgc,pflow,preto);
+        // if(p->Q13==1)
+            // update_cfd(p,a,pgc,pflow,preto);
 
         /// cleanup
         if(p->count%p->Q20==0)
         {
             if(PP.size == 0)
                 PP.erase_all();
-            // PP.optimize();
             cleanup(p,a,&PP,0);
         }
 	}
@@ -136,46 +123,16 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     gxchange = pgc->globalisum(xchange);
 	p->sedsimtime=pgc->timer()-starttime;
 
-    PLAINLOOP
-    a->test(i,j,k)=theta_s(p,a,&PP,i,j,k);
-    // particle_func::debug(p,a,pgc,&PP);
+    movement->debug(p,a,pgc,&PP);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
-    	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<" relative: "<<p->sedsimtime/double(gparticle_active)*(10^3)<<" ms\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
+    	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
 }
 
 /// @brief Updates the topography for the CFD solver
 void sedpart::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo* preto)
 {
-    const double tolerance=5e-10;
-    ILOOP
-    JLOOP
-    if(topoVolumeChange[IJ]>0)
-    {
-        double dh=topoVolumeChange[IJ]/p->DXN[IP]/p->DYN[JP];
-        a->bed(i,j)+=dh;
-        KLOOP
-        {
-            // Topo update
-            a->topo(i,j,k) -= dh;
-
-            // Seeding update
-            // active_topo(i,j,k) = 0.0;
-            // if( (a->topo(i,j,k)<0.5*p->DZN[KP]-tolerance) && (a->topo(i,j,k)>-p->DZN[KP]*ceil(p->Q102)-tolerance) && (a->solid(i,j,k)>=-p->DXM))
-            // {
-            // active_topo(i,j,k) = 1.0;
-            // if(p->flag1[Im1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG)
-            // active_topo(i,j,k) = 10.0;
-            // }
-        }
-        volumeChangeTotal += topoVolumeChange[IJ];
-
-        // Reset
-        topoVolumeChange[IJ]=0;
-    }
-
-    pgc->start4a(p,a->topo,150);
-    pgc->gcsl_start4(p,a->bed,50);
+    movement->update(p,pgc,a->topo,PP.d50);
     preto->start(p,a,pgc,a->topo);
     if(p->mpirank==0)
         cout<<"Topo: update grid..."<<endl;

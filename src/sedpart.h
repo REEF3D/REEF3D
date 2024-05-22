@@ -30,6 +30,10 @@ Author: Alexander Hanke
 #include "particles_obj.h"
 #include "field4.h"
 
+namespace sediment_particle::movement
+{
+class base;
+}
 
 class lexer;
 class fdm;
@@ -130,7 +134,8 @@ private:
 	field4 active_topo;
 
     int inicount;
-
+    
+    sediment_particle::movement::base *movement;
 
 	// PRINT
 
