@@ -40,12 +40,12 @@ namespace sediment_particle
         class base
         {
         public:
-            virtual void setup(lexer *, fdm *, double &){};
+            virtual void setup(lexer *, fdm &, double &){};
             virtual bool seeding(lexer *, particles_obj &, size_t &, int &){return false;};
             virtual void transfer(lexer *, particles_obj &, size_t &){};
-            virtual void move(lexer *, fdm *, ghostcell *, particles_obj *){};
-            virtual void update(lexer *, ghostcell *, field4a &, double &){};
-            virtual void debug(lexer *, fdm *, ghostcell *, particles_obj *){};
+            virtual void move(lexer *, fdm &, ghostcell &, particles_obj &){};
+            virtual void update(lexer *, ghostcell &, field4a &, double &){};
+            virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &){};
             virtual void writeState(ofstream &){};
             virtual void readState(ifstream &){};
         };
@@ -55,22 +55,22 @@ namespace sediment_particle
             Tavouktsoglou(lexer *);
             ~Tavouktsoglou();
 
-            void setup(lexer *, fdm *, double &);
+            void setup(lexer *, fdm &, double &);
             bool seeding(lexer *, particles_obj &, size_t &, int &);
             void transfer(lexer *, particles_obj &, size_t &);
-            void move(lexer *, fdm *, ghostcell *, particles_obj *);
-            void update(lexer *, ghostcell *, field4a &, double &);
-            void debug(lexer *, fdm *, ghostcell *, particles_obj *);
+            void move(lexer *, fdm &, ghostcell &, particles_obj &);
+            void update(lexer *, ghostcell &, field4a &, double &);
+            void debug(lexer *, fdm &, ghostcell &, particles_obj &);
             void writeState(ofstream &);
             void readState(ifstream &);
         private:
-            double maxParticlesPerCell(lexer* p, fdm* a, double,bool=true,bool=false);
-            void particleStressTensor(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP);
-            void particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_obj* PP);
-            void updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k);
-            double theta_s(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k) const;
-            double drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const;
-            void particlePerCell(lexer *, ghostcell *, particles_obj &);
+            double maxParticlesPerCell(lexer *, fdm &, double,bool=true,bool=false);
+            void particleStressTensor(lexer *, fdm &, ghostcell &, particles_obj &);
+            void particleStressTensorUpdateIJK(lexer *, fdm &, particles_obj &);
+            void updateParticleStressTensor(lexer *, fdm &, particles_obj &, int, int, int);
+            double theta_s(lexer *, fdm &, particles_obj &, int, int, int) const;
+            double drag_model(lexer *, double, double, double, double, double) const;
+            void particlePerCell(lexer *, ghostcell &, particles_obj &);
         private:
             double *cellSumTopo;
             double *cellSum;

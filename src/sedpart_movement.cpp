@@ -51,7 +51,7 @@ namespace sediment_particle::movement
         columnSum = nullptr;
     }
 
-    void Tavouktsoglou::setup(lexer *p, fdm *a, double &diameter)
+    void Tavouktsoglou::setup(lexer *p, fdm &a, double &diameter)
     {
         PLAINLOOP
         cellSumTopo[IJK] = maxParticlesPerCell(p,a,diameter);
@@ -74,7 +74,7 @@ namespace sediment_particle::movement
         cellSum[IJK] += PP.PackingFactor[n];
     }
 
-    void Tavouktsoglou::move(lexer *p, fdm *a, ghostcell *pgc, particles_obj *PP)
+    void Tavouktsoglou::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         double RKu,RKv,RKw;
         double u,v,w;
@@ -86,23 +86,23 @@ namespace sediment_particle::movement
         double stressDivX=0, stressDivY=0, stressDivZ=0;
         double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
 
-        particlePerCell(p,pgc,*PP);
+        particlePerCell(p,pgc,PP);
         particleStressTensor(p,a,pgc,PP);
 
-        for(size_t n=0;n<PP->loopindex;n++)
+        for(size_t n=0;n<PP.loopindex;n++)
         {
-            if(PP->Flag[n]>0)
+            if(PP.Flag[n]>0)
             {
                 // Prep
-                i=p->posc_i(PP->X[n]);
-                j=p->posc_j(PP->Y[n]);
-                k=p->posc_k(PP->Z[n]);
+                i=p->posc_i(PP.X[n]);
+                j=p->posc_j(PP.Y[n]);
+                k=p->posc_k(PP.Z[n]);
 
                 thetas=theta_s(p,a,PP,i,j,k);
 
-                u=p->ccipol1(a->u,PP->X[n],PP->Y[n],PP->Z[n]);
-                v=p->ccipol1(a->v,PP->X[n],PP->Y[n],PP->Z[n]);
-                w=p->ccipol1(a->w,PP->X[n],PP->Y[n],PP->Z[n]);
+                u=p->ccipol1(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
+                v=p->ccipol1(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
+                w=p->ccipol1(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
 
                 stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);
                 stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
@@ -112,31 +112,31 @@ namespace sediment_particle::movement
                 stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYN[JP]+p->DYN[JM1]);
                 stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
 
-                pressureDivX = (a->press(i+1,j,k) - a->press(i,j,k))/(p->DXN[IP]);
-                pressureDivY = (0.5*(a->press(i,j+1,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i,j-1,k)+a->press(i+1,j-1,k)))/(p->DYN[JM1]+p->DYN[JP]);
-                pressureDivZ = (0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DYN[KM1]+p->DYN[KP]);
+                pressureDivX = (a.press(i+1,j,k) - a.press(i,j,k))/(p->DXN[IP]);
+                pressureDivY = (0.5*(a.press(i,j+1,k)+a.press(i+1,j+1,k)) - 0.5*(a.press(i,j-1,k)+a.press(i+1,j-1,k)))/(p->DYN[JM1]+p->DYN[JP]);
+                pressureDivZ = (0.5*(a.press(i,j,k+1)+a.press(i+1,j,k+1)) - 0.5*(a.press(i,j,k-1)+a.press(i+1,j,k-1)))/(p->DYN[KM1]+p->DYN[KP]);
 
                 // RK3 step 1
-                du=u-PP->U[n];
-                dv=v-PP->V[n];
-                dw=w-PP->W[n];
+                du=u-PP.U[n];
+                dv=v-PP.V[n];
+                dw=w-PP.W[n];
 
-                Dp=drag_model(p,PP->d50,du,dv,dw,thetas);
+                Dp=drag_model(p,PP.d50,du,dv,dw,thetas);
 
                 du1=Dp*du+netBuoyX-pressureDivX/p->S22-stressDivX/((1-thetas)*p->S22);
                 dv1=Dp*dv+netBuoyY-pressureDivY/p->S22-stressDivY/((1-thetas)*p->S22);
                 dw1=Dp*dw+netBuoyZ-pressureDivZ/p->S22-stressDivZ/((1-thetas)*p->S22);
 
-                RKu=PP->U[n]+du1*p->dt;
-                RKv=PP->V[n]+dv1*p->dt;
-                RKw=PP->W[n]+dw1*p->dt;
+                RKu=PP.U[n]+du1*p->dt;
+                RKv=PP.V[n]+dv1*p->dt;
+                RKw=PP.W[n]+dw1*p->dt;
                 
                 // RK step 2
                 du=u-RKu;
                 dv=v-RKv;
                 dw=w-RKw;
 
-                Dp=drag_model(p,PP->d50,du,dv,dw,thetas);
+                Dp=drag_model(p,PP.d50,du,dv,dw,thetas);
 
                 du2=Dp*du+netBuoyX-(pressureDivX/p->S22+stressDivX/((1-thetas)*p->S22));
                 dv2=Dp*dv+netBuoyY-(pressureDivY/p->S22+stressDivY/((1-thetas)*p->S22));
@@ -146,16 +146,16 @@ namespace sediment_particle::movement
                 dv2=0.25*dv2+0.25*dv1;
                 dw2=0.25*dw2+0.25*dw1;
 
-                RKu=PP->U[n]+du2*p->dt;
-                RKv=PP->V[n]+dv2*p->dt;
-                RKw=PP->W[n]+dw2*p->dt;
+                RKu=PP.U[n]+du2*p->dt;
+                RKv=PP.V[n]+dv2*p->dt;
+                RKw=PP.W[n]+dw2*p->dt;
                 
                 // RK step 3
                 du=u-RKu;
                 dv=v-RKv;
                 dw=w-RKw;
 
-                Dp=drag_model(p,PP->d50,du,dv,dw,thetas);
+                Dp=drag_model(p,PP.d50,du,dv,dw,thetas);
 
                 du3=Dp*du+netBuoyX-(pressureDivX/p->S22+stressDivX/((1-thetas)*p->S22));
                 dv3=Dp*dv+netBuoyY-(pressureDivY/p->S22+stressDivY/((1-thetas)*p->S22));
@@ -170,7 +170,7 @@ namespace sediment_particle::movement
                     exit(1);
                 }
                 else
-                    PP->U[n] += ((2.0/3.0)*du2 + (2.0/3.0)*du3)*p->dt;
+                    PP.U[n] += ((2.0/3.0)*du2 + (2.0/3.0)*du3)*p->dt;
                 if(dv2!=dv2||dv3!=dv3)
                 {
                     cerr<<"Particle velocity component v resulted in NaN.\n"
@@ -179,7 +179,7 @@ namespace sediment_particle::movement
                     exit(1);
                 }
                 else
-                    PP->V[n] += ((2.0/3.0)*dv2 + (2.0/3.0)*dv3)*p->dt;
+                    PP.V[n] += ((2.0/3.0)*dv2 + (2.0/3.0)*dv3)*p->dt;
                 if(dw2!=dw2||dw3!=dw3)
                 {
                     cerr<<"Particle velocity component w resulted in NaN.\n"
@@ -188,60 +188,60 @@ namespace sediment_particle::movement
                     exit(1);
                 }
                 else
-                    PP->W[n] += ((2.0/3.0)*dw2 + (2.0/3.0)*dw3)*p->dt;
+                    PP.W[n] += ((2.0/3.0)*dw2 + (2.0/3.0)*dw3)*p->dt;
                 
                 // Pos update
 
                 // Solid forcing
-                double solid_old = p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n]);
-                double solid_new = p->ccipol4_b(a->solid,PP->X[n]+PP->U[n]*p->dt,PP->Y[n]+PP->V[n]*p->dt,PP->Z[n]+PP->W[n]*p->dt);
+                double solid_old = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n]);
+                double solid_new = p->ccipol4_b(a.solid,PP.X[n]+PP.U[n]*p->dt,PP.Y[n]+PP.V[n]*p->dt,PP.Z[n]+PP.W[n]*p->dt);
                 if(solid_new<=0)
                 {
-                    double solid_x = p->ccipol4_b(a->solid,PP->X[n]+PP->U[n]*p->dt,PP->Y[n],PP->Z[n]);
-                    double solid_y = p->ccipol4_b(a->solid,PP->X[n],PP->Y[n]+PP->V[n]*p->dt,PP->Z[n]);
-                    double solid_z = p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n]+PP->W[n]*p->dt);
+                    double solid_x = p->ccipol4_b(a.solid,PP.X[n]+PP.U[n]*p->dt,PP.Y[n],PP.Z[n]);
+                    double solid_y = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n]+PP.V[n]*p->dt,PP.Z[n]);
+                    double solid_z = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n]+PP.W[n]*p->dt);
                     if(solid_x<=0)
                     {
-                        double dx = (solid_old)/(solid_old-solid_x)*PP->U[n]*p->dt+(PP->U[n]>=0?-1:1)*PP->d50/2.0;
-                        PP->X[n] += dx;
-                        PP->U[n] = 0;
+                        double dx = (solid_old)/(solid_old-solid_x)*PP.U[n]*p->dt+(PP.U[n]>=0?-1:1)*PP.d50/2.0;
+                        PP.X[n] += dx;
+                        PP.U[n] = 0;
                     }
                     if(solid_y<=0)
                     {
-                        double dy = (solid_old)/(solid_old-solid_y)*PP->V[n]*p->dt+(PP->V[n]>=0?-1:1)*PP->d50/2.0;
-                        PP->Y[n] += dy;
-                        PP->W[n] = 0;
+                        double dy = (solid_old)/(solid_old-solid_y)*PP.V[n]*p->dt+(PP.V[n]>=0?-1:1)*PP.d50/2.0;
+                        PP.Y[n] += dy;
+                        PP.W[n] = 0;
                     }
                     if(solid_z<=0)
                     {
-                        double dz = (solid_old)/(solid_old-solid_z)*PP->W[n]*p->dt+(PP->W[n]>=0?-1:1)*PP->d50/2.0;
-                        PP->Z[n] += dz;
-                        PP->W[n] = 0;
+                        double dz = (solid_old)/(solid_old-solid_z)*PP.W[n]*p->dt+(PP.W[n]>=0?-1:1)*PP.d50/2.0;
+                        PP.Z[n] += dz;
+                        PP.W[n] = 0;
                     }
                 }
 
-                PP->X[n] += PP->U[n]*p->dt;
-                PP->Y[n] += PP->V[n]*p->dt;
-                PP->Z[n] += PP->W[n]*p->dt;
+                PP.X[n] += PP.U[n]*p->dt;
+                PP.Y[n] += PP.V[n]*p->dt;
+                PP.Z[n] += PP.W[n]*p->dt;
 
                 // Sum update
-                cellSum[IJK]-=PP->PackingFactor[n];
+                cellSum[IJK]-=PP.PackingFactor[n];
                 if(cellSum[IJK]<0)
                 {
-                    clog<<"cellSum is below zero in cell ("<<p->XN[IP]<<"-"<<p->XN[IP1]<<","<<p->YN[JP]<<"-"<<p->YN[JP1]<<","<<p->ZN[KP]<<"-"<<p->ZN[KP1]<<") of partition "<<p->mpirank<<" for particle "<<n<<" at ("<<PP->X[n]<<","<<PP->Y[n]<<","<<PP->Z[n]<<") "<<solid_new<<"."<<endl;
+                    clog<<"cellSum is below zero in cell ("<<p->XN[IP]<<"-"<<p->XN[IP1]<<","<<p->YN[JP]<<"-"<<p->YN[JP1]<<","<<p->ZN[KP]<<"-"<<p->ZN[KP1]<<") of partition "<<p->mpirank<<" for particle "<<n<<" at ("<<PP.X[n]<<","<<PP.Y[n]<<","<<PP.Z[n]<<") "<<solid_new<<"."<<endl;
                     cellSum[IJK]=0;
                 }
                 particleStressTensorUpdateIJK(p,a,PP);
-                i=p->posc_i(PP->X[n]);
-                j=p->posc_j(PP->Y[n]);
-                k=p->posc_k(PP->Z[n]);
-                cellSum[IJK]+=PP->PackingFactor[n];
+                i=p->posc_i(PP.X[n]);
+                j=p->posc_j(PP.Y[n]);
+                k=p->posc_k(PP.Z[n]);
+                cellSum[IJK]+=PP.PackingFactor[n];
                 particleStressTensorUpdateIJK(p,a,PP);
             }
         }
     }
 
-    void Tavouktsoglou::update(lexer *p, ghostcell *pgc, field4a &topo, double &d50)
+    void Tavouktsoglou::update(lexer *p, ghostcell &pgc, field4a &topo, double &d50)
     {
         double count;
         ILOOP
@@ -261,13 +261,13 @@ namespace sediment_particle::movement
             }
             columnSum[IJ] = count;
         }
-        pgc->start4a(p,topo,150);
+        pgc.start4a(p,topo,150);
     }
 
-    void Tavouktsoglou::debug(lexer *p, fdm *a, ghostcell *pgc, particles_obj *PP)
+    void Tavouktsoglou::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         PLAINLOOP
-        a->test(i,j,k) = stressTensor[IJK];
+        a.test(i,j,k) = stressTensor[IJK];
     }
 
     void Tavouktsoglou::writeState(ofstream &result)
@@ -284,23 +284,23 @@ namespace sediment_particle::movement
     /// Uses i,j&k from increment to pass cell identifier
     /// @param d50 Sauter diameter of particles
     /// @return Ceil of number of particles in cell IJK
-    double Tavouktsoglou::maxParticlesPerCell(lexer* p, fdm* a, double d50, bool topo, bool cell)
+    double Tavouktsoglou::maxParticlesPerCell(lexer *p, fdm &a, double d50, bool topo, bool cell)
     {   
         double DZN=topo?0:p->DZN[KP];
 
         if(topo)
         {
-            if (a->topo(i,j,k)<=-0.5*p->DZN[KP]+1.0e-13)
+            if (a.topo(i,j,k)<=-0.5*p->DZN[KP]+1.0e-13)
             DZN=p->DZN[KP];
-            else if(a->topo(i,j,k)<0.5*p->DZN[KP] -5.0e-18)
-            DZN=(p->DZN[KP]*0.5 + a->topo(i,j,k));
+            else if(a.topo(i,j,k)<0.5*p->DZN[KP] -5.0e-18)
+            DZN=(p->DZN[KP]*0.5 + a.topo(i,j,k));
         }
 
-        return 6.0*p->DXN[IP]*p->DYN[JP]*DZN*(1.0+(cell?0:-a->porosity(i,j,k)))/(PI*pow(d50,3.0));
+        return 6.0*p->DXN[IP]*p->DYN[JP]*DZN*(1.0+(cell?0:-a.porosity(i,j,k)))/(PI*pow(d50,3.0));
     }
 
     /// @brief Calculate complete intra-particle stress trensor
-    void Tavouktsoglou::particleStressTensor(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP)
+    void Tavouktsoglou::particleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         double theta;
         int i,j,k;
@@ -309,11 +309,11 @@ namespace sediment_particle::movement
         {
             updateParticleStressTensor(p,a,PP,i,j,k);
         }
-        pgc->start4V_par(p,stressTensor,10);
+        pgc.start4V_par(p,stressTensor,10);
     }
 
     /// @brief Calculate intra-particle stress trensor for cells around (`increment::i`,`increment::j`,`increment::k`)
-    void Tavouktsoglou::particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_obj* PP)
+    void Tavouktsoglou::particleStressTensorUpdateIJK(lexer *p, fdm &a, particles_obj &PP)
     {
         double theta;
         int i,j,k;
@@ -331,16 +331,16 @@ namespace sediment_particle::movement
     }
 
     // @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
-    void Tavouktsoglou::updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
+    void Tavouktsoglou::updateParticleStressTensor(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k)
     {
         double theta=theta_s(p,a,PP,i,j,k);
         stressTensor[IJK]=Ps*pow(theta,beta)/max(theta_crit-theta,epsilon*(1.0-theta));
     }
 
     /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
-    double Tavouktsoglou::theta_s(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k) const
+    double Tavouktsoglou::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
     {   
-        double theta = PI*pow(PP->d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+        double theta = PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
         if(theta>1)
         theta=1;
         return theta;
@@ -368,10 +368,8 @@ namespace sediment_particle::movement
         return Dp;
     }
 
-    void Tavouktsoglou::particlePerCell(lexer *p, ghostcell *pgc, particles_obj &PP)
+    void Tavouktsoglou::particlePerCell(lexer *p, ghostcell &pgc, particles_obj &PP)
     {
-        // delete[] cellSum;
-        // cellSum = new double[p->imax*p->jmax*p->kmax];
         PLAINLOOP
         cellSum[IJK]=0;
 
@@ -384,7 +382,7 @@ namespace sediment_particle::movement
                 cellSum[IJK] += PP.PackingFactor[n];
             }
         
-        pgc->start4V_par(p,cellSum,11);
-        pgc->start4V_par(p,cellSumTopo,11);
+        pgc.start4V_par(p,cellSum,11);
+        pgc.start4V_par(p,cellSumTopo,11);
     }
 };
