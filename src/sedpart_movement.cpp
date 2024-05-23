@@ -74,6 +74,11 @@ namespace sediment_particle::movement
         cellSum[IJK] += PP.PackingFactor[n];
     }
 
+    void Tavouktsoglou::remove(lexer *p, particles_obj &PP, size_t &index)
+    {
+        cellSum[IJK] -= PP.PackingFactor[index];
+    }
+
     void Tavouktsoglou::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         double RKu,RKv,RKw;
@@ -386,3 +391,19 @@ namespace sediment_particle::movement
         pgc.start4V_par(p,cellSumTopo,11);
     }
 };
+
+int sediment_particle::state::solid_clean(lexer* p, particles_obj &PP, sediment_particle::movement::base &movement)
+{
+    int removed = 0;
+    for(size_t n=0;n<PP.loopindex;n++)
+    if(PP.Flag[n]>0)
+    {
+        i = p->posc_i(PP.X[n]);
+        j = p->posc_j(PP.Y[n]);
+        k = p->posc_k(PP.Z[n]);
+        movement.remove(p,PP,n);
+        PP.erase(n);
+        removed++;
+    }
+    return removed;
+}

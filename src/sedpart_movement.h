@@ -43,6 +43,7 @@ namespace sediment_particle
             virtual void setup(lexer *, fdm &, double &){};
             virtual bool seeding(lexer *, particles_obj &, size_t &, int &){return false;};
             virtual void transfer(lexer *, particles_obj &, size_t &){};
+            virtual void remove(lexer *, particles_obj &, size_t &){};
             virtual void move(lexer *, fdm &, ghostcell &, particles_obj &){};
             virtual void update(lexer *, ghostcell &, field4a &, double &){};
             virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &){};
@@ -58,6 +59,7 @@ namespace sediment_particle
             void setup(lexer *, fdm &, double &);
             bool seeding(lexer *, particles_obj &, size_t &, int &);
             void transfer(lexer *, particles_obj &, size_t &);
+            void remove(lexer *, particles_obj &, size_t &){};
             void move(lexer *, fdm &, ghostcell &, particles_obj &);
             void update(lexer *, ghostcell &, field4a &, double &);
             void debug(lexer *, fdm &, ghostcell &, particles_obj &);
@@ -83,5 +85,10 @@ namespace sediment_particle
             const double epsilon;
             const double theta_crit;
         };
+    };
+    class state : increment
+    {
+    public:
+        int solid_clean(lexer *p, particles_obj &, sediment_particle::movement::base &);
     };
 };

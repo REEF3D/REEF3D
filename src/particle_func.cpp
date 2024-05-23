@@ -425,127 +425,127 @@ void particle_func::cleanup(lexer* p, fdm* a, tracers_obj* PP, int max)
 /// Uses i,j&k from increment to pass cell identifier
 /// @param d50 Sauter diameter of particles
 /// @return Ceil of number of particles in cell IJK
-double particle_func::maxParticlesPerCell(lexer* p, fdm* a, double d50, bool topo, bool cell)
-{   
-    // return 6.0*p->DXN[IP]*p->DYN[JP]*(p->DZN[KP]-(topo?(0.5*p->DZN[KP]+a->topo(i,j,k)):0.0))/((PI*pow(d50,3.0)));
-    double DZN=topo?0:p->DZN[KP];
+// double particle_func::maxParticlesPerCell(lexer* p, fdm* a, double d50, bool topo, bool cell)
+// {   
+//     // return 6.0*p->DXN[IP]*p->DYN[JP]*(p->DZN[KP]-(topo?(0.5*p->DZN[KP]+a->topo(i,j,k)):0.0))/((PI*pow(d50,3.0)));
+//     double DZN=topo?0:p->DZN[KP];
 
-    if(topo)
-    {
-        if (a->topo(i,j,k)<=-0.5*p->DZN[KP]+1.0e-13)
-        DZN=p->DZN[KP];
-        else if(a->topo(i,j,k)<0.5*p->DZN[KP] -5.0e-18)
-        DZN=(p->DZN[KP]*0.5 + a->topo(i,j,k));
-    }
+//     if(topo)
+//     {
+//         if (a->topo(i,j,k)<=-0.5*p->DZN[KP]+1.0e-13)
+//         DZN=p->DZN[KP];
+//         else if(a->topo(i,j,k)<0.5*p->DZN[KP] -5.0e-18)
+//         DZN=(p->DZN[KP]*0.5 + a->topo(i,j,k));
+//     }
 
-    return 6.0*p->DXN[IP]*p->DYN[JP]*DZN*(1.0+(cell?0:-a->porosity(i,j,k)))/(PI*pow(d50,3.0));
-}
+//     return 6.0*p->DXN[IP]*p->DYN[JP]*DZN*(1.0+(cell?0:-a->porosity(i,j,k)))/(PI*pow(d50,3.0));
+// }
 
 /// @brief Max particles in plane
-int particle_func::maxParticlesPerXY(lexer* p, fdm* a, double d50)
-{
-    return ceil(p->DXN[IP]*p->DYN[JP]*(1-p->S24)*6.0/(PI*pow(d50,2.0)));
-}
+// int particle_func::maxParticlesPerXY(lexer* p, fdm* a, double d50)
+// {
+//     return ceil(p->DXN[IP]*p->DYN[JP]*(1-p->S24)*6.0/(PI*pow(d50,2.0)));
+// }
 
 /// @brief Count particles in cell
-void particle_func::particlesPerCell(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP)
-{
-    PLAINLOOP
-        cellSum[IJK]=0;
+// void particle_func::particlesPerCell(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP)
+// {
+//     PLAINLOOP
+//         cellSum[IJK]=0;
     
-    PARTICLELOOP
-    {
-        i=p->posc_i(PP->X[n]);
-        j=p->posc_j(PP->Y[n]);
-        k=p->posc_k(PP->Z[n]);
-        cellSum[IJK]+=PP->PackingFactor[n];
-    }
+//     PARTICLELOOP
+//     {
+//         i=p->posc_i(PP->X[n]);
+//         j=p->posc_j(PP->Y[n]);
+//         k=p->posc_k(PP->Z[n]);
+//         cellSum[IJK]+=PP->PackingFactor[n];
+//     }
 
-    int gcv=11;
-    double *f = cellSum;
-    double starttime=pgc->timer();
-    pgc->gcparaxV(p, f, gcv);
-    pgc->gcparacoxV(p, f, gcv);
-    pgc->gcparacoxV(p, f, gcv);
-    pgc->gcparacoxV(p, f, gcv);
-    p->xtime+=pgc->timer()-starttime;
-    f = cellSumTopo;
-    starttime=pgc->timer();
-    pgc->gcparaxV(p, f, gcv);
-    pgc->gcparacoxV(p, f, gcv);
-    pgc->gcparacoxV(p, f, gcv);
-    pgc->gcparacoxV(p, f, gcv);
-    p->xtime+=pgc->timer()-starttime;
-}
+//     int gcv=11;
+//     double *f = cellSum;
+//     double starttime=pgc->timer();
+//     pgc->gcparaxV(p, f, gcv);
+//     pgc->gcparacoxV(p, f, gcv);
+//     pgc->gcparacoxV(p, f, gcv);
+//     pgc->gcparacoxV(p, f, gcv);
+//     p->xtime+=pgc->timer()-starttime;
+//     f = cellSumTopo;
+//     starttime=pgc->timer();
+//     pgc->gcparaxV(p, f, gcv);
+//     pgc->gcparacoxV(p, f, gcv);
+//     pgc->gcparacoxV(p, f, gcv);
+//     pgc->gcparacoxV(p, f, gcv);
+//     p->xtime+=pgc->timer()-starttime;
+// }
 
 /// @brief Calculate complete intra-particle stress trensor
-void particle_func::particleStressTensor(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP)
-{
-    double theta;
-    int i,j,k;
+// void particle_func::particleStressTensor(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP)
+// {
+//     double theta;
+//     int i,j,k;
 
-    PLAINLOOP
-    {
-        updateParticleStressTensor(p,a,PP,i,j,k);
-    }
-    pgc->start4V(p,stressTensor,10);
-}
+//     PLAINLOOP
+//     {
+//         updateParticleStressTensor(p,a,PP,i,j,k);
+//     }
+//     pgc->start4V(p,stressTensor,10);
+// }
 
 /// @brief Calculate intra-particle stress trensor for cells around (`increment::i`,`increment::j`,`increment::k`)
-void particle_func::particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_obj* PP)
-{
-    double theta;
-    int i,j,k;
+// void particle_func::particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_obj* PP)
+// {
+//     double theta;
+//     int i,j,k;
 
-    for (int n=-2; n<3; n++)
-        for (int m=-2; m<3; m++)
-            for (int l=-2; l<3; l++)
-            {
-                i=increment::i+n;
-                j=increment::j+m;
-                k=increment::k+l;
+//     for (int n=-2; n<3; n++)
+//         for (int m=-2; m<3; m++)
+//             for (int l=-2; l<3; l++)
+//             {
+//                 i=increment::i+n;
+//                 j=increment::j+m;
+//                 k=increment::k+l;
 
-                updateParticleStressTensor(p,a,PP,i,j,k);
-            }
-}
+//                 updateParticleStressTensor(p,a,PP,i,j,k);
+//             }
+// }
 
 /// @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
-void particle_func::updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
-{
-    double theta=theta_s(p,a,PP,i,j,k);
-    stressTensor[IJK]=Ps*pow(theta,beta)/max(theta_crit-theta,epsilon*(1.0-theta));
-}
+// void particle_func::updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
+// {
+//     double theta=theta_s(p,a,PP,i,j,k);
+//     stressTensor[IJK]=Ps*pow(theta,beta)/max(theta_crit-theta,epsilon*(1.0-theta));
+// }
 
 /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
-double particle_func::theta_s(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
-{   
-    double theta = PI*pow(PP->d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
-    if(theta>1)
-    theta=1;
-    return theta;
-}    
+// double particle_func::theta_s(lexer* p, fdm* a, particles_obj* PP, int i, int j, int k)
+// {   
+//     double theta = PI*pow(PP->d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+//     if(theta>1)
+//     theta=1;
+//     return theta;
+// }    
 
 /// @brief Calculate drag force parameter
-double particle_func::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const
-{
-    double thetaf = 1.0-thetas;
-    if(thetaf>1.0-theta_crit) // Saveguard
-    thetaf=1.0-theta_crit;
+// double particle_func::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const
+// {
+//     double thetaf = 1.0-thetas;
+//     if(thetaf>1.0-theta_crit) // Saveguard
+//     thetaf=1.0-theta_crit;
 
-    const double dU=sqrt(du*du+dv*dv+dw*dw);
-    if(dU==0) // Saveguard
-    return 0;
+//     const double dU=sqrt(du*du+dv*dv+dw*dw);
+//     if(dU==0) // Saveguard
+//     return 0;
 
-    const double Rep=dU*d*kinVis;
+//     const double Rep=dU*d*kinVis;
 
-    const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
-    const double Dp=Cd*3.0*drho*dU/d/4.0;
+//     const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
+//     const double Dp=Cd*3.0*drho*dU/d/4.0;
 
-    if(Dp!=Dp)
-    cout<<thetaf<<","<<dU<<","<<Rep<<","<<Cd<<"|"<<(dU==0)<<endl;
+//     if(Dp!=Dp)
+//     cout<<thetaf<<","<<dU<<","<<Rep<<","<<Cd<<"|"<<(dU==0)<<endl;
 
-    return Dp;
-}
+//     return Dp;
+// }
 
 /// @brief Determine wether or not a particle would move and set its flag accordingly
 void particle_func::make_moving(lexer* p, fdm* a, particles_obj* PP)
@@ -563,79 +563,79 @@ void particle_func::make_moving(lexer* p, fdm* a, particles_obj* PP)
     PARTICLELOOP
     if(PP->Flag[n]==0)
     {
-        i=p->posc_i(PP->X[n]);
-        j=p->posc_j(PP->Y[n]);
-        k=p->posc_k(PP->Z[n]);
+        // i=p->posc_i(PP->X[n]);
+        // j=p->posc_j(PP->Y[n]);
+        // k=p->posc_k(PP->Z[n]);
 
-        thetas=theta_s(p,a,PP,i,j,k);
+        // thetas=theta_s(p,a,PP,i,j,k);
 
-        u=p->ccipol1(a->u,PP->X[n],PP->Y[n],PP->Z[n]);
-        v=p->ccipol1(a->v,PP->X[n],PP->Y[n],PP->Z[n]);
-        w=p->ccipol1(a->w,PP->X[n],PP->Y[n],PP->Z[n]);
+        // u=p->ccipol1(a->u,PP->X[n],PP->Y[n],PP->Z[n]);
+        // v=p->ccipol1(a->v,PP->X[n],PP->Y[n],PP->Z[n]);
+        // w=p->ccipol1(a->w,PP->X[n],PP->Y[n],PP->Z[n]);
 
-        stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);
-        stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
-        stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DYN[KM1]+p->DYN[KP]);
+        // stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);
+        // stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
+        // stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DYN[KM1]+p->DYN[KP]);
 
-        pressureDivX = (a->press(i+1,j,k) - a->press(i,j,k))/(p->DXN[IP]);
-        pressureDivY = (0.5*(a->press(i,j+1,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i,j-1,k)+a->press(i+1,j-1,k)))/(p->DYN[JM1]+p->DYN[JP]);
-        pressureDivZ = (0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DYN[KM1]+p->DYN[KP]);
+        // pressureDivX = (a->press(i+1,j,k) - a->press(i,j,k))/(p->DXN[IP]);
+        // pressureDivY = (0.5*(a->press(i,j+1,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i,j-1,k)+a->press(i+1,j-1,k)))/(p->DYN[JM1]+p->DYN[JP]);
+        // pressureDivZ = (0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DYN[KM1]+p->DYN[KP]);
 
-        // RK3 step 1
-        du=u-PP->U[n];
-        dv=v-PP->V[n];
-        dw=w-PP->W[n];
+        // // RK3 step 1
+        // du=u-PP->U[n];
+        // dv=v-PP->V[n];
+        // dw=w-PP->W[n];
 
-        Dp=drag_model(p,PP->d50,du,dv,dw,thetas);
+        // Dp=drag_model(p,PP->d50,du,dv,dw,thetas);
 
-        du1=Dp*du+netBuoyX-pressureDivX/p->S22-stressDivX/((1-thetas)*p->S22);
-        dv1=Dp*dv+netBuoyY-pressureDivY/p->S22-stressDivY/((1-thetas)*p->S22);
-        dw1=Dp*dw+netBuoyZ-pressureDivZ/p->S22-stressDivZ/((1-thetas)*p->S22);
+        // du1=Dp*du+netBuoyX-pressureDivX/p->S22-stressDivX/((1-thetas)*p->S22);
+        // dv1=Dp*dv+netBuoyY-pressureDivY/p->S22-stressDivY/((1-thetas)*p->S22);
+        // dw1=Dp*dw+netBuoyZ-pressureDivZ/p->S22-stressDivZ/((1-thetas)*p->S22);
 
-        double tolerance=0.0;
-        if (fabs(du1)>tolerance||fabs(dv1)>tolerance||dw1>tolerance)
-        {
+        // double tolerance=0.0;
+        // if (fabs(du1)>tolerance||fabs(dv1)>tolerance||dw1>tolerance)
+        // {
             PP->Flag[n]=1;
-            if(p->count!=0)
-            {
-                topoVolumeChange[IJ]-=volume(PP,n);
-            }
-        }
+        //     if(p->count!=0)
+        //     {
+        //         topoVolumeChange[IJ]-=volume(PP,n);
+        //     }
+        // }
     }
 }
 
 /// @brief All debug code
-void particle_func::debug(lexer* p, fdm* a, ghostcell* pgc, tracers_obj* PP)
-{
-    PLAINLOOP
-    a->test(i,j,k)=cellSum[IJK];
-}
+// void particle_func::debug(lexer* p, fdm* a, ghostcell* pgc, tracers_obj* PP)
+// {
+//     PLAINLOOP
+//     a->test(i,j,k)=cellSum[IJK];
+// }
 
 /// @brief Moves stuck stationary particles out of `fdm::solid`
-void particle_func::fixPos(lexer* p, fdm* a, particles_obj* PP)
-{
-    double solid;
-    PARTICLELOOP
-    if(PP->Flag[n]==1&&p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n])<0)
-    {
-        i=p->posc_i(PP->X[n]);
-        j=p->posc_j(PP->Y[n]);
-        k=p->posc_k(PP->Z[n]);
-        cellSum[IJK]-=PP->PackingFactor[n];
+// void particle_func::fixPos(lexer* p, fdm* a, particles_obj* PP)
+// {
+//     double solid;
+//     PARTICLELOOP
+//     if(PP->Flag[n]==1&&p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n])<0)
+//     {
+//         i=p->posc_i(PP->X[n]);
+//         j=p->posc_j(PP->Y[n]);
+//         k=p->posc_k(PP->Z[n]);
+//         cellSum[IJK]-=PP->PackingFactor[n];
 
-        if(p->flag1[Ip1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG)
-        {
-            while(!(p->flag1[Im1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG))
-            i++;
-            solid=p->ccipol4_b(a->solid,p->XN[IP],PP->Y[n],PP->Z[n]);
-            PP->X[n]=p->XN[IP]-solid;
-        }
-        else
-        {
-            solid=p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n]);
-            PP->X[n]-=solid;
-        }
-        i=p->posc_i(PP->X[n]);
-        cellSum[IJK]+=PP->PackingFactor[n];
-    }
-}
+//         if(p->flag1[Ip1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG)
+//         {
+//             while(!(p->flag1[Im1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG))
+//             i++;
+//             solid=p->ccipol4_b(a->solid,p->XN[IP],PP->Y[n],PP->Z[n]);
+//             PP->X[n]=p->XN[IP]-solid;
+//         }
+//         else
+//         {
+//             solid=p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n]);
+//             PP->X[n]-=solid;
+//         }
+//         i=p->posc_i(PP->X[n]);
+//         cellSum[IJK]+=PP->PackingFactor[n];
+//     }
+// }

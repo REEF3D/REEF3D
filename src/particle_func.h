@@ -56,9 +56,9 @@ protected:
     int transfer(lexer* p,ghostcell* pgc, particles_obj* PP, sediment_particle::movement::base movement, int);
 
     // Movement
-    void advect(lexer* p, fdm* a, tracers_obj* PP,int=0,double=0,double=0,double=0);
+    // void advect(lexer* p, fdm* a, tracers_obj* PP,int=0,double=0,double=0,double=0);
     void advect(lexer* p, fdm* a, particles_obj* PP,int=0,double=0,double=0,double=0);
-    void transport(lexer* p, fdm* a, particles_obj* PP,int=0);
+    // void transport(lexer* p, fdm* a, particles_obj* PP,int=0);
     void make_stationary(lexer* p, fdm* a, tracers_obj* PP,int=0);
     void make_stationary(lexer* p, fdm* a, particles_obj* PP);
     void make_moving(lexer* p, fdm* a, particles_obj* PP);
@@ -68,16 +68,16 @@ protected:
     double settling_vel(lexer* p, fdm* a, particles_obj* PP,int);
     double drag_coefficient(lexer* p, fdm* a, particles_obj* PP,int);
     double volume(particles_obj* PP,int);
-    double maxParticlesPerCell(lexer* p, fdm* a, double,bool=true,bool=false);
-    int maxParticlesPerXY(lexer* p, fdm* a, double);
-    void particlesPerCell(lexer* p, fdm* a,ghostcell* pgc, particles_obj* PP);
-    void particleStressTensor(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP);
-    void particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_obj* PP);
-    void updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP,int,int,int);
-    double theta_s(lexer* p, fdm* a, particles_obj* PP,int,int,int);
-    double drag_model(lexer* p, double,double,double,double,double) const;
-    void debug(lexer* p, fdm* a, ghostcell* pgc, tracers_obj*);
-    void fixPos(lexer* p, fdm* a, particles_obj* PP);
+    // double maxParticlesPerCell(lexer* p, fdm* a, double,bool=true,bool=false);
+    // int maxParticlesPerXY(lexer* p, fdm* a, double);
+    // void particlesPerCell(lexer* p, fdm* a,ghostcell* pgc, particles_obj* PP);
+    // void particleStressTensor(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP);
+    // void particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_obj* PP);
+    // void updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP,int,int,int);
+    // double theta_s(lexer* p, fdm* a, particles_obj* PP,int,int,int);
+    // double drag_model(lexer* p, double,double,double,double,double) const;
+    // void debug(lexer* p, fdm* a, ghostcell* pgc, tracers_obj*);
+    // void fixPos(lexer* p, fdm* a, particles_obj* PP);
 
     // memory management
     void cleanup(lexer* p, fdm* a, tracers_obj* PP,int);
