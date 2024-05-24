@@ -71,6 +71,8 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
     
+    pgc->start5V(p,p->ZSP,1);
+    
     objects_create(p, pgc);
     
     geometry_refinement(p,pgc);

@@ -40,7 +40,7 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->sigz[IJ] = 1.0/WLVL;
     }
     
-    zmin = 1.0e8;
+    zmin = 1.0e1;
     zmax = -1.0e8;
     
     LOOP
