@@ -106,9 +106,10 @@ namespace sediment_particle::movement
                 thetas=theta_s(p,a,PP,i,j,k);
 
                 u=p->ccipol1(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
-                v=p->ccipol1(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
-                w=p->ccipol1(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                v=p->ccipol2(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
+                w=p->ccipol3(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
 
+                // Non interpolation leads to blockyness
                 stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);
                 stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
                 stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DYN[KM1]+p->DYN[KP]);
