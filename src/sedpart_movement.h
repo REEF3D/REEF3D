@@ -59,7 +59,7 @@ namespace sediment_particle
             void setup(lexer *, fdm &, double &);
             bool seeding(lexer *, particles_obj &, size_t &, int &);
             void transfer(lexer *, particles_obj &, size_t &);
-            void remove(lexer *, particles_obj &, size_t &){};
+            void remove(lexer *, particles_obj &, size_t &);
             void move(lexer *, fdm &, ghostcell &, particles_obj &);
             void update(lexer *, ghostcell &, field4a &, double &);
             void debug(lexer *, fdm &, ghostcell &, particles_obj &);

@@ -40,7 +40,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     // vrans
     pvrans->sed_update(p,a,pgc);
-    movement->setup(p,a,PP.d50);
+    movement->setup(p,*a,PP.d50);
     if(p->I40!=1)
     {
         // PLAINLOOP
@@ -54,7 +54,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     gparticle_active = pgc->globalisum(PP.size);
 
-    movement->move(p,a,pgc,&PP);
+    movement->move(p,*a,*pgc,PP);
     
     // print
     if((p->I40!=1)||(p->I40==1&&inicount>0))
@@ -68,7 +68,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     
     ++inicount;
-    movement->debug(p,a,pgc,&PP);
+    movement->debug(p,*a,*pgc,PP);
 }
 
 /// @brief CFD calculation function
@@ -97,7 +97,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
         /// transport
         erode(p,a);
-        movement->move(p,a,pgc,&PP);
+        movement->move(p,*a,*pgc,PP);
 		xchange=transfer(p,pgc,&PP, *movement, maxparticle);
 		removed=remove(p,&PP);
         removed += deposit(p,a);
@@ -123,7 +123,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     gxchange = pgc->globalisum(xchange);
 	p->sedsimtime=pgc->timer()-starttime;
 
-    movement->debug(p,a,pgc,&PP);
+    movement->debug(p,*a,*pgc,PP);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
@@ -132,7 +132,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 /// @brief Updates the topography for the CFD solver
 void sedpart::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo* preto)
 {
-    movement->update(p,pgc,a->topo,PP.d50);
+    movement->update(p,*pgc,a->topo,PP.d50);
     preto->start(p,a,pgc,a->topo);
     if(p->mpirank==0)
         cout<<"Topo: update grid..."<<endl;
