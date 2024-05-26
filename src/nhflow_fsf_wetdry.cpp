@@ -70,7 +70,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
         if(WL(i,j)<=p->A544)
         {
         temp[IJ]=0;
-        d->eta(i,j) = p->A544 - d->depth(i,j);
+        d->eta(i,j) =  - d->depth(i,j);
         WL(i,j) = d->eta(i,j) + d->depth(i,j);
         }
     }
