@@ -106,6 +106,8 @@ public:
     double sl_ipol4eta_wd(int*,slice&,slice&);
     double sl_ipolint(sliceint&);
     
+    double nhf_ipol4eta(int*,slice&,slice&);
+    
     double ccslipol1(slice&,double,double);
     double ccslipol2(slice&,double,double);
     double ccslipol4(slice&,double,double);
