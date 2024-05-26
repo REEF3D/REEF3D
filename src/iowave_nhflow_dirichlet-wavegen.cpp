@@ -33,7 +33,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
 		i=p->gcin[n][0];
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];		
-
+        
+        WETDRYDEEP
+        {
         uvel=uval[count]*ramp(p);
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
@@ -66,6 +68,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             WH[Im1JK]=wvel;
             WH[Im2JK]=wvel;
             WH[Im3JK]=wvel;
+        }
             
         ++count;
 		}
