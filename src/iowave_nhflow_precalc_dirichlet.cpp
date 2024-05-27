@@ -51,7 +51,6 @@ void iowave::nhflow_precalc_dirichlet(lexer *p,fdm_nhf *d, ghostcell *pgc)
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
         
-        //cout<<"precalc: "<<i<<" "<<j<<" "<<k<<endl;
         x=xgen(p);
         y=ygen(p);
         x1=xgen1(p);

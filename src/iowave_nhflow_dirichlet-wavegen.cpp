@@ -32,43 +32,46 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
 		{
 		i=p->gcin[n][0];
 		j=p->gcin[n][1];
-		k=p->gcin[n][2];		
+		k=p->gcin[n][2];
+ 
         
-        WETDRYDEEP
-        {
-        uvel=uval[count]*ramp(p);
-        vvel=vval[count]*ramp(p);
-        wvel=wval[count]*ramp(p);
-        
-            U[Im1JK]=uvel;
-            U[Im2JK]=uvel;
-            U[Im3JK]=uvel;
+            WETDRYDEEP
+            {
+            uvel=uval[count]*ramp(p);
+            vvel=vval[count]*ramp(p);
+            wvel=wval[count]*ramp(p);
             
-            V[Im1JK]=vvel;
-            V[Im2JK]=vvel;
-            V[Im3JK]=vvel;
+            //cout<<"nhflow_dirichlet_wavegen "<<uvel<<" "<<ramp(p)<<" "<<count<<endl;
             
-            W[Im1JK]=wvel;
-            W[Im2JK]=wvel;
-            W[Im3JK]=wvel;
-            
-        uvel=UHval[count]*ramp(p);
-        vvel=VHval[count]*ramp(p);
-        wvel=WHval[count]*ramp(p);
-            
-            
-            UH[Im1JK]=uvel;
-            UH[Im2JK]=uvel;
-            UH[Im3JK]=uvel;
-            
-            VH[Im1JK]=vvel;
-            VH[Im2JK]=vvel;
-            VH[Im3JK]=vvel;
-            
-            WH[Im1JK]=wvel;
-            WH[Im2JK]=wvel;
-            WH[Im3JK]=wvel;
-        }
+                U[Im1JK]=uvel;
+                U[Im2JK]=uvel;
+                U[Im3JK]=uvel;
+                
+                V[Im1JK]=vvel;
+                V[Im2JK]=vvel;
+                V[Im3JK]=vvel;
+                
+                W[Im1JK]=wvel;
+                W[Im2JK]=wvel;
+                W[Im3JK]=wvel;
+                
+            uvel=UHval[count]*ramp(p);
+            vvel=VHval[count]*ramp(p);
+            wvel=WHval[count]*ramp(p);
+                
+                
+                UH[Im1JK]=uvel;
+                UH[Im2JK]=uvel;
+                UH[Im3JK]=uvel;
+                
+                VH[Im1JK]=vvel;
+                VH[Im2JK]=vvel;
+                VH[Im3JK]=vvel;
+                
+                WH[Im1JK]=wvel;
+                WH[Im2JK]=wvel;
+                WH[Im3JK]=wvel;
+            }
             
         ++count;
 		}

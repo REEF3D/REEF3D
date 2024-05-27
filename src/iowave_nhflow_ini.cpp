@@ -36,7 +36,7 @@ void iowave::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc)
     if(p->B89==1 && p->B98>=3)
     nhflow_wavegen_precalc_decomp_space_dirichlet(p,pgc);
     
-    wavegen_precalc(p,pgc);
+    wavegen_precalc_nhflow(p,d,pgc);
     
     U_relax(p,pgc,d->U,d->UH);
     V_relax(p,pgc,d->V,d->VH);

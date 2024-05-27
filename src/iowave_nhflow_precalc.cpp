@@ -49,7 +49,10 @@ void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
             
         if(p->B98==3 || p->B98==4)
+        {
+        nhflow_wavegen_precalc_decomp_time(p,pgc);
         nhflow_wavegen_precalc_decomp_dirichlet(p,pgc);
+        }
     }
     
     p->wavetime+=pgc->timer()-starttime;

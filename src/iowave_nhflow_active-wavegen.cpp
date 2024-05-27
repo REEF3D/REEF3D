@@ -35,39 +35,43 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
 		{
 		i=p->gcin[n][0];
 		j=p->gcin[n][1];
-		k=p->gcin[n][2];		
-
-        uvel=uval[count]*ramp(p);
-        vvel=vval[count]*ramp(p);
-        wvel=wval[count]*ramp(p);
-
-            U[Im1JK]=uvel+p->Ui;
-            U[Im2JK]=uvel+p->Ui;
-            U[Im3JK]=uvel+p->Ui;
-                
-            V[Im1JK]=vvel;
-            V[Im2JK]=vvel;
-            V[Im3JK]=vvel;
-                
-            W[Im1JK]=wvel;
-            W[Im2JK]=wvel;
-            W[Im3JK]=wvel;
+		k=p->gcin[n][2];	
         
-        uvel=UHval[count]*ramp(p);
-        vvel=VHval[count]*ramp(p);
-        wvel=WHval[count]*ramp(p);
+            WETDRYDEEP
+            {
+            uvel=uval[count]*ramp(p);
+            vvel=vval[count]*ramp(p);
+            wvel=wval[count]*ramp(p);
+
+                U[Im1JK]=uvel+p->Ui;
+                U[Im2JK]=uvel+p->Ui;
+                U[Im3JK]=uvel+p->Ui;
+                    
+                V[Im1JK]=vvel;
+                V[Im2JK]=vvel;
+                V[Im3JK]=vvel;
+                    
+                W[Im1JK]=wvel;
+                W[Im2JK]=wvel;
+                W[Im3JK]=wvel;
             
-            UH[Im1JK]=uvel;
-            UH[Im2JK]=uvel;
-            UH[Im3JK]=uvel;
+            uvel=UHval[count]*ramp(p);
+            vvel=VHval[count]*ramp(p);
+            wvel=WHval[count]*ramp(p);
             
-            VH[Im1JK]=vvel;
-            VH[Im2JK]=vvel;
-            VH[Im3JK]=vvel;
-            
-            WH[Im1JK]=wvel;
-            WH[Im2JK]=wvel;
-            WH[Im3JK]=wvel;
+            //cout<<"nhflow_wavegen_precalc_decomp_dirichlet "<<uvel<<" "<<ramp(p)<<endl;
+                
+                UH[Im1JK]=uvel;
+                UH[Im2JK]=uvel;
+                UH[Im3JK]=uvel;
+                
+                VH[Im1JK]=vvel;
+                VH[Im2JK]=vvel;
+                VH[Im3JK]=vvel;
+                
+                WH[Im1JK]=wvel;
+                WH[Im2JK]=wvel;
+                WH[Im3JK]=wvel;
             
                 
                 // fsf deviation
@@ -75,7 +79,6 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
                 eta_M = d->eta(i,j); 
                 eta_R = eta_T-eta_M;
 				
-                if(p->B98==4)
                 Uc=eta_R*sqrt(9.81/p->wd);
                 
                 U[Im1JK] += Uc;
@@ -85,8 +88,8 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
                 UH[Im1JK] += (d->eta(i,j)+d->depth(i,j))*Uc;
                 UH[Im2JK] += (d->eta(i,j)+d->depth(i,j))*Uc;
                 UH[Im3JK] += (d->eta(i,j)+d->depth(i,j))*Uc;
- 
-        ++count;
+         }
+         ++count;
 		}
         
         
