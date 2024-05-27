@@ -109,9 +109,11 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0 || p->wet[Ip3J]==0 || p->wet[Im1J]==0 || p->wet[Im2J]==0 || p->wet[Im3J]==0)
     p->deep[IJ]=0;
     
+    if(p->j_dir==1)
     if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJp3]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0 || p->wet[IJm3]==0)
     p->deep[IJ]=0;
     
+    if(p->j_dir==1)
     if(p->wet[Ip1Jp1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Im1Jm1]==0)
     p->deep[IJ]=0;
     }
