@@ -74,7 +74,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         
         if(p->flag1[Im1JK]<0 && gcv==10 && inflow==2)
         {
-        f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->eta(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->eta(i-1,j)*d->dfx(i,j);
+        f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->etaval(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->etaval(i-1,j)*d->dfx(i,j);
         }
         
         // Gx

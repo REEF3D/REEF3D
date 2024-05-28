@@ -27,7 +27,14 @@ Author: Hans Bihs
 
 void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-    
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        d->etaval(i,j) = eta(i,j);
+        }
+        
         count=0;
 		for(n=0;n<p->gcin_count;++n)
 		{

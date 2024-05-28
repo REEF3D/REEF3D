@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {       
-		for(n=0;n<p->gcslin_count;n++)
+        for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
