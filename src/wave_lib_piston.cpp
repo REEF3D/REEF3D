@@ -30,7 +30,7 @@ wave_lib_piston::wave_lib_piston(lexer *p, ghostcell *pgc) : wave_lib_parameters
 { 
     if(p->mpirank==0)
     {
-    cout<<"Wave_Lib: piston wavemaker theory";
+    cout<<"Wave_Lib: piston wavemaker theory"<<endl;
     }
 	
     timecount_old=0;
@@ -103,9 +103,16 @@ double wave_lib_piston::wave_w(lexer *p, double x, double y, double z)
 
 double wave_lib_piston::wave_eta(lexer *p, double x, double y)
 {
-    double eta;
+    double eta=0.0;
+    
+    /*
+    double depth = p->wd - p->bed[IJ];
+    
+    double zcoor = -0.5*depth;
 
-    eta =  0.0;
+    eta =  wave_u(p,x,y,zcoor) * sqrt(depth/9.81);*/
+    
+    //cout<<"ETA "<<eta<<" "<<wave_u(p,x,y,zcoor)<<endl;
 
     return eta;
 }

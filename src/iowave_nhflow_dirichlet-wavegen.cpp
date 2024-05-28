@@ -27,6 +27,7 @@ Author: Hans Bihs
 
 void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
+    
         count=0;
 		for(n=0;n<p->gcin_count;++n)
 		{
@@ -36,9 +37,14 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         
             WETDRYDEEP
             {
-            uvel=uval[count]*ramp(p);
-            vvel=vval[count]*ramp(p);
-            wvel=wval[count]*ramp(p);
+            // U, V, W
+            uvel=uval[count];
+            vvel=vval[count];
+            wvel=wval[count];
+            
+            uvel *= ramp(p);
+            vvel *= ramp(p);
+            wvel *= ramp(p);
             
                 U[Im1JK]=uvel;
                 U[Im2JK]=uvel;
@@ -52,11 +58,16 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 W[Im2JK]=wvel;
                 W[Im3JK]=wvel;
                 
-            uvel=UHval[count]*ramp(p);
-            vvel=VHval[count]*ramp(p);
-            wvel=WHval[count]*ramp(p);
                 
-                
+            // UH, VH, WH
+            uvel=UHval[count];
+            vvel=VHval[count];
+            wvel=WHval[count];
+            
+            uvel *= ramp(p);
+            vvel *= ramp(p);
+            wvel *= ramp(p);
+            
                 UH[Im1JK]=uvel;
                 UH[Im2JK]=uvel;
                 UH[Im3JK]=uvel;
