@@ -27,7 +27,6 @@ Author: Hans Bihs
 
 void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {       
-        count=0;
 		for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
@@ -39,8 +38,6 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         y2=ygen2(p);
         
         eta(i,j) = wave_eta(p,pgc,xg,yg);
-        etaval[count] = eta(i,j);
-        ++count;
         }
         
         

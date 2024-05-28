@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 
-void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
+void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &etaf)
 {
     double etax;
     
@@ -39,10 +39,10 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         
         if(h_switch==1)
         {
-        eta(i,j)   = etaval[count];
-        eta(i-1,j) = etaval[count];
-        eta(i-2,j) = etaval[count];
-        eta(i-3,j) = etaval[count];
+        etaf(i,j)   = eta(i,j);
+        etaf(i-1,j) = eta(i,j);
+        etaf(i-2,j) = eta(i,j);
+        etaf(i-3,j) = eta(i,j);
         }
         
         
@@ -54,9 +54,9 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         if(p->A329==2 && p->count>2)
         etax = -(1.0/9.81) * (-1.5*Fifsfval[count] + 2.0*Fifsfval0[count] - 0.5*Fifsfval1[count])/(-1.5*time_n + 2.0*time_0 - 0.5*time_1);
 
-        eta(i-1,j) = eta(i,j) + etax*1.0*p->DXP[IM1];
-        eta(i-2,j) = eta(i,j) + etax*2.0*p->DXP[IM1];
-        eta(i-3,j) = eta(i,j) + etax*3.0*p->DXP[IM1];
+        etaf(i-1,j) = etaf(i,j) + etax*1.0*p->DXP[IM1];
+        etaf(i-2,j) = etaf(i,j) + etax*2.0*p->DXP[IM1];
+        etaf(i-3,j) = etaf(i,j) + etax*3.0*p->DXP[IM1];
         }
         
         if(p->A329==1)

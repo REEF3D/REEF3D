@@ -101,9 +101,7 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
     p->Darray(uval,upt_count);
     p->Darray(vval,upt_count);
     p->Darray(wval,upt_count);
-    p->Darray(etaval,ept_count);
 
-    
     if((p->B92==31 || p->B92==41 || p->B92==51 ) && p->B89==1) 
     {
     p->Darray(uval_S_sin,upt_count,p->wN);

@@ -43,7 +43,7 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             if(dg<1.0e20)
             { 
             WETDRYDEEP
-            WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(etaval[count] + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
+            WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(eta(i,j) + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
             ++count;
             }
 		}
