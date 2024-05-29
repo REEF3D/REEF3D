@@ -105,7 +105,7 @@ namespace sediment_particle::movement
 
                 thetas=theta_s(p,a,PP,i,j,k);
 
-                u=p->ccipol1(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
+                u=p->ccipol1c(a.u,a.solid,PP.X[n],PP.Y[n],PP.Z[n]);
                 v=p->ccipol2(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
                 w=p->ccipol3(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
 
@@ -199,32 +199,32 @@ namespace sediment_particle::movement
                 // Pos update
 
                 // Solid forcing
-                double solid_old = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n]);
-                double solid_new = p->ccipol4_b(a.solid,PP.X[n]+PP.U[n]*p->dt,PP.Y[n]+PP.V[n]*p->dt,PP.Z[n]+PP.W[n]*p->dt);
-                if(solid_new<=0)
-                {
-                    double solid_x = p->ccipol4_b(a.solid,PP.X[n]+PP.U[n]*p->dt,PP.Y[n],PP.Z[n]);
-                    double solid_y = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n]+PP.V[n]*p->dt,PP.Z[n]);
-                    double solid_z = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n]+PP.W[n]*p->dt);
-                    if(solid_x<=0)
-                    {
-                        double dx = (solid_old)/(solid_old-solid_x)*PP.U[n]*p->dt+(PP.U[n]>=0?-1:1)*PP.d50/2.0;
-                        PP.X[n] += dx;
-                        PP.U[n] = 0;
-                    }
-                    if(solid_y<=0)
-                    {
-                        double dy = (solid_old)/(solid_old-solid_y)*PP.V[n]*p->dt+(PP.V[n]>=0?-1:1)*PP.d50/2.0;
-                        PP.Y[n] += dy;
-                        PP.W[n] = 0;
-                    }
-                    if(solid_z<=0)
-                    {
-                        double dz = (solid_old)/(solid_old-solid_z)*PP.W[n]*p->dt+(PP.W[n]>=0?-1:1)*PP.d50/2.0;
-                        PP.Z[n] += dz;
-                        PP.W[n] = 0;
-                    }
-                }
+                // double solid_old = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n]);
+                // double solid_new = p->ccipol4_b(a.solid,PP.X[n]+PP.U[n]*p->dt,PP.Y[n]+PP.V[n]*p->dt,PP.Z[n]+PP.W[n]*p->dt);
+                // if(solid_new<=0)
+                // {
+                //     double solid_x = p->ccipol4_b(a.solid,PP.X[n]+PP.U[n]*p->dt,PP.Y[n],PP.Z[n]);
+                //     double solid_y = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n]+PP.V[n]*p->dt,PP.Z[n]);
+                //     double solid_z = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n]+PP.W[n]*p->dt);
+                //     if(solid_x<=0)
+                //     {
+                //         double dx = (solid_old)/(solid_old-solid_x)*PP.U[n]*p->dt+(PP.U[n]>=0?-1:1)*PP.d50/2.0;
+                //         PP.X[n] += dx;
+                //         PP.U[n] = 0;
+                //     }
+                //     if(solid_y<=0)
+                //     {
+                //         double dy = (solid_old)/(solid_old-solid_y)*PP.V[n]*p->dt+(PP.V[n]>=0?-1:1)*PP.d50/2.0;
+                //         PP.Y[n] += dy;
+                //         PP.W[n] = 0;
+                //     }
+                //     if(solid_z<=0)
+                //     {
+                //         double dz = (solid_old)/(solid_old-solid_z)*PP.W[n]*p->dt+(PP.W[n]>=0?-1:1)*PP.d50/2.0;
+                //         PP.Z[n] += dz;
+                //         PP.W[n] = 0;
+                //     }
+                // }
 
                 PP.X[n] += PP.U[n]*p->dt;
                 PP.Y[n] += PP.V[n]*p->dt;

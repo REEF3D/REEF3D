@@ -40,6 +40,7 @@ public:
 	virtual ~interpolation();
     
     double ccipol1(field&,double,double,double);
+    double ccipol1c(field&,field&,double,double,double);
     double ccipol2(field&,double,double,double);
     double ccipol3(field&,double,double,double);
     double ccipol4(field&,double,double,double);

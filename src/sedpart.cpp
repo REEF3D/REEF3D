@@ -35,6 +35,7 @@ Author: Alexander Hanke
 
 #include <sys/stat.h>
 #include <string>
+#include <vector>
 
 /// This class is enabled when using the options for Lagrangian particles and VRANS.\n
 /// Initialization of the topography with particles, modification of topo values and print out.
@@ -99,13 +100,32 @@ int sedpart::deposit(lexer* p, fdm* a)
 
 void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
 {
-    if(p->mpirank==0)
+    std::vector<double> x,y,z;
+    std::vector<double> u,v,w;
+    x.push_back(0.2855);
+    for(int n=0;n<100;n++)
+    x.push_back(x[n]+0.0005);
+    y.push_back(0.15);
+    z.push_back(0);
+    if(p->mpirank==2)
     {
-        i=1;
-        j=5;
-        KLOOP
+        for(int n=0;n<x.size();n++)
         {
-            cout<<a->u(i,j,k)<<";"<<a->u(i-1,j,k)<<";"<<a->u(i-2,j,k)<<endl;
+            u.push_back(p->ccipol1c(a->u,a->solid,x[n],y[0],z[0]));
         }
+        // n=0;
+        // double dist = p->ccipol4_b(a->solid,x[n],y[0],z[0]);
+        // cout<<dist<<","<<x[n]+dist<<","<<p->ccipol1c(a->u,a->solid,x[n]+dist,y[0],z[0])<<endl;
+        // u.push_back(p->ccipol1c(a->u,x[n]+dist,y[0],z[0]));
+        string output;
+        for(int n=0;n<u.size();n++)
+        if(u[n]>0)
+        output += "("+std::to_string(x[n])+")"+std::to_string(u[n])+",";
+        else
+        {
+            output += "\n("+std::to_string(x[n])+")"+std::to_string(u[n]);
+            break;
+        }
+        cout<<p->mpirank<<"|"<<output<<endl;
     }
 }
