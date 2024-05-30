@@ -69,7 +69,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     ++inicount;
     movement->debug(p,*a,*pgc,PP);
-    // debug(p,a,pgc);
+    debug(p,a,pgc);
 }
 
 /// @brief CFD calculation function
@@ -128,7 +128,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
-    // debug(p,a,pgc);
+    debug(p,a,pgc);
 }
 
 /// @brief Updates the topography for the CFD solver

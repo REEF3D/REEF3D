@@ -40,7 +40,7 @@ public:
 	virtual ~interpolation();
     
     double ccipol1(field&,double,double,double);
-    double ccipol1c(field&,field&,double,double,double);
+    double ccipol1c(field&,double,double,double);
     double ccipol2(field&,double,double,double);
     double ccipol3(field&,double,double,double);
     double ccipol4(field&,double,double,double);
@@ -73,6 +73,7 @@ public:
     
     double lint(field&,int&,int&,int&,double,double,double);
     double lint1(field&,int&,int&,int&,double,double,double);
+    double lint1c(field&,int&,int&,int&,double,double,double);
     double lint2(field&,int&,int&,int&,double,double,double);
     double lint3(field&,int&,int&,int&,double,double,double);
     double lint4(field&,int&,int&,int&,double,double,double);

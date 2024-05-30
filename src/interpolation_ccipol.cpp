@@ -952,7 +952,7 @@ double interpolation::ccipol4_kin(field& f, double xp, double yp, double zp)
     return value;
 }
 
-double interpolation::ccipol1c(field& f, field& solid, double xp, double yp, double zp)
+double interpolation::ccipol1c(field& f, double xp, double yp, double zp)
 {
     ii=i;
     jj=j;
@@ -961,9 +961,6 @@ double interpolation::ccipol1c(field& f, field& solid, double xp, double yp, dou
     i = p->posf_i(xp)-1;
     j = p->posc_j(yp);
     k = p->posc_k(zp);
-    
-    // if(p->mpirank==2)
-    // cout<<xp<<","<<p->XN[IP]<<","<<p->XN[IP2]<<","<<((p->XN[IP2]-xp)/p->DXP[IP1]<0.0)<<"|"<<((p->XN[IP2]-xp)/p->DXP[IP1]>1.0)<<endl;
 
     // wa
     wa = (p->XN[IP2]-xp)/p->DXP[IP1];
@@ -979,8 +976,6 @@ double interpolation::ccipol1c(field& f, field& solid, double xp, double yp, dou
     wa = (p->XN[IP1]-xp)/p->DXP[IP];
     --i;
     }
-    // if(p->mpirank==2)cout<<wa<<endl;
-    
     
     // wb
     wb = (p->YP[JP1]-yp)/p->DYN[JP];
@@ -1017,14 +1012,11 @@ double interpolation::ccipol1c(field& f, field& solid, double xp, double yp, dou
     value = lint1_2D(f,i,j,k,wa,wb,wc);
     
     if(p->j_dir==1)
-    value = lint1(f,i,j,k,wa,wb,wc);
+    value = lint1c(f,i,j,k,wa,wb,wc);
 
     i=ii;
     j=jj;
     k=kk;
-
-    if(p->ccipol4_b(solid,xp,yp,zp)<=0)
-    return 0;
 
     return value;
 }

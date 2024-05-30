@@ -105,7 +105,7 @@ namespace sediment_particle::movement
 
                 thetas=theta_s(p,a,PP,i,j,k);
 
-                u=p->ccipol1c(a.u,a.solid,PP.X[n],PP.Y[n],PP.Z[n]);
+                u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
                 v=p->ccipol2(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
                 w=p->ccipol3(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
 
@@ -234,7 +234,7 @@ namespace sediment_particle::movement
                 cellSum[IJK]-=PP.PackingFactor[n];
                 if(cellSum[IJK]<0)
                 {
-                    clog<<"cellSum is below zero in cell ("<<p->XN[IP]<<"-"<<p->XN[IP1]<<","<<p->YN[JP]<<"-"<<p->YN[JP1]<<","<<p->ZN[KP]<<"-"<<p->ZN[KP1]<<") of partition "<<p->mpirank<<" for particle "<<n<<" at ("<<PP.X[n]<<","<<PP.Y[n]<<","<<PP.Z[n]<<") "<<solid_new<<"."<<endl;
+                    clog<<"cellSum is below zero in cell ("<<p->XN[IP]<<"-"<<p->XN[IP1]<<","<<p->YN[JP]<<"-"<<p->YN[JP1]<<","<<p->ZN[KP]<<"-"<<p->ZN[KP1]<<") of partition "<<p->mpirank<<" for particle "<<n<<" at ("<<PP.X[n]<<","<<PP.Y[n]<<","<<PP.Z[n]<<") "<<"."<<endl;
                     cellSum[IJK]=0;
                 }
                 particleStressTensorUpdateIJK(p,a,PP);
