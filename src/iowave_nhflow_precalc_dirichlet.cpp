@@ -57,15 +57,15 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         // U
         uval[count] = wave_u(p,pgc,x1,y,z);
-        UHval[count] = (eta(i,j) + d->depth(i,j))*(uval[count] + p->Ui);
+        UHval[count] = (d->eta(i,j)*0.0 + d->depth(i,j))*(uval[count] + p->Ui);
         
         // V
         vval[count] = wave_v(p,pgc,x,y2,z);
-        VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
+        VHval[count] = (d->eta(i,j)*0.0 + d->depth(i,j))*vval[count];
         
         // W
         wval[count] = wave_w(p,pgc,x,y,z);
-        VHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
+        VHval[count] = (d->eta(i,j)*0.0 + d->depth(i,j))*wval[count];
 
         ++count;
         }

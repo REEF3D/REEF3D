@@ -32,7 +32,12 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        d->etaval(i,j) = eta(i,j);
+        //d->eta(i,j) = eta(i,j);
+        d->eta(i-1,j) = d->eta(i,j)*ramp(p);
+        d->eta(i-2,j) = d->eta(i,j)*ramp(p);
+        d->eta(i-3,j) = d->eta(i,j)*ramp(p);
+        
+        //cout<<"ETA_IM1: "<<d->eta(i-1,j)<<" ETA_I: "<<d->eta(i,j)<<" ETAVAL: "<<d->etaval(i,j)<<endl;
         }
         
         count=0;
@@ -52,6 +57,10 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             uvel *= ramp(p);
             vvel *= ramp(p);
             wvel *= ramp(p);
+            
+            uvel = 2.0*uvel - U[IJK];
+            vvel = 2.0*vvel - V[IJK];
+            wvel = 2.0*wvel - W[IJK];
             
                 U[Im1JK]=uvel;
                 U[Im2JK]=uvel;
@@ -74,6 +83,10 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             uvel *= ramp(p);
             vvel *= ramp(p);
             wvel *= ramp(p);
+            
+            uvel = 2.0*uvel - UH[IJK];
+            vvel = 2.0*vvel - VH[IJK];
+            wvel = 2.0*wvel - WH[IJK];
             
                 UH[Im1JK]=uvel;
                 UH[Im2JK]=uvel;

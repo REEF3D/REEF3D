@@ -102,8 +102,15 @@ void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U
 
 void iowave::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
 {
+    if(p->B98>=3)
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
     
-    
-    
+    WL(i-1,j) = d->eta(i-1,j) + d->depth(i,j);
+    WL(i-2,j) = d->eta(i-2,j) + d->depth(i,j);
+    WL(i-3,j) = d->eta(i-3,j) + d->depth(i,j);
+    }
     
 }

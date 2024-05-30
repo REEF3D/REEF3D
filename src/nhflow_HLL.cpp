@@ -211,7 +211,6 @@ void nhflow_HLL::HLL(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, 
 
 void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
 {
-    
     // HLL flux
     ULOOP
     {

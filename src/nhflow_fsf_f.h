@@ -48,9 +48,7 @@ public:
     virtual void rk3_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     virtual void rk3_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     virtual void rk3_step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
-    
-    virtual void flux_update(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
-    
+
     virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&);
     virtual void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*);
     

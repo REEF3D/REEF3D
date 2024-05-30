@@ -34,7 +34,10 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        d->etaval(i,j) = eta(i,j);
+        ///d->eta(i,j) = eta(i,j);
+        d->eta(i-1,j) = d->eta(i,j)*ramp(p);
+        d->eta(i-2,j) = d->eta(i,j)*ramp(p);
+        d->eta(i-3,j) = d->eta(i,j)*ramp(p);
         }
         
         
@@ -68,8 +71,6 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             vvel=VHval[count]*ramp(p);
             wvel=WHval[count]*ramp(p);
             
-            //cout<<"nhflow_wavegen_precalc_decomp_dirichlet "<<uvel<<" "<<ramp(p)<<endl;
-                
                 UH[Im1JK]=uvel;
                 UH[Im2JK]=uvel;
                 UH[Im3JK]=uvel;

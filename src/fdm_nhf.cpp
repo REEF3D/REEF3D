@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"lexer.h"
 
-fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaval(p),etaloc(p),
+fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
                               nodeval2D(p),eta_n(p),WL(p),
                               detadt(p),detadt_n(p),

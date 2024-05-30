@@ -69,6 +69,7 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
     
+    double Stokes_drift = 9.81*pow(wave_eta(p,x,y),2.0)/(8.0*wdt);
 
     if(p->simtime<ts || p->simtime>te)
 	return 0.0;
@@ -79,7 +80,7 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
 	while(p->simtime>kinematics[timecount][0])
 	++timecount;
 	
-	vel = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
+	vel = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);// - Stokes_drift;
     
     if(p->B110==1)
     {
@@ -105,15 +106,13 @@ double wave_lib_piston::wave_eta(lexer *p, double x, double y)
 {
     double eta=0.0;
     
-    /*
+    
     double depth = p->wd - p->bed[IJ];
     
     double zcoor = -0.5*depth;
 
-    eta =  wave_u(p,x,y,zcoor) * sqrt(depth/9.81);*/
+    eta =  (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]) * sqrt(depth/9.81);
     
-    //cout<<"ETA "<<eta<<" "<<wave_u(p,x,y,zcoor)<<endl;
-
     return eta;
 }
 

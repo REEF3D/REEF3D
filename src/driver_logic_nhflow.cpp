@@ -68,16 +68,6 @@ void driver::logic_nhflow()
     // signal speed
     pss = new nhflow_signal_speed(p);
     
-    // reconstruction
-    if(p->A514<=3)
-    precon = new nhflow_reconstruct_hires(p,pBC);
-    
-    if(p->A514==4)
-    precon = new nhflow_reconstruct_weno(p,pBC);
-    
-    if(p->A514==5)
-    precon = new nhflow_reconstruct_wenograd(p,pBC);
-    
 //Convection	
     if(p->A511==1 || p->A511==8)
 	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
@@ -99,6 +89,16 @@ void driver::logic_nhflow()
     
     if(p->A512==2 && p->j_dir==0)
     pnhfdiff = new nhflow_idiff_2D(p);
+    
+// reconstruction
+    if(p->A514<=3)
+    precon = new nhflow_reconstruct_hires(p,pBC);
+    
+    if(p->A514==4)
+    precon = new nhflow_reconstruct_weno(p,pBC);
+    
+    if(p->A514==5)
+    precon = new nhflow_reconstruct_wenograd(p,pBC);
     
 //pressure scheme
     if(p->A520==0)
