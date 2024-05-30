@@ -96,7 +96,7 @@ namespace sediment_particle::movement
 
         for(size_t n=0;n<PP.loopindex;n++)
         {
-            if(PP.Flag[n]>0)
+            if(PP.Flag[n]>0) // INT32_MIN
             {
                 // Prep
                 i=p->posc_i(PP.X[n]);
@@ -106,8 +106,8 @@ namespace sediment_particle::movement
                 thetas=theta_s(p,a,PP,i,j,k);
 
                 u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
-                v=p->ccipol2(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
-                w=p->ccipol3(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
+                w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
 
                 // Non interpolation leads to blockyness
                 stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);

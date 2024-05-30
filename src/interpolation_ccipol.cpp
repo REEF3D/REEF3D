@@ -1020,3 +1020,143 @@ double interpolation::ccipol1c(field& f, double xp, double yp, double zp)
 
     return value;
 }
+
+double interpolation::ccipol2c(field& f, double xp, double yp, double zp)
+{
+    ii=i;
+    jj=j;
+    kk=k;
+    
+    i = p->posc_i(xp);
+    j = p->posf_j(yp)-1;
+    k = p->posc_k(zp);
+		
+    // wa
+    wa = (p->XP[IP1]-xp)/p->DXN[IP];
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
+    {
+    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
+    ++i;
+    }
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
+    {
+    wa = (p->XP[IP]-xp)/p->DXN[IM1];
+    --i;
+    }
+    
+    
+    // wb
+    wb = (p->YN[JP2]-yp)/p->DYP[JP1];
+    
+    if((p->YN[JP2]-yp)/p->DYP[JP1]<0.0)
+    {
+    wb = (p->YN[JP3]-yp)/p->DYP[JP2];
+    ++j;
+    }
+    
+    if((p->YN[JP2]-yp)/p->DYP[JP1]>1.0)
+    {
+    wb = (p->YN[JP1]-yp)/p->DYP[JP];
+    --j;
+    }
+    
+    
+    //wc
+    wc = (p->ZP[KP1]-zp)/p->DZN[KP];
+    
+    if((p->ZP[KP1]-zp)/p->DZN[KP]<0.0)
+    {
+    wc = (p->ZP[KP2]-zp)/p->DZN[KP1];
+    ++k;
+    }
+    
+    if((p->ZP[KP1]-zp)/p->DZN[KP]>1.0)
+    {
+    wc = (p->ZP[KP]-zp)/p->DZN[KM1];
+    --k;
+    }
+
+    if(p->j_dir==0)
+    value = lint2_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint2c(f,i,j,k,wa,wb,wc);
+
+    i=ii;
+    j=jj;
+    k=kk;
+
+    return value;
+}
+
+double interpolation::ccipol3c(field& f, double xp, double yp, double zp)
+{
+    ii=i;
+    jj=j;
+    kk=k;
+    
+    i = p->posc_i(xp);
+    j = p->posc_j(yp);
+    k = p->posf_k(zp)-1;
+		
+    // wa
+    wa = (p->XP[IP1]-xp)/p->DXN[IP];
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
+    {
+    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
+    ++i;
+    }
+    
+    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
+    {
+    wa = (p->XP[IP]-xp)/p->DXN[IM1];
+    --i;
+    }
+    
+    
+    // wb
+    wb = (p->YP[JP1]-yp)/p->DYN[JP];
+    
+    if((p->YP[JP1]-yp)/p->DYN[JP]<0.0)
+    {
+    wb = (p->YP[JP2]-yp)/p->DYN[JP1];
+    ++j;
+    }
+    
+    if((p->YP[JP1]-yp)/p->DYN[JP]>1.0)
+    {
+    wb = (p->YP[JP]-yp)/p->DYN[JM1];
+    --j;
+    }
+    
+    
+    //wc
+    wc = (p->ZN[KP2]-zp)/p->DZP[KP1];
+    
+    if((p->ZN[KP2]-zp)/p->DZP[KP1]<0.0)
+    {
+    wc = (p->ZN[KP3]-zp)/p->DZP[KP2];
+    ++k;
+    }
+    
+    if((p->ZN[KP2]-zp)/p->DZP[KP1]>1.0)
+    {
+    wc = (p->ZN[KP1]-zp)/p->DZP[KP];
+    --k;
+    }
+
+    if(p->j_dir==0)
+    value = lint3_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint3c(f,i,j,k,wa,wb,wc);
+
+    i=ii;
+    j=jj;
+    k=kk;
+
+    return value;
+}
