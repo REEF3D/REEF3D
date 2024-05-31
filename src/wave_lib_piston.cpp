@@ -69,7 +69,9 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
     
-    double Stokes_drift = 9.81*pow(wave_eta(p,x,y),2.0)/(8.0*wdt);
+    //double Stokes_drift = 9.81*pow(wave_eta(p,x,y),2.0)/(8.0*wdt);
+    
+    //double Stokes_drift = 9.81*pow(wave_eta(p,x,y),2.0)*15.0/(2.0*10.0*wdt);
 
     if(p->simtime<ts || p->simtime>te)
 	return 0.0;

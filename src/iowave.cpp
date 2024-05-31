@@ -245,6 +245,7 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     
     if(p->mpirank==0)
     timeseries(p,pgc);
+    
 }
 
 iowave::~iowave()

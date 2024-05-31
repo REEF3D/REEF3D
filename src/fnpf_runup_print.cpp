@@ -40,11 +40,11 @@ void fnpf_runup::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
         
         fout.open(name);
 
-
+        fout<<"x \t y"<<endl;
         fout<<p->P140_x[ID]<<" \t "<<p->P140_y[ID]<<" \t "<<endl;
         fout<<endl<<endl;
      
-        fout<<"it \t time \t Fx \t Fy ";
+        fout<<"it \t time \t R1 \t R2 \t R3 \t R4 \t R5 \t R6";
 
         fout<<endl;
 	}
@@ -54,4 +54,10 @@ void fnpf_runup::print_fnpf_runup(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
     // write to runup file
     fout<<p->count<<" \t "<<setprecision(9)<<p->simtime<<" \t "<<R1<<" \t "<<R2<<" \t "<<R3<<" \t "<<R4<<" \t "<<R5<<" \t "<<R6<<endl;
+    //fout<<p->count<<"\t"<<roundFunc(p->simtime,2)<<"\t"<<roundFunc(R1,2)<<"\t"<<roundFunc(R2,2)<<"\t"<<roundFunc(R3,2)<<"\t"<<roundFunc(R4,2)<<"\t"<<roundFunc(R5,2)<<"\t"<<roundFunc(R6,2)<<endl;
+}
+
+double fnpf_runup::roundFunc(double value, int decimalPlaces) {
+    double scale = std::pow(10, decimalPlaces);
+    return std::round(value * scale) / scale;
 }

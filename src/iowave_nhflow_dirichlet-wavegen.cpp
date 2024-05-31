@@ -27,17 +27,35 @@ Author: Hans Bihs
 
 void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
+    if(p->count<=1)
+    {
+    netQ = 0.0;
+    netQn = 0.0;
+    netQnn = 0.0;
+    netQnnn = 0.0;
+    netQ_corr = 0.0;
+    netQ_minpeak=0.0;
+    netQ_maxpeak=0.0;
+    netQ_minpeak_n=0.0;
+    netQ_maxpeak_n=0.0;
+    netQ_minpeak_nn=0.0;
+    netQ_maxpeak_nn=0.0;
+    }
+    
+    netQnnn = netQnn;
+    netQnn = netQn;
+    netQn = netQ;
+    
+    netQ_corr = -0.001*netQ_avgpeak/p->dt;
+    
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        //d->eta(i,j) = eta(i,j);
-        d->eta(i-1,j) = d->eta(i,j)*ramp(p);
-        d->eta(i-2,j) = d->eta(i,j)*ramp(p);
-        d->eta(i-3,j) = d->eta(i,j)*ramp(p);
-        
-        //cout<<"ETA_IM1: "<<d->eta(i-1,j)<<" ETA_I: "<<d->eta(i,j)<<" ETAVAL: "<<d->etaval(i,j)<<endl;
+        d->eta(i-1,j) = d->eta(i,j);
+        d->eta(i-2,j) = d->eta(i,j);
+        d->eta(i-3,j) = d->eta(i,j);
         }
         
         count=0;
@@ -50,7 +68,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             WETDRYDEEP
             {
             // U, V, W
-            uvel=uval[count];
+            uvel=uval[count];// + netQ_corr/d->WL(i,j);
             vvel=vval[count];
             wvel=wval[count];
             
@@ -58,9 +76,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             vvel *= ramp(p);
             wvel *= ramp(p);
             
-            uvel = 2.0*uvel - U[IJK];
+            /*uvel = 2.0*uvel - U[IJK];
             vvel = 2.0*vvel - V[IJK];
-            wvel = 2.0*wvel - W[IJK];
+            wvel = 2.0*wvel - W[IJK];*/
             
                 U[Im1JK]=uvel;
                 U[Im2JK]=uvel;
@@ -76,7 +94,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 
                 
             // UH, VH, WH
-            uvel=UHval[count];
+            uvel=UHval[count] + netQ_corr;
             vvel=VHval[count];
             wvel=WHval[count];
             
@@ -84,9 +102,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             vvel *= ramp(p);
             wvel *= ramp(p);
             
-            uvel = 2.0*uvel - UH[IJK];
+            /*uvel = 2.0*uvel - UH[IJK];
             vvel = 2.0*vvel - VH[IJK];
-            wvel = 2.0*wvel - WH[IJK];
+            wvel = 2.0*wvel - WH[IJK];*/
             
                 UH[Im1JK]=uvel;
                 UH[Im2JK]=uvel;
@@ -99,11 +117,38 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 WH[Im1JK]=wvel;
                 WH[Im2JK]=wvel;
                 WH[Im3JK]=wvel;
+                
+                netQ += p->dt*uvel;
             }
             
         ++count;
 		}
         
+        // ------------------
+        // netQ
+        netQ_max = MAX(netQ_max,netQ);
+        netQ_min = MIN(netQ_min,netQ);
+        
+        if(netQnn>netQnnn && netQn>netQnn && netQ<netQn)
+        {
+        netQ_maxpeak_nn = netQ_maxpeak_n;
+        netQ_maxpeak_n = netQ_maxpeak;
+        netQ_maxpeak = netQn;
+        }
+        
+        if(netQnn<netQnnn && netQn<netQnn && netQ>netQn)
+        {
+        netQ_minpeak_nn = netQ_minpeak_n;
+        netQ_minpeak_n = netQ_minpeak;
+        netQ_minpeak = netQn;
+        }
+        
+        
+        netQ_avgpeak = (1.0/6.0)*(1.0*netQ_minpeak + 1.0*netQ_maxpeak + 1.0*netQ_minpeak_n + 1.0*netQ_maxpeak_n + 1.0*netQ_minpeak_nn + 1.0*netQ_maxpeak_nn);
+        
+        //netQ_avgpeak = 0.5*(netQ_minpeak + netQ_maxpeak);
+            
+        // ------------------
         
         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
 		{
@@ -118,4 +163,15 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             }
         pgc->start4V(p,d->EV,24);
 		}
+        
+        //netQ=pgc->globalsum(netQ);
+        
+        if(p->mpirank==0)
+        {
+        cout<<"netQ: "<<netQ<<" netQ_maxpeak: "<<netQ_maxpeak<<" netQ_minpeak: "<<netQ_minpeak<<endl;
+        cout<<"netQ_max: "<<netQ_max<<" netQ_min: "<<netQ_min<<endl;
+        cout<<"netQ_avgpeak: "<<netQ_avgpeak<<" netQ_corr: "<<netQ_corr<<endl;
+        }
+        
+        
 }

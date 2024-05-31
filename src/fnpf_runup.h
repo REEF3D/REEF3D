@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Arun Kamath, Tobias Martin
+Author: Hans Bihs, Edgar Chavez
 --------------------------------------------------------------------*/
 
 #include"nodefill.h"
@@ -49,18 +49,20 @@ private:
     void fnpf_runup_calc(lexer*,fdm_fnpf*,ghostcell*);
 	void print_fnpf_runup(lexer*,fdm_fnpf*,ghostcell*);
     void print_ini(lexer*,fdm_fnpf*,ghostcell*);
+    double acceleration(lexer*, fdm_fnpf*, ghostcell*);
 	double dndt(lexer*, fdm_fnpf*, ghostcell*);
 	double dudsig(lexer*, fdm_fnpf*, ghostcell*);
 	double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
 	double dudxi(lexer*, fdm_fnpf*, ghostcell*);
 	double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
+    double roundFunc(double, int);
 	
-    // force ale variabes
-    double Fx1,Fy1,Fx,Fy,xc,yc,rc,cd,cm,etan,dtn,eta2n,ax1,ay1,ax2,ay2,ax3,ay3,dudsig_,dvdsig_,ax,ay;
-	double *un, *u2n, *vn;
+    // run-up variabes
+    double un,vn,xc,yc,rc,etan;
+    int k;
     const int ID;
     
-    double R1,R2,R3,R4,R5,R6;
+    double R1,R2,R3,R4,R5,R6; //Run-up calculations
     
     // printing
     char name[100],pname[100],epsvar[100];

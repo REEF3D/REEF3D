@@ -539,7 +539,7 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     int jj;
     double fac = 0.5;
     
-    wd_criterion = 0.1*p->A544;
+    wd_criterion = 10.0*p->A544;
     
     
     v1=v2=v3=v4=0.0;

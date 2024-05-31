@@ -307,6 +307,9 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Hs">
+            <File Name="nhflow_print_Hs.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="nhflow_state.h"/>
           </VirtualDirectory>
@@ -1464,6 +1467,9 @@
           <File Name="nhflow_HLL.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Hs">
+            <File Name="nhflow_print_Hs.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="nhflow_state_write.cpp"/>
             <File Name="nhflow_state_mainheader.cpp"/>

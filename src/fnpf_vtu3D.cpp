@@ -122,6 +122,9 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	
 	for(n=0;n<p->P140;++n)
 	prunup[n]=new fnpf_runup(p,c,pgc,n);
+    
+    for(n=0;n<p->P140;++n)
+	prunup[n]->ini(p,c,pgc);
 }
 
 fnpf_vtu3D::~fnpf_vtu3D()

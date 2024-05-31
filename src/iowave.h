@@ -309,6 +309,11 @@ private:
     int hydro_in_count,hydro_out_count;
     
     patchBC_interface *pBC;
+    
+    double netQ,netQn,netQnn,netQnnn;
+    double netQ_min,netQ_max,netQ_avg;
+    double netQ_minpeak,netQ_maxpeak,netQ_avgpeak,netQ_maxpeak_n,netQ_minpeak_n,netQ_maxpeak_nn,netQ_minpeak_nn;
+    double netQ_corr;
 };
 
 #endif
