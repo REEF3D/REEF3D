@@ -53,9 +53,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        d->eta(i-1,j) = d->eta(i,j);
-        d->eta(i-2,j) = d->eta(i,j);
-        d->eta(i-3,j) = d->eta(i,j);
+        d->eta(i-1,j) = eta(i,j)*ramp(p);
+        d->eta(i-2,j) = eta(i,j)*ramp(p);
+        d->eta(i-3,j) = eta(i,j)*ramp(p);
         }
         
         count=0;
@@ -94,7 +94,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 
                 
             // UH, VH, WH
-            uvel=UHval[count] + netQ_corr;
+            uvel=UHval[count];// + netQ_corr;
             vvel=VHval[count];
             wvel=WHval[count];
             
