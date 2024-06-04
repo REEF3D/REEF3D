@@ -258,6 +258,7 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     }
     
     netV=0.0;
+    netV_corr_n=0.0;
 }
 
 iowave::~iowave()

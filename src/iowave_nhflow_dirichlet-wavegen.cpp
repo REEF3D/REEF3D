@@ -120,9 +120,19 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         netV += p->dt*0.5*(3.0*netQ - netQ_n)*ramp_corr(p);
         
         linreg->linreg_cont_func(p,pgc,p->simtime,netV,b0,b1);
+
         
         if(p->count>1)
+        {
+        netV_corr_n = netV_corr;
         netV_corr =  -relaxfac*(b1*(p->simtime) + b0)*ramp_corr(p);
+        
+        if(netV_corr>netV_corr_n)
+        netV_corr = MAX(netV_corr, netV_corr + 0.1*(netV_corr-netV_corr_n));
+        
+        if(netV_corr<netV_corr_n)
+        netV_corr = MIN(netV_corr, netV_corr + 0.1*(netV_corr-netV_corr_n));
+        }
         
         
         netQ_n = netQ;

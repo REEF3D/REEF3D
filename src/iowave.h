@@ -315,7 +315,7 @@ private:
     double ramp_corr(lexer*);
     
     double netQ,netQ_n,netV;
-    double netV_corr;
+    double netV_corr,netV_corr_n;
     double b0,b1;
     
     linear_regression_cont *linreg;
