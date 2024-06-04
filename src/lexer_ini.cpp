@@ -126,5 +126,13 @@ void lexer::parse()
 	if(S10>=1 || toporead==1)
 	P27=1;
 	
-	
+    // NHFLOW iowave dirichlet wavegen parse
+	if(A10==5)
+    {
+    if(B92>=20 && B92<=29 && B98==4)
+    B98=3;
+    
+    if((B92<20 || B92>29) && B98==3)
+    B98=4;
+    }
 }
