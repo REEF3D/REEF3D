@@ -26,7 +26,9 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{       
+{  
+        double etaval=0.0;
+        
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
@@ -52,20 +54,25 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         y=ygen(p);
         x1=xgen1(p);
         y2=ygen2(p);
+            
+        etaval = eta(i,j);
+        
+        if(p->B92>=20 && p->B92<=29)
+        etaval = d->eta(i,j);
                 
-        z = p->ZP[KP]*(eta(i,j)+d->depth(i,j)) - p->phimean;
+        z = p->ZP[KP]*(etaval+d->depth(i,j)) - p->phimean;
 
         // U
         uval[count] = wave_u(p,pgc,x1,y,z) + p->Ui;
-        UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
+        UHval[count] = (etaval + d->depth(i,j))*uval[count];
         
         // V
         vval[count] = wave_v(p,pgc,x,y2,z);
-        VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
+        VHval[count] = (etaval + d->depth(i,j))*vval[count];
         
         // W
         wval[count] = wave_w(p,pgc,x,y,z);
-        VHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
+        VHval[count] = (etaval + d->depth(i,j))*wval[count];
 
         ++count;
         }

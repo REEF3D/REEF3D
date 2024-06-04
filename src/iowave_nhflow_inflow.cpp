@@ -108,9 +108,9 @@ void iowave::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
     
-    WL(i-1,j) = eta(i-1,j) + d->depth(i,j);
-    WL(i-2,j) = eta(i-2,j) + d->depth(i,j);
-    WL(i-3,j) = eta(i-3,j) + d->depth(i,j);
+    WL(i-1,j) = d->eta(i-1,j) + d->depth(i,j);
+    WL(i-2,j) = d->eta(i-2,j) + d->depth(i,j);
+    WL(i-3,j) = d->eta(i-3,j) + d->depth(i,j);
     }
     
 }

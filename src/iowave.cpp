@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"vrans_v.h"
 #include"vrans_f.h"
 #include"patchBC_interface.h"
+#include"linear_regression_cont.h"
 
 iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interface(p,pgc),flowfile_in(p,pgc),epsi(3.0*p->DXM),psi(0.6*p->DXM), eta(p),
                                           relax1_wg(p),relax1_nb(p),relax2_wg(p),relax2_nb(p),relax4_wg(p),relax4_nb(p)
@@ -246,6 +247,17 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     if(p->mpirank==0)
     timeseries(p,pgc);
     
+    linreg = new linear_regression_cont(p);
+    
+    if(p->mpirank==0)
+    {
+    logout.open("./REEF3D_Log/REEF3D_netQlog.dat");
+
+    logout<<"#time \t #netQ "<<endl;
+    logout<<0.0<<"\t"<<0.0<<endl;
+    }
+    
+    netV=0.0;
 }
 
 iowave::~iowave()

@@ -676,6 +676,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
+      <VirtualDirectory Name="Function">
+        <File Name="linear_regression_cont.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="DDWENO">
         <File Name="ddweno_nug_sig.h"/>
         <File Name="ddweno_nug_sf.h"/>
@@ -2117,6 +2120,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
+      <VirtualDirectory Name="Functions">
+        <File Name="linear_regression_cont.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="DDWENO">
         <File Name="ddweno_nug_sig.cpp"/>
         <File Name="ddweno_nug_sf.cpp"/>

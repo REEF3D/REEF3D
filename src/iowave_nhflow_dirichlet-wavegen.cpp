@@ -24,38 +24,23 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"linear_regression_cont.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
 void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-    if(p->count<=1)
-    {
+    
     netQ = 0.0;
-    netQn = 0.0;
-    netQnn = 0.0;
-    netQnnn = 0.0;
-    netQ_corr = 0.0;
-    netQ_minpeak=0.0;
-    netQ_maxpeak=0.0;
-    netQ_minpeak_n=0.0;
-    netQ_maxpeak_n=0.0;
-    netQ_minpeak_nn=0.0;
-    netQ_maxpeak_nn=0.0;
-    }
-    
-    netQnnn = netQnn;
-    netQnn = netQn;
-    netQn = netQ;
-    
-    netQ_corr = -0.001*netQ_avgpeak/p->dt;
     
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        d->eta(i-1,j) = eta(i,j)*ramp(p);
-        d->eta(i-2,j) = eta(i,j)*ramp(p);
-        d->eta(i-3,j) = eta(i,j)*ramp(p);
+        d->eta(i-1,j) = d->eta(i,j)*ramp(p);
+        d->eta(i-2,j) = d->eta(i,j)*ramp(p);
+        d->eta(i-3,j) = d->eta(i,j)*ramp(p);
         }
         
         count=0;
@@ -67,8 +52,18 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         
             WETDRYDEEP
             {
+            double uhcorr = 0.0;
+            double ucorr = 0.0;
+            
+            if(p->count>2);
+            {
+            uhcorr = netV_corr/(p->DYN[JP]*p->dt);
+            ucorr /= (d->eta(i,j)+d->depth(i,j));
+            }
+            
+            
             // U, V, W
-            uvel=uval[count];// + netQ_corr/d->WL(i,j);
+            uvel=uval[count];
             vvel=vval[count];
             wvel=wval[count];
             
@@ -76,13 +71,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             vvel *= ramp(p);
             wvel *= ramp(p);
             
-            /*uvel = 2.0*uvel - U[IJK];
-            vvel = 2.0*vvel - V[IJK];
-            wvel = 2.0*wvel - W[IJK];*/
-            
-                U[Im1JK]=uvel;
-                U[Im2JK]=uvel;
-                U[Im3JK]=uvel;
+                U[Im1JK]=uvel + ucorr;
+                U[Im2JK]=uvel + ucorr;
+                U[Im3JK]=uvel + ucorr;
                 
                 V[Im1JK]=vvel;
                 V[Im2JK]=vvel;
@@ -94,7 +85,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 
                 
             // UH, VH, WH
-            uvel=UHval[count];// + netQ_corr;
+            uvel=UHval[count];
             vvel=VHval[count];
             wvel=WHval[count];
             
@@ -102,13 +93,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             vvel *= ramp(p);
             wvel *= ramp(p);
             
-            /*uvel = 2.0*uvel - UH[IJK];
-            vvel = 2.0*vvel - VH[IJK];
-            wvel = 2.0*wvel - WH[IJK];*/
-            
-                UH[Im1JK]=uvel;
-                UH[Im2JK]=uvel;
-                UH[Im3JK]=uvel;
+                UH[Im1JK]=uvel + uhcorr;
+                UH[Im2JK]=uvel + uhcorr;
+                UH[Im3JK]=uvel + uhcorr;
                 
                 VH[Im1JK]=vvel;
                 VH[Im2JK]=vvel;
@@ -118,7 +105,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 WH[Im2JK]=wvel;
                 WH[Im3JK]=wvel;
                 
-                netQ += p->dt*uvel;
+                netQ += (uvel*p->DYN[JP] + uhcorr);
             }
             
         ++count;
@@ -126,27 +113,31 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         
         // ------------------
         // netQ
-        netQ_max = MAX(netQ_max,netQ);
-        netQ_min = MIN(netQ_min,netQ);
+        double relaxfac = 0.001;
         
-        if(netQnn>netQnnn && netQn>netQnn && netQ<netQn)
-        {
-        netQ_maxpeak_nn = netQ_maxpeak_n;
-        netQ_maxpeak_n = netQ_maxpeak;
-        netQ_maxpeak = netQn;
-        }
+        netQ = pgc->globalsum(netQ);
         
-        if(netQnn<netQnnn && netQn<netQnn && netQ>netQn)
-        {
-        netQ_minpeak_nn = netQ_minpeak_n;
-        netQ_minpeak_n = netQ_minpeak;
-        netQ_minpeak = netQn;
-        }
+        netV += p->dt*netQ*ramp_corr(p);
         
+        linreg->linreg_cont_func(p,pgc,p->simtime,netV,b0,b1);
         
-        netQ_avgpeak = (1.0/6.0)*(1.0*netQ_minpeak + 1.0*netQ_maxpeak + 1.0*netQ_minpeak_n + 1.0*netQ_maxpeak_n + 1.0*netQ_minpeak_nn + 1.0*netQ_maxpeak_nn);
+        if(p->count>1)
+        netV_corr =  -relaxfac*(b1*(p->simtime) + b0)*ramp_corr(p);
         
-        //netQ_avgpeak = 0.5*(netQ_minpeak + netQ_maxpeak);
+        /* 
+        UH = WL*U
+        
+        A = WL*DY
+        
+        Q = A*U
+        V = Q*dt
+        V = A*U*dt
+        
+        U_corr = dV/(A*dt)
+        UH_corr = U*WL
+        UH_corr = dV*WL/(WL*DY*dt)
+        UH_corr = dV/(DY*dt)
+        */
             
         // ------------------
         
@@ -164,14 +155,17 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         pgc->start4V(p,d->EV,24);
 		}
         
-        //netQ=pgc->globalsum(netQ);
+        
         
         if(p->mpirank==0)
         {
-        cout<<"netQ: "<<netQ<<" netQ_maxpeak: "<<netQ_maxpeak<<" netQ_minpeak: "<<netQ_minpeak<<endl;
-        cout<<"netQ_max: "<<netQ_max<<" netQ_min: "<<netQ_min<<endl;
-        cout<<"netQ_avgpeak: "<<netQ_avgpeak<<" netQ_corr: "<<netQ_corr<<endl;
+        cout<<"netV: "<<netV<<" netQ: "<<netQ<<" netV_corr: "<<netV_corr<<endl;
+        cout<<setprecision(6)<<"netQ_b0: "<<setprecision(6)<<b0<<" netQ_b1: "<<b1<<endl;
         }
         
-        
+    if(p->mpirank==0 && p->count%p->P12==0)
+	 {
+     logout<<p->simtime+p->dt<<"\t"<<netV<<endl; 
+	 }
+    
 }

@@ -33,6 +33,7 @@ Author: Hans Bihs
 class vec;
 class fdm_fnpf;
 class patchBC_interface;
+class linear_regression_cont;
 
 using namespace std;
 
@@ -310,10 +311,17 @@ private:
     
     patchBC_interface *pBC;
     
-    double netQ,netQn,netQnn,netQnnn;
-    double netQ_min,netQ_max,netQ_avg;
-    double netQ_minpeak,netQ_maxpeak,netQ_avgpeak,netQ_maxpeak_n,netQ_minpeak_n,netQ_maxpeak_nn,netQ_minpeak_nn;
-    double netQ_corr;
+    
+    double ramp_corr(lexer*);
+    
+    double netQ,netV;
+    double netV_corr;
+    double b0,b1;
+    
+    linear_regression_cont *linreg;
+    
+    ofstream logout;
+    
 };
 
 #endif
