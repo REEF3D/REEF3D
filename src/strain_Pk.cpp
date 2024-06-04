@@ -116,7 +116,7 @@ double strain::pk_w(lexer *p, fdm *a)
 double strain::pk_b(lexer *p, fdm *a,field &eddyv)
 { 
 
-    val = 1.36*eddyv(i,j,k)*(
+    val = 1.176*eddyv(i,j,k)*(
              p->W20*(a->ro(i+1,j,k) - a->ro(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1])
            + p->W21*(a->ro(i,j+1,k) - a->ro(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1])
            + p->W22*(a->ro(i,j,k+1) - a->ro(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]));
