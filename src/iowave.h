@@ -314,7 +314,7 @@ private:
     
     double ramp_corr(lexer*);
     
-    double netQ,netV;
+    double netQ,netQ_n,netV;
     double netV_corr;
     double b0,b1;
     

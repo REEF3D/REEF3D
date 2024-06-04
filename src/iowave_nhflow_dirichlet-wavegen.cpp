@@ -113,16 +113,19 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         
         // ------------------
         // netQ
-        double relaxfac = 0.001;
+        double relaxfac = 0.00025;
         
         netQ = pgc->globalsum(netQ);
         
-        netV += p->dt*netQ*ramp_corr(p);
+        netV += p->dt*0.5*(3.0*netQ - netQ_n)*ramp_corr(p);
         
         linreg->linreg_cont_func(p,pgc,p->simtime,netV,b0,b1);
         
         if(p->count>1)
         netV_corr =  -relaxfac*(b1*(p->simtime) + b0)*ramp_corr(p);
+        
+        
+        netQ_n = netQ;
         
         /* 
         UH = WL*U
@@ -137,6 +140,12 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         UH_corr = U*WL
         UH_corr = dV*WL/(WL*DY*dt)
         UH_corr = dV/(DY*dt)
+        */
+        
+        /*
+        
+        or: correct via eta....
+        
         */
             
         // ------------------
