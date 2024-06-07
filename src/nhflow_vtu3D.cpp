@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"nhflow_print_runup_max_gage_x.h"
 #include"nhflow_vel_probe.h"
 #include"nhflow_vel_probe_theory.h"
+#include"nhflow_print_Hs.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -108,6 +109,9 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	for(n=0;n<p->P85;++n)
 	pforce_ale[n]=new force_ale(p,d,pgc,n);*/
     
+    if(p->P110==1)
+    phs = new nhflow_print_Hs(p,d->Hs);
+    
     if(p->P180==1)
 	pfsf = new nhflow_vtp_fsf(p,d,pgc);
 
@@ -127,6 +131,9 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 
     if(p->P50>0)
     pwsf_theory->height_gauge(p,d,pgc,pflow);
+    
+    if(p->P110==1)
+    phs->start(p,pgc,d->eta,d->Hs);
     
     if(p->P133>0)
 	prunupx->start(p,d,pgc,pflow,d->eta);
@@ -332,6 +339,12 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
+    // Hs
+    if(p->P110==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+	}
     
     // solid
     if(p->P25==1)
@@ -388,6 +401,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     ++n;
 	}
     
+    if(p->P110==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
+
+
     if(p->P25==1)
 	{
     result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -544,6 +564,18 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	ffn=float(0.5*(d->test[IJK]+d->test[IJKp1]));
     j=jj;
     }
+
+//  Hs
+    if(p->P110==1)
+	{
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	ffn=float(p->sl_ipol4(d->Hs));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
     
     if(p->j_dir==1)
 	ffn=float(0.25*(d->test[IJK]+d->test[IJKp1]+d->test[IJp1K]+d->test[IJp1Kp1]));

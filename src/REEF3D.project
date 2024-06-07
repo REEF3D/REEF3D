@@ -402,6 +402,9 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Hs">
+            <File Name="fnpf_print_Hs.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="fnpf_runup.h"/>
           </VirtualDirectory>
@@ -418,7 +421,6 @@
             <File Name="fnpf_print_wsfline.h"/>
             <File Name="fnpf_print_wsf_theory.h"/>
             <File Name="fnpf_print_wsf.h"/>
-            <File Name="fnpf_print_Hs.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="fnpf_vtp_bed.h"/>

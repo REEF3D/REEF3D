@@ -28,6 +28,7 @@ Author: Hans Bihs
 
 class fdm_nhf;
 class force_ale;
+class ioflow;
 class nhflow_print_wsf;
 class nhflow_print_wsf_theory;
 class nhflow_print_wsfline;
@@ -40,7 +41,7 @@ class nhflow_state;
 class nhflow_breaking_log;
 class nhflow_vel_probe;
 class nhflow_vel_probe_theory;
-class ioflow;
+class nhflow_print_Hs;
 
 using namespace std;
 
@@ -86,6 +87,7 @@ private:
 	force_ale **pforce_ale;
     nhflow_vel_probe *pvel;
     nhflow_vel_probe_theory *pveltheo;
+    nhflow_print_Hs *phs;
 };
 
 #endif

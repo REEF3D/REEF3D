@@ -22,7 +22,6 @@ Author: Dave Kelly
 
 #include"fnpf_print_Hs.h"
 #include"lexer.h"
-#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
