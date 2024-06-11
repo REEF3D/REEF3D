@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
+#ifndef SEDPART_MOVEMENT_H_
+#define SEDPART_MOVEMENT_H_
+
 #include "increment.h"
 
 #include <stdio.h>
@@ -92,3 +95,5 @@ namespace sediment_particle
         int solid_clean(lexer *p, particles_obj &, sediment_particle::movement::base &);
     };
 };
+
+#endif
