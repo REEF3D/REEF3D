@@ -90,7 +90,7 @@ cout<<"starting driver_ini_PTF"<<endl;
   
     pwave->ini_ptf(p,a,pgc);
 
-    pptf->ini(p,a,pgc,pwave,preini,poneph); 
+    pptf->ini(p,a,pgc,pwave,preini,poneph);
 
     pwave->ini_ptf(p,a,pgc);
 
@@ -103,6 +103,9 @@ cout<<"starting driver_ini_PTF"<<endl;
   
     pgc->gcsl_start4(p,a->eta,50);
     pgc->gcsl_start4(p,a->Fifsf,50);
+    
+    SLICELOOP4
+        a->WL(i,j) = MAX(0.0,a->eta(i,j) + p->wd - a->bed(i,j));
    
 
     pgc->start4(p,a->Fi,250);

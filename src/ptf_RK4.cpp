@@ -285,4 +285,3 @@ void ptf_RK4::inidisc(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {	
 }
 
-

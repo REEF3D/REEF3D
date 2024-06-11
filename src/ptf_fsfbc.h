@@ -28,6 +28,7 @@ class ptf_laplace;
 class field;
 class fnpf_convection;
 class solver2D;
+class ptf_coastline;
 
 using namespace std;
 
@@ -42,25 +43,41 @@ public:
     
     
     void fsfdisc(lexer*,fdm_ptf*,ghostcell*,slice&,slice&,field&);
+    void fsfdisc_ini(lexer*,fdm_ptf*,ghostcell*,slice&,slice&);
     void kfsfbc(lexer*,fdm_ptf*,ghostcell*);
     void dfsfbc(lexer*,fdm_ptf*,ghostcell*,slice&);
     void fsfwvel(lexer*,fdm_ptf*,ghostcell*,slice&,slice&);
     double fz(lexer*,fdm_ptf*,field&,slice&);
     
     void breaking(lexer*,fdm_ptf*,ghostcell*,slice&,slice&,slice&,double);
-    virtual void damping(lexer*,fdm_ptf*,ghostcell*,slice&,int,double);
+    void breaking_wd(lexer*,fdm_ptf*,ghostcell*,slice&,slice&,slice&,double);
+    void damping(lexer*,fdm_ptf*,ghostcell*,slice&,int,double);
+    void damping_wd(lexer*,fdm_ptf*,ghostcell*,slice&,int,double);
     void filter(lexer*, fdm_ptf*,ghostcell*, slice&);
+    void filter_wd(lexer*, fdm_ptf*,ghostcell*, slice&);
+    void coastline_eta(lexer*,fdm_ptf*,ghostcell*,slice&);
+    void coastline_fi(lexer*,fdm_ptf*,ghostcell*,slice&);
+    void wetdry(lexer*,fdm_ptf*,ghostcell*,slice&,slice&);
 
     fnpf_convection *pconvec;
+    fnpf_convection *pdx;
+    ptf_coastline *pcoast;
 
     double ivel,jvel,kvel;
     
     slice4 Fx,Fy,Fz;
     slice4 Ex,Ey;
-    sliceint4 bx,by;
+    slice4 Bx,By;
     solver2D *psolv;
     double visc;
     double grad, teta;
+    
+private:
+    double rb3(lexer*,double);
+    double rb4(lexer*,double);
+    double dist3,dist4,expinverse,db;
+    sliceint4 bx,by;
+    int count_n;
 
 };
 

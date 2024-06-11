@@ -1,5 +1,3 @@
-/Users/fk/Codefiles/REEF3D/src/ptf_fsfbc_damping.cpp
-/Users/fk/Codefiles/REEF3D/src/ptf_fsfbc_breaking.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_bc_ikomega.cpp
 /Users/fk/Codefiles/REEF3D/src/sflow_limiter_smart.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_bc_ikomega.h
@@ -216,6 +214,9 @@
 /Users/fk/Codefiles/REEF3D/src/sflow_print_probe_da.cpp
 /Users/fk/Codefiles/REEF3D/src/matrix2D.cpp
 /Users/fk/Codefiles/REEF3D/src/vec2D.cpp
+/Users/fk/Codefiles/REEF3D/src/ptf_coastline.cpp
+/Users/fk/Codefiles/REEF3D/src/ptf_coastline_disc.cpp
+/Users/fk/Codefiles/REEF3D/src/ptf_coastline_reini.cpp
 /Users/fk/Codefiles/REEF3D/src/mgcslice4.h
 /Users/fk/Codefiles/REEF3D/src/mgcslice2.h
 /Users/fk/Codefiles/REEF3D/src/mgcslice1.h
@@ -250,10 +251,7 @@
 /Users/fk/Codefiles/REEF3D/src/fnpf_ddx_cds4_wd.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_reconstruct_wenograd.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_signal_speed.h
-/Users/fk/Codefiles/REEF3D/src/6DOF_precalc_box.cpp
-/Users/fk/Codefiles/REEF3D/src/nhflow_rans_io.h
-/Users/fk/Codefiles/REEF3D/src/potential_f.h
-/Users/fk/Codefiles/REEF3D/src/nhflow_ikomega.h
+/Users/fk/Codefiles/REEF3D/src/nhflow_komega_void.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_LES.h
 /Users/fk/Codefiles/REEF3D/src/reinitopo_void.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_strain.h
@@ -542,9 +540,6 @@
 /Users/fk/Codefiles/REEF3D/src/multiphase_fluid_update_f.cpp
 /Users/fk/Codefiles/REEF3D/src/flowfile_in_header.cpp
 /Users/fk/Codefiles/REEF3D/src/multiphase_fluid_update_rheology.cpp
-/Users/fk/Codefiles/REEF3D/src/solver_fnpf.h
-/Users/fk/Codefiles/REEF3D/src/wave_lib_hdc_allocate.cpp
-/Users/fk/Codefiles/REEF3D/src/particle_allocate.cpp
 /Users/fk/Codefiles/REEF3D/src/flowfile_in_ipol.cpp
 /Users/fk/Codefiles/REEF3D/src/particle_seed.cpp
 /Users/fk/Codefiles/REEF3D/src/particle_initialize.cpp
@@ -661,6 +656,11 @@
 /Users/fk/Codefiles/REEF3D/src/ptf_RK4.cpp
 /Users/fk/Codefiles/REEF3D/src/ptf_v.cpp
 /Users/fk/Codefiles/REEF3D/src/ptf_fsfbc.cpp
+/Users/fk/Codefiles/REEF3D/src/ptf_fsfbc_damping.cpp
+/Users/fk/Codefiles/REEF3D/src/solver_fnpf.h
+/Users/fk/Codefiles/REEF3D/src/wave_lib_hdc_allocate.cpp
+/Users/fk/Codefiles/REEF3D/src/particle_allocate.cpp
+/Users/fk/Codefiles/REEF3D/src/ptf_fsfbc_wetdry.cpp
 /Users/fk/Codefiles/REEF3D/src/ptf_bed_update.cpp
 /Users/fk/Codefiles/REEF3D/src/ptf_fsf_update.cpp
 /Users/fk/Codefiles/REEF3D/src/sediment_wenoflux.cpp
@@ -994,6 +994,7 @@
 /Users/fk/Codefiles/REEF3D/src/sflow_print_probe_da.h
 /Users/fk/Codefiles/REEF3D/src/sflow_rheology_f.cpp
 /Users/fk/Codefiles/REEF3D/src/gradient_momdx.cpp
+/Users/fk/Codefiles/REEF3D/src/ptf_coastline.h
 /Users/fk/Codefiles/REEF3D/src/vrans_v.cpp
 /Users/fk/Codefiles/REEF3D/src/fluid_update_fsf_comp.cpp
 /Users/fk/Codefiles/REEF3D/src/kepsilon_IM2.cpp
@@ -1303,6 +1304,8 @@
 /Users/fk/Codefiles/REEF3D/src/gc_dgcpol2.cpp
 /Users/fk/Codefiles/REEF3D/src/fnpf_vtp_bed_pvtp.cpp
 /Users/fk/Codefiles/REEF3D/src/gc_patchBC.cpp
+/Users/fk/Codefiles/REEF3D/src/nhflow_ikomega.h
+/Users/fk/Codefiles/REEF3D/src/potential_f.h
 /Users/fk/Codefiles/REEF3D/src/sediment_cds.cpp
 /Users/fk/Codefiles/REEF3D/src/ggccart.h
 /Users/fk/Codefiles/REEF3D/src/iowave_dirichlet-wavegen.cpp
@@ -1533,6 +1536,8 @@
 /Users/fk/Codefiles/REEF3D/src/fnpf_breaking_log.cpp
 /Users/fk/Codefiles/REEF3D/src/sflow_f_logic.cpp
 /Users/fk/Codefiles/REEF3D/src/diff_void.cpp
+/Users/fk/Codefiles/REEF3D/src/nhflow_rans_io.h
+/Users/fk/Codefiles/REEF3D/src/6DOF_precalc_box.cpp
 /Users/fk/Codefiles/REEF3D/src/ddweno_f_nug.cpp
 /Users/fk/Codefiles/REEF3D/src/read_grid.cpp
 /Users/fk/Codefiles/REEF3D/src/vec.cpp
@@ -1549,7 +1554,6 @@
 /Users/fk/Codefiles/REEF3D/src/vrans_net.h
 /Users/fk/Codefiles/REEF3D/src/field5.h
 /Users/fk/Codefiles/REEF3D/src/iweno3_hj.cpp
-/Users/fk/Codefiles/REEF3D/src/nhflow_komega_void.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_momentum.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_sigma.h
 /Users/fk/Codefiles/REEF3D/src/print_wsfline_y.h
@@ -1666,6 +1670,7 @@
 /Users/fk/Codefiles/REEF3D/src/sflow_eta_disc.h
 /Users/fk/Codefiles/REEF3D/src/fnpf_state_write.cpp
 /Users/fk/Codefiles/REEF3D/src/hypre_struct.h
+/Users/fk/Codefiles/REEF3D/src/ptf_fsfbc_breaking.cpp
 /Users/fk/Codefiles/REEF3D/src/cpt.h
 /Users/fk/Codefiles/REEF3D/src/ini_hydrostatic.cpp
 /Users/fk/Codefiles/REEF3D/src/flux_HJ_CDS4.cpp
@@ -1987,6 +1992,7 @@
 /Users/fk/Codefiles/REEF3D/src/hypre_sstruct_fill7.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_vtp_bed.cpp
 /Users/fk/Codefiles/REEF3D/src/idiff2.h
+/Users/fk/Codefiles/REEF3D/src/ptf_fsfbc_coastline.cpp
 /Users/fk/Codefiles/REEF3D/src/hypre_struct2D_fill.cpp
 /Users/fk/Codefiles/REEF3D/src/les_io.cpp
 /Users/fk/Codefiles/REEF3D/src/iowave_nhflow_dirichlet-wavegen.cpp

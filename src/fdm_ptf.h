@@ -45,9 +45,12 @@ public:
     slice4 Fifsf;
     slice4 K;
     slice4 WL;
-    sliceint4 etaloc, breaking, breaklog;
+    sliceint4 etaloc, breaking, breaklog, wet_n;
+    slice4 coastline;
     slice4 vb;
+    slice4 test2D;
     double *Fi_,*Uin_,*Uout_,*U_,*V_,*W_;
+    double wd_criterion;
     
     matrix2D N;
     vec2D xvec,rvec;

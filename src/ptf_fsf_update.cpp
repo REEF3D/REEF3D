@@ -277,6 +277,7 @@ void ptf_fsf_update::velcalc(lexer *p, fdm_ptf *a, ghostcell *pgc, field &f)
             H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
             a->u(i,j,k) = H*(f(i+1,j,k)-f(i,j,k))/p->DXP[IP];
+            
         }
 
         VFLUIDLOOP
@@ -314,6 +315,16 @@ void ptf_fsf_update::velcalc(lexer *p, fdm_ptf *a, ghostcell *pgc, field &f)
 
             a->w(i,j,k) = H*(f(i,j,k+1)-f(i,j,k))/p->DZP[KP];
 
+        }
+        
+        LOOP
+        {
+                if(p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0)
+                {
+                    a->u(i,j,k)=0.0;
+                    a->v(i,j,k)=0.0;
+                    a->w(i,j,k)=0.0;
+                }
         }
     }
 

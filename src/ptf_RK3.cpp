@@ -86,14 +86,14 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
 // Step 1
     // fsf eta
     kfsfbc(p,a,pgc);
-    damping(p,a,pgc,a->eta,gcval_eta,1.0);
+    damping_wd(p,a,pgc,a->eta,gcval_eta,1.0);
 
     SLICELOOP4
 	erk1(i,j) = a->eta(i,j) + p->dt*a->K(i,j);
     
     // fsf Fi
     dfsfbc(p,a,pgc,a->eta);
-    damping(p,a,pgc,a->Fifsf,gcval_fifsf,1.0);
+    damping_wd(p,a,pgc,a->Fifsf,gcval_fifsf,1.0);
 
     SLICELOOP4
 	frk1(i,j) = a->Fifsf(i,j) + p->dt*a->K(i,j);
@@ -101,27 +101,31 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     // Set Boundary Conditions
     
     pwave->eta_relax(p,pgc,erk1);
+    wetdry(p,a,pgc,erk1,frk1);
     pgc->gcsl_start4(p,erk1,gcval_eta);
+    coastline_eta(p,a,pgc,erk1);
+    coastline_fi(p,a,pgc,frk1);
     pwave->fifsf_relax(p,pgc,frk1);
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     
    // pwave->fifsf_relax(p,pgc,frk1);
-    breaking(p, a, pgc, erk1, a->eta, frk1,1.0);
+    breaking_wd(p, a, pgc, erk1, a->eta, frk1,1.0);
     
     LOOP
         a->Fi_[IJK]=a->Fi(i,j,k)*1.0;
     pwave->inflow_ptf(p,a,pgc,a->Fi_,a->Uin_,frk1,erk1);
     LOOP
         a->Fi(i,j,k)=a->Fi_[IJK]*1.0;
+        
     pfsfupdate->fsfupdate(p,a,pgc,pwave,poneph,erk1);
     pfsfupdate->etaloc(p,a,pgc);
     pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi,erk1);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
-    
+    pgc->gcsl_start4(p,erk1,gcval_eta);
+    pgc->gcsl_start4(p,frk1,gcval_fifsf);
     // fsfdisc
     fsfdisc(p,a,pgc,erk1,frk1,a->Fi);
-    
     // solve Fi
    // pwave->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
@@ -137,8 +141,7 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
 
     // fsf eta
     kfsfbc(p,a,pgc);
-    damping(p,a,pgc,erk1,gcval_eta,0.25);
-    
+    damping_wd(p,a,pgc,erk1,gcval_eta,0.25);
     SLICELOOP4
 	erk2(i,j) = 0.75*a->eta(i,j) + 0.25*erk1(i,j) + 0.25*p->dt*a->K(i,j);
     
@@ -146,7 +149,7 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     
     // fsf Fi
     dfsfbc(p,a,pgc,erk1);
-    damping(p,a,pgc,frk1,gcval_fifsf,0.25);
+    damping_wd(p,a,pgc,frk1,gcval_fifsf,0.25);
     
     SLICELOOP4
 	frk2(i,j) = 0.75*a->Fifsf(i,j) + 0.25*frk1(i,j) + 0.25*p->dt*a->K(i,j);
@@ -155,11 +158,14 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     
     // Set Boundary Conditions
     pwave->eta_relax(p,pgc,erk2);
+    wetdry(p,a,pgc,erk2,frk2);
     pgc->gcsl_start4(p,erk2,gcval_eta);
+    coastline_eta(p,a,pgc,erk2);
+    coastline_fi(p,a,pgc,frk2);
     pwave->fifsf_relax(p,pgc,frk2);
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     
-    breaking(p, a, pgc, erk2, erk1, frk2, 0.25);
+    breaking_wd(p, a, pgc, erk2, erk1, frk2, 0.25);
     
     LOOP
         a->Fi_[IJK]=a->Fi(i,j,k)*1.0;
@@ -190,7 +196,7 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
   
     // fsf eta
     kfsfbc(p,a,pgc);
-    damping(p,a,pgc,erk2,gcval_eta,2.0/3.0);
+    damping_wd(p,a,pgc,erk2,gcval_eta,2.0/3.0);
     
     SLICELOOP4
 	a->eta(i,j) = (1.0/3.0)*a->eta(i,j) + (2.0/3.0)*erk2(i,j) + (2.0/3.0)*p->dt*a->K(i,j);
@@ -199,7 +205,7 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     
     // fsf Fi
     dfsfbc(p,a,pgc,erk2);
-    damping(p,a,pgc,frk2,gcval_fifsf,2.0/3.0);
+    damping_wd(p,a,pgc,frk2,gcval_fifsf,2.0/3.0);
     
     SLICELOOP4
 	a->Fifsf(i,j) = (1.0/3.0)*a->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*a->K(i,j);
@@ -208,11 +214,14 @@ void ptf_RK3::start(lexer *p, fdm_ptf *a, ghostcell *pgc, solver *psolv, convect
     
     // Set Boundary Conditions
     pwave->eta_relax(p,pgc,a->eta);
+    wetdry(p,a,pgc,a->eta,a->Fifsf);
     pgc->gcsl_start4(p,a->eta,gcval_eta);
+    coastline_eta(p,a,pgc,a->eta);
+    coastline_fi(p,a,pgc,a->Fifsf);
     pwave->fifsf_relax(p,pgc,a->Fifsf);
     pgc->gcsl_start4(p,a->Fifsf,gcval_fifsf);
     
-    breaking(p, a, pgc, a->eta, erk2,a->Fifsf,2.0/3.0);
+    breaking_wd(p, a, pgc, a->eta, erk2,a->Fifsf,2.0/3.0);
     
     LOOP
         a->Fi_[IJK]=a->Fi(i,j,k)*1.0;
@@ -260,6 +269,11 @@ void ptf_RK3::ini(lexer *p, fdm_ptf *a, ghostcell *pgc, iowave *pwave, reini *pr
     
     pbedupdate->waterdepth(p,a,pgc);
     
+    wetdry(p,a,pgc,a->eta,a->Fifsf);   // coastline ini
+
+    coastline_eta(p,a,pgc,a->eta);
+    coastline_fi(p,a,pgc,a->Fifsf);
+    
     // potential ini
     //pwave->fi_relax(p,pgc,a->Fi,a->phi);
   //  pwave->fifsf_relax(p,pgc,a->Fifsf);
@@ -281,4 +295,6 @@ void ptf_RK3::ini(lexer *p, fdm_ptf *a, ghostcell *pgc, iowave *pwave, reini *pr
 
 void ptf_RK3::inidisc(lexer *p, fdm_ptf *a, ghostcell *pgc)
 {	
+    
 }
+

@@ -20,32 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fdm_ptf.h"
+#include"ptf_coastline.h"
 #include"lexer.h"
+#include"fdm_ptf.h"
+#include"ghostcell.h"
+#include"slice.h"
+#include"sliceint.h"
 
-fdm_ptf::fdm_ptf(lexer *p):fdm(p),Fifsf(p),K(p),WL(p),etaloc(p),breaking(p),breaklog(p),vb(p),rvec(p),xvec(p),N(p),coastline(p),wet_n(p),test2D(p)
+ptf_coastline::ptf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
 {
-    
-	maxF=0.0;
-	maxG=0.0; 
-	maxH=0.0;
-    
-    p->Darray(U_,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(V_,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(W_,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fi_,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Uin_,p->imax*p->jmax*(p->kmax+2));
-    
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
-    
-    C4.allocate(p);
-    C4a.allocate(p);
-    C6.allocate(p);
+    time_preproc(p); 
 }
 
-fdm_ptf::~fdm_ptf()
+ptf_coastline::~ptf_coastline()
 {
-    
 }
+
+void ptf_coastline::start(lexer *p, fdm_ptf *a, ghostcell *pgc, slice &coastline, int *wet, sliceint &wet_n)
+{
+    if(p->count<=10)
+    {
+        SLICELOOP4
+        {
+            coastline(i,j)=1.0;
+            
+            if(p->wd - a->bed(i,j) < a->wd_criterion)
+            coastline(i,j)=-1.0;
+   
+        }
+        reini(p,pgc,coastline);
+    }
+}
+
+
+
+

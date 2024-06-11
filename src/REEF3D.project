@@ -66,6 +66,7 @@
           <File Name="ptf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="ptf_coastline.h"/>
           <File Name="ptf_timestep.h"/>
           <File Name="fdm_ptf.h"/>
         </VirtualDirectory>
@@ -1109,6 +1110,11 @@
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Coastline">
+            <File Name="ptf_coastline_reini.cpp"/>
+            <File Name="ptf_coastline_disc.cpp"/>
+            <File Name="ptf_coastline.cpp"/>
+          </VirtualDirectory>
           <File Name="ptf_timestep.cpp"/>
           <File Name="fdm_ptf.cpp"/>
         </VirtualDirectory>
@@ -1122,6 +1128,8 @@
           <File Name="ptf_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
+          <File Name="ptf_fsfbc_wetdry.cpp"/>
+          <File Name="ptf_fsfbc_coastline.cpp"/>
           <File Name="ptf_fsfbc_damping.cpp"/>
           <File Name="ptf_fsfbc_breaking.cpp"/>
           <File Name="ptf_fsfbc_fz.cpp"/>
