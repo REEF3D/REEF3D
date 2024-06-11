@@ -128,7 +128,7 @@ void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
         // }
         cout<<p->mpirank<<"|"<<output<<endl;
     }
-    PLAINLOOP
-    a->test(i,j,k)=a->u(i,j,k);
+    // PLAINLOOP
+    // a->test(i,j,k)=a->u(i,j,k);
     // a->test(i,j,k)=a->fbh1(i,j,k);
 }
