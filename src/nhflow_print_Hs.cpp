@@ -65,26 +65,28 @@ void nhflow_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
     if (wtime>stime) // Check we're past transients
     {
     T_sum  += p->dt; //DKAF
-    NumDT1 += 1;    //DKAF
+    NumDT1++;    //DKAF
     
     
     SLICELOOP4
+    WETDRY
     {
 	 // Here we do the wave-averaging NB: c->eta(i,j) is the FS
 	 // variance equation with etamean initially unknown
       
     ETAsum(i,j)      += eta(i,j)*p->dt;
-    ETAmean(i,j)      = ETAsum(i,j)/T_sum;
+    ETAmean(i,j)      = ETAsum(i,j)/(fabs(T_sum)>1.0e-10?T_sum:1.0e20);
     ETA2sum(i,j)     += eta(i,j)*eta(i,j);
     
-    //cout << "T_sum " << T_sum << " wtim " << wtime <<endl;
+    //cout <<" NumDT1 " << NumDT1 <<" T_sum " << T_sum << " wtim " << wtime<<endl;
     //cin.get();  
     
-    //if(T_sum>=T_INTV_mean)
-	  //{ 
-	    ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1));
-	    Hs(i,j)         = 4.0*sqrt(ETAvar(i,j));
-    //}
+    if(NumDT1>1)
+    { 
+	    ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1.0));
+        //cout<<ETAvar(i,j)<<endl;
+	    Hs(i,j)         = 4.0*sqrt(MAX(ETAvar(i,j),0.0));
+    }
 	  
     }
     

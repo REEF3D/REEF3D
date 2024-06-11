@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Dave Kelly
+Author: Dave Kelly, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_print_Hs.h"
@@ -68,6 +68,7 @@ void fnpf_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
     
     
     SLICELOOP4
+    WETDRY
     {
 	 // Here we do the wave-averaging NB: c->eta(i,j) is the FS
 	 // variance equation with etamean initially unknown
@@ -79,11 +80,11 @@ void fnpf_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
     //cout << "T_sum " << T_sum << " wtim " << wtime <<endl;
     //cin.get();  
     
-    //if(T_sum>=T_INTV_mean)
-	  //{ 
+    if(NumDT1>1)
+    { 
 	    ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1));
-	    Hs(i,j)         = 4.0*sqrt(ETAvar(i,j));
-    //}
+	    Hs(i,j)         = 4.0*sqrt(MAX(ETAvar(i,j),0.0));
+    }
 	  
     }
     
