@@ -145,13 +145,13 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
 		{
-        print_vtu(p,d,pgc);
+        print_vtk(p,d,pgc);
 		}
 
 		// Print out based on time
         if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
         {
-        print_vtu(p,d,pgc);
+        print_vtk(p,d,pgc);
 
         p->printtime+=p->P30;
         }
@@ -161,7 +161,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 		for(int qn=0; qn<p->P35; ++qn)
 		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 		{
-		print_vtu(p,d,pgc);
+		print_vtk(p,d,pgc);
 
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
@@ -245,14 +245,14 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 
 void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 {
-    print_vtu(p,d,pgc);
+    print_vtk(p,d,pgc);
     
     if(p->P180==1)
     pfsf->start(p,d,pgc);
     
 }
 
-void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtu3D::print_vtk(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
     /*
     - U, V, W
@@ -294,7 +294,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     //----------
 
     if(p->mpirank==0)
-    pvtu(p,pgc);
+    pvtk(p,pgc);
 
     name_iter(p,pgc);
 

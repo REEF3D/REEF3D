@@ -53,7 +53,7 @@ public:
 	virtual ~fnpf_vts3D();
 	virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
     virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
+    virtual void print_vtk(lexer*,fdm_fnpf*,ghostcell*);
     
 private:
     void pvts(lexer*,ghostcell*);

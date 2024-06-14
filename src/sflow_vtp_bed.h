@@ -44,7 +44,7 @@ public:
 private:
 	void print2D(lexer*,fdm2D*,ghostcell*,sediment*);
 	void etend(lexer*,fdm2D*,ghostcell*);
-	void pvtu(lexer*,fdm2D*,ghostcell*,sediment*);
+	void pvtp(lexer*,fdm2D*,ghostcell*,sediment*);
 	void name_iter(lexer*,fdm2D*,ghostcell*);
     void piecename(lexer*,fdm2D*,ghostcell*,int);
 	

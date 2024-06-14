@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"bedshear.h"
 
-void sediment_f::name_pvtu_bedload(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::name_pvtk_bedload(lexer *p, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"ST_qbe\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"ST_qb\"/>"<<endl;
@@ -35,7 +35,7 @@ void sediment_f::name_pvtu_bedload(lexer *p, ghostcell *pgc, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"ST_cb\"/>"<<endl;
 }
 
-void sediment_f::name_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::name_vtk_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"ST_qbe\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -59,7 +59,7 @@ void sediment_f::offset_vtp_bedload(lexer *p, ghostcell *pgc, ofstream &result, 
 	++n;
 }
 
-void sediment_f::offset_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::offset_vtk_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -169,7 +169,7 @@ void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
     
 }
 
-void sediment_f::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::name_pvtk_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
 {
     if(p->P79==1)
     {
@@ -190,7 +190,7 @@ void sediment_f::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
     }
 }
 
-void sediment_f::name_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::name_vtk_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     if(p->P79==1)
     {
@@ -225,7 +225,7 @@ void sediment_f::offset_vtp_bedshear(lexer *p, ghostcell *pgc, ofstream &result,
 	++n;
 }
 
-void sediment_f::offset_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::offset_vtk_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -563,7 +563,7 @@ void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void sediment_f::name_pvtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::name_pvtk_parameter1(lexer *p, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"ST_alpha\"/>"<<endl;
     
@@ -576,7 +576,7 @@ void sediment_f::name_pvtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result
     result<<"<PDataArray type=\"Float32\" Name=\"ST_phi\"/>"<<endl;
 }
 
-void sediment_f::name_vtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::name_vtk_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"ST_alpha\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -604,7 +604,7 @@ void sediment_f::offset_vtp_parameter1(lexer *p, ghostcell *pgc, ofstream &resul
 	++n;
 }
 
-void sediment_f::offset_vtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::offset_vtk_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -757,7 +757,7 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void sediment_f::name_pvtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::name_pvtk_parameter2(lexer *p, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"ST_dh\"/>"<<endl;
     
@@ -770,7 +770,7 @@ void sediment_f::name_pvtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result
     result<<"<PDataArray type=\"Float32\" Name=\"ST_slideflag\"/>"<<endl;
 }
 
-void sediment_f::name_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::name_vtk_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"ST_dh\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -798,7 +798,7 @@ void sediment_f::offset_vtp_parameter2(lexer *p, ghostcell *pgc, ofstream &resul
 	++n;
 }
 
-void sediment_f::offset_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_f::offset_vtk_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

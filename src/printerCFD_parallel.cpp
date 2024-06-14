@@ -64,24 +64,24 @@ void printerCFD::parallelData(fdm* a, lexer* p, ghostcell* pgc, turbulence *ptur
 		result<<"<PPointData>"<<endl;
 		result<<"\t<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
 		
-		pmean->name_pvtu(p,a,pgc,result);
+		pmean->name_pvtk(p,a,pgc,result);
 
 		result<<"	<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
 
-		pturb->name_pvtu(p,a,pgc,result);
+		pturb->name_pvtk(p,a,pgc,result);
 
 		result<<"\t<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
 		result<<"	<PDataArray type=\"Float32\" Name=\"phi\"/>"<<endl;
 
-		pheat->name_pvtu(p,a,pgc,result);
+		pheat->name_pvtk(p,a,pgc,result);
 		
-		pmp->name_vtu(p,a,pgc,result,offset,n);
+		pmp->name_pvtk(p,a,pgc,result);
 
-		pvort->name_pvtu(p,a,pgc,result);
+		pvort->name_pvtk(p,a,pgc,result);
 
-		pdata->name_pvtu(p,a,pgc,result);
+		pdata->name_pvtk(p,a,pgc,result);
 
-		pconc->name_pvtu(p,a,pgc,result);
+		pconc->name_pvtk(p,a,pgc,result);
 
 		if(p->P24==1 && p->F300==0)
 		result<<"	<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
@@ -104,16 +104,16 @@ void printerCFD::parallelData(fdm* a, lexer* p, ghostcell* pgc, turbulence *ptur
 		result<<"	<PDataArray type=\"Float32\" Name=\"topo\"/>"<<endl;
 		
 		if(p->P76==1)
-		psed->name_pvtu_bedload(p,pgc,result);
+		psed->name_pvtk_bedload(p,pgc,result);
 		
 		if(p->P77==1)
-		psed->name_pvtu_parameter1(p,pgc,result);
+		psed->name_pvtk_parameter1(p,pgc,result);
 
 		if(p->P78==1)
-		psed->name_pvtu_parameter2(p,pgc,result);
+		psed->name_pvtk_parameter2(p,pgc,result);
 
 		if(p->P79>=1)
-		psed->name_pvtu_bedshear(p,pgc,result);
+		psed->name_pvtk_bedshear(p,pgc,result);
 
 		if(p->P23==1)
 		result<<"	<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;

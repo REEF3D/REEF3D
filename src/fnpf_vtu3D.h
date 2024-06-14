@@ -53,10 +53,10 @@ public:
 	virtual ~fnpf_vtu3D();
 	virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
     virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
+    virtual void print_vtk(lexer*,fdm_fnpf*,ghostcell*);
     
 private:
-    void pvtu(lexer*,ghostcell*);
+    void pvtk(lexer*,ghostcell*);
     void name_iter(lexer*,ghostcell*);
     void name_time(lexer*,ghostcell*);
     void piecename(lexer*,ghostcell*, int);

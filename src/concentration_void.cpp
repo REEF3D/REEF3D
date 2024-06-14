@@ -61,15 +61,15 @@ void concentration_void::concentration_ini(lexer* p, fdm *a, ghostcell* pgc, con
 {
 }
 
-void concentration_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void concentration_void::name_pvtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 
-void concentration_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void concentration_void::name_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
-void concentration_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void concentration_void::offset_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 

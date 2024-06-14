@@ -42,9 +42,9 @@ public:
 
     virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_pvtk(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_vtk(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtk(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
 
 private:
     field4 omega1,omega2,omega3;

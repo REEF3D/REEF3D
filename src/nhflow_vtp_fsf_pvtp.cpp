@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 
-void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_fsf::pvtp(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {	
 	int num=0;
 

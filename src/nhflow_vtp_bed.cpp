@@ -54,7 +54,7 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {	
     
 	if(p->mpirank==0)
-    pvtu(p,d,pgc);
+    pvtp(p,d,pgc);
     
 	name_iter(p,d,pgc);
 	

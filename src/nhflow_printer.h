@@ -32,7 +32,7 @@ class nhflow_printer
 {
 public:
 	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*)=0;
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*)=0;
+    virtual void print_vtk(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*)=0;
 };
 

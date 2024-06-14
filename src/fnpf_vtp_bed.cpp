@@ -54,7 +54,7 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
     
 	if(p->mpirank==0)
-    pvtu(p,c,pgc);
+    pvtp(p,c,pgc);
     
 	name_iter(p,c,pgc);
 	

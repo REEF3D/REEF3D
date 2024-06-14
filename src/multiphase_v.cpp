@@ -107,17 +107,17 @@ void multiphase_v::ls2get(int,int,int,double)
 }
 
 
-void multiphase_v::name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)
+void multiphase_v::name_pvtk(lexer*, fdm*, ghostcell*,ofstream&)
 {
 	
 }
 
-void multiphase_v::name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
+void multiphase_v::name_vtk(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
 {
 	
 }
 
-void multiphase_v::offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
+void multiphase_v::offset_vtk(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
 {
 	
 }

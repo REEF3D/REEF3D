@@ -491,15 +491,15 @@ void lexer::ini_default()
     P16=0;          // int add timestamp to paraview files
 	P18=2;			// int option for phi print out
 	P20=-10;		// ith iteration file printed
-    P21=0;          // int time averaged vtu print out
+    P21=0;          // int time averaged vtk file print out
     P22=0.0;         // double start averging after transients
-	P23=0;			// int print test to vtu file
-    P24=0;			// int print density to vtu file
-    P25=0;			// int print solid to vtu file
-	P26=0;			// int print cbed and conc to vtu file
-	P27=0;			// int print topo to vtu file
-	P28=0;			// int print fb to vtu file
-	P29=0;			// int print walldist to vtu file
+	P23=0;			// int print test to vtk file
+    P24=0;			// int print density to vtk file
+    P25=0;			// int print solid to vtk file
+	P26=0;			// int print cbed and conc to vtk file
+	P27=0;			// int print topo to vtk file
+	P28=0;			// int print fb to vtk file
+	P29=0;			// int print walldist to vtk file
 	P30=-1.0;       // double time between file printout in seconds
 	P34=-1.0;       // double time between file printout in seconds for sediment
 	P35=0;        	// int print for interval
@@ -527,7 +527,7 @@ void lexer::ini_default()
     P64=0;			  // int print pressure probes
     P65=0;			  // int print velocity probes
 	P66=0;			  // int print velocity probes from wave theory
-    P71=0;           // int print viscosity to vtu
+    P71=0;           // int print viscosity to vtk file
     P72=0;           // int print vof function
     P73=0;           // int print hx and hy for sflow vtp
     P74=0;           
@@ -597,9 +597,9 @@ void lexer::ini_default()
     Q112_y=0.0;         // double ini particle y-dir
     Q113=0;             // int ini particle z-dir
     Q113_z=0.0;         // double ini particle z-dir
-    Q180=0;             // int print vtu
-    Q181=-10;           // int print vtu iter interval
-    Q182=-1.0;          // double print vtu time interval
+    Q180=0;             // int print vtk file
+    Q181=-10;           // int print vtk file iter interval
+    Q182=-1.0;          // double print vtk file time interval
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module

@@ -136,15 +136,15 @@ void nhflow_komega_void::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
 }
 
-void nhflow_komega_void::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_komega_void::name_pvtk(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
 {
 }
 
-void nhflow_komega_void::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_komega_void::name_vtk(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
-void nhflow_komega_void::offset_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_komega_void::offset_vtk(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 

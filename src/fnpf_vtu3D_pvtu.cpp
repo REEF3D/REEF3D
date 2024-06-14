@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void fnpf_vtu3D::pvtu(lexer *p, ghostcell* pgc)
+void fnpf_vtu3D::pvtk(lexer *p, ghostcell* pgc)
 {	
 	int num=0;
     

@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-void fnpf_vtp_bed::pvtu(lexer *p, fdm_fnpf *c, ghostcell* pgc)
+void fnpf_vtp_bed::pvtp(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 {	
 	int num=0;
 

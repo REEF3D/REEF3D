@@ -442,11 +442,11 @@ void printerCFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *
 
 void printerCFD::print_stop(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
-    print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+    print_vtk(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
     
 }
 
-void printerCFD::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printerCFD::print_vtk(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     if(p->P180==1)
 	pfsf->start(p,a,pgc);
@@ -524,14 +524,14 @@ void printerCFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat
         offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
         ++n;
         
-        pmean->offset_vtu(p,a,pgc,result,offset,n);
+        pmean->offset_vtk(p,a,pgc,result,offset,n);
 
         // scalars
             // pressure
             offset[n]=offset[n-1]+4*(p->pointnum)+4;
             ++n;
             // k and eps
-            pturb->offset_vtu(p,a,pgc,result,offset,n);
+            pturb->offset_vtk(p,a,pgc,result,offset,n);
             // eddyv
             offset[n]=offset[n-1]+4*(p->pointnum)+4;
             ++n;
@@ -539,15 +539,15 @@ void printerCFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat
             offset[n]=offset[n-1]+4*(p->pointnum)+4;
             ++n;
             // T
-            pheat->offset_vtu(p,a,pgc,result,offset,n);
+            pheat->offset_vtk(p,a,pgc,result,offset,n);
             // Multiphase
-            pmp->offset_vtu(p,a,pgc,result,offset,n);
+            pmp->offset_vtk(p,a,pgc,result,offset,n);
             // vorticity
-            pvort->offset_vtu(p,a,pgc,result,offset,n);
+            pvort->offset_vtk(p,a,pgc,result,offset,n);
             // data
-            pdata->offset_vtu(p,a,pgc,result,offset,n);
+            pdata->offset_vtk(p,a,pgc,result,offset,n);
             // concentration
-            pconc->offset_vtu(p,a,pgc,result,offset,n);
+            pconc->offset_vtk(p,a,pgc,result,offset,n);
             // rho
             if(p->P24==1 && p->F300==0)
             {
@@ -586,19 +586,19 @@ void printerCFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat
             }
             // sediment bedlaod
             if(p->P76==1)
-            psed->offset_vtu_bedload(p,pgc,result,offset,n);
+            psed->offset_vtk_bedload(p,pgc,result,offset,n);
 
             // sediment parameters 1
             if(p->P77==1)
-            psed->offset_vtu_parameter1(p,pgc,result,offset,n);
+            psed->offset_vtk_parameter1(p,pgc,result,offset,n);
 
             // sediment parameters 2
             if(p->P78==1)
-            psed->offset_vtu_parameter2(p,pgc,result,offset,n);
+            psed->offset_vtk_parameter2(p,pgc,result,offset,n);
 
             // bed shear stress
             if(p->P79>=1)
-            psed->offset_vtu_bedshear(p,pgc,result,offset,n);
+            psed->offset_vtk_bedshear(p,pgc,result,offset,n);
 
             // test
             if(p->P23==1)
@@ -646,27 +646,27 @@ void printerCFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat
         result<<"\t<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
         ++n;
         
-        pmean->name_vtu(p,a,pgc,result,offset,n);
+        pmean->name_vtk(p,a,pgc,result,offset,n);
 
         result<<"\t<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
         ++n;
 
-        pturb->name_vtu(p,a,pgc,result,offset,n);
+        pturb->name_vtk(p,a,pgc,result,offset,n);
 
         result<<"\t<DataArray type=\"Float32\" Name=\"eddyv\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
         ++n;
         result<<"\t<DataArray type=\"Float32\" Name=\"phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
         ++n;
 
-        pheat->name_vtu(p,a,pgc,result,offset,n);
+        pheat->name_vtk(p,a,pgc,result,offset,n);
         
-        pmp->name_vtu(p,a,pgc,result,offset,n);
+        pmp->name_vtk(p,a,pgc,result,offset,n);
 
-        pvort->name_vtu(p,a,pgc,result,offset,n);
+        pvort->name_vtk(p,a,pgc,result,offset,n);
 
-        pdata->name_vtu(p,a,pgc,result,offset,n);
+        pdata->name_vtk(p,a,pgc,result,offset,n);
 
-        pconc->name_vtu(p,a,pgc,result,offset,n);
+        pconc->name_vtk(p,a,pgc,result,offset,n);
 
         if(p->P24==1 && p->F300==0)
         {
@@ -705,16 +705,16 @@ void printerCFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat
         }
         
         if(p->P76==1)
-        psed->name_vtu_bedload(p,pgc,result,offset,n);
+        psed->name_vtk_bedload(p,pgc,result,offset,n);
         
         if(p->P77==1)
-        psed->name_vtu_parameter1(p,pgc,result,offset,n);
+        psed->name_vtk_parameter1(p,pgc,result,offset,n);
 
         if(p->P78==1)
-        psed->name_vtu_parameter2(p,pgc,result,offset,n);
+        psed->name_vtk_parameter2(p,pgc,result,offset,n);
 
         if(p->P79>=1)
-        psed->name_vtu_bedshear(p,pgc,result,offset,n);
+        psed->name_vtk_bedshear(p,pgc,result,offset,n);
 
         if(p->P23==1)
         {

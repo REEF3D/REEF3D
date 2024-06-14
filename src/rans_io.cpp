@@ -129,7 +129,7 @@ void rans_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)
 	pgc->start4(p,eps,30);
 }
 
-void rans_io::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void rans_io::name_pvtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>"<<endl;
 	
@@ -139,7 +139,7 @@ void rans_io::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>"<<endl;
 }
 
-void rans_io::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void rans_io::name_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"kin\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -150,7 +150,7 @@ void rans_io::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *
     ++n;
 }
 
-void rans_io::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void rans_io::offset_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

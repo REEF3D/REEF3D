@@ -84,14 +84,14 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void vorticity_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void vorticity_f::name_pvtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"vorticity x\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"vorticity y\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"vorticity z\"/>"<<endl;
 }
 
-void vorticity_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void vorticity_f::name_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"vorticity x\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -101,7 +101,7 @@ void vorticity_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, i
     ++n;
 }
 
-void vorticity_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void vorticity_f::offset_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

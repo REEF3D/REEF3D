@@ -51,11 +51,11 @@ public:
 	nhflow_vtu3D(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vtu3D();
 	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*);
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*);
+    virtual void print_vtk(lexer*,fdm_nhf*,ghostcell*);
     virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*);
     
 private:
-    void pvtu(lexer*,ghostcell*);
+    void pvtk(lexer*,ghostcell*);
     void name_iter(lexer*,ghostcell*);
     void name_time(lexer*,ghostcell*);
     void piecename(lexer*,ghostcell*, int);

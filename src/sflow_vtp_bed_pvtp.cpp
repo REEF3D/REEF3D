@@ -19,13 +19,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_vtp_bed.h"
+
+#include"sflow_vtp_bed.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment.h"
 
-void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
+void sflow_vtp_bed::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 {	
 	int num=0;
 
@@ -64,16 +65,16 @@ void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     
     if(p->P76==1)
-	psed->name_pvtu_bedload(p,pgc,result);
+	psed->name_pvtk_bedload(p,pgc,result);
     
     if(p->P77==1)
-	psed->name_pvtu_parameter1(p,pgc,result);
+	psed->name_pvtk_parameter1(p,pgc,result);
 
     if(p->P78==1)
-	psed->name_pvtu_parameter2(p,pgc,result);
+	psed->name_pvtk_parameter2(p,pgc,result);
 
 	if(p->P79>=1)
-	psed->name_pvtu_bedshear(p,pgc,result);
+	psed->name_pvtk_bedshear(p,pgc,result);
     
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;

@@ -88,11 +88,11 @@ void sediment_void::print_3D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
 {	
 }
 
-void sediment_void::name_pvtu_bedload(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_void::name_pvtk_bedload(lexer *p, ghostcell *pgc, ofstream &result)
 {
 }
 
-void sediment_void::name_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_vtk_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -100,7 +100,7 @@ void sediment_void::offset_vtp_bedload(lexer *p, ghostcell *pgc, ofstream &resul
 {
 }
 
-void sediment_void::offset_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::offset_vtk_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -112,11 +112,11 @@ void sediment_void::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result
 {	
 }
 
-void sediment_void::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_void::name_pvtk_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
 {
 }
 
-void sediment_void::name_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_vtk_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -124,7 +124,7 @@ void sediment_void::offset_vtp_bedshear(lexer *p, ghostcell *pgc, ofstream &resu
 {
 }
 
-void sediment_void::offset_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::offset_vtk_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -136,11 +136,11 @@ void sediment_void::print_3D_parameter1(lexer* p, ghostcell *pgc, ofstream &resu
 {	
 }
 
-void sediment_void::name_pvtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_void::name_pvtk_parameter1(lexer *p, ghostcell *pgc, ofstream &result)
 {
 }
 
-void sediment_void::name_vtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_vtk_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -148,7 +148,7 @@ void sediment_void::offset_vtp_parameter1(lexer *p, ghostcell *pgc, ofstream &re
 {
 }
 
-void sediment_void::offset_vtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::offset_vtk_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -160,11 +160,11 @@ void sediment_void::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &resu
 {	
 }
 
-void sediment_void::name_pvtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_void::name_pvtk_parameter2(lexer *p, ghostcell *pgc, ofstream &result)
 {
 }
 
-void sediment_void::name_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_vtk_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -172,7 +172,7 @@ void sediment_void::offset_vtp_parameter2(lexer *p, ghostcell *pgc, ofstream &re
 {
 }
 
-void sediment_void::offset_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::offset_vtk_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 

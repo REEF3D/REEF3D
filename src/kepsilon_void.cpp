@@ -137,15 +137,15 @@ void kepsilon_void::ini(lexer* p, fdm*a, ghostcell* pgc)
 {
 }
 
-void kepsilon_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void kepsilon_void::name_pvtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 
-void kepsilon_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void kepsilon_void::name_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
-void kepsilon_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void kepsilon_void::offset_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
