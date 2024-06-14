@@ -69,6 +69,9 @@ printerCFD::printerCFD(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 {
     switch (p->P10)
     {
+        case 0:
+            outputFormat = new vtk3D();
+            break;
         case 1: default:
             outputFormat = new vtu3D();
             break;

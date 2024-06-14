@@ -32,16 +32,16 @@ class ghostcell;
 class vtk3D
 {
     public:
-        virtual void folder(char*)=0;
-        virtual void offset(lexer*,int*,int&)=0;
-        virtual void structureWrite(lexer*, fdm*, std::ofstream&)=0;
+        virtual void folder(char*){};
+        virtual void offset(lexer*,int*,int&){};
+        virtual void structureWrite(lexer*, fdm*, std::ofstream&){};
         virtual void extent(lexer*,ghostcell*){};
-        virtual void fileName(char*, char*, int&, int&)=0;
-        virtual void parallelFileName(char*, char*, int&)=0;
-        virtual void beginning(lexer*, std::ofstream&)=0;
-        virtual void beginningParallel(lexer*, std::ofstream&)=0;
-        virtual void ending(std::ofstream&, int*, int&)=0;
-        virtual void endingParallel(std::ofstream&, char*, int&, int&)=0;
+        virtual void fileName(char*, char*, int&, int&){};
+        virtual void parallelFileName(char*, char*, int&){};
+        virtual void beginning(lexer*, std::ofstream&){};
+        virtual void beginningParallel(lexer*, std::ofstream&){};
+        virtual void ending(std::ofstream&, int*, int&){};
+        virtual void endingParallel(std::ofstream&, char*, int&, int&){};
     protected:
         void vtkVersion(std::ofstream &result){result<<"version=\"0.1\" byte_order=\"LittleEndian\">"<<std::endl;}; // header_type=\"UInt32\"
         void xmlVersion(std::ofstream &result){result<<"<?xml version=\"1.0\"?>"<<std::endl;};
