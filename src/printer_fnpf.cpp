@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_vts3D.h"
+#include"printer_fnpf.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -42,8 +42,21 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fnpf_vts3D::fnpf_vts3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
-{	
+printer_fnpf::printer_fnpf(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+{
+    switch (p->P10)
+    {
+        case 0: case 2:
+            outputFormat = new vtk3D();
+            break;
+        case 1: default:
+            outputFormat = new vtu3D();
+            break;
+        case 3:
+            outputFormat = new vts3D();
+            break;
+    }
+
     if(p->I40==0)
     {
 	p->printtime=0.0;
@@ -72,7 +85,7 @@ fnpf_vts3D::fnpf_vts3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 
 	// Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_FNPF_VTS",0777);
+	outputFormat->folder("FNPF");
 
 
     pwsf=new fnpf_print_wsf(p,c);
@@ -104,10 +117,15 @@ fnpf_vts3D::fnpf_vts3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     pbreaklog=new fnpf_breaking_log(p,c,pgc);
 	
 	if(p->P85>0)
+    {
 	pforce_ale = new force_ale*[p->P85];
-	
-	for(n=0;n<p->P85;++n)
+    
+    for(n=0;n<p->P85;++n)
 	pforce_ale[n]=new force_ale(p,c,pgc,n);
+    
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->ini(p,c,pgc);
+    }
     
     if(p->P110==1)
     phs = new fnpf_print_Hs(p,c->Hs);
@@ -117,20 +135,13 @@ fnpf_vts3D::fnpf_vts3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	
 	for(n=0;n<p->P140;++n)
 	prunup[n]=new fnpf_runup(p,c,pgc,n);
-    
-    if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
-    {
-    for(n=0;n<p->P85;++n)
-    pforce_ale[n]->ini(p,c,pgc);
-    }
-
 }
 
-fnpf_vts3D::~fnpf_vts3D()
+printer_fnpf::~printer_fnpf()
 {
 }
 
-void fnpf_vts3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
+void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 {
     // Gages
 	if(p->P51>0)
@@ -149,13 +160,13 @@ void fnpf_vts3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 	pveltheo->start(p,c,pgc,pflow);
 
     // Print out based on iteration
-    if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
+    if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
     {
     print_vtk(p,c,pgc);
     }
 
     // Print out based on time
-    if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==2) || (p->count==0 &&  p->P30>0.0))
+    if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0) || (p->count==0 &&  p->P30>0.0))
     {
     print_vtk(p,c,pgc);
 
@@ -163,7 +174,7 @@ void fnpf_vts3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     }
 
     // Print out based on time interval
-    if(p->P10==2 && p->P35>0)
+    if(p->P10==1 && p->P35>0)
     for(int qn=0; qn<p->P35; ++qn)
     if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
     {
@@ -205,7 +216,6 @@ void fnpf_vts3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     if(p->count==0)
     pbed->start(p,c,pgc,pflow);
 
-
     // Gages
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline->start(p,c,pgc,pflow,c->eta);
@@ -245,7 +255,7 @@ void fnpf_vts3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     prunup[n]->start(p,c,pgc);
 }
 
-void fnpf_vts3D::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
     if(p->P180==1)
     pfsf->start(p,c,pgc);
@@ -253,18 +263,18 @@ void fnpf_vts3D::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     print_vtk(p,c,pgc);
 }
 
-void fnpf_vts3D::print_vtk(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+void printer_fnpf::print_vtk(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
     SLICELOOP4
     {
-    if(c->breaking(i,j)==1)
-    c->breaking_print(i,j)=1.0;
+        if(c->breaking(i,j)==1)
+        c->breaking_print(i,j)=1.0;
 
-    if(c->breaking(i,j)==0)
-    c->breaking_print(i,j)=0.0;
+        if(c->breaking(i,j)==0)
+        c->breaking_print(i,j)=0.0;
     }
 
-     //
+    //
     pgc->start7V(p,c->Fi,c->bc,250);
     pgc->gcsl_start4(p,c->WL,50);
     pgc->gcsl_start4(p,c->bed,50);
@@ -286,264 +296,222 @@ void fnpf_vts3D::print_vtk(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
     //----------
 
-    fextent(p);
-
-    if ( p->mpirank == 0)
-    piextent = (int *)malloc(p->mpi_size*6*sizeof(int)); 
-    pgc->gather_int(iextent,6,piextent,6);
-
+    outputFormat->extent(p,pgc);
     if(p->mpirank==0)
-    pvts(p,pgc);
+    parallelData(p,pgc);
 
-    name_iter(p,pgc);
+    int num=0;
+    if(p->P15==1)
+    num = printcount;
+    if(p->P15==2)
+    num = p->count;
+    int rank = p->mpirank+1;
+    outputFormat->fileName(name,"FNPF",num,rank);
 
 	// Open File
 	ofstream result;
 	result.open(name, ios::binary);
-
-    n=0;
-
-	offset[n]=0;
-	++n;
-
-	// velocity
-	offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
-	++n;
-
-	// scalars
-
-    // Fi
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-
-    // elevation
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-    
-    // test
-    if(p->P23==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    
-    // Hs
-    if(p->P110==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    
-    // solid
-    if(p->P25==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-
-	// Points
-    offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
-    ++n;
-
-	//---------------------------------------------
-
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"StructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt32\">"<<endl;
-	result<<"<StructuredGrid WholeExtent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">"<<endl;
-	result<<"    <Piece Extent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">"<<endl;
-    
-    if(p->P16==1)
+    if(result.is_open())
     {
-    result<<"    <FieldData>"<<endl;
-    result<<"        <DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"        </DataArray>"<<endl;
-    result<<"    </FieldData>"<<endl;
-    }
+        n=0;
 
-    n=0;
-    result<<"    <PointData >"<<endl;
-    result<<"        <DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
+        offset[n]=0;
+        ++n;
 
+        // velocity
+        offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
+        ++n;
 
-    if(p->A10==3)
-	{
-    result<<"        <DataArray type=\"Float32\" Name=\"Fi\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
+        // scalars
 
-    result<<"        <DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    
-    if(p->P23==1)
-	{
-    result<<"        <DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-    
-    if(p->P110==1)
-	{
-    result<<"        <DataArray type=\"Float32\" Name=\"Hs\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
+        // Fi
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
 
-    if(p->P25==1)
-	{
-	result<<"        <DataArray type=\"Float32\" Name=\"solid\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-	result<<"    </PointData>"<<endl;
-
-    result<<"    <Points>"<<endl;
-	result<<"        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
-	n++;
-	result<<"    </Points>"<<endl;
-	result<<"    </Piece>"<<endl;
-	result<<"</StructuredGrid>"<<endl;
-
-//----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
-
-
-//  Velocities
-    iin=3*4*(p->pointnum);
-	result.write((char*)&iin, sizeof (int));
-    TPLOOP
-	{
-	ffn=float(c->U[FIJKp1]);
-
-    if(k==-1 && j==-1)
-	ffn=float(c->U[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-
-
-	ffn=float(c->V[FIJKp1]);
-
-    if(k==-1 && j==-1)
-	ffn=float(c->V[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-
-
-	ffn=float(c->W[FIJKp1]);
-
-    if(k==-1 && j==-1)
-	ffn=float(c->W[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-
-//  Fi
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-    if(p->j_dir==1)
-	TPLOOP
-	{
-    ffn=float(c->Fi[FIJKp1]);
-
-    if(k==-1 && j==-1)
-	ffn=float(c->Fi[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-    if(p->j_dir==0)
-	TPLOOP
-	{
-    if(j==-1)
-    ffn=float(c->Fi[FIJp1Kp1]);
-    
-    if(j==0)
-    ffn=float(c->Fi[FIJKp1]);
-
-    if(k==-1 && j==-1)
-	ffn=float(c->Fi[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  elevation
-	iin=4*(p->pointnum)*3;
-	result.write((char*)&iin, sizeof (int));
-    TPLOOP
-	{
-	ffn=float(p->ZN[KP1]*c->WL(i,j) + c->bed(i,j));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  test
-    if(p->P23==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(c->test));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-    
-//  Hs
-    if(p->P110==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->sl_ipol4(c->Hs));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-//  solid
-	if(p->P25==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(1.0);
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-//  XYZ
-	iin=4*(p->pointnum)*3;
-	result.write((char*)&iin, sizeof (int));
-
-    double theta_y = p->B192_1*(PI/180.0);
-	double omega_y = 2.0*PI*p->B192_2;
-    double waterlevel;
-
-    if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
-    phase = omega_y*p->simtime;
-
-    TPLOOP
-	{
-        waterlevel = p->sl_ipol4eta(p->wet,c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
-
-        zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(c->bed);
-
-        if(p->wet[IJ]==0)
-        zcoor=c->bed(i,j);
-
-        if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
-        zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j);
-
+        // elevation
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
         
+        // test
+        if(p->P23==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+        
+        // Hs
+        if(p->P110==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+        
+        // solid
+        if(p->P25==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+        // end scalars
+        outputFormat->offset(p,offset,n);
+        //---------------------------------------------
 
-        ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
+        outputFormat->beginning(p,result);
+        
+        if(p->P16==1)
+        {
+        result<<"<FieldData>"<<endl;
+        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+        result<<"</DataArray>"<<endl;
+        result<<"</FieldData>"<<endl;
+        }
+
+        n=0;
+        result<<"<PointData >"<<endl;
+        result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+
+
+        if(p->A10==3)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"Fi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+        result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        
+        if(p->P23==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+        
+        if(p->P110==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+        if(p->P25==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+        result<<"</PointData>"<<endl;
+
+
+        outputFormat->ending(result,offset,n);
+
+        //----------------------------------------------------------------------------
+        result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+
+
+        //  Velocities
+        iin=3*4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(c->U[FIJKp1]);
+
+        if(k==-1 && j==-1)
+        ffn=float(c->U[FIJp1Kp1]);
         result.write((char*)&ffn, sizeof (float));
 
-        ffn=float(p->YN[JP1]);
+
+        ffn=float(c->V[FIJKp1]);
+
+        if(k==-1 && j==-1)
+        ffn=float(c->V[FIJp1Kp1]);
         result.write((char*)&ffn, sizeof (float));
 
-        ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
+
+        ffn=float(c->W[FIJKp1]);
+
+        if(k==-1 && j==-1)
+        ffn=float(c->W[FIJp1Kp1]);
         result.write((char*)&ffn, sizeof (float));
-	}
+        }
 
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
 
-	result.close();
+        //  Fi
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        if(p->j_dir==1)
+        TPLOOP
+        {
+        ffn=float(c->Fi[FIJKp1]);
 
-	++printcount;
+        if(k==-1 && j==-1)
+        ffn=float(c->Fi[FIJp1Kp1]);
+        result.write((char*)&ffn, sizeof (float));
+        }
+        
+        if(p->j_dir==0)
+        TPLOOP
+        {
+        if(j==-1)
+        ffn=float(c->Fi[FIJp1Kp1]);
+        
+        if(j==0)
+        ffn=float(c->Fi[FIJKp1]);
 
+        if(k==-1 && j==-1)
+        ffn=float(c->Fi[FIJp1Kp1]);
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+        //  elevation
+        iin=4*(p->pointnum)*3;
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ZN[KP1]*c->WL(i,j) + c->bed(i,j));
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+        //  test
+        if(p->P23==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4_a(c->test));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+        
+        //  Hs
+        if(p->P110==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->sl_ipol4(c->Hs));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+
+        //  solid
+        if(p->P25==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(1.0);
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+
+        outputFormat->structureWrite(p,c,result);
+
+        result.close();
+
+        ++printcount;
+    }
+    else
+    cout<<"Failed to open output file."<<endl;
 }

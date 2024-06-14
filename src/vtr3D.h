@@ -26,10 +26,6 @@ Author: Hans Bihs
 #include "vtk3D.h"
 #include "increment.h"
 
-class lexer;
-class fdm;
-class ghostcell;
-
 class vtr3D : public vtk3D , increment
 {
     public:

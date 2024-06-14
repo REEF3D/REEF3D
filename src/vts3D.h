@@ -26,9 +26,6 @@ Author: Hans Bihs
 #include "vtk3D.h"
 #include "increment.h"
 
-class lexer;
-class fdm;
-class ghostcell;
 
 class vts3D : public vtk3D , increment
 {
@@ -39,6 +36,7 @@ class vts3D : public vtk3D , increment
         void folder(char*);
         void offset(lexer*, int*, int&);
         void structureWrite(lexer*, fdm*, std::ofstream&);
+        void structureWrite(lexer*, fdm_fnpf*, std::ofstream&);
         void extent(lexer* ,ghostcell*);
         
         void beginning(lexer*, std::ofstream&);

@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include "vts3D.h"
 #include "lexer.h"
 #include "fdm.h"
+#include "fdm_fnpf.h"
 #include "ghostcell.h"
 #include <sys/stat.h>
 
@@ -128,6 +129,52 @@ void vts3D::structureWrite(lexer *p, fdm *a, std::ofstream &result)
 
 	ffn=float(p->ZN[KP]);
 	result.write((char*)&ffn, sizeof (float));
+	}
+
+	result<<endl<<"</AppendedData>"<<endl;
+    result<<"</VTKFile>"<<flush;
+}
+
+void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::ofstream &result)
+{
+	float ffn;
+	int iin;
+	double phase;
+	double zcoor;
+
+	//  XYZ
+	iin=4*(p->pointnum)*3;
+	result.write((char*)&iin, sizeof (int));
+
+    double theta_y = p->B192_1*(PI/180.0);
+	double omega_y = 2.0*PI*p->B192_2;
+    double waterlevel;
+
+    if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
+    phase = omega_y*p->simtime;
+
+    TPLOOP
+	{
+        waterlevel = p->sl_ipol4eta(p->wet,c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
+
+        zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(c->bed);
+
+        if(p->wet[IJ]==0)
+        zcoor=c->bed(i,j);
+
+        if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
+        zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j);
+
+        
+
+        ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
+        result.write((char*)&ffn, sizeof (float));
+
+        ffn=float(p->YN[JP1]);
+        result.write((char*)&ffn, sizeof (float));
+
+        ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
+        result.write((char*)&ffn, sizeof (float));
 	}
 
 	result<<endl<<"</AppendedData>"<<endl;
