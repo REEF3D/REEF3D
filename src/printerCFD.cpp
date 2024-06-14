@@ -83,29 +83,29 @@ printerCFD::printerCFD(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
             break;
     }
 
-    if(p->F50==1)
-	gcval_phi=51;
+    // if(p->F50==1)
+	// gcval_phi=51;
 
-	if(p->F50==2)
-	gcval_phi=52;
+	// if(p->F50==2)
+	// gcval_phi=52;
 
-	if(p->F50==3)
-	gcval_phi=53;
+	// if(p->F50==3)
+	// gcval_phi=53;
 
-	if(p->F50==4)
-	gcval_phi=54;
+	// if(p->F50==4)
+	// gcval_phi=54;
 
-	if(p->F50==1)
-	gcval_phiext=61;
+	// if(p->F50==1)
+	// gcval_phiext=61;
 
-	if(p->F50==2)
-	gcval_phiext=62;
+	// if(p->F50==2)
+	// gcval_phiext=62;
 
-	if(p->F50==3)
-	gcval_phiext=63;
+	// if(p->F50==3)
+	// gcval_phiext=63;
 
-	if(p->F50==4)
-	gcval_phiext=64;
+	// if(p->F50==4)
+	// gcval_phiext=64;
 
     if(p->I40==0)
     {
@@ -118,7 +118,7 @@ printerCFD::printerCFD(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     }
 
 	p->Darray(printtime_wT,p->P35);
-    p->Iarray(printfsfiter_wI,p->P184);
+    // p->Iarray(printfsfiter_wI,p->P184);
     p->Darray(printfsftime_wT,p->P185);
 
 	for(int qn=0; qn<p->P35; ++qn)
@@ -127,8 +127,8 @@ printerCFD::printerCFD(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
     for(int qn=0; qn<p->P185; ++qn)
 	printfsftime_wT[qn]=p->P185_ts[qn];
 
-    for(int qn=0; qn<p->P184; ++qn)
-	printfsfiter_wI[qn]=p->P184_its[qn];
+    // for(int qn=0; qn<p->P184; ++qn)
+	// printfsfiter_wI[qn]=p->P184_its[qn];
 
 	pwsf=new print_wsf(p,a,pgc,0);
 	pwsf_theory=new print_wsf_theory(p,a,pgc,0);
@@ -165,7 +165,10 @@ printerCFD::printerCFD(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pvort = new vorticity_f(p,a);
 
     if(p->P81>0)
-	pforce = new force*[p->P81];
+    {
+        P81 = p->P81;
+	    pforce = new force*[P81];
+    }
 
 	if(p->P121>0)
 	pbedpt = new bedprobe_point(p,a,pgc);
@@ -206,8 +209,6 @@ printerCFD::printerCFD(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 
 	p->printcount=0;
 
-    phase=0.0;
-
 	// Create Folder
 	if(p->mpirank==0)
     {
@@ -217,10 +218,40 @@ printerCFD::printerCFD(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 
 printerCFD::~printerCFD()
 {
-}
+    delete pwsf;
+	delete pwsf_theory;
+    delete pwsfline_x;
+	delete pwsfline_y;
+    for (int n=0; n<P81; ++n)
+    {
+        delete pforce[n];
+    }
+    delete pforce;
+    delete pforce;
+    delete pvort;
+	delete pprobe;
+    delete ppressprobe;
+	delete pline;
+	delete pbedpt;
+	delete pbedlinex;
+	delete pbedliney;
+	delete pbedmax;
+	delete pbedshear;
+	delete pbedshearmax;
+	delete pq;
+    delete pqw;
+	delete pfsf;
+    delete ptopo;
+	delete pstate;
+    delete pslosh;
+	delete ppor;
+    delete pexport;
+    delete pflowfile;
+    delete pmean;
+    delete pvel;
+    delete pveltheo;
 
-void printerCFD::ini(lexer* p, fdm* a, ghostcell* pgc)
-{
+    delete outputFormat;
 }
 
 void printerCFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)

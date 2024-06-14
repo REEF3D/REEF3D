@@ -138,18 +138,3 @@ void printerCFD::parallelData(fdm* a, lexer* p, ghostcell* pgc, turbulence *ptur
 	else
 	cout<<"Failed to open output file."<<endl;
 }
-
-void printerCFD::piecename(fdm* a, lexer* p, ghostcell* pgc, int n)
-{
-    int num=0;
-
-
-    if(p->P15==1)
-    num = p->printcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-	sprintf(pname,"REEF3D-CFD-%08i-%06i.vtu",num,n+1);
-
-}

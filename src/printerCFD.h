@@ -75,25 +75,18 @@ public:
 	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
     virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
     virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-	virtual void ini(lexer*,fdm*,ghostcell*);
 
 private:
     void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,multiphase*,sediment*);
     void parallelData(fdm*,lexer*,ghostcell*,turbulence*,heat*,data*,concentration*,multiphase*,sediment*);
-    void header(fdm*,lexer*,ghostcell*);
-    void name_iter(fdm*,lexer*,ghostcell*);
-    void name_time(fdm*,lexer*,ghostcell*);
-    void piecename(fdm*,lexer*,ghostcell*, int);
 
-    char name[200],pname[200],epsvar[200];
+    char name[200];
     int n,iin,offset[300];
     float ffn;
-    int gcval_phi,gcval_phiext;
+    // int gcval_phi,gcval_phiext;
 	double *printtime_wT;
     double *printfsftime_wT;
-    int *printfsfiter_wI;
-    double phase;
-    double zcoor;
+    // int *printfsfiter_wI;
 	
 	field5 eta;
 
@@ -102,6 +95,7 @@ private:
     print_wsfline_x *pwsfline_x;
 	print_wsfline_y *pwsfline_y;
     force **pforce;
+    int P81;
     vorticity *pvort;
 	probe_point *pprobe;
     probe_pressure *ppressprobe;
