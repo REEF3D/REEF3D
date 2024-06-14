@@ -44,7 +44,7 @@ void printerCFD::parallelData(fdm* a, lexer* p, ghostcell* pgc, turbulence *ptur
     if(p->P15==2)
     num = p->count;
 
-	outputFormat->parallelFileName(name, num);
+	outputFormat->parallelFileName(name, "CFD", num);
 
 	ofstream result;
 	result.open(name);
@@ -131,7 +131,7 @@ void printerCFD::parallelData(fdm* a, lexer* p, ghostcell* pgc, turbulence *ptur
 
 		result<<"</PPointData>"<<endl;
 
-		outputFormat->endingParallel(result,p->M10,num);
+		outputFormat->endingParallel(result,"CFD",p->M10,num);
 
 		result.close();
 	}

@@ -68,17 +68,17 @@ Author: Hans Bihs
 printerCFD::printerCFD(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 {
     switch (p->P10)
-        {
-            case 1: default:
-                outputFormat = new vtu3D();
-                break;
-            case 2:
-                outputFormat = new vtr3D();
-                break;
-            case 3:
-                outputFormat = new vts3D();
-                break;
-        }
+    {
+        case 1: default:
+            outputFormat = new vtu3D();
+            break;
+        case 2:
+            outputFormat = new vtr3D();
+            break;
+        case 3:
+            outputFormat = new vts3D();
+            break;
+    }
 
     if(p->F50==1)
 	gcval_phi=51;
@@ -208,7 +208,7 @@ printerCFD::printerCFD(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	// Create Folder
 	if(p->mpirank==0)
     {
-        outputFormat->folder();
+        outputFormat->folder("CFD");
     }
 }
 
@@ -474,7 +474,7 @@ void printerCFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat
     if(p->P15==2)
     num = p->count;
     int rank = p->mpirank+1;
-    outputFormat->fileName(name,num,rank);
+    outputFormat->fileName(name,"CFD",num,rank);
 
 	// Open File
 	ofstream result;

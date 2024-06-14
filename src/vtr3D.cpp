@@ -34,9 +34,10 @@ vtr3D::~vtr3D()
 {
 }
 
-void vtr3D::folder()
+void vtr3D::folder(char* A10)
 {
-	mkdir("./REEF3D_CFD_VTR",0777);
+	sprintf(pname,"./REEF3D_%s_VTR", A10);
+	mkdir(pname,0777);
 }
 
 void vtr3D::offset(lexer *p, int *offset, int &n)
@@ -83,7 +84,7 @@ void vtr3D::ending(std::ofstream &result, int *offset, int &n)
 	result<<"</RectilinearGrid>"<<endl;
 }
 
-void vtr3D::endingParallel(std::ofstream &result, int &M10, int &num)
+void vtr3D::endingParallel(std::ofstream &result, char *A10, int &M10, int &num)
 {
 	result<<"<PCoordinates>"<<endl;
     result<<"\t<PDataArray type=\"Float32\" Name=\"X\" format=\"appended\"/>"<<endl;
@@ -93,7 +94,7 @@ void vtr3D::endingParallel(std::ofstream &result, int &M10, int &num)
 
 	for(int n=0; n<M10; ++n)
 	{
-		sprintf(pname,"REEF3D-CFD-%08i-%06i.vtr",num,n+1);
+		sprintf(pname,"REEF3D-%s-%08i-%06i.vtr",A10,num,n+1);
 		sprintf(pextent,"%i %i %i %i %i %i",piextent[0+6*n],piextent[1+6*n],piextent[2+6*n],piextent[3+6*n],piextent[4+6*n],piextent[5+6*n]);
 		result<<"<Piece Extent=\""<<pextent<<"\" Source=\""<<pname<<"\"/>"<<endl;
 	}

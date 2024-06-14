@@ -34,9 +34,10 @@ vts3D::~vts3D()
 {
 }
 
-void vts3D::folder()
+void vts3D::folder(char *A10)
 {
-	mkdir("./REEF3D_CFD_VTS",0777);
+	sprintf(pname,"./REEF3D_%s_VTS", A10);
+	mkdir(pname,0777);
 }
 
 void vts3D::offset(lexer *p, int *offset, int &n)
@@ -73,7 +74,7 @@ void vts3D::ending(std::ofstream &result, int *offset, int &n)
 	result<<"</StructuredGrid>"<<endl;
 }
 
-void vts3D::endingParallel(std::ofstream &result, int &M10, int &num)
+void vts3D::endingParallel(std::ofstream &result, char *A10, int &M10, int &num)
 {
 	result<<"<PPoints>"<<endl;
 	result<<"\t<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
@@ -81,7 +82,7 @@ void vts3D::endingParallel(std::ofstream &result, int &M10, int &num)
 
 	for(int n=0; n<M10; ++n)
 	{
-		sprintf(pname,"REEF3D-CFD-%08i-%06i.vts",num,n+1);
+		sprintf(pname,"REEF3D-%s-%08i-%06i.vts",A10,num,n+1);
 		sprintf(pextent,"%i %i %i %i %i %i",piextent[0+6*n],piextent[1+6*n],piextent[2+6*n],piextent[3+6*n],piextent[4+6*n],piextent[5+6*n]);
 		result<<"<Piece Extent=\""<<pextent<<"\" Source=\""<<pname<<"\"/>"<<endl;
 	}

@@ -33,9 +33,11 @@ vtu3D::~vtu3D()
 {
 }
 
-void vtu3D::folder()
+void vtu3D::folder(char *A10)
 {
-	mkdir("./REEF3D_CFD_VTU",0777);
+	char name[30];
+	sprintf(name,"./REEF3D_%s_VTU", A10);
+	mkdir(name,0777);
 }
 
 void vtu3D::offset(lexer *p, int *offset, int &n)
@@ -90,7 +92,7 @@ void vtu3D::ending(std::ofstream &result, int *offset, int &n)
     result<<"</UnstructuredGrid>"<<endl;
 }
 
-void vtu3D::endingParallel(std::ofstream &result, int &M10, int &num)
+void vtu3D::endingParallel(std::ofstream &result, char *A10, int &M10, int &num)
 {
 	result<<"<PPoints>"<<endl;
 	result<<"\t<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
@@ -105,7 +107,7 @@ void vtu3D::endingParallel(std::ofstream &result, int &M10, int &num)
 	char pname[30];
 	for(int n=0; n<M10; ++n)
 	{
-	sprintf(pname,"REEF3D-CFD-%08i-%06i.vtu",num,n+1);
+	sprintf(pname,"REEF3D-%s-%08i-%06i.vtu",A10,num,n+1);
 	result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
 	}
 

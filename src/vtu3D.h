@@ -35,16 +35,16 @@ class vtu3D : public vtk3D , increment
         vtu3D();
         ~vtu3D();
     public:
-        void folder();
+        void folder(char*);
         void offset(lexer*, int*, int&);
         void structureWrite(lexer*, fdm*, std::ofstream&);
 
         void beginning(lexer*, std::ofstream&);
         void beginningParallel(lexer*, std::ofstream&);
         void ending(std::ofstream&, int*, int&);
-        void endingParallel(std::ofstream&, int&, int&);
-        void fileName(char *name, int &num, int &rank){sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-%08i-%06i.vtu",num,rank);};
-        void parallelFileName(char *name, int &num){sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-%08i.pvtu",num);};
+        void endingParallel(std::ofstream&, char*, int&, int&);
+        void fileName(char *name, char *A10, int &num, int &rank){sprintf(name,"./REEF3D_%s_VTU/REEF3D-%s-%08i-%06i.vtu",A10,A10,num,rank);};
+        void parallelFileName(char *name, char *A10, int &num){sprintf(name,"./REEF3D_%s_VTU/REEF3D-%s-%08i.pvtu",A10,A10,num);};
 };
 
 #endif
