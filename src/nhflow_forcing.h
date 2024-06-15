@@ -25,6 +25,7 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 class ghostcell;
+class slice;
 class nhflow_reinidisc_fsf;
 #include<vector>
 
@@ -39,9 +40,11 @@ public:
 	nhflow_forcing(lexer*);
 	virtual ~nhflow_forcing();
     
-    void forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*);
+    void forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
 
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
+    
+    double Hsolidface(lexer*, fdm_nhf*, int, int, int);
     
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
     void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
@@ -84,7 +87,11 @@ private:
     
     nhflow_reinidisc_fsf *prdisc;
 
-
+    
+    double H,Ht, uf, vf, wf;
+	double nx, ny, nz,norm ;
+	double psi, phival_sf;
+    double dirac;
  
 };
 

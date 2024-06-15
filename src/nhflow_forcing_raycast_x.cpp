@@ -78,7 +78,7 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
     && Cz>=p->global_zmin && Cz<=p->global_zmax)
     checkin=1;
     
-    //checkin=1;
+    checkin=1;
         
     if(checkin==1)
     {
@@ -187,14 +187,14 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 	ks = p->posc_k(zs);
 	ke = p->posc_k(ze);	*/
     
-    is-=1;
-    ie+=1;
+    is-=3;
+    ie+=3;
 
-    js-=1;
-    je+=1;
+    js-=3;
+    je+=3;
 
-    ks-=1;
-    ke+=1;
+    ks-=3;
+    ke+=3;
    
 
 	is = MAX(is,0);
@@ -287,7 +287,7 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 			
 			Rx = u*Ax + v*Bx + w*Cx;
             
-            cout<<p->mpirank<<"  Rx: "<<Rx<<endl;
+            //cout<<p->mpirank<<"  Rx: "<<Rx<<endl;
             
             /* i = p->posc_i(Rx);
 

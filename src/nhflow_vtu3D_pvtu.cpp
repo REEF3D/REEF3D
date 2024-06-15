@@ -64,7 +64,10 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
     if(p->P110==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
     if(p->P25==1)
+    {
 	result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"Heaviside\"/>"<<endl;
+    }
 	result<<"</PPointData>"<<endl;
 	
     result<<"<PPoints>"<<endl;

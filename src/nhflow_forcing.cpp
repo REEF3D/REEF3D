@@ -50,7 +50,7 @@ nhflow_forcing::~nhflow_forcing()
 {
 }
 
-void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *U, double *V, double *W)
+void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
 {
     if(p->A561>0 || p->A564>0)
     {
@@ -59,8 +59,74 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     reini_RK2(p, d, pgc, d->SOLID);
     
     // update Heaviside
+    LOOP
+    d->FHB[IJK] = 0.0;
+
+    pgc->start5V(p,d->FHB,1);
+    
+    LOOP
+    {
+        H = Hsolidface(p,d,0,0,0);
+        d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
+        
+        uf = 0.0;
+        
+        d->FX[IJK] += d->FHB[IJK]*(uf*WL(i,j) - UH[IJK])/(alpha*p->dt);  
+    }
+    
+    LOOP
+    {
+        vf = 0.0;
+
+        d->FY[IJK] += d->FHB[IJK]*(vf*WL(i,j) - VH[IJK])/(alpha*p->dt);  
+    }
+    
+    LOOP
+    {
+        wf = 0.0;
+
+        d->FZ[IJK] += d->FHB[IJK]*(wf*WL(i,j) - WH[IJK])/(alpha*p->dt);  
+    }
+    	
+    pgc->start5V(p,d->FX,1);
+    pgc->start5V(p,d->FY,1);
+    pgc->start5V(p,d->FZ,1);
+    pgc->start5V(p,d->FHB,1);
+    
+// Calculate forcing fields
     
     // add forcing term to RHS
+    
+    ULOOP
+    {
+        UH[IJK] += alpha*p->dt*CPORNH*d->FX[IJK];
+        
+        if(p->count<10)
+        d->maxF = MAX(fabs(alpha*CPORNH*d->FX[IJK]), d->maxF);
+        
+        p->fbmax = MAX(fabs(alpha*CPORNH*d->FX[IJK]), p->fbmax);
+    }
+    
+    VLOOP
+    {
+        VH[IJK] += alpha*p->dt*CPORNH*d->FY[IJK];
+        
+        if(p->count<10)
+        d->maxG = MAX(fabs(alpha*CPORNH*d->FY[IJK]), d->maxG);
+        
+        p->fbmax = MAX(fabs(alpha*CPORNH*d->FY[IJK]), p->fbmax);
+    }
+    
+    WLOOP
+    {
+        WH[IJK] += alpha*p->dt*CPORNH*d->FZ[IJK];
+        
+        if(p->count<10)
+        d->maxH = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), d->maxH);
+        
+        p->fbmax = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), p->fbmax);
+    }
+    
     }
 }
 

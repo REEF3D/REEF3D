@@ -1416,6 +1416,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Forcing">
+          <File Name="nhflow_forcing_interface.cpp"/>
           <VirtualDirectory Name="Geometry">
             <File Name="nhflow_forcing_raycast_y.cpp"/>
             <File Name="nhflow_forcing_raycast_x.cpp"/>
