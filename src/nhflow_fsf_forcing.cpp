@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void nhflow_fsf_f::forcing(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
-{
+{/*
     if(p->A561>0 || p->A564>0)
     {
      
@@ -54,6 +54,6 @@ void nhflow_fsf_f::forcing(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, dou
     pgc->gcsl_start4(p,WL,gcval_eta);
     pgc->gcsl_start4(p,d->eta,gcval_eta);
 
-    }
+    }*/
     
 }
