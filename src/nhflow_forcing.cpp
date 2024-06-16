@@ -97,7 +97,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     
     // add forcing term to RHS
     
-    ULOOP
+    LOOP
     {
         UH[IJK] += alpha*p->dt*CPORNH*d->FX[IJK];
         
@@ -107,7 +107,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
         p->fbmax = MAX(fabs(alpha*CPORNH*d->FX[IJK]), p->fbmax);
     }
     
-    VLOOP
+    LOOP
     {
         VH[IJK] += alpha*p->dt*CPORNH*d->FY[IJK];
         
@@ -117,7 +117,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
         p->fbmax = MAX(fabs(alpha*CPORNH*d->FY[IJK]), p->fbmax);
     }
     
-    WLOOP
+    LOOP
     {
         WH[IJK] += alpha*p->dt*CPORNH*d->FZ[IJK];
         

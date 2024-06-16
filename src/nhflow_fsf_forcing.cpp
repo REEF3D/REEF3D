@@ -25,41 +25,35 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_fsf_f::fsf_guard(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& WL, slice &K)
-{   
-    if(p->A560==1)
+void nhflow_fsf_f::forcing(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
+{
+    if(p->A561>0 || p->A564>0)
+    {
+     
+    k=p->knoz-1;
+    
     SLICELOOP4
-    if(p->flagfsf[IJ]==0)
+    if(d->SOLID[IJK]>0)
     {
     
-    WL(i,j) = d->depth(i,j);
-    K(i,j) = 0.0;
+        if(d->SOLID[Im1JK]<0)
+        {
+        WL(i-1,j) = WL(i,j);
+        d->eta(i-1,j) = d->eta(i,j);
+        }
+        
+        if(d->SOLID[Ip1JK]<0)
+        {
+        WL(i+1,j) = WL(i,j);
+        d->eta(i+1,j) = d->eta(i,j);
+        }
+        
         
     }
-    /*
-    LOOP
-    d->test[IJK] = 0.0;
     
-    if(p->A560==1)
-    LOOP
-    if(p->flagfsf[IJ]==0)
-    d->test[IJK] = 1.0;*/
-    
-    
-    SLICELOOP4
-    if(p->flagfsf[IJ]==1)
-    {  
-        if(p->flagfsf[Im1J]==0)
-        WL(i-1,j) = WL(i,j);
+    pgc->gcsl_start4(p,WL,gcval_eta);
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
 
-        if(p->flagfsf[Ip1J]==0)
-        WL(i+1,j) = WL(i,j);
-        
-        if(p->flagfsf[IJm1]==0)
-        WL(i,j-1) = WL(i,j);
-        
-        if(p->flagfsf[IJp1]==0)
-        WL(i,j+1) = WL(i,j);
     }
     
 }

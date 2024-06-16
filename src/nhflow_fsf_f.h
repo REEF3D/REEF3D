@@ -57,6 +57,8 @@ public:
     
     virtual void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double);
     
+    virtual void forcing(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
+    
     virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double);
     virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double);
     

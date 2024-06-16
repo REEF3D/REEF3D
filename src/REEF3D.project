@@ -1563,6 +1563,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_forcing.cpp"/>
           <File Name="nhflow_fsf_guard.cpp"/>
           <File Name="nhflow_fsf_kbedbc.cpp"/>
           <File Name="nhflow_fsf_ucorr.cpp"/>
