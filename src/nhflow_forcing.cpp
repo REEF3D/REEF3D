@@ -34,10 +34,6 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
     p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(FX,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(FY,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(FZ,p->imax*p->jmax*(p->kmax+2));
-    
     p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(dt,p->imax*p->jmax*(p->kmax+2));
     p->Darray(L,p->imax*p->jmax*(p->kmax+2));
@@ -68,29 +64,8 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     {
         H = Hsolidface(p,d,0,0,0);
         d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
-        
-        uf = 0.0;
-        
-        d->FX[IJK] += d->FHB[IJK]*(uf*WL(i,j) - UH[IJK])/(alpha*p->dt);  
     }
     
-    LOOP
-    {
-        vf = 0.0;
-
-        d->FY[IJK] += d->FHB[IJK]*(vf*WL(i,j) - VH[IJK])/(alpha*p->dt);  
-    }
-    
-    LOOP
-    {
-        wf = 0.0;
-
-        d->FZ[IJK] += d->FHB[IJK]*(wf*WL(i,j) - WH[IJK])/(alpha*p->dt);  
-    }
-    	
-    pgc->start5V(p,d->FX,1);
-    pgc->start5V(p,d->FY,1);
-    pgc->start5V(p,d->FZ,1);
     pgc->start5V(p,d->FHB,1);
     
 // Calculate forcing fields
@@ -99,32 +74,42 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     
     LOOP
     {
-        UH[IJK] += alpha*p->dt*CPORNH*d->FX[IJK];
+        uf = 0.0;
         
-        if(p->count<10)
+        UH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(uf*WL(i,j) - UH[IJK])/(alpha*p->dt);
+        
+        d->U[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(uf - UH[IJK])/(alpha*p->dt);
+        
+        /*if(p->count<10)
         d->maxF = MAX(fabs(alpha*CPORNH*d->FX[IJK]), d->maxF);
         
-        p->fbmax = MAX(fabs(alpha*CPORNH*d->FX[IJK]), p->fbmax);
+        p->fbmax = MAX(fabs(alpha*CPORNH*d->FX[IJK]), p->fbmax);*/
     }
     
     LOOP
     {
-        VH[IJK] += alpha*p->dt*CPORNH*d->FY[IJK];
+        vf = 0.0; 
         
-        if(p->count<10)
+        VH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(vf*WL(i,j) - VH[IJK])/(alpha*p->dt); 
+        
+        d->V[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(vf - VH[IJK])/(alpha*p->dt); 
+        
+        /*if(p->count<10)
         d->maxG = MAX(fabs(alpha*CPORNH*d->FY[IJK]), d->maxG);
         
-        p->fbmax = MAX(fabs(alpha*CPORNH*d->FY[IJK]), p->fbmax);
+        p->fbmax = MAX(fabs(alpha*CPORNH*d->FY[IJK]), p->fbmax);*/
     }
     
     LOOP
     {
-        WH[IJK] += alpha*p->dt*CPORNH*d->FZ[IJK];
+        WH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(wf*WL(i,j) - WH[IJK])/(alpha*p->dt);
+
+        d->W[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(wf - WH[IJK])/(alpha*p->dt);  
         
-        if(p->count<10)
+        /*if(p->count<10)
         d->maxH = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), d->maxH);
         
-        p->fbmax = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), p->fbmax);
+        p->fbmax = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), p->fbmax);*/
     }
     
     }
