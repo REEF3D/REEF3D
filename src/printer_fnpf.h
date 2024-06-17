@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRINTER_FNPF_H_
+#define PRINTER_FNPF_H_
+
 #include"fnpf_printer.h"
 #include"increment.h"
 #include "vtks.h"
@@ -40,9 +43,6 @@ class fnpf_vel_probe_theory;
 class fnpf_runup;
 class potentialfile_out;
 class ioflow;
-
-#ifndef FNPF_VTU3D_H_
-#define FNPF_VTU3D_H_
 
 using namespace std;
 
