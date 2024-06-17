@@ -32,6 +32,7 @@ Author: Alexander Hanke
 #include "ioflow.h"
 #include "turbulence.h"
 #include "bedshear.h"
+#include "sediment_fdm.h"
 
 #include <sys/stat.h>
 #include <string>
@@ -46,6 +47,9 @@ sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p)
 {
     pvrans = new vrans_f(p,pgc);
     movement = new sediment_particle::movement::Tavouktsoglou(p);
+    s = new sediment_fdm(p);
+    pbedshear = new bedshear(p,pturb);
+
     if(p->I40!=1)
     {
         printcount = 0;
@@ -100,35 +104,35 @@ int sedpart::deposit(lexer* p, fdm* a)
 
 void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
 {
-    std::vector<double> x,y,z;
-    std::vector<double> u,v,w;
-    x.push_back(0.295);
-    // for(int n=0;n<100;n++)
-    // x.push_back(x[n]+0.0005);
-    y.push_back(0.15);
-    z.push_back(0);
-    if(p->mpirank==2)
-    {
-        for(int n=0;n<x.size();n++)
-        {
-            u.push_back(p->ccipol1c(a->u,x[n],y[0],z[0]));
-        }
-        // n=0;
-        // double dist = p->ccipol4_b(a->solid,x[n],y[0],z[0]);
-        // cout<<dist<<","<<x[n]+dist<<","<<p->ccipol1c(a->u,a->solid,x[n]+dist,y[0],z[0])<<endl;
-        // u.push_back(p->ccipol1c(a->u,x[n]+dist,y[0],z[0]));
-        string output;
-        for(int n=0;n<u.size();n++)
-        // if(u[n]>0)
-        output += "("+std::to_string(x[n])+")"+std::to_string(u[n])+",";
-        // else
-        // {
-        //     output += "\n("+std::to_string(x[n])+")"+std::to_string(u[n]);
-        //     break;
-        // }
-        cout<<p->mpirank<<"|"<<output<<endl;
-    }
-    // PLAINLOOP
-    // a->test(i,j,k)=a->u(i,j,k);
+    // std::vector<double> x,y,z;
+    // std::vector<double> u,v,w;
+    // x.push_back(0.295);
+    // // for(int n=0;n<100;n++)
+    // // x.push_back(x[n]+0.0005);
+    // y.push_back(0.15);
+    // z.push_back(0);
+    // if(p->mpirank==2)
+    // {
+    //     for(int n=0;n<x.size();n++)
+    //     {
+    //         u.push_back(p->ccipol1c(a->u,x[n],y[0],z[0]));
+    //     }
+    //     // n=0;
+    //     // double dist = p->ccipol4_b(a->solid,x[n],y[0],z[0]);
+    //     // cout<<dist<<","<<x[n]+dist<<","<<p->ccipol1c(a->u,a->solid,x[n]+dist,y[0],z[0])<<endl;
+    //     // u.push_back(p->ccipol1c(a->u,x[n]+dist,y[0],z[0]));
+    //     string output;
+    //     for(int n=0;n<u.size();n++)
+    //     // if(u[n]>0)
+    //     output += "("+std::to_string(x[n])+")"+std::to_string(u[n])+",";
+    //     // else
+    //     // {
+    //     //     output += "\n("+std::to_string(x[n])+")"+std::to_string(u[n]);
+    //     //     break;
+    //     // }
+    //     cout<<p->mpirank<<"|"<<output<<endl;
+    // }
+    PLAINLOOP
+    a->test(i,j,k)=(s->tau_eff(i,j)>s->tau_crit(i,j));
     // a->test(i,j,k)=a->fbh1(i,j,k);
 }

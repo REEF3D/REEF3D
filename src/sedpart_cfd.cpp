@@ -29,6 +29,8 @@ Author: Alexander Hanke
 #include "vrans_f.h"
 #include "reinitopo.h"
 #include "ioflow.h"
+#include "bedshear.h"
+#include "sediment_fdm.h"
 
 /// @brief Initializes everything in the sediment for the CFD solver
 /// Determines cell which should be filled with particles
@@ -66,6 +68,19 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
         else if (inicount>0)
             cout<<"Loaded particles "<<gparticle_active<<" from state file."<<endl;
     
+    SLICELOOP4
+    s->bedk(i,j)=0;
+    
+    SLICELOOP4
+    {
+        KLOOP
+            PBASECHECK
+            if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
+                s->bedk(i,j)=k+1;
+        s->reduce(i,j)=0.3;
+    }
+    pbedshear->taubed(p,a,pgc,s);
+    pbedshear->taucritbed(p,a,pgc,s);
     
     ++inicount;
     movement->debug(p,*a,*pgc,PP);
@@ -82,6 +97,9 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     double starttime=pgc->timer();
 	int xchange=0;
 	int removed=0;
+
+    pbedshear->taubed(p,a,pgc,s);
+    pbedshear->taucritbed(p,a,pgc,s);
 
 	if (p->count>=p->Q43)
 	{
