@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PJM_HYDROSTATIC_H_
+#define PJM_HYDROSTATIC_H_
+
 #include"pressure.h"
 #include"increment.h"
 
@@ -28,9 +31,6 @@ class concentration;
 class density;
 
 using namespace std;
-
-#ifndef PJM_HYDROSTATIC_H_
-#define PJM_HYDROSTATIC_H_
 
 class pjm_hydrostatic : public pressure, public increment
 {

@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_PJM_SW_H_
+#define SFLOW_PJM_SW_H_
+
 #include"sflow_pressure.h"
 #include"increment.h"
 #include"slice4.h"
 class sflow_weno_hj;
 
 using namespace std;
-
-#ifndef SFLOW_PJM_SW_H_
-#define SFLOW_PJM_SW_H_
 
 class sflow_pjm_sw : public sflow_pressure, public increment
 {

@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wave_lib.h"
-#include"increment.h"
-
 #ifndef WAVE_LIB_STOKES_5TH_H_
 #define WAVE_LIB_STOKES_5TH_H_
+
+#include"wave_lib.h"
+#include"increment.h"
 
 using namespace std;
 

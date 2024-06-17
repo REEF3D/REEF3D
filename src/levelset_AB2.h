@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LEVELSET_AB2_H_
+#define LEVELSET_AB2_H_
+
 #include"freesurface.h"
 #include"gradient.h"
 #include"field4.h"
@@ -31,9 +34,6 @@ class concentration;
 class picard;
 
 using namespace std;
-
-#ifndef LEVELSET_AB2_H_
-#define LEVELSET_AB2_H_
 
 class levelset_AB2 : public freesurface, gradient
 {

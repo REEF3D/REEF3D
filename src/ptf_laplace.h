@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PTF_LAPLACE_H_
+#define PTF_LAPLACE_H_
+
 class lexer;
 class fdm;
 class field;
 class slice;
 class ghostcell;
 class solver;
-
-#ifndef PTF_LAPLACE_H_
-#define PTF_LAPLACE_H_
 
 using namespace std;
 

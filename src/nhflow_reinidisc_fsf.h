@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_REINIDISC_FSF_H_
+#define NHFLOW_REINIDISC_FSF_H_
+
 #include"ddweno_nug_sig.h"
 
 class lexer;
 class ghostcell;
 
 using namespace std;
-
-#ifndef NHFLOW_REINIDISC_FSF_H_
-#define NHFLOW_REINIDISC_FSF_H_
 
 class nhflow_reinidisc_fsf : public increment, public ddweno_nug_sig
 {

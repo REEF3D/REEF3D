@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_PRESSURE_H_
+#define NHFLOW_PRESSURE_H_
+
 class lexer;
 class fdm_nhf;
 class ghostcell;
@@ -29,9 +32,6 @@ class field;
 class slice;
 
 using namespace std;
-
-#ifndef NHFLOW_PRESSURE_H_
-#define NHFLOW_PRESSURE_H_
 
 class nhflow_pressure
 {

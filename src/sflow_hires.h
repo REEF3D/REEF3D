@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_HIRES_H_
+#define SFLOW_HIRES_H_
+
 #include"sflow_convection.h"
 #include"increment.h"
 
 class sflow_flux;
 class sflow_fluxlim;
-
-#ifndef SFLOW_HIRES_H_
-#define SFLOW_HIRES_H_
 
 using namespace std;
 

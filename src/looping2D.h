@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LOOPING2D_H_
+#define LOOPING2D_H_
+
 // LOOP
 
 #define PSLICECHECK1  if(p->flagslice1[IJ]>0)
@@ -158,3 +161,4 @@ Author: Hans Bihs
 #define QQGCSLB4ACHECK if(p->gcbsl4a[qq][3]>0)
 #define QQGCSL4ALOOP QQGCSLB4A QQGCSLB4ACHECK
 
+#endif

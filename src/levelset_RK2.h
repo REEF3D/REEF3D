@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LEVELSET_RK2_H_
+#define LEVELSET_RK2_H_
+
 #include"freesurface.h"
 #include"gradient.h"
 
@@ -29,9 +32,6 @@ class concentration;
 class fluid_update;
 
 using namespace std;
-
-#ifndef LEVELSET_RK2_H_
-#define LEVELSET_RK2_H_
 
 class levelset_RK2 : public freesurface, gradient
 {

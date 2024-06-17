@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"convection.h"
-#include"increment.h"
-
 #ifndef CONVECTION_VOID_H_
 #define CONVECTION_VOID_H_
+
+#include"convection.h"
+#include"increment.h"
 
 using namespace std;
 

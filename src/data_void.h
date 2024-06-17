@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DATA_VOID_H_
+#define DATA_VOID_H_
+
 #include"data.h"
 
 class lexer;
@@ -27,9 +30,6 @@ class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef DATA_VOID_H_
-#define DATA_VOID_H_
 
 class data_void : public data
 {

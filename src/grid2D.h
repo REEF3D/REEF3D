@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef GRID2D_H_
+#define GRID2D_H_
+
 #include"increment.h"
 
 class lexer;
 class fdm;
 class ghostcell;
-
-#ifndef GRID2D_H_
-#define GRID2D_H_
 
 using namespace std;
 

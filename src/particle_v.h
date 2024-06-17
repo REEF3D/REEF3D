@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PARTICLE_V_H_
+#define PARTICLE_V_H_
+
 #include"particle.h"
 
 using namespace std;
-
-#ifndef PARTICLE_V_H_
-#define PARTICLE_V_H_
 
 class particle_v : public particle_base
 {

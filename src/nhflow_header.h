@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_HEADER_H_
+#define NHFLOW_HEADER_H_
+
 #include"nhflow.h"
 #include"nhflow_f.h"
 #include"nhflow_v.h"
@@ -61,3 +64,5 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_reconstruct_wenograd.h"
 #include"nhflow_reconstruct_weno.h"
+
+#endif

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef VRANS_H_
+#define VRANS_H_
+
 #include <vector>
 
 class lexer;
@@ -29,9 +32,6 @@ class field;
 class net;
 
 using namespace std;
-
-#ifndef VRANS_H_
-#define VRANS_H_
 
 class vrans
 {

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_WENO_HJ_H_
+#define SEDIMENT_WENO_HJ_H_
+
 #include"sediment_exnerdisc.h"
 #include"increment.h"
 #include"ddweno_f_nug.h"
-
-#ifndef SEDIMENT_WENO_HJ_H_
-#define SEDIMENT_WENO_HJ_H_
 
 using namespace std;
 

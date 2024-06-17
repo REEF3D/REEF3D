@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_convection.h"
-
 #ifndef NHFLOW_WENO_VOID_H_
 #define NHFLOW_WENO_VOID_H_
+
+#include"nhflow_convection.h"
 
 using namespace std;
 

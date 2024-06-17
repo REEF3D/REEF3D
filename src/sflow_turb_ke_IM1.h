@@ -20,15 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_turb_io.h"
+
+#ifndef SFLOW_TURB_KE_IM1_H_
+#define SFLOW_TURB_KE_IM1_H_
+
+#include"sflow_turb_io.h"
 #include"slice4.h"
 #include"sliceint4.h"
 
 class sflow_convection;
 class sflow_diffusion;
-
-#ifndef SFLOW_TURB_KE_IM1_H_
-#define SFLOW_TURB_KE_IM1_H_
 
 using namespace std;
 

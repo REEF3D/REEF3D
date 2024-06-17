@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 
+#ifndef NHFLOW_FSF_H_
+#define NHFLOW_FSF_H_
+
 class convection;
 class pressure;
 class solver;
@@ -39,9 +42,6 @@ class poisson;
 class turbulence;
 
 using namespace std;
-
-#ifndef NHFLOW_FSF_H_
-#define NHFLOW_FSF_H_
 
 class nhflow_fsf
 {

@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef ETIMESTEP_H_
+#define ETIMESTEP_H_
+
 #include"timestep.h"
 #include"increment.h"
 
 class turbulence;
 
 using namespace std;
-
-#ifndef ETIMESTEP_H_
-#define ETIMESTEP_H_
 
 class etimestep : public timestep, public increment
 {

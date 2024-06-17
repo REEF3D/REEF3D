@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PTF_H_
+#define PTF_H_
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -30,9 +33,6 @@ class reini;
 class onephase;
 
 using namespace std;
-
-#ifndef PTF_H_
-#define PTF_H_
 
 class ptf
 {

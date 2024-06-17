@@ -20,10 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef VRANS_HEADER_H_
+#define VRANS_HEADER_H_
+
 #include"vrans.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
 #include"vrans_veg.h"
 #include"vrans_net.h"
 
-
+#endif

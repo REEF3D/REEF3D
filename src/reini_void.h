@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINI_VOID_H_
+#define REINI_VOID_H_
+
 #include"reini.h"
 #include"particle_corr.h"
 
 using namespace std;
-
-#ifndef REINI_VOID_H_
-#define REINI_VOID_H_
 
 class reini_void : public reini
 {

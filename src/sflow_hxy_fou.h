@@ -20,13 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_hxy_disc.h"
-#include"increment.h"
-
-class sflow_flux;  
 
 #ifndef SFLOW_HXY_FOU_H_
 #define SFLOW_HXY_FOU_H_
+
+#include"sflow_hxy_disc.h"
+#include"increment.h"
+
+class sflow_flux;  
 
 using namespace std;
 

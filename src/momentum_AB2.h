@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MOMENTUM_AB2_H_
+#define MOMENTUM_AB2_H_
+
 #include"momentum.h"
 #include"bcmom.h"
 #include"field1.h"
@@ -33,9 +36,6 @@ Author: Hans Bihs
 #include"solver.h"
 
 using namespace std;
-
-#ifndef MOMENTUM_AB2_H_
-#define MOMENTUM_AB2_H_
 
 class momentum_AB2 : public momentum, public bcmom
 {

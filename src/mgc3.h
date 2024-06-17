@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MGC3_H_
+#define MGC3_H_
+
 #include"increment.h"
 
 class lexer;
-
-#ifndef MGC3_H_
-#define MGC3_H_
 
 using namespace std;
 

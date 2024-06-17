@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_INI_H_
+#define FNPF_INI_H_
+
 #include"fnpf.h"
 #include"increment.h"
 #include"fnpf_fsf_update.h"
@@ -35,9 +38,6 @@ class reini;
 class onephase;
 
 using namespace std;
-
-#ifndef FNPF_INI_H_
-#define FNPF_INI_H_
 
 class fnpf_ini : public fnpf, public increment, public fnpf_fsf_update, public fnpf_bed_update
 {

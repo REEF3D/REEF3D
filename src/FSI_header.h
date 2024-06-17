@@ -20,7 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef FSI_HEADER_H_
+#define FSI_HEADER_H_
+
 #include"FSI_void.h"
 #include"FSI_strips.h"
 
-
+#endif

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef ISUSPRHS_H_
+#define ISUSPRHS_H_
+
 #include"increment.h"
 
 class lexer;
 class fdm;
 class field;
-
-#ifndef ISUSPRHS_H_
-#define ISUSPRHS_H_
 
 using namespace std;
 

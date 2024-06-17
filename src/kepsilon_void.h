@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef KEPSILON_VOID_H_
+#define KEPSILON_VOID_H_
+
 #include"turbulence.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef KEPSILON_VOID_H_
-#define KEPSILON_VOID_H_
 
 class kepsilon_void : public turbulence, public increment
 {

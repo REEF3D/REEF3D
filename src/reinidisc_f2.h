@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINIDISC_F2_H_
+#define REINIDISC_F2_H_
+
 #include"reinidisc.h"
 #include"ddweno.h"
 #include"vec.h"
@@ -28,9 +31,6 @@ class picard;
 class cpt;
 
 using namespace std;
-
-#ifndef REINIDISC_F2_H_
-#define REINIDISC_F2_H_
 
 class reinidisc_f2 : public reinidisc, public ddweno
 {

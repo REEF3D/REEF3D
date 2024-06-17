@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef TOPO_RELAX_H_
+#define TOPO_RELAX_H_
+
 #include"increment.h"
 
 class lexer;
@@ -29,9 +32,6 @@ class sediment_fdm;
 class slice;
 
 using namespace std;
-
-#ifndef TOPO_RELAX_H_
-#define TOPO_RELAX_H_
 
 class topo_relax : public increment
 {

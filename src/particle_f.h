@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PARTICLE_F_H_
+#define PARTICLE_F_H_
+
 #include"particle.h"
 #include"norm_vec.h"
 #include"boundarycheck.h"
@@ -28,9 +31,6 @@ Author: Hans Bihs
 #define PARTLOOP for(n=maxparticle-1;n>=pcount;--n)
 
 using namespace std;
-
-#ifndef PARTICLE_F_H_
-#define PARTICLE_F_H_
 
 class particle_f : public particle_base, public norm_vec, public boundarycheck
 {

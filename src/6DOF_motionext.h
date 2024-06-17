@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SIXDOF_MOTIONEXT_H_
+#define SIXDOF_MOTIONEXT_H_
+
 class lexer;
 class fdm;
 class fdm_nhf;
@@ -31,9 +34,6 @@ class field;
 #include <Eigen/Dense>
 
 using namespace std;
-
-#ifndef SIXDOF_MOTIONEXT_H_
-#define SIXDOF_MOTIONEXT_H_
 
 class sixdof_motionext
 {

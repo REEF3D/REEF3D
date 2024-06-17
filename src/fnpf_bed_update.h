@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_BED_UPDATE_H_
+#define FNPF_BED_UPDATE_H_
+
 #include"increment.h"
 #include"slice4.h"
 
@@ -33,9 +36,6 @@ class fnpf_convection;
 class fnpf_fsf;
 
 using namespace std;
-
-#ifndef FNPF_BED_UPDATE_H_
-#define FNPF_BED_UPDATE_H_
 
 class fnpf_bed_update : public increment
 {

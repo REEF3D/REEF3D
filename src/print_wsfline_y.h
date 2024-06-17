@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRINT_WSFLINE_Y_H_
+#define PRINT_WSFLINE_Y_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -32,9 +35,6 @@ class ioflow;
 class wave_theory;
 
 using namespace std;
-
-#ifndef PRINT_WSFLINE_Y_H_
-#define PRINT_WSFLINE_Y_H_
 
 class print_wsfline_y : public boundarycheck
 {

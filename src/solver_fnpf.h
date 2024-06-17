@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SOLVER_FNPF_H_
+#define SOLVER_FNPF_H_
+
 class lexer;
 class fdm;
 class fdm_fnpf;
@@ -30,9 +33,6 @@ class matrix_diag;
 class cpt;
 
 using namespace std;
-
-#ifndef SOLVER_FNPF_H_
-#define SOLVER_FNPF_H_
 
 class solver_fnpf
 {

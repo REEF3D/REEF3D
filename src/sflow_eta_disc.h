@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-class slice;
-
 #ifndef SFLOW_ETA_DISC_H_
 #define SFLOW_ETA_DISC_H_
+
+class lexer;
+class slice;
 
 using namespace std;
 

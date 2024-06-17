@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LEXER_H_
+#define LEXER_H_
+
 #include<iostream>
 #include<cstdlib>
 #include<iomanip>
@@ -31,9 +34,6 @@ Author: Hans Bihs
 #include<fstream>
 #include"looping.h"
 #include<vector>
-
-#ifndef LEXER_H_
-#define LEXER_H_
 
 class weno_nug_func;
 class ghostcell;

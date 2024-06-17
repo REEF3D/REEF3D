@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class fdm;
-class lexer;
-
 #ifndef DENSITY_H_
 #define DENSITY_H_
+
+class fdm;
+class lexer;
 
 using namespace std;
 

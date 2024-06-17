@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SUSPENDED_void_H_
+#define SUSPENDED_void_H_
+
 #include<iostream>
 #include"suspended.h"
 
 using namespace std;
-
-#ifndef SUSPENDED_void_H_
-#define SUSPENDED_void_H_
 
 class suspended_void : public suspended
 {

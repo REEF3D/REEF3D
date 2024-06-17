@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_VTS3D_H_
+#define NHFLOW_VTS3D_H_
+
 #include"nhflow_printer.h"
 #include"increment.h"
 
@@ -38,9 +41,6 @@ class nhflow_breaking_log;
 class nhflow_vel_probe;
 class nhflow_vel_probe_theory;
 class ioflow;
-
-#ifndef NHFLOW_VTS3D_H_
-#define NHFLOW_VTS3D_H_
 
 using namespace std;
 

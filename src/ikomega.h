@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IKOMEGA_H_
+#define IKOMEGA_H_
+
 #include"rans_io.h"
 #include"bc_ikomega.h"
 #include"ghostcell.h"
 #include"vrans.h"
 
 using namespace std;
-
-#ifndef IKOMEGA_H_
-#define IKOMEGA_H_
 
 class ikomega : public rans_io, public bc_ikomega
 {

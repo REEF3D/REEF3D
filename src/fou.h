@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FOU_H_
+#define FOU_H_
+
 #include"increment.h"
 #include"convection.h"
 
 class flux;
-
-#ifndef FOU_H_
-#define FOU_H_
 
 using namespace std;
 

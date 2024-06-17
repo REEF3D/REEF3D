@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef MOORING_H_
+#define MOORING_H_
+
 class lexer;
 class fdm;
 class ghostcell;
 class sixdof;
 
 using namespace std;
-
-#ifndef MOORING_H_
-#define MOORING_H_
 
 class mooring
 {

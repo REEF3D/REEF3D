@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef RHEOLOGY_F_H_
+#define RHEOLOGY_F_H_
+
 #include"rheology.h"
 #include"strain.h"
 #include"field4.h"
 
 using namespace std;
-
-#ifndef RHEOLOGY_F_H_
-#define RHEOLOGY_F_H_
 
 class rheology_f : public rheology, public strain
 {

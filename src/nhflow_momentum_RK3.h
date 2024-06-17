@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_MOMENTUM_RK3_H_
+#define NHFLOW_MOMENTUM_RK3_H_
+
 #include"nhflow_momentum.h"
 #include"slice4.h"
 #include"bcmom.h"
 #include"nhflow_sigma.h"
 
 using namespace std;
-
-#ifndef NHFLOW_MOMENTUM_RK3_H_
-#define NHFLOW_MOMENTUM_RK3_H_
 
 class nhflow_momentum_RK3 : public nhflow_momentum, public bcmom, public nhflow_sigma
 {

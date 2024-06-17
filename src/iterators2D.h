@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef ITERATORS2D_H_
+#define ITERATORS2D_H_
+
 #define IJ  (i-p->imin)*p->jmax + (j-p->jmin) 
 
 #define Im1J  (i-p->imin-1)*p->jmax + (j-p->jmin)
@@ -157,3 +160,5 @@ Author: Hans Bihs
 #define I_Jp1m1_4 bb->C4.w[bb->C4.b[n]]
 #define I_Jm1p1_4 bb->C4.e[bb->C4.t[n]]
 #define I_Jm1m1_4 bb->C4.e[bb->C4.b[n]]
+
+#endif

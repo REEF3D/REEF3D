@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef ONEPHASE_F_H_
+#define ONEPHASE_F_H_
+
 #include"onephase.h"
 #include"ddweno_f_nug.h"
 #include"field1.h"
@@ -29,9 +32,6 @@ Author: Hans Bihs
 
 
 using namespace std;
-
-#ifndef ONEPHASE_F_H_
-#define ONEPHASE_F_H_
 
 class onephase_f : public onephase, public ddweno_f_nug
 {

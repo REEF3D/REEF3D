@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINI_H_
+#define REINI_H_
+
 class fdm;
 class lexer;
 class ghostcell;
@@ -28,9 +31,6 @@ class field;
 class vec;
 
 using namespace std;
-
-#ifndef REINI_H_
-#define REINI_H_
 
 class reini
 {

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PARTICLE_PLS_VOID_H_
+#define PARTICLE_PLS_VOID_H_
+
 #include"particle_corr.h"
 
 using namespace std;
-
-#ifndef PARTICLE_PLS_VOID_H_
-#define PARTICLE_PLS_VOID_H_
 
 class particle_pls_void : public particle_corr
 {

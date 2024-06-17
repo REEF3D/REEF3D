@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDSHEAR_MAX_H_
+#define BEDSHEAR_MAX_H_
+
 #include"boundarycheck.h"
 #include"bedshear.h"
 #include<iostream>
@@ -32,9 +35,6 @@ class field;
 class sediment;
 
 using namespace std;
-
-#ifndef BEDSHEAR_MAX_H_
-#define BEDSHEAR_MAX_H_
 
 class bedshear_max : public boundarycheck
 {

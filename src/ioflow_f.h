@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOFLOW_F_H_
+#define IOFLOW_F_H_
+
 #include"ioflow.h"
 #include"resize.h"
 #include"increment.h"
@@ -29,9 +32,6 @@ class fdm_fnpf;
 
 
 using namespace std;
-
-#ifndef IOFLOW_F_H_
-#define IOFLOW_F_H_
 
 
 class ioflow_f : public ioflow, private resize_class, public increment
@@ -136,7 +136,8 @@ public:
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
-    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);    virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
+    virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
     
     
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
@@ -181,7 +182,9 @@ private:
     
     double Apor,Bpor,porval,partval;
     
-    double epsi1,epsi2;    int iter0;
+    double epsi1,epsi2;
+
+    int iter0;
     
     patchBC_interface *pBC;
 };

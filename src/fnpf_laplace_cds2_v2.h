@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_LAPLACE_CDS2_V2_H_
+#define FNPF_LAPLACE_CDS2_V2_H_
+
 #include"fnpf_laplace.h"
 #include"increment.h"
 
 class solver_fnpf;
-
-#ifndef FNPF_LAPLACE_CDS2_V2_H_
-#define FNPF_LAPLACE_CDS2_V2_H_
 
 using namespace std;
 

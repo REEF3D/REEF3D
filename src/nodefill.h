@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NODEFILL_H_
+#define NODEFILL_H_
+
 #include"printer.h"
 #include"increment.h"
 #include"field5.h"
 class lexer;
 
-
-#ifndef NODEFILL_H_
-#define NODEFILL_H_
 
 using namespace std;
 

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_CFOU_H_
+#define SFLOW_CFOU_H_
+
 #include"sflow_convection.h"
 #include"increment.h"
 
@@ -27,9 +30,6 @@ class sflow_flux;
 class fdm2D;
 
 using namespace std;
-
-#ifndef SFLOW_CFOU_H_
-#define SFLOW_CFOU_H_
 
 class sflow_cfou : public sflow_convection, public increment
 {

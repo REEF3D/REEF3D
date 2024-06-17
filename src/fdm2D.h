@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FDM2D_H_
+#define FDM2D_H_
+
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
@@ -36,9 +39,6 @@ Author: Hans Bihs
 #include<iostream>
 
 class lexer;
-
-#ifndef FDM2D_H_
-#define FDM2D_H_
 
 using namespace std;
 

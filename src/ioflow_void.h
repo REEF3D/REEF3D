@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOFLOW_V_H_
+#define IOFLOW_V_H_
+
 #include"ioflow.h"
 #include"increment.h"
 #include"field4.h"
@@ -31,9 +34,6 @@ class rheology;
 class fdm_fnpf;
 
 using namespace std;
-
-#ifndef IOFLOW_V_H_
-#define IOFLOW_V_H_
 
 
 class ioflow_v : public ioflow, public increment, public flowfile_in
@@ -76,7 +76,8 @@ public:
     virtual void U_relax(lexer*,ghostcell*,double*,double*);
     virtual void V_relax(lexer*,ghostcell*,double*,double*);
     virtual void W_relax(lexer*,ghostcell*,double*,double*);
-    virtual void P_relax(lexer*,ghostcell*,double*);    virtual void WL_relax(lexer*,ghostcell*,slice&,slice&);
+    virtual void P_relax(lexer*,ghostcell*,double*);
+    virtual void WL_relax(lexer*,ghostcell*,slice&,slice&);
     virtual void fi_relax(lexer*,ghostcell*,field&,field&);
     virtual void fivec_relax(lexer*, ghostcell*, double*);
     virtual void fifsf_relax(lexer*, ghostcell*, slice&);
@@ -115,11 +116,16 @@ public:
     virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     virtual void ini2D(lexer*,fdm2D*,ghostcell*);
     virtual void ini_ptf(lexer*,fdm*,ghostcell*);
-        virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*);    virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    
+    virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
-    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);    virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);    virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
+    virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
+    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 	
@@ -137,3 +143,4 @@ private:
 };
 
 #endif
+

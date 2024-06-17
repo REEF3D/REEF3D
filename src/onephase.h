@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef ONEPHASE_H_
+#define ONEPHASE_H_
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -27,9 +30,6 @@ class ioflow;
 class field;
 
 using namespace std;
-
-#ifndef ONEPHASE_H_
-#define ONEPHASE_H_
 
 class onephase
 {

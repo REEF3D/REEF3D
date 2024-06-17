@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRESSURE_H_
+#define PRESSURE_H_
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -30,9 +33,6 @@ class field;
 class slice;
 
 using namespace std;
-
-#ifndef PRESSURE_H_
-#define PRESSURE_H_
 
 class pressure
 {

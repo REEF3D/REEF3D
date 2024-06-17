@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef WAVE_LIB_PARAMETERS_H_
+#define WAVE_LIB_PARAMETERS_H_
+
 class lexer;
 class fdm;
 class ghostcell;
 
 #include"increment.h"
-
-#ifndef WAVE_LIB_PARAMETERS_H_
-#define WAVE_LIB_PARAMETERS_H_
 
 using namespace std;
 

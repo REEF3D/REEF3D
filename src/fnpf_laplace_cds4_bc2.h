@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_LAPLACE_CDS4_BC2_H_
+#define FNPF_LAPLACE_CDS4_BC2_H_
+
 #include"fnpf_laplace.h"
 #include"increment.h"
 
 class fnpf_bed_update;
-
-#ifndef FNPF_LAPLACE_CDS4_BC2_H_
-#define FNPF_LAPLACE_CDS4_BC2_H_
 
 using namespace std;
 

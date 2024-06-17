@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm;
-
 #ifndef FIELD_H_
 #define FIELD_H_
+
+class lexer;
+class fdm;
 
 using namespace std;
 

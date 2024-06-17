@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef NET_BARQUASISTATIC_H_
+#define NET_BARQUASISTATIC_H_
+
 #include"net.h"
 #include"field1.h"
 #include"field2.h"
@@ -36,9 +39,6 @@ Author: Tobias Martin
 class reinidisc;
 
 using namespace std;
-
-#ifndef NET_BARQUASISTATIC_H_
-#define NET_BARQUASISTATIC_H_
 
 class net_barQuasiStatic : public net, public boundarycheck
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef HEAT_PRINT_H_
+#define HEAT_PRINT_H_
+
 #include"heat.h"
 #include"increment.h"
 #include"field4.h"
@@ -31,9 +34,6 @@ class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef HEAT_PRINT_H_
-#define HEAT_PRINT_H_
 
 class heat_print : public heat, increment
 {

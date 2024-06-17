@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_FLUX_FACE_C_CDS_H_
+#define SFLOW_FLUX_FACE_C_CDS_H_
+
 #include"increment.h"
 #include"sflow_flux.h"
 
 class lexer;
 class fdm2D;
-
-#ifndef SFLOW_FLUX_FACE_C_CDS_H_
-#define SFLOW_FLUX_FACE_C_CDS_H_
 
 using namespace std;
 

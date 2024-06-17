@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PTF_RK4_H_
+#define PTF_RK4_H_
+
 #include"ptf.h"
 #include"ptf_fsfbc.h"
 #include"slice4.h"
@@ -30,9 +33,6 @@ class ptf_fsf_update;
 class ptf_bed_update;
 
 using namespace std;
-
-#ifndef PTF_RK4_H_
-#define PTF_RK4_H_
 
 class ptf_RK4 : public ptf, public ptf_fsfbc
 {

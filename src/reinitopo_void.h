@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINITOPO_VOID_H_
+#define REINITOPO_VOID_H_
+
 #include"reinitopo.h"
 
 using namespace std;
-
-#ifndef REINITOPO_VOID_H_
-#define REINITOPO_VOID_H_
 
 class reinitopo_void : public reinitopo
 {

@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_H_
+#define NHFLOW_H_
 
 class convection;
 class pressure;
@@ -40,9 +42,6 @@ class vrans;
 class turbulence;
 
 using namespace std;
-
-#ifndef NHFLOW_H_
-#define NHFLOW_H_
 
 class nhflow
 {

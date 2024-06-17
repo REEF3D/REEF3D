@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_H_
+#define SEDIMENT_H_
+
 class lexer;
 class fdm;
 class fdm2D;
@@ -37,9 +40,6 @@ class solver;
 #include<fstream>
 
 using namespace std;
-
-#ifndef SEDIMENT_H_
-#define SEDIMENT_H_
 
 class sediment
 {

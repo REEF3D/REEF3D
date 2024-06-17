@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SOLVER_HEADER_H_
+#define SOLVER_HEADER_H_
+
 #include"solver_void.h"
 #include"bicgstab_ijk.h"
 #include"bicgstab_ijk_2D.h"
@@ -27,3 +30,5 @@ Author: Hans Bihs
 #include"hypre_aij.h"
 #include"hypre_struct.h"
 #include"hypre_sstruct.h"
+
+#endif

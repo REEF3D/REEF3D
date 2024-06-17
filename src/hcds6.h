@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Elyas Larkermani
 --------------------------------------------------------------------*/
 
+#ifndef HCDS6_H_
+#define HCDS6_H_
+
 #include"convection.h"
 #include"increment.h"
 
 class flux;
-
-#ifndef HCDS6_H_
-#define HCDS6_H_
 
 using namespace std;
 

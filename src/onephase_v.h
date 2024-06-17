@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/liceonephases/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef ONEPHASE_V_H_
+#define ONEPHASE_V_H_
+
 #include"onephase.h"
 
 using namespace std;
-
-#ifndef ONEPHASE_V_H_
-#define ONEPHASE_V_H_
 
 class onephase_v : public onephase
 {

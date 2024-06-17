@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FIELD_HEADER_H_
+#define FIELD_HEADER_H_
+
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -28,3 +31,5 @@ Author: Hans Bihs
 #include"field5.h"
 
 #include"reinisolid_RK3.h"
+
+#endif

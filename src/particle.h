@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PARTICLEBASE_H_
+#define PARTICLEBASE_H_
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -27,9 +30,6 @@ class field;
 class ioflow;
 
 using namespace std;
-
-#ifndef PARTICLEBASE_H_
-#define PARTICLEBASE_H_
 
 class particle_base
 {

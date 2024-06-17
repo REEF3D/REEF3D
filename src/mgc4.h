@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MGC4_H_
+#define MGC4_H_
+
 #include"increment.h"
 
 class lexer;
 class ghostcell;
-
-#ifndef MGC4_H_
-#define MGC4_H_
 
 using namespace std;
 

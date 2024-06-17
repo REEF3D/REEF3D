@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef FSI_STRIP_H_
+#define FSI_STRIP_H_
+
 #include<vector>
 #include <Eigen/Dense>
 #include"beam.h"
@@ -30,9 +33,6 @@ class ghostcell;
 class field;
 
 using namespace std;
-
-#ifndef FSI_STRIP_H_
-#define FSI_STRIP_H_
 
 class fsi_strip : public beam, public increment
 {

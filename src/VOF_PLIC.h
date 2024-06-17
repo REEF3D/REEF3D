@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef VOF_PLIC_H_
+#define VOF_PLIC_H_
+
 #include"freesurface.h"
 #include"gradient.h"
 #include"norm_vec.h"
@@ -34,9 +37,6 @@ class heat;
 class fluid_update;
 
 using namespace std;
-
-#ifndef VOF_PLIC_H_
-#define VOF_PLIC_H_
 
 class VOF_PLIC : public freesurface, gradient, norm_vec
 {

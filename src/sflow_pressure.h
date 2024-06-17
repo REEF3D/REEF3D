@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_PRESSURE_H_
+#define SFLOW_PRESSURE_H_
+
 class lexer;
 class fdm2D;
 class ghostcell;
@@ -29,9 +32,6 @@ class ioflow;
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef SFLOW_PRESSURE_H_
-#define SFLOW_PRESSURE_H_
 
 class sflow_pressure
 {

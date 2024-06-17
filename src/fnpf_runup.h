@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs, Edgar Chavez
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_RUNUP_H_
+#define FNPF_RUNUP_H_
+
 #include"nodefill.h"
 #include"fieldint5.h"
 #include"field5.h"
@@ -29,9 +32,6 @@ Author: Hans Bihs, Edgar Chavez
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-
-#ifndef FNPF_RUNUP_H_
-#define FNPF_RUNUP_H_
 
 using namespace std;
 

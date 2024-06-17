@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef VRANS_VEG_H_
+#define VRANS_VEG_H_
+
 #include"vrans.h"
 #include"increment.h"
 #include"field1.h"
@@ -28,9 +31,6 @@ Author: Hans Bihs
 #include"field4a.h"
 
 using namespace std;
-
-#ifndef VRANS_VEG_H_
-#define VRANS_VEG_H_
 
 class vrans_veg : public vrans, public increment
 {

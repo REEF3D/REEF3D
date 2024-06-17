@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef FSI_H_
+#define FSI_H_
+
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -30,9 +33,6 @@ class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef FSI_H_
-#define FSI_H_
 
 class fsi
 {

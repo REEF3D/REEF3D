@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_BC_IKOMEGA_H_
+#define NHFLOW_BC_IKOMEGA_H_
+
 #include"increment.h"
 #include"roughness.h"
 class fdm_nhf;
 class lexer;
-
-#ifndef NHFLOW_BC_IKOMEGA_H_
-#define NHFLOW_BC_IKOMEGA_H_
 
 using namespace std;
 

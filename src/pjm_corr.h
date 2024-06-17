@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PJM_CORR_H_
+#define PJM_CORR_H_
+
 #include"pressure.h"
 #include"pressure_reference.h"
 #include"field4.h"
@@ -30,9 +33,6 @@ class concentration;
 class density;
 
 using namespace std;
-
-#ifndef PJM_CORR_H_
-#define PJM_CORR_H_
 
 class pjm_corr : public pressure, public pressure_reference
 {

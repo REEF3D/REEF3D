@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BOUNDCHECK_H_
+#define BOUNDCHECK_H_
 
 #define ILOOP	for(i=0; i<p->knox; ++i)
 #define JLOOP	for(j=0; j<p->knoy; ++j)
@@ -37,4 +39,4 @@ Author: Hans Bihs
 #define SOLIDCHECK  if(p->flag4[(si-p->imin)*p->jmax*p->kmax + (sj-p->jmin)*p->kmax + sk-p->kmin]!=OBJ_FLAG)
 #define BFBCHK ISTARTCHECK IENDCHECK JSTARTCHECK JENDCHECK KSTARTCHECK KENDCHECK SOLIDCHECK
 
-
+#endif

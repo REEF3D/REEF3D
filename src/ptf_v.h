@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PTF_VOID_H_
+#define PTF_VOID_H_
+
 #include"ptf.h"
 
 
 using namespace std;
-
-#ifndef PTF_VOID_H_
-#define PTF_VOID_H_
 
 class ptf_void : public ptf
 {

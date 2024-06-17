@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef NET_VOID_H_
+#define NET_VOID_H_
+
 #include"net.h"
 #include"field1.h"
 #include"field2.h"
@@ -33,9 +36,6 @@ Author: Tobias Martin
 #include<vector>
 
 using namespace std;
-
-#ifndef NET_VOID_H_
-#define NET_VOID_H_
 
 class net_void : public net
 {

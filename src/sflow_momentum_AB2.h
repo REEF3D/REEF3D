@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_MOMENTUM_AB2_H_
+#define SFLOW_MOMENTUM_AB2_H_
+
 #include"sflow_momentum.h"
 #include"slice1.h"
 #include"slice2.h"
@@ -30,9 +33,6 @@ class sflow_fsf;
 class sflow_diffusion;
 
 using namespace std;
-
-#ifndef SFLOW_MOMENTUM_AB2_H_
-#define SFLOW_MOMENTUM_AB2_H_
 
 class sflow_momentum_AB2 : public sflow_momentum, public increment
 {

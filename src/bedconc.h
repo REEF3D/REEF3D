@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDCONC_H_
+#define BEDCONC_H_
+
 class lexer;
 class sediment_fdm;
 class ghostcell;
-
-#ifndef BEDCONC_H_
-#define BEDCONC_H_
 
 using namespace std;
 

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REDUCTION_VOID_H_
+#define REDUCTION_VOID_H_
+
 #include"bedshear_reduction.h"
 
 class lexer;
@@ -27,9 +30,6 @@ class sediment_fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef REDUCTION_VOID_H_
-#define REDUCTION_VOID_H_
 
 class reduction_void :  public bedshear_reduction
 {

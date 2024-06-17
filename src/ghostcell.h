@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef GHOSTCELL_H_
+#define GHOSTCELL_H_
+
 #include <mpi.h>
 #include"boundarycheck.h"
 
@@ -40,9 +43,6 @@ class density_f;
 class reini;
 class convection;
 class ioflow;
-
-#ifndef GHOSTCELL_H_
-#define GHOSTCELL_H_
 
 using namespace std;
 

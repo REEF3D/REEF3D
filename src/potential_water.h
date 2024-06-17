@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef POTENTIAL_WATER_H_
+#define POTENTIAL_WATER_H_
+
 #include"potential.h"
 #include"increment.h"
 #include"fieldint4.h"
@@ -27,9 +30,6 @@ Author: Hans Bihs
 class field;
 
 using namespace std;
-
-#ifndef POTENTIAL_WATER_H_
-#define POTENTIAL_WATER_H_
 
 class potential_water : public potential, public increment
 {

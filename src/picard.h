@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PICARD_H_
+#define PICARD_H_
+
 class lexer;
 class fdm;
 class ghostcell;
 class field;
 
 using namespace std;
-
-#ifndef PICARD_H_
-#define PICARD_H_
 
 class picard
 {

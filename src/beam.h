@@ -27,6 +27,9 @@ and G. Wanner (gerhard.wanner@math.unige.ch), Universite de Geneve.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef BEAM_H_
+#define BEAM_H_
+
 #include"vec.h"
 #include"boundarycheck.h"
 #include<iostream>
@@ -37,8 +40,7 @@ class lexer;
 
 using namespace std;
 
-#ifndef BEAM_H_
-#define BEAM_H
+
 
 class beam
 {

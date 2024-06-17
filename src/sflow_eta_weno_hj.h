@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_ETA_WENO_HJ_H_
+#define SFLOW_ETA_WENO_HJ_H_
+
 #include"sflow_eta_disc.h"
 #include"increment.h"
 
 class sflow_flux;
 
 using namespace std;
-
-#ifndef SFLOW_ETA_WENO_HJ_H_
-#define SFLOW_ETA_WENO_HJ_H_
 
 class sflow_eta_weno_hj : public sflow_eta_disc, public increment
 {

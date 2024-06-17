@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LES_SMAGORINSKY_H_
+#define LES_SMAGORINSKY_H_
+
 #include"LES.h"
 #include"field4.h"
 
 class LES_filter;
 
 using namespace std;
-
-#ifndef LES_SMAGORINSKY_H_
-#define LES_SMAGORINSKY_H_
 
 class LES_smagorinsky : public LES
 {

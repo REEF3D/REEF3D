@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sliceint.h"
-#include"increment.h"
-
 #ifndef SLICEINT2_H_
 #define SLICEINT2_H_
+
+#include"sliceint.h"
+#include"increment.h"
 
 using namespace std;
 

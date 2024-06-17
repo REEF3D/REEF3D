@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_BEDSHEAR_H_
+#define SEDIMENT_BEDSHEAR_H_
+
 #include"norm_vec.h"
 #include"slice4.h"
 
@@ -31,9 +34,6 @@ class turbulence;
 class sliceint;
 
 using namespace std;
-
-#ifndef SEDIMENT_BEDSHEAR_H_
-#define SEDIMENT_BEDSHEAR_H_
 
 class bedshear :  public norm_vec
 {

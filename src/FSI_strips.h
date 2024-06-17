@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef FSI_STRIPS_H_
+#define FSI_STRIPS_H_
+
 #include"FSI.h"
 #include<vector>
 #include <Eigen/Dense>
@@ -30,9 +33,6 @@ class ghostcell;
 class fsi_strip;
 
 using namespace std;
-
-#ifndef FSI_STRIPS_H_
-#define FSI_STRIPS_H_
 
 class fsi_strips : public fsi
 {

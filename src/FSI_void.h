@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef FSI_VOID_H_
+#define FSI_VOID_H_
+
 #include"FSI.h"
 
 class lexer;
@@ -27,9 +30,6 @@ class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef FSI_VOID_H_
-#define FSI_VOID_H_
 
 class fsi_void : public fsi
 {

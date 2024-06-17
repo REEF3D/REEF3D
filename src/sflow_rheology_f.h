@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_RHEOLOGY_F_H_
+#define SFLOW_RHEOLOGY_F_H_
+
 #include"sflow_rheology.h"
 #include"increment.h"
 #include"slice4.h"
-
-#ifndef SFLOW_RHEOLOGY_F_H_
-#define SFLOW_RHEOLOGY_F_H_
 
 #define HXIJ (fabs(b->hx(i,j))>1.0e-10?b->hx(i,j):1.0e20)
 #define HYIJ (fabs(b->hy(i,j))>1.0e-10?b->hy(i,j):1.0e20)

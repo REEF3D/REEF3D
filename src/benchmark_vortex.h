@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BENCHMARK_VORTEX_H_
+#define BENCHMARK_VORTEX_H_
+
 #include"benchmark.h"
 #include"increment.h"
 
@@ -27,9 +30,6 @@ class fdm;
 class lexer;
 class convection;
 class ghostcell;
-
-#ifndef BENCHMARK_VORTEX_H_
-#define BENCHMARK_VORTEX_H_
 
 using namespace std;
 

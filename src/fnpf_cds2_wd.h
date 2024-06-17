@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_CDS2_WD_H_
+#define FNPF_CDS2_WD_H_
+
 #include"fnpf_convection.h"
 #include"increment.h"
 
 class fdm_fnpf;
-
-#ifndef FNPF_CDS2_WD_H_
-#define FNPF_CDS2_WD_H_
 
 using namespace std;
 

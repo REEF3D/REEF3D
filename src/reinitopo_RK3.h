@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINITOPO_RK3_H_
+#define REINITOPO_RK3_H_
+
 #include"reinitopo.h"
 #include"ddweno.h"
 #include"vec.h"
@@ -29,9 +32,6 @@ class reinidisc;
 class picard;
 
 using namespace std;
-
-#ifndef REINITOPO_RK3_H_
-#define REINITOPO_RK3_H_
 
 class reinitopo_RK3 : public reinitopo, public increment
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DIRECTREINI_H_
+#define DIRECTREINI_H_
+
 #include"reini.h"
 #include"gradient.h"
 #include"resize.h"
@@ -32,9 +35,6 @@ class fieldint;
 class vec;
 
 using namespace std;
-
-#ifndef DIRECTREINI_H_
-#define DIRECTREINI_H_
 
 class directreini : public reini, gradient, public resize_class
 {
