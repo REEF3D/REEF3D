@@ -28,6 +28,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class fdm_fnpf;
+class fdm_nhf;
 class ghostcell;
 
 class vtk3D
@@ -37,6 +38,7 @@ class vtk3D
         virtual void offset(lexer*,int*,int&){};
         virtual void structureWrite(lexer*, fdm*, std::ofstream&){};
         virtual void structureWrite(lexer*, fdm_fnpf*, std::ofstream&){};
+        virtual void structureWrite(lexer*, fdm_nhf*, std::ofstream&){};
         virtual void extent(lexer*,ghostcell*){};
         virtual void fileName(char*, char*, int&, int&){};
         virtual void parallelFileName(char*, char*, int&){};

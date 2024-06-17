@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include "lexer.h"
 #include "fdm.h"
 #include "fdm_fnpf.h"
+#include "fdm_nhf.h"
 #include <sys/stat.h>
 
 vtu3D::vtu3D()
@@ -252,6 +253,71 @@ void vtu3D::structureWrite(lexer *p, fdm_fnpf *c, std::ofstream &result)
 
 		iin=int(c->nodeval(i-1,j,k))-1;
 		result.write((char*)&iin, sizeof (int));
+	}
+
+	structureWriteEnd(p,result);
+}
+
+void vtu3D::structureWrite(lexer *p, fdm_nhf *d, std::ofstream &result)
+{
+	float ffn;
+	int iin;
+	double phase=0.0;
+	double zcoor;
+
+	//  XYZ
+	iin=4*(p->pointnum)*3;
+	result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	zcoor = p->ZN[KP1]*p->sl_ipol4(d->WL) + p->sl_ipol4(d->bed);
+
+	if(p->wet[IJ]==0)
+	zcoor=p->sl_ipol4(d->bed);
+	
+	if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
+	zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
+
+	// -- 
+	ffn=float(p->XN[IP1]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(p->YN[JP1]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(zcoor);
+	result.write((char*)&ffn, sizeof (float));
+	}
+	
+	//  Connectivity
+	iin=4*(p->tpcellnum)*8;
+	result.write((char*)&iin, sizeof (int));
+	BASELOOP
+	if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
+	{
+	iin=int(d->NODEVAL[Im1Jm1Km1])-1;
+	result.write((char*)&iin, sizeof (int));
+
+	iin=int(d->NODEVAL[IJm1Km1])-1;
+	result.write((char*)&iin, sizeof (int));
+
+	iin= int(d->NODEVAL[IJKm1])-1;
+	result.write((char*)&iin, sizeof (int));
+
+	iin=int(d->NODEVAL[Im1JKm1])-1;
+	result.write((char*)&iin, sizeof (int));
+
+	iin=int(d->NODEVAL[Im1Jm1K])-1;
+	result.write((char*)&iin, sizeof (int));
+
+	iin=int(d->NODEVAL[IJm1K])-1;
+	result.write((char*)&iin, sizeof (int));
+
+	iin=int(d->NODEVAL[IJK])-1;
+	result.write((char*)&iin, sizeof (int));
+
+	iin=int(d->NODEVAL[Im1JK])-1;
+	result.write((char*)&iin, sizeof (int));
 	}
 
 	structureWriteEnd(p,result);

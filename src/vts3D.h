@@ -37,6 +37,7 @@ class vts3D : public vtk3D , increment
         void offset(lexer*, int*, int&);
         void structureWrite(lexer*, fdm*, std::ofstream&);
         void structureWrite(lexer*, fdm_fnpf*, std::ofstream&);
+        void structureWrite(lexer*, fdm_nhf*, std::ofstream&);
         void extent(lexer* ,ghostcell*);
         
         void beginning(lexer*, std::ofstream&);

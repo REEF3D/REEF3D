@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include "lexer.h"
 #include "fdm.h"
 #include "fdm_fnpf.h"
+#include "fdm_nhf.h"
 #include "ghostcell.h"
 #include <sys/stat.h>
 
@@ -174,6 +175,41 @@ void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::ofstream &result)
         result.write((char*)&ffn, sizeof (float));
 
         ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
+        result.write((char*)&ffn, sizeof (float));
+	}
+
+	result<<endl<<"</AppendedData>"<<endl;
+    result<<"</VTKFile>"<<flush;
+}
+
+void vts3D::structureWrite(lexer *p, fdm_nhf *d, std::ofstream &result)
+{
+	float ffn;
+	int iin;
+	double phase;
+	double zcoor;
+
+	//  XYZ
+	iin=4*(p->pointnum)*3;
+	result.write((char*)&iin, sizeof (int));
+    TPLOOP
+	{
+        zcoor = p->ZN[KP1]*p->sl_ipol4(d->WL) + p->sl_ipol4(d->bed);
+
+        if(p->wet[IJ]==0)
+        zcoor=p->sl_ipol4(d->bed);
+        
+        if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
+        zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
+
+        // -- 
+        ffn=float(p->XN[IP1]);
+        result.write((char*)&ffn, sizeof (float));
+
+        ffn=float(p->YN[JP1]);
+        result.write((char*)&ffn, sizeof (float));
+
+        ffn=float(zcoor);
         result.write((char*)&ffn, sizeof (float));
 	}
 

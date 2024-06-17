@@ -35,7 +35,7 @@
     <Extensions>
       <![CDATA[*.cpp;*.c;*.h;*.hpp;*.xrc;*.wxcp;*.fbp]]>
     </Extensions>
-    <Topleveldir>/Users/tobias/REEF3D/Code/REEF3D/src</Topleveldir>
+    <Topleveldir>/Users/alexander.hanke/Documents/Source/REEF3D/src</Topleveldir>
   </Reconciliation>
   <Description/>
   <Dependencies/>
@@ -331,12 +331,7 @@
             <File Name="nhflow_print_wsf.h"/>
           </VirtualDirectory>
           <File Name="nhflow_printer.h"/>
-          <VirtualDirectory Name="VTU">
-            <File Name="nhflow_vtu3D.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="VTS">
-            <File Name="nhflow_vts3D.h"/>
-          </VirtualDirectory>
+          <File Name="printer_nhflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Reinitialization">
@@ -1486,16 +1481,8 @@
             <File Name="nhflow_print_wsf_theory.cpp"/>
             <File Name="nhflow_print_wsf.cpp"/>
           </VirtualDirectory>
-          <File Name="nhflow_vtu3D.cpp"/>
-          <File Name="nhflow_vts3D.cpp"/>
-          <VirtualDirectory Name="VTU">
-            <File Name="nhflow_vtu3D_pvtu.cpp"/>
-            <File Name="nhflow_vtu3D_header.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="VTS">
-            <File Name="nhflow_vts3D_pvts.cpp"/>
-            <File Name="nhflow_vts3D_header.cpp"/>
-          </VirtualDirectory>
+          <File Name="printer_nhflow.cpp"/>
+          <File Name="printer_nhflow_parallel.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Reinitialization">

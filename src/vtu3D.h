@@ -36,7 +36,7 @@ class vtu3D : public vtk3D , increment
         void offset(lexer*, int*, int&);
         void structureWrite(lexer*, fdm*, std::ofstream&);
         void structureWrite(lexer*, fdm_fnpf*, std::ofstream&);
-
+        void structureWrite(lexer*, fdm_nhf*, std::ofstream&);
         void beginning(lexer*, std::ofstream&);
         void beginningParallel(lexer*, std::ofstream&);
         void ending(std::ofstream&, int*, int&);
