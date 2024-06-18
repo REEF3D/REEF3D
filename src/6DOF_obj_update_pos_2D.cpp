@@ -50,7 +50,6 @@ void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
     }
 }
 
-
 void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
 {
     double starttime, endtime;
