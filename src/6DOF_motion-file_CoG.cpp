@@ -90,7 +90,7 @@ void sixdof_motionext_file_CoG::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Ei
         if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
         Rext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
     
-        cout<<p->mpirank<<" Rext: "<<Rext*(180.0/PI)<<endl;
+        //cout<<p->mpirank<<" Rext: "<<Rext*(180.0/PI)<<endl;
     
         dh_ << 0.0,0.0,0.0;
         

@@ -234,7 +234,7 @@ void sixdof_obj::geometry_parameters_2D(lexer *p, ghostcell *pgc)
             xmax = MAX3(x0,x1,x2);
             
             ymin = MIN3(y0,y1,y2);
-            ymax = MAX3(z0,z1,z2);
+            ymax = MAX3(y0,y1,y2);
             
             zmin = MIN3(z0,z1,z2);
             zmax = MAX3(z0,z1,z2);

@@ -154,6 +154,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
         c_(1) += yorig;
         c_(2) += zorig;
 	}
+    
     else if (p->X23==1)
 	{
 		c_(0) = p->X23_x; 
