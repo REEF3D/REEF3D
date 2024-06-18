@@ -400,10 +400,10 @@ void particle_func::make_stationary(lexer* p, fdm* a, particles_obj* PP)
                 PP->V[n]=0;
                 PP->W[n]=0;
             }
-            if(p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n])<=0)
-            {
-                PP->Flag[n]=-1;
-            }
+            // if(p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n])<=0)
+            // {
+            //     PP->Flag[n]=-1;
+            // }
         }
     }
 }

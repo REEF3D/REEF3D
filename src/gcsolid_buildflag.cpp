@@ -40,11 +40,11 @@ void ghostcell::gcsolid_buildflag(lexer *p, fdm *a, int& cellcount)
     //
     BASELOOP
     {
-        if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
+        if(a->solid(i,j,k)<0.0 || (a->topo(i,j,k)<0.0 && p->S10!=2))
         p->flag[IJK]=-1;
 			
 
-        if(a->solid(i,j,k)>=0.0 && a->topo(i,j,k)>=0.0)
+        if(a->solid(i,j,k)>=0.0 && (a->topo(i,j,k)>=0.0 || p->S10==2))
         p->flag[IJK]=1;
     }
     

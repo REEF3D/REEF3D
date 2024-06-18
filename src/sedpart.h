@@ -25,10 +25,11 @@ Author: Alexander Hanke
 
 #include "sediment.h"
 #include "particle_func.h"
-#include"increment.h"
+#include "increment.h"
 
 #include "particles_obj.h"
 #include "field4.h"
+#include "bedshear_reduction.h"
 
 namespace sediment_particle::movement
 {
@@ -47,6 +48,7 @@ class ofstrem;
 class vrans;
 class turbulence;
 class bedshear;
+class sediment_fdm;
 
 /// This class used particles on a Lagrangien framework and a VRANS sediment domain to simulate the influence of flow on the sediment
 class sedpart : public sediment, private particle_func, private increment
@@ -70,6 +72,13 @@ public:
 
     void write_state_particles(ofstream&);
     void read_state_particles(ifstream&);
+
+    // ---
+
+    virtual void print_3D_bedshear(lexer*, ghostcell*,ofstream&);
+	virtual void name_pvtu_bedshear(lexer*, ghostcell*,ofstream&);
+    virtual void name_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
 
 protected:
 
@@ -149,6 +158,9 @@ private:
     int printcount;
     /// @brief File numer
     int num;
+
+    sediment_fdm *s;
+    bedshear *pbedshear;
 
     #define PARTLOOP for(size_t n=0;n<PP.loopindex;n++)
     #define PARTICLELOOP for(size_t n=0;n<PP.loopindex;n++) if(PP.Flag[n]>INT32_MIN)

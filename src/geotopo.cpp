@@ -41,15 +41,14 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, reinitopo* 
     
     preto->start(p,a,pgc,a->topo);
     
-    if(p->G3==0)
-    {
-        if(p->S10!=2)
-        pgc->topo_update(p,a);
-        else
-        pgc->gcb_velflagio(p,a);
-        
-        pflow->gcio_update(p,a,pgc);
-    }
+    if(p->G3==0 && p->S10!=0)
+    pgc->topo_update(p,a);
+    if(p->G3==1)
+    pgc->gcdf_update(p,a);
+    if(p->S10!=0)
+    pgc->gcb_velflagio(p,a);
+    
+    pflow->gcio_update(p,a,pgc);
     
     if(p->S10==2)
     pflow->vrans_sed_update(p,a,pgc,pvrans);

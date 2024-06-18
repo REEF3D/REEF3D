@@ -31,11 +31,11 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
     //
     BASELOOP
     {
-        if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
+        if(a->solid(i,j,k)<0.0 || (a->topo(i,j,k)<0.0 && p->S10!=2))
         p->flag[IJK]=-1;
 			
 
-        if(a->solid(i,j,k)>=0.0 && a->topo(i,j,k)>=0.0)
+        if(a->solid(i,j,k)>=0.0 && (a->topo(i,j,k)>=0.0 || p->S10==2))
         p->flag[IJK]=1;
     }
     
@@ -45,7 +45,7 @@ void ghostcell::gcb_buildflag(lexer *p, fdm *a, int **cellmem, int& cellcount)
     {
     cache = p->flag4[IJK];
 
-        if(a->topo(i,j,k)<0.0)
+        if(a->topo(i,j,k)<0.0 && p->S10!=2)
 		{
         p->flag4[IJK]=TOPO_FLAG;
 			
