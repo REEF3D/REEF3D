@@ -40,9 +40,6 @@ void sixdof_obj::get_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector4d& de_, Ei
     // Update Euler parameter matrices
     quat_matrices();
     
-    //if(p->mpirank==0)
-    //cout<<"R: "<<R_(0,0)<<" "<<R_(0,1)<<" "<<R_(0,2)<<" | "<<R_(1,0)<<" "<<R_(1,1)<<" "<<R_(1,2)<<" | "<<R_(2,0)<<" "<<R_(2,1)<<" "<<R_(2,2)<<endl;
-
     // RHS of e
     de_ = 0.5*G_.transpose()*I_.inverse()*h_;
     
