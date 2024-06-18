@@ -77,6 +77,7 @@ void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
     ts = data[0][0];
     te = data[ptnum-1][0];
     
+    //if(p->mpirank==0)
     //cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<endl;
     
 // add deltas
