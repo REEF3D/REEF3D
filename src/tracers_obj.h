@@ -90,6 +90,8 @@ protected:
     size_t* Empty;
     /// @brief Default factor for ::reserve
     const double scale_factor;
+public:
+    friend class tracers_obj_test;
 };
 
 #endif

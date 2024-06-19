@@ -835,6 +835,7 @@ void lexer::ini_default()
     X401_a=16.0;    // sflow external pressure term a
 
 	// Developer
+    Y0=0;   // int run unit tests
 	Y1=0;   // int turn on/off experimental screen force model
     Y2=0;   // int turn external moments on/off
     Y3=0;

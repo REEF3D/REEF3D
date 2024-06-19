@@ -51,6 +51,14 @@ driver::driver(int& argc, char **argv)
     p->gridini(pgc);
     patchBC_logic();
 
+    if(p->Y0==1)
+    {
+        if(p->mpirank==0)
+        unit_tests();
+        
+        pgc->final(); 
+        exit(0);
+    }
 
     if(p->mpirank==0)
     {

@@ -159,7 +159,7 @@ size_t tracers_obj::reserve(size_t capacity_desired)
 {
     if(0==capacity_desired)
         capacity_desired=ceil(scale_factor*capacity);
-    capacity_desired=ceil(scale_factor*capacity_desired);
+    
     if (capacity_desired>capacity)
     {
         if (capacity_desired>SIZE_MAX)
@@ -340,4 +340,3 @@ void tracers_obj::reset_Empty()
     empty_itr=0;
     fill_empty();
 }
-

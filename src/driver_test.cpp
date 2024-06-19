@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"vec.h"
 #include"vector"
 #include <Eigen/Dense>
+#include "unit_tests.h"
 
 void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {	
@@ -475,4 +476,14 @@ double driver::calc()
 	val = (9.0 + nom*5.0)/nom;
 	
 	return val;
+}
+
+void driver::unit_tests()
+{
+    cout<<"Running unit tests..."<<endl;
+    cout<<"-------------------------------------"<<endl;
+    tracers_obj_test test;
+    test.run();
+    cout<<"-------------------------------------"<<endl;
+    cout<<"All unit tests completed sucessfully."<<endl;
 }

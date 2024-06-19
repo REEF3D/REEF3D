@@ -225,6 +225,8 @@ private:
 	
 	double nom,val;
     char version[100];
+
+    void unit_tests();
 };
 
 #endif
