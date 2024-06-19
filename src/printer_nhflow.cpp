@@ -155,62 +155,62 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     
     pfsf->preproc(p,d,pgc);
 
-		// Print out based on iteration
-        if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
-		{
-        print_vtk(p,d,pgc);
-		}
+    // Print out based on iteration
+    if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
+    {
+    print_vtk(p,d,pgc);
+    }
 
-		// Print out based on time
-        if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
-        {
-        print_vtk(p,d,pgc);
+    // Print out based on time
+    if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0) || (p->count==0 &&  p->P30>0.0))
+    {
+    print_vtk(p,d,pgc);
 
-        p->printtime+=p->P30;
-        }
+    p->printtime+=p->P30;
+    }
 
-		// Print out based on time interval
-		if(p->P10==1 && p->P35>0)
-		for(int qn=0; qn<p->P35; ++qn)
-		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
-		{
-		print_vtk(p,d,pgc);
+    // Print out based on time interval
+    if(p->P10==1 && p->P35>0)
+    for(int qn=0; qn<p->P35; ++qn)
+    if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+    {
+    print_vtk(p,d,pgc);
 
-		printtime_wT[qn]+=p->P35_dt[qn];
-		}
+    printtime_wT[qn]+=p->P35_dt[qn];
+    }
 
-        // Print FSF
-		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
-        {
-		pfsf->start(p,d,pgc);
-        }
+    // Print FSF
+    if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
+    {
+    pfsf->start(p,d,pgc);
+    }
 
 
-		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
-        {
-        pfsf->start(p,d,pgc);
-        p->fsfprinttime+=p->P182;
-        }
+    if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
+    {
+    pfsf->start(p,d,pgc);
+    p->fsfprinttime+=p->P182;
+    }
 
-        if(p->P180==1 && p->P184>0)
-		for(int qn=0; qn<p->P184; ++qn)
-		if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
-		{
-		pfsf->start(p,d,pgc);
-		}
+    if(p->P180==1 && p->P184>0)
+    for(int qn=0; qn<p->P184; ++qn)
+    if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
+    {
+    pfsf->start(p,d,pgc);
+    }
 
-         if(p->P180==1 && p->P185>0)
-		for(int qn=0; qn<p->P185; ++qn)
-		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
-		{
-		pfsf->start(p,d,pgc);
+        if(p->P180==1 && p->P185>0)
+    for(int qn=0; qn<p->P185; ++qn)
+    if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+    {
+    pfsf->start(p,d,pgc);
 
-		printfsftime_wT[qn]+=p->P185_dt[qn];
-		}
+    printfsftime_wT[qn]+=p->P185_dt[qn];
+    }
 
-        // Print BED
-        if(p->count==0)
-		pbed->start(p,d,pgc);
+    // Print BED
+    if(p->count==0)
+    pbed->start(p,d,pgc);
 
 
     // Gages
@@ -235,7 +235,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     p->stateprinttime+=p->P42;
     }
 
-/*
+    /*
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
 
