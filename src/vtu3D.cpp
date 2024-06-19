@@ -106,7 +106,6 @@ void vtu3D::endingParallel(std::ofstream &result, char *A10, int &M10, int &num)
 	result<<"\t<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
 	result<<"</Cells>"<<endl;
 
-	char pname[30];
 	for(int n=0; n<M10; ++n)
 	{
 	sprintf(pname,"REEF3D-%s-%08i-%06i.vtu",A10,num,n+1);

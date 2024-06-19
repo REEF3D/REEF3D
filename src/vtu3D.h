@@ -45,6 +45,7 @@ class vtu3D : public vtk3D , increment
         void parallelFileName(char *name, char *A10, int &num){sprintf(name,"./REEF3D_%s_VTU/REEF3D-%s-%08i.pvtu",A10,A10,num);};
     private:
         void structureWriteEnd(lexer*, std::ofstream&);
+        char pname[50];
 };
 
 #endif
