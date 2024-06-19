@@ -91,6 +91,8 @@ namespace sediment_particle::movement
         double stressDivX=0, stressDivY=0, stressDivZ=0;
         double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
 
+        bool limited = false;
+
         particlePerCell(p,pgc,PP);
         particleStressTensor(p,a,pgc,PP);
 
@@ -99,6 +101,11 @@ namespace sediment_particle::movement
             if(PP.Flag[n]>0) // INT32_MIN
             {
                 // Prep
+                if(p->originx+p->Q73>PP.X[n])
+                limited = true;
+                else
+                limited = false;
+
                 i=p->posc_i(PP.X[n]);
                 j=p->posc_j(PP.Y[n]);
                 k=p->posc_k(PP.Z[n]);
@@ -177,24 +184,27 @@ namespace sediment_particle::movement
                 }
                 else
                     PP.U[n] += ((2.0/3.0)*du2 + (2.0/3.0)*du3)*p->dt;
-                if(dv2!=dv2||dv3!=dv3)
+                if(!limited)
                 {
-                    cerr<<"Particle velocity component v resulted in NaN.\n"
-                    <<dv2<<","<<dv3<<"|"<<Dp<<","<<netBuoyY<<","<<pressureDivY<<","<<stressDivY
-                    <<endl;
-                    exit(1);
+                    if(dv2!=dv2||dv3!=dv3)
+                    {
+                        cerr<<"Particle velocity component v resulted in NaN.\n"
+                        <<dv2<<","<<dv3<<"|"<<Dp<<","<<netBuoyY<<","<<pressureDivY<<","<<stressDivY
+                        <<endl;
+                        exit(1);
+                    }
+                    else
+                        PP.V[n] += ((2.0/3.0)*dv2 + (2.0/3.0)*dv3)*p->dt;
+                    if(dw2!=dw2||dw3!=dw3)
+                    {
+                        cerr<<"Particle velocity component w resulted in NaN.\n"
+                        <<dw2<<","<<dw3<<"|"<<Dp<<","<<netBuoyZ<<","<<pressureDivZ<<","<<stressDivZ
+                        <<endl;
+                        exit(1);
+                    }
+                    else
+                        PP.W[n] += ((2.0/3.0)*dw2 + (2.0/3.0)*dw3)*p->dt;
                 }
-                else
-                    PP.V[n] += ((2.0/3.0)*dv2 + (2.0/3.0)*dv3)*p->dt;
-                if(dw2!=dw2||dw3!=dw3)
-                {
-                    cerr<<"Particle velocity component w resulted in NaN.\n"
-                    <<dw2<<","<<dw3<<"|"<<Dp<<","<<netBuoyZ<<","<<pressureDivZ<<","<<stressDivZ
-                    <<endl;
-                    exit(1);
-                }
-                else
-                    PP.W[n] += ((2.0/3.0)*dw2 + (2.0/3.0)*dw3)*p->dt;
                 
                 // Pos update
 
