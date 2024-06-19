@@ -502,14 +502,28 @@ public:
 	double *P352_x,*P352_y;
     
     // Particles
-    int Q10,Q11,Q12,Q13,Q20,Q24,Q29,Q43;
-    double Q14,Q15,Q16,Q17;
-    double Q22,Q23,Q25;
+    int Q10;
+    int Q11;
+    int Q12;
+    int Q13;
+    int Q20;
+    int Q24;
+    int Q29;
+    int Q43;
+    double Q14;
+    double Q15;
+    double Q16;
+    double Q17;
+    double Q22;
+    double Q23;
+    double Q25;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
+    double Q73;
     
-    int Q101,Q110;
+    int Q101;
+    int Q110;
     double Q102;
     double *Q110_xs,*Q110_xe,*Q110_ys,*Q110_ye,*Q110_zs,*Q110_ze;
     
@@ -517,7 +531,8 @@ public:
     int Q121;
     int Q122;
 
-    int Q180,Q181;
+    int Q180;
+    int Q181;
     double Q182;
     int Q183;
     
