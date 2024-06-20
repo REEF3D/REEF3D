@@ -41,6 +41,7 @@ namespace sediment_particle
     namespace movement
     {
         class base
+        /// Base class for sediment particle movement models
         {
         public:
             virtual void setup(lexer *, fdm &, double &){};

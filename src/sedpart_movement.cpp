@@ -51,6 +51,16 @@ namespace sediment_particle::movement
         columnSum = nullptr;
     }
 
+    /**
+     * @brief Sets up the Tavouktsoglou class.
+     *
+     * This function is responsible for setting up the Tavouktsoglou class by calculating
+     * the cellSumTopo and columnSum values based on the given parameters.
+     *
+     * @param p A pointer to the lexer object.
+     * @param a A reference to the fdm object.
+     * @param diameter The diameter value.
+     */
     void Tavouktsoglou::setup(lexer *p, fdm &a, double &diameter)
     {
         PLAINLOOP
@@ -59,6 +69,18 @@ namespace sediment_particle::movement
         columnSum[IJ] += cellSumTopo[IJK];
     }
 
+    /**
+     * @brief Determines if a particle should be seeded in the current cell.
+     *
+     * This function is responsible for determining if a particle should be seeded in the current cell.
+     * It does so by checking if the cellSumTopo value is greater than 0 and if the cellSum value is less than the maximum value.
+     *
+     * @param p A pointer to the lexer object.
+     * @param PP A reference to the particles_obj object.
+     * @param index The index of the particle.
+     * @param max The maximum value.
+     * @return True if the particle should be seeded, false otherwise.
+     */
     bool Tavouktsoglou::seeding(lexer *p, particles_obj &PP, size_t &index, int &max)
     {
         if(cellSumTopo[IJK]>0)
@@ -69,16 +91,47 @@ namespace sediment_particle::movement
         return false;
     }
 
+    /**
+     * @brief Transfers the particle to the current cell.
+     *
+     * This function is responsible for transferring the particle to the current cell.
+     * It does so by adding the PackingFactor value to the cellSum value.
+     *
+     * @param p A pointer to the lexer object.
+     * @param PP A reference to the particles_obj object.
+     * @param index The index of the particle.
+     */
     void Tavouktsoglou::transfer(lexer *p, particles_obj &PP, size_t &index)
     {
-        cellSum[IJK] += PP.PackingFactor[n];
+        cellSum[IJK] += PP.PackingFactor[index];
     }
 
+    /**
+     * @brief Removes the particle from the current cell.
+     *
+     * This function is responsible for removing the particle from the current cell.
+     * It does so by subtracting the PackingFactor value from the cellSum value.
+     *
+     * @param p A pointer to the lexer object.
+     * @param PP A reference to the particles_obj object.
+     * @param index The index of the particle.
+     */
     void Tavouktsoglou::remove(lexer *p, particles_obj &PP, size_t &index)
     {
         cellSum[IJK] -= PP.PackingFactor[index];
     }
 
+    /**
+     * @brief Moves the particles with the flow field.
+     *
+     * This function is responsible for moving the particle with the flow field.
+     * It does so by calculating the experienced accelerations and the resulting new velocity and position of the particle.
+     *
+     * @param p A pointer to the lexer object.
+     * @param a A reference to the fdm object.
+     * @param pgc A reference to the ghostcell object.
+     * @param PP A reference to the particles_obj object.
+     */
     void Tavouktsoglou::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         double RKu,RKv,RKw;
@@ -207,35 +260,6 @@ namespace sediment_particle::movement
                 }
                 
                 // Pos update
-
-                // Solid forcing
-                // double solid_old = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n]);
-                // double solid_new = p->ccipol4_b(a.solid,PP.X[n]+PP.U[n]*p->dt,PP.Y[n]+PP.V[n]*p->dt,PP.Z[n]+PP.W[n]*p->dt);
-                // if(solid_new<=0)
-                // {
-                //     double solid_x = p->ccipol4_b(a.solid,PP.X[n]+PP.U[n]*p->dt,PP.Y[n],PP.Z[n]);
-                //     double solid_y = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n]+PP.V[n]*p->dt,PP.Z[n]);
-                //     double solid_z = p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n]+PP.W[n]*p->dt);
-                //     if(solid_x<=0)
-                //     {
-                //         double dx = (solid_old)/(solid_old-solid_x)*PP.U[n]*p->dt+(PP.U[n]>=0?-1:1)*PP.d50/2.0;
-                //         PP.X[n] += dx;
-                //         PP.U[n] = 0;
-                //     }
-                //     if(solid_y<=0)
-                //     {
-                //         double dy = (solid_old)/(solid_old-solid_y)*PP.V[n]*p->dt+(PP.V[n]>=0?-1:1)*PP.d50/2.0;
-                //         PP.Y[n] += dy;
-                //         PP.W[n] = 0;
-                //     }
-                //     if(solid_z<=0)
-                //     {
-                //         double dz = (solid_old)/(solid_old-solid_z)*PP.W[n]*p->dt+(PP.W[n]>=0?-1:1)*PP.d50/2.0;
-                //         PP.Z[n] += dz;
-                //         PP.W[n] = 0;
-                //     }
-                // }
-
                 PP.X[n] += PP.U[n]*p->dt;
                 PP.Y[n] += PP.V[n]*p->dt;
                 PP.Z[n] += PP.W[n]*p->dt;
@@ -257,6 +281,17 @@ namespace sediment_particle::movement
         }
     }
 
+    /**
+     * @brief Updates the topo field.
+     *
+     * This function is responsible for updating the topo field.
+     * It does so by calculating the difference between the columnSum and the count value.
+     *
+     * @param p A pointer to the lexer object.
+     * @param pgc A reference to the ghostcell object.
+     * @param topo A reference to the field4a object.
+     * @param d50 The diameter value.
+     */
     void Tavouktsoglou::update(lexer *p, ghostcell &pgc, field4a &topo, double &d50)
     {
         double count;
@@ -384,6 +419,7 @@ namespace sediment_particle::movement
         return Dp;
     }
 
+    /// @brief Calculate number of particles in cell ( \p i , \p j , \p k )
     void Tavouktsoglou::particlePerCell(lexer *p, ghostcell &pgc, particles_obj &PP)
     {
         PLAINLOOP
