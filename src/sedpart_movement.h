@@ -54,6 +54,9 @@ namespace sediment_particle
             virtual void readState(ifstream &){};
         };
         class Tavouktsoglou : public base, increment
+        /// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
+        /// @author Alexander Hanke
+        /// @date 2024
         {
         public:
             Tavouktsoglou(lexer *);
