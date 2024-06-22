@@ -68,7 +68,7 @@ public:
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
-    void hydrodynamic_forces(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
+    void hydrodynamic_forces(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
 	
     void quat_matrices();
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
@@ -135,12 +135,12 @@ private:
     void geometry_ls(lexer*, fdm*, ghostcell*);
     
     // force
-    void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
-    void forces_lsm(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
+    void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
+    void forces_lsm(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void triangulation(lexer*, fdm*, ghostcell*, field&);
 	void reconstruct(lexer*, fdm*, field&);
     void addpoint(lexer*,fdm*,int,int);
-    void forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc,int);
+    void forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc,int,bool);
     
     void print_force(lexer*,fdm*,ghostcell*);
     void print_ini(lexer*,fdm*,ghostcell*);

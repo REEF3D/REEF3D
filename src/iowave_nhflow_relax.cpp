@@ -202,4 +202,24 @@ void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
     p->wavetime+=pgc->timer()-starttime;
 }
 
+void iowave::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
+{
+    starttime=pgc->timer();
+    
+    LOOP
+    {
+        dg = distgen(p);    
+        db = distbeach(p);
 
+		// Wave Generation
+		if(p->B98==2 && u_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            F[IJK] = relax4_wg(i,j)*F[IJK] + (1.0-H)*F[IJK];
+
+		}
+    }
+    
+    p->wavetime+=pgc->timer()-starttime;
+}

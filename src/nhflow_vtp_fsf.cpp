@@ -117,10 +117,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     // Fifsf
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
-    
-    // elevation
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
 	
 	// WL
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
@@ -199,8 +195,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"eta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"detadt\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"WL\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -328,16 +322,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4eta_wd(p->wet,d->eta,d->bed));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-    //  Detadt
-    k=p->knoz-1;
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-    TPSLICELOOP
-	{
-    ffn=float(p->sl_ipol4(d->detadt));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

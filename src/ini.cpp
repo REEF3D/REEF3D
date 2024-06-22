@@ -393,7 +393,7 @@ void lexer::ini_default()
 
     // Grid
     G2=0;            // int sigma grid
-    G3=0;            // int solid forcing
+    G3=1;            // int solid forcing
 	G10=3;			// int xmargin inflow
 	G11=3;			// int ymargin right
 	G12=3;			// int zmargin bottom
@@ -413,8 +413,8 @@ void lexer::ini_default()
     H9=1;           // int air-water assignment
 	H10=0;          // int heat transfer on/off
     H15=5;          // int convection for heat transfer
-	H50_1=20.0; // double temperature 1
-	H50_2=20.0; // double temperature 2
+	H50_1=20.0;     // double temperature 1
+	H50_2=20.0;     // double temperature 2
 	H51=-1.0e7;		    // double i-dir zero level set start
 	H52=-1.0e7;		    // double j-dir zero level set start
 	H53=-1.0e7;		    // double k-dir zero level set start

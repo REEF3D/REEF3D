@@ -54,8 +54,8 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	timesource(p,d,KN);
     bckomega_start(p,d,KIN,EPS,gcval_kin);
     bckin_matrix(p,d,KIN,EPS);
-	//psolv->start(p,a,pgc,kin,a->rhsvec,4);
-	/*pgc->start4(p,kin,gcval_kin);
+    psolv->startV(p,pgc,KIN,d->rhsvec,d->M,4);
+    pgc->start4V(p,KIN,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -64,23 +64,23 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 //omega
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,a,eps,4,a->u,a->v,a->w);
-	pdiff->idiff_scalar(p,a,pgc,psolv,eps,eddyv0,kw_sigma_w,1.0);
-	epssource(p,a,pvrans);
-	timesource(p,a,en);
-    bcomega_matrix(a,p,kin,eps);
-	psolv->start(p,a,pgc,eps,a->rhsvec,4);
-	epsfsf(p,a,pgc);
-	bckomega_start(a,p,kin,eps,gcval_eps);
-	pgc->start4(p,eps,gcval_eps);
+    pconvec->start(p,d,EPS,4,d->U,d->V,d->W);
+	pdiff->diff_scalar(p,d,pgc,psolv,EPS,1.0);
+	epssource(p,d,pvrans);
+	timesource(p,d,EN);
+    bckin_matrix(p,d,KIN,EPS);
+	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
+	epsfsf(p,d,pgc);
+	bckomega_start(p,d,KIN,EPS,gcval_eps);
+	pgc->start4V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
-	eddyvisc(p,a,pgc,pvrans);
-    pflow->turb_relax(p,a,pgc,a->eddyv);
-	pgc->start4(p,a->eddyv,24);*/
+    eddyvisc(p,d,pgc,pvrans);
+    pflow->turb_relax_nhflow(p,d,pgc,d->EV);
+    pgc->start4V(p,d->EV,24);
 }
 
 void nhflow_komega_IM1::ktimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)

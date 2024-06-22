@@ -28,14 +28,14 @@ Author: Tobias Martin
 #include"net.h"
 #include"vrans.h"
 
-void sixdof_obj::hydrodynamic_forces(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter)
+void sixdof_obj::hydrodynamic_forces(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {
     if(p->X60==1)
-    forces_stl(p,a,pgc,uvel,vvel,wvel,iter);
+    forces_stl(p,a,pgc,uvel,vvel,wvel,iter,finalize);
     
     if(p->X60==2)
     {
-    forces_lsm(p,a,pgc,uvel,vvel,wvel,iter);
+    forces_lsm(p,a,pgc,uvel,vvel,wvel,iter,finalize);
     
     //forces_stl(p,a,pgc,uvel,vvel,wvel,iter);
     }
