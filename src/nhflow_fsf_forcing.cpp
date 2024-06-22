@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::forcing(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
 {/*
-    if(p->A561>0 || p->A564>0)
+    if(p->A581>0 || p->A584>0)
     {
      
     k=p->knoz-1;

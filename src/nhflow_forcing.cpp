@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
 {
-    if(p->A561>0 || p->A564>0)
+    if(p->A581>0 || p->A584>0)
     {
     p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
@@ -48,7 +48,7 @@ nhflow_forcing::~nhflow_forcing()
 
 void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
 {
-    if(p->A561>0 || p->A564>0)
+    if(p->A581>0 || p->A584>0)
     {
     // update direct forcing function
     ray_cast(p, d, pgc);
@@ -117,7 +117,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
 
 void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(p->A561>0 || p->A564>0)
+    if(p->A581>0 || p->A584>0)
     {
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);

@@ -111,10 +111,10 @@ void driver::logic_nhflow()
     pnhpress = new nhflow_pjm_corr(p,d,pgc,pBC);
 
 //Turbulence
-    if(p->T10==0)
+    if(p->A560==0)
 	pnhfturb = new nhflow_komega_void(p,d,pgc);
     
-    if(p->T10==2)
+    if(p->A560==2)
     {
 	pnhfturb = new nhflow_komega_IM1(p,d,pgc);
     

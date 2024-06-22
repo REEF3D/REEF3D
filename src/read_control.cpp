@@ -328,13 +328,16 @@ void lexer::read_control()
                case 553: control>>A553;
                         clear(c,numint);
                         break;
-               case 560: control>>A560_xs>>A560_xe>>A560_ys>>A560_ye;
+               case 560: control>>A560;
                         clear(c,numint);
                         break;
-               case 561: ++A561;
+               case 580: control>>A580_xs>>A580_xe>>A580_ys>>A580_ye;
                         clear(c,numint);
                         break;
-               case 564: ++A564;
+               case 581: ++A581;
+                        clear(c,numint);
+                        break;
+               case 584: ++A584;
                         clear(c,numint);
                         break;
 				}
@@ -2258,19 +2261,19 @@ void lexer::read_control()
     // re-read
     
     // A
-    Darray(A561_xs,A561);
-	Darray(A561_xe,A561);
-	Darray(A561_ys,A561);
-	Darray(A561_ye,A561);
-	Darray(A561_zs,A561);
-	Darray(A561_ze,A561);
+    Darray(A581_xs,A581);
+	Darray(A581_xe,A581);
+	Darray(A581_ys,A581);
+	Darray(A581_ye,A581);
+	Darray(A581_zs,A581);
+	Darray(A581_ze,A581);
     
     // A
-    Darray(A564_xc,A564);
-	Darray(A564_yc,A564);
-	Darray(A564_zs,A564);
-	Darray(A564_ze,A564);
-    Darray(A564_r,A564);
+    Darray(A584_xc,A584);
+	Darray(A584_yc,A584);
+	Darray(A584_zs,A584);
+	Darray(A584_ze,A584);
+    Darray(A584_r,A584);
 
 	// B
 	Darray(B71_val,B71);
@@ -2874,8 +2877,8 @@ void lexer::read_control()
         FSI_count = Z11;
     }
     
-    int countA561=0;
-    int countA564=0;
+    int countA581=0;
+    int countA584=0;
 	int countB71=0;
 	int countB106=0;
 	int countB107=0;
@@ -2979,12 +2982,12 @@ void lexer::read_control()
             case 'A': control>>numint;
 				switch(numint)
 				{
-				case 561: control>>A561_xs[countA561]>>A561_xe[countA561]>>A561_ys[countA561]>>A561_ye[countA561]>>A561_zs[countA561]>>A561_ze[countA561];
-						 ++countA561;
+				case 581: control>>A581_xs[countA581]>>A581_xe[countA581]>>A581_ys[countA581]>>A581_ye[countA581]>>A581_zs[countA581]>>A581_ze[countA581];
+						 ++countA581;
 						 clear(c,numint);
 						 break;
-                 case 564: control>>A564_xc[countA564]>>A564_yc[countA564]>>A564_zs[countA564]>>A564_ze[countA564]>>A564_r[countA564];
-						 ++countA564;
+                 case 584: control>>A584_xc[countA584]>>A584_yc[countA584]>>A584_zs[countA584]>>A584_ze[countA584]>>A584_r[countA584];
+						 ++countA584;
 						 clear(c,numint);
 						 break;
 				}

@@ -49,16 +49,16 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     pgc->start4V(p,d->test,1);
     
     // fsf guard
-    if(p->A560==1)
+    if(p->A580==1)
     {
-    guard_is = p->posc_i(p->A560_xs);
-    guard_ie = p->posc_i(p->A560_xe);
+    guard_is = p->posc_i(p->A580_xs);
+    guard_ie = p->posc_i(p->A580_xe);
     
-    guard_js = p->posc_j(p->A560_ys);
-    guard_je = p->posc_j(p->A560_ye);
+    guard_js = p->posc_j(p->A580_ys);
+    guard_je = p->posc_j(p->A580_ye);
     }
     
-    if(p->A560==1)
+    if(p->A580==1)
     SLICELOOP4
     if(i>=guard_is && i<=guard_ie && j>=guard_js && j<=guard_je) 
     {

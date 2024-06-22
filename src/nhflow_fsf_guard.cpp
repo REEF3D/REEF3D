@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::fsf_guard(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& WL, slice &K)
 {   
-    if(p->A560==1)
+    if(p->A580==1)
     SLICELOOP4
     if(p->flagfsf[IJ]==0)
     {
@@ -40,7 +40,7 @@ void nhflow_fsf_f::fsf_guard(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& WL, sl
     LOOP
     d->test[IJK] = 0.0;
     
-    if(p->A560==1)
+    if(p->A580==1)
     LOOP
     if(p->flagfsf[IJ]==0)
     d->test[IJK] = 1.0;*/

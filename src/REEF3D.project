@@ -2714,7 +2714,6 @@
       <File Name="driver.cpp"/>
       <File Name="lexer.cpp" ExcludeProjConfig=""/>
       <VirtualDirectory Name="Logic">
-        <File Name="driver_logic_ngx.cpp"/>
         <File Name="driver_logic_nhflow.cpp"/>
         <File Name="driver_logic_fnpf.cpp"/>
         <File Name="driver_logic_ptf.cpp"/>
