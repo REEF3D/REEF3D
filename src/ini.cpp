@@ -587,7 +587,7 @@ void lexer::ini_default()
     Q15=3.5;            // d continuum particle stress model parameter following Snider (2001)
     Q16=10e-7;          // d continuum particle stress model parameter following Snider (2001)
     Q17=0.6;            // d critical solid volume fraction
-    Q20=10;             // int iterations between cleanup cycles
+    Q20=-1;             // int iterations between cleanup cycles
     Q22=1.0;            // double absolute spacing
     Q23=1.0;            // double relative spacing in terms of diameter
     Q24=0;              // int particles per cell
