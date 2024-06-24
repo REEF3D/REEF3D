@@ -289,6 +289,45 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
  return value;
 
 }
+double interpolation::lint4c(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
+
+    pip=4;
+    if(p->flag4[IJK]>OBJ_FLAG)
+    v1=f[IJK];
+    if(p->flag4[IJp1K]>OBJ_FLAG)
+    v2=f[IJp1K];
+    if(p->flag4[Ip1JK]>OBJ_FLAG)
+    v3=f[Ip1JK];
+    if(p->flag4[Ip1Jp1K]>OBJ_FLAG)
+    v4=f[Ip1Jp1K];
+    if(p->flag4[IJKp1]>OBJ_FLAG)
+    v5=f[IJKp1];
+    if(p->flag4[IJp1Kp1]>OBJ_FLAG)
+    v6=f[IJp1Kp1];
+    if(p->flag4[Ip1JKp1]>OBJ_FLAG)
+    v7=f[Ip1JKp1];
+    if(p->flag4[Ip1Jp1Kp1]>OBJ_FLAG)
+    v8=f[Ip1Jp1Kp1];
+    pip=0;
+
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+
+    x3 = wa*v5 + (1.0-wa)*v7;
+    x4 = wa*v6 + (1.0-wa)*v8;
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+
+
+    value = wc*y1 +(1.0-wc)*y2;
+
+    pip=0;
+ return value;
+
+}
 
 double interpolation::lint4phi(fdm *a, field& b, int& i,int& j, int& k, double wa, double wb, double wc)
 {	

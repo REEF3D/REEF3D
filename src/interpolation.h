@@ -49,6 +49,7 @@ public:
     double ccipol4phi(fdm*,field&,double,double,double);
     double ccipol4press(fdm*,field&,double,double,double);
     double ccipol4V(double*,double,double,double);
+    double ccipol4c(double*,double,double,double);
     double ccipol7V(double*,double,double,double);
 	double ccipol1_a(field&,double,double,double);
     double ccipol2_a(field&,double,double,double);
@@ -83,6 +84,7 @@ public:
     double lint4(field&,int&,int&,int&,double,double,double);
     double lint4V(double*,int&,int&,int&,double,double,double);
     double lint7V(double*,int&,int&,int&,double,double,double);
+    double lint4c(double*,int&,int&,int&,double,double,double);
     double lint4phi(fdm*,field&,int&,int&,int&,double,double,double);
     double lint_a(field&,int&,int&,int&,double,double,double);
     double lint4b(field&,int&,int&,int&,double,double,double);
