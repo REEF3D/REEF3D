@@ -52,6 +52,18 @@ tracers_obj::tracers_obj(size_t _capacity, size_t _size, double _scale_factor): 
         loopindex=0;
         fill(_size);        
     }
+    else
+    {
+        X=nullptr;
+        Y=nullptr;
+        Z=nullptr;
+        Flag=nullptr;
+        Empty=nullptr;
+        capacity=0;
+        size=0;
+        empty_itr=0;
+        loopindex=0;
+    }
 }
 
 /// @brief Deletes the constructed arrays.

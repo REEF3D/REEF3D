@@ -87,6 +87,8 @@ public:
     double* W;
     /// @brief Number of real particles represented by the element
     double* PackingFactor;
+public:
+    friend class particles_obj_test;
 };
 
 #endif
