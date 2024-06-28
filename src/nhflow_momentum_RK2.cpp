@@ -96,7 +96,12 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     p->fsftime+=pgc->timer()-starttime;
     
     if((p->B98==3 || p->B98==4) && (p->B92>=20 && p->B92<=29))
+    {
     pflow->wavegen_precalc_nhflow(p,d,pgc);
+    pflow->discharge_nhflow(p,d,pgc);
+    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
+    pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
+    }
     
 	// U
 	starttime=pgc->timer();
@@ -191,7 +196,12 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     p->fsftime+=pgc->timer()-starttime;
     
     if((p->B98==3 || p->B98==4) && (p->B92>=20 && p->B92<=29))
+    {
     pflow->wavegen_precalc_nhflow(p,d,pgc);
+    pflow->discharge_nhflow(p,d,pgc);
+    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
+    pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
+    }
     
 	// U
 	starttime=pgc->timer();
