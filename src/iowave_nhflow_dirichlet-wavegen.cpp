@@ -55,11 +55,12 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             double uhcorr = 0.0;
             double ucorr = 0.0;
             
+            /*
             if(p->count>2);
             {
             uhcorr = netV_corr/(p->DYN[JP]*p->dt);
             ucorr /= (d->eta(i,j)+d->depth(i,j));
-            }
+            }*/
             
             uhcorr = 0.0;
             ucorr = 0.0;
