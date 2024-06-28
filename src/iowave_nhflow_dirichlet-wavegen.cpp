@@ -43,7 +43,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         d->eta(i-3,j) = eta(i,j)*ramp(p);
         }
         
-        count=0;
+         count=0;
 		for(n=0;n<p->gcin_count;++n)
 		{
 		i=p->gcin[n][0];
