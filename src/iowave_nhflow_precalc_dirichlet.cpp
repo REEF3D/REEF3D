@@ -70,7 +70,7 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
             
         etaval = eta(i,j);
         
-        z = p->ZP[KP]*(eta(i,j)+d->depth(i,j)) - p->phimean;
+        z = p->ZP[KP]*(d->eta(i,j)+d->depth(i,j)) - p->phimean;
         
 
         // U
