@@ -41,9 +41,12 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         y2=ygen2(p);
         
         eta(i,j) = wave_eta(p,pgc,xg,yg);
+        eta(i-1,j) =  eta(i,j);
+        eta(i-2,j) =  eta(i,j);
+        eta(i-3,j) =  eta(i,j);
         }
         
-        // wave maker
+        // wavemaker
         if(p->B92>=20 && p->B92<=29)
         for(n=0;n<p->gcslin_count;n++)
         {
@@ -51,8 +54,9 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         j=p->gcslin[n][1];
         
         eta(i,j) = d->eta(i,j);
-        
-        //cout<<"ETA: "<<eta(i,j)<<endl;
+        eta(i-1,j) =  eta(i,j);
+        eta(i-2,j) =  eta(i,j);
+        eta(i-3,j) =  eta(i,j);
         }
         
         
@@ -70,7 +74,10 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
             
         etaval = eta(i,j);
         
-        z = p->ZP[KP]*(d->eta(i,j)+d->depth(i,j)) - p->phimean;
+        if(p->B92>=20 && p->B92<=29)
+        etaval = 0.0;
+        
+        z = p->ZP[KP]*(eta(i-1,j)+d->depth(i,j)) - p->phimean;
         
 
         // U
