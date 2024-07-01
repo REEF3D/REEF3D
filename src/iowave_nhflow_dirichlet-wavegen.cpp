@@ -52,19 +52,6 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         
             WETDRYDEEP
             {
-            double uhcorr = 0.0;
-            double ucorr = 0.0;
-            
-            /*
-            if(p->count>2);
-            {
-            uhcorr = netV_corr/(p->DYN[JP]*p->dt);
-            ucorr /= (d->eta(i,j)+d->depth(i,j));
-            }*/
-            
-            uhcorr = 0.0;
-            ucorr = 0.0;
-            
             // U, V, W
             uvel=uval[count];
             vvel=vval[count];
@@ -74,9 +61,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             vvel *= ramp(p);
             wvel *= ramp(p);
             
-                U[Im1JK]=uvel + ucorr;
-                U[Im2JK]=uvel + ucorr;
-                U[Im3JK]=uvel + ucorr;
+                U[Im1JK]=uvel;
+                U[Im2JK]=uvel;
+                U[Im3JK]=uvel;
                 
                 V[Im1JK]=vvel;
                 V[Im2JK]=vvel;
@@ -96,9 +83,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             vvel *= ramp(p);
             wvel *= ramp(p);
             
-                UH[Im1JK]=uvel + uhcorr;
-                UH[Im2JK]=uvel + uhcorr;
-                UH[Im3JK]=uvel + uhcorr;
+                UH[Im1JK]=uvel;
+                UH[Im2JK]=uvel;
+                UH[Im3JK]=uvel;
                 
                 VH[Im1JK]=vvel;
                 VH[Im2JK]=vvel;
@@ -108,58 +95,11 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 WH[Im2JK]=wvel;
                 WH[Im3JK]=wvel;
                 
-                netQ += (uvel*p->DYN[JP] + uhcorr);
             }
             
         ++count;
 		}
         
-        // ------------------
-        // netQ
-        double relaxfac = 0.0005;
-        
-        netQ = pgc->globalsum(netQ);
-        
-        netV += p->dt*0.5*(3.0*netQ - netQ_n)*ramp_corr(p);
-        
-        linreg->linreg_cont_func(p,pgc,p->simtime,netV,b0,b1);
-
-        
-        if(p->count>1)
-        {
-        netV_corr_n = netV_corr;
-        netV_corr =  -relaxfac*(b1*(p->simtime) + b0)*ramp_corr(p);
-        /*
-        if(netV_corr>netV_corr_n)
-        netV_corr = MAX(netV_corr, netV_corr + 0.1*(netV_corr-netV_corr_n));
-        
-        if(netV_corr<netV_corr_n)
-        netV_corr = MIN(netV_corr, netV_corr + 0.1*(netV_corr-netV_corr_n));*/
-        }
-        
-        
-        netQ_n = netQ;
-        
-        /* 
-        UH = WL*U
-        
-        A = WL*DY
-        
-        Q = A*U
-        V = Q*dt
-        V = A*U*dt
-        
-        U_corr = dV/(A*dt)
-        UH_corr = U*WL
-        UH_corr = dV*WL/(WL*DY*dt)
-        UH_corr = dV/(DY*dt)
-        */
-        
-        /*
-        
-        or: correct via eta....
-        
-        */
             
         // ------------------
         
