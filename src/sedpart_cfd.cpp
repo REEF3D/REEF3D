@@ -123,7 +123,8 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         // removed += deposit(p,a);
 
         /// topo update
-        // if(p->Q13==1)
+        if(p->Q13==1)
+            movement->update(p,*pgc,a->topo,PP.d50);
             // update_cfd(p,a,pgc,pflow,preto);
 
         /// cleanup

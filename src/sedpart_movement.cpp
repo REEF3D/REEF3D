@@ -324,13 +324,13 @@ namespace sediment_particle::movement
             KLOOP
             {
                 count += cellSum[IJK] + cellSumTopo[IJK];
-                if(cellSumTopo[IJK]==0)
+                if(k>0 && cellSumTopo[IJKm1]==0)
                 break;
             }
             if(count != columnSum[IJ])
             {
                 KLOOP
-                topo(i,j,k) += (count-columnSum[IJ])*4.0/3.0*PI*pow(d50/2.0,3)/(p->DXN[IP]*(p->DYN[JP]));;
+                topo(i,j,k) += (count-columnSum[IJ])*4.0/3.0*PI*pow(d50/2.0,3)/(p->DXN[IP]*p->DYN[JP]);
             }
             columnSum[IJ] = count;
         }
