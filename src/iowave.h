@@ -255,6 +255,7 @@ private:
     int n,count;
     int wtype;
     double inflow_bed,uvel,vvel,wvel;
+    double uhvel,vhvel,whvel;
     double area,Ai,Ao,Ui,fac;
     double dist1,dist2,dist2_fac;
     double x,y,z;
@@ -320,8 +321,6 @@ private:
     double b0,b1;
     
     linear_regression_cont *linreg;
-    
-    ofstream logout;
     
 };
 

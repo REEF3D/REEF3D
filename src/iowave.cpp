@@ -249,13 +249,6 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     
     linreg = new linear_regression_cont(p);
     
-    if(p->mpirank==0)
-    {
-    logout.open("./REEF3D_Log/REEF3D_netQlog.dat");
-
-    logout<<"#time \t #netQ "<<endl;
-    logout<<0.0<<"\t"<<0.0<<endl;
-    }
     
     netV=0.0;
     netV_corr_n=0.0;

@@ -31,16 +31,14 @@ Author: Hans Bihs
 void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     
-    netQ = 0.0;
-    
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        d->eta(i-1,j) = eta(i,j)*ramp(p);
-        d->eta(i-2,j) = eta(i,j)*ramp(p);
-        d->eta(i-3,j) = eta(i,j)*ramp(p);
+        d->eta(i-1,j) = eta(i-1,j)*ramp(p);
+        d->eta(i-2,j) = eta(i-2,j)*ramp(p);
+        d->eta(i-3,j) = eta(i-3,j)*ramp(p);
         }
         
          count=0;
@@ -75,25 +73,25 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 
                 
             // UH, VH, WH
-            uvel=UHval[count];
-            vvel=VHval[count];
-            wvel=WHval[count];
+            uhvel=UHval[count];
+            vhvel=VHval[count];
+            whvel=WHval[count];
             
-            uvel *= ramp(p);
-            vvel *= ramp(p);
-            wvel *= ramp(p);
+            uhvel *= ramp(p);
+            vhvel *= ramp(p);
+            whvel *= ramp(p);
             
-                UH[Im1JK]=uvel;
-                UH[Im2JK]=uvel;
-                UH[Im3JK]=uvel;
+                UH[Im1JK]=uhvel;
+                UH[Im2JK]=uhvel;
+                UH[Im3JK]=uhvel;
                 
-                VH[Im1JK]=vvel;
-                VH[Im2JK]=vvel;
-                VH[Im3JK]=vvel;
+                VH[Im1JK]=vhvel;
+                VH[Im2JK]=vhvel;
+                VH[Im3JK]=vhvel;
                 
-                WH[Im1JK]=wvel;
-                WH[Im2JK]=wvel;
-                WH[Im3JK]=wvel;
+                WH[Im1JK]=whvel;
+                WH[Im2JK]=whvel;
+                WH[Im3JK]=whvel;
                 
             }
             
@@ -117,17 +115,4 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         pgc->start4V(p,d->EV,24);
 		}
         
-        
-        
-        if(p->mpirank==0)
-        {
-        cout<<"netV: "<<netV<<" netQ: "<<netQ<<" netV_corr: "<<netV_corr<<endl;
-        cout<<setprecision(6)<<"netQ_b0: "<<setprecision(6)<<b0<<" netQ_b1: "<<b1<<endl;
-        }
-        
-    if(p->mpirank==0 && p->count%p->P12==0)
-	 {
-     logout<<p->simtime+p->dt<<"\t"<<netV<<endl; 
-	 }
-    
 }

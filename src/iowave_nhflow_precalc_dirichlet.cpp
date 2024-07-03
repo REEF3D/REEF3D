@@ -37,10 +37,9 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         xg=xgen(p);
         yg=ygen(p);
-        x1=xgen1(p);
-        y2=ygen2(p);
         
         eta(i,j) = wave_eta(p,pgc,xg,yg);
+        
         eta(i-1,j) =  eta(i,j);
         eta(i-2,j) =  eta(i,j);
         eta(i-3,j) =  eta(i,j);
@@ -69,23 +68,20 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         x=xgen(p);
         y=ygen(p);
-        x1=xgen1(p);
-        y2=ygen2(p);
             
         etaval = eta(i,j);
         
         if(p->B92>=20 && p->B92<=29)
         etaval = 0.0;
-        
-        z = p->ZP[KP]*(eta(i-1,j)+d->depth(i,j)) - p->phimean;
-        
+
+        z = p->ZSP[IJK]-p->phimean;
 
         // U
-        uval[count] = wave_u(p,pgc,x1,y,z) + p->Ui;
+        uval[count] = wave_u(p,pgc,x,y,z) + p->Ui;
         UHval[count] = (etaval + d->depth(i,j))*uval[count];
         
         // V
-        vval[count] = wave_v(p,pgc,x,y2,z);
+        vval[count] = wave_v(p,pgc,x,y,z);
         VHval[count] = (etaval + d->depth(i,j))*vval[count];
         
         // W
