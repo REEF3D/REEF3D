@@ -81,15 +81,25 @@ namespace sediment_particle
             double drag_model(lexer *, double, double, double, double, double) const;
             void particlePerCell(lexer *, ghostcell &, particles_obj &);
         private:
+            /// @brief Sum of particles belonging to the stationary bed
             double *cellSumTopo;
+            /// @brief Sum of particles belonging to the mobile bed
             double *cellSum;
+            /// @brief Stress tensor for the particle-particle interaction
             double *stressTensor;
+            /// @brief Number of particles per 2D column
             double *columnSum;
+            /// @brief Relative density of fluid and particle
             const double drho;
+            /// @brief Kinetik viscosity of the fluid
             const double kinVis;
+            /// @brief Stress tensor parameter
             const double Ps;
+            /// @brief Stress tensor parameter
             const double beta;
+            /// @brief Stress tensor parameter
             const double epsilon;
+            /// @brief Critical solid volume fraction
             const double theta_crit;
         };
     };

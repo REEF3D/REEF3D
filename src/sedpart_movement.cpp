@@ -395,7 +395,7 @@ namespace sediment_particle::movement
                 }
     }
 
-    // @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
+    /// @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
     void Tavouktsoglou::updateParticleStressTensor(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k)
     {
         double theta=theta_s(p,a,PP,i,j,k);
