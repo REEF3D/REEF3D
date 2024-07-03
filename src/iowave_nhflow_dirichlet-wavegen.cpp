@@ -30,7 +30,10 @@ Author: Hans Bihs
 
 void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-    
+        double etaval=0.0;
+        
+        // wave theory
+        if(p->B92<20 || p->B92>29)
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
@@ -39,6 +42,24 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         d->eta(i-1,j) = eta(i-1,j)*ramp(p);
         d->eta(i-2,j) = eta(i-2,j)*ramp(p);
         d->eta(i-3,j) = eta(i-3,j)*ramp(p);
+        }
+        
+        // wave maker
+        if(p->B92>=20 && p->B92<=29)
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        etaval = d->eta(i,j);
+        
+        d->eta(i-1,j) = etaval;
+        d->eta(i-2,j) = etaval;
+        d->eta(i-3,j) = etaval;
+        
+        /*d->eta(i-1,j) = eta(i-1,j)*ramp(p);
+        d->eta(i-2,j) = eta(i-2,j)*ramp(p);
+        d->eta(i-3,j) = eta(i-3,j)*ramp(p);*/
         }
         
          count=0;
@@ -92,15 +113,12 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 WH[Im1JK]=whvel;
                 WH[Im2JK]=whvel;
                 WH[Im3JK]=whvel;
-                
             }
             
         ++count;
-		}
-        
+        }
             
         // ------------------
-        
         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
 		{
             for(int q=0;q<4;++q)

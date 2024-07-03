@@ -29,7 +29,6 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {  
         double etaval=0.0;
         
-        if(p->B92<20 || p->B92>29)
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
@@ -44,20 +43,6 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         eta(i-2,j) =  eta(i,j);
         eta(i-3,j) =  eta(i,j);
         }
-        
-        // wavemaker
-        if(p->B92>=20 && p->B92<=29)
-        for(n=0;n<p->gcslin_count;n++)
-        {
-        i=p->gcslin[n][0];
-        j=p->gcslin[n][1];
-        
-        eta(i,j) = d->eta(i,j);
-        eta(i-1,j) =  eta(i,j);
-        eta(i-2,j) =  eta(i,j);
-        eta(i-3,j) =  eta(i,j);
-        }
-        
         
         count=0;
         for(n=0;n<p->gcin_count;n++)
