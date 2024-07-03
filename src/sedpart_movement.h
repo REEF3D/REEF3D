@@ -51,8 +51,9 @@ namespace sediment_particle
             virtual void move(lexer *, fdm &, ghostcell &, particles_obj &){};
             virtual void update(lexer *, ghostcell &, field4a &, double &){};
             virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &){};
-            virtual void writeState(ofstream &){};
-            virtual void readState(ifstream &){};
+            virtual void writeState(lexer *, ofstream &){};
+            virtual void readState(lexer *, ifstream &){};
+            void setupState(lexer *, fdm &, ghostcell &, particles_obj &){};
         };
         class Tavouktsoglou : public base, increment
         /// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
@@ -70,8 +71,9 @@ namespace sediment_particle
             void move(lexer *, fdm &, ghostcell &, particles_obj &);
             void update(lexer *, ghostcell &, field4a &, double &);
             void debug(lexer *, fdm &, ghostcell &, particles_obj &);
-            void writeState(ofstream &);
-            void readState(ifstream &);
+            void writeState(lexer *, ofstream &);
+            void readState(lexer *, ifstream &);
+            void setupState(lexer *, fdm &, ghostcell &, particles_obj &);
         private:
             double maxParticlesPerCell(lexer *, fdm &, double,bool=true,bool=false);
             void particleStressTensor(lexer *, fdm &, ghostcell &, particles_obj &);

@@ -25,7 +25,7 @@ Author: Alexander Hanke
 
 /// @brief Write out particle data to state file
 /// @param result statefile
-void sedpart::write_state_particles(ofstream &result)
+void sedpart::write_state_particles(lexer *p, ofstream &result)
 {
     float ffn=num;
     result.write((char*)&ffn, sizeof (float));
@@ -54,12 +54,12 @@ void sedpart::write_state_particles(ofstream &result)
         ffn=PP.PackingFactor[n];
         result.write((char*)&ffn, sizeof (float));
     }
-    movement->writeState(result);
+    movement->writeState(p,result);
 }
 
 /// @brief Read in particle data from state file
 /// @param result statefile
-void sedpart::read_state_particles(ifstream& result)
+void sedpart::read_state_particles(lexer *p, ifstream& result)
 {
     float ffn;
     result.read((char*)&ffn, sizeof (float));
@@ -93,5 +93,5 @@ void sedpart::read_state_particles(ifstream& result)
         packing=double(ffn);
         PP.add(x,y,z,flag,u,v,w,packing);
     }
-    movement->readState(result);
+    movement->readState(p,result);
 }

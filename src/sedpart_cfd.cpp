@@ -42,14 +42,18 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     // vrans
     pvrans->sed_update(p,a,pgc);
-    movement->setup(p,*a,PP.d50);
     if(p->I40!=1)
     {
+        movement->setup(p,*a,PP.d50);
         // seed
         seed_ini(p,a,pgc);
         PP.reserve(maxparticle);
         seed(p,a);
         // make_stationary(p,a,&PP);
+    }
+    else if(p->I40==1&&inicount>0)
+    {
+        movement->setupState(p,*a,*pgc,PP);
     }
 
     gparticle_active = pgc->globalisum(PP.size);

@@ -1,4 +1,5 @@
-/*--------------------------------------------------------------------
+
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2024 Hans Bihs
 
@@ -87,8 +88,12 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
     
     pgc->start4a(p,a->topo,150);
     
-    // topoupdate    if(p->S10!=2)
-    pgc->topo_update(p,a);        if(p->S10==2)    pgc->gcb_velflagio(p,a);
+    // topoupdate
+    if(p->S10!=2)
+    pgc->topo_update(p,a);
+    
+    if(p->S10==2)
+    pgc->gcb_velflagio(p,a);
     
     ULOOP
     {
@@ -150,7 +155,7 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
     a->conc(i,j,k)=double(ffn);
     }
 
-    psed->read_state_particles(result);
+    psed->read_state_particles(p,result);
 	
 	int gcval_press, gcval_phi, gcval_topo;
 	

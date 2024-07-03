@@ -77,8 +77,8 @@ public:
 
     // Statefile methods
 
-    void write_state_particles(ofstream&);
-    void read_state_particles(ifstream&);
+    void write_state_particles(lexer *, ofstream&);
+    void read_state_particles(lexer *, ifstream&);
 
     // Printing methods bedshear
 
