@@ -89,6 +89,9 @@ void vrans_veg::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		N(i,j,k) = p->B321_N[qn];
          D(i,j,k) = p->B321_D[qn];
         Cd(i,j,k) = p->B321_Cd[qn];
+        
+        if(p->B308==1)
+        a->porosity(i,j,k) =  1.0 - (p->B321_N[qn]*PI*pow(p->B321_D[qn],2.0)*0.25); 
 		}
     }
     
@@ -119,14 +122,36 @@ void vrans_veg::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		N(i,j,k) = p->B322_N[qn];
          D(i,j,k) = p->B322_D[qn];
         Cd(i,j,k) = p->B322_Cd[qn];
+        
+        if(p->B308==1)
+        a->porosity(i,j,k) =  1.0 - (p->B322_N[qn]*PI*pow(p->B322_D[qn],2.0)*0.25); 
 		}
     }
     
+    if(p->B307>0)
+    for(int qn=0; qn<p->B307; ++qn)
+    {
+        ALOOP 
+        {
+        N(i,j,k) = 0.5*N(i,j,k) + 0.5*(1.0/6.0)*(N(i,j,k) + N(i,j,k) + N(i,j,k) + N(i,j,k) + N(i,j,k) + N(i,j,k));
+        D(i,j,k) = 0.5*D(i,j,k) + 0.5*(1.0/6.0)*(D(i,j,k) + D(i,j,k) + D(i,j,k) + D(i,j,k) + D(i,j,k) + D(i,j,k));
+        Cd(i,j,k) = 0.5*Cd(i,j,k) + 0.5*(1.0/6.0)*(Cd(i,j,k) + Cd(i,j,k) + Cd(i,j,k) + Cd(i,j,k) + Cd(i,j,k) + Cd(i,j,k));   
+        a->porosity(i,j,k) = 0.5*a->porosity(i,j,k) + 0.5*(1.0/6.0)*(a->porosity(i,j,k) + a->porosity(i,j,k) + a->porosity(i,j,k) + a->porosity(i,j,k) + a->porosity(i,j,k) + a->porosity(i,j,k)); 
+        }
+        
+        pgc->start4a(p,a->porosity,1);
+        pgc->start4a(p,N,1);
+        pgc->start4a(p,D,1);
+        pgc->start4a(p,Cd,1);
+    }
 
     
     pgc->start4a(p,a->porosity,1);
 	pgc->start4a(p,N,1);
 	pgc->start4a(p,D,1);
 	pgc->start4a(p,Cd,1);
+    
+    
+    
 }
 

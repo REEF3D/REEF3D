@@ -364,7 +364,7 @@ public:
 	int B291;
     double *B291_xs, *B291_xe, *B291_ys, *B291_ye, *B291_zs, *B291_ze, *B291_d, *B291_n, *B291_d50, *B291_alpha, *B291_beta;
     int B295;
-    int B308,B310,B311;
+    int B307,B308,B310,B311;
     double B309;
     double *B310_xs, *B310_xe, *B310_ys, *B310_ye, *B310_zs, *B310_ze, *B310_N, *B310_D, *B310_Cd;
     double *B311_xm, *B311_ym, *B311_r, *B311_zs, *B311ze, *B311_N, *B311_D, *B311_Cd;
