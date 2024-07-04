@@ -57,7 +57,7 @@ void driver::logic_ptf()
 	ptstep=new pftimestep(p);
     
 // Printer
-	pprint = new vtu3D(p,a,pgc);
+	pprint = new printer_CFD(p,a,pgc);
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )

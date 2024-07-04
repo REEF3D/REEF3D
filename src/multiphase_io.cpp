@@ -144,14 +144,14 @@ void multiphase_f::ls2get(int ii, int jj, int kk, double val)
     ls2(i,j,k)=val;
 }
 
-void multiphase_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void multiphase_f::name_pvtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 	result<<"<PDataArray type=\"Float32\" Name=\"ls1\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"ls2\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
 }
 
-void multiphase_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void multiphase_f::name_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 	result<<"<DataArray type=\"Float32\" Name=\"ls1\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -161,7 +161,7 @@ void multiphase_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, 
     ++n;
 }
 
-void multiphase_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void multiphase_f::offset_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

@@ -71,18 +71,18 @@ void data_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void data_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void data_f::name_pvtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"data\"/>"<<endl;
 }
 
-void data_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void data_f::name_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"data\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
 
-void data_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void data_f::offset_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

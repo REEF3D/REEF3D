@@ -84,7 +84,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     c->eta.ggcpol(p);
     
 	if(p->mpirank==0)
-    pvtu(p,c,pgc);
+    pvtp(p,c,pgc);
     
 	name_iter(p,c,pgc);
 	

@@ -64,13 +64,13 @@ double concentration_io::val(int ii, int jj, int kk)
     return val;
 }
 
-void concentration_io::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void concentration_io::name_pvtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"C\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
 }
 
-void concentration_io::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void concentration_io::name_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"C\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -78,7 +78,7 @@ void concentration_io::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &resu
     ++n;
 }
 
-void concentration_io::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void concentration_io::offset_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

@@ -44,7 +44,7 @@ public:
 private:
 	
 	void etend(lexer*,fdm_nhf*,ghostcell*);
-	void pvtu(lexer*,fdm_nhf*,ghostcell*);
+	void pvtp(lexer*,fdm_nhf*,ghostcell*);
 	void name_iter(lexer*,fdm_nhf*,ghostcell*);
     void piecename(lexer*,fdm_nhf*,ghostcell*,int);
 	

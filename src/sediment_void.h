@@ -56,31 +56,31 @@ public:
     
     virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&);
     virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&);
-	virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&);
-    virtual void name_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &);
+	virtual void name_pvtk_bedload(lexer*, ghostcell*,ofstream&);
+    virtual void name_vtk_bedload(lexer*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtp_bedload(lexer*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtk_bedload(lexer*, ghostcell*,ofstream&, int*, int &);
     
 	virtual void print_2D_bedshear(lexer*, ghostcell*,ofstream&);
     virtual void print_3D_bedshear(lexer*, ghostcell*,ofstream&);
-	virtual void name_pvtu_bedshear(lexer*, ghostcell*,ofstream&);
-    virtual void name_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
+	virtual void name_pvtk_bedshear(lexer*, ghostcell*,ofstream&);
+    virtual void name_vtk_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtp_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtk_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
     
     virtual void print_2D_parameter1(lexer*, ghostcell*,ofstream&);
     virtual void print_3D_parameter1(lexer*, ghostcell*,ofstream&);
-	virtual void name_pvtu_parameter1(lexer*, ghostcell*,ofstream&);
-    virtual void name_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);
+	virtual void name_pvtk_parameter1(lexer*, ghostcell*,ofstream&);
+    virtual void name_vtk_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtp_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtk_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);
     
     virtual void print_2D_parameter2(lexer*, ghostcell*,ofstream&);
     virtual void print_3D_parameter2(lexer*, ghostcell*,ofstream&);
-	virtual void name_pvtu_parameter2(lexer*, ghostcell*,ofstream&);
-    virtual void name_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);
+	virtual void name_pvtk_parameter2(lexer*, ghostcell*,ofstream&);
+    virtual void name_vtk_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtp_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtk_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);
 };
 
 #endif

@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_vtp_bed::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_bed::pvtp(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {	
 	int num=0;
 

@@ -71,7 +71,7 @@ void sflow_vtp_bed::start(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 {	
 	if(p->mpirank==0)
-    pvtu(p,b,pgc,psed);
+    pvtp(p,b,pgc,psed);
     
 	name_iter(p,b,pgc);
     
@@ -201,16 +201,16 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     ++n;
     
     if(p->P76==1)
-	psed->name_vtu_bedload(p,pgc,result,offset,n);
+	psed->name_vtk_bedload(p,pgc,result,offset,n);
     
     if(p->P77==1)
-	psed->name_vtu_parameter1(p,pgc,result,offset,n);
+	psed->name_vtk_parameter1(p,pgc,result,offset,n);
 
     if(p->P78==1)
-	psed->name_vtu_parameter2(p,pgc,result,offset,n);
+	psed->name_vtk_parameter2(p,pgc,result,offset,n);
 
 	if(p->P79>=1)
-	psed->name_vtu_bedshear(p,pgc,result,offset,n);
+	psed->name_vtk_bedshear(p,pgc,result,offset,n);
     
     if(p->P23==1)
     {

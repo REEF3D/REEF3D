@@ -284,12 +284,7 @@
             <File Name="nhflow_print_wsf.h"/>
           </VirtualDirectory>
           <File Name="nhflow_printer.h"/>
-          <VirtualDirectory Name="VTU">
-            <File Name="nhflow_vtu3D.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="VTS">
-            <File Name="nhflow_vts3D.h"/>
-          </VirtualDirectory>
+          <File Name="printer_nhflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Reinitialization">
@@ -379,12 +374,7 @@
             <File Name="fnpf_vtp_fsf.h"/>
           </VirtualDirectory>
           <File Name="fnpf_printer.h"/>
-          <VirtualDirectory Name="VTU">
-            <File Name="fnpf_vtu3D.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="VTS">
-            <File Name="fnpf_vts3D.h"/>
-          </VirtualDirectory>
+          <File Name="printer_fnpf.h"/>
           <VirtualDirectory Name="Probes">
             <File Name="fnpf_vel_probe.h"/>
             <File Name="fnpf_vel_probe_theory.h"/>
@@ -932,6 +922,8 @@
           <File Name="vorticity_void.h"/>
         </VirtualDirectory>
         <File Name="printer.h"/>
+        <File Name="print_interface.h"/>
+        <File Name="printer_CFD.h"/>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.h"/>
           <File Name="probe_vel.h"/>
@@ -971,16 +963,13 @@
         <VirtualDirectory Name="Porous Geometry">
           <File Name="print_porous.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="VTU">
+        <VirtualDirectory Name="ParaView">
+          <File Name="vtks.h"/>
+          <File Name="vtk3D.h"/>
           <File Name="vtu3D.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="VTR">
           <File Name="vtr3D.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="VTS">
           <File Name="vts3D.h"/>
         </VirtualDirectory>
-        <File Name="print_interface.h"/>
         <VirtualDirectory Name="Force">
           <File Name="force.h"/>
         </VirtualDirectory>
@@ -1424,16 +1413,8 @@
             <File Name="nhflow_print_wsf_theory.cpp"/>
             <File Name="nhflow_print_wsf.cpp"/>
           </VirtualDirectory>
-          <File Name="nhflow_vtu3D.cpp"/>
-          <File Name="nhflow_vts3D.cpp"/>
-          <VirtualDirectory Name="VTU">
-            <File Name="nhflow_vtu3D_pvtu.cpp"/>
-            <File Name="nhflow_vtu3D_header.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="VTS">
-            <File Name="nhflow_vts3D_pvts.cpp"/>
-            <File Name="nhflow_vts3D_header.cpp"/>
-          </VirtualDirectory>
+          <File Name="printer_nhflow.cpp"/>
+          <File Name="printer_nhflow_parallel.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Reinitialization">
@@ -1543,21 +1524,13 @@
             <File Name="fnpf_breaking_log_filename.cpp"/>
             <File Name="fnpf_breaking_log.cpp"/>
           </VirtualDirectory>
-          <File Name="fnpf_vtu3D.cpp"/>
-          <File Name="fnpf_vts3D.cpp"/>
+          <File Name="printer_fnpf.cpp"/>
+          <File Name="printer_fnpf_parallel.cpp"/>
           <VirtualDirectory Name="WSF">
             <File Name="fnpf_print_wsfline_y.cpp"/>
             <File Name="fnpf_print_wsfline.cpp"/>
             <File Name="fnpf_print_wsf_theory.cpp"/>
             <File Name="fnpf_print_wsf.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="VTU">
-            <File Name="fnpf_vtu3D_pvtu.cpp"/>
-            <File Name="fnpf_vtu3D_header.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="VTS">
-            <File Name="fnpf_vts3D_pvts.cpp"/>
-            <File Name="fnpf_vts3D_header.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="fnpf_vtp_fsf_pvtp.cpp"/>
@@ -2631,21 +2604,13 @@
           <File Name="vorticity_f.cpp"/>
           <File Name="vorticity_void.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="VTU">
-          <File Name="vtu3D_header.cpp"/>
-          <File Name="vtu3D_pvtu.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="VTR">
-          <File Name="vtr3D_header.cpp"/>
-          <File Name="vtr3D_pvtr.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="VTS">
-          <File Name="vts3D_header.cpp"/>
-          <File Name="vts3D_pvts.cpp"/>
-        </VirtualDirectory>
+        <VirtualDirectory Name="ParaView">
         <File Name="vtu3D.cpp"/>
         <File Name="vtr3D.cpp"/>
         <File Name="vts3D.cpp"/>
+        </VirtualDirectory>
+        <File Name="printer_CFD.cpp"/>
+        <File Name="printer_CFD_parallel.cpp"/>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.cpp"/>
           <File Name="probe_vel.cpp"/>

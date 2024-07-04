@@ -55,18 +55,18 @@ double heat_print::val(int ii, int jj, int kk)
     return val;
 }
 
-void heat_print::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void heat_print::name_pvtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"T\"/>"<<endl;
 }
 
-void heat_print::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void heat_print::name_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"T\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
 
-void heat_print::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void heat_print::offset_vtk(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
