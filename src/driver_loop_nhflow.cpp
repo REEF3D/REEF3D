@@ -89,7 +89,7 @@ void driver::loop_nhflow()
         pnhfstep->start(p,d,pgc);
         
         // printer
-        pnhfprint->start(p,d,pgc,pflow);
+        pnhfprint->start(p,d,pgc,pflow,pnhfturb);
 
         // Shell-Printout
         if(p->mpirank==0)

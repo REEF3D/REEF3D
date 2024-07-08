@@ -129,7 +129,7 @@ void driver::driver_ini_nhflow()
     //6DOF ini
     p6dof->ini(p,pgc);
     
-    pnhfprint->start(p,d,pgc,pflow);
+    pnhfprint->start(p,d,pgc,pflow,pnhfturb);
 
 // ini variables
     for(int qn=0; qn<2; ++qn)

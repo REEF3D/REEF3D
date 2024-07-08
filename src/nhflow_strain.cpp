@@ -42,10 +42,10 @@ void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *WALL
     
     LOOP
     {  
-        if(p->flag4[Im1JK]<0)
+        if(p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)
         WALLF[IJK]=1;
 
-        if(p->flag4[Ip1JK]<0)
+        if(p->flag4[Ip1JK]<0  && p->IO[Ip1JK]!=2)
         WALLF[IJK]=1;
         
         if(p->flag4[IJm1K]<0)

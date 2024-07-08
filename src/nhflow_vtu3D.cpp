@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"nhflow_vel_probe.h"
 #include"nhflow_vel_probe_theory.h"
 #include"nhflow_print_Hs.h"
+#include"nhflow_turbulence.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -123,7 +124,7 @@ nhflow_vtu3D::~nhflow_vtu3D()
 {
 }
 
-void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
+void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
 {
     // Gages
 	if(p->P51>0)
@@ -152,13 +153,13 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
 		{
-        print_vtu(p,d,pgc);
+        print_vtu(p,d,pgc,pnhfturb);
 		}
 
 		// Print out based on time
         if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
         {
-        print_vtu(p,d,pgc);
+        print_vtu(p,d,pgc,pnhfturb);
 
         p->printtime+=p->P30;
         }
@@ -168,7 +169,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
 		for(int qn=0; qn<p->P35; ++qn)
 		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 		{
-		print_vtu(p,d,pgc);
+		print_vtu(p,d,pgc,pnhfturb);
 
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
@@ -250,16 +251,16 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
         */
 }
 
-void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
+void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
 {
-    print_vtu(p,d,pgc);
+    print_vtu(p,d,pgc,pnhfturb);
     
     if(p->P180==1)
     pfsf->start(p,d,pgc);
     
 }
 
-void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb)
 {
     /*
     - U, V, W
@@ -301,7 +302,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     //----------
 
     if(p->mpirank==0)
-    pvtu(p,pgc);
+    pvtu(p,d,pgc,pnhfturb);
 
     name_iter(p,pgc);
 
@@ -324,10 +325,12 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     
+    // k and eps
+    pnhfturb->offset_vtu(p,d,pgc,result,offset,n);
+    
     // omega_sig
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
-
 
     // elevation
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -389,6 +392,8 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    
+    pnhfturb->name_vtu(p,d,pgc,result,offset,n);
     
     result<<"<DataArray type=\"Float32\" Name=\"omega_sig\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -525,6 +530,8 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
     
 	result.write((char*)&ffn, sizeof (float));
 	}
+//  kin and eps
+    pnhfturb->print_3D(p,d,pgc,result);
     
 //  Omega_sig
     iin=4*(p->pointnum);
@@ -568,7 +575,14 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	ffn=float(0.5*(d->test[IJK]+d->test[IJKp1]));
     j=jj;
     }
-
+    
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->test[IJK]+d->test[IJKp1]+d->test[IJp1K]+d->test[IJp1Kp1]));
+    
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+    
 //  Hs
     if(p->P110==1)
 	{
@@ -577,13 +591,6 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
 	TPLOOP
 	{
 	ffn=float(p->sl_ipol4(d->Hs));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-    
-    if(p->j_dir==1)
-	ffn=float(0.25*(d->test[IJK]+d->test[IJKp1]+d->test[IJp1K]+d->test[IJp1Kp1]));
-    
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}

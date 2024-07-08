@@ -69,10 +69,10 @@ void driver::logic_nhflow()
     pss = new nhflow_signal_speed(p);
     
 //Convection	
-    if(p->A511==1 || p->A511==8)
+    if(p->A511==1)
 	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
     
-    if(p->A511==2 || p->A511==9)
+    if(p->A511==2)
 	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
     
     pnhfscalarconvec = new nhflow_scalar_iweno(p);

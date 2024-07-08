@@ -34,6 +34,9 @@ nhflow_komega_IM1::nhflow_komega_IM1(lexer* p, fdm_nhf* d, ghostcell *pgc) : nhf
 {
 	gcval_kin=20;
 	gcval_eps=30;
+    
+    p->Darray(KN,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(EN,p->imax*p->jmax*(p->kmax+2));
 }
 
 nhflow_komega_IM1::~nhflow_komega_IM1()

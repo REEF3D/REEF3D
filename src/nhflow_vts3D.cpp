@@ -36,6 +36,7 @@ Author: Hans Bihs
 #include"nhflow_print_runup_max_gage_x.h"
 #include"nhflow_vel_probe.h"
 #include"nhflow_vel_probe_theory.h"
+#include"nhflow_turbulence.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -118,7 +119,7 @@ nhflow_vts3D::~nhflow_vts3D()
 {
 }
 
-void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
+void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
 {
     // Gages
 	if(p->P51>0)
@@ -144,13 +145,13 @@ void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
     {
-    print_vtu(p,d,pgc);
+    print_vtu(p,d,pgc,pnhfturb);
     }
 
     // Print out based on time
     if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==2) || (p->count==0 &&  p->P30>0.0))
     {
-    print_vtu(p,d,pgc);
+    print_vtu(p,d,pgc,pnhfturb);
 
     p->printtime+=p->P30;
     }
@@ -160,7 +161,7 @@ void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
     for(int qn=0; qn<p->P35; ++qn)
     if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
     {
-    print_vtu(p,d,pgc);
+    print_vtu(p,d,pgc,pnhfturb);
 
     printtime_wT[qn]+=p->P35_dt[qn];
     }
@@ -241,16 +242,16 @@ void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
         */
 }
 
-void nhflow_vts3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow)
+void nhflow_vts3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
 {
-    print_vtu(p,d,pgc);
+    print_vtu(p,d,pgc,pnhfturb);
     
     if(p->P180==1)
     pfsf->start(p,d,pgc);
     
 }
 
-void nhflow_vts3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vts3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb)
 {
     /*
     - U, V, W

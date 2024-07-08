@@ -130,9 +130,9 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 	awa_ini(p,a,pgc);
     
     
-    // BC update
+    // IO update
     MALOOP
-    p->BC[IJK] = 0;
+    p->IO[IJK] = 0;
     
     GC4LOOP
     {
@@ -144,44 +144,44 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         
         // inflow
         if(p->gcb4[n][3]==1 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[Im1JK] = 1;
+        p->IO[Im1JK] = 1;
         
         if(p->gcb4[n][3]==4 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[Ip1JK] = 1;
+        p->IO[Ip1JK] = 1;
         
         if(p->gcb4[n][3]==3 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[IJm1K] = 1;
+        p->IO[IJm1K] = 1;
         
         if(p->gcb4[n][3]==2 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[IJp1K] = 1;
+        p->IO[IJp1K] = 1;
         
         if(p->gcb4[n][3]==5 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[IJKm1] = 1;
+        p->IO[IJKm1] = 1;
         
         if(p->gcb4[n][3]==6 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[IJKp1] = 1;
+        p->IO[IJKp1] = 1;
         }
 
         if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
         {
         // outflow
         if(p->gcb4[n][3]==1 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[Im1JK] = 2;
+        p->IO[Im1JK] = 2;
         
         if(p->gcb4[n][3]==4 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[Ip1JK] = 2;
+        p->IO[Ip1JK] = 2;
         
         if(p->gcb4[n][3]==3 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[IJm1K] = 2;
+        p->IO[IJm1K] = 2;
         
         if(p->gcb4[n][3]==2 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[IJp1K] = 2;
+        p->IO[IJp1K] = 2;
         
         if(p->gcb4[n][3]==5 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[IJKm1] = 2;
+        p->IO[IJKm1] = 2;
         
         if(p->gcb4[n][3]==6 && (p->gcb4[n][4]==1 || p->gcb4[n][4]==6))
-        p->BC[IJKp1] = 2;
+        p->IO[IJKp1] = 2;
         }
     }
        
@@ -190,22 +190,22 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     {
     
     if(pBC->patch[qq]->gcb[n][3]==1)
-    p->BC[Im1JK] = 1;
+    p->IO[Im1JK] = 1;
     
     if(pBC->patch[qq]->gcb[n][3]==4)
-    p->BC[Ip1JK] = 1;
+    p->IO[Ip1JK] = 1;
     
     if(pBC->patch[qq]->gcb[n][3]==3)
-    p->BC[IJm1K] = 1;
+    p->IO[IJm1K] = 1;
     
     if(pBC->patch[qq]->gcb[n][3]==2)
-    p->BC[IJp1K] = 1;
+    p->IO[IJp1K] = 1;
     
     if(pBC->patch[qq]->gcb[n][3]==5)
-    p->BC[IJKm1] = 1;
+    p->IO[IJKm1] = 1;
     
     if(pBC->patch[qq]->gcb[n][3]==6)
-    p->BC[IJKp1] = 1;
+    p->IO[IJKp1] = 1;
     }
     
 }
