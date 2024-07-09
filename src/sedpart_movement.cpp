@@ -162,7 +162,7 @@ namespace sediment_particle::movement
             if(PP.Flag[n]>0) // INT32_MIN
             {
                 // Prep
-                if(p->originx+p->Q73>PP.X[n])
+                if(p->global_xmin+p->Q73>PP.X[n])
                 limited = true;
                 else
                 limited = false;
