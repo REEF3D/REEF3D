@@ -69,6 +69,14 @@ namespace sediment_particle::movement
         columnSum[IJ] += cellSumTopo[IJK];
     }
 
+    void Tavouktsoglou::setupState(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+    {
+        particlePerCell(p,pgc,PP);
+        PLAINLOOP
+        columnSum[IJ] += cellSumTopo[IJK]+cellSum[IJK];
+        particleStressTensor(p,a,pgc,PP);
+    }
+
     /**
      * @brief Determines if a particle should be seeded in the current cell.
      *
@@ -323,13 +331,29 @@ namespace sediment_particle::movement
         // a.test(i,j,k) = (1.0-drho)*p->W22-(0.5*(a.press(i,j,k+1)+a.press(i+1,j,k+1)) - 0.5*(a.press(i,j,k-1)+a.press(i+1,j,k-1)))/(p->DYN[KM1]+p->DYN[KP])/p->S22-((stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]))/((1-theta_s(p,a,PP,i,j,k))*p->S22);
     }
 
-    void Tavouktsoglou::writeState(ofstream &result)
+    /// @brief Writes the state of the Tavouktsoglou class to file.
+    /// @ToDo Write cellSumTopo 
+    void Tavouktsoglou::writeState(lexer *p, ofstream &result)
     {
-
+        float ffn;
+        PLAINLOOP
+        {
+            ffn=cellSum[IJK];
+            result.write((char*)&ffn, sizeof (float));
+        }
+        result.write((char*)&ffn, sizeof (float));  
     }
 
-    void Tavouktsoglou::readState(ifstream &result)
+    /// Reads the state of the Tavouktsoglou class from file.
+    /// Reconstructs cellSum, columnSum and stressTensor
+    void Tavouktsoglou::readState(lexer *p, ifstream &result)
     {
+        float ffn;
+        PLAINLOOP
+        {
+            result.read((char*)&ffn, sizeof (float));
+            cellSum[IJK]=double(ffn);
+        }
 
     }
 
@@ -383,7 +407,7 @@ namespace sediment_particle::movement
                 }
     }
 
-    // @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
+    /// @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
     void Tavouktsoglou::updateParticleStressTensor(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k)
     {
         double theta=theta_s(p,a,PP,i,j,k);

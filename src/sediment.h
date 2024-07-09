@@ -66,8 +66,8 @@ public:
     
     virtual double bedzhval(int,int){};
 
-    virtual void write_state_particles(ofstream&){};
-    virtual void read_state_particles(ifstream&){};
+    virtual void write_state_particles(lexer *, ofstream&){};
+    virtual void read_state_particles(lexer *, ifstream&){};
     
     virtual void ctimesave(lexer*, fdm*){};
     

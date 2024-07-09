@@ -51,8 +51,9 @@ namespace sediment_particle
             virtual void move(lexer *, fdm &, ghostcell &, particles_obj &){};
             virtual void update(lexer *, ghostcell &, field4a &, double &){};
             virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &){};
-            virtual void writeState(ofstream &){};
-            virtual void readState(ifstream &){};
+            virtual void writeState(lexer *, ofstream &){};
+            virtual void readState(lexer *, ifstream &){};
+            void setupState(lexer *, fdm &, ghostcell &, particles_obj &){};
         };
         class Tavouktsoglou : public base, increment
         /// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
@@ -70,8 +71,9 @@ namespace sediment_particle
             void move(lexer *, fdm &, ghostcell &, particles_obj &);
             void update(lexer *, ghostcell &, field4a &, double &);
             void debug(lexer *, fdm &, ghostcell &, particles_obj &);
-            void writeState(ofstream &);
-            void readState(ifstream &);
+            void writeState(lexer *, ofstream &);
+            void readState(lexer *, ifstream &);
+            void setupState(lexer *, fdm &, ghostcell &, particles_obj &);
         private:
             double maxParticlesPerCell(lexer *, fdm &, double,bool=true,bool=false);
             void particleStressTensor(lexer *, fdm &, ghostcell &, particles_obj &);
@@ -81,15 +83,25 @@ namespace sediment_particle
             double drag_model(lexer *, double, double, double, double, double) const;
             void particlePerCell(lexer *, ghostcell &, particles_obj &);
         private:
+            /// @brief Sum of particles belonging to the stationary bed
             double *cellSumTopo;
+            /// @brief Sum of particles belonging to the mobile bed
             double *cellSum;
+            /// @brief Stress tensor for the particle-particle interaction
             double *stressTensor;
+            /// @brief Number of particles per 2D column
             double *columnSum;
+            /// @brief Relative density of fluid and particle
             const double drho;
+            /// @brief Kinetik viscosity of the fluid
             const double kinVis;
+            /// @brief Stress tensor parameter
             const double Ps;
+            /// @brief Stress tensor parameter
             const double beta;
+            /// @brief Stress tensor parameter
             const double epsilon;
+            /// @brief Critical solid volume fraction
             const double theta_crit;
         };
     };
