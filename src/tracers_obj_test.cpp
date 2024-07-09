@@ -23,7 +23,7 @@ void tracers_obj_test::test_tracers_obj_constructor()
 {
     size_t capacity,size;
 
-    std::cout<<"Running test_tracers_obj_constructor..."<<std::endl;
+    // std::cout<<"Running test_tracers_obj_constructor..."<<std::endl;
 
     // Test case 1: capacity = 0, size = 0
     /// Should this behavior be changed?
@@ -76,7 +76,7 @@ void tracers_obj_test::test_tracers_obj_constructor()
     assert(obj3.size <= obj3.capacity);
     assert(obj3.empty_itr <= obj3.size);
 
-    std::cout<<"test_tracers_obj_constructor passed!"<<std::endl;
+    // std::cout<<"test_tracers_obj_constructor passed!"<<std::endl;
 }
 
 void tracers_obj_test::test_tracers_obj_erase()

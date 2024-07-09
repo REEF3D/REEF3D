@@ -54,6 +54,13 @@ particles_obj::particles_obj(size_t _capacity, double _d50, double _density, boo
 
         fill_data(0,_size);
     }
+    else
+    {
+        U=nullptr;
+        V=nullptr;
+        W=nullptr;
+        PackingFactor=nullptr;
+    }
 }
 
 /// @brief Deletes individual data if existent
@@ -265,6 +272,10 @@ void particles_obj::add_obj(particles_obj* obj)
 {
     if(obj->size>0)
     {
+        if(obj->density!=density)
+            std::cerr<<"particles_obj::add_obj - density mismatch"<<std::endl;
+        if(obj->d50!=d50)
+            std::cerr<<"particles_obj::add_obj - d50 mismatch"<<std::endl;
         if(size+obj->size>capacity)
             reserve(size+obj->size);
         
@@ -300,6 +311,6 @@ void particles_obj::fill_data(size_t start, size_t end)
         U[n]=0;
         V[n]=0;
         W[n]=0;
-        PackingFactor[n]=0;
+        PackingFactor[n]=1;
     }
 }

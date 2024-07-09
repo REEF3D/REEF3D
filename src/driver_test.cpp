@@ -482,8 +482,10 @@ void driver::unit_tests()
 {
     cout<<"Running unit tests..."<<endl;
     cout<<"-------------------------------------"<<endl;
-    tracers_obj_test test;
-    test.run();
+    tracers_obj_test tracers_obj_test;
+    tracers_obj_test.run();
+    particles_obj_test particles_obj_test;
+    particles_obj_test.run();
     cout<<"-------------------------------------"<<endl;
     cout<<"All unit tests completed sucessfully."<<endl;
 }

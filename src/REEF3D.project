@@ -501,7 +501,9 @@
       <VirtualDirectory Name="Particle">
         <File Name="particle.h"/>
         <File Name="particles_obj.h"/>
+        <File Name="particles_obj_test.h"/>
         <File Name="tracers_obj.h"/>
+        <File Name="tracers_obj_test.h"/>
         <File Name="particle_v.h"/>
         <File Name="particle_f.h"/>
         <File Name="particle_func.h"/>
@@ -677,6 +679,9 @@
         <File Name="rheology.h"/>
         <File Name="rheology_f.h"/>
         <File Name="rheology_v.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Testing">
+        <File Name="unit_test.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
@@ -1749,7 +1754,9 @@
         </VirtualDirectory>
         <File Name="particle_f.cpp"/>
         <File Name="particles_obj.cpp"/>
+        <File Name="particles_obj_test.cpp"/>
         <File Name="tracers_obj.cpp"/>
+        <File Name="tracers_obj_test.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
