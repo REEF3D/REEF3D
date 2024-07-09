@@ -179,7 +179,6 @@ namespace sediment_particle::movement
 
                 // Non interpolation leads to blockyness
                 // stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);
-                stressDivX = (stressTensor[Ip1JK] - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]))/(0.5*p->DXN[IP1]+p->XN[IP1]-PP.X[n]);
                 // stressDivX = (stressTensor[IJK] - stressTensor[Im1JK])/(p->DXN[IM1]);
                 // stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
                 // stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DYN[KM1]+p->DYN[KP]);
@@ -187,6 +186,19 @@ namespace sediment_particle::movement
                 // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXN[IP]+p->DXN[IM1]);
                 stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYN[JP]+p->DYN[JM1]);
                 stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
+
+                // if(u<0)
+                    stressDivX = (stressTensor[Ip1JK] - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]))/(0.5*p->DXN[IP1]+p->XN[IP1]-PP.X[n]);
+                // else
+                    // stressDivX = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n])-stressTensor[Im1JK])/(PP.X[n]-(0.5*p->DXN[IM1]+p->XN[IM1]));
+                // if(v<0)
+                //     stressDivY = (stressTensor[IJp1K] - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]))/(0.5*p->DYN[IP1]+p->YN[IP1]-PP.Y[n]);
+                // else
+                //     stressDivY = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n])-stressTensor[IJm1K])/(PP.Y[n]-(0.5*p->DYN[IM1]+p->YN[IM1]));
+                // if(w<0)
+                //     stressDivZ = (stressTensor[IJKp1] - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]))/(0.5*p->DZN[IP1]+p->ZN[IP1]-PP.Z[n]);
+                // else
+                //     stressDivZ = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n])-stressTensor[IJm1K])/(PP.Z[n]-(0.5*p->DZN[IM1]+p->ZN[IM1]));
 
                 pressureDivX = (a.press(i+1,j,k) - a.press(i,j,k))/(p->DXN[IP]);
                 pressureDivY = (0.5*(a.press(i,j+1,k)+a.press(i+1,j+1,k)) - 0.5*(a.press(i,j-1,k)+a.press(i+1,j-1,k)))/(p->DYN[JM1]+p->DYN[JP]);
