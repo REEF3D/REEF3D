@@ -51,9 +51,10 @@ namespace sediment_particle
             virtual void move(lexer *, fdm &, ghostcell &, particles_obj &){};
             virtual void update(lexer *, ghostcell &, field4a &, double &){};
             virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &){};
+            virtual double volume(lexer *, fdm &, particles_obj &){};
             virtual void writeState(lexer *, ofstream &){};
             virtual void readState(lexer *, ifstream &){};
-            void setupState(lexer *, fdm &, ghostcell &, particles_obj &){};
+            virtual void setupState(lexer *, fdm &, ghostcell &, particles_obj &){};
         };
         class Tavouktsoglou : public base, increment
         /// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
@@ -71,6 +72,7 @@ namespace sediment_particle
             void move(lexer *, fdm &, ghostcell &, particles_obj &);
             void update(lexer *, ghostcell &, field4a &, double &);
             void debug(lexer *, fdm &, ghostcell &, particles_obj &);
+            double volume(lexer *, fdm &, particles_obj &);
             void writeState(lexer *, ofstream &);
             void readState(lexer *, ifstream &);
             void setupState(lexer *, fdm &, ghostcell &, particles_obj &);

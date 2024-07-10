@@ -343,6 +343,14 @@ namespace sediment_particle::movement
         // a.test(i,j,k) = (1.0-drho)*p->W22-(0.5*(a.press(i,j,k+1)+a.press(i+1,j,k+1)) - 0.5*(a.press(i,j,k-1)+a.press(i+1,j,k-1)))/(p->DYN[KM1]+p->DYN[KP])/p->S22-((stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]))/((1-theta_s(p,a,PP,i,j,k))*p->S22);
     }
 
+    double Tavouktsoglou::volume(lexer *p, fdm &a, particles_obj &PP)
+    {
+        double volume=0;
+        PLAINLOOP
+        volume += PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/6.0;
+        return volume;
+    }
+
     /// @brief Writes the state of the Tavouktsoglou class to file.
     /// @ToDo Write cellSumTopo 
     void Tavouktsoglou::writeState(lexer *p, ofstream &result)

@@ -43,6 +43,9 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     // vrans
     pvrans->sed_update(p,a,pgc);
     movement->setup(p,*a,PP.d50);
+    volume0 = movement->volume(p,*a,PP);
+    volume0 = pgc->globalsum(volume0);
+    volume = volume0;
     if(p->I40!=1)
     {
         // seed
@@ -138,10 +141,13 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 	gparticle_active = pgc->globalisum(PP.size);
     gremoved = pgc->globalisum(removed);
     gxchange = pgc->globalisum(xchange);
+
+    volume = movement->volume(p,*a,PP);
+    volume = pgc->globalsum(volume);
 	p->sedsimtime=pgc->timer()-starttime;
 
     if(p->mpirank==0 && (p->count%p->P12==0))
-    	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
+    	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(9)<<volume0-volume<<endl;
     debug(p,a,pgc);
 }
 

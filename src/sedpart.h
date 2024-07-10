@@ -131,8 +131,10 @@ private:
     /// @brief Particles exchanged between all partitions
     int gxchange;
 
-    /// @brief Total volume change in cubic meter
-    double volumeChangeTotal;
+    /// @brief Total volume of bed in cubic meter
+    double volume;
+    /// @brief Initial total volume of bed in cubic meter
+    double volume0;
 
     /// @brief integer rand() scaler
     const int irand;

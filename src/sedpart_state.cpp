@@ -29,7 +29,7 @@ void sedpart::write_state_particles(lexer *p, ofstream &result)
 {
     float ffn=num;
     result.write((char*)&ffn, sizeof (float));
-    ffn=volumeChangeTotal;
+    ffn=volume0;
     result.write((char*)&ffn, sizeof (float));
     size_t ffs=PP.capacity;
     result.write((char*)&ffs, sizeof (size_t));
@@ -65,7 +65,7 @@ void sedpart::read_state_particles(lexer *p, ifstream& result)
     result.read((char*)&ffn, sizeof (float));
     printcount=ffn;
     result.read((char*)&ffn, sizeof (float));
-    volumeChangeTotal=ffn;
+    volume0=ffn;
     PP.erase_all();
     size_t ffs;
     result.read((char*)&ffs, sizeof (size_t));
