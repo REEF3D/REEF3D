@@ -45,8 +45,6 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     movement->setup(p,*a,PP.d50);
     if(p->I40!=1)
     {
-        // PLAINLOOP
-        // cellSumTopo[IJK]=maxParticlesPerCell(p,a,PP.d50);
         // seed
         seed_ini(p,a,pgc);
         PP.reserve(maxparticle);
@@ -83,7 +81,6 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     pbedshear->taucritbed(p,a,pgc,s);
     
     ++inicount;
-    movement->debug(p,*a,*pgc,PP);
     debug(p,a,pgc);
 }
 
@@ -122,15 +119,16 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         removed += deposit(p,a);
 
         /// topo update
-        // if(p->Q13==1)
+        if(p->Q13==1)
+            movement->update(p,*pgc,a->topo,PP.d50);
             // update_cfd(p,a,pgc,pflow,preto);
 
         /// cleanup
-        if(p->count%p->Q20==0)
+        if(p->Q20>=0 && p->count%p->Q20==0)
         {
             if(PP.size == 0)
                 PP.erase_all();
-            cleanup(p,a,&PP,0);
+            PP.optimize();
         }
 	}
 
@@ -141,8 +139,6 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     gremoved = pgc->globalisum(removed);
     gxchange = pgc->globalisum(xchange);
 	p->sedsimtime=pgc->timer()-starttime;
-
-    movement->debug(p,*a,*pgc,PP);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(9)<<volumeChangeTotal<<endl;
