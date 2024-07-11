@@ -73,7 +73,7 @@ public:
     // 
 
     void erode(lexer*,fdm*);
-    int deposit(lexer*,fdm*);
+    void deposit(lexer*,fdm*);
 
     // Statefile methods
 

@@ -97,11 +97,10 @@ void sedpart::erode(lexer* p, fdm* a)
 }
 
 /// @brief Deposits moving particles onto topo
-int sedpart::deposit(lexer* p, fdm* a)
+void sedpart::deposit(lexer* p, fdm* a)
 {
     if(p->Q101>0)
         make_stationary(p,a,&PP);
-    return solid_clean(p,&PP);
 }
 
 void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
@@ -109,5 +108,5 @@ void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
     // PLAINLOOP
     // a->test(i,j,k)=(s->tau_eff(i,j)>s->tau_crit(i,j));
 
-    // movement->debug(p,*a,*pgc,PP);
+    movement->debug(p,*a,*pgc,PP);
 }

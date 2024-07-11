@@ -108,22 +108,22 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 	if (p->count>=p->Q43)
 	{
         /// runtime seeding
-		if(p->Q120==1&&p->count%p->Q121==0)
-			posseed_suspended(p,a);
-        point_source(p,a);
-        if(p->Q101>0)
-        {
+		// if(p->Q120==1&&p->count%p->Q121==0)
+		// 	posseed_suspended(p,a);
+        // point_source(p,a);
+        // if(p->Q101>0)
+        // {
             // topo_influx(p,a);
             // solid_influx(p,a);
             // seed_topo(p,a);
-        }
+        // }
 
         /// transport
         erode(p,a);
         movement->move(p,*a,*pgc,PP);
 		xchange=transfer(p,pgc,&PP, *movement, maxparticle);
 		removed=remove(p,&PP);
-        removed += deposit(p,a);
+        deposit(p,a);
 
         /// topo update
         if(p->Q13==1)
@@ -152,7 +152,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 	p->sedsimtime=pgc->timer()-starttime;
 
     if(p->mpirank==0 && (p->count%p->P12==0))
-    	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(prec)<<volume0-volume<<" m^3"<<endl;
+    	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(prec)<<volume-volume0<<" m^3"<<endl;
     debug(p,a,pgc);
 }
 

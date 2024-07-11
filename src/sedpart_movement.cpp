@@ -340,8 +340,19 @@ namespace sediment_particle::movement
 
     void Tavouktsoglou::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
+        // double sumCell = 0;
+        // double sumTopo = 0;
         // PLAINLOOP
-        // a.test(i,j,k) = (1.0-drho)*p->W22-(0.5*(a.press(i,j,k+1)+a.press(i+1,j,k+1)) - 0.5*(a.press(i,j,k-1)+a.press(i+1,j,k-1)))/(p->DYN[KM1]+p->DYN[KP])/p->S22-((stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]))/((1-theta_s(p,a,PP,i,j,k))*p->S22);
+        // {
+        //     a.test(i,j,k) = 0;
+        //     for(int n=0;n<=k;n++)
+        //     a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
+        //     a.fb(i,j,k) = cellSum[IJK];
+        //     sumCell += cellSum[IJK];
+        //     a.vof(i,j,k) = cellSumTopo[IJK];
+        //     sumTopo += cellSumTopo[IJK];
+        // }
+        // std::cout<<p->mpirank<<": Sum of cellSum: "<<sumCell<<" : "<<sumTopo<<std::endl;
     }
 
     double Tavouktsoglou::volume(lexer *p, fdm &a, particles_obj &PP)
