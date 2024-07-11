@@ -50,6 +50,8 @@ sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p)
     s = new sediment_fdm(p);
     pbedshear = new bedshear(p,pturb);
 
+    prec = 6;
+
     if(p->I40!=1)
     {
         printcount = 0;
@@ -104,8 +106,8 @@ int sedpart::deposit(lexer* p, fdm* a)
 
 void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
 {
-    PLAINLOOP
-    a->test(i,j,k)=(s->tau_eff(i,j)>s->tau_crit(i,j));
+    // PLAINLOOP
+    // a->test(i,j,k)=(s->tau_eff(i,j)>s->tau_crit(i,j));
 
     // movement->debug(p,*a,*pgc,PP);
 }

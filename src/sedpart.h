@@ -175,6 +175,9 @@ private:
     /// @brief File numer
     int num;
 
+    /// @brief Print out precision
+    int prec;
+
     // DEFINITIONS
 
     #define PARTLOOP for(size_t n=0;n<PP.loopindex;n++)

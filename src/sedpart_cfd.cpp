@@ -43,9 +43,6 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     // vrans
     pvrans->sed_update(p,a,pgc);
     movement->setup(p,*a,PP.d50);
-    volume0 = movement->volume(p,*a,PP);
-    volume0 = pgc->globalsum(volume0);
-    volume = volume0;
     if(p->I40!=1)
     {
         // seed
@@ -54,6 +51,10 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
         seed(p,a);
         make_stationary(p,a,&PP);
     }
+
+    volume0 = movement->volume(p,*a,PP);
+    volume0 = pgc->globalsum(volume0);
+    volume = volume0;
 
     gparticle_active = pgc->globalisum(PP.size);
 
@@ -64,10 +65,13 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     print_particles(p);
     
     if(p->mpirank==0)
+    {
         if(p->I40!=1)
-            cout<<"Sediment particles: "<<gparticle_active<<endl;
+            cout<<"Sediment particles: "<<gparticle_active<<"\n";
         else if (inicount>0)
-            cout<<"Loaded particles "<<gparticle_active<<" from state file."<<endl;
+            cout<<"Loaded particles "<<gparticle_active<<" from state file.\n";
+        cout<<"Initial bed volume: "<<std::setprecision(prec)<<volume0<<" m^3"<<endl;
+    }
     
     SLICELOOP4
     s->bedk(i,j)=0;
@@ -144,10 +148,11 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
     volume = movement->volume(p,*a,PP);
     volume = pgc->globalsum(volume);
+
 	p->sedsimtime=pgc->timer()-starttime;
 
     if(p->mpirank==0 && (p->count%p->P12==0))
-    	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(9)<<volume0-volume<<endl;
+    	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<std::setprecision(prec)<<volume0-volume<<" m^3"<<endl;
     debug(p,a,pgc);
 }
 

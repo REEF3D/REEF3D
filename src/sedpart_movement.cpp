@@ -64,9 +64,10 @@ namespace sediment_particle::movement
     void Tavouktsoglou::setup(lexer *p, fdm &a, double &diameter)
     {
         PLAINLOOP
-        cellSumTopo[IJK] = maxParticlesPerCell(p,a,diameter);
-        PLAINLOOP
-        columnSum[IJ] += cellSumTopo[IJK];
+        {
+            cellSumTopo[IJK] = maxParticlesPerCell(p,a,diameter);
+            columnSum[IJ] += cellSumTopo[IJK];
+        }
     }
 
     void Tavouktsoglou::setupState(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
@@ -345,10 +346,12 @@ namespace sediment_particle::movement
 
     double Tavouktsoglou::volume(lexer *p, fdm &a, particles_obj &PP)
     {
-        double volume=0;
-        PLAINLOOP
-        volume += PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/6.0;
-        return volume;
+        double sum=0;
+        ILOOP
+            JLOOP
+                sum += columnSum[IJ];
+
+        return PI*pow(PP.d50,3.0)*(sum)/6.0;
     }
 
     /// @brief Writes the state of the Tavouktsoglou class to file.
