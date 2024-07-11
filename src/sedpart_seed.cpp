@@ -52,7 +52,6 @@ void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     {
         active_box(i,j,k) = true;
         ++cellcountBox;
-        // minPPC=min(minPPC, maxParticlesPerCell(p,a,PP.d50,false));
     }
 
     // Topo
@@ -66,7 +65,6 @@ void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
             if(p->flag1[Im1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG)
             active_topo(i,j,k) = 10.0;
             cellcountTopo++;
-            // minPPC=min(minPPC, maxParticlesPerCell(p,a,PP.d50));
         }
     }
 
@@ -192,13 +190,13 @@ void sedpart::topo_influx(lexer* p, fdm* a)
     {
         if(p->gcin[n][3]>0)
         {
-        i=p->gcin[n][0];
-        j=p->gcin[n][1];
-        k=p->gcin[n][2];
-        if(active_topo(i,j,k)>0.0)
-        {
-            seed_topo(p,a);
-        }
+            i=p->gcin[n][0];
+            j=p->gcin[n][1];
+            k=p->gcin[n][2];
+            if(active_topo(i,j,k)>0.0)
+            {
+                seed_topo(p,a);
+            }
         }
     }
 }
@@ -220,8 +218,6 @@ void sedpart::seed_topo(lexer* p, fdm* a)
     int flag=0;
     size_t index;
 
-    // double ini = cellSum[IJK];
-
     if(PP.size+ppcell>0.9*PP.capacity)
         PP.reserve();
 
@@ -238,14 +234,9 @@ void sedpart::seed_topo(lexer* p, fdm* a)
         {
             index=PP.add(x,y,z,flag,0,0,0,p->Q41);
             if(movement->seeding(p, PP, index, ppcell))
-            break;
-            // cellSum[IJK]+=PP.PackingFactor[index];
+                break;
         }
-        
-        // if(++n==ppcell)
-        //     break;
     }
-    // cellSumTopo[IJK]-=(cellSum[IJK]-ini);
 }
 
 void sedpart::solid_influx(lexer* p, fdm* a)

@@ -497,6 +497,13 @@ namespace sediment_particle::movement
         pgc.start4V_par(p,cellSum,11);
         pgc.start4V_par(p,cellSumTopo,11);
     }
+
+    void Tavouktsoglou::make_moving(lexer *p, fdm &a, particles_obj &PP)
+    {
+        for(size_t n=0;n<PP.loopindex;n++)
+            if(PP.Flag[n]==0)
+                PP.Flag[n]=1;
+    }
 };
 
 int sediment_particle::state::solid_clean(lexer* p, particles_obj &PP, sediment_particle::movement::base &movement)

@@ -87,13 +87,14 @@ sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p)
 sedpart::~sedpart()
 {
     delete pvrans;
+    delete movement;
 }
 
 /// @brief Enables erosion of particles
 void sedpart::erode(lexer* p, fdm* a)
 {
     if(p->Q101>0)
-        make_moving(p,a,&PP);
+        movement->make_moving(p,*a,PP);
 }
 
 /// @brief Deposits moving particles onto topo
