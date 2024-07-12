@@ -31,8 +31,14 @@ Author: Hans Bihs & Alexander Hanke
 using std::cout;
 using std::endl;
 
-/// @brief Determines cell to be seeded with particles and maximum number of particles
-void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
+/// @brief Determines cells to be seeded with particles and maximum number of particles
+
+/// Sets \p sedpart::active_box and \p sedpart::active_topo to `true` for cells to be seeded with particles.
+/// \p sedpart::active_box based on \p lexer::Q110 and \p sedpart::active_topo based on \p fdm::topo.
+
+/// \p lexer::Q24 is used as a guess for particles per cell, if it is not set, it is set to 0.
+/// With \p sedpart::ppcell and the number of cells active for seeding, \p sedpart::maxparticle is calculated.
+void sedpart::seed_ini(lexer *p, fdm *a, ghostcell* pgc)
 {
     // ini
     LOOP
@@ -43,7 +49,7 @@ void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     double minPPC=INT64_MAX;
     
     // Box
-    size_t cellcountBox=0;
+    size_t cellCountBox=0;
     for(int qn=0;qn<p->Q110;++qn)
     LOOP
     if(p->XN[IP]>=p->Q110_xs[qn] && p->XN[IP1]<=p->Q110_xe[qn]
@@ -51,22 +57,11 @@ void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     && p->ZN[KP1]>=p->Q110_zs[qn] && p->ZN[KP1]<=p->Q110_ze[qn])
     {
         active_box(i,j,k) = true;
-        ++cellcountBox;
+        ++cellCountBox;
     }
 
     // Topo
-    const double tolerance=5e-10;
-    size_t cellcountTopo=0;
-    BASELOOP
-    {
-        if( (a->topo(i,j,k)<0.5*p->DZN[KP]-tolerance) && (a->topo(i,j,k)>-p->DZN[KP]*ceil(p->Q102)-tolerance) && (a->solid(i,j,k)>=-p->DXM))
-        {
-            active_topo(i,j,k) = true;
-            if(p->flag1[Im1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG)
-            active_topo(i,j,k) = 10.0;
-            cellcountTopo++;
-        }
-    }
+    size_t cellCountTopo = set_active_topo(p,a);
 
     // Make box to topo if inside topo?
 
@@ -75,23 +70,23 @@ void sedpart::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
         ppcell = p->Q24;
     else
         ppcell = 0;
-    int gfminPPC=pgc->globalmin(floorf(minPPC));
-    if (gfminPPC<0) gfminPPC=0;
-    if(ppcell>gfminPPC)
-    {
-        ppcell=gfminPPC;
-        if(0==p->mpirank)
-        cout<<"Reduced particles per cell to "<<ppcell<<" as min particles per cell is lower."<<endl;
-    }
-    double gQ41=pgc->globalmin(minPPC/ppcell);
-    if(ppcell!=0&&p->Q41*ppcell>gfminPPC)
-    {
-        p->Q41=gQ41;
-        if(0==p->mpirank)
-        cout<<"Reduced packing factor to "<<p->Q41<<" to stay within max real particles per cell."<<endl;
-    }
+    // int gfminPPC=pgc->globalmin(floorf(minPPC));
+    // if (gfminPPC<0) gfminPPC=0;
+    // if(ppcell>gfminPPC)
+    // {
+    //     ppcell=gfminPPC;
+    //     if(0==p->mpirank)
+    //     cout<<"Reduced particles per cell to "<<ppcell<<" as min particles per cell is lower."<<endl;
+    // }
+    // double gQ41=pgc->globalmin(minPPC/ppcell);
+    // if(ppcell!=0&&p->Q41*ppcell>gfminPPC)
+    // {
+    //     p->Q41=gQ41;
+    //     if(0==p->mpirank)
+    //     cout<<"Reduced packing factor to "<<p->Q41<<" to stay within max real particles per cell."<<endl;
+    // }
     
-    int partnum = cellcountBox * ppcell + cellcountTopo * ppcell;
+    int partnum = (cellCountBox + cellCountTopo) * ppcell;
     maxparticle = ceil(p->Q25*double(pgc->globalisum(partnum)));
 }
 
@@ -247,4 +242,22 @@ void sedpart::solid_influx(lexer* p, fdm* a)
     {
         seed_topo(p,a);
     }
+}
+
+size_t sedpart::set_active_topo(lexer *p, fdm *a)
+{
+    const double tolerance=5e-10;
+    size_t cellCountTopo=0;
+    BASELOOP
+    {
+        active_topo(i,j,k) = false;
+        if( (a->topo(i,j,k)<0.5*p->DZN[KP]-tolerance) && (a->topo(i,j,k)>-p->DZN[KP]*ceil(p->Q102)-tolerance) && (a->solid(i,j,k)>=-p->DXM))
+        {
+            active_topo(i,j,k) = true;
+            if(p->flag1[Im1JK]==SOLID_FLAG&&p->flag1[IJK]==WATER_FLAG)
+            active_topo(i,j,k) = 10.0;
+            cellCountTopo++;
+        }
+    }
+    return cellCountTopo;
 }

@@ -103,6 +103,7 @@ private:
     void seed_srand(lexer*);
     void seed_topo(lexer*,fdm*);
     void solid_influx(lexer*,fdm*);
+    size_t set_active_topo(lexer*, fdm*);
 
     void debug(lexer*,fdm*,ghostcell*);
 
