@@ -108,15 +108,16 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 	if (p->count>=p->Q43)
 	{
         /// runtime seeding
-		// if(p->Q120==1&&p->count%p->Q121==0)
-		// 	posseed_suspended(p,a);
-        // point_source(p,a);
-        // if(p->Q101>0)
-        // {
-            // topo_influx(p,a);
-            // solid_influx(p,a);
-            // seed_topo(p,a);
-        // }
+		if(p->Q120==1&&p->count%p->Q121==0)
+			posseed_suspended(p,a);
+        point_source(p,a);
+        if(p->Q101>0)
+        {
+            topo_influx(p,a);
+            solid_influx(p,a);
+            set_active_topo(p,a);
+            seed_topo(p,a);
+        }
 
         /// transport
         erode(p,a);
