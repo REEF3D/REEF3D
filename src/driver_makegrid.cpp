@@ -38,6 +38,13 @@ Author: Hans Bihs
 
 void driver::makegrid(lexer *p, ghostcell *pgc)
 {	
+    pgc->flagx(p,p->flagsf1);
+    pgc->flagx(p,p->flagsf2);
+    pgc->flagx(p,p->flagsf3);
+    pgc->flagx(p,p->flagsf4);
+
+    
+    
 	mgc1 m1(p);
 	mgc2 m2(p);
 	mgc3 m3(p);
