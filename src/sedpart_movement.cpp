@@ -103,13 +103,13 @@ namespace sediment_particle::movement
             else if (cellSumTopo[IJK]>0)
             {
                 PP.PackingFactor[index] = cellSumTopo[IJK];
-            cellSumTopo[IJK] -= PP.PackingFactor[index];
+                cellSumTopo[IJK] -= PP.PackingFactor[index];
             }
             else
             {
                 return seedReturn::REMOVE;
             }
-        cellSum[IJK] += PP.PackingFactor[index];
+            cellSum[IJK] += PP.PackingFactor[index];
             
         }
 
@@ -521,6 +521,42 @@ namespace sediment_particle::movement
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
                 PP.Flag[n]=1;
+    }
+
+    void Tavouktsoglou::erode(lexer *p, fdm &a, particles_obj &PP)
+    {
+        ILOOP
+        {
+            JLOOP
+            {
+                KLOOP
+                {
+                    if(cellSum[IJK]>0 || cellSumTopo[IJK] == 0)
+                    {
+                        --k;
+                        // for(int qn=0;qn<ppcell*1000;++qn)
+                        // {
+                        //     x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+                        //     y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+                        //     z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+
+                        //     ipolTopo = p->ccipol4_b(a->topo,x,y,z);
+                        //     ipolSolid = p->ccipol4_b(a->solid,x,y,z);
+
+                        //     if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
+                        //     {
+                        //         index=PP.add(x,y,z,flag,0,0,0,p->Q41);
+                        //         if(movement->seeding(p, PP, index, ppcell))
+                        //             break;
+                        //     }
+                        // }
+
+
+                        break;
+                    }
+                }
+            }
+        }
     }
 };
 

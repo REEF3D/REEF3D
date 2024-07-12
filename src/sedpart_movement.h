@@ -55,6 +55,7 @@ namespace sediment_particle
             virtual void remove(lexer *, particles_obj &, size_t &){};
             virtual void move(lexer *, fdm &, ghostcell &, particles_obj &){};
             virtual void make_moving(lexer *, fdm &, particles_obj &){};
+            virtual void erode(lexer *, fdm &, particles_obj &){};
             virtual void update(lexer *, ghostcell &, field4a &, double &){};
             virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &){};
             virtual double volume(lexer *, fdm &, particles_obj &){};
@@ -77,6 +78,7 @@ namespace sediment_particle
             void remove(lexer *, particles_obj &, size_t &);
             void move(lexer *, fdm &, ghostcell &, particles_obj &);
             void make_moving(lexer *, fdm &, particles_obj &);
+            void erode(lexer *, fdm &, particles_obj &);
             void update(lexer *, ghostcell &, field4a &, double &);
             void debug(lexer *, fdm &, ghostcell &, particles_obj &);
             double volume(lexer *, fdm &, particles_obj &);
