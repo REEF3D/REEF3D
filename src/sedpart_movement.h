@@ -40,12 +40,17 @@ namespace sediment_particle
 {
     namespace movement
     {
+        enum seedReturn:int
+        {
+            REMOVE=-1,STOP,CONTINUE
+        };
+
         class base
         /// Base class for sediment particle movement models
         {
         public:
             virtual void setup(lexer *, fdm &, double &){};
-            virtual bool seeding(lexer *, particles_obj &, size_t &, int &){return false;};
+            virtual seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false){return seedReturn::STOP;};
             virtual void transfer(lexer *, particles_obj &, size_t &){};
             virtual void remove(lexer *, particles_obj &, size_t &){};
             virtual void move(lexer *, fdm &, ghostcell &, particles_obj &){};
@@ -67,7 +72,7 @@ namespace sediment_particle
             ~Tavouktsoglou();
 
             void setup(lexer *, fdm &, double &);
-            bool seeding(lexer *, particles_obj &, size_t &, int &);
+            seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false);
             void transfer(lexer *, particles_obj &, size_t &);
             void remove(lexer *, particles_obj &, size_t &);
             void move(lexer *, fdm &, ghostcell &, particles_obj &);

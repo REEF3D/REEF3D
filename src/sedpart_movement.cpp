@@ -90,14 +90,32 @@ namespace sediment_particle::movement
      * @param max The maximum value.
      * @return True if the particle should be seeded, false otherwise.
      */
-    bool Tavouktsoglou::seeding(lexer *p, particles_obj &PP, size_t &index, int &max)
+    seedReturn Tavouktsoglou::seeding(lexer *p, particles_obj &PP, size_t &index, double max, bool free)
     {
-        if(cellSumTopo[IJK]>0)
+        if(free)
+        {
+            cellSum[IJK] += PP.PackingFactor[index];
+        }
+        else
+        {
+            if(cellSumTopo[IJK]>=PP.PackingFactor[index])
+                cellSumTopo[IJK] -= PP.PackingFactor[index];
+            else if (cellSumTopo[IJK]>0)
+            {
+                PP.PackingFactor[index] = cellSumTopo[IJK];
             cellSumTopo[IJK] -= PP.PackingFactor[index];
+            }
+            else
+            {
+                return seedReturn::REMOVE;
+            }
         cellSum[IJK] += PP.PackingFactor[index];
+            
+        }
+
         if(cellSum[IJK]>=max)
-            return true;
-        return false;
+            return seedReturn::STOP;
+        return seedReturn::CONTINUE;
     }
 
     /**
