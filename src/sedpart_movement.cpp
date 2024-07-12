@@ -342,16 +342,16 @@ namespace sediment_particle::movement
     {
         // double sumCell = 0;
         // double sumTopo = 0;
-        // PLAINLOOP
-        // {
-        //     a.test(i,j,k) = 0;
-        //     for(int n=0;n<=k;n++)
-        //     a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
-        //     a.fb(i,j,k) = cellSum[IJK];
-        //     sumCell += cellSum[IJK];
-        //     a.vof(i,j,k) = cellSumTopo[IJK];
-        //     sumTopo += cellSumTopo[IJK];
-        // }
+        PLAINLOOP
+        {
+            a.test(i,j,k) = 0;
+            for(int n=0;n<=k;n++)
+            a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
+            a.fb(i,j,k) = cellSum[IJK];
+            // sumCell += cellSum[IJK];
+            a.vof(i,j,k) = cellSumTopo[IJK];
+            // sumTopo += cellSumTopo[IJK];
+        }
         // std::cout<<p->mpirank<<": Sum of cellSum: "<<sumCell<<" : "<<sumTopo<<std::endl;
     }
 

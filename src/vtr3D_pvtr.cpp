@@ -131,9 +131,9 @@ void vtr3D::pvtr(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 
 	result<<"</PPointData>"<<endl;
 	result<<"<PCellData>"<<endl;
-	// result<<"<PDataArray type=\"Float32\" Name=\"col\"/>"<<endl;
-    // result<<"<PDataArray type=\"Float32\" Name=\"sum\"/>"<<endl;
-    // result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"col\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"sum\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>"<<endl;
 	result<<"</PCellData>"<<endl;
 
 	result<<"<PCoordinates>"<<endl;

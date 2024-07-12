@@ -586,12 +586,12 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	++n;
 	}
 
-	// offset[n]=offset[n-1]+4*(p->cellnum)+4;
-	// ++n;
-    // offset[n]=offset[n-1]+4*(p->cellnum)+4;
-	// ++n;
-    // offset[n]=offset[n-1]+4*(p->cellnum)+4;
-	// ++n;
+	offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
 	
 	// end scalars
 	//---------------------------------------------
@@ -724,12 +724,12 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result<<"</PointData>"<<endl;
 
 	result<<"<CellData>"<<endl;
-	// result<<"<DataArray type=\"Float32\" Name=\"col\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    // ++n;
-    // result<<"<DataArray type=\"Float32\" Name=\"sum\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    // ++n;
-    // result<<"<DataArray type=\"Float32\" Name=\"topo\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    // ++n;
+	result<<"<DataArray type=\"Float32\" Name=\"col\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"sum\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"topo\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
 	result<<"</CellData>"<<endl;
     result<<"<Coordinates>"<<endl;
 	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
@@ -958,27 +958,27 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
 
-	// iin=4*(p->cellnum);
-	// result.write((char*)&iin, sizeof (int));
-	// BASEREVLOOP
-	// {
-	// ffn=float(a->test(i,j,k));
-	// result.write((char*)&ffn, sizeof (float));
-	// }
-    // iin=4*(p->cellnum);
-	// result.write((char*)&iin, sizeof (int));
-	// BASEREVLOOP
-	// {
-	// ffn=float(a->fb(i,j,k));
-	// result.write((char*)&ffn, sizeof (float));
-	// }
-    // iin=4*(p->cellnum);
-	// result.write((char*)&iin, sizeof (int));
-	// BASEREVLOOP
-	// {
-	// ffn=float(a->vof(i,j,k));
-	// result.write((char*)&ffn, sizeof (float));
-	// }
+	iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->test(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->fb(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->vof(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
 
 	// Coordinates
 	// x
