@@ -206,7 +206,7 @@ void sedpart::seed_srand(lexer* p)
 }
 
 /// @brief Seeds particle in relation to `fdm::topo`
-void sedpart::seed_topo(lexer* p, fdm* a)
+void sedpart::seed_topo(lexer *p, fdm *a)
 {
     double tolerance = 5e-18;
     double x,y,z,ipolTopo,ipolSolid;
@@ -228,8 +228,14 @@ void sedpart::seed_topo(lexer* p, fdm* a)
         if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
         {
             index=PP.add(x,y,z,flag,0,0,0,p->Q41);
-            if(movement->seeding(p, PP, index, ppcell))
+            auto result = movement->seeding(p, PP, index, p->Q41*ppcell);
+            if(result==sediment_particle::movement::seedReturn::STOP)
                 break;
+            if(result==sediment_particle::movement::seedReturn::REMOVE)
+            {
+                PP.erase(index);
+                break;
+            }
         }
     }
 }
