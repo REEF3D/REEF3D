@@ -349,7 +349,7 @@ namespace sediment_particle::movement
             if(count != columnSum[IJ])
             {
                 KLOOP
-                topo(i,j,k) += (count-columnSum[IJ])*4.0/3.0*PI*pow(d50/2.0,3)/(p->DXN[IP]*p->DYN[JP]);
+                topo(i,j,k) -= (count-columnSum[IJ])*4.0/3.0*PI*pow(d50/2.0,3)/(p->DXN[IP]*p->DYN[JP]);
             }
             columnSum[IJ] = count;
         }
