@@ -98,9 +98,9 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         p->fbmax = MAX(fabs(alpha*CPOR3*fz(i,j,k)), p->fbmax);
         }
 
-        pgc->start1(p,u,gcval_u);
+        /*pgc->start1(p,u,gcval_u);
         pgc->start2(p,v,gcval_v);
-        pgc->start3(p,w,gcval_w);
+        pgc->start3(p,w,gcval_w);*/
         
         p->fbtime+=pgc->timer()-starttime;
     }

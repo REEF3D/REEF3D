@@ -449,7 +449,7 @@ void driver::logic_cfd()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->Z10==0 && p->X10==0)
+	if(p->D30==1 && p->W30==0 && p->F10==2 && p->Z10==0 && p->X10==0 && p->G3==0)
 	ppress = new pjm(p,a,pgc,pheat,pconc);
 
     if(p->D30==1 && p->W30==1 && p->F10==2 && p->Z10==0 && p->X10==0)

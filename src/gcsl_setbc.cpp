@@ -118,9 +118,7 @@ void ghostcell::gcsl_setbcio(lexer *p)
     ++p->gcslout_count;
     }  
     
-    //cout<<p->mpirank<<" "<<p->gcslin_count<<" "<<p->gcslout_count<<endl;
-    
-    
+
     p->Iarray(p->gcslin,p->gcslin_count,6);
     p->Iarray(p->gcslout,p->gcslout_count,6);
     

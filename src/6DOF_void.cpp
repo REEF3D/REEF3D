@@ -52,8 +52,8 @@ void sixdof_void::ini(lexer *p, ghostcell *pgc)
 void sixdof_void::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
     
-    if(p->mpirank==0)
-    cout<<"6DOF: 001"<<endl;
+    //if(p->mpirank==0)
+    //cout<<"6DOF: 001"<<endl;
     
     if (p->X310 > 0)
     {
@@ -63,8 +63,8 @@ void sixdof_void::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, 
         }
     }
     
-    if(p->mpirank==0)
-    cout<<"6DOF: 002"<<endl;
+    //if(p->mpirank==0)
+    //cout<<"6DOF: 002"<<endl;
     
     if (p->X320 > 0)
     {
@@ -91,8 +91,8 @@ void sixdof_void::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, 
         }
     }
     
-    if(p->mpirank==0)
-    cout<<"6DOF: 006"<<endl;
+    //if(p->mpirank==0)
+    //cout<<"6DOF: 006"<<endl;
     
     
     ++p->printcount_sixdof;
@@ -100,8 +100,8 @@ void sixdof_void::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, 
 
 void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
-    if(p->mpirank==0)
-    cout<<"6DOF: ini"<<endl;
+    //if(p->mpirank==0)
+    //cout<<"6DOF: ini"<<endl;
     
     
 	if(p->X310==0)

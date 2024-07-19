@@ -88,7 +88,6 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
     
-	
     ppois->start(p,a,pcorr);
 	
         starttime=pgc->timer();

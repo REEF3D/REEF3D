@@ -525,8 +525,8 @@ public:
     double S77_xs,S77_xe;
 
 	// Turbulence
-	int T10,T12,T21,T33,T36,T39,T41,T44;
-	double T31,T32,T35,T37,T38,T42,T43;
+	int T10,T12,T21,T33,T36,T39,T41,T45;
+	double T31,T32,T35,T37,T38,T42,T43,T44;
 
 	// Waterflow
 	double W1,W2,W3,W4,W5,W6,W7,W10,W_fb;

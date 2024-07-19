@@ -674,7 +674,8 @@ void lexer::ini_default()
     T41=0;              // int RANS stabilization
     T42=0.05;           // double lambda1 factor
     T43=1.0;            // double komega wall BC velocity factor
-    T44=0;              // int buouncy term
+    T44=1.6;            // double komega wall BC velocity factor for DF
+    T45=0;              // int buouncy term
 
     // Water Properties
 	W1=998.2;		// double density water

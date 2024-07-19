@@ -123,6 +123,16 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		a->M.n[n] = 0.0;
 		}
         
+        /*
+        if(p->flag4[Ip1JK]<0 &&  p->IO[Ip1JK]==1)
+		{
+             pval=a->press(i,j,k);
+             
+		a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);
+        //a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}*/
+        
          if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B60==1))
 		{
              if(p->B77==1)
@@ -136,6 +146,20 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
              
              if(p->B77==2)
              pval=0.0;
+        
+		a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);
+		a->M.n[n] = 0.0;
+		}
+        
+        //if(p->flag4[Ip1JK]<0)
+        //cout<<"HELLO "<<p->IO[Ip1JK]<<endl;
+        
+        if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
+		{
+        pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+        
+        //cout<<"HELLO "<<p->IO[Ip1JK]<<" "<<p->fsfout<<endl;
+        
         
 		a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);
 		a->M.n[n] = 0.0;
