@@ -131,6 +131,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                 H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
                 
                  if(fabs(p->W10)<1.0e-10)
+                 {
 				if(z<=eta_M)
 				{
 				u(i+1*aa,j+1*bb,k) = Uc;
@@ -151,6 +152,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 				u(i+2*aa,j+2*bb,k) = 0.0;
 				u(i+3*aa,j+3*bb,k) = 0.0;
 				}
+                 }
                 
                  /*if(p->W10>1.0e-10)
 				{
@@ -160,6 +162,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 				}*/
                 
                  if(p->W10>1.0e-10)
+                 {
                  if(z<=eta_M)
 				{
 				u(i+1*aa,j+1*bb,k) = u(i,j,k) + Uc;
@@ -180,6 +183,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 				u(i+2*aa,j+2*bb,k) = u(i,j,k);
 				u(i+3*aa,j+3*bb,k) = u(i,j,k);
 				}
+                 }
 			}
             
             if(wsf<-1.0e19 && fabs(p->W10)<1.0e-10)
