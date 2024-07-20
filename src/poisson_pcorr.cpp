@@ -73,7 +73,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 	n=0;
     LOOP
 	{
-	a->M.p[n]  =   (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir
+	a->M.p[n]  =  (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir
                 + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])*p->x_dir
                 
                 + (CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir
@@ -106,6 +106,16 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		a->M.s[n] = 0.0;
 		}
         
+        // AWA intflow
+        /*if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
+        {
+        pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+        
+        a->rhsvec.V[n] += a->M.s[n]*(-a->press(i,j,k)+pval);
+        
+        a->M.s[n] = 0.0;
+        }*/
+        
         /*
         if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0) && p->IO[Im1JK]==1)
 		{
@@ -117,22 +127,13 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		}*/
 		
         // outflow
-		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]!=2 || p->B60!=1))
+		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]!=2 || (p->B60!=1&&p->B99<3)))
 		{
 		a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
         
-        /*
-        if(p->flag4[Ip1JK]<0 &&  p->IO[Ip1JK]==1)
-		{
-             pval=a->press(i,j,k);
-             
-		a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);
-        //a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
-		a->M.n[n] = 0.0;
-		}*/
-        
+         // controlled outflow
          if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B60==1))
 		{
              if(p->B77==1)
@@ -151,21 +152,16 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		a->M.n[n] = 0.0;
 		}
         
-        //if(p->flag4[Ip1JK]<0)
-        //cout<<"HELLO "<<p->IO[Ip1JK]<<endl;
-        
+        // AWA outflow
         if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
-		{
+        {
         pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
         
-        //cout<<"HELLO "<<p->IO[Ip1JK]<<" "<<p->fsfout<<endl;
+        a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);        
+        a->M.n[n] = 0.0;
+        }
         
-        
-		a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);
-		a->M.n[n] = 0.0;
-		}
-        
-    
+    // ----
 		if(p->flag4[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0))
 		{
 		a->rhsvec.V[n] -= a->M.e[n]*press(i,j-1,k);
