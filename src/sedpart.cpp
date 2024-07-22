@@ -49,6 +49,7 @@ sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p)
     movement = new sediment_particle::movement::Tavouktsoglou(p);
     s = new sediment_fdm(p);
     pbedshear = new bedshear(p,pturb);
+    sedpart::pturb = pturb;
 
     prec = 6;
 

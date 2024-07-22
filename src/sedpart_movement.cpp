@@ -27,6 +27,8 @@ Author: Alexander Hanke
 #include "fdm.h"
 #include "ghostcell.h"
 #include "field4a.h"
+#include "sediment_fdm.h"
+#include "turbulence.h"
 
 namespace sediment_particle::movement
 {
@@ -159,7 +161,7 @@ namespace sediment_particle::movement
      * @param pgc A reference to the ghostcell object.
      * @param PP A reference to the particles_obj object.
      */
-    void Tavouktsoglou::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+    void Tavouktsoglou::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
     {
         double RKu,RKv,RKw;
         double u,v,w;
@@ -192,9 +194,58 @@ namespace sediment_particle::movement
 
                 thetas=theta_s(p,a,PP,i,j,k);
 
-                u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
-                v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
-                w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])>PP.d50*10)
+                {
+                    u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
+                    v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
+                    w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                }
+                else
+                {
+                    double uvel,vvel,u_abs;
+                    double signx,signy;
+                    
+                    double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
+                    double sgx1,sgx2,sgy1,sgy2;
+                    double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
+                    
+                    uvel=0.5*(s.P(i,j)+s.P(i-1,j));
+                    vvel=0.5*(s.Q(i,j)+s.Q(i,j-1));
+                    
+                    u_abs = sqrt(uvel*uvel + vvel*vvel);
+                    signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+                    signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+
+                    ux1=s.P(i-1,j);
+                    vx1=0.25*(s.Q(i,j)+s.Q(i-1,j)+s.Q(i,j-1)+s.Q(i-1,j-1)); 
+                    
+                    ux2=s.P(i,j);
+                    vx2=0.25*(s.Q(i,j)+s.Q(i+1,j)+s.Q(i,j-1)+s.Q(i+1,j-1)); 
+                    
+                    
+                    uy1=0.25*(s.P(i,j-1)+s.P(i,j)+s.P(i-1,j-1)+s.P(i-1,j));
+                    vy1=s.Q(i,j-1); 
+                    
+                    uy2=0.25*(s.P(i,j)+s.P(i,j+1)+s.P(i-1,j)+s.P(i-1,j+1));
+                    vy2=s.Q(i,j); 
+                    
+                    
+                    ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
+                    ux2_abs = sqrt(ux2*ux2 + vx2*vx2);
+                    
+                    uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
+                    uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
+                        
+                    sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
+                    sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
+                    
+                    sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
+                    sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
+                    
+                    u = (s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)/(p->DXP[IP]+p->DXP[IM1]);
+                    v = (s.tau_eff(i,j+1)*sgy2-s.tau_eff(i,j-1)*sgy1)/(p->DYP[JP]+p->DYP[JM1]);
+                    w = 0.0;
+                }
 
                 // Non interpolation leads to blockyness
                 // stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);

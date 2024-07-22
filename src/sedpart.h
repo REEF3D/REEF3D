@@ -163,6 +163,8 @@ private:
     /// @brief Movement object for particles
     sediment_particle::movement::base *movement;
 
+    turbulence *pturb;
+
 	// PRINT
 
 	/// @brief Output file name

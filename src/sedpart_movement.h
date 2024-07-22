@@ -32,6 +32,8 @@ class lexer;
 class fdm;
 class ghostcell;
 class field4a;
+class sediment_fdm;
+class turbulence;
 
 class sedpart;
 class particles_obj;
@@ -53,7 +55,7 @@ namespace sediment_particle
             virtual seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false){return seedReturn::STOP;};
             virtual void transfer(lexer *, particles_obj &, size_t &){};
             virtual void remove(lexer *, particles_obj &, size_t &){};
-            virtual void move(lexer *, fdm &, ghostcell &, particles_obj &){};
+            virtual void move(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &){};
             virtual void make_moving(lexer *, fdm &, particles_obj &){};
             virtual void erode(lexer *, fdm &, particles_obj &){};
             virtual void update(lexer *, ghostcell &, field4a &, double &){};
@@ -76,7 +78,7 @@ namespace sediment_particle
             seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false);
             void transfer(lexer *, particles_obj &, size_t &);
             void remove(lexer *, particles_obj &, size_t &);
-            void move(lexer *, fdm &, ghostcell &, particles_obj &);
+            void move(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
             void make_moving(lexer *, fdm &, particles_obj &);
             void erode(lexer *, fdm &, particles_obj &);
             void update(lexer *, ghostcell &, field4a &, double &);

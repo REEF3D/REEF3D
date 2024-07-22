@@ -58,7 +58,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     gparticle_active = pgc->globalisum(PP.size);
 
-    movement->move(p,*a,*pgc,PP);
+    movement->move(p,*a,*pgc,PP,*s,*pturb);
     
     // print
     if((p->I40!=1)||(p->I40==1&&inicount>0))
@@ -121,7 +121,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
         /// transport
         erode(p,a);
-        movement->move(p,*a,*pgc,PP);
+        movement->move(p,*a,*pgc,PP,*s,*pturb);
 		xchange=transfer(p,pgc,&PP, *movement, maxparticle);
 		removed=remove(p,&PP);
         deposit(p,a);
