@@ -242,8 +242,8 @@ namespace sediment_particle::movement
                     sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
                     sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
                     
-                    u = (s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)/(p->DXP[IP]+p->DXP[IM1]);
-                    v = (s.tau_eff(i,j+1)*sgy2-s.tau_eff(i,j-1)*sgy1)/(p->DYP[JP]+p->DYP[JM1]);
+                    u = (s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)*p->dt*3.0/(PI*PI*pow(PP.d50/2.0,5)*4.0*PP.density);
+                    v = (s.tau_eff(i,j+1)*sgy2-s.tau_eff(i,j-1)*sgy1)*p->dt*3.0/(PI*PI*pow(PP.d50/2.0,5)*4.0*PP.density);
                     w = 0.0;
                 }
 
