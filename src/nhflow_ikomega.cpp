@@ -70,11 +70,11 @@ void nhflow_ikomega::jsource(lexer *p, fdm_nhf *d)
 void nhflow_ikomega::ksource(lexer *p, fdm_nhf *d)
 {
     if(p->T33==0)
-	WLOOP
+	LOOP
 	d->H[IJK]=0.0;
     
     if(p->T33==1)
-    WLOOP
+    LOOP
 	d->H[IJK] = (2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 }
 
@@ -178,7 +178,7 @@ void nhflow_ikomega::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
         {
         d->M.p[count] += p->cmu * MAX(EPS[IJK],0.0);
 
-        d->rhsvec.V[count]  += pk(p,d);
+        d->rhsvec.V[count] += pk(p,d);
         }
 	++count;
     }

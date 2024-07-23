@@ -51,7 +51,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 //kin
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,KIN,4,d->U,d->V,d->W);
+    pconvec->start(p,d,KIN,4,d->U,d->V,d->omegaF);
 	pdiff->diff_scalar(p,d,pgc,psolv,KIN,1.0);
 	kinsource(p,d,pvrans);
 	timesource(p,d,KN);
@@ -67,7 +67,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 //omega
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,EPS,4,d->U,d->V,d->W);
+    pconvec->start(p,d,EPS,4,d->U,d->V,d->omegaF);
 	pdiff->diff_scalar(p,d,pgc,psolv,EPS,1.0);
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
@@ -118,6 +118,7 @@ void nhflow_komega_IM1::clearrhs(lexer* p, fdm_nhf *d)
     {
     d->rhsvec.V[count]=0.0;
 	d->L[IJK]=0.0;
+
 	++count;
     }
 }

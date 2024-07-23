@@ -220,13 +220,4 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 	}
 }
 
-/*
-sb 7
-st 8
-nb 9
-nt 10
-eb 11
-et 12
-wb 13
-wt 14
-*/
+

@@ -117,7 +117,7 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     PCORR[FIJK]=0.0;
     ++n;
     }
-
+    
     n=0;
     LOOP
     {
