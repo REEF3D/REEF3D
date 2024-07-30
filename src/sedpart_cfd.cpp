@@ -58,6 +58,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     gparticle_active = pgc->globalisum(PP.size);
 
+    fill_PQ_cfd(p,a,pgc);
     movement->move(p,*a,*pgc,PP,*s,*pturb);
     
     // print
@@ -121,6 +122,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
         /// transport
         erode(p,a);
+        fill_PQ_cfd(p,a,pgc);
         movement->move(p,*a,*pgc,PP,*s,*pturb);
 		xchange=transfer(p,pgc,&PP, *movement, maxparticle);
 		removed=remove(p,&PP);
@@ -165,4 +167,46 @@ void sedpart::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinit
         cout<<"Topo: update grid..."<<endl;
     pvrans->sed_update(p,a,pgc);
     pflow->gcio_update(p,a,pgc);
+}
+
+void sedpart::fill_PQ_cfd(lexer *p, fdm *a, ghostcell *pgc)
+{
+    double zval,xip,yip;
+
+    SLICELOOP4
+    s->bedk(i,j)=0;
+    
+    SLICELOOP4
+    KLOOP
+    PBASECHECK
+    if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
+    s->bedk(i,j)=k+1;
+    
+    SLICELOOP1
+    {
+    k=s->bedk(i,j);
+    
+    xip= p->XN[IP1];
+	yip= p->YP[JP];
+    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[k];
+    
+    s->P(i,j) = a->P(i,j) = p->ccipol1_a(a->u,xip,yip,zval);
+    }
+    
+    SLICELOOP2
+    {
+    k=s->bedk(i,j);
+    
+    xip= p->XP[IP];
+	yip= p->YN[JP1];
+    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[k];
+    
+    s->Q(i,j) = a->Q(i,j)  = p->ccipol2_a(a->v,xip,yip,zval);
+    }
+    
+    pgc->gcsl_start1(p,s->P,10);
+	pgc->gcsl_start2(p,s->Q,11);
+    
+    pgc->gcsl_start1(p,a->P,10);
+	pgc->gcsl_start2(p,a->Q,11);
 }

@@ -91,6 +91,10 @@ protected:
 
 private:
 
+    // 
+
+    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);
+
     // Seeding methods
 
     void seed_ini(lexer*,fdm*,ghostcell*);
