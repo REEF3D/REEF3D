@@ -59,7 +59,7 @@ namespace sediment_particle
             virtual void make_moving(lexer *, fdm &, particles_obj &){};
             virtual void erode(lexer *, fdm &, particles_obj &){};
             virtual void update(lexer *, ghostcell &, field4a &, double &){};
-            virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &){};
+            virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &){};
             virtual double volume(lexer *, fdm &, particles_obj &){};
             virtual void writeState(lexer *, ofstream &){};
             virtual void readState(lexer *, ifstream &){};
@@ -82,7 +82,7 @@ namespace sediment_particle
             void make_moving(lexer *, fdm &, particles_obj &);
             void erode(lexer *, fdm &, particles_obj &);
             void update(lexer *, ghostcell &, field4a &, double &);
-            void debug(lexer *, fdm &, ghostcell &, particles_obj &);
+            void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &);
             double volume(lexer *, fdm &, particles_obj &);
             void writeState(lexer *, ofstream &);
             void readState(lexer *, ifstream &);

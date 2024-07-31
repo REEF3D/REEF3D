@@ -408,18 +408,63 @@ namespace sediment_particle::movement
         pgc.start4a(p,topo,150);
     }
 
-    void Tavouktsoglou::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+    void Tavouktsoglou::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
     {
         // double sumCell = 0;
         // double sumTopo = 0;
         PLAINLOOP
         {
-            a.test(i,j,k) = 0;
-            for(int n=0;n<=k;n++)
-            a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
-            a.fb(i,j,k) = cellSum[IJK];
+            {
+                double uvel,vvel,u_abs;
+                double signx,signy;
+                
+                double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
+                double sgx1,sgx2,sgy1,sgy2;
+                double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
+                
+                uvel=0.5*(s.P(i,j)+s.P(i-1,j));
+                vvel=0.5*(s.Q(i,j)+s.Q(i,j-1));
+                
+                u_abs = sqrt(uvel*uvel + vvel*vvel);
+                signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+                signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+
+                ux1=s.P(i-1,j);
+                vx1=0.25*(s.Q(i,j)+s.Q(i-1,j)+s.Q(i,j-1)+s.Q(i-1,j-1)); 
+                
+                ux2=s.P(i,j);
+                vx2=0.25*(s.Q(i,j)+s.Q(i+1,j)+s.Q(i,j-1)+s.Q(i+1,j-1)); 
+                
+                
+                uy1=0.25*(s.P(i,j-1)+s.P(i,j)+s.P(i-1,j-1)+s.P(i-1,j));
+                vy1=s.Q(i,j-1); 
+                
+                uy2=0.25*(s.P(i,j)+s.P(i,j+1)+s.P(i-1,j)+s.P(i-1,j+1));
+                vy2=s.Q(i,j); 
+                
+                
+                ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
+                ux2_abs = sqrt(ux2*ux2 + vx2*vx2);
+                
+                uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
+                uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
+                    
+                sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
+                sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
+                
+                sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
+                sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
+                
+                // tau * A = F, F/m = a, a*dt = v
+                a.test(i,j,k) = (s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)*pow(PP.d50/2.0,2)/(4.0/3.0*pow(PP.d50/2.0,3)*PP.density)*p->dt;
+            }
+
+
+            // for(int n=0;n<=k;n++)
+            // a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
+            // a.fb(i,j,k) = cellSum[IJK];
             // sumCell += cellSum[IJK];
-            a.vof(i,j,k) = cellSumTopo[IJK];
+            // a.vof(i,j,k) = cellSumTopo[IJK];
             // sumTopo += cellSumTopo[IJK];
         }
         // std::cout<<p->mpirank<<": Sum of cellSum: "<<sumCell<<" : "<<sumTopo<<std::endl;

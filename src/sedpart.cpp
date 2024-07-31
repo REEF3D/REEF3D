@@ -110,5 +110,5 @@ void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
     // PLAINLOOP
     // a->test(i,j,k)=(s->tau_eff(i,j)>s->tau_crit(i,j));
 
-    movement->debug(p,*a,*pgc,PP);
+    movement->debug(p,*a,*pgc,PP,*s);
 }
