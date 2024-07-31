@@ -93,26 +93,26 @@ void sedpart::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     {
         
 	// tau_eff
-    pgc->gcsl_start4(p,s->tau_eff,1);
+    pgc->gcsl_start4(p,s.tau_eff,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(s->tau_eff));
+    ffn=float(p->sl_ipol4(s.tau_eff));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
     // tau_crit
-    pgc->gcsl_start4(p,s->tau_crit,1);
+    pgc->gcsl_start4(p,s.tau_crit,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(s->tau_crit));
+    ffn=float(p->sl_ipol4(s.tau_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
     }
@@ -121,26 +121,26 @@ void sedpart::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     if(p->P79==2)
     {
 	// shearvel_eff
-    pgc->gcsl_start4(p,s->shearvel_eff,1);
+    pgc->gcsl_start4(p,s.shearvel_eff,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(s->shearvel_eff));
+    ffn=float(p->sl_ipol4(s.shearvel_eff));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
     // shearvel_crit
-    pgc->gcsl_start4(p,s->shearvel_crit,1);
+    pgc->gcsl_start4(p,s.shearvel_crit,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(s->shearvel_crit));
+    ffn=float(p->sl_ipol4(s.shearvel_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
     }
@@ -149,26 +149,26 @@ void sedpart::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     if(p->P79==3)
     {
 	// shields_eff
-    pgc->gcsl_start4(p,s->shields_eff,1);
+    pgc->gcsl_start4(p,s.shields_eff,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(s->shields_eff));
+    ffn=float(p->sl_ipol4(s.shields_eff));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
     // shields_crit
-    pgc->gcsl_start4(p,s->shields_crit,1);
+    pgc->gcsl_start4(p,s.shields_crit,1);
     
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn=float(p->sl_ipol4(s->shields_crit));
+    ffn=float(p->sl_ipol4(s.shields_crit));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

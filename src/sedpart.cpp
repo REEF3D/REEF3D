@@ -43,12 +43,10 @@ Author: Alexander Hanke
 /// @param p control object
 /// @param pgc ghostcell object
 /// @param pturb turbulence object
-sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p), PP(10,p->S20,p->S22,true), active_box(p), active_topo(p), irand(10000), drand(irand)
+sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p), PP(10,p->S20,p->S22,true), active_box(p), active_topo(p), irand(10000), drand(irand), s(p), pbedshear(p,pturb)
 {
     pvrans = new vrans_f(p,pgc);
     movement = new sediment_particle::movement::Tavouktsoglou(p);
-    s = new sediment_fdm(p);
-    pbedshear = new bedshear(p,pturb);
     sedpart::pturb = pturb;
 
     prec = 6;
@@ -110,5 +108,5 @@ void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
     // PLAINLOOP
     // a->test(i,j,k)=(s->tau_eff(i,j)>s->tau_crit(i,j));
 
-    movement->debug(p,*a,*pgc,PP,*s);
+    movement->debug(p,*a,*pgc,PP,s);
 }

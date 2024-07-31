@@ -30,6 +30,8 @@ Author: Alexander Hanke
 #include "particles_obj.h"
 #include "field4.h"
 #include "bedshear_reduction.h"
+#include "sediment_fdm.h"
+#include "bedshear.h"
 
 namespace sediment_particle::movement
 {
@@ -47,8 +49,6 @@ class slice;
 class ofstrem;
 class vrans;
 class turbulence;
-class bedshear;
-class sediment_fdm;
 
 /// This class used particles on a Lagrangien framework and a VRANS sediment domain to simulate the influence of flow on the sediment
 class sedpart : public sediment, private particle_func, private increment
@@ -161,9 +161,9 @@ private:
     /// @brief VRANS object
     vrans* pvrans;
     /// @brief FDM object for sediment
-    sediment_fdm *s;
+    sediment_fdm s;
     /// @brief Bed shear object
-    bedshear *pbedshear;
+    bedshear pbedshear;
     /// @brief Movement object for particles
     sediment_particle::movement::base *movement;
 

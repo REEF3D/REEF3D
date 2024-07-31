@@ -59,7 +59,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     gparticle_active = pgc->globalisum(PP.size);
 
     fill_PQ_cfd(p,a,pgc);
-    movement->move(p,*a,*pgc,PP,*s,*pturb);
+    movement->move(p,*a,*pgc,PP,s,*pturb);
     
     // print
     if((p->I40!=1)||(p->I40==1&&inicount>0))
@@ -75,18 +75,18 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     }
     
     SLICELOOP4
-    s->bedk(i,j)=0;
+    s.bedk(i,j)=0;
     
     SLICELOOP4
     {
         KLOOP
             PBASECHECK
             if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-                s->bedk(i,j)=k+1;
-        s->reduce(i,j)=0.3;
+                s.bedk(i,j)=k+1;
+        s.reduce(i,j)=0.3;
     }
-    pbedshear->taubed(p,a,pgc,s);
-    pbedshear->taucritbed(p,a,pgc,s);
+    pbedshear.taubed(p,a,pgc,&s);
+    pbedshear.taucritbed(p,a,pgc,&s);
     
     ++inicount;
     debug(p,a,pgc);
@@ -103,8 +103,8 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 	int xchange=0;
 	int removed=0;
 
-    pbedshear->taubed(p,a,pgc,s);
-    pbedshear->taucritbed(p,a,pgc,s);
+    pbedshear.taubed(p,a,pgc,&s);
+    pbedshear.taucritbed(p,a,pgc,&s);
 
 	if (p->count>=p->Q43)
 	{
@@ -123,7 +123,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         /// transport
         erode(p,a);
         fill_PQ_cfd(p,a,pgc);
-        movement->move(p,*a,*pgc,PP,*s,*pturb);
+        movement->move(p,*a,*pgc,PP,s,*pturb);
 		xchange=transfer(p,pgc,&PP, *movement, maxparticle);
 		removed=remove(p,&PP);
         deposit(p,a);
@@ -174,38 +174,38 @@ void sedpart::fill_PQ_cfd(lexer *p, fdm *a, ghostcell *pgc)
     double zval,xip,yip;
 
     SLICELOOP4
-    s->bedk(i,j)=0;
+        s.bedk(i,j)=0;
     
     SLICELOOP4
-    KLOOP
-    PBASECHECK
-    if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-    s->bedk(i,j)=k+1;
+        KLOOP
+            PBASECHECK
+                if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
+                    s.bedk(i,j)=k+1;
     
     SLICELOOP1
     {
-    k=s->bedk(i,j);
-    
-    xip= p->XN[IP1];
-	yip= p->YP[JP];
-    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[k];
-    
-    s->P(i,j) = a->P(i,j) = p->ccipol1_a(a->u,xip,yip,zval);
+        k=s.bedk(i,j);
+        
+        xip= p->XN[IP1];
+        yip= p->YP[JP];
+        zval = 0.5*(s.bedzh(i,j)+s.bedzh(i+1,j)) + 1.6*p->DZN[k];
+        
+        s.P(i,j) = a->P(i,j) = p->ccipol1_a(a->u,xip,yip,zval);
     }
     
     SLICELOOP2
     {
-    k=s->bedk(i,j);
-    
-    xip= p->XP[IP];
-	yip= p->YN[JP1];
-    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[k];
-    
-    s->Q(i,j) = a->Q(i,j)  = p->ccipol2_a(a->v,xip,yip,zval);
+        k=s.bedk(i,j);
+        
+        xip= p->XP[IP];
+        yip= p->YN[JP1];
+        zval = 0.5*(s.bedzh(i,j)+s.bedzh(i,j+1)) + 1.6*p->DZN[k];
+        
+        s.Q(i,j) = a->Q(i,j)  = p->ccipol2_a(a->v,xip,yip,zval);
     }
     
-    pgc->gcsl_start1(p,s->P,10);
-	pgc->gcsl_start2(p,s->Q,11);
+    pgc->gcsl_start1(p,s.P,10);
+	pgc->gcsl_start2(p,s.Q,11);
     
     pgc->gcsl_start1(p,a->P,10);
 	pgc->gcsl_start2(p,a->Q,11);
