@@ -86,7 +86,9 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
         s.reduce(i,j)=0.3;
     }
     pbedshear.taubed(p,a,pgc,&s);
+    pgc->gcsl_start4(p,s.tau_eff,1);
     pbedshear.taucritbed(p,a,pgc,&s);
+    pgc->gcsl_start4(p,s.tau_crit,1);
     
     ++inicount;
     debug(p,a,pgc);
@@ -104,7 +106,9 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 	int removed=0;
 
     pbedshear.taubed(p,a,pgc,&s);
+    pgc->gcsl_start4(p,s.tau_eff,1);
     pbedshear.taucritbed(p,a,pgc,&s);
+    pgc->gcsl_start4(p,s.tau_crit,1);
 
 	if (p->count>=p->Q43)
 	{

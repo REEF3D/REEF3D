@@ -209,42 +209,16 @@ namespace sediment_particle::movement
                     double sgx1,sgx2,sgy1,sgy2;
                     double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
                     
-                    uvel=0.5*(s.P(i,j)+s.P(i-1,j));
-                    vvel=0.5*(s.Q(i,j)+s.Q(i,j-1));
-                    
-                    u_abs = sqrt(uvel*uvel + vvel*vvel);
-                    signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-                    signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
-
-                    ux1=s.P(i-1,j);
-                    vx1=0.25*(s.Q(i,j)+s.Q(i-1,j)+s.Q(i,j-1)+s.Q(i-1,j-1)); 
-                    
-                    ux2=s.P(i,j);
-                    vx2=0.25*(s.Q(i,j)+s.Q(i+1,j)+s.Q(i,j-1)+s.Q(i+1,j-1)); 
-                    
-                    
-                    uy1=0.25*(s.P(i,j-1)+s.P(i,j)+s.P(i-1,j-1)+s.P(i-1,j));
-                    vy1=s.Q(i,j-1); 
-                    
-                    uy2=0.25*(s.P(i,j)+s.P(i,j+1)+s.P(i-1,j)+s.P(i-1,j+1));
-                    vy2=s.Q(i,j); 
-                    
-                    
-                    ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
-                    ux2_abs = sqrt(ux2*ux2 + vx2*vx2);
-                    
-                    uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
-                    uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
-                        
-                    sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
-                    sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
-                    
-                    sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
-                    sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
+                    uvel=p->ccslipol4(s.P,PP.X[n],PP.Y[n]);
+                    vvel=p->ccslipol4(s.Q,PP.X[n],PP.Y[n]);
                     
                     // tau * A = F, F/m = a, a*dt = v
-                    u = (s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)*pow(PP.d50/2.0,2)/(4.0/3.0*pow(PP.d50/2.0,3)*PP.density)*p->dt;
-                    v = (s.tau_eff(i,j+1)*sgy2-s.tau_eff(i,j-1)*sgy1)*pow(PP.d50/2.0,2)/(4.0/3.0*pow(PP.d50/2.0,3)*PP.density)*p->dt;
+                    // u = (s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)*pow(PP.d50/2.0,2)/(4.0/3.0*pow(PP.d50/2.0,3)*PP.density)*p->dt;
+                    // v = (s.tau_eff(i,j+1)*sgy2-s.tau_eff(i,j-1)*sgy1)*pow(PP.d50/2.0,2)/(4.0/3.0*pow(PP.d50/2.0,3)*PP.density)*p->dt;
+                    u = sqrt(fabs(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])))/(PP.density*p->W22)*(uvel>=0?1:-1);
+                    v = sqrt(fabs(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])))/(PP.density*p->W22)*(vvel>=0?1:-1);
+                    // u = sqrt(fabs(s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)/(PP.density*p->W22))*((s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j))>=0?1:-1);
+                    // v = sqrt(fabs(s.tau_eff(i,j+1)*sgy2-s.tau_eff(i,j-1)*sgy1)/(PP.density*p->W22))*((s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j))>=0?1:-1);
                     w = 0.0;
                 }
 
@@ -254,12 +228,16 @@ namespace sediment_particle::movement
                 // stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
                 // stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DYN[KM1]+p->DYN[KP]);
 
+                stressDivX = (p->ccipol4c(stressTensor,PP.X[n]+0.5*p->DXN[IP],PP.Y[n],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n]-0.5*p->DXN[IP],PP.Y[n],PP.Z[n]))/p->DXN[IP];
+                stressDivY = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]+0.5*p->DYN[JP],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]-0.5*p->DYN[JP],PP.Z[n]))/p->DYN[JP];
+                stressDivZ = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]-0.5*p->DZN[KP]))/p->DXN[KP];
+
                 // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXN[IP]+p->DXN[IM1]);
-                stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYN[JP]+p->DYN[JM1]);
-                stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
+                // stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYN[JP]+p->DYN[JM1]);
+                // stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
 
                 // if(u<0)
-                    stressDivX = (stressTensor[Ip1JK] - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]))/(0.5*p->DXN[IP1]+p->XN[IP1]-PP.X[n]);
+                    // stressDivX = (stressTensor[Ip1JK] - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]))/(0.5*p->DXN[IP1]+p->XN[IP1]-PP.X[n]);
                 // else
                     // stressDivX = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n])-stressTensor[Im1JK])/(PP.X[n]-(0.5*p->DXN[IM1]+p->XN[IM1]));
                 // if(v<0)
