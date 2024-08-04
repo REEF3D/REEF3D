@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void particle_f::allocate(lexer* p,fdm* a,ghostcell* pgc)
+void particle_f::allocate(lexer* p)
 {
 	maxparticle = ceil(p->Q25*double(gpartnum));
 	

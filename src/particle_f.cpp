@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-particle_f::particle_f(lexer* p, fdm *a, ghostcell* pgc) : particle_func(p), active_box(p), active_topo(p), irand(100000), drand(irand), PP(10,p->S20,p->S22,p->S24)
+particle_f::particle_f(lexer* p, fdm *, ghostcell *) : particle_func(p), active_box(p), active_topo(p), irand(100000), drand(irand), PP(10,p->S20,p->S22,p->S24)
 {
     
     if(p->I40==0)
@@ -46,7 +46,7 @@ particle_f::~particle_f()
 {
 }
 
-void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
+void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *)
 { 
 	starttime=pgc->timer();
 	xchange=0;
@@ -55,14 +55,14 @@ void particle_f::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 	if (p->count>=p->Q43)
 	{
 		if(p->Q120==1&&p->count%p->Q121==0)
-			posseed_suspended(p,a,pgc);
+			posseed_suspended(p,a);
 		advect(p,a,&PP,0);
 		xchange=transfer(p,pgc,&PP,maxparticle);
 		removed=remove(p,&PP);
 		make_stationary(p,a,&PP);
 	}
 
-	print_particles(p,a,pgc);
+	print_particles(p);
 
 	gparticle_active = pgc->globalisum(PP.size);
     gremoved = pgc->globalisum(removed);

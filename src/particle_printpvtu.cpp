@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void particle_f::pvtp_pos(fdm* a, lexer* p, ghostcell* pgc)
+void particle_f::pvtp(lexer* p)
 {
     int num=0;
 
@@ -59,7 +59,7 @@ void particle_f::pvtp_pos(fdm* a, lexer* p, ghostcell* pgc)
 
 	for(n=0; n<p->M10; ++n)
 	{
-    piecename_pos(a,p,pgc,n);
+    piecename(p,n);
     result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
 	}
 
@@ -70,7 +70,7 @@ void particle_f::pvtp_pos(fdm* a, lexer* p, ghostcell* pgc)
 }
 
 
-void particle_f::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
+void particle_f::piecename(lexer* p, int n)
 {
     int num=0;
 
@@ -86,7 +86,7 @@ void particle_f::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
 }
 
 
-void particle_f::header_pos(fdm* a,lexer* p,ghostcell* pgc)
+void particle_f::header(lexer* p)
 {
     int num=0;
 

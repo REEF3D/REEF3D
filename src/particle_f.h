@@ -40,14 +40,15 @@ public:
 	virtual ~particle_f();
 	virtual void start(lexer*,fdm*,ghostcell*,ioflow*);
     virtual void ini(lexer*,fdm*,ghostcell*,ioflow*);
+private:
 
-    void allocate(lexer*,fdm*,ghostcell*);
+    void allocate(lexer*);
     
-    void seed_ini(lexer*,fdm*,ghostcell*);
-	void seed(lexer*,fdm*,ghostcell*);
-    void posseed_box(lexer*,fdm*,ghostcell*);
-    void posseed_topo(lexer*,fdm*,ghostcell*);
-	void posseed_suspended(lexer*,fdm*,ghostcell*);
+    void seed_ini(lexer*,fdm*);
+	void seed(lexer*,fdm*);
+    void posseed_box(lexer*,fdm*);
+    void posseed_topo(lexer*,fdm*);
+	void posseed_suspended(lexer*,fdm*);
 	
 	field4 active_box;
 	field4 active_topo;
@@ -69,12 +70,12 @@ public:
 	double starttime;
 	
 	// PRINT
-	void print_particles(lexer*,fdm*,ghostcell*);
-	void print_vtp(lexer*,fdm*,ghostcell*);
+	void print_particles(lexer*);
+	void print_vtp(lexer*);
 	
-	void pvtp_pos(fdm*,lexer*,ghostcell*);
-    void header_pos(fdm*,lexer*,ghostcell*);
-    void piecename_pos(fdm*,lexer*,ghostcell*, int);
+	void pvtp(lexer*);
+    void header(lexer*);
+    void piecename(lexer*,int);
 	
 	char name[100],pname[100],epsvar[100];
     int iin,offset[100];

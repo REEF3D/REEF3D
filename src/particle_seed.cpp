@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<math.h>
 
-void particle_f::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
+void particle_f::seed_ini(lexer* p, fdm* a)
 {
     // ini
     LOOP
@@ -65,16 +65,16 @@ void particle_f::seed_ini(lexer* p, fdm* a, ghostcell* pgc)
     partnum = cellcount * ppcell;
 }
 
-void particle_f::seed(lexer* p, fdm* a, ghostcell* pgc)
+void particle_f::seed(lexer* p, fdm* a)
 {
     if(p->Q110>0)
-        posseed_box(p,a,pgc);
+        posseed_box(p,a);
 	if(p->Q101>0)
-        posseed_topo(p,a,pgc);
+        posseed_topo(p,a);
 }
 
 
-void particle_f::posseed_box(lexer* p, fdm* a, ghostcell* pgc)
+void particle_f::posseed_box(lexer* p, fdm* a)
 {
     if(p->Q29>0)
         srand(p->Q29);
@@ -83,7 +83,7 @@ void particle_f::posseed_box(lexer* p, fdm* a, ghostcell* pgc)
         srand((unsigned)time(0)*(p->mpirank+1));
 	
     double x,y,z;
-    int flag;
+    int flag=1;
 
     LOOP
         if(active_box(i,j,k)>0.0)
@@ -98,12 +98,12 @@ void particle_f::posseed_box(lexer* p, fdm* a, ghostcell* pgc)
 
                     // pos[pactive][RADIUS] = p->Q31/2*double(rand() % int(drand/2) + int(drand/2))/drand;
 
-                    PP.add(x,y,z,1);
+                    PP.add(x,y,z,flag);
                 }
 }
 
 
-void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
+void particle_f::posseed_topo(lexer* p, fdm* a)
 {
     if(p->Q29>0)
         srand(p->Q29);
@@ -113,7 +113,7 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
 
     double tolerance = 5e-18;
     double x,y,z,ipolTopo,ipolSolid;
-    int flag;
+    int flag=1;
 
     PLAINLOOP
         if(active_topo(i,j,k)>0.0)
@@ -133,12 +133,12 @@ void particle_f::posseed_topo(lexer* p, fdm* a, ghostcell* pgc)
                     ipolSolid = p->ccipol4_b(a->solid,x,y,z);
 
                     if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
-                        PP.add(x,y,z,1);
+                        PP.add(x,y,z,flag);
                 }
             }
 }
 
-void particle_f::posseed_suspended(lexer* p, fdm* a, ghostcell* pgc)
+void particle_f::posseed_suspended(lexer* p, fdm* a)
 {
     if(p->Q29>0)
         srand(p->Q29);

@@ -25,23 +25,23 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void particle_f::print_particles(lexer* p, fdm* a, ghostcell* pgc)
+void particle_f::print_particles(lexer *p)
 {
     if(((p->count%p->Q181==0 && p->Q182<0.0 && p->Q180==1 )|| (p->count==0 &&  p->Q182<0.0 && p->Q180==1)) && p->Q181>0)
 	{
-    print_vtp(p,a,pgc);
+    print_vtp(p);
 	++printcount;
 	}
     
     if((p->simtime>p->partprinttime && p->Q182>0.0 && p->Q180==1) || (p->count==0 &&  p->Q182>0.0))
     {
-    print_vtp(p,a,pgc);
+    print_vtp(p);
     p->partprinttime+=p->Q182;
     }
     
 }
 
-void particle_f::print_vtp(lexer* p, fdm* a, ghostcell* pgc)
+void particle_f::print_vtp(lexer *p)
 {
     cout<<"PACTIVE-"<<p->mpirank<<": "<<PP.size<<endl;
 
@@ -56,10 +56,10 @@ void particle_f::print_vtp(lexer* p, fdm* a, ghostcell* pgc)
 	int count;
 	
 	if(p->mpirank==0)
-	pvtp_pos(a,p,pgc);
+	pvtp(p);
 
 
-    header_pos(a,p,pgc);
+    header(p);
 
 	ofstream result;
 	result.open(name, ios::binary);

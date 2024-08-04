@@ -26,18 +26,18 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 
-void particle_f::ini(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
+void particle_f::ini(lexer* p, fdm* a, ghostcell* pgc, ioflow *)
 {
     
     // seed
-    seed_ini(p,a,pgc);
+    seed_ini(p,a);
     gpartnum=pgc->globalisum(partnum);
-    allocate(p,a,pgc);
-    seed(p,a,pgc);
+    allocate(p);
+    seed(p,a);
     make_stationary(p,a,&PP);
     
     // print
-    print_vtp(p,a,pgc);
+    print_vtp(p);
     printcount++;
     gparticle_active = pgc->globalisum(PP.size);
     if(p->mpirank==0)
