@@ -71,9 +71,9 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         {
         f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->eta(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->eta(i-1,j)*d->dfx(i,j);
         
-        /*cout<<p->mpirank<<"  FX_IM1: "<<f[Im1JK]<<" FX_I: "<<f[IJK]<<" FX_IP1: "<<f[Ip1JK]<<" k: "<<k<<endl;
-        cout<<p->mpirank<<"  d->U_IM1: "<<d->U[Im1JK]<<" d->U_I: "<<d->U[IJK]<<" d->UH_IP1: "<<d->U[Ip1JK]<<" k: "<<k<<endl;
-        cout<<p->mpirank<<"  d->UH_IM1: "<<d->UH[Im1JK]<<" d->UH_I: "<<d->UH[IJK]<<" d->UH_IP1: "<<d->UH[Ip1JK]<<" k: "<<k<<endl;*/
+        //cout<<p->mpirank<<"  FX_IM1: "<<f[Im1JK]<<" FX_I: "<<f[IJK]<<" FX_IP1: "<<f[Ip1JK]<<" eta_IM1: "<<d->eta(i-1,j)<<" eta_IP: "<<d->eta(i,j)<<" k: "<<k<<endl;
+        //cout<<p->mpirank<<"  d->U_IM1: "<<d->U[Im1JK]<<" d->U_I: "<<d->U[IJK]<<" d->UH_IP1: "<<d->U[Ip1JK]<<" k: "<<k<<endl;
+        //cout<<p->mpirank<<"  d->UH_IM1: "<<d->UH[Im1JK]<<" d->UH_I: "<<d->UH[IJK]<<" d->UH_IP1: "<<d->UH[Ip1JK]<<" k: "<<k<<endl<<endl;
         }
         
         // Gx

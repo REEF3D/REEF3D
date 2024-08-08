@@ -42,6 +42,8 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         d->eta(i-1,j) = eta(i-1,j)*ramp(p);
         d->eta(i-2,j) = eta(i-2,j)*ramp(p);
         d->eta(i-3,j) = eta(i-3,j)*ramp(p);
+        
+        cout<<"ETAVAL: "<<eta(i,j)<<" "<<eta(i-1,j)<<" "<<eta(i-2,j)<<" "<<eta(i-3,j)<<" "<<endl;
         }
         
         // wave maker
@@ -69,6 +71,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
         
+
             WETDRYDEEP
             {
             // U, V, W

@@ -38,9 +38,11 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         yg=ygen(p);
         
         eta(i,j) = wave_eta(p,pgc,xg,yg);
-        /*
+        
+        //cout<<"ETAVAL_precalc: "<<eta(i,j)<<" "<<eta(i-1,j)<<" "<<eta(i-2,j)<<" "<<eta(i-3,j)<<" "<<endl;
+        
         // --
-        i=p->gcslin[n][0]-1;
+       /* i=p->gcslin[n][0]-1;
         j=p->gcslin[n][1];
         
         xg=xgen(p);
