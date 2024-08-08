@@ -72,18 +72,10 @@ void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf
     if(p->B98>2)
     {   
     for(n=0;n<p->gcslin_count;n++)
+    for(i=p->gcslin[n][0];i<p->gcslin[n][0]+5;++i)
     {
         // i
-        i=p->gcslin[n][0];
         j=p->gcslin[n][1];
-        
-        dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
-        dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-        
-        dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
-        
-        // i+1
-        i=p->gcslin[n][0]+1;
         
         dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
         dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
@@ -96,8 +88,8 @@ void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf
     
     // reconstruct
     for(n=0;n<p->gcslin_count;n++)
+    for(i=p->gcslin[n][0];i<p->gcslin[n][0]+4;++i)
     {
-    i=p->gcslin[n][0];
     j=p->gcslin[n][1];
 
         
@@ -207,19 +199,11 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
     if(p->B98>2)
     {   
     for(n=0;n<p->gcin_count;++n)
+    for(i=p->gcin[n][0];i<p->gcin[n][0]+5;++i)
     {   
         // i
-		i=p->gcin[n][0];
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
-        
-        dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
-        dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
-        
-        DFDX[IJK] = limiter(dfdx_plus,dfdx_min);
-        
-        // i+1
-        i=p->gcin[n][0]+1;
         
         dfdx_plus = (Fx[Ip1JK] - Fx[IJK])/p->DXP[IP];
         dfdx_min  = (Fx[IJK] - Fx[Im1JK])/p->DXP[IM1];
@@ -232,8 +216,8 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
     
     // reconstruct
     for(n=0;n<p->gcin_count;++n)
+    for(i=p->gcin[n][0];i<p->gcin[n][0]+4;++i)
     {
-        i=p->gcin[n][0];
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
 
@@ -300,8 +284,8 @@ void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf
     Fb[IJK] = (Fz[IJK]    + 0.5*p->DZN[KP]*DFDX[IJK]); 
     Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDX[IJKp1]);
     }
-}*/
-
+}
+*/
 void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
 {    
     WLOOP

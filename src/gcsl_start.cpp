@@ -200,40 +200,22 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
 	endtime=timer();
 	p->gctime+=endtime-starttime;
     
-    /*
+
     SLICELOOP4
     {  
-        //if(p->B98!=3||bc(i-1,j)==0)
-        if(p->flagslice4[Im1J]<0)
-        {
-        f[Im1J] = f[IJ];
-        f[Im2J] = f[IJ];
-        f[Im3J] = f[IJ];
-        }
-          
-        //if(p->B99!=3||bc(i+1,j)==0)
-        if(p->flagslice4[Ip1J]<0)
-        {
-        f[Ip1J] = f[IJ];
-        f[Ip2J] = f[IJ];
-        f[Ip3J] = f[IJ];
-        }
+        if(p->flagslice4[Im1Jm1]<0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJm1]<0)
+        f[Im1Jm1] = f[IJ];
         
-        if(p->flagslice4[IJm1]<0 && p->j_dir==1)
-        {
-        f[IJm1] = f[IJ];
-        f[IJm2] = f[IJ];
-        f[IJm3] = f[IJ];
-        }
+        if(p->flagslice4[Im1Jp1]<0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJp1]<0)
+        f[Im1Jp1] = f[IJ];
         
-        if(p->flagslice4[IJp1]<0 && p->j_dir==1)
-        {
-        f[IJp1] = f[IJ];
-        f[IJp2] = f[IJ];
-        f[IJp3] = f[IJ];
-        }
+        if(p->flagslice4[Ip1Jm1]<0 && p->flagslice4[Ip1J]<0 && p->flagslice4[IJm1]<0)
+        f[Ip1Jm1] = f[IJ];
+        
+        if(p->flagslice4[Ip1Jp1]<0 && p->flagslice4[Ip1J]<0 && p->flagslice4[IJp1]<0)
+        f[Ip1Jp1] = f[IJ];
     }
-*/
+
 	//  MPI Boundary Swap
     if(p->M10>0)
     {

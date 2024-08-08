@@ -94,6 +94,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     FLOOP
     if(p->wet[IJ]==0)
     d->omegaF[FIJK] = 0.0;
+    
         
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4Vint(p,p->wet,50);
