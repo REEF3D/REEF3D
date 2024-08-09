@@ -39,10 +39,10 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         
         if(h_switch==1)
         {
-        etaf(i,j)   = eta(i,j);
-        etaf(i-1,j) = eta(i,j);
-        etaf(i-2,j) = eta(i,j);
-        etaf(i-3,j) = eta(i,j);
+        etaf(i,j)   = eta0(i,j);
+        etaf(i-1,j) = eta0(i,j);
+        etaf(i-2,j) = eta0(i,j);
+        etaf(i-3,j) = eta0(i,j);
         }
         
         

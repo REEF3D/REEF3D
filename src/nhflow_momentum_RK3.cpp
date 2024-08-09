@@ -84,6 +84,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 		
 //Step 1
 //--------------------------------------------------------
+    p->RK_alpha = 1.0;
     
     sigma_update(p,d,pgc,d->WL);
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
@@ -177,7 +178,8 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
 //Step 2
 //--------------------------------------------------------
-
+    p->RK_alpha = 0.25;
+    
     sigma_update(p,d,pgc,WLRK1);
     reconstruct(p,d,pgc,pfsf,pss,precon,WLRK1,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
 	
@@ -269,6 +271,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 //Step 3
 //--------------------------------------------------------
+    p->RK_alpha = 2.0/3.0;
     
     sigma_update(p,d,pgc,WLRK2);
     reconstruct(p,d,pgc,pfsf,pss,precon,WLRK2,d->U,d->V,d->W,UHRK2,VHRK2,WHRK2);

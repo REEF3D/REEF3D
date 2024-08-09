@@ -58,17 +58,17 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
-                eta(i,j) = 0.0;
+                eta0(i,j) = 0.0;
                 
                 for(qn=0;qn<wave_comp;++qn)
                 {
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
+                eta0(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
                 }
             ++count;
             }
 		}
     }
-    pgc->gcsl_start4(p,eta,50);
+    pgc->gcsl_start4(p,eta0,50);
 
     
     count=0;

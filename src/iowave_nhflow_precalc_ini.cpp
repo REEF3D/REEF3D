@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
@@ -167,9 +168,13 @@ void iowave::nhflow_precalc_dirichlet_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
   
     // precalc array alloc
-    p->Darray(uval,upt_count);
-    p->Darray(vval,vpt_count);
-    p->Darray(wval,wpt_count);
+
+    p->Darray(uval0,upt_count);
+    p->Darray(vval0,vpt_count);
+    p->Darray(wval0,wpt_count);
+    p->Darray(uval1,upt_count);
+    p->Darray(vval1,vpt_count);
+    p->Darray(wval1,wpt_count);
     p->Darray(UHval0,upt_count);
     p->Darray(VHval0,vpt_count);
     p->Darray(WHval0,wpt_count);
@@ -199,4 +204,57 @@ void iowave::nhflow_precalc_dirichlet_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->Darray(wval_T_cos,wave_comp);
     p->Darray(etaval_T_cos,wave_comp);
     }
+    
+    
+    
+        double etaval=0.0;
+        
+        p->wavetime = p->simtime;
+        
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        xg=xgen(p);
+        yg=ygen(p);
+        
+        eta0(i,j) = wave_eta(p,pgc,xg,yg);
+        
+        eta0(i-1,j) =  eta0(i,j);
+        eta0(i-2,j) =  eta0(i,j);
+        eta0(i-3,j) =  eta0(i,j);
+        }
+        
+        count=0;
+        for(n=0;n<p->gcin_count;n++)
+		{
+		i=p->gcin[n][0];
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];
+        
+        x=xgen(p);
+        y=ygen(p);
+            
+        etaval = eta0(i,j);
+        
+        if(p->B92>=20 && p->B92<=29)
+        etaval = 0.0;
+
+        z = p->ZSP[IJK]-p->phimean;
+
+        // U
+        uval0[count] = wave_u(p,pgc,x,y,z) + p->Ui;
+        UHval0[count] = (etaval + d->depth(i,j))*uval0[count];
+        
+        // V
+        vval0[count] = wave_v(p,pgc,x,y,z);
+        VHval0[count] = (etaval + d->depth(i,j))*vval0[count];
+        
+        // W
+        wval0[count] = wave_w(p,pgc,x,y,z);
+        VHval0[count] = (etaval + d->depth(i,j))*wval0[count];
+
+        ++count;
+        }
 }

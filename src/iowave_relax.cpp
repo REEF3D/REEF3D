@@ -66,7 +66,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
         }
         
         if(phival<0.0)
-        z = 0.5*(eta(i,j)+eta(i+1,j));
+        z = 0.5*(eta0(i,j)+eta0(i+1,j));
 		
 		// Wave Generation
 		if(p->B98==2 && u_switch==1)
@@ -132,7 +132,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
         }
         
         if(phival<0.0)
-        z = 0.5*(eta(i,j)+eta(i,j+1));
+        z = 0.5*(eta0(i,j)+eta0(i,j+1));
 
 		// Wave Generation
 		if(p->B98==2 && v_switch==1)
@@ -198,7 +198,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
         }
         
         if(phival<0.0)
-        z = eta(i,j);
+        z = eta0(i,j);
 
 		// Wave Generation
 		if(p->B98==2 && w_switch==1)
@@ -300,8 +300,8 @@ void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
 		if(p->pos_z()>p->phimean)
         z=(fabs(p->phimean-p->pos_z()));	
   
-        double fl = (eta(i-1,j)*p->DXN[IP] + eta(i,j)*p->DXN[IM1])/(p->DXN[IP] + p->DXN[IM1]) + p->phimean;
-        double fr = (eta(i,j)*p->DXN[IP] + eta(i+1,j)*p->DXN[IP1])/(p->DXN[IP] + p->DXN[IP1]) + p->phimean;
+        double fl = (eta0(i-1,j)*p->DXN[IP] + eta0(i,j)*p->DXN[IM1])/(p->DXN[IP] + p->DXN[IM1]) + p->phimean;
+        double fr = (eta0(i,j)*p->DXN[IP] + eta0(i+1,j)*p->DXN[IP1])/(p->DXN[IP] + p->DXN[IP1]) + p->phimean;
         double fc = (fl + fr)/2.0;
                 
 		// Wave Generation

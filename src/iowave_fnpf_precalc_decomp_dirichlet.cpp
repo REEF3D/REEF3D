@@ -35,14 +35,14 @@ void iowave::wavegen_precalc_decomp_dirichlet_fnpf(lexer *p, ghostcell *pgc)
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
 
-        eta(i,j) = 0.0;
+        eta0(i,j) = 0.0;
             
         for(qn=0;qn<wave_comp;++qn)
         {
-        eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
+        eta0(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
         }
         
-        z = eta(i,j);
+        z = eta0(i,j);
         
         time_1=time_0;
         time_0=p->simtime;

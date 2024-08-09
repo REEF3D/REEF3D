@@ -52,7 +52,7 @@ void iowave::wavegen_precalc_decomp_space_dirichlet_fnpf(lexer *p, ghostcell *pg
             ++count;
 		}
     }
-    pgc->gcsl_start4(p,eta,50);
+    pgc->gcsl_start4(p,eta0,50);
     
     // Fifsf
     count=0;
@@ -66,7 +66,7 @@ void iowave::wavegen_precalc_decomp_space_dirichlet_fnpf(lexer *p, ghostcell *pg
 		dg = distgen(p);
 		db = distbeach(p);
         
-        z = eta(i,j);
+        z = eta0(i,j);
 		
 		// Wave Generation
         if(p->B98==3 && h_switch==1)

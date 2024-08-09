@@ -29,50 +29,26 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {  
         double etaval=0.0;
         
-        p->wavetime = p->simtime;
+        p->wavetime = p->simtime + p->dt;
         
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        xg=xgen(p);
-        yg=ygen(p);
-        
-        eta(i,j) = wave_eta(p,pgc,xg,yg);
-        
-        //cout<<"ETAVAL_precalc: "<<eta(i,j)<<" "<<eta(i-1,j)<<" "<<eta(i-2,j)<<" "<<eta(i-3,j)<<" "<<endl;
-        
-        // --
-       /* i=p->gcslin[n][0]-1;
-        j=p->gcslin[n][1];
+        eta0(i,j)   =  eta1(i,j);
+        eta0(i-1,j) =  eta1(i,j);
+        eta0(i-2,j) =  eta1(i,j);
+        eta0(i-3,j) =  eta1(i,j);
         
         xg=xgen(p);
         yg=ygen(p);
         
-        eta(i-1,j) = wave_eta(p,pgc,xg,yg);
+        eta1(i,j) = wave_eta(p,pgc,xg,yg);
         
-        // --
-        i=p->gcslin[n][0]-2;
-        j=p->gcslin[n][1];
-        
-        xg=xgen(p);
-        yg=ygen(p);
-        
-        eta(i-2,j) = wave_eta(p,pgc,xg,yg);
-        
-        // --
-        i=p->gcslin[n][0]-3;
-        j=p->gcslin[n][1];
-        
-        xg=xgen(p);
-        yg=ygen(p);
-        
-        eta(i-3,j) = wave_eta(p,pgc,xg,yg);*/
-        
-        eta(i-1,j) =  eta(i,j);
-        eta(i-2,j) =  eta(i,j);
-        eta(i-3,j) =  eta(i,j);
+        eta1(i-1,j) =  eta1(i,j);
+        eta1(i-2,j) =  eta1(i,j);
+        eta1(i-3,j) =  eta1(i,j);
         }
         
         count=0;
@@ -82,10 +58,18 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
         
+        uval0[count] = uval1[count];
+        vval0[count] = vval1[count];
+        wval0[count] = wval1[count];
+        
+        UHval0[count] = UHval1[count];
+        VHval0[count] = VHval1[count];
+        WHval0[count] = WHval1[count];
+        
         x=xgen(p);
         y=ygen(p);
             
-        etaval = eta(i,j);
+        etaval = eta0(i,j);
         
         if(p->B92>=20 && p->B92<=29)
         etaval = 0.0;
@@ -93,19 +77,21 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         z = p->ZSP[IJK]-p->phimean;
 
         // U
-        uval[count] = wave_u(p,pgc,x,y,z) + p->Ui;
-        UHval0[count] = (etaval + d->depth(i,j))*uval[count];
+        uval1[count] = wave_u(p,pgc,x,y,z) + p->Ui;
+        UHval1[count] = (etaval + d->depth(i,j))*uval1[count];
         
         // V
-        vval[count] = wave_v(p,pgc,x,y,z);
-        VHval0[count] = (etaval + d->depth(i,j))*vval[count];
+        vval1[count] = wave_v(p,pgc,x,y,z);
+        VHval1[count] = (etaval + d->depth(i,j))*vval1[count];
         
         // W
-        wval[count] = wave_w(p,pgc,x,y,z);
-        VHval0[count] = (etaval + d->depth(i,j))*wval[count];
+        wval1[count] = wave_w(p,pgc,x,y,z);
+        VHval1[count] = (etaval + d->depth(i,j))*wval1[count];
 
         ++count;
         }
 }
+
+
 
 

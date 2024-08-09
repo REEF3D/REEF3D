@@ -57,16 +57,16 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
-                eta(i,j) = 0.0;
+                eta0(i,j) = 0.0;
                 
                 for(qn=0;qn<wave_comp;++qn)
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
+                eta0(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
 
             ++count;
             }
 		}
     }
-    pgc->gcsl_start4(p,eta,50);
+    pgc->gcsl_start4(p,eta0,50);
 
     
     count=0;
@@ -75,7 +75,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         dg = distgen(p);
         
         zloc1 = p->pos1_z();
-        fsfloc = 0.5*(eta(i,j)+eta(i+1,j)) + p->phimean;
+        fsfloc = 0.5*(eta0(i,j)+eta0(i+1,j)) + p->phimean;
     
 
         if(zloc1<=fsfloc)
@@ -88,7 +88,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         }
         
         if(zloc1>fsfloc)
-        z = 0.5*(eta(i,j)+eta(i+1,j));
+        z = 0.5*(eta0(i,j)+eta0(i+1,j));
 		
 		// Wave Generation
 		if(p->B98==2 && u_switch==1)
@@ -119,7 +119,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         dg = distgen(p);
         
         zloc2 = p->pos2_z();
-        fsfloc = 0.5*(eta(i,j)+eta(i,j+1)) + p->phimean;
+        fsfloc = 0.5*(eta0(i,j)+eta0(i,j+1)) + p->phimean;
     
 
         if(zloc2<=fsfloc)
@@ -132,7 +132,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         }
         
         if(zloc2>fsfloc)
-        z = 0.5*(eta(i,j)+eta(i,j+1));
+        z = 0.5*(eta0(i,j)+eta0(i,j+1));
 
 		// Wave Generation
 		if(p->B98==2 && v_switch==1)
@@ -161,7 +161,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         dg = distgen(p);
         
         zloc3 = p->pos3_z();
-        fsfloc = eta(i,j) + p->phimean;
+        fsfloc = eta0(i,j) + p->phimean;
     
         if(zloc3<=fsfloc)
         {
@@ -173,7 +173,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         }
         
         if(zloc3>fsfloc)
-        z = eta(i,j);
+        z = eta0(i,j);
 
 
 		// Wave Generation
@@ -213,7 +213,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<dist1)
             {
-            lsval[count] = eta(i,j)+p->phimean-p->pos_z();
+            lsval[count] = eta0(i,j)+p->phimean-p->pos_z();
             
             ++count;
             }
@@ -227,7 +227,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         dg = distgen(p);
         
         zloc4 = p->pos_z();
-        fsfloc = eta(i,j) + p->phimean;
+        fsfloc = eta0(i,j) + p->phimean;
     
 
         if(zloc4<=fsfloc)
@@ -240,7 +240,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         }
         
         if(zloc4>fsfloc)
-        z = eta(i,j);
+        z = eta0(i,j);
 		
 		// Wave Generation		
 		if(p->B98==2 && u_switch==1)

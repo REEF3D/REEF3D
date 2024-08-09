@@ -35,9 +35,9 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         j=p->gcslin[n][1];
         
         ///d->eta(i,j) = eta(i,j);
-        d->eta(i-1,j) = eta(i-1,j)*ramp(p);
-        d->eta(i-2,j) = eta(i-2,j)*ramp(p);
-        d->eta(i-3,j) = eta(i-3,j)*ramp(p);
+        d->eta(i-1,j) = eta0(i-1,j)*ramp(p);
+        d->eta(i-2,j) = eta0(i-2,j)*ramp(p);
+        d->eta(i-3,j) = eta0(i-3,j)*ramp(p);
         }
         
         

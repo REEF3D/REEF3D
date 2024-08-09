@@ -52,7 +52,7 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
             }
 		}
     }
-    pgc->gcsl_start4(p,eta,50);
+    pgc->gcsl_start4(p,eta0,50);
     
 // U
     count=0;
