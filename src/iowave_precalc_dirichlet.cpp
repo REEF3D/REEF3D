@@ -28,6 +28,8 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
     
+    p->wavetime = p->simtime;
+    
         count=0;
 		for(n=0;n<p->gcslin_count;n++)
         {

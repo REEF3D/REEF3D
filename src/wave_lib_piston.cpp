@@ -69,13 +69,13 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
     
-    if(p->simtime<ts || p->simtime>te)
+    if(p->wavetime<ts || p->wavetime>te)
 	return 0.0;
 	
-    if((p->simtime>kinematics[timecount][0]))
+    if((p->wavetime>kinematics[timecount][0]))
     timecount_old=timecount;
     
-	while(p->simtime>kinematics[timecount][0])
+	while(p->wavetime>kinematics[timecount][0])
 	++timecount;
 	
 	vel = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);

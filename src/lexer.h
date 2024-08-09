@@ -640,7 +640,7 @@ public:
 	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;
 	double sedsimtime,sedwavetime;
-	double wavetime;
+	double wavecalctime;
 	double meantime,totaltime;
 	double gcmeantime,gctotaltime;
 	double Xmeantime,Xtotaltime;
@@ -654,6 +654,8 @@ public:
 	double field4time;
     double printtime, sedprinttime,fsfprinttime,probeprinttime,stateprinttime,exportprinttime;
     double partprinttime;
+    double wavetime;
+    double RK_alpha;
 
 	// solver watch
 	int uiter,viter,witer;

@@ -288,7 +288,8 @@ private:
     double *uval,*vval,*wval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
     double *rb1val,*rb3val;
     
-    double *UHval,*VHval,*WHval;
+    double *UHval0,*VHval0,*WHval0;
+    double *UHval1,*VHval1,*WHval1;
     
     double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin,**Fifsfval_S_sin;
     double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos,**Fifsfval_S_cos;

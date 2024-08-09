@@ -67,9 +67,9 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
                 W[Im2JK]=wvel;
                 W[Im3JK]=wvel;
             
-            uvel=UHval[count]*ramp(p);
-            vvel=VHval[count]*ramp(p);
-            wvel=WHval[count]*ramp(p);
+            uvel=UHval0[count]*ramp(p);
+            vvel=VHval0[count]*ramp(p);
+            wvel=WHval0[count]*ramp(p);
             
                 UH[Im1JK]=uvel;
                 UH[Im2JK]=uvel;

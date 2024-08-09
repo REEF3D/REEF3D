@@ -26,6 +26,8 @@ Author: Hans Bihs
 
 void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
+    p->wavetime = p->simtime;
+    
         count=0;
 		for(n=0;n<p->gcslin_count;n++)
         {

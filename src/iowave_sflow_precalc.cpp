@@ -29,6 +29,8 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     starttime=pgc->timer();
     
+    p->wavetime = p->simtime;
+    
     double fsfloc;
     double u_val,v_val,w_val;
     double deltaz;
@@ -149,6 +151,6 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
             }
 		}
     }
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
     

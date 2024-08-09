@@ -83,7 +83,7 @@ double wave_lib_irregular_2nd_a::wave_u(lexer *p, double x, double y, double z)
     vel=0.0;
 	
 	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 	
 	 // 1st-order
 	for(n=0;n<p->wN;++n)
@@ -116,7 +116,7 @@ double wave_lib_irregular_2nd_a::wave_v(lexer *p, double x, double y, double z)
     vel=0.0;
 	
 	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 	
 	 // 1st-order
 	for(n=0;n<p->wN;++n)
@@ -156,7 +156,7 @@ double wave_lib_irregular_2nd_a::wave_w(lexer *p, double x, double y, double z)
     vel=0.0;
 
 	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
     
      // 1st-order
 	for(n=0;n<p->wN;++n)
@@ -186,7 +186,7 @@ double wave_lib_irregular_2nd_a::wave_eta(lexer *p, double x, double y)
     eta=0.0;
 		
 	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 
     // 1st-order
 	for(n=0;n<p->wN;++n)

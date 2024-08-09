@@ -70,7 +70,7 @@ double wave_lib_cnoidal_5th::wave_horzvel(lexer *p, double x, double y, double z
 	
 	yh = (z+wdt)/wht; 
 		
-	teta = 2.0*Km*(x/wL - p->simtime/wT) + pshift;
+	teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
 	
 	elliptic(p,teta,sn,cn,dn);
 	
@@ -118,7 +118,7 @@ double wave_lib_cnoidal_5th::wave_w(lexer *p, double x, double y, double z)
 	
 	yh = (z+wdt)/wht;
 	
-	teta = 2.0*Km*(x/wL - p->simtime/wT) + pshift;
+	teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
 
 	elliptic(p,teta,sn,cn,dn);
 	
@@ -163,7 +163,7 @@ double wave_lib_cnoidal_5th::wave_eta(lexer *p, double x, double y)
     double eta;
 	double sn,cn,dn;
 	
-	teta = 2.0*Km*(x/wL - p->simtime/wT) + pshift;
+	teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
 	
 	elliptic(p,teta,sn,cn,dn);
 	

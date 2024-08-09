@@ -88,7 +88,7 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
             for(qn=0;qn<wave_comp;++qn)
             uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
             
-            UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
+            UHval0[count] = (eta(i,j) + d->depth(i,j))*uval[count];
             
             ++count;
             }
@@ -112,7 +112,7 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
             for(qn=0;qn<wave_comp;++qn)
             vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
             
-            VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
+            VHval0[count] = (eta(i,j) + d->depth(i,j))*vval[count];
             
             ++count;
             }
@@ -136,7 +136,7 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
             for(qn=0;qn<wave_comp;++qn)
             wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
             
-            WHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
+            WHval0[count] = (eta(i,j) + d->depth(i,j))*wval[count];
 
             ++count;
             }

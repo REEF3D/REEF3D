@@ -61,7 +61,7 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta)
@@ -95,7 +95,7 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
@@ -128,7 +128,7 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta)
@@ -162,7 +162,7 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta)
@@ -200,7 +200,7 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
@@ -231,5 +231,5 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }

@@ -42,8 +42,6 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         d->eta(i-1,j) = eta(i-1,j)*ramp(p);
         d->eta(i-2,j) = eta(i-2,j)*ramp(p);
         d->eta(i-3,j) = eta(i-3,j)*ramp(p);
-        
-        cout<<"ETAVAL: "<<eta(i,j)<<" "<<eta(i-1,j)<<" "<<eta(i-2,j)<<" "<<eta(i-3,j)<<" "<<endl;
         }
         
         // wave maker
@@ -97,9 +95,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 
                 
             // UH, VH, WH
-            uhvel=UHval[count];
-            vhvel=VHval[count];
-            whvel=WHval[count];
+            uhvel=UHval0[count];
+            vhvel=VHval0[count];
+            whvel=WHval0[count];
             
             uhvel *= ramp(p);
             vhvel *= ramp(p);

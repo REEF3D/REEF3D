@@ -66,7 +66,7 @@ double wave_lib_deep::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
     
-    teta = wk*x-ww*(p->simtime) + pshift;
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*exp(wk*z) * cos(teta);
 
@@ -77,7 +77,7 @@ double wave_lib_deep::wave_w(lexer *p, double x, double y, double z)
 {
     double vel;
     
-    teta = wk*x-ww*(p->simtime) + pshift;
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*exp(wk*z) * sin(teta);
 
@@ -88,7 +88,7 @@ double wave_lib_deep::wave_eta(lexer *p, double x, double y)
 {
     double eta;
     
-    teta = wk*x-ww*(p->simtime) + pshift;
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     eta =  wa * cos(teta);
 
@@ -99,7 +99,7 @@ double wave_lib_deep::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     
-    teta = wk*x-ww*(p->simtime) + pshift;
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     fi = PI*wH/(wk*wT)*exp(wk*z) * sin(teta);
     

@@ -31,6 +31,8 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"full NWT initialize"<<endl;
     
+    p->wavetime = p->simtime;
+    
     // eta
 	SLICELOOP4
     if(p->wet[IJ]==1)

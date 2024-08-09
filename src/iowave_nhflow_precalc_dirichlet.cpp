@@ -29,6 +29,8 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {  
         double etaval=0.0;
         
+        p->wavetime = p->simtime;
+        
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
@@ -92,15 +94,15 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         // U
         uval[count] = wave_u(p,pgc,x,y,z) + p->Ui;
-        UHval[count] = (etaval + d->depth(i,j))*uval[count];
+        UHval0[count] = (etaval + d->depth(i,j))*uval[count];
         
         // V
         vval[count] = wave_v(p,pgc,x,y,z);
-        VHval[count] = (etaval + d->depth(i,j))*vval[count];
+        VHval0[count] = (etaval + d->depth(i,j))*vval[count];
         
         // W
         wval[count] = wave_w(p,pgc,x,y,z);
-        VHval[count] = (etaval + d->depth(i,j))*wval[count];
+        VHval0[count] = (etaval + d->depth(i,j))*wval[count];
 
         ++count;
         }

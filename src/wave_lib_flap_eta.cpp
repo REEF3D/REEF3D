@@ -69,10 +69,10 @@ double wave_lib_flap_eta::wave_horzvel(lexer *p, double x, double y, double z)
     
     zcoor=p->pos_z();
 
-    if(p->simtime<ts || p->simtime>te || timecount>=ptnum-1)
+    if(p->wavetime<ts || p->wavetime>te || timecount>=ptnum-1)
 	return 0.0;
 	
-	if(p->simtime>eta[timecount+1][0])
+	if(p->wavetime>eta[timecount+1][0])
 	++timecount;
     
     fac = 2.0*(z-p->B111_zs)/(p->B111_ze-p->B111_zs);
@@ -95,11 +95,11 @@ double wave_lib_flap_eta::wave_eta(lexer *p, double x, double y)
 {
     double val=0.0;
     
-    if(p->simtime<ts || p->simtime>te || timecount>=ptnum-1)
+    if(p->wavetime<ts || p->wavetime>te || timecount>=ptnum-1)
 	return 0.0;
     
     val =  ((eta[timecount+1][1]-eta[timecount][1])/(eta[timecount+1][0]-eta[timecount][0]))
-            *((p->simtime)-eta[timecount][0]) + eta[timecount][1];
+            *((p->wavetime)-eta[timecount][0]) + eta[timecount][1];
 	
     return val;
 }

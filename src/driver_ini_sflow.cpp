@@ -84,7 +84,7 @@ cout<<"starting driver_ini_PFLOW"<<endl;
 	
 	p->gctime=0.0;
     p->xtime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->field4time=0.0;
 
 if(p->mpirank==0)

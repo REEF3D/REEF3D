@@ -30,6 +30,8 @@ void iowave::wavegen2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
     double uval,vval,wval;
     double deltaz;
     
+    p->wavetime = p->simtime;
+    
 	for(n=0;n<p->gcslin_count;n++)
     {
 		i=p->gcslin[n][0];

@@ -28,6 +28,8 @@ void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
 {
     starttime=pgc->timer();
     
+    p->wavetime = p->simtime;
+    
     int qn;
     
     for(qn=0;qn<wave_comp;++qn)
@@ -54,5 +56,5 @@ void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
     Fifsfval_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }

@@ -133,7 +133,7 @@ void driver::loop_cfd_sf(fdm* a)
             if( (p->count%p->P12==0))
             {
             if(p->B90>0)
-            cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
+            cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
             cout<<"sftime: "<<setprecision(3)<<p->sftime<<endl;
             cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
@@ -151,7 +151,7 @@ void driver::loop_cfd_sf(fdm* a)
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->field4time=0.0;
     p->sftime=0.0;
 

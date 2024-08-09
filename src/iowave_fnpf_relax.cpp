@@ -54,5 +54,5 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }

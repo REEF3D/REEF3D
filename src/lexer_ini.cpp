@@ -53,6 +53,8 @@ void lexer::lexer_ini()
     solver_status=0;
 	
 	maxdt=mindt=0.0;
+    RK_alpha=0.0;
+    wavetime=0.0;
 
     G1=0;
     if(S10>0 || toporead>0 || solidread==1)

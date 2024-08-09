@@ -26,6 +26,7 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
 {
+    p->wavetime = p->simtime;
     
     // prestep
     wave_prestep(p,pgc);

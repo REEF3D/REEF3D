@@ -66,7 +66,8 @@ void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 
 //Step 1
 //--------------------------------------------------------
-
+    p->RK_alpha = 1.0;
+    
 	// U
 	starttime=pgc->timer();
 
@@ -136,7 +137,8 @@ void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 
 //Step 2
 //--------------------------------------------------------
-
+    p->RK_alpha = 0.5;
+    
 	// U
 	starttime=pgc->timer();
 

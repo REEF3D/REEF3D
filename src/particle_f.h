@@ -125,7 +125,7 @@ public:
     int gnegactive,gposactive,gpcount,gncount,gcorrected,gremoved,greseeded,gxchange,gpartnum;
     
 
-	double H,Hval,nvec[3],phival,lambda,value,cosinus;
+	double H,Hval0,nvec[3],phival,lambda,value,cosinus;
 	const double epsi,dx,dy,dz,rmin,rmax;
 	//int pnum;
 	// const int ipolval;

@@ -31,6 +31,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"full NWT initialize"<<endl;
     
+    p->wavetime = 0.0;
     
 	FLUIDLOOP
     {

@@ -66,14 +66,14 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
         
         pout<<"t \t eta"<<endl<<endl;
         
-        p->simtime=0.0;
+        p->wavetime=0.0;
         do
         {
         pout<<p->simtime<<" "<<wave_eta(p,pgc,p->P58_x[n],p->P58_y[n])<<endl;
             
-        p->simtime+=0.1;
+        p->wavetime+=0.1;
         
-        }while(p->simtime<=p->P58_T[n]);
+        }while(p->wavetime<=p->P58_T[n]);
 
 
     pout.close();
