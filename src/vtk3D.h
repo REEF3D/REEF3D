@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef vtk3D_H_
-#define vtk3D_H_
+#ifndef VTK3D_H_
+#define VTK3D_H_
 
 #include <fstream>
 
