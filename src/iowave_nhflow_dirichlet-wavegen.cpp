@@ -43,7 +43,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         d->eta(i-2,j) = (1.0-p->RK_alpha)*eta0(i-2,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);
         d->eta(i-3,j) = (1.0-p->RK_alpha)*eta0(i-3,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);
         
-        cout<<"ETA: "<<eta0(i,j)<<" RK_alpha: "<<p->RK_alpha<<endl;
+        //cout<<"ETA: "<<eta0(i,j)<<" RK_alpha: "<<p->RK_alpha<<endl;
         }
         
         // wave maker

@@ -114,7 +114,7 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
             // Zone 1
             if(dg<1.0e20)
             {
-            Q(i,j) = (1.0-relax1_wg(i,j))*ramp(p) * vval[count] + relax1_wg(i,j)*Q(i,j);
+            Q(i,j) = (1.0-relax2_wg(i,j))*ramp(p) * vval[count] + relax2_wg(i,j)*Q(i,j);
             ++count;
             }
 		}
@@ -124,7 +124,7 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
 		{
             // Zone 2
             if(db<1.0e20)
-            Q(i,j) = relax1_nb(i,j)*Q(i,j);
+            Q(i,j) = relax2_nb(i,j)*Q(i,j);
         }
     }
     
