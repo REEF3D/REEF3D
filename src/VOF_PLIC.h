@@ -45,6 +45,8 @@ public:
 	virtual ~VOF_PLIC();
 	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
+    
+    virtual void start_alt(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
 	
 private:	
     void iniphi(fdm*, lexer*,ghostcell*);
@@ -77,6 +79,16 @@ private:
 	void calcSegmentPoint(fdm*, lexer*, double, double, double, int, int, int, field4&);
     double calcDistance(double, double, double, double);	
 	
+    //Alternative version by Fabian
+    void calculateNormal_alt(fdm*, lexer*);
+    void reconstructPlane_alt_cube(fdm*, lexer*);
+    void advectPlane_alt(fdm*, lexer*,int);
+    
+    field4 r0;
+    field4 vof_old;
+    field4 vof_w;
+    field4 vof_a;
+    
 	
     fluid_update *pupdate;
     reini *reini_;
@@ -91,6 +103,7 @@ private:
     field4 nx;
     field4 ny;
     field4 nz;
+    
 	double ****nxCoeff, ****nyCoeff, ****nzCoeff;
     
     //- Plane distance coefficient

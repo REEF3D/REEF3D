@@ -205,3 +205,96 @@ void VOF_PLIC::update
 {
     pupdate->start(p,a,pgc);
 }
+
+void VOF_PLIC::start_alt
+(
+    fdm* a,
+    lexer* p,
+    convection* pconvec,
+    solver* psolv,
+    ghostcell* pgc,
+    ioflow* pflow,
+    reini* preini,
+    particle_corr* ppls,
+    field &F
+)
+{
+    pflow->fsfinflow(p,a,pgc);
+
+    starttime=pgc->timer();
+    
+    int sweep = 0;
+    if (sSweep < 2)
+    {
+        sSweep++;
+        sweep = sSweep;
+    }
+    else
+    {
+        sSweep = 0;
+    }
+    
+    for (int nSweep = 0; nSweep < 3; nSweep++)
+    {
+        LOOP
+        {      
+            if((a->vof(i,j,k)<=0.9999) && (a->vof(i,j,k)>=0.0001))
+            {
+            reconstructPlane_alt_cube(a, p, sweep);
+            advectPlane_alt(a, p);
+            }
+        updateVolumeFraction(a, p, Q1, Q2, sweep);
+        }
+    
+           
+        //- Distribute volume fractions
+        pgc->start4(p,vof1,gcval_frac);
+        pgc->start4(p,vof2,gcval_frac);
+        pgc->start4(p,vof3,gcval_frac);
+
+        //- Calculate updated vof from volume fractions and distribute
+        updateVOF(a, p, sweep);
+        pgc->start4(p,a->vof,gcval_frac);
+    
+        //- Change sweep
+        if (sweep < 2)
+        {
+            sweep++;
+        }
+        else
+        {
+            sweep = 0;
+        }
+    }
+
+    //- Redistance distance function from updated plane equations
+    //redistance(a, p, pdisc, pgc, pflow, 20);
+    //- Distribute ls function
+    //pgc->start4(p,a->phi,gcval_frac);
+
+    pflow->vof_relax(p,pgc,a->vof);
+	pgc->start4(p,a->vof,gcval_frac);
+    pupdate->start(p,a,pgc);
+
+    p->lsmtime=pgc->timer()-starttime;
+
+    if(p->mpirank==0)
+    cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
+
+    pgc->start4(p,a->vof,50);
+    
+    LOOP
+    a->phi(i,j,k) = a->vof(i,j,k);
+    
+    pgc->start4(p,a->phi,50);
+    
+    for (int tt = 0; tt < 2; tt++)
+    {
+    LOOP
+    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
+    
+    pgc->start4(p,a->phi,50);
+    }
+
+
+}
