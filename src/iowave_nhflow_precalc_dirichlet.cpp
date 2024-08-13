@@ -46,9 +46,9 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         eta1(i,j) = wave_eta(p,pgc,xg,yg);
         
-        eta1(i-1,j) =  eta1(i,j);
-        eta1(i-2,j) =  eta1(i,j);
-        eta1(i-3,j) =  eta1(i,j);
+        eta1(i-1,j) =  d->eta(i,j);
+        eta1(i-2,j) =  d->eta(i,j);
+        eta1(i-3,j) =  d->eta(i,j);
         }
         
         count=0;
