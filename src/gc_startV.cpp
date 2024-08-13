@@ -69,7 +69,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         
         if(p->flag1[Im1JK]<0 && gcv==10 && inflow==1)
         {
-        f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->eta(i,j)*d->eta(i,j) + fabs(p->W22)*d->eta(i,j)*d->dfx(i,j);
+        f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->eta(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->eta(i-1,j)*d->dfx(i,j);
         
         //cout<<p->mpirank<<"  FX_IM1: "<<f[Im1JK]<<" FX_I: "<<f[IJK]<<" FX_IP1: "<<f[Ip1JK]<<" eta_IM1: "<<d->eta(i-1,j)<<" eta_IP: "<<d->eta(i,j)<<" k: "<<k<<endl;
         //cout<<p->mpirank<<"  d->U_IM1: "<<d->U[Im1JK]<<" d->U_I: "<<d->U[IJK]<<" d->UH_IP1: "<<d->U[Ip1JK]<<" k: "<<k<<endl;
