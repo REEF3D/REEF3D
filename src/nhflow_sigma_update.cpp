@@ -218,10 +218,10 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     
     FLOOP
-    p->ZSN[FIJK] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
+    p->ZSN[FIJK] = p->ZN[KP]*WL(i,j) + d->bed(i,j);
     
     LOOP
-    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
+    p->ZSP[IJK]  = p->ZP[KP]*WL(i,j) + d->bed(i,j);
     
     pgc->start7S(p,p->sigx,1);
     pgc->start7S(p,p->sigy,1);

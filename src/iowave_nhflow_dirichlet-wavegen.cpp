@@ -39,11 +39,17 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        d->eta(i-1,j) = (1.0-p->RK_alpha)*eta0(i-1,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);
+        /*d->eta(i-1,j) = (1.0-p->RK_alpha)*eta0(i-1,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);
         d->eta(i-2,j) = (1.0-p->RK_alpha)*eta0(i-2,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);
-        d->eta(i-3,j) = (1.0-p->RK_alpha)*eta0(i-3,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);
+        d->eta(i-3,j) = (1.0-p->RK_alpha)*eta0(i-3,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);*/
         
-        cout<<"ETA: "<<eta0(i,j)<<" RK_alpha: "<<p->RK_alpha<<endl;
+        etaval = d->eta(i,j);
+        
+        d->eta(i-1,j) = etaval;
+        d->eta(i-2,j) = etaval;
+        d->eta(i-3,j) = etaval;
+        
+        //cout<<"ETA: "<<eta0(i,j)<<" RK_alpha: "<<p->RK_alpha<<endl;
         }
         
         // wave maker
@@ -78,6 +84,10 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             uvel *= ramp(p);
             vvel *= ramp(p);
             wvel *= ramp(p);
+             
+            /*uvel = 2.0*uvel - U[IJK];
+            vvel = 2.0*vvel - V[IJK];
+            wvel = 2.0*wvel - W[IJK];*/
             
                 U[Im1JK]=uvel;
                 U[Im2JK]=uvel;
@@ -90,7 +100,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 W[Im1JK]=wvel;
                 W[Im2JK]=wvel;
                 W[Im3JK]=wvel;
-                
+                  
                 
             // UH, VH, WH
             uhvel = (1.0-p->RK_alpha)*UHval0[count] + p->RK_alpha*UHval1[count];
@@ -100,6 +110,10 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             uhvel *= ramp(p);
             vhvel *= ramp(p);
             whvel *= ramp(p);
+            
+            /*uhvel = 2.0*uhvel - UH[IJK];
+            vhvel = 2.0*vhvel - VH[IJK];
+            whvel = 2.0*whvel - WH[IJK];*/
             
                 UH[Im1JK]=uhvel;
                 UH[Im2JK]=uhvel;
