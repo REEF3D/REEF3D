@@ -34,7 +34,7 @@ vtr3D::~vtr3D()
 {
 }
 
-void vtr3D::folder(char* A10)
+void vtr3D::folder(const char* A10)
 {
 	sprintf(pname,"./REEF3D_%s_VTR", A10);
 	mkdir(pname,0777);
@@ -77,7 +77,7 @@ void vtr3D::beginningParallel(lexer *p, std::ofstream &result)
 	result<<"<PRectilinearGrid WholeExtent=\"0 "<<p->gknox<<" 0 "<<p->gknoy<<" 0 "<<p->gknoz<<"\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">\n";
 }
 
-void vtr3D::ending(std::ofstream &result, int *offset, int &n)
+void vtr3D::ending(std::ofstream &result, const int *offset, int &n)
 {
 	result<<"<Coordinates>\n";
 	result<<"\t<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -91,7 +91,7 @@ void vtr3D::ending(std::ofstream &result, int *offset, int &n)
 	result<<"</RectilinearGrid>\n";
 }
 
-void vtr3D::endingParallel(std::ofstream &result, char *A10, int &M10, int &num)
+void vtr3D::endingParallel(std::ofstream &result, const char *A10, const int M10, const int num)
 {
 	result<<"<PCoordinates>\n";
     result<<"\t<PDataArray type=\"Float32\" Name=\"X\" format=\"appended\"/>\n";

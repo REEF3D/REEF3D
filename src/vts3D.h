@@ -33,7 +33,7 @@ class vts3D : public vtk3D , increment
         vts3D();
         ~vts3D();
     public:
-        void folder(char*);
+        void folder(const char*);
         void offset(lexer*, int*, int&);
         void structureWrite(lexer*, fdm*, std::ofstream&);
         void structureWrite(lexer*, fdm_fnpf*, std::ofstream&);
@@ -42,10 +42,10 @@ class vts3D : public vtk3D , increment
         
         void beginning(lexer*, std::ofstream&);
         void beginningParallel(lexer*, std::ofstream&);
-        void ending(std::ofstream&, int*, int&);
-        void endingParallel(std::ofstream&, char*, int&, int&);
-        void fileName(char *name, char *A10, int &num, int &rank){sprintf(name,"./REEF3D_%s_VTS/REEF3D-%s-%08i-%06i.vts",A10,A10,num,rank);};
-        void parallelFileName(char *name, char *A10, int &num){sprintf(name,"./REEF3D_%s_VTS/REEF3D-%s-%08i.pvts",A10,A10,num);};
+        void ending(std::ofstream&, const int*, int&);
+        void endingParallel(std::ofstream&, const char*, const int, const int);
+        void fileName(char *name, const char *A10, const int num, const int rank){sprintf(name,"./REEF3D_%s_VTS/REEF3D-%s-%08i-%06i.vts",A10,A10,num,rank);};
+        void parallelFileName(char *name, const char *A10, const int num){sprintf(name,"./REEF3D_%s_VTS/REEF3D-%s-%08i.pvts",A10,A10,num);};
     private:
         int *piextent;
         char pname[50];

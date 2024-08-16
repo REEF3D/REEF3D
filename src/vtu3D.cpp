@@ -35,7 +35,7 @@ vtu3D::~vtu3D()
 {
 }
 
-void vtu3D::folder(char *A10)
+void vtu3D::folder(const char *A10)
 {
 	char name[30];
 	sprintf(name,"./REEF3D_%s_VTU", A10);
@@ -81,7 +81,7 @@ void vtu3D::beginningParallel(lexer *p, std::ofstream &result)
 	result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
 }
 
-void vtu3D::ending(std::ofstream &result, int *offset, int &n)
+void vtu3D::ending(std::ofstream &result, const int *offset, int &n)
 {
     result<<"<Points>\n";
     result<<"\t<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
@@ -101,7 +101,7 @@ void vtu3D::ending(std::ofstream &result, int *offset, int &n)
     result<<"</UnstructuredGrid>\n";
 }
 
-void vtu3D::endingParallel(std::ofstream &result, char *A10, int &M10, int &num)
+void vtu3D::endingParallel(std::ofstream &result, const char *A10, const int M10, const int num)
 {
 	result<<"<PPoints>\n";
 	result<<"\t<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
