@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Tobias Martin, Fabian Knoblauch
 --------------------------------------------------------------------*/
 
 #include"VOF_PLIC.h"
@@ -240,8 +240,8 @@ void VOF_PLIC::start_alt
         {      
             if((a->vof(i,j,k)<=0.9999) && (a->vof(i,j,k)>=0.0001))
             {
-            reconstructPlane_alt_cube(a, p, sweep);
-            advectPlane_alt(a, p);
+            reconstructPlane_alt_cube(a, p);
+            advectPlane_alt(a, p, sweep);
             }
         updateVolumeFraction(a, p, Q1, Q2, sweep);
         }

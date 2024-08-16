@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Tobias Martin, Fabian Knoblauch
 --------------------------------------------------------------------*/
 
 #include"freesurface.h"
@@ -81,13 +81,16 @@ private:
 	
     //Alternative version by Fabian
     void calculateNormal_alt(fdm*, lexer*);
-    void reconstructPlane_alt_cube(fdm*, lexer*);
+    void reconstructPlane_alt(fdm*, lexer*);
     void advectPlane_alt(fdm*, lexer*,int);
+    double calculateVolume(double,double,double,double,double,double,double);
     
-    field4 r0;
     field4 vof_old;
-    field4 vof_w;
-    field4 vof_a;
+    field4 V_w_old;
+    field4 V_a_old;
+    field4 V_w_update;
+    field4 V_a_update;
+    
     
 	
     fluid_update *pupdate;

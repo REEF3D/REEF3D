@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Fabian Knooblauch
+Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
 #include"VOF_PLIC.h"
@@ -35,9 +35,9 @@ Author: Fabian Knooblauch
 #include"weno_hj.h"
 #include"hric.h"
 
-void VOF_PLIC::reconstructPlane_alt_cube(fdm* a, lexer* p)
+void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p)
 {
-    double n_1, n_2, n_3, V0, V,d0, d;
+    double n_1, n_2, n_3, V0, V,r0, r, n_a, n_b, n_c;
     
     //get the normal vector
     calculateNormal_alt(a,p);
@@ -48,32 +48,43 @@ void VOF_PLIC::reconstructPlane_alt_cube(fdm* a, lexer* p)
     ny(i,j,k)=ny(i,j,k)/vecsum;
     nz(i,j,k)=nz(i,j,k)/vecsum;
     
+    //scale with cellsize
+    n_a=fabs(nx(i,j,k))*p->DXN[IP];
+    n_b=fabs(ny(i,j,k))*p->DYN[JP];
+    n_c=fabs(nz(i,j,k))*p->DZN[KP];
+    
+    //normalise scaled vector
+    double vecsum2 = sqrt(n_a*n_a+n_b*n_b+n_c*n_c);
+    n_a=n_a/vecsum2;
+    n_b=n_b/vecsum2;
+    n_c=n_c/vecsum2;
+    
     //sort vector components
-    if(fabs(ny(i,j,k))>=fabs(nx(i,j,k)))
-    {    
-        n_1=fabs(nx(i,j,k));
-        n_2=fabs(ny(i,j,k));
+    if(n_b>=n_a)
+    {
+        n_1=n_a;
+        n_2=n_b;
     }
     else
     {
-        n_1=fabs(ny(i,j,k));
-        n_2=fabs(nx(i,j,k));
+        n_1=n_b;
+        n_2=n_a;
     }
     
-    if(fabs(nz(i,j,k))>=n_2)
+    if(n_c>=n_2)
     {
-        n_3=fabs(nz(i,j,k));
+        n_3=n_c;
     }
-    else if(fabs(nz(i,j,k))<=n_1)
+    else if(n_c<n_1)
     {
         n_3=n_2;
         n_2=n_1;
-        n_1=fabs(nz(i,j,k));
+        n_1=n_c;
     }
     else
     {
         n_3=n_2;
-        n_2=fabs(nz(i,j,k));
+        n_2=n_c;
     }
     
     //reduced symmetry transformation
@@ -82,75 +93,53 @@ void VOF_PLIC::reconstructPlane_alt_cube(fdm* a, lexer* p)
     
     if(n_1+n_2<=2.0*V*n_3)   //case 5
     {
-        d=V*n_3+(n_1+n_2)/2.0;
+        r=V*n_3+0.5*(n_1+n_2);
     }
-    
-    else if((3.0*n_2*(V*n_3+n_1-n_2)<=n_1*n_1) && (n_1*n_1<=6.0*V*n_2*n_3)) //case 2
+    else if((3.0*n_2*(2.0*V*n_3+n_1-n_2)<=n_1*n_1) && (n_1*n_1<=6.0*V*n_2*n_3)) //case 2
     {
-        d=n_1/2.0+sqrt(2*V*n_2*n_3-1.0/12.0*n_1*n_1);
+        r=0.5*n_1+sqrt(2*V*n_2*n_3-1.0/12.0*n_1*n_1);
     }
     
     else if(6.0*V*n_2*n_3<n_1*n_1) //case 1
     {
-        d=cbrt(6.0*V*n_1*n_2*n_3);
+        r=cbrt(6.0*V*n_1*n_2*n_3);
     }
     
     else //cases 3 und 4
     {   
-        double x3, y3, a3, b3, c3, f3 ,u3;
-        x3=81.0*n_1*n_2*(n_1+n_2-2.0*V*n_3);
-        
-        if((23328.0*(n_1*n_2)*(n_1*n_2)*(n_1*n_2)-x3*x3)>=0.0)
+        double x3, y32, u3,f3;
+        x3=81.0*n_1*n_2*(n_1+n_2-2.0*n_3*V);
+        y32=fdim(23328.0*n_1*n_1*n_1*n_2*n_2*n_2,x3*x3);
+        u3=cbrt(x3*x3+y32);
+        f3=n_1+n_2-(7.5595264*n_1*n_2+0.26456684*u3)*1.0/sqrt(u3)*sin(0.5235988-1.0/3.0*atan(sqrt(y32)/x3));
+        if(f3<=n_3) //case 3
         {
-            y3=sqrt(23328.0*(n_1*n_2)*(n_1*n_2)*(n_1*n_2)-x3*x3);
-            a3=cbrt(54.0)*n_1*n_2;
-            b3=1.0/(cbrt(432.0));
-            c3=n_1+n_2;
-            u3=cbrt(x3*x3+y3*y3);
-            f3= c3 -2.0*(a3+b3*cbrt(x3*x3+y3*y3))/(sqrt(u3)) *sin(PI/6.0-1.0/3.0*atan2(y3,x3));
+            r=f3;
         }
-        else
-            f3=-1000.0;
-            
-        if((n_2<=f3) && (f3<=min((n_1+n_2),n_3))) //case 3
-            {
-                d=f3;
-            }
-        else
-        {
-            double t4, x4, y4, a4, b4, c4, f4, u4;
+        else //case 4
+        {   
+            double t4,x4,y42,u4,f4;
             t4=9.0*(n_1+n_2+n_3)*(n_1+n_2+n_3)-18.0;
-            x4=324.0*n_1*n_2*n_3*(1.0-2.0*V);
-            if((4.0*t4*t4*t4-x4*x4)>=0.0)
-            {
-                y4=sqrt(4.0*t4*t4*t4-x4*x4);
-                a4=1.0/(cbrt(864.0))*t4;
-                b4=1.0/(cbrt(3456.0));
-                c4=(n_1+n_2+n_3)/2.0;
-                u4=cbrt(x4*x4+y4*y4);
-                f4= c4 -2.0*(a4+b4*cbrt(x4*x4+y4*y4))/(sqrt(u4)) *sin(PI/6.0-1.0/3.0*atan2(y4,x4));
-            }
-            else
-                f4=-1000.0;
-            if(n_3 <= f4)   //case 4
-            {
-                d=f4;
-            }
-            else
-            {
-                d=0.5*p->DXN[IP];
-                cout<<"Probleme beim Fall finden in der Inverse"<<endl;
-            }
+            x4=max(n_1*n_2*n_3*(324.0-648.0*V),1E-35);
+            y42=fdim(4.0*t4*t4*t4,x4*x4);
+            u4=cbrt(x4*x4+y42);
+            f4=0.5*(n_1+n_2+n_3)-(0.20998684*t4+0.13228342*u4)*1.0/sqrt(u4)*sin(0.5235988-1.0/3.0*atan(sqrt(y42)/x4));
+            
+            r=f4;
         }
     }
     
     //reverse reduced symmetry
-    if((V0-0.5)>=0.0)
-        d0=(n_1+n_2+n_3)/2.0-d;
+    if(V0-0.5>=0.0)
+    {
+        r0=0.5*(n_1+n_2+n_3)-r;
+    }
     else
-        d0=(-1,0)*((n_1+n_2+n_3)/2.0-d);
+    {
+        r0=-(0.5*(n_1+n_2+n_2)-r);
+    }
     
-    alpha(i,j,k)=d0;
+    alpha(i,j,k)=r0*sqrt(nx(i,j,k)*nx(i,j,k)*p->DXN[IP]*p->DXN[IP]+ny(i,j,k)*ny(i,j,k)*p->DYN[JP]*p->DYN[JP]+nz(i,j,k)*nz(i,j,k)*p->DZN[KP]*p->DZN[KP]);
     
 }
     
