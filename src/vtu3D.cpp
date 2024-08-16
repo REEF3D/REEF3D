@@ -62,8 +62,15 @@ void vtu3D::beginning(lexer *p, std::ofstream &result)
 	xmlVersion(result);
 	result<<"<VTKFile type=\"UnstructuredGrid\" ";
 	vtkVersion(result);
-	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">"<<endl;
+	result<<"<UnstructuredGrid>\n";
+    if(p->P16==1)
+    {
+        result<<"<FieldData>\n";
+        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<"\n";
+        result<<"</DataArray>\n";
+        result<<"</FieldData>\n";
+    }
+	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">\n";
 }
 
 void vtu3D::beginningParallel(lexer *p, std::ofstream &result)
@@ -71,48 +78,48 @@ void vtu3D::beginningParallel(lexer *p, std::ofstream &result)
 	xmlVersion(result);
 	result<<"<VTKFile type=\"PUnstructuredGrid\" ";
 	vtkVersion(result);
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
+	result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
 }
 
 void vtu3D::ending(std::ofstream &result, int *offset, int &n)
 {
-    result<<"<Points>"<<endl;
-    result<<"\t<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Points>\n";
+    result<<"\t<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-    result<<"</Points>"<<endl;
+    result<<"</Points>\n";
 
-    result<<"<Cells>"<<endl;
-    result<<"\t<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Cells>\n";
+    result<<"\t<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-	result<<"\t<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"\t<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
 	++n;
-    result<<"\t<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"\t<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-	result<<"</Cells>"<<endl;
+	result<<"</Cells>\n";
 
-    result<<"</Piece>"<<endl;
-    result<<"</UnstructuredGrid>"<<endl;
+    result<<"</Piece>\n";
+    result<<"</UnstructuredGrid>\n";
 }
 
 void vtu3D::endingParallel(std::ofstream &result, char *A10, int &M10, int &num)
 {
-	result<<"<PPoints>"<<endl;
-	result<<"\t<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
+	result<<"<PPoints>\n";
+	result<<"\t<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+	result<<"</PPoints>\n";
 
-	result<<"<Cells>"<<endl;
-	result<<"\t<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
-	result<<"\t<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
-	result<<"\t<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
-	result<<"</Cells>"<<endl;
+	result<<"<Cells>\n";
+	result<<"\t<DataArray type=\"Int32\"  Name=\"connectivity\"/>\n";
+	result<<"\t<DataArray type=\"Int32\"  Name=\"offsets\" />\n";
+	result<<"\t<DataArray type=\"Int32\"  Name=\"types\" />\n";
+	result<<"</Cells>\n";
 
 	for(int n=0; n<M10; ++n)
 	{
 	sprintf(pname,"REEF3D-%s-%08i-%06i.vtu",A10,num,n+1);
-	result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+	result<<"<Piece Source=\""<<pname<<"\"/>\n";
 	}
 
-	result<<"</PUnstructuredGrid>"<<endl;
+	result<<"</PUnstructuredGrid>\n";
 	result<<"</VTKFile>"<<flush;
 }
 
@@ -344,7 +351,7 @@ void vtu3D::structureWriteEnd(lexer *p, std::ofstream &result)
 		result.write((char*)&iin, sizeof (int));
 	}
 
-	result<<endl;
-	result<<"</AppendedData>"<<endl;
+	result<<"\n";
+	result<<"</AppendedData>\n";
     result<<"</VTKFile>"<<flush;
 }

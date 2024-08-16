@@ -54,8 +54,15 @@ void vts3D::beginning(lexer *p, std::ofstream &result)
 	xmlVersion(result);
 	result<<"<VTKFile type=\"StructuredGrid\" ";
 	vtkVersion(result);
-	result<<"<StructuredGrid WholeExtent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">"<<endl;
-	result<<"<Piece Extent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">"<<endl;
+	result<<"<StructuredGrid WholeExtent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">\n";
+	if(p->P16==1)
+    {
+        result<<"<FieldData>\n";
+        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<"\n";
+        result<<"</DataArray>\n";
+        result<<"</FieldData>\n";
+    }
+    result<<"<Piece Extent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">\n";
 }
 
 void vts3D::beginningParallel(lexer *p, std::ofstream &result)
@@ -63,33 +70,33 @@ void vts3D::beginningParallel(lexer *p, std::ofstream &result)
 	xmlVersion(result);
 	result<<"<VTKFile type=\"PStructuredGrid\" ";
 	vtkVersion(result);
-	result<<"<PStructuredGrid WholeExtent=\"0 "<<p->gknox<<" 0 "<<p->gknoy<<" 0 "<<p->gknoz<<"\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">"<<endl;
+	result<<"<PStructuredGrid WholeExtent=\"0 "<<p->gknox<<" 0 "<<p->gknoy<<" 0 "<<p->gknoz<<"\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">\n";
 }
 
 void vts3D::ending(std::ofstream &result, int *offset, int &n)
 {
-    result<<"<Points>"<<endl;
-	result<<"\t<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+    result<<"<Points>\n";
+	result<<"\t<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 	n++;
-	result<<"</Points>"<<endl;
-	result<<"</Piece>"<<endl;
-	result<<"</StructuredGrid>"<<endl;
+	result<<"</Points>\n";
+	result<<"</Piece>\n";
+	result<<"</StructuredGrid>\n";
 }
 
 void vts3D::endingParallel(std::ofstream &result, char *A10, int &M10, int &num)
 {
-	result<<"<PPoints>"<<endl;
-	result<<"\t<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-    result<<"</PPoints>"<<endl;
+	result<<"<PPoints>\n";
+	result<<"\t<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+    result<<"</PPoints>\n";
 
 	for(int n=0; n<M10; ++n)
 	{
 		sprintf(pname,"REEF3D-%s-%08i-%06i.vts",A10,num,n+1);
 		sprintf(pextent,"%i %i %i %i %i %i",piextent[0+6*n],piextent[1+6*n],piextent[2+6*n],piextent[3+6*n],piextent[4+6*n],piextent[5+6*n]);
-		result<<"<Piece Extent=\""<<pextent<<"\" Source=\""<<pname<<"\"/>"<<endl;
+		result<<"<Piece Extent=\""<<pextent<<"\" Source=\""<<pname<<"\"/>\n";
 	}
 
-	result<<"</PStructuredGrid>"<<endl;
+	result<<"</PStructuredGrid>\n";
 	result<<"</VTKFile>"<<flush;
 }
 
@@ -132,7 +139,7 @@ void vts3D::structureWrite(lexer *p, fdm *a, std::ofstream &result)
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-	result<<endl<<"</AppendedData>"<<endl;
+	result<<"\n"<<"</AppendedData>\n";
     result<<"</VTKFile>"<<flush;
 }
 
@@ -178,7 +185,7 @@ void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::ofstream &result)
         result.write((char*)&ffn, sizeof (float));
 	}
 
-	result<<endl<<"</AppendedData>"<<endl;
+	result<<"\n"<<"</AppendedData>\n";
     result<<"</VTKFile>"<<flush;
 }
 
@@ -213,6 +220,6 @@ void vts3D::structureWrite(lexer *p, fdm_nhf *d, std::ofstream &result)
         result.write((char*)&ffn, sizeof (float));
 	}
 
-	result<<endl<<"</AppendedData>"<<endl;
+	result<<"\n"<<"</AppendedData>\n";
     result<<"</VTKFile>"<<flush;
 }

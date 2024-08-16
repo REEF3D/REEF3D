@@ -47,8 +47,8 @@ class vtk3D
         virtual void ending(std::ofstream&, int*, int&){};
         virtual void endingParallel(std::ofstream&, char*, int&, int&){};
     protected:
-        void vtkVersion(std::ofstream &result){result<<"version=\"0.1\" byte_order=\"LittleEndian\">"<<std::endl;}; // header_type=\"UInt32\"
-        void xmlVersion(std::ofstream &result){result<<"<?xml version=\"1.0\"?>"<<std::endl;};
+        void vtkVersion(std::ofstream &result){result<<"version=\"1.0\" byte_order=\"LittleEndian\">\n";}; // header_type=\"UInt32\"
+        void xmlVersion(std::ofstream &result){result<<"<?xml version=\"1.0\"?>\n";};
 };
 
 #endif
