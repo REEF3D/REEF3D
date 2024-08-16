@@ -52,14 +52,6 @@ void printer_CFD::parallelData(fdm* a, lexer* p, ghostcell* pgc, turbulence *ptu
 	if(result.is_open())
 	{
 		outputFormat->beginningParallel(p,result);
-		
-		if(p->P16==1)
-		{
-		result<<"<FieldData>"<<endl;
-		result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-		result<<"</DataArray>"<<endl;
-		result<<"</FieldData>"<<endl;
-		}
 
 		result<<"<PPointData>"<<endl;
 		result<<"\t<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;

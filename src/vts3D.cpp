@@ -57,10 +57,7 @@ void vts3D::beginning(lexer *p, std::ofstream &result)
 	result<<"<StructuredGrid WholeExtent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">\n";
 	if(p->P16==1)
     {
-        result<<"<FieldData>\n";
-        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<"\n";
-        result<<"</DataArray>\n";
-        result<<"</FieldData>\n";
+        timeValue(result,p->simtime);
     }
     result<<"<Piece Extent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">\n";
 }
@@ -71,6 +68,10 @@ void vts3D::beginningParallel(lexer *p, std::ofstream &result)
 	result<<"<VTKFile type=\"PStructuredGrid\" ";
 	vtkVersion(result);
 	result<<"<PStructuredGrid WholeExtent=\"0 "<<p->gknox<<" 0 "<<p->gknoy<<" 0 "<<p->gknoz<<"\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">\n";
+    if(p->P16==1)
+    {
+        timeValue(result,p->simtime);
+    }
 }
 
 void vts3D::ending(std::ofstream &result, const int *offset, int &n)

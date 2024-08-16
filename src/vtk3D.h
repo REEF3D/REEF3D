@@ -49,6 +49,7 @@ class vtk3D
     protected:
         void vtkVersion(std::ofstream &result){result<<"version=\"1.0\" byte_order=\"LittleEndian\">\n";}; // header_type=\"UInt32\"
         void xmlVersion(std::ofstream &result){result<<"<?xml version=\"1.0\"?>\n";};
+        void timeValue(std::ofstream &result, const double time){result<<"<FieldData>\n<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<std::setprecision(7)<<time<<"\n</DataArray>\n</FieldData>\n";};
 };
 
 #endif

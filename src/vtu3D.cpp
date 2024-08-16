@@ -65,10 +65,7 @@ void vtu3D::beginning(lexer *p, std::ofstream &result)
 	result<<"<UnstructuredGrid>\n";
     if(p->P16==1)
     {
-        result<<"<FieldData>\n";
-        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<"\n";
-        result<<"</DataArray>\n";
-        result<<"</FieldData>\n";
+        timeValue(result,p->simtime);
     }
 	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">\n";
 }
@@ -79,6 +76,10 @@ void vtu3D::beginningParallel(lexer *p, std::ofstream &result)
 	result<<"<VTKFile type=\"PUnstructuredGrid\" ";
 	vtkVersion(result);
 	result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
+    if(p->P16==1)
+    {
+        timeValue(result,p->simtime);
+    }
 }
 
 void vtu3D::ending(std::ofstream &result, const int *offset, int &n)
