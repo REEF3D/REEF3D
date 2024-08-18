@@ -470,6 +470,7 @@ void lexer::ini_default()
     // Numerics
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
+    N18=1;         // int precondioner
 	N40=3;			// int time scheme
 	N41=1.0e+19; 	// double total time
 	N43=1.0e-5;     // double stopping criteria convection-diffusion

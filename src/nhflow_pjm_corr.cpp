@@ -95,7 +95,6 @@ void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, doub
 {
 	FLOOP
     WETDRYDEEP
-    if(d->breaking(i,j)==0)
     P[FIJK] += PCORR[FIJK];
 }
 
@@ -121,61 +120,65 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     n=0;
     LOOP
     {
-    fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);    
+        WETDRYDEEP
+        {
+        fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);    
 
-    U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-    U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
-    
-    V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-    V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];   
+        U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
+        U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+        
+        V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
+        V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];   
 
-    
-    if(k==0)
-    {
-    fac = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-    
-    U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-    U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
-    
-    
-    fac = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-    
-    V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-    V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
-    }
- 
-    // dz
-    z0 = p->ZP[KM2];
-    z1 = p->ZP[KM1];
-    z2 = p->ZP[KP];
-    z  = p->ZP[KP] - p->DZN[KP];
-    
-    f0 = U[IJKm2];
-    f1 = U[IJKm1];
-    f2 = U[IJK];
-    
-    Up = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
-    
-    f0 = V[IJKm2];
-    f1 = V[IJKm1];
-    f2 = V[IJK];
-    
-    Vp = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
-    
-    dUdz = (U[IJK] - Up)/p->DZN[KP];
-
-    dVdz = (V[IJK] - Vp)/p->DZN[KP];
-
-    dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
+        
+        if(k==0)
+        {
+        fac = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
+        
+        U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
+        U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+        
+        
+        fac = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
+        
+        V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
+        V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
+        }
      
-    WETDRYDEEP
-    d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
-                            + p->sigx[FIJK]*dUdz
-                            
-                            + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
-                            + p->sigy[FIJK]*dVdz
+        // dz
+        z0 = p->ZP[KM2];
+        z1 = p->ZP[KM1];
+        z2 = p->ZP[KP];
+        z  = p->ZP[KP] - p->DZN[KP];
+        
+        f0 = U[IJKm2];
+        f1 = U[IJKm1];
+        f2 = U[IJK];
+        
+        Up = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
+        
+        f0 = V[IJKm2];
+        f1 = V[IJKm1];
+        f2 = V[IJK];
+        
+        Vp = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
+        
+        dUdz = (U[IJK] - Up)/p->DZN[KP];
 
-                            + dWdz)/(alpha*p->dt);
+        dVdz = (V[IJK] - Vp)/p->DZN[KP];
+
+        dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
+         
+        
+        d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
+                                + p->sigx[FIJK]*dUdz
+                                
+                                + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
+                                + p->sigy[FIJK]*dVdz
+
+                                + dWdz)/(alpha*p->dt);
+                                
+        }
                             
     ++n;
     }
@@ -236,7 +239,7 @@ void nhflow_pjm_corr::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double 
 void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
-    WETDRY
+    //WETDRY
     d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i-1,j))*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
                 
@@ -258,7 +261,7 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     if(p->j_dir==1)
     LOOP
-    WETDRY
+    //WETDRY
 	d->G[IJK] += PORVALNH*0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
        
