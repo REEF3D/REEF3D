@@ -85,9 +85,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             vvel *= ramp(p);
             wvel *= ramp(p);
              
-            /*uvel = 2.0*uvel - U[IJK];
+            uvel = 2.0*uvel - U[IJK];
             vvel = 2.0*vvel - V[IJK];
-            wvel = 2.0*wvel - W[IJK];*/
+            wvel = 2.0*wvel - W[IJK];
             
                 U[Im1JK]=uvel;
                 U[Im2JK]=uvel;
@@ -111,9 +111,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             vhvel *= ramp(p);
             whvel *= ramp(p);
             
-            /*uhvel = 2.0*uhvel - UH[IJK];
+            uhvel = 2.0*uhvel - UH[IJK];
             vhvel = 2.0*vhvel - VH[IJK];
-            whvel = 2.0*whvel - WH[IJK];*/
+            whvel = 2.0*whvel - WH[IJK];
             
                 UH[Im1JK]=uhvel;
                 UH[Im2JK]=uhvel;
