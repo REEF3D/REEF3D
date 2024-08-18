@@ -190,9 +190,6 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
                 + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
 	}
     
-    //pgc->start4V_par(p,Fs,1);
-    //pgc->start4V_par(p,Fn,1);
-    
     pgc->start1V(p,Fs,1);
     pgc->start1V(p,Fn,1);
     

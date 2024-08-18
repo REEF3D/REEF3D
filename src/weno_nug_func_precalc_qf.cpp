@@ -52,7 +52,6 @@ void weno_nug_func::precalc_qf(lexer* p)
     qfx[IP][0][2][1] = (1.0 + (p->XN[IP1]-p->XN[IP])/(p->XN[IP1]-p->XN[IM1]) 
                             + (p->XN[IP1]-p->XN[IP])/(p->XN[IP1]-p->XN[IM2]));
                      
-    //cout<<"qfx_min: "<<qfx[IP][0][0][0]<<" "<<qfx[IP][0][0][1]<<" "<<qfx[IP][0][1][0]<<" "<<qfx[IP][0][1][1]<<" "<<qfx[IP][0][2][0]<<" "<<qfx[IP][0][2][1]<<endl;
     // iplus
     qfx[IP][0][3][0] = (1.0 + (p->XN[IP2]-p->XN[IP1])/(p->XN[IP3]-p->XN[IP1]) 
                             + (p->XN[IP2]-p->XN[IP1])/(p->XN[IP4]-p->XN[IP1]));
@@ -74,9 +73,6 @@ void weno_nug_func::precalc_qf(lexer* p)
     qfx[IP][0][5][1] = ((p->XN[IP1]-p->XN[IP])/(p->XN[IP2]-p->XN[IM1])) 
                      *((p->XN[IP2]-p->XN[IP1])/(p->XN[IP1]-p->XN[IM1]));
                      
-                     
-    //cout<<"qfx_max: "<<qfx[IP][0][3][0]<<" "<<qfx[IP][0][3][1]<<" "<<qfx[IP][0][4][0]<<" "<<qfx[IP][0][4][1]<<" "<<qfx[IP][0][5][0]<<" "<<qfx[IP][0][5][1]<<endl;
-    
     }
     
     
