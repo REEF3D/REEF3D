@@ -49,10 +49,10 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         {
             // Zone 1
             if(dg<1.0e20)
-            eta0(i,j) = wave_eta(p,pgc,xg,yg);
+            eta(i,j) = wave_eta(p,pgc,xg,yg);
 		}
     }
-    pgc->gcsl_start4(p,eta0,50);
+    pgc->gcsl_start4(p,eta,50);
     
     count=0;
     SLICELOOP1
@@ -63,7 +63,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 		db = distbeach(p);
         
         
-        deltaz = (0.5*(eta0(i,j)+eta0(i+1,j)) + p->wd - 0.5*(b->bed(i,j)+b->bed(i+1,j)))/(double(p->B160));
+        deltaz = (0.5*(eta(i,j)+eta(i+1,j)) + p->wd - 0.5*(b->bed(i,j)+b->bed(i+1,j)))/(double(p->B160));
         
         u_val=0.0;
         z=-p->wd;
@@ -95,7 +95,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         dg = distgen(p);
 		db = distbeach(p);
         
-        deltaz = (0.5*(eta0(i,j)+eta0(i,j+1)) + p->wd - 0.5*(b->bed(i,j)+b->bed(i,j+1)))/(double(p->B160));
+        deltaz = (0.5*(eta(i,j)+eta(i,j+1)) + p->wd - 0.5*(b->bed(i,j)+b->bed(i,j+1)))/(double(p->B160));
         
         v_val=0.0;
         z=-p->wd;
@@ -127,7 +127,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 		dg = distgen(p);
 		db = distbeach(p);
 
-        deltaz = (eta0(i,j) + p->wd - b->bed(i,j))/(double(p->B160));
+        deltaz = (eta(i,j) + p->wd - b->bed(i,j))/(double(p->B160));
         
         w_val=0.0;
         z=-p->wd;

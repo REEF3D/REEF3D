@@ -42,7 +42,7 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         y2=ygen2(p);
         
 
-        eta0(i,j) = wave_eta(p,pgc,xg,yg);
+        eta(i,j) = wave_eta(p,pgc,xg,yg);
         }
         
     
@@ -62,7 +62,7 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         zloc3 = p->pos3_z();
         zloc4 = p->pos_z();
         
-        fsfloc = eta0(i,j) + p->phimean;
+        fsfloc = eta(i,j) + p->phimean;
         
         if(p->B92>=20 && p->B92<30)
         fsfloc = p->zcoormax;
@@ -78,7 +78,7 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         }
         
         if(zloc3>fsfloc)
-        z3 = eta0(i,j);
+        z3 = eta(i,j);
         
         // Z
         if(zloc4<=fsfloc)
@@ -91,7 +91,7 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         }
         
         if(zloc4>fsfloc)
-        z = eta0(i,j);
+        z = eta(i,j);
         
         // U
         if(zloc4<=fsfloc+epsi)
@@ -115,7 +115,7 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         wval[count] = 0.0;
         
         // LS
-        lsval[count] = eta0(i,j) + p->phimean - p->pos_z();
+        lsval[count] = eta(i,j) + p->phimean - p->pos_z();
             
 
         ++count;

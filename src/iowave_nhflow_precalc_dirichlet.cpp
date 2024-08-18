@@ -36,25 +36,25 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        eta1(i,j)=d->eta(i,j);
+        eta(i,j)=d->eta(i,j);
         
-        eta0(i,j)   =  eta1(i,j);
-        eta0(i-1,j) =  eta1(i,j);
-        eta0(i-2,j) =  eta1(i,j);
-        eta0(i-3,j) =  eta1(i,j);
+        eta(i,j)   =  eta(i,j);
+        eta(i-1,j) =  eta(i,j);
+        eta(i-2,j) =  eta(i,j);
+        eta(i-3,j) =  eta(i,j);
         
         xg=xgen(p);
         yg=ygen(p);
         
-        eta1(i,j) = wave_eta(p,pgc,xg,yg);
+        eta(i,j) = wave_eta(p,pgc,xg,yg);
         
-        /*eta1(i-1,j) =  d->eta(i,j);
-        eta1(i-2,j) =  d->eta(i,j);
-        eta1(i-3,j) =  d->eta(i,j);*/
+        /*eta(i-1,j) =  d->eta(i,j);
+        eta(i-2,j) =  d->eta(i,j);
+        eta(i-3,j) =  d->eta(i,j);*/
         
-        eta1(i-1,j) =  eta1(i,j);
-        eta1(i-2,j) =  eta1(i,j);
-        eta1(i-3,j) =  eta1(i,j);
+        eta(i-1,j) =  eta(i,j);
+        eta(i-2,j) =  eta(i,j);
+        eta(i-3,j) =  eta(i,j);
         }
         
         count=0;
@@ -63,14 +63,7 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		i=p->gcin[n][0];
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
-        
-        uval0[count] = uval1[count];
-        vval0[count] = vval1[count];
-        wval0[count] = wval1[count];
-        
-        UHval0[count] = UHval1[count];
-        VHval0[count] = VHval1[count];
-        WHval0[count] = WHval1[count];
+
         
         x=xgen(p);
         y=ygen(p);
@@ -83,16 +76,16 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         z = p->ZSP[IJK]-p->phimean;
 
         // U
-        uval1[count] = wave_u(p,pgc,x,y,z) + p->Ui;
-        UHval1[count] = (etaval + d->depth(i,j))*uval1[count];
+        uval[count] = wave_u(p,pgc,x,y,z) + p->Ui;
+        UHval[count] = (etaval + d->depth(i,j))*uval[count];
         
         // V
-        vval1[count] = wave_v(p,pgc,x,y,z);
-        VHval1[count] = (etaval + d->depth(i,j))*vval1[count];
+        vval[count] = wave_v(p,pgc,x,y,z);
+        VHval[count] = (etaval + d->depth(i,j))*vval[count];
         
         // W
-        wval1[count] = wave_w(p,pgc,x,y,z);
-        VHval1[count] = (etaval + d->depth(i,j))*wval1[count];
+        wval[count] = wave_w(p,pgc,x,y,z);
+        VHval[count] = (etaval + d->depth(i,j))*wval[count];
 
         ++count;
         }

@@ -45,10 +45,10 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
         {
             // Zone 1
             if(dg<1.0e20)
-            eta0(i,j) = wave_eta(p,pgc,xg,yg);
+            eta(i,j) = wave_eta(p,pgc,xg,yg);
 		}
     }
-    pgc->gcsl_start4(p,eta0,50);
+    pgc->gcsl_start4(p,eta,50);
     
     
     // Fi
@@ -104,7 +104,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
         dg = distgen(p);
 		db = distbeach(p);
         
-        z = eta0(i,j);
+        z = eta(i,j);
 		
 		// Wave Generation
 		if(p->B98==2 && f_switch==1)

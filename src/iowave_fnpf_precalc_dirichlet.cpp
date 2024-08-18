@@ -39,9 +39,9 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         x1=xgen1(p);
         y2=ygen2(p);
         
-        eta0(i,j) = wave_eta(p,pgc,xg,yg);
+        eta(i,j) = wave_eta(p,pgc,xg,yg);
         
-        z = eta0(i,j);
+        z = eta(i,j);
         
         time_1=time_0;
         time_0=p->simtime;

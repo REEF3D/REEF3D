@@ -76,9 +76,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 {			
 //Step 1
 //--------------------------------------------------------
-    
-    p->RK_alpha = 1.0;
-    
+
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
@@ -96,14 +94,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
     p->fsftime+=pgc->timer()-starttime;
-    
-    if((p->B98==3 || p->B98==4) && (p->B92>=20 && p->B92<=29))
-    {
-    pflow->wavegen_precalc_nhflow(p,d,pgc);
-    pflow->discharge_nhflow(p,d,pgc);
-    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
-    pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
-    }
     
 	// U
 	starttime=pgc->timer();
@@ -181,8 +171,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
 //Step 2
 //--------------------------------------------------------
-    p->RK_alpha = 0.5;
-    
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
@@ -201,14 +189,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
-    
-    if((p->B98==3 || p->B98==4) && (p->B92>=20 && p->B92<=29))
-    {
-    pflow->wavegen_precalc_nhflow(p,d,pgc);
-    pflow->discharge_nhflow(p,d,pgc);
-    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
-    pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
-    }
+
     
 	// U
 	starttime=pgc->timer();

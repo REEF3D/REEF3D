@@ -52,7 +52,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
             }
 		}
     }
-    pgc->gcsl_start4(p,eta0,50);
+    pgc->gcsl_start4(p,eta,50);
     
 
 
@@ -74,7 +74,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z=(fabs(p->phimean-zloc1));
         
         if(zloc1>p->phimean+p->wA)
-        z = 0.5*(eta0(i,j)+eta0(i+1,j));
+        z = 0.5*(eta(i,j)+eta(i+1,j));
 
 		// Wave Generation
 		if(p->B98==2 && u_switch==1)
@@ -111,7 +111,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z=(fabs(p->phimean-zloc2));
         
         if(zloc2>p->phimean+p->wA)
-        z = 0.5*(eta0(i,j)+eta0(i,j+1));
+        z = 0.5*(eta(i,j)+eta(i,j+1));
         
 		// Wave Generation		
 		if(p->B98==2 && v_switch==1)
@@ -148,7 +148,7 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
         z=(fabs(p->phimean-zloc3));
         
         if(zloc3>p->phimean+p->wA)
-        z = eta0(i,j);
+        z = eta(i,j);
         
 		// Wave Generation
 		if(p->B98==2 && w_switch==1)

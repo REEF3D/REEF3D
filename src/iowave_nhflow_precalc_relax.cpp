@@ -44,10 +44,10 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
         {
             // Zone 1
             if(dg<1.0e20)
-            eta0(i,j) = wave_eta(p,pgc,xg,yg);
+            eta(i,j) = wave_eta(p,pgc,xg,yg);
 		}
     }
-    pgc->gcsl_start4(p,eta0,50);
+    pgc->gcsl_start4(p,eta,50);
     
 // U
     count=0;
@@ -67,7 +67,7 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(dg<1.0e20)
             {
             uval[count] = wave_u(p,pgc,xg,yg,z) + p->Ui;
-            UHval0[count] = (eta0(i,j) + d->depth(i,j))*uval[count];
+            UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
             ++count;
             }
 		}
@@ -92,7 +92,7 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(dg<1.0e20)
             {
             vval[count] = wave_v(p,pgc,xg,yg,z);
-            VHval0[count] = (eta0(i,j) + d->depth(i,j))*vval[count];
+            VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
             ++count;
             }
 		}
@@ -108,7 +108,7 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		db = distbeach(p);
         
         zloc3 = p->pos3_z();
-        fsfloc = eta0(i,j) + p->phimean;
+        fsfloc = eta(i,j) + p->phimean;
 
         z=p->ZSP[IJK]-p->phimean;
 
@@ -119,7 +119,7 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(dg<1.0e20)
             {
             wval[count] = wave_w(p,pgc,xg,yg,z);
-            WHval0[count] = (eta0(i,j) + d->depth(i,j))*wval[count];
+            WHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
             ++count;
             }
 		}

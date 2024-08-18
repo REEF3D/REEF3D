@@ -43,10 +43,10 @@ int qn;
         
 
     // ETA
-        eta0(i,j) = 0.0;
+        eta(i,j) = 0.0;
             
             for(qn=0;qn<wave_comp;++qn)
-            eta0(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
+            eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
             
         ++count;
         }
@@ -68,7 +68,7 @@ int qn;
         zloc3 = p->pos3_z();
         zloc4 = p->pos_z();
         
-        fsfloc = eta0(i,j) + p->phimean;
+        fsfloc = eta(i,j) + p->phimean;
     
         // Z3
         if(zloc3<=fsfloc)
@@ -81,7 +81,7 @@ int qn;
         }
         
         if(zloc3>fsfloc)
-        z3 = eta0(i,j);
+        z3 = eta(i,j);
         
         // Z
         if(zloc4<=fsfloc)
@@ -94,7 +94,7 @@ int qn;
         }
         
         if(zloc4>fsfloc)
-        z = eta0(i,j);
+        z = eta(i,j);
         
         uval[count] = 0.0;
         vval[count] = 0.0;
@@ -125,7 +125,7 @@ int qn;
         wval[count] = 0.0;
         
     // LS
-        lsval[count] = eta0(i,j) + p->phimean - p->pos_z();
+        lsval[count] = eta(i,j) + p->phimean - p->pos_z();
 
         ++count;
         }

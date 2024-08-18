@@ -39,9 +39,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        /*d->eta(i-1,j) = (1.0-p->RK_alpha)*eta0(i-1,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);
-        d->eta(i-2,j) = (1.0-p->RK_alpha)*eta0(i-2,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);
-        d->eta(i-3,j) = (1.0-p->RK_alpha)*eta0(i-3,j)*ramp(p) + p->RK_alpha*eta1(i-1,j)*ramp(p);*/
+        /*d->eta(i-1,j) = (1.0-p->RK_alpha)*eta(i-1,j)*ramp(p) + p->RK_alpha*eta(i-1,j)*ramp(p);
+        d->eta(i-2,j) = (1.0-p->RK_alpha)*eta(i-2,j)*ramp(p) + p->RK_alpha*eta(i-1,j)*ramp(p);
+        d->eta(i-3,j) = (1.0-p->RK_alpha)*eta(i-3,j)*ramp(p) + p->RK_alpha*eta(i-1,j)*ramp(p);*/
         
         etaval = d->eta(i,j);
         
@@ -49,7 +49,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         d->eta(i-2,j) = etaval;
         d->eta(i-3,j) = etaval;
         
-        //cout<<"ETA: "<<eta0(i,j)<<" RK_alpha: "<<p->RK_alpha<<endl;
+        //cout<<"ETA: "<<eta(i,j)<<" RK_alpha: "<<p->RK_alpha<<endl;
         }
         
         // wave maker
@@ -77,9 +77,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             WETDRYDEEP
             {
             // U, V, W
-            uvel = (1.0-p->RK_alpha)*uval0[count] + p->RK_alpha*uval1[count];
-            vvel = (1.0-p->RK_alpha)*vval0[count] + p->RK_alpha*vval1[count];
-            wvel = (1.0-p->RK_alpha)*wval0[count] + p->RK_alpha*wval1[count];
+            uvel = uval[count];
+            vvel = vval[count];
+            wvel = wval[count];
             
             uvel *= ramp(p);
             vvel *= ramp(p);
@@ -103,9 +103,9 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                   
                 
             // UH, VH, WH
-            uhvel = (1.0-p->RK_alpha)*UHval0[count] + p->RK_alpha*UHval1[count];
-            vhvel = (1.0-p->RK_alpha)*VHval0[count] + p->RK_alpha*UHval1[count];
-            whvel = (1.0-p->RK_alpha)*WHval0[count] + p->RK_alpha*UHval1[count];
+            uhvel = UHval[count];
+            vhvel = UHval[count];
+            whvel = UHval[count];
             
             uhvel *= ramp(p);
             vhvel *= ramp(p);

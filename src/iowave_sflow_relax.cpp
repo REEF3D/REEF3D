@@ -42,7 +42,7 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
             // Zone 1
             if(dg<1.0e20)
             { 
-            f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*eta0(i,j) + relax4_wg(i,j) * f(i,j);
+            f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*eta(i,j) + relax4_wg(i,j) * f(i,j);
             ++count;
             }
 		}
@@ -178,7 +178,7 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
 		dg = distgen(p);
 		db = distbeach(p);
 
-        z=eta0(i,j);
+        z=eta(i,j);
 
         wval = wave_w(p,pgc,xg,yg,z);
         

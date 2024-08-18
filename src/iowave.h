@@ -224,7 +224,7 @@ public:
     void timeseries(lexer*,ghostcell*);
 	
 private:
-    slice4 eta0,eta1;
+    slice4 eta;
     
     slice1 relax1_wg, relax1_nb;
     slice2 relax2_wg, relax2_nb;
@@ -287,12 +287,8 @@ private:
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
     double *uval,*vval,*wval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
     double *rb1val,*rb3val;
-    
-    double *uval0,*vval0,*wval0;
-    double *uval1,*vval1,*wval1;
-    
-    double *UHval0,*VHval0,*WHval0;
-    double *UHval1,*VHval1,*WHval1;
+    double *UHval,*VHval,*WHval;
+
     
     double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin,**Fifsfval_S_sin;
     double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos,**Fifsfval_S_cos;

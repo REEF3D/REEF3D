@@ -43,7 +43,7 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             if(dg<1.0e20)
             { 
             WETDRYDEEP
-            WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(eta0(i,j) + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
+            WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(eta(i,j) + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
             ++count;
             }
 		}
@@ -82,7 +82,7 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             WETDRYDEEP
             {
             U[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
-            UH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*UHval0[count] + relax4_wg(i,j)*UH[IJK];
+            UH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*UHval[count] + relax4_wg(i,j)*UH[IJK];
             }
             ++count;
             }
@@ -122,7 +122,7 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             WETDRYDEEP
             {
             V[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
-            VH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*VHval0[count] + relax4_wg(i,j)*VH[IJK];
+            VH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*VHval[count] + relax4_wg(i,j)*VH[IJK];
             }
             ++count;
             }
@@ -162,7 +162,7 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             WETDRYDEEP
             {
             W[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
-            WH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*WHval0[count] + relax4_wg(i,j)*WH[IJK];
+            WH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*WHval[count] + relax4_wg(i,j)*WH[IJK];
             }
             ++count;
             }
