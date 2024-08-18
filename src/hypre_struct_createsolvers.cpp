@@ -264,7 +264,7 @@ void hypre_struct::delete_solver5(lexer* p,ghostcell* pgc)
 
 void hypre_struct::precon_switch(lexer* p,ghostcell* pgc)
 {
-    if(num_iterations>20 && precon_type==11)
+    if(num_iterations>20 && precon_type==11 && p->N18==1)
     {
     precon_type=12;
     

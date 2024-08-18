@@ -49,7 +49,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 // maximum velocities
 
     SLICELOOP4
-	depthmax=MAX(depthmax,d->depth(i,j));
+	depthmax=MAX(depthmax,d->WL(i,j));
 	
 	depthmax=pgc->globalmax(depthmax);
     

@@ -262,7 +262,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf
     pgc->start2V(p,Fe,1);
     pgc->start2V(p,Fw,1);
 }
-
+/*
 void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
 {
     // gradient
@@ -287,7 +287,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf
     Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDX[IJKp1]);
     }
 }
-/*
+*/
 void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
 {    
     WLOOP
@@ -317,7 +317,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf
     
     pgc->start3V(p,Fb,1);
     pgc->start3V(p,Ft,1);
-}*/
+}
 
 inline void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)
 {	 
