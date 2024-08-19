@@ -224,10 +224,10 @@ namespace sediment_particle::movement
                 // else
                 //     stressDivZ = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n])-stressTensor[IJm1K])/(PP.Z[n]-(0.5*p->DZN[IM1]+p->ZN[IM1]));
 
-                // pressureDivX = (a.press(i+1,j,k) - a.press(i,j,k))/(p->DXN[IP]);
-                pressureDivX = (p->ccipol4_c(a.press,PP.X[n]+0.5*p->DXN[IP],PP.Y[n],PP.Z[n]) - p->ccipol4_c(a.press,PP.X[n]-0.5*p->DXN[IP],PP.Y[n],PP.Z[n]))/p->DXN[IP];
-                pressureDivY = (0.5*(a.press(i,j+1,k)+a.press(i+1,j+1,k)) - 0.5*(a.press(i,j-1,k)+a.press(i+1,j-1,k)))/(p->DYN[JM1]+p->DYN[JP]);
-                pressureDivZ = (0.5*(a.press(i,j,k+1)+a.press(i+1,j,k+1)) - 0.5*(a.press(i,j,k-1)+a.press(i+1,j,k-1)))/(p->DYN[KM1]+p->DYN[KP]);
+                pressureDivX = (a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22) - (a.press(i,j,k)-a.phi(i,j,k)*a.ro(i,j,k)*fabs(p->W22)))/(p->DXN[IP]);
+                // pressureDivX = (p->ccipol4_c(a.press,PP.X[n]+0.5*p->DXN[IP],PP.Y[n],PP.Z[n]) - p->ccipol4_c(a.press,PP.X[n]-0.5*p->DXN[IP],PP.Y[n],PP.Z[n]))/p->DXN[IP];
+                pressureDivY = (0.5*((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22))+(a.press(i+1,j+1,k)-a.phi(i+1,j+1,k)*a.ro(i+1,j+1,k)*fabs(p->W22))) - 0.5*((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))+(a.press(i+1,j-1,k)-a.phi(i+1,j-1,k)*a.ro(i+1,j-1,k)*fabs(p->W22))))/(p->DYN[JM1]+p->DYN[JP]);
+                pressureDivZ = (0.5*((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22))+(a.press(i+1,j,k+1)-a.phi(i+1,j,k+1)*a.ro(i+1,j,k+1)*fabs(p->W22))) - 0.5*((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))+(a.press(i+1,j,k-1)-a.phi(i+1,j,k-1)*a.ro(i+1,j,k-1)*fabs(p->W22))))/(p->DZN[KM1]+p->DZN[KP]);
 
                 if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50*10)
                     bedLoad=true;
