@@ -239,10 +239,6 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         
         p->fbmax = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), p->fbmax);
         }
-
-        pgc->start1(p,a->u,gcval_u);
-        pgc->start2(p,a->v,gcval_v);
-        pgc->start3(p,a->w,gcval_w);
         
         p->fbtime+=pgc->timer()-starttime;
         

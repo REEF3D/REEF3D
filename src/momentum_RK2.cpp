@@ -233,7 +233,6 @@ void momentum_RK2::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 void momentum_RK2::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
-	if(p->D20<4)
 	WLOOP
 	{
     a->maxH=MAX(fabs(a->rhsvec.V[n] + a->gk),a->maxH);

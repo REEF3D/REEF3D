@@ -182,12 +182,5 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     k=p->gcdf4[n][2];
 	p->gcdf4[n][5]=cval(i,j,k);
 	}
-    
-    //cout<<p->mpirank<<" p->gcdf4_count: "<<p->gcdf4_count<<endl;
-    
-    /*if(p->mpirank==2)
-    for(n=0;n<p->gcdf4_count;++n)
-    cout<<n<<" "<<p->gcdf4[n][3]<<" "<<p->gcdf4[n][5]<<endl;*/
-    
-    //delete cval();
+
 }

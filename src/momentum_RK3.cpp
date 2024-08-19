@@ -130,10 +130,6 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	
     p->wtime=pgc->timer()-starttime;
     
-    pgc->start1(p,urk1,gcval_u);
-	pgc->start2(p,vrk1,gcval_v);
-    pgc->start3(p,wrk1,gcval_w);
-    
     poneph->uvel(p,a,pgc,urk1);
     poneph->vvel(p,a,pgc,vrk1);
     poneph->wvel(p,a,pgc,wrk1);
@@ -157,8 +153,6 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     poneph->vvel(p,a,pgc,vrk1);
     poneph->wvel(p,a,pgc,wrk1);
     
-    pupdate->start(p,a,pgc);
-	
 //Step 2
 //--------------------------------------------------------
 	
@@ -216,11 +210,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     pgc->start1(p,urk2,gcval_u);
 	pgc->start2(p,vrk2,gcval_v);
     pgc->start3(p,wrk2,gcval_w);
-    
-    poneph->uvel(p,a,pgc,urk2);
-    poneph->vvel(p,a,pgc,vrk2);
-    poneph->wvel(p,a,pgc,wrk2);
-    
+
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
@@ -239,8 +229,6 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     poneph->uvel(p,a,pgc,urk2);
     poneph->vvel(p,a,pgc,vrk2);
     poneph->wvel(p,a,pgc,wrk2);
-
-    pupdate->start(p,a,pgc);
 
 //Step 3
 //--------------------------------------------------------
@@ -296,10 +284,6 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	
     p->wtime+=pgc->timer()-starttime;
     
-    pgc->start1(p,a->u,gcval_u);
-	pgc->start2(p,a->v,gcval_v);
-	pgc->start3(p,a->w,gcval_w);
-    
     poneph->uvel(p,a,pgc,a->u);
     poneph->vvel(p,a,pgc,a->v);
     poneph->wvel(p,a,pgc,a->w);
@@ -322,8 +306,6 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     poneph->uvel(p,a,pgc,a->u);
     poneph->vvel(p,a,pgc,a->v);
     poneph->wvel(p,a,pgc,a->w);
-    
-    pupdate->start(p,a,pgc);
 }
 
 void momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

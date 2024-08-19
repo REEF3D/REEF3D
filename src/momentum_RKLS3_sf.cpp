@@ -244,10 +244,6 @@ void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), p->sfmax);
         }
 
-        pgc->start1(p,a->u,gcval_u);
-        pgc->start2(p,a->v,gcval_v);
-        pgc->start3(p,a->w,gcval_w);
-        
         // Pressure
         pflow->pressure_io(p,a,pgc);
         ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, a->u, a->v, a->w, 2.0*alpha(loop));

@@ -99,7 +99,7 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
     triangle_switch_ray(p,pgc);
 	
 	// Refine triangles
-    if(p->X185>0 && p->X60==1)
+    if(p->X185>0 && p->X60==1 && entity_count>0)
 	geometry_refinement(p,pgc);	
 
     if(p->mpirank==0)
