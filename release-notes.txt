@@ -1,4 +1,36 @@
 
+24.05
+x fixed wave dirichlet space-time decomposition wavegen (NHFLOW)
+x improved wetdry interface pressure calculation (NHFLOW)
+x updated wetdry algorithm (NHFLOW)
+x fixed wavemaker and 2D dirichlet wavegen (NHFLOW)
+x added HCDS6 scheme for convection discretization (CFD)
+x added semi-implicit Runge-Kutta time integration (CFD)
+x updated wavegentime calculation 
+x added still water level to HDC files
+x added turbulent buoyancy term (CFD)
+x added course over ground motion file (6DOF)
+x fixed a rotation bug (6DOF)
+x updated RANS stabilization scheme (CFD)
+x added Engelund-Hansen bedload formula
+x updated sediment settling velocity calculation
+x updated suspended sediment transport (CFD)
+x added time stamp to all paraview file types
+x fixed potential flow ini (CFD)
+x improved potential flow ini for water phase only (CFD)
+x updated SFLOW tutorial
+x updated SFLOW defaults
+x added fb option to vtp (SFLOW and NHFLOW)
+x updated 6DOF ray cast algorithm
+x updated 6DOF one-way (SFLOW)
+x updated 6DOF one-way (NHFLOW)
+x updated 6DOF RK3 
+x fixed vtu file naming (CFD)
+x fixed 6DOF for SFLOW
+x fixed RK2 and RK3 for 6DOF (CFD)
+x added Paraview VTR and VTS file print outs (CFD)
+x added Paraview VTS file print outs (FNPF and NHFLOW)
+
 24.03
 x fixed 6DOF forcing update (CFD)
 x fixed 6DOF prescribed motion (CFD)

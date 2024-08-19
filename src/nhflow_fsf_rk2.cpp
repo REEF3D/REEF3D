@@ -96,8 +96,9 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
     
-    wetdry(p,d,pgc,U,V,W,WLRK1);
-    //breaking(p,d,pgc,d->eta,d->eta_n,1.0);
+    wetdry(p,d,pgc,U,V,W,WLRK1); 
+
+    forcing(p,d,pgc,U,V,W,WLRK1);   
 }
 
 void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
@@ -132,16 +133,11 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->detadt,1);
     
     wetdry(p,d,pgc,U,V,W,d->WL);
-    //breaking(p,d,pgc,d->eta,d->eta_n,1.0);
+    
+    forcing(p,d,pgc,U,V,W,d->WL);
+    
 }
 
-void nhflow_fsf_f::flux_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
-{    
-    SLICELOOP4
-    K(i,j) = 0.0;
-    
-    LOOP
-    K(i,j) += - p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
-}
+
 
 

@@ -92,9 +92,16 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pconvec->start(p,d,4,d->WL);
 
     pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
-    //sigma_update(p,d,pgc,WLRK1);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
     p->fsftime+=pgc->timer()-starttime;
+    
+    if((p->B98==3 || p->B98==4) && (p->B92>=20 && p->B92<=29))
+    {
+    pflow->wavegen_precalc_nhflow(p,d,pgc);
+    pflow->discharge_nhflow(p,d,pgc);
+    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
+    pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
+    }
     
 	// U
 	starttime=pgc->timer();
@@ -151,11 +158,13 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
-    pnhfdf->forcing(p, d, pgc, 1.0, UHRK1, VHRK1, WHRK1);
+    pnhfdf->forcing(p, d, pgc, 1.0, UHRK1, VHRK1, WHRK1, WLRK1);
     
     //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
+    
+    pnhfdf->forcing(p, d, pgc, 1.0, UHRK1, VHRK1, WHRK1, WLRK1);
 
     pflow->U_relax(p,pgc,d->U,UHRK1);
     pflow->V_relax(p,pgc,d->V,VHRK1);
@@ -182,10 +191,17 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     pconvec->start(p,d,4,WLRK1);
     pfsf->rk2_step2(p, d, pgc, pflow, UHRK1,VHRK1,WHRK1, WLRK1, WLRK1, 0.5);
-    //sigma_update(p,d,pgc,d->WL);
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
+    
+    if((p->B98==3 || p->B98==4) && (p->B92>=20 && p->B92<=29))
+    {
+    pflow->wavegen_precalc_nhflow(p,d,pgc);
+    pflow->discharge_nhflow(p,d,pgc);
+    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
+    pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
+    }
     
 	// U
 	starttime=pgc->timer();
@@ -242,13 +258,15 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
     
-    pnhfdf->forcing(p, d, pgc, 1.0, d->UH, d->VH, d->WH);
+    pnhfdf->forcing(p, d, pgc, 0.5, d->UH, d->VH, d->WH, d->WL);
     
 	//pflow->pressure_io(p,a,pgc);
     ppress->start(p,d,ppoissonsolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,0.5);
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
 	
+    pnhfdf->forcing(p, d, pgc, 0.5, d->UH, d->VH, d->WH, d->WL);
+    
 	pflow->U_relax(p,pgc,d->U,d->UH);
     pflow->V_relax(p,pgc,d->V,d->VH);
     pflow->W_relax(p,pgc,d->W,d->WH);
@@ -334,7 +352,7 @@ void nhflow_momentum_RK2::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *
     LOOP
     {
     d->W[IJK] = 0.0;  
-    //WH[IJK] = 0.0;
+    WH[IJK] = 0.0;
     }
     
     

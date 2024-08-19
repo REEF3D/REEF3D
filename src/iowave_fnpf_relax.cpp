@@ -37,7 +37,6 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 		// Wave Generation
 		if(p->B98==2 && f_switch==1)
         {
-            // Zone 1
             if(dg<1.0e20)
             {
             f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*Fifsfval[count]  + relax4_wg(i,j)*f(i,j);

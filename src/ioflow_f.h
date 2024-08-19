@@ -138,6 +138,7 @@ public:
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*){};
     
     
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);

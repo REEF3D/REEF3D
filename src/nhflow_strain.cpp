@@ -42,10 +42,10 @@ void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *WALL
     
     LOOP
     {  
-        if(p->flag4[Im1JK]<0)
+        if(p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)
         WALLF[IJK]=1;
 
-        if(p->flag4[Ip1JK]<0)
+        if(p->flag4[Ip1JK]<0  && p->IO[Ip1JK]!=2)
         WALLF[IJK]=1;
         
         if(p->flag4[IJm1K]<0)
@@ -85,7 +85,6 @@ void nhflow_strain::Pk_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         s13 = (dudz(d->U) + dwdx(d->W));
         s23 = 0.0;
         }
-
 
         PK[IJK] = d->EV[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
     }

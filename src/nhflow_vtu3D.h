@@ -28,6 +28,7 @@ Author: Hans Bihs
 
 class fdm_nhf;
 class force_ale;
+class ioflow;
 class nhflow_print_wsf;
 class nhflow_print_wsf_theory;
 class nhflow_print_wsfline;
@@ -40,7 +41,8 @@ class nhflow_state;
 class nhflow_breaking_log;
 class nhflow_vel_probe;
 class nhflow_vel_probe_theory;
-class ioflow;
+class nhflow_print_Hs;
+class nhflow_turbulence;
 
 using namespace std;
 
@@ -50,12 +52,12 @@ class nhflow_vtu3D : public nhflow_printer, public increment
 public:
 	nhflow_vtu3D(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vtu3D();
-	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*);
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*);
-    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*);
+	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*);
+    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*);
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*);
     
 private:
-    void pvtu(lexer*,ghostcell*);
+    void pvtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*);
     void name_iter(lexer*,ghostcell*);
     void name_time(lexer*,ghostcell*);
     void piecename(lexer*,ghostcell*, int);
@@ -86,6 +88,7 @@ private:
 	force_ale **pforce_ale;
     nhflow_vel_probe *pvel;
     nhflow_vel_probe_theory *pveltheo;
+    nhflow_print_Hs *phs;
 };
 
 #endif

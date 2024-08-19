@@ -24,8 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"nhflow_turbulence.h"
 
-void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
+void nhflow_vtu3D::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb)
 {	
 	int num=0;
     
@@ -57,12 +58,18 @@ void nhflow_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+    pnhfturb->name_pvtu(p,d,pgc,result);
     result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
     if(p->P23==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+    if(p->P110==1)
+	result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
     if(p->P25==1)
+    {
 	result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"Heaviside\"/>"<<endl;
+    }
 	result<<"</PPointData>"<<endl;
 	
     result<<"<PPoints>"<<endl;

@@ -30,7 +30,6 @@ Author: Tobias Martin
 void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
 {
     // Store initial position of triangles
-    
 	for(n=0; n<tricount; ++n)
 	{
         for(int q=0; q<3; q++)

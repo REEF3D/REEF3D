@@ -44,13 +44,11 @@ int qn;
 
     // ETA
         eta(i,j) = 0.0;
-        etaval[count] = 0.0;
             
             for(qn=0;qn<wave_comp;++qn)
-            {
             eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-            etaval[count] = eta(i,j);
-            }
+            
+        ++count;
         }
     
         count=0;

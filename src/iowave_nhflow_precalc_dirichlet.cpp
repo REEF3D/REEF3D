@@ -25,71 +25,54 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_precalc_dirichlet(lexer *p,fdm_nhf *d, ghostcell *pgc)
-{       
-        count=0;
-		for(n=0;n<p->gcslin_count;n++)
+void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{  
+        double etaval=0.0;
+        
+        for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
         xg=xgen(p);
         yg=ygen(p);
-        x1=xgen1(p);
-        y2=ygen2(p);
         
-
         eta(i,j) = wave_eta(p,pgc,xg,yg);
-        etaval[count] = eta(i,j);
-        ++count;
+        
+        eta(i-1,j) =  eta(i,j);
+        eta(i-2,j) =  eta(i,j);
+        eta(i-3,j) =  eta(i,j);
         }
         
-        
         count=0;
-		for(n=0;n<p->gcin_count;n++)
+        for(n=0;n<p->gcin_count;n++)
 		{
 		i=p->gcin[n][0];
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
         
-        //cout<<"precalc: "<<i<<" "<<j<<" "<<k<<endl;
         x=xgen(p);
         y=ygen(p);
-        x1=xgen1(p);
-        y2=ygen2(p);
-                
+            
+        etaval = eta(i,j);
+        
+        if(p->B92>=20 && p->B92<=29)
+        etaval = 0.0;
+
         z = p->ZSP[IJK]-p->phimean;
 
         // U
-        if(z<=eta(i,j)+epsi)
-        {
-        uval[count] = wave_u(p,pgc,x1,y,z);
-        UHval[count] = (eta(i,j) + d->depth(i,j))*(wave_u(p,pgc,xg,yg,z) + p->Ui);
-        }
-        
-        if(z>eta(i,j)+epsi)
-        uval[count] = 0.0;
+        uval[count] = wave_u(p,pgc,x,y,z) + p->Ui;
+        UHval[count] = (etaval + d->depth(i,j))*uval[count];
         
         // V
-        if(z<=eta(i,j)+epsi)
-        {
-        vval[count] = wave_v(p,pgc,x,y2,z);
-        VHval[count] = (eta(i,j) + d->depth(i,j))*wave_v(p,pgc,xg,yg,z);
-        }
-            
-        if(z>eta(i,j)+epsi)
-        vval[count] = 0.0;
+        vval[count] = wave_v(p,pgc,x,y,z);
+        VHval[count] = (etaval + d->depth(i,j))*vval[count];
         
         // W
-        if(z<=eta(i,j)+epsi)
-        {
         wval[count] = wave_w(p,pgc,x,y,z);
-        VHval[count] = (eta(i,j) + d->depth(i,j))*wave_v(p,pgc,xg,yg,z);
-        }
-            
-        if(z>eta(i,j)+epsi)
-        wval[count] = 0.0;
-        
+        VHval[count] = (etaval + d->depth(i,j))*wval[count];
+
         ++count;
         }
 }

@@ -33,13 +33,13 @@ void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
 	
     entity_count=0;
 	
-	for(qn=0;qn<p->A561;++qn)
+	for(qn=0;qn<p->A581;++qn)
     {
         box(p,pgc,qn);
         ++entity_count;
     }
 	
-	for(qn=0;qn<p->A564;++qn)
+	for(qn=0;qn<p->A584;++qn)
     {
         cylinder_z(p,pgc,qn);
         ++entity_count;
@@ -73,19 +73,19 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     
-    entity_sum = p->A561 + p->A564;
+    entity_sum = p->A581 + p->A584;
 	tricount=0;
     trisum=0;
     
     // box
-    trisum+=12*p->A561;
+    trisum+=12*p->A581;
     
     // cylinder_z
     r=p->X133_rad;
 	U = 2.0 * PI * r;
 	ds = 0.75*(U*p->dx);
 	snum = int(U/ds);
-    trisum+=5*(snum+1)*p->A564;
+    trisum+=5*(snum+1)*p->A584;
 
     // STL
     //if(p->X180==1)

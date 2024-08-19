@@ -45,7 +45,7 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 	double u,v,w;
 	double denom;
 	double psi = 1.0e-8*p->DXM;
-    
+    double margin = 2.0*p->DXM;
     
     LOOP
 	{
@@ -73,17 +73,19 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
     
 	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
     && Ay>=p->global_ymin && Ay<=p->global_ymax
-    && Az>=zmin && Az<=zmax)
+    && Az>=zmin-margin && Az<=zmax)
     checkin=1;
     
     if(Bx>=p->global_xmin && Bx<=p->global_xmax 
     && By>=p->global_ymin && By<=p->global_ymax
-    && Bz>=zmin && Bz<=zmax)
+    && Bz>=zmin-margin && Bz<=zmax)
     checkin=1;
     
     if(Cx>=p->global_xmin && Cx<=p->global_xmax 
     && Cy>=p->global_ymin && Cy<=p->global_ymax
-    && Cz>=zmin && Cz<=zmax)
+    && Cz>=zmin-margin && Cz<=zmax)
+    checkin=1;
+    
     checkin=1;
         
     if(checkin==1)

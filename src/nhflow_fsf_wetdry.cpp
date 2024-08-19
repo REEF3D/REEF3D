@@ -52,13 +52,25 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
             
             if(p->wet[IJm1]==1 && d->eta(i,j)<d->eta(i,j-1) && WL(i,j-1)>p->A544+eps && p->j_dir==1)
             temp[IJ]=1;
+            
+            if(p->wet[Im1Jm1]==1 && d->eta(i,j)<d->eta(i-1,j-1) && WL(i-1,j-1)>p->A544+eps && p->j_dir==1)
+            temp[IJ]=1;
+            
+            if(p->wet[Im1Jp1]==1 && d->eta(i,j)<d->eta(i-1,j+1) && WL(i-1,j+1)>p->A544+eps && p->j_dir==1)
+            temp[IJ]=1;
+            
+            if(p->wet[Ip1Jm1]==1 && d->eta(i,j)<d->eta(i+1,j-1) && WL(i+1,j-1)>p->A544+eps && p->j_dir==1)
+            temp[IJ]=1;
+            
+            if(p->wet[Ip1Jp1]==1 && d->eta(i,j)<d->eta(i+1,j+1) && WL(i+1,j+1)>p->A544+eps && p->j_dir==1)
+            temp[IJ]=1;
         }
         
         else              
         if(WL(i,j)<=p->A544)
         {
         temp[IJ]=0;
-        d->eta(i,j) = p->A544 - d->depth(i,j);
+        d->eta(i,j) =  - d->depth(i,j);
         WL(i,j) = d->eta(i,j) + d->depth(i,j);
         }
     }
@@ -97,9 +109,11 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0 || p->wet[Ip3J]==0 || p->wet[Im1J]==0 || p->wet[Im2J]==0 || p->wet[Im3J]==0)
     p->deep[IJ]=0;
     
+    if(p->j_dir==1)
     if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJp3]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0 || p->wet[IJm3]==0)
     p->deep[IJ]=0;
     
+    if(p->j_dir==1)
     if(p->wet[Ip1Jp1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Im1Jm1]==0)
     p->deep[IJ]=0;
     }

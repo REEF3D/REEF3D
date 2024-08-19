@@ -48,9 +48,7 @@ public:
     virtual void rk3_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     virtual void rk3_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     virtual void rk3_step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
-    
-    virtual void flux_update(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
-    
+
     virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&);
     virtual void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*);
     
@@ -58,6 +56,8 @@ public:
     virtual void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*);
     
     virtual void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double);
+    
+    virtual void forcing(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
     
     virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double);
     virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double);

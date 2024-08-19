@@ -50,11 +50,11 @@ void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
     }
 }
 
-
 void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
 {
     double starttime, endtime;
     starttime=pgc->timer();
+
     
 	// Update position of triangles 
 	for(n=0; n<tricount; ++n)
@@ -72,14 +72,6 @@ void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
             tri_x[n][q] = point(0) + c_(0);
             tri_y[n][q] = point(1) + c_(1);
             tri_z[n][q] = point(2) + c_(2);
-            
-            //cout<<tri_x0[n][q]<<" "<<tri_x[n][q]<<" "<<point(0)<<" "<<c_(0)<<endl;
-
-			// 2D
-			/*if(p->X11_v!=1 && p->X11_p!=1 && p->X11_r!=1) 
-			{
-				tri_y[n][q] = tri_y0[n][q] + c_(1);	
-			}*/
         }
 	}
     

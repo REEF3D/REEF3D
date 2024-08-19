@@ -29,8 +29,6 @@ sixdof_motionext_file_CoG::sixdof_motionext_file_CoG(lexer *p, ghostcell *pgc)
 {
     ini(p,pgc);
     
-    //cout<<"6DOF MOTION START"<<endl;
-    
     // number of file columns
     colnum = 4;
     
@@ -38,7 +36,6 @@ sixdof_motionext_file_CoG::sixdof_motionext_file_CoG(lexer *p, ghostcell *pgc)
 	timecount=1;
     
     // read file
-    //if(p->mpirank==0)
     read_format_1(p,pgc);
 }
 
@@ -84,26 +81,24 @@ void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen:
         
         dp_(1) = 0.0;
         dc_(1) = Vext*ramp_vel(p);
-
 }
 
 void sixdof_motionext_file_CoG::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
-
         Rext = 0.0;
         
         if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
         Rext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
     
+        //cout<<p->mpirank<<" Rext: "<<Rext*(180.0/PI)<<endl;
     
-    dh_ << 0.0,0.0,0.0;
-    
-    omega_ << 0.0, 0.0, Rext*ramp_vel(p);
-    
-    h_ = I_*omega_;
-    
-
-    de_ = 0.5*G_.transpose()*I_.inverse()*h_;
+        dh_ << 0.0,0.0,0.0;
+        
+        omega_ << 0.0, 0.0, Rext*ramp_vel(p);
+        
+        h_ = I_*omega_;
+        
+        de_ = 0.5*G_.transpose()*I_.inverse()*h_;
 }
 
 double sixdof_motionext_file_CoG::ramp_vel(lexer *p)

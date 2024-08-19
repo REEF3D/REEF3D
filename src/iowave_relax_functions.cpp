@@ -208,3 +208,17 @@ double iowave::ramp(lexer *p)
 
     return f;
 }
+
+double iowave::ramp_corr(lexer *p)
+{
+    double f=1.0;
+
+    double duration=10.0;
+    
+    if( p->simtime<duration)
+    {
+    f = p->simtime/(duration) - (1.0/PI)*sin(PI*(p->simtime/(duration)));
+    }
+
+    return f;
+}

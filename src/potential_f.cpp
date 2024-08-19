@@ -217,7 +217,6 @@ void potential_f::laplace(lexer *p, fdm *a, ghostcell *pgc, field &phi)
     ++n;
     }
     
-    
 	n=0;
     LOOP
 	{
@@ -345,7 +344,7 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
             j=p->gcb4[n][1];
             k=p->gcb4[n][2];  
             
-            if((p->X10==0 || a->fb(i,j,k)>0.0) && (p->G3==0 || (a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)))
+            if((p->X10==0 || a->fb(i,j,k)>0.0) && (p->G3==0 || ((a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))))
             {
        
             if(p->gcb4[n][3]==1)

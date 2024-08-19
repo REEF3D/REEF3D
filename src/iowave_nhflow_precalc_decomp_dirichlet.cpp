@@ -36,25 +36,21 @@ void iowave::nhflow_wavegen_precalc_decomp_dirichlet(lexer *p, ghostcell *pgc)
         j=p->gcslin[n][1];
 
         eta(i,j) = 0.0;
-        etaval[count] = 0.0;
             
         for(qn=0;qn<wave_comp;++qn)
-        {
         eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-        etaval[count] = eta(i,j);
-        }
         
         ++count;
         }
         
     // -------------
         count=0;
-		for(n=0;n<p->gcin_count;n++)
-		{
+        for(n=0;n<p->gcin_count;n++)
+        {
         uval[count] = 0.0;
         vval[count] = 0.0;
         wval[count] = 0.0;
-        
+
     // U
         for(qn=0;qn<wave_comp;++qn)
         uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];

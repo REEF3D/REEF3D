@@ -52,7 +52,7 @@ void fsi_strips::initialize(lexer *p, fdm *a, ghostcell *pgc)
 void fsi_strips::start(lexer*,fdm*,ghostcell*){}
 
 
-void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalise)
+void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
     starttime0=pgc->timer();
     
@@ -129,7 +129,7 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         starttime=pgc->timer();
 
         // Print
-        if (finalise==true)
+        if (finalize==true)
         {
             pstrip[num]->print_stl(p,a,pgc);
             pstrip[num]->print_parameter(p, a, pgc);

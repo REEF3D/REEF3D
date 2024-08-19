@@ -41,9 +41,6 @@ void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, doub
     
 	if(p->B99==3||p->B99==4||p->B99==5)
 	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
-    
-    //if(p->I230>0)
-    //ff_inflow(p,d,pgc,U,V,W);
 }
 
 void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
@@ -105,8 +102,15 @@ void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U
 
 void iowave::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
 {
+    if(p->B98>=3)
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
     
-    
-    
+    WL(i-1,j) = eta(i,j) + d->depth(i,j);
+    WL(i-2,j) = eta(i,j) + d->depth(i,j);
+    WL(i-3,j) = eta(i,j) + d->depth(i,j);
+    }
     
 }

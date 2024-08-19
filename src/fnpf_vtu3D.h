@@ -25,6 +25,8 @@ Author: Hans Bihs
 
 class fdm_fnpf;
 class force_ale;
+class potentialfile_out;
+class ioflow;
 class fnpf_print_wsf;
 class fnpf_print_wsf_theory;
 class fnpf_print_wsfline;
@@ -37,8 +39,6 @@ class fnpf_print_Hs;
 class fnpf_vel_probe;
 class fnpf_vel_probe_theory;
 class fnpf_runup;
-class potentialfile_out;
-class ioflow;
 
 #ifndef FNPF_VTU3D_H_
 #define FNPF_VTU3D_H_

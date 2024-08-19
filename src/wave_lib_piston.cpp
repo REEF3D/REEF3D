@@ -30,7 +30,7 @@ wave_lib_piston::wave_lib_piston(lexer *p, ghostcell *pgc) : wave_lib_parameters
 { 
     if(p->mpirank==0)
     {
-    cout<<"Wave_Lib: piston wavemaker theory";
+    cout<<"Wave_Lib: piston wavemaker theory"<<endl;
     }
 	
     timecount_old=0;
@@ -69,7 +69,6 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
     
-
     if(p->simtime<ts || p->simtime>te)
 	return 0.0;
 	
@@ -103,10 +102,12 @@ double wave_lib_piston::wave_w(lexer *p, double x, double y, double z)
 
 double wave_lib_piston::wave_eta(lexer *p, double x, double y)
 {
-    double eta;
-
-    eta =  0.0;
-
+    double eta=0.0;
+    
+    double depth = p->wd - p->bed[IJ];
+    
+    eta =  (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]) * sqrt(depth/9.81);    
+    
     return eta;
 }
 

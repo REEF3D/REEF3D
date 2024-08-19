@@ -41,7 +41,10 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     int inflow=0;
     int outflow=0;
     
-    if(p->B98>=3 || p->B60==1)
+    if(p->B60==1)
+    inflow=1;
+    
+    if(p->B98>=3)
     inflow=1;
     
     if(p->B99>=3)
@@ -67,6 +70,10 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         if(p->flag1[Im1JK]<0 && gcv==10 && inflow==1)
         {
         f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->eta(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->eta(i-1,j)*d->dfx(i,j);
+        
+        /*cout<<p->mpirank<<"  FX_IM1: "<<f[Im1JK]<<" FX_I: "<<f[IJK]<<" FX_IP1: "<<f[Ip1JK]<<" k: "<<k<<endl;
+        cout<<p->mpirank<<"  d->U_IM1: "<<d->U[Im1JK]<<" d->U_I: "<<d->U[IJK]<<" d->UH_IP1: "<<d->U[Ip1JK]<<" k: "<<k<<endl;
+        cout<<p->mpirank<<"  d->UH_IM1: "<<d->UH[Im1JK]<<" d->UH_I: "<<d->UH[IJK]<<" d->UH_IP1: "<<d->UH[Ip1JK]<<" k: "<<k<<endl;*/
         }
         
         // Gx
@@ -75,7 +82,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         f[Im1JK] = 0.0;
         }
         
-        if(p->flag1[Im1JK]<0 && gcv==11 && inflow==1)
+        if(p->flag1[Im1JK]<0 && gcv==11 && inflow>=1)
         {
         f[Im1JK] = d->VH[Im1JK]*d->U[Im1JK];
         }
@@ -86,7 +93,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         f[Im1JK] = 0.0;
         }
         
-        if(p->flag1[Im1JK]<0 && gcv==12 && inflow==1)
+        if(p->flag1[Im1JK]<0 && gcv==12 && inflow>=1)
         {
         f[Im1JK] = d->WH[Im1JK]*d->U[Im1JK];
         }
@@ -97,7 +104,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         f[Im1JK] = 0.0;
         }
         
-        if(p->flag1[Im1JK]<0 && gcv==14 && inflow==1)
+        if(p->flag1[Im1JK]<0 && gcv==14 && inflow>=1)
         {
         f[Im1JK] = d->UH[Im1JK];
         }

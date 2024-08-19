@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
-#include<sys/stat.h>
-#include<sys/types.h>
 
 fnpf_runup::fnpf_runup(lexer* p, fdm_fnpf *c, ghostcell *pgc, int qn) : ID(qn)
 {
@@ -41,19 +39,20 @@ void fnpf_runup::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     fnpf_runupprintcount=0;
 
-    // Read cylinder force input - xc,yc,rc,cd,cm
+    // Read cylinder force input - xc,yc,rc
     xc = p->P140_x[ID];
 	yc = p->P140_y[ID];
+    rc = p->P141; //Edgar: Assign a varibale the radius of the cylinder
 
     // Open files
     print_ini(p,c,pgc);
 
     // Ini arrays
-	p->Darray(un, p->knoz);
-	p->Darray(vn, p->knoz);
+	//p->Darray(un, p->knoz);
+	//p->Darray(vn, p->knoz);
 
     // Ini eta
-	etan=p->wd;
+	etan = p->wd;
 
     // Ini processor boundaries
 	xstart = p->originx;
@@ -70,11 +69,12 @@ void fnpf_runup::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
         i = p->posc_i(xc);
         j = p->posc_j(yc);
+        
+        cout<<"Run-up "<<i<<" "<<j<<endl;
 
         // Calculate runup
         fnpf_runup_calc(p,c,pgc);
     }
-
 
     // Sum up to distribute forces
     R1 = pgc->globalmax(R1);

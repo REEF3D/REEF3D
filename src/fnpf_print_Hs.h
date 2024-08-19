@@ -26,7 +26,6 @@ Author: Dave Kelly
 #include<fstream>
 
 class lexer;
-class fdm_fnpf;
 class ghostcell;
 class slice;
 
@@ -41,7 +40,7 @@ public:
     fnpf_print_Hs(lexer*,slice&);
 	virtual ~fnpf_print_Hs();
 
-	void start(lexer*, ghostcell*,slice&,slice&);
+	void start(lexer*,ghostcell*,slice&,slice&);
     
     slice4 ETAsum, ETAmean; //DKAF
     slice4 ETA2sum, ETAvar; //DKAF

@@ -132,7 +132,7 @@ double wave_lib_Stokes_5th::wave_v_time_cos(lexer *p, int n)
 double wave_lib_Stokes_5th::wave_horzvel(lexer *p, double x, double y, double z)
 {
 	T = wk*x-ww*(p->simtime) + pshift;
-
+    
     vel = c0*sqrt(9.81/wk)
          *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*cos(T)
          + 2.0*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wdt+z))*cos(2.0*T)

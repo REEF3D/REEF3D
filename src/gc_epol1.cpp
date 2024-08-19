@@ -63,11 +63,11 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	
     // Orthogonal
 	else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==1||cs==4)&&(gcv==10||gcv==1))
+	if((bc==21||bc==22||bc==5)&&(cs==1||cs==4)&&(gcv==10||gcv==1))
 	return gclabel_u_orth;
 
 	else
-	if((bc==21||bc==22||bc==5||(bc==7&&awa_lable==0))&&(cs==1||cs==4)&&gcv==7)
+	if((bc==21||bc==22||bc==5)&&(cs==1||cs==4)&&gcv==7)
 	return gclabel_vel;
 
 //Inflow
@@ -80,7 +80,6 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==10||gcv==1||gcv==7))
 	return 4;
     
-	
 //Outflow
 	else
 	if((bc==2 && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==2||cs==3||cs==5||cs==6))
@@ -91,7 +90,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 	return gclabel_u_out;
     
     else
-	if(((bc==8 || bc==7) && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==1||cs==4) && p->I10==1 )
+	if(((bc==8 || bc==7) && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==1||cs==4) && p->I10==1)
 	return 4;
 
 //Free Surface

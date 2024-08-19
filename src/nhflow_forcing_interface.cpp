@@ -20,46 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fdm_ngx.h"
+#include"nhflow_forcing.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"nhflow_reinidisc_fsf.h"
 
-fdm_ngx::fdm_ngx(lexer *p) :
-			fbh1(p),fbh2(p),fbh3(p),fbh4(p),fbh5(p),
-			nodeval(p),nodeval2D(p),etaloc(p),
-            eta(p),eta_n(p),depth(p),
-            Fifsf(p),K(p),
-            bed(p),
-            rhsvec(p),M(p)
-            
+double nhflow_forcing::Hsolidface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
 {
+    double psi, H, phival_sf,dirac;
     
-	maxF=0.0;
-	maxG=0.0; 
-	maxH=0.0;
+    if (p->j_dir==0)
+    psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]/p->sigz[IJ]);
+	
+    if (p->j_dir==1)
+    psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]/p->sigz[IJ]);
+
+
+    // Construct solid heaviside function
+    phival_sf = d->SOLID[IJK];
     
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
-    
-    C4.allocate(p);
-    C4a.allocate(p);
-    C6.allocate(p);
+	
+    if (-phival_sf > psi)
+    H = 1.0;
+
+    else if (-phival_sf < -psi)
+    H = 0.0;
+
+    else
+    H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
+
+
+    return H;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

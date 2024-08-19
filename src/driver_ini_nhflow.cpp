@@ -68,6 +68,9 @@ void driver::driver_ini_nhflow()
     pflow->ini_nhflow(p,d,pgc);
     pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL); 
     
+    // sigma ini
+    pnhfmom->inidisc(p,d,pgc,pnhfsf);
+    
     for(int qn=0;qn<20;++qn)
     {
     pflow->eta_relax(p,pgc,d->eta);
@@ -126,7 +129,7 @@ void driver::driver_ini_nhflow()
     //6DOF ini
     p6dof->ini(p,pgc);
     
-    pnhfprint->start(p,d,pgc,pflow);
+    pnhfprint->start(p,d,pgc,pflow,pnhfturb);
 
 // ini variables
     for(int qn=0; qn<2; ++qn)

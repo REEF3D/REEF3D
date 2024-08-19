@@ -37,9 +37,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         x1=xgen1(p);
         y2=ygen2(p);
         
-
         eta(i,j) = wave_eta(p,pgc,xg,yg);
-        etaval[count] = eta(i,j);
         
         z = eta(i,j);
         

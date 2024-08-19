@@ -200,7 +200,7 @@ void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
     
     count=0;
     
-    if(p->T44==1)
+    if(p->T45==1)
     LOOP
     {
         a->rhsvec.V[count]  -= pk_b(p,a,a->eddyv);

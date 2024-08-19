@@ -45,16 +45,22 @@ void nhflow_idiff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *pso
 					+   (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KM1])
 					+   (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
     
-	 d->M.s[n] -= visc/(p->DXN[IP]*p->DXP[IM1]);
-	 d->M.n[n] -= visc/(p->DXN[IP]*p->DXP[IP]);
+	 d->M.s[n] -= -2.0*visc/(p->DXP[IM1]*p->DXN[IP]);
+	 d->M.n[n] -= -2.0*visc/(p->DXP[IP]*p->DXN[IP]);
 	 
-	 d->M.e[n] -= visc/(p->DYN[JP]*p->DYP[JM1])*p->y_dir;
-	 d->M.w[n] -= visc/(p->DYN[JP]*p->DYP[JP])*p->y_dir;
+	 d->M.e[n] -= visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+	 d->M.w[n] -= visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
 	 
-	 d->M.b[n] -= (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KM1]);
-	 d->M.t[n] -= (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
+	 d->M.b[n] -= (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP]) 
+                        - 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]);
+                        
+	 d->M.t[n] -= (visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP])     
+                        + 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]);
      
-     d->rhsvec.V[n] +=       visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(F[Ip1JKp1] - F[Im1JKp1] - F[Ip1JKm1] + F[Im1JKm1])
+     d->rhsvec.V[n] +=     (CPORNH*F[IJK])/(alpha*p->dt)
+                            
+                            
+                            + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(F[Ip1JKp1] - F[Im1JKp1] - F[Ip1JKm1] + F[Im1JKm1])
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
                             + visc*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(F[IJp1Kp1] - F[IJm1Kp1] - F[IJp1Km1] + F[IJm1Km1])

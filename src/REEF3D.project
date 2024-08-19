@@ -41,56 +41,6 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Hydrodynamics">
-      <VirtualDirectory Name="NGX">
-        <VirtualDirectory Name="Turbulence"/>
-        <VirtualDirectory Name="Printer">
-          <VirtualDirectory Name="VTU"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Pressure">
-          <File Name="ngx_pressure.h"/>
-          <VirtualDirectory Name="Reference"/>
-          <VirtualDirectory Name="Poisson"/>
-          <VirtualDirectory Name="Density"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Momentum">
-          <File Name="ngx_momentum_RK3.h"/>
-          <File Name="ngx_momentum_RK2.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="FSF">
-          <VirtualDirectory Name="Reinitialization">
-            <VirtualDirectory Name="Reinidisc">
-              <File Name="ngx_reinidisc_f.h"/>
-              <File Name="ngx_reinidisc.h"/>
-            </VirtualDirectory>
-            <File Name="ngx_reini_RK3.h"/>
-            <File Name="ngx_reini.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Level Set">
-            <File Name="ngx_levelset_RK3.h"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="FDM">
-          <File Name="fdm_ngx.h"/>
-          <VirtualDirectory Name="Timestep"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Diffusion"/>
-        <VirtualDirectory Name="Convect">
-          <File Name="ngx_HLL.h"/>
-          <File Name="ngx_flux_build_f.h"/>
-          <File Name="ngx_convection.h"/>
-          <File Name="ngx_convection_void.h"/>
-          <File Name="ngx_fluid_build.h"/>
-          <VirtualDirectory Name="Signal Speed">
-            <File Name="ngx_signal_speed.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Reconstruct">
-            <File Name="ngx_reconstruct_hires.h"/>
-            <File Name="ngx_reconstruct_WENO.h"/>
-            <File Name="ngx_reconstruct_FOU.h"/>
-            <File Name="ngx_reconstruct.h"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
-      </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.h"/>
@@ -307,6 +257,9 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Hs">
+            <File Name="nhflow_print_Hs.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="nhflow_state.h"/>
           </VirtualDirectory>
@@ -399,6 +352,9 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Hs">
+            <File Name="fnpf_print_Hs.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="fnpf_runup.h"/>
           </VirtualDirectory>
@@ -415,7 +371,6 @@
             <File Name="fnpf_print_wsfline.h"/>
             <File Name="fnpf_print_wsf_theory.h"/>
             <File Name="fnpf_print_wsf.h"/>
-            <File Name="fnpf_print_Hs.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="fnpf_vtp_bed.h"/>
@@ -685,6 +640,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
+      <VirtualDirectory Name="Function">
+        <File Name="linear_regression_cont.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="DDWENO">
         <File Name="ddweno_nug_sig.h"/>
         <File Name="ddweno_nug_sf.h"/>
@@ -1210,39 +1168,6 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Hydrodynamics">
-      <VirtualDirectory Name="NGX">
-        <VirtualDirectory Name="Turbulence"/>
-        <VirtualDirectory Name="Printer">
-          <VirtualDirectory Name="VTU"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Pressure">
-          <VirtualDirectory Name="Reference"/>
-          <VirtualDirectory Name="Poisson"/>
-          <VirtualDirectory Name="Density"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Momentum">
-          <File Name="ngx_momentum_RK3.cpp"/>
-          <File Name="ngx_momentum_RK2.cpp"/>
-          <VirtualDirectory Name="Forcing"/>
-          <VirtualDirectory Name="BC"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="FSF">
-          <VirtualDirectory Name="Reinitialization"/>
-          <VirtualDirectory Name="Level Set"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="FDM">
-          <File Name="fdm_ngx.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Diffusion"/>
-        <VirtualDirectory Name="Convect">
-          <VirtualDirectory Name="Signal Speed"/>
-          <VirtualDirectory Name="Reconstruct">
-            <File Name="ngx_reconstruct_WENO.cpp"/>
-            <File Name="ngx_reconstruct_hires.cpp"/>
-            <File Name="ngx_reconstruct_FOU.cpp"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
-      </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Breaking"/>
         <VirtualDirectory Name="Update">
@@ -1420,7 +1345,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Forcing">
+          <File Name="nhflow_forcing_interface.cpp"/>
           <VirtualDirectory Name="Geometry">
+            <File Name="nhflow_forcing_raycast_y.cpp"/>
+            <File Name="nhflow_forcing_raycast_x.cpp"/>
             <File Name="nhflow_forcing_raycast_z.cpp"/>
             <File Name="nhflow_forcing_refinement.cpp"/>
             <File Name="nhflow_forcing_reini_RK2.cpp"/>
@@ -1474,6 +1402,9 @@
           <File Name="nhflow_HLL.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Hs">
+            <File Name="nhflow_print_Hs.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="nhflow_state_write.cpp"/>
             <File Name="nhflow_state_mainheader.cpp"/>
@@ -1561,6 +1492,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_forcing.cpp"/>
           <File Name="nhflow_fsf_guard.cpp"/>
           <File Name="nhflow_fsf_kbedbc.cpp"/>
           <File Name="nhflow_fsf_ucorr.cpp"/>
@@ -2129,6 +2061,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
+      <VirtualDirectory Name="Functions">
+        <File Name="linear_regression_cont.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="DDWENO">
         <File Name="ddweno_nug_sig.cpp"/>
         <File Name="ddweno_nug_sf.cpp"/>
@@ -2801,7 +2736,6 @@
       <File Name="driver.cpp"/>
       <File Name="lexer.cpp" ExcludeProjConfig=""/>
       <VirtualDirectory Name="Logic">
-        <File Name="driver_logic_ngx.cpp"/>
         <File Name="driver_logic_nhflow.cpp"/>
         <File Name="driver_logic_fnpf.cpp"/>
         <File Name="driver_logic_ptf.cpp"/>

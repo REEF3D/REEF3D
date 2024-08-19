@@ -126,9 +126,11 @@ void lexer::ini_default()
     A552=1;      // int additional filtering to viscosity based breaking
     A553=0;      // int breaking in very shallow regions turned onf
     
-    A560=0;      // int block eta
-    A561=0;      // int solid box
-    A564=0;      // int solid vertical cylinder
+    A560=0;      // int turbulence model
+    
+    A580=0;      // int block eta
+    A581=0;      // int solid box
+    A584=0;      // int solid vertical cylinder
 
     // Boundary Conditions
 	B10=1;			// int wall laws velocities on/off
@@ -251,6 +253,7 @@ void lexer::ini_default()
     B281=0;         // int VRANS porous media wedge in x-direction
     B282=0;         // int VRANS porous media wedge in y-direction
     B291=0;         // int VRANS porous media plate in x-direction
+    B307=0;         // int VRANS interface smoothing interations
     B308=1;         // int porosity effects on fluid acceleration for vegetation
     B309=2.0;       // double Cm for vegetation
     B310=0;         // int VRANS vegetation box
@@ -393,7 +396,7 @@ void lexer::ini_default()
 
     // Grid
     G2=0;            // int sigma grid
-    G3=0;            // int solid forcing
+    G3=1;            // int solid forcing
 	G10=3;			// int xmargin inflow
 	G11=3;			// int ymargin right
 	G12=3;			// int zmargin bottom
@@ -413,8 +416,8 @@ void lexer::ini_default()
     H9=1;           // int air-water assignment
 	H10=0;          // int heat transfer on/off
     H15=5;          // int convection for heat transfer
-	H50_1=20.0; // double temperature 1
-	H50_2=20.0; // double temperature 2
+	H50_1=20.0;     // double temperature 1
+	H50_2=20.0;     // double temperature 2
 	H51=-1.0e7;		    // double i-dir zero level set start
 	H52=-1.0e7;		    // double j-dir zero level set start
 	H53=-1.0e7;		    // double k-dir zero level set start
@@ -678,7 +681,8 @@ void lexer::ini_default()
     T41=0;              // int RANS stabilization
     T42=0.05;           // double lambda1 factor
     T43=1.0;            // double komega wall BC velocity factor
-    T44=0;              // int buouncy term
+    T44=1.6;            // double komega wall BC velocity factor for DF
+    T45=0;              // int buouncy term
 
     // Water Properties
 	W1=998.2;		// double density water

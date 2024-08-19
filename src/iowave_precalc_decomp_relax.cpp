@@ -58,13 +58,10 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
             if(dg<1.0e20)
             {
                 eta(i,j) = 0.0;
-                etaval[count] = 0.0;
                 
                 for(qn=0;qn<wave_comp;++qn)
-                {
                 eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-                etaval[count] = eta(i,j);
-                }
+
             ++count;
             }
 		}

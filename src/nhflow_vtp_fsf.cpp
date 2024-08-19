@@ -117,10 +117,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     // Fifsf
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
-    
-    // elevation
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
 	
 	// WL
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
@@ -200,8 +196,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"eta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"detadt\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"WL\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -269,7 +263,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     //ddn=float(p->sl_ipol4(d->eta) + p->wd);
     
     //ddn=float(0.5*(d->eta(i,j) + d->eta(i,j))  + p->wd);
-    ddn=p->sl_ipol4eta(p->wet,d->eta, d->bed)+p->wd;
+    ddn=p->nhf_ipol4eta(p->wet,d->eta, d->bed)+p->wd;
 	result.write((char*)&ddn, sizeof (double));
 	}
 	
@@ -328,16 +322,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4eta_wd(p->wet,d->eta,d->bed));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-    //  Detadt
-    k=p->knoz-1;
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-    TPSLICELOOP
-	{
-    ffn=float(p->sl_ipol4(d->detadt));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

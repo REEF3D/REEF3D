@@ -79,29 +79,17 @@ void nhflow_ikomega::ksource(lexer *p, fdm_nhf *d)
 }
 
 void nhflow_ikomega::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans)
-{/*
+{
 	double factor;
 	double H;
 	double epsi = 1.6*p->DXM;
 	int n;
 	
 		LOOP
-		{
-			if(a->phi(i,j,k)>epsi)
-			H=1.0;
+		EV0[IJK] = MAX(MIN(MAX(KIN[IJK]
+						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(KIN[IJK])/strainterm(p,d)),
+						  0.0001*d->VISC[IJK]);
 
-			if(a->phi(i,j,k)<-epsi)
-			H=0.0;
-
-			if(fabs(a->phi(i,j,k))<=epsi)
-			H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-			
-			factor = H*p->T31 + (1.0-H)*p->T32;
-			
-		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(factor*kin(i,j,k))/strainterm(p,a)),
-						  0.0001*a->visc(i,j,k));
-		}
 		
 		GC4LOOP
 		if(p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5)
@@ -110,24 +98,24 @@ void nhflow_ikomega::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvran
 		j = p->gcb4[n][1];
 		k = p->gcb4[n][2];
 		
-		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T35*kin(i,j,k))/strainterm(p,a)),
-						  0.0001*a->visc(i,j,k));
+		EV0[IJK] = MAX(MIN(MAX(KIN[IJK]
+						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T35*KIN[IJK])/strainterm(p,d)),
+						  0.0001*d->VISC[IJK]);
 		}
 	
 	if(p->T10==22)
 	LOOP
-	eddyv0(i,j,k) = MIN(eddyv0(i,j,k), p->DXM*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
+	EV0[IJK] = MIN(EV0[IJK], p->DXM*p->cmu*pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
     
     // stabilization
-    if(p->T41==0)
+    //if(p->T41==0)
     LOOP
-    a->eddyv(i,j,k) = eddyv0(i,j,k);
+    d->EV[IJK] = EV0[IJK];
     
-    if(p->T41==1)
+    /*if(p->T41==1)
     LOOP
-	a->eddyv(i,j,k) = MIN(eddyv0(i,j,k), MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0)
-                                         *(p->cmu*kw_alpha*rotationterm(p,a))/(p->T42*kw_beta*strainterm(p,a)));
+	d->EV[IJK] = MIN(EV0[IJK], MAX(KIN[IJK]/((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
+                                         *(p->cmu*kw_alpha*rotationterm(p,a))/(p->T42*kw_beta*strainterm(p,a)));*/
 	
     
     if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
@@ -139,18 +127,14 @@ void nhflow_ikomega::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvran
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
 
-		if(a->phi(i,j,k)<0.0)
-		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
-        
-        if(a->phi(i,j,k)>=0.0)
-		a->eddyv(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(0.212*kin(i,j,k))/strainterm(p,a)),
-						  0.0001*a->visc(i,j,k));
+		d->EV[IJK] = MAX(MIN(MAX(KIN[IJK]
+						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(0.212*KIN[IJK])/strainterm(p,d)),
+						  0.0001*d->VISC[IJK]);
 		}
     }
     
     // free surface eddyv minimum
-    if(p->T39==1)
+    /*if(p->T39==1)
     {
     double sgs_val;
     double c_sgs=0.2;
@@ -171,7 +155,7 @@ void nhflow_ikomega::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvran
                  
         dirac=MIN(dirac,1.0);
                  
-        a->eddyv(i,j,k) = MAX(a->eddyv(i,j,k),dirac*sgs_val);
+        d->EV[IJK] = MAX(d->EV[IJK],dirac*sgs_val);
         }
         }
     }
@@ -181,6 +165,7 @@ void nhflow_ikomega::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvran
 	pgc->start4(p,eddyv0,24);
     pgc->start4(p,a->eddyv,24);
     */
+    
 }
 
 void nhflow_ikomega::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
@@ -231,10 +216,10 @@ void nhflow_ikomega::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
     dirac=0.0;
 
 	if(dirac>0.0 && p->T36==1)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37);
+	EPS[IJK] = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/p->T37);
 
 	if(dirac>0.0 && p->T36==2)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
+	EPS[IJK] = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
 	}*/
 }
 

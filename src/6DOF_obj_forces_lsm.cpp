@@ -26,14 +26,14 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include <math.h>
 
-void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter)
+void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {
     triangulation(p,a,pgc,a->fb);
 	reconstruct(p,a,a->fb);
     
     //print_vtp(p,a,pgc);
     
-    forces_lsm_calc(p,a,pgc,iter);
+    forces_lsm_calc(p,a,pgc,iter,finalize);
     
     
     p->del_Iarray(tri,numtri,4);
@@ -46,7 +46,7 @@ void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
     p->del_Darray(ccpt,numtri*4,3);
 }
 
-void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
+void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, bool finalize)
 {
     double ux,vy,wz,vel,pressure,density,viscosity;
     double du,dv,dw;
@@ -62,7 +62,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
     
     // Set new time
-    curr_time += alpha[iter]*p->dt; 
+    curr_time = p->simtime;
 
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
@@ -358,7 +358,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter)
     
     // Print results
 	
-    if (p->mpirank==0) 
+    if (p->mpirank==0 && finalize==1)  
     {
         ofstream print;
         char str[1000];

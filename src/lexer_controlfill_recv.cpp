@@ -220,17 +220,19 @@ void lexer::ctrlrecv()
 	ii++;
     A560 = ictrl[ii];
 	ii++;
-    A560_xs = dctrl[dd];
-	dd++;
-    A560_xe = dctrl[dd];
-	dd++;
-    A560_ys = dctrl[dd];
-	dd++;
-    A560_ye = dctrl[dd];
-	dd++;
-    A561 = ictrl[ii];
+    A580 = ictrl[ii];
 	ii++;
-    A564 = ictrl[ii];
+    A580_xs = dctrl[dd];
+	dd++;
+    A580_xe = dctrl[dd];
+	dd++;
+    A580_ys = dctrl[dd];
+	dd++;
+    A580_ye = dctrl[dd];
+	dd++;
+    A581 = ictrl[ii];
+	ii++;
+    A584 = ictrl[ii];
 	ii++;
     
 	
@@ -496,6 +498,8 @@ void lexer::ctrlrecv()
     B291 = ictrl[ii];
 	ii++;
     B295 = ictrl[ii];
+	ii++;
+    B307 = ictrl[ii];
 	ii++;
     B308 = ictrl[ii];
 	ii++;
@@ -1346,9 +1350,11 @@ void lexer::ctrlrecv()
     dd++;
     T43 = dctrl[dd];
     dd++;
-    T44 = ictrl[ii];
+    T44 = dctrl[dd];
+    dd++;
+    T45 = ictrl[ii];
     ii++;
-	
+
     W1  = dctrl[dd];
     dd++;
     W2  = dctrl[dd];
@@ -1820,23 +1826,23 @@ void lexer::ctrlrecv()
 
 // --------------------------	
 	
-    if(A561>0)
+    if(A581>0)
 	{
-    Darray(A561_xs,A561);
-	Darray(A561_xe,A561);
-	Darray(A561_ys,A561);
-	Darray(A561_ye,A561);
-	Darray(A561_zs,A561);
-	Darray(A561_ze,A561);
+    Darray(A581_xs,A581);
+	Darray(A581_xe,A581);
+	Darray(A581_ys,A581);
+	Darray(A581_ye,A581);
+	Darray(A581_zs,A581);
+	Darray(A581_ze,A581);
     }
 
-    if(A564>0)
+    if(A584>0)
 	{
-    Darray(A564_xc,A564);
-	Darray(A564_yc,A564);
-	Darray(A564_zs,A564);
-	Darray(A564_ze,A564);
-    Darray(A564_r,A564);
+    Darray(A584_xc,A584);
+	Darray(A584_yc,A584);
+	Darray(A584_zs,A584);
+	Darray(A584_ze,A584);
+    Darray(A584_r,A584);
     }
 
 	if(B71>0)
@@ -2635,33 +2641,33 @@ void lexer::ctrlrecv()
 
 // --------------------------
 
-    for(n=0;n<A561;++n)
+    for(n=0;n<A581;++n)
     {
-	A561_xs[n] = dctrl[dd];
+	A581_xs[n] = dctrl[dd];
     dd++;
-    A561_xe[n] = dctrl[dd];
+    A581_xe[n] = dctrl[dd];
     dd++;
-    A561_ys[n] = dctrl[dd];
+    A581_ys[n] = dctrl[dd];
     dd++;
-    A561_ye[n] = dctrl[dd];
+    A581_ye[n] = dctrl[dd];
     dd++;
-    A561_zs[n] = dctrl[dd];
+    A581_zs[n] = dctrl[dd];
     dd++;
-    A561_ze[n] = dctrl[dd];
+    A581_ze[n] = dctrl[dd];
     dd++;
     }
 
-    for(n=0;n<A564;++n)
+    for(n=0;n<A584;++n)
     {
-	A564_xc[n] = dctrl[dd];
+	A584_xc[n] = dctrl[dd];
     dd++;
-    A564_xc[n] = dctrl[dd];
+    A584_xc[n] = dctrl[dd];
     dd++;
-    A564_zs[n] = dctrl[dd];
+    A584_zs[n] = dctrl[dd];
     dd++;
-    A564_ze[n] = dctrl[dd];
+    A584_ze[n] = dctrl[dd];
     dd++;
-    A564_r[n] = dctrl[dd];
+    A584_r[n] = dctrl[dd];
     dd++;
     }
 

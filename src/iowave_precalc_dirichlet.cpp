@@ -41,8 +41,6 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         
 
         eta(i,j) = wave_eta(p,pgc,xg,yg);
-        etaval[count] = eta(i,j);
-        ++count;
         }
         
     

@@ -25,8 +25,8 @@ Author: Hans Bihs
 
 fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
-                              nodeval2D(p),
-                              eta_n(p),WL(p),detadt(p),detadt_n(p),
+                              nodeval2D(p),eta_n(p),WL(p),
+                              detadt(p),detadt_n(p),
                               bed(p),depth(p),K(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
@@ -70,6 +70,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     
     p->Darray(SOLID,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FB,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(FHB,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));

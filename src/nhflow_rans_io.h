@@ -69,7 +69,7 @@ private:
     void kepsini_default(lexer*,fdm_nhf*,ghostcell*);
 
 	float ffn;
-	int q,iin;
+	int q,iin,ii,jj,kk;
 	int gcval_kin,gcval_eps,gcval_edv;
 
 	double M,I,tau,H,B,ks,kinbed,uvel,refwalldist,fc;

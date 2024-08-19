@@ -47,11 +47,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         {
             // Zone 1
             if(dg<1.0e20)
-            {
             eta(i,j) = wave_eta(p,pgc,xg,yg);
-            etaval[count] = eta(i,j);
-            ++count;
-            }
 		}
     }
     pgc->gcsl_start4(p,eta,50);

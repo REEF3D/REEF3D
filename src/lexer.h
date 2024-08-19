@@ -106,7 +106,8 @@ public:
 	int surf_tot;
 	int *flag1,*flag2,*flag3,*flag4,*flag5,*flag7,*flag;
     int *flagsf1,*flagsf2,*flagsf3,*flagsf4;
-    int *BC;
+    
+    int *IO;
 	int*mgflag;
     double *flag_solid,*flag_topo;
     double *data;
@@ -286,11 +287,12 @@ public:
     double A541,A542,A544,A545;
     int A550,A551,A552,A553;
     int A560;
-    double A560_xs,A560_xe,A560_ys,A560_ye;
-    int A561;
-    double *A561_xs,*A561_xe,*A561_ys,*A561_ye,*A561_zs,*A561_ze;
-    int A564;
-    double *A564_xc,*A564_yc,*A564_zs,*A564_ze,*A564_r;
+    int A580;
+    double A580_xs,A580_xe,A580_ys,A580_ye;
+    int A581;
+    double *A581_xs,*A581_xe,*A581_ys,*A581_ye,*A581_zs,*A581_ze;
+    int A584;
+    double *A584_xc,*A584_yc,*A584_zs,*A584_ze,*A584_r;
     
 	// boundary conditions
 	int B10,B20,B23;
@@ -363,7 +365,7 @@ public:
 	int B291;
     double *B291_xs, *B291_xe, *B291_ys, *B291_ye, *B291_zs, *B291_ze, *B291_d, *B291_n, *B291_d50, *B291_alpha, *B291_beta;
     int B295;
-    int B308,B310,B311;
+    int B307,B308,B310,B311;
     double B309;
     double *B310_xs, *B310_xe, *B310_ys, *B310_ye, *B310_zs, *B310_ze, *B310_N, *B310_D, *B310_Cd;
     double *B311_xm, *B311_ym, *B311_r, *B311_zs, *B311ze, *B311_N, *B311_D, *B311_Cd;
@@ -544,8 +546,8 @@ public:
     double S77_xs,S77_xe;
 
 	// Turbulence
-	int T10,T12,T21,T33,T36,T39,T41,T44;
-	double T31,T32,T35,T37,T38,T42,T43;
+	int T10,T12,T21,T33,T36,T39,T41,T45;
+	double T31,T32,T35,T37,T38,T42,T43,T44;
 
 	// Waterflow
 	double W1,W2,W3,W4,W5,W6,W7,W10,W_fb;

@@ -326,14 +326,10 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     {
     U = 0.5*(s->P(i,j) + s->P(i-1,j));
     V = 0.5*(s->Q(i,j) + s->Q(i,j-1));
-    
 
     uabs = sqrt(U*U + V*V);
     
-    
     manning = pow(p->S21*s->ks(i,j),1.0/6.0)/20.0;
-    
-    //cout<<"MANNING: "<<manning<<" uabs: "<<uabs<<endl;
     
     if(p->S16==1)
     {
@@ -365,7 +361,6 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     s->shearvel_eff(i,j) = sqrt(tau/p->W1);
     s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
     }
-    
 }
 
 void bedshear::taucritbed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)

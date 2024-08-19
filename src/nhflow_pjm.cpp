@@ -187,7 +187,8 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     dVdz = (V[IJK] - Vp)/p->DZN[KP];
     
     dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
-     
+    
+    WETDRYDEEP
     d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
                             + p->sigx[FIJK]*dUdz
                             

@@ -32,7 +32,6 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     
     // pre-calc every iteration
     // eta
-    count=0;
     SLICELOOP4
     {
         xg = xgen(p);
@@ -45,11 +44,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
         {
             // Zone 1
             if(dg<1.0e20)
-            {
             eta(i,j) = wave_eta(p,pgc,xg,yg);
-            etaval[count] = eta(i,j);
-            ++count;
-            }
 		}
     }
     pgc->gcsl_start4(p,eta,50);

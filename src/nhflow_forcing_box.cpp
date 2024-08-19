@@ -27,14 +27,14 @@ Author: Hans Bihs
 
 void nhflow_forcing::box(lexer *p, ghostcell *pgc, int id)
 {
-    xs = p->A561_xs[id];
-    xe = p->A561_xe[id];
+    xs = p->A581_xs[id];
+    xe = p->A581_xe[id];
 	
-    ys = p->A561_ys[id];
-    ye = p->A561_ye[id];
+    ys = p->A581_ys[id];
+    ye = p->A581_ye[id];
 
-    zs = p->A561_zs[id];
-    ze = p->A561_ze[id];
+    zs = p->A581_zs[id];
+    ze = p->A581_ze[id];
     
 	//cout<<p->mpirank<<" xs: "<<xs<<" xe: "<<xe<<" id: "<<id<<endl;
 	// Face 3

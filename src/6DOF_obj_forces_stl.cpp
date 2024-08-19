@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include <math.h>
 
-void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter)
+void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
@@ -46,7 +46,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
     // Set new time
-    curr_time += alpha[iter]*p->dt; 
+    curr_time = p->simtime;
 
 
     for (int n = 0; n < tricount; ++n)
@@ -392,7 +392,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
 
     // Print results
 	
-    if (p->mpirank==0) 
+    if (p->mpirank==0 && finalize==1) 
     {
         ofstream print;
         char str[1000];

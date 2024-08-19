@@ -48,7 +48,6 @@ void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 
 	for(n=ts; n<te; ++n)
 	{ 
-		
 	Ax = tri_x[n][0];
 	Ay = tri_y[n][0];
 	Az = tri_z[n][0];
@@ -77,6 +76,8 @@ void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
     if(Cx>=p->global_xmin && Cx<=p->global_xmax 
     && Cy>=p->global_ymin && Cy<=p->global_ymax
     && Cz>=p->global_zmin && Cz<=p->global_zmax)
+    checkin=1;
+    
     checkin=1;
         
     if(checkin==1)
@@ -169,6 +170,7 @@ void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 			w *= denom;
 			
 			Rz = u*Az + v*Bz + w*Cz;
+            
              k = p->posc_sig(i,j,Rz);
 
             int distcheck=1;

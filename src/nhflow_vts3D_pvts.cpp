@@ -24,6 +24,8 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"nhflow_vel_probe_theory.h"
+
 
 void nhflow_vts3D::pvts(lexer *p, ghostcell* pgc)
 {	

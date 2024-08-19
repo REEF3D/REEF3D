@@ -37,6 +37,7 @@ class nhflow_state;
 class nhflow_breaking_log;
 class nhflow_vel_probe;
 class nhflow_vel_probe_theory;
+class nhflow_turbulence;
 class ioflow;
 
 #ifndef NHFLOW_VTS3D_H_
@@ -50,9 +51,9 @@ class nhflow_vts3D : public nhflow_printer, public increment
 public:
 	nhflow_vts3D(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vts3D();
-	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*);
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*);
-    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*);
+	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*);
+    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*);
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*);
     
 private:
     void pvts(lexer*,ghostcell*);

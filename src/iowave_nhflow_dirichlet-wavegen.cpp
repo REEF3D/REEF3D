@@ -24,53 +24,101 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"linear_regression_cont.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
 void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-        count=0;
+        double etaval=0.0;
+        
+        // wave theory
+        if(p->B92<20 || p->B92>29)
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        d->eta(i-1,j) = eta(i-1,j)*ramp(p);
+        d->eta(i-2,j) = eta(i-2,j)*ramp(p);
+        d->eta(i-3,j) = eta(i-3,j)*ramp(p);
+        }
+        
+        // wave maker
+        if(p->B92>=20 && p->B92<=29)
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        etaval = d->eta(i,j);
+        
+        d->eta(i-1,j) = etaval;
+        d->eta(i-2,j) = etaval;
+        d->eta(i-3,j) = etaval;
+        
+        /*d->eta(i-1,j) = eta(i-1,j)*ramp(p);
+        d->eta(i-2,j) = eta(i-2,j)*ramp(p);
+        d->eta(i-3,j) = eta(i-3,j)*ramp(p);*/
+        }
+        
+         count=0;
 		for(n=0;n<p->gcin_count;++n)
 		{
 		i=p->gcin[n][0];
 		j=p->gcin[n][1];
-		k=p->gcin[n][2];		
-
-        uvel=uval[count]*ramp(p);
-        vvel=vval[count]*ramp(p);
-        wvel=wval[count]*ramp(p);
+		k=p->gcin[n][2];
         
-            U[Im1JK]=uvel;
-            U[Im2JK]=uvel;
-            U[Im3JK]=uvel;
+            WETDRYDEEP
+            {
+            // U, V, W
+            uvel=uval[count];
+            vvel=vval[count];
+            wvel=wval[count];
             
-            V[Im1JK]=vvel;
-            V[Im2JK]=vvel;
-            V[Im3JK]=vvel;
+            uvel *= ramp(p);
+            vvel *= ramp(p);
+            wvel *= ramp(p);
             
-            W[Im1JK]=wvel;
-            W[Im2JK]=wvel;
-            W[Im3JK]=wvel;
+                U[Im1JK]=uvel;
+                U[Im2JK]=uvel;
+                U[Im3JK]=uvel;
+                
+                V[Im1JK]=vvel;
+                V[Im2JK]=vvel;
+                V[Im3JK]=vvel;
+                
+                W[Im1JK]=wvel;
+                W[Im2JK]=wvel;
+                W[Im3JK]=wvel;
+                
+                
+            // UH, VH, WH
+            uhvel=UHval[count];
+            vhvel=VHval[count];
+            whvel=WHval[count];
             
-        uvel=UHval[count]*ramp(p);
-        vvel=VHval[count]*ramp(p);
-        wvel=WHval[count]*ramp(p);
+            uhvel *= ramp(p);
+            vhvel *= ramp(p);
+            whvel *= ramp(p);
             
-            
-            UH[Im1JK]=uvel;
-            UH[Im2JK]=uvel;
-            UH[Im3JK]=uvel;
-            
-            VH[Im1JK]=vvel;
-            VH[Im2JK]=vvel;
-            VH[Im3JK]=vvel;
-            
-            WH[Im1JK]=wvel;
-            WH[Im2JK]=wvel;
-            WH[Im3JK]=wvel;
+                UH[Im1JK]=uhvel;
+                UH[Im2JK]=uhvel;
+                UH[Im3JK]=uhvel;
+                
+                VH[Im1JK]=vhvel;
+                VH[Im2JK]=vhvel;
+                VH[Im3JK]=vhvel;
+                
+                WH[Im1JK]=whvel;
+                WH[Im2JK]=whvel;
+                WH[Im3JK]=whvel;
+            }
             
         ++count;
-		}
-        
-        
+        }
+            
+        // ------------------
         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
 		{
             for(int q=0;q<4;++q)
@@ -84,4 +132,5 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             }
         pgc->start4V(p,d->EV,24);
 		}
+        
 }

@@ -42,7 +42,8 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             // Zone 1
             if(dg<1.0e20)
             { 
-            WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(etaval[count] + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
+            WETDRYDEEP
+            WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(eta(i,j) + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
             ++count;
             }
 		}
@@ -78,8 +79,11 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             // Zone 1
             if(dg<1.0e20)
             {
+            WETDRYDEEP
+            {
             U[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
             UH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*UHval[count] + relax4_wg(i,j)*UH[IJK];
+            }
             ++count;
             }
 		}
@@ -115,8 +119,11 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             // Zone 1
             if(dg<1.0e20)
             {
+            WETDRYDEEP
+            {
             V[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
             VH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*VHval[count] + relax4_wg(i,j)*VH[IJK];
+            }
             ++count;
             }
 		}
@@ -152,8 +159,11 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             // Zone 1
             if(dg<1.0e20)
             {
+            WETDRYDEEP
+            {
             W[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
             WH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*WHval[count] + relax4_wg(i,j)*WH[IJK];
+            }
             ++count;
             }
 		}
@@ -192,4 +202,24 @@ void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
     p->wavetime+=pgc->timer()-starttime;
 }
 
+void iowave::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
+{
+    starttime=pgc->timer();
+    
+    LOOP
+    {
+        dg = distgen(p);    
+        db = distbeach(p);
 
+		// Wave Generation
+		if(p->B98==2 && u_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            F[IJK] = relax4_wg(i,j)*F[IJK] + (1.0-H)*F[IJK];
+
+		}
+    }
+    
+    p->wavetime+=pgc->timer()-starttime;
+}

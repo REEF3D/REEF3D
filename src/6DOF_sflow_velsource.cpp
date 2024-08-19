@@ -70,8 +70,8 @@ void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         
     d->G[IJK] += 1.0/p->W1*dfdy;
     
-    if(k==0)
-    d->test2D(i,j) = 1.0/p->W1*dfdy;
+    //if(k==0)
+    //d->test2D(i,j) = 1.0/p->W1*dfdy;
     }
 }
 

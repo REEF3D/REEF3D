@@ -33,6 +33,7 @@ Author: Hans Bihs
 class vec;
 class fdm_fnpf;
 class patchBC_interface;
+class linear_regression_cont;
 
 using namespace std;
 
@@ -200,6 +201,7 @@ public:
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*);
     
     void nhflow_precalc_relax(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_precalc_relax_ini(lexer*,fdm_nhf*,ghostcell*);
@@ -253,6 +255,7 @@ private:
     int n,count;
     int wtype;
     double inflow_bed,uvel,vvel,wvel;
+    double uhvel,vhvel,whvel;
     double area,Ai,Ao,Ui,fac;
     double dist1,dist2,dist2_fac;
     double x,y,z;
@@ -282,7 +285,7 @@ private:
     // relax pre-calc
     int wave_comp;
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
-    double *uval,*vval,*wval,*etaval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
+    double *uval,*vval,*wval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
     double *rb1val,*rb3val;
     
     double *UHval,*VHval,*WHval;
@@ -309,6 +312,16 @@ private:
     int hydro_in_count,hydro_out_count;
     
     patchBC_interface *pBC;
+    
+    
+    double ramp_corr(lexer*);
+    
+    double netQ,netQ_n,netV;
+    double netV_corr,netV_corr_n;
+    double b0,b1;
+    
+    linear_regression_cont *linreg;
+    
 };
 
 #endif

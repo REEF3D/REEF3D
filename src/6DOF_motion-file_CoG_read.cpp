@@ -50,8 +50,6 @@ void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
 	}
 	ptnum=count;
     
-    cout<<"6DOF MOTION READ "<<count<<endl;
-    
 	file.close();
     
 // allocate
@@ -84,7 +82,7 @@ void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
     te = data[ptnum-1][0];
     }
     
-    
+    if(p->mpirank==0)
     cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<" ptnum: "<<ptnum<<endl;
     
 // add deltas
