@@ -290,7 +290,7 @@ namespace sediment_particle::movement
 
                 if(debugPrint)
                 {
-                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/((1-thetas)*p->S22)<<"\n";
+                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<"\n";
                 }
 
                 RKu=PP.U[n]+du1*p->dt;
@@ -317,7 +317,7 @@ namespace sediment_particle::movement
 
                 if(debugPrint)
                 {
-                    cout<<"Z-dir2:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/((1-thetas)*p->S22)<<"\n";
+                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<"\n";
                 }
 
                 du2=0.25*du2+0.25*du1;
@@ -348,7 +348,7 @@ namespace sediment_particle::movement
 
                 if(debugPrint)
                 {
-                    cout<<"Z-dir3:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/((1-thetas)*p->S22)<<endl;
+                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<"\n";
                     debugPrint=false;
                 }
 
