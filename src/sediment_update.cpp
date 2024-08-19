@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"ioflow.h"
@@ -63,6 +64,11 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
 	
 	pgc->start4(p,a->conc,40);
 }
+
+void sediment_f::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
+{
+}
+
 
 void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 {

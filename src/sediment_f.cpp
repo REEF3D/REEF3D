@@ -81,6 +81,10 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, rein
     }
 }
 
+void sediment_f::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
+{
+}
+
 void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
 {
     
