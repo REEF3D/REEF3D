@@ -106,8 +106,8 @@ namespace sediment_particle
             double *columnSum;
             /// @brief Relative density of fluid and particle
             const double drho;
-            /// @brief Kinetik viscosity of the fluid
-            const double kinVis;
+            /// @brief Inverse of kinetik viscosity of the fluid
+            const double invKinVis;
             /// @brief Stress tensor parameter
             const double Ps;
             /// @brief Stress tensor parameter

@@ -32,7 +32,7 @@ Author: Alexander Hanke
 
 namespace sediment_particle::movement
 {
-    Tavouktsoglou::Tavouktsoglou(lexer *p) : drho(p->W1/p->S22) ,kinVis(p->W1/p->W2), 
+    Tavouktsoglou::Tavouktsoglou(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
                                             Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17)
     {
         p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
@@ -260,9 +260,9 @@ namespace sediment_particle::movement
 
                 Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
 
-                du1=Dp*du+netBuoyX-pressureDivX/p->S22-stressDivX/((1-thetas)*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n]);
-                dv1=Dp*dv+netBuoyY-pressureDivY/p->S22-stressDivY/((1-thetas)*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n]);
-                dw1=Dp*dw+netBuoyZ-pressureDivZ/p->S22-stressDivZ/((1-thetas)*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n]);
+                du1=Dp*du+netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n])/p->dt;
+                dv1=Dp*dv+netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n])/p->dt;
+                dw1=Dp*dw+netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])/p->dt;
 
                 RKu=PP.U[n]+du1*p->dt;
                 RKv=PP.V[n]+dv1*p->dt;
@@ -275,9 +275,9 @@ namespace sediment_particle::movement
 
                 Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
 
-                du2=Dp*du+netBuoyX-(pressureDivX/p->S22+stressDivX/((1-thetas)*p->S22))+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKu);
-                dv2=Dp*dv+netBuoyY-(pressureDivY/p->S22+stressDivY/((1-thetas)*p->S22))+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKv);
-                dw2=Dp*dw+netBuoyZ-(pressureDivZ/p->S22+stressDivZ/((1-thetas)*p->S22))+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKw);
+                du2=Dp*du+netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKu)/p->dt;
+                dv2=Dp*dv+netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKv)/p->dt;
+                dw2=Dp*dw+netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKw)/p->dt;
 
                 du2=0.25*du2+0.25*du1;
                 dv2=0.25*dv2+0.25*dv1;
@@ -294,9 +294,9 @@ namespace sediment_particle::movement
 
                 Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
 
-                du3=Dp*du+netBuoyX-(pressureDivX/p->S22+stressDivX/((1-thetas)*p->S22))+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKu);
-                dv3=Dp*dv+netBuoyY-(pressureDivY/p->S22+stressDivY/((1-thetas)*p->S22))+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKv);
-                dw3=Dp*dw+netBuoyZ-(pressureDivZ/p->S22+stressDivZ/((1-thetas)*p->S22))+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKw);
+                du3=Dp*du+netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKu)/p->dt;
+                dv3=Dp*dv+netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKv)/p->dt;
+                dw3=Dp*dw+netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKw)/p->dt;
 
 
                 if(du2!=du2||du3!=du3)
@@ -561,7 +561,7 @@ namespace sediment_particle::movement
         if(dU==0) // Saveguard
         return 0;
 
-        const double Rep=dU*d*kinVis;
+        const double Rep=dU*d*invKinVis;
 
         const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
         const double Dp=Cd*3.0*drho*dU/d/4.0;
