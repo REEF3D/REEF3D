@@ -43,10 +43,10 @@ class VOF_PLIC : public freesurface, gradient, norm_vec
 public:
 	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_PLIC();
-	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
+	virtual void start_old(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
     
-    virtual void start_alt(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
+    virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
 	
 private:	
     void iniphi(fdm*, lexer*,ghostcell*);
@@ -84,12 +84,14 @@ private:
     void reconstructPlane_alt(fdm*, lexer*);
     void advectPlane_alt(fdm*, lexer*,int);
     double calculateVolume(double,double,double,double,double,double,double);
+    void updateVOF_alt(fdm*, lexer*);
     
     field4 vof_old;
     field4 V_w_old;
     field4 V_a_old;
     field4 V_w_update;
     field4 V_a_update;
+    field4 phival;
     
     
 	

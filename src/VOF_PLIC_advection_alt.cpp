@@ -64,6 +64,15 @@ void VOF_PLIC::advectPlane_alt
             V_w_update(i,j,k)-=V_w_p;
             V_a_update(i+1,j,k)+=(ds_p*p->DYN[JP]*p->DZN[KP])-V_w_p;
             V_a_update(i,j,k)-=(ds_p*p->DYN[JP]*p->DZN[KP])-V_w_p;
+            
+            if(vof_old(i+1,j,k)>0.9999)
+            {
+                V_w_update(i+1,j,k)-=ds_p*p->DYN[JP]*p->DZN[KP];
+            }
+            else if(vof_old(i+1,j,k)<0.0001)
+            {
+                V_a_update(i+1,j,k)-=ds_p*p->DYN[JP]*p->DZN[KP];
+            }
         }
         else
         {
@@ -87,6 +96,15 @@ void VOF_PLIC::advectPlane_alt
             V_w_update(i,j,k)-=V_w_m;
             V_a_update(i-1,j,k)+=(fabs(ds_m)*p->DYN[JP]*p->DZN[KP])-V_w_m;
             V_a_update(i,j,k)-=(fabs(ds_m)*p->DYN[JP]*p->DZN[KP])-V_w_m;
+            
+            if(vof_old(i-1,j,k)>0.9999)
+            {
+                V_w_update(i-1,j,k)-=fabs(ds_m)*p->DYN[JP]*p->DZN[KP];
+            }
+            else if(vof_old(i-1,j,k)<0.0001)
+            {
+                V_a_update(i-1,j,k)-=fabs(ds_m)*p->DYN[JP]*p->DZN[KP];
+            }
         }
         else
         {
@@ -120,6 +138,15 @@ void VOF_PLIC::advectPlane_alt
             V_w_update(i,j,k)-=V_w_p;
             V_a_update(i,j+1,k)+=(p->DXN[IP]*ds_p*p->DZN[KP])-V_w_p;
             V_a_update(i,j,k)-=(p->DXN[IP]*ds_p*p->DZN[KP])-V_w_p;
+            
+            if(vof_old(i,j+1,k)>0.9999)
+            {
+                V_w_update(i,j+1,k)-=p->DXN[IP]*ds_p*p->DZN[KP];
+            }
+            else if(vof_old(i,j+1,k)<0.0001)
+            {
+                V_a_update(i,j+1,k)-=p->DXN[IP]*ds_p*p->DZN[KP];
+            }
         }
         else
         {
@@ -143,6 +170,15 @@ void VOF_PLIC::advectPlane_alt
             V_w_update(i,j,k)-=V_w_m;
             V_a_update(i,j-1,k)+=(p->DXN[IP]*fabs(ds_m)*p->DZN[KP])-V_w_m;
             V_a_update(i,j,k)-=(p->DXN[IP]*fabs(ds_m)*p->DZN[KP])-V_w_m;
+            
+            if(vof_old(i,j-1,k)>0.9999)
+            {
+                V_w_update(i,j-1,k)-=p->DXN[IP]*fabs(ds_m)*p->DZN[KP];
+            }
+            else if(vof_old(i,j-1,k)<0.0001)
+            {
+                V_a_update(i,j-1,k)-=p->DXN[IP]*fabs(ds_m)*p->DZN[KP];
+            }
         }
         else
         {
@@ -177,6 +213,15 @@ void VOF_PLIC::advectPlane_alt
             V_w_update(i,j,k)-=V_w_p;
             V_a_update(i,j,k+1)+=(p->DXN[IP]*p->DYN[JP]*ds_p)-V_w_p;
             V_a_update(i,j,k)-=(p->DXN[IP]*p->DYN[JP]*ds_p)-V_w_p;
+            
+            if(vof_old(i,j,k+1)>0.9999)
+            {
+                V_w_update(i,j,k+1)-=p->DXN[IP]*p->DYN[JP]*ds_p;
+            }
+            else if(vof_old(i,j,k+1)<0.0001)
+            {
+                V_a_update(i,j,k+1)-=p->DXN[IP]*p->DYN[JP]*ds_p;
+            }
         }
         else
         {
@@ -200,6 +245,15 @@ void VOF_PLIC::advectPlane_alt
             V_w_update(i,j,k)-=V_w_m;
             V_a_update(i,j,k-1)+=(p->DXN[IP]*p->DYN[JP]*fabs(ds_m))-V_w_m;
             V_a_update(i,j,k)-=(p->DXN[IP]*p->DYN[JP]*fabs(ds_m))-V_w_m;
+            
+            if(vof_old(i,j,k-1)>0.9999)
+            {
+                V_w_update(i,j,k-1)-=p->DXN[IP]*p->DYN[JP]*fabs(ds_m);
+            }
+            else if(vof_old(i,j,k-1)<0.0001)
+            {
+                V_a_update(i,j,k-1)-=p->DXN[IP]*p->DYN[JP]*fabs(ds_m);
+            }
         }
         else
         {
