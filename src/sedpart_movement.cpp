@@ -201,11 +201,11 @@ namespace sediment_particle::movement
                 // stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);
                 // stressDivX = (stressTensor[IJK] - stressTensor[Im1JK])/(p->DXN[IM1]);
                 // stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
-                // stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DYN[KM1]+p->DYN[KP]);
+                stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DZN[KM1]+p->DZN[KP]);
 
                 stressDivX = (p->ccipol4c(stressTensor,PP.X[n]+0.5*p->DXN[IP],PP.Y[n],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n]-0.5*p->DXN[IP],PP.Y[n],PP.Z[n]))/p->DXN[IP];
                 stressDivY = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]+0.5*p->DYN[JP],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]-0.5*p->DYN[JP],PP.Z[n]))/p->DYN[JP];
-                stressDivZ = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]-0.5*p->DZN[KP]))/p->DXN[KP];
+                // stressDivZ = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]-0.5*p->DZN[KP]))/p->DZN[KP];
 
                 // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXN[IP]+p->DXN[IM1]);
                 // stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYN[JP]+p->DYN[JM1]);
@@ -290,7 +290,7 @@ namespace sediment_particle::movement
 
                 if(debugPrint)
                 {
-                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<"\n";
+                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<" theta: "<<thetas<<"\n";
                 }
 
                 RKu=PP.U[n]+du1*p->dt;
@@ -317,7 +317,7 @@ namespace sediment_particle::movement
 
                 if(debugPrint)
                 {
-                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<"\n";
+                    cout<<"Z-dir2:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<"\n";
                 }
 
                 du2=0.25*du2+0.25*du1;
@@ -348,7 +348,7 @@ namespace sediment_particle::movement
 
                 if(debugPrint)
                 {
-                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<"\n";
+                    cout<<"Z-dir3:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<"\n";
                     debugPrint=false;
                 }
 
@@ -445,58 +445,59 @@ namespace sediment_particle::movement
         // double sumTopo = 0;
         PLAINLOOP
         {
-            {
-                double uvel,vvel,u_abs;
-                double signx,signy;
+        //     {
+        //         double uvel,vvel,u_abs;
+        //         double signx,signy;
                 
-                double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
-                double sgx1,sgx2,sgy1,sgy2;
-                double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
+        //         double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
+        //         double sgx1,sgx2,sgy1,sgy2;
+        //         double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
                 
-                uvel=0.5*(s.P(i,j)+s.P(i-1,j));
-                vvel=0.5*(s.Q(i,j)+s.Q(i,j-1));
+        //         uvel=0.5*(s.P(i,j)+s.P(i-1,j));
+        //         vvel=0.5*(s.Q(i,j)+s.Q(i,j-1));
                 
-                u_abs = sqrt(uvel*uvel + vvel*vvel);
-                signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-                signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+        //         u_abs = sqrt(uvel*uvel + vvel*vvel);
+        //         signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+        //         signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
 
-                ux1=s.P(i-1,j);
-                vx1=0.25*(s.Q(i,j)+s.Q(i-1,j)+s.Q(i,j-1)+s.Q(i-1,j-1)); 
+        //         ux1=s.P(i-1,j);
+        //         vx1=0.25*(s.Q(i,j)+s.Q(i-1,j)+s.Q(i,j-1)+s.Q(i-1,j-1)); 
                 
-                ux2=s.P(i,j);
-                vx2=0.25*(s.Q(i,j)+s.Q(i+1,j)+s.Q(i,j-1)+s.Q(i+1,j-1)); 
-                
-                
-                uy1=0.25*(s.P(i,j-1)+s.P(i,j)+s.P(i-1,j-1)+s.P(i-1,j));
-                vy1=s.Q(i,j-1); 
-                
-                uy2=0.25*(s.P(i,j)+s.P(i,j+1)+s.P(i-1,j)+s.P(i-1,j+1));
-                vy2=s.Q(i,j); 
+        //         ux2=s.P(i,j);
+        //         vx2=0.25*(s.Q(i,j)+s.Q(i+1,j)+s.Q(i,j-1)+s.Q(i+1,j-1)); 
                 
                 
-                ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
-                ux2_abs = sqrt(ux2*ux2 + vx2*vx2);
+        //         uy1=0.25*(s.P(i,j-1)+s.P(i,j)+s.P(i-1,j-1)+s.P(i-1,j));
+        //         vy1=s.Q(i,j-1); 
                 
-                uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
-                uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
+        //         uy2=0.25*(s.P(i,j)+s.P(i,j+1)+s.P(i-1,j)+s.P(i-1,j+1));
+        //         vy2=s.Q(i,j); 
+                
+                
+        //         ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
+        //         ux2_abs = sqrt(ux2*ux2 + vx2*vx2);
+                
+        //         uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
+        //         uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
                     
-                sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
-                sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
+        //         sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
+        //         sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
                 
-                sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
-                sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
+        //         sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
+        //         sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
                 
-                // tau * A = F, F/m = a, a*dt = v
-                // a.test(i,j,k) = (s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)*pow(PP.d50/2.0,2)/(4.0/3.0*pow(PP.d50/2.0,3)*PP.density)*p->dt;
-            }
+        //         // tau * A = F, F/m = a, a*dt = v
+        //         // a.test(i,j,k) = (s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)*pow(PP.d50/2.0,2)/(4.0/3.0*pow(PP.d50/2.0,3)*PP.density)*p->dt;
+        //     }
 
 
-            // for(int n=0;n<=k;n++)
-            // a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
-            // a.fb(i,j,k) = cellSum[IJK];
+            for(int n=0;n<=k;n++)
+            a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
+            a.fb(i,j,k) = cellSum[IJK];
             // sumCell += cellSum[IJK];
-            // a.vof(i,j,k) = cellSumTopo[IJK];
+            a.vof(i,j,k) = cellSumTopo[IJK];
             // sumTopo += cellSumTopo[IJK];
+            a.Fi(i,j,k)=stressTensor[IJK];
         }
         // std::cout<<p->mpirank<<": Sum of cellSum: "<<sumCell<<" : "<<sumTopo<<std::endl;
     }
