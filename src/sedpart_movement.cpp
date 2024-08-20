@@ -198,13 +198,13 @@ namespace sediment_particle::movement
                 thetas=theta_s(p,a,PP,i,j,k);
 
                 // Non interpolation leads to blockyness
-                // stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);
+                stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXN[IM1]+p->DXN[IP]);
                 // stressDivX = (stressTensor[IJK] - stressTensor[Im1JK])/(p->DXN[IM1]);
-                // stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
+                stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
                 stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DZN[KM1]+p->DZN[KP]);
 
-                stressDivX = (p->ccipol4c(stressTensor,PP.X[n]+0.5*p->DXN[IP],PP.Y[n],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n]-0.5*p->DXN[IP],PP.Y[n],PP.Z[n]))/p->DXN[IP];
-                stressDivY = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]+0.5*p->DYN[JP],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]-0.5*p->DYN[JP],PP.Z[n]))/p->DYN[JP];
+                // stressDivX = (p->ccipol4c(stressTensor,PP.X[n]+0.5*p->DXN[IP],PP.Y[n],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n]-0.5*p->DXN[IP],PP.Y[n],PP.Z[n]))/p->DXN[IP];
+                // stressDivY = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]+0.5*p->DYN[JP],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]-0.5*p->DYN[JP],PP.Z[n]))/p->DYN[JP];
                 // stressDivZ = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]-0.5*p->DZN[KP]))/p->DZN[KP];
 
                 // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXN[IP]+p->DXN[IM1]);
@@ -224,7 +224,7 @@ namespace sediment_particle::movement
                 // else
                 //     stressDivZ = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n])-stressTensor[IJm1K])/(PP.Z[n]-(0.5*p->DZN[IM1]+p->ZN[IM1]));
 
-                pressureDivX = (a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22) - (a.press(i,j,k)-a.phi(i,j,k)*a.ro(i,j,k)*fabs(p->W22)))/(p->DXN[IP]);
+                pressureDivX = (a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22) - (a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22)))/(p->DXN[IM1]+p->DXN[IP]);
                 // pressureDivX = (p->ccipol4_c(a.press,PP.X[n]+0.5*p->DXN[IP],PP.Y[n],PP.Z[n]) - p->ccipol4_c(a.press,PP.X[n]-0.5*p->DXN[IP],PP.Y[n],PP.Z[n]))/p->DXN[IP];
                 pressureDivY = (0.5*((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22))+(a.press(i+1,j+1,k)-a.phi(i+1,j+1,k)*a.ro(i+1,j+1,k)*fabs(p->W22))) - 0.5*((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))+(a.press(i+1,j-1,k)-a.phi(i+1,j-1,k)*a.ro(i+1,j-1,k)*fabs(p->W22))))/(p->DYN[JM1]+p->DYN[JP]);
                 pressureDivZ = (0.5*((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22))+(a.press(i+1,j,k+1)-a.phi(i+1,j,k+1)*a.ro(i+1,j,k+1)*fabs(p->W22))) - 0.5*((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))+(a.press(i+1,j,k-1)-a.phi(i+1,j,k-1)*a.ro(i+1,j,k-1)*fabs(p->W22))))/(p->DZN[KM1]+p->DZN[KP]);
@@ -290,7 +290,7 @@ namespace sediment_particle::movement
 
                 if(debugPrint)
                 {
-                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<" theta: "<<thetas<<"\n";
+                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" df: "<<+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])/p->dt<<"\n";
                 }
 
                 RKu=PP.U[n]+du1*p->dt;
@@ -317,7 +317,7 @@ namespace sediment_particle::movement
 
                 if(debugPrint)
                 {
-                    cout<<"Z-dir2:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<"\n";
+                    cout<<"Z-dir2:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" df: "<<+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])/p->dt<<"\n";
                 }
 
                 du2=0.25*du2+0.25*du1;
@@ -348,7 +348,7 @@ namespace sediment_particle::movement
 
                 if(debugPrint)
                 {
-                    cout<<"Z-dir3:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<"\n";
+                    cout<<"Z-dir3:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" df: "<<+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])/p->dt<<"\n";
                     debugPrint=false;
                 }
 
