@@ -181,6 +181,11 @@ namespace sediment_particle::movement
         particlePerCell(p,pgc,PP);
         particleStressTensor(p,a,pgc,PP);
 
+        double u1,v1,w1;
+        double uf,vf,wf;
+        double u2,v2,w2;
+        double d=std::cbrt(std::pow(PP.d50,3)*PP.PackingFactor[n]);
+
         for(size_t n=0;n<PP.loopindex;n++)
         {
             if(PP.Flag[n]>0) // INT32_MIN
@@ -234,158 +239,210 @@ namespace sediment_particle::movement
                 pressureDivY = (0.5*((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22))+(a.press(i+1,j+1,k)-a.phi(i+1,j+1,k)*a.ro(i+1,j+1,k)*fabs(p->W22))) - 0.5*((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))+(a.press(i+1,j-1,k)-a.phi(i+1,j-1,k)*a.ro(i+1,j-1,k)*fabs(p->W22))))/(p->DYN[JM1]+p->DYN[JP]);
                 pressureDivZ = (0.5*((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22))+(a.press(i+1,j,k+1)-a.phi(i+1,j,k+1)*a.ro(i+1,j,k+1)*fabs(p->W22))) - 0.5*((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))+(a.press(i+1,j,k-1)-a.phi(i+1,j,k-1)*a.ro(i+1,j,k-1)*fabs(p->W22))))/(p->DZN[KM1]+p->DZN[KP]);
 
-                if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50*10)
-                    bedLoad=true;
+                // if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50*10)
+                //     bedLoad=true;
 
-                if(!bedLoad)
-                {
-                    u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
-                    v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
-                    w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
-                }
-                else
-                {
-                    double uvel,vvel,u_abs;
-                    double signx,signy;
+                // if(!bedLoad)
+                // {
+                //     u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
+                //     v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
+                //     w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                // }
+                // else
+                // {
+                //     double uvel,vvel,u_abs;
+                //     double signx,signy;
                     
-                    double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
-                    double sgx1,sgx2,sgy1,sgy2;
-                    double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
+                //     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
+                //     double sgx1,sgx2,sgy1,sgy2;
+                //     double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
                     
-                    uvel=p->ccslipol4(s.P,PP.X[n],PP.Y[n]);
-                    vvel=p->ccslipol4(s.Q,PP.X[n],PP.Y[n]);
+                //     uvel=p->ccslipol4(s.P,PP.X[n],PP.Y[n]);
+                //     vvel=p->ccslipol4(s.Q,PP.X[n],PP.Y[n]);
                     
-                    u_abs = sqrt(uvel*uvel + vvel*vvel);
-                    signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-                    signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+                //     u_abs = sqrt(uvel*uvel + vvel*vvel);
+                //     signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+                //     signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
                     
-                    if(shearVel)
-                    {
-                        // u=sqrt(tau/rho)
-                        u = sqrt(fabs(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]))/p->W1)*(uvel>=0?1:-1)*signx;
-                        v = sqrt(fabs(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]))/p->W1)*(vvel>=0?1:-1)*signy;
-                        w = 0.0;
-                    }
-                    else
-                    {
-                        // alternative
-                        du1 = du2 = du3 = p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(PP.d50*PP.PackingFactor[n]*2*PP.density)*signx;
-                        dv1 = dv2 = dv3 = p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(PP.d50*PP.PackingFactor[n]*2*PP.density)*signy;
-                        dw1 = dw2 = dw3 = 0.0;
-                    }
-                }
+                //     if(shearVel)
+                //     {
+                //         // u=sqrt(tau/rho)
+                //         u = sqrt(fabs(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]))/p->W1)*(uvel>=0?1:-1)*signx;
+                //         v = sqrt(fabs(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]))/p->W1)*(vvel>=0?1:-1)*signy;
+                //         w = 0.0;
+                //     }
+                //     else
+                //     {
+                //         // alternative
+                //         du1 = du2 = du3 = p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(PP.d50*PP.PackingFactor[n]*2*PP.density)*signx;
+                //         dv1 = dv2 = dv3 = p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(PP.d50*PP.PackingFactor[n]*2*PP.density)*signy;
+                //         dw1 = dw2 = dw3 = 0.0;
+                //     }
+                // }
                 
-                // RK3 step 1
-                if(shearVel)
-                {
-                    du=u-PP.U[n];
-                    dv=v-PP.V[n];
-                    dw=w-PP.W[n];
+                // // RK3 step 1
+                // if(shearVel)
+                // {
+                //     du=u-PP.U[n];
+                //     dv=v-PP.V[n];
+                //     dw=w-PP.W[n];
 
-                    Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
+                //     Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
 
-                    du1=Dp*du;
-                    dv1=Dp*dv;
-                    dw1=Dp*dw;
-                }
+                //     du1=Dp*du;
+                //     dv1=Dp*dv;
+                //     dw1=Dp*dw;
+                // }
 
-                du1+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n])/p->dt;
-                dv1+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n])/p->dt;
-                dw1+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])/p->dt;
+                // du1+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n])/p->dt;
+                // dv1+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n])/p->dt;
+                // dw1+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])/p->dt;
 
-                if(debugPrint)
-                {
-                    cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<" theta: "<<thetas<<"\n";
-                }
+                // if(debugPrint)
+                // {
+                //     cout<<"Z-dir1:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<" theta: "<<thetas<<"\n";
+                // }
 
-                RKu=PP.U[n]+du1*p->dt;
-                RKv=PP.V[n]+dv1*p->dt;
-                RKw=PP.W[n]+dw1*p->dt;
+                // RKu=PP.U[n]+du1*p->dt;
+                // RKv=PP.V[n]+dv1*p->dt;
+                // RKw=PP.W[n]+dw1*p->dt;
                 
-                // RK step 2
-                if(shearVel)
-                {
-                    du=u-RKu;
-                    dv=v-RKv;
-                    dw=w-RKw;
+                // // RK step 2
+                // if(shearVel)
+                // {
+                //     du=u-RKu;
+                //     dv=v-RKv;
+                //     dw=w-RKw;
 
-                    Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
+                //     Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
 
-                    du2=Dp*du;
-                    dv2=Dp*dv;
-                    dw2=Dp*dw;
-                }
+                //     du2=Dp*du;
+                //     dv2=Dp*dv;
+                //     dw2=Dp*dw;
+                // }
 
-                du2+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKu)/p->dt;
-                dv2+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKv)/p->dt;
-                dw2+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKw)/p->dt;
+                // du2+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKu)/p->dt;
+                // dv2+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKv)/p->dt;
+                // dw2+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKw)/p->dt;
 
-                if(debugPrint)
-                {
-                    cout<<"Z-dir2:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<"\n";
-                }
+                // if(debugPrint)
+                // {
+                //     cout<<"Z-dir2:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<"\n";
+                // }
 
-                du2=0.25*du2+0.25*du1;
-                dv2=0.25*dv2+0.25*dv1;
-                dw2=0.25*dw2+0.25*dw1;
+                // du2=0.25*du2+0.25*du1;
+                // dv2=0.25*dv2+0.25*dv1;
+                // dw2=0.25*dw2+0.25*dw1;
 
-                RKu=PP.U[n]+du2*p->dt;
-                RKv=PP.V[n]+dv2*p->dt;
-                RKw=PP.W[n]+dw2*p->dt;
+                // RKu=PP.U[n]+du2*p->dt;
+                // RKv=PP.V[n]+dv2*p->dt;
+                // RKw=PP.W[n]+dw2*p->dt;
                 
-                // RK step 3
-                if(shearVel)
+                // // RK step 3
+                // if(shearVel)
+                // {
+                //     du=u-RKu;
+                //     dv=v-RKv;
+                //     dw=w-RKw;
+
+                //     Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
+
+                //     du3=Dp*du;
+                //     dv3=Dp*dv;
+                //     dw3=Dp*dw;
+                // }
+
+                // du3+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKu)/p->dt;
+                // dv3+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKv)/p->dt;
+                // dw3+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKw)/p->dt;
+
+                // if(debugPrint)
+                // {
+                //     cout<<"Z-dir3:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<"\n";
+                //     debugPrint=false;
+                // }
+
+                // if(du2!=du2||du3!=du3)
+                // {
+                //     cerr<<"Particle velocity component u resulted in NaN.\n"
+                //     <<du2<<","<<du3<<"|"<<Dp<<","<<netBuoyX<<","<<pressureDivX<<","<<stressDivX
+                //     <<endl;
+                //     exit(1);
+                // }
+                // else
+                //     PP.U[n] += ((2.0/3.0)*du2 + (2.0/3.0)*du3)*p->dt;
+                // if(!limited)
+                // {
+                //     if(dv2!=dv2||dv3!=dv3)
+                //     {
+                //         cerr<<"Particle velocity component v resulted in NaN.\n"
+                //         <<dv2<<","<<dv3<<"|"<<Dp<<","<<netBuoyY<<","<<pressureDivY<<","<<stressDivY
+                //         <<endl;
+                //         exit(1);
+                //     }
+                //     else
+                //         PP.V[n] += ((2.0/3.0)*dv2 + (2.0/3.0)*dv3)*p->dt;
+                //     if(dw2!=dw2||dw3!=dw3)
+                //     {
+                //         cerr<<"Particle velocity component w resulted in NaN.\n"
+                //         <<dw2<<","<<dw3<<"|"<<Dp<<","<<netBuoyZ<<","<<pressureDivZ<<","<<stressDivZ
+                //         <<endl;
+                //         exit(1);
+                //     }
+                //     else
+                //         PP.W[n] += ((2.0/3.0)*dw2 + (2.0/3.0)*dw3)*p->dt;
+                // }
+
                 {
-                    du=u-RKu;
-                    dv=v-RKv;
-                    dw=w-RKw;
+                    // if(!bedLoad)
+                    // {
+                        uf=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
+                        vf=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
+                        wf=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                    // }
+                    // else
+                    // {
+                    //     double uvel,vvel,u_abs;
+                    //     double signx,signy;
+                        
+                    //     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
+                    //     double sgx1,sgx2,sgy1,sgy2;
+                    //     double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
+                        
+                    //     uvel=p->ccslipol4(s.P,PP.X[n],PP.Y[n]);
+                    //     vvel=p->ccslipol4(s.Q,PP.X[n],PP.Y[n]);
+                        
+                    //     u_abs = sqrt(uvel*uvel + vvel*vvel);
+                    //     signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+                    //     signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+                        
+                    //     if(shearVel)
+                    //     {
+                    //         // u=sqrt(tau/rho)
+                    //         uf = sqrt(fabs(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]))/p->W1)*(uvel>=0?1:-1)*signx;
+                    //         vf = sqrt(fabs(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]))/p->W1)*(vvel>=0?1:-1)*signy;
+                    //         wf = 0.0;
+                    //     }
+                    //     else
+                    //     {
+                    //         // alternative
+                    //         uf = p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(PP.d50*PP.PackingFactor[n]*2*PP.density)*signx*p->dt;
+                    //         vf =  p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(PP.d50*PP.PackingFactor[n]*2*PP.density)*signy*p->dt;
+                    //         wf = 0.0;
+                    //     }
+                    // }
 
-                    Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
+                    u1=(PP.U[n]+p->dt*d*uf-p->dt/p->S22*pressureDivX+p->dt*netBuoyX)/(1.0+d*p->dt);
+                    v1=(PP.V[n]+p->dt*d*vf-p->dt/p->S22*pressureDivY+p->dt*netBuoyY)/(1.0+d*p->dt);
+                    w1=(PP.W[n]+p->dt*d*wf-p->dt/p->S22*pressureDivZ+p->dt*netBuoyZ)/(1.0+d*p->dt);
 
-                    du3=Dp*du;
-                    dv3=Dp*dv;
-                    dw3=Dp*dw;
-                }
+                    u2=p->dt*stressDivX/(p->S22*thetas*(1.0+d*p->dt));
+                    v2=p->dt*stressDivY/(p->S22*thetas*(1.0+d*p->dt));
+                    w2=p->dt*stressDivZ/(p->S22*thetas*(1.0+d*p->dt));
 
-                du3+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22)+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKu)/p->dt;
-                dv3+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22)+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKv)/p->dt;
-                dw3+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22)+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-RKw)/p->dt;
-
-                if(debugPrint)
-                {
-                    cout<<"Z-dir3:drag: "<<Dp*dw<<" buoy: "<<netBuoyZ<<" press: "<<-pressureDivZ/p->S22<<" stress: "<<-stressDivZ/(thetas*p->S22)<<" stressVal: "<<stressDivZ<<"\n";
-                    debugPrint=false;
-                }
-
-                if(du2!=du2||du3!=du3)
-                {
-                    cerr<<"Particle velocity component u resulted in NaN.\n"
-                    <<du2<<","<<du3<<"|"<<Dp<<","<<netBuoyX<<","<<pressureDivX<<","<<stressDivX
-                    <<endl;
-                    exit(1);
-                }
-                else
-                    PP.U[n] += ((2.0/3.0)*du2 + (2.0/3.0)*du3)*p->dt;
-                if(!limited)
-                {
-                    if(dv2!=dv2||dv3!=dv3)
-                    {
-                        cerr<<"Particle velocity component v resulted in NaN.\n"
-                        <<dv2<<","<<dv3<<"|"<<Dp<<","<<netBuoyY<<","<<pressureDivY<<","<<stressDivY
-                        <<endl;
-                        exit(1);
-                    }
-                    else
-                        PP.V[n] += ((2.0/3.0)*dv2 + (2.0/3.0)*dv3)*p->dt;
-                    if(dw2!=dw2||dw3!=dw3)
-                    {
-                        cerr<<"Particle velocity component w resulted in NaN.\n"
-                        <<dw2<<","<<dw3<<"|"<<Dp<<","<<netBuoyZ<<","<<pressureDivZ<<","<<stressDivZ
-                        <<endl;
-                        exit(1);
-                    }
-                    else
-                        PP.W[n] += ((2.0/3.0)*dw2 + (2.0/3.0)*dw3)*p->dt;
+                    PP.U[n]=u1+u2;
+                    PP.V[n]=v1+v2;
+                    PP.W[n]=w1+w2;
                 }
                 
                 // Pos update
