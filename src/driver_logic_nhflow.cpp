@@ -202,6 +202,13 @@ void driver::logic_nhflow()
     if(p->X10==3)
     p6dof = new sixdof_sflow(p,pgc);
     
+// Sediment
+    if(p->S10==0)
+    psed = new sediment_void();
+
+    if(p->S10>0)
+    psed = new sediment_f(p,aa,pgc,pturbcfd,pBC);
+    
 //Momentum
     if(p->A510==2)
 	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pnhfdf);

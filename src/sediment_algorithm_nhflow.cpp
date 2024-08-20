@@ -38,7 +38,54 @@ Author: Hans Bihs
 
 void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
-   
+    starttime=pgc->timer();
+    
+    ++p->sediter;
+    
+    // prep NHFLOW -------
+    prep_nhflow(p,d,pgc);
+    
+    // bedslope cds ******
+    slope_cds(p,pgc,s);
+    
+    // bedslope reduction ******
+    preduce->start(p,pgc,s);
+    
+    // bedshear stress -------
+	pbedshear->taubed(p,d,pgc,s);
+    pbedshear->taucritbed(p,d,pgc,s);
+
+    // bedload *******
+    pbed->start(p,pgc,s);
+	
+    // relax *******
+	prelax->start(p,pgc,s);
+    
+    // Exner *******
+    ptopo->start(p,pgc,s);
+    p->sedtime+=p->dtsed;
+    
+    // sandslide ********
+    pslide->start(p,pgc,s);
+    
+    // relax *******
+	prelax->start(p,pgc,s);
+	
+    // filter bedzh *******
+	if(p->S100>0)
+	filter(p,pgc,s->bedzh,p->S100,p->S101);
+    
+    // update sflow  --------
+    update_nhflow(p,d,pgc,pflow);
+    
+    // sediment log
+    sedimentlog(p);
+    
+    if(p->mpirank==0 && p->count>0)
+    cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
+
+	if(p->mpirank==0)
+    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
 }
 
 

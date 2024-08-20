@@ -71,7 +71,7 @@ void driver::loop_nhflow()
         pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pvrans);        
         
 		// Sediment Computation
-        //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
+        psed->start_nhflow(p,d,pgc,pflow);
         
         // 6DOF
         p6dof->start_oneway(p,pgc,d->fs);

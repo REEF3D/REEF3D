@@ -22,29 +22,41 @@ Author: Hans Bihs
 
 #include"bedshear.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm2D.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"turbulence.h"
 #include"sliceint.h"
 
-#define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
-
-bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4), taueff_loc(p), taucrit_loc(p)
+// NHFLOW
+void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
 {
-    tau=0.0;
-    tauc=0.0;
-    pturb=ppturb;
-}
+    double uabs,cf,manning,tau;
+    double density=p->W1;
+    double U,V,W;
+    
+    k=0;
+    SLICELOOP4
+    {
+    U = d->U[IJK];
+    V = d->V[IJK];
+    W = d->W[IJK];
+    
+    dist = 0.5*p->DZN[KP]*d->WL(i,j);
 
-bedshear::~bedshear()
-{
-}
+    uabs = sqrt(U*U + V*V + W*W);
+    
+    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
-void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
-{
-	int count;
+    tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+    
+    
+    s->tau_eff(i,j) = taueff_loc(i,j) = tau;
+    s->shearvel_eff(i,j) = sqrt(tau/density);
+    s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    }
+    
+	/*int count;
 	double zval,fac,topoval,taukin,tauvel,density;
     
     SLICELOOP4
@@ -200,17 +212,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     if(p->S33==2)
     tau=density*pturb->kinval(i,j,k)*0.3;
     }
-    /*
-    if(p->S16==4)
-    {
-    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
-    
-    if(p->S33==1)
-    tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
-    
-    if(p->S33==2)
-    tau=density*pturb->ccipol_kinval(p,pgc,xip,yip,zval)*0.3;
-    }*/
+
     
 	
 	if(p->S16==5)
@@ -285,94 +287,24 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     s->tau_eff(i,j) = taueff_loc(i,j) = tau;
     s->shearvel_eff(i,j) = sqrt(tau/p->W1);
     s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
-    }
+    }*/
 }
 
-void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
+void bedshear::taucritbed(lexer *p, fdm_nhf* d, ghostcell *pgc, sediment_fdm *s)
 {
+    
 	double r,density;
     
     SLICELOOP4
     {
     k = s->bedk(i,j);
     
-    density = a->ro(i,j,k);
+    density = p->W1;
     
     tauc = (p->S30*fabs(p->W22)*(p->S22-density))*p->S20*s->reduce(i,j);
   
     s->tau_crit(i,j) = taucrit_loc(i,j) = tauc;
     s->shearvel_crit(i,j) = sqrt(tauc/density);
     s->shields_crit(i,j) = tauc/(density*((p->S22-density)/density)*fabs(p->W22)*p->S20);
-    }
-}
-
-void bedshear::taubed(lexer*, fdm*, ghostcell*, double &tau_eff)
-{
-    tau_eff = taueff_loc(i,j);
-}
-
-void bedshear::taucritbed(lexer*, fdm*, ghostcell*, double &tau_crit)
-{
-    tau_crit = taucrit_loc(i,j);
-}
-
-// SFLOW
-void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
-{
-    double uabs,cf,manning,tau;
-    double U,V;
-    
-    SLICELOOP4
-    {
-    U = 0.5*(s->P(i,j) + s->P(i-1,j));
-    V = 0.5*(s->Q(i,j) + s->Q(i,j-1));
-
-    uabs = sqrt(U*U + V*V);
-    
-    manning = pow(p->S21*s->ks(i,j),1.0/6.0)/20.0;
-    
-    if(p->S16==1)
-    {
-    cf = pow(manning,2.0)/pow(HP,1.0/3.0);
-    
-    tau = p->W1*9.81*cf*uabs*uabs; 
-    }
-    
-    if(p->S16==2)
-    {    
-    cf = 2.5*log(12.0*b->hp(i,j)/(p->S21*s->ks(i,j)));
-    
-    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
-    }
-    
-    if(p->S16==3)
-    {    
-    cf = 2.5*log(12.0*b->hp(i,j)/(p->S21*s->ks(i,j)));
-    
-    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
-    }
-    
-    if(p->S16==4)
-    {
-    tau=p->W1*b->kin(i,j)*0.3;
-    }
-    
-    s->tau_eff(i,j) = taueff_loc(i,j) = tau;
-    s->shearvel_eff(i,j) = sqrt(tau/p->W1);
-    s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
-    }
-}
-
-void bedshear::taucritbed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
-{
-	double r;
-    
-    SLICELOOP4
-    {
-    tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->reduce(i,j);
-  
-    s->tau_crit(i,j) = taucrit_loc(i,j) = tauc;
-    s->shearvel_crit(i,j) = sqrt(tauc/p->W1);
-    s->shields_crit(i,j) = tauc/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
     }
 }

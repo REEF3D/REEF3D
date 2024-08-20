@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,41 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
+#include"nhflow_fsf_f.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"fdm_nhf.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
-#include"sediment_fdm.h"
+#include"ioflow.h"
 
-void sediment_f::prep_cfd(lexer *p, fdm *a,ghostcell *pgc)
-{    
-    
-    // vel prep --------
-    pgc->start1(p,a->u,14);
-	pgc->start2(p,a->v,15);
-	pgc->start3(p,a->w,16);
-    
-    // find bedk -------
-    fill_bedk(p,a,pgc);
-    
-    fill_PQ_cfd(p,a,pgc);
-    
-    waterlevel(p,a,pgc);
-    
-}
-
-void sediment_f::prep_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
-{    
-    
-    //fill_PQ_cfd(p,a,pgc);
-        
-}
-
-void sediment_f::prep_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)
+void nhflow_fsf_f::depth_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
 {
+    SLICELOOP4
+	d->depth(i,j) = p->wd - d->bed(i,j);
     
-    fill_PQ_sflow(p,b,pgc,P,Q);
+    SLICELOOP4
+    d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
     
+    pgc->gcsl_start4(p,d->depth,50);
+    pgc->gcsl_start4(p,d->WL,gcval_eta);   
 }

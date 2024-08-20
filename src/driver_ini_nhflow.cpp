@@ -126,6 +126,9 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
     
+    //sediment ini
+    psed->ini_nhflow(p,d,pgc);
+    
     //6DOF ini
     p6dof->ini(p,pgc);
     

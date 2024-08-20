@@ -1480,6 +1480,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_update.cpp"/>
           <File Name="nhflow_fsf_forcing.cpp"/>
           <File Name="nhflow_fsf_guard.cpp"/>
           <File Name="nhflow_fsf_kbedbc.cpp"/>
@@ -1737,7 +1738,9 @@
           <File Name="bedload_einstein.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedshear">
-          <File Name="bedshear.cpp"/>
+          <File Name="bedshear_cfd.cpp"/>
+          <File Name="bedshear_sflow.cpp"/>
+          <File Name="bedshear_nhflow.cpp"/>
           <File Name="bedslope.cpp"/>
           <File Name="reduction_deyana.cpp"/>
           <File Name="reduction_deyemp.cpp"/>
@@ -2721,7 +2724,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
         <File Name="driver_loop_ptf.cpp"/>
-        <File Name="driver_loop_ngx.cpp"/>
         <File Name="driver_loop_cfd_sf.cpp"/>
         <File Name="driver_loop_fnpf.cpp"/>
         <File Name="driver_loop_cfd_df.cpp"/>

@@ -67,8 +67,15 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
 
 void sediment_f::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
+    SLICELOOP4
+	d->bed(i,j) = s->bedzh(i,j);
+    
+    pgc->gcsl_start4(p,d->bed,50);
+    
+    bedchange_update(p,pgc);
+    
+    active_nhflow(p,d,pgc);
 }
-
 
 void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 {
@@ -81,7 +88,7 @@ void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
     pgc->gcsl_start4(p,b->bed,50);
     pgc->gcsl_start4(p,b->topobed,50);
     
-    bedchange_update(p, pgc);
+    bedchange_update(p,pgc);
     
     active_sflow(p,b,pgc);
     

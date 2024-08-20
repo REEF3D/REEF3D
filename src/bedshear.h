@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 class lexer;
 class fdm;
+class fdm_nhf;
 class ghostcell;
 class sediment_fdm;
 class turbulence;
@@ -46,6 +47,9 @@ public:
     
     virtual void taubed(lexer*, fdm*, ghostcell*, double&);
     virtual void taucritbed(lexer*, fdm*, ghostcell*, double&);
+    
+    virtual void taubed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);
+    virtual void taucritbed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);
     
     virtual void taubed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);
     virtual void taucritbed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);

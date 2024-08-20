@@ -64,7 +64,8 @@ public:
     
     virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double)=0;
     virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double)=0;
-
+    
+    virtual void depth_update(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
 
 };
 

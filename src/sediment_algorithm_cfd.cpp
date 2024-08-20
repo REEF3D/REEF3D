@@ -42,7 +42,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     
     ++p->sediter;
     
-    // prep CFD
+    // prep CFD -------
     prep_cfd(p,a,pgc);
     
     // bedslope cds ******

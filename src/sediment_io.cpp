@@ -22,6 +22,7 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"bedshear.h"
@@ -77,6 +78,20 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     pgc->gcsl_start1(p,a->P,10);
 	pgc->gcsl_start2(p,a->Q,11);
+}
+
+void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    k=0;
+    
+    SLICELOOP1
+    s->P(i,j) = 0.5*(d->U[IJK] + d->U[Ip1JK]);
+    
+    SLICELOOP2
+    s->Q(i,j) = 0.5*(d->V[IJK] + d->V[IJp1K]);
+    
+    pgc->gcsl_start1(p,s->P,10);
+	pgc->gcsl_start2(p,s->Q,11);  
 }
 
 void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice &Q)

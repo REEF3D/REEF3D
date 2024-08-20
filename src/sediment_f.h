@@ -61,14 +61,12 @@ public:
     void active_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void active_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
     
-    
     // SFLOW interface
     virtual void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
     virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
     virtual void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     void sediment_algorithm_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
     void prep_sflow(lexer*, fdm2D*, ghostcell*,slice&,slice&);    void fill_PQ_sflow(lexer*,fdm2D*,ghostcell*,slice&,slice&);    void active_sflow(lexer*, fdm2D*, ghostcell*);    void active_ini_sflow(lexer*, fdm2D*, ghostcell*);
-    
     
     
     // ---    virtual void ini_parameters(lexer*, ghostcell*);    virtual void ini_guard(lexer*, ghostcell*);
@@ -101,6 +99,7 @@ private:        void log_ini(lexer*);    void sedimentlog(lexer*);
     double starttime;
     
     int volume_token,sedcalc;
+    int gcval_eta;
     double volume0;
 	
 };

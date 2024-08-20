@@ -216,6 +216,7 @@ public:
     momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;
     particle_base *ppart;
+    turbulence *pturbcfd;
 
 private:
     double starttime, endtime;

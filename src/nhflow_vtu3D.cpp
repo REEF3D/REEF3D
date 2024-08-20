@@ -160,7 +160,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
         {
         print_vtu(p,d,pgc,pnhfturb);
-
+        
         p->printtime+=p->P30;
         }
 
@@ -178,12 +178,19 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
         {
 		pfsf->start(p,d,pgc);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc);
         }
 
 
 		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
         {
         pfsf->start(p,d,pgc);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc);
+        
         p->fsfprinttime+=p->P182;
         }
 
@@ -192,6 +199,9 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
 		{
 		pfsf->start(p,d,pgc);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc);
 		}
 
          if(p->P180==1 && p->P185>0)
@@ -199,6 +209,9 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
 		{
 		pfsf->start(p,d,pgc);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc);
 
 		printfsftime_wT[qn]+=p->P185_dt[qn];
 		}
@@ -254,6 +267,9 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
 {
     print_vtu(p,d,pgc,pnhfturb);
+    
+    if(p->S10>0)
+    pbed->start(p,d,pgc);
     
     if(p->P180==1)
     pfsf->start(p,d,pgc);

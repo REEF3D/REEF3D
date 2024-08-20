@@ -42,7 +42,7 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     
     ++p->sediter;
     
-    // prep SFLOW
+    // prep SFLOW -------
     prep_sflow(p,b,pgc,P,Q);
     
     // bedslope cds ******
@@ -63,6 +63,7 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     
     // Exner *******
     ptopo->start(p,pgc,s);
+    p->sedtime+=p->dtsed;
     
     // sandslide ********
     pslide->start(p,pgc,s);
