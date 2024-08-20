@@ -275,8 +275,8 @@ namespace sediment_particle::movement
                 //     else
                 //     {
                 //         // alternative
-                //         du1 = du2 = du3 = p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(PP.d50*PP.PackingFactor[n]*2*PP.density)*signx;
-                //         dv1 = dv2 = dv3 = p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(PP.d50*PP.PackingFactor[n]*2*PP.density)*signy;
+                //         du1 = du2 = du3 = p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(d*2*PP.density)*signx;
+                //         dv1 = dv2 = dv3 = p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])*3/(d*2*PP.density)*signy;
                 //         dw1 = dw2 = dw3 = 0.0;
                 //     }
                 // }
