@@ -443,6 +443,9 @@ namespace sediment_particle::movement
     {
         // double sumCell = 0;
         // double sumTopo = 0;
+        double thetas=0;
+        double pressureDivX=0, pressureDivY=0, pressureDivZ=0;
+        double stressDivX=0, stressDivY=0, stressDivZ=0;
         PLAINLOOP
         {
         //     {
@@ -498,7 +501,24 @@ namespace sediment_particle::movement
             a.vof(i,j,k) = cellSumTopo[IJK];
             // sumTopo += cellSumTopo[IJK];
             a.Fi(i,j,k)=stressTensor[IJK];
+
+            pressureDivX = (a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22) - (a.press(i,j,k)-a.phi(i,j,k)*a.ro(i,j,k)*fabs(p->W22)))/(p->DXN[IP]);
+            pressureDivY = (0.5*((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22))+(a.press(i+1,j+1,k)-a.phi(i+1,j+1,k)*a.ro(i+1,j+1,k)*fabs(p->W22))) - 0.5*((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))+(a.press(i+1,j-1,k)-a.phi(i+1,j-1,k)*a.ro(i+1,j-1,k)*fabs(p->W22))))/(p->DYN[JM1]+p->DYN[JP]);
+            pressureDivZ = (0.5*((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22))+(a.press(i+1,j,k+1)-a.phi(i+1,j,k+1)*a.ro(i+1,j,k+1)*fabs(p->W22))) - 0.5*((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))+(a.press(i+1,j,k-1)-a.phi(i+1,j,k-1)*a.ro(i+1,j,k-1)*fabs(p->W22))))/(p->DZN[KM1]+p->DZN[KP]);
+            a.test1(i,j,k)=+pressureDivX/p->S22;
+            a.test2(i,j,k)=+pressureDivY/p->S22;
+            a.test3(i,j,k)=+pressureDivZ/p->S22;
+            thetas=theta_s(p,a,PP,i,j,k);
+            stressDivX = (p->ccipol4c(stressTensor,p->XN[IP]+p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]-0.5*p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DXN[IP];
+            stressDivY = (p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]+p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]-0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DYN[JP];
+            stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DZN[KM1]+p->DZN[KP]);
+            a.test4(i,j,k)=-stressDivX/(thetas*p->S22);
+            a.test5(i,j,k)=-stressDivY/(thetas*p->S22);
+            a.test6(i,j,k)=-stressDivZ/(thetas*p->S22);
         }
+        double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
+        if(p->mpirank==0)
+        cout<<"NetBuoy: "<<netBuoyX<<","<<netBuoyY<<","<<netBuoyZ<<endl;
         // std::cout<<p->mpirank<<": Sum of cellSum: "<<sumCell<<" : "<<sumTopo<<std::endl;
     }
 
