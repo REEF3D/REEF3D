@@ -184,12 +184,13 @@ namespace sediment_particle::movement
         double u1,v1,w1;
         double uf,vf,wf;
         double u2,v2,w2;
-        double d=std::cbrt(std::pow(PP.d50,3)*PP.PackingFactor[n]);
+        double d;
 
         for(size_t n=0;n<PP.loopindex;n++)
         {
             if(PP.Flag[n]>0) // INT32_MIN
             {
+                d=std::cbrt(std::pow(PP.d50,3)*PP.PackingFactor[n]);
                 // Prep
                 if(p->global_xmin+p->Q73>PP.X[n])
                 limited = true;
@@ -287,7 +288,7 @@ namespace sediment_particle::movement
                 //     dv=v-PP.V[n];
                 //     dw=w-PP.W[n];
 
-                //     Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
+                //     Dp=drag_model(p,d,du,dv,dw,thetas);
 
                 //     du1=Dp*du;
                 //     dv1=Dp*dv;
@@ -314,7 +315,7 @@ namespace sediment_particle::movement
                 //     dv=v-RKv;
                 //     dw=w-RKw;
 
-                //     Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
+                //     Dp=drag_model(p,d,du,dv,dw,thetas);
 
                 //     du2=Dp*du;
                 //     dv2=Dp*dv;
@@ -345,7 +346,7 @@ namespace sediment_particle::movement
                 //     dv=v-RKv;
                 //     dw=w-RKw;
 
-                //     Dp=drag_model(p,PP.d50*PP.PackingFactor[n],du,dv,dw,thetas);
+                //     Dp=drag_model(p,d,du,dv,dw,thetas);
 
                 //     du3=Dp*du;
                 //     dv3=Dp*dv;
