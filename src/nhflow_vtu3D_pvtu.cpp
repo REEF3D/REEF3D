@@ -24,9 +24,10 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment.h"
 #include"nhflow_turbulence.h"
 
-void nhflow_vtu3D::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb)
+void nhflow_vtu3D::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {	
 	int num=0;
     

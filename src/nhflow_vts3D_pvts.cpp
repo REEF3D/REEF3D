@@ -24,10 +24,11 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"sediment.h"
 #include"nhflow_vel_probe_theory.h"
 
 
-void nhflow_vts3D::pvts(lexer *p, ghostcell* pgc)
+void nhflow_vts3D::pvts(lexer *p, ghostcell* pgc, sediment *psed)
 {	
 	int num=0;
     

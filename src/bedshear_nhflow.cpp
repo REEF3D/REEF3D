@@ -48,9 +48,8 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     
     u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
-    tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
-    
-    
+    tau=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+
     s->tau_eff(i,j) = taueff_loc(i,j) = tau;
     s->shearvel_eff(i,j) = sqrt(tau/density);
     s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);

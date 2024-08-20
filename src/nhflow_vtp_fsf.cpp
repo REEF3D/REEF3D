@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"sediment.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -66,12 +67,12 @@ nhflow_vtp_fsf::~nhflow_vtp_fsf()
 {
 }
 
-void nhflow_vtp_fsf::start(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_fsf::start(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 {	
-    print2D(p,d,pgc);
+    print2D(p,d,pgc,psed);
 }
 
-void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 {	
     //pgc->gcsl_start4(p,d->eta,gcval_eta);
     //pgc->gcsl_start4(p,d->Fifsf,gcval_fifsf);
@@ -92,7 +93,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     d->eta.ggcpol(p);
     
 	if(p->mpirank==0)
-    pvtu(p,d,pgc);
+    pvtu(p,d,pgc,psed);
 
 	name_iter(p,d,pgc);
 	

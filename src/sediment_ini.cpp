@@ -60,6 +60,9 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    ini_parameters(p,pgc);
+    ini_guard(p,pgc);
+    log_ini(p);
 }
 
 void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)

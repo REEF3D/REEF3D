@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"force_ale.h"
 #include"ioflow.h"
+#include"sediment.h"
 #include"nhflow_print_wsf.h"
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_vtp_bed.h"
@@ -124,7 +125,7 @@ nhflow_vtu3D::~nhflow_vtu3D()
 {
 }
 
-void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
+void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     // Gages
 	if(p->P51>0)
@@ -153,13 +154,13 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
 		{
-        print_vtu(p,d,pgc,pnhfturb);
+        print_vtu(p,d,pgc,pnhfturb,psed);
 		}
 
 		// Print out based on time
         if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
         {
-        print_vtu(p,d,pgc,pnhfturb);
+        print_vtu(p,d,pgc,pnhfturb,psed);
         
         p->printtime+=p->P30;
         }
@@ -169,7 +170,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		for(int qn=0; qn<p->P35; ++qn)
 		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 		{
-		print_vtu(p,d,pgc,pnhfturb);
+		print_vtu(p,d,pgc,pnhfturb,psed);
 
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
@@ -177,19 +178,19 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         // Print FSF
 		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
         {
-		pfsf->start(p,d,pgc);
+		pfsf->start(p,d,pgc,psed);
         
         if(p->S10>0)
-        pbed->start(p,d,pgc);
+        pbed->start(p,d,pgc,psed);
         }
 
 
 		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
         {
-        pfsf->start(p,d,pgc);
+        pfsf->start(p,d,pgc,psed);
         
         if(p->S10>0)
-        pbed->start(p,d,pgc);
+        pbed->start(p,d,pgc,psed);
         
         p->fsfprinttime+=p->P182;
         }
@@ -198,27 +199,27 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		for(int qn=0; qn<p->P184; ++qn)
 		if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
 		{
-		pfsf->start(p,d,pgc);
+		pfsf->start(p,d,pgc,psed);
         
         if(p->S10>0)
-        pbed->start(p,d,pgc);
+        pbed->start(p,d,pgc,psed);
 		}
 
          if(p->P180==1 && p->P185>0)
 		for(int qn=0; qn<p->P185; ++qn)
 		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
 		{
-		pfsf->start(p,d,pgc);
+		pfsf->start(p,d,pgc,psed);
         
         if(p->S10>0)
-        pbed->start(p,d,pgc);
+        pbed->start(p,d,pgc,psed);
 
 		printfsftime_wT[qn]+=p->P185_dt[qn];
 		}
 
         // Print BED
         if(p->count==0)
-		pbed->start(p,d,pgc);
+		pbed->start(p,d,pgc,psed);
 
 
     // Gages
@@ -264,19 +265,19 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         */
 }
 
-void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
+void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
-    print_vtu(p,d,pgc,pnhfturb);
+    print_vtu(p,d,pgc,pnhfturb,psed);
     
     if(p->S10>0)
-    pbed->start(p,d,pgc);
+    pbed->start(p,d,pgc,psed);
     
     if(p->P180==1)
-    pfsf->start(p,d,pgc);
+    pfsf->start(p,d,pgc,psed);
     
 }
 
-void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb)
+void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     /*
     - U, V, W
@@ -318,7 +319,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     //----------
 
     if(p->mpirank==0)
-    pvtu(p,d,pgc,pnhfturb);
+    pvtu(p,d,pgc,pnhfturb,psed);
 
     name_iter(p,pgc);
 

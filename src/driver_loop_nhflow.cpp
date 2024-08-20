@@ -72,6 +72,7 @@ void driver::loop_nhflow()
         
 		// Sediment Computation
         psed->start_nhflow(p,d,pgc,pflow);
+        pnhfsf->depth_update(p,d,pgc,pflow);
         
         // 6DOF
         p6dof->start_oneway(p,pgc,d->fs);
@@ -89,7 +90,7 @@ void driver::loop_nhflow()
         pnhfstep->start(p,d,pgc);
         
         // printer
-        pnhfprint->start(p,d,pgc,pflow,pnhfturb);
+        pnhfprint->start(p,d,pgc,pflow,pnhfturb,psed);
 
         // Shell-Printout
         if(p->mpirank==0)

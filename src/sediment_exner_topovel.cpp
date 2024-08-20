@@ -56,8 +56,7 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
 		u_abs = sqrt(uvel*uvel + vvel*vvel);
 		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
 		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
-
-    
+        
         ux1=s->P(i-1,j);
         vx1=0.25*(s->Q(i,j)+s->Q(i-1,j)+s->Q(i,j-1)+s->Q(i-1,j-1)); 
         
@@ -100,11 +99,13 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
         
         vx=dqx;
         vy=dqy;
-		
+        
     // Exner equations
         // eq
         if(p->S17==0)
         vz =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
+        
+        //cout<<"guard: "<<s->guard(i,j)<<" relax: "<<prelax->rf(p,pgc)<<" dqx: "<<dqx<<endl;
         
         // non-eq
         if(p->S17==1)

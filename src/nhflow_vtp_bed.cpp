@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"sediment.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -45,16 +46,16 @@ nhflow_vtp_bed::~nhflow_vtp_bed()
 {
 }
 
-void nhflow_vtp_bed::start(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_bed::start(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 {	
-    print2D(p,d,pgc);
+    print2D(p,d,pgc,psed);
 }
 
-void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 {	
     
 	if(p->mpirank==0)
-    pvtu(p,d,pgc);
+    pvtu(p,d,pgc,psed);
     
 	name_iter(p,d,pgc);
 	
@@ -79,6 +80,29 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	// depth
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    
+    // sediment bedlaod
+	if(p->P76==1)
+	psed->offset_vtp_bedload(p,pgc,result,offset,n);
+
+    // sediment parameters 1
+	if(p->P77==1)
+	psed->offset_vtp_parameter1(p,pgc,result,offset,n);
+
+    // sediment parameters 2
+	if(p->P78==1)
+	psed->offset_vtp_parameter2(p,pgc,result,offset,n);
+
+    // bed shear stress
+	if(p->P79>=1)
+	psed->offset_vtp_bedshear(p,pgc,result,offset,n);
+    
+    // test
+    if(p->P23==1)
+    {
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
     
 	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
@@ -114,6 +138,24 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"depth\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    
+    if(p->P76==1)
+	psed->name_vtu_bedload(p,pgc,result,offset,n);
+    
+    if(p->P77==1)
+	psed->name_vtu_parameter1(p,pgc,result,offset,n);
+
+    if(p->P78==1)
+	psed->name_vtu_parameter2(p,pgc,result,offset,n);
+
+	if(p->P79>=1)
+	psed->name_vtu_bedshear(p,pgc,result,offset,n);
+    
+    if(p->P23==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
     result<<"</PointData>"<<endl;
 
     
@@ -167,6 +209,35 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	ffn=float(p->sl_ipol4(d->depth));
 	result.write((char*)&ffn, sizeof (float));
 	}
+    
+    //  sediment bedload
+	if(p->P76==1)
+    psed->print_2D_bedload(p,pgc,result);
+    
+    //  sediment parameter 1
+	if(p->P77==1)
+    psed->print_2D_parameter1(p,pgc,result);
+
+    //  sediment parameter 2
+	if(p->P78==1)
+    psed->print_2D_parameter2(p,pgc,result);
+
+    //  bed shear stress
+	if(p->P79>=1)
+    psed->print_2D_bedshear(p,pgc,result);
+	
+    
+    //  Test
+    if(p->P23==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+    TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(d->test2D));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
 
     //  Connectivity
     iin=4*(p->polygon_sum)*3;

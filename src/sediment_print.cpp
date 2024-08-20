@@ -167,6 +167,18 @@ void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
 	result.write((char*)&ffn, sizeof (float));
 	}
     
+    // cb
+    pgc->gcsl_start4(p,s->cbe,1);
+    
+	iin=4*(p->pointnum2D);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPSLICELOOP
+	{
+    ffn=float(p->sl_ipol4(s->cb));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
 }
 
 void sediment_f::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
