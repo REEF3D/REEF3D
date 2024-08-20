@@ -598,6 +598,8 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	++n;
     offset[n]=offset[n-1]+4*3*(p->cellnum)+4;
 	++n;
+	offset[n]=offset[n-1]+4*3*(p->cellnum)+4;
+	++n;
 	
 	// end scalars
 	//---------------------------------------------
@@ -741,6 +743,8 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result<<"<DataArray type=\"Float32\" Name=\"pressCont\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"stressCont\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	result<<"<DataArray type=\"Float32\" Name=\"buoyStressCont\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"</CellData>"<<endl;
     result<<"<Coordinates>"<<endl;
@@ -1018,6 +1022,17 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ffn=float(a->test5(i,j,k));
 	result.write((char*)&ffn, sizeof (float));
     ffn=float(a->test6(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	iin=4*3*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->test7(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+    ffn=float(a->test8(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+    ffn=float(a->test9(i,j,k));
 	result.write((char*)&ffn, sizeof (float));
 	}
 

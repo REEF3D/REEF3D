@@ -65,7 +65,7 @@ namespace sediment_particle::movement
      */
     void particleStressBased_T2021::setup(lexer *p, fdm &a, double &diameter)
     {
-        PLAINLOOP
+        BLOOP
         {
             cellSumTopo[IJK] = maxParticlesPerCell(p,a,diameter);
             columnSum[IJ] += cellSumTopo[IJK];
@@ -201,15 +201,20 @@ namespace sediment_particle::movement
                 // stressDivX = (stressTensor[Ip1JK] - stressTensor[IJK])/(p->DXN[IP]);
                 // stressDivX = (stressTensor[IJK] - stressTensor[Im1JK])/(p->DXN[IM1]);
                 // stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
-                stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DZN[KM1]+p->DZN[KP]);
+                // stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DZN[KM1]+p->DZN[KP]);
 
-                stressDivX = (p->ccipol4c(stressTensor,PP.X[n]+0.5*p->DXN[IP],PP.Y[n],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n]-0.5*p->DXN[IP],PP.Y[n],PP.Z[n]))/p->DXN[IP];
-                stressDivY = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]+0.5*p->DYN[JP],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]-0.5*p->DYN[JP],PP.Z[n]))/p->DYN[JP];
+                // stressDivX = (p->ccipol4c(stressTensor,PP.X[n]+0.5*p->DXN[IP],PP.Y[n],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n]-0.5*p->DXN[IP],PP.Y[n],PP.Z[n]))/p->DXN[IP];
+                // stressDivY = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]+0.5*p->DYN[JP],PP.Z[n]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n]-0.5*p->DYN[JP],PP.Z[n]))/p->DYN[JP];
                 // stressDivZ = (p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]-0.5*p->DZN[KP]))/p->DZN[KP];
 
                 // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXN[IP]+p->DXN[IM1]);
                 // stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYN[JP]+p->DYN[JM1]);
                 // stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
+
+
+                stressDivX = (stressTensor[IJK] - stressTensor[Im1JK])/(p->DXN[IM1]);
+                stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
+                stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DZN[KM1]+p->DZN[KP]);
 
                 // if(u<0)
                     // stressDivX = (stressTensor[Ip1JK] - p->ccipol4c(stressTensor,PP.X[n],PP.Y[n],PP.Z[n]))/(0.5*p->DXN[IP1]+p->XN[IP1]-PP.X[n]);
@@ -446,6 +451,8 @@ namespace sediment_particle::movement
         double thetas=0;
         double pressureDivX=0, pressureDivY=0, pressureDivZ=0;
         double stressDivX=0, stressDivY=0, stressDivZ=0;
+        bool initalNaN=true;
+        double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
         PLAINLOOP
         {
         //     {
@@ -509,14 +516,25 @@ namespace sediment_particle::movement
             a.test2(i,j,k)=+pressureDivY/p->S22;
             a.test3(i,j,k)=+pressureDivZ/p->S22;
             thetas=theta_s(p,a,PP,i,j,k);
-            stressDivX = (p->ccipol4c(stressTensor,p->XN[IP]+p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]-0.5*p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DXN[IP];
-            stressDivY = (p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]+p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]-0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DYN[JP];
+            // stressDivX = (p->ccipol4c(stressTensor,p->XN[IP]+p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]-0.5*p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DXN[IP];
+            // stressDivY = (p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]+p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]-0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DYN[JP];
+            stressDivX = (stressTensor[IJK] - stressTensor[Im1JK])/(p->DXN[IM1]);
+            stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
             stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DZN[KM1]+p->DZN[KP]);
             a.test4(i,j,k)=-stressDivX/(thetas*p->S22);
             a.test5(i,j,k)=-stressDivY/(thetas*p->S22);
             a.test6(i,j,k)=-stressDivZ/(thetas*p->S22);
+            a.test7(i,j,k)=a.test4(i,j,k)+netBuoyX;
+            a.test8(i,j,k)=a.test5(i,j,k)+netBuoyY;
+            a.test9(i,j,k)=a.test6(i,j,k)+netBuoyZ;
+            // if(a.test6(i,j,k)!=a.test6(i,j,k) && initalNaN)
+            // {
+            //     cout<<"NaN detected: "<<stressTensor[IJKp1]<<"+"<<stressTensor[Ip1JKp1]<<" - "<<stressTensor[IJKm1]<<"+"<<stressTensor[Ip1JKm1]<<" / "<<p->DZN[KM1]<<"+"<<p->DZN[KP]<<"\n";
+            //     cout<<"thetas: "<<thetas<<" density: "<<p->S22<<endl;
+            //     initalNaN=false;
+            // }
         }
-        double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
+        // double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
         if(p->mpirank==0)
         cout<<"NetBuoy: "<<netBuoyX<<","<<netBuoyY<<","<<netBuoyZ<<endl;
         // std::cout<<p->mpirank<<": Sum of cellSum: "<<sumCell<<" : "<<sumTopo<<std::endl;
@@ -583,7 +601,7 @@ namespace sediment_particle::movement
         double theta;
         int i,j,k;
 
-        PLAINLOOP
+        BLOOP
         {
             updateParticleStressTensor(p,a,PP,i,j,k);
         }
@@ -621,6 +639,10 @@ namespace sediment_particle::movement
         double theta = PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
         if(theta>1)
         theta=1;
+        if(theta<0)
+        theta=0;
+        // if(theta!=theta)
+        // theta=0;
         return theta;
     }    
 
