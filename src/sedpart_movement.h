@@ -65,14 +65,14 @@ namespace sediment_particle
             virtual void readState(lexer *, ifstream &){};
             virtual void setupState(lexer *, fdm &, ghostcell &, particles_obj &){};
         };
-        class Tavouktsoglou : public base, increment
+        class particleStressBased_T2021 : public base, increment
         /// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
         /// @author Alexander Hanke
         /// @date 2024
         {
         public:
-            Tavouktsoglou(lexer *);
-            ~Tavouktsoglou();
+            particleStressBased_T2021(lexer *);
+            ~particleStressBased_T2021();
 
             void setup(lexer *, fdm &, double &);
             seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false);

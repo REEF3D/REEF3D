@@ -32,7 +32,7 @@ Author: Alexander Hanke
 
 namespace sediment_particle::movement
 {
-    Tavouktsoglou::Tavouktsoglou(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
+    particleStressBased_T2021::particleStressBased_T2021(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
                                             Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17)
     {
         p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
@@ -41,7 +41,7 @@ namespace sediment_particle::movement
         p->Darray(columnSum,p->imax*p->jmax);
     }
 
-    Tavouktsoglou::~Tavouktsoglou()
+    particleStressBased_T2021::~particleStressBased_T2021()
     {
         delete[] stressTensor;
         stressTensor = nullptr;
@@ -54,16 +54,16 @@ namespace sediment_particle::movement
     }
 
     /**
-     * @brief Sets up the Tavouktsoglou class.
+     * @brief Sets up the particleStressBased_T2021 class.
      *
-     * This function is responsible for setting up the Tavouktsoglou class by calculating
+     * This function is responsible for setting up the particleStressBased_T2021 class by calculating
      * the cellSumTopo and columnSum values based on the given parameters.
      *
      * @param p A pointer to the lexer object.
      * @param a A reference to the fdm object.
      * @param diameter The diameter value.
      */
-    void Tavouktsoglou::setup(lexer *p, fdm &a, double &diameter)
+    void particleStressBased_T2021::setup(lexer *p, fdm &a, double &diameter)
     {
         PLAINLOOP
         {
@@ -72,7 +72,7 @@ namespace sediment_particle::movement
         }
     }
 
-    void Tavouktsoglou::setupState(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+    void particleStressBased_T2021::setupState(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         particlePerCell(p,pgc,PP);
         PLAINLOOP
@@ -92,7 +92,7 @@ namespace sediment_particle::movement
      * @param max The maximum value.
      * @return True if the particle should be seeded, false otherwise.
      */
-    seedReturn Tavouktsoglou::seeding(lexer *p, particles_obj &PP, size_t &index, double max, bool free)
+    seedReturn particleStressBased_T2021::seeding(lexer *p, particles_obj &PP, size_t &index, double max, bool free)
     {
         if(free)
         {
@@ -130,7 +130,7 @@ namespace sediment_particle::movement
      * @param PP A reference to the particles_obj object.
      * @param index The index of the particle.
      */
-    void Tavouktsoglou::transfer(lexer *p, particles_obj &PP, size_t &index)
+    void particleStressBased_T2021::transfer(lexer *p, particles_obj &PP, size_t &index)
     {
         cellSum[IJK] += PP.PackingFactor[index];
     }
@@ -145,7 +145,7 @@ namespace sediment_particle::movement
      * @param PP A reference to the particles_obj object.
      * @param index The index of the particle.
      */
-    void Tavouktsoglou::remove(lexer *p, particles_obj &PP, size_t &index)
+    void particleStressBased_T2021::remove(lexer *p, particles_obj &PP, size_t &index)
     {
         cellSum[IJK] -= PP.PackingFactor[index];
     }
@@ -161,7 +161,7 @@ namespace sediment_particle::movement
      * @param pgc A reference to the ghostcell object.
      * @param PP A reference to the particles_obj object.
      */
-    void Tavouktsoglou::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
+    void particleStressBased_T2021::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
     {
         double RKu,RKv,RKw;
         double u,v,w;
@@ -416,7 +416,7 @@ namespace sediment_particle::movement
      * @param topo A reference to the field4a object.
      * @param d50 The diameter value.
      */
-    void Tavouktsoglou::update(lexer *p, ghostcell &pgc, field4a &topo, double &d50)
+    void particleStressBased_T2021::update(lexer *p, ghostcell &pgc, field4a &topo, double &d50)
     {
         double count;
         ILOOP
@@ -439,7 +439,7 @@ namespace sediment_particle::movement
         pgc.start4a(p,topo,150);
     }
 
-    void Tavouktsoglou::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
+    void particleStressBased_T2021::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
     {
         // double sumCell = 0;
         // double sumTopo = 0;
@@ -502,7 +502,7 @@ namespace sediment_particle::movement
         // std::cout<<p->mpirank<<": Sum of cellSum: "<<sumCell<<" : "<<sumTopo<<std::endl;
     }
 
-    double Tavouktsoglou::volume(lexer *p, fdm &a, particles_obj &PP)
+    double particleStressBased_T2021::volume(lexer *p, fdm &a, particles_obj &PP)
     {
         double sum=0;
         ILOOP
@@ -512,9 +512,9 @@ namespace sediment_particle::movement
         return PI*pow(PP.d50,3.0)*(sum)/6.0;
     }
 
-    /// @brief Writes the state of the Tavouktsoglou class to file.
+    /// @brief Writes the state of the particleStressBased_T2021 class to file.
     /// @ToDo Write cellSumTopo 
-    void Tavouktsoglou::writeState(lexer *p, ofstream &result)
+    void particleStressBased_T2021::writeState(lexer *p, ofstream &result)
     {
         float ffn;
         PLAINLOOP
@@ -525,9 +525,9 @@ namespace sediment_particle::movement
         result.write((char*)&ffn, sizeof (float));  
     }
 
-    /// Reads the state of the Tavouktsoglou class from file.
+    /// Reads the state of the particleStressBased_T2021 class from file.
     /// Reconstructs cellSum, columnSum and stressTensor
-    void Tavouktsoglou::readState(lexer *p, ifstream &result)
+    void particleStressBased_T2021::readState(lexer *p, ifstream &result)
     {
         float ffn;
         PLAINLOOP
@@ -542,7 +542,7 @@ namespace sediment_particle::movement
     /// Uses i,j&k from increment to pass cell identifier
     /// @param d50 Sauter diameter of particles
     /// @return Ceil of number of particles in cell IJK
-    double Tavouktsoglou::maxParticlesPerCell(lexer *p, fdm &a, double d50, bool topo, bool cell)
+    double particleStressBased_T2021::maxParticlesPerCell(lexer *p, fdm &a, double d50, bool topo, bool cell)
     {   
         double DZN=topo?0:p->DZN[KP];
 
@@ -558,7 +558,7 @@ namespace sediment_particle::movement
     }
 
     /// @brief Calculate complete intra-particle stress trensor
-    void Tavouktsoglou::particleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+    void particleStressBased_T2021::particleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         double theta;
         int i,j,k;
@@ -571,7 +571,7 @@ namespace sediment_particle::movement
     }
 
     /// @brief Calculate intra-particle stress trensor for cells around (`increment::i`,`increment::j`,`increment::k`)
-    void Tavouktsoglou::particleStressTensorUpdateIJK(lexer *p, fdm &a, particles_obj &PP)
+    void particleStressBased_T2021::particleStressTensorUpdateIJK(lexer *p, fdm &a, particles_obj &PP)
     {
         double theta;
         int i,j,k;
@@ -589,14 +589,14 @@ namespace sediment_particle::movement
     }
 
     /// @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
-    void Tavouktsoglou::updateParticleStressTensor(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k)
+    void particleStressBased_T2021::updateParticleStressTensor(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k)
     {
         double theta=theta_s(p,a,PP,i,j,k);
         stressTensor[IJK]=Ps*pow(theta,beta)/max(theta_crit-theta,epsilon*(1.0-theta));
     }
 
     /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
-    double Tavouktsoglou::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
+    double particleStressBased_T2021::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
     {   
         double theta = PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
         if(theta>1)
@@ -605,7 +605,7 @@ namespace sediment_particle::movement
     }    
 
     /// @brief Calculate drag force parameter
-    double Tavouktsoglou::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const
+    double particleStressBased_T2021::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const
     {
         double thetaf = 1.0-thetas;
         if(thetaf>1.0-theta_crit) // Saveguard
@@ -627,7 +627,7 @@ namespace sediment_particle::movement
     }
 
     /// @brief Calculate number of particles in cell ( \p i , \p j , \p k )
-    void Tavouktsoglou::particlePerCell(lexer *p, ghostcell &pgc, particles_obj &PP)
+    void particleStressBased_T2021::particlePerCell(lexer *p, ghostcell &pgc, particles_obj &PP)
     {
         PLAINLOOP
         cellSum[IJK]=0;
@@ -645,14 +645,14 @@ namespace sediment_particle::movement
         pgc.start4V_par(p,cellSumTopo,11);
     }
 
-    void Tavouktsoglou::make_moving(lexer *p, fdm &a, particles_obj &PP)
+    void particleStressBased_T2021::make_moving(lexer *p, fdm &a, particles_obj &PP)
     {
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
                 PP.Flag[n]=1;
     }
 
-    void Tavouktsoglou::erode(lexer *p, fdm &a, particles_obj &PP)
+    void particleStressBased_T2021::erode(lexer *p, fdm &a, particles_obj &PP)
     {
         ILOOP
         {

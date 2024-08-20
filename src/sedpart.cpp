@@ -46,7 +46,7 @@ Author: Alexander Hanke
 sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p), PP(10,p->S20,p->S22,true), active_box(p), active_topo(p), irand(10000), drand(irand), s(p), pbedshear(p,pturb)
 {
     pvrans = new vrans_f(p,pgc);
-    movement = new sediment_particle::movement::Tavouktsoglou(p);
+    movement = new sediment_particle::movement::particleStressBased_T2021(p);
     sedpart::pturb = pturb;
 
     prec = 6;
