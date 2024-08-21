@@ -218,7 +218,7 @@ namespace sediment_particle::movement
                 // stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
 
 
-                stressDivX = (stressTensor[IJK] - stressTensor[Im1JK])/(p->DXN[IM1]);
+                stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXN[IM1]+p->DXN[IP]);
                 stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
                 stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DZN[KM1]+p->DZN[KP]);
 
