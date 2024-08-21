@@ -96,6 +96,7 @@ namespace sediment_particle
             double drag_model(lexer *, double, double, double, double, double) const;
             void particlePerCell(lexer *, ghostcell &, particles_obj &);
             void bedReDistribution(lexer *, fdm &, ghostcell &, particles_obj &);
+            double timestep(lexer *, ghostcell &, particles_obj &);
         private:
             /// @brief Sum of particles belonging to the stationary bed
             double *cellSumTopo;
@@ -117,6 +118,9 @@ namespace sediment_particle
             const double epsilon;
             /// @brief Critical solid volume fraction
             const double theta_crit;
+
+            double dx;
+            double time;
         };
     };
     class state : increment
