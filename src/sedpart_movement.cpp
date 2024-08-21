@@ -39,6 +39,7 @@ namespace sediment_particle::movement
         p->Darray(cellSum,p->imax*p->jmax*p->kmax);
         p->Darray(cellSumTopo,p->imax*p->jmax*p->kmax);
         p->Darray(columnSum,p->imax*p->jmax);
+        dx=p->global_xmax-p->global_xmin;
         LOOP
         {
             dx = min(dx,MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]));
@@ -195,74 +196,96 @@ namespace sediment_particle::movement
         double du,dv,dw;
 
         for(int m=0;m<2;m++)
-        for(size_t n=0;n<PP.loopindex;n++)
         {
-            if(PP.Flag[n]>0) // INT32_MIN
+            for(size_t n=0;n<PP.loopindex;n++)
             {
-                // if(p->global_xmin+p->Q73>PP.X[n])
-                // limited = true;
-                // else
-                // limited = false;
+                if(PP.Flag[n]>0) // INT32_MIN
+                {
+                    if(p->global_xmin+p->Q73>PP.X[n])
+                    limited = true;
+                    else
+                    limited = false;
 
-                i=p->posc_i(PP.X[n]);
-                j=p->posc_j(PP.Y[n]);
-                k=p->posc_k(PP.Z[n]);
+                    i=p->posc_i(PP.X[n]);
+                    j=p->posc_j(PP.Y[n]);
+                    k=p->posc_k(PP.Z[n]);
 
-                thetas=theta_s(p,a,PP,i,j,k);
+                    thetas=theta_s(p,a,PP,i,j,k);
 
-                stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
-                stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
-                stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
+                    stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
+                    stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
+                    stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
 
-                pressureDivX = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
-                pressureDivY = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[IM1]+p->DYP[IP]);
-                pressureDivZ = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[IM1]+p->DZP[IP]);
+                    pressureDivX = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
+                    pressureDivY = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
+                    pressureDivZ = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
 
-                // if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50*10)
-                //     bedLoad=true;
+                    // if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50*10)
+                    //     bedLoad=true;
 
-                u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
-                v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
-                w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
-                
-                Du=u-PP.U[n];
-                Dv=v-PP.V[n];
-                Dw=w-PP.W[n];
+                    u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
+                    v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
+                    w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                    
+                    Du=u-PP.U[n];
+                    Dv=v-PP.V[n];
+                    Dw=w-PP.W[n];
 
-                DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
+                    DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
 
-                // Acceleration
-                du=DragCoeff*Du;
-                dv=DragCoeff*Dv;
-                dw=DragCoeff*Dw;
+                    // Acceleration
+                    du=DragCoeff*Du;
+                    dv=DragCoeff*Dv;
+                    dw=DragCoeff*Dw;
 
-                du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
-                dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
-                dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
+                    du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
+                    dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
+                    dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
 
-                // Vel update
-                PP.U[n]=0.5*(PP.U[n]+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n]))+du*RKtimeStep;
-                PP.U[n]=0.5*(PP.V[n]+p->ccipol1c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n]))+dv*RKtimeStep;
-                PP.U[n]=0.5*(PP.W[n]+p->ccipol1c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n]))+dw*RKtimeStep;
-                
-                // Pos update
-                PP.X[n] += PP.U[n]*RKtimeStep;
-                PP.Y[n] += PP.V[n]*RKtimeStep;
-                PP.Z[n] += PP.W[n]*RKtimeStep;
+                    if(dw!=dw)
+                    {
+                    cout<<"NaN detected.\nu: "<<w<<" up: "<<PP.W[n]<<"\npos: "<<PP.X[n]<<","<<PP.Y[n]<<","<<PP.Z[n]<<"\n drag: "<<DragCoeff<<endl;
+                    exit(1);
+                    }
 
-                // Sum update
-                cellSum[IJK]-=PP.PackingFactor[n];
-                i=p->posc_i(PP.X[n]);
-                j=p->posc_j(PP.Y[n]);
-                k=p->posc_k(PP.Z[n]);
-                cellSum[IJK]+=PP.PackingFactor[n];
-                particleStressTensorUpdateIJK(p,a,PP);
+                    // Vel update
+                    PP.U[n]=0.5*(PP.U[n]+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n]))+du*RKtimeStep;
+                    PP.V[n]=0.5*(PP.V[n]+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n]))+dv*RKtimeStep;
+                    PP.W[n]=0.5*(PP.W[n]+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n]))+dw*RKtimeStep;
+
+                    if(PP.X[n]!=PP.X[n])
+                    {
+                    cout<<"NaN detected.\npos: "<<PP.X[n]<<endl;
+                    exit(1);
+                    }
+                    
+                    // Pos update
+                    PP.X[n] += PP.U[n]*RKtimeStep;
+                    PP.Y[n] += PP.V[n]*RKtimeStep;
+                    if(!limited)
+                    PP.Z[n] += PP.W[n]*RKtimeStep;
+
+                    if(PP.X[n]!=PP.X[n])
+                    {
+                    cout<<"NaN detected.\npos: "<<PP.X[n]<<endl;
+                    exit(1);
+                    }
+
+                    // Sum update
+                    cellSum[IJK]-=PP.PackingFactor[n];
+                    i=p->posc_i(PP.X[n]);
+                    j=p->posc_j(PP.Y[n]);
+                    k=p->posc_k(PP.Z[n]);
+                    cellSum[IJK]+=PP.PackingFactor[n];
+                    // particleStressTensorUpdateIJK(p,a,PP);
+                }
             }
+            particleStressTensor(p,a,pgc,PP);
         }
         if(p->mpirank==0)
         {
             time += timeStep;
-            cout<<"Sediment time: "<<time<<endl;
+            cout<<"Sediment time: "<<time<<" time step: "<<timeStep<<endl;
         }
     }
 
@@ -474,8 +497,8 @@ namespace sediment_particle::movement
         const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
         const double Dp=Cd*3.0*drho*dU/d/4.0;
 
-        if(Dp!=Dp)
-        cout<<thetaf<<","<<dU<<","<<Rep<<","<<Cd<<"|"<<(dU==0)<<endl;
+        // if(Dp!=Dp)
+        // cout<<thetaf<<","<<dU<<","<<Rep<<","<<Cd<<"|"<<(dU==0)<<endl;
 
         return Dp;
     }
@@ -587,13 +610,18 @@ namespace sediment_particle::movement
         {
             if(PP.Flag[n]>0)
             {
-                maxVelU=max(maxVelU,PP.U[n]);
-                maxVelV=max(maxVelV,PP.V[n]);
-                maxVelW=max(maxVelW,PP.W[n]);
+                maxVelU=max(maxVelU,fabs(PP.U[n]));
+                maxVelV=max(maxVelV,fabs(PP.V[n]));
+                maxVelW=max(maxVelW,fabs(PP.W[n]));
             }
         }
         dx = pgc.globalmin(dx);
-        double dt = p->S14 * (sqrt(maxVelU*maxVelU+maxVelV*maxVelV+maxVelW*maxVelW)/dx);
+        // if(p->mpirank==0)
+        // cout<<"TimeStep: dx: "<<dx<<" vel: "<<sqrt(maxVelU*maxVelU+maxVelV*maxVelV+maxVelW*maxVelW)<<endl;
+        double meanVel=sqrt(maxVelU*maxVelU+maxVelV*maxVelV+maxVelW*maxVelW);
+        if(meanVel==0)
+        meanVel=dx*p->S14/p->S13;
+        double dt = p->S14 * (dx/meanVel);
         dt = min(dt,p->S13);
         dt = pgc.globalmin(dt);
         return dt;

@@ -212,7 +212,7 @@ void sedpart::seed_topo(lexer *p, fdm *a)
 {
     double tolerance = 5e-18;
     double x,y,z,ipolTopo,ipolSolid;
-    int flag=0;
+    int flag=1;
     size_t index;
 
     if(PP.size+ppcell>0.9*PP.capacity)

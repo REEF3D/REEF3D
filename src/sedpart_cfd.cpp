@@ -59,7 +59,7 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     gparticle_active = pgc->globalisum(PP.size);
 
     fill_PQ_cfd(p,a,pgc);
-    movement->move(p,*a,*pgc,PP,s,*pturb);
+    // movement->move(p,*a,*pgc,PP,s,*pturb);
     
     // print
     if((p->I40!=1)||(p->I40==1&&inicount>0))
