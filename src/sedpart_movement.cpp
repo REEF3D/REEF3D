@@ -524,7 +524,7 @@ namespace sediment_particle::movement
             thetas=theta_s(p,a,PP,i,j,k);
             // stressDivX = (p->ccipol4c(stressTensor,p->XN[IP]+p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]-0.5*p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DXN[IP];
             // stressDivY = (p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]+p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]-0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DYN[JP];
-            stressDivX = (stressTensor[IJK] - stressTensor[Im1JK])/(p->DXN[IM1]);
+            stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXN[IM1]+p->DXN[IP]);
             stressDivY = (0.5*(stressTensor[IJp1K]+stressTensor[Ip1Jp1K]) - 0.5*(stressTensor[IJm1K]+stressTensor[Ip1Jm1K]))/(p->DYN[JM1]+p->DYN[JP]);
             stressDivZ = (0.5*(stressTensor[IJKp1]+stressTensor[Ip1JKp1]) - 0.5*(stressTensor[IJKm1]+stressTensor[Ip1JKm1]))/(p->DZN[KM1]+p->DZN[KP]);
             a.test4(i,j,k)=-stressDivX/(thetas*p->S22);
