@@ -735,6 +735,44 @@ namespace sediment_particle::movement
             }
         }
     }
+
+    void particleStressBased_T2021::bedReDistribution(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+    {
+        /// per i,j,k which particles n are in cell
+        std::vector<std::vector<size_t>> particlesInCell(p->imax*p->jmax*p->kmax);
+        for(size_t n=0;n<PP.loopindex;n++)
+        {
+            if(PP.Flag[n]>=0) // INT32_MIN
+            {
+                i=p->posc_i(PP.X[n]);
+                j=p->posc_j(PP.Y[n]);
+                k=p->posc_k(PP.Z[n]);
+                particlesInCell[IJK].push_back(n);
+            }
+        }
+        double tolerance = 5e-18;
+        double x,y,z,ipolTopo,ipolSolid;
+        int irand=10000;
+        double drand=10000;
+        PLAINLOOP
+        for (auto index : particlesInCell[IJK])
+        {
+            x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+            y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+            z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+
+            ipolTopo = p->ccipol4_b(a.topo,x,y,z);
+            ipolSolid = p->ccipol4_b(a.solid,x,y,z);
+
+            if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
+            {
+                PP.X[index] = x;
+                PP.Y[index] = y;
+                PP.Z[index] = z;
+            }
+        }
+        
+    }
 };
 
 int sediment_particle::state::solid_clean(lexer* p, particles_obj &PP, sediment_particle::movement::base &movement)
