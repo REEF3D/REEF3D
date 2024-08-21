@@ -59,6 +59,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
     bckin_matrix(p,d,KIN,EPS);
     psolv->startV(p,pgc,KIN,d->rhsvec,d->M,4);
     pgc->start4V(p,KIN,gcval_kin);
+    kinupdate(p,d,pgc);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -96,6 +97,14 @@ void nhflow_komega_IM1::etimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
 {
     LOOP
     EN[IJK]=EPS[IJK]; 
+}
+
+void nhflow_komega_IM1::kinupdate(lexer *p, fdm_nhf* d, ghostcell *pgc)
+{
+    LOOP
+    d->KIN[IJK]=KIN[IJK]; 
+    
+    pgc->start4V(p,d->KIN,gcval_kin);
 }
 
 void nhflow_komega_IM1::timesource(lexer* p, fdm_nhf* d, double *FN)

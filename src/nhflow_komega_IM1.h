@@ -36,6 +36,7 @@ public:
 	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*);
 	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*);
 	void timesource(lexer*,fdm_nhf*,double*);
+    void kinupdate(lexer*, fdm_nhf*, ghostcell*);
 	void clearrhs(lexer*,fdm_nhf*);
 
 	double  *KN,*EN;

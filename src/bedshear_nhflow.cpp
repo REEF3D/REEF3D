@@ -38,17 +38,24 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     k=0;
     SLICELOOP4
     {
-    U = d->U[IJK];
-    V = d->V[IJK];
-    W = d->W[IJK];
-    
-    dist = 0.5*p->DZN[KP]*d->WL(i,j);
+        
+        if(p->S16==1)
+        {
+        U = d->U[IJK];
+        V = d->V[IJK];
+        W = d->W[IJK];
+        
+        dist = 0.5*p->DZN[KP]*d->WL(i,j);
 
-    uabs = sqrt(U*U + V*V + W*W);
-    
-    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+        uabs = sqrt(U*U + V*V + W*W);
+        
+        u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
-    tau=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        tau=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        }
+        
+        if(p->S16==4)
+        tau=density*d->KIN[IJK]*0.3;
 
     s->tau_eff(i,j) = taueff_loc(i,j) = tau;
     s->shearvel_eff(i,j) = sqrt(tau/density);

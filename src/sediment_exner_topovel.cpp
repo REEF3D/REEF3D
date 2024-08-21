@@ -84,6 +84,12 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
         sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
         
         
+        // ---------------
+        //sgx1=sgx2=signx;
+        //sgy1=sgy2=signy;
+        
+        
+        
         // complete q
         if(p->S17==0)
         {
@@ -96,6 +102,8 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
         dqx = pdx->sx(p,s->qb,sgx1,sgx2);
         dqy = pdx->sy(p,s->qb,sgy1,sgy2);
         }
+        
+        //cout<<sgx1<<" "<<sgx2<<" "<<sgy1<<" "<<sgy2<<" | "<<dqx<<" "<<dqy<<endl;
         
         vx=dqx;
         vy=dqy;

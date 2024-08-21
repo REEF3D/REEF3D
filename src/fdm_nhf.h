@@ -78,6 +78,7 @@ public:
     double *F,*G,*H,*L;
     double *porosity;
     double *test;
+    double *KIN;
     
     double *SOLID,*FB,*FHB;
     
