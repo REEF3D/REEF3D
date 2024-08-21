@@ -253,9 +253,19 @@ namespace sediment_particle::movement
                     PP.V[n]=0.5*(PP.V[n]+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n]))+dv*RKtimeStep;
                     PP.W[n]=0.5*(PP.W[n]+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n]))+dw*RKtimeStep;
 
-                    if(PP.X[n]!=PP.X[n])
+                    if(PP.U[n]!=PP.U[n])
                     {
-                    cout<<"NaN detected.\npos: "<<PP.X[n]<<endl;
+                    cout<<"NaN detected.\naccel: "<<du<<" df: "<<p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n])<<endl;
+                    exit(1);
+                    }
+                    if(PP.V[n]!=PP.V[n])
+                    {
+                    cout<<"NaN detected.\naccel: "<<dv<<" df: "<<p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n])<<endl;
+                    exit(1);
+                    }
+                    if(PP.W[n]!=PP.W[n])
+                    {
+                    cout<<"NaN detected.\naccel: "<<dw<<" df: "<<p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])<<endl;
                     exit(1);
                     }
                     
@@ -264,12 +274,6 @@ namespace sediment_particle::movement
                     PP.Y[n] += PP.V[n]*RKtimeStep;
                     if(!limited)
                     PP.Z[n] += PP.W[n]*RKtimeStep;
-
-                    if(PP.X[n]!=PP.X[n])
-                    {
-                    cout<<"NaN detected.\npos: "<<PP.X[n]<<endl;
-                    exit(1);
-                    }
 
                     // Sum update
                     cellSum[IJK]-=PP.PackingFactor[n];
