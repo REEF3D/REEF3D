@@ -506,7 +506,7 @@ namespace sediment_particle::movement
         //         // a.test(i,j,k) = (s.tau_eff(i+1,j)*sgx2-s.tau_eff(i-1,j)*sgx1)*pow(PP.d50/2.0,2)/(4.0/3.0*pow(PP.d50/2.0,3)*PP.density)*p->dt;
         //     }
 
-
+            a.test(i,j,k) = 0;
             for(int n=0;n<=k;n++)
             a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
             a.fb(i,j,k) = cellSum[IJK];
