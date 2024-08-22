@@ -118,10 +118,10 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         point_source(p,a);
         if(p->Q101>0)
         {
-            topo_influx(p,a);
-            solid_influx(p,a);
-            set_active_topo(p,a);
-            seed_topo(p,a);
+            // topo_influx(p,a);
+            // solid_influx(p,a);
+            // set_active_topo(p,a);
+            // seed_topo(p,a);
         }
 
         /// transport
