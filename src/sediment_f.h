@@ -35,6 +35,7 @@ class vrans;
 class turbulence;
 class sediment_fdm;
 class bedshear_reduction;class suspended;class diffusion;class convection;class patchBC_interface;
+class bedload_direction;
 using namespace std;
 
 #ifndef SEDIMENT_F_H_
@@ -94,7 +95,8 @@ private:        void log_ini(lexer*);    void sedimentlog(lexer*);
     topo_relax *prelax;
     vrans *pvrans;
     bedshear_reduction *preduce;    topo *ptopo;    suspended *psusp;    diffusion *psuspdiff;    convection *psuspdisc;
-	bedshear *pbedshear;    patchBC_interface *pBC;    ofstream sedlogout;
+	bedshear *pbedshear;    patchBC_interface *pBC;
+    bedload_direction *pbeddir;    ofstream sedlogout;
     
     double starttime;
     

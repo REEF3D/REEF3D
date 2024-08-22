@@ -1302,6 +1302,8 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = S84;
 	ii++;
+    ictrl[ii] = S85;
+	ii++;
     ictrl[ii] = S90;
 	ii++;
     ictrl[ii] = S91;

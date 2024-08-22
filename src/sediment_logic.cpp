@@ -64,6 +64,8 @@ Author: Hans Bihs
 #include"suspended_RK2.h"
 #include"suspended_RK3.h"
 #include"suspended_IM1.h"
+#include"bedload_direction_f.h"
+#include"bedload_direction_v.h"
 
 void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
@@ -172,6 +174,12 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     if(p->S60==11)
     psusp = new suspended_IM1(p,a);
     }
+    
+    if(p->S85==0)
+    pbeddir = new bedload_direction_v(p);
+    
+    if(p->S85==1)
+    pbeddir = new bedload_direction_f(p);
     
 	
 	p->gcin4a_count=p->gcin_count;

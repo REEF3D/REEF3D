@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"sandslide.h"
 #include"topo_relax.h"
 #include"bedshear_reduction.h"
+#include"bedload_direction.h"
 
 void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
@@ -57,6 +58,9 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 
     // bedload *******
     pbed->start(p,pgc,s);
+    
+    // bedload_direction_f *******
+    pbeddir->start(p,pgc,s);
     
     // suspended load -------
     pcbed->start(p,pgc,s);

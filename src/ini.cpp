@@ -653,6 +653,7 @@ void lexer::ini_default()
     S82=5.0;              // double delta phi for slope reduction
     S83=2;                // double type of bedslope calc
     S84=1;                  // int type of critical bed shear stress reduction limiters
+    S85=1;                  // int bedload direction Koch and Flokstra
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
     S92=1.0;                // double sandslide correction factor

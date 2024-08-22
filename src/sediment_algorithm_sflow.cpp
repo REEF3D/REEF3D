@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"sandslide.h"
 #include"topo_relax.h"
 #include"bedshear_reduction.h"
+#include"bedload_direction.h"
 
 void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
 {
@@ -57,6 +58,9 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
 
     // bedload *******
     pbed->start(p,pgc,s);
+    
+    // bedload_direction_f *******
+    pbeddir->start(p,pgc,s);
 	
     // relax *******
 	prelax->start(p,pgc,s);
