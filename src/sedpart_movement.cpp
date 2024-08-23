@@ -190,10 +190,10 @@ namespace sediment_particle::movement
         double RKtimeStep = 0.5*p->dtsed;
 
 
-        double Du,Dv,Dw;
-        double thetas;
-        double DragCoeff;
-        double du,dv,dw;
+        double Du=0,Dv=0,Dw=0;
+        double thetas=0;
+        double DragCoeff=0;
+        double du=0,dv=0,dw=0;
 
         for(int m=0;m<2;m++)
         {
