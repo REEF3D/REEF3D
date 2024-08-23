@@ -109,6 +109,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     pgc->gcsl_start4(p,s.tau_eff,1);
     pbedshear.taucritbed(p,a,pgc,&s);
     pgc->gcsl_start4(p,s.tau_crit,1);
+    prelax.start(p,pgc,&s);
 
 	if (p->count>=p->Q43)
 	{

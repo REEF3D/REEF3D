@@ -32,6 +32,7 @@ Author: Alexander Hanke
 #include "bedshear_reduction.h"
 #include "sediment_fdm.h"
 #include "bedshear.h"
+#include "topo_relax.h"
 
 namespace sediment_particle::movement
 {
@@ -168,6 +169,8 @@ private:
     sediment_particle::movement::base *movement;
 
     turbulence *pturb;
+
+    topo_relax prelax;
 
 	// PRINT
 
