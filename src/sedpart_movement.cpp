@@ -194,6 +194,7 @@ namespace sediment_particle::movement
         double thetas=0;
         double DragCoeff=0;
         double du=0,dv=0,dw=0;
+        int counter = 0;
 
         for(int m=0;m<2;m++)
         {
@@ -201,6 +202,7 @@ namespace sediment_particle::movement
             {
                 if(PP.Flag[n]>0) // INT32_MIN
                 {
+                    ++counter;
                     if(p->global_xmin+p->Q73>PP.X[n])
                     limited = true;
                     else
@@ -306,6 +308,15 @@ namespace sediment_particle::movement
         {
             p->sedtime += p->dtsed;
             cout<<"Sediment time: "<<p->sedtime<<" time step: "<<p->dtsed<<endl;
+            int Flag0=0,Flag1=0;
+            for(size_t n=0;n<PP.loopindex;n++)
+            {
+                if(PP.Flag[n]==0)
+                Flag0++;
+                else if(PP.Flag[n]==1)
+                Flag1++;
+            }
+            cout<<"Particles: "<<PP.size<<" Flag0: "<<Flag0<<" Flag1: "<<Flag1<<" moved: "<<counter<<endl;
         }
     }
 
