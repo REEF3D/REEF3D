@@ -24,9 +24,12 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"reini_RK3.h"
+
 
 initialize::initialize(lexer* p):smallnum(1.0e-20)
 {
+    preini=new reini_RK3(p,1);
 }
 
 initialize::~initialize()
@@ -50,7 +53,7 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
         
 
 	
-	if(p->F40>0)
+	if(p->F40>0 || (!(p->F80==4)))
 	iniphi(a,p,pgc);
 
 	if(p->F80>0 && p->F80<4)
@@ -64,6 +67,8 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
 
 	if(p->F70>0 && p->F80>0)
 	inivof_box(p,a,pgc);
+    
+    
     	
 	//iniphi_surfarea(p,a,pgc);
 

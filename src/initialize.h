@@ -22,6 +22,9 @@ Author: Hans Bihs
 
 #include"resize.h"
 #include"increment.h"
+#include"field4.h"
+#include"reini_RK3.h"
+
 
 class fdm;
 class lexer;
@@ -73,6 +76,7 @@ private:
 	int n,q,iend,kend;
 	double deltax;
 	double H;
+    reini_RK3 *preini;
 };
 
 #endif

@@ -83,8 +83,10 @@ private:
     void calculateNormal_alt(fdm*, lexer*);
     void reconstructPlane_alt(fdm*, lexer*);
     void advectPlane_alt(fdm*, lexer*,int);
+    void advectPlane_altFlux(fdm*, lexer*,double,double,int);
     double calculateVolume(double,double,double,double,double,double,double);
-    void updateVOF_alt(fdm*, lexer*);
+    void updateVOF_alt(fdm*, lexer*,int);
+    void advectFullBorder_fromW(fdm*, lexer*,int);
     
     field4 vof_old;
     field4 V_w_old;
@@ -92,6 +94,7 @@ private:
     field4 V_w_update;
     field4 V_a_update;
     field4 phival;
+    field4 Watersafe;
     
     
 	

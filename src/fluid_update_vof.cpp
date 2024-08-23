@@ -37,17 +37,33 @@ fluid_update_vof::~fluid_update_vof()
 
 void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
 {
-	double H=0.0;    double H_fb=0.0;    double factor=1.0;	p->volume1=0.0;	p->volume2=0.0;        if(p->count>iter)    iocheck=0;	iter=p->count;	LOOP	{        /*factor = 1.0;                if(p->j_dir==0 && p->X46==1)         if(a->fb(i,j,k) <- 0.5*(1.0/2.0)*(p->DRM+p->DTM))        factor = 2.0;                if(p->j_dir==1 && p->X46==1)          if(a->fb(i,j,k) <- 0.5*(1.0/3.0)*(p->DRM+p->DSM+p->DTM))        factor = 2.0;    		if(a->phi(i,j,k)>(p->psi*factor))		H=1.0;		if(a->phi(i,j,k)<-(p->psi*factor))		H=0.0;		if(fabs(a->phi(i,j,k))<=(p->psi*factor))		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));*/        H= a->phi(i,j,k);
-       // H=a->vof(i,j,k);		H=MAX(H,0.0);		H=MIN(H,1.0);        // Construct floating body heaviside function if used        if(p->X10==1)        {            if(p->X15==1)            {            H_fb = a->fbh4(i,j,k);		            a->ro(i,j,k)= p->W_fb*H_fb + (1.0 - H_fb)*(ro_water*H +   ro_air*(1.0-H));		    a->visc(i,j,k)= visc_body*H_fb + (1.0 - H_fb)*(visc_water*H + visc_air*(1.0-H));		    p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));		    p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));            }                        if(p->X15==2)            {            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));            }        }                else        {
-            cout<<"a"<<endl;            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);            cout<<"b"<<endl;            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+	double H=0.0;    double H_fb=0.0;    double factor=1.0;	p->volume1=0.0;	p->volume2=0.0;        if(p->count>iter)    iocheck=0;	iter=p->count;
+    double phival;	LOOP	{        /*factor = 1.0;                if(p->j_dir==0 && p->X46==1)         if(a->fb(i,j,k) <- 0.5*(1.0/2.0)*(p->DRM+p->DTM))        factor = 2.0;                if(p->j_dir==1 && p->X46==1)          if(a->fb(i,j,k) <- 0.5*(1.0/3.0)*(p->DRM+p->DSM+p->DTM))        factor = 2.0;    		if(a->phi(i,j,k)>(p->psi*factor))		H=1.0;		if(a->phi(i,j,k)<-(p->psi*factor))		H=0.0;		if(fabs(a->phi(i,j,k))<=(p->psi*factor))		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));*/        //H= a->phi(i,j,k);
+        /*H=a->vof(i,j,k);		//H=MAX(H,0.0);		//H=MIN(H,1.0);        // Construct floating body heaviside function if used       /* if(p->X10==1)        {            if(p->X15==1)            {            H_fb = a->fbh4(i,j,k);		            a->ro(i,j,k)= p->W_fb*H_fb + (1.0 - H_fb)*(ro_water*H +   ro_air*(1.0-H));		    a->visc(i,j,k)= visc_body*H_fb + (1.0 - H_fb)*(visc_water*H + visc_air*(1.0-H));		    p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));		    p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));            }                        if(p->X15==2)            {            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));            }        }                else        {*/
+            phival = a->phi(i,j,k);
+
+            if(phival>p->psi)
+                H=1.0;
+
+            if(phival<-p->psi)
+                H=0.0;
+
+            if(fabs(phival)<=p->psi)
+                H=0.5*(1.0 + (phival)/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
+                        
+           /* a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);*/
+           
+            
+            
+                                 //  p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));          //  p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
            
            //p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H);
            //p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H);
-            cout<<"b1"<<endl;        }	}
+                   // }	}
     	pgc->start4(p,a->ro,gcval_ro);	pgc->start4(p,a->visc,gcval_visc);
-    cout<<"b2"<<endl;	p->volume1 = pgc->globalsum(p->volume1);	p->volume2 = pgc->globalsum(p->volume2);        if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))    {	cout<<"Volume 1: "<<p->volume1<<endl;	cout<<"Volume 2: "<<p->volume2<<endl;    }
-    cout<<"b3"<<endl;    ++iocheck;
-    cout<<"b4"<<endl;
+    	p->volume1 = pgc->globalsum(p->volume1);	p->volume2 = pgc->globalsum(p->volume2);        if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))    {	cout<<"Volume 1: "<<p->volume1<<endl;	cout<<"Volume 2: "<<p->volume2<<endl;    }
+       ++iocheck;
+  
 
 }
 

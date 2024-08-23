@@ -34,7 +34,7 @@ density_df::~density_df()
 }
 
 double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
-{
+{ 
     double factor = 1.0;
     
     if(p->j_dir==0 && p->X46==1) 
@@ -85,7 +85,7 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     if(p->X15==2)
     roval = p->W1*H + p->W3*(1.0-H);
 
-	return roval;		
+	return roval;	
 }
 
 

@@ -59,7 +59,7 @@ void VOF_PLIC::redistance
     {
 		reconstructPlane(a, p);
 		
-        if (a->vof(i, j, k) < 0.999 && a->vof(i, j, k) > 0.001)
+        if (a->vof(i, j, k) < 0.9999 && a->vof(i, j, k) > 0.0001)
         {
 	//		cout<<"\nCell ID: "<<i<<" "<<k<<" "<<p->pos_x()<<" "<<p->pos_z()<<" "<<a->vof(i, j, k)<<endl;
 			

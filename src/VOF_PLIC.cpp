@@ -43,7 +43,7 @@ VOF_PLIC::VOF_PLIC
     fdm *a,
     ghostcell* pgc,
     heat *pheat
-):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p),vof_old(p),V_w_old(p),V_a_old(p),V_w_update(p),V_a_update(p),phival(p)
+):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p),vof_old(p),V_w_old(p),V_a_old(p),V_w_update(p),V_a_update(p),phival(p),Watersafe(p)
 {
     if(p->F50==1)
     gcval_frac=71;
@@ -62,6 +62,10 @@ VOF_PLIC::VOF_PLIC
     reini_ = new reini_RK3(p,1);
 
     sSweep = -1;
+    
+    LOOP
+        Watersafe(i,j,k)=0.0;
+       
 
     ininorVecLS(p);
 }
@@ -71,7 +75,7 @@ VOF_PLIC::~VOF_PLIC()
 }
 
 
-void VOF_PLIC::start
+void VOF_PLIC::start_old
 (
     fdm* a,
     lexer* p,
@@ -203,11 +207,10 @@ void VOF_PLIC::update
     field &F
 )
 {
-    cout<<"hallo"<<endl;
     pupdate->start(p,a,pgc);
 }
 
-void VOF_PLIC::start_old
+void VOF_PLIC::start
 (
     fdm* a,
     lexer* p,
@@ -235,8 +238,11 @@ void VOF_PLIC::start_old
         sSweep = 0;
     }
     
+    double Q1,Q2;
+    
     for (int nSweep = 0; nSweep < 3; nSweep++)
     {
+       
         LOOP
         {
            vof_old(i,j,k)=a->vof(i,j,k);
@@ -247,22 +253,87 @@ void VOF_PLIC::start_old
         }
         
         LOOP
-        {      
-            if((vof_old(i,j,k)<=0.9999) && (vof_old(i,j,k)>=0.0001))
+        {   
+            calcFlux(a, p, Q1, Q2, sweep);
+            
+            if((vof_old(i,j,k)<=0.999) && (vof_old(i,j,k)>=0.001))
             {
                 reconstructPlane_alt(a, p);
                 advectPlane_alt(a, p, sweep);
             }
-        }
+            /*
+            else if(vof_old(i,j,k)>0.999)
+            {
+                if(vof_old(i+1,j,k)<0.001 || vof_old(i-1,j,k)<0.001 || vof_old(i,j+1,k)<0.001 || vof_old(i,j-1,k)<0.001 || vof_old(i,j,k+1)<0.001 || vof_old(i,j,k-1)<0.001)
+                    advectFullBorder_fromW(a,p,sweep);
+                  
+                if(Q2>0.0)
+                {
+                    V_w_update(i,j,k)-=Q1*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    
+                    if(sweep==0)
+                        V_w_update(i+1,j,k)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    else if(sweep==1)
+                        V_w_update(i,j+1,k)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    else
+                        V_w_update(i,j,k+1)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                }
+                
+                if(Q1<0.0)
+                {
+                    V_w_update(i,j,k)-=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    
+                    if(sweep==0)
+                        V_w_update(i-1,j,k)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    else if(sweep==1)
+                        V_w_update(i,j-1,k)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    else
+                        V_w_update(i,j,k-1)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                }
+            }
+            
+            
+            else if(vof_old(i,j,k)<0.001)
+            {
+                if(Q2>0.0)
+                {
+                    V_a_update(i,j,k)-=Q1*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    
+                    if(sweep==0)
+                        V_a_update(i+1,j,k)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    else if(sweep==1)
+                        V_a_update(i,j+1,k)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    else
+                        V_a_update(i,j,k+1)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                }
+                
+                if(Q1<0.0)
+                {
+                    V_a_update(i,j,k)-=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    
+                    if(sweep==0)
+                        V_a_update(i-1,j,k)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    else if(sweep==1)
+                        V_a_update(i,j-1,k)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    else
+                        V_a_update(i,j,k-1)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                }
+            }
+            
+            else
+                cout<<"strange cell detected"<<endl; 
+                */
+        }   
         
         //- Distribute volume fractions
         pgc->start4(p,V_w_update,gcval_frac);
+        pgc->start4(p,Watersafe,gcval_frac);
         pgc->start4(p,V_a_update,gcval_frac);
         pgc->start4(p,V_w_old,gcval_frac);
         pgc->start4(p,V_a_old,gcval_frac);
 
         //- Calculate updated vof from volume fractions and distribute
-        updateVOF_alt(a, p);
+        updateVOF_alt(a, p, sweep);
         pgc->start4(p,a->vof,gcval_frac);
     
         //- Change sweep
@@ -277,31 +348,32 @@ void VOF_PLIC::start_old
     }
 
     //- Redistance distance function from updated plane equations
-    //redistance(a, p, pdisc, pgc, pflow, 20);
+   // redistance(a, p, pdisc, pgc, pflow, 20);
     //- Distribute ls function
     //pgc->start4(p,a->phi,gcval_frac);
 
     pflow->vof_relax(p,pgc,a->vof);
-	pgc->start4(p,a->vof,gcval_frac);
+	//pgc->start4(p,a->vof,gcval_frac);
     pgc->start4(p,a->vof,50);
-    
-    double phiinterstore;
+   
+ 
+    double phiinterstore, phiinterstore1, phiinterstore2;
     LOOP
     {
-        if(a->vof(i,j,k) >0.9999)
+        if(a->vof(i,j,k) >0.5)
         {
-            phival(i,j,k)=-10.0;
+            phival(i,j,k)=1.0;
            // p->flag4[IJK]=WATER_FLAG;
         }
         else
         {
-            phival(i,j,k)=10.0;
+            phival(i,j,k)=-1.0;
            // p->flag4[IJK]=AIR_FLAG;
         }
     }
     LOOP
     {
-        if((a->vof(i,j,k)>=0.0001) && a->vof(i,j,k)<=0.9999)
+        if((a->vof(i,j,k)>=0.001) && a->vof(i,j,k)<=0.999)
         {
             phival(i,j,k)=-1.0*alpha(i,j,k);
           //  if(alpha(i,j,k)>=0.0)
@@ -309,63 +381,131 @@ void VOF_PLIC::start_old
           //  else
               //  p->flag4[IJK]=AIR_FLAG;
                 
-            if((a->vof(i+1,j,k) < 0.0001) || (a->vof(i+1,j,k) > 0.9999))
+            if((a->vof(i+1,j,k) < 0.001) || (a->vof(i+1,j,k) > 0.999))
             {
                 phiinterstore=copysign(nx(i,j,k)*p->DXP[IP]-alpha(i,j,k) , phival(i+1,j,k));
                 if( fabs(phiinterstore) < fabs(phival(i+1,j,k)))
                     phival(i+1,j,k)=phiinterstore;
             }
-            if((a->vof(i-1,j,k) < 0.0001) || (a->vof(i-1,j,k) > 0.9999))
+            if((a->vof(i-1,j,k) < 0.001) || (a->vof(i-1,j,k) > 0.999))
             {
                 phiinterstore=copysign(nx(i,j,k)*(-p->DXP[IM1])-alpha(i,j,k), phival(i-1,j,k));
                 if( fabs(phiinterstore)< fabs(phival(i-1,j,k)))
                     phival(i-1,j,k)=phiinterstore;
             }
-            if((a->vof(i,j+1,k) < 0.0001) || (a->vof(i,j+1,k) > 0.9999))
+            if((a->vof(i,j+1,k) < 0.001) || (a->vof(i,j+1,k) > 0.999))
             {
                 phiinterstore=copysign(ny(i,j,k)*p->DYP[JP]-alpha(i,j,k), phival(i,j+1,k));
                 if( fabs(phiinterstore) < fabs(phival(i,j+1,k)))
                     phival(i,j+1,k)=phiinterstore;
             }
-            if((a->vof(i,j-1,k) < 0.0001) || (a->vof(i,j-1,k) > 0.9999))
+            if((a->vof(i,j-1,k) < 0.001) || (a->vof(i,j-1,k) > 0.999))
             {
                 phiinterstore=copysign(ny(i,j,k)*(-p->DYP[JM1])-alpha(i,j,k), phival(i,j-1,k));
                 if( fabs(phiinterstore) < fabs(phival(i,j-1,k)))
                     phival(i,j-1,k)=phiinterstore;
             }
-            if((a->vof(i,j,k+1) < 0.0001) || (a->vof(i,j,k+1) > 0.9999))
+            if((a->vof(i,j,k+1) < 0.001) || (a->vof(i,j,k+1) > 0.999))
             {
                 phiinterstore=copysign(nz(i,j,k)*p->DZP[KP]-alpha(i,j,k), phival(i,j,k+1));
                 if( fabs(phiinterstore) < fabs(phival(i,j,k+1)))
                     phival(i,j,k+1)=phiinterstore;
             }
-            if((a->vof(i,j,k+1) < 0.0001) || (a->vof(i,j,k+1) > 0.9999))
+            if((a->vof(i,j,k+1) < 0.001) || (a->vof(i,j,k+1) > 0.999))
             {
                 phiinterstore=copysign(nz(i,j,k)*(-p->DZP[KM1])-alpha(i,j,k), phival(i,j,k-1));
                 if( fabs(phiinterstore < phival(i,j,k-1)))
                     phival(i,j,k-1)=phiinterstore;
             }
-            
-                
-        }
+        }/*
+        else if((a->vof(i,j,k>0.999)) && (a->vof(i+1,j,k)<0.001 || a->vof(i-1,j,k)<0.001 || a->vof(i,j+1,k)<0.001 || a->vof(i,j-1,k)<0.001 || a->vof(i,j,k+1)<0.001 || a->vof(i,j,k-1)<0.001))
+        {
+            if(a->vof(i+1,j,k)<0.001)
+            {
+                phiinterstore1=copysign(0.5*p->DXP[IP],phival(i,j,k));
+                phiinterstore2=copysign(0.5*p->DXP[IP],phival(i+1,j,k));
+                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
+                    phival(i,j,k)=phiinterstore1;
+                if(fabs(phiinterstore2) < fabs(phival(i+1,j,k)))
+                    phival(i+1,j,k)=phiinterstore2;
+            }
+            if(a->vof(i-1,j,k)<0.001)
+            {
+                phiinterstore1=copysign(0.5*p->DXP[IM1],phival(i,j,k));
+                phiinterstore2=copysign(0.5*p->DXP[IM1],phival(i-1,j,k));
+                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
+                    phival(i,j,k)=phiinterstore1;
+                if(fabs(phiinterstore2) < fabs(phival(i-1,j,k)))
+                    phival(i-1,j,k)=phiinterstore2;
+            }
+            if(a->vof(i,j+1,k)<0.001)
+            {
+                phiinterstore1=copysign(0.5*p->DYP[JP],phival(i,j,k));
+                phiinterstore2=copysign(0.5*p->DYP[JP],phival(i,j+1,k));
+                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
+                    phival(i,j,k)=phiinterstore1;
+                if(fabs(phiinterstore2) < fabs(phival(i,j+1,k)))
+                    phival(i,j+1,k)=phiinterstore2;
+            }
+            if(a->vof(i,j-1,k)<0.001)
+            {
+                phiinterstore1=copysign(0.5*p->DYP[JM1],phival(i,j,k));
+                phiinterstore2=copysign(0.5*p->DYP[JM1],phival(i,j-1,k));
+                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
+                    phival(i,j,k)=phiinterstore1;
+                if(fabs(phiinterstore2) < fabs(phival(i,j-1,k)))
+                    phival(i,j-1,k)=phiinterstore2;
+            }
+            if(a->vof(i,j,k+1)<0.001)
+            {
+                phiinterstore1=copysign(0.5*p->DZP[KP],phival(i,j,k));
+                phiinterstore2=copysign(0.5*p->DZP[KP],phival(i,j,k+1));
+                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
+                    phival(i,j,k)=phiinterstore1;
+                if(fabs(phiinterstore2) < fabs(phival(i,j,k+1)))
+                    phival(i,j,k+1)=phiinterstore2;
+            }
+            if(a->vof(i,j,k-1)<0.001)
+            {
+                phiinterstore1=copysign(0.5*p->DZP[KM1],phival(i,j,k));
+                phiinterstore2=copysign(0.5*p->DZP[KM1],phival(i,j,k-1));
+                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
+                    phival(i,j,k)=phiinterstore1;
+                if(fabs(phiinterstore2) < fabs(phival(i,j,k-1)))
+                    phival(i,j,k-1)=phiinterstore2;
+            }
+        }*/
     }
     
     LOOP
     {
-        if(fabs(phival(i,j,k))<10)
+        if(fabs(phival(i,j,k))<1.0)
             a->phi(i,j,k)=phival(i,j,k);
     }
     
     pgc->start4(p,a->phi,50);
     reini_->start(a,p,a->phi,pgc,pflow);
+   // redistance(a, p, pdisc, pgc, pflow, 20);
+    pgc->start4(p,a->phi,gcval_frac);
+     
     
-    cout<<"000"<<endl;
-    pupdate->start(p,a,pgc);
-    cout<<"c"<<endl;
+    
+  
     p->lsmtime=pgc->timer()-starttime;
 
     if(p->mpirank==0)
     cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
+    pgc->start4(p,a->phi,50);
+    
+    /*for (int tt = 0; tt < 2; tt++)
+    {
+    LOOP
+    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
+    
+    pgc->start4(p,a->phi,50);
+    } */
+    pupdate->start(p,a,pgc);
+   
 
 
 }

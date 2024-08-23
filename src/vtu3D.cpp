@@ -579,6 +579,13 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
+    
+     // VOF_C
+	if(p->P72==1)
+	{
+	offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+	}
 		// end scalars
 
 	// Points
@@ -709,6 +716,13 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ++n;
 	}
     result<<"</PointData>"<<endl;
+    result<<"<CellData>"<<endl;
+    if(p->P72==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"VOF_C\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
+    result<<"</CellData>"<<endl;
 
     result<<"<Points>"<<endl;
     result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -941,6 +955,18 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(a->walld));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+    
+    //  VOF_C
+    if(p->P72==1)
+	{
+    iin=4*(p->cellnum);
+    result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->vof(i,j,k));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}

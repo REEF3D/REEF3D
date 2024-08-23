@@ -48,6 +48,8 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p)
     ny(i,j,k)=ny(i,j,k)/vecsum;
     nz(i,j,k)=nz(i,j,k)/vecsum;
     
+    cout<<"nx:"<<nx(i,j,k)<<" ny:"<<ny(i,j,k)<<" nz:"<<nz(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
+    
     //scale with cellsize
     n_a=fabs(nx(i,j,k))*p->DXN[IP];
     n_b=fabs(ny(i,j,k))*p->DYN[JP];
@@ -136,15 +138,16 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p)
     }
     else
     {
-        r0=-(0.5*(n_1+n_2+n_2)-r);
+        r0=-(0.5*(n_1+n_2+n_3)-r);
     }
     
     alpha(i,j,k)=r0*sqrt(nx(i,j,k)*nx(i,j,k)*p->DXN[IP]*p->DXN[IP]+ny(i,j,k)*ny(i,j,k)*p->DYN[JP]*p->DYN[JP]+nz(i,j,k)*nz(i,j,k)*p->DZN[KP]*p->DZN[KP]);
+    cout<<"alpha: "<<alpha(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
     
 }
     
 
 void VOF_PLIC::calculateNormal_alt(fdm* a, lexer* p)
 {
-    calcNormalLS(a, p);
+    calcNormalFO(a, p);
 }
