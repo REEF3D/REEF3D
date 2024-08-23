@@ -59,7 +59,7 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     // bedload *******
     pbed->start(p,pgc,s);
     
-    // bedload_direction_f *******
+    // bedload_direction *******
     pbeddir->start(p,pgc,s);
 	
     // relax *******

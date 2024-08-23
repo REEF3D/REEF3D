@@ -45,7 +45,7 @@ public:
 
 
 private:
-    void  topovel(lexer*,ghostcell*,sediment_fdm*,double&,double&,double&);
+    double topovel(lexer*,ghostcell*,sediment_fdm*);
     void  timestep(lexer*,ghostcell*,sediment_fdm*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
@@ -61,14 +61,14 @@ private:
 	int gcval_topo;
 	double starttime;
     double maxdh,maxvz;
-	double vx,vy,vz;
+	double vz;
 	double vzmax;
     double rhosed, rhowat, g, d50;
     double Ls;
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
     
-    slice4 q0,dqx0,dqy0;
+    slice4 q0;
 };
 
 #endif

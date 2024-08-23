@@ -41,9 +41,10 @@ Author: Hans Bihs
 
 void driver::loop_fnpf()
 {
+    if(p->mpirank==0)
+    cout<<"starting mainloop.FNPF"<<endl;
    
 //-----------MAINLOOP FNPF----------------------------
-
     
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{

@@ -59,7 +59,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     // bedload *******
     pbed->start(p,pgc,s);
     
-    // bedload_direction_f *******
+    // bedload_direction *******
     pbeddir->start(p,pgc,s);
     
     // suspended load -------

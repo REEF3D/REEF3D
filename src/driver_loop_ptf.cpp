@@ -40,6 +40,9 @@ Author: Hans Bihs
 
 void driver::loop_ptf(fdm* a)
 {
+    if(p->mpirank==0)
+    cout<<"starting mainloop.PTF"<<endl;
+    
 //-----------MAINLOOP PTF----------------------------
     
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)

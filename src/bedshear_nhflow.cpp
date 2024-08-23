@@ -46,6 +46,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         W = d->W[IJK];
         
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
+        
 
         uabs = sqrt(U*U + V*V + W*W);
         
@@ -56,6 +57,31 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         if(p->S16==4)
         tau=density*d->KIN[IJK]*0.3;
+        
+        if(p->S16==6)
+        {
+        double Cval,wh;
+        double bedlevel,waterlevel;
+        int count=0;
+        U=V=wh=0.0;
+        KLOOP
+        {
+
+            U += d->U[IJK];
+            V += d->V[IJK];
+            ++count;
+            wh+=p->DZN[KP]*d->WL(i,j);
+        }
+
+        U=U/double(count);
+        U=V/double(count);
+
+        Cval=18.0*log10((12.0*wh)/ks);
+
+        u_abs = sqrt(U*U + V*V);
+	
+        tau = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
+        }
 
     s->tau_eff(i,j) = taueff_loc(i,j) = tau;
     s->shearvel_eff(i,j) = sqrt(tau/density);

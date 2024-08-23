@@ -33,7 +33,7 @@ Author: Hans Bihs
 #include"sflow_bicgstab.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),dqx0(p),dqy0(p), xvec(p),rhsvec(p),M(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -82,21 +82,26 @@ sediment_exner::~sediment_exner()
 
 void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
-    non_equillibrium_solve(p,pgc,s); 
-   
+    // eq.
+    if(p->S17==0)
     SLICELOOP4
-    {
-        topovel(p,pgc,s,vx,vy,vz);
-        dqx0(i,j) = vx;
-        dqy0(i,j) = vy;
-        s->vz(i,j) = vz;
-	}
+    s->qb(i,j)=s->qbe(i,j);
     
+    // non-eq.
+    if(p->S17==1)
+    non_equillibrium_solve(p,pgc,s); 
+    
+    pgc->gcsl_start4(p,s->qb,1);
+    
+    // Exner
+    SLICELOOP4
+    s->vz(i,j) = topovel(p,pgc,s);
+
 	pgc->gcsl_start4(p,s->vz,1);
     
     
-    SLICELOOP4
-	s->vz(i,j) = 0.5*(3.0*s->vz(i,j) - s->dh(i,j));
+    //SLICELOOP4
+	//s->vz(i,j) = 0.5*(3.0*s->vz(i,j) - s->dh(i,j));
     
     timestep(p,pgc,s);
 	

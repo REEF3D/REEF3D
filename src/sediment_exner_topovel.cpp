@@ -28,35 +28,17 @@ Author: Hans Bihs
 #include"sediment_exnerdisc.h"
 #include"sediment_fdm.h"
 
-void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& vx, double& vy, double& vz)
+double sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-	double uvel,vvel,u_abs;
-	double signx,signy;
 	double dqx,dqy;
-    double qx1,qx2,q1x,qy2;
-    
     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
     double sgx1,sgx2,sgy1,sgy2;
     double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
 	
-	vx=0.0;
-	vy=0.0;
 	vz=0.0;
 	 
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
 	{						
-        pip=1;
-        uvel=0.5*(s->P(i,j)+s->P(i-1,j));
-        pip=0;
-
-        pip=2;
-        vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
-        pip=0;
-		
-		u_abs = sqrt(uvel*uvel + vvel*vvel);
-		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
-        
         ux1=s->P(i-1,j);
         vx1=0.25*(s->Q(i,j)+s->Q(i-1,j)+s->Q(i,j-1)+s->Q(i-1,j-1)); 
         
@@ -82,46 +64,17 @@ void sediment_exner::topovel(lexer* p, ghostcell *pgc, sediment_fdm *s, double& 
         
         sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
         sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
-        
-        
-        // ---------------
-        //sgx1=sgx2=signx;
-        //sgy1=sgy2=signy;
-        
-        
-        
+
         // complete q
-        if(p->S17==0)
-        {
         dqx = pdx->sx(p,s->qbe,sgx1,sgx2);
         dqy = pdx->sy(p,s->qbe,sgy1,sgy2);
-        }
-        
-        if(p->S17==1)
-        {
-        dqx = pdx->sx(p,s->qb,sgx1,sgx2);
-        dqy = pdx->sy(p,s->qb,sgy1,sgy2);
-        }
-        
-        //cout<<sgx1<<" "<<sgx2<<" "<<sgy1<<" "<<sgy2<<" | "<<dqx<<" "<<dqy<<endl;
-        
-        vx=dqx;
-        vy=dqy;
+
         
     // Exner equations
-        // eq
-        if(p->S17==0)
         vz =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
         
-        //cout<<"guard: "<<s->guard(i,j)<<" relax: "<<prelax->rf(p,pgc)<<" dqx: "<<dqx<<endl;
-        
-        // non-eq
-        if(p->S17==1)
-        {
-        Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
-        
-        vz =  s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(1.0/(Ls>1.0e-10?Ls:1.0e10))*(s->qb(i,j)-s->qbe(i,j) + susp_qb(p,pgc,s)); 
-        }
 	}
+    
+    return vz;
 }
 

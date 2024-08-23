@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"bedshear_reduction.h"
+#include"increment.h"
 
 class lexer;
 class sediment_fdm;
@@ -31,7 +32,7 @@ using namespace std;
 #ifndef REDUCTION_VOID_H_
 #define REDUCTION_VOID_H_
 
-class reduction_void :  public bedshear_reduction
+class reduction_void :  public bedshear_reduction, public increment
 {
 public:
     reduction_void(lexer*);
