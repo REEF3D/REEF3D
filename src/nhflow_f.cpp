@@ -104,6 +104,17 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     
     pgc->gcsl_start4(p,d->depth,50);
     
+    ILOOP
+    JLOOP
+	d->solidbed(i,j) = p->solidbed[IJ];
+
+    ILOOP
+    JLOOP
+	d->topobed(i,j) = p->topobed[IJ];
+    
+    pgc->gcsl_start4(p,d->solidbed,50);
+    pgc->gcsl_start4(p,d->topobed,50);
+    
     // eta ini
 	SLICELOOP4
     {

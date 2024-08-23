@@ -60,6 +60,14 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    SLICELOOP4
+    {
+    s->ks(i,j) = p->S20;
+    
+    s->bedzh(i,j)=d->topobed(i,j);
+    s->bedzh0(i,j)=d->topobed(i,j);
+    }
+    
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
     log_ini(p);
