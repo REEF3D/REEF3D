@@ -104,7 +104,7 @@ namespace sediment_particle
             double *cellSum;
             /// @brief Stress tensor for the particle-particle interaction
             double *stressTensor;
-            /// @brief Number of particles per 2D column
+            /// @brief Number of particles per 2D bed column
             double *columnSum;
             /// @brief Relative density of fluid and particle
             const double drho;
