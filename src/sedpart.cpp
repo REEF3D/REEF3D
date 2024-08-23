@@ -93,7 +93,21 @@ sedpart::~sedpart()
 void sedpart::erode(lexer* p, fdm* a)
 {
     if(p->Q101>0)
-        movement->make_moving(p,*a,PP);
+    {
+        slice4 tau_exceeding(p);
+        // movement->make_moving(p,*a,PP);
+        SLICEBASELOOP
+        if(s.tau_eff(i,j)>s.tau_crit(i,j))
+            tau_exceeding(i,j)=1;
+        for(size_t n=0;n<PP.loopindex;n++)
+        if(PP.Flag[n]==0)
+        {
+            i=p->posc_i(PP.X[n]);
+            j=p->posc_j(PP.Y[n]);
+            if(tau_exceeding(i,j)==1)
+                PP.Flag[n]=1;
+        }
+    }
 }
 
 /// @brief Deposits moving particles onto topo
