@@ -24,6 +24,7 @@ Author: Alexander Hanke
 #define SEDPART_MOVEMENT_H_
 
 #include "increment.h"
+#include "slice4.h"
 
 #include <stdio.h>
 #include <fstream>
@@ -57,10 +58,11 @@ namespace sediment_particle
             virtual void remove(lexer *, particles_obj &, size_t &){};
             virtual void move(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &){};
             virtual void make_moving(lexer *, fdm &, particles_obj &){};
-            virtual void erode(lexer *, fdm &, particles_obj &){};
-            virtual void update(lexer *, ghostcell &, field4a &, double &){};
+            virtual void erode(lexer *, fdm &, particles_obj &, sediment_fdm &){};
+            virtual void deposit(lexer *, fdm &, particles_obj &, sediment_fdm &){};
+            virtual void update(lexer *, ghostcell &, field4a &, double){};
             virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &){};
-            virtual double volume(lexer *, fdm &, particles_obj &){};
+            virtual double volume(lexer *, fdm &, particles_obj &){return 0;};
             virtual void writeState(lexer *, ofstream &){};
             virtual void readState(lexer *, ifstream &){};
             virtual void setupState(lexer *, fdm &, ghostcell &, particles_obj &){};
@@ -80,8 +82,9 @@ namespace sediment_particle
             void remove(lexer *, particles_obj &, size_t &);
             void move(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
             void make_moving(lexer *, fdm &, particles_obj &);
-            void erode(lexer *, fdm &, particles_obj &);
-            void update(lexer *, ghostcell &, field4a &, double &);
+            void erode(lexer *, fdm &, particles_obj &, sediment_fdm &);
+            void deposit(lexer *, fdm &, particles_obj &, sediment_fdm &);
+            void update(lexer *, ghostcell &, field4a &, double);
             void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &);
             double volume(lexer *, fdm &, particles_obj &);
             void writeState(lexer *, ofstream &);
@@ -120,6 +123,7 @@ namespace sediment_particle
             const double theta_crit;
 
             double dx;
+            slice4 bedChange;
         };
     };
     class state : increment

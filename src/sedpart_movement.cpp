@@ -331,28 +331,15 @@ namespace sediment_particle::movement
      * @param topo A reference to the field4a object.
      * @param d50 The diameter value.
      */
-    void particleStressBased_T2021::update(lexer *p, ghostcell &pgc, field4a &topo, double &d50)
+    void particleStressBased_T2021::update(lexer *p, ghostcell &pgc, field4a &topo, double d50)
     {
-        double count;
         ILOOP
-        {
-            if(p->XN[IP]>=p->global_xmin+p->Q73)
                 JLOOP
                 {
-                    count = 0.0;
                     KLOOP
-                    {
-                        count += cellSum[IJK] + cellSumTopo[IJK];
-                        if(k>0 && cellSumTopo[IJKm1]==0)
-                        break;
-                    }
-                    if(count != columnSum[IJ])
-                    {
-                        KLOOP
-                        topo(i,j,k) -= (count-columnSum[IJ])*4.0/3.0*PI*pow(d50/2.0,3)/(p->DXN[IP]*p->DYN[JP]);
-                    }
-                    columnSum[IJ] = count;
-                }
+                    topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(d50,3)/(p->DXN[IP]*p->DYN[JP]);
+                columnSum[IJ] += bedChange[IJ];
+                bedChange[IJ] = 0;
         }
         pgc.start4a(p,topo,150);
     }
@@ -563,38 +550,37 @@ namespace sediment_particle::movement
                 PP.Flag[n]=1;
     }
 
-    void particleStressBased_T2021::erode(lexer *p, fdm &a, particles_obj &PP)
-    {
-        ILOOP
-        {
-            JLOOP
-            {
-                KLOOP
-                {
-                    if(cellSum[IJK]>0 || cellSumTopo[IJK] == 0)
+    void particleStressBased_T2021::erode(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                     {
-                        --k;
-                        // for(int qn=0;qn<ppcell*1000;++qn)
-                        // {
-                        //     x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
-                        //     y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
-                        //     z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+        for(size_t n=0;n<PP.loopindex;n++)
+            if(PP.Flag[n]==0)
+            {
+                if(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])>p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]) && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+1.2*PP.d50>0)
+                {
+                    PP.Flag[n]=1;
 
-                        //     ipolTopo = p->ccipol4_b(a->topo,x,y,z);
-                        //     ipolSolid = p->ccipol4_b(a->solid,x,y,z);
-
-                        //     if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
-                        //     {
-                        //         index=PP.add(x,y,z,flag,0,0,0,p->Q41);
-                        //         if(movement->seeding(p, PP, index, ppcell))
-                        //             break;
-                        //     }
-                        // }
-
-
-                        break;
-                    }
+                    i=p->posc_i(PP.X[n]);
+                    j=p->posc_j(PP.Y[n]);
+                    bedChange[IJ] -= PP.PackingFactor[n];
                 }
+            }
+    }
+
+    void particleStressBased_T2021::deposit(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
+    {
+        for(size_t n=0;n<PP.loopindex;n++)
+            if(PP.Flag[n]==1)
+            {
+                if(p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n])>p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]) && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50)
+                {
+                    PP.Flag[n]=0;
+                    PP.U[n]=0;
+                    PP.V[n]=0;
+                    PP.W[n]=0;
+
+                    i=p->posc_i(PP.X[n]);
+                    j=p->posc_j(PP.Y[n]);
+                    bedChange[IJ] += PP.PackingFactor[n];
             }
         }
     }
