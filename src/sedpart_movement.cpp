@@ -588,7 +588,7 @@ namespace sediment_particle::movement
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
             {
-                if(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])>p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]) && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+1.2*PP.d50>0)
+                if(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])>p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]) && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.5*PP.d50>0)
                 {
                     PP.Flag[n]=1;
 
