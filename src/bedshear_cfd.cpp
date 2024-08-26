@@ -57,6 +57,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     dist = p->DZN[KP];
 		
     density = a->ro(i,j,k);
+    
 	
     if(p->S16==1)
     {
@@ -268,6 +269,61 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
     tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+    }
+    
+    
+    if(p->S16==8)
+    {
+    double E,B,dB,ustar,y_plus,visc,ks_plus,tau0;
+    double v_d,v_t;
+    
+    visc=p->W2;
+    
+    zval = s->bedzh(i,j) + 1.6*p->DZN[KP];
+    
+        if(p->S33==1)
+        {
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        wvel=p->ccipol3(a->w,xip,yip,zval);
+        
+        v_d=p->ccipol4(a->visc,xip,yip,zval);
+        v_t=p->ccipol4(a->eddyv,xip,yip,zval);
+        }
+        
+        if(p->S33==2)
+        {
+        uvel=p->ccipol1_a(a->u,xip,yip,zval);
+        vvel=p->ccipol2_a(a->v,xip,yip,zval);
+        wvel=p->ccipol3_a(a->w,xip,yip,zval);
+        
+        v_d=p->ccipol4(a->visc,xip,yip,zval);
+        v_t=p->ccipol4(a->eddyv,xip,yip,zval);
+        }
+        
+    // predictor    
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
+    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+    tau0=tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+    ustar=sqrt(tau/density);
+    
+    visc = v_d + v_t;
+    
+    
+        // corrector
+        for(int qn=0; qn<5;++qn)
+        {
+        y_plus = ustar*dist;
+        
+        ks_plus = visc + 0.246*ustar*ks;
+        
+        u_plus = (1.0/kappa)*(log(MAX(y_plus/ks_plus,1.0)) + 5.0);
+
+        
+        tau=MIN(density*(u_abs*u_abs)/pow((u_plus>1.0e-4?u_plus:1.0e20),2.0), tau0*3.5);
+
+        ustar=sqrt(tau/density);
+        }
     }
     
     s->tau_eff(i,j) = taueff_loc(i,j) = tau;
