@@ -94,14 +94,7 @@ void sedpart::erode(lexer* p, fdm* a)
 {
     if(p->Q101>0)
     {
-        for(size_t n=0;n<PP.loopindex;n++)
-            if(PP.Flag[n]==0)
-            {
-                if(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])>p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]) && p->ccipol4_b(a->topo,PP.X[n],PP.Y[n],PP.Z[n])+1.2*PP.d50>0)
-                {
-                    PP.Flag[n]=1;
-                }
-            }
+        movement->erode(p,*a,PP,s);
     }
 }
 
@@ -110,17 +103,7 @@ void sedpart::deposit(lexer* p, fdm* a)
 {    
     if(p->Q101>0)
     {
-        for(size_t n=0;n<PP.loopindex;n++)
-            if(PP.Flag[n]==1)
-            {
-                if((p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n])>p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])) && p->ccipol4_b(a->topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50)
-                {
-                    PP.Flag[n]=0;
-                    PP.U[n]=0;
-                    PP.V[n]=0;
-                    PP.W[n]=0;
-                }
-            }
+        movement->deposit(p,*a,PP,s);
     }
 }
 
