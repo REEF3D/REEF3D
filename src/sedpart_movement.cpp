@@ -227,9 +227,20 @@ namespace sediment_particle::movement
                     // if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50*10)
                     //     bedLoad=true;
 
-                    u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
-                    v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
-                    w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                    topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
+
+                    if(topoDist<2.1*p->DZP[KP])
+                    {
+                        u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+2.1*p->DZP[KP]-topoDist);
+                        v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+2.1*p->DZP[KP]-topoDist);
+                        w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+2.1*p->DZP[KP]-topoDist);
+                    }
+                    else
+                    {
+                        u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
+                        v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
+                        w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                    }
 
                     PP.Uf[n]=u;
                     PP.Vf[n]=v;
@@ -244,7 +255,6 @@ namespace sediment_particle::movement
                     PP.drag[n]=DragCoeff;
 
                     // sedimentation
-                    topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
                     if(topoDist>2.5*PP.d50)
                     {
                         ws = sedimentation_velocity(p,PP.d50,Du,Dv,Dw,thetas);

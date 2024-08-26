@@ -29,6 +29,7 @@ Author: Alexander Hanke
 #include "fdm.h"
 #include "reinitopo.h"
 #include "vrans_f.h"
+#include "vrans_v.h"
 #include "ioflow.h"
 #include "turbulence.h"
 #include "bedshear.h"
@@ -45,7 +46,8 @@ Author: Alexander Hanke
 /// @param pturb turbulence object
 sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p), PP(10,p->S20,p->S22,true), active_box(p), active_topo(p), irand(10000), drand(irand), s(p), pbedshear(p,pturb), prelax(p)
 {
-    pvrans = new vrans_f(p,pgc);
+    // pvrans = new vrans_f(p,pgc);
+    pvrans =  new vrans_v(p,pgc);
     movement = new sediment_particle::movement::particleStressBased_T2021(p);
     sedpart::pturb = pturb;
 
@@ -65,7 +67,7 @@ sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p)
     if(p->mpirank==0)
     {
         string buff;
-        buff.append("\nSedPart configuration\nParticles and VRANS active\n");
+        buff.append("\nSedPart configuration\nParticles and !VRANS active\n");
         buff.append("General configuration:\n\tTopo deformation: ");
         p->Q13>0?buff.append("True\n"):buff.append("False\n");
         buff.append("\tBox seeding: ");
