@@ -79,6 +79,12 @@ void sedpart::print_vtp(lexer* p)
 	++n;
 	offset[n]=offset[n-1]+4*(numpt)+4; //radius
 	++n;
+    offset[n]=offset[n-1]+4*(numpt)*3+4; //fluid velocity
+	++n;
+    offset[n]=offset[n-1]+4*(numpt)*2+4; //shear eff + crit
+	++n;
+    offset[n]=offset[n-1]+4*(numpt)+4; //drag
+	++n;
 	
 
     offset[n]=offset[n-1]+4*(numpt)*3+4; //xyz
@@ -108,7 +114,13 @@ void sedpart::print_vtp(lexer* p)
     ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
 	++n;
-    result<<"<DataArray type=\"Float32\" Name=\"radius\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"radius\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"shear stress\" NumberOfComponents=\"2\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"DragCoeff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"</PointData>"<<endl;
 	
@@ -167,7 +179,45 @@ void sedpart::print_vtp(lexer* p)
 		ffn=float(PP.d50/2);
 		result.write((char*)&ffn, sizeof (float));
 	}
-	
+
+    // fluid velocities
+	iin=4*(numpt)*3;
+	result.write((char*)&iin, sizeof (int));
+    PARTLOOP
+    if(PP.Flag[n]>=print_flag)
+	{
+	ffn=float(PP.Uf[n]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(PP.Vf[n]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(PP.Wf[n]);
+	result.write((char*)&ffn, sizeof (float));
+	}
+
+    // shear
+	iin=4*(numpt)*2;
+	result.write((char*)&iin, sizeof (int));
+    PARTLOOP
+    if(PP.Flag[n]>=print_flag)
+	{
+	ffn=float(PP.shear_eff[n]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(PP.shear_crit[n]);
+	result.write((char*)&ffn, sizeof (float));
+	}
+
+	// drag
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	{
+		ffn=float(PP.drag[n]);
+		result.write((char*)&ffn, sizeof (float));
+	}
 
 	//  XYZ
 	iin=4*(numpt)*3;

@@ -59,6 +59,9 @@ void sedpart::pvtp_pos(lexer* p)
 	result<<"<PDataArray type=\"Float32\" Name=\"Flag\"/>"<<endl;
 	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\"/>"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"shear stress\" NumberOfComponents=\"2\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"DragCoeff\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 
 	result<<"<PPoints>"<<endl;
