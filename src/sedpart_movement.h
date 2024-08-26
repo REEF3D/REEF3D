@@ -60,7 +60,7 @@ namespace sediment_particle
             virtual void make_moving(lexer *, fdm &, particles_obj &){};
             virtual void erode(lexer *, fdm &, particles_obj &, sediment_fdm &){};
             virtual void deposit(lexer *, fdm &, particles_obj &, sediment_fdm &){};
-            virtual void update(lexer *, ghostcell &, field4a &, double){};
+            virtual void update(lexer *, fdm &, ghostcell &, particles_obj &){};
             virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &){};
             virtual double volume(lexer *, fdm &, particles_obj &){return 0;};
             virtual void writeState(lexer *, ofstream &){};
@@ -84,7 +84,7 @@ namespace sediment_particle
             void make_moving(lexer *, fdm &, particles_obj &);
             void erode(lexer *, fdm &, particles_obj &, sediment_fdm &);
             void deposit(lexer *, fdm &, particles_obj &, sediment_fdm &);
-            void update(lexer *, ghostcell &, field4a &, double);
+            void update(lexer *, fdm &, ghostcell &, particles_obj &);
             void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &);
             double volume(lexer *, fdm &, particles_obj &);
             void writeState(lexer *, ofstream &);
@@ -100,6 +100,7 @@ namespace sediment_particle
             void particlePerCell(lexer *, ghostcell &, particles_obj &);
             void bedReDistribution(lexer *, fdm &, ghostcell &, particles_obj &);
             void timestep(lexer *, ghostcell &, particles_obj &);
+            void activateNew(lexer *, fdm &, particles_obj &);
         private:
             /// @brief Sum of particles belonging to the stationary bed
             double *cellSumTopo;

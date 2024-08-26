@@ -331,17 +331,50 @@ namespace sediment_particle::movement
      * @param topo A reference to the field4a object.
      * @param d50 The diameter value.
      */
-    void particleStressBased_T2021::update(lexer *p, ghostcell &pgc, field4a &topo, double d50)
+    void particleStressBased_T2021::update(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         ILOOP
             JLOOP
             {
                 KLOOP
-                    topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(d50,3)/(p->DXN[IP]*p->DYN[JP]);
+                    a.topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(PP.d50,3)/(p->DXN[IP]*p->DYN[JP]);
                 columnSum[IJ] += bedChange[IJ];
+                activateNew(p,a,PP);
                 bedChange[IJ] = 0;
             }
-        pgc.start4a(p,topo,150);
+        pgc.start4a(p,a.topo,150);
+    }
+
+    void particleStressBased_T2021::activateNew(lexer *p, fdm &a, particles_obj &PP)
+    {
+        double tolerance = 5e-18;
+        double x,y,z,ipolTopo,ipolSolid;
+        int flag=0;
+        size_t index;
+
+        double counter=0;
+        int maxTries=1000;
+        int tries=0;
+
+        while(counter<bedChange[IJ] && tries<maxTries)
+        {   
+            x = p->XN[IP] + p->DXN[IP]*double(rand() % 10000)/10000.0;
+            y = p->YN[JP] + p->DYN[JP]*double(rand() % 10000)/10000.0;
+            k = 0;
+            z = p->ZN[KP]-a.topo(i,j,k) - p->DZN[KP]*double(rand() % 10000)/10000.0;
+            k = p->posc_k(z);
+
+            ipolTopo = p->ccipol4_b(a.topo,x,y,z);
+            ipolSolid = p->ccipol4_b(a.solid,x,y,z);
+
+            if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0) && cellSumTopo[IJK]>=p->Q41)
+            {
+                index = PP.add(x,y,z,flag,0,0,0,p->Q41);
+                counter += PP.PackingFactor[index];
+                cellSumTopo[IJK] -= PP.PackingFactor[index];
+            }
+            ++tries;
+        }
     }
 
     void particleStressBased_T2021::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
