@@ -171,6 +171,8 @@ namespace sediment_particle::movement
         double RKu,RKv,RKw;
         double u,v,w;
         double du1, du2, du3, dv1, dv2, dv3, dw1, dw2, dw3;
+        double ws;
+        double topoDist;
         /// @brief Difference between flowfield and particle velocity
         
        
@@ -240,6 +242,15 @@ namespace sediment_particle::movement
                     DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
 
                     PP.drag[n]=DragCoeff;
+
+                    // sedimentation
+                    ws = sedimentation_velocity(p,PP.d50,Du,Dv,Dw,thetas);
+                    topoDist=fabs(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]));
+                    if(topoDist<p->DZP[KP])
+                    {
+                        ws *=topoDist/p->DZP[KP];
+                    }
+                    Dw-=ws;
 
                     // Acceleration
                     du=DragCoeff*Du;
@@ -561,6 +572,29 @@ namespace sediment_particle::movement
         // cout<<thetaf<<","<<dU<<","<<Rep<<","<<Cd<<"|"<<(dU==0)<<endl;
 
         return Dp;
+    }
+
+    double particleStressBased_T2021::sedimentation_velocity(lexer *p, double d, double du, double dv, double dw, double thetas) const
+    {
+        const double dU=sqrt(du*du+dv*dv+dw*dw);
+        if(dU==0) // Saveguard
+        return 0;
+
+        const double Rep=dU*d*invKinVis;
+
+        const double Cd=24.0/Rep+4.0/sqrt(Rep)+0.4;
+        const double ws_single=sqrt(4.0/3.0*(p->S22-p->W1)/p->W1*d*p->W22/Cd);
+        double n;
+        if(Rep<=0.2)
+        n=4.65;
+        else if(Rep<=1)
+        n=4.35*pow(Rep,-0.03);
+        else if(Rep<=500)
+        n=4.45*pow(Rep,-0.1);
+        else
+        n=2.39;
+        const double ws_swarm = ws_single*pow((1.0-thetas),n);
+        return ws_swarm;
     }
 
     /// @brief Calculate number of particles in cell ( \p i , \p j , \p k )

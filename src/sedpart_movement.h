@@ -97,6 +97,7 @@ namespace sediment_particle
             void updateParticleStressTensor(lexer *, fdm &, particles_obj &, int, int, int);
             double theta_s(lexer *, fdm &, particles_obj &, int, int, int) const;
             double drag_model(lexer *, double, double, double, double, double) const;
+            double sedimentation_velocity(lexer *, double, double, double, double, double) const;
             void particlePerCell(lexer *, ghostcell &, particles_obj &);
             void bedReDistribution(lexer *, fdm &, ghostcell &, particles_obj &);
             void timestep(lexer *, ghostcell &, particles_obj &);
