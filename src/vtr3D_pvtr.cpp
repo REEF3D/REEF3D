@@ -131,13 +131,13 @@ void vtr3D::pvtr(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 
 	result<<"</PPointData>"<<endl;
 	result<<"<PCellData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"col\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"sum\"/>"<<endl;
+	// result<<"<PDataArray type=\"Float32\" Name=\"tauBool\"/>"<<endl;
+    // result<<"<PDataArray type=\"Float32\" Name=\"tauVal\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"stress\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"pressCont\" NumberOfComponents=\"3\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"stressCont\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"buoyStressCont\" NumberOfComponents=\"3\"/>"<<endl;
+	// result<<"<PDataArray type=\"Float32\" Name=\"stress\"/>"<<endl;
+    // result<<"<PDataArray type=\"Float32\" Name=\"vel\" NumberOfComponents=\"3\"/>"<<endl;
+    // result<<"<PDataArray type=\"Float32\" Name=\"stressCont\" NumberOfComponents=\"3\"/>"<<endl;
+	// result<<"<PDataArray type=\"Float32\" Name=\"buoyStressCont\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"</PCellData>"<<endl;
 
 	result<<"<PCoordinates>"<<endl;
