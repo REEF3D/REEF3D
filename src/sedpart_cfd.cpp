@@ -43,6 +43,11 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     // vrans
     pvrans->sed_update(p,a,pgc);
     movement->setup(p,*a,PP.d50);
+
+    volume0 = movement->volume(p,*a,PP);
+    volume0 = pgc->globalsum(volume0);
+    volume = volume0;
+
     if(p->I40!=1)
     {
         // seed
@@ -51,10 +56,6 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
         seed(p,a);
         make_stationary(p,a,&PP);
     }
-
-    volume0 = movement->volume(p,*a,PP);
-    volume0 = pgc->globalsum(volume0);
-    volume = volume0;
 
     gparticle_active = pgc->globalisum(PP.size);
 
@@ -105,14 +106,15 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 	int xchange=0;
 	int removed=0;
 
-    pbedshear.taubed(p,a,pgc,&s);
-    pgc->gcsl_start4(p,s.tau_eff,1);
-    pbedshear.taucritbed(p,a,pgc,&s);
-    pgc->gcsl_start4(p,s.tau_crit,1);
-    prelax.start(p,pgc,&s);
-
-	if (p->count>=p->Q43)
+    if (p->count>=p->Q43)
 	{
+
+        pbedshear.taubed(p,a,pgc,&s);
+        pgc->gcsl_start4(p,s.tau_eff,1);
+        pbedshear.taucritbed(p,a,pgc,&s);
+        pgc->gcsl_start4(p,s.tau_crit,1);
+        prelax.start(p,pgc,&s);
+	
         /// runtime seeding
 		if(p->Q120==1&&p->count%p->Q121==0)
 			posseed_suspended(p,a);
@@ -122,6 +124,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
             // topo_influx(p,a);
             // solid_influx(p,a);
             // set_active_topo(p,a);
+            // posseed_topo(p,a);
             // seed_topo(p,a);
         }
 

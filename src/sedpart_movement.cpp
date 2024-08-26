@@ -79,10 +79,10 @@ namespace sediment_particle::movement
 
     void particleStressBased_T2021::setupState(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
-        particlePerCell(p,pgc,PP);
-        PLAINLOOP
-        columnSum[IJ] += cellSumTopo[IJK]+cellSum[IJK];
-        particleStressTensor(p,a,pgc,PP);
+        // particlePerCell(p,pgc,PP);
+        // PLAINLOOP
+        // columnSum[IJ] += cellSumTopo[IJK]+cellSum[IJK];
+        // particleStressTensor(p,a,pgc,PP);
     }
 
     /**
@@ -185,7 +185,7 @@ namespace sediment_particle::movement
         bool shearVel = true;
 
         particlePerCell(p,pgc,PP);
-        particleStressTensor(p,a,pgc,PP);
+        // particleStressTensor(p,a,pgc,PP);
         timestep(p,pgc,PP);
         double RKtimeStep = 0.5*p->dtsed;
 
@@ -194,7 +194,7 @@ namespace sediment_particle::movement
         double thetas=0;
         double DragCoeff=0;
         double du=0,dv=0,dw=0;
-        int counter = 0;
+        // int counter = 0;
 
         for(int m=0;m<2;m++)
         {
@@ -202,7 +202,7 @@ namespace sediment_particle::movement
             {
                 if(PP.Flag[n]>0) // INT32_MIN
                 {
-                    ++counter;
+                    // ++counter;
                     if(p->global_xmin+p->Q73>PP.X[n])
                     limited = true;
                     else
@@ -308,15 +308,15 @@ namespace sediment_particle::movement
         {
             p->sedtime += p->dtsed;
             cout<<"Sediment time: "<<p->sedtime<<" time step: "<<p->dtsed<<endl;
-            int Flag0=0,Flag1=0;
-            for(size_t n=0;n<PP.loopindex;n++)
-            {
-                if(PP.Flag[n]==0)
-                Flag0++;
-                else if(PP.Flag[n]==1)
-                Flag1++;
-            }
-            cout<<"Particles: "<<PP.size<<" Flag0: "<<Flag0<<" Flag1: "<<Flag1<<" moved: "<<counter<<endl;
+            // int Flag0=0,Flag1=0;
+            // for(size_t n=0;n<PP.loopindex;n++)
+            // {
+            //     if(PP.Flag[n]==0)
+            //     Flag0++;
+            //     else if(PP.Flag[n]==1)
+            //     Flag1++;
+            // }
+            // cout<<"Particles: "<<PP.size<<" Flag0: "<<Flag0<<" Flag1: "<<Flag1<<" moved: "<<counter/2<<endl;
         }
     }
 
@@ -334,13 +334,13 @@ namespace sediment_particle::movement
     void particleStressBased_T2021::update(lexer *p, ghostcell &pgc, field4a &topo, double d50)
     {
         ILOOP
-                JLOOP
-                {
-                    KLOOP
+            JLOOP
+            {
+                KLOOP
                     topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(d50,3)/(p->DXN[IP]*p->DYN[JP]);
                 columnSum[IJ] += bedChange[IJ];
                 bedChange[IJ] = 0;
-        }
+            }
         pgc.start4a(p,topo,150);
     }
 
@@ -348,41 +348,41 @@ namespace sediment_particle::movement
     {
         // double sumCell = 0;
         // double sumTopo = 0;
-        double thetas=0;
-        double pressureDivX=0, pressureDivY=0, pressureDivZ=0;
-        double stressDivX=0, stressDivY=0, stressDivZ=0;
-        bool initalNaN=true;
-        double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
+        // double thetas=0;
+        // double pressureDivX=0, pressureDivY=0, pressureDivZ=0;
+        // double stressDivX=0, stressDivY=0, stressDivZ=0;
+        // bool initalNaN=true;
+        // double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
         PLAINLOOP
         {
 
-            a.test(i,j,k) = 0;
-            for(int n=0;n<=k;n++)
-            a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
-            a.fb(i,j,k) = cellSum[IJK];
+            // a.test(i,j,k) = 0;
+            // for(int n=0;n<=k;n++)
+            // a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
+            // a.fb(i,j,k) = cellSum[IJK];
             // sumCell += cellSum[IJK];
-            a.vof(i,j,k) = cellSumTopo[IJK];
+            a.test(i,j,k) = cellSumTopo[IJK];
             // sumTopo += cellSumTopo[IJK];
-            a.Fi(i,j,k)=stressTensor[IJK];
+            // a.Fi(i,j,k)=stressTensor[IJK];
 
-            pressureDivX = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
-            pressureDivY = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
-            pressureDivZ = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
-            a.test1(i,j,k)=+pressureDivX/p->S22;
-            a.test2(i,j,k)=+pressureDivY/p->S22;
-            a.test3(i,j,k)=+pressureDivZ/p->S22;
-            thetas=theta_s(p,a,PP,i,j,k);
-            // stressDivX = (p->ccipol4c(stressTensor,p->XN[IP]+p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]-0.5*p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DXN[IP];
-            // stressDivY = (p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]+p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]-0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DYN[JP];
-            stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
-            stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
-            stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
-            a.test4(i,j,k)=-stressDivX/(thetas*p->S22);
-            a.test5(i,j,k)=-stressDivY/(thetas*p->S22);
-            a.test6(i,j,k)=-stressDivZ/(thetas*p->S22);
-            a.test7(i,j,k)=a.test4(i,j,k)+netBuoyX;
-            a.test8(i,j,k)=a.test5(i,j,k)+netBuoyY;
-            a.test9(i,j,k)=a.test6(i,j,k)+netBuoyZ;
+            // pressureDivX = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
+            // pressureDivY = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
+            // pressureDivZ = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
+            // a.test1(i,j,k)=+pressureDivX/p->S22;
+            // a.test2(i,j,k)=+pressureDivY/p->S22;
+            // a.test3(i,j,k)=+pressureDivZ/p->S22;
+            // thetas=theta_s(p,a,PP,i,j,k);
+            // // stressDivX = (p->ccipol4c(stressTensor,p->XN[IP]+p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]-0.5*p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DXN[IP];
+            // // stressDivY = (p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]+p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]-0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DYN[JP];
+            // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
+            // stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
+            // stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
+            // a.test4(i,j,k)=-stressDivX/(thetas*p->S22);
+            // a.test5(i,j,k)=-stressDivY/(thetas*p->S22);
+            // a.test6(i,j,k)=-stressDivZ/(thetas*p->S22);
+            // a.test7(i,j,k)=a.test4(i,j,k)+netBuoyX;
+            // a.test8(i,j,k)=a.test5(i,j,k)+netBuoyY;
+            // a.test9(i,j,k)=a.test6(i,j,k)+netBuoyZ;
             // if(a.test6(i,j,k)!=a.test6(i,j,k) && initalNaN)
             // {
             //     cout<<"NaN detected: "<<stressTensor[IJKp1]<<"+"<<stressTensor[Ip1JKp1]<<" - "<<stressTensor[IJKm1]<<"+"<<stressTensor[Ip1JKm1]<<" / "<<p->DZN[KM1]<<"+"<<p->DZN[KP]<<"\n";
@@ -551,7 +551,7 @@ namespace sediment_particle::movement
     }
 
     void particleStressBased_T2021::erode(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
-                    {
+    {
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
             {
@@ -581,8 +581,8 @@ namespace sediment_particle::movement
                     i=p->posc_i(PP.X[n]);
                     j=p->posc_j(PP.Y[n]);
                     bedChange[IJ] += PP.PackingFactor[n];
+                }
             }
-        }
     }
 
     void particleStressBased_T2021::bedReDistribution(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
