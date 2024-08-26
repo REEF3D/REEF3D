@@ -137,8 +137,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         deposit(p,a);
 
         /// topo update
-        if(p->Q13==1)
-            movement->update(p,*pgc,a->topo,PP.d50);
+        update_cfd(p,a,pgc,pflow,preto);
 
         /// cleanup
         if(p->Q20>=0 && p->count%p->Q20==0)
@@ -169,7 +168,8 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 /// @brief Updates the topography for the CFD solver
 void sedpart::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo* preto)
 {
-    movement->update(p,*pgc,a->topo,PP.d50);
+    if(p->Q13==1)
+        movement->update(p,*pgc,a->topo,PP.d50);
     preto->start(p,a,pgc,a->topo);
     if(p->mpirank==0)
         cout<<"Topo: update grid..."<<endl;

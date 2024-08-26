@@ -33,7 +33,7 @@ Author: Alexander Hanke
 namespace sediment_particle::movement
 {
     particleStressBased_T2021::particleStressBased_T2021(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
-                                            Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17)
+                                            Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17),bedChange(p)
     {
         p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
         p->Darray(cellSum,p->imax*p->jmax*p->kmax);
