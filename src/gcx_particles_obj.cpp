@@ -358,5 +358,239 @@ void ghostcell::para_tracersobj(lexer* p ,particles_obj* s ,particles_obj* r)
         }
 
         gcwait(p);
+
+        // Transfer Uf
+        if(p->nb1>=0)
+        {
+            MPI_Isend(s[0].Uf,send[0],MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
+            MPI_Irecv(r[0].Uf,recv[0],MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+        }
+
+        if(p->nb2>=0)
+        {
+            MPI_Isend(s[1].Uf,send[1],MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
+            MPI_Irecv(r[1].Uf,recv[1],MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+        }
+
+        if(p->nb3>=0)
+        {
+            MPI_Isend(s[2].Uf,send[2],MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
+            MPI_Irecv(r[2].Uf,recv[2],MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+        }
+
+        if(p->nb4>=0)
+        {
+            MPI_Isend(s[3].Uf,send[3],MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
+            MPI_Irecv(r[3].Uf,recv[3],MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+        }
+
+        if(p->nb5>=0)
+        {
+            MPI_Isend(s[4].Uf,send[4],MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
+            MPI_Irecv(r[4].Uf,recv[4],MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
+        }
+
+        if(p->nb6>=0)
+        {
+            MPI_Isend(s[5].Uf,send[5],MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
+            MPI_Irecv(r[5].Uf,recv[5],MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
+        }
+
+        gcwait(p);
+
+        // Transfer Vf
+        if(p->nb1>=0)
+        {
+            MPI_Isend(s[0].Vf,send[0],MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
+            MPI_Irecv(r[0].Vf,recv[0],MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+        }
+
+        if(p->nb2>=0)
+        {
+            MPI_Isend(s[1].Vf,send[1],MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
+            MPI_Irecv(r[1].Vf,recv[1],MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+        }
+
+        if(p->nb3>=0)
+        {
+            MPI_Isend(s[2].Vf,send[2],MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
+            MPI_Irecv(r[2].Vf,recv[2],MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+        }
+
+        if(p->nb4>=0)
+        {
+            MPI_Isend(s[3].Vf,send[3],MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
+            MPI_Irecv(r[3].Vf,recv[3],MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+        }
+
+        if(p->nb5>=0)
+        {
+            MPI_Isend(s[4].Vf,send[4],MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
+            MPI_Irecv(r[4].Vf,recv[4],MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
+        }
+
+        if(p->nb6>=0)
+        {
+            MPI_Isend(s[5].Vf,send[5],MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
+            MPI_Irecv(r[5].Vf,recv[5],MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
+        }
+
+        gcwait(p);
+
+        // Transfer Wf
+        if(p->nb1>=0)
+        {
+            MPI_Isend(s[0].Wf,send[0],MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
+            MPI_Irecv(r[0].Wf,recv[0],MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+        }
+
+        if(p->nb2>=0)
+        {
+            MPI_Isend(s[1].Wf,send[1],MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
+            MPI_Irecv(r[1].Wf,recv[1],MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+        }
+
+        if(p->nb3>=0)
+        {
+            MPI_Isend(s[2].Wf,send[2],MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
+            MPI_Irecv(r[2].Wf,recv[2],MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+        }
+
+        if(p->nb4>=0)
+        {
+            MPI_Isend(s[3].Wf,send[3],MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
+            MPI_Irecv(r[3].Wf,recv[3],MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+        }
+
+        if(p->nb5>=0)
+        {
+            MPI_Isend(s[4].Wf,send[4],MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
+            MPI_Irecv(r[4].Wf,recv[4],MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
+        }
+
+        if(p->nb6>=0)
+        {
+            MPI_Isend(s[5].Wf,send[5],MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
+            MPI_Irecv(r[5].Wf,recv[5],MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
+        }
+
+        gcwait(p);
+
+        // Transfer shear_eff
+        if(p->nb1>=0)
+        {
+            MPI_Isend(s[0].shear_eff,send[0],MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
+            MPI_Irecv(r[0].shear_eff,recv[0],MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+        }
+
+        if(p->nb2>=0)
+        {
+            MPI_Isend(s[1].shear_eff,send[1],MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
+            MPI_Irecv(r[1].shear_eff,recv[1],MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+        }
+
+        if(p->nb3>=0)
+        {
+            MPI_Isend(s[2].shear_eff,send[2],MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
+            MPI_Irecv(r[2].shear_eff,recv[2],MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+        }
+
+        if(p->nb4>=0)
+        {
+            MPI_Isend(s[3].shear_eff,send[3],MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
+            MPI_Irecv(r[3].shear_eff,recv[3],MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+        }
+
+        if(p->nb5>=0)
+        {
+            MPI_Isend(s[4].shear_eff,send[4],MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
+            MPI_Irecv(r[4].shear_eff,recv[4],MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
+        }
+
+        if(p->nb6>=0)
+        {
+            MPI_Isend(s[5].shear_eff,send[5],MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
+            MPI_Irecv(r[5].shear_eff,recv[5],MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
+        }
+
+        gcwait(p);
+
+        // Transfer shear_crit
+        if(p->nb1>=0)
+        {
+            MPI_Isend(s[0].shear_crit,send[0],MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
+            MPI_Irecv(r[0].shear_crit,recv[0],MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+        }
+
+        if(p->nb2>=0)
+        {
+            MPI_Isend(s[1].shear_crit,send[1],MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
+            MPI_Irecv(r[1].shear_crit,recv[1],MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+        }
+
+        if(p->nb3>=0)
+        {
+            MPI_Isend(s[2].shear_crit,send[2],MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
+            MPI_Irecv(r[2].shear_crit,recv[2],MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+        }
+
+        if(p->nb4>=0)
+        {
+            MPI_Isend(s[3].shear_crit,send[3],MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
+            MPI_Irecv(r[3].shear_crit,recv[3],MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+        }
+
+        if(p->nb5>=0)
+        {
+            MPI_Isend(s[4].shear_crit,send[4],MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
+            MPI_Irecv(r[4].shear_crit,recv[4],MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
+        }
+
+        if(p->nb6>=0)
+        {
+            MPI_Isend(s[5].shear_crit,send[5],MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
+            MPI_Irecv(r[5].shear_crit,recv[5],MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
+        }
+
+        gcwait(p);
+
+        // Transfer drag
+        if(p->nb1>=0)
+        {
+            MPI_Isend(s[0].drag,send[0],MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
+            MPI_Irecv(r[0].drag,recv[0],MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+        }
+
+        if(p->nb2>=0)
+        {
+            MPI_Isend(s[1].drag,send[1],MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
+            MPI_Irecv(r[1].drag,recv[1],MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+        }
+
+        if(p->nb3>=0)
+        {
+            MPI_Isend(s[2].drag,send[2],MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
+            MPI_Irecv(r[2].drag,recv[2],MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+        }
+
+        if(p->nb4>=0)
+        {
+            MPI_Isend(s[3].drag,send[3],MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
+            MPI_Irecv(r[3].drag,recv[3],MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+        }
+
+        if(p->nb5>=0)
+        {
+            MPI_Isend(s[4].drag,send[4],MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
+            MPI_Irecv(r[4].drag,recv[4],MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
+        }
+
+        if(p->nb6>=0)
+        {
+            MPI_Isend(s[5].drag,send[5],MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
+            MPI_Irecv(r[5].drag,recv[5],MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
+        }
+
+        gcwait(p);
     }
 }

@@ -228,12 +228,18 @@ namespace sediment_particle::movement
                     u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
                     v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
                     w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+
+                    PP.Uf[n]=u;
+                    PP.Vf[n]=v;
+                    PP.Wf[n]=w;
                     
                     Du=u-PP.U[n];
                     Dv=v-PP.V[n];
                     Dw=w-PP.W[n];
 
                     DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
+
+                    PP.drag[n]=DragCoeff;
 
                     // Acceleration
                     du=DragCoeff*Du;
@@ -585,12 +591,19 @@ namespace sediment_particle::movement
 
     void particleStressBased_T2021::erode(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
     {
+        double shear_eff;
+        double shear_crit;
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
             {
-                if(p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n])>p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]) && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.5*PP.d50>0)
+                shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
+                shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
+                if(shear_eff>shear_crit && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.5*PP.d50>0)
                 {
                     PP.Flag[n]=1;
+
+                    PP.shear_eff[n]=shear_eff;
+                    PP.shear_crit[n]=shear_crit;
 
                     i=p->posc_i(PP.X[n]);
                     j=p->posc_j(PP.Y[n]);
@@ -601,15 +614,26 @@ namespace sediment_particle::movement
 
     void particleStressBased_T2021::deposit(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
     {
+        double shear_eff;
+        double shear_crit;
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==1)
             {
-                if(p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n])>p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]) && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50)
+                shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
+                shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
+                if(shear_eff>shear_crit && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50)
                 {
                     PP.Flag[n]=0;
                     PP.U[n]=0;
                     PP.V[n]=0;
                     PP.W[n]=0;
+
+                    PP.Uf[n]=0;
+                    PP.Vf[n]=0;
+                    PP.Wf[n]=0;
+                    PP.shear_eff[n]=shear_eff;
+                    PP.shear_crit[n]=shear_crit;
+                    PP.drag[n]=0;
 
                     i=p->posc_i(PP.X[n]);
                     j=p->posc_j(PP.Y[n]);

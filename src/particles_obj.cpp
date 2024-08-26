@@ -40,7 +40,7 @@ size_t overflow when adding something to an object at capacity
 /// @param _scale_factor Sets ::scale_factor for ::reserve
 particles_obj::particles_obj(size_t _capacity, double _d50, double _density, bool individuals, size_t _size, double _scale_factor):
                 tracers_obj(_capacity,_size,_scale_factor),
-                entries(tracers_obj::entries+(individuals?4:0)), // update when adding more data
+                entries(tracers_obj::entries+(individuals?4+6:0)), // update when adding more data
                 d50(_d50), density(_density)
                 
 {	
@@ -51,6 +51,13 @@ particles_obj::particles_obj(size_t _capacity, double _d50, double _density, boo
         W = new double[_capacity];
         
         PackingFactor = new double[_capacity];
+
+        Uf = new double[_capacity];
+        Vf = new double[_capacity];
+        Wf = new double[_capacity];
+        shear_eff = new double[_capacity];
+        shear_crit = new double[_capacity];
+        drag = new double[_capacity];
 
         fill_data(0,_size);
     }
@@ -77,6 +84,19 @@ particles_obj::~particles_obj()
 
         delete[] PackingFactor;
         PackingFactor=nullptr;
+
+        delete[] Uf;
+        Uf=nullptr;
+        delete[] Vf;
+        Vf=nullptr;
+        delete[] Wf;
+        Wf=nullptr;
+        delete[] shear_eff;
+        shear_eff=nullptr;
+        delete[] shear_crit;
+        shear_crit=nullptr;
+        delete[] drag;
+        drag=nullptr;
     }
 }
 
@@ -100,6 +120,13 @@ void particles_obj::erase(size_t index)
         W[index]=0;
 
         PackingFactor[index]=0;
+
+        Uf[index]=0;
+        Vf[index]=0;
+        Wf[index]=0;
+        shear_eff[index]=0;
+        shear_crit[index]=0;
+        drag[index]=0;
     }
 }
 
@@ -119,6 +146,19 @@ void particles_obj::erase_all()
 
         delete[] PackingFactor;
         PackingFactor = new double[capacity];
+
+        delete[] Uf;
+        delete[] Vf;
+        delete[] Wf;
+        delete[] shear_eff;
+        delete[] shear_crit;
+        delete[] drag;
+        Uf = new double[capacity];
+        Vf = new double[capacity];
+        Wf = new double[capacity];
+        shear_eff = new double[capacity];
+        shear_crit = new double[capacity];
+        drag = new double[capacity];
     }
 }
 
@@ -132,11 +172,11 @@ void particles_obj::erase_all()
 /// @param w Velocity in z-dir
 /// @param packingFactor Number of real particles represented by the element
 /// @return Index of added particle
-size_t particles_obj::add(double x, double y, double z, int flag, double u, double v, double w, double packingFactor)
+size_t particles_obj::add(double x, double y, double z, int flag, double u, double v, double w, double packingFactor, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
 {
     size_t index=tracers_obj::add(x,y,z,flag);
     if(entries>tracers_obj::entries)
-        add_data(index,u,v,w,packingFactor);
+        add_data(index,u,v,w,packingFactor,uF,vF,wF,shearEff,shearCrit,_drag);
     return index;
 }
 
@@ -171,6 +211,37 @@ size_t particles_obj::reserve(size_t capacity_desired)
         std::memcpy( newPackingFactor, PackingFactor, size * sizeof(double) );
         delete[] PackingFactor;
         PackingFactor=newPackingFactor;
+
+        double* newUf=new double[capacity_desired];
+        std::memcpy( newUf, Uf, size * sizeof(double) );
+        delete[] Uf;
+        Uf=newUf;
+
+        double* newVf=new double[capacity_desired];
+        std::memcpy( newVf, Vf, size * sizeof(double) );
+        delete[] Vf;
+        Vf=newVf;
+
+        double* newWf=new double[capacity_desired];
+        std::memcpy( newWf, Wf, size * sizeof(double) );
+        delete[] Wf;
+        Wf=newWf;
+
+        double* newshear_eff=new double[capacity_desired];
+        std::memcpy( newshear_eff, shear_eff, size * sizeof(double) );
+        delete[] shear_eff;
+        shear_eff=newshear_eff;
+
+        double* newshear_crit=new double[capacity_desired];
+        std::memcpy( newshear_crit, shear_crit, size * sizeof(double) );
+        delete[] shear_crit;
+        shear_crit=newshear_crit;
+
+        double* newdrag=new double[capacity_desired];
+        std::memcpy( newdrag, drag, size * sizeof(double) );
+        delete[] drag;
+        drag=newdrag;
+
     }
     return capacity;
 }
@@ -281,7 +352,7 @@ void particles_obj::add_obj(particles_obj* obj)
         
         if(obj->entries>obj->tracers_obj::entries && entries>tracers_obj::entries)
             for(size_t n=0;n<obj->loopindex;n++)
-                add(obj->X[n],obj->Y[n],obj->Z[n],obj->Flag[n],obj->U[n],obj->V[n],obj->W[n],obj->PackingFactor[n]);
+                add(obj->X[n],obj->Y[n],obj->Z[n],obj->Flag[n],obj->U[n],obj->V[n],obj->W[n],obj->PackingFactor[n],obj->Uf[n],obj->Vf[n],obj->Wf[n],obj->shear_eff[n],obj->shear_crit[n],obj->drag[n]);
         else
             tracers_obj::add_obj(obj);
     }
@@ -293,12 +364,19 @@ void particles_obj::add_obj(particles_obj* obj)
 /// @param v Velocity in y-dir
 /// @param w Velocity in z-dir
 /// @param packingFactor Number of real particles represented by the element
-void particles_obj::add_data(size_t index, double u, double v, double w, double packingFactor)
+void particles_obj::add_data(size_t index, double u, double v, double w, double packingFactor, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
 {
     U[index] = u;
     V[index] = v;
     W[index] = w;
     PackingFactor[index] = packingFactor;
+
+    Uf[index] = uF;
+    Vf[index] = vF;
+    Wf[index] = wF;
+    shear_eff[index] = shearEff;
+    shear_crit[index] = shearCrit;
+    drag[index] = _drag;
 }
 
 /// @brief Set default data for velocities and packing factor
@@ -312,5 +390,12 @@ void particles_obj::fill_data(size_t start, size_t end)
         V[n]=0;
         W[n]=0;
         PackingFactor[n]=1;
+
+        Uf[n]=0;
+        Vf[n]=0;
+        Wf[n]=0;
+        shear_eff[n]=0;
+        shear_crit[n]=0;
+        drag[n]=0;
     }
 }

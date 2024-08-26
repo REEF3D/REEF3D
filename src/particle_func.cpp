@@ -256,37 +256,37 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, sedimen
                 {
                     case -1:
                     {
-                        Send[0].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n]);
+                        Send[0].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -2:
                     {
-                        Send[1].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n]);
+                        Send[1].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -3:
                     {
-                        Send[2].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n]);
+                        Send[2].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -4:
                     {
-                        Send[3].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n]);
+                        Send[3].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -5:
                     {
-                        Send[4].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n]);
+                        Send[4].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -6:
                     {
-                        Send[5].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n]);
+                        Send[5].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
                 }
