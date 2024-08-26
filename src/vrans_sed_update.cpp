@@ -30,17 +30,20 @@ void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
 	int qn;
     double zmin,zmax,slope;
     double xs,xe;
+    
+    if(p->mpirank==0)
+    cout<<"Update sediment for VRANS"<<endl;
 	
 	ALOOP
 	{
 	a->porosity(i,j,k)=1.0;
-	porpart(i,j,k)=0.01;
+	a->porpart(i,j,k)=0.01;
 	alpha(i,j,k)=0.0;
 	beta(i,j,k)=0.0;
 	}
 	
 	pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,porpart,1);
+	pgc->start4a(p,a->porpart,1);
 	pgc->start4a(p,alpha,1);
 	pgc->start4a(p,beta,1);
 	
@@ -49,15 +52,15 @@ void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
     ALOOP
 	if(a->topo(i,j,k)<0.0)
 	{
-	//a->test(i,j,k)=a->porosity(i,j,k)= p->S24; //porosity
-	porpart(i,j,k) = p->S20;  //d50
+	a->test(i,j,k)=a->porosity(i,j,k)= p->S24; //porosity
+	a->porpart(i,j,k) = p->S20;  //d50
 	alpha(i,j,k) = p->S26_a;  //alpha
 	beta(i,j,k) = p->S26_b;    //beta
 	}
     
     
     pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,porpart,1);
+	pgc->start4a(p,a->porpart,1);
 	pgc->start4a(p,alpha,1);
 	pgc->start4a(p,beta,1);
 }

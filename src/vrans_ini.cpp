@@ -34,13 +34,13 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	ALOOP
 	{
 	a->porosity(i,j,k)=1.0;
-	porpart(i,j,k)=0.01;
+	a->porpart(i,j,k)=0.01;
 	alpha(i,j,k)=0.0;
 	beta(i,j,k)=0.0;
 	}
 	
 	pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,porpart,1);
+	pgc->start4a(p,a->porpart,1);
 	pgc->start4a(p,alpha,1);
 	pgc->start4a(p,beta,1);
 	
@@ -53,7 +53,7 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	&& p->ZN[KP]>=p->B270_zs[qn] && p->ZN[KP]<p->B270_ze[qn])
 	{
 	a->porosity(i,j,k)= p->B270_n[qn];
-	porpart(i,j,k) = p->B270_d50[qn];
+	a->porpart(i,j,k) = p->B270_d50[qn];
 	alpha(i,j,k) = p->B270_alpha[qn];
 	beta(i,j,k) = p->B270_beta[qn];
 	}
@@ -67,7 +67,7 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
         if(r<=p->B274_r[qn] && p->pos_z()>p->B274_zs[qn] && p->pos_z()<=p->B274_ze[qn])
         {
         a->porosity(i,j,k)= p->B274_n[qn];
-        porpart(i,j,k) = p->B274_d50[qn];
+        a->porpart(i,j,k) = p->B274_d50[qn];
         alpha(i,j,k) = p->B274_alpha[qn];
         beta(i,j,k) = p->B274_beta[qn];
         }
@@ -99,7 +99,7 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_x()-p->B281_xs[qn])+p->B281_zs[qn] )
 		{
 		a->porosity(i,j,k)=p->B281_n[qn];
-		porpart(i,j,k) =p->B281_d50[qn];
+		a->porpart(i,j,k) =p->B281_d50[qn];
 		alpha(i,j,k) = p->B281_alpha[qn];
 		beta(i,j,k) = p->B281_beta[qn];
 		}
@@ -130,7 +130,7 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B282_ys[qn])+p->B282_zs[qn] )
 		{
 		a->porosity(i,j,k)=p->B282_n[qn];
-		porpart(i,j,k) =p->B282_d50[qn];
+		a->porpart(i,j,k) =p->B282_d50[qn];
 		alpha(i,j,k) = p->B282_alpha[qn];
 		beta(i,j,k) = p->B282_beta[qn];
 		}
@@ -167,7 +167,7 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
         && p->pos_z()>slope*(p->pos_x()-p->B291_xs[qn])+p->B291_zs[qn]) // upper
 		{
 		a->porosity(i,j,k)=p->B291_n[qn];
-		porpart(i,j,k) =p->B291_d50[qn];
+		a->porpart(i,j,k) =p->B291_d50[qn];
 		alpha(i,j,k) = p->B291_alpha[qn];
 		beta(i,j,k) = p->B291_beta[qn];
 		}
@@ -175,7 +175,7 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
     
     
     pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,porpart,1);
+	pgc->start4a(p,a->porpart,1);
 	pgc->start4a(p,alpha,1);
 	pgc->start4a(p,beta,1);
     

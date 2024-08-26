@@ -47,7 +47,7 @@ void vrans_f::kw_source(lexer *p, fdm *a, field &kin)
         
 
         kinf = 3.7*(1.0-por)*pow(por,1.5)*uu;
-        winf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/porpart(i,j,k))*(p->cmu*(kinf>1.0e-20?kinf:1.0e20));
+        winf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/a->porpart(i,j,k))*(p->cmu*(kinf>1.0e-20?kinf:1.0e20));
         
         a->rhsvec.V[count] += por*ke_c_2e*MAX(winf,0.0)*MAX(kinf,0.0);
     
@@ -77,7 +77,7 @@ void vrans_f::ke_source(lexer *p, fdm *a, field &kin)
         
 
         kinf = 3.7*(1.0-por)*pow(por,1.5)*uu;
-        einf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/porpart(i,j,k));
+        einf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/a->porpart(i,j,k));
         
         a->rhsvec.V[count] += por*MAX(einf,0.0);
     

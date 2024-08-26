@@ -74,7 +74,7 @@ public:
     field4 test;
 	field4a topo,solid;
 	field4a fb;
-	field4a porosity;
+	field4a porosity,porpart;
 	field5 walld;
 	 
 	fieldint5 nodeval;

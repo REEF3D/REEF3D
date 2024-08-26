@@ -112,7 +112,7 @@ void driver::logic_nhflow()
 
 //Turbulence
     if(p->A560==0)
-	pnhfturb = new nhflow_komega_void(p,d,pgc);
+	pnhfturb = new nhflow_komega_func_void(p,d,pgc);
     
     if(p->A560==2)
     {

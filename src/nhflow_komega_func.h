@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,39 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-#include"convection.h"
-
-class flux;
-
-#ifndef LUST_H_
-#define LUST_H_
+#include"nhflow_rans_io.h"
+#include"nhflow_komega_bc.h"
+#include"ghostcell.h"
+#include"vrans.h"
 
 using namespace std;
 
-class lust : public convection, public increment
+#ifndef NHFLOW_IKOMEGA_H_
+#define NHFLOW_IKOMEGA_H_
+
+class nhflow_komega_func : public nhflow_rans_io, public nhflow_komega_bc
 {
-
 public:
+	nhflow_komega_func(lexer *, fdm_nhf*, ghostcell*);
+	virtual ~nhflow_komega_func();
+	virtual void isource(lexer*,fdm_nhf*);
+	virtual void jsource(lexer*,fdm_nhf*);
+	virtual void ksource(lexer*,fdm_nhf*);
+	virtual void kinsource(lexer*,fdm_nhf*,vrans*);
+	virtual void epssource(lexer*,fdm_nhf*,vrans*);
+	virtual void epsfsf(lexer*,fdm_nhf*,ghostcell*);
+	virtual void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans*);
+	virtual void clearfield(lexer*,fdm_nhf*,double*);
 
-	lust (lexer *);
-	virtual ~lust();
-
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
-
-private:
-    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
-
-	double dx,dy,dz;
-	double udir,vdir,wdir;
-	double L;
-
-    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
-
-    flux *pflux;
+	int count,q;
+	double starttime;
     
-    double fu1_cd,fu2_cd,fv1_cd,fv2_cd,fw1_cd,fw2_cd;
-    double fu1_uw,fu2_uw,fv1_uw,fv2_uw,fw1_uw,fw2_uw;
+private:
+    double epsi;
+	double dirac;
 };
 
 #endif
+
+

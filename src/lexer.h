@@ -121,7 +121,7 @@ public:
 	int i_dir,j_dir,k_dir;
 	double x_dir,y_dir,z_dir;
     int gcbextra;
-    int solidread,toporead,porousread;
+    int solidread,toporead,porousread,topoforcing;
 
 
     //GHOSTCELL

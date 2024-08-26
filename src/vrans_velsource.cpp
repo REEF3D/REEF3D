@@ -33,7 +33,7 @@ void vrans_f::u_source(lexer *p, fdm *a)
     ULOOP
 	{
         porval = 0.5*(a->porosity(i,j,k) + a->porosity(i+1,j,k));
-        partval = 0.5*(porpart(i,j,k) + porpart(i+1,j,k));
+        partval = 0.5*(a->porpart(i,j,k) + a->porpart(i+1,j,k));
 		alphaval = 0.5*(alpha(i,j,k) + alpha(i+1,j,k));
 		betaval = 0.5*(beta(i,j,k) + beta(i+1,j,k));
 		viscval = 0.5*(a->visc(i,j,k)+a->visc(i+1,j,k));
@@ -60,7 +60,7 @@ void vrans_f::v_source(lexer *p, fdm *a)
     VLOOP
 	{
         porval = 0.5*(a->porosity(i,j,k) + a->porosity(i,j+1,k));
-        partval = 0.5*(porpart(i,j,k) + porpart(i,j+1,k));
+        partval = 0.5*(a->porpart(i,j,k) + a->porpart(i,j+1,k));
 		alphaval = 0.5*(alpha(i,j,k) + alpha(i,j+1,k));
 		betaval = 0.5*(beta(i,j,k) + beta(i,j+1,k));
 		viscval = 0.5*(a->visc(i,j,k)+a->visc(i,j+1,k));
@@ -85,7 +85,7 @@ void vrans_f::w_source(lexer *p, fdm *a)
     WLOOP
 	{
         porval = 0.5*(a->porosity(i,j,k) + a->porosity(i,j,k+1));
-        partval = 0.5*(porpart(i,j,k) + porpart(i,j,k+1));
+        partval = 0.5*(a->porpart(i,j,k) + a->porpart(i,j,k+1));
 		alphaval = 0.5*(alpha(i,j,k) + alpha(i,j,k+1));
 		betaval = 0.5*(beta(i,j,k) + beta(i,j,k+1));
 		viscval = 0.5*(a->visc(i,j,k)+a->visc(i,j,k+1));

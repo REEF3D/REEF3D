@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,38 +20,37 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"rans_io.h"
-#include"bc_ikomega.h"
-#include"ghostcell.h"
-#include"vrans.h"
+#include"increment.h"
+#include"roughness.h"
+class fdm;
+class lexer;
+class field;
+
+#ifndef KOMEGA_BC_H_
+#define KOMEGA_BC_H_
 
 using namespace std;
 
-#ifndef IKOMEGA_H_
-#define IKOMEGA_H_
-
-class ikomega : public rans_io, public bc_ikomega
+class komega_bc : public roughness
 {
 public:
-	ikomega(lexer *, fdm*, ghostcell*);
-	virtual ~ikomega();
-	virtual void isource(lexer*,fdm*);
-	virtual void jsource(lexer*,fdm*);
-	virtual void ksource(lexer*,fdm*);
-	virtual void kinsource(lexer*,fdm*,vrans*);
-	virtual void epssource(lexer*,fdm*,vrans*,field&);
-	virtual void epsfsf(lexer*,fdm*,ghostcell*);
-	virtual void eddyvisc(lexer*,fdm*,ghostcell*,vrans*);
-	virtual void clearfield(lexer*,fdm*,field&);
+	komega_bc(lexer*);
+	virtual ~komega_bc();
+	void bckomega_start(fdm*,lexer*,field&,field&, int);
+    void bckin_matrix(fdm*,lexer*,field&,field&);
+    void bcomega_matrix(fdm*,lexer*,field&,field&);
+	void wall_law_kin(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
+	void wall_law_omega(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
+    void vrans_wall_law_kin(lexer*,fdm*,field&,field&);
+    void vrans_wall_law_omega(lexer*,fdm*,field&,field&);
 
-	int count,q;
-	double starttime;
-    
 private:
-    double epsi;
-	double dirac;
+	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
+	int ii,jj,kk;
+	int count,q;
+	double fac,value;
+	double kappa;
+
 };
-
 #endif
-
 

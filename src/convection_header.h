@@ -28,7 +28,6 @@ Author: Hans Bihs
 #include"cds2_alt.h"
 #include"cds4.h"
 #include"quick.h"
-#include"lust.h"
 #include"weno_hj.h"
 #include"weno_hj_nug.h"
 #include"weno_hj_df_nug.h"

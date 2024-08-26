@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_ikomega.h"
+#include"nhflow_komega_func.h"
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"vrans.h"
 
-nhflow_ikomega::nhflow_ikomega(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_bc_ikomega(p)
+nhflow_komega_func::nhflow_komega_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_komega_bc(p)
 {
     if(p->j_dir==0)        
     epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
@@ -35,17 +35,17 @@ nhflow_ikomega::nhflow_ikomega(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_ra
     epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
-nhflow_ikomega::~nhflow_ikomega()
+nhflow_komega_func::~nhflow_komega_func()
 {
 }
 
-void  nhflow_ikomega::clearfield(lexer *p, fdm_nhf *d, double *F)
+void  nhflow_komega_func::clearfield(lexer *p, fdm_nhf *d, double *F)
 {
 	LOOP
 	F[IJK]=0.0;
 }
 
-void nhflow_ikomega::isource(lexer *p, fdm_nhf *d)
+void nhflow_komega_func::isource(lexer *p, fdm_nhf *d)
 {
     if(p->T33==0)
 	LOOP
@@ -56,7 +56,7 @@ void nhflow_ikomega::isource(lexer *p, fdm_nhf *d)
 	d->F[IJK] = (2.0/3.0)*(KIN[Ip1JK]-KIN[Im1JK])/(p->DXP[IP]+p->DXP[IM1]);
 }
 
-void nhflow_ikomega::jsource(lexer *p, fdm_nhf *d)
+void nhflow_komega_func::jsource(lexer *p, fdm_nhf *d)
 {
     if(p->T33==0)
 	LOOP
@@ -67,7 +67,7 @@ void nhflow_ikomega::jsource(lexer *p, fdm_nhf *d)
 	d->G[IJK] = (2.0/3.0)*(KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1]);
 }
 
-void nhflow_ikomega::ksource(lexer *p, fdm_nhf *d)
+void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
 {
     if(p->T33==0)
 	LOOP
@@ -78,7 +78,7 @@ void nhflow_ikomega::ksource(lexer *p, fdm_nhf *d)
 	d->H[IJK] = (2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 }
 
-void nhflow_ikomega::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans)
+void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans)
 {
 	double factor;
 	double H;
@@ -168,7 +168,7 @@ void nhflow_ikomega::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvran
     
 }
 
-void nhflow_ikomega::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
+void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 {	
     int count=0;
 
@@ -186,7 +186,7 @@ void nhflow_ikomega::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
     //pvrans->kw_source(p,a,kin);
 }
 
-void nhflow_ikomega::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
+void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
 {
     count=0;
     double dirac;
@@ -203,7 +203,7 @@ void nhflow_ikomega::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
     //pvrans->omega_source(p,a,kin,eps);
 }
 
-void nhflow_ikomega::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {/*
 	
 	if(p->T36>0)

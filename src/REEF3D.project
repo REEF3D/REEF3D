@@ -220,10 +220,10 @@
             <File Name="nhflow_LES.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
+            <File Name="nhflow_komega_func.h"/>
             <VirtualDirectory Name="BC">
-              <File Name="nhflow_bc_ikomega.h"/>
+              <File Name="nhflow_komega_bc.h"/>
             </VirtualDirectory>
-            <File Name="nhflow_ikomega.h"/>
             <File Name="nhflow_komega_void.h"/>
             <File Name="nhflow_komega_IM1.h"/>
           </VirtualDirectory>
@@ -654,7 +654,6 @@
         <File Name="hcds6.h"/>
         <File Name="iweno_hj_df_nug.h"/>
         <File Name="weno_hj_df_nug.h"/>
-        <File Name="lust.h"/>
         <File Name="iweno3_hj.h"/>
         <File Name="convection_void.h"/>
         <File Name="convection.h"/>
@@ -1079,9 +1078,9 @@
         <File Name="bc_ikepsilon.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Komega">
+        <File Name="komega_func.h"/>
+        <File Name="komega_bc.h"/>
         <File Name="komega_IM1.h"/>
-        <File Name="ikomega.h"/>
-        <File Name="bc_ikomega.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
         <VirtualDirectory Name="Filter">
@@ -1362,9 +1361,9 @@
             <File Name="nhflow_LES.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
-            <File Name="nhflow_ikomega.cpp"/>
+            <File Name="nhflow_komega_func.cpp"/>
             <VirtualDirectory Name="BC">
-              <File Name="nhflow_bc_ikomega.cpp"/>
+              <File Name="nhflow_komega_bc.cpp"/>
             </VirtualDirectory>
             <File Name="nhflow_komega_void.cpp"/>
             <File Name="nhflow_komega_IM1.cpp"/>
@@ -2095,7 +2094,6 @@
         <File Name="hcds6.cpp"/>
         <File Name="iweno_hj_df_nug.cpp"/>
         <File Name="weno_hj_df_nug.cpp"/>
-        <File Name="lust.cpp"/>
         <File Name="ifou.cpp"/>
         <File Name="iweno3_hj.cpp"/>
         <File Name="weno3_flux.cpp"/>
@@ -2887,7 +2885,7 @@
         <File Name="ikomega.cpp"/>
         <File Name="komega_IM1.cpp"/>
         <VirtualDirectory Name="BC">
-          <File Name="bc_ikomega.cpp"/>
+          <File Name="komega_bc.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">

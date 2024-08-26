@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,38 +20,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_rans_io.h"
-#include"nhflow_bc_ikomega.h"
-#include"ghostcell.h"
-#include"vrans.h"
+#include"increment.h"
+#include"roughness.h"
+class fdm_nhf;
+class lexer;
+
+#ifndef NHFLOW_KOMEGA_BC_H_
+#define NHFLOW_KOMEGA_BC_H_
 
 using namespace std;
 
-#ifndef NHFLOW_IKOMEGA_H_
-#define NHFLOW_IKOMEGA_H_
-
-class nhflow_ikomega : public nhflow_rans_io, public nhflow_bc_ikomega
+class nhflow_komega_bc : public roughness
 {
 public:
-	nhflow_ikomega(lexer *, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_ikomega();
-	virtual void isource(lexer*,fdm_nhf*);
-	virtual void jsource(lexer*,fdm_nhf*);
-	virtual void ksource(lexer*,fdm_nhf*);
-	virtual void kinsource(lexer*,fdm_nhf*,vrans*);
-	virtual void epssource(lexer*,fdm_nhf*,vrans*);
-	virtual void epsfsf(lexer*,fdm_nhf*,ghostcell*);
-	virtual void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans*);
-	virtual void clearfield(lexer*,fdm_nhf*,double*);
+	nhflow_komega_bc(lexer*);
+	virtual ~nhflow_komega_bc();
+	void bckomega_start(lexer*,fdm_nhf*,double*,double*, int);
+    void bckin_matrix(lexer*,fdm_nhf*,double*,double*);
+    void bcomega_matrix(lexer*,fdm_nhf*,double*,double*);
+	void wall_law_kin(lexer*,fdm_nhf*,double*,double*);
+	void wall_law_omega(lexer*,fdm_nhf*,double*,double*);
 
-	int count,q;
-	double starttime;
-    
 private:
-    double epsi;
-	double dirac;
+	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
+	int ii,jj,kk;
+	int count,q;
+	double fac,value;
+	double kappa;
+
 };
-
 #endif
-
 

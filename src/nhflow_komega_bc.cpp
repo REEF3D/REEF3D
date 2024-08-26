@@ -20,20 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_bc_ikomega.h"
+#include"nhflow_komega_bc.h"
 #include"fdm_nhf.h"
 #include"lexer.h"
  
-nhflow_bc_ikomega::nhflow_bc_ikomega(lexer *p) : roughness(p)
+nhflow_komega_bc::nhflow_komega_bc(lexer *p) : roughness(p)
 {
     kappa=0.4;
 }
 
-nhflow_bc_ikomega::~nhflow_bc_ikomega()
+nhflow_komega_bc::~nhflow_komega_bc()
 {
 }
 
-void nhflow_bc_ikomega::bckomega_start(lexer *p, fdm_nhf *d, double *KIN, double *EPS, int gcval)
+void nhflow_komega_bc::bckomega_start(lexer *p, fdm_nhf *d, double *KIN, double *EPS, int gcval)
 {
 	if(gcval==20)
     wall_law_kin(p,d,KIN,EPS);
@@ -44,7 +44,7 @@ void nhflow_bc_ikomega::bckomega_start(lexer *p, fdm_nhf *d, double *KIN, double
 	wall_law_omega(p,d,KIN,EPS);
 }
 
-void nhflow_bc_ikomega::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
+void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
     double uvel,vvel,wvel;
     double zval;
@@ -109,7 +109,7 @@ void nhflow_bc_ikomega::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *
     }
 }
 
-void nhflow_bc_ikomega::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
+void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
     count=0;
     LOOP
@@ -134,7 +134,7 @@ void nhflow_bc_ikomega::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double
     }
 }
 
-void nhflow_bc_ikomega::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
+void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
 	int q;
         
@@ -210,7 +210,7 @@ void nhflow_bc_ikomega::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *
 }
 
 
-void nhflow_bc_ikomega::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
+void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
     
 	int q;

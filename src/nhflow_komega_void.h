@@ -28,12 +28,12 @@ using namespace std;
 #ifndef NHFLOW_KOMEGA_VOID_H_
 #define NHFLOW_KOMEGA_VOID_H_
 
-class nhflow_komega_void : public nhflow_turbulence, public increment
+class nhflow_komega_func_void : public nhflow_turbulence, public increment
 {
 
 public:
-	nhflow_komega_void(lexer *,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_komega_void();
+	nhflow_komega_func_void(lexer *,fdm_nhf*,ghostcell*);
+	virtual ~nhflow_komega_func_void();
 
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*);
 	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*);

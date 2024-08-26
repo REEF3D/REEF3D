@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"nhflow_scalar_convection.h"
 
-nhflow_komega_IM1::nhflow_komega_IM1(lexer* p, fdm_nhf* d, ghostcell *pgc) : nhflow_ikomega(p,d,pgc)
+nhflow_komega_IM1::nhflow_komega_IM1(lexer* p, fdm_nhf* d, ghostcell *pgc) : nhflow_komega_func(p,d,pgc)
 {
 	gcval_kin=20;
 	gcval_eps=30;

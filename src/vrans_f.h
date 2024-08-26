@@ -54,7 +54,7 @@ public:
 	
 private:
 	
-	field4a porpart,alpha,beta;
+	field4a alpha,beta;
 	
 	double Apor(double,double,double,double);
 	double Bpor(double,double,double);

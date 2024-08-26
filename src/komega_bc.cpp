@@ -20,20 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bc_ikomega.h"
+#include"komega_bc.h"
 #include"fdm.h"
 #include"lexer.h"
 
-bc_ikomega::bc_ikomega(lexer* p):roughness(p)
+komega_bc::komega_bc(lexer* p):roughness(p)
 {
     kappa=0.4;
 }
 
-bc_ikomega::~bc_ikomega()
+komega_bc::~komega_bc()
 {
 }
 
-void bc_ikomega::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
+void komega_bc::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 {
 	int q;
 
@@ -45,6 +45,9 @@ void bc_ikomega::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         
         QGCDF4LOOP
 		wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
+        
+        if(p->S10==2 || p->B269==1 || p->B269==2)
+        vrans_wall_law_kin(p,a,kin,eps);
 	}
 
 // ----------------- 
@@ -56,10 +59,13 @@ void bc_ikomega::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         
         QGCDF4LOOP
 		wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
+        
+        if(p->S10==2 || p->B269==1 || p->B269==2)
+        vrans_wall_law_omega(p,a,kin,eps);
 	}
 }
 
-void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
+void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
 {
     double uvel,vvel,wvel;
     double zval;
@@ -106,7 +112,7 @@ void bc_ikomega::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int j
 	a->rhsvec.V[id] += (tau*u_abs)/dist;
 }
 
-void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs, int bc, int id, double dist)
+void komega_bc::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs, int bc, int id, double dist)
 {    
     i=ii;
 	j=jj;
@@ -126,7 +132,7 @@ void bc_ikomega::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int
     //eps(i,j,k) = eps_star;
 }
 
-void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
+void komega_bc::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
         n=0;
         LOOP
@@ -199,7 +205,7 @@ void bc_ikomega::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
     }
 }
 
-void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
+void komega_bc::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
     
     // bc
@@ -274,3 +280,87 @@ void bc_ikomega::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
     }
 }
 
+void komega_bc::vrans_wall_law_kin(lexer *p,fdm *a,field &kin,field &eps)
+{
+    double uvel,vvel,wvel;
+    double fac = 3.0;
+    
+    n=0;
+    LOOP
+    {
+        if(a->porosity(i,j,k)>=0.99 &&  (a->porosity(i-1,j,k)<0.99 || a->porosity(i+1,j,k)<0.99 
+                                        || a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99)
+                                        || a->porosity(i,j,k-1)<0.99 || a->porosity(i,j,k+1)<0.99)
+        {
+        if(p->j_dir==0)
+        dist = (1.0/4.0)*(p->DXN[IP] + p->DZN[KP]);
+        
+        if(p->j_dir==1)
+        dist = (1.0/6.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        
+        if(a->porosity(i-1,j,k)<0.99)
+        ks=fac*a->porpart(i-1,j,k);
+        
+        if(a->porosity(i+1,j,k)<0.99)
+        ks=fac*a->porpart(i+1,j,k);
+        
+        if(fac*a->porosity(i,j-1,k)<0.99)
+        ks=a->porpart(i,j-1,k);
+        
+        if(a->porosity(i,j+1,k)<0.99)
+        ks=fac*a->porpart(i,j+1,k);
+        
+        if(a->porosity(i,j,k-1)<0.99)
+        ks=fac*a->porpart(i,j,k);
+        
+        if(a->porosity(i,j,k+1)<0.99)
+        ks=fac*a->porpart(i,j,k);
+
+            uvel=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
+            vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
+            wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
+            
+            u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+
+            if(30.0*dist<ks)
+            dist=ks/30.0;
+            
+            uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
+
+        tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+        
+        a->M.p[n] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;
+        a->rhsvec.V[n] += (tau*u_abs)/dist;
+        }
+    ++n;
+    }
+    
+}
+
+void komega_bc::vrans_wall_law_omega(lexer *p,fdm *a,field &kin,field &eps)
+{
+    double uvel,vvel,wvel;
+    double fac = 3.0;
+    
+    n=0;
+    LOOP
+    {
+        if(a->porosity(i,j,k)>=0.99 &&  (a->porosity(i-1,j,k)<0.99 || a->porosity(i+1,j,k)<0.99 
+                                        || a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99)
+                                        || a->porosity(i,j,k-1)<0.99 || a->porosity(i,j,k+1)<0.99)
+        {
+        if(p->j_dir==0)
+        dist=(1.0/4.0)*(p->DXN[IP] + p->DZN[KP]);
+        
+        if(p->j_dir==1)
+        dist=(1.0/6.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+
+        eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
+        
+        a->M.p[n] += 1.0e20;
+        a->rhsvec.V[n] += eps_star*1.0e20;
+        }
+    ++n;
+    }
+    
+}
