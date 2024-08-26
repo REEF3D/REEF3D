@@ -76,7 +76,7 @@ sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p)
         p->Q101>0?buff.append("True\n"):buff.append("False\n");
         buff.append("\tSuspension seeding: ");
         p->Q120>0?buff.append("True\n"):buff.append("False\n");
-        buff.append("Particle properties:\n\td50: "+std::to_string(p->S20)+" m\n\tDensity: "+std::to_string(p->S22)+" kg/m/m/m\n\tPorosity: "+std::to_string(p->S24)+"\n");
+        buff.append("Particle properties:\n\td50: "+std::to_string(p->S20)+" m\n\tDensity: "+std::to_string(p->S22)+" kg/m^3\n\tPorosity: "+std::to_string(p->S24)+"\n");
         buff.append("Seeding properties:\n\tSeed: "+(p->Q29>0?std::to_string(p->Q29):"time dep.")+"\n\tParticles per cell: "+std::to_string(p->Q24)+"\n\tParticles represened by one: "+std::to_string(p->Q41)+"\n");
         cout<<buff<<endl;
     }

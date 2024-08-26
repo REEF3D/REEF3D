@@ -171,8 +171,8 @@ namespace sediment_particle::movement
         double RKu,RKv,RKw;
         double u,v,w;
         double du1, du2, du3, dv1, dv2, dv3, dw1, dw2, dw3;
-        double ws;
-        double topoDist;
+        double ws=0;
+        double topoDist=0;
         /// @brief Difference between flowfield and particle velocity
         
        
@@ -244,13 +244,16 @@ namespace sediment_particle::movement
                     PP.drag[n]=DragCoeff;
 
                     // sedimentation
-                    ws = sedimentation_velocity(p,PP.d50,Du,Dv,Dw,thetas);
-                    topoDist=fabs(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]));
-                    if(topoDist<p->DZP[KP])
+                    topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
+                    if(topoDist>2.5*PP.d50)
                     {
-                        ws *=topoDist/p->DZP[KP];
+                        ws = sedimentation_velocity(p,PP.d50,Du,Dv,Dw,thetas);
+                        // if(fabs(topoDist)<p->DZP[KP])
+                        // {
+                        //     ws *=topoDist/p->DZP[KP];
+                        // }
+                        Dw-=ws;
                     }
-                    Dw-=ws;
 
                     // Acceleration
                     du=DragCoeff*Du;
@@ -261,11 +264,11 @@ namespace sediment_particle::movement
                     dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
                     dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
 
-                    if(debugPrint)
-                    {
-                        cout<<netBuoyZ<<" "<<-stressDivZ/(thetas*p->S22)<<endl;
-                        debugPrint=false;
-                    }
+                    // if(debugPrint)
+                    // {
+                    //     cout<<netBuoyZ<<" "<<-stressDivZ/(thetas*p->S22)<<endl;
+                    //     debugPrint=false;
+                    // }
 
                     if(dw!=dw)
                     {
@@ -583,7 +586,7 @@ namespace sediment_particle::movement
         const double Rep=dU*d*invKinVis;
 
         const double Cd=24.0/Rep+4.0/sqrt(Rep)+0.4;
-        const double ws_single=sqrt(4.0/3.0*(p->S22-p->W1)/p->W1*d*p->W22/Cd);
+        const double ws_single=sqrt(4.0/3.0*(p->S22-p->W1)/p->W1*d*fabs(p->W22)/Cd);
         double n;
         if(Rep<=0.2)
         n=4.65;
