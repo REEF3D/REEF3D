@@ -42,6 +42,14 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     // vrans
     pvrans->sed_update(p,a,pgc);
+    ALOOP
+	{
+        if(a->topo(i,j,k)<0.0)
+	        a->porosity(i,j,k)= p->S24;
+        else
+	        a->porosity(i,j,k)=1.0;
+    }
+
     movement->setup(p,*a,PP.d50);
 
     volume0 = movement->volume(p,*a,PP);

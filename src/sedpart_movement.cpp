@@ -511,7 +511,7 @@ namespace sediment_particle::movement
             DZN=(p->DZN[KP]*0.5 + a.topo(i,j,k));
         }
 
-        return 6.0*p->DXN[IP]*p->DYN[JP]*DZN*(1.0+(cell?0:-/*a.porosity(i,j,k)*/p->S24))/(PI*pow(d50,3.0));
+        return 6.0*p->DXN[IP]*p->DYN[JP]*DZN*(1.0+(cell?0:-a.porosity(i,j,k)))/(PI*pow(d50,3.0));
     }
 
     /// @brief Calculate complete intra-particle stress trensor
