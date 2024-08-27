@@ -45,7 +45,8 @@ public:
 
 
 private:
-    double topovel(lexer*,ghostcell*,sediment_fdm*);
+    void topovel1(lexer*,ghostcell*,sediment_fdm*);
+    void topovel2(lexer*,ghostcell*,sediment_fdm*);
     void  timestep(lexer*,ghostcell*,sediment_fdm*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
@@ -57,6 +58,7 @@ private:
     vec2D xvec,rhsvec;
 
 	matrix2D M;
+    slice4 qbx,qby;
     
 	int gcval_topo;
 	double starttime;
