@@ -66,8 +66,8 @@ void reduction_deyana::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     }
 
 
-    r = MAX(r,0.01);
-    r = MIN(r,1.25);
+    r = MAX(r,0.1);
+    r = MIN(r,1.5);
 
 	if(p->pos_x()<p->S71)
 	r=1.0;

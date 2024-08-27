@@ -67,8 +67,8 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
         
 
         // complete q
-        dqx = pdx->sx(p,qbx,sgx1,sgx2);
-        dqy = pdx->sy(p,qby,sgy1,sgy2);
+        dqx = pdx->sx(p,s->qb,sgx1,sgx2);
+        dqy = pdx->sy(p,s->qb,sgy1,sgy2);
         
 
     // Exner equations

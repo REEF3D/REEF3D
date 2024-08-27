@@ -93,6 +93,7 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     
     pgc->gcsl_start4(p,s->qb,1);
     
+    
     // Exner
     if(p->S31==1)
     topovel1(p,pgc,s);
@@ -101,7 +102,6 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     topovel2(p,pgc,s);
 
 	
-    
     // Bedch
     timestep(p,pgc,s);
 	
