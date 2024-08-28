@@ -38,6 +38,8 @@ Author: Hans Bihs
 #include"vrans.h"
 #include"6DOF.h"
 #include"nhflow_forcing.h"
+#include"wind_f.h"
+#include"wind_v.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
@@ -64,6 +66,12 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     
     p6dof = pp6dof;
     pnhfdf = ppnhfdf;
+    
+    if(p->A570==0)
+    pwind = new wind_v(p);
+    
+    if(p->A570>0)
+    pwind = new wind_f(p);
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
@@ -104,6 +112,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	ppress->upgrad(p,d,WLRK1);
     p6dof->isource(p,d,pgc,WLRK1);
 	irhs(p,d,pgc);
+    pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, WLRK1, d->eta);
 	pconvec->start(p,d,1,WLRK1);
 	pnhfdiff->diff_u(p,d,pgc,psolv,UHDIFF,d->UH,d->UH,d->VH,d->WH,WLRK1,1.0);
 
@@ -122,6 +131,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     ppress->vpgrad(p,d,WLRK1);
     p6dof->jsource(p,d,pgc,WLRK1);
 	jrhs(p,d,pgc);
+    pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, WLRK1, d->eta);
     pconvec->start(p,d,2,WLRK1);
 	pnhfdiff->diff_v(p,d,pgc,psolv,VHDIFF,d->VH,d->UH,d->VH,d->WH,WLRK1,1.0);
 
@@ -200,6 +210,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	ppress->upgrad(p,d,d->WL);
     p6dof->isource(p,d,pgc,d->WL);
 	irhs(p,d,pgc);
+    pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, d->WL, d->eta);
     pconvec->start(p,d,1,d->WL);
 	pnhfdiff->diff_u(p,d,pgc,psolv,UHDIFF,UHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
 
@@ -218,6 +229,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	ppress->vpgrad(p,d,d->WL);
     p6dof->jsource(p,d,pgc,d->WL);
 	jrhs(p,d,pgc);
+    pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, d->WL, d->eta);
 	pconvec->start(p,d,2,d->WL);
 	pnhfdiff->diff_v(p,d,pgc,psolv,VHDIFF,VHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
 

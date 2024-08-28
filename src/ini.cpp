@@ -678,7 +678,7 @@ void lexer::ini_default()
     T42=0.05;           // double lambda1 factor
     T43=1.0;            // double komega_func wall BC velocity factor
     T44=1.6;            // double komega_func wall BC velocity factor for DF
-    T45=0;              // int buouncy term
+    T45=0;              // int buoyancy term
 
     // Water Properties
 	W1=998.2;		// double density water

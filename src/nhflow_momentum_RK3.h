@@ -25,6 +25,8 @@ Author: Hans Bihs
 #include"bcmom.h"
 #include"nhflow_sigma.h"
 
+class wind;
+
 using namespace std;
 
 #ifndef NHFLOW_MOMENTUM_RK3_H_
@@ -63,6 +65,8 @@ private:
 	double starttime;
     
     sixdof *p6dof;
+    
+    wind *pwind;
 };
 
 #endif

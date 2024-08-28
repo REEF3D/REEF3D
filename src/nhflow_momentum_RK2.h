@@ -25,6 +25,8 @@ Author: Hans Bihs
 #include"bcmom.h"
 #include"nhflow_sigma.h"
 
+class wind;
+
 using namespace std;
 
 #ifndef NHFLOW_MOMENTUM_RK2_H_
@@ -61,6 +63,7 @@ private:
     
     nhflow_convection *pweno;    sixdof *p6dof;
     nhflow_forcing *pnhfdf;
+    wind *pwind;
 };
 
 #endif

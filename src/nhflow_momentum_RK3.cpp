@@ -39,6 +39,8 @@ Author: Hans Bihs
 #include"nhflow_turbulence.h"
 #include"vrans.h"
 #include"6DOF.h"
+#include"wind_f.h"
+#include"wind_v.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
@@ -67,6 +69,12 @@ nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     p->Darray(WHDIFF,p->imax*p->jmax*(p->kmax+2));
     
     p6dof=pp6dof;
+    
+    if(p->A570==0)
+    pwind = new wind_v(p);
+    
+    if(p->A570>0)
+    pwind = new wind_f(p);
 }
 
 nhflow_momentum_RK3::~nhflow_momentum_RK3()

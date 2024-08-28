@@ -453,6 +453,11 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Wind">
+        <File Name="wind_v.h"/>
+        <File Name="wind_f.h"/>
+        <File Name="wind.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <File Name="particle.h"/>
         <File Name="particle_v.h"/>
@@ -1658,6 +1663,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Wind">
+        <File Name="wind_v.cpp"/>
+        <File Name="wind_f.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <VirtualDirectory Name="Void">
           <File Name="particle_v.cpp"/>
