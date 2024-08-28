@@ -576,7 +576,8 @@ namespace sediment_particle::movement
 
         const double Rep=dU*d*invKinVis;
 
-        const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
+        // const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
+        const double Cd=24.0/Rep+4.0/sqrt(Rep)+0.4;
         const double Dp=Cd*3.0*drho*dU/d/4.0;
 
         // if(Dp!=Dp)
