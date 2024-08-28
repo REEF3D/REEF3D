@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void particle_f::pvtu_pos(fdm* a, lexer* p, ghostcell* pgc)
+void particle_f::pvtp(lexer* p)
 {
     int num=0;
 
@@ -38,21 +38,20 @@ void particle_f::pvtu_pos(fdm* a, lexer* p, ghostcell* pgc)
     num = p->count;
 
 
-	sprintf(name,"./REEF3D_CFD_Particle/XPLS-POS-%08i.pvtu",num);
+	sprintf(name,"./REEF3D_CFD_Particle/Particle-POS-%08i.pvtp",num);
 
 
 	ofstream result;
 	result.open(name);
 
 	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
+	result<<"<VTKFile type=\"PPolyData\" version=\"1.0\" byte_order=\"LittleEndian\">"<<endl;
+	result<<"<PPolyData GhostLevel=\"0\">"<<endl;
 
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"correction\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
+	result<<"<FieldData>"<<endl;
+	result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+    result<<"</DataArray>"<<endl;
+	result<<"</FieldData>"<<endl;
 
 	result<<"<PPoints>"<<endl;
 	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
@@ -60,18 +59,18 @@ void particle_f::pvtu_pos(fdm* a, lexer* p, ghostcell* pgc)
 
 	for(n=0; n<p->M10; ++n)
 	{
-    piecename_pos(a,p,pgc,n);
+    piecename(p,n);
     result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
 	}
 
-	result<<"</PUnstructuredGrid>"<<endl;
+	result<<"</PPolyData>"<<endl;
 	result<<"</VTKFile>"<<endl;
 
 	result.close();
 }
 
 
-void particle_f::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
+void particle_f::piecename(lexer* p, int n)
 {
     int num=0;
 
@@ -82,12 +81,12 @@ void particle_f::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"XPLS-POS-%08i-%06i.vtu",num,n+1);
+	sprintf(pname,"Particle-POS-%08i-%06i.vtp",num,n+1);
 
 }
 
 
-void particle_f::header_pos(fdm* a,lexer* p,ghostcell* pgc)
+void particle_f::header(lexer* p)
 {
     int num=0;
 
@@ -97,7 +96,7 @@ void particle_f::header_pos(fdm* a,lexer* p,ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-    sprintf(name,"./REEF3D_CFD_Particle/XPLS-POS-%08i-%06i.vtp",num,p->mpirank+1);
+    sprintf(name,"./REEF3D_CFD_Particle/Particle-POS-%08i-%06i.vtp",num,p->mpirank+1);
 }
 
 
