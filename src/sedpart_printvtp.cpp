@@ -40,6 +40,14 @@ void sedpart::print_particles(lexer* p)
     p->partprinttime+=p->Q182;
 	++printcount;
     }
+
+	if((p->sedtime>p->partprinttime || p->count==0) && (p->Q180==2 && p->Q181<0 && p->Q182>0.0))
+	{
+	print_vtp(p);
+
+	p->partprinttime+=p->Q182;
+	++printcount;
+	}
     
 }
 
@@ -85,6 +93,8 @@ void sedpart::print_vtp(lexer* p)
 	++n;
     offset[n]=offset[n-1]+4*(numpt)+4; //drag
 	++n;
+	offset[n]=offset[n-1]+4*(numpt)+4; //elevation
+	++n;
 	
 
     offset[n]=offset[n-1]+4*(numpt)*3+4; //xyz
@@ -121,6 +131,8 @@ void sedpart::print_vtp(lexer* p)
     result<<"<DataArray type=\"Float32\" Name=\"shear stress\" NumberOfComponents=\"2\" ComponentName0=\"eff\" ComponentName1=\"crit\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"DragCoeff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	result<<"<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"</PointData>"<<endl;
 	
@@ -216,6 +228,16 @@ void sedpart::print_vtp(lexer* p)
 	if(PP.Flag[n]>=print_flag)
 	{
 		ffn=float(PP.drag[n]);
+		result.write((char*)&ffn, sizeof (float));
+	}
+
+	// elevation
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	{
+		ffn=float(PP.Z[n]);
 		result.write((char*)&ffn, sizeof (float));
 	}
 

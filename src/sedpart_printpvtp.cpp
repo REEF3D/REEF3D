@@ -43,39 +43,40 @@ void sedpart::pvtp_pos(lexer* p)
 	ofstream result;
 	result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"1.0\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PPolyData GhostLevel=\"0\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PPolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+	result<<"<PPolyData GhostLevel=\"0\">\n";
 
-	result<<"<FieldData>"<<endl;
+	result<<"<FieldData>\n";
 	if(p->P16==1)
     {
-	result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
+	result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime;
+    result<<"</DataArray>\n";
 	}
-	result<<"</FieldData>"<<endl;
+	result<<"</FieldData>\n";
 
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"Flag\"/>"<<endl;
-	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>"<<endl;
-    result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\"/>"<<endl;
-    result<<"<DataArray type=\"Float32\" Name=\"shear stress\" NumberOfComponents=\"2\" ComponentName0=\"eff\" ComponentName1=\"crit\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"DragCoeff\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
+	result<<"<PPointData>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"Flag\"/>\n";
+	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"shear stress\" NumberOfComponents=\"2\" ComponentName0=\"eff\" ComponentName1=\"crit\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"DragCoeff\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+	result<<"</PPointData>\n";
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
+	result<<"<PPoints>\n";
+	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+	result<<"</PPoints>\n";
 
 	for(int n=0; n<p->M10; ++n)
 	{
     piecename_pos(p,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+    result<<"<Piece Source=\""<<pname<<"\"/>\n";
 	}
 
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
+	result<<"</PPolyData>\n";
+	result<<"</VTKFile>"<<std::flush;
 
 	result.close();
 }

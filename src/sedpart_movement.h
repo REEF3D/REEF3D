@@ -126,6 +126,8 @@ namespace sediment_particle
 
             double dx;
             slice4 bedChange;
+
+            double velDist=2.5;
         };
     };
     class state : increment

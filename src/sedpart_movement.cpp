@@ -169,7 +169,7 @@ namespace sediment_particle::movement
     void particleStressBased_T2021::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
     {
         double RKu,RKv,RKw;
-        double u,v,w;
+        double u=0,v=0,w=0;
         double du1, du2, du3, dv1, dv2, dv3, dw1, dw2, dw3;
         double ws=0;
         double topoDist=0;
@@ -181,7 +181,7 @@ namespace sediment_particle::movement
         double netBuoyX=0, netBuoyY=0, netBuoyZ=0;
         // double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
 
-        bool limited = false;
+        bool limited = true;
         bool debugPrint = false;
         bool bedLoad = false;
         bool shearVel = true;
@@ -205,10 +205,10 @@ namespace sediment_particle::movement
                 if(PP.Flag[n]>0) // INT32_MIN
                 {
                     // ++counter;
-                    if(p->global_xmin+p->Q73>PP.X[n])
-                    limited = true;
-                    else
-                    limited = false;
+                    // if(p->global_xmin+p->Q73>PP.X[n])
+                    // limited = true;
+                    // else
+                    // limited = false;
 
                     i=p->posc_i(PP.X[n]);
                     j=p->posc_j(PP.Y[n]);
@@ -229,50 +229,60 @@ namespace sediment_particle::movement
 
                     topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
 
-                    if(topoDist<2.1*p->DZP[KP])
+                    if(topoDist<velDist*p->DZP[KP])
                     {
-                        u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+2.1*p->DZP[KP]-topoDist);
-                        v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+2.1*p->DZP[KP]-topoDist);
-                        w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+2.1*p->DZP[KP]-topoDist);
+                        u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+                        v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+                        // w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+                        if(debugPrint)
+                        {
+                            cout<<PP.Z[n]+velDist*p->DZP[KP]-topoDist<<endl;
+                            debugPrint=false;
+                        }
                     }
                     else
                     {
                         u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
                         v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
-                        w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
+                        // w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
                     }
 
-                    PP.Uf[n]=u;
-                    PP.Vf[n]=v;
-                    PP.Wf[n]=w;
+                    // PP.Uf[n]=u;
+                    // PP.Vf[n]=v;
+                    // PP.Wf[n]=w;
                     
                     Du=u-PP.U[n];
                     Dv=v-PP.V[n];
                     Dw=w-PP.W[n];
 
                     DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
+                    // if(debugPrint)
+                    // {
+                    //     cout<<DragCoeff<<endl;
+                    //     debugPrint=false;
+                    // }
 
                     PP.drag[n]=DragCoeff;
 
                     // sedimentation
-                    if(topoDist>2.5*PP.d50)
-                    {
-                        ws = sedimentation_velocity(p,PP.d50,Du,Dv,Dw,thetas);
-                        // if(fabs(topoDist)<p->DZP[KP])
-                        // {
-                        //     ws *=topoDist/p->DZP[KP];
-                        // }
-                        Dw-=ws;
-                    }
+                    // if(topoDist>2.5*PP.d50)
+                    // {
+                    //     ws = sedimentation_velocity(p,PP.d50,Du,Dv,Dw,thetas);
+                    //     // if(fabs(topoDist)<p->DZP[KP])
+                    //     // {
+                    //     //     ws *=topoDist/p->DZP[KP];
+                    //     // }
+                    //     Dw-=ws;
+                    // }
 
                     // Acceleration
                     du=DragCoeff*Du;
                     dv=DragCoeff*Dv;
-                    dw=DragCoeff*Dw;
+                    // dw=DragCoeff*Dw;
 
                     du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
                     dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
-                    dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
+                    // dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
 
                     // if(debugPrint)
                     // {
@@ -280,11 +290,11 @@ namespace sediment_particle::movement
                     //     debugPrint=false;
                     // }
 
-                    if(dw!=dw)
-                    {
-                    cout<<"NaN detected.\nu: "<<w<<" up: "<<PP.W[n]<<"\npos: "<<PP.X[n]<<","<<PP.Y[n]<<","<<PP.Z[n]<<"\n drag: "<<DragCoeff<<endl;
-                    exit(1);
-                    }
+                    // if(dw!=dw)
+                    // {
+                    // cout<<"NaN detected.\nu: "<<w<<" up: "<<PP.W[n]<<"\npos: "<<PP.X[n]<<","<<PP.Y[n]<<","<<PP.Z[n]<<"\n drag: "<<DragCoeff<<endl;
+                    // exit(1);
+                    // }
 
                     // if(p->mpirank==1&&n==50431&&p->count>=212)
                     // {
@@ -298,7 +308,7 @@ namespace sediment_particle::movement
                     // Vel update
                     PP.U[n]=0.5*(PP.U[n]+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n]))+du*RKtimeStep;
                     PP.V[n]=0.5*(PP.V[n]+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n]))+dv*RKtimeStep;
-                    PP.W[n]=0.5*(PP.W[n]+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n]))+dw*RKtimeStep;
+                    // PP.W[n]=0.5*(PP.W[n]+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n]))+dw*RKtimeStep;
 
                     if(PP.U[n]!=PP.U[n])
                     {
@@ -391,7 +401,7 @@ namespace sediment_particle::movement
             x = p->XN[IP] + p->DXN[IP]*double(rand() % 10000)/10000.0;
             y = p->YN[JP] + p->DYN[JP]*double(rand() % 10000)/10000.0;
             k = 0;
-            z = p->ZN[KP]-a.topo(i,j,k) - p->DZN[KP]*double(rand() % 10000)/10000.0;
+            z = p->ZN[KP]-a.topo(i,j,k) - 1.2*p->DZN[KP]*double(rand() % 10000)/10000.0;
             k = p->posc_k(z);
 
             ipolTopo = p->ccipol4_b(a.topo,x,y,z);
@@ -409,54 +419,37 @@ namespace sediment_particle::movement
 
     void particleStressBased_T2021::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
     {
-        // double sumCell = 0;
-        // double sumTopo = 0;
-        // double thetas=0;
-        // double pressureDivX=0, pressureDivY=0, pressureDivZ=0;
-        // double stressDivX=0, stressDivY=0, stressDivZ=0;
-        // bool initalNaN=true;
-        // double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
         PLAINLOOP
         {
-
-            // a.test(i,j,k) = 0;
-            // for(int n=0;n<=k;n++)
-            // a.test(i,j,k) += cellSum[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin]+cellSumTopo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + n-p->kmin];
-            // a.fb(i,j,k) = cellSum[IJK];
-            // sumCell += cellSum[IJK];
             a.test(i,j,k) = cellSumTopo[IJK];
-            // sumTopo += cellSumTopo[IJK];
-            // a.Fi(i,j,k)=stressTensor[IJK];
-
-            // pressureDivX = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
-            // pressureDivY = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
-            // pressureDivZ = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
-            // a.test1(i,j,k)=+pressureDivX/p->S22;
-            // a.test2(i,j,k)=+pressureDivY/p->S22;
-            // a.test3(i,j,k)=+pressureDivZ/p->S22;
-            // thetas=theta_s(p,a,PP,i,j,k);
-            // // stressDivX = (p->ccipol4c(stressTensor,p->XN[IP]+p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]-0.5*p->DXN[IP],p->YN[JP]+0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DXN[IP];
-            // // stressDivY = (p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]+p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]) - p->ccipol4c(stressTensor,p->XN[IP]+0.5*p->DXN[IP],p->YN[JP]-0.5*p->DYN[JP],p->ZN[KP]+0.5*p->DZN[KP]))/p->DYN[JP];
-            // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
-            // stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
-            // stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
-            // a.test4(i,j,k)=-stressDivX/(thetas*p->S22);
-            // a.test5(i,j,k)=-stressDivY/(thetas*p->S22);
-            // a.test6(i,j,k)=-stressDivZ/(thetas*p->S22);
-            // a.test7(i,j,k)=a.test4(i,j,k)+netBuoyX;
-            // a.test8(i,j,k)=a.test5(i,j,k)+netBuoyY;
-            // a.test9(i,j,k)=a.test6(i,j,k)+netBuoyZ;
-            // if(a.test6(i,j,k)!=a.test6(i,j,k) && initalNaN)
-            // {
-            //     cout<<"NaN detected: "<<stressTensor[IJKp1]<<"+"<<stressTensor[Ip1JKp1]<<" - "<<stressTensor[IJKm1]<<"+"<<stressTensor[Ip1JKm1]<<" / "<<p->DZN[KM1]<<"+"<<p->DZN[KP]<<"\n";
-            //     cout<<"thetas: "<<thetas<<" density: "<<p->S22<<endl;
-            //     initalNaN=false;
-            // }
         }
-        // double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
-        // if(p->mpirank==0)
-        // cout<<"NetBuoy: "<<netBuoyX<<","<<netBuoyY<<","<<netBuoyZ<<endl;
-        // std::cout<<p->mpirank<<": Sum of cellSum: "<<sumCell<<" : "<<sumTopo<<std::endl;
+        double topoDist=0;
+        double u=0,v=0;
+        for(size_t n=0;n<PP.loopindex;n++)
+            if(PP.Flag[n]>INT32_MIN)
+            {
+                if(PP.Flag[n]==0)
+                {
+                    PP.shear_eff[n]=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
+                    PP.shear_crit[n]=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
+                }
+
+                topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
+
+                if(topoDist<velDist*p->DZP[KP])
+                {
+                    u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+                    v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+                }
+                else
+                {
+                    u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
+                    v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
+                }
+
+                PP.Uf[n]=u;
+                PP.Vf[n]=v;
+            }
     }
 
     double particleStressBased_T2021::volume(lexer *p, fdm &a, particles_obj &PP)
@@ -573,6 +566,7 @@ namespace sediment_particle::movement
         thetaf=1.0-theta_crit;
 
         const double dU=sqrt(du*du+dv*dv+dw*dw);
+        // cout<<du<<","<<dv<<","<<dw<<endl;
         if(dU==0) // Saveguard
         return 0;
 
@@ -645,7 +639,8 @@ namespace sediment_particle::movement
             {
                 shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
                 shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
-                if(shear_eff>shear_crit && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.5*PP.d50>0)
+                if(shear_eff>shear_crit)
+                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+5.0*PP.d50>0)
                 {
                     PP.Flag[n]=1;
 
@@ -668,7 +663,8 @@ namespace sediment_particle::movement
             {
                 shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
                 shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
-                if(shear_eff>shear_crit && p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50)
+                if(shear_crit>shear_eff)
+                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50)
                 {
                     PP.Flag[n]=0;
                     PP.U[n]=0;
@@ -678,8 +674,8 @@ namespace sediment_particle::movement
                     PP.Uf[n]=0;
                     PP.Vf[n]=0;
                     PP.Wf[n]=0;
-                    PP.shear_eff[n]=shear_eff;
-                    PP.shear_crit[n]=shear_crit;
+                    // PP.shear_eff[n]=shear_eff;
+                    // PP.shear_crit[n]=shear_crit;
                     PP.drag[n]=0;
 
                     i=p->posc_i(PP.X[n]);
