@@ -1166,8 +1166,22 @@ void lexer::ctrlsend()
 
     ictrl[ii] = Q10;
     ii++;
-    dctrl[dd] = Q21;
+    ictrl[ii] = Q11;
+    ii++;
+    ictrl[ii] = Q12;
+    ii++;
+    ictrl[ii] = Q13;
+    ii++;
+    dctrl[dd] = Q14;
 	dd++;
+    dctrl[dd] = Q15;
+	dd++;
+    dctrl[dd] = Q16;
+	dd++;
+    dctrl[dd] = Q17;
+	dd++;
+    ictrl[ii] = Q20;
+    ii++;
     dctrl[dd] = Q22;
 	dd++;
     dctrl[dd] = Q23;
@@ -1178,34 +1192,34 @@ void lexer::ctrlsend()
 	dd++;
     ictrl[ii] = Q29;
     ii++;
-    dctrl[dd] = Q31;
-	dd++;
     dctrl[dd] = Q41;
 	dd++;
     ictrl[ii] = Q43;
     ii++;
+    ictrl[ii] = Q61;
+    ii++;
+    dctrl[dd] = Q73;
+    dd++;
     ictrl[ii] = Q101;
     ii++;
+    dctrl[dd] = Q102;
+    dd++;
     ictrl[ii] = Q110;
     ii++;
-    ictrl[ii] = Q111;
+    ictrl[ii] = Q120;
     ii++;
-    dctrl[dd] = Q111_x;
-	dd++;
-    ictrl[ii] = Q112;
+    ictrl[ii] = Q121;
     ii++;
-    dctrl[dd] = Q112_y;
-	dd++;
-    ictrl[ii] = Q113;
+    ictrl[ii] = Q122;
     ii++;
-    dctrl[dd] = Q113_z;
-	dd++;
     ictrl[ii] = Q180;
     ii++;
     ictrl[ii] = Q181;
     ii++;
     dctrl[dd] = Q182;
 	dd++;
+    ictrl[ii] = Q183;
+    ii++;
     
 
     ictrl[ii] = S10;
@@ -2754,6 +2768,18 @@ void lexer::ctrlsend()
 	dd++;
     dctrl[dd] = P352_y[n];
 	dd++;
+    }
+
+    for(n=0;n<Q61;++n)
+    {
+    dctrl[dd] = Q61_x[n];
+	dd++;
+    dctrl[dd] = Q61_y[n];
+	dd++;
+	dctrl[dd] = Q61_z[n];
+	dd++;
+    ictrl[ii] = Q61_i[n];
+	ii++;
     }
     
     for(n=0;n<Q110;++n)
