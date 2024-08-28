@@ -253,7 +253,7 @@ namespace sediment_particle::movement
                     
                     Du=u-PP.U[n];
                     Dv=v-PP.V[n];
-                    Dw=w-PP.W[n];
+                    // Dw=w-PP.W[n];
 
                     DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
                     // if(debugPrint)
@@ -330,8 +330,8 @@ namespace sediment_particle::movement
                     // Pos update
                     PP.X[n] += PP.U[n]*RKtimeStep;
                     PP.Y[n] += PP.V[n]*RKtimeStep;
-                    if(!limited)
-                    PP.Z[n] += PP.W[n]*RKtimeStep;
+                    // if(!limited)
+                    // PP.Z[n] += PP.W[n]*RKtimeStep;
 
                     // Sum update
                     cellSum[IJK]-=PP.PackingFactor[n];
@@ -377,8 +377,12 @@ namespace sediment_particle::movement
             JLOOP
             {
                 KLOOP
+                {
                     a.topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(PP.d50,3)/(p->DXN[IP]*p->DYN[JP]);
+                    a.fb(i,j,k) = bedChange[IJ];
+                }
                 columnSum[IJ] += bedChange[IJ];
+                if(bedChange[IJ]<0)
                 activateNew(p,a,PP);
                 bedChange[IJ] = 0;
             }
@@ -396,12 +400,12 @@ namespace sediment_particle::movement
         int maxTries=1000;
         int tries=0;
 
-        while(counter<bedChange[IJ] && tries<maxTries)
+        while(counter<-bedChange[IJ] && tries<maxTries)
         {   
             x = p->XN[IP] + p->DXN[IP]*double(rand() % 10000)/10000.0;
             y = p->YN[JP] + p->DYN[JP]*double(rand() % 10000)/10000.0;
             k = 0;
-            z = p->ZN[KP]-a.topo(i,j,k) - 1.2*p->DZN[KP]*double(rand() % 10000)/10000.0;
+            z = p->ZN[KP]-a.topo(i,j,k) - 5.0*PP.d50*double(rand() % 10000)/10000.0;
             k = p->posc_k(z);
 
             ipolTopo = p->ccipol4_b(a.topo,x,y,z);

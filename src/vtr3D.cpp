@@ -588,8 +588,8 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	offset[n]=offset[n-1]+4*(p->cellnum)+4;
 	++n;
-    // offset[n]=offset[n-1]+4*(p->cellnum)+4;
-	// ++n;
+    offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
     // offset[n]=offset[n-1]+4*(p->cellnum)+4;
 	// ++n;
 	// offset[n]=offset[n-1]+4*(p->cellnum)+4;
@@ -734,9 +734,9 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	result<<"<CellData>"<<endl;
 	// result<<"<DataArray type=\"Float32\" Name=\"tauBool\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     // ++n;
-    // result<<"<DataArray type=\"Float32\" Name=\"tauVal\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    // ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"topo\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"topoSum\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"bedChange\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	// result<<"<DataArray type=\"Float32\" Name=\"stress\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     // ++n;
@@ -981,13 +981,13 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	ffn=float(a->test(i,j,k));
 	result.write((char*)&ffn, sizeof (float));
 	}
-    // iin=4*(p->cellnum);
-	// result.write((char*)&iin, sizeof (int));
-	// BASEREVLOOP
-	// {
-	// ffn=float(a->fb(i,j,k));
-	// result.write((char*)&ffn, sizeof (float));
-	// }
+    iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->fb(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
     // iin=4*(p->cellnum);
 	// result.write((char*)&iin, sizeof (int));
 	// BASEREVLOOP
