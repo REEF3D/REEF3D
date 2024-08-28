@@ -638,6 +638,7 @@ namespace sediment_particle::movement
     {
         double shear_eff;
         double shear_crit;
+        int counter=0;
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
             {
@@ -647,6 +648,7 @@ namespace sediment_particle::movement
                 if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+5.0*PP.d50>0)
                 {
                     PP.Flag[n]=1;
+                    ++counter;
 
                     PP.shear_eff[n]=shear_eff;
                     PP.shear_crit[n]=shear_crit;
@@ -656,6 +658,7 @@ namespace sediment_particle::movement
                     bedChange[IJ] -= PP.PackingFactor[n];
                 }
             }
+        cout<<"On rank "<<p->mpirank<<" were "<<counter<<" particles eroded."<<endl;
     }
 
     void particleStressBased_T2021::deposit(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
