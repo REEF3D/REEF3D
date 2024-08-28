@@ -224,6 +224,14 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = A560;
 	ii++;
+    ictrl[ii] = A570;
+	ii++;
+    dctrl[dd] = A571_u;
+    dd++;
+    dctrl[dd] = A571_dir;
+    dd++;
+    ictrl[ii] = A573;
+	ii++;
     ictrl[ii] = A580;
 	ii++;
     dctrl[dd] = A580_xs;

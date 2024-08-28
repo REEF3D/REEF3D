@@ -220,6 +220,14 @@ void lexer::ctrlrecv()
 	ii++;
     A560 = ictrl[ii];
 	ii++;
+    A570 = ictrl[ii];
+	ii++;
+    A571_u = dctrl[dd];
+	dd++;
+    A571_dir = dctrl[dd];
+	dd++;
+    A573 = ictrl[ii];
+	ii++;
     A580 = ictrl[ii];
 	ii++;
     A580_xs = dctrl[dd];

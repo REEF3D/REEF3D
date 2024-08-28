@@ -33,7 +33,7 @@ using namespace std;
 #ifndef WIND_F_H_
 #define WIND_F_H_
 
-class wind_f : public wind
+class wind_f : public wind, public increment
 {
 public:
     wind_f(lexer*);
@@ -45,7 +45,10 @@ public:
     virtual void wind_forcing_ini(lexer*, ghostcell*);
     
 private:
+    void wind_forcing_drag_coeff(lexer*);
     
+    double Cd;
+    double cosa,sina;
 
 };
 

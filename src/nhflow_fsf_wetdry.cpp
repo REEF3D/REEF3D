@@ -27,6 +27,15 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
 {
+        if(p->count==0)
+        SLICELOOP4
+        if(WL(i,j)<=p->A544+eps)
+        {
+        temp[IJ]=0;
+        d->eta(i,j) =  p->A544 - d->depth(i,j);
+        WL(i,j) = p->A544;
+        }
+    
     SLICELOOP4
     {
     p->wet_n[IJ] = p->wet[IJ];
@@ -52,7 +61,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
             
             if(p->wet[IJm1]==1 && d->eta(i,j)<d->eta(i,j-1) && WL(i,j-1)>p->A544+eps && p->j_dir==1)
             temp[IJ]=1;
-            
+            /*
             if(p->wet[Im1Jm1]==1 && d->eta(i,j)<d->eta(i-1,j-1) && WL(i-1,j-1)>p->A544+eps && p->j_dir==1)
             temp[IJ]=1;
             
@@ -63,15 +72,15 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
             temp[IJ]=1;
             
             if(p->wet[Ip1Jp1]==1 && d->eta(i,j)<d->eta(i+1,j+1) && WL(i+1,j+1)>p->A544+eps && p->j_dir==1)
-            temp[IJ]=1;
+            temp[IJ]=1;*/
         }
         
         else              
-        if(WL(i,j)<=p->A544)
+        if(WL(i,j)<=p->A544+eps)
         {
         temp[IJ]=0;
-        d->eta(i,j) =  - d->depth(i,j);
-        WL(i,j) = d->eta(i,j) + d->depth(i,j);
+        d->eta(i,j) =  p->A544 - d->depth(i,j);
+        WL(i,j) = p->A544;
         }
     }
     

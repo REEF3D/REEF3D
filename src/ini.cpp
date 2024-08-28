@@ -128,6 +128,11 @@ void lexer::ini_default()
     
     A560=0;      // int turbulence model
     
+    A570=0;      // int wind modle
+    A571_u=0.0;  // double wind velocity
+    A571_dir=0.0;  // double wind direction
+    A573=1;      // int wind forcing region
+    
     A580=0;      // int block eta
     A581=0;      // int solid box
     A584=0;      // int solid vertical cylinder

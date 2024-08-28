@@ -1664,6 +1664,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="Wind">
+        <File Name="wind_f_drag_coeff.cpp"/>
         <File Name="wind_v.cpp"/>
         <File Name="wind_f.cpp"/>
       </VirtualDirectory>

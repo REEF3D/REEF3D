@@ -287,7 +287,8 @@ public:
     double A541,A542,A544,A545;
     int A550,A551,A552,A553;
     int A560;
-    int A570;
+    int A570,A573;
+    double A571_u,A571_dir;
     int A580;
     double A580_xs,A580_xe,A580_ys,A580_ye;
     int A581;
