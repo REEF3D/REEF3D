@@ -585,7 +585,7 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
-	
+
 	// end scalars
 	//---------------------------------------------
 
@@ -721,9 +721,9 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result<<"<Coordinates>"<<endl;
 	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
-	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"Y\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
-	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"Z\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
 	result<<"</Coordinates>"<<endl<<"</Piece>"<<endl<<"</RectilinearGrid>"<<endl;
 
