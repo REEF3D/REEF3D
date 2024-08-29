@@ -28,6 +28,7 @@ Author: Tobias Martin, Fabian Knoblauch
 #include"field2.h"
 #include"field3.h"
 #include"field4.h"
+#include"interpolation.h"
 
 class picard;
 class heat;
@@ -44,6 +45,7 @@ public:
 	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_PLIC();
 	virtual void start_old(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
+    virtual void start_work(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
     
     virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
@@ -86,20 +88,51 @@ private:
     void advectPlane_altFlux(fdm*, lexer*,double,double,int);
     double calculateVolume(double,double,double,double,double,double,double);
     void updateVOF_alt(fdm*, lexer*,int);
-    void advectFullBorder_fromW(fdm*, lexer*,int);
+    void advectPlane_sweepless(fdm*, lexer*);
+    void updateVOF_sweepless(fdm*, lexer*);
+    void advectWater_sweepless(fdm*, lexer*);
+    void advectPlane_Weymouth(fdm*, lexer*, int);
+    void advectWater_Weymouth(fdm*, lexer*, int);
+    void advectPlane_MACHO2D(fdm*, lexer*, int);
+    void advectWater_MACHO2D(fdm*, lexer*, int);
+    void updateVOF_MACHO2D(fdm*, lexer*, int, int);
+    void updateVOF_Weymouth(fdm*, lexer*, int);
+    void advectWater_WeymouthNoS(fdm*, lexer*);
+    void advectPlane_Wang(fdm*, lexer*, int);
+    void advectPhi_Bonn(fdm*,lexer*,int,int);
+    void simpleNormal_Bonn(fdm*, lexer*);
     
     field4 vof_old;
-    field4 V_w_old;
-    field4 V_a_old;
+    field4 V_w_p;
+    field4 V_w_m;
     field4 V_w_update;
     field4 V_a_update;
     field4 phival;
     field4 Watersafe;
-    
-    
-	
+    field4 V_w_p_star;
+    field4 V_w_m_star;
+    field4 vof_prevstep;
+    field4 V_w_old;
+    field4 V_a_old;
+    field4 FX_p;
+    field4 FX_m;
+    field4 FZ_p;
+    field4 FZ_m;
+    field4 alphastore;
+    field4 nxstore;
+    field4 nystore;
+    field4 nzstore;
+    field4 phistep;
+    field4 phiS0;
+    field4 phiS1;
+    field4 phiS2;
+    field4 vofstep;
+    field4 vofS0;
+    field4 vofS1;
+    field4 vofS2;
     fluid_update *pupdate;
     reini *reini_;
+    interpolation *ipol;
 
 	int gcval_frac;
 	double starttime; 
@@ -121,5 +154,8 @@ private:
     field4 vof1;
     field4 vof2;
     field4 vof3;
+    
+    int S_S[6][3];
+    
 };
 #endif

@@ -36,6 +36,7 @@ Author: Tobias Martin, Fabian Knoblauch
 #include"hires.h"
 #include"weno_hj.h"
 #include"hric.h"
+#include"interpolation.h"
 
 VOF_PLIC::VOF_PLIC
 (
@@ -43,7 +44,7 @@ VOF_PLIC::VOF_PLIC
     fdm *a,
     ghostcell* pgc,
     heat *pheat
-):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p),vof_old(p),V_w_old(p),V_a_old(p),V_w_update(p),V_a_update(p),phival(p),Watersafe(p)
+):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p),vof_old(p),V_w_update(p),V_a_update(p),phival(p),Watersafe(p),V_w_p_star(p),V_w_m_star(p),vof_prevstep(p),V_w_old(p),V_a_old(p),V_w_p(p),V_w_m(p),FX_p(p),FX_m(p),FZ_p(p),FZ_m(p),alphastore(p),nxstore(p),nystore(p),nzstore(p),phistep(p),phiS0(p),phiS1(p),phiS2(p),vofstep(p),vofS0(p),vofS1(p),vofS2(p)
 {
     if(p->F50==1)
     gcval_frac=71;
@@ -60,14 +61,37 @@ VOF_PLIC::VOF_PLIC
     pupdate = new fluid_update_vof(p,a,pgc);
 
     reini_ = new reini_RK3(p,1);
+    
+    ipol = new interpolation(p);
 
     sSweep = -1;
     
+    
     LOOP
-        Watersafe(i,j,k)=0.0;
-       
-
+    {
+        vof_old(i,j,k)=a->vof(i,j,k);
+        vof_prevstep(i,j,k)=a->vof(i,j,k);
+    }
     ininorVecLS(p);
+    
+    S_S[0][0]=0;
+    S_S[0][1]=1;
+    S_S[0][2]=2;
+    S_S[1][0]=2;
+    S_S[1][1]=1;
+    S_S[1][2]=0;
+    S_S[2][0]=1;
+    S_S[2][1]=0;
+    S_S[2][2]=2;
+    S_S[3][0]=0;
+    S_S[3][1]=2;
+    S_S[3][2]=1;
+    S_S[4][0]=2;
+    S_S[4][1]=0;
+    S_S[4][2]=1;
+    S_S[5][0]=1;
+    S_S[5][1]=2;
+    S_S[5][1]=0;
 }
 
 VOF_PLIC::~VOF_PLIC()
@@ -89,6 +113,7 @@ void VOF_PLIC::start_old
 )
 {
     pflow->fsfinflow(p,a,pgc);
+    
 
     starttime=pgc->timer();
 
@@ -223,129 +248,239 @@ void VOF_PLIC::start
     field &F
 )
 {
+    
+    pflow->fsfinflow(p,a,pgc);
+    
+    reini_->start(a,p,a->phi,pgc,pflow);
+    reini_->start(a,p,a->phi,pgc,pflow);
+    reini_->start(a,p,a->phi,pgc,pflow);
+
+    starttime=pgc->timer();
+    
+    if(sSweep<6)
+        sSweep++;
+    else
+        sSweep=0;
+    
+    int sweep;
+    for(int nSweep=0 ; nSweep<3; nSweep++)
+    {
+        LOOP
+        {
+            V_w_m(i,j,k)=0.0;
+            V_w_p(i,j,k)=0.0;
+        }
+        
+        sweep=S_S[sSweep][nSweep];
+        if(nSweep==0)
+        {
+            LOOP
+            {
+                phistep(i,j,k)=a->phi(i,j,k);
+                vofstep(i,j,k)=a->vof(i,j,k);
+            }
+        }
+        else if(nSweep==1)
+        {
+            LOOP
+                phistep(i,j,k)=phiS0(i,j,k);
+                vofstep(i,j,k)=vofS0(i,j,k);
+        }
+        else
+        {
+            LOOP
+                phistep(i,j,k)=phiS1(i,j,k);
+                vofstep(i,j,k)=vofS1(i,j,k);
+        }
+        
+        LOOP
+        {
+            advectPhi_Bonn(a,p,nSweep,sweep);
+            if(condition)
+            {
+                reconstruct plane(a,p)
+                advect Plane(a,p,sweep=
+            }
+            else if(a->vof>0.001)
+                advect water?
+        }
+        
+        updateVof
+        
+    }
+    
+  
+  
+    LOOP
+    {
+        phival(i,j,k)=10.0;
+    }
+   
+    pgc->start4(p,phival,gcval_frac);
+
+    double alphatemp;
+    LOOP
+    {
+        if((a->vof(i,j,k)>=0.001) && a->vof(i,j,k)<=0.999)
+        {
+            alphatemp=alpha(i,j,k);
+            if(fabs(alphatemp)<fabs(phival(i,j,k)))
+                phival(i,j,k)=alphatemp;
+            
+            //i+
+            alphatemp=nx(i,j,k)*p->DXP[IP]-alpha(i,j,k);
+            if(fabs(alphatemp)<phival(i+1,j,k))
+                phival(i+1,j,k)=alphatemp;
+                
+            //i-
+            alphatemp=nx(i,j,k)*(-p->DXP[IM1])-alpha(i,j,k);
+            if(fabs(alphatemp)<fabs(phival(i-1,j,k)))
+                phival(i-1,j,k)=alphatemp;
+                
+            //j+
+            alphatemp=ny(i,j,k)*p->DYP[JP]-alpha(i,j,k);
+            if(fabs(alphatemp)<fabs(phival(i,j+1,k)))
+                phival(i,j+1,k)=alphatemp;
+            
+            //j-
+            alphatemp=ny(i,j,k)*(-p->DYP[JM1])-alpha(i,j,k);
+            if(fabs(alphatemp)<fabs(phival(i,j-1,k)))
+                phival(i,j-1,k)=alphatemp;
+                
+            //k+
+            alphatemp=nz(i,j,k)*p->DZP[KP]-alpha(i,j,k);
+            if(fabs(alphatemp)<fabs(phival(i,j,k+1)))
+                phival(i,j,k+1)=alphatemp;
+            
+            //k-
+            alphatemp=nz(i,j,k)*(-p->DZP[KM1])-alpha(i,j,k);
+            if(fabs(alphatemp)<fabs(phival(i,j,k-1)))
+                phival(i,j,k-1)=alphatemp;
+        }
+    }
+    pgc->start4(p,phival,gcval_frac);
+    
+    LOOP
+    {
+        if(fabs(phival(i,j,k))<10.0)
+            a->phi(i,j,k)=phival(i,j,k);
+    }
+    
+    pgc->start4(p,a->phi,50);
+    
+    reini_->start(a,p,a->phi,pgc,pflow);
+    reini_->start(a,p,a->phi,pgc,pflow);
+    reini_->start(a,p,a->phi,pgc,pflow);
+   // redistance(a, p, pdisc, pgc, pflow, 20);
+    pgc->start4(p,a->phi,50);
+    
+    LOOP
+    {
+        if(a->phi(i,j,k)<sqrt(0.5*p->DXN[IP]*0.5*p->DXN[IP]+0.5*p->DYN[JP]*0.5*p->DYN[JP]+0.5*p->DZN[KP]*0.5*p->DZN[KP]))
+        {
+            double nxtemp,nytemp,nztemp,nsum,recheck;
+            nxtemp=(a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
+            nytemp=(a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
+            nztemp=(a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+            nsum=sqrt(nxtemp*nxtemp+nytemp*nytemp+nztemp*nztemp);
+            nxtemp=nxtemp/nsum;
+            nytemp=nytemp/nsum;
+            nztemp=nztemp/nsum;
+            recheck=0.5*(nxtemp*p->DXN[IP]+nytemp*p->DYN[JP]+nztemp*p->DZN[KP])-fabs(a->phi(i,j,k));
+            if(recheck>0.0)
+                a->vof(i,j,k)=calculateVolume(nxtemp,nytemp,nztemp,p->DXN[IP],p->DYN[JP],p->DZN[KP],a->phi(i,j,k));
+            else if(a->phi(i,j,k)>0.0)
+                a->vof(i,j,k)=1.0;
+            else
+                a->vof(i,j,k)=0.0;
+        }
+        else if(a->phi(i,j,k)>0.0)
+            a->vof(i,j,k)=1.0;
+        else
+            a->vof(i,j,k)=0.0;
+    }
+    
+    pgc->start4(p,a->vof,50);
+     
+    p->lsmtime=pgc->timer()-starttime;
+
+    if(p->mpirank==0)
+    cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
+    pgc->start4(p,a->phi,50);
+    
+    
+  /*  
+    for (int tt = 0; tt < 2; tt++)
+    {
+    LOOP
+    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
+    
+    pgc->start4(p,a->phi,50);
+    } */
+    pupdate->start(p,a,pgc);
+   
+}
+
+void VOF_PLIC::start_work
+(
+    fdm* a,
+    lexer* p,
+    convection* pconvec,
+    solver* psolv,
+    ghostcell* pgc,
+    ioflow* pflow,
+    reini* preini,
+    particle_corr* ppls,
+    field &F
+)
+{
     pflow->fsfinflow(p,a,pgc);
 
     starttime=pgc->timer();
     
-    int sweep = 0;
-    if (sSweep < 2)
-    {
+    if(sSweep<6)
         sSweep++;
-        sweep = sSweep;
-    }
     else
-    {
-        sSweep = 0;
-    }
-    
-    double Q1,Q2;
-    
-    for (int nSweep = 0; nSweep < 3; nSweep++)
-    {
-       
-        LOOP
-        {
-           vof_old(i,j,k)=a->vof(i,j,k);
-           V_w_old(i,j,k)=vof_old(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-           V_a_old(i,j,k)=(p->DXN[IP]*p->DYN[JP]*p->DZN[KP])-V_w_old(i,j,k);
-           V_w_update(i,j,k)=0.0;
-           V_a_update(i,j,k)=0.0;
-        }
-        
-        LOOP
-        {   
-            calcFlux(a, p, Q1, Q2, sweep);
-            
-            if((vof_old(i,j,k)<=0.999) && (vof_old(i,j,k)>=0.001))
-            {
-                reconstructPlane_alt(a, p);
-                advectPlane_alt(a, p, sweep);
-            }
-            /*
-            else if(vof_old(i,j,k)>0.999)
-            {
-                if(vof_old(i+1,j,k)<0.001 || vof_old(i-1,j,k)<0.001 || vof_old(i,j+1,k)<0.001 || vof_old(i,j-1,k)<0.001 || vof_old(i,j,k+1)<0.001 || vof_old(i,j,k-1)<0.001)
-                    advectFullBorder_fromW(a,p,sweep);
-                  
-                if(Q2>0.0)
-                {
-                    V_w_update(i,j,k)-=Q1*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    
-                    if(sweep==0)
-                        V_w_update(i+1,j,k)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    else if(sweep==1)
-                        V_w_update(i,j+1,k)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    else
-                        V_w_update(i,j,k+1)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                }
-                
-                if(Q1<0.0)
-                {
-                    V_w_update(i,j,k)-=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    
-                    if(sweep==0)
-                        V_w_update(i-1,j,k)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    else if(sweep==1)
-                        V_w_update(i,j-1,k)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    else
-                        V_w_update(i,j,k-1)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                }
-            }
-            
-            
-            else if(vof_old(i,j,k)<0.001)
-            {
-                if(Q2>0.0)
-                {
-                    V_a_update(i,j,k)-=Q1*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    
-                    if(sweep==0)
-                        V_a_update(i+1,j,k)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    else if(sweep==1)
-                        V_a_update(i,j+1,k)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    else
-                        V_a_update(i,j,k+1)+=Q2*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                }
-                
-                if(Q1<0.0)
-                {
-                    V_a_update(i,j,k)-=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    
-                    if(sweep==0)
-                        V_a_update(i-1,j,k)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    else if(sweep==1)
-                        V_a_update(i,j-1,k)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    else
-                        V_a_update(i,j,k-1)+=fabs(Q1)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                }
-            }
-            
-            else
-                cout<<"strange cell detected"<<endl; 
-                */
-        }   
-        
-        //- Distribute volume fractions
-        pgc->start4(p,V_w_update,gcval_frac);
-        pgc->start4(p,Watersafe,gcval_frac);
-        pgc->start4(p,V_a_update,gcval_frac);
-        pgc->start4(p,V_w_old,gcval_frac);
-        pgc->start4(p,V_a_old,gcval_frac);
+        sSweep=0;
 
-        //- Calculate updated vof from volume fractions and distribute
-        updateVOF_alt(a, p, sweep);
-        pgc->start4(p,a->vof,gcval_frac);
-    
-        //- Change sweep
-        if (sweep < 2)
-        {
-            sweep++;
-        }
-        else
-        {
-            sweep = 0;
-        }
+    LOOP
+    {
+        vof_old(i,j,k)=a->vof(i,j,k);
+        V_w_old(i,j,k)=vof_old(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+        V_a_old(i,j,k)=(p->DXN[IP]*p->DYN[JP]*p->DZN[KP])-V_w_old(i,j,k);
+        V_w_update(i,j,k)=0.0;
+        V_a_update(i,j,k)=0.0;
+        Watersafe(i,j,k)=0.0;
     }
+        
+    LOOP
+    {   
+            
+        if((vof_old(i,j,k)<=0.999) && (vof_old(i,j,k)>=0.001))
+        {
+            reconstructPlane_alt(a, p);
+            advectPlane_sweepless(a, p);
+        }
+        else if(vof_old(i,j,k)>0.999)
+        {
+            
+            advectWater_WeymouthNoS(a,p);
+            
+        }
+        
+    }
+        
+    //- Distribute volume fractions
+    pgc->start4(p,V_w_update,gcval_frac);
+    pgc->start4(p,Watersafe,gcval_frac);
+    pgc->start4(p,V_a_update,gcval_frac);
+    pgc->start4(p,V_w_old,gcval_frac);
+    pgc->start4(p,V_a_old,gcval_frac);
+
+    //- Calculate updated vof from volume fractions and distribute
+    updateVOF_sweepless(a, p);
+    pgc->start4(p,a->vof,gcval_frac);
+    
 
     //- Redistance distance function from updated plane equations
    // redistance(a, p, pdisc, pgc, pflow, 20);
@@ -356,19 +491,16 @@ void VOF_PLIC::start
 	//pgc->start4(p,a->vof,gcval_frac);
     pgc->start4(p,a->vof,50);
    
- 
     double phiinterstore, phiinterstore1, phiinterstore2;
     LOOP
     {
         if(a->vof(i,j,k) >0.5)
         {
             phival(i,j,k)=1.0;
-           // p->flag4[IJK]=WATER_FLAG;
         }
         else
         {
             phival(i,j,k)=-1.0;
-           // p->flag4[IJK]=AIR_FLAG;
         }
     }
     LOOP
@@ -417,64 +549,7 @@ void VOF_PLIC::start
                 if( fabs(phiinterstore < phival(i,j,k-1)))
                     phival(i,j,k-1)=phiinterstore;
             }
-        }/*
-        else if((a->vof(i,j,k>0.999)) && (a->vof(i+1,j,k)<0.001 || a->vof(i-1,j,k)<0.001 || a->vof(i,j+1,k)<0.001 || a->vof(i,j-1,k)<0.001 || a->vof(i,j,k+1)<0.001 || a->vof(i,j,k-1)<0.001))
-        {
-            if(a->vof(i+1,j,k)<0.001)
-            {
-                phiinterstore1=copysign(0.5*p->DXP[IP],phival(i,j,k));
-                phiinterstore2=copysign(0.5*p->DXP[IP],phival(i+1,j,k));
-                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
-                    phival(i,j,k)=phiinterstore1;
-                if(fabs(phiinterstore2) < fabs(phival(i+1,j,k)))
-                    phival(i+1,j,k)=phiinterstore2;
-            }
-            if(a->vof(i-1,j,k)<0.001)
-            {
-                phiinterstore1=copysign(0.5*p->DXP[IM1],phival(i,j,k));
-                phiinterstore2=copysign(0.5*p->DXP[IM1],phival(i-1,j,k));
-                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
-                    phival(i,j,k)=phiinterstore1;
-                if(fabs(phiinterstore2) < fabs(phival(i-1,j,k)))
-                    phival(i-1,j,k)=phiinterstore2;
-            }
-            if(a->vof(i,j+1,k)<0.001)
-            {
-                phiinterstore1=copysign(0.5*p->DYP[JP],phival(i,j,k));
-                phiinterstore2=copysign(0.5*p->DYP[JP],phival(i,j+1,k));
-                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
-                    phival(i,j,k)=phiinterstore1;
-                if(fabs(phiinterstore2) < fabs(phival(i,j+1,k)))
-                    phival(i,j+1,k)=phiinterstore2;
-            }
-            if(a->vof(i,j-1,k)<0.001)
-            {
-                phiinterstore1=copysign(0.5*p->DYP[JM1],phival(i,j,k));
-                phiinterstore2=copysign(0.5*p->DYP[JM1],phival(i,j-1,k));
-                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
-                    phival(i,j,k)=phiinterstore1;
-                if(fabs(phiinterstore2) < fabs(phival(i,j-1,k)))
-                    phival(i,j-1,k)=phiinterstore2;
-            }
-            if(a->vof(i,j,k+1)<0.001)
-            {
-                phiinterstore1=copysign(0.5*p->DZP[KP],phival(i,j,k));
-                phiinterstore2=copysign(0.5*p->DZP[KP],phival(i,j,k+1));
-                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
-                    phival(i,j,k)=phiinterstore1;
-                if(fabs(phiinterstore2) < fabs(phival(i,j,k+1)))
-                    phival(i,j,k+1)=phiinterstore2;
-            }
-            if(a->vof(i,j,k-1)<0.001)
-            {
-                phiinterstore1=copysign(0.5*p->DZP[KM1],phival(i,j,k));
-                phiinterstore2=copysign(0.5*p->DZP[KM1],phival(i,j,k-1));
-                if( fabs(phiinterstore1) < fabs(phival(i,j,k)))
-                    phival(i,j,k)=phiinterstore1;
-                if(fabs(phiinterstore2) < fabs(phival(i,j,k-1)))
-                    phival(i,j,k-1)=phiinterstore2;
-            }
-        }*/
+        }
     }
     
     LOOP
@@ -489,8 +564,6 @@ void VOF_PLIC::start
     pgc->start4(p,a->phi,gcval_frac);
      
     
-    
-  
     p->lsmtime=pgc->timer()-starttime;
 
     if(p->mpirank==0)
@@ -505,7 +578,5 @@ void VOF_PLIC::start
     pgc->start4(p,a->phi,50);
     } */
     pupdate->start(p,a,pgc);
-   
-
-
 }
+

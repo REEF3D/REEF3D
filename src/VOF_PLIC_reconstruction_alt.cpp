@@ -40,7 +40,7 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p)
     double n_1, n_2, n_3, V0, V,r0, r, n_a, n_b, n_c;
     
     //get the normal vector
-    calculateNormal_alt(a,p);
+    simpleNormal_Bonn(a,p);
     
     //normalise normal vector (to be sure)
     double vecsum = sqrt(nx(i,j,k)*nx(i,j,k)+ny(i,j,k)*ny(i,j,k)+nz(i,j,k)*nz(i,j,k));
@@ -48,7 +48,7 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p)
     ny(i,j,k)=ny(i,j,k)/vecsum;
     nz(i,j,k)=nz(i,j,k)/vecsum;
     
-    cout<<"nx:"<<nx(i,j,k)<<" ny:"<<ny(i,j,k)<<" nz:"<<nz(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
+  //  cout<<"nx:"<<nx(i,j,k)<<" ny:"<<ny(i,j,k)<<" nz:"<<nz(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
     
     //scale with cellsize
     n_a=fabs(nx(i,j,k))*p->DXN[IP];
@@ -142,7 +142,7 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p)
     }
     
     alpha(i,j,k)=r0*sqrt(nx(i,j,k)*nx(i,j,k)*p->DXN[IP]*p->DXN[IP]+ny(i,j,k)*ny(i,j,k)*p->DYN[JP]*p->DYN[JP]+nz(i,j,k)*nz(i,j,k)*p->DZN[KP]*p->DZN[KP]);
-    cout<<"alpha: "<<alpha(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
+    //cout<<"alpha: "<<alpha(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
     
 }
     
