@@ -62,6 +62,8 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     // count gcdf entries
     count=0;
     
+    
+    // flag 
     LOOP
     if(p->flagsf4[IJK]>0)
     {
@@ -180,5 +182,312 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     k=p->gcdf4[n][2];
 	p->gcdf4[n][5]=cval(i,j,k);
 	}
+    
+    
+    // -----------------------
+    // flagsf1
+    
+    LOOP
+    if(p->flagsf1[IJK]>0)
+    {
+     
+        if(p->flagsf1[Im1JK]<0)
+        ++count;
+        
+        if(p->flagsf1[Ip1JK]<0)
+        ++count;
+        
+        if(p->flagsf1[IJm1K]<0)
+        ++count;
+        
+        if(p->flagsf1[IJp1K]<0)
+        ++count;
+
+        if(p->flagsf1[IJKm1]<0)
+        ++count;
+        
+        if(p->flagsf1[IJKp1]<0)
+        ++count;        
+    }
+    
+    if(p->gcdf1_count!=count)
+    {
+    p->Iresize(p->gcdf1,p->gcdf1_count,count,6,6);
+    
+    p->gcdf1_count=count;
+    }
+    
+    //cout<<p->mpirank<<" p->gcdf1_count: "<<p->gcdf1_count<<endl;
+    
+    // assign gcdf entries
+    count=0;
+    
+    LOOP
+    if(p->flagsf1[IJK]>0)
+    {
+        if(p->flagsf1[Im1JK]<0)
+        {
+        p->gcdf1[count][0]=i;
+        p->gcdf1[count][1]=j;
+        p->gcdf1[count][2]=k;
+        p->gcdf1[count][3]=1;
+        p->gcdf1[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf1[Ip1JK]<0)
+        {
+        p->gcdf1[count][0]=i;
+        p->gcdf1[count][1]=j;
+        p->gcdf1[count][2]=k;
+        p->gcdf1[count][3]=4;
+        p->gcdf1[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf1[IJm1K]<0)
+        {
+        p->gcdf1[count][0]=i;
+        p->gcdf1[count][1]=j;
+        p->gcdf1[count][2]=k;
+        p->gcdf1[count][3]=3;
+        p->gcdf1[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf1[IJp1K]<0)
+        {
+        p->gcdf1[count][0]=i;
+        p->gcdf1[count][1]=j;
+        p->gcdf1[count][2]=k;
+        p->gcdf1[count][3]=2;
+        p->gcdf1[count][4]=48;
+        ++count;
+        }
+
+        if(p->flagsf1[IJKm1]<0)
+        {
+        p->gcdf1[count][0]=i;
+        p->gcdf1[count][1]=j;
+        p->gcdf1[count][2]=k;
+        p->gcdf1[count][3]=5;
+        p->gcdf1[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf1[IJKp1]<0)
+        {
+        p->gcdf1[count][0]=i;
+        p->gcdf1[count][1]=j;
+        p->gcdf1[count][2]=k;
+        p->gcdf1[count][3]=6;
+        p->gcdf1[count][4]=48;
+        ++count;
+        }       
+    }
+    
+    // -----------------------
+    // flagsf2
+     LOOP
+    if(p->flagsf2[IJK]>0)
+    {
+     
+        if(p->flagsf2[Im1JK]<0)
+        ++count;
+        
+        if(p->flagsf2[Ip1JK]<0)
+        ++count;
+        
+        if(p->flagsf2[IJm1K]<0)
+        ++count;
+        
+        if(p->flagsf2[IJp1K]<0)
+        ++count;
+
+        if(p->flagsf2[IJKm1]<0)
+        ++count;
+        
+        if(p->flagsf2[IJKp1]<0)
+        ++count;        
+    }
+    
+    if(p->gcdf2_count!=count)
+    {
+    p->Iresize(p->gcdf2,p->gcdf2_count,count,6,6);
+    
+    p->gcdf2_count=count;
+    }
+    
+    //cout<<p->mpirank<<" p->gcdf2_count: "<<p->gcdf2_count<<endl;
+    
+    // assign gcdf entries
+    count=0;
+    
+    LOOP
+    if(p->flagsf2[IJK]>0)
+    {
+        if(p->flagsf2[Im1JK]<0)
+        {
+        p->gcdf2[count][0]=i;
+        p->gcdf2[count][1]=j;
+        p->gcdf2[count][2]=k;
+        p->gcdf2[count][3]=1;
+        p->gcdf2[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf2[Ip1JK]<0)
+        {
+        p->gcdf2[count][0]=i;
+        p->gcdf2[count][1]=j;
+        p->gcdf2[count][2]=k;
+        p->gcdf2[count][3]=4;
+        p->gcdf2[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf2[IJm1K]<0)
+        {
+        p->gcdf2[count][0]=i;
+        p->gcdf2[count][1]=j;
+        p->gcdf2[count][2]=k;
+        p->gcdf2[count][3]=3;
+        p->gcdf2[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf2[IJp1K]<0)
+        {
+        p->gcdf2[count][0]=i;
+        p->gcdf2[count][1]=j;
+        p->gcdf2[count][2]=k;
+        p->gcdf2[count][3]=2;
+        p->gcdf2[count][4]=48;
+        ++count;
+        }
+
+        if(p->flagsf2[IJKm1]<0)
+        {
+        p->gcdf2[count][0]=i;
+        p->gcdf2[count][1]=j;
+        p->gcdf2[count][2]=k;
+        p->gcdf2[count][3]=5;
+        p->gcdf2[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf2[IJKp1]<0)
+        {
+        p->gcdf2[count][0]=i;
+        p->gcdf2[count][1]=j;
+        p->gcdf2[count][2]=k;
+        p->gcdf2[count][3]=6;
+        p->gcdf2[count][4]=48;
+        ++count;
+        }       
+    }
+    
+    // -----------------------
+    // flagsf3
+    
+    LOOP
+    if(p->flagsf3[IJK]>0)
+    {
+     
+        if(p->flagsf3[Im1JK]<0)
+        ++count;
+        
+        if(p->flagsf3[Ip1JK]<0)
+        ++count;
+        
+        if(p->flagsf3[IJm1K]<0)
+        ++count;
+        
+        if(p->flagsf3[IJp1K]<0)
+        ++count;
+
+        if(p->flagsf3[IJKm1]<0)
+        ++count;
+        
+        if(p->flagsf3[IJKp1]<0)
+        ++count;        
+    }
+    
+    if(p->gcdf3_count!=count)
+    {
+    p->Iresize(p->gcdf3,p->gcdf3_count,count,6,6);
+    
+    p->gcdf3_count=count;
+    }
+    
+    //cout<<p->mpirank<<" p->gcdf3_count: "<<p->gcdf3_count<<endl;
+    
+    // assign gcdf entries
+    count=0;
+    
+    LOOP
+    if(p->flagsf3[IJK]>0)
+    {
+        if(p->flagsf3[Im1JK]<0)
+        {
+        p->gcdf3[count][0]=i;
+        p->gcdf3[count][1]=j;
+        p->gcdf3[count][2]=k;
+        p->gcdf3[count][3]=1;
+        p->gcdf3[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf3[Ip1JK]<0)
+        {
+        p->gcdf3[count][0]=i;
+        p->gcdf3[count][1]=j;
+        p->gcdf3[count][2]=k;
+        p->gcdf3[count][3]=4;
+        p->gcdf3[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf3[IJm1K]<0)
+        {
+        p->gcdf3[count][0]=i;
+        p->gcdf3[count][1]=j;
+        p->gcdf3[count][2]=k;
+        p->gcdf3[count][3]=3;
+        p->gcdf3[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf3[IJp1K]<0)
+        {
+        p->gcdf3[count][0]=i;
+        p->gcdf3[count][1]=j;
+        p->gcdf3[count][2]=k;
+        p->gcdf3[count][3]=2;
+        p->gcdf3[count][4]=48;
+        ++count;
+        }
+
+        if(p->flagsf3[IJKm1]<0)
+        {
+        p->gcdf3[count][0]=i;
+        p->gcdf3[count][1]=j;
+        p->gcdf3[count][2]=k;
+        p->gcdf3[count][3]=5;
+        p->gcdf3[count][4]=48;
+        ++count;
+        }
+        
+        if(p->flagsf3[IJKp1]<0)
+        {
+        p->gcdf3[count][0]=i;
+        p->gcdf3[count][1]=j;
+        p->gcdf3[count][2]=k;
+        p->gcdf3[count][3]=6;
+        p->gcdf3[count][4]=48;
+        ++count;
+        }       
+    }
+
 
 }

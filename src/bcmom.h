@@ -48,6 +48,6 @@ private:
 	double uplus,ks_plus,dist,ks,ustar;
 	int ii,jj,kk;
 	double value;
-	int gcval_phi, bckin, wallfunc_type;
+	int gcval_phi, bckin;
 };
 #endif

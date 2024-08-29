@@ -263,6 +263,30 @@ Author: Hans Bihs
 #define QQGC4LOOP QQGCB4 QQGCB4CHECK
 
 //df
+#define QGCDF1 for(q=0;q<p->gcdf1_count;++q)
+#define QGCDF1CHECK if(p->gcdf1[q][3]>0)
+#define QGCDF1LOOP QGCDF1 QGCDF1CHECK
+
+#define GCDF1 for(n=0;n<p->gcdf1_count;++n)
+#define GCDF1CHECK if(p->gcdf1[n][3]>0)
+#define GCDF1LOOP GCDF1 GCDF1CHECK
+
+#define QGCDF2 for(q=0;q<p->gcdf2_count;++q)
+#define QGCDF2CHECK if(p->gcdf2[q][3]>0)
+#define QGCDF2LOOP QGCDF2 QGCDF2CHECK
+
+#define GCDF2 for(n=0;n<p->gcdf2_count;++n)
+#define GCDF2CHECK if(p->gcdf2[n][3]>0)
+#define GCDF2LOOP GCDF2 GCDF2CHECK
+
+#define QGCDF3 for(q=0;q<p->gcdf3_count;++q)
+#define QGCDF3CHECK if(p->gcdf3[q][3]>0)
+#define QGCDF3LOOP QGCDF3 QGCDF3CHECK
+
+#define GCDF3 for(n=0;n<p->gcdf3_count;++n)
+#define GCDF3CHECK if(p->gcdf3[n][3]>0)
+#define GCDF3LOOP GCDF3 GCDF3CHECK
+
 #define QGCDF4 for(q=0;q<p->gcdf4_count;++q)
 #define QGCDF4CHECK if(p->gcdf4[q][3]>0)
 #define QGCDF4LOOP QGCDF4 QGCDF4CHECK
