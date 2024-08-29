@@ -1461,14 +1461,13 @@ void VOF_PLIC::advectPlane_forBonnScheme
     }
 }
 
-void VOF_PLIC::advectWater_MACHO2D
+void VOF_PLIC::advectWater_forBonnScheme
 (
     fdm* a,
     lexer* p,
     int sweep
 )
 {
-    // 2D
     if(sweep==0)
     {
         if(a->u(i,j,k)>0.0)
@@ -1486,7 +1485,25 @@ void VOF_PLIC::advectWater_MACHO2D
             V_w_p(i-1,j,k)-=Vol;
         }
     }
-    else if(sweep==2)
+    else if(sweep==1)
+    {
+        if(a->v(i,j,k)>0.0)
+        {
+            double Vol;
+            Vol=a->v(i,j,k)*p->dt*p->DXN[IP]*p->DZN[KP];
+            V_w_p(i,j,k)+=Vol;
+            V_w_m(i,j+1,k)+=Vol;
+        }
+        
+        if(a->v(i,j-1,k)<0.0)
+        {
+            double Vol;
+            Vol=fabs(a->v(i,j-1,k))*p->dt*p->DXN[IP]*p->DZN[KP];
+            V_w_m(i,j,k)-=Vol;
+            V_w_p(i,j-1,k)-=Vol;
+        }
+    }
+    else
     {
         if(a->w(i,j,k)>0.0)
         {
