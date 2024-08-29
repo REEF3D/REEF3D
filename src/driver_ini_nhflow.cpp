@@ -108,6 +108,11 @@ void driver::driver_ini_nhflow()
     d->VISC[IJK] = p->W2;
     }
     
+    SLICELOOP4
+    d->ks(i,j) = p->B50;
+    
+    pgc->gcsl_start4(p,d->ks,50);
+    
     pgc->start4V(p,d->RO,1);
     pgc->start4V(p,d->VISC,1);
 

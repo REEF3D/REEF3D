@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"bcmom.h"
+#include"nhflow_bcmom.h"
 #include"nhflow_reconstruct.h"
 #include"nhflow_convection.h"
 #include"nhflow_signal_speed.h"
@@ -44,7 +44,7 @@ Author: Hans Bihs
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
 nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof, nhflow_forcing *ppnhfdf)
-                                                    : bcmom(p), nhflow_sigma(p), WLRK1(p)
+                                                    : nhflow_bcmom(p), nhflow_sigma(p), WLRK1(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -67,11 +67,14 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     p6dof = pp6dof;
     pnhfdf = ppnhfdf;
     
+    // wind forcing
     if(p->A570==0)
     pwind = new wind_v(p);
     
     if(p->A570>0)
     pwind = new wind_f(p);
+    
+
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
@@ -113,6 +116,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     p6dof->isource(p,d,pgc,WLRK1);
 	irhs(p,d,pgc);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, WLRK1, d->eta);
+    roughness_u(p,d,d->U,d->F,WLRK1);
 	pconvec->start(p,d,1,WLRK1);
 	pnhfdiff->diff_u(p,d,pgc,psolv,UHDIFF,d->UH,d->UH,d->VH,d->WH,WLRK1,1.0);
 
@@ -132,6 +136,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     p6dof->jsource(p,d,pgc,WLRK1);
 	jrhs(p,d,pgc);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, WLRK1, d->eta);
+    roughness_v(p,d,d->V,d->G,WLRK1);
     pconvec->start(p,d,2,WLRK1);
 	pnhfdiff->diff_v(p,d,pgc,psolv,VHDIFF,d->VH,d->UH,d->VH,d->WH,WLRK1,1.0);
 
@@ -211,6 +216,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     p6dof->isource(p,d,pgc,d->WL);
 	irhs(p,d,pgc);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, d->WL, d->eta);
+    roughness_u(p,d,d->U,d->F,d->WL);
     pconvec->start(p,d,1,d->WL);
 	pnhfdiff->diff_u(p,d,pgc,psolv,UHDIFF,UHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
 
@@ -230,6 +236,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     p6dof->jsource(p,d,pgc,d->WL);
 	jrhs(p,d,pgc);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, d->WL, d->eta);
+    roughness_v(p,d,d->V,d->G,d->WL);
 	pconvec->start(p,d,2,d->WL);
 	pnhfdiff->diff_v(p,d,pgc,psolv,VHDIFF,VHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
 

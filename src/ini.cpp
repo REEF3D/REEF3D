@@ -108,7 +108,7 @@ void lexer::ini_default()
     A516=3;      // int NFHLOW KFSFBED scheme
     A517=3;      // int NHFLOW omega_sig scheme
     A518=2;      // int NHFLOW bed BC
-    
+    A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
     A521=1;		// int
     A522=4.0;    // double p_alpha

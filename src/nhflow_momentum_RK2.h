@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_momentum.h"
 #include"slice4.h"
-#include"bcmom.h"
+#include"nhflow_bcmom.h"
 #include"nhflow_sigma.h"
 
 class wind;
@@ -32,7 +32,7 @@ using namespace std;
 #ifndef NHFLOW_MOMENTUM_RK2_H_
 #define NHFLOW_MOMENTUM_RK2_H_
 
-class nhflow_momentum_RK2 : public nhflow_momentum, public bcmom, public nhflow_sigma
+class nhflow_momentum_RK2 : public nhflow_momentum, public nhflow_bcmom, public nhflow_sigma
 {
 public:
 	nhflow_momentum_RK2(lexer*, fdm_nhf*, ghostcell*, sixdof*, nhflow_forcing*);

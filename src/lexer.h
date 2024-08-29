@@ -279,7 +279,7 @@ public:
     double A440;
     
     // NHFLOW
-    int A501,A510,A511,A512,A514,A515,A516,A517,A518;
+    int A501,A510,A511,A512,A514,A515,A516,A517,A518,A519;
     int A520,A521;
     double A522,A523;
     double A531;

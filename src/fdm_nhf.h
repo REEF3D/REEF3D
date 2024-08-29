@@ -59,6 +59,7 @@ public:
     slice4 Bxx,Byy;
     
     slice4 hx,hy;
+    slice4 ks;
     slice4 coastline;
     slice4 vb;
     slice4 test2D;
