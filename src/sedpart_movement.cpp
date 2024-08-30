@@ -385,7 +385,6 @@ namespace sediment_particle::movement
                 columnSum[IJ] += bedChange[IJ];
                 if(bedChange[IJ]<0)
                 count+=activateNew(p,a,PP);
-                activateNew(p,a,PP);
                 bedChange[IJ] = 0;
             }
         pgc.start4a(p,a.topo,150);
