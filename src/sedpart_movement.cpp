@@ -808,3 +808,50 @@ int sediment_particle::state::solid_clean(lexer* p, particles_obj &PP, sediment_
     }
     return removed;
 }
+
+// #include <Eigen/Dense>
+// #include "math.h"
+
+// // 10.1002/wrcr.20303
+
+// // Drag
+// const double d;
+// const double kin_vis = p->W2/p->W1;
+// const Eigen::Vector3d uf;
+// const Eigen::Vector3d up;
+// const Eigen::Vector3d du = uf - up;
+// const double Re_p = du.norm()*d/kin_vis;
+// const double a0, a1, a2;
+// const double Cd = a0 + a1/Re_p + a2/pow(Re_p,2);
+// const Eigen::Vector3d Fd = Cd * PI/8.0* pow(d,2)*p->W1*du*du.norm();
+
+// // Lift
+// const double G; // Norm of dU/dy
+// const double Re_shear = G * pow(d,2)/kin_vis; // shear Reynold number
+// const double epsilon = sqrt(Re_shear)/Re_p;
+// const double ClSa = 12.92/PI*epsilon;
+// const double J = 0.6765 *(1.0 +tanh(2.5*log(epsilon+0.191)))*(0.667+tanh(6*(epsilon-0.32))); // approx.
+// const double Cl = 0.443*J*ClSa;
+// const Eigen::Vector3d Fl = Cl * PI/8.0 * pow(d,2) * p->W1 * pow(du.norm(),2);
+
+// // Grav + buoy
+// const Eigen::Vector3d g(p->W20,p->W21,p->W22);
+// const Eigen::Vector3d Fg = PI/6 * pow(d,3) * (p->S22-p->W1) * g;
+
+// // total
+// const Eigen::Vector3d Ftot = Fg + Fd + Fl;
+
+// const Eigen::Vector3d tangent;
+// const Eigen::Vector3d normal;
+
+// const double Ft = Ftot * tangent;
+// const double Fn = Ftot * normal;
+
+// const double phi = atan(Ft/Fn);
+
+// const double moment;
+// if(moment > 0)
+//     if(PI/3<=phi && pi <= 2.0*PI/3)
+//         suspended
+//     else
+//         bed load
