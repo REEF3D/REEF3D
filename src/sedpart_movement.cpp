@@ -666,9 +666,11 @@ namespace sediment_particle::movement
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
             {
-                if(PP.X[n]>=p->global_xmin+p->DXN[marge] && PP.X[n]<=p->global_xmax-p->DXN[p->knox+marge])
-                if(PP.Y[n]>=p->global_ymin+p->DYN[marge] && PP.Y[n]<=p->global_ymax-p->DYN[p->knoy+marge])
-                if(p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n])<0.6)
+                // if(PP.X[n]>=p->global_xmin+p->DXN[marge] && PP.X[n]<=p->global_xmax-p->DXN[p->knox+marge])
+                // if(PP.Y[n]>=p->global_ymin+p->DYN[marge] && PP.Y[n]<=p->global_ymax-p->DYN[p->knoy+marge])
+                // if(p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n])<0.6)
+                if(PP.X[n]>=p->S71 && PP.X[n]<=p->S72)
+                if(PP.Y[n]>=p->S77_xs && PP.Y[n]<=p->S77_xe)
                 {
                     shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
                     shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
@@ -676,6 +678,7 @@ namespace sediment_particle::movement
                         if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.0*PP.d50>0)
                         {
                             PP.Flag[n]=1;
+                            // PP.Z[n]+=4.0*PP.d50;
                             ++counter;
 
                             PP.shear_eff[n]=shear_eff;
@@ -785,6 +788,7 @@ namespace sediment_particle::movement
         meanVel=dx*p->S14/p->S13;
         p->dtsed = p->S14 * (dx/meanVel);
         p->dtsed = min(p->dtsed,p->S13);
+        p->dtsed = min(p->dtsed,p->dt);
         p->dtsed = pgc.globalmin(p->dtsed);
     }
 };
