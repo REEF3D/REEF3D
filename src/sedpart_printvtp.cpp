@@ -41,11 +41,9 @@ void sedpart::print_particles(lexer* p)
 	++printcount;
     }
 
-	if((p->sedtime>p->partprinttime || p->count==0) && (p->Q180==2 && p->Q181<0 && p->Q182>0.0))
+	if(((p->count%p->Q181==0 && p->count>=p->Q182) || p->count==0) && p->Q180==2)
 	{
 	print_vtp(p);
-
-	p->partprinttime+=p->Q182;
 	++printcount;
 	}
     

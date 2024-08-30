@@ -253,7 +253,7 @@ namespace sediment_particle::movement
                     
                     Du=u-PP.U[n];
                     Dv=v-PP.V[n];
-                    Dw=w-PP.W[n];
+                    // Dw=w-PP.W[n];
 
                     DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
                     // if(debugPrint)
@@ -330,8 +330,8 @@ namespace sediment_particle::movement
                     // Pos update
                     PP.X[n] += PP.U[n]*RKtimeStep;
                     PP.Y[n] += PP.V[n]*RKtimeStep;
-                    if(!limited)
-                    PP.Z[n] += PP.W[n]*RKtimeStep;
+                    // if(!limited)
+                    // PP.Z[n] += PP.W[n]*RKtimeStep;
 
                     // Sum update
                     cellSum[IJK]-=PP.PackingFactor[n];
@@ -373,19 +373,26 @@ namespace sediment_particle::movement
      */
     void particleStressBased_T2021::update(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
+        int count=0;
         ILOOP
             JLOOP
             {
                 KLOOP
+                {
                     a.topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(PP.d50,3)/(p->DXN[IP]*p->DYN[JP]);
+                    a.fb(i,j,k) = bedChange[IJ];
+                }
                 columnSum[IJ] += bedChange[IJ];
-                activateNew(p,a,PP);
+                if(bedChange[IJ]<0)
+                count+=activateNew(p,a,PP);
                 bedChange[IJ] = 0;
             }
         pgc.start4a(p,a.topo,150);
+        if(count>0)
+        cout<<"On partion "<<p->mpirank<<" were "<<count<<" additional particles activated."<<endl;
     }
 
-    void particleStressBased_T2021::activateNew(lexer *p, fdm &a, particles_obj &PP)
+    int particleStressBased_T2021::activateNew(lexer *p, fdm &a, particles_obj &PP)
     {
         double tolerance = 5e-18;
         double x,y,z,ipolTopo,ipolSolid;
@@ -395,26 +402,45 @@ namespace sediment_particle::movement
         double counter=0;
         int maxTries=1000;
         int tries=0;
+        int count=0;
 
-        while(counter<bedChange[IJ] && tries<maxTries)
+        if(PP.size-bedChange[IJ]>0.9*PP.capacity)
+            PP.reserve();
+
+        while(counter<-bedChange[IJ] && tries<maxTries)
         {   
             x = p->XN[IP] + p->DXN[IP]*double(rand() % 10000)/10000.0;
             y = p->YN[JP] + p->DYN[JP]*double(rand() % 10000)/10000.0;
             k = 0;
-            z = p->ZN[KP]-a.topo(i,j,k) - 1.2*p->DZN[KP]*double(rand() % 10000)/10000.0;
+            z = p->ZN[KP]+0.5*p->DZP[KP]-a.topo(i,j,k) - 5.0*PP.d50*double(rand() % 10000)/10000.0;
             k = p->posc_k(z);
 
             ipolTopo = p->ccipol4_b(a.topo,x,y,z);
             ipolSolid = p->ccipol4_b(a.solid,x,y,z);
 
-            if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0) && cellSumTopo[IJK]>=p->Q41)
-            {
-                index = PP.add(x,y,z,flag,0,0,0,p->Q41);
-                counter += PP.PackingFactor[index];
-                cellSumTopo[IJK] -= PP.PackingFactor[index];
-            }
+            if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
+                if(cellSumTopo[IJK]>=p->Q41)
+                {
+                    index = PP.add(x,y,z,flag,0,0,0,p->Q41);
+                    counter += PP.PackingFactor[index];
+                    cellSumTopo[IJK] -= PP.PackingFactor[index];
+                    ++count;
+                }
+                else if (cellSumTopo[IJK]+cellSumTopo[IJKm1]>=p->Q41)
+                {
+                    index = PP.add(x,y,z,flag,0,0,0,p->Q41);
+                    counter += PP.PackingFactor[index];
+                    cellSumTopo[IJK] -= PP.PackingFactor[index];
+                    cellSumTopo[IJKm1] += cellSumTopo[IJK];
+                    cellSumTopo[IJK] = 0;
+
+                    ++count;
+                    break;
+                }
+            
             ++tries;
         }
+        return count;
     }
 
     void particleStressBased_T2021::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
@@ -422,6 +448,7 @@ namespace sediment_particle::movement
         PLAINLOOP
         {
             a.test(i,j,k) = cellSumTopo[IJK];
+            a.vof(i,j,k) = (s.tau_eff[IJ]>s.tau_crit[IJ]?-1:1);
         }
         double topoDist=0;
         double u=0,v=0;
@@ -572,7 +599,8 @@ namespace sediment_particle::movement
 
         const double Rep=dU*d*invKinVis;
 
-        const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
+        // const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
+        const double Cd=24.0/Rep+4.0/sqrt(Rep)+0.4;
         const double Dp=Cd*3.0*drho*dU/d/4.0;
 
         // if(Dp!=Dp)
@@ -634,24 +662,36 @@ namespace sediment_particle::movement
     {
         double shear_eff;
         double shear_crit;
+        int counter=0;
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
             {
-                shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
-                shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
-                if(shear_eff>shear_crit)
-                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+5.0*PP.d50>0)
+                // if(PP.X[n]>=p->global_xmin+p->DXN[marge] && PP.X[n]<=p->global_xmax-p->DXN[p->knox+marge])
+                // if(PP.Y[n]>=p->global_ymin+p->DYN[marge] && PP.Y[n]<=p->global_ymax-p->DYN[p->knoy+marge])
+                // if(p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n])<0.6)
+                if(PP.X[n]>=p->S71 && PP.X[n]<=p->S72)
+                if(PP.Y[n]>=p->S77_xs && PP.Y[n]<=p->S77_xe)
                 {
-                    PP.Flag[n]=1;
+                    shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
+                    shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
+                    if(shear_eff>shear_crit)
+                        if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.0*PP.d50>0)
+                        {
+                            PP.Flag[n]=1;
+                            // PP.Z[n]+=4.0*PP.d50;
+                            ++counter;
 
-                    PP.shear_eff[n]=shear_eff;
-                    PP.shear_crit[n]=shear_crit;
+                            PP.shear_eff[n]=shear_eff;
+                            PP.shear_crit[n]=shear_crit;
 
-                    i=p->posc_i(PP.X[n]);
-                    j=p->posc_j(PP.Y[n]);
-                    bedChange[IJ] -= PP.PackingFactor[n];
+                            i=p->posc_i(PP.X[n]);
+                            j=p->posc_j(PP.Y[n]);
+                            bedChange[IJ] -= PP.PackingFactor[n];
+                        }
                 }
             }
+        if(counter>0)
+        cout<<"On rank "<<p->mpirank<<" were "<<counter<<" particles eroded."<<endl;
     }
 
     void particleStressBased_T2021::deposit(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
@@ -664,7 +704,7 @@ namespace sediment_particle::movement
                 shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
                 shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
                 if(shear_crit>shear_eff)
-                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50)
+                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<2.0*PP.d50)
                 {
                     PP.Flag[n]=0;
                     PP.U[n]=0;
@@ -748,6 +788,7 @@ namespace sediment_particle::movement
         meanVel=dx*p->S14/p->S13;
         p->dtsed = p->S14 * (dx/meanVel);
         p->dtsed = min(p->dtsed,p->S13);
+        p->dtsed = min(p->dtsed,p->dt);
         p->dtsed = pgc.globalmin(p->dtsed);
     }
 };
@@ -767,3 +808,50 @@ int sediment_particle::state::solid_clean(lexer* p, particles_obj &PP, sediment_
     }
     return removed;
 }
+
+// #include <Eigen/Dense>
+// #include "math.h"
+
+// // 10.1002/wrcr.20303
+
+// // Drag
+// const double d;
+// const double kin_vis = p->W2/p->W1;
+// const Eigen::Vector3d uf;
+// const Eigen::Vector3d up;
+// const Eigen::Vector3d du = uf - up;
+// const double Re_p = du.norm()*d/kin_vis;
+// const double a0, a1, a2;
+// const double Cd = a0 + a1/Re_p + a2/pow(Re_p,2);
+// const Eigen::Vector3d Fd = Cd * PI/8.0* pow(d,2)*p->W1*du*du.norm();
+
+// // Lift
+// const double G; // Norm of dU/dy
+// const double Re_shear = G * pow(d,2)/kin_vis; // shear Reynold number
+// const double epsilon = sqrt(Re_shear)/Re_p;
+// const double ClSa = 12.92/PI*epsilon;
+// const double J = 0.6765 *(1.0 +tanh(2.5*log(epsilon+0.191)))*(0.667+tanh(6*(epsilon-0.32))); // approx.
+// const double Cl = 0.443*J*ClSa;
+// const Eigen::Vector3d Fl = Cl * PI/8.0 * pow(d,2) * p->W1 * pow(du.norm(),2);
+
+// // Grav + buoy
+// const Eigen::Vector3d g(p->W20,p->W21,p->W22);
+// const Eigen::Vector3d Fg = PI/6 * pow(d,3) * (p->S22-p->W1) * g;
+
+// // total
+// const Eigen::Vector3d Ftot = Fg + Fd + Fl;
+
+// const Eigen::Vector3d tangent;
+// const Eigen::Vector3d normal;
+
+// const double Ft = Ftot * tangent;
+// const double Fn = Ftot * normal;
+
+// const double phi = atan(Ft/Fn);
+
+// const double moment;
+// if(moment > 0)
+//     if(PI/3<=phi && pi <= 2.0*PI/3)
+//         suspended
+//     else
+//         bed load
