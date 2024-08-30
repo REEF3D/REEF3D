@@ -134,7 +134,7 @@ void vtr3D::pvtr(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	// result<<"<PDataArray type=\"Float32\" Name=\"tauBool\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"topoSum\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"bedChange\"/>"<<endl;
-	// result<<"<PDataArray type=\"Float32\" Name=\"stress\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"erosion/deposition\"/>"<<endl;
     // result<<"<PDataArray type=\"Float32\" Name=\"vel\" NumberOfComponents=\"3\"/>"<<endl;
     // result<<"<PDataArray type=\"Float32\" Name=\"stressCont\" NumberOfComponents=\"3\"/>"<<endl;
 	// result<<"<PDataArray type=\"Float32\" Name=\"buoyStressCont\" NumberOfComponents=\"3\"/>"<<endl;

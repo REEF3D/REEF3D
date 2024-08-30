@@ -448,6 +448,7 @@ namespace sediment_particle::movement
         PLAINLOOP
         {
             a.test(i,j,k) = cellSumTopo[IJK];
+            a.vof(i,j,k) = (s.tau_eff[IJ]>s.tau_crit[IJ]?-1:1);
         }
         double topoDist=0;
         double u=0,v=0;
