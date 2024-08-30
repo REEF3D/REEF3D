@@ -373,6 +373,7 @@ namespace sediment_particle::movement
      */
     void particleStressBased_T2021::update(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
+        int count=0;
         ILOOP
             JLOOP
             {
@@ -383,13 +384,16 @@ namespace sediment_particle::movement
                 }
                 columnSum[IJ] += bedChange[IJ];
                 if(bedChange[IJ]<0)
+                count+=activateNew(p,a,PP);
                 activateNew(p,a,PP);
                 bedChange[IJ] = 0;
             }
         pgc.start4a(p,a.topo,150);
+        if(count>0)
+        cout<<"On partion "<<p->mpirank<<" were "<<count<<" additional particles activated."<<endl;
     }
 
-    void particleStressBased_T2021::activateNew(lexer *p, fdm &a, particles_obj &PP)
+    int particleStressBased_T2021::activateNew(lexer *p, fdm &a, particles_obj &PP)
     {
         double tolerance = 5e-18;
         double x,y,z,ipolTopo,ipolSolid;
@@ -419,6 +423,7 @@ namespace sediment_particle::movement
             }
             ++tries;
         }
+        return count;
     }
 
     void particleStressBased_T2021::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)

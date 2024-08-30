@@ -101,7 +101,7 @@ namespace sediment_particle
             void particlePerCell(lexer *, ghostcell &, particles_obj &);
             void bedReDistribution(lexer *, fdm &, ghostcell &, particles_obj &);
             void timestep(lexer *, ghostcell &, particles_obj &);
-            void activateNew(lexer *, fdm &, particles_obj &);
+            int activateNew(lexer *, fdm &, particles_obj &);
         private:
             /// @brief Sum of particles belonging to the stationary bed
             double *cellSumTopo;
