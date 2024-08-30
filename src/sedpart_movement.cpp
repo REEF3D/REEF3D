@@ -403,24 +403,42 @@ namespace sediment_particle::movement
         double counter=0;
         int maxTries=1000;
         int tries=0;
+        int count=0;
+
+        if(PP.size-bedChange[IJ]>0.9*PP.capacity)
+            PP.reserve();
 
         while(counter<-bedChange[IJ] && tries<maxTries)
         {   
             x = p->XN[IP] + p->DXN[IP]*double(rand() % 10000)/10000.0;
             y = p->YN[JP] + p->DYN[JP]*double(rand() % 10000)/10000.0;
             k = 0;
-            z = p->ZN[KP]-a.topo(i,j,k) - 5.0*PP.d50*double(rand() % 10000)/10000.0;
+            z = p->ZN[KP]+0.5*p->DZP[KP]-a.topo(i,j,k) - 5.0*PP.d50*double(rand() % 10000)/10000.0;
             k = p->posc_k(z);
 
             ipolTopo = p->ccipol4_b(a.topo,x,y,z);
             ipolSolid = p->ccipol4_b(a.solid,x,y,z);
 
-            if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0) && cellSumTopo[IJK]>=p->Q41)
-            {
-                index = PP.add(x,y,z,flag,0,0,0,p->Q41);
-                counter += PP.PackingFactor[index];
-                cellSumTopo[IJK] -= PP.PackingFactor[index];
-            }
+            if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
+                if(cellSumTopo[IJK]>=p->Q41)
+                {
+                    index = PP.add(x,y,z,flag,0,0,0,p->Q41);
+                    counter += PP.PackingFactor[index];
+                    cellSumTopo[IJK] -= PP.PackingFactor[index];
+                    ++count;
+                }
+                else if (cellSumTopo[IJK]+cellSumTopo[IJKm1]>=p->Q41)
+                {
+                    index = PP.add(x,y,z,flag,0,0,0,p->Q41);
+                    counter += PP.PackingFactor[index];
+                    cellSumTopo[IJK] -= PP.PackingFactor[index];
+                    cellSumTopo[IJKm1] += cellSumTopo[IJK];
+                    cellSumTopo[IJK] = 0;
+
+                    ++count;
+                    break;
+                }
+            
             ++tries;
         }
         return count;
@@ -648,22 +666,28 @@ namespace sediment_particle::movement
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
             {
-                shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
-                shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
-                if(shear_eff>shear_crit)
-                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+5.0*PP.d50>0)
+                if(PP.X[n]>=p->global_xmin+p->DXN[marge] && PP.X[n]<=p->global_xmax-p->DXN[p->knox+marge])
+                if(PP.Y[n]>=p->global_ymin+p->DYN[marge] && PP.Y[n]<=p->global_ymax-p->DYN[p->knoy+marge])
+                if(p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n])<0.6)
                 {
-                    PP.Flag[n]=1;
-                    ++counter;
+                    shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
+                    shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
+                    if(shear_eff>shear_crit)
+                        if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.0*PP.d50>0)
+                        {
+                            PP.Flag[n]=1;
+                            ++counter;
 
-                    PP.shear_eff[n]=shear_eff;
-                    PP.shear_crit[n]=shear_crit;
+                            PP.shear_eff[n]=shear_eff;
+                            PP.shear_crit[n]=shear_crit;
 
-                    i=p->posc_i(PP.X[n]);
-                    j=p->posc_j(PP.Y[n]);
-                    bedChange[IJ] -= PP.PackingFactor[n];
+                            i=p->posc_i(PP.X[n]);
+                            j=p->posc_j(PP.Y[n]);
+                            bedChange[IJ] -= PP.PackingFactor[n];
+                        }
                 }
             }
+        if(counter>0)
         cout<<"On rank "<<p->mpirank<<" were "<<counter<<" particles eroded."<<endl;
     }
 
@@ -677,7 +701,7 @@ namespace sediment_particle::movement
                 shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
                 shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
                 if(shear_crit>shear_eff)
-                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50)
+                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<2.0*PP.d50)
                 {
                     PP.Flag[n]=0;
                     PP.U[n]=0;

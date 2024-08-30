@@ -69,6 +69,8 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     fill_PQ_cfd(p,a,pgc);
     // movement->move(p,*a,*pgc,PP,s,*pturb);
+    if(p->Q13==1)
+        movement->update(p,*a,*pgc,PP);
     
     // print
     if((p->I40!=1)||(p->I40==1&&inicount>0))

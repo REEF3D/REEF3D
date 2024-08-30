@@ -105,7 +105,7 @@ void sedpart::deposit(lexer* p, fdm* a)
 {    
     if(p->Q101>0)
     {
-        // movement->deposit(p,*a,PP,s);
+        movement->deposit(p,*a,PP,s);
     }
 }
 

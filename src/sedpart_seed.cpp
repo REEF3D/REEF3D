@@ -222,7 +222,9 @@ void sedpart::seed_topo(lexer *p, fdm *a)
     {   
         x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
         y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
-        z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+        k = 0;
+        z = p->ZN[KP]+0.5*p->DZP[KP]-a->topo(i,j,k) - 5.0*PP.d50*double(rand() % irand)/drand;
+        k = p->posc_k(z);
 
         ipolTopo = p->ccipol4_b(a->topo,x,y,z);
         ipolSolid = p->ccipol4_b(a->solid,x,y,z);
