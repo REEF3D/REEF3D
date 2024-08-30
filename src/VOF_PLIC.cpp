@@ -295,125 +295,62 @@ void VOF_PLIC::start
         
         LOOP
         {
-            advectPhi_Bonn(a,p,nSweep,sweep);
-            if(condition)
+            transportPhi_Bonn(a,p,nSweep,sweep);
+            bool bordercheck=false;
+            for(int isearch=-1; isearch<2; isearch++)
             {
-                reconstruct plane(a,p)
-                advect Plane(a,p,sweep=
+                for(int jsearch=-1; jsearch<2; jsearch++)
+                {
+                    for(int ksearch=-1; ksearch<2; ksearch++)
+                    {
+                        if(phistep(i,j,k)*phistep(i+isearch,j+jsearch,k+ksearch)<0.0)
+                            bordercheck=true;
+                    }
+                }
             }
-            else if(a->vof>0.001)
-                advect water?
+            if((vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999) && ( (phistep(i,j,k)<1E-6 && phistep(i,j,k)>-1E-6) || bordercheck))
+            {
+                reconstructPlane_alt(a,p);
+                advectPlane_forBonnScheme(a,p,sweep);
+            }
+            else if(a->vof(i,j,k)>0.1)
+                advectWater_forBonnScheme(a,p,sweep);
         }
         
-        updateVof
+        transportVOF_Bonn(a,p,nSweep,sweep);
         
     }
     
-  
-  
+    
     LOOP
     {
-        phival(i,j,k)=10.0;
-    }
-   
-    pgc->start4(p,phival,gcval_frac);
-
-    double alphatemp;
-    LOOP
-    {
-        if((a->vof(i,j,k)>=0.001) && a->vof(i,j,k)<=0.999)
-        {
-            alphatemp=alpha(i,j,k);
-            if(fabs(alphatemp)<fabs(phival(i,j,k)))
-                phival(i,j,k)=alphatemp;
+        if(phiS2(i,j,k)<-p->psi || vofS2(i,j,k)<0.0)
+            vofS2(i,j,k)=0.0;
+        else if(phiS2(i,j,k)>p->psi || vofS2(i,j,k)>1.0)
+            vofS2(i,j,k)=1.0;
             
-            //i+
-            alphatemp=nx(i,j,k)*p->DXP[IP]-alpha(i,j,k);
-            if(fabs(alphatemp)<phival(i+1,j,k))
-                phival(i+1,j,k)=alphatemp;
-                
-            //i-
-            alphatemp=nx(i,j,k)*(-p->DXP[IM1])-alpha(i,j,k);
-            if(fabs(alphatemp)<fabs(phival(i-1,j,k)))
-                phival(i-1,j,k)=alphatemp;
-                
-            //j+
-            alphatemp=ny(i,j,k)*p->DYP[JP]-alpha(i,j,k);
-            if(fabs(alphatemp)<fabs(phival(i,j+1,k)))
-                phival(i,j+1,k)=alphatemp;
-            
-            //j-
-            alphatemp=ny(i,j,k)*(-p->DYP[JM1])-alpha(i,j,k);
-            if(fabs(alphatemp)<fabs(phival(i,j-1,k)))
-                phival(i,j-1,k)=alphatemp;
-                
-            //k+
-            alphatemp=nz(i,j,k)*p->DZP[KP]-alpha(i,j,k);
-            if(fabs(alphatemp)<fabs(phival(i,j,k+1)))
-                phival(i,j,k+1)=alphatemp;
-            
-            //k-
-            alphatemp=nz(i,j,k)*(-p->DZP[KM1])-alpha(i,j,k);
-            if(fabs(alphatemp)<fabs(phival(i,j,k-1)))
-                phival(i,j,k-1)=alphatemp;
-        }
-    }
-    pgc->start4(p,phival,gcval_frac);
-    
-    LOOP
-    {
-        if(fabs(phival(i,j,k))<10.0)
-            a->phi(i,j,k)=phival(i,j,k);
-    }
-    
-    pgc->start4(p,a->phi,50);
-    
-    reini_->start(a,p,a->phi,pgc,pflow);
-    reini_->start(a,p,a->phi,pgc,pflow);
-    reini_->start(a,p,a->phi,pgc,pflow);
-   // redistance(a, p, pdisc, pgc, pflow, 20);
-    pgc->start4(p,a->phi,50);
-    
-    LOOP
-    {
-        if(a->phi(i,j,k)<sqrt(0.5*p->DXN[IP]*0.5*p->DXN[IP]+0.5*p->DYN[JP]*0.5*p->DYN[JP]+0.5*p->DZN[KP]*0.5*p->DZN[KP]))
-        {
-            double nxtemp,nytemp,nztemp,nsum,recheck;
-            nxtemp=(a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
-            nytemp=(a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
-            nztemp=(a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
-            nsum=sqrt(nxtemp*nxtemp+nytemp*nytemp+nztemp*nztemp);
-            nxtemp=nxtemp/nsum;
-            nytemp=nytemp/nsum;
-            nztemp=nztemp/nsum;
-            recheck=0.5*(nxtemp*p->DXN[IP]+nytemp*p->DYN[JP]+nztemp*p->DZN[KP])-fabs(a->phi(i,j,k));
-            if(recheck>0.0)
-                a->vof(i,j,k)=calculateVolume(nxtemp,nytemp,nztemp,p->DXN[IP],p->DYN[JP],p->DZN[KP],a->phi(i,j,k));
-            else if(a->phi(i,j,k)>0.0)
-                a->vof(i,j,k)=1.0;
-            else
-                a->vof(i,j,k)=0.0;
-        }
-        else if(a->phi(i,j,k)>0.0)
-            a->vof(i,j,k)=1.0;
+        if(vofS2(i,j,k)>0.0 && vofS2(i,j,k)<1.0)
+            reconstructPlane_alt(a,p);
         else
-            a->vof(i,j,k)=0.0;
+        {
+            nx(i,j,k)=2.0;
+            ny(i,j,k)=2.0;
+            nz(i,j,k)=2.0;
+            alpha(i,j,k)=1E06;
+        }
+        
+        phiaux(i,j,k)=1E05;
     }
     
-    pgc->start4(p,a->vof,50);
-     
-    p->lsmtime=pgc->timer()-starttime;
-
-    if(p->mpirank==0)
-    cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
-    pgc->start4(p,a->phi,50);
-    
-    
-  /*  
-    for (int tt = 0; tt < 2; tt++)
-    {
     LOOP
-    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
+    {
+        if(vofS2(i,j,k)>0.0 && vofS2(i,j,k)<1.0)
+        {
+            redistancePhiByPlane_Bonn(a,p);
+        }
+    }
+  
+  
     
     pgc->start4(p,a->phi,50);
     } */

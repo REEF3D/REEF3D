@@ -2266,8 +2266,9 @@
         <File Name="VOF_AB.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
+        <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
+        <File Name="VOF_PLIC_Transport_Bonn.cpp"/>
         <File Name="VOF_PLIC_normal_Bonn.cpp"/>
-        <File Name="VOF_PLIC_advectPhi_Bonn.cpp"/>
         <File Name="updateVOF_alt.cpp"/>
         <File Name="VOF_PLIC_advection_alt.cpp"/>
         <File Name="VOF_PLIC_reconstruction_alt.cpp"/>

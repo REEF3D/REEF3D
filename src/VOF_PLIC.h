@@ -99,8 +99,15 @@ private:
     void updateVOF_Weymouth(fdm*, lexer*, int);
     void advectWater_WeymouthNoS(fdm*, lexer*);
     void advectPlane_Wang(fdm*, lexer*, int);
-    void advectPhi_Bonn(fdm*,lexer*,int,int);
+    void transportPhi_Bonn(fdm*,lexer*,int,int);
+    void transportVOF_Bonn(fdm*,lexer*,int,int);
     void simpleNormal_Bonn(fdm*, lexer*);
+    void advectPlane_forBonnScheme(fdm*, lexer*,int);
+    void advectWater_forBonnScheme(fdm*, lexer*,int);
+    void redistancePhiByPlane_Bonn(fdm*, lexer*);
+    double ShortestDistanceOnBoundaryCandidate(fdm*, lexer*, int, int, int);
+    double ProjectionPointCandidate(fdm*, lexer*, int, int, int);
+    double IntersectionPointCandidate(fdm*, lexer*, int, int, int);
     
     field4 vof_old;
     field4 V_w_p;
@@ -130,6 +137,7 @@ private:
     field4 vofS0;
     field4 vofS1;
     field4 vofS2;
+    field4 phiaux;
     fluid_update *pupdate;
     reini *reini_;
     interpolation *ipol;

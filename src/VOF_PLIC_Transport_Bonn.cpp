@@ -35,7 +35,7 @@ Author: Fabian Knoblauch
 #include"weno_hj.h"
 #include"hric.h"
 
-void VOF_PLIC::advectPhi_Bonn
+void VOF_PLIC::transportPhi_Bonn
 (
     fdm* a,
     lexer* p,
@@ -99,4 +99,56 @@ void VOF_PLIC::advectPhi_Bonn
     
     else
         phiS2(i,j,k)=phiS1(i,j,k)+phiS0(i,j,k)*dtdxi*(uip-uim)-dtdxi*(Gp-Gm);
+}
+
+void VOF_PLIC::transportVOF_Bonn
+(
+    fdm* a,
+    lexer* p,
+    int nSweep,
+    int sweep
+)
+{
+    double Gp, Gm, uip, uim, dtdxi,
+    LOOP
+    {
+        if(sweep==0)
+        {
+        
+            uip=a->u(i,j,k);
+            uim=a->u(i-1,j,k);
+            dtdxi=p->dt/p->DXN[IP];
+            Gp=uip*V_w_p(i,j,k)/(uip*p->dt*p->DYN[JP]*p->DZN[KP]);
+            Gm=uim*V_w_m(i,j,k)/(uim*p->dt*p->DYN[JP]*p->DZN[KP]);
+        }
+        else if(sweep==1)
+        {
+            uip=a->v(i,j,k);
+            uim=a->v(i,j-1,k);
+            dtdxi=p->dt/p->DYN[JP];
+            Gp=uip*V_w_p(i,j,k)/(uip*p->dt*p->DXN[IP]*p->DZN[KP]);
+            Gm=uim*V_w_m(i,j,k)/(uim*p->dt*p->DXN[IP]*p->DZN[KP]);
+        }
+        else
+        {
+            uip=a->w(i,j,k);
+            uim=a->w(i,j,k-1);
+            dtdxi=p->dt/p->DZN[KP];
+            Gp=uip*V_w_p(i,j,k)/(uip*p->dt*p->DXN[IP]*p->DYN[JP]);
+            Gm=uim*V_w_m(i,j,k)/(uim*p->dt*p->DXN[IP]*p->DYN[JP]);
+        }
+        
+        if(nSweep==0)
+        {
+            vofS0(i,j,k)=(vofstep(i,j,k)-dtdxi*(Gp-Gm))/(1.0-dtdxi*(uip-uim));
+        }
+        else if(nSweep==1)
+        {
+            vofS1(i,j,k)=vofS0(i,j,k)*(1.0+dtdxi*(uip-uim))-dtdxi*(Gp-Gm);
+        }
+        else
+        {
+            vofS2(i,j,k)=vofS1(i,j,k)+vofS0(i,j,k)*dtdxi*(uip-uim)-dtdxi*(Gp-Gm);
+        }
+    }
 }
