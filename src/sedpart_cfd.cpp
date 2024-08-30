@@ -118,12 +118,13 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
     if (p->count>=p->Q43)
 	{
-
+        fill_PQ_cfd(p,a,pgc);
+        pslope.slope_cds(p,pgc,&s);
         pbedshear.taubed(p,a,pgc,&s);
+        preduce->start(p,pgc,&s);
         pgc->gcsl_start4(p,s.tau_eff,1);
         pbedshear.taucritbed(p,a,pgc,&s);
         pgc->gcsl_start4(p,s.tau_crit,1);
-        prelax.start(p,pgc,&s);
 	
         /// runtime seeding
 		if(p->Q120==1&&p->count%p->Q121==0)
@@ -140,7 +141,6 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
         /// transport
         erode(p,a);
-        fill_PQ_cfd(p,a,pgc);
         movement->move(p,*a,*pgc,PP,s,*pturb);
 		xchange=transfer(p,pgc,&PP, *movement, maxparticle);
 		removed=remove(p,&PP);
@@ -178,11 +178,13 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 /// @brief Updates the topography for the CFD solver
 void sedpart::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo* preto)
 {
+    prelax.start(p,pgc,&s);
     if(p->Q13==1)
         movement->update(p,*a,*pgc,PP);
     preto->start(p,a,pgc,a->topo);
     if(p->mpirank==0)
         cout<<"Topo: update grid..."<<endl;
+    prelax.start(p,pgc,&s);
     pvrans->sed_update(p,a,pgc);
     pflow->gcio_update(p,a,pgc);
 }

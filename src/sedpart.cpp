@@ -34,6 +34,7 @@ Author: Alexander Hanke
 #include "turbulence.h"
 #include "bedshear.h"
 #include "sediment_fdm.h"
+#include "reduction_FD.h"
 
 #include <sys/stat.h>
 #include <string>
@@ -44,11 +45,12 @@ Author: Alexander Hanke
 /// @param p control object
 /// @param pgc ghostcell object
 /// @param pturb turbulence object
-sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p), PP(10,p->S20,p->S22,true), active_box(p), active_topo(p), irand(10000), drand(irand), s(p), pbedshear(p,pturb), prelax(p)
+sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p), PP(10,p->S20,p->S22,true), active_box(p), active_topo(p), irand(10000), drand(irand), s(p), pbedshear(p,pturb), prelax(p), pslope(p)
 {
     // pvrans = new vrans_f(p,pgc);
     pvrans =  new vrans_v(p,pgc);
     movement = new sediment_particle::movement::particleStressBased_T2021(p);
+    preduce = new reduction_FD(p);
     sedpart::pturb = pturb;
 
     prec = 6;
@@ -109,7 +111,7 @@ void sedpart::deposit(lexer* p, fdm* a)
     }
 }
 
-void  sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
+void sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
 {
     movement->debug(p,*a,*pgc,PP,s);
 }
