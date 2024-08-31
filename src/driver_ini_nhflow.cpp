@@ -128,8 +128,7 @@ void driver::driver_ini_nhflow()
     pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     //pnhfmom->inidisc(p,d,pgc,pnhfsf);
     
-    SLICELOOP4
-    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
+    
     
     //sediment ini
     psed->ini_nhflow(p,d,pgc);

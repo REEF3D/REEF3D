@@ -36,8 +36,6 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     d->detadt(i,j) = 0.0;
     
     pgc->gcsl_start4(p,d->detadt,1);
-    pgc->start1V(p,d->Fx,10);
-    pgc->start2V(p,d->Fy,10);
     
     LOOP
     d->detadt(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
@@ -87,11 +85,13 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
         d->eta(i,j)= p->F72_h[qn] - p->F60;
 
 	}
+    }
+    
     
     wetdry(p,d,pgc,U,V,W,d->WL);
     
     SLICELOOP4
-    d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
+    d->WL(i,j) = MAX(p->A544,d->eta(i,j) + d->depth(i,j));
     
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
@@ -100,6 +100,7 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     pgc->gcsl_start4(p,d->WL,50);
     pgc->gcsl_start4Vint(p,p->wet,50);
     
-    }
-     
+    
+    pgc->start1V(p,d->Fx,10);
+    pgc->start2V(p,d->Fy,10);
 }
