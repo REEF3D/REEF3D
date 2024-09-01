@@ -155,6 +155,11 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     double dx, dy, dz, dV, dist, D;
     double eps_star;
     double kin;
+    
+    LOOP
+    eps0(i,j,k) = 0.0;
+    
+    pgc->start4(p,eps0,30);
 
     for (int eI = 0; eI < Ne; eI++)
     {
@@ -221,9 +226,11 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         D *= kernel_roma(dist);
                         
                         kin = pturb->kinval(i_it,j_it,k_it);
-                        eps_star = pturb->epsval(i_it,j_it,k_it) + D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
+                        eps_star = D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
+                        
+                        eps0(i_it,j_it,k_it) += eps_star;
 
-                        pturb->epsget(i_it,j_it,k_it, eps_star);
+                        
                         }
                     }
                 }
@@ -235,6 +242,11 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
             
         }
     }
+    
+    if(p->T10==2)
+    LOOP
+    if(eps0(i,j,k)>1.0e-8)
+    pturb->epsget(i,j,k,eps0(i,j,k));
     
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);

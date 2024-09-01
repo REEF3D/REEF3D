@@ -34,7 +34,7 @@ fsi_strips::fsi_strips(lexer *p, ghostcell *pgc)
     pstrip.reserve(numberStrips);
     for (int num = 0; num < numberStrips; num++)
 	{
-        pstrip.push_back(new fsi_strip(num));
+        pstrip.push_back(new fsi_strip(p,num));
     }
 }
     

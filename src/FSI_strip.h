@@ -23,6 +23,7 @@ Authors: Tobias Martin, Hans Bihs
 #include<vector>
 #include <Eigen/Dense>
 #include"beam.h"
+#include"field4.h"
 
 class lexer;
 class fdm;
@@ -43,7 +44,7 @@ public:
     
     typedef Eigen::Matrix<double,3,Eigen::Dynamic> Matrix3Xd;
 	
-    fsi_strip(int);
+    fsi_strip(lexer*,int);
 	virtual ~fsi_strip();
 	virtual void start(lexer*,fdm*,ghostcell*,double);
 	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*);
@@ -92,6 +93,7 @@ private:
     double starttime, endtime;
     
     turbulence *pturb;
+    field4 eps0;
 };
 
 #endif
