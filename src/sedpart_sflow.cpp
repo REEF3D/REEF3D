@@ -10,39 +10,26 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"particle_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "sedpart.h"
 
-void particle_f::parcount(lexer* p, fdm* a, ghostcell* pgc)
-{		
-	LOOP
-	posnum(i,j,k)=0.0;
+/// @brief SFLOW calculation function
+void sedpart::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow* pflow, slice &P, slice &Q)
+{}
 
-	
-	pgc->start4(p,posnum,1);
-		
-	// POS
-    for(n=0;n<posactive;++n)
-    if(posflag[n]>0)
-    {
-        i = p->posc_i(pos[n][0]);
-        j = p->posc_j(pos[n][1]);
-        k = p->posc_k(pos[n][2]);
+/// @brief SFLOW initialization function
+void sedpart::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
+{}
 
-    posnum(i,j,k)+=1.0;
-    }
-
-
-}
+/// @brief Updates the topography for the SFLOW solver
+void sedpart::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
+{}
