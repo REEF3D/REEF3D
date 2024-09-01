@@ -126,6 +126,16 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     if(p->j_dir==1)
     if(p->wet[Ip1Jp1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Im1Jm1]==0)
     p->deep[IJ]=0;
+    
+    
+    if(p->wet[Ip1Jp2]==0 || p->wet[Ip1Jm2]==0 || p->wet[Im1Jp2]==0 || p->wet[Im1Jm2]==0)
+    p->deep[IJ]=0;
+    
+    if(p->wet[Ip2Jp1]==0 || p->wet[Ip2Jm1]==0 || p->wet[Im2Jp1]==0 || p->wet[Im2Jm1]==0)
+    p->deep[IJ]=0;
+    
+    if(p->wet[Ip2Jp2]==0 || p->wet[Ip2Jm2]==0 || p->wet[Im2Jp2]==0 || p->wet[Im2Jm2]==0)
+    p->deep[IJ]=0;
     }
     
     SLICELOOP4
@@ -133,6 +143,9 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     p->deep[IJ]=0;
 
     pgc->gcsl_start4Vint(p,p->deep,50);
+    
+    SLICELOOP4
+    d->test2D(i,j) = p->deep[IJ];
     
 }
 
@@ -144,9 +157,9 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     {
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
-        //d->ETAs(i,j) = d->eta(i,j);
+        d->ETAs(i,j) = d->eta(i,j);
         d->ETAn(i,j) = d->eta(i,j);
-        //d->Ds(i,j) = WL(i,j);
+        d->Ds(i,j) = WL(i,j);
         d->Dn(i,j) = WL(i,j);
         d->dfx(i,j) = d->depth(i,j);
         //d->dfx(i+1,j) = d->depth(i+1,j);
@@ -156,9 +169,9 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
         {
         d->ETAs(i,j) = d->eta(i+1,j);
-        //d->ETAn(i,j) = d->eta(i+1,j);
+        d->ETAn(i,j) = d->eta(i+1,j);
         d->Ds(i,j) = WL(i+1,j);
-        //d->Dn(i,j) = WL(i+1,j);
+        d->Dn(i,j) = WL(i+1,j);
         d->dfx(i,j) = d->depth(i+1,j);
         //d->dfx(i-1,j) = d->depth(i,j);
         }
@@ -178,19 +191,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
         d->ETAs(i,j) = d->eta(i,j);
-        d->ETAn(i,j) = d->eta(i,j);
+        //d->ETAn(i,j) = d->eta(i,j);
         d->Ds(i,j) = WL(i,j);
-        d->Dn(i,j) = WL(i,j);
-        d->Dn(i-1,j) = WL(i,j);
+        //d->Dn(i,j) = WL(i,j);
+        //d->Dn(i-1,j) = WL(i,j);
         d->dfx(i,j) = d->depth(i,j);
         }
         
         else
         if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
         {
-        d->ETAs(i,j) = d->eta(i+1,j);
+        //d->ETAs(i,j) = d->eta(i+1,j);
         d->ETAn(i,j) = d->eta(i+1,j);
-        d->Ds(i,j) = WL(i+1,j);
+        //d->Ds(i,j) = WL(i+1,j);
         d->Dn(i,j) = WL(i+1,j);
         d->dfx(i,j) = d->depth(i+1,j);
         }
@@ -209,11 +222,12 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     if(p->j_dir==1)
     SLICELOOP2 
     {
+        
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
-        //d->ETAe(i,j) = d->eta(i,j);
+        d->ETAe(i,j) = d->eta(i,j);
         d->ETAw(i,j) = d->eta(i,j);
-        //d->De(i,j) = WL(i,j);
+        d->De(i,j) = WL(i,j);
         d->Dw(i,j) = WL(i,j);
         d->dfy(i,j) = d->depth(i,j);
         //d->dfy(i,j+1) = d->depth(i,j+1);
@@ -223,9 +237,9 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         if(p->wet[IJ]==0 && p->wet[IJp1]==1)
         {
         d->ETAe(i,j) = d->eta(i,j+1);
-        //d->ETAw(i,j) = d->eta(i,j+1);
+        d->ETAw(i,j) = d->eta(i,j+1);
         d->De(i,j) = WL(i,j+1);
-        //d->Dw(i,j) = WL(i,j+1);
+        d->Dw(i,j) = WL(i,j+1);
         d->dfy(i,j) = d->depth(i,j+1);
         //d->dfy(i,j-1) = d->depth(i,j);
         }
@@ -244,18 +258,18 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
         d->ETAe(i,j) = d->eta(i,j);
-        d->ETAw(i,j) = d->eta(i,j+1);
+        //d->ETAw(i,j) = d->eta(i,j+1);
         d->De(i,j) = WL(i,j);
-        d->Dw(i,j) = WL(i,j+1);
+        //d->Dw(i,j) = WL(i,j+1);
         d->dfy(i,j) = d->depth(i,j);
         }
         
         else
         if(p->wet[IJ]==0 && p->wet[IJp1]==1)
         {
-        d->ETAe(i,j) = d->eta(i,j);
+        //d->ETAe(i,j) = d->eta(i,j);
         d->ETAw(i,j) = d->eta(i,j+1);
-        d->De(i,j) = WL(i,j);
+        //d->De(i,j) = WL(i,j);
         d->Dw(i,j) = WL(i,j+1);
         d->dfy(i,j) = d->depth(i,j+1);
         }
