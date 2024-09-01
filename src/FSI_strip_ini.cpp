@@ -25,10 +25,12 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb)
 {
     if(p->mpirank==0)
     cout<<"FSI initialize"<<endl;
+    
+    pturb = ppturb;
     
 	// Initialise parameter
     double x_ini = p->Z11_x[nstrip]; // x-position of strip bottom

@@ -25,9 +25,13 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-fsi_strip::fsi_strip(int num):nstrip(num),beam(num){}
+fsi_strip::fsi_strip(int num) : nstrip(num),beam(num)
+{    
+}
     
-fsi_strip::~fsi_strip(){}
+fsi_strip::~fsi_strip()
+{
+}
 
 void fsi_strip::start(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {

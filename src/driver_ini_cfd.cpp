@@ -70,7 +70,7 @@ void driver::driver_ini_cfd()
     cout<<"driver FSI initialize"<<endl;
     
     if(p->Z10>0)
-    pfsi->initialize(p,a,pgc);
+    pfsi->initialize(p,a,pgc,pturb);
     
 	// Solid
     if(p->solidread==1)
