@@ -129,11 +129,11 @@ namespace sediment_particle
 
             double velDist=2.5;
         };
-    };
-    class state : increment
-    {
-    public:
-        int solid_clean(lexer *p, particles_obj &, sediment_particle::movement::base &);
+
+        class doi10_1002_wrcr_20303 : public base, increment
+        {
+            void move();
+        };
     };
 };
 
