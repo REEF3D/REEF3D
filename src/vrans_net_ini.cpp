@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"vrans_net.h"
@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void vrans_net::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void vrans_net::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Disable common porosity
 	ALOOP

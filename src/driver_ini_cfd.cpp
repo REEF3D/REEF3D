@@ -80,7 +80,7 @@ void driver::driver_ini_cfd()
     }
     
     // VRANS ini
-    pvrans->initialize(p,a,pgc);
+    pvrans->initialize_cfd(p,a,pgc);
     
     // Geotopo
     if(p->toporead>0)

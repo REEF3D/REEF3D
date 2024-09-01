@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"FSI_strips.h"
@@ -63,8 +64,8 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T0: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T0: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
 
@@ -73,8 +74,8 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T1: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T1: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
 
@@ -83,8 +84,8 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T2: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T2: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
 
@@ -93,8 +94,8 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T3: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T3: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
         
@@ -103,8 +104,8 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T4: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T4: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
         
@@ -113,8 +114,8 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T5: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T5: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
 
@@ -123,8 +124,8 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T6: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T6: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
 
@@ -137,8 +138,8 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
         
         endtime=pgc->timer();
         
-        if(p->mpirank==0)
-        cout<<"T2: "<<endtime-starttime<<endl;
+        //if(p->mpirank==0)
+        //cout<<"T2: "<<endtime-starttime<<endl;
         
         starttime=pgc->timer();
     }

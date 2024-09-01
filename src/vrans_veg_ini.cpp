@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void vrans_veg::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int qn;
     double zmin,zmax,slope;
