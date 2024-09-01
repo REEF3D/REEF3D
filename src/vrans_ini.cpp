@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int qn;
     double zmin,zmax,slope;
@@ -129,8 +129,8 @@ void vrans_f::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		&& p->pos_y()>=ys && p->pos_y()<ye
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B282_ys[qn])+p->B282_zs[qn] )
 		{
-		a->porosity(i,j,k)=p->B282_n[qn];
-		a->porpart(i,j,k) =p->B282_d50[qn];
+		a->porosity(i,j,k) = p->B282_n[qn];
+		a->porpart(i,j,k) = p->B282_d50[qn];
 		alpha(i,j,k) = p->B282_alpha[qn];
 		beta(i,j,k) = p->B282_beta[qn];
 		}

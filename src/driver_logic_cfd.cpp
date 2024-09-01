@@ -578,14 +578,17 @@ void driver::logic_cfd()
 	pdata = new data_f(p,a,pgc);
 
 // Sediment
-    if(p->S10==0)
-    psed = new sediment_void();
-
     if(p->S10>0)
-    psed = new sediment_f(p,a,pgc,pturb,pBC);
+    {
+		if(p->Q10==2)
+			psed = new sedpart(p,pgc,pturb);
+		else
+			psed = new sediment_f(p,a,pgc,pturb,pBC);
+	}
+	else
+	psed = new sediment_void();
 
-
-    if(p->S10>=1 || p->G1==1 || p->toporead==1)
+    if(p->S10>0 || p->G1==1 || p->toporead==1)
     {
     if(p->G40==0)
     preto = new reinitopo_void();
@@ -618,11 +621,10 @@ void driver::logic_cfd()
     pfsi = new fsi_strips(p,pgc);
 
 // Partciles
-    if(p->Q10==0)
-    ppart = new particle_v();
-	
     if(p->Q10==1)
     ppart = new particle_f(p,a,pgc);
+	else
+    ppart = new particle_v();
 
 // Velocities
 	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->N40==4))

@@ -218,7 +218,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		}
 
         // Print BED
-        if(p->count==0)
+        if(p->count==0 && p->S10==0)
 		pbed->start(p,d,pgc,psed);
 
 

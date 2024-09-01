@@ -37,7 +37,7 @@ void vrans_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void vrans_v::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void vrans_v::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 

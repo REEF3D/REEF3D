@@ -210,10 +210,12 @@ void vtr3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	pmean->averaging(p,a,pgc,pheat);
 
 	// Print out based on iteration
-	if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
-	{
-	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
-	}
+	if(p->Q180!=2)
+		if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
+			print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+	else
+		if((p->count%p->Q181==0 && p->count>=p->Q182) || p->count==0)
+			print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
 	// Print out based on time
 	if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==2) || (p->count==0 &&  p->P30>0.0))
@@ -585,7 +587,14 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
-	
+
+    offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+
 	// end scalars
 	//---------------------------------------------
 
@@ -717,13 +726,19 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result<<"</PointData>"<<endl;
 
 	result<<"<CellData>"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"topoSum\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"bedChange\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	result<<"<DataArray type=\"Float32\" Name=\"erosion/deposition\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
 	result<<"</CellData>"<<endl;
     result<<"<Coordinates>"<<endl;
 	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
-	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"Y\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
-	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"Z\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
 	result<<"</Coordinates>"<<endl<<"</Piece>"<<endl<<"</RectilinearGrid>"<<endl;
 
@@ -943,6 +958,29 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	ffn=float(p->ipol4_a(a->walld));
 	result.write((char*)&ffn, sizeof (float));
 	}
+	}
+
+    // debugOutput for sedPart
+    iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->test(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->fb(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->vof(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
 	}
 
 	// Coordinates

@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"field1.h"
@@ -28,6 +28,7 @@ Author: Tobias Martin
 class lexer;
 class fdm;
 class ghostcell;
+class turbulence;
 
 using namespace std;
 
@@ -39,7 +40,7 @@ class fsi
 public:
 
 	virtual void start(lexer*,fdm*,ghostcell*)=0;
-	virtual void initialize(lexer*,fdm*,ghostcell*)=0;
+	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*)=0;
     virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool)=0;
 };
 

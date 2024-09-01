@@ -24,6 +24,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"turbulence.h"
 
 void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, field& vvel, field& wvel)
 {
@@ -152,6 +153,8 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
 {
     int ii, jj, kk;
     double dx, dy, dz, dV, dist, D;
+    double eps_star;
+    double kin;
 
     for (int eI = 0; eI < Ne; eI++)
     {
@@ -205,9 +208,31 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         D *= kernel_roma(dist);
                         
                         fz(i_it,j_it,k_it) += forceI(2)*D*dV/(dx*dy*dz);
+                        
+                        
+                        // RANS turbulence forcing
+                        if(p->T10==2)
+                        {
+                        dist = (p->XP[i_it + marge] - coordI(0))/dx;
+                        D = kernel_roma(dist);
+                        dist = (p->YP[j_it + marge] - coordI(1))/dy;
+                        D *= kernel_roma(dist);
+                        dist = (p->ZN[k_it + marge] - coordI(2))/dz;
+                        D *= kernel_roma(dist);
+                        
+                        kin = pturb->kinval(i_it,j_it,k_it);
+                        eps_star = pturb->epsval(i_it,j_it,k_it) + D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
+
+                        pturb->epsget(i_it,j_it,k_it, eps_star);
+                        }
                     }
                 }
             }
+            
+            
+            
+        
+            
         }
     }
     

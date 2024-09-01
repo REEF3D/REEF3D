@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<vector>
@@ -28,6 +28,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class field;
+class turbulence;
 
 using namespace std;
 
@@ -45,7 +46,7 @@ public:
     fsi_strip(int);
 	virtual ~fsi_strip();
 	virtual void start(lexer*,fdm*,ghostcell*,double);
-	virtual void initialize(lexer*,fdm*,ghostcell*);
+	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*);
     
     void interpolate_vel(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void update_points();
@@ -89,6 +90,8 @@ private:
     Matrix3Xd tri_x, tri_y, tri_z;
     
     double starttime, endtime;
+    
+    turbulence *pturb;
 };
 
 #endif

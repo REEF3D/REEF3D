@@ -98,8 +98,12 @@ double rans_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, 
 double rans_io::kinval(int ii, int jj, int kk)
 {
     double val;
+    
+    i=ii;
+    j=jj;
+    k=kk;
 
-    val=kin(ii,jj,kk);
+    val=kin(i,j,k);
 
     return val;
 }
@@ -107,8 +111,12 @@ double rans_io::kinval(int ii, int jj, int kk)
 double rans_io::epsval(int ii, int jj, int kk)
 {
     double val;
+    
+    i=ii;
+    j=jj;
+    k=kk;
 
-    val=eps(ii,jj,kk);
+    val=eps(i,j,k);
 
     return val;
 }

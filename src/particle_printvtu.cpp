@@ -25,38 +25,41 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void particle_f::print_particles(lexer* p, fdm* a, ghostcell* pgc)
+void particle_f::print_particles(lexer *p)
 {
     if(((p->count%p->Q181==0 && p->Q182<0.0 && p->Q180==1 )|| (p->count==0 &&  p->Q182<0.0 && p->Q180==1)) && p->Q181>0)
 	{
-    print_vtu(p,a,pgc,pos,posflag,posactive,1);
+    print_vtp(p);
 	++printcount;
 	}
     
-    if((p->simtime>p->fsfprinttime && p->Q182>0.0 && p->Q180==1) || (p->count==0 &&  p->Q182>0.0))
+    if((p->simtime>p->partprinttime && p->Q182>0.0 && p->Q180==1) || (p->count==0 &&  p->Q182>0.0))
     {
-    print_vtu(p,a,pgc,pos,posflag,posactive,1);
+    print_vtp(p);
     p->partprinttime+=p->Q182;
     }
     
 }
 
-void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,int active, int sign)
+void particle_f::print_vtp(lexer *p)
 {
+    cout<<"PACTIVE-"<<p->mpirank<<": "<<PP.size<<endl;
+
 	int numpt=0;
+	const int print_flag=p->Q183;
+	if(print_flag==0)
+		numpt=PP.size;
+	else
+		PARTLOOP
+			if(PP.Flag[n]>print_flag)
+				numpt++;
 	int count;
 	
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	++numpt;
-	
-    cout<<"PACTIVE-"<<p->mpirank<<": "<<numpt<<" "<<active<<endl;
-	
 	if(p->mpirank==0)
-	pvtu_pos(a,p,pgc);
+	pvtp(p);
 
 
-    header_pos(a,p,pgc);
+    header(p);
 
 	ofstream result;
 	result.open(name, ios::binary);
@@ -66,125 +69,57 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	offset[n]=0;
 	++n;
 	
-	offset[n]=offset[n-1]+4*(numpt)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(numpt)+4;
-	++n;	
-	offset[n]=offset[n-1]+4*(numpt)+4;
-	++n;	
-	
 	// end scalars
-    offset[n]=offset[n-1]+4*(numpt)*3+4;
+    offset[n]=offset[n-1]+4*(numpt)*3+4; //xyz
     ++n;
-    offset[n]=offset[n-1]+4*(numpt)*2+4;
+    offset[n]=offset[n-1]+4*(numpt)*2+4; //connectivitey
     ++n;
-	offset[n]=offset[n-1]+4*(numpt)+4;
-    ++n;
-	offset[n]=offset[n-1]+4*(numpt)+4;
+	offset[n]=offset[n-1]+4*(numpt)+4; //offset connectivity
     ++n;
 
 	//---------------------------------------------
 	n=0;
 	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfCells=\""<<numpt<<"\">"<<endl;
+	result<<"<VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"LittleEndian\">"<<endl;
+	result<<"<PolyData>"<<endl;
+	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfVerts=\""<<numpt<<"\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">"<<endl;
 	
-	
-	result<<"<PointData >"<<endl;
-	result<<"<DataArray type=\"Float32\" Name=\"phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"radius\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"correction\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"</PointData>"<<endl;
-	
-	
+	result<<"<FieldData>"<<endl;
+	result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+    result<<"</DataArray>"<<endl;
+	result<<"</FieldData>"<<endl;
 
     result<<"<Points>"<<endl;
     result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"</Points>"<<endl;
 	
-	
-
-    result<<"<Cells>"<<endl;
+    result<<"<Verts>"<<endl;
 	result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
 	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"</Cells>"<<endl;
+	result<<"</Verts>"<<endl;
 
     result<<"</Piece>"<<endl;
-    result<<"</UnstructuredGrid>"<<endl;
+    result<<"</PolyData>"<<endl;
 
 //----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
-	
-
-//  lsv
-    iin=4*(numpt);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	{
-	ffn=float(f[n][3]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-	
-//  radius
-    iin=4*(numpt);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	{
-	ffn=float(f[n][4]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  correction
-    iin=4*(numpt);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	{
-		if(sign==1)
-		{
-		if(f[n][3]<=-f[n][4])
-		ffn=float(1.0);
-		
-		if(f[n][3]>-f[n][4])
-		ffn=float(0.0);
-		}
-		
-		if(sign==2)
-		{
-		if(f[n][3]>=f[n][4])
-		ffn=float(1.0);
-		
-		if(f[n][3]<f[n][4])
-		ffn=float(0.0);
-		}
-		
-	result.write((char*)&ffn, sizeof (float));
-	}
 
 //  XYZ
 	iin=4*(numpt)*3;
 	result.write((char*)&iin, sizeof (int));
-    for(n=0;n<active;++n)
-    if(flag[n]>0)
+    PARTLOOP
+    if(PP.Flag[n]>print_flag)
 	{
-	ffn=float(f[n][0]);
+	ffn=float(PP.X[n]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(f[n][1]);
+	ffn=float(PP.Y[n]);
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(f[n][2]);
+	ffn=float(PP.Z[n]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -192,8 +127,8 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	count=0;
     iin=4*(numpt)*2;
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-	if(flag[n]>0)
+	PARTLOOP
+	if(PP.Flag[n]>print_flag)
 	{
 	iin=int(0);
 	result.write((char*)&iin, sizeof (int));
@@ -207,28 +142,17 @@ void particle_f::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag
 	count=0;
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
+	PARTLOOP
+    if(PP.Flag[n]>print_flag)
 	{
 	iin=(count+1)*2;
 	result.write((char*)&iin, sizeof (int));
 	++count;
 	}
 
-
-//  Cell types
-    iin=4*(numpt);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	{
-	iin=1;
-	result.write((char*)&iin, sizeof (int));
-	}
-
 	result<<endl<<"</AppendedData>"<<endl;
     result<<"</VTKFile>"<<endl;
 
 	result.close();
-}
+	}
 

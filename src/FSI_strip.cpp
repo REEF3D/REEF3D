@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"FSI_strip.h"
@@ -24,9 +25,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-fsi_strip::fsi_strip(int num):nstrip(num),beam(num){}
+fsi_strip::fsi_strip(int num) : nstrip(num),beam(num)
+{    
+}
     
-fsi_strip::~fsi_strip(){}
+fsi_strip::~fsi_strip()
+{
+}
 
 void fsi_strip::start(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {

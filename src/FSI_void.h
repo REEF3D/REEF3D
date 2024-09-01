@@ -17,14 +17,10 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"FSI.h"
-
-class lexer;
-class fdm;
-class ghostcell;
 
 using namespace std;
 
@@ -37,7 +33,7 @@ public:
 	fsi_void(lexer*,ghostcell*){};
 	virtual ~fsi_void(){};
 	virtual void start(lexer*,fdm*,ghostcell*){};
-	virtual void initialize(lexer*,fdm*,ghostcell*){};
+	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*){};
     virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool){};
     
 private:
