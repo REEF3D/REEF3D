@@ -99,6 +99,16 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     
     pgc->gcsl_start4(p,d->bed,50);
     
+    for(int qn=0; qn<p->A509;++qn)
+    {
+	SLICELOOP4
+	d->bed(i,j) = 0.5*d->bed(i,j) + 0.125*(d->bed(i-1,j) +d->bed(i+1,j) +d->bed(i,j-1) +d->bed(i,j+1) );
+    
+    pgc->gcsl_start4(p,d->bed,50);
+    }
+    
+    pgc->gcsl_start4(p,d->bed,50);
+    
     SLICELOOP4
 	d->depth(i,j) = p->wd - d->bed(i,j);
     

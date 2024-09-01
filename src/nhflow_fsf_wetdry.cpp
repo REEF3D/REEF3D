@@ -186,38 +186,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->ETAn(i,j) = d->eta(i+1,j);
         d->Dn(i,j) = WL(i+1,j);
         }
-        
-        
-        /*
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        d->ETAs(i,j) = d->eta(i,j);
-        //d->ETAn(i,j) = d->eta(i,j);
-        d->Ds(i,j) = WL(i,j);
-        //d->Dn(i,j) = WL(i,j);
-        //d->Dn(i-1,j) = WL(i,j);
-        d->dfx(i,j) = d->depth(i,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
-        {
-        //d->ETAs(i,j) = d->eta(i+1,j);
-        d->ETAn(i,j) = d->eta(i+1,j);
-        //d->Ds(i,j) = WL(i+1,j);
-        d->Dn(i,j) = WL(i+1,j);
-        d->dfx(i,j) = d->depth(i+1,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[Ip1J]==0) 
-        {
-        d->ETAs(i,j) = d->eta(i,j);
-        d->Ds(i,j) = WL(i,j);
-        
-        d->ETAn(i,j) = d->eta(i+1,j);
-        d->Dn(i,j) = WL(i+1,j);
-        }*/
     }
     
     if(p->j_dir==1)
@@ -254,36 +222,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->ETAw(i,j) = d->eta(i,j+1);
         d->Dw(i,j) = WL(i,j+1);
         }
-        
-        /*
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        d->ETAe(i,j) = d->eta(i,j);
-        //d->ETAw(i,j) = d->eta(i,j+1);
-        d->De(i,j) = WL(i,j);
-        //d->Dw(i,j) = WL(i,j+1);
-        d->dfy(i,j) = d->depth(i,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[IJp1]==1)
-        {
-        //d->ETAe(i,j) = d->eta(i,j);
-        d->ETAw(i,j) = d->eta(i,j+1);
-        //d->De(i,j) = WL(i,j);
-        d->Dw(i,j) = WL(i,j+1);
-        d->dfy(i,j) = d->depth(i,j+1);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[IJp1]==0)
-        {
-        d->ETAe(i,j) = d->eta(i,j);
-        d->De(i,j) = WL(i,j);
-        
-        d->ETAw(i,j) = d->eta(i,j+1);
-        d->Dw(i,j) = WL(i,j+1);
-        }*/
     }
     
     // U,UH

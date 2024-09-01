@@ -197,14 +197,9 @@ void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double 
 	LOOP
     WETDRYDEEP
     {
-    dPdx=0.0;
-    
-    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
-    dPdx = (0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK])-0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
-    
 	UH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*WL(i,j)*(1.0/p->W1)*
     
-                (dPdx
+                ((0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK])-0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1])
                 
                 + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((PCORR[FIJKp1]-PCORR[FIJK])/p->DZN[KP]));
     }
@@ -216,14 +211,9 @@ void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double 
     LOOP
     WETDRYDEEP
     {
-    dPdy = 0.0;
-    
-    if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
-    dPdy = (0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K])-0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
-    
     VH[IJK] -= alpha*p->dt*CPORNH*PORVALNH*WL(i,j)*(1.0/p->W1)*
     
-                (dPdy
+                ((0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K])-0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1])
                 
                 + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((PCORR[FIJKp1]-PCORR[FIJK])/p->DZN[KP]));
     }
@@ -246,9 +236,6 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     LOOP
     WETDRYDEEP
     {
-    dPdx=0.0;
-    
-    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
     dPdx = (0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
     
     d->F[IJK] -= PORVALNH*(1.0/p->W1)*WL(i,j)*
@@ -269,9 +256,6 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     LOOP
     WETDRYDEEP
     {
-    dPdy = 0.0;
-    
-    if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
     dPdy = (0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
     
 	d->G[IJK] -= PORVALNH*(1.0/p->W1)*WL(i,j)*

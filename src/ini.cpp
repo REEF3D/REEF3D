@@ -99,6 +99,7 @@ void lexer::ini_default()
     A440=1.6;    // double epsi for depth integration
     
     A501=1;      // int nhf mode
+    A509=1;      // int interpolation sweeps for bed
     A510=2;      // int NFHLOW time scheme
     A511=1;		// int NHFLOW HLL scheme
     A512=0;		// int NHFLOW diffusion

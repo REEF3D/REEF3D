@@ -56,7 +56,6 @@ void nhflow_fsf_f::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->detadt,1);
     
     wetdry(p,d,pgc,U,V,W,WLRK1);
-    //breaking(p,d,pgc,etark1,d->eta,1.0);
 }
 
 void nhflow_fsf_f::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
@@ -85,7 +84,6 @@ void nhflow_fsf_f::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->detadt,1);
     
     wetdry(p,d,pgc,U,V,W,WLRK2);
-    //breaking(p,d,pgc,etark2,etark1,0.25);
 }
 
 void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
@@ -118,7 +116,6 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->detadt,1);
 
     wetdry(p,d,pgc,U,V,W,d->WL);
-    //breaking(p,d,pgc,d->eta,etark2,2.0/3.0);
 }
 
 
