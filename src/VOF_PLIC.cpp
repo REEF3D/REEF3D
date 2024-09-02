@@ -44,7 +44,7 @@ VOF_PLIC::VOF_PLIC
     fdm *a,
     ghostcell* pgc,
     heat *pheat
-):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p),vof_old(p),V_w_update(p),V_a_update(p),phival(p),Watersafe(p),V_w_p_star(p),V_w_m_star(p),vof_prevstep(p),V_w_old(p),V_a_old(p),V_w_p(p),V_w_m(p),FX_p(p),FX_m(p),FZ_p(p),FZ_m(p),alphastore(p),nxstore(p),nystore(p),nzstore(p),phistep(p),phiS0(p),phiS1(p),phiS2(p),vofstep(p),vofS0(p),vofS1(p),vofS2(p)
+):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p),vof_old(p),V_w_update(p),V_a_update(p),phival(p),Watersafe(p),V_w_p_star(p),V_w_m_star(p),vof_prevstep(p),V_w_old(p),V_a_old(p),V_w_p(p),V_w_m(p),FX_p(p),FX_m(p),FZ_p(p),FZ_m(p),alphastore(p),nxstore(p),nystore(p),nzstore(p),phistep(p),phiS0(p),phiS1(p),phiS2(p),vofstep(p),vofS0(p),vofS1(p),vofS2(p),phiaux(p)
 {
     if(p->F50==1)
     gcval_frac=71;
@@ -66,12 +66,6 @@ VOF_PLIC::VOF_PLIC
 
     sSweep = -1;
     
-    
-    LOOP
-    {
-        vof_old(i,j,k)=a->vof(i,j,k);
-        vof_prevstep(i,j,k)=a->vof(i,j,k);
-    }
     ininorVecLS(p);
     
     S_S[0][0]=0;
@@ -92,6 +86,11 @@ VOF_PLIC::VOF_PLIC
     S_S[5][0]=1;
     S_S[5][1]=2;
     S_S[5][1]=0;
+    
+    S_2D[0][0]=0;
+    S_2D[0][1]=2;
+    S_2D[1][0]=2;
+    S_2D[1][1]=0;
 }
 
 VOF_PLIC::~VOF_PLIC()
@@ -129,7 +128,6 @@ void VOF_PLIC::start_old
     }
 
     double Q1, Q2;
-
     // x-sweep (0), y-sweep (1), z-sweep (2)
     for (int nSweep = 0; nSweep < 3; nSweep++)
     {
@@ -250,110 +248,283 @@ void VOF_PLIC::start
 {
     
     pflow->fsfinflow(p,a,pgc);
-    
-    reini_->start(a,p,a->phi,pgc,pflow);
-    reini_->start(a,p,a->phi,pgc,pflow);
-    reini_->start(a,p,a->phi,pgc,pflow);
+    pgc->start4(p,a->phi,1);
+    if(p->count<=10)
+    {
+        reini_->start(a,p,a->phi,pgc,pflow);
+        reini_->start(a,p,a->phi,pgc,pflow);
+        reini_->start(a,p,a->phi,pgc,pflow);
+    }
 
     starttime=pgc->timer();
+    cout<<"jdir:"<<p->j_dir<<endl;
     
-    if(sSweep<6)
-        sSweep++;
+    if(p->j_dir>0)
+    {
+        if(sSweep<5)
+            sSweep++;
+        else
+            sSweep=0;
+    }
     else
-        sSweep=0;
+    {
+        if(sSweep<1)
+            sSweep++;
+        else
+            sSweep=0;
+    }
     
     int sweep;
-    for(int nSweep=0 ; nSweep<3; nSweep++)
+    int Sweepdim;
+    
+    if(p->j_dir>0)
+        Sweepdim=3;
+    else
+        Sweepdim=2;
+    for(int nSweep=0 ; nSweep<Sweepdim; nSweep++)
     {
         LOOP
         {
             V_w_m(i,j,k)=0.0;
             V_w_p(i,j,k)=0.0;
         }
+        pgc->start4(p,V_w_m,gcval_frac);
+        pgc->start4(p,V_w_p,gcval_frac);
         
-        sweep=S_S[sSweep][nSweep];
+        if(p->j_dir>0)
+            sweep=S_S[sSweep][nSweep];
+        else
+            sweep=S_2D[sSweep][nSweep];
+        
         if(nSweep==0)
         {
+            pgc->start4(p,a->phi,1);
+            pgc->start4(p,a->vof,1;
             LOOP
             {
                 phistep(i,j,k)=a->phi(i,j,k);
                 vofstep(i,j,k)=a->vof(i,j,k);
             }
+            pgc->start4(p,phistep,1);
+            pgc->start4(p,vofstep,1);
         }
         else if(nSweep==1)
         {
+            pgc->start4(p,phiS0,1);
+            pgc->start4(p,vofS0,1);
             LOOP
+            {
                 phistep(i,j,k)=phiS0(i,j,k);
                 vofstep(i,j,k)=vofS0(i,j,k);
+            }
+            pgc->start4(p,phistep,1);
+            pgc->start4(p,vofstep,1);
         }
         else
         {
+            pgc->start4(p,phiS1,1);
+            pgc->start4(p,vofS1,1);
             LOOP
+            {
                 phistep(i,j,k)=phiS1(i,j,k);
                 vofstep(i,j,k)=vofS1(i,j,k);
+            }
+            pgc->start4(p,phistep,1);
+            pgc->start4(p,vofstep,1;
         }
+        
+        pgc->start4(p,a->u,gcval_frac);
+        pgc->start4(p,a->v,gcval_frac);
+        pgc->start4(p,a->w,gcval_frac);
+            
         
         LOOP
         {
             transportPhi_Bonn(a,p,nSweep,sweep);
+            
             bool bordercheck=false;
-            for(int isearch=-1; isearch<2; isearch++)
+            
+            if(p->j_dir>0)
             {
-                for(int jsearch=-1; jsearch<2; jsearch++)
+                for(int isearch=-1; isearch<2; isearch++)
                 {
-                    for(int ksearch=-1; ksearch<2; ksearch++)
+                    for(int jsearch=-1; jsearch<2; jsearch++)
                     {
-                        if(phistep(i,j,k)*phistep(i+isearch,j+jsearch,k+ksearch)<0.0)
-                            bordercheck=true;
+                        for(int ksearch=-1; ksearch<2; ksearch++)
+                        {
+                            if(phistep(i,j,k)*phistep(i+isearch,j+jsearch,k+ksearch)<0.0)
+                                bordercheck=true;
+                        }
                     }
                 }
             }
-            if((vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999) && ( (phistep(i,j,k)<1E-6 && phistep(i,j,k)>-1E-6) || bordercheck))
+            
+            else
             {
-                reconstructPlane_alt(a,p);
+                for(int isearch=-1; isearch<2; isearch++)
+                {
+                    for(int ksearch=-1; ksearch<2; ksearch++)
+                    {
+                        if(phistep(i,j,k)*phistep(i+isearch,j,k+ksearch)<0.0)
+                                bordercheck=true;
+                    }
+                }
+            }
+            if((vofstep(i,j,k)>1E-6 && vofstep(i,j,k)<1.0-1E-6) && ( (phistep(i,j,k)<1E-6 && phistep(i,j,k)>-1E-6) || bordercheck))
+            {
+                reconstructPlane_alt(a,p,vofstep(i,j,k));
                 advectPlane_forBonnScheme(a,p,sweep);
             }
-            else if(a->vof(i,j,k)>0.1)
+            else if(a->vof(i,j,k)>0.5)
                 advectWater_forBonnScheme(a,p,sweep);
+            
+            if(V_w_p(i,j,k) != V_w_p(i,j,k))
+                cout<<"V_w_p wrong:"<< V_w_p(i,j,k)<<" in sweep:"<<sweep<<endl;
+            if(V_w_m(i,j,k) != V_w_m(i,j,k))
+                cout<<"V_w_m wrong:"<< V_w_m(i,j,k)<<" in sweep:"<<sweep<<endl;
+            if(vofstep(i,j,k) !=vofstep(i,j,k))
+                cout<<"vof wrong:"<< vofstep(i,j,k)<<" in sweep:"<<sweep<<endl;
+
         }
+        
+        pgc->start4(p,nx,1);
+        pgc->start4(p,ny,1);
+        pgc->start4(p,nz,1);
+        pgc->start4(p,alpha,1;
+        pgc->start4(p,V_w_m,1);
+        pgc->start4(p,V_w_p,1);
+        pgc->start4(p,phiS1,1);
+        pgc->start4(p,vofS1,1);
+        pgc->start4(p,phiS0,1);
+        pgc->start4(p,vofS0,1);
         
         transportVOF_Bonn(a,p,nSweep,sweep);
         
+        pgc->start4(p,phiS1,1);
+        pgc->start4(p,vofS1,1);
+        pgc->start4(p,phiS0,1);
+        pgc->start4(p,vofS0,1);
+        
+        if(p->j_dir>0)
+        {
+             if(nSweep==2)
+             {
+                 pgc->start4(p,phiS2,1);
+                 pgc->start4(p,vofS2,1);
+                 LOOP
+                 {
+                     phistep(i,j,k)=phiS2(i,j,k);
+                     vofstep(i,j,k)=vofS2(i,j,k);
+                 }
+                 pgc->start4(p,phistep,1);
+                 pgc->start4(p,vofstep,1);
+             }
+        }
+        else
+        {
+            if(nSweep==1)
+            {
+                pgc->start4(p,phiS1,1);
+                pgc->start4(p,vofS1,1);
+                LOOP
+                {
+                    phistep(i,j,k)=phiS1(i,j,k);
+                    vofstep(i,j,k)=vofS1(i,j,k);
+                }
+                pgc->start4(p,phistep,1);
+                pgc->start4(p,vofstep,1);
+            }
+        }
     }
     
+    pgc->start4(p,phistep,1);
+    pgc->start4(p,vofstep,1);
     
     LOOP
     {
-        if(phiS2(i,j,k)<-p->psi || vofS2(i,j,k)<0.0)
-            vofS2(i,j,k)=0.0;
-        else if(phiS2(i,j,k)>p->psi || vofS2(i,j,k)>1.0)
-            vofS2(i,j,k)=1.0;
+        if(phistep(i,j,k)<-p->psi || vofstep(i,j,k)<0.0)
+            vofstep(i,j,k)=0.0;
+        else if(phistep(i,j,k)>p->psi || vofstep(i,j,k)>1.0)
+            vofstep(i,j,k)=1.0;
             
-        if(vofS2(i,j,k)>0.0 && vofS2(i,j,k)<1.0)
-            reconstructPlane_alt(a,p);
+        if(vofstep(i,j,k)>0.0 && vofstep(i,j,k)<1.0)
+            reconstructPlane_alt(a,p,vofstep(i,j,k));
         else
         {
             nx(i,j,k)=2.0;
-            ny(i,j,k)=2.0;
+            ny(i,j,k)=0.0;
             nz(i,j,k)=2.0;
             alpha(i,j,k)=1E06;
         }
         
         phiaux(i,j,k)=1E05;
+        a->vof(i,j,k)=vofstep(i,j,k);
     }
+    pgc->start4(p,nx,1);
+    pgc->start4(p,ny,1);
+    pgc->start4(p,nz,1);
+    pgc->start4(p,alpha,1);
+    pgc->start4(p,phiaux,1);
+    pgc->start4(p,vofstep,1);
+    pgc->start4(p,a->vof,1);
+    if(p->j_dir>0)
+    {
+        LOOP
+        {   
+            bool bordercheck=false;
+            
+            if(p->j_dir>0)
+            {
+                for(int isearch=-1; isearch<2; isearch++)
+                {
+                    for(int jsearch=-1; jsearch<2; jsearch++)
+                    {
+                        for(int ksearch=-1; ksearch<2; ksearch++)
+                        {
+                            if(phistep(i,j,k)*phistep(i+isearch,j+jsearch,k+ksearch)<0.0)
+                                bordercheck=true;
+                        }
+                    }
+                }
+            }
+            
+            else
+            {
+                for(int isearch=-1; isearch<2; isearch++)
+                {
+                    for(int ksearch=-1; ksearch<2; ksearch++)
+                    {
+                        if(phistep(i,j,k)*phistep(i+isearch,j,k+ksearch)<0.0)
+                                bordercheck=true;
+                    }
+                }
+            }
+            
+            if((vofstep(i,j,k)>1E-6 && vofstep(i,j,k)<1.0-1E-6)))
+            {
+                if(p->j_dir>0)
+                    redistancePhiByPlane_Bonn(a,p);
+                else
+                    redistancePhiByPlane2D_Bonn(a,p);
+            }
+        }
+    }
+    
+    
+    pgc->start4(p,phiaux,1);
     
     LOOP
     {
-        if(vofS2(i,j,k)>0.0 && vofS2(i,j,k)<1.0)
-        {
-            redistancePhiByPlane_Bonn(a,p);
-        }
+        if(phiaux(i,j,k)<1E02)
+            a->phi(i,j,k)=phiaux(i,j,k);
+        else
+            a->phi(i,j,k)=phistep(i,j,k);
     }
-  
-  
     
-    pgc->start4(p,a->phi,50);
-    } */
+    pgc->start4(p,a->phi,1);
+    
+    reini_->start(a,p,a->phi,pgc,pflow);
+
     pupdate->start(p,a,pgc);
    
 }
@@ -395,7 +566,7 @@ void VOF_PLIC::start_work
             
         if((vof_old(i,j,k)<=0.999) && (vof_old(i,j,k)>=0.001))
         {
-            reconstructPlane_alt(a, p);
+            reconstructPlane_alt(a, p,vof_old(i,j,k));
             advectPlane_sweepless(a, p);
         }
         else if(vof_old(i,j,k)>0.999)

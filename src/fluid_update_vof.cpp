@@ -51,16 +51,16 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
             if(fabs(phival)<=p->psi)
                 H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
          
-            if(a->vof(i,j,k)>=0.5)
+         /*   if(a->vof(i,j,k)>=0.5)
             {
                 a->ro(i,j,k)=ro_water;
             }
             else
             {
                 a->ro(i,j,k)=ro_air;
-            }             
+            } */            
             
-          //  a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
+            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
            
             
 

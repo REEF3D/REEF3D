@@ -35,9 +35,9 @@ Author: Fabian Knoblauch
 #include"weno_hj.h"
 #include"hric.h"
 
-void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p)
+void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p,double V0)
 {
-    double n_1, n_2, n_3, V0, V,r0, r, n_a, n_b, n_c;
+    double n_1, n_2, n_3, V,r0, r, n_a, n_b, n_c;
     
     //get the normal vector
     simpleNormal_Bonn(a,p);
@@ -90,7 +90,6 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p)
     }
     
     //reduced symmetry transformation
-    V0=a->vof(i,j,k);
     V=0.5-fabs(V0-0.5);
     
     if(n_1+n_2<=2.0*V*n_3)   //case 5

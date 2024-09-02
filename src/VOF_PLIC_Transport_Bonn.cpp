@@ -43,7 +43,7 @@ void VOF_PLIC::transportPhi_Bonn
     int sweep
 )
 {
-    double Gp, Gm, uip, uim, dtdxi,
+    double Gp, Gm, uip, uim, dtdxi;
     if(sweep==0)
     {
         uip=a->u(i,j,k);
@@ -93,10 +93,8 @@ void VOF_PLIC::transportPhi_Bonn
     
     if(nSweep==0)
         phiS0(i,j,k)=(a->phi(i,j,k)-dtdxi*(Gp-Gm))/(1.0-dtdxi*(uip-uim));
-        
     else if(nSweep==1)
         phiS1(i,j,k)=phiS0(i,j,k)*(1.0+dtdxi*(uip-uim))-dtdxi*(Gp-Gm);
-    
     else
         phiS2(i,j,k)=phiS1(i,j,k)+phiS0(i,j,k)*dtdxi*(uip-uim)-dtdxi*(Gp-Gm);
 }
@@ -109,7 +107,7 @@ void VOF_PLIC::transportVOF_Bonn
     int sweep
 )
 {
-    double Gp, Gm, uip, uim, dtdxi,
+    double Gp, Gm, uip, uim, dtdxi;
     LOOP
     {
         if(sweep==0)
@@ -118,24 +116,25 @@ void VOF_PLIC::transportVOF_Bonn
             uip=a->u(i,j,k);
             uim=a->u(i-1,j,k);
             dtdxi=p->dt/p->DXN[IP];
-            Gp=uip*V_w_p(i,j,k)/(uip*p->dt*p->DYN[JP]*p->DZN[KP]);
-            Gm=uim*V_w_m(i,j,k)/(uim*p->dt*p->DYN[JP]*p->DZN[KP]);
+            Gp=V_w_p(i,j,k)/(p->DYN[JP]*p->DZN[KP]);
+            Gm=V_w_m(i,j,k)/(p->dt*p->DYN[JP]*p->DZN[KP]);
         }
         else if(sweep==1)
         {
             uip=a->v(i,j,k);
             uim=a->v(i,j-1,k);
             dtdxi=p->dt/p->DYN[JP];
-            Gp=uip*V_w_p(i,j,k)/(uip*p->dt*p->DXN[IP]*p->DZN[KP]);
-            Gm=uim*V_w_m(i,j,k)/(uim*p->dt*p->DXN[IP]*p->DZN[KP]);
+            Gp=V_w_p(i,j,k)/(p->DXN[IP]*p->DZN[KP]);
+            Gm=V_w_m(i,j,k)/(p->DXN[IP]*p->DZN[KP]);
+           
         }
         else
         {
             uip=a->w(i,j,k);
             uim=a->w(i,j,k-1);
             dtdxi=p->dt/p->DZN[KP];
-            Gp=uip*V_w_p(i,j,k)/(uip*p->dt*p->DXN[IP]*p->DYN[JP]);
-            Gm=uim*V_w_m(i,j,k)/(uim*p->dt*p->DXN[IP]*p->DYN[JP]);
+            Gp=V_w_p(i,j,k)/(p->DXN[IP]*p->DYN[JP]);
+            Gm=V_w_m(i,j,k)/(p->DXN[IP]*p->DYN[JP]);
         }
         
         if(nSweep==0)
@@ -146,7 +145,7 @@ void VOF_PLIC::transportVOF_Bonn
         {
             vofS1(i,j,k)=vofS0(i,j,k)*(1.0+dtdxi*(uip-uim))-dtdxi*(Gp-Gm);
         }
-        else
+        else 
         {
             vofS2(i,j,k)=vofS1(i,j,k)+vofS0(i,j,k)*dtdxi*(uip-uim)-dtdxi*(Gp-Gm);
         }

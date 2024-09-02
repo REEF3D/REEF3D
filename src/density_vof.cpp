@@ -74,9 +74,9 @@ density_vof::~density_vof()
 
 double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {  
-double phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+//double phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-    if(phival>=0.0)
+  /*  if(phival>=0.0)
         H=1.0;
 
     if(phival<-2.0*p->psi)
@@ -85,7 +85,7 @@ double phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
     if(phival>=-2.0*p->psi && phival<0.0)
         H=0.5*(1.0 + (phival+p->psi)/p->psi + (1.0/PI)*sin((PI*(phival+p->psi))/p->psi));
         
-    roval = p->W1*H + p->W3*(1.0-H);
+    roval = p->W1*H + p->W3*(1.0-H);*/
  //   double H=0.5*(a->vof(i,j,k) + a->vof(i+aa,j+bb,k+cc));
  //  double  roval = p->W1*H + p->W3*(1.0-H);
 /*	H= 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
@@ -94,7 +94,7 @@ double phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 		H=MIN(H,1.0);
     roval = p->W1*H +   p->W3*(1.0-H); */
    
- /*
+
     double phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
     if(phival>p->psi)
@@ -106,8 +106,8 @@ double phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
     if(fabs(phival)<=p->psi)
     H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
     
-    roval = p->W1*H + p->W3*(1.0-H);*/
-
+    roval = p->W1*H + p->W3*(1.0-H);
+/*
     if(a->vof(i,j,k)<0.001 && a->vof(i+aa,j+bb,k+cc)<0.001)
         roval=p->W3;
     else if(a->vof(i,j,k)>0.999 && a->vof(i+aa,j+bb,k+cc)>0.999)
@@ -121,7 +121,7 @@ double phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
     else if((a->vof(i,j,k)<=0.999 && a->vof(i,j,k)>=0.001) && (a->vof(i+aa,j+bb,k+cc)<=0.999 && a->vof(i+aa,j+bb,k+cc)>=0.001))
         roval=0.5*(a->vof(i,j,k)+a->vof(i+aa,j+bb,k+cc))*p->W1+(1.0-0.5*(a->vof(i,j,k)+a->vof(i+aa,j+bb,k+cc)))*p->W3;
     else
-        cout<<"density case mising"<<endl;
+        cout<<"density case mising"<<endl;*/
 	return roval;
 	
 }

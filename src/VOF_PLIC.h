@@ -83,7 +83,7 @@ private:
 	
     //Alternative version by Fabian
     void calculateNormal_alt(fdm*, lexer*);
-    void reconstructPlane_alt(fdm*, lexer*);
+    void reconstructPlane_alt(fdm*, lexer*, double);
     void advectPlane_alt(fdm*, lexer*,int);
     void advectPlane_altFlux(fdm*, lexer*,double,double,int);
     double calculateVolume(double,double,double,double,double,double,double);
@@ -108,6 +108,10 @@ private:
     double ShortestDistanceOnBoundaryCandidate(fdm*, lexer*, int, int, int);
     double ProjectionPointCandidate(fdm*, lexer*, int, int, int);
     double IntersectionPointCandidate(fdm*, lexer*, int, int, int);
+    void redistancePhiByPlane2D_Bonn(fdm*, lexer*);
+    double ShortestDistanceOnBoundaryCandidate2D(fdm*, lexer*, int, int);
+    double ProjectionPointCandidate2D(fdm*, lexer*, int, int);
+    double IntersectionPointCandidate2D(fdm*, lexer*, int, int);
     
     field4 vof_old;
     field4 V_w_p;
@@ -164,6 +168,7 @@ private:
     field4 vof3;
     
     int S_S[6][3];
+    int S_2D[2][2];
     
 };
 #endif
