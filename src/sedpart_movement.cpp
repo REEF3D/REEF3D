@@ -256,22 +256,22 @@ namespace sediment_particle::movement
                     Dv=v-PP.V[n];
                     // Dw=w-PP.W[n];
 
-                    switch (p->Q200)
-                    {
-                        case 0:
-                        {
+                    // switch (p->Q200)
+                    // {
+                    //     case 0:
+                    //     {
                             DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
-                            break;
-                        }
-                        case 1:
-                        {
-                            relative_velocity(p,a,PP,n,Du,Dv,Dw);
-                            dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
-                            const double Re_p = dU*PP.d50/(p->W2/p->W1);
-                            DragCoeff=drag_coefficient(Re_p);
-                            break;
-                        }
-                    }
+                    //         break;
+                    //     }
+                    //     case 1:
+                    //     {
+                    //         relative_velocity(p,a,PP,n,Du,Dv,Dw);
+                    //         dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
+                    //         const double Re_p = dU*PP.d50/(p->W2/p->W1);
+                    //         DragCoeff=drag_coefficient(Re_p);
+                    //         break;
+                    //     }
+                    // }
                     PP.drag[n]=DragCoeff;
 
                     // sedimentation
@@ -286,28 +286,28 @@ namespace sediment_particle::movement
                     // }
 
                     // Acceleration
-                    switch (p->Q200)
-                    {
-                        case 0:
-                        {
+                    // switch (p->Q200)
+                    // {
+                    //     case 0:
+                    //     {
                             du=DragCoeff*Du;
                             dv=DragCoeff*Dv;
                             // dw=DragCoeff*Dw;
                             du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
                             dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
                             // dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
-                            break;
-                        }
-                        case 1:
-                        {
-                            const double Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
-                            DragCoeff = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
-                            du=DragCoeff;
-                            dv=DragCoeff;
-                            // dw=DragCoeff;
-                            break;
-                        }
-                    }
+                    //         break;
+                    //     }
+                    //     case 1:
+                    //     {
+                    //         const double Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
+                    //         DragCoeff = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
+                    //         du=DragCoeff;
+                    //         dv=DragCoeff;
+                    //         // dw=DragCoeff;
+                    //         break;
+                    //     }
+                    // }
 
                     // if(debugPrint)
                     // {
