@@ -197,19 +197,13 @@ namespace sediment_particle::movement
         double DragCoeff=0;
         double du=0,dv=0,dw=0;
         double dU=0;
-        // int counter = 0;
 
         for(int m=0;m<2;m++)
         {
             for(size_t n=0;n<PP.loopindex;n++)
             {
-                if(PP.Flag[n]>0) // INT32_MIN
+                if(PP.Flag[n]>0)
                 {
-                    // ++counter;
-                    // if(p->global_xmin+p->Q73>PP.X[n])
-                    // limited = true;
-                    // else
-                    // limited = false;
 
                     i=p->posc_i(PP.X[n]);
                     j=p->posc_j(PP.Y[n]);
@@ -256,22 +250,22 @@ namespace sediment_particle::movement
                     Dv=v-PP.V[n];
                     // Dw=w-PP.W[n];
 
-                    // switch (p->Q200)
-                    // {
-                    //     case 0:
-                    //     {
+                    switch (p->Q202)
+                    {
+                        case 0:
+                        {
                             DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
-                    //         break;
-                    //     }
-                    //     case 1:
-                    //     {
-                    //         relative_velocity(p,a,PP,n,Du,Dv,Dw);
-                    //         dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
-                    //         const double Re_p = dU*PP.d50/(p->W2/p->W1);
-                    //         DragCoeff=drag_coefficient(Re_p);
-                    //         break;
-                    //     }
-                    // }
+                            break;
+                        }
+                        case 1:
+                        {
+                            relative_velocity(p,a,PP,n,Du,Dv,Dw);
+                            dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
+                            const double Re_p = dU*PP.d50/(p->W2/p->W1);
+                            DragCoeff=drag_coefficient(Re_p);
+                            break;
+                        }
+                    }
                     PP.drag[n]=DragCoeff;
 
                     // sedimentation
@@ -286,54 +280,34 @@ namespace sediment_particle::movement
                     // }
 
                     // Acceleration
-                    // switch (p->Q200)
-                    // {
-                    //     case 0:
-                    //     {
+                    switch (p->Q202)
+                    {
+                        case 0:
+                        {
                             du=DragCoeff*Du;
                             dv=DragCoeff*Dv;
                             // dw=DragCoeff*Dw;
                             du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
                             dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
                             // dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
-                    //         break;
-                    //     }
-                    //     case 1:
-                    //     {
-                    //         const double Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
-                    //         DragCoeff = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
-                    //         du=DragCoeff;
-                    //         dv=DragCoeff;
-                    //         // dw=DragCoeff;
-                    //         break;
-                    //     }
-                    // }
-
-                    // if(debugPrint)
-                    // {
-                    //     cout<<netBuoyZ<<" "<<-stressDivZ/(thetas*p->S22)<<endl;
-                    //     debugPrint=false;
-                    // }
-
-                    // if(dw!=dw)
-                    // {
-                    // cout<<"NaN detected.\nu: "<<w<<" up: "<<PP.W[n]<<"\npos: "<<PP.X[n]<<","<<PP.Y[n]<<","<<PP.Z[n]<<"\n drag: "<<DragCoeff<<endl;
-                    // exit(1);
-                    // }
-
-                    // if(p->mpirank==1&&n==50431&&p->count>=212)
-                    // {
-                    // cout<<"pos: "<<PP.X[n]<<","<<PP.Y[n]<<","<<PP.Z[n]<<"|"<<PP.Flag[n]
-                    // <<"\ndrag: "<<DragCoeff<<" w: "<<w<<" wp: "<<PP.W[n]<<" dw: "<<dw<<" df: "<<0.5*p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])
-                    // <<"\nstress: "<<-stressDivZ/(thetas*p->S22)<<" press: "<<-pressureDivZ/p->S22<<" buoy: "<<netBuoyZ
-                    // <<endl;
-                    // // StressDiv explodes
-                    // PP.Flag[n]=10;}
+                            break;
+                        }
+                        case 1:
+                        {
+                            const double Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
+                            DragCoeff = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
+                            du=DragCoeff;
+                            dv=DragCoeff;
+                            // dw=DragCoeff;
+                            break;
+                        }
+                    }
 
                     // Vel update
                     PP.U[n]=0.5*(PP.U[n]+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n]))+du*RKtimeStep;
                     PP.V[n]=0.5*(PP.V[n]+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n]))+dv*RKtimeStep;
                     // PP.W[n]=0.5*(PP.W[n]+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n]))+dw*RKtimeStep;
+                    PP.W[n]=0.0;
 
                     if(PP.U[n]!=PP.U[n] || PP.V[n]!=PP.V[n] || PP.W[n]!=PP.W[n])
                     {
@@ -344,7 +318,6 @@ namespace sediment_particle::movement
                     // Pos update
                     PP.X[n] += PP.U[n]*RKtimeStep;
                     PP.Y[n] += PP.V[n]*RKtimeStep;
-                    // if(!limited)
                     // PP.Z[n] += PP.W[n]*RKtimeStep;
 
                     // Sum update
@@ -362,15 +335,6 @@ namespace sediment_particle::movement
         {
             p->sedtime += p->dtsed;
             cout<<"Sediment time: "<<p->sedtime<<" time step: "<<p->dtsed<<endl;
-            // int Flag0=0,Flag1=0;
-            // for(size_t n=0;n<PP.loopindex;n++)
-            // {
-            //     if(PP.Flag[n]==0)
-            //     Flag0++;
-            //     else if(PP.Flag[n]==1)
-            //     Flag1++;
-            // }
-            // cout<<"Particles: "<<PP.size<<" Flag0: "<<Flag0<<" Flag1: "<<Flag1<<" moved: "<<counter/2<<endl;
         }
     }
 
@@ -594,8 +558,6 @@ namespace sediment_particle::movement
         theta=1;
         if(theta<0)
         theta=0;
-        // if(theta!=theta)
-        // theta=0;
         return theta;
     }    
 
@@ -607,7 +569,6 @@ namespace sediment_particle::movement
         thetaf=1.0-theta_crit;
 
         const double dU=sqrt(du*du+dv*dv+dw*dw);
-        // cout<<du<<","<<dv<<","<<dw<<endl;
         if(dU==0) // Saveguard
         return 0;
 
@@ -616,9 +577,6 @@ namespace sediment_particle::movement
         // const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
         const double Cd=24.0/Rep+4.0/sqrt(Rep)+0.4;
         const double Dp=Cd*3.0*drho*dU/d/4.0;
-
-        // if(Dp!=Dp)
-        // cout<<thetaf<<","<<dU<<","<<Rep<<","<<Cd<<"|"<<(dU==0)<<endl;
 
         return Dp;
     }
@@ -685,8 +643,6 @@ namespace sediment_particle::movement
                 {
                     case 0:
                     {
-                        // if(PP.X[n]>=p->global_xmin+p->DXN[marge] && PP.X[n]<=p->global_xmax-p->DXN[p->knox+marge])
-                        // if(PP.Y[n]>=p->global_ymin+p->DYN[marge] && PP.Y[n]<=p->global_ymax-p->DYN[p->knoy+marge])
                         // if(p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n])<0.6)
                         if(PP.X[n]>=p->S71 && PP.X[n]<=p->S72)
                         if(PP.Y[n]>=p->S77_xs && PP.Y[n]<=p->S77_xe)
@@ -697,7 +653,6 @@ namespace sediment_particle::movement
                                 if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.0*PP.d50>0)
                                 {
                                     PP.Flag[n]=1;
-                                    // PP.Z[n]+=4.0*PP.d50;
                                     ++counter;
 
                                     PP.shear_eff[n]=shear_eff;
@@ -730,8 +685,8 @@ namespace sediment_particle::movement
                     break;
                 }
             }
-        if(counter>0)
-        cout<<"On rank "<<p->mpirank<<" were "<<counter<<" particles eroded."<<endl;
+        // if(counter>0)
+        // cout<<"On rank "<<p->mpirank<<" were "<<counter<<" particles eroded."<<endl;
     }
 
     void particleStressBased_T2021::deposit(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
@@ -742,7 +697,7 @@ namespace sediment_particle::movement
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==1)
             {
-                switch (p->Q200)
+                switch (p->Q201)
                 {
                     case 0:
                     {
@@ -759,8 +714,6 @@ namespace sediment_particle::movement
                             PP.Uf[n]=0;
                             PP.Vf[n]=0;
                             PP.Wf[n]=0;
-                            // PP.shear_eff[n]=shear_eff;
-                            // PP.shear_crit[n]=shear_crit;
                             PP.drag[n]=0;
 
                             i=p->posc_i(PP.X[n]);
@@ -771,16 +724,7 @@ namespace sediment_particle::movement
                     break;
                     case 1:
                     {
-                        // relative_velocity(p,a,PP,n,du,dv,dw);
-                        k=p->posc_k(PP.Z[n]);
-                        double topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
-                        double u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-                        double v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-                        double w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-
-                        du=u-PP.U[n];
-                        dv=v-PP.V[n];
-                        dw=w-PP.W[n];
+                        relative_velocity(p,a,PP,n,du,dv,dw);
                         const double dU=sqrt(du*du+dv*dv+dw*dw);
                         const double Re_p = dU*PP.d50/(p->W2/p->W1);
                         const double Cd = drag_coefficient(Re_p);
@@ -802,44 +746,6 @@ namespace sediment_particle::movement
             }
     }
 
-    void particleStressBased_T2021::bedReDistribution(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
-    {
-        /// per i,j,k which particles n are in cell
-        std::vector<std::vector<size_t>> particlesInCell(p->imax*p->jmax*p->kmax);
-        for(size_t n=0;n<PP.loopindex;n++)
-        {
-            if(PP.Flag[n]>=0) // INT32_MIN
-            {
-                i=p->posc_i(PP.X[n]);
-                j=p->posc_j(PP.Y[n]);
-                k=p->posc_k(PP.Z[n]);
-                particlesInCell[IJK].push_back(n);
-            }
-        }
-        double tolerance = 5e-18;
-        double x,y,z,ipolTopo,ipolSolid;
-        int irand=10000;
-        double drand=10000;
-        PLAINLOOP
-        for (auto index : particlesInCell[IJK])
-        {
-            x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
-            y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
-            z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
-
-            ipolTopo = p->ccipol4_b(a.topo,x,y,z);
-            ipolSolid = p->ccipol4_b(a.solid,x,y,z);
-
-            if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
-            {
-                PP.X[index] = x;
-                PP.Y[index] = y;
-                PP.Z[index] = z;
-            }
-        }
-        
-    }
-
     void particleStressBased_T2021::timestep(lexer *p, ghostcell &pgc, particles_obj &PP)
     {
         double maxVelU=0,maxVelV=0,maxVelW=0;
@@ -850,13 +756,9 @@ namespace sediment_particle::movement
                 maxVelU=max(maxVelU,fabs(PP.U[n]));
                 maxVelV=max(maxVelV,fabs(PP.V[n]));
                 maxVelW=max(maxVelW,fabs(PP.W[n]));
-                // if(PP.W[n]>14000)
-                // cout<<p->mpirank<<":"<<n<<":"<<PP.W[n]<<endl;
             }
         }
 
-        // if(p->count==379)
-        // cout<<p->mpirank<<":"<<maxVelU<<","<<maxVelV<<","<<maxVelW<<endl;
         dx = pgc.globalmin(dx);
         if(p->mpirank==0)
         cout<<"TimeStep: dx: "<<dx<<" vel: "<<sqrt(maxVelU*maxVelU+maxVelV*maxVelV+maxVelW*maxVelW)<<endl;

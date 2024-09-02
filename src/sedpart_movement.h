@@ -101,7 +101,6 @@ namespace sediment_particle
             double drag_model(lexer *, double, double, double, double, double) const;
             double sedimentation_velocity(lexer *, double, double, double, double, double) const;
             void particlePerCell(lexer *, ghostcell &, particles_obj &);
-            void bedReDistribution(lexer *, fdm &, ghostcell &, particles_obj &);
             void timestep(lexer *, ghostcell &, particles_obj &);
             int activateNew(lexer *, fdm &, particles_obj &);
             void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
