@@ -106,6 +106,7 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     timestep(p,pgc,s);
 	
 	SLICELOOP4
+    WETDRY
     s->bedzh(i,j) += p->dtsed*s->vz(i,j);
 
     
