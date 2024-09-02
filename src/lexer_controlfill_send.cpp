@@ -1220,6 +1220,10 @@ void lexer::ctrlsend()
     ii++;
     ictrl[ii] = Q200;
     ii++;
+    ictrl[ii] = Q201;
+    ii++;
+    ictrl[ii] = Q202;
+    ii++;
     
 
     ictrl[ii] = S10;
