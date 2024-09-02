@@ -223,7 +223,7 @@ void sedpart::seed_topo(lexer *p, fdm *a)
         x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
         y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
         k = 0;
-        z = p->ZN[KP]+0.5*p->DZP[KP]-a->topo(i,j,k) - 5.0*PP.d50*double(rand() % irand)/drand;
+        z = p->ZN[KP]+0.5*p->DZP[KP]-a->topo(i,j,k) - p->Q102*p->DZN[KP]*double(rand() % irand)/drand;
         k = p->posc_k(z);
 
         ipolTopo = p->ccipol4_b(a->topo,x,y,z);
@@ -270,4 +270,65 @@ size_t sedpart::set_active_topo(lexer *p, fdm *a)
         }
     }
     return cellCountTopo;
+}
+
+void sedpart::seedDummy(lexer *p, fdm *a, particles_obj &PP)
+{
+    if(p->origin_i=0)
+    {
+        i=0;
+        JLOOP
+        for(k=1; k<p->knoz; ++k)
+            seedDummy(p,a,PP);
+    }
+    if(p->origin_i+p->knox == p->gknox)
+    {
+        i = p->gknox;
+        JLOOP
+        for(k=1; k<p->knoz; ++k)
+            seedDummy(p,a,PP);
+    }
+    if(p->origin_j=0)
+    {
+        j=0;
+        ILOOP
+        for(k=1; k<p->knoz; ++k)
+            seedDummy(p,a,PP);
+    }
+    if(p->origin_j+p->knoy == p->gknoy)
+    {
+        j = p->gknoy;
+        ILOOP
+        for(k=1; k<p->knoz; ++k)
+            seedDummy(p,a,PP);
+    }
+    if(p->origin_k=0)
+    {
+        k=0;
+        ILOOP
+        JLOOP
+        seedDummy(p,a,PP);
+    }
+}
+
+void sedpart::seedDummyCell(lexer *p, fdm *a, particles_obj &PP)
+{
+    double tolerance = 5e-18;
+    double x,y,z,ipolSolid;
+    int flag=0;
+
+    if(PP.size+ppcell>0.9*PP.capacity)
+        PP.reserve();
+
+    for(int qn=0;qn<ppcell*1000;++qn)
+    {   
+        x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+        y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+        z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+        if(a->topo(i,j,k) +0.5*p->Q102*p->DZN[KP]>=0)
+            break;
+        ipolSolid = p->ccipol4_b(a->solid,x,y,z);
+        if(!(ipolSolid<0))
+            PP.add(x,y,z,flag,0,0,0,p->Q41);
+    }
 }

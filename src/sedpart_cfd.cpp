@@ -103,6 +103,10 @@ void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     ++inicount;
     debug(p,a,pgc);
+
+    particles_obj Dummy(1000);
+    seedDummy(p,a,Dummy);
+    printDummyVTP(p,Dummy);
 }
 
 /// @brief CFD calculation function

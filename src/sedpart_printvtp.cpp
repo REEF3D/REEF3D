@@ -285,3 +285,108 @@ void sedpart::print_vtp(lexer* p)
 	result.close();
 	}
 
+void sedpart::printDummyVTP(lexer *p, particles_obj &PP)
+{
+    int numpt=0;
+	const int print_flag=p->Q183;
+
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	numpt++;
+
+    int count;
+	int n=0;
+    int offset[100];
+	int iin;
+	float ffn;
+	
+	if(p->mpirank==0)
+	printDummyPVTP(p);
+
+    sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-Dummy-%06i.vtp",p->mpirank+1);
+
+    ofstream result;
+	result.open(name, ios::binary);
+
+
+	offset[n]=0;
+	++n;
+
+    offset[n]=offset[n-1]+4*(numpt)*3+4; //xyz
+    ++n;
+    offset[n]=offset[n-1]+4*(numpt)+4; //connectivitey
+    ++n;
+	offset[n]=offset[n-1]+4*(numpt)+4; //offset connectivity
+    ++n;
+
+	//---------------------------------------------
+	n=0;
+	result<<"<?xml version=\"1.0\"?>"<<endl;
+	result<<"<VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"LittleEndian\">"<<endl;
+	result<<"<PolyData>"<<endl;
+	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfVerts=\""<<numpt<<"\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">"<<endl;
+
+    result<<"<Points>"<<endl;
+    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"</Points>"<<endl;
+	
+
+    result<<"<Verts>"<<endl;
+	result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	++n;
+	result<<"</Verts>"<<endl;
+
+    result<<"</Piece>"<<endl;
+    result<<"</PolyData>"<<endl;
+
+	//----------------------------------------------------------------------------
+    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+
+    //  XYZ
+	iin=4*(numpt)*3;
+	result.write((char*)&iin, sizeof (int));
+    PARTLOOP
+    if(PP.Flag[n]>=print_flag)
+	{
+	ffn=float(PP.X[n]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(PP.Y[n]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(PP.Z[n]);
+	result.write((char*)&ffn, sizeof (float));
+	}
+	
+	//  Connectivity
+	count=0;
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	{
+	iin=int(count);
+	result.write((char*)&iin, sizeof (int));
+	++count;
+	}
+
+	//  Offset of Connectivity
+	count=1;
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	PARTLOOP
+    if(PP.Flag[n]>=print_flag)
+	{
+	iin=int(count);
+	result.write((char*)&iin, sizeof (int));
+	++count;
+	}
+
+	result<<endl<<"</AppendedData>"<<endl;
+    result<<"</VTKFile>"<<endl;
+
+	result.close();
+}
