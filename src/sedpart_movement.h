@@ -130,10 +130,14 @@ namespace sediment_particle
             double velDist=2.5;
         };
 
-        class doi10_1002_wrcr_20303 : public base, increment
-        {
-            void move();
-        };
+        // class doi10_1002_wrcr_20303 : public base, increment
+        // {
+        //     void move(lexer *, fdm *, particles_obj &, sediment_fdm &);
+        //     double drag_coefficient(double) const;
+
+        //     slice4 phi_old;
+        //     slice4 bedParticleNumber;
+        // };
     };
 };
 

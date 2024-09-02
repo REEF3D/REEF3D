@@ -793,52 +793,190 @@ namespace sediment_particle::movement
     }
 };
 
-// 10.1002/wrcr.20303
+// // 10.1002/wrcr.20303
 
-#include <Eigen/Dense>
-#include "math.h"
+// #include <Eigen/Dense>
+// #include <cmath>
 
-void sediment_particle::movement::doi10_1002_wrcr_20303::move()
-{
-    // Drag
-    const double d = PP.d50;
-    const double kin_vis = p->W2/p->W1;
-    const Eigen::Vector3d uf; // vel from wall law
-    const Eigen::Vector3d up(PP.U[n],PP.V[n],PP.Z[n]);
-    const Eigen::Vector3d du = uf - up;
-    const double Re_p = du.norm()*d/kin_vis;
-    const double a0, a1, a2;
-    const double Cd = a0 + a1/Re_p + a2/pow(Re_p,2);
-    const Eigen::Vector3d Fd = Cd * PI/8.0* pow(d,2)*p->W1*du*du.norm();
+// void sediment_particle::movement::doi10_1002_wrcr_20303::move(lexer *p, fdm *a, particles_obj &PP, sediment_fdm &s)
+// {
+//     const double kin_vis = p->W2/p->W1;
+//     const double d = PP.d50;
+//     const double DeltaT = p->dtsed; // time step
+//     const Eigen::Vector3d g(p->W20,p->W21,p->W22);
 
-    // Lift
-    const double G; // Norm of dU/dy
-    const double Re_shear = G * pow(d,2)/kin_vis; // shear Reynold number
-    const double epsilon = sqrt(Re_shear)/Re_p;
-    const double ClSa = 12.92/PI*epsilon;
-    const double J = 0.6765 *(1.0 +tanh(2.5*log(epsilon+0.191)))*(0.667+tanh(6*(epsilon-0.32))); // approx.
-    const double Cl = 0.443*J*ClSa;
-    const Eigen::Vector3d Fl = Cl * PI/8.0 * pow(d,2) * p->W1 * pow(du.norm(),2);
+//     bool bedLoad[p->imax*p->jmax];
+//     SLICEBASELOOP
+//     bedLoad[IJ] = true;
 
-    // Grav + buoy
-    const Eigen::Vector3d g(p->W20,p->W21,p->W22);
-    const Eigen::Vector3d Fg = PI/6 * pow(d,3) * (p->S22-p->W1) * g;
 
-    // total
-    const Eigen::Vector3d Ftot = Fg + Fd + Fl;
+//     // Loop over all particles
+//     if(PP.Flag[n] == 0)
+//     {
+//         i=p->posc_i(PP.X[n]);
+//         j=p->posc_j(PP.Y[n]);
+//         k=p->posc_k(PP.Z[n]);
 
-    const Eigen::Vector3d tangent;
-    const Eigen::Vector3d normal;
+//         // Define the normal vector of the plane
+//         Eigen::Vector3d normal(0,0,1); // bedslope
+//         normal.normalize(); // Ensure the normal vector is a unit vector
+//         // Drag
+//         const Eigen::Vector3d uf(a->u(i,j,k),a->v(i,j,k),0); // vel from wall law
+//         const Eigen::Vector3d up(0,0,0); // bed
+//         const Eigen::Vector3d du = uf - up;
+//         const double Re_p = du.norm()*d/kin_vis;
+//         double Cd = drag_coefficient(Re_p);
+        
 
-    const double Ft = Ftot * tangent;
-    const double Fn = Ftot * normal;
+//         const Eigen::Vector3d Fd = Cd * PI/8.0* pow(d,2)*p->W1*du*du.norm();
 
-    const double phi = atan(Ft/Fn);
+//         // Lift
+//         // const double G = 1; // Norm of dU/dy
+//         // const double Re_shear = G * pow(d,2)/kin_vis; // shear Reynold number
+//         const double tau = s.tau_eff[IJ]; // shear stress
+//         const double Re_shear = sqrt(tau/p->S22)*d/kin_vis;
+//         const double epsilon = sqrt(Re_shear)/Re_p;
+//         const double ClSa = 12.92/PI*epsilon;
+//         const double J = 0.6765 *(1.0 +tanh(2.5*log(epsilon+0.191)))*(0.667+tanh(6*(epsilon-0.32))); // approx.
+//         const double Cl = 0.443*J*ClSa;
+//         const Eigen::Vector3d liftDirection = normal; // orto to flow dir = to bed normal?
+//         const Eigen::Vector3d Fl = Cl * PI/8.0 * pow(d,2) * p->W1 * pow(du.norm(),2) * liftDirection;
 
-    const double moment;
-    if(moment > 0)
-        if(PI/3<=phi && pi <= 2.0*PI/3)
-            suspended
-        else
-            bed load
-}
+//         // Grav + buoy
+        
+//         const Eigen::Vector3d Fg = PI/6 * pow(d,3) * (p->S22-p->W1) * g;
+
+//         // total
+//         const Eigen::Vector3d Ftot = Fg + Fd + Fl;
+
+//         // Calculate the normal component of the force
+//         Eigen::Vector3d F_normal = (Ftot.dot(normal)) * normal;
+
+//         // Calculate the tangential component of the force
+//         Eigen::Vector3d F_tangential = Ftot - F_normal;
+
+//         // Calculate the angle in radians
+//         const double phi = std::atan(F_tangential.norm() / F_normal.norm());
+
+//         const double moment = PP.d50/2*(F_tangential.norm()*sin(phi)+F_normal.norm()*cos(phi));
+
+//         if(moment > 0)
+//         {
+//             // initial vel
+//             const Eigen::Vector3d u_p_ini = Ftot.normalized() * PP.d50*(phi-phi_old[IJ])/DeltaT;
+//             phi_old[IJ] = phi;
+
+//             if(PI/3<=phi && phi <= 2.0*PI/3)
+//             {
+//                 // activate particles
+//                 // claculate new for particles position
+
+//                 --bedParticleNumber[IJ];
+//                 PP.Flag[n] = 1;
+//                 PP.U[n] = u_p_ini.x();
+//                 PP.V[n] = u_p_ini.y();
+//                 PP.W[n] = u_p_ini.z();
+//             }
+//             else if (bedLoad)
+//             {
+//                 // bed load transport
+
+//                 // bedload
+//                 const double psi = 3.67e-4;
+//                 const double E = psi * p->S22 * sqrt((1-p->W1/p->S22)*fabs(g.norm())*d*(s.shields_eff[IJ]-s.shields_crit[IJ])); // entrainment rate [kg/m^3*m/s]=[kg/m^2/s]
+//                 const double S = p->DXP[IP]+p->DYP[JP]; // pickup area [m^2]
+//                 const double VdotE = E * S / p->S22; // instant volume pickup rate - used for transfer with area shift [m^3/s]
+//                 const double VE = VdotE * DeltaT; // volume of particles to be transported [m^3]
+//                 // Transport in flow direction
+//                 const double m_p = p->S22/6*pow(PP.d50,3); // [kg]
+//                 const double delta = 0.5 * F_tangential.norm()/(m_p)* pow(DeltaT,2) + u_p_ini.norm() * DeltaT;
+//                 double deltaX = delta * F_tangential.normalized().x();
+//                 double deltaY = delta * F_tangential.normalized().y();
+//                 // Number of particles to be transported per cell and time step
+//                 // const double PS = E/m_p*S; // [1/s]
+
+//                 if(deltaX>=0)
+//                 {
+//                     //IP
+//                     p->DXP[IP]-deltaX;
+//                 }
+
+//                 if(deltaX>=0 && deltaY>=0)
+//                 {
+//                     bedParticleNumber[IJ] -= (1-(p->DXP[IP]-deltaX)*(p->DYP[JP]-deltaY)/(p->DXP[IP]*p->DYP[JP]))*VE;
+//                     bedParticleNumber[Ip1J] += deltaX*(p->DYP[JP]-deltaY)/(p->DXP[IP]*p->DYP[JP])*VE;
+//                     bedParticleNumber[IJp1] += (p->DXP[IP]-deltaX)*deltaY/(p->DXP[IP]*p->DYP[JP])*VE;
+//                     bedParticleNumber[Ip1Jp1] += deltaX*deltaY/(p->DXP[IP]*p->DYP[JP])*VE;
+//                 }
+//                 else if (deltaX>=0 && deltaY<0)
+//                 {
+//                     deltaY *= -1;
+//                     bedParticleNumber[IJ] -= (1-(p->DXP[IP]-deltaX)*(p->DYP[JP]-deltaY)/(p->DXP[IP]*p->DYP[JP]))*VE;
+//                     bedParticleNumber[Ip1J] += deltaX*(p->DYP[JP]-deltaY)/(p->DXP[IP]*p->DYP[JP])*VE;
+//                     bedParticleNumber[IJm1] += (p->DXP[IP]-deltaX)*deltaY/(p->DXP[IP]*p->DYP[JP])*VE;
+//                     bedParticleNumber[Ip1Jm1] += deltaX*deltaY/(p->DXP[IP]*p->DYP[JP])*VE;
+//                 }
+//                 else if (deltaX<0 && deltaY>=0)
+//                 {
+//                     deltaX *= -1;
+//                     bedParticleNumber[IJ] -= (1-(p->DXP[IP]-deltaX)*(p->DYP[JP]-deltaY)/(p->DXP[IP]*p->DYP[JP]))*VE;
+//                     bedParticleNumber[Im1J] += deltaX*(p->DYP[JP]-deltaY)/(p->DXP[IP]*p->DYP[JP])*VE;
+//                     bedParticleNumber[IJp1] += (p->DXP[IP]-deltaX)*deltaY/(p->DXP[IP]*p->DYP[JP])*VE;
+//                     bedParticleNumber[Im1Jp1] += deltaX*deltaY/(p->DXP[IP]*p->DYP[JP])*VE;
+//                 }
+//                 else if (deltaX<0 && deltaY<0)
+//                 {
+//                     deltaX *= -1;
+//                     deltaY *= -1;
+//                     bedParticleNumber[IJ] -= (1-(p->DXP[IP]-deltaX)*(p->DYP[JP]-deltaY)/(p->DXP[IP]*p->DYP[JP]))*VE;
+//                     bedParticleNumber[Im1J] += deltaX*(p->DYP[JP]-deltaY)/(p->DXP[IP]*p->DYP[JP])*VE;
+//                     bedParticleNumber[IJm1] += (p->DXP[IP]-deltaX)*deltaY/(p->DXP[IP]*p->DYP[JP])*VE;
+//                     bedParticleNumber[Im1Jm1] += deltaX*deltaY/(p->DXP[IP]*p->DYP[JP])*VE;
+//                 }
+                
+//                 // Place particles in cell randomly
+//                 bedLoad[IJ] = false;
+//             }
+//         }            
+//     }
+
+//     // Transport?
+
+//     if(PP.Flag[n] = 1)
+//     {
+//         const Eigen::Vector3d uf(a->u(i,j,k),a->v(i,j,k),0); // vel from wall law
+
+//         const Eigen::Vector3d up(PP.U[n],PP.V[n],PP.Z[n]);
+//         const Eigen::Vector3d du = uf - up;
+//         const double Re_p = du.norm()*d/kin_vis;
+//         double Cd = drag_coefficient(Re_p);
+
+//         // suspended
+//         const Eigen::Vector3d DufDt; // delta /delta t + nabla uf
+//         const Eigen::Vector3d a_p = (1-p->W1/p->S22)*g + DufDt + 0.5*(DufDt-a_p) + 0.75*Cd/d*du.norm()*du + 0.75*Cl/d*pow(du.norm(),2)*normal;
+//     }
+// }
+
+// double sediment_particle::movement::doi10_1002_wrcr_20303::drag_coefficient(double Re_p) const
+// {
+//     double Cd;
+//     if(Re_p<0.1)
+//     Cd = 24.0/Re_p;
+//     else if(Re_p<1.0)
+//     Cd = 22.73/Re_p+0.0903/pow(Re_p,2),+ 3.69;
+//     else if(Re_p<10.0)
+//     Cd = 29.1667/Re_p-3.8889/pow(Re_p,2)+ 1.222;
+//     else if(Re_p<100.0)
+//     Cd = 46.5/Re_p- 116.67/pow(Re_p,2)+0.6167;
+//     else if(Re_p<1000.0)
+//     Cd = 98.33/Re_p- 2778/pow(Re_p,2) +0.3644;
+//     else if(Re_p<5000.0)
+//     Cd = 148.62/Re_p-4.75e4/pow(Re_p,2)+0.357;
+//     else if(Re_p<10000.0)
+//     Cd = -490.546/Re_p +57.87e4/pow(Re_p,2) +0.46;
+//     // else if(Re_p<50000.0)
+//     else
+//     Cd = -1662.5/Re_p+5.4167e6/pow(Re_p,2)+0.5191;
+
+//     return Cd;
+// }
