@@ -265,8 +265,8 @@ namespace sediment_particle::movement
                         }
                         case 1:
                         {
-                            relative_velocity(p,a,PP,n,du,dv,dw);
-                            dU=sqrt(du*du+dv*dv+dw*dw);
+                            relative_velocity(p,a,PP,n,Du,Dv,Dw);
+                            dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
                             const double Re_p = dU*PP.d50/(p->W2/p->W1);
                             DragCoeff=drag_coefficient(Re_p);
                             break;
@@ -335,20 +335,9 @@ namespace sediment_particle::movement
                     PP.V[n]=0.5*(PP.V[n]+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n]))+dv*RKtimeStep;
                     // PP.W[n]=0.5*(PP.W[n]+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n]))+dw*RKtimeStep;
 
-                    if(PP.U[n]!=PP.U[n])
+                    if(PP.U[n]!=PP.U[n] || PP.V[n]!=PP.V[n] || PP.W[n]!=PP.W[n])
                     {
-                    cout<<"NaN detected.\naccel: "<<du<<" df: "<<p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n])<<endl;
-                    exit(1);
-                    }
-                    if(PP.V[n]!=PP.V[n])
-                    {
-                    cout<<"NaN detected.\naccel: "<<dv<<" df: "<<p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n])<<endl;
-                    exit(1);
-                    }
-                    if(PP.W[n]!=PP.W[n])
-                    // ||p->count==213)
-                    {
-                    cout<<p->mpirank<<"NaN detected.\naccel: "<<dw<<" df: "<<p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])<<"\n"<<w<<" : "<<DragCoeff<<"pos: "<<PP.X[n]<<","<<PP.Y[n]<<","<<PP.Z[n]<<endl;
+                    cout<<"NaN detected."<<endl;
                     exit(1);
                     }
                     
@@ -794,6 +783,9 @@ namespace sediment_particle::movement
                         {
                             PP.Flag[n]=0;
                             bedChange[IJ] += PP.PackingFactor[n];
+                            PP.U[n]=0;
+                            PP.V[n]=0;
+                            PP.W[n]=0;
                         }
                     }
                     break;
