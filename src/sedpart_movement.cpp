@@ -196,6 +196,7 @@ namespace sediment_particle::movement
         double thetas=0;
         double DragCoeff=0;
         double du=0,dv=0,dw=0;
+        double dU=0;
         // int counter = 0;
 
         for(int m=0;m<2;m++)
@@ -255,13 +256,22 @@ namespace sediment_particle::movement
                     Dv=v-PP.V[n];
                     // Dw=w-PP.W[n];
 
-                    DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
-                    // if(debugPrint)
-                    // {
-                    //     cout<<DragCoeff<<endl;
-                    //     debugPrint=false;
-                    // }
-
+                    switch (p->Q200)
+                    {
+                        case 0:
+                        {
+                            DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
+                            break;
+                        }
+                        case 1:
+                        {
+                            relative_velocity(p,a,PP,n,du,dv,dw);
+                            dU=sqrt(du*du+dv*dv+dw*dw);
+                            const double Re_p = dU*PP.d50/(p->W2/p->W1);
+                            DragCoeff=drag_coefficient(Re_p);
+                            break;
+                        }
+                    }
                     PP.drag[n]=DragCoeff;
 
                     // sedimentation
@@ -276,13 +286,28 @@ namespace sediment_particle::movement
                     // }
 
                     // Acceleration
-                    du=DragCoeff*Du;
-                    dv=DragCoeff*Dv;
-                    // dw=DragCoeff*Dw;
-
-                    du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
-                    dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
-                    // dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
+                    switch (p->Q200)
+                    {
+                        case 0:
+                        {
+                            du=DragCoeff*Du;
+                            dv=DragCoeff*Dv;
+                            // dw=DragCoeff*Dw;
+                            du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
+                            dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
+                            // dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
+                            break;
+                        }
+                        case 1:
+                        {
+                            const double Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
+                            DragCoeff = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
+                            du=DragCoeff;
+                            dv=DragCoeff;
+                            // dw=DragCoeff;
+                            break;
+                        }
+                    }
 
                     // if(debugPrint)
                     // {
@@ -698,15 +723,7 @@ namespace sediment_particle::movement
                     break;
                     case 1:
                     {
-                        k=p->posc_k(PP.Z[n]);
-                        topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
-                        u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-                        v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-                        w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-
-                        du=u-PP.U[n];
-                        dv=v-PP.V[n];
-                        dw=w-PP.W[n];
+                        relative_velocity(p,a,PP,n,du,dv,dw);
                         const double dU=sqrt(du*du+dv*dv+dw*dw);
                         const double Re_p = dU*PP.d50/(p->W2/p->W1);
                         const double Cd = drag_coefficient(Re_p);
@@ -824,6 +841,19 @@ namespace sediment_particle::movement
         p->dtsed = min(p->dtsed,p->S13);
         p->dtsed = min(p->dtsed,p->dt);
         p->dtsed = pgc.globalmin(p->dtsed);
+    }
+
+    void particleStressBased_T2021::relative_velocity(lexer *p, fdm &a, particles_obj &PP, size_t n, double &du, double &dv, double &dw)
+    {
+        k=p->posc_k(PP.Z[n]);
+        double topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
+        double u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+        double v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+        double w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+
+        du=u-PP.U[n];
+        dv=v-PP.V[n];
+        dw=w-PP.W[n];
     }
 };
 

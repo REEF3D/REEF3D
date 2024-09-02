@@ -104,6 +104,7 @@ namespace sediment_particle
             void bedReDistribution(lexer *, fdm &, ghostcell &, particles_obj &);
             void timestep(lexer *, ghostcell &, particles_obj &);
             int activateNew(lexer *, fdm &, particles_obj &);
+            void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
         private:
             /// @brief Sum of particles belonging to the stationary bed
             double *cellSumTopo;
@@ -129,7 +130,7 @@ namespace sediment_particle
             double dx;
             slice4 bedChange;
 
-            double velDist=2.5;
+            double velDist=1.6;
         };
 
         // class doi10_1002_wrcr_20303 : public base, increment
