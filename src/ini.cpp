@@ -610,6 +610,7 @@ void lexer::ini_default()
     Q181=-10;           // int print vtp iter interval
     Q182=-1.0;          // double print vtp time interval
     Q183=0;             // int flag and above to print
+    Q200 = 0;           // int movement model
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module
