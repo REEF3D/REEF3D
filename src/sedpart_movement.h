@@ -66,6 +66,8 @@ namespace sediment_particle
             virtual void writeState(lexer *, ofstream &){};
             virtual void readState(lexer *, ifstream &){};
             virtual void setupState(lexer *, fdm &, ghostcell &, particles_obj &){};
+        protected:
+            double drag_coefficient(double) const;
         };
         class particleStressBased_T2021 : public base, increment
         /// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
@@ -133,7 +135,7 @@ namespace sediment_particle
         // class doi10_1002_wrcr_20303 : public base, increment
         // {
         //     void move(lexer *, fdm *, particles_obj &, sediment_fdm &);
-        //     double drag_coefficient(double) const;
+        //     
 
         //     slice4 phi_old;
         //     slice4 bedParticleNumber;

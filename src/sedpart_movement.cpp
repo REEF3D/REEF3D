@@ -663,31 +663,65 @@ namespace sediment_particle::movement
         double shear_eff;
         double shear_crit;
         int counter=0;
+        double topoDist,u,v,w,du,dv,dw;
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
             {
-                // if(PP.X[n]>=p->global_xmin+p->DXN[marge] && PP.X[n]<=p->global_xmax-p->DXN[p->knox+marge])
-                // if(PP.Y[n]>=p->global_ymin+p->DYN[marge] && PP.Y[n]<=p->global_ymax-p->DYN[p->knoy+marge])
-                // if(p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n])<0.6)
-                if(PP.X[n]>=p->S71 && PP.X[n]<=p->S72)
-                if(PP.Y[n]>=p->S77_xs && PP.Y[n]<=p->S77_xe)
+                switch (p->Q200)
                 {
-                    shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
-                    shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
-                    if(shear_eff>shear_crit)
-                        if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.0*PP.d50>0)
+                    case 0:
+                    {
+                        // if(PP.X[n]>=p->global_xmin+p->DXN[marge] && PP.X[n]<=p->global_xmax-p->DXN[p->knox+marge])
+                        // if(PP.Y[n]>=p->global_ymin+p->DYN[marge] && PP.Y[n]<=p->global_ymax-p->DYN[p->knoy+marge])
+                        // if(p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n])<0.6)
+                        if(PP.X[n]>=p->S71 && PP.X[n]<=p->S72)
+                        if(PP.Y[n]>=p->S77_xs && PP.Y[n]<=p->S77_xe)
+                        {
+                            shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
+                            shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
+                            if(shear_eff>shear_crit)
+                                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.0*PP.d50>0)
+                                {
+                                    PP.Flag[n]=1;
+                                    // PP.Z[n]+=4.0*PP.d50;
+                                    ++counter;
+
+                                    PP.shear_eff[n]=shear_eff;
+                                    PP.shear_crit[n]=shear_crit;
+
+                                    i=p->posc_i(PP.X[n]);
+                                    j=p->posc_j(PP.Y[n]);
+                                    bedChange[IJ] -= PP.PackingFactor[n];
+                                }
+                        }
+                    }
+                    break;
+                    case 1:
+                    {
+                        k=p->posc_k(PP.Z[n]);
+                        topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
+                        u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+                        v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+                        w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+
+                        du=u-PP.U[n];
+                        dv=v-PP.V[n];
+                        dw=w-PP.W[n];
+                        const double dU=sqrt(du*du+dv*dv+dw*dw);
+                        const double Re_p = dU*PP.d50/(p->W2/p->W1);
+                        const double Cd = drag_coefficient(Re_p);
+                        const double Fd = Cd * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
+                        const double mu_s = tan(p->S81);
+                        const double W = p->W1 * sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22) * (p->S22/p->W1-1) * PI/6.0 *pow(PP.d50,3);
+                        const double Fs = W * mu_s;
+                        if(Fd > W * (mu_s*cos(s.teta[IJ])-sin(s.teta[IJ])))
                         {
                             PP.Flag[n]=1;
-                            // PP.Z[n]+=4.0*PP.d50;
                             ++counter;
-
-                            PP.shear_eff[n]=shear_eff;
-                            PP.shear_crit[n]=shear_crit;
-
-                            i=p->posc_i(PP.X[n]);
-                            j=p->posc_j(PP.Y[n]);
                             bedChange[IJ] -= PP.PackingFactor[n];
                         }
+                    }
+                    break;
                 }
             }
         if(counter>0)
@@ -957,26 +991,26 @@ namespace sediment_particle::movement
 //     }
 // }
 
-// double sediment_particle::movement::doi10_1002_wrcr_20303::drag_coefficient(double Re_p) const
-// {
-//     double Cd;
-//     if(Re_p<0.1)
-//     Cd = 24.0/Re_p;
-//     else if(Re_p<1.0)
-//     Cd = 22.73/Re_p+0.0903/pow(Re_p,2),+ 3.69;
-//     else if(Re_p<10.0)
-//     Cd = 29.1667/Re_p-3.8889/pow(Re_p,2)+ 1.222;
-//     else if(Re_p<100.0)
-//     Cd = 46.5/Re_p- 116.67/pow(Re_p,2)+0.6167;
-//     else if(Re_p<1000.0)
-//     Cd = 98.33/Re_p- 2778/pow(Re_p,2) +0.3644;
-//     else if(Re_p<5000.0)
-//     Cd = 148.62/Re_p-4.75e4/pow(Re_p,2)+0.357;
-//     else if(Re_p<10000.0)
-//     Cd = -490.546/Re_p +57.87e4/pow(Re_p,2) +0.46;
-//     // else if(Re_p<50000.0)
-//     else
-//     Cd = -1662.5/Re_p+5.4167e6/pow(Re_p,2)+0.5191;
+double sediment_particle::movement::base::drag_coefficient(double Re_p) const
+{
+    double Cd;
+    if(Re_p<0.1)
+    Cd = 24.0/Re_p;
+    else if(Re_p<1.0)
+    Cd = 22.73/Re_p+0.0903/pow(Re_p,2),+ 3.69;
+    else if(Re_p<10.0)
+    Cd = 29.1667/Re_p-3.8889/pow(Re_p,2)+ 1.222;
+    else if(Re_p<100.0)
+    Cd = 46.5/Re_p- 116.67/pow(Re_p,2)+0.6167;
+    else if(Re_p<1000.0)
+    Cd = 98.33/Re_p- 2778/pow(Re_p,2) +0.3644;
+    else if(Re_p<5000.0)
+    Cd = 148.62/Re_p-4.75e4/pow(Re_p,2)+0.357;
+    else if(Re_p<10000.0)
+    Cd = -490.546/Re_p +57.87e4/pow(Re_p,2) +0.46;
+    // else if(Re_p<50000.0)
+    else
+    Cd = -1662.5/Re_p+5.4167e6/pow(Re_p,2)+0.5191;
 
-//     return Cd;
-// }
+    return Cd;
+}
