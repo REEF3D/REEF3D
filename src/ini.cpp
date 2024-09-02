@@ -105,9 +105,9 @@ void lexer::ini_default()
     A512=0;		// int NHFLOW diffusion
     A514=4;		// int NHFLOW reconstruction 
     
-    A515=3;      // int NHFLOW KFSFBC scheme
-    A516=3;      // int NFHLOW KFSFBED scheme
-    A517=3;      // int NHFLOW omega_sig scheme
+    A515=3;      // int
+    A516=3;      // int
+    A517=3;      // int 
     A518=2;      // int NHFLOW bed BC
     A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme

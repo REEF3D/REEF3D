@@ -42,28 +42,7 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
     Pval = d->Ub[IJK];
     Qval = d->Vb[IJK];
     
-        if(p->A515==1)
-        {
-        wval = d->detadt(i,j)
-        
-             + MAX(0.0,Pval)*((eta(i,j)-eta(i-1,j))/(p->DXP[IP]))
-             + MIN(0.0,Pval)*((eta(i+1,j)-eta(i,j))/(p->DXP[IP1]))
-        
-             + MAX(0.0,Qval)*((eta(i,j)-eta(i,j-1))/(p->DYP[JP]))
-             + MIN(0.0,Qval)*((eta(i,j+1)-eta(i,j))/(p->DYP[JP1]));
-        }
-             
-        if(p->A515==2)
-        {
-        wval = d->detadt(i,j)
-        
-             + Pval*(eta(i+1,j)-eta(i-1,j))/(p->DXP[IP]+p->DXP[IP1])
 
-             + Qval*(eta(i,j+1)-eta(i,j-1))/(p->DYP[JP]+p->DYP[JP1]);
-        }
-        
-        if(p->A515>=3)
-        {
         dfdx_plus = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
         dfdx_min  = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
     
@@ -80,7 +59,6 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
              + Pval*detadx
 
              + Qval*detady;
-        }
 
         d->Wb[IJK] = wval;
         d->Wb[IJKp1] = wval;
@@ -89,13 +67,6 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->Wt[IJK] = wval;
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
-        
-        if(p->A515==4)
-        {
-        d->W[IJK] = wval;
-        d->W[IJKp1] = wval;
-        d->W[IJKp2] = wval;
-        }
     }
 }   
 
