@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"FSI_strips.h"
@@ -47,6 +47,9 @@ void fsi_strips::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     for (int num = 0; num < numberStrips; num++)
     {
         pstrip[num]->initialize(p, a, pgc, pturb);
+        
+        pstrip[num]->print_stl(p,a,pgc);
+        pstrip[num]->print_parameter(p, a, pgc);
     }
 }
 

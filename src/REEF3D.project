@@ -641,7 +641,7 @@
         <File Name="rheology_f.h"/>
         <File Name="rheology_v.h"/>
       </VirtualDirectory>
-          </VirtualDirectory>
+    </VirtualDirectory>
     <VirtualDirectory Name="FDM">
       <VirtualDirectory Name="Function">
         <File Name="linear_regression_cont.h"/>
@@ -1718,6 +1718,9 @@
           <File Name="beam.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Strip">
+          <File Name="FSI_strip_forcing.cpp"/>
+          <File Name="FSI_strip_force.cpp"/>
+          <File Name="FSI_strip_kernel.cpp"/>
           <File Name="FSI_strips.cpp"/>
           <File Name="FSI_strip_update.cpp"/>
           <File Name="FSI_strip_rhs.cpp"/>
