@@ -226,7 +226,7 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         D *= kernel_roma(dist);
                         
                         kin = pturb->kinval(i_it,j_it,k_it);
-                        eps_star = D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
+                        eps_star = 5.0*D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
                         
                         eps0(i_it,j_it,k_it) += eps_star;
 
