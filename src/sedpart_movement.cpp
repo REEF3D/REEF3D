@@ -749,29 +749,54 @@ namespace sediment_particle::movement
     {
         double shear_eff;
         double shear_crit;
+        double topoDist,u,v,w,du,dv,dw;
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==1)
             {
-                shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
-                shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
-                if(shear_crit>shear_eff)
-                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<2.0*PP.d50)
+                switch (p->Q200)
                 {
-                    PP.Flag[n]=0;
-                    PP.U[n]=0;
-                    PP.V[n]=0;
-                    PP.W[n]=0;
+                    case 0:
+                    {
+                        shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
+                        shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
+                        if(shear_crit>shear_eff)
+                        if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<2.0*PP.d50)
+                        {
+                            PP.Flag[n]=0;
+                            PP.U[n]=0;
+                            PP.V[n]=0;
+                            PP.W[n]=0;
 
-                    PP.Uf[n]=0;
-                    PP.Vf[n]=0;
-                    PP.Wf[n]=0;
-                    // PP.shear_eff[n]=shear_eff;
-                    // PP.shear_crit[n]=shear_crit;
-                    PP.drag[n]=0;
+                            PP.Uf[n]=0;
+                            PP.Vf[n]=0;
+                            PP.Wf[n]=0;
+                            // PP.shear_eff[n]=shear_eff;
+                            // PP.shear_crit[n]=shear_crit;
+                            PP.drag[n]=0;
 
-                    i=p->posc_i(PP.X[n]);
-                    j=p->posc_j(PP.Y[n]);
-                    bedChange[IJ] += PP.PackingFactor[n];
+                            i=p->posc_i(PP.X[n]);
+                            j=p->posc_j(PP.Y[n]);
+                            bedChange[IJ] += PP.PackingFactor[n];
+                        }
+                    }
+                    break;
+                    case 1:
+                    {
+                        relative_velocity(p,a,PP,n,du,dv,dw);
+                        const double dU=sqrt(du*du+dv*dv+dw*dw);
+                        const double Re_p = dU*PP.d50/(p->W2/p->W1);
+                        const double Cd = drag_coefficient(Re_p);
+                        const double Fd = Cd * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
+                        const double mu_s = tan(p->S81);
+                        const double W = p->W1 * sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22) * (p->S22/p->W1-1) * PI/6.0 *pow(PP.d50,3);
+                        const double Fs = W * mu_s;
+                        if(Fd < W * (mu_s*cos(s.teta[IJ])-sin(s.teta[IJ])))
+                        {
+                            PP.Flag[n]=0;
+                            bedChange[IJ] += PP.PackingFactor[n];
+                        }
+                    }
+                    break;
                 }
             }
     }
