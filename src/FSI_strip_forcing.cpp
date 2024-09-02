@@ -60,6 +60,8 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     double eps_star;
     double kin;
     
+    pip=4;
+    
     LOOP
     eps0(i,j,k) = 0.0;
     
@@ -134,8 +136,7 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         
                         eps0(i_it,j_it,k_it) += eps_star;
                         
-                        LOOP
-                        a->eddyv(i,j,k) = (1.0-D)*a->eddyv(i,j,k) + D*MIN(a->eddyv(i,j,k), 0.33*(dx+dy+dz)*p->cmu*pow((kin>(1.0e-20)?(kin):(1.0e20)),0.5));
+                        a->eddyv(i_it,j_it,k_it) = (1.0-D)*a->eddyv(i_it,j_it,k_it) + D*MIN(a->eddyv(i_it,j_it,k_it), 0.33*(dx+dy+dz)*p->cmu*pow((kin>(1.0e-20)?(kin):(1.0e20)),0.5));
                         }
                     }
                 }
@@ -153,4 +154,6 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     pgc->start3(p,fz,12);
     
     pgc->start4(p,a->test,10);
+    
+    pip=0;
 }
