@@ -337,7 +337,7 @@ namespace sediment_particle::movement
 
                     if(PP.U[n]!=PP.U[n] || PP.V[n]!=PP.V[n] || PP.W[n]!=PP.W[n])
                     {
-                    cout<<"NaN detected."<<endl;
+                    cout<<"NaN detected.\nDu: "<<Du<<" Dv: "<<Dv<<" Dw: "<<Dw<<"\nDrag: "<<DragCoeff<<endl;
                     exit(1);
                     }
                     
