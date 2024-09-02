@@ -771,7 +771,16 @@ namespace sediment_particle::movement
                     break;
                     case 1:
                     {
-                        relative_velocity(p,a,PP,n,du,dv,dw);
+                        // relative_velocity(p,a,PP,n,du,dv,dw);
+                        k=p->posc_k(PP.Z[n]);
+                        double topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
+                        double u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+                        double v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+                        double w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
+
+                        du=u-PP.U[n];
+                        dv=v-PP.V[n];
+                        dw=w-PP.W[n];
                         const double dU=sqrt(du*du+dv*dv+dw*dw);
                         const double Re_p = dU*PP.d50/(p->W2/p->W1);
                         const double Cd = drag_coefficient(Re_p);
