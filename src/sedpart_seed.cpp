@@ -274,53 +274,55 @@ size_t sedpart::set_active_topo(lexer *p, fdm *a)
 
 void sedpart::seedDummy(lexer *p, fdm *a, particles_obj &PP)
 {
-    if(p->origin_i=0)
+    if(p->origin_i==0)
     {
+        PP.reserve(PP.size+ppcell*p->knoy*p->knoz);
         i=0;
         JLOOP
         for(k=1; k<p->knoz; ++k)
-            seedDummy(p,a,PP);
+            seedDummyCell(p,a,PP);
     }
     if(p->origin_i+p->knox == p->gknox)
     {
+        PP.reserve(PP.size+ppcell*p->knoy*p->knoz);
         i = p->gknox;
         JLOOP
         for(k=1; k<p->knoz; ++k)
-            seedDummy(p,a,PP);
+            seedDummyCell(p,a,PP);
     }
-    if(p->origin_j=0)
+    if(p->origin_j==0)
     {
+        PP.reserve(PP.size+ppcell*p->knox*p->knoz);
         j=0;
         ILOOP
         for(k=1; k<p->knoz; ++k)
-            seedDummy(p,a,PP);
+            seedDummyCell(p,a,PP);
     }
     if(p->origin_j+p->knoy == p->gknoy)
     {
+        PP.reserve(PP.size+ppcell*p->knox*p->knoz);
         j = p->gknoy;
         ILOOP
         for(k=1; k<p->knoz; ++k)
-            seedDummy(p,a,PP);
+            seedDummyCell(p,a,PP);
     }
-    if(p->origin_k=0)
+    if(p->origin_k==0)
     {
+        PP.reserve(PP.size+ppcell*p->knoy*p->knox);
         k=0;
         ILOOP
         JLOOP
-        seedDummy(p,a,PP);
+        seedDummyCell(p,a,PP);
     }
+    cout<<"Dummy seeding done on "<<p->mpirank<<".\nSeeded "<<PP.size<<" particles."<<endl;
 }
 
 void sedpart::seedDummyCell(lexer *p, fdm *a, particles_obj &PP)
 {
     double tolerance = 5e-18;
     double x,y,z,ipolSolid;
-    int flag=0;
 
-    if(PP.size+ppcell>0.9*PP.capacity)
-        PP.reserve();
-
-    for(int qn=0;qn<ppcell*1000;++qn)
+    for(int qn=0;qn<ppcell;++qn)
     {   
         x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
         y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
@@ -329,6 +331,6 @@ void sedpart::seedDummyCell(lexer *p, fdm *a, particles_obj &PP)
             break;
         ipolSolid = p->ccipol4_b(a->solid,x,y,z);
         if(!(ipolSolid<0))
-            PP.add(x,y,z,flag,0,0,0,p->Q41);
+            PP.add(x,y,z,0);
     }
 }
