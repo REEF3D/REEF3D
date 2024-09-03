@@ -299,7 +299,7 @@ void VOF_PLIC::start
         if(nSweep==0)
         {
             pgc->start4(p,a->phi,1);
-            pgc->start4(p,a->vof,1;
+            pgc->start4(p,a->vof,1);
             LOOP
             {
                 phistep(i,j,k)=a->phi(i,j,k);
@@ -330,12 +330,12 @@ void VOF_PLIC::start
                 vofstep(i,j,k)=vofS1(i,j,k);
             }
             pgc->start4(p,phistep,1);
-            pgc->start4(p,vofstep,1;
+            pgc->start4(p,vofstep,1);
         }
         
-        pgc->start4(p,a->u,gcval_frac);
-        pgc->start4(p,a->v,gcval_frac);
-        pgc->start4(p,a->w,gcval_frac);
+        pgc->start1(p,a->u,10);
+        pgc->start2(p,a->v,11);
+        pgc->start3(p,a->w,12);
             
         
         LOOP
@@ -390,7 +390,7 @@ void VOF_PLIC::start
         pgc->start4(p,nx,1);
         pgc->start4(p,ny,1);
         pgc->start4(p,nz,1);
-        pgc->start4(p,alpha,1;
+        pgc->start4(p,alpha,1);
         pgc->start4(p,V_w_m,1);
         pgc->start4(p,V_w_p,1);
         pgc->start4(p,phiS1,1);
@@ -442,9 +442,9 @@ void VOF_PLIC::start
     
     LOOP
     {
-        if(phistep(i,j,k)<-p->psi || vofstep(i,j,k)<0.0)
+        if(phistep(i,j,k)<-0.3*p->psi || vofstep(i,j,k)<0.0)
             vofstep(i,j,k)=0.0;
-        else if(phistep(i,j,k)>p->psi || vofstep(i,j,k)>1.0)
+        else if(phistep(i,j,k)>0.3*p->psi || vofstep(i,j,k)>1.0)
             vofstep(i,j,k)=1.0;
             
         if(vofstep(i,j,k)>0.0 && vofstep(i,j,k)<1.0)
@@ -500,7 +500,7 @@ void VOF_PLIC::start
                 }
             }
             
-            if((vofstep(i,j,k)>1E-6 && vofstep(i,j,k)<1.0-1E-6)))
+            if((vofstep(i,j,k)>1E-6 && vofstep(i,j,k)<1.0-1E-6))
             {
                 if(p->j_dir>0)
                     redistancePhiByPlane_Bonn(a,p);
