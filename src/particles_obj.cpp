@@ -40,7 +40,7 @@ size_t overflow when adding something to an object at capacity
 /// @param _scale_factor Sets ::scale_factor for ::reserve
 particles_obj::particles_obj(size_t _capacity, double _d50, double _density, bool individuals, size_t _size, double _scale_factor):
                 tracers_obj(_capacity,_size,_scale_factor),
-                entries(tracers_obj::entries+(individuals?4+6:0)), // update when adding more data
+                entries(tracers_obj::entries+(individuals?4+3+1+3+3+3+3:0)), // update when adding more data
                 d50(_d50), density(_density)
                 
 {	
@@ -49,6 +49,8 @@ particles_obj::particles_obj(size_t _capacity, double _d50, double _density, boo
         U = new double[_capacity];
         V = new double[_capacity];
         W = new double[_capacity];
+
+        PackingFactor = new double[_capacity];
         
         XRK1 = new double[_capacity];
         YRK1 = new double[_capacity];
@@ -57,8 +59,6 @@ particles_obj::particles_obj(size_t _capacity, double _d50, double _density, boo
         URK1 = new double[_capacity];
         VRK1 = new double[_capacity];
         WRK1 = new double[_capacity];
-        
-        PackingFactor = new double[_capacity];
         
         Uf = new double[_capacity];
         Vf = new double[_capacity];
@@ -187,11 +187,11 @@ void particles_obj::erase_all()
 /// @param w Velocity in z-dir
 /// @param packingFactor Number of real particles represented by the element
 /// @return Index of added particle
-size_t particles_obj::add(double x, double y, double z, int flag, double u, double v, double w, double urk1, double vrk1, double wrk1, double packingFactor, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
+size_t particles_obj::add(double x, double y, double z, int flag, double u, double v, double w, double packingFactor, double xrk1, double yrk1, double zrk1, double urk1, double vrk1, double wrk1, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
 {
     size_t index=tracers_obj::add(x,y,z,flag);
     if(entries>tracers_obj::entries)
-        add_data(index,x,y,z,u,v,w,urk1,vrk1,wrk1,packingFactor,uF,vF,wF,shearEff,shearCrit,_drag);
+        add_data(index,x,y,z,u,v,w,packingFactor,xrk1,yrk1,zrk1,uF,vF,wF,shearEff,shearCrit,_drag);
     return index;
 }
 
@@ -399,7 +399,7 @@ void particles_obj::add_obj(particles_obj* obj)
         
         if(obj->entries>obj->tracers_obj::entries && entries>tracers_obj::entries)
             for(size_t n=0;n<obj->loopindex;n++)
-                add(obj->X[n],obj->Y[n],obj->Z[n],obj->Flag[n],obj->U[n],obj->V[n],obj->W[n],obj->URK1[n],obj->VRK1[n],obj->WRK1[n],obj->PackingFactor[n],obj->Uf[n],obj->Vf[n],obj->Wf[n],obj->shear_eff[n],obj->shear_crit[n],obj->drag[n]);
+                add(obj->X[n],obj->Y[n],obj->Z[n],obj->Flag[n],obj->U[n],obj->V[n],obj->W[n],obj->PackingFactor[n],obj->URK1[n],obj->VRK1[n],obj->WRK1[n],obj->Uf[n],obj->Vf[n],obj->Wf[n],obj->shear_eff[n],obj->shear_crit[n],obj->drag[n]);
         else
             tracers_obj::add_obj(obj);
     }
@@ -412,8 +412,8 @@ void particles_obj::add_obj(particles_obj* obj)
 /// @param w Velocity in z-dir
 /// @param packingFactor Number of real particles represented by the element
 void particles_obj::add_data(size_t index, double x, double y, double z, 
-                            double u, double v, double w, double urk1, double vrk1, double wrk1, 
-                            double packingFactor, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
+                            double u, double v, double w, double packingFactor, double xrk1, double yrk1, double zrk1, double urk1, double vrk1, double wrk1, 
+                            double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
 {
     XRK1[index] = x;
     YRK1[index] = y;
@@ -422,6 +422,10 @@ void particles_obj::add_data(size_t index, double x, double y, double z,
     U[index] = u;
     V[index] = v;
     W[index] = w;
+
+    XRK1[index] = xrk1;
+    YRK1[index] = yrk1;
+    ZRK1[index] = zrk1;
     
     URK1[index] = urk1;
     VRK1[index] = vrk1;
