@@ -296,9 +296,7 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
             }
         }
 
-    cout<<p->mpirank<<" sending…"<<endl;
     pgc->para_tracersobj(p,Send,Recv);
-    cout<<p->mpirank<<" recieved."<<endl;
 
 
     size_t sum=PP->size;
