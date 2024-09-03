@@ -104,6 +104,7 @@ private:
     void seed_ini(lexer*,fdm*,ghostcell*);
     void seed(lexer*,fdm*);
     void posseed_box(lexer*,fdm*);
+    void posseed_box_dummy(lexer*,fdm*);
     void posseed_topo(lexer*,fdm*);
     void posseed_suspended(lexer*,fdm*);
     void point_source(lexer*,fdm*);
@@ -160,6 +161,7 @@ private:
 
     /// @brief Marker for cells which should be seeded for a box
     field4 active_box;
+    field4 active_box_dummy;
     /// @brief Marker for cells which should be seeded with topography
 	field4 active_topo;
 
@@ -167,6 +169,7 @@ private:
 
     /// @brief Particle object
     particles_obj PP;
+    particles_obj PP2;
     /// @brief VRANS object
     vrans* pvrans;
     /// @brief FDM object for sediment
