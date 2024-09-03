@@ -109,4 +109,30 @@ void sedpart::header_pos(lexer* p)
 	
 }
 
+void sedpart::printDummyPVTP(lexer *p)
+{	
+	sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-Dummy.pvtp");
+	
 
+	ofstream result;
+	result.open(name);
+
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PPolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+	result<<"<PPolyData GhostLevel=\"0\">\n";
+
+	result<<"<PPoints>\n";
+	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+	result<<"</PPoints>\n";
+
+	for(int n=0; n<p->M10; ++n)
+	{
+    sprintf(pname,"REEF3D-SedPart-Dummy-%06i.vtp",p->mpirank+1);
+    result<<"<Piece Source=\""<<pname<<"\"/>\n";
+	}
+
+	result<<"</PPolyData>\n";
+	result<<"</VTKFile>"<<std::flush;
+
+	result.close();
+}
