@@ -45,14 +45,18 @@ void partres::deposition(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                         if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<2.0*PP.d50)
                         {
                             PP.Flag[n]=0;
-                            PP.U[n]=0;
-                            PP.V[n]=0;
-                            PP.W[n]=0;
+                            PP.U[n]=0.0;
+                            PP.V[n]=0.0;
+                            PP.W[n]=0.0;
+                            
+                            PP.URK1[n]=0.0;
+                            PP.VRK1[n]=0.0;
+                            PP.WRK1[n]=0.0;
 
-                            PP.Uf[n]=0;
-                            PP.Vf[n]=0;
-                            PP.Wf[n]=0;
-                            PP.drag[n]=0;
+                            PP.Uf[n]=0.0;
+                            PP.Vf[n]=0.0;
+                            PP.Wf[n]=0.0;
+                            PP.drag[n]=0.0;
 
                             i=p->posc_i(PP.X[n]);
                             j=p->posc_j(PP.Y[n]);

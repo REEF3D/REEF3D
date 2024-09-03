@@ -38,7 +38,8 @@ Author: Alexander Hanke
      * @param PP A reference to the particles_obj object.
      */
      
-void partres::advec_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
+void partres::advec_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, 
+                        double &du, double &dv, double &dw, double alpha)
 {
     double RKu,RKv,RKw;
     double u=0,v=0,w=0;
@@ -67,7 +68,6 @@ void partres::advec_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, s
     double Du=0,Dv=0,Dw=0;
     double thetas=0;
     double DragCoeff=0;
-    double du=0,dv=0,dw=0;
     double dU=0;
 
     for(int m=0;m<2;m++)
@@ -157,29 +157,25 @@ void partres::advec_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, s
                     }
                 }
 
-                // Vel update
-                PP.U[n]=0.5*(PP.U[n]+p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n]))+du*RKtimeStep;
-                PP.V[n]=0.5*(PP.V[n]+p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n]))+dv*RKtimeStep;
-                // PP.W[n]=0.5*(PP.W[n]+p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n]))+dw*RKtimeStep;
-                PP.W[n]=0.0;
 
+                // solid forcing
+                double fx,fy,fz;
+                
+                fx = p->ccipol1c(a.fbh1,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.U[n])/(alpha*p->dtsed); 
+                fy = p->ccipol2c(a.fbh2,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.V[n])/(alpha*p->dtsed); 
+                fz = p->ccipol3c(a.fbh3,PP.X[n],PP.Y[n],PP.Z[n])*(0.0-PP.W[n])/(alpha*p->dtsed); 
+                
+                du += fx;
+                dv += fx;
+                dw += fx;
+                
                 if(PP.U[n]!=PP.U[n] || PP.V[n]!=PP.V[n] || PP.W[n]!=PP.W[n])
                 {
                 cout<<"NaN detected.\nDu: "<<Du<<" Dv: "<<Dv<<" Dw: "<<Dw<<"\nDrag: "<<DragCoeff<<endl;
                 exit(1);
                 }
                     
-                // Pos update
-                PP.X[n] += PP.U[n]*RKtimeStep;
-                PP.Y[n] += PP.V[n]*RKtimeStep;
-                // PP.Z[n] += PP.W[n]*RKtimeStep;
-
-                // Sum update
-                cellSum[IJK]-=PP.PackingFactor[n];
-                i=p->posc_i(PP.X[n]);
-                j=p->posc_j(PP.Y[n]);
-                k=p->posc_k(PP.Z[n]);
-                cellSum[IJK]+=PP.PackingFactor[n];
+                
                 }
             }
         }

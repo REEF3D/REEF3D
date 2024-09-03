@@ -50,8 +50,12 @@ particles_obj::particles_obj(size_t _capacity, double _d50, double _density, boo
         V = new double[_capacity];
         W = new double[_capacity];
         
+        URK1 = new double[_capacity];
+        VRK1 = new double[_capacity];
+        WRK1 = new double[_capacity];
+        
         PackingFactor = new double[_capacity];
-
+        
         Uf = new double[_capacity];
         Vf = new double[_capacity];
         Wf = new double[_capacity];
@@ -81,6 +85,13 @@ particles_obj::~particles_obj()
         V=nullptr;
         delete[] W;
         W=nullptr;
+        
+        delete[] URK1;
+        URK1=nullptr;
+        delete[] VRK1;
+        VRK1=nullptr;
+        delete[] WRK1;
+        WRK1=nullptr;
 
         delete[] PackingFactor;
         PackingFactor=nullptr;
@@ -172,11 +183,11 @@ void particles_obj::erase_all()
 /// @param w Velocity in z-dir
 /// @param packingFactor Number of real particles represented by the element
 /// @return Index of added particle
-size_t particles_obj::add(double x, double y, double z, int flag, double u, double v, double w, double packingFactor, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
+size_t particles_obj::add(double x, double y, double z, int flag, double u, double v, double w, double urk1, double vrk1, double wrk1, double packingFactor, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
 {
     size_t index=tracers_obj::add(x,y,z,flag);
     if(entries>tracers_obj::entries)
-        add_data(index,u,v,w,packingFactor,uF,vF,wF,shearEff,shearCrit,_drag);
+        add_data(index,u,v,w,urk1,vrk1,wrk1,packingFactor,uF,vF,wF,shearEff,shearCrit,_drag);
     return index;
 }
 
@@ -206,6 +217,22 @@ size_t particles_obj::reserve(size_t capacity_desired)
         std::memcpy( newW, W, size * sizeof(double) );
         delete[] W;
         W=newW;
+        
+        double* newURK1=new double[capacity_desired];
+        std::memcpy( newURK1, URK1, size * sizeof(double) );
+        delete[] URK1;
+        URK1=newURK1;
+
+        double* newVRK1=new double[capacity_desired];
+        std::memcpy( newVRK1, VRK1, size * sizeof(double) );
+        delete[] VRK1;
+        VRK1=newVRK1;
+
+        double* newWRK1=new double[capacity_desired];
+        std::memcpy( newWRK1, WRK1, size * sizeof(double) );
+        delete[] WRK1;
+        WRK1=newWRK1;
+
 
         double* newPackingFactor=new double[capacity_desired];
         std::memcpy( newPackingFactor, PackingFactor, size * sizeof(double) );
@@ -364,11 +391,16 @@ void particles_obj::add_obj(particles_obj* obj)
 /// @param v Velocity in y-dir
 /// @param w Velocity in z-dir
 /// @param packingFactor Number of real particles represented by the element
-void particles_obj::add_data(size_t index, double u, double v, double w, double packingFactor, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
+void particles_obj::add_data(size_t index, double u, double v, double w, double urk1, double vrk1, double wrk1, double packingFactor, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
 {
     U[index] = u;
     V[index] = v;
     W[index] = w;
+    
+    URK1[index] = urk1;
+    VRK1[index] = vrk1;
+    WRK1[index] = wrk1;
+    
     PackingFactor[index] = packingFactor;
 
     Uf[index] = uF;
@@ -389,6 +421,11 @@ void particles_obj::fill_data(size_t start, size_t end)
         U[n]=0;
         V[n]=0;
         W[n]=0;
+        
+        URK1[n]=0;
+        VRK1[n]=0;
+        WRK1[n]=0;
+        
         PackingFactor[n]=1;
 
         Uf[n]=0;

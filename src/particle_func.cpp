@@ -256,37 +256,37 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
                 {
                     case -1:
                     {
-                        Send[0].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[0].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -2:
                     {
-                        Send[1].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[1].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -3:
                     {
-                        Send[2].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[2].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -4:
                     {
-                        Send[3].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[3].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -5:
                     {
-                        Send[4].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[4].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -6:
                     {
-                        Send[5].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[5].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->PackingFactor[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
                 }
@@ -396,9 +396,13 @@ void particle_func::make_stationary(lexer* p, fdm* a, particles_obj* PP)
             }
             if(PP->entries>PP->tracers_obj::entries)
             {
-                PP->U[n]=0;
-                PP->V[n]=0;
-                PP->W[n]=0;
+                PP->U[n]=0.0;
+                PP->V[n]=0.0;
+                PP->W[n]=0.0;
+                
+                PP->URK1[n]=0.0;
+                PP->VRK1[n]=0.0;
+                PP->WRK1[n]=0.0;
             }
             // if(p->ccipol4_b(a->solid,PP->X[n],PP->Y[n],PP->Z[n])<=0)
             // {

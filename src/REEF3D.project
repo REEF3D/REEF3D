@@ -458,14 +458,6 @@
         <File Name="wind_f.h"/>
         <File Name="wind.h"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Particle">
-        <File Name="particle.h"/>
-        <File Name="particles_obj.h"/>
-        <File Name="tracers_obj.h"/>
-        <File Name="particle_v.h"/>
-        <File Name="particle_f.h"/>
-        <File Name="particle_func.h"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
           <File Name="multiphase_fluid_update_rheology.h"/>
@@ -559,6 +551,14 @@
         <File Name="sediment_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
+        <VirtualDirectory Name="Particle Base">
+          <File Name="tracers_obj.h"/>
+          <File Name="particles_obj.h"/>
+          <File Name="particle_v.h"/>
+          <File Name="particle_func.h"/>
+          <File Name="particle_f.h"/>
+          <File Name="particle.h"/>
+        </VirtualDirectory>
         <File Name="sediment_part.h"/>
         <File Name="partres.h"/>
       </VirtualDirectory>
