@@ -67,11 +67,11 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         }
 
         /// transport
-        erode(p,a);
+        erosion(p,a);
         movement->move(p,*a,*pgc,PP,s,*pturb);
 		xchange=transfer(p,pgc,&PP, movement, maxparticle);
 		removed=remove(p,&PP);
-        deposit(p,a);
+        deposition(p,a);
 
         /// topo update
         update_cfd(p,a,pgc,pflow,preto);

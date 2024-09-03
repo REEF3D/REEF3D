@@ -1677,13 +1677,23 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <VirtualDirectory Name="Partres">
-          <File Name="partres_activate.cpp"/>
-          <File Name="partres_update.cpp"/>
+          <File Name="partres_deposition.cpp"/>
+          <File Name="partres_erosion.cpp"/>
+          <File Name="partres_drag.cpp"/>
+          <File Name="partres_timestep.cpp"/>
+          <VirtualDirectory Name="FDM">
+            <File Name="partres_settling.cpp"/>
+            <File Name="partres_debug.cpp"/>
+            <File Name="partres_activate.cpp"/>
+            <File Name="partres_volume.cpp"/>
+            <File Name="partres_update.cpp"/>
+            <File Name="partres_transfer.cpp"/>
+            <File Name="partres_state.cpp"/>
+            <File Name="partres_setup.cpp"/>
+            <File Name="partres_seed.cpp"/>
+          </VirtualDirectory>
+          <File Name="partres_move.cpp"/>
           <File Name="partres_stress_tensor.cpp"/>
-          <File Name="partres_transfer.cpp"/>
-          <File Name="partres_setup.cpp"/>
-          <File Name="partres_seed.cpp"/>
-          <File Name="partres_debug.cpp"/>
           <File Name="partres.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sediment Particle">

@@ -25,40 +25,28 @@ Author: Alexander Hanke
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
-#include "field4a.h"
-#include "sediment_fdm.h"
-#include "turbulence.h"
 
-partres::partres(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
-                                            Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17),bedChange(p)
+void partres::timestep(lexer *p, ghostcell &pgc, particles_obj &PP)
 {
-        p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
-        p->Darray(cellSum,p->imax*p->jmax*p->kmax);
-        p->Darray(cellSumTopo,p->imax*p->jmax*p->kmax);
-        p->Darray(columnSum,p->imax*p->jmax);
-        dx=p->global_xmax-p->global_xmin;
-        LOOP
+        double maxVelU=0,maxVelV=0,maxVelW=0;
+        for(size_t n=0;n<PP.loopindex;n++)
         {
-            dx = min(dx,MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]));
+            if(PP.Flag[n]>0)
+            {
+                maxVelU=max(maxVelU,fabs(PP.U[n]));
+                maxVelV=max(maxVelV,fabs(PP.V[n]));
+                maxVelW=max(maxVelW,fabs(PP.W[n]));
+            }
         }
+
+        dx = pgc.globalmin(dx);
+        if(p->mpirank==0)
+        cout<<"TimeStep: dx: "<<dx<<" vel: "<<sqrt(maxVelU*maxVelU+maxVelV*maxVelV+maxVelW*maxVelW)<<endl;
+        double meanVel=sqrt(maxVelU*maxVelU+maxVelV*maxVelV+maxVelW*maxVelW);
+        if(meanVel==0)
+        meanVel=dx*p->S14/p->S13;
+        p->dtsed = p->S14 * (dx/meanVel);
+        p->dtsed = min(p->dtsed,p->S13);
+        p->dtsed = min(p->dtsed,p->dt);
+        p->dtsed = pgc.globalmin(p->dtsed);
 }
-
-partres::~partres()
-{
-        delete[] stressTensor;
-        stressTensor = nullptr;
-        delete[] cellSum;
-        cellSum = nullptr;
-        delete[] cellSumTopo;
-        cellSumTopo = nullptr;
-        delete[] columnSum;
-        columnSum = nullptr;
-}
-
-
-
-
-
-
-
-

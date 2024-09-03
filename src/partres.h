@@ -60,8 +60,8 @@ public:
         void remove(lexer *, particles_obj &, size_t &);
         void move(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
         void make_moving(lexer *, fdm &, particles_obj &);
-        void erode(lexer *, fdm &, particles_obj &, sediment_fdm &);
-        void deposit(lexer *, fdm &, particles_obj &, sediment_fdm &);
+        void erosion(lexer *, fdm &, particles_obj &, sediment_fdm &);
+        void deposition(lexer *, fdm &, particles_obj &, sediment_fdm &);
         void update(lexer *, fdm &, ghostcell &, particles_obj &);
         void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &);
         double volume(lexer *, fdm &, particles_obj &);
@@ -75,7 +75,7 @@ private:
         void updateParticleStressTensor(lexer *, fdm &, particles_obj &, int, int, int);
         double theta_s(lexer *, fdm &, particles_obj &, int, int, int) const;
         double drag_model(lexer *, double, double, double, double, double) const;
-        double sedimentation_velocity(lexer *, double, double, double, double, double) const;
+        double settling_velocity(lexer *, double, double, double, double, double) const;
         void particlePerCell(lexer *, ghostcell &, particles_obj &);
         void timestep(lexer *, ghostcell &, particles_obj &);
         int activateNew(lexer *, fdm &, particles_obj &);

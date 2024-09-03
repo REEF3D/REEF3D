@@ -76,8 +76,8 @@ public:
     
     // 
 
-    void erode(lexer*,fdm*);
-    void deposit(lexer*,fdm*);
+    void erosion(lexer*,fdm*);
+    void deposition(lexer*,fdm*);
 
     // Statefile methods
 

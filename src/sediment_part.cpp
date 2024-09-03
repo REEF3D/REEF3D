@@ -94,20 +94,20 @@ sediment_part::~sediment_part()
 }
 
 /// @brief Enables erosion of particles
-void sediment_part::erode(lexer* p, fdm* a)
+void sediment_part::erosion(lexer* p, fdm* a)
 {
     if(p->Q101>0)
     {
-        movement->erode(p,*a,PP,s);
+        movement->erosion(p,*a,PP,s);
     }
 }
 
 /// @brief Deposits moving particles onto topo
-void sediment_part::deposit(lexer* p, fdm* a)
+void sediment_part::deposition(lexer* p, fdm* a)
 {    
     if(p->Q101>0)
     {
-        movement->deposit(p,*a,PP,s);
+        movement->deposition(p,*a,PP,s);
     }
 }
 

@@ -25,40 +25,27 @@ Author: Alexander Hanke
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
-#include "field4a.h"
 #include "sediment_fdm.h"
-#include "turbulence.h"
 
-partres::partres(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
-                                            Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17),bedChange(p)
+double partres::settling_velocity(lexer *p, double d, double du, double dv, double dw, double thetas) const
 {
-        p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
-        p->Darray(cellSum,p->imax*p->jmax*p->kmax);
-        p->Darray(cellSumTopo,p->imax*p->jmax*p->kmax);
-        p->Darray(columnSum,p->imax*p->jmax);
-        dx=p->global_xmax-p->global_xmin;
-        LOOP
-        {
-            dx = min(dx,MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]));
-        }
+        const double dU=sqrt(du*du+dv*dv+dw*dw);
+        if(dU==0) // Saveguard
+        return 0;
+
+        const double Rep=dU*d*invKinVis;
+
+        const double Cd=24.0/Rep+4.0/sqrt(Rep)+0.4;
+        const double ws_single=sqrt(4.0/3.0*(p->S22-p->W1)/p->W1*d*fabs(p->W22)/Cd);
+        double n;
+        if(Rep<=0.2)
+        n=4.65;
+        else if(Rep<=1)
+        n=4.35*pow(Rep,-0.03);
+        else if(Rep<=500)
+        n=4.45*pow(Rep,-0.1);
+        else
+        n=2.39;
+        const double ws_swarm = ws_single*pow((1.0-thetas),n);
+        return ws_swarm;
 }
-
-partres::~partres()
-{
-        delete[] stressTensor;
-        stressTensor = nullptr;
-        delete[] cellSum;
-        cellSum = nullptr;
-        delete[] cellSumTopo;
-        cellSumTopo = nullptr;
-        delete[] columnSum;
-        columnSum = nullptr;
-}
-
-
-
-
-
-
-
-

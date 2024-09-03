@@ -25,40 +25,30 @@ Author: Alexander Hanke
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
-#include "field4a.h"
-#include "sediment_fdm.h"
-#include "turbulence.h"
 
-partres::partres(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
-                                            Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17),bedChange(p)
+
+/// @brief Writes the state of the partres class to file.
+/// @ToDo Write cellSumTopo 
+void partres::writeState(lexer *p, ofstream &result)
 {
-        p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
-        p->Darray(cellSum,p->imax*p->jmax*p->kmax);
-        p->Darray(cellSumTopo,p->imax*p->jmax*p->kmax);
-        p->Darray(columnSum,p->imax*p->jmax);
-        dx=p->global_xmax-p->global_xmin;
-        LOOP
+        float ffn;
+        PLAINLOOP
         {
-            dx = min(dx,MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]));
+            ffn=cellSum[IJK];
+            result.write((char*)&ffn, sizeof (float));
         }
+        result.write((char*)&ffn, sizeof (float));  
 }
 
-partres::~partres()
+/// Reads the state of the partres class from file.
+/// Reconstructs cellSum, columnSum and stressTensor
+void partres::readState(lexer *p, ifstream &result)
 {
-        delete[] stressTensor;
-        stressTensor = nullptr;
-        delete[] cellSum;
-        cellSum = nullptr;
-        delete[] cellSumTopo;
-        cellSumTopo = nullptr;
-        delete[] columnSum;
-        columnSum = nullptr;
+        float ffn;
+        PLAINLOOP
+        {
+            result.read((char*)&ffn, sizeof (float));
+            cellSum[IJK]=double(ffn);
+        }
+
 }
-
-
-
-
-
-
-
-

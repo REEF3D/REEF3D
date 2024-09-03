@@ -26,6 +26,19 @@ Author: Alexander Hanke
 #include "fdm.h"
 #include "ghostcell.h"
 
+    /// @brief Calculate complete intra-particle stress trensor
+void partres::particleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+{
+        double theta;
+        int i,j,k;
+
+        BLOOP
+        {
+            updateParticleStressTensor(p,a,PP,i,j,k);
+        }
+        pgc.start4V_par(p,stressTensor,10);
+}
+
     /// @brief Calculate intra-particle stress trensor for cells around (`increment::i`,`increment::j`,`increment::k`)
 void partres::particleStressTensorUpdateIJK(lexer *p, fdm &a, particles_obj &PP)
 {
