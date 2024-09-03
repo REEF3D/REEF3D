@@ -590,7 +590,7 @@ void lexer::ini_default()
 	P352=0;             // int print out wsf lsm2
     
     // Particles
-    Q10=0;              // int particle algorithm
+    Q10=0;              // int time scheme
     Q11=1;              // int move function
     Q12=0;              // int susp load
     Q13=0;              // int topo deformation
