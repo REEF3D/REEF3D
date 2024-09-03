@@ -231,7 +231,7 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, tracers_obj* PP, int maxco
 /// @param PP particles_obj contains particle information
 /// @param maxcount maximum number of particles which could be transfered
 /// @return number of send of particles
-int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres *movement, int maxcount)
+int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres *pst, int maxcount)
 {
     int xchange=0;
 
@@ -312,7 +312,7 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
             i = p->posc_i(Recv[n].X[m]);
             j = p->posc_j(Recv[n].Y[m]);
             k = p->posc_k(Recv[n].Z[m]);
-            movement->transfer(p,Recv[n],m);
+            pst->transfer(p,Recv[n],m);
             cellSum[IJK]+=Recv[n].PackingFactor[n];
         }
         PP->add_obj(&Recv[n]);

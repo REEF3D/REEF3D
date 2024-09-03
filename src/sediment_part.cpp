@@ -49,7 +49,7 @@ sediment_part::sediment_part(lexer* p, ghostcell* pgc, turbulence *pturb) : part
 {
     // pvrans = new vrans_f(p,pgc);
     pvrans =  new vrans_v(p,pgc);
-    movement = new partres(p);
+    pst = new partres(p);
     preduce = new reduction_FD(p);
     sediment_part::pturb = pturb;
 
@@ -90,7 +90,7 @@ sediment_part::sediment_part(lexer* p, ghostcell* pgc, turbulence *pturb) : part
 sediment_part::~sediment_part()
 {
     delete pvrans;
-    delete movement;
+    delete pst;
 }
 
 /// @brief Enables erosion of particles
@@ -98,7 +98,7 @@ void sediment_part::erosion(lexer* p, fdm* a)
 {
     if(p->Q101>0)
     {
-        movement->erosion(p,*a,PP,s);
+        pst->erosion(p,*a,PP,s);
     }
 }
 
@@ -107,11 +107,11 @@ void sediment_part::deposition(lexer* p, fdm* a)
 {    
     if(p->Q101>0)
     {
-        movement->deposition(p,*a,PP,s);
+        pst->deposition(p,*a,PP,s);
     }
 }
 
 void sediment_part::debug(lexer* p, fdm* a, ghostcell* pgc)
 {
-    movement->debug(p,*a,*pgc,PP,s);
+    pst->debug(p,*a,*pgc,PP,s);
 }

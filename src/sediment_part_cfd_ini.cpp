@@ -50,9 +50,9 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 	        a->porosity(i,j,k)=1.0;
     }
 
-    movement->setup(p,*a,PP.d50);
+    pst->setup(p,*a,PP.d50);
 
-    volume0 = movement->volume(p,*a,PP);
+    volume0 = pst->volume(p,*a,PP);
     volume0 = pgc->globalsum(volume0);
     volume = volume0;
 
@@ -68,9 +68,9 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     gparticle_active = pgc->globalisum(PP.size);
 
     fill_PQ_cfd(p,a,pgc);
-    // movement->move(p,*a,*pgc,PP,s,*pturb);
+    // pstmove(p,*a,*pgc,PP,s,*pturb);
     if(p->Q13==1)
-        movement->update(p,*a,*pgc,PP);
+        pst->update(p,*a,*pgc,PP);
     
     // print
     if((p->I40!=1)||(p->I40==1&&inicount>0))

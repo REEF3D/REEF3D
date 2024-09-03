@@ -122,7 +122,7 @@ void sediment_part::posseed_box(lexer *p, fdm *a)
                 z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
 
                 index = PP.add(x,y,z,flag,a->u(i,j,k),a->v(i,j,k),a->w(i,j,k),p->Q41);
-                movement->seeding(p, PP, index, ppcell);
+                pst->seeding(p, PP, index, ppcell);
             }
 }
 
@@ -161,7 +161,7 @@ void sediment_part::posseed_suspended(lexer *p, fdm *a)
                     y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
                     z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
                     index=PP.add(x,y,z,1,a->u(i-1,j,k),a->v(i-1,j,k),a->w(i-1,j,k),p->Q41);
-                    movement->seeding(p, PP, index, ppcell);
+                    pst->seeding(p, PP, index, ppcell);
                 }
             }
         }
@@ -175,7 +175,7 @@ void sediment_part::point_source(lexer *p, fdm *a)
         if(p->count%p->Q61_i[n]==0)
         {
             index = PP.add(p->Q61_x[n],p->Q61_y[n],p->Q61_z[n],1,a->u(i,j,k),a->v(i,j,k),a->w(i,j,k),p->Q41);
-            movement->seeding(p, PP, index, ppcell);
+            pst->seeding(p, PP, index, ppcell);
         }
 }
 
@@ -232,7 +232,7 @@ void sediment_part::seed_topo(lexer *p, fdm *a)
         if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
         {
             index=PP.add(x,y,z,flag,0,0,0,p->Q41);
-            auto result = movement->seeding(p, PP, index, p->Q41*ppcell);
+            auto result = pst->seeding(p, PP, index, p->Q41*ppcell);
             if(result==seedReturn::STOP)
                 break;
             if(result==seedReturn::REMOVE)

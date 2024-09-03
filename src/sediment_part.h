@@ -174,7 +174,7 @@ private:
     /// @brief Bed shear object
     bedshear pbedshear;
     /// @brief Movement object for particles
-    partres *movement;
+    partres *pst;
 
     turbulence *pturb;
 

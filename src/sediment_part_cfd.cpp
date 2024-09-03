@@ -68,8 +68,8 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
         /// transport
         erosion(p,a);
-        movement->move(p,*a,*pgc,PP,s,*pturb);
-		xchange=transfer(p,pgc,&PP, movement, maxparticle);
+        pst->move(p,*a,*pgc,PP,s,*pturb);
+		xchange=transfer(p,pgc,&PP, pst, maxparticle);
 		removed=remove(p,&PP);
         deposition(p,a);
 
@@ -92,7 +92,7 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     gremoved = pgc->globalisum(removed);
     gxchange = pgc->globalisum(xchange);
 
-    volume = movement->volume(p,*a,PP);
+    volume = pst->volume(p,*a,PP);
     volume = pgc->globalsum(volume);
 
 	p->sedsimtime=pgc->timer()-starttime;
@@ -107,7 +107,7 @@ void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
 {
     prelax.start(p,pgc,&s);
     if(p->Q13==1)
-        movement->update(p,*a,*pgc,PP);
+        pst->update(p,*a,*pgc,PP);
     preto->start(p,a,pgc,a->topo);
     if(p->mpirank==0)
         cout<<"Topo: update grid..."<<endl;

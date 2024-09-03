@@ -54,7 +54,7 @@ void sediment_part::write_state_particles(lexer *p, ofstream &result)
         ffn=PP.PackingFactor[n];
         result.write((char*)&ffn, sizeof (float));
     }
-    movement->writeState(p,result);
+    pst->writeState(p,result);
 }
 
 /// @brief Read in particle data from state file
@@ -93,5 +93,5 @@ void sediment_part::read_state_particles(lexer *p, ifstream& result)
         packing=double(ffn);
         PP.add(x,y,z,flag,u,v,w,packing);
     }
-    movement->readState(p,result);
+    pst->readState(p,result);
 }
