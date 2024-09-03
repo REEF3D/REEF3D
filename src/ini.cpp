@@ -591,7 +591,7 @@ void lexer::ini_default()
     
     // Particles
     Q10=0;              // int particle algorithm
-    Q11=0;              // int move function
+    Q11=1;              // int move function
     Q12=0;              // int susp load
     Q13=0;              // int topo deformation
     Q14=10;           // d continuum particle stress model parameter following Snider (2001) [Pressure]

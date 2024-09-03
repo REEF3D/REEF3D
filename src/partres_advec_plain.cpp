@@ -38,7 +38,7 @@ Author: Alexander Hanke
      * @param PP A reference to the particles_obj object.
      */
      
-void partres::move_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
+void partres::advec_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
 {
     double RKu,RKv,RKw;
     double u=0,v=0,w=0;
@@ -83,16 +83,6 @@ void partres::move_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, se
 
                 thetas=theta_s(p,a,PP,i,j,k);
                     
-                // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
-                // stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
-                // stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
-
-                // pressureDivX = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
-                // pressureDivY = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
-                // pressureDivZ = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
-
-                // if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50*10)
-                //     bedLoad=true;
 
                 topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
 
@@ -142,17 +132,6 @@ void partres::move_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, se
                 }
                 PP.drag[n]=DragCoeff;
 
-                // sedimentation
-                // if(topoDist>2.5*PP.d50)
-                // {
-                //     ws = settling_velocity(p,PP.d50,Du,Dv,Dw,thetas);
-                //     // if(fabs(topoDist)<p->DZP[KP])
-                //     // {
-                //     //     ws *=topoDist/p->DZP[KP];
-                //     // }
-                //     Dw-=ws;
-                // }
-
                 // Acceleration
                 switch (p->Q202)
                 {
@@ -201,10 +180,8 @@ void partres::move_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, se
                 j=p->posc_j(PP.Y[n]);
                 k=p->posc_k(PP.Z[n]);
                 cellSum[IJK]+=PP.PackingFactor[n];
-                // particleStressTensorUpdateIJK(p,a,PP);
                 }
             }
-            // particleStressTensor(p,a,pgc,PP);
         }
         
         if(p->mpirank==0)

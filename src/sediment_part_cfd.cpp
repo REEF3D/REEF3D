@@ -69,11 +69,11 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         /// transport
         erosion(p,a);
         
-        if(p->Q11==1)
-        pst->move_pic(p,*a,*pgc,PP,s,*pturb);
+        if(p->Q10==2)
+        pst->move_RK2(p,*a,*pgc,PP,s,*pturb);
         
-        if(p->Q11==2)
-        pst->move_plain(p,*a,*pgc,PP,s,*pturb); 
+        if(p->Q10==3)
+        pst->move_RK3(p,*a,*pgc,PP,s,*pturb); 
         
 		xchange=transfer(p,pgc,&PP, pst, maxparticle);
 		removed=remove(p,&PP);

@@ -38,7 +38,7 @@ Author: Alexander Hanke
      * @param PP A reference to the particles_obj object.
      */
      
-void partres::move_pic(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
+void partres::advec_pic(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
 {
     double RKu,RKv,RKw;
     double u=0,v=0,w=0;
@@ -83,16 +83,16 @@ void partres::move_pic(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
 
                 thetas=theta_s(p,a,PP,i,j,k);
                     
-                // stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
-                // stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
-                // stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
+                stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
+                stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
+                stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
 
-                // pressureDivX = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
-                // pressureDivY = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
-                // pressureDivZ = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
+                pressureDivX = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
+                pressureDivY = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
+                pressureDivZ = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
 
-                // if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50*10)
-                //     bedLoad=true;
+                 if(p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n])<PP.d50*10)
+                     bedLoad=true;
 
                 topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
 
@@ -115,8 +115,8 @@ void partres::move_pic(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
                     // w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]);
                 }
 
-                // PP.Uf[n]=u;
-                // PP.Vf[n]=v;
+                PP.Uf[n]=u;
+                PP.Vf[n]=v;
                 // PP.Wf[n]=w;
                     
                 Du=u-PP.U[n];
@@ -193,7 +193,7 @@ void partres::move_pic(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
                 // Pos update
                 PP.X[n] += PP.U[n]*RKtimeStep;
                 PP.Y[n] += PP.V[n]*RKtimeStep;
-                // PP.Z[n] += PP.W[n]*RKtimeStep;
+                PP.Z[n] += PP.W[n]*RKtimeStep;
 
                 // Sum update
                 cellSum[IJK]-=PP.PackingFactor[n];
@@ -201,10 +201,10 @@ void partres::move_pic(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
                 j=p->posc_j(PP.Y[n]);
                 k=p->posc_k(PP.Z[n]);
                 cellSum[IJK]+=PP.PackingFactor[n];
-                // particleStressTensorUpdateIJK(p,a,PP);
+                particleStressTensorUpdateIJK(p,a,PP);
                 }
             }
-            // particleStressTensor(p,a,pgc,PP);
+            particleStressTensor(p,a,pgc,PP);
         }
         
         if(p->mpirank==0)

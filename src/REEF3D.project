@@ -1677,8 +1677,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <VirtualDirectory Name="Partres">
-          <File Name="partres_move_plain.cpp"/>
-          <File Name="partres_move_pic.cpp"/>
+          <File Name="partres_advec_plain.cpp"/>
+          <File Name="partres_advec_pic.cpp"/>
+          <File Name="partres_move_RK3.cpp"/>
+          <File Name="partres_move_RK2.cpp"/>
           <File Name="partres_deposition.cpp"/>
           <File Name="partres_erosion.cpp"/>
           <File Name="partres_drag.cpp"/>
