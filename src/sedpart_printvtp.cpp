@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sedpart.h"
+#include"sediment_part.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
 /// @brief Printing contol function
-void sedpart::print_particles(lexer* p)
+void sediment_part::print_particles(lexer* p)
 {
     if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
 	{
@@ -50,7 +50,7 @@ void sedpart::print_particles(lexer* p)
 }
 
 /// @brief Printing particle as vtp
-void sedpart::print_vtp(lexer* p)
+void sediment_part::print_vtp(lexer* p)
 {
 	int numpt=0;
 	const int print_flag=p->Q183;
@@ -285,7 +285,7 @@ void sedpart::print_vtp(lexer* p)
 	result.close();
 	}
 
-void sedpart::printDummyVTP(lexer *p, particles_obj &PP)
+void sediment_part::printDummyVTP(lexer *p, particles_obj &PP)
 {
     int numpt=0;
 	const int print_flag=p->Q183;

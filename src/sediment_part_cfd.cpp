@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sedpart.h"
-#include "sedpart_movement.h"
+#include "sediment_part.h"
+#include "partres.h"
 
 #include "lexer.h"
 #include "ghostcell.h"
@@ -36,7 +36,7 @@ Author: Alexander Hanke
 /// @param a fdm object
 /// @param pflow IO-flow object
 /// @param preto topography reinitialization object
-void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
+void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
                                     reinitopo* preto, solver* psolv)
 {
     double starttime=pgc->timer();
@@ -103,7 +103,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 }
 
 /// @brief Updates the topography for the CFD solver
-void sedpart::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo* preto)
+void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo* preto)
 {
     prelax.start(p,pgc,&s);
     if(p->Q13==1)
@@ -116,7 +116,7 @@ void sedpart::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinit
     pflow->gcio_update(p,a,pgc);
 }
 
-void sedpart::fill_PQ_cfd(lexer *p, fdm *a, ghostcell *pgc)
+void sediment_part::fill_PQ_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     double zval,xip,yip;
 

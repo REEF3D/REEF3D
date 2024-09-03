@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#ifndef SEDPART_H_
-#define SEDPART_H_
+#ifndef SEDIMENT_PART_H_
+#define SEDIMENT_PART_H_
 
 #include "sediment.h"
 #include "particle_func.h"
@@ -48,12 +48,12 @@ class vrans;
 class turbulence;
 
 /// This class used particles on a Lagrangien framework and a VRANS sediment domain to simulate the influence of flow on the sediment
-class sedpart : public sediment, private particle_func, private increment
+class sediment_part : public sediment, private particle_func, private increment
 {
 public:
 
-    sedpart(lexer* p,ghostcell* pgc ,turbulence* pturb);
-    virtual ~sedpart();
+    sediment_part(lexer* p,ghostcell* pgc ,turbulence* pturb);
+    virtual ~sediment_part();
 
     // CFD methods
 

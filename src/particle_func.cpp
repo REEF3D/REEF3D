@@ -27,7 +27,7 @@ Author: Alexander Hanke
 #include "ghostcell.h"
 #include "boundarycheck.h"
 
-#include "sedpart_movement.h"
+#include "partres.h"
 
 #define PARTICLELOOP for(size_t n=0;n<PP->loopindex;n++) if(PP->Flag[n]>INT32_MIN)
 

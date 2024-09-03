@@ -36,7 +36,7 @@ class field4a;
 class sediment_fdm;
 class turbulence;
 
-class sedpart;
+class sediment_part;
 class particles_obj;
 
 enum seedReturn:int

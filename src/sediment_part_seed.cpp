@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs & Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sedpart.h"
-#include "sedpart_movement.h"
+#include "sediment_part.h"
+#include "partres.h"
 
 #include "lexer.h"
 #include "fdm.h"
@@ -33,12 +33,12 @@ using std::endl;
 
 /// @brief Determines cells to be seeded with particles and maximum number of particles
 
-/// Sets \p sedpart::active_box and \p sedpart::active_topo to `true` for cells to be seeded with particles.
-/// \p sedpart::active_box based on \p lexer::Q110 and \p sedpart::active_topo based on \p fdm::topo.
+/// Sets \p sediment_part::active_box and \p sediment_part::active_topo to `true` for cells to be seeded with particles.
+/// \p sediment_part::active_box based on \p lexer::Q110 and \p sediment_part::active_topo based on \p fdm::topo.
 
 /// \p lexer::Q24 is used as a guess for particles per cell, if it is not set, it is set to 0.
-/// With \p sedpart::ppcell and the number of cells active for seeding, \p sedpart::maxparticle is calculated.
-void sedpart::seed_ini(lexer *p, fdm *a, ghostcell* pgc)
+/// With \p sediment_part::ppcell and the number of cells active for seeding, \p sediment_part::maxparticle is calculated.
+void sediment_part::seed_ini(lexer *p, fdm *a, ghostcell* pgc)
 {
     // ini
     LOOP
@@ -92,8 +92,8 @@ void sedpart::seed_ini(lexer *p, fdm *a, ghostcell* pgc)
 
 /// @brief Calls seeding functions
 
-/// Calls \p sedpart::posseed_box and \p sedpart::posseed_topo based on \p lexer::Q110 and \p lexer::Q101.
-void sedpart::seed(lexer *p, fdm *a)
+/// Calls \p sediment_part::posseed_box and \p sediment_part::posseed_topo based on \p lexer::Q110 and \p lexer::Q101.
+void sediment_part::seed(lexer *p, fdm *a)
 {
     if(p->Q110>0)
         posseed_box(p,a);
@@ -102,7 +102,7 @@ void sedpart::seed(lexer *p, fdm *a)
 }
 
 /// @brief Seeds particle into boxes defined using `lexer::Q110`
-void sedpart::posseed_box(lexer *p, fdm *a)
+void sediment_part::posseed_box(lexer *p, fdm *a)
 {
     seed_srand(p);
 	
@@ -127,7 +127,7 @@ void sedpart::posseed_box(lexer *p, fdm *a)
 }
 
 /// @brief Seeds particle in active topo cells
-void sedpart::posseed_topo(lexer *p, fdm *a)
+void sediment_part::posseed_topo(lexer *p, fdm *a)
 {
     seed_srand(p);
 
@@ -139,7 +139,7 @@ void sedpart::posseed_topo(lexer *p, fdm *a)
 }
 
 /// @brief Seeds particle into suspension at inlet boundary
-void sedpart::posseed_suspended(lexer *p, fdm *a)
+void sediment_part::posseed_suspended(lexer *p, fdm *a)
 {
     seed_srand(p);
     
@@ -168,7 +168,7 @@ void sedpart::posseed_suspended(lexer *p, fdm *a)
 }
 
 /// @brief Seeds particle at points defined using `lexer::Q61`
-void sedpart::point_source(lexer *p, fdm *a)
+void sediment_part::point_source(lexer *p, fdm *a)
 {
     size_t index;
     for(size_t n=0;n<p->Q61;n++)
@@ -180,7 +180,7 @@ void sedpart::point_source(lexer *p, fdm *a)
 }
 
 /// @brief Seeds particles into active topo cells at inlet boundary
-void sedpart::topo_influx(lexer *p, fdm *a)
+void sediment_part::topo_influx(lexer *p, fdm *a)
 {
     seed_srand(p);
     for(int n=0;n<p->gcin_count;n++)
@@ -198,7 +198,7 @@ void sedpart::topo_influx(lexer *p, fdm *a)
     }
 }
 /// @brief Seeds `rand()` function
-void sedpart::seed_srand(lexer *p)
+void sediment_part::seed_srand(lexer *p)
 {
     if(p->Q29>0)
         srand(p->Q29);
@@ -208,7 +208,7 @@ void sedpart::seed_srand(lexer *p)
 }
 
 /// @brief Seeds particle in relation to `fdm::topo`
-void sedpart::seed_topo(lexer *p, fdm *a)
+void sediment_part::seed_topo(lexer *p, fdm *a)
 {
     double tolerance = 5e-18;
     double x,y,z,ipolTopo,ipolSolid;
@@ -244,7 +244,7 @@ void sedpart::seed_topo(lexer *p, fdm *a)
     }
 }
 
-void sedpart::solid_influx(lexer *p, fdm *a)
+void sediment_part::solid_influx(lexer *p, fdm *a)
 {
     seed_srand(p);
     PLAINLOOP
@@ -254,7 +254,7 @@ void sedpart::solid_influx(lexer *p, fdm *a)
     }
 }
 
-size_t sedpart::set_active_topo(lexer *p, fdm *a)
+size_t sediment_part::set_active_topo(lexer *p, fdm *a)
 {
     const double tolerance=5e-10;
     size_t cellCountTopo=0;
@@ -272,7 +272,7 @@ size_t sedpart::set_active_topo(lexer *p, fdm *a)
     return cellCountTopo;
 }
 
-void sedpart::seedDummy(lexer *p, fdm *a, particles_obj &PP)
+void sediment_part::seedDummy(lexer *p, fdm *a, particles_obj &PP)
 {
     if(p->origin_i==0)
     {
@@ -317,7 +317,7 @@ void sedpart::seedDummy(lexer *p, fdm *a, particles_obj &PP)
     cout<<"Dummy seeding done on "<<p->mpirank<<".\nSeeded "<<PP.size<<" particles."<<endl;
 }
 
-void sedpart::seedDummyCell(lexer *p, fdm *a, particles_obj &PP)
+void sediment_part::seedDummyCell(lexer *p, fdm *a, particles_obj &PP)
 {
     double tolerance = 5e-18;
     double x,y,z,ipolSolid;

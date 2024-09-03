@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sedpart.h"
-#include "sedpart_movement.h"
+#include "sediment_part.h"
+#include "partres.h"
 
 #include "lexer.h"
 #include "ghostcell.h"
@@ -38,7 +38,7 @@ Author: Alexander Hanke
 /// Seeds the particles
 /// Prepares particles and particle related variables for simulation
 /// Initializes VRANS
-void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
+void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     // vrans
     pvrans->sed_update(p,a,pgc);

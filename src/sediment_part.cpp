@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sedpart.h"
-#include "sedpart_movement.h"
+#include "sediment_part.h"
+#include "partres.h"
 
 #include "lexer.h"
 #include "ghostcell.h"
@@ -45,13 +45,13 @@ Author: Alexander Hanke
 /// @param p control object
 /// @param pgc ghostcell object
 /// @param pturb turbulence object
-sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p), PP(10,p->S20,p->S22,true), active_box(p), active_topo(p), irand(10000), drand(irand), s(p), pbedshear(p,pturb), prelax(p), pslope(p)
+sediment_part::sediment_part(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p), PP(10,p->S20,p->S22,true), active_box(p), active_topo(p), irand(10000), drand(irand), s(p), pbedshear(p,pturb), prelax(p), pslope(p)
 {
     // pvrans = new vrans_f(p,pgc);
     pvrans =  new vrans_v(p,pgc);
     movement = new partres(p);
     preduce = new reduction_FD(p);
-    sedpart::pturb = pturb;
+    sediment_part::pturb = pturb;
 
     prec = 6;
 
@@ -87,14 +87,14 @@ sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p)
     inicount=0;
 }
 
-sedpart::~sedpart()
+sediment_part::~sediment_part()
 {
     delete pvrans;
     delete movement;
 }
 
 /// @brief Enables erosion of particles
-void sedpart::erode(lexer* p, fdm* a)
+void sediment_part::erode(lexer* p, fdm* a)
 {
     if(p->Q101>0)
     {
@@ -103,7 +103,7 @@ void sedpart::erode(lexer* p, fdm* a)
 }
 
 /// @brief Deposits moving particles onto topo
-void sedpart::deposit(lexer* p, fdm* a)
+void sediment_part::deposit(lexer* p, fdm* a)
 {    
     if(p->Q101>0)
     {
@@ -111,7 +111,7 @@ void sedpart::deposit(lexer* p, fdm* a)
     }
 }
 
-void sedpart::debug(lexer* p, fdm* a, ghostcell* pgc)
+void sediment_part::debug(lexer* p, fdm* a, ghostcell* pgc)
 {
     movement->debug(p,*a,*pgc,PP,s);
 }

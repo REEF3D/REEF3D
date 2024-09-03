@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sedpart.h"
+#include "sediment_part.h"
 
 /// @brief SFLOW calculation function
-void sedpart::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow* pflow, slice &P, slice &Q)
+void sediment_part::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow* pflow, slice &P, slice &Q)
 {}
 
 /// @brief SFLOW initialization function
-void sedpart::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
+void sediment_part::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {}
 
 /// @brief Updates the topography for the SFLOW solver
-void sedpart::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
+void sediment_part::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 {}

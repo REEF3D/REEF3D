@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sedpart.h"
+#include "sediment_part.h"
 
 #include "lexer.h"
 #include "ghostcell.h"
 #include "sediment_fdm.h"
 
-void sedpart::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_part::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
 {
     if(p->P79==1)
     {
@@ -47,7 +47,7 @@ void sedpart::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
     }
 }
 
-void sedpart::name_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_part::name_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     if(p->P79==1)
     {
@@ -74,7 +74,7 @@ void sedpart::name_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int 
     }
 }
 
-void sedpart::offset_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_part::offset_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -82,7 +82,7 @@ void sedpart::offset_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, in
 	++n;
 }
 
-void sedpart::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_part::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
 {	
 	float ffn;
 	int iin;

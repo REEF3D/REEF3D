@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sedpart.h"
+#include"sediment_part.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 /// @brief Printing partion wrapping pvtp file
-void sedpart::pvtp_pos(lexer* p)
+void sediment_part::pvtp_pos(lexer* p)
 {
 
     // if(p->P15==1)
@@ -82,7 +82,7 @@ void sedpart::pvtp_pos(lexer* p)
 }
 
 /// @brief Setting name of indivdual vtp file for pvtp file
-void sedpart::piecename_pos(lexer* p, int n)
+void sediment_part::piecename_pos(lexer* p, int n)
 {
 
     // if(p->P15==1)
@@ -96,7 +96,7 @@ void sedpart::piecename_pos(lexer* p, int n)
 }
 
 /// @brief Setting name of indivdual vtp file
-void sedpart::header_pos(lexer* p)
+void sediment_part::header_pos(lexer* p)
 {
 
     // if(p->P15==1)
@@ -109,7 +109,7 @@ void sedpart::header_pos(lexer* p)
 	
 }
 
-void sedpart::printDummyPVTP(lexer *p)
+void sediment_part::printDummyPVTP(lexer *p)
 {	
 	sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-Dummy.pvtp");
 	
