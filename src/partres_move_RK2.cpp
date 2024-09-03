@@ -29,18 +29,21 @@ Author: Alexander Hanke
 void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
 {
     double F,G,H;
+    particlePerCell(p,pgc,PP);
+    particleStressTensor(p,a,pgc,PP);
+    timestep(p,pgc,PP);
     
     // RK step1 
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>0)
     {
         if(p->Q11==1)
-        advec_plain(p,a,pgc, PP, s, pturb, 
+        advec_plain(p, a, PP, n, s, pturb, 
                         PP.X, PP.Y, PP.Z, PP.U, PP.V, PP.W,
                         F, G, H, 1.0);
         
         if(p->Q11==2)
-        advec_pic(p,a,pgc, PP, s, pturb, 
+        advec_pic(p, a, PP, n, s, pturb, 
                         PP.X, PP.Y, PP.Z, PP.U, PP.V, PP.W,
                         F, G, H, 1.0);
                             
@@ -60,7 +63,9 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
         j=p->posc_j(PP.YRK1[n]);
         k=p->posc_k(PP.ZRK1[n]);
         cellSum[IJK]+=PP.PackingFactor[n];
+        particleStressTensorUpdateIJK(p,a,PP);
     }
+    particleStressTensor(p,a,pgc,PP);
     
     
     // RK step12
@@ -68,12 +73,12 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
     if(PP.Flag[n]>0)
     {
         if(p->Q11==1)
-        advec_plain(p,a,pgc, PP, s, pturb, 
+        advec_plain(p, a, PP, n, s, pturb, 
                         PP.XRK1, PP.YRK1, PP.ZRK1, PP.URK1, PP.VRK1, PP.WRK1,
                         F, G, H, 0.5);
                         
         if(p->Q11==2)
-        advec_pic(p,a,pgc, PP, s, pturb, 
+        advec_pic(p, a, PP, n, s, pturb, 
                         PP.XRK1, PP.YRK1, PP.ZRK1, PP.URK1, PP.VRK1, PP.WRK1,
                         F, G, H, 0.5);
                         
@@ -93,6 +98,13 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
         j=p->posc_j(PP.YRK1[n]);
         k=p->posc_k(PP.ZRK1[n]);
         cellSum[IJK]+=PP.PackingFactor[n];
+        particleStressTensorUpdateIJK(p,a,PP);
+    }
+
+    if(p->mpirank==0)
+    {
+        p->sedtime += p->dtsed;
+        cout<<"Sediment time: "<<p->sedtime<<" time step: "<<p->dtsed<<endl;
     }
     
 }
