@@ -1004,6 +1004,7 @@
 /Users/fk/Codefiles/REEF3D/src/wave_lib_void.cpp
 /Users/fk/Codefiles/REEF3D/src/driver_stop.cpp
 /Users/fk/Codefiles/REEF3D/src/wave_lib_Stokes_5th_SH.cpp
+/Users/fk/Codefiles/REEF3D/src/VOF_PLIC_updateVOF_alt.cpp
 /Users/fk/Codefiles/REEF3D/src/gc_nse2.cpp
 /Users/fk/Codefiles/REEF3D/src/wave_lib_Stokes_5th.cpp
 /Users/fk/Codefiles/REEF3D/src/force_force.cpp
@@ -1339,7 +1340,6 @@
 /Users/fk/Codefiles/REEF3D/src/density_conc.cpp
 /Users/fk/Codefiles/REEF3D/src/VOF_PLIC_advection_alt.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_diff_void.h
-/Users/fk/Codefiles/REEF3D/src/updateVOF_alt.cpp
 /Users/fk/Codefiles/REEF3D/src/iowave_nhflow_precalc_decomp_space_dirichlet.cpp
 /Users/fk/Codefiles/REEF3D/src/potential_water.cpp
 /Users/fk/Codefiles/REEF3D/src/VOF_PLIC_normal_Bonn.cpp
