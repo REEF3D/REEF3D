@@ -39,72 +39,49 @@ class turbulence;
 class sedpart;
 class particles_obj;
 
-namespace sediment_particle
+enum seedReturn:int
 {
-    namespace movement
-    {
-        enum seedReturn:int
-        {
-            REMOVE=-1,STOP,CONTINUE
-        };
+    REMOVE=-1,STOP,CONTINUE
+};
 
-        class base
-        /// Base class for sediment particle movement models
-        {
-        public:
-            virtual void setup(lexer *, fdm &, double &){};
-            virtual seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false){return seedReturn::STOP;};
-            virtual void transfer(lexer *, particles_obj &, size_t &){};
-            virtual void remove(lexer *, particles_obj &, size_t &){};
-            virtual void move(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &){};
-            virtual void make_moving(lexer *, fdm &, particles_obj &){};
-            virtual void erode(lexer *, fdm &, particles_obj &, sediment_fdm &){};
-            virtual void deposit(lexer *, fdm &, particles_obj &, sediment_fdm &){};
-            virtual void update(lexer *, fdm &, ghostcell &, particles_obj &){};
-            virtual void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &){};
-            virtual double volume(lexer *, fdm &, particles_obj &){return 0;};
-            virtual void writeState(lexer *, ofstream &){};
-            virtual void readState(lexer *, ifstream &){};
-            virtual void setupState(lexer *, fdm &, ghostcell &, particles_obj &){};
-        protected:
-            double drag_coefficient(double) const;
-        };
-        class particleStressBased_T2021 : public base, increment
-        /// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
-        /// @author Alexander Hanke
-        /// @date 2024
-        {
-        public:
-            particleStressBased_T2021(lexer *);
-            ~particleStressBased_T2021();
 
-            void setup(lexer *, fdm &, double &);
-            seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false);
-            void transfer(lexer *, particles_obj &, size_t &);
-            void remove(lexer *, particles_obj &, size_t &);
-            void move(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
-            void make_moving(lexer *, fdm &, particles_obj &);
-            void erode(lexer *, fdm &, particles_obj &, sediment_fdm &);
-            void deposit(lexer *, fdm &, particles_obj &, sediment_fdm &);
-            void update(lexer *, fdm &, ghostcell &, particles_obj &);
-            void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &);
-            double volume(lexer *, fdm &, particles_obj &);
-            void writeState(lexer *, ofstream &);
-            void readState(lexer *, ifstream &);
-            void setupState(lexer *, fdm &, ghostcell &, particles_obj &);
-        private:
-            double maxParticlesPerCell(lexer *, fdm &, double,bool=true,bool=false);
-            void particleStressTensor(lexer *, fdm &, ghostcell &, particles_obj &);
-            void particleStressTensorUpdateIJK(lexer *, fdm &, particles_obj &);
-            void updateParticleStressTensor(lexer *, fdm &, particles_obj &, int, int, int);
-            double theta_s(lexer *, fdm &, particles_obj &, int, int, int) const;
-            double drag_model(lexer *, double, double, double, double, double) const;
-            double sedimentation_velocity(lexer *, double, double, double, double, double) const;
-            void particlePerCell(lexer *, ghostcell &, particles_obj &);
-            void timestep(lexer *, ghostcell &, particles_obj &);
-            int activateNew(lexer *, fdm &, particles_obj &);
-            void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
-        private:
+class partres : public increment
+/// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
+/// @author Alexander Hanke
+/// @date 2024
+{
+public:
+        partres(lexer *);
+        ~partres();
+
+        void setup(lexer *, fdm &, double &);
+        seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false);
+        void transfer(lexer *, particles_obj &, size_t &);
+        void remove(lexer *, particles_obj &, size_t &);
+        void move(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
+        void make_moving(lexer *, fdm &, particles_obj &);
+        void erode(lexer *, fdm &, particles_obj &, sediment_fdm &);
+        void deposit(lexer *, fdm &, particles_obj &, sediment_fdm &);
+        void update(lexer *, fdm &, ghostcell &, particles_obj &);
+        void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &);
+        double volume(lexer *, fdm &, particles_obj &);
+        void writeState(lexer *, ofstream &);
+        void readState(lexer *, ifstream &);
+        void setupState(lexer *, fdm &, ghostcell &, particles_obj &);
+private:
+        double maxParticlesPerCell(lexer *, fdm &, double,bool=true,bool=false);
+        void particleStressTensor(lexer *, fdm &, ghostcell &, particles_obj &);
+        void particleStressTensorUpdateIJK(lexer *, fdm &, particles_obj &);
+        void updateParticleStressTensor(lexer *, fdm &, particles_obj &, int, int, int);
+        double theta_s(lexer *, fdm &, particles_obj &, int, int, int) const;
+        double drag_model(lexer *, double, double, double, double, double) const;
+        double sedimentation_velocity(lexer *, double, double, double, double, double) const;
+        void particlePerCell(lexer *, ghostcell &, particles_obj &);
+        void timestep(lexer *, ghostcell &, particles_obj &);
+        int activateNew(lexer *, fdm &, particles_obj &);
+        void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
+        double drag_coefficient(double) const;
+            
             /// @brief Sum of particles belonging to the stationary bed
             double *cellSumTopo;
             /// @brief Sum of particles belonging to the mobile bed
@@ -130,17 +107,6 @@ namespace sediment_particle
             slice4 bedChange;
 
             double velDist=1.6;
-        };
-
-        // class doi10_1002_wrcr_20303 : public base, increment
-        // {
-        //     void move(lexer *, fdm *, particles_obj &, sediment_fdm &);
-        //     
-
-        //     slice4 phi_old;
-        //     slice4 bedParticleNumber;
-        // };
-    };
 };
 
 #endif

@@ -22,7 +22,6 @@ Author: Alexander Hanke
 
 #include "sedpart_movement.h"
 #include "particles_obj.h"
-
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
@@ -30,11 +29,9 @@ Author: Alexander Hanke
 #include "sediment_fdm.h"
 #include "turbulence.h"
 
-namespace sediment_particle::movement
-{
-    particleStressBased_T2021::particleStressBased_T2021(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
+partres::partres(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
                                             Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17),bedChange(p)
-    {
+{
         p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
         p->Darray(cellSum,p->imax*p->jmax*p->kmax);
         p->Darray(cellSumTopo,p->imax*p->jmax*p->kmax);
@@ -44,10 +41,10 @@ namespace sediment_particle::movement
         {
             dx = min(dx,MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]));
         }
-    }
+}
 
-    particleStressBased_T2021::~particleStressBased_T2021()
-    {
+partres::~partres()
+{
         delete[] stressTensor;
         stressTensor = nullptr;
         delete[] cellSum;
@@ -56,34 +53,34 @@ namespace sediment_particle::movement
         cellSumTopo = nullptr;
         delete[] columnSum;
         columnSum = nullptr;
-    }
+}
 
     /**
-     * @brief Sets up the particleStressBased_T2021 class.
+     * @brief Sets up the partres class.
      *
-     * This function is responsible for setting up the particleStressBased_T2021 class by calculating
+     * This function is responsible for setting up the partres class by calculating
      * the cellSumTopo and columnSum values based on the given parameters.
      *
      * @param p A pointer to the lexer object.
      * @param a A reference to the fdm object.
      * @param diameter The diameter value.
      */
-    void particleStressBased_T2021::setup(lexer *p, fdm &a, double &diameter)
-    {
+void partres::setup(lexer *p, fdm &a, double &diameter)
+{
         BLOOP
         {
             cellSumTopo[IJK] = maxParticlesPerCell(p,a,diameter);
             columnSum[IJ] += cellSumTopo[IJK];
         }
-    }
+}
 
-    void particleStressBased_T2021::setupState(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
-    {
+void partres::setupState(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+{
         // particlePerCell(p,pgc,PP);
         // PLAINLOOP
         // columnSum[IJ] += cellSumTopo[IJK]+cellSum[IJK];
         // particleStressTensor(p,a,pgc,PP);
-    }
+}
 
     /**
      * @brief Determines if a particle should be seeded in the current cell.
@@ -97,8 +94,8 @@ namespace sediment_particle::movement
      * @param max The maximum value.
      * @return True if the particle should be seeded, false otherwise.
      */
-    seedReturn particleStressBased_T2021::seeding(lexer *p, particles_obj &PP, size_t &index, double max, bool free)
-    {
+seedReturn partres::seeding(lexer *p, particles_obj &PP, size_t &index, double max, bool free)
+{
         if(free)
         {
             cellSum[IJK] += PP.PackingFactor[index];
@@ -123,7 +120,7 @@ namespace sediment_particle::movement
         if(cellSum[IJK]>=max)
             return seedReturn::STOP;
         return seedReturn::CONTINUE;
-    }
+}
 
     /**
      * @brief Transfers the particle to the current cell.
@@ -135,10 +132,11 @@ namespace sediment_particle::movement
      * @param PP A reference to the particles_obj object.
      * @param index The index of the particle.
      */
-    void particleStressBased_T2021::transfer(lexer *p, particles_obj &PP, size_t &index)
-    {
+void partres::transfer(lexer *p, particles_obj &PP, size_t &index)
+{
         cellSum[IJK] += PP.PackingFactor[index];
-    }
+    
+}
 
     /**
      * @brief Removes the particle from the current cell.
@@ -150,7 +148,7 @@ namespace sediment_particle::movement
      * @param PP A reference to the particles_obj object.
      * @param index The index of the particle.
      */
-    void particleStressBased_T2021::remove(lexer *p, particles_obj &PP, size_t &index)
+    void partres::remove(lexer *p, particles_obj &PP, size_t &index)
     {
         cellSum[IJK] -= PP.PackingFactor[index];
     }
@@ -166,8 +164,8 @@ namespace sediment_particle::movement
      * @param pgc A reference to the ghostcell object.
      * @param PP A reference to the particles_obj object.
      */
-    void particleStressBased_T2021::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
-    {
+void partres::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
+{
         double RKu,RKv,RKw;
         double u=0,v=0,w=0;
         double du1, du2, du3, dv1, dv2, dv3, dw1, dw2, dw3;
@@ -349,7 +347,7 @@ namespace sediment_particle::movement
      * @param topo A reference to the field4a object.
      * @param d50 The diameter value.
      */
-    void particleStressBased_T2021::update(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+    void partres::update(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         int count=0;
         ILOOP
@@ -370,8 +368,8 @@ namespace sediment_particle::movement
         cout<<"On partion "<<p->mpirank<<" were "<<count<<" additional particles activated."<<endl;
     }
 
-    int particleStressBased_T2021::activateNew(lexer *p, fdm &a, particles_obj &PP)
-    {
+int partres::activateNew(lexer *p, fdm &a, particles_obj &PP)
+{
         double tolerance = 5e-18;
         double x,y,z,ipolTopo,ipolSolid;
         int flag=0;
@@ -419,10 +417,10 @@ namespace sediment_particle::movement
             ++tries;
         }
         return count;
-    }
+}
 
-    void particleStressBased_T2021::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
-    {
+void partres::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
+{
         PLAINLOOP
         {
             a.test(i,j,k) = cellSumTopo[IJK];
@@ -455,22 +453,22 @@ namespace sediment_particle::movement
                 PP.Uf[n]=u;
                 PP.Vf[n]=v;
             }
-    }
+}
 
-    double particleStressBased_T2021::volume(lexer *p, fdm &a, particles_obj &PP)
-    {
+double partres::volume(lexer *p, fdm &a, particles_obj &PP)
+{
         double sum=0;
         ILOOP
             JLOOP
                 sum += columnSum[IJ];
 
         return PI*pow(PP.d50,3.0)*(sum)/6.0;
-    }
+}
 
-    /// @brief Writes the state of the particleStressBased_T2021 class to file.
-    /// @ToDo Write cellSumTopo 
-    void particleStressBased_T2021::writeState(lexer *p, ofstream &result)
-    {
+/// @brief Writes the state of the partres class to file.
+/// @ToDo Write cellSumTopo 
+void partres::writeState(lexer *p, ofstream &result)
+{
         float ffn;
         PLAINLOOP
         {
@@ -478,12 +476,12 @@ namespace sediment_particle::movement
             result.write((char*)&ffn, sizeof (float));
         }
         result.write((char*)&ffn, sizeof (float));  
-    }
+}
 
-    /// Reads the state of the particleStressBased_T2021 class from file.
-    /// Reconstructs cellSum, columnSum and stressTensor
-    void particleStressBased_T2021::readState(lexer *p, ifstream &result)
-    {
+/// Reads the state of the partres class from file.
+/// Reconstructs cellSum, columnSum and stressTensor
+void partres::readState(lexer *p, ifstream &result)
+{
         float ffn;
         PLAINLOOP
         {
@@ -491,13 +489,13 @@ namespace sediment_particle::movement
             cellSum[IJK]=double(ffn);
         }
 
-    }
+}
 
     /// @brief Topo volume in cell div. by particle volume
     /// Uses i,j&k from increment to pass cell identifier
     /// @param d50 Sauter diameter of particles
     /// @return Ceil of number of particles in cell IJK
-    double particleStressBased_T2021::maxParticlesPerCell(lexer *p, fdm &a, double d50, bool topo, bool cell)
+    double partres::maxParticlesPerCell(lexer *p, fdm &a, double d50, bool topo, bool cell)
     {   
         double DZN=topo?0:p->DZN[KP];
 
@@ -513,7 +511,7 @@ namespace sediment_particle::movement
     }
 
     /// @brief Calculate complete intra-particle stress trensor
-    void particleStressBased_T2021::particleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
+    void partres::particleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
     {
         double theta;
         int i,j,k;
@@ -526,7 +524,7 @@ namespace sediment_particle::movement
     }
 
     /// @brief Calculate intra-particle stress trensor for cells around (`increment::i`,`increment::j`,`increment::k`)
-    void particleStressBased_T2021::particleStressTensorUpdateIJK(lexer *p, fdm &a, particles_obj &PP)
+    void partres::particleStressTensorUpdateIJK(lexer *p, fdm &a, particles_obj &PP)
     {
         double theta;
         int i,j,k;
@@ -544,14 +542,14 @@ namespace sediment_particle::movement
     }
 
     /// @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
-    void particleStressBased_T2021::updateParticleStressTensor(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k)
+    void partres::updateParticleStressTensor(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k)
     {
         double theta=theta_s(p,a,PP,i,j,k);
         stressTensor[IJK]=Ps*pow(theta,beta)/max(theta_crit-theta,epsilon*(1.0-theta));
     }
 
     /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
-    double particleStressBased_T2021::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
+    double partres::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
     {   
         double theta = PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
         if(theta>1)
@@ -562,7 +560,7 @@ namespace sediment_particle::movement
     }    
 
     /// @brief Calculate drag force parameter
-    double particleStressBased_T2021::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const
+    double partres::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const
     {
         double thetaf = 1.0-thetas;
         if(thetaf>1.0-theta_crit) // Saveguard
@@ -581,7 +579,7 @@ namespace sediment_particle::movement
         return Dp;
     }
 
-    double particleStressBased_T2021::sedimentation_velocity(lexer *p, double d, double du, double dv, double dw, double thetas) const
+    double partres::sedimentation_velocity(lexer *p, double d, double du, double dv, double dw, double thetas) const
     {
         const double dU=sqrt(du*du+dv*dv+dw*dw);
         if(dU==0) // Saveguard
@@ -605,7 +603,7 @@ namespace sediment_particle::movement
     }
 
     /// @brief Calculate number of particles in cell ( \p i , \p j , \p k )
-    void particleStressBased_T2021::particlePerCell(lexer *p, ghostcell &pgc, particles_obj &PP)
+    void partres::particlePerCell(lexer *p, ghostcell &pgc, particles_obj &PP)
     {
         PLAINLOOP
         cellSum[IJK]=0;
@@ -623,14 +621,14 @@ namespace sediment_particle::movement
         pgc.start4V_par(p,cellSumTopo,11);
     }
 
-    void particleStressBased_T2021::make_moving(lexer *p, fdm &a, particles_obj &PP)
+    void partres::make_moving(lexer *p, fdm &a, particles_obj &PP)
     {
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
                 PP.Flag[n]=1;
     }
 
-    void particleStressBased_T2021::erode(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
+    void partres::erode(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
     {
         double shear_eff;
         double shear_crit;
@@ -689,7 +687,7 @@ namespace sediment_particle::movement
         // cout<<"On rank "<<p->mpirank<<" were "<<counter<<" particles eroded."<<endl;
     }
 
-    void particleStressBased_T2021::deposit(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
+    void partres::deposit(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
     {
         double shear_eff;
         double shear_crit;
@@ -746,7 +744,7 @@ namespace sediment_particle::movement
             }
     }
 
-    void particleStressBased_T2021::timestep(lexer *p, ghostcell &pgc, particles_obj &PP)
+    void partres::timestep(lexer *p, ghostcell &pgc, particles_obj &PP)
     {
         double maxVelU=0,maxVelV=0,maxVelW=0;
         for(size_t n=0;n<PP.loopindex;n++)
@@ -771,7 +769,7 @@ namespace sediment_particle::movement
         p->dtsed = pgc.globalmin(p->dtsed);
     }
 
-    void particleStressBased_T2021::relative_velocity(lexer *p, fdm &a, particles_obj &PP, size_t n, double &du, double &dv, double &dw)
+    void partres::relative_velocity(lexer *p, fdm &a, particles_obj &PP, size_t n, double &du, double &dv, double &dw)
     {
         k=p->posc_k(PP.Z[n]);
         double topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
@@ -783,7 +781,6 @@ namespace sediment_particle::movement
         dv=v-PP.V[n];
         dw=w-PP.W[n];
     }
-};
 
 // // 10.1002/wrcr.20303
 
@@ -949,7 +946,7 @@ namespace sediment_particle::movement
 //     }
 // }
 
-double sediment_particle::movement::base::drag_coefficient(double Re_p) const
+double partres::drag_coefficient(double Re_p) const
 {
     double Cd;
     if(Re_p<0.1)

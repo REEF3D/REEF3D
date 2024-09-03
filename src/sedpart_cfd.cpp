@@ -32,86 +32,6 @@ Author: Alexander Hanke
 #include "bedshear.h"
 #include "sediment_fdm.h"
 
-/// @brief Initializes everything in the sediment for the CFD solver
-/// Determines cell which should be filled with particles
-/// Allocates memory for the particles
-/// Seeds the particles
-/// Prepares particles and particle related variables for simulation
-/// Initializes VRANS
-void sedpart::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
-{
-    // vrans
-    pvrans->sed_update(p,a,pgc);
-    ALOOP
-	{
-        if(a->topo(i,j,k)<0.0)
-	        a->porosity(i,j,k)= p->S24;
-        else
-	        a->porosity(i,j,k)=1.0;
-    }
-
-    movement->setup(p,*a,PP.d50);
-
-    volume0 = movement->volume(p,*a,PP);
-    volume0 = pgc->globalsum(volume0);
-    volume = volume0;
-
-    if(p->I40!=1)
-    {
-        // seed
-        seed_ini(p,a,pgc);
-        PP.reserve(maxparticle);
-        seed(p,a);
-        make_stationary(p,a,&PP);
-    }
-
-    gparticle_active = pgc->globalisum(PP.size);
-
-    fill_PQ_cfd(p,a,pgc);
-    // movement->move(p,*a,*pgc,PP,s,*pturb);
-    if(p->Q13==1)
-        movement->update(p,*a,*pgc,PP);
-    
-    // print
-    if((p->I40!=1)||(p->I40==1&&inicount>0))
-    print_particles(p);
-    
-    if(p->mpirank==0)
-    {
-        if(p->I40!=1)
-            cout<<"Sediment particles: "<<gparticle_active<<"\n";
-        else if (inicount>0)
-            cout<<"Loaded particles "<<gparticle_active<<" from state file.\n";
-        cout<<"Initial bed volume: "<<std::setprecision(prec)<<volume0<<" m^3"<<endl;
-    }
-    
-    SLICELOOP4
-    s.bedk(i,j)=0;
-    
-    SLICELOOP4
-    {
-        KLOOP
-            PBASECHECK
-            if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-                s.bedk(i,j)=k+1;
-        s.reduce(i,j)=0.3;
-    }
-    pbedshear.taubed(p,a,pgc,&s);
-    pgc->gcsl_start4(p,s.tau_eff,1);
-    pbedshear.taucritbed(p,a,pgc,&s);
-    pgc->gcsl_start4(p,s.tau_crit,1);
-    
-    ++inicount;
-    debug(p,a,pgc);
-
-    // if(inicount==1)
-    // {
-    //     particles_obj Dummy(1000);
-    //     seedDummy(p,a,Dummy);
-    //     printDummyVTP(p,Dummy);
-    // }
-}
-
 /// @brief CFD calculation function
 /// @param a fdm object
 /// @param pflow IO-flow object
@@ -149,7 +69,7 @@ void sedpart::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         /// transport
         erode(p,a);
         movement->move(p,*a,*pgc,PP,s,*pturb);
-		xchange=transfer(p,pgc,&PP, *movement, maxparticle);
+		xchange=transfer(p,pgc,&PP, movement, maxparticle);
 		removed=remove(p,&PP);
         deposit(p,a);
 

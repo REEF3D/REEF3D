@@ -49,7 +49,7 @@ sedpart::sedpart(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p)
 {
     // pvrans = new vrans_f(p,pgc);
     pvrans =  new vrans_v(p,pgc);
-    movement = new sediment_particle::movement::particleStressBased_T2021(p);
+    movement = new partres(p);
     preduce = new reduction_FD(p);
     sedpart::pturb = pturb;
 

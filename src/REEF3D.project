@@ -1823,12 +1823,15 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
+        <File Name="sedpart_cfd_ini.cpp"/>
+        <VirtualDirectory Name="Print">
+          <File Name="sedpart_printvtp.cpp"/>
+          <File Name="sedpart_printpvtp.cpp"/>
+          <File Name="sedpart_printbed.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Movement">
           <File Name="sedpart_movement.cpp"/>
         </VirtualDirectory>
-        <File Name="sedpart_printpvtp.cpp"/>
-        <File Name="sedpart_printvtp.cpp"/>
-        <File Name="sedpart_printbed.cpp"/>
         <File Name="sedpart_seed.cpp"/>
         <File Name="sedpart_state.cpp"/>
         <File Name="sedpart_cfd.cpp"/>

@@ -233,9 +233,9 @@ void sedpart::seed_topo(lexer *p, fdm *a)
         {
             index=PP.add(x,y,z,flag,0,0,0,p->Q41);
             auto result = movement->seeding(p, PP, index, p->Q41*ppcell);
-            if(result==sediment_particle::movement::seedReturn::STOP)
+            if(result==seedReturn::STOP)
                 break;
-            if(result==sediment_particle::movement::seedReturn::REMOVE)
+            if(result==seedReturn::REMOVE)
             {
                 PP.erase(index);
                 break;

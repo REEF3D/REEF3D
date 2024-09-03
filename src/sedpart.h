@@ -35,11 +35,6 @@ Author: Alexander Hanke
 #include "bedslope.h"
 #include "topo_relax.h"
 
-namespace sediment_particle::movement
-{
-class base;
-}
-
 class lexer;
 class fdm;
 class ghostcell;
@@ -179,7 +174,7 @@ private:
     /// @brief Bed shear object
     bedshear pbedshear;
     /// @brief Movement object for particles
-    sediment_particle::movement::base *movement;
+    partres *movement;
 
     turbulence *pturb;
 
