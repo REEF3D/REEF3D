@@ -223,7 +223,7 @@ void sedpart::seed_topo(lexer *p, fdm *a)
         x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
         y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
         k = 0;
-        z = p->ZN[KP]+0.5*p->DZP[KP]-a->topo(i,j,k) - 5.0*PP.d50*double(rand() % irand)/drand;
+        z = p->ZN[KP]+0.5*p->DZP[KP]-a->topo(i,j,k) - p->Q102*p->DZN[KP]*double(rand() % irand)/drand;
         k = p->posc_k(z);
 
         ipolTopo = p->ccipol4_b(a->topo,x,y,z);
@@ -270,4 +270,67 @@ size_t sedpart::set_active_topo(lexer *p, fdm *a)
         }
     }
     return cellCountTopo;
+}
+
+void sedpart::seedDummy(lexer *p, fdm *a, particles_obj &PP)
+{
+    if(p->origin_i==0)
+    {
+        PP.reserve(PP.size+ppcell*p->knoy*p->knoz);
+        i=0;
+        JLOOP
+        for(k=1; k<p->knoz; ++k)
+            seedDummyCell(p,a,PP);
+    }
+    if(p->origin_i+p->knox == p->gknox)
+    {
+        PP.reserve(PP.size+ppcell*p->knoy*p->knoz);
+        i = p->gknox;
+        JLOOP
+        for(k=1; k<p->knoz; ++k)
+            seedDummyCell(p,a,PP);
+    }
+    if(p->origin_j==0)
+    {
+        PP.reserve(PP.size+ppcell*p->knox*p->knoz);
+        j=0;
+        ILOOP
+        for(k=1; k<p->knoz; ++k)
+            seedDummyCell(p,a,PP);
+    }
+    if(p->origin_j+p->knoy == p->gknoy)
+    {
+        PP.reserve(PP.size+ppcell*p->knox*p->knoz);
+        j = p->gknoy;
+        ILOOP
+        for(k=1; k<p->knoz; ++k)
+            seedDummyCell(p,a,PP);
+    }
+    if(p->origin_k==0)
+    {
+        PP.reserve(PP.size+ppcell*p->knoy*p->knox);
+        k=0;
+        ILOOP
+        JLOOP
+        seedDummyCell(p,a,PP);
+    }
+    cout<<"Dummy seeding done on "<<p->mpirank<<".\nSeeded "<<PP.size<<" particles."<<endl;
+}
+
+void sedpart::seedDummyCell(lexer *p, fdm *a, particles_obj &PP)
+{
+    double tolerance = 5e-18;
+    double x,y,z,ipolSolid;
+
+    for(int qn=0;qn<ppcell;++qn)
+    {   
+        x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+        y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+        z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+        if(a->topo(i,j,k) +0.5*p->Q102*p->DZN[KP]>=0)
+            break;
+        ipolSolid = p->ccipol4_b(a->solid,x,y,z);
+        if(!(ipolSolid<0))
+            PP.add(x,y,z,0);
+    }
 }

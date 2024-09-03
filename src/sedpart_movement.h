@@ -66,6 +66,8 @@ namespace sediment_particle
             virtual void writeState(lexer *, ofstream &){};
             virtual void readState(lexer *, ifstream &){};
             virtual void setupState(lexer *, fdm &, ghostcell &, particles_obj &){};
+        protected:
+            double drag_coefficient(double) const;
         };
         class particleStressBased_T2021 : public base, increment
         /// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
@@ -99,9 +101,9 @@ namespace sediment_particle
             double drag_model(lexer *, double, double, double, double, double) const;
             double sedimentation_velocity(lexer *, double, double, double, double, double) const;
             void particlePerCell(lexer *, ghostcell &, particles_obj &);
-            void bedReDistribution(lexer *, fdm &, ghostcell &, particles_obj &);
             void timestep(lexer *, ghostcell &, particles_obj &);
             int activateNew(lexer *, fdm &, particles_obj &);
+            void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
         private:
             /// @brief Sum of particles belonging to the stationary bed
             double *cellSumTopo;
@@ -127,13 +129,17 @@ namespace sediment_particle
             double dx;
             slice4 bedChange;
 
-            double velDist=2.5;
+            double velDist=1.6;
         };
-    };
-    class state : increment
-    {
-    public:
-        int solid_clean(lexer *p, particles_obj &, sediment_particle::movement::base &);
+
+        // class doi10_1002_wrcr_20303 : public base, increment
+        // {
+        //     void move(lexer *, fdm *, particles_obj &, sediment_fdm &);
+        //     
+
+        //     slice4 phi_old;
+        //     slice4 bedParticleNumber;
+        // };
     };
 };
 

@@ -128,6 +128,11 @@ private:
     void header_pos(lexer*);
     void piecename_pos(lexer*,int);
 
+    void seedDummy(lexer*,fdm*,particles_obj&);
+    void seedDummyCell(lexer*,fdm*,particles_obj&);
+    void printDummyVTP(lexer*,particles_obj&);
+    void printDummyPVTP(lexer*);
+
 public:
 
 protected:
