@@ -591,7 +591,7 @@ void lexer::ini_default()
     
     // Particles
     Q10=0;              // int particle algorithm
-    Q11=0;              // int bedload
+    Q11=0;              // int move function
     Q12=0;              // int susp load
     Q13=0;              // int topo deformation
     Q14=10;           // d continuum particle stress model parameter following Snider (2001) [Pressure]
@@ -604,7 +604,7 @@ void lexer::ini_default()
     Q24=0;              // int particles per cell
     Q25=1.25;           // double safety factor particle allocate
     Q29=0;              // int seed number for random particle placement
-    Q41=0;              // double default packing factor
+    Q41=0;              // double default parcel factor
     Q43=0;              // int number of water iteration, before particle transport starts
     Q61=0;              // point source x,y,z, iterations between particles
     Q73=0;              // double distance in x-dir where particles movement in y-dir and z-dir is suppressed

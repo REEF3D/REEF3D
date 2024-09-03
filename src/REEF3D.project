@@ -1677,6 +1677,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <VirtualDirectory Name="Partres">
+          <File Name="partres_move_plain.cpp"/>
+          <File Name="partres_move_pic.cpp"/>
           <File Name="partres_deposition.cpp"/>
           <File Name="partres_erosion.cpp"/>
           <File Name="partres_drag.cpp"/>
@@ -1692,7 +1694,6 @@
             <File Name="partres_setup.cpp"/>
             <File Name="partres_seed.cpp"/>
           </VirtualDirectory>
-          <File Name="partres_move.cpp"/>
           <File Name="partres_stress_tensor.cpp"/>
           <File Name="partres.cpp"/>
         </VirtualDirectory>

@@ -58,7 +58,8 @@ public:
         seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false);
         void transfer(lexer *, particles_obj &, size_t &);
         void remove(lexer *, particles_obj &, size_t &);
-        void move(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
+        void move_plain(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
+        void move_pic(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
         void make_moving(lexer *, fdm &, particles_obj &);
         void erosion(lexer *, fdm &, particles_obj &, sediment_fdm &);
         void deposition(lexer *, fdm &, particles_obj &, sediment_fdm &);
