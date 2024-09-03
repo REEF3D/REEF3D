@@ -1676,25 +1676,50 @@
         <File Name="wind_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
-        <VirtualDirectory Name="Void">
-          <File Name="particle_v.cpp"/>
+        <VirtualDirectory Name="Partres">
+          <File Name="partres_activate.cpp"/>
+          <File Name="partres_update.cpp"/>
+          <File Name="partres_stress_tensor.cpp"/>
+          <File Name="partres_transfer.cpp"/>
+          <File Name="partres_setup.cpp"/>
+          <File Name="partres_seed.cpp"/>
+          <File Name="partres_debug.cpp"/>
+          <File Name="partres.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Print">
-          <File Name="particle_printvtu.cpp"/>
-          <File Name="particle_printpvtu.cpp"/>
+        <VirtualDirectory Name="Sediment Particle">
+          <VirtualDirectory Name="Print">
+            <File Name="sedpart_printvtp.cpp"/>
+            <File Name="sedpart_printpvtp.cpp"/>
+            <File Name="sedpart_printbed.cpp"/>
+          </VirtualDirectory>
+          <File Name="sediment_part_state.cpp"/>
+          <File Name="sediment_part_sflow.cpp"/>
+          <File Name="sediment_part_seed.cpp"/>
+          <File Name="sediment_part_cfd_ini.cpp"/>
+          <File Name="sediment_part_cfd.cpp"/>
+          <File Name="sediment_part.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Util">
-          <File Name="particle_func.cpp"/>
-          <File Name="particle_func_moving.cpp"/>
+        <VirtualDirectory Name="Particle Base">
+          <VirtualDirectory Name="Void">
+            <File Name="particle_v.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Functions">
+            <File Name="particle_func_moving.cpp"/>
+            <File Name="particle_func.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Seed">
+            <File Name="particle_seed.cpp"/>
+            <File Name="particle_initialize.cpp"/>
+            <File Name="particle_allocate.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Print">
+            <File Name="particle_printvtu.cpp"/>
+            <File Name="particle_printpvtu.cpp"/>
+          </VirtualDirectory>
+          <File Name="tracers_obj.cpp"/>
+          <File Name="particles_obj.cpp"/>
+          <File Name="particle_f.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Seed">
-          <File Name="particle_initialize.cpp"/>
-          <File Name="particle_seed.cpp"/>
-          <File Name="particle_allocate.cpp"/>
-        </VirtualDirectory>
-        <File Name="particle_f.cpp"/>
-        <File Name="particles_obj.cpp"/>
-        <File Name="tracers_obj.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -1820,22 +1845,6 @@
           <File Name="sediment_ini.cpp"/>
           <File Name="sediment_filter.cpp"/>
           <File Name="sediment_io.cpp"/>
-        </VirtualDirectory>
-      </VirtualDirectory>
-      <VirtualDirectory Name="Sediment Particle">
-        <File Name="sediment_part_state.cpp"/>
-        <File Name="sediment_part_sflow.cpp"/>
-        <File Name="sediment_part_seed.cpp"/>
-        <File Name="sediment_part_cfd_ini.cpp"/>
-        <File Name="sediment_part_cfd.cpp"/>
-        <File Name="sediment_part.cpp"/>
-        <VirtualDirectory Name="Print">
-          <File Name="sedpart_printvtp.cpp"/>
-          <File Name="sedpart_printpvtp.cpp"/>
-          <File Name="sedpart_printbed.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Partres">
-          <File Name="partres.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">

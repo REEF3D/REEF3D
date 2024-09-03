@@ -55,103 +55,6 @@ partres::~partres()
         columnSum = nullptr;
 }
 
-    /**
-     * @brief Sets up the partres class.
-     *
-     * This function is responsible for setting up the partres class by calculating
-     * the cellSumTopo and columnSum values based on the given parameters.
-     *
-     * @param p A pointer to the lexer object.
-     * @param a A reference to the fdm object.
-     * @param diameter The diameter value.
-     */
-void partres::setup(lexer *p, fdm &a, double &diameter)
-{
-        BLOOP
-        {
-            cellSumTopo[IJK] = maxParticlesPerCell(p,a,diameter);
-            columnSum[IJ] += cellSumTopo[IJK];
-        }
-}
-
-void partres::setupState(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
-{
-        // particlePerCell(p,pgc,PP);
-        // PLAINLOOP
-        // columnSum[IJ] += cellSumTopo[IJK]+cellSum[IJK];
-        // particleStressTensor(p,a,pgc,PP);
-}
-
-    /**
-     * @brief Determines if a particle should be seeded in the current cell.
-     *
-     * This function is responsible for determining if a particle should be seeded in the current cell.
-     * It does so by checking if the cellSumTopo value is greater than 0 and if the cellSum value is less than the maximum value.
-     *
-     * @param p A pointer to the lexer object.
-     * @param PP A reference to the particles_obj object.
-     * @param index The index of the particle.
-     * @param max The maximum value.
-     * @return True if the particle should be seeded, false otherwise.
-     */
-seedReturn partres::seeding(lexer *p, particles_obj &PP, size_t &index, double max, bool free)
-{
-        if(free)
-        {
-            cellSum[IJK] += PP.PackingFactor[index];
-        }
-        else
-        {
-            if(cellSumTopo[IJK]>=PP.PackingFactor[index])
-                cellSumTopo[IJK] -= PP.PackingFactor[index];
-            else if (cellSumTopo[IJK]>0)
-            {
-                PP.PackingFactor[index] = cellSumTopo[IJK];
-                cellSumTopo[IJK] -= PP.PackingFactor[index];
-            }
-            else
-            {
-                return seedReturn::REMOVE;
-            }
-            cellSum[IJK] += PP.PackingFactor[index];
-            
-        }
-
-        if(cellSum[IJK]>=max)
-            return seedReturn::STOP;
-        return seedReturn::CONTINUE;
-}
-
-    /**
-     * @brief Transfers the particle to the current cell.
-     *
-     * This function is responsible for transferring the particle to the current cell.
-     * It does so by adding the PackingFactor value to the cellSum value.
-     *
-     * @param p A pointer to the lexer object.
-     * @param PP A reference to the particles_obj object.
-     * @param index The index of the particle.
-     */
-void partres::transfer(lexer *p, particles_obj &PP, size_t &index)
-{
-        cellSum[IJK] += PP.PackingFactor[index];
-    
-}
-
-    /**
-     * @brief Removes the particle from the current cell.
-     *
-     * This function is responsible for removing the particle from the current cell.
-     * It does so by subtracting the PackingFactor value from the cellSum value.
-     *
-     * @param p A pointer to the lexer object.
-     * @param PP A reference to the particles_obj object.
-     * @param index The index of the particle.
-     */
-    void partres::remove(lexer *p, particles_obj &PP, size_t &index)
-    {
-        cellSum[IJK] -= PP.PackingFactor[index];
-    }
 
     /**
      * @brief Moves the particles with the flow field.
@@ -334,126 +237,8 @@ void partres::move(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment
             p->sedtime += p->dtsed;
             cout<<"Sediment time: "<<p->sedtime<<" time step: "<<p->dtsed<<endl;
         }
-    }
-
-    /**
-     * @brief Updates the topo field.
-     *
-     * This function is responsible for updating the topo field.
-     * It does so by calculating the difference between the columnSum and the count value.
-     *
-     * @param p A pointer to the lexer object.
-     * @param pgc A reference to the ghostcell object.
-     * @param topo A reference to the field4a object.
-     * @param d50 The diameter value.
-     */
-    void partres::update(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
-    {
-        int count=0;
-        ILOOP
-            JLOOP
-            {
-                KLOOP
-                {
-                    a.topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(PP.d50,3)/(p->DXN[IP]*p->DYN[JP]);
-                    a.fb(i,j,k) = bedChange[IJ];
-                }
-                columnSum[IJ] += bedChange[IJ];
-                if(bedChange[IJ]<0)
-                count+=activateNew(p,a,PP);
-                bedChange[IJ] = 0;
-            }
-        pgc.start4a(p,a.topo,150);
-        if(count>0)
-        cout<<"On partion "<<p->mpirank<<" were "<<count<<" additional particles activated."<<endl;
-    }
-
-int partres::activateNew(lexer *p, fdm &a, particles_obj &PP)
-{
-        double tolerance = 5e-18;
-        double x,y,z,ipolTopo,ipolSolid;
-        int flag=0;
-        size_t index;
-
-        double counter=0;
-        int maxTries=1000;
-        int tries=0;
-        int count=0;
-
-        if(PP.size-bedChange[IJ]>0.9*PP.capacity)
-            PP.reserve();
-
-        while(counter<-bedChange[IJ] && tries<maxTries)
-        {   
-            x = p->XN[IP] + p->DXN[IP]*double(rand() % 10000)/10000.0;
-            y = p->YN[JP] + p->DYN[JP]*double(rand() % 10000)/10000.0;
-            k = 0;
-            z = p->ZN[KP]+0.5*p->DZP[KP]-a.topo(i,j,k) - 5.0*PP.d50*double(rand() % 10000)/10000.0;
-            k = p->posc_k(z);
-
-            ipolTopo = p->ccipol4_b(a.topo,x,y,z);
-            ipolSolid = p->ccipol4_b(a.solid,x,y,z);
-
-            if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
-                if(cellSumTopo[IJK]>=p->Q41)
-                {
-                    index = PP.add(x,y,z,flag,0,0,0,p->Q41);
-                    counter += PP.PackingFactor[index];
-                    cellSumTopo[IJK] -= PP.PackingFactor[index];
-                    ++count;
-                }
-                else if (cellSumTopo[IJK]+cellSumTopo[IJKm1]>=p->Q41)
-                {
-                    index = PP.add(x,y,z,flag,0,0,0,p->Q41);
-                    counter += PP.PackingFactor[index];
-                    cellSumTopo[IJK] -= PP.PackingFactor[index];
-                    cellSumTopo[IJKm1] += cellSumTopo[IJK];
-                    cellSumTopo[IJK] = 0;
-
-                    ++count;
-                    break;
-                }
-            
-            ++tries;
-        }
-        return count;
 }
 
-void partres::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
-{
-        PLAINLOOP
-        {
-            a.test(i,j,k) = cellSumTopo[IJK];
-            a.vof(i,j,k) = (s.tau_eff[IJ]>s.tau_crit[IJ]?-1:1);
-        }
-        double topoDist=0;
-        double u=0,v=0;
-        for(size_t n=0;n<PP.loopindex;n++)
-            if(PP.Flag[n]>INT32_MIN)
-            {
-                if(PP.Flag[n]==0)
-                {
-                    PP.shear_eff[n]=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
-                    PP.shear_crit[n]=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
-                }
-
-                topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
-
-                if(topoDist<velDist*p->DZP[KP])
-                {
-                    u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-                    v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-                }
-                else
-                {
-                    u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]);
-                    v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]);
-                }
-
-                PP.Uf[n]=u;
-                PP.Vf[n]=v;
-            }
-}
 
 double partres::volume(lexer *p, fdm &a, particles_obj &PP)
 {
@@ -523,41 +308,18 @@ void partres::readState(lexer *p, ifstream &result)
         pgc.start4V_par(p,stressTensor,10);
     }
 
-    /// @brief Calculate intra-particle stress trensor for cells around (`increment::i`,`increment::j`,`increment::k`)
-    void partres::particleStressTensorUpdateIJK(lexer *p, fdm &a, particles_obj &PP)
-    {
-        double theta;
-        int i,j,k;
 
-        for (int n=-2; n<3; n++)
-            for (int m=-2; m<3; m++)
-                for (int l=-2; l<3; l++)
-                {
-                    i=increment::i+n;
-                    j=increment::j+m;
-                    k=increment::k+l;
-
-                    updateParticleStressTensor(p,a,PP,i,j,k);
-                }
-    }
-
-    /// @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
-    void partres::updateParticleStressTensor(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k)
-    {
-        double theta=theta_s(p,a,PP,i,j,k);
-        stressTensor[IJK]=Ps*pow(theta,beta)/max(theta_crit-theta,epsilon*(1.0-theta));
-    }
 
     /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
-    double partres::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
-    {   
+double partres::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
+{   
         double theta = PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
         if(theta>1)
         theta=1;
         if(theta<0)
         theta=0;
         return theta;
-    }    
+}    
 
     /// @brief Calculate drag force parameter
     double partres::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const
