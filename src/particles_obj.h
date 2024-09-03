@@ -60,7 +60,7 @@ public:
 private:
     void fix_state();
     void memorymove(size_t des, size_t src, size_t len);
-    void add_data(size_t,double,double,double,double,double,double,double,double=0,double=0,double=0,double=0,double=0,double=0); // expand when adding additional data
+    void add_data(size_t,double,double,double,double,double,double,double,double,double,double,double=0,double=0,double=0,double=0,double=0,double=0); // expand when adding additional data
 
 public:
     // --- state data ---
@@ -88,6 +88,7 @@ public:
     /// @brief Number of real particles represented by the element
     double* PackingFactor;
     
+    double *XRK1,*YRK1,*ZRK1;
     double *URK1,*VRK1,*WRK1;
 
     // ---   additional  ---
