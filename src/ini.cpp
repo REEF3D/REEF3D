@@ -621,7 +621,7 @@ void lexer::ini_default()
     Q183=0;             // int flag and above to print
     Q200 = 0;           // int movement model erosion
     Q201 = 0;           // int movement model deposition
-    Q202 = 0;           // int movement model transport
+    Q202 = 1;           // int movement model transport
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module

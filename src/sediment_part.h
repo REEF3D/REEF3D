@@ -74,11 +74,7 @@ public:
     void ini_nhflow(lexer*,fdm_nhf*,ghostcell*){};
     void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*){};
     
-    // 
-
-    void erosion(lexer*,fdm*);
-    void deposition(lexer*,fdm*);
-
+    
     // Statefile methods
 
     void write_state_particles(lexer *, ofstream&);

@@ -1700,6 +1700,8 @@
           <File Name="partres.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sediment Particle">
+          <File Name="sediment_part_update.cpp"/>
+          <File Name="sediment_part_prep.cpp"/>
           <VirtualDirectory Name="Print">
             <File Name="sedpart_printvtp.cpp"/>
             <File Name="sedpart_printpvtp.cpp"/>

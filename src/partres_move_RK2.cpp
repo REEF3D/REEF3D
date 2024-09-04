@@ -65,6 +65,7 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
         cellSum[IJK]+=PP.PackingFactor[n];
         particleStressTensorUpdateIJK(p,a,PP);
     }
+    
     particleStressTensor(p,a,pgc,PP);
     
     

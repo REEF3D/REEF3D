@@ -55,8 +55,9 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 	
         /// runtime seeding
 		if(p->Q120==1&&p->count%p->Q121==0)
-			posseed_suspended(p,a);
+        posseed_suspended(p,a);
         point_source(p,a);
+        
         if(p->Q101>0)
         {
             // topo_influx(p,a);
@@ -67,7 +68,8 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         }
 
         /// transport
-        erosion(p,a);
+        if(p->Q101>0)
+        pst->erosion(p,*a,PP,s);
         
         if(p->Q10==2)
         pst->move_RK2(p,*a,*pgc,PP,s,*pturb);
@@ -77,7 +79,9 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         
 		xchange=transfer(p,pgc,&PP, pst, maxparticle);
 		removed=remove(p,&PP);
-        deposition(p,a);
+        
+        if(p->Q101>0)
+        pst->deposition(p,*a,PP,s);
 
         /// topo update
         update_cfd(p,a,pgc,pflow,preto);
@@ -108,58 +112,3 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
     debug(p,a,pgc);
 }
 
-/// @brief Updates the topography for the CFD solver
-void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo* preto)
-{
-    prelax.start(p,pgc,&s);
-    if(p->Q13==1)
-        pst->update(p,*a,*pgc,PP);
-    preto->start(p,a,pgc,a->topo);
-    if(p->mpirank==0)
-        cout<<"Topo: update grid..."<<endl;
-    prelax.start(p,pgc,&s);
-    pvrans->sed_update(p,a,pgc);
-    pflow->gcio_update(p,a,pgc);
-}
-
-void sediment_part::fill_PQ_cfd(lexer *p, fdm *a, ghostcell *pgc)
-{
-    double zval,xip,yip;
-
-    SLICELOOP4
-        s.bedk(i,j)=0;
-    
-    SLICELOOP4
-        KLOOP
-            PBASECHECK
-                if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-                    s.bedk(i,j)=k+1;
-    
-    SLICELOOP1
-    {
-        k=s.bedk(i,j);
-        
-        xip= p->XN[IP1];
-        yip= p->YP[JP];
-        zval = 0.5*(s.bedzh(i,j)+s.bedzh(i+1,j)) + 1.6*p->DZN[k];
-        
-        s.P(i,j) = a->P(i,j) = p->ccipol1_a(a->u,xip,yip,zval);
-    }
-    
-    SLICELOOP2
-    {
-        k=s.bedk(i,j);
-        
-        xip= p->XP[IP];
-        yip= p->YN[JP1];
-        zval = 0.5*(s.bedzh(i,j)+s.bedzh(i,j+1)) + 1.6*p->DZN[k];
-        
-        s.Q(i,j) = a->Q(i,j)  = p->ccipol2_a(a->v,xip,yip,zval);
-    }
-    
-    pgc->gcsl_start1(p,s.P,10);
-	pgc->gcsl_start2(p,s.Q,11);
-    
-    pgc->gcsl_start1(p,a->P,10);
-	pgc->gcsl_start2(p,a->Q,11);
-}

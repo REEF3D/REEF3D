@@ -112,23 +112,19 @@ void partres::advec_pic(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_
     Dv=v-PV[n];
     // Dw=w-PW[n];
 
-    switch (p->Q202)
+    if(p->Q202==1)
     {
-        case 0:
-        {
-            DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
-            break;
-        }
+    DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
+    }
         
-        case 1:
-        {
+    if(p->Q202==2)
+    {
             relative_velocity(p,a,PP,n,Du,Dv,Dw);
             dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
             const double Re_p = dU*PP.d50/(p->W2/p->W1);
             DragCoeff=drag_coefficient(Re_p);
-            break;
-        }
     }
+    
     PP.drag[n]=DragCoeff;
 
     // sedimentation

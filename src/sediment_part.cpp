@@ -93,24 +93,6 @@ sediment_part::~sediment_part()
     delete pst;
 }
 
-/// @brief Enables erosion of particles
-void sediment_part::erosion(lexer* p, fdm* a)
-{
-    if(p->Q101>0)
-    {
-        pst->erosion(p,*a,PP,s);
-    }
-}
-
-/// @brief Deposits moving particles onto topo
-void sediment_part::deposition(lexer* p, fdm* a)
-{    
-    if(p->Q101>0)
-    {
-        pst->deposition(p,*a,PP,s);
-    }
-}
-
 void sediment_part::debug(lexer* p, fdm* a, ghostcell* pgc)
 {
     pst->debug(p,*a,*pgc,PP,s);
