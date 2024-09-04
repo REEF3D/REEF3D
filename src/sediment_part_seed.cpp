@@ -367,12 +367,12 @@ void sediment_part::seedDummyCell(lexer *p, fdm *a, particles_obj &PP)
     double x,y,z,ipolSolid;
 
     for(int qn=0;qn<ppcell;++qn)
-    {   
+    {
+        if(a->topo(i,j,k) +0.5*p->Q102*p->DZN[KP]>=0)
+            break;
         x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
         y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
         z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
-        if(a->topo(i,j,k) +0.5*p->Q102*p->DZN[KP]>=0)
-            break;
         ipolSolid = p->ccipol4_b(a->solid,x,y,z);
         if(!(ipolSolid<0))
             PP.add(x,y,z,0);
