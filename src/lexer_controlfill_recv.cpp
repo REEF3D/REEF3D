@@ -1212,6 +1212,8 @@ void lexer::ctrlrecv()
 	dd++;
     Q110 = ictrl[ii];
 	ii++;
+    Q111 = ictrl[ii];
+	ii++;
     Q120 = ictrl[ii];
     ii++;
     Q121 = ictrl[ii];
@@ -2493,6 +2495,17 @@ void lexer::ctrlrecv()
 	Darray(Q110_zs,Q110);  
 	Darray(Q110_ze,Q110);  
 	}
+    if(Q111>0)
+	{
+	Darray(Q111_xs,Q111);  
+	Darray(Q111_xe,Q111);
+
+	Darray(Q111_ys,Q111);  
+	Darray(Q111_ye,Q111);  
+	
+	Darray(Q111_zs,Q111);  
+	Darray(Q111_ze,Q111);  
+	}
 
     if(S73>0)
 	{
@@ -3621,6 +3634,21 @@ for(n=0;n<F369;++n)
     Q110_zs[n] = dctrl[dd];
     dd++;
     Q110_ze[n] = dctrl[dd];
+    dd++;
+    }
+    for(n=0;n<Q111;++n)
+    {
+    Q111_xs[n] = dctrl[dd];
+    dd++;
+    Q111_xe[n] = dctrl[dd];
+    dd++;
+    Q111_ys[n] = dctrl[dd];
+    dd++;
+    Q111_ye[n] = dctrl[dd];
+    dd++;
+    Q111_zs[n] = dctrl[dd];
+    dd++;
+    Q111_ze[n] = dctrl[dd];
     dd++;
     }
     

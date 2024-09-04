@@ -127,7 +127,7 @@ void sediment_part::printDummyPVTP(lexer *p)
 
 	for(int n=0; n<p->M10; ++n)
 	{
-    sprintf(pname,"REEF3D-SedPart-Dummy-%06i.vtp",p->mpirank+1);
+    sprintf(pname,"REEF3D-SedPart-Dummy-%06i.vtp",n+1);
     result<<"<Piece Source=\""<<pname<<"\"/>\n";
 	}
 

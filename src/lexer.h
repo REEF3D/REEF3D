@@ -527,9 +527,11 @@ public:
     double Q73;
     
     int Q101;
-    int Q110;
     double Q102;
+    int Q110;
     double *Q110_xs,*Q110_xe,*Q110_ys,*Q110_ye,*Q110_zs,*Q110_ze;
+    int Q111;
+    double *Q111_xs,*Q111_xe,*Q111_ys,*Q111_ye,*Q111_zs,*Q111_ze;
     
     int Q120;
     int Q121;

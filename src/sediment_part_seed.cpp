@@ -44,6 +44,8 @@ void sediment_part::seed_ini(lexer *p, fdm *a, ghostcell* pgc)
     LOOP
     {
         active_box(i,j,k) = false;
+        if(p->Q111>0)
+        active_box_dummy(i,j,k) = false;
         active_topo(i,j,k) = false;
     }
     double minPPC=INT64_MAX;
@@ -58,6 +60,16 @@ void sediment_part::seed_ini(lexer *p, fdm *a, ghostcell* pgc)
     {
         active_box(i,j,k) = true;
         ++cellCountBox;
+    }
+    size_t cellCountBoxDummy=0;
+    for(int qn=0;qn<p->Q111;++qn)
+    LOOP
+    if(p->XN[IP]>=p->Q111_xs[qn] && p->XN[IP1]<=p->Q111_xe[qn]
+    && p->YN[JP]>=p->Q111_ys[qn] && p->YN[JP1]<=p->Q111_ye[qn]
+    && p->ZN[KP1]>=p->Q111_zs[qn] && p->ZN[KP1]<=p->Q111_ze[qn])
+    {
+        active_box_dummy(i,j,k) = true;
+        ++cellCountBoxDummy;
     }
 
     // Topo
@@ -88,6 +100,7 @@ void sediment_part::seed_ini(lexer *p, fdm *a, ghostcell* pgc)
     
     int partnum = (cellCountBox + cellCountTopo) * ppcell;
     maxparticle = ceil(p->Q25*double(pgc->globalisum(partnum)));
+    PP2.reserve(ceil(p->Q25*double(cellCountBoxDummy*ppcell)));
 }
 
 /// @brief Calls seeding functions
@@ -99,6 +112,12 @@ void sediment_part::seed(lexer *p, fdm *a)
         posseed_box(p,a);
 	if(p->Q101>0)
         posseed_topo(p,a);
+    if(p->Q111>0)
+    {
+        posseed_box_dummy(p,a);
+        printDummyVTP(p,PP2);
+        PP2.erase_all();
+    }
 }
 
 /// @brief Seeds particle into boxes defined using `lexer::Q110`
@@ -123,6 +142,30 @@ void sediment_part::posseed_box(lexer *p, fdm *a)
 
                 index = PP.add(x,y,z,flag,a->u(i,j,k),a->v(i,j,k),a->w(i,j,k),p->Q41);
                 pst->seeding(p, PP, index, ppcell);
+            }
+}
+
+/// @brief Seeds particle into boxes defined using `lexer::Q111`
+void sediment_part::posseed_box_dummy(lexer *p, fdm *a)
+{
+    seed_srand(p);
+	
+    double x,y,z;
+    int flag=1;
+    size_t index;
+
+    LOOP
+        if(active_box_dummy(i,j,k)>0.0)
+            for(int qn=0;qn<ppcell;++qn)
+            {
+                if(PP2.size+1>0.9*PP2.capacity)
+                    PP2.reserve();
+                
+                x = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+                y = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+                z = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+
+                index = PP2.add(x,y,z,flag,a->u(i,j,k),a->v(i,j,k),a->w(i,j,k),p->Q41);
             }
 }
 
