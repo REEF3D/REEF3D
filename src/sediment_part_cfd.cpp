@@ -45,6 +45,7 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
     if (p->count>=p->Q43)
 	{
+        // sediment 
         fill_PQ_cfd(p,a,pgc);
         pslope.slope_cds(p,pgc,&s);
         pbedshear.taubed(p,a,pgc,&s);
@@ -71,11 +72,7 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         if(p->Q101>0)
         pst->erosion(p,*a,PP,s);
         
-        if(p->Q10==2)
         pst->move_RK2(p,*a,*pgc,PP,s,*pturb);
-        
-        if(p->Q10==3)
-        pst->move_RK3(p,*a,*pgc,PP,s,*pturb); 
         
 		xchange=transfer(p,pgc,&PP, pst, maxparticle);
 		removed=remove(p,&PP);

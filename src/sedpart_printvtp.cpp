@@ -59,7 +59,7 @@ void sediment_part::print_vtp(lexer* p)
 	if(PP.Flag[n]>=print_flag)
 	numpt++;
 
-	cout<<"PSed-"<<p->mpirank<<"| printed: "<<numpt<<" not printed: "<<PP.size-numpt<<" | capcaity: "<<PP.capacity<<endl;
+	cout<<"PSed-"<<p->mpirank<<"| printed: "<<numpt<<" not printed: "<<PP.size-numpt<<" | capcacity: "<<PP.capacity<<endl;
 
 	int count;
 	int n=0;

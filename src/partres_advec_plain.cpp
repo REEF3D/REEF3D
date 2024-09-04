@@ -58,11 +58,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     bool bedLoad = false;
     bool shearVel = true;
 
-    
-    double RKtimeStep = 0.5*p->dtsed; // To be modified with alpha?
-
-
-    double Du=0,Dv=0,Dw=0;
+    double Du=0.0,Dv=0.0,Dw=0.0;
     double thetas=0;
     double DragCoeff=0;
     double dU=0;
@@ -103,47 +99,41 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     Dv=v-PV[n];
     // Dw=w-PW[n];
 
+
+    // particle force
     if(p->Q202==1)
     {
     DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
+    
+    du=DragCoeff*Du;
+    dv=DragCoeff*Dv;
+    // dw=DragCoeff*Dw;
+    
+    // acceleration
+    du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
+    dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
     }
         
     if(p->Q202==2)
     {
-            relative_velocity(p,a,PP,n,Du,Dv,Dw);
-            dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
-            const double Re_p = dU*PP.d50/(p->W2/p->W1);
-            DragCoeff=drag_coefficient(Re_p);
+    relative_velocity(p,a,PP,n,Du,Dv,Dw);
+    dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
+    Re_p = dU*PP.d50/(p->W2/p->W1);
+    DragCoeff=drag_coefficient(Re_p);
+         
+    // acceleration
+    Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
+
+    du = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
+    dv = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
     }
 
     PP.drag[n]=DragCoeff;
 
-    // Acceleration
-    switch (p->Q202)
-    {
-        case 0:
-        {
-            du=DragCoeff*Du;
-            dv=DragCoeff*Dv;
-            // dw=DragCoeff*Dw;
-            du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
-            dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
-            // dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
-            break;
-        }
-        
-        case 1:
-        {
-            const double Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
-            DragCoeff = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
-            du=DragCoeff;
-            dv=DragCoeff;
-            // dw=DragCoeff;
-                break;
-        }
-    }
-
-
+    
+    cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
+    
+    
     // solid forcing
     double fx,fy,fz;
     
@@ -152,8 +142,11 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     fz = p->ccipol3c(a.fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
     
     du += fx;
-    dv += fx;
-    dw += fx;
+    dv += fy;
+    dw += fz;
+    
+    dw=0.0;
+    
     
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {

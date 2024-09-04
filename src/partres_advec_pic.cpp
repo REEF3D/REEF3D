@@ -57,8 +57,7 @@ void partres::advec_pic(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_
     bool debugPrint = false;
     bool bedLoad = false;
     bool shearVel = true;
-;
-    double RKtimeStep = 0.5*p->dtsed;
+
 
 
     double Du=0,Dv=0,Dw=0;

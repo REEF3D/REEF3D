@@ -36,9 +36,8 @@ void partres::erosion(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]==0)
             {
-                switch (p->Q200)
-                {
-                    case 0:
+
+                    if(p->Q200==1)
                     {
                         // if(p->ccipol4_b(a.solid,PP.X[n],PP.Y[n],PP.Z[n])<0.6)
                         if(PP.X[n]>=p->S71 && PP.X[n]<=p->S72)
@@ -46,8 +45,8 @@ void partres::erosion(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                         {
                             shear_eff=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
                             shear_crit=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
-                            if(shear_eff>shear_crit)
-                                if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.0*PP.d50>0)
+                            //if(shear_eff>shear_crit)
+                               // if(p->ccipol4_b(a.topo,PP.X[n],PP.Y[n],PP.Z[n])+2.0*PP.d50>0)
                                 {
                                     PP.Flag[n]=1;
                                     ++counter;
@@ -61,8 +60,8 @@ void partres::erosion(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                                 }
                         }
                     }
-                    break;
-                    case 1:
+                    
+                    if(p->Q200==2)
                     {
                         relative_velocity(p,a,PP,n,du,dv,dw);
                         const double dU=sqrt(du*du+dv*dv+dw*dw);
@@ -72,16 +71,17 @@ void partres::erosion(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                         const double mu_s = tan(p->S81);
                         const double W = p->W1 * sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22) * (p->S22/p->W1-1) * PI/6.0 *pow(PP.d50,3);
                         const double Fs = W * mu_s;
-                        if(Fd > W * (mu_s*cos(s.teta[IJ])-sin(s.teta[IJ])))
+                        //if(Fd > W * (mu_s*cos(s.teta[IJ])-sin(s.teta[IJ])))
                         {
                             PP.Flag[n]=1;
                             ++counter;
                             bedChange[IJ] -= PP.PackingFactor[n];
                         }
                     }
-                    break;
-                }
             }
+            
+            //for(size_t n=0;n<PP.loopindex;n++)
+            //PP.Flag[n]=1;
         // if(counter>0)
         // cout<<"On rank "<<p->mpirank<<" were "<<counter<<" particles erosiond."<<endl;
 }

@@ -117,6 +117,8 @@ private:
             slice4 bedChange;
 
             double velDist=1.6;
+            
+    double Fd, Re_p;
 };
 
 #endif
