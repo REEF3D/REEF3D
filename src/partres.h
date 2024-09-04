@@ -60,10 +60,10 @@ public:
         void move_RK2(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
         void move_RK3(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
         
-        void advec_plain(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence&, 
+        void advec_plain(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
-        void advec_pic(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence&, 
+        void advec_pic(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
         

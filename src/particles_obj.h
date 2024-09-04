@@ -49,7 +49,7 @@ public:
     size_t reserve(size_t=0);
     void optimize();
 
-    size_t add(double,double,double,int,double=0,double=0,double=0,double=0,double=0,double=0,double=1,double=0,double=0,double=0,double=0,double=0,double=0); // expand when adding additional data
+    size_t add(double,double,double,int,double=0,double=0,double=0,double=0,double=0,double=0,double=0,double=0,double=0,double=1,double=0,double=0,double=0,double=0,double=0,double=0); // expand when adding additional data
     void add_obj(particles_obj*);
     
     void fill(size_t,bool=true,int=-1);
@@ -60,7 +60,7 @@ public:
 private:
     void fix_state();
     void memorymove(size_t des, size_t src, size_t len);
-    void add_data(size_t,double,double,double,double,double,double,double,double,double,double,double=0,double=0,double=0,double=0,double=0,double=0); // expand when adding additional data
+    void add_data(size_t,double,double,double,double,double,double,double,double,double,double,double,double,double,double=0,double=0,double=0,double=0,double=0,double=0); // expand when adding additional data
 
 public:
     // --- state data ---

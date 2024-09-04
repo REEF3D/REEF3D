@@ -318,6 +318,45 @@ void ghostcell::para_tracersobj(lexer* p ,particles_obj* s ,particles_obj* r)
         }
 
         gcwait(p);
+
+        // Transfer PackingFactor
+        if(p->nb1>=0)
+        {
+            MPI_Isend(s[0].PackingFactor,send[0],MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
+            MPI_Irecv(r[0].PackingFactor,recv[0],MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+        }
+
+        if(p->nb2>=0)
+        {
+            MPI_Isend(s[1].PackingFactor,send[1],MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
+            MPI_Irecv(r[1].PackingFactor,recv[1],MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+        }
+
+        if(p->nb3>=0)
+        {
+            MPI_Isend(s[2].PackingFactor,send[2],MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
+            MPI_Irecv(r[2].PackingFactor,recv[2],MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+        }
+
+        if(p->nb4>=0)
+        {
+            MPI_Isend(s[3].PackingFactor,send[3],MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
+            MPI_Irecv(r[3].PackingFactor,recv[3],MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+        }
+
+        if(p->nb5>=0)
+        {
+            MPI_Isend(s[4].PackingFactor,send[4],MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
+            MPI_Irecv(r[4].PackingFactor,recv[4],MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
+        }
+
+        if(p->nb6>=0)
+        {
+            MPI_Isend(s[5].PackingFactor,send[5],MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
+            MPI_Irecv(r[5].PackingFactor,recv[5],MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
+        }
+
+        gcwait(p);
         
         // Transfer URK1
         if(p->nb1>=0)
@@ -553,46 +592,6 @@ void ghostcell::para_tracersobj(lexer* p ,particles_obj* s ,particles_obj* r)
         {
             MPI_Isend(s[5].ZRK1,send[5],MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
             MPI_Irecv(r[5].ZRK1,recv[5],MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
-        }
-
-        gcwait(p);
-
-
-        // Transfer PackingFactor
-        if(p->nb1>=0)
-        {
-            MPI_Isend(s[0].PackingFactor,send[0],MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
-            MPI_Irecv(r[0].PackingFactor,recv[0],MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
-        }
-
-        if(p->nb2>=0)
-        {
-            MPI_Isend(s[1].PackingFactor,send[1],MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
-            MPI_Irecv(r[1].PackingFactor,recv[1],MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
-        }
-
-        if(p->nb3>=0)
-        {
-            MPI_Isend(s[2].PackingFactor,send[2],MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
-            MPI_Irecv(r[2].PackingFactor,recv[2],MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
-        }
-
-        if(p->nb4>=0)
-        {
-            MPI_Isend(s[3].PackingFactor,send[3],MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
-            MPI_Irecv(r[3].PackingFactor,recv[3],MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
-        }
-
-        if(p->nb5>=0)
-        {
-            MPI_Isend(s[4].PackingFactor,send[4],MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
-            MPI_Irecv(r[4].PackingFactor,recv[4],MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
-        }
-
-        if(p->nb6>=0)
-        {
-            MPI_Isend(s[5].PackingFactor,send[5],MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
-            MPI_Irecv(r[5].PackingFactor,recv[5],MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
         }
 
         gcwait(p);

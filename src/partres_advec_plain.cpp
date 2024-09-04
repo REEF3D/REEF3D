@@ -38,7 +38,7 @@ Author: Alexander Hanke
      * @param PP A reference to the particles_obj object.
      */
      
-void partres::advec_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, 
+void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_fdm &s, turbulence &pturb, 
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &du, double &dv, double &dw, double alpha)
 {
@@ -47,8 +47,6 @@ void partres::advec_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, s
     double du1, du2, du3, dv1, dv2, dv3, dw1, dw2, dw3;
     double ws=0;
     double topoDist=0;
-    /// @brief Difference between flowfield and particle velocity
-        
        
     double pressureDivX=0, pressureDivY=0, pressureDivZ=0;
     double stressDivX=0, stressDivY=0, stressDivZ=0;
@@ -60,10 +58,8 @@ void partres::advec_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, s
     bool bedLoad = false;
     bool shearVel = true;
 
-    particlePerCell(p,pgc,PP);
-    // particleStressTensor(p,a,pgc,PP);
-    timestep(p,pgc,PP);
-    double RKtimeStep = 0.5*p->dtsed;
+    
+    double RKtimeStep = 0.5*p->dtsed; // To be modified with alpha?
 
 
     double Du=0,Dv=0,Dw=0;
@@ -71,120 +67,101 @@ void partres::advec_plain(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, s
     double DragCoeff=0;
     double dU=0;
 
-    for(int m=0;m<2;m++)
+    i=p->posc_i(PX[n]);
+    j=p->posc_j(PY[n]);
+    k=p->posc_k(PZ[n]);
+
+    thetas=theta_s(p,a,PP,i,j,k);
+        
+
+    topoDist=p->ccipol4(a.topo,PX[n],PY[n],PZ[n]);
+
+    if(topoDist<velDist*p->DZP[KP])
     {
-        for(size_t n=0;n<PP.loopindex;n++)
+        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
+        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
+        // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
+        if(debugPrint)
         {
-            if(PP.Flag[n]>0)
-            {
+                cout<<PZ[n]+velDist*p->DZP[KP]-topoDist<<endl;
+                debugPrint=false;
+        }
+    }
+    
+    else
+    {
+        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]);
+        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]);
+        // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]);
+    }
 
-                i=p->posc_i(PX[n]);
-                j=p->posc_j(PY[n]);
-                k=p->posc_k(PZ[n]);
+    // PP.Uf[n]=u;
+    // PP.Vf[n]=v;
+    // PP.Wf[n]=w;
+        
+    Du=u-PU[n];
+    Dv=v-PV[n];
+    // Dw=w-PW[n];
 
-                thetas=theta_s(p,a,PP,i,j,k);
-                    
-
-                topoDist=p->ccipol4(a.topo,PX[n],PY[n],PZ[n]);
-
-                if(topoDist<velDist*p->DZP[KP])
-                {
-                    u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-                    v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-                    // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-                    if(debugPrint)
-                    {
-                            cout<<PZ[n]+velDist*p->DZP[KP]-topoDist<<endl;
-                            debugPrint=false;
-                    }
-                }
-                
-                else
-                {
-                    u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]);
-                    v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]);
-                    // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]);
-                }
-
-                // PP.Uf[n]=u;
-                // PP.Vf[n]=v;
-                // PP.Wf[n]=w;
-                    
-                Du=u-PU[n];
-                Dv=v-PV[n];
-                // Dw=w-PW[n];
-
-                switch (p->Q202)
-                {
-                    case 0:
-                    {
-                        DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
-                        break;
-                    }
-                    
-                    case 1:
-                    {
-                        relative_velocity(p,a,PP,n,Du,Dv,Dw);
-                        dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
-                        const double Re_p = dU*PP.d50/(p->W2/p->W1);
-                        DragCoeff=drag_coefficient(Re_p);
-                        break;
-                    }
-                }
-                PP.drag[n]=DragCoeff;
-
-                // Acceleration
-                switch (p->Q202)
-                {
-                    case 0:
-                    {
-                        du=DragCoeff*Du;
-                        dv=DragCoeff*Dv;
-                        // dw=DragCoeff*Dw;
-                        du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
-                        dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
-                        // dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
-                        break;
-                    }
-                    
-                    case 1:
-                    {
-                        const double Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
-                        DragCoeff = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
-                        du=DragCoeff;
-                        dv=DragCoeff;
-                        // dw=DragCoeff;
-                            break;
-                    }
-                }
-
-
-                // solid forcing
-                double fx,fy,fz;
-                
-                fx = p->ccipol1c(a.fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
-                fy = p->ccipol2c(a.fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
-                fz = p->ccipol3c(a.fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
-                
-                du += fx;
-                dv += fx;
-                dw += fx;
-                
-                if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
-                {
-                cout<<"NaN detected.\nDu: "<<Du<<" Dv: "<<Dv<<" Dw: "<<Dw<<"\nDrag: "<<DragCoeff<<endl;
-                exit(1);
-                }
-                    
-                
-                }
-            }
+    switch (p->Q202)
+    {
+        case 0:
+        {
+            DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
+            break;
         }
         
-        if(p->mpirank==0)
+        case 1:
         {
-            p->sedtime += p->dtsed;
-            cout<<"Sediment time: "<<p->sedtime<<" time step: "<<p->dtsed<<endl;
+            relative_velocity(p,a,PP,n,Du,Dv,Dw);
+            dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
+            const double Re_p = dU*PP.d50/(p->W2/p->W1);
+            DragCoeff=drag_coefficient(Re_p);
+            break;
         }
-}
+    }
+    PP.drag[n]=DragCoeff;
 
+    // Acceleration
+    switch (p->Q202)
+    {
+        case 0:
+        {
+            du=DragCoeff*Du;
+            dv=DragCoeff*Dv;
+            // dw=DragCoeff*Dw;
+            du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
+            dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
+            // dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
+            break;
+        }
+        
+        case 1:
+        {
+            const double Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
+            DragCoeff = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
+            du=DragCoeff;
+            dv=DragCoeff;
+            // dw=DragCoeff;
+                break;
+        }
+    }
+
+
+    // solid forcing
+    double fx,fy,fz;
+    
+    fx = p->ccipol1c(a.fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
+    fy = p->ccipol2c(a.fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
+    fz = p->ccipol3c(a.fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
+    
+    du += fx;
+    dv += fx;
+    dw += fx;
+    
+    if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
+    {
+    cout<<"NaN detected.\nDu: "<<Du<<" Dv: "<<Dv<<" Dw: "<<Dw<<"\nDrag: "<<DragCoeff<<endl;
+    exit(1);
+    }
+}
