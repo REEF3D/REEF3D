@@ -104,7 +104,7 @@ int particle_func::remove(lexer* p, particles_obj* PP)
 			// remove out of bounds particles
             if(!inBounds)
             {
-                cellSum[IJK]-=PP->PackingFactor[n];
+                cellSum[IJK]-=PP->ParcelFactor[n];
                 PP->erase(n);
                 removed++;
             }
@@ -122,7 +122,7 @@ int particle_func::solid_clean(lexer* p, particles_obj* PP)
     //     i = p->posc_i(PP->X[n]);
     //     j = p->posc_j(PP->Y[n]);
     //     k = p->posc_k(PP->Z[n]);
-    //     cellSum[IJK]-=PP->PackingFactor[n];
+    //     cellSum[IJK]-=PP->ParcelFactor[n];
     //     PP->erase(n);
     //     removed++;
     // }
@@ -256,41 +256,41 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
                 {
                     case -1:
                     {
-                        Send[0].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[0].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->ParcelFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -2:
                     {
-                        Send[1].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[1].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->ParcelFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -3:
                     {
-                        Send[2].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[2].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->ParcelFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -4:
                     {
-                        Send[3].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[3].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->ParcelFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -5:
                     {
-                        Send[4].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[4].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->ParcelFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
 
                     case -6:
                     {
-                        Send[5].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->PackingFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
+                        Send[5].add(PP->X[n],PP->Y[n],PP->Z[n],1,PP->U[n],PP->V[n],PP->W[n],PP->ParcelFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
                         break;
                     }
                 }
-                cellSum[IJK]-=PP->PackingFactor[n];
+                cellSum[IJK]-=PP->ParcelFactor[n];
                 PP->erase(n);
                 ++xchange;
             }
@@ -313,7 +313,7 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
             j = p->posc_j(Recv[n].Y[m]);
             k = p->posc_k(Recv[n].Z[m]);
             pst->transfer(p,Recv[n],m);
-            cellSum[IJK]+=Recv[n].PackingFactor[n];
+            cellSum[IJK]+=Recv[n].ParcelFactor[n];
         }
         PP->add_obj(&Recv[n]);
     }
@@ -416,7 +416,7 @@ void particle_func::make_stationary(lexer* p, fdm* a, particles_obj* PP)
 /// @return Volume of partice with \p index
 double particle_func::volume(particles_obj* PP, int index)
 {
-    return PI*pow(PP->d50,3.0)*PP->PackingFactor[index]/6.0;
+    return PI*pow(PP->d50,3.0)*PP->ParcelFactor[index]/6.0;
 }
 
 /// @brief Cleanup container \note To implement

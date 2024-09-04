@@ -50,7 +50,7 @@ particles_obj::particles_obj(size_t _capacity, double _d50, double _density, boo
         V = new double[_capacity];
         W = new double[_capacity];
 
-        PackingFactor = new double[_capacity];
+        ParcelFactor = new double[_capacity];
         
         XRK1 = new double[_capacity];
         YRK1 = new double[_capacity];
@@ -74,7 +74,7 @@ particles_obj::particles_obj(size_t _capacity, double _d50, double _density, boo
         U=nullptr;
         V=nullptr;
         W=nullptr;
-        PackingFactor=nullptr;
+        ParcelFactor=nullptr;
     }
 }
 
@@ -104,8 +104,8 @@ particles_obj::~particles_obj()
         delete[] WRK1;
         WRK1=nullptr;
 
-        delete[] PackingFactor;
-        PackingFactor=nullptr;
+        delete[] ParcelFactor;
+        ParcelFactor=nullptr;
 
         delete[] Uf;
         Uf=nullptr;
@@ -141,7 +141,7 @@ void particles_obj::erase(size_t index)
         V[index]=0;
         W[index]=0;
 
-        PackingFactor[index]=0;
+        ParcelFactor[index]=0;
 
         Uf[index]=0;
         Vf[index]=0;
@@ -166,8 +166,8 @@ void particles_obj::erase_all()
         V = new double[capacity];
         W = new double[capacity];
 
-        delete[] PackingFactor;
-        PackingFactor = new double[capacity];
+        delete[] ParcelFactor;
+        ParcelFactor = new double[capacity];
 
         delete[] Uf;
         delete[] Vf;
@@ -192,13 +192,13 @@ void particles_obj::erase_all()
 /// @param u Velocity in x-dir
 /// @param v Velocity in y-dir
 /// @param w Velocity in z-dir
-/// @param packingFactor Number of real particles represented by the element
+/// @param parcelFactor Number of real particles represented by the element
 /// @return Index of added particle
-size_t particles_obj::add(double x, double y, double z, int flag, double u, double v, double w, double packingFactor, double xrk1, double yrk1, double zrk1, double urk1, double vrk1, double wrk1, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
+size_t particles_obj::add(double x, double y, double z, int flag, double u, double v, double w, double parcelFactor, double xrk1, double yrk1, double zrk1, double urk1, double vrk1, double wrk1, double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
 {
     size_t index=tracers_obj::add(x,y,z,flag);
     if(entries>tracers_obj::entries)
-        add_data(index,x,y,z,u,v,w,packingFactor,xrk1,yrk1,zrk1,uF,vF,wF,shearEff,shearCrit,_drag);
+        add_data(index,x,y,z,u,v,w,parcelFactor,xrk1,yrk1,zrk1,uF,vF,wF,shearEff,shearCrit,_drag);
     return index;
 }
 
@@ -261,10 +261,10 @@ size_t particles_obj::reserve(size_t capacity_desired)
         WRK1=newWRK1;
 
 
-        double* newPackingFactor=new double[capacity_desired];
-        std::memcpy( newPackingFactor, PackingFactor, size * sizeof(double) );
-        delete[] PackingFactor;
-        PackingFactor=newPackingFactor;
+        double* newParcelFactor=new double[capacity_desired];
+        std::memcpy( newParcelFactor, ParcelFactor, size * sizeof(double) );
+        delete[] ParcelFactor;
+        ParcelFactor=newParcelFactor;
 
         double* newUf=new double[capacity_desired];
         std::memcpy( newUf, Uf, size * sizeof(double) );
@@ -388,7 +388,7 @@ void particles_obj::memorymove(size_t des, size_t src, size_t len)
         std::memmove(&V[des],&V[src],sizeof(double)*len);
         std::memmove(&W[des],&W[src],sizeof(double)*len);
 
-        std::memmove(&PackingFactor[des],&PackingFactor[src],sizeof(double)*len);
+        std::memmove(&ParcelFactor[des],&ParcelFactor[src],sizeof(double)*len);
     }
 }
 
@@ -406,7 +406,7 @@ void particles_obj::add_obj(particles_obj* obj)
         
         if(obj->entries>obj->tracers_obj::entries && entries>tracers_obj::entries)
             for(size_t n=0;n<obj->loopindex;n++)
-                add(obj->X[n],obj->Y[n],obj->Z[n],obj->Flag[n],obj->U[n],obj->V[n],obj->W[n],obj->PackingFactor[n],obj->URK1[n],obj->VRK1[n],obj->WRK1[n],obj->Uf[n],obj->Vf[n],obj->Wf[n],obj->shear_eff[n],obj->shear_crit[n],obj->drag[n]);
+                add(obj->X[n],obj->Y[n],obj->Z[n],obj->Flag[n],obj->U[n],obj->V[n],obj->W[n],obj->ParcelFactor[n],obj->URK1[n],obj->VRK1[n],obj->WRK1[n],obj->Uf[n],obj->Vf[n],obj->Wf[n],obj->shear_eff[n],obj->shear_crit[n],obj->drag[n]);
         else
             tracers_obj::add_obj(obj);
     }
@@ -417,9 +417,9 @@ void particles_obj::add_obj(particles_obj* obj)
 /// @param u Velocity in x-dir
 /// @param v Velocity in y-dir
 /// @param w Velocity in z-dir
-/// @param packingFactor Number of real particles represented by the element
+/// @param parcelFactor Number of real particles represented by the element
 void particles_obj::add_data(size_t index, double x, double y, double z, 
-                            double u, double v, double w, double packingFactor, double xrk1, double yrk1, double zrk1, double urk1, double vrk1, double wrk1, 
+                            double u, double v, double w, double parcelFactor, double xrk1, double yrk1, double zrk1, double urk1, double vrk1, double wrk1, 
                             double uF, double vF, double wF, double shearEff, double shearCrit, double _drag)
 {
     XRK1[index] = x;
@@ -438,7 +438,7 @@ void particles_obj::add_data(size_t index, double x, double y, double z,
     VRK1[index] = vrk1;
     WRK1[index] = wrk1;
     
-    PackingFactor[index] = packingFactor;
+    ParcelFactor[index] = parcelFactor;
 
     Uf[index] = uF;
     Vf[index] = vF;
@@ -467,7 +467,7 @@ void particles_obj::fill_data(size_t start, size_t end)
         VRK1[n]=0.0;
         WRK1[n]=0.0;
         
-        PackingFactor[n]=1;
+        ParcelFactor[n]=1;
 
         Uf[n]=0.0;
         Vf[n]=0.0;

@@ -44,22 +44,22 @@ seedReturn partres::seeding(lexer *p, particles_obj &PP, size_t &index, double m
 {
         if(free)
         {
-            cellSum[IJK] += PP.PackingFactor[index];
+            cellSum[IJK] += PP.ParcelFactor[index];
         }
         else
         {
-            if(cellSumTopo[IJK]>=PP.PackingFactor[index])
-                cellSumTopo[IJK] -= PP.PackingFactor[index];
+            if(cellSumTopo[IJK]>=PP.ParcelFactor[index])
+                cellSumTopo[IJK] -= PP.ParcelFactor[index];
             else if (cellSumTopo[IJK]>0)
             {
-                PP.PackingFactor[index] = cellSumTopo[IJK];
-                cellSumTopo[IJK] -= PP.PackingFactor[index];
+                PP.ParcelFactor[index] = cellSumTopo[IJK];
+                cellSumTopo[IJK] -= PP.ParcelFactor[index];
             }
             else
             {
                 return seedReturn::REMOVE;
             }
-            cellSum[IJK] += PP.PackingFactor[index];
+            cellSum[IJK] += PP.ParcelFactor[index];
             
         }
 

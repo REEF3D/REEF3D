@@ -60,7 +60,7 @@ void partres::deposition(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
 
                             i=p->posc_i(PP.X[n]);
                             j=p->posc_j(PP.Y[n]);
-                            bedChange[IJ] += PP.PackingFactor[n];
+                            bedChange[IJ] += PP.ParcelFactor[n];
                         }
                     }
                     break;
@@ -77,7 +77,7 @@ void partres::deposition(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                         if(Fd < W * (mu_s*cos(s.teta[IJ])-sin(s.teta[IJ])))
                         {
                             PP.Flag[n]=0;
-                            bedChange[IJ] += PP.PackingFactor[n];
+                            bedChange[IJ] += PP.ParcelFactor[n];
                             PP.U[n]=0;
                             PP.V[n]=0;
                             PP.W[n]=0;

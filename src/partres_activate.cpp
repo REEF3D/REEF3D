@@ -56,15 +56,15 @@ int partres::activateNew(lexer *p, fdm &a, particles_obj &PP)
                 if(cellSumTopo[IJK]>=p->Q41)
                 {
                     index = PP.add(x,y,z,flag,0,0,0,p->Q41);
-                    counter += PP.PackingFactor[index];
-                    cellSumTopo[IJK] -= PP.PackingFactor[index];
+                    counter += PP.ParcelFactor[index];
+                    cellSumTopo[IJK] -= PP.ParcelFactor[index];
                     ++count;
                 }
                 else if (cellSumTopo[IJK]+cellSumTopo[IJKm1]>=p->Q41)
                 {
                     index = PP.add(x,y,z,flag,0,0,0,p->Q41);
-                    counter += PP.PackingFactor[index];
-                    cellSumTopo[IJK] -= PP.PackingFactor[index];
+                    counter += PP.ParcelFactor[index];
+                    cellSumTopo[IJK] -= PP.ParcelFactor[index];
                     cellSumTopo[IJKm1] += cellSumTopo[IJK];
                     cellSumTopo[IJK] = 0;
 

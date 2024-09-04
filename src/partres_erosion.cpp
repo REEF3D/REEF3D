@@ -56,7 +56,7 @@ void partres::erosion(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
 
                                     i=p->posc_i(PP.X[n]);
                                     j=p->posc_j(PP.Y[n]);
-                                    bedChange[IJ] -= PP.PackingFactor[n];
+                                    bedChange[IJ] -= PP.ParcelFactor[n];
                                 }
                         }
                     }
@@ -77,7 +77,7 @@ void partres::erosion(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                             ++counter;
                             i=p->posc_i(PP.X[n]);
                             j=p->posc_j(PP.Y[n]);
-                            bedChange[IJ] -= PP.PackingFactor[n];
+                            bedChange[IJ] -= PP.ParcelFactor[n];
                         }
                     }
             }
