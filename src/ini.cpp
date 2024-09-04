@@ -139,7 +139,7 @@ void lexer::ini_default()
     A584=0;      // int solid vertical cylinder
 
     // Boundary Conditions
-	B10=1;			// int wall laws velocities on/off
+	B10=0;			// int wall laws velocities on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity
     B23=1;            // int ghostcell extrapolation or refective
 	B29=0.5;		// double gamma for gc image point
@@ -148,7 +148,7 @@ void lexer::ini_default()
     B32=0;           // int pressure reference location
     B32_x=B32_y=B32_z=0.0; // double pressure reference location
     B33=1;           // int pressure gage virtual or inline
-	B50=0.001;		// double global wall roughness ks
+	B50=0.0001;		// double global wall roughness ks
 	B51=-1.0;		// double global wall roughness ks
 	B52=-1.0;		// double global wall roughness ks
 	B53=-1.0;		// double global wall roughness ks

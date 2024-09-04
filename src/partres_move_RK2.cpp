@@ -33,7 +33,7 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
     particleStressTensor(p,a,pgc,PP);
     timestep(p,pgc,PP);
     
-    // RK step1 
+    // RK step 1 
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>0)
     {
@@ -68,7 +68,7 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
     particleStressTensor(p,a,pgc,PP);
     
     
-    // RK step12
+    // RK step 2
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>0)
     {
