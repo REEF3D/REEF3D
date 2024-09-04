@@ -118,7 +118,7 @@ private:
 
             double velDist=1.6;
             
-    double Fd, Re_p;
+    double Fd, Fs, F_tot, Re_p;
 };
 
 #endif

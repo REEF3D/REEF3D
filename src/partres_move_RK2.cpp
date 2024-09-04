@@ -52,7 +52,7 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
         // Velocity update
         PP.URK1[n] = PP.U[n] + p->dtsed*F;
         PP.VRK1[n] = PP.V[n] + p->dtsed*G;
-        PP.WRK1[n] = PP.W[n] + p->dtsed*H;
+        PP.WRK1[n] = 0.0; //PP.W[n] + p->dtsed*H;
         
         // Position update
         PP.XRK1[n] = PP.X[n] + p->dtsed*PP.URK1[n];
@@ -87,8 +87,8 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
                         
         // Velocity update
         PP.U[n] = 0.5*PP.U[n] + 0.5*PP.URK1[n] + 0.5*p->dtsed*F;
-        PP.V[n] = 0.5*PP.V[n] + 0.5*PP.URK1[n] + 0.5*p->dtsed*G;
-        PP.W[n] = 0.5*PP.W[n] + 0.5*PP.URK1[n] + 0.5*p->dtsed*H;
+        PP.V[n] = 0.5*PP.V[n] + 0.5*PP.VRK1[n] + 0.5*p->dtsed*G;
+        PP.W[n] = 0.0;//0.5*PP.W[n] + 0.5*PP.URK1[n] + 0.5*p->dtsed*H;
         
         // Position update
         PP.X[n] = 0.5*PP.X[n] + 0.5*PP.XRK1[n] + 0.5*p->dtsed*PP.U[n];

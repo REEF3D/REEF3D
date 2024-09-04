@@ -58,10 +58,10 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     bool bedLoad = false;
     bool shearVel = true;
 
-    double Du=0.0,Dv=0.0,Dw=0.0;
+    double Urel=0.0,Vrel=0.0,Wrel=0.0;
     double thetas=0;
     double DragCoeff=0;
-    double dU=0;
+    double Uabs=0;
 
     i=p->posc_i(PX[n]);
     j=p->posc_j(PY[n]);
@@ -71,11 +71,13 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
         
 
     topoDist=p->ccipol4(a.topo,PX[n],PY[n],PZ[n]);
+    
+    velDist=0.6;
 
-    if(topoDist<velDist*p->DZP[KP])
+    //if(topoDist<velDist*p->DZP[KP])
     {
-        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
+        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
         // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
         if(debugPrint)
         {
@@ -83,54 +85,61 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
                 debugPrint=false;
         }
     }
-    
+    /*
     else
     {
         u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]);
         v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]);
         // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]);
     }
-
+*/
     // PP.Uf[n]=u;
     // PP.Vf[n]=v;
     // PP.Wf[n]=w;
         
-    Du=u-PU[n];
-    Dv=v-PV[n];
-    // Dw=w-PW[n];
+    Urel=u-PU[n];
+    Vrel=v-PV[n];
+    // Wrel=w-PW[n];
 
 
     // particle force
     if(p->Q202==1)
     {
-    DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
+    DragCoeff=drag_model(p,PP.d50,Urel,Vrel,Wrel,thetas);
     
-    du=DragCoeff*Du;
-    dv=DragCoeff*Dv;
-    // dw=DragCoeff*Dw;
+    du=DragCoeff*Urel;
+    dv=DragCoeff*Vrel;
+    // dw=DragCoeff*Wrel;
     
     // acceleration
-    du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
-    dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
+    //du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
+    //dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
     }
         
     if(p->Q202==2)
     {
-    relative_velocity(p,a,PP,n,Du,Dv,Dw);
-    dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
-    Re_p = dU*PP.d50/(p->W2/p->W1);
+    relative_velocity(p,a,PP,n,Urel,Vrel,Wrel);
+    Uabs=sqrt(Urel*Urel+Vrel*Vrel+Wrel*Wrel);
+    Re_p = Uabs*PP.d50/(p->W2/p->W1);
     DragCoeff=drag_coefficient(Re_p);
          
     // acceleration
-    Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
+    Fd = p->W1 * DragCoeff * PI/8.0 * pow(PP.d50,2)  * pow(Uabs,2.0);
+    
+    Fs = (p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0)*0.8/6.0;
+    
+    F_tot = Fd-Fs;
+    
+    F_tot = MAX(F_tot,0.0);
+    
+    //cout<<"Fd: "<<Fd<<" Fs: "<<Fs<<" F_tot: "<<F_tot<<" "<<PP.d50<<" "<<DragCoeff<<endl;
 
-    du = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
-    dv = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
+    du = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Urel/(fabs(Uabs)>1.0e-10?fabs(Uabs):1.0e20);
+    dv = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Vrel/(fabs(Uabs)>1.0e-10?fabs(Uabs):1.0e20);
     }
 
     PP.drag[n]=DragCoeff;
 
-    
     //cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
     
     
@@ -150,7 +159,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {
-    cout<<"NaN detected.\nDu: "<<Du<<" Dv: "<<Dv<<" Dw: "<<Dw<<"\nDrag: "<<DragCoeff<<endl;
+    cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<DragCoeff<<endl;
     exit(1);
     }
 }
