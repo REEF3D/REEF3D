@@ -171,8 +171,8 @@ void partres::advec_pic(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_
     fz = p->ccipol3c(a.fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
     
     du += fx;
-    dv += fx;
-    dw += fx;
+    dv += fy;
+    dw += fz;
 
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {

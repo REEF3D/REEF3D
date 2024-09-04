@@ -131,7 +131,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     PP.drag[n]=DragCoeff;
 
     
-    cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
+    //cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
     
     
     // solid forcing
