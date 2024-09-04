@@ -122,10 +122,10 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     DragCoeff=drag_coefficient(Re_p);
          
     // acceleration
-    Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
+    Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2.0);
 
-    du = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
-    dv = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
+    du = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Du/(fabs(dU)>1.0e-10?fabs(dU):1.0e20);
+    dv = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Dv/(fabs(dU)>1.0e-10?fabs(dU):1.0e20);
     }
 
     PP.drag[n]=DragCoeff;
