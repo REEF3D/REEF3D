@@ -89,6 +89,13 @@ particles_obj::~particles_obj()
         V=nullptr;
         delete[] W;
         W=nullptr;
+
+        delete[] XRK1;
+        XRK1=nullptr;
+        delete[] YRK1;
+        YRK1=nullptr;
+        delete[] ZRK1;
+        ZRK1=nullptr;
         
         delete[] URK1;
         URK1=nullptr;

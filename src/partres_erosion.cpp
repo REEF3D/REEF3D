@@ -75,6 +75,8 @@ void partres::erosion(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                         {
                             PP.Flag[n]=1;
                             ++counter;
+                            i=p->posc_i(PP.X[n]);
+                            j=p->posc_j(PP.Y[n]);
                             bedChange[IJ] -= PP.PackingFactor[n];
                         }
                     }

@@ -116,6 +116,7 @@ void sediment_part::seed(lexer *p, fdm *a)
     {
         posseed_box_dummy(p,a);
         printDummyVTP(p,PP2);
+        PP2.capacity=1;
         PP2.erase_all();
     }
 }
