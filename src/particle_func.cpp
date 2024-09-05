@@ -275,7 +275,7 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
     int i,j,k;
 
     PARTICLELOOP
-        if(PP->Flag[n]>0)
+        if(PP->Flag[n]>=0)
         {
             i = p->posc_i(PP->X[n]);
             j = p->posc_j(PP->Y[n]);
