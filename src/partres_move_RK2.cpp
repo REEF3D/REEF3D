@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke
+Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"partres.h"
@@ -46,9 +46,7 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
         advec_pic(p, a, PP, n, s, pturb, 
                         PP.X, PP.Y, PP.Z, PP.U, PP.V, PP.W,
                         F, G, H, 1.0);
-                        
-        //cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
-                            
+                                         
         // Velocity update
         PP.URK1[n] = PP.U[n] + p->dtsed*F;
         PP.VRK1[n] = PP.V[n] + p->dtsed*G;

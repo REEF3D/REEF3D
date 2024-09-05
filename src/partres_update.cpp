@@ -39,26 +39,26 @@ Author: Alexander Hanke
      */
 void partres::update(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
 {
-        int count=0;
-        ILOOP
-            JLOOP
-            {
-                if(bedChange[IJ]!=0)
-                {
-                    KLOOP
-                    {
-                        a.topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(PP.d50,3)/(p->DXN[IP]*p->DYN[JP]);
-                        a.fb(i,j,k) = bedChange[IJ];
-                    }
-                    columnSum[IJ] += bedChange[IJ];
-                    if(bedChange[IJ]<0)
-                    count+=activateNew(p,a,PP);
-                    bedChange[IJ] = 0;
-                }
-            }
-        pgc.start4a(p,a.topo,150);
-        if(count>0)
-        cout<<"On partion "<<p->mpirank<<" were "<<count<<" additional particles activated."<<endl;
+    int count=0;
+    ILOOP
+    JLOOP
+    {
+    if(bedChange[IJ]!=0)
+    {
+        KLOOP
+        {
+            a.topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(PP.d50,3)/(p->DXN[IP]*p->DYN[JP]);
+            a.fb(i,j,k) = bedChange[IJ];
+        }
+        columnSum[IJ] += bedChange[IJ];
+        if(bedChange[IJ]<0)
+        count+=activateNew(p,a,PP);
+        bedChange[IJ] = 0;
+    }
+    }
+    pgc.start4a(p,a.topo,150);
+    if(count>0)
+    cout<<"On partion "<<p->mpirank<<" were "<<count<<" additional particles activated."<<endl;
 
         // double count;
         // ILOOP
