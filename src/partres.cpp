@@ -29,8 +29,10 @@ Author: Alexander Hanke
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
-partres::partres(lexer *p) : particle_func(p),drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
-                                            Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17),bedChange(p)
+partres::partres(lexer *p) : PP(10,p->S20,p->S22,true), PP2(10,p->S20,p->S22,true),
+                             particle_func(p),drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
+                             active_box(p), active_box_dummy(p), active_topo(p)
+                             Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17),bedChange(p)
 {
         p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
         p->Darray(cellSum,p->imax*p->jmax*p->kmax);

@@ -25,6 +25,7 @@ Author: Alexander Hanke
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"field4.h"
 #include"field4a.h"
 #include"sediment_fdm.h"
 #include"turbulence.h"
