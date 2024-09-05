@@ -24,7 +24,6 @@ Author: Alexander Hanke
 #define SEDIMENT_PART_H_
 
 #include"sediment.h"
-#include"particle_func.h"
 #include"increment.h"
 
 #include"particles_obj.h"
@@ -38,6 +37,7 @@ Author: Alexander Hanke
 class lexer;
 class fdm;
 class ghostcell;
+class partres;
 class ioflow;
 class solver;
 class reinitopo;
@@ -48,7 +48,7 @@ class vrans;
 class turbulence;
 
 /// This class used particles on a Lagrangien framework and a VRANS sediment domain to simulate the influence of flow on the sediment
-class sediment_part : public sediment, private particle_func, private increment
+class sediment_part : public sediment, private increment
 {
 public:
 

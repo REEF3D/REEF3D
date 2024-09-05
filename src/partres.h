@@ -17,13 +17,14 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke
+Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef SEDPART_MOVEMENT_H_
 #define SEDPART_MOVEMENT_H_
 
 #include"increment.h"
+#include"particle_func.h"
 #include"slice4.h"
 
 #include <stdio.h>
@@ -45,7 +46,7 @@ enum seedReturn:int
 };
 
 
-class partres : public increment
+class partres : public increment, private particle_func
 /// Model for the movement of sediment particles following Tavouktsoglou et al. (2021)
 /// @author Alexander Hanke
 /// @date 2024
@@ -67,30 +68,45 @@ public:
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
         
-        void transfer(lexer *, particles_obj &, size_t &);
-        void remove(lexer *, particles_obj &, size_t &);
-        void make_moving(lexer *, fdm &, particles_obj &);
-        void erosion(lexer *, fdm &, particles_obj &, sediment_fdm &);
-        void deposition(lexer *, fdm &, particles_obj &, sediment_fdm &);
-        void update(lexer *, fdm &, ghostcell &, particles_obj &);
-        void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &);
-        double volume(lexer *, fdm &, particles_obj &);
-        void writeState(lexer *, ofstream &);
-        void readState(lexer *, ifstream &);
-        void setupState(lexer *, fdm &, ghostcell &, particles_obj &);
+    void transfer(lexer *, particles_obj &, size_t &);
+    void remove(lexer *, particles_obj &, size_t &);
+    void make_moving(lexer *, fdm &, particles_obj &);
+    void erosion(lexer *, fdm &, particles_obj &, sediment_fdm &);
+    void deposition(lexer *, fdm &, particles_obj &, sediment_fdm &);
+    void update(lexer *, fdm &, ghostcell &, particles_obj &);
+    void debug(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &);
+    double volume(lexer *, fdm &, particles_obj &);
+    void writeState(lexer *, ofstream &);
+    void readState(lexer *, ifstream &);
+    void setupState(lexer *, fdm &, ghostcell &, particles_obj &);
 private:
-        double maxParticlesPerCell(lexer *, fdm &, double,bool=true,bool=false);
-        void particleStressTensor(lexer *, fdm &, ghostcell &, particles_obj &);
-        void particleStressTensorUpdateIJK(lexer *, fdm &, particles_obj &);
-        void updateParticleStressTensor(lexer *, fdm &, particles_obj &, int, int, int);
-        double theta_s(lexer *, fdm &, particles_obj &, int, int, int) const;
-        double drag_model(lexer *, double, double, double, double, double) const;
-        double settling_velocity(lexer *, double, double, double, double, double) const;
-        void particlePerCell(lexer *, ghostcell &, particles_obj &);
-        void timestep(lexer *, ghostcell &, particles_obj &);
-        int activateNew(lexer *, fdm &, particles_obj &);
-        void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
-        double drag_coefficient(double) const;
+    double maxParticlesPerCell(lexer *, fdm &, double,bool=true,bool=false);
+    void particleStressTensor(lexer *, fdm &, ghostcell &, particles_obj &);
+    void particleStressTensorUpdateIJK(lexer *, fdm &, particles_obj &);
+    void updateParticleStressTensor(lexer *, fdm &, particles_obj &, int, int, int);
+    double theta_s(lexer *, fdm &, particles_obj &, int, int, int) const;
+    double drag_model(lexer *, double, double, double, double, double) const;
+    double settling_velocity(lexer *, double, double, double, double, double) const;
+    void particlePerCell(lexer *, ghostcell &, particles_obj &);
+    void timestep(lexer *, ghostcell &, particles_obj &);
+    int activateNew(lexer *, fdm &, particles_obj &);
+    void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
+    double drag_coefficient(double) const;
+    
+    // Seeding methods
+
+    void seed_ini(lexer*,fdm*,ghostcell*);
+    void seed(lexer*,fdm*);
+    void posseed_box(lexer*,fdm*);
+    void posseed_box_dummy(lexer*,fdm*);
+    void posseed_topo(lexer*,fdm*);
+    void posseed_suspended(lexer*,fdm*);
+    void point_source(lexer*,fdm*);
+    void topo_influx(lexer*,fdm*);
+    void seed_srand(lexer*);
+    void seed_topo(lexer*,fdm*);
+    void solid_influx(lexer*,fdm*);
+    size_t set_active_topo(lexer*, fdm*);
         
     // relax
     void relax_ini(lexer*);
