@@ -51,7 +51,7 @@ void sediment_part::write_state_particles(lexer *p, ofstream &result)
         result.write((char*)&ffn, sizeof (float));
         ffn=PP.W[n];
         result.write((char*)&ffn, sizeof (float));
-        ffn=PP.PackingFactor[n];
+        ffn=PP.ParcelFactor[n];
         result.write((char*)&ffn, sizeof (float));
     }
     pst->writeState(p,result);

@@ -60,11 +60,11 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
         PP.ZRK1[n] = PP.Z[n] + p->dtsed*PP.WRK1[n];
 
         // Particel sum update
-        cellSum[IJK]-=PP.PackingFactor[n];
+        cellSum[IJK]-=PP.ParcelFactor[n];
         i=p->posc_i(PP.XRK1[n]);
         j=p->posc_j(PP.YRK1[n]);
         k=p->posc_k(PP.ZRK1[n]);
-        cellSum[IJK]+=PP.PackingFactor[n];
+        cellSum[IJK]+=PP.ParcelFactor[n];
         particleStressTensorUpdateIJK(p,a,PP);
     }
     
@@ -96,11 +96,11 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
         PP.Z[n] = 0.5*PP.Z[n] + 0.5*PP.ZRK1[n] + 0.5*p->dtsed*PP.W[n];
 
         // Particel sum update
-        cellSum[IJK]-=PP.PackingFactor[n];
+        cellSum[IJK]-=PP.ParcelFactor[n];
         i=p->posc_i(PP.XRK1[n]);
         j=p->posc_j(PP.YRK1[n]);
         k=p->posc_k(PP.ZRK1[n]);
-        cellSum[IJK]+=PP.PackingFactor[n];
+        cellSum[IJK]+=PP.ParcelFactor[n];
         particleStressTensorUpdateIJK(p,a,PP);
     }
 

@@ -60,7 +60,7 @@ void partres::particlePerCell(lexer *p, ghostcell &pgc, particles_obj &PP)
                 i=p->posc_i(PP.X[n]);
                 j=p->posc_j(PP.Y[n]);
                 k=p->posc_k(PP.Z[n]);
-                cellSum[IJK] += PP.PackingFactor[n];
+                cellSum[IJK] += PP.ParcelFactor[n];
             }
         
         pgc.start4V_par(p,cellSum,11);

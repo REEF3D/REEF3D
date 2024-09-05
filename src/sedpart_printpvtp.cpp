@@ -121,6 +121,10 @@ void sediment_part::printDummyPVTP(lexer *p)
 	result<<"<VTKFile type=\"PPolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
 	result<<"<PPolyData GhostLevel=\"0\">\n";
 
+    result<<"<PPointData>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+	result<<"</PPointData>\n";
+
 	result<<"<PPoints>\n";
 	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
 	result<<"</PPoints>\n";

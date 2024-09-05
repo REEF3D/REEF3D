@@ -41,7 +41,7 @@ void particle_func::advect(lexer* p, fdm* a, particles_obj* PP, int minflag, dou
             i=p->posc_i(PP->X[n]);
             j=p->posc_j(PP->Y[n]);
             k=p->posc_k(PP->Z[n]);
-            cellSum[IJK]-=PP->PackingFactor[n];
+            cellSum[IJK]-=PP->ParcelFactor[n];
 
             source_w -=settling_vel(p,a,PP,n);
             u1=p->dt*(p->ccipol1(a->u,PP->X[n],PP->Y[n],PP->Z[n])+source_u);
@@ -73,6 +73,6 @@ void particle_func::advect(lexer* p, fdm* a, particles_obj* PP, int minflag, dou
             i=p->posc_i(PP->X[n]);
             j=p->posc_j(PP->Y[n]);
             k=p->posc_k(PP->Z[n]);
-            cellSum[IJK]+=PP->PackingFactor[n];
+            cellSum[IJK]+=PP->ParcelFactor[n];
         }
 }

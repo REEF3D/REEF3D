@@ -34,7 +34,7 @@ Author: Alexander Hanke
      * @brief Transfers the particle to the current cell.
      *
      * This function is responsible for transferring the particle to the current cell.
-     * It does so by adding the PackingFactor value to the cellSum value.
+     * It does so by adding the ParcelFactor value to the cellSum value.
      *
      * @param p A pointer to the lexer object.
      * @param PP A reference to the particles_obj object.
@@ -42,7 +42,7 @@ Author: Alexander Hanke
      */
 void partres::transfer(lexer *p, particles_obj &PP, size_t &index)
 {
-        cellSum[IJK] += PP.PackingFactor[index];
+        cellSum[IJK] += PP.ParcelFactor[index];
     
 }
 
@@ -50,7 +50,7 @@ void partres::transfer(lexer *p, particles_obj &PP, size_t &index)
      * @brief Removes the particle from the current cell.
      *
      * This function is responsible for removing the particle from the current cell.
-     * It does so by subtracting the PackingFactor value from the cellSum value.
+     * It does so by subtracting the ParcelFactor value from the cellSum value.
      *
      * @param p A pointer to the lexer object.
      * @param PP A reference to the particles_obj object.
@@ -58,5 +58,5 @@ void partres::transfer(lexer *p, particles_obj &PP, size_t &index)
      */
 void partres::remove(lexer *p, particles_obj &PP, size_t &index)
 {
-        cellSum[IJK] -= PP.PackingFactor[index];
+        cellSum[IJK] -= PP.ParcelFactor[index];
 }

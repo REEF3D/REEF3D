@@ -86,7 +86,7 @@ public:
     /// @brief Velocity in z-dir
     double* W;
     /// @brief Number of real particles represented by the element
-    double* PackingFactor;
+    double* ParcelFactor;
     
     double *XRK1,*YRK1,*ZRK1;
     double *URK1,*VRK1,*WRK1;
