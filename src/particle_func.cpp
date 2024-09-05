@@ -91,7 +91,7 @@ int particle_func::remove(lexer* p, particles_obj* PP)
     boundarycheck bounderies;
 
     PARTICLELOOP
-        if(PP->Flag[n]>INT32_MIN)
+        if(PP->Flag[n]>0)
         {
             i = p->posc_i(PP->X[n]);
             j = p->posc_j(PP->Y[n]);
@@ -105,6 +105,38 @@ int particle_func::remove(lexer* p, particles_obj* PP)
             if(!inBounds)
             {
                 cellSum[IJK]-=PP->ParcelFactor[n];
+                PP->erase(n);
+                removed++;
+            }
+        }
+    
+    return removed;
+}
+
+/// \copydoc particle_func::remove
+int particle_func::remove(lexer* p, particles_obj* PP, partres* pst)
+{
+    bool inBounds=false;
+    int removed=0;
+    int i,j,k;
+    boundarycheck bounderies;
+
+    PARTICLELOOP
+        if(PP->Flag[n]>0)
+        {
+            i = p->posc_i(PP->X[n]);
+            j = p->posc_j(PP->Y[n]);
+            k = p->posc_k(PP->Z[n]);
+
+            inBounds=bounderies.minboundcheck(p,i,j,k,1);
+            if (inBounds)
+                inBounds=bounderies.maxboundcheck(p,i,j,k,1);
+
+			// remove out of bounds particles
+            if(!inBounds)
+            {
+                cellSum[IJK]-=PP->ParcelFactor[n];
+                pst->remove(p,*PP,n);
                 PP->erase(n);
                 removed++;
             }
@@ -243,7 +275,7 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
     int i,j,k;
 
     PARTICLELOOP
-        if(PP->Flag[n]>INT32_MIN)
+        if(PP->Flag[n]>0)
         {
             i = p->posc_i(PP->X[n]);
             j = p->posc_j(PP->Y[n]);
@@ -291,6 +323,7 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
                     }
                 }
                 cellSum[IJK]-=PP->ParcelFactor[n];
+                pst->remove(p,*PP,n);
                 PP->erase(n);
                 ++xchange;
             }

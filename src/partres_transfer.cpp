@@ -43,6 +43,7 @@ Author: Alexander Hanke
 void partres::transfer(lexer *p, particles_obj &PP, size_t &index)
 {
         cellSum[IJK] += PP.ParcelFactor[index];
+        bedChange[IJ] += PP.ParcelFactor[index];
     
 }
 
@@ -59,4 +60,5 @@ void partres::transfer(lexer *p, particles_obj &PP, size_t &index)
 void partres::remove(lexer *p, particles_obj &PP, size_t &index)
 {
         cellSum[IJK] -= PP.ParcelFactor[index];
+        bedChange[IJ] -= PP.ParcelFactor[index];
 }
