@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "partres.h"
-#include "particles_obj.h"
-#include "lexer.h"
-#include "fdm.h"
-#include "ghostcell.h"
+#include"partres.h"
+#include"particles_obj.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
     /// @brief Calculate drag force parameter
 double partres::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const

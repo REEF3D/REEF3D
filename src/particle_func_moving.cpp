@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "particle_func.h"
+#include"particle_func.h"
 
-#include "lexer.h"
-#include "fdm.h"
+#include"lexer.h"
+#include"fdm.h"
 
 #define PARTICLELOOP for(size_t n=0;n<PP->loopindex;n++) if(PP->Flag[n]>INT32_MIN)
 

@@ -23,8 +23,8 @@ Author: Alexander Hanke
 #ifndef SEDPART_MOVEMENT_H_
 #define SEDPART_MOVEMENT_H_
 
-#include "increment.h"
-#include "slice4.h"
+#include"increment.h"
+#include"slice4.h"
 
 #include <stdio.h>
 #include <fstream>
@@ -57,8 +57,8 @@ public:
         void setup(lexer *, fdm &, double &);
         seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false);
         
-        void move_RK2(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
-        void move_RK3(lexer *, fdm &, ghostcell &, particles_obj &, sediment_fdm &, turbulence &);
+        void move_RK2(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &);
+        void move_RK3(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &);
         
         void advec_plain(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
                         double*, double*, double*, double*, double*, double*, 
@@ -91,6 +91,16 @@ private:
         int activateNew(lexer *, fdm &, particles_obj &);
         void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
         double drag_coefficient(double) const;
+        
+    // relax
+    void relax_ini(lexer*);
+    void relax(lexer*, ghostcell*, sediment_fdm*);
+    double rf(lexer*, double, double);     
+    double r1(lexer*, double, double);
+    double distcalc(lexer*, double , double, double , double, double);
+        
+    double *tan_betaQ73,*betaQ73,*dist_Q73;
+	double val;
             
             /// @brief Sum of particles belonging to the stationary bed
             double *cellSumTopo;

@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sediment_part.h"
-#include "partres.h"
+#include"sediment_part.h"
+#include"partres.h"
 
-#include "lexer.h"
-#include "ghostcell.h"
-#include "fdm.h"
-#include "vrans_f.h"
-#include "reinitopo.h"
-#include "ioflow.h"
-#include "bedshear.h"
-#include "sediment_fdm.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fdm.h"
+#include"vrans_f.h"
+#include"reinitopo.h"
+#include"ioflow.h"
+#include"bedshear.h"
+#include"sediment_fdm.h"
 
 /// @brief CFD calculation function
 /// @param a fdm object
@@ -59,26 +59,18 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         posseed_suspended(p,a);
         point_source(p,a);
         
-        if(p->Q101>0)
-        {
-            // topo_influx(p,a);
-            // solid_influx(p,a);
-            // set_active_topo(p,a);
-            // posseed_topo(p,a);
-            // seed_topo(p,a);
-        }
 
         /// transport
-        if(p->Q101>0)
-        pst->erosion(p,*a,PP,s);
+        //if(p->Q101>0)
+        //pst->erosion(p,*a,PP,s);
         
         pst->move_RK2(p,*a,*pgc,PP,s,*pturb);
         
 		xchange=transfer(p,pgc,&PP, pst, maxparticle);
 		removed=remove(p,&PP, pst);
         
-        if(p->Q101>0)
-        pst->deposition(p,*a,PP,s);
+        //if(p->Q101>0)
+        //pst->deposition(p,*a,PP,s);
 
         /// topo update
         update_cfd(p,a,pgc,pflow,preto);

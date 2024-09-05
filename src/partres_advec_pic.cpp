@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "partres.h"
-#include "particles_obj.h"
-#include "lexer.h"
-#include "fdm.h"
-#include "ghostcell.h"
+#include"partres.h"
+#include"particles_obj.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
     /**
      * @brief Moves the particles with the flow field.
@@ -173,6 +173,11 @@ void partres::advec_pic(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_
     du += fx;
     dv += fy;
     dw += fz;
+    
+    // relax
+    du *= rf(p,PX[n],PY[n]);
+    dv *= rf(p,PX[n],PY[n]);
+    dw *= rf(p,PX[n],PY[n]);
 
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {

@@ -1635,9 +1635,8 @@ void lexer::read_control()
 				case 61: ++Q61;
 						 clear(c,numint);
 						 break;
-				case 73: control>>Q73;
+				case 73: ++Q73;
 						 clear(c,numint);
-						 if(Q73<0)Q73=0;
 						 break;
                 case 101: control>>Q101;
 						 clear(c,numint);
@@ -2779,6 +2778,11 @@ void lexer::read_control()
 	Darray(Q61_y,Q61);
 	Darray(Q61_z,Q61);
 	Iarray(Q61_i,Q61);
+    Darray(Q73_val,Q73);
+	Darray(Q73_dist,Q73);
+	Darray(Q73_b,Q73);
+	Darray(Q73_x,Q73);
+	Darray(Q73_y,Q73);
 	Darray(Q110_xs,Q110);
 	Darray(Q110_ys,Q110);
 	Darray(Q110_zs,Q110);
@@ -3033,6 +3037,7 @@ void lexer::read_control()
 	int countP351=0;
 	int countP352=0;
 	int countQ61=0;
+    int countQ73=0;
     int countQ110=0;
     int countQ111=0;
 	int countS73=0;
@@ -3398,10 +3403,14 @@ void lexer::read_control()
             case 'Q': control>>numint;
 				switch(numint)
 				{
-					case 61: control>>Q61_x[countQ61]>>Q61_y[countQ61]>>Q61_z[countQ61]>>Q61_i[countQ61];
+                 case 61: control>>Q61_x[countQ61]>>Q61_y[countQ61]>>Q61_z[countQ61]>>Q61_i[countQ61];
                         ++countQ61;
 						clear(c,numint);
 						break;
+                  case 73: control>>Q73_val[countQ73]>>Q73_dist[countQ73]>>Q73_b[countQ73]>>Q73_x[countQ73]>>Q73_y[countQ73];
+                        ++countQ73;
+						 clear(c,numint);
+						 break;
                 	case 110: control>>Q110_xs[countQ110]>>Q110_xe[countQ110]>>Q110_ys[countQ110]>>Q110_ye[countQ110]>>Q110_zs[countQ110]>>Q110_ze[countQ110];
                         ++countQ110;
 						clear(c,numint);

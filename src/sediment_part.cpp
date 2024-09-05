@@ -20,21 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sediment_part.h"
-#include "partres.h"
+#include"sediment_part.h"
+#include"partres.h"
 
-#include "lexer.h"
-#include "ghostcell.h"
-#include "looping.h"
-#include "fdm.h"
-#include "reinitopo.h"
-#include "vrans_f.h"
-#include "vrans_v.h"
-#include "ioflow.h"
-#include "turbulence.h"
-#include "bedshear.h"
-#include "sediment_fdm.h"
-#include "reduction_FD.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"looping.h"
+#include"fdm.h"
+#include"reinitopo.h"
+#include"vrans_f.h"
+#include"vrans_v.h"
+#include"ioflow.h"
+#include"turbulence.h"
+#include"bedshear.h"
+#include"sediment_fdm.h"
+#include"reduction_FD.h"
 
 #include <sys/stat.h>
 #include <string>

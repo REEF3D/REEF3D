@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs & Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sediment_part.h"
-#include "partres.h"
+#include"sediment_part.h"
+#include"partres.h"
 
-#include "lexer.h"
-#include "fdm.h"
-#include "ghostcell.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 #include <math.h>
 
 using std::cout;

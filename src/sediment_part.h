@@ -23,17 +23,17 @@ Author: Alexander Hanke
 #ifndef SEDIMENT_PART_H_
 #define SEDIMENT_PART_H_
 
-#include "sediment.h"
-#include "particle_func.h"
-#include "increment.h"
+#include"sediment.h"
+#include"particle_func.h"
+#include"increment.h"
 
-#include "particles_obj.h"
-#include "field4.h"
-#include "bedshear_reduction.h"
-#include "sediment_fdm.h"
-#include "bedshear.h"
-#include "bedslope.h"
-#include "topo_relax.h"
+#include"particles_obj.h"
+#include"field4.h"
+#include"bedshear_reduction.h"
+#include"sediment_fdm.h"
+#include"bedshear.h"
+#include"bedslope.h"
+#include"topo_relax.h"
 
 class lexer;
 class fdm;

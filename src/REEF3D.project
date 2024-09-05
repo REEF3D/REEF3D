@@ -1686,6 +1686,7 @@
           <File Name="partres_drag.cpp"/>
           <File Name="partres_timestep.cpp"/>
           <VirtualDirectory Name="FDM">
+            <File Name="partres_relax.cpp"/>
             <File Name="partres_settling.cpp"/>
             <File Name="partres_debug.cpp"/>
             <File Name="partres_activate.cpp"/>

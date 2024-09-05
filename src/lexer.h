@@ -524,7 +524,9 @@ public:
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
-    double Q73;
+    int Q73;
+    double *Q73_val,*Q73_dist,*Q73_b,*Q73_x,*Q73_y;
+    
     
     int Q101;
     double Q102;

@@ -607,7 +607,7 @@ void lexer::ini_default()
     Q41=0;              // double default parcel factor
     Q43=0;              // int number of water iteration, before particle transport starts
     Q61=0;              // point source x,y,z, iterations between particles
-    Q73=0;              // double distance in x-dir where particles movement in y-dir and z-dir is suppressed
+    Q73=0;              // int relax 
     Q101=0;             // int ini particle as topo
     Q102=0.9;           // double max distance from topo = Q102*dz
     Q110=0;             // int ini particle as box

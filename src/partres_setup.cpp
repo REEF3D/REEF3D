@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "partres.h"
-#include "particles_obj.h"
-#include "lexer.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "field4a.h"
-#include "sediment_fdm.h"
-#include "turbulence.h"
+#include"partres.h"
+#include"particles_obj.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"field4a.h"
+#include"sediment_fdm.h"
+#include"turbulence.h"
 
     /**
      * @brief Sets up the partres class.

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sediment_part.h"
-#include "partres.h"
-#include "lexer.h"
-#include "ghostcell.h"
-#include "fdm.h"
-#include "vrans_f.h"
-#include "reinitopo.h"
-#include "ioflow.h"
+#include"sediment_part.h"
+#include"partres.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fdm.h"
+#include"vrans_f.h"
+#include"reinitopo.h"
+#include"ioflow.h"
 
 /// @brief Updates the topography for the CFD solver
 void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo* preto)

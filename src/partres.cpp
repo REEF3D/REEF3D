@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "partres.h"
-#include "particles_obj.h"
-#include "lexer.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "field4a.h"
-#include "sediment_fdm.h"
-#include "turbulence.h"
+#include"partres.h"
+#include"particles_obj.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"field4a.h"
+#include"sediment_fdm.h"
+#include"turbulence.h"
 
 partres::partres(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
                                             Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17),bedChange(p)
@@ -41,6 +41,8 @@ partres::partres(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2),
         {
             dx = min(dx,MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]));
         }
+        
+        relax_ini(p);
 }
 
 partres::~partres()

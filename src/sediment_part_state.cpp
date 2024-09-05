@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sediment_part.h"
-#include "partres.h"
+#include"sediment_part.h"
+#include"partres.h"
 
 /// @brief Write out particle data to state file
 /// @param result statefile

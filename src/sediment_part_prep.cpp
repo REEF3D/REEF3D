@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sediment_part.h"
-#include "lexer.h"
-#include "ghostcell.h"
-#include "fdm.h"
+#include"sediment_part.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fdm.h"
 
 
 void sediment_part::fill_PQ_cfd(lexer *p, fdm *a, ghostcell *pgc)

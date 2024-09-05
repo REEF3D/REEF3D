@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sediment_part.h"
+#include"sediment_part.h"
 
-#include "lexer.h"
-#include "ghostcell.h"
-#include "sediment_fdm.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
 
 void sediment_part::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
 {

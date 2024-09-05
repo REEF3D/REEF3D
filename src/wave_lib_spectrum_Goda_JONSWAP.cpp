@@ -20,9 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Widar W. Wang
 --------------------------------------------------------------------*/
 
-#include "wave_lib_spectrum.h"
-#include "lexer.h"
-#include "ghostcell.h"
+#include"wave_lib_spectrum.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
 double wave_lib_spectrum::Goda_JONSWAP(lexer* p, double w) 
 {

@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sediment_part.h"
-#include "partres.h"
+#include"sediment_part.h"
+#include"partres.h"
 
-#include "lexer.h"
-#include "ghostcell.h"
-#include "fdm.h"
-#include "vrans_f.h"
-#include "reinitopo.h"
-#include "ioflow.h"
-#include "bedshear.h"
-#include "sediment_fdm.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fdm.h"
+#include"vrans_f.h"
+#include"reinitopo.h"
+#include"ioflow.h"
+#include"bedshear.h"
+#include"sediment_fdm.h"
 
 /// @brief Initializes everything in the sediment for the CFD solver
 /// Determines cell which should be filled with particles

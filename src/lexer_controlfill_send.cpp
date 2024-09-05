@@ -1208,7 +1208,7 @@ void lexer::ctrlsend()
     ii++;
     ictrl[ii] = Q61;
     ii++;
-    dctrl[dd] = Q73;
+    ictrl[ii] = Q73;
     dd++;
     ictrl[ii] = Q101;
     ii++;
@@ -2831,17 +2831,17 @@ void lexer::ctrlsend()
     dd++;
     }
     
-    for(n=0;n<S73;++n)
+    for(n=0;n<Q73;++n)
     {
-    dctrl[dd] = S73_val[n];
+    dctrl[dd] = Q73_val[n];
     dd++;
-	dctrl[dd] = S73_dist[n];
+	dctrl[dd] = Q73_dist[n];
     dd++;
-	dctrl[dd] = S73_b[n];
+	dctrl[dd] = Q73_b[n];
     dd++;
-    dctrl[dd] = S73_x[n];
+    dctrl[dd] = Q73_x[n];
     dd++;
-	dctrl[dd] = S73_y[n];
+	dctrl[dd] = Q73_y[n];
     dd++;
     }
     

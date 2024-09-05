@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "partres.h"
-#include "particles_obj.h"
-#include "lexer.h"
-#include "fdm.h"
-#include "ghostcell.h"
+#include"partres.h"
+#include"particles_obj.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
     /**
      * @brief Moves the particles with the flow field.
@@ -138,6 +138,8 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     // acceleration
     Fd = p->W1 * DragCoeff * PI/8.0 * pow(PP.d50,2)  * pow(Uabs,2.0);
     
+    Fd *= rf(p,PX[n],PY[n]);
+    
     Fs = (p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0)*0.58/6.0;
     
     F_tot = Fd-Fs;
@@ -165,6 +167,11 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     du += fx;
     dv += fy;
     dw += fz;
+    
+    // relax
+    /*du *= rf(p,PX[n],PY[n]);
+    dv *= rf(p,PX[n],PY[n]);
+    dw *= rf(p,PX[n],PY[n]);*/
     
     dw=0.0;
     
