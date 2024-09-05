@@ -74,12 +74,12 @@ void partres::deposition(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                         const double mu_s = tan(p->S81);
                         const double W = p->W1 * sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22) * (p->S22/p->W1-1) * PI/6.0 *pow(PP.d50,3);
                         const double Fs = W * mu_s;
-                        if(Fd < W * (mu_s*cos(s.teta[IJ])-sin(s.teta[IJ])))
+                        if(Fd < W * (mu_s*cos(s.teta[IJ])-sin(s.teta[IJ])) && fabs(PP.U[n])+fabs(PP.V[n])+fabs(PP.W[n])<0.1)
                         {
                             PP.Flag[n]=0;
-                            i=p->posc_i(PP.X[n]);
-                            j=p->posc_j(PP.Y[n]);
-                            bedChange[IJ] += PP.ParcelFactor[n];
+                            // i=p->posc_i(PP.X[n]);
+                            // j=p->posc_j(PP.Y[n]);
+                            // bedChange[IJ] += PP.ParcelFactor[n];
                             PP.U[n]=0;
                             PP.V[n]=0;
                             PP.W[n]=0;

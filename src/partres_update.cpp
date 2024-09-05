@@ -43,17 +43,43 @@ void partres::update(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
         ILOOP
             JLOOP
             {
-                KLOOP
+                if(bedChange[IJ]!=0)
                 {
-                    a.topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(PP.d50,3)/(p->DXN[IP]*p->DYN[JP]);
-                    a.fb(i,j,k) = bedChange[IJ];
+                    KLOOP
+                    {
+                        a.topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(PP.d50,3)/(p->DXN[IP]*p->DYN[JP]);
+                        a.fb(i,j,k) = bedChange[IJ];
+                    }
+                    columnSum[IJ] += bedChange[IJ];
+                    if(bedChange[IJ]<0)
+                    count+=activateNew(p,a,PP);
+                    bedChange[IJ] = 0;
                 }
-                columnSum[IJ] += bedChange[IJ];
-                if(bedChange[IJ]<0)
-                count+=activateNew(p,a,PP);
-                bedChange[IJ] = 0;
             }
         pgc.start4a(p,a.topo,150);
         if(count>0)
         cout<<"On partion "<<p->mpirank<<" were "<<count<<" additional particles activated."<<endl;
+
+        // double count;
+        // ILOOP
+        // {
+        //     if(p->XN[IP]>=p->global_xmin+p->Q73)
+        //         JLOOP
+        //         {
+        //             count = 0.0;
+        //             KLOOP
+        //             {
+        //                 count += cellSum[IJK] + cellSumTopo[IJK];
+        //                 if(k>0 && cellSumTopo[IJKm1]==0)
+        //                 break;
+        //             }
+        //             if(count != columnSum[IJ])
+        //             {
+        //                 KLOOP
+        //                 topo(i,j,k) -= (count-columnSum[IJ])*4.0/3.0*PI*pow(d50/2.0,3)/(p->DXN[IP]*p->DYN[JP]);
+        //             }
+        //             columnSum[IJ] = count;
+        //         }
+        // }
+        // pgc.start4a(p,topo,150);
 }
