@@ -62,7 +62,7 @@ void sediment_part::pvtp_pos(lexer* p)
     result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\"/>\n";
     result<<"<DataArray type=\"Float32\" Name=\"shear stress\" NumberOfComponents=\"2\" ComponentName0=\"eff\" ComponentName1=\"crit\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"DragCoeff\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"bedChange\"/>\n";
 	result<<"</PPointData>\n";
 
 	result<<"<PPoints>\n";

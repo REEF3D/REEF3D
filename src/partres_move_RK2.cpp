@@ -35,7 +35,7 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
     
     // RK step 1 
     for(size_t n=0;n<PP.loopindex;n++)
-    if(PP.Flag[n]>0)
+    if(PP.Flag[n]>INT32_MIN)
     {
         if(p->Q11==1)
         advec_plain(p, a, PP, n, s, pturb, 
@@ -61,10 +61,12 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
 
         // Particel sum update
         cellSum[IJK]-=PP.ParcelFactor[n];
+        bedChange[IJ]-=PP.ParcelFactor[n];
         i=p->posc_i(PP.XRK1[n]);
         j=p->posc_j(PP.YRK1[n]);
         k=p->posc_k(PP.ZRK1[n]);
         cellSum[IJK]+=PP.ParcelFactor[n];
+        bedChange[IJ]+=PP.ParcelFactor[n];
         particleStressTensorUpdateIJK(p,a,PP);
     }
     
@@ -73,7 +75,7 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
     
     // RK step 2
     for(size_t n=0;n<PP.loopindex;n++)
-    if(PP.Flag[n]>0)
+    if(PP.Flag[n]>INT32_MIN)
     {
         if(p->Q11==1)
         advec_plain(p, a, PP, n, s, pturb, 
@@ -97,10 +99,12 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
 
         // Particel sum update
         cellSum[IJK]-=PP.ParcelFactor[n];
-        i=p->posc_i(PP.XRK1[n]);
-        j=p->posc_j(PP.YRK1[n]);
-        k=p->posc_k(PP.ZRK1[n]);
+        bedChange[IJ]-=PP.ParcelFactor[n];
+        i=p->posc_i(PP.X[n]);
+        j=p->posc_j(PP.Y[n]);
+        k=p->posc_k(PP.Z[n]);
         cellSum[IJK]+=PP.ParcelFactor[n];
+        bedChange[IJ]+=PP.ParcelFactor[n];
         particleStressTensorUpdateIJK(p,a,PP);
     }
 

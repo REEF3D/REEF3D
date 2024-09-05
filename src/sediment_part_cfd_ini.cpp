@@ -56,6 +56,10 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     volume0 = pgc->globalsum(volume0);
     volume = volume0;
 
+    k=0;
+    SLICEBASELOOP
+    s.bedzh0(i,j) = 0.5*p->DZP[KP]-a->topo(i,j,k);
+
     if(p->I40!=1)
     {
         // seed

@@ -91,7 +91,7 @@ int particle_func::remove(lexer* p, particles_obj* PP)
     boundarycheck bounderies;
 
     PARTICLELOOP
-        if(PP->Flag[n]>0)
+        if(PP->Flag[n]>INT32_MIN)
         {
             i = p->posc_i(PP->X[n]);
             j = p->posc_j(PP->Y[n]);
@@ -243,7 +243,7 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
     int i,j,k;
 
     PARTICLELOOP
-        if(PP->Flag[n]==1)
+        if(PP->Flag[n]>INT32_MIN)
         {
             i = p->posc_i(PP->X[n]);
             j = p->posc_j(PP->Y[n]);

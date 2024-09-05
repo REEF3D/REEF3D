@@ -69,16 +69,16 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         }
 
         /// transport
-        if(p->Q101>0)
-        pst->erosion(p,*a,PP,s);
+        // if(p->Q101>0)
+        // pst->erosion(p,*a,PP,s);
         
         pst->move_RK2(p,*a,*pgc,PP,s,*pturb);
         
 		xchange=transfer(p,pgc,&PP, pst, maxparticle);
 		removed=remove(p,&PP);
         
-        if(p->Q101>0)
-        pst->deposition(p,*a,PP,s);
+        // if(p->Q101>0)
+        // pst->deposition(p,*a,PP,s);
 
         /// topo update
         update_cfd(p,a,pgc,pflow,preto);
