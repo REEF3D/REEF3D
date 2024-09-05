@@ -35,7 +35,7 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
     
     // RK step 1 
     for(size_t n=0;n<PP.loopindex;n++)
-    if(PP.Flag[n]>0)
+    if(PP.Flag[n]>=0)
     {
         if(p->Q11==1)
         advec_plain(p, a, PP, n, s, pturb, 
@@ -73,7 +73,7 @@ void partres::move_RK2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedi
     
     // RK step 2
     for(size_t n=0;n<PP.loopindex;n++)
-    if(PP.Flag[n]>0)
+    if(PP.Flag[n]>=0)
     {
         if(p->Q11==1)
         advec_plain(p, a, PP, n, s, pturb, 
