@@ -104,7 +104,7 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     H=0.0;
 
     if(fabs(phival)<=p->psi)
-    H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
+    H=0.5*(1.0 + phival/(p->psi) + (1.0/PI)*sin((PI*phival)/(p->psi)));
     
     roval = p->W1*H + p->W3*(1.0-H);
 /*

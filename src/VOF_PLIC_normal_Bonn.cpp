@@ -43,10 +43,10 @@ void VOF_PLIC::simpleNormal_Bonn
     double nx_simp,ny_simp,nz_simp,nsum;
     nx_simp=-(phistep(i+1,j,k)-phistep(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
     if(p->j_dir>0)
-        ny_simp=-(phistep(i,j+1,k)-phistep(i,j-1,k))/(p->DYP[IM1]+p->DYP[IP]);
+        ny_simp=-(phistep(i,j+1,k)-phistep(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
     else
         ny_simp=0.0;
-    nz_simp=-(phistep(i,j,k+1)-phistep(i,j,k-1))/(p->DZP[IM1]+p->DZP[IP]);
+    nz_simp=-(phistep(i,j,k+1)-phistep(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
     nsum=sqrt(nx_simp*nx_simp+ny_simp*ny_simp+nz_simp*nz_simp);
     nx(i,j,k)=nx_simp/nsum;
     ny(i,j,k)=ny_simp/nsum;

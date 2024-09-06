@@ -50,14 +50,14 @@ void VOF_PLIC::transportPhi_Bonn
         uim=a->u(i-1,j,k);
         dtdxi=p->dt/p->DXN[IP];
         if(uip>=0.0)
-            Gp=uip*(phistep(i,j,k)+0.5*p->DXP[IP]*(1.0-uip*(p->dt/p->DXP[IP]))*(phistep(i+1,j,k)-phistep(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DXP[IP]*(1.0-uip*(p->dt/p->DXP[IP]))*(phistep(i+1,j,k)-phistep(i,j,k))/(p->DXP[IP]));
         else
-            Gp=uip*(phistep(i,j,k)+0.5*p->DXP[IP]*(1.0+uip*(p->dt/p->DXP[IP]))*(phistep(i+2,j,k)-phistep(i,j,k))/(p->DXN[IP]+p->DXP[IP1]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DXP[IP]*(1.0+uip*(p->dt/p->DXP[IP]))*(phistep(i+1,j,k)-phistep(i,j,k))/(p->DXP[IP]));
             
         if(uim<=0.0)
-            Gm=uim*(phistep(i,j,k)+0.5*p->DXP[IM1]*(-1.0-uim*(p->dt/p->DXP[IM1]))*(phistep(i+1,j,k)-phistep(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DXP[IM1]*(-1.0-uim*(p->dt/p->DXP[IM1]))*(phistep(i,j,k)-phistep(i-1,j,k))/(p->DXP[IM1]));
         else
-            Gm=uim*(phistep(i,j,k)+0.5*p->DXP[IM1]*(-1.0+uim*(p->dt/p->DXP[IM1]))*(phistep(i,j,k)-phistep(i-2,j,k))/(p->DXP[IM2]+p->DXP[IM1]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DXP[IM1]*(-1.0+uim*(p->dt/p->DXP[IM1]))*(phistep(i,j,k)-phistep(i-1,j,k))/(p->DXP[IM1]));
     }
     else if(sweep==1)
     {
@@ -65,14 +65,14 @@ void VOF_PLIC::transportPhi_Bonn
         uim=a->v(i-1,j,k);
         dtdxi=p->dt/p->DYN[JP];
         if(uip>=0.0)
-            Gp=uip*(phistep(i,j,k)+0.5*p->DYP[JP]*(1.0-uip*(p->dt/p->DYP[JP]))*(phistep(i,j+1,k)-phistep(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DYP[JP]*(1.0-uip*(p->dt/p->DYP[JP]))*(phistep(i,j+1,k)-phistep(i,j,k))/(p->DYP[JP]));
         else
-            Gp=uip*(phistep(i,j,k)+0.5*p->DYP[JP]*(1.0+uip*(p->dt/p->DYP[JP]))*(phistep(i,j+2,k)-phistep(i,j,k))/(p->DYP[JP]+p->DYP[JP1]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DYP[JP]*(1.0+uip*(p->dt/p->DYP[JP]))*(phistep(i,j+1,k)-phistep(i,j,k))/(p->DYP[JP]));
             
         if(uim<=0.0)
-            Gm=uim*(phistep(i,j,k)+0.5*p->DYP[JM1]*(-1.0-uim*(p->dt/p->DYP[JM1]))*(phistep(i,j+1,k)-phistep(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DYP[JM1]*(-1.0-uim*(p->dt/p->DYP[JM1]))*(phistep(i,j,k)-phistep(i,j-1,k))/(p->DYP[JM1]));
         else
-            Gm=uim*(phistep(i,j,k)+0.5*p->DYP[JM1]*(-1.0+uim*(p->dt/p->DYP[JM1]))*(phistep(i,j,k)-phistep(i,j-1,k))/(p->DYP[JM1]+p->DYP[JM2]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DYP[JM1]*(-1.0+uim*(p->dt/p->DYP[JM1]))*(phistep(i,j,k)-phistep(i,j-1,k))/(p->DYP[JM1]));
             
     }
     else
@@ -81,14 +81,14 @@ void VOF_PLIC::transportPhi_Bonn
         uim=a->w(i,j,k-1);
         dtdxi=p->dt/p->DZN[KP];
         if(uip>=0.0)
-            Gp=uip*(phistep(i,j,k)+0.5*p->DZP[KP]*(1.0-uip*(p->dt/p->DZP[IP]))*(phistep(i,j,k+1)-phistep(i,j,k-1))/(p->DZP[IP]+p->DZP[IM1]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DZP[KP]*(1.0-uip*(p->dt/p->DZP[IP]))*(phistep(i,j,k+1)-phistep(i,j,k))/(p->DZP[IP]));
         else
-            Gp=uip*(phistep(i,j,k)+0.5*p->DZP[KP]*(1.0+uip*(p->dt/p->DZP[IP]))*(phistep(i,j,k+2)-phistep(i,j,k))/(p->DZP[IP1]+p->DZP[IP]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DZP[KP]*(1.0+uip*(p->dt/p->DZP[IP]))*(phistep(i,j,k+1)-phistep(i,j,k))/(p->DZP[IP]));
             
         if(uim<=0.0)
-            Gm=uim*(phistep(i,j,k)+0.5*p->DZP[IM1]*(-1.0-uim*(p->dt/p->DZP[IM1]))*(phistep(i,j,k+1)-phistep(i,j,k-1))/(p->DZP[IP]+p->DZP[IM1]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DZP[IM1]*(-1.0-uim*(p->dt/p->DZP[IM1]))*(phistep(i,j,k)-phistep(i,j,k-1))/(p->DZP[IM1]));
         else
-            Gm=uim*(phistep(i,j,k)+0.5*p->DZP[IM1]*(-1.0+uim*(p->dt/p->DZP[IM1]))*(phistep(i,j,k)-phistep(i,j,k-2))/(p->DZP[IM2]+p->DZP[IM1]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DZP[IM1]*(-1.0+uim*(p->dt/p->DZP[IM1]))*(phistep(i,j,k)-phistep(i,j,k-1))/(p->DZP[IM1]));
     }
     
     if(nSweep==0)
@@ -116,16 +116,31 @@ void VOF_PLIC::transportVOF_Bonn
             uip=a->u(i,j,k);
             uim=a->u(i-1,j,k);
             dtdxi=p->dt/p->DXN[IP];
-            Gp=V_w_p(i,j,k)/(p->dt*p->DYN[JP]*p->DZN[KP]);
-            Gm=V_w_m(i,j,k)/(p->dt*p->DYN[JP]*p->DZN[KP]);
+            if(uip>=0.0)
+                Gp=V_w_p(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+            else
+                Gp=V_w_m(i+1,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+                
+            if(uim<=0.0)
+                Gm=V_w_m(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+            else
+                Gm=V_w_p(i-1,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
         }
         else if(sweep==1)
         {
             uip=a->v(i,j,k);
             uim=a->v(i,j-1,k);
             dtdxi=p->dt/p->DYN[JP];
-            Gp=V_w_p(i,j,k)/(p->dt*p->DXN[IP]*p->DZN[KP]);
-            Gm=V_w_m(i,j,k)/(p->dt*p->DXN[IP]*p->DZN[KP]);
+            
+            if(uip>=0.0)
+                Gp=V_w_p(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+            else
+                Gp=V_w_m(i,j+1,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+                
+            if(uim<=0.0)
+                Gm=V_w_m(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+            else
+                Gm=V_w_p(i,j-1,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
            
         }
         else
@@ -133,21 +148,29 @@ void VOF_PLIC::transportVOF_Bonn
             uip=a->w(i,j,k);
             uim=a->w(i,j,k-1);
             dtdxi=p->dt/p->DZN[KP];
-            Gp=V_w_p(i,j,k)/(p->dt*p->DXN[IP]*p->DYN[JP]);
-            Gm=V_w_m(i,j,k)/(p->dt*p->DXN[IP]*p->DYN[JP]);
+            if(uip>=0.0)
+                Gp=V_w_p(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+            else
+                Gp=V_w_m(i,j,k+1)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+            
+            if(uim<=0.0)
+                Gm=V_w_m(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+            else
+                Gm=V_w_p(i,j,k-1)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+                
         }
         
         if(nSweep==0)
         {
-            vofS0(i,j,k)=(vofstep(i,j,k)-dtdxi*(Gp-Gm))/(1.0-dtdxi*(uip-uim));
+            vofS0(i,j,k)=(vofstep(i,j,k)-(Gp-Gm))/(1.0-dtdxi*(uip-uim));
         }
         else if(nSweep==1)
         {
-            vofS1(i,j,k)=vofS0(i,j,k)*(1.0+dtdxi*(uip-uim))-dtdxi*(Gp-Gm);
+            vofS1(i,j,k)=vofS0(i,j,k)*(1.0+dtdxi*(uip-uim))-(Gp-Gm);
         }
         else 
         {
-            vofS2(i,j,k)=vofS1(i,j,k)+vofS0(i,j,k)*dtdxi*(uip-uim)-dtdxi*(Gp-Gm);
+            vofS2(i,j,k)=vofS1(i,j,k)+vofS0(i,j,k)*dtdxi*(uip-uim)-(Gp-Gm);
         }
     }
 }

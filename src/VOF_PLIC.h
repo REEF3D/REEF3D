@@ -44,8 +44,6 @@ class VOF_PLIC : public freesurface, gradient, norm_vec
 public:
 	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_PLIC();
-	virtual void start_old(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
-    virtual void start_work(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
     
     virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
@@ -84,34 +82,21 @@ private:
     //Alternative version by Fabian
     void calculateNormal_alt(fdm*, lexer*);
     void reconstructPlane_alt(fdm*, lexer*, double);
-    void advectPlane_alt(fdm*, lexer*,int);
-    void advectPlane_altFlux(fdm*, lexer*,double,double,int);
     double calculateVolume(double,double,double,double,double,double,double);
     void updateVOF_alt(fdm*, lexer*,int);
-    void advectPlane_sweepless(fdm*, lexer*);
     void updateVOF_sweepless(fdm*, lexer*);
-    void advectWater_sweepless(fdm*, lexer*);
-    void advectPlane_Weymouth(fdm*, lexer*, int);
-    void advectWater_Weymouth(fdm*, lexer*, int);
-    void advectPlane_MACHO2D(fdm*, lexer*, int);
-    void advectWater_MACHO2D(fdm*, lexer*, int);
     void updateVOF_MACHO2D(fdm*, lexer*, int, int);
     void updateVOF_Weymouth(fdm*, lexer*, int);
-    void advectWater_WeymouthNoS(fdm*, lexer*);
-    void advectPlane_Wang(fdm*, lexer*, int);
     void transportPhi_Bonn(fdm*,lexer*,int,int);
     void transportVOF_Bonn(fdm*,lexer*,int,int);
     void simpleNormal_Bonn(fdm*, lexer*);
     void advectPlane_forBonnScheme(fdm*, lexer*,int);
     void advectWater_forBonnScheme(fdm*, lexer*,int);
     void redistancePhiByPlane_Bonn(fdm*, lexer*);
-    double ShortestDistanceOnBoundaryCandidate(fdm*, lexer*, int, int, int);
-    double ProjectionPointCandidate(fdm*, lexer*, int, int, int);
-    double IntersectionPointCandidate(fdm*, lexer*, int, int, int);
-    void redistancePhiByPlane2D_Bonn(fdm*, lexer*);
-    double ShortestDistanceOnBoundaryCandidate2D(fdm*, lexer*, int, int);
-    double ProjectionPointCandidate2D(fdm*, lexer*, int, int);
-    double IntersectionPointCandidate2D(fdm*, lexer*, int, int);
+    double ShortestDistanceOnBoundaryCandidate(fdm*, lexer*, int, int, int, double);
+    double ProjectionPointCandidate(fdm*, lexer*, int, int, int, double);
+    double IntersectionPointCandidate(fdm*, lexer*, int, int, int, double);
+   
     
     field4 vof_old;
     field4 V_w_p;

@@ -2266,6 +2266,8 @@
         <File Name="VOF_AB.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
+        <File Name="VOF_PLIC_Slicnormal.cpp"/>
+        <File Name="VOF_PLIC_normalTest.cpp"/>
         <File Name="VOF_PLIC_updateVOF_alt.cpp"/>
         <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
         <File Name="VOF_PLIC_Transport_Bonn.cpp"/>
@@ -2962,6 +2964,7 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_PLICcalc.cpp"/>
           <File Name="iowave_probes.cpp"/>
           <File Name="iowave_timeseries.cpp"/>
           <File Name="iowave_precalc_decomp_space_dirichlet.cpp"/>

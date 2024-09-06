@@ -284,8 +284,73 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
     p->wavetime+=pgc->timer()-starttime;
 }
 
-void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
+void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
 {
+    if(p->F80==4)
+    {
+        phi_relax(p,pgc,a->phi);
+        pgc->start4(p,a->phi,1);
+        LOOP
+        {
+            dg = distgen(p);    
+            db = distbeach(p);
+            if(p->B98==2 && h_switch==1)
+            {
+            // Zone 1
+                if(dg<1.0e20)
+                {
+                    if(a->phi(i,j,k)<-0.3*p->psi)
+                        f(i,j,k)=0.0;
+                    else if(a->phi(i,j,k)>0.3*p->psi)
+                        f(i,j,k)=1.0;
+                    else
+                    {
+                        double nx,ny,nz,nsum,V0,r0;
+                        nx=-(a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
+                        ny=-(a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[IM1]+p->DYP[IP]);
+                        nz=-(a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
+                        nsum=sqrt(nx*nx+ny*ny+nz*nz);
+                        nx=nx/nsum;
+                        ny=ny/nsum;
+                        nz=nz/nsum;
+                        r0=a->phi(i,j,k);
+                        V0=V0Calc_PLIC(p,a,nx,ny,nz,r0);
+                        f(i,j,k)=V0;
+                    }
+                }
+            }
+            if(p->B99==2)
+            {
+            // Zone 2
+                if(db<1.0e20)
+                {
+                    if(a->phi(i,j,k)<-0.3*p->psi)
+                        f(i,j,k)=0.0;
+                    else if(a->phi(i,j,k)>0.3*p->psi)
+                        f(i,j,k)=1.0;
+                    else
+                    {
+                        double nx,ny,nz,nsum,V0,r0;
+                        nx=-(a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
+                        ny=-(a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[IM1]+p->DYP[IP]);
+                        nz=-(a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
+                        nsum=sqrt(nx*nx+ny*ny+nz*nz);
+                        nx=nx/nsum;
+                        ny=ny/nsum;
+                        nz=nz/nsum;
+                        r0=a->phi(i,j,k);
+                        V0=V0Calc_PLIC(p,a,nx,ny,nz,r0);
+                        f(i,j,k)=V0;
+                    }
+                }
+            }
+            
+                
+        }
+        
+    }
+    else
+    {
     starttime=pgc->timer();
     
     count=0;
@@ -357,6 +422,8 @@ void iowave::vof_relax(lexer *p, ghostcell *pgc, field& f)
     }
     
     p->wavetime+=pgc->timer()-starttime;
+    
+    }
 }
 
 void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)

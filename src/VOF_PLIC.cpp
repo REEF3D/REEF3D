@@ -98,130 +98,6 @@ VOF_PLIC::~VOF_PLIC()
 }
 
 
-void VOF_PLIC::start_old
-(
-    fdm* a,
-    lexer* p,
-    convection* pconvec,
-    solver* psolv,
-    ghostcell* pgc,
-    ioflow* pflow,
-    reini* preini,
-    particle_corr* ppls,
-    field &F
-)
-{
-    pflow->fsfinflow(p,a,pgc);
-    
-
-    starttime=pgc->timer();
-
-    int sweep = 0;
-    if (sSweep < 2)
-    {
-        sSweep++;
-        sweep = sSweep;
-    }
-    else
-    {
-        sSweep = 0;
-    }
-
-    double Q1, Q2;
-    // x-sweep (0), y-sweep (1), z-sweep (2)
-    for (int nSweep = 0; nSweep < 3; nSweep++)
-    {
-        LOOP
-        {
-            //- Calculate left and right fluxes Q1 and Q2
-            calcFlux(a, p, Q1, Q2, sweep);
-
-
-            //- PLIC loop
-            vof1(i, j, k) = 0.0;
-            vof2(i, j, k) = 0.0;
-            vof3(i, j, k) = 0.0;
-
-            if (a->vof(i, j, k) >= 0.999)
-            {
-                // Fluxes leave and enter cell in a straight manner
-                vof1(i, j, k) = max(-Q1, 0.0);
-                vof2(i, j, k) = 1.0 - max(Q1, 0.0) + min(Q2, 0.0);
-                vof3(i, j, k) = max(Q2, 0.0);
-            }
-            else
-            {
-                // Reconstruct plane in cell
-                reconstructPlane(a, p);
-
-                // Advect interface using Lagrangian approach
-                advectPlane(a, p, Q1, Q2, sweep);
-
-                // Update volume fraction
-                updateVolumeFraction(a, p, Q1, Q2, sweep);
-            }
-        }
-
-
-        //- Distribute volume fractions
-        pgc->start4(p,vof1,gcval_frac);
-        pgc->start4(p,vof2,gcval_frac);
-        pgc->start4(p,vof3,gcval_frac);
-
-
-        //- Calculate updated vof from volume fractions and distribute
-        updateVOF(a, p, sweep);
-        pgc->start4(p,a->vof,gcval_frac);
-
-
-        //- Change sweep
-        if (sweep < 2)
-        {
-            sweep++;
-        }
-        else
-        {
-            sweep = 0;
-        }
-    }
-
-    //- Redistance distance function from updated plane equations
-    //redistance(a, p, pdisc, pgc, pflow, 20);
-    //- Distribute ls function
-    //pgc->start4(p,a->phi,gcval_frac);
-
-    pflow->vof_relax(p,pgc,a->vof);
-	pgc->start4(p,a->vof,gcval_frac);
-    pupdate->start(p,a,pgc);
-
-    p->lsmtime=pgc->timer()-starttime;
-
-    if(p->mpirank==0)
-    cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
-
-    
-    pgc->start4(p,a->vof,50);
-    
-    LOOP
-    a->phi(i,j,k) = a->vof(i,j,k);
-    
-    pgc->start4(p,a->phi,50);
-    
-    for (int tt = 0; tt < 2; tt++)
-    {
-    LOOP
-    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
-    
-    pgc->start4(p,a->phi,50);
-    }
-    /*
-    for (int tt = 0; tt < 10; tt++)
-    {
-        reini_->start(a,p,a->phi,pgc,pflow);
-    }*/
-
-}
-
 void VOF_PLIC::update
 (
     lexer *p,
@@ -255,9 +131,14 @@ void VOF_PLIC::start
         reini_->start(a,p,a->phi,pgc,pflow);
         reini_->start(a,p,a->phi,pgc,pflow);
     }
+    
+    pgc->start4(p,a->phi,1);
+    pflow->vof_relax(p,a,pgc,a->vof);
+    pgc->start4(p,a->phi,1);
+    pgc->start4(p,a->vof,1);
+    
 
     starttime=pgc->timer();
-    cout<<"jdir:"<<p->j_dir<<endl;
     
     if(p->j_dir>0)
     {
@@ -281,6 +162,33 @@ void VOF_PLIC::start
         Sweepdim=3;
     else
         Sweepdim=2;
+        
+  /*  LOOP
+    {
+        phistep(i,j,k)=a->phi(i,j,k);
+    }
+    
+    
+    pgc->start4(p,phistep,1);
+    LOOP
+    {
+        if(phistep(i,j,k)>p->psi)
+            a->vof(i,j,k)=1.0;
+        else if(phistep(i,j,k)<-p->psi)
+            a->vof(i,j,k)=0.0;
+        else
+        {
+            simpleNormal_Bonn(a,p);
+            a->vof(i,j,k)=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],p->DZN[KP],phistep(i,j,k));
+            if(a->vof(i,j,k)>0.0001 && a->vof(i,j,k)<0.9999)
+            {
+                reconstructPlane_alt(a,p,a->vof(i,j,k));
+                a->phi(i,j,k)=alpha(i,j,k);
+            }
+        }
+    }
+    pgc->start4(p,a->phi,1);
+    pgc->start4(p,a->vof,1);*/
     for(int nSweep=0 ; nSweep<Sweepdim; nSweep++)
     {
         LOOP
@@ -288,8 +196,8 @@ void VOF_PLIC::start
             V_w_m(i,j,k)=0.0;
             V_w_p(i,j,k)=0.0;
         }
-        pgc->start4(p,V_w_m,gcval_frac);
-        pgc->start4(p,V_w_p,gcval_frac);
+        pgc->start4(p,V_w_m,1);
+        pgc->start4(p,V_w_p,1);
         
         if(p->j_dir>0)
             sweep=S_S[sSweep][nSweep];
@@ -336,7 +244,6 @@ void VOF_PLIC::start
         pgc->start1(p,a->u,10);
         pgc->start2(p,a->v,11);
         pgc->start3(p,a->w,12);
-            
         
         LOOP
         {
@@ -370,20 +277,15 @@ void VOF_PLIC::start
                     }
                 }
             }
-            if((vofstep(i,j,k)>1E-6 && vofstep(i,j,k)<1.0-1E-6) && ( (phistep(i,j,k)<1E-6 && phistep(i,j,k)>-1E-6) || bordercheck))
+            if((vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999))
             {
                 reconstructPlane_alt(a,p,vofstep(i,j,k));
                 advectPlane_forBonnScheme(a,p,sweep);
             }
-            else if(a->vof(i,j,k)>0.5)
+            else if( vofstep(i,j,k)>0.9999)
                 advectWater_forBonnScheme(a,p,sweep);
             
-            if(V_w_p(i,j,k) != V_w_p(i,j,k))
-                cout<<"V_w_p wrong:"<< V_w_p(i,j,k)<<" in sweep:"<<sweep<<endl;
-            if(V_w_m(i,j,k) != V_w_m(i,j,k))
-                cout<<"V_w_m wrong:"<< V_w_m(i,j,k)<<" in sweep:"<<sweep<<endl;
-            if(vofstep(i,j,k) !=vofstep(i,j,k))
-                cout<<"vof wrong:"<< vofstep(i,j,k)<<" in sweep:"<<sweep<<endl;
+           
 
         }
         
@@ -442,12 +344,12 @@ void VOF_PLIC::start
     
     LOOP
     {
-        if(phistep(i,j,k)<-0.3*p->psi || vofstep(i,j,k)<0.0)
+        if(phistep(i,j,k)<-0.29*p->psi || vofstep(i,j,k)<0.0)
             vofstep(i,j,k)=0.0;
-        else if(phistep(i,j,k)>0.3*p->psi || vofstep(i,j,k)>1.0)
+        if(phistep(i,j,k)>0.29*p->psi || vofstep(i,j,k)>1.0)
             vofstep(i,j,k)=1.0;
             
-        if(vofstep(i,j,k)>0.0 && vofstep(i,j,k)<1.0)
+        if(vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999)
             reconstructPlane_alt(a,p,vofstep(i,j,k));
         else
         {
@@ -467,56 +369,22 @@ void VOF_PLIC::start
     pgc->start4(p,phiaux,1);
     pgc->start4(p,vofstep,1);
     pgc->start4(p,a->vof,1);
-    if(p->j_dir>0)
+    LOOP
     {
-        LOOP
-        {   
-            bool bordercheck=false;
-            
-            if(p->j_dir>0)
-            {
-                for(int isearch=-1; isearch<2; isearch++)
-                {
-                    for(int jsearch=-1; jsearch<2; jsearch++)
-                    {
-                        for(int ksearch=-1; ksearch<2; ksearch++)
-                        {
-                            if(phistep(i,j,k)*phistep(i+isearch,j+jsearch,k+ksearch)<0.0)
-                                bordercheck=true;
-                        }
-                    }
-                }
-            }
-            
-            else
-            {
-                for(int isearch=-1; isearch<2; isearch++)
-                {
-                    for(int ksearch=-1; ksearch<2; ksearch++)
-                    {
-                        if(phistep(i,j,k)*phistep(i+isearch,j,k+ksearch)<0.0)
-                                bordercheck=true;
-                    }
-                }
-            }
-            
-            if((vofstep(i,j,k)>1E-6 && vofstep(i,j,k)<1.0-1E-6))
-            {
-                if(p->j_dir>0)
-                    redistancePhiByPlane_Bonn(a,p);
-                else
-                    redistancePhiByPlane2D_Bonn(a,p);
-            }
+        if((vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999))
+        {
+                redistancePhiByPlane_Bonn(a,p);
         }
     }
-    
     
     pgc->start4(p,phiaux,1);
     
     LOOP
     {
-        if(phiaux(i,j,k)<1E02)
+        if(fabs(phiaux(i,j,k))<1E02)
+        {
             a->phi(i,j,k)=phiaux(i,j,k);
+        }
         else
             a->phi(i,j,k)=phistep(i,j,k);
     }
@@ -524,167 +392,10 @@ void VOF_PLIC::start
     pgc->start4(p,a->phi,1);
     
     reini_->start(a,p,a->phi,pgc,pflow);
+    
+    pgc->start4(p,a->phi,1);
 
     pupdate->start(p,a,pgc);
    
-}
-
-void VOF_PLIC::start_work
-(
-    fdm* a,
-    lexer* p,
-    convection* pconvec,
-    solver* psolv,
-    ghostcell* pgc,
-    ioflow* pflow,
-    reini* preini,
-    particle_corr* ppls,
-    field &F
-)
-{
-    pflow->fsfinflow(p,a,pgc);
-
-    starttime=pgc->timer();
-    
-    if(sSweep<6)
-        sSweep++;
-    else
-        sSweep=0;
-
-    LOOP
-    {
-        vof_old(i,j,k)=a->vof(i,j,k);
-        V_w_old(i,j,k)=vof_old(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-        V_a_old(i,j,k)=(p->DXN[IP]*p->DYN[JP]*p->DZN[KP])-V_w_old(i,j,k);
-        V_w_update(i,j,k)=0.0;
-        V_a_update(i,j,k)=0.0;
-        Watersafe(i,j,k)=0.0;
-    }
-        
-    LOOP
-    {   
-            
-        if((vof_old(i,j,k)<=0.999) && (vof_old(i,j,k)>=0.001))
-        {
-            reconstructPlane_alt(a, p,vof_old(i,j,k));
-            advectPlane_sweepless(a, p);
-        }
-        else if(vof_old(i,j,k)>0.999)
-        {
-            
-            advectWater_WeymouthNoS(a,p);
-            
-        }
-        
-    }
-        
-    //- Distribute volume fractions
-    pgc->start4(p,V_w_update,gcval_frac);
-    pgc->start4(p,Watersafe,gcval_frac);
-    pgc->start4(p,V_a_update,gcval_frac);
-    pgc->start4(p,V_w_old,gcval_frac);
-    pgc->start4(p,V_a_old,gcval_frac);
-
-    //- Calculate updated vof from volume fractions and distribute
-    updateVOF_sweepless(a, p);
-    pgc->start4(p,a->vof,gcval_frac);
-    
-
-    //- Redistance distance function from updated plane equations
-   // redistance(a, p, pdisc, pgc, pflow, 20);
-    //- Distribute ls function
-    //pgc->start4(p,a->phi,gcval_frac);
-
-    pflow->vof_relax(p,pgc,a->vof);
-	//pgc->start4(p,a->vof,gcval_frac);
-    pgc->start4(p,a->vof,50);
-   
-    double phiinterstore, phiinterstore1, phiinterstore2;
-    LOOP
-    {
-        if(a->vof(i,j,k) >0.5)
-        {
-            phival(i,j,k)=1.0;
-        }
-        else
-        {
-            phival(i,j,k)=-1.0;
-        }
-    }
-    LOOP
-    {
-        if((a->vof(i,j,k)>=0.001) && a->vof(i,j,k)<=0.999)
-        {
-            phival(i,j,k)=-1.0*alpha(i,j,k);
-          //  if(alpha(i,j,k)>=0.0)
-               // p->flag4[IJK]=WATER_FLAG;
-          //  else
-              //  p->flag4[IJK]=AIR_FLAG;
-                
-            if((a->vof(i+1,j,k) < 0.001) || (a->vof(i+1,j,k) > 0.999))
-            {
-                phiinterstore=copysign(nx(i,j,k)*p->DXP[IP]-alpha(i,j,k) , phival(i+1,j,k));
-                if( fabs(phiinterstore) < fabs(phival(i+1,j,k)))
-                    phival(i+1,j,k)=phiinterstore;
-            }
-            if((a->vof(i-1,j,k) < 0.001) || (a->vof(i-1,j,k) > 0.999))
-            {
-                phiinterstore=copysign(nx(i,j,k)*(-p->DXP[IM1])-alpha(i,j,k), phival(i-1,j,k));
-                if( fabs(phiinterstore)< fabs(phival(i-1,j,k)))
-                    phival(i-1,j,k)=phiinterstore;
-            }
-            if((a->vof(i,j+1,k) < 0.001) || (a->vof(i,j+1,k) > 0.999))
-            {
-                phiinterstore=copysign(ny(i,j,k)*p->DYP[JP]-alpha(i,j,k), phival(i,j+1,k));
-                if( fabs(phiinterstore) < fabs(phival(i,j+1,k)))
-                    phival(i,j+1,k)=phiinterstore;
-            }
-            if((a->vof(i,j-1,k) < 0.001) || (a->vof(i,j-1,k) > 0.999))
-            {
-                phiinterstore=copysign(ny(i,j,k)*(-p->DYP[JM1])-alpha(i,j,k), phival(i,j-1,k));
-                if( fabs(phiinterstore) < fabs(phival(i,j-1,k)))
-                    phival(i,j-1,k)=phiinterstore;
-            }
-            if((a->vof(i,j,k+1) < 0.001) || (a->vof(i,j,k+1) > 0.999))
-            {
-                phiinterstore=copysign(nz(i,j,k)*p->DZP[KP]-alpha(i,j,k), phival(i,j,k+1));
-                if( fabs(phiinterstore) < fabs(phival(i,j,k+1)))
-                    phival(i,j,k+1)=phiinterstore;
-            }
-            if((a->vof(i,j,k+1) < 0.001) || (a->vof(i,j,k+1) > 0.999))
-            {
-                phiinterstore=copysign(nz(i,j,k)*(-p->DZP[KM1])-alpha(i,j,k), phival(i,j,k-1));
-                if( fabs(phiinterstore < phival(i,j,k-1)))
-                    phival(i,j,k-1)=phiinterstore;
-            }
-        }
-    }
-    
-    LOOP
-    {
-        if(fabs(phival(i,j,k))<1.0)
-            a->phi(i,j,k)=phival(i,j,k);
-    }
-    
-    pgc->start4(p,a->phi,50);
-    reini_->start(a,p,a->phi,pgc,pflow);
-   // redistance(a, p, pdisc, pgc, pflow, 20);
-    pgc->start4(p,a->phi,gcval_frac);
-     
-    
-    p->lsmtime=pgc->timer()-starttime;
-
-    if(p->mpirank==0)
-    cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
-    pgc->start4(p,a->phi,50);
-    
-    /*for (int tt = 0; tt < 2; tt++)
-    {
-    LOOP
-    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
-    
-    pgc->start4(p,a->phi,50);
-    } */
-    pupdate->start(p,a,pgc);
 }
 
