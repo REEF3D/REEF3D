@@ -69,3 +69,8 @@ void partres::setupState(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
      * @param max The maximum value.
      * @return True if the particle should be seeded, false otherwise.
      */
+
+void partres::setParticleMax(double maxParticles)
+{
+    maxcount = maxParticles;
+}

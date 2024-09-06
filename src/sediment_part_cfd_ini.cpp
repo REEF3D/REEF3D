@@ -58,13 +58,14 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     k=0;
     SLICEBASELOOP
-    s.bedzh0(i,j) = s.bedzh(i,j) = 0.5*p->DZP[KP]-a->topo(i,j,k);
+    s.bedzh0(i,j) = s.bedzh(i,j) = p->ZN[KP] + 0.5*p->DZP[KP]-a->topo(i,j,k);
 
     if(p->I40!=1)
     {
         // seed
         seed_ini(p,a,pgc);
         PP.reserve(maxparticle);
+        pst->setParticleMax(maxparticle);
         seed(p,a);
         make_stationary(p,a,&PP);
     }

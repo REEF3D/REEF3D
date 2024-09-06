@@ -40,7 +40,7 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
                                     reinitopo* preto, solver* psolv)
 {
     double starttime=pgc->timer();
-	int xchange=0;
+	int xchanged=0;
 	int removed=0;
 
     if (p->count>=p->Q43)
@@ -64,12 +64,12 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         //if(p->Q101>0)
         //pst->erosion(p,*a,PP,s);
         
-        pst->move_RK2_step1(p,*a,*pgc,PP,s,*pturb);
+        pst->move_RK2_step1(p,*a,*pgc,PP,s,*pturb,xchanged,removed);
         
-		xchange=transfer(p,pgc,&PP, pst, maxparticle);
-		removed=remove(p,&PP, pst);
+		// xchange=transfer(p,pgc,&PP, pst, maxparticle);
+		// removed=remove(p,&PP, pst);
         
-        pst->move_RK2_step2(p,*a,*pgc,PP,s,*pturb);
+        pst->move_RK2_step2(p,*a,*pgc,PP,s,*pturb,xchanged,removed);
         
         //if(p->Q101>0)
         //pst->deposition(p,*a,PP,s);
@@ -91,7 +91,7 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
 
 	gparticle_active = pgc->globalisum(PP.size);
     gremoved = pgc->globalisum(removed);
-    gxchange = pgc->globalisum(xchange);
+    gxchange = pgc->globalisum(xchanged);
 
     volume = pst->volume(p,*a,PP);
     volume = pgc->globalsum(volume);

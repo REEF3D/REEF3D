@@ -48,5 +48,5 @@ void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
 
     k=0;
     SLICEBASELOOP
-    s.bedzh(i,j) = 0.5*p->DZP[KP]-a->topo(i,j,k);
+    s.bedzh(i,j) =  p->ZN[KP] + 0.5*p->DZP[KP]-a->topo(i,j,k);
 }
