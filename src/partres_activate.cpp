@@ -37,6 +37,7 @@ int partres::activateNew(lexer *p, fdm &a, particles_obj &PP)
         int maxTries=1000;
         int tries=0;
         int count=0;
+        int k_offset = 0;
 
         if(PP.size-bedChange[IJ]>0.9*PP.capacity)
             PP.reserve();
@@ -47,7 +48,7 @@ int partres::activateNew(lexer *p, fdm &a, particles_obj &PP)
             y = p->YN[JP] + p->DYN[JP]*double(rand() % 10000)/10000.0;
             k = 0;
             z = p->ZN[KP]+0.5*p->DZP[KP]-a.topo(i,j,k) - 5.0*PP.d50*double(rand() % 10000)/10000.0;
-            k = p->posc_k(z);
+            k = p->posc_k(z) - k_offset;
 
             ipolTopo = p->ccipol4_b(a.topo,x,y,z);
             ipolSolid = p->ccipol4_b(a.solid,x,y,z);
@@ -69,7 +70,7 @@ int partres::activateNew(lexer *p, fdm &a, particles_obj &PP)
                     cellSumTopo[IJK] = 0;
 
                     ++count;
-                    break;
+                    ++k_offset;
                 }
             
             ++tries;

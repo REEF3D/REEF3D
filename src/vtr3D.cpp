@@ -210,12 +210,8 @@ void vtr3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	pmean->averaging(p,a,pgc,pheat);
 
 	// Print out based on iteration
-	if(p->Q180!=2)
-		if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
-			print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
-	else
-		if((p->count%p->Q181==0 && p->count>=p->Q182) || p->count==0)
-			print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+    if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
+        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
 	// Print out based on time
 	if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==2) || (p->count==0 &&  p->P30>0.0))
