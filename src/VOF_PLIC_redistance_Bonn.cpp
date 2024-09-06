@@ -78,7 +78,7 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                     if(fabs(phitemp)<1E05)
                                     {
                                         if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                            phiaux(ip,jp,kp)=copysign(phitemp,phistep(i,j,k));
+                                            phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
                                     }
                                     else
                                     {   
@@ -86,7 +86,7 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                         if(fabs(phitemp)<1E05)
                                         {
                                             if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                phiaux(ip,jp,kp)=copysign(phitemp,phistep(i,j,k));
+                                                phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
                                         }   
                                         else
                                         {
@@ -94,14 +94,14 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                             if(fabs(phitemp)<1E05)
                                             {
                                                 if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                    phiaux(ip,jp,kp)=copysign(phitemp,phistep(i,j,k));
+                                                    phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
                                             }
                                             else
                                             {
                                                 cout<<"no nearest phase pint found"<<endl;
                                                 phitemp=phistep(ip,jp,kp);
                                                 if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                    phiaux(ip,jp,kp)=copysign(phitemp,phistep(i,j,k));
+                                                    phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
                                             }
                                         }
                                     }
