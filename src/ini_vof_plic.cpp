@@ -47,11 +47,6 @@ p->phimean=p->F56;
 	&& double(k)*dx+p->originz>=p->F53 && double(k)*dx+p->originz<p->F56)
 	a->vof(i,j,k)=1.0;
     
-    LOOP
-    if(a->vof(i,j,k)<0.001 && (a->vof(i-1,j,k)>0.999 || a->vof(i,j,k-1)>0.999))
-    a->vof(i,j,k)=0.3;
-    
-
 
 if(p->F57_1>0||p->F57_2>0||p->F57_3>0||p->F57_4>0)
 {
@@ -76,13 +71,38 @@ if(p->F58_4>0.0)
 
 if(p->F60>-1.0e20)
 {
+    
+    p->phimean=p->F60;
     LOOP
-    a->vof(i,j,k)=p->F60-p->pos_z();
+    {
+        if(p->pos_z()<p->phimean)
+            a->vof(i,j,k)=1.0;
+        else
+            a->vof(i,j,k)=0.0;
+            
+        if(fabs(p->pos_z()-p->phimean)<p->DZN[KP])
+        {
+            if(p->pos_z()>=p->phimean)
+            {
+                a->vof(i,j,k)=0.5-(p->pos_z()-p->phimean)/p->DZN[KP];
+                if(a->vof(i,j,k)<0.0)
+                    a->vof(i,j,k)=0.0;
+            }
+            else
+            {
+                a->vof(i,j,k)=0.5+(p->phimean-p->pos_z())/p->DZN[KP];
+                if(a->vof(i,j,k)>1.0)
+                    a->vof(i,j,k)=1.0;
+            }
+        }
+    }
+    
+    
 
-p->phimean=p->F60;
+
 }
 
-    if((p->F60>-1.0e20 || p->F56>-1.0e20) && p->F62>-1.0e-20&& p->F63>-1.0e-20  )
+    /*if((p->F60>-1.0e20 || p->F56>-1.0e20) && p->F62>-1.0e-20&& p->F63>-1.0e-20  )
     {
         vofdiff=p->F62-p->phimean;
         xdiff=p->xcoormax-p->F63;
@@ -90,12 +110,9 @@ p->phimean=p->F60;
         LOOP
         if(p->pos_x() > p->F63)
         a->vof(i,j,k)=(vofdiff/xdiff)*(p->pos_x()-p->F63) + p->phimean    - p->pos_z() ;
-    }
+    }*/
 
 	double H=0.0;
-        
-    LOOP
-        a->phi(i,j,k)=-0.5+a->vof(i,j,k);
         
     //preini->start(p,1)
     

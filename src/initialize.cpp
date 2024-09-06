@@ -65,7 +65,7 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
 	if((p->F70>0 || p->F71>0 ||p->F72>0) && p->F40>0)
 	iniphi_box(p,a,pgc);
 
-	if(p->F70>0 && p->F80>0)
+	if(p->F70>0 && p->F80>0 && p->F80<4)
 	inivof_box(p,a,pgc);
     
     
