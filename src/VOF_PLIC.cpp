@@ -133,7 +133,7 @@ void VOF_PLIC::start
     }
     
     pgc->start4(p,a->phi,1);
-    pflow->vof_relax(p,a,pgc,a->vof);
+    //pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->phi,1);
     pgc->start4(p,a->vof,1);
     

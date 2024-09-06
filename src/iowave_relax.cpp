@@ -286,7 +286,7 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
 
 void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
 {
-    if(p->F80==4)
+    if(p->F80==4 && (p->B98==2 || p->B99==2))
     {
         phi_relax(p,pgc,a->phi);
         pgc->start4(p,a->phi,1);
