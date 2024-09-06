@@ -67,12 +67,9 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                 {
                                     if(a->vof(i,j,k)>0.0001 && a->vof(i,j,k)<0.9999)
                                     {
-                                        if(alpha(i,j,k)*phistep(i,j,k)>=0.0)
-                                        {
                                         phitemp=alpha(i,j,k);
                                         if(fabs(phitemp)<fabs(phiaux(i,j,k)))
                                             phiaux(i,j,k)=phitemp;
-                                        }
                                     }
                                 }
                                 else
