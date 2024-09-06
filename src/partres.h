@@ -94,6 +94,7 @@ private:
         int activateNew(lexer *, fdm &, particles_obj &);
         void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
         double drag_coefficient(double) const;
+        void addParticleForTransfer(lexer *, particles_obj &, size_t , particles_obj [6], int &);
         
     // relax
     void relax_ini(lexer*);

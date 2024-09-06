@@ -66,8 +66,8 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         
         pst->move_RK2_step1(p,*a,*pgc,PP,s,*pturb);
         
-		xchange=transfer(p,pgc,&PP, pst, maxparticle);
-		removed=remove(p,&PP, pst);
+		// xchange=transfer(p,pgc,&PP, pst, maxparticle);
+		// removed=remove(p,&PP, pst);
         
         pst->move_RK2_step2(p,*a,*pgc,PP,s,*pturb);
         

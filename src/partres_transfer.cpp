@@ -62,3 +62,51 @@ void partres::remove(lexer *p, particles_obj &PP, size_t &index)
         cellSum[IJK] -= PP.ParcelFactor[index];
         bedChange[IJ] -= PP.ParcelFactor[index];
 }
+
+void partres::addParticleForTransfer(lexer *p, particles_obj &PP, size_t n, particles_obj Send[6], int &xchange)
+{
+    if(p->flag5[IJK]<0 && p->flag5[IJK]>-10)
+    {
+        switch (p->flag5[IJK])
+        {
+            case -1:
+            {
+                Send[0].add(PP.X[n],PP.Y[n],PP.Z[n],PP.Flag[n],PP.U[n],PP.V[n],PP.W[n],PP.ParcelFactor[n],PP.XRK1[n],PP.YRK1[n],PP.ZRK1[n],PP.URK1[n],PP.VRK1[n],PP.WRK1[n],PP.Uf[n],PP.Vf[n],PP.Wf[n],PP.shear_eff[n],PP.shear_crit[n],PP.drag[n]);
+                break;
+            }
+
+            case -2:
+            {
+                Send[1].add(PP.X[n],PP.Y[n],PP.Z[n],PP.Flag[n],PP.U[n],PP.V[n],PP.W[n],PP.ParcelFactor[n],PP.XRK1[n],PP.YRK1[n],PP.ZRK1[n],PP.URK1[n],PP.VRK1[n],PP.WRK1[n],PP.Uf[n],PP.Vf[n],PP.Wf[n],PP.shear_eff[n],PP.shear_crit[n],PP.drag[n]);
+                break;
+            }
+
+            case -3:
+            {
+                Send[2].add(PP.X[n],PP.Y[n],PP.Z[n],PP.Flag[n],PP.U[n],PP.V[n],PP.W[n],PP.ParcelFactor[n],PP.XRK1[n],PP.YRK1[n],PP.ZRK1[n],PP.URK1[n],PP.VRK1[n],PP.WRK1[n],PP.Uf[n],PP.Vf[n],PP.Wf[n],PP.shear_eff[n],PP.shear_crit[n],PP.drag[n]);
+                break;
+            }
+
+            case -4:
+            {
+                Send[3].add(PP.X[n],PP.Y[n],PP.Z[n],PP.Flag[n],PP.U[n],PP.V[n],PP.W[n],PP.ParcelFactor[n],PP.XRK1[n],PP.YRK1[n],PP.ZRK1[n],PP.URK1[n],PP.VRK1[n],PP.WRK1[n],PP.Uf[n],PP.Vf[n],PP.Wf[n],PP.shear_eff[n],PP.shear_crit[n],PP.drag[n]);
+                break;
+            }
+
+            case -5:
+            {
+                Send[4].add(PP.X[n],PP.Y[n],PP.Z[n],PP.Flag[n],PP.U[n],PP.V[n],PP.W[n],PP.ParcelFactor[n],PP.XRK1[n],PP.YRK1[n],PP.ZRK1[n],PP.URK1[n],PP.VRK1[n],PP.WRK1[n],PP.Uf[n],PP.Vf[n],PP.Wf[n],PP.shear_eff[n],PP.shear_crit[n],PP.drag[n]);
+                break;
+            }
+
+            case -6:
+            {
+                Send[5].add(PP.X[n],PP.Y[n],PP.Z[n],PP.Flag[n],PP.U[n],PP.V[n],PP.W[n],PP.ParcelFactor[n],PP.XRK1[n],PP.YRK1[n],PP.ZRK1[n],PP.URK1[n],PP.VRK1[n],PP.WRK1[n],PP.Uf[n],PP.Vf[n],PP.Wf[n],PP.shear_eff[n],PP.shear_crit[n],PP.drag[n]);
+                break;
+            }
+        }
+        remove(p,PP,n);
+        PP.erase(n);
+        ++xchange;
+    }
+}

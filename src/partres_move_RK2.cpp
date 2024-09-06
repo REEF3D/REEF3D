@@ -28,6 +28,12 @@ Authors: Alexander Hanke, Hans Bihs
 
 void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
 {
+    int xchange=0;
+
+    particles_obj Send[6]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
+    particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
+    particles_obj Recv[6]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
+    particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
     
     particlePerCell(p,pgc,PP);
     particleStressTensor(p,a,pgc,PP);
@@ -66,6 +72,64 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         cellSum[IJK]+=PP.ParcelFactor[n];
         bedChange[IJ]+=PP.ParcelFactor[n];
         particleStressTensorUpdateIJK(p,a,PP);
+
+        addParticleForTransfer(p,PP,n,Send,xchange);
+    }
+    
+
+    {
+        pgc.para_tracersobj(p,Send,Recv);
+
+        size_t sum=PP.size;
+        for(int n=0;n<6;n++)
+            sum += Recv[n].size;
+        if(sum>PP.capacity)
+            PP.reserve(sum);
+
+        for(int n=0;n<6;n++)
+        {
+            for(size_t m=0;m<Recv[n].loopindex;m++)
+            {
+                i = p->posc_i(Recv[n].XRK1[m]);
+                j = p->posc_j(Recv[n].YRK1[m]);
+                k = p->posc_k(Recv[n].ZRK1[m]);
+                transfer(p,Recv[n],m);
+                cellSum[IJK]+=Recv[n].ParcelFactor[n];
+            }
+            PP.add_obj(&Recv[n]);
+        }
+
+        // return xchange;
+    }
+
+
+    {
+    bool inBounds=false;
+    int removed=0;
+    int i,j,k;
+    boundarycheck bounderies;
+
+    for(size_t n=0;n<PP.loopindex;n++)
+        if(PP.Flag[n]>0)
+        {
+            i = p->posc_i(PP.XRK1[n]);
+            j = p->posc_j(PP.YRK1[n]);
+            k = p->posc_k(PP.ZRK1[n]);
+
+            inBounds=bounderies.minboundcheck(p,i,j,k,1);
+            if (inBounds)
+                inBounds=bounderies.maxboundcheck(p,i,j,k,1);
+
+			// remove out of bounds particles
+            if(!inBounds)
+            {
+                remove(p,PP,n);
+                PP.erase(n);
+                removed++;
+            }
+        }
+    
+    // return removed;
     }
     
     particleStressTensor(p,a,pgc,PP);
@@ -73,6 +137,13 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     
 void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb)
 {
+    int xchange=0;
+
+    particles_obj Send[6]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
+    particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
+    particles_obj Recv[6]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
+    particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
+
     // RK step 2
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
@@ -106,6 +177,63 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         cellSum[IJK]+=PP.ParcelFactor[n];
         bedChange[IJ]+=PP.ParcelFactor[n];
         particleStressTensorUpdateIJK(p,a,PP);
+
+        addParticleForTransfer(p,PP,n,Send,xchange);
+    }
+
+    {
+        pgc.para_tracersobj(p,Send,Recv);
+
+        size_t sum=PP.size;
+        for(int n=0;n<6;n++)
+            sum += Recv[n].size;
+        if(sum>PP.capacity)
+            PP.reserve(sum);
+
+        for(int n=0;n<6;n++)
+        {
+            for(size_t m=0;m<Recv[n].loopindex;m++)
+            {
+                i = p->posc_i(Recv[n].X[m]);
+                j = p->posc_j(Recv[n].Y[m]);
+                k = p->posc_k(Recv[n].Z[m]);
+                transfer(p,Recv[n],m);
+                cellSum[IJK]+=Recv[n].ParcelFactor[n];
+            }
+            PP.add_obj(&Recv[n]);
+        }
+
+        // return xchange;
+    }
+
+
+    {
+    bool inBounds=false;
+    int removed=0;
+    int i,j,k;
+    boundarycheck bounderies;
+
+    for(size_t n=0;n<PP.loopindex;n++)
+        if(PP.Flag[n]>0)
+        {
+            i = p->posc_i(PP.X[n]);
+            j = p->posc_j(PP.Y[n]);
+            k = p->posc_k(PP.Z[n]);
+
+            inBounds=bounderies.minboundcheck(p,i,j,k,1);
+            if (inBounds)
+                inBounds=bounderies.maxboundcheck(p,i,j,k,1);
+
+			// remove out of bounds particles
+            if(!inBounds)
+            {
+                remove(p,PP,n);
+                PP.erase(n);
+                removed++;
+            }
+        }
+    
+    // return removed;
     }
 
     if(p->mpirank==0)
