@@ -20,29 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#ifndef SEDPART_H_
-#define SEDPART_H_
+#ifndef SEDIMENT_PART_H_
+#define SEDIMENT_PART_H_
 
-#include "sediment.h"
-#include "particle_func.h"
-#include "increment.h"
+#include"sediment.h"
+#include"increment.h"
 
-#include "particles_obj.h"
-#include "field4.h"
-#include "bedshear_reduction.h"
-#include "sediment_fdm.h"
-#include "bedshear.h"
-#include "bedslope.h"
-#include "topo_relax.h"
-
-namespace sediment_particle::movement
-{
-class base;
-}
+#include"particles_obj.h"
+#include"field4.h"
+#include"bedshear_reduction.h"
+#include"sediment_fdm.h"
+#include"bedshear.h"
+#include"bedslope.h"
+#include"topo_relax.h"
 
 class lexer;
 class fdm;
 class ghostcell;
+class partres;
 class ioflow;
 class solver;
 class reinitopo;
@@ -53,12 +48,12 @@ class vrans;
 class turbulence;
 
 /// This class used particles on a Lagrangien framework and a VRANS sediment domain to simulate the influence of flow on the sediment
-class sedpart : public sediment, private particle_func, private increment
+class sediment_part : public sediment, private increment
 {
 public:
 
-    sedpart(lexer* p,ghostcell* pgc ,turbulence* pturb);
-    virtual ~sedpart();
+    sediment_part(lexer* p,ghostcell* pgc ,turbulence* pturb);
+    virtual ~sediment_part();
 
     // CFD methods
 
@@ -79,11 +74,7 @@ public:
     void ini_nhflow(lexer*,fdm_nhf*,ghostcell*){};
     void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*){};
     
-    // 
-
-    void erode(lexer*,fdm*);
-    void deposit(lexer*,fdm*);
-
+    
     // Statefile methods
 
     void write_state_particles(lexer *, ofstream&);
@@ -109,6 +100,7 @@ private:
     void seed_ini(lexer*,fdm*,ghostcell*);
     void seed(lexer*,fdm*);
     void posseed_box(lexer*,fdm*);
+    void posseed_box_dummy(lexer*,fdm*);
     void posseed_topo(lexer*,fdm*);
     void posseed_suspended(lexer*,fdm*);
     void point_source(lexer*,fdm*);
@@ -127,6 +119,11 @@ private:
 	void pvtp_pos(lexer*);
     void header_pos(lexer*);
     void piecename_pos(lexer*,int);
+
+    void seedDummy(lexer*,fdm*,particles_obj&);
+    void seedDummyCell(lexer*,fdm*,particles_obj&);
+    void printDummyVTP(lexer*,particles_obj&);
+    void printDummyPVTP(lexer*);
 
 public:
 
@@ -158,15 +155,10 @@ private:
     /// @brief Initialization counter
     int inicount;
 
-    /// @brief Marker for cells which should be seeded for a box
-    field4 active_box;
-    /// @brief Marker for cells which should be seeded with topography
-	field4 active_topo;
+    
 
     // SEDIMENT OBJECTS
 
-    /// @brief Particle object
-    particles_obj PP;
     /// @brief VRANS object
     vrans* pvrans;
     /// @brief FDM object for sediment
@@ -174,7 +166,7 @@ private:
     /// @brief Bed shear object
     bedshear pbedshear;
     /// @brief Movement object for particles
-    sediment_particle::movement::base *movement;
+    partres *pst;
 
     turbulence *pturb;
 

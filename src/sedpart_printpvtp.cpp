@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sedpart.h"
+#include"sediment_part.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 /// @brief Printing partion wrapping pvtp file
-void sedpart::pvtp_pos(lexer* p)
+void sediment_part::pvtp_pos(lexer* p)
 {
 
     // if(p->P15==1)
@@ -62,7 +62,7 @@ void sedpart::pvtp_pos(lexer* p)
     result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\"/>\n";
     result<<"<DataArray type=\"Float32\" Name=\"shear stress\" NumberOfComponents=\"2\" ComponentName0=\"eff\" ComponentName1=\"crit\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"DragCoeff\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"bedChange\"/>\n";
 	result<<"</PPointData>\n";
 
 	result<<"<PPoints>\n";
@@ -82,7 +82,7 @@ void sedpart::pvtp_pos(lexer* p)
 }
 
 /// @brief Setting name of indivdual vtp file for pvtp file
-void sedpart::piecename_pos(lexer* p, int n)
+void sediment_part::piecename_pos(lexer* p, int n)
 {
 
     // if(p->P15==1)
@@ -96,7 +96,7 @@ void sedpart::piecename_pos(lexer* p, int n)
 }
 
 /// @brief Setting name of indivdual vtp file
-void sedpart::header_pos(lexer* p)
+void sediment_part::header_pos(lexer* p)
 {
 
     // if(p->P15==1)
@@ -109,4 +109,34 @@ void sedpart::header_pos(lexer* p)
 	
 }
 
+void sediment_part::printDummyPVTP(lexer *p)
+{	
+	sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-Dummy.pvtp");
+	
 
+	ofstream result;
+	result.open(name);
+
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PPolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+	result<<"<PPolyData GhostLevel=\"0\">\n";
+
+    result<<"<PPointData>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+	result<<"</PPointData>\n";
+
+	result<<"<PPoints>\n";
+	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+	result<<"</PPoints>\n";
+
+	for(int n=0; n<p->M10; ++n)
+	{
+    sprintf(pname,"REEF3D-SedPart-Dummy-%06i.vtp",n+1);
+    result<<"<Piece Source=\""<<pname<<"\"/>\n";
+	}
+
+	result<<"</PPolyData>\n";
+	result<<"</VTKFile>"<<std::flush;
+
+	result.close();
+}

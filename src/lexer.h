@@ -524,12 +524,16 @@ public:
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
-    double Q73;
+    int Q73;
+    double *Q73_val,*Q73_dist,*Q73_b,*Q73_x,*Q73_y;
+    
     
     int Q101;
-    int Q110;
     double Q102;
+    int Q110;
     double *Q110_xs,*Q110_xe,*Q110_ys,*Q110_ye,*Q110_zs,*Q110_ze;
+    int Q111;
+    double *Q111_xs,*Q111_xe,*Q111_ys,*Q111_ye,*Q111_zs,*Q111_ze;
     
     int Q120;
     int Q121;
@@ -539,6 +543,10 @@ public:
     int Q181;
     double Q182;
     int Q183;
+
+    int Q200;
+    int Q201;
+    int Q202;
     
 
 	// Sediment Transport

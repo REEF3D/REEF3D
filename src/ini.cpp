@@ -139,7 +139,7 @@ void lexer::ini_default()
     A584=0;      // int solid vertical cylinder
 
     // Boundary Conditions
-	B10=1;			// int wall laws velocities on/off
+	B10=0;			// int wall laws velocities on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity
     B23=1;            // int ghostcell extrapolation or refective
 	B29=0.5;		// double gamma for gc image point
@@ -148,7 +148,7 @@ void lexer::ini_default()
     B32=0;           // int pressure reference location
     B32_x=B32_y=B32_z=0.0; // double pressure reference location
     B33=1;           // int pressure gage virtual or inline
-	B50=0.001;		// double global wall roughness ks
+	B50=0.0001;		// double global wall roughness ks
 	B51=-1.0;		// double global wall roughness ks
 	B52=-1.0;		// double global wall roughness ks
 	B53=-1.0;		// double global wall roughness ks
@@ -590,8 +590,8 @@ void lexer::ini_default()
 	P352=0;             // int print out wsf lsm2
     
     // Particles
-    Q10=0;              // int particle algorithm
-    Q11=0;              // int bedload
+    Q10=0;              // int time scheme
+    Q11=1;              // int move function
     Q12=0;              // int susp load
     Q13=0;              // int topo deformation
     Q14=10;           // d continuum particle stress model parameter following Snider (2001) [Pressure]
@@ -604,13 +604,14 @@ void lexer::ini_default()
     Q24=0;              // int particles per cell
     Q25=1.25;           // double safety factor particle allocate
     Q29=0;              // int seed number for random particle placement
-    Q41=0;              // double default packing factor
+    Q41=0;              // double default parcel factor
     Q43=0;              // int number of water iteration, before particle transport starts
     Q61=0;              // point source x,y,z, iterations between particles
-    Q73=0;              // double distance in x-dir where particles movement in y-dir and z-dir is suppressed
+    Q73=0;              // int relax 
     Q101=0;             // int ini particle as topo
     Q102=0.9;           // double max distance from topo = Q102*dz
     Q110=0;             // int ini particle as box
+    Q111=0;             // int ini particle as box for dummy particles
     Q120=0;             // int seed particles in suspension
     Q121=1;             // int iterations between pariticle seeding in suspension
     Q122=2;             // int particles per cell in susp seeding      
@@ -618,6 +619,9 @@ void lexer::ini_default()
     Q181=-10;           // int print vtp iter interval
     Q182=-1.0;          // double print vtp time interval
     Q183=0;             // int flag and above to print
+    Q200 = 1;           // int movement model erosion
+    Q201 = 0;           // int movement model deposition
+    Q202 = 1;           // int movement model transport
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module

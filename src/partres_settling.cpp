@@ -10,32 +10,42 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Widar W. Wang
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"wave_lib_spectrum.h"
+#include"partres.h"
+#include"particles_obj.h"
 #include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
-double wave_lib_spectrum::Goda_JONSWAP(lexer* p, double w) 
+double partres::settling_velocity(lexer *p, double d, double du, double dv, double dw, double thetas) const
 {
-    beta_J = 0.06238 / (0.230 + 0.0336 * p->B88 - 0.185 * pow((1.9 + p->B88), -1.0)) * (1.094 - 0.01915 * log(p->B88));
+        const double dU=sqrt(du*du+dv*dv+dw*dw);
+        if(dU==0) // Saveguard
+        return 0;
 
-    if(w <= p->wwp)
-        sigma = 0.07;
+        const double Rep=dU*d*invKinVis;
 
-    if(w > p->wwp)
-        sigma = 0.09;
-
-    // Goda-1999-version JONSWAP
-    Sval = beta_J * pow(p->wHs, 2.0) * pow(p->wwp,4.0) * pow(w,-5.0) * exp(-1.25 * pow(w / p->wwp, -4.0)) * pow(p->B88, exp(-pow(w / p->wwp - 1.0, 2.0) / (2.0 * pow(sigma, 2.0))));
-
-    return Sval;
+        const double Cd=24.0/Rep+4.0/sqrt(Rep)+0.4;
+        const double ws_single=sqrt(4.0/3.0*(p->S22-p->W1)/p->W1*d*fabs(p->W22)/Cd);
+        double n;
+        if(Rep<=0.2)
+        n=4.65;
+        else if(Rep<=1)
+        n=4.35*pow(Rep,-0.03);
+        else if(Rep<=500)
+        n=4.45*pow(Rep,-0.1);
+        else
+        n=2.39;
+        const double ws_swarm = ws_single*pow((1.0-thetas),n);
+        return ws_swarm;
 }

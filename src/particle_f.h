@@ -23,8 +23,8 @@ Author: Hans Bihs
 #include"particle.h"
 #include"boundarycheck.h"
 #include"field4.h"
-#include "particles_obj.h"
-#include "particle_func.h"
+#include"particles_obj.h"
+#include"particle_func.h"
 
 #define PARTLOOP for(int n=0;n<PP.loopindex;++n)
 

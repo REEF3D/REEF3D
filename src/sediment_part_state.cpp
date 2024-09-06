@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "sedpart.h"
-#include "sedpart_movement.h"
+#include"sediment_part.h"
+#include"partres.h"
 
 /// @brief Write out particle data to state file
 /// @param result statefile
-void sedpart::write_state_particles(lexer *p, ofstream &result)
+void sediment_part::write_state_particles(lexer *p, ofstream &result)
 {
     float ffn=num;
     result.write((char*)&ffn, sizeof (float));
@@ -51,15 +51,15 @@ void sedpart::write_state_particles(lexer *p, ofstream &result)
         result.write((char*)&ffn, sizeof (float));
         ffn=PP.W[n];
         result.write((char*)&ffn, sizeof (float));
-        ffn=PP.PackingFactor[n];
+        ffn=PP.ParcelFactor[n];
         result.write((char*)&ffn, sizeof (float));
     }
-    movement->writeState(p,result);
+    pst->writeState(p,result);
 }
 
 /// @brief Read in particle data from state file
 /// @param result statefile
-void sedpart::read_state_particles(lexer *p, ifstream& result)
+void sediment_part::read_state_particles(lexer *p, ifstream& result)
 {
     float ffn;
     result.read((char*)&ffn, sizeof (float));
@@ -93,5 +93,5 @@ void sedpart::read_state_particles(lexer *p, ifstream& result)
         packing=double(ffn);
         PP.add(x,y,z,flag,u,v,w,packing);
     }
-    movement->readState(p,result);
+    pst->readState(p,result);
 }

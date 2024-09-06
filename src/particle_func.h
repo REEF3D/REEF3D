@@ -29,14 +29,9 @@ Author: Alexander Hanke
 class lexer;
 class fdm;
 class ghostcell;
-
+class partres;
 class tracers_obj;
 
-namespace sediment_particle::movement
-{
-    class base;
-}
-//class particles_obj;
 
 /// Particle function class
 /** A class containing all basic function to manipulate the position of tracers_objs. */
@@ -51,9 +46,10 @@ protected:
     // Parallelization
     int remove(lexer* p,tracers_obj* PP);
     int remove(lexer* p,particles_obj* PP);
+    int remove(lexer* p,particles_obj* PP, partres*);
     int solid_clean(lexer* p, particles_obj* PP);
     int transfer(lexer* p,ghostcell* pgc, tracers_obj* PP,int);
-    int transfer(lexer* p,ghostcell* pgc, particles_obj* PP, sediment_particle::movement::base movement, int);
+    int transfer(lexer* p,ghostcell* pgc, particles_obj* PP, partres*, int);
 
     // Movement
     // void advect(lexer* p, fdm* a, tracers_obj* PP,int=0,double=0,double=0,double=0);

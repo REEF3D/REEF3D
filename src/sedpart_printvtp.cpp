@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sedpart.h"
+#include"sediment_part.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
 /// @brief Printing contol function
-void sedpart::print_particles(lexer* p)
+void sediment_part::print_particles(lexer* p)
 {
     if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
 	{
@@ -50,7 +50,7 @@ void sedpart::print_particles(lexer* p)
 }
 
 /// @brief Printing particle as vtp
-void sedpart::print_vtp(lexer* p)
+void sediment_part::print_vtp(lexer* p)
 {
 	int numpt=0;
 	const int print_flag=p->Q183;
@@ -59,7 +59,7 @@ void sedpart::print_vtp(lexer* p)
 	if(PP.Flag[n]>=print_flag)
 	numpt++;
 
-	cout<<"PSed-"<<p->mpirank<<"| printed: "<<numpt<<" not printed: "<<PP.size-numpt<<" | capcaity: "<<PP.capacity<<endl;
+	cout<<"PSed-"<<p->mpirank<<"| printed: "<<numpt<<" not printed: "<<PP.size-numpt<<" | capcacity: "<<PP.capacity<<endl;
 
 	int count;
 	int n=0;
@@ -91,7 +91,7 @@ void sedpart::print_vtp(lexer* p)
 	++n;
     offset[n]=offset[n-1]+4*(numpt)+4; //drag
 	++n;
-	offset[n]=offset[n-1]+4*(numpt)+4; //elevation
+	offset[n]=offset[n-1]+4*(numpt)+4; //bedChange
 	++n;
 	
 
@@ -104,55 +104,55 @@ void sedpart::print_vtp(lexer* p)
 
 	//---------------------------------------------
 	n=0;
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PolyData>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfVerts=\""<<numpt<<"\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+	result<<"<PolyData>\n";
+	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfVerts=\""<<numpt<<"\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n";
 	
-	result<<"<FieldData>"<<endl;
+	result<<"<FieldData>\n";
 	if(p->P16==1)
     {
 	result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
+    result<<"</DataArray>\n";
 	}
-	result<<"</FieldData>"<<endl;
+	result<<"</FieldData>\n";
 	
-	result<<"<PointData >"<<endl;
-	result<<"<DataArray type=\"Float32\" Name=\"Flag\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<PointData >\n";
+	result<<"<DataArray type=\"Float32\" Name=\"Flag\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
 	++n;
-    result<<"<DataArray type=\"Float32\" Name=\"radius\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"radius\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"shear stress\" NumberOfComponents=\"2\" ComponentName0=\"eff\" ComponentName1=\"crit\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"shear stress\" NumberOfComponents=\"2\" ComponentName0=\"eff\" ComponentName1=\"crit\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"DragCoeff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"DragCoeff\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"bedChange\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-	result<<"</PointData>"<<endl;
+	result<<"</PointData>\n";
 	
 
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Points>\n";
+    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-    result<<"</Points>"<<endl;
+    result<<"</Points>\n";
 	
 
-    result<<"<Verts>"<<endl;
-	result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Verts>\n";
+	result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
 	++n;
-	result<<"</Verts>"<<endl;
+	result<<"</Verts>\n";
 
-    result<<"</Piece>"<<endl;
-    result<<"</PolyData>"<<endl;
+    result<<"</Piece>\n";
+    result<<"</PolyData>\n";
 
 	//----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+    result<<"<AppendedData encoding=\"raw\">\n"<<"_";
 	
 	// flag
     iin=4*(numpt);
@@ -229,13 +229,13 @@ void sedpart::print_vtp(lexer* p)
 		result.write((char*)&ffn, sizeof (float));
 	}
 
-	// elevation
+	// bedChange
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
 	PARTLOOP
 	if(PP.Flag[n]>=print_flag)
 	{
-		ffn=float(PP.Z[n]);
+		ffn=float(p->ccslipol4(s.bedzh,PP.X[n],PP.Y[n])-p->ccslipol4(s.bedzh0,PP.X[n],PP.Y[n]));
 		result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -279,9 +279,130 @@ void sedpart::print_vtp(lexer* p)
 	++count;
 	}
 
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
+	result<<"\n</AppendedData>\n";
+    result<<"</VTKFile>"<<flush;
 
 	result.close();
 	}
 
+void sediment_part::printDummyVTP(lexer *p, particles_obj &PP)
+{
+    int numpt=0;
+	const int print_flag=p->Q183;
+
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	numpt++;
+
+    int count;
+	int n=0;
+    int offset[100];
+	int iin;
+	float ffn;
+	
+	if(p->mpirank==0)
+	printDummyPVTP(p);
+
+    sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-Dummy-%06i.vtp",p->mpirank+1);
+
+    ofstream result;
+	result.open(name, ios::binary);
+
+
+	offset[n]=0;
+	++n;
+    offset[n]=offset[n-1]+4*(numpt)+4; //elevation
+	++n;
+
+    offset[n]=offset[n-1]+4*(numpt)*3+4; //xyz
+    ++n;
+    offset[n]=offset[n-1]+4*(numpt)+4; //connectivitey
+    ++n;
+	offset[n]=offset[n-1]+4*(numpt)+4; //offset connectivity
+    ++n;
+
+	//---------------------------------------------
+	n=0;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+	result<<"<PolyData>\n";
+	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfVerts=\""<<numpt<<"\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n";
+
+    result<<"<PointData >\n";
+	result<<"<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
+    ++n;
+	result<<"</PointData>\n";
+
+    result<<"<Points>\n";
+    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
+    ++n;
+    result<<"</Points>\n";
+	
+    result<<"<Verts>\n";
+	result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
+    ++n;
+	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
+	++n;
+	result<<"</Verts>\n";
+
+    result<<"</Piece>\n";
+    result<<"</PolyData>\n";
+
+	//----------------------------------------------------------------------------
+    result<<"<AppendedData encoding=\"raw\">\n"<<"_";
+
+    // elevation
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	{
+		ffn=float(PP.Z[n]);
+		result.write((char*)&ffn, sizeof (float));
+	}
+
+    //  XYZ
+	iin=4*(numpt)*3;
+	result.write((char*)&iin, sizeof (int));
+    PARTLOOP
+    if(PP.Flag[n]>=print_flag)
+	{
+	ffn=float(PP.X[n]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(PP.Y[n]);
+	result.write((char*)&ffn, sizeof (float));
+
+	ffn=float(PP.Z[n]);
+	result.write((char*)&ffn, sizeof (float));
+	}
+	
+	//  Connectivity
+	count=0;
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	PARTLOOP
+	if(PP.Flag[n]>=print_flag)
+	{
+	iin=int(count);
+	result.write((char*)&iin, sizeof (int));
+	++count;
+	}
+
+	//  Offset of Connectivity
+	count=1;
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	PARTLOOP
+    if(PP.Flag[n]>=print_flag)
+	{
+	iin=int(count);
+	result.write((char*)&iin, sizeof (int));
+	++count;
+	}
+
+	result<<"\n</AppendedData>\n";
+    result<<"</VTKFile>"<<flush;
+
+	result.close();
+}

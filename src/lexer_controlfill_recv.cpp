@@ -1204,13 +1204,15 @@ void lexer::ctrlrecv()
     ii++;
     Q61 = ictrl[ii];
 	ii++;
-    Q73 = dctrl[dd];
+    Q73 = ictrl[ii];
 	dd++;
     Q101 = ictrl[ii];
 	ii++;
     Q102 = dctrl[dd];
 	dd++;
     Q110 = ictrl[ii];
+	ii++;
+    Q111 = ictrl[ii];
 	ii++;
     Q120 = ictrl[ii];
     ii++;
@@ -1225,6 +1227,12 @@ void lexer::ctrlrecv()
     Q182 = dctrl[dd];
 	dd++;
     Q183 = ictrl[ii];
+    ii++;
+    Q200 = ictrl[ii];
+    ii++;
+    Q201 = ictrl[ii];
+    ii++;
+    Q202 = ictrl[ii];
     ii++;
 
     S10 = ictrl[ii];
@@ -2476,6 +2484,15 @@ void lexer::ctrlrecv()
     Iarray(Q61_i,Q61);
 	}
     
+    if(Q73>0)
+	{
+	Darray(Q73_val,Q73);
+	Darray(Q73_dist,Q73);
+	Darray(Q73_b,Q73);
+	Darray(Q73_x,Q73);
+	Darray(Q73_y,Q73);
+	}
+    
     if(Q110>0)
 	{
 	Darray(Q110_xs,Q110);  
@@ -2486,6 +2503,17 @@ void lexer::ctrlrecv()
 	
 	Darray(Q110_zs,Q110);  
 	Darray(Q110_ze,Q110);  
+	}
+    if(Q111>0)
+	{
+	Darray(Q111_xs,Q111);  
+	Darray(Q111_xe,Q111);
+
+	Darray(Q111_ys,Q111);  
+	Darray(Q111_ye,Q111);  
+	
+	Darray(Q111_zs,Q111);  
+	Darray(Q111_ze,Q111);  
 	}
 
     if(S73>0)
@@ -3601,6 +3629,20 @@ for(n=0;n<F369;++n)
     Q61_i[n] = ictrl[ii];
     ii++;
     }
+    
+    for(n=0;n<Q73;++n)
+    {
+    Q73_val[n]= dctrl[dd];
+    dd++;
+	Q73_dist[n]= dctrl[dd];
+    dd++;
+	Q73_b[n]  = dctrl[dd];
+    dd++;
+    Q73_x[n]  = dctrl[dd];
+    dd++;
+	Q73_y[n]  = dctrl[dd];
+    dd++;
+    }
 
     for(n=0;n<Q110;++n)
     {
@@ -3615,6 +3657,21 @@ for(n=0;n<F369;++n)
     Q110_zs[n] = dctrl[dd];
     dd++;
     Q110_ze[n] = dctrl[dd];
+    dd++;
+    }
+    for(n=0;n<Q111;++n)
+    {
+    Q111_xs[n] = dctrl[dd];
+    dd++;
+    Q111_xe[n] = dctrl[dd];
+    dd++;
+    Q111_ys[n] = dctrl[dd];
+    dd++;
+    Q111_ye[n] = dctrl[dd];
+    dd++;
+    Q111_zs[n] = dctrl[dd];
+    dd++;
+    Q111_ze[n] = dctrl[dd];
     dd++;
     }
     

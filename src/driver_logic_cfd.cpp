@@ -580,8 +580,8 @@ void driver::logic_cfd()
 // Sediment
     if(p->S10>0)
     {
-		if(p->Q10==2)
-			psed = new sedpart(p,pgc,pturb);
+		if(p->Q10>=2)
+			psed = new sediment_part(p,pgc,pturb);
 		else
 			psed = new sediment_f(p,a,pgc,pturb,pBC);
 	}

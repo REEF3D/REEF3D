@@ -10,32 +10,45 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Widar W. Wang
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"wave_lib_spectrum.h"
+#include"partres.h"
+#include"particles_obj.h"
 #include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
 
-double wave_lib_spectrum::Goda_JONSWAP(lexer* p, double w) 
+
+/// @brief Writes the state of the partres class to file.
+/// @ToDo Write cellSumTopo 
+void partres::writeState(lexer *p, ofstream &result)
 {
-    beta_J = 0.06238 / (0.230 + 0.0336 * p->B88 - 0.185 * pow((1.9 + p->B88), -1.0)) * (1.094 - 0.01915 * log(p->B88));
+        float ffn;
+        PLAINLOOP
+        {
+            ffn=cellSum[IJK];
+            result.write((char*)&ffn, sizeof (float));
+        }
+        result.write((char*)&ffn, sizeof (float));  
+}
 
-    if(w <= p->wwp)
-        sigma = 0.07;
+/// Reads the state of the partres class from file.
+/// Reconstructs cellSum, columnSum and stressTensor
+void partres::readState(lexer *p, ifstream &result)
+{
+        float ffn;
+        PLAINLOOP
+        {
+            result.read((char*)&ffn, sizeof (float));
+            cellSum[IJK]=double(ffn);
+        }
 
-    if(w > p->wwp)
-        sigma = 0.09;
-
-    // Goda-1999-version JONSWAP
-    Sval = beta_J * pow(p->wHs, 2.0) * pow(p->wwp,4.0) * pow(w,-5.0) * exp(-1.25 * pow(w / p->wwp, -4.0)) * pow(p->B88, exp(-pow(w / p->wwp - 1.0, 2.0) / (2.0 * pow(sigma, 2.0))));
-
-    return Sval;
 }
