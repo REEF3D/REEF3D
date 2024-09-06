@@ -58,8 +58,8 @@ public:
         seedReturn seeding(lexer *, particles_obj &, size_t &, double, bool=false);
         
         void move_RK2(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &);
-        void move_RK2_step1(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &);
-        void move_RK2_step2(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &);
+        void move_RK2_step1(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
+        void move_RK2_step2(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
         void move_RK3(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &);
         
         void advec_plain(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 

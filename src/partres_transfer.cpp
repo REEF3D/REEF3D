@@ -63,7 +63,7 @@ void partres::remove(lexer *p, particles_obj &PP, size_t &index)
         bedChange[IJ] -= PP.ParcelFactor[index];
 }
 
-void partres::addParticleForTransfer(lexer *p, particles_obj &PP, size_t n, particles_obj Send[6], int &xchange)
+void partres::addParticleForTransfer(lexer *p, particles_obj &PP, size_t n, particles_obj Send[6], int &xchanged)
 {
     if(p->flag5[IJK]<0 && p->flag5[IJK]>-10)
     {
@@ -107,6 +107,6 @@ void partres::addParticleForTransfer(lexer *p, particles_obj &PP, size_t n, part
         }
         remove(p,PP,n);
         PP.erase(n);
-        ++xchange;
+        ++xchanged;
     }
 }
