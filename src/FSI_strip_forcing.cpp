@@ -59,6 +59,7 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     double dx, dy, dz, dV, dist, D;
     double eps_star;
     double kin;
+    double turb_force_fac = 50.0;
     
     pip=4;
     
@@ -132,11 +133,9 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         D *= kernel_roma(dist);
                         
                         kin = pturb->kinval(i_it,j_it,k_it);
-                        eps_star = 5.0*D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
+                        eps_star = turb_force_fac*D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
                         
                         eps0(i_it,j_it,k_it) += eps_star;
-                        
-                        a->eddyv(i_it,j_it,k_it) = (1.0-D)*a->eddyv(i_it,j_it,k_it) + D*MIN(a->eddyv(i_it,j_it,k_it), 0.33*(dx+dy+dz)*p->cmu*pow((kin>(1.0e-20)?(kin):(1.0e20)),0.5));
                         }
                     }
                 }
