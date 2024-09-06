@@ -80,6 +80,7 @@ public:
         void writeState(lexer *, ofstream &);
         void readState(lexer *, ifstream &);
         void setupState(lexer *, fdm &, ghostcell &, particles_obj &);
+        void setParticleMax(double);
 private:
         double maxParticlesPerCell(lexer *, fdm &, double,bool=true,bool=false);
         void particleStressTensor(lexer *, fdm &, ghostcell &, particles_obj &);
@@ -132,6 +133,7 @@ private:
             
     double Fd, Fs, F_tot, Re_p;
     double F,G,H;
+    double maxcount;
 };
 
 #endif
