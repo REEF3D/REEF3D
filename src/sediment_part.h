@@ -155,10 +155,17 @@ private:
     /// @brief Initialization counter
     int inicount;
 
-    
+    /// @brief Marker for cells which should be seeded for a box
+    field4 active_box;
+    field4 active_box_dummy;
+    /// @brief Marker for cells which should be seeded with topography
+	field4 active_topo;
 
     // SEDIMENT OBJECTS
 
+    /// @brief Particle object
+    particles_obj PP;
+    particles_obj PP2;
     /// @brief VRANS object
     vrans* pvrans;
     /// @brief FDM object for sediment

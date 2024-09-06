@@ -26,7 +26,6 @@ Authors: Alexander Hanke, Hans Bihs
 #include"increment.h"
 #include"particle_func.h"
 #include"slice4.h"
-#include"field4.h"
 
 #include <stdio.h>
 #include <fstream>
@@ -118,60 +117,34 @@ private:
         
     double *tan_betaQ73,*betaQ73,*dist_Q73;
 	double val;
-    
-    // SEDIMENT OBJECTS
+            
+            /// @brief Sum of particles belonging to the stationary bed
+            double *cellSumTopo;
+            /// @brief Sum of particles belonging to the mobile bed
+            double *cellSum;
+            /// @brief Stress tensor for the particle-particle interaction
+            double *stressTensor;
+            /// @brief Number of particles per 2D bed column
+            double *columnSum;
+            /// @brief Relative density of fluid and particle
+            const double drho;
+            /// @brief Inverse of kinetik viscosity of the fluid
+            const double invKinVis;
+            /// @brief Stress tensor parameter
+            const double Ps;
+            /// @brief Stress tensor parameter
+            const double beta;
+            /// @brief Stress tensor parameter
+            const double epsilon;
+            /// @brief Critical solid volume fraction
+            const double theta_crit;
 
-    /// @brief Particle object
-    particles_obj PP;
-    particles_obj PP2;
-    
-    
-    /// @brief Current capacity for particles
-    int maxparticle;
-    /// @brief Desired particles per cell
-    int ppcell;
-    /// @brief Number of particles over all partitions
-    int gparticle_active;
-    /// @brief Particles removed over all partitions
-    int gremoved;
-    /// @brief Particles exchanged between all partitions
-    int gxchange;
-    
-    /// @brief Sum of particles belonging to the stationary bed
-    double *cellSumTopo;
-    /// @brief Sum of particles belonging to the mobile bed
-    double *cellSum;
-    /// @brief Stress tensor for the particle-particle interaction
-    double *stressTensor;
-    /// @brief Number of particles per 2D bed column
-    double *columnSum;
-    /// @brief Relative density of fluid and particle
-    const double drho;
-    /// @brief Inverse of kinetik viscosity of the fluid
-    const double invKinVis;
-    /// @brief Stress tensor parameter
-    const double Ps;
-    /// @brief Stress tensor parameter
-    const double beta;
-    /// @brief Stress tensor parameter
-    const double epsilon;
-    /// @brief Critical solid volume fraction
-    const double theta_crit;
+            double dx;
+            slice4 bedChange;
 
-    double dx;
-    slice4 bedChange;
-
-    double velDist=1.6;
+            double velDist=1.6;
             
     double Fd, Fs, F_tot, Re_p;
-    
-    
-    // Seeding data
-    /// @brief Marker for cells which should be seeded for a box
-    field4 active_box;
-    field4 active_box_dummy;
-    /// @brief Marker for cells which should be seeded with topography
-	field4 active_topo;
 };
 
 #endif
