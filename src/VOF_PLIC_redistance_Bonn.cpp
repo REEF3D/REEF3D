@@ -67,9 +67,12 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                 {
                                     if(a->vof(i,j,k)>0.0001 && a->vof(i,j,k)<0.9999)
                                     {
+                                        if(alpha(i,j,k)*phistep(i,j,k)>=0.0)
+                                        {
                                         phitemp=alpha(i,j,k);
                                         if(fabs(phitemp)<fabs(phiaux(i,j,k)))
                                             phiaux(i,j,k)=phitemp;
+                                        }
                                     }
                                 }
                                 else
@@ -78,7 +81,7 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                     if(fabs(phitemp)<1E05)
                                     {
                                         if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                            phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
+                                            phiaux(ip,jp,kp)=copysign(phitemp,phistep(i,j,k));
                                     }
                                     else
                                     {   
@@ -86,7 +89,7 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                         if(fabs(phitemp)<1E05)
                                         {
                                             if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
+                                                phiaux(ip,jp,kp)=copysign(phitemp,phistep(i,j,k));
                                         }   
                                         else
                                         {
@@ -94,14 +97,14 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                             if(fabs(phitemp)<1E05)
                                             {
                                                 if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                    phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
+                                                    phiaux(ip,jp,kp)=copysign(phitemp,phistep(i,j,k));
                                             }
                                             else
                                             {
                                                 cout<<"no nearest phase pint found"<<endl;
                                                 phitemp=phistep(ip,jp,kp);
                                                 if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                    phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
+                                                    phiaux(ip,jp,kp)=copysign(phitemp,phistep(i,j,k));
                                             }
                                         }
                                     }
