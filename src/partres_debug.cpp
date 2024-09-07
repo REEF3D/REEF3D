@@ -43,8 +43,8 @@ void partres::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedimen
             {
                 if(PP.Flag[n]==0)
                 {
-                    PP.shear_eff[n]=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
-                    PP.shear_crit[n]=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
+                    // PP.shear_eff[n]=p->ccslipol4(s.tau_eff,PP.X[n],PP.Y[n]);
+                    // PP.shear_crit[n]=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
                 }
 
                 topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);

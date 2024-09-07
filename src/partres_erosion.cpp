@@ -51,8 +51,8 @@ void partres::erosion(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                                     PP.Flag[n]=1;
                                     ++counter;
 
-                                    PP.shear_eff[n]=shear_eff;
-                                    PP.shear_crit[n]=shear_crit;
+                                    // PP.shear_eff[n]=shear_eff;
+                                    // PP.shear_crit[n]=shear_crit;
 
                                     i=p->posc_i(PP.X[n]);
                                     j=p->posc_j(PP.Y[n]);

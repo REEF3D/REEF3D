@@ -406,7 +406,7 @@ void particles_obj::add_obj(particles_obj* obj)
         
         if(obj->entries>obj->tracers_obj::entries && entries>tracers_obj::entries)
             for(size_t n=0;n<obj->loopindex;n++)
-                add(obj->X[n],obj->Y[n],obj->Z[n],obj->Flag[n],obj->U[n],obj->V[n],obj->W[n],obj->ParcelFactor[n],obj->URK1[n],obj->VRK1[n],obj->WRK1[n],obj->Uf[n],obj->Vf[n],obj->Wf[n],obj->shear_eff[n],obj->shear_crit[n],obj->drag[n]);
+                add(obj->X[n],obj->Y[n],obj->Z[n],obj->Flag[n],obj->U[n],obj->V[n],obj->W[n],obj->ParcelFactor[n],obj->XRK1[n],obj->YRK1[n],obj->ZRK1[n],obj->URK1[n],obj->VRK1[n],obj->WRK1[n],obj->Uf[n],obj->Vf[n],obj->Wf[n],obj->shear_eff[n],obj->shear_crit[n],obj->drag[n]);
         else
             tracers_obj::add_obj(obj);
     }
