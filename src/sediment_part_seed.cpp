@@ -276,6 +276,8 @@ void sediment_part::seed_topo(lexer *p, fdm *a)
         if (!(ipolTopo>tolerance||ipolTopo<-p->Q102*p->DZN[KP]||ipolSolid<0))
         {
             index=PP.add(x,y,z,flag,0,0,0,p->Q41);
+            PP.shear_crit[index]=p->mpirank;
+            PP.shear_eff[index]=PP.size;
             auto result = pst->seeding(p, PP, index, p->Q41*ppcell);
             if(result==seedReturn::STOP)
                 break;

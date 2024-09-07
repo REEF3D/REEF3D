@@ -45,7 +45,7 @@ Author: Alexander Hanke
 /// @param p control object
 /// @param pgc ghostcell object
 /// @param pturb turbulence object
-sediment_part::sediment_part(lexer* p, ghostcell* pgc, turbulence *pturb) : particle_func(p), PP(10,p->S20,p->S22,true), PP2(10,p->S20,p->S22,true), active_box(p), active_box_dummy(p), active_topo(p), irand(10000), drand(irand), s(p), pbedshear(p,pturb), prelax(p), pslope(p)
+sediment_part::sediment_part(lexer* p, ghostcell* pgc, turbulence *pturb) : PP(10,p->S20,p->S22,true), PP2(10,p->S20,p->S22,true), active_box(p), active_box_dummy(p), active_topo(p), irand(10000), drand(irand), s(p), pbedshear(p,pturb), prelax(p), pslope(p)
 {
     // pvrans = new vrans_f(p,pgc);
     pvrans =  new vrans_v(p,pgc);
