@@ -48,7 +48,7 @@ class vrans;
 class turbulence;
 
 /// This class used particles on a Lagrangien framework and a VRANS sediment domain to simulate the influence of flow on the sediment
-class sediment_part : public sediment, private particle_func, private increment
+class sediment_part : public sediment, private increment
 {
 public:
 
