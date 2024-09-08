@@ -1716,6 +1716,9 @@
           <File Name="sediment_part.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Particle Base">
+          <File Name="particles_obj_erase.cpp"/>
+          <File Name="particles_obj.cpp"/>
+          <File Name="particles_obj_add.cpp"/>
           <VirtualDirectory Name="Void">
             <File Name="particle_v.cpp"/>
           </VirtualDirectory>
@@ -1733,7 +1736,6 @@
             <File Name="particle_printpvtu.cpp"/>
           </VirtualDirectory>
           <File Name="tracers_obj.cpp"/>
-          <File Name="particles_obj.cpp"/>
           <File Name="particle_f.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
