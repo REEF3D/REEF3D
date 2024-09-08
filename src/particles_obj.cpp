@@ -140,6 +140,10 @@ void particles_obj::erase(size_t index)
         U[index]=0;
         V[index]=0;
         W[index]=0;
+        
+        URK1[index]=0;
+        VRK1[index]=0;
+        WRK1[index]=0;
 
         ParcelFactor[index]=0;
 
@@ -165,6 +169,13 @@ void particles_obj::erase_all()
         U = new double[capacity];
         V = new double[capacity];
         W = new double[capacity];
+        
+        delete[] URK1;
+        delete[] VRK1;
+        delete[] WRK1;
+        URK1 = new double[capacity];
+        VRK1 = new double[capacity];
+        WRK1 = new double[capacity];
 
         delete[] ParcelFactor;
         ParcelFactor = new double[capacity];

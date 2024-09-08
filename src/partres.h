@@ -135,6 +135,7 @@ private:
     double Fd, Fs, Ft, F_tot, Re_p;
     double F,G,H;
     double maxcount;
+    double Umax,Uabs;
 };
 
 #endif

@@ -63,7 +63,6 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     double thetas=0;
     double DragCoeff=0;
     double Uabs_rel=0.0;
-    double Uabs=0.0;
 
     i=p->posc_i(PX[n]);
     j=p->posc_j(PY[n]);
@@ -114,11 +113,9 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     
     Fd *= rf(p,PX[n],PY[n]);
     
-    Fs = (p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0)*0.88/6.0;
+    Fs = (p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0)*1.1/6.0;
     
-    Ft = sin(s.teta(i,j))*(p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0);
-    
-    F_tot = Fd-Fs;//-Ft;
+    F_tot = Fd-Fs;//*s.reduce(i,j);
     
     F_tot = MAX(F_tot,0.0);
     
@@ -135,10 +132,10 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     
     Uabs=sqrt(PU[n]*PU[n]+PV[n]*PV[n]);
     
-    if(Uabs<0.1)
+    if(Uabs<0.001)
     PP.Flag[n]=0;
     
-    if(Uabs>=0.1)
+    if(Uabs>=0.001)
     PP.Flag[n]=1;
 
     // solid forcing
@@ -158,6 +155,8 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     dw *= rf(p,PX[n],PY[n]);
     
     dw=0.0;
+    
+    Umax = MAX(Umax,sqrt(PU[n]*PU[n] + PV[n]*PV[n]));
     
     
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])

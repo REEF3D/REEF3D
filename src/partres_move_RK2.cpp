@@ -38,6 +38,8 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     particleStressTensor(p,a,pgc,PP);
     timestep(p,pgc,PP);
     
+    Umax=-1.0e10;
+    
     // RK step 1 
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
@@ -78,7 +80,17 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         addParticleForTransfer(p,PP,n,Send,xchanged);
     }
     
-
+    /*// z-coordinate
+    Umax = pgc.globalmax(Umax);
+    
+    for(size_t n=0;n<PP.loopindex;n++)
+    if(PP.Flag[n]>=0)
+    {
+    Uabs = sqrt(PP.URK1[n]*PP.URK1[n] + PP.VRK1[n]*PP.VRK1[n]);
+    
+    PP.ZRK1[n] = ((Umax-Uabs)/(Umax+1.0e-6))*PP.ZRK1[n] + (Uabs/(Umax+1.0e-6))*p->ccslipol4(s.bedzh,PP.XRK1[n],PP.YRK1[n]);
+    }*/
+    
     {
         pgc.para_tracersobj(p,Send,Recv);
 
@@ -138,7 +150,9 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
     particles_obj Recv[6]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
     particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
-
+    
+    Umax=-1.0e10;
+    
     // RK step 2
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
@@ -178,7 +192,20 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
 
         addParticleForTransfer(p,PP,n,Send,xchanged);
     }
-
+    
+  /*  
+    // z-coordinate
+    Umax = pgc.globalmax(Umax);
+    
+    for(size_t n=0;n<PP.loopindex;n++)
+    if(PP.Flag[n]>=0)
+    {
+    Uabs = sqrt(PP.U[n]*PP.U[n] + PP.V[n]*PP.V[n]);
+    
+    PP.Z[n] = ((Umax-Uabs)/(Umax+1.0e-6))*PP.Z[n] + (Uabs/(Umax+1.0e-6))*p->ccslipol4(s.bedzh,PP.X[n],PP.Y[n]);
+    }
+    
+*/
     {
         pgc.para_tracersobj(p,Send,Recv);
 
