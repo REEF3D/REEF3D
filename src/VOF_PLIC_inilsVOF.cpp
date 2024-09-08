@@ -80,7 +80,14 @@ if(p->F59_r>0.0)
     if(p->F60>-1.0e20)
     {
     LOOP
-    a->phi(i,j,k)=p->F60-p->pos_z();
+    {
+        if(p->pos_z()<p->F60)
+            a->phi(i,j,k)=1.0;
+        if(p->pos_z()==p->F60)
+            a->phi(i,j,k)=0.0;
+    }
+    
+    //a->phi(i,j,k)=p->F60-p->pos_z();
 
 	p->phimean=p->F60;
 	
@@ -102,14 +109,14 @@ if(p->F59_r>0.0)
 
 	LOOP
 	{
-		if(a->phi(i,j,k)>=0)
+		if(a->phi(i,j,k)>p->psi)
 		H=1.0;
 
-		if(a->phi(i,j,k)<0)
+		if(a->phi(i,j,k)<p->psi)
 		H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+		if(fabs(a->phi(i,j,k))<=p->psi)
+		H=0.5*(1.0 + a->phi(i,j,k)/p->psi + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->psi));
 
 		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
@@ -246,7 +253,7 @@ void VOF_PLIC::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
 	
     LOOP
 	{
-	epsi = (1.6/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+	epsi = (2.1/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
         
 	dx = (a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
 	dy = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);

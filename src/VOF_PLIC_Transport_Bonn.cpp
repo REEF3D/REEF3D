@@ -50,14 +50,14 @@ void VOF_PLIC::transportPhi_Bonn
         uim=a->u(i-1,j,k);
         dtdxi=p->dt/p->DXN[IP];
         if(uip>=0.0)
-            Gp=uip*(phistep(i,j,k)+0.5*p->DXP[IP]*(1.0-uip*(p->dt/p->DXP[IP]))*(phistep(i+1,j,k)-phistep(i,j,k))/(p->DXP[IP]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DXN[IP]*(1.0-uip*(p->dt/p->DXN[IP]))*(phistep(i+1,j,k)-phistep(i,j,k))/(p->DXP[IP]));
         else
-            Gp=uip*(phistep(i,j,k)+0.5*p->DXP[IP]*(1.0+uip*(p->dt/p->DXP[IP]))*(phistep(i+1,j,k)-phistep(i,j,k))/(p->DXP[IP]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DXN[IP]*(1.0+uip*(p->dt/p->DXN[IP]))*(phistep(i+1,j,k)-phistep(i,j,k))/(p->DXP[IP]));
             
         if(uim<=0.0)
-            Gm=uim*(phistep(i,j,k)+0.5*p->DXP[IM1]*(-1.0-uim*(p->dt/p->DXP[IM1]))*(phistep(i,j,k)-phistep(i-1,j,k))/(p->DXP[IM1]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DXN[IP]*(-1.0-uim*(p->dt/p->DXN[IP]))*(phistep(i,j,k)-phistep(i-1,j,k))/(p->DXP[IM1]));
         else
-            Gm=uim*(phistep(i,j,k)+0.5*p->DXP[IM1]*(-1.0+uim*(p->dt/p->DXP[IM1]))*(phistep(i,j,k)-phistep(i-1,j,k))/(p->DXP[IM1]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DXN[IP]*(-1.0+uim*(p->dt/p->DXN[IP]))*(phistep(i,j,k)-phistep(i-1,j,k))/(p->DXP[IM1]));
     }
     else if(sweep==1)
     {
@@ -81,22 +81,36 @@ void VOF_PLIC::transportPhi_Bonn
         uim=a->w(i,j,k-1);
         dtdxi=p->dt/p->DZN[KP];
         if(uip>=0.0)
-            Gp=uip*(phistep(i,j,k)+0.5*p->DZP[KP]*(1.0-uip*(p->dt/p->DZP[IP]))*(phistep(i,j,k+1)-phistep(i,j,k))/(p->DZP[IP]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DZN[KP]*(1.0-uip*(p->dt/p->DZN[KP]))*(phistep(i,j,k+1)-phistep(i,j,k))/(p->DZP[KP]));
         else
-            Gp=uip*(phistep(i,j,k)+0.5*p->DZP[KP]*(1.0+uip*(p->dt/p->DZP[IP]))*(phistep(i,j,k+1)-phistep(i,j,k))/(p->DZP[IP]));
+            Gp=uip*(phistep(i,j,k)+0.5*p->DZN[KP]*(1.0+uip*(p->dt/p->DZN[KP]))*(phistep(i,j,k+1)-phistep(i,j,k))/(p->DZP[KP]));
             
         if(uim<=0.0)
-            Gm=uim*(phistep(i,j,k)+0.5*p->DZP[IM1]*(-1.0-uim*(p->dt/p->DZP[IM1]))*(phistep(i,j,k)-phistep(i,j,k-1))/(p->DZP[IM1]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DZN[KP]*(-1.0-uim*(p->dt/p->DZN[KP]))*(phistep(i,j,k)-phistep(i,j,k-1))/(p->DZP[KM1]));
         else
-            Gm=uim*(phistep(i,j,k)+0.5*p->DZP[IM1]*(-1.0+uim*(p->dt/p->DZP[IM1]))*(phistep(i,j,k)-phistep(i,j,k-1))/(p->DZP[IM1]));
+            Gm=uim*(phistep(i,j,k)+0.5*p->DZN[KP]*(-1.0+uim*(p->dt/p->DZN[KP]))*(phistep(i,j,k)-phistep(i,j,k-1))/(p->DZP[KM1]));
     }
     
     if(nSweep==0)
-        phiS0(i,j,k)=(a->phi(i,j,k)-dtdxi*(Gp-Gm))/(1.0-dtdxi*(uip-uim));
+    {       
+        
+        phiS0(i,j,k)= (phistep(i,j,k)-dtdxi*(Gp-Gm))/(1.0-dtdxi*(uip-uim));
+        if(phiS0(i,j,k)!=phiS0(i,j,k))
+            cout<<"phiS0nan i:"<<i<<" k:"<<k<<endl;
+        
+        
+    }
     else if(nSweep==1)
-        phiS1(i,j,k)=phiS0(i,j,k)*(1.0+dtdxi*(uip-uim))-dtdxi*(Gp-Gm);
+    {
+        phiS1(i,j,k)= phistep(i,j,k)*(1.0+dtdxi*(uip-uim))-dtdxi*(Gp-Gm);
+        if(phiS1(i,j,k)!=phiS1(i,j,k))
+            cout<<"phiS1nan i:"<<i<<" k:"<<k<<" uip:"<<uip<<" uim:"<<uim<<" Gp:"<<Gp<<" Gm:"<<Gm<<" phistepIJK:"<<phistep(i,j,k)<<" phistepIJKP1:"<<phistep(i,j,k+1)<<" phistepIJKM1:"<<phistep(i,j,k-1)<<" sweep:"<<sweep<<endl;
+        
+    }
     else
         phiS2(i,j,k)=phiS1(i,j,k)+phiS0(i,j,k)*dtdxi*(uip-uim)-dtdxi*(Gp-Gm);
+        if(phiS2(i,j,k)!=phiS2(i,j,k))
+            cout<<"phiS2nan i:"<<i<<" k:"<<k<<endl;
 }
 
 void VOF_PLIC::transportVOF_Bonn

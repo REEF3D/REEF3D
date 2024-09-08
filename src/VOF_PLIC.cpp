@@ -123,17 +123,23 @@ void VOF_PLIC::start
 )
 {
     
-    pflow->fsfinflow(p,a,pgc);
-    pgc->start4(p,a->phi,1);
     if(p->count<=10)
     {
         reini_->start(a,p,a->phi,pgc,pflow);
         reini_->start(a,p,a->phi,pgc,pflow);
         reini_->start(a,p,a->phi,pgc,pflow);
     }
-    
-    pgc->start4(p,a->phi,1);
-   // pflow->phi_relax(p,pgc,a->phi);
+    pflow->fsfinflow(p,a,pgc);
+    /*pflow->phi_relax(p,pgc,a->phi);
+    LOOP
+    {
+        if(a->phi(i,j,k)<-0.29*p->psi)
+            a->vof(i,j,k)=0.0;
+        if(a->phi(i,j,k)>0.29*p->psi)
+            a->vof(i,j,k)=1.0;
+            
+    }*/
+    pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->phi,1);
     pgc->start4(p,a->vof,1);
     
@@ -381,7 +387,7 @@ void VOF_PLIC::start
     
     LOOP
     {
-        if(fabs(phiaux(i,j,k))<1E02)
+        if(fabs(phiaux(i,j,k))<3.0*p->DXN[IP])
         {
             a->phi(i,j,k)=phiaux(i,j,k);
         }
@@ -394,16 +400,8 @@ void VOF_PLIC::start
     reini_->start(a,p,a->phi,pgc,pflow);
     
     pgc->start4(p,a->phi,1);
-   // pflow->phi_relax(p,pgc,a->phi);
- //   pgc->start4(p,a->phi,1);
-  //  LOOP
-  //  {
-    //    if(a->phi(i,j,k)<-0.29*p->psi)
-    //        a->vof(i,j,k)=0.0;
-    //    if(a->phi(i,j,k)>0.29*p->psi)
-     //       a->vof(i,j,k)=1.0;
-    //}
-    pgc->start4(p,a->vof,1);
+    
+   
     pupdate->start(p,a,pgc);
    
 }

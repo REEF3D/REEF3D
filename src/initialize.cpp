@@ -53,7 +53,7 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
         
 
 	
-	if(p->F40>0 || (!(p->F80==4)))
+	if(p->F40>0)
 	iniphi(a,p,pgc);
 
 	if(p->F80>0 && p->F80<4)
@@ -103,6 +103,7 @@ void initialize::inifdm(fdm* a, lexer* p, ghostcell* pgc)
 		a->visc(i,j,k)=p->W2;
 		a->eddyv(i,j,k)=0.0;
 		a->phi(i,j,k)=1.0;
+        a->vof(i,j,k)=0.0;
 
 		a->conc(i,j,k)=0.0;
 	}
