@@ -82,7 +82,7 @@ void partres::advec_pic(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_
         if(p->ccipol4(a.topo,PX[n],PY[n],PZ[n])<PP.d50*10)
             bedLoad=true;
 
-    topoDist=p->ccipol4(a.topo,PX[n],PY[n],PZ[n]);
+    topoDist=p->ccipol4_a(a.topo,PX[n],PY[n],PZ[n]);
 
     if(topoDist<velDist*p->DZP[KP])
     {
@@ -196,7 +196,7 @@ void partres::make_moving(lexer *p, fdm &a, particles_obj &PP)
 void partres::relative_velocity(lexer *p, fdm &a, particles_obj &PP, size_t n, double &du, double &dv, double &dw)
 {
         k=p->posc_k(PP.Z[n]);
-        double topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
+        double topoDist=p->ccipol4_a(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
         double u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
         double v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
         double w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);

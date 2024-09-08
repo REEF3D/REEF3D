@@ -47,7 +47,7 @@ void partres::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedimen
                     // PP.shear_crit[n]=p->ccslipol4(s.tau_crit,PP.X[n],PP.Y[n]);
                 }
 
-                topoDist=p->ccipol4(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
+                topoDist=p->ccipol4_a(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
 
                 if(topoDist<velDist*p->DZP[KP])
                 {
