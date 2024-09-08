@@ -56,9 +56,19 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     volume0 = pgc->globalsum(volume0);
     volume = volume0;
 
-    k=0;
-    SLICEBASELOOP
-    s.bedzh0(i,j) = s.bedzh(i,j) = p->ZN[KP] + 0.5*p->DZP[KP]-a->topo(i,j,k);
+    double h;
+    ILOOP
+    JLOOP
+	{
+		KLOOP
+		PBASECHECK
+		{
+        if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
+        h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
+		}
+		s.bedzh(i,j)=h;
+        s.bedzh0(i,j)=h;
+	}
 
     if(p->I40!=1)
     {
