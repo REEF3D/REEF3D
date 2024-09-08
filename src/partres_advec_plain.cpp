@@ -118,7 +118,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     
     Ft = sin(s.teta(i,j))*(p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0);
     
-    F_tot = Fd-Fs+Ft;
+    F_tot = Fd-Fs;//-Ft;
     
     F_tot = MAX(F_tot,0.0);
     
