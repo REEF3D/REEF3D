@@ -329,7 +329,7 @@ void sediment_part::printDummyVTP(lexer *p, particles_obj &PP)
 	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfVerts=\""<<numpt<<"\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n";
 
     result<<"<PointData >\n";
-	result<<"<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
+	result<<"<DataArray type=\"Float32\" Name=\"bedChange\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
 	result<<"</PointData>\n";
 
@@ -351,13 +351,13 @@ void sediment_part::printDummyVTP(lexer *p, particles_obj &PP)
 	//----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">\n"<<"_";
 
-    // elevation
+    // bedChange
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
 	PARTLOOP
 	if(PP.Flag[n]>=print_flag)
 	{
-		ffn=float(PP.Z[n]);
+		ffn=float(p->ccslipol4(s.bedzh,PP.X[n],PP.Y[n])-p->ccslipol4(s.bedzh0,PP.X[n],PP.Y[n]));
 		result.write((char*)&ffn, sizeof (float));
 	}
 
