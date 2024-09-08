@@ -68,7 +68,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     j=p->posc_j(PY[n]);
     k=p->posc_k(PZ[n]);
         
-    topoDist=0.0;//p->ccipol4_a(a.topo,PX[n],PY[n],PZ[n]);
+    topoDist=p->ccipol4_a(a.topo,PX[n],PY[n],PZ[n]);
     
     velDist=0.6;
 
@@ -114,7 +114,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     
     Fs = (p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0)*0.58/6.0;
     
-    F_tot = Fd-Fs;//*s.reduce(i,j);
+    F_tot = Fd-Fs*s.reduce(i,j);
     
     F_tot = MAX(F_tot,0.0);
     

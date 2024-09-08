@@ -80,17 +80,8 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         addParticleForTransfer(p,PP,n,Send,xchanged);
     }
     
-    /*// z-coordinate
-    Umax = pgc.globalmax(Umax);
-    
-    for(size_t n=0;n<PP.loopindex;n++)
-    if(PP.Flag[n]>=0)
-    {
-    Uabs = sqrt(PP.URK1[n]*PP.URK1[n] + PP.VRK1[n]*PP.VRK1[n]);
-    
-    PP.ZRK1[n] = ((Umax-Uabs)/(Umax+1.0e-6))*PP.ZRK1[n] + (Uabs/(Umax+1.0e-6))*p->ccslipol4(s.bedzh,PP.XRK1[n],PP.YRK1[n]);
-    }*/
-    
+
+    // recv
     {
         pgc.para_tracersobj(p,Send,Recv);
 
@@ -108,7 +99,6 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                 j = p->posc_j(Recv[n].YRK1[m]);
                 k = p->posc_k(Recv[n].ZRK1[m]);
                 transfer(p,Recv[n],m);
-                cellSum[IJK]+=Recv[n].ParcelFactor[n];
             }
             PP.add_obj(&Recv[n]);
         }
@@ -119,7 +109,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         bool inBounds=false;
         int i,j,k;
         boundarycheck bounderies;
-
+/*
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]>0)
             {
@@ -138,7 +128,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                     PP.erase(n);
                     removed++;
                 }
-            }
+            }*/
     }
     
     particleStressTensor(p,a,pgc,PP);
@@ -193,19 +183,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         addParticleForTransfer(p,PP,n,Send,xchanged);
     }
     
-  /*  
-    // z-coordinate
-    Umax = pgc.globalmax(Umax);
     
-    for(size_t n=0;n<PP.loopindex;n++)
-    if(PP.Flag[n]>=0)
-    {
-    Uabs = sqrt(PP.U[n]*PP.U[n] + PP.V[n]*PP.V[n]);
-    
-    PP.Z[n] = ((Umax-Uabs)/(Umax+1.0e-6))*PP.Z[n] + (Uabs/(Umax+1.0e-6))*p->ccslipol4(s.bedzh,PP.X[n],PP.Y[n]);
-    }
-    
-*/
     {
         pgc.para_tracersobj(p,Send,Recv);
 
@@ -223,12 +201,11 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                 j = p->posc_j(Recv[n].Y[m]);
                 k = p->posc_k(Recv[n].Z[m]);
                 transfer(p,Recv[n],m);
-                cellSum[IJK]+=Recv[n].ParcelFactor[n];
             }
             PP.add_obj(&Recv[n]);
         }
     }
-
+/*
 
     {
         bool inBounds=false;
@@ -255,7 +232,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                     removed++;
                 }
             }
-    }
+    }*/
 
     if(p->mpirank==0)
     {
