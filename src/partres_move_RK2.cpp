@@ -109,7 +109,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         bool inBounds=false;
         int i,j,k;
         boundarycheck bounderies;
-/*
+
         for(size_t n=0;n<PP.loopindex;n++)
             if(PP.Flag[n]>0)
             {
@@ -117,9 +117,9 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                 j = p->posc_j(PP.YRK1[n]);
                 k = p->posc_k(PP.ZRK1[n]);
 
-                inBounds=bounderies.minboundcheck(p,i,j,k,1);
+                inBounds=bounderies.globalminboundcheck(p,i,j,k);
                 if (inBounds)
-                    inBounds=bounderies.maxboundcheck(p,i,j,k,1);
+                    inBounds=bounderies.globalmaxboundcheck(p,i,j,k);
 
                 // remove out of bounds particles
                 if(!inBounds)
@@ -128,7 +128,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                     PP.erase(n);
                     removed++;
                 }
-            }*/
+            }
     }
     
     particleStressTensor(p,a,pgc,PP);
@@ -205,7 +205,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
             PP.add_obj(&Recv[n]);
         }
     }
-/*
+
 
     {
         bool inBounds=false;
@@ -220,9 +220,9 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                 j = p->posc_j(PP.Y[n]);
                 k = p->posc_k(PP.Z[n]);
 
-                inBounds=bounderies.minboundcheck(p,i,j,k,1);
+                inBounds=bounderies.globalminboundcheck(p,i,j,k);
                 if (inBounds)
-                    inBounds=bounderies.maxboundcheck(p,i,j,k,1);
+                    inBounds=bounderies.globalmaxboundcheck(p,i,j,k);
 
                 // remove out of bounds particles
                 if(!inBounds)
@@ -232,7 +232,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                     removed++;
                 }
             }
-    }*/
+    }
 
     if(p->mpirank==0)
     {
