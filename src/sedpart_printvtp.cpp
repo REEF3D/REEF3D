@@ -235,7 +235,8 @@ void sediment_part::print_vtp(lexer* p)
 	PARTLOOP
 	if(PP.Flag[n]>=print_flag)
 	{
-		ffn=float(p->ccslipol4(s.bedzh,PP.X[n],PP.Y[n])-p->ccslipol4(s.bedzh0,PP.X[n],PP.Y[n]));
+		//ffn=float(p->ccslipol4(s.bedch,PP.X[n],PP.Y[n]));
+         ffn=float(p->ccslipol4(s.bedzh,PP.X[n],PP.Y[n])-p->ccslipol4(s.bedzh0,PP.X[n],PP.Y[n]));
 		result.write((char*)&ffn, sizeof (float));
 	}
 

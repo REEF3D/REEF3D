@@ -77,6 +77,45 @@ void ghostcell::para_tracersobj(lexer* p ,particles_obj* s ,particles_obj* r)
         r[n].fill(recv[n],false,1);
 
     // Tracer data
+    
+    // Transfer Flag
+    if(p->nb1>=0)
+    {
+        MPI_Isend(s[0].Flag,send[0],MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
+        MPI_Irecv(r[0].Flag,recv[0],MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
+	}
+
+    if(p->nb2>=0)
+    {
+        MPI_Isend(s[1].Flag,send[1],MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
+        MPI_Irecv(r[1].Flag,recv[1],MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
+	}
+
+    if(p->nb3>=0)
+    {
+        MPI_Isend(s[2].Flag,send[2],MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
+        MPI_Irecv(r[2].Flag,recv[2],MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
+	}
+
+    if(p->nb4>=0)
+    {
+        MPI_Isend(s[3].Flag,send[3],MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
+        MPI_Irecv(r[3].Flag,recv[3],MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
+	}
+
+    if(p->nb5>=0)
+    {
+        MPI_Isend(s[4].Flag,send[4],MPI_INT,p->nb5,tag5,mpi_comm,&sreq5);
+        MPI_Irecv(r[4].Flag,recv[4],MPI_INT,p->nb5,tag6,mpi_comm,&rreq5);
+	}
+
+    if(p->nb6>=0)
+    {
+        MPI_Isend(s[5].Flag,send[5],MPI_INT,p->nb6,tag6,mpi_comm,&sreq6);
+        MPI_Irecv(r[5].Flag,recv[5],MPI_INT,p->nb6,tag5,mpi_comm,&rreq6);
+	}
+
+    gcwait(p);
 
     // Transfer X
     if(p->nb1>=0)

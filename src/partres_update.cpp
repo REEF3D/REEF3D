@@ -48,7 +48,6 @@ void partres::update(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
         KLOOP
         {
             a.topo(i,j,k) -= bedChange[IJ]*1.0/6.0*PI*pow(PP.d50,3)/(p->DXN[IP]*p->DYN[JP]);
-            a.fb(i,j,k) = bedChange[IJ];
         }
         columnSum[IJ] += bedChange[IJ];
         if(bedChange[IJ]<0)

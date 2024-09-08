@@ -24,6 +24,7 @@ Authors: Alexander Hanke, Hans Bihs
 #include"particles_obj.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"sediment_fdm.h"
 #include"ghostcell.h"
 
     /**
@@ -61,60 +62,35 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     double Urel=0.0,Vrel=0.0,Wrel=0.0;
     double thetas=0;
     double DragCoeff=0;
-    double Uabs=0;
+    double Uabs_rel=0.0;
+    double Uabs=0.0;
 
     i=p->posc_i(PX[n]);
     j=p->posc_j(PY[n]);
     k=p->posc_k(PZ[n]);
-
-    thetas=theta_s(p,a,PP,i,j,k);
         
-
     topoDist=p->ccipol4_a(a.topo,PX[n],PY[n],PZ[n]);
     
     velDist=0.6;
 
-   /* //if(topoDist<velDist*p->DZP[KP])
-    {
-        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-        // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-        if(debugPrint)
-        {
-                cout<<PZ[n]+velDist*p->DZP[KP]-topoDist<<endl;
-                debugPrint=false;
-        }
-    }*/
     
     if(topoDist<velDist*p->DZP[KP])
     {
         u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
         v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-        
-        //cout<<PZ[n]+velDist*p->DZP[KP]-topoDist<<" Pz: "<<PZ[n]<<" velDist*p->DZP[KP]: "<<velDist*p->DZP[KP]<<" topoDist: "<<topoDist<<endl;
-        
-        // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-        if(debugPrint)
-        {
-                cout<<PZ[n]+velDist*p->DZP[KP]-topoDist<<endl;
-                debugPrint=false;
-        }
     }
-    /*
+    
+    
     else
     {
-        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]);
-        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]);
+        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
         // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]);
     }
-*/
-    // PP.Uf[n]=u;
-    // PP.Vf[n]=v;
-    // PP.Wf[n]=w;
-        
+
+    // relative velocity
     Urel=u-PU[n];
     Vrel=v-PV[n];
-    // Wrel=w-PW[n];
 
 
     // particle force
@@ -124,53 +100,62 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     
     du=DragCoeff*Urel;
     dv=DragCoeff*Vrel;
-    // dw=DragCoeff*Wrel;
     }
         
     if(p->Q202==2)
     {
     relative_velocity(p,a,PP,n,Urel,Vrel,Wrel);
-    Uabs=sqrt(Urel*Urel+Vrel*Vrel+Wrel*Wrel);
-    Re_p = Uabs*PP.d50/(p->W2/p->W1);
-    //DragCoeff=0.5;// drag_coefficient(Re_p);
+    Uabs_rel=sqrt(Urel*Urel+Vrel*Vrel+Wrel*Wrel);
+    Re_p = Uabs_rel*PP.d50/(p->W2/p->W1);
+    DragCoeff=drag_coefficient(Re_p);
          
     // acceleration
-    Fd = p->W1 * DragCoeff * PI/8.0 * pow(PP.d50,2)  * pow(Uabs,2.0);
+    Fd = p->W1 * DragCoeff * PI/8.0 * pow(PP.d50,2)  * pow(Uabs_rel,2.0);
     
     Fd *= rf(p,PX[n],PY[n]);
     
-    Fs = (p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0)*0.58/6.0;
+    Fs = (p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0)*0.88/6.0;
     
-    F_tot = Fd-Fs;
+    Ft = sin(s.teta(i,j))*(p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0);
+    
+    F_tot = Fd-Fs+Ft;
     
     F_tot = MAX(F_tot,0.0);
     
     //cout<<"Fd: "<<Fd<<" Fs: "<<Fs<<" F_tot: "<<F_tot<<" "<<PP.d50<<" "<<DragCoeff<<endl;
 
-    du = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Urel/(fabs(Uabs)>1.0e-10?fabs(Uabs):1.0e20);
-    dv = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Vrel/(fabs(Uabs)>1.0e-10?fabs(Uabs):1.0e20);
+    du = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Urel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
+    dv = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Vrel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
+    
+    PP.shear_eff[n]=Fd;
+    PP.shear_crit[n]=Fs;
     }
 
     PP.drag[n]=DragCoeff;
+    
+    Uabs=sqrt(PU[n]*PU[n]+PV[n]*PV[n]);
+    
+    if(Uabs<0.1)
+    PP.Flag[n]=0;
+    
+    if(Uabs>=0.1)
+    PP.Flag[n]=1;
 
-    //cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
-    
-    
     // solid forcing
     double fx,fy,fz;
-    
+    /*
     fx = p->ccipol1c(a.fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
     fy = p->ccipol2c(a.fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
     fz = p->ccipol3c(a.fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
     
     du += fx;
     dv += fy;
-    dw += fz;
+    dw += fz;*/
     
     // relax
-    /*du *= rf(p,PX[n],PY[n]);
+    du *= rf(p,PX[n],PY[n]);
     dv *= rf(p,PX[n],PY[n]);
-    dw *= rf(p,PX[n],PY[n]);*/
+    dw *= rf(p,PX[n],PY[n]);
     
     dw=0.0;
     

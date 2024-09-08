@@ -132,7 +132,7 @@ private:
 
             double velDist=1.6;
             
-    double Fd, Fs, F_tot, Re_p;
+    double Fd, Fs, Ft, F_tot, Re_p;
     double F,G,H;
     double maxcount;
 };

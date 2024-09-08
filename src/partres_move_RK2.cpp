@@ -24,6 +24,7 @@ Authors: Alexander Hanke, Hans Bihs
 #include"particles_obj.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"sediment_fdm.h"
 #include"ghostcell.h"
 
 void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, int &xchanged, int &removed)
@@ -60,6 +61,9 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         PP.XRK1[n] = PP.X[n] + p->dtsed*PP.URK1[n];
         PP.YRK1[n] = PP.Y[n] + p->dtsed*PP.VRK1[n];
         PP.ZRK1[n] = PP.Z[n] + p->dtsed*PP.WRK1[n];
+        
+        if(PP.Flag[n]==1)
+        PP.ZRK1[n] = p->ccslipol4(s.bedzh,PP.XRK1[n],PP.YRK1[n]);
 
         // Particel sum update
         cellSum[IJK]-=PP.ParcelFactor[n];
@@ -158,6 +162,9 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         PP.X[n] = 0.5*PP.X[n] + 0.5*PP.XRK1[n] + 0.5*p->dtsed*PP.U[n];
         PP.Y[n] = 0.5*PP.Y[n] + 0.5*PP.YRK1[n] + 0.5*p->dtsed*PP.V[n];
         PP.Z[n] = 0.5*PP.Z[n] + 0.5*PP.ZRK1[n] + 0.5*p->dtsed*PP.W[n];
+        
+        if(PP.Flag[n]==1)
+        PP.Z[n] = p->ccslipol4(s.bedzh,PP.X[n],PP.Y[n]);
 
         // Particel sum update
         cellSum[IJK]-=PP.ParcelFactor[n];
