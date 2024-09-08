@@ -68,22 +68,22 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     j=p->posc_j(PY[n]);
     k=p->posc_k(PZ[n]);
         
-    topoDist=p->ccipol4_a(a.topo,PX[n],PY[n],PZ[n]);
+    topoDist=0.0;//p->ccipol4_a(a.topo,PX[n],PY[n],PZ[n]);
     
     velDist=0.6;
 
     
     if(topoDist<velDist*p->DZP[KP])
     {
-        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
+        u=p->ccipol1(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
+        v=p->ccipol2(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
     }
     
     
     else
     {
-        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+        u=p->ccipol1(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+        v=p->ccipol2(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
         // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]);
     }
 

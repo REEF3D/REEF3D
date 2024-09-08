@@ -172,8 +172,8 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, tracers_obj* PP, int maxco
 {
     int xchange=0;
 
-    tracers_obj Send[6]={tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount)};
-    tracers_obj Recv[6]={tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount)};
+    tracers_obj Send[6]={tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount)};
+    tracers_obj Recv[6]={tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount),tracers_obj(maxcount)};
 
     int i,j,k;
 
@@ -213,17 +213,6 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, tracers_obj* PP, int maxco
                         break;
                     }
 
-                    case -5:
-                    {
-                        Send[4].add(PP->X[n],PP->Y[n],PP->Z[n],1);
-                        break;
-                    }
-
-                    case -6:
-                    {
-                        Send[5].add(PP->X[n],PP->Y[n],PP->Z[n],1);
-                        break;
-                    }
                 }
                 PP->erase(n);
                 cellSum[IJK]--;
@@ -267,10 +256,10 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
 {
     int xchange=0;
 
-    particles_obj Send[6]={particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),
-    particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1)};
-    particles_obj Recv[6]={particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),
-    particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1)};;
+    particles_obj Send[4]={particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),
+    particles_obj(maxcount,PP->d50,PP->density,1)};
+    particles_obj Recv[4]={particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),particles_obj(maxcount,PP->d50,PP->density,1),
+    particles_obj(maxcount,PP->d50,PP->density,1)};
 
     int i,j,k;
 
@@ -310,17 +299,6 @@ int particle_func::transfer(lexer* p, ghostcell* pgc, particles_obj* PP, partres
                         break;
                     }
 
-                    case -5:
-                    {
-                        Send[4].add(PP->X[n],PP->Y[n],PP->Z[n],PP->Flag[n],PP->U[n],PP->V[n],PP->W[n],PP->ParcelFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
-                        break;
-                    }
-
-                    case -6:
-                    {
-                        Send[5].add(PP->X[n],PP->Y[n],PP->Z[n],PP->Flag[n],PP->U[n],PP->V[n],PP->W[n],PP->ParcelFactor[n],PP->XRK1[n],PP->YRK1[n],PP->ZRK1[n],PP->URK1[n],PP->VRK1[n],PP->WRK1[n],PP->Uf[n],PP->Vf[n],PP->Wf[n],PP->shear_eff[n],PP->shear_crit[n],PP->drag[n]);
-                        break;
-                    }
                 }
                 cellSum[IJK]-=PP->ParcelFactor[n];
                 pst->remove(p,*PP,n);

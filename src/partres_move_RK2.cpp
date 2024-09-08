@@ -29,10 +29,10 @@ Authors: Alexander Hanke, Hans Bihs
 
 void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, int &xchanged, int &removed)
 {
-    particles_obj Send[6]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
-    particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
-    particles_obj Recv[6]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
-    particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
+    particles_obj Send[4]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
+    particles_obj(maxcount,PP.d50,PP.density,1)};
+    particles_obj Recv[4]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
+    particles_obj(maxcount,PP.d50,PP.density,1)};
     
     particlePerCell(p,pgc,PP);
     particleStressTensor(p,a,pgc,PP);
@@ -95,12 +95,12 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         pgc.para_tracersobj(p,Send,Recv);
 
         size_t sum=PP.size;
-        for(int n=0;n<6;n++)
+        for(int n=0;n<4;n++)
             sum += Recv[n].size;
         if(sum>PP.capacity)
             PP.reserve(sum);
 
-        for(int n=0;n<6;n++)
+        for(int n=0;n<4;n++)
         {
             for(size_t m=0;m<Recv[n].loopindex;m++)
             {
@@ -146,10 +146,10 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     
 void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, int &xchanged, int &removed)
 {
-    particles_obj Send[6]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
-    particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
-    particles_obj Recv[6]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
-    particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1)};
+    particles_obj Send[4]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
+    particles_obj(maxcount,PP.d50,PP.density,1)};
+    particles_obj Recv[4]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
+    particles_obj(maxcount,PP.d50,PP.density,1)};
     
     Umax=-1.0e10;
     
@@ -210,12 +210,12 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         pgc.para_tracersobj(p,Send,Recv);
 
         size_t sum=PP.size;
-        for(int n=0;n<6;n++)
+        for(int n=0;n<4;n++)
             sum += Recv[n].size;
         if(sum>PP.capacity)
             PP.reserve(sum);
 
-        for(int n=0;n<6;n++)
+        for(int n=0;n<4;n++)
         {
             for(size_t m=0;m<Recv[n].loopindex;m++)
             {
