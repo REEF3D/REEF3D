@@ -124,6 +124,30 @@ int boundarycheck::maxboundcheck(lexer *p, int ii, int jj, int kk, int margin)
     return check;
 }
 
+int boundarycheck::globalminboundcheck(lexer *p, int ii, int jj, int kk)
+{
+    check=0;
+
+    if(ii+p->origin_i>=0)
+    if(jj+p->origin_j>=0)
+    if(kk+p->origin_k>=0)
+    check=1;
+
+    return check;
+}
+
+int boundarycheck::globalmaxboundcheck(lexer *p, int ii, int jj, int kk)
+{
+    check=0;
+
+    if(ii+p->origin_i+p->origin_i<p->gknox)
+    if(jj+p->origin_j<p->gknoy)
+    if(kk+p->origin_k<p->gknoz)
+    check=1;
+
+    return check;
+}
+
 int boundarycheck::ij_boundcheck(lexer *p, int ii, int jj, int margin)
 {
     check=0;
