@@ -140,7 +140,7 @@ int boundarycheck::globalmaxboundcheck(lexer *p, int ii, int jj, int kk)
 {
     check=0;
 
-    if(ii+p->origin_i+p->origin_i<p->gknox)
+    if(ii+p->origin_i<p->gknox)
     if(jj+p->origin_j<p->gknoy)
     if(kk+p->origin_k<p->gknoz)
     check=1;
