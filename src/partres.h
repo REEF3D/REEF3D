@@ -68,6 +68,8 @@ public:
         void advec_pic(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
+                        
+        void sandslide(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &);
         
         void transfer(lexer *, particles_obj &, size_t &);
         void remove(lexer *, particles_obj &, size_t &);

@@ -520,7 +520,7 @@ public:
     double Q17;
     double Q22;
     double Q23;
-    double Q25;
+    double Q25,Q30;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
