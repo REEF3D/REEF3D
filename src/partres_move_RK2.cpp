@@ -82,29 +82,24 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     }
     
     // vertical coordinate
-   /* Umax = pgc.globalmax(Umax);
+    Umax = pgc.globalmax(Umax);
     
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
     {
         Uabs=sqrt(PP.URK1[n]*PP.URK1[n]+PP.VRK1[n]*PP.VRK1[n]);
         
-        if(Uabs<0.5*Umax)
-        PP.Flag[n]=0;
-        
-        if(Uabs>=0.5*Umax)
-        PP.Flag[n]=1;
-        
         fac = Uabs/(Umax>1.0e-10?Umax:1.0e10);
         
-    
-        if(PP.Flag[n]==1)
+        //cout<<"Uabs: "<<Uabs<<" Umax: "<<Umax<<" fac: "<<fac<<endl;
+        
+        if(Uabs>=0.5*Umax && Uabs>0.1)
         {
         k=p->posc_k(PP.ZRK1[n]);
         PP.ZRK1[n] =   s.bedzh(i,j) - p->DZN[KP] + fac*2.0*p->DZN[KP]*double(rand() % irand)/drand;
             
         }
-    }*/
+    }
 
     // recv
     {
@@ -209,28 +204,24 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     }
     
     // vertical coordinate
-    /*Umax = pgc.globalmax(Umax);
+    Umax = pgc.globalmax(Umax);
+    
+    cout<<"Umax Particle: "<<Umax<<endl;
     
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
     {
         Uabs=sqrt(PP.U[n]*PP.U[n]+PP.V[n]*PP.V[n]);
         
-        if(Uabs<0.5*Umax)
-        PP.Flag[n]=0;
-        
-        if(Uabs>=0.5*Umax)
-        PP.Flag[n]=1;
-        
         fac = Uabs/(Umax>1.0e-10?Umax:1.0e10);
     
-        if(PP.Flag[n]==1)
+        if(Uabs>=0.5*Umax && Uabs>0.1)
         {
         k=p->posc_k(PP.Z[n]);
         PP.Z[n] =   s.bedzh(i,j) - p->DZN[KP] + fac*2.0*p->DZN[KP]*double(rand() % irand)/drand;
             
         }
-    }*/
+    }
     
     
     {
