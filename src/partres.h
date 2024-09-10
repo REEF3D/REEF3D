@@ -138,6 +138,10 @@ private:
     double F,G,H;
     double maxcount;
     double Umax,Uabs;
+    double fac;
+    
+    const int irand;
+	const double drand;
 };
 
 #endif

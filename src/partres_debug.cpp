@@ -31,6 +31,7 @@ Author: Alexander Hanke
 
 void partres::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s)
 {
+    /*
         PLAINLOOP
         {
             a.test(i,j,k) = cellSumTopo[IJK];
@@ -62,5 +63,5 @@ void partres::debug(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sedimen
 
                 PP.Uf[n]=u;
                 PP.Vf[n]=v;
-            }
+            }*/
 }

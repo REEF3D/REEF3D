@@ -26,6 +26,7 @@ Authors: Alexander Hanke, Hans Bihs
 #include"fdm.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
+#include<math.h>
 
 void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, int &xchanged, int &removed)
 {
@@ -80,6 +81,30 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         addParticleForTransfer(p,PP,n,Send,xchanged);
     }
     
+    // vertical coordinate
+   /* Umax = pgc.globalmax(Umax);
+    
+    for(size_t n=0;n<PP.loopindex;n++)
+    if(PP.Flag[n]>=0)
+    {
+        Uabs=sqrt(PP.URK1[n]*PP.URK1[n]+PP.VRK1[n]*PP.VRK1[n]);
+        
+        if(Uabs<0.5*Umax)
+        PP.Flag[n]=0;
+        
+        if(Uabs>=0.5*Umax)
+        PP.Flag[n]=1;
+        
+        fac = Uabs/(Umax>1.0e-10?Umax:1.0e10);
+        
+    
+        if(PP.Flag[n]==1)
+        {
+        k=p->posc_k(PP.ZRK1[n]);
+        PP.ZRK1[n] =   s.bedzh(i,j) - p->DZN[KP] + fac*2.0*p->DZN[KP]*double(rand() % irand)/drand;
+            
+        }
+    }*/
 
     // recv
     {
@@ -111,7 +136,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         boundarycheck bounderies;
 
         for(size_t n=0;n<PP.loopindex;n++)
-            if(PP.Flag[n]>0)
+            if(PP.Flag[n]>=0)
             {
                 i = p->posc_i(PP.XRK1[n]);
                 j = p->posc_j(PP.YRK1[n]);
@@ -183,6 +208,30 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         addParticleForTransfer(p,PP,n,Send,xchanged);
     }
     
+    // vertical coordinate
+    /*Umax = pgc.globalmax(Umax);
+    
+    for(size_t n=0;n<PP.loopindex;n++)
+    if(PP.Flag[n]>=0)
+    {
+        Uabs=sqrt(PP.U[n]*PP.U[n]+PP.V[n]*PP.V[n]);
+        
+        if(Uabs<0.5*Umax)
+        PP.Flag[n]=0;
+        
+        if(Uabs>=0.5*Umax)
+        PP.Flag[n]=1;
+        
+        fac = Uabs/(Umax>1.0e-10?Umax:1.0e10);
+    
+        if(PP.Flag[n]==1)
+        {
+        k=p->posc_k(PP.Z[n]);
+        PP.Z[n] =   s.bedzh(i,j) - p->DZN[KP] + fac*2.0*p->DZN[KP]*double(rand() % irand)/drand;
+            
+        }
+    }*/
+    
     
     {
         pgc.para_tracersobj(p,Send,Recv);
@@ -214,7 +263,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         boundarycheck bounderies;
 
         for(size_t n=0;n<PP.loopindex;n++)
-            if(PP.Flag[n]>0)
+            if(PP.Flag[n]>=0)
             {
                 i = p->posc_i(PP.X[n]);
                 j = p->posc_j(PP.Y[n]);

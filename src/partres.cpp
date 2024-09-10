@@ -29,7 +29,7 @@ Author: Alexander Hanke
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
-partres::partres(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), 
+partres::partres(lexer *p) : drho(p->W1/p->S22) ,invKinVis(p->W1/p->W2), irand(100000), drand(100000.0),
                                             Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17),bedChange(p)
 {
         p->Darray(stressTensor,p->imax*p->jmax*p->kmax);

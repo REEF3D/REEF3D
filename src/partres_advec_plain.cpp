@@ -75,8 +75,8 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     
     if(topoDist<velDist*p->DZP[KP])
     {
-        u=p->ccipol1(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-        v=p->ccipol2(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
+        u=p->ccipol1(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+        v=p->ccipol2(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
     }
     
     
@@ -85,12 +85,16 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
         u=p->ccipol1(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
         v=p->ccipol2(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
     }
+    
+    
 
     // relative velocity
     Urel=u-PU[n];
     Vrel=v-PV[n];
 
-
+    PP.Uf[n]=Urel;
+    PP.Vf[n]=Urel;
+    
     // particle force
     if(p->Q202==1)
     {
@@ -102,18 +106,20 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
         
     if(p->Q202==2)
     {
-    relative_velocity(p,a,PP,n,Urel,Vrel,Wrel);
+    //relative_velocity(p,a,PP,n,Urel,Vrel,Wrel);
     Uabs_rel=sqrt(Urel*Urel+Vrel*Vrel+Wrel*Wrel);
     Re_p = Uabs_rel*PP.d50/(p->W2/p->W1);
-    DragCoeff=drag_coefficient(Re_p);
+    DragCoeff = drag_coefficient(Re_p);
          
     // acceleration
     Fd = p->W1 * DragCoeff * PI/8.0 * pow(PP.d50,2)  * pow(Uabs_rel,2.0);
     
+    // relax
     Fd *= rf(p,PX[n],PY[n]);
     
+    // resistance force
     Fs = p->Q30*(p->S22-p->W1)*fabs(p->W22)*PI*pow(PP.d50, 3.0)/6.0;
-    
+     
     F_tot = Fd-Fs;//*s.reduce(i,j);
     
     F_tot = MAX(F_tot,0.0);
@@ -129,13 +135,6 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
 
     PP.drag[n]=DragCoeff;
     
-    Uabs=sqrt(PU[n]*PU[n]+PV[n]*PV[n]);
-    
-    if(Uabs<0.001)
-    PP.Flag[n]=0;
-    
-    if(Uabs>=0.001)
-    PP.Flag[n]=1;
 
     // solid forcing
     double fx,fy,fz;
