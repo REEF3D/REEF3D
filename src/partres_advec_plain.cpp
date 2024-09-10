@@ -68,25 +68,12 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     j=p->posc_j(PY[n]);
     k=p->posc_k(PZ[n]);
         
-    topoDist=p->ccipol4_a(a.topo,PX[n],PY[n],PZ[n]);
-    
-    velDist=0.6;
 
+    velDist=0.6;
     
-    if(topoDist<velDist*p->DZP[KP])
-    {
-        u=p->ccipol1(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-        v=p->ccipol2(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-    }
-    
-    
-    else
-    {
-        u=p->ccipol1(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-        v=p->ccipol2(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-    }
-    
-    
+    u=p->ccipol1(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+    v=p->ccipol2(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+
 
     // relative velocity
     Urel=u-PU[n];

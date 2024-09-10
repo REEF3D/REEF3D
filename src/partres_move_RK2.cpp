@@ -82,7 +82,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     }
     
     // vertical coordinate
-   /* Umax = pgc.globalmax(Umax);
+    Umax = pgc.globalmax(Umax);
     
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
@@ -104,7 +104,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         PP.ZRK1[n] =   s.bedzh(i,j) - p->DZN[KP] + fac*2.0*p->DZN[KP]*double(rand() % irand)/drand;
             
         }
-    }*/
+    }
 
     // recv
     {
@@ -209,7 +209,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     }
     
     // vertical coordinate
-    /*Umax = pgc.globalmax(Umax);
+    Umax = pgc.globalmax(Umax);
     
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
@@ -230,7 +230,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         PP.Z[n] =   s.bedzh(i,j) - p->DZN[KP] + fac*2.0*p->DZN[KP]*double(rand() % irand)/drand;
             
         }
-    }*/
+    }
     
     
     {
