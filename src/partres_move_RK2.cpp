@@ -149,7 +149,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                 // remove out of bounds particles
                 if(!inBounds)
                 {
-                    remove(p,PP,n);
+                    //remove(p,PP,n);
                     PP.erase(n);
                     removed++;
                 }
@@ -276,7 +276,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                 // remove out of bounds particles
                 if(!inBounds)
                 {
-                    remove(p,PP,n);
+                    //remove(p,PP,n);
                     PP.erase(n);
                     removed++;
                 }
