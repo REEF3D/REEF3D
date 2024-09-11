@@ -93,10 +93,10 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         
         //cout<<"Uabs: "<<Uabs<<" Umax: "<<Umax<<" fac: "<<fac<<endl;
         
-        if(Uabs>=0.5*Umax && Uabs>0.1)
+        if(Uabs>=0.1*Umax && Uabs>0.01)
         {
         k=p->posc_k(PP.ZRK1[n]);
-        PP.ZRK1[n] =   s.bedzh(i,j) - p->DZN[KP] + fac*2.0*p->DZN[KP]*double(rand() % irand)/drand;
+        PP.ZRK1[n] =   s.bedzh(i,j) - 0.5*p->DZN[KP] + fac*p->DZN[KP]*double(rand() % irand)/drand;
             
         }
     }
@@ -215,10 +215,10 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         
         fac = Uabs/(Umax>1.0e-10?Umax:1.0e10);
     
-        if(Uabs>=0.5*Umax && Uabs>0.1)
+        if(Uabs>=0.1*Umax && Uabs>0.01)
         {
         k=p->posc_k(PP.Z[n]);
-        PP.Z[n] =   s.bedzh(i,j) - p->DZN[KP] + fac*2.0*p->DZN[KP]*double(rand() % irand)/drand;
+        PP.Z[n] =   s.bedzh(i,j) - 0.5*p->DZN[KP] + fac*p->DZN[KP]*double(rand() % irand)/drand;
             
         }
     }

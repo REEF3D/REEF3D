@@ -94,7 +94,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     if(p->Q202==2)
     {
     //relative_velocity(p,a,PP,n,Urel,Vrel,Wrel);
-    Uabs_rel=sqrt(Urel*Urel+Vrel*Vrel+Wrel*Wrel);
+    Uabs_rel=sqrt(Urel*Urel + Vrel*Vrel);
     Re_p = Uabs_rel*PP.d50/(p->W2/p->W1);
     DragCoeff = drag_coefficient(Re_p);
          
