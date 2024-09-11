@@ -32,8 +32,7 @@ Author: Alexander Hanke
 #define PARTICLELOOP for(size_t n=0;n<PP->loopindex;n++) if(PP->Flag[n]>INT32_MIN)
 
 /// @brief Functions to manipulate particle containing objects
-particle_func::particle_func(lexer* p) : kinVis(p->W1/p->W2), drho(p->W1/p->S22),
-                            Ps(p->Q14),beta(p->Q15),epsilon(p->Q16),theta_crit(p->Q17)
+particle_func::particle_func(lexer* p) : kinVis(p->W1/p->W2), drho(p->W1/p->S22)
 {
     p->Darray(stressTensor,p->imax*p->jmax*p->kmax);
     p->Darray(cellSum,p->imax*p->jmax*p->kmax);

@@ -68,7 +68,6 @@ protected:
     // int maxParticlesPerXY(lexer* p, fdm* a, double);
     // void particlesPerCell(lexer* p, fdm* a,ghostcell* pgc, particles_obj* PP);
     // void particleStressTensor(lexer* p, fdm* a, ghostcell* pgc, particles_obj* PP);
-    // void particleStressTensorUpdateIJK(lexer* p, fdm* a, particles_obj* PP);
     // void updateParticleStressTensor(lexer* p, fdm* a, particles_obj* PP,int,int,int);
     // double theta_s(lexer* p, fdm* a, particles_obj* PP,int,int,int);
     // double drag_model(lexer* p, double,double,double,double,double) const;
@@ -91,14 +90,7 @@ private:
     const double kinVis;
     /// @brief Ratio of fluid and solid densities\n Initialized using `lexer::W1` and `lexer::S22`
     const double drho;
-    /// @brief Constant for stress trensor calculation\n Initialized using `lexer::Q14` and given in Pascal
-    const double Ps;
-    /// @brief Constant for stress trensor calculation\n Initialized using `lexer::Q15` and should be in range of \f$2\leq\beta\leq5\f$
-    const double beta;
-    /// @brief Dampener for stress trensor calculation\n Used to dampen out sudden acceleration resulting from high packing densities, initialized using `lexer::Q16`
-    const double epsilon;
-    /// @brief Maximum solid volume fraction of a fully packed bed\n Usually between 60% and 65%
-    const double theta_crit;
+
 };
 
 #endif

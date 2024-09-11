@@ -62,6 +62,9 @@ public:
         void move_RK2_step2(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
         void move_RK3(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &);
         
+        void move_RK2_pic_step1(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
+        void move_RK2_pic_step2(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
+        
         void advec_plain(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
@@ -73,7 +76,6 @@ public:
         
         void transfer(lexer *, particles_obj &, size_t &);
         void remove(lexer *, particles_obj &, size_t &);
-        void make_moving(lexer *, fdm &, particles_obj &);
         void erosion(lexer *, fdm &, particles_obj &, sediment_fdm &);
         void deposition(lexer *, fdm &, particles_obj &, sediment_fdm &);
         void update(lexer *, fdm &, ghostcell &, particles_obj &);
@@ -85,16 +87,13 @@ public:
         void setParticleMax(double);
 private:
         double maxParticlesPerCell(lexer *, fdm &, double,bool=true,bool=false);
-        void particleStressTensor(lexer *, fdm &, ghostcell &, particles_obj &);
-        void particleStressTensorUpdateIJK(lexer *, fdm &, particles_obj &);
-        void updateParticleStressTensor(lexer *, fdm &, particles_obj &, int, int, int);
+        void ParticleStressTensor(lexer *, fdm &, ghostcell&, particles_obj &);
         double theta_s(lexer *, fdm &, particles_obj &, int, int, int) const;
-        double drag_model(lexer *, double, double, double, double, double) const;
+        double drag_model(lexer *, double, double, double);
         double settling_velocity(lexer *, double, double, double, double, double) const;
         void particlePerCell(lexer *, ghostcell &, particles_obj &);
         void timestep(lexer *, ghostcell &, particles_obj &);
         int activateNew(lexer *, fdm &, particles_obj &);
-        void relative_velocity(lexer *, fdm &, particles_obj &, size_t, double &, double &, double &);
         double drag_coefficient(double) const;
         void addParticleForTransfer(lexer *, particles_obj &, size_t , particles_obj [6], int &);
         
@@ -120,14 +119,7 @@ private:
             const double drho;
             /// @brief Inverse of kinetik viscosity of the fluid
             const double invKinVis;
-            /// @brief Stress tensor parameter
-            const double Ps;
-            /// @brief Stress tensor parameter
-            const double beta;
-            /// @brief Stress tensor parameter
-            const double epsilon;
-            /// @brief Critical solid volume fraction
-            const double theta_crit;
+ 
 
             double dx;
             slice4 bedChange;
@@ -139,6 +131,10 @@ private:
     double maxcount;
     double Umax,Uabs;
     double fac;
+    double T,Ts;
+    double Cd,Dp,Rep;
+    
+    double Ps,beta,epsilon,Tc;
     
     const int irand;
 	const double drand;

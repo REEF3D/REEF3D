@@ -26,40 +26,39 @@ Author: Alexander Hanke
 #include"fdm.h"
 #include"ghostcell.h"
 
-    /// @brief Calculate complete intra-particle stress trensor
-void partres::particleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
-{
-        double theta;
-        int i,j,k;
-
-        BLOOP
-        {
-            updateParticleStressTensor(p,a,PP,i,j,k);
-        }
-        pgc.start4V_par(p,stressTensor,10);
-}
-
-    /// @brief Calculate intra-particle stress trensor for cells around (`increment::i`,`increment::j`,`increment::k`)
-void partres::particleStressTensorUpdateIJK(lexer *p, fdm &a, particles_obj &PP)
-{
-        double theta;
-        int i,j,k;
-
-        for (int n=-2; n<3; n++)
-            for (int m=-2; m<3; m++)
-                for (int l=-2; l<3; l++)
-                {
-                    i=increment::i+n;
-                    j=increment::j+m;
-                    k=increment::k+l;
-
-                    updateParticleStressTensor(p,a,PP,i,j,k);
-                }
-}
-
     /// @brief Calculate intra-particle stress trensor for cell ( \p i , \p j , \p k )
-void partres::updateParticleStressTensor(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k)
+void partres::ParticleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP)
 {
-        double theta=theta_s(p,a,PP,i,j,k);
-        stressTensor[IJK]=Ps*pow(theta,beta)/max(theta_crit-theta,epsilon*(1.0-theta));
+    BLOOP
+    {
+    Ps = 5.0;
+    beta = 3.5;
+    epsilon = 10e-7;
+    Tc = 0.6;
+    
+    Ts = PI*pow(PP.d50,3.0)*(cellSum[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+    
+    Ts = MAX(Ts,0.0);
+    Ts = MIN(Ts,1.0);
+
+    stressTensor[IJK] = Ps*pow(Ts,beta)/MAX(Tc-Ts,epsilon*(1.0-Ts));
+    
+    a.test(i,j,k) = stressTensor[IJK];
+    
+    //cout<<stressTensor[IJK]<<" "<<Ts<<endl;
+    }
+    
+    pgc.start4V_par(p,stressTensor,10);
 }
+
+    /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
+double partres::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
+{   
+        double theta = PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+        if(theta>1)
+        theta=1;
+        if(theta<0)
+        theta=0;
+        return theta;
+}    
+

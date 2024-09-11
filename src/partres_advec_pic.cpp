@@ -43,165 +43,129 @@ void partres::advec_pic(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_
                         double &du, double &dv, double &dw, double alpha)
 {
     double RKu,RKv,RKw;
-    double u=0,v=0,w=0;
+    double uf=0.0,vf=0.0,wf=0.0;
     double du1, du2, du3, dv1, dv2, dv3, dw1, dw2, dw3;
     double ws=0;
     double topoDist=0;
        
-    double pressureDivX=0, pressureDivY=0, pressureDivZ=0;
-    double stressDivX=0, stressDivY=0, stressDivZ=0;
-    double netBuoyX=0, netBuoyY=0, netBuoyZ=0;
-    // double netBuoyX=(1.0-drho)*p->W20, netBuoyY=(1.0-drho)*p->W21, netBuoyZ=(1.0-drho)*p->W22;
+    double dPx=0.0, dPy=0.0, dPz=0.0;
+    double dTx=0.0, dTy=0.0, dTz=0.0;
 
-    bool limited = true;
-    bool debugPrint = false;
-    bool bedLoad = false;
-    bool shearVel = true;
+    double Bx=(1.0-drho)*p->W20;
+    double By=(1.0-drho)*p->W21;
+    double Bz=(1.0-drho)*p->W22;
+    
+    double Urel=0.0,Vrel=0.0,Wrel=0.0;
+    double Ts,T;
+    
+    double Dpx=0;
+    double Dpy=0;
+    double Dpz=0;
+    double Uabs_rel=0.0;
 
-
-
-    double Du=0,Dv=0,Dw=0;
-    double thetas=0;
-    double DragCoeff=0;
-    double dU=0;
-
+    // find cell IJK
     i=p->posc_i(PX[n]);
     j=p->posc_j(PY[n]);
     k=p->posc_k(PZ[n]);
 
-    thetas=theta_s(p,a,PP,i,j,k);
-        
-    stressDivX = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
-    stressDivY = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
-    stressDivZ = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
-
-    pressureDivX = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
-    pressureDivY = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
-    pressureDivZ = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
-
-        if(p->ccipol4(a.topo,PX[n],PY[n],PZ[n])<PP.d50*10)
-            bedLoad=true;
-
-    topoDist=p->ccipol4_a(a.topo,PX[n],PY[n],PZ[n]);
-
-    if(topoDist<velDist*p->DZP[KP])
-    {
-        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-        // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]-topoDist);
-        if(debugPrint)
-        {
-                cout<<PZ[n]+velDist*p->DZP[KP]-topoDist<<endl;
-                debugPrint=false;
-        }
-    }
+    // theta calc
+    Ts = PI*pow(PP.d50,3.0)*(cellSum[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
     
-    else
-    {
-        u=p->ccipol1c(a.u,PX[n],PY[n],PZ[n]);
-        v=p->ccipol2c(a.v,PX[n],PY[n],PZ[n]);
-        // w=p->ccipol3c(a.w,PX[n],PY[n],PZ[n]);
-    }
-
-    PP.Uf[n]=u;
-    PP.Vf[n]=v;
-    // PP.Wf[n]=w;
         
-    Du=u-PU[n];
-    Dv=v-PV[n];
-    // Dw=w-PW[n];
-
-    if(p->Q202==1)
-    {
-    DragCoeff=drag_model(p,PP.d50,Du,Dv,Dw,thetas);
-    }
-        
-    if(p->Q202==2)
-    {
-            relative_velocity(p,a,PP,n,Du,Dv,Dw);
-            dU=sqrt(Du*Du+Dv*Dv+Dw*Dw);
-            const double Re_p = dU*PP.d50/(p->W2/p->W1);
-            DragCoeff=drag_coefficient(Re_p);
-    }
+    dTx = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);
+    dTy = (stressTensor[IJp1K] - stressTensor[IJm1K])/(p->DYP[JM1]+p->DYP[JP]);
+    dTz = (stressTensor[IJKp1] - stressTensor[IJKm1])/(p->DZP[KM1]+p->DZP[KP]);
     
-    PP.drag[n]=DragCoeff;
+    dPx = (a.press(i+1,j,k) - a.press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
+    dPy = (a.press(i,j+1,k) - a.press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
+    dPz = (a.press(i,j,k+1) - a.press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
+    
+    //dPx = ((a.press(i+1,j,k)-a.phi(i+1,j,k)*a.ro(i+1,j,k)*fabs(p->W22)) - ((a.press(i-1,j,k)-a.phi(i-1,j,k)*a.ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
+    //dPy = ((a.press(i,j+1,k)-a.phi(i,j+1,k)*a.ro(i,j+1,k)*fabs(p->W22)) - ((a.press(i,j-1,k)-a.phi(i,j-1,k)*a.ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
+    dPz = ((a.press(i,j,k+1)-a.phi(i,j,k+1)*a.ro(i,j,k+1)*fabs(p->W22)) - ((a.press(i,j,k-1)-a.phi(i,j,k-1)*a.ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
 
-    // sedimentation
-    // if(topoDist>2.5*PP.d50)
-    // {
-    //     ws = settling_velocity(p,PP.d50,Du,Dv,Dw,thetas);
-    //     // if(fabs(topoDist)<p->DZP[KP])
-    //     // {
-    //     //     ws *=topoDist/p->DZP[KP];
-    //     // }
-    //     Dw-=ws;
-    // }
+    // velocity
+    velDist=0.0;
+    
+    uf = p->ccipol1(a.u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+    vf = p->ccipol2(a.v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+    wf = p->ccipol3(a.w,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
 
-    // Acceleration
-    switch (p->Q202)
-    {
-        case 0:
-        {
-            du=DragCoeff*Du;
-            dv=DragCoeff*Dv;
-            // dw=DragCoeff*Dw;
-            du+=netBuoyX-pressureDivX/p->S22-stressDivX/(thetas*p->S22);
-            dv+=netBuoyY-pressureDivY/p->S22-stressDivY/(thetas*p->S22);
-            // dw+=netBuoyZ-pressureDivZ/p->S22-stressDivZ/(thetas*p->S22);
-            break;
-        }
+    // relative velocity
+    Urel = uf-PU[n];
+    Vrel = vf-PV[n];
+    Wrel = wf-PW[n];
+
+    PP.Uf[n]=Urel;
+    PP.Vf[n]=Vrel;
+    PP.Wf[n]=Wrel;
+    
+    // drag coefficient
+    //if(p->Q202==1)
+    Dpx=drag_model(p,PP.d50,Urel,Ts);
+    Dpy=drag_model(p,PP.d50,Vrel,Ts);
+    Dpz=drag_model(p,PP.d50,Wrel,Ts);
+    
+    //Dp = 0.5;
         
-        case 1:
-        {
-            const double Fd = DragCoeff * PI/8.0 * pow(PP.d50,2) * p->W1 * pow(dU,2);
-            DragCoeff = Fd /(p->S22*PI*pow(PP.d50,3.0)/6.0);
-            du=DragCoeff;
-            dv=DragCoeff;
-            // dw=DragCoeff;
-                break;
-        }
-    }
+    /*if(p->Q202==2)
+    {
+    Uabs_rel=sqrt(Urel*Urel + Vrel*Vrel);
+    Re_p = Uabs_rel*PP.d50/(p->W2/p->W1);
+    Dp = drag_coefficient(Re_p);
+    }*/
+    
+    PP.drag[n]=Dp;
+
+// particle force
+
+    
+    
+    /*Fs = p->Q30*(p->S22-p->W1)*fabs(p->W22)/p->S22;
+    
+
+    if(Fs>du)
+    du=0.0;
+    
+    if(Fs>dv)
+    dv=0.0;
+    
+    cout<<"Fs: "<<Fs<<" du: "<<du<<" dv: "<<dv<<endl;*/
+    
+    du = Dpx*Urel + Bx - dPx/p->S22 - dTx/((Ts>1.0e10?Ts:1.0e10)*p->S22);
+    dv = Dpy*Vrel + By - dPy/p->S22 - dTy/((Ts>1.0e10?Ts:1.0e10)*p->S22);
+    dw = Dpz*Wrel + Bz*0.0 - dPz/p->S22*0.0 - dTz/((Ts>1.0e10?Ts:1.0e10)*p->S22);
+
+
+    //cout<<"dw: "<<dw<<" Bz: "<<dTz<<" dPz: "<<-dPz/p->S22<<" dTz: "<<-dTz/((Ts>1.0e10?Ts:1.0e10)*p->S22)<<endl;
 
     
     // solid forcing
     double fx,fy,fz;
-    
+    /*
     fx = p->ccipol1c(a.fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
     fy = p->ccipol2c(a.fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
     fz = p->ccipol3c(a.fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
     
     du += fx;
     dv += fy;
-    dw += fz;
+    dw += fz;*/
     
     // relax
     du *= rf(p,PX[n],PY[n]);
     dv *= rf(p,PX[n],PY[n]);
     dw *= rf(p,PX[n],PY[n]);
+    
 
+    Umax = MAX(Umax,sqrt(PU[n]*PU[n] + PV[n]*PV[n]));
+
+
+    // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {
-    cout<<"NaN detected.\nDu: "<<Du<<" Dv: "<<Dv<<" Dw: "<<Dw<<"\nDrag: "<<DragCoeff<<endl;
+    cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<Dp<<"\nTs: "<<Ts<<endl;
+    cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
+    cout<<"dTx: "<<dTx<<" dTy: "<<dTy<<" dTz: "<<dTz<<endl;
     exit(1);
     }
-}
-
-void partres::make_moving(lexer *p, fdm &a, particles_obj &PP)
-{
-        for(size_t n=0;n<PP.loopindex;n++)
-            if(PP.Flag[n]==0)
-                PP.Flag[n]=1;
-}
-
-void partres::relative_velocity(lexer *p, fdm &a, particles_obj &PP, size_t n, double &du, double &dv, double &dw)
-{
-        k=p->posc_k(PP.Z[n]);
-        double topoDist=p->ccipol4_a(a.topo,PP.X[n],PP.Y[n],PP.Z[n]);
-        double u=p->ccipol1c(a.u,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-        double v=p->ccipol2c(a.v,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-        double w=p->ccipol3c(a.w,PP.X[n],PP.Y[n],PP.Z[n]+velDist*p->DZP[KP]-topoDist);
-
-        du=u-PP.U[n];
-        dv=v-PP.V[n];
-        dw=w-PP.W[n];
 }
