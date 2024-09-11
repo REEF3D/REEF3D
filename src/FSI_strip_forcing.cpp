@@ -143,10 +143,16 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
         }
     }
     
+    
+    pip=0;
+    
     if(p->T10==2)
     LOOP
     if(eps0(i,j,k)>1.0e-8)
-    pturb->epsget(i,j,k,eps0(i,j,k));
+    {
+    eps_star = eps0(i,j,k);
+    pturb->epsget(i,j,k,eps_star);
+    }
     
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);
@@ -154,5 +160,5 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     
     pgc->start4(p,a->test,10);
     
-    pip=0;
+    
 }
