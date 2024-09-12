@@ -205,7 +205,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     // vertical coordinate
     Umax = pgc.globalmax(Umax);
     
-    cout<<"Umax Particle: "<<Umax<<endl;
+    //cout<<"Umax Particle: "<<Umax<<endl;
     
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)

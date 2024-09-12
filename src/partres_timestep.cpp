@@ -44,6 +44,8 @@ void partres::timestep(lexer *p, ghostcell &pgc, particles_obj &PP)
     maxvz = MAX(maxVelU,maxVelV);
     maxvz = MAX(maxvz,maxVelV);
     
+    maxvz = pgc.globalmax(maxvz);
+    
     if(p->S15==0)
     p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
 
