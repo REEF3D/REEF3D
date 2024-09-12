@@ -96,7 +96,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     //relative_velocity(p,a,PP,n,Urel,Vrel,Wrel);
     Uabs_rel=sqrt(Urel*Urel + Vrel*Vrel);
     Re_p = Uabs_rel*PP.d50/(p->W2/p->W1);
-    DragCoeff = drag_coefficient(Re_p);
+    DragCoeff = 0.5;//drag_coefficient(Re_p);
          
     // acceleration
     Fd = p->W1 * DragCoeff * PI/8.0 * pow(PP.d50,2)  * pow(Uabs_rel,2.0);
@@ -114,7 +114,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     //cout<<"Fd: "<<Fd<<" Fs: "<<Fs<<" F_tot: "<<F_tot<<" "<<PP.d50<<" "<<DragCoeff<<endl;
 
     du = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Urel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
-    dv = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Vrel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
+    dv = F_tot /(p->S22*PI*pow(PP.d50,3.0)/12.0) * Vrel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
     
     PP.shear_eff[n]=Fd;
     PP.shear_crit[n]=Fs;
