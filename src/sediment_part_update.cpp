@@ -65,9 +65,6 @@ void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     
     pgc->gcsl_start4(p,s.bedzh,50); 
     
-    //SLICELOOP4
-    //s.bedch(i,j) = s.bedzh(i,j) - s.bedzh0(i,j);
-    
     pgc->gcsl_start4(p,s.bedch,50); 
     
     pgc->gcdf_update(p,a);

@@ -81,7 +81,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     }
     
     // vertical coordinate
-    Umax = pgc.globalmax(Umax);
+   Umax = pgc.globalmax(Umax);
     
     for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
@@ -94,7 +94,9 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         
         if(Uabs>=0.1*Umax && Uabs>0.01)
         {
-        k=p->posc_k(PP.ZRK1[n]);
+        i=p->posc_i(PP.X[n]);
+        j=p->posc_j(PP.Y[n]);
+        k=p->posc_k(PP.Z[n]);
         PP.ZRK1[n] =   s.bedzh(i,j) + 0.5*p->DZN[KP]*double(rand() % irand)/drand;
             
         }
@@ -135,11 +137,21 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                 i = p->posc_i(PP.XRK1[n]);
                 j = p->posc_j(PP.YRK1[n]);
                 k = p->posc_k(PP.ZRK1[n]);
-
+                
+                if(p->S10==1)
+                {
                 inBounds=bounderies.globalminboundcheck(p,i,j,k);
                 if (inBounds)
                     inBounds=bounderies.globalmaxboundcheck(p,i,j,k);
-
+                }
+                
+                if(p->S10==2)
+                {
+                inBounds=bounderies.minboundcheck(p,i,j,k,1);
+                if (inBounds)
+                    inBounds=bounderies.maxboundcheck(p,i,j,k,1);
+                }
+                
                 // remove out of bounds particles
                 if(!inBounds)
                 {
@@ -216,6 +228,8 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     
         if(Uabs>=0.1*Umax && Uabs>0.01)
         {
+        i=p->posc_i(PP.X[n]);
+        j=p->posc_j(PP.Y[n]);
         k=p->posc_k(PP.Z[n]);
         PP.Z[n] =   s.bedzh(i,j) + 0.5*p->DZN[KP]*double(rand() % irand)/drand;
         }
@@ -258,9 +272,19 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
                 j = p->posc_j(PP.Y[n]);
                 k = p->posc_k(PP.Z[n]);
 
+                if(p->S10==1)
+                {
                 inBounds=bounderies.globalminboundcheck(p,i,j,k);
                 if (inBounds)
                     inBounds=bounderies.globalmaxboundcheck(p,i,j,k);
+                }
+                
+                if(p->S10==2)
+                {
+                inBounds=bounderies.minboundcheck(p,i,j,k,1);
+                if (inBounds)
+                    inBounds=bounderies.maxboundcheck(p,i,j,k,1);
+                }
 
                 // remove out of bounds particles
                 if(!inBounds)
