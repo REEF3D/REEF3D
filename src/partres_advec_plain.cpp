@@ -56,7 +56,6 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
 
     bool limited = true;
     bool debugPrint = false;
-    bool bedLoad = false;
     bool shearVel = true;
 
     double Urel=0.0,Vrel=0.0,Wrel=0.0;
@@ -82,22 +81,22 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     PP.Uf[n]=Urel;
     PP.Vf[n]=Urel;
     
-    // particle force
+    
+    Uabs_rel=sqrt(Urel*Urel + Vrel*Vrel);
+    
+//  drag
     if(p->Q202==1)
     {
-    DragCoeff=drag_model(p,PP.d50,Urel,Vrel,Wrel,thetas);
-    
-    du=DragCoeff*Urel;
-    dv=DragCoeff*Vrel;
+    //DragCoeff=drag_model(p,PP.d50,Urel,Vrel,Wrel,thetas);
     }
         
     if(p->Q202==2)
     {
-    //relative_velocity(p,a,PP,n,Urel,Vrel,Wrel);
-    Uabs_rel=sqrt(Urel*Urel + Vrel*Vrel);
     Re_p = Uabs_rel*PP.d50/(p->W2/p->W1);
-    DragCoeff = 0.5;//drag_coefficient(Re_p);
-         
+    DragCoeff = drag_coefficient(Re_p);
+    }
+    
+// particle force
     // acceleration
     Fd = p->W1 * DragCoeff * PI/8.0 * pow(PP.d50,2)  * pow(Uabs_rel,2.0);
     
@@ -114,25 +113,26 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     //cout<<"Fd: "<<Fd<<" Fs: "<<Fs<<" F_tot: "<<F_tot<<" "<<PP.d50<<" "<<DragCoeff<<endl;
 
     du = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Urel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
-    dv = F_tot /(p->S22*PI*pow(PP.d50,3.0)/12.0) * Vrel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
+    dv = F_tot /(p->S22*PI*pow(PP.d50,3.0)/6.0) * Vrel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
     
     PP.shear_eff[n]=Fd;
     PP.shear_crit[n]=Fs;
-    }
 
     PP.drag[n]=DragCoeff;
     
 
     // solid forcing
     double fx,fy,fz;
-    /*
+    if(p->S10==2)
+    {
     fx = p->ccipol1c(a.fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
     fy = p->ccipol2c(a.fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
     fz = p->ccipol3c(a.fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
     
     du += fx;
     dv += fy;
-    dw += fz;*/
+    dw += fz;
+    }
     
     // relax
     du *= rf(p,PX[n],PY[n]);
@@ -144,6 +144,7 @@ void partres::advec_plain(lexer *p, fdm &a, particles_obj &PP, size_t n, sedimen
     Umax = MAX(Umax,sqrt(PU[n]*PU[n] + PV[n]*PV[n]));
     
     
+    // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {
     cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<DragCoeff<<endl;

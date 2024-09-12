@@ -36,18 +36,6 @@ double partres::volume(lexer *p, fdm &a, particles_obj &PP)
         return PI*pow(PP.d50,3.0)*(sum)/6.0;
 }
 
-    /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
-double partres::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
-{   
-        double theta = PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
-        if(theta>1)
-        theta=1;
-        if(theta<0)
-        theta=0;
-        return theta;
-}    
-
-
     /// @brief Calculate number of particles in cell ( \p i , \p j , \p k )
 void partres::particlePerCell(lexer *p, ghostcell &pgc, particles_obj &PP)
 {

@@ -28,25 +28,37 @@ Author: Alexander Hanke
 
 void partres::timestep(lexer *p, ghostcell &pgc, particles_obj &PP)
 {
-        double maxVelU=0,maxVelV=0,maxVelW=0;
-        for(size_t n=0;n<PP.loopindex;n++)
+    double maxVelU=.00,maxVelV=0.0,maxVelW=0.0;
+    double maxvz;
+    for(size_t n=0;n<PP.loopindex;n++)
+    {
+        if(PP.Flag[n]>=0)
         {
-            if(PP.Flag[n]>0)
-            {
-                maxVelU=max(maxVelU,fabs(PP.U[n]));
-                maxVelV=max(maxVelV,fabs(PP.V[n]));
-                maxVelW=max(maxVelW,fabs(PP.W[n]));
-            }
+                maxVelU = MAX(maxVelU,fabs(PP.U[n]));
+                maxVelV = MAX(maxVelV,fabs(PP.V[n]));
+                maxVelW = MAX(maxVelW,fabs(PP.W[n]));
         }
+    }
+    
+    
+    maxvz = MAX(maxVelU,maxVelV);
+    maxvz = MAX(maxvz,maxVelV);
+    
+    if(p->S15==0)
+    p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
 
-        dx = pgc.globalmin(dx);
-        if(p->mpirank==0)
-        cout<<"TimeStep: dx: "<<dx<<" vel: "<<sqrt(maxVelU*maxVelU+maxVelV*maxVelV+maxVelW*maxVelW)<<endl;
-        double meanVel=sqrt(maxVelU*maxVelU+maxVelV*maxVelV+maxVelW*maxVelW);
-        if(meanVel==0)
-        meanVel=dx*p->S14/p->S13;
-        p->dtsed = p->S14 * (dx/meanVel);
-        p->dtsed = min(p->dtsed,p->S13);
-        p->dtsed = min(p->dtsed,p->dt);
-        p->dtsed = pgc.globalmin(p->dtsed);
+    if(p->S15==1)
+    p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
+    
+    if(p->S15==2)
+    p->dtsed=p->S13;
+
+    p->dtsed=pgc.timesync(p->dtsed);
+    
+    //
+	
+	if(p->mpirank==0)
+	cout<<p->mpirank<<" maxvz: "<<setprecision(4)<<maxvz<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
+    
+    
 }

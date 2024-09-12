@@ -64,12 +64,20 @@ void sediment_part::start_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
         //if(p->Q101>0)
         //pst->erosion(p,*a,PP,s);
         
+        if(p->Q11==1)
         pst->move_RK2_step1(p,*a,*pgc,PP,s,*pturb,xchanged,removed);
+        
+        if(p->Q11==2)
+        pst->move_RK2_pic_step1(p,*a,*pgc,PP,s,*pturb,xchanged,removed);
         
 		// xchange=transfer(p,pgc,&PP, pst, maxparticle);
 		// removed=remove(p,&PP, pst);
         
+        if(p->Q11==1)
         pst->move_RK2_step2(p,*a,*pgc,PP,s,*pturb,xchanged,removed);
+        
+        if(p->Q11==2)
+        pst->move_RK2_pic_step2(p,*a,*pgc,PP,s,*pturb,xchanged,removed);
         
         //if(p->Q101>0)
         //pst->deposition(p,*a,PP,s);

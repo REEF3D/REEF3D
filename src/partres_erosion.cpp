@@ -63,7 +63,7 @@ void partres::erosion(lexer *p, fdm &a, particles_obj &PP, sediment_fdm &s)
                     
                     if(p->Q200==2)
                     {
-                        relative_velocity(p,a,PP,n,du,dv,dw);
+                        //relative_velocity(p,a,PP,n,du,dv,dw);
                         const double dU=sqrt(du*du+dv*dv+dw*dw);
                         const double Re_p = dU*PP.d50/(p->W2/p->W1);
                         const double Cd = drag_coefficient(Re_p);

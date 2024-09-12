@@ -27,21 +27,27 @@ Author: Alexander Hanke
 #include"ghostcell.h"
 
     /// @brief Calculate drag force parameter
-double partres::drag_model(lexer* p, double d, double du, double dv, double dw, double thetas) const
+double partres::drag_model(lexer* p, double d50, double vel, double Ts)
 {
-        double thetaf = 1.0-thetas;
-        if(thetaf>1.0-theta_crit) // Saveguard
-        thetaf=1.0-theta_crit;
+        double Tf = 1.0-Ts;
+        
+        if(Tf>1.0-Tc) // Saveguard
+        Tf=1.0-Tc;
+        
+        vel = fabs(vel);
 
-        const double dU=sqrt(du*du+dv*dv+dw*dw);
-        if(dU==0) // Saveguard
-        return 0;
+        Rep = vel*d50*invKinVis;
 
-        const double Rep=dU*d*invKinVis;
-
-        // const double Cd=24.0*(pow(thetaf,-2.65)+pow(Rep,2.0/3.0)*pow(thetaf,-1.78)/6.0)/Rep;
-        const double Cd=24.0/Rep+4.0/sqrt(Rep)+0.4;
-        const double Dp=Cd*3.0*drho*dU/d/4.0;
+        Cd = (24.0/Rep)*(pow(Tf,-2.65) + (1.0/6.0)*pow(Rep,2.0/3.0)*pow(Tf,-1.78));
+        
+        Cd = MIN(Cd,10.0);
+        Cd = MAX(Cd,0.0);
+        
+        //(const double Cd=24.0/Rep+4.0/sqrt(Rep)+0.4;
+        
+        Dp = Cd*(3.0/8.0)*drho*vel/(0.5*d50);
+        
+        
 
         return Dp;
 }
