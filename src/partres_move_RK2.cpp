@@ -83,7 +83,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     // vertical coordinate
    Umax = pgc.globalmax(Umax);
     
-    for(size_t n=0;n<PP.loopindex;n++)
+    /*for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
     {
         Uabs=sqrt(PP.URK1[n]*PP.URK1[n]+PP.VRK1[n]*PP.VRK1[n]);
@@ -100,7 +100,7 @@ void partres::move_RK2_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         PP.ZRK1[n] =   s.bedzh(i,j) + 0.5*p->DZN[KP]*double(rand() % irand)/drand;
             
         }
-    }
+    }*/
 
     // recv
     {
@@ -219,7 +219,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
     
     //cout<<"Umax Particle: "<<Umax<<endl;
     
-    for(size_t n=0;n<PP.loopindex;n++)
+    /*for(size_t n=0;n<PP.loopindex;n++)
     if(PP.Flag[n]>=0)
     {
         Uabs=sqrt(PP.U[n]*PP.U[n]+PP.V[n]*PP.V[n]);
@@ -233,7 +233,7 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         k=p->posc_k(PP.Z[n]);
         PP.Z[n] =   s.bedzh(i,j) + 0.5*p->DZN[KP]*double(rand() % irand)/drand;
         }
-    }
+    }*/
     
     
     {
