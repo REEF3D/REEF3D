@@ -142,14 +142,16 @@ void partres::advec_pic(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_
     
     // solid forcing
     double fx,fy,fz;
-    /*
+    if(p->S10==2)
+    {
     fx = p->ccipol1c(a.fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
     fy = p->ccipol2c(a.fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
     fz = p->ccipol3c(a.fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
     
     du += fx;
     dv += fy;
-    dw += fz;*/
+    dw += fz;
+    }
     
     // relax
     du *= rf(p,PX[n],PY[n]);

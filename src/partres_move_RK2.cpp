@@ -218,7 +218,6 @@ void partres::move_RK2_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP
         {
         k=p->posc_k(PP.Z[n]);
         PP.Z[n] =   s.bedzh(i,j) + 0.5*p->DZN[KP]*double(rand() % irand)/drand;
-            
         }
     }
     
