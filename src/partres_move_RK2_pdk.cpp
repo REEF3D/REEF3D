@@ -28,7 +28,7 @@ Authors: Alexander Hanke, Hans Bihs
 #include"ghostcell.h"
 #include<math.h>
 
-void partres::move_RK2_pic_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, int &xchanged, int &removed)
+void partres::move_RK2_pdk_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, int &xchanged, int &removed)
 {
     particles_obj Send[4]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
     particles_obj(maxcount,PP.d50,PP.density,1)};
@@ -51,7 +51,7 @@ void partres::move_RK2_pic_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj
                         F, G, H, 1.0);
         
         if(p->Q11==2)
-        advec_pic(p, a, PP, n, s, pturb, 
+        advec_pdk(p, a, PP, n, s, pturb, 
                         PP.X, PP.Y, PP.Z, PP.U, PP.V, PP.W,
                         F, G, H, 1.0);
                                          
@@ -130,7 +130,7 @@ void partres::move_RK2_pic_step1(lexer *p, fdm &a, ghostcell &pgc, particles_obj
     
 }
     
-void partres::move_RK2_pic_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, int &xchanged, int &removed)
+void partres::move_RK2_pdk_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj &PP, sediment_fdm &s, turbulence &pturb, int &xchanged, int &removed)
 {
     particles_obj Send[4]={particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),particles_obj(maxcount,PP.d50,PP.density,1),
     particles_obj(maxcount,PP.d50,PP.density,1)};
@@ -152,7 +152,7 @@ void partres::move_RK2_pic_step2(lexer *p, fdm &a, ghostcell &pgc, particles_obj
                         F, G, H, 0.5);
                         
         if(p->Q11==2)
-        advec_pic(p, a, PP, n, s, pturb, 
+        advec_pdk(p, a, PP, n, s, pturb, 
                         PP.XRK1, PP.YRK1, PP.ZRK1, PP.URK1, PP.VRK1, PP.WRK1,
                         F, G, H, 0.5);
                         

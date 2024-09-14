@@ -62,13 +62,13 @@ public:
         void move_RK2_step2(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
         void move_RK3(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &);
         
-        void move_RK2_pic_step1(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
-        void move_RK2_pic_step2(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
+        void move_RK2_pdk_step1(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
+        void move_RK2_pdk_step2(lexer *, fdm &, ghostcell&, particles_obj &, sediment_fdm &, turbulence &, int &, int &);
         
         void advec_plain(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
-        void advec_pic(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
+        void advec_pdk(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
                         

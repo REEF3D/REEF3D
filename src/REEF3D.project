@@ -551,6 +551,7 @@
         <File Name="sediment_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
+        <File Name="part.h"/>
         <VirtualDirectory Name="Particle Base">
           <File Name="tracers_obj.h"/>
           <File Name="particles_obj.h"/>
@@ -1670,6 +1671,15 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Sediment Particle">
+        <VirtualDirectory Name="Part">
+          <File Name="part_xchange.cpp"/>
+          <File Name="part_basic.cpp"/>
+          <File Name="part_add.cpp"/>
+          <File Name="part_erase.cpp"/>
+          <File Name="part.cpp"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="Wind">
         <File Name="wind_f_drag_coeff.cpp"/>
         <File Name="wind_v.cpp"/>
@@ -1677,10 +1687,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <VirtualDirectory Name="Partres">
-          <File Name="partres_move_RK2_pic.cpp"/>
+          <File Name="partres_move_RK2_pdk.cpp"/>
+          <File Name="partres_advec_pdk.cpp"/>
           <File Name="partres_sandslide.cpp"/>
           <File Name="partres_advec_plain.cpp"/>
-          <File Name="partres_advec_pic.cpp"/>
           <File Name="partres_move_RK3.cpp"/>
           <File Name="partres_move_RK2.cpp"/>
           <File Name="partres_deposition.cpp"/>

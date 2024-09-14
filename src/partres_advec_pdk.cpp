@@ -38,7 +38,7 @@ Authors: Alexander Hanke, Hans Bihs
      * @param PP A reference to the particles_obj object.
      */
      
-void partres::advec_pic(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_fdm &s, turbulence &pturb, 
+void partres::advec_pdk(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_fdm &s, turbulence &pturb, 
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &du, double &dv, double &dw, double alpha)
 {
