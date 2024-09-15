@@ -124,6 +124,7 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         
                         // RANS turbulence forcing
                         if(p->T10==2)
+                        if(i_it>=0 && j_it>=0 && k_it>=0 && i_it<p->knox && j_it<p->knoy && k_it<p->knoz)
                         {
                         dist = (p->XP[i_it + marge] - coordI(0))/dx;
                         D = kernel_roma(dist);

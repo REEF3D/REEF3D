@@ -99,11 +99,11 @@ double rans_io::kinval(int ii, int jj, int kk)
 {
     double val;
     
-    i=ii;
-    j=jj;
-    k=kk;
-
-    val=kin(i,j,k);
+    pip=4;
+    
+    val=kin(ii,jj,kk);
+    
+    pip=0;
 
     return val;
 }
@@ -111,24 +111,32 @@ double rans_io::kinval(int ii, int jj, int kk)
 double rans_io::epsval(int ii, int jj, int kk)
 {
     double val;
-    
-    i=ii;
-    j=jj;
-    k=kk;
 
-    val=eps(i,j,k);
+    pip=4;
+    
+    val=eps(ii,jj,kk);
+    
+    pip=0;
 
     return val;
 }
 
 void rans_io::kinget(int ii, int jj, int kk,double val)
 {
+    pip=4;
+    
     kin(ii,jj,kk)=val;
+    
+    pip=0;
 }
 
 void rans_io::epsget(int ii, int jj, int kk,double val)
 {
+    pip=4;
+    
     eps(ii,jj,kk)=val;
+    
+    pip=0;
 }
 
 void rans_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)
