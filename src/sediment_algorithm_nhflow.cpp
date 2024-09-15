@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"sandslide.h"
 #include"topo_relax.h"
+#include"bedslope.h"
 #include"bedshear_reduction.h"
 #include"bedload_direction.h"
 
@@ -47,7 +48,7 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     prep_nhflow(p,d,pgc);
     
     // bedslope cds ******
-    slope_cds(p,pgc,s);
+    pslope->slope_cds(p,pgc,s);
     
     // bedslope reduction ******
     preduce->start(p,pgc,s);

@@ -47,6 +47,7 @@ Author: Hans Bihs
 #include"topo_relax.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
+#include"bedslope.h"
 #include"reduction_void.h"
 #include"reduction_parker.h"
 #include"reduction_deyemp.h"
@@ -118,6 +119,8 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	if(p->S10==2 && p->A10==6)
 	pvrans = new vrans_f(p,pgc);
     
+    
+    pslope = new bedslope(p);
     
     if(p->S80==0)
     preduce=new reduction_void(p);
