@@ -1672,6 +1672,23 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="Sediment Particle">
+        <File Name="sediment_part2_update.cpp"/>
+        <File Name="sediment_part2_cfd_ini.cpp"/>
+        <File Name="sediment_part2_cfd.cpp"/>
+        <File Name="sediment_part2.cpp"/>
+        <VirtualDirectory Name="Partres">
+          <VirtualDirectory Name="FDM">
+            <File Name="partres2_timestep.cpp"/>
+            <File Name="partres2_relax.cpp"/>
+            <File Name="partres2_seed.cpp"/>
+          </VirtualDirectory>
+          <File Name="partres2_stress_tensor.cpp"/>
+          <File Name="partres2_drag.cpp"/>
+          <File Name="partres2_sandslide.cpp"/>
+          <File Name="partres2_move_RK2.cpp"/>
+          <File Name="partres2_advec_pdk.cpp"/>
+          <File Name="partres2.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Part">
           <File Name="part_xchange.cpp"/>
           <File Name="part_basic.cpp"/>
@@ -2356,6 +2373,11 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
+      <VirtualDirectory Name="Parallel Particle">
+        <File Name="gcx_partx.cpp"/>
+        <File Name="gcx_partnum.cpp"/>
+        <File Name="gcx_particles_obj.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Forcing">
         <File Name="gc_solid_forcing_lsm.cpp"/>
         <File Name="gc_solid_forcing_topo_update.cpp"/>
@@ -2453,7 +2475,6 @@
         <File Name="gcx_parax_test.cpp"/>
         <File Name="gcx_verticalsum.cpp"/>
         <File Name="gcx_tracers_obj.cpp"/>
-        <File Name="gcx_particles_obj.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Topoupdate">
         <File Name="gctopo_buildflag.cpp"/>
