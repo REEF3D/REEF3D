@@ -26,9 +26,9 @@ Author: Hans Bihs
 
 void part::xchange_resize(lexer *p, ghostcell *pgc)
 {
+    // check send / recv size
     maxnum=0;
     
-    // check send / recv size
     for(q=0;q<6;++q)
     {
     maxnum = MAX(maxnum,sendnum[q]);
@@ -43,6 +43,12 @@ void part::xchange_resize(lexer *p, ghostcell *pgc)
     }
     
     // check arrays
+    maxnum=0;
+    
+    for(q=0;q<6;++q)
+    {
+    maxnum += recvnum[q];
+    }
     
     int diff = numempty - maxnum;
     

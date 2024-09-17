@@ -107,18 +107,3 @@ void part::xchange(lexer *p, ghostcell *pgc)
     xchange_fillback(p,pgc,RO);
 
 }
-
-
-
-// data arrays
-/*    double *U,*V,*W;
-    double *URK1,*VRK1,*WRK1;
-    
-    double *X,*Y,*Z;
-    double *XRK1,*YRK1,*ZRK1;
-    
-    double *Uf,*Vf,*Wf;
-
-    double *D,*RO;
-    
-    int *Empty,*Flag;*/
