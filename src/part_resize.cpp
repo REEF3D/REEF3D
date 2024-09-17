@@ -50,5 +50,6 @@ void part::resize(lexer *p, int capacity_new)
   
     p->Iresize(Flag,capacity,capacity_new);
     p->Iresize(Empty,capacity,capacity_new);
-
+    
+    capacity=capacity_new;
 }
