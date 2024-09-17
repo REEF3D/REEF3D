@@ -105,9 +105,13 @@ public:
     void dgcslpol1(lexer*, slice&);
     void dgcslpol2(lexer*, slice&);
     void dgcslpol4(lexer*, slice&);
+    
+// particle
 	void parapls(lexer*,double**,double**,int*,int*);
     void para_tracersobj(lexer*,tracers_obj*,tracers_obj*);
     void para_tracersobj(lexer*,particles_obj*,particles_obj*);
+    void gcpartnum(lexer*,int*,int*);
+    void gcpartx(lexer*,int*,int*,double**,double**);
 
 //  Update
 	void facenbx(lexer*, fieldint&, int*);

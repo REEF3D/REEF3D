@@ -20,22 +20,47 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
+#include"part.h"
 #include"lexer.h"
+#include"ghostcell.h"
 
-void ghostcell::gcpartx(lexer *p, int *sendnum, int *recvnum, double **send, double **recv)
+void part::xchange_count(lexer *p, ghostcell *pgc)
 {
-    //  SEND / RECEIVE
-    for(int qn=0;qn<6;++qn)
-	{
-	MPI_Isend(send[qn],sendnum[qn],MPI_DOUBLE,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
-	MPI_Irecv(recv[qn],recvnum[qn],MPI_DOUBLE,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
+    index_empty0 = index_empty;
+    
+    for(q=0;q<6;++q)
+    {
+    sendnum[q]=0;
+    recvnum[q]=0;
+    }
+    
+    // count particles for xchange
+    for(n=0;n<index;++n)
+    if(Flag[n]>0)
+    {
+    i=p->posc_i(X[n]);
+    j=p->posc_j(Y[n]);
+    k=p->posc_k(Z[n]);
+    
+    
+    if(p->flag5[IJK]==-1)
+    ++sendnum[0]; 
+    
+    if(p->flag5[IJK]==-2)
+    ++sendnum[1];
+
+    if(p->flag5[IJK]==-3)
+    ++sendnum[2];  
+    
+    if(p->flag5[IJK]==-4)
+    ++sendnum[3]; 
+    
+    if(p->flag5[IJK]==-5)
+    ++sendnum[4]; 
+    
+    if(p->flag5[IJK]==-6)
+    ++sendnum[5]; 
     }
 
-    //  WAIT
-	for(qn=0;qn<6;++qn)
-	{
-    MPI_Wait(&sreq[qn],&status);
-	MPI_Wait(&rreq[qn],&status);
-	}
 }
+
