@@ -20,22 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
-#include"lexer.h"
 
-void ghostcell::gcpartx(lexer *p, int *sendnum, int *recvnum, double **send, double **recv)
-{
-    //  SEND / RECEIVE
-    for(int qn=0;qn<6;++qn)
-	{
-	MPI_Isend(send[qn],sendnum[qn],MPI_DOUBLE,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
-	MPI_Irecv(recv[qn],recvnum[qn],MPI_DOUBLE,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
-    }
-
-    //  WAIT
-	for(qn=0;qn<6;++qn)
-	{
-    MPI_Wait(&sreq[qn],&status);
-	MPI_Wait(&rreq[qn],&status);
-	}
-}
+#define PARTBASELOOP for(n=0; n<P.index; ++n)
+#define PARTFLAGCHECK if(P.Flag[n]>0)
+#define PARTLOOP PARTBASELOOP PARTFLAGCHECK

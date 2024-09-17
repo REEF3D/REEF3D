@@ -882,6 +882,7 @@
           <File Name="geotopo.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Increment">
+          <File Name="looping_part.h"/>
           <File Name="iterators1D.h"/>
           <File Name="increment.h"/>
           <File Name="looping.h"/>
@@ -1690,7 +1691,14 @@
           <File Name="partres2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Part">
-          <File Name="part_xchange.cpp"/>
+          <File Name="part_resize.cpp"/>
+          <VirtualDirectory Name="Parallel">
+            <File Name="part_xchange_resize.cpp"/>
+            <File Name="part_xchange_fillback.cpp"/>
+            <File Name="part_xchange_fill.cpp"/>
+            <File Name="part_xchange_count.cpp"/>
+            <File Name="part_xchange.cpp"/>
+          </VirtualDirectory>
           <File Name="part_basic.cpp"/>
           <File Name="part_add.cpp"/>
           <File Name="part_erase.cpp"/>

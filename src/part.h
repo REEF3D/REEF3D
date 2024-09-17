@@ -40,6 +40,8 @@ public:
     
     // add
     void add(lexer*,ghostcell*,double,double,double,double,double);
+    
+    void resize(lexer*,int);
 
     // remove
     void remove(int);
@@ -47,6 +49,11 @@ public:
     
     // parallel
     void xchange(lexer*, ghostcell*);
+    void xchange_count(lexer*, ghostcell*);
+    void xchange_fill(lexer*, ghostcell*, double*);
+    void xchange_fillback(lexer*, ghostcell*, double*);
+    void xchange_resize(lexer*, ghostcell*);
+    
     
 // data arrays
     double *U,*V,*W;
@@ -63,8 +70,16 @@ public:
     
 // iterators
     int index; // replace loopindex
-    int num;   // number of active particles
-    int capacity; // lenght of allocated array
+    int index_empty,index_empty0; //
+    int numactive,numempty;   // number of active particles
+    int capacity; // length of allocated array
+    int capacity_para,maxnum;
+    
+    int n,q;
+    
+    int sendnum[6],recvnum[6];
+    int sendcount[6],recvcount[6];
+    double **send,**recv;
     
 };
 

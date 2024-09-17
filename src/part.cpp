@@ -30,6 +30,7 @@ part::part(lexer *p, ghostcell *pgc)
 {	
     capacity=1;
     
+    // 
     p->Darray(U,capacity);
     p->Darray(V,capacity);
     p->Darray(W,capacity);
@@ -55,6 +56,12 @@ part::part(lexer *p, ghostcell *pgc)
   
     p->Iarray(Flag,capacity);
     p->Iarray(Empty,capacity);
+    
+    // parallel
+    capacity_para=1;
+    
+    p->Darray(send,6,capacity_para);
+    p->Darray(recv,6,capacity_para);
 }
 
 part::~part()
