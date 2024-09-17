@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MOMENTUM_FC2_H_
+#define MOMENTUM_FC2_H_
+
 #include"momentum.h"
 #include"momentum_forcing.h"
 #include"bcmom.h"
@@ -45,8 +48,6 @@ class fsi;
 
 using namespace std;
 
-#ifndef MOMENTUM_FC2_H_
-#define MOMENTUM_FC2_H_
 
 class momentum_FC2 : public momentum, public momentum_forcing, public bcmom
 {

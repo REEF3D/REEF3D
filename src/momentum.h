@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MOMENTUM_H_
+#define MOMENTUM_H_
+
 #include<vector>
 
 class lexer;
@@ -39,9 +42,6 @@ class net;
 class sixdof;
 
 using namespace std;
-
-#ifndef MOMENTUM_H_
-#define MOMENTUM_H_
 
 class momentum
 {

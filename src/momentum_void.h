@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MOMENTUM_VOID_H_
+#define MOMENTUM_VOID_H_
+
 #include"momentum.h"
 
 using namespace std;
-
-#ifndef MOMENTUM_VOID_H_
-#define MOMENTUM_VOID_H_
 
 class momentum_void : public momentum
 {

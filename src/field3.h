@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"field.h"
-#include"increment.h"
-
 #ifndef FIELD3_H_
 #define FIELD3_H_
+
+#include"field.h"
+#include"increment.h"
 
 using namespace std;
 
