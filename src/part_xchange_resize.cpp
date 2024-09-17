@@ -44,6 +44,10 @@ void part::xchange_resize(lexer *p, ghostcell *pgc)
     
     // check arrays
     
+    int diff = numempty - maxnum;
+    
+    if(diff<0)
+    resize(p,capacity + 2*fabs(diff));
     
     
 }
