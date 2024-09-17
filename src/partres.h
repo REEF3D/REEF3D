@@ -68,7 +68,7 @@ public:
         void advec_plain(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
-        void advec_pdk(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
+        void advec_pic(lexer *, fdm &, particles_obj &, size_t, sediment_fdm &, turbulence&, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
                         

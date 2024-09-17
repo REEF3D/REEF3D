@@ -20,24 +20,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authora: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
+#ifndef PARTRES2_H_
+#define PARTRES2_H_
+
 #include"increment.h"
 #include"slice4.h"
 
 class lexer;
 class fdm;
 class ghostcell;
+class sediment_fdm;
+class turbulence;
+class part;
 
 using namespace std;
-
-#ifndef PARTRES2_H_
-#define PARTRES2_H_
 
 
 class partres2 : public increment
 {
 public:
-        partres2(lexer *);
-        ~partres2();
+    partres2(lexer *);
+    ~partres2();
+    
+    void move_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    
+    void advec_plain(lexer*, fdm*, part&, sediment_fdm*, turbulence*, 
+                        double*, double*, double*, double*, double*, double*, 
+                        double&, double&, double&, double);
+    void advec_pic(lexer*, fdm*, part&, sediment_fdm*, turbulence*, 
+                        double*, double*, double*, double*, double*, double*, 
+                        double&, double&, double&, double);
+    
+    // drag
+    double drag_model(lexer *, double, double, double);
+    double drag_coefficient(double);
+    
+    void timestep(lexer*, ghostcell*, part*);
+    
+    
+    // relax
+    void relax_ini(lexer*);
+    void relax(lexer*, ghostcell*, sediment_fdm*);
+    double rf(lexer*, double, double);     
+    double r1(lexer*, double, double);
+    double distcalc(lexer*, double , double, double , double, double);
         
         
 private:
