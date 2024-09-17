@@ -31,6 +31,7 @@ Authors: Alexander Hanke, Hans Bihs
 #include"bedshear.h"
 #include"sediment_fdm.h"
 #include"bedslope.h"
+#include"bedshear_reduction.h"
 
 void sediment_part2::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
                                     reinitopo* preto, solver* psolv)
@@ -38,15 +39,15 @@ void sediment_part2::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, io
     double starttime=pgc->timer();
 
 
-    if (p->count>=p->Q43)
+    if(p->count>=p->Q43)
 	{
         // sediment 
         fill_PQ_cfd(p,a,pgc);
         pslope->slope_cds(p,pgc,s);
         pbedshear->taubed(p,a,pgc,s);
-        //preduce->start(p,pgc,s);
+        preduce->start(p,pgc,s);
         pgc->gcsl_start4(p,s->tau_eff,1);
-        //pbedshear.taucritbed(p,a,pgc,&s);
+        pbedshear->taucritbed(p,a,pgc,s);
         pgc->gcsl_start4(p,s->tau_crit,1);
 
         //point_source(p,a);

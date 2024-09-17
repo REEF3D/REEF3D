@@ -57,7 +57,7 @@ public:
     virtual void ini_cfd(lexer*,fdm*,ghostcell*){};
     virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*){};
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*){};
-    void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*){};
+    void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
     void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
     void prep_cfd(lexer*,fdm*,ghostcell*){};
     void fill_PQ_cfd(lexer*,fdm*,ghostcell*){};
