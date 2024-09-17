@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
+#include"sediment_part2.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm2D.h"
@@ -68,35 +68,9 @@ Author: Hans Bihs
 #include"bedload_direction_f.h"
 #include"bedload_direction_v.h"
 
-void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
+void sediment_part2::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
     s = new sediment_fdm(p);
-    
-    
-    if(p->S11==0)
-    pbed = new bedload_void();
-
-    if(p->S11==1)
-    pbed = new bedload_VR(p);
-
-    if(p->S11==2)
-    pbed = new bedload_MPM(p);
-	
-	if(p->S11==3)
-    pbed = new bedload_EF(p);
-    
-    if(p->S11==4)
-    pbed = new bedload_EH(p);
-    
-    if(p->S11==5)
-    pbed = new bedload_einstein(p);
-    
-    if(p->S12==0)
-    pcbed = new bedconc_void(p);
-    
-    if(p->S12==1)
-    pcbed = new bedconc_VR(p);
-    
     
     if(p->S90==0)
     pslide=new sandslide_v(p);   
@@ -138,53 +112,9 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     preduce=new reduction_FD(p);
     
     ptopo = new sediment_exner(p,pgc);
-    
-    // susepended diff
-    if(p->S60==0 || p->A10!=6)
-	psuspdiff=new diff_void();
-    
-    if(p->S60==0 || p->A10!=6)
-    psusp = new suspended_void();
-    
-    if(p->S60==0 || p->A10!=6)
-	psuspdisc=new convection_void(p);
-    
-    if(p->A10==6)
-    {    
-    if(p->S60<11 && p->S60>0 && p->j_dir==0)
-	psuspdiff=new idiff2_FS_2D(p);
-    
-    if(p->S60<11 && p->S60>0 && p->j_dir==1)
-	psuspdiff=new idiff2_FS(p);
-	
-	if(p->S60>10)
-	psuspdiff=new idiff2(p);
-    
-    // suspended conv
-	if(p->S60<11 && p->S60>0)
-	psuspdisc=new weno_hj_nug(p);
-    
-    if(p->S60>10 && p->S60>0)
-	psuspdisc=new iweno_hj_nug(p);
+   
     
 
-    if(p->S60==2)
-    psusp = new suspended_RK2(p,a);
-
-    if(p->S60==3)
-    psusp = new suspended_RK3(p,a);
-
-    if(p->S60==11)
-    psusp = new suspended_IM1(p,a);
-    }
-    
-    if(p->S85==0)
-    pbeddir = new bedload_direction_v(p);
-    
-    if(p->S85==1)
-    pbeddir = new bedload_direction_f(p);
-    
-	
 	p->gcin4a_count=p->gcin_count;
 	p->gcout4a_count=p->gcout_count;
 	

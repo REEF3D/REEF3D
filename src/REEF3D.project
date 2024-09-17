@@ -453,6 +453,16 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
+      <VirtualDirectory Name="Particle">
+        <File Name="partres.h"/>
+        <File Name="tracers_obj.h"/>
+        <File Name="particles_obj.h"/>
+        <File Name="particle_v.h"/>
+        <File Name="particle_func.h"/>
+        <File Name="particle_f.h"/>
+        <File Name="particle.h"/>
+        <File Name="sediment_part.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Wind">
         <File Name="wind_v.h"/>
         <File Name="wind_f.h"/>
@@ -551,17 +561,9 @@
         <File Name="sediment_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
+        <File Name="sediment_part2.h"/>
+        <File Name="partres2.h"/>
         <File Name="part.h"/>
-        <VirtualDirectory Name="Particle Base">
-          <File Name="tracers_obj.h"/>
-          <File Name="particles_obj.h"/>
-          <File Name="particle_v.h"/>
-          <File Name="particle_func.h"/>
-          <File Name="particle_f.h"/>
-          <File Name="particle.h"/>
-        </VirtualDirectory>
-        <File Name="sediment_part.h"/>
-        <File Name="partres.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
         <File Name="heat_RK3CN.h"/>
@@ -1673,12 +1675,13 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="Sediment Particle">
+        <File Name="sediment_part2_logic.cpp"/>
         <File Name="sediment_part2_update.cpp"/>
         <File Name="sediment_part2_cfd_ini.cpp"/>
         <File Name="sediment_part2_cfd.cpp"/>
         <File Name="sediment_part2.cpp"/>
         <VirtualDirectory Name="Partres">
-          <File Name="partres2_advec_pic.cpp"/>
+          <VirtualDirectory Name="Print"/>
           <VirtualDirectory Name="FDM">
             <File Name="partres2_timestep.cpp"/>
             <File Name="partres2_relax.cpp"/>
@@ -1688,6 +1691,7 @@
           <File Name="partres2_drag.cpp"/>
           <File Name="partres2_sandslide.cpp"/>
           <File Name="partres2_move_RK2.cpp"/>
+          <File Name="partres2_advec_pdk.cpp"/>
           <File Name="partres2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Part">

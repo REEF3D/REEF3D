@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"field4a.h"
 #include"increment.h"
-#include"bedslope.h"
 
 class bedload;class bedconc;
 class sandslide;
@@ -34,6 +33,7 @@ class bedshear;
 class vrans;
 class turbulence;
 class sediment_fdm;
+class bedslope;
 class bedshear_reduction;class suspended;class diffusion;class convection;class patchBC_interface;
 class bedload_direction;
 using namespace std;
@@ -41,7 +41,7 @@ using namespace std;
 #ifndef SEDIMENT_F_H_
 #define SEDIMENT_F_H_
 
-class sediment_f : public sediment, public bedslope
+class sediment_f : public sediment, public increment
 {
 public:
     sediment_f(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
@@ -94,6 +94,7 @@ private:        void log_ini(lexer*);    void sedimentlog(lexer*);
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
+    bedslope *pslope;
     bedshear_reduction *preduce;    topo *ptopo;    suspended *psusp;    diffusion *psuspdiff;    convection *psuspdisc;
 	bedshear *pbedshear;    patchBC_interface *pBC;
     bedload_direction *pbeddir;    ofstream sedlogout;

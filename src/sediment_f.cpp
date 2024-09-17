@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"patchBC_interface.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC): bedslope(p)
+sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC)
 {
 
     pBC = ppBC;
