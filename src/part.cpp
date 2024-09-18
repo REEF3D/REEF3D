@@ -29,6 +29,8 @@ Authors: Hans Bihs, Alexander Hanke
 part::part(lexer *p, ghostcell *pgc)
 {	
     capacity=1;
+    index=1;
+    index_empty=1;
     
     // 
     p->Darray(U,capacity);

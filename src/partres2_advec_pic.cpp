@@ -75,9 +75,9 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     P.Wf[n]=Wrel;
     
     // drag coefficient
-    Dpx=drag_model(p,P.D[n],Urel,Ts);
-    Dpy=drag_model(p,P.D[n],Vrel,Ts);
-    Dpz=drag_model(p,P.D[n],Wrel,Ts);
+    Dpx=drag_model(p,P.D[n],P.RO[n],Urel,Ts);
+    Dpy=drag_model(p,P.D[n],P.RO[n],Vrel,Ts);
+    Dpz=drag_model(p,P.D[n],P.RO[n],Wrel,Ts);
     
 
 // particle force

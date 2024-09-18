@@ -56,13 +56,15 @@ public:
                         double&, double&, double&, double);
     
     // drag
-    double drag_model(lexer *, double, double, double);
+    double drag_model(lexer *, double, double, double, double);
     double drag_coefficient(double);
     
     void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
     
     void timestep(lexer*, ghostcell*, part*);
+    
+    void seed_topo(lexer*, fdm*, ghostcell*, sediment_fdm*);
     
     part P;
     
@@ -77,11 +79,26 @@ public:
     double rf(lexer*, double, double);     
     double r1(lexer*, double, double);
     double distcalc(lexer*, double , double, double , double, double);
+    
+    // print
+    void print_particles(lexer*,sediment_fdm*);
+    void print_vtp(lexer*,sediment_fdm *);
+    void pvtp(lexer*);
+    void piecename_pos(lexer*, int);
+    void header_pos(lexer*);
         
         
 private:
     const int irand;
 	const double drand;
+    
+    int num, printcount;
+    double printtime;
+    char name[100];
+    char pname[100];
+    
+    
+    double topoval,solidval;
     
     double F,G,H;
     
@@ -97,6 +114,8 @@ private:
     double Ts,T,Dp;
     double velDist;
     double Umax;
+    
+    double Rep,Cd;
     
     double *tan_betaQ73,*betaQ73,*dist_Q73;
     
