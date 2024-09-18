@@ -1681,6 +1681,8 @@
         <File Name="sediment_part2_cfd.cpp"/>
         <File Name="sediment_part2.cpp"/>
         <VirtualDirectory Name="Partres">
+          <File Name="partres2_cellSum.cpp"/>
+          <File Name="partres2_advec_plain.cpp"/>
           <File Name="partres2_advec_pic.cpp"/>
           <VirtualDirectory Name="Print"/>
           <VirtualDirectory Name="FDM">

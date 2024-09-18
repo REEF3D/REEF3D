@@ -24,85 +24,85 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void part::xchange(lexer *p, ghostcell *pgc)
+void part::xchange(lexer *p, ghostcell *pgc, int mode)
 {
-    xchange_count(p,pgc);
+    xchange_count(p,pgc,mode);
     pgc->gcpartnum(p,sendnum,recvnum);
     
     // check send/recv array size
     xchange_resize(p,pgc);
     
     // xchange part arrays
-    xchange_fill(p,pgc,U);
+    xchange_fill(p,pgc,mode,U);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,U);
     
-    xchange_fill(p,pgc,V);
+    xchange_fill(p,pgc,mode,V);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,V);
     
-    xchange_fill(p,pgc,W);
+    xchange_fill(p,pgc,mode,W);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,W);
     
     
-    xchange_fill(p,pgc,URK1);
+    xchange_fill(p,pgc,mode,URK1);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,URK1);
     
-    xchange_fill(p,pgc,VRK1);
+    xchange_fill(p,pgc,mode,VRK1);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,VRK1);
     
-    xchange_fill(p,pgc,WRK1);
+    xchange_fill(p,pgc,mode,WRK1);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,WRK1);
     
     
-    xchange_fill(p,pgc,X);
+    xchange_fill(p,pgc,mode,X);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,X);
     
-    xchange_fill(p,pgc,Y);
+    xchange_fill(p,pgc,mode,Y);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,Y);
     
-    xchange_fill(p,pgc,Z);
+    xchange_fill(p,pgc,mode,Z);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,Z);
     
     
-    xchange_fill(p,pgc,XRK1);
+    xchange_fill(p,pgc,mode,XRK1);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,XRK1);
     
-    xchange_fill(p,pgc,YRK1);
+    xchange_fill(p,pgc,mode,YRK1);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,YRK1);
     
-    xchange_fill(p,pgc,ZRK1);
+    xchange_fill(p,pgc,mode,ZRK1);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,ZRK1);
     
     
-    xchange_fill(p,pgc,Uf);
+    xchange_fill(p,pgc,mode,Uf);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,Uf);
     
-    xchange_fill(p,pgc,Vf);
+    xchange_fill(p,pgc,mode,Vf);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,Vf);
     
-    xchange_fill(p,pgc,Wf);
+    xchange_fill(p,pgc,mode,Wf);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,Wf);
     
     
-    xchange_fill(p,pgc,D);
+    xchange_fill(p,pgc,mode,D);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,D);
     
-    xchange_fill(p,pgc,RO);
+    xchange_fill(p,pgc,mode,RO);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,RO);
 

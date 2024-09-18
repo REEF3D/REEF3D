@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void part::xchange_count(lexer *p, ghostcell *pgc)
+void part::xchange_count(lexer *p, ghostcell *pgc, int mode)
 {
     index_empty0 = index_empty;
     
@@ -38,10 +38,19 @@ void part::xchange_count(lexer *p, ghostcell *pgc)
     for(n=0;n<index;++n)
     if(Flag[n]>0)
     {
-    i=p->posc_i(X[n]);
-    j=p->posc_j(Y[n]);
-    k=p->posc_k(Z[n]);
-    
+        if(mode==1)
+        {
+        i=p->posc_i(X[n]);
+        j=p->posc_j(Y[n]);
+        k=p->posc_k(Z[n]);
+        }
+        
+        if(mode==2)
+        {
+        i=p->posc_i(XRK1[n]);
+        j=p->posc_j(YRK1[n]);
+        k=p->posc_k(ZRK1[n]);
+        }
     
     if(p->flag5[IJK]==-1)
     ++sendnum[0]; 

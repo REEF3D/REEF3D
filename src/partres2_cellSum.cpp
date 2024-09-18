@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Alexander Hanke
+Author: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"partres2.h"
@@ -26,22 +26,45 @@ Authors: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres2::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void partres2::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mode)
 {
-    BLOOP
+    for(size_t n=0;n<P.index;n++)
+    if(P.Flag[n]>=0)
     {
-    Ps = 5.0;
-    beta = 3.5;
-    epsilon = 10e-7;
-    Tc = 0.6;
-    
-    Ts = PI*pow(P.d50,3.0)*(cellSum(i,j,k))/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
-    
-    Ts = MAX(Ts,0.0);
-    Ts = MIN(Ts,1.0);
-
-    Tau(i,j,k) = Ps*pow(Ts,beta)/MAX(Tc-Ts,epsilon*(1.0-Ts));
+        // step 1
+        if(mode==1)
+        {
+        i=p->posc_i(P.X[n]);
+        j=p->posc_j(P.Y[n]);
+        k=p->posc_k(P.Z[n]);
+        }
+        
+        if(mode==2)
+        {
+        i=p->posc_i(P.XRK1[n]);
+        j=p->posc_j(P.YRK1[n]);
+        k=p->posc_k(P.ZRK1[n]);
+        }
+            
+        cellSum(i,j,k) -= P.ParcelFactor;
+        bedch[IJ] -= P.ParcelFactor;
+        
+        // step 2
+        if(mode==1)
+        {
+        i=p->posc_i(P.XRK1[n]);
+        j=p->posc_j(P.YRK1[n]);
+        k=p->posc_k(P.ZRK1[n]);
+        }
+        
+        if(mode==2)
+        {
+        i=p->posc_i(P.X[n]);
+        j=p->posc_j(P.Y[n]);
+        k=p->posc_k(P.Z[n]);
+        }
+        
+        cellSum(i,j,k) += P.ParcelFactor;
+        bedch[IJ] += P.ParcelFactor;
     }
-    
-    pgc->start4a(p,Tau,10);
 }

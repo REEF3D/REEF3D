@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void part::xchange_fill(lexer *p, ghostcell *pgc, double *F)
+void part::xchange_fill(lexer *p, ghostcell *pgc, int mode, double *F)
 {
     for(q=0;q<6;++q)
     {
@@ -36,9 +36,19 @@ void part::xchange_fill(lexer *p, ghostcell *pgc, double *F)
     for(n=0;n<index;++n)
     if(Flag[n]>0)
     {
-    i=p->posc_i(X[n]);
-    j=p->posc_j(Y[n]);
-    k=p->posc_k(Z[n]);
+        if(mode==1)
+        {
+        i=p->posc_i(X[n]);
+        j=p->posc_j(Y[n]);
+        k=p->posc_k(Z[n]);
+        }
+        
+        if(mode==2)
+        {
+        i=p->posc_i(XRK1[n]);
+        j=p->posc_j(YRK1[n]);
+        k=p->posc_k(ZRK1[n]);
+        }
     
     
     if(p->flag5[IJK]==-1)

@@ -24,7 +24,11 @@ Authora: Hans Bihs, Alexander Hanke
 #define PARTRES2_H_
 
 #include"increment.h"
+#include"part.h"
 #include"slice4.h"
+#include"field4a.h"
+#include"fieldint4a.h"
+
 
 class lexer;
 class fdm;
@@ -39,7 +43,7 @@ using namespace std;
 class partres2 : public increment
 {
 public:
-    partres2(lexer *);
+    partres2(lexer*, ghostcell*);
     ~partres2();
     
     void move_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
@@ -55,8 +59,17 @@ public:
     double drag_model(lexer *, double, double, double);
     double drag_coefficient(double);
     
+    void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
+    void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
+    
     void timestep(lexer*, ghostcell*, part*);
     
+    part P;
+    
+    slice4 bedch;
+    
+    field4a Tau;
+    fieldint4a cellSum;
     
     // relax
     void relax_ini(lexer*);
@@ -70,7 +83,24 @@ private:
     const int irand;
 	const double drand;
     
+    double F,G,H;
     
+    double dPx,dPy,dPz;
+    double dTx,dTy,dTz;
+    double Bx,By,Bz;
+    double Urel,Vrel,Wrel;
+    double uf,vf,wf;
+    double du,dv,dw;
+    double Dpx,Dpy,Dpz;
+    double Uabs_rel;
+    
+    double Ts,T,Dp;
+    double velDist;
+    double Umax;
+    
+    double *tan_betaQ73,*betaQ73,*dist_Q73;
+    
+    double Ps,beta,epsilon,Tc;
     
 };
 

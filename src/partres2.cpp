@@ -28,8 +28,18 @@ Author: Alexander Hanke
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
-partres2::partres2(lexer *p) : irand(100000), drand(100000.0)
+partres2::partres2(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), cellSum(p), irand(100000), drand(100000.0)
 {
+    p->Darray(betaQ73,p->Q73);
+	p->Darray(tan_betaQ73,p->Q73);
+	p->Darray(dist_Q73,p->Q73);
+
+
+	for(n=0;n<p->Q73;++n)
+	betaQ73[n] = (p->Q73_b[n]+90.0)*(PI/180.0);
+
+	for(n=0;n<p->Q73;++n)
+	tan_betaQ73[n] = tan(betaQ73[n]);
 
 }
 

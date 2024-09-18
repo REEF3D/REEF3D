@@ -48,9 +48,9 @@ public:
     void erase_all();
     
     // parallel
-    void xchange(lexer*, ghostcell*);
-    void xchange_count(lexer*, ghostcell*);
-    void xchange_fill(lexer*, ghostcell*, double*);
+    void xchange(lexer*, ghostcell*,int);
+    void xchange_count(lexer*, ghostcell*,int);
+    void xchange_fill(lexer*, ghostcell*, int, double*);
     void xchange_fillback(lexer*, ghostcell*, double*);
     void xchange_resize(lexer*, ghostcell*);
     
@@ -66,7 +66,11 @@ public:
 
     double *D,*RO;
     
+    
     int *Empty,*Flag;
+    
+    double d50;
+    int ParcelFactor;
     
 // iterators
     int index; // replace loopindex
@@ -77,6 +81,7 @@ public:
     
     int n,q;
     
+private:
     int sendnum[6],recvnum[6];
     int sendcount[6],recvcount[6];
     double **send,**recv;
