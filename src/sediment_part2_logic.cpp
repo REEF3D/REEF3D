@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_part2.h"
+#include"partres2.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm2D.h"
@@ -70,6 +71,8 @@ Author: Hans Bihs
 
 void sediment_part2::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
+    pst = new partres2(p,pgc);
+    
     s = new sediment_fdm(p);
     
     if(p->S90==0)

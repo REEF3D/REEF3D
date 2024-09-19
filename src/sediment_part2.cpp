@@ -32,17 +32,14 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"bedslope.h"
 
-sediment_part2::sediment_part2(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC)
+sediment_part2::sediment_part2(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC) : por(p), d50(p)
 {
-
     pBC = ppBC;
     
     sediment_logic(p,a,pgc,pturb);
 
 	p->gcin4a_count=p->gcin_count;
 	p->gcout4a_count=p->gcout_count;
-    
-    pslope = new bedslope(p);
 	
     
     volume_token=0;
@@ -73,7 +70,6 @@ void sediment_part2::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
 
 		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
 		
-
     
     sedcalc=1;
 	}

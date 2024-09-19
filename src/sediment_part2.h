@@ -41,6 +41,7 @@ class convection;
 class patchBC_interface;
 class bedload_direction;
 class bedslope;
+class partres2;
 using namespace std;
 
 #ifndef SEDIMENT_F_H_
@@ -54,9 +55,9 @@ public:
     
     // CFD interface
     virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
-    virtual void ini_cfd(lexer*,fdm*,ghostcell*){};
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*);
     virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*){};
-    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*){};
+    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
     void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
     void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
     void prep_cfd(lexer*,fdm*,ghostcell*){};
@@ -135,6 +136,10 @@ public:
     virtual void offset_vtp_parameter2(lexer*, ghostcell*,ofstream&, int*, int &){};
     virtual void offset_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &){};
     
+    
+    partres2 *pst;
+    
+    field4a por, d50;
 
 private:
     
@@ -142,10 +147,10 @@ private:
     void sedimentlog(lexer*);
     sediment_fdm *s;
     bedload *pbed;  
+    vrans *pvrans;
     bedconc *pcbed;
     sandslide *pslide;
     topo_relax *prelax;
-    vrans *pvrans;
     bedshear_reduction *preduce;
     topo *ptopo;
     suspended *psusp;

@@ -36,6 +36,7 @@ class ghostcell;
 class sediment_fdm;
 class turbulence;
 class part;
+class vrans;
 
 using namespace std;
 
@@ -59,6 +60,8 @@ public:
     double drag_model(lexer *, double, double, double, double);
     double drag_coefficient(double);
     
+    void update(lexer*, fdm*, ghostcell*, sediment_fdm*, field&, field&);
+    
     void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
     
@@ -72,6 +75,7 @@ public:
     
     field4a Tau;
     fieldint4a cellSum;
+    
     
     // relax
     void relax_ini(lexer*);
@@ -89,6 +93,8 @@ public:
         
         
 private:
+    
+    
     const int irand;
 	const double drand;
     
