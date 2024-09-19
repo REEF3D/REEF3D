@@ -29,7 +29,7 @@ Author: Alexander Hanke, Hans Bihs
 void partres2::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mode)
 {
     for(size_t n=0;n<P.index;n++)
-    if(P.Flag[n]>=0)
+    if(P.Flag[n]==ACTIVE)
     {
         // step 1
         if(mode==1)
@@ -67,4 +67,21 @@ void partres2::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mod
         cellSum(i,j,k) += P.ParcelFactor;
         bedch[IJ] += P.ParcelFactor;
     }
+}
+
+void partres2::cellSum_full_update(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    BLOOP
+    cellSum(i,j,k) = 0;
+    
+    for(size_t n=0;n<P.index;n++)
+    if(P.Flag[n]==ACTIVE)
+    {
+        i=p->posc_i(P.X[n]);
+        j=p->posc_j(P.Y[n]);
+        k=p->posc_k(P.Z[n]);
+        
+        cellSum(i,j,k) += P.ParcelFactor;
+    }
+    
 }

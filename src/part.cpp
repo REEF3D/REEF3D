@@ -31,6 +31,7 @@ part::part(lexer *p, ghostcell *pgc)
     capacity=1;
     index=1;
     index_empty=1;
+    ParcelFactor = p->Q41;
     
     // 
     p->Darray(U,capacity);

@@ -23,6 +23,11 @@ Authors: Hans Bihs, Alexander Hanke
 #ifndef PART_H_
 #define PART_H_
 
+#define PASSIVE 1
+#define ACTIVE 10
+#define MOVING 20
+
+
 #include"increment.h"
 
 class lexer;

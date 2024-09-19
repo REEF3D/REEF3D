@@ -43,12 +43,11 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     k=p->posc_k(PZ[n]);
 
     // theta calc
-    Ts = PI*pow(P.D[n],3.0)*(cellSum(i,j,k))/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
-    
-        
     dTx = (Tau(i+1,j,k) - Tau(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
     dTy = (Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
     dTz = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
+    
+    //cout<<"dTx: "<<dTx<<" dTy: "<<dTy<<" dTz: "<<dTz<<endl;
     
     dPx = (a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
     dPy = (a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
@@ -70,21 +69,23 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     Vrel = vf-PV[n];
     Wrel = wf-PW[n];
 
-    P.Uf[n]=Urel;
-    P.Vf[n]=Vrel;
-    P.Wf[n]=Wrel;
+    P.Uf[n]=uf;
+    P.Vf[n]=vf;
+    P.Wf[n]=wf;
     
     // drag coefficient
     Dpx=drag_model(p,P.D[n],P.RO[n],Urel,Ts);
     Dpy=drag_model(p,P.D[n],P.RO[n],Vrel,Ts);
     Dpz=drag_model(p,P.D[n],P.RO[n],Wrel,Ts);
     
+    //cout<<"Dpx: "<<Dpx<<" Dpy: "<<Dpy<<" Dpz: "<<Dpz<<endl;
+    
 
 // particle force
     
-    du = Dpx*Urel + Bx - dPx/p->S22 - dTx/((Ts>1.0e10?Ts:1.0e10)*p->S22);
-    dv = Dpy*Vrel + By - dPy/p->S22 - dTy/((Ts>1.0e10?Ts:1.0e10)*p->S22);
-    dw = Dpz*Wrel + Bz*0.0 - dPz/p->S22*0.0 - dTz/((Ts>1.0e10?Ts:1.0e10)*p->S22);
+    F = Dpx*Urel + Bx - dPx/p->S22 - dTx/((Ts>1.0e10?Ts:1.0e10)*p->S22);
+    G = Dpy*Vrel + By - dPy/p->S22 - dTy/((Ts>1.0e10?Ts:1.0e10)*p->S22);
+    H = Dpz*Wrel + Bz*0.0 - dPz/p->S22*0.0 - dTz/((Ts>1.0e10?Ts:1.0e10)*p->S22);
 
     // solid forcing
     double fx,fy,fz;
@@ -94,27 +95,31 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
     fz = p->ccipol3c(a->fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
     
-    du += fx;
-    dv += fy;
-    dw += fz;
+    F += fx;
+    G += fy;
+    H += fz;
     }
     
     // relax
-    du *= rf(p,PX[n],PY[n]);
-    dv *= rf(p,PX[n],PY[n]);
-    dw *= rf(p,PX[n],PY[n]);
+    F *= rf(p,PX[n],PY[n]);
+    G *= rf(p,PX[n],PY[n]);
+    H *= rf(p,PX[n],PY[n]);
     
 
     Umax = MAX(Umax,sqrt(PU[n]*PU[n] + PV[n]*PV[n]));
     
-    cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
-
+    
+    //cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
+    
+    F=1.1;
+    G=0.0;
+    H=0.0;
 
     // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {
     cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<Dp<<"\nTs: "<<Ts<<endl;
-    cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
+    cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
     cout<<"dTx: "<<dTx<<" dTy: "<<dTy<<" dTz: "<<dTz<<endl;
     exit(1);
     }

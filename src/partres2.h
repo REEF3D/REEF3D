@@ -64,6 +64,7 @@ public:
     
     void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
+    void cellSum_full_update(lexer*, ghostcell*, sediment_fdm*);
     
     void timestep(lexer*, ghostcell*);
     
@@ -113,7 +114,6 @@ private:
     double Bx,By,Bz;
     double Urel,Vrel,Wrel;
     double uf,vf,wf;
-    double du,dv,dw;
     double Dpx,Dpy,Dpz;
     double Uabs_rel;
     

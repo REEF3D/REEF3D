@@ -46,13 +46,15 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     ALOOP
     if(a->topo(i,j,k)>=0)
     {
-        
-    P.X[n] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
-    P.Y[n] = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
-    P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand; 
+        for(int qn=0;qn<p->Q24;++qn)
+        {
+        P.X[n] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+        P.Y[n] = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+        P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand; 
 
-    P.Flag[n] = 1;
-    ++n;
+        P.Flag[n] = ACTIVE;
+        ++n;
+        }
     }
     
     P.index = n;
@@ -70,6 +72,8 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     if(solidval<0.0)
     P.remove(n);    
     }
+    
+    cellSum_full_update(p,pgc,s);
     
     cout<<"SED_PART "<<P.index<<endl;
 }
