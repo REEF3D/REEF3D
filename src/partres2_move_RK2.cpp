@@ -33,7 +33,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
 // RK step 1
     stress_tensor(p, pgc, s);
     
-    for(size_t n=0;n<P.index;n++)
+    for(int n=0;n<P.index;n++)
     if(P.Flag[n]>=0)
     {
         if(p->Q11==1)
@@ -66,7 +66,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
 // RK step 2
     stress_tensor(p, pgc, s);
     
-    for(size_t n=0;n<P.index;n++)
+    for(int n=0;n<P.index;n++)
     if(P.Flag[n]>=0)
     {
         if(p->Q11==1)

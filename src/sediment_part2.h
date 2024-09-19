@@ -59,7 +59,7 @@ public:
     virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*){};
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
     void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
-    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
+    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, turbulence*);
     void prep_cfd(lexer*,fdm*,ghostcell*){};
     void fill_PQ_cfd(lexer*,fdm*,ghostcell*){};
     void active_cfd(lexer*,fdm*,ghostcell*){};
@@ -160,6 +160,7 @@ private:
     patchBC_interface *pBC;
     bedload_direction *pbeddir;
     bedslope *pslope;
+    turbulence *pturb;
 
     ofstream sedlogout;
     

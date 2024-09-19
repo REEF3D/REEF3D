@@ -70,4 +70,6 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     if(solidval<0.0)
     P.remove(n);    
     }
+    
+    cout<<"SED_PART "<<P.index<<endl;
 }

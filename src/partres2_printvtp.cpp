@@ -45,7 +45,6 @@ void partres2::print_particles(lexer* p, sediment_fdm *s)
 	print_vtp(p,s);
 	++printcount;
 	}
-    
 }
 
 void partres2::print_vtp(lexer* p, sediment_fdm *s)

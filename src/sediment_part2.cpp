@@ -31,10 +31,12 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"patchBC_interface.h"
 #include"bedslope.h"
+#include <sys/stat.h>
 
-sediment_part2::sediment_part2(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC) : por(p), d50(p)
+sediment_part2::sediment_part2(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb, patchBC_interface *ppBC) : por(p), d50(p)
 {
     pBC = ppBC;
+    pturb = ppturb;
     
     sediment_logic(p,a,pgc,pturb);
 
@@ -55,6 +57,10 @@ sediment_part2::sediment_part2(lexer *p, fdm *a, ghostcell *pgc, turbulence *ptu
     
     if(p->F50==4)
 	gcval_eta = 54;
+    
+    // Create Folder
+	if(p->mpirank==0 && p->Q180>0 && (p->Q181>0||p->Q182>0))
+    mkdir("./REEF3D_CFD_SedPart",0777);
 }
 
 sediment_part2::~sediment_part2()
@@ -67,8 +73,7 @@ void sediment_part2::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     
 	if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
 	{
-
-		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
+		sediment_algorithm_cfd(p,a,pgc,pflow,preto,pturb);
 		
     
     sedcalc=1;

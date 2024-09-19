@@ -21,7 +21,7 @@ Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_part2.h"
-#include"partres.h"
+#include"partres2.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm.h"
@@ -34,31 +34,30 @@ Authors: Alexander Hanke, Hans Bihs
 #include"bedshear_reduction.h"
 
 void sediment_part2::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
-                                    reinitopo* preto, solver* psolv)
+                                    reinitopo* preto, turbulence *pturb)
 {
     double starttime=pgc->timer();
 
+    // sediment 
+    fill_PQ_cfd(p,a,pgc);
+    pslope->slope_cds(p,pgc,s);
+    pbedshear->taubed(p,a,pgc,s);
+    preduce->start(p,pgc,s);
+    pgc->gcsl_start4(p,s->tau_eff,1);
+    pbedshear->taucritbed(p,a,pgc,s);
+    pgc->gcsl_start4(p,s->tau_crit,1);
 
-    if(p->count>=p->Q43)
-	{
-        // sediment 
-        fill_PQ_cfd(p,a,pgc);
-        pslope->slope_cds(p,pgc,s);
-        pbedshear->taubed(p,a,pgc,s);
-        preduce->start(p,pgc,s);
-        pgc->gcsl_start4(p,s->tau_eff,1);
-        pbedshear->taucritbed(p,a,pgc,s);
-        pgc->gcsl_start4(p,s->tau_crit,1);
-
-        //point_source(p,a);
+    //point_source(p,a);
         
         
-        //pst->move_RK2(p,*a,*pgc,s,P,*pturb,);
+    pst->move_RK2(p,a,pgc,s,pturb);
+    pst->update(p,a,pgc,s,por,d50);
+    pst->print_particles(p,s);
         
-        /// topo update
-        update_cfd(p,a,pgc,pflow,preto);
+    /// topo update
+    update_cfd(p,a,pgc,pflow,preto);
 
-	}
+
 
     /// print out
 	//print_particles(p);
@@ -70,9 +69,9 @@ void sediment_part2::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, io
     volume = pst->volume(p,*a,PP);
     volume = pgc->globalsum(volume);
 
-	p->sedsimtime=pgc->timer()-starttime;
-
     if(p->mpirank==0 && (p->count%p->P12==0))
     	cout<<"Sediment particles: "<<gparticle_active<<" | xch: "<<gxchange<<" rem: "<<gremoved<<" | sim. time: "<<p->sedsimtime<<"\nTotal bed volume change: "<<(volume-volume0)/volume0<<" %, "<<std::setprecision(prec)<<volume-volume0<<" m^3"<<endl;
     debug(p,a,pgc);*/
+    
+    p->sedsimtime=pgc->timer()-starttime;
 }
