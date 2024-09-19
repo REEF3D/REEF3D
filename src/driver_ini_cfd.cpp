@@ -191,8 +191,6 @@ void driver::driver_ini_cfd()
     
     ppress->ini(p,a,pgc);
     
-    ppart->ini(p,a,pgc,pflow);
-
 	pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);
 	pgc->start3(p,a->w,12);

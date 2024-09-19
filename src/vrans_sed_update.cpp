@@ -27,6 +27,21 @@ Author: Hans Bihs
 
 void vrans_f::sedpart_update(lexer *p, fdm *a, ghostcell *pgc, field &por, field &d50)
 {
+    // Topo
+    ALOOP
+	if(a->topo(i,j,k)<0.0)
+	{
+	a->porosity(i,j,k)= por(i,j,k); //porosity
+	a->porpart(i,j,k) = d50(i,j,k);  //d50
+	alpha(i,j,k) = p->S26_a;  //alpha
+	beta(i,j,k) = p->S26_b;    //beta
+	}
+    
+    
+    pgc->start4a(p,a->porosity,1);
+	pgc->start4a(p,a->porpart,1);
+	pgc->start4a(p,alpha,1);
+	pgc->start4a(p,beta,1);
     
 }
 

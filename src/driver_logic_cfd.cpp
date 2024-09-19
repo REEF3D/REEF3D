@@ -580,10 +580,16 @@ void driver::logic_cfd()
 // Sediment
     if(p->S10>0)
     {
-		if(p->Q10>=2)
-			psed = new sediment_part(p,pgc,pturb);
-		else
-			psed = new sediment_f(p,a,pgc,pturb,pBC);
+        if(p->Q10==0)
+        psed = new sediment_f(p,a,pgc,pturb,pBC);
+        
+		if(p->Q10==1)
+        psed = new sediment_part2(p,a,pgc,pturb,pBC);
+        
+        if(p->Q10==2)
+        psed = new sediment_part(p,pgc,pturb);
+        
+		
 	}
 	else
 	psed = new sediment_void();
@@ -620,11 +626,6 @@ void driver::logic_cfd()
     if(p->Z10==1)
     pfsi = new fsi_strips(p,pgc);
 
-// Partciles
-    if(p->Q10==1)
-    ppart = new particle_f(p,a,pgc);
-	else
-    ppart = new particle_v();
 
 // Velocities
 	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->N40==4))

@@ -44,8 +44,8 @@ class bedslope;
 class partres2;
 using namespace std;
 
-#ifndef SEDIMENT_F_H_
-#define SEDIMENT_F_H_
+#ifndef SEDIMENT_PART2_H_
+#define SEDIMENT_PART2_H_
 
 class sediment_part2 : public sediment, public increment
 {
