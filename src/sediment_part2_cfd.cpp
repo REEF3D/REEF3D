@@ -49,7 +49,7 @@ void sediment_part2::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, io
 
     //point_source(p,a);
         
-        
+    pst->timestep(p,pgc);  
     pst->move_RK2(p,a,pgc,s,pturb);
     pst->update(p,a,pgc,s,por,d50);
     pst->print_particles(p,s);

@@ -65,7 +65,7 @@ public:
     void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
     
-    void timestep(lexer*, ghostcell*, part*);
+    void timestep(lexer*, ghostcell*);
     
     void seed_topo(lexer*, fdm*, ghostcell*, sediment_fdm*);
     

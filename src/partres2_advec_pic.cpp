@@ -107,7 +107,7 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
 
     Umax = MAX(Umax,sqrt(PU[n]*PU[n] + PV[n]*PV[n]));
     
-    //cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
+    cout<<"du: "<<du<<" dv: "<<dv<<" dw: "<<dw<<endl;
 
 
     // error call

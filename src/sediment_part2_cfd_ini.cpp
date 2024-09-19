@@ -84,8 +84,9 @@ void sediment_part2::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     
     pst->update(p,a,pgc,s,por,d50);
+    pst->timestep(p,pgc);
     pst->print_particles(p,s);
-
+    
     
     pgc->gcdf_update(p,a);
 }
