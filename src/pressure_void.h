@@ -20,14 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRESSURE_VOID_H_
+#define PRESSURE_VOID_H_
+
 #include"pressure.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef PRESSURE_VOID_H_
-#define PRESSURE_VOID_H_
-
 
 class pressure_void : public pressure, public increment
 {

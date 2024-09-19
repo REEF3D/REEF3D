@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LEVELSET_VOID_H_
+#define LEVELSET_VOID_H_
+
 #include"freesurface.h"
 
 class fluid_update;
@@ -27,9 +30,6 @@ class heat;
 class concentration;
 
 using namespace std;
-
-#ifndef LEVELSET_VOID_H_
-#define LEVELSET_VOID_H_
 
 class levelset_void : public freesurface
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DRIVER_H_
+#define DRIVER_H_
+
 #include"increment.h"
 
 class field;
@@ -86,9 +89,6 @@ class particle_base;
 #include<fstream>
 #include<iomanip>
 #include<vector>
-
-#ifndef DRIVER_H_
-#define DRIVER_H_
 
 using namespace std;
 
