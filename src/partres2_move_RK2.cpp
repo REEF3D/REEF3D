@@ -94,4 +94,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
     // parallel transfer
     P.xchange(p, pgc, 2);
+    
+    //ALOOP
+    //a->test(i,j,k) = cellSum(i,j,k);
 }

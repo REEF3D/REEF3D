@@ -55,8 +55,6 @@ benchmark_disk::benchmark_disk(lexer *p, fdm *a)
 		{
 			a->vof(i,j,k) = 0.0;
 		}
-		
-		a->test(i,j,k) = a->vof(i,j,k);		
 	}
 
 

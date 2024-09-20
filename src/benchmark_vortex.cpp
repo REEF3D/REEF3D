@@ -89,8 +89,6 @@ benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
 		{
 			a->vof(i,j,k) = 1.0;
 		}
-		
-		a->test(i,j,k) = a->vof(i,j,k);		
 	}
 
     

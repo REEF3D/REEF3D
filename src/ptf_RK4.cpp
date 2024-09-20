@@ -248,9 +248,6 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
     pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,a->eta,a->Fifsf);
-    
-    FLUIDLOOP
-    a->test(i,j,k) = a->Fifsf(i,j);
 
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
@@ -272,12 +269,8 @@ void ptf_RK4::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     
     pfsfupdate->fsfepol(p,a,pgc,a->eta,a->Fi);
     
-    
     pgc->gcsl_start4(p,a->eta,50);
-    
-    FLUIDLOOP
-    a->test(i,j,k) = a->Fifsf(i,j);
-    
+
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
 

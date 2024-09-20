@@ -44,7 +44,6 @@ void onephase_f::uvel(lexer *p, fdm *a, ghostcell *pgc, field &u)
         ny/=(dnorm>1.0e-8?dnorm:1.0e10);
         nz/=(dnorm>1.0e-8?dnorm:1.0e10);
         
-    //a->test(i,j,k) = -nx;
     xphi(i,j,k) = -nx;
     yphi(i,j,k) = -ny;
     zphi(i,j,k) = -nz;
