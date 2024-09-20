@@ -36,7 +36,7 @@ void part::xchange_count(lexer *p, ghostcell *pgc, int mode)
     
     // count particles for xchange
     for(n=0;n<index;++n)
-    if(Flag[n]>0)
+    if(Flag[n]==ACTIVE)
     {
         if(mode==1)
         {
@@ -70,6 +70,8 @@ void part::xchange_count(lexer *p, ghostcell *pgc, int mode)
     if(p->flag5[IJK]==-6)
     ++sendnum[5]; 
     }
+    
+    //cout<<sendnum[0]<<" "<<sendnum[1]<<" "<<sendnum[2]<<" "<<sendnum[3]<<endl;
 
 }
 

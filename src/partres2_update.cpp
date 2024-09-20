@@ -32,8 +32,8 @@ void partres2::update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, field &
     
     ALOOP
 	{
-	por(i,j,k)=1.0;
-	d50(i,j,k)=0.01;
+	por(i,j,k)=p->S24;
+	d50(i,j,k)=p->S20;
 	}
     
     

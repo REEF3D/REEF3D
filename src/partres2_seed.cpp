@@ -31,7 +31,7 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     // estimate number particles
     int count=0;
     ALOOP
-    if(a->topo(i,j,k)>=0)
+    if(a->topo(i,j,k)<=0)
     ++count;
     
     // safety
@@ -44,13 +44,16 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     // seed
     n=0;
     ALOOP
-    if(a->topo(i,j,k)>=0)
+    if(a->topo(i,j,k)<=0)
     {
         for(int qn=0;qn<p->Q24;++qn)
         {
         P.X[n] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
         P.Y[n] = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
         P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand; 
+        
+        P.D[n] = p->S20;
+        P.RO[n] = p->S22;
 
         P.Flag[n] = ACTIVE;
         ++n;
@@ -61,12 +64,12 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     
     // remove above be
     for(n=0;n<P.index;++n)
-    if(P.Flag[n]>0)
+    if(P.Flag[n]==ACTIVE)
     {
     topoval  = p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]);
     solidval = p->ccipol4_b(a->solid,P.X[n],P.Y[n],P.Z[n]);
     
-    if(topoval<0.0)
+    if(topoval>0.0)
     P.remove(n);
         
     if(solidval<0.0)
@@ -74,6 +77,4 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     }
     
     cellSum_full_update(p,pgc,s);
-    
-    cout<<"SED_PART "<<P.index<<endl;
 }

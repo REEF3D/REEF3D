@@ -52,6 +52,8 @@ void part::xchange_resize(lexer *p, ghostcell *pgc)
     
     int diff = numempty - maxnum;
     
+    //cout<<"DIFF: "<<diff<<endl;
+    
     if(diff<0)
     resize(p,capacity + 2*fabs(diff));
     

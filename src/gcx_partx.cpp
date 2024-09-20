@@ -33,7 +33,7 @@ void ghostcell::gcpartx(lexer *p, int *sendnum, int *recvnum, double **send, dou
     }
 
     //  WAIT
-	for(qn=0;qn<6;++qn)
+	for(int qn=0;qn<6;++qn)
 	{
     MPI_Wait(&sreq[qn],&status);
 	MPI_Wait(&rreq[qn],&status);

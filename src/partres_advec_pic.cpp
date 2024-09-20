@@ -69,7 +69,7 @@ void partres::advec_pic(lexer *p, fdm &a, particles_obj &PP, size_t n, sediment_
     k=p->posc_k(PZ[n]);
 
     // theta calc
-    Ts = PI*pow(PP.d50,3.0)*(cellSum[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+    Ts = PI*pow(PP.d50,3.0)*(cellSum[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
     
         
     dTx = (stressTensor[Ip1JK] - stressTensor[Im1JK])/(p->DXP[IM1]+p->DXP[IP]);

@@ -36,7 +36,7 @@ void partres::ParticleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_o
     epsilon = 10e-7;
     Tc = 0.6;
     
-    Ts = PI*pow(PP.d50,3.0)*(cellSum[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+    Ts = PI*pow(PP.d50,3.0)*(cellSum[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
     
     Ts = MAX(Ts,0.0);
     Ts = MIN(Ts,1.0);
@@ -54,7 +54,7 @@ void partres::ParticleStressTensor(lexer *p, fdm &a, ghostcell &pgc, particles_o
     /// @brief Calculate solid volume fraction for cell ( \p i , \p j , \p k )
 double partres::theta_s(lexer *p, fdm &a, particles_obj &PP, int i, int j, int k) const
 {   
-        double theta = PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+        double theta = PI*pow(PP.d50,3.0)*(cellSum[IJK]+cellSumTopo[IJK])/(6.0*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
         if(theta>1)
         theta=1;
         if(theta<0)

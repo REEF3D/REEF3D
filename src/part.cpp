@@ -32,6 +32,13 @@ part::part(lexer *p, ghostcell *pgc)
     index=1;
     index_empty=1;
     ParcelFactor = p->Q41;
+    d50 = p->S20;
+    rhosed = p->S22;
+    
+    ParcelFactor = p->S24*((p->DXM*p->DXM*p->DXM)/(p->Q41*(1.0/6.0)*pow(p->S20,3.0)*PI));
+    
+    if(p->mpirank==0)
+    cout<<"ParcelFactor: "<<ParcelFactor<<endl;
     
     // 
     p->Darray(U,capacity);
@@ -61,7 +68,7 @@ part::part(lexer *p, ghostcell *pgc)
     p->Iarray(Empty,capacity);
     
     // parallel
-    capacity_para=1;
+    capacity_para=100;
     
     p->Darray(send,6,capacity_para);
     p->Darray(recv,6,capacity_para);

@@ -28,14 +28,16 @@ Authors: Hans Bihs, Alexander Hanke
 
 void partres2::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    BLOOP
+    ALOOP
     {
     Ps = 5.0;
     beta = 3.5;
     epsilon = 10e-7;
     Tc = 0.6;
     
-    Ts = PI*pow(P.d50,3.0)*(cellSum(i,j,k))/(6.0*p->DXN[IP]*p->DYN[JP]*p->DYN[KP]);
+    Ts = PI*pow(P.d50,3.0)*(cellSum(i,j,k))/(6.0*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+    
+    //cout<<"Ts: "<<Ts<<" d50: "<<P.d50<<endl;
     
     Ts = MAX(Ts,0.0);
     Ts = MIN(Ts,1.0);

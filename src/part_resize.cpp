@@ -51,5 +51,9 @@ void part::resize(lexer *p, int capacity_new)
     p->Iresize(Flag,capacity,capacity_new);
     p->Iresize(Empty,capacity,capacity_new);
     
+    // add new cells to Empty list
+    
+    // Flag update
+    
     capacity=capacity_new;
 }

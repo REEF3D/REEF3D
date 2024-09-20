@@ -1690,6 +1690,7 @@
             <File Name="partres2_printpvtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FDM">
+            <File Name="partres2_count.cpp"/>
             <File Name="partres2_timestep.cpp"/>
             <File Name="partres2_relax.cpp"/>
             <File Name="partres2_seed.cpp"/>

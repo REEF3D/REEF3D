@@ -29,13 +29,19 @@ Authors: Hans Bihs, Alexander Hanke
 
 void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
+    count_particles(p,a,pgc,s);
     
 // RK step 1
     stress_tensor(p, pgc, s);
     
-    for(int n=0;n<P.index;n++)
+    ALOOP
+    a->test(i,j,k) = Tau(i,j,k);
+    
+    for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
+        //cout<<"n: "<<n<<" P.index: "<<P.index<<endl;
+        
         if(p->Q11==1)
         advec_plain(p, a, P, s, pturb, 
                         P.X, P.Y, P.Z, P.U, P.V, P.W,
@@ -66,7 +72,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
 // RK step 2
     stress_tensor(p, pgc, s);
     
-    for(int n=0;n<P.index;n++)
+    for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
         if(p->Q11==1)
@@ -95,6 +101,5 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     // parallel transfer
     P.xchange(p, pgc, 2);
     
-    //ALOOP
-    //a->test(i,j,k) = cellSum(i,j,k);
+    //cellSum_full_update(p,pgc,s);
 }

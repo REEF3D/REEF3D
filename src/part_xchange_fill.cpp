@@ -34,7 +34,7 @@ void part::xchange_fill(lexer *p, ghostcell *pgc, int mode, double *F)
     
     // find particles for xchange
     for(n=0;n<index;++n)
-    if(Flag[n]>0)
+    if(Flag[n]==ACTIVE)
     {
         if(mode==1)
         {

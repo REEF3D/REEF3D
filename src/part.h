@@ -23,6 +23,7 @@ Authors: Hans Bihs, Alexander Hanke
 #ifndef PART_H_
 #define PART_H_
 
+#define EMPTY  -1
 #define PASSIVE 1
 #define ACTIVE 10
 #define MOVING 20
@@ -74,7 +75,7 @@ public:
     
     int *Empty,*Flag;
     
-    double d50;
+    double d50,rhosed;
     int ParcelFactor;
     
 // iterators

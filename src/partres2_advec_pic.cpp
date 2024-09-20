@@ -41,6 +41,10 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     i=p->posc_i(PX[n]);
     j=p->posc_j(PY[n]);
     k=p->posc_k(PZ[n]);
+    
+    //cout<<n<<" PX[n]: "<<PX[n]<<" PY[n]: "<<PY[n]<<" PZ[n]: "<<PZ[n]<<endl;
+    
+    //cout<<n<<" P.index: "<<P.index<<" i: "<<i<<" j: "<<j<<" k: "<<k<<endl;
 
     // theta calc
     dTx = (Tau(i+1,j,k) - Tau(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
@@ -63,6 +67,8 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
     vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
     wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
+    
+    //cout<<"uf: "<<uf<<" vf: "<<vf<<" wf: "<<wf<<endl;
 
     // relative velocity
     Urel = uf-PU[n];
@@ -111,9 +117,9 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     
     //cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
     
-    F=1.1;
+    /*F=0.0;
     G=0.0;
-    H=0.0;
+    H=0.0;*/
 
     // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])

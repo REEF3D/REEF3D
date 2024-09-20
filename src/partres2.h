@@ -61,6 +61,7 @@ public:
     double drag_coefficient(double);
     
     void update(lexer*, fdm*, ghostcell*, sediment_fdm*, field&, field&);
+    void count_particles(lexer*, fdm*, ghostcell*, sediment_fdm*);
     
     void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
@@ -103,6 +104,8 @@ private:
     double printtime;
     char name[100];
     char pname[100];
+    
+    int particle_count,empty_count,active_count;
     
     
     double topoval,solidval;

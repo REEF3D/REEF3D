@@ -33,11 +33,11 @@ void partres2::relax_ini(lexer *p)
 	p->Darray(dist_Q73,p->Q73);
 
 
-	for(n=0;n<p->Q73;++n)
-	betaQ73[n] = (p->Q73_b[n]+90.0)*(PI/180.0);
+	for(int qn=0;qn<p->Q73;++qn)
+	betaQ73[qn] = (p->Q73_b[qn]+90.0)*(PI/180.0);
 
-	for(n=0;n<p->Q73;++n)
-	tan_betaQ73[n] = tan(betaQ73[n]);
+	for(int qn=0;qn<p->Q73;++qn)
+	tan_betaQ73[qn] = tan(betaQ73[qn]);
 }
 
 void partres2::relax(lexer *p, ghostcell *pgc, sediment_fdm *s)
@@ -51,32 +51,30 @@ double partres2::rf(lexer *p, double x1, double y1)
     
         distot = 0.0;
 		distcount=0;
-		for(n=0;n<p->Q73;++n)
+		for(int qn=0;qn<p->Q73;++qn)
 		{
-		dist_Q73[n] =  distcalc(p,p->Q73_x[n],p->Q73_y[n],x1,y1,tan_betaQ73[n]);
+		dist_Q73[qn] =  distcalc(p,p->Q73_x[qn],p->Q73_y[qn],x1,y1,tan_betaQ73[qn]);
 		
-			if(dist_Q73[n]<p->Q73_dist[n])
+			if(dist_Q73[qn]<p->Q73_dist[qn])
 			{
-			distot += dist_Q73[n];
+			distot += dist_Q73[qn];
 			++distcount;
 			}
 		}
 		
 		
-		for(n=0;n<p->Q73;++n)
+		for(int qn=0;qn<p->Q73;++qn)
 		{
-            if(dist_Q73[n]<p->Q73_dist[n])
+            if(dist_Q73[qn]<p->Q73_dist[qn])
 			{
             val=0.0;
-			relax = r1(p,dist_Q73[n],p->Q73_dist[n]);
+			relax = r1(p,dist_Q73[qn],p->Q73_dist[qn]);
 			
 			if(distcount==1)
             val=(relax);
                 
 			if(distcount>1)
-            val += (relax) * (1.0 - dist_Q73[n]/(distot>1.0e-10?distot:1.0e20));
-            
-            //cout<<p->XP[IP]<<" "<<val<<endl;
+            val += (relax) * (1.0 - dist_Q73[qn]/(distot>1.0e-10?distot:1.0e20));
 			}
 		}
         
