@@ -29,41 +29,23 @@ void part::xchange_fillback(lexer *p, ghostcell *pgc, double *F)
     index_empty = index_empty0;
     
     // fill recv into F
-    for(q=0;q<recvnum[0];++q)
+    for(n=0;n<6;++n)
+    for(q=0;q<recvnum[n];++q)
     {
-    F[Empty[index_empty]] = recv[0][q]; 
+    F[Empty[index_empty]] = recv[n][q]; 
     --index_empty;
     }
-    
-    for(q=0;q<recvnum[1];++q)
-    {
-    F[Empty[index_empty]] = recv[1][q]; 
-    --index_empty;
-    }
-    
-    for(q=0;q<recvnum[2];++q)
-    {
-    F[Empty[index_empty]] = recv[2][q]; 
-    --index_empty;
-    }
-    
-    for(q=0;q<recvnum[3];++q)
-    {
-    F[Empty[index_empty]] = recv[3][q]; 
-    --index_empty;
-    }
-    
-    for(q=0;q<recvnum[4];++q)
-    {
-    F[Empty[index_empty]] = recv[4][q]; 
-    --index_empty;
-    }
-    
-    for(q=0;q<recvnum[5];++q)
-    {
-    F[Empty[index_empty]] = recv[5][q]; 
-    --index_empty;
-    }
-
 }
 
+void part::xchange_fillback_flag(lexer *p, ghostcell *pgc)
+{
+    index_empty = index_empty0;
+    
+    // fill recv into F
+    for(n=0;n<6;++n)
+    for(q=0;q<recvnum[n];++q)
+    {
+    Flag[Empty[index_empty]] = ACTIVE; 
+    --index_empty;
+    }
+}

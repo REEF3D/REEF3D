@@ -26,11 +26,15 @@ Author: Hans Bihs
 
 void part::xchange(lexer *p, ghostcell *pgc, int mode)
 {
+    // count send/recv
     xchange_count(p,pgc,mode);
     pgc->gcpartnum(p,sendnum,recvnum);
     
     // check send/recv array size
     xchange_resize(p,pgc);
+    
+    // sendid
+    xchange_sendid(p,pgc,mode);
     
     // xchange part arrays
     xchange_fill(p,pgc,mode,U);
@@ -105,5 +109,9 @@ void part::xchange(lexer *p, ghostcell *pgc, int mode)
     xchange_fill(p,pgc,mode,RO);
     pgc->gcpartx(p,sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,RO);
-
+    
+    // Flag
+    xchange_fillback_flag(p,pgc);
+    xchange_fill_flag(p,pgc,mode);
+    
 }

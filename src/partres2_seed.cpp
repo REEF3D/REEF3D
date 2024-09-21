@@ -60,8 +60,6 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         }
     }
     
-    P.index = n;
-    
     // remove above be
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)

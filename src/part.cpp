@@ -30,7 +30,7 @@ part::part(lexer *p, ghostcell *pgc)
 {	
     capacity=1;
     index=1;
-    index_empty=1;
+    index_empty=capacity;
     ParcelFactor = p->Q41;
     d50 = p->S20;
     rhosed = p->S22;
@@ -68,7 +68,9 @@ part::part(lexer *p, ghostcell *pgc)
     p->Iarray(Empty,capacity);
     
     // parallel
-    capacity_para=100;
+    capacity_para=1000;
+    
+    p->Iarray(sendid,6,capacity_para);
     
     p->Darray(send,6,capacity_para);
     p->Darray(recv,6,capacity_para);

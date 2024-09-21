@@ -56,8 +56,11 @@ public:
     // parallel
     void xchange(lexer*, ghostcell*,int);
     void xchange_count(lexer*, ghostcell*,int);
+    void xchange_sendid(lexer*, ghostcell*,int);
     void xchange_fill(lexer*, ghostcell*, int, double*);
+    void xchange_fill_flag(lexer*, ghostcell*,int);
     void xchange_fillback(lexer*, ghostcell*, double*);
+    void xchange_fillback_flag(lexer*, ghostcell*);
     void xchange_resize(lexer*, ghostcell*);
     
     
@@ -90,6 +93,7 @@ public:
 private:
     int sendnum[6],recvnum[6];
     int sendcount[6],recvcount[6];
+    int **sendid;
     double **send,**recv;
     
 };

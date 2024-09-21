@@ -1705,6 +1705,7 @@
           <File Name="part_remove.cpp"/>
           <File Name="part_resize.cpp"/>
           <VirtualDirectory Name="Parallel">
+            <File Name="part_xchange_sendid.cpp"/>
             <File Name="part_xchange_resize.cpp"/>
             <File Name="part_xchange_fillback.cpp"/>
             <File Name="part_xchange_fill.cpp"/>

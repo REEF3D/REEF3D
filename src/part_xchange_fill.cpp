@@ -26,67 +26,18 @@ Author: Hans Bihs
 
 void part::xchange_fill(lexer *p, ghostcell *pgc, int mode, double *F)
 {
-    for(q=0;q<6;++q)
-    {
-    sendcount[q]=0;
-    recvcount[q]=0;
-    }
-    
-    // find particles for xchange
-    for(n=0;n<index;++n)
-    if(Flag[n]==ACTIVE)
-    {
-        if(mode==1)
-        {
-        i=p->posc_i(X[n]);
-        j=p->posc_j(Y[n]);
-        k=p->posc_k(Z[n]);
-        }
-        
-        if(mode==2)
-        {
-        i=p->posc_i(XRK1[n]);
-        j=p->posc_j(YRK1[n]);
-        k=p->posc_k(ZRK1[n]);
-        }
-    
-    
-    if(p->flag5[IJK]==-1)
-    {
-    send[0][sendcount[0]] = F[n];
-    ++sendcount[0];
-    }
-    
-    if(p->flag5[IJK]==-2)
-    {
-    send[1][sendcount[1]] = F[n];
-    ++sendcount[1];
-    }
-
-    if(p->flag5[IJK]==-3)
-    {
-    send[2][sendcount[2]] = F[n];
-    ++sendcount[2];
-    }  
-    
-    if(p->flag5[IJK]==-4)
-    {
-    send[3][sendcount[3]] = F[n];
-    ++sendcount[3];
-    }
-    
-    if(p->flag5[IJK]==-5)
-    {
-    send[4][sendcount[4]] = F[n];
-    ++sendcount[4];
-    } 
-    
-    if(p->flag5[IJK]==-6)
-    {
-    send[5][sendcount[5]] = F[n];
-    ++sendcount[5];
-    }
-    }
-
+    for(n=0;n<6;++n)
+    for(q=0;q<sendnum[n];++q)
+    send[n][q] = F[sendid[n][q]];
 }
 
+void part::xchange_fill_flag(lexer *p, ghostcell *pgc, int mode)
+{
+    for(n=0;n<6;++n)
+    for(q=0;q<sendnum[n];++q)
+    {
+    Flag[sendid[n][q]]=EMPTY;
+    Empty[index_empty]=sendid[n][q];
+    ++index_empty;
+    }
+}

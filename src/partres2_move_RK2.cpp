@@ -88,7 +88,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         // Velocity update
         P.U[n] = 0.5*P.U[n] + 0.5*P.URK1[n] + 0.5*p->dtsed*F;
         P.V[n] = 0.5*P.V[n] + 0.5*P.VRK1[n] + 0.5*p->dtsed*G;
-        P.W[n] = 0.5*P.W[n] + 0.5*P.URK1[n] + 0.5*p->dtsed*H;
+        P.W[n] = 0.5*P.W[n] + 0.5*P.WRK1[n] + 0.5*p->dtsed*H;
         
         // Position update
         P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];

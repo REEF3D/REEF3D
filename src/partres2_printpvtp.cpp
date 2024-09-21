@@ -30,11 +30,7 @@ Author: Hans Bihs
 void partres2::pvtp(lexer* p)
 {
 
-    // if(p->P15==1)
     num = printcount;
-
-    if(p->P15==2)
-    num = p->count;
 	
 	sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i.pvtp",num);
 	
@@ -80,27 +76,11 @@ void partres2::pvtp(lexer* p)
 
 void partres2::piecename_pos(lexer* p, int n)
 {
-
-    // if(p->P15==1)
-    num = printcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-	sprintf(pname,"REEF3D-SedPart-%08i-%06i.vtp",num,n+1);
-
+	sprintf(pname,"REEF3D-SedPart-%08i-%06i.vtp",printcount,n+1);
 }
 
 /// @brief Setting name of indivdual vtp file
 void partres2::header_pos(lexer* p)
 {
-
-    // if(p->P15==1)
-    num = printcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-	sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i-%06i.vtp",num,p->mpirank+1);
-	
+	sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i-%06i.vtp",printcount,p->mpirank+1);	
 }

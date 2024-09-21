@@ -25,6 +25,8 @@ Author: Hans Bihs, Alexander Hanke
 
 void part::resize(lexer *p, int capacity_new)
 {
+    if(capacity_new>capacity)
+    {
     p->Dresize(U,capacity,capacity_new);
     p->Dresize(V,capacity,capacity_new);
     p->Dresize(W,capacity,capacity_new);
@@ -51,9 +53,18 @@ void part::resize(lexer *p, int capacity_new)
     p->Iresize(Flag,capacity,capacity_new);
     p->Iresize(Empty,capacity,capacity_new);
     
+    // Flag update
     // add new cells to Empty list
     
-    // Flag update
+    for(n=capacity;n<capacity_new;++n)
+    {
+    Flag[n] = -1;
     
-    capacity=capacity_new;
+    Empty[index_empty] = n;
+    ++index_empty;
+    }
+    
+    
+    index=capacity=capacity_new;
+    }
 }

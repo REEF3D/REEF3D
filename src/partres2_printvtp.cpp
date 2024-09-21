@@ -27,6 +27,9 @@ Author: Hans Bihs
 
 void partres2::print_particles(lexer* p, sediment_fdm *s)
 {
+    if(p->mpirank==0)
+    cout<<"PRINT_PARTICLES "<<printcount<<endl;
+    
     if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
 	{
     print_vtp(p,s);
@@ -39,12 +42,6 @@ void partres2::print_particles(lexer* p, sediment_fdm *s)
     p->partprinttime+=p->Q182;
 	++printcount;
     }
-
-	if(((p->count%p->Q181==0 && p->count>=p->Q182) || p->count==0) && p->Q180==2)
-	{
-	print_vtp(p,s);
-	++printcount;
-	}
 }
 
 void partres2::print_vtp(lexer* p, sediment_fdm *s)

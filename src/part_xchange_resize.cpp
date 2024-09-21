@@ -35,11 +35,14 @@ void part::xchange_resize(lexer *p, ghostcell *pgc)
     maxnum = MAX(maxnum,recvnum[q]);
     }
     
-    
     if(maxnum>capacity_para)
     {
     p->Dresize(send,6,6,capacity_para,maxnum);
     p->Dresize(recv,6,6,capacity_para,maxnum);
+    
+    p->Iresize(sendid,6,6,capacity_para,maxnum);
+    
+    capacity_para = maxnum;
     }
     
     // check arrays
@@ -51,11 +54,7 @@ void part::xchange_resize(lexer *p, ghostcell *pgc)
     }
     
     int diff = numempty - maxnum;
-    
-    //cout<<"DIFF: "<<diff<<endl;
-    
+
     if(diff<0)
     resize(p,capacity + 2*fabs(diff));
-    
-    
 }
