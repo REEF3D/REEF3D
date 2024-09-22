@@ -39,9 +39,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
-    {
-        //cout<<"n: "<<n<<" P.index: "<<P.index<<endl;
-        
+    {        
         if(p->Q11==1)
         advec_plain(p, a, P, s, pturb, 
                         P.X, P.Y, P.Z, P.U, P.V, P.W,

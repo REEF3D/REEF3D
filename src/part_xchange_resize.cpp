@@ -53,7 +53,7 @@ void part::xchange_resize(lexer *p, ghostcell *pgc)
     maxnum += recvnum[q];
     }
     
-    int diff = numempty - maxnum;
+    int diff = index_empty - maxnum;
 
     if(diff<0)
     resize(p,capacity + 2*fabs(diff));

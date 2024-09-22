@@ -28,7 +28,12 @@ void part::xchange_fill(lexer *p, ghostcell *pgc, int mode, double *F)
 {
     for(n=0;n<6;++n)
     for(q=0;q<sendnum[n];++q)
+    {
+    if(sendid[n][q]>index)
+    cout<<"###### "<<index<<" "<<sendid[n][q]<<endl;
+    
     send[n][q] = F[sendid[n][q]];
+    }
 }
 
 void part::xchange_fill_flag(lexer *p, ghostcell *pgc, int mode)

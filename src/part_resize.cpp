@@ -25,6 +25,8 @@ Author: Hans Bihs, Alexander Hanke
 
 void part::resize(lexer *p, int capacity_new)
 {
+    capacity_new+=100;
+    
     if(capacity_new>capacity)
     {
     p->Dresize(U,capacity,capacity_new);

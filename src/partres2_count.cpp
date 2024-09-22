@@ -54,5 +54,6 @@ void partres2::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s
     
     if(p->mpirank==0)
     cout<<"Particle_count: "<<particle_count<<" Active_count: "<<active_count<<" Empty_count: "<<empty_count<<endl;
-    
+   
+    cout<<p->mpirank<<" SIZE "<<P.capacity<<" index_empty: "<<P.index_empty<<endl;
 }

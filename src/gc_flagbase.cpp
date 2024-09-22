@@ -28,7 +28,7 @@ void ghostcell::flagbase(lexer *p, fdm *a)
 {
     int bc=0;
 
-    LOOP
+    MALOOP
     p->flag5[IJK]=0;
 
     GC4LOOP
