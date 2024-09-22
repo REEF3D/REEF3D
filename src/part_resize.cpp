@@ -25,7 +25,9 @@ Author: Hans Bihs, Alexander Hanke
 
 void part::resize(lexer *p, int capacity_new)
 {
-    capacity_new+=100;
+    capacity_new+=1000;
+    
+    cout<<p->mpirank<<" CAPACITY_NEW: "<<capacity_new<<" CAPACITY: "<<capacity<<endl;
     
     if(capacity_new>capacity)
     {

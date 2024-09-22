@@ -48,6 +48,7 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     {
         for(int qn=0;qn<p->Q24;++qn)
         {
+        n=P.Empty[P.index_empty];
         P.X[n] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
         P.Y[n] = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
         P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand; 
@@ -56,11 +57,11 @@ void partres2::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         P.RO[n] = p->S22;
 
         P.Flag[n] = ACTIVE;
-        ++n;
+        --P.index_empty;
         }
     }
     
-    // remove above be
+    // remove above bed
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
