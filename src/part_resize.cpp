@@ -27,8 +27,6 @@ void part::resize(lexer *p, int capacity_new)
 {
     capacity_new+=1000;
     
-    cout<<p->mpirank<<" CAPACITY_NEW: "<<capacity_new<<" CAPACITY: "<<capacity<<endl;
-    
     if(capacity_new>capacity)
     {
     p->Dresize(U,capacity,capacity_new);
@@ -67,6 +65,8 @@ void part::resize(lexer *p, int capacity_new)
     Empty[index_empty] = n;
     ++index_empty;
     }
+    
+    //cout<<p->mpirank<<" part.resize  CAPACITY_NEW: "<<capacity_new<<" CAPACITY: "<<capacity<<" index_empty: "<<index_empty<<endl;
     
     
     index=capacity=capacity_new;

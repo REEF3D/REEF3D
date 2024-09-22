@@ -34,6 +34,9 @@ void part::xchange_fillback(lexer *p, ghostcell *pgc, double *F)
     {
     F[Empty[index_empty]] = recv[n][q]; 
     --index_empty;
+    
+    //if(index_empty<0)
+    //cout<<p->mpirank<<" INDEX_EMPTY_NEG: "<<index_empty<<" index_empty0: "<<index_empty0<<endl;
     }
 }
 
@@ -47,5 +50,11 @@ void part::xchange_fillback_flag(lexer *p, ghostcell *pgc)
     {
     Flag[Empty[index_empty]] = ACTIVE; 
     --index_empty;
+    
+    //if(index_empty<0)
+    //cout<<p->mpirank<<" FLAG_INDEX_EMPTY_NEG: "<<index_empty<<" index_empty0: "<<index_empty0<<endl;
     }
 }
+
+
+

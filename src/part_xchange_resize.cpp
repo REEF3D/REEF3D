@@ -55,10 +55,13 @@ void part::xchange_resize(lexer *p, ghostcell *pgc)
     
     int diff = index_empty - maxnum;
     
-    cout<<p->mpirank<<" index_empty: "<<index_empty<<" maxnum: "<<maxnum<<endl;
+    //cout<<p->mpirank<<" index_empty: "<<index_empty<<" maxnum: "<<maxnum<<" diff: "<<diff<<endl;
 
     if(diff<0)
+    {
     resize(p,capacity + 2*fabs(diff));
+    index_empty0 = index_empty;
+    }
 }
 
 
