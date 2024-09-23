@@ -33,6 +33,7 @@ Authors: Hans Bihs, Alexander Hanke
 
 class lexer;
 class ghostcell;
+class slice;
 
 class part : public increment
 {
@@ -54,13 +55,13 @@ public:
     void erase_all();
     
     // parallel
-    void xchange(lexer*, ghostcell*,int);
+    void xchange(lexer*, ghostcell*,slice&,int);
     void xchange_count(lexer*, ghostcell*,int);
     void xchange_sendid(lexer*, ghostcell*,int);
     void xchange_fill(lexer*, ghostcell*, int, double*);
     void xchange_fill_flag(lexer*, ghostcell*,int);
     void xchange_fillback(lexer*, ghostcell*, double*);
-    void xchange_fillback_flag(lexer*, ghostcell*);
+    void xchange_fillback_flag(lexer*, ghostcell*,slice&,int);
     void xchange_resize(lexer*, ghostcell*);
     
     

@@ -64,7 +64,10 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     cellSum_update(p,pgc,s,1);
     
     // parallel transfer
-    P.xchange(p,pgc,1);
+    P.xchange(p,pgc,bedch,1);
+    
+    boundcheck(p,a,pgc,s,1);
+    bedchange(p,a,pgc,s,1);
     
     
 // RK step 2
@@ -97,7 +100,10 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     cellSum_update(p,pgc,s,2);
     
     // parallel transfer
-    P.xchange(p, pgc, 2);
+    P.xchange(p, pgc,bedch,2);
+    
+    boundcheck(p,a,pgc,s,2);
+    bedchange(p,a,pgc,s,2);
     
     //cellSum_full_update(p,pgc,s);
 }

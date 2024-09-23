@@ -29,8 +29,6 @@ Authors: Hans Bihs, Alexander Hanke
 
 void sediment_part2::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *ptopo)
 {
-
-
     ALOOP
 	if(a->topo(i,j,k)<0.0)
 	{

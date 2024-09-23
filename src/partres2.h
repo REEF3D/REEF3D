@@ -28,7 +28,7 @@ Authora: Hans Bihs, Alexander Hanke
 #include"slice4.h"
 #include"field4a.h"
 #include"fieldint4a.h"
-
+#include"boundarycheck.h"
 
 class lexer;
 class fdm;
@@ -66,10 +66,13 @@ public:
     void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
     void cellSum_full_update(lexer*, ghostcell*, sediment_fdm*);
+    void bedchange(lexer*, fdm*, ghostcell*, sediment_fdm*,int);
     
     void timestep(lexer*, ghostcell*);
     
     void seed_topo(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    
+    void boundcheck(lexer*, fdm*, ghostcell*, sediment_fdm*, int);
     
     part P;
     
@@ -96,6 +99,7 @@ public:
         
 private:
     
+    boundarycheck boundaries;
     
     const int irand;
 	const double drand;

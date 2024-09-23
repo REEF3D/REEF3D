@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void part::xchange(lexer *p, ghostcell *pgc, int mode)
+void part::xchange(lexer *p, ghostcell *pgc, slice &bedch, int mode)
 {
     // count send/recv
     xchange_count(p,pgc,mode);
@@ -111,7 +111,7 @@ void part::xchange(lexer *p, ghostcell *pgc, int mode)
     xchange_fillback(p,pgc,RO);
     
     // Flag
-    xchange_fillback_flag(p,pgc);
+    xchange_fillback_flag(p,pgc,bedch,mode);
     xchange_fill_flag(p,pgc,mode);
     
 }

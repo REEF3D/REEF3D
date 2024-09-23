@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"part.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"slice.h"
 
 void part::xchange_fillback(lexer *p, ghostcell *pgc, double *F)
 {
@@ -34,25 +35,40 @@ void part::xchange_fillback(lexer *p, ghostcell *pgc, double *F)
     {
     F[Empty[index_empty]] = recv[n][q]; 
     --index_empty;
-    
-    //if(index_empty<0)
-    //cout<<p->mpirank<<" INDEX_EMPTY_NEG: "<<index_empty<<" index_empty0: "<<index_empty0<<endl;
     }
 }
 
-void part::xchange_fillback_flag(lexer *p, ghostcell *pgc)
+void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mode)
 {
     index_empty = index_empty0;
     
     // fill recv into F
-    for(n=0;n<6;++n)
-    for(q=0;q<recvnum[n];++q)
+    n=0;
+    for(int qn=0;qn<6;++qn)
+    for(q=0;q<recvnum[qn];++q)
     {
-    Flag[Empty[index_empty]] = ACTIVE; 
-    --index_empty;
+    n=Empty[index_empty];
     
-    //if(index_empty<0)
-    //cout<<p->mpirank<<" FLAG_INDEX_EMPTY_NEG: "<<index_empty<<" index_empty0: "<<index_empty0<<endl;
+    // flag
+    Flag[n] = ACTIVE; 
+    
+    // bedch
+    if(mode==1)
+    {
+    i=p->posc_i(XRK1[n]);
+    j=p->posc_j(YRK1[n]);
+    }
+            
+    if(mode==2)
+    {
+    i=p->posc_i(X[n]);
+    j=p->posc_j(Y[n]);
+    }
+            
+    bedch(i,j) += ParcelFactor;
+    
+    --index_empty;
+    ++n;
     }
 }
 

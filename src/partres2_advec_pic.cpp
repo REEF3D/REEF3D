@@ -117,9 +117,9 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     
     //cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
     
-    F=0.5;
+    /*F=0.5;
     G=0.0;
-    H=0.0;
+    H=0.0;*/
 
     // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])

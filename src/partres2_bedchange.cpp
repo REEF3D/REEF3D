@@ -17,44 +17,33 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"partres2.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"field4a.h"
 #include"sediment_fdm.h"
-#include"turbulence.h"
 
-partres2::partres2(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), cellSum(p), irand(100000), drand(100000.0)
+void partres2::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int mode)
 {
-    p->Darray(betaQ73,p->Q73);
-	p->Darray(tan_betaQ73,p->Q73);
-	p->Darray(dist_Q73,p->Q73);
-
-
-	for(n=0;n<p->Q73;++n)
-	betaQ73[n] = (p->Q73_b[n]+90.0)*(PI/180.0);
-
-	for(n=0;n<p->Q73;++n)
-	tan_betaQ73[n] = tan(betaQ73[n]);
+    // topo
+    ALOOP
+    a->topo(i,j,k) -= 0.01*bedch(i,j)*1.0/6.0*PI*pow(P.d50,3.0)/(p->DXN[IP]*p->DYN[JP]*p->S24);
     
-    relax_ini(p);
-    
-    printcount=0;
-}
-
-partres2::~partres2()
-{
+    // bedzh
+    double h;
+    ILOOP
+    JLOOP
+	{
+		KLOOP
+		PBASECHECK
+		{
+        if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
+        h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
+		}
+		s->bedzh(i,j)=h;
+	}
 
 }
-
-
-
-
-
-
-
-
