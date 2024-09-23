@@ -30,7 +30,7 @@ void partres2::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int 
 {
     // topo
     ALOOP
-    a->topo(i,j,k) -= 0.01*bedch(i,j)*1.0/6.0*PI*pow(P.d50,3.0)/(p->DXN[IP]*p->DYN[JP]*p->S24);
+    a->topo(i,j,k) -= 0.0025*bedch(i,j)*1.0/6.0*PI*pow(P.d50,3.0)/(p->DXN[IP]*p->DYN[JP]*p->S24);
     
     // bedzh
     double h;

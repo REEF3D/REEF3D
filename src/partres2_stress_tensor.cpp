@@ -30,9 +30,9 @@ void partres2::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     ALOOP
     {
-    Ps = 3.5;
-    beta = 3.5;
-    epsilon = 10e-7;
+    Ps = 10.0;
+    beta = 3.0;
+    epsilon = 1.0e-1;
     Tc = 0.6;
     
     Ts(i,j,k) = PI*pow(P.d50,3.0)*(cellSum(i,j,k))/(6.0*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);

@@ -31,12 +31,7 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {
-    
-    Bx=(1.0-p->W1/p->S22)*p->W20;
-    By=(1.0-p->W1/p->S22)*p->W21;
-    Bz=(1.0-p->W1/p->S22)*p->W22;
-    
-    
+
     // find cell IJK
     i=p->posc_i(PX[n]);
     j=p->posc_j(PY[n]);
@@ -62,7 +57,13 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     dPx = ((a->press(i+1,j,k)-a->phi(i+1,j,k)*a->ro(i+1,j,k)*fabs(p->W22)) - ((a->press(i-1,j,k)-a->phi(i-1,j,k)*a->ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
     dPy = ((a->press(i,j+1,k)-a->phi(i,j+1,k)*a->ro(i,j+1,k)*fabs(p->W22)) - ((a->press(i,j-1,k)-a->phi(i,j-1,k)*a->ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
     dPz = ((a->press(i,j,k+1)-a->phi(i,j,k+1)*a->ro(i,j,k+1)*fabs(p->W22)) - ((a->press(i,j,k-1)-a->phi(i,j,k-1)*a->ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
-*/
+    */
+    
+    // buouancy
+    Bx=(1.0-p->W1/p->S22)*p->W20;
+    By=(1.0-p->W1/p->S22)*p->W21;
+    Bz=(1.0-p->W1/p->S22)*p->W22;
+    
     // velocity
     velDist=0.0;
     
@@ -93,7 +94,7 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     
     F = Dpx*Urel - dPx/p->S22 + Bx - dTx/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
     G = Dpy*Vrel - dPy/p->S22 + By - dTy/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
-    H = Dpz*Wrel - 0.0*dPz/p->S22 + 0.0*Bz - dTz/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
+    H = Dpz*Wrel - dPz/p->S22*0.0 + Bz*0.0 - dTz/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
 
     // solid forcing
     double fx,fy,fz;

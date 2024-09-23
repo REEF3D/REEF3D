@@ -34,7 +34,9 @@ void sediment_part2::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
 	{
 	por(i,j,k)= p->S24; //porosity
 	d50(i,j,k) = p->S20;  //d50
+    
 	}
+    
     
     
     pvrans->sedpart_update(p,a,pgc,por,d50);

@@ -97,6 +97,9 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
         {
             a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
             a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
+            
+            if(a->topo(i,j,k)<0.0)
+            a->visc(i,j,k) +=2.5*fabs(a->topo(i,j,k));
 
             p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
             p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
