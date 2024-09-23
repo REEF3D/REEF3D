@@ -78,7 +78,7 @@ public:
     
     slice4 bedch;
     
-    field4a Tau;
+    field4a Tau,Ts;
     fieldint4a cellSum;
     
     
@@ -124,7 +124,7 @@ private:
     double Dpx,Dpy,Dpz;
     double Uabs_rel;
     
-    double Ts,T,Dp;
+    double Tsval,T,Dp;
     double velDist;
     double Umax;
     

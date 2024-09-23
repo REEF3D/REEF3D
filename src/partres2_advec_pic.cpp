@@ -36,7 +36,7 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     By=(1.0-p->W1/p->S22)*p->W21;
     Bz=(1.0-p->W1/p->S22)*p->W22;
     
-
+    
     // find cell IJK
     i=p->posc_i(PX[n]);
     j=p->posc_j(PY[n]);
@@ -51,16 +51,18 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     dTy = (Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
     dTz = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
     
+    Tsval = Ts(i,j,k);
+    
     //cout<<"dTx: "<<dTx<<" dTy: "<<dTy<<" dTz: "<<dTz<<endl;
     
     dPx = (a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
     dPy = (a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
     dPz = (a->press(i,j,k+1) - a->press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
-    
-    //dPx = ((a->press(i+1,j,k)-a->phi(i+1,j,k)*a->ro(i+1,j,k)*fabs(p->W22)) - ((a->press(i-1,j,k)-a->phi(i-1,j,k)*a->ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
-    //dPy = ((a->press(i,j+1,k)-a->phi(i,j+1,k)*a->ro(i,j+1,k)*fabs(p->W22)) - ((a->press(i,j-1,k)-a->phi(i,j-1,k)*a->ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
+    /*
+    dPx = ((a->press(i+1,j,k)-a->phi(i+1,j,k)*a->ro(i+1,j,k)*fabs(p->W22)) - ((a->press(i-1,j,k)-a->phi(i-1,j,k)*a->ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
+    dPy = ((a->press(i,j+1,k)-a->phi(i,j+1,k)*a->ro(i,j+1,k)*fabs(p->W22)) - ((a->press(i,j-1,k)-a->phi(i,j-1,k)*a->ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
     dPz = ((a->press(i,j,k+1)-a->phi(i,j,k+1)*a->ro(i,j,k+1)*fabs(p->W22)) - ((a->press(i,j,k-1)-a->phi(i,j,k-1)*a->ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
-
+*/
     // velocity
     velDist=0.0;
     
@@ -80,18 +82,18 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     P.Wf[n]=wf;
     
     // drag coefficient
-    Dpx=drag_model(p,P.D[n],P.RO[n],Urel,Ts);
-    Dpy=drag_model(p,P.D[n],P.RO[n],Vrel,Ts);
-    Dpz=drag_model(p,P.D[n],P.RO[n],Wrel,Ts);
+    Dpx=drag_model(p,P.D[n],P.RO[n],Urel,Tsval);
+    Dpy=drag_model(p,P.D[n],P.RO[n],Vrel,Tsval);
+    Dpz=drag_model(p,P.D[n],P.RO[n],Wrel,Tsval);
     
     //cout<<"Dpx: "<<Dpx<<" Dpy: "<<Dpy<<" Dpz: "<<Dpz<<endl;
     
 
 // particle force
     
-    F = Dpx*Urel + Bx - dPx/p->S22 - dTx/((Ts>1.0e10?Ts:1.0e10)*p->S22);
-    G = Dpy*Vrel + By - dPy/p->S22 - dTy/((Ts>1.0e10?Ts:1.0e10)*p->S22);
-    H = Dpz*Wrel + Bz*0.0 - dPz/p->S22*0.0 - dTz/((Ts>1.0e10?Ts:1.0e10)*p->S22);
+    F = Dpx*Urel - dPx/p->S22 + Bx - dTx/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
+    G = Dpy*Vrel - dPy/p->S22 + By - dTy/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
+    H = Dpz*Wrel - 0.0*dPz/p->S22 + 0.0*Bz - dTz/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
 
     // solid forcing
     double fx,fy,fz;
@@ -124,7 +126,7 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {
-    cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<Dp<<"\nTs: "<<Ts<<endl;
+    cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<Dp<<"\nTs: "<<Tsval<<endl;
     cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
     cout<<"dTx: "<<dTx<<" dTy: "<<dTy<<" dTz: "<<dTz<<endl;
     exit(1);
