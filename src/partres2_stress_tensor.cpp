@@ -31,20 +31,16 @@ void partres2::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
     ALOOP
     {
     Ps = 10.0;
-    beta = 3.0;
-    epsilon = 1.0e-7;
-    Tc = p->S24;
-    
-   
-    
-    //Ts(i,j,k) = PI*pow(P.d50,3.0)*(cellSum(i,j,k))/(6.0*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+    beta = 2.0;
+    epsilon = 1.0e-6;
+    Tc = p->S24 + 0.2;
     
     Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
     
-    //cout<<"Ts(i,j,k): "<<Ts(i,j,k)<<endl;
-    
     /*Ts(i,j,k) = MAX(Ts(i,j,k),0.0);
     Ts(i,j,k) = MIN(Ts(i,j,k),1.0);*/
+    
+    //cout<<"Ts(i,j,k): "<<Ts(i,j,k)<<"  "<<MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)))<<endl;
 
     Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
     }
