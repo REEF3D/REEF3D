@@ -39,7 +39,7 @@ void nhflow_fsf_f::breaking(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& eta, sl
             if( (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A247*sqrt(9.81*d->WL(i,j)))
             d->breaking(i,j)=1;
             
-            if(p->A551==1 || p->A551==3)
+            if(p->A551==2 || p->A551==3)
             {
             if((eta(i+1,j)-eta(i-1,j))/(2.0*p->DXM)   < -p->A355 || (eta(i+1,j)-eta(i-1,j))/(2.0*p->DXM)   > p->A355)
             d->breaking(i,j)=1;
