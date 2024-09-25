@@ -32,18 +32,22 @@ void partres2::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
     {
     Ps = 10.0;
     beta = 3.0;
-    epsilon = 1.0e-1;
+    epsilon = 1.0e-7;
     Tc = p->S24;
     
-    Ts(i,j,k) = PI*pow(P.d50,3.0)*(cellSum(i,j,k))/(6.0*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+   
     
-    //cout<<"Ts: "<<Ts<<" d50: "<<P.d50<<endl;
+    //Ts(i,j,k) = PI*pow(P.d50,3.0)*(cellSum(i,j,k))/(6.0*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
     
-    Ts(i,j,k) = MAX(Ts(i,j,k),0.0);
-    Ts(i,j,k) = MIN(Ts(i,j,k),1.0);
+    Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+    
+    //cout<<"Ts(i,j,k): "<<Ts(i,j,k)<<endl;
+    
+    /*Ts(i,j,k) = MAX(Ts(i,j,k),0.0);
+    Ts(i,j,k) = MIN(Ts(i,j,k),1.0);*/
 
     Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
     }
     
-    pgc->start4a(p,Tau,10);
+    pgc->start4a(p,Tau,1);
 }

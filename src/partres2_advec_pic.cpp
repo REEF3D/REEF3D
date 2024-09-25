@@ -49,15 +49,15 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     Tsval = Ts(i,j,k);
     
     //cout<<"dTx: "<<dTx<<" dTy: "<<dTy<<" dTz: "<<dTz<<endl;
-    
+    /*
     dPx = (a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
     dPy = (a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
     dPz = (a->press(i,j,k+1) - a->press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
-    /*
+    /*/
     dPx = ((a->press(i+1,j,k)-a->phi(i+1,j,k)*a->ro(i+1,j,k)*fabs(p->W22)) - ((a->press(i-1,j,k)-a->phi(i-1,j,k)*a->ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
     dPy = ((a->press(i,j+1,k)-a->phi(i,j+1,k)*a->ro(i,j+1,k)*fabs(p->W22)) - ((a->press(i,j-1,k)-a->phi(i,j-1,k)*a->ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
     dPz = ((a->press(i,j,k+1)-a->phi(i,j,k+1)*a->ro(i,j,k+1)*fabs(p->W22)) - ((a->press(i,j,k-1)-a->phi(i,j,k-1)*a->ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
-    */
+    
     
     // buouancy
     Bx=(1.0-p->W1/p->S22)*p->W20;
@@ -89,12 +89,23 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     
     //cout<<"Dpx: "<<Dpx<<" Dpy: "<<Dpy<<" Dpz: "<<Dpz<<endl;
     
-
+// resistance force
+    /*Fs = p->Q30*(p->S22-p->W1)*fabs(p->W22)*PI*pow(P.d50, 3.0)/6.0;
+    
+    Fs /= (p->S22*PI*pow(P.d50,3.0)/6.0);*/
+    
 // particle force
     
-    F = Dpx*Urel - dPx/p->S22 + Bx - dTx/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
-    G = Dpy*Vrel - dPy/p->S22 + By - dTy/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
-    H = Dpz*Wrel - dPz/p->S22*0.0 + Bz*0.0 - dTz/((Tsval>1.0e10?Tsval:1.0e10)*p->S22);
+    F = Dpx*Urel - dPx/p->S22 + Bx - dTx/((Tsval>1.0e-10?Tsval:1.0e10)*p->S22);
+    G = Dpy*Vrel - dPy/p->S22 + By - dTy/((Tsval>1.0e-10?Tsval:1.0e10)*p->S22);
+    H = Dpz*Wrel - dPz/p->S22 + Bz - dTz/((Tsval>1.0e-10?Tsval:1.0e10)*p->S22);
+    
+    //cout<<"dTz: "<<- dTz/((Tsval>1.0e-10?Tsval:1.0e10)*p->S22)<<endl;
+    
+    /*Ftot = sqrt(F*F + G*G + H*H);
+    
+    if(Ftot<Fs)
+    F=G=H=0.0;*/
 
     // solid forcing
     double fx,fy,fz;
@@ -113,6 +124,9 @@ void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence 
     F *= rf(p,PX[n],PY[n]);
     G *= rf(p,PX[n],PY[n]);
     H *= rf(p,PX[n],PY[n]);
+    
+    if(PX[n]<1.9)
+    F=G=H=0.0;
     
 
     Umax = MAX(Umax,sqrt(PU[n]*PU[n] + PV[n]*PV[n]));

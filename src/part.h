@@ -80,7 +80,7 @@ public:
     int *Empty,*Flag;
     
     double d50,rhosed;
-    int ParcelFactor;
+    double ParcelFactor;
     
 // iterators
     int index; // replace loopindex

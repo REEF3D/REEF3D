@@ -123,8 +123,9 @@ private:
     double uf,vf,wf;
     double Dpx,Dpy,Dpz;
     double Uabs_rel;
+    double Fs,Fd,Ftot;
     
-    double Tsval,T,Dp;
+    double Tsval,T,Dp,Tf;
     double velDist;
     double Umax;
     

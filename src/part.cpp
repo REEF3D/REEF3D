@@ -35,10 +35,11 @@ part::part(lexer *p, ghostcell *pgc)
     d50 = p->S20;
     rhosed = p->S22;
     
-    ParcelFactor = p->S24*((p->DXM*p->DXM*p->DXM)/(p->Q41*(1.0/6.0)*pow(p->S20,3.0)*PI));
+    
+    ParcelFactor = p->S24*((p->DXM*p->DXM*p->DXM)/(p->Q24*(1.0/6.0)*pow(p->S20,3.0)*PI));
     
     if(p->mpirank==0)
-    cout<<"ParcelFactor: "<<ParcelFactor<<endl;
+    cout<<"ParcelFactor: "<<ParcelFactor<<" DXM: "<<p->DXM<<endl;
     
     // 
     p->Darray(U,capacity);
