@@ -29,8 +29,4 @@ Author: Hans Bihs
 #include"reinitopo_RK3.h"
 #include"reinitopo_void.h"
 
-#include"particle_v.h"
-#include"particle_f.h"
-
-#include"sediment_part.h"
 #include"sediment_part2.h"

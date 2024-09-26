@@ -108,8 +108,6 @@ public:
     
 // particle
 	void parapls(lexer*,double**,double**,int*,int*);
-    void para_tracersobj(lexer*,tracers_obj*,tracers_obj*);
-    void para_tracersobj(lexer*,particles_obj*,particles_obj*);
     void gcpartnum(lexer*,int*,int*);
     void gcpartx(lexer*,int*,int*,double**,double**);
 

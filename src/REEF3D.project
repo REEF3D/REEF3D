@@ -453,16 +453,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
-      <VirtualDirectory Name="Particle">
-        <File Name="partres.h"/>
-        <File Name="tracers_obj.h"/>
-        <File Name="particles_obj.h"/>
-        <File Name="particle_v.h"/>
-        <File Name="particle_func.h"/>
-        <File Name="particle_f.h"/>
-        <File Name="particle.h"/>
-        <File Name="sediment_part.h"/>
-      </VirtualDirectory>
+      <VirtualDirectory Name="Particle"/>
       <VirtualDirectory Name="Wind">
         <File Name="wind_v.h"/>
         <File Name="wind_f.h"/>
@@ -1725,72 +1716,6 @@
         <File Name="wind_v.cpp"/>
         <File Name="wind_f.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Particle">
-        <VirtualDirectory Name="Partres">
-          <File Name="partres_advec_pic.cpp"/>
-          <File Name="partres_move_RK2_pdk.cpp"/>
-          <File Name="partres_sandslide.cpp"/>
-          <File Name="partres_advec_plain.cpp"/>
-          <File Name="partres_move_RK3.cpp"/>
-          <File Name="partres_move_RK2.cpp"/>
-          <File Name="partres_deposition.cpp"/>
-          <File Name="partres_erosion.cpp"/>
-          <File Name="partres_drag.cpp"/>
-          <File Name="partres_timestep.cpp"/>
-          <VirtualDirectory Name="FDM">
-            <File Name="partres_relax.cpp"/>
-            <File Name="partres_settling.cpp"/>
-            <File Name="partres_debug.cpp"/>
-            <File Name="partres_activate.cpp"/>
-            <File Name="partres_volume.cpp"/>
-            <File Name="partres_update.cpp"/>
-            <File Name="partres_transfer.cpp"/>
-            <File Name="partres_state.cpp"/>
-            <File Name="partres_setup.cpp"/>
-            <File Name="partres_seed.cpp"/>
-          </VirtualDirectory>
-          <File Name="partres_stress_tensor.cpp"/>
-          <File Name="partres.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Sediment Particle">
-          <File Name="sediment_part_update.cpp"/>
-          <File Name="sediment_part_prep.cpp"/>
-          <VirtualDirectory Name="Print">
-            <File Name="sedpart_printvtp.cpp"/>
-            <File Name="sedpart_printpvtp.cpp"/>
-            <File Name="sedpart_printbed.cpp"/>
-          </VirtualDirectory>
-          <File Name="sediment_part_state.cpp"/>
-          <File Name="sediment_part_sflow.cpp"/>
-          <File Name="sediment_part_seed.cpp"/>
-          <File Name="sediment_part_cfd_ini.cpp"/>
-          <File Name="sediment_part_cfd.cpp"/>
-          <File Name="sediment_part.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Particle Base">
-          <File Name="particles_obj_erase.cpp"/>
-          <File Name="particles_obj.cpp"/>
-          <File Name="particles_obj_add.cpp"/>
-          <VirtualDirectory Name="Void">
-            <File Name="particle_v.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Functions">
-            <File Name="particle_func_moving.cpp"/>
-            <File Name="particle_func.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Seed">
-            <File Name="particle_seed.cpp"/>
-            <File Name="particle_initialize.cpp"/>
-            <File Name="particle_allocate.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Print">
-            <File Name="particle_printvtu.cpp"/>
-            <File Name="particle_printpvtu.cpp"/>
-          </VirtualDirectory>
-          <File Name="tracers_obj.cpp"/>
-          <File Name="particle_f.cpp"/>
-        </VirtualDirectory>
-      </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
           <File Name="multiphase_fluid_update_rheology.cpp"/>
@@ -2399,7 +2324,6 @@
       <VirtualDirectory Name="Parallel Particle">
         <File Name="gcx_partx.cpp"/>
         <File Name="gcx_partnum.cpp"/>
-        <File Name="gcx_particles_obj.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Forcing">
         <File Name="gc_solid_forcing_lsm.cpp"/>
@@ -2497,7 +2421,6 @@
         <File Name="gcx_rownum.cpp"/>
         <File Name="gcx_parax_test.cpp"/>
         <File Name="gcx_verticalsum.cpp"/>
-        <File Name="gcx_tracers_obj.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Topoupdate">
         <File Name="gctopo_buildflag.cpp"/>

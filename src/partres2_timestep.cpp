@@ -21,7 +21,6 @@ Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"partres2.h"
-#include"particles_obj.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"

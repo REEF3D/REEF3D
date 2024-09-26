@@ -21,7 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"partres2.h"
-#include"particles_obj.h"
 #include"lexer.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
