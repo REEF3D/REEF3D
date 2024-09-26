@@ -26,24 +26,31 @@ Authors: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres2::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int mode)
+void partres2::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    // topo
     ALOOP
-    a->topo(i,j,k) -= 0.01*(1.0/P.ParcelFactor)*bedch(i,j)*1.0/6.0*PI*pow(P.d50,3.0)/(p->DXN[IP]*p->DYN[JP]*p->S24);
+    {
+    dTx(i,j,k) = ((Tau(i+1,j,k) - Tau(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]))/((Tsval>1.0e-6?Tsval:1.0e10)*p->S22);
+    dTy(i,j,k) = ((Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]))/((Tsval>1.0e-6?Tsval:1.0e10)*p->S22);
+    dTz(i,j,k) = ((Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]))/((Tsval>1.0e-6?Tsval:1.0e10)*p->S22);
+    }
     
-    // bedzh
-    double h;
-    ILOOP
-    JLOOP
-	{
-		KLOOP
-		PBASECHECK
-		{
-        if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
-        h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
-        }
-		s->bedzh(i,j)=h;
-	}
-
+    pgc->start4a(p,dTx,1);
+    pgc->start4a(p,dTy,1);
+    pgc->start4a(p,dTz,1);
 }
+
+void partres2::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+{
+    ALOOP
+    {
+    dPx(i,j,k) = ((a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]))/p->S22;
+    dPy(i,j,k) = ((a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]))/p->S22;
+    dPz(i,j,k) = ((a->press(i,j,k+1) - a->press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]))/p->S22;
+    }
+    
+    pgc->start4a(p,dPx,1);
+    pgc->start4a(p,dPy,1);
+    pgc->start4a(p,dPz,1);
+}
+

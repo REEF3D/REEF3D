@@ -64,6 +64,8 @@ public:
     void count_particles(lexer*, fdm*, ghostcell*, sediment_fdm*);
     
     void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
+    void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
     void cellSum_full_update(lexer*, ghostcell*, sediment_fdm*);
     void bedchange(lexer*, fdm*, ghostcell*, sediment_fdm*,int);
@@ -116,8 +118,12 @@ private:
     
     double F,G,H;
     
-    double dPx,dPy,dPz;
-    double dTx,dTy,dTz;
+    field4a dPx,dPy,dPz;
+    field4a dTx,dTy,dTz;
+    
+    double dPx_val,dPy_val,dPz_val;
+    double dTx_val,dTy_val,dTz_val;
+    
     double Bx,By,Bz;
     double Urel,Vrel,Wrel;
     double uf,vf,wf;
@@ -134,6 +140,8 @@ private:
     double *tan_betaQ73,*betaQ73,*dist_Q73;
     
     double Ps,beta,epsilon,Tc;
+    
+    int timestep_ini;
     
 };
 

@@ -37,13 +37,10 @@ void partres2::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
     
-    /*Ts(i,j,k) = MAX(Ts(i,j,k),0.0);
-    Ts(i,j,k) = MIN(Ts(i,j,k),1.0);*/
-    
-    //cout<<"Ts(i,j,k): "<<Ts(i,j,k)<<"  "<<MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)))<<endl;
-
     Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
     }
     
     pgc->start4a(p,Tau,1);
+    pgc->start4a(p,Ts,1);
 }
+

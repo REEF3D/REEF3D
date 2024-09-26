@@ -31,43 +31,33 @@ void partres2::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulenc
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {
-
     // find cell IJK
     i=p->posc_i(PX[n]);
     j=p->posc_j(PY[n]);
     k=p->posc_k(PZ[n]);
     
-    // theta calc
-    Tsval = Ts(i,j,k);
-    
-    dTx = (Tau(i+1,j,k) - Tau(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
-    dTy = (Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
-    dTz = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
-    
     // pressure gradient
-    /*dPx = (a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
-    dPy = (a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
-    dPz = (a->press(i,j,k+1) - a->press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
-    */
-    dPx = ((a->press(i+1,j,k)-a->phi(i+1,j,k)*a->ro(i+1,j,k)*fabs(p->W22)) - ((a->press(i-1,j,k)-a->phi(i-1,j,k)*a->ro(i-1,j,k)*fabs(p->W22))))/(p->DXP[IM1]+p->DXP[IP]);
-    dPy = ((a->press(i,j+1,k)-a->phi(i,j+1,k)*a->ro(i,j+1,k)*fabs(p->W22)) - ((a->press(i,j-1,k)-a->phi(i,j-1,k)*a->ro(i,j-1,k)*fabs(p->W22))))/(p->DYP[JM1]+p->DYP[JP]);
-    dPz = ((a->press(i,j,k+1)-a->phi(i,j,k+1)*a->ro(i,j,k+1)*fabs(p->W22)) - ((a->press(i,j,k-1)-a->phi(i,j,k-1)*a->ro(i,j,k-1)*fabs(p->W22))))/(p->DZP[KM1]+p->DZP[KP]);
-    
-    
+    dPx_val = p->ccipol4a(dPx,PX[n],PY[n],PZ[n]);
+    dPy_val = p->ccipol4a(dPy,PX[n],PY[n],PZ[n]);
+    dPz_val = p->ccipol4a(dPz,PX[n],PY[n],PZ[n]);
+   
     // buouancy
-    Bx=(1.0-p->W1/p->S22)*p->W20;
-    By=(1.0-p->W1/p->S22)*p->W21;
-    Bz=(1.0-p->W1/p->S22)*p->W22;
+    Bx = p->W20;
+    By = p->W21;
+    Bz = p->W22;
+    
+    // inter-particle stress
+    Tsval = p->ccipol4a(Ts,PX[n],PY[n],PZ[n]);
+    
+    dTx_val = p->ccipol4a(dTx,PX[n],PY[n],PZ[n]);
+    dTy_val = p->ccipol4a(dTy,PX[n],PY[n],PZ[n]);
+    dTz_val = p->ccipol4a(dTz,PX[n],PY[n],PZ[n]);
     
     // velocity
-    velDist=0.0;
+    uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
+    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
+    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
     
-    uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]+velDist*p->DZP[KP]);
-    
-    //cout<<"uf: "<<uf<<" vf: "<<vf<<" wf: "<<wf<<endl;
-
     // relative velocity
     Urel = uf-PU[n];
     Vrel = vf-PV[n];
@@ -82,16 +72,11 @@ void partres2::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulenc
     Dpy=drag_model(p,P.D[n],P.RO[n],Vrel,Tsval);
     Dpz=drag_model(p,P.D[n],P.RO[n],Wrel,Tsval);
     
-    //cout<<"Dpx: "<<Dpx<<" Dpy: "<<Dpy<<" Dpz: "<<Dpz<<endl;
-
 // particle force
+    F = Dpx*Urel - dPx_val + Bx - dTx_val;
+    G = Dpy*Vrel - dPy_val + By - dTy_val;
+    H = Dpz*Wrel - dPz_val + Bz - dTz_val;
     
-    F = Dpx*Urel - dPx/p->S22 + Bx - dTx/((Tsval>1.0e-10?Tsval:1.0e10)*p->S22);
-    G = Dpy*Vrel - dPy/p->S22 + By - dTy/((Tsval>1.0e-10?Tsval:1.0e10)*p->S22);
-    H = Dpz*Wrel - dPz/p->S22 + Bz - dTz/((Tsval>1.0e-10?Tsval:1.0e10)*p->S22);
-    
-    //cout<<"dTz: "<<- dTz/((Tsval>1.0e-10?Tsval:1.0e10)*p->S22)<<endl;
-
     // solid forcing
     double fx,fy,fz;
     if(p->S10==2)
@@ -115,19 +100,12 @@ void partres2::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulenc
     
     Umax = MAX(Umax,sqrt(PU[n]*PU[n] + PV[n]*PV[n]));
     
-    
-    //cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
-    
-    /*F=0.5;
-    G=0.0;
-    H=0.0;*/
-
     // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {
     cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<Dp<<"\nTs: "<<Tsval<<endl;
     cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
-    cout<<"dTx: "<<dTx<<" dTy: "<<dTy<<" dTz: "<<dTz<<endl;
+    cout<<"dTx: "<<dTx_val<<" dTy: "<<dTy_val<<" dTz: "<<dTz_val<<endl;
     exit(1);
     }
     

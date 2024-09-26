@@ -159,7 +159,7 @@ void sixdof_obj::triangle_switch_lsm(lexer *p, ghostcell *pgc)
             yc += 0.1*ny*p->DYN[JP];
             zc += 0.1*nz*p->DZN[KP];
             
-            fbval = p->ccipol4_a(a->fb,xc,yc,zc);
+            fbval = p->ccipol4a(a->fb,xc,yc,zc);
             
             // Normal vector sign
             n0 = (a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);

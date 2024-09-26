@@ -178,8 +178,8 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         vvel=p->ccipol2_a(a->v,xip,yip,zval);
         wvel=p->ccipol3_a(a->w,xip,yip,zval);
         
-        v_d=p->ccipol4_a(a->visc,xip,yip,zval);
-        v_t=p->ccipol4_a(a->eddyv,xip,yip,zval);
+        v_d=p->ccipol4a(a->visc,xip,yip,zval);
+        v_t=p->ccipol4a(a->eddyv,xip,yip,zval);
         }
 
     u_abs = sqrt(uvel*uvel + vvel*vvel);

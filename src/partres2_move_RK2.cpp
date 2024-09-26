@@ -30,12 +30,14 @@ Authors: Hans Bihs, Alexander Hanke
 void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
     count_particles(p,a,pgc,s);
+    pressure_gradient(p,a,pgc,s);
     
 // RK step 1
-    stress_tensor(p, pgc, s);
+    stress_tensor(p,pgc,s);
+    stress_gradient(p,a,pgc,s);
     
     ALOOP
-    a->test(i,j,k) = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP])/((Ts(i,j,k)>1.0e-10?Ts(i,j,k):1.0e10)*p->S22);
+    a->test(i,j,k) = dTz(i,j,k);
     //a->test(i,j,k) = Ts(i,j,k);
    // a->test(i,j,k) = rf(p,p->pos_x(),p->pos_y());
     //a->test(i,j,k) = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
@@ -75,6 +77,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
 // RK step 2
     stress_tensor(p, pgc, s);
+    stress_gradient(p,a,pgc,s);
     
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)

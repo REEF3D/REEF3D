@@ -54,7 +54,7 @@ public:
 	double ccipol1_a(field&,double,double,double);
     double ccipol2_a(field&,double,double,double);
     double ccipol3_a(field&,double,double,double);
-    double ccipol4_a(field&,double,double,double);
+    double ccipol4a(field&,double,double,double);
     double ccipol4_b(field&,double,double,double);
     double ccipol4_c(field&,double,double,double);
     double ccipol4_kin(field&,double,double,double);

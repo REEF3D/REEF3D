@@ -130,7 +130,7 @@ double nhflow_rans_io::ccipol_a_kinval(lexer *p, ghostcell *pgc, double xp, doub
 {
     double val=0.0;
 
-    //val=p->ccipol4_a( kin, xp, yp, zp);
+    //val=p->ccipol4a( kin, xp, yp, zp);
 
     return val;
 }
@@ -139,7 +139,7 @@ double nhflow_rans_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, doub
 {
     double val=0.0;
 
-    //val=p->ccipol4_a( eps, xp, yp, zp);
+    //val=p->ccipol4a( eps, xp, yp, zp);
 
     return val;
 }

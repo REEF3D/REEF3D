@@ -392,7 +392,7 @@ void net_barDyn::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 			}
 			else if (cmp==3)
 			{
-				coupledField[i][cmp] = p->ccipol4_a(a->phi,x_(i,0),x_(i,1),x_(i,2));
+				coupledField[i][cmp] = p->ccipol4a(a->phi,x_(i,0),x_(i,1),x_(i,2));
                 
                 if (coupledField[i][cmp] >= 0.0) // water
                 {

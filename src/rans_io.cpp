@@ -90,7 +90,7 @@ double rans_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, 
 {
     double val;
 
-    val=p->ccipol4_a( eps, xp, yp, zp);
+    val=p->ccipol4a( eps, xp, yp, zp);
 
     return val;
 }

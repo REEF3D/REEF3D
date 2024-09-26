@@ -817,7 +817,7 @@ double interpolation::ccipol3_a(field& f, double xp, double yp, double zp)
     return value;
 }
 
-double interpolation::ccipol4_a(field& f, double xp, double yp, double zp)
+double interpolation::ccipol4a(field& f, double xp, double yp, double zp)
 {
     ii=i;
     jj=j;

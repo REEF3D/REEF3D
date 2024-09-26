@@ -47,6 +47,17 @@ void partres2::timestep(lexer *p, ghostcell *pgc)
     
     maxvz = pgc->globalmax(maxvz);
     
+    maxVelU = pgc->globalmax(maxVelU);
+    maxVelV = pgc->globalmax(maxVelV);
+    maxVelW = pgc->globalmax(maxVelW);
+    
+    if(timestep_ini==0)
+    {
+    maxvz = 1000.0;
+    timestep_ini=1;
+    }
+    
+    
     if(p->S15==0)
     p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
 
@@ -61,7 +72,12 @@ void partres2::timestep(lexer *p, ghostcell *pgc)
     //
 	
 	if(p->mpirank==0)
+    {
 	cout<<p->mpirank<<" maxvz: "<<setprecision(4)<<maxvz<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
+    cout<<"Up_max: "<<maxVelU<<endl;
+    cout<<"Vp_max: "<<maxVelV<<endl;
+    cout<<"Wp_max: "<<maxVelW<<endl;
+    }
     
     
 }
