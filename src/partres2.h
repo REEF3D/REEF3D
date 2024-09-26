@@ -52,7 +52,7 @@ public:
     void advec_plain(lexer*, fdm*, part&, sediment_fdm*, turbulence*, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
-    void advec_pic(lexer*, fdm*, part&, sediment_fdm*, turbulence*, 
+    void advec_mppic(lexer*, fdm*, part&, sediment_fdm*, turbulence*, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
     

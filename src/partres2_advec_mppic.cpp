@@ -27,7 +27,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"sediment_fdm.h"
 #include"ghostcell.h"
 
-void partres2::advec_pic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb, 
+void partres2::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb, 
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {
