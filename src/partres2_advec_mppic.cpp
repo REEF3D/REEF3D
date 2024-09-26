@@ -73,9 +73,9 @@ void partres2::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulenc
     Dpz=drag_model(p,P.D[n],P.RO[n],Wrel,Tsval);
     
 // particle force
-    F = Dpx*Urel - dPx_val + Bx - dTx_val;
-    G = Dpy*Vrel - dPy_val + By - dTy_val;
-    H = Dpz*Wrel - dPz_val + Bz - dTz_val;
+    F = Dpx*Urel - dPx_val/P.RO[n] + Bx - dTx_val/P.RO[n];
+    G = Dpy*Vrel - dPy_val/P.RO[n] + By - dTy_val/P.RO[n];
+    H = Dpz*Wrel - dPz_val/P.RO[n] + Bz - dTz_val/P.RO[n];
     
     // solid forcing
     double fx,fy,fz;

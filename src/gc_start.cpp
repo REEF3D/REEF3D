@@ -264,6 +264,44 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
 	gcparacox(p,f,gcv);
 }
 
+void ghostcell::start4a_sum(lexer *p, field& f, int gcv)
+{
+    //  MPI Boundary Swap
+    if(p->M10>0)
+    {
+    starttime=timer();
+	gcparax4a_sum(p,f,5);
+	//gcparacox_sum(p,f,gcv);
+	//gcparacox_sum(p,f,gcv);
+	endtime=timer();
+	p->xtime+=endtime-starttime;
+    } 
+    
+    starttime=timer();
+	QQGC4ALOOP
+	gcdistro4a(p,f,p->gcb4a[qq][0], p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcb4a[qq][5], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3]);
+	endtime=timer();
+	p->gctime+=endtime-starttime;
+    
+    // periodic ghostcells
+    gcperiodicx(p,f,4);
+    
+    if(p->periodic1==1)
+    gc_periodic(p, f, 4, 1);
+    
+    if(p->periodic2==1)
+    gc_periodic(p, f, 4, 2);
+    
+    if(p->periodic3==1)
+    gc_periodic(p, f, 4, 3);
+    
+    if(p->Y40==2  || p->Y40==3)
+    f.ggcpol(p);
+    
+    if(p->M10>0)
+	gcparacox(p,f,gcv);
+}
+
 void ghostcell::start4vec(lexer *p, vec &x, int gcv)
 {
     if(p->M10>0)

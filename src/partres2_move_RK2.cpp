@@ -66,7 +66,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.ZRK1[n] = MAX(P.Z[n] + p->dtsed*P.WRK1[n],-0.3);
     }
     // cellSum update
-    cellSum_update(p,pgc,s,1);
+    cellSum_full_update(p,pgc,s,1);
     
     // parallel transfer
     P.xchange(p,pgc,bedch,1);
@@ -103,7 +103,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.Z[n] = MAX(0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n],-0.3);
     }
     // cellSum update
-    cellSum_update(p,pgc,s,2);
+    cellSum_full_update(p,pgc,s,2);
     
     // parallel transfer
     P.xchange(p, pgc,bedch,2);

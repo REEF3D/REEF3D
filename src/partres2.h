@@ -67,7 +67,7 @@ public:
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
-    void cellSum_full_update(lexer*, ghostcell*, sediment_fdm*);
+    void cellSum_full_update(lexer*, ghostcell*, sediment_fdm*,int);
     void bedchange(lexer*, fdm*, ghostcell*, sediment_fdm*,int);
     
     void timestep(lexer*, ghostcell*);
@@ -81,7 +81,7 @@ public:
     slice4 bedch;
     
     field4a Tau,Ts;
-    fieldint4a cellSum;
+    field4a cellSum;
     
     
     // relax
@@ -134,6 +134,7 @@ private:
     double Tsval,T,Dp,Tf;
     double velDist;
     double Umax;
+    double Sx,Sy,Sz;
     
     double Rep,Cd;
     

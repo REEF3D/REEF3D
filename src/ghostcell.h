@@ -62,6 +62,7 @@ public:
 	void start3(lexer*,field&, int);
 	void start4(lexer*,field&, int);
 	void start4a(lexer*,field&, int);
+    void start4a_sum(lexer*,field&, int);
 
 	void start4vec(lexer*,vec&,int);
 	void start4avec(lexer*,vec&,int);
@@ -233,6 +234,7 @@ public:
     void gcparax7co(lexer*, double*, int);
 	void gcparaxvec_sr(lexer*, vec&,cpt&,int);
     void gcparax4a(lexer*, field&, int);
+    void gcparax4a_sum(lexer*, field&, int);
     void gcparaxV(lexer*, double*, int);
     void gcparaxintV(lexer*, int*, int);
     void gcparaxV1(lexer*, double*, int);
