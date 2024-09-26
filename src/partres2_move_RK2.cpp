@@ -35,7 +35,7 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     stress_tensor(p, pgc, s);
     
     ALOOP
-    a->test(i,j,k) = cellSum(i,j,k);
+    a->test(i,j,k) = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP])/((Ts(i,j,k)>1.0e-10?Ts(i,j,k):1.0e10)*p->S22);
     //a->test(i,j,k) = Ts(i,j,k);
    // a->test(i,j,k) = rf(p,p->pos_x(),p->pos_y());
     //a->test(i,j,k) = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
