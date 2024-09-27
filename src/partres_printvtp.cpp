@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
 #include"lexer.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
 
-void partres2::print_particles(lexer* p, sediment_fdm *s)
+void partres::print_particles(lexer* p, sediment_fdm *s)
 {
     if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
 	{
@@ -41,7 +41,7 @@ void partres2::print_particles(lexer* p, sediment_fdm *s)
     }
 }
 
-void partres2::print_vtp(lexer* p, sediment_fdm *s)
+void partres::print_vtp(lexer* p, sediment_fdm *s)
 {
 	int numpt=0;
 

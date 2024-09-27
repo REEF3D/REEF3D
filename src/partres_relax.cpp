@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
 #include"lexer.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
 
-void partres2::relax_ini(lexer *p) 
+void partres::relax_ini(lexer *p) 
 {
 	p->Darray(betaQ73,p->Q73);
 	p->Darray(tan_betaQ73,p->Q73);
@@ -39,11 +39,11 @@ void partres2::relax_ini(lexer *p)
 	tan_betaQ73[qn] = tan(betaQ73[qn]);
 }
 
-void partres2::relax(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void partres::relax(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 }
 
-double partres2::rf(lexer *p, double x1, double y1)
+double partres::rf(lexer *p, double x1, double y1)
 {
     double relax,distot,distcount;
     double val=1.0;
@@ -81,7 +81,7 @@ double partres2::rf(lexer *p, double x1, double y1)
     
 }
 
-double partres2::r1(lexer *p, double x, double threshold)
+double partres::r1(lexer *p, double x, double threshold)
 {
     double r=0.0;
 
@@ -94,7 +94,7 @@ double partres2::r1(lexer *p, double x, double threshold)
     return r;
 }
 
-double partres2::distcalc(lexer *p ,double x0, double y0 ,double x1, double y1, double tan_beta)
+double partres::distcalc(lexer *p ,double x0, double y0 ,double x1, double y1, double tan_beta)
 {
 	double dist=1.0e20;
 

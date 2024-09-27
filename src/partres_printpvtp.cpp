@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void partres2::pvtp(lexer* p)
+void partres::pvtp(lexer* p)
 {
 
     num = printcount;
@@ -74,13 +74,13 @@ void partres2::pvtp(lexer* p)
 	result.close();
 }
 
-void partres2::piecename_pos(lexer* p, int n)
+void partres::piecename_pos(lexer* p, int n)
 {
 	sprintf(pname,"REEF3D-SedPart-%08i-%06i.vtp",printcount,n+1);
 }
 
 /// @brief Setting name of indivdual vtp file
-void partres2::header_pos(lexer* p)
+void partres::header_pos(lexer* p)
 {
 	sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i-%06i.vtp",printcount,p->mpirank+1);	
 }

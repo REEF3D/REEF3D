@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"sediment_part2.h"
+#include"sediment_part.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"vrans.h"
 #include"sediment_fdm.h"
 
-void sediment_part2::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *ptopo)
+void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *ptopo)
 {
     ALOOP
 	if(a->topo(i,j,k)<0.0)

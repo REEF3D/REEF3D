@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
 #include"part.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
 
-void partres2::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb, 
+void partres::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb, 
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {
@@ -49,10 +49,6 @@ void partres2::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulenc
     // inter-particle stress
     Tsval = p->ccipol4a(Ts,PX[n],PY[n],PZ[n]);
     
-    dTx_val = p->ccipol4a(dTx,PX[n],PY[n],PZ[n]);
-    dTy_val = p->ccipol4a(dTy,PX[n],PY[n],PZ[n]);
-    dTz_val = p->ccipol4a(dTz,PX[n],PY[n],PZ[n]);
-    
     // velocity
     uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
     vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
@@ -73,9 +69,65 @@ void partres2::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulenc
     Dpz=drag_model(p,P.D[n],P.RO[n],Wrel,Tsval);
     
 // particle force
-    F = Dpx*Urel - dPx_val/P.RO[n] + Bx - dTx_val/P.RO[n];
-    G = Dpy*Vrel - dPy_val/P.RO[n] + By - dTy_val/P.RO[n];
-    H = Dpz*Wrel - dPz_val/P.RO[n] + Bz - dTz_val/P.RO[n];
+    F = Dpx*Urel - dPx_val/P.RO[n] + Bx;
+    G = Dpy*Vrel - dPy_val/P.RO[n] + By;
+    H = Dpz*Wrel - dPz_val/P.RO[n] + Bz;
+    
+    // solid forcing
+    double fx,fy,fz;
+    if(p->S10==2)
+    {
+    fx = p->ccipol1c(a->fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
+    fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
+    fz = p->ccipol3c(a->fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
+    
+    F += fx;
+    G += fy;
+    H += fz;
+    }
+    
+    // relax
+    F *= rf(p,PX[n],PY[n]);
+    G *= rf(p,PX[n],PY[n]);
+    H *= rf(p,PX[n],PY[n]);
+    
+    if(PX[n]<1.9)
+    F=G=H=0.0;
+    
+    Umax = MAX(Umax,sqrt(PU[n]*PU[n] + PV[n]*PV[n]));
+    
+    // error call
+    if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
+    {
+    cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<Dp<<"\nTs: "<<Tsval<<endl;
+    cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
+    cout<<"dTx: "<<dTx_val<<" dTy: "<<dTy_val<<" dTz: "<<dTz_val<<endl;
+    exit(1);
+    }    
+}
+
+
+
+void partres::advec_mppic_stress(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb, 
+                        double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
+                        double &F, double &G, double &H, double alpha)
+{
+    // find cell IJK
+    i=p->posc_i(PX[n]);
+    j=p->posc_j(PY[n]);
+    k=p->posc_k(PZ[n]);
+    
+    // inter-particle stress
+    Tsval = p->ccipol4a(Ts,PX[n],PY[n],PZ[n]);
+    
+    dTx_val = p->ccipol4a(dTx,PX[n],PY[n],PZ[n]);
+    dTy_val = p->ccipol4a(dTy,PX[n],PY[n],PZ[n]);
+    dTz_val = p->ccipol4a(dTz,PX[n],PY[n],PZ[n]);
+    
+// particle force
+    F =  - dTx_val/P.RO[n];
+    G =  - dTy_val/P.RO[n];
+    H =  - dTz_val/P.RO[n];
     
     // solid forcing
     double fx,fy,fz;

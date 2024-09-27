@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres2::boundcheck(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int mode)
+void partres::boundcheck(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int mode)
 {
     int inBounds;
     

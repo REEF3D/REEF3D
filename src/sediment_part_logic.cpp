@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_part2.h"
-#include"partres2.h"
+#include"sediment_part.h"
+#include"partres.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm2D.h"
@@ -69,9 +69,9 @@ Author: Hans Bihs
 #include"bedload_direction_f.h"
 #include"bedload_direction_v.h"
 
-void sediment_part2::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
+void sediment_part::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
-    pst = new partres2(p,pgc);
+    pst = new partres(p,pgc);
     
     s = new sediment_fdm(p);
     

@@ -17,30 +17,22 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Alexander Hanke
+Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
+#include"part.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"ghostcell.h"
 #include"sediment_fdm.h"
+#include"ghostcell.h"
 
-void partres2::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb, 
+                        double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
+                        double &F, double &G, double &H, double alpha)
 {
-    ALOOP
-    {
-    Ps = 10.0;
-    beta = 2.0;
-    epsilon = 1.0e-6;
-    Tc = p->S24 + 0.3;
     
-    Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
     
-    Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
-    }
     
-    pgc->start4a(p,Tau,1);
-    pgc->start4a(p,Ts,1);
+    
 }
-

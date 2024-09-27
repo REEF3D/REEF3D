@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres2::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void partres::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     
     particle_count = 0;

@@ -41,11 +41,11 @@ class vrans;
 using namespace std;
 
 
-class partres2 : public increment
+class partres : public increment
 {
 public:
-    partres2(lexer*, ghostcell*);
-    ~partres2();
+    partres(lexer*, ghostcell*);
+    ~partres();
     
     void move_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
     
@@ -53,6 +53,10 @@ public:
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
     void advec_mppic(lexer*, fdm*, part&, sediment_fdm*, turbulence*, 
+                        double*, double*, double*, double*, double*, double*, 
+                        double&, double&, double&, double);
+                        
+    void advec_mppic_stress(lexer*, fdm*, part&, sediment_fdm*, turbulence*, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
     

@@ -17,22 +17,29 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Alexander Hanke, Hans Bihs
+Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
-#include"part.h"
+#include"partres.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"sediment_fdm.h"
 #include"ghostcell.h"
+#include"vrans.h"
+#include"sediment_fdm.h"
 
-void partres2::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb, 
-                        double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
-                        double &F, double &G, double &H, double alpha)
+void partres::update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, field &por, field &d50)
 {
     
+    ALOOP
+	{
+	por(i,j,k)=p->S24;
+	d50(i,j,k)=p->S20;
+    
+    //a->visc(i,j,k) = p->W2*pow((1.0 + 0.5*p->W2*Ts(i,j,k))/(1.0 - Ts(i,j,k)/0.6) ,2.0);
+	}
     
     
+    pgc->start4a(p,por,1);
+    pgc->start4a(p,d50,1);
     
 }

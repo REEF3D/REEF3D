@@ -20,22 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
-void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
+void partres::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
     count_particles(p,a,pgc,s);
     pressure_gradient(p,a,pgc,s);
     
 // RK step 1
-    stress_tensor(p,pgc,s);
-    stress_gradient(p,a,pgc,s);
-    
     ALOOP
     a->test(i,j,k) = dTz(i,j,k);
     //a->test(i,j,k) = Ts(i,j,k);
@@ -75,10 +72,35 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     bedchange(p,a,pgc,s,1);
     
     
-// RK step 2
-    stress_tensor(p, pgc, s);
+    stress_tensor(p,pgc,s);
     stress_gradient(p,a,pgc,s);
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    {        
+        if(p->Q11==1)
+        advec_plain(p, a, P, s, pturb, 
+                        P.X, P.Y, P.Z, P.U, P.V, P.W,
+                        F, G, H, 1.0);
+        
+        if(p->Q11==2)
+        advec_mppic_stress(p, a, P, s, pturb, 
+                        P.X, P.Y, P.Z, P.U, P.V, P.W,
+                        F, G, H, 1.0);
+                                         
+        // Velocity update
+        P.URK1[n] = P.URK1[n] + p->dtsed*F;
+        P.VRK1[n] = P.VRK1[n] + p->dtsed*G;
+        P.WRK1[n] = P.WRK1[n] + p->dtsed*H;
+        
+        // Position update
+        P.XRK1[n] = P.XRK1[n] + p->dtsed*P.URK1[n];
+        P.YRK1[n] = P.YRK1[n] + p->dtsed*P.VRK1[n];
+        P.ZRK1[n] = MAX(P.ZRK1[n] + p->dtsed*P.WRK1[n],-0.3);
+    }
     
+    
+    
+// RK step 2
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
@@ -111,5 +133,32 @@ void partres2::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     boundcheck(p,a,pgc,s,2);
     bedchange(p,a,pgc,s,2);
     
-    //cellSum_full_update(p,pgc,s);
+    stress_tensor(p, pgc, s);
+    stress_gradient(p,a,pgc,s);
+    
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    {
+        if(p->Q11==1)
+        advec_plain(p, a, P, s, pturb, 
+                        P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
+                        F, G, H, 0.5);
+                        
+        if(p->Q11==2)
+        advec_mppic_stress(p, a, P, s, pturb, 
+                        P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
+                        F, G, H, 0.5);
+                        
+        // Velocity update
+        P.U[n] = P.U[n] + p->dtsed*F;
+        P.V[n] = P.V[n] + p->dtsed*G;
+        P.W[n] = P.W[n] + p->dtsed*H;
+        
+        // Position update
+        P.X[n] = P.X[n] + p->dtsed*P.U[n];
+        P.Y[n] = P.Y[n] + p->dtsed*P.V[n];
+        P.Z[n] = MAX(P.Z[n] + p->dtsed*P.W[n],-0.3);
+    }
+
+
 }

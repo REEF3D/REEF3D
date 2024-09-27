@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
-partres2::partres2(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p), cellSum(p), irand(100000), drand(100000.0),
+partres::partres(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p), cellSum(p), irand(100000), drand(100000.0),
                                                dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p)
 {
     p->Darray(betaQ73,p->Q73);
@@ -48,7 +48,7 @@ partres2::partres2(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p)
     timestep_ini=0;
 }
 
-partres2::~partres2()
+partres::~partres()
 {
 
 }

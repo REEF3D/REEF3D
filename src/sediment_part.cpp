@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_part2.h"
+#include"sediment_part.h"
 #include"sediment_fdm.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -33,7 +33,7 @@ Author: Hans Bihs
 #include"bedslope.h"
 #include <sys/stat.h>
 
-sediment_part2::sediment_part2(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb, patchBC_interface *ppBC) : por(p), d50(p)
+sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb, patchBC_interface *ppBC) : por(p), d50(p)
 {
     pBC = ppBC;
     pturb = ppturb;
@@ -63,11 +63,11 @@ sediment_part2::sediment_part2(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppt
     mkdir("./REEF3D_CFD_SedPart",0777);
 }
 
-sediment_part2::~sediment_part2()
+sediment_part::~sediment_part()
 {
 }
 
-void sediment_part2::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
+void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
     sedcalc=0;
     

@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_part2.h"
-#include"partres2.h"
+#include"sediment_part.h"
+#include"partres.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm.h"
@@ -33,7 +33,7 @@ Authors: Alexander Hanke, Hans Bihs
 #include"bedslope.h"
 #include"bedshear_reduction.h"
 
-void sediment_part2::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
+void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow,
                                     reinitopo* preto, turbulence *pturb)
 {
     double starttime=pgc->timer();

@@ -552,8 +552,8 @@
         <File Name="sediment_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
-        <File Name="sediment_part2.h"/>
-        <File Name="partres2.h"/>
+        <File Name="sediment_part.h"/>
+        <File Name="partres.h"/>
         <File Name="part.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
@@ -1666,34 +1666,34 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="Sediment Particle">
-        <File Name="sediment_part2_logic.cpp"/>
-        <File Name="sediment_part2_update.cpp"/>
-        <File Name="sediment_part2_cfd_ini.cpp"/>
-        <File Name="sediment_part2_cfd.cpp"/>
-        <File Name="sediment_part2.cpp"/>
+        <File Name="sediment_part_update.cpp"/>
+        <File Name="sediment_part_logic.cpp"/>
+        <File Name="sediment_part_cfd_ini.cpp"/>
+        <File Name="sediment_part_cfd.cpp"/>
+        <File Name="sediment_part.cpp"/>
         <VirtualDirectory Name="Partres">
-          <File Name="partres2_gradient.cpp"/>
-          <File Name="partres2_advec_mppic.cpp"/>
-          <File Name="partres2_bedchange.cpp"/>
-          <File Name="partres2_update.cpp"/>
-          <File Name="partres2_cellSum.cpp"/>
-          <File Name="partres2_advec_plain.cpp"/>
+          <File Name="partres_update.cpp"/>
+          <File Name="partres_stress_tensor.cpp"/>
+          <File Name="partres_sandslide.cpp"/>
+          <File Name="partres_move_RK2.cpp"/>
+          <File Name="partres_gradient.cpp"/>
+          <File Name="partres_drag.cpp"/>
+          <File Name="partres_cellSum.cpp"/>
+          <File Name="partres_bedchange.cpp"/>
+          <File Name="partres_advec_plain.cpp"/>
+          <File Name="partres_advec_mppic.cpp"/>
+          <File Name="partres.cpp"/>
           <VirtualDirectory Name="Print">
-            <File Name="partres2_printvtp.cpp"/>
-            <File Name="partres2_printpvtp.cpp"/>
+            <File Name="partres_printvtp.cpp"/>
+            <File Name="partres_printpvtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FDM">
-            <File Name="partres2_boundcheck.cpp"/>
-            <File Name="partres2_count.cpp"/>
-            <File Name="partres2_timestep.cpp"/>
-            <File Name="partres2_relax.cpp"/>
-            <File Name="partres2_seed.cpp"/>
+            <File Name="partres_timestep.cpp"/>
+            <File Name="partres_seed.cpp"/>
+            <File Name="partres_relax.cpp"/>
+            <File Name="partres_count.cpp"/>
+            <File Name="partres_boundcheck.cpp"/>
           </VirtualDirectory>
-          <File Name="partres2_stress_tensor.cpp"/>
-          <File Name="partres2_drag.cpp"/>
-          <File Name="partres2_sandslide.cpp"/>
-          <File Name="partres2_move_RK2.cpp"/>
-          <File Name="partres2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Part">
           <File Name="part_remove.cpp"/>

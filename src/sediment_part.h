@@ -41,17 +41,17 @@ class convection;
 class patchBC_interface;
 class bedload_direction;
 class bedslope;
-class partres2;
+class partres;
 using namespace std;
 
 #ifndef SEDIMENT_PART2_H_
 #define SEDIMENT_PART2_H_
 
-class sediment_part2 : public sediment, public increment
+class sediment_part : public sediment, public increment
 {
 public:
-    sediment_part2(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
-	virtual ~sediment_part2();
+    sediment_part(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
+	virtual ~sediment_part();
     
     // CFD interface
     virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
@@ -137,7 +137,7 @@ public:
     virtual void offset_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &){};
     
     
-    partres2 *pst;
+    partres *pst;
     
     field4a por, d50;
 

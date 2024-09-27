@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres2.h"
+#include"partres.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres2::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mode)
+void partres::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mode)
 {
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
@@ -72,7 +72,7 @@ void partres2::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mod
     pgc->gcsl_start4(p,bedch,1);
 }
 
-void partres2::cellSum_full_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mode)
+void partres::cellSum_full_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mode)
 {
     ALOOP
     cellSum(i,j,k) = 0.0;
