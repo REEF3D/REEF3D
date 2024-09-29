@@ -103,8 +103,6 @@ void partres::cellSum_full_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int
         Sz = (p->ZN[KP1] - P.Z[n])/(p->ZN[KP1] - p->ZN[KP]);
         }
         
-        //cout<<Sx<<" "<<Sy<<" "<<Sz<<endl;
-        
         cellSum(i,j,k) += P.ParcelFactor * Sx*Sy*Sz;
         cellSum(i+1,j,k) += P.ParcelFactor * (1.0-Sx)*Sy*Sz;
         cellSum(i+1,j+1,k) += P.ParcelFactor * (1.0-Sx)*(1.0-Sy)*Sz;

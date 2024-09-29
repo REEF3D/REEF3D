@@ -30,7 +30,7 @@ void partres::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int m
 {
     // topo
     ALOOP
-    a->topo(i,j,k) -= 0.01*(1.0/P.ParcelFactor)*bedch(i,j)*1.0/6.0*PI*pow(P.d50,3.0)/(p->DXN[IP]*p->DYN[JP]*p->S24);
+    a->topo(i,j,k) -= 0.1*(1.0/P.ParcelFactor)*bedch(i,j)*1.0/6.0*PI*pow(P.d50,3.0)/(p->DXN[IP]*p->DYN[JP]*p->S24);
     
     // bedzh
     double h;
@@ -45,5 +45,48 @@ void partres::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int m
         }
 		s->bedzh(i,j)=h;
 	}
+}
 
+void partres::bedchange_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mode)
+{
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    {
+        // step 1
+        if(mode==1)
+        {
+        i=p->posc_i(P.X[n]);
+        j=p->posc_j(P.Y[n]);
+        k=p->posc_k(P.Z[n]);
+        }
+        
+        if(mode==2)
+        {
+        i=p->posc_i(P.XRK1[n]);
+        j=p->posc_j(P.YRK1[n]);
+        k=p->posc_k(P.ZRK1[n]);
+        }
+        
+        bedch(i,j) -= P.ParcelFactor;
+        
+        
+        // step 2
+        if(mode==1)
+        {
+        i=p->posc_i(P.XRK1[n]);
+        j=p->posc_j(P.YRK1[n]);
+        k=p->posc_k(P.ZRK1[n]);
+        }
+        
+        if(mode==2)
+        {
+        i=p->posc_i(P.X[n]);
+        j=p->posc_j(P.Y[n]);
+        k=p->posc_k(P.Z[n]);
+        }
+        
+        bedch(i,j) += P.ParcelFactor;
+    }
+    
+    pgc->gcsl_start4(p,bedch,1);
 }

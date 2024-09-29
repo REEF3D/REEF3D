@@ -55,10 +55,6 @@ public:
     void advec_mppic(lexer*, fdm*, part&, sediment_fdm*, turbulence*, 
                         double*, double*, double*, double*, double*, double*, 
                         double&, double&, double&, double);
-                        
-    void advec_mppic_stress(lexer*, fdm*, part&, sediment_fdm*, turbulence*, 
-                        double*, double*, double*, double*, double*, double*, 
-                        double&, double&, double&, double);
     
     // drag
     double drag_model(lexer *, double, double, double, double);
@@ -72,7 +68,9 @@ public:
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*,int);
     void cellSum_full_update(lexer*, ghostcell*, sediment_fdm*,int);
+    
     void bedchange(lexer*, fdm*, ghostcell*, sediment_fdm*,int);
+    void bedchange_update(lexer*, ghostcell*, sediment_fdm*,int);
     
     void timestep(lexer*, ghostcell*);
     
@@ -148,6 +146,8 @@ private:
     
     int timestep_ini;
     
+    double DragCoeff;
+    double F_tot;
 };
 
 #endif
