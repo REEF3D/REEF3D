@@ -37,7 +37,7 @@ void partres::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbul
     stress_gradient(p,a,pgc,s);
     
     ALOOP
-    a->test(i,j,k) = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
+    a->test(i,j,k) = cellSum(i,j,k)/P.ParcelFactor;
     //a->test(i,j,k) = Ts(i,j,k);
    // a->test(i,j,k) = rf(p,p->pos_x(),p->pos_y());
     //a->test(i,j,k) = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
@@ -63,8 +63,8 @@ void partres::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbul
         // Position update
         P.XRK1[n] = P.X[n] + p->dtsed*P.URK1[n];
         P.YRK1[n] = P.Y[n] + p->dtsed*P.VRK1[n];
-        P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
-        //P.ZRK1[n] = MAX(P.Z[n] + p->dtsed*P.WRK1[n],-0.29);
+        //P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
+        P.ZRK1[n] = MAX(MIN(P.Z[n] + p->dtsed*P.WRK1[n],0.49),-0.3);
     }
     
     
@@ -103,8 +103,8 @@ void partres::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbul
         // Position update
         P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
         P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
-        P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
-        //P.Z[n] = MAX(0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n],-0.29);
+        //P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
+        P.Z[n] = MAX(MIN(0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n],0.49),-0.3);
     }
     
     

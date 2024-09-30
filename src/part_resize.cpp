@@ -51,7 +51,9 @@ void part::resize(lexer *p, int capacity_new)
     
     p->Dresize(D,capacity,capacity_new);
     p->Dresize(RO,capacity,capacity_new);
-  
+    
+    p->Dresize(Test,capacity,capacity_new);
+    
     p->Iresize(Flag,capacity,capacity_new);
     p->Iresize(Empty,capacity,capacity_new);
     

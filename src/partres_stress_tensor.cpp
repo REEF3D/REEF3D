@@ -32,7 +32,7 @@ void partres::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
     {
     Ps = 100.0;
     beta = 3.0;
-    epsilon = 1.0e-6;
+    epsilon = 0.1;
     Tc = p->S24 + 0.3;
     
     Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);

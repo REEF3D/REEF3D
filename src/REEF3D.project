@@ -1706,7 +1706,6 @@
             <File Name="part_xchange_count.cpp"/>
             <File Name="part_xchange.cpp"/>
           </VirtualDirectory>
-          <File Name="part_basic.cpp"/>
           <File Name="part_add.cpp"/>
           <File Name="part.cpp"/>
         </VirtualDirectory>

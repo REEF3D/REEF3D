@@ -52,6 +52,8 @@ void partres::pvtp(lexer* p)
 
 	result<<"<PPointData>\n";
 	result<<"<PDataArray type=\"Float32\" Name=\"Flag\"/>\n";
+    if(p->P23==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"Test\"/>\n";
 	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
 	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
     result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\"/>\n";

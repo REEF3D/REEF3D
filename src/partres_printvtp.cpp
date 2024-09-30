@@ -71,6 +71,11 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
 	
 	offset[n]=offset[n-1]+4*(numpt)+4; //flag
 	++n;
+    if(p->P23==1)
+    {
+    offset[n]=offset[n-1]+4*(numpt)+4; //Test
+	++n;
+    }
 	offset[n]=offset[n-1]+4*(numpt)*3+4; //velocity
 	++n;
 	offset[n]=offset[n-1]+4*(numpt)+4; //radius
@@ -106,6 +111,11 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
 	result<<"<PointData >\n";
 	result<<"<DataArray type=\"Float32\" Name=\"Flag\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
     ++n;
+    if(p->P23==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"Test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
+    ++n;
+    }
 	result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
 	++n;
     result<<"<DataArray type=\"Float32\" Name=\"radius\" format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
@@ -145,6 +155,19 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
 		ffn=float(p->mpirank);
 		result.write((char*)&ffn, sizeof (float));
 	}
+    
+    // Test
+    if(p->P23==1)
+    {
+    iin=4*(numpt);
+    result.write((char*)&iin, sizeof (int));
+	for(n=0;n<P.index;++n)
+	if(P.Flag[n]>=0)
+	{
+		ffn=float(P.Test[n]);
+		result.write((char*)&ffn, sizeof (float));
+	}
+    }
 
 	// velocities
 	iin=4*(numpt)*3;

@@ -76,6 +76,7 @@ public:
 
     double *D,*RO;
     
+    double *Test;
     
     int *Empty,*Flag;
     
