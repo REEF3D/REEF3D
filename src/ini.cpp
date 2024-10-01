@@ -105,7 +105,7 @@ void lexer::ini_default()
     A512=0;		// int NHFLOW diffusion
     A514=4;		// int NHFLOW reconstruction 
     
-    A515=3;      // int
+    A515=1;      // int Dirichlet wave BC type
     A516=3;      // int
     A517=3;      // int 
     A518=2;      // int NHFLOW bed BC
