@@ -2697,7 +2697,6 @@
         <File Name="pressure_reference.cpp"/>
       </VirtualDirectory>
       <File Name="pjm_hydrostatic.cpp"/>
-      <VirtualDirectory Name="Debug"/>
       <File Name="pjm_corr.cpp"/>
       <VirtualDirectory Name="Poisson">
         <File Name="poisson_pcorr.cpp"/>

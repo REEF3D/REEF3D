@@ -52,8 +52,6 @@ void fieldint2::resize(lexer* p)
 {
 }
 
-//------------------------------------------------------------------------------
-
 int & fieldint2::operator()(int ii, int jj, int kk)
 {	
 	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];

@@ -51,7 +51,7 @@ private:
 	int* feld;
 	int iter;
 
-	static int imin,imax,jmax,jmin,kmin,kmax;
+	int imin,imax,jmax,jmin,kmin,kmax;
 	
 	lexer *pp;
 
