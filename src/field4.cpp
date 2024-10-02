@@ -36,6 +36,9 @@ field4::field4(lexer *p)
 	fieldalloc(p);
 	
 	pp=p;
+    
+    for(int qn=0;qn<12;++qn)
+    level[qn]=0;
 }
 
 field4::~field4()
@@ -62,6 +65,7 @@ void field4::resize(lexer* p)
 
 double & field4::operator[](int n)
 {
+    return V[level[0] + n];
 }
 
 double & field4::operator()(int ii, int jj, int kk)

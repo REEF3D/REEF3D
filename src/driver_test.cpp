@@ -67,11 +67,11 @@ void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	
 	for(qn=0; qn<1000; ++qn)
 	for(n=0; n<p->cellnum; ++n)
-	f.V[n]=0.0;
+	f.V[IJK]=0.0;
 	
 	for(qn=0; qn<1000; ++qn)
 	for(n=0; n<p->cellnum; ++n)
-	val=f.V[n];
+	val=f.V[IJK];
 	
 	t2 = pgc->timer() - starttime;
 	

@@ -53,6 +53,8 @@ private:
 
     int iter;
 	int feldsize;
+    
+    int level[12];
 	
 	int rank, gcextra;
 	
