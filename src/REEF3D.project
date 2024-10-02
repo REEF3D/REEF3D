@@ -828,10 +828,6 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Grid Class">
-          <File Name="grid2D.h"/>
-          <File Name="grid.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="field.h"/>
           <File Name="field1.h"/>
@@ -2457,19 +2453,6 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Grid Class">
-          <VirtualDirectory Name="UpdateFloating"/>
-          <VirtualDirectory Name="UpdateSolid"/>
-          <VirtualDirectory Name="Makegrid"/>
-          <VirtualDirectory Name="Makegrid CDS">
-            <File Name="grid_cval_update.cpp"/>
-            <File Name="grid_cval_parax.cpp"/>
-            <File Name="grid_cval_gcb.cpp"/>
-            <File Name="grid_column_pt_update.cpp"/>
-            <File Name="grid_column_pt_count.cpp"/>
-            <File Name="grid_column_pt_assign.cpp"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="field1.cpp"/>
           <File Name="field2.cpp"/>
@@ -2507,7 +2490,6 @@
           <VirtualDirectory Name="GGC"/>
           <VirtualDirectory Name="GCB"/>
         </VirtualDirectory>
-        <File Name="grid.cpp"/>
         <VirtualDirectory Name="Solid">
           <File Name="reinisolid_RK3.cpp"/>
           <File Name="solid.cpp"/>
@@ -2519,7 +2501,6 @@
           <File Name="sliceint4a.cpp"/>
           <File Name="sliceint5.cpp"/>
         </VirtualDirectory>
-        <File Name="grid2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Lexer">
         <File Name="lexer_read.cpp"/>
