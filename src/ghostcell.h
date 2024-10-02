@@ -187,7 +187,6 @@ public:
 	void gcsolid_velflag1(lexer*,fdm*, int&);
 	void gcsolid_velflag2(lexer*,fdm*, int&);
 	void gcsolid_velflag3(lexer*,fdm*, int&);
-    void gcb_velflagio(lexer*, fdm*);
     void gcxsd_seed(lexer*,fdm*);
     void gcxsd_update(lexer*,fdm*,field&);
     void gcbsd_seed(lexer*,fdm*);

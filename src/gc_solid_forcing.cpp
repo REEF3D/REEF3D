@@ -29,7 +29,6 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 {
     // ghostcell update
     gcdf_update(p,a);
-    gcb_velflagio(p,a);
     
      // Reset heaviside field
     ULOOP
