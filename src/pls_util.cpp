@@ -37,15 +37,6 @@ double particle_pls::hside(fdm* a)
 		return Hval;
 }
 
-
-void particle_pls::dgc_update(lexer* p,fdm* a,ghostcell* pgc)
-{
-
-    pgc->start1(p,a->u,14);
-	pgc->start2(p,a->v,15);
-	pgc->start3(p,a->w,16);
-}
-
 void particle_pls::vel_setback(lexer* p,fdm* a,ghostcell* pgc)
 {/*
     pgc->start1(p,a->u,10);

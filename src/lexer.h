@@ -136,9 +136,6 @@ public:
     int gcdf1_count,gcdf2_count,gcdf3_count,gcdf4_count;
     int **gcdf1,**gcdf2,**gcdf3,**gcdf4;
 
-	int **dgc1,**dgc2,**dgc3,**dgc4;
-	int dgc1_count,dgc2_count,dgc3_count,dgc4_count;
-
 	int gcwall_count, gcin_count, gcout_count, gcpress_count, gcfsf_count, gcbed_count;
     int gcin6_count, gcout6_count;
 	int gcin4a_count, gcout4a_count;

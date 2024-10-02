@@ -344,7 +344,6 @@ void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbc4(p);
     pgc->gcsl_setbcio(p);
     
-	pgc->dgcslini4(p); 
 }
 	
 void driver::makegrid_sigma_cds(lexer *p, ghostcell *pgc)

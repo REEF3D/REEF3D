@@ -2310,11 +2310,6 @@
         <File Name="gc_patchBC.cpp"/>
         <File Name="gc_periodic.cpp"/>
         <File Name="gc_heat.cpp"/>
-        <File Name="gc_dgcpol4.cpp"/>
-        <File Name="gc_dgcpol3.cpp"/>
-        <File Name="gc_dgcpol2.cpp"/>
-        <File Name="gc_dgcpol1.cpp"/>
-        <File Name="gc_dgcpol.cpp"/>
         <File Name="gc_debug.cpp"/>
         <File Name="gc_fivec.cpp"/>
         <File Name="gc_kinematic_bed.cpp"/>
@@ -2415,8 +2410,6 @@
         <File Name="gcsl_neumann_int.cpp"/>
         <File Name="gcxsl_parax_int.cpp"/>
         <File Name="gcsl_start.cpp"/>
-        <File Name="gcsl_dgcslini.cpp"/>
-        <File Name="gcsl_dgcsl.cpp"/>
         <File Name="gcxsl_parax.cpp"/>
         <File Name="gcxsl_paracox.cpp"/>
         <File Name="gcxsl_wait.cpp"/>

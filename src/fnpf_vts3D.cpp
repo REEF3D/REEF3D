@@ -271,10 +271,6 @@ void fnpf_vts3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     pgc->gcsl_start4(p,c->breaking_print,50);
     pgc->start4(p,c->test,1);
 
-    pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,c->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
-
     i=-1;
     j=-1;
     if(i+p->origin_i==-1 && j+p->origin_j==-1 )

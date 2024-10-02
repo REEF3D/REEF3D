@@ -36,7 +36,6 @@ void particle_pls::setup(lexer* p, fdm* a, ghostcell* pgc)
 	pgc->start4(p,posnum,1);
 	pgc->start4(p,negnum,1);
 	
-    dgc_update(p,a,pgc);
     allocate(p,a,pgc);
     reseed(p,a,pgc,1.0);
     setradius(p,a);

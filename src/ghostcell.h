@@ -93,20 +93,7 @@ public:
 	int globalimin(int);
 	double timesync(double);
 	void globalctrl(lexer*);
-	void dgcpol(lexer*,field&, int**,int, int);
 
-    void dgcpol1(lexer*,field&, int);
-    void dgcpol2(lexer*,field&, int);
-    void dgcpol3(lexer*,field&, int);
-    void dgcpol4(lexer*,field&, int);
-    void dgcpol4a(lexer*,field&, int);
-    void dgcpol6(lexer*,field&, int);
-
-    void dgcslpol(lexer*, slice&, int**,int, int);
-    void dgcslpol1(lexer*, slice&);
-    void dgcslpol2(lexer*, slice&);
-    void dgcslpol4(lexer*, slice&);
-    
 // particle
 	void parapls(lexer*,double**,double**,int*,int*);
     void gcpartnum(lexer*,int*,int*);
@@ -119,11 +106,6 @@ public:
     void sigmax(lexer*,fdm*,double*);
     void rangex(lexer*,int*,int);
 	void gcxupdate(lexer*);
-
-    void dgcslini1(lexer*);
-	void dgcslini2(lexer*);
-	void dgcslini3(lexer*);
-	void dgcslini4(lexer*);
 
 	void cval_update1(lexer*,fdm*,fieldint&);
 	void cval_update2(lexer*,fdm*,fieldint&);

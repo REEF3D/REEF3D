@@ -695,62 +695,6 @@ void nodefill::nodefill4a(lexer *p, fdm *a, ghostcell *pgc, field &f, field &eta
 			eta(i-1,j-1,k) += 0.125*val/denom;
 		}
     }
-	
-	
-	//----------------------------------------------------------------
-	// DGC
-    int di,dj,dk;
-    int dii,djj,dkk;
 
-    for(n=0;n<p->dgc4_count;++n)
-    {
-        i=p->dgc4[n][0];
-        j=p->dgc4[n][1];
-        k=p->dgc4[n][2];
-        
-        
-        di=p->dgc4[n][3];
-        dj=p->dgc4[n][4];
-        dk=p->dgc4[n][5];
-        
-        
-        if(di==0)
-        {
-        djj = dj>0?0:dj;  
-        dkk = dk>0?0:dk;  
-        
-        eta(i-1,j+djj,k+dkk) += 0.125*f(i,j+dj,k+dk);
-        eta(i,j+djj,k+dkk)   += 0.125*f(i,j+dj,k+dk);
-        }
-        
-        if(dj==0)
-        {
-        dii = di>0?0:di;
-        dkk = dk>0?0:dk;    
-        
-        eta(i+dii,j-1,k+dkk) += 0.125*f(i+di,j,k+dk);  //-------
-        eta(i+dii,j,k+dkk)   += 0.125*f(i+di,j,k+dk);
-        }
-        
-        if(dk==0)
-        {
-        dii = di>0?0:di; 
-        djj = dj>0?0:dj;   
-        
-        eta(i+dii,j+djj,k-1) += 0.125*f(i+di,j+dj,k);
-        eta(i+dii,j+djj,k)   += 0.125*f(i+di,j+dj,k);
-        }
-        
-        
-        if(di!=0 && dj!=0 && dk!=0)
-        {
-        dii = di>0?0:di; 
-        djj = dj>0?0:dj;  
-        dkk = dk>0?0:dk; 
-
-        eta(i+dii,j+djj,k+dkk) += 0.125*f(i+di,j+dj,k+dk);
-
-        }        
-    }
 pip=0;
 }
