@@ -195,7 +195,6 @@ public:
     void gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb);
 
 // topo update
-	void topo_update(lexer*,fdm*);
 	void gcb_remove(lexer*,fdm*);
 	void gcb_seed(lexer*,fdm*);
 	void gcb_distbed(lexer*,fdm*);
