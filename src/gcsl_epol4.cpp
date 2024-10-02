@@ -82,7 +82,7 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     
     // eta
     else
-    if((bc==1||bc==6) && (gcv==52||gcv==54)  && p->B98<3)
+    if((bc==1||bc==6) && (gcv==52||gcv==54)  && (p->B98<3))
 	return 4;
     
     else

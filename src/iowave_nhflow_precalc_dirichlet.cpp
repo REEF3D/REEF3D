@@ -57,10 +57,11 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         x=xgen(p);
         y=ygen(p);
             
-        etaval = eta(i,j);
-        
-        //if(p->B92>=20 && p->B92<=29)
+        if(p->A515==1)
         etaval = 0.0;
+        
+        if(p->A515==2)
+        etaval = eta(i,j);
 
         z = p->ZSP[IJK]-p->phimean;
 
