@@ -48,26 +48,5 @@ void ghostcell::gcsl_tpflag(lexer *p)
 	    if(p->tpflagslice[IJm1]==9)
 	    p->tpflagslice[Im1Jm1]=11;
 	}
-	
-	/*
-    for(i=0;i<p->imax*p->jmax; ++i)
-	p->tpflagslice[i]=p->flagslice4[i];
-
-	SLICELOOP4
-	{
-	    if(p->tpflagslice[Im1J]<=0)
-	    p->tpflagslice[Im1J]=9;
-
-	    if(p->tpflagslice[IJm1]<=0)
-	    p->tpflagslice[IJm1]=9;
-
-	}
-
-    SLICELOOP4
-	{
-	    if(p->tpflagslice[Im1J]==9)
-	    if(p->tpflagslice[IJm1]==9)
-	    p->tpflagslice[Im1Jm1]=11;
-	}*/
 }
 

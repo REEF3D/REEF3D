@@ -90,8 +90,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     
     //pgd->gcsl_start4(p,d->breaking_print,50);
     
-    d->eta.ggcpol(p);
-    
+
 	if(p->mpirank==0)
     pvtu(p,d,pgc,psed);
 

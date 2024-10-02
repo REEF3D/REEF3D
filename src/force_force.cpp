@@ -39,13 +39,8 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     double Px=0.0;
     double xp1,xp2,yp1,yp2,zp1,zp2;
     
-
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
-    
-
-    pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
-    a->press.ggcpol(p);
     
     for(n=0;n<polygon_num;++n)
     {       

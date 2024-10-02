@@ -833,14 +833,6 @@
           <File Name="grid.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
-          <File Name="fieldgen.h"/>
-          <VirtualDirectory Name="Cart">
-            <File Name="cart1.h"/>
-            <File Name="cart2.h"/>
-            <File Name="cart3.h"/>
-            <File Name="cart4.h"/>
-            <File Name="cart4a.h"/>
-          </VirtualDirectory>
           <File Name="field.h"/>
           <File Name="field1.h"/>
           <File Name="field2.h"/>
@@ -848,18 +840,6 @@
           <File Name="field4.h"/>
           <File Name="field4a.h"/>
           <File Name="field5.h"/>
-          <VirtualDirectory Name="MGC">
-            <File Name="mgc6.h"/>
-            <File Name="mgc1.h"/>
-            <File Name="mgc2.h"/>
-            <File Name="mgc3.h"/>
-            <File Name="mgc4.h"/>
-            <File Name="mgc4a.h"/>
-            <File Name="mgccart.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="GGC">
-            <File Name="ggccart.h"/>
-          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
           <File Name="fieldint6.h"/>
@@ -889,17 +869,11 @@
           <File Name="boundarycheck.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
-          <File Name="slicegen.h"/>
           <File Name="slice5.h"/>
           <File Name="slice.h"/>
           <File Name="slice1.h"/>
           <File Name="slice2.h"/>
           <File Name="slice4.h"/>
-          <VirtualDirectory Name="MGC">
-            <File Name="mgcslice1.h"/>
-            <File Name="mgcslice2.h"/>
-            <File Name="mgcslice4.h"/>
-          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
           <File Name="reinisolid_RK3.h"/>
@@ -2326,7 +2300,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Forcing">
         <File Name="gc_solid_forcing_lsm.cpp"/>
-        <File Name="gc_solid_forcing_topo_update.cpp"/>
         <File Name="gcdf_update.cpp"/>
         <File Name="gc_solid_forcing_interface.cpp"/>
         <File Name="gc_solid_forcing_ini.cpp"/>
@@ -2422,13 +2395,6 @@
         <File Name="gcx_parax_test.cpp"/>
         <File Name="gcx_verticalsum.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Topoupdate">
-        <File Name="gctopo_buildflag.cpp"/>
-        <File Name="gctopo_dist.cpp"/>
-        <File Name="gctopo_gcb.cpp"/>
-        <File Name="gctopo_cellmem.cpp"/>
-        <File Name="gctopo_update.cpp"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid">
         <File Name="gc_column_pt_update.cpp"/>
         <File Name="gc_column_pt.cpp"/>
@@ -2440,22 +2406,11 @@
         <File Name="gc_cval_parax.cpp"/>
       </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
-      <VirtualDirectory Name="Solidupdate">
-        <File Name="gcsolid_gcb_update.cpp"/>
-        <File Name="gcsolid_gcb_seed.cpp"/>
-        <File Name="gcsolid_gcx_update.cpp"/>
-        <File Name="gcsolid_gcx_seed.cpp"/>
-        <File Name="gcsolid_update.cpp"/>
-        <File Name="gcsolid_buildflag.cpp"/>
-        <File Name="gcsolid_gcb.cpp"/>
-        <File Name="gcsolid_dist.cpp"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="Slice">
         <File Name="gcsl_potential.cpp"/>
         <File Name="gcsl_neumann.cpp"/>
         <File Name="gcxsl_paraxijk_single.cpp"/>
         <File Name="gcxsl_paraxijk.cpp"/>
-        <File Name="gcsl_solidupdate.cpp"/>
         <File Name="gcxsl_parax_fh.cpp"/>
         <File Name="gcxsl_update.cpp"/>
         <File Name="gcxsl_paracox_int.cpp"/>
@@ -2516,52 +2471,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
-          <File Name="fieldgen.cpp"/>
-          <VirtualDirectory Name="DGC">
-            <File Name="mgc_dgc4.cpp"/>
-            <File Name="mgc_dgc3.cpp"/>
-            <File Name="mgc_dgc2.cpp"/>
-            <File Name="mgc_dgc1.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="GCB">
-            <File Name="gcbcart1.cpp"/>
-            <File Name="gcbcart2.cpp"/>
-            <File Name="gcbcart3.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="GGC">
-            <File Name="ggc4.cpp"/>
-            <File Name="ggc4a.cpp"/>
-            <File Name="ggcpol4.cpp"/>
-            <File Name="ggcpol4a.cpp"/>
-            <File Name="ggc1.cpp"/>
-            <File Name="ggc2.cpp"/>
-            <File Name="ggc3.cpp"/>
-            <File Name="ggcpol1.cpp"/>
-            <File Name="ggcpol2.cpp"/>
-            <File Name="ggcpol3.cpp"/>
-            <File Name="ggccart.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Cart">
-            <File Name="cart1.cpp"/>
-            <File Name="cart2.cpp"/>
-            <File Name="cart3.cpp"/>
-            <File Name="cart4.cpp"/>
-            <File Name="cart4a.cpp"/>
-          </VirtualDirectory>
           <File Name="field1.cpp"/>
           <File Name="field2.cpp"/>
           <File Name="field3.cpp"/>
           <File Name="field4a.cpp"/>
           <File Name="field5.cpp"/>
-          <VirtualDirectory Name="MGC">
-            <File Name="mgccart6.cpp"/>
-            <File Name="mgccart1.cpp"/>
-            <File Name="mgccart2.cpp"/>
-            <File Name="mgccart3.cpp"/>
-            <File Name="mgccart4.cpp"/>
-            <File Name="mgccart4a.cpp"/>
-            <File Name="mgccart.cpp"/>
-          </VirtualDirectory>
           <File Name="field4.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
@@ -2585,29 +2499,13 @@
           <File Name="boundarycheck.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
-          <File Name="slicegen.cpp"/>
           <File Name="slice5.cpp"/>
           <File Name="slice1.cpp"/>
           <File Name="slice2.cpp"/>
           <File Name="slice4.cpp"/>
-          <VirtualDirectory Name="MGC">
-            <File Name="mgcslice4.cpp"/>
-            <File Name="mgcslice1.cpp"/>
-            <File Name="mgcslice2.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="GGC">
-            <File Name="ggcslice1.cpp"/>
-            <File Name="ggcslice2.cpp"/>
-            <File Name="ggcslice4.cpp"/>
-            <File Name="ggcslicepol1.cpp"/>
-            <File Name="ggcslicepol2.cpp"/>
-            <File Name="ggcslicepol4.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="GCB">
-            <File Name="gcbslice1.cpp"/>
-            <File Name="gcbslice2.cpp"/>
-            <File Name="gcbslice4.cpp"/>
-          </VirtualDirectory>
+          <VirtualDirectory Name="MGC"/>
+          <VirtualDirectory Name="GGC"/>
+          <VirtualDirectory Name="GCB"/>
         </VirtualDirectory>
         <File Name="grid.cpp"/>
         <VirtualDirectory Name="Solid">
@@ -2799,9 +2697,7 @@
         <File Name="pressure_reference.cpp"/>
       </VirtualDirectory>
       <File Name="pjm_hydrostatic.cpp"/>
-      <VirtualDirectory Name="Debug">
-        <File Name="pjm_debug.cpp"/>
-      </VirtualDirectory>
+      <VirtualDirectory Name="Debug"/>
       <File Name="pjm_corr.cpp"/>
       <VirtualDirectory Name="Poisson">
         <File Name="poisson_pcorr.cpp"/>
@@ -3223,7 +3119,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="overwrite" BuildLnkWithGlobalSettings="overwrite" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3; -w; -std=c++11; " C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Compiler Options="-O3; -w; -std=c++11; -flto" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
       <Linker Options="-lm" Required="yes">
         <LibraryPath Value="/usr/local/hypre/lib"/>
         <Library Value="HYPRE"/>

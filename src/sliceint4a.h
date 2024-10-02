@@ -43,16 +43,13 @@ public:
 	int di,dj;
 	int imin,imax,jmax,jmin;
 
-	int ***gcfeld;
-
 private:
 
 	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
 	void fieldlength(lexer *);
 
     int iter;
-	int gcfeldsize,feldsize;
+	int feldsize;
 	
 	int rank, gcsl_extra;
 	

@@ -33,7 +33,6 @@ class field
 public:
 	virtual double& operator()(int, int, int)=0;
 	virtual double& operator[](int)=0;
-	virtual void ggcpol(lexer*)=0;
     virtual void resize(lexer*)=0;
     virtual void dealloc(lexer*)=0;
 	

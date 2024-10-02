@@ -44,7 +44,7 @@ void driver::loop_cfd(fdm* a)
     if(p->mpirank==0)
     cout<<"starting mainloop.CFD"<<endl;
     
-    //vec_test(p,a,pgc,a->test);
+    vec_test(p,a,pgc,a->test);
     
 //-----------MAINLOOP CFD----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)

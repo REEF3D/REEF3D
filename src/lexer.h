@@ -115,7 +115,6 @@ public:
     int *wet,*wet_n;
     int *deep;
 	int *tpflag,*ndbaseflag;
-	int *mgc1,*mgc2,*mgc3,*mgc4,*mgc4a,*mgc6;
 	int ***gcorig1,***gcorig2,***gcorig3,***gcorig4,***gcorig4a,***gcorig6;
 	int gcdirsize1,gcdirsize2,gcdirsize3,gcdirsize4,gcdirsize4a,gcdirsize6;
 	int i_dir,j_dir,k_dir;
@@ -213,7 +212,6 @@ public:
     //SLICE
     int *flagslice1,*flagslice2,*flagslice4,*tpflagslice;
     int *flagfsf;
-    int *mgcsl1,*mgcsl2,*mgcsl3,*mgcsl4,*mgcsl4a;
     int ***gcslorig1,***gcslorig2,***gcslorig3,***gcslorig4,***gcslorig4a;
 	int gcsldirsize1,gcsldirsize2,gcsldirsize3,gcsldirsize4,gcsldirsize4a;
     

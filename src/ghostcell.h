@@ -174,7 +174,6 @@ public:
 // Forcing
     void solid_forcing(lexer*,fdm*,double,field&,field&,field&,field&,field&,field&);
     void solid_forcing_ini(lexer*,fdm*);
-    void solid_forcing_topo_update(lexer*,fdm*);
     void solid_forcing_lsm(lexer*, fdm*,field&);
     double Hsolidface(lexer*, fdm*, int,int,int);
 	double Hsolidface_t(lexer*, fdm*, int,int,int);
@@ -278,9 +277,6 @@ public:
     void gcsl_start2int(lexer*,sliceint&, int);
     void gcsl_start4int(lexer*,sliceint&, int);
     void gcsl_start4Vint(lexer*,int*, int);
-
-
-    void gcsl_solidupdate(lexer*);
 
     void gcsldistro1(lexer*, slice&,int, int, int, double, int, int, int);
 	void gcsldistro2(lexer*, slice&,int, int, int, double, int, int, int);

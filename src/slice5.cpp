@@ -32,7 +32,6 @@ slice5::slice5(lexer *p)
     jmax=p->jmax;
     
 	fieldalloc(p);
-	fieldgcalloc(p);
 	
 	pp=p;
 }
@@ -55,13 +54,6 @@ void slice5::dealloc(lexer* p)
 
 void slice5::resize(lexer* p)
 {
-    if(p->gcsl_extra4*p->margin>gcfeldsize)
-    cout<<p->mpirank<<" Slice4 Resize: "<<gcfeldsize<<" "<<p->gcsl_extra4*3<<endl;
-}
-
-void slice5::fieldgcalloc(lexer* p)
-{
-
 }
 
 double & slice5::operator[](int n)
@@ -74,8 +66,4 @@ double & slice5::operator()(int ii, int jj)
 
 	return V[(ii-imin)*jmax + (jj-jmin)];
 	
-}
-
-void slice5::ggcpol(lexer* p)
-{
 }

@@ -75,8 +75,6 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     
 	name_iter(p,b,pgc);
     
-    b->bed.ggcpol(p);
-    
     // bednode upate
     TPSLICELOOP
     {

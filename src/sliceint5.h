@@ -43,8 +43,6 @@ public:
 	int di,dj;
 	int imin,imax,jmax,jmin;
 
-	int ***gcfeld;
-
 private:
 
 	void fieldalloc(lexer *);

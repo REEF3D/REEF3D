@@ -39,11 +39,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"FSI_header.h"
 #include"waves_header.h"
 #include"lexer.h"
-#include"cart1.h"
-#include"cart2.h"
-#include"cart3.h"
-#include"cart4.h"
-#include"cart4a.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 

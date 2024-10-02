@@ -23,10 +23,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"cart1.h"
-#include"cart2.h"
-#include"cart3.h"
-#include"cart4.h"
 
 void ghostcell::cval_gcb4(lexer* p, fdm* a, fieldint &cval)
 {

@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"field5.h"
 #include"lexer.h"
 
-field5::field5(lexer *p):fip(4)
+field5::field5(lexer *p)
 {
     imin=p->imin;
     imax=p->imax;
@@ -53,12 +53,6 @@ void field5::resize(lexer* p)
 void field5::dealloc(lexer* p)
 {
 	delete [] V;
-    
-    gcfeldsize=feldsize=0;
-}
-
-void field5::ggcpol(lexer* p)
-{
 }
 
 double & field5::operator[](int n)

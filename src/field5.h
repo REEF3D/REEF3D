@@ -37,15 +37,9 @@ public:
 
     double& operator()(int, int , int);
 	double& operator[](int);
-    void ggcpol(lexer*);
+
     virtual void resize(lexer*);
     virtual void dealloc(lexer*);
-
-    //mgc1
-	static void makemgc(lexer*);
-	static void fillmgc(lexer*);
-
-	const int fip;
 
 private:
 
@@ -55,9 +49,8 @@ private:
 	void fieldlength(lexer *);
 
 	double* feld;
-	double** gcfeld;
 	int iter;
-	int gcfeldsize,feldsize;
+	int feldsize;
 
 	int imin,imax,jmax,jmin,kmin,kmax;
 	

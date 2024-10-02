@@ -36,24 +36,20 @@ public:
 	virtual ~slice4();
 
     virtual double& operator()(int, int);
-	double& operator[](int);
-    virtual void ggcpol(lexer*);
+    double& operator[](int);
     virtual void resize(lexer*);
     virtual void dealloc(lexer*);
     
 	int di,dj;
 	int imin,imax,jmax,jmin;
 
-	double ***gcfeld;
-
 private:
 
 	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
 	void fieldlength(lexer *);
 
     int iter;
-	int gcfeldsize,feldsize;
+	int feldsize;
 	
 	int rank, gcsl_extra;
 	

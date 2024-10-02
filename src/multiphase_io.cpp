@@ -30,13 +30,6 @@ Author: Hans Bihs
 	
 void multiphase_f::print_3D(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-	pgc->dgcpol(p,ls1,p->dgc4,p->dgc4_count,14);
-    ls1.ggcpol(p);
-    pgc->dgcpol(p,ls2,p->dgc4,p->dgc4_count,14);
-    ls2.ggcpol(p);
-	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
-    a->ro.ggcpol(p);
-
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 

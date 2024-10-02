@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    
-    
     // sigz
     SLICELOOP4
     {
@@ -69,7 +67,7 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             {
             pgc->gcparaxintV(p,IO,1);
             
-            //ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
+            ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
             ray_cast_x(p,d,pgc,tstart[qn],tend[qn]);
             //ray_cast_y(p,d,pgc,tstart[qn],tend[qn]);
             ray_cast_z(p,d,pgc,tstart[qn],tend[qn]);

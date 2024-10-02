@@ -151,8 +151,6 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
 
 void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {
-    b->eta.ggcpol(p);
-
 	if(p->mpirank==0)
     pvtp(p,b,pgc,pturb,psed);
 

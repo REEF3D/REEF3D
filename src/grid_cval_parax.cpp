@@ -23,10 +23,6 @@ Author: Hans Bihs
 #include"grid.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"cart1.h"
-#include"cart2.h"
-#include"cart3.h"
-#include"cart4.h"
 
 void grid::cval_gcpara1(lexer* p, fieldint &cval1)
 {

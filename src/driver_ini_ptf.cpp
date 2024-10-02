@@ -39,11 +39,6 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"waves_header.h"
 #include"lexer.h"
-#include"cart1.h"
-#include"cart2.h"
-#include"cart3.h"
-#include"cart4.h"
-#include"cart4a.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
