@@ -50,10 +50,6 @@ void fieldint3::fieldalloc(lexer* p)
 
 void fieldint3::resize(lexer* p)
 {
-    int factor=3;
-    
-	p->Iresize(gcfeld,gcfeldsize, p->gcextra3*factor, 6, 6, 4, 4); 
-	gcfeldsize=p->gcextra3*factor;
 }
 
 int & fieldint3::operator()(int ii, int jj, int kk)
