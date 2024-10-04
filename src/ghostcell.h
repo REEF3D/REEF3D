@@ -279,11 +279,20 @@ public:
 
 	void gcsl_tpflag(lexer*);
 
-
     void gcsl_setbc1(lexer*);
     void gcsl_setbc2(lexer*);
     void gcsl_setbc4(lexer*);
     void gcsl_setbcio(lexer*);
+    
+    void dgcslini1(lexer*);
+    void dgcslini2(lexer*);
+	void dgcslini3(lexer*);
+	void dgcslini4(lexer*);
+    
+    void dgcslpol(lexer*, slice&, int**,int, int);
+    void dgcslpol1(lexer*, slice&);
+    void dgcslpol2(lexer*, slice&);
+    void dgcslpol4(lexer*, slice&);
 
     // Slice BCs
     void gcsl_neumann(slice&,int,int,int);

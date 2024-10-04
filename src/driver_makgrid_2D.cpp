@@ -24,11 +24,46 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"mgcslice1.h"
+#include"mgcslice2.h"
+#include"mgcslice4.h"
 
 void driver::makegrid2D(lexer *p, ghostcell *pgc)
 {   
     pgc->gcsl_tpflag(p);
-   
+    
+    pgc->gcslflagx(p,p->flagslice4);
+    
+    mgcslice1 m1(p);
+	mgcslice2 m2(p);
+	mgcslice4 m4(p);
+	
+	m1.makemgc(p);
+    pgc->gcslflagx(p,p->flagslice1);
+    m1.gcb_seed(p);
+    m1.mgcsetup(p);
+    m1.fillmgc(p);
+    m1.gcdirfill(p);
+
+    m2.makemgc(p);
+    pgc->gcslflagx(p,p->flagslice2);
+    m2.gcb_seed(p);
+    m2.mgcsetup(p);
+    m2.fillmgc(p);
+    m2.gcdirfill(p);
+
+    m4.makemgc(p);
+    m4.gcb_seed(p);
+    m4.mgcsetup(p);
+    m4.fillmgc(p);
+    m4.gcdirfill(p);
+	
+	m1.make_ggc(p);
+    m1.fill_ggc(p);
+	m2.make_ggc(p);
+    m2.fill_ggc(p);
+    m4.make_ggc(p);
+    m4.fill_ggc(p);
     
     pgc->gcsl_setbc1(p);
     pgc->gcsl_setbc2(p);
@@ -36,6 +71,9 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
     
     pgc->gcsl_setbcio(p);
     
+    pgc->dgcslini1(p);
+	pgc->dgcslini2(p);
+	pgc->dgcslini4(p);
 }
  
 void driver::makegrid2D_cds(lexer *p, ghostcell *pgc, fdm2D *b)

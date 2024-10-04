@@ -20,50 +20,47 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"slice.h"
 #include"increment.h"
 
-#ifndef SLICE4_H_
-#define SLICE4_H_
+class lexer;
+class ghostcell;
+
+#ifndef MGCSLICE2_H_
+#define MGCSLICE2_H_
 
 using namespace std;
 
-class slice4 : public slice, increment
+class mgcslice2 :  public increment
 {
 public:
 
-	slice4 (lexer*);
-	virtual ~slice4();
+	mgcslice2 (lexer *);
+	virtual ~mgcslice2();
 
-    virtual double& operator()(int, int);
-	double& operator[](int);
-    virtual void ggcpol(lexer*);
-    virtual void resize(lexer*);
-    virtual void dealloc(lexer*);
+    //mgcslice2
+	void makemgc(lexer*);
+	void mgcsetup(lexer*);
+	void gcdirfill(lexer*);
+	void fillmgc(lexer*);
+	void make_ggc(lexer*);
+	void fill_ggc(lexer*);
+
     
-	int di,dj;
-	int imin,imax,jmax,jmin;
-
-	double ***gcfeld;
-
+    void gcb_seed(lexer*);
+	
+	int imin,imax,jmax,jmin,kmin,kmax;
+	int gcdirsize;
+	int ggcsize;
+	
 private:
-
-	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
-	void fieldlength(lexer *);
-
-    int iter;
-	int gcfeldsize,feldsize;
+	int di,dj;
+	int qn;
+    int count;
 	
-	int rank, gcsl_extra;
-	
-	double starttime;
-	
-	lexer *pp;
-
 };
 
 #endif
+
 
 
 

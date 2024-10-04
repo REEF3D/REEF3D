@@ -207,6 +207,7 @@ public:
     //SLICE
     int *flagslice1,*flagslice2,*flagslice4,*tpflagslice;
     int *flagfsf;
+    int *mgcsl1,*mgcsl2,*mgcsl3,*mgcsl4,*mgcsl4a;
     int ***gcslorig1,***gcslorig2,***gcslorig3,***gcslorig4,***gcslorig4a;
 	int gcsldirsize1,gcsldirsize2,gcsldirsize3,gcsldirsize4,gcsldirsize4a;
     
@@ -222,6 +223,16 @@ public:
 	int **gcslin, **gcslout;
     int **gcslawa1, **gcslawa2;
 	double *gcdsl1,*gcdsl2,*gcdsl3,*gcdsl4,*gcdsl4a;
+
+    int gcsl_extra1,gcsl_extra2,gcsl_extra3,gcsl_extra4,gcsl_extra4a;
+
+	int **dgcsl1,**dgcsl2,**dgcsl3,**dgcsl4;
+	int dgcsl1_count,dgcsl2_count,dgcsl3_count,dgcsl4_count;
+    
+    int **ggcsl1,**ggcsl2,**ggcsl3,**ggcsl4,**ggcsl4a;
+    int *ggcslmem1,*ggcslmem2,*ggcslmem3,*ggcslmem4,*ggcslmem4a;
+    int ggcslcount1,ggcslcount2,ggcslcount3,ggcslcount4,ggcslcount4a;
+    int ggcslsize1,ggcslsize2,ggcslsize3,ggcslsize4,ggcslsize4a;
     
     // SLICE parallel
 	int** gcslpara1;

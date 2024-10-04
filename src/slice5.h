@@ -37,6 +37,7 @@ public:
 
     virtual double& operator()(int, int);
 	double& operator[](int);
+    virtual void ggcpol(lexer*);
     virtual void resize(lexer*);
     virtual void dealloc(lexer*);
     
@@ -48,10 +49,11 @@ public:
 private:
 
 	void fieldalloc(lexer *);
+	void fieldgcalloc(lexer*);
 	void fieldlength(lexer *);
 
     int iter;
-	int feldsize;
+	int gcfeldsize,feldsize;
 	
 	int rank, gcsl_extra;
 	
@@ -62,8 +64,5 @@ private:
 };
 
 #endif
-
-
-
 
 
