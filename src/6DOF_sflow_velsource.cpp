@@ -52,9 +52,6 @@ void sixdof_sflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
  
     d->F[IJK] += 1.0/p->W1*dfdx;
     }
-    
-    //SLICELOOP4
-    //d->test2D(i,j) = press(i,j);
 }
 
 void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
@@ -69,9 +66,6 @@ void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     dfdy = WL(i,j)*(press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
         
     d->G[IJK] += 1.0/p->W1*dfdy;
-    
-    //if(k==0)
-    //d->test2D(i,j) = 1.0/p->W1*dfdy;
     }
 }
 
@@ -97,6 +91,7 @@ void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
         b->test(i,j) = 1.0/p->W1*(press(i,j+1) - press(i,j))/p->DYP[JP];
+        //b->test(i,j) = press(i,j);
     }
     pgc->gcsl_start4(p,b->test,50);
 }
