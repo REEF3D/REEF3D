@@ -2344,6 +2344,7 @@
         <File Name="gc_sommerfeld.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flag">
+        <File Name="gc_buildflag.cpp"/>
         <File Name="gc_flagbase.cpp"/>
         <File Name="gc_flagfield.cpp"/>
         <File Name="gc_minmax.cpp"/>
@@ -3092,7 +3093,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="overwrite" BuildLnkWithGlobalSettings="overwrite" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O4; -w; -std=c++11" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Compiler Options="-O3; -w; -std=c++11" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
       <Linker Options="-lm" Required="yes">
         <LibraryPath Value="/usr/local/hypre/lib"/>
         <Library Value="HYPRE"/>

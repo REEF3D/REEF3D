@@ -148,6 +148,8 @@ public:
     void fdm_update(fdm*);
     void fdm_fnpf_update(fdm_fnpf*);
     void fdm_nhf_update(fdm_nhf*);
+    
+    void gcb_velflagio(lexer*, fdm*);
 
 // 2D CPT_
 
