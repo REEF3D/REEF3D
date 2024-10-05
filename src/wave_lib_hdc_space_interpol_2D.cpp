@@ -23,55 +23,35 @@ Author: Hans Bihs
 #include"wave_lib_hdc.h"
 #include"lexer.h"
 
-double wave_lib_hdc::space_interpol(lexer *p, double ***F, double x, double y, double z)
+
+double wave_lib_hdc::plane_interpol(lexer *p, double **F, double x, double y)
 {
     val=0.0;
     
     ii=i;
     jj=j;
-    kk=k;
     
     xp = x + p->I231;
     yp = y + p->I232;
-    zp = z + p->I233 + p->wd;
-    
-    
+
     if(xp>=Xstart  && xp<Xend && ((yp>=Ystart && yp<Yend)|| jdir==0))
     {
         i = pos_i(p,xp);
         j = pos_j(p,yp);
-        
-        
-        
-        if(file_version==2)
-        {
-        val=ccpol2DM(p,F,xp,yp);
-        }
-        
-        if(file_version==4)
-        {
-        k = pos_k(p,zp,i,j);
 
-        val=ccpol3D_fnpf(p,F,xp,yp,zp);
-        }
-        
-        if(file_version==5)
-        {
-        k = pos_k(p,zp,i,j);
-
-        val=ccpol3D_nhflow(p,F,xp,yp,zp);
-        }
+        val=ccpol2D(p,F,x,y);
     }
     
+
     i=ii;
     j=jj;
-    k=kk;
     
     return val;
 }
 
-double wave_lib_hdc::ccpol3D_fnpf(lexer *p, double ***F, double xp, double yp, double zp)
+double wave_lib_hdc::ccpol2D(lexer *p, double **F, double x, double y)
 {
+    
     // wa
     if(xp>X[0] && xp<X[Nx-1])
     {
@@ -80,16 +60,18 @@ double wave_lib_hdc::ccpol3D_fnpf(lexer *p, double ***F, double xp, double yp, d
         if(i<Nx-1)
         if((X[i+1]-xp)/(X[i+1]-X[i])<0.0)
         {
-        wa = (X[i+1]-xp)/(X[i+2]-X[i+1]);
+        wa = (X[i+2]-xp)/(X[i+2]-X[i+1]);
         ++i;
         }
-
+        
         if(i>0)
         if((X[i+1]-xp)/(X[i+1]-X[i])>1.0)
         {
         wa = (X[i]-xp)/(X[i]-X[i-1]);
         --i;
         }
+        
+        //cout<<i<<" X[i-2]: "<<X[i-2]<<" X[i-1]: "<<X[i-1]<<" X[i]: "<<X[i]<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
     }
     
     if(xp<=X[0] || i<0)
@@ -98,7 +80,7 @@ double wave_lib_hdc::ccpol3D_fnpf(lexer *p, double ***F, double xp, double yp, d
     if(xp>=X[Nx-1] || i>=Nx-1)
     wa=1.0;
     
-    
+
     // wb
     if(Ny==1 || jdir==0)
     wb=1.0;    
@@ -129,83 +111,51 @@ double wave_lib_hdc::ccpol3D_fnpf(lexer *p, double ***F, double xp, double yp, d
     wb=1.0;
     }
     
-    //wc
-    if(zp>Z[i][j][0] && zp<Z[i][j][Nz-1])
-    {
-        wc = (Z[i][j][k+1]-zp)/(Z[i][j][k+1]-Z[i][j][k]);
-        
-        if(k<Nz-1)
-        if((Z[i][j][k+1]-zp)/p->DZP[KP]<0.0)
-        {
-        wc = (Z[i][j][k+2]-zp)/(Z[i][j][k+2]-Z[i][j][k+1]);
-        ++k;
-        }
-        
-        if(k>0)
-        if((Z[i][j][k+1]-zp)/p->DZP[KP]>1.0)
-        {
-        wc = (Z[i][j][k]-zp)/(Z[i][j][k]-Z[i][j][k-1]);
-        --k;
-        }
-    }
+    //cout<<"wb2D: "<<wb<<endl;
+
+
+    v1=v2=v3=v4=0.0;
+
     
-    if(zp<=Z[i][j][0])
-    wc=0.0;
-    
-    if(zp>=Z[i][j][Nz-1])
-    wc=1.0;
-
-
-    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
-
     ip1 = (i+1)<(Nx-1)?(i+1):i;
     jp1 = (j+1)<(Ny-1)?(j+1):j;
-    kp1 = (k+1)<(Nz-1)?(k+1):k;
     
     iii=i;
     jjj=j;
-    kkk=k;
-    
+
     i = i<0?0:i;
     j = j<0?0:j;
-    k = k<0?0:k;
     
-    i = i>Nx-1?Nx-1:i;
-    j = j>Ny-1?Ny-1:j;
-    k = k>Nz-1?Nz-1:k;
+    i = i>(Nx-1)?(Nx-1):i;
+    j = j>(Ny-1)?(Ny-1):j;
+
     
+    v1 = F[i][j];
+    v2 = F[i][jp1];
+    v3 = F[ip1][j];
+    v4 = F[ip1][jp1];
     
-    v1 = F[i][j][k];
-    v2 = F[i][jp1][k];
-    v3 = F[ip1][j][k];
-    v4 = F[ip1][jp1][k];
-    
-    v5 = F[i][j][kp1];
-    v6 = F[i][jp1][kp1];
-    v7 = F[ip1][j][kp1];
-    v8 = F[ip1][jp1][kp1];
-    
+    //cout<<"i: "<<i<<" j: "<<j<<" ip1: "<<ip1<<" jp1: "<<jp1<<endl;
+
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
 
-    x3 = wa*v5 + (1.0-wa)*v7;
-    x4 = wa*v6 + (1.0-wa)*v8;
-
-    y1 = wb*x1 +(1.0-wb)*x2;
-    y2 = wb*x3 +(1.0-wb)*x4;
-
-    val = wc*y1 +(1.0-wc)*y2;
+    val = wb*x1 +(1.0-wb)*x2;
+    
+    //cout<<p->mpirank<<" HDC  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j]<<endl;
     
     i=iii;
     j=jjj;
-    k=kkk;
-
+    
+    
     return val;
 }
 
-double wave_lib_hdc::ccpol3D_nhflow(lexer *p, double ***F, double xp, double yp, double zp)
+
+double wave_lib_hdc::ccpol2DM(lexer *p, double ***F, double x, double y)
 {
+    
     // wa
     if(xp>X[0] && xp<X[Nx-1])
     {
@@ -214,16 +164,18 @@ double wave_lib_hdc::ccpol3D_nhflow(lexer *p, double ***F, double xp, double yp,
         if(i<Nx-1)
         if((X[i+1]-xp)/(X[i+1]-X[i])<0.0)
         {
-        wa = (X[i+1]-xp)/(X[i+2]-X[i+1]);
+        wa = (X[i+2]-xp)/(X[i+2]-X[i+1]);
         ++i;
         }
-
+        
         if(i>0)
         if((X[i+1]-xp)/(X[i+1]-X[i])>1.0)
         {
         wa = (X[i]-xp)/(X[i]-X[i-1]);
         --i;
         }
+        
+        //cout<<i<<" X[i-2]: "<<X[i-2]<<" X[i-1]: "<<X[i-1]<<" X[i]: "<<X[i]<<" X[i+1]: "<<X[i+1]<<" X[i+2]: "<<X[i+2]<<endl;
     }
     
     if(xp<=X[0] || i<0)
@@ -232,7 +184,7 @@ double wave_lib_hdc::ccpol3D_nhflow(lexer *p, double ***F, double xp, double yp,
     if(xp>=X[Nx-1] || i>=Nx-1)
     wa=1.0;
     
-    
+
     // wb
     if(Ny==1 || jdir==0)
     wb=1.0;    
@@ -262,79 +214,43 @@ double wave_lib_hdc::ccpol3D_nhflow(lexer *p, double ***F, double xp, double yp,
     if(yp>=Y[Ny-1])
     wb=1.0;
     }
-    
-    //wc
-    if(zp>Z[i][j][0] && zp<Z[i][j][Nz-1])
-    {
-        wc = (Z[i][j][k+1]-zp)/(Z[i][j][k+1]-Z[i][j][k]);
-        
-        if(k<Nz-1)
-        if((Z[i][j][k+1]-zp)/p->DZP[KP]<0.0)
-        {
-        wc = (Z[i][j][k+2]-zp)/(Z[i][j][k+2]-Z[i][j][k+1]);
-        ++k;
-        }
-        
-        if(k>0)
-        if((Z[i][j][k+1]-zp)/p->DZP[KP]>1.0)
-        {
-        wc = (Z[i][j][k]-zp)/(Z[i][j][k]-Z[i][j][k-1]);
-        --k;
-        }
-    }
-    
-    if(zp<=Z[i][j][0])
-    wc=0.0;
-    
-    if(zp>=Z[i][j][Nz-1])
-    wc=1.0;
 
+    v1=v2=v3=v4=0.0;
 
-    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
-
+    
     ip1 = (i+1)<(Nx-1)?(i+1):i;
     jp1 = (j+1)<(Ny-1)?(j+1):j;
-    kp1 = (k+1)<(Nz-1)?(k+1):k;
     
     iii=i;
     jjj=j;
-    kkk=k;
-    
+
     i = i<0?0:i;
     j = j<0?0:j;
-    k = k<0?0:k;
     
-    i = i>Nx-1?Nx-1:i;
-    j = j>Ny-1?Ny-1:j;
-    k = k>Nz-1?Nz-1:k;
+    i = i>(Nx-1)?(Nx-1):i;
+    j = j>(Ny-1)?(Ny-1):j;
+
     
+    v1 = F[i][j][0];
+    v2 = F[i][jp1][0];
+    v3 = F[ip1][j][0];
+    v4 = F[ip1][jp1][0];
     
-    v1 = F[i][j][k];
-    v2 = F[i][jp1][k];
-    v3 = F[ip1][j][k];
-    v4 = F[ip1][jp1][k];
-    
-    v5 = F[i][j][kp1];
-    v6 = F[i][jp1][kp1];
-    v7 = F[ip1][j][kp1];
-    v8 = F[ip1][jp1][kp1];
-    
+    //cout<<"i: "<<i<<" j: "<<j<<" ip1: "<<ip1<<" jp1: "<<jp1<<endl;
+
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
 
-    x3 = wa*v5 + (1.0-wa)*v7;
-    x4 = wa*v6 + (1.0-wa)*v8;
-
-    y1 = wb*x1 +(1.0-wb)*x2;
-    y2 = wb*x3 +(1.0-wb)*x4;
-
-    val = wc*y1 +(1.0-wc)*y2;
+    val = wb*x1 +(1.0-wb)*x2;
+    
+    //cout<<p->mpirank<<" HDC  i: "<<i<<" j: "<<j<<" xp: "<<xp<<" yp: "<<yp<<" val: "<<val<<" Fi: "<<F[i][j]<<endl;
     
     i=iii;
     j=jjj;
-    k=kkk;
-
+    
+    
     return val;
 }
+
 

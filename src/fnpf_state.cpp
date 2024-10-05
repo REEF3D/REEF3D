@@ -182,7 +182,6 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	result.open(name, ios::binary);
     }
     
-
     p->del_Iarray(is_flag_all,p->M10);
     p->del_Iarray(ie_flag_all,p->M10);
     p->del_Iarray(js_flag_all,p->M10);
