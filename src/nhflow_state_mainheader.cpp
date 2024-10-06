@@ -75,9 +75,6 @@ void nhflow_state::ini_mainheader(lexer *p, fdm_nhf *d, ghostcell *pgc)
     mainout.write((char*)&iin, sizeof (int));
     }
     
-    ddn=p->wd;
-    mainout.write((char*)&ddn, sizeof (double));
-
     mainout.close();
 }
 
