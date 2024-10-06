@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
+#include"mgcslice4.h"
 
 void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 {	
@@ -341,9 +342,21 @@ void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
     pgc->gcsl_tpflag(p);    
     pgc->gcslflagx(p,p->flagslice4);
     
+    mgcslice4 msl4(p);
+    
+    msl4.makemgc(p);
+    msl4.gcb_seed(p);
+    msl4.mgcsetup(p);
+    msl4.fillmgc(p);
+    msl4.gcdirfill(p);
+    
+    msl4.make_ggc(p);
+    msl4.fill_ggc(p);
+    
     pgc->gcsl_setbc4(p);
     pgc->gcsl_setbcio(p);
     
+	pgc->dgcslini4(p); 
 }
 	
 void driver::makegrid_sigma_cds(lexer *p, ghostcell *pgc)
