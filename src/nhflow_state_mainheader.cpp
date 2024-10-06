@@ -58,6 +58,15 @@ void nhflow_state::ini_mainheader(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     iin=file_type;
     mainout.write((char*)&iin, sizeof (int));
+    
+    ddn=p->wd;
+    mainout.write((char*)&ddn, sizeof (double));
+    
+    ddn=0.0; // void
+    mainout.write((char*)&ddn, sizeof (double));
+    
+    ddn=0.0; // void
+    mainout.write((char*)&ddn, sizeof (double));
 
     // flag: is process within P43 bounds
     for(int qn=0;qn<p->M10;++qn)
