@@ -50,7 +50,7 @@ void nhflow_state::ini_mainheader(lexer *p, fdm_nhf *d, ghostcell *pgc)
     iin=je_global-js_global;
     mainout.write((char*)&iin, sizeof (int));
 
-    iin=p->gknoz+1;
+    iin=p->gknoz;
     mainout.write((char*)&iin, sizeof (int));
 
     iin=file_version;

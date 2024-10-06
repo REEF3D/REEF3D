@@ -519,7 +519,7 @@ void lexer::ini_default()
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
     P44=0;             // int print out 3D potential for FNPF
-    P45=1;             // int print into single or continous state file
+    P45=2;             // int print into single or continous state file
     P46=0;             // int print state iteration window
     P47=0;             // int print state time window
     P50=0;				// int wave theory wave gages

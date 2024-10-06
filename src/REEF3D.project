@@ -3008,11 +3008,14 @@
         <File Name="wave_lib_hdc.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="HDC">
-          <File Name="wave_lib_hdc_space_interpol_2D.cpp"/>
+          <VirtualDirectory Name="Interpolation">
+            <File Name="wave_lib_hdc_coordinate_shift.cpp"/>
+            <File Name="wave_lib_hdc_time_interpol.cpp"/>
+            <File Name="wave_lib_hdc_space_interpol_2D.cpp"/>
+            <File Name="wave_lib_hdc_space_interpol.cpp"/>
+          </VirtualDirectory>
           <File Name="wave_lib_hdc_fill_continuous.cpp"/>
           <File Name="wave_lib_hdc_read_result_continuous.cpp"/>
-          <File Name="wave_lib_hdc_time_interpol.cpp"/>
-          <File Name="wave_lib_hdc_space_interpol.cpp"/>
           <File Name="wave_lib_hdc_read_result.cpp"/>
           <File Name="wave_lib_hdc_read_header.cpp"/>
           <File Name="wave_lib_hdc_pos_ijk.cpp"/>

@@ -83,7 +83,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
-    for(k=0; k<p->knoz+1; ++k)
+    for(k=0; k<p->knoz; ++k)
     PCHECK  
     {
     ffn=float(d->U[IJK]);
@@ -92,7 +92,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 	for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
-    for(k=0; k<p->knoz+1; ++k)
+    for(k=0; k<p->knoz; ++k)
     PCHECK 
     {
     ffn=float(d->V[IJK]);
@@ -101,7 +101,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 	for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
-    for(k=0; k<p->knoz+1; ++k)
+    for(k=0; k<p->knoz; ++k)
     PCHECK 
     {
     ffn=float(d->W[IJK]);

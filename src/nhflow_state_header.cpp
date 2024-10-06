@@ -108,9 +108,9 @@ void nhflow_state::write_header(lexer *p, fdm_nhf *d, ghostcell *pgc)
     headout.write((char*)&ddn, sizeof (double));
     } 
     
-    FKLOOP
+    KLOOP
     {
-    ddn=p->ZN[KP];
+    ddn=p->ZP[KP];
     headout.write((char*)&ddn, sizeof (double));
     } 
     
