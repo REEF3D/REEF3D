@@ -64,8 +64,7 @@ private:
     void time_interpol(lexer*);
     
     // interpolation
-    double ccpol3D_fnpf(lexer*,double***,double,double,double);
-    double ccpol3D_nhflow(lexer*,double***,double,double,double);
+    double ccpol3D(lexer*,double***,double,double,double);
     double ccpol2D(lexer*,double**,double,double);
     double ccpol2DM(lexer*,double***,double,double);
     double space_interpol(lexer*,double***,double,double,double);
