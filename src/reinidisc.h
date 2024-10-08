@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 class lexer;
 class fdm;
-class vec;
+class field;
 
 using namespace std;
 
@@ -32,7 +32,7 @@ using namespace std;
 class reinidisc
 {
 public:
-	virtual void start(lexer*, fdm*, ghostcell*, vec&, vec&,int)=0;
+	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, int)=0;
 };
 
 #endif

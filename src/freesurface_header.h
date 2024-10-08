@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"levelset_void.h"
 
 #include"reini_RK3.h"
-#include"reinifluid_RK3.h"
 #include"directreini.h"
 #include"reini_void.h"
 

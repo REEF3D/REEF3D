@@ -778,17 +778,16 @@
         <File Name="particle_pls.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
-        <File Name="reinidisc_sf.h"/>
-        <File Name="reinidisc_fsf_rig.h"/>
-        <File Name="reinifluid_RK3.h"/>
+        <VirtualDirectory Name="Reinidisc">
+          <File Name="reinidisc_fsf_rig.h"/>
+          <File Name="reinidisc_fsf.h"/>
+          <File Name="reinidisc_f.h"/>
+          <File Name="reinidisc.h"/>
+        </VirtualDirectory>
         <File Name="reini.h"/>
         <File Name="reini_RK3.h"/>
         <File Name="reini_void.h"/>
-        <File Name="reinidisc.h"/>
-        <File Name="reinidisc_f.h"/>
-        <File Name="reinidisc_fsf.h"/>
         <File Name="reini_walld.h"/>
-        <File Name="reinidisc_f2.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF Algebraic">
         <File Name="VOF_RK3.h"/>
@@ -2264,15 +2263,14 @@
         <File Name="pls_xupdate.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
-        <File Name="reinidisc_sf.cpp"/>
-        <File Name="reinidisc_fsf_rig.cpp"/>
+        <VirtualDirectory Name="Reinidisc">
+          <File Name="reinidisc_fsf_rig.cpp"/>
+          <File Name="reinidisc_fsf.cpp"/>
+          <File Name="reinidisc_f.cpp"/>
+        </VirtualDirectory>
         <File Name="reini_RK3.cpp"/>
-        <File Name="reinifluid_RK3.cpp"/>
         <File Name="reini_void.cpp"/>
-        <File Name="reinidisc_f.cpp"/>
-        <File Name="reinidisc_fsf.cpp"/>
         <File Name="reini_walld.cpp"/>
-        <File Name="reinidisc_f2.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF Algebraic">
         <File Name="VOF_RK3.cpp"/>

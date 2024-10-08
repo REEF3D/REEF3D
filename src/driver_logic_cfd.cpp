@@ -370,21 +370,15 @@ void driver::logic_cfd()
 	if(p->F30==2)
 	pfsf = new levelset_RK2(p,a,pgc,pheat,pconc);
 
-	if(p->F30==3 && p->N40!=23)
+	if(p->F30==3)
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
-
-    if(p->N40==22 || p->N40==23 || p->N40==33)
-	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 
 
 	if(p->F40==0)
 	preini = new reini_void(p);
 
     if(p->F40==3)
-    preini = new reinifluid_RK3(p,1);
-
-	if(p->F40==23)
-	preini = new reini_RK3(p,1);
+    preini = new reini_RK3(p,1);
 
 	if(p->F40==11)
 	preini = new directreini(p,a);

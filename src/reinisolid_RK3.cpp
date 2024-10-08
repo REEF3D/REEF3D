@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include"picard_f.h"
 #include"picard_void.h"
 #include"reinidisc_f.h"
-#include"reinidisc_f2.h"
 #include"reinidisc_fsf_rig.h"
 
 reinisolid_RK3::reinisolid_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)

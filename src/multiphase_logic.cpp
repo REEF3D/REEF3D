@@ -67,7 +67,7 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	preini = new reini_void(p);
 	
 	if(p->F310==3)
-	preini = new reinifluid_RK3(p,1);
+	preini = new reini_RK3(p,1);
 
 	
 	if(p->F310==11 || p->F310==13 || p->F310==14)

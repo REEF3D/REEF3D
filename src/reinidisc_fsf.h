@@ -37,11 +37,10 @@ class reinidisc_fsf : public reinidisc, public ddweno_nug
 public:
 	reinidisc_fsf(lexer* p);
 	virtual ~reinidisc_fsf();
-	virtual void start(lexer*, fdm*, ghostcell*, vec&, vec&,int);
+	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, int);
 	
 private:
-
-	void disc(lexer*, fdm*, ghostcell*, vec&, vec&, int*, int, cpt&);
+	void disc(lexer*, fdm*, ghostcell*, field&, field&);
 	
 	double xmin,xplus,ymin,yplus,zmin,zplus;
 	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;

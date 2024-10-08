@@ -21,8 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reinidisc.h"
-#include"ddweno_nug.h"
-#include"vec.h"
+#include"ddweno_nug_sf.h"
+#include"field.h"
 
 class picard;
 class cpt;
@@ -32,15 +32,15 @@ using namespace std;
 #ifndef REINIDISC_F_H_
 #define REINIDISC_F_H_
 
-class reinidisc_f : public reinidisc, public ddweno_nug
+class reinidisc_f : public reinidisc, public ddweno_nug_sf
 {
 public:
 	reinidisc_f(lexer* p);
 	virtual ~reinidisc_f();
-	virtual void start(lexer*, fdm*, ghostcell*, vec&, vec&,int);
+	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, int);
 	
 private:
-	void disc(lexer*, fdm*, ghostcell*, vec&, vec&, int*, int, cpt&);
+	void disc(lexer*, fdm*, ghostcell*, field&, field&);
 	
 	double xmin,xplus,ymin,yplus,zmin,zplus;
 	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
