@@ -31,147 +31,6 @@ Author: Hans Bihs
 #define VECLOOP for(n=0; n<p->veclength; ++n)
 
 
-#define I_J_K_1 n
-#define I_J_K_2 n
-#define I_J_K_3 n
-#define I_J_K_4 n
-#define I_J_K_4a n
-#define I_J_K_6 n
-#define I_J_K n
-
-// ----------------------------------------------
-
-#define Ip1_J_K C.n[n]
-#define Im1_J_K C.s[n]
-#define I_Jp1_K C.w[n]
-#define I_Jm1_K C.e[n]
-#define I_J_Kp1 C.t[n]
-#define I_J_Km1 C.b[n]
-
-#define Ip2_J_K C.n[C.n[n]]
-#define Im2_J_K C.s[C.s[n]]
-#define I_Jp2_K C.w[C.w[n]]
-#define I_Jm2_K C.e[C.e[n]]
-#define I_J_Kp2 C.t[C.t[n]]
-#define I_J_Km2 C.b[C.b[n]]
-
-#define Ip3_J_K C.n[C.n[C.n[n]]]
-#define Im3_J_K C.s[C.s[C.s[n]]]
-#define I_Jp3_K C.w[C.w[C.w[n]]]
-#define I_Jm3_K C.e[C.e[C.e[n]]]
-#define I_J_Kp3 C.t[C.t[C.t[n]]]
-#define I_J_Km3 C.b[C.b[C.b[n]]]
-
-// 4 ----------------------------------------------
-
-#define Ip1_J_K_4 aa->C4.n[n]
-#define Im1_J_K_4 aa->C4.s[n]
-#define I_Jp1_K_4 aa->C4.w[n]
-#define I_Jm1_K_4 aa->C4.e[n]
-#define I_J_Kp1_4 aa->C4.t[n]
-#define I_J_Km1_4 aa->C4.b[n]
-
-#define Ip2_J_K_4 aa->C4.n[aa->C4.n[n]]
-#define Im2_J_K_4 aa->C4.s[aa->C4.s[n]]
-#define I_Jp2_K_4 aa->C4.w[aa->C4.w[n]]
-#define I_Jm2_K_4 aa->C4.e[aa->C4.e[n]]
-#define I_J_Kp2_4 aa->C4.t[aa->C4.t[n]]
-#define I_J_Km2_4 aa->C4.b[aa->C4.b[n]]
-
-#define Ip3_J_K_4 aa->C4.n[aa->C4.n[aa->C4.n[n]]]
-#define Im3_J_K_4 aa->C4.s[aa->C4.s[aa->C4.s[n]]]
-#define I_Jp3_K_4 aa->C4.w[aa->C4.w[aa->C4.w[n]]]
-#define I_Jm3_K_4 aa->C4.e[aa->C4.e[aa->C4.e[n]]]
-#define I_J_Kp3_4 aa->C4.t[aa->C4.t[aa->C4.t[n]]]
-#define I_J_Km3_4 aa->C4.b[aa->C4.b[aa->C4.b[n]]]
-
-#define Ip1_Jp1_K_4 aa->C4.n[aa->C4.w[n]]
-#define Ip1_J_Kp1_4 aa->C4.n[aa->C4.t[n]]
-#define Ip1_Jm1_K_4 aa->C4.n[aa->C4.e[n]]
-#define Ip1_J_Km1_4 aa->C4.n[aa->C4.b[n]]
-#define Im1_Jp1_K_4 aa->C4.s[aa->C4.w[n]]
-#define Im1_J_Kp1_4 aa->C4.s[aa->C4.t[n]]
-#define Im1_Jm1_K_4 aa->C4.s[aa->C4.e[n]]
-#define Im1_J_Km1_4 aa->C4.s[aa->C4.b[n]]
-#define I_Jp1_Kp1_4 aa->C4.w[aa->C4.t[n]]
-#define I_Jp1_Km1_4 aa->C4.w[aa->C4.b[n]]
-#define I_Jm1_Kp1_4 aa->C4.e[aa->C4.t[n]]
-#define I_Jm1_Km1_4 aa->C4.e[aa->C4.b[n]]
-
-// 4a ----------------------------------------------
-
-#define Ip1_J_K_4a aa->C4a.n[n]
-#define Im1_J_K_4a aa->C4a.s[n]
-#define I_Jp1_K_4a aa->C4a.w[n]
-#define I_Jm1_K_4a aa->C4a.e[n]
-#define I_J_Kp1_4a aa->C4a.t[n]
-#define I_J_Km1_4a aa->C4a.b[n]
-
-#define Ip2_J_K_4a aa->C4a.n[aa->C4a.n[n]]
-#define Im2_J_K_4a aa->C4a.s[aa->C4a.s[n]]
-#define I_Jp2_K_4a aa->C4a.w[aa->C4a.w[n]]
-#define I_Jm2_K_4a aa->C4a.e[aa->C4a.e[n]]
-#define I_J_Kp2_4a aa->C4a.t[aa->C4a.t[n]]
-#define I_J_Km2_4a aa->C4a.b[aa->C4a.b[n]]
-
-#define Ip3_J_K_4a aa->C4a.n[aa->C4a.n[aa->C4a.n[n]]]
-#define Im3_J_K_4a aa->C4a.s[aa->C4a.s[aa->C4a.s[n]]]
-#define I_Jp3_K_4a aa->C4a.w[aa->C4a.w[aa->C4a.w[n]]]
-#define I_Jm3_K_4a aa->C4a.e[aa->C4a.e[aa->C4a.e[n]]]
-#define I_J_Kp3_4a aa->C4a.t[aa->C4a.t[aa->C4a.t[n]]]
-#define I_J_Km3_4a aa->C4a.b[aa->C4a.b[aa->C4a.b[n]]]
-
-#define Ip1_Jp1_K_4a aa->C4a.n[aa->C4a.w[n]]
-#define Ip1_J_Kp1_4a aa->C4a.n[aa->C4a.t[n]]
-#define Ip1_Jm1_K_4a aa->C4a.n[aa->C4a.e[n]]
-#define Ip1_J_Km1_4a aa->C4a.n[aa->C4a.b[n]]
-#define Im1_Jp1_K_4a aa->C4a.s[aa->C4a.w[n]]
-#define Im1_J_Kp1_4a aa->C4a.s[aa->C4a.t[n]]
-#define Im1_Jm1_K_4a aa->C4a.s[aa->C4a.e[n]]
-#define Im1_J_Km1_4a aa->C4a.s[aa->C4a.b[n]]
-#define I_Jp1_Kp1_4a aa->C4a.w[aa->C4a.t[n]]
-#define I_Jp1_Km1_4a aa->C4a.w[aa->C4a.b[n]]
-#define I_Jm1_Kp1_4a aa->C4a.e[aa->C4a.t[n]]
-#define I_Jm1_Km1_4a aa->C4a.e[aa->C4a.b[n]]
-
-// 6 ----------------------------------------------
-
-#define Ip1_J_K_6 aa->C6.n[n]
-#define Im1_J_K_6 aa->C6.s[n]
-#define I_Jp1_K_6 aa->C6.w[n]
-#define I_Jm1_K_6 aa->C6.e[n]
-#define I_J_Kp1_6 aa->C6.t[n]
-#define I_J_Km1_6 aa->C6.b[n]
-
-#define Ip2_J_K_6 aa->C6.n[aa->C6.n[n]]
-#define Im2_J_K_6 aa->C6.s[aa->C6.s[n]]
-#define I_Jp2_K_6 aa->C6.w[aa->C6.w[n]]
-#define I_Jm2_K_6 aa->C6.e[aa->C6.e[n]]
-#define I_J_Kp2_6 aa->C6.t[aa->C6.t[n]]
-#define I_J_Km2_6 aa->C6.b[aa->C6.b[n]]
-
-#define Ip3_J_K_6 aa->C6.n[aa->C6.n[aa->C6.n[n]]]
-#define Im3_J_K_6 aa->C6.s[aa->C6.s[aa->C6.s[n]]]
-#define I_Jp3_K_6 aa->C6.w[aa->C6.w[aa->C6.w[n]]]
-#define I_Jm3_K_6 aa->C6.e[aa->C6.e[aa->C6.e[n]]]
-#define I_J_Kp3_6 aa->C6.t[aa->C6.t[aa->C6.t[n]]]
-#define I_J_Km3_6 aa->C6.b[aa->C6.b[aa->C6.b[n]]]
-
-#define Ip1_Jp1_K_6 aa->C6.n[aa->C6.w[n]]
-#define Ip1_J_Kp1_6 aa->C6.n[aa->C6.t[n]]
-#define Ip1_Jm1_K_6 aa->C6.n[aa->C6.e[n]]
-#define Ip1_J_Km1_6 aa->C6.n[aa->C6.b[n]]
-#define Im1_Jp1_K_6 aa->C6.s[aa->C6.w[n]]
-#define Im1_J_Kp1_6 aa->C6.s[aa->C6.t[n]]
-#define Im1_Jm1_K_6 aa->C6.s[aa->C6.e[n]]
-#define Im1_J_Km1_6 aa->C6.s[aa->C6.b[n]]
-#define I_Jp1_Kp1_6 aa->C6.w[aa->C6.t[n]]
-#define I_Jp1_Km1_6 aa->C6.w[aa->C6.b[n]]
-#define I_Jm1_Kp1_6 aa->C6.e[aa->C6.t[n]]
-#define I_Jm1_Km1_6 aa->C6.e[aa->C6.b[n]]
-
-
-
 #define PORVAL1 (0.5*(a->porosity(i+1,j,k) + a->porosity(i,j,k)))
 #define PORVAL2 (0.5*(a->porosity(i,j+1,k) + a->porosity(i,j,k)))
 #define PORVAL3 (0.5*(a->porosity(i,j,k+1) + a->porosity(i,j,k)))
@@ -214,11 +73,11 @@ Author: Hans Bihs
 #define CPORNHm (1.0/(1.0+(p->B260*(PORVALNHm<1.0?1.0:0.0))))
 #define CPORNHp (1.0/(1.0+(p->B260*(PORVALNHp<1.0?1.0:0.0))))
 
+
 //-----------------------------------------------------------
 
+
 #define IJK  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
-
-
 
 #define Im1JK  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
 #define Ip1JK  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin

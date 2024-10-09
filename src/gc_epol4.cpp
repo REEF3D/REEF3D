@@ -355,29 +355,4 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
 	gcb_debug(f,gcv,bc,cs);
 }
 
-void ghostcell::gcdistro4V(lexer *p, double *f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs)
-{
-    
-}
-
-void ghostcell::gcdistro4vec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
-{
-    i=ii;
-	j=jj;
-	k=kk;
-
-	bc_label=gceval4(p,gcv,bc,cs);
-	
-	if(bc_label==22)
-	gcV_lsm(p,vec,dist,gcv,bc,cs,id);
-    
-    if(bc_label==3)
-	extendV(p,a,vec,dist,gcv,bc,cs);
-    
-	if(bc_label==4)
-	gcV_neumann(vec,gcv,bc,cs,id);
-
-}
-
-
 

@@ -21,7 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reini.h"
-#include"ddweno.h"
 #include"vec.h"
 #include"increment.h"
 

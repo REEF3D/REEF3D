@@ -63,10 +63,6 @@ public:
 	void start4(lexer*,field&, int);
 	void start4a(lexer*,field&, int);
     void start4a_sum(lexer*,field&, int);
-
-	void start4vec(lexer*,vec&,int);
-	void start4avec(lexer*,vec&,int);
-    void start6vec(lexer*,vec&,int);
     
     void start1V(lexer*,double*,int);
     void start2V(lexer*,double*,int);
@@ -107,41 +103,8 @@ public:
     void rangex(lexer*,int*,int);
 	void gcxupdate(lexer*);
 
-	void cval_update1(lexer*,fdm*,fieldint&);
-	void cval_update2(lexer*,fdm*,fieldint&);
-	void cval_update3(lexer*,fdm*,fieldint&);
-	void cval_update4(lexer*,fdm*,fieldint&);
-    void cval_update4a(lexer*,fdm*,fieldint&);
-    void cval_update6(lexer*,fdm*,fieldint&);
-
     void rownum4_update(lexer*,fieldint&);
     void rownum7_update(lexer*,int*);
-
-    void cval_gcb4(lexer*,fdm*,fieldint&);
-    void cval_gcb4a(lexer*,fdm*,fieldint&);
-    void cval_gcb6(lexer*,fdm*,fieldint&);
-
-    void cval_gcpara4(lexer*,fdm*,fieldint&);
-    void cval_gcpara4a(lexer*,fdm*,fieldint&);
-    void cval_gcpara6(lexer*,fdm*,fieldint&);
-
-    void column_pt4_update(lexer*,fdm*);
-    void column_pt4a_update(lexer*,fdm*);
-    void column_pt6_update(lexer*,fdm*);
-    void column_pt9_update(lexer*,fdm*);
-
-	void column_pt4(lexer*,fdm*,fieldint&);
-    void column_pt4a(lexer*,fdm*,fieldint&);
-    void column_pt6(lexer*,fdm*,fieldint&);
-    void column_pt9(lexer*,fdm*);
-
-	int column_pt4_count(lexer*,fdm*);
-    int column_pt4a_count(lexer*,fdm*);
-    int column_pt6_count(lexer*,fdm*);
-    int column_pt9_count(lexer*,fdm*);
-
-
-    void column_pt_resize(lexer*,fdm*);
 
 	void sizeM_update(lexer*,fdm*);
 
@@ -208,7 +171,6 @@ public:
     void gcparax_test(lexer*, int);
     void gcparax_generic(lexer*, field&, int*, int***);
     void gcparacox_generic(lexer*, field&, int*, int***);
-	void gcparaxvec(lexer*, vec&, int);
     void gcparaxijk(lexer*, double*, int);
     void gcparaxijk_single(lexer*, double*, int);
     void gcparax7(lexer*, double*&, int);
@@ -223,8 +185,6 @@ public:
     void gcparacoxV(lexer*, double*, int);
     void gcparacoxV1(lexer*, double*, int);
     void gcperiodicx(lexer*, field&, int);
-    void gcperiodicxvec(lexer*, vec&, int);
-    void gcperiodicxvec_sr(lexer*, vec&,cpt&,int);
     void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
     void verticalsum(lexer*,fdm*,double**);
@@ -340,22 +300,12 @@ public:
 
     int imin,imax,jmax,jmin,kmin,kmax;
 
-
 	void gcdistro1(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro2(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro3(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro4(lexer *p,field&,int, int, int, int, double, int, int, int);
 	void gcdistro4a(lexer *p,field&,int, int, int, int, double, int, int, int);
     
-    void gcdistro1V(lexer *p,double*,int, int, int, int, double, int, int, int);
-	void gcdistro2V(lexer *p,double*,int, int, int, int, double, int, int, int);
-	void gcdistro3V(lexer *p,double*,int, int, int, int, double, int, int, int);
-	void gcdistro4V(lexer *p,double*,int, int, int, int, double, int, int, int);
-
-	void gcdistro4vec(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
-    void gcdistro4avec(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
-    void gcdistro6vec(lexer *p,fdm*, vec&, int, int, int, double, int, int, int, int);
-
 	int gceval1(lexer*,int,int,int);
 	int gceval2(lexer*,int,int,int);
 	int gceval3(lexer*,int,int,int);
@@ -378,7 +328,6 @@ public:
 	void neumann(field&,int,int,int);
     void gcb_debug(field&,int,int,int);
 	void extend(lexer*,field&,double,int,int,int);
-    void extendV(lexer*,fdm*,vec&,double,int,int,int);
 	void largeval(field&,double,int,int,int);
 	void largevaladd(field&,double,int,int,int);
 	void outflow(lexer*,field&,int,int,int);
@@ -404,17 +353,8 @@ public:
     void fivec_vel(lexer*,double*,sliceint&);
     void fivec2D_vel(lexer*,double*,sliceint&);
     void gc_periodic(lexer*,field&,int,int);
-    void gcV_periodic(lexer*,vec&,int,int);
-    void gcV_periodic_all(lexer*,vec&,int,int);
     void patchBC(lexer*,field&,double,int,int,int);
-
-	void gcV_neumann(vec&,int,int,int,int);
-	void gcV_lsm(lexer*,vec&, double,int,int,int,int);
-    void gcV_neumann_all(vec&, int,int,int,int);
-    void gcV_neumann_6V(vec&, int,int,int,int);
     
-    void neumannV(double*,int,int,int);
-
 
 private:
     const int size;

@@ -648,7 +648,6 @@
         <File Name="weno3_nug_func.h"/>
         <File Name="weno_nug_func.h"/>
         <File Name="ddweno_nug.h"/>
-        <File Name="ddweno.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Position">
         <File Name="position.h"/>
@@ -2075,7 +2074,6 @@
         <File Name="weno_nug_func_precalc_isf.cpp"/>
         <File Name="weno_nug_func_precalc_cf.cpp"/>
         <File Name="ddweno_nug.cpp"/>
-        <File Name="ddweno.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Position">
         <File Name="position_conv.cpp"/>
@@ -2361,7 +2359,6 @@
         <File Name="gcx_paraxV1.cpp"/>
         <File Name="gcx_paracoxV.cpp"/>
         <File Name="gcx_paraxV.cpp"/>
-        <File Name="gcx_periodicvec.cpp"/>
         <File Name="gcx_periodic.cpp"/>
         <File Name="gcx_paraxijk_single.cpp"/>
         <File Name="gcx_paraxijk.cpp"/>
@@ -2381,7 +2378,6 @@
         <File Name="gcx_update.cpp"/>
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
-        <File Name="gcx_paraxvec.cpp"/>
         <File Name="gcx_verticalmax.cpp"/>
         <File Name="gcx_parax_generic.cpp"/>
         <File Name="gcx_crs.cpp"/>
@@ -2391,14 +2387,7 @@
         <File Name="gcx_verticalsum.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid">
-        <File Name="gc_column_pt_update.cpp"/>
-        <File Name="gc_column_pt.cpp"/>
-        <File Name="gc_cval_gcb.cpp"/>
-        <File Name="gc_cval_update.cpp"/>
         <File Name="gc_sizeM_update.cpp"/>
-        <File Name="gc_column_pt_count.cpp"/>
-        <File Name="gc_count_pt_resize.cpp"/>
-        <File Name="gc_cval_parax.cpp"/>
       </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
       <VirtualDirectory Name="Slice">
