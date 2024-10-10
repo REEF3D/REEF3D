@@ -124,7 +124,7 @@ void driver::logic_cfd()
 	pturbdisc=new iweno_hj(p);
 
 	//  Convection FSF
-	if(p->F35==0&&p->F85==0)
+	if(p->F35==0 && p->F85==0)
 	pfsfdisc=new convection_void(p);
 
 	if(p->F35==1)

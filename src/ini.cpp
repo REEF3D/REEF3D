@@ -500,7 +500,7 @@ void lexer::ini_default()
 	P12=1;			 // int terminal print frequency
 	P15=1;          // int print file numbering
     P16=0;          // int add timestamp to paraview files
-	P18=2;			// int option for phi print out
+	P18=1;			// int option for phi print out
 	P20=-10;		// ith iteration file printed
     P21=0;          // int time averaged vtu print out
     P22=0.0;         // double start averging after transients
