@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Arun Kamath, Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"nodefill.h"
+#include"increment.h"
 #include"fieldint5.h"
 #include"field5.h"
 #include<iostream>

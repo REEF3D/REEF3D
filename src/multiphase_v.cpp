@@ -63,11 +63,6 @@ void multiphase_v::print_file(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void multiphase_v::nodefill(lexer*,fdm*,ghostcell*,field&)
-{
-	
-}
-
 double multiphase_v::ls1val(int,int,int)
 {
 	double val=0.0;

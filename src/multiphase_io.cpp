@@ -70,11 +70,6 @@ void multiphase_f::print_file(lexer *p, fdm *a, ghostcell *pgc)
     pwsf2->height_gauge(p,a,pgc,ls2);	
 }
 
-void multiphase_f::nodefill(lexer *p, fdm *a, ghostcell *pgc, field &eta)
-{
-	
-}
-
 double multiphase_f::ls1val(int ii, int jj, int kk)
 {
 	double val;

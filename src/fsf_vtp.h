@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nodefill.h"
+#include"increment.h"
 #include"fieldint5.h"
 #include"field5.h"
 
@@ -33,7 +33,7 @@ class ghostcell;
 
 using namespace std;
 
-class fsf_vtp :  public nodefill
+class fsf_vtp :  public increment
 {
 
 public:

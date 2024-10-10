@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"printer.h"
-#include"nodefill.h"
+#include"increment.h"
 #include"field5.h"
 
 class turbulence;
@@ -64,7 +64,7 @@ class print_averaging;
 
 using namespace std;
 
-class vtu3D : public printer, public nodefill 
+class vtu3D : public printer, public increment
 {
 
 public:

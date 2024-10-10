@@ -107,7 +107,6 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     pflow->fsfrkout(p,a,pgc,ark1);
     pflow->fsfrkout(p,a,pgc,ark2);
     ppicard->volcalc(p,a,pgc,ls);
-    
 
 // Step 1
     starttime=pgc->timer();
@@ -135,7 +134,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 
 	FLUIDLOOP
-	ark2.V[IJK] = 0.75*ls.V[IJK]
+	ark2.V[IJK] =     0.75*ls.V[IJK]
 				   + 0.25*ark1.V[IJK]
 				   + 0.25*p->dt*a->L.V[IJK];
 				
@@ -151,7 +150,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 
 	FLUIDLOOP
-	ls.V[IJK] =     (1.0/3.0)*ls.V[IJK]
+	ls.V[IJK] =      (1.0/3.0)*ls.V[IJK]
 				  + (2.0/3.0)*ark2.V[IJK]
 				  + (2.0/3.0)*p->dt*a->L.V[IJK];
 

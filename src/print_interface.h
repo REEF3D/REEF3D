@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"printer.h"
-#include"nodefill.h"
+#include"increment.h"
 #include"field5.h"
 
 class turbulence;
@@ -52,7 +52,7 @@ class print_porous;
 
 using namespace std;
 
-class print_interface : public printer, public nodefill 
+class print_interface : public printer, public increment
 {
 
 public:

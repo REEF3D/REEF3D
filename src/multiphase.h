@@ -48,7 +48,6 @@ public:
 	
 	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&)=0;
 	virtual void print_file(lexer*, fdm*, ghostcell*)=0;
-	virtual void nodefill(lexer*,fdm*,ghostcell*,field&)=0;
     virtual double ls1val(int,int,int)=0;
     virtual double ls2val(int,int,int)=0;
 	virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double)=0;

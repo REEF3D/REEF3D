@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
+force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
 {
 	// Create Folder
 	if(p->mpirank==0)

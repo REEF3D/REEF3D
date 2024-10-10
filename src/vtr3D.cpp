@@ -63,7 +63,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-vtr3D::vtr3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
+vtr3D::vtr3D(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 {
     if(p->F50==1)
 	gcval_phi=51;
@@ -756,15 +756,11 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 
 //  phi
-	nodefill4(p,a,pgc,a->phi,eta);
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	if(p->P18==1)
 	ffn=float(p->ipol4phi(a,a->phi));
-	if(p->P18==2)
-	ffn = float(eta(i,j,k));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
