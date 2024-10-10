@@ -96,7 +96,7 @@ void reini_walld::start(fdm* a,lexer* p, field &f, ghostcell* pgc,ioflow* pflow)
     }
     
     QQGC4LOOP
-    if(p->gcb4[qq][]==1|| p->gcb4[qq][]==2|| p->gcb4[qq][]==3)
+    if(p->gcb4[qq][4]==1|| p->gcb4[qq][4]==2|| p->gcb4[qq][4]==3)
     {
         i=p->gcb4[qq][0];
         j=p->gcb4[qq][1];
@@ -169,14 +169,14 @@ void reini_walld::start(fdm* a,lexer* p, field &f, ghostcell* pgc,ioflow* pflow)
 
 		if(q==0)
 		LOOP
-		dab.V[IJK]=L.V[IJK];
+		dab.V[IJK]=a->L.V[IJK];
 
 
 		NLOOP
 		{
-		f.V[IJK] += dt*0.5*(3.0*L.V[IJK] - dab.V[IJK]);
+		f.V[IJK] += dt*0.5*(3.0*a->L.V[IJK] - dab.V[IJK]);
 
-		dab.V[IJK]=L.V[IJK];
+		dab.V[IJK]=a->L.V[IJK];
 		}
         
 	QQGC4LOOP

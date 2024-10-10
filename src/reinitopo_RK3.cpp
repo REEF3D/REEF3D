@@ -50,7 +50,6 @@ reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p
 
 	gcval_initopo=150;
 	
-
 	prdisc = new reinidisc_fsf(p);
 
     time_preproc(p);    
@@ -62,22 +61,7 @@ reinitopo_RK3::~reinitopo_RK3()
 
 void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 { 
-    
-    starttime=pgc->timer();
-	
-	sizeM=p->sizeM4;
-	
-    // fill lsm to reini
-	n=0;
-	ALOOP
-	{
-	f.V[n]=b(i,j,k);
-	++n;
-	}
-    
-    gcval=gcval_topo;
-
-	pgc->start4avec(p,f,gcval);
+	pgc->start4a(p,f,gcval);
 	
 	if(p->count==0)
 	{
@@ -85,7 +69,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	cout<<"initializing topo..."<<endl<<endl;
 	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
     gcval=gcval_initopo;
-	pgc->start4avec(p,f,gcval);
+	pgc->start4a(p,f,gcval);
 	}
 
 	if(p->count>0)
@@ -96,35 +80,35 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	// Step 1
 	prdisc->start(p,a,pgc,f,L,5);
 
-	NLOOP4A
-	frk1.V[n] = f.V[n] + dt.V[n]*L.V[n];
+	ALOOP
+	frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
 
-	pgc->start4avec(p,frk1,gcval);
+	pgc->start4a(p,frk1,gcval);
     
 
     // Step 2
     prdisc->start(p,a,pgc,frk1,L,5);
 
-	NLOOP4A
-	frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
+	ALOOP
+	frk2.V[IJK]=  0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*L.V[IJK];
 
-	pgc->start4avec(p,frk2,gcval);
+	pgc->start4a(p,frk2,gcval);
 
 
     // Step 3
     prdisc->start(p,a,pgc,frk2,L,5);
 
-	NLOOP4A
-	f.V[n] = (1.0/3.0)*f.V[n] + (2.0/3.0)*frk2.V[n] + (2.0/3.0)*dt.V[n]*L.V[n];
+	ALOOP
+	f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*L.V[IJK];
 
-	pgc->start4avec(p,f,gcval);
+	pgc->start4a(p,f,gcval);
 	}
 	
 	// backfill
 	n=0;
 	ALOOP
 	{
-	b(i,j,k)=f.V[n];
+	b(i,j,k)=f.V[IJK];
 	
 	++n;
 	}
@@ -136,9 +120,6 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
     
     if(p->count>0)
 	pgc->start4a(p,b,gcval_topo);
-
-    
-	p->reinitime+=pgc->timer()-starttime;
 }
 
 void reinitopo_RK3::step(lexer* p, fdm *a)
@@ -152,7 +133,7 @@ void reinitopo_RK3::time_preproc(lexer* p)
     n=0;
 	ALOOP
 	{
-	dt.V[n] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	++n;
 	}
 }

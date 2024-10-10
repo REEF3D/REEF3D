@@ -143,22 +143,6 @@ void ioflow_gravity::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
     pBC->patchBC_waterlevel(p,a,pgc,f);
 }
 
-void ioflow_gravity::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_gravity::fsfrkinV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_gravity::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_gravity::fsfrkinVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
 void ioflow_gravity::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }

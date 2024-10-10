@@ -25,11 +25,11 @@ Author: Hans Bihs, Tobias Martin
 #include"field2.h"
 #include"field3.h"
 #include"field4.h"
+#include"field4a.h"
 #include"field5.h"
 #include"fieldint5.h"
 #include"slice4.h"
 #include"sliceint5.h"
-#include"vec.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -200,7 +200,7 @@ private:
     
     // Reini
     reinidisc *prdisc;
-	vec f, frk1, L, dt; 
+	field4a f, frk1, L, dt; 
     int reiniter;
     
     // -----

@@ -5,16 +5,16 @@ Copyright 2008-2024 Hans Bihs
 This file is part of REEF3D.
 
 REEF3D is free software; you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
+under the terms of the GNU General Public a->License as published by
+the Free Software Foundation; either version 3 of the a->License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ANY WARRANTY; without even the implied warranty of MERCHANTABIa->LITY or
+FITNESS FOR A PARTICUa->LAR PURPOSE. See the GNU General Public a->License
 for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public a->License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
@@ -95,7 +95,6 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         cout<<"initializing level set..."<<endl<<endl;
         reiniter=2*int(p->maxlength/(p->F43*p->DXM));
         pgc->start4(p,f,gcval_iniphi);
-        fsfrkioV(p,a,pgc,f);
 	}
 
 	if(p->count>0)
@@ -110,22 +109,22 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
     for(int q=0;q<reiniter;++q)
     {
         // Step 1
-        prdisc->start(p,a,pgc,f,L,4);
+        prdisc->start(p,a,pgc,f,a->L,4);
 
         LOOP
-        frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
+        frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*a->L.V[IJK];
 
         if(p->count==0)
         pgc->start4(p,frk1,gcval_iniphi);
         
         if(p->count>0)
-        pgc->start6vec(p,frk1,gcval_phi);
+        pgc->start4(p,frk1,gcval_phi);
 
         // Step 2
-        prdisc->start(p,a,pgc,frk1,L,4);
+        prdisc->start(p,a,pgc,frk1,a->L,4);
 
         LOOP
-        frk2.V[IJK] = 0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*L.V[IJK];
+        frk2.V[IJK] = 0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*a->L.V[IJK];
 
         if(p->count==0)
         pgc->start4(p,frk2,gcval_iniphi);
@@ -134,10 +133,10 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         pgc->start4(p,frk2,gcval_phi);
 
         // Step 3
-        prdisc->start(p,a,pgc,frk2,L,4);
+        prdisc->start(p,a,pgc,frk2,a->L,4);
 
         LOOP
-        f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*L.V[IJK];
+        f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*a->L.V[IJK];
 
         if(p->count==0)
         pgc->start4(p,f,gcval_iniphi);

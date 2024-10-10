@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reini.h"
-#include"vec.h"
+#include"field4.h"
 #include"increment.h"
 
 class reinidisc;
@@ -40,7 +40,7 @@ public:
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
 
 	int *sizeM;
-	field frk1,frk2,dt;
+	field4 frk1,frk2,dt;
 
 private:
     picard *ppicard;

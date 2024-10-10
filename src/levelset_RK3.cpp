@@ -127,7 +127,6 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pgc->start4(p,ark1,gcval_phi);
     pgc->solid_forcing_lsm(p,a,ark1);
     
-    df_update(p,ark1);
     
 // Step 2
     FLUIDLOOP
@@ -145,8 +144,6 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pgc->start4(p,ark2,gcval_phi);
     pgc->solid_forcing_lsm(p,a,ark2);
     
-    df_update(p,ark2);
-
 // Step 3
     FLUIDLOOP
 	a->L.V[IJK]=0.0;
@@ -162,7 +159,6 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pgc->start4(p,ls,gcval_phi);
     pgc->solid_forcing_lsm(p,a,ls);
     
-    df_update(p,ls);
 
     ppart->start(p,a,pgc,pflow);
     
@@ -171,8 +167,6 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     
 	preini->start(a,p,ls, pgc, pflow);
     
-    df_update(p,ls);
-	
 
     ppicard->correct_ls(p,a,pgc,ls);
 	ppart->picardmove(p,a,pgc);

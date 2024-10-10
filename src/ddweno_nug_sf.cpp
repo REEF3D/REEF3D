@@ -231,7 +231,7 @@ void ddweno_nug_sf::iqmin0(fdm* a, field &f)
 	q5 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
 }
 
-void ddwenonugsf::jqmin0(fdm* a, field &f)
+void ddweno_nug_sf::jqmin0(fdm* a, field &f)
 {
     q1 = (f.V[IJm2K] - f.V[IJm3K])/DY[JM3];
 	q2 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
@@ -240,7 +240,7 @@ void ddwenonugsf::jqmin0(fdm* a, field &f)
 	q5 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
 }
 
-void ddwenonugsf::kqmin0(fdm* a, field &f)
+void ddweno_nug_sf::kqmin0(fdm* a, field &f)
 {
     q1 = (f.V[IJKm2] - f.V[IJKm3])/DZ[KM3];
 	q2 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
@@ -249,7 +249,7 @@ void ddwenonugsf::kqmin0(fdm* a, field &f)
 	q5 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
 }
 
-void ddwenonugsf::iqmax0(fdm* a, field &f)
+void ddweno_nug_sf::iqmax0(fdm* a, field &f)
 {
     q1 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
     q2 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
@@ -258,7 +258,7 @@ void ddwenonugsf::iqmax0(fdm* a, field &f)
     q5 = (f.V[Ip3JK] - f.V[Ip2JK])/DX[IP2];
 }
 
-void ddwenonugsf::jqmax0(fdm* a, field &f)
+void ddweno_nug_sf::jqmax0(fdm* a, field &f)
 {
     q1 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
     q2 = (f.V[IJK]   - f.V[IJm1K])/DY[JM1];
@@ -267,7 +267,7 @@ void ddwenonugsf::jqmax0(fdm* a, field &f)
     q5 = (f.V[IJp3K] - f.V[IJp2K])/DY[JP2];
 }
 
-void ddwenonugsf::kqmax0(fdm* a, field &f)
+void ddweno_nug_sf::kqmax0(fdm* a, field &f)
 {
     q1 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
     q2 = (f.V[IJK]   - f.V[IJKm1])/DZ[KM1];
@@ -276,7 +276,7 @@ void ddwenonugsf::kqmax0(fdm* a, field &f)
     q5 = (f.V[IJKp3] - f.V[IJKp2])/DZ[KP2];
 }
     
-void ddwenonugsf::iqmin1(fdm* a, field &f)
+void ddweno_nug_sf::iqmin1(fdm* a, field &f)
 {   
     q1=q2=q3=q4=q5=0.0;
     
@@ -297,7 +297,7 @@ void ddwenonugsf::iqmin1(fdm* a, field &f)
 
 }
 
-void ddwenonugsf::jqmin1(fdm* a, field &f)
+void ddweno_nug_sf::jqmin1(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -317,7 +317,7 @@ void ddwenonugsf::jqmin1(fdm* a, field &f)
 	q5 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
 }
 
-void ddwenonugsf::kqmin1(fdm* a, field &f)
+void ddweno_nug_sf::kqmin1(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -337,7 +337,7 @@ void ddwenonugsf::kqmin1(fdm* a, field &f)
 	q5 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
 }
 
-void ddwenonugsf::iqmax1(fdm* a, field &f)
+void ddweno_nug_sf::iqmax1(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -357,7 +357,7 @@ void ddwenonugsf::iqmax1(fdm* a, field &f)
     q5 = (f.V[Ip3JK] - f.V[Ip2JK])/DX[IP2];
 }
 
-void ddwenonugsf::jqmax1(fdm* a, field &f)
+void ddweno_nug_sf::jqmax1(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -377,7 +377,7 @@ void ddwenonugsf::jqmax1(fdm* a, field &f)
     q5 = (f.V[IJp3K] - f.V[IJp2K])/DY[JP2];
 }
 
-void ddwenonugsf::kqmax1(fdm* a, field &f)
+void ddweno_nug_sf::kqmax1(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -397,7 +397,7 @@ void ddwenonugsf::kqmax1(fdm* a, field &f)
     q5 = (f.V[IJKp3] - f.V[IJKp2])/DZ[KP2];
 }
 
-void ddwenonugsf::iqmin2(fdm* a, field &f)
+void ddweno_nug_sf::iqmin2(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
    
@@ -417,7 +417,7 @@ void ddwenonugsf::iqmin2(fdm* a, field &f)
 	q5 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
 }
 
-void ddwenonugsf::jqmin2(fdm* a, field &f)
+void ddweno_nug_sf::jqmin2(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -437,7 +437,7 @@ void ddwenonugsf::jqmin2(fdm* a, field &f)
 	q5 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
 }
 
-void ddwenonugsf::kqmin2(fdm* a, field &f)
+void ddweno_nug_sf::kqmin2(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -457,7 +457,7 @@ void ddwenonugsf::kqmin2(fdm* a, field &f)
 	q5 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
 }
 
-void ddwenonugsf::iqmax2(fdm* a, field &f)
+void ddweno_nug_sf::iqmax2(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -477,7 +477,7 @@ void ddwenonugsf::iqmax2(fdm* a, field &f)
     q5 = (f.V[Ip3JK] - f.V[Ip2JK])/DX[IP2];
 }
 
-void ddwenonugsf::jqmax2(fdm* a, field &f)
+void ddweno_nug_sf::jqmax2(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -497,7 +497,7 @@ void ddwenonugsf::jqmax2(fdm* a, field &f)
     q5 = (f.V[IJp3K] - f.V[IJp2K])/DY[JP2];
 }
 
-void ddwenonugsf::kqmax2(fdm* a, field &f)
+void ddweno_nug_sf::kqmax2(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
     
@@ -518,7 +518,7 @@ void ddwenonugsf::kqmax2(fdm* a, field &f)
 }
 
 
-void ddwenonugsf::iqmin3(fdm* a, field &f)
+void ddweno_nug_sf::iqmin3(fdm* a, field &f)
 {   
     q1 = a->fbh5(i-3,j,k)*(f.V[Im2JK] - f.V[Im3JK])/DX[IM3];
 	q2 = a->fbh5(i-2,j,k)*(f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
@@ -527,7 +527,7 @@ void ddwenonugsf::iqmin3(fdm* a, field &f)
 	q5 = a->fbh5(i+1,j,k)*(f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
 }
 
-void ddwenonugsf::jqmin3(fdm* a, field &f)
+void ddweno_nug_sf::jqmin3(fdm* a, field &f)
 {
     q1 = a->fbh5(i,j-3,k)*(f.V[IJm2K] - f.V[IJm3K])/DY[JM3];
 	q2 = a->fbh5(i,j-2,k)*(f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
@@ -536,7 +536,7 @@ void ddwenonugsf::jqmin3(fdm* a, field &f)
 	q5 = a->fbh5(i,j+1,k)*(f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
 }
 
-void ddwenonugsf::kqmin3(fdm* a, field &f)
+void ddweno_nug_sf::kqmin3(fdm* a, field &f)
 {
     q1 = a->fbh5(i,j,k-3)*(f.V[IJKm2] - f.V[IJKm3])/DZ[KM3];
 	q2 = a->fbh5(i,j,k-2)*(f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
@@ -545,7 +545,7 @@ void ddwenonugsf::kqmin3(fdm* a, field &f)
 	q5 = a->fbh5(i,j,k+1)*(f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
 }
 
-void ddwenonugsf::iqmax3(fdm* a, field &f)
+void ddweno_nug_sf::iqmax3(fdm* a, field &f)
 {
     q1 = a->fbh5(i-1,j,k)*(f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
     q2 = a->fbh5(i,j,k)*(f.V[IJK]   - f.V[Im1JK])/DX[IM1];
@@ -554,7 +554,7 @@ void ddwenonugsf::iqmax3(fdm* a, field &f)
     q5 = a->fbh5(i+3,j,k)*(f.V[Ip3JK] - f.V[Ip2JK])/DX[IP2];
 }
 
-void ddwenonugsf::jqmax3(fdm* a, field &f)
+void ddweno_nug_sf::jqmax3(fdm* a, field &f)
 {
     q1 = a->fbh5(i,j-1,k)*(f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
     q2 = a->fbh5(i,j,k)*(f.V[IJK]   - f.V[IJm1K])/DY[JM1];
@@ -563,7 +563,7 @@ void ddwenonugsf::jqmax3(fdm* a, field &f)
     q5 = a->fbh5(i,j+3,k)*(f.V[IJp3K] - f.V[IJp2K])/DY[JP2];
 }
 
-void ddwenonugsf::kqmax3(fdm* a, field &f)
+void ddweno_nug_sf::kqmax3(fdm* a, field &f)
 {
     q1 = a->fbh5(i,j,k-1)*(f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
     q2 = a->fbh5(i,j,k)*(f.V[IJK]   - f.V[IJKm1])/DZ[KM1];

@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reinitopo.h"
-#include"vec.h"
+#include"field4a.h"
 #include"increment.h"
 
 class reinidisc;
@@ -40,7 +40,7 @@ public:
 	virtual void start(lexer*,fdm*,ghostcell*,field&);
 
 	int *sizeM;
-	vec f,frk1,frk2,L,dt;
+	field4a f,frk1,frk2,L,dt;
 
 private:
 	reinidisc *prdisc;

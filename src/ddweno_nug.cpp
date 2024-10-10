@@ -167,7 +167,7 @@ void ddweno_nug::iqmin(field &f)
 
 }
 
-void ddwenonug::jqmin(field &f)
+void ddweno_nug::jqmin(field &f)
 {
 	q1 = (f.V[IJm2K] - f.V[IJm3K])/DY[JM3];
 	q2 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
@@ -176,7 +176,7 @@ void ddwenonug::jqmin(field &f)
 	q5 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
 }
 
-void ddwenonug::kqmin(field &f)
+void ddweno_nug::kqmin(field &f)
 {
 	q1 = (f.V[IJKm2] - f.V[IJKm3])/DZ[KM3];
 	q2 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
@@ -185,7 +185,7 @@ void ddwenonug::kqmin(field &f)
 	q5 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
 }
 
-void ddwenonug::iqmax(field &f)
+void ddweno_nug::iqmax(field &f)
 {
 	q1 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
     q2 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
@@ -194,7 +194,7 @@ void ddwenonug::iqmax(field &f)
     q5 = (f.V[Ip3JK] - f.V[Ip2JK])/DX[IP2];
 }
 
-void ddwenonug::jqmax(field &f)
+void ddweno_nug::jqmax(field &f)
 {
 	q1 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
     q2 = (f.V[IJK]   - f.V[IJm1K])/DY[JM1];
@@ -203,7 +203,7 @@ void ddwenonug::jqmax(field &f)
     q5 = (f.V[IJp3K] - f.V[IJp2K])/DY[JP2];
 }
 
-void ddwenonug::kqmax(field &f)
+void ddweno_nug::kqmax(field &f)
 {
 	q1 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
     q2 = (f.V[IJK]   - f.V[IJKm1])/DZ[KM1];
