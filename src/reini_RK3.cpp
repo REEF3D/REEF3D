@@ -85,8 +85,6 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
 { 
     starttime=pgc->timer();
 	
-	sizeM=p->sizeM4;
-	
 	ppicard->volcalc(p,a,pgc,a->phi);
 	
 	if(p->count==0)
@@ -167,6 +165,10 @@ void reini_RK3::time_preproc(lexer* p)
     n=0;
 	LOOP
 	{
+    if(p->j_dir==0)
+    dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
+    
+    if(p->j_dir==1)
 	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	++n;
 	}

@@ -151,6 +151,9 @@ public:
     int *gc4aperiodic_count;
     int gc4periodic_maxcount;
     
+    int **dgc1,**dgc2,**dgc3,**dgc4;
+    int dgc1_count,dgc2_count,dgc3_count,dgc4_count;
+    
 	// PARALLEL
 	int** gcpara1;
 	int** gcpara2;

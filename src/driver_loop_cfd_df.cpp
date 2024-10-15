@@ -56,7 +56,7 @@ void driver::loop_cfd_df(fdm* a)
             cout<<p->count<<endl;
 
             cout<<"simtime: "<<p->simtime<<endl;
-            cout<<"timestep: "<<p->dt<<endl;
+            cout<<setprecision(5)<<"timestep: "<<p->dt<<endl;
             cout<<"fbtimestep: "<<p->fbdt<<" fbmax: "<<p->fbmax<<endl;
             
 

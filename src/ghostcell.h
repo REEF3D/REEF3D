@@ -89,6 +89,11 @@ public:
 	int globalimin(int);
 	double timesync(double);
 	void globalctrl(lexer*);
+    
+    void dgcpol1(lexer*,field&, int);
+    void dgcpol2(lexer*,field&, int);
+    void dgcpol3(lexer*,field&, int);
+    void dgcpol4(lexer*,field&, int);
 
 // particle
 	void parapls(lexer*,double**,double**,int*,int*);

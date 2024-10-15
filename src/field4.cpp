@@ -65,7 +65,7 @@ void field4::resize(lexer* p)
 
 double & field4::operator[](int n)
 {
-    return V[level[0] + n];
+    return V[n];
 }
 
 double & field4::operator()(int ii, int jj, int kk)

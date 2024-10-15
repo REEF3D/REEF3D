@@ -20,44 +20,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
-#include"grid.h"
+#include"lexer.h"
+#include"field.h"
 
-void driver::makegrid(lexer *p, ghostcell *pgc)
-{	
-    // flag
-    pgc->flagx(p,p->flagsf1);
-    pgc->flagx(p,p->flagsf2);
-    pgc->flagx(p,p->flagsf3);
-    pgc->flagx(p,p->flagsf4);
+void ghostcell::dgcpol3(lexer* p,field& f,int gcv)
+{
+    int di,dj,dk,bc;
     
-    pgc->flagx(p,p->flag1);
-    pgc->flagx(p,p->flag2);
-    pgc->flagx(p,p->flag3);
-    pgc->flagx(p,p->flag4);
-    pgc->flagx(p,p->flag);
-	pgc->gcxupdate(p);
-    
-    p->vecsize(pgc);
-    
-    // grid
-    grid gridgen(p);
-    
-    gridgen.make_dgc(p);
-    
-    gridgen.fill_dgc1(p);
-    gridgen.fill_dgc2(p);
-    gridgen.fill_dgc3(p);
-    gridgen.fill_dgc4(p);
-    
-    gridgen.unmake_dgc(p);
+    for(n=0;n<p->dgc3_count;++n)
+    {
+        i=p->dgc3[n][0];
+        j=p->dgc3[n][1];
+        k=p->dgc3[n][2];
+        
+        
+        di=p->dgc3[n][3];
+        dj=p->dgc3[n][4];
+        dk=p->dgc3[n][5];
+        
+        bc=p->dgc3[n][6];
+        
+        if(bc==1)
+        f(i+di,j+dj,k+dk) = f(i,j,k);  
+
+        if(bc==2)
+        f(i+di,j+dj,k+dk) = 0.0;        
+        
+    }
 }
-	
-void driver::makegrid_cds()
-{	
-	pgc->sizeM_update(p,a);
-}
-	

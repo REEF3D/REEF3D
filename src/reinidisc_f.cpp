@@ -61,25 +61,10 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, in
         ++n;
         }
     }
-    
-    if(ipol==6)
-    {
-
-        BASELOOP
-        L.V[IJK] = 0.0;
-
-        n=0;
-        BASELOOP
-        {
-        disc(p,a,pgc,f,L);
-        ++n;
-        }
-    }
 }
 
 void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 {
-	
 	dx=0.0;
 	dy=0.0;
 	dz=0.0;

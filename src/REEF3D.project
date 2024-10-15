@@ -826,6 +826,9 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Grid">
+          <File Name="grid.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="field.h"/>
           <File Name="field1.h"/>
@@ -2288,6 +2291,12 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
+      <VirtualDirectory Name="DGC">
+        <File Name="gc_dgcpol4.cpp"/>
+        <File Name="gc_dgcpol3.cpp"/>
+        <File Name="gc_dgcpol2.cpp"/>
+        <File Name="gc_dgcpol1.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Parallel Particle">
         <File Name="gcx_partx.cpp"/>
         <File Name="gcx_partnum.cpp"/>
@@ -2438,6 +2447,13 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Grid">
+          <File Name="grid_dgc4.cpp"/>
+          <File Name="grid_dgc3.cpp"/>
+          <File Name="grid_dgc2.cpp"/>
+          <File Name="grid_dgc1.cpp"/>
+          <File Name="grid.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="field1.cpp"/>
           <File Name="field2.cpp"/>

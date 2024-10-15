@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,44 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"grid.h"
+#include"increment.h"
 
-void driver::makegrid(lexer *p, ghostcell *pgc)
-{	
-    // flag
-    pgc->flagx(p,p->flagsf1);
-    pgc->flagx(p,p->flagsf2);
-    pgc->flagx(p,p->flagsf3);
-    pgc->flagx(p,p->flagsf4);
+class lexer;
+
+#ifndef GRID_H_
+#define GRID_H_
+
+using namespace std;
+
+class grid :  public increment
+{
+public:
+
+	grid (lexer *);
+	virtual ~grid();
+
+    // dgc
+    void make_dgc(lexer*);
+    void unmake_dgc(lexer*);
+    void fill_dgc1(lexer*);
+    void fill_dgc2(lexer*);
+    void fill_dgc3(lexer*);
+    void fill_dgc4(lexer*);
     
-    pgc->flagx(p,p->flag1);
-    pgc->flagx(p,p->flag2);
-    pgc->flagx(p,p->flag3);
-    pgc->flagx(p,p->flag4);
-    pgc->flagx(p,p->flag);
-	pgc->gcxupdate(p);
+    int imin,imax,jmax,jmin,kmin,kmax;
     
-    p->vecsize(pgc);
+private:
+	int di,dj,dk;
+	int qn;
     
-    // grid
-    grid gridgen(p);
-    
-    gridgen.make_dgc(p);
-    
-    gridgen.fill_dgc1(p);
-    gridgen.fill_dgc2(p);
-    gridgen.fill_dgc3(p);
-    gridgen.fill_dgc4(p);
-    
-    gridgen.unmake_dgc(p);
-}
+    int *hgc;
 	
-void driver::makegrid_cds()
-{	
-	pgc->sizeM_update(p,a);
-}
-	
+};
+
+#endif
+
+
+
+
+
+
+

@@ -164,7 +164,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	
 	p->lsmtime=pgc->timer()-starttime;
     
-	preini->start(a,p,ls, pgc, pflow);
+	preini->start(a,p,ls,pgc,pflow);
     
 
     ppicard->correct_ls(p,a,pgc,ls);

@@ -20,44 +20,44 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 #include"grid.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
-void driver::makegrid(lexer *p, ghostcell *pgc)
-{	
-    // flag
-    pgc->flagx(p,p->flagsf1);
-    pgc->flagx(p,p->flagsf2);
-    pgc->flagx(p,p->flagsf3);
-    pgc->flagx(p,p->flagsf4);
-    
-    pgc->flagx(p,p->flag1);
-    pgc->flagx(p,p->flag2);
-    pgc->flagx(p,p->flag3);
-    pgc->flagx(p,p->flag4);
-    pgc->flagx(p,p->flag);
-	pgc->gcxupdate(p);
-    
-    p->vecsize(pgc);
-    
-    // grid
-    grid gridgen(p);
-    
-    gridgen.make_dgc(p);
-    
-    gridgen.fill_dgc1(p);
-    gridgen.fill_dgc2(p);
-    gridgen.fill_dgc3(p);
-    gridgen.fill_dgc4(p);
-    
-    gridgen.unmake_dgc(p);
+grid::grid(lexer *p)
+{
+    imin=p->imin;
+    imax=p->imax;
+    jmin=p->jmin;
+    jmax=p->jmax;
+    kmin=p->kmin;
+    kmax=p->kmax;
 }
-	
-void driver::makegrid_cds()
-{	
-	pgc->sizeM_update(p,a);
+
+grid::~grid()
+{
 }
+
+void grid::make_dgc(lexer* p)
+{
+    p->dgc1_count=1;
+	p->dgc2_count=1;
+	p->dgc3_count=1;
+	p->dgc4_count=1;
 	
+	p->Iarray(p->dgc1,p->dgc1_count,8);
+	p->Iarray(p->dgc2,p->dgc2_count,8);
+	p->Iarray(p->dgc3,p->dgc3_count,8);
+	p->Iarray(p->dgc4,p->dgc4_count,8);
+    
+    
+    p->Iarray(hgc,imax*jmax*kmax);
+    
+    for(i=0;i<imax*jmax*kmax;++i)
+    hgc[i]=0;
+}
+
+void grid::unmake_dgc(lexer* p)
+{
+    p->del_Iarray(hgc,imax*jmax*kmax);
+}
