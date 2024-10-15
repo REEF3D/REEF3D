@@ -58,7 +58,6 @@ void field3::resize(lexer* p)
 {
 }
 
-
 double & field3::operator[](int n)
 {
 	return V[n];

@@ -46,6 +46,10 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     // grid
     grid gridgen(p);
     
+    gridgen.fillgcb1(p);
+    gridgen.fillgcb2(p);
+    gridgen.fillgcb3(p);
+    
     gridgen.make_dgc(p);
     
     gridgen.fill_dgc1(p);

@@ -43,9 +43,6 @@ public:
 	int di,dj,dk;
 	int imin,imax,jmax,jmin,kmin,kmax;
 
-	//double *V;
-	double ***gcfeld;
-
 private:
 
 	void fieldalloc(lexer *);

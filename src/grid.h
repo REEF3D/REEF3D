@@ -35,6 +35,11 @@ public:
 
 	grid (lexer *);
 	virtual ~grid();
+    
+    // gcb
+    void fillgcb1(lexer*);
+    void fillgcb2(lexer*);
+    void fillgcb3(lexer*);
 
     // dgc
     void make_dgc(lexer*);

@@ -48,7 +48,7 @@ private:
 	void fieldalloc(lexer *);
 
 	int iter;
-	int gcfeldsize,feldsize;
+	int feldsize;
 	
 	int rank, gcextra;
 	

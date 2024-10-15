@@ -36,9 +36,6 @@ field4::field4(lexer *p)
 	fieldalloc(p);
 	
 	pp=p;
-    
-    for(int qn=0;qn<12;++qn)
-    level[qn]=0;
 }
 
 field4::~field4()
