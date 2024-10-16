@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"picard_void.h"
 #include"reinidisc_f.h"
 #include"reinidisc_fsf.h"
+#include"reinidisc_fsf_rig.h"
 
 reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)
 {
@@ -50,7 +51,7 @@ reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p
 
 	gcval_initopo=150;
 	
-	prdisc = new reinidisc_fsf(p);
+	prdisc = new reinidisc_fsf_rig(p);
 
     time_preproc(p);    
 }
@@ -59,9 +60,11 @@ reinitopo_RK3::~reinitopo_RK3()
 {
 }
 
-void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
+void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field &f)
 { 
 	pgc->start4a(p,f,gcval);
+    
+    gcval=gcval_topo;
 	
 	if(p->count==0)
 	{
@@ -103,23 +106,6 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 
 	pgc->start4a(p,f,gcval);
 	}
-	
-	// backfill
-	n=0;
-	ALOOP
-	{
-	b(i,j,k)=f.V[IJK];
-	
-	++n;
-	}
-	
-	pgc->start4a(p,b,gcval);
-    
-    if(p->count==0)
-	pgc->start4a(p,b,gcval_initopo);
-    
-    if(p->count>0)
-	pgc->start4a(p,b,gcval_topo);
 }
 
 void reinitopo_RK3::step(lexer* p, fdm *a)

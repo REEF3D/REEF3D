@@ -39,7 +39,6 @@ public:
 	virtual ~reinitopo_RK3();
 	virtual void start(lexer*,fdm*,ghostcell*,field&);
 
-	int *sizeM;
 	field4a f,frk1,frk2,L,dt;
 
 private:

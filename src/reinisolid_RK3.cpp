@@ -59,7 +59,7 @@ reinisolid_RK3::~reinisolid_RK3()
 {
 }
 
-void reinisolid_RK3::start(lexer *p, fdm *a, ghostcell *pgc,field &f)
+void reinisolid_RK3::start(lexer *p, fdm *a, ghostcell *pgc, field &f)
 { 
     gcval=gcval_topo;
 

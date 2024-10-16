@@ -161,7 +161,7 @@ void reini_walld::start(fdm* a,lexer* p, field &f, ghostcell* pgc,ioflow* pflow)
     reiniter = pgc->globalimax(reiniter);
   
 	pgc->gcparax(p,f,4);
-    
+   
 	for(int q=0;q<reiniter;++q)
 	{
 
@@ -172,7 +172,7 @@ void reini_walld::start(fdm* a,lexer* p, field &f, ghostcell* pgc,ioflow* pflow)
 		dab.V[IJK]=a->L.V[IJK];
 
 
-		NLOOP
+		LOOP
 		{
 		f.V[IJK] += dt*0.5*(3.0*a->L.V[IJK] - dab.V[IJK]);
 

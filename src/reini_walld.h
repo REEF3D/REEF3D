@@ -39,7 +39,6 @@ public:
 	virtual ~reini_walld();
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
 
-	int *sizeM;
     field4 dab;
 	reinidisc *prdisc;
 

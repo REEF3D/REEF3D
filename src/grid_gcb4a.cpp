@@ -20,49 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 #include"grid.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
-void driver::makegrid(lexer *p, ghostcell *pgc)
-{	
-    // flag
-    pgc->flagx(p,p->flagsf1);
-    pgc->flagx(p,p->flagsf2);
-    pgc->flagx(p,p->flagsf3);
-    pgc->flagx(p,p->flagsf4);
+void grid::fillgcb4a(lexer *p)
+{
+    int q;
     
-    pgc->flagx(p,p->flag1);
-    pgc->flagx(p,p->flag2);
-    pgc->flagx(p,p->flag3);
-    pgc->flagx(p,p->flag4);
-    pgc->flagx(p,p->flag);
-	pgc->gcxupdate(p);
+    p->Iresize(p->gcb4a,p->gcb4a_count, p->gcb4_count, 6, 6);
+    p->Dresize(p->gcd4a,p->gcb4a_count, p->gcb4_count); 
     
-    p->vecsize(pgc);
+    p->gcb4a_count=p->gcb4_count;
+
+    QGCB4
+	{
+	for(n=0;n<5;++n)
+	p->gcb4a[q][n]=p->gcb4[q][n];
     
-    // grid
-    grid gridgen(p);
-    
-    gridgen.fillgcb1(p);
-    gridgen.fillgcb2(p);
-    gridgen.fillgcb3(p);
-    gridgen.fillgcb4a(p);
-    
-    gridgen.make_dgc(p);
-    
-    gridgen.fill_dgc1(p);
-    gridgen.fill_dgc2(p);
-    gridgen.fill_dgc3(p);
-    gridgen.fill_dgc4(p);
-    
-    gridgen.unmake_dgc(p);
+    p->gcd4a[q]=p->gcd4[q];
+	}
 }
-	
-void driver::makegrid_cds()
-{	
-	pgc->sizeM_update(p,a);
-}
-	
