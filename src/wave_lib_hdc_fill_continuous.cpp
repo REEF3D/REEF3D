@@ -25,7 +25,6 @@ Author: Hans Bihs
 
 void wave_lib_hdc::fill_result_continuous(lexer *p, ghostcell *pgc)
 {
-
     // fill
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)

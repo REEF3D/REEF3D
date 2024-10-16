@@ -39,8 +39,6 @@ void wave_lib_hdc::read_result_continuous(lexer *p, ghostcell *pgc, double **E0,
     {
         result.read((char*)&ffn, sizeof (float));
         E0[i][j]=double(ffn);
-        
-        cout<<E0[i][j]<<" "<<p->wd<<endl;
     } 
     
     for(i=0; i<Nx; ++i)

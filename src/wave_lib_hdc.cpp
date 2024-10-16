@@ -117,9 +117,6 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     // only at startup
     if(startup==0)
     {
-        //if(p->mpirank==0)
-        //cout<<"simtim: "<<simtime[0]<<" "<<simtime[1]<<" "<<simtime[2]<<" "<<simtime[3]<<endl;
-        
         deltaT = simtime[1]-simtime[0];
         
         deltaT = deltaT>0.0?deltaT:1.0e20;
@@ -146,7 +143,6 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         {
         ++q1;
         
-        //cout<<"HDC ++q1: "<<q1<<endl;
         if(file_type==2)
         read_result_continuous(p,pgc,E1,U1,V1,W1,q1);
         }
@@ -156,7 +152,6 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         {
         ++q2;
         
-        //cout<<"HDC ++q2: "<<q2<<endl;
         if(file_type==2 )
         read_result_continuous(p,pgc,E2,U2,V2,W2,q2);
         }
