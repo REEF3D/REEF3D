@@ -65,7 +65,7 @@ void reinidisc_fsf::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, 
 
 void reinidisc_fsf::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 {	
-    L.V[n]=0.0;
+    L.V[IJK]=0.0;
     
 	if((f.V[IJK]>=0.0 && f.V[Ip1JK]>=0.0 && f.V[Im1JK]>=0.0 && f.V[IJp1K]>=0.0 && f.V[IJm1K]>=0.0 && f.V[IJKp1]>=0.0 && f.V[IJKm1]>=0.0) 
 	|| (f.V[IJK]<0.0  && f.V[Ip1JK]<0.0  && f.V[Im1JK]<0.0  && f.V[IJp1K]<0.0  && f.V[IJm1K]<0.0   && f.V[IJKp1]<0.0  && f.V[IJKm1]<0.0)
@@ -136,6 +136,6 @@ void reinidisc_fsf::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
     if(sign!=sign)
     sign=1.0;
     
-	L.V[n] = -(sign*dnorm - sign);
+	L.V[IJK] = -(sign*dnorm - sign);
     }
 }

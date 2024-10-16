@@ -116,6 +116,7 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 	if(zplus*lsSig>0.0 && zmin*lsSig<0.0)
 	dz=0.0;	
 
+
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);
 	
     if(p->j_dir==0)

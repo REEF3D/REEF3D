@@ -55,7 +55,7 @@ void reinidisc_fsf_rig::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field 
         L.V[IJK] = 0.0;
         
         n=0;
-        ALOOP
+        BASELOOP
         {
         disc(p,a,pgc,f,L);
         ++n;
@@ -87,8 +87,6 @@ void reinidisc_fsf_rig::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
 	dy=0.0;
 	dz=0.0;
 	lsv=f.V[IJK];
-    
-    if(fabs(lsv)>=1.0e-8)
     lsSig=lsv/sqrt(lsv*lsv);
     
     if(fabs(lsv)<1.0e-8)
@@ -150,6 +148,7 @@ void reinidisc_fsf_rig::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
     if(sign!=sign)
     sign= 1.0;
 
-	L.V[n] = -(sign*dnorm - sign);
+
+	L.V[IJK] = -(sign*dnorm - sign);
     }
 }

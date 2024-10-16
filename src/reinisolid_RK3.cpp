@@ -81,15 +81,16 @@ void reinisolid_RK3::start(lexer *p, fdm *a, ghostcell *pgc,field &f)
     for(int q=0;q<reiniter;++q)
     {
 	// Step 1
-	prdisc->start(p,a,pgc,f,a->L,5);
+	prdisc->start(p,a,pgc,f,L,5);
 
 	ALOOP
 	frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
 
 	pgc->start4a(p,frk1,gcval);
     
+    
     // Step 2
-    prdisc->start(p,a,pgc,frk1,a->L,5);
+    prdisc->start(p,a,pgc,frk1,L,5);
 
 	ALOOP
 	frk2.V[IJK]=  0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*L.V[IJK];
@@ -105,9 +106,7 @@ void reinisolid_RK3::start(lexer *p, fdm *a, ghostcell *pgc,field &f)
 
 	pgc->start4a(p,f,gcval);
 	}
-	
 }
-
 
 void reinisolid_RK3::step(lexer* p, fdm *a)
 {
@@ -126,7 +125,6 @@ void reinisolid_RK3::time_preproc(lexer* p)
 	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	++n;
 	}
-
 }
 
 
