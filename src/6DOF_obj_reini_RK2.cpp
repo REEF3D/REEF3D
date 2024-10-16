@@ -26,14 +26,16 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"reinidisc.h"
 
-void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field& b)
+void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field &f)
 {	
 
-    n=0;
-	ALOOP
+    LOOP
 	{
+    if(p->j_dir==0)
+    dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
+    
+    if(p->j_dir==1)
 	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
-	++n;
 	}
 	
 	reiniter=5;

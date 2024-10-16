@@ -162,7 +162,6 @@ void reini_RK3::step(lexer* p, fdm *a)
 
 void reini_RK3::time_preproc(lexer* p)
 {
-    n=0;
 	LOOP
 	{
     if(p->j_dir==0)
@@ -170,7 +169,6 @@ void reini_RK3::time_preproc(lexer* p)
     
     if(p->j_dir==1)
 	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
-	++n;
 	}
 }
 
