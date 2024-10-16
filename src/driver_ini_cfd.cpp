@@ -116,6 +116,11 @@ void driver::driver_ini_cfd()
         
         pgc->solid_forcing_ini(p,a);
         }
+        
+        SLICEBASELOOP
+        p->wet[IJ]=1;
+        
+        pgc->gcsl_start4Vint(p,p->wet,50);
     }
     
     // patchBC ini

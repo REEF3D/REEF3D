@@ -99,6 +99,8 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
+    
+    cout<<p->mpirank<<" S73: "<<p->S73<<" "<<p->S73_dist[0]<<endl;
 }
 
 void sediment_f::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)
