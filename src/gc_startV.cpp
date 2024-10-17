@@ -250,7 +250,7 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         // V
         if(p->flag2[IJp1K]<0 &&  gcv==11 && p->j_dir==1)
         {
-        f[IJp1K] = 0.5*fabs(p->W22)*d->eta(i,j+2)*d->eta(i,j+2) + fabs(p->W22)*d->eta(i,j+2)*d->dfy(i+2,j);
+        f[IJp1K] = 0.5*fabs(p->W22)*d->eta(i,j+2)*d->eta(i,j+2) + fabs(p->W22)*d->eta(i,j+2)*d->dfy(i,j+1);
         }
         
         // ETA
