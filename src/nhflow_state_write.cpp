@@ -72,7 +72,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ddn=p->stateprinttime;
     result.write((char*)&ddn, sizeof (double)); 
     
-    // read result section
+    // write result section
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
     PSLICECHECK4

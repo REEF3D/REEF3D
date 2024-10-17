@@ -78,7 +78,7 @@ void nhflow_state::write_header(lexer *p, fdm_nhf *d, ghostcell *pgc)
     headout.write((char*)&iin, sizeof (int));
     
     
-    iin=p->knoz+1;
+    iin=p->knoz;
     headout.write((char*)&iin, sizeof (int));
     
     
