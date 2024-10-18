@@ -74,7 +74,7 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     j = p->gcb4[n][1];
     k = p->gcb4[n][2];
     
-        if(p->gcb4[n][4]==1 && p->flagsf4[IJK]>0)
+        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->flagsf4[IJK]>0)
         {
         p->gcin[count1][0]=p->gcb4[n][0];
         p->gcin[count1][1]=p->gcb4[n][1];
@@ -84,7 +84,7 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         ++count1;
         }
 
-        if(p->gcb4[n][4]==2 && p->flagsf4[IJK]>0)
+        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->flagsf4[IJK]>0)
         {
         p->gcout[count2][0]=p->gcb4[n][0];
         p->gcout[count2][1]=p->gcb4[n][1];

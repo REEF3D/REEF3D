@@ -55,9 +55,11 @@ public:
     void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver9(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver44(lexer*,fdm*, ghostcell*, field&, vec&,int);
     
     void solve(lexer*,ghostcell*);
     void solve1234(lexer*);
+    void solve44(lexer*);
     
 	void fillxvec1(lexer*,fdm*,field&);
     void fillxvec2(lexer*,fdm*,field&);
@@ -105,6 +107,9 @@ public:
 
     void create_solver5(lexer*,ghostcell*);
     void delete_solver5(lexer*,ghostcell*);
+    
+    void create_solver44(lexer*,ghostcell*);
+    void delete_solver44(lexer*,ghostcell*);
     
     void precon_switch(lexer*,ghostcell*);
     

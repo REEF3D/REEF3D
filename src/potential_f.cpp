@@ -36,7 +36,7 @@ potential_f::~potential_f()
 {
 }
 
-void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
+void potential_f::start(lexer*p, fdm* a, solver* psolv, ghostcell* pgc)
 {
     int itermem;
     field4 psi(p);
@@ -70,12 +70,12 @@ void potential_f::start(lexer*p,fdm* a,solver* psolv, ghostcell* pgc)
     pgc->start4(p,psi,gcval_pot);
 	
     itermem=p->N46;
-    p->N46=500;
+    p->N46=50000;
 	
     for(int qn=0; qn<1;++qn)
     {
     laplace(p,a,pgc,psi);
-	psolv->start(p,a,pgc,psi,a->rhsvec,4);
+	psolv->start(p,a,pgc,psi,a->rhsvec,44);
     }
     
     pgc->start4(p,psi,gcval_pot);
@@ -344,7 +344,7 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
             j=p->gcb4[n][1];
             k=p->gcb4[n][2];  
             
-            if((p->X10==0 || a->fb(i,j,k)>0.0) && (p->G3==0 || ((a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))))
+            if((p->X10==0 || a->fb(i,j,k)>0.0) && ((a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0)))
             {
        
             if(p->gcb4[n][3]==1)
@@ -367,6 +367,9 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
             i=p->gcb4[n][0]; 
             j=p->gcb4[n][1];
             k=p->gcb4[n][2];  
+            
+            if((p->X10==0 || a->fb(i,j,k)>0.0) && ((a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0)))
+            {
        
             if(p->gcb4[n][3]==1)
             bc(i-1,j,k)=2;
@@ -379,6 +382,7 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
             
             if(p->gcb4[n][3]==4)
             bc(i+1,j,k)=2;
+            }
  
         }
     }

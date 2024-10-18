@@ -262,6 +262,34 @@ void hypre_struct::delete_solver5(lexer* p,ghostcell* pgc)
     HYPRE_StructSMGDestroy(precond);
 }
 
+void hypre_struct::create_solver44(lexer* p,ghostcell* pgc)
+{
+    // solver for velocities and other scalar variables, e.g. turbulence
+    HYPRE_StructBiCGSTABCreate(pgc->mpi_comm, &solver);
+    HYPRE_StructBiCGSTABSetMaxIter(solver, p->N46);
+    HYPRE_StructBiCGSTABSetTol(solver, p->N44);
+    HYPRE_StructBiCGSTABSetPrintLevel(solver, 0 ); 
+    HYPRE_StructBiCGSTABSetLogging(solver, 1);
+    
+    HYPRE_StructSMGCreate(pgc->mpi_comm, &precond);
+    HYPRE_StructSMGSetMemoryUse(precond,0);
+    HYPRE_StructSMGSetMaxIter(precond,1);
+    HYPRE_StructSMGSetTol(precond, 0.0);
+    HYPRE_StructSMGSetZeroGuess(precond);
+    HYPRE_StructSMGSetNumPreRelax(precond,1);
+    HYPRE_StructSMGSetNumPostRelax(precond,1);
+
+    
+    HYPRE_StructBiCGSTABSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
+}
+
+void hypre_struct::delete_solver44(lexer* p,ghostcell* pgc)
+{
+    
+    HYPRE_StructSMGDestroy(precond);  
+    HYPRE_StructBiCGSTABDestroy(solver);   
+}
+
 void hypre_struct::precon_switch(lexer* p,ghostcell* pgc)
 {
     if(num_iterations>20 && precon_type==11 && p->N18==1)

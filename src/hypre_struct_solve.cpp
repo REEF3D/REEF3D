@@ -120,4 +120,21 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
     
 }
 
+void hypre_struct::solve44(lexer* p)
+{
+    p->solver_status=0;
+    
+	p->solveriter=0;
+	    
+    HYPRE_StructBiCGSTABSetup(solver, A, b, x);
+    p->solver_status = HYPRE_StructBiCGSTABSolve(solver, A, b, x);
+    
+    HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
+	HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    
+    
+    p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+}
+
 #endif

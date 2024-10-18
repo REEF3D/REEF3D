@@ -77,11 +77,17 @@ hypre_struct::~hypre_struct()
 
 void hypre_struct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
+    // diffusion and turbulence
     if(var>=1 && var<=4)
     start_solver1234(p,a,pgc,f,rhsvec,var);
-
+    
+    // pressure
     if(var==5)
     start_solver5(p,a,pgc,f,rhsvec,var);
+    
+    // potential flow
+    if(var==44)
+    start_solver44(p,a,pgc,f,rhsvec,var);
 }
 
 void hypre_struct::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
@@ -322,6 +328,26 @@ void hypre_struct::start_solver9(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 	delete_solver5(p,pgc);
     
     precon_switch(p,pgc);
+}
+
+void hypre_struct::start_solver44(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
+{
+    numiter=0;
+	p->solveriter=0;
+	
+	create_solver44(p,pgc);
+    
+        if(p->j_dir==1)
+        fill_matrix4(p,a,pgc,f);
+        
+        if(p->j_dir==0)
+        fill_matrix4_2Dvert(p,a,pgc,f);
+
+    solve44(p);
+        
+    fillbackvec4(p,f,var);
+	
+	delete_solver44(p,pgc);
 }
 
 void hypre_struct::fillxvec1(lexer* p, fdm* a, field& f)
