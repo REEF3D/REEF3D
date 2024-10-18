@@ -29,7 +29,7 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {  
         double etaval=0.0;
         
-        p->wavetime = p->simtime + p->dt;
+        p->wavetime = p->simtime;
         
         for(n=0;n<p->gcslin_count;n++)
         {
@@ -60,7 +60,7 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(p->A515==1)
         etaval = 0.0;
         
-        if(p->A515==2)
+        if(p->A515==2 )
         etaval = eta(i,j);
 
         z = p->ZSP[IJK]-p->phimean;
