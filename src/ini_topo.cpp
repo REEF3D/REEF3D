@@ -31,6 +31,8 @@ void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
 
     ALOOP
 	a->topo(i,j,k)=1.0;
+    
+    p->topoforcing=1;
 
 
     if(p->S57>-1.0e20)

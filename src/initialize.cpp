@@ -67,7 +67,7 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
     	
 	//iniphi_surfarea(p,a,pgc);
 
-	if(p->S10>0)
+	if(p->S10>0 || p->toporead==1)
 	topoini(p,a,pgc);
 	
 	pgc->flagbase(p,a);

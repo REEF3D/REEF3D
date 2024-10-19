@@ -40,13 +40,9 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, in
     {
         BASELOOP
         L.V[IJK] = 0.0;
-        
-        n=0;
+
         BASELOOP
-        {
         disc(p,a,pgc,f,L);
-        ++n;
-        }
     }
 	
 	if(ipol==5)
@@ -54,12 +50,8 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, in
         BASELOOP
         L.V[IJK] = 0.0;
         
-        n=0;
         BASELOOP
-        {
         disc(p,a,pgc,f,L);
-        ++n;
-        }
     }
 }
 
@@ -128,7 +120,7 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
     sign=lsv/sqrt(lsv*lsv+ dnorm*dnorm*deltax*deltax);
     
     if(sign!=sign)
-    sign= 1.0;
+    sign=1.0;
     
 
 	L.V[IJK] = -(sign*dnorm - sign);

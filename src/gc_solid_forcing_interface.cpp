@@ -28,6 +28,8 @@ double ghostcell::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_sf,dirac;
     
+    //cout<<"p->topoforcing: "<<p->topoforcing<<" p->toporead: "<<p->toporead<<endl;
+    
     if (p->j_dir==0)
     psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
 	

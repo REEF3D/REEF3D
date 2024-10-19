@@ -40,7 +40,7 @@ public:
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
 
 	int *sizeM;
-	field4 frk1,frk2,dt;
+	field4 frk1,frk2,dt,f;
 
 private:
     picard *ppicard;
