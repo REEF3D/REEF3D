@@ -106,23 +106,6 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
 {
     double cval;
     
-    if(p->G3==0)
-    GC4LOOP
-    if(p->gcb4[n][4]==5)
-    {
-        i=p->gcb4[n][0];
-        j=p->gcb4[n][1];
-        k=p->gcb4[n][2];
-        
-        cval = s->cb(i,j);
-        
-        conc(i,j,k)   =  cval;
-        conc(i,j,k-1) =  cval;
-        conc(i,j,k-2) =  cval;
-        conc(i,j,k-3) =  cval;
-    }
-    
-    if(p->G3==1)
     GCDF4LOOP
     {
         i=p->gcdf4[n][0];
@@ -181,7 +164,7 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         
         
     // turn off inside direct forcing body
-    if(p->X10==1 || p->G3==1)
+    if(p->X10==1)
     {
         n=0;
         LOOP

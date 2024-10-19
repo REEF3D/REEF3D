@@ -27,12 +27,7 @@ Authors: Hans Bihs
 void ghostcell::solid_forcing_lsm(lexer *p, fdm *a, field &f)
 {
 
-    /*if(p->G3==1 && p->X48==1)
-    LOOP
-    if(p->flagsf4[IJK]<0)
-    f(i,j,k)=-1.0;*/
-
-    if((p->G3==1||p->X10==1) && p->X48==1)
+    if(p->X48==1)
     GCDF4LOOP
     {
     i=p->gcdf4[n][0];

@@ -43,13 +43,8 @@ void bedload_direction_f::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     
 	SLICELOOP4
     {
-        pip=1;
         uvel=0.5*(s->P(i,j)+s->P(i-1,j));
-        pip=0;
-
-        pip=2;
         vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
-        pip=0;
         
          u_abs = sqrt(uvel*uvel + vvel*vvel);
 		cosa=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;

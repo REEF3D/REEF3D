@@ -42,7 +42,7 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, in
         L.V[IJK] = 0.0;
         
         n=0;
-        LOOP
+        BASELOOP
         {
         disc(p,a,pgc,f,L);
         ++n;
@@ -55,7 +55,7 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, in
         L.V[IJK] = 0.0;
         
         n=0;
-        ALOOP
+        BASELOOP
         {
         disc(p,a,pgc,f,L);
         ++n;

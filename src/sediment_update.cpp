@@ -47,7 +47,7 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     cout<<"Topo: update grid..."<<endl;
     
     
-    if(p->S10==1 && p->G3==1)
+    if(p->S10==1)
     pgc->gcdf_update(p,a);
     
     if(p->S10==2)

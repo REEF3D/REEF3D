@@ -87,7 +87,6 @@ void wave_lib_spectrum::spectrum_file_read(lexer *p)
 	spectrum[count][0] = val0;
 	spectrum[count][1] = val1;
 	++count;
-
 	}
 
 	ts = spectrum[0][0];

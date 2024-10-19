@@ -107,25 +107,6 @@ void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     LOOP
     a->L(i,j,k)=0.0;
     
-    if(p->G3==0)
-    GC4LOOP
-    if(p->gcb4[n][4]==5)
-    {
-        i=p->gcb4[n][0];
-        j=p->gcb4[n][1];
-        k=p->gcb4[n][2];
-    
-        if(s->cbe(i,j)>=conc(i,j,k))
-        a->L(i,j,k) += s->ws/p->DZN[KP]*(s->cbe(i,j)-conc(i,j,k));
-        
-       //if(s->cbe(i,j)<conc(i,j,k))
-        //a->L(i,j,k) += s->ws/p->DZN[KP]*s->cbe(i,j);
-        
-        s->cb(i,j)=conc(i,j,k);
-    }
-    
-    if(p->G3==1)
-    {
     LOOP
     if(p->flagsf4[IJK]<0)
     conc(i,j,k) = 0.0;
@@ -144,17 +125,12 @@ void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
         
         s->cb(i,j)=conc(i,j,k);
     }
-    }
 
 }
 
 void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {
-    
-    if(p->G3==0)    GC4LOOP    if(p->gcb4[n][4]==5)    {        i=p->gcb4[n][0];        j=p->gcb4[n][1];        k=p->gcb4[n][2];                //conc(i,j,k) =  s->cb(i,j);        conc(i,j,k-1) =  conc(i,j,k);        conc(i,j,k-2) =  conc(i,j,k);        conc(i,j,k-3) =  conc(i,j,k);    }
-    
-    if(p->G3==1)
-    {
+
         LOOP
         if(p->flagsf4[IJK]<0)
         conc(i,j,k) = 0.0;
@@ -170,7 +146,6 @@ void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
             conc(i,j,k-2) =  conc(i,j,k);
             conc(i,j,k-3) =  conc(i,j,k);
         }
-    }
     
     
     // Inflow

@@ -85,13 +85,10 @@ void driver::driver_ini_cfd()
     }
     
     // Solid Forcing
-    if(p->G3==1)
-    {
     if(p->mpirank==0)
     cout<<"driver solid forcing initialize"<<endl;
     
     pgc->solid_forcing_ini(p,a);
-    }
     
     // Sediment
 	if(p->S10>0)

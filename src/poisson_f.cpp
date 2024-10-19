@@ -59,9 +59,6 @@ poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc)
     
     if(p->F300>=1)
     pd = new density_rheo(p);
-    
-    if(p->G3==1)  
-	pd = new density_sf(p);
 }
 
 poisson_f::~poisson_f()

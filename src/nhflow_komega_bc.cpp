@@ -183,7 +183,7 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
         }
     
     // turn off inside direct forcing body
-    /*if((p->X10==1) || (p->G3==1 && (d->solid(i,j,k)<0.0 || d->topo(i,j,k)<0.0)))
+    /*if((p->X10==1) || ( (d->solid(i,j,k)<0.0 || d->topo(i,j,k)<0.0)))
     {
     
         n=0;
@@ -262,7 +262,7 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
     
     // turn off inside direct forcing body
     /*
-    if((p->X10==1) || (p->G3==1 && (a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)))
+    if((p->X10==1) || ((a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)))
     {
         n=0;
         LOOP

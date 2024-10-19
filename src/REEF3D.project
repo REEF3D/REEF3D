@@ -1015,7 +1015,6 @@
         <File Name="density.h"/>
         <File Name="density_f.h"/>
       </VirtualDirectory>
-      <File Name="pjm_comp.h"/>
       <File Name="pjm_nse.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
@@ -2713,7 +2712,6 @@
         <File Name="density_heat.cpp"/>
         <File Name="density_f.cpp"/>
       </VirtualDirectory>
-      <File Name="pjm_comp.cpp"/>
       <File Name="pjm_nse.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">

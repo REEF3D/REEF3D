@@ -165,9 +165,9 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     }
 
     p->Darray(Si,numcomp);
-		p->Darray(Sn,numcomp);
-		p->Darray(Di,numcomp);
-		p->Darray(Di_n,numcomp);
+    p->Darray(Sn,numcomp);
+    p->Darray(Di,numcomp);
+    p->Darray(Di_n,numcomp);
     p->Darray(wi,numcomp);
     p->Darray(dw,numcomp);
     p->Darray(Ai,numcomp);
@@ -176,7 +176,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     p->Darray(Ti,numcomp);
     p->Darray(ei,numcomp);
     p->Darray(beta,numcomp);
-		p->Darray(beta_n,numcomp);
+    p->Darray(beta_n,numcomp);
     p->Darray(cosbeta,numcomp);
     p->Darray(sinbeta,numcomp);
 
@@ -437,11 +437,11 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     }
 
 
-
         print_spectrum(p);
+        
         // directional spreading
         directional_spreading(p);
-				print_spreading(p);
+        print_spreading(p);
                 
                 
     // peak wave speed
@@ -462,10 +462,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         for(int qn=0; qn<500; ++qn)
         wL = wL0*tanh(2.0*PI*wdt/wL);
 
-        
         p->wC = wL/p->wTp;
-        
-    
 }
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)

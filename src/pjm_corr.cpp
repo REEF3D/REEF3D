@@ -65,10 +65,6 @@ pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcor
     if(p->F300>=1)
     pd = new density_rheo(p);
     
-    if(p->G3==1)  
-	pd = new density_sf(p);
-    
-
     gcval_press=40;  
 	
 	gcval_u=7;

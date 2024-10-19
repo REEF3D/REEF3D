@@ -120,7 +120,6 @@ void potential_f::ucalc(lexer *p, fdm *a, field &phi)
     if(a->fb(i+1,j,k)<0.0 || a->fb(i,j,k)<0.0)
 	a->u(i,j,k)=0.0;
     
-    if(p->G3==1)
 	ULOOP
     if(p->flagsf4[Ip1JK]<0 || p->flagsf4[IJK]<0.0)
 	a->u(i,j,k)=0.0;
@@ -146,8 +145,7 @@ void potential_f::vcalc(lexer *p, fdm *a, field &phi)
 	VLOOP
     if(a->fb(i,j+1,k)<0.0 || a->fb(i,j,k)<0.0)
 	a->v(i,j,k)=0.0;
-    
-    if(p->G3==1)
+
 	VLOOP
     if(p->flagsf4[IJp1K]<0 || p->flagsf4[IJK]<0.0)
 	a->v(i,j,k)=0.0;
@@ -174,7 +172,6 @@ void potential_f::wcalc(lexer *p, fdm *a, field &phi)
     if(a->fb(i,j,k+1)<0.0 || a->fb(i,j,k)<0.0)
 	a->w(i,j,k)=0.0;
     
-    if(p->G3==1)
 	WLOOP
     if(p->flagsf4[IJKp1]<0 || p->flagsf4[IJK]<0.0)
 	a->w(i,j,k)=0.0;

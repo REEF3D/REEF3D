@@ -114,10 +114,7 @@ void driver::logic_cfd()
 	if(p->T12==1)
 	pturbdisc=new ifou(p);
 
-	if(p->T12==5 && p->X10==0 && p->G3==0)
-	pturbdisc=new iweno_hj_nug(p);
-    
-    if(p->T12==5 && (p->X10==1 || p->G3==1))
+    if(p->T12==5)
 	pturbdisc=new iweno_hj_df_nug(p);
 
     if(p->T12==55)
@@ -139,10 +136,7 @@ void driver::logic_cfd()
 	if(p->F35==4)
 	pfsfdisc=new weno_flux_nug(p);
 
-	if(p->F35==5 && p->X10==0)
-	pfsfdisc=new weno_hj_nug(p);
-
-	if(p->F35==5 && (p->X10==1 || p->G3==1))
+	if(p->F35==5)
 	pfsfdisc=new weno_hj_df_nug(p);
 
     if(p->F35==6)
@@ -377,7 +371,7 @@ void driver::logic_cfd()
 	if(p->F40==0)
 	preini = new reini_void(p);
 
-    if(p->F40==3)
+    if(p->F40==3 || p->F40==23)
     preini = new reini_RK3(p,1);
 
 	if(p->F40==11)
@@ -443,27 +437,18 @@ void driver::logic_cfd()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-	if(p->D30==1 && p->W30==0 && p->F10==2 && p->Z10==0 && p->X10==0 && p->G3==0)
-	ppress = new pjm(p,a,pgc,pheat,pconc);
-
-    if(p->D30==1 && p->W30==1 && p->F10==2 && p->Z10==0 && p->X10==0)
-	ppress = new pjm_comp(p,a,pgc,pheat,pconc);
-
-    if(p->D30==1 && p->W30==0 && p->F10==1 && p->Z10==0 && p->X10==0)
-	ppress = new pjm_nse(p,a,pheat,pconc);
-
-    if((p->D30==2 || p->D30==3 || p->X10==1 || p->Z10!=0 || p->G3==1))
+    if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==2)
 	ppress = new pjm_corr(p,a,pheat,pconc);
+    
+    if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==1)
+	ppress = new pjm_nse(p,a,pheat,pconc);
 
     if(p->D30==10)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
 
 
 //poisson scheme for pressure
-	if(p->D30<=2 && p->F10==2)
-	ppois = new poisson_f(p,pheat,pconc);
-    
-    if((p->D30==2 || p->D30==3 || p->X10==1 || p->Z10!=0 || p->G3==1))
+    if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==2)
 	ppois = new poisson_pcorr(p,pheat,pconc);
 
     if(p->D30<9 && p->F10==1)

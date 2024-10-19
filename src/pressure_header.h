@@ -23,7 +23,6 @@ Author: Hans Bihs
 #include"pressure_void.h"
 #include"pjm.h"
 #include"pjm_corr.h"
-#include"pjm_comp.h"
 #include"pjm_nse.h"
 #include"pjm_hydrostatic.h"
 #include"poisson_f.h"

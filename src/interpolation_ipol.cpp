@@ -545,7 +545,6 @@ double interpolation::ipol4_a( field& b)
 pip=4;
     value=0.125*(b(i,j,k)+b(i,j+1,k)+b(i+1,j,k)+b(i+1,j+1,k) +
                  b(i,j,k+1)+b(i,j+1,k+1)+b(i+1,j,k+1)+b(i+1,j+1,k+1));
-pip=0;
 
     return value;
 }

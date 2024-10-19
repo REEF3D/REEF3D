@@ -88,10 +88,6 @@ void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj
         
         if((bc==5 || (a->topo(i-1,j,k)<0.0 || a->topo(i+1,j,k)<0.0 || a->topo(i,j-1,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k-1)<0.0)) && p->S10>0)
         {
-        if(p->G3==0)
-        zval = a->bed(i,j) + p->T43*p->DZN[KP];
-        
-        if(p->G3==1)
         zval = a->bed(i,j) + p->T44*p->DZN[KP];
         
             uvel=p->ccipol1(a->u,p->XP[IP],p->YP[JP],zval);
@@ -180,8 +176,6 @@ void komega_bc::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
         
         
     // turn off inside direct forcing body
-    if(p->X10==1 || p->G3==1)
-    {
         n=0;
         LOOP
         {
@@ -202,7 +196,6 @@ void komega_bc::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
             }
         ++n;
         }
-    }
 }
 
 void komega_bc::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
@@ -255,8 +248,6 @@ void komega_bc::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
         }
         
     // turn off inside direct forcing body
-    if(p->X10==1 || p->G3==1)
-    {
         n=0;
         LOOP
         {
@@ -277,7 +268,6 @@ void komega_bc::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
             }
         ++n;
         }
-    }
 }
 
 void komega_bc::vrans_wall_law_kin(lexer *p,fdm *a,field &kin,field &eps)
