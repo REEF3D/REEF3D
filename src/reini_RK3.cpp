@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"reinidisc_f.h"
 #include"reinidisc_fsf.h"
 
-reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),dt(p),f(p)
+reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),dt(p)
 {
 	if(p->F50==1)
 	gcval_phi=51;
@@ -81,27 +81,16 @@ reini_RK3::~reini_RK3()
 {
 }
 
-void reini_RK3::start(fdm *a, lexer *p, field &lsm, ghostcell *pgc, ioflow* pflow)
+void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
 { 
     starttime=pgc->timer();
-    
-    if(p->count==0)
-    LOOP
-    f.V[IJK] = lsm.V[IJK];
-    
-    if(p->count>0)
-    LOOP
-    //if(p->flagsf4[IJK]>0)
-    f.V[IJK] = lsm.V[IJK];
-    
+
     if(p->count==0)
     gcval = gcval_iniphi;
         
     if(p->count>0)
     gcval = gcval_phi;
     
-    pgc->start4(p,f,gcval);
-	
 	ppicard->volcalc(p,a,pgc,a->phi);
 	
 	if(p->count==0)
@@ -148,12 +137,6 @@ void reini_RK3::start(fdm *a, lexer *p, field &lsm, ghostcell *pgc, ioflow* pflo
         pgc->start4(p,f,gcval);
 	}
     
-    LOOP
-    //if(p->flagsf4[IJK]>0)
-    lsm.V[IJK] = f.V[IJK];
-    
-    pgc->start4(p,lsm,gcval);
-
 	ppicard->correct_ls(p,a,pgc,a->phi);
 	
 	p->reinitime+=pgc->timer()-starttime;
