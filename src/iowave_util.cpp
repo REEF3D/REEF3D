@@ -173,7 +173,7 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
             }
         }
 
-        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->flagsf4[IJK]>0)
+        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8))
         {
         i = p->gcb4[n][0];
         j = p->gcb4[n][1];
