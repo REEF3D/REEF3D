@@ -271,23 +271,7 @@ void hypre_struct::create_solver44(lexer* p,ghostcell* pgc)
     HYPRE_StructGMRESSetPrintLevel(solver, 0);
     HYPRE_StructGMRESSetLogging(solver, 1);
     
-    if(precon_type==11)
-    {
-    HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &precond);
-	HYPRE_StructPFMGSetMaxIter(precond, 1);
-	HYPRE_StructPFMGSetTol(precond, 0.0);
-	HYPRE_StructPFMGSetZeroGuess(precond);		
-	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
-	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
-	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
-	HYPRE_StructPFMGSetNumPostRelax(precond, 1);
-	HYPRE_StructPFMGSetSkipRelax(precond, 0);  // now: 0; before: 0
-	HYPRE_StructPFMGSetPrintLevel(precond, 0);
-	HYPRE_StructPFMGSetLogging(precond, 0);
-    }
-    
-    if(precon_type==12)
-    {
+
     HYPRE_StructSMGCreate(MPI_COMM_WORLD, &precond);
     HYPRE_StructSMGSetMemoryUse(precond,0);
     HYPRE_StructSMGSetMaxIter(precond,1);
@@ -295,22 +279,12 @@ void hypre_struct::create_solver44(lexer* p,ghostcell* pgc)
     HYPRE_StructSMGSetZeroGuess(precond);
     HYPRE_StructSMGSetNumPreRelax(precond,1);
     HYPRE_StructSMGSetNumPostRelax(precond,1);
-    }
-    
-    if(precon_type==11)
-    HYPRE_StructGMRESSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
-    
-    if(precon_type==12)
+
     HYPRE_StructGMRESSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
 }
 
 void hypre_struct::delete_solver44(lexer* p,ghostcell* pgc)
 {
-    
-    if(precon_type==11)
-    HYPRE_StructPFMGDestroy(precond);
-    
-    if(precon_type==12)
     HYPRE_StructSMGDestroy(precond);  
     
     HYPRE_StructGMRESDestroy(solver);   
