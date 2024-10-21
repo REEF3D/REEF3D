@@ -91,7 +91,7 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
     
     iter0=p->count;
     
-    //cout<<p->mpirank<<" diff: "<<diff<<" fsfoutval: "<<p->fsfoutval<<" phiout: "<<p->phiout<<endl;
+    // cout<<p->mpirank<<" fsfout: "<<p->fsfout<<" diff: "<<diff<<" fsfoutval: "<<p->fsfoutval<<" phiout: "<<p->phiout<<endl;
     }
     
     

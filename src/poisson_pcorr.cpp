@@ -131,7 +131,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		}
         
          // controlled outflow
-         if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B60==1))
+         if( (p->IO[Ip1JK]==2 ))
 		{
              if(p->B77==1)
              {

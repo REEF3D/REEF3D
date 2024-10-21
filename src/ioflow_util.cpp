@@ -46,10 +46,8 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         ++count2;
     }
 	
-	//cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
 	p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
 	p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
-
 
     count1=0;
     count2=0;
@@ -166,7 +164,7 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
             }
         }
 
-        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->flagsf4[IJK]>0)
+        if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
         {
         i = p->gcb4[n][0];
         j = p->gcb4[n][1];
@@ -174,7 +172,6 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         
             if(p->flagsf4[IJK]>0)
             {
-        
             // outflow
             if(p->gcb4[n][3]==1)
             p->IO[Im1JK] = 2;
