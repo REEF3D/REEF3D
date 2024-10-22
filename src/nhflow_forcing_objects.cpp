@@ -81,11 +81,18 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
     trisum+=12*p->A581;
     
     // cylinder_z
-    r=p->X133_rad;
+    for(n=0; n<p->A584;++n)
+	{
+	r = p->A584_r[n];
+	
 	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
+	
+	ds = 0.75*(U*p->DXM);
+	
 	snum = int(U/ds);
-    trisum+=5*(snum+1)*p->A584;
+	
+	trisum+=6*snum;
+	}
 
     // STL
     //if(p->X180==1)
