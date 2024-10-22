@@ -107,8 +107,8 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     H=0.5*(1.0 + phival/(p->psi) + (1.0/PI)*sin((PI*phival)/(p->psi)));
     
     roval = p->W1*H + p->W3*(1.0-H);
-/*
-    if(a->vof(i,j,k)<0.001 && a->vof(i+aa,j+bb,k+cc)<0.001)
+
+/*    if(a->vof(i,j,k)<0.001 && a->vof(i+aa,j+bb,k+cc)<0.001)
         roval=p->W3;
     else if(a->vof(i,j,k)>0.999 && a->vof(i+aa,j+bb,k+cc)>0.999)
         roval=p->W1;
@@ -117,7 +117,7 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     else if((a->vof(i,j,k)>0.999 && (a->vof(i+aa,j+bb,k+cc)<=0.999 && a->vof(i+aa,j+bb,k+cc)>=0.001)) || ((a->vof(i,j,k)<=0.999 && a->vof(i,j,k)>=0.001) && a->vof(i+aa,j+bb,k+cc)>0.999))
         roval=p->W1;
     else if((a->vof(i,j,k)<0.001 && (a->vof(i+aa,j+bb,k+cc)<=0.999 && a->vof(i+aa,j+bb,k+cc)>=0.001)) || ((a->vof(i,j,k)<=0.999 && a->vof(i,j,k)>=0.001) && a->vof(i+aa,j+bb,k+cc)<0.001))
-        roval=p->W1;
+        roval=p->W3;
     else if((a->vof(i,j,k)<=0.999 && a->vof(i,j,k)>=0.001) && (a->vof(i+aa,j+bb,k+cc)<=0.999 && a->vof(i+aa,j+bb,k+cc)>=0.001))
         roval=0.5*(a->vof(i,j,k)+a->vof(i+aa,j+bb,k+cc))*p->W1+(1.0-0.5*(a->vof(i,j,k)+a->vof(i+aa,j+bb,k+cc)))*p->W3;
     else

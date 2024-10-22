@@ -130,15 +130,7 @@ void VOF_PLIC::start
         reini_->start(a,p,a->phi,pgc,pflow);
     }
     pflow->fsfinflow(p,a,pgc);
-    /*pflow->phi_relax(p,pgc,a->phi);
-    LOOP
-    {
-        if(a->phi(i,j,k)<-0.29*p->psi)
-            a->vof(i,j,k)=0.0;
-        if(a->phi(i,j,k)>0.29*p->psi)
-            a->vof(i,j,k)=1.0;
-            
-    }*/
+    
     pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->phi,1);
     pgc->start4(p,a->vof,1);
@@ -169,32 +161,6 @@ void VOF_PLIC::start
     else
         Sweepdim=2;
         
-  /*  LOOP
-    {
-        phistep(i,j,k)=a->phi(i,j,k);
-    }
-    
-    
-    pgc->start4(p,phistep,1);
-    LOOP
-    {
-        if(phistep(i,j,k)>p->psi)
-            a->vof(i,j,k)=1.0;
-        else if(phistep(i,j,k)<-p->psi)
-            a->vof(i,j,k)=0.0;
-        else
-        {
-            simpleNormal_Bonn(a,p);
-            a->vof(i,j,k)=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],p->DZN[KP],phistep(i,j,k));
-            if(a->vof(i,j,k)>0.0001 && a->vof(i,j,k)<0.9999)
-            {
-                reconstructPlane_alt(a,p,a->vof(i,j,k));
-                a->phi(i,j,k)=alpha(i,j,k);
-            }
-        }
-    }
-    pgc->start4(p,a->phi,1);
-    pgc->start4(p,a->vof,1);*/
     for(int nSweep=0 ; nSweep<Sweepdim; nSweep++)
     {
         LOOP
@@ -253,11 +219,18 @@ void VOF_PLIC::start
         
         LOOP
         {
-            transportPhi_Bonn(a,p,nSweep,sweep);
+            switch(p->F89)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        transportPhi_Bonn(a,p,nSweep,sweep);
+                        break;
+                }
             
             bool bordercheck=false;
             
-            if(p->j_dir>0)
+         /*   if(p->j_dir>0)
             {
                 for(int isearch=-1; isearch<2; isearch++)
                 {
@@ -282,17 +255,52 @@ void VOF_PLIC::start
                                 bordercheck=true;
                     }
                 }
-            }
+            }*/
             if((vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999))
             {
                 reconstructPlane_alt(a,p,vofstep(i,j,k));
-                advectPlane_forBonnScheme(a,p,sweep);
+                
+                switch(p->F90)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        advectPlane_forBonnScheme(a,p,sweep);
+                        break;
+                    case 3:
+                        advectPlane_NewWang(a,p,sweep);
+                        break;
+                }
+                
             }
             else if( vofstep(i,j,k)>0.9999)
-                advectWater_forBonnScheme(a,p,sweep);
-            
-           
-
+            {   
+                switch(p->F90)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        advectWater_forBonnScheme(a,p,sweep);
+                        break;
+                    case 3:
+                        advectPlane_NewWang(a,p,sweep);
+                        break;
+                }
+                
+            }
+            else
+            {
+                switch(p->F90)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 3:
+                        advectPlane_NewWang(a,p,sweep);
+                        break;
+                }
+            }
         }
         
         pgc->start4(p,nx,1);
@@ -306,12 +314,23 @@ void VOF_PLIC::start
         pgc->start4(p,phiS0,1);
         pgc->start4(p,vofS0,1);
         
-        transportVOF_Bonn(a,p,nSweep,sweep);
+        switch(p->F90)
+        {
+            case 0:
+                break;
+            case 1:
+                transportVOF_Bonn(a,p,nSweep,sweep);
+                break;
+            case 2:
+                transportVOF_NewWang(a,p,nSweep);
+        }
         
         pgc->start4(p,phiS1,1);
         pgc->start4(p,vofS1,1);
         pgc->start4(p,phiS0,1);
         pgc->start4(p,vofS0,1);
+        pgc->start4(p,vofS2,1);
+        
         
         if(p->j_dir>0)
         {
@@ -349,11 +368,21 @@ void VOF_PLIC::start
     pgc->start4(p,vofstep,1);
     
     LOOP
-    {
-        if(phistep(i,j,k)<-0.29*p->psi || vofstep(i,j,k)<0.0)
-            vofstep(i,j,k)=0.0;
-        if(phistep(i,j,k)>0.29*p->psi || vofstep(i,j,k)>1.0)
-            vofstep(i,j,k)=1.0;
+    {   
+        if(p->F91<0.0)
+        {
+            if(vofstep(i,j,k)<0.0)
+                vofstep(i,j,k)=0.0;
+            if(vofstep(i,j,k)>1.0)
+                vofstep(i,j,k)=1.0;
+        }
+        else
+        {
+            if(phistep(i,j,k)<-p->F91*p->psi || vofstep(i,j,k)<0.0)
+                vofstep(i,j,k)=0.0;
+            if(phistep(i,j,k)>p->F91*p->psi || vofstep(i,j,k)>1.0)
+                vofstep(i,j,k)=1.0;
+        }
             
         if(vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999)
             reconstructPlane_alt(a,p,vofstep(i,j,k));
@@ -375,33 +404,33 @@ void VOF_PLIC::start
     pgc->start4(p,phiaux,1);
     pgc->start4(p,vofstep,1);
     pgc->start4(p,a->vof,1);
-    LOOP
-    {
-        if((vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999))
+    
+        LOOP
         {
+            if((vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999))
+            {
                 redistancePhiByPlane_Bonn(a,p);
+            }
         }
-    }
     
-    pgc->start4(p,phiaux,1);
+        pgc->start4(p,phiaux,1);
     
-    LOOP
-    {
-        if(fabs(phiaux(i,j,k))<3.0*p->DXN[IP])
+        LOOP
         {
-            a->phi(i,j,k)=phiaux(i,j,k);
+            if(fabs(phiaux(i,j,k))<1E04)
+            {
+                a->phi(i,j,k)=phiaux(i,j,k);
+            }
+            else
+                a->phi(i,j,k)=phistep(i,j,k);
         }
-        else
-            a->phi(i,j,k)=phistep(i,j,k);
-    }
     
-    pgc->start4(p,a->phi,1);
+        pgc->start4(p,a->phi,1);
     
-    reini_->start(a,p,a->phi,pgc,pflow);
+        reini_->start(a,p,a->phi,pgc,pflow);
     
-    pgc->start4(p,a->phi,1);
+        pgc->start4(p,a->phi,1);
     
-   
     pupdate->start(p,a,pgc);
    
 }

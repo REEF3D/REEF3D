@@ -81,6 +81,8 @@ private:
 	
     //Alternative version by Fabian
     void calculateNormal_alt(fdm*, lexer*);
+    void calcNormalWeymouth(fdm*, lexer*);
+    void calcNormalWang(fdm*, lexer*);
     void reconstructPlane_alt(fdm*, lexer*, double);
     double calculateVolume(double,double,double,double,double,double,double);
     void updateVOF_alt(fdm*, lexer*,int);
@@ -89,8 +91,10 @@ private:
     void updateVOF_Weymouth(fdm*, lexer*, int);
     void transportPhi_Bonn(fdm*,lexer*,int,int);
     void transportVOF_Bonn(fdm*,lexer*,int,int);
+    void transportVOF_NewWang(fdm*,lexer*,int);
     void simpleNormal_Bonn(fdm*, lexer*);
     void advectPlane_forBonnScheme(fdm*, lexer*,int);
+    void advectPlane_NewWang(fdm*, lexer*,int);
     void advectWater_forBonnScheme(fdm*, lexer*,int);
     void redistancePhiByPlane_Bonn(fdm*, lexer*);
     double ShortestDistanceOnBoundaryCandidate(fdm*, lexer*, int, int, int, double);

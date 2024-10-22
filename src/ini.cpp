@@ -365,6 +365,10 @@ void lexer::ini_default()
 	F80=0;             // int time scheme VOF
 	F84=1.0;             // double cgamma for vof compression
     F85=0;             // int convection scheme VOF
+    F88=1;             // int normal calculation method for VOF PLIC
+    F89=1;             // int phi transport schome for VOF PLIC
+    F90=1;             // int vof transport scheme for VOF PLIC
+    F91=-1.0;          // double thickness of vof layer around FS in relation to psi F45
 	F150=0;         // int benchmark
 	F151=0;         // int benchmark inverse sign of level set
     F300=0;			 // int multiphase flow level set

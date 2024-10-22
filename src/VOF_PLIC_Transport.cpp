@@ -188,3 +188,27 @@ void VOF_PLIC::transportVOF_Bonn
         }
     }
 }
+
+void VOF_PLIC::transportVOF_NewWang
+(
+    fdm *a,
+    lexer *p,
+    int nSweep
+)
+{   if(nSweep==0)
+    {
+        LOOP
+            vofS0(i,j,k)=V_w_p(i,j,k);
+    }
+    else if(nSweep==1)
+    {
+        LOOP
+            vofS1(i,j,k)=V_w_p(i,j,k);
+    }
+    else
+    {
+        LOOP
+            vofS2(i,j,k)=V_w_p(i,j,k);
+    }
+}
+

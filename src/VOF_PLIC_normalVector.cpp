@@ -299,3 +299,274 @@ void VOF_PLIC::calcNormalPhi(fdm* a, lexer* p)
 }
 
 
+void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p)
+{
+    int dimswitch;
+    double mx1,mx2,my1,my2,mz1,mz2;
+    double ssumx, ssumy, ssumz;
+    double sum1m,sumc,sum1p,sum2m,sum2p;
+    double mf1,mf2;
+    double nxtemp,nytemp,nztemp,nsum;
+    
+    mx1=((vofstep(i-1,j+1,k)*p->DXN[Im1Jp1K]+vofstep(i,j+1,k)*p->DXN[IJp1K]+vofstep(i+1,j+1,k)*p->DXN[Ip1Jp1K])-(vofstep(i-1,j-1,k)*p->DXN[Im1Jm1K]+vofstep(i,j-1,k)*p->DXN[IJm1K]+vofstep(i+1,j-1,k)*p->DXN[Ip1Jm1K]))/(p->DYP[JP]+p->DYP[JM1]);
+    mx2=((vofstep(i-1,j,k+1)*p->DXN[Im1JKp1]+vofstep(i,j,k+1)*p->DXN[IJKp1]+vofstep(i+1,j,k+1)*p->DXN[Ip1JKp1])-(vofstep(i-1,j,k-1)*p->DXN[Im1JKm1]+vofstep(i,j,k-1)*p->DXN[IJKm1]+vofstep(i+1,j,k-1)*p->DXN[Ip1JKm1]))/(p->DZP[KP]+p->DZP[KM1]);
+    
+    my1=((vofstep(i+1,j-1,k)*p->DYN[Ip1Jm1K]+vofstep(i+1,j,k)*p->DYN[Ip1JK]+vofstep(i+1,j+1,k)*p->DYN[Ip1Jp1K])-(vofstep(i-1,j-1,k)*p->DYN[Im1Jm1K]+vofstep(i-1,j,k)*p->DYN[Im1JK]+vofstep(i-1,j+1,k)*p->DYN[Im1Jp1K]))/(p->DXP[IP]+p->DXP[IM1]);
+    my2=((vofstep(i,j-1,k+1)*p->DYN[IJm1Kp1]+vofstep(i,j,k+1)*p->DYN[IJKp1]+vofstep(i,j+1,k+1)*p->DYN[IJp1Kp1])-(vofstep(i,j-1,k-1)*p->DYN[IJm1Km1]+vofstep(i,j,k-1)*p->DYN[IJKm1]+vofstep(i,j+1,k-1)*p->DYN[IJp1Km1]))/(p->DZP[KP]+p->DZP[KM1]);
+    
+    mz1=((vofstep(i+1,j,k-1)*p->DZN[Ip1JKm1]+vofstep(i+1,j,k)*p->DZN[Ip1JK]+vofstep(i+1,j,k+1)*p->DZN[Ip1JKp1])-(vofstep(i-1,j,k-1)*p->DZN[Im1JKm1]+vofstep(i-1,j,k)*p->DZN[Im1JK]+vofstep(i-1,j,k+1)*p->DZN[Im1JKp1]))/(p->DXP[IP]+p->DXP[IM1]);
+    mz2=((vofstep(i,j+1,k-1)*p->DZN[IJp1Km1]+vofstep(i,j+1,k)*p->DZN[IJp1K]+vofstep(i,j+1,k+1)*p->DZN[IJp1Kp1])-(vofstep(i,j-1,k-1)*p->DZN[IJm1Km1]+vofstep(i,j-1,k)*p->DZN[IJm1K]+vofstep(i,j-1,k+1)*p->DZN[IJm1Kp1]))/(p->DYP[JP]+p->DYP[JM1]);
+    
+    ssumx=mx1*mx1+mx2*mx2;
+    ssumy=my1*my1+my2*my2;
+    ssumz=mz1*mz1+mz2*mz2;
+    
+    if(ssumx<=ssumy && ssumx<=ssumz)
+    {
+        dimswitch=0;
+        sum1m=vofstep(i-1,j-1,k)*p->DXN[Im1Jm1K]+vofstep(i,j-1,k)*p->DXN[IJm1K]+vofstep(i+1,j-1,k)*p->DXN[Ip1Jm1K];
+        sum1p=vofstep(i-1,j+1,k)*p->DXN[Im1Jp1K]+vofstep(i,j+1,k)*p->DXN[IJp1K]+vofstep(i+1,j+1,k)*p->DXN[Ip1Jp1K];
+        sumc=vofstep(i-1,j,k)*p->DXN[Im1JK]+vofstep(i,j,k)*p->DXN[IJK]+vofstep(i+1,j,k)*p->DXN[Ip1JK];
+        sum2m=vofstep(i-1,j,k-1)*p->DXN[Im1JKm1]+vofstep(i,j,k-1)*p->DXN[IJKm1]+vofstep(i+1,j,k-1)*p->DXN[Ip1JKm1];
+        sum2p=vofstep(i-1,j,k+1)*p->DXN[Im1JKp1]+vofstep(i,j,k+1)*p->DXN[IJKp1]+vofstep(i+1,j,k+1)*p->DXN[Ip1JKp1];
+        
+        if(vofstep(i,j,k)<=0.5)
+        {
+            if(sum1m<=sum1p)
+                mf1=(sumc-sum1m)/p->DYP[JM1];
+            else
+                mf1=(sum1p-sumc)/p->DYP[JP];
+                
+            if(sum2m<=sum2p)
+                mf2=(sumc-sum2m)/p->DZP[KM1];
+            else
+                mf2=(sum2p-sumc)/p->DZP[KP];
+        }
+        else
+        {
+            if(sum1p>=sum1m)
+                mf1=(sum1p-sumc)/p->DYP[JP];
+            else
+                mf1=(sumc-sum1m)/p->DYP[JM1];
+                
+            if(sum2p>=sum2m)
+                mf2=(sum2p-sumc)/p->DZP[KP];
+            else
+                mf2=(sumc-sum2m)/p->DZP[KM1];
+        }
+        
+        if(vofstep(i-1,j,k)>=vofstep(i+1,j,k))
+        {
+            nxtemp=1.0;
+            nytemp=-mf1;
+            nztemp=-mf2;
+        }
+        else
+        {
+            nxtemp=-1.0;
+            nytemp=mf1;
+            nztemp=mf2;
+        }
+        
+        nsum=sqrt(nxtemp*nxtemp+nytemp*nytemp+nztemp*nztemp);
+        nx(i,j,k)=nxtemp/nsum;
+        ny(i,j,k)=nytemp/nsum;
+        nz(i,j,k)=nztemp/nsum;
+        
+    }
+    else if(ssumy<=ssumx && ssumy<=ssumz)
+    {
+        dimswitch=1;
+        sum1m=vofstep(i-1,j-1,k)*p->DYN[Im1Jm1K]+vofstep(i-1,j,k)*p->DYN[Im1JK]+vofstep(i-1,j+1,k)*p->DYN[Im1Jp1K];
+        sum1p=vofstep(i+1,j-1,k)*p->DYN[Ip1Jm1K]+vofstep(i+1,j,k)*p->DYN[Ip1JK]+vofstep(i+1,j+1,k)*p->DYN[Ip1Jp1K];
+        sumc=vofstep(i,j-1,k)*p->DYN[IJm1K]+vofstep(i,j,k)*p->DYN[IJK]+vofstep(i,j+1,k)*p->DYN[IJp1K];
+        sum2m=vofstep(i,j-1,k-1)*p->DYN[IJm1Km1]+vofstep(i,j,k-1)*p->DYN[IJKm1]+vofstep(i,j+1,k-1)*p->DYN[IJp1Km1];
+        sum2p=vofstep(i,j-1,k+1)*p->DYN[IJm1Kp1]+vofstep(i,j,k+1)*p->DYN[IJKp1]+vofstep(i,j+1,k+1)*p->DYN[IJp1Kp1];
+        
+        if(vofstep(i,j,k)<=0.5)
+        {
+            if(sum1m<=sum1p)
+                mf1=(sumc-sum1m)/p->DXP[IM1];
+            else
+                mf1=(sum1p-sumc)/p->DXP[IP];
+                
+            if(sum2m<=sum2p)
+                mf2=(sumc-sum2m)/p->DZP[KM1];
+            else
+                mf2=(sum2p-sumc)/p->DZP[KP];
+        }
+        else
+        {
+            if(sum1p>=sum1m)
+                mf1=(sum1p-sumc)/p->DXP[IP];
+            else
+                mf1=(sumc-sum1m)/p->DXP[IM1];
+                
+            if(sum2p>=sum2m)
+                mf2=(sum2p-sumc)/p->DZP[KP];
+            else
+                mf2=(sumc-sum2m)/p->DZP[KM1];
+        }
+        
+        if(vofstep(i,j-1,k)>=vofstep(i,j+1,k))
+        {
+            nxtemp=-mf1;
+            nytemp=1.0;
+            nztemp=-mf2;
+        }
+        else
+        {
+            nxtemp=mf1;
+            nytemp=-1.0;
+            nztemp=mf2;
+        }
+        
+        nsum=sqrt(nxtemp*nxtemp+nytemp*nytemp+nztemp*nztemp);
+        nx(i,j,k)=nxtemp/nsum;
+        ny(i,j,k)=nytemp/nsum;
+        nz(i,j,k)=nztemp/nsum;
+        
+    }
+    else if(ssumz<=ssumx && ssumz <=ssumy)
+    {
+        dimswitch=2;
+        sum1m=vofstep(i-1,j,k-1)*p->DZN[Im1JKm1]+vofstep(i-1,j,k)*p->DZN[Im1JK]+vofstep(i-1,j,k+1)*p->DZN[Im1JKp1];
+        sum1p=vofstep(i+1,j,k-1)*p->DZN[Ip1JKm1]+vofstep(i+1,j,k)*p->DZN[Ip1JK]+vofstep(i+1,j,k+1)*p->DZN[Ip1JKp1];
+        sumc=vofstep(i,j,k-1)*p->DZN[IJKm1]+vofstep(i,j,k)*p->DZN[IJK]+vofstep(i,j,k+1)*p->DZN[IJKp1];
+        sum2m=vofstep(i,j-1,k-1)*p->DZN[IJm1Km1]+vofstep(i,j-1,k)*p->DZN[IJm1K]+vofstep(i,j-1,k+1)*p->DZN[IJm1Kp1];
+        sum2p=vofstep(i,j+1,k-1)*p->DZN[IJp1Km1]+vofstep(i,j+1,k)*p->DZN[IJp1K]+vofstep(i,j+1,k+1)*p->DZN[IJp1Kp1];
+        
+        if(vofstep(i,j,k)<=0.5)
+        {
+            if(sum1m<=sum1p)
+                mf1=(sumc-sum1m)/p->DXP[IM1];
+            else
+                mf1=(sum1p-sumc)/p->DXP[IP];
+                
+            if(sum2m<=sum2p)
+                mf2=(sumc-sum2m)/p->DYP[JM1];
+            else
+                mf2=(sum2p-sumc)/p->DYP[JP];
+        }
+        else
+        {
+            if(sum1p>=sum1m)
+                mf1=(sum1p-sumc)/p->DXP[IP];
+            else
+                mf1=(sumc-sum1m)/p->DXP[IM1];
+                
+            if(sum2p>=sum2m)
+                mf2=(sum2p-sumc)/p->DYP[JP];
+            else
+                mf2=(sumc-sum2m)/p->DYP[JM1];
+        }
+        
+        if(vofstep(i,j,k-1)>=vofstep(i,j,k+1))
+        {
+            nxtemp=-mf1;
+            nytemp=-mf2;
+            nztemp=1.0;
+        }
+        else
+        {
+            nxtemp=mf1;
+            nytemp=mf2;
+            nztemp=-1.0;
+        }
+        
+        nsum=sqrt(nxtemp*nxtemp+nytemp*nytemp+nztemp*nztemp);
+        nx(i,j,k)=nxtemp/nsum;
+        ny(i,j,k)=nytemp/nsum;
+        nz(i,j,k)=nztemp/nsum;
+        
+        
+    }
+    else
+        cout<<"dimsort in PLIC normal calc fails"<<endl;
+        
+        
+        
+}
+
+void VOF_PLIC::calcNormalWang(fdm* a, lexer* p)
+{
+    double mx,my,mz;
+    double mx_save,my_save,mz_save;
+    double msum, nsum;
+    double mincheck=1E06;
+    
+    for(int iloop=0; iloop<2;iloop++)
+    {
+        for(int jloop=0; jloop<2; jloop++)
+        {
+            for(int kloop=0; kloop<2; kloop++)
+            {
+                switch(iloop)
+                {
+                    case 0:
+                        mx=(phistep(i,j,k)-phistep(i-1,j,k))/p->DXP[IM1];
+                        break;
+                    
+                    case 1:
+                        mx=(phistep(i+1,j,k)-phistep(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
+                        break;
+                        
+                    case 2:
+                        mx=(phistep(i+1,j,k)-phistep(i,j,k))/p->DXP[IP];
+                        break;
+                }
+                
+                if(p->j_dir>0)
+                {
+                    switch(jloop)
+                    {
+                        case 0:
+                            my=(phistep(i,j,k)-phistep(i,j-1,k))/p->DYP[JM1];
+                            break;
+                        
+                        case 1:
+                            my=(phistep(i,j+1,k)-phistep(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
+                            break;
+                        
+                        case 2:
+                            my=(phistep(i,j+1,k)-phistep(i,j,k))/p->DYP[JP];
+                            break;
+                    }
+                }
+                else
+                    my=0.0;
+                
+                switch(kloop)
+                {
+                    case 0:
+                        mz=(phistep(i,j,k)-phistep(i,j,k-1))/p->DZP[KM1];
+                        break;
+                        
+                    case 1:
+                        mz=(phistep(i,j,k+1)-phistep(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+                        break;
+                        
+                    case 2:
+                        mz=(phistep(i,j,k+1)-phistep(i,j,k))/p->DZP[KP];
+                        break;
+                }
+                
+                msum=sqrt(mx*mx+my*my+mz*mz);
+                if(fabs(msum-1.0)<mincheck)
+                {
+                    mincheck=fabs(msum-1.0);
+                    mx_save=mx;
+                    my_save=my;
+                    mz_save=mz;
+                }
+                
+                
+            }
+        }
+    }
+    
+    nsum=sqrt(mx_save*mx_save+my_save*my_save+mz_save*mz_save);
+    nx(i,j,k)=-mx_save/nsum;
+    ny(i,j,k)=-my_save/nsum;
+    nz(i,j,k)=-mz_save/nsum;
+}

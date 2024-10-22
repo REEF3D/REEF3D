@@ -40,7 +40,32 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p,double V0)
     double n_1, n_2, n_3, V,r0, r, n_a, n_b, n_c;
     
     //get the normal vector
-    simpleNormal_Bonn(a,p);
+    switch(p->F88)
+    {
+        case 0:
+                break;
+                
+        case 1:
+                simpleNormal_Bonn(a,p);
+                break;
+        case 2: calcNormalWeymouth(a,p);
+                break;
+        case 3:
+                calcNormalWang(a,p);
+        case 4:
+                calcNormalFO(a,p);
+                break;
+        case 5:
+                calcNormalLS(a,p);
+                break;
+        case 6:
+                calcNormalWENO(a,p);
+                break;
+        case 7:
+                calcNormalPhi(a,p);
+                break;
+    }
+    
     
     //normalise normal vector (to be sure)
     double vecsum = sqrt(nx(i,j,k)*nx(i,j,k)+ny(i,j,k)*ny(i,j,k)+nz(i,j,k)*nz(i,j,k));
