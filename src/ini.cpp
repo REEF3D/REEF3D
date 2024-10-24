@@ -762,7 +762,6 @@ void lexer::ini_default()
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
     X14=1;      // int tangential velocity 
-    X15=2;      // int density treatment for direct forcing
 	X19=1;		// int print out interval 6DOF log files
 	X21=1;		// int presribe homogeneous density floating body
 	X21_d=900.0;		// double presribe homogeneous density floating body

@@ -56,33 +56,7 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     if(fabs(phival)<=factor*p->psi)
     H=0.5*(1.0 + phival/(factor*p->psi) + (1.0/PI)*sin((PI*phival)/(factor*p->psi)));
     
-    if(p->X15==1)
-    {    
-        if (aa==1)
-        H_fb = a->fbh1(i,j,k);
-        
-        else if (aa==-1)
-        H_fb = a->fbh1(i-1,j,k);
-
-        else if (bb==1)
-        H_fb = a->fbh2(i,j,k);
-
-        else if (bb==-1)
-        H_fb = a->fbh2(i,j-1,k);
-
-        else if (cc==1)
-        H_fb = a->fbh3(i,j,k);
-
-        else if (cc==-1)
-        H_fb = a->fbh3(i,j,k-1);
-
-        else
-        H_fb = a->fbh4(i,j,k);
-     
-    roval = p->W_fb*H_fb + (1.0 - H_fb)*(p->W1*H + p->W3*(1.0 - H));
-    }
     
-    if(p->X15==2)
     roval = p->W1*H + p->W3*(1.0-H);
 
 	return roval;		
