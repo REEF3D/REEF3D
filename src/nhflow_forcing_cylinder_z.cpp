@@ -41,7 +41,7 @@ void nhflow_forcing::cylinder_z(lexer *p, ghostcell *pgc, int id)
 	
     r1=p->A584_r[id];
     
-    cout<<p->mpirank<<" FORCING_CYLINDER  xm: "<<xm<<" ym: "<<ym<<" r1: "<<r1<<endl;
+    //cout<<p->mpirank<<" FORCING_CYLINDER  xm: "<<xm<<" ym: "<<ym<<" r1: "<<r1<<endl;
 
 
 	U = 2.0 * PI * r1;

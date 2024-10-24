@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 
-void nhflow_force::reconstruct(lexer *p, fdm_nhf *d, field& b)
+void nhflow_force::reconstruct(lexer *p, fdm_nhf *d)
 {
     ccptcount=0;
 
@@ -69,6 +69,8 @@ void nhflow_force::addpoint(lexer *p, fdm_nhf *d, int q1, int q2)
     ccpt[ccptcount][0] = (pt[q2][0]-pt[q1][0])*xd + pt[q1][0];
     ccpt[ccptcount][1] = (pt[q2][1]-pt[q1][1])*xd + pt[q1][1];
     ccpt[ccptcount][2] = (pt[q2][2]-pt[q1][2])*xd + pt[q1][2];
+    
+    //cout<<" ccpt_x: "<<ccpt[ccptcount][0] <<" ccpt_y: "<<ccpt[ccptcount][1]<<" ccpt_z: "<<ccpt[ccptcount][2]<<endl;  
 
     if(confac[n]>-1)
     nn=confac[n];

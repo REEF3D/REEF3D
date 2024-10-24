@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"nhflow_vel_probe_theory.h"
 #include"nhflow_print_Hs.h"
 #include"nhflow_turbulence.h"
+#include"nhflow_force.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -98,6 +99,12 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->P40>0)
 	pstate=new nhflow_state(p,d,pgc);
+    
+    if(p->P81>0)
+	pforce = new nhflow_force*[p->P81];
+    
+    for(n=0;n<p->P81;++n)
+	pforce[n]=new nhflow_force(p,d,pgc,n);
 /*
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,d,pgc);
@@ -243,6 +250,15 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 
     p->stateprinttime+=p->P42;
     }
+    
+    // Force box
+    if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
+	for(n=0;n<p->P81;++n)
+	pforce[n]->ini(p,d,pgc);
+
+	if(p->count>1 && p->P81>0)
+	for(n=0;n<p->P81;++n)
+	pforce[n]->start(p,d,pgc);
 
 /*
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))

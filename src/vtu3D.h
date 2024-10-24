@@ -34,7 +34,6 @@ class print_wsf_theory;
 class print_wsfline_x;
 class print_wsfline_y;
 class force;
-class force;
 class vorticity;
 class solver;
 class probe_point;

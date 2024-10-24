@@ -44,6 +44,7 @@ class nhflow_vel_probe;
 class nhflow_vel_probe_theory;
 class nhflow_print_Hs;
 class nhflow_turbulence;
+class nhflow_force;
 
 using namespace std;
 
@@ -90,6 +91,8 @@ private:
     nhflow_vel_probe *pvel;
     nhflow_vel_probe_theory *pveltheo;
     nhflow_print_Hs *phs;
+    nhflow_force **pforce;
+    
 };
 
 #endif

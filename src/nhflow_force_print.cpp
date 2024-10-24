@@ -45,12 +45,12 @@ void nhflow_force::print_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
     // Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_Force",0777);
+	mkdir("./REEF3D_NHFLOW_Force",0777);
 	
     if(p->mpirank==0)
     {
     // open force surf file
-	sprintf(name,"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
+	sprintf(name,"./REEF3D_NHFLOW_Force/REEF3D_NHFLOW_Force-%i.dat",ID+1);
 	
 	fout.open(name);
 

@@ -29,13 +29,17 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-nhflow_force::force(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn):vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
+nhflow_force::nhflow_force(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn) : interfac(1.6),zero(0.0),ID(qn)
 {
 	// Create Folder
 	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_SOLID",0777);
 	
     forceprintcount=0;
+    
+    p->Darray(eta,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(vertice,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(nodeflag,p->imax*p->jmax*(p->kmax+2));
     
     
     // open files
@@ -66,23 +70,24 @@ nhflow_force::force(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn):vertice(p),nod
     gcval_press=40;  
 }
 
-nhflow_force::~force()
+nhflow_force::~nhflow_force()
 {
 }
 
 void nhflow_force::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    triangulation(p,d,pgc,d->phi);
-	reconstruct(p,d,d->phi);
+    triangulation(p,d,pgc);
+	reconstruct(p,d);
 	
 	print_vtp(p,d,pgc);
 } 
 
 void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    pgc->start4(p,d->press,gcval_press);
-
 	// forcecalc
+    triangulation(p,d,pgc);
+	reconstruct(p,d);
+    
     force_calc(p,d,pgc);
     
         if(p->mpirank==0)
@@ -94,7 +99,16 @@ void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         print_force(p,d,pgc);
         }
+        
+    print_vtp(p,d,pgc);
     
-    pgc->start4(p,d->press,gcval_press);
+    p->del_Iarray(tri,numtri,4);
+    p->del_Darray(pt,numvert,3);
+    p->del_Darray(ls,numvert);
+    p->del_Iarray(facet,numtri,4);
+    p->del_Iarray(confac,numtri);
+    p->del_Iarray(numfac,numtri);
+	p->del_Iarray(numpt,numtri);
+    p->del_Darray(ccpt,numtri*4,3);
 } 
 

@@ -36,7 +36,7 @@ void nhflow_forcing::box(lexer *p, ghostcell *pgc, int id)
     zs = p->A581_zs[id];
     ze = p->A581_ze[id];
     
-	cout<<p->mpirank<<" FORCING_CYLINDER  xs: "<<xs<<" xe: "<<xe<<" id: "<<id<<endl;
+	//cout<<p->mpirank<<" FORCING_CYLINDER  xs: "<<xs<<" xe: "<<xe<<" id: "<<id<<endl;
 	// Face 3
 	// Tri 1
 	tstart[entity_count]=tricount;

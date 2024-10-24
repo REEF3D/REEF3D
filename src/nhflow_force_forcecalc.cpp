@@ -143,7 +143,7 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             
             sgnx = (d->SOLID[Ip1JK] - d->SOLID[Im1JK])/(p->DXP[IM1] + p->DXP[IP]);
             sgny = (d->SOLID[IJp1K] - d->SOLID[IJm1K])/(p->DYP[JM1] + p->DYP[JP]);
-            sgnz = (d->SOLID[IJKp1] - d->SOLID[IJKm1])/(p->DZP[KM1] + p->DZP[KP]);
+            sgnz = (d->SOLID[IJKp1] - d->SOLID[IJKm1])/(p->DZP[KM1] + p->DZP[KP])*p->sigz[IJ];
             
             nx = nx*sgnx/fabs(fabs(sgnx)>1.0e-20?sgnx:1.0e20);
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
@@ -152,45 +152,50 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             
             xloc = xc + nx*p->DXP[IP]*p->P91;
             yloc = yc + ny*p->DYP[JP]*p->P91;
-            zloc = zc + nz*p->DZP[KP]*p->P91;
+            zloc = zc + nz*p->DZP[KP]*d->WL(i,j)*p->P91;
             
             xlocvel = xc + nx*p->DXP[IP];
             ylocvel = yc + ny*p->DYP[JP];
-            zlocvel = zc + nz*p->DZP[KP];
+            zlocvel = zc + nz*p->DZP[KP]*d->WL(i,j);
             
-            uval = p->ccipol1_a(d->u,xlocvel,ylocvel,zlocvel);
-            vval = p->ccipol2_a(d->v,xlocvel,ylocvel,zlocvel);
-            wval = p->ccipol3_a(d->w,xlocvel,ylocvel,zlocvel);
+            uval = p->ccipol4V(d->U,xlocvel,ylocvel,zlocvel);
+            vval = p->ccipol4V(d->V,xlocvel,ylocvel,zlocvel);
+            wval = p->ccipol4V(d->W,xlocvel,ylocvel,zlocvel);
             
             du = uval/p->DXN[IP];
             dv = vval/p->DYN[JP];
-            dw = wval/p->DZN[KP];
+            dw = wval/(p->DZN[KP]*d->WL(i,j));
             
-            pval =      p->ccipol4a(d->press,xloc,yloc,zloc) - p->pressgage;
-            density =   p->ccipol4a(d->ro,xloc,yloc,zloc);
-            viscosity = p->ccipol4a(d->visc,xloc,yloc,zloc);
-            phival =    p->ccipol4a(d->phi,xloc,yloc,zloc);
+            pval =      p->ccipol4V(d->P,xloc,yloc,zloc) - p->pressgage;
+            density =   p->ccipol4V(d->RO,xloc,yloc,zloc);
+            viscosity = p->ccipol4V(d->VISC,xloc,yloc,zloc);
             
+            etaval = p->ccslipol4(d->eta,xloc,yloc);
+            
+            hspval = (p->wd + etaval - zloc)*density*fabs(p->W22);
+
             if(p->P82==1)
-            viscosity += p->ccipol4a(d->eddyv,xloc,yloc,zloc);   
+            viscosity += p->ccipol4V(d->EV,xloc,yloc,zloc);   
             
             i = p->posc_i(xloc);
             j = p->posc_j(yloc);
             k = p->posc_k(zloc);
             
+
+            cout<<"pval : "<<pval<<" hspval: "<<hspval<<" nx: "<<nx<<endl;
+            
             // Force
-            if(phival>-1.6*p->DXM || p->P92==1)
-            {
-            Fx += -(pval)*A*nx
-                       + density*viscosity*A*(du*ny+du*nz);
+            Fx += -(pval + hspval)*A*nx;
+                       //+ 0.0*density*viscosity*A*(du*ny+du*nz);
                        
-            Fy += -(pval)*A*ny
-                       + density*viscosity*A*(dv*nx+dv*nz);
+            Fy += -(pval + hspval)*A*ny;
+                      // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
                     
-            Fz += -(pval)*A*nz
-                       + density*viscosity*A*(dw*nx+dw*ny);   
+            Fz += -(pval + hspval)*A*nz;
+                      // + 0.0*density*viscosity*A*(dw*nx+dw*ny);   
                        
-            }
+            cout<<"Fx: "<<Fx<<" nx: "<<nx<<" A: "<<A<<endl;
+                       
     Ax+=A*nx;
     Ay+=A*ny;
     

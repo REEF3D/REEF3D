@@ -45,12 +45,12 @@ public:
     virtual void ini(lexer*,fdm_nhf*,ghostcell*);
 
 private:
-	void triangulation(lexer*, fdm_nhf*, ghostcell*, field&);
-	void reconstruct(lexer*, fdm_nhf*, field&);
+	void triangulation(lexer*, fdm_nhf*, ghostcell*);
+	void reconstruct(lexer*, fdm_nhf*);
 	void addpoint(lexer*,fdm_nhf*,int,int);
 	void finalize(lexer*,fdm_nhf*);
     
-    int *vertice,*nodeflag*
+    int *vertice,*nodeflag;
     double *eta;
 	
 	int **tri, **facet, *confac, *numfac,*numpt;
@@ -72,7 +72,6 @@ private:
     void pvtp(lexer*,fdm_nhf*,ghostcell*);
     void header(lexer*,fdm_nhf*,ghostcell*);
     void name_iter(lexer*,fdm_nhf*,ghostcell*);
-    void name_time(lexer*,fdm_nhf*,ghostcell*);
     void piecename(lexer*,fdm_nhf*,ghostcell*,int);
 
     char name[100],pname[100],epsvar[100];
@@ -92,6 +91,7 @@ private:
     double nx,ny,nz,norm;
     double nxs,nys,nzs;
     double uval,vval,wval,pval,viscosity,density,phival;
+    double etaval,hspval;
     double du,dv,dw;
     double at,bt,ct,st;
     
