@@ -257,6 +257,9 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Force">
+            <File Name="nhflow_force.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Hs">
             <File Name="nhflow_print_Hs.h"/>
           </VirtualDirectory>
@@ -1376,6 +1379,18 @@
           <File Name="nhflow_HLL.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Force">
+            <File Name="nhflow_force_print.cpp"/>
+            <VirtualDirectory Name="Print VTP">
+              <File Name="nhflow_force_header.cpp"/>
+              <File Name="nhflow_force_vtp.cpp"/>
+              <File Name="nhflow_force_pvtp.cpp"/>
+            </VirtualDirectory>
+            <File Name="nhflow_force_forcecalc.cpp"/>
+            <File Name="nhflow_force_triangulate.cpp"/>
+            <File Name="nhflow_force_reconstruct.cpp"/>
+            <File Name="nhflow_force.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Hs">
             <File Name="nhflow_print_Hs.cpp"/>
           </VirtualDirectory>

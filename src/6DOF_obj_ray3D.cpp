@@ -33,7 +33,6 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
     fbio(i,j,k)=1;
 	a->fb(i,j,k)=1.0e8;
 	}
-    
 	
     for(rayiter=0; rayiter<2; ++rayiter)
     {

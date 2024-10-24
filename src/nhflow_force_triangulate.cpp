@@ -20,18 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"force.h"
+#include"nhflow_force.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
+
+void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc, field& f)
 {
 	int negcount, poscount;
     
     NDBASELOOP
-    eta(i,j,k) = 0.125*(a->solid(i,j,k) + a->solid(i+1,j,k) + a->solid(i,j+1,k) + a->solid(i+1,j+1,k)
-                      + a->solid(i,j,k+1) + a->solid(i+1,j,k+1) + a->solid(i,j+1,k+1) + a->solid(i+1,j+1,k+1));
+    eta(i,j,k) = 0.125*(d->SOLID[IJK] + d->SOLID[Ip1JK] + d->SOLID[IJp1K] + d->SOLID[Ip1Jp1K]
+                      + d->SOLID[IJKp1] + d->SOLID[Ip1JKp1] + d->SOLID[IJp1Kp1] + d->SOLID[Ip1Jp1Kp1]);
 	
     NDBASELOOP
     vertice(i,j,k)=-1;

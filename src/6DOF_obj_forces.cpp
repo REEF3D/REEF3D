@@ -34,11 +34,7 @@ void sixdof_obj::hydrodynamic_forces(lexer* p, fdm *a, ghostcell *pgc,field& uve
     forces_stl(p,a,pgc,uvel,vvel,wvel,iter,finalize);
     
     if(p->X60==2)
-    {
     forces_lsm(p,a,pgc,uvel,vvel,wvel,iter,finalize);
-    
-    //forces_stl(p,a,pgc,uvel,vvel,wvel,iter);
-    }
 }
 
 void sixdof_obj::update_forces(lexer *p)
