@@ -42,7 +42,6 @@ void linear_regression_cont::linreg_cont_func(lexer*,ghostcell*,double xval, dou
 {
     // y(x) = b1*x + b0
     
-    
     num += 1.0;
     
     xsum += xval;
@@ -57,24 +56,6 @@ void linear_regression_cont::linreg_cont_func(lexer*,ghostcell*,double xval, dou
     
     b1 = SS_xy/SS_xx;
     
-    b0 = (ysum/num)  - b1*(xsum/num);
-    /*
-    # number of observations/points 
-  n = np.size(x) 
-  
-  # mean of x and y vector 
-  m_x = np.mean(x) 
-  m_y = np.mean(y) 
-  
-  # calculating cross-deviation and deviation about x 
-  SS_xy = np.sum(y*x) - n*m_y*m_x 
-  SS_xx = np.sum(x*x) - n*m_x*m_x 
-  
-  # calculating regression coefficients 
-  b_1 = SS_xy / SS_xx 
-  b_0 = m_y - b_1*m_x 
-  
-  return (b_0, b_1) */
-    
+    b0 = (ysum/num)  - b1*(xsum/num);    
 }
 

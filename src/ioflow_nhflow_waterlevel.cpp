@@ -48,8 +48,6 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     
     p->phiout += p->phimean;
     
-    //cout<<"phiout: "<<p->phiout<<" phimean: "<<p->phimean<<endl;
-    
     
     // set fsf 
     double wsfout=p->phimean;

@@ -38,7 +38,7 @@ void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
         box(p,pgc,qn);
         ++entity_count;
     }
-	
+    
 	for(qn=0;qn<p->A584;++qn)
     {
         cylinder_z(p,pgc,qn);

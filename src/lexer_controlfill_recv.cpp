@@ -2703,7 +2703,7 @@ void lexer::ctrlrecv()
     {
 	A584_xc[n] = dctrl[dd];
     dd++;
-    A584_xc[n] = dctrl[dd];
+    A584_yc[n] = dctrl[dd];
     dd++;
     A584_zs[n] = dctrl[dd];
     dd++;
