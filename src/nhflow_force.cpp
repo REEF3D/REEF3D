@@ -79,16 +79,30 @@ void nhflow_force::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     triangulation(p,d,pgc);
 	reconstruct(p,d);
 	
-	print_vtp(p,d,pgc);
+	//print_vtp(p,d,pgc);
 } 
 
 void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	// forcecalc
+    
+    if(p->mpirank==0)
+    cout<<"FORCEMAIN_001"<<endl;
+    
     triangulation(p,d,pgc);
+    
+    if(p->mpirank==0)
+    cout<<"FORCEMAIN_002"<<endl;
+    
 	reconstruct(p,d);
     
+    if(p->mpirank==0)
+    cout<<"FORCEMAIN_003"<<endl;
+    
     force_calc(p,d,pgc);
+    
+    if(p->mpirank==0)
+    cout<<"FORCEMAIN_004"<<endl;
     
         if(p->mpirank==0)
         {

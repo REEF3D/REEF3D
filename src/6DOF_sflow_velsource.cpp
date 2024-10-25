@@ -46,9 +46,9 @@ void sixdof_sflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     dfdx_plus = (press(i+1,j)-press(i,j))/p->DXP[IP];
     dfdx_min  = (press(i,j)-press(i-1,j))/p->DXP[IM1];
     
-    dfdx = limiter(dfdx_plus,dfdx_min);
+    dfdx = WL(i,j)*limiter(dfdx_plus,dfdx_min);
     
-    dfdx = WL(i,j)*(press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    //dfdx = WL(i,j)*(press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
  
     d->F[IJK] += 1.0/p->W1*dfdx;
     }
@@ -61,9 +61,9 @@ void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     dfdy_plus = (press(i,j+1)-press(i,j))/p->DYP[JP];
     dfdy_min  = (press(i,j)-press(i,j-1))/p->DYP[JM1];
     
-    dfdy = limiter(dfdy_plus,dfdy_min);
+    dfdy = WL(i,j)*limiter(dfdy_plus,dfdy_min);
     
-    dfdy = WL(i,j)*(press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    //dfdy = WL(i,j)*(press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
         
     d->G[IJK] += 1.0/p->W1*dfdy;
     }
@@ -77,7 +77,12 @@ void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	SLICELOOP1
     {
-        b->F(i,j) += 1.0/p->W1*(press(i+1,j) - press(i,j))/p->DXP[IP];
+    dfdx_plus = (press(i+1,j)-press(i,j))/p->DXP[IP];
+    dfdx_min  = (press(i,j)-press(i-1,j))/p->DXP[IM1];
+    
+    dfdx = limiter(dfdx_plus,dfdx_min);
+    
+    b->F(i,j) += dfdx/p->W1;
     }
 }
 
@@ -85,13 +90,17 @@ void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	SLICELOOP2
     {
-        b->G(i,j) += 1.0/p->W1*(press(i,j+1) - press(i,j))/p->DYP[JP];
+    dfdy_plus = (press(i,j+1)-press(i,j))/p->DYP[JP];
+    dfdy_min  = (press(i,j)-press(i,j-1))/p->DYP[JM1];
+    
+    dfdy = limiter(dfdy_plus,dfdy_min);
+    
+    b->G(i,j) += dfdy/p->W1;
     }
     
     SLICELOOP4
     {
         b->test(i,j) = 1.0/p->W1*(press(i,j+1) - press(i,j))/p->DYP[JP];
-        //b->test(i,j) = press(i,j);
     }
     pgc->gcsl_start4(p,b->test,50);
 }

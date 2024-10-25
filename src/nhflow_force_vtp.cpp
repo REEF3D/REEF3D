@@ -131,13 +131,13 @@ void nhflow_force::print_vtp(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	result.write((char*)&iin, sizeof (int));
     for(n=0;n<vertice_num;++n)
 	{
-	ffn=float(p->ccipol4V(d->U,ccpt[n][0],ccpt[n][1],ccpt[n][2]));
+	ffn=float(p->ccipol4V(d->U, d->WL, d->bed,ccpt[n][0],ccpt[n][1],ccpt[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->ccipol4V(d->V,ccpt[n][0],ccpt[n][1],ccpt[n][2]));
+	ffn=float(p->ccipol4V(d->V, d->WL, d->bed,ccpt[n][0],ccpt[n][1],ccpt[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->ccipol4V(d->W,ccpt[n][0],ccpt[n][1],ccpt[n][2]));
+	ffn=float(p->ccipol4V(d->W, d->WL, d->bed,ccpt[n][0],ccpt[n][1],ccpt[n][2]));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	
@@ -147,7 +147,7 @@ void nhflow_force::print_vtp(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	result.write((char*)&iin, sizeof (int));
     for(n=0;n<vertice_num;++n)
 	{
-	ffn=float(p->ccipol4V(d->P,ccpt[n][0],ccpt[n][1],ccpt[n][2]) - p->pressgage);
+	ffn=float(p->ccipol4V(d->P, d->WL, d->bed,ccpt[n][0],ccpt[n][1],ccpt[n][2]) - p->pressgage);
 	result.write((char*)&ffn, sizeof (float));
 	}
 

@@ -48,7 +48,7 @@ public:
     double ccipol4(field&,double,double,double);
     double ccipol4phi(fdm*,field&,double,double,double);
     double ccipol4press(fdm*,field&,double,double,double);
-    double ccipol4V(double*,double,double,double);
+    double ccipol4V(double*,slice&,slice&,double,double,double);
     double ccipol4c(double*,double,double,double);
     double ccipol7V(double*,double,double,double);
 	double ccipol1_a(field&,double,double,double);

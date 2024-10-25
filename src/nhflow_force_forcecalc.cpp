@@ -29,6 +29,9 @@ Author: Hans Bihs
 
 void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    cout<<"FORCE_000  "<<polygon_num<<endl;  
+    
     double ux,vy,wz,vel,pressure,density,viscosity;
     double du,dv,dw;
     double xloc,yloc,zloc;
@@ -43,7 +46,10 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     A_tot=0.0;
     
     for(n=0;n<polygon_num;++n)
-    {       
+    {     
+
+
+    cout<<"FORCE_001  "<<ccpt[facet[n][0]][0]<<endl;  
             // triangle
             if(numpt[n]==3)
             {
@@ -72,6 +78,9 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             
             A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
             }
+            
+
+    cout<<"FORCE_002"<<endl;
             
             //quadrilidral
             if(numpt[n]==4)
@@ -116,6 +125,10 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             A += sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
             }
             
+            
+
+    cout<<"FORCE_003"<<endl;
+    
             xp1 = x2-x1;
             yp1 = y2-y1;
             zp1 = z2-z1;
@@ -150,6 +163,10 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
             
             
+
+    cout<<"FORCE_004"<<endl;
+    
+    
             xloc = xc + nx*p->DXP[IP]*p->P91;
             yloc = yc + ny*p->DYP[JP]*p->P91;
             zloc = zc + nz*p->DZP[KP]*d->WL(i,j)*p->P91;
@@ -158,31 +175,35 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             ylocvel = yc + ny*p->DYP[JP];
             zlocvel = zc + nz*p->DZP[KP]*d->WL(i,j);
             
-            uval = p->ccipol4V(d->U,xlocvel,ylocvel,zlocvel);
-            vval = p->ccipol4V(d->V,xlocvel,ylocvel,zlocvel);
-            wval = p->ccipol4V(d->W,xlocvel,ylocvel,zlocvel);
+            uval = p->ccipol4V(d->U, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
+            vval = p->ccipol4V(d->V, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
+            wval = p->ccipol4V(d->W, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
             
             du = uval/p->DXN[IP];
             dv = vval/p->DYN[JP];
             dw = wval/(p->DZN[KP]*d->WL(i,j));
             
-            pval =      p->ccipol4V(d->P,xloc,yloc,zloc) - p->pressgage;
-            density =   p->ccipol4V(d->RO,xloc,yloc,zloc);
-            viscosity = p->ccipol4V(d->VISC,xloc,yloc,zloc);
+            pval =      p->ccipol4V(d->P, d->WL, d->bed,xloc,yloc,zloc);// - p->pressgage;
+            density =   p->ccipol4V(d->RO, d->WL, d->bed,xloc,yloc,zloc);
+            viscosity = p->ccipol4V(d->VISC, d->WL, d->bed,xloc,yloc,zloc);
             
             etaval = p->ccslipol4(d->eta,xloc,yloc);
             
             hspval = (p->wd + etaval - zloc)*density*fabs(p->W22);
 
+
             if(p->P82==1)
-            viscosity += p->ccipol4V(d->EV,xloc,yloc,zloc);   
+            viscosity += p->ccipol4V(d->EV, d->WL, d->bed,xloc,yloc,zloc);   
             
             i = p->posc_i(xloc);
             j = p->posc_j(yloc);
             k = p->posc_k(zloc);
             
 
-            cout<<"pval : "<<pval<<" hspval: "<<hspval<<" nx: "<<nx<<endl;
+    cout<<"FORCE_005"<<endl;
+            
+            //cout<<"p->wd: "<<p->wd<<" etaval: "<<etaval<<" density: "<<density<<endl;
+            //cout<<"pval : "<<pval<<" hspval: "<<hspval<<" nx: "<<nx<<endl;
             
             // Force
             Fx += -(pval + hspval)*A*nx;
@@ -194,7 +215,7 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             Fz += -(pval + hspval)*A*nz;
                       // + 0.0*density*viscosity*A*(dw*nx+dw*ny);   
                        
-            cout<<"Fx: "<<Fx<<" nx: "<<nx<<" A: "<<A<<endl;
+            //cout<<"Fx: "<<Fx<<" nx: "<<nx<<" A: "<<A<<endl;
                        
     Ax+=A*nx;
     Ay+=A*ny;
@@ -213,10 +234,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     A_tot = pgc->globalsum(A_tot);
     Px = pgc->globalsum(Px);
     
-    //if(p->mpirank==0)
-    //cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
-    
- 
 }
 
 

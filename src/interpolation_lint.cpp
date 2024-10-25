@@ -483,7 +483,6 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
 
 double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
-    pip=4;
     v1=f(i,j,k);
     v2=f(i,j+1,k);
     v3=f(i+1,j,k);
@@ -525,8 +524,7 @@ double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, doubl
 
     value = wc*y1 +(1.0-wc)*y2;
 
-    pip=0;
- return value;
+    return value;
 
 }
 
@@ -534,25 +532,15 @@ double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-  
     v1=f[IJK];
-
     v2=f[IJp1K];
-
     v3=f[Ip1JK];
-
     v4=f[Ip1Jp1K];
-  
     v5=f[IJKp1];
-    
     v6=f[IJp1Kp1];
-
     v7=f[Ip1JKp1];
- 
     v8=f[Ip1Jp1Kp1];
   
-
-
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
 
@@ -565,9 +553,8 @@ double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double
 
     value = wc*y1 +(1.0-wc)*y2;
 
-    pip=0;
- return value;
 
+    return value;
 }
 
 

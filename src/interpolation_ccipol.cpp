@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"interpolation.h"
 #include"field.h"
+#include"slice.h"
 #include"lexer.h"
 
 double interpolation::ccipol1(field& f, double xp, double yp, double zp)
@@ -375,7 +376,7 @@ double interpolation::ccipol4_c(field& f, double xp, double yp, double zp)
     return value;
 }
 
-double interpolation::ccipol4V(double *f, double xp, double yp, double zp)
+double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
 {
     ii=i;
     jj=j;
@@ -383,8 +384,17 @@ double interpolation::ccipol4V(double *f, double xp, double yp, double zp)
     
     i = p->posc_i(xp);
     j = p->posc_j(yp);
-    k = p->posf_sig(i,j,zp);
-		
+    //k = p->posf_sig(i,j,zp);
+/*
+    i = MAX(i,0);
+    i = MIN(i,p->knox-1);
+    
+    j = MAX(j,0);
+    j = MIN(j,p->knoy-1);
+    
+    k = MAX(k,0);
+    k = MIN(k,p->knoz);
+    
     // wa
     wa = (p->XP[IP1]-xp)/p->DXN[IP];
     
@@ -415,38 +425,57 @@ double interpolation::ccipol4V(double *f, double xp, double yp, double zp)
     --j;
     }
 
-    
-    //wc
     if(p->j_dir==0)
     j=0;
     
-    wc = (p->ZSP[IJKp1]-zp)/(p->ZSN[FIJKp1]-p->ZSN[FIJK]);
+    //p->ZP[KP]*WL(i,j) + bed(i,j)
     
-    if((p->ZSP[IJKp1]-zp)/(p->ZSN[FIJKp1]-p->ZSN[FIJK])<0.0)
+    //wc
+    wc = ((p->ZP[KP1]*WL(i,j) + bed(i,j))-zp)/(p->DZN[KP]*WL(i,j) + bed(i,j));
+    
+    if(((p->ZP[KP1]*WL(i,j) + bed(i,j))-zp)/(p->DZN[KP]*WL(i,j) + bed(i,j))<0.0)
     {
-    wc = (p->ZSP[IJKp2]-zp)/(p->ZSN[FIJKp2]-p->ZSN[FIJKp1]);
+    wc = ((p->ZP[KP2]*WL(i,j) + bed(i,j))-zp)/(p->DZN[KP1]*WL(i,j) + bed(i,j));
     ++k;
     }
     
-    if((p->ZSP[IJKp1]-zp)/(p->ZSN[FIJKp1]-p->ZSN[FIJK])>1.0)
+    if(((p->ZP[KP1]*WL(i,j) + bed(i,j))-zp)/(p->DZN[KP]*WL(i,j) + bed(i,j))>1.0)
     {
-    wc = (p->ZSP[IJK]-zp)/(p->ZSN[FIJK]-p->ZSN[FIJKm1]);
+    wc = ((p->ZP[KP]*WL(i,j) + bed(i,j))-zp)/(p->DZN[KM1]*WL(i,j) + bed(i,j));
     --k;
     }
-
     
-
+    
+    i = MAX(i,0);
+    i = MIN(i,p->knox-1);
+    
+    j = MAX(j,0);
+    j = MIN(j,p->knoy-1);
+    
+    k = MAX(k,0);
+    k = MIN(k,p->knoz);
+    
+    
+    wc = MAX(wc,0);
+    wc = MIN(wc,1.0);*/
+/*
     if(p->j_dir==0)
     value = lint4V_2D(f,i,j,k,wa,wb,wc);
     
     if(p->j_dir==1)
-    value = lint4V(f,i,j,k,wa,wb,wc);
+    value = lint4V(f,i,j,k,wa,wb,wc);*/
+    
+    if(value != value)
+    cout<<i<<" "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
 
+    value = f[IJK];
+    
     i=ii;
     j=jj;
     k=kk;
     
-
+    
+    
     return value;
 }
 
