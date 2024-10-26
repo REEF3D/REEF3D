@@ -50,6 +50,9 @@ private:
 	void addpoint(lexer*,fdm_nhf*,int,int);
 	void finalize(lexer*,fdm_nhf*);
     
+    void allocate(lexer*,fdm_nhf*,ghostcell*);
+    void deallocate(lexer*,fdm_nhf*,ghostcell*);
+    
     int *vertice,*nodeflag;
     double *eta;
 	
@@ -65,6 +68,7 @@ private:
 	
 	
     void force_calc(lexer*,fdm_nhf*,ghostcell*);
+    
     
 	void print_force(lexer*,fdm_nhf*,ghostcell*);
     void print_ini(lexer*,fdm_nhf*,ghostcell*);
@@ -102,7 +106,15 @@ private:
 	int is,ie,js,je,ks,ke;
     const int ID;
 	
-
+    double ux,vy,wz,vel,pressure;
+    double xloc,yloc,zloc;
+	double xlocvel,ylocvel,zlocvel;
+    double sgnx,sgny,sgnz;
+    double Ax;
+    double Ay;
+    double Az;
+    double Px;
+    double xp1,xp2,yp1,yp2,zp1,zp2;
 };
 
 #endif

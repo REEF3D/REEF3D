@@ -1380,6 +1380,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Force">
+            <File Name="nhflow_force_allocate.cpp"/>
             <File Name="nhflow_force_print.cpp"/>
             <VirtualDirectory Name="Print VTP">
               <File Name="nhflow_force_header.cpp"/>

@@ -81,6 +81,7 @@ void nhflow_force::addpoint(lexer *p, fdm_nhf *d, int q1, int q2)
         nn=facount;
         ++facount;
     }
+    
 
     facet[nn][numpt[nn]] = ccptcount;
 	++numpt[nn];

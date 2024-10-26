@@ -76,39 +76,24 @@ nhflow_force::~nhflow_force()
 
 void nhflow_force::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    triangulation(p,d,pgc);
+    /*triangulation(p,d,pgc);
 	reconstruct(p,d);
-	
-	//print_vtp(p,d,pgc);
+	print_vtp(p,d,pgc);*/
 } 
 
 void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	// forcecalc
-    
-    if(p->mpirank==0)
-    cout<<"FORCEMAIN_001"<<endl;
-    
     triangulation(p,d,pgc);
-    
-    if(p->mpirank==0)
-    cout<<"FORCEMAIN_002"<<endl;
-    
 	reconstruct(p,d);
-    
-    if(p->mpirank==0)
-    cout<<"FORCEMAIN_003"<<endl;
-    
     force_calc(p,d,pgc);
-    
-    if(p->mpirank==0)
-    cout<<"FORCEMAIN_004"<<endl;
-    
+
         if(p->mpirank==0)
         {
         if(p->count==2)
         cout<<"Atot_solid: "<<A_tot<<endl;  
         
+        cout<<"Ax: "<<Ax<<" Ay: "<<Ay<<" Az: "<<Az<<endl;
         cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
 
         print_force(p,d,pgc);
@@ -116,13 +101,6 @@ void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
     print_vtp(p,d,pgc);
     
-    p->del_Iarray(tri,numtri,4);
-    p->del_Darray(pt,numvert,3);
-    p->del_Darray(ls,numvert);
-    p->del_Iarray(facet,numtri,4);
-    p->del_Iarray(confac,numtri);
-    p->del_Iarray(numfac,numtri);
-	p->del_Iarray(numpt,numtri);
-    p->del_Darray(ccpt,numtri*4,3);
+    deallocate(p,d,pgc);
 } 
 

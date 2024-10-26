@@ -72,7 +72,6 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-	
 	//--------------------
     countM=0;
     NDBASELOOP
@@ -85,14 +84,8 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     numtri_mem = numtri;
     numvert_mem = numvert;
 
-    p->Iarray(tri,numtri,4);
-    p->Darray(pt,numvert,3);
-    p->Darray(ls,numvert);
-    p->Iarray(facet,numtri,4);
-    p->Iarray(confac,numtri);
-    p->Iarray(numfac,numtri);
-	p->Iarray(numpt,numtri);
-    p->Darray(ccpt,numtri*4,3);
+    // allocate
+    allocate(p,d,pgc);
 
 
     countM=0;
