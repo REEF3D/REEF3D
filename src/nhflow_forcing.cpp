@@ -30,7 +30,7 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
 {
     forcing_flag=0;
     
-    if(p->A581>0 || p->A583>0 || p->A584>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0)
+    if(p->A581>0 || p->A583>0 || p->A584>0  || p->A585>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0)
     forcing_flag=1;
         
     if(forcing_flag==1)

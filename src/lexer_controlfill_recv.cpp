@@ -246,6 +246,8 @@ void lexer::ctrlrecv()
 	ii++;
     A584 = ictrl[ii];
 	ii++;
+    A585 = ictrl[ii];
+	ii++;
     A587 = ictrl[ii];
 	ii++;
     A588 = ictrl[ii];
@@ -1915,6 +1917,14 @@ void lexer::ctrlrecv()
     Darray(A584_r,A584);
     }
     
+    if(A585>0)
+	{
+    Darray(A585_xm,A585);
+	Darray(A585_ym,A585);
+	Darray(A585_zm,A585);
+    Darray(A585_r,A585);
+    }
+    
     if(A587>0)
 	{
     Darray(A587_xs,A587);
@@ -2802,6 +2812,18 @@ void lexer::ctrlrecv()
     A584_ze[n] = dctrl[dd];
     dd++;
     A584_r[n] = dctrl[dd];
+    dd++;
+    }
+    
+    for(n=0;n<A585;++n)
+    {
+	A585_xm[n] = dctrl[dd];
+    dd++;
+    A585_ym[n] = dctrl[dd];
+    dd++;
+    A585_zm[n] = dctrl[dd];
+    dd++;
+    A585_r[n] = dctrl[dd];
     dd++;
     }
     

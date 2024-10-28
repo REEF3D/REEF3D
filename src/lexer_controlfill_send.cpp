@@ -250,6 +250,8 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = A584;
 	ii++;
+    ictrl[ii] = A585;
+	ii++;
     ictrl[ii] = A587;
 	ii++;
     ictrl[ii] = A588;
@@ -1934,6 +1936,18 @@ void lexer::ctrlsend()
     dctrl[dd] = A584_ze[n];
     dd++;
     dctrl[dd] = A584_r[n];
+    dd++;
+    }
+    
+    for(n=0;n<A585;++n)
+    {
+	dctrl[dd] = A585_xm[n];
+    dd++;
+    dctrl[dd] = A585_ym[n];
+    dd++;
+    dctrl[dd] = A585_zm[n];
+    dd++;
+    dctrl[dd] = A585_r[n];
     dd++;
     }
     

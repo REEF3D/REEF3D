@@ -51,6 +51,12 @@ void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
         ++entity_count;
     }
     
+    for(qn=0;qn<p->A585;++qn)
+    {
+        sphere(p,pgc,qn);
+        ++entity_count;
+    }
+    
     for(qn=0;qn<p->A587;++qn)
     {
         wedge_x(p,pgc,qn);
@@ -98,7 +104,7 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     
-    entity_sum = p->A581 + p->A583 + p->A584 + p->A587 + p->A588 + p->A589;
+    entity_sum = p->A581 + p->A583 + p->A584 + p->A585 + p->A587 + p->A588 + p->A589;
 	tricount=0;
     trisum=0;
     
@@ -124,6 +130,15 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
 	snum = int(U/ds);
 	trisum+=6*snum;
 	}
+    
+    for(n=0; n<p->A585;++n)
+    {
+	r = p->A585_r[n];
+	U = 2.0*PI*r;
+	ds = 0.75*(U*p->DXM);
+	snum = int(U/ds);
+    trisum+=snum*snum*2;
+    }
     
     // wedge
     trisum+=8*p->A587;

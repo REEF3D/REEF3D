@@ -143,6 +143,7 @@ void lexer::ini_default()
     A581=0;      // int solid box
     A583=0;      // int solid cylinder y
     A584=0;      // int solid cylinder z
+    A585=0;      // int solid sphere
     A587=0;      // int solid wedge x
     A588=0;      // int solid wedge y
     A589=0;      // int solid wedge z

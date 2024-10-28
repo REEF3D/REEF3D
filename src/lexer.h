@@ -290,6 +290,8 @@ public:
     double *A583_xc,*A583_zc,*A583_ys,*A583_ye,*A583_r;
     int A584;
     double *A584_xc,*A584_yc,*A584_zs,*A584_ze,*A584_r;
+    int A585;
+    double *A585_xm,*A585_ym,*A585_zm,*A585_r;
     int A587;
     double *A587_xs,*A587_xe,*A587_ys,*A587_ye,*A587_zs,*A587_ze;
     int A588;

@@ -63,6 +63,7 @@ private:
     void box(lexer*, ghostcell*, int);
     void cylinder_y(lexer*, ghostcell*, int);
     void cylinder_z(lexer*, ghostcell*, int);
+    void sphere(lexer*, ghostcell*, int);
     void wedge_x(lexer*, ghostcell*, int);
     void wedge_y(lexer*, ghostcell*, int);
     void wedge_z(lexer*, ghostcell*, int);
