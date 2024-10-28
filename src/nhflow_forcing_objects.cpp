@@ -131,6 +131,7 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
 	trisum+=6*snum;
 	}
     
+    // sphere
     for(n=0; n<p->A585;++n)
     {
 	r = p->A585_r[n];

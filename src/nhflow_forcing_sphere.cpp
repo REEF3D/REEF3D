@@ -26,14 +26,10 @@ Author: Hans Bihs
 
 void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
 {
-    
     double U,ds,dt,phi,theta;
-	
 	int snum;
-	int vertice_mem, center1_num,center2_num;
     double xm,ym,zm,r;
     int q;
-
 
 	xm=p->A585_xm[id];
     ym=p->A585_ym[id];
@@ -42,7 +38,7 @@ void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
 
 
 	U = 2.0 * PI * r;
-	ds = p->S19*(U*p->DXM);
+	ds = 0.75*(U*p->DXM);
 	snum = int(U/ds);
 
 
