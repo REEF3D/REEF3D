@@ -286,8 +286,21 @@ public:
     double A580_xs,A580_xe,A580_ys,A580_ye;
     int A581;
     double *A581_xs,*A581_xe,*A581_ys,*A581_ye,*A581_zs,*A581_ze;
+    int A583;
+    double *A583_xc,*A583_zc,*A583_ys,*A583_ye,*A583_r;
     int A584;
     double *A584_xc,*A584_yc,*A584_zs,*A584_ze,*A584_r;
+    int A587;
+    double *A587_xs,*A587_xe,*A587_ys,*A587_ye,*A587_zs,*A587_ze;
+    int A588;
+    double *A588_xs,*A588_xe,*A588_ys,*A588_ye,*A588_zs,*A588_ze;
+    int A589;
+    double *A589_xs,*A589_xe,*A589_ys,*A589_ye,*A589_zs,*A589_ze;
+    
+    int A590,A591,A592,A593,A594;
+    double A591_x,A591_y,A591_z;
+    double A592_x,A592_y,A592_z;
+    double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
     
 	// boundary conditions
 	int B10,B20,B23;

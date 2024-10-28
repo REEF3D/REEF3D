@@ -349,7 +349,37 @@ void lexer::read_control()
                case 581: ++A581;
                         clear(c,numint);
                         break;
+               case 583: ++A583;
+                        clear(c,numint);
+                        break;
                case 584: ++A584;
+                        clear(c,numint);
+                        break;
+               case 587: ++A587;
+                        clear(c,numint);
+                        break;
+               case 588: ++A588;
+                        clear(c,numint);
+                        break;
+               case 589: ++A589;
+                        clear(c,numint);
+                        break;
+               case 590: control>>A590;
+                        clear(c,numint);
+                        break;
+               case 591: control>>A591_x>>A591_y>>A591_z;
+                         A591=1;
+						 clear(c,numint);
+						 break;
+               case 592: control>>A592_x>>A592_y>>A592_z;
+                         A592=1;
+						 clear(c,numint);
+						 break;
+               case 593: control>>A593_x>>A593_y>>A593_z>>A593_phi>>A593_theta>>A593_psi;
+                         A593=1;
+						 clear(c,numint);
+						 break;
+               case 594: ++A594;
                         clear(c,numint);
                         break;
 				}
@@ -2325,12 +2355,38 @@ void lexer::read_control()
 	Darray(A581_zs,A581);
 	Darray(A581_ze,A581);
     
-    // A
+    Darray(A583_xc,A583);
+	Darray(A583_zc,A583);
+	Darray(A583_ys,A583);
+	Darray(A583_ye,A583);
+    Darray(A583_r,A583);
+
     Darray(A584_xc,A584);
 	Darray(A584_yc,A584);
 	Darray(A584_zs,A584);
 	Darray(A584_ze,A584);
     Darray(A584_r,A584);
+    
+    Darray(A587_xs,A587);
+	Darray(A587_xe,A587);
+	Darray(A587_ys,A587);
+	Darray(A587_ye,A587);
+	Darray(A587_zs,A587);
+	Darray(A587_ze,A587);
+    
+    Darray(A588_xs,A588);
+	Darray(A588_xe,A588);
+	Darray(A588_ys,A588);
+	Darray(A588_ye,A588);
+	Darray(A588_zs,A588);
+	Darray(A588_ze,A588);
+    
+    Darray(A589_xs,A589);
+	Darray(A589_xe,A589);
+	Darray(A589_ys,A589);
+	Darray(A589_ye,A589);
+	Darray(A589_zs,A589);
+	Darray(A589_ze,A589);
 
 	// B
 	Darray(B71_val,B71);
@@ -2950,7 +3006,11 @@ void lexer::read_control()
     }
     
     int countA581=0;
+    int countA583=0;
     int countA584=0;
+    int countA587=0;
+    int countA588=0;
+    int countA589=0;
 	int countB71=0;
 	int countB106=0;
 	int countB107=0;
@@ -3061,8 +3121,24 @@ void lexer::read_control()
 						 ++countA581;
 						 clear(c,numint);
 						 break;
+                 case 583: control>>A583_xc[countA583]>>A583_zc[countA583]>>A583_ys[countA583]>>A583_ye[countA583]>>A583_r[countA583];
+						 ++countA583;
+						 clear(c,numint);
+						 break;
                  case 584: control>>A584_xc[countA584]>>A584_yc[countA584]>>A584_zs[countA584]>>A584_ze[countA584]>>A584_r[countA584];
 						 ++countA584;
+						 clear(c,numint);
+						 break;
+                 case 587: control>>A587_xs[countA587]>>A587_xe[countA587]>>A587_ys[countA587]>>A587_ye[countA587]>>A587_zs[countA587]>>A587_ze[countA587];
+						 ++countA587;
+						 clear(c,numint);
+						 break;
+                 case 588: control>>A588_xs[countA588]>>A588_xe[countA588]>>A588_ys[countA588]>>A588_ye[countA588]>>A588_zs[countA588]>>A588_ze[countA588];
+						 ++countA588;
+						 clear(c,numint);
+						 break;
+                 case 589: control>>A589_xs[countA589]>>A589_xe[countA589]>>A589_ys[countA589]>>A589_ye[countA589]>>A589_zs[countA589]>>A589_ze[countA589];
+						 ++countA589;
 						 clear(c,numint);
 						 break;
 				}
