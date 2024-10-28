@@ -30,13 +30,11 @@ Author: Hans Bihs
 void nhflow_force::print_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
     // write to surf file
-
     fout<<p->count<<"\t";
     fout<<setprecision(9)<<p->simtime<<"\t";
     fout<<Fx<<" \t ";
     fout<<Fy<<" \t ";
 	fout<<Fz;
-    
 
     fout<<endl;
 }
@@ -59,12 +57,8 @@ void nhflow_force::print_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
     fout<<p->P81_xs[ID]<<" "<<p->P81_xe[ID]<<" . "<<p->P81_ys[ID]<<" "<<p->P81_ye[ID]<<" . "<<p->P81_zs[ID]<<" "<<p->P81_ze[ID]<<endl;
     fout<<endl<<endl;
     
- 
     fout<<"it \t time \t Fx \t Fy \t Fz ";
-    
 
     fout<<endl;
 	}
-
-    
 }

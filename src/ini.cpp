@@ -136,7 +136,10 @@ void lexer::ini_default()
     
     A580=0;      // int block eta
     A581=0;      // int solid box
-    A584=0;      // int solid vertical cylinder
+
+    A584=0;      // int solid cylinder z
+
+    
 
     // Boundary Conditions
 	B10=0;			// int wall laws velocities on/off

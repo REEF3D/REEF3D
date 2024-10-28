@@ -32,7 +32,6 @@ void nhflow_force::reconstruct(lexer *p, fdm_nhf *d)
     confac[n]=-1;
     facount=ccptcount=0;
 
-
     for(n=0;n<numtri; ++n)
     {
         if((ls[tri[n][0]] >= -zero && ls[tri[n][1]] < zero)  ||  (ls[tri[n][0]] < zero && ls[tri[n][1]] >= -zero))
@@ -53,35 +52,35 @@ void nhflow_force::reconstruct(lexer *p, fdm_nhf *d)
         if((ls[tri[n][2]] >= -zero && ls[tri[n][3]] < zero)  ||  (ls[tri[n][2]] < zero && ls[tri[n][3]] >= -zero))
         addpoint(p,d,tri[n][2],tri[n][3]);
     }
+    
+    polygon_num=facount;
 }
 
 void nhflow_force::addpoint(lexer *p, fdm_nhf *d, int q1, int q2)
 {
 	// p. 917
-	
     double dist,xd,dnom;
-
+    
     dnom=ls[q2]-ls[q1];
     dnom=fabs(dnom)>1.0e-20?dnom:1.0e-20;
 
-    xd = -(ls[q1]/(dnom));
+    xd = -ls[q1]/dnom;
 
     ccpt[ccptcount][0] = (pt[q2][0]-pt[q1][0])*xd + pt[q1][0];
     ccpt[ccptcount][1] = (pt[q2][1]-pt[q1][1])*xd + pt[q1][1];
     ccpt[ccptcount][2] = (pt[q2][2]-pt[q1][2])*xd + pt[q1][2];
     
-    //cout<<" ccpt_x: "<<ccpt[ccptcount][0] <<" ccpt_y: "<<ccpt[ccptcount][1]<<" ccpt_z: "<<ccpt[ccptcount][2]<<endl;  
-
+    // add to existing facet
     if(confac[n]>-1)
     nn=confac[n];
-
+    
+    // new facet
     if(confac[n]==-1)
     {
         confac[n]=facount;
         nn=facount;
         ++facount;
     }
-    
 
     facet[nn][numpt[nn]] = ccptcount;
 	++numpt[nn];

@@ -37,8 +37,6 @@ void nhflow_force::print_vtp(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	result.open(name, ios::binary);
 	//---------------------------------------------
 	
-	polygon_num=facount;
-	
 	polygon_sum=0;
 	for(n=0;n<polygon_num;++n)
 	polygon_sum+=numpt[n];

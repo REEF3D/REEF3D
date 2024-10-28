@@ -84,7 +84,7 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     numtri_mem = numtri;
     numvert_mem = numvert;
 
-    // allocate
+    // allocate -------
     allocate(p,d,pgc);
 
 

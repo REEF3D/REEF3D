@@ -36,6 +36,38 @@ void nhflow_force::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
     p->Iarray(numfac,numtri);
 	p->Iarray(numpt,numtri);
     p->Darray(ccpt,numtri*4,3);
+    
+    
+    // ini
+    int n,q;
+    
+    for(n=0; n<numtri; ++n)
+    {
+    for(q=0;q<4;++q)
+    tri[n][q]=0;
+    
+    for(q=0;q<4;++q)
+    facet[n][q]=0;
+    
+    
+    confac[n]=0;
+    numfac[n]=0;
+    numpt[n]=0;
+    }
+    
+    for(n=0; n<numvert; ++n)
+    {
+    for(q=0;q<3;++q)
+    pt[n][q]=0.0;
+    
+    ls[n]=0.0;
+    }
+    
+    for(n=0; n<numtri*4; ++n)
+    {
+    for(q=0;q<3;++q)
+    ccpt[n][q]=0;
+    }
 }
 
 void nhflow_force::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
@@ -48,4 +80,9 @@ void nhflow_force::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
     p->del_Iarray(numfac,numtri);
 	p->del_Iarray(numpt,numtri);
     p->del_Darray(ccpt,numtri*4,3);
+}
+
+void nhflow_force::resize(lexer* p, fdm_nhf *d, ghostcell *pgc)
+{
+
 }

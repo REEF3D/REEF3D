@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include <math.h>
 
-
 void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {  
     Ax=0.0;
@@ -34,13 +33,11 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Az=0.0;
     Px=0.0;
     
-
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
     
     for(n=0;n<polygon_num;++n)
     { 
-        
             // triangle
             if(numpt[n]==3)
             {
@@ -70,7 +67,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
             }
             
-            
                    
             //quadrilidral
             if(numpt[n]==4)
@@ -95,7 +91,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             yc = (1.0/4.0)*(y1 + y2 + y3 + y4);
             zc = (1.0/4.0)*(z1 + z2 + z3 + z4);
             
-            
             //tri1
             at = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
             bt = sqrt(pow(x2-x3,2.0) + pow(y2-y3,2.0) + pow(z2-z3,2.0));
@@ -114,7 +109,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
             A += sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
             }
-            
             
 
             xp1 = x2-x1;
@@ -150,7 +144,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
             nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
             
-
 
             xloc = xc + nx*p->DXP[IP]*p->P91;
             yloc = yc + ny*p->DYP[JP]*p->P91;

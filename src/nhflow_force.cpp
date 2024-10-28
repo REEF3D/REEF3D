@@ -76,9 +76,9 @@ nhflow_force::~nhflow_force()
 
 void nhflow_force::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    /*triangulation(p,d,pgc);
+    triangulation(p,d,pgc);
 	reconstruct(p,d);
-	print_vtp(p,d,pgc);*/
+	print_vtp(p,d,pgc);
 } 
 
 void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
