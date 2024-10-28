@@ -26,34 +26,5 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void nhflow_fsf_f::forcing(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
-{/*
-    if(p->A581>0 || p->A584>0)
-    {
-     
-    k=p->knoz-1;
-    
-    SLICELOOP4
-    if(d->SOLID[IJK]>0)
-    {
-    
-        if(d->SOLID[Im1JK]<0)
-        {
-        WL(i-1,j) = WL(i,j);
-        d->eta(i-1,j) = d->eta(i,j);
-        }
-        
-        if(d->SOLID[Ip1JK]<0)
-        {
-        WL(i+1,j) = WL(i,j);
-        d->eta(i+1,j) = d->eta(i,j);
-        }
-        
-        
-    }
-    
-    pgc->gcsl_start4(p,WL,gcval_eta);
-    pgc->gcsl_start4(p,d->eta,gcval_eta);
-
-    }*/
-    
+{    
 }

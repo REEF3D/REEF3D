@@ -28,7 +28,12 @@ Author: Hans Bihs
 
 nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
 {
-    if(p->A581>0 || p->A584>0)
+    forcing_flag=0;
+    
+    if(p->A581>0 || p->A583>0 || p->A584>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0)
+    forcing_flag=1;
+        
+    if(forcing_flag==1)
     {
     p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
@@ -48,7 +53,7 @@ nhflow_forcing::~nhflow_forcing()
 
 void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
 {
-    if(p->A581>0 || p->A584>0)
+    if(forcing_flag==1)
     {
     // update direct forcing function
     ray_cast(p, d, pgc);
@@ -71,7 +76,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
 // Calculate forcing fields
     
     // add forcing term to RHS
-    
     LOOP
     {
         uf = 0.0;
@@ -117,7 +121,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
 
 void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(p->A581>0 || p->A584>0)
+    if(forcing_flag==1)
     {
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
@@ -126,7 +130,7 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     objects_create(p, pgc);
     
-    geometry_refinement(p,pgc);
+    //geometry_refinement(p,pgc);
     
     ray_cast(p, d, pgc);
     

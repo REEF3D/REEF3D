@@ -61,8 +61,15 @@ public:
     
 private:
     void box(lexer*, ghostcell*, int);
+    void cylinder_y(lexer*, ghostcell*, int);
     void cylinder_z(lexer*, ghostcell*, int);
+    void wedge_x(lexer*, ghostcell*, int);
+    void wedge_y(lexer*, ghostcell*, int);
+    void wedge_z(lexer*, ghostcell*, int);
     
+    void read_stl(lexer*, ghostcell*);
+    
+    void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
     void geometry_refinement(lexer*, ghostcell*);
     void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
     
@@ -81,6 +88,7 @@ private:
     double zmin,zmax;
     
     int reiniter;
+    int forcing_flag;
     
     const double epsi;
     

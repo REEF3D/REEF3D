@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"nhflow_forcing.h"
 #include"lexer.h"
-#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void nhflow_forcing::box(lexer *p, ghostcell *pgc, int id)

@@ -1324,16 +1324,22 @@
         <VirtualDirectory Name="Forcing">
           <File Name="nhflow_forcing_interface.cpp"/>
           <VirtualDirectory Name="Geometry">
-            <File Name="nhflow_forcing_raycast_y.cpp"/>
-            <File Name="nhflow_forcing_raycast_x.cpp"/>
-            <File Name="nhflow_forcing_raycast_z.cpp"/>
+            <File Name="nhflow_forcing_stl.cpp"/>
+            <File Name="nhflow_forcing_wedge_z.cpp"/>
+            <File Name="nhflow_forcing_wedge_y.cpp"/>
+            <File Name="nhflow_forcing_wedge_x.cpp"/>
+            <File Name="nhflow_forcing_cylinder_y.cpp"/>
+            <VirtualDirectory Name="Ray Casting">
+              <File Name="nhflow_forcing_reini_RK2.cpp"/>
+              <File Name="nhflow_forcing_raycast_y.cpp"/>
+              <File Name="nhflow_forcing_raycast_x.cpp"/>
+              <File Name="nhflow_forcing_raycast_io.cpp"/>
+              <File Name="nhflow_forcing_raycast_direct.cpp"/>
+              <File Name="nhflow_forcing_raycast.cpp"/>
+              <File Name="nhflow_forcing_raycast_z.cpp"/>
+            </VirtualDirectory>
             <File Name="nhflow_forcing_refinement.cpp"/>
-            <File Name="nhflow_forcing_reini_RK2.cpp"/>
-            <File Name="nhflow_forcing_raycast_io.cpp"/>
-            <File Name="nhflow_forcing_raycast_direct.cpp"/>
             <File Name="nhflow_forcing_objects.cpp"/>
-            <File Name="nhflow_forcing_distance.cpp"/>
-            <File Name="nhflow_forcing_raycast.cpp"/>
             <File Name="nhflow_forcing_cylinder_z.cpp"/>
             <File Name="nhflow_forcing_box.cpp"/>
           </VirtualDirectory>
