@@ -47,8 +47,6 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     zmax = MAX(zmax, p->ZSP[IJK]);
     }
     
-    //cout<<"ZMIN/ZMAX: "<<zmin<<"  "<<zmax<<endl;
-    
     LOOP
 	{
     IO[IJK]=1;
@@ -66,8 +64,9 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(rayiter==1)
             {
             pgc->gcparaxintV(p,IO,1);
+
+            //ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
             
-            ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
             ray_cast_x(p,d,pgc,tstart[qn],tend[qn]);
             if(p->j_dir==1)
             ray_cast_y(p,d,pgc,tstart[qn],tend[qn]);
@@ -95,16 +94,6 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		d->SOLID[IJK]=-100.0*p->DXM;
 	}
     
-    /*
-    LOOP
-    {
-        if(IO[IJK]==-1)
-        d->SOLID[IJK]=-1.0;
-        
-        
-        if(IO[IJK]==1)
-        d->SOLID[IJK]=1.0;
-    }*/
     
 	pgc->start5V(p,d->SOLID,1); 
 }

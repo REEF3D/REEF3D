@@ -45,7 +45,6 @@ void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 	double denom;
 	double psi = 1.0e-8*p->DXM;
 
-
 	for(n=ts; n<te; ++n)
 	{ 
 	Ax = tri_x[n][0];

@@ -31,7 +31,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Ax=0.0;
     Ay=0.0;
     Az=0.0;
-    Px=0.0;
     
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
@@ -129,8 +128,8 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             nx/=norm>1.0e-20?norm:1.0e20;
             ny/=norm>1.0e-20?norm:1.0e20;
             nz/=norm>1.0e-20?norm:1.0e20;
+            
             //----
-
             
             i = p->posc_i(xc);
             j = p->posc_j(yc);
@@ -167,16 +166,11 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             
             etaval = p->ccslipol4(d->eta,xloc,yloc);
             
-            hspval = (p->wd + etaval - zloc)*density*fabs(p->W22);
-
-
+            hspval = (p->wd + etaval - zloc)*p->W1*fabs(p->W22);
+            
             if(p->P82==1)
             viscosity += p->ccipol4V(d->EV, d->WL, d->bed,xloc,yloc,zloc);   
-            
-            i = p->posc_i(xloc);
-            j = p->posc_j(yloc);
-            k = p->posc_k(zloc);
-            
+
             // Force
             Fx += -(pval + hspval)*A*nx;
                        //+ 0.0*density*viscosity*A*(du*ny+du*nz);
@@ -185,14 +179,12 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
                       // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
                     
             Fz += -(pval + hspval)*A*nz;
-                      // + 0.0*density*viscosity*A*(dw*nx+dw*ny);   
-                       
-                       
-    Ax+=A*nx;
+                      // + 0.0*density*viscosity*A*(dw*nx+dw*ny); 
+               
+
+    Ax+=A*nx;    
     Ay+=A*ny;
     Az+=A*nz;
-    
-    Px += pval*nx/fabs(nx);
     
     A_tot+=A;
     }
@@ -205,8 +197,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Ay = pgc->globalsum(Ay);
     Az = pgc->globalsum(Az);
     A_tot = pgc->globalsum(A_tot);
-    Px = pgc->globalsum(Px);
-    
 }
 
 

@@ -165,8 +165,6 @@ double interpolation::ccslipol4(slice& f, double xp, double yp)
     i=ii;
     j=jj;
     
-    //cout<<i<<" "<<j<<" "<<wa<<" "<<wb<<" | "<<value<<endl;
-    
 
     return value;
 }

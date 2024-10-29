@@ -114,7 +114,7 @@ private:
     double Ax;
     double Ay;
     double Az;
-    double Px;
+
     double xp1,xp2,yp1,yp2,zp1,zp2;
 };
 

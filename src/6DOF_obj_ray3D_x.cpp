@@ -81,7 +81,6 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
         
     if(checkin==1)
     {
-	
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	

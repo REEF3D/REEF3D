@@ -79,6 +79,8 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
     && Cy>=p->global_ymin && Cy<=p->global_ymax
     && Cz>=zmin && Cz<=zmax)
     checkin=1;
+    
+    checkin=1;
         
     if(checkin==1)
     {

@@ -56,7 +56,6 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 
 	for(n=ts; n<te; ++n)
 	{ 
-		
 	Ax = tri_x[n][0];
 	Ay = tri_y[n][0];
 	Az = tri_z[n][0];
@@ -186,7 +185,6 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 				CR[IJK] += 1;
             }
             }
-		
 		}
 	}
     }
@@ -194,6 +192,4 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
     LOOP
 	if((CL[IJK]+1)%2==0  && (CR[IJK]+1)%2==0)
 	IO[IJK]=-1;
-
-
 }

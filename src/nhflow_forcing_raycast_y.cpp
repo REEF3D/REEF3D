@@ -46,6 +46,7 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 	double u,v,w;
 	double denom;
 	double psi = 1.0e-8*p->DXM;
+    int margin=3;
     
 	for(n=ts; n<te; ++n)
 	{
@@ -96,7 +97,7 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
     zs_y = Ay;
     }
     
-    if(Bz<=Cz)
+    if(Bz<Cz)
     {
     zs = Bz;
     zs_x = Bx;
@@ -118,7 +119,7 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
     ze_y = Ay;
     }
     
-    if(Bz>=Cz)
+    if(Bz>Cz)
     {
     ze = Bz;
     ze_x = Bx;
@@ -162,16 +163,15 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
     k=ks;
     
     
-    is-=3;
-    ie+=3;
+    is-=margin;
+    ie+=margin;
 
-    js-=3;
-    je+=3;
+    js-=margin;
+    je+=margin;
 
-    ks-=3;
-    ke+=3;
+    ks-=margin;
+    ke+=margin;
    
-
 	is = MAX(is,0);
 	ie = MIN(ie,p->knox);
     
@@ -181,13 +181,10 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 	ks = MAX(ks,0);
 	ke = MIN(ke,p->knoz);
     
-    //if(is!=ie)
-    //cout<<"is: "<<is<<" ie: "<<ie<<" js: "<<js<<" je: "<<je<<" ks: "<<ks<<" ke: "<<ke<<endl;
-    
     for(i=is;i<ie;i++)
     for(j=js;j<je;j++)
     for(k=ks;k<ke;k++)
-    if((IO[IJK] != IO[Im1JK]) || (IO[IJK] != IO[Ip1JK]))
+    if((IO[IJK] != IO[IJp1K]) || (IO[IJK] != IO[IJm1K]))
     {
         
         if(IO[IJK] != IO[IJp1K])
@@ -201,7 +198,7 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 		Qz = p->ZSP[IJp1K]-psi;
         }
         
-        if(IO[IJK] != IO[IJp1K])
+        if(IO[IJK] != IO[IJm1K])
         {
         Px = p->XP[IP]-psi;
 		Py = p->global_ymax+10.0*p->DXM;
@@ -209,7 +206,7 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 		
         Qx = p->XP[IP]+psi;
 		Qy = p->global_ymin-10.0*p->DXM;
-		Qz = p->ZSP[IJp1K]-psi;
+		Qz = p->ZSP[IJm1K]-psi;
         }
         
 
