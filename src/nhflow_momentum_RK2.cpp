@@ -73,8 +73,6 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     
     if(p->A570>0)
     pwind = new wind_f(p);
-    
-
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
@@ -167,7 +165,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     pnhfdf->forcing(p, d, pgc, 1.0, UHRK1, VHRK1, WHRK1, WLRK1);
     
-    //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
@@ -267,9 +264,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     pnhfdf->forcing(p, d, pgc, 0.5, d->UH, d->VH, d->WH, d->WL);
     
-	//pflow->pressure_io(p,a,pgc);
     ppress->start(p,d,ppoissonsolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,0.5);
-    
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
 	
     pnhfdf->forcing(p, d, pgc, 0.5, d->UH, d->VH, d->WH, d->WL);

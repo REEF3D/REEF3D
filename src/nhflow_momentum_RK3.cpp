@@ -33,18 +33,17 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
-#include"nhflow.h"
-#include"nhflow.h"
 #include"nhflow_fsf.h"
 #include"nhflow_turbulence.h"
 #include"vrans.h"
 #include"6DOF.h"
+#include"nhflow_forcing.h"
 #include"wind_f.h"
 #include"wind_v.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
-nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof)
+nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof, nhflow_forcing *ppnhfdf)
                                                     : nhflow_bcmom(p), nhflow_sigma(p), WLRK1(p), WLRK2(p)
 {
 	gcval_u=10;
@@ -69,6 +68,7 @@ nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     p->Darray(WHDIFF,p->imax*p->jmax*(p->kmax+2));
     
     p6dof=pp6dof;
+    pnhfdf = ppnhfdf;
     
     if(p->A570==0)
     pwind = new wind_v(p);
@@ -168,13 +168,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
-    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    pnhfdf->forcing(p, d, pgc, 1.0, UHRK1, VHRK1, WHRK1, WLRK1);
     
-    //pflow->pressure_io(p,a,pgc);
 	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
-	
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
+    
+    pnhfdf->forcing(p, d, pgc, 1.0, UHRK1, VHRK1, WHRK1, WLRK1);
 
     pflow->U_relax(p,pgc,d->U,UHRK1);
     pflow->V_relax(p,pgc,d->V,VHRK1);
@@ -266,13 +265,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,UHRK2,VHRK2,WHRK2,WLRK2);
     
-    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,WLRK2);
-    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
- 
-    //pflow->pressure_io(p,a,pgc);
-	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK2,UHRK2,VHRK2,WHRK2,0.25);
+    pnhfdf->forcing(p, d, pgc, 0.25, UHRK2, VHRK2, WHRK2, WLRK2);
     
+	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK2,UHRK2,VHRK2,WHRK2,0.25);
     velcalc(p,d,pgc,UHRK2,VHRK2,WHRK2,WLRK2);
+    
+    pnhfdf->forcing(p, d, pgc, 0.25, UHRK2, VHRK2, WHRK2, WLRK2);
 	
 	pflow->U_relax(p,pgc,d->U,UHRK2);
     pflow->V_relax(p,pgc,d->V,VHRK2);
@@ -363,13 +361,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
     
-    //pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    //pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    pnhfdf->forcing(p, d, pgc, 2.0/3.0, d->UH, d->VH, d->WH, d->WL);
     
-	//pflow->pressure_io(p,a,pgc);
     ppress->start(p,d,ppoissonsolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,2.0/3.0);
-    
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
+    
+    pnhfdf->forcing(p, d, pgc, 2.0/3.0, d->UH, d->VH, d->WH, d->WL);
 	
 	pflow->U_relax(p,pgc,d->U,d->UH);
     pflow->V_relax(p,pgc,d->V,d->VH);

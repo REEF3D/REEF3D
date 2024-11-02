@@ -87,7 +87,6 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // allocate -------
     allocate(p,d,pgc);
 
-
     countM=0;
     NDBASELOOP
     if(nodeflag[IJK]==1)

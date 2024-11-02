@@ -95,7 +95,6 @@ void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         cout<<"Ax: "<<Ax<<" Ay: "<<Ay<<" Az: "<<Az<<endl;
         cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
-        
 
         print_force(p,d,pgc);
         }
