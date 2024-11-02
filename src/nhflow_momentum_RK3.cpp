@@ -173,7 +173,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
-    pnhfdf->forcing(p, d, pgc, 1.0, UHRK1, VHRK1, WHRK1, WLRK1);
+    //pnhfdf->forcing(p, d, pgc, 1.0, UHRK1, VHRK1, WHRK1, WLRK1);
 
     pflow->U_relax(p,pgc,d->U,UHRK1);
     pflow->V_relax(p,pgc,d->V,VHRK1);
@@ -270,7 +270,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK2,UHRK2,VHRK2,WHRK2,0.25);
     velcalc(p,d,pgc,UHRK2,VHRK2,WHRK2,WLRK2);
     
-    pnhfdf->forcing(p, d, pgc, 0.25, UHRK2, VHRK2, WHRK2, WLRK2);
+    //pnhfdf->forcing(p, d, pgc, 0.25, UHRK2, VHRK2, WHRK2, WLRK2);
 	
 	pflow->U_relax(p,pgc,d->U,UHRK2);
     pflow->V_relax(p,pgc,d->V,VHRK2);
@@ -366,7 +366,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     ppress->start(p,d,ppoissonsolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,2.0/3.0);
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
     
-    pnhfdf->forcing(p, d, pgc, 2.0/3.0, d->UH, d->VH, d->WH, d->WL);
+    //pnhfdf->forcing(p, d, pgc, 2.0/3.0, d->UH, d->VH, d->WH, d->WL);
 	
 	pflow->U_relax(p,pgc,d->U,d->UH);
     pflow->V_relax(p,pgc,d->V,d->VH);
