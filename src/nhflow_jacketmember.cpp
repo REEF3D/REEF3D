@@ -94,13 +94,7 @@ void nhflow_forcing::jacketmember(lexer *p, ghostcell *pgc, int id)
 
       if(c2>gamma+ee || c2<gamma-ee)
       c1 = c1 - 0.1*(c2-gamma);
-        
-        /*
-        if(p->mpirank==0)
-        {
-        cout<<count<<" a1: "<<a1*(180.0/PI)<<" b1: "<<b1*(180.0/PI)<<" c1: "<<c1*(180.0/PI)<<endl;
-        cout<<count<<" a2: "<<a2*(180.0/PI)<<" b2: "<<b2*(180.0/PI)<<" c2: "<<c2*(180.0/PI)<<endl<<endl;
-        }*/
+    
 
       if(a2<=alpha+ee && a2>=alpha-ee)
       if(b2<=beta+ee  && b2>=beta-ee)
