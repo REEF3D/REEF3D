@@ -373,3 +373,8 @@ void sixdof_sflow::create_triangle
 void sixdof_sflow::start_twoway_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
 }
+
+void sixdof_sflow::start_twoway_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
+                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, bool finalize)
+{
+}

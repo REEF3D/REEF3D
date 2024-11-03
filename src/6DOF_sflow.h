@@ -33,6 +33,7 @@ Author: Tobias Martin, Hans Bihs
 
 class lexer;
 class fdm2D;
+class fdm_nhf;
 class ghostcell;
 class net;
 class slice;
@@ -52,8 +53,10 @@ public:
     sixdof_sflow(lexer*, ghostcell*);
     virtual ~sixdof_sflow();
     
-    virtual void start_oneway_sflow(lexer*,ghostcell*,slice&);
     virtual void start_twoway_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
+    virtual void start_twoway_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,bool);
+    
+    virtual void start_oneway_sflow(lexer*,ghostcell*,slice&);
     
 	virtual void ini(lexer*,ghostcell*);
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);

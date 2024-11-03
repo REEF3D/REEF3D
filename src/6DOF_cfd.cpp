@@ -91,3 +91,7 @@ void sixdof_cfd::start_oneway_sflow(lexer *p, ghostcell *pgc, slice &fsglobal)
     
 }
 
+void sixdof_cfd::start_twoway_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
+                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, bool finalize)
+{
+}
