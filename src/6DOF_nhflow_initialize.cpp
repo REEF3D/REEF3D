@@ -17,31 +17,31 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Tobias Martin
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_sflow.h"
+#include"6DOF_nhflow.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"vrans.h"
    
-void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
+void sixdof_nhflow::ini(lexer *p, ghostcell *pgc)
 {
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_shipwave(p, pgc);
 }
 
-void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+void sixdof_nhflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {
 }
 
-void sixdof_sflow::start_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
+void sixdof_nhflow::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, bool finalize)
 {
 }
 
-void sixdof_sflow::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
-                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, bool finalize)
+void sixdof_nhflow::start_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
 }
+

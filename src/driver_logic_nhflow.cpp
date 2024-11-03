@@ -38,7 +38,7 @@ Author: Hans Bihs
 #include"vrans_header.h"
 #include"nhflow_header.h"
 #include"6DOF_void.h"
-#include"6DOF_sflow.h"
+#include"6DOF_nhflow.h"
 
 void driver::logic_nhflow()
 {    
@@ -200,7 +200,7 @@ void driver::logic_nhflow()
     p6dof = new sixdof_void(p,pgc);
     
     if(p->X10==3)
-    p6dof = new sixdof_sflow(p,pgc);
+    p6dof = new sixdof_nhflow(p,pgc);
     
 // Sediment
     if(p->S10==0)
@@ -211,10 +211,10 @@ void driver::logic_nhflow()
     
 //Momentum
     if(p->A510==2)
-	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pnhfdf);
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);
     
     if(p->A510==3)
-	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfdf);
+	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);
     
     
     

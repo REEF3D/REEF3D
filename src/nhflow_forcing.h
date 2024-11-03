@@ -26,6 +26,11 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 class slice;
+class sixdof;
+class vrans;
+class mooring;
+class net;
+class fsi;
 class nhflow_reinidisc_fsf;
 #include<vector>
 
@@ -40,8 +45,10 @@ public:
 	nhflow_forcing(lexer*);
 	virtual ~nhflow_forcing();
     
-    void forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
-
+    void forcing(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, vrans* pvrans, vector<net*>& pnet, 
+                 int, double, double*, double*, double*, slice&, bool);
+    
+    void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
     
     double Hsolidface(lexer*, fdm_nhf*, int, int, int);
@@ -55,7 +62,6 @@ public:
     
     void objects_create(lexer*, ghostcell*);
     void objects_allocate(lexer*, ghostcell*);
-    
     
     void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
     

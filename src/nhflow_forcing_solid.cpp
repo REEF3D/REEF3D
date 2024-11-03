@@ -10,48 +10,44 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_cfd.h"
+#include"nhflow_forcing.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+                             double alpha, double *U, double *V, double *W, slice &WL)
 {
-    for (int nb = 0; nb < number6DOF; nb++)
-    fb_obj[nb]->initialize_cfd(p, a, pgc, pnet);
-}
 
-void sixdof_cfd::ini(lexer *p, ghostcell *pgc)
-{
-}
-
-void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
-{
-    // Reset heaviside field
-    ULOOP
-    a->fbh1(i,j,k) = 0.0;
-
-    VLOOP
-    a->fbh2(i,j,k) = 0.0;
-    
-    WLOOP
-    a->fbh3(i,j,k) = 0.0;
-
+// update Heaviside
     LOOP
-    a->fbh4(i,j,k) = 0.0;
+    d->FHB[IJK] = 0.0;
 
-    pgc->start1(p,a->fbh1,10);
-    pgc->start2(p,a->fbh2,11);
-    pgc->start3(p,a->fbh3,12);
-    pgc->start4(p,a->fbh4,40);
+    pgc->start5V(p,d->FHB,1);
+    
+    uf=vf=wf=0.0;
+    
+    LOOP
+    {
+        H = Hsolidface(p,d,0,0,0);
+        d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
+        
+        FX[IJK] + H*(uf - U[IJK])/(alpha*p->dt);
+        FY[IJK] + H*(vf - V[IJK])/(alpha*p->dt);
+        FZ[IJK] + H*(wf - W[IJK])/(alpha*p->dt);
+        
+    }
+    
+    pgc->start5V(p,d->FHB,1);
+    
 }

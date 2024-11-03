@@ -17,29 +17,29 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Tobias Martin
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_sflow.h"
+#include"6DOF_nhflow.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_nhf.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-void sixdof_sflow::isource(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_nhflow::isource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void sixdof_sflow::jsource(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_nhflow::jsource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void sixdof_sflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_nhflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void sixdof_sflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+void sixdof_nhflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
     LOOP
     {
@@ -54,7 +54,7 @@ void sixdof_sflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     }
 }
 
-void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+void sixdof_nhflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
     LOOP
     {
@@ -69,11 +69,11 @@ void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     }
 }
 
-void sixdof_sflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+void sixdof_nhflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
 }
 
-void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_nhflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	SLICELOOP1
     {
@@ -86,7 +86,7 @@ void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 }
 
-void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
+void sixdof_nhflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	SLICELOOP2
     {
@@ -105,7 +105,7 @@ void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4(p,b->test,50);
 }
 
-double sixdof_sflow::limiter(double v1, double v2)
+double sixdof_nhflow::limiter(double v1, double v2)
 {
     r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
     

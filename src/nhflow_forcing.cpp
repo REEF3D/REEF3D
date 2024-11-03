@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"6DOF.h"
 #include"nhflow_reinidisc_fsf.h"
 
 nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
@@ -31,6 +32,9 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
     forcing_flag=0;
     
     if(p->A581>0 || p->A583>0 || p->A584>0   || p->A585>0  || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0)
+    forcing_flag=1;
+    
+    if(p->X10>0)
     forcing_flag=1;
         
     if(forcing_flag==1)
@@ -55,7 +59,8 @@ nhflow_forcing::~nhflow_forcing()
 {
 }
 
-void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
+void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, vrans* pvrans, vector<net*>& pnet, 
+                             int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
 {
     if(forcing_flag==1)
     {
@@ -71,30 +76,20 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     FZ[IJK] = 0.0;   
     }
     
-    // update Heaviside
-    LOOP
-    d->FHB[IJK] = 0.0;
-
-    pgc->start5V(p,d->FHB,1);
+    // solid forcing
+    solid_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
     
-    LOOP
-    {
-        H = Hsolidface(p,d,0,0,0);
-        d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
-    }
-    
-    pgc->start5V(p,d->FHB,1);
-    
-    // Calculate forcing fields
-    // p6dof->start_cfd()
-
+    // 6DOF forcing
+    p6dof->start_nhflow(p,d,pgc,pvrans,pnet,iter,d->U,d->V,d->W,FX,FY,FZ,finalize);
     
     // add forcing term to RHS
     LOOP
     {
-        UH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FX[IJK]*WL(i,j) - UH[IJK])/(alpha*p->dt);
+        UH[IJK] += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
         
-        d->U[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FX[IJK] - d->U[IJK])/(alpha*p->dt);
+        d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
+        
+        //u(i,j,k) += alpha*p->dt*CPOR1*fx(i,j,k);
         
         /*if(p->count<10)
         d->maxF = MAX(fabs(alpha*CPORNH*d->FX[IJK]), d->maxF);
@@ -104,9 +99,9 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     
     LOOP
     {
-        VH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FY[IJK]*WL(i,j) - VH[IJK])/(alpha*p->dt); 
+        VH[IJK] += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
         
-        d->V[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FY[IJK] - d->V[IJK])/(alpha*p->dt); 
+        d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
         
         /*if(p->count<10)
         d->maxG = MAX(fabs(alpha*CPORNH*d->FY[IJK]), d->maxG);
@@ -116,9 +111,9 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     
     LOOP
     {
-        WH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FZ[IJK]*WL(i,j) - WH[IJK])/(alpha*p->dt);
-
-        d->W[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FZ[IJK] - d->W[IJK])/(alpha*p->dt);  
+        WH[IJK] += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
+        
+        d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
         
         /*if(p->count<10)
         d->maxH = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), d->maxH);

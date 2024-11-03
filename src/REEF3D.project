@@ -1322,6 +1322,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Forcing">
+          <File Name="nhflow_forcing_solid.cpp"/>
           <File Name="nhflow_forcing_interface.cpp"/>
           <VirtualDirectory Name="Geometry">
             <File Name="nhflow_forcing_rotation.cpp"/>
@@ -1875,11 +1876,13 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface NHFLOW">
+          <File Name="6DOF_nhflow_velsource.cpp"/>
+          <File Name="6DOF_nhflow_initialize.cpp"/>
           <File Name="6DOF_nhflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface CFD">
+          <File Name="6DOF_cfd_initialize.cpp"/>
           <File Name="6DOF_cfd_velsource.cpp"/>
-          <File Name="6DOF_cfd_setup.cpp"/>
           <File Name="6DOF_cfd.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Void">
@@ -1902,7 +1905,7 @@
           <File Name="6DOF_obj_rotation.cpp"/>
           <File Name="6DOF_obj_forcing.cpp"/>
           <VirtualDirectory Name="Initialize">
-            <File Name="6DOF_obj_ini_sflow.cpp"/>
+            <File Name="6DOF_obj_ini_shipwave.cpp"/>
             <File Name="6DOF_obj_ini_cfd.cpp"/>
             <File Name="6DOF_obj_ini_position.cpp"/>
             <File Name="6DOF_obj_ini_parameters.cpp"/>

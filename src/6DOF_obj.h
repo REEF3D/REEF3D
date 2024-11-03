@@ -63,7 +63,7 @@ public:
     
 	void initialize_cfd(lexer*,fdm*,ghostcell*,vector<net*>&);
     
-    void initialize_sflow(lexer*,ghostcell*);
+    void initialize_shipwave(lexer*,ghostcell*);
     
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);

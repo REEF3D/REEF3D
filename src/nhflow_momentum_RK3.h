@@ -24,8 +24,11 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"nhflow_bcmom.h"
 #include"nhflow_sigma.h"
+#include<vector>
 
 class wind;
+class vrans;
+class net;
 
 using namespace std;
 
@@ -35,7 +38,7 @@ using namespace std;
 class nhflow_momentum_RK3 : public nhflow_momentum, public nhflow_bcmom, public nhflow_sigma
 {
 public:
-	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*, sixdof*, nhflow_forcing*);
+	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans*, vector<net*>&, nhflow_forcing*);
 	virtual ~nhflow_momentum_RK3();
     
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
@@ -67,6 +70,8 @@ private:
     sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;
+    vrans* pvrans;
+    vector<net*> pnet;
 };
 
 #endif

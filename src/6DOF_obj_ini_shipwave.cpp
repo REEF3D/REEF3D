@@ -27,10 +27,10 @@ Author: Tobias Martin
 #include<sys/stat.h>
 
 
-void sixdof_obj::initialize_sflow(lexer *p, ghostcell *pgc)
+void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc)
 {
     if(p->mpirank==0)
-    cout<<"6DOF_df_ini "<<endl;
+    cout<<"6DOF_obj_ini "<<endl;
     
     // Initialise folder structure
     if(p->X50==1)
