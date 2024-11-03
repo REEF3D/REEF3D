@@ -22,13 +22,7 @@ Author: Tobias Martin, Hans Bihs
 
 #include"6DOF.h"
 #include<vector>
-#include<fstream>
-#include<iostream>
-#include <Eigen/Dense>
 #include"increment.h"
-#include"slice4.h"
-#include"sliceint5.h"
-#include"ddweno_f_nug.h"
 #include"6DOF_obj.h"
 
 class lexer;
@@ -44,12 +38,10 @@ using namespace std;
 #ifndef SIXDOF_SFLOW_H_
 #define SIXDOF_SFLOW_H_
 
-class sixdof_sflow : public sixdof, public increment, public ddweno_f_nug
+class sixdof_sflow : public sixdof, public increment
 {
 public:
 	
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    
     sixdof_sflow(lexer*, ghostcell*);
     virtual ~sixdof_sflow();
     
@@ -85,38 +77,9 @@ private:
 
     int number6DOF;
     vector<sixdof_obj*> fb_obj;
-    
-    double phi, theta, psi;
-    double Uext, Vext, Wext, Pext, Qext, Rext;
-    Eigen::Matrix3d quatRotMat;
-    int reiniter, tricount, n6DOF;
-    double printtime;
-    int q;
 
-    slice4 press,frk1,frk2,L,dt,fb,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax,draft;
-    
-    Eigen::Vector4d e_;
-    Eigen::Matrix<double, 3, 4> E_, G_;
-    Eigen::Matrix3d R_, Rinv_;
+    slice4 press;
 
-    // Raycast
-    sliceint5 cutl,cutr,fbio;
-    double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
-    double **tri_xn,**tri_yn,**tri_zn;
-	vector<vector<double> > tri_x_r;
-	vector<vector<double> > tri_y_r;
-	vector<vector<double> > tri_z_r;
-    double xs,xe,ys,ye,zs,ze;
-    int entity_sum,entity_count, count, rayiter;
-    int *tstart,*tend;
-    int trisum;
-    double epsifb;
-    const double epsi; 
-    
-    // STL
-    double STL_xmin,STL_xmax,STL_ymin,STL_ymax;
-    int iin,offset[100];
-    float ffn;
 
 };
 
