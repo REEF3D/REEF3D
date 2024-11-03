@@ -84,6 +84,7 @@ private:
     
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
+    double *FX,*FY,*FZ;
     
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
     vector<vector<double> > tri_x_r;

@@ -43,6 +43,10 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
     p->Darray(dt,p->imax*p->jmax*(p->kmax+2));
     p->Darray(L,p->imax*p->jmax*(p->kmax+2));
     
+    p->Darray(FX,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(FY,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(FZ,p->imax*p->jmax*(p->kmax+2));
+    
     prdisc = new nhflow_reinidisc_fsf(p);
     }
 }
@@ -58,6 +62,14 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     // update direct forcing function
     ray_cast(p, d, pgc);
     reini_RK2(p, d, pgc, d->SOLID);
+    
+    // ini forcing terms
+    LOOP
+    {
+    FX[IJK] = 0.0;   
+    FY[IJK] = 0.0;   
+    FZ[IJK] = 0.0;   
+    }
     
     // update Heaviside
     LOOP
@@ -78,11 +90,9 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     // add forcing term to RHS
     LOOP
     {
-        uf = 0.0;
+        UH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FX[IJK]*WL(i,j) - UH[IJK])/(alpha*p->dt);
         
-        UH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(uf*WL(i,j) - UH[IJK])/(alpha*p->dt);
-        
-        d->U[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(uf - d->U[IJK])/(alpha*p->dt);
+        d->U[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FX[IJK] - d->U[IJK])/(alpha*p->dt);
         
         /*if(p->count<10)
         d->maxF = MAX(fabs(alpha*CPORNH*d->FX[IJK]), d->maxF);
@@ -92,11 +102,9 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     
     LOOP
     {
-        vf = 0.0; 
+        VH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FY[IJK]*WL(i,j) - VH[IJK])/(alpha*p->dt); 
         
-        VH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(vf*WL(i,j) - VH[IJK])/(alpha*p->dt); 
-        
-        d->V[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(vf - d->V[IJK])/(alpha*p->dt); 
+        d->V[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FY[IJK] - d->V[IJK])/(alpha*p->dt); 
         
         /*if(p->count<10)
         d->maxG = MAX(fabs(alpha*CPORNH*d->FY[IJK]), d->maxG);
@@ -106,9 +114,9 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     
     LOOP
     {
-        WH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(wf*WL(i,j) - WH[IJK])/(alpha*p->dt);
+        WH[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FZ[IJK]*WL(i,j) - WH[IJK])/(alpha*p->dt);
 
-        d->W[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(wf - d->W[IJK])/(alpha*p->dt);  
+        d->W[IJK] += alpha*p->dt*CPORNH*d->FHB[IJK]*(FZ[IJK] - d->W[IJK])/(alpha*p->dt);  
         
         /*if(p->count<10)
         d->maxH = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), d->maxH);
