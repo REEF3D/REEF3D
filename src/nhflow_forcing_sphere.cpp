@@ -31,10 +31,10 @@ void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
     double xm,ym,zm,r;
     int q;
 
-	xm=p->A585_xm[id];
-    ym=p->A585_ym[id];
-    zm=p->A585_zm[id];
-    r=p->A585_r[id];
+	xm=p->A586_xm[id];
+    ym=p->A586_ym[id];
+    zm=p->A586_zm[id];
+    r=p->A586_r[id];
 
 
 	U = 2.0 * PI * r;

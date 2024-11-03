@@ -63,6 +63,7 @@ private:
     void box(lexer*, ghostcell*, int);
     void cylinder_y(lexer*, ghostcell*, int);
     void cylinder_z(lexer*, ghostcell*, int);
+    void jacketmember(lexer*, ghostcell*, int);
     void sphere(lexer*, ghostcell*, int);
     void wedge_x(lexer*, ghostcell*, int);
     void wedge_y(lexer*, ghostcell*, int);
@@ -73,6 +74,13 @@ private:
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
     void geometry_refinement(lexer*, ghostcell*);
     void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
+    
+    void rotation(double&,double&,double&,double,double,double);
+    
+	void rotate_triangle(lexer*,int,int);
+    void rotation_ellipsoid(lexer*,int,double&,double&,double&,double,double,double);
+    
+    void angle_calc(double,double,double,double&,double&,double&);
     
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
@@ -98,8 +106,11 @@ private:
     
     double H,Ht, uf, vf, wf;
 	double nx, ny, nz,norm ;
-	double psi, phival_sf;
+	double phival_sf;
     double dirac;
+    
+    double phi,theta,psi;
+    double xrot,yrot,zrot;
  
 };
 

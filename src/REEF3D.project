@@ -1324,6 +1324,8 @@
         <VirtualDirectory Name="Forcing">
           <File Name="nhflow_forcing_interface.cpp"/>
           <VirtualDirectory Name="Geometry">
+            <File Name="nhflow_forcing_rotation.cpp"/>
+            <File Name="nhflow_jacketmember.cpp"/>
             <File Name="nhflow_forcing_sphere.cpp"/>
             <File Name="nhflow_forcing_stl.cpp"/>
             <File Name="nhflow_forcing_wedge_z.cpp"/>

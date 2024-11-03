@@ -291,7 +291,9 @@ public:
     int A584;
     double *A584_xc,*A584_yc,*A584_zs,*A584_ze,*A584_r;
     int A585;
-    double *A585_xm,*A585_ym,*A585_zm,*A585_r;
+    double *A585_xm1, *A585_ym1, *A585_zm1, *A585_r1, *A585_xm2, *A585_ym2, *A585_zm2, *A585_r2;
+    int A586;
+    double *A586_xm,*A586_ym,*A586_zm,*A586_r;
     int A587;
     double *A587_xs,*A587_xe,*A587_ys,*A587_ye,*A587_zs,*A587_ze;
     int A588;
