@@ -49,7 +49,7 @@ void sixdof_void::ini(lexer *p, ghostcell *pgc)
 {
 }
 
-void sixdof_void::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
+void sixdof_void::start_twoway_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
     
     //if(p->mpirank==0)
@@ -204,7 +204,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pne
     quatRotMat << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
 }
 
-void sixdof_void::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
+void sixdof_void::start_oneway_sflow(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
     
 }

@@ -68,7 +68,7 @@ public:
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
-    void hydrodynamic_forces(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
+    void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
 	
     void quat_matrices();
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);

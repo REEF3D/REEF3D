@@ -42,14 +42,14 @@ sixdof_cfd::~sixdof_cfd()
 {
 }
 
-void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
+void sixdof_cfd::start_twoway_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
     setup(p,a,pgc);
     
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        fb_obj[nb]->hydrodynamic_forces(p,a,pgc,uvel,vvel,wvel,iter,finalize);
+        fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
         
         // Advance body in time
         fb_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);
@@ -86,7 +86,7 @@ void sixdof_cfd::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, v
     pgc->gcdf_update(p,a);
 }
 
-void sixdof_cfd::start_oneway(lexer *p, ghostcell *pgc, slice &fsglobal)
+void sixdof_cfd::start_oneway_sflow(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
     
 }
