@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"fieldint.h"
 

@@ -1894,6 +1894,7 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
+          <File Name="6DOF_obj_forcing_nhflow.cpp"/>
           <VirtualDirectory Name="Forces NHFLOW"/>
           <File Name="6DOF_obj_forcing_2D.cpp"/>
           <File Name="6DOF_obj_update_pos_2D.cpp"/>

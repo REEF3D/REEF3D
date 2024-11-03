@@ -38,6 +38,7 @@ Author: Hans Bihs, Tobias Martin
 class lexer;
 class fdm;
 class fdm2D;
+class fdm_nhf;
 class ghostcell;
 class reinidisc;
 class mooring;
@@ -78,6 +79,12 @@ public:
     
     void solve_eqmotion_oneway(lexer*,ghostcell*);
     
+    // NHFLOW
+    void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, double*, double*, double*);
+    
+    double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
+    
+    // print
     void saveTimeStep(lexer*,int);
     void print_parameter(lexer*,ghostcell*);
     void print_ini_vtp(lexer*,ghostcell*);
@@ -128,6 +135,7 @@ private:
     
     double Hsolidface(lexer*, fdm*, int,int,int);
 	double Hsolidface_t(lexer*, fdm*, int,int,int);
+    
 	
 	void geometry_parameters(lexer*, fdm*, ghostcell*);
     void geometry_parameters_2D(lexer*, ghostcell*);
