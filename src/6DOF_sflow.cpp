@@ -50,7 +50,7 @@ sixdof_sflow::~sixdof_sflow()
 {
 }
 
-void sixdof_sflow::start_oneway_sflow(lexer *p, ghostcell *pgc, slice &fsglobal)
+void sixdof_sflow::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, bool finalize)
 {
     
     for (int nb=0; nb<number6DOF;++nb)
@@ -89,6 +89,4 @@ void sixdof_sflow::start_oneway_sflow(lexer *p, ghostcell *pgc, slice &fsglobal)
             fb_obj[nb]->print_parameter(p,pgc);
         
     }
-    
-    
 }

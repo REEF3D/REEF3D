@@ -53,10 +53,11 @@ public:
     sixdof_sflow(lexer*, ghostcell*);
     virtual ~sixdof_sflow();
     
-    virtual void start_twoway_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
-    virtual void start_twoway_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,bool);
+    virtual void start_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
+    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,bool);
     
-    virtual void start_oneway_sflow(lexer*,ghostcell*,slice&);
+    virtual void start_sflow(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,bool);
+    //virtual void start_twoway_sflow(lexer*,ghostcell*,slice&,int,slice&,slice&,slice&,slice&,bool);
     
 	virtual void ini(lexer*,ghostcell*);
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
@@ -75,37 +76,12 @@ public:
     
 private:
 	
-    void cylinder(lexer*,ghostcell*);
-    void box(lexer*,ghostcell*);
-	void geometry_refinement(lexer*);
-	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
-    void ini_parameter(lexer*, ghostcell*);
-    void print_ini_stl(lexer*, ghostcell*);
-    void print_parameter(lexer*,ghostcell*);
-    void print_stl(lexer*,ghostcell*);
-    void print_ini_vtp(lexer*, ghostcell*);
-    void print_vtp(lexer*,ghostcell*);
-    
-    void read_stl(lexer*, ghostcell*);
-    void rotation_stl(lexer*,double&,double&,double&);
-    void rotation_stl_quaternion(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
-    
-    void iniPosition_RBM(lexer*, ghostcell*);
-    void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
-    void quat_matrices(const Eigen::Vector4d&);
-   
-
-    void time_preproc(lexer*);
-    
     // hires gradient
     double limiter(double v1, double v2);
     
     double denom,val,r,phival;
     double dfdx_plus,dfdx_min,dfdy_plus,dfdy_min,dfdx,dfdy;
-    
-    // motion
-    double ramp_vel(lexer*);
-    double ramp_draft(lexer*);
+
 
     int number6DOF;
     vector<sixdof_obj*> fb_obj;

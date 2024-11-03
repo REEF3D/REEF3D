@@ -42,7 +42,7 @@ sixdof_cfd::~sixdof_cfd()
 {
 }
 
-void sixdof_cfd::start_twoway_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
+void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
     setup(p,a,pgc);
     
@@ -86,12 +86,12 @@ void sixdof_cfd::start_twoway_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvran
     pgc->gcdf_update(p,a);
 }
 
-void sixdof_cfd::start_oneway_sflow(lexer *p, ghostcell *pgc, slice &fsglobal)
+void sixdof_cfd::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, bool finalize)
 {
     
 }
 
-void sixdof_cfd::start_twoway_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
+void sixdof_cfd::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
                                         double *U, double *V, double *W, double *FX, double *FY, double *FZ, bool finalize)
 {
 }

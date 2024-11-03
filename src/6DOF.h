@@ -40,10 +40,9 @@ using namespace std;
 class sixdof
 {
 public:
-    virtual void start_twoway_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool)=0;
-    virtual void start_twoway_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,bool)=0;
-    
-    virtual void start_oneway_sflow(lexer*,ghostcell*,slice&)=0;
+    virtual void start_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool)=0;
+    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,bool)=0;
+    virtual void start_sflow(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,bool)=0;
     
     virtual void ini(lexer*,ghostcell*)=0;
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&)=0;

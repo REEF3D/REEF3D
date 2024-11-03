@@ -75,7 +75,7 @@ void driver::loop_nhflow()
         pnhfsf->depth_update(p,d,pgc,pflow);
         
         // 6DOF
-        p6dof->start_oneway_sflow(p,pgc,d->fs);
+        p6dof->start_sflow(p,pgc,0,d->fs,d->fs,d->fs,d->fs,d->fs,1);
         
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
                        pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 

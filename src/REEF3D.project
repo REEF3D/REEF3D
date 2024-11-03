@@ -1887,18 +1887,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Interface SFLOW">
           <File Name="6DOF_sflow_velsource.cpp"/>
-          <File Name="6DOF_sflow_motion.cpp"/>
-          <VirtualDirectory Name="Print">
-            <File Name="6DOF_sflow_print_stl.cpp"/>
-            <File Name="6DOF_sflow_print_vtp.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="RayCast"/>
-          <VirtualDirectory Name="Objects">
-            <File Name="6DOF_sflow_cylinder.cpp"/>
-            <File Name="6DOF_sflow_box.cpp"/>
-            <File Name="6DOF_sflow_STL_read.cpp"/>
-          </VirtualDirectory>
-          <File Name="6DOF_sflow_rotation.cpp"/>
           <File Name="6DOF_sflow_initialize.cpp"/>
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>

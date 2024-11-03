@@ -86,7 +86,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     pgc->start5V(p,d->FHB,1);
     
     // Calculate forcing fields
-    // p6dof->start_twoway_cfd()
+    // p6dof->start_cfd()
 
     
     // add forcing term to RHS
