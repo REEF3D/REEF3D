@@ -128,6 +128,9 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(forcing_flag==1)
     {
+    if(p->mpirank==0)
+    cout<<"Forcing ini "<<endl;
+    
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
     

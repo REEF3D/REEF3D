@@ -164,9 +164,9 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             viscosity += p->ccipol4V(d->EV, d->WL, d->bed,xloc,yloc,zloc);
             
             // pressure
-            //pval   = p->ccipol4V(d->P, d->WL, d->bed,xloc,yloc,zloc);// - p->pressgage;
-            //etaval = p->ccslipol4(d->eta,xloc,yloc);  
-            //hspval = (p->wd + etaval - zloc)*p->W1*fabs(p->W22);
+            /*pval   = p->ccipol4V(d->P, d->WL, d->bed,xloc,yloc,zloc);// - p->pressgage;
+            etaval = p->ccslipol4(d->eta,xloc,yloc);  
+            hspval = (p->wd + etaval - zloc)*p->W1*fabs(p->W22);*/
             pval   = p->ccipol4V(d->P, d->WL, d->bed,xc,yc,zc);// - p->pressgage;
             etaval = p->ccslipol4(d->eta,xc,yc);    
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
