@@ -89,8 +89,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
         
         d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
         
-        //u(i,j,k) += alpha*p->dt*CPOR1*fx(i,j,k);
-        
         /*if(p->count<10)
         d->maxF = MAX(fabs(alpha*CPORNH*d->FX[IJK]), d->maxF);
         

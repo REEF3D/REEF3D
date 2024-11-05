@@ -45,9 +45,7 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
         FX[IJK] += H*(uf - U[IJK])/(alpha*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha*p->dt);
-        
     }
     
     pgc->start5V(p,d->FHB,1);
-    
 }

@@ -101,7 +101,7 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     ++countM;
     }
-
+    
 	// p. 725, 956
     count=0;
     BASELOOP
