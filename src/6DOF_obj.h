@@ -193,7 +193,6 @@ private:
     void ray_cast_direct(lexer*, fdm*, ghostcell*,int,int);
     void reini_AB2(lexer*, fdm*, ghostcell*, field&);
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
-    void nhflow_reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
     
     // Raycast 3D
     fieldint5 cutl,cutr,fbio;
@@ -210,14 +209,24 @@ private:
     double epsifb;
     const double epsi; 
     
-    // Reini
-    nhflow_reinidisc_fsf *pnhfrdisc;
-    int *IO,*CR,*CL;
-    double *FRK1,*DTT,*LL;
-    
     reinidisc *prdisc;
 	field4a f, frk1, L, dt; 
     int reiniter;
+    
+    // ray cast NHFLOW
+    void ray_cast(lexer*, fdm_nhf*, ghostcell*);
+    void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
+    
+    double zmin,zmax;
+    
+    // Reini NHFLOW
+    void nhflow_reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
+    nhflow_reinidisc_fsf *pnhfrdisc;
+    int *IO,*CR,*CL;
+    double *FRK1,*DTT,*LL;
     
     // -----
     // ray cast 2D
@@ -234,7 +243,11 @@ private:
     slice4 press,lrk1,lrk2,K,dts,fs,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax,draft;
     sliceint5 cl,cr,fsio;
 
-    
+    // Force NHFLOw
+    void triangulation(lexer*, fdm_nhf*, ghostcell*);
+	void reconstruct(lexer*, fdm_nhf*);
+	void addpoint(lexer*,fdm_nhf*,int,int);
+	void finalize(lexer*,fdm_nhf*);
     
     // -----
     

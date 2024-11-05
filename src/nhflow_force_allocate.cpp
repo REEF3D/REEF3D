@@ -81,8 +81,3 @@ void nhflow_force::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	p->del_Iarray(numpt,numtri);
     p->del_Darray(ccpt,numtri*4,3);
 }
-
-void nhflow_force::resize(lexer* p, fdm_nhf *d, ghostcell *pgc)
-{
-
-}

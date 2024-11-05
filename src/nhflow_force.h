@@ -52,8 +52,7 @@ private:
     
     void allocate(lexer*,fdm_nhf*,ghostcell*);
     void deallocate(lexer*,fdm_nhf*,ghostcell*);
-    void resize(lexer*,fdm_nhf*,ghostcell*);
-    
+
     int *vertice,*nodeflag;
     double *eta;
 	
