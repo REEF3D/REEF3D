@@ -74,7 +74,7 @@ public:
 	
     void quat_matrices();
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
-    
+    void update_position_nhflow(lexer*, fdm*, ghostcell*, bool);
     void update_position_2D(lexer*, ghostcell*,slice&);
     
     void solve_eqmotion_oneway(lexer*,ghostcell*);
@@ -164,6 +164,7 @@ private:
     void iniPosition_RBM(lexer*, ghostcell*);
     void update_Euler_angles(lexer*, ghostcell*);
     void update_trimesh_3D(lexer*, fdm*, ghostcell*, bool);
+    void update_trimesh_nhflow(lexer*, fdm*, ghostcell*, bool);
     void update_trimesh_2D(lexer*, ghostcell*);
     void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
     void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
