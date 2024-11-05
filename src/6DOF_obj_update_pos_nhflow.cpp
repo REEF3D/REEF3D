@@ -25,7 +25,7 @@ Author: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
+void sixdof_obj::update_position_nhflow(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
 {
     // Calculate new position
     update_Euler_angles(p,pgc);
@@ -44,29 +44,7 @@ void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool final
     }
 }
 
-void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc)
-{
-	// Calculate Euler angles from quaternion
-	
-	// around z-axis
-	psi = atan2(2.0*(e_(1)*e_(2) + e_(3)*e_(0)), 1.0 - 2.0*(e_(2)*e_(2) + e_(3)*e_(3))); 
-	
-	// around new y-axis
-	double arg = 2.0*(e_(0)*e_(2) - e_(1)*e_(3));
-	
-	if (fabs(arg) >= 1.0)
-	theta = SIGN(arg)*PI/2.0;
-    
-	else
-	theta = asin(arg);														
-	
-		
-	// around new x-axis
-	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));
-	
-}
-
-void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
+void sixdof_obj::update_trimesh_nhflow(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
 {
 	// Update position of triangles 
 	for(n=0; n<tricount; ++n)
@@ -90,4 +68,3 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
     
     pgc->start4a(p,a->fb,50);   
 }
-

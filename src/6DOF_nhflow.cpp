@@ -29,7 +29,6 @@ Author: Hans Bihs
    
 sixdof_nhflow::sixdof_nhflow(lexer *p, ghostcell *pgc) : press(p)
 {
-    
     if(p->mpirank==0)
     cout<<"6DOF startup ..."<<endl;
     
@@ -91,7 +90,6 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, bool fina
             fb_obj[nb]->print_parameter(p,pgc);
     }
 }
-
 
 void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
 {
