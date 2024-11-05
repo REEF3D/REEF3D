@@ -26,6 +26,7 @@ Author: Tobias Martin, Hans Bihs
 #include"ghostcell.h"
 #include"reinidisc_f.h"
 #include"reinidisc_fsf.h"
+#include"nhflow_reinidisc_fsf.h"
 #include"6DOF_motionext_fixed.h"
 #include"6DOF_motionext_file.h"
 #include"6DOF_motionext_CoG.h"
@@ -100,6 +101,17 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     pmotion = new sixdof_motionext_file_CoG(p,pgc);
     
     Mass_fb =  Rfb = Vfb = 1.0;
+    
+    
+    if(p->A10==5)
+    {
+    pnhfrdisc = new nhflow_reinidisc_fsf(p);
+    
+    p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(DTT,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(LL,p->imax*p->jmax*(p->kmax+2));
+    }
+    
 
 }
 

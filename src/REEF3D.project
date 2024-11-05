@@ -1334,9 +1334,9 @@
             <File Name="nhflow_forcing_wedge_x.cpp"/>
             <File Name="nhflow_forcing_cylinder_y.cpp"/>
             <VirtualDirectory Name="Ray Casting">
+              <File Name="nhflow_forcing_raycast_x.cpp"/>
               <File Name="nhflow_forcing_reini_RK2.cpp"/>
               <File Name="nhflow_forcing_raycast_y.cpp"/>
-              <File Name="nhflow_forcing_raycast_x.cpp"/>
               <File Name="nhflow_forcing_raycast_io.cpp"/>
               <File Name="nhflow_forcing_raycast_direct.cpp"/>
               <File Name="nhflow_forcing_raycast.cpp"/>
@@ -1932,8 +1932,16 @@
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
-            <VirtualDirectory Name="Reini NHFLOW"/>
-            <VirtualDirectory Name="Ray Cast NHFLOW"/>
+            <VirtualDirectory Name="Reini NHFLOW">
+              <File Name="6DOF_obj_nhflow_reini_RK2.cpp"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="Ray Cast NHFLOW">
+              <File Name="6DOF_nhflow_forcing_raycast_io.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_z.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_y.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_x.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast.cpp"/>
+            </VirtualDirectory>
             <File Name="6DOF_obj_refinement.cpp"/>
             <File Name="6DOF_obj_geometry_parameters.cpp"/>
             <VirtualDirectory Name="Reini 2D">
