@@ -196,10 +196,10 @@ void driver::logic_nhflow()
 	pflow = new ioflow_gravity(p,pgc,pBC);
     
 //6DOF
-    if(p->X10!=3)
+    if(p->X10==0)
     p6dof = new sixdof_void(p,pgc);
     
-    if(p->X10==3)
+    if(p->X10>0)
     p6dof = new sixdof_nhflow(p,pgc);
     
 // Sediment

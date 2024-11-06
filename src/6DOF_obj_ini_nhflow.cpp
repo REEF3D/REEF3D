@@ -23,7 +23,7 @@ Author: Tobias Martin
 #include"6DOF_obj.h"
 #include"lexer.h"
 #include"momentum.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include"mooring_void.h"
@@ -37,7 +37,7 @@ Author: Tobias Martin
 #include"net_barDyn.h"
 #include"net_sheet.h"
 
-void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<net*>& pnet)
 {
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
@@ -59,42 +59,21 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
 	ini_fbvel(p,pgc);
     
     // Level Set for floating body
-    ray_cast(p,a,pgc);
-
-	reini_RK2(p,a,pgc,a->fb);
-    pgc->start4a(p,a->fb,50);
+    ray_cast(p,d,pgc);
+	nhflow_reini_RK2(p,d,pgc,d->FB);
     
     // Calculate geometrical properties
-	geometry_parameters(p,a,pgc);
+    geometry_parameters_nhflow(p,d,pgc);
     
     // Initialise position of bodies
     iniPosition_RBM(p,pgc);
 	
 	// Recalculate distances
-	ray_cast(p,a,pgc);
-	reini_RK2(p,a,pgc,a->fb);
-    pgc->start4a(p,a->fb,50);
+	ray_cast(p,d,pgc);
+	nhflow_reini_RK2(p,d,pgc,d->FB);
     
     // Initialise global variables
 	update_fbvel(p,pgc);
-   
-    // Initialise floating fields
-     ULOOP
-     a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
-
-     VLOOP
-     a->fbh2(i,j,k) = Hsolidface(p,a,0,1,0);
-
-     WLOOP
-     a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
-
-     LOOP
-     a->fbh4(i,j,k) = Hsolidface(p,a,0,0,0);
-
-     pgc->start1(p,a->fbh1,10);
-     pgc->start2(p,a->fbh2,11);
-     pgc->start3(p,a->fbh3,12);
-     pgc->start4(p,a->fbh4,40);
 
     // Print initial body 
     if(p->X50==1)
@@ -103,6 +82,9 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
     if(p->X50==2)
     print_stl(p,pgc);
 
+
+
+/*
 	// Mooring
 	if(p->X310==0)
 	{
@@ -205,33 +187,7 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
     }
     
     // ghostcell update
-    pgc->gcdf_update(p,a);
+    pgc->gcdf_update(p,a);*/
 }
 
-void sixdof_obj::ini_parallel(lexer *p, ghostcell *pgc)
-{
-    p->Darray(xstart, p->mpi_size);
-    p->Darray(xend, p->mpi_size);
-    p->Darray(ystart, p->mpi_size);
-    p->Darray(yend, p->mpi_size);
-    p->Darray(zstart, p->mpi_size);
-    p->Darray(zend, p->mpi_size);
-    
-    xstart[p->mpirank] = p->originx;
-    ystart[p->mpirank] = p->originy;
-    zstart[p->mpirank] = p->originz;
-    xend[p->mpirank] = p->endx;
-    yend[p->mpirank] = p->endy;
-    zend[p->mpirank] = p->endz;
-    
-    for (int i = 0; i < p->mpi_size; i++)
-    {
-        MPI_Bcast(&xstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&xend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&ystart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&yend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&zstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-    }
-}    
 

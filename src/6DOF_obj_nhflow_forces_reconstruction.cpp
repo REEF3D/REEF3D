@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_force.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 
-void nhflow_force::reconstruct(lexer *p, fdm_nhf *d)
+void sixdof_obj::reconstruct(lexer *p, fdm_nhf *d)
 {
     ccptcount=0;
 
@@ -56,7 +56,7 @@ void nhflow_force::reconstruct(lexer *p, fdm_nhf *d)
     polygon_num=facount;
 }
 
-void nhflow_force::addpoint(lexer *p, fdm_nhf *d, int q1, int q2)
+void sixdof_obj::addpoint(lexer *p, fdm_nhf *d, int q1, int q2)
 {
 	// p. 917
     double dist,xd,dnom;

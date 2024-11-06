@@ -22,20 +22,27 @@ Author: Tobias Martin, Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_position_nhflow(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
+void sixdof_obj::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
 {
     // Calculate new position
     update_Euler_angles(p,pgc);
     
     // Update STL mesh
-    update_trimesh_3D(p,a,pgc,finalize);
+    update_trimesh_nhflow(p,d,pgc,finalize);
 
     // Update angular velocities 
     omega_B = I_.inverse()*h_;
     omega_I = R_*omega_B;
+    
+    k=p->knoz-1;
+    
+    SLICELOOP4
+    fsglobal(i,j) = d->FB[IJK];
+    
+    pgc->gcsl_start4(p,fsglobal,50);
     
     if(p->mpirank==0 && finalize==true)
     {
@@ -44,7 +51,7 @@ void sixdof_obj::update_position_nhflow(lexer *p, fdm *a, ghostcell *pgc, bool f
     }
 }
 
-void sixdof_obj::update_trimesh_nhflow(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
+void sixdof_obj::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
 {
 	// Update position of triangles 
 	for(n=0; n<tricount; ++n)
@@ -63,8 +70,6 @@ void sixdof_obj::update_trimesh_nhflow(lexer *p, fdm *a, ghostcell *pgc, bool fi
 	}
     
     // Update floating level set function
-	ray_cast(p,a,pgc);
-	reini_RK2(p,a,pgc,a->fb);
-    
-    pgc->start4a(p,a->fb,50);   
+	ray_cast(p,d,pgc);
+	nhflow_reini_RK2(p,d,pgc,d->FB);
 }

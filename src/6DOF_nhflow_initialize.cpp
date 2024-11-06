@@ -29,6 +29,15 @@ Author: Hans Bihs
    
 void sixdof_nhflow::ini(lexer *p, ghostcell *pgc)
 {
+}
+
+void sixdof_nhflow::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<net*>& pnet)
+{
+    if(p->X10==2)
+    for (int nb = 0; nb < number6DOF; nb++)
+    fb_obj[nb]->initialize_nhflow(p, d, pgc, pnet);
+    
+    if(p->X10==3)
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_shipwave(p, pgc);
 }

@@ -26,52 +26,27 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
-                             double alpha, double *U, double *V, double *W, double *FX, double *FY, double *FZ)
-{/*
+                             double *U, double *V, double *W, double *FX, double *FY, double *FZ, int iter)
+{
     // Calculate forcing fields
-    double H,Ht, uf, vf, wf;
-	double nx, ny, nz,norm ;
-	double psi, phival_fb;
-    double dirac;
-    
-    H=Ht=0.0;
-  
-    ULOOP
-    {
-        uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
-        
-        H = Hsolidface(p,a,1,0,0);
-        
-        fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);   
-        a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
-    }
-    
-    VLOOP
-    {
-        vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
-        
-        H = Hsolidface(p,a,0,1,0);
+    double H, uf, vf, wf;
 
-        fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
-        a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
-    }
-    
-    WLOOP
-    {
-        wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
-
-        H = Hsolidface(p,a,0,0,1);
-        
-        fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
-
-    }
-    
     LOOP
     {
-        H = Hsolidface(p,a,0,0,0);
-        a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
+        H = Hsolidface_nhflow(p,d,0,0,0);
+        d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
+         
+        uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+        FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt); 
+
+        vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
+        FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
+
+        wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
+        FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
     }
- */   
+
+    pgc->start5V(p,d->FHB,1);
 }
     
     

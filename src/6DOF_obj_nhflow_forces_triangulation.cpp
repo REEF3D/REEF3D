@@ -20,54 +20,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_force.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-
-void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	int negcount, poscount;
+    double eps;
     
     NDBASELOOP
-    eta[IJK] = 0.125*(d->SOLID[IJK] + d->SOLID[Ip1JK] + d->SOLID[IJp1K] + d->SOLID[Ip1Jp1K]
+    fsf[IJK] = 0.125*(d->SOLID[IJK] + d->SOLID[Ip1JK] + d->SOLID[IJp1K] + d->SOLID[Ip1Jp1K]
                       + d->SOLID[IJKp1] + d->SOLID[Ip1JKp1] + d->SOLID[IJp1Kp1] + d->SOLID[Ip1Jp1Kp1]);
 	
     NDBASELOOP
-    vertice[IJK]=-1;
+    vert[IJK]=-1;
 
     NDBASELOOP
-    nodeflag[IJK]=0;
+    nflag[IJK]=0;
 	
 
     BASELOOP
-    if(i>=is && i<=ie && j>=js && j<=je && k>=ks && k<=ke)
     {
-        epsi = interfac*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*d->WL(i,j));
+        eps = interfac*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*d->WL(i,j));
         
-        if(fabs(d->SOLID[IJK])<epsi)
+        if(fabs(d->SOLID[IJK])<eps)
         {
             check=1;
 
-            if(eta[IJK]<zero && eta[Im1JK]<zero && eta[Im1Jm1K]<zero && eta[IJm1K]<zero &&
-               eta[IJKm1]<zero && eta[Im1JKm1]<zero && eta[Im1Jm1Km1]<zero && eta[IJm1Km1]<zero)
+            if(fsf[IJK]<zero && fsf[Im1JK]<zero && fsf[Im1Jm1K]<zero && fsf[IJm1K]<zero &&
+               fsf[IJKm1]<zero && fsf[Im1JKm1]<zero && fsf[Im1Jm1Km1]<zero && fsf[IJm1Km1]<zero)
             check=0;
             
-            if(eta[IJK]>zero && eta[Im1JK]>zero && eta[Im1Jm1K]>zero && eta[IJm1K]>zero &&
-               eta[IJKm1]>zero && eta[Im1JKm1]>zero && eta[Im1Jm1Km1]>zero && eta[IJm1Km1]>zero)
+            if(fsf[IJK]>zero && fsf[Im1JK]>zero && fsf[Im1Jm1K]>zero && fsf[IJm1K]>zero &&
+               fsf[IJKm1]>zero && fsf[Im1JKm1]>zero && fsf[Im1Jm1Km1]>zero && fsf[IJm1Km1]>zero)
             check=0;
 
             if(check==1)
             {
-            nodeflag[IJK]=1;
-            nodeflag[Im1JK]=1;
-            nodeflag[Im1Jm1K]=1;
-            nodeflag[IJm1K]=1;
-            nodeflag[IJKm1]=1;
-            nodeflag[Im1JKm1]=1;
-            nodeflag[Im1Jm1Km1]=1;
-            nodeflag[IJm1Km1]=1;
+            nflag[IJK]=1;
+            nflag[Im1JK]=1;
+            nflag[Im1Jm1K]=1;
+            nflag[IJm1K]=1;
+            nflag[IJKm1]=1;
+            nflag[Im1JKm1]=1;
+            nflag[Im1Jm1Km1]=1;
+            nflag[IJm1Km1]=1;
             }
         }
     }
@@ -75,7 +74,7 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	//--------------------
     countM=0;
     NDBASELOOP
-    if(nodeflag[IJK]==1)
+    if(nflag[IJK]==1)
     ++countM;
 
     numtri = 6*countM;
@@ -89,15 +88,15 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     countM=0;
     NDBASELOOP
-    if(nodeflag[IJK]==1)
+    if(nflag[IJK]==1)
     {
     pt[countM][0] = p->posnode_x();
     pt[countM][1] = p->posnode_y();
     pt[countM][2] = p->posnode_z();
 
-    ls[countM] = eta[IJK];
+    ls[countM] = fsf[IJK];
 
-    vertice[IJK] = countM;
+    vert[IJK] = countM;
 
     ++countM;
     }
@@ -105,55 +104,55 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	// p. 725, 956
     count=0;
     BASELOOP
-    if(nodeflag[IJK]==1)
-    if(nodeflag[Im1JK]==1)
-    if(nodeflag[Im1Jm1K]==1)
-    if(nodeflag[IJm1K]==1)
-    if(nodeflag[IJKm1]==1)
-    if(nodeflag[Im1JKm1]==1)
-    if(nodeflag[Im1Jm1Km1]==1)
-    if(nodeflag[IJm1Km1]==1)
+    if(nflag[IJK]==1)
+    if(nflag[Im1JK]==1)
+    if(nflag[Im1Jm1K]==1)
+    if(nflag[IJm1K]==1)
+    if(nflag[IJKm1]==1)
+    if(nflag[Im1JKm1]==1)
+    if(nflag[Im1Jm1Km1]==1)
+    if(nflag[IJm1Km1]==1)
     {
     // 1
-    tri[count][0] = vertice[Im1Jm1Km1];
-    tri[count][1] = vertice[Im1JKm1];
-    tri[count][2] = vertice[Im1Jm1K];
-    tri[count][3] = vertice[IJm1K];
+    tri[count][0] = vert[Im1Jm1Km1];
+    tri[count][1] = vert[Im1JKm1];
+    tri[count][2] = vert[Im1Jm1K];
+    tri[count][3] = vert[IJm1K];
     ++count;
 
     // 2
-    tri[count][0] = vertice[Im1Jm1Km1];
-    tri[count][1] = vertice[IJm1Km1];
-    tri[count][2] = vertice[Im1JKm1];
-    tri[count][3] = vertice[IJm1K];
+    tri[count][0] = vert[Im1Jm1Km1];
+    tri[count][1] = vert[IJm1Km1];
+    tri[count][2] = vert[Im1JKm1];
+    tri[count][3] = vert[IJm1K];
     ++count;
 
     // 3
-    tri[count][0] = vertice[Im1JKm1];
-    tri[count][1] = vertice[IJKm1];
-    tri[count][2] = vertice[IJm1Km1];
-    tri[count][3] = vertice[IJm1K];
+    tri[count][0] = vert[Im1JKm1];
+    tri[count][1] = vert[IJKm1];
+    tri[count][2] = vert[IJm1Km1];
+    tri[count][3] = vert[IJm1K];
     ++count;
 
     // 4
-    tri[count][0] = vertice[IJKm1];
-    tri[count][1] = vertice[Im1JKm1];
-    tri[count][2] = vertice[IJm1K];
-    tri[count][3] = vertice[IJK];
+    tri[count][0] = vert[IJKm1];
+    tri[count][1] = vert[Im1JKm1];
+    tri[count][2] = vert[IJm1K];
+    tri[count][3] = vert[IJK];
     ++count;
 
     // 5
-	tri[count][0] = vertice[Im1JKm1];
-    tri[count][1] = vertice[Im1JK];
-    tri[count][2] = vertice[IJK];
-    tri[count][3] = vertice[IJm1K];
+	tri[count][0] = vert[Im1JKm1];
+    tri[count][1] = vert[Im1JK];
+    tri[count][2] = vert[IJK];
+    tri[count][3] = vert[IJm1K];
     ++count;
 
     // 6
-    tri[count][0] = vertice[Im1JKm1];
-    tri[count][1] = vertice[Im1Jm1K];
-    tri[count][2] = vertice[IJm1K];
-    tri[count][3] = vertice[Im1JK];
+    tri[count][0] = vert[Im1JKm1];
+    tri[count][1] = vert[Im1Jm1K];
+    tri[count][2] = vert[IJm1K];
+    tri[count][3] = vert[Im1JK];
     ++count;
     }
 	

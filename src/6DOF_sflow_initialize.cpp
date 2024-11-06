@@ -37,6 +37,11 @@ void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pn
 {
 }
 
+void sixdof_sflow::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<net*>& pnet)
+{
+}
+
+
 void sixdof_sflow::start_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
 }

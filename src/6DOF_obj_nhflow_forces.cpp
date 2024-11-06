@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_force.h"
+#include"6DOF_obj.h"
 #include"gradient.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	// forcecalc
     triangulation(p,d,pgc);
@@ -38,29 +38,20 @@ void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         if(p->mpirank==0)
         {
-        if(p->count==2)
-        cout<<"Atot_solid: "<<A_tot<<endl;  
-        
         cout<<"Ax: "<<Ax<<" Ay: "<<Ay<<" Az: "<<Az<<endl;
         cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
-
-        print_force(p,d,pgc);
         }
         
-    print_vtp(p,d,pgc);
-    
     deallocate(p,d,pgc);
 } 
 
-
-void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {  
     Ax=0.0;
     Ay=0.0;
     Az=0.0;
     
     Fx=Fy=Fz=0.0;
-    A_tot=0.0;
     
     for(n=0;n<polygon_num;++n)
     { 
@@ -210,8 +201,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Ax+=A*nx;    
     Ay+=A*ny;
     Az+=A*nz;
-    
-    A_tot+=A;
     }
     
     Fx = pgc->globalsum(Fx);
@@ -221,12 +210,10 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Ax = pgc->globalsum(Ax);
     Ay = pgc->globalsum(Ay);
     Az = pgc->globalsum(Az);
-    A_tot = pgc->globalsum(A_tot);
+
 }
 
-
-
-void nhflow_force::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
     p->Iarray(tri,numtri,4);
     p->Darray(pt,numvert,3);
@@ -270,7 +257,7 @@ void nhflow_force::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
     }
 }
 
-void nhflow_force::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
     p->del_Iarray(tri,numtri,4);
     p->del_Darray(pt,numvert,3);

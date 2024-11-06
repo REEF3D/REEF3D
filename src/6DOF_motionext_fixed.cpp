@@ -82,9 +82,6 @@ void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen
     
     dh_ << 0.0,0.0,0.0;
     
-    if(p->mpirank==0)
-    cout<<"MOTIONEXT_ROT: "<<h_(0)<<" "<<h_(1)<<" "<<h_(2)<<endl;
-
     de_ = 0.5*G_.transpose()*I_.inverse()*h_;
 }
 

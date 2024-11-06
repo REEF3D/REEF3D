@@ -1911,6 +1911,7 @@
           <File Name="6DOF_obj_rotation.cpp"/>
           <File Name="6DOF_obj_forcing.cpp"/>
           <VirtualDirectory Name="Initialize">
+            <File Name="6DOF_obj_ini_nhflow.cpp"/>
             <File Name="6DOF_obj_ini_shipwave.cpp"/>
             <File Name="6DOF_obj_ini_cfd.cpp"/>
             <File Name="6DOF_obj_ini_position.cpp"/>

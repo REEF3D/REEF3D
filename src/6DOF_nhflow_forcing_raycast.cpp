@@ -50,9 +50,8 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     LOOP
 	{
     IO[IJK]=1;
-	d->SOLID[IJK]=1.0e8;
+	d->FB[IJK]=1.0e8;
 	}
-    
     	
     for(int rayiter=0; rayiter<2; ++rayiter)
     {
@@ -64,9 +63,7 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(rayiter==1)
             {
             pgc->gcparaxintV(p,IO,1);
-
-            //ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
-            
+     
             ray_cast_x(p,d,pgc,tstart[qn],tend[qn]);
             if(p->j_dir==1)
             ray_cast_y(p,d,pgc,tstart[qn],tend[qn]);
@@ -78,22 +75,22 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     LOOP
     {
         if(IO[IJK]==-1)
-        d->SOLID[IJK]=-fabs(d->SOLID[IJK]);
+        d->FB[IJK]=-fabs(d->FB[IJK]);
         
         
         if(IO[IJK]==1)
-        d->SOLID[IJK]=fabs(d->SOLID[IJK]);
+        d->FB[IJK]=fabs(d->FB[IJK]);
     }
 	
 	LOOP
 	{
-		if(d->SOLID[IJK]>100.0*p->DXM)
-		d->SOLID[IJK]=100.0*p->DXM;
+		if(d->FB[IJK]>100.0*p->DXM)
+		d->FB[IJK]=100.0*p->DXM;
 		
-		if(d->SOLID[IJK]<-100.0*p->DXM)
-		d->SOLID[IJK]=-100.0*p->DXM;
+		if(d->FB[IJK]<-100.0*p->DXM)
+		d->FB[IJK]=-100.0*p->DXM;
 	}
     
     
-	pgc->start5V(p,d->SOLID,1); 
+	pgc->start5V(p,d->FB,1); 
 }
