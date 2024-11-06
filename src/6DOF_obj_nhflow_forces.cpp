@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void sixdof_obj::forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	// forcecalc
     triangulation(p,d,pgc);
@@ -224,7 +224,6 @@ void sixdof_obj::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	p->Iarray(numpt,numtri);
     p->Darray(ccpt,numtri*4,3);
     
-    
     // ini
     int n,q;
     
@@ -235,7 +234,6 @@ void sixdof_obj::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     for(q=0;q<4;++q)
     facet[n][q]=0;
-    
     
     confac[n]=0;
     numfac[n]=0;

@@ -186,7 +186,7 @@ void sixdof_obj::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
             
             if(distcheck==1)
             for(k=0;k<p->knoz;++k)
-            d->SOLID[IJK]=MIN(fabs(Rz-p->ZSP[IJK]),d->SOLID[IJK]);
+            d->FB[IJK]=MIN(fabs(Rz-p->ZSP[IJK]),d->FB[IJK]);
             }
 		
 		}

@@ -49,6 +49,7 @@ public:
     virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,bool);
     virtual void start_sflow(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,bool);
     
+    void start_twoway(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,bool);
     void start_oneway(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,bool);
     void start_shipwave(lexer*,fdm_nhf*,ghostcell*,bool);
        

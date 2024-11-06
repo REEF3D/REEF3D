@@ -77,7 +77,6 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(IO[IJK]==-1)
         d->FB[IJK]=-fabs(d->FB[IJK]);
         
-        
         if(IO[IJK]==1)
         d->FB[IJK]=fabs(d->FB[IJK]);
     }
@@ -90,7 +89,6 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		if(d->FB[IJK]<-100.0*p->DXM)
 		d->FB[IJK]=-100.0*p->DXM;
 	}
-    
-    
+        
 	pgc->start5V(p,d->FB,1); 
 }
