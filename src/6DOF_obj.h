@@ -81,6 +81,7 @@ public:
     void solve_eqmotion_oneway(lexer*,ghostcell*);
     
     // NHFLOW
+    virtual void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,vrans*,vector<net*>&);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, int);
     
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
@@ -110,6 +111,7 @@ private:
     void maxvel(lexer*, ghostcell*);
     
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
+    void externalForces(lexer*, fdm_nhf*, ghostcell*, double, vrans*, vector<net*>&);
     void mooringForces(lexer*,  ghostcell*, double);
     void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void update_forces(lexer*);

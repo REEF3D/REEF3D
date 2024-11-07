@@ -389,6 +389,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
+    
+    // floating
+    if(p->P28==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+	}
 
 	// Points
     offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
@@ -452,6 +459,12 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"Heaviside\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
+    
+    if(p->P28==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"floating\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
 	
@@ -668,6 +681,30 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     
 	result.write((char*)&ffn, sizeof (float));
 	}
+	}
+    
+//  floating
+    if(p->P28==1)
+	{
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.25*(d->FB[IJK]+d->FB[Ip1JK]+d->FB[IJKp1]+d->FB[Ip1JKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+    ffn=float(0.125*(d->FB[IJK]+d->FB[Ip1JK]+d->FB[IJp1K]+d->FB[Ip1Jp1K]
+                  +  d->FB[IJKp1]+d->FB[Ip1JKp1]+d->FB[IJp1Kp1]+d->FB[Ip1Jp1Kp1]));
+    
+	result.write((char*)&ffn, sizeof (float));
+    }
+    
 	}
 
 //  XYZ

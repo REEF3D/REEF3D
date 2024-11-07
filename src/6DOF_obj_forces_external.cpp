@@ -45,6 +45,23 @@ void sixdof_obj::externalForces(lexer *p,fdm* a, ghostcell *pgc, double alpha, v
 	}
 }
 
+void sixdof_obj::externalForces_nhflow(lexer *p,fdm* a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
+{
+    Xext = Yext = Zext = Kext = Mext = Next = 0.0;
+
+    // Mooring forces
+	if (p->X310 > 0)
+	{
+		mooringForces(p,pgc,alpha);
+	} 
+	
+    // Net forces
+	/*if (p->X320 > 0)
+	{
+		netForces(p,a,pgc,alpha,pvrans,pnet);
+	}*/
+}
+
 void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
 {
 	for (int ii=0; ii<p->mooring_count; ii++)

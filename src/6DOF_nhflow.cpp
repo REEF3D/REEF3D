@@ -46,7 +46,7 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
                                  double *U, double *V, double *W, double *FX, double *FY, double *FZ, bool finalize)
 {
     if(p->X10==1)
-    start_twoway(p,d,pgc,iter,FX,FY,FZ,finalize);
+    start_twoway(p,d,pgc,pvrans,pnet,iter,FX,FY,FZ,finalize);
     
     if(p->X10==2)
     start_oneway(p,d,pgc,iter,FX,FY,FZ,finalize);
@@ -55,7 +55,8 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
     start_shipwave(p,d,pgc,finalize);
 }
 
-void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double *FX, double *FY, double *FZ, bool finalize)
+void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
+                                double *FX, double *FY, double *FZ, bool finalize)
 {
     for (int nb=0; nb<number6DOF;++nb)
     {
@@ -63,7 +64,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc);
         
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway(p,pgc);
+        fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,pvrans,pnet);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices();
@@ -146,6 +147,7 @@ void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, bool fi
         
         else if (p->X400==10)
         fb_obj[nb]->updateForcing_stl(p,pgc,press);
+        
         
             // Print
             if(p->X50==1)

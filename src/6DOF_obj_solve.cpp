@@ -23,11 +23,28 @@ Authors: Tobias Martin, Hans Bihs
 #include"6DOF_obj.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void sixdof_obj::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter, vrans *pvrans, vector<net*>& pnet)
 {
     externalForces(p, a, pgc, alpha[0], pvrans, pnet);
+    
+    update_forces(p);
+    
+    if(p->N40==2 || p->N40==22)
+    rk2(p,pgc,iter);
+    
+    if(p->N40==3 || p->N40==23 || p->N40==33)
+    rk3(p,pgc,iter);
+   
+    if(p->N40==4)
+    rkls3(p,pgc,iter);
+}
+
+void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, vrans *pvrans, vector<net*>& pnet)
+{
+    //externalForces(p, a, pgc, alpha[0], pvrans, pnet);
     
     update_forces(p);
     

@@ -71,6 +71,8 @@ void nhflow_vtu3D::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence 
 	result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"Heaviside\"/>"<<endl;
     }
+    if(p->P28==1)
+	result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
     result<<"<PPoints>"<<endl;
