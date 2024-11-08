@@ -78,10 +78,11 @@ public:
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
     void update_position_2D(lexer*, ghostcell*,slice&);
     
-    void solve_eqmotion_oneway(lexer*,ghostcell*);
+    void solve_eqmotion_oneway_onestep(lexer*,ghostcell*);
     
     // NHFLOW
     virtual void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,vrans*,vector<net*>&);
+    void solve_eqmotion_oneway(lexer*,ghostcell*,int);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, int);
     
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);

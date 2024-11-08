@@ -29,7 +29,6 @@ Authors: Hans Bihs, Tobias Martin
    
 sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc) : press(p)
 {
-    
     if(p->mpirank==0)
     cout<<"6DOF startup ..."<<endl;
     
@@ -49,7 +48,7 @@ void sixdof_sflow::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglob
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway(p,pgc);
+        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices();
