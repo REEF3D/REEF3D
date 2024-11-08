@@ -32,7 +32,7 @@ void sixdof_obj::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     NDBASELOOP
     fsf[IJK] = 0.125*(d->FB[IJK] + d->FB[Ip1JK] + d->FB[IJp1K] + d->FB[Ip1Jp1K]
-                      + d->FB[IJKp1] + d->FB[Ip1JKp1] + d->FB[IJp1Kp1] + d->FB[Ip1Jp1Kp1]);
+                    + d->FB[IJKp1] + d->FB[Ip1JKp1] + d->FB[IJp1Kp1] + d->FB[Ip1Jp1Kp1]);
 	
     NDBASELOOP
     vert[IJK]=-1;

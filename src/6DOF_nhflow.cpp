@@ -78,8 +78,12 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
         // Update forcing terms
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,iter);
         
-
-            // Print
+            
+        // Print
+        if(finalize==true)
+        {
+            fb_obj[nb]->saveTimeStep(p,iter);
+            
             if(p->X50==1)
             fb_obj[nb]->print_vtp(p,pgc);
             
@@ -87,6 +91,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
             fb_obj[nb]->print_stl(p,pgc);
             
             fb_obj[nb]->print_parameter(p,pgc);
+        }
     }
 }
 

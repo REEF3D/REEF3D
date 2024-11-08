@@ -184,13 +184,13 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);*/
             
             // Force
-            Fx += -(pval + hspval)*A*nx;
+            Fx = -(pval + hspval)*A*nx;
                        //+ 0.0*density*viscosity*A*(du*ny+du*nz);
                        
-            Fy += -(pval + hspval)*A*ny;
+            Fy = -(pval + hspval)*A*ny;
                       // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
                     
-            Fz += -(pval + hspval)*A*nz;
+            Fz = -(pval + hspval)*A*nz;
                       // + 0.0*density*viscosity*A*(dw*nx+dw*ny); 
                       
             Ax+=A*nx;    
@@ -207,10 +207,6 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
 			Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
     }
     
-    Fx = pgc->globalsum(Fx);
-    Fy = pgc->globalsum(Fy);
-    Fz = pgc->globalsum(Fz);
-    
     Xe = pgc->globalsum(Xe);
 	Ye = pgc->globalsum(Ye);
 	Ze = pgc->globalsum(Ze);
@@ -218,12 +214,24 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	Me = pgc->globalsum(Me);
 	Ne = pgc->globalsum(Ne);
     
+    Fx = Xe;
+    Fy = Ye;
+    Fz = Ze;
+    
     Ax = pgc->globalsum(Ax);
     Ay = pgc->globalsum(Ay);
     Az = pgc->globalsum(Az);
     
+    Xe += p->W20*Mass_fb;
+	Ye += p->W21*Mass_fb;
+	Ze += p->W22*Mass_fb;
+    
     if(p->mpirank==0)
+    {
+    cout<<"Mass_fb: "<<Mass_fb<<" G_fb: "<<9.81*Mass_fb<<endl;
+    cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
     cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
+    }
 }
 
 void sixdof_obj::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)

@@ -41,7 +41,6 @@ nhflow_force::nhflow_force(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn) : inter
     p->Iarray(vertice,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(nodeflag,p->imax*p->jmax*(p->kmax+2));
     
-    
     // open files
     print_ini(p,d,pgc);
     
