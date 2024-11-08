@@ -62,6 +62,7 @@ void sixdof_obj::update_forces(lexer *p)
     if(p->X11_r==1)
     Mfb_(2) = Next + Ne - p->X25_Cr*omega_I(2);
     
+    
     if(Ffb_(0)!=Ffb_(0))
     cout<<"Ffb_(0)....###"<<endl;
     

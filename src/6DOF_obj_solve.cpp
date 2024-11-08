@@ -48,14 +48,11 @@ void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int
     
     update_forces(p);
     
-    if(p->N40==2 || p->N40==22)
+    if(p->A510==2)
     rk2(p,pgc,iter);
     
-    if(p->N40==3 || p->N40==23 || p->N40==33)
+    if(p->A510==3)
     rk3(p,pgc,iter);
-   
-    if(p->N40==4)
-    rkls3(p,pgc,iter);
 }
 
 void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
@@ -92,6 +89,7 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
         e_ = e_ + p->dt*den1_;
     }
     
+    else
     if(iter==1)
     {
         get_trans(p,pgc, dp_, dc_, p_, c_);    
@@ -104,6 +102,7 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
     }  
     
     else
+    if(iter==2)
     {
         get_trans(p,pgc, dp_, dc_, p_, c_);    
         get_rot(p,dh_, de_, h_, e_);
@@ -134,6 +133,7 @@ void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
     }
     
     else
+    if(iter==1)
     {  
         p_ = 0.5*pk_ + 0.5*p_ + 0.5*p->dt*dpn1_;
         c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dcn1_;

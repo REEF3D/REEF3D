@@ -276,10 +276,10 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
             Fy = Fp_y + Fv_y;
             Fz = Fp_z + Fv_z;
             
-    Ax+=A*nx;
-    Ay+=A*ny;
-    
-    Px += pval*nx/fabs(nx);
+            Ax+=A*nx;
+            Ay+=A*ny;
+            
+            Px += pval*nx/fabs(nx);
     
     
     // Add forces to global forces

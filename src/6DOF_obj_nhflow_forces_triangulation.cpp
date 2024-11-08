@@ -31,8 +31,8 @@ void sixdof_obj::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     double eps;
     
     NDBASELOOP
-    fsf[IJK] = 0.125*(d->SOLID[IJK] + d->SOLID[Ip1JK] + d->SOLID[IJp1K] + d->SOLID[Ip1Jp1K]
-                      + d->SOLID[IJKp1] + d->SOLID[Ip1JKp1] + d->SOLID[IJp1Kp1] + d->SOLID[Ip1Jp1Kp1]);
+    fsf[IJK] = 0.125*(d->FB[IJK] + d->FB[Ip1JK] + d->FB[IJp1K] + d->FB[Ip1Jp1K]
+                      + d->FB[IJKp1] + d->FB[Ip1JKp1] + d->FB[IJp1Kp1] + d->FB[Ip1Jp1Kp1]);
 	
     NDBASELOOP
     vert[IJK]=-1;
@@ -45,7 +45,7 @@ void sixdof_obj::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
         eps = interfac*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*d->WL(i,j));
         
-        if(fabs(d->SOLID[IJK])<eps)
+        if(fabs(d->FB[IJK])<eps)
         {
             check=1;
 

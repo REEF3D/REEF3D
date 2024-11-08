@@ -35,12 +35,6 @@ void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     triangulation(p,d,pgc);
 	reconstruct(p,d);
     force_calc(p,d,pgc);
-
-        if(p->mpirank==0)
-        {
-        cout<<"Ax: "<<Ax<<" Ay: "<<Ay<<" Az: "<<Az<<endl;
-        cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
-        }
         
     deallocate(p,d,pgc);
 } 
@@ -52,6 +46,7 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Az=0.0;
     
     Fx=Fy=Fz=0.0;
+    Xe=Ye=Ze=Ke=Me=Ne=0.0;
     
     for(n=0;n<polygon_num;++n)
     { 
@@ -150,9 +145,9 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             j = p->posc_j(yc);
             k = p->posc_k(zc);
             
-            sgnx = (d->SOLID[Ip1JK] - d->SOLID[Im1JK])/(p->DXP[IM1] + p->DXP[IP]);
-            sgny = (d->SOLID[IJp1K] - d->SOLID[IJm1K])/(p->DYP[JM1] + p->DYP[JP]);
-            sgnz = (d->SOLID[IJKp1] - d->SOLID[IJKm1])/(p->DZP[KM1] + p->DZP[KP])*p->sigz[IJ];
+            sgnx = (d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IM1] + p->DXP[IP]);
+            sgny = (d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JM1] + p->DYP[JP]);
+            sgnz = (d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KM1] + p->DZP[KP])*p->sigz[IJ];
             
             nx = nx*sgnx/fabs(fabs(sgnx)>1.0e-20?sgnx:1.0e20);
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
@@ -198,19 +193,37 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             Fz += -(pval + hspval)*A*nz;
                       // + 0.0*density*viscosity*A*(dw*nx+dw*ny); 
                       
-    Ax+=A*nx;    
-    Ay+=A*ny;
-    Az+=A*nz;
+            Ax+=A*nx;    
+            Ay+=A*ny;
+            Az+=A*nz;
+    
+    
+             Xe += Fx;
+			Ye += Fy;
+			Ze += Fz;
+
+			Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
+			Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
+			Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
     }
     
     Fx = pgc->globalsum(Fx);
     Fy = pgc->globalsum(Fy);
     Fz = pgc->globalsum(Fz);
     
+    Xe = pgc->globalsum(Xe);
+	Ye = pgc->globalsum(Ye);
+	Ze = pgc->globalsum(Ze);
+	Ke = pgc->globalsum(Ke);
+	Me = pgc->globalsum(Me);
+	Ne = pgc->globalsum(Ne);
+    
     Ax = pgc->globalsum(Ax);
     Ay = pgc->globalsum(Ay);
     Az = pgc->globalsum(Az);
-
+    
+    if(p->mpirank==0)
+    cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
 }
 
 void sixdof_obj::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
