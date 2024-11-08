@@ -386,6 +386,10 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
+    }
+    
+    if(p->P25==1 || p->P28==1)  
+	{
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
@@ -458,6 +462,10 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
 	{
     result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    }
+    
+    if(p->P25==1 || p->P28==1)
+	{
     result<<"<DataArray type=\"Float32\" Name=\"Heaviside\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
@@ -661,8 +669,10 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     
 	result.write((char*)&ffn, sizeof (float));
     }
+    }
     
-    
+    if(p->P25==1 || p->P28==1)
+	{
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP

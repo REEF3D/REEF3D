@@ -111,7 +111,7 @@ private:
     void maxvel(lexer*, ghostcell*);
     
     void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
-    void externalForces(lexer*, fdm_nhf*, ghostcell*, double, vrans*, vector<net*>&);
+    void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, vrans*, vector<net*>&);
     void mooringForces(lexer*,  ghostcell*, double);
     void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
     void update_forces(lexer*);

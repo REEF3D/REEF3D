@@ -74,6 +74,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     FX[IJK] = 0.0;   
     FY[IJK] = 0.0;   
     FZ[IJK] = 0.0;   
+    d->FHB[IJK] = 0.0;
     }
     
     // solid forcing
@@ -81,7 +82,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     
     // 6DOF forcing
     p6dof->start_nhflow(p,d,pgc,pvrans,pnet,iter,d->U,d->V,d->W,FX,FY,FZ,finalize);
-    
+
     // add forcing term to RHS
     LOOP
     {

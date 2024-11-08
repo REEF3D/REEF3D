@@ -30,9 +30,6 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
 {
 
 // update Heaviside
-    LOOP
-    d->FHB[IJK] = 0.0;
-
     pgc->start5V(p,d->FHB,1);
     
     uf=vf=wf=0.0;
