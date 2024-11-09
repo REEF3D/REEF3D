@@ -43,20 +43,20 @@ sixdof_nhflow::~sixdof_nhflow()
 }
 
 void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
-                                 double *U, double *V, double *W, double *FX, double *FY, double *FZ, bool finalize)
+                                 double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
     if(p->X10==1)
-    start_twoway(p,d,pgc,pvrans,pnet,iter,FX,FY,FZ,finalize);
+    start_twoway(p,d,pgc,pvrans,pnet,iter,FX,FY,FZ,WL,fe,finalize);
     
     if(p->X10==2)
-    start_oneway(p,d,pgc,iter,FX,FY,FZ,finalize);
+    start_oneway(p,d,pgc,iter,FX,FY,FZ,WL,fe,finalize);
     
     if(p->X10==3)
     start_shipwave(p,d,pgc,finalize);
 }
 
 void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
-                                double *FX, double *FY, double *FZ, bool finalize)
+                                double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
     for (int nb=0; nb<number6DOF;++nb)
     {
@@ -76,7 +76,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
         fb_obj[nb]->update_fbvel(p,pgc);
         
         // Update forcing terms
-        fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,iter);
+        fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
         
             
         // Print
@@ -95,7 +95,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
     }
 }
 
-void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double *FX, double *FY, double *FZ, bool finalize)
+void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
     for (int nb=0; nb<number6DOF;++nb)
     {
@@ -112,7 +112,7 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         fb_obj[nb]->update_fbvel(p,pgc);
         
         // Update forcing terms
-        fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,iter);
+        fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
         
 
             // Print

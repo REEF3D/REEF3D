@@ -45,4 +45,17 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     }
     
     pgc->start5V(p,d->FHB,1);
+    
+   
+    
+    ef = d->bed(i,j) + d->depth(i,j);
+    
+     k=p->knoz-1;
+     
+    SLICELOOP4
+    {
+    H = Hsolidface(p,d,0,0,0);
+    fe(i,j) += H*(ef - WL(i,j))/(alpha*p->dt);
+    
+    }
 }

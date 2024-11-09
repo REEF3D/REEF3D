@@ -47,6 +47,6 @@ void sixdof_sflow::start_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, ve
 }
 
 void sixdof_sflow::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
-                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, bool finalize)
+                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
 }

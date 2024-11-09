@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"6DOF.h"
 #include"nhflow_reinidisc_fsf.h"
 
-nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6)
+nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6), fe(p)
 {
     forcing_flag=0;
     
@@ -77,11 +77,14 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     d->FHB[IJK] = 0.0;
     }
     
+    SLICELOOP4
+    fe(i,j) = 0.0;
+    
     // solid forcing
     solid_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
     
     // 6DOF forcing
-    p6dof->start_nhflow(p,d,pgc,pvrans,pnet,iter,d->U,d->V,d->W,FX,FY,FZ,finalize);
+    p6dof->start_nhflow(p,d,pgc,pvrans,pnet,iter,d->U,d->V,d->W,FX,FY,FZ,WL,fe,finalize);
 
     // add forcing term to RHS
     LOOP
@@ -119,6 +122,9 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
         
         p->fbmax = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), p->fbmax);*/
     }
+    
+    SLICELOOP4
+    WL(i,j) += alpha*p->dt*CPORNH*fe(i,j);
     
     }
 }

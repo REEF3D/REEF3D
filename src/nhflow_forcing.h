@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
+#include"slice4.h"
 
 class lexer;
 class fdm_nhf;
@@ -91,6 +92,7 @@ private:
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
     double *FX,*FY,*FZ;
+    slice4 fe;
     
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
     vector<vector<double> > tri_x_r;
@@ -111,7 +113,7 @@ private:
     nhflow_reinidisc_fsf *prdisc;
 
     
-    double H,Ht, uf, vf, wf;
+    double H,Ht, uf, vf, wf, ef;
 	double nx, ny, nz,norm ;
 	double phival_sf;
     double dirac;

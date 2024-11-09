@@ -312,7 +312,7 @@ void sixdof_void::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<net*>&
 }
 
 void sixdof_void::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
-                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, bool finalize)
+                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
 }
 
