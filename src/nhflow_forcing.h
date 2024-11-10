@@ -114,6 +114,7 @@ private:
 
     
     double H,Ht, uf, vf, wf, ef;
+    double efc;
 	double nx, ny, nz,norm ;
 	double phival_sf;
     double dirac;

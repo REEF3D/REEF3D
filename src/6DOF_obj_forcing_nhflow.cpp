@@ -56,6 +56,24 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     SLICELOOP4
     {
     H = Hsolidface_nhflow(p,d,0,0,0);
+    
+    double ef = d->bed(i,j) + d->depth(i,j);
+    
+    if(d->FB[IJK]<0.0)
+    {
+    if(d->FB[Im1JK]>0.0)    
+    ef = WL(i-1,j);
+    
+    if(d->FB[Ip1JK]>0.0)    
+    ef = WL(i+1,j);
+
+    if(d->FB[IJm1K]>0.0)    
+    ef = WL(i,j-1);
+    
+    if(d->FB[IJp1K]>0.0)    
+    ef = WL(i,j+1);
+    }
+    
     fe(i,j) += H*(ef - WL(i,j))/(alpha[iter]*p->dt);
     
     }

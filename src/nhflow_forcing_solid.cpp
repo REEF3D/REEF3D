@@ -55,6 +55,46 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     SLICELOOP4
     {
     H = Hsolidface(p,d,0,0,0);
+    
+    ef = d->bed(i,j) + d->depth(i,j);
+    
+    
+    if(d->SOLID[IJK]<0.0)
+    {
+        ef = 0.0;
+        efc = 0.0;
+        
+        if(d->SOLID[Im1JK]>0.0)   
+        {
+        ef += WL(i-1,j);
+        efc+=1.0;
+        }
+        
+        if(d->SOLID[Ip1JK]>0.0)    
+        {
+        ef += WL(i+1,j);
+        efc+=1.0;
+        }
+
+        if(d->SOLID[IJm1K]>0.0) 
+        {
+        ef += WL(i,j-1);
+        efc+=1.0;
+        }
+        
+        if(d->SOLID[IJp1K]>0.0)    
+        {
+        ef += WL(i,j+1);
+        efc+=1.0;
+        }
+        
+    if(efc>0.1)
+    ef = ef/efc;
+    
+    if(efc<0.1)
+    ef = d->bed(i,j) + d->depth(i,j);
+    }
+    
     fe(i,j) += H*(ef - WL(i,j))/(alpha*p->dt);
     
     }

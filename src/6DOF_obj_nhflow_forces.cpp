@@ -48,6 +48,10 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Fx=Fy=Fz=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     
+    //LOOP
+    //Ze += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j)*d->FHB[IJK]*p->W1*fabs(p->W22);
+    
+    
     for(n=0;n<polygon_num;++n)
     { 
             // triangle
@@ -175,9 +179,9 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             viscosity += p->ccipol4V(d->EV, d->WL, d->bed,xloc,yloc,zloc);
             
             // pressure
-            pval   = p->ccipol4V(d->P, d->WL, d->bed,xloc,yloc,zloc);// - p->pressgage;
-            etaval = p->ccslipol4(d->eta,xloc,yloc);  
-            hspval = (p->wd + etaval - zloc)*p->W1*fabs(p->W22);
+            pval   = p->ccipol4V(d->P, d->WL, d->bed,xc,yc,zc);// - p->pressgage;
+            etaval = p->ccslipol4(d->eta,xc,yc);  
+            hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
             
             /*pval   = p->ccipol4V(d->P, d->WL, d->bed,xc,yc,zc);// - p->pressgage;
             etaval = p->ccslipol4(d->eta,xc,yc);    
