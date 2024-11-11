@@ -55,6 +55,15 @@ void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int
     rk3(p,pgc,iter);
 }
 
+void sixdof_obj::solve_eqmotion_oneway(lexer *p, ghostcell *pgc, int iter)
+{
+    if(p->A510==2)
+    rk2(p,pgc,iter);
+    
+    if(p->A510==3)
+    rk3(p,pgc,iter);       
+}
+
 void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
 {
     get_trans(p,pgc, dp_, dc_, p_, c_);    
@@ -163,13 +172,5 @@ void sixdof_obj::solve_eqmotion_oneway_onestep(lexer *p, ghostcell *pgc)
         e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;         
 }
 
-void sixdof_obj::solve_eqmotion_oneway(lexer *p, ghostcell *pgc, int iter)
-{
-    if(p->A510==2)
-    rk2(p,pgc,iter);
-    
-    if(p->A510==3)
-    rk3(p,pgc,iter);       
-}
 
 

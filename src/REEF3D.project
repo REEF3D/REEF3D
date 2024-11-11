@@ -589,6 +589,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="External Motion">
+          <File Name="6DOF_motionext_wavemaker.h"/>
           <File Name="6DOF_motionext_CoG.h"/>
           <File Name="6DOF_motionext_void.h"/>
           <File Name="6DOF_motionext_file.h"/>
@@ -1861,6 +1862,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="External Motion">
+          <VirtualDirectory Name="Motion Wavemaker">
+            <File Name="6DOF_motionext_wavemaker_read.cpp"/>
+            <File Name="6DOF_motionext_wavemaker.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Motion File CoG">
             <File Name="6DOF_motion-file_CoG_read.cpp"/>
             <File Name="6DOF_motion-file_CoG.cpp"/>
