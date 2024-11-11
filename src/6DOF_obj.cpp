@@ -30,6 +30,7 @@ Author: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_fixed.h"
 #include"6DOF_motionext_file.h"
 #include"6DOF_motionext_CoG.h"
+#include"6DOF_motionext_wavemaker.h"
 #include"6DOF_motionext_void.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), dt(p), L(p), 
@@ -99,6 +100,9 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     
     if(p->X240==11)
     pmotion = new sixdof_motionext_file_CoG(p,pgc);
+    
+    if(p->X240==21)
+    pmotion = new sixdof_motionext_wavemaker(p,pgc);
     
     Mass_fb =  Rfb = Vfb = 1.0;
     

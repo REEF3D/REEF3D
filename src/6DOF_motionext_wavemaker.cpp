@@ -20,17 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_motionext_CoG.h"
+#include"6DOF_motionext_wavemaker.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-sixdof_motionext_file_CoG::sixdof_motionext_file_CoG(lexer *p, ghostcell *pgc)
+sixdof_motionext_wavemaker::sixdof_motionext_wavemaker(lexer *p, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    cout<<"6DOF_motion  Wavemaker "<<endl;
+    
+    
     ini(p,pgc);
     
     // number of file columns
-    colnum = 4;
+    colnum = 2;
     
     timecount_old=0;
 	timecount=1;
@@ -39,11 +43,11 @@ sixdof_motionext_file_CoG::sixdof_motionext_file_CoG(lexer *p, ghostcell *pgc)
     read_format_1(p,pgc);
 }
 
-sixdof_motionext_file_CoG::~sixdof_motionext_file_CoG()
+sixdof_motionext_wavemaker::~sixdof_motionext_wavemaker()
 {
 }
 
-void sixdof_motionext_file_CoG::ini(lexer *p, ghostcell *pgc)
+void sixdof_motionext_wavemaker::ini(lexer *p, ghostcell *pgc)
 {
     Uext = 0.0;
     Vext = 0.0;
@@ -54,7 +58,7 @@ void sixdof_motionext_file_CoG::ini(lexer *p, ghostcell *pgc)
     Rext = 0.0;
 }
 
-void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
+void sixdof_motionext_wavemaker::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
     // find correct time step
     if((p->simtime>data[timecount][0]))
@@ -69,41 +73,31 @@ void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen:
         if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
         Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
         
+        if(p->mpirank==0)
+        cout<<"6DOF_motion  Uext "<<Uext<<endl;
+        
         dp_(0) = 0.0;
         dc_(0) = Uext*ramp_vel(p);
 
- 
-        Vext = 0.0;
-        
-        if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-        Vext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
-        
         dp_(1) = 0.0;
-        dc_(1) = Vext*ramp_vel(p);
+        dc_(1) = 0.0;
         
         dp_(2) = 0.0;
         dc_(2) = 0.0;
 }
 
-void sixdof_motionext_file_CoG::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
+void sixdof_motionext_wavemaker::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
-        Rext = 0.0;
-        
-        if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-        Rext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
-    
-        //cout<<p->mpirank<<" Rext: "<<Rext*(180.0/PI)<<endl;
-    
         dh_ << 0.0,0.0,0.0;
         
-        omega_ << 0.0, 0.0, Rext*ramp_vel(p);
+        omega_ << 0.0, 0.0, 0.0;
         
         h_ = I_*omega_;
         
         de_ = 0.5*G_.transpose()*I_.inverse()*h_;
 }
 
-double sixdof_motionext_file_CoG::ramp_vel(lexer *p)
+double sixdof_motionext_wavemaker::ramp_vel(lexer *p)
 {
     double f=1.0;
 
@@ -119,7 +113,7 @@ double sixdof_motionext_file_CoG::ramp_vel(lexer *p)
     return f;
 }
 
-double sixdof_motionext_file_CoG::ramp_draft(lexer *p)
+double sixdof_motionext_wavemaker::ramp_draft(lexer *p)
 {
     double f=1.0;
 

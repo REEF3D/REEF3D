@@ -55,7 +55,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     {
     H = Hsolidface_nhflow(p,d,0,0,0);
     
-    ef = d->bed(i,j) + d->depth(i,j);
+    ef = WL(i,j);//
     
     
     if(d->SOLID[IJK]<0.0)
@@ -91,7 +91,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     ef = ef/efc;
     
     if(efc<0.1)
-    ef = d->bed(i,j) + d->depth(i,j);
+    ef = WL(i,j);//d->bed(i,j) + d->depth(i,j);
     }
     
     fe(i,j) += H*(ef - WL(i,j))/(alpha[iter]*p->dt);
