@@ -99,6 +99,11 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     
     pgc->gcsl_start4(p,d->bed,50);
     
+    SLICELOOP4
+	d->bedlevel(i,j) = p->bed[IJ];
+    
+    pgc->gcsl_start4(p,d->bedlevel,50);
+    
     for(int qn=0; qn<p->A509;++qn)
     {
 	SLICELOOP4

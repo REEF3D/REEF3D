@@ -151,5 +151,9 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ray_cast(p, d, pgc);
     
     reini_RK2(p, d, pgc, d->SOLID);
+    
+    
+    SLICELOOP4
+	d->depth(i,j) = p->wd - MAX(d->bed(i,j),d->bedlevel(i,j));
     }
 }

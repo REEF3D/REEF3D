@@ -48,7 +48,6 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     
     p->phiout += p->phimean;
     
-    
     // set fsf 
     double wsfout=p->phimean;
     
@@ -67,14 +66,11 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
         WL(i+2,j) = wsfout-d->bed(i,j);
         WL(i+3,j) = wsfout-d->bed(i,j);
         
-        d->eta(i,j) = WL(i,j) - d->depth(i,j);
+        d->eta(i,j)   = WL(i,j)   - d->depth(i,j);
         d->eta(i+1,j) = WL(i+1,j) - d->depth(i,j);
         d->eta(i+2,j) = WL(i+2,j) - d->depth(i,j);
         d->eta(i+3,j) = WL(i+3,j) - d->depth(i,j);
         }
         
     }
-    
-    
-    
 }
