@@ -115,9 +115,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
     p->W_fb = Rfb;
 
 
-	
 	// Origin
-	
 	double xorig=0.0;
 	double yorig=0.0;
 	double zorig=0.0;

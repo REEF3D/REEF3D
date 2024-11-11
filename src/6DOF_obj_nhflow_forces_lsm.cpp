@@ -32,14 +32,21 @@ Author: Hans Bihs
 void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	// forcecalc
+    if(p->X60==1)
+    force_calc_stl(p,d,pgc);
+        
+    
+    if(p->X60==2)
+    {
     triangulation(p,d,pgc);
 	reconstruct(p,d);
-    force_calc(p,d,pgc);
+    force_calc_lsm(p,d,pgc);
         
     deallocate(p,d,pgc);
+    }
 } 
 
-void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {  
     Ax=0.0;
     Ay=0.0;
@@ -50,7 +57,6 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     //LOOP
     //Ze += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j)*d->FHB[IJK]*p->W1*fabs(p->W22);
-    
     
     for(n=0;n<polygon_num;++n)
     { 
@@ -182,33 +188,32 @@ void sixdof_obj::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             pval   = p->ccipol4V(d->P, d->WL, d->bed,xc,yc,zc);// - p->pressgage;
             etaval = p->ccslipol4(d->eta,xc,yc);  
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
-            
-            /*pval   = p->ccipol4V(d->P, d->WL, d->bed,xc,yc,zc);// - p->pressgage;
-            etaval = p->ccslipol4(d->eta,xc,yc);    
-            hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);*/
+    
             
             // Force
             Fx = -(pval + hspval)*A*nx;
                        //+ 0.0*density*viscosity*A*(du*ny+du*nz);
                        
+            if(p->j_dir==1)
             Fy = -(pval + hspval)*A*ny;
                       // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
                     
             Fz = -(pval + hspval)*A*nz;
                       // + 0.0*density*viscosity*A*(dw*nx+dw*ny); 
                       
+                      
             Ax+=A*nx;    
             Ay+=A*ny;
             Az+=A*nz;
     
     
-             Xe += Fx;
-			Ye += Fy;
-			Ze += Fz;
+            Xe += Fx;
+            Ye += Fy;
+            Ze += Fz;
 
-			Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
-			Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
-			Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
+            Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
+            Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
+            Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
     }
     
     Xe = pgc->globalsum(Xe);

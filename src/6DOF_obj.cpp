@@ -120,7 +120,6 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     p->Iarray(nflag,p->imax*p->jmax*(p->kmax+2));
     }
     
-
 }
 
 sixdof_obj::~sixdof_obj()

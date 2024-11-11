@@ -1897,9 +1897,10 @@
           <File Name="6DOF_obj_update_pos_nhflow.cpp"/>
           <File Name="6DOF_obj_forcing_nhflow.cpp"/>
           <VirtualDirectory Name="Forces NHFLOW">
+            <File Name="6DOF_obj_nhflow_forces_lsm.cpp"/>
+            <File Name="6DOF_obj_nhflow_forces_stl.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_reconstruction.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_triangulation.cpp"/>
-            <File Name="6DOF_obj_nhflow_forces.cpp"/>
           </VirtualDirectory>
           <File Name="6DOF_obj_forcing_2D.cpp"/>
           <File Name="6DOF_obj_update_pos_2D.cpp"/>

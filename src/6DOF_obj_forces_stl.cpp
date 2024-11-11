@@ -334,14 +334,12 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
 
 
             // Total forces
-            
             Fx = Fp_x + Fv_x;
             Fy = Fp_y + Fv_y;
             Fz = Fp_z + Fv_z;
             
 
 			// Add forces to global forces
-			
 			Xe += Fx;
 			Ye += Fy;
 			Ze += Fz;

@@ -30,6 +30,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
 {
     // Calculate forcing fields
     double H, uf, vf, wf;
+    double ef,efc;
     
     LOOP
     {
@@ -40,42 +41,60 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
         wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
          
-        //uf=vf=wf=0.0;
         
         FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
-        
-        //cout<<"UF: "<<uf<<" VF: "<<vf<<" WF: "<<wf<<endl;
     }
     
-    double ef = d->bed(i,j) + d->depth(i,j);
+    ef = d->bed(i,j) + d->depth(i,j);
     
-     k=p->knoz-1;
+    k=p->knoz-1;
      
     SLICELOOP4
     {
     H = Hsolidface_nhflow(p,d,0,0,0);
     
-    double ef = d->bed(i,j) + d->depth(i,j);
+    ef = d->bed(i,j) + d->depth(i,j);
     
-    if(d->FB[IJK]<0.0)
+    
+    if(d->SOLID[IJK]<0.0)
     {
-    if(d->FB[Im1JK]>0.0)    
-    ef = WL(i-1,j);
-    
-    if(d->FB[Ip1JK]>0.0)    
-    ef = WL(i+1,j);
+        ef = 0.0;
+        efc = 0.0;
+        
+        if(d->SOLID[Im1JK]>0.0)   
+        {
+        ef += WL(i-1,j);
+        efc+=1.0;
+        }
+        
+        if(d->SOLID[Ip1JK]>0.0)    
+        {
+        ef += WL(i+1,j);
+        efc+=1.0;
+        }
 
-    if(d->FB[IJm1K]>0.0)    
-    ef = WL(i,j-1);
+        if(d->SOLID[IJm1K]>0.0) 
+        {
+        ef += WL(i,j-1);
+        efc+=1.0;
+        }
+        
+        if(d->SOLID[IJp1K]>0.0)    
+        {
+        ef += WL(i,j+1);
+        efc+=1.0;
+        }
+        
+    if(efc>0.1)
+    ef = ef/efc;
     
-    if(d->FB[IJp1K]>0.0)    
-    ef = WL(i,j+1);
+    if(efc<0.1)
+    ef = d->bed(i,j) + d->depth(i,j);
     }
     
     fe(i,j) += H*(ef - WL(i,j))/(alpha[iter]*p->dt);
-    
     }
 
     pgc->start5V(p,d->FHB,1);

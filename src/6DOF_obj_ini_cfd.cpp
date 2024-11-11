@@ -42,6 +42,9 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
     
+    if(p->mpirank==0)
+    mkdir("./REEF3D_CFD_6DOF",0777);
+    
     // Initialise folder structure
     if(p->X50==1)
 	print_ini_vtp(p,pgc);
