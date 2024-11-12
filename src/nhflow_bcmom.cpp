@@ -40,6 +40,8 @@ void nhflow_bcmom::nhflow_bcmom_start(fdm* a, lexer* p,ghostcell *pgc, turbulenc
 
 void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice &WL)
 {
+    if(p->A519==1)
+    {
 	k=0;
     
     SLICELOOP4
@@ -57,10 +59,13 @@ void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice
 	
 	F[IJK] -= (fabs(U[IJK])*U[IJK])/(uplus*uplus*dist);
     }
+    }
 }
 
 void nhflow_bcmom::roughness_v(lexer* p, fdm_nhf *d, double *V, double *G, slice &WL)
 {
+    if(p->A519==1)
+    {
     k=0;
     
     SLICELOOP4
@@ -77,6 +82,7 @@ void nhflow_bcmom::roughness_v(lexer* p, fdm_nhf *d, double *V, double *G, slice
 
 	
 	G[IJK] -= (fabs(V[IJK])*V[IJK])/(uplus*uplus*dist);
+    }
     }
 	
 }

@@ -152,9 +152,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     p->vtime=pgc->timer()-starttime;
 
     // W
-    SLICELOOP4
-    b->L(i,j)=0.0;
-    
     ppress->wpgrad(p,b,etark1,b->eta);
     if(p->A214==1)
     pconvec->start(p,b,b->ws,4,b->P,b->Q);
@@ -243,9 +240,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	p->vtime+=pgc->timer()-starttime;
 
     // W
-    SLICELOOP4
-    b->L(i,j)=0.0;
-
     ppress->wpgrad(p,b,etark2,etark1);
     if(p->A214==1)
     pconvec->start(p,b,wrk1,4,Prk1,Qrk1);
@@ -332,9 +326,6 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
     p->vtime+=pgc->timer()-starttime;
 
     // W
-    SLICELOOP4
-    b->L(i,j)=0.0;
-
     ppress->wpgrad(p,b,b->eta,etark2);
     if(p->A214==1)
     pconvec->start(p,b,wrk2,4,Prk2,Qrk2);

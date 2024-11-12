@@ -279,5 +279,7 @@ void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 }
 
 void sflow_pjm_lin::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
-{	    
+{
+    SLICELOOP4
+    b->L(i,j)=0.0;	    
 }

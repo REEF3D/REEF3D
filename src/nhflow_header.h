@@ -51,6 +51,7 @@ Author: Hans Bihs
 
 #include"nhflow_momentum_RK2.h"
 #include"nhflow_momentum_RK3.h"
+#include"nhflow_momentum_FS2.h"
 
 #include"nhflow_pjm.h"
 #include"nhflow_pjm_corr.h"

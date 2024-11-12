@@ -363,5 +363,7 @@ void sflow_pjm_quad::quad_prep(lexer *p,fdm2D *b,ghostcell *pgc,slice &P, slice 
 }
 
 void sflow_pjm_quad::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
-{	    
+{
+    SLICELOOP4
+    b->L(i,j)=0.0;	    
 }

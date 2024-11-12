@@ -216,6 +216,9 @@ void driver::logic_nhflow()
     if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);
     
+    if(p->A510==12)
+	pnhfmom = new nhflow_momentum_FS2(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);
+    
     
     
 }

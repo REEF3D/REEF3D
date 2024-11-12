@@ -126,7 +126,9 @@ void sflow_hydrostatic::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 }
 
 void sflow_hydrostatic::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
-{	    
+{	
+    SLICELOOP4
+    b->L(i,j)=0.0;    
 }
 
 

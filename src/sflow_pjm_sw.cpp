@@ -249,6 +249,8 @@ void sflow_pjm_sw::poisson(lexer*p, fdm2D* b)
 }
 
 void sflow_pjm_sw::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
-{	    
+{	
+    SLICELOOP4
+    b->L(i,j)=0.0;
 }
 

@@ -190,6 +190,8 @@ void lexer::ctrlrecv()
 	ii++;
     A518 = ictrl[ii];
 	ii++;
+    A519 = ictrl[ii];
+	ii++;
     A520 = ictrl[ii];
 	ii++;
     A521 = ictrl[ii];
