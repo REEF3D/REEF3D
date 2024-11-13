@@ -91,9 +91,9 @@ void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 		yp=p->P65_y[n];
 		zp=p->P65_z[n];
     
-		uval = p->ccipol7V(c->U, xp, yp, zp);
-		vval = p->ccipol7V(c->V, xp, yp, zp);
-		wval = p->ccipol7V(c->W, xp, yp, zp);
+		uval = p->ccipol7V(c->U, c->WL, c->bed, xp, yp, zp);
+		vval = p->ccipol7V(c->V, c->WL, c->bed, xp, yp, zp);
+		wval = p->ccipol7V(c->W, c->WL, c->bed, xp, yp, zp);
 		}
 	
 	uval=pgc->globalmax(uval);

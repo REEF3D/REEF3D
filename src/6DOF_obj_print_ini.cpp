@@ -68,11 +68,18 @@ void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
     print.close();
     
 
+    if(p->A10==2)
+    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+    
+    if(p->A10==5)
+    sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+    
+    if(p->A10==6)
     sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 	
     print.open(str);
 	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v"<<endl;
-    print.close();    
+    print.close();       
 
     curr_time = 0.0;
     

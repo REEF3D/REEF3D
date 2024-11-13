@@ -56,6 +56,7 @@ Author: Hans Bihs
 #include"nhflow_pjm.h"
 #include"nhflow_pjm_corr.h"
 #include"nhflow_pjm_hs.h"
+#include"nhflow_pjm_phs.h"
 #include"nhflow_poisson.h"
 
 #include"nhflow_signal_speed.h"

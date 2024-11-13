@@ -203,7 +203,7 @@ public:
     nhflow_scalar_convection *pnhfscalarconvec;
     nhflow_signal_speed *pss;
     nhflow_reconstruct *precon;
-    nhflow_pressure *pnhpress;
+    nhflow_pressure *pnhpress, *pphs;
     nhflow_turbulence *pnhfturb;
     nhflow_diffusion *pnhfdiff,*pnhfturbdiff; 
     multiphase *pmp;

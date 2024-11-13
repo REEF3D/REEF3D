@@ -52,6 +52,10 @@ nhflow_pjm_hs::~nhflow_pjm_hs()
 
 void nhflow_pjm_hs::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow, slice &WL, double *U, double *V, double *W, double alpha)
 {
+    /*FLOOP
+    d->PHS[FIJK] = (p->wd + d->eta(i,j) - p->ZSN[FIJK])*p->W1*fabs(p->W22);
+    
+    pgc->start7P(p,d->PHS,gcval_press);*/
 }
 
 void nhflow_pjm_hs::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *U, double *P, double alpha)

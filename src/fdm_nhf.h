@@ -84,6 +84,7 @@ public:
     double *KIN;
     
     double *SOLID,*FB,*FHB;
+    double *PHS;
     
     double *Fx,*Fy,*Fz;
     double *Fs,*Fn,*Fe,*Fw;

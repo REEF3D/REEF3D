@@ -214,6 +214,7 @@ Author: Hans Bihs
 #define FIm1Jm1K  (i-p->imin-1)*p->jmax*p->kmaxF + (j-p->jmin-1)*p->kmaxF + k-p->kmin
 
 #define FIp1Jp1Kp1  (i-p->imin+1)*p->jmax*p->kmaxF + (j-p->jmin+1)*p->kmaxF + k-p->kmin+1
+#define FIm1Jm1Kp1  (i-p->imin-1)*p->jmax*p->kmaxF + (j-p->jmin-1)*p->kmaxF + k-p->kmin+1
 
 #define FIp1Jp2K  (i-p->imin+1)*p->jmax*p->kmaxF + (j-p->jmin+2)*p->kmaxF + k-p->kmin
 

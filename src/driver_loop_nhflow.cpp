@@ -75,7 +75,7 @@ void driver::loop_nhflow()
         pnhfsf->depth_update(p,d,pgc,pflow);
         
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
-                       pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
+                       pnhpress,pphs,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
 
         //save previous timestep
         //pturb->ktimesave(p,a,pgc);

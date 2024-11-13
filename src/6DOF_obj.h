@@ -71,7 +71,7 @@ public:
     void transform(lexer*, fdm*, ghostcell*, bool);
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
-    void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,bool);
 	
     void quat_matrices();
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
@@ -265,7 +265,7 @@ private:
 
     // Force NHFLOW
     void forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    void force_calc_stl(lexer*, fdm_nhf*, ghostcell*);
+    void force_calc_stl(lexer*, fdm_nhf*, ghostcell*,bool);
     void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
 	void reconstruct(lexer*, fdm_nhf*);

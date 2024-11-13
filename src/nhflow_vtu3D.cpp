@@ -357,6 +357,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     
+    // PHS
+    if(p->A521>=1)
+    {
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    }
+    
     // k and eps
     pnhfturb->offset_vtu(p,d,pgc,result,offset,n);
     
@@ -435,6 +442,12 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
 
     result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    
+    if(p->A521>=1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"phs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
     
     pnhfturb->name_vtu(p,d,pgc,result,offset,n);
     
@@ -559,30 +572,41 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
         {
         jj=j;
         j=0;
-        ffn=float(d->P[FIJKp1]);
+        ffn=float(0.5*(d->P[FIJKp1]+d->P[FIm1JKp1]));
         j=jj;
         }
 
         if(p->j_dir==1)
-        ffn=float(0.5*(d->P[FIJKp1]+d->P[FIJKp1]));
+        ffn=float(0.25*(d->P[FIJKp1]+d->P[FIm1JKp1] + d->P[FIJm1Kp1]+d->P[FIm1Jm1Kp1]));
     }
     
-    if(p->A520>=10)
+	result.write((char*)&ffn, sizeof (float));
+	}
+//  P
+    if(p->A521>=1)
+    {
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+        
+    if(p->A520<10)
     {
         if(p->j_dir==0)
         {
         jj=j;
         j=0;
-        ffn=float(0.25*(d->P[IJK]+d->P[IJKp1]+d->P[Ip1JK]+d->P[Ip1JKp1]));
+        ffn=float(0.5*(d->PHS[FIJKp1]+d->PHS[FIm1JKp1]));
         j=jj;
         }
 
         if(p->j_dir==1)
-        ffn=float(0.25*(d->P[IJK]+d->P[IJKp1]+d->P[IJp1K]+d->P[IJp1Kp1]));
+        ffn=float(0.25*(d->PHS[FIJKp1]+d->P[FIm1JKp1] + d->PHS[FIJm1Kp1]+d->P[FIm1Jm1Kp1]));
     }
     
 	result.write((char*)&ffn, sizeof (float));
 	}
+    }   
 //  kin and eps
     pnhfturb->print_3D(p,d,pgc,result);
     

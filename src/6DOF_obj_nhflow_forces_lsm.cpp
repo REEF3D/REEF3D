@@ -29,11 +29,11 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
 {
 	// forcecalc
     if(p->X60==1)
-    force_calc_stl(p,d,pgc);
+    force_calc_stl(p,d,pgc,finalize);
         
     
     if(p->X60==2)
@@ -185,7 +185,7 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc)
             viscosity += p->ccipol4V(d->EV, d->WL, d->bed,xloc,yloc,zloc);
             
             // pressure
-            pval   = p->ccipol4V(d->P, d->WL, d->bed,xc,yc,zc);// - p->pressgage;
+            pval   = p->ccipol7V(d->P, d->WL, d->bed, xc, yc, zc);// - p->pressgage;
             etaval = p->ccslipol4(d->eta,xc,yc);  
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
     
@@ -241,6 +241,20 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc)
     cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
     cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
     }
+    /*
+    // Print results	
+    if (p->mpirank==0 && finalize==1) 
+    {
+        ofstream print;
+        char str[1000];
+       
+        sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+
+        print.open(str, std::ofstream::out | std::ofstream::app);
+        print<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
+        <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
+        print.close();
+    }*/
 }
 
 void sixdof_obj::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)

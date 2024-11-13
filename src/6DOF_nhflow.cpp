@@ -61,7 +61,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc);
+        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,finalize);
         
         // Advance body in time
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,pvrans,pnet);

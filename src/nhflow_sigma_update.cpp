@@ -288,6 +288,10 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->ZSP[IJKm1] = p->ZP[KM1]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKm2] = p->ZP[KM2]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKm3] = p->ZP[KM3]*WL(i,j) + d->bed(i,j);
+            
+            
+            //cout<<p->ZSP[IJK]<<" "<<p->ZSP[IJKm1]<<" "<<p->ZSP[IJKm2]<<" "<<p->ZSP[IJKm3]<<" "<<WL(i,j)<<endl;
+            //cout<<p->ZP[KM1]<<" "<<p->ZP[KM2]<<" "<<p->ZP[KM3]<<endl;
 
         
         k=p->knoz-1;
@@ -295,6 +299,10 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->ZSP[IJKp1] = p->ZP[KP1]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKp2] = p->ZP[KP2]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
+            
+            //if(p->ZSP[IJKm1]==p->ZSP[IJK] || p->ZSP[IJK]==p->ZSP[IJKp1])
+            //if(i==0 && j==0)
+            //cout<<p->ZSP[IJKm1]<<" "<<p->ZSP[IJK]<<" "<<p->ZSP[IJKp1]<<" "<<p->ZSP[IJKp2]<<" "<<p->ZSP[IJKp3]<<" "<<WL(i,j)<<endl;
     }
 }
 

@@ -74,5 +74,6 @@ void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
     SLICELOOP4
     p->sigt[FIJK] = 0.0;
 
+
 }
 

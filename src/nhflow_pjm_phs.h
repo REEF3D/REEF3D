@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_pressure.h"
-#include"nhflow_gradient.h"
+#include"increment.h"
 
 class density;
 class solver;
@@ -30,16 +30,16 @@ class patchBC_interface;
 
 using namespace std;
 
-#ifndef NHFLOW_PJM_HS_H_
-#define NHFLOW_PJM_HS_H_
+#ifndef NHFLOW_PJM_PHS_H_
+#define NHFLOW_PJM_PHS_H_
 
-class nhflow_pjm_hs : public nhflow_pressure, public nhflow_gradient
+class nhflow_pjm_phs : public nhflow_pressure, public increment
 {
 
 public:
 
-	nhflow_pjm_hs(lexer* p, fdm_nhf*,patchBC_interface*);
-	virtual ~nhflow_pjm_hs();
+	nhflow_pjm_phs(lexer*, fdm_nhf*, ghostcell*,patchBC_interface*);
+	virtual ~nhflow_pjm_phs();
 
 	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double);
 	virtual void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
@@ -49,21 +49,25 @@ public:
 	virtual void vpgrad(lexer*,fdm_nhf*,slice&);
     virtual void wpgrad(lexer*,fdm_nhf*,slice&);
     
-	void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
-
 private:
-
+    
 	double starttime,endtime;
+    const double teta;
+    int check;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
+    int solver_id;
     double val, denom;
-    
-    
+    double gamma;
+
     density *pd;
+    nhflow_poisson_phs *ppois;
     patchBC_interface *pBC;
+
 };
 
 

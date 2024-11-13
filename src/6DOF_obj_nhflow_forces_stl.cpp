@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool finalize)
 {
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
@@ -120,9 +120,12 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc)
             zlocp = zc + p->X42*nz*p->DZP[KP];
 
             // pressure
-            pval   = p->ccipol4V(d->P, d->WL, d->bed,xlocp,ylocp,zlocp);// - p->pressgage;
+            pval   = 0.0; p->ccipol7V(d->P, d->WL, d->bed, xlocp, ylocp, zlocp);// - p->pressgage;
             
-            hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
+            //hspval = (p->wd + 0.0*etaval - zc)*p->W1*fabs(p->W22);
+            hspval   = p->ccipol7V(d->PHS, d->WL, d->bed, xc, yc, zc);
+            
+            cout<<"PHS: "<<hspval<<" HSPVAL: "<<(p->wd + etaval - zc)*p->W1*fabs(p->W22)<<endl;
             
             Fp_x = -(pval + hspval)*A_triang*nx;
             Fp_y = -(pval + hspval)*A_triang*ny;
@@ -193,7 +196,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc)
     }
 
     // Print results	
-    /*if (p->mpirank==0 && finalize==1) 
+    if (p->mpirank==0 && finalize==1) 
     {
         ofstream print;
         char str[1000];
@@ -204,6 +207,6 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc)
         print<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
         print.close();
-    }*/
+    }
 }
   
