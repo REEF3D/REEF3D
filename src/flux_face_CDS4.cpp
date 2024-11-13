@@ -59,6 +59,14 @@ void flux_face_CDS4::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double
 	uflux2= (1.0/16.0)*(-uvel(i,j,k-1)+9.0*uvel(i,j,k)+9.0*uvel(i,j,k+1)-uvel(i,j,k+2));
 	pip=0;
 	}
+    
+    if(ipol==4)
+	{
+    pip=1;
+	uflux1= uvel(i-1,j,k);
+	uflux2= uvel(i,j,k);
+    pip=0;
+	}
 }
 
 void flux_face_CDS4::v_flux(fdm* a, int ipol, field& vvel, double &vflux1, double &vflux2)
