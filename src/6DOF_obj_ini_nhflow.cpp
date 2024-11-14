@@ -84,7 +84,7 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<
 
 
 
-/*
+
 	// Mooring
 	if(p->X310==0)
 	{
@@ -103,7 +103,7 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<
 		Nme.resize(p->mooring_count);
 
 		if(p->mpirank==0)
-		mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
+		mkdir("./REEF3D_NHFLOW_6DOF_Mooring",0777);	
 
 		pmooring.reserve(p->mooring_count);
 		X311_xen.resize(p->mooring_count,0.0);
@@ -137,7 +137,7 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<
 		}
 	}	
 
-
+/*
     // Net
     if (p->X320==0)
     {
@@ -184,10 +184,8 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<
 			
             pnet[ii]->initialize(p,a,pgc);
 		}
-    }
+    }*/
     
-    // ghostcell update
-    pgc->gcdf_update(p,a);*/
 }
 
 

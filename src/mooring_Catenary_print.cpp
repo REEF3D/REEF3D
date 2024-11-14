@@ -47,7 +47,10 @@ void mooring_Catenary::print(lexer *p)
 	{
 		printtime+=p->P30;
 		
-
+        if(p->A10==5)
+        sprintf(name,"./REEF3D_NHFLOW_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
+        
+        if(p->A10==6)
         sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
 		
 		// Reconstruct line

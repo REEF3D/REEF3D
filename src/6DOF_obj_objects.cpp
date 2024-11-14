@@ -95,7 +95,6 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
 	geometry_stl(p,pgc);
     
     // Order Triangles for correct inside/outside orientation
-    if(p->A10==6)
     triangle_switch_ray(p,pgc);
 	
 	// Refine triangles

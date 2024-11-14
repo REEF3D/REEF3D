@@ -44,7 +44,7 @@ void sixdof_obj::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter, vran
 
 void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, vrans *pvrans, vector<net*>& pnet)
 {
-    //externalForces(p, a, pgc, alpha[0], pvrans, pnet);
+    externalForces_nhflow(p, d, pgc, alpha[0], pvrans, pnet);
     
     update_forces(p);
     
