@@ -29,7 +29,7 @@ Author: Hans Bihs
 void nhflow_fsf_f::depth_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
 {
     SLICELOOP4
-	d->depth(i,j) = p->wd - MAX(d->bed(i,j),d->bedlevel(i,j));
+	d->depth(i,j) = p->wd - d->bed(i,j);
     
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);

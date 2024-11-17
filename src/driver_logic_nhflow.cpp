@@ -109,16 +109,6 @@ void driver::logic_nhflow()
     
     if(p->A520==2)
     pnhpress = new nhflow_pjm_corr(p,d,pgc,pBC);
-    
-//hydrostatic pressure scheme
-    if(p->A521==0)
-	pphs = new nhflow_pjm_hs(p,d,pBC);
-    
-    if(p->A521==1)
-    pphs = new nhflow_pjm_phs(p,d,pgc,pBC);
-    
-    if(p->A521==2)
-	pphs = new nhflow_pjm_hs(p,d,pBC);
 
 //Turbulence
     if(p->A560==0)

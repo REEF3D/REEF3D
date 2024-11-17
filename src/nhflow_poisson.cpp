@@ -95,7 +95,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             }
         }
         
-        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0)
+        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0)//  || 0.5*(d->FB[IJK]<0+d->FB[IJKm1]<0))
         {
         d->M.p[n]  =  1.0;
 
@@ -208,10 +208,8 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->rhsvec.V[n] -= d->M.wt[n]*P[FIJp1Kp1]*p->y_dir;
             d->M.wt[n] = 0.0;
             }
-                        
             
             }
-  
         }
 	++n;
 	}

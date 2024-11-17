@@ -30,10 +30,12 @@ void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 {	
     if(p->j_dir==0)
     LOOP
+    WETDRY
 	dt[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]/p->sigz[IJ]);
     
     if(p->j_dir==1)
     LOOP
+    WETDRY
 	dt[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]/p->sigz[IJ]);
 
 	reiniter=5;
@@ -48,6 +50,7 @@ void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 		prdisc->start(p,pgc,F,L);
 
 		LOOP
+         WETDRY
 		FRK1[IJK] = F[IJK] + dt[IJK]*L[IJK];
 
          pgc->start5V(p,FRK1,1);
@@ -57,6 +60,7 @@ void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 		prdisc->start(p,pgc,FRK1,L);
 
 		LOOP
+         WETDRY
 		F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*dt[IJK]*L[IJK];
 
         pgc->start5V(p,F,1);

@@ -79,10 +79,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
-	cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
-	cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
-	cout<<"wmax: "<<setprecision(3)<<p->wmax<<" \t wtime: "<<p->wtime<<endl;
-    cout<<"omegamax: "<<setprecision(3)<<p->omegamax<<endl;
+	cout<<"umax: "<<setprecision(5)<<p->umax<<" \t utime: "<<p->utime<<endl;
+	cout<<"vmax: "<<setprecision(5)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
+	cout<<"wmax: "<<setprecision(5)<<p->wmax<<" \t wtime: "<<p->wtime<<endl;
+    cout<<"omegamax: "<<setprecision(5)<<p->omegamax<<endl;
     cout<<"recontime: "<<p->recontime<<endl;
     cout<<"fsftime: "<<p->fsftime<<endl;
     //cout<<"c_shallow: "<<sqrt(9.81*depthmax)<<" c: "<<p->wC<<endl;
@@ -224,10 +224,10 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
-	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
-	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
-	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
-    cout<<"dmax: "<<setprecision(3)<<depthmax<<endl;
+	cout<<"umax: "<<setprecision(5)<<p->umax<<endl;
+	cout<<"vmax: "<<setprecision(5)<<p->vmax<<endl;
+	cout<<"wmax: "<<setprecision(5)<<p->wmax<<endl;
+    cout<<"dmax: "<<setprecision(5)<<depthmax<<endl;
     }
     
     if(p->N48==0) 

@@ -44,13 +44,15 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
         FZ[IJK] += H*(wf - W[IJK])/(alpha*p->dt);
     }
     
+    LOOP
+    d->test[IJK] = FZ[IJK];
+    
     pgc->start5V(p,d->FHB,1);
     
-   
     
     ef = d->bed(i,j) + d->depth(i,j);
     
-     k=p->knoz-1;
+    k=p->knoz-1;
      
     SLICELOOP4
     {

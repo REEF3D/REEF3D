@@ -90,20 +90,6 @@ void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
 
     if(p->mpirank==0)
 	cout<<"Surface triangles: "<<tricount<<endl;
-    
-    // Initialise STL geometric parameters
-	//geometry_stl(p,pgc);
-    
-    // Order Triangles for correct inside/outside orientation
-    /*if(p->A10==6)
-    triangle_switch_ray(p,pgc);
-	
-	// Refine triangles
-    if(p->X185>0 && p->X60==1)
-	geometry_refinement(p,pgc);	
-
-    if(p->mpirank==0)
-	cout<<"Refined surface triangles: "<<tricount<<endl;*/
 }
 
 void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)

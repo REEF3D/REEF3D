@@ -36,7 +36,7 @@ void sixdof_obj::print_normals_vtp(lexer *p, ghostcell *pgc)
 	double nx,ny,nz,norm;
     double n0,n1,n2;
     
-    double factor = 2.6;
+    double factor = 3.6;
     
 	int num=0;
     
@@ -52,6 +52,10 @@ void sixdof_obj::print_normals_vtp(lexer *p, ghostcell *pgc)
         
         char path[300];
         
+        if(p->A10==5)
+        sprintf(path,"./REEF3D_NHFLOW_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-%06i.vtp",n6DOF,num);
+        
+        if(p->A10==6)
         sprintf(path,"./REEF3D_CFD_6DOF_Normals_VTP/REEF3D-6DOF-Normals-%i-%06i.vtp",n6DOF,num);
             
 

@@ -49,7 +49,6 @@ public:
     
     slice4 eta,eta_n,WL,detadt,detadt_n;
     slice4 bed,depth;
-    slice4 bedlevel;
     slice4 solidbed,topobed;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;

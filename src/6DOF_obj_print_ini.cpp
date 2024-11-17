@@ -42,6 +42,7 @@ void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
         {
         mkdir("./REEF3D_NHFLOW_6DOF_VTP", 0777);
         mkdir("./REEF3D_NHFLOW_6DOF", 0777);
+        mkdir("./REEF3D_NHFLOW_6DOF_Normals_VTP", 0777);
         }
         
         if(p->A10==6)

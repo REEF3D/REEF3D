@@ -75,7 +75,7 @@ void driver::loop_nhflow()
         pnhfsf->depth_update(p,d,pgc,pflow);
         
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
-                       pnhpress,pphs,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
+                       pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
 
         //save previous timestep
         //pturb->ktimesave(p,a,pgc);
@@ -106,7 +106,7 @@ void driver::loop_nhflow()
         if(p->count%p->P12==0)
         {
         if(p->B90>0)
-		cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
+		cout<<"wavegentime: "<<setprecision(5)<<p->wavecalctime<<endl;
 		
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
         cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		

@@ -140,9 +140,9 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
             nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
             
-            xloc = xc - nx*p->DXP[IP]*p->P91;
-            yloc = yc - ny*p->DYP[JP]*p->P91;
-            zloc = zc - nz*p->DZP[KP]*d->WL(i,j)*p->P91;
+            xloc = xc + nx*p->DXP[IP]*p->P91;
+            yloc = yc + ny*p->DYP[JP]*p->P91;
+            zloc = zc + nz*p->DZP[KP]*d->WL(i,j)*p->P91;
             
             xlocvel = xc + nx*p->DXP[IP];
             ylocvel = yc + ny*p->DYP[JP];
