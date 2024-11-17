@@ -46,7 +46,6 @@ void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int
 {
     externalForces_nhflow(p, d, pgc, alpha[0], pvrans, pnet);
     
-    if(p->count>100)
     update_forces(p);
     
     if(p->A510==2)
