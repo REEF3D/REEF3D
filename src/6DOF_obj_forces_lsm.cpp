@@ -361,21 +361,9 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
     {
         ofstream print;
         char str[1000];
-       
-        if(p->A10==2)
-        sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
-        
-        if(p->A10==5)
-        sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
-        
-        if(p->A10==6)
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
-        
 
-        print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
+        printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
-        print.close();
     }
 
 	if (p->mpirank==0)

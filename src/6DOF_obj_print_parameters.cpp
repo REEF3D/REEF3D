@@ -35,30 +35,11 @@ void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc)
         ofstream print;
         char str[1000];
         
-        if(p->A10==2)
-        sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
         
-        if(p->A10==5)
-        sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
-        
-        if(p->A10==6)
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
-        
-        print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<p->simtime<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
-        print.close();
-        
-        if(p->A10==2)
-        sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
-        
-        if(p->A10==5)
-        sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
-        
-        if(p->A10==6)
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
-        
-        print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
-        print.close();
+        printpos<<p->simtime<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
+
+
+        printvel<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
+
     }
 }

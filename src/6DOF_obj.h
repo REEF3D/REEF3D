@@ -343,7 +343,7 @@ private:
     int q,iin;
     float ffn;
     int offset[100];
-    
+    ofstream printpos,printforce,printvel;
     
     // Forces
     double Xext, Yext, Zext, Kext, Mext, Next;
