@@ -123,10 +123,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             pval   = p->ccipol7V(d->P, d->WL, d->bed, xlocp, ylocp, zlocp);// - p->pressgage;
             etaval = p->ccslipol4(d->eta,xc,yc);  
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
-            //hspval   = p->ccipol7V(d->PHS, d->WL, d->bed, xc, yc, zc);
-            
-            //cout<<"PHS: "<<hspval<<" HSPVAL: "<<(p->wd + etaval - zc)*p->W1*fabs(p->W22)<<endl;
-            
+
             Fp_x = -(pval + hspval)*A_triang*nx;
             Fp_y = -(pval + hspval)*A_triang*ny;
             Fp_z = -(pval + hspval)*A_triang*nz;

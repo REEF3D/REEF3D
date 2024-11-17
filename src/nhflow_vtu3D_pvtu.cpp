@@ -59,8 +59,6 @@ void nhflow_vtu3D::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence 
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
-    if(p->A521>=1)
-    result<<"<PDataArray type=\"Float32\" Name=\"phs\"/>"<<endl;
     pnhfturb->name_pvtu(p,d,pgc,result);
     result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
