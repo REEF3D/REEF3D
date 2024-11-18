@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"ddweno_nug_sig.h"
 
 class lexer;
+class fdm_nhf;
 class ghostcell;
 
 using namespace std;
@@ -36,11 +37,11 @@ public:
 	nhflow_reinidisc_fsf(lexer* p);
 	virtual ~nhflow_reinidisc_fsf();
     
-	virtual void start(lexer*, ghostcell*, double*, double*);
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, double*, double*);
 	
 private:
 
-	void disc(lexer*, ghostcell*, double*, double*);
+	void disc(lexer*, fdm_nhf*, ghostcell*, double*, double*);
 	
 	double xmin,xplus,ymin,yplus,zmin,zplus;
 	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;

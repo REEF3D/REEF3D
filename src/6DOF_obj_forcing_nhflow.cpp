@@ -47,7 +47,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
     }
     
-    
+    /*
     k=p->knoz-1;
      
     SLICELOOP4
@@ -94,7 +94,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     }
     
     fe(i,j) += H*(ef - WL(i,j))/(alpha[iter]*p->dt);
-    }
+    }*/
 
     pgc->start5V(p,d->FHB,1);
 }
@@ -104,10 +104,10 @@ double sixdof_obj::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb, int c
     double psi, H, phival_fb,dirac;
     
     if (p->j_dir==0)
-    psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]/p->sigz[IJ]);
+    psi = p->X41*(1.0/1.0)*(p->DXN[IP]);// + 0.0*p->DZN[KP]*d->WL(i,j));
 	
     if (p->j_dir==1)
-    psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]/p->sigz[IJ]);
+    psi = p->X41*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);// + 0.0*p->DZN[KP]*d->WL(i,j));
 
 
     // Construct solid heaviside function

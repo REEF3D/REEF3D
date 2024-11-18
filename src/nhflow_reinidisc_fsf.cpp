@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_reinidisc_fsf.h"
 #include"cpt.h"
@@ -34,13 +34,13 @@ nhflow_reinidisc_fsf::~nhflow_reinidisc_fsf()
 {
 }
 
-void nhflow_reinidisc_fsf::start(lexer *p, ghostcell *pgc, double *F, double *L)
+void nhflow_reinidisc_fsf::start(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F, double *L)
 {
     LOOP
-    disc(p,pgc,F,L);
+    disc(p,d,pgc,F,L);
 }
 
-void nhflow_reinidisc_fsf::disc(lexer *p, ghostcell *pgc, double *F, double *L)
+void nhflow_reinidisc_fsf::disc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F, double *L)
 {	
     
     L[IJK]=0.0;
@@ -104,10 +104,10 @@ void nhflow_reinidisc_fsf::disc(lexer *p, ghostcell *pgc, double *F, double *L)
     
 
     if(p->j_dir==0)
-    deltax = (1.0/2.0)*(p->DXN[IP] + p->DZN[KP]/p->sigz[IJ]);
+    deltax = (1.0/2.0)*(p->DXN[IP] + p->DZN[KP]*d->WL(i,j));
 	
     if(p->j_dir==1)
-    deltax = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]/p->sigz[IJ]);
+    deltax = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*d->WL(i,j));
 	
 	sign=lsv/sqrt(lsv*lsv + dnorm*dnorm*deltax*deltax);
     

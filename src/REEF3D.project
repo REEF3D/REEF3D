@@ -325,7 +325,6 @@
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
           <VirtualDirectory Name="Poisson">
-            <File Name="nhflow_poisson_phs.h"/>
             <File Name="nhflow_poisson.h"/>
           </VirtualDirectory>
           <File Name="nhflow_pressure.h"/>
@@ -1485,7 +1484,6 @@
           <File Name="nhflow_pjm_hs.cpp"/>
           <File Name="nhflow_pjm.cpp"/>
           <VirtualDirectory Name="Poisson">
-            <File Name="nhflow_poisson_phs.cpp"/>
             <File Name="nhflow_poisson.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>

@@ -30,11 +30,13 @@ void sixdof_obj::nhflow_reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *
 {	
     if(p->j_dir==0)
     LOOP
-	DTT[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]/p->sigz[IJ]);
+    WETDRY
+	DTT[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]*d->WL(i,j));
     
     if(p->j_dir==1)
     LOOP
-	DTT[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]/p->sigz[IJ]);
+    WETDRY
+	DTT[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*d->WL(i,j));
 
 	reiniter=5;
 	
@@ -45,18 +47,20 @@ void sixdof_obj::nhflow_reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *
     for(int q=0;q<reiniter;++q)
 	{
         // Step 1
-		pnhfrdisc->start(p,pgc,F,LL);
+		pnhfrdisc->start(p,d,pgc,F,LL);
 
 		LOOP
+        WETDRY
 		FRK1[IJK] = F[IJK] + DTT[IJK]*LL[IJK];
 
          pgc->start5V(p,FRK1,1);
         
         
         // Step 2
-		pnhfrdisc->start(p,pgc,FRK1,LL);
+		pnhfrdisc->start(p,d,pgc,FRK1,LL);
 
 		LOOP
+        WETDRY
 		F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*DTT[IJK]*LL[IJK];
 
         pgc->start5V(p,F,1);

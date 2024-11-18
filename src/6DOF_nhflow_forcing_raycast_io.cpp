@@ -71,21 +71,21 @@ void sixdof_obj::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int t
     checkin = 0;
     
 	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
-    && Ay>=p->global_ymin && Ay<=p->global_ymax
-    && Az>=zmin-margin && Az<=zmax)
+    && ((Ay>=p->global_ymin && Ay<=p->global_ymax) || p->j_dir==0)
+    && Az>=p->global_zmin && Az<=p->global_zmax)
     checkin=1;
     
     if(Bx>=p->global_xmin && Bx<=p->global_xmax 
-    && By>=p->global_ymin && By<=p->global_ymax
-    && Bz>=zmin-margin && Bz<=zmax)
+    && ((By>=p->global_ymin && By<=p->global_ymax) || p->j_dir==0)
+    && Bz>=p->global_zmin && Bz<=p->global_zmax)
     checkin=1;
     
     if(Cx>=p->global_xmin && Cx<=p->global_xmax 
-    && Cy>=p->global_ymin && Cy<=p->global_ymax
-    && Cz>=zmin-margin && Cz<=zmax)
+    && ((Cy>=p->global_ymin && Cy<=p->global_ymax) || p->j_dir==0)
+    && Cz>=p->global_zmin && Cz<=p->global_zmax)
     checkin=1;
     
-    checkin=1;
+    //checkin=1;
         
     if(checkin==1)
     {
@@ -190,6 +190,7 @@ void sixdof_obj::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int t
     }
     
     LOOP
+    WETDRY
 	if((CL[IJK]+1)%2==0  && (CR[IJK]+1)%2==0)
 	IO[IJK]=-1;
 }

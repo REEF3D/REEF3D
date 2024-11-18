@@ -157,7 +157,7 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc)
             
             sgnx = (d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IM1] + p->DXP[IP]);
             sgny = (d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JM1] + p->DYP[JP]);
-            sgnz = (d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KM1] + p->DZP[KP])*p->sigz[IJ];
+            sgnz = (d->FB[IJKp1] - d->FB[IJKm1])/((p->DZP[KM1] + p->DZP[KP])*d->WL(i,j));
             
             nx = nx*sgnx/fabs(fabs(sgnx)>1.0e-20?sgnx:1.0e20);
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);

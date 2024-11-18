@@ -29,19 +29,20 @@ Author: Hans Bihs
 void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // sigz
-    SLICELOOP4
+    /*SLICELOOP4
     {
     if(p->wet[IJ]==0)
     p->sigz[IJ] = 0.0;
     
     if(p->wet[IJ]==1)
     p->sigz[IJ] = 1.0/WLVL;
-    }
+    }*/
     
     zmin = 1.0e1;
     zmax = -1.0e8;
     
     LOOP
+    WETDRY
     {
     zmin = MIN(zmin, p->ZSP[IJK]);
     zmax = MAX(zmax, p->ZSP[IJK]);
@@ -76,6 +77,7 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     LOOP
+    WETDRY
     {
         if(IO[IJK]==-1)
         d->SOLID[IJK]=-fabs(d->SOLID[IJK]);
@@ -86,6 +88,7 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 	
 	LOOP
+    WETDRY
 	{
 		if(d->SOLID[IJK]>100.0*p->DXM)
 		d->SOLID[IJK]=100.0*p->DXM;
@@ -93,6 +96,10 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		if(d->SOLID[IJK]<-100.0*p->DXM)
 		d->SOLID[IJK]=-100.0*p->DXM;
 	}
+    
+    LOOP
+    if(p->wet[IJ]==0)
+    d->SOLID[IJK]=100.0*p->DXM;
     
     
 	pgc->start5V(p,d->SOLID,1); 
