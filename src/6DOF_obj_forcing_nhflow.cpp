@@ -47,6 +47,8 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
     }
     
+    LOOP
+    d->test[IJK] = FZ[IJK];
     
     k=p->knoz-1;
      

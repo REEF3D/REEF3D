@@ -271,6 +271,7 @@ private:
 	void reconstruct(lexer*, fdm_nhf*);
 	void addpoint(lexer*,fdm_nhf*,int,int);
 	void finalize(lexer*,fdm_nhf*);
+    double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
     
     // -----
     

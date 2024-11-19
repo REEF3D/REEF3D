@@ -51,6 +51,7 @@ public:
     double ccipol4V(double*,slice&,slice&,double,double,double);
     double ccipol4c(double*,double,double,double);
     double ccipol7V(double*,slice&,slice&,double,double,double);
+    double ccipol7P(double*,slice&,slice&,double,double,double);
 	double ccipol1_a(field&,double,double,double);
     double ccipol2_a(field&,double,double,double);
     double ccipol3_a(field&,double,double,double);

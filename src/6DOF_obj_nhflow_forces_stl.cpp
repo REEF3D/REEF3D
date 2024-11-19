@@ -32,10 +32,13 @@ Author: Hans Bihs
 void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool finalize)
 {
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
+    double xs0,xs1,xs2,ys0,ys1,ys2,zs0,zs1,zs2;
 	double xc,yc,zc;
+    double xp,yp,zp;
 	double at,bt,ct,st;
 	double nx,ny,nz,norm;
-	double A_triang,A;
+	double A_triang,A,A_red;
+    double f,l;
 	double pval,rho_int,nu_int,enu_int,u_int,v_int,w_int;
 	double du,dv,dw, dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
 	double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
@@ -71,6 +74,10 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
 		xc = (x0 + x1 + x2)/3.0;
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
+        
+        xp = xc;
+        yp = yc;
+        zp = zc;
     
  
 		if (xc >= p->originx && xc < p->endx &&
@@ -92,13 +99,179 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             if(z0<fsf_z || z1<fsf_z || z2<fsf_z)
             {
             // Area of triangle using Heron's formula
-			at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
-			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-				
-			st = 0.5*(at+bt+ct);
-				
-			A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+			A_triang = triangle_area(p,x0,y0,z0,x1,y1,z1,x2,y2,z2);
+            
+        // peak up 0
+            if(z0>=fsf_z && z1<fsf_z  && z2<fsf_z)
+            {
+            // Ps1
+             f = fabs(fsf_z - z1)/(fabs(z0-z1)>1.0e-10?(z0-z1):1.0e10);
+             
+             l = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+             
+             xs1 = x1 + f*l;
+             ys1 = y1 + f*l;
+             zs1 = z1 + f*l;
+             
+             // Ps2
+             f = fabs(fsf_z - z2)/(fabs(z0-z2)>1.0e-10?(z0-z2):1.0e10);
+             
+             l = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+             
+             xs2 = x2 + f*l;
+             ys2 = y2 + f*l;
+             zs2 = z2 + f*l;
+             
+             xp = (x1 + x2 + xs1 + xs2)/4.0;
+             yp = (y1 + y2 + ys1 + ys2)/4.0;
+             zp = (z1 + z2 + zs1 + zs2)/4.0;
+                
+            A_triang = A_triang - triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2);
+            }
+            
+        // peak up 1
+            if(z1>=fsf_z && z0<fsf_z  && z2<fsf_z)
+            {
+            // Ps0
+             f = fabs(fsf_z - z0)/(fabs(z1-z0)>1.0e-10?(z1-z0):1.0e10);
+             
+             l = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+             
+             xs0 = x0 + f*l;
+             ys0 = y0 + f*l;
+             zs0 = z0 + f*l;
+             
+             // Ps2
+             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?(z1-z2):1.0e10);
+             
+             l = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
+             
+             xs2 = x2 + f*l;
+             ys2 = y2 + f*l;
+             zs2 = z2 + f*l;
+             
+             xp = (x0 + x2 + xs0 + xs2)/4.0;
+             yp = (y0 + y2 + ys0 + ys2)/4.0;
+             zp = (z0 + z2 + zs0 + zs2)/4.0;
+                
+            A_triang = A_triang - triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2);
+            }
+            
+        // peak up 2
+            if(z2>=fsf_z && z0<fsf_z  && z1<fsf_z)
+            {
+            // Ps0
+             f = fabs(fsf_z - z0)/(fabs(z2-z0)>1.0e-10?(z2-z0):1.0e10);
+             
+             l = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+             
+             xs0 = x0 + f*l;
+             ys0 = y0 + f*l;
+             zs0 = z0 + f*l;
+             
+             // Ps1
+             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?(z1-z2):1.0e10);
+             
+             l = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
+             
+             xs1 = x1 + f*l;
+             ys1 = y1 + f*l;
+             zs1 = z1 + f*l;
+             
+             xp = (x0 + x1 + xs0 + xs1)/4.0;
+             yp = (y0 + y1 + ys0 + ys1)/4.0;
+             zp = (z0 + z1 + zs0 + zs1)/4.0;
+                
+            A_triang = A_triang - triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
+            }
+        
+        // -----
+        
+         // peak down 0
+            if(z0<fsf_z && z1>=fsf_z  && z2>=fsf_z)
+            {
+            // Ps1
+             f = fabs(fsf_z - z1)/(fabs(z0-z1)>1.0e-10?(z0-z1):1.0e10);
+             
+             l = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+             
+             xs1 = x0 + f*l;
+             ys1 = y0 + f*l;
+             zs1 = z0 + f*l;
+             
+             // Ps2
+             f = fabs(fsf_z - z2)/(fabs(z0-z2)>1.0e-10?(z0-z2):1.0e10);
+             
+             l = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+             
+             xs2 = x0 + f*l;
+             ys2 = y0 + f*l;
+             zs2 = z0 + f*l;
+             
+             xp = (x0 + xs1 + xs2)/3.0;
+             yp = (y0 + ys1 + ys2)/3.0;
+             zp = (z0 + zs1 + zs2)/3.0;
+                
+            A_triang = triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2);
+            }
+            
+            
+            // peak down 1
+            if(z1<fsf_z && z0>=fsf_z  && z2>=fsf_z)
+            {
+            // Ps0
+             f = fabs(fsf_z - z0)/(fabs(z1-z0)>1.0e-10?(z1-z0):1.0e10);
+             
+             l = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+             
+             xs0 = x1 + f*l;
+             ys0 = y1 + f*l;
+             zs0 = z1 + f*l;
+             
+             // Ps2
+             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?(z1-z2):1.0e10);
+             
+             l = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
+             
+             xs2 = x1 + f*l;
+             ys2 = y1 + f*l;
+             zs2 = z1 + f*l;
+             
+             xp = (xs0 + x1 + xs2)/3.0;
+             yp = (ys0 + y1 + ys2)/3.0;
+             zp = (zs0 + z1 + zs2)/3.0;
+                
+            A_triang = triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2);
+            }
+            
+        // peak down 2
+            if(z2<fsf_z && z0>=fsf_z  && z1>=fsf_z)
+            {
+            // Ps0
+             f = fabs(fsf_z - z0)/(fabs(z2-z0)>1.0e-10?(z2-z0):1.0e10);
+             
+             l = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+             
+             xs0 = x2 + f*l;
+             ys0 = y2 + f*l;
+             zs0 = z2 + f*l;
+             
+             // Ps1
+             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?(z1-z2):1.0e10);
+             
+             l = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
+             
+             xs1 = x2 + f*l;
+             ys1 = y2 + f*l;
+             zs1 = z2 + f*l;
+             
+             xp = (xs0 + xs1 + x2)/3.0;
+             yp = (ys0 + ys1 + y2)/3.0;
+             zp = (zs0 + zs1 + z2)/3.0;
+                
+            A_triang = triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
+            }
+
 				
 			// Normal vectors (always pointing outwards)     
 			nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
@@ -118,11 +291,24 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             xlocp = xc + p->X42*nx*p->DXP[IP];
             ylocp = yc + p->X42*ny*p->DYP[JP];
             zlocp = zc + p->X42*nz*p->DZP[KP];
+            
+            /*
+            double p0,p1,p2,pc;
+            
+            p0   = p->ccipol7P(d->P, d->WL, d->bed, x0, y0, z0);
+            p1   = p->ccipol7P(d->P, d->WL, d->bed, x1, y1, z1);
+            p2   = p->ccipol7P(d->P, d->WL, d->bed, x2, y2, z2);
+            
+            pc   = p->ccipol7P(d->P, d->WL, d->bed, xc, yc, zc);
+            
+            pval = (1.0/4.0)*(p0 + p1 + p2 + pc);*/
+            
+          
 
             // pressure
-            pval   = p->ccipol7V(d->P, d->WL, d->bed, xlocp, ylocp, zlocp);// - p->pressgage;
-            etaval = p->ccslipol4(d->eta,xc,yc);  
-            hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
+            pval   = p->ccipol7P(d->P, d->WL, d->bed, xp, yp, zp);// - p->pressgage;
+            etaval = p->ccslipol4(d->eta,xp,yp);  
+            hspval = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
 
             Fp_x = -(pval + hspval)*A_triang*nx;
             Fp_y = -(pval + hspval)*A_triang*ny;
@@ -198,5 +384,22 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
         printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
     }
+}
+
+
+double sixdof_obj::triangle_area(lexer *p, double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2)
+{
+    double at,bt,ct,st,A;
+    
+    at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+    bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
+    ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+				
+    st = 0.5*(at+bt+ct);
+				
+    A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+    
+    return A;
+            
 }
   
