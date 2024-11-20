@@ -114,8 +114,8 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             fsf_z = p->wd + etaval;
             
 
-            //if(zc<fsf_z)
-            if(z0<fsf_z || z1<fsf_z || z2<fsf_z)
+            if(zc<fsf_z)
+            //if(z0<fsf_z || z1<fsf_z || z2<fsf_z)
             {
             // Area of triangle using Heron's formula
 			A_triang = triangle_area(p,x0,y0,z0,x1,y1,z1,x2,y2,z2);
