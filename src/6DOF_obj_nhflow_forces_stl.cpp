@@ -38,7 +38,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
 	double at,bt,ct,st;
 	double nx,ny,nz,norm;
 	double A_triang,A,A_red;
-    double f,l;
+    double f;
 	double pval,rho_int,nu_int,enu_int,u_int,v_int,w_int;
 	double du,dv,dw, dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
 	double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
@@ -47,6 +47,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
 	double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
     double fsf_z;
+    double f_jdir;
 
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
@@ -85,6 +86,24 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
 			zc >= p->originz && zc < p->endz)
 		{
             
+            
+            // Normal vectors (always pointing outwards)     
+			nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
+			ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
+			nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
+
+			norm = sqrt(nx*nx + ny*ny + nz*nz);
+			
+			nx /= norm > 1.0e-20 ? norm : 1.0e20;
+			ny /= norm > 1.0e-20 ? norm : 1.0e20;
+			nz /= norm > 1.0e-20 ? norm : 1.0e20;
+            
+            f_jdir=1.0;
+            
+            if(fabs(ny)>0.9 && p->j_dir==0)
+            f_jdir=0.0;
+            
+            
             // Position of triangle
             i = p->posc_i(xc);
             j = p->posc_j(yc);
@@ -101,54 +120,49 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             // Area of triangle using Heron's formula
 			A_triang = triangle_area(p,x0,y0,z0,x1,y1,z1,x2,y2,z2);
             
+
         // peak up 0
-            if(z0>=fsf_z && z1<fsf_z  && z2<fsf_z)
+            if(z0>fsf_z && z1<fsf_z  && z2<fsf_z)
             {
             // Ps1
-             f = fabs(fsf_z - z1)/(fabs(z0-z1)>1.0e-10?(z0-z1):1.0e10);
-             
-             l = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-             
-             xs1 = x1 + f*l;
-             ys1 = y1 + f*l;
-             zs1 = z1 + f*l;
+             f = fabs(fsf_z - z1)/(fabs(z0-z1)>1.0e-10?fabs(z0-z1):1.0e10);
+
+             xs1 = x1 + f*(x0-x1);
+             ys1 = y1 + f*(y0-y1);
+             zs1 = z1 + f*(z0-z1);
              
              // Ps2
-             f = fabs(fsf_z - z2)/(fabs(z0-z2)>1.0e-10?(z0-z2):1.0e10);
-             
-             l = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-             
-             xs2 = x2 + f*l;
-             ys2 = y2 + f*l;
-             zs2 = z2 + f*l;
+             f = fabs(fsf_z - z2)/(fabs(z0-z2)>1.0e-10?fabs(z0-z2):1.0e10);
+
+             xs2 = x2 + f*(x0-x2);
+             ys2 = y2 + f*(y0-y2);
+             zs2 = z2 + f*(z0-z2);
              
              xp = (x1 + x2 + xs1 + xs2)/4.0;
              yp = (y1 + y2 + ys1 + ys2)/4.0;
              zp = (z1 + z2 + zs1 + zs2)/4.0;
+             
+             //cout<<"A_triang: "<<A_triang<<" A: "<<triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2)<<endl;
                 
             A_triang = A_triang - triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2);
             }
             
         // peak up 1
-            if(z1>=fsf_z && z0<fsf_z  && z2<fsf_z)
+            if(z1>fsf_z && z0<fsf_z  && z2<fsf_z)
             {
             // Ps0
-             f = fabs(fsf_z - z0)/(fabs(z1-z0)>1.0e-10?(z1-z0):1.0e10);
-             
-             l = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-             
-             xs0 = x0 + f*l;
-             ys0 = y0 + f*l;
-             zs0 = z0 + f*l;
+             f = fabs(fsf_z - z0)/(fabs(z1-z0)>1.0e-10?fabs(z1-z0):1.0e10);
+            
+             xs0 = x0 + f*(x1-x0);
+             ys0 = y0 + f*(y1-y0);
+             zs0 = z0 + f*(z1-z0);
              
              // Ps2
-             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?(z1-z2):1.0e10);
+             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
              
-             l = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-             
-             xs2 = x2 + f*l;
-             ys2 = y2 + f*l;
-             zs2 = z2 + f*l;
+             xs2 = x2 + f*(x1-x2);
+             ys2 = y2 + f*(y1-y2);
+             zs2 = z2 + f*(z1-z2);
              
              xp = (x0 + x2 + xs0 + xs2)/4.0;
              yp = (y0 + y2 + ys0 + ys2)/4.0;
@@ -158,25 +172,21 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             }
             
         // peak up 2
-            if(z2>=fsf_z && z0<fsf_z  && z1<fsf_z)
+            if(z2>fsf_z && z0<fsf_z  && z1<fsf_z)
             {
             // Ps0
-             f = fabs(fsf_z - z0)/(fabs(z2-z0)>1.0e-10?(z2-z0):1.0e10);
-             
-             l = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-             
-             xs0 = x0 + f*l;
-             ys0 = y0 + f*l;
-             zs0 = z0 + f*l;
+             f = fabs(fsf_z - z0)/(fabs(z2-z0)>1.0e-10?fabs(z2-z0):1.0e10);
+
+             xs0 = x0 + f*(x2-x0);
+             ys0 = y0 + f*(y2-y0);
+             zs0 = z0 + f*(z2-z0);
              
              // Ps1
-             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?(z1-z2):1.0e10);
+             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
              
-             l = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-             
-             xs1 = x1 + f*l;
-             ys1 = y1 + f*l;
-             zs1 = z1 + f*l;
+             xs1 = x1 + f*(x2-x1);
+             ys1 = y1 + f*(y2-y1);
+             zs1 = z1 + f*(z2-z1);
              
              xp = (x0 + x1 + xs0 + xs1)/4.0;
              yp = (y0 + y1 + ys0 + ys1)/4.0;
@@ -188,25 +198,21 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
         // -----
         
          // peak down 0
-            if(z0<fsf_z && z1>=fsf_z  && z2>=fsf_z)
+            if(z0<fsf_z && z1>fsf_z  && z2>fsf_z)
             {
             // Ps1
-             f = fabs(fsf_z - z1)/(fabs(z0-z1)>1.0e-10?(z0-z1):1.0e10);
+             f = fabs(fsf_z - z0)/(fabs(z0-z1)>1.0e-10?fabs(z0-z1):1.0e10);
              
-             l = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-             
-             xs1 = x0 + f*l;
-             ys1 = y0 + f*l;
-             zs1 = z0 + f*l;
+             xs1 = x0 + f*(x1-x0);
+             ys1 = y0 + f*(y1-y0);
+             zs1 = z0 + f*(z1-z0);
              
              // Ps2
-             f = fabs(fsf_z - z2)/(fabs(z0-z2)>1.0e-10?(z0-z2):1.0e10);
+             f = fabs(fsf_z - z0)/(fabs(z0-z2)>1.0e-10?fabs(z0-z2):1.0e10);
              
-             l = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-             
-             xs2 = x0 + f*l;
-             ys2 = y0 + f*l;
-             zs2 = z0 + f*l;
+             xs2 = x0 + f*(x2-x0);
+             ys2 = y0 + f*(y2-y0);
+             zs2 = z0 + f*(z2-z0);
              
              xp = (x0 + xs1 + xs2)/3.0;
              yp = (y0 + ys1 + ys2)/3.0;
@@ -217,53 +223,47 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             
             
             // peak down 1
-            if(z1<fsf_z && z0>=fsf_z  && z2>=fsf_z)
+            if(z1<fsf_z && z0>fsf_z  && z2>fsf_z)
             {
             // Ps0
-             f = fabs(fsf_z - z0)/(fabs(z1-z0)>1.0e-10?(z1-z0):1.0e10);
+             f = fabs(fsf_z - z1)/(fabs(z1-z0)>1.0e-10?fabs(z1-z0):1.0e10);
              
-             l = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-             
-             xs0 = x1 + f*l;
-             ys0 = y1 + f*l;
-             zs0 = z1 + f*l;
+             xs0 = x1 + f*(x0-x1);
+             ys0 = y1 + f*(y0-y1);
+             zs0 = z1 + f*(z0-z1);
              
              // Ps2
-             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?(z1-z2):1.0e10);
+             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
              
-             l = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-             
-             xs2 = x1 + f*l;
-             ys2 = y1 + f*l;
-             zs2 = z1 + f*l;
+             xs2 = x1 + f*(x2-x1);
+             ys2 = y1 + f*(y2-y1);
+             zs2 = z1 + f*(z2-z1);
              
              xp = (xs0 + x1 + xs2)/3.0;
              yp = (ys0 + y1 + ys2)/3.0;
              zp = (zs0 + z1 + zs2)/3.0;
                 
+            //cout<<"A_0: "<<A_triang<<" A_triang: "<<triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2)<<" f: "<<f<<endl;
+            
             A_triang = triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2);
             }
             
         // peak down 2
-            if(z2<fsf_z && z0>=fsf_z  && z1>=fsf_z)
+            if(z2<fsf_z && z0>fsf_z  && z1>fsf_z)
             {
             // Ps0
-             f = fabs(fsf_z - z0)/(fabs(z2-z0)>1.0e-10?(z2-z0):1.0e10);
-             
-             l = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-             
-             xs0 = x2 + f*l;
-             ys0 = y2 + f*l;
-             zs0 = z2 + f*l;
+             f = fabs(fsf_z - z2)/(fabs(z2-z0)>1.0e-10?fabs(z2-z0):1.0e10);
+               
+             xs0 = x2 + f*(x0-x2);
+             ys0 = y2 + f*(y0-y2);
+             zs0 = z2 + f*(z0-z2);
              
              // Ps1
-             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?(z1-z2):1.0e10);
-             
-             l = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-             
-             xs1 = x2 + f*l;
-             ys1 = y2 + f*l;
-             zs1 = z2 + f*l;
+             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
+
+             xs1 = x2 + f*(x1-x2);
+             ys1 = y2 + f*(y1-y2);
+             zs1 = z2 + f*(z1-z2);
              
              xp = (xs0 + xs1 + x2)/3.0;
              yp = (ys0 + ys1 + y2)/3.0;
@@ -271,19 +271,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
                 
             A_triang = triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
             }
-
-				
-			// Normal vectors (always pointing outwards)     
-			nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-			ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-			nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
-
-			norm = sqrt(nx*nx + ny*ny + nz*nz);
-			
-			nx /= norm > 1.0e-20 ? norm : 1.0e20;
-			ny /= norm > 1.0e-20 ? norm : 1.0e20;
-			nz /= norm > 1.0e-20 ? norm : 1.0e20;
-            
+   
             if(p->j_dir==0)
             ny=0.0;
             
@@ -310,9 +298,9 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             etaval = p->ccslipol4(d->eta,xp,yp);  
             hspval = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
 
-            Fp_x = -(pval + hspval)*A_triang*nx;
-            Fp_y = -(pval + hspval)*A_triang*ny;
-            Fp_z = -(pval + hspval)*A_triang*nz;
+            Fp_x = -(pval + hspval)*A_triang*nx*f_jdir;
+            Fp_y = -(pval + hspval)*A_triang*ny*f_jdir;
+            Fp_z = -(pval + hspval)*A_triang*nz*f_jdir;
              
             if(p->j_dir==0)
             Fp_y = 0.0;
