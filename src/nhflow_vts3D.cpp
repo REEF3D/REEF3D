@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"force_ale.h"
 #include"ioflow.h"
 #include"sediment.h"
 #include"nhflow_print_wsf.h"
@@ -93,21 +92,7 @@ nhflow_vts3D::nhflow_vts3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     prunupx=new nhflow_print_runup_gage_x(p,d,pgc);
     
     prunupmaxx=new nhflow_print_runup_max_gage_x(p,d,pgc);
-/*
-    if(p->P230>0)
-    ppotentialfile = new potentialfile_out(p,d,pgc);
 
-    if(p->P40>0)
-	pstate=new nhflow_state(p,d,pgc);
-
-    if(p->P59==1)
-    pbreaklog=new nhflow_breaking_log(p,d,pgc);
-	
-	if(p->P85>0)
-	pforce_ale = new force_ale*[p->P85];
-	
-	for(n=0;n<p->P85;++n)
-	pforce_ale[n]=new force_ale(p,d,pgc,n);*/
     
     if(p->P180==1)
 	pfsf = new nhflow_vtp_fsf(p,d,pgc);
@@ -228,18 +213,6 @@ void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 
     if(p->P59==1)
     pbreaklog->write(p,d,pgc);
-	
-	// ALE force
-	  if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
-	  {
-		for(n=0;n<p->P85;++n)
-        pforce_ale[n]->ini(p,d,pgc);
-	  }
-        if(p->count>0 && p->P85>0)
-		{
-        for(n=0;n<p->P85;++n)
-        pforce_ale[n]->start(p,d,pgc);
-		}
         */
 }
 

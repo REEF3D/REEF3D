@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Arun Kamath
 --------------------------------------------------------------------*/
 
-#include"force_ale.h"
+#include"fnpf_force_ale.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include <math.h>
 
-void force_ale::force_ale_force(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_force_ale::force_ale_force(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {	
     double ztot=0; // check for strip total
 
@@ -82,7 +82,7 @@ void force_ale::force_ale_force(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 }
 
 
-double force_ale::dndt(lexer *p, fdm_fnpf *c, ghostcell *pgc) // to calculate dn dt for ax3
+double fnpf_force_ale::dndt(lexer *p, fdm_fnpf *c, ghostcell *pgc) // to calculate dn dt for ax3
 {
     double dndt = (c->eta(i,j) - etan)/ p->dt;
     //double dndt= (3*c->eta(i,j) - 4*etan + eta2n)/(p->dt+dtn);
@@ -90,7 +90,7 @@ double force_ale::dndt(lexer *p, fdm_fnpf *c, ghostcell *pgc) // to calculate dn
     return dndt;
 }
 
-double force_ale::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dudsig for ax2 and 3
+double fnpf_force_ale::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dudsig for ax2 and 3
 {
     double dudsig_ = 0;
 	double dudsig2_ = 0;
@@ -111,7 +111,7 @@ double force_ale::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting duds
 	return dudsig_;        
 }
 
-double force_ale::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dvdsig for ax2 and 3
+double fnpf_force_ale::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dvdsig for ax2 and 3
 {
 	double dvdsig_ = 0;
 
@@ -129,12 +129,12 @@ double force_ale::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dvds
 }
 
 
-double force_ale::dudxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dudxi
+double fnpf_force_ale::dudxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dudxi
 {
     return (c->U[FIp1JK] - c->U[FIm1JK])/(p->DXN[IP1] + p->DXN[IM1]); 
 }
 
-double force_ale::dvdxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dvdxi
+double fnpf_force_ale::dvdxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dvdxi
 {
     return (c->V[FIJp1K] - c->V[FIJm1K])/(p->DYN[JP1] + p->DYN[JM1]); 
 }

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"force_ale.h"
+#include"fnpf_force_ale.h"
 #include"gradient.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
@@ -29,11 +29,11 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-force_ale::force_ale(lexer* p, fdm_fnpf *c, ghostcell *pgc, int qn) : ID(qn){}
+fnpf_force_ale::fnpf_force_ale(lexer* p, fdm_fnpf *c, ghostcell *pgc, int qn) : ID(qn){}
 
-force_ale::~force_ale(){}
+fnpf_force_ale::~fnpf_force_ale(){}
 
-void force_ale::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_force_ale::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     force_aleprintcount=0;
 
@@ -67,7 +67,7 @@ void force_ale::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 }
 
-void force_ale::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_force_ale::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     if (xc >= xstart && xc < xend && yc >= ystart && yc < yend) // cylinder in processor
     {
@@ -77,6 +77,7 @@ void force_ale::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         // Calculate force
         force_ale_force(p,c,pgc);
     }
+    
     else
     {
         Fx = Fy = 0.0;
@@ -88,7 +89,5 @@ void force_ale::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     // Print
     if(p->mpirank==0)
-    {
-        print_force_ale(p,c,pgc);
-    }
+    print_force_ale(p,c,pgc);
 }

@@ -361,6 +361,9 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Kinematics">
+            <File Name="fnpf_print_kinematics.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Hs">
             <File Name="fnpf_print_Hs.h"/>
           </VirtualDirectory>
@@ -368,7 +371,7 @@
             <File Name="fnpf_runup.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="ALE Force">
-            <File Name="force_ale.h"/>
+            <File Name="fnpf_force_ale.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="fnpf_state.h"/>
@@ -1539,6 +1542,9 @@
           <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Kinematics">
+            <File Name="fnpf_print_kinematics.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="fnpf_runup_calc.cpp"/>
             <File Name="fnpf_runup_print.cpp"/>
@@ -1549,9 +1555,9 @@
             <File Name="fnpf_vel_probe.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Force ALE">
-            <File Name="force_ale_print.cpp"/>
-            <File Name="force_ale_force.cpp"/>
-            <File Name="force_ale.cpp"/>
+            <File Name="fnpf_force_ale_print.cpp"/>
+            <File Name="fnpf_force_ale_force.cpp"/>
+            <File Name="fnpf_force_ale.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Hs">
             <File Name="fnpf_print_Hs.cpp"/>

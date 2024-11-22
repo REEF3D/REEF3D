@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"increment.h"
 
 class fdm_nhf;
-class force_ale;
 class sediment;
 class nhflow_print_wsf;
 class nhflow_print_wsf_theory;
@@ -89,7 +88,6 @@ private:
     nhflow_vtp_bed *pbed;
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
-	force_ale **pforce_ale;
     nhflow_vel_probe *pvel;
     nhflow_vel_probe_theory *pveltheo;
 };

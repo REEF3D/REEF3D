@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"increment.h"
 
 class fdm_fnpf;
-class force_ale;
+class fnpf_force_ale;
 class fnpf_print_wsf;
 class fnpf_print_wsf_theory;
 class fnpf_print_wsfline;
@@ -86,7 +86,7 @@ private:
     fnpf_vtp_bed *pbed;
     fnpf_state *pstate;
     fnpf_breaking_log *pbreaklog;
-	force_ale **pforce_ale;
+	fnpf_force_ale **pforce_ale;
     fnpf_runup **prunup;
     fnpf_print_Hs *phs;
     fnpf_vel_probe *pvel;

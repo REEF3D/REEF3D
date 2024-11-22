@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"force_ale.h"
+#include"fnpf_force_ale.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void force_ale::print_force_ale(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_force_ale::print_force_ale(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
     //cout<<"Fx"<<ID + 1<<": "<<Fx<<" Fy"<<ID + 1<<": "<<Fy<<endl;
     
@@ -35,7 +35,7 @@ void force_ale::print_force_ale(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     fout<<p->count<<" \t "<<setprecision(9)<<p->simtime<<" \t "<<Fx<<" \t "<<Fy<<endl;
 }
 
-void force_ale::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_force_ale::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
     // Create Folder
 	if(p->mpirank==0)
