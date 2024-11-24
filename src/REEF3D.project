@@ -65,6 +65,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Forcing">
+          <File Name="sflow_forcing.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
           <File Name="sflow_turb_kw_IM1_v1.h"/>
           <File Name="sflow_turb_io_void.h"/>
@@ -1171,6 +1174,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Forcing">
+          <File Name="sflow_forcing.cpp"/>
+        </VirtualDirectory>
         <File Name="sflow_v.cpp"/>
         <File Name="sflow_f_logic.cpp"/>
         <File Name="sflow_f_ini.cpp"/>
