@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"6DOF.h"
 #include"nhflow_reinidisc_fsf.h"
 
-sflow_forcing::sflow_forcing(lexer *p) : fx(p), fy(p)
+sflow_forcing::sflow_forcing(lexer *p) : fx(p), fy(p), fz(p)
 {
     forcing_flag=0;
 
@@ -66,7 +66,7 @@ void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof, v
     
     SLICELOOP2
     {
-        Q(i,j) += alpha*p->dt*fy(i,j) ;
+        Q(i,j) += alpha*p->dt*fy(i,j);
         
         /*if(p->count<10)
         b->maxG = MAX(fabs(alpha*CPORNH*b->FY[IJK]), b->maxG);

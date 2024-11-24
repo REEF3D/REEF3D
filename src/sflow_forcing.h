@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"slice1.h"
 #include"slice2.h"
+#include"slice4.h"
 
 class lexer;
 class fdm2D;
@@ -55,6 +56,7 @@ public:
 private:
     slice1 fx;
     slice2 fy;
+    slice4 fz;
     
     double uf, vf, wf;
     int forcing_flag;
