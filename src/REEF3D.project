@@ -2266,8 +2266,10 @@
         <File Name="VOF_AB.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
+        <File Name="VOF_PLIC_schemefuncs.cpp"/>
+        <File Name="VOF_PLIC_transportVOF.cpp"/>
+        <File Name="VOF_PLIC_sprayfilter.cpp"/>
         <File Name="VOF_PLIC_Transport.cpp"/>
-        <File Name="VOF_PLIC_updateVOF_alt.cpp"/>
         <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
         <File Name="VOF_PLIC_normal_Bonn.cpp"/>
         <File Name="VOF_PLIC_advection_alt.cpp"/>
@@ -3188,7 +3190,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="overwrite" BuildLnkWithGlobalSettings="overwrite" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3; -w; -std=c++11; " C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Compiler Options="-O3; -w; -std=c++11; -g;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
       <Linker Options="-lm" Required="yes">
         <LibraryPath Value="/usr/local/hypre/lib"/>
         <Library Value="HYPRE"/>

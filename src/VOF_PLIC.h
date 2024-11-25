@@ -59,9 +59,9 @@ private:
 	double calcAlpha(fdm*, double&,  double&,  double&);
 
 	void ininorVecLS(lexer*);
-	void calcNormalFO(fdm*, lexer*);
-	void calcNormalLS(fdm*, lexer*);
-    void calcNormalWENO(fdm*, lexer*);
+	void calcNormalFO(fdm*, lexer*, field4);
+	void calcNormalLS(fdm*, lexer*, field4);
+    void calcNormalWENO(fdm*, lexer*, field4);
     void calcNormalPhi(fdm*, lexer*);
 	
 	void advectPlane(fdm*, lexer*, double, double, int);
@@ -81,9 +81,11 @@ private:
 	
     //Alternative version by Fabian
     void calculateNormal_alt(fdm*, lexer*);
-    void calcNormalWeymouth(fdm*, lexer*);
+    void calcNormalWeymouth(fdm*, lexer*, field4);
     void calcNormalWang(fdm*, lexer*);
-    void reconstructPlane_alt(fdm*, lexer*, double);
+    void calcNormalMassCentre(fdm*, lexer*, field4);
+    void sprayfilter(fdm*, lexer*);
+    void reconstructPlane_alt(fdm*, lexer*,field4);
     double calculateVolume(double,double,double,double,double,double,double);
     void updateVOF_alt(fdm*, lexer*,int);
     void updateVOF_sweepless(fdm*, lexer*);
@@ -92,36 +94,38 @@ private:
     void transportPhi_Bonn(fdm*,lexer*,int,int);
     void transportVOF_Bonn(fdm*,lexer*,int,int);
     void transportVOF_NewWang(fdm*,lexer*,int);
+    void vof_transport_COSMIC2D(fdm*,lexer*,int,int);
     void simpleNormal_Bonn(fdm*, lexer*);
     void advectPlane_forBonnScheme(fdm*, lexer*,int);
     void advectPlane_NewWang(fdm*, lexer*,int);
     void advectWater_forBonnScheme(fdm*, lexer*,int);
+    void advectPlane_forCOSMIC2D_simple(fdm*,lexer*,int,int);
+    void advectWater_forCOSMIC2D_simple(fdm*,lexer*,int,int);
     void redistancePhiByPlane_Bonn(fdm*, lexer*);
     double ShortestDistanceOnBoundaryCandidate(fdm*, lexer*, int, int, int, double);
     double ProjectionPointCandidate(fdm*, lexer*, int, int, int, double);
     double IntersectionPointCandidate(fdm*, lexer*, int, int, int, double);
+    void stepwise_scheme(fdm*,lexer*,ghostcell*);
+    void symmetric_scheme2D(fdm*, lexer*,ghostcell*);
    
-    
-    field4 vof_old;
     field4 V_w_p;
     field4 V_w_m;
-    field4 V_w_update;
-    field4 V_a_update;
+    field4 Vx_p; // Vx_+1/2
+    field4 Vx_m; // Vx_-1/2
+    field4 Vz_p; // Vz_+1/2
+    field4 Vz_m; // Vz_-1/2
+    field4 Vn_p; // Vn_+1/2
+    field4 Vn_m; // Vn_-1/2
+    field4 F_x; // Fx in vof transport scheme
+    field4 F_z; // Fz in vof transport scheme
+    field4 F_n; // old vof field
+    field4 F_new; // F_n+1 new vof field
+    field4 Flux_x; // delta_t*d/dx(uF_n)
+    field4 Flux_z; // delta_t*d/dz(wF_n)
+    field4 Crossflux_xz; // delta_t*d/dz(wFx)
+    field4 Crossflux_zx; // delta_t*d/dx(uFz)
     field4 phival;
-    field4 Watersafe;
-    field4 V_w_p_star;
-    field4 V_w_m_star;
-    field4 vof_prevstep;
-    field4 V_w_old;
-    field4 V_a_old;
-    field4 FX_p;
-    field4 FX_m;
-    field4 FZ_p;
-    field4 FZ_m;
     field4 alphastore;
-    field4 nxstore;
-    field4 nystore;
-    field4 nzstore;
     field4 phistep;
     field4 phiS0;
     field4 phiS1;
@@ -140,6 +144,8 @@ private:
    
 	//- Sweep tracker for alternating starting point
 	int sSweep;
+    int Sweepdim;
+    int sweep;
    
     //- Interface normal vector
     field4 nx;

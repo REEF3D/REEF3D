@@ -129,6 +129,199 @@ double VOF_PLIC::calculateVolume(double n_a, double n_b, double n_c, double d_a,
     return V0;
 }
 
+void VOF_PLIC::advectPlane_forCOSMIC2D_simple
+(
+    fdm* a,
+    lexer* p,
+    int sweep,
+    int inputdim
+)
+{
+  
+    if(sweep==0)
+    {
+        if(a->u(i,j,k)>0.0)
+        {
+            double dsx, scaledVol, Vol,r0x,recheck;
+            dsx=a->u(i,j,k)*p->dt;
+            r0x=-(nx(i,j,k)*(0.5*p->DXN[IP]-0.5*dsx)-alpha(i,j,k));
+            scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),dsx,p->DYN[JP],p->DZN[KP],r0x);
+            Vol=scaledVol*dsx*p->DYN[JP]*p->DZN[KP];
+            switch(inputdim)
+            {
+                case -1:
+                            Vn_p(i,j,k)=Vol;
+                            break;
+                case 0:
+                            Vx_p(i,j,k)=Vol;
+                            break;
+                case 2:
+                            Vz_p(i,j,k)=Vol;
+                            break;
+            }
+        }
+        
+        if(a->u(i-1,j,k)<0.0)
+        {
+            double dsx, scaledVol, Vol, r0x, recheck;
+            dsx=fabs(a->u(i-1,j,k)*p->dt);
+            r0x=-(nx(i,j,k)*(-0.5*p->DXN[IP]+0.5*dsx)-alpha(i,j,k));
+            scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),dsx,p->DYN[JP],p->DZN[KP],r0x);
+            Vol=scaledVol*dsx*p->DYN[JP]*p->DZN[KP];
+            switch(inputdim)
+            {
+                case -1:
+                            Vn_m(i,j,k)=-Vol;
+                            break;
+                case 0:
+                            Vx_m(i,j,k)=-Vol;
+                            break;
+                case 2:
+                            Vz_m(i,j,k)=-Vol;
+                            break;
+            }
+        }
+        
+    }
+    else if(sweep==2)
+    {
+        if(a->w(i,j,k)>0.0)
+        {
+            double dsz, scaledVol, Vol, r0z, recheck;
+            dsz=a->w(i,j,k)*p->dt;
+            r0z=-(nz(i,j,k)*(0.5*p->DZN[KP]-0.5*dsz)-alpha(i,j,k));
+            scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],dsz,r0z);
+            Vol=scaledVol*p->DXN[IP]*p->DYN[JP]*dsz;
+            switch(inputdim)
+            {
+                case -1:
+                            Vn_p(i,j,k)=Vol;
+                            break;
+                case 0:
+                            Vx_p(i,j,k)=Vol;
+                            break;
+                case 2:
+                            Vz_p(i,j,k)=Vol;
+                            break;
+            }
+        }
+        
+        if(a->w(i,j,k-1)<0.0)
+        {
+            double dsz, scaledVol, Vol, r0z, recheck;
+            dsz=fabs(a->w(i,j,k-1)*p->dt);
+            r0z=-(nz(i,j,k)*(-0.5*p->DZN[KP]+0.5*dsz)-alpha(i,j,k));
+            scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],dsz,r0z);
+            Vol=scaledVol*p->DXN[IP]*p->DYN[JP]*dsz;
+            switch(inputdim)
+            {
+                case -1:
+                            Vn_m(i,j,k)=-Vol;
+                            break;
+                case 0:
+                            Vx_m(i,j,k)=-Vol;
+                            break;
+                case 2:
+                            Vz_m(i,j,k)=-Vol;
+                            break;
+            }
+        }
+        
+    }
+}
+
+void VOF_PLIC::advectWater_forCOSMIC2D_simple
+(
+    fdm* a,
+    lexer* p,
+    int sweep,
+    int inputdim
+)
+{
+    if(sweep==0)
+    {
+        if(a->u(i,j,k)>0.0)
+        {
+            double dsx, Vol;
+            dsx=a->u(i,j,k)*p->dt;
+            Vol=dsx*p->DYN[JP]*p->DZN[KP];
+            switch(inputdim)
+            {
+                case -1:
+                            Vn_p(i,j,k)=Vol;
+                            break;
+                case 0:
+                            Vx_p(i,j,k)=Vol;
+                            break;
+                case 2:
+                            Vz_p(i,j,k)=Vol;
+                            break;
+            }
+        }
+        
+        if(a->u(i-1,j,k)<0.0)
+        {
+            double dsx, Vol;
+            dsx=fabs(a->u(i-1,j,k)*p->dt);
+            Vol=dsx*p->DYN[JP]*p->DZN[KP];
+            switch(inputdim)
+            {
+                case -1:
+                            Vn_m(i,j,k)=-Vol;
+                            break;
+                case 0:
+                            Vx_m(i,j,k)=-Vol;
+                            break;
+                case 2:
+                            Vz_m(i,j,k)=-Vol;
+                            break;
+            }
+        }
+    }
+    else if(sweep==2)
+    {
+        if(a->w(i,j,k)>0.0)
+        {
+            double dsz,Vol;
+            dsz=a->w(i,j,k)*p->dt;
+            Vol=p->DXN[IP]*p->DYN[JP]*dsz;
+            switch(inputdim)
+            {
+                case -1:
+                            Vn_p(i,j,k)=Vol;
+                            break;
+                case 0:
+                            Vx_p(i,j,k)=Vol;
+                            break;
+                case 2:
+                            Vz_p(i,j,k)=Vol;
+                            break;
+            }
+        }
+        
+        if(a->w(i,j,k-1)<0.0)
+        {
+            double dsz,Vol;
+            dsz=fabs(a->w(i,j,k-1)*p->dt);
+            Vol=p->DXN[IP]*p->DYN[JP]*dsz;
+            switch(inputdim)
+            {
+                case -1:
+                            Vn_m(i,j,k)=-Vol;
+                            break;
+                case 0:
+                            Vx_m(i,j,k)=-Vol;
+                            break;
+                case 2:
+                            Vz_m(i,j,k)=-Vol;
+                            break;
+            }
+        }
+    }
+}
+    
+
+    
 
 void VOF_PLIC::advectPlane_forBonnScheme
 (

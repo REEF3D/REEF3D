@@ -49,7 +49,7 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
                 H=0.0;
 
             if(fabs(phival)<=p->psi)
-                H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
+                H=0.5*(1.0 + phival/(p->psi) + (1.0/PI)*sin((PI*phival)/(p->psi)));
                 
     
             if(phival>p->psi)

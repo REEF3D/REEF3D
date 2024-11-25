@@ -42,7 +42,7 @@ void VOF_PLIC::reconstructPlane(fdm* a, lexer* p)
 	//calcNormalFO(a, p);
 	//calcNormalWENO(a, p);
 	//calcNormalPhi(a, p);
-	calcNormalLS(a, p);
+	calcNormalLS(a, p, a->vof);
 
 
 	//- Scale n_i according to cell size

@@ -25,6 +25,8 @@ Author: Fabian Knoblauch
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+
+
 #include"convection.h"
 #include"solver.h"
 #include"ghostcell.h"
@@ -35,10 +37,12 @@ Author: Fabian Knoblauch
 #include"weno_hj.h"
 #include"hric.h"
 
-void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p,double V0)
-{
-    double n_1, n_2, n_3, V,r0, r, n_a, n_b, n_c;
-    
+void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p, field4 voffield)
+{   cout<<"alpha"<<endl;
+    double V0, n_1, n_2, n_3, V,r0, r, n_a, n_b, n_c;
+    V0=voffield(i,j,k);
+    cout<<"V0:"<<V0<<endl;
+    cout<<"beta"<<endl;
     //get the normal vector
     switch(p->F88)
     {
@@ -48,31 +52,35 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p,double V0)
         case 1:
                 simpleNormal_Bonn(a,p);
                 break;
-        case 2: calcNormalWeymouth(a,p);
+        case 2: 
+                calcNormalWeymouth(a,p,voffield);
                 break;
         case 3:
                 calcNormalWang(a,p);
+                break;
         case 4:
-                calcNormalFO(a,p);
+                calcNormalFO(a,p,voffield);
                 break;
         case 5:
-                calcNormalLS(a,p);
+                calcNormalLS(a,p,voffield);
                 break;
         case 6:
-                calcNormalWENO(a,p);
+                calcNormalWENO(a,p,voffield);
                 break;
         case 7:
                 calcNormalPhi(a,p);
                 break;
+        case 8:
+                calcNormalMassCentre(a,p,voffield);
+                break;
     }
-    
-    
+    cout<<"A"<<endl;
     //normalise normal vector (to be sure)
     double vecsum = sqrt(nx(i,j,k)*nx(i,j,k)+ny(i,j,k)*ny(i,j,k)+nz(i,j,k)*nz(i,j,k));
     nx(i,j,k)=nx(i,j,k)/vecsum;
     ny(i,j,k)=ny(i,j,k)/vecsum;
     nz(i,j,k)=nz(i,j,k)/vecsum;
-    
+    cout<<"B"<<endl;
   //  cout<<"nx:"<<nx(i,j,k)<<" ny:"<<ny(i,j,k)<<" nz:"<<nz(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
     
     //scale with cellsize
@@ -116,7 +124,7 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p,double V0)
     
     //reduced symmetry transformation
     V=0.5-fabs(V0-0.5);
-    
+    cout<<"C"<<endl;
     if(n_1+n_2<=2.0*V*n_3)   //case 5
     {
         r=V*n_3+0.5*(n_1+n_2);
@@ -154,7 +162,7 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p,double V0)
             r=f4;
         }
     }
-    
+    cout<<"D"<<endl;
     //reverse reduced symmetry
     if(V0-0.5>=0.0)
     {
@@ -167,11 +175,11 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p,double V0)
     
     alpha(i,j,k)=r0*sqrt(nx(i,j,k)*nx(i,j,k)*p->DXN[IP]*p->DXN[IP]+ny(i,j,k)*ny(i,j,k)*p->DYN[JP]*p->DYN[JP]+nz(i,j,k)*nz(i,j,k)*p->DZN[KP]*p->DZN[KP]);
     //cout<<"alpha: "<<alpha(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
-    
+    cout<<"E"<<endl;
 }
     
 
 void VOF_PLIC::calculateNormal_alt(fdm* a, lexer* p)
 {
-    calcNormalFO(a, p);
+    calcNormalFO(a, p, a->vof);
 }

@@ -41,10 +41,10 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
     lexer* p
 )
 {
-    int bandWidth=1;
+    int bandWidth=4;
     int jjbandWidth;
     if(p->j_dir>0)
-        jjbandWidth=1;
+        jjbandWidth=4;
     else
         jjbandWidth=0;
     double phitemp;
@@ -99,9 +99,9 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                             else
                                             {
                                                 cout<<"no nearest phase pint found"<<endl;
-                                                phitemp=phistep(ip,jp,kp);
+                                                /*phitemp=phistep(ip,jp,kp);
                                                 if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                    phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
+                                                    phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);*/
                                             }
                                         }
                                     }

@@ -44,16 +44,19 @@ benchmark_disk::benchmark_disk(lexer *p, fdm *a)
     LOOP
 	{
 		a->vof(i,j,k) = 0.0;
+        a->phi(i,j,k) = -0.5;
 		
 		r = sqrt(pow(p->pos_x() - xc, 2.0) + pow(p->pos_z() - zc, 2.0));
 		if (r <= radius)
 		{
 			a->vof(i,j,k) = 1.0;
+            a->phi(i,j,k) = 0.5;
 		}
 
 		if (p->pos_x() >= xs && p->pos_x() < xe && p->pos_z() >= zs && p->pos_z() < ze)
 		{
 			a->vof(i,j,k) = 0.0;
+            a->phi(i,j,k) = -0.5;
 		}
 		
 		a->test(i,j,k) = a->vof(i,j,k);		
@@ -62,7 +65,7 @@ benchmark_disk::benchmark_disk(lexer *p, fdm *a)
 
 
 	// Inverse field
-	if(p->F151==1)
+	/*if(p->F151==1)
 	LOOP
     a->phi(i,j,k)*=-1.0;
 
@@ -79,7 +82,7 @@ benchmark_disk::benchmark_disk(lexer *p, fdm *a)
 
 		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
-	}    
+	}    */
 }
 
 benchmark_disk::~benchmark_disk()
