@@ -64,6 +64,7 @@ public:
     slice4 Hs,fs;
     slice1 fx;
     slice2 fy;
+    slice4 fz;
     
     slice4 bed,bed0,depth;
     slice4 solidbed,topobed;

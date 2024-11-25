@@ -316,7 +316,7 @@ void sixdof_void::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvra
 {
 }
 
-void sixdof_void::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, bool finalize)
+void sixdof_void::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
     
 }

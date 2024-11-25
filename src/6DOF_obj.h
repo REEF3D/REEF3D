@@ -103,7 +103,7 @@ public:
     void updateForcing_stl(lexer*, ghostcell*, slice&);
     void updateForcing_oned(lexer*, ghostcell*, slice&);
     
-    void update_forcing_sflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
+    void update_forcing_sflow(lexer*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, int);
     
     double Mass_fb, Vfb, Rfb;
 

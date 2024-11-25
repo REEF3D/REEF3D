@@ -47,7 +47,7 @@ public:
     virtual void start_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
     virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool);
     
-    virtual void start_sflow(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,bool);
+    virtual void start_sflow(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
     
 	virtual void ini(lexer*,ghostcell*);
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);

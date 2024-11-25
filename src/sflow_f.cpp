@@ -120,7 +120,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
         
         // 6DOF
-        p6dof->start_sflow(p,pgc,0,b->fs,b->P,b->Q,b->fx,b->fy,1);
+        p6dof->start_sflow(p,pgc,0,b->fs,b->P,b->Q,b->ws,b->fx,b->fy,b->fz,1);
 
         // timesave
         pturb->ktimesave(p,b,pgc);

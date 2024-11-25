@@ -46,7 +46,7 @@ void sixdof_nhflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& p
 {
 }
 
-void sixdof_nhflow::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, bool finalize)
+void sixdof_nhflow::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
 }
 

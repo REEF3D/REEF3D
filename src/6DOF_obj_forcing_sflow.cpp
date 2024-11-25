@@ -25,13 +25,13 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_forcing_sflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
-                             double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
+void sixdof_obj::update_forcing_sflow(lexer *p, ghostcell *pgc, 
+                             slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, int iter)
 {
     // Calculate forcing fields
     double H, uf, vf, wf;
     double ef,efc;
-    
+    /*
     LOOP
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
@@ -45,7 +45,7 @@ void sixdof_obj::update_forcing_sflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
-    }
+    }*/
     
 }
     

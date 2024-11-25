@@ -45,13 +45,13 @@ sixdof_sflow::~sixdof_sflow()
 void sixdof_sflow::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
     if(p->X10==2)
-    start_oneway(p,pgc,iter,fsglobal,P,Q,fx,fy,finalize);
+    start_oneway(p,pgc,iter,fsglobal,P,Q,w,fx,fy,fz,finalize);
     
     if(p->X10==3)
-    start_shipwave(p,pgc,iter,fsglobal,P,Q,fx,fy,finalize);
+    start_shipwave(p,pgc,iter,fsglobal,P,Q,fx,fy,fz,finalize);
 }
 
-void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, slice &fz, bool finalize)
+void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
     
     for (int nb=0; nb<number6DOF;++nb)
@@ -69,7 +69,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
         fb_obj[nb]->update_fbvel(p,pgc);
         
         // Update forcing terms
-        //fb_obj[nb]->updateForcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+        fb_obj[nb]->update_forcing_sflow(p,pgc,P,Q,w,fx,fy,fz,iter);
         
             // Print
             if(p->X50==1)
@@ -83,7 +83,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
     }
 }
 
-void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, bool finalize)
+void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, slice &fz, bool finalize)
 {
     
     for (int nb=0; nb<number6DOF;++nb)
