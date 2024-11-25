@@ -39,20 +39,22 @@ sflow_forcing::~sflow_forcing()
 {
 }
 
-void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof, vrans* pvrans, vector<net*>& pnet, 
+void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof, 
                              int iter, double alpha, slice &P, slice &Q, slice &w, slice &WL, bool finalize)
 {
     if(forcing_flag==1)
-    {    
-    // ini forcing terms
     SLICELOOP4
     {
     fx(i,j) = 0.0;   
     fy(i,j) = 0.0;   
     }
+    
     // 6DOF forcing
-    //p6dof->start_nhflow(p,b,pgc,pvrans,pnet,iter,b->U,b->V,b->W,FX,FY,FZ,WL,fe,finalize);
+    p6dof->start_sflow(p,pgc,iter,b->fs,P,Q,w,b->fx,b->fy,b->fz,finalize);
 
+
+    if(forcing_flag==1)
+    {
     // add forcing term to RHS
     SLICELOOP1
     {
@@ -67,6 +69,16 @@ void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof, v
     SLICELOOP2
     {
         Q(i,j) += alpha*p->dt*fy(i,j);
+        
+        /*if(p->count<10)
+        b->maxG = MAX(fabs(alpha*CPORNH*b->FY[IJK]), b->maxG);
+        
+        p->fbmax = MAX(fabs(alpha*CPORNH*b->FY[IJK]), p->fbmax);*/
+    }
+    
+    SLICELOOP4
+    {
+        w(i,j) += alpha*p->dt*fz(i,j);
         
         /*if(p->count<10)
         b->maxG = MAX(fabs(alpha*CPORNH*b->FY[IJK]), b->maxG);

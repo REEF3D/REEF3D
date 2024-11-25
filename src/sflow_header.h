@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"ioflow_void.h"
 #include"hypre_struct2D.h"
 #include"sflow_bicgstab.h"
+#include"sflow_forcing.h"
 
 #include"sflow_etimestep.h"
 #include"sflow_fixtimestep.h"

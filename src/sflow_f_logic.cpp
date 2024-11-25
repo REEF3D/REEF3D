@@ -25,6 +25,9 @@ Author: Hans Bihs
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
     
+    // forcing
+    psfdf=new sflow_forcing(p);
+    
 	// timestep
     if(p->N48==0)
 	ptime = new sflow_fixtimestep(p,b);
@@ -206,7 +209,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof);
     
 	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof);
+	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
     
     
     //Potential Flow Solver

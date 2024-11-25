@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"sflow_pressure.h"
 #include"sflow_diffusion.h"
 #include"sflow_fsf.h"
+#include"sflow_forcing.h"
 #include"sflow_rough_manning.h"
 #include"sflow_rough_void.h"
 #include"ioflow.h"
@@ -37,7 +38,8 @@ Author: Hans Bihs
 #include"6DOF.h"
 
 sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pconvection, sflow_diffusion *ppdiff, sflow_pressure* ppressure,
-                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf, sixdof *pp6dof)
+                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf,
+                                                    sflow_forcing *ppsfdf, sixdof *pp6dof)
                                                     :Prk1(p),Prk2(p),Qrk1(p),Qrk2(p),wrk1(p),wrk2(p),etark1(p),etark2(p)
 {
 	gcval_u=10;
@@ -65,6 +67,7 @@ sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, sflow_convection *pco
 	pflow=pioflow;
 	pfsf=pfreesurf;
     p6dof=pp6dof;
+    psfdf=ppsfdf;
     
 
     if(p->A218==0)
@@ -162,6 +165,8 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + p->dt*b->L(i,j);
 
     pgc->gcsl_start4(p,wrk1,12);
+    
+    psfdf->forcing(p,b,pgc,p6dof,0,1.0,Prk1,Qrk1,wrk1,b->hp,0);
 
 	// press
     ppress->start(p,b,pgc,ppoissonsolv,pflow, Prk1, Qrk1, b->P, b->Q, wrk1, etark1, 1.0);
@@ -250,6 +255,8 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + 0.25*p->dt*b->L(i,j);
 
     pgc->gcsl_start4(p,wrk2,12);
+    
+    psfdf->forcing(p,b,pgc,p6dof,1,0.25,Prk2,Qrk2,wrk2,b->hp,0);
 
     // press
     ppress->start(p,b,pgc,ppoissonsolv,pflow, Prk2, Qrk2, Prk1, Qrk1, wrk2, etark2, 0.25);
@@ -336,6 +343,8 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + (2.0/3.0)*p->dt*b->L(i,j);
 
     pgc->gcsl_start4(p,b->ws,12);
+    
+    psfdf->forcing(p,b,pgc,p6dof,2,2.0/3.0,b->P,b->Q,b->ws,b->hp,1);
 
 	//--------------------------------------------------------
 	// pressure

@@ -42,6 +42,7 @@ class sflow_convection;
 class sflow_diffusion;
 class sflow_filter;
 class sflow_turbulence;
+class sflow_forcing;
 class sediment;
 class turbulence;
 class patchBC_interface;
@@ -78,6 +79,7 @@ private:
 	sflow_timestep *ptime;
 	sflow_momentum *pmom;
 	sflow_pressure *ppress;
+    sflow_forcing *psfdf;
 	solver2D *psolv;
 	solver2D *ppoissonsolv;
 	ioflow *pflow;

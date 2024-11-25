@@ -31,21 +31,22 @@ void sixdof_obj::update_forcing_sflow(lexer *p, ghostcell *pgc,
     // Calculate forcing fields
     double H, uf, vf, wf;
     double ef,efc;
-    /*
-    LOOP
-    {
-        H = Hsolidface_nhflow(p,d,0,0,0);
-        d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
-        
+    
+    SLICELOOP4
+    {        
         uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
         vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+        wf = 0.0;//u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
          
+        H = Hsolidface_2D(p,0,0);
+        fx(i,j) += H*(uf - P(i,j))/(alpha[iter]*p->dt);
         
-        FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
-        FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
-        FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
-    }*/
+        H = Hsolidface_2D(p,0,0);
+        fy(i,j) += H*(vf - Q(i,j))/(alpha[iter]*p->dt);
+        
+        H = Hsolidface_2D(p,0,0);
+        fz(i,j) += H*(wf - w(i,j))/(alpha[iter]*p->dt);
+    }
     
 }
     
