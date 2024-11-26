@@ -96,10 +96,11 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
 
 void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
+    if(finalize==1)
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway(p,pgc,iter);
+        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices();

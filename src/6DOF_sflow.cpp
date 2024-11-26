@@ -53,11 +53,11 @@ void sixdof_sflow::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglob
 
 void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
-    
+    if(finalize==1)
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway(p,pgc,iter);
+        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices();
