@@ -164,6 +164,7 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
     {
         pnet.push_back(new net_void());
     }
+    
     else
     {
 		MPI_Bcast(&p->net_count,1,MPI_DOUBLE,0,pgc->mpi_comm);

@@ -110,7 +110,11 @@ void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Ma
 
 	//- Build and save net
 	print(p);	
-
+    
+    if (p->mpirank==0)
+    cout<<"convIt.maxCoeff(): "<<convIt.maxCoeff();
+        
+/*
     //- Print output
     double endtime1 = pgc->timer() - starttime1; 
     if (p->mpirank==0 && convIt.maxCoeff() < 10)
@@ -120,7 +124,7 @@ void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Ma
     if (p->mpirank==0 && convIt.maxCoeff() >= 10)
     {
         cout<<"Net diverged. Adjust X 325 accordingly!"<<endl; 
-    }
+    }*/
 }
 
 

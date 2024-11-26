@@ -1904,7 +1904,8 @@
           <File Name="6DOF_cfd_velsource.cpp"/>
           <File Name="6DOF_cfd.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Void">
+        <VirtualDirectory Name="Interface Void">
+          <File Name="6DOF_void_initialize.cpp"/>
           <File Name="6DOF_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface SFLOW">

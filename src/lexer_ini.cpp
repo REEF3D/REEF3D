@@ -82,7 +82,6 @@ void lexer::lexer_ini()
     
     if(A10==3 || A10==5)
     G2=1;
-		
 }
 
 void lexer::makeflag( int *field)

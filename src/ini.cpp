@@ -899,4 +899,6 @@ void lexer::ini_default()
 	pressval=0;
     alpha=0.0;
     solidread=toporead=porousread=0;
+    net_count=0;
+    mooring_count=0;
 }
