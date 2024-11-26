@@ -42,7 +42,6 @@ void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
     
     pgc->gcsl_start4(p,fsglobal,50);
     
-    
     if(p->mpirank==0)
     {
         cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;

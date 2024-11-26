@@ -1914,6 +1914,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
           <VirtualDirectory Name="Forcing">
+            <File Name="6DOF_obj_forcing.cpp"/>
             <File Name="6DOF_obj_forcing_sflow.cpp"/>
             <File Name="6DOF_obj_forcing_nhflow.cpp"/>
             <File Name="6DOF_obj_forcing_2D.cpp"/>
@@ -1932,7 +1933,6 @@
           <File Name="6DOF_obj_update_pos.cpp"/>
           <File Name="6DOF_obj_solve.cpp"/>
           <File Name="6DOF_obj_rotation.cpp"/>
-          <File Name="6DOF_obj_forcing.cpp"/>
           <VirtualDirectory Name="Initialize">
             <File Name="6DOF_obj_ini_nhflow.cpp"/>
             <File Name="6DOF_obj_ini_shipwave.cpp"/>

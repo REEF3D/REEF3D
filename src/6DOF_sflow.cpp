@@ -57,7 +57,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
+        fb_obj[nb]->solve_eqmotion_oneway(p,pgc,iter);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices();
@@ -72,6 +72,10 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
         fb_obj[nb]->update_forcing_sflow(p,pgc,P,Q,w,fx,fy,fz,iter);
         
             // Print
+        if(finalize==true)
+        {
+            fb_obj[nb]->saveTimeStep(p,iter);
+            
             if(p->X50==1)
             fb_obj[nb]->print_vtp(p,pgc);
             
@@ -79,7 +83,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
             fb_obj[nb]->print_stl(p,pgc);
             
             fb_obj[nb]->print_parameter(p,pgc);
-        
+        }
     }
 }
 
@@ -102,13 +106,13 @@ void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsg
         fb_obj[nb]->update_fbvel(p,pgc);
         
         // Update forcing terms
-        if (p->X400==2)
+        if(p->X400==2)
         fb_obj[nb]->updateForcing_box(p,pgc,press);
         
-        else if (p->X400==3)
+        if(p->X400==3)
         fb_obj[nb]->updateForcing_oned(p,pgc,press);
         
-        else if (p->X400==10)
+        if(p->X400==10)
         fb_obj[nb]->updateForcing_stl(p,pgc,press);
         
             // Print

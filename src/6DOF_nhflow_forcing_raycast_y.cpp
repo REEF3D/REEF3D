@@ -79,7 +79,7 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
     && Cz>=p->global_zmin && Cz<=p->global_zmax)
     checkin=1;
     
-    //checkin=1;
+    checkin=1;
         
     if(checkin==1)
     {

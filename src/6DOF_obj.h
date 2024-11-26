@@ -105,6 +105,8 @@ public:
     
     void update_forcing_sflow(lexer*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, int);
     
+    void solve_eqmotion_sflow(lexer*,ghostcell*,int);
+    
     double Mass_fb, Vfb, Rfb;
 
 private:

@@ -59,30 +59,30 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     ef = d->bed(i,j) + d->depth(i,j);
     
     
-    if(d->SOLID[IJK]<0.0)
+    if(d->FB[IJK]<0.0)
     {
         ef = 0.0;
         efc = 0.0;
         
-        if(d->SOLID[Im1JK]>0.0)   
+        if(d->FB[Im1JK]>0.0)   
         {
         ef += WL(i-1,j);
         efc+=1.0;
         }
         
-        if(d->SOLID[Ip1JK]>0.0)    
+        if(d->FB[Ip1JK]>0.0)    
         {
         ef += WL(i+1,j);
         efc+=1.0;
         }
 
-        if(d->SOLID[IJm1K]>0.0) 
+        if(d->FB[IJm1K]>0.0) 
         {
         ef += WL(i,j-1);
         efc+=1.0;
         }
         
-        if(d->SOLID[IJp1K]>0.0)    
+        if(d->FB[IJp1K]>0.0)    
         {
         ef += WL(i,j+1);
         efc+=1.0;
@@ -106,10 +106,10 @@ double sixdof_obj::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb, int c
     double psi, H, phival_fb,dirac;
     
     if (p->j_dir==0)
-    psi = p->X41*(1.0/1.0)*(p->DXN[IP]);// + 0.0*p->DZN[KP]*d->WL(i,j));
+    psi = p->X41*(1.0/1.0)*(p->DXN[IP]);
 	
     if (p->j_dir==1)
-    psi = p->X41*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);// + 0.0*p->DZN[KP]*d->WL(i,j));
+    psi = p->X41*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);
 
 
     // Construct solid heaviside function

@@ -55,12 +55,23 @@ void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int
     rk3(p,pgc,iter);
 }
 
-void sixdof_obj::solve_eqmotion_oneway(lexer *p, ghostcell *pgc, int iter)
+void sixdof_obj::solve_eqmotion_sflow(lexer *p, ghostcell *pgc, int iter)
 {
-    if(p->A510==2)
+    update_forces(p);
+    
+    if(p->A210==2)
     rk2(p,pgc,iter);
     
-    if(p->A510==3)
+    if(p->A210==3)
+    rk3(p,pgc,iter);
+}
+
+void sixdof_obj::solve_eqmotion_oneway(lexer *p, ghostcell *pgc, int iter)
+{
+    if(p->A510==2 || p->A210==2)
+    rk2(p,pgc,iter);
+    
+    if(p->A510==3 || p->A210==3)
     rk3(p,pgc,iter);       
 }
 

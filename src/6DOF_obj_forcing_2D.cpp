@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
@@ -100,17 +100,13 @@ double sixdof_obj::Hsolidface_2D(lexer *p, int aa, int bb)
     phival_fb = 0.5*(fs(i,j) + fs(i+aa,j+bb));
     
     if (-phival_fb > psi)
-    {
-        H = 1.0;
-    }
+    H = 1.0;
+    
     else if (-phival_fb < -psi)
-    {
-        H = 0.0;
-    }
+    H = 0.0;
+
     else
-    {
-        H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
-    }
+    H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
         
     return H;
 }

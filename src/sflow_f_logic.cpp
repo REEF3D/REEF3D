@@ -195,10 +195,10 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pprintbed = new sflow_vtp_bed(p,b);
     
     //6DOF
-    if(p->X10!=3)
+    if(p->X10<2)
     p6dof = new sixdof_void(p,pgc);
     
-    if(p->X10==3)
+    if(p->X10>=2)
     p6dof = new sixdof_sflow(p,pgc);
 	
 	// momentum
