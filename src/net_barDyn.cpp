@@ -111,8 +111,8 @@ void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Ma
 	//- Build and save net
 	print(p);	
     
-    if (p->mpirank==0)
-    cout<<"convIt.maxCoeff(): "<<convIt.maxCoeff();
+    //if (p->mpirank==0)
+    //cout<<"convIt.maxCoeff(): "<<convIt.maxCoeff();
         
 /*
     //- Print output

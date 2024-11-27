@@ -37,8 +37,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
     
-sixdof_void::sixdof_void(lexer*,ghostcell*)
+sixdof_void::sixdof_void(lexer *p, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    mkdir("./REEF3D_CFD_6DOF",0777);
 }
 
 sixdof_void::~sixdof_void()
