@@ -52,7 +52,7 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
     start_oneway(p,d,pgc,iter,FX,FY,FZ,WL,fe,finalize);
     
     if(p->X10==3)
-    start_shipwave(p,d,pgc,finalize);
+    start_shipwave(p,d,pgc,iter,finalize);
 }
 
 void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
@@ -96,7 +96,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
 
 void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
-    if(finalize==1)
+    if(iter==0)
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
@@ -131,9 +131,9 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     }
 }
 
-void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
+void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
 {
-    if(finalize==1)
+    if(iter==0)
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time

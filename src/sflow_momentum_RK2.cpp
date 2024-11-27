@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"sflow_pressure.h"
 #include"sflow_diffusion.h"
 #include"sflow_fsf.h"
+#include"sflow_forcing.h"
 #include"ioflow.h"
 #include"solver2D.h"
 #include"sflow_rough_manning.h"
@@ -158,7 +159,8 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + p->dt*b->L(i,j);
               
     pgc->gcsl_start4(p,wrk1,12);
-
+    
+    psfdf->forcing(p,b,pgc,p6dof,0,1.0,Prk1,Qrk1,wrk1,b->hp,0);
 
 	// press
     ppress->start(p,b,pgc,ppoissonsolv,pflow, Prk1, Qrk1, b->P, b->Q, wrk1, etark1, 1.0);
@@ -245,6 +247,8 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 			  + 0.5*p->dt*b->L(i,j);
               
     pgc->gcsl_start4(p,b->ws,12);
+    
+    psfdf->forcing(p,b,pgc,p6dof,1,0.5,b->P,b->Q,b->ws,b->hp,1);
               
 	//--------------------------------------------------------
 	// pressure

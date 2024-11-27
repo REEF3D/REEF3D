@@ -31,6 +31,7 @@ class sflow_fsf;
 class sflow_diffusion;
 class sflow_roughness;
 class sflow_rheology;
+class sflow_forcing;
 
 using namespace std;
 
@@ -67,6 +68,7 @@ private:
 	sflow_fsf *pfsf;
     sflow_roughness *prough;
     sflow_rheology *prheo;
+    sflow_forcing *psfdf;
     sixdof *p6dof;
 };
 

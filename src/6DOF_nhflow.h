@@ -51,7 +51,7 @@ public:
     
     void start_twoway(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,slice&,slice&,bool);
     void start_oneway(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
-    void start_shipwave(lexer*,fdm_nhf*,ghostcell*,bool);
+    void start_shipwave(lexer*,fdm_nhf*,ghostcell*,int,bool);
        
 	virtual void ini(lexer*,ghostcell*);
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);

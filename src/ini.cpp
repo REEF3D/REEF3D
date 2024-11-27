@@ -117,7 +117,7 @@ void lexer::ini_default()
     A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
     A521=0;		// int
-    A522=4.0;    // double p_alpha
+    A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Froude number limiter
     A540=1;      // int NFHLOW fsf scheme

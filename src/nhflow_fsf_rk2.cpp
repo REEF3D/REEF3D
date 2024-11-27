@@ -99,7 +99,39 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     wetdry(p,d,pgc,U,V,W,WLRK1); 
     //breaking(p,d,pgc,d->eta,d->eta_n,alpha);
 
-    forcing(p,d,pgc,U,V,W,WLRK1);   
+}
+
+void nhflow_fsf_f::rk2_step1_corr(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
+{
+    SLICELOOP4
+    K(i,j) = 0.0;
+    
+    LOOP
+    WETDRY
+    K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+    
+    
+    SLICELOOP4
+    WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
+    
+     
+    pflow->WL_relax(p,pgc,WLRK1,d->depth);
+    pflow->fsfinflow_nhflow(p,d,pgc,WLRK1);
+    pgc->gcsl_start4(p,WLRK1,gcval_eta);
+    
+    
+    SLICELOOP4
+    d->eta(i,j) = WLRK1(i,j) - d->depth(i,j);
+    
+    SLICELOOP4
+    d->detadt(i,j) += K(i,j);
+    
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
+    pgc->gcsl_start4(p,d->detadt,1);
+    
+    wetdry(p,d,pgc,U,V,W,WLRK1); 
+    //breaking(p,d,pgc,d->eta,d->eta_n,alpha);
+ 
 }
 
 void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
@@ -136,7 +168,38 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     wetdry(p,d,pgc,U,V,W,d->WL);
     //breaking(p,d,pgc,d->eta,d->eta_n,alpha);
     
-    forcing(p,d,pgc,U,V,W,d->WL);
+    
+}
+
+void nhflow_fsf_f::rk2_step2_corr(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
+{
+    SLICELOOP4
+    K(i,j) = 0.0;
+    
+    LOOP
+    WETDRY
+    K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+    
+    SLICELOOP4
+    d->WL(i,j) = 0.5*d->WL(i,j) + 0.5*WLRK1(i,j) + 0.5*p->dt*K(i,j);
+    
+    pflow->WL_relax(p,pgc,d->WL,d->depth);
+    pflow->fsfinflow_nhflow(p,d,pgc,d->WL);
+    pgc->gcsl_start4(p,d->WL,gcval_eta);
+    
+    SLICELOOP4
+    d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
+    
+
+    SLICELOOP4
+    d->detadt(i,j) += K(i,j);
+    
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
+    pgc->gcsl_start4(p,d->detadt,1);
+    
+    wetdry(p,d,pgc,U,V,W,d->WL);
+    //breaking(p,d,pgc,d->eta,d->eta_n,alpha);
+    
     
 }
 
