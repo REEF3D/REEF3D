@@ -37,7 +37,7 @@ reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),d
 	gcval_phi=51;
 
 	if(p->F50==2)
-	gcval_phi=54;
+	gcval_phi=52;
 
 	if(p->F50==3)
 	gcval_phi=53;
@@ -74,7 +74,7 @@ reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),d
 	if(p->F49==1)
 	prdisc = new reinidisc_f(p);
     
-    time_preproc(p);    
+    time_preproc(p);   
 }
 
 reini_RK3::~reini_RK3()

@@ -105,12 +105,26 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
     p->phiout=pgc->globalmax(p->phiout);
     }
     
+    if(p->F62>-1.0e20 && p->B77==2)
+    for(n=0;n<p->gcout_count;++n)
+    {
+        i=p->gcout[n][0];
+        j=p->gcout[n][1];
+        k=p->gcout[n][2];
+
+        a->phi(i+1,j,k)=p->F62-p->pos_z();
+        a->phi(i+2,j,k)=p->F62-p->pos_z();
+        a->phi(i+3,j,k)=p->F62-p->pos_z();
+    }
+    
+    
     
     pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
 void ioflow_f::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
+        if(p->F62<-1.0e19 || p->B77!=2)
         for(n=0;n<p->gcout_count;++n)
         {
         i=p->gcout[n][0];
@@ -120,6 +134,18 @@ void ioflow_f::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
         f(i+1,j,k)=a->phi(i+1,j,k);
         f(i+2,j,k)=a->phi(i+2,j,k);
         f(i+3,j,k)=a->phi(i+3,j,k);
+        }
+        
+        if(p->F62>-1.0e20 && p->B77==2)
+        for(n=0;n<p->gcout_count;++n)
+        {
+        i=p->gcout[n][0];
+        j=p->gcout[n][1];
+        k=p->gcout[n][2];
+
+        f(i+1,j,k)=p->F62-p->pos_z();
+        f(i+2,j,k)=p->F62-p->pos_z();
+        f(i+3,j,k)=p->F62-p->pos_z();
         }
 }
 

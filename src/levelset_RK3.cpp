@@ -50,7 +50,7 @@ levelset_RK3::levelset_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	gcval_phi=51;
 
 	if(p->F50==2)
-	gcval_phi=54;
+	gcval_phi=52;
 
 	if(p->F50==3)
 	gcval_phi=53;
