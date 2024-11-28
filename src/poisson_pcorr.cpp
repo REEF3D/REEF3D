@@ -142,6 +142,21 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
              pval=a->press(i,j,k);
              }
              
+             /*
+             double eps,H;
+            eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        
+            if(a->phi(i,j,k)>eps)
+            H=1.0;
+
+            if(a->phi(i,j,k)<-eps)
+            H=0.0;
+
+            if(fabs(a->phi(i,j,k))<=eps)
+            H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
+            
+            pval=H*pval + (1.0-H)*a->press(i,j,k);*/
+            
              if(p->B77==2)
              pval=0.0;
         

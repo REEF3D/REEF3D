@@ -35,13 +35,14 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==3||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
 	return 4;
-
-	else
-	if((bc==2||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==54))
-	return 4;
     
     else
 	if((bc==1||bc==6||bc==221||bc==211||bc==121||bc==111) && (gcv==52 || gcv==54))
+	return 4;
+    
+    // outflow
+    else
+	if((bc==2||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==52 || gcv==54))
 	return 4;
 
 	else
