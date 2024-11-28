@@ -1548,6 +1548,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Kinematics">
+            <File Name="fnpf_print_kinematics_calc.cpp"/>
+            <File Name="fnpf_print_kinematics_print.cpp"/>
             <File Name="fnpf_print_kinematics.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Runup">

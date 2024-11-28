@@ -117,8 +117,6 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
         a->phi(i+3,j,k)=p->F62-p->pos_z();
     }
     
-    
-    
     pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 

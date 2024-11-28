@@ -64,7 +64,6 @@ void fnpf_force_ale::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	ystart = p->originy;
 	xend = p->endx;
 	yend = p->endy;
-
 }
 
 void fnpf_force_ale::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)

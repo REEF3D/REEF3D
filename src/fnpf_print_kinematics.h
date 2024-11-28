@@ -46,8 +46,8 @@ public:
 
 private:	
 	
-    void fnpf_print_kinematics_force(lexer*,fdm_fnpf*,ghostcell*);
-	void print_fnpf_print_kinematics(lexer*,fdm_fnpf*,ghostcell*);
+    void kinematics_calc(lexer*,fdm_fnpf*,ghostcell*);
+	void print_kinematics(lexer*,fdm_fnpf*,ghostcell*);
     void print_ini(lexer*,fdm_fnpf*,ghostcell*);
 	double dndt(lexer*, fdm_fnpf*, ghostcell*);
 	double dudsig(lexer*, fdm_fnpf*, ghostcell*);
