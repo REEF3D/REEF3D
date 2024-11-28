@@ -131,7 +131,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		}
         
          // controlled outflow
-         if( (p->IO[Ip1JK]==2 ))
+         if( (p->IO[Ip1JK]==2))
 		{
              if(p->B77==1)
              {
@@ -139,6 +139,11 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
              pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
              
              if(p->F50==1 || p->F50==4)
+             pval=a->press(i,j,k);
+             }
+             
+             if(p->B77==2)
+             {
              pval=a->press(i,j,k);
              }
              
@@ -157,7 +162,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
             
             pval=H*pval + (1.0-H)*a->press(i,j,k);*/
             
-             if(p->B77==2)
+             if(p->B77==10)
              pval=0.0;
         
 		a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);

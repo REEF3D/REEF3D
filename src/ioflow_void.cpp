@@ -536,7 +536,7 @@ void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
 			a->press(i+3,j,k)=pval;
 			}
 		
-			if(p->B77==2)
+			if(p->B77==10)
 			{
 			double eps,H;
                 

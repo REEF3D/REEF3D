@@ -438,7 +438,7 @@ void driver::logic_cfd()
 	ppress = new pressure_void(p);
 
     if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==2)
-	ppress = new pjm_corr(p,a,pheat,pconc);
+	ppress = new pjm_corr(p,a,pgc,pheat,pconc);
     
     if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==1)
 	ppress = new pjm_nse(p,a,pheat,pconc);

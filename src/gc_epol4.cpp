@@ -42,7 +42,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     
     // outflow
     else
-	if((bc==2||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==52 || gcv==54))
+	if((bc==2||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==54 || (gcv==52 && p->B77==1)))
 	return 4;
 
 	else

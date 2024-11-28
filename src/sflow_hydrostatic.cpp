@@ -86,7 +86,7 @@ void sflow_hydrostatic::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
                     
                     - 0.5*((p->A223*eta(i,j) + (1.0-p->A223)*eta_n(i,j)) + (p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j)))*(b->depth(i+1,j)-b->depth(i,j))/p->DXP[IP]);
         
-        if(p->B77==2)
+        if(p->B77==10)
         for(n=0;n<p->gcslout_count;n++)
         {
         i=p->gcslout[n][0]-1;

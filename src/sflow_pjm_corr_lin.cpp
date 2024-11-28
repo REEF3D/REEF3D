@@ -262,7 +262,7 @@ void sflow_pjm_corr_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 				             /(p->DXM*HPXP*p->W1));
                              
 
-        if(p->B77==2)
+        if(p->B77==10)
         for(n=0;n<p->gcslout_count;n++)
         {
         i=p->gcslout[n][0]-1;

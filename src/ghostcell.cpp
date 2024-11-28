@@ -278,7 +278,7 @@ void ghostcell::gcini(lexer* p)
     
     // pressure outflow
     pressout_lable=0;
-	if(p->B77==1 || p->B77==2)
+	if(p->B77==1 || p->B77==10)
 	pressout_lable=1;
     
     
