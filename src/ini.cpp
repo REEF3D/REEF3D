@@ -497,7 +497,13 @@ void lexer::ini_default()
     // Numerics
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
-    N18=1;         // int precondioner
+    N18=0;         //
+    N20=20;        //  int precondioner switch iter
+    N22=0;         //  int precondioner switch SFLOW
+    N23=0;         //  int precondioner switch FNPF
+    N24=0;         //  int precondioner switch
+    N25=0;         //  int precondioner switch NHFLOW
+    N26=1;         //  int precondioner switch CFD
 	N40=3;			// int time scheme
 	N41=1.0e+19; 	// double total time
 	N43=1.0e-5;     // double stopping criteria convection-diffusion
