@@ -360,6 +360,9 @@ public:
     void gc_periodic(lexer*,field&,int,int);
     void patchBC(lexer*,field&,double,int,int,int);
     
+    //NHFLOW
+    void gciobc_update(lexer*, fdm_nhf*);
+    
 
 private:
     const int size;

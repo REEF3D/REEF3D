@@ -69,6 +69,11 @@ void lexer::flagini()
 	makeflag(flag2);
 	makeflag(flag3);
 	makeflag(tpflag);
+    
+    for(i=-margin; i<knox+margin; ++i)
+    for(j=-margin; j<knoy+margin; ++j)
+    for(k=-margin; k<knoz+margin; ++k)
+    IO[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 0;
 	
 	x_dir=y_dir=z_dir=1.0;
 	

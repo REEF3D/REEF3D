@@ -130,8 +130,7 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     
     
     // IO update
-    MALOOP
-    p->IO[IJK] = 0;
+    
     
     GC4LOOP
     {
