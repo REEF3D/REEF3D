@@ -75,14 +75,14 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
         
 
         if(p->j_dir==0)        
-        dist = 0.5*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]*d->WL(i,j));
+        dist = 0.5*(1.0/2.0)*(p->DXN[IP]+(p->ZSN[FIJKp1]-p->ZSN[FIJK]));
             
         if(p->j_dir==1)
-        dist = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]*d->WL(i,j));
+        dist = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+(p->ZSN[FIJKp1]-p->ZSN[FIJK]));
 
         
-        ks=p->B10;//ks_val(p,a,ii,jj,kk,cs,bc);
-
+        ks=p->B50;//ks_val(p,a,ii,jj,kk,cs,bc);
+        
 
             uvel=d->U[IJK];
             vvel=d->V[IJK];
