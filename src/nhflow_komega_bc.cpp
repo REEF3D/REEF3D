@@ -54,8 +54,7 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
     {
         if((p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1) || (p->flag4[Ip1JK]<0  && p->IO[Ip1JK]!=2)
         || p->flag4[IJm1K]<0 || p->flag4[IJp1K]<0 || p->flag4[IJKm1]<0)
-        {  
-            
+        {   
             if(p->flag4[Im1JK]<0)
             dist = 0.5*p->DXN[IP];
 

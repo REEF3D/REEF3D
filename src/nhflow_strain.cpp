@@ -232,7 +232,7 @@ double nhflow_strain::strainterm(lexer *p, fdm_nhf *d)
     }
 
     s = sqrt(s11*s11 + s22*s22 + s33*s33 + 0.5*s12*s12 + 0.5*s13*s13 + 0.5*s23*s23);
-
+    
 	return s;
 }
 

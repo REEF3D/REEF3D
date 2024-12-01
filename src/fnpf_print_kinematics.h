@@ -45,7 +45,6 @@ public:
     virtual void ini(lexer*,fdm_fnpf*,ghostcell*);
 
 private:	
-	
     void kinematics_calc(lexer*,fdm_fnpf*,ghostcell*);
 	void print_kinematics(lexer*,fdm_fnpf*,ghostcell*);
     void print_ini(lexer*,fdm_fnpf*,ghostcell*);

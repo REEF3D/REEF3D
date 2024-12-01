@@ -78,8 +78,8 @@ void driver::loop_nhflow()
                        pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
 
         //save previous timestep
-        //pturb->ktimesave(p,a,pgc);
-        //pturb->etimesave(p,a,pgc);
+        pnhfturb->ktimesave(p,d,pgc);
+        pnhfturb->etimesave(p,d,pgc);
         //pflow->veltimesave(p,a,pgc,pvrans);
         
         //timestep control

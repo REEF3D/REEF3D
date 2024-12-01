@@ -26,8 +26,70 @@ Author: Hans Bihs
 
 void ghostcell::gciobc_update(lexer *p, fdm_nhf *d)
 {
+    LOOP
+    p->IO[IJK]=0;
+    
+    LOOP
+    if(d->SOLID[IJK]>0 && d->FB[IJK]>0)
+    {
+    if(p->flag4[Im1JK]<0)
+    p->IO[Im1JK]=-10;
+    
+    if(p->flag4[Ip1JK]<0)
+    p->IO[Ip1JK]=-10;
+    
+    if(p->flag4[IJm1K]<0)
+    p->IO[IJm1K]=-10;
+    
+    if(p->flag4[IJp1K]<0)
+    p->IO[IJp1K]=-10;
+    
+    if(p->flag4[IJKm1]<0)
+    p->IO[IJKm1]=-10;
+    
+    if(p->flag4[IJKp1]<0)
+    p->IO[IJKp1]=-10;
+    
+    
+    if(d->SOLID[Im1JK]<0)
+    p->IO[Im1JK]=-10;
+    
+    if(d->SOLID[Ip1JK]<0)
+    p->IO[Ip1JK]=-10;
+    
+    if(d->SOLID[IJm1K]<0)
+    p->IO[IJm1K]=-10;
+    
+    if(d->SOLID[IJp1K]<0)
+    p->IO[IJp1K]=-10;
+    
+    if(d->SOLID[IJKm1]<0)
+    p->IO[IJKm1]=-10;
+    
+    if(d->SOLID[IJKp1]<0)
+    p->IO[IJKp1]=-10;
     
     
     
+    if(d->FB[Im1JK]<0)
+    p->IO[Im1JK]=-10;
+    
+    if(d->FB[Ip1JK]<0)
+    p->IO[Ip1JK]=-10;
+    
+    if(d->FB[IJm1K]<0)
+    p->IO[IJm1K]=-10;
+    
+    if(d->FB[IJp1K]<0)
+    p->IO[IJp1K]=-10;
+    
+    if(d->FB[IJKm1]<0)
+    p->IO[IJKm1]=-10;
+    
+    if(d->FB[IJKp1]<0)
+    p->IO[IJKp1]=-10;
+    }
+    
+    startintV(p,p->IO,1);
     
 }

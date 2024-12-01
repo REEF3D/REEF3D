@@ -134,6 +134,8 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     SLICELOOP4
     d->eta(i,j) = WL(i,j) - d->depth(i,j);
     }
+    
+    pgc->gciobc_update(p,d);
 }
 
 void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
