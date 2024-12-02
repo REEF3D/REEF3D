@@ -1144,6 +1144,8 @@ void lexer::ctrlsend()
 	ii++;
 	ictrl[ii] = P85;
 	ii++;
+    ictrl[ii] = P88;
+	ii++;
 	dctrl[dd] = P91;
 	dd++;
     ictrl[ii] = P92;
@@ -1269,7 +1271,7 @@ void lexer::ctrlsend()
     ictrl[ii] = Q61;
     ii++;
     ictrl[ii] = Q73;
-    dd++;
+    ii++;
     ictrl[ii] = Q101;
     ii++;
     dctrl[dd] = Q102;
@@ -2819,6 +2821,14 @@ void lexer::ctrlsend()
 	dctrl[dd] = P85_cd[n];
 	dd++;
 	dctrl[dd] = P85_cm[n];
+	dd++;
+    }
+    
+    for(n=0;n<P88;++n)
+    {
+    dctrl[dd] = P88_x[n];
+	dd++;
+    dctrl[dd] = P88_y[n];
 	dd++;
     }
 	

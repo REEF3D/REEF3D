@@ -29,32 +29,33 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fnpf_print_kinematics::fnpf_print_kinematics(lexer* p, fdm_fnpf *c, ghostcell *pgc, int qn) : ID(qn){}
+fnpf_print_kinematics::fnpf_print_kinematics(lexer* p, fdm_fnpf *c, ghostcell *pgc, int qn) : ID(qn)
+{
+}
 
-fnpf_print_kinematics::~fnpf_print_kinematics(){}
+fnpf_print_kinematics::~fnpf_print_kinematics()
+{
+}
 
 void fnpf_print_kinematics::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     fnpf_print_kinematicsprintcount=0;
 
     // Read cylinder force input - xc,yc,rc,cd,cm
-    xc = p->P85_x[ID];
-	yc = p->P85_y[ID];
-    rc = p->P85_r[ID];
-	cd = p->P85_cd[ID];
-	cm = p->P85_cm[ID];
+    xc = p->P88_x[ID];
+	yc = p->P88_y[ID];
 
     // Open files
     print_ini(p,c,pgc);
 
     // Ini arrays
-	p->Darray(un, p->knoz);
-	//p->Darray(u2n, p->knoz);
-	p->Darray(vn, p->knoz);
+	p->Darray(un, p->knoz+1);
+	p->Darray(vn, p->knoz+1);
+    p->Darray(ax, p->knoz+1);
+	p->Darray(ay, p->knoz+1);
 
     // Ini eta
 	etan=p->wd;
-	//eta2n=p->wd;
 
     // Ini time
     //dtn=0;
@@ -64,30 +65,19 @@ void fnpf_print_kinematics::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	ystart = p->originy;
 	xend = p->endx;
 	yend = p->endy;
-
 }
 
 void fnpf_print_kinematics::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if (xc >= xstart && xc < xend && yc >= ystart && yc < yend) // cylinder in processor
+    if (xc >= xstart && xc < xend && yc >= ystart && yc < yend) 
     {
         i = p->posc_i(xc);
         j = p->posc_j(yc);
 
-        // Calculate force
-        //force_ale_force(p,c,pgc);
+        // calculate kinematics
+        kinematics_calc(p,c,pgc);
+        
+        // print kinematics
+        print_kinematics(p,c,pgc);
     }
-    
-    else
-    {
-        Fx = Fy = 0.0;
-    }
-
-    // Sum up to distribute forces
-    Fx = pgc->globalsum(Fx);
-    Fy = pgc->globalsum(Fy);
-
-    // Print
-    //if(p->mpirank==0)
-    //print_force_ale(p,c,pgc);
 }

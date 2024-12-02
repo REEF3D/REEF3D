@@ -575,6 +575,7 @@ void lexer::ini_default()
 	P81=0;            // int force print out
     P82=0;            // int add eddyv to viscous force
 	P85=0;            // int ALE force print out for FNPF
+    P88=0;            // int kinematics print out for FNPF
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces
