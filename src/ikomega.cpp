@@ -82,11 +82,15 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 {
 	double factor;
 	double H;
-	double epsi = 1.6*p->DXM;
 	int n;
 	
 		LOOP
 		{
+            epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+            if(p->j_dir==0)
+            epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+        
 			if(a->phi(i,j,k)>epsi)
 			H=1.0;
 
@@ -158,6 +162,12 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     
         LOOP
         {
+        epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+        if(p->j_dir==0)
+        epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+        
+        
         if(fabs(a->phi(i,j,k))<epsi)
         dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
             
@@ -232,6 +242,11 @@ void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 	if(p->T36>0)
 	LOOP
 	{
+    epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+    if(p->j_dir==0)
+    epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+        
     if(fabs(a->phi(i,j,k))<epsi)
     dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
 		

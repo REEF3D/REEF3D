@@ -76,11 +76,16 @@ void ikepsilon::ksource(lexer *p, fdm* a)
 void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 {
 	double H;
-	double epsi = 1.6*p->DXM;
 	double factor;
 	
 	LOOP
     {
+        
+        epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+        if(p->j_dir==0)
+        epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+
 		if(a->phi(i,j,k)>epsi)
 		H=1.0;
 
