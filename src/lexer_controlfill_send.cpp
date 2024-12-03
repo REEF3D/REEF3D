@@ -1138,6 +1138,8 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = P79;
 	ii++;
+    ictrl[ii] = P80;
+	ii++;
     ictrl[ii] = P81;
 	ii++;
     ictrl[ii] = P82;

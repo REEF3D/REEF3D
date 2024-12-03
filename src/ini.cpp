@@ -572,7 +572,8 @@ void lexer::ini_default()
     P77=0;            // int print out sediment parameters: 1
     P78=0;            // int print out sediment parameters: 2
 	P79=0;            // int print out bed shear stress when running sediment transport
-	P81=0;            // int force print out
+	P80=1;            // int force print out interval
+    P81=0;            // int force print out
     P82=0;            // int add eddyv to viscous force
 	P85=0;            // int ALE force print out for FNPF
     P88=0;            // int kinematics print out for FNPF

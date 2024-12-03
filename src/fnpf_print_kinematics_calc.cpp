@@ -58,7 +58,6 @@ void fnpf_print_kinematics::kinematics_calc(lexer* p, fdm_fnpf *c, ghostcell *pg
 	etan=c->eta(i,j);
 }
 
-
 double fnpf_print_kinematics::dndt(lexer *p, fdm_fnpf *c, ghostcell *pgc) // to calculate dn dt for ax3
 {
     double dndt = (c->eta(i,j) - etan)/ p->dt;
@@ -96,7 +95,6 @@ double fnpf_print_kinematics::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// 
 
     return dvdsig_;        
 }
-
 
 double fnpf_print_kinematics::dudxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dudxi
 {

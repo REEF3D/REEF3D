@@ -39,6 +39,7 @@ class fnpf_print_Hs;
 class fnpf_vel_probe;
 class fnpf_vel_probe_theory;
 class fnpf_runup;
+class fnpf_print_kinematics;
 
 #ifndef FNPF_VTU3D_H_
 #define FNPF_VTU3D_H_
@@ -87,6 +88,7 @@ private:
     fnpf_print_Hs *phs;
     fnpf_vel_probe *pvel;
     fnpf_vel_probe_theory *pveltheo;
+    fnpf_print_kinematics **pkin;
 };
 
 #endif

@@ -63,6 +63,7 @@ private:
     char name[100],pname[100],epsvar[100];
     int iin,offset[100];
     float ffn;
+    double ddn;
     int fnpf_print_kinematicsprintcount;
     ofstream fout;
 
