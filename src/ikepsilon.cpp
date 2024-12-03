@@ -76,7 +76,7 @@ void ikepsilon::ksource(lexer *p, fdm* a)
 void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 {
 	double H;
-	double factor;
+	double factor,epsi;
 	
 	LOOP
     {
