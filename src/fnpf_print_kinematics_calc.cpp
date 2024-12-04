@@ -30,8 +30,8 @@ void fnpf_print_kinematics::kinematics_calc(lexer* p, fdm_fnpf *c, ghostcell *pg
 {	
     for(k=0; k<p->knoz+1; ++k)
 	{
-        dudsig_= dudsig(p, c, pgc); 
-        dvdsig_= dvdsig(p, c, pgc); 
+        dudsig_= dudsig(p,c,pgc); 
+        dvdsig_= dvdsig(p,c,pgc); 
         
         // Term 1 from eqn (9) of Pakozdi et al (2021) MS
         ax1= (c->U[FIJK] - un[k])/(p->dt);  
@@ -42,8 +42,8 @@ void fnpf_print_kinematics::kinematics_calc(lexer* p, fdm_fnpf *c, ghostcell *pg
         ay2 = c->V[FIJK]*(dvdxi(p,c,pgc) + (dvdsig_*p->sigy[FIJK]));
         
         // Term 3
-        ax3 = (c->W[FIJK] - (p->sig[FIJK]*dndt(p, c, pgc)))* dudsig_*p->sigz[IJ];
-        ay3 = (c->W[FIJK] - (p->sig[FIJK]*dndt(p, c, pgc)))* dvdsig_*p->sigz[IJ];
+        ax3 = (c->W[FIJK] - (p->sig[FIJK]*dndt(p,c,pgc)))* dudsig_*p->sigz[IJ];
+        ay3 = (c->W[FIJK] - (p->sig[FIJK]*dndt(p,c,pgc)))* dvdsig_*p->sigz[IJ];
       
         // Sum up acceleration
         ax[k] = ax1 + ax2 + ax3;

@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"nhflow_print_Hs.h"
 #include"nhflow_turbulence.h"
 #include"nhflow_force.h"
+#include"nhflow_force_ale.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -104,6 +105,17 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     for(n=0;n<p->P81;++n)
 	pforce[n]=new nhflow_force(p,d,pgc,n);
+    
+    if(p->P85>0)
+    {
+	pforce_ale = new nhflow_force_ale*[p->P85];
+    
+    for(n=0;n<p->P85;++n)
+	pforce_ale[n]=new nhflow_force_ale(p,d,pgc,n);
+    
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->ini(p,d,pgc);
+    }
     
     if(p->P110==1)
     phs = new nhflow_print_Hs(p,d->Hs);
@@ -246,14 +258,21 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 	if(p->count>1 && p->P81>0)
 	for(n=0;n<p->P81;++n)
 	pforce[n]->start(p,d,pgc);
+    
+    
+    // ALE force    
+    if(p->count>0)
+    if(p->count%p->P80==0)
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->start(p,d,pgc);
 
-/*
+    /*
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
 
     if(p->P59==1)
     pbreaklog->write(p,d,pgc);
-        */
+    */
 }
 
 void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)

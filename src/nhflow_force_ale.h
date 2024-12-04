@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Arun Kamath, Tobias Martin, Hans Bihs
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
@@ -27,33 +27,33 @@ Authors: Arun Kamath, Tobias Martin, Hans Bihs
 #include<fstream>
 
 class lexer;
-class fdm_fnpf;
+class fdm_nhf;
 class ghostcell;
 
-#ifndef FNPF_FORCE_ALE_H_
-#define FNPF_FORCE_ALE_H_
+#ifndef NHFLOW_FORCE_ALE_H_
+#define NHFLOW_FORCE_ALE_H_
 
 using namespace std;
 
-class fnpf_force_ale :  public increment
+class nhflow_force_ale :  public increment
 {
 
 public:
-	fnpf_force_ale(lexer*,fdm_fnpf*,ghostcell*,int);
-	virtual ~fnpf_force_ale();
-	virtual void start(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void ini(lexer*,fdm_fnpf*,ghostcell*);
+	nhflow_force_ale(lexer*,fdm_nhf*,ghostcell*,int);
+	virtual ~nhflow_force_ale();
+	virtual void start(lexer*,fdm_nhf*,ghostcell*);
+    virtual void ini(lexer*,fdm_nhf*,ghostcell*);
 
 private:	
 	
-    void force_ale_force(lexer*,fdm_fnpf*,ghostcell*);
-	void print_force_ale(lexer*,fdm_fnpf*,ghostcell*);
-    void print_ini(lexer*,fdm_fnpf*,ghostcell*);
-	double dndt(lexer*, fdm_fnpf*, ghostcell*);
-	double dudsig(lexer*, fdm_fnpf*, ghostcell*);
-	double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
-	double dudxi(lexer*, fdm_fnpf*, ghostcell*);
-	double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
+    void force_ale_force(lexer*,fdm_nhf*,ghostcell*);
+	void print_force_ale(lexer*,fdm_nhf*,ghostcell*);
+    void print_ini(lexer*,fdm_nhf*,ghostcell*);
+	double dndt(lexer*, fdm_nhf*, ghostcell*);
+	double dudsig(lexer*, fdm_nhf*, ghostcell*);
+	double dvdsig(lexer*, fdm_nhf*, ghostcell*);
+	double dudxi(lexer*, fdm_nhf*, ghostcell*);
+	double dvdxi(lexer*, fdm_nhf*, ghostcell*);
 	
     // force ale variabes
     double Fx1,Fy1,Fx,Fy,xc,yc,rc,cd,cm,etan,dtn,eta2n,ax1,ay1,ax2,ay2,ax3,ay3,dudsig_,dvdsig_,ax,ay;

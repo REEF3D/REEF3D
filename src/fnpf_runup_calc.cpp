@@ -46,7 +46,7 @@ void fnpf_runup::fnpf_runup_calc(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     
     //------------------------------------------------------------------------------------------------------------------------
     ru_m = 1; //VSHT adjustment coefficient for long waves + LWT or regular waves + 2nd order ST 
-    ru_u = acceleration(p, c, pgc) * p->dt; //Particle acceleration at the free surface in lagrangian coordinates
+    ru_u = acceleration(p,c,pgc) * p->dt; //Particle acceleration at the free surface in lagrangian coordinates
     ru_g = p->W22; //gravity acceleration
     
     R2 = ru_eta + ru_m * pow(ru_u,2)/(2 * ru_g); //Hallermeier (1976) - De Vos et al (2007) only when 2nd order stokes used. 
@@ -111,8 +111,8 @@ double fnpf_runup::acceleration(lexer *p, fdm_fnpf *c, ghostcell *pgc) //Particl
 {
     double ax1,ay1,ax2,ay2,ax3,ay3,dudsig_,dvdsig_,ax,ay;
     
-    dudsig_= dudsig(p, c, pgc);
-    dvdsig_= dvdsig(p, c, pgc);
+    dudsig_= dudsig(p,c,pgc);
+    dvdsig_= dvdsig(p,c,pgc);
  
     // Equation (9) o Pakozdi et al (2021)
     // Term 1
@@ -122,8 +122,8 @@ double fnpf_runup::acceleration(lexer *p, fdm_fnpf *c, ghostcell *pgc) //Particl
     ax2 = c->U[FIJK] * (dudxi(p,c,pgc) + (dudsig_ * p->sigx[FIJK]));
     ay2 = c->V[FIJK] * (dvdxi(p,c,pgc) + (dvdsig_ * p->sigy[FIJK]));
     // Term 3
-    ax3 = (c->W[FIJK] - (p->sig[FIJK] * dndt(p, c, pgc))) * dudsig_ * p->sigz[IJ];
-    ay3 = (c->W[FIJK] - (p->sig[FIJK] * dndt(p, c, pgc))) * dvdsig_ * p->sigz[IJ];
+    ax3 = (c->W[FIJK] - (p->sig[FIJK] * dndt(p,c,pgc))) * dudsig_ * p->sigz[IJ];
+    ay3 = (c->W[FIJK] - (p->sig[FIJK] * dndt(p,c,pgc))) * dvdsig_ * p->sigz[IJ];
     // Sum up acceleration
     ax = ax1 + ax2 + ax3;
     ay = ay1 + ay2 + ay3;

@@ -260,6 +260,9 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Force ALE">
+            <File Name="nhflow_force_ale.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Force">
             <File Name="nhflow_force.h"/>
           </VirtualDirectory>
@@ -373,7 +376,7 @@
           <VirtualDirectory Name="Runup">
             <File Name="fnpf_runup.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="ALE Force">
+          <VirtualDirectory Name="Force ALE">
             <File Name="fnpf_force_ale.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
@@ -1400,6 +1403,11 @@
           <File Name="nhflow_HLL.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Force ALE">
+            <File Name="nhflow_force_ale_print.cpp"/>
+            <File Name="nhflow_force_ale_force.cpp"/>
+            <File Name="nhflow_force_ale.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Force">
             <File Name="nhflow_force_allocate.cpp"/>
             <File Name="nhflow_force_print.cpp"/>
