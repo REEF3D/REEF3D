@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-
-
 void fnpf_print_kinematics::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
     // open force_ale file

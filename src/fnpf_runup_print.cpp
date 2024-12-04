@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include<cmath>
 
 void fnpf_runup::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
