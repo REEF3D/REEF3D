@@ -132,10 +132,6 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     p->deep[IJ]=0;
 
     pgc->gcsl_start4Vint(p,p->deep,50);
-    
-    SLICELOOP4
-    d->test2D(i,j) = p->deep[IJ];
-    
 }
 
 void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)

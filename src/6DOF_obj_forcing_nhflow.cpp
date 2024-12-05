@@ -45,10 +45,12 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
+        
+    d->test[IJK] = H;
     }
     
-    LOOP
-    d->test[IJK] = FZ[IJK];
+    //LOOP
+    //d->test[IJK] = FZ[IJK];
     
     k=p->knoz-1;
      
@@ -98,7 +100,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     fe(i,j) += H*(ef - WL(i,j))/(alpha[iter]*p->dt);
     }
 
-    pgc->start5V(p,d->FHB,1);
+    pgc->start4V(p,d->FHB,50);
 }
     
 double sixdof_obj::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
@@ -115,14 +117,13 @@ double sixdof_obj::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb, int c
     // Construct solid heaviside function
     phival_fb = d->FB[IJK];
     
-	
-    if (-phival_fb > psi)
+    if(-phival_fb > psi)
     H = 1.0;
 
-    else if (-phival_fb < -psi)
+    if(-phival_fb < -psi)
     H = 0.0;
 
-    else
+    if(fabs(phival_fb)<=psi)
     H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
 
 

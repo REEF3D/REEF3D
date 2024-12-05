@@ -106,7 +106,7 @@ private:
     double zmin,zmax;
     
     int reiniter;
-    int forcing_flag;
+    int forcing_flag,solid_flag,floating_flag;
     
     const double epsi;
     
