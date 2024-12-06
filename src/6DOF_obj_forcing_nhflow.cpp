@@ -35,7 +35,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     LOOP
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
-        d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
+        d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
         uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
         vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
@@ -48,9 +48,6 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         
     d->test[IJK] = H;
     }
-    
-    //LOOP
-    //d->test[IJK] = FZ[IJK];
     
     k=p->knoz-1;
      
@@ -124,7 +121,7 @@ double sixdof_obj::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb, int c
     H = 0.0;
 
     if(fabs(phival_fb)<=psi)
-    H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
+    H = 0.5*(1.0 + (-phival_fb)/psi + (1.0/PI)*sin((PI*(-phival_fb))/psi));
 
 
     return H;

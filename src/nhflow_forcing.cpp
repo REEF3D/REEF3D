@@ -71,19 +71,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
                              int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
 {
     // ini forcing terms
-    if(forcing_flag==1)
-    {
-    LOOP
-    {
-    FX[IJK] = 0.0;   
-    FY[IJK] = 0.0;   
-    FZ[IJK] = 0.0;   
-    d->FHB[IJK] = 0.0;
-    }
-    
-    SLICELOOP4
-    fe(i,j) = 0.0;
-    }
+    reset(p,d,pgc);
     
     
     if(solid_flag==1)
@@ -152,6 +140,24 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     }
     
     pgc->gciobc_update(p,d);
+}
+
+void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(forcing_flag==1)
+    {
+    LOOP
+    {
+    FX[IJK] = 0.0;   
+    FY[IJK] = 0.0;   
+    FZ[IJK] = 0.0;   
+    d->FHB[IJK] = 0.0;
+    }
+
+    SLICELOOP4
+    fe(i,j) = 0.0;
+    }
+    
 }
 
 void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)

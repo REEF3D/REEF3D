@@ -57,6 +57,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
     {
         // Advance body in time
         if(iter==0)
+        {
         fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
         
         // Update transformation matrices
@@ -67,6 +68,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
         
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
+        }
         
         // Update forcing terms
         fb_obj[nb]->update_forcing_sflow(p,pgc,P,Q,w,fx,fy,fz,iter);

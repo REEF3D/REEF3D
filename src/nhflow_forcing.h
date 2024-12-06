@@ -52,6 +52,8 @@ public:
     void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
     
+    void reset(lexer*, fdm_nhf*, ghostcell*);
+    
     double Hsolidface(lexer*, fdm_nhf*, int, int, int);
     
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
