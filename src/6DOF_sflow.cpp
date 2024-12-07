@@ -56,19 +56,16 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        if(iter==0)
-        {
-        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
+        fb_obj[nb]->solve_eqmotion_oneway_sflow(p,pgc,iter);
         
         // Update transformation matrices
-        fb_obj[nb]->quat_matrices();
+        fb_obj[nb]->quat_matrices(p);
         
         // Update position and trimesh
         fb_obj[nb]->update_position_2D(p,pgc,fsglobal);  
         
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
-        }
         
         // Update forcing terms
         fb_obj[nb]->update_forcing_sflow(p,pgc,P,Q,w,fx,fy,fz,iter);
@@ -99,7 +96,7 @@ void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsg
         fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
         
         // Update transformation matrices
-        fb_obj[nb]->quat_matrices();
+        fb_obj[nb]->quat_matrices(p);
         
         // Update position and trimesh
         fb_obj[nb]->update_position_2D(p,pgc,fsglobal);  

@@ -55,7 +55,7 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vect
         fb_obj[nb]->solve_eqmotion(p,a,pgc,iter,pvrans,pnet);
         
         // Update transformation matrices
-        fb_obj[nb]->quat_matrices();
+        fb_obj[nb]->quat_matrices(p);
         
         // Update position and trimesh
         fb_obj[nb]->update_position_3D(p,a,pgc,finalize);  //----> main time consumer

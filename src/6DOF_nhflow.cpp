@@ -67,7 +67,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,pvrans,pnet);
         
         // Update transformation matrices
-        fb_obj[nb]->quat_matrices();
+        fb_obj[nb]->quat_matrices(p);
         
         // Update position and trimesh
         fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);  
@@ -99,20 +99,17 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     
     for (int nb=0; nb<number6DOF;++nb)
     {
-        if(iter==0)
-        {
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
+        fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter);
         
         // Update transformation matrices
-        fb_obj[nb]->quat_matrices();
+        fb_obj[nb]->quat_matrices(p);
         
         // Update position and trimesh
         fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);  
         
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
-        }
         
         // Update forcing terms
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
@@ -144,7 +141,7 @@ void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
         fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
         
         // Update transformation matrices
-        fb_obj[nb]->quat_matrices();
+        fb_obj[nb]->quat_matrices(p);
         
         // Update position and trimesh
         fb_obj[nb]->update_position_2D(p,pgc,d->fs);  

@@ -66,12 +66,21 @@ void sixdof_obj::solve_eqmotion_sflow(lexer *p, ghostcell *pgc, int iter)
     rk3(p,pgc,iter);
 }
 
-void sixdof_obj::solve_eqmotion_oneway(lexer *p, ghostcell *pgc, int iter)
+void sixdof_obj::solve_eqmotion_oneway_nhflow(lexer *p, ghostcell *pgc, int iter)
 {
-    if(p->A510==2 || p->A210==2)
+    if(p->A510==2)
     rk2(p,pgc,iter);
     
-    if(p->A510==3 || p->A210==3)
+    if(p->A510==3)
+    rk3(p,pgc,iter);       
+}
+
+void sixdof_obj::solve_eqmotion_oneway_sflow(lexer *p, ghostcell *pgc, int iter)
+{
+    if(p->A210==2)
+    rk2(p,pgc,iter);
+    
+    if(p->A210==3)
     rk3(p,pgc,iter);       
 }
 
@@ -93,29 +102,37 @@ void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
     
 void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
 {   
-    get_trans(p,pgc, dp_, dc_, p_, c_);    
-    get_rot(p,dh_, de_, h_, e_);
-        
     if(iter==0)
     {
         pk_ = p_;
         ck_ = c_;
         hk_ = h_;
         ek_ = e_;
+        
+        get_trans(p,pgc, dp_, dc_, p_, c_);    
+        get_rot(p,dh_, de_, h_, e_);
 
         p_ = p_ + p->dt*dpn1_;
         c_ = c_ + p->dt*dcn1_;
         h_ = h_ + p->dt*dhn1_;
         e_ = e_ + p->dt*den1_;
+        
+        if(p->mpirank==0)
+        cout<<"RK_1_2: "<<c_(0)<<" "<<ck_(0)<<" "<<dcn1_(0)<<endl;
     }
     
-    else
     if(iter==1)
     {  
+        get_trans(p,pgc, dp_, dc_, p_, c_);    
+        get_rot(p,dh_, de_, h_, e_);
+    
         p_ = 0.5*pk_ + 0.5*p_ + 0.5*p->dt*dpn1_;
         c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dcn1_;
         h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dhn1_;
-        e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*den1_;         
+        e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*den1_;    
+
+        if(p->mpirank==0)
+        cout<<"RK_2_2: "<<c_(0)<<" "<<ck_(0)<<" "<<dcn1_(0)<<endl;
     }
 }
 
@@ -137,7 +154,6 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
         e_ = e_ + p->dt*den1_;
     }
     
-    else
     if(iter==1)
     {
         get_trans(p,pgc, dp_, dc_, p_, c_);    
@@ -149,7 +165,6 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
         e_ = 0.75*ek_ + 0.25*e_ + 0.25*p->dt*den1_;    
     }  
     
-    else
     if(iter==2)
     {
         get_trans(p,pgc, dp_, dc_, p_, c_);    

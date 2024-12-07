@@ -73,7 +73,7 @@ public:
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,bool);
 	
-    void quat_matrices();
+    void quat_matrices(lexer*);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
     void update_position_2D(lexer*, ghostcell*,slice&);
@@ -82,7 +82,7 @@ public:
     
     // NHFLOW
     virtual void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,vrans*,vector<net*>&);
-    void solve_eqmotion_oneway(lexer*,ghostcell*,int);
+    void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
@@ -106,6 +106,7 @@ public:
     void update_forcing_sflow(lexer*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, int);
     
     void solve_eqmotion_sflow(lexer*,ghostcell*,int);
+    void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int);
     
     double Mass_fb, Vfb, Rfb;
 
