@@ -116,9 +116,6 @@ void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
         c_ = c_ + p->dt*dcn1_;
         h_ = h_ + p->dt*dhn1_;
         e_ = e_ + p->dt*den1_;
-        
-        if(p->mpirank==0)
-        cout<<"RK_1_2: "<<c_(0)<<" "<<ck_(0)<<" "<<dcn1_(0)<<endl;
     }
     
     if(iter==1)
@@ -130,9 +127,6 @@ void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
         c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dcn1_;
         h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dhn1_;
         e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*den1_;    
-
-        if(p->mpirank==0)
-        cout<<"RK_2_2: "<<c_(0)<<" "<<ck_(0)<<" "<<dcn1_(0)<<endl;
     }
 }
 
