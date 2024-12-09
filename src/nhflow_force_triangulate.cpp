@@ -30,6 +30,17 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	int negcount, poscount;
     
+    is = p->posc_i(p->P81_xs[ID]);
+    ie = p->posc_i(p->P81_xe[ID]);
+    
+    js = p->posc_j(p->P81_ys[ID]);
+    je = p->posc_j(p->P81_ye[ID]);
+    
+    ks = p->posf_sig(is,js,p->P81_zs[ID]);
+    ke = p->posf_sig(ie,je,p->P81_ze[ID]);
+    
+    //cout<<p->P81_zs[ID]<<" ke: "<<p->P81_ze[ID]<<" ze: "<<ze<<" ks: "<<ks<<" ke: "<<ke<<endl;
+    
     NDBASELOOP
     eta[IJK] = 0.125*(d->SOLID[IJK] + d->SOLID[Ip1JK] + d->SOLID[IJp1K] + d->SOLID[Ip1Jp1K]
                       + d->SOLID[IJKp1] + d->SOLID[Ip1JKp1] + d->SOLID[IJp1Kp1] + d->SOLID[Ip1Jp1Kp1]);

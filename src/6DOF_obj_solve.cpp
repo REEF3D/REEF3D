@@ -102,15 +102,15 @@ void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
     
 void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
 {   
+    get_trans(p,pgc, dp_, dc_, p_, c_);    
+    get_rot(p,dh_, de_, h_, e_);
+        
     if(iter==0)
     {
         pk_ = p_;
         ck_ = c_;
         hk_ = h_;
         ek_ = e_;
-        
-        get_trans(p,pgc, dp_, dc_, p_, c_);    
-        get_rot(p,dh_, de_, h_, e_);
 
         p_ = p_ + p->dt*dpn1_;
         c_ = c_ + p->dt*dcn1_;
@@ -120,9 +120,6 @@ void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
     
     if(iter==1)
     {  
-        get_trans(p,pgc, dp_, dc_, p_, c_);    
-        get_rot(p,dh_, de_, h_, e_);
-    
         p_ = 0.5*pk_ + 0.5*p_ + 0.5*p->dt*dpn1_;
         c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dcn1_;
         h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dhn1_;

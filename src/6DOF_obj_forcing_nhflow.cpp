@@ -74,13 +74,13 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         efc+=1.0;
         }
 
-        if(d->FB[IJm1K]>0.0) 
+        if(d->FB[IJm1K]>0.0 && p->j_dir==1) 
         {
         ef += WL(i,j-1);
         efc+=1.0;
         }
         
-        if(d->FB[IJp1K]>0.0)    
+        if(d->FB[IJp1K]>0.0 && p->j_dir==1)    
         {
         ef += WL(i,j+1);
         efc+=1.0;
@@ -96,7 +96,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     fe(i,j) += H*(ef - WL(i,j))/(alpha[iter]*p->dt);
     }
 
-    pgc->start4V(p,d->FHB,50);
+    pgc->start5V(p,d->FHB,50);
 }
     
 double sixdof_obj::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
