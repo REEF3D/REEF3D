@@ -177,7 +177,6 @@ void VOF_PLIC::start
             
         if(vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999)
         {   
-            cout<<"now"<<endl;
             reconstructPlane_alt(a,p,vofstep);
         }
         else

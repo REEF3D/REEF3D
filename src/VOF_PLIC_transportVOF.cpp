@@ -43,12 +43,12 @@ void VOF_PLIC::vof_transport_COSMIC2D
     int sweep
 )
 {
-    if(sweep==0)
+    if(nSweep<2 && sweep==0)
     {   
         LOOP
         {
             Flux_x(i,j,k)=(Vn_p(i,j,k)-Vn_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
-        
+
             F_x(i,j,k)=F_n(i,j,k)
                         -Flux_x(i,j,k)
                         +p->dt*F_n(i,j,k)*(a->u(i,j,k)-a->u(i-1,j,k))/p->DXN[IP];
@@ -60,7 +60,7 @@ void VOF_PLIC::vof_transport_COSMIC2D
         }
     }
     
-    if(sweep==2)
+    if(nSweep<2 && sweep==2)
     {
         LOOP
         {
@@ -90,7 +90,7 @@ void VOF_PLIC::vof_transport_COSMIC2D
                 Crossflux_zx(i,j,k)=(Vz_p(i,j,k)-Vz_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
             }
         
-            F_new(i,j,k)=F_n(i,j,k)-0.5*(F_x(i,j,k)+Crossflux_zx(i,j,k)+F_z(i,j,k)+Crossflux_xz(i,j,k));
+            F_new(i,j,k)=F_n(i,j,k)-0.5*(Flux_x(i,j,k)+Crossflux_zx(i,j,k)+Flux_z(i,j,k)+Crossflux_xz(i,j,k));
         }               
     }
     

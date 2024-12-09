@@ -35,7 +35,8 @@ Author: Tobias Martin, Fabian Knoblauch
 #include"weno_hj.h"
 #include"hric.h"
 
-void VOF_PLIC::calcNormalFO(fdm* a, lexer* p, field4 voffield)
+
+void VOF_PLIC::calcNormalFO(fdm* a, lexer* p, field& voffield)
 {   double nsum;
     // 1st-order method 
     nx(i,j,k) = 
@@ -180,7 +181,7 @@ void VOF_PLIC::ininorVecLS(lexer* p)
 	p->del_Darray(invG, 3, 3);	
 }
 
-void VOF_PLIC::calcNormalLS(fdm* a, lexer* p, field4 voffield)
+void VOF_PLIC::calcNormalLS(fdm* a, lexer* p, field& voffield)
 {   double nsum;
 	nx(i,j,k) = -1.0*(
 		nxCoeff[i][j][k][0]*(voffield(i+1,j,k) - voffield(i,j,k))
@@ -273,7 +274,7 @@ void VOF_PLIC::calcNormalLS(fdm* a, lexer* p, field4 voffield)
 }
 
 
-void VOF_PLIC::calcNormalWENO(fdm* a, lexer* p, field4 voffield)
+void VOF_PLIC::calcNormalWENO(fdm* a, lexer* p, field& voffield)
 {
     //- WENO gradient scheme
     double nsum;
@@ -287,7 +288,7 @@ void VOF_PLIC::calcNormalWENO(fdm* a, lexer* p, field4 voffield)
     
 }
 
-void VOF_PLIC::calcNormalMassCentre(fdm* a, lexer* p, field4 voffield)
+void VOF_PLIC::calcNormalMassCentre(fdm* a, lexer* p, field& voffield)
 {
     double nsum,invvec_x,invvec_y, invvec_z; 
     double Vsum=0.0;
@@ -521,7 +522,7 @@ void VOF_PLIC::calcNormalPhi(fdm* a, lexer* p)
 }
 
 
-void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p, field4 voffield)
+void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p, field& voffield)
 {
     int dimswitch;
     int baseswitch;
@@ -945,4 +946,298 @@ void VOF_PLIC::calcNormalWang(fdm* a, lexer* p)
     nx(i,j,k)=-mx_save/nsum;
     ny(i,j,k)=-my_save/nsum;
     nz(i,j,k)=-mz_save/nsum;
+}
+
+void VOF_PLIC::calcNormalELVIRA2D(fdm* a, lexer* p, field& voffield)
+{
+    double n_y=0.0;
+    double n_x,n_z,L2,nsum,r0,r0mod,recheck,voflocal;
+    double nx_keep,ny_keep,nz_keep,r0_keep;
+    double minL2=1E06;
+    double zsum_xm,zsum_xc,zsum_xp;
+    double xsum_zm,xsum_zc,xsum_zp;
+    
+    zsum_xm=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
+    zsum_xc=voffield(i,j,k-1)+voffield(i,j,k)+voffield(i,j,k+1);
+    zsum_xp=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
+    
+    xsum_zm=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
+    xsum_zc=voffield(i-1,j,k)+voffield(i,j,k)+voffield(i+1,j,k);
+    xsum_zp=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
+    
+    //downwind in x
+    n_z=1.0;
+    n_x=-(zsum_xc-zsum_xm)/p->DXP[IM1];
+    nsum=sqrt(n_x*n_x+n_z*n_z);
+    n_z=n_z/nsum;
+    n_x=n_x/nsum;
+    r0=calcAlphaFromInput(a,p,n_x,n_y,n_z,p->DXN[IP],p->DYN[JP],p->DZN[KP],voffield(i,j,k));
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    //normvecdirtest
+    n_z=-n_z;
+    n_x=-n_x;
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    
+    //central in x
+    n_z=1.0;
+    n_x=-(zsum_xp-zsum_xm)/(p->DXP[IM1]+p->DXP[IP]);
+    nsum=sqrt(n_x*n_x+n_z*n_z);
+    n_z=n_z/nsum;
+    n_x=n_x/nsum;
+    r0=calcAlphaFromInput(a,p,n_x,n_y,n_z,p->DXN[IP],p->DYN[JP],p->DZN[KP],voffield(i,j,k));
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    //normvecdirtest
+    n_z=-n_z;
+    n_x=-n_x;
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    
+    //upwind in x
+    n_z=1.0;
+    n_x=-(zsum_xp-zsum_xc)/p->DXP[IP];
+    nsum=sqrt(n_x*n_x+n_z*n_z);
+    n_z=n_z/nsum;
+    n_x=n_x/nsum;
+    r0=calcAlphaFromInput(a,p,n_x,n_y,n_z,p->DXN[IP],p->DYN[JP],p->DZN[KP],voffield(i,j,k));
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    //normvecdirtest
+    n_z=-n_z;
+    n_x=-n_x;
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    
+    //downwind in z
+    n_x=1.0;
+    n_z=-(xsum_zc-xsum_zm)/p->DZP[KM1];
+    nsum=sqrt(n_x*n_x+n_z*n_z);
+    n_z=n_z/nsum;
+    n_x=n_x/nsum;
+    r0=calcAlphaFromInput(a,p,n_x,n_y,n_z,p->DXN[IP],p->DYN[JP],p->DZN[KP],voffield(i,j,k));
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    //normvecdirtest
+    n_z=-n_z;
+    n_x=-n_x;
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    
+    //central in z
+    n_x=1.0;
+    n_z=-(xsum_zp-xsum_zm)/(p->DZP[KM1]+p->DZP[KP]);
+    nsum=sqrt(n_x*n_x+n_z*n_z);
+    n_z=n_z/nsum;
+    n_x=n_x/nsum;
+    r0=calcAlphaFromInput(a,p,n_x,n_y,n_z,p->DXN[IP],p->DYN[JP],p->DZN[KP],voffield(i,j,k));
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    //normvecdirtest
+    n_z=-n_z;
+    n_x=-n_x;
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    
+    //upwind in z
+    n_x=1.0;
+    n_z=-(xsum_zp-xsum_zc)/p->DZP[KP];
+    nsum=sqrt(n_x*n_x+n_z*n_z);
+    n_z=n_z/nsum;
+    n_x=n_x/nsum;
+    r0=calcAlphaFromInput(a,p,n_x,n_y,n_z,p->DXN[IP],p->DYN[JP],p->DZN[KP],voffield(i,j,k));
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    //normvecdirtest
+    n_z=-n_z;
+    n_x=-n_x;
+    L2=calcL2vofError2D(a,p,voffield,n_x,n_y,n_z,r0);
+    if(L2<minL2)
+    {
+        minL2=L2;
+        nx_keep=n_x;
+        ny_keep=n_y;
+        nz_keep=n_z;
+        r0_keep=r0;
+    }
+    
+    nx(i,j,k)=nx_keep;
+    ny(i,j,k)=ny_keep;
+    nz(i,j,k)=nz_keep;
+    alpha(i,j,k)=r0_keep;
+}
+
+double VOF_PLIC::calcL2vofError2D(fdm* a, lexer* p, field& voffield, double n_x, double n_y, double n_z, double r0)
+{
+    double ret=0.0;
+    double r0mod,recheck,voflocal;
+    
+    //north
+    r0mod=-(n_x*p->DXP[IP]-r0);
+    recheck=0.5*(fabs(n_x)*p->DXN[IP1]+fabs(n_y)*p->DYN[JP]+fabs(n_z)*p->DZN[KP])-fabs(r0mod);
+    if(recheck>0.0)
+        voflocal=calculateVolume(n_x,n_y,n_z,p->DXN[IP1],p->DYN[JP],p->DZN[KP],r0mod);
+    else if(r0mod>0.0)
+        voflocal=1.0;
+    else
+        voflocal=0.0;
+    ret+=(voffield(i+1,j,k)-voflocal)*(voffield(i+1,j,k)-voflocal);
+    
+    //south
+    r0mod=-(n_x*(-p->DXP[IM1])-r0);
+    recheck=0.5*(fabs(n_x)*p->DXN[IM1]+fabs(n_y)*p->DYN[JP]+fabs(n_z)*p->DZN[KP])-fabs(r0mod);
+    if(recheck>0.0)
+        voflocal=calculateVolume(n_x,n_y,n_z,p->DXN[IM1],p->DYN[JP],p->DZN[KP],r0mod);
+    else if(r0mod>0.0)
+        voflocal=1.0;
+    else
+        voflocal=0.0;
+    ret+=(voffield(i-1,j,k)-voflocal)*(voffield(i-1,j,k)-voflocal);
+    
+    //top
+    r0mod=-(n_z*p->DZP[IP]-r0);
+    recheck=0.5*(fabs(n_x)*p->DXN[IP]+fabs(n_y)*p->DYN[JP]+fabs(n_z)*p->DZN[KP1])-fabs(r0mod);
+    if(recheck>0.0)
+        voflocal=calculateVolume(n_x,n_y,n_z,p->DXN[IP],p->DYN[JP],p->DZN[KP1],r0mod);
+    else if(r0mod>0.0)
+        voflocal=1.0;
+    else
+        voflocal=0.0;
+    ret+=(voffield(i,j,k+1)-voflocal)*(voffield(i,j,k+1)-voflocal);
+    
+    //bottom
+    r0mod=-(n_z*(-p->DZP[IM1])-r0);
+    recheck=0.5*(fabs(n_x)*p->DXN[IP]+fabs(n_y)*p->DYN[JP]+fabs(n_z)*p->DZN[KM1])-fabs(r0mod);
+    if(recheck>0.0)
+        voflocal=calculateVolume(n_x,n_y,n_z,p->DXN[IP],p->DYN[JP],p->DZN[KM1],r0mod);
+    else if(r0mod>0.0)
+        voflocal=1.0;
+    else
+        voflocal=0.0;
+    ret+=(voffield(i,j,k-1)-voflocal)*(voffield(i,j,k-1)-voflocal);
+    
+    //north-top
+    r0mod=-(n_x*p->DXP[IP]+n_z*p->DZP[KP]-r0);
+    recheck=0.5*(fabs(n_x)*p->DXN[IP1]+fabs(n_y)*p->DYN[JP]+fabs(n_z)*p->DZN[KP1])-fabs(r0mod);
+    if(recheck>0.0)
+        voflocal=calculateVolume(n_x,n_y,n_z,p->DXN[IP1],p->DYN[JP],p->DZN[KP1],r0mod);
+    else if(r0mod>0.0)
+        voflocal=1.0;
+    else
+        voflocal=0.0;
+    ret+=(voffield(i+1,j,k+1)-voflocal)*(voffield(i+1,j,k+1)-voflocal);
+    
+    //south-top
+    r0mod=-(n_x*(-p->DXP[IM1])+n_z*p->DZP[KP]-r0);
+    recheck=0.5*(fabs(n_x)*p->DXN[IM1]+fabs(n_y)*p->DYN[JP]+fabs(n_z)*p->DZN[KP1])-fabs(r0mod);
+    if(recheck>0.0)
+        voflocal=calculateVolume(n_x,n_y,n_z,p->DXN[IM1],p->DYN[JP],p->DZN[KP1],r0mod);
+    else if(r0mod>0.0)
+        voflocal=1.0;
+    else
+        voflocal=0.0;
+    ret+=(voffield(i-1,j,k+1)-voflocal)*(voffield(i-1,j,k+1)-voflocal);
+    
+    //north-bottom
+    r0mod=-(n_x*p->DXP[IP]+n_z*(-p->DZP[KM1])-r0);
+    recheck=0.5*(fabs(n_x)*p->DXN[IP1]+fabs(n_y)*p->DYN[JP]+fabs(n_z)*p->DZN[KM1])-fabs(r0mod);
+    if(recheck>0.0)
+        voflocal=calculateVolume(n_x,n_y,n_z,p->DXN[IP1],p->DYN[JP],p->DZN[KM1],r0mod);
+    else if(r0mod>0.0)
+        voflocal=1.0;
+    else
+        voflocal=0.0;
+    ret+=(voffield(i+1,j,k-1)-voflocal)*(voffield(i+1,j,k-1)-voflocal);
+    
+    //south-bottom
+    r0mod=-(n_x*(-p->DXP[IM1])+n_z*(-p->DZP[KM1])-r0);
+    recheck=0.5*(fabs(n_x)*p->DXN[IM1]+fabs(n_y)*p->DYN[JP]+fabs(n_z)*p->DZN[KM1])-fabs(r0mod);
+    if(recheck>0.0)
+        voflocal=calculateVolume(n_x,n_y,n_z,p->DXN[IM1],p->DYN[JP],p->DZN[KM1],r0mod);
+    else if(r0mod>0.0)
+        voflocal=1.0;
+    else
+        voflocal=0.0;
+    ret+=(voffield(i-1,j,k-1)-voflocal)*(voffield(i-1,j,k-1)-voflocal);
+    ret=sqrt(ret);
+    
+    return ret;
 }

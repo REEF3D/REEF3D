@@ -59,9 +59,9 @@ private:
 	double calcAlpha(fdm*, double&,  double&,  double&);
 
 	void ininorVecLS(lexer*);
-	void calcNormalFO(fdm*, lexer*, field4);
-	void calcNormalLS(fdm*, lexer*, field4);
-    void calcNormalWENO(fdm*, lexer*, field4);
+	void calcNormalFO(fdm*, lexer*, field&);
+	void calcNormalLS(fdm*, lexer*, field&);
+    void calcNormalWENO(fdm*, lexer*, field&);
     void calcNormalPhi(fdm*, lexer*);
 	
 	void advectPlane(fdm*, lexer*, double, double, int);
@@ -74,18 +74,18 @@ private:
 	double F3(const double&);
 	
     void redistance(fdm*, lexer*, convection*, ghostcell*,ioflow*,int);
-    int calcBoundaryPoint(fdm*, lexer*, int, int, int, field4&);
-    int calcProjectionPoint(fdm*, lexer*, double&, double&, double&, int, int, int, field4&);
-	void calcSegmentPoint(fdm*, lexer*, double, double, double, int, int, int, field4&);
+    int calcBoundaryPoint(fdm*, lexer*, int, int, int, field&);
+    int calcProjectionPoint(fdm*, lexer*, double&, double&, double&, int, int, int, field&);
+	void calcSegmentPoint(fdm*, lexer*, double, double, double, int, int, int, field&);
     double calcDistance(double, double, double, double);	
 	
     //Alternative version by Fabian
     void calculateNormal_alt(fdm*, lexer*);
-    void calcNormalWeymouth(fdm*, lexer*, field4);
+    void calcNormalWeymouth(fdm*, lexer*, field&);
     void calcNormalWang(fdm*, lexer*);
-    void calcNormalMassCentre(fdm*, lexer*, field4);
+    void calcNormalMassCentre(fdm*, lexer*, field&);
     void sprayfilter(fdm*, lexer*);
-    void reconstructPlane_alt(fdm*, lexer*,field4);
+    void reconstructPlane_alt(fdm*, lexer*,field&);
     double calculateVolume(double,double,double,double,double,double,double);
     void updateVOF_alt(fdm*, lexer*,int);
     void updateVOF_sweepless(fdm*, lexer*);
@@ -107,6 +107,9 @@ private:
     double IntersectionPointCandidate(fdm*, lexer*, int, int, int, double);
     void stepwise_scheme(fdm*,lexer*,ghostcell*);
     void symmetric_scheme2D(fdm*, lexer*,ghostcell*);
+    double calcL2vofError2D(fdm*, lexer*, field&, double, double, double, double);
+    double calcAlphaFromInput(fdm*, lexer*, double, double, double, double, double, double, double);
+    void calcNormalELVIRA2D(fdm*, lexer*, field&);
    
     field4 V_w_p;
     field4 V_w_m;

@@ -111,7 +111,8 @@ double VOF_PLIC::calculateVolume(double n_a, double n_b, double n_c, double d_a,
                 -fdim(r,n_3*d_3)*fdim(r,n_3*d_3)*fdim(r,n_3*d_3)    )
             /(6*n_1*d_1*n_2*d_2*n_3*d_3);
     }
-    
+    if(V!=V)
+        cout<<"V in VOlcal NAN"<<endl;
     if(r0>=0)
     {
         V0=(0.5-V)+0.5;
@@ -145,19 +146,43 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_simple
             double dsx, scaledVol, Vol,r0x,recheck;
             dsx=a->u(i,j,k)*p->dt;
             r0x=-(nx(i,j,k)*(0.5*p->DXN[IP]-0.5*dsx)-alpha(i,j,k));
-            scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),dsx,p->DYN[JP],p->DZN[KP],r0x);
-            Vol=scaledVol*dsx*p->DYN[JP]*p->DZN[KP];
-            switch(inputdim)
+            recheck=0.5*(fabs(nx(i,j,k))*fabs(dsx)+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*p->DZN[KP])-fabs(r0x);
+            if(recheck>0.0)
             {
-                case -1:
-                            Vn_p(i,j,k)=Vol;
-                            break;
-                case 0:
-                            Vx_p(i,j,k)=Vol;
-                            break;
-                case 2:
-                            Vz_p(i,j,k)=Vol;
-                            break;
+                scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),dsx,p->DYN[JP],p->DZN[KP],r0x);
+                Vol=scaledVol*dsx*p->DYN[JP]*p->DZN[KP];
+                if(Vol!=Vol)
+                cout<<"plane u volnan in "<<i<<","<<j<<","<<k<<endl;
+                switch(inputdim)
+                {
+                    case -1:
+                                Vn_p(i,j,k)=Vol;
+                                break;
+                    case 0:
+                                Vx_p(i,j,k)=Vol;
+                                break;
+                    case 2:
+                                Vz_p(i,j,k)=Vol;
+                                break;
+                }
+                
+            }
+            else if(nx(i,j,k)<0.0)
+            {
+                Vol=dsx*p->DYN[JP]*p->DZN[KP];
+                switch(inputdim)
+                {
+                    case -1:
+                                Vn_p(i,j,k)=Vol;
+                                break;
+                    case 0:
+                                Vx_p(i,j,k)=Vol;
+                                break;
+                    case 2:
+                                Vz_p(i,j,k)=Vol;
+                                break;
+                }
+                
             }
         }
         
@@ -166,19 +191,42 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_simple
             double dsx, scaledVol, Vol, r0x, recheck;
             dsx=fabs(a->u(i-1,j,k)*p->dt);
             r0x=-(nx(i,j,k)*(-0.5*p->DXN[IP]+0.5*dsx)-alpha(i,j,k));
-            scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),dsx,p->DYN[JP],p->DZN[KP],r0x);
-            Vol=scaledVol*dsx*p->DYN[JP]*p->DZN[KP];
-            switch(inputdim)
+            recheck=0.5*(fabs(nx(i,j,k))*fabs(dsx)+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*p->DZN[KP])-fabs(r0x);
+            if(recheck>0.0)
             {
-                case -1:
-                            Vn_m(i,j,k)=-Vol;
-                            break;
-                case 0:
-                            Vx_m(i,j,k)=-Vol;
-                            break;
-                case 2:
-                            Vz_m(i,j,k)=-Vol;
-                            break;
+                scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),dsx,p->DYN[JP],p->DZN[KP],r0x);
+                Vol=scaledVol*dsx*p->DYN[JP]*p->DZN[KP];
+                if(Vol!=Vol)
+                    cout<<"plane u volnan in "<<i<<","<<j<<","<<k<<endl;
+                switch(inputdim)
+                {
+                    case -1:
+                                Vn_m(i,j,k)=-Vol;
+                                break;
+                    case 0:
+                                Vx_m(i,j,k)=-Vol;
+                                break;
+                    case 2:
+                                Vz_m(i,j,k)=-Vol;
+                                break;
+                }
+            }
+            else if(nx(i,j,k)>0.0)
+            {
+                Vol=dsx*p->DYN[JP]*p->DZN[KP];
+                switch(inputdim)
+                {
+                    case -1:
+                                Vn_m(i,j,k)=-Vol;
+                                    break;
+                    case 0:
+                                Vx_m(i,j,k)=-Vol;
+                                break;
+                    case 2:
+                                Vz_m(i,j,k)=-Vol;
+                                break;
+                }
+                
             }
         }
         
@@ -190,19 +238,41 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_simple
             double dsz, scaledVol, Vol, r0z, recheck;
             dsz=a->w(i,j,k)*p->dt;
             r0z=-(nz(i,j,k)*(0.5*p->DZN[KP]-0.5*dsz)-alpha(i,j,k));
-            scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],dsz,r0z);
-            Vol=scaledVol*p->DXN[IP]*p->DYN[JP]*dsz;
-            switch(inputdim)
+            recheck=0.5*(fabs(nx(i,j,k))*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*dsz)-fabs(r0z);
+            if(recheck>0.0)
             {
-                case -1:
-                            Vn_p(i,j,k)=Vol;
-                            break;
-                case 0:
-                            Vx_p(i,j,k)=Vol;
-                            break;
-                case 2:
-                            Vz_p(i,j,k)=Vol;
-                            break;
+                scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],dsz,r0z);
+                Vol=scaledVol*p->DXN[IP]*p->DYN[JP]*dsz;
+                if(Vol!=Vol)
+                    cout<<"plane w volnan in "<<i<<","<<j<<","<<k<<endl;
+                switch(inputdim)
+                {
+                    case -1:
+                                Vn_p(i,j,k)=Vol;
+                                break;
+                    case 0:
+                                Vx_p(i,j,k)=Vol;
+                                break;
+                    case 2:
+                                Vz_p(i,j,k)=Vol;
+                                break;
+                }
+            }
+            else if(nz(i,j,k)<0.0)
+            {
+                Vol=p->DXN[IP]*p->DYN[JP]*dsz;
+                switch(inputdim)
+                {
+                    case -1:
+                                Vn_p(i,j,k)=Vol;
+                                break;
+                    case 0:
+                                Vx_p(i,j,k)=Vol;
+                                break;
+                    case 2:
+                                Vz_p(i,j,k)=Vol;
+                                break;
+                }
             }
         }
         
@@ -211,19 +281,41 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_simple
             double dsz, scaledVol, Vol, r0z, recheck;
             dsz=fabs(a->w(i,j,k-1)*p->dt);
             r0z=-(nz(i,j,k)*(-0.5*p->DZN[KP]+0.5*dsz)-alpha(i,j,k));
-            scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],dsz,r0z);
-            Vol=scaledVol*p->DXN[IP]*p->DYN[JP]*dsz;
-            switch(inputdim)
+            recheck=0.5*(fabs(nx(i,j,k))*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*dsz)-fabs(r0z);
+            if(recheck>0.0)
             {
-                case -1:
-                            Vn_m(i,j,k)=-Vol;
-                            break;
-                case 0:
-                            Vx_m(i,j,k)=-Vol;
-                            break;
-                case 2:
-                            Vz_m(i,j,k)=-Vol;
-                            break;
+                scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],dsz,r0z);
+                Vol=scaledVol*p->DXN[IP]*p->DYN[JP]*dsz;
+                if(Vol!=Vol)
+                    cout<<"plane w volnan in "<<i<<","<<j<<","<<k<<endl;
+                switch(inputdim)
+                {
+                    case -1:
+                                Vn_m(i,j,k)=-Vol;
+                                break;
+                    case 0:
+                                Vx_m(i,j,k)=-Vol;
+                                break;
+                    case 2:
+                                Vz_m(i,j,k)=-Vol;
+                                break;
+                }
+            }
+            else if(nz(i,j,k)>0.0)
+            {
+                Vol=p->DXN[IP]*p->DYN[JP]*dsz;
+                switch(inputdim)
+                {
+                    case -1:
+                                Vn_m(i,j,k)=-Vol;
+                                break;
+                    case 0:
+                                Vx_m(i,j,k)=-Vol;
+                                break;
+                    case 2:
+                                Vz_m(i,j,k)=-Vol;
+                                break;
+                }
             }
         }
         
@@ -245,6 +337,8 @@ void VOF_PLIC::advectWater_forCOSMIC2D_simple
             double dsx, Vol;
             dsx=a->u(i,j,k)*p->dt;
             Vol=dsx*p->DYN[JP]*p->DZN[KP];
+            if(Vol!=Vol)
+                cout<<"water u volnan in "<<i<<","<<j<<","<<k<<endl;
             switch(inputdim)
             {
                 case -1:
@@ -264,6 +358,8 @@ void VOF_PLIC::advectWater_forCOSMIC2D_simple
             double dsx, Vol;
             dsx=fabs(a->u(i-1,j,k)*p->dt);
             Vol=dsx*p->DYN[JP]*p->DZN[KP];
+            if(Vol!=Vol)
+                cout<<"water u volnan in "<<i<<","<<j<<","<<k<<endl;
             switch(inputdim)
             {
                 case -1:
@@ -285,6 +381,8 @@ void VOF_PLIC::advectWater_forCOSMIC2D_simple
             double dsz,Vol;
             dsz=a->w(i,j,k)*p->dt;
             Vol=p->DXN[IP]*p->DYN[JP]*dsz;
+            if(Vol!=Vol)
+                cout<<"water w volnan in "<<i<<","<<j<<","<<k<<endl;
             switch(inputdim)
             {
                 case -1:
@@ -304,6 +402,8 @@ void VOF_PLIC::advectWater_forCOSMIC2D_simple
             double dsz,Vol;
             dsz=fabs(a->w(i,j,k-1)*p->dt);
             Vol=p->DXN[IP]*p->DYN[JP]*dsz;
+            if(Vol!=Vol)
+                cout<<"water w volnan in "<<i<<","<<j<<","<<k<<endl;
             switch(inputdim)
             {
                 case -1:

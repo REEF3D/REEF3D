@@ -41,10 +41,10 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
     lexer* p
 )
 {
-    int bandWidth=4;
+    int bandWidth=2;
     int jjbandWidth;
     if(p->j_dir>0)
-        jjbandWidth=4;
+        jjbandWidth=2;
     else
         jjbandWidth=0;
     double phitemp;

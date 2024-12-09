@@ -129,7 +129,7 @@ void VOF_PLIC::calcSegmentPoint
     int ip, 
 	int jp, 
 	int kp,
-	field4& changedFlag
+	field& changedFlag
 )
 {
 	double xs, ys, zs;
@@ -183,7 +183,7 @@ int VOF_PLIC::calcProjectionPoint
     int ip, 
 	int jp, 
 	int kp,
-	field4& changedFlag
+	field& changedFlag
 )
 {
 	double xi = p->pos_x();
@@ -240,7 +240,7 @@ int VOF_PLIC::calcBoundaryPoint
     int ip, 
 	int jp, 
 	int kp,
-	field4& changedFlag
+	field& changedFlag
 )
 {
     int l = max(-1, min(1, ip - i));
