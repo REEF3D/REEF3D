@@ -28,7 +28,26 @@ Author: Hans Bihs
 
 void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
-    /*
+    if(p->count<=2)
+    {
+    SLICELOOP4
+    wetcoast(i,j)=1;
+    
+    SLICELOOP4
+    if(p->wd - c->bed(i,j) < c->wd_criterion)
+    wetcoast(i,j)=0;
+    
+    SLICELOOP4
+    p->wet[IJ]=1;
+    
+    SLICELOOP4
+    if(p->A343>=1)
+    if(p->wd - c->bed(i,j) < c->wd_criterion)
+    p->wet[IJ]=0;
+    }
+    
+    if(p->count>2)
+    {
     SLICELOOP4
     c->WL(i,j) = eta(i,j) + p->wd - c->bed(i,j);
 
@@ -44,7 +63,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
      
     SLICELOOP4
     {
-        if(p->wet[IJ]==0)
+        if(p->wet[IJ]==0 && wetcoast(i,j)==1)
         {
             if(p->wet[Ip1J]==1 && eta(i,j)<eta(i+1,j) && c->WL(i+1,j)>c->wd_criterion+eps)
             temp[IJ]=1;
@@ -60,7 +79,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
         }
         
         else              
-        if(c->WL(i,j)<=c->wd_criterion)
+        if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
         {
         temp[IJ]=0;
         eta(i,j) = c->wd_criterion - c->depth(i,j);
@@ -69,15 +88,19 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     }
     
     SLICELOOP4
+    if(wetcoast(i,j)==1)
     p->wet[IJ] = temp[IJ];
     
 
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start4(p,eta,gcval_eta);
-    pgc->gcsl_start4(p,c->WL,gcval_eta);*/
+    pgc->gcsl_start4(p,c->WL,gcval_eta);
+    }
+    
+    // ---------------------
     
     // wetdry old
-    
+    /*
       SLICELOOP4
       c->wet_n(i,j)=p->wet[IJ];
       
@@ -93,9 +116,16 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
         //if(p->wet[IJ]==0)
         //Fifsf(i,j) = 0.0;
 
-      } 
+      } */
       
       pgc->gcsl_start4Vint(p,p->wet,50);
+      
+      // eta wetdry limit
+      /*SLICELOOP4
+      {     
+          if(p->A343>=1 && p->wet[IJ]==1)
+          eta(i,j) = MAX(eta(i,j),c->wd_criterion-c->depth(i,j));
+      }*/
       
       pcoast->start(p,c,pgc,c->coastline,p->wet,c->wet_n);
       

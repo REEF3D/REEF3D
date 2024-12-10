@@ -80,6 +80,7 @@ private:
     const double eps;
     
     sliceint4 bx,by;
+    sliceint4 wetcoast;
     int count_n;
     
 };
