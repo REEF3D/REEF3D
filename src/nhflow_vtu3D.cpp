@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"nhflow_force.h"
 #include"nhflow_force_ale.h"
 #include"bedshear_probe.h"
+#include"bedshear_max.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -128,6 +129,9 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
     if(p->P125>0)
     pbedshear = new bedshear_probe(p,pgc);
+
+    if(p->P126==1)
+    pbedshearmax = new bedshear_max(p,pgc);
     
 }
 
@@ -281,6 +285,9 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     // sediment probes
     if(p->P125>0)
 	pbedshear->bedshear_gauge(p,pgc,psed);
+
+    if(p->P126==1)
+    pbedshearmax->bedshear_maxval(p,pgc,psed);
 }
 
 void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
