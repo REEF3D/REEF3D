@@ -40,9 +40,9 @@ bedshear_probe::bedshear_probe(lexer *p, ghostcell *pgc)
     {
         char folder[40];
         if(p->A10==5)
-            snprintf(folder,sizeof(folder),"./REEF3D_NHFLOW_SedimentPoint");
+            snprintf(folder,sizeof(folder),"./REEF3D_NHFLOW_Sediment");
         else
-            snprintf(folder,sizeof(folder),"./REEF3D_CFD_SedimentPoint");
+            snprintf(folder,sizeof(folder),"./REEF3D_CFD_Sediment");
 	    mkdir(folder,0777);
     }
 	
@@ -51,9 +51,9 @@ bedshear_probe::bedshear_probe(lexer *p, ghostcell *pgc)
     // open file
         char file[100];
         if(p->A10==5)
-            snprintf(file,sizeof(file),"./REEF3D_NHFLOW_SedimentPoint/REEF3D-NHFLOW-Sediment-Bedshear.dat");
+            snprintf(file,sizeof(file),"./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear.dat");
         else
-            snprintf(file,sizeof(file),"./REEF3D_CFD_SedimentPoint/REEF3D-CFD-Sediment-Bedshear.dat");
+            snprintf(file,sizeof(file),"./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear.dat");
 	    bsgout.open(file);
 
     bsgout<<"number of gauges:  "<<p->P125<<endl<<endl;

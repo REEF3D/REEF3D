@@ -36,9 +36,9 @@ bedshear_max::bedshear_max(lexer *p, ghostcell *pgc)
     {
         char folder[40];
         if(p->A10==5)
-            snprintf(folder,sizeof(folder),"./REEF3D_NHFLOW_SedimentMax");
+            snprintf(folder,sizeof(folder),"./REEF3D_NHFLOW_Sediment");
         else
-            snprintf(folder,sizeof(folder),"./REEF3D_CFD_SedimentMax");
+            snprintf(folder,sizeof(folder),"./REEF3D_CFD_Sediment");
 	    mkdir(folder,0777);
     }
 	
@@ -47,9 +47,9 @@ bedshear_max::bedshear_max(lexer *p, ghostcell *pgc)
         // open file
         char file[100];
         if(p->A10==5)
-            snprintf(file,sizeof(file),"./REEF3D_NHFLOW_SedimentMax/REEF3D-NHFLOW-Sediment-Bedshear-Max.dat");
+            snprintf(file,sizeof(file),"./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear-Max.dat");
         else
-            snprintf(file,sizeof(file),"./REEF3D_CFD_SedimentMax/REEF3D-CFD-Sediment-Bedshear-Max.dat");
+            snprintf(file,sizeof(file),"./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear-Max.dat");
 	    bsgout.open(file);
 
         bsgout<<"time";
