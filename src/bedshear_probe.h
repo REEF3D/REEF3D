@@ -20,34 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDSHEAR_PROBE_H_
+#define BEDSHEAR_PROBE_H_
+
 #include"boundarycheck.h"
 
 #include<iostream>
 #include<fstream>
 
 class lexer;
-class fdm;
 class ghostcell;
-class field;
 class sediment;
 
 using namespace std;
 
-#ifndef BEDSHEAR_PROBE_H_
-#define BEDSHEAR_PROBE_H_
-
 class bedshear_probe : public boundarycheck
 {
 public:
-    bedshear_probe(lexer*,fdm*,ghostcell*);
+    bedshear_probe(lexer*, ghostcell*);
 	virtual ~bedshear_probe();
 
-	void bedshear_gauge(lexer*, fdm*, ghostcell*, sediment*);
+	void bedshear_gauge(lexer*, ghostcell*, sediment*);
 
 
 private:
-    void ini_location(lexer*, fdm*, ghostcell*);
-    void write(lexer*, fdm*, ghostcell*);
+    void ini_location(lexer*, ghostcell*);
     int conv(double);
 
     int *iloc,*jloc,*flag;

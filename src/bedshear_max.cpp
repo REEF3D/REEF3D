@@ -64,7 +64,7 @@ void bedshear_max::bedshear_maxval(lexer *p, fdm *a, ghostcell *pgc, sediment *p
 	
     ILOOP
     JLOOP
-    maxval = MAX(maxval, psed->bedshear_point(p,a,pgc));
+    maxval = MAX(maxval, psed->bedshear_point(p,pgc));
 
 	
     maxval=pgc->globalmax(maxval);

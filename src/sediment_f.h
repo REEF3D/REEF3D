@@ -26,7 +26,8 @@ Author: Hans Bihs
 #include"field4a.h"
 #include"increment.h"
 
-class bedload;class bedconc;
+class bedload;
+class bedconc;
 class sandslide;
 class topo_relax;
 class bedshear;
@@ -34,7 +35,11 @@ class vrans;
 class turbulence;
 class sediment_fdm;
 class bedslope;
-class bedshear_reduction;class suspended;class diffusion;class convection;class patchBC_interface;
+class bedshear_reduction;
+class suspended;
+class diffusion;
+class convection;
+class patchBC_interface;
 class bedload_direction;
 using namespace std;
 
@@ -49,8 +54,16 @@ public:
     
     // CFD interface
     virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
-    virtual void ini_cfd(lexer*,fdm*,ghostcell*);    virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*);    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);    void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
-    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);    void prep_cfd(lexer*,fdm*,ghostcell*);    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);    void active_cfd(lexer*,fdm*,ghostcell*);    void active_ini_cfd(lexer*,fdm*,ghostcell*);    void bedchange_update(lexer*, ghostcell*);
+    virtual void ini_cfd(lexer*,fdm*,ghostcell*);
+    virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*);
+    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
+    void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
+    void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
+    void prep_cfd(lexer*,fdm*,ghostcell*);
+    void fill_PQ_cfd(lexer*,fdm*,ghostcell*);
+    void active_cfd(lexer*,fdm*,ghostcell*);
+    void active_ini_cfd(lexer*,fdm*,ghostcell*);
+    void bedchange_update(lexer*, ghostcell*);
     
     // NHFLOW interface
     virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
@@ -67,37 +80,85 @@ public:
     virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
     virtual void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
     void sediment_algorithm_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
-    void prep_sflow(lexer*, fdm2D*, ghostcell*,slice&,slice&);    void fill_PQ_sflow(lexer*,fdm2D*,ghostcell*,slice&,slice&);    void active_sflow(lexer*, fdm2D*, ghostcell*);    void active_ini_sflow(lexer*, fdm2D*, ghostcell*);
+    void prep_sflow(lexer*, fdm2D*, ghostcell*,slice&,slice&);
+    void fill_PQ_sflow(lexer*,fdm2D*,ghostcell*,slice&,slice&);
+    void active_sflow(lexer*, fdm2D*, ghostcell*);
+    void active_ini_sflow(lexer*, fdm2D*, ghostcell*);
     
     
-    // ---    virtual void ini_parameters(lexer*, ghostcell*);    virtual void ini_guard(lexer*, ghostcell*);
+    // ---
+
+    virtual void ini_parameters(lexer*, ghostcell*);
+    virtual void ini_guard(lexer*, ghostcell*);
 	
     virtual void relax(lexer*,ghostcell*);
-	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
+	virtual double bedshear_point(lexer*,ghostcell*);
     
     virtual double qbeval(int,int);
-    virtual void qbeget(int,int,double);    virtual double bedzhval(int,int);    virtual void ctimesave(lexer*, fdm*);
+    virtual void qbeget(int,int,double);
+
+    virtual double bedzhval(int,int);
+
+    virtual void ctimesave(lexer*, fdm*);
     
     void fill_bedk(lexer*,fdm*,ghostcell*);
-	void bedlevel(lexer*,fdm*,ghostcell*);    void waterlevel(lexer*,fdm*,ghostcell*);
+	void bedlevel(lexer*,fdm*,ghostcell*);
+    void waterlevel(lexer*,fdm*,ghostcell*);
 	void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
     void volume_calc(lexer*,fdm*,ghostcell*);
 	void filter(lexer*,ghostcell*,slice&,int,int);
     
     // print
-    virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&);    virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&);	virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&);    virtual void name_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &);    virtual void offset_vtp_bedload(lexer*, ghostcell*,ofstream&, int*, int &);    virtual void offset_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &);    	virtual void print_2D_bedshear(lexer*, ghostcell*,ofstream&);    virtual void print_3D_bedshear(lexer*, ghostcell*,ofstream&);	virtual void name_pvtu_bedshear(lexer*, ghostcell*,ofstream&);    virtual void name_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);    virtual void offset_vtp_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);    virtual void offset_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);        virtual void print_2D_parameter1(lexer*, ghostcell*,ofstream&);    virtual void print_3D_parameter1(lexer*, ghostcell*,ofstream&);	virtual void name_pvtu_parameter1(lexer*, ghostcell*,ofstream&);    virtual void name_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);    virtual void offset_vtp_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);    virtual void offset_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);        virtual void print_2D_parameter2(lexer*, ghostcell*,ofstream&);    virtual void print_3D_parameter2(lexer*, ghostcell*,ofstream&);	virtual void name_pvtu_parameter2(lexer*, ghostcell*,ofstream&);    virtual void name_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);    virtual void offset_vtp_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);    virtual void offset_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&);
+    virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&);
+	virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&);
+    virtual void name_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtp_bedload(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &);
+    
+	virtual void print_2D_bedshear(lexer*, ghostcell*,ofstream&);
+    virtual void print_3D_bedshear(lexer*, ghostcell*,ofstream&);
+	virtual void name_pvtu_bedshear(lexer*, ghostcell*,ofstream&);
+    virtual void name_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtp_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &);
+    
+    virtual void print_2D_parameter1(lexer*, ghostcell*,ofstream&);
+    virtual void print_3D_parameter1(lexer*, ghostcell*,ofstream&);
+	virtual void name_pvtu_parameter1(lexer*, ghostcell*,ofstream&);
+    virtual void name_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtp_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &);
+    
+    virtual void print_2D_parameter2(lexer*, ghostcell*,ofstream&);
+    virtual void print_3D_parameter2(lexer*, ghostcell*,ofstream&);
+	virtual void name_pvtu_parameter2(lexer*, ghostcell*,ofstream&);
+    virtual void name_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtp_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &);
     
 
-private:        void log_ini(lexer*);    void sedimentlog(lexer*);
+private:
+    
+    void log_ini(lexer*);
+    void sedimentlog(lexer*);
     sediment_fdm *s;
-    bedload *pbed;      bedconc *pcbed;
+    bedload *pbed;  
+    bedconc *pcbed;
     sandslide *pslide;
     topo_relax *prelax;
     vrans *pvrans;
     bedslope *pslope;
-    bedshear_reduction *preduce;    topo *ptopo;    suspended *psusp;    diffusion *psuspdiff;    convection *psuspdisc;
-	bedshear *pbedshear;    patchBC_interface *pBC;
-    bedload_direction *pbeddir;    ofstream sedlogout;
+    bedshear_reduction *preduce;
+    topo *ptopo;
+    suspended *psusp;
+    diffusion *psuspdiff;
+    convection *psuspdisc;
+	bedshear *pbedshear;
+    patchBC_interface *pBC;
+    bedload_direction *pbeddir;
+
+    ofstream sedlogout;
     
     double starttime;
     
