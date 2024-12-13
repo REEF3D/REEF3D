@@ -107,6 +107,8 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 		dist=ks/30.0;
 
 		uplus = (1.0/kappa)*log(30.0*(dist/ks));
+        
+    //cout<<((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*dist))<<" "<<ks<<endl;
 
 	a->F(i,j,k) -= ((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*dist));
 }
