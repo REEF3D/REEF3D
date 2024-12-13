@@ -93,7 +93,8 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     ef = d->depth(i,j);
     }
     
-    fe(i,j) += H*(ef - WL(i,j))/(alpha[iter]*p->dt);
+    if(efc>0.1 && d->FB[IJK]<0.0)
+    fe(i,j) += (ef - WL(i,j))/(alpha[iter]*p->dt);
     }
 
     pgc->start5V(p,d->FHB,50);

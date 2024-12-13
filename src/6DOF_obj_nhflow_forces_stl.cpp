@@ -327,7 +327,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             Ye_v += Fv_y;
             Ze_v += Fv_z;
 							
-            A += A_triang*nz;
+            A += A_triang;
             }
 		}
 	}		

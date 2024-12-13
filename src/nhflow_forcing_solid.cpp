@@ -72,13 +72,13 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
         efc+=1.0;
         }
 
-        if(d->SOLID[IJm1K]>0.0) 
+        if(d->SOLID[IJm1K]>0.0 && p->j_dir==1) 
         {
         ef += WL(i,j-1);
         efc+=1.0;
         }
         
-        if(d->SOLID[IJp1K]>0.0)    
+        if(d->SOLID[IJp1K]>0.0 && p->j_dir==1)    
         {
         ef += WL(i,j+1);
         efc+=1.0;
@@ -92,7 +92,8 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     }
     
-    fe(i,j) += H*(ef - WL(i,j))/(alpha*p->dt);
+    if(efc>0.1 && d->SOLID[IJK]<0.0)
+    fe(i,j) += (ef - WL(i,j))/(alpha*p->dt);
     
     }
 }
