@@ -513,6 +513,7 @@
           <File Name="bedload_einstein.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedshear">
+          <File Name="reduction_FD_gamma.h"/>
           <File Name="bedshear.h"/>
           <File Name="bedshear_reduction.h"/>
           <File Name="bedslope.h"/>
@@ -523,6 +524,7 @@
           <File Name="reduction_FD.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_nz.h"/>
           <File Name="sandslide_f3.h"/>
           <File Name="sandslide_f2.h"/>
           <File Name="sandslide_f.h"/>
@@ -1802,6 +1804,7 @@
           <File Name="bedload_einstein.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedshear">
+          <File Name="reduction_FD_gamma.cpp"/>
           <File Name="bedshear_cfd.cpp"/>
           <File Name="bedshear_sflow.cpp"/>
           <File Name="bedshear_nhflow.cpp"/>
@@ -1813,6 +1816,7 @@
           <File Name="reduction_FD.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_nz.cpp"/>
           <File Name="sandslide_f3.cpp"/>
           <File Name="sandslide_f2.cpp"/>
           <File Name="sandslide_v.cpp"/>

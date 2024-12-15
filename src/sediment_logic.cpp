@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
 #include"sandslide_f3.h"
+#include"sandslide_nz.h"
 #include"sandslide_pde.h"
 #include"sandslide_v.h"
 #include"topo_relax.h"
@@ -53,6 +54,7 @@ Author: Hans Bihs
 #include"reduction_deyemp.h"
 #include"reduction_deyana.h"
 #include"reduction_FD.h"
+#include"reduction_FD_gamma.h"
 #include"diff_void.h"
 #include"ediff2.h"
 #include"idiff2.h"
@@ -113,6 +115,9 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     if(p->S90==4)
     pslide=new sandslide_pde(p);
     
+    if(p->S90==5)
+    pslide=new sandslide_nz(p);
+    
     if(p->S10!=2 && p->A10==6)
 	pvrans = new vrans_v(p,pgc);
 	
@@ -136,6 +141,9 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	
 	if(p->S80==4)
     preduce=new reduction_FD(p);
+    
+    if(p->S80==5)
+    preduce=new reduction_FD_gamma(p);
     
     ptopo = new sediment_exner(p,pgc);
     
