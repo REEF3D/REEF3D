@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,22 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class fdm;
-class lexer;
-class solver;
-class ghostcell;
+#include"nhflow_potential_v.h"
 
-using namespace std;
-
-#ifndef POTENTIAL_H_
-#define POTENTIAL_H_
-
-class potential
+nhflow_potential_v::nhflow_potential_v()
 {
-public:
-	virtual void start(lexer*,fdm*, solver*, ghostcell* pgc)=0;
+}
 
-};
+nhflow_potential_v::~nhflow_potential_v()
+{
+}
 
-#endif
+void nhflow_potential_v::start(lexer *p, fdm_nhf *d, solver *psolv, ghostcell *pgc)
+{
+}
+
+
+
 

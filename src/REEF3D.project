@@ -1469,7 +1469,10 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
-          <VirtualDirectory Name="Potential Flow"/>
+          <VirtualDirectory Name="Potential Flow">
+            <File Name="nhflow_potential_v.cpp"/>
+            <File Name="nhflow_potential_f.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
             <File Name="nhflow_reinidisc_fsf.cpp"/>
           </VirtualDirectory>

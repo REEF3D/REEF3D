@@ -250,6 +250,7 @@ public:
     // flow parameters
     const double cmu;
     double deltax,sigT,Ui,Ua,Uo;
+    double Ho,Hi;
 
     // Hydrodynamics Models
     int A10;

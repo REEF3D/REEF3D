@@ -28,7 +28,8 @@ Author: Hans Bihs
 
 void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
 {
-     // fsf
+    // -------------------------------------
+     // fsf out
     p->phiout=0.0;
     count=0;
     for(n=0;n<p->gcslout_count;n++)
@@ -48,6 +49,46 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     
     p->phiout += p->phimean;
     
+    
+    // -------------------------------------
+    // Find Hi
+    double eta_in;
+    count=0;
+    zval=0.0;
+    for(n=0;n<p->gcslin_count;n++)
+    {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+
+        zval+=d->eta(i,j);
+        ++count;
+
+    }
+
+    count=pgc->globalisum(count);
+    zval=pgc->globalsum(zval);
+    
+    eta_in=zval/double(count);
+    
+    p->Hi = p->wd+eta_in;
+    
+    /*
+    if(count>0)
+    {
+        if(p->F50==2 || p->F50==4)
+        for(n=0;n<p->gcin_count;++n)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+
+        WL(i-1,j) = eta_in + d->depth(i,j);
+        WL(i-2,j) = eta_in + d->depth(i,j);
+        WL(i-3,j) = eta_in + d->depth(i,j);
+        }
+    }*/
+    
+    // -------------------------------------
     // set fsf 
     double wsfout=p->phimean;
     
