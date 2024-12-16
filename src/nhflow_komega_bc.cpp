@@ -73,15 +73,8 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             if(p->flag4[IJKp1]<0)
             dist = 0.5*p->DZN[KP]*d->WL(i,j);
         
-
-        /*if(p->j_dir==0)        
-        dist = 0.5*(1.0/2.0)*(p->DXN[IP]+(p->ZSN[FIJKp1]-p->ZSN[FIJK]));
-            
-        if(p->j_dir==1)
-        dist = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+(p->ZSN[FIJKp1]-p->ZSN[FIJK]));*/
-
         
-        ks=p->B50;//ks_val(p,a,ii,jj,kk,cs,bc);
+            ks=p->B50;
         
 
             uvel=d->U[IJK];
@@ -117,33 +110,24 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
     if((p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1) || (p->flag4[Ip1JK]<0  && p->IO[Ip1JK]!=2)
         || p->flag4[IJm1K]<0 || p->flag4[IJp1K]<0 || p->flag4[IJKm1]<0)
     {
-        
     
-    /*if(p->j_dir==0)        
-    dist = 0.5*(1.0/2.0)*(p->DXN[IP]+p->DZN[KP]);
-        
-    if(p->j_dir==1)
-    dist = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-    */
-    
-    
-            if(p->flag4[Im1JK]<0)
-            dist = 0.5*p->DXN[IP];
+        if(p->flag4[Im1JK]<0)
+        dist = 0.5*p->DXN[IP];
 
-            if(p->flag4[Ip1JK]<0)
-            dist = 0.5*p->DXN[IP];
+        if(p->flag4[Ip1JK]<0)
+        dist = 0.5*p->DXN[IP];
             
-            if(p->flag4[IJm1K]<0)
-            dist = 0.5*p->DYN[JP];
+        if(p->flag4[IJm1K]<0)
+        dist = 0.5*p->DYN[JP];
             
-            if(p->flag4[IJp1K]<0)
-            dist = 0.5*p->DYN[JP];
+        if(p->flag4[IJp1K]<0)
+        dist = 0.5*p->DYN[JP];
             
-            if(p->flag4[IJKm1]<0)
-            dist = 0.5*p->DZN[KP]*d->WL(i,j);
+        if(p->flag4[IJKm1]<0)
+        dist = 0.5*p->DZN[KP]*d->WL(i,j);
 
-            if(p->flag4[IJKp1]<0)
-            dist = 0.5*p->DZN[KP]*d->WL(i,j);
+        if(p->flag4[IJKp1]<0)
+        dist = 0.5*p->DZN[KP]*d->WL(i,j);
 
 	eps_star = pow((KIN[IJK]>(0.0)?(KIN[IJK]):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
 
