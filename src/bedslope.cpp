@@ -228,7 +228,7 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
     s->gamma(i,j)=0.0;
 
-    s->gamma(i,j) = atan(sqrt(bx0*bx0 + by0*by0));
+    s->gamma(i,j) = atan(sqrt(bx0*bx0 + by0*by0)) * s->teta(i,j)/(fabs(s->teta(i,j))>1.0e-10?fabs(s->teta(i,j)):1.0e10);
 
     s->phi(i,j) = midphi + MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
     }
