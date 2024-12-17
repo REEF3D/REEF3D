@@ -61,31 +61,31 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
 
     starttime=pgc->timer();
 	
-	//pgc->start4(p,psi,gcval_pot);
+	pgc->start49V(p,PSI,gcval_pot);
 	
 	LOOP
 	PSI[IJK] = 0.0;
     
-    //pgc->start4(p,psi,gcval_pot);
+    pgc->start49V(p,PSI,gcval_pot);
 	
     itermem=p->N46;
     p->N46=5000;
 	
     for(int qn=0; qn<1;++qn)
     {
-    //laplace(p,a,pgc,PSI);
-	//psolv->start(p,a,pgc,PSI,a->rhsvec,44);
+    laplace(p,d,pgc);
+    psolv->startV(p,pgc,PSI,d->rhsvec,d->M,44);
     }
-    /*
-    pgc->start4(p,psi,gcval_pot);
     
-    ucalc(p,a,psi);
-	vcalc(p,a,psi);
-	wcalc(p,a,psi);
+    pgc->start49V(p,PSI,gcval_pot);
+    
+    ucalc(p,d);
+	vcalc(p,d);
+	wcalc(p,d);
 
-	pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);
+	pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
+    pgc->start4V(p,d->W,12);
 
     endtime=pgc->timer();
     p->laplaceiter=p->solveriter;
@@ -93,7 +93,7 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
 	if(p->mpirank==0  && (p->count%p->P12==0))
 	cout<<"lapltime: "<<p->laplacetime<<"  lapiter: "<<p->laplaceiter<<endl<<endl;
 
-    p->N46=itermem;*/
+    p->N46=itermem;
     
 
     finalize:

@@ -528,6 +528,45 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
 	p->xtime+=timer()-starttime;
 }
 
+void ghostcell::start49V(lexer *p, double *f, int gcv)
+{    
+    LOOP
+    {  
+        if(p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)
+        f[Im1JK] = f[IJK];
+        
+        if(p->flag4[Im1JK]<0 && p->IO[Im1JK]==1)
+        f[Im1JK] = p->Ui*p->DXP[IP] + f[IJK];
+        
+
+        if(p->flag4[Ip1JK]<0 && p->IO[Ip1JK]!=2)
+        f[Ip1JK] = f[IJK];
+        
+        if(p->flag4[Ip1JK]<0 && p->IO[Ip1JK]==2)
+        f[Ip1JK] = p->Uo*p->DXP[IP] + f[IJK];
+        
+        
+        if(p->flag4[IJm1K]<0)
+        f[IJm1K] = f[IJK];
+        
+        if(p->flag4[IJp1K]<0)
+        f[IJp1K] = f[IJK];
+        
+        if(p->flag4[IJKm1]<0)
+        f[IJKm1] = f[IJK];
+
+        if(p->flag4[IJKp1]<0)
+        f[IJKp1] = f[IJK];
+    }
+    
+    starttime=timer();
+	gcparaxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
+	p->xtime+=timer()-starttime;
+}
+
 void ghostcell::startintV(lexer *p, int *f, int gcv)
 {    
     LOOP

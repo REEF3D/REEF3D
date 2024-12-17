@@ -73,6 +73,8 @@ public:
     void start4P(lexer*,double*,int);
     void start5V(lexer*,double*,int);
     
+    void start49V(lexer*,double*,int);
+    
     void start7V(lexer*,double*,sliceint&, int);
     void start7S(lexer*,double*, int);
     void start7P(lexer*,double*, int);
