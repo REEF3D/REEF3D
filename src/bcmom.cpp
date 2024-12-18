@@ -94,10 +94,10 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	k=kk;
     
     if(cs==2 || cs==3)
-    dist=0.5*p->DYN[JP];
+    dist=p->DYN[JP];
     
     if(cs==5 || cs==6)
-    dist=0.5*p->DZN[KP];
+    dist=p->DZN[KP];
 	
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
@@ -110,7 +110,7 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
         
     //cout<<((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*dist))<<" "<<ks<<endl;
 
-	a->F(i,j,k) -= ((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus));
+	a->F(i,j,k) -= ((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*dist));
 }
 
 void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist)
@@ -120,10 +120,10 @@ void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	k=kk;
     
     if(cs==1 || cs==4)
-    dist=0.5*p->DXN[IP];
+    dist=p->DXN[IP];
     
     if(cs==5 || cs==6)
-    dist=0.5*p->DZN[KP];
+    dist=p->DZN[KP];
     
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
@@ -132,7 +132,7 @@ void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 
 		uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
-	a->G(i,j,k) -= ((fabs(a->v(i,j,k))*a->v(i,j,k))/(uplus*uplus));
+	a->G(i,j,k) -= ((fabs(a->v(i,j,k))*a->v(i,j,k))/(uplus*uplus*dist));
 }
 
 void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist)
@@ -142,10 +142,10 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	k=kk;
     
     if(cs==1 || cs==4)
-    dist=0.5*p->DXN[IP];
+    dist=p->DXN[IP];
     
     if(cs==2 || cs==3)
-    dist=0.5*p->DYN[JP];
+    dist=p->DYN[JP];
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
@@ -154,7 +154,7 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 
 		uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
-	a->H(i,j,k) -= ((fabs(a->w(i,j,k))*a->w(i,j,k))/(uplus*uplus));
+	a->H(i,j,k) -= ((fabs(a->w(i,j,k))*a->w(i,j,k))/(uplus*uplus*dist));
 }
 
 
