@@ -63,12 +63,21 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
     
     
     
-	if (p->X102==1)
+/*	if (p->X102==1)
 	{
-		p_(0) += p->X102_u*Mass_fb;
-		p_(1) += p->X102_v*Mass_fb;
-		p_(2) += p->X102_w*Mass_fb;
+		p_(0) += p->X102_u[n6DOF]*Mass_fb;
+		p_(1) += p->X102_v[n6DOF]*Mass_fb;
+		p_(2) += p->X102_w[n6DOF]*Mass_fb;
 	} 
+*/  for(int qn=0;qn<p->X102;++qn)
+    {
+    if(p->X102 > 0 && p->X110_objID[qn]==n6DOF)
+    {
+        p_(0) += p->X102_u[n6DOF]*Mass_fb;
+		p_(1) += p->X102_v[n6DOF]*Mass_fb;
+		p_(2) += p->X102_w[n6DOF]*Mass_fb;
+    }
+    }
     
 	if (p->X103==1)
 	{
