@@ -127,7 +127,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             
         // ------------------
         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
-		{
+        {
             for(int q=0;q<4;++q)
             for(n=0;n<p->gcin_count;++n)
             {
@@ -137,7 +137,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             
             d->EV[IJK]=MIN(d->EV[IJK],1.0e-4);
             }
-        pgc->start4V(p,d->EV,24);
-		}
+        pgc->start24V(p,d->EV,24);
+        }
         
 }

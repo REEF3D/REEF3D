@@ -52,9 +52,9 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
 	gcval_v=11;
 	gcval_w=12;
     
-    gcval_uh=20;
-	gcval_vh=21;
-	gcval_wh=22;
+    gcval_uh=14;
+	gcval_vh=15;
+	gcval_wh=16;
     
     p->Darray(UHRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(VHRK1,p->imax*p->jmax*(p->kmax+2));

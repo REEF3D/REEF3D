@@ -32,9 +32,9 @@ nhflow_ediff::nhflow_ediff(lexer* p)
 	gcval_v=11;
 	gcval_w=12;
     
-    gcval_uh=20;
-	gcval_vh=21;
-	gcval_wh=22;
+    gcval_uh=14;
+	gcval_vh=15;
+	gcval_wh=16;
 }
 
 nhflow_ediff::~nhflow_ediff()
