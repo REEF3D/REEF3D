@@ -59,8 +59,11 @@ void lexer::flagini()
     flagsf4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
     }
     
+    // boundary conditions
     Iarray(IO,imax*jmax*kmax);
+    Iarray(DF,imax*jmax*kmax);
     
+    // flag
 	Iarray(tpflag,imax*jmax*kmax);
     Iarray(ndbaseflag,imax*jmax*kmax);
 
@@ -74,6 +77,11 @@ void lexer::flagini()
     for(j=-margin; j<knoy+margin; ++j)
     for(k=-margin; k<knoz+margin; ++k)
     IO[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 0;
+    
+    for(i=-margin; i<knox+margin; ++i)
+    for(j=-margin; j<knoy+margin; ++j)
+    for(k=-margin; k<knoz+margin; ++k)
+    DF[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 1;
 	
 	x_dir=y_dir=z_dir=1.0;
 	

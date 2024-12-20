@@ -204,23 +204,14 @@ void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
 }
 
 void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{/*
+{
 	
 	if(p->T36>0)
 	LOOP
 	{
-    if(fabs(a->phi(i,j,k))<epsi)
-    dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-		
-    if(fabs(a->phi(i,j,k))>=epsi)
-    dirac=0.0;
-
-	if(dirac>0.0 && p->T36==1)
-	EPS[IJK] = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/p->T37);
-
-	if(dirac>0.0 && p->T36==2)
-	EPS[IJK] = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
-	}*/
+	if(k==p->knoz-1 && p->DF[IJK]>0)
+	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/p->T37);
+	}
 }
 
 

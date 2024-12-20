@@ -470,7 +470,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
-      <VirtualDirectory Name="Particle"/>
       <VirtualDirectory Name="Wind">
         <File Name="wind_v.h"/>
         <File Name="wind_f.h"/>
@@ -571,7 +570,6 @@
         <File Name="sediment_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
-        <File Name="sediment_part.h"/>
         <File Name="partres.h"/>
         <File Name="part.h"/>
       </VirtualDirectory>
@@ -826,6 +824,7 @@
       <File Name="ghostcell.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <File Name="sediment_part.h"/>
       <VirtualDirectory Name="Driver">
         <File Name="nhflow_header.h"/>
         <File Name="FSI_header.h"/>
@@ -846,6 +845,9 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Boundary">
+          <File Name="boundary.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Grid">
           <File Name="grid.h"/>
         </VirtualDirectory>
@@ -2525,6 +2527,10 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Boundary">
+          <File Name="boundary_update_nhflow.cpp"/>
+          <File Name="boundary.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Grid">
           <File Name="grid_gcb4a.cpp"/>
           <File Name="grid_gcb3.cpp"/>

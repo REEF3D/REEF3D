@@ -72,7 +72,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	pdiff->diff_scalar(p,d,pgc,psolv,EPS,1.0);
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
-    bckin_matrix(p,d,KIN,EPS);
+    bcomega_matrix(p,d,KIN,EPS);
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
 	epsfsf(p,d,pgc);
 	bckomega_start(p,d,KIN,EPS,gcval_eps);

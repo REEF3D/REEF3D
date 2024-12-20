@@ -131,12 +131,22 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     WL(i,j) += alpha*p->dt*CPORNH*fe(i,j);
     
     SLICELOOP4
-    d->test2D(i,j) = alpha*p->dt*CPORNH*fe(i,j);
-    
-
-    
-    SLICELOOP4
     d->eta(i,j) = WL(i,j) - d->depth(i,j);
+    
+    // DF
+    LOOP
+    p->DF[IJK]=1;
+    
+    if(solid_flag==1)
+    LOOP
+    if(d->SOLID[IJK]<0.0)
+    p->DF[IJK]=0;
+
+    if(floating_flag==1)
+    LOOP
+    if(d->FB[IJK]<0.0)
+    p->DF[IJK]=0;
+    
     }
     
     pgc->gciobc_update(p,d);
