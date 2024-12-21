@@ -39,9 +39,37 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
         H = Hsolidface(p,d,0,0,0);
         d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
         
+        efc = 0.0;
+        
+        if(d->SOLID[IJK]<0.0)
+        {
+            efc = 0.0;
+            
+            if(d->SOLID[Im1JK]>0.0)   
+            efc+=1.0;
+            
+            if(d->SOLID[Ip1JK]>0.0)    
+            efc+=1.0;
+
+            if(d->SOLID[IJm1K]>0.0 && p->j_dir==1) 
+            efc+=1.0;
+            
+            if(d->SOLID[IJp1K]>0.0 && p->j_dir==1)    
+            efc+=1.0;
+            
+            if(d->SOLID[IJKm1]>0.0)   
+            efc+=1.0;
+            
+            if(d->SOLID[IJKp1]>0.0)    
+            efc+=1.0;
+        }
+        
+        if(efc>0.1)
+        {
         FX[IJK] += H*(uf - U[IJK])/(alpha*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha*p->dt);
+        }
     }
     
     pgc->start5V(p,d->FHB,50);

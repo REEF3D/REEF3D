@@ -163,15 +163,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	
     p->wtime=pgc->timer()-starttime;
     
-    /*
-    //
-    reconstruct(p,d,pgc,pfsf,pss,precon,WLRK1,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
-    pconvec->start(p,d,4,WLRK1);
-    
-    pfsf->rk2_step1_corr(p, d, pgc, pflow, UHRK1,VHRK1,WHRK1, WLRK1, WLRK1, 1.0);
-    omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
-    //*/
-    
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
     
     pnhfdf->forcing(p, d, pgc, p6dof, pvrans, pnet, 0, 1.0, UHRK1, VHRK1, WHRK1, WLRK1, 0);
@@ -265,15 +256,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 				+ 0.5*p->dt*CPORNH*d->H[IJK];
 	
     p->wtime+=pgc->timer()-starttime;
-    
-    /*
-    //
-    reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
-    pconvec->start(p,d,4,d->WL);
-    
-    pfsf->rk2_step1_corr(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 0.5);
-    omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
-    //*/
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
     
