@@ -37,7 +37,7 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     LOOP
     {
         H = Hsolidface(p,d,0,0,0);
-        d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
+        
         
         efc = 0.0;
         
@@ -69,6 +69,8 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
         FX[IJK] += H*(uf - U[IJK])/(alpha*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha*p->dt);
+        
+        d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
         }
     }
     
@@ -121,7 +123,7 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     }
     
     if(efc>0.1 && d->SOLID[IJK]<0.0)
-    fe(i,j) += (ef - WL(i,j))/(alpha*p->dt);
+    fe(i,j) += H*(ef - WL(i,j))/(alpha*p->dt);
     
     }
 }

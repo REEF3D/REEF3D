@@ -35,7 +35,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     LOOP
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
-        d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
+        
         
         efc = 0.0;
         
@@ -68,12 +68,12 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
          
         if(efc>0.1)
         {
+        d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
+        
         FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
         }
-        
-    d->test[IJK] = H;
     }
     
     k=p->knoz-1;

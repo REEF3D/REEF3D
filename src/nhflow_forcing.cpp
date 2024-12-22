@@ -146,7 +146,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     LOOP
     if(d->FB[IJK]<0.0)
     p->DF[IJK]=0;
-    
+        
     }
     
     pgc->gciobc_update(p,d);
