@@ -33,11 +33,32 @@ void sixdof_obj::update_forcing_sflow(lexer *p, ghostcell *pgc,
     double ef,efc;
     
     SLICELOOP4
-    {        
+    { 
+        efc = 0.0;
+        
+        if(fs(i,j)<0.0)
+        {
+            efc = 0.0;
+            
+            if(fs(i-1,j)>0.0)   
+            efc+=1.0;
+            
+            if(fs(i+1,j)>0.0)    
+            efc+=1.0;
+
+            if(fs(i,j-1)>0.0 && p->j_dir==1) 
+            efc+=1.0;
+            
+            if(fs(i,j+1)>0.0 && p->j_dir==1)    
+            efc+=1.0;
+        }
+        
         uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
         vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
         wf = 0.0;//u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
          
+        if(efc>0.1)
+        {
         H = Hsolidface_2D(p,1,0);
         fx(i,j) += H*(uf - P(i,j))/(alpha[iter]*p->dt);
         
@@ -46,6 +67,7 @@ void sixdof_obj::update_forcing_sflow(lexer *p, ghostcell *pgc,
         
         H = Hsolidface_2D(p,0,0);
         fz(i,j) += H*(wf - w(i,j))/(alpha[iter]*p->dt);
+        }
     }
     
 }
