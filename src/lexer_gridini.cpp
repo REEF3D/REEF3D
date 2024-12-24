@@ -99,6 +99,14 @@ void lexer::flagini()
 	for(n=0;n<gcb4_count;++n)
 	if(gcb4[n][4]==6)
 	gcb4[n][4]=1;	
+    
+    // gcdf
+    gcdf1_count=gcdf2_count=gcdf3_count=gcdf4_count=1;
+    
+    Iarray(gcdf1,gcdf1_count,6);
+    Iarray(gcdf2,gcdf2_count,6);
+    Iarray(gcdf3,gcdf3_count,6);
+    Iarray(gcdf4,gcdf4_count,6);
 }
 
 void lexer::gridini_patchBC()
