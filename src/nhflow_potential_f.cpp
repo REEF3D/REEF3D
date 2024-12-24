@@ -102,17 +102,18 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
 }
 
 void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
-{	/*
-	ULOOP
-	a->u(i,j,k) = (phi(i+1,j,k)-phi(i,j,k))/p->DXP[IP];
+{	
+	LOOP
+    {
+	d->U[IJK] =  (PSI[Ip1JK]-PSI[Im1JK])/(p->DXP[IP]+p->DXP[IM1]) 
     
-    if(p->I21==1)
-    ULOOP
-    if(a->phi(i+1,j,k)<0.0 || a->phi(i,j,k)<0.0)
-	a->u(i,j,k)=0.0;
+              + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((PSI[IJKp1]-PSI[IJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+              
+    d->UH[IJK] = d->WL(i,j)*d->U[IJK];
+    }
     
-
     
+    /*
     if(p->X10==1)
 	ULOOP
     if(a->fb(i+1,j,k)<0.0 || a->fb(i,j,k)<0.0)
@@ -124,16 +125,17 @@ void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
 }
 
 void nhflow_potential_f::vcalc(lexer *p, fdm_nhf *d)
-{	/*
-	VLOOP
-	a->v(i,j,k) = (phi(i,j+1,k)-phi(i,j,k))/p->DYP[JP];
+{	
+    LOOP
+    {
+	d->V[IJK] =  (PSI[IJp1K]-PSI[IJm1K])/(p->DYP[JP]+p->DYP[JP1]) 
     
-    if(p->I21==1)
-    VLOOP
-    if(a->phi(i,j+1,k)<0.0 || a->phi(i,j,k)<0.0)
-	a->v(i,j,k)=0.0;
-    
-    
+              + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((PSI[IJKp1]-PSI[IJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+              
+    d->VH[IJK] = d->WL(i,j)*d->V[IJK];
+    }
+
+    /*
     if(p->X10==1)
 	VLOOP
     if(a->fb(i,j+1,k)<0.0 || a->fb(i,j,k)<0.0)
@@ -146,16 +148,14 @@ void nhflow_potential_f::vcalc(lexer *p, fdm_nhf *d)
 
 void nhflow_potential_f::wcalc(lexer *p, fdm_nhf *d)
 {
+    LOOP
+    {
+	d->W[IJK] =  p->sigz[IJ]*(PSI[IJKp1]-PSI[IJKp1])/(p->DZP[KP]+p->DZP[KP1]); 
+              
+    d->WH[IJK] = d->WL(i,j)*d->W[IJK];
+    }
+    
     /*
-	WLOOP
-    a->w(i,j,k) = (phi(i,j,k+1)-phi(i,j,k))/p->DZP[KP];
-    
-    if(p->I21==1)
-    WLOOP
-    if(a->phi(i,j,k+1)<0.0 || a->phi(i,j,k)<0.0)
-	a->w(i,j,k)=0.0;
-    
-	
     if(p->X10==1)
 	WLOOP
     if(a->fb(i,j,k+1)<0.0 || a->fb(i,j,k)<0.0)

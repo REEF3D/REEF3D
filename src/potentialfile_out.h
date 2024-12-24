@@ -60,7 +60,7 @@ private:
     char headername[450];
 
     int **flag;
-    double **U,**V,**W,**E;;
+    double **U,**V,**W,**E;
     int n,q,qn;
     int count;
     int elnum;

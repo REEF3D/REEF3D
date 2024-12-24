@@ -102,7 +102,7 @@ private:
     
     int iin;
     float ffn;
-    double ddn;;
+    double ddn;
 	char name[200];
     ifstream result;
     
