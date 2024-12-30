@@ -103,7 +103,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		a->M.s[n] = 0.0;
 		}
         
-        // AWA intflow
+        // AWA inflow
         /*if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
         {
         pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
@@ -170,9 +170,10 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		}
         
         // AWA outflow
-        if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
+        if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) 
+            && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
         {
-        pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+        pval = (p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
         
         a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);        
         a->M.n[n] = 0.0;

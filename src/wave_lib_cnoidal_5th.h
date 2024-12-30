@@ -52,6 +52,7 @@ public:
 private:
     double wht,acn,delta,epsilon,wR;
     double singamma,cosgamma;    
+    double ubar;
 };
 
 #endif

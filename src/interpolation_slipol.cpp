@@ -541,11 +541,8 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     
     wd_criterion = 10.0*p->A544;
     
-    
     v1=v2=v3=v4=0.0;
-    
-    
-    
+
     if(p->j_dir==0)
     {
     pip=4;
@@ -579,8 +576,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     if(wet[IJ]==0 && wet[Ip1J]==0 && p->flagslice4[IJ]==1 && p->flagslice4[Ip1J]==1)
     value = MIN(value, bedvalue-p->wd-p->DXM-wd_criterion);
     }
-    
-    
     
     
     if(p->j_dir==1)
@@ -697,9 +692,9 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     }
     
     
-    if(value+p->wd>bedvalue)
-    if(value+p->wd-bedvalue<wd_criterion)
-    value=value-1.0*wd_criterion;
+    //if(value+p->wd>bedvalue)
+    //if(value+p->wd-bedvalue<wd_criterion)
+    //value=value-1.0*wd_criterion;
     }
     
     return value;
