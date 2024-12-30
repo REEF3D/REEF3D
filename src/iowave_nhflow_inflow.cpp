@@ -56,6 +56,9 @@ void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, do
         VH[Im3JK]=VH[Im2JK]=VH[Im1JK]=d->VH[Im1JK];
         WH[Im3JK]=WH[Im2JK]=WH[Im1JK]=d->WH[Im1JK];
     }
+    
+    if(p->B99==3||p->B99==4||p->B99==5)
+	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
 }
 
 void iowave::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)

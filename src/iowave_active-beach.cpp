@@ -65,14 +65,14 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 		eta_M = wsf-p->wd; 
 		eta_R = eta_M-eta_T;
         
-        if(eta_R>=0.0)
+         if(eta_R>=0.0)
 		fac1=1.0;
 		
 		if(eta_R<0.0)
 		fac1=0.0;
         
 		
-        aa=bb=0;
+         aa=bb=0;
 		if(p->gcslawa1[n][2]==1)
 		aa=-1;
 
@@ -119,7 +119,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                 }
                
                 // inteface H
-                epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+                epsi = p->F45*p->DZN[KP];
         
                 if(a->phi(i,j,k)>epsi)
                 H=1.0;
@@ -132,66 +132,67 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                 
                  if(fabs(p->W10)<1.0e-10)
                  {
-				if(z<=eta_M)
-				{
-				u(i+1*aa,j+1*bb,k) = Uc;
-				u(i+2*aa,j+2*bb,k) = Uc;
-				u(i+3*aa,j+3*bb,k) = Uc;
-				}
+                    if(z<=eta_M)
+                    {
+                    u(i+1*aa,j+1*bb,k) = Uc;
+                    u(i+2*aa,j+2*bb,k) = Uc;
+                    u(i+3*aa,j+3*bb,k) = Uc;
+                    }
 
-				if(z>=eta_M && z<eta_M+epsi)
-				{
-				u(i+1*aa,j+1*bb,k) = Uc*H*fac1;
-				u(i+2*aa,j+2*bb,k) = Uc*H*fac1;
-				u(i+3*aa,j+3*bb,k) = Uc*H*fac1;
-				}
+                    if(z>=eta_M && z<eta_M+epsi)
+                    {
+                    u(i+1*aa,j+1*bb,k) = Uc*H*fac1;
+                    u(i+2*aa,j+2*bb,k) = Uc*H*fac1;
+                    u(i+3*aa,j+3*bb,k) = Uc*H*fac1;
+                    }
 
-				if(z>=eta_M+epsi)
-				{
-				u(i+1*aa,j+1*bb,k) = 0.0;
-				u(i+2*aa,j+2*bb,k) = 0.0;
-				u(i+3*aa,j+3*bb,k) = 0.0;
-				}
+                    if(z>=eta_M+epsi)
+                    {
+                    u(i+1*aa,j+1*bb,k) = 0.0;
+                    u(i+2*aa,j+2*bb,k) = 0.0;
+                    u(i+3*aa,j+3*bb,k) = 0.0;
+                    }
                  }
+                 
                 
                  if(p->W10>1.0e-10)
                  {
-                 if(z<=eta_M)
-				{
-				u(i+1*aa,j+1*bb,k) = u(i,j,k) + Uc;
-				u(i+2*aa,j+2*bb,k) = u(i,j,k) + Uc;
-				u(i+3*aa,j+3*bb,k) = u(i,j,k) + Uc;
-				}
+                     if(z<=eta_M)
+                    {
+                    u(i+1*aa,j+1*bb,k) = u(i,j,k) + Uc;
+                    u(i+2*aa,j+2*bb,k) = u(i,j,k) + Uc;
+                    u(i+3*aa,j+3*bb,k) = u(i,j,k) + Uc;
+                    }
 
-				if(z>=eta_M && z<eta_M+epsi)
-				{
-				u(i+1*aa,j+1*bb,k) = u(i,j,k) + Uc*H*fac1;
-				u(i+2*aa,j+2*bb,k) = u(i,j,k) + Uc*H*fac1;
-				u(i+3*aa,j+3*bb,k) = u(i,j,k) + Uc*H*fac1;
-				}
+                    if(z>=eta_M && z<eta_M+epsi)
+                    {
+                    u(i+1*aa,j+1*bb,k) = u(i,j,k) + Uc*H*fac1;
+                    u(i+2*aa,j+2*bb,k) = u(i,j,k) + Uc*H*fac1;
+                    u(i+3*aa,j+3*bb,k) = u(i,j,k) + Uc*H*fac1;
+                    }
 
-				if(z>=eta_M+epsi)
-				{
-				u(i+1*aa,j+1*bb,k) = u(i,j,k);
-				u(i+2*aa,j+2*bb,k) = u(i,j,k);
-				u(i+3*aa,j+3*bb,k) = u(i,j,k);
-				}
+                    if(z>=eta_M+epsi)
+                    {
+                    u(i+1*aa,j+1*bb,k) = u(i,j,k);
+                    u(i+2*aa,j+2*bb,k) = u(i,j,k);
+                    u(i+3*aa,j+3*bb,k) = u(i,j,k);
+                    }
                  }
 			}
             
             if(wsf<-1.0e19 && fabs(p->W10)<1.0e-10)
-			KLOOP
+            KLOOP
             PCHECK 
-			{
+            {
             u(i+1*aa,j+1*bb,k) = 0.0;
             u(i+2*aa,j+2*bb,k) = 0.0;
             u(i+3*aa,j+3*bb,k) = 0.0;
             }
             
             if(wsf<-1.0e19 && p->W10>1.0e-10)
-			KLOOP
+            KLOOP
             PCHECK 
-			{
+            {
             u(i+1*aa,j+1*bb,k) = u(i,j,k);
             u(i+2*aa,j+2*bb,k) = u(i,j,k);
             u(i+3*aa,j+3*bb,k) = u(i,j,k);
@@ -358,36 +359,23 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         x=MIN(x,1.0);
         
         H = -2.0*x*x*x + 3.0*x*x;
-        
-        //cout<<p->mpirank<<" eta_R: "<<eta_R<<" x: "<<x<<" r: "<<r<<endl;
-		
+        	
             if(wsf>-1.0e19)
 			KLOOP 
-            PCHECK
+             PCHECK
 			{
 			pval = (wsf - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
             
-
-    
-			a->press(i+1*aa,j+1*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
+             a->press(i+1*aa,j+1*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
 			a->press(i+2*aa,j+2*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
 			a->press(i+3*aa,j+3*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
             
-             /*a->press(i+1*aa,j+1*bb,k)=a->press(i,j,k);
-			a->press(i+2*aa,j+2*bb,k)=a->press(i,j,k);
-			a->press(i+3*aa,j+3*bb,k)=a->press(i,j,k);*/
+            //cout<<"PVAL: "<<pval<<" WSF: "<<wsf<<" PHI: "<<a->phi(i+1,j,k)<<" PRESS: "<<a->press(i+1,j,k)<<endl;
             
-
-            /*pval=(wsf - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-            
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;*/
-
-
 			w(i+1*aa,j+1*bb,k)=0.0;
 			w(i+2*aa,j+2*bb,k)=0.0;
 			w(i+3*aa,j+3*bb,k)=0.0;
 			}	
+            
 		}
 }
