@@ -258,7 +258,6 @@ void wave_lib_cnoidal_5th::parameters(lexer *p, ghostcell *pgc)
     wT = wL/wC;
 
     
-    
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: 5th-order cnoidal waves"<<endl;
