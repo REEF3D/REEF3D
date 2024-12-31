@@ -313,7 +313,7 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
             d->rhsvec.V[n] -= d->M.b[n]*EPS[IJKm1];
             d->M.b[n] = 0.0;
