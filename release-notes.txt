@@ -1,4 +1,34 @@
 
+24.12
+x updated roughness boundary condition (NHFLOW)
+x updated FNPF wetdry algorithm
+x added Morison force calculation using ALE (NHFLOW)
+x added free surface based controlled outflow boundary condition (CFD)
+x added direct forcing 6DOF (SFLOW)
+x added piston wave maker with 6DOF
+x fixed 6DOF parameter print out
+x fixed net for 6DOF void (CFD)
+x added solid direct forcing immersed boundary to NHFLOW
+x added 6DOF floating body algorithm to NHFLOW
+x added mooring algorithms to NHFLOW
+x updated k-omega turbulence model (NHFLOW)
+x fixed Dirichlet wavegen (NHFLOW)
+x fixed an ioflow outflow problem (CFD)
+x updated potential flow ini (CFD)
+x updated 5th-order cnoidal dispersion
+x updated active wave absorbtion (CFD and NHFLOW)
+x fixed a problem with solid and topo direct forcing (CFD)
+x added new solver for ini potential flow solver (CFD)
+x fixed a problem for ini potential flow solver on fine grids (CFD)
+x updated iowave for wave and current conditions (CFD)
+x updated direction forcing (CFD)
+x added NHFLOW to CFD HDC 
+x fixed NHFLOW flux BC
+x fixed strip and beam print out sync with flow solver (CFD)
+x removed ghostcell immersed boundary method (CFD)
+x updated Morison force calculation using ALE (FNPF)
+x updated tutorial cases
+
 24.08
 x added RANS turbulence FSI forcing (CFD)
 x fixed flux wall boundary conditions (NHFLOW)
