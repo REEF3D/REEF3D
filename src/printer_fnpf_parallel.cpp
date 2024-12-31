@@ -20,39 +20,44 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vtu3D.h"
-#include<string>
+#include"printer_fnpf.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void vtu3D::name_iter(fdm* a,lexer* p,ghostcell* pgc)
-{
-    int num=0;
+void printer_fnpf::parallel(lexer *p, ghostcell* pgc)
+{	
+	int num=0;
+    
 
     if(p->P15==1)
-    num = p->printcount;
+    num = printcount;
 
     if(p->P15==2)
     num = p->count;
-
-    sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-%08i-%06i.vtu",num,p->mpirank+1);
-
-
-    sprintf(epsvar,"epsilon");
-
-	if(p->T10==2||p->T10==12 || p->T10==22)
-	sprintf(epsvar,"omega");
+	
+	outputFormat->parallelFileName(name, "FNPF", num);
 
 
-}
+	ofstream result;
+	result.open(name);
 
-void vtu3D::name_time(fdm* a,lexer* p,ghostcell* pgc)
-{
+	outputFormat->beginningParallel(p,result);
+	
+	result<<"<PPointData>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+    if(p->P23==1)
+	result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+    if(p->P110==1)
+	result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
+    if(p->P25==1)
+        result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
+	result<<"</PPointData>"<<endl;
+	
+    outputFormat->endingParallel(result,"FNPF",p->M10,num);
 
-}
-
-void vtu3D::header(fdm* a,lexer* p,ghostcell* pgc)
-{
+	result.close();
 
 }

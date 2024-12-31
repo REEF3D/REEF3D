@@ -20,8 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRINTER_FNPF_H_
+#define PRINTER_FNPF_H_
+
 #include"fnpf_printer.h"
 #include"increment.h"
+
+#include"vtks.h"
 
 class fdm_fnpf;
 class fnpf_force_ale;
@@ -41,28 +46,24 @@ class fnpf_vel_probe_theory;
 class fnpf_runup;
 class fnpf_print_kinematics;
 
-#ifndef FNPF_VTU3D_H_
-#define FNPF_VTU3D_H_
-
 using namespace std;
 
-class fnpf_vtu3D : public fnpf_printer, public increment
+class printer_fnpf : public fnpf_printer, public increment
 {
 
 public:
-	fnpf_vtu3D(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_vtu3D();
+	printer_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+	virtual ~printer_fnpf();
 	virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
     virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*);
     virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
     
 private:
-    void pvtu(lexer*,ghostcell*);
-    void name_iter(lexer*,ghostcell*);
-    void name_time(lexer*,ghostcell*);
-    void piecename(lexer*,ghostcell*, int);
+    void parallel(lexer*,ghostcell*);
 
-    char name[200],pname[200],epsvar[200];
+    vtk3D *outputFormat;
+
+    char name[200];
     int n,iin,offset[200];
     float ffn;
     int gcval_phi,gcval_phiext;
