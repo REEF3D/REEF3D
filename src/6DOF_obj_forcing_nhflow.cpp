@@ -75,7 +75,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
         }
     }
-    
+    /*
     k=p->knoz-1;
      
     SLICELOOP4
@@ -122,7 +122,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     if(efc>0.1 && d->FB[IJK]<0.0)
     fe(i,j) += (ef - WL(i,j))/(alpha[iter]*p->dt);
-    }
+    }*/
 
     pgc->start5V(p,d->FHB,50);
 }

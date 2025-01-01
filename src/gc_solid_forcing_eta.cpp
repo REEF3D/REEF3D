@@ -26,47 +26,35 @@ Authors: Hans Bihs
 
 void ghostcell::solid_forcing_eta(lexer *p, slice &f)
 {
-    /*if(p->X48==1)
-    GCDF4LOOP
+    if(p->X48==1)
+    GCSLDF4LOOP
     {
-    i=p->gcdf4[n][0];
-    j=p->gcdf4[n][1];
-    k=p->gcdf4[n][2];
+    i=p->gcsldf4[n][0];
+    j=p->gcsldf4[n][1];
 
-        if(p->gcdf4[n][3]==1)
+        if(p->gcsldf4[n][3]==1)
         {
-        f(i-1,j,k)=f(i,j,k);
-        f(i-2,j,k)=f(i,j,k);
+        f(i-1,j)=f(i,j);
+        f(i-2,j)=f(i,j);
         }
 
-        if(p->gcdf4[n][3]==4)
+        if(p->gcsldf4[n][3]==4)
         {
-        f(i+1,j,k)=f(i,j,k);
-        f(i+2,j,k)=f(i,j,k);
+        f(i+1,j)=f(i,j);
+        f(i+2,j)=f(i,j);
         }
 
-        if(p->gcdf4[n][3]==3)
+        if(p->gcsldf4[n][3]==3)
         {
-        f(i,j-1,k)=f(i,j,k);
-        f(i,j-2,k)=f(i,j,k);
+        f(i,j-1)=f(i,j);
+        f(i,j-2)=f(i,j);
         }
 
-        if(p->gcdf4[n][3]==2)
+        if(p->gcsldf4[n][3]==2)
         {
-        f(i,j+1,k)=f(i,j,k);
-        f(i,j+2,k)=f(i,j,k);
+        f(i,j+1)=f(i,j);
+        f(i,j+2)=f(i,j);
         }
 
-        if(p->gcdf4[n][3]==5)
-        {
-        f(i,j,k-1)=f(i,j,k);
-        f(i,j,k-2)=f(i,j,k);
-        }
-
-        if(p->gcdf4[n][3]==6)
-        {
-        f(i,j,k+1)=f(i,j,k);
-        f(i,j,k+2)=f(i,j,k);
-        }
-	}*/
+	}
 }

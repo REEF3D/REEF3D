@@ -915,7 +915,7 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
         f[FIm1JK] = f[FIJK];
 
         if(p->flag7[FIp1JK]<0)
-        f[FIp1JK] = 0.0;f[FIJK];
+        f[FIp1JK] = f[FIJK];
         
         if(p->flag7[FIJm1K]<0)
         f[FIJm1K] = f[FIJK];

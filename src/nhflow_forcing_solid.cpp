@@ -76,7 +76,7 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     pgc->start5V(p,d->FHB,50);
     
-    
+    /*
     k=p->knoz-1;
      
     SLICELOOP4
@@ -125,5 +125,5 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     if(efc>0.1 && d->SOLID[IJK]<0.0)
     fe(i,j) += H*(ef - WL(i,j))/(alpha*p->dt);
     
-    }
+    }*/
 }

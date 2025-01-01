@@ -159,3 +159,7 @@ Author: Hans Bihs
 #define QQGCSLB4ACHECK if(p->gcbsl4a[qq][3]>0)
 #define QQGCSL4ALOOP QQGCSLB4A QQGCSLB4ACHECK
 
+#define GCSLDF4 for(n=0;n<p->gcsldf4_count;++n)
+#define GCSLDF4CHECK if(p->gcsldf4[n][3]>0)
+#define GCSLDF4LOOP GCSLDF4 GCSLDF4CHECK
+

@@ -166,6 +166,7 @@ public:
 
 // 6DOF update gcdf
 	void gcdf_update(lexer*,fdm*);
+    void gcsldf_update(lexer*);
     
 
 // IBM
