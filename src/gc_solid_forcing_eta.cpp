@@ -26,7 +26,8 @@ Authors: Hans Bihs
 
 void ghostcell::solid_forcing_eta(lexer *p, slice &f)
 {
-    if(p->X48==1)
+    
+    //if(p->X48==1)
     GCSLDF4LOOP
     {
     i=p->gcsldf4[n][0];
