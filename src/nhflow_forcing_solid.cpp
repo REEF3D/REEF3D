@@ -64,14 +64,14 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
             efc+=1.0;
         }
         
-        if(efc>0.1)
-        {
+        //if(efc>0.1)
+        //{
         FX[IJK] += H*(uf - U[IJK])/(alpha*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha*p->dt);
         
         d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
-        }
+        //}
     }
     
     pgc->start5V(p,d->FHB,50);

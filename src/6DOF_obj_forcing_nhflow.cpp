@@ -66,14 +66,14 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
         wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
          
-        if(efc>0.1)
-        {
+        //if(efc>0.1)
+        //{
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
         FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
-        }
+        //}
     }
     /*
     k=p->knoz-1;
