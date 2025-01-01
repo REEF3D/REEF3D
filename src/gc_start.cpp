@@ -181,7 +181,6 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
 	p->xtime+=endtime-starttime;
     }
     
-    
     if(p->F10==1)
     nse4(p,a,f,gcv);
 	

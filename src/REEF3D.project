@@ -2381,6 +2381,7 @@
         <File Name="gcx_partnum.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Forcing">
+        <File Name="gc_solid_forcing_eta.cpp"/>
         <File Name="gc_solid_forcing_lsm.cpp"/>
         <File Name="gcdf_update.cpp"/>
         <File Name="gc_solid_forcing_interface.cpp"/>
