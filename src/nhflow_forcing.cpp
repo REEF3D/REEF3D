@@ -127,11 +127,11 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
         p->fbmax = MAX(fabs(alpha*CPORNH*d FZ[IJK]), p->fbmax);*/
     }
     
-    /*SLICELOOP4
+    SLICELOOP4
     WL(i,j) += alpha*p->dt*CPORNH*fe(i,j);
     
     SLICELOOP4
-    d->eta(i,j) = WL(i,j) - d->depth(i,j);*/
+    d->eta(i,j) = WL(i,j) - d->depth(i,j);
     
     // DF
     LOOP
