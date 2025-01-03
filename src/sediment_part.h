@@ -91,7 +91,7 @@ public:
 
 
     virtual void relax(lexer*,ghostcell*){};
-	virtual double bedshear_point(lexer*,fdm*,ghostcell*){};
+	virtual double bedshear_point(lexer*,ghostcell*){};
     
     virtual double qbeval(int,int){};
     virtual void qbeget(int,int,double){};

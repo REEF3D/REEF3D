@@ -20,29 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDSHEAR_MAX_H_
+#define BEDSHEAR_MAX_H_
+
 #include"boundarycheck.h"
 #include"bedshear.h"
 #include<iostream>
 #include<fstream>
 
 class lexer;
-class fdm;
 class ghostcell;
-class field;
 class sediment;
 
 using namespace std;
 
-#ifndef BEDSHEAR_MAX_H_
-#define BEDSHEAR_MAX_H_
-
 class bedshear_max : public boundarycheck
 {
 public:
-    bedshear_max(lexer*,fdm*,ghostcell*);
+    bedshear_max(lexer*,ghostcell*);
 	virtual ~bedshear_max();
 
-	void bedshear_maxval(lexer*, fdm*, ghostcell*, sediment*);
+	void bedshear_maxval(lexer*, ghostcell*, sediment*);
 
 
 private:

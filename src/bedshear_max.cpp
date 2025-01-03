@@ -22,29 +22,40 @@ Author: Hans Bihs
 
 #include"bedshear_max.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include<stdio.h>
 
-bedshear_max::bedshear_max(lexer *p, fdm* a, ghostcell *pgc)
+bedshear_max::bedshear_max(lexer *p, ghostcell *pgc)
 {
 	
 	// Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_SedimentMax",0777);
+    {
+        char folder[40];
+        if(p->A10==5)
+            snprintf(folder,sizeof(folder),"./REEF3D_NHFLOW_Sediment");
+        else
+            snprintf(folder,sizeof(folder),"./REEF3D_CFD_Sediment");
+	    mkdir(folder,0777);
+    }
 	
     if(p->mpirank==0 && p->P126>0)
     {
-    // open file
-	bsgout.open("./REEF3D_CFD_SedimentPoint/REEF3D-CFD-Sediment-Bedshear-Max.dat");
+        // open file
+        char file[100];
+        if(p->A10==5)
+            snprintf(file,sizeof(file),"./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear-Max.dat");
+        else
+            snprintf(file,sizeof(file),"./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear-Max.dat");
+	    bsgout.open(file);
 
+        bsgout<<"time";
+        bsgout<<"\t  bedshear max";
 
-    bsgout<<"time";
-    bsgout<<"\t  bedshear max";
-
-    bsgout<<endl<<endl;
+        bsgout<<endl<<endl;
     }
 	
 
@@ -55,7 +66,7 @@ bedshear_max::~bedshear_max()
     bsgout.close();
 }
 
-void bedshear_max::bedshear_maxval(lexer *p, fdm *a, ghostcell *pgc, sediment *psed)
+void bedshear_max::bedshear_maxval(lexer *p, ghostcell *pgc, sediment *psed)
 {
     double maxval;
 
@@ -64,7 +75,7 @@ void bedshear_max::bedshear_maxval(lexer *p, fdm *a, ghostcell *pgc, sediment *p
 	
     ILOOP
     JLOOP
-    maxval = MAX(maxval, psed->bedshear_point(p,a,pgc));
+    maxval = MAX(maxval, psed->bedshear_point(p,pgc));
 
 	
     maxval=pgc->globalmax(maxval);
