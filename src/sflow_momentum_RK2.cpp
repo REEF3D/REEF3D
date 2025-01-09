@@ -37,7 +37,8 @@ Author: Hans Bihs
 #include"6DOF.h"
 
 sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, sflow_convection *pconvection, sflow_diffusion *ppdiff, sflow_pressure* ppressure,
-                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf, sixdof *pp6dof)
+                                                    solver2D *psolver, solver2D *ppoissonsolver, ioflow *pioflow, sflow_fsf *pfreesurf,sflow_forcing *ppsfdf,
+                                                    sixdof *pp6dof)
                                                     :Prk1(p),Qrk1(p),wrk1(p),etark1(p)
 {
 	gcval_u=10;
@@ -64,6 +65,7 @@ sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, sflow_convection *pco
 	pflow=pioflow;
 	pfsf=pfreesurf;
     p6dof=pp6dof;
+    psfdf=ppsfdf;
     
     if(p->A218==0)
     prough = new sflow_rough_void(p);
@@ -87,7 +89,6 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {	        
     pflow->discharge2D(p,b,pgc);
     pflow->inflow2D(p,b,pgc,b->P,b->Q,b->bed,b->eta);
-    pflow->inflow2D(p,b,pgc,Prk1,Qrk1,b->bed,b->eta);
     pflow->inflow2D(p,b,pgc,Prk1,Qrk1,b->bed,b->eta);
 	
 //Step 1
@@ -186,7 +187,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     b->eta(i,j) = 0.5*b->eta(i,j) + 0.5*etark1(i,j)
     
                 - 0.5*p->dt*(Prk1(i,j)*b->hx(i,j) - Prk1(i-1,j)*b->hx(i-1,j)
-                       +           Qrk1(i,j)*b->hy(i,j) - Qrk1(i,j-1)*b->hy(i,j-1))/p->DXM;
+                       +     Qrk1(i,j)*b->hy(i,j) - Qrk1(i,j-1)*b->hy(i,j-1))/p->DXM;
                 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,b->eta);

@@ -46,7 +46,6 @@ Author: Hans Bihs
 #include"sflow_eta.h"
 #include"sflow_momentum_RK3.h"
 #include"sflow_momentum_RK2.h"
-#include"sflow_momentum_AB2.h"
 
 
 #include"sflow_turb_void.h"

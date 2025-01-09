@@ -117,7 +117,6 @@
         <VirtualDirectory Name="Momentum">
           <File Name="sflow_momentum_RK3.h"/>
           <File Name="sflow_momentum_RK2.h"/>
-          <File Name="sflow_momentum_AB2.h"/>
           <File Name="sflow_momentum.h"/>
           <VirtualDirectory Name="BC">
             <File Name="sflow_roughness.h"/>
@@ -1257,7 +1256,6 @@
         <VirtualDirectory Name="Momentum">
           <File Name="sflow_momentum_RK3.cpp"/>
           <File Name="sflow_momentum_RK2.cpp"/>
-          <File Name="sflow_momentum_AB2.cpp"/>
           <VirtualDirectory Name="Roughness">
             <File Name="sflow_rough_void.cpp"/>
             <File Name="sflow_rough_manning.cpp"/>
