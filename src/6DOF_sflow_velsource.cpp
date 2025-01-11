@@ -103,12 +103,12 @@ void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     
     b->G(i,j) += dfdy/p->W1;
     }
-    
+    /*
     SLICELOOP4
     {
         b->test(i,j) = 1.0/p->W1*(press(i,j+1) - press(i,j))/p->DYP[JP];
     }
-    pgc->gcsl_start4(p,b->test,50);
+    pgc->gcsl_start4(p,b->test,50);*/
 }
 
 double sixdof_sflow::limiter(double v1, double v2)

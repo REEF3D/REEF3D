@@ -107,6 +107,23 @@ void sflow_eta::start(lexer* p, fdm2D* b, ghostcell* pgc, ioflow* pflow, slice &
     }
 }
 
+void sflow_eta::disc(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slice &Q, slice &ws, slice &etark)
+{
+    double factor=1.0;
+    
+	phxy->start(p,b->hx,b->hy,b->depth,p->wet,etark,P,Q);
+    
+    SLICELOOP1
+    b->hx(i,j) = MAX(b->hx(i,j), 0.0);
+    
+    SLICELOOP2
+    b->hy(i,j) = MAX(b->hy(i,j), 0.0);
+    
+
+	pgc->gcsl_start1(p,b->hx,gcval_eta);    
+	pgc->gcsl_start2(p,b->hy,gcval_eta);    
+}
+
 void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slice &Q, slice &ws, slice &etark)
 {
     double factor=1.0;
@@ -152,7 +169,7 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     
 	pgc->gcsl_start4(p,b->hp,gcval_eta);
 	
-	phxy->start(p,b->hx,b->hy,b->depth,p->wet,etark,P,Q);
+	//phxy->start(p,b->hx,b->hy,b->depth,p->wet,etark,P,Q);
     
     
     SLICELOOP1

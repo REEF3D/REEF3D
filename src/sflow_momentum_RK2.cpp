@@ -95,6 +95,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 //--------------------------------------------------------	
     // fsf
     pfsf->wetdry(p,b,pgc,b->P,b->Q,b->ws);
+    pfsf->disc(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
     SLICELOOP4
     etark1(i,j) =      b->eta(i,j) 
@@ -182,6 +183,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     //fsf
     pfsf->wetdry(p,b,pgc,Prk1,Qrk1,wrk1);
+    pfsf->disc(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
     
     SLICELOOP4
     b->eta(i,j) = 0.5*b->eta(i,j) + 0.5*etark1(i,j)
@@ -271,6 +273,9 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
     
+    SLICEBASELOOP
+    b->test(i,j) = p->flagslice4[IJ];
+
     pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }
 
@@ -288,7 +293,6 @@ void sflow_momentum_RK2::irhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, doub
 
 void sflow_momentum_RK2::jrhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, double alpha)
 {
-    
 	n=0;
 	if(p->D20<4)
 	SLICELOOP2
@@ -297,6 +301,5 @@ void sflow_momentum_RK2::jrhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, doub
 	b->rhsvec.V[n]=0.0;
 	++n;
 	}
-	
 }
 

@@ -41,6 +41,13 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     uref=0.01;
 
     plain_wallfunc(p,a,pgc);*/
+    
+    
+    LOOP
+    {
+    KIN[IJK] = 0.0001;
+    EPS[IJK] = 1000.0001;
+    }
 }
 
 
