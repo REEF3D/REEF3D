@@ -217,6 +217,15 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         if(i>=istart && i<iend && j>=jstart && j<jend)
         b->eta(i,j) = p->F72_h[qn]-p->wd;
 	}
+    
+    
+    
+    // ini hxy
+    SLICELOOP1
+    b->hx(i,j) = MAX(0.5*(b->eta(i+1,j)+b->eta(i,j)) + p->wd - b->bed(i,j),0.0);
+    
+    SLICELOOP2
+    b->hy(i,j) = MAX(0.5*(b->eta(i,j+1)+b->eta(i,j)) + p->wd - b->bed(i,j),0.0);
 
         // fix inflow fsf
         for(n=0;n<p->gcslin_count;n++)

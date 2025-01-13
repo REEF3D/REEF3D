@@ -99,6 +99,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 //--------------------------------------------------------
     // fsf
     pfsf->wetdry(p,b,pgc,b->P,b->Q,b->ws);
+    pfsf->disc(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 
     SLICELOOP4
     etark1(i,j) =      b->eta(i,j)
@@ -187,7 +188,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     // fsf
     pfsf->wetdry(p,b,pgc,Prk1,Qrk1,wrk1);
-    pflow->waterlevel2D(p,b,pgc,etark1);
+    pfsf->disc(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
 
     SLICELOOP4
     etark2(i,j) = 0.75*b->eta(i,j) + 0.25*etark1(i,j)
@@ -276,7 +277,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     //fsf
     pfsf->wetdry(p,b,pgc,Prk2,Qrk2,wrk2);
-    pflow->waterlevel2D(p,b,pgc,etark2);
+    pfsf->disc(p,b,pgc,Prk2,Qrk2,wrk2,etark2);
 
     SLICELOOP4
     b->eta(i,j) = (1.0/3.0)*b->eta(i,j) + (2.0/3.0)*etark2(i,j)

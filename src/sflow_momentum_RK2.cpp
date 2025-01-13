@@ -272,9 +272,6 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
-    
-    SLICEBASELOOP
-    b->test(i,j) = p->flagslice4[IJ];
 
     pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }

@@ -82,6 +82,10 @@ void sflow_potential_f::start(lexer *p, fdm2D *b, solver2D *psolv, ghostcell *pg
 	p->laplacetime=endtime-starttime;
 	if(p->mpirank==0  && (p->count%p->P12==0))
 	cout<<"lapltime: "<<p->laplacetime<<"  lapiter: "<<p->laplaceiter<<endl<<endl;
+    
+    
+    SLICELOOP4
+    b->test(i,j) = psi(i,j);
 
     p->N46=itermem;
 }
