@@ -96,8 +96,8 @@ void sflow_eta::start(lexer* p, fdm2D* b, ghostcell* pgc, ioflow* pflow, slice &
     SLICELOOP4
      b->eta(i,j)  =      b->eta(i,j) 
     
-                -      p->dt*(b->P(i,j)*b->hx(i,j) - b->P(i-1,j)*b->hx(i-1,j)
-                       +      b->Q(i,j)*b->hy(i,j) - b->Q(i,j-1)*b->hy(i,j-1))/p->DXM;
+                  -      p->dt*(b->P(i,j)*b->hx(i,j) - b->P(i-1,j)*b->hx(i-1,j)
+                  +      b->Q(i,j)*b->hy(i,j) - b->Q(i,j-1)*b->hy(i,j-1))/p->DXM;
                 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
@@ -133,6 +133,14 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
 	SLICELOOP4
 	b->depth(i,j) = p->wd - b->bed(i,j);
     
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+    etark(i,j) = p->F60 - b->depth(i,j);
+    }
+    
     
     SLICELOOP4
     if(etark(i,j)< -p->wd  + b->bed(i,j)-factor*wd_criterion+1.0e-20)
@@ -166,6 +174,8 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
 
 	SLICELOOP4
 	b->hp(i,j) = MAX(etark(i,j) + p->wd - b->bed(i,j),0.0);
+    
+    
     
     
 	pgc->gcsl_start4(p,b->hp,gcval_eta);

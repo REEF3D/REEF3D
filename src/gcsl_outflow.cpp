@@ -47,11 +47,8 @@ void ghostcell::gcsl_outflow(lexer *p, slice& f, int gcv, int bc, int cs)
 void ghostcell::gcsl_outflow_fsf(lexer *p, slice& f, int gcv, int bc, int cs)
 {
 	// hx outflow
-
 	if(cs==4)
 	for(q=0;q<margin;++q)
 	f(i+q+2,j)= f(i+1,j);
-    
-    
 }
 

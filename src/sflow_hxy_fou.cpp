@@ -82,6 +82,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
+        
         /*
         if(p->F50==2 || p->F50==3)
         {
@@ -136,7 +137,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
-    /*
+    
         if(p->F50==1 || p->F50==4)
         if(wet[IJ]==1)
         {
@@ -150,13 +151,14 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
-        }*/
+        }
+        
         /*
         if(p->F50==2 || p->F50==3)
         {
         hy(i-1,j) = p->F60 - p->bed[IJ];
         hy(i,j) = p->F60 - p->bed[IJ];
-        hy(i+1,j) = p->F60 - p->bed[IJ];
+        //hy(i+1,j) = p->F60 - p->bed[IJ];
         }*/
     }
     
@@ -187,6 +189,16 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         hy(i,j) = MAX(eta(i,j),eta(i,j+1)) + MIN(depth(i,j), depth(i,j+1));
         }
         
+    }
+    
+    
+    
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+    eta(i,j) = p->F60 - depth(i,j);
     }
 	
 }
