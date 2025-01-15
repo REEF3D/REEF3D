@@ -74,7 +74,7 @@ void sflow_iweno_hj::wenoloop4(lexer *p, fdm2D *b, slice &f, int ipol, slice &uv
 	{
 		
         pflux->u_flux(ipol,uvel,iadvec,ivel2);
-		pflux->v_flux(ipol,vvel,jadvec,jvel2);
+        pflux->v_flux(ipol,vvel,jadvec,jvel2);
 
 			if(iadvec>=0.0)
 			{

@@ -86,7 +86,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         /*
         if(p->F50==2 || p->F50==3)
         {
-        hx(i-1,j) = p->F60 - p->bed[IJ];
+        //hx(i-1,j) = p->F60 - p->bed[IJ];
         hx(i,j) = p->F60 - p->bed[IJ];
         }*/
     }
@@ -153,7 +153,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
         
-        /*
+       /* 
         if(p->F50==2 || p->F50==3)
         {
         hy(i-1,j) = p->F60 - p->bed[IJ];

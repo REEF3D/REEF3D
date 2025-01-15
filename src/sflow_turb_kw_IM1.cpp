@@ -265,25 +265,25 @@ void sflow_turb_kw_IM1::wall_law_kin(lexer* p, fdm2D *b)
 	{
 		if(p->flagslice4[Im1J]<0)
 		{
-        b->rhsvec.V[n] -= b->M.s[n]*kin(i-1,j);
+        b->rhsvec.V[n] -= b->M.s[n]*kin(i,j);
 		b->M.s[n] = 0.0;
 		}
         
         if(p->flagslice4[Ip1J]<0)
 		{
-        b->rhsvec.V[n] -= b->M.n[n]*kin(i+1,j);
+        b->rhsvec.V[n] -= b->M.n[n]*kin(i,j);
 		b->M.n[n] = 0.0;
 		}
         
         if(p->flagslice4[IJm1]<0)
 		{
-        b->rhsvec.V[n] -= b->M.e[n]*kin(i,j-1);
+        b->rhsvec.V[n] -= b->M.e[n]*kin(i,j);
 		b->M.e[n] = 0.0;
 		}
         
         if(p->flagslice4[IJp1]<0)
 		{
-        b->rhsvec.V[n] -= b->M.w[n]*kin(i,j+1);
+        b->rhsvec.V[n] -= b->M.w[n]*kin(i,j);
 		b->M.w[n] = 0.0;
 		}
 		
@@ -307,25 +307,25 @@ void sflow_turb_kw_IM1::wall_law_omega(lexer* p, fdm2D *b)
 	{
 		if(p->flagslice4[Im1J]<0)
 		{
-        b->rhsvec.V[n] -= b->M.s[n]*eps(i-1,j);
+        b->rhsvec.V[n] -= b->M.s[n]*eps(i,j);
 		b->M.s[n] = 0.0;
 		}
         
         if(p->flagslice4[Ip1J]<0)
 		{
-        b->rhsvec.V[n] -= b->M.n[n]*eps(i+1,j);
+        b->rhsvec.V[n] -= b->M.n[n]*eps(i,j);
 		b->M.n[n] = 0.0;
 		}
         
         if(p->flagslice4[IJm1]<0)
 		{
-        b->rhsvec.V[n] -= b->M.e[n]*eps(i,j-1);
+        b->rhsvec.V[n] -= b->M.e[n]*eps(i,j);
 		b->M.e[n] = 0.0;
 		}
         
         if(p->flagslice4[IJp1]<0)
 		{
-        b->rhsvec.V[n] -= b->M.w[n]*eps(i,j+1);
+        b->rhsvec.V[n] -= b->M.w[n]*eps(i,j);
 		b->M.w[n] = 0.0;
 		}
 		
