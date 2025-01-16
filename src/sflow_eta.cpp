@@ -140,6 +140,7 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
     
+    if(p->wet[IJ]==1)
     etark(i,j) = p->F60 - b->depth(i,j);
     }*/
     
