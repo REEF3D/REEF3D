@@ -113,6 +113,9 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     area=0.0;
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
+        
+        if(p->wet[IJ]==1)
+        {
     
         area = p->DYN[JP]*b->hp(i,j);
         
@@ -121,6 +124,7 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
         
         hval += b->hp(i,j);
         ++hcount;
+        }
     }
     
     Ao=pgc->globalsum(Ao);
