@@ -40,6 +40,8 @@ public:
 
 private:
     double aij(lexer*, fdm2D*, slice&, int, slice&, slice&);
+    
+    double aij_fou(lexer*, fdm2D*, slice&, int, slice&, slice&);
 
 	virtual double fx(lexer*, fdm2D*, slice&, int, double);
 	virtual double fy(lexer*, fdm2D*, slice&, int, double);
@@ -50,6 +52,9 @@ private:
 
 
 	double L,grad;
+    double dx,dy;
+	double ul,ur,vl,vr;
+    
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
 	const double sixten,treten;
 	const double epsilon,smallnum;
