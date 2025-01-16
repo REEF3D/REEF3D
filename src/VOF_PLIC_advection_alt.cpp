@@ -144,7 +144,16 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_simple
         if(a->u(i,j,k)>0.0)
         {
             double dsx, scaledVol, Vol,r0x,recheck;
-            dsx=a->u(i,j,k)*p->dt;
+            
+            if(p->F89<=1)
+                dsx=a->u(i,j,k)*p->dt;
+            else if(p->F89==2)
+            {
+                double dsx_mid, u_mid;
+                dsx_mid=-a->u(i,j,k)*0.5*p->dt;
+                u_mid=(a->u(i,j,k)-a->u(i-1,j,k))/p->DXN[IP]*dsx_mid+a->u(i,j,k);
+                dsx=u_mid*p->dt;
+            }
             r0x=-(nx(i,j,k)*(0.5*p->DXN[IP]-0.5*dsx)-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*fabs(dsx)+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*p->DZN[KP])-fabs(r0x);
             if(recheck>0.0)
@@ -189,7 +198,15 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_simple
         if(a->u(i-1,j,k)<0.0)
         {
             double dsx, scaledVol, Vol, r0x, recheck;
-            dsx=fabs(a->u(i-1,j,k)*p->dt);
+            if(p->F89<=1)
+                dsx=fabs(a->u(i-1,j,k)*p->dt);
+            else if(p->F89==2)
+            {
+                double dsx_mid, u_mid;
+                dsx_mid=fabs(a->u(i-1,j,k)*0.5*p->dt);
+                u_mid=(a->u(i,j,k)-a->u(i-1,j,k))/p->DXN[IP]*dsx_mid+a->u(i-1,j,k);
+                dsx=fabs(u_mid*p->dt);
+            }
             r0x=-(nx(i,j,k)*(-0.5*p->DXN[IP]+0.5*dsx)-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*fabs(dsx)+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*p->DZN[KP])-fabs(r0x);
             if(recheck>0.0)
@@ -236,7 +253,15 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_simple
         if(a->w(i,j,k)>0.0)
         {
             double dsz, scaledVol, Vol, r0z, recheck;
-            dsz=a->w(i,j,k)*p->dt;
+            if(p->F89<=1)
+                dsz=a->w(i,j,k)*p->dt;
+            else if(p->F89==2)
+            {
+                double dsz_mid, w_mid;
+                dsz_mid=-a->w(i,j,k)*0.5*p->dt;
+                w_mid=(a->w(i,j,k)-a->w(i-1,j,k))/p->DZN[KP]*dsz_mid+a->w(i,j,k);
+                dsz=w_mid*p->dt;
+            }
             r0z=-(nz(i,j,k)*(0.5*p->DZN[KP]-0.5*dsz)-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*dsz)-fabs(r0z);
             if(recheck>0.0)
@@ -279,7 +304,15 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_simple
         if(a->w(i,j,k-1)<0.0)
         {
             double dsz, scaledVol, Vol, r0z, recheck;
-            dsz=fabs(a->w(i,j,k-1)*p->dt);
+            if(p->F89<=1)
+                dsz=fabs(a->w(i,j,k-1)*p->dt);
+            else if(p->F89==2)
+            {
+                double dsz_mid, w_mid;
+                dsz_mid=fabs(a->w(i,j,k-1)*0.5*p->dt);
+                w_mid=(a->w(i,j,k)-a->w(i,j,k-1))/p->DZN[KP]*dsz_mid+a->w(i,j,k-1);
+                dsz=fabs(w_mid*p->dt);
+            }
             r0z=-(nz(i,j,k)*(-0.5*p->DZN[KP]+0.5*dsz)-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*dsz)-fabs(r0z);
             if(recheck>0.0)
@@ -335,7 +368,15 @@ void VOF_PLIC::advectWater_forCOSMIC2D_simple
         if(a->u(i,j,k)>0.0)
         {
             double dsx, Vol;
-            dsx=a->u(i,j,k)*p->dt;
+            if(p->F89<=1)
+                dsx=a->u(i,j,k)*p->dt;
+            else if(p->F89==2)
+            {
+                double dsx_mid, u_mid;
+                dsx_mid=-a->u(i,j,k)*0.5*p->dt;
+                u_mid=(a->u(i,j,k)-a->u(i-1,j,k))/p->DXN[IP]*dsx_mid+a->u(i,j,k);
+                dsx=u_mid*p->dt;
+            }
             Vol=dsx*p->DYN[JP]*p->DZN[KP];
             if(Vol!=Vol)
                 cout<<"water u volnan in "<<i<<","<<j<<","<<k<<endl;
@@ -356,7 +397,15 @@ void VOF_PLIC::advectWater_forCOSMIC2D_simple
         if(a->u(i-1,j,k)<0.0)
         {
             double dsx, Vol;
-            dsx=fabs(a->u(i-1,j,k)*p->dt);
+            if(p->F89<=1)
+                dsx=fabs(a->u(i-1,j,k)*p->dt);
+            else if(p->F89==2)
+            {
+                double dsx_mid, u_mid;
+                dsx_mid=fabs(a->u(i-1,j,k)*0.5*p->dt);
+                u_mid=(a->u(i,j,k)-a->u(i-1,j,k))/p->DXN[IP]*dsx_mid+a->u(i-1,j,k);
+                dsx=fabs(u_mid*p->dt);
+            }
             Vol=dsx*p->DYN[JP]*p->DZN[KP];
             if(Vol!=Vol)
                 cout<<"water u volnan in "<<i<<","<<j<<","<<k<<endl;
@@ -379,7 +428,15 @@ void VOF_PLIC::advectWater_forCOSMIC2D_simple
         if(a->w(i,j,k)>0.0)
         {
             double dsz,Vol;
-            dsz=a->w(i,j,k)*p->dt;
+            if(p->F89<=1)
+                dsz=a->w(i,j,k)*p->dt;
+            else if(p->F89==2)
+            {
+                double dsz_mid, w_mid;
+                dsz_mid=-a->w(i,j,k)*0.5*p->dt;
+                w_mid=(a->w(i,j,k)-a->w(i-1,j,k))/p->DZN[KP]*dsz_mid+a->w(i,j,k);
+                dsz=w_mid*p->dt;
+            }
             Vol=p->DXN[IP]*p->DYN[JP]*dsz;
             if(Vol!=Vol)
                 cout<<"water w volnan in "<<i<<","<<j<<","<<k<<endl;
@@ -400,7 +457,15 @@ void VOF_PLIC::advectWater_forCOSMIC2D_simple
         if(a->w(i,j,k-1)<0.0)
         {
             double dsz,Vol;
-            dsz=fabs(a->w(i,j,k-1)*p->dt);
+            if(p->F89<=1)
+                dsz=fabs(a->w(i,j,k-1)*p->dt);
+            else if(p->F89==2)
+            {
+                double dsz_mid, w_mid;
+                dsz_mid=fabs(a->w(i,j,k-1)*0.5*p->dt);
+                w_mid=(a->w(i,j,k)-a->w(i,j,k-1))/p->DZN[KP]*dsz_mid+a->w(i,j,k-1);
+                dsz=fabs(w_mid*p->dt);
+            }
             Vol=p->DXN[IP]*p->DYN[JP]*dsz;
             if(Vol!=Vol)
                 cout<<"water w volnan in "<<i<<","<<j<<","<<k<<endl;

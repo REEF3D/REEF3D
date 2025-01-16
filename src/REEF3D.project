@@ -2266,6 +2266,10 @@
         <File Name="VOF_AB.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
+        <VirtualDirectory Name="FCRK3_functions">
+          <File Name="VOF_PLIC_RK_redistance.cpp"/>
+          <File Name="VOF_PLIC_RKcalcL.cpp"/>
+        </VirtualDirectory>
         <File Name="VOF_PLIC_schemefuncs.cpp"/>
         <File Name="VOF_PLIC_transportVOF.cpp"/>
         <File Name="VOF_PLIC_sprayfilter.cpp"/>

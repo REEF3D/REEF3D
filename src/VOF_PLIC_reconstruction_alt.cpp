@@ -73,6 +73,10 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p, field& voffield)
                 break;
         case 9:
                 calcNormalELVIRA2D(a,p,voffield);
+                break;
+        case 10:
+                calcNormalMYC2D(a,p,voffield);
+                break;
     }
     //normalise normal vector (to be sure)
     

@@ -47,6 +47,8 @@ public:
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
     
     virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
+    void RKcalcL(fdm*,lexer*,ghostcell*);
+    void RK_redistance(fdm*,lexer*,ghostcell*);
 	
 private:	
     void iniphi(fdm*, lexer*,ghostcell*);
@@ -107,9 +109,11 @@ private:
     double IntersectionPointCandidate(fdm*, lexer*, int, int, int, double);
     void stepwise_scheme(fdm*,lexer*,ghostcell*);
     void symmetric_scheme2D(fdm*, lexer*,ghostcell*);
+    void symmetric_scheme2D_FCRK3(fdm*, lexer*,ghostcell*);
     double calcL2vofError2D(fdm*, lexer*, field&, double, double, double, double);
     double calcAlphaFromInput(fdm*, lexer*, double, double, double, double, double, double, double);
     void calcNormalELVIRA2D(fdm*, lexer*, field&);
+    void calcNormalMYC2D(fdm*,lexer*, field&);
    
     field4 V_w_p;
     field4 V_w_m;

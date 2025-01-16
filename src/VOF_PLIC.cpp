@@ -106,6 +106,7 @@ VOF_PLIC::~VOF_PLIC()
 
 void VOF_PLIC::update
 (
+
     lexer *p,
     fdm *a,
     ghostcell *pgc,
@@ -129,7 +130,7 @@ void VOF_PLIC::start
 )
 {
     
-    if(p->count<=10 && p->F89>0)
+    if(p->count<=10 && p->F89==1)
     {
         reini_->start(a,p,a->phi,pgc,pflow);
         reini_->start(a,p,a->phi,pgc,pflow);
@@ -175,7 +176,7 @@ void VOF_PLIC::start
             
      //   sprayfilter(a,p);
             
-        if(vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999)
+        if(vofstep(i,j,k)>0.001 && vofstep(i,j,k)<0.999)
         {   
             reconstructPlane_alt(a,p,vofstep);
         }
@@ -199,7 +200,7 @@ void VOF_PLIC::start
     pgc->start4(p,a->vof,1);
         LOOP
         {
-            if((vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999))
+            if((vofstep(i,j,k)>0.001 && vofstep(i,j,k)<0.999))
             {
                 redistancePhiByPlane_Bonn(a,p);
             }
@@ -212,23 +213,23 @@ void VOF_PLIC::start
             {
                 a->phi(i,j,k)=phiaux(i,j,k);
             }
-            else if(p->F89==0)
+            else if(p->F89==1)
+            {
+                a->phi(i,j,k)=phistep(i,j,k);
+            }
+            else
             {
                 if(a->vof(i,j,k)>=0.5)
                     a->phi(i,j,k)=0.5;
                 else
                     a->phi(i,j,k)=-0.5;
             }
-            else
-            {
-                a->phi(i,j,k)=phistep(i,j,k);
-            }
                
         }
     
         pgc->start4(p,a->phi,1);
   
-        if(p->F89>0)
+        if(p->F89==1)
             reini_->start(a,p,a->phi,pgc,pflow);
     
         pgc->start4(p,a->phi,1);

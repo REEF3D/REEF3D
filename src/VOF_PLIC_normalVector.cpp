@@ -948,6 +948,73 @@ void VOF_PLIC::calcNormalWang(fdm* a, lexer* p)
     nz(i,j,k)=-mz_save/nsum;
 }
 
+/*
+void VOF_PLIC::calcNormalELVIRA2D(fdm* a, lexer* p, field& voffield)
+{
+    // Initialize arrays for 6 candidate normals
+    double nx_candidates[6], nz_candidates[6];
+    double min_error = 1e6;
+    double nx_best = 0.0, nz_best = 0.0;
+    double alpha_best = 0.0;
+    // Column sums (3x3 stencil)
+    double zsum_xm = voffield(i-1,j,k-1) + voffield(i-1,j,k) + voffield(i-1,j,k+1); // Left column
+    double zsum_xc = voffield(i,j,k-1) + voffield(i,j,k) + voffield(i,j,k+1);       // Center column
+    double zsum_xp = voffield(i+1,j,k-1) + voffield(i+1,j,k) + voffield(i+1,j,k+1); // Right column
+    // Row sums
+    double xsum_zm = voffield(i-1,j,k-1) + voffield(i,j,k-1) + voffield(i+1,j,k-1); // Bottom row
+    double xsum_zc = voffield(i-1,j,k) + voffield(i,j,k) + voffield(i+1,j,k);       // Middle row
+    double xsum_zp = voffield(i-1,j,k+1) + voffield(i,j,k+1) + voffield(i+1,j,k+1); // Top row
+    // Compute candidate normals using central differences
+    // x-direction candidates
+    nx_candidates[0] = 1.0;
+    nz_candidates[0] = (zsum_xp - zsum_xm)/(2.0*p->DXP[IP]); // Scale by dx for x-sweep
+    nx_candidates[1] = -1.0;
+    nz_candidates[1] = -(zsum_xp - zsum_xm)/(2.0*p->DXP[IP]);
+    // z-direction candidates (vertical interface)
+    nx_candidates[2] = (xsum_zp - xsum_zm)/(2.0*p->DZP[KP]); // Scale by dz for z-sweep
+    nz_candidates[2] = 1.0;
+    nx_candidates[3] = -(xsum_zp - xsum_zm)/(2.0*p->DZP[KP]);
+    nz_candidates[3] = -1.0;
+    // Mixed candidates (diagonal interfaces)
+    nx_candidates[4] = 1.0;
+    nz_candidates[4] = (voffield(i+1,j,k+1) - voffield(i-1,j,k+1)
+                    - voffield(i+1,j,k-1) + voffield(i-1,j,k-1))
+                    /(4.0*p->DXP[IP]); // Cross-derivative dx*dz
+    nx_candidates[5] = -1.0;
+    nz_candidates[5] = -(voffield(i+1,j,k+1) - voffield(i-1,j,k+1)
+                        - voffield(i+1,j,k-1) + voffield(i-1,j,k-1))
+                        /(4.0*p->DXP[IP]);
+    // Test each candidate normal
+    for(int m=0; m<6; ++m)
+    {
+        // Normalize candidate normal
+        double mag = sqrt(nx_candidates[m]*nx_candidates[m] + nz_candidates[m]*nz_candidates[m]);
+        nx_candidates[m] /= mag;
+        nz_candidates[m] /= mag;
+        // Calculate optimal alpha for this normal
+        double alpha = calcAlphaFromInput(a, p,
+                                        nx_candidates[m], 0.0, nz_candidates[m],
+                                        p->DXP[IP], p->DYP[JP], p->DZP[KP],
+                                        voffield(i,j,k));
+        // Calculate reconstruction error with proper alpha
+        double error = calcL2vofError2D(a, p, voffield,
+                                      nx_candidates[m], 0.0, nz_candidates[m], alpha);
+        // Store best normal and its alpha
+        if(error < min_error)
+        {
+            min_error = error;
+            nx_best = nx_candidates[m];
+            nz_best = nz_candidates[m];
+            alpha_best = alpha;
+        }
+    }
+    // Set interface normal and alpha to best candidate
+    nx(i,j,k) = nx_best;
+    ny(i,j,k) = 0.0;
+    nz(i,j,k) = nz_best;
+    alpha(i,j,k) = alpha_best;
+}
+*/
 void VOF_PLIC::calcNormalELVIRA2D(fdm* a, lexer* p, field& voffield)
 {
     double n_y=0.0;
@@ -957,13 +1024,13 @@ void VOF_PLIC::calcNormalELVIRA2D(fdm* a, lexer* p, field& voffield)
     double zsum_xm,zsum_xc,zsum_xp;
     double xsum_zm,xsum_zc,xsum_zp;
     
-    zsum_xm=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
-    zsum_xc=voffield(i,j,k-1)+voffield(i,j,k)+voffield(i,j,k+1);
-    zsum_xp=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
+    zsum_xm=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1];
+    zsum_xc=voffield(i,j,k-1)*p->DZN[KM1]+voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1];
+    zsum_xp=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
     
-    xsum_zm=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
-    xsum_zc=voffield(i-1,j,k)+voffield(i,j,k)+voffield(i+1,j,k);
-    xsum_zp=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
+    xsum_zm=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
+    xsum_zc=voffield(i-1,j,k)*p->DXN[IM1]+voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1];
+    xsum_zp=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
     
     //downwind in x
     n_z=1.0;
@@ -1240,4 +1307,151 @@ double VOF_PLIC::calcL2vofError2D(fdm* a, lexer* p, field& voffield, double n_x,
     ret=sqrt(ret);
     
     return ret;
+}
+
+void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
+{
+    //First two Candidates by Centred Columns Scheme
+    
+    double zsum_xm, zsum_xp, xsum_zm, xsum_zp;
+    double vofsumup,vofsumdown,sign;
+    double nx_Cz, nz_Cz, nx_Cx, nz_Cx, nx_CC, nz_CC;
+    double ny_all=0.0;
+    double nsum;
+    
+    //Candidate CC1 height function is z dimension
+    zsum_xm=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1];
+    zsum_xp=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
+    vofsumup=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+    
+    nz_Cz=1.0*sign;
+    nx_Cz=-(zsum_xp-zsum_xm)/(p->DXP[IM1]+p->DXP[IP]);
+    nsum=sqrt(nx_Cz*nx_Cz+nz_Cz*nz_Cz);
+    nz_Cz=nz_Cz/nsum;
+    nx_Cz=nx_Cz/nsum;
+    
+    //Candidate CC2 height function is x dimension
+    xsum_zm=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
+    xsum_zp=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
+    vofsumup=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+        
+    nx_Cx=1.0*sign;
+    nz_Cx=-(xsum_zp-xsum_zm)/(p->DZP[KM1]+p->DZP[KP]);
+    nsum=sqrt(nx_Cx*nx_Cx+nz_Cx*nz_Cx);
+    nx_Cx=nx_Cx/nsum;
+    nz_Cx=nz_Cx/nsum;
+    
+    //Third Candidate by Youngs as average of all 4 cell corners 1=i+1,k+1 2=i+1,k-1, 3=i-1,k-1, 4=i-1,k+1
+    
+    double nx1,nz1,nx2,nz2,nx3,nz3,nx4,nz4;
+    double nx_CY, nz_CY;
+    
+    nx1=-((voffield(i+1,j,k)+voffield(i+1,j,k+1))/2.0
+            -(voffield(i,j,k)+voffield(i,j,k+1))/2.0)
+            /p->DXP[IP];
+            
+    nz1=-((voffield(i,j,k+1)+voffield(i+1,j,k+1))/2.0
+            -(voffield(i,j,k)+voffield(i+1,j,k))/2.0)
+            /p->DZP[IP];
+            
+    nx2=-((voffield(i+1,j,k)+voffield(i+1,j,k-1))/2.0
+            -(voffield(i,j,k)+voffield(i,j,k-1))/2.0)
+            /p->DXP[IP];
+            
+    nz2=-((voffield(i,j,k)+voffield(i+1,j,k))/2.0
+            -(voffield(i,j,k-1)+voffield(i+1,j,k-1))/2.0)
+            /p->DZP[KM1];
+            
+    nx3=-((voffield(i,j,k)+voffield(i,j,k-1))/2.0
+            -(voffield(i-1,j,k)+voffield(i-1,j,k-1))/2.0)
+            /p->DXP[IM1];
+            
+    nz3=-((voffield(i,j,k)+voffield(i-1,j,k))/2.0
+            -(voffield(i,j,k-1)+voffield(i-1,j,k-1))/2.0)
+            /p->DZP[KM1];
+            
+    nx4=-((voffield(i,j,k)+voffield(i,j,k+1))/2.0
+            -(voffield(i-1,j,k)+voffield(i-1,j,k+1))/2.0)
+            /p->DXP[IM1];
+            
+    nz4=-((voffield(i,j,k+1)+voffield(i-1,j,k+1))/2.0
+            -(voffield(i,j,k)+voffield(i-1,j,k))/2.0)
+            /p->DZP[KP];
+
+    nx_CY=(nx1+nx2+nx3+nx4)/4.0;
+    nz_CY=(nz1+nz2+nz3+nz4)/4.0;
+    nsum=sqrt(nx_CY*nx_CY+nz_CY*nz_CY);
+    nx_CY=nx_CY/nsum;
+    nz_CY=nz_CY/nsum;
+    
+    //zcomp
+    vofsumup=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
+    
+    if(vofsumup>vofsumdown)
+        nz_CY=-fabs(nz_CY);
+    else
+        nz_CY=fabs(nz_CY);
+    
+    //xcomp
+    vofsumup=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
+    
+    if(vofsumup>vofsumdown)
+        nx_CY=-fabs(nx_CY);
+    else
+        nx_CY=fabs(nx_CY);
+        
+// figure out which CC Candidate is used and inside compare tou Young
+    if(fabs(nz_Cz)>=fabs(nx_Cx))
+    {
+        nx_CC=nx_Cz;
+        nz_CC=nz_Cz;
+        
+        if(fabs(nz_CC)<fabs(nz_CY))
+        {
+            nx(i,j,k)=nx_CC;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CC;
+        }
+        else
+        {
+            nx(i,j,k)=nx_CY;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CY;
+        }
+    }
+    else
+    {
+        nx_CC=nx_Cx;
+        nz_CC=nz_Cx;
+        
+        if(fabs(nx_CC)<fabs(nx_CY))
+        {
+            nx(i,j,k)=nx_CC;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CC;
+        }
+        else
+        {
+            nx(i,j,k)=nx_CY;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CY;
+        }
+    }
+    
+
+    
 }

@@ -36,8 +36,12 @@ benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
     radius = 0.15;
 
     LOOP
-    a->phi(i,j,k)=1.0;
-/*
+    {
+        a->phi(i,j,k)=-0.5;
+        a->vof(i,j,k)=0.0;
+    }
+    
+/*  
 	LOOP
 	{
     r = sqrt( pow(p->pos_x()-xc,2.0) + pow(p->pos_y()-yc,2.0));
@@ -60,6 +64,7 @@ benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
 	a->phi(i,j,k)=sign*dist;	
 	}
 	
+    /*
 	if(p->F151==1)
 	LOOP
     a->phi(i,j,k)*=-1.0;
@@ -77,7 +82,7 @@ benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
 
 		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
-	}
+	} */
 
 
     LOOP
@@ -103,14 +108,14 @@ benchmark_vortex::~benchmark_vortex()
 
 void benchmark_vortex::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec )
 {
-    double xc,yc;
+    /*double xc,yc;
 
     ULOOP
     {
     xc = p->pos_x() + 0.5*p->DXM;
     yc = p->pos_y();
-
-    a->u(i,j,k) = -pow(sin(PI*xc),2.0) * sin(2.0*PI*yc) * cos((PI*p->simtime)/8.0);
+     
+        a->u(i,j,k) = -pow(sin(PI*xc),2.0) * sin(2.0*PI*yc) * cos((PI*p->simtime)/8.0);
     }
 
     VLOOP
@@ -118,12 +123,12 @@ void benchmark_vortex::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconv
     xc = p->pos_x();
     yc = p->pos_y() + 0.5*p->DXM;
 
-    a->v(i,j,k) = pow(sin(PI*yc),2.0) * sin(2.0*PI*xc) * cos((PI*p->simtime)/8.0);
+        a->v(i,j,k) = pow(sin(PI*yc),2.0) * sin(2.0*PI*xc) * cos((PI*p->simtime)/8.0);
     }
 
     pgc->start1(p,a->u,10);
     pgc->start2(p,a->v,11);
-    
+    */
     
     
 
@@ -135,11 +140,17 @@ void benchmark_vortex::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconv
             a->v(i,j,k) = 0.0;
             a->w(i,j,k) = 2.0*cos(PI*p->pos_x())*pow(sin(PI*p->pos_z()),2)*sin(PI*p->pos_x());
         }
-        else
+        else if(p->simtime < 6.0)
         {
             a->u(i,j,k) = 2.0*cos(PI*p->pos_z())*pow(sin(PI*p->pos_x()),2)*sin(PI*p->pos_z());
             a->v(i,j,k) = 0.0;
             a->w(i,j,k) = -2.0*cos(PI*p->pos_x())*pow(sin(PI*p->pos_z()),2)*sin(PI*p->pos_x());
+        }
+        else
+        {
+            a->u(i,j,k) = 0.0;
+            a->v(i,j,k) = 0.0;
+            a->w(i,j,k) = 0.0;
         }
     }
 
