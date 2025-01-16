@@ -153,19 +153,19 @@ void sflow_turb_ke_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
     
     if(p->flagslice4[IJp1]<0)
-    dudy = (0.0 - 0.5*(b->P(i,j)+b->P(i-1,j)))/(p->DXM);
+    dudy = (0.0 - (b->P(i,j)+b->P(i-1,j)))/(p->DXM);
     
     if(p->flagslice4[IJm1]<0)
-    dudy = (0.5*(b->P(i,j)+b->P(i-1,j)) - 0.0)/(p->DXM);
+    dudy = ((b->P(i,j)+b->P(i-1,j)) - 0.0)/(p->DXM);
     
     
     dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
     
     if(p->flagslice4[Ip1J]<0)
-    dvdx = (0.0 - 0.5*(b->Q(i,j)+b->Q(i,j-1)))/(p->DXM);
+    dvdx = (0.0 - (b->Q(i,j)+b->Q(i,j-1)))/(p->DXM);
     
     if(p->flagslice4[Im1J]<0)
-    dvdx = (0.5*(b->Q(i,j)+b->Q(i,j-1)) - 0.0)/(p->DXM);
+    dvdx = ((b->Q(i,j)+b->Q(i,j-1)) - 0.0)/(p->DXM);
     
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));

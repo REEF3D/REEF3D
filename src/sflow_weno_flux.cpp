@@ -60,10 +60,10 @@ void sflow_weno_flux::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel,
     if(ipol==2)
     SLICELOOP2
     {
-    //if(p->flagslice2[IJm1]>0 && p->flagslice2[IJp1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Ip1J]>0)
-    //b->G(i,j)+=aij(p,b,f,2,uvel,vvel);
+    if(p->flagslice2[IJm1]>0 && p->flagslice2[IJp1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Ip1J]>0)
+    b->G(i,j)+=aij(p,b,f,2,uvel,vvel);
     
-    //if(p->flagslice2[IJm1]<0 || p->flagslice2[IJp1]<0 || p->flagslice2[Im1J]<0 || p->flagslice2[Ip1J]<0)
+    if(p->flagslice2[IJm1]<0 || p->flagslice2[IJp1]<0 || p->flagslice2[Im1J]<0 || p->flagslice2[Ip1J]<0)
     b->G(i,j)+=aij_fou(p,b,f,2,uvel,vvel);
     }
     
@@ -79,7 +79,7 @@ void sflow_weno_flux::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel,
 
 double sflow_weno_flux::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
 {
-		pflux->u_flux(ipol,uvel,ivel1,ivel2);
+        pflux->u_flux(ipol,uvel,ivel1,ivel2);
         pflux->v_flux(ipol,vvel,jvel1,jvel2);
 
 		i-=1;

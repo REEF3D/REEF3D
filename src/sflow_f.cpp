@@ -243,10 +243,8 @@ void sflow_f::log_ini(lexer *p)
     mainlogout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat");
 
     mainlogout<<"number of cells:  "<<p->cellnumtot2D<<endl;
-    mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime "<<endl;
-    }
-
-    
+    mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Inflow \t #Outflow "<<endl;
+    }    
 }
 
 void sflow_f::mainlog(lexer *p)
@@ -256,6 +254,7 @@ void sflow_f::mainlog(lexer *p)
      mainlogout<<fixed<<p->count<<" \t "<<setprecision(5)<<p->dt<<" \t "<<setprecision(5)<<p->simtime<<" \t ";
 	 mainlogout<<fixed<<setprecision(4)<<p->itertime<<" \t ";
 	 mainlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
+      mainlogout<<fixed<<setprecision(6)<<p->Qi<<" \t "<<setprecision(6)<<p->Qo<<" \t ";
 	 mainlogout<<endl;
 	 }
 }

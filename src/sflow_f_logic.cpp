@@ -35,22 +35,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N48==1)
 	ptime = new sflow_etimestep(p,b);
 	
-	// convection
-    if(p->A211==0)
-    pconvec = new sflow_voidconv(p);
-        
-    if(p->A211==1)
-    pconvec = new sflow_fou(p);
-        
-    if(p->A211==4)
-    pconvec = new sflow_weno_flux(p);
-        
-    if(p->A211==5)
-    pconvec = new sflow_weno_hj(p);
-    
-    if(p->A211==9)
-    pconvec = new sflow_weno_blend(p);
-    
     // convection
     if(p->A211==0)
     pconvec = new sflow_voidconv(p);
@@ -66,7 +50,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
         
     if(p->A211==9)
     pconvec = new sflow_weno_blend(p);
-         
          
     // filter
     pfilter = new sflow_filter(p);
