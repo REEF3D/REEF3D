@@ -19,8 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-
-#include"sediment_f.h"
+#include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_nhf.h"
@@ -29,9 +28,11 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"suspended.h"
 
-double sediment_f::bedshear_point(lexer *p, ghostcell *pgc)
+double sediment_f::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
 {
-	return s->tau_eff(i,j);
+	double tau_eff = s->tau_eff(i,j);
+    
+	return tau_eff;
 }
 
 void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)

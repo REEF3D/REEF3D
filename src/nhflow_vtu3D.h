@@ -45,8 +45,6 @@ class nhflow_print_Hs;
 class nhflow_turbulence;
 class nhflow_force;
 class nhflow_force_ale;
-class bedshear_probe;
-class bedshear_max;
 
 using namespace std;
 
@@ -94,8 +92,6 @@ private:
     nhflow_print_Hs *phs;
     nhflow_force **pforce;
     nhflow_force_ale **pforce_ale;
-    bedshear_probe *pbedshear;
-    bedshear_max* pbedshearmax;
     
 };
 
