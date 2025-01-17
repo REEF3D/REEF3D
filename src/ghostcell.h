@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef GHOSTCELL_H_
 #define GHOSTCELL_H_
 
-#include <mpi.h>
+#include<mpi.h>
 #include"boundarycheck.h"
 
 class fdm;
