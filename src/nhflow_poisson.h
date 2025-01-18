@@ -43,6 +43,7 @@ private:
 
 	int count,n,q;
     double sigxyz2;
+    double pval;
 
 };
 

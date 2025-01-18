@@ -130,6 +130,13 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.n[n] = 0.0;
             }
             
+            if(p->flag7[FIp1JK]<0 && p->B99>=3)
+            {
+            pval = 0.0;
+            d->rhsvec.V[n] -= d->M.n[n]*pval;
+            d->M.n[n] = 0.0;
+            }
+            
             if(p->flag7[FIJm1K]<0 || p->wet[IJm1]==0 || p->deep[IJm1]==0)
             {
             d->rhsvec.V[n] -= d->M.e[n]*P[FIJK]*p->y_dir;
