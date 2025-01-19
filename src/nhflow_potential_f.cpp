@@ -37,7 +37,7 @@ nhflow_potential_f::~nhflow_potential_f()
 }
 
 void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pgc)
-{
+{/*
     int itermem;
     p->Darray(PSI,p->imax*p->jmax*(p->kmax+2));
     
@@ -98,7 +98,7 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
 
     finalize:
     
-    p->del_Darray(PSI,p->imax*p->jmax*(p->kmax+2));
+    p->del_Darray(PSI,p->imax*p->jmax*(p->kmax+2));*/
 }
 
 void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
@@ -232,7 +232,7 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
                         + p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
-            d->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(PSI[FIp1JKp1] - PSI[FIm1JKp1] - PSI[FIp1JKm1] + PSI[FIm1JKm1])
+            d->rhsvec.V[n] =  2.0*p->sigx[FIJK]*(PSI[FIp1JKp1] - PSI[FIm1JKp1] - PSI[FIp1JKm1] + PSI[FIm1JKm1])
                             /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
                             + 2.0*p->sigy[FIJK]*(PSI[FIJp1Kp1] - PSI[FIJm1Kp1] - PSI[FIJp1Km1] + PSI[FIJm1Km1])

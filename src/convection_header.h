@@ -51,7 +51,4 @@ Author: Hans Bihs
 #include"hric_mod.h"
 #include"cicsam.h"
 
-#include"potential_v.h"
-#include"potential_f.h"
-#include"potential_water.h"
 

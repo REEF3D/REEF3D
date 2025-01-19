@@ -71,6 +71,7 @@ class nhflow_turbulence;
 class nhflow_pressure;
 class nhflow_diffusion;
 class nhflow_forcing;
+class nhflow_potential;
 class sflow;
 class fnpf_printer;
 class fnpf_timestep;
@@ -206,6 +207,7 @@ public:
     nhflow_pressure *pnhpress;
     nhflow_turbulence *pnhfturb;
     nhflow_diffusion *pnhfdiff,*pnhfturbdiff; 
+    nhflow_potential *pnhfpot;
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
