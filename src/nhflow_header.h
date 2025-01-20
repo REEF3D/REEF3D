@@ -61,3 +61,6 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_reconstruct_wenograd.h"
 #include"nhflow_reconstruct_weno.h"
+
+#include"nhflow_potential_v.h"
+#include"nhflow_potential_f.h"

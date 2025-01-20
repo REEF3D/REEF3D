@@ -43,3 +43,9 @@ Author: Hans Bihs
 #include"patchBC.h"
 #include"patchBC_2D.h"
 #include"patchBC_void.h"
+
+#include"potential_v.h"
+#include"potential_f.h"
+#include"potential_water.h"
+
+

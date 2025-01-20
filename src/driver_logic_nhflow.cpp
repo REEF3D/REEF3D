@@ -195,6 +195,13 @@ void driver::logic_nhflow()
 	if(p->B180==1||p->B191==1||p->B192==1)
 	pflow = new ioflow_gravity(p,pgc,pBC);
     
+//Potential Flow Solver
+    if(p->I11==0)
+    pnhfpot = new nhflow_potential_v;
+
+    if(p->I11==1)
+    pnhfpot = new nhflow_potential_f(p);
+    
 //6DOF
     if(p->X10==0)
     p6dof = new sixdof_void(p,pgc);
