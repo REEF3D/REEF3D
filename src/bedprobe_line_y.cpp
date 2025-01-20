@@ -68,7 +68,10 @@ bedprobe_line_y::bedprobe_line_y(lexer *p, fdm* a, ghostcell *pgc)
 	
 	// Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_SedimentLine",0777);
+    {
+        mkdir("./REEF3D_CFD_Sediment",0777);
+	    mkdir("./REEF3D_CFD_Sediment/Line",0777);
+    }
 }
 
 bedprobe_line_y::~bedprobe_line_y()
@@ -88,7 +91,7 @@ void bedprobe_line_y::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     if(p->mpirank==0)
     {
 		// open file
-		sprintf(name,"./REEF3D_CFD_SedimentLine/REEF3D-CFD-bedprobe_line_y-%06i.dat",num);
+		sprintf(name,"./REEF3D_CFD_Sediment/Line/REEF3D-CFD-bedprobe_line_y-%06i.dat",num);
 
 
 		

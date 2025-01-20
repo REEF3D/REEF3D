@@ -162,10 +162,10 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 	pbedliney=new bedprobe_line_y(p,a,pgc);
 
 	if(p->P125>0)
-	pbedshear = new bedshear_probe(p,a,pgc);
+	pbedshear = new bedshear_probe(p,pgc);
 
 	if(p->P126>0)
-	pbedshearmax = new bedshear_max(p,a,pgc);
+	pbedshearmax = new bedshear_max(p,pgc);
 
     for(n=0;n<p->P81;++n)
 	pforce[n]=new force(p,a,pgc,n);
@@ -309,10 +309,10 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	pbedliney->start(p,a,pgc,pflow);
 
 	if(p->P125>0)
-	pbedshear->bedshear_gauge(p,a,pgc,psed);
+	pbedshear->bedshear_gauge(p,pgc,psed);
 
 	if(p->P126>0)
-	pbedshearmax->bedshear_maxval(p,a,pgc,psed);
+	pbedshearmax->bedshear_maxval(p,pgc,psed);
 	}
 
 	// Multiphase
