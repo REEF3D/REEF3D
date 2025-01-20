@@ -75,7 +75,7 @@ void driver::driver_ini_nhflow()
 
     pnhfstep->ini(p,d,pgc);
  
-	pflow->gcio_update(p,a,pgc); 
+	pflow->gcio_update_nhflow(p,d,pgc); 
 	//pflow->pressure_io(p,a,pgc);
      
     // inflow ini

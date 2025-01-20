@@ -44,6 +44,7 @@ class ioflow
 {
 public:
     virtual void gcio_update(lexer*,fdm*,ghostcell*)=0;
+    virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*)=0;
 	virtual void discharge(lexer*,fdm*,ghostcell*)=0;
 	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;

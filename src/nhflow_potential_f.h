@@ -45,7 +45,7 @@ private:
 	void wcalc(lexer*,fdm_nhf*);
     
     void laplace(lexer*,fdm_nhf*,ghostcell*);
-    
+    void ini_bc(lexer*,fdm_nhf*,ghostcell*);
     
 	double starttime,endtime;
 	int count;
@@ -53,6 +53,8 @@ private:
     double sigxyz2;
     
     double *PSI;
+    
+    int *BC;
 
 };
 

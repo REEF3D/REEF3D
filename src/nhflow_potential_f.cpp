@@ -30,6 +30,8 @@ Author: Hans Bihs
 nhflow_potential_f::nhflow_potential_f(lexer* p) 
 {
     gcval_pot=49;
+    
+    p->Iarray(BC,p->imax*p->jmax*(p->kmax+3));
 }
 
 nhflow_potential_f::~nhflow_potential_f()
@@ -79,6 +81,9 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     
     pgc->start49V(p,PSI,gcval_pot);
     
+    LOOP
+    d->test[IJK]=PSI[IJK];
+    
     ucalc(p,d);
 	vcalc(p,d);
 	wcalc(p,d);
@@ -99,6 +104,8 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     finalize:
     
     p->del_Darray(PSI,p->imax*p->jmax*(p->kmax+2));
+    
+    p->del_Iarray(BC,p->imax*p->jmax*(p->kmax+3));
 }
 
 void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
@@ -334,4 +341,78 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	++n;
 	}*/
     
+}
+
+
+void nhflow_potential_f::ini_bc(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    BASELOOP
+    BC[IJK]=0;
+    
+    LOOP
+    {
+        if(p->flag4[Im1JK]<0)
+		BC[Im1JK]=0;
+		
+		if(p->flag4[Ip1JK]<0)
+		BC[Ip1JK]=0;
+		
+		if(p->flag4[IJm1K]<0)
+		BC[IJm1K]=0;
+		
+		if(p->flag4[IJp1K]<0)
+		BC[IJp1K]=0;
+		
+		if(p->flag4[IJKm1]<0)
+		BC[IJKm1]=0;
+		
+		if(p->flag4[IJKp1]<0)
+		BC[IJKp1]=0;
+    }
+    
+
+    GC4LOOP
+    {
+        if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
+        {
+            i=p->gcb4[n][0]; 
+            j=p->gcb4[n][1];
+            k=p->gcb4[n][2];  
+            
+       
+            if(p->gcb4[n][3]==1)
+            BC[Im1JK]=1;
+            
+            if(p->gcb4[n][3]==3)
+            BC[IJm1K]=1;
+            
+            if(p->gcb4[n][3]==2)
+            BC[IJp1K]=1;
+            
+            if(p->gcb4[n][3]==4)
+            BC[Ip1JK]=1;
+ 
+        }
+        
+        if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
+        {
+            i=p->gcb4[n][0]; 
+            j=p->gcb4[n][1];
+            k=p->gcb4[n][2];  
+            
+            
+            if(p->gcb4[n][3]==1)
+            BC[Im1JK]=2;
+            
+            if(p->gcb4[n][3]==3)
+            BC[IJm1K]=2;
+            
+            if(p->gcb4[n][3]==2)
+            BC[IJp1K]=2;
+            
+            if(p->gcb4[n][3]==4)
+            BC[Ip1JK]=2;
+ 
+        }
+    }
 }

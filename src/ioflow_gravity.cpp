@@ -77,6 +77,10 @@ void ioflow_gravity::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     p->gcout_count=count2;
 }
 
+void ioflow_gravity::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+}
+
 void ioflow_gravity::discharge(lexer *p, fdm* a, ghostcell* pgc)
 {
     // patchBC

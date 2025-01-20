@@ -41,6 +41,7 @@ public:
 	ioflow_f(lexer*, ghostcell*,patchBC_interface*);
 	virtual ~ioflow_f();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
+    virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
 	virtual void discharge(lexer*,fdm*,ghostcell*);
 	virtual void Qin(lexer*,fdm*,ghostcell*);

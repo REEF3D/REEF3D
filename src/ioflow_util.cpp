@@ -218,6 +218,161 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
 }
 
+
+void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+	
+    int count1,count2;
+	
+	count1=0;
+    count2=0;
+    GC4LOOP
+    {
+    i = p->gcb4[n][0];
+    j = p->gcb4[n][1];
+    k = p->gcb4[n][2];
+        
+        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->flagsf4[IJK]>0)
+        ++count1;
+
+        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->flagsf4[IJK]>0)
+        ++count2;
+    }
+	
+	//cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
+	
+	p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
+	p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
+
+    count1=0;
+    count2=0;
+    GC4LOOP
+    {
+    i = p->gcb4[n][0];
+    j = p->gcb4[n][1];
+    k = p->gcb4[n][2];
+    
+        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->flagsf4[IJK]>0)
+        {
+        p->gcin[count1][0]=p->gcb4[n][0];
+        p->gcin[count1][1]=p->gcb4[n][1];
+        p->gcin[count1][2]=p->gcb4[n][2];
+        p->gcin[count1][3]=p->gcb4[n][3];
+        p->gcin[count1][5]=p->gcb4[n][5];
+        ++count1;
+        }
+
+        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->flagsf4[IJK]>0)
+        {
+        p->gcout[count2][0]=p->gcb4[n][0];
+        p->gcout[count2][1]=p->gcb4[n][1];
+        p->gcout[count2][2]=p->gcb4[n][2];
+        p->gcout[count2][3]=p->gcb4[n][3];
+        p->gcout[count2][5]=p->gcb4[n][5];
+        ++count2;
+        }
+    }
+
+    p->gcin_count=count1;
+    p->gcout_count=count2;
+    
+    
+
+    //if(p->I10==1)
+    //velini(p,a,pgc);
+	    
+    
+    // IO update
+    MALOOP
+    p->IO[IJK] = 0;
+    
+    GC4LOOP
+    {
+        if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
+        {
+        i = p->gcb4[n][0];
+        j = p->gcb4[n][1];
+        k = p->gcb4[n][2];
+        
+            if(p->flagsf4[IJK]>0)
+            {
+            // inflow
+            if(p->gcb4[n][3]==1)
+            p->IO[Im1JK] = 1;
+            
+            if(p->gcb4[n][3]==4)
+            p->IO[Ip1JK] = 1;
+            
+            if(p->gcb4[n][3]==3)
+            p->IO[IJm1K] = 1;
+            
+            if(p->gcb4[n][3]==2)
+            p->IO[IJp1K] = 1;
+            
+            if(p->gcb4[n][3]==5)
+            p->IO[IJKm1] = 1;
+            
+            if(p->gcb4[n][3]==6)
+            p->IO[IJKp1] = 1;
+            }
+        }
+
+        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8))
+        {
+        i = p->gcb4[n][0];
+        j = p->gcb4[n][1];
+        k = p->gcb4[n][2];
+        
+            if(p->flagsf4[IJK]>0)
+            {
+        
+            // outflow
+            if(p->gcb4[n][3]==1)
+            p->IO[Im1JK] = 2;
+            
+            if(p->gcb4[n][3]==4)
+            p->IO[Ip1JK] = 2;
+
+            if(p->gcb4[n][3]==3)
+            p->IO[IJm1K] = 2;
+            
+            if(p->gcb4[n][3]==2)
+            p->IO[IJp1K] = 2;
+            
+            if(p->gcb4[n][3]==5)
+            p->IO[IJKm1] = 2;
+            
+            if(p->gcb4[n][3]==6)
+            p->IO[IJKp1] = 2;
+            }
+        }
+    }
+       
+    for(int qq=0;qq<pBC->obj_count;++qq)
+    for(n=0;n<pBC->patch[qq]->gcb_count;++n)
+    {
+    
+    if(pBC->patch[qq]->gcb[n][3]==1)
+    p->IO[Im1JK] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==4)
+    p->IO[Ip1JK] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==3)
+    p->IO[IJm1K] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==2)
+    p->IO[IJp1K] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==5)
+    p->IO[IJKm1] = 1;
+    
+    if(pBC->patch[qq]->gcb[n][3]==6)
+    p->IO[IJKp1] = 1;
+    }
+    
+}
+
 void ioflow_f::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 

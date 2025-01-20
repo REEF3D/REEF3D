@@ -49,6 +49,10 @@ void ioflow_v::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
+void ioflow_v::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+}
+
 void ioflow_v::discharge(lexer *p, fdm* a, ghostcell* pgc)
 {
     // patchBC
