@@ -751,14 +751,6 @@ void lexer::ctrlrecv()
 	dd++;
 	F64 = ictrl[ii];
 	ii++;
-	F64_xs = dctrl[dd];
-	dd++;
-	F64_ys = dctrl[dd];
-	dd++;
-	F64_zs = dctrl[dd];
-	dd++;
-	F64_alpha = dctrl[dd];
-	dd++;
     F70 = ictrl[ii];
 	ii++;
 	F71 = ictrl[ii];

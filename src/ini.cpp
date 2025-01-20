@@ -381,11 +381,7 @@ void lexer::ini_default()
 	F61=-1.0e20;  // double inflow  ini
 	F62=-1.0e20;  // double outflow  ini
 	F63=-1.0e20;  // double xstart phi interpolate with outflow h
-	F64=0;			// int fsf plane with angle on/off
-	F64_xs=0.0;			// double xs
-	F64_ys=0.0;			// double xs
-	F64_zs=0.0;			// double xs
-	F64_alpha=0.0;			// double alpha
+	F64=0;			// iterations for relaxing outflow waterlevel
 	F70=0;             // int number of phi 1 ini boxes
 	F71=0;             // int number of phi 2 ini boxes
 	F72=0;             // int number of phi 1 ini regions

@@ -72,7 +72,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->mpirank==0)
     cout<<"starting driver_ini"<<endl;
 
-    ptime->ini(p,b ,pgc);
+    ptime->ini(p,b,pgc);
     
     
     // bed ini

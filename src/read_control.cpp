@@ -985,8 +985,7 @@ void lexer::read_control()
                 case 63: control>>F63;
 						 clear(c,numint);
 						 break;
-                case 64: control>>F64_xs>>F64_ys>>F64_zs>>F64_alpha;
-						 F64=1;
+                case 64: control>>F64;
 						 clear(c,numint);
 						 break;
                 case 70: ++F70;

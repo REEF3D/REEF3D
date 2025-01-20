@@ -105,6 +105,28 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
     p->phiout=pgc->globalmax(p->phiout);
     }
     
+    // set outflow fsf 
+    double wsfout=p->phimean;
+    double f;
+    
+    if(p->F62>1.0e-20)
+    {
+        if(p->F64==0)
+        wsfout=p->F62;
+        
+        if(p->F64>0)
+        {
+        if(p->count<p->F64)
+        f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
+        
+        if(p->count>=p->F64)
+        f = 1.0;
+        
+        wsfout = f*p->F62 + (1.0-f)*p->F60;
+        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
+        }
+    }
+    
     if(p->F62>-1.0e20 && p->B77==2)
     for(n=0;n<p->gcout_count;++n)
     {
@@ -112,9 +134,9 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
         j=p->gcout[n][1];
         k=p->gcout[n][2];
 
-        a->phi(i+1,j,k)=p->F62-p->pos_z();
-        a->phi(i+2,j,k)=p->F62-p->pos_z();
-        a->phi(i+3,j,k)=p->F62-p->pos_z();
+        a->phi(i+1,j,k)=wsfout-p->pos_z();
+        a->phi(i+2,j,k)=wsfout-p->pos_z();
+        a->phi(i+3,j,k)=wsfout-p->pos_z();
     }
     
     pBC->patchBC_waterlevel(p,a,pgc,a->phi);

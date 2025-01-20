@@ -416,7 +416,6 @@ public:
     double F59_xm, F59_ym, F59_zs, F59_ze, F59_r;
 	double F60,F61,F62,F63;
 	int F64;
-	double F64_xs,F64_ys,F64_zs,F64_alpha;
 	int F70;
 	double *F70_xs, *F70_xe, *F70_ys, *F70_ye, *F70_zs, *F70_ze;
 	int F71;

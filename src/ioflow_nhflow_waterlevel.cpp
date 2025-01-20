@@ -91,9 +91,25 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     // -------------------------------------
     // set fsf 
     double wsfout=p->phimean;
+    double f;
     
     if(p->F62>1.0e-20)
-    wsfout=p->F62;
+    {
+        if(p->F64==0)
+        wsfout=p->F62;
+        
+        if(p->F64>0)
+        {
+        if(p->count<p->F64)
+        f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
+        
+        if(p->count>=p->F64)
+        f = 1.0;
+        
+        wsfout = f*p->F62 + (1.0-f)*p->F60;
+        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
+        }
+    }
     
     for(n=0;n<p->gcslout_count;n++)
     {

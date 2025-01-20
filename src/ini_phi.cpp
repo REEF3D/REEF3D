@@ -141,14 +141,6 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
     }
 	
 	
-	if(p->F64==1)
-	LOOP
-	{
-	
-	//a->phi(i,j,k) = p->F61-p->pos_z()
-	}
-	
-	
 	pgc->start4(p,a->phi,50);
 }
 
