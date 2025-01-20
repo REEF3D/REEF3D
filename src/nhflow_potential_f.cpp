@@ -37,9 +37,10 @@ nhflow_potential_f::~nhflow_potential_f()
 }
 
 void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pgc)
-{/*
+{
     int itermem;
     p->Darray(PSI,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(BC,p->imax*p->jmax*(p->kmax+3));
     
     if(p->mpirank==0 )
 	cout<<"potential flow solver..."<<endl<<endl;
@@ -57,7 +58,8 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     cout<<"no outflow...potential flow stop"<<endl;
     goto finalize;
     }
-
+    
+    ini_bc(p,d,pgc);
 
     starttime=pgc->timer();
 	
@@ -71,21 +73,33 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     itermem=p->N46;
     p->N46=5000;
 	
-    for(int qn=0; qn<1;++qn)
-    {
     laplace(p,d,pgc);
     psolv->startV(p,pgc,PSI,d->rhsvec,d->M,44);
-    }
     
     pgc->start49V(p,PSI,gcval_pot);
     
     ucalc(p,d);
 	vcalc(p,d);
 	wcalc(p,d);
-
+    
+    LOOP
+	d->test[IJK] = PSI[IJK];
+    
 	pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
     pgc->start4V(p,d->W,12);
+    
+    pgc->start4V(p,d->UH,14);
+    pgc->start4V(p,d->VH,15);
+    pgc->start4V(p,d->WH,16);
+    
+    pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
+    pgc->start4V(p,d->W,12);
+    
+    pgc->start4V(p,d->UH,14);
+    pgc->start4V(p,d->VH,15);
+    pgc->start4V(p,d->WH,16);
 
     endtime=pgc->timer();
     p->laplaceiter=p->solveriter;
@@ -97,8 +111,10 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     
 
     finalize:
-    
-    p->del_Darray(PSI,p->imax*p->jmax*(p->kmax+2));*/
+
+    p->del_Iarray(BC,p->imax*p->jmax*(p->kmax+3));
+    p->del_Darray(PSI,p->imax*p->jmax*(p->kmax+2));
+
 }
 
 void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
@@ -116,12 +132,12 @@ void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
     /*
     if(p->X10==1)
 	ULOOP
-    if(a->fb(i+1,j,k)<0.0 || a->fb(i,j,k)<0.0)
-	a->u(i,j,k)=0.0;
+    if(d->fb(i+1,j,k)<0.0 || d->fb(i,j,k)<0.0)
+	d->u(i,j,k)=0.0;
     
 	ULOOP
     if(p->flagsf4[Ip1JK]<0 || p->flagsf4[IJK]<0.0)
-	a->u(i,j,k)=0.0;*/
+	d->u(i,j,k)=0.0;*/
 }
 
 void nhflow_potential_f::vcalc(lexer *p, fdm_nhf *d)
@@ -138,19 +154,19 @@ void nhflow_potential_f::vcalc(lexer *p, fdm_nhf *d)
     /*
     if(p->X10==1)
 	VLOOP
-    if(a->fb(i,j+1,k)<0.0 || a->fb(i,j,k)<0.0)
-	a->v(i,j,k)=0.0;
+    if(d->fb(i,j+1,k)<0.0 || d->fb(i,j,k)<0.0)
+	d->v(i,j,k)=0.0;
 
 	VLOOP
     if(p->flagsf4[IJp1K]<0 || p->flagsf4[IJK]<0.0)
-	a->v(i,j,k)=0.0;*/
+	d->v(i,j,k)=0.0;*/
 }
 
 void nhflow_potential_f::wcalc(lexer *p, fdm_nhf *d)
 {
     LOOP
     {
-	d->W[IJK] =  p->sigz[IJ]*(PSI[IJKp1]-PSI[IJKp1])/(p->DZP[KP]+p->DZP[KP1]); 
+	d->W[IJK] =  p->sigz[IJ]*(PSI[IJKp1]-PSI[IJKm1])/(p->DZP[KP]+p->DZP[KP1]); 
               
     d->WH[IJK] = d->WL(i,j)*d->W[IJK];
     }
@@ -158,23 +174,23 @@ void nhflow_potential_f::wcalc(lexer *p, fdm_nhf *d)
     /*
     if(p->X10==1)
 	WLOOP
-    if(a->fb(i,j,k+1)<0.0 || a->fb(i,j,k)<0.0)
-	a->w(i,j,k)=0.0;
+    if(d->fb(i,j,k+1)<0.0 || d->fb(i,j,k)<0.0)
+	d->w(i,j,k)=0.0;
     
 	WLOOP
     if(p->flagsf4[IJKp1]<0 || p->flagsf4[IJK]<0.0)
-	a->w(i,j,k)=0.0;
+	d->w(i,j,k)=0.0;
     */
 }
 
 void nhflow_potential_f::rhs(lexer *p, fdm_nhf *d)
-{/*
+{
     count=0;
     LOOP
     {
-    a->rhsvec.V[count] = 0.0;
+    d->rhsvec.V[count] = 0.0;
     count++;
-    }*/
+    }
 }
 
 void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -198,48 +214,46 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ++n;
     }
     
-	
-    
+
     
     n=0;
     LOOP
 	{
-        WETDRYDEEP
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
+            d->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])
+                        + 1.0/(p->DXP[IM1]*p->DXN[IP])
+                        
+                        + 1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir
+                        + 1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                        
+                        + sigxyz2/(p->DZP[KM1]*p->DZN[KP])
+                        + sigxyz2/(p->DZP[KM1]*p->DZN[KM1]);
+
+
+            d->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
+            d->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
+
+            d->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+            d->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+
+            d->M.t[n] = -sigxyz2/(p->DZP[KM1]*p->DZN[KP])     
+                        - p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+                        
+            d->M.b[n] = -sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) 
+                        + p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
             
-            d->M.p[n]  =  1.0/(p->W1*p->DXP[IP]*p->DXN[IP])
-                        + 1.0/(p->W1*p->DXP[IM1]*p->DXN[IP])
-                        
-                        + 1.0/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                        + 1.0/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
-                        
-                        + sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KP])
-                        + sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
-
-
-            d->M.n[n] = -1.0/(p->W1*p->DXP[IP]*p->DXN[IP]);
-            d->M.s[n] = -1.0/(p->W1*p->DXP[IM1]*p->DXN[IP]);
-
-            d->M.w[n] = -1.0/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            d->M.e[n] = -1.0/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-
-            d->M.t[n] = -sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KP])     
-                        - p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
-                        
-            d->M.b[n] = -sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
-                        + p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
-            
-            d->rhsvec.V[n] =  2.0*p->sigx[FIJK]*(PSI[FIp1JKp1] - PSI[FIm1JKp1] - PSI[FIp1JKm1] + PSI[FIm1JKm1])
-                            /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+            d->rhsvec.V[n] =  0.0;(p->sigx[FIJK]+p->sigx[FIJKp1])*(PSI[Ip1JKp1] - PSI[Im1JKp1] - PSI[Ip1JKm1] + PSI[Im1JKm1])
+                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
-                            + 2.0*p->sigy[FIJK]*(PSI[FIJp1Kp1] - PSI[FIJm1Kp1] - PSI[FIJp1Km1] + PSI[FIJm1Km1])
-                            /(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                            + (p->sigx[FIJK]+p->sigx[FIJKp1])*(PSI[IJp1Kp1] - PSI[IJm1Kp1] - PSI[IJp1Km1] + PSI[IJm1Km1])
+                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0)
+        if(p->wet[IJ]==0 || p->DF[IJK]<0)
         {
         d->M.p[n]  =  1.0;
 
@@ -255,83 +269,172 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         d->rhsvec.V[n] =  0.0;
         }
-	
+        
+        
 	++n;
 	}
     
     
-    
-    
-    
-    /*
-    
-    
+  double denom,ab;  
     
     
     n=0;
 	LOOP
 	{
-        if((p->X10==0 || a->fb(i,j,k)>0.0) && p->flagsf4[IJK]>0 && (a->phi(i,j,k)>=0.0 || p->I21==0))
+        if(p->DF[IJK]>0 && p->flag4[IJK]>0)
         {
+           
+		if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && BC[Im1JK]==0)
+		{
+		d->M.p[n] += d->M.s[n];
+		d->M.s[n] = 0.0;
+		}
+        
+        if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && BC[Im1JK]==1)
+		{
+        d->rhsvec.V[n] += d->M.s[n]*p->Ui*p->DXP[IM1];
+		d->M.p[n] += d->M.s[n];
+		d->M.s[n] = 0.0;
+		}
+		
+		if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && BC[Ip1JK]==0)
+		{
+		d->M.p[n] += d->M.n[n];
+		d->M.n[n] = 0.0;
+		}
+        
+        if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && BC[Ip1JK]==2)
+		{
+         d->rhsvec.V[n] -= d->M.n[n]*p->Uo*p->DXP[IP1];
+         d->M.p[n] += d->M.n[n];
+		d->M.n[n] = 0.0;
+		}
+		
+		if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
+		{
+		d->M.p[n] += d->M.e[n];
+		d->M.e[n] = 0.0;
+		}
+		
+		if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
+		{
+		d->M.p[n] += d->M.w[n];
+		d->M.w[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKm1]>0 && p->DF[IJKm1]<0)
+		{
+		d->M.p[n] += d->M.b[n];
+		d->M.b[n] = 0.0;
+		}
+		
+		if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+		{
+		d->M.p[n] += d->M.t[n];
+		d->M.t[n] = 0.0;
+		}
+        
+        
+         // KBEDBC
+            if(p->flag4[IJKm1]<0)
+            {
+            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
-		if((p->flag4[Im1JK]<0 && bc(i-1,j,k)==0) || (p->X10==1 && a->fb(i-1,j,k)<0.0)
-           || (p->flagsf4[Im1JK]<0 && bc(i-1,j,k)==0) || (a->phi(i-1,j,k)<0.0 && p->I21==1))
-		{
-		a->M.p[n] += a->M.s[n];
-		a->M.s[n] = 0.0;
-		}
-        
-        if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==1)
-		{
-        a->rhsvec.V[n] += a->M.s[n]*p->Ui*p->DXP[IM1];
-		a->M.p[n] += a->M.s[n];
-		a->M.s[n] = 0.0;
-		}
-		
-		if((p->flag4[Ip1JK]<0 && bc(i+1,j,k)==0) || (p->X10==1 && a->fb(i+1,j,k)<0.0)
-           || (p->flagsf4[Ip1JK]<0 && bc(i+1,j,k)==0) || (a->phi(i+1,j,k)<0.0 && p->I21==1))
-		{
-		a->M.p[n] += a->M.n[n];
-		a->M.n[n] = 0.0;
-		}
-        
-        if(p->flag4[Ip1JK]<0 && bc(i+1,j,k)==2)
-		{
-         a->rhsvec.V[n] -= a->M.n[n]*p->Uo*p->DXP[IP1];
-         a->M.p[n] += a->M.n[n];
-		a->M.n[n] = 0.0;
-		}
-		
-		if(p->flag4[IJm1K]<0 || (p->X10==1 && a->fb(i,j-1,k)<0.0)
-           || p->flagsf4[IJm1K]<0 || (a->phi(i,j-1,k)<0.0 && p->I21==1))
-		{
-		a->M.p[n] += a->M.e[n];
-		a->M.e[n] = 0.0;
-		}
-		
-		if(p->flag4[IJp1K]<0 || (p->X10==1 && a->fb(i,j+1,k)<0.0)
-           || p->flagsf4[IJp1K]<0 || (a->phi(i,j+1,k)<0.0 && p->I21==1))
-		{
-		a->M.p[n] += a->M.w[n];
-		a->M.w[n] = 0.0;
-		}
-		
-		if(p->flag4[IJKm1]<0 || (p->X10==1 && a->fb(i,j,k-1)<0.0)
-           || p->flagsf4[IJKm1]<0 || (a->phi(i,j,k-1)<0.0 && p->I21==1))
-		{
-		a->M.p[n] += a->M.b[n];
-		a->M.b[n] = 0.0;
-		}
-		
-		if(p->flag4[IJKp1]<0 || (p->X10==1 && a->fb(i,j,k+1)<0.0)
-           || p->flagsf4[IJKp1]<0 || (a->phi(i,j,k+1)<0.0 && p->I21==1))
-		{
-		a->M.p[n] += a->M.t[n];
-		a->M.t[n] = 0.0;
-		}
+            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
+            
+            denom = p->sigz[IJ] + d->Bx(i,j)*p->sigx[FIJK] + d->By(i,j)*p->sigy[FIJK];
+
+                    if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
+                    {
+                    d->M.n[n] +=  ab*2.0*p->DZN[KP]*(d->Bx(i,j))/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    d->M.s[n] += -ab*2.0*p->DZN[KP]*(d->Bx(i,j))/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    }
+                    
+                    if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
+                    {
+                    d->M.w[n] +=  ab*2.0*p->DZN[KP]*d->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
+                    d->M.e[n] += -ab*2.0*p->DZN[KP]*d->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
+                    }
+
+                d->M.t[n] += ab;
+                d->M.b[n] = 0.0;
+            }
         }
 
 	++n;
-	}*/
+	}
     
+}
+
+void nhflow_potential_f::ini_bc(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    BASELOOP
+    BC[IJK]=0;
+    
+    LOOP
+    {
+        if(p->flag4[Im1JK]<0)
+		BC[Im1JK]=0;
+		
+		if(p->flag4[Ip1JK]<0)
+		BC[Ip1JK]=0;
+		
+		if(p->flag4[IJm1K]<0)
+		BC[IJm1K]=0;
+		
+		if(p->flag4[IJp1K]<0)
+		BC[IJp1K]=0;
+		
+		if(p->flag4[IJKm1]<0)
+		BC[IJKm1]=0;
+		
+		if(p->flag4[IJKp1]<0)
+		BC[IJKp1]=0;
+    }
+    
+
+    GC4LOOP
+    {
+        if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
+        {
+            i=p->gcb4[n][0]; 
+            j=p->gcb4[n][1];
+            k=p->gcb4[n][2];  
+            
+       
+            if(p->gcb4[n][3]==1)
+            BC[Im1JK]=1;
+            
+            if(p->gcb4[n][3]==3)
+            BC[IJm1K]=1;
+            
+            if(p->gcb4[n][3]==2)
+            BC[IJp1K]=1;
+            
+            if(p->gcb4[n][3]==4)
+            BC[Ip1JK]=1;
+ 
+        }
+        
+        if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
+        {
+            i=p->gcb4[n][0]; 
+            j=p->gcb4[n][1];
+            k=p->gcb4[n][2];  
+            
+            
+            if(p->gcb4[n][3]==1)
+            BC[Im1JK]=2;
+            
+            if(p->gcb4[n][3]==3)
+            BC[IJm1K]=2;
+            
+            if(p->gcb4[n][3]==2)
+            BC[IJp1K]=2;
+            
+            if(p->gcb4[n][3]==4)
+            BC[Ip1JK]=2;
+ 
+        }
+    }
 }

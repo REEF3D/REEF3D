@@ -33,16 +33,16 @@ void ghostcell::gcsldf_update(lexer *p)
     SLICELOOP4
     if(p->DF[IJK]==1)
     {
-        if(p->DF[Im1JK]==0)
+        if(p->DF[Im1JK]<0)
         ++count;
         
-        if(p->DF[Ip1JK]==0)
+        if(p->DF[Ip1JK]<0)
         ++count;
         
-        if(p->DF[IJm1K]==0)
+        if(p->DF[IJm1K]<0)
         ++count;
         
-        if(p->DF[IJp1K]==0)
+        if(p->DF[IJp1K]<0)
         ++count;
     }
     
@@ -65,7 +65,7 @@ void ghostcell::gcsldf_update(lexer *p)
     SLICELOOP4
     if(p->DF[IJK]==1)
     {
-        if(p->DF[Im1JK]==0)
+        if(p->DF[Im1JK]<0)
         {
         p->gcsldf4[count][0]=i;
         p->gcsldf4[count][1]=j;
@@ -74,7 +74,7 @@ void ghostcell::gcsldf_update(lexer *p)
         ++count;
         }
         
-        if(p->DF[Ip1JK]==0)
+        if(p->DF[Ip1JK]<0)
         {
         p->gcsldf4[count][0]=i;
         p->gcsldf4[count][1]=j;
@@ -83,7 +83,7 @@ void ghostcell::gcsldf_update(lexer *p)
         ++count;
         }
         
-        if(p->DF[IJm1K]==0)
+        if(p->DF[IJm1K]<0)
         {
         p->gcsldf4[count][0]=i;
         p->gcsldf4[count][1]=j;
@@ -92,7 +92,7 @@ void ghostcell::gcsldf_update(lexer *p)
         ++count;
         }
         
-        if(p->DF[IJp1K]==0)
+        if(p->DF[IJp1K]<0)
         {
         p->gcsldf4[count][0]=i;
         p->gcsldf4[count][1]=j;

@@ -814,17 +814,17 @@ void ghostcell::start49V(lexer *p, double *f, int gcv)
 {    
     LOOP
     {  
-        if(p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)
-        f[Im1JK] = f[IJK];
+        //if(p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)
+        //f[Im1JK] = f[IJK];
         
-        if(p->flag4[Im1JK]<0 && p->IO[Im1JK]==1)
+        if(p->flag4[Im1JK]<0)
         f[Im1JK] = p->Ui*p->DXP[IP] + f[IJK];
         
 
-        if(p->flag4[Ip1JK]<0 && p->IO[Ip1JK]!=2)
-        f[Ip1JK] = f[IJK];
+        //if(p->flag4[Ip1JK]<0 && p->IO[Ip1JK]!=2)
+        //f[Ip1JK] = f[IJK];
         
-        if(p->flag4[Ip1JK]<0 && p->IO[Ip1JK]==2)
+        if(p->flag4[Ip1JK]<0)
         f[Ip1JK] = p->Uo*p->DXP[IP] + f[IJK];
         
         

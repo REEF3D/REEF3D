@@ -47,6 +47,7 @@ private:
     void laplace(lexer*,fdm_nhf*,ghostcell*);
     void ini_bc(lexer*,fdm_nhf*,ghostcell*);
     
+    
 	double starttime,endtime;
 	int count;
 	int gcval_pot;

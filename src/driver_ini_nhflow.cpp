@@ -76,20 +76,10 @@ void driver::driver_ini_nhflow()
     pnhfstep->ini(p,d,pgc);
  
 	pflow->gcio_update_nhflow(p,d,pgc); 
-	//pflow->pressure_io(p,a,pgc);
-     
+
     // inflow ini
 	pflow->discharge_nhflow(p,d,pgc);
-
     pflow->wavegen_precalc_nhflow(p,d,pgc);
-
-	//if(p->I11==1)
-	//ptstep->start(a,p,pgc,pturb);
-    
-    //if(p->I13==1)
-    //pturb->ini(p,a,pgc);
-	
-	//pflow->pressure_io(p,a,pgc);
     
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
@@ -122,6 +112,9 @@ void driver::driver_ini_nhflow()
     pnhfsf->ini(p,d,pgc,pflow,d->U,d->V,d->W);
     pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     //pnhfmom->inidisc(p,d,pgc,pnhfsf);
+    
+    // potential ini
+    pnhfpot->start(p,d,psolv,pgc);
     
     // turbulence ini
     pnhfturb->ini(p, d, pgc);
