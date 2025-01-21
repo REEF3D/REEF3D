@@ -548,7 +548,7 @@ void driver::logic_cfd()
 	else if(p->P10==3)
 	pprint = new vts3D(p,a,pgc);
 	else
-	pprint = new vtu3D(p,a,pgc);
+	pprint = new printer_CFD(p,a,pgc);
 
     if(p->P150==0)
 	pdata = new data_void(p,a,pgc);

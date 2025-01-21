@@ -58,17 +58,17 @@ class exportfile;
 class flowfile_out;
 class print_averaging;
 
-#ifndef VTU3D_H_
-#define VTU3D_H_
+#ifndef PRINTER_CFD_H_
+#define PRINTER_CFD_H_
 
 using namespace std;
 
-class vtu3D : public printer, public increment
+class printer_CFD : public printer, public increment
 {
 
 public:
-	vtu3D(lexer*,fdm*,ghostcell*);
-	virtual ~vtu3D();
+	printer_CFD(lexer*,fdm*,ghostcell*);
+	virtual ~printer_CFD();
 	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
     virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
     virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
@@ -76,13 +76,11 @@ public:
 
 private:
     void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,multiphase*,sediment*);
-    void pvtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,data*,concentration*,multiphase*,sediment*);
-    void header(fdm*,lexer*,ghostcell*);
-    void name_iter(fdm*,lexer*,ghostcell*);
-    void name_time(fdm*,lexer*,ghostcell*);
+    void parallel(fdm*,lexer*,ghostcell*,turbulence*,heat*,data*,concentration*,multiphase*,sediment*);
     void piecename(fdm*,lexer*,ghostcell*, int);
+    void name_iter(lexer*);
 
-    char name[200],pname[200],epsvar[200];
+    char name[200],pname[200];
     int n,iin,offset[300];
     float ffn;
     int gcval_phi,gcval_phiext;

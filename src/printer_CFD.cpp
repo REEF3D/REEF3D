@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vtu3D.h"
+#include"printer_CFD.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -63,7 +63,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
+printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 {
     if(p->F50==1)
 	gcval_phi=51;
@@ -195,15 +195,15 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 	mkdir("./REEF3D_CFD_VTU",0777);
 }
 
-vtu3D::~vtu3D()
+printer_CFD::~printer_CFD()
 {
 }
 
-void vtu3D::ini(lexer* p, fdm* a, ghostcell* pgc)
+void printer_CFD::ini(lexer* p, fdm* a, ghostcell* pgc)
 {
 }
 
-void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
 	pgc->gcparax4a(p,a->phi,5);
 	
@@ -389,13 +389,13 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
 }
 
-void vtu3D::print_stop(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printer_CFD::print_stop(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
     
 }
 
-void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printer_CFD::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     if(p->P180==1)
 	pfsf->start(p,a,pgc);
@@ -403,7 +403,7 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
     print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 }
 
-void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     pgc->start4a(p,a->test,1);
     pgc->start1(p,a->u,110);
@@ -421,11 +421,10 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
      pgc->gcperiodicx(p,a->press,4);
 
     if(p->mpirank==0)
-    pvtu(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+    parallel(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
 
-    name_iter(a,p,pgc);
-    header(a,p,pgc);
+    name_iter(p);
 
 	// Open File
 	ofstream result;
