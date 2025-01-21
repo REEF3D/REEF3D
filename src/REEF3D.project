@@ -950,6 +950,13 @@
         </VirtualDirectory>
         <File Name="printer_CFD.h"/>
         <File Name="print_interface.h"/>
+        <VirtualDirectory Name="ParaView">
+          <File Name="vtks.h"/>
+          <File Name="vtk3D.h"/>
+          <File Name="vtu3D.h"/>
+          <File Name="vtr3D.h"/>
+          <File Name="vts3D.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Force">
           <File Name="force.h"/>
         </VirtualDirectory>
@@ -2586,6 +2593,11 @@
         </VirtualDirectory>
         <File Name="printer_CFD.cpp"/>
         <File Name="printer_CFD_parallel.cpp"/>
+        <VirtualDirectory Name="ParaView">
+          <File Name="vtu3D.cpp"/>
+          <File Name="vtr3D.cpp"/>
+          <File Name="vts3D.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.cpp"/>
           <File Name="probe_vel.cpp"/>
