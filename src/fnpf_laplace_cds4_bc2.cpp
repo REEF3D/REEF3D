@@ -82,8 +82,8 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
         c->M.w[n] = cky[JP][3]*p->y_dir; 
         c->M.e[n] = cky[JP][1]*p->y_dir; 
 
-        c->M.t[n] = (sigxyz2*ckz[KP][3]  - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-        c->M.b[n] = (sigxyz2*ckz[KP][1]  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.t[n] = (sigxyz2*ckz[KP][3]  - 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.b[n] = (sigxyz2*ckz[KP][1]  + 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
         
         c->M.nn[n] = ckx[IP][4]*p->x_dir;
@@ -127,8 +127,8 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
         c->M.w[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
         c->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JM1])*p->y_dir;
         
-        c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-        c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
         c->M.nn[n] = 0.0;
         c->M.ss[n] = 0.0;
@@ -285,7 +285,7 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
             {
             sigxyz2= pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
-            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
+            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
 
@@ -352,8 +352,8 @@ void fnpf_laplace_cds4_bc2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver 
             c->M.tt[n] = 0.0; 
             c->M.bb[n] = 0.0;
             
-            c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-            c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+            c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+            c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
             }
             
             

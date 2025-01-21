@@ -192,9 +192,9 @@ void nhflow_rans_io::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &r
     
     result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>"<<endl;
 	
-	if(p->T10==1||p->T10==11 || p->T10==21 ||p->T10==0 || p->T10>30)
+	if(p->A560==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>"<<endl;
-	if(p->T10==2||p->T10==12 || p->T10==22||p->T10==3||p->T10==13)
+	if(p->A560==2)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>"<<endl;
 }
 
@@ -204,9 +204,9 @@ void nhflow_rans_io::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &re
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"kin\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	if(p->T10==1||p->T10==11 || p->T10==21 ||p->T10==0 || p->T10>30)
+	if(p->A560==1)
 	result<<"<DataArray type=\"Float32\" Name=\"epsilon\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	if(p->T10==2||p->T10==12 || p->T10==22||p->T10==3||p->T10==13)
+	if(p->A560==2)
     result<<"<DataArray type=\"Float32\" Name=\"omega\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }

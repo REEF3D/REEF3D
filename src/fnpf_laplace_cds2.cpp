@@ -67,8 +67,8 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         c->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
         c->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
         
-        c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-        c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
         
         c->rhsvec.V[n] =  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
@@ -211,7 +211,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
-            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
+            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
 

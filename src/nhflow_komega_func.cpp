@@ -210,7 +210,7 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	LOOP
 	{
 	if(k==p->knoz-1 && p->DF[IJK]>0)
-	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/p->T37);
+	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37*d->WL(i,j)));
 	}
 }
 

@@ -70,8 +70,8 @@ void fnpf_laplace_cds4::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         c->M.w[n] = cky[JP][3]*p->y_dir; 
         c->M.e[n] = cky[JP][1]*p->y_dir; 
 
-        c->M.t[n] = (sigxyz2*ckz[KP][3]  - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
-        c->M.b[n] = (sigxyz2*ckz[KP][1]  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.t[n] = (sigxyz2*ckz[KP][3]  - 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
+        c->M.b[n] = (sigxyz2*ckz[KP][1]  + 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]))*p->z_dir;
         
         
         c->M.nn[n] = ckx[IP][4]*p->x_dir;
