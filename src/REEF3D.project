@@ -391,7 +391,7 @@
           </VirtualDirectory>
           <File Name="fnpf_printer.h"/>
           <VirtualDirectory Name="VTU">
-            <File Name="fnpf_vtu3D.h"/>
+            <File Name="printer_fnpf.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTS">
             <File Name="fnpf_vts3D.h"/>
@@ -1570,7 +1570,7 @@
             <File Name="fnpf_breaking_log_filename.cpp"/>
             <File Name="fnpf_breaking_log.cpp"/>
           </VirtualDirectory>
-          <File Name="fnpf_vtu3D.cpp"/>
+          <File Name="printer_fnpf.cpp"/>
           <File Name="fnpf_vts3D.cpp"/>
           <VirtualDirectory Name="WSF">
             <File Name="fnpf_print_wsfline_y.cpp"/>
@@ -1579,8 +1579,7 @@
             <File Name="fnpf_print_wsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTU">
-            <File Name="fnpf_vtu3D_pvtu.cpp"/>
-            <File Name="fnpf_vtu3D_header.cpp"/>
+            <File Name="printer_fnpf_parallel.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTS">
             <File Name="fnpf_vts3D_pvts.cpp"/>

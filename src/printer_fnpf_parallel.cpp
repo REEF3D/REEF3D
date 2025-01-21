@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_vtu3D.h"
+#include"printer_fnpf.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void fnpf_vtu3D::pvtu(lexer *p, ghostcell* pgc)
+void printer_fnpf::pvtu(lexer *p, ghostcell* pgc)
 {	
 	int num=0;
     
@@ -89,7 +89,7 @@ void fnpf_vtu3D::pvtu(lexer *p, ghostcell* pgc)
 
 }
 
-void fnpf_vtu3D::piecename(lexer *p, ghostcell *pgc, int n)
+void printer_fnpf::piecename(lexer *p, ghostcell *pgc, int n)
 {
     int num=0;
 
@@ -101,5 +101,19 @@ void fnpf_vtu3D::piecename(lexer *p, ghostcell *pgc, int n)
     num = p->count;
 
 	sprintf(pname,"REEF3D-FNPF-%08i-%06i.vtu",num,n+1);
+
+}
+
+void printer_fnpf::name_iter(lexer *p)
+{	
+    int num=0;
+
+    if(p->P15==1)
+    num = printcount;
+
+    if(p->P15==2)
+    num = p->count;
+
+    sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-%08i-%06i.vtu",num,p->mpirank+1);
 
 }

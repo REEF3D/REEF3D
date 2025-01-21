@@ -52,7 +52,7 @@ void driver::logic_fnpf()
     if(p->P10==2)
     pfprint = new fnpf_vts3D(p,c,pgc);
     else
-    pfprint = new fnpf_vtu3D(p,c,pgc);
+    pfprint = new printer_fnpf(p,c,pgc);
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )

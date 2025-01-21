@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_vtu3D.h"
+#include"printer_fnpf.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -43,7 +43,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+printer_fnpf::printer_fnpf(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {	
     if(p->I40==0)
     {
@@ -139,11 +139,11 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	prunup[n]->ini(p,c,pgc);
 }
 
-fnpf_vtu3D::~fnpf_vtu3D()
+printer_fnpf::~printer_fnpf()
 {
 }
 
-void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
+void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 {
     // Gages
 	if(p->P51>0)
@@ -265,7 +265,7 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     prunup[n]->start(p,c,pgc);
 }
 
-void fnpf_vtu3D::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
     if(p->P180==1)
     pfsf->start(p,c,pgc);
@@ -273,7 +273,7 @@ void fnpf_vtu3D::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     print_vtu(p,c,pgc);
 }
 
-void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+void printer_fnpf::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
     SLICELOOP4
     {
@@ -302,7 +302,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     if(p->mpirank==0)
     pvtu(p,pgc);
 
-    name_iter(p,pgc);
+    name_iter(p);
 
 	// Open File
 	ofstream result;
