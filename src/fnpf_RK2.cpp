@@ -29,9 +29,6 @@ Author: Hans Bihs
 #include"solver.h"
 #include"reini.h"
 #include"fnpf_laplace_cds2.h"
-#include"fnpf_laplace_cds2_v2.h"
-#include"fnpf_laplace_cds4.h"
-#include"fnpf_laplace_cds4_bc2.h"
 #include"onephase.h"
 #include"fnpf_fsfbc.h"
 #include"fnpf_fsfbc_wd.h"
@@ -59,19 +56,7 @@ fnpf_RK2::fnpf_RK2(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     }
     
     
-    if(p->A320==1)
     plap = new fnpf_laplace_cds2(p);
-    
-    if(p->A320==2)
-    plap = new fnpf_laplace_cds4(p);
-    
-    if(p->A320==3)
-    plap = new fnpf_laplace_cds4_bc2(p);
-    
-    if(p->A320==5)
-    plap = new fnpf_laplace_cds2_v2(p,pgc);
-    
-    
     
     if(p->A343==0)
     pf = new fnpf_fsfbc(p,c,pgc);

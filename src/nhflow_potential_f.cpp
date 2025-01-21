@@ -129,15 +129,12 @@ void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
     }
     
     
-    /*
-    if(p->X10==1)
-	ULOOP
-    if(d->fb(i+1,j,k)<0.0 || d->fb(i,j,k)<0.0)
-	d->u(i,j,k)=0.0;
-    
-	ULOOP
-    if(p->flagsf4[Ip1JK]<0 || p->flagsf4[IJK]<0.0)
-	d->u(i,j,k)=0.0;*/
+    LOOP
+    if(p->DF[IJK]<0 || p->DF[Im1JK]<0 || p->DF[Ip1JK]<0)
+    {
+	d->U[IJK] = 0.0;
+    d->UH[IJK] = 0.0;
+    }
 }
 
 void nhflow_potential_f::vcalc(lexer *p, fdm_nhf *d)
@@ -151,15 +148,13 @@ void nhflow_potential_f::vcalc(lexer *p, fdm_nhf *d)
     d->VH[IJK] = d->WL(i,j)*d->V[IJK];
     }
 
-    /*
-    if(p->X10==1)
-	VLOOP
-    if(d->fb(i,j+1,k)<0.0 || d->fb(i,j,k)<0.0)
-	d->v(i,j,k)=0.0;
 
-	VLOOP
-    if(p->flagsf4[IJp1K]<0 || p->flagsf4[IJK]<0.0)
-	d->v(i,j,k)=0.0;*/
+    LOOP
+    if(p->DF[IJK]<0 || p->DF[IJm1K]<0 || p->DF[IJp1K]<0)
+    {
+	d->V[IJK] = 0.0;
+    d->VH[IJK] = 0.0;
+    }
 }
 
 void nhflow_potential_f::wcalc(lexer *p, fdm_nhf *d)
@@ -171,16 +166,13 @@ void nhflow_potential_f::wcalc(lexer *p, fdm_nhf *d)
     d->WH[IJK] = d->WL(i,j)*d->W[IJK];
     }
     
-    /*
-    if(p->X10==1)
-	WLOOP
-    if(d->fb(i,j,k+1)<0.0 || d->fb(i,j,k)<0.0)
-	d->w(i,j,k)=0.0;
     
-	WLOOP
-    if(p->flagsf4[IJKp1]<0 || p->flagsf4[IJK]<0.0)
-	d->w(i,j,k)=0.0;
-    */
+	LOOP
+    if(p->DF[IJK]<0 || p->DF[IJm1K]<0 || p->DF[IJp1K]<0)
+    {
+	d->W[IJK] = 0.0;
+    d->WH[IJK] = 0.0;
+    }
 }
 
 void nhflow_potential_f::rhs(lexer *p, fdm_nhf *d)
