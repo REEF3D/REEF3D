@@ -21,8 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"printer_CFD.h"
-#include"vtr3D.h"
-#include"vts3D.h"
 
 #include"ioflow.h"
 #include"ioflow_void.h"

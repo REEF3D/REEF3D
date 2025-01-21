@@ -543,11 +543,6 @@ void driver::logic_cfd()
     pbench = new benchmark_convection(p,a);
 
 // Printer
-	if(p->P10==2)
-	pprint = new vtr3D(p,a,pgc);
-	else if(p->P10==3)
-	pprint = new vts3D(p,a,pgc);
-	else
 	pprint = new printer_CFD(p,a,pgc);
 
     if(p->P150==0)
