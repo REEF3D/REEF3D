@@ -610,9 +610,9 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
         // bed
         if(p->flag4[IJKm1]<0)
         {
-        f[IJKm1] = 0.0;//f[IJK];
-        f[IJKm2] = 0.0;//f[IJK];
-        f[IJKm3] = 0.0;//f[IJK];
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
         }
     }
     

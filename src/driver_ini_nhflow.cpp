@@ -111,7 +111,8 @@ void driver::driver_ini_nhflow()
 
     pnhfsf->ini(p,d,pgc,pflow,d->U,d->V,d->W);
     pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    //pnhfmom->inidisc(p,d,pgc,pnhfsf);
+    
+    pflow->gcio_update_nhflow(p,d,pgc); 
     
     // potential ini
     pnhfpot->start(p,d,ppoissonsolv,pgc);

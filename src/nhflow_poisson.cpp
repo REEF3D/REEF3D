@@ -118,13 +118,27 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 	{
         WETDRYDEEP 
         {
-            if(p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0)
+            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==0)
             {
             d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
             d->M.s[n] = 0.0;
             }
             
-            if(p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0 || p->deep[Ip1J]==0)
+            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==1 && p->A520==1)
+            {
+            pval=0.0;
+            d->rhsvec.V[n] -= d->M.s[n]*pval;
+            d->M.s[n] = 0.0;
+            }
+            
+            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==1 && p->A520==2)
+            {
+            pval=0.0;
+            d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
+            d->M.s[n] = 0.0;
+            }
+            
+            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0 || p->deep[Ip1J]==0)  && p->B99<3)
             {
             d->rhsvec.V[n] -= d->M.n[n]*P[FIJK];
             d->M.n[n] = 0.0;

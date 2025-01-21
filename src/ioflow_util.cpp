@@ -231,11 +231,11 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     i = p->gcb4[n][0];
     j = p->gcb4[n][1];
     k = p->gcb4[n][2];
-        
-        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->flagsf4[IJK]>0)
+         
+        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->DF[IJK]>0)
         ++count1;
 
-        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->flagsf4[IJK]>0)
+        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->DF[IJK]>0)
         ++count2;
     }
 	
@@ -252,7 +252,7 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     j = p->gcb4[n][1];
     k = p->gcb4[n][2];
     
-        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->flagsf4[IJK]>0)
+        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->DF[IJK]>0)
         {
         p->gcin[count1][0]=p->gcb4[n][0];
         p->gcin[count1][1]=p->gcb4[n][1];
@@ -262,7 +262,7 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ++count1;
         }
 
-        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->flagsf4[IJK]>0)
+        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->DF[IJK]>0)
         {
         p->gcout[count2][0]=p->gcb4[n][0];
         p->gcout[count2][1]=p->gcb4[n][1];
@@ -294,7 +294,7 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         j = p->gcb4[n][1];
         k = p->gcb4[n][2];
         
-            if(p->flagsf4[IJK]>0)
+            if(p->DF[IJK]>0)
             {
             // inflow
             if(p->gcb4[n][3]==1)
@@ -323,7 +323,7 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         j = p->gcb4[n][1];
         k = p->gcb4[n][2];
         
-            if(p->flagsf4[IJK]>0)
+            if(p->DF[IJK]>0)
             {
         
             // outflow
@@ -370,7 +370,6 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(pBC->patch[qq]->gcb[n][3]==6)
     p->IO[IJKp1] = 1;
     }
-    
 }
 
 void ioflow_f::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
