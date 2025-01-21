@@ -20,9 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRINTER_CFD_H_
+#define PRINTER_CFD_H_
+
 #include"printer.h"
 #include"increment.h"
 #include"field5.h"
+
+#include"vtks.h"
 
 class turbulence;
 class heat;
@@ -58,9 +63,6 @@ class exportfile;
 class flowfile_out;
 class print_averaging;
 
-#ifndef PRINTER_CFD_H_
-#define PRINTER_CFD_H_
-
 using namespace std;
 
 class printer_CFD : public printer, public increment
@@ -69,28 +71,24 @@ class printer_CFD : public printer, public increment
 public:
 	printer_CFD(lexer*,fdm*,ghostcell*);
 	virtual ~printer_CFD();
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-    virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-    virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-	virtual void ini(lexer*,fdm*,ghostcell*);
+	void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
+    void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
+    void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
+	void ini(lexer*,fdm*,ghostcell*);
 
 private:
     void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,multiphase*,sediment*);
     void parallel(fdm*,lexer*,ghostcell*,turbulence*,heat*,data*,concentration*,multiphase*,sediment*);
-    void piecename(fdm*,lexer*,ghostcell*, int);
-    void name_iter(lexer*);
 
-    char name[200],pname[200];
+    vtk3D *outputFormat;
+
+    char name[200];
     int n,iin,offset[300];
     float ffn;
-    int gcval_phi,gcval_phiext;
 	double *printtime_wT;
     double *printfsftime_wT;
     int *printfsfiter_wI;
-    double phase;
     double zcoor;
-	
-	field5 eta;
 
     print_wsf *pwsf;
 	print_wsf_theory *pwsf_theory;
@@ -122,4 +120,3 @@ private:
 };
 
 #endif
-

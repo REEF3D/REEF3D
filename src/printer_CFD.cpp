@@ -63,31 +63,24 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
+printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
 {
-    if(p->F50==1)
-	gcval_phi=51;
 
-	if(p->F50==2)
-	gcval_phi=52;
-
-	if(p->F50==3)
-	gcval_phi=53;
-
-	if(p->F50==4)
-	gcval_phi=54;
-
-	if(p->F50==1)
-	gcval_phiext=61;
-
-	if(p->F50==2)
-	gcval_phiext=62;
-
-	if(p->F50==3)
-	gcval_phiext=63;
-
-	if(p->F50==4)
-	gcval_phiext=64;
+    switch (p->P10)
+    {
+        case 0:
+            outputFormat = new vtk3D();
+            break;
+        case 1: default:
+            outputFormat = new vtu3D();
+            break;
+        case 2:
+            outputFormat = new vtr3D();
+            break;
+        case 3:
+            outputFormat = new vts3D();
+            break;
+    }
 
     if(p->I40==0)
     {
@@ -112,10 +105,10 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
     for(int qn=0; qn<p->P184; ++qn)
 	printfsfiter_wI[qn]=p->P184_its[qn];
 
-	pwsf=new print_wsf(p,a,pgc,0);
-	pwsf_theory=new print_wsf_theory(p,a,pgc,0);
-	pwsfline_x=new print_wsfline_x(p,a,pgc);
-	pwsfline_y=new print_wsfline_y(p,a,pgc);
+	pwsf = new print_wsf(p,a,pgc,0);
+	pwsf_theory = new print_wsf_theory(p,a,pgc,0);
+	pwsfline_x = new print_wsfline_x(p,a,pgc);
+	pwsfline_y = new print_wsfline_y(p,a,pgc);
 	pprobe = new probe_point(p,a,pgc);
     ppressprobe = new probe_pressure(p,a,pgc);
 	pline = new probe_line(p,a,pgc);
@@ -156,10 +149,10 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 	pbedmax = new bedprobe_max(p,a,pgc);
 
 	if(p->P123>0)
-	pbedlinex=new bedprobe_line_x(p,a,pgc);
+	pbedlinex = new bedprobe_line_x(p,a,pgc);
 
 	if(p->P124>0)
-	pbedliney=new bedprobe_line_y(p,a,pgc);
+	pbedliney = new bedprobe_line_y(p,a,pgc);
 
 	if(p->P125>0)
 	pbedshear = new bedshear_probe(p,pgc);
@@ -168,17 +161,17 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 	pbedshearmax = new bedshear_max(p,pgc);
 
     for(n=0;n<p->P81;++n)
-	pforce[n]=new force(p,a,pgc,n);
+	pforce[n] = new force(p,a,pgc,n);
 
 	if(p->P40>0)
-	pstate=new cfd_state(p,a,pgc);
+	pstate = new cfd_state(p,a,pgc);
 
     if(p->P101>0)
-	pslosh=new sloshing_force(p,a,pgc);
+	pslosh = new sloshing_force(p,a,pgc);
 
 	if(p->B270>0 || p->B274>0 || p->B281>0 || p->B282>0 || p->B291>0 || p->B310>0 || p->B321>0 || p->B322>0 || p->B311>0)
 	{
-	ppor=new print_porous(p,a,pgc);
+	ppor = new print_porous(p,a,pgc);
 	ppor->start(p,a,pgc);
 	}
 
@@ -188,11 +181,9 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 
 	p->printcount=0;
 
-    phase=0.0;
-
 	// Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_VTU",0777);
+	    outputFormat->folder("CFD");
 }
 
 printer_CFD::~printer_CFD()
@@ -210,13 +201,13 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
 	pmean->averaging(p,a,pgc,pheat);
 
 	// Print out based on iteration
-	if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
+	if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
 	{
 	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 	}
 
 	// Print out based on time
-	if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
+	if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0) || (p->count==0 &&  p->P30>0.0))
 	{
 	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
@@ -224,7 +215,7 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
 	}
 
 	// Print out based on sediment time
-	if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0 && p->P10==1) || (p->count==0 &&  p->P34>0.0))
+	if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0) || (p->count==0 &&  p->P34>0.0))
 	{
 	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
@@ -232,7 +223,7 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
 	}
 
 	// Print out based on time interval
-	if(p->P10==1 && p->P35>0)
+	if(p->P35>0)
 	for(int qn=0; qn<p->P35; ++qn)
 	if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 	{
@@ -374,7 +365,7 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
 	pflowfile->start(p,a,pgc,pturb);
 
 	// Print state out based on iteration
-	if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
+	if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
 	{
 	pstate->write(p,a,pgc,pturb,psed);
 	}
@@ -405,601 +396,497 @@ void printer_CFD::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, h
 
 void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
-    pgc->start4a(p,a->test,1);
-    pgc->start1(p,a->u,110);
-    pgc->start2(p,a->v,111);
-	pgc->start3(p,a->w,112);    
-
-    pgc->gcparacox(p,a->phi,50);
-	pgc->gcparacox(p,a->phi,50);
-
-	pgc->gcparacox(p,a->topo,150);
-	pgc->gcparacox(p,a->topo,150);
-    
-    //pgc->start4a(p,a->topo,159);
-
-     pgc->gcperiodicx(p,a->press,4);
-
-    if(p->mpirank==0)
-    parallel(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
-
-
-    name_iter(p);
-
-	// Open File
-	ofstream result;
-	result.open(name, ios::binary);
-
-    n=0;
-
-	offset[n]=0;
-	++n;
-
-	// velocity
-	offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
-	++n;
-    
-    pmean->offset_vtu(p,a,pgc,result,offset,n);
-
-	// scalars
-
-		// pressure
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-
-		// k and eps
-	pturb->offset_vtu(p,a,pgc,result,offset,n);
-		// eddyv
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-		// phi
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-		// T
-	pheat->offset_vtu(p,a,pgc,result,offset,n);
-    	// Multiphase
-	pmp->offset_vtu(p,a,pgc,result,offset,n);
-		// vorticity
-	pvort->offset_vtu(p,a,pgc,result,offset,n);
-		// data
-	pdata->offset_vtu(p,a,pgc,result,offset,n);
-		// concentration
-	pconc->offset_vtu(p,a,pgc,result,offset,n);
-    	// rho
-	if(p->P24==1 && p->F300==0)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-        // viscosity
-	if(p->P71==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    
-        // VOF
-	if(p->P72==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-
-        // Fi
-    if(p->A10==4)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-
-	if(p->P26==1)
-	{
-		// conc
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-		// topo
-	if(p->P27==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    
-    	// sediment bedlaod
-	if(p->P76==1)
-	psed->offset_vtu_bedload(p,pgc,result,offset,n);
-
-    	// sediment parameters 1
-	if(p->P77==1)
-	psed->offset_vtu_parameter1(p,pgc,result,offset,n);
-
-    	// sediment parameters 2
-	if(p->P78==1)
-	psed->offset_vtu_parameter2(p,pgc,result,offset,n);
-
-		// bed shear stress
-	if(p->P79>=1)
-	psed->offset_vtu_bedshear(p,pgc,result,offset,n);
-
-    // test
-    if(p->P23==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-		// elevation
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-
-    if(p->P25==1)
-	{
-		// solid
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-
-	if(p->P28==1)
-	{
-		// floating
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-
-	if(p->P29==1)
-	{
-		// walldist
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-		// end scalars
-
-	// Points
-    offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
-    ++n;
-
-	// Cells
-    offset[n]=offset[n-1] + 4*p->tpcellnum*8 + 4;
-    ++n;
-    offset[n]=offset[n-1] + 4*(p->tpcellnum) + 4;
-    ++n;
-	offset[n]=offset[n-1] + 4*(p->tpcellnum) + 4;
-    ++n;
-	//---------------------------------------------
-
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">"<<endl;
-    
-    if(p->P16==1)
+    if(p->P10!=0)
     {
-	result<<"<FieldData>"<<endl;
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
+        pgc->start4a(p,a->test,1);
+        pgc->start1(p,a->u,110);
+        pgc->start2(p,a->v,111);
+        pgc->start3(p,a->w,112);    
+
+        pgc->gcparacox(p,a->phi,50);
+        pgc->gcparacox(p,a->phi,50);
+
+        pgc->gcparacox(p,a->topo,150);
+        pgc->gcparacox(p,a->topo,150);
+        
+        //pgc->start4a(p,a->topo,159);
+
+        pgc->gcperiodicx(p,a->press,4);
+
+        outputFormat->extent(p,pgc);
+        if(p->mpirank==0)
+        parallel(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+
+        int num=0;
+        if(p->P15==1)
+        num = p->printcount;
+        if(p->P15==2)
+        num = p->count;
+        outputFormat->fileName(name,"CFD",num,p->mpirank+1);
+
+        // Open File
+        ofstream result;
+        result.open(name, ios::binary);
+
+        n=0;
+
+        offset[n]=0;
+        ++n;
+
+        // velocity
+        offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
+        ++n;
+        
+        pmean->offset_vtu(p,a,pgc,result,offset,n);
+
+        // scalars
+
+            // pressure
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+
+            // k and eps
+        pturb->offset_vtu(p,a,pgc,result,offset,n);
+            // eddyv
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+            // phi
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+            // T
+        pheat->offset_vtu(p,a,pgc,result,offset,n);
+            // Multiphase
+        pmp->offset_vtu(p,a,pgc,result,offset,n);
+            // vorticity
+        pvort->offset_vtu(p,a,pgc,result,offset,n);
+            // data
+        pdata->offset_vtu(p,a,pgc,result,offset,n);
+            // concentration
+        pconc->offset_vtu(p,a,pgc,result,offset,n);
+            // rho
+        if(p->P24==1 && p->F300==0)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+            // viscosity
+        if(p->P71==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+        
+            // VOF
+        if(p->P72==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+
+            // Fi
+        if(p->A10==4)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+
+        if(p->P26==1)
+        {
+            // conc
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+            // topo
+        if(p->P27==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+        
+            // sediment bedlaod
+        if(p->P76==1)
+        psed->offset_vtu_bedload(p,pgc,result,offset,n);
+
+            // sediment parameters 1
+        if(p->P77==1)
+        psed->offset_vtu_parameter1(p,pgc,result,offset,n);
+
+            // sediment parameters 2
+        if(p->P78==1)
+        psed->offset_vtu_parameter2(p,pgc,result,offset,n);
+
+            // bed shear stress
+        if(p->P79>=1)
+        psed->offset_vtu_bedshear(p,pgc,result,offset,n);
+
+        // test
+        if(p->P23==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+            // elevation
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+
+        if(p->P25==1)
+        {
+            // solid
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+
+        if(p->P28==1)
+        {
+            // floating
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+
+        if(p->P29==1)
+        {
+            // walldist
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+            // end scalars
+
+        // Format specific structure
+        outputFormat->offset(p,offset,n);
+        //---------------------------------------------
+
+        outputFormat->beginning(p,result);
+
+        n=0;
+        result<<"<PointData >"<<endl;
+        result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        
+        pmean->name_vtu(p,a,pgc,result,offset,n);
+
+        result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+
+        pturb->name_vtu(p,a,pgc,result,offset,n);
+
+        result<<"<DataArray type=\"Float32\" Name=\"eddyv\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        result<<"<DataArray type=\"Float32\" Name=\"phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+
+        pheat->name_vtu(p,a,pgc,result,offset,n);
+        
+        pmp->name_vtu(p,a,pgc,result,offset,n);
+
+        pvort->name_vtu(p,a,pgc,result,offset,n);
+
+        pdata->name_vtu(p,a,pgc,result,offset,n);
+
+        pconc->name_vtu(p,a,pgc,result,offset,n);
+
+        if(p->P24==1 && p->F300==0)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"rho\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+        if(p->P71==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"viscosity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+        
+        if(p->P72==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"VOF\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+        if(p->A10==4)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"Fi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+        if(p->P26==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"ST_conc\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+        if(p->P27==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"topo\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+        
+        if(p->P76==1)
+        psed->name_vtu_bedload(p,pgc,result,offset,n);
+        
+        if(p->P77==1)
+        psed->name_vtu_parameter1(p,pgc,result,offset,n);
+
+        if(p->P78==1)
+        psed->name_vtu_parameter2(p,pgc,result,offset,n);
+
+        if(p->P79>=1)
+        psed->name_vtu_bedshear(p,pgc,result,offset,n);
+
+        if(p->P23==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+        result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+
+        if(p->P25==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+        if(p->P28==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"floating\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+        if(p->P29==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"walldist\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+        result<<"</PointData>"<<endl;
+
+        outputFormat->ending(result,offset,n);
+
+    //----------------------------------------------------------------------------
+        result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+
+
+    //  Velocities
+        iin=3*4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol1(a->u));
+        result.write((char*)&ffn, sizeof (float));
+
+        ffn=float(p->ipol2(a->v));
+        result.write((char*)&ffn, sizeof (float));
+
+        ffn=float(p->ipol3(a->w));
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+    //  time average flow parameters
+        pmean->print_3D(p,a,pgc,result);
+
+    //  Pressure
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4press(a->press)-p->pressgage);
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+    //  turbulence
+        pturb->print_3D(p,a,pgc,result);
+
+    //  eddyv
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4_a(a->eddyv));
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+    //  phi
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4phi(a,a->phi));
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+    //  T
+        pheat->print_3D(p,a,pgc,result);
+        
+    //  Multiphase
+        pmp->print_3D(p,a,pgc,result);
+
+    //  Vorticity
+        pvort->print_3D(p,a,pgc,result);
+
+    //  Data
+        pdata->print_3D(p,a,pgc,result);
+
+    //  Concentration
+        pconc->print_3D(p,a,pgc,result);
+
+    //  density
+        if(p->P24==1 && p->F300==0)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4_a(a->ro));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+
+    //  viscosity
+        if(p->P71==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4(a->visc));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+        
+    //  VOF
+        if(p->P72==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4(a->vof));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+
+    //  Fi
+        if(p->A10==4)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4press(a->Fi));
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+        }
+
+        if(p->P26==1)
+        {
+    //  conc
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4(a->conc));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+
+        if(p->P27==1)
+        {
+    //  topo
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4_a(a->topo));
+        //ffn = float(-a->bed(i,j)+p->ZN[KP1]);
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+        
+    //  sediment bedload
+        if(p->P76==1)
+        psed->print_3D_bedload(p,pgc,result);
+        
+    //  sediment parameter 1
+        if(p->P77==1)
+        psed->print_3D_parameter1(p,pgc,result);
+
+    //  sediment parameter 2
+        if(p->P78==1)
+        psed->print_3D_parameter2(p,pgc,result);
+
+    //  bed shear stress
+        if(p->P79>=1)
+        psed->print_3D_bedshear(p,pgc,result);
+
+    //  test
+        if(p->P23==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4_a(a->test));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+
+    //  elevation
+        iin=4*(p->pointnum)*3;
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->pos_z()+0.5*p->DZN[KP]);
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+        if(p->P25==1)
+        {
+    //  solid
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4_a(a->solid));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+
+        if(p->P28==1)
+        {
+    //  floating
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4_a(a->fb));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+
+        if(p->P29==1)
+        {
+    //  walldist
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ipol4_a(a->walld));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+
+        // -----------------------
+        outputFormat->structureWrite(p,a,result);
+
+        result.close();
+
+        ++p->printcount;
+
+        pgc->start1(p,a->u,114);
+        pgc->start2(p,a->v,115);
+        pgc->start3(p,a->w,116);
+
+        pgc->start4a(p,a->topo,150);
     }
-
-    n=0;
-    result<<"<PointData >"<<endl;
-    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    
-    pmean->name_vtu(p,a,pgc,result,offset,n);
-
-    result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-
-    pturb->name_vtu(p,a,pgc,result,offset,n);
-
-    result<<"<DataArray type=\"Float32\" Name=\"eddyv\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-
-    pheat->name_vtu(p,a,pgc,result,offset,n);
-    
-    pmp->name_vtu(p,a,pgc,result,offset,n);
-
-    pvort->name_vtu(p,a,pgc,result,offset,n);
-
-	pdata->name_vtu(p,a,pgc,result,offset,n);
-
-	pconc->name_vtu(p,a,pgc,result,offset,n);
-
-    if(p->P24==1 && p->F300==0)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"rho\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-    if(p->P71==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"viscosity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-    
-    if(p->P72==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"VOF\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-    if(p->A10==4)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"Fi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-	if(p->P26==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"ST_conc\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-	if(p->P27==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"topo\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-    
-    if(p->P76==1)
-	psed->name_vtu_bedload(p,pgc,result,offset,n);
-    
-    if(p->P77==1)
-	psed->name_vtu_parameter1(p,pgc,result,offset,n);
-
-    if(p->P78==1)
-	psed->name_vtu_parameter2(p,pgc,result,offset,n);
-
-	if(p->P79>=1)
-	psed->name_vtu_bedshear(p,pgc,result,offset,n);
-
-    if(p->P23==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-    result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-
-    if(p->P25==1)
-	{
-	result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-	if(p->P28==1)
-	{
-	result<<"<DataArray type=\"Float32\" Name=\"floating\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-	if(p->P29==1)
-	{
-	result<<"<DataArray type=\"Float32\" Name=\"walldist\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-    result<<"</PointData>"<<endl;
-
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"</Points>"<<endl;
-
-    result<<"<Cells>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"</Cells>"<<endl;
-
-    result<<"</Piece>"<<endl;
-    result<<"</UnstructuredGrid>"<<endl;
-
-//----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
-
-
-//  Velocities
-    iin=3*4*(p->pointnum);
-	result.write((char*)&iin, sizeof (int));
-    TPLOOP
-	{
-	ffn=float(p->ipol1(a->u));
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ipol2(a->v));
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->ipol3(a->w));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  time average flow parameters
-    pmean->print_3D(p,a,pgc,result);
-
-//  Pressure
-	iin=4*(p->pointnum);
-	result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4press(a->press)-p->pressgage);
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  turbulence
-    pturb->print_3D(p,a,pgc,result);
-
-//  eddyv
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(a->eddyv));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  phi
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4phi(a,a->phi));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  T
-    pheat->print_3D(p,a,pgc,result);
-    
-//  Multiphase
-    pmp->print_3D(p,a,pgc,result);
-
-//  Vorticity
-    pvort->print_3D(p,a,pgc,result);
-
-//  Data
-    pdata->print_3D(p,a,pgc,result);
-
-//  Concentration
-    pconc->print_3D(p,a,pgc,result);
-
-//  density
-    if(p->P24==1 && p->F300==0)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(a->ro));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-//  viscosity
-    if(p->P71==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4(a->visc));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-    
-//  VOF
-    if(p->P72==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4(a->vof));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-//  Fi
-    if(p->A10==4)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4press(a->Fi));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	}
-
-	if(p->P26==1)
-	{
-//  conc
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4(a->conc));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-	if(p->P27==1)
-	{
-//  topo
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-    ffn=float(p->ipol4_a(a->topo));
-    //ffn = float(-a->bed(i,j)+p->ZN[KP1]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-    
-//  sediment bedload
-	if(p->P76==1)
-    psed->print_3D_bedload(p,pgc,result);
-    
-//  sediment parameter 1
-	if(p->P77==1)
-    psed->print_3D_parameter1(p,pgc,result);
-
-//  sediment parameter 2
-	if(p->P78==1)
-    psed->print_3D_parameter2(p,pgc,result);
-
-//  bed shear stress
-	if(p->P79>=1)
-    psed->print_3D_bedshear(p,pgc,result);
-
-//  test
-    if(p->P23==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(a->test));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-//  elevation
-	iin=4*(p->pointnum)*3;
-	result.write((char*)&iin, sizeof (int));
-    TPLOOP
-	{
-	ffn=float(p->pos_z()+0.5*p->DZN[KP]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-	if(p->P25==1)
-	{
-//  solid
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(a->solid));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-	if(p->P28==1)
-	{
-//  floating
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(a->fb));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-	if(p->P29==1)
-	{
-//  walldist
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(a->walld));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-
-//  XYZ
-	double theta_y = p->B192_1*(PI/180.0);
-	double omega_y = 2.0*PI*p->B192_2;
-
-    if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
-    phase = omega_y*p->simtime;
-
-
-	iin=4*(p->pointnum)*3;
-	result.write((char*)&iin, sizeof (int));
-    TPLOOP
-	{
- 
-    zcoor=p->ZN[KP1];
-
-    ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3 
-                + p->B181_1*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3));
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->YN[JP1]) + p->B182_1*sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3);
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4
-                + p->B183_1*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  Connectivity
-    iin=4*(p->tpcellnum)*8;
-    result.write((char*)&iin, sizeof (int));
-    BASEREVLOOP
-    if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
-	{
-	iin=int(a->nodeval(i-1,j-1,k-1)-1);
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i,j-1,k-1))-1;
-	result.write((char*)&iin, sizeof (int));
-
-    iin= int(a->nodeval(i,j,k-1))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i-1,j,k-1))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i-1,j-1,k))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i,j-1,k))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i,j,k))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i-1,j,k))-1;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-//  Offset of Connectivity
-    iin=4*(p->tpcellnum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->tpcellnum;++n)
-	{
-	iin=(n+1)*8;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-
-//  Cell types
-    iin=4*(p->tpcellnum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->tpcellnum;++n)
-	{
-	iin=12;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
-
-	result.close();
-
-	++p->printcount;
-
-	pgc->start1(p,a->u,114);
-    pgc->start2(p,a->v,115);
-	pgc->start3(p,a->w,116);
-
-    pgc->start4a(p,a->topo,150);
 }
