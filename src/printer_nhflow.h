@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"nhflow_printer.h"
 #include"increment.h"
 
+#include"vtks.h"
+
 class fdm_nhf;
 class ioflow;
 class sediment;
@@ -56,14 +58,14 @@ class printer_nhflow : public nhflow_printer, public increment
 public:
 	printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~printer_nhflow();
-	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
-    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
+	void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
+    void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
+    void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
     
 private:
-    void pvtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
-    void name_iter(lexer*);
-    void piecename(lexer*,ghostcell*, int);
+    void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
+
+    vtk3D *outputFormat;
 
     char name[200],pname[200];
     int n,iin,offset[200];

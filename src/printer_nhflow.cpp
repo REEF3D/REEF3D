@@ -48,6 +48,19 @@ Author: Hans Bihs
 
 printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {	
+    switch (p->P10)
+    {
+        case 0: case 2:
+            outputFormat = new vtk3D();
+            break;
+        case 1: default:
+            outputFormat = new vtu3D();
+            break;
+        case 3:
+            outputFormat = new vts3D();
+            break;
+    }
+
     if(p->I40==0)
     {
 	p->printtime=0.0;
@@ -79,7 +92,7 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
 	// Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_NHFLOW_VTU",0777);
+	outputFormat->folder("NHFLOW");
     
     pwsf=new nhflow_print_wsf(p,d);
 
@@ -165,75 +178,75 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     
     pfsf->preproc(p,d,pgc);
 
-		// Print out based on iteration
-        if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
-		{
-        print_vtu(p,d,pgc,pnhfturb,psed);
-		}
+    // Print out based on iteration
+    if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
+    {
+    print_vtu(p,d,pgc,pnhfturb,psed);
+    }
 
-		// Print out based on time
-        if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
-        {
-        print_vtu(p,d,pgc,pnhfturb,psed);
-        
-        p->printtime+=p->P30;
-        }
+    // Print out based on time
+    if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0) || (p->count==0 &&  p->P30>0.0))
+    {
+    print_vtu(p,d,pgc,pnhfturb,psed);
+    
+    p->printtime+=p->P30;
+    }
 
-		// Print out based on time interval
-		if(p->P10==1 && p->P35>0)
-		for(int qn=0; qn<p->P35; ++qn)
-		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
-		{
-		print_vtu(p,d,pgc,pnhfturb,psed);
+    // Print out based on time interval
+    if(p->P35>0)
+    for(int qn=0; qn<p->P35; ++qn)
+    if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+    {
+    print_vtu(p,d,pgc,pnhfturb,psed);
 
-		printtime_wT[qn]+=p->P35_dt[qn];
-		}
+    printtime_wT[qn]+=p->P35_dt[qn];
+    }
 
-        // Print FSF
-		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
-        {
-		pfsf->start(p,d,pgc,psed);
-        
-        if(p->S10>0)
-        pbed->start(p,d,pgc,psed);
-        }
+    // Print FSF
+    if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
+    {
+    pfsf->start(p,d,pgc,psed);
+    
+    if(p->S10>0)
+    pbed->start(p,d,pgc,psed);
+    }
 
 
-		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
-        {
-        pfsf->start(p,d,pgc,psed);
-        
-        if(p->S10>0)
-        pbed->start(p,d,pgc,psed);
-        
-        p->fsfprinttime+=p->P182;
-        }
+    if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
+    {
+    pfsf->start(p,d,pgc,psed);
+    
+    if(p->S10>0)
+    pbed->start(p,d,pgc,psed);
+    
+    p->fsfprinttime+=p->P182;
+    }
 
-        if(p->P180==1 && p->P184>0)
-		for(int qn=0; qn<p->P184; ++qn)
-		if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
-		{
-		pfsf->start(p,d,pgc,psed);
-        
-        if(p->S10>0)
-        pbed->start(p,d,pgc,psed);
-		}
+    if(p->P180==1 && p->P184>0)
+    for(int qn=0; qn<p->P184; ++qn)
+    if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
+    {
+    pfsf->start(p,d,pgc,psed);
+    
+    if(p->S10>0)
+    pbed->start(p,d,pgc,psed);
+    }
 
-         if(p->P180==1 && p->P185>0)
-		for(int qn=0; qn<p->P185; ++qn)
-		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
-		{
-		pfsf->start(p,d,pgc,psed);
-        
-        if(p->S10>0)
-        pbed->start(p,d,pgc,psed);
+    if(p->P180==1 && p->P185>0)
+    for(int qn=0; qn<p->P185; ++qn)
+    if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+    {
+    pfsf->start(p,d,pgc,psed);
+    
+    if(p->S10>0)
+    pbed->start(p,d,pgc,psed);
 
-		printfsftime_wT[qn]+=p->P185_dt[qn];
-		}
+    printfsftime_wT[qn]+=p->P185_dt[qn];
+    }
 
-        // Print BED
-        if(p->count==0 && p->S10==0)
-		pbed->start(p,d,pgc,psed);
+    // Print BED
+    if(p->count==0 && p->S10==0)
+    pbed->start(p,d,pgc,psed);
 
 
     // Gages
@@ -245,7 +258,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
 
 
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
+    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
     {
     pstate->write(p,d,pgc);
     }
@@ -304,492 +317,392 @@ void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pf
 
 void printer_nhflow::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
-    /*
-    - U, V, W
-    - P
-    - test
-    - breaking
-    */
-    
-    SLICELOOP4
+    if(p->P10==1||p->P10==3)
     {
-    if(d->breaking(i,j)==1)
-    d->breaking_print(i,j)=1.0;
-
-    if(d->breaking(i,j)==0)
-    d->breaking_print(i,j)=0.0;
-    }
-    
-    //
-    //pgc->gcsl_start4(p,d->WL,50);
-    pgc->gcsl_start4(p,d->bed,50);
-    pgc->gcsl_start4(p,d->breaking_print,50);
-    pgc->start4V(p,d->test,50);
-    //pgc->start4(p,d->test,1);
-    
-    pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,d->bed,p->dgcsl4,p->dgcsl4_count,14);
-
-    d->WL.ggcpol(p);
-    d->breaking_print.ggcpol(p);
-
-    i=-1;
-    j=-1;
-    if(i+p->origin_i==-1 && j+p->origin_j==-1 )
-    d->WL(i,j) = d->WL(i+1,j+1);
-
-
-    //----------
-
-    if(p->mpirank==0)
-    pvtu(p,d,pgc,pnhfturb,psed);
-
-    name_iter(p);
-
-	// Open File
-	ofstream result;
-	result.open(name, ios::binary);
-
-    n=0;
-
-	offset[n]=0;
-	++n;
-
-	// velocity
-	offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
-	++n;
-
-	// scalars
-
-    // P
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-    
-    // k and eps
-    pnhfturb->offset_vtu(p,d,pgc,result,offset,n);
-    
-    // omega_sig
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-
-    // elevation
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-    
-    // test
-    if(p->P23==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    // Hs
-    if(p->P110==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    
-    // solid
-    if(p->P25==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-    }
-    
-    if(p->P25==1 || p->P28==1)  
-	{
-    offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    
-    // floating
-    if(p->P28==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-
-	// Points
-    offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
-    ++n;
-
-	// Cells
-    offset[n]=offset[n-1] + 4*p->tpcellnum*8  + 4;
-    ++n;
-    offset[n]=offset[n-1] + 4*(p->tpcellnum)+4;
-    ++n;
-	offset[n]=offset[n-1] + 4*(p->tpcellnum)+4;
-    ++n;
-	//---------------------------------------------
-
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">"<<endl;
-    
-    if(p->P16==1)
-    {
-    result<<"<FieldData>"<<endl;
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
-    }
-
-    n=0;
-    result<<"<PointData >"<<endl;
-    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-
-
-    result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    
-    pnhfturb->name_vtu(p,d,pgc,result,offset,n);
-    
-    result<<"<DataArray type=\"Float32\" Name=\"omega_sig\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-
-
-    result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    
-    if(p->P23==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-    
-    if(p->P110==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-
-
-    if(p->P25==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    }
-    
-    if(p->P25==1 || p->P28==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"Heaviside\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-    
-    if(p->P28==1)
-	{
-    result<<"<DataArray type=\"Float32\" Name=\"floating\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	}
-	
-	result<<"</PointData>"<<endl;
-
-
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"</Points>"<<endl;
-
-    result<<"<Cells>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"</Cells>"<<endl;
-
-    result<<"</Piece>"<<endl;
-    result<<"</UnstructuredGrid>"<<endl;
-
-//----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
-
-//  Velocities
-    iin=3*4*(p->pointnum);
-	result.write((char*)&iin, sizeof (int));
-    TPLOOP
-	{
-    if(p->j_dir==0)
-    {
-    jj=j;
-    j=0;
-	ffn=float(0.25*(d->U[IJK]+d->U[Ip1JK]+d->U[IJKp1]+d->U[Ip1JKp1]));
-    j=jj;
-    }
-    
-    if(p->j_dir==1)
-    ffn=float(0.125*(d->U[IJK]+d->U[Ip1JK]+d->U[IJp1K]+d->U[Ip1Jp1K]
-                  +  d->U[IJKp1]+d->U[Ip1JKp1]+d->U[IJp1Kp1]+d->U[Ip1Jp1Kp1]));
-    
-	result.write((char*)&ffn, sizeof (float));
-
-
-	if(p->j_dir==0)
-    {
-    jj=j;
-    j=0;
-	ffn=float(0.25*(d->V[IJK]+d->V[Ip1JK]+d->V[IJKp1]+d->V[Ip1JKp1]));
-    j=jj;
-    }
-    
-    if(p->j_dir==1)
-    ffn=float(0.125*(d->V[IJK]+d->V[Ip1JK]+d->V[IJp1K]+d->V[Ip1Jp1K]
-                  +  d->V[IJKp1]+d->V[Ip1JKp1]+d->V[IJp1Kp1]+d->V[Ip1Jp1Kp1]));
-    
-	result.write((char*)&ffn, sizeof (float));
-
-
-	if(p->j_dir==0)
-    {
-    jj=j;
-    j=0;
-	ffn=float(0.25*(d->W[IJK]+d->W[Ip1JK]+d->W[IJKp1]+d->W[Ip1JKp1]));
-    j=jj;
-    }
-    
-    if(p->j_dir==1)
-    ffn=float(0.125*(d->W[IJK]+d->W[Ip1JK]+d->W[IJp1K]+d->W[Ip1Jp1K]
-                  +  d->W[IJKp1]+d->W[Ip1JKp1]+d->W[IJp1Kp1]+d->W[Ip1Jp1Kp1]));
-    
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  P
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-     if(p->j_dir==0)
-     {
-     jj=j;
-     j=0;
-     ffn=float(0.5*(d->P[FIJKp1]+d->P[FIm1JKp1]));
-     j=jj;
-     }
+        /*
+        - U, V, W
+        - P
+        - test
+        - breaking
+        */
         
-    if(p->j_dir==1)
-    ffn=float(0.25*(d->P[FIJKp1]+d->P[FIm1JKp1] + d->P[FIJm1Kp1]+d->P[FIm1Jm1Kp1]));
+        SLICELOOP4
+        {
+        if(d->breaking(i,j)==1)
+        d->breaking_print(i,j)=1.0;
 
-	result.write((char*)&ffn, sizeof (float));
-	}
- 
-//  kin and eps
-    pnhfturb->print_3D(p,d,pgc,result);
+        if(d->breaking(i,j)==0)
+        d->breaking_print(i,j)=0.0;
+        }
+        
+        //
+        //pgc->gcsl_start4(p,d->WL,50);
+        pgc->gcsl_start4(p,d->bed,50);
+        pgc->gcsl_start4(p,d->breaking_print,50);
+        pgc->start4V(p,d->test,50);
+        //pgc->start4(p,d->test,1);
+        
+        pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
+        pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
+        pgc->dgcslpol(p,d->bed,p->dgcsl4,p->dgcsl4_count,14);
+
+        d->WL.ggcpol(p);
+        d->breaking_print.ggcpol(p);
+
+        i=-1;
+        j=-1;
+        if(i+p->origin_i==-1 && j+p->origin_j==-1 )
+        d->WL(i,j) = d->WL(i+1,j+1);
+
+
+        //----------
+
+        outputFormat->extent(p,pgc);
+        if(p->mpirank==0)
+        parallel(p,d,pgc,pnhfturb,psed);
+
+        int num=0;
+        if(p->P15==1)
+        num = printcount;
+        if(p->P15==2)
+        num = p->count;
+        outputFormat->fileName(name,"NHFLOW",num,p->mpirank+1);
+
+        // Open File
+        ofstream result;
+        result.open(name, ios::binary);
+
+        n=0;
+
+        offset[n]=0;
+        ++n;
+
+        // velocity
+        offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
+        ++n;
+
+        // scalars
+
+        // P
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        
+        // k and eps
+        pnhfturb->offset_vtu(p,d,pgc,result,offset,n);
+        
+        // omega_sig
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+
+        // elevation
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        
+        // test
+        if(p->P23==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+        // Hs
+        if(p->P110==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+        
+        // solid
+        if(p->P25==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+        
+        if(p->P25==1 || p->P28==1)  
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+        
+        // floating
+        if(p->P28==1)
+        {
+        offset[n]=offset[n-1]+4*(p->pointnum)+4;
+        ++n;
+        }
+
+        // Format specific structure
+        outputFormat->offset(p,offset,n);
+        //---------------------------------------------
+        outputFormat->beginning(p,result);
+
+        n=0;
+        result<<"<PointData >"<<endl;
+        result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+
+
+        result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        
+        pnhfturb->name_vtu(p,d,pgc,result,offset,n);
+        
+        result<<"<DataArray type=\"Float32\" Name=\"omega_sig\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+
+
+        result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        
+        if(p->P23==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+        
+        if(p->P110==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+
+
+        if(p->P25==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+        
+        if(p->P25==1 || p->P28==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"Heaviside\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+        
+        if(p->P28==1)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\"floating\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        ++n;
+        }
+        
+        result<<"</PointData>"<<endl;
+
+
+        outputFormat->ending(result,offset,n);
+
+    //----------------------------------------------------------------------------
+        result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+
+    //  Velocities
+        iin=3*4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(0.25*(d->U[IJK]+d->U[Ip1JK]+d->U[IJKp1]+d->U[Ip1JKp1]));
+        j=jj;
+        }
+        
+        if(p->j_dir==1)
+        ffn=float(0.125*(d->U[IJK]+d->U[Ip1JK]+d->U[IJp1K]+d->U[Ip1Jp1K]
+                    +  d->U[IJKp1]+d->U[Ip1JKp1]+d->U[IJp1Kp1]+d->U[Ip1Jp1Kp1]));
+        
+        result.write((char*)&ffn, sizeof (float));
+
+
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(0.25*(d->V[IJK]+d->V[Ip1JK]+d->V[IJKp1]+d->V[Ip1JKp1]));
+        j=jj;
+        }
+        
+        if(p->j_dir==1)
+        ffn=float(0.125*(d->V[IJK]+d->V[Ip1JK]+d->V[IJp1K]+d->V[Ip1Jp1K]
+                    +  d->V[IJKp1]+d->V[Ip1JKp1]+d->V[IJp1Kp1]+d->V[Ip1Jp1Kp1]));
+        
+        result.write((char*)&ffn, sizeof (float));
+
+
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(0.25*(d->W[IJK]+d->W[Ip1JK]+d->W[IJKp1]+d->W[Ip1JKp1]));
+        j=jj;
+        }
+        
+        if(p->j_dir==1)
+        ffn=float(0.125*(d->W[IJK]+d->W[Ip1JK]+d->W[IJp1K]+d->W[Ip1Jp1K]
+                    +  d->W[IJKp1]+d->W[Ip1JKp1]+d->W[IJp1Kp1]+d->W[Ip1Jp1Kp1]));
+        
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+    //  P
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(0.5*(d->P[FIJKp1]+d->P[FIm1JKp1]));
+        j=jj;
+        }
+            
+        if(p->j_dir==1)
+        ffn=float(0.25*(d->P[FIJKp1]+d->P[FIm1JKp1] + d->P[FIJm1Kp1]+d->P[FIm1Jm1Kp1]));
+
+        result.write((char*)&ffn, sizeof (float));
+        }
     
-//  Omega_sig
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-    if(p->j_dir==0)
-    {
-    jj=j;
-    j=0;
-	ffn=float((d->omegaF[FIJKp1]));
-    j=jj;
+    //  kin and eps
+        pnhfturb->print_3D(p,d,pgc,result);
+        
+    //  Omega_sig
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float((d->omegaF[FIJKp1]));
+        j=jj;
+        }
+
+        if(p->j_dir==1)
+        ffn=float(0.5*(d->omegaF[FIJKp1]+d->omegaF[FIJp1Kp1]));
+        
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+    //  elevation
+        iin=4*(p->pointnum)*3;
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->ZN[KP1]*d->WL(i,j) + d->bed(i,j));
+        result.write((char*)&ffn, sizeof (float));
+        }
+
+    //  test
+        if(p->P23==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(0.25*(d->test[IJK]+d->test[Ip1JK]+d->test[IJKp1]+d->test[Ip1JKp1]));
+        j=jj;
+        }
+        
+        if(p->j_dir==1)
+        ffn=float(0.125*(d->test[IJK]+d->test[Ip1JK]+d->test[IJp1K]+d->test[Ip1Jp1K]
+                    +  d->test[IJKp1]+d->test[Ip1JKp1]+d->test[IJp1Kp1]+d->test[Ip1Jp1Kp1]));
+                    
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+        
+    //  Hs
+        if(p->P110==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        ffn=float(p->sl_ipol4(d->Hs));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+        
+    //  solid
+        if(p->P25==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(0.25*(d->SOLID[IJK]+d->SOLID[Ip1JK]+d->SOLID[IJKp1]+d->SOLID[Ip1JKp1]));
+        j=jj;
+        }
+        
+        if(p->j_dir==1)
+        ffn=float(0.125*(d->SOLID[IJK]+d->SOLID[Ip1JK]+d->SOLID[IJp1K]+d->SOLID[Ip1Jp1K]
+                    +  d->SOLID[IJKp1]+d->SOLID[Ip1JKp1]+d->SOLID[IJp1Kp1]+d->SOLID[Ip1Jp1Kp1]));
+        
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+        
+        if(p->P25==1 || p->P28==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(0.25*(d->FHB[IJK]+d->FHB[Ip1JK]+d->FHB[IJKp1]+d->FHB[Ip1JKp1]));
+        j=jj;
+        }
+        
+        if(p->j_dir==1)
+        ffn=float(0.125*(d->FHB[IJK]+d->FHB[Ip1JK]+d->FHB[IJp1K]+d->FHB[Ip1Jp1K]
+                    +  d->FHB[IJKp1]+d->FHB[Ip1JKp1]+d->FHB[IJp1Kp1]+d->FHB[Ip1Jp1Kp1]));
+        
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
+        
+    //  floating
+        if(p->P28==1)
+        {
+        iin=4*(p->pointnum);
+        result.write((char*)&iin, sizeof (int));
+        TPLOOP
+        {
+        if(p->j_dir==0)
+        {
+        jj=j;
+        j=0;
+        ffn=float(0.25*(d->FB[IJK]+d->FB[Ip1JK]+d->FB[IJKp1]+d->FB[Ip1JKp1]));
+        j=jj;
+        }
+        
+        if(p->j_dir==1)
+        ffn=float(0.125*(d->FB[IJK]+d->FB[Ip1JK]+d->FB[IJp1K]+d->FB[Ip1Jp1K]
+                    +  d->FB[IJKp1]+d->FB[Ip1JKp1]+d->FB[IJp1Kp1]+d->FB[Ip1Jp1Kp1]));
+        
+        result.write((char*)&ffn, sizeof (float));
+        }
+        
+        }
+
+        // -----------------------
+
+        outputFormat->structureWrite(p,d,result);
+
+        result.close();
+
+        ++printcount;
     }
-
-    if(p->j_dir==1)
-	ffn=float(0.5*(d->omegaF[FIJKp1]+d->omegaF[FIJp1Kp1]));
-    
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  elevation
-	iin=4*(p->pointnum)*3;
-	result.write((char*)&iin, sizeof (int));
-    TPLOOP
-	{
-	ffn=float(p->ZN[KP1]*d->WL(i,j) + d->bed(i,j));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  test
-    if(p->P23==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	if(p->j_dir==0)
-    {
-    jj=j;
-    j=0;
-	ffn=float(0.25*(d->test[IJK]+d->test[Ip1JK]+d->test[IJKp1]+d->test[Ip1JKp1]));
-    j=jj;
-    }
-    
-    if(p->j_dir==1)
-    ffn=float(0.125*(d->test[IJK]+d->test[Ip1JK]+d->test[IJp1K]+d->test[Ip1Jp1K]
-                  +  d->test[IJKp1]+d->test[Ip1JKp1]+d->test[IJp1Kp1]+d->test[Ip1Jp1Kp1]));
-                  
-    result.write((char*)&ffn, sizeof (float));
-	}
-	}
-    
-//  Hs
-    if(p->P110==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->sl_ipol4(d->Hs));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-    
-//  solid
-    if(p->P25==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	if(p->j_dir==0)
-    {
-    jj=j;
-    j=0;
-	ffn=float(0.25*(d->SOLID[IJK]+d->SOLID[Ip1JK]+d->SOLID[IJKp1]+d->SOLID[Ip1JKp1]));
-    j=jj;
-    }
-    
-    if(p->j_dir==1)
-    ffn=float(0.125*(d->SOLID[IJK]+d->SOLID[Ip1JK]+d->SOLID[IJp1K]+d->SOLID[Ip1Jp1K]
-                  +  d->SOLID[IJKp1]+d->SOLID[Ip1JKp1]+d->SOLID[IJp1Kp1]+d->SOLID[Ip1Jp1Kp1]));
-    
-	result.write((char*)&ffn, sizeof (float));
-    }
-    }
-    
-    if(p->P25==1 || p->P28==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	if(p->j_dir==0)
-    {
-    jj=j;
-    j=0;
-	ffn=float(0.25*(d->FHB[IJK]+d->FHB[Ip1JK]+d->FHB[IJKp1]+d->FHB[Ip1JKp1]));
-    j=jj;
-    }
-    
-    if(p->j_dir==1)
-	ffn=float(0.125*(d->FHB[IJK]+d->FHB[Ip1JK]+d->FHB[IJp1K]+d->FHB[Ip1Jp1K]
-                  +  d->FHB[IJKp1]+d->FHB[Ip1JKp1]+d->FHB[IJp1Kp1]+d->FHB[Ip1Jp1Kp1]));
-    
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
-    
-//  floating
-    if(p->P28==1)
-	{
-    iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	if(p->j_dir==0)
-    {
-    jj=j;
-    j=0;
-	ffn=float(0.25*(d->FB[IJK]+d->FB[Ip1JK]+d->FB[IJKp1]+d->FB[Ip1JKp1]));
-    j=jj;
-    }
-    
-    if(p->j_dir==1)
-    ffn=float(0.125*(d->FB[IJK]+d->FB[Ip1JK]+d->FB[IJp1K]+d->FB[Ip1Jp1K]
-                  +  d->FB[IJKp1]+d->FB[Ip1JKp1]+d->FB[IJp1Kp1]+d->FB[Ip1Jp1Kp1]));
-    
-	result.write((char*)&ffn, sizeof (float));
-    }
-    
-	}
-
-//  XYZ
-	iin=4*(p->pointnum)*3;
-	result.write((char*)&iin, sizeof (int));
-    TPLOOP
-	{
-    zcoor = p->ZN[KP1]*p->sl_ipol4(d->WL) + p->sl_ipol4(d->bed);
-
-    if(p->wet[IJ]==0)
-    zcoor=p->sl_ipol4(d->bed);
-    
-    if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
-    zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
-
-    // -- 
-    ffn=float(p->XN[IP1]);
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->YN[JP1]);
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(zcoor);
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-//  Connectivity
-    iin=4*(p->tpcellnum)*8;
-    result.write((char*)&iin, sizeof (int));
-    BASELOOP
-    if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
-	{
-    iin=int(d->NODEVAL[Im1Jm1Km1])-1;
-	result.write((char*)&iin, sizeof (int));
-
-    iin=int(d->NODEVAL[IJm1Km1])-1;
-	result.write((char*)&iin, sizeof (int));
-
-    iin= int(d->NODEVAL[IJKm1])-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(d->NODEVAL[Im1JKm1])-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(d->NODEVAL[Im1Jm1K])-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(d->NODEVAL[IJm1K])-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(d->NODEVAL[IJK])-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(d->NODEVAL[Im1JK])-1;
-	result.write((char*)&iin, sizeof (int));
-	}
-    
-//  Offset of Connectivity
-    iin=4*(p->tpcellnum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->tpcellnum;++n)
-	{
-	iin=(n+1)*8;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-//  Cell types
-    iin=4*(p->tpcellnum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->tpcellnum;++n)
-	{
-	iin=12;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
-
-	result.close();
-
-	++printcount;
-
 }
