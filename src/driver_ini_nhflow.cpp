@@ -114,7 +114,7 @@ void driver::driver_ini_nhflow()
     //pnhfmom->inidisc(p,d,pgc,pnhfsf);
     
     // potential ini
-    pnhfpot->start(p,d,psolv,pgc);
+    pnhfpot->start(p,d,ppoissonsolv,pgc);
     
     // turbulence ini
     pnhfturb->ini(p, d, pgc);

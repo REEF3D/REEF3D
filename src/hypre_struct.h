@@ -51,6 +51,7 @@ public:
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver4f(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     void start_solver4V(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver44V(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, int);
     void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);

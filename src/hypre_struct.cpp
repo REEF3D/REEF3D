@@ -109,8 +109,11 @@ void hypre_struct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_
 
 void hypre_struct::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
-    //if(var==4)
+    if(var==4)
     start_solver4V(p,pgc,f,rhs,M,var); 
+    
+    if(var==44)
+    start_solver44V(p,pgc,f,rhs,M,var); 
 }
 
 void hypre_struct::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
@@ -225,6 +228,31 @@ void hypre_struct::start_solver4V(lexer* p, ghostcell* pgc, double *f, vec& rhs,
     fillbackvec4V(p,f,var);
 	
 	delete_solver5(p,pgc);
+    
+    precon_switch(p,pgc);
+}
+
+void hypre_struct::start_solver44V(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+{
+    numiter=0;
+	p->solveriter=0;
+	
+    create_solver44(p,pgc);
+    
+    if(p->j_dir==1)
+    fill_matrix4V(p,pgc,f,rhs,M);
+    
+    if(p->j_dir==0)
+    fill_matrix4V_2D(p,pgc,f,rhs,M);
+
+    solve44(p);
+
+	p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+        
+    fillbackvec4V(p,f,var);
+	
+	delete_solver44(p,pgc);
     
     precon_switch(p,pgc);
 }
