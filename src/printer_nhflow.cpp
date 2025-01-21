@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_vtu3D.h"
+#include"printer_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -46,7 +46,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
+printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {	
     if(p->I40==0)
     {
@@ -135,11 +135,11 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
 }
 
-nhflow_vtu3D::~nhflow_vtu3D()
+printer_nhflow::~printer_nhflow()
 {
 }
 
-void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
+void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     // Gages
 	if(p->P51>0)
@@ -290,7 +290,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     pbedshearmax->bedshear_maxval(p,pgc,psed);
 }
 
-void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
+void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     print_vtu(p,d,pgc,pnhfturb,psed);
     
@@ -302,7 +302,7 @@ void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflo
     
 }
 
-void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
+void printer_nhflow::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     /*
     - U, V, W
@@ -345,7 +345,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     if(p->mpirank==0)
     pvtu(p,d,pgc,pnhfturb,psed);
 
-    name_iter(p,pgc);
+    name_iter(p);
 
 	// Open File
 	ofstream result;

@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_VTU3D_H_
-#define NHFLOW_VTU3D_H_
+#ifndef PRINTER_NHFLOW_H_
+#define PRINTER_NHFLOW_H_
 
 #include"nhflow_printer.h"
 #include"increment.h"
@@ -50,23 +50,22 @@ class bedshear_max;
 
 using namespace std;
 
-class nhflow_vtu3D : public nhflow_printer, public increment
+class printer_nhflow : public nhflow_printer, public increment
 {
 
 public:
-	nhflow_vtu3D(lexer*,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_vtu3D();
+	printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
+	virtual ~printer_nhflow();
 	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
     virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
     virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
     
 private:
     void pvtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
-    void name_iter(lexer*,ghostcell*);
-    void name_time(lexer*,ghostcell*);
+    void name_iter(lexer*);
     void piecename(lexer*,ghostcell*, int);
 
-    char name[200],pname[200],epsvar[200];
+    char name[200],pname[200];
     int n,iin,offset[200];
     float ffn;
     int jj;

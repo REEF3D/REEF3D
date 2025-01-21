@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_vtu3D.h"
+#include"printer_nhflow.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment.h"
 #include"nhflow_turbulence.h"
 
-void nhflow_vtu3D::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
+void printer_nhflow::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {	
 	int num=0;
     
@@ -96,7 +96,7 @@ void nhflow_vtu3D::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence 
 	result.close();
 }
 
-void nhflow_vtu3D::piecename(lexer *p, ghostcell *pgc, int n)
+void printer_nhflow::piecename(lexer *p, ghostcell *pgc, int n)
 {
     int num=0;
 
@@ -107,4 +107,18 @@ void nhflow_vtu3D::piecename(lexer *p, ghostcell *pgc, int n)
     num = p->count;
 
 	sprintf(pname,"REEF3D-NHFLOW-%08i-%06i.vtu",num,n+1);
+}
+
+void printer_nhflow::name_iter(lexer *p)
+{	
+    int num=0;
+
+    if(p->P15==1)
+    num = printcount;
+
+    if(p->P15==2)
+    num = p->count;
+
+    
+    sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-%08i-%06i.vtu",num,p->mpirank+1);
 }

@@ -167,7 +167,7 @@ void driver::logic_nhflow()
     if(p->P10==2)
     pnhfprint = new nhflow_vts3D(p,d,pgc);
     else
-    pnhfprint = new nhflow_vtu3D(p,d,pgc);
+    pnhfprint = new printer_nhflow(p,d,pgc);
     
 //VRANS
     if(p->B269==0)
