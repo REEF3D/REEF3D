@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void printer_fnpf::pvtu(lexer *p, ghostcell* pgc)
+void printer_fnpf::parallel(lexer *p, ghostcell* pgc)
 {	
 	int num=0;
     
@@ -36,23 +36,13 @@ void printer_fnpf::pvtu(lexer *p, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 	
-	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-%08i.pvtu",num);
+	outputFormat->parallelFileName(name, "FNPF", num);
 
 
 	ofstream result;
 	result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
-	
-    if(p->P16==1)
-    {
-	result<<"<FieldData>"<<endl;
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
-    }
+	outputFormat->beginningParallel(p,result);
 	
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
@@ -66,54 +56,8 @@ void printer_fnpf::pvtu(lexer *p, ghostcell* pgc)
         result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
-    result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
-    
-	result<<"<Cells>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
-	result<<"</Cells>"<<endl;
-
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(p,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
-	}
-
-	result<<"</PUnstructuredGrid>"<<endl;
-	result<<"</VTKFile>"<<endl;
+    outputFormat->endingParallel(result,"FNPF",p->M10,num);
 
 	result.close();
-
-}
-
-void printer_fnpf::piecename(lexer *p, ghostcell *pgc, int n)
-{
-    int num=0;
-
-
-    if(p->P15==1)
-    num = printcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-	sprintf(pname,"REEF3D-FNPF-%08i-%06i.vtu",num,n+1);
-
-}
-
-void printer_fnpf::name_iter(lexer *p)
-{	
-    int num=0;
-
-    if(p->P15==1)
-    num = printcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-    sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-%08i-%06i.vtu",num,p->mpirank+1);
 
 }
