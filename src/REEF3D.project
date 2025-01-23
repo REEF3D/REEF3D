@@ -209,12 +209,12 @@
           <File Name="nhflow_forcing.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="SST"/>
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="LES">
             <File Name="nhflow_LES_Smagorinsky.h"/>
-            <File Name="nhflow_LES.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
             <File Name="nhflow_komega_func.h"/>
@@ -1352,12 +1352,12 @@
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="SST"/>
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="LES">
             <File Name="nhflow_LES_Smagorinsky.cpp"/>
-            <File Name="nhflow_LES.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
             <File Name="nhflow_komega_func.cpp"/>

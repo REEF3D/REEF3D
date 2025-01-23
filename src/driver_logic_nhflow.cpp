@@ -124,6 +124,9 @@ void driver::logic_nhflow()
         if(p->j_dir==0)
         pnhfturbdiff = new nhflow_idiff_2D(p);
     }
+    
+    if(p->A560==31)
+	pnhfturb = new nhflow_LES_Smagorinsky(p,d,pgc);
 
 //Solver
     if(p->j_dir==0)
