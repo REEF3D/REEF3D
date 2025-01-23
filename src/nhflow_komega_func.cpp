@@ -112,7 +112,7 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
                         
 		}
 	
-	if(p->T10==22)
+	if(p->A560==22)
 	LOOP
 	EV0[IJK] = MIN(EV0[IJK], p->DXM*p->cmu*pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
     
