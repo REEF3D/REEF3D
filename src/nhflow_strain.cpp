@@ -231,7 +231,7 @@ double nhflow_strain::strainterm(lexer *p, fdm_nhf *d)
 	s23 = 0.0;
     }
 
-    s = sqrt(s11*s11 + s22*s22 + s33*s33 + 0.5*s12*s12 + 0.5*s13*s13 + 0.5*s23*s23);
+    s = sqrt(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
     
 	return s;
 }
@@ -260,7 +260,7 @@ double nhflow_strain::strainterm(lexer *p, double *U, double *V, double *W)
 	s23 = 0.0;
     }
 
-    s = sqrt(s11*s11 + s22*s22 + s33*s33 + 0.5*s12*s12 + 0.5*s13*s13 + 0.5*s23*s23);
+    s = sqrt(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
 */
 	return s;
 }
@@ -289,7 +289,7 @@ double nhflow_strain::rotationterm(lexer *p, fdm_nhf *d)
 	r23 = 0.0;
     }
 
-    r = sqrt(r11*r11 + r22*r22 + r33*r33 + 0.5*r12*r12 + 0.5*r13*r13 + 0.5*r23*r23);
+    r = sqrt(2.0*r11*r11 + 2.0*r22*r22 + 2.0*r33*r33 + r12*r12 + r13*r13 + r23*r23);
 */
 	return r;
 }
@@ -318,7 +318,7 @@ double nhflow_strain::rotationterm(lexer *p, double *U, double *V, double *W)
 	r23 = 0.0;
     }
 
-    r = sqrt(r11*r11 + r22*r22 + r33*r33 + 0.5*r12*r12 + 0.5*r13*r13 + 0.5*r23*r23);
+    r = sqrt(2.0*r11*r11 + 2.0*r22*r22 + 2.0*r33*r33 + r12*r12 + r13*r13 + r23*r23);
 */
 	return r;
 }
