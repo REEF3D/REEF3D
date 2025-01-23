@@ -194,7 +194,7 @@ void nhflow_rans_io::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &r
 	
 	if(p->A560==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>"<<endl;
-	if(p->A560==2)
+	if(p->A560==2 || p->A560==22)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>"<<endl;
 }
 
@@ -206,7 +206,7 @@ void nhflow_rans_io::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &re
     ++n;
 	if(p->A560==1)
 	result<<"<DataArray type=\"Float32\" Name=\"epsilon\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	if(p->A560==2)
+	if(p->A560==2 || p->A560==22)
     result<<"<DataArray type=\"Float32\" Name=\"omega\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
