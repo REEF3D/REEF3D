@@ -44,8 +44,6 @@ public:
 	double sij(lexer*,fdm*,int,int);
 	double qij(lexer*,fdm*,int,int);
 	double pk(lexer*,fdm*,field&);
-	double pk_k(lexer*,fdm*);
-	double pk_w(lexer*,fdm*);
     double pk_b(lexer*,fdm*,field&);
 	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
 	virtual double strainterm(lexer*,fdm*);

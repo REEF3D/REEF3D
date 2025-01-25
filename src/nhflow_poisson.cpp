@@ -158,6 +158,9 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             pval = 0.0;
             d->rhsvec.V[n] -= d->M.n[n]*(-d->P[FIJK]+pval);
             d->M.n[n] = 0.0;
+            
+            //d->rhsvec.V[n] -= d->M.n[n]*P[FIJK];
+            //d->M.n[n] = 0.0;
             }
             
             // East

@@ -133,10 +133,10 @@ void lexer::ini_default()
     A553=0;      // int breaking in very shallow regions turned onf
     
     A560=0;      // int turbulence model
-    A564=1;      // int eddyv linmiter
-    A565=1;      // int k limiter
-    A566=1;      // int eps limiter
-    A567=1;      // int fsf eps
+    A564=1;      // int eddyv limiter
+    A565=0;      // int stabilization
+    A566=0;      // int buoyancy
+    A567=0;      // int fsf eps
     
     A570=0;      // int wind modle
     A571_u=0.0;  // double wind velocity

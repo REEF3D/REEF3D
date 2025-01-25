@@ -117,14 +117,14 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 	EV0[IJK] = MIN(EV0[IJK], p->DXM*p->cmu*pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
     
     // stabilization
-    //if(p->T41==0)
+    if(p->A565==0)
     LOOP
     d->EV[IJK] = EV0[IJK];
     
-    /*if(p->T41==1)
+    if(p->A565==1)
     LOOP
 	d->EV[IJK] = MIN(EV0[IJK], MAX(KIN[IJK]/((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
-                                         *(p->cmu*kw_alpha*rotationterm(p,a))/(p->T42*kw_beta*strainterm(p,a)));*/
+                                         *(p->cmu*kw_alpha*rotationterm(p,d))/(p->T42*kw_beta*strainterm(p,d)));
 	
     /*
     if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
@@ -174,7 +174,6 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 	pgc->start4(p,eddyv0,24);
     pgc->start4(p,a->eddyv,24);
     */
-    
 }
 
 void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
@@ -187,8 +186,16 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
         {
         d->M.p[count] += p->cmu * MAX(EPS[IJK],0.0);
 
-        d->rhsvec.V[count] += pk(p,d);
+        d->rhsvec.V[count] += PK[IJK];
         }
+	++count;
+    }
+    
+    if(p->A566==1)
+    LOOP
+    {
+        d->rhsvec.V[count]  -= PK_b[IJK];
+        
 	++count;
     }
     
@@ -204,7 +211,7 @@ void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
         {
 		d->M.p[count] += kw_beta * MAX(EPS[IJK],0.0);
 
-        d->rhsvec.V[count] +=  kw_alpha * (MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20)))*pk(p,d);
+        d->rhsvec.V[count] +=  kw_alpha * (MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20)))*PK[IJK];
         ++count;
         }
 

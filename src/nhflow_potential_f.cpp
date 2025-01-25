@@ -82,9 +82,6 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
 	vcalc(p,d);
 	wcalc(p,d);
     
-    LOOP
-	d->test[IJK] = PSI[IJK];
-    
 	pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
     pgc->start4V(p,d->W,12);
