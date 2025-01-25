@@ -70,6 +70,8 @@ nhflow_forcing::~nhflow_forcing()
 void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, vrans* pvrans, vector<net*>& pnet, 
                              int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
 {
+    starttime=pgc->timer();
+    
     // ini forcing terms
     reset(p,d,pgc);
     
@@ -157,6 +159,8 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     
     
     pgc->gciobc_update(p,d);
+    
+    p->dftime+=pgc->timer()-starttime;
 }
 
 void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)

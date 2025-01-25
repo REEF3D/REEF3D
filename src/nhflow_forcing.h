@@ -106,6 +106,7 @@ private:
     int entity_count, entity_sum;
     double xs,xe,ys,ye,zs,ze;
     double zmin,zmax;
+    double starttime;
     
     int reiniter;
     int forcing_flag,solid_flag,floating_flag;
