@@ -108,7 +108,7 @@ public:
     int *flagsf1,*flagsf2,*flagsf3,*flagsf4;
     
     // boundary conditions
-    int *IO;
+    int *IO,*IOSL;
     int *DF;
     
     // flag

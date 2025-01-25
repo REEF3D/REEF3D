@@ -218,13 +218,27 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
     n=0;
 	SLICELOOP4
 	{
-		if(p->flagslice4[Im1J]<0)
+        // Inflow
+		if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==1)
+		{
+		b->rhsvec.V[n] -= 0.0;
+		b->M.s[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==0)
 		{
 		b->rhsvec.V[n] -= b->M.s[n]*b->press(i-1,j);
 		b->M.s[n] = 0.0;
 		}
 		
-		if(p->flagslice4[Ip1J]<0)
+         // Outflow
+		if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==1)
+		{
+		b->rhsvec.V[n] -= 0.0;
+		b->M.n[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==0)
 		{
 		b->rhsvec.V[n] -= b->M.n[n]*b->press(i+1,j);
 		b->M.n[n] = 0.0;

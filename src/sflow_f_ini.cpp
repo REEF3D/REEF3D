@@ -38,6 +38,21 @@ Author: Hans Bihs
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
+    int gcval_eta;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
+    
     p->count=0;
 	p->printcount=0;
 
@@ -135,6 +150,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
 
      pflow->ini2D(p,b,pgc);
+      
      
      // P,Q ini
 	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
@@ -145,12 +161,13 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	pgc->gcsl_start1(p,b->P,10);
 	pgc->gcsl_start2(p,b->Q,11);
-	pgc->gcsl_start4(p,b->eta,50);
-    pgc->gcsl_start4(p,b->hp,50);
+	pgc->gcsl_start4(p,b->eta,gcval_eta);
+    pgc->gcsl_start4(p,b->hp,gcval_eta);
     pgc->gcsl_start4(p,b->bed,50);
     
-    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
+    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    pflow->ini2D(p,b,pgc);
     // potential flow ini
     potflow->start(p,b,ppoissonsolv,pgc);
     
@@ -333,7 +350,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     
     
     
-    if(p->F62>-1.0e20)
+    if(p->F62>-1.0e20 && p->F64==0)
     {
         GCSL1LOOP
         {
@@ -371,7 +388,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         b->eta(i+2,j) = p->F62-p->wd;
         b->eta(i+3,j) = p->F62-p->wd;
 
-        b->hp(i,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i,j)   = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
         b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
         b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
         b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
@@ -383,14 +400,28 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 }
 
 void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
-{
+{   
+    int gcval_eta;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
     // eta ini
 	pflow->eta_relax(p,pgc,b->eta);
-    pgc->gcsl_start4(p,b->eta,50);
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
 
     // eta_n ini
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
     
-    pgc->gcsl_start4(p,b->eta_n,50);
+    pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }

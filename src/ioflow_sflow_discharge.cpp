@@ -72,7 +72,6 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
         
         Ai+=area;
         p->Qi+=area*b->P(i-1,j);
-        //cout<<"b->P(i-1,j): "<<b->P(i-1,j)<<endl;
         hval += b->hp(i,j);
         ++hcount;
         }

@@ -139,11 +139,6 @@
             <File Name="sflow_hxy_fou.h"/>
             <File Name="sflow_hxy_disc.h"/>
             <File Name="sflow_hxy_cds.h"/>
-            <File Name="sflow_eta_weno_hj.h"/>
-            <File Name="sflow_eta_weno.h"/>
-            <File Name="sflow_eta_uds.h"/>
-            <File Name="sflow_eta_disc.h"/>
-            <File Name="sflow_eta_cds.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -1265,10 +1260,6 @@
             <File Name="sflow_hxy_weno.cpp"/>
             <File Name="sflow_hxy_fou.cpp"/>
             <File Name="sflow_hxy_cds.cpp"/>
-            <File Name="sflow_eta_weno_hj.cpp"/>
-            <File Name="sflow_eta_weno.cpp"/>
-            <File Name="sflow_eta_uds.cpp"/>
-            <File Name="sflow_eta_cds.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">

@@ -53,6 +53,12 @@ void lexer::gridini2D()
     sizeS2[n]=0;
     sizeS4[n]=0;
     }	
+    
+    Iarray(IOSL,imax*jmax);
+    
+    for(i=-margin; i<knox+margin; ++i)
+    for(j=-margin; j<knoy+margin; ++j)
+    IOSL[(i-imin)*jmax + j-jmin] = 0;
 	
 }
 

@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"slice4.h" 
 
-class sflow_eta_weno;
 class sflow_hxy_disc;
 class patchBC_interface;
 
@@ -57,7 +56,6 @@ private:
 	
     double wd_criterion;
     
-	sflow_eta_weno *pconvec;
 	sflow_hxy_disc *phxy;
     patchBC_interface *pBC;
 	
