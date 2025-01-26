@@ -797,11 +797,6 @@
         <File Name="VOF_PLIC.h"/>
       </VirtualDirectory>
       <File Name="freesurface.h"/>
-      <VirtualDirectory Name="One Phase">
-        <File Name="onephase_f.h"/>
-        <File Name="onephase.h"/>
-        <File Name="onephase_v.h"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
@@ -2328,12 +2323,6 @@
         <File Name="VOF_PLIC_normalVector.cpp"/>
         <File Name="VOF_PLIC_advection.cpp"/>
         <File Name="VOF_PLIC.cpp"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="One Phase">
-        <File Name="onephase_f_disc.cpp"/>
-        <File Name="onephase_f_extension.cpp"/>
-        <File Name="onephase_f.cpp"/>
-        <File Name="onephase_v.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">

@@ -74,7 +74,7 @@ void driver::loop_fnpf()
 
 
         // PFLOW
-		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini,poneph);
+		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini);
         
         // printer
         pfprint->start(p,c,pgc,pflow);

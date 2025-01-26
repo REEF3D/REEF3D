@@ -29,7 +29,6 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
-#include"onephase.h"
 #include"fnpf_voiddisc.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"

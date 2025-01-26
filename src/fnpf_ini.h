@@ -32,7 +32,6 @@ class ghostcell;
 class print;
 class ioflow;
 class reini;
-class onephase;
 
 using namespace std;
 
@@ -45,7 +44,7 @@ public:
 	fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_ini();
     
-    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*, onephase*);
+    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*);
     
     void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
     

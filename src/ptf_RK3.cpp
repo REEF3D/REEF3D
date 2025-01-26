@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include"reini.h"
 #include"ptf_laplace_cds2.h"
 #include"ptf_laplace_cds4.h"
-#include"onephase.h"
 #include"ptf_fsf_update.h"
 #include"ptf_bed_update.h"
 
@@ -77,7 +76,7 @@ ptf_RK3::~ptf_RK3()
 {
 }
 
-void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
 {	
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
     
@@ -102,7 +101,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,erk1);
     pflow->fifsf_relax(p,pgc,frk1);
-    pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,erk1);
+    pfsfupdate->fsfupdate(p,a,pgc,pflow,erk1);
     pfsfupdate->etaloc(p,a,pgc);
     pfsfupdate->fsfbc(p,a,pgc,frk1,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
@@ -140,7 +139,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,erk2);
     pflow->fifsf_relax(p,pgc,frk2);
-    pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,erk2);
+    pfsfupdate->fsfupdate(p,a,pgc,pflow,erk2);
     pfsfupdate->etaloc(p,a,pgc);
     pfsfupdate->fsfbc(p,a,pgc,frk2,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
@@ -178,7 +177,7 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,a->eta);
     pflow->fifsf_relax(p,pgc,a->Fifsf);
-    pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,a->eta);
+    pfsfupdate->fsfupdate(p,a,pgc,pflow,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
@@ -198,9 +197,9 @@ void ptf_RK3::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
 
-void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
+void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini)
 {	
-    pfsfupdate->fsfupdate(p,a,pgc,pflow,poneph,a->eta);
+    pfsfupdate->fsfupdate(p,a,pgc,pflow,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
     
     pbedupdate->waterdepth(p,a,pgc);

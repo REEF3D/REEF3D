@@ -29,7 +29,6 @@ Author: Hans Bihs
 #include"solver.h"
 #include"reini.h"
 #include"fnpf_laplace_cds2.h"
-#include"onephase.h"
 #include"fnpf_fsfbc.h"
 #include"fnpf_fsfbc_wd.h"
 
@@ -69,7 +68,7 @@ fnpf_RK2::~fnpf_RK2()
 {
 }
 
-void fnpf_RK2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+void fnpf_RK2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
 {	   
     
 // Step 1

@@ -15,7 +15,7 @@ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/liceonephases/>.
+along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"ioflow.h"
-#include"onephase.h"
 #include"slice.h"
 
 ptf_fsf_update::ptf_fsf_update(lexer *p, fdm *a, ghostcell *pgc)
@@ -40,7 +39,7 @@ ptf_fsf_update::~ptf_fsf_update()
 
 }
 
-void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, onephase *poneph, slice &eta)
+void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, slice &eta)
 {
     // update phi
     FLUIDLOOP
@@ -48,8 +47,6 @@ void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     
     pgc->start4(p,a->phi,50);
 
-    // update onephase
-    poneph->update(p,a,pgc,pflow);
 }
 
 void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)

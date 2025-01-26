@@ -124,7 +124,6 @@ void driver::driver_ini_cfd()
     pBC->patchBC_ini(p,pgc);
     
     //ioflow ini --------------------------------------------------------------
-    poneph->update(p,a,pgc,pflow);
     pflow->ini(p,a,pgc);
 
     
@@ -183,8 +182,6 @@ void driver::driver_ini_cfd()
 	pini->droplet_ini(p,a,pgc);
 
 	pflow->pressure_io(p,a,pgc);
-    
-    poneph->update(p,a,pgc,pflow);
     
     ppress->ini(p,a,pgc);
     

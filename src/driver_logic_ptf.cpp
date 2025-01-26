@@ -82,13 +82,6 @@ void driver::logic_ptf()
     preto = new reinitopo_RK3(p);
     }
     
-//  Free Surface
-    if(p->A10!=4)
-    poneph = new onephase_v(p,a,pgc);
-    
-    if(p->A10==4)
-    poneph = new onephase_f(p,a,pgc);
-    
 //  Laplace Solver	
 	if(p->N10==0)
 	plapsolv = new solver_void(p,a,pgc);

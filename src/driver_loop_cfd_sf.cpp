@@ -80,7 +80,6 @@ void driver::loop_cfd_sf(fdm* a)
         pbench->start(p,a,pgc,pconvec);
 
         pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
-        poneph->update(p,a,pgc,pflow);
 
         // Turbulence computation
         pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);

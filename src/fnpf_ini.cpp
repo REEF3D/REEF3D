@@ -39,7 +39,7 @@ fnpf_ini::~fnpf_ini()
 {
 }
 
-void fnpf_ini::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
+void fnpf_ini::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, reini *preini)
 {	
     
     //pflow->fi_relax(p,pgc,a->Fi,a->phi);

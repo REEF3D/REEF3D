@@ -34,7 +34,6 @@ class convection;
 class diffusion;
 class pressure;
 class turbulence;
-class onephase;
 class solver;
 class poisson;
 class fluid_update;
@@ -47,7 +46,7 @@ using namespace std;
 class momentum_RK3CN : public momentum, public momentum_forcing, public bcmom
 {
 public:
-	momentum_RK3CN(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, onephase*, solver*, solver*, ioflow*, fsi*);
+	momentum_RK3CN(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK3CN();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
         virtual void utimesave(lexer*, fdm*, ghostcell*);
@@ -78,7 +77,6 @@ private:
 	pressure *ppress;
 	poisson *ppois;
 	turbulence *pturb;
-    onephase *poneph;
 	solver *psolv;
     solver *ppoissonsolv;
 	ioflow *pflow;

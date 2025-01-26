@@ -349,12 +349,6 @@ void driver::logic_cfd()
 
 
 // Free Surface
-    if(p->F10==1)
-    poneph = new onephase_f(p,a,pgc);
-
-    if(p->F10==2)
-    poneph = new onephase_v(p,a,pgc);
-
     if(p->F30==0 && p->F80==0)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 
@@ -613,10 +607,10 @@ void driver::logic_cfd()
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
 
 	if(p->N40==3 && p->X10==0 && p->Z10==0 && p->G3==0)
-	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
 	if(p->N40==5 && p->X10==0 && p->Z10==0 && p->G3==0)
-	pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+	pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
 
     if(p->N40==4 && p->X10==0 && p->Z10==0 && p->G3==0)
 	pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
@@ -640,10 +634,10 @@ void driver::logic_cfd()
 	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
     if(p->G3==1 && (p->N40==3))
-    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
     if(p->X10==1 && (p->N40==3))
-    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,poneph,psolv,ppoissonsolv,pflow,pfsi);
+    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
     if(p->G3==1 && (p->N40==4))
     pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 

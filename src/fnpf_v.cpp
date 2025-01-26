@@ -30,7 +30,7 @@ fnpf_void::~fnpf_void()
 {
 }
 
-void fnpf_void::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+void fnpf_void::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
 {	
 	
 }

@@ -60,7 +60,6 @@ class data;
 class concentration;
 class ptf;
 class fnpf;
-class onephase;
 class nhflow_fsf;
 class nhflow_convection;
 class nhflow_scalar_convection;
@@ -192,7 +191,6 @@ public:
 	concentration *pconc;
     fnpf *ppfsg;
     ptf *pptf;
-    onephase *poneph;
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_printer *pfprint; 
