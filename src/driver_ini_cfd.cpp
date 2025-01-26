@@ -183,10 +183,6 @@ void driver::driver_ini_cfd()
 
 	pflow->pressure_io(p,a,pgc);
     
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
     ppress->ini(p,a,pgc);
     
 	pgc->start1(p,a->u,10);
