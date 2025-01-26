@@ -168,9 +168,6 @@
             <File Name="sflow_flux_face_HJ.h"/>
             <File Name="sflow_flux_face_FOU.h"/>
             <File Name="sflow_flux_face_CDS.h"/>
-            <File Name="sflow_flux_face_C_HJ.h"/>
-            <File Name="sflow_flux_face_C_FOU.h"/>
-            <File Name="sflow_flux_face_C_CDS.h"/>
             <File Name="sflow_flux.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Filtering">
@@ -1286,9 +1283,6 @@
             <File Name="sflow_flux_face_HJ.cpp"/>
             <File Name="sflow_flux_face_FOU.cpp"/>
             <File Name="sflow_flux_face_CDS.cpp"/>
-            <File Name="sflow_flux_face_C_HJ.cpp"/>
-            <File Name="sflow_flux_face_C_FOU.cpp"/>
-            <File Name="sflow_flux_face_C_CDS.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Filtering">
             <File Name="sflow_filter.cpp"/>
