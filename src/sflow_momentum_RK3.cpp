@@ -109,6 +109,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pgc->gcsl_start4(p,etark1,gcval_eta);
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,etark1);
+    pfsf->disc(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     pfsf->breaking(p,b,pgc,etark1,b->eta,1.0);
     pflow->waterlevel2D(p,b,pgc,etark1);
     pflow->eta_relax(p,pgc,etark1);
@@ -198,6 +199,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pgc->gcsl_start4(p,etark2,gcval_eta);
     pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,etark2);
+    pfsf->disc(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
     pfsf->breaking(p,b,pgc,etark2,etark1,0.25);
     pflow->waterlevel2D(p,b,pgc,etark2);
     pflow->eta_relax(p,pgc,etark2);
@@ -287,6 +289,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     pfsf->depth_update(p,b,pgc,Prk2,Qrk2,wrk2,b->eta);
+    pfsf->disc(p,b,pgc,Prk2,Qrk2,wrk2,etark2);
     pfsf->breaking(p,b,pgc,b->eta,etark2,2.0/3.0);
     pflow->waterlevel2D(p,b,pgc,b->eta);
     pflow->eta_relax(p,pgc,b->eta);

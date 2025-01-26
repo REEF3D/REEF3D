@@ -95,7 +95,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 //--------------------------------------------------------	
     // fsf
     pfsf->wetdry(p,b,pgc,b->P,b->Q,b->ws);
-    pfsf->disc(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    //pfsf->disc(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
     SLICELOOP4
     etark1(i,j) =      b->eta(i,j) 
@@ -105,6 +105,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
                 
     pgc->gcsl_start4(p,etark1,gcval_eta);
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,etark1);
+    pfsf->disc(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     pfsf->breaking(p,b,pgc,etark1,b->eta,1.0);
     pflow->waterlevel2D(p,b,pgc,etark1);
     pflow->eta_relax(p,pgc,etark1);
@@ -183,7 +184,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     //fsf
     pfsf->wetdry(p,b,pgc,Prk1,Qrk1,wrk1);
-    pfsf->disc(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
+    //pfsf->disc(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
     
     SLICELOOP4
     b->eta(i,j) = 0.5*b->eta(i,j) + 0.5*etark1(i,j)
@@ -193,6 +194,7 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
                 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,b->eta);
+    pfsf->disc(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
     pfsf->breaking(p,b,pgc,b->eta,etark1,0.5);
     pflow->waterlevel2D(p,b,pgc,b->eta);
     pflow->eta_relax(p,pgc,b->eta);
