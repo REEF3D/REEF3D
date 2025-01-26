@@ -50,8 +50,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
 	
     SLICELOOP1
 	{
-    //ivel1 = P(i,j);
-    pflux->u_flux(4,P,ivel1,ivel2);
+    ivel1 = P(i,j);
 
 	if(ivel1>eps)
     hx(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i+1,j));
@@ -114,8 +113,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
 	
 	SLICELOOP2
 	{
-    //jvel1 = Q(i,j);
-    pflux->v_flux(4,Q,jvel1,jvel2);
+    jvel1 = Q(i,j);
 	
 	if(jvel1>eps)
     hy(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i,j+1));

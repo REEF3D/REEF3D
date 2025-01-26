@@ -30,29 +30,14 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"patchBC_interface.h"
 
-#define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
-#define HXIMJ (fabs(b->hx(i-1,j))>1.0e-20?b->hx(i-1,j):1.0e20)
-
-#define HXP (0.5*(HXIJ + HXIMJ))
-#define HYP (0.5*(HYIJ + HYIJM))
-
-#define HYIJ (fabs(b->hy(i,j))>1.0e-20?b->hy(i,j):1.0e20)
-#define HYIJM (fabs(b->hy(i,j-1))>1.0e-20?b->hy(i,j-1):1.0e20)
-
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
 #define HPIP (fabs(b->hp(i+1,j))>1.0e-20?b->hp(i+1,j):1.0e20)
 #define HPJP (fabs(b->hp(i,j+1))>1.0e-20?b->hp(i,j+1):1.0e20)
 
-#define HPIM (fabs(b->hp(i-1,j))>1.0e-20?b->hp(i-1,j):1.0e20)
-#define HPJM (fabs(b->hp(i,j-1))>1.0e-20?b->hp(i,j-1):1.0e20)
-
 #define HPXP (0.5*(HP + HPIP))
 #define HPYP (0.5*(HP + HPJP))
 
-#define HPXM (0.5*(HP + HPIM))
-#define HPYM (0.5*(HP + HPJM))
- 
 sflow_pjm_lin::sflow_pjm_lin(lexer* p, fdm2D *b, patchBC_interface *ppBC) 
 {
     pBC = ppBC;

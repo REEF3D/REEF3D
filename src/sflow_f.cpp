@@ -155,6 +155,8 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
             {
             if(p->B90>0)
             cout<<"mtime: "<<setprecision(3)<<mtime<<endl;
+            if(p->X10>0)
+            cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
             cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
             cout<<"printouttime: "<<setprecision(3)<<p->printouttime<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
@@ -172,6 +174,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	p->wavecalctime=0.0;
 	p->lsmtime=0.0;
 	p->printouttime=0.0;
+    p->fbtime=0.0;
     
     SLICELOOP1
     b->Pn(i,j) = b->P(i,j);

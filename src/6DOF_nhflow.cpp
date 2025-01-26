@@ -45,6 +45,8 @@ sixdof_nhflow::~sixdof_nhflow()
 void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
                                  double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
+    starttime = pgc->timer();
+    
     if(p->X10==1)
     start_twoway(p,d,pgc,pvrans,pnet,iter,FX,FY,FZ,WL,fe,finalize);
     
@@ -53,6 +55,8 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
     
     if(p->X10==3)
     start_shipwave(p,d,pgc,iter,finalize);
+    
+    p->fbtime+=pgc->timer()-starttime;
 }
 
 void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pvrans, vector<net*>& pnet, int iter, 

@@ -47,9 +47,7 @@ void sixdof_nhflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     dfdx_plus = (press(i+1,j)-press(i,j))/p->DXP[IP];
     dfdx_min  = (press(i,j)-press(i-1,j))/p->DXP[IM1];
     
-    //dfdx = WL(i,j)*limiter(dfdx_plus,dfdx_min);
-    
-    dfdx = WL(i,j)*(press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    dfdx = WL(i,j)*(press(i+1,j)-press(i,j))/p->DXP[IP];
  
     d->F[IJK] += 1.0/p->W1*dfdx;
     }
@@ -63,9 +61,7 @@ void sixdof_nhflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     dfdy_plus = (press(i,j+1)-press(i,j))/p->DYP[JP];
     dfdy_min  = (press(i,j)-press(i,j-1))/p->DYP[JM1];
     
-    //dfdy = WL(i,j)*limiter(dfdy_plus,dfdy_min);
-    
-    dfdy = WL(i,j)*(press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    dfdy = WL(i,j)*(press(i,j+1)-press(i,j))/p->DYP[JP];
         
     d->G[IJK] += 1.0/p->W1*dfdy;
     }

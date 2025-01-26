@@ -44,11 +44,15 @@ sixdof_sflow::~sixdof_sflow()
 
 void sixdof_sflow::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
+    starttime = pgc->timer();
+    
     if(p->X10==2)
     start_oneway(p,pgc,iter,fsglobal,P,Q,w,fx,fy,fz,finalize);
     
     if(p->X10==3)
     start_shipwave(p,pgc,iter,fsglobal,P,Q,fx,fy,fz,finalize);
+    
+    p->fbtime+=pgc->timer()-starttime;
 }
 
 void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
@@ -88,11 +92,11 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
 
 void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, slice &fz, bool finalize)
 {
-    
+    if(iter==0)
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        if(iter==0)
+        
         fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
         
         // Update transformation matrices

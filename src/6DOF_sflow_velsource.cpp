@@ -39,40 +39,6 @@ void sixdof_sflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void sixdof_sflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
-{
-    LOOP
-    {
-    dfdx_plus = (press(i+1,j)-press(i,j))/p->DXP[IP];
-    dfdx_min  = (press(i,j)-press(i-1,j))/p->DXP[IM1];
-    
-    dfdx = WL(i,j)*limiter(dfdx_plus,dfdx_min);
-    
-    //dfdx = WL(i,j)*(press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
- 
-    d->F[IJK] += 1.0/p->W1*dfdx;
-    }
-}
-
-void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
-{
-    LOOP
-    {
-    dfdy_plus = (press(i,j+1)-press(i,j))/p->DYP[JP];
-    dfdy_min  = (press(i,j)-press(i,j-1))/p->DYP[JM1];
-    
-    dfdy = WL(i,j)*limiter(dfdy_plus,dfdy_min);
-    
-    //dfdy = WL(i,j)*(press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-        
-    d->G[IJK] += 1.0/p->W1*dfdy;
-    }
-}
-
-void sixdof_sflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
-{
-}
-
 void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     if(p->X10==3)
@@ -81,9 +47,7 @@ void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     dfdx_plus = (press(i+1,j)-press(i,j))/p->DXP[IP];
     dfdx_min  = (press(i,j)-press(i-1,j))/p->DXP[IM1];
     
-    //dfdx = limiter(dfdx_plus,dfdx_min);
-    
-    dfdx = (press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    dfdx = (press(i+1,j)-press(i,j))/(p->DXP[IP]);
     
     b->F(i,j) += dfdx/p->W1;
     }
@@ -97,12 +61,22 @@ void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     dfdy_plus = (press(i,j+1)-press(i,j))/p->DYP[JP];
     dfdy_min  = (press(i,j)-press(i,j-1))/p->DYP[JM1];
     
-    //dfdy = limiter(dfdy_plus,dfdy_min);
-    
-    dfdy = (press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    dfdy = (press(i,j+1)-press(i,j))/(p->DYP[JP]);
     
     b->G(i,j) += dfdy/p->W1;
     }
+}
+
+void sixdof_sflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+}
+
+void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+}
+
+void sixdof_sflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
 }
 
 double sixdof_sflow::limiter(double v1, double v2)

@@ -77,7 +77,6 @@ void sflow_flux_face_CDS::v_flux(int ipol, slice& vvel, double &vflux1, double &
 	pip=0;
 	}
 
-
 	if(ipol==4)
 	{
 	pip=2;
