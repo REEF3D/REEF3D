@@ -142,11 +142,19 @@ void bc_ikepsilon::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 {
     double uvel,vvel,wvel;
     double zval;
-    dist=0.5*p->DXM;
-
+    
 	i=ii;
 	j=jj;
 	k=kk;
+    
+    if(cs==1 || cs==4)
+    dist = 0.5*p->DXN[IP];
+    
+    if(cs==2 || cs==3)
+    dist = 0.5*p->DYN[JP];
+    
+    if(cs==5 || cs==6)
+    dist = 0.5*p->DZN[KP];
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
@@ -176,7 +184,15 @@ void bc_ikepsilon::wall_law_eps(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 	i=ii;
 	j=jj;
 	k=kk;
-    dist=0.5*p->DXM;
+    
+    if(cs==1 || cs==4)
+    dist = 0.5*p->DXN[IP];
+    
+    if(cs==2 || cs==3)
+    dist = 0.5*p->DYN[JP];
+    
+    if(cs==5 || cs==6)
+    dist = 0.5*p->DZN[KP];
 
 	eps_star = (pow(p->cmu, 0.75)*pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),1.5)) / (0.4*dist);
 

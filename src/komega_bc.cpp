@@ -74,11 +74,14 @@ void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj
 	j=jj;
 	k=kk;
     
-    if(p->j_dir==0)
-	dist = (1.0/4.0)*(p->DXN[IP] + p->DZN[KP]);
+    if(cs==1 || cs==4)
+    dist = 0.5*p->DXN[IP];
     
-    if(p->j_dir==1)
-    dist = (1.0/6.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+    if(cs==2 || cs==3)
+    dist = 0.5*p->DYN[JP];
+    
+    if(cs==5 || cs==6)
+    dist = 0.5*p->DZN[KP];
     
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
@@ -114,18 +117,19 @@ void komega_bc::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
 	j=jj;
 	k=kk;
 	
-    if(p->j_dir==0)
-	dist=(1.0/4.0)*(p->DXN[IP] + p->DZN[KP]);
+    if(cs==1 || cs==4)
+    dist = 0.5*p->DXN[IP];
     
-    if(p->j_dir==1)
-    dist=(1.0/6.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+    if(cs==2 || cs==3)
+    dist = 0.5*p->DYN[JP];
+    
+    if(cs==5 || cs==6)
+    dist = 0.5*p->DZN[KP];
 
 	eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
     
     a->M.p[id] += 1.0e20;
     a->rhsvec.V[id] += eps_star*1.0e20;
-    
-    //eps(i,j,k) = eps_star;
 }
 
 void komega_bc::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)

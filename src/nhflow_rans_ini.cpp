@@ -48,6 +48,9 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     KIN[IJK] = 0.0001;
     EPS[IJK] = 1000.0001;
     }
+    
+    pgc->start20V(p,KIN,20);
+    pgc->start30V(p,EPS,30);
 }
 
 

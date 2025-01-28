@@ -141,39 +141,6 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 						  0.0001*d->VISC[IJK]);
 		}
     }*/
-    
-    // free surface eddyv minimum
-    /*if(p->T39==1)
-    {
-    double sgs_val;
-    double c_sgs=0.2;
-    double factor=1.0;
-    
-        LOOP
-        {
-        if(fabs(a->phi(i,j,k))<epsi)
-        dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-            
-        if(fabs(a->phi(i,j,k))>=epsi)
-        dirac=0.0;
-        
-        if(dirac>0.0)
-        {
-        sgs_val = pow(c_sgs,2.0)*pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0)
-                 *sqrt(2.0)*strainterm(p,a->u,a->v,a->w);
-                 
-        dirac=MIN(dirac,1.0);
-                 
-        d->EV[IJK] = MAX(d->EV[IJK],dirac*sgs_val);
-        }
-        }
-    }
-        
-    pvrans->eddyv_func(p,a);
-    
-	pgc->start4(p,eddyv0,24);
-    pgc->start4(p,a->eddyv,24);
-    */
 }
 
 void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)

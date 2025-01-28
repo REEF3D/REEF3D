@@ -53,7 +53,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
     starttime=pgc->timer();
 	clearrhs(p,d);
     pconvec->start(p,d,KIN,4,d->U,d->V,d->omegaF);
-	pdiff->diff_scalar(p,d,pgc,psolv,KIN,1.0);
+	pdiff->diff_scalar(p,d,pgc,psolv,KIN,kw_sigma_k,1.0);
 	kinsource(p,d,pvrans);
 	timesource(p,d,KN);
     bckomega_start(p,d,KIN,EPS,gcval_kin);
@@ -70,7 +70,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
     starttime=pgc->timer();
 	clearrhs(p,d);
     pconvec->start(p,d,EPS,4,d->U,d->V,d->omegaF);
-	pdiff->diff_scalar(p,d,pgc,psolv,EPS,1.0);
+	pdiff->diff_scalar(p,d,pgc,psolv,EPS,kw_sigma_w,1.0);
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
     bcomega_matrix(p,d,KIN,EPS);

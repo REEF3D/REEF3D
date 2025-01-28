@@ -178,6 +178,9 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
         eps_star = pow((KIN[IJK]>(0.0)?(KIN[IJK]):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
 
         EPS[IJK] = eps_star;
+        /*
+        d->M.p[count] += 1.0e20;
+        d->rhsvec.V[count] += eps_star*1.0e20;*/
         }
     }
 }

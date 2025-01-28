@@ -600,11 +600,11 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
         }
         
     // zzzzz
-        if(p->flag4[IJKp1]<0)
+        if(p->flag4[IJKp1]<0 || k==p->knoz-1)
         {
-        f[IJKp1] = f[IJK];
-        f[IJKp2] = f[IJK];
-        f[IJKp3] = f[IJK];
+        f[IJKp1] = 0.0;
+        f[IJKp2] = 0.0;
+        f[IJKp3] = 0.0;
         }
 
         // bed
@@ -699,7 +699,7 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)
         }
         
     // zzzzz
-        if(p->flag4[IJKp1]<0)
+        if(p->flag4[IJKp1]<0 || k==p->knoz-1)
         {
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];
@@ -791,7 +791,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)
         }
         
     // zzzzz
-        if(p->flag4[IJKp1]<0)
+        if(p->flag4[IJKp1]<0 || k==p->knoz-1)
         {
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];

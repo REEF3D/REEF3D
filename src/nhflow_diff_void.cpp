@@ -66,7 +66,7 @@ void nhflow_diff_void::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psol
     pgc->start4V(p,WHdiff,gcval_wh);
 }
 
-void nhflow_diff_void::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double alpha)
+void nhflow_diff_void::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double sig, double alpha)
 {
     
 }

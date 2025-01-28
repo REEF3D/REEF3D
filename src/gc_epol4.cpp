@@ -112,6 +112,10 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==6 || bc==7 || bc==8) && gcv==20)
 	return 5;
+    
+    /*else
+	if((bc==1) && gcv==20)
+	return 4;*/
 
 // Turbulence eps
 	else
