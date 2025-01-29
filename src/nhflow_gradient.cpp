@@ -96,6 +96,9 @@ double nhflow_gradient::dvdy(double *V)
 double nhflow_gradient::dvdz(double *V)
 {
 	grad = p->sigz[IJ]*(V[IJKp1] - V[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
+    
+    if(k==p->knoz-1)
+    grad = p->sigz[IJ]*(V[IJK] - V[IJKm1])/(p->DZP[KM1]);
 
 	return grad;
 }
@@ -126,6 +129,9 @@ double nhflow_gradient::dwdy(double *W)
 double nhflow_gradient::dwdz(double *W)
 {
 	grad = p->sigz[IJ]*(W[IJKp1] - W[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
+    
+    if(k==p->knoz-1)
+    grad = p->sigz[IJ]*(W[IJK] - W[IJKm1])/(p->DZP[KM1]);
 
 	return grad;
 }
