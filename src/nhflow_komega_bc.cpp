@@ -49,6 +49,7 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
     int check;
     
     count=0;
+    if(p->B11>0)
     LOOP
     {
             check=0;
@@ -128,6 +129,7 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
     
     
     count=0;
+    if(p->B11>0)
     LOOP
     {
         check=0;
@@ -197,6 +199,31 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
     
     if(p->B60==1)
     outflow=2;
+    
+    // turn off inside direct forcing body
+        n=0;
+        if(p->B11==0)
+        LOOP
+        {
+            if(p->DF[IJK]<0)
+            {
+            //KIN[IJK] = 0.0;
+            
+            d->M.p[n]  =   1.0;
+
+            d->M.n[n] = 0.0;
+            d->M.s[n] = 0.0;
+
+            d->M.w[n] = 0.0;
+            d->M.e[n] = 0.0;
+
+            d->M.t[n] = 0.0;
+            d->M.b[n] = 0.0;
+            
+            d->rhsvec.V[n] = 0.0;
+            }
+            ++n;
+        }
         
         n=0;
         LOOP
@@ -241,31 +268,6 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
 
         ++n;
         }
-    
-    // turn off inside direct forcing body
-        n=0;
-        LOOP
-        {
-            if(p->DF[IJK]==0)
-            {
-            KIN[IJK] = 0.0;
-            d->EV[IJK] = 0.0;
-            
-            d->M.p[n]  =   1.0;
-
-            d->M.n[n] = 0.0;
-            d->M.s[n] = 0.0;
-
-            d->M.w[n] = 0.0;
-            d->M.e[n] = 0.0;
-
-            d->M.t[n] = 0.0;
-            d->M.b[n] = 0.0;
-            
-            d->rhsvec.V[n] = 0.0;
-            }
-            ++n;
-        }
 }
 
 
@@ -285,58 +287,104 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
     if(p->B60==1)
     outflow=2;
     
+        
+    
         n=0;
         LOOP
         {
-            if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))// && inflow==0)
+            // s
+            if(p->flag4[Im1JK]<0)// && inflow==0)
             {
             d->rhsvec.V[n] -= d->M.s[n]*EPS[Im1JK];
             d->M.s[n] = 0.0;
             }
             
-            if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))// && outflow==0)
+            if(p->DF[Im1JK]<0)
+            {
+            d->rhsvec.V[n] -= d->M.s[n]*EPS[IJK];
+            d->M.s[n] = 0.0;
+            }
+            
+            // n
+            if(p->flag4[Ip1JK]<0)// && outflow==0)
             {
             d->rhsvec.V[n] -= d->M.n[n]*EPS[Ip1JK];
             d->M.n[n] = 0.0;
             }
             
+            if(p->DF[Ip1JK]<0)
+            {
+            d->rhsvec.V[n] -= d->M.n[n]*EPS[IJK];
+            d->M.n[n] = 0.0;
+            }
+            
+            // e
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
+            if(p->flag4[IJm1K]<0)
             {
             d->rhsvec.V[n] -= d->M.e[n]*EPS[IJm1K];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
+            if(p->DF[IJm1K]<0)
+            {
+            d->rhsvec.V[n] -= d->M.e[n]*EPS[IJK];
+            d->M.e[n] = 0.0;
+            }
+            
+            // w
+            if(p->j_dir==1)
+            if(p->flag4[IJp1K]<0)
             {
             d->rhsvec.V[n] -= d->M.w[n]*EPS[IJp1K];
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            if(p->j_dir==1)
+            if(p->DF[IJp1K]<0)
+            {
+            d->rhsvec.V[n] -= d->M.w[n]*EPS[IJK];
+            d->M.w[n] = 0.0;
+            }
+            
+            // b
+            if(p->flag4[IJKm1]<0)
             {
             d->rhsvec.V[n] -= d->M.b[n]*EPS[IJKm1];
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+            if(p->DF[IJKm1]<0)
+            {
+            d->rhsvec.V[n] -= d->M.b[n]*EPS[IJK];
+            d->M.b[n] = 0.0;
+            }
+            
+            // t
+            if(p->flag4[IJKp1]<0)
             {
             d->rhsvec.V[n] -= d->M.t[n]*EPS[IJKp1];
+            d->M.t[n] = 0.0;
+            }
+            
+            if(p->DF[IJKp1]<0)
+            {
+            d->rhsvec.V[n] -= d->M.t[n]*EPS[IJK];
             d->M.t[n] = 0.0;
             }
 
         ++n;
         }
-    
-    
-    // turn off inside direct forcing body
+        
+        // turn off inside direct forcing body
         n=0;
         LOOP
         {
-            if(p->DF[IJK]==0)
+            if(p->DF[IJK]<0)
             {
-            EPS[IJK] = 0.0;
+            if(p->count<=1)
+            EPS[IJK] = 1.0;
             
             
             

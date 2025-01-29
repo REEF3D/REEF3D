@@ -597,7 +597,7 @@ void driver::logic_cfd()
 
 
 // Velocities
-	if(p->N40==0 || p->Z10!=0 || (p->X10==1 && p->N40==4))
+	if(p->N40==0)
 	pmom = new momentum_void();
 
     if(p->N40==1)
@@ -605,24 +605,24 @@ void driver::logic_cfd()
 
 	if(p->N40==2)
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
-
-	if(p->N40==3 && p->X10==0 && p->Z10==0 && p->G3==0)
-	pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
-	if(p->N40==5 && p->X10==0 && p->Z10==0 && p->G3==0)
-	pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
-
-    if(p->N40==4 && p->X10==0 && p->Z10==0 && p->G3==0)
-	pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
+    if(p->N40==3)
+    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
-    if(p->N40==6)
+    if(p->N40==4 && (p->X10==0 && p->Z10==0))
     {
-        if(p->mpirank==0)
-        cout<<"N 40 6 is no longer supported"<<endl;
-        
-        pgc->final();
-		exit(0);
+    pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    pmom = new momentum_void();
     }
+    
+    if(p->N40==4 && (p->X10==1 || p->Z10>0))
+    {
+    pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    pmom = new momentum_void();
+    }
+
+	if(p->N40==5)
+	pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
 
     if(p->N40==22)
 	pmom = new momentum_FC2(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
@@ -632,18 +632,6 @@ void driver::logic_cfd()
     
     if(p->N40==33)
 	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
-    if(p->G3==1 && (p->N40==3))
-    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
-    
-    if(p->X10==1 && (p->N40==3))
-    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
-    
-    if(p->G3==1 && (p->N40==4))
-    pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
-    
-    if((p->X10==1 || p->Z10>0)  && (p->N40==4))
-    pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
 
 }
 

@@ -137,6 +137,8 @@ void lexer::ini_default()
     A565=0;      // int stabilization
     A566=0;      // int buoyancy
     A567=0;      // int fsf eps
+    A568=0;      // int 
+    A569=0;      // int 
     
     A570=0;      // int wind modle
     A571_u=0.0;  // double wind velocity
@@ -163,7 +165,8 @@ void lexer::ini_default()
     
 
     // Boundary Conditions
-	B10=0;			// int wall laws velocities on/off
+	B10=0;			// int wall function velocities on/off
+    B11=0;			// int wall function turbulence on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity
     B23=1;            // int ghostcell extrapolation or refective
 	B29=0.5;		// double gamma for gc image point
@@ -423,7 +426,6 @@ void lexer::ini_default()
 
     // Grid
     G2=0;            // int sigma grid
-    G3=1;            // int solid forcing
 	G10=3;			// int xmargin inflow
 	G11=3;			// int ymargin right
 	G12=3;			// int zmargin bottom
@@ -566,7 +568,7 @@ void lexer::ini_default()
     P71=0;           // int print viscosity to vtu
     P72=0;           // int print vof function
     P73=0;           // int print hx and hy for sflow vtp
-    P74=0;           
+    P74=0;           // int print omega nhflow
 	P75=0;            // int print out vorticity vec
     P76=0;            // int print out bedload
     P77=0;            // int print out sediment parameters: 1

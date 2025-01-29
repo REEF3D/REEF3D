@@ -274,10 +274,10 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     for(n=0;n<p->P85;++n)
     pforce_ale[n]->start(p,d,pgc);
 
-    /*
+    
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
-
+    /*
     if(p->P59==1)
     pbreaklog->write(p,d,pgc);
     */
@@ -370,8 +370,11 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     pnhfturb->offset_vtu(p,d,pgc,result,offset,n);
     
     // omega_sig
+    if(p->P74==1)
+    {
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
+    }
 
     // elevation
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -447,8 +450,11 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     
     pnhfturb->name_vtu(p,d,pgc,result,offset,n);
     
+    if(p->P74==1)
+    {
     result<<"<DataArray type=\"Float32\" Name=\"omega_sig\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    }
 
 
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -581,6 +587,8 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     pnhfturb->print_3D(p,d,pgc,result);
     
 //  Omega_sig
+    if(p->P74==1)
+    {
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
@@ -598,6 +606,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     
 	result.write((char*)&ffn, sizeof (float));
 	}
+    }
 
 //  elevation
 	iin=4*(p->pointnum)*3;

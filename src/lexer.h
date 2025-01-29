@@ -287,7 +287,7 @@ public:
     double A541,A542,A544,A545;
     int A550,A551,A552,A553;
     int A560;
-    int A564,A565,A566,A567;
+    int A564,A565,A566,A567,A568,A569;
     int A570,A573;
     double A571_u,A571_dir;
     int A580;
@@ -315,7 +315,7 @@ public:
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
     
 	// boundary conditions
-	int B10,B20,B23;
+	int B10,B11,B20,B23;
     int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;    
     int B60,B61,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
@@ -446,7 +446,7 @@ public:
     double *F399_xc, *F399_yc,*F399_zc, *F399_r;
     
 	// Grid Options
-    int G1,G2,G3;
+    int G1,G2;
 	int G10,G11,G12,G20,G21,G22,G30;
 	int G40;
 

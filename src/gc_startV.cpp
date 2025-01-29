@@ -555,7 +555,7 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
 
     // xxxxxxx
         // s
-        if(p->flag4[Im1JK]<0 && inflow==0)
+        if((p->flag4[Im1JK]<0 && inflow==0) || (p->DF[Im1JK]<0 && p->B11==1))
         {
         f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
@@ -570,7 +570,7 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
         }
           
         // n
-        if(p->flag4[Ip1JK]<0 && outflow==0)
+        if((p->flag4[Ip1JK]<0 && outflow==0) || (p->DF[Ip1JK]<0 && p->B11==1))
         {
         f[Ip1JK] = f[IJK];
         f[Ip2JK] = f[IJK];
@@ -585,14 +585,14 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
         }
         
     // yyyyy
-        if(p->flag4[IJm1K]<0 && p->j_dir==1)
+        if((p->flag4[IJm1K]<0  || (p->DF[IJm1K]<0 && p->B11==1)) && p->j_dir==1) 
         {
         f[IJm1K] = f[IJK];
         f[IJm2K] = f[IJK];
         f[IJm3K] = f[IJK];
         }
         
-        if(p->flag4[IJp1K]<0 && p->j_dir==1)
+        if((p->flag4[IJp1K]<0  || (p->DF[IJp1K]<0 && p->B11==1)) && p->j_dir==1) 
         {
         f[IJp1K] = f[IJK];
         f[IJp2K] = f[IJK];
@@ -600,7 +600,7 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
         }
         
     // zzzzz
-        if(p->flag4[IJKp1]<0 || k==p->knoz-1)
+        if(p->flag4[IJKp1]<0  || (p->DF[IJKp1]<0 && p->B11==1) || k==p->knoz-1)
         {
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];
@@ -608,7 +608,7 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
         }
 
         // bed
-        if(p->flag4[IJKm1]<0)
+        if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0 && p->B11==1)   || (k==0 && p->B11==2))
         {
         f[IJKm1] = f[IJK];
         f[IJKm2] = f[IJK];
@@ -709,9 +709,9 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)
         // bed
         if(p->flag4[IJKm1]<0)
         {
-        f[IJKm1] = f[IJK];
-        f[IJKm2] = f[IJK];
-        f[IJKm3] = f[IJK];
+        f[IJKm1] = 0.0;//f[IJK];
+        f[IJKm2] = 0.0;//f[IJK];
+        f[IJKm3] = 0.0;//f[IJK];
         }
     }
 
@@ -746,12 +746,13 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)
 
     // xxxxxxx
         // s
-        if(p->flag4[Im1JK]<0 && inflow==0)
+        if((p->flag4[Im1JK]<0 && inflow==0) || (p->DF[Im1JK]<0))
         {
         f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
         f[Im3JK] = f[IJK];
         }
+
         
         if(p->flag4[Im1JK]<0 && inflow==1)
         {
@@ -761,7 +762,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)
         }
           
         // n
-        if(p->flag4[Ip1JK]<0 && outflow==0)
+        if((p->flag4[Ip1JK]<0 && outflow==0) || (p->DF[Ip1JK]<0))
         {
         f[Ip1JK] = f[IJK];
         f[Ip2JK] = f[IJK];
@@ -776,14 +777,14 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)
         }
         
     // yyyyy
-        if(p->flag4[IJm1K]<0 && p->j_dir==1)
+        if((p->flag4[IJm1K]<0  || (p->DF[IJm1K]<0)) && p->j_dir==1) 
         {
         f[IJm1K] = f[IJK];
         f[IJm2K] = f[IJK];
         f[IJm3K] = f[IJK];
         }
         
-        if(p->flag4[IJp1K]<0 && p->j_dir==1)
+        if((p->flag4[IJp1K]<0  || (p->DF[IJp1K]<0)) && p->j_dir==1) 
         {
         f[IJp1K] = f[IJK];
         f[IJp2K] = f[IJK];
@@ -791,7 +792,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)
         }
         
     // zzzzz
-        if(p->flag4[IJKp1]<0 || k==p->knoz-1)
+        if(p->flag4[IJKp1]<0  || (p->DF[IJKp1]<0) || k==p->knoz-1)
         {
         f[IJKp1] = f[IJK];
         f[IJKp2] = f[IJK];
@@ -799,7 +800,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)
         }
 
         // bed
-        if(p->flag4[IJKm1]<0)
+        if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0))
         {
         f[IJKm1] = f[IJK];
         f[IJKm2] = f[IJK];

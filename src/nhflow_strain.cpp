@@ -104,7 +104,7 @@ void nhflow_strain::Pk_b_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     val = 0.0;
     
     if(k==p->knoz-1)
-    val = (1.0/0.85)*(1.0/p->W1)*d->EV[IJK]*(p->W22*(p->W3 - p->W1)/(p->DZP[KP1]*d->WL(i,j)));
+    val = (1.0/0.85)*(1.0/p->W1)*d->EV0[IJK]*(p->W22*(p->W3 - p->W1)/(p->DZP[KP1]*d->WL(i,j)));
            
     d->test[IJK]=PK_b[IJK] = val;
     

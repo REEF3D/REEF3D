@@ -64,6 +64,9 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     d->EV[IJK] = ev_fac*shearvel*beddist;
     KIN[IJK] = kinbed * (1.0 - 0.5*(beddist/(d->WL(i,j)>0.0?d->WL(i,j):1.0e20)));
     EPS[IJK] = KIN[IJK]/d->EV[IJK];
+    
+    if(p->DF[IJK]<0)
+    EPS[IJK]=0.1*EPS[IJK];
     }
     
     // inflow
