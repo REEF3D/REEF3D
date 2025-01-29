@@ -20,11 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRINTER_FNPF_H_
+#define PRINTER_FNPF_H_
+
 #include"fnpf_printer.h"
 #include"increment.h"
 
+#include"vtks.h"
+
 class fdm_fnpf;
 class fnpf_force_ale;
+class potentialfile_out;
+class ioflow;
 class fnpf_print_wsf;
 class fnpf_print_wsf_theory;
 class fnpf_print_wsfline;
@@ -37,35 +44,26 @@ class fnpf_print_Hs;
 class fnpf_vel_probe;
 class fnpf_vel_probe_theory;
 class fnpf_runup;
-class potentialfile_out;
-class ioflow;
-
-#ifndef FNPF_VTS3D_H_
-#define FNPF_VTS3D_H_
+class fnpf_print_kinematics;
 
 using namespace std;
 
-class fnpf_vts3D : public fnpf_printer, public increment
+class printer_fnpf : public fnpf_printer, public increment
 {
 
 public:
-	fnpf_vts3D(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_vts3D();
+	printer_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+	virtual ~printer_fnpf();
 	virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
     virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*);
     virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
     
 private:
-    void pvts(lexer*,ghostcell*);
-    void name_iter(lexer*,ghostcell*);
-    void name_time(lexer*,ghostcell*);
-    void piecename(lexer*,ghostcell*, int);
-    void extent(lexer*,int);
-    void fextent(lexer*);
+    void parallel(lexer*,ghostcell*);
 
-    char name[200],pname[200],epsvar[200],pextent[20];
-    int iextent[6];
-    int *piextent;
+    vtk3D *outputFormat;
+
+    char name[200];
     int n,iin,offset[200];
     float ffn;
     int gcval_phi,gcval_phiext;
@@ -91,6 +89,7 @@ private:
     fnpf_print_Hs *phs;
     fnpf_vel_probe *pvel;
     fnpf_vel_probe_theory *pveltheo;
+    fnpf_print_kinematics **pkin;
 };
 
 #endif

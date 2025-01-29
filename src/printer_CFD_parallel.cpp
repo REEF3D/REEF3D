@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vts3D.h"
+#include"printer_CFD.h"
 #include<string>
 #include"lexer.h"
 #include"fdm.h"
@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"sediment.h"
 #include"print_averaging.h"
 
-void vts3D::pvts(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printer_CFD::parallel(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     int num=0;
 
@@ -44,22 +44,12 @@ void vts3D::pvts(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
     if(p->P15==2)
     num = p->count;
 
-	sprintf(name,"./REEF3D_CFD_VTS/REEF3D-CFD-%08i.pvts",num);
+	outputFormat->parallelFileName(name, "CFD", num);
 
 	ofstream result;
 	result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PStructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt32\">"<<endl;
-	result<<"<PStructuredGrid WholeExtent=\"0 "<<p->gknox<<" 0 "<<p->gknoy<<" 0 "<<p->gknoz<<"\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">"<<endl;
-
-    if(p->P16==1)
-    {
-	result<<"<FieldData>"<<endl;
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
-    }
+	outputFormat->beginningParallel(p,result);
 
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
@@ -130,51 +120,8 @@ void vts3D::pvts(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	result<<"<PDataArray type=\"Float32\" Name=\"walldist\"/>"<<endl;
 
 	result<<"</PPointData>"<<endl;
-	result<<"<PCellData>"<<endl;
-	result<<"</PCellData>"<<endl;
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-    result<<"</PPoints>"<<endl;
-
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(a,p,pgc,n);
-	extent(p,n);
-    result<<"<Piece Extent=\""<<pextent<<"\" Source=\""<<pname<<"\"/>"<<endl;
-	}
-
-	result<<"</PStructuredGrid>"<<endl;
-	result<<"</VTKFile>"<<endl;
+	outputFormat->endingParallel(result,"CFD",p->M10,num);
 
 	result.close();
-}
-
-void vts3D::piecename(fdm* a, lexer* p, ghostcell* pgc, int n)
-{
-    int num=0;
-
-
-    if(p->P15==1)
-    num = p->printcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-	sprintf(pname,"REEF3D-CFD-%08i-%06i.vts",num,n+1);
-
-}
-
-void vts3D::extent(lexer* p, int n)
-{
-	sprintf(pextent,"%i %i %i %i %i %i",piextent[0+6*n],piextent[1+6*n],piextent[2+6*n],piextent[3+6*n],piextent[4+6*n],piextent[5+6*n]);
-}
-void vts3D::fextent(lexer* p)
-{
-	iextent[0]=p->origin_i;
-	iextent[1]=p->origin_i+p->knox;
-	iextent[2]=p->origin_j;
-	iextent[3]=p->origin_j+p->knoy;
-	iextent[4]=p->origin_k;
-	iextent[5]=p->origin_k+p->knoz;
 }
