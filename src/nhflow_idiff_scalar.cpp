@@ -32,7 +32,7 @@ void nhflow_idiff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *pso
 
 	LOOP
 	{
-	visc = d->VISC[IJK] + d->EV[IJK]/sig;
+	visc = d->VISC[IJK] + d->EV0[IJK]/sig;
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
 	

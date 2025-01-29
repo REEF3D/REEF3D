@@ -28,7 +28,9 @@ Author: Hans Bihs
 nhflow_strain::nhflow_strain(lexer *p, fdm_nhf *d)	: nhflow_gradient(p),epsi(p->F45*p->DXM)
 {
     p->Darray(PK,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(PK0,p->imax*p->jmax*(p->kmax+2));
     p->Darray(PK_b,p->imax*p->jmax*(p->kmax+2));
+    
 }
 
 nhflow_strain::~nhflow_strain()
@@ -88,7 +90,8 @@ void nhflow_strain::Pk_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         s23 = 0.0;
         }
 
-        PK[IJK] = d->EV[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
+        PK0[IJK] = d->EV0[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
+        PK[IJK]  =  d->EV[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
     }
 }
 
@@ -248,7 +251,7 @@ double nhflow_strain::rotationterm(lexer *p, fdm_nhf *d)
 	r23 = 0.0;
     }
 
-    r = sqrt(2.0*r11*r11 + 2.0*r22*r22 + 2.0*r33*r33 + r12*r12 + r13*r13 + r23*r23);
+    r = sqrt(r12*r12 + r13*r13 + r23*r23);
 
 	return r;
 }

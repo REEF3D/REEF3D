@@ -33,7 +33,6 @@ nhflow_rans_io::nhflow_rans_io(lexer *p, fdm_nhf *d) : nhflow_strain(p,d),
 {
     p->Darray(KIN,p->imax*p->jmax*(p->kmax+2));
     p->Darray(EPS,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(EV0,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(WALLF,p->imax*p->jmax*(p->kmax+2));
 }
 

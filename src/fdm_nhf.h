@@ -76,7 +76,7 @@ public:
     double *U,*V,*W,*omegaF;
     double *UH,*VH,*WH;
     
-    double *P,*RO,*VISC,*EV;
+    double *P,*RO,*VISC,*EV,*EV0;
     double *F,*G,*H,*L;
     double *porosity;
     double *test;

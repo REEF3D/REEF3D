@@ -38,8 +38,6 @@ void nhflow_komega_bc::bckomega_start(lexer *p, fdm_nhf *d, double *KIN, double 
 	if(gcval==20)
     wall_law_kin(p,d,KIN,EPS);
         
-// ----------------- 
-
 	if(gcval==30)
 	wall_law_omega(p,d,KIN,EPS);
 }

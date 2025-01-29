@@ -48,6 +48,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	Pk_update(p,d,pgc);
     Pk_b_update(p,d,pgc);
 	wallf_update(p,d,pgc,WALLF);
+    inflow(p,d,pgc);
 
 //kin
     starttime=pgc->timer();

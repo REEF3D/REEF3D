@@ -564,9 +564,9 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
         
         if(p->flag4[Im1JK]<0 && inflow==1)
         {
-        f[Im1JK] = 0.0;
+        /*f[Im1JK] = 0.0;
         f[Im2JK] = 0.0;
-        f[Im3JK] = 0.0;
+        f[Im3JK] = 0.0;*/
         }
           
         // n
@@ -602,9 +602,9 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
     // zzzzz
         if(p->flag4[IJKp1]<0 || k==p->knoz-1)
         {
-        f[IJKp1] = 0.0;
-        f[IJKp2] = 0.0;
-        f[IJKp3] = 0.0;
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
         }
 
         // bed
@@ -656,9 +656,9 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)
         
         if(p->flag4[Im1JK]<0 && inflow==1)
         {
-        f[Im1JK] = 0.0;
+        /*f[Im1JK] = 0.0;
         f[Im2JK] = 0.0;
-        f[Im3JK] = 0.0;
+        f[Im3JK] = 0.0;*/
         }
           
         // n
@@ -755,9 +755,9 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)
         
         if(p->flag4[Im1JK]<0 && inflow==1)
         {
-        f[Im1JK] = f[IJK];
+        /*f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
-        f[Im3JK] = f[IJK];
+        f[Im3JK] = f[IJK];*/
         }
           
         // n
