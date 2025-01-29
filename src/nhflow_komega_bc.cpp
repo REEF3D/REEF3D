@@ -383,7 +383,7 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
         {
             if(p->DF[IJK]<0)
             {
-            if(p->count<=1)
+            if(p->B11==0 && p->count<=1)
             EPS[IJK] = 1.0;
             
             
