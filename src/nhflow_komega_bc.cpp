@@ -98,12 +98,10 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
         {
             ks=p->B50;
         
-
             uvel=d->U[IJK];
             vvel=d->V[IJK];
             wvel=d->W[IJK];
 
-            
             if(k==0 && p->S10>0)
             ks = p->S20*p->S21;
 
@@ -114,7 +112,7 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             
             uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
 
-            tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+            tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
         
         d->M.p[count] += (pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),0.5)*uplus)/dist;
         d->rhsvec.V[count] += (tau*u_abs)/dist;
@@ -201,13 +199,14 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
     outflow=2;
     
     // turn off inside direct forcing body
+    
         n=0;
-        if(p->B11==0)
+        //if(p->B11==0)
         LOOP
         {
             if(p->DF[IJK]<0)
             {
-            //KIN[IJK] = 0.0;
+            KIN[IJK] = 0.0;
             
             d->M.p[n]  =   1.0;
 
@@ -224,6 +223,7 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
             }
             ++n;
         }
+        
         
         n=0;
         LOOP
@@ -268,6 +268,9 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
 
         ++n;
         }
+        
+        
+        
 }
 
 
@@ -286,8 +289,6 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
     
     if(p->B60==1)
     outflow=2;
-    
-        
     
         n=0;
         LOOP

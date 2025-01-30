@@ -337,9 +337,6 @@ void ioflow_v::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 
 void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     double porousterm;
 
 	count=0;
@@ -369,9 +366,6 @@ void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     double porousterm;
 
 	count=0;
@@ -401,9 +395,6 @@ void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     double porousterm;
 	
 	count=0;
@@ -433,9 +424,6 @@ void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
     double porousterm;
 
 	// Darcy Porosity
@@ -463,9 +451,6 @@ void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 
 void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
     double porousterm;
 
 	count=0;
@@ -492,9 +477,6 @@ void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 
 void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
     double porousterm;
 	
 	count=0;
