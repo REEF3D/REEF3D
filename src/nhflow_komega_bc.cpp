@@ -53,7 +53,9 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
     LOOP
     {
             check=0;
-        
+            
+            if(p->DF[IJK]>0)
+            {
             if(k==0)
             check=1;
         
@@ -94,28 +96,29 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             }
         
         
-        if(check==1)
-        {
-            ks=p->B50;
-        
-            uvel=d->U[IJK];
-            vvel=d->V[IJK];
-            wvel=d->W[IJK];
-
-            if(k==0 && p->S10>0)
-            ks = p->S20*p->S21;
-
-            u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
-
-            if(30.0*dist<ks)
-            dist=ks/30.0;
+            if(check==1)
+            {
+                ks=p->B50;
             
-            uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
+                uvel=d->U[IJK];
+                vvel=d->V[IJK];
+                wvel=d->W[IJK];
 
-            tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
-        
-        d->M.p[count] += (pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),0.5)*uplus)/dist;
-        d->rhsvec.V[count] += (tau*u_abs)/dist;
+                if(k==0 && p->S10>0)
+                ks = p->S20*p->S21;
+
+                u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+
+                if(30.0*dist<ks)
+                dist=ks/30.0;
+                
+                uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
+
+                tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+            
+            d->M.p[count] += (pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),0.5)*uplus)/dist;
+            d->rhsvec.V[count] += (tau*u_abs)/dist;
+            }
         }
     ++count;
     }
@@ -131,7 +134,9 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
     LOOP
     {
         check=0;
-        
+            
+            if(p->DF[IJK]>0)
+            {
             if(k==0)
             check=1;
         
@@ -176,9 +181,12 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
         eps_star = pow((KIN[IJK]>(0.0)?(KIN[IJK]):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
 
         EPS[IJK] = eps_star;
-        /*
-        d->M.p[count] += 1.0e20;
-        d->rhsvec.V[count] += eps_star*1.0e20;*/
+        
+        //d->M.p[count] += 1.0e20;
+        //d->rhsvec.V[count] += eps_star*1.0e20;
+        }
+        ++count;
+        
         }
     }
 }
@@ -199,31 +207,16 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
     outflow=2;
     
     // turn off inside direct forcing body
-    
         n=0;
-        //if(p->B11==0)
+        if(p->B11==0)
         LOOP
         {
             if(p->DF[IJK]<0)
             {
             KIN[IJK] = 0.0;
-            
-            d->M.p[n]  =   1.0;
-
-            d->M.n[n] = 0.0;
-            d->M.s[n] = 0.0;
-
-            d->M.w[n] = 0.0;
-            d->M.e[n] = 0.0;
-
-            d->M.t[n] = 0.0;
-            d->M.b[n] = 0.0;
-            
-            d->rhsvec.V[n] = 0.0;
             }
             ++n;
         }
-        
         
         n=0;
         LOOP
@@ -269,14 +262,30 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
         ++n;
         }
         
-        
-        
-}
+        n=0;
+        LOOP
+        {
+            if(p->DF[IJK]<0)
+            {            
+            d->M.p[n]  =   1.0;
 
+            d->M.n[n] = 0.0;
+            d->M.s[n] = 0.0;
+
+            d->M.w[n] = 0.0;
+            d->M.e[n] = 0.0;
+
+            d->M.t[n] = 0.0;
+            d->M.b[n] = 0.0;
+            
+            d->rhsvec.V[n] = 0.0;
+            }
+            ++n;
+        }
+}
 
 void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    
 	int q;
     int inflow=0;
     int outflow=0;
@@ -386,8 +395,6 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
             {
             if(p->B11==0 && p->count<=1)
             EPS[IJK] = 1.0;
-            
-            
             
             d->M.p[n]  =   1.0;
 

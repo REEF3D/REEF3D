@@ -671,9 +671,9 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)
         
         if(p->flag4[Ip1JK]<0 && outflow==1)
         {
-        f[Ip1JK] = 0.0;
-        f[Ip2JK] = 0.0;
-        f[Ip3JK] = 0.0;
+        f[Ip1JK] = f[IJK];
+        f[Ip2JK] = f[IJK];
+        f[Ip3JK] = f[IJK];
         }
         
         if(p->flag4[Ip1JK]<0 && outflow==2)
@@ -709,9 +709,9 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)
         // bed
         if(p->flag4[IJKm1]<0)
         {
-        f[IJKm1] = 0.0;//f[IJK];
-        f[IJKm2] = 0.0;//f[IJK];
-        f[IJKm3] = 0.0;//f[IJK];
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
         }
     }
 

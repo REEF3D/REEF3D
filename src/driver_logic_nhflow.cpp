@@ -75,7 +75,7 @@ void driver::logic_nhflow()
     if(p->A511==2)
 	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
     
-    pnhfscalarconvec = new nhflow_scalar_iweno(p);
+    pnhfscalarconvec = new nhflow_scalar_ifou(p);
     
 //Diffusion
     if(p->A512==0)

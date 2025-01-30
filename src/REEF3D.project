@@ -224,6 +224,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_ifou.h"/>
             <File Name="nhflow_scalar_advec_CDS2.h"/>
             <File Name="nhflow_scalar_advec.h"/>
             <File Name="nhflow_scalar_iweno.h"/>
@@ -660,7 +661,6 @@
         <File Name="hcds6.h"/>
         <File Name="iweno_hj_df_nug.h"/>
         <File Name="weno_hj_df_nug.h"/>
-        <File Name="iweno3_hj.h"/>
         <File Name="convection_void.h"/>
         <File Name="convection.h"/>
         <File Name="weno3_flux.h"/>
@@ -1355,6 +1355,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_ifou.cpp"/>
             <File Name="nhflow_scalar_advec_CDS2.cpp"/>
             <File Name="nhflow_scalar_iweno.cpp"/>
           </VirtualDirectory>
@@ -2140,7 +2141,6 @@
         <File Name="iweno_hj_df_nug.cpp"/>
         <File Name="weno_hj_df_nug.cpp"/>
         <File Name="ifou.cpp"/>
-        <File Name="iweno3_hj.cpp"/>
         <File Name="weno3_flux.cpp"/>
         <File Name="weno3_hj.cpp"/>
         <File Name="iweno_hj_nug.cpp"/>

@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include"nhflow_convection_void.h"
 
 #include"nhflow_scalar_iweno.h"
+#include"nhflow_scalar_ifou.h"
 
 #include"nhflow_diff_void.h"
 #include"nhflow_ediff.h"
