@@ -166,7 +166,7 @@ void lexer::ini_default()
 
     // Boundary Conditions
 	B10=0;			// int wall function velocities on/off
-    B11=0;			// int wall function turbulence on/off
+    B11=1;			// int wall function turbulence on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity
     B23=1;            // int ghostcell extrapolation or refective
 	B29=0.5;		// double gamma for gc image point
