@@ -137,7 +137,7 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
 {
     
-    if(iter==0)
+    if(finalize==1)
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
