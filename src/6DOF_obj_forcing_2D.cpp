@@ -57,7 +57,7 @@ void sixdof_obj::updateForcing_box(lexer *p, ghostcell *pgc, slice &press)
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press)
+void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, slice &fx, slice &fy)
 {
     // Calculate ship-like pressure field
     double H;
@@ -66,8 +66,22 @@ void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press)
     {
         H = Hsolidface_2D(p,0,0);
 
-        press(i,j) = -H*fabs(p->W22)*p->W1*draft(i,j)*ramp_draft(p);
+        press(i,j) = -fabs(p->W22)*p->W1*draft(i,j)*ramp_draft(p);
         
+    }
+    
+    SLICELOOP1
+    {
+    H = Hsolidface_2D(p,1,0);
+    
+    fx(i,j)=H;
+    }
+    
+    SLICELOOP2
+    {
+    H = Hsolidface_2D(p,0,1);
+    
+    fy(i,j)=H;
     }
     
     pgc->gcsl_start4(p,press,50);

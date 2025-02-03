@@ -37,6 +37,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
 
+void sixdof_void::initialize(lexer *p, fdm2D *b, ghostcell *pgc, vector<net*>& pnet)
+{
+}
 
 void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
 {

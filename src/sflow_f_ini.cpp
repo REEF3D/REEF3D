@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sflow_f.h"
 #include"lexer.h"
+#include"driver.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"iowave.h"
@@ -186,7 +187,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     psed->ini_sflow(p,b,pgc);
 
     //6DOF ini
-    p6dof->ini(p,pgc);
+    p6dof->initialize(p, b, pgc, pnet);
 
     // print
     log_ini(p);

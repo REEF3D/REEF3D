@@ -114,7 +114,7 @@ void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsg
         fb_obj[nb]->updateForcing_oned(p,pgc,press);
         
         if(p->X400==10)
-        fb_obj[nb]->updateForcing_stl(p,pgc,press);
+        fb_obj[nb]->updateForcing_stl(p,pgc,press,fx,fy);
         
             // Print
             if(p->X50==1)

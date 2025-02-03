@@ -29,8 +29,12 @@ Authors: Hans Bihs, Tobias Martin
    
 void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
 {
+}
+
+void sixdof_sflow::initialize(lexer *p, fdm2D *b, ghostcell *pgc, vector<net*>& pnet)
+{
     for (int nb = 0; nb < number6DOF; nb++)
-    fb_obj[nb]->initialize_shipwave(p, pgc);
+    fb_obj[nb]->initialize_shipwave(p, pgc,b->eta,b->hp);
 }
 
 void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)

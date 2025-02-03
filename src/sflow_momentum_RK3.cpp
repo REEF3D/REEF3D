@@ -168,7 +168,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pgc->gcsl_start4(p,wrk1,12);
     
-    psfdf->forcing(p,b,pgc,p6dof,0,1.0,Prk1,Qrk1,wrk1,b->hp,0);
+    psfdf->forcing(p,b,pgc,p6dof,0,1.0,Prk1,Qrk1,wrk1,etark1,b->hp,0);
 
 	// press
     ppress->start(p,b,pgc,ppoissonsolv,pflow, Prk1, Qrk1, b->P, b->Q, wrk1, etark1, 1.0);
@@ -259,7 +259,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pgc->gcsl_start4(p,wrk2,12);
     
-    psfdf->forcing(p,b,pgc,p6dof,1,0.25,Prk2,Qrk2,wrk2,b->hp,0);
+    psfdf->forcing(p,b,pgc,p6dof,1,0.25,Prk2,Qrk2,wrk2,etark2,b->hp,0);
 
     // press
     ppress->start(p,b,pgc,ppoissonsolv,pflow, Prk2, Qrk2, Prk1, Qrk1, wrk2, etark2, 0.25);
@@ -348,7 +348,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pgc->gcsl_start4(p,b->ws,12);
     
-    psfdf->forcing(p,b,pgc,p6dof,2,2.0/3.0,b->P,b->Q,b->ws,b->hp,1);
+    psfdf->forcing(p,b,pgc,p6dof,2,2.0/3.0,b->P,b->Q,b->ws,b->eta,b->hp,1);
 
 	//--------------------------------------------------------
 	// pressure

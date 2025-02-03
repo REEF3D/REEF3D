@@ -46,6 +46,7 @@ public:
     
     virtual void ini(lexer*,ghostcell*)=0;
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&)=0;
+    virtual void initialize(lexer*, fdm2D*, ghostcell*, vector<net*>&)=0;
     virtual void initialize(lexer*, fdm_nhf*, ghostcell*, vector<net*>&)=0;
 	
     virtual void isource(lexer*,fdm*,ghostcell*)=0;

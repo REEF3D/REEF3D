@@ -203,9 +203,6 @@ void sflow_turb_ke_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
 
 	wallf(i,j)=1;
 	}
-    
-    SLICELOOP4
-	b->test(i,j)=wallf(i,j);
 }
 
 void sflow_turb_ke_IM1::timesource(lexer* p, fdm2D *b, slice &fn)

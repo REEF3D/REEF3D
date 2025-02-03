@@ -27,7 +27,7 @@ Author: Tobias Martin
 #include<sys/stat.h>
 
 
-void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc)
+void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc, slice &eta, slice &WL)
 {
     if(p->mpirank==0)
     cout<<"6DOF_obj_ini "<<endl;
@@ -67,13 +67,23 @@ void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc)
     // Initialise global variables
 	update_fbvel(p,pgc);
     
-    
     // Print initial body 
     if(p->X50==1)
     print_vtp(p,pgc);
     
     if(p->X50==2)
     print_stl(p,pgc);
+    
+    double H;
+    
+    if(p->X10==3)
+    SLICELOOP4
+    {
+    H = Hsolidface_2D(p,0,0);
+    
+    eta(i,j) = -H*draft(i,j);
+    WL(i,j) = MAX(eta(i,j) + p->wd - p->bed[IJ],0.0);
+    }
 }
 
 double sixdof_obj::ramp_vel(lexer *p)

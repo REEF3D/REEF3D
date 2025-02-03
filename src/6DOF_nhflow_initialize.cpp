@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"6DOF_nhflow.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"fdm2D.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"vrans.h"
    
@@ -39,7 +39,11 @@ void sixdof_nhflow::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<net*
     
     if(p->X10==3)
     for (int nb = 0; nb < number6DOF; nb++)
-    fb_obj[nb]->initialize_shipwave(p, pgc);
+    fb_obj[nb]->initialize_shipwave(p,pgc,d->eta,d->WL);
+}
+
+void sixdof_nhflow::initialize(lexer *p, fdm2D *b, ghostcell *pgc, vector<net*>& pnet)
+{
 }
 
 void sixdof_nhflow::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
