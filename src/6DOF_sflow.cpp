@@ -91,7 +91,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
 
 void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, slice &fz, bool finalize)
 {
-    if(iter==0)
+    if(finalize==1)
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
