@@ -170,7 +170,6 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	pflow->pm_relax(p,pgc,b->press);
 
-	
 	pflow->um_relax(p,pgc,Prk1,b->bed,b->eta);
 	pflow->vm_relax(p,pgc,Qrk1,b->bed,b->eta);
     pflow->wm_relax(p,pgc,wrk1,b->bed,b->eta);
@@ -257,11 +256,10 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
               
 	//--------------------------------------------------------
 	// pressure
-    
-	pflow->pm_relax(p,pgc,b->press);
-    
 	ppress->start(p,b,pgc,ppoissonsolv,pflow, b->P, b->Q, Prk1, Qrk1, b->ws, b->eta, 0.5);
 	
+    pflow->pm_relax(p,pgc,b->press);
+    
 	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
 	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
     pflow->wm_relax(p,pgc,b->ws,b->bed,b->eta);

@@ -218,8 +218,8 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
         if(p->B98==2)
         {
             // Zone 1
-            if(dg<1.0e20)
-            f(i,j) = relax4_wg(i,j) * f(i,j);
+            //if(dg<1.0e20)
+            //f(i,j) = relax4_wg(i,j) * f(i,j);
 		}
 		
 		// Numerical Beach

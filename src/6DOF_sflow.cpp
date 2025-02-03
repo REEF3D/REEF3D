@@ -22,7 +22,6 @@ Authors: Hans Bihs, Tobias Martin
 
 #include"6DOF_sflow.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"vrans.h"
@@ -42,7 +41,7 @@ sixdof_sflow::~sixdof_sflow()
 {
 }
 
-void sixdof_sflow::start_sflow(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
+void sixdof_sflow::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
     starttime = pgc->timer();
     
@@ -96,7 +95,6 @@ void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsg
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        
         fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
         
         // Update transformation matrices
@@ -126,6 +124,5 @@ void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsg
             fb_obj[nb]->print_stl(p,pgc);
             
             fb_obj[nb]->print_parameter(p,pgc);
-        
     }
 }
