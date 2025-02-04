@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void sixdof_obj::update_forcing_sflow(lexer *p, ghostcell *pgc, 
-                             slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, int iter)
+                             slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &eta, int iter)
 {
     // Calculate forcing fields
     double H, uf, vf, wf;
@@ -66,8 +66,6 @@ void sixdof_obj::update_forcing_sflow(lexer *p, ghostcell *pgc,
         H = Hsolidface_2D(p,0,1);
         fy(i,j) += H*(vf - Q(i,j))/(alpha[iter]*p->dt);
         
-        H = Hsolidface_2D(p,0,0);
-        fz(i,j) += H*(wf - w(i,j))/(alpha[iter]*p->dt);
         //}
     }
     

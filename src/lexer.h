@@ -668,6 +668,7 @@ public:
     double X325_dt,X325_relX,X325_relY,X325_relZ;
     int X400;
     double X401_p0,X401_cl,X401_cb,X401_a;
+    int X410;
 
     // FSI
     int Z10,Z11,FSI_count;

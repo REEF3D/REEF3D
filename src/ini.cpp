@@ -882,6 +882,7 @@ void lexer::ini_default()
     X401_cl=2.0;    // sflow external pressure term cl
     X401_cb=16.0;   // sflow external pressure term cb
     X401_a=16.0;    // sflow external pressure term a
+    X410=0;         // int etaval for draft
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model

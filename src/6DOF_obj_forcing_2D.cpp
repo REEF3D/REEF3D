@@ -57,31 +57,41 @@ void sixdof_obj::updateForcing_box(lexer *p, ghostcell *pgc, slice &press)
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, slice &fx, slice &fy)
+void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, slice &eta)
 {
-    // Calculate ship-like pressure field
-    double H;
+    // Calculate pressure field for stl geometry based on draft
+    double H,etaval,fbval;
+    double dfdx,dfdy,dnorm,nx,nz,xc,yc;
 
 	SLICELOOP4
     {
         H = Hsolidface_2D(p,0,0);
-
-        press(i,j) = -fabs(p->W22)*p->W1*draft(i,j)*ramp_draft(p);
         
-    }
-    
-    SLICELOOP1
-    {
-    H = Hsolidface_2D(p,1,0);
-    
-    fx(i,j)=H;
-    }
-    
-    SLICELOOP2
-    {
-    H = Hsolidface_2D(p,0,1);
-    
-    fy(i,j)=H;
+        //
+        etaval =0.0;
+        
+        if(p->X410==1)
+        {
+        dfdx = (fs(i+1,j) - fs(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+        dfdy = (fs(i,j+1) - fs(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
+        
+        dnorm=sqrt(dfdx*dfdx + dfdy*dfdy);
+        
+        nx = dfdx/(dnorm>1.0e-20?dnorm:1.0e20);
+        ny = dfdy/(dnorm>1.0e-20?dnorm:1.0e20);
+        
+        xc = p->XP[IP] + p->X41*nx*p->DXN[IP];
+        yc = p->YP[JP] + p->X41*ny*p->DYN[JP];
+        
+        fbval = p->ccslipol4(fs,xc,yc);
+        
+        if(fbval>-0.6*(1.0/2.0)*(p->DXN[IP] + p->DYN[JP]))
+        etaval = p->ccslipol4(eta,xc,yc);
+        }
+        
+
+        press(i,j) = -H*fabs(p->W22)*p->W1*(draft(i,j)+etaval)*ramp_draft(p);
+
     }
     
     pgc->gcsl_start4(p,press,50);

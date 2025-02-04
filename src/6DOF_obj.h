@@ -100,7 +100,7 @@ public:
     // SFLOW
     double Hsolidface_2D(lexer*, int,int);
     void updateForcing_box(lexer*, ghostcell*, slice&);
-    void updateForcing_stl(lexer*, ghostcell*, slice&, slice&, slice&);
+    void updateForcing_stl(lexer*, ghostcell*, slice&, slice&);
     void updateForcing_oned(lexer*, ghostcell*, slice&);
     
     void update_forcing_sflow(lexer*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, int);

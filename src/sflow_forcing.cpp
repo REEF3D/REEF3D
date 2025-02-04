@@ -51,7 +51,7 @@ void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof,
     
 
     // 6DOF forcing
-    p6dof->start_sflow(p,b,pgc,iter,b->fs,P,Q,w,b->fx,b->fy,b->fz,finalize);
+    p6dof->start_sflow(p,b,pgc,iter,b->fs,P,Q,w,b->fx,b->fy,eta,finalize);
 
 
     if(forcing_flag==1)
