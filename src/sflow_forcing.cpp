@@ -59,7 +59,7 @@ void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof,
     // add forcing term to RHS
     SLICELOOP1
     {
-       // P(i,j) += alpha*p->dt*b->fx(i,j);
+        P(i,j) += alpha*p->dt*b->fx(i,j);
         
         /*if(p->count<10)
         b->maxF = MAX(fabs(alpha*CPORNH*b->FX[IJK]), b->maxF);
@@ -69,7 +69,7 @@ void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof,
     
     SLICELOOP2
     {
-        //Q(i,j) += alpha*p->dt*b->fy(i,j);
+        Q(i,j) += alpha*p->dt*b->fy(i,j);
         
         /*if(p->count<10)
         b->maxG = MAX(fabs(alpha*CPORNH*b->FY[IJK]), b->maxG);
