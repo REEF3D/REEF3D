@@ -32,10 +32,20 @@ void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, dou
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-
+        
+        if(p->wet[IJ]==1)
+        {
         U[Im1JK]=p->Ui;
         U[Im2JK]=p->Ui;
         U[Im3JK]=p->Ui;
+        }
+        
+        if(p->wet[IJ]==0)
+        {
+        U[Im1JK]=0.0;
+        U[Im2JK]=0.0;
+        U[Im3JK]=0.0;
+        }
 		
         V[Im1JK]=0.0;
         V[Im2JK]=0.0;
@@ -45,9 +55,19 @@ void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, dou
         W[Im2JK]=0.0;
         W[Im3JK]=0.0;
         
+        if(p->wet[IJ]==1)
+        {
         UH[Im1JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
         UH[Im2JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
         UH[Im3JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
+        }
+        
+        if(p->wet[IJ]==0)
+        {
+        UH[Im1JK]=0.0;
+        UH[Im2JK]=0.0;
+        UH[Im3JK]=0.0;
+        }
 		
         VH[Im1JK]=0.0;
         VH[Im2JK]=0.0;
