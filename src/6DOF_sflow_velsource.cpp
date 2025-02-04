@@ -48,6 +48,9 @@ void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     
     b->F(i,j) += dfdx/p->W1;
     }
+    
+    SLICELOOP4
+    b->test(i,j) = press(i,j);
 }
 
 void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)

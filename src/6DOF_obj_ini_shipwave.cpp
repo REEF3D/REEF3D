@@ -76,7 +76,7 @@ void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc, slice &eta, slice
     
     double H;
     
-    if(p->X10==3)
+    if(p->X10==3 && p->X207==0)
     SLICELOOP4
     {
     H = Hsolidface_2D(p,0,0);

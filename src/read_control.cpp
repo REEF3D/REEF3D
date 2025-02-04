@@ -2324,6 +2324,9 @@ void lexer::read_control()
 				case  401: control>>X401_p0>>X401_cl>>X401_cb>>X401_a;
                          clear(c,numint);
 						 break;
+                 case  410: control>>X410;
+                         clear(c,numint);
+						 break;
 				}
 				break;
 

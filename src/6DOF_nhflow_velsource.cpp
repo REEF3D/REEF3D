@@ -53,6 +53,9 @@ void sixdof_nhflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
  
     d->F[IJK] += dfdx/p->W1;
     }
+    
+    SLICELOOP4
+    d->test2D(i,j) = press(i,j);
 }
 
 void sixdof_nhflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)

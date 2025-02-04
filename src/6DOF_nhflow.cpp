@@ -160,7 +160,7 @@ void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
         fb_obj[nb]->updateForcing_oned(p,pgc,press);
         
         else if (p->X400==10)
-        fb_obj[nb]->updateForcing_stl(p,pgc,press,d->test2D,d->test2D);
+        fb_obj[nb]->updateForcing_stl(p,pgc,press,d->eta);
         
             // Print
             if(p->X50==1)
