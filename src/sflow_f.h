@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include<iostream>
 #include<fstream>
+#include<vector>
 
 class lexer;
 class fdm2D;

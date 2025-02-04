@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
+#include"net.h"
+#include<vector>
 #include"slice4.h"
 
 class lexer;
@@ -30,10 +32,8 @@ class slice;
 class sixdof;
 class vrans;
 class mooring;
-class net;
 class fsi;
 class nhflow_reinidisc_fsf;
-#include<vector>
 
 using namespace std;
 
