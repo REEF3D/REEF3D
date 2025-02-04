@@ -75,6 +75,39 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     SLICELOOP4
     p->wet[IJ] = temp[IJ];
     
+    
+    // avoid isolated wetdry
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+    if(p->wet[Im1J]==0 && p->flagslice4[Ip1J]<0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[Ip1J]==0 && p->flagslice4[Im1J]<0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[IJm1]==0 && p->flagslice4[IJp1]<0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[IJp1]==0 && p->flagslice4[IJm1]<0)
+    p->wet[IJ]=0;
+    
+    
+    
+    if(p->wet[Im1J]==0 && p->wet[Ip1J]==0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[Ip1J]==0 && p->wet[Im1J]==0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[IJm1]==0 && p->wet[IJp1]==0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[IJp1]==0 && p->wet[IJm1]==0)
+    p->wet[IJ]=0;
+        
+    }
+    
     //------------
     LOOP
     if(p->wet[IJ]==0)
@@ -115,16 +148,6 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     if(p->j_dir==1)
     if(p->wet[Ip1Jp1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Im1Jm1]==0)
     p->deep[IJ]=0;
-    
-    /*
-    if(p->wet[Ip1Jp2]==0 || p->wet[Ip1Jm2]==0 || p->wet[Im1Jp2]==0 || p->wet[Im1Jm2]==0)
-    p->deep[IJ]=0;
-    
-    if(p->wet[Ip2Jp1]==0 || p->wet[Ip2Jm1]==0 || p->wet[Im2Jp1]==0 || p->wet[Im2Jm1]==0)
-    p->deep[IJ]=0;
-    
-    if(p->wet[Ip2Jp2]==0 || p->wet[Ip2Jm2]==0 || p->wet[Im2Jp2]==0 || p->wet[Im2Jm2]==0)
-    p->deep[IJ]=0;*/
     }
     
     SLICELOOP4

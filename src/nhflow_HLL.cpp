@@ -67,16 +67,6 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     pflux->start_U(p,d,pgc);
     HLL(p,d,d->UHs,d->UHn,d->UHe,d->UHw);
     
-    LOOP
-    WETDRY
-    {
-    if(p->wet[IJp1]==0 && p->flag2[IJp1K]>0)
-    d->Fy[IJK] = 0.0;
-    
-    if(p->wet[IJm1]==0 && p->flag2[IJm1K]>0)
-    d->Fy[IJm1K] = 0.0;
-    }
-    
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,10);
     pgc->start3V(p,d->Fz,10);
@@ -95,17 +85,7 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     // HLL flux 
     pflux->start_V(p,d,pgc);
     HLL(p,d,d->VHs,d->VHn,d->VHe,d->VHw);
-    
-    LOOP
-    WETDRY
-    {
-    if(p->wet[Ip1J]==0 && p->flag1[Ip1JK]>0)
-    d->Fx[IJK] = 0.0;
-    
-    if(p->wet[Im1J]==0 && p->flag1[Im1JK]>0)
-    d->Fx[Im1JK] = 0.0;
-    }
-    
+
     pgc->start1V(p,d->Fx,11);
     pgc->start2V(p,d->Fy,11);
     pgc->start3V(p,d->Fz,11);
