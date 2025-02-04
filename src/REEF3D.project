@@ -787,6 +787,7 @@
         <File Name="VOF_AB.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
+        <File Name="VOF_void.h"/>
         <File Name="VOF_PLIC.h"/>
       </VirtualDirectory>
       <File Name="freesurface.h"/>
@@ -992,6 +993,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FC3_PLIC.h"/>
       <File Name="momentum_RK3CN.h"/>
       <File Name="momentum_RKLS3.h"/>
       <File Name="momentum_FC2.h"/>
@@ -2266,6 +2268,7 @@
         <File Name="VOF_AB.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
+        <File Name="VOF_void.cpp"/>
         <VirtualDirectory Name="FCRK3_functions">
           <File Name="VOF_PLIC_RK_redistance.cpp"/>
           <File Name="VOF_PLIC_RKcalcL.cpp"/>
@@ -2743,6 +2746,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FC3_PLIC.cpp"/>
       <File Name="momentum_RK3CN.cpp"/>
       <File Name="momentum_FC2.cpp"/>
       <VirtualDirectory Name="Forcing">

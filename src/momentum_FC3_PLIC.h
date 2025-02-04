@@ -41,6 +41,7 @@ class concentration;
 class sixdof;
 class fsi;
 class VOF_PLIC;
+class reini;
 
 using namespace std;
 
@@ -52,16 +53,16 @@ class momentum_FC3_PLIC : public momentum, public momentum_forcing, public bcmom
     
 public:
 	momentum_FC3_PLIC(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, 
-                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, fsi*);
+                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, fsi*, reini*);
 	virtual ~momentum_FC3_PLIC();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field1 udiff,urk1,urk2,fx;
-	field2 vdiff,vrk1,vrk2,fy;
-	field3 wdiff,wrk1,wrk2,fz;
+    field1 lu,udiff,urk1,urk2,fx;
+	field2 lv,vdiff,vrk1,vrk2,fy;
+	field3 lw,wdiff,wrk1,wrk2,fz;
     field4 ls,frk1,frk2;
     
 private:
@@ -88,6 +89,7 @@ private:
     sixdof *p6dof;
     fsi *pfsi;
     VOF_PLIC *pplic;
+    reini *preini;
     
 };
 

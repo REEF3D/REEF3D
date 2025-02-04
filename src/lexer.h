@@ -408,6 +408,7 @@ public:
 	double F84;
     int F88,F89,F90;
     double F91;
+    int F92;
     
     int F300,F305,F310,F350;
 	double F321,F322,F323,F360,F361,F362;

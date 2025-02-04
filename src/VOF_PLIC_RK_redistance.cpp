@@ -33,27 +33,26 @@ void VOF_PLIC::RK_redistance
     lexer* p,
     ghostcell* pgc
 )
-{
+{   
     LOOP
     {
         if(a->vof(i,j,k)>0.001 && a->vof(i,j,k)<0.999)
             reconstructPlane_alt(a,p,a->vof);
-    }
-    else
-    {
-        nx(i,j,k)=2.0;
-        ny(i,j,k)=0.0;
-        nz(i,j,k)=2.0;
-        alpha(i,j,k)=1E20;
-    }
-    phiaux(i,j,k)=1E05;
     
+        else
+        {
+            nx(i,j,k)=2.0;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=2.0;
+            alpha(i,j,k)=1E20;
+        }
+        phiaux(i,j,k)=1E05;
+    }
     pgc->start4(p,nx,1);
     pgc->start4(p,ny,1);
     pgc->start4(p,nz,1);
     pgc->start4(p,alpha,1);
     pgc->start4(p,phiaux,1);
-
     LOOP
     {
         if(a->vof(i,j,k)>0.001 && a->vof(i,j,k)<0.999)
@@ -72,10 +71,8 @@ void VOF_PLIC::RK_redistance
                 a->phi(i,j,k)=0.5;
             else
                 a->phi(i,j,k)=-0.5;
-            
-               
         }
     }
-    pgc->start4(p,a->phi,1);
 
+    pgc->start4(p,a->phi,1);
 }

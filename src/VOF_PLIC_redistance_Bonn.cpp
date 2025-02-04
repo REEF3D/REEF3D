@@ -41,12 +41,12 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
     lexer* p
 )
 {
-    int bandWidth=2;
+    int bandWidth=1;
     int jjbandWidth;
     if(p->j_dir>0)
-        jjbandWidth=2;
+        jjbandWidth=1;
     else
-        jjbandWidth=0;
+        jjbandWidth=1;
     double phitemp;
     double dd=-alpha(i,j,k);
     int ip, jp, kp;
@@ -78,7 +78,7 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                     if(fabs(phitemp)<1E05)
                                     {
                                         if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                            phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
+                                            phiaux(ip,jp,kp)=copysign(phitemp,a->vof(ip,jp,kp)-0.5);
                                     }
                                     else
                                     {   
@@ -86,7 +86,7 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                         if(fabs(phitemp)<1E05)
                                         {
                                             if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
+                                                phiaux(ip,jp,kp)=copysign(phitemp,a->vof(ip,jp,kp)-0.5);
                                         }   
                                         else
                                         {
@@ -94,14 +94,14 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                             if(fabs(phitemp)<1E05)
                                             {
                                                 if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                    phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);
+                                                    phiaux(ip,jp,kp)=copysign(phitemp,a->vof(ip,jp,kp)-0.5);
                                             }
                                             else
                                             {
                                                 cout<<"no nearest phase pint found"<<endl;
                                                 /*phitemp=phistep(ip,jp,kp);
                                                 if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                    phiaux(ip,jp,kp)=copysign(phitemp,vofstep(ip,jp,kp)-0.5);*/
+                                                    phiaux(ip,jp,kp)=copysign(phitemp,a->vof(ip,jp,kp)-0.5);*/
                                             }
                                         }
                                     }
@@ -132,7 +132,7 @@ double VOF_PLIC::ShortestDistanceOnBoundaryCandidate
     xvz=0.5*p->DZN[KP]*max(-1,min(1,kk));
     dist=nx(i,j,k)*xvx+ny(i,j,k)*xvy+nz(i,j,k)*xvz+dd;
     if(-dist*(phistep(i+ii,j+jj,k+kk))<0.0)
-        ret=copysign(sqrt(xvx*xvx+xvy*xvy+xvz*xvz),(vofstep(i+ii,j+jj,k+kk)-0.5));
+        ret=copysign(sqrt(xvx*xvx+xvy*xvy+xvz*xvz),(a->vof(i+ii,j+jj,k+kk)-0.5));
     else 
         ret=1E06;
         
@@ -163,7 +163,7 @@ double VOF_PLIC::ProjectionPointCandidate
         dx=(p->DXN[IP]*ii)-xpx;
         dy=(p->DYN[JP]*jj)-xpy;
         dz=(p->DZN[KP]*kk)-xpz;
-        ret=copysign(sqrt(dx*dx+dy*dy+dz*dz),(vofstep(i+ii,j+jj,k+kk)-0.5));
+        ret=copysign(sqrt(dx*dx+dy*dy+dz*dz),(a->vof(i+ii,j+jj,k+kk)-0.5));
     }
     else
         ret=1E06;

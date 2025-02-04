@@ -10,36 +10,45 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#include"levelset_AB2.h"
-#include"levelset_RK2.h"
-#include"levelset_RK3.h"
-#include"levelset_void.h"
 
-#include"reini_RK3.h"
-#include"reinifluid_RK3.h"
-#include"directreini.h"
-#include"reini_void.h"
+#include"freesurface.h"
+#include"gradient.h"
+#include"norm_vec.h"
+#include"reini.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
+#include"field4.h"
+#include"interpolation.h"
 
-#include"particle_pls.h"
-#include"particle_pls_void.h"
+class heat;
+class fluid_update;
 
-#include"VOF_AB.h"
-#include"VOF_RK3.h"
-#include"VOF_PLIC.h"
-#include"VOF_void.h"
+using namespace std;
 
-#include"onephase_v.h"
-#include"onephase_f.h"
+#ifndef VOF_VOID_H
+#define VOF_VOID_H
 
-#include"multiphase_v.h"
-#include"multiphase_f.h"
+class VOF_void : public freesurface, gradient, norm_vec
+{
+public:
+    VOF_void(lexer*, fdm*, ghostcell*,heat*);
+    virtual ~VOF_void();
+    virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
+    virtual void update(lexer*,fdm*,ghostcell*,field&);
+    
+private:
+    fluid_update *pupdate;
+};
+
+#endif

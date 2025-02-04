@@ -93,35 +93,70 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 		H=MAX(H,0.0);
 		H=MIN(H,1.0);
     roval = p->W1*H +   p->W3*(1.0-H); */
-   
+/*   
+double H0, H1, rho0, rho1, dx0, dx1;
+H0=a->vof(i,j,k);
+H1=a->vof(i+aa,j+bb,k+cc);
+rho0=p->W1*H0+(1.0-H0)*p->W3;
+rho1=p->W1*H1+(1.0-H1)*p->W3;
 
+if(aa==1)
+{
+    dx0=p->DXN[IP];
+    dx1=p->DXN[IP1];
+}
+else if(aa==-1)
+{
+    dx0=p->DXN[IP];
+    dx1=p->DXN[IM1];
+}
+else if(bb==1)
+{
+    dx0=p->DYN[JP];
+    dx1=p->DYN[JP1];
+}
+else if(bb==-1)
+{
+    dx0=p->DYN[JP];
+    dx1=p->DYN[JM1];
+}
+else if(cc==1)
+{
+    dx0=p->DZN[KP];
+    dx1=p->DZN[KP1];
+}
+else
+{
+    dx0=p->DZN[KP];
+    dx1=p->DZN[KM1];
+}
+
+roval=(dx0*rho0+dx1*rho1)/(dx0+dx1);*/
+
+/*
     double phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
-
-    if(phival>p->psi)
+    double psiro = p->psi;
+    if(phival>psiro)
     H=1.0;
 
-    if(phival<-p->psi)
+    if(phival<-psiro)
     H=0.0;
 
-    if(fabs(phival)<=p->psi)
-    H=0.5*(1.0 + phival/(p->psi) + (1.0/PI)*sin((PI*phival)/(p->psi)));
+    if(fabs(phival)<=psiro)
+    H=0.5*(1.0 + phival/(psiro) + (1.0/PI)*sin((PI*phival)/(psiro)));
     
     roval = p->W1*H + p->W3*(1.0-H);
+*/
 
-/*    if(a->vof(i,j,k)<0.001 && a->vof(i+aa,j+bb,k+cc)<0.001)
+    if(a->vof(i,j,k)>0.999 && a->vof(i+aa,j+bb,k+cc)>0.999)
+        roval=p->W1;
+    else if(a->vof(i,j,k)<0.001 && a->vof(i+aa,j+bb,k+cc)<0.001)
         roval=p->W3;
-    else if(a->vof(i,j,k)>0.999 && a->vof(i+aa,j+bb,k+cc)>0.999)
-        roval=p->W1;
-    else if((a->vof(i,j,k)>0.999 && a->vof(i+aa,j+bb,k+cc)<0.001) || (a->vof(i,j,k)<0.001 && a->vof(i+aa,j+bb,k+cc)>0.999))
-        roval=p->W1;
-    else if((a->vof(i,j,k)>0.999 && (a->vof(i+aa,j+bb,k+cc)<=0.999 && a->vof(i+aa,j+bb,k+cc)>=0.001)) || ((a->vof(i,j,k)<=0.999 && a->vof(i,j,k)>=0.001) && a->vof(i+aa,j+bb,k+cc)>0.999))
-        roval=p->W1;
-    else if((a->vof(i,j,k)<0.001 && (a->vof(i+aa,j+bb,k+cc)<=0.999 && a->vof(i+aa,j+bb,k+cc)>=0.001)) || ((a->vof(i,j,k)<=0.999 && a->vof(i,j,k)>=0.001) && a->vof(i+aa,j+bb,k+cc)<0.001))
-        roval=p->W3;
-    else if((a->vof(i,j,k)<=0.999 && a->vof(i,j,k)>=0.001) && (a->vof(i+aa,j+bb,k+cc)<=0.999 && a->vof(i+aa,j+bb,k+cc)>=0.001))
-        roval=0.5*(a->vof(i,j,k)+a->vof(i+aa,j+bb,k+cc))*p->W1+(1.0-0.5*(a->vof(i,j,k)+a->vof(i+aa,j+bb,k+cc)))*p->W3;
     else
-        cout<<"density case mising"<<endl;*/
+    {
+        roval=(a->phi(i,j,k)*(p->W1*a->vof(i,j,k)+p->W3*(1.0-a->vof(i,j,k)))+a->phi(i+aa,j+bb,k+cc)*(p->W1*a->vof(i+aa,j+bb,k+cc)+p->W3*(1.0-a->vof(i+aa,j+bb,k+cc))))/(a->phi(i,j,k)+a->phi(i+aa,j+bb,k+cc));
+    }
+
 	return roval;
 	
 }

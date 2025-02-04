@@ -69,6 +69,8 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
+    gcval_ro=1;
+    gcval_visc=1;
     
     if(p->F50==1)
 	gcval_phi=51;
@@ -195,10 +197,11 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk1);
     
-    pupdate->start(p,a,pgc);
+ //   pupdate->start(p,a,pgc);
     
     //-------------------------------------------
     // get vectorized face density from density_f
+    pgc->start4(p,a->ro,gcval_ro);
     face_density(p,a,pgc,rox,roy,roz);
     
     // advect U
@@ -256,6 +259,10 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     clear_FGH(p,a);
     
     // advect rho
+    pgc->start1(p,rox,gcval_u);
+    pgc->start2(p,roy,gcval_v);
+    pgc->start3(p,roz,gcval_w);
+    
     pconvec->start(p,a,rox,1,a->u,a->v,a->w);
     pconvec->start(p,a,roy,2,a->u,a->v,a->w);
     pconvec->start(p,a,roz,3,a->u,a->v,a->w);
@@ -290,6 +297,9 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start3(p,wr,gcval_w);
     
     
+    pupdate->start(p,a,pgc);
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
     //-------------------------------------------
 	// U
 	starttime=pgc->timer();
