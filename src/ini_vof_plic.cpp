@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"field4.h"
 #include"ghostcell.h"
-#include"reinifluid_RK3.h"
 #include"reini_RK3.h"
 
 /*
