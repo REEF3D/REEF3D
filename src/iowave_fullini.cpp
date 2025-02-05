@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,6 +31,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"full NWT initialize"<<endl;
     
+    p->wavetime = 0.0;
     
 	FLUIDLOOP
     {

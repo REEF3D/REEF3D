@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,6 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
     fbio(i,j,k)=1;
 	a->fb(i,j,k)=1.0e8;
 	}
-    
 	
     for(rayiter=0; rayiter<2; ++rayiter)
     {

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,10 +35,17 @@ sediment_void::~sediment_void()
 void sediment_void::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
                                     reinitopo *preto, solver *psolv)
 {
-
 }
 
 void sediment_void::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
+{
+}
+
+void sediment_void::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
+{
+}
+
+void sediment_void::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
@@ -51,6 +58,10 @@ void sediment_void::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 }
     
 void sediment_void::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo*)
+{
+}
+
+void sediment_void::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
 }
 
@@ -176,7 +187,7 @@ void sediment_void::offset_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &re
 {
 }
 
-double sediment_void::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
+double sediment_void::bedshear_point(lexer *p, ghostcell *pgc)
 {
 	return 0.0;
 }

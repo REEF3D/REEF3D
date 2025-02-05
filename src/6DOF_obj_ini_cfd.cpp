@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,6 +41,9 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
 {
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
+    
+    if(p->mpirank==0)
+    mkdir("./REEF3D_CFD_6DOF",0777);
     
     // Initialise folder structure
     if(p->X50==1)
@@ -161,6 +164,7 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
     {
         pnet.push_back(new net_void());
     }
+    
     else
     {
 		MPI_Bcast(&p->net_count,1,MPI_DOUBLE,0,pgc->mpi_comm);
@@ -235,42 +239,3 @@ void sixdof_obj::ini_parallel(lexer *p, ghostcell *pgc)
     }
 }    
 
-double sixdof_obj::ramp_vel(lexer *p)
-{
-    double f=1.0;
-    
-    if(p->X205==1 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
-    {
-    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts);
-    }
-    
-    if(p->X205==2 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
-    {
-    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts)-(1.0/PI)*sin(PI*(p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts));
-    }
-    
-    if(p->X206==1 && p->simtime<p->X206_ts)
-    f=0.0;
-    
-    return f;
-}
-
-double sixdof_obj::ramp_draft(lexer *p)
-{
-    double f=1.0;
-    
-    if(p->X205==1 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    {
-    f = p->simtime/(p->X207_te-p->X207_ts);
-    }
-    
-    if(p->X205==2 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    {
-    f = p->simtime/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X207_te-p->X207_ts)));
-    }
-    
-    if(p->X207==1 && p->simtime<p->X207_ts)
-    f=0.0;
-    
-    return f;
-}

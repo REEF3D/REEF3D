@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -105,13 +105,47 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
     p->phiout=pgc->globalmax(p->phiout);
     }
     
+    // set outflow fsf 
+    double wsfout=p->phimean;
+    double f;
+    
+    if(p->F62>1.0e-20)
+    {
+        if(p->F64==0)
+        wsfout=p->F62;
+        
+        if(p->F64>0)
+        {
+        if(p->count<p->F64)
+        f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
+        
+        if(p->count>=p->F64)
+        f = 1.0;
+        
+        wsfout = f*p->F62 + (1.0-f)*p->F60;
+        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
+        }
+    }
+    
+    if(p->F62>-1.0e20 && p->B77==2)
+    for(n=0;n<p->gcout_count;++n)
+    {
+        i=p->gcout[n][0];
+        j=p->gcout[n][1];
+        k=p->gcout[n][2];
+
+        a->phi(i+1,j,k)=wsfout-p->pos_z();
+        a->phi(i+2,j,k)=wsfout-p->pos_z();
+        a->phi(i+3,j,k)=wsfout-p->pos_z();
+    }
     
     pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
 void ioflow_f::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
-        /*for(n=0;n<p->gcout_count;++n)
+        if(p->F62<-1.0e19 || p->B77!=2)
+        for(n=0;n<p->gcout_count;++n)
         {
         i=p->gcout[n][0];
         j=p->gcout[n][1];
@@ -120,7 +154,19 @@ void ioflow_f::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
         f(i+1,j,k)=a->phi(i+1,j,k);
         f(i+2,j,k)=a->phi(i+2,j,k);
         f(i+3,j,k)=a->phi(i+3,j,k);
-        }*/
+        }
+        
+        if(p->F62>-1.0e20 && p->B77==2)
+        for(n=0;n<p->gcout_count;++n)
+        {
+        i=p->gcout[n][0];
+        j=p->gcout[n][1];
+        k=p->gcout[n][2];
+
+        f(i+1,j,k)=p->F62-p->pos_z();
+        f(i+2,j,k)=p->F62-p->pos_z();
+        f(i+3,j,k)=p->F62-p->pos_z();
+        }
 }
 
 void ioflow_f::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
@@ -136,74 +182,6 @@ void ioflow_f::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
         f(i-3,j,k)=a->phi(i-3,j,k);
         }
 }
-
-void ioflow_f::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-        for(int q=0;q<p->gcout_count;++q)
-        {
-        i=p->gcout[q][0];
-        j=p->gcout[q][1];
-        k=p->gcout[q][2];
-        n=p->gcout[q][5];
-		
-		PCHECK
-		{
-        f.V[Ip1_J_K_4]=a->phi(i+1,j,k);
-        f.V[Ip2_J_K_4]=a->phi(i+2,j,k);
-        f.V[Ip3_J_K_4]=a->phi(i+3,j,k);
-		}
-        }
-}
-
-void ioflow_f::fsfrkinV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-        for(int q=0;q<p->gcin_count;++q)
-        {
-        i=p->gcin[q][0];
-        j=p->gcin[q][1];
-        k=p->gcin[q][2];
-        n=p->gcin[q][5];
-		
-		PCHECK
-		{
-        f.V[Im1_J_K_4]=a->phi(i+1,j,k);
-        f.V[Im2_J_K_4]=a->phi(i+2,j,k);
-        f.V[Im3_J_K_4]=a->phi(i+3,j,k);
-		}
-        }
-}
-
-void ioflow_f::fsfrkinVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-    for(int q=0;q<p->gcin4a_count;++q)
-    {
-        i=p->gcin4a[q][0];
-        j=p->gcin4a[q][1];
-        k=p->gcin4a[q][2];
-        n=p->gcin4a[q][5];
-
-        f.V[Im1_J_K_4a]=a->phi(i+1,j,k);
-        f.V[Im2_J_K_4a]=a->phi(i+2,j,k);
-        f.V[Im3_J_K_4a]=a->phi(i+3,j,k);
-
-    }
-}
-
-void ioflow_f::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-    for(int q=0;q<p->gcout4a_count;++q)
-    {
-        i=p->gcout4a[q][0];
-        j=p->gcout4a[q][1];
-        k=p->gcout4a[q][2];
-        n=p->gcout4a[q][5];
-		
-        f.V[Ip1_J_K_4a]=a->phi(i+1,j,k);
-        f.V[Ip2_J_K_4a]=a->phi(i+2,j,k);
-        f.V[Ip3_J_K_4a]=a->phi(i+3,j,k);
-    }
-}
-
 
 double ioflow_f::wave_fsf(lexer *p, ghostcell *pgc, double x)
 {

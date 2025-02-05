@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,11 +30,13 @@ void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 {	
     if(p->j_dir==0)
     LOOP
-	dt[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]/p->sigz[IJ]);
+    WETDRY
+	dt[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]*d->WL(i,j));
     
     if(p->j_dir==1)
     LOOP
-	dt[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]/p->sigz[IJ]);
+    WETDRY
+	dt[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*d->WL(i,j));
 
 	reiniter=5;
 	
@@ -45,18 +47,20 @@ void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
     for(int q=0;q<reiniter;++q)
 	{
         // Step 1
-		prdisc->start(p,pgc,F,L);
+		prdisc->start(p,d,pgc,F,L);
 
 		LOOP
+         WETDRY
 		FRK1[IJK] = F[IJK] + dt[IJK]*L[IJK];
 
          pgc->start5V(p,FRK1,1);
         
         
         // Step 2
-		prdisc->start(p,pgc,FRK1,L);
+		prdisc->start(p,d,pgc,FRK1,L);
 
 		LOOP
+         WETDRY
 		F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*dt[IJK]*L[IJK];
 
         pgc->start5V(p,F,1);

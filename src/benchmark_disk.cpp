@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,8 +58,6 @@ benchmark_disk::benchmark_disk(lexer *p, fdm *a)
 			a->vof(i,j,k) = 0.0;
             a->phi(i,j,k) = -0.5;
 		}
-		
-		a->test(i,j,k) = a->vof(i,j,k);		
 	}
 
 

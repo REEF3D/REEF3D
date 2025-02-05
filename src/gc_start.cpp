@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -67,9 +67,6 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
     
     if(p->Y40==1  || p->Y40==3)
     dgcpol1(p,f,gcv);
-        
-    if(p->Y40==2  || p->Y40==3)
-    f.ggcpol(p);
     
     if(p->M10>0)
 	gcparacox(p,f,gcv);
@@ -120,9 +117,6 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     
     if(p->Y40==1  || p->Y40==3)
     dgcpol2(p,f,gcv);
-        
-    if(p->Y40==2  || p->Y40==3)
-    f.ggcpol(p);
     
     if(p->M10>0)
 	gcparacox(p,f,gcv);
@@ -168,9 +162,6 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
     
     if(p->Y40==1  || p->Y40==3)
     dgcpol3(p,f,gcv);
-        
-    if(p->Y40==2  || p->Y40==3)
-    f.ggcpol(p);
     
     if(p->M10>0)
 	gcparacox(p,f,gcv);
@@ -189,7 +180,6 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
 	endtime=timer();
 	p->xtime+=endtime-starttime;
     }
-    
     
     if(p->F10==1)
     nse4(p,a,f,gcv);
@@ -215,12 +205,8 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
     if(p->periodic3==1)
     gc_periodic(p, f, 4, 3);
     
-    
     if(p->Y40==1  || p->Y40==3)
     dgcpol4(p,f,gcv);
-        
-    if(p->Y40==2  || p->Y40==3)
-    f.ggcpol(p);
     
     if(p->M10>0)
 	gcparacox(p,f,gcv);
@@ -257,90 +243,43 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
     if(p->periodic3==1)
     gc_periodic(p, f, 4, 3);
     
-    if(p->Y40==2  || p->Y40==3)
-    f.ggcpol(p);
-    
     if(p->M10>0)
 	gcparacox(p,f,gcv);
 }
 
-void ghostcell::start4vec(lexer *p, vec &x, int gcv)
+void ghostcell::start4a_sum(lexer *p, field& f, int gcv)
 {
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcparaxvec(p,x,4);
+	gcparax4a_sum(p,f,5);
+	//gcparacox_sum(p,f,gcv);
+	//gcparacox_sum(p,f,gcv);
 	endtime=timer();
 	p->xtime+=endtime-starttime;
-    }
-    
-    starttime=timer();
-    QQGC4LOOP
-	gcdistro4vec(p,a,x,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcd4[qq], gcv, p->gcb4[qq][4], p->gcb4[qq][3], p->gcb4[qq][5]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
-    
-    // periodic ghostcells
-    gcperiodicxvec(p,x,4);
-    
-    if(p->periodic1==1)
-    gcV_periodic(p, x, 4, 1);
-    
-    if(p->periodic2==1)
-    gcV_periodic(p, x, 4, 2);
-    
-    if(p->periodic3==1)
-    gcV_periodic(p, x, 4, 3);
-}
-
-void ghostcell::start4avec(lexer *p, vec &x, int gcv)
-{
-    if(p->M10>0)
-    {
-    starttime=timer();
-	gcparaxvec(p,x,5);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
-    }
+    } 
     
     starttime=timer();
 	QQGC4ALOOP
-	gcdistro4avec(p,a,x,p->gcb4a[qq][0],p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3], p->gcb4a[qq][5]);
+	gcdistro4a(p,f,p->gcb4a[qq][0], p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcb4a[qq][5], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
     
     // periodic ghostcells
-    gcperiodicxvec(p,x,5);
+    gcperiodicx(p,f,4);
     
     if(p->periodic1==1)
-    gcV_periodic_all(p, x, 4, 1);
+    gc_periodic(p, f, 4, 1);
     
     if(p->periodic2==1)
-    gcV_periodic_all(p, x, 4, 2);
+    gc_periodic(p, f, 4, 2);
     
     if(p->periodic3==1)
-    gcV_periodic_all(p, x, 4, 3);
-}
-
-void ghostcell::start6vec(lexer *p, vec &x, int gcv)
-{
+    gc_periodic(p, f, 4, 3);
+    
+    
     if(p->M10>0)
-    {
-    starttime=timer();
-	gcparaxvec(p,x,6);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
-    }
-    
-    starttime=timer();
-
-	QQGC6LOOP
-	gcdistro6vec(p,a,x,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcd4[qq], gcv, p->gcb4[qq][4], fabs(p->gcb4[qq][3]), p->gcb6[qq]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
-    
-    // periodic ghostcells
-    gcperiodicxvec(p,x,6);
+	gcparacox(p,f,gcv);
 }
-
 

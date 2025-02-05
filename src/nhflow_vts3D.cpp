@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,8 +24,8 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"force_ale.h"
 #include"ioflow.h"
+#include"sediment.h"
 #include"nhflow_print_wsf.h"
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_vtp_bed.h"
@@ -92,21 +92,7 @@ nhflow_vts3D::nhflow_vts3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     prunupx=new nhflow_print_runup_gage_x(p,d,pgc);
     
     prunupmaxx=new nhflow_print_runup_max_gage_x(p,d,pgc);
-/*
-    if(p->P230>0)
-    ppotentialfile = new potentialfile_out(p,d,pgc);
 
-    if(p->P40>0)
-	pstate=new nhflow_state(p,d,pgc);
-
-    if(p->P59==1)
-    pbreaklog=new nhflow_breaking_log(p,d,pgc);
-	
-	if(p->P85>0)
-	pforce_ale = new force_ale*[p->P85];
-	
-	for(n=0;n<p->P85;++n)
-	pforce_ale[n]=new force_ale(p,d,pgc,n);*/
     
     if(p->P180==1)
 	pfsf = new nhflow_vtp_fsf(p,d,pgc);
@@ -119,7 +105,7 @@ nhflow_vts3D::~nhflow_vts3D()
 {
 }
 
-void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
+void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     // Gages
 	if(p->P51>0)
@@ -145,13 +131,13 @@ void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
     {
-    print_vtu(p,d,pgc,pnhfturb);
+    print_vtu(p,d,pgc,pnhfturb,psed);
     }
 
     // Print out based on time
     if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==2) || (p->count==0 &&  p->P30>0.0))
     {
-    print_vtu(p,d,pgc,pnhfturb);
+    print_vtu(p,d,pgc,pnhfturb,psed);
 
     p->printtime+=p->P30;
     }
@@ -161,7 +147,7 @@ void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     for(int qn=0; qn<p->P35; ++qn)
     if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
     {
-    print_vtu(p,d,pgc,pnhfturb);
+    print_vtu(p,d,pgc,pnhfturb,psed);
 
     printtime_wT[qn]+=p->P35_dt[qn];
     }
@@ -169,13 +155,13 @@ void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     // Print FSF
     if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
     {
-    pfsf->start(p,d,pgc);
+    pfsf->start(p,d,pgc,psed);
     }
 
 
     if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
     {
-    pfsf->start(p,d,pgc);
+    pfsf->start(p,d,pgc,psed);
     p->fsfprinttime+=p->P182;
     }
 
@@ -183,21 +169,21 @@ void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     for(int qn=0; qn<p->P184; ++qn)
     if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
     {
-    pfsf->start(p,d,pgc);
+    pfsf->start(p,d,pgc,psed);
     }
 
     if(p->P180==1 && p->P185>0)
     for(int qn=0; qn<p->P185; ++qn)
     if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
     {
-    pfsf->start(p,d,pgc);
+    pfsf->start(p,d,pgc,psed);
 
     printfsftime_wT[qn]+=p->P185_dt[qn];
     }
 
     // Print BED
     if(p->count==0)
-    pbed->start(p,d,pgc);
+    pbed->start(p,d,pgc,psed);
 
 
     // Gages
@@ -227,31 +213,19 @@ void nhflow_vts3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 
     if(p->P59==1)
     pbreaklog->write(p,d,pgc);
-	
-	// ALE force
-	  if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
-	  {
-		for(n=0;n<p->P85;++n)
-        pforce_ale[n]->ini(p,d,pgc);
-	  }
-        if(p->count>0 && p->P85>0)
-		{
-        for(n=0;n<p->P85;++n)
-        pforce_ale[n]->start(p,d,pgc);
-		}
         */
 }
 
-void nhflow_vts3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
+void nhflow_vts3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
-    print_vtu(p,d,pgc,pnhfturb);
+    print_vtu(p,d,pgc,pnhfturb,psed);
     
     if(p->P180==1)
-    pfsf->start(p,d,pgc);
+    pfsf->start(p,d,pgc,psed);
     
 }
 
-void nhflow_vts3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb)
+void nhflow_vts3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     /*
     - U, V, W
@@ -276,14 +250,6 @@ void nhflow_vts3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     pgc->start4V(p,d->test,50);
     //pgc->start4(p,d->test,1);
 
-
-    pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,d->bed,p->dgcsl4,p->dgcsl4_count,14);
-
-    d->WL.ggcpol(p);
-    d->breaking_print.ggcpol(p);
-
     i=-1;
     j=-1;
     if(i+p->origin_i==-1 && j+p->origin_j==-1 )
@@ -299,7 +265,7 @@ void nhflow_vts3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     pgc->gather_int(iextent,6,piextent,6);
 
     if(p->mpirank==0)
-    pvts(p,pgc);
+    pvts(p,pgc,psed);
 
     name_iter(p,pgc);
 

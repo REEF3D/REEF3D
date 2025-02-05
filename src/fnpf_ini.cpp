@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,7 +39,7 @@ fnpf_ini::~fnpf_ini()
 {
 }
 
-void fnpf_ini::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, reini *preini, onephase *poneph)
+void fnpf_ini::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, reini *preini)
 {	
     
     //pflow->fi_relax(p,pgc,a->Fi,a->phi);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -131,7 +131,7 @@ double wave_lib_Stokes_5th::wave_v_time_cos(lexer *p, int n)
 // HORZVEL -------------------------------------------------------------
 double wave_lib_Stokes_5th::wave_horzvel(lexer *p, double x, double y, double z)
 {
-	T = wk*x-ww*(p->simtime) + pshift;
+	T = wk*x-ww*(p->wavetime) + pshift;
     
     vel = c0*sqrt(9.81/wk)
          *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*cos(T)
@@ -196,7 +196,7 @@ double wave_lib_Stokes_5th::wave_horzvel_space_cos(lexer *p, double x, double y,
 
 double wave_lib_Stokes_5th::wave_horzvel_time_sin(lexer *p, int n)
 {
-	T = -ww*(p->simtime) + pshift;
+	T = -ww*(p->wavetime) + pshift;
 
     switch(n)
     {
@@ -221,7 +221,7 @@ double wave_lib_Stokes_5th::wave_horzvel_time_sin(lexer *p, int n)
 
 double wave_lib_Stokes_5th::wave_horzvel_time_cos(lexer *p, int n)
 {
-    T = -ww*(p->simtime) + pshift;
+    T = -ww*(p->wavetime) + pshift;
 
     switch(n)
     {
@@ -249,7 +249,7 @@ double wave_lib_Stokes_5th::wave_horzvel_time_cos(lexer *p, int n)
 double wave_lib_Stokes_5th::wave_w(lexer *p, double x, double y, double z)
 {
 	
-	T = wk*x-ww*(p->simtime) + pshift;
+	T = wk*x-ww*(p->wavetime) + pshift;
 
     vel = c0*sqrt(9.81/wk)
          *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*sinh(wk*(wdt+z))*sin(T)
@@ -320,7 +320,7 @@ double wave_lib_Stokes_5th::wave_w_space_cos(lexer *p, double x, double y, doubl
 
 double wave_lib_Stokes_5th::wave_w_time_sin(lexer *p, int n)
 {
-	T = -ww*(p->simtime) + pshift;
+	T = -ww*(p->wavetime) + pshift;
 
     switch(n)
     {
@@ -348,7 +348,7 @@ double wave_lib_Stokes_5th::wave_w_time_sin(lexer *p, int n)
 
 double wave_lib_Stokes_5th::wave_w_time_cos(lexer *p, int n)
 {
-	T = -ww*(p->simtime) + pshift;
+	T = -ww*(p->wavetime) + pshift;
 
     switch(n)
     {
@@ -379,7 +379,7 @@ double wave_lib_Stokes_5th::wave_eta(lexer *p, double x, double y)
 {
     double eta;
 	
-	T = wk*x-ww*(p->simtime) + pshift;
+	T = wk*x-ww*(p->wavetime) + pshift;
 
     eta =  (1.0/wk)*((eps + pow(eps,3.0)*b31 - pow(eps,5.0)*(b53 + b55))*cos(T)
                     + (pow(eps,2.0)*b22 + pow(eps,4.0)*b42)*cos(2.0*T)
@@ -442,7 +442,7 @@ double wave_lib_Stokes_5th::wave_eta_space_cos(lexer *p, double x, double y, int
 
 double wave_lib_Stokes_5th::wave_eta_time_sin(lexer *p, int n)
 {
-	T = -ww*(p->simtime) + pshift;
+	T = -ww*(p->wavetime) + pshift;
 
     switch(n)
     {
@@ -467,7 +467,7 @@ double wave_lib_Stokes_5th::wave_eta_time_sin(lexer *p, int n)
 
 double wave_lib_Stokes_5th::wave_eta_time_cos(lexer *p, int n)
 {
-	T = -ww*(p->simtime) + pshift;
+	T = -ww*(p->wavetime) + pshift;
 
     switch(n)
     {
@@ -495,7 +495,7 @@ double wave_lib_Stokes_5th::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     
-    T = wk*x-ww*(p->simtime) + pshift;
+    T = wk*x-ww*(p->wavetime) + pshift;
 
     fi = c0*sqrt(9.81/pow(wk,3.0))
          *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*sin(T)
@@ -584,7 +584,7 @@ double wave_lib_Stokes_5th::wave_fi_space_cos(lexer *p, double x, double y, doub
 
 double wave_lib_Stokes_5th::wave_fi_time_sin(lexer *p, int n)
 {
-    T = -ww*(p->simtime) + pshift;
+    T = -ww*(p->wavetime) + pshift;
 
     switch(n)
     {
@@ -612,7 +612,7 @@ double wave_lib_Stokes_5th::wave_fi_time_sin(lexer *p, int n)
 
 double wave_lib_Stokes_5th::wave_fi_time_cos(lexer *p, int n)
 {
-    T = -ww*(p->simtime) + pshift;
+    T = -ww*(p->wavetime) + pshift;
 
     switch(n)
     {

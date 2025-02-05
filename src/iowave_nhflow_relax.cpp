@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -60,7 +60,7 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             }
         }
     }
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
@@ -99,7 +99,7 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             }
         }
     }
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
@@ -140,7 +140,7 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             
         }
     }
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
@@ -179,7 +179,7 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             }
         }
     }
-    p->wavetime+=pgc->timer()-starttime;		
+    p->wavecalctime+=pgc->timer()-starttime;		
 }
 
 void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
@@ -199,7 +199,7 @@ void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
             P[FIJK] = relax4_nb(i,j)*P[FIJK];
         }
     }	
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
@@ -221,5 +221,5 @@ void iowave::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
 		}
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }

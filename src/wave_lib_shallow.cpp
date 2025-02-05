@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,7 +66,7 @@ double wave_lib_shallow::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
 	
-	teta = wk*x-ww*(p->simtime) + pshift;
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = wa*sqrt(9.81/wdt) * cos(teta);
 
@@ -77,7 +77,7 @@ double wave_lib_shallow::wave_w(lexer *p, double x, double y, double z)
 {
     double vel;
 	
-	teta = wk*x-ww*(p->simtime) + pshift;
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = wa*sqrt(9.81/wdt)*((z+wdt)/wdt) * sin(teta);
 
@@ -88,7 +88,7 @@ double wave_lib_shallow::wave_eta(lexer *p, double x, double y)
 {
     double eta;
 	
-	teta = wk*x-ww*(p->simtime) + pshift;
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     eta =  wa * cos(teta);
 

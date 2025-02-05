@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,8 +27,6 @@ class fdm;
 class field;
 class lexer;
 class ghostcell;
-class vec;
-class cpt;
 
 #ifndef DDWENO_NUG_H_
 #define DDWENO_NUG_H_
@@ -42,17 +40,17 @@ public:
 	 ddweno_nug(lexer*);
 	 ~ddweno_nug();
 
-	 double ddwenox(fdm*, vec&, double, int, cpt&);
-	 double ddwenoy(fdm*, vec&, double, int, cpt&);
-	 double ddwenoz(fdm*, vec&, double, int, cpt&);
+	 double ddwenox(fdm*, field&, double);
+	 double ddwenoy(fdm*, field&, double);
+	 double ddwenoz(fdm*, field&, double);
 
 
-	void iqmin(vec&, cpt&);
-	void jqmin(vec&, cpt&);
-	void kqmin(vec&, cpt&);
-	void iqmax(vec&, cpt&);
-	void jqmax(vec&, cpt&);
-	void kqmax(vec&, cpt&);
+	void iqmin(field&);
+	void jqmin(field&);
+	void kqmin(field&);
+	void iqmax(field&);
+	void jqmax(field&);
+	void kqmax(field&);
 
     double grad;
     double *DX,*DY,*DZ;

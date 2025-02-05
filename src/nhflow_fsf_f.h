@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -57,10 +57,10 @@ public:
     
     virtual void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double);
     
-    virtual void forcing(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
-    
     virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double);
     virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double);
+    
+    virtual void depth_update(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     

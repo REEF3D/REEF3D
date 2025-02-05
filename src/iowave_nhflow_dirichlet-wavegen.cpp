@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,9 +39,15 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        d->eta(i-1,j) = eta(i-1,j)*ramp(p);
-        d->eta(i-2,j) = eta(i-2,j)*ramp(p);
-        d->eta(i-3,j) = eta(i-3,j)*ramp(p);
+        if(p->A515==1)
+        etaval = d->eta(i,j);
+        
+        if(p->A515==2)
+        etaval = eta(i,j);
+        
+        d->eta(i-1,j) = etaval;
+        d->eta(i-2,j) = etaval;
+        d->eta(i-3,j) = etaval;
         }
         
         // wave maker
@@ -51,15 +57,15 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
+        if(p->A515==1)
+        etaval = d->eta(i,j);
+        
+        if(p->A515==2)
         etaval = d->eta(i,j);
         
         d->eta(i-1,j) = etaval;
         d->eta(i-2,j) = etaval;
         d->eta(i-3,j) = etaval;
-        
-        /*d->eta(i-1,j) = eta(i-1,j)*ramp(p);
-        d->eta(i-2,j) = eta(i-2,j)*ramp(p);
-        d->eta(i-3,j) = eta(i-3,j)*ramp(p);*/
         }
         
          count=0;
@@ -69,17 +75,18 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
         
-            WETDRYDEEP
-            {
+
+            //WETDRYDEEP
+            //{
             // U, V, W
-            uvel=uval[count];
-            vvel=vval[count];
-            wvel=wval[count];
+            uvel = uval[count];
+            vvel = vval[count];
+            wvel = wval[count];
             
             uvel *= ramp(p);
             vvel *= ramp(p);
             wvel *= ramp(p);
-            
+             
                 U[Im1JK]=uvel;
                 U[Im2JK]=uvel;
                 U[Im3JK]=uvel;
@@ -91,12 +98,12 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 W[Im1JK]=wvel;
                 W[Im2JK]=wvel;
                 W[Im3JK]=wvel;
-                
+                  
                 
             // UH, VH, WH
-            uhvel=UHval[count];
-            vhvel=VHval[count];
-            whvel=WHval[count];
+            uhvel = UHval[count];
+            vhvel = VHval[count];
+            whvel = WHval[count];
             
             uhvel *= ramp(p);
             vhvel *= ramp(p);
@@ -113,14 +120,14 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 WH[Im1JK]=whvel;
                 WH[Im2JK]=whvel;
                 WH[Im3JK]=whvel;
-            }
+            //}
             
         ++count;
         }
             
         // ------------------
         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
-		{
+        {
             for(int q=0;q<4;++q)
             for(n=0;n<p->gcin_count;++n)
             {
@@ -130,7 +137,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             
             d->EV[IJK]=MIN(d->EV[IJK],1.0e-4);
             }
-        pgc->start4V(p,d->EV,24);
-		}
+        pgc->start24V(p,d->EV,24);
+        }
         
 }

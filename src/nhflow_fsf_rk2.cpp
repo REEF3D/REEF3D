@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -96,9 +96,10 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
     
+    pgc->solid_forcing_eta(p,WLRK1);
+    pgc->solid_forcing_eta(p,d->eta);
+    
     wetdry(p,d,pgc,U,V,W,WLRK1); 
-
-    forcing(p,d,pgc,U,V,W,WLRK1);   
 }
 
 void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
@@ -132,12 +133,9 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
     
-    wetdry(p,d,pgc,U,V,W,d->WL);
+    pgc->solid_forcing_eta(p,d->WL);
+    pgc->solid_forcing_eta(p,d->eta);
     
-    forcing(p,d,pgc,U,V,W,d->WL);
-    
+    wetdry(p,d,pgc,U,V,W,d->WL); 
 }
-
-
-
 

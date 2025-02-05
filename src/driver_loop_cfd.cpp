@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,7 +58,7 @@ void driver::loop_cfd(fdm* a)
         cout<<p->count<<endl;
         
         cout<<"simtime: "<<p->simtime<<endl;
-		cout<<"timestep: "<<p->dt<<endl;
+		cout<<setprecision(5)<<"timestep: "<<p->dt<<endl;
         
         if(p->X10>0)
         cout<<"fbtimestep: "<<p->fbdt<<" fbmax: "<<p->fbmax<<endl;
@@ -78,7 +78,6 @@ void driver::loop_cfd(fdm* a)
 			fill_vel(p,a,pgc);
 			
             pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
-            poneph->update(p,a,pgc,pflow);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
             pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
@@ -86,7 +85,6 @@ void driver::loop_cfd(fdm* a)
         
         psed->start_susp(p,a,pgc,pflow,psolv);
         psed->start_cfd(p,a,pgc,pflow,preto,psolv);
-        ppart->start(p,a,pgc,pflow);
         pflow->u_relax(p,a,pgc,a->u);
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
@@ -123,7 +121,7 @@ void driver::loop_cfd(fdm* a)
             if( (p->count%p->P12==0))
             {
             if(p->B90>0)
-            cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
+            cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
             if(p->X10>0)
             cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
             cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
@@ -140,7 +138,7 @@ void driver::loop_cfd(fdm* a)
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->field4time=0.0;
     
     pgc->gcparax(p,a->press,4);

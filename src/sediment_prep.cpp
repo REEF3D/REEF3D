@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
@@ -42,6 +43,13 @@ void sediment_f::prep_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     waterlevel(p,a,pgc);
     
+}
+
+void sediment_f::prep_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
+{    
+    
+    fill_PQ_nhflow(p,d,pgc);
+        
 }
 
 void sediment_f::prep_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)

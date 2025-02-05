@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,6 +39,7 @@ public:
 	ioflow_gravity(lexer*,ghostcell*,patchBC_interface*);
 	virtual ~ioflow_gravity();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
+    virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
 	virtual void discharge(lexer*,fdm*,ghostcell*);
 	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -46,10 +47,6 @@ public:
 	virtual void fsfinflow(lexer*,fdm*,ghostcell*);
 	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&);
 	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&);
-	virtual void fsfrkinV(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkoutV(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&);
     virtual void iogcb_update(lexer*,fdm*,ghostcell*);
     virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void jsource(lexer*,fdm*,ghostcell*,vrans*);

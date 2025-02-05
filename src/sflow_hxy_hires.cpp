@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -61,27 +61,28 @@ sflow_hxy_hires::~sflow_hxy_hires()
 
 }
 
-void sflow_hxy_hires::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet, slice& eta, slice& uvel, slice& vvel)
+void sflow_hxy_hires::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet, slice& eta, slice &P, slice &Q)
 { 	
     double eps=1.0e-7;
 
 	SLICELOOP1
 	{
-	pflux->u_flux(4,uvel,ivel1,ivel2);
+	ivel1 = P(i,j);
 
     hx(i,j) = fx(p,eta,1,ivel1) + MIN(depth(i,j), depth(i+1,j));
 	}
     
     
-    if(p->F50==1 || p->F50==4)
+    
     for(n=0;n<p->gcslout_count;n++)
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
     
+        if(p->F50==1 || p->F50==4)
         if(wet[IJ]==1)
         {
-        pflux->u_flux(4,uvel,ivel1,ivel2);
+        ivel1 = P(i,j);
 
         if(ivel1>eps)
         hx(i,j) = eta(i,j) + depth(i,j);
@@ -92,6 +93,10 @@ void sflow_hxy_hires::start(lexer* p, slice& hx, slice& hy, slice& depth, int *w
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
+        
+        if(p->F50==2 || p->F50==3)
+        hx(i,j) = p->F60 - p->bed[IJ];
+            
     }
     
     int qq;    
@@ -108,7 +113,7 @@ void sflow_hxy_hires::start(lexer* p, slice& hx, slice& hy, slice& depth, int *w
         
         if(wet[IJ]==1)
         {
-        pflux->u_flux(4,uvel,ivel1,ivel2);
+        ivel1 = P(i,j);
 
         if(ivel1>eps)
         hx(i,j) = eta(i,j) + depth(i,j);
@@ -123,7 +128,7 @@ void sflow_hxy_hires::start(lexer* p, slice& hx, slice& hy, slice& depth, int *w
 	
 	SLICELOOP2
 	{
-	pflux->v_flux(4,vvel,jvel1,jvel2);
+	jvel1 = Q(i,j);
 
 	hy(i,j) = fy(p,eta,2,jvel1) + MIN(depth(i,j), depth(i,j+1));    
     }
@@ -142,7 +147,7 @@ void sflow_hxy_hires::start(lexer* p, slice& hx, slice& hy, slice& depth, int *w
         
         if(wet[IJ]==1)
         {
-        pflux->v_flux(4,vvel,jvel1,jvel2);
+        jvel1 = Q(i,j);
 	
         if(jvel1>eps)
         hy(i,j) = eta(i,j) + depth(i,j);

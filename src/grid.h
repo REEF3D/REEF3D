@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,10 +23,6 @@ Author: Hans Bihs
 #include"increment.h"
 
 class lexer;
-class fdm;
-class ghostcell;
-class fieldint;
-class cpt;
 
 #ifndef GRID_H_
 #define GRID_H_
@@ -39,66 +35,33 @@ public:
 
 	grid (lexer *);
 	virtual ~grid();
-	
-	void makegrid(lexer*,ghostcell*);
-	void update_topo_grid(lexer*,ghostcell*);
-	void update_sixdof_grid(lexer*,ghostcell*);
     
-    // CPT
-    void column_pt1_update(lexer*,cpt&);
-    void column_pt2_update(lexer*,cpt&);
-    void column_pt3_update(lexer*,cpt&);
-    void column_pt4_update(lexer*,cpt&);
-    void column_pt4a_update(lexer*,cpt&);
-    void column_pt6_update(lexer*,cpt&);
+    // gcb
+    void fillgcb1(lexer*);
+    void fillgcb2(lexer*);
+    void fillgcb3(lexer*);
+    void fillgcb4a(lexer*);
 
-	void column_pt1_assign(lexer*,fieldint&,cpt&);
-	void column_pt2_assign(lexer*,fieldint&,cpt&);
-	void column_pt3_assign(lexer*,fieldint&,cpt&);
-	void column_pt4_assign(lexer*,fieldint&,cpt&);
-    void column_pt4a_assign(lexer*,fieldint&,cpt&);
-    void column_pt6_assign(lexer*,fieldint&,cpt&);
-
-    int column_pt1_count(lexer*);
-	int column_pt2_count(lexer*);
-	int column_pt3_count(lexer*);
-	int column_pt4_count(lexer*);
-    int column_pt4a_count(lexer*);
-    int column_pt6_count(lexer*);
+    // dgc
+    void make_dgc(lexer*);
+    void unmake_dgc(lexer*);
+    void fill_dgc1(lexer*);
+    void fill_dgc2(lexer*);
+    void fill_dgc3(lexer*);
+    void fill_dgc4(lexer*);
     
-    
-    // cval
-    void cval_update1(lexer*,fieldint&);
-	void cval_update2(lexer*,fieldint&);
-	void cval_update3(lexer*,fieldint&);
-	void cval_update4(lexer*,fieldint&);
-    void cval_update4a(lexer*,fieldint&);
-    void cval_update6(lexer*,fieldint&);
-
-	void cval_gcb1(lexer*,fieldint&);
-    void cval_gcb2(lexer*,fieldint&);
-    void cval_gcb3(lexer*,fieldint&);
-    void cval_gcb4(lexer*,fieldint&);
-    void cval_gcb4a(lexer*,fieldint&);
-    void cval_gcb6(lexer*,fieldint&);
-
-	void cval_gcpara1(lexer*,fieldint&);
-    void cval_gcpara2(lexer*,fieldint&);
-    void cval_gcpara3(lexer*,fieldint&);
-    void cval_gcpara4(lexer*,fieldint&);
-    void cval_gcpara4a(lexer*,fieldint&);
-    void cval_gcpara6(lexer*,fieldint&);
-
+    int imin,imax,jmax,jmin,kmin,kmax;
     
 private:
-
-    int g,q,margin,count;
-
-   
+	int di,dj,dk;
+	int qn;
+    
+    int *hgc;
 	
 };
 
 #endif
+
 
 
 

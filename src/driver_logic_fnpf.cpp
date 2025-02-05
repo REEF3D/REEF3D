@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -76,10 +76,6 @@ void driver::logic_fnpf()
     if(p->G40==3)
     preto = new reinitopo_RK3(p);
     }
-    
-//  Free Surface
-    poneph = new onephase_v(p,a,pgc);
-
     
 //  Laplace Solver	
 	if(p->N10==0)

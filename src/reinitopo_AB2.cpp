@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -59,71 +59,44 @@ reinitopo_AB2::~reinitopo_AB2()
 {
 }
 
-void reinitopo_AB2::start(lexer* p, fdm* a, ghostcell* pgc,field &b)
+void reinitopo_AB2::start(lexer* p, fdm* a, ghostcell* pgc,field &f)
 {
-
-	sizeM=p->sizeM4;
-    
-	n=0;
-	ALOOP
-	{
-	f.V[n]=b(i,j,k);
-	++n;
-	}
-    
-    pgc->start4avec(p,f,gcval_initopo);
-	
 	reiniter=p->S37;
 	gcval=gcval_topo;
 	
-	
+    pgc->start4a(p,f,gcval);
+    
 	if(p->count==0)
 	{
     if(p->mpirank==0)
 	cout<<endl<<"initializing topo..."<<endl<<endl;
     reiniter=2*int(p->maxlength/(p->F43*p->DXM));
 	gcval=gcval_initopo;
-	pgc->start4avec(p,f,gcval);
+	pgc->start4a(p,f,gcval);
     
-	NLOOP4A
-	L.V[n]=frk1.V[n]=0.0;
+	ALOOP
+	L.V[IJK]=frk1.V[IJK]=0.0;
 	}
 
     for(int q=0;q<reiniter;++q)
 	{
-
 		prdisc->start(p,a,pgc,f,L,5);
         
         if(q==0)
-		NLOOP4A
-		frk1.V[n]=L.V[n];
+		ALOOP
+		frk1.V[IJK]=L.V[IJK];
 
 
-		NLOOP4A
+		ALOOP
 		{
-		f.V[n] += dt.V[n]*0.5*(3.0*L.V[n] - frk1.V[n]);
+		f.V[IJK] += dt.V[IJK]*0.5*(3.0*L.V[IJK] - frk1.V[IJK]);
 
-		frk1.V[n]=L.V[n];
+		frk1.V[IJK]=L.V[IJK];
 		}
 
-	pgc->start4avec(p,f,gcval);
-	}
-		
-	n=0;
-	ALOOP
-	{
-	b(i,j,k)=f.V[n];
-	++n;
-	}
-	
-	if(p->count==0)
-	pgc->start4a(p,b,gcval_initopo);
-    
-    if(p->count>0)
-	pgc->start4a(p,b,gcval_topo);
-
+	pgc->start4a(p,f,gcval);
+	}		
 }
-
 
 void reinitopo_AB2::step(lexer* p, fdm *a)
 {
@@ -137,7 +110,7 @@ void reinitopo_AB2::time_preproc(lexer* p)
     n=0;
 	ALOOP
 	{
-	dt.V[n]= p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dt.V[IJK]= p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	++n;
 	}
 }

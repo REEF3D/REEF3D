@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -69,7 +69,6 @@ void particle_pls::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
 	posactive_old=posactive;
 	negactive_old=negactive;
 
-    dgc_update(p,a,pgc);
     advect(p,a,pgc,pos,posflag,posactive);
     advect(p,a,pgc,neg,negflag,negactive);
 	particlex(p,a,pgc);

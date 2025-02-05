@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,8 +36,6 @@ void nhflow_vtp_bed::name_iter(lexer *p, fdm_nhf *d, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-
     sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%08i-%06i.vtp",num,p->mpirank+1);
-
 }
 

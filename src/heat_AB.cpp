@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -78,7 +78,7 @@ void heat_AB::diff_update(lexer *p, fdm *a, ghostcell *pgc)
     double alpha_1;
 	double alpha_2;
     double H;
-    double epsi=p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);;
+    double epsi=p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
     
     if(p->H9==1)
     {

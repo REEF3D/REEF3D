@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,7 +34,7 @@ public:
 	ptf_void();
 	virtual ~ptf_void();
     
-    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, convection*);
     virtual void inidisc(lexer*, fdm*, ghostcell*);
     

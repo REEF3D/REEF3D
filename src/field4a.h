@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"field.h"
-#include"increment.h"
-
 #ifndef FIELD4A_H_
 #define FIELD4A_H_
+
+#include"field.h"
+#include"increment.h"
 
 using namespace std;
 
@@ -37,7 +37,6 @@ public:
 
     double& operator()(int, int , int);
 	double& operator[](int);
-    virtual void ggcpol(lexer*);
     virtual void resize(lexer*);
     virtual void dealloc(lexer*);
 
@@ -51,10 +50,9 @@ public:
 private:
 
 	int iter;
-	int gcfeldsize,feldsize;
+	int feldsize;
 
 	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
 	void fieldlength(lexer *);
 
 	lexer *pp;

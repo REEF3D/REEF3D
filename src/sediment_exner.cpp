@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,7 @@ Author: Hans Bihs
 #include"sflow_bicgstab.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),dqx0(p),dqy0(p), xvec(p),rhsvec(p),M(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -82,25 +82,31 @@ sediment_exner::~sediment_exner()
 
 void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
+    // eq.
+    if(p->S17==0)
+    SLICELOOP4
+    s->qb(i,j)=s->qbe(i,j);
+    
+    // non-eq.
+    if(p->S17==1)
     non_equillibrium_solve(p,pgc,s); 
-   
-    SLICELOOP4
-    {
-        topovel(p,pgc,s,vx,vy,vz);
-        dqx0(i,j) = vx;
-        dqy0(i,j) = vy;
-        s->vz(i,j) = vz;
-	}
     
-	pgc->gcsl_start4(p,s->vz,1);
+    pgc->gcsl_start4(p,s->qb,1);
     
     
-    SLICELOOP4
-	s->vz(i,j) = 0.5*(3.0*s->vz(i,j) - s->dh(i,j));
+    // Exner
+    if(p->S31==1)
+    topovel1(p,pgc,s);
     
+    if(p->S31==2)
+    topovel2(p,pgc,s);
+
+	
+    // Bedch
     timestep(p,pgc,s);
 	
 	SLICELOOP4
+    WETDRY
     s->bedzh(i,j) += p->dtsed*s->vz(i,j);
 
     

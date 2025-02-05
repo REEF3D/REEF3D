@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -114,31 +114,4 @@ void ghostcell::gcdistro4a(lexer *p,field& f, int ii, int jj, int kk, int nn, do
     extend(p,f,dist,gcv,bc,cs);
 }
 
-void ghostcell::gcdistro4avec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
-{
-    i=ii;
-	j=jj;
-	k=kk;
-	
-	cs = fabs(cs);
-
-	bc_label=gceval4a(p,gcv,bc,cs);
-    
-	if(bc_label==74 || bc_label==75)
-	gcV_neumann_all(vec,gcv,bc,cs,id);
-}
-
-void ghostcell::gcdistro6vec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
-{
-    i=ii;
-	j=jj;
-	k=kk;
-	
-	cs = fabs(cs);
-
-	bc_label=gceval4a(p,gcv,bc,cs);
-    
-	if(bc_label==74 || bc_label==75)
-	gcV_neumann_6V(vec,gcv,bc,cs,id);
-}
 

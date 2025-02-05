@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"FSI.h"
@@ -28,6 +28,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class fsi_strip;
+class turbulence;
 
 using namespace std;
 
@@ -43,7 +44,7 @@ public:
     fsi_strips(lexer*,ghostcell*);
 	virtual ~fsi_strips();
 	virtual void start(lexer*,fdm*,ghostcell*);
-	virtual void initialize(lexer*,fdm*,ghostcell*);
+	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*);
     virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool);
     
     

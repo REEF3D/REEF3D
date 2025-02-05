@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -56,7 +56,7 @@ void driver::loop_cfd_df(fdm* a)
             cout<<p->count<<endl;
 
             cout<<"simtime: "<<p->simtime<<endl;
-            cout<<"timestep: "<<p->dt<<endl;
+            cout<<setprecision(5)<<"timestep: "<<p->dt<<endl;
             cout<<"fbtimestep: "<<p->fbdt<<" fbmax: "<<p->fbmax<<endl;
             
 
@@ -79,8 +79,7 @@ void driver::loop_cfd_df(fdm* a)
         pbench->start(p,a,pgc,pconvec);
 
         pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
-        poneph->update(p,a,pgc,pflow);
-
+        
         // Turbulence computation
         pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
         
@@ -132,7 +131,7 @@ void driver::loop_cfd_df(fdm* a)
             if( (p->count%p->P12==0))
             {
             if(p->B90>0)
-            cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
+            cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
             cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
             cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
@@ -150,7 +149,7 @@ void driver::loop_cfd_df(fdm* a)
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->field4time=0.0;
     p->fsitime=0.0;
     p->fbtime=0.0;

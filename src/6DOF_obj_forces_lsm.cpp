@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -177,7 +177,6 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
             
             //----
 
-            
             i = p->posc_i(xc);
             j = p->posc_j(yc);
             k = p->posc_k(zc);
@@ -240,13 +239,13 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
             dv = vval/p->DYN[JP];
             dw = wval/p->DZN[KP];
             
-            pval =      p->ccipol4_a(a->press,xloc,yloc,zloc) - p->pressgage;
-            density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
-            viscosity = p->ccipol4_a(a->visc,xloc,yloc,zloc);
-            phival =    p->ccipol4_a(a->phi,xloc,yloc,zloc);
+            pval =      p->ccipol4a(a->press,xloc,yloc,zloc) - p->pressgage;
+            density =   p->ccipol4a(a->ro,xloc,yloc,zloc);
+            viscosity = p->ccipol4a(a->visc,xloc,yloc,zloc);
+            phival =    p->ccipol4a(a->phi,xloc,yloc,zloc);
             
             if(p->P82==1)
-            viscosity += p->ccipol4_a(a->eddyv,xloc,yloc,zloc);   
+            viscosity += p->ccipol4a(a->eddyv,xloc,yloc,zloc);   
             
             i = p->posc_i(xloc);
             j = p->posc_j(yloc);
@@ -277,10 +276,10 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
             Fy = Fp_y + Fv_y;
             Fz = Fp_z + Fv_z;
             
-    Ax+=A*nx;
-    Ay+=A*ny;
-    
-    Px += pval*nx/fabs(nx);
+            Ax+=A*nx;
+            Ay+=A*ny;
+            
+            Px += pval*nx/fabs(nx);
     
     
     // Add forces to global forces
@@ -362,21 +361,9 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
     {
         ofstream print;
         char str[1000];
-       
-        if(p->A10==2)
-        sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
-        
-        if(p->A10==5)
-        sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
-        
-        if(p->A10==6)
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
-        
 
-        print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
+        printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
-        print.close();
     }
 
 	if (p->mpirank==0)

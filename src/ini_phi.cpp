@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -146,14 +146,6 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
     p->phiout=p->F62;
     p->fsfout=p->F62;
     }
-	
-	
-	if(p->F64==1)
-	LOOP
-	{
-	
-	//a->phi(i,j,k) = p->F61-p->pos_z()
-	}
 	
 	
 	pgc->start4(p,a->phi,50);

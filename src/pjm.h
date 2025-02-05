@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PJM_H_
+#define PJM_H_
+
 #include"pressure.h"
 #include"pressure_reference.h"
 
@@ -28,9 +31,6 @@ class concentration;
 class density;
 
 using namespace std;
-
-#ifndef PJM_H_
-#define PJM_H_
 
 class pjm : public pressure, public pressure_reference
 {
@@ -52,7 +52,6 @@ public:
     virtual void wpgrad(lexer*,fdm*,slice&,slice&);
 
 private:    
-    void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	double starttime,endtime;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;

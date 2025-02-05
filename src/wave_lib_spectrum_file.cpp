@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -87,7 +87,6 @@ void wave_lib_spectrum::spectrum_file_read(lexer *p)
 	spectrum[count][0] = val0;
 	spectrum[count][1] = val1;
 	++count;
-
 	}
 
 	ts = spectrum[0][0];

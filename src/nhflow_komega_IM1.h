@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_ikomega.h"
+#include"nhflow_komega_func.h"
 
 using namespace std;
 
 #ifndef NHFLOW_KOMEGA_IM1_H_
 #define NHFLOW_KOMEGA_IM1_H_
 
-class nhflow_komega_IM1 : public nhflow_ikomega
+class nhflow_komega_IM1 : public nhflow_komega_func
 {
 public:
 	nhflow_komega_IM1(lexer *, fdm_nhf*, ghostcell*);
@@ -36,6 +36,7 @@ public:
 	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*);
 	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*);
 	void timesource(lexer*,fdm_nhf*,double*);
+    void kinupdate(lexer*, fdm_nhf*, ghostcell*);
 	void clearrhs(lexer*,fdm_nhf*);
 
 	double  *KN,*EN;

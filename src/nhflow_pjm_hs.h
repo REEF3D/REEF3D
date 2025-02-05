@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,7 +25,6 @@ Author: Hans Bihs
 
 class density;
 class solver;
-class nhflow_poisson;
 class patchBC_interface;
 
 using namespace std;

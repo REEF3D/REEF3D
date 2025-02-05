@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -52,6 +52,7 @@ public:
 private:
     double wht,acn,delta,epsilon,wR;
     double singamma,cosgamma;    
+    double ubar;
 };
 
 #endif

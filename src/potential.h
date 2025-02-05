@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,7 +34,6 @@ class potential
 {
 public:
 	virtual void start(lexer*,fdm*, solver*, ghostcell* pgc)=0;
-
 
 };
 

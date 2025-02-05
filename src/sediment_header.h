@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,7 +29,4 @@ Author: Hans Bihs
 #include"reinitopo_RK3.h"
 #include"reinitopo_void.h"
 
-#include"particle_v.h"
-#include"particle_f.h"
-
-
+#include"sediment_part.h"

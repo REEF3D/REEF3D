@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,7 +28,6 @@ Author: Hans Bihs
 #include"cds2_alt.h"
 #include"cds4.h"
 #include"quick.h"
-#include"lust.h"
 #include"weno_hj.h"
 #include"weno_hj_nug.h"
 #include"weno_hj_df_nug.h"
@@ -52,7 +51,4 @@ Author: Hans Bihs
 #include"hric_mod.h"
 #include"cicsam.h"
 
-#include"potential_v.h"
-#include"potential_f.h"
-#include"potential_water.h"
 

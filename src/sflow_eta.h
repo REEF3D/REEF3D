@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"slice4.h" 
 
-class sflow_eta_weno;
 class sflow_hxy_disc;
 class patchBC_interface;
 
@@ -42,6 +41,7 @@ public:
     virtual void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double);
 	virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*);
 	virtual void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+    virtual void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
     virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
 	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&);
@@ -56,7 +56,6 @@ private:
 	
     double wd_criterion;
     
-	sflow_eta_weno *pconvec;
 	sflow_hxy_disc *phxy;
     patchBC_interface *pBC;
 	

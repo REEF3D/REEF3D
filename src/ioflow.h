@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,6 +44,7 @@ class ioflow
 {
 public:
     virtual void gcio_update(lexer*,fdm*,ghostcell*)=0;
+    virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*)=0;
 	virtual void discharge(lexer*,fdm*,ghostcell*)=0;
 	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;
@@ -51,10 +52,6 @@ public:
 	virtual void fsfinflow(lexer*,fdm*,ghostcell*)=0;
 	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&)=0;
 	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&)=0;
-	virtual void fsfrkinV(lexer*,fdm*,ghostcell*,vec&)=0;
-	virtual void fsfrkoutV(lexer*,fdm*,ghostcell*,vec&)=0;
-	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&)=0;
-	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&)=0;
     virtual void iogcb_update(lexer*,fdm*,ghostcell*)=0;
     virtual void isource(lexer*,fdm*,ghostcell*,vrans*)=0;
     virtual void jsource(lexer*,fdm*,ghostcell*,vrans*)=0;

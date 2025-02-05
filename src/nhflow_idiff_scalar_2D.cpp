@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,13 +26,13 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 
-void nhflow_idiff_2D::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double alpha)
+void nhflow_idiff_2D::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double sig, double alpha)
 {
 	n=0;
 
 	LOOP
 	{
-	visc = d->VISC[IJK] + d->EV[IJK];
+	visc = d->VISC[IJK] + d->EV[IJK]/sig;
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
 	

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,10 +35,7 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     double dirac;
     
     H=Ht=0.0;
-    /*cout<<p->mpirank<<" R_ "<<R_(0,0)<<" "<<R_(0,1)<<" "<<R_(0,2)<<" "<<R_(1,0)<<" "<<R_(1,2)<<" "<<R_(1,1)<<" "<<R_(2,0)<<" "<<R_(2,1)<<" "<<R_(2,2)<<" "<<endl;
-    cout<<p->mpirank<<" G_ "<<G_(0,0)<<" "<<G_(0,1)<<" "<<G_(0,2)<<" "<<G_(1,0)<<" "<<G_(1,2)<<" "<<G_(1,1)<<" "<<G_(2,0)<<" "<<G_(2,1)<<" "<<G_(2,2)<<" "<<endl;
-    cout<<p->mpirank<<" E_ "<<E_(0,0)<<" "<<E_(0,1)<<" "<<E_(0,2)<<" "<<E_(1,0)<<" "<<E_(1,2)<<" "<<E_(1,1)<<" "<<E_(2,0)<<" "<<E_(2,1)<<" "<<E_(2,2)<<" "<<endl;*/
-      
+  
     if(p->X14==1)
     {
     ULOOP
@@ -49,7 +46,6 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
         {
         cout<<"UF "<<uf<<" "<<u_fb(0)<<" "<<u_fb(4)<<" "<<(p->pos1_z() - c_(2))<<" "<<u_fb(5)<<" "<<(p->pos1_y() - c_(1))<<endl;
         }
-        
         
         H = Hsolidface(p,a,1,0,0);
         
@@ -110,9 +106,7 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     }
     
     }
-    
-    LOOP
-    a->test(i,j,k) = a->fbh4(i,j,k);
+
 
 // Construct solid heaviside function	
     if(p->X14>=2)

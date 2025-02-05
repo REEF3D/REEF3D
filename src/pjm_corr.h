@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,10 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PJM_CORR_H_
+#define PJM_CORR_H_
+
 #include"pressure.h"
 #include"pressure_reference.h"
 #include"field4.h"
-
 
 class heat;
 class concentration;
@@ -31,15 +33,12 @@ class density;
 
 using namespace std;
 
-#ifndef PJM_CORR_H_
-#define PJM_CORR_H_
-
 class pjm_corr : public pressure, public pressure_reference
 {
 
 public:
 
-	pjm_corr(lexer* p, fdm *a, heat*&, concentration*&);
+	pjm_corr(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~pjm_corr();
 
 	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);

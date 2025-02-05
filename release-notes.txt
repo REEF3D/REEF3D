@@ -1,4 +1,61 @@
 
+24.12
+x updated roughness boundary condition (NHFLOW)
+x updated FNPF wetdry algorithm
+x added Morison force calculation using ALE (NHFLOW)
+x added free surface based controlled outflow boundary condition (CFD)
+x added direct forcing 6DOF (SFLOW)
+x added piston wave maker with 6DOF
+x fixed 6DOF parameter print out
+x fixed net for 6DOF void (CFD)
+x added solid direct forcing immersed boundary to NHFLOW
+x added 6DOF floating body algorithm to NHFLOW
+x added mooring algorithms to NHFLOW
+x updated k-omega turbulence model (NHFLOW)
+x fixed Dirichlet wavegen (NHFLOW)
+x fixed an ioflow outflow problem (CFD)
+x updated potential flow ini (CFD)
+x updated 5th-order cnoidal dispersion
+x updated active wave absorbtion (CFD and NHFLOW)
+x fixed a problem with solid and topo direct forcing (CFD)
+x added new solver for ini potential flow solver (CFD)
+x fixed a problem for ini potential flow solver on fine grids (CFD)
+x updated iowave for wave and current conditions (CFD)
+x updated direction forcing (CFD)
+x added NHFLOW to CFD HDC 
+x fixed NHFLOW flux BC
+x fixed strip and beam print out sync with flow solver (CFD)
+x removed ghostcell immersed boundary method (CFD)
+x updated Morison force calculation using ALE (FNPF)
+x updated tutorial cases
+
+24.08
+x added RANS turbulence FSI forcing (CFD)
+x fixed flux wall boundary conditions (NHFLOW)
+x updated wetdry reconstruction (NHFLOW)
+x added dambreak free surface setup (NHFLOW)
+x updated dirichlet wavegen (NHFLOW)
+x added roughness boundary condition (NHFLOW)
+x added new Exner formulation for sediment transport 
+x added bedshear slope reduce limiter for sediment transport
+x added wind forcing (NHFLOW)
+x updated wetdry algorithm (NHFLOW)
+x added bedload direction correction for sediment transport
+x added sediment transport (NHFLOW)
+x added k-omega turbulence model (NHFLOW)
+x improved performance for complex bathymetry (NHFLOW)
+x fixed wave-current AWA for RK3 (CFD)
+x fixed Chezy bedshear calculation (SFLOW)
+x improved AWA for wave and current (CFD)
+x fixed a direct forcing potential flow ini bug (CFD)
+x updated time for 6DOF print out (CFD)
+x update free surface turbulent buoyancy term (CFD)
+x changed to direct forcing immersed boundary method as default (CFD)
+x updated dirichlet wavegen (NHFLOW)
+x fixed a topo initialization problem (CFD)
+x 6DOF one-way coupling center of gravity calculation fix (SFLOW and NHFLOW)
+x added Hs calculation for vtu and fsf vtp files (NHFLOW)
+
 24.05
 x fixed wave dirichlet space-time decomposition wavegen (NHFLOW)
 x improved wetdry interface pressure calculation (NHFLOW)

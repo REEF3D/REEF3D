@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,8 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"sediment.h"
 
-void nhflow_vtp_bed::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_bed::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 {	
 	int num=0;
 
@@ -60,6 +61,21 @@ void nhflow_vtp_bed::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result<<"<PPointData>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>"<<endl;
+    
+    if(p->P76==1)
+	psed->name_pvtu_bedload(p,pgc,result);
+    
+    if(p->P77==1)
+	psed->name_pvtu_parameter1(p,pgc,result);
+
+    if(p->P78==1)
+	psed->name_pvtu_parameter2(p,pgc,result);
+
+	if(p->P79>=1)
+	psed->name_pvtu_bedshear(p,pgc,result);
+    
+    if(p->P23==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
 	result<<"</PPointData>"<<endl;
 	
 	result<<"<Polys>"<<endl;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -15,7 +15,7 @@ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/liceonephases/>.
+along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
@@ -25,11 +25,9 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
-class onephase;
 class ioflow;
 class slice;
 class field;
-class reinifluid_RK3;
 
 using namespace std;
 
@@ -43,7 +41,7 @@ public:
 	virtual ~ptf_fsf_update();
     
     void fsfepol(lexer*, fdm*, ghostcell*,slice&,field&);
-	void fsfupdate(lexer*, fdm*, ghostcell*,ioflow*,onephase*,slice&);
+	void fsfupdate(lexer*, fdm*, ghostcell*,ioflow*,slice&);
     void etaloc(lexer*, fdm*, ghostcell*);
     void fsfbc(lexer*, fdm*, ghostcell*,slice&,field&);
     void fsfbc0(lexer*, fdm*, ghostcell*,slice&,field&);
@@ -53,7 +51,7 @@ public:
     
 private: 
     int gcval,gcval_u,gcval_v,gcval_w;
-    reinifluid_RK3 *preini;
+
 };
 
 #endif

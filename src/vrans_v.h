@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,9 +34,10 @@ public:
 	vrans_v(lexer*, ghostcell*);
 	virtual ~vrans_v();
 
-	virtual void initialize(lexer*, fdm*, ghostcell*);	
+	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);	
 	virtual void start(lexer*, fdm*, ghostcell*, net*&, int){};
     virtual void sed_update(lexer*, fdm*, ghostcell*);
+    virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&){};
 	
 	virtual void u_source(lexer*, fdm*);
 	virtual void v_source(lexer*, fdm*);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,7 @@ reinitopo_void::~reinitopo_void()
 {
 }
 
-void reinitopo_void::start(lexer *p, fdm *a, ghostcell *pgc, field &b)
+void reinitopo_void::start(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
-    pgc->start4a(p,b,150);
+    pgc->start4a(p,f,150);
 }

@@ -110,7 +110,11 @@ void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Ma
 
 	//- Build and save net
 	print(p);	
-
+    
+    //if (p->mpirank==0)
+    //cout<<"convIt.maxCoeff(): "<<convIt.maxCoeff();
+        
+/*
     //- Print output
     double endtime1 = pgc->timer() - starttime1; 
     if (p->mpirank==0 && convIt.maxCoeff() < 10)
@@ -120,7 +124,7 @@ void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Ma
     if (p->mpirank==0 && convIt.maxCoeff() >= 10)
     {
         cout<<"Net diverged. Adjust X 325 accordingly!"<<endl; 
-    }
+    }*/
 }
 
 
@@ -392,7 +396,7 @@ void net_barDyn::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 			}
 			else if (cmp==3)
 			{
-				coupledField[i][cmp] = p->ccipol4_a(a->phi,x_(i,0),x_(i,1),x_(i,2));
+				coupledField[i][cmp] = p->ccipol4a(a->phi,x_(i,0),x_(i,1),x_(i,2));
                 
                 if (coupledField[i][cmp] >= 0.0) // water
                 {

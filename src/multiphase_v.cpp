@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -61,11 +61,6 @@ void multiphase_v::print_3D(lexer*, fdm*, ghostcell*,ofstream&)
 
 void multiphase_v::print_file(lexer *p, fdm *a, ghostcell *pgc)
 {
-}
-
-void multiphase_v::nodefill(lexer*,fdm*,ghostcell*,field&)
-{
-	
 }
 
 double multiphase_v::ls1val(int,int,int)

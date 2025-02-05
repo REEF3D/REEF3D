@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,10 +23,10 @@ Author: Hans Bihs
 #include"nhflow_vtp_fsf.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"sediment.h"
 #include"ghostcell.h"
 
-
-void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 {	
 	int num=0;
 

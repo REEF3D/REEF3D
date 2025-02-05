@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,6 +41,9 @@ public:
 	int positioncheck(lexer*,double,double,double,int);
 	int minboundcheck(lexer*,int,int,int,int);
 	int maxboundcheck(lexer*,int,int,int,int);
+
+    int globalminboundcheck(lexer*,int,int,int);
+	int globalmaxboundcheck(lexer*,int,int,int);
 
 	int ij_boundcheck(lexer*,int,int,int);
 	int ij_boundcheck_topo(lexer*,int,int,int);

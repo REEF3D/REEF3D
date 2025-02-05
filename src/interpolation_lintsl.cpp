@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -220,12 +220,6 @@ pip=0;
     if((c2==0 && c4==0) && (c1==1 || c3==1))
     wb=1.0;
     
-    /*
-    if(c2==0 && c4==0 && c1==1 && c3==1)
-    {
-    //x1=x2=0.0;
-    }*/
-
     value = wb*x1 + (1.0-wb)*x2;
     
  return value;

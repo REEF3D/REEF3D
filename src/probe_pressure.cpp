@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -91,7 +91,7 @@ void probe_pressure::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		yp=p->P64_y[n];
 		zp=p->P64_z[n];
 		
-		pval = p->ccipol4_a(a->press, xp, yp, zp) - p->pressgage;
+		pval = p->ccipol4a(a->press, xp, yp, zp) - p->pressgage;
 		}
 	
 	pval=pgc->globalmax(pval);

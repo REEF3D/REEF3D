@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,17 +41,14 @@ void ghostcell::gcsl_outflow(lexer *p, slice& f, int gcv, int bc, int cs)
 
 	if(cs==4)
 	for(q=0;q<margin;++q)
-	f(i+q+1,j)=f(i,j);
+	f(i+q+1,j)=MAX(f(i,j),0.0);
 }
 
 void ghostcell::gcsl_outflow_fsf(lexer *p, slice& f, int gcv, int bc, int cs)
 {
 	// hx outflow
-
 	if(cs==4)
 	for(q=0;q<margin;++q)
-	f(i+q+2,j)= f(i+1,j);
-    
-    
+	f(i+q+2,j)=f(i+1,j);
 }
 

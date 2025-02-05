@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ikomega.h"
+#include"komega_func.h"
 #include"field4.h"
 
 using namespace std;
@@ -28,7 +28,7 @@ using namespace std;
 #ifndef KOMEGA_IM1_H_
 #define KOMEGA_IM1_H_
 
-class komega_IM1 : public ikomega
+class komega_IM1 : public komega_func
 {
 public:
 	komega_IM1(lexer *, fdm*, ghostcell*);

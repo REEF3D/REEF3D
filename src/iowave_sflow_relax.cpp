@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -61,7 +61,7 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta)
@@ -95,7 +95,7 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
@@ -114,7 +114,7 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
             // Zone 1
             if(dg<1.0e20)
             {
-            Q(i,j) = (1.0-relax1_wg(i,j))*ramp(p) * vval[count] + relax1_wg(i,j)*Q(i,j);
+            Q(i,j) = (1.0-relax2_wg(i,j))*ramp(p) * vval[count] + relax2_wg(i,j)*Q(i,j);
             ++count;
             }
 		}
@@ -124,11 +124,11 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
 		{
             // Zone 2
             if(db<1.0e20)
-            Q(i,j) = relax1_nb(i,j)*Q(i,j);
+            Q(i,j) = relax2_nb(i,j)*Q(i,j);
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta)
@@ -162,7 +162,7 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta)
@@ -200,7 +200,7 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
@@ -218,8 +218,8 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
         if(p->B98==2)
         {
             // Zone 1
-            if(dg<1.0e20)
-            f(i,j) = relax4_wg(i,j) * f(i,j);
+            //if(dg<1.0e20)
+            //f(i,j) = relax4_wg(i,j) * f(i,j);
 		}
 		
 		// Numerical Beach
@@ -231,5 +231,5 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
         }
     }
     
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }

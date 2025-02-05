@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,7 +50,7 @@ levelset_RK3::levelset_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	gcval_phi=51;
 
 	if(p->F50==2)
-	gcval_phi=54;
+	gcval_phi=52;
 
 	if(p->F50==3)
 	gcval_phi=53;
@@ -107,72 +107,65 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     pflow->fsfrkout(p,a,pgc,ark1);
     pflow->fsfrkout(p,a,pgc,ark2);
     ppicard->volcalc(p,a,pgc,ls);
-    
 
 // Step 1
     starttime=pgc->timer();
 
     FLUIDLOOP
-	a->L(i,j,k)=0.0;
+	a->L.V[IJK]=0.0;
 
 	pconvec->start(p,a,ls,4,a->u,a->v,a->w);
 	
 
 	FLUIDLOOP
-	ark1(i,j,k) = ls(i,j,k)
-				+ p->dt*a->L(i,j,k);
+	ark1.V[IJK] = ls.V[IJK]
+				+ p->dt*a->L.V[IJK];
 	
 	pflow->phi_relax(p,pgc,ark1);
 	
 	pgc->start4(p,ark1,gcval_phi);
     pgc->solid_forcing_lsm(p,a,ark1);
     
-    df_update(p,ark1);
     
 // Step 2
     FLUIDLOOP
-	a->L(i,j,k)=0.0;
+	a->L.V[IJK]=0.0;
 
 	pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 
 	FLUIDLOOP
-	ark2(i,j,k) = 0.75*ls(i,j,k)
-				   + 0.25*ark1(i,j,k)
-				   + 0.25*p->dt*a->L(i,j,k);
+	ark2.V[IJK] =     0.75*ls.V[IJK]
+				   + 0.25*ark1.V[IJK]
+				   + 0.25*p->dt*a->L.V[IJK];
 				
 	pflow->phi_relax(p,pgc,ark2);
 	
 	pgc->start4(p,ark2,gcval_phi);
     pgc->solid_forcing_lsm(p,a,ark2);
     
-    df_update(p,ark2);
-
 // Step 3
     FLUIDLOOP
-	a->L(i,j,k)=0.0;
+	a->L.V[IJK]=0.0;
 
 	pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 
 	FLUIDLOOP
-	ls(i,j,k) =     (1.0/3.0)*ls(i,j,k)
-				  + (2.0/3.0)*ark2(i,j,k)
-				  + (2.0/3.0)*p->dt*a->L(i,j,k);
+	ls.V[IJK] =      (1.0/3.0)*ls.V[IJK]
+				  + (2.0/3.0)*ark2.V[IJK]
+				  + (2.0/3.0)*p->dt*a->L.V[IJK];
 
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,ls,gcval_phi);
     pgc->solid_forcing_lsm(p,a,ls);
     
-    df_update(p,ls);
 
     ppart->start(p,a,pgc,pflow);
     
 	
 	p->lsmtime=pgc->timer()-starttime;
     
-	preini->start(a,p,ls, pgc, pflow);
+	preini->start(a,p,ls,pgc,pflow);
     
-    df_update(p,ls);
-	
 
     ppicard->correct_ls(p,a,pgc,ls);
 	ppart->picardmove(p,a,pgc);
@@ -186,43 +179,4 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 void levelset_RK3::update(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
     pupdate->start(p,a,pgc);
-}
-
-void levelset_RK3::df_update(lexer *p, field &f)
-{
-    int margin=3;
-    int q;
-    /*
-    for(n=0;n<p->gcdf4_count;++n)
-    {
-    i = p->gcdf4[n][0];
-    j = p->gcdf4[n][1];
-    k = p->gcdf4[n][2];
-    
-    //cout<<p->mpirank<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" cs: "<<p->gcdf4[n][3]<<endl;
-    
-    if(p->gcdf4[n][3]==1)
-	for(q=0;q<margin;++q)
-	f(i-q-1,j,k)=f(i,j,k);
-
-	if(p->gcdf4[n][3]==2)
-	for(q=0;q<margin;++q)
-	f(i,j+q+1,k)=f(i,j,k);
-
-	if(p->gcdf4[n][3]==3)
-	for(q=0;q<margin;++q)
-	f(i,j-q-1,k)=f(i,j,k);
-
-	if(p->gcdf4[n][3]==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j,k)=f(i,j,k);
-
-	if(p->gcdf4[n][3]==5)
-	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)=f(i,j,k);
-
-	if(p->gcdf4[n][3]==6)
-	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=f(i,j,k);
-    }*/
 }

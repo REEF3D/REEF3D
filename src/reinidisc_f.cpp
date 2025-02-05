@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"reinidisc_f.h"
 #include"cpt.h"
 
-reinidisc_f::reinidisc_f(lexer *p) :  ddweno_nug(p)
+reinidisc_f::reinidisc_f(lexer *p) :  ddweno_nug_sf(p)
 {
 }
 
@@ -34,71 +34,47 @@ reinidisc_f::~reinidisc_f()
 {
 }
 
-void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int ipol)
+void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, int ipol)
 {	
 	if(ipol==4)
     {
-        NLOOP4
-        L.V[n] = 0.0;
-        
-        n=0;
-        LOOP
-        {
-        disc(p,a,pgc,b,L,p->sizeM4,ipol,a->C4);
-        ++n;
-        }
+        BASELOOP
+        L.V[IJK] = 0.0;
+
+        BASELOOP
+        disc(p,a,pgc,f,L);
     }
 	
 	if(ipol==5)
     {
-        NLOOP4A
-        L.V[n] = 0.0;
-        
-        n=0;
-        ALOOP
-        {
-        disc(p,a,pgc,b,L,p->sizeM4a,ipol,a->C4a);
-        ++n;
-        }
-    }
-    
-    if(ipol==6)
-    {
-
-        NLOOP6
-        L.V[n] = 0.0;
-
-        n=0;
         BASELOOP
-        {
-        disc(p,a,pgc,b,L,p->sizeM6,ipol,a->C6);
-        ++n;
-        }
+        L.V[IJK] = 0.0;
+        
+        BASELOOP
+        disc(p,a,pgc,f,L);
     }
 }
 
-
-void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *sizeM, int ipol, cpt &C)
+void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 {
-	
 	dx=0.0;
 	dy=0.0;
 	dz=0.0;
-	lsv=b.V[I_J_K];
+	lsv=f.V[IJK];
     lsSig=lsv/sqrt(lsv*lsv);
 
     if(fabs(lsv)<1.0e-8)
     lsSig=1.0;
 
 // x	
-	xmin=(lsv-b.V[Im1_J_K])/p->DXP[IM1];
-	xplus=(b.V[Ip1_J_K]-lsv)/p->DXP[IP];
+	xmin=(lsv-f.V[Im1JK])/p->DXP[IM1];
+	xplus=(f.V[Ip1JK]-lsv)/p->DXP[IP];
 	
 	if(xmin*lsSig>0.0 && xplus*lsSig>-xmin*lsSig)
-	dx=ddwenox(a,b,1.0,ipol,C);
+	dx=ddwenox(a,f,1.0);
 
 	if(xplus*lsSig<0.0 && xmin*lsSig<-xplus*lsSig)
-	dx=ddwenox(a,b,-1.0,ipol,C);
+	dx=ddwenox(a,f,-1.0);
 
 	if(xplus*lsSig>0.0 && xmin*lsSig<0.0)
 	dx=0.0;
@@ -106,60 +82,33 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
 // y
     if(p->j_dir==1)
     {
-	ymin=(lsv-b.V[I_Jm1_K])/p->DYP[JM1];
-	yplus=(b.V[I_Jp1_K]-lsv)/p->DYP[JP];
+	ymin=(lsv-f.V[IJm1K])/p->DYP[JM1];
+	yplus=(f.V[IJp1K]-lsv)/p->DYP[JP];
 	
 	if(ymin*lsSig>0.0 && yplus*lsSig>-ymin*lsSig)
-	dy=ddwenoy(a,b,1.0,ipol,C);
+	dy=ddwenoy(a,f,1.0);
 
 	if(yplus*lsSig<0.0 && ymin*lsSig<-yplus*lsSig)
-	dy=ddwenoy(a,b,-1.0,ipol,C);
+	dy=ddwenoy(a,f,-1.0);
 
 	if(yplus*lsSig>0.0 && ymin*lsSig<0.0)
 	dy=0.0;
     }
 
 // z
-	zmin=(lsv-b.V[I_J_Km1])/p->DZP[KM1];
-	zplus=(b.V[I_J_Kp1]-lsv)/p->DZP[KP];
+	zmin=(lsv-f.V[IJKm1])/p->DZP[KM1];
+	zplus=(f.V[IJKp1]-lsv)/p->DZP[KP];
 	
 	if(zmin*lsSig>0.0 && zplus*lsSig>-zmin*lsSig)
-	dz=ddwenoz(a,b,1.0,ipol,C);
+	dz=ddwenoz(a,f,1.0);
 
 	if(zplus*lsSig<0.0 && zmin*lsSig<-zplus*lsSig)
-	dz=ddwenoz(a,b,-1.0,ipol,C);
+	dz=ddwenoz(a,f,-1.0);
 
 	if(zplus*lsSig>0.0 && zmin*lsSig<0.0)
 	dz=0.0;	
-    
-    // ----------------
-    /*double fac=1.1;
-    
-    if((a->solid(i,j,k-1)<fac*p->DZN[KP] || a->topo(i,j,k-1)<fac*p->DZN[KP]) && fabs(a->phi(i,j,k)<fac*p->DZN[KP]))
-    {
-    dz = -1.0;
-    //dx=dy=0.0;
-    }
-    
-    if( (a->solid(i,j,k+1)<fac*p->DZN[KP] || a->topo(i,j,k+1)<fac*p->DZN[KP]) && fabs(a->phi(i,j,k)<fac*p->DZN[KP]))
-    {
-    dz = -1.0;
-    //dx=dy=0.0;
-    }
-    
-    if(a->solid(i,j,k)<fac*p->DZN[KP] && fabs(a->phi(i,j,k)<fac*p->DZN[KP]))
-    {
-    dz = -1.0;
-    //dx=dy=0.0;
-    }
-    
-    if(a->solid(i,j,k)<0.0)
-    {
-    dz = -1.0;
-    dx=dy=0.0;
-    }*/
-    // --------------
-    
+
+
 	dnorm=sqrt(dx*dx + dy*dy + dz*dz);
 	
     if(p->j_dir==0)
@@ -170,23 +119,9 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, vec &b, vec &L, int *si
     
     sign=lsv/sqrt(lsv*lsv+ dnorm*dnorm*deltax*deltax);
     
-    //if(a->solid(i,j,k)<1.1*p->DXM)
-    //sign=lsv/sqrt(lsv*lsv+ 20.0*dnorm*dnorm*deltax*deltax);
-        
     if(sign!=sign)
-    {
-    sign= 1.0;
-    cout<<"SIGN"<<endl;
-    }
+    sign=1.0;
     
-    double diffterm = 0.0;
-    double visc = 0.0005;
-    if((a->fb(i,j,k)<-0.5*p->DXM || a->solid(i,j,k)<-0.5*p->DXM) && p->X47==1)
-    {
-        diffterm =   visc*((b.V[Ip1_J_K] - 2.0*b.V[I_J_K] + b.V[Im1_J_K])/(p->DXN[IP]*p->DXN[IP])
-                  +        (b.V[I_Jp1_K] - 2.0*b.V[I_J_K] + b.V[I_Jm1_K])/(p->DYN[JP]*p->DYN[JP])
-                  +        (b.V[I_J_Kp1] - 2.0*b.V[I_J_K] + b.V[I_J_Km1])/(p->DZN[KP]*p->DZN[KP]));
-    }
 
-	L.V[n] = -(sign*dnorm - sign) + diffterm;
+	L.V[IJK] = -(sign*dnorm - sign);
 }

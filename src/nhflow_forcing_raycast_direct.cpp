@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -78,6 +78,8 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
     if(Cx>=p->global_xmin && Cx<=p->global_xmax 
     && Cy>=p->global_ymin && Cy<=p->global_ymax
     && Cz>=zmin && Cz<=zmax)
+    checkin=1;
+    
     checkin=1;
         
     if(checkin==1)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -148,12 +148,29 @@ void sflow_turb_ke_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
 
     dudx = (b->P(i,j) - b->P(i-1,j))/(p->DXM);
     dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->DXM);
+    
+    
     dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
+    
+    if(p->flagslice4[IJp1]<0)
+    dudy = (0.0 - (b->P(i,j)+b->P(i-1,j)))/(p->DXM);
+    
+    if(p->flagslice4[IJm1]<0)
+    dudy = ((b->P(i,j)+b->P(i-1,j)) - 0.0)/(p->DXM);
+    
+    
     dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
+    
+    if(p->flagslice4[Ip1J]<0)
+    dvdx = (0.0 - (b->Q(i,j)+b->Q(i,j-1)))/(p->DXM);
+    
+    if(p->flagslice4[Im1J]<0)
+    dvdx = ((b->Q(i,j)+b->Q(i,j-1)) - 0.0)/(p->DXM);
+    
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
 
-    S(i,j) = sqrt(pow(dudx,2.0) + pow(dvdy,2.0) + 0.5*pow(dudy+dvdx,2.0));
+    S(i,j) = sqrt(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
     }
 }
 
@@ -246,7 +263,7 @@ void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
 		if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
 		{
 		b->M.p[n] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j)),0.5)*uplus)/dist;
-        b->rhsvec.V[n] += (tau*u_abs)/dist;
+         b->rhsvec.V[n] += (tau*u_abs)/dist;
 		}
 
 	++n;
@@ -258,31 +275,31 @@ void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
 	{
 		if(p->flagslice4[Im1J]<0)
 		{
-        b->rhsvec.V[n] -= b->M.s[n]*kin(i-1,j);
+        b->rhsvec.V[n] -= b->M.s[n]*kin(i,j);
 		b->M.s[n] = 0.0;
 		}
 
         if(p->flagslice4[Ip1J]<0)
 		{
-        b->rhsvec.V[n] -= b->M.n[n]*kin(i+1,j);
+        b->rhsvec.V[n] -= b->M.n[n]*kin(i,j);
 		b->M.n[n] = 0.0;
 		}
 
         if(p->flagslice4[IJm1]<0)
 		{
-        b->rhsvec.V[n] -= b->M.e[n]*kin(i,j-1);
+        b->rhsvec.V[n] -= b->M.e[n]*kin(i,j);
 		b->M.e[n] = 0.0;
 		}
 
         if(p->flagslice4[IJp1]<0)
 		{
-        b->rhsvec.V[n] -= b->M.w[n]*kin(i,j+1);
+        b->rhsvec.V[n] -= b->M.w[n]*kin(i,j);
 		b->M.w[n] = 0.0;
 		}
 
 	++n;
 	}
-
+    
 }
 
 void sflow_turb_ke_IM1::wall_law_eps(lexer* p, fdm2D *b)
@@ -300,28 +317,29 @@ void sflow_turb_ke_IM1::wall_law_eps(lexer* p, fdm2D *b)
 	{
 		if(p->flagslice4[Im1J]<0)
 		{
-        b->rhsvec.V[n] -= b->M.s[n]*eps(i-1,j);
+        b->rhsvec.V[n] -= b->M.s[n]*eps(i,j);
 		b->M.s[n] = 0.0;
 		}
 
         if(p->flagslice4[Ip1J]<0)
 		{
-        b->rhsvec.V[n] -= b->M.n[n]*eps(i+1,j);
+        b->rhsvec.V[n] -= b->M.n[n]*eps(i,j);
 		b->M.n[n] = 0.0;
 		}
 
         if(p->flagslice4[IJm1]<0)
 		{
-        b->rhsvec.V[n] -= b->M.e[n]*eps(i,j-1);
+        b->rhsvec.V[n] -= b->M.e[n]*eps(i,j);
 		b->M.e[n] = 0.0;
 		}
 
         if(p->flagslice4[IJp1]<0)
 		{
-        b->rhsvec.V[n] -= b->M.w[n]*eps(i,j+1);
+        b->rhsvec.V[n] -= b->M.w[n]*eps(i,j);
 		b->M.w[n] = 0.0;
 		}
 
 	++n;
 	}
+
 }

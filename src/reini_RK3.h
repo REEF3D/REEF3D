@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,8 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reini.h"
-#include"ddweno.h"
-#include"vec.h"
+#include"field4.h"
 #include"increment.h"
 
 class reinidisc;
@@ -39,24 +38,21 @@ public:
 	reini_RK3(lexer* p,int);
 	virtual ~reini_RK3();
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
-    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 
 	int *sizeM;
-	vec f,frk1,frk2,L,dt;
+	field4 frk1,frk2,dt;
 
 private:
     picard *ppicard;
 	reinidisc *prdisc;
 
-    void fsfrkioV(lexer*, fdm*, ghostcell*,vec&);
 	void step(lexer*, fdm*);
     void time_preproc(lexer*);
-	void inisolid(lexer*, fdm*);
 
 	
 	double starttime,endtime;
 
-	int gcval_phi,gcval_ro,gcval_iniphi,reiniter,n;
+	int gcval_phi,gcval_ro,gcval_iniphi,reiniter,n, gcval;
 	const double epsi;
 };
 

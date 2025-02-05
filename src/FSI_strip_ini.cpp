@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"FSI_strip.h"
@@ -24,10 +25,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 
-void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb)
 {
     if(p->mpirank==0)
     cout<<"FSI initialize"<<endl;
+    
+    pturb = ppturb;
     
 	// Initialise parameter
     double x_ini = p->Z11_x[nstrip]; // x-position of strip bottom

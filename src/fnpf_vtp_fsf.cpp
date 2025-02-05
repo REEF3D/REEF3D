@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -80,8 +80,6 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     }
     
     pgc->gcsl_start4(p,c->breaking_print,50);
-    
-    c->eta.ggcpol(p);
     
 	if(p->mpirank==0)
     pvtu(p,c,pgc);

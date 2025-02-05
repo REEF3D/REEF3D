@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -81,8 +81,9 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 {
     double pval=0.0;
     double diff;
+    double eps,H,roval;
     
-    
+    /*
     if(p->count!=iter0)
     {
     diff = p->phiout-p->fsfout;
@@ -91,8 +92,8 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
     
     iter0=p->count;
     
-    //cout<<p->mpirank<<" diff: "<<diff<<" fsfoutval: "<<p->fsfoutval<<" phiout: "<<p->phiout<<endl;
-    }
+    // cout<<p->mpirank<<" fsfout: "<<p->fsfout<<" diff: "<<diff<<" fsfoutval: "<<p->fsfoutval<<" phiout: "<<p->phiout<<endl;
+    }*/
     
     
         for(n=0;n<p->gcout_count;++n)
@@ -101,14 +102,53 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
         j=p->gcout[n][1];
         k=p->gcout[n][2];
         pval=0.0;
+        
+        
+        if(p->B77==0)
+        {
+        pval = a->press(i,j,k); 
+        a->press(i+1,j,k)=pval;
+        a->press(i+2,j,k)=pval;
+        a->press(i+3,j,k)=pval;
+        }
 		
         
 			if(p->B77==1)
 			{
+                
+                
+            /*
+            eps = 2.1*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        
+            if(a->phi(i,j,k)>eps)
+            H=1.0;
+
+            if(a->phi(i,j,k)<-eps)
+            H=0.0;
+
+            if(fabs(a->phi(i,j,k))<=eps)
+            H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
+            
+            //pval=H*pval + (1.0-H)*a->press(i,j,k);
+            
+            roval = p->W1*H +   p->W3*(1.0-H);*/
+            
+            
                 if(p->F50==2 || p->F50==3)
                 pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
                 
                 if(p->F50==1 || p->F50==4)
+                pval=a->press(i,j,k);
+                
+                pval=a->press(i,j,k);
+            
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
+            
+            if(p->B77==2)
+			{
                 pval=a->press(i,j,k);
             
 			a->press(i+1,j,k)=pval;
@@ -116,10 +156,10 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 			a->press(i+3,j,k)=pval;
 			}
 		
-			if(p->B77==2)
+        
+        
+			if(p->B77==10)
 			{
-			double eps,H;
-                
             eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
             if(a->phi(i,j,k)>eps)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,19 +19,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sediment_f.h"
+
+#include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"bedshear.h"
 #include"suspended.h"
 
-double sediment_f::bedshear_point(lexer *p, fdm *a,ghostcell *pgc)
+double sediment_f::bedshear_point(lexer *p, ghostcell *pgc)
 {
-	double tau_eff = s->tau_eff(i,j);
-    
-	return tau_eff;
+	return s->tau_eff(i,j);
 }
 
 void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
@@ -77,6 +77,22 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     pgc->gcsl_start1(p,a->P,10);
 	pgc->gcsl_start2(p,a->Q,11);
+}
+
+void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    k=0;
+    
+    SLICELOOP1
+    s->P(i,j) = 0.5*(d->U[IJK] + d->U[Ip1JK]);
+    
+    SLICELOOP2
+    s->Q(i,j) = 0.5*(d->V[IJK] + d->V[IJp1K]);
+    
+    pgc->gcsl_start1(p,s->P,10);
+	pgc->gcsl_start2(p,s->Q,11);  
+    
+    k=0;
 }
 
 void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice &Q)

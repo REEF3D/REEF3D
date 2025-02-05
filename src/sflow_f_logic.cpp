@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,6 +25,9 @@ Author: Hans Bihs
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
     
+    // forcing
+    psfdf=new sflow_forcing(p);
+    
 	// timestep
     if(p->N48==0)
 	ptime = new sflow_fixtimestep(p,b);
@@ -32,7 +35,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N48==1)
 	ptime = new sflow_etimestep(p,b);
 	
-	// convection
+    // convection
     if(p->A211==0)
     pconvec = new sflow_voidconv(p);
         
@@ -45,71 +48,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A211==5)
     pconvec = new sflow_weno_hj(p);
         
-    if(p->A211==6)
-    pconvec = new sflow_hires(p,6);
-        
-    if(p->A211==7)
-    pconvec = new sflow_hires(p,7);
-        
-    if(p->A211==8)
-    pconvec = new sflow_hires(p,8);
-    
     if(p->A211==9)
     pconvec = new sflow_weno_blend(p);
-    
-    // convection
-    if(p->A215==0)
-    {
-        if(p->A211==0)
-        pconvec = new sflow_voidconv(p);
-        
-        if(p->A211==1)
-        pconvec = new sflow_fou(p);
-        
-        if(p->A211==4)
-        pconvec = new sflow_weno_flux(p);
-        
-        if(p->A211==5)
-        pconvec = new sflow_weno_hj(p);
-        
-        if(p->A211==6)
-        pconvec = new sflow_hires(p,6);
-        
-        if(p->A211==7)
-        pconvec = new sflow_hires(p,7);
-        
-        if(p->A211==8)
-        pconvec = new sflow_hires(p,8);
-        
-        if(p->A211==9)
-        pconvec = new sflow_weno_blend(p);
-    }
-    
-    if(p->A215==1)
-    {
-        if(p->A211==0)
-        pconvec = new sflow_voidconv(p);
-        
-        if(p->A211==1)
-        pconvec = new sflow_cfou(p,b);
-        
-        if(p->A211==4 ||p->A211==5)
-        pconvec = new sflow_cweno_flux(p,b);
-        
-        if(p->A211==6)
-        pconvec = new sflow_chires(p,b,6);
-        
-        if(p->A211==7)
-        pconvec = new sflow_chires(p,b,7);
-        
-        if(p->A211==8)
-        pconvec = new sflow_chires(p,b,8);
-        
-        if(p->A211==9)
-        pconvec = new sflow_weno_blend(p);
-    }
- 
-
+         
     // filter
     pfilter = new sflow_filter(p);
 	
@@ -192,21 +133,18 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pprintbed = new sflow_vtp_bed(p,b);
     
     //6DOF
-    if(p->X10!=3)
+    if(p->X10<2)
     p6dof = new sixdof_void(p,pgc);
     
-    if(p->X10==3)
+    if(p->X10>=2)
     p6dof = new sixdof_sflow(p,pgc);
 	
 	// momentum
-    if(p->A210==1)
-	pmom = new sflow_momentum_AB2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof);
-    
     if(p->A210==2)
-	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof);
+	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
     
 	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,p6dof);
+	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
     
     
     //Potential Flow Solver

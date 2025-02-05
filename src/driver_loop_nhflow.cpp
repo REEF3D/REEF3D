@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -71,17 +71,15 @@ void driver::loop_nhflow()
         pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pvrans);        
         
 		// Sediment Computation
-        //psed->start_cfd(p,a,pgc,pflow,preto,psolv);
-        
-        // 6DOF
-        p6dof->start_oneway(p,pgc,d->fs);
+        psed->start_nhflow(p,d,pgc,pflow);
+        pnhfsf->depth_update(p,d,pgc,pflow);
         
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
                        pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
 
         //save previous timestep
-        //pturb->ktimesave(p,a,pgc);
-        //pturb->etimesave(p,a,pgc);
+        pnhfturb->ktimesave(p,d,pgc);
+        pnhfturb->etimesave(p,d,pgc);
         //pflow->veltimesave(p,a,pgc,pvrans);
         
         //timestep control
@@ -89,7 +87,7 @@ void driver::loop_nhflow()
         pnhfstep->start(p,d,pgc);
         
         // printer
-        pnhfprint->start(p,d,pgc,pflow,pnhfturb);
+        pnhfprint->start(p,d,pgc,pflow,pnhfturb,psed);
 
         // Shell-Printout
         if(p->mpirank==0)
@@ -108,8 +106,9 @@ void driver::loop_nhflow()
         if(p->count%p->P12==0)
         {
         if(p->B90>0)
-		cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
-		
+		cout<<"wavegentime: "<<setprecision(5)<<p->wavecalctime<<endl;
+		if(p->X10>0)
+        cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
         cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
 		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
@@ -124,8 +123,9 @@ void driver::loop_nhflow()
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->field4time=0.0;
+    p->fbtime=0.0;
 	
     stop(p,a,pgc);
 	}

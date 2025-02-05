@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -164,6 +164,18 @@ void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
 	TPSLICELOOP
 	{
     ffn=float(p->sl_ipol4(s->cbe));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // cb
+    pgc->gcsl_start4(p,s->cbe,1);
+    
+	iin=4*(p->pointnum2D);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPSLICELOOP
+	{
+    ffn=float(p->sl_ipol4(s->cb));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

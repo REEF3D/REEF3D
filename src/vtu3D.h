@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"printer.h"
-#include"nodefill.h"
+#include"increment.h"
 #include"field5.h"
 
 class turbulence;
@@ -33,7 +33,6 @@ class print_wsf;
 class print_wsf_theory;
 class print_wsfline_x;
 class print_wsfline_y;
-class force;
 class force;
 class vorticity;
 class solver;
@@ -64,7 +63,7 @@ class print_averaging;
 
 using namespace std;
 
-class vtu3D : public printer, public nodefill 
+class vtu3D : public printer, public increment
 {
 
 public:

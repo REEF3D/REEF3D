@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,7 @@ void lexer::lexer_ini()
     omegamax=0.0;
 
     utime=vtime=wtime=0.0;
-    kintime=epstime=poissontime=lsmtime=susptime=printouttime=0.0;
+    kintime=epstime=poissontime=lsmtime=susptime=printouttime=dftime=0.0;
     recontime=fsftime=0.0;
 
     uiter=viter=witer=0;
@@ -43,8 +43,6 @@ void lexer::lexer_ini()
     phiout=0.0;
     phiin=0.0;
 
-    gcextra1=gcextra2=gcextra3=gcextra4=gcextra4a=0;
-
     dtsed=0.0;
     sedtime=0.0;
     sediter=0;
@@ -53,6 +51,8 @@ void lexer::lexer_ini()
     solver_status=0;
 	
 	maxdt=mindt=0.0;
+    RK_alpha=0.0;
+    wavetime=0.0;
 
     G1=0;
     if(S10>0 || toporead>0 || solidread==1)
@@ -82,7 +82,6 @@ void lexer::lexer_ini()
     
     if(A10==3 || A10==5)
     G2=1;
-		
 }
 
 void lexer::makeflag( int *field)
@@ -125,14 +124,4 @@ void lexer::parse()
 	
 	if(S10>=1 || toporead==1)
 	P27=1;
-	
-    // NHFLOW iowave dirichlet wavegen parse
-	if(A10==5)
-    {
-    if(B92>=20 && B92<=29 && B98==4)
-    B98=3;
-    
-    if((B92<20 || B92>29) && B98==3)
-    B98=4;
-    }
 }

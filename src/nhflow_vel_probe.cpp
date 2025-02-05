@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -91,9 +91,9 @@ void nhflow_vel_probe::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		yp=p->P65_y[n];
 		zp=p->P65_z[n];
     
-		uval = p->ccipol4V(d->U, xp, yp, zp);
-		vval = p->ccipol4V(d->V, xp, yp, zp);
-		wval = p->ccipol4V(d->W, xp, yp, zp);
+		uval = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, zp);
+		vval = p->ccipol4V(d->V, d->WL, d->bed, xp, yp, zp);
+		wval = p->ccipol4V(d->W, d->WL, d->bed, xp, yp, zp);
 		}
 	
 	uval=pgc->globalmax(uval);

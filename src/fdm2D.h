@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -62,6 +62,9 @@ public:
 	slice4 hp,dpx,dpy;
     slice4 test;
     slice4 Hs,fs;
+    slice1 fx;
+    slice2 fy;
+    slice4 fz;
     
     slice4 bed,bed0,depth;
     slice4 solidbed,topobed;

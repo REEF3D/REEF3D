@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,7 +34,9 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"sandslide.h"
 #include"topo_relax.h"
+#include"bedslope.h"
 #include"bedshear_reduction.h"
+#include"bedload_direction.h"
 
 void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
@@ -42,11 +44,11 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     
     ++p->sediter;
     
-    // prep CFD
+    // prep CFD -------
     prep_cfd(p,a,pgc);
     
     // bedslope cds ******
-    slope_cds(p,pgc,s);
+    pslope->slope_cds(p,pgc,s);
     
     // bedslope reduction ******
     preduce->start(p,pgc,s);
@@ -57,6 +59,9 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 
     // bedload *******
     pbed->start(p,pgc,s);
+    
+    // bedload_direction *******
+    pbeddir->start(p,pgc,s);
     
     // suspended load -------
     pcbed->start(p,pgc,s);
@@ -93,7 +98,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;
 
 	if(p->mpirank==0)
-    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
+    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
 }
 
 void sediment_f::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)

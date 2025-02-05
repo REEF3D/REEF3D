@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -74,7 +74,7 @@ void sflow_iweno_hj::wenoloop4(lexer *p, fdm2D *b, slice &f, int ipol, slice &uv
 	{
 		
         pflux->u_flux(ipol,uvel,iadvec,ivel2);
-		pflux->v_flux(ipol,vvel,jadvec,jvel2);
+        pflux->v_flux(ipol,vvel,jadvec,jvel2);
 
 			if(iadvec>=0.0)
 			{

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -121,8 +121,8 @@ wave_lib_ssgw::~wave_lib_ssgw()
 
 double wave_lib_ssgw::wave_eta(lexer *p, double x, double y)
 {
-    // Transform x location to current position xcurr at time instance p->simtime
-    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->simtime, wL));
+    // Transform x location to current position xcurr at time instance p->wavetime
+    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->wavetime, wL));
     xcurr = xcurr>0.5*wL ? xcurr-wL : xcurr;
    
     // Linear interpolation
@@ -139,8 +139,8 @@ double wave_lib_ssgw::wave_eta(lexer *p, double x, double y)
 
 double wave_lib_ssgw::wave_fi(lexer *p, double x, double y, double z)
 {
-    // Transform x location to current position xcurr at time instance p->simtime
-    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->simtime, wL));
+    // Transform x location to current position xcurr at time instance p->wavetime
+    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->wavetime, wL));
     xcurr = xcurr>0.5*wL ? xcurr-wL : xcurr;
 
     // Linear interpolation

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,8 +24,8 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"force_ale.h"
 #include"ioflow.h"
+#include"sediment.h"
 #include"nhflow_print_wsf.h"
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_vtp_bed.h"
@@ -39,6 +39,10 @@ Author: Hans Bihs
 #include"nhflow_vel_probe_theory.h"
 #include"nhflow_print_Hs.h"
 #include"nhflow_turbulence.h"
+#include"nhflow_force.h"
+#include"nhflow_force_ale.h"
+#include"bedshear_probe.h"
+#include"bedshear_max.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -97,18 +101,23 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->P40>0)
 	pstate=new nhflow_state(p,d,pgc);
-/*
-    if(p->P230>0)
-    ppotentialfile = new potentialfile_out(p,d,pgc);
-
-    if(p->P59==1)
-    pbreaklog=new nhflow_breaking_log(p,d,pgc);
-	
-	if(p->P85>0)
-	pforce_ale = new force_ale*[p->P85];
-	
-	for(n=0;n<p->P85;++n)
-	pforce_ale[n]=new force_ale(p,d,pgc,n);*/
+    
+    if(p->P81>0)
+	pforce = new nhflow_force*[p->P81];
+    
+    for(n=0;n<p->P81;++n)
+	pforce[n]=new nhflow_force(p,d,pgc,n);
+    
+    if(p->P85>0)
+    {
+	pforce_ale = new nhflow_force_ale*[p->P85];
+    
+    for(n=0;n<p->P85;++n)
+	pforce_ale[n]=new nhflow_force_ale(p,d,pgc,n);
+    
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->ini(p,d,pgc);
+    }
     
     if(p->P110==1)
     phs = new nhflow_print_Hs(p,d->Hs);
@@ -118,13 +127,19 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
     pbed = new nhflow_vtp_bed(p,d,pgc);
 
+    if(p->P125>0)
+    pbedshear = new bedshear_probe(p,pgc);
+
+    if(p->P126==1)
+    pbedshearmax = new bedshear_max(p,pgc);
+    
 }
 
 nhflow_vtu3D::~nhflow_vtu3D()
 {
 }
 
-void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
+void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     // Gages
 	if(p->P51>0)
@@ -153,14 +168,14 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
 		{
-        print_vtu(p,d,pgc,pnhfturb);
+        print_vtu(p,d,pgc,pnhfturb,psed);
 		}
 
 		// Print out based on time
         if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
         {
-        print_vtu(p,d,pgc,pnhfturb);
-
+        print_vtu(p,d,pgc,pnhfturb,psed);
+        
         p->printtime+=p->P30;
         }
 
@@ -169,7 +184,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		for(int qn=0; qn<p->P35; ++qn)
 		if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 		{
-		print_vtu(p,d,pgc,pnhfturb);
+		print_vtu(p,d,pgc,pnhfturb,psed);
 
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
@@ -177,13 +192,20 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         // Print FSF
 		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
         {
-		pfsf->start(p,d,pgc);
+		pfsf->start(p,d,pgc,psed);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc,psed);
         }
 
 
 		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
         {
-        pfsf->start(p,d,pgc);
+        pfsf->start(p,d,pgc,psed);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc,psed);
+        
         p->fsfprinttime+=p->P182;
         }
 
@@ -191,21 +213,27 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		for(int qn=0; qn<p->P184; ++qn)
 		if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
 		{
-		pfsf->start(p,d,pgc);
+		pfsf->start(p,d,pgc,psed);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc,psed);
 		}
 
          if(p->P180==1 && p->P185>0)
 		for(int qn=0; qn<p->P185; ++qn)
 		if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
 		{
-		pfsf->start(p,d,pgc);
+		pfsf->start(p,d,pgc,psed);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc,psed);
 
 		printfsftime_wT[qn]+=p->P185_dt[qn];
 		}
 
         // Print BED
-        if(p->count==0)
-		pbed->start(p,d,pgc);
+        if(p->count==0 && p->S10==0)
+		pbed->start(p,d,pgc,psed);
 
 
     // Gages
@@ -229,38 +257,52 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 
     p->stateprinttime+=p->P42;
     }
+    
+    // Force box
+    if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
+	for(n=0;n<p->P81;++n)
+	pforce[n]->ini(p,d,pgc);
 
-/*
+	if(p->count>1 && p->P81>0)
+	for(n=0;n<p->P81;++n)
+	pforce[n]->start(p,d,pgc);
+    
+    
+    // ALE force    
+    if(p->count>0)
+    if(p->count%p->P80==0)
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->start(p,d,pgc);
+
+    
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
-
+    /*
     if(p->P59==1)
     pbreaklog->write(p,d,pgc);
-	
-	// ALE force
-	  if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
-	  {
-		for(n=0;n<p->P85;++n)
-        pforce_ale[n]->ini(p,d,pgc);
-	  }
-        if(p->count>0 && p->P85>0)
-		{
-        for(n=0;n<p->P85;++n)
-        pforce_ale[n]->start(p,d,pgc);
-		}
-        */
+    */
+
+    // sediment probes
+    if(p->P125>0)
+	pbedshear->bedshear_gauge(p,pgc,psed);
+
+    if(p->P126==1)
+    pbedshearmax->bedshear_maxval(p,pgc,psed);
 }
 
-void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb)
+void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
-    print_vtu(p,d,pgc,pnhfturb);
+    print_vtu(p,d,pgc,pnhfturb,psed);
+    
+    if(p->S10>0)
+    pbed->start(p,d,pgc,psed);
     
     if(p->P180==1)
-    pfsf->start(p,d,pgc);
+    pfsf->start(p,d,pgc,psed);
     
 }
 
-void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb)
+void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     /*
     - U, V, W
@@ -284,8 +326,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     pgc->gcsl_start4(p,d->breaking_print,50);
     pgc->start4V(p,d->test,50);
     //pgc->start4(p,d->test,1);
-
-
+    
     pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,d->bed,p->dgcsl4,p->dgcsl4_count,14);
@@ -302,7 +343,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     //----------
 
     if(p->mpirank==0)
-    pvtu(p,d,pgc,pnhfturb);
+    pvtu(p,d,pgc,pnhfturb,psed);
 
     name_iter(p,pgc);
 
@@ -329,8 +370,11 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     pnhfturb->offset_vtu(p,d,pgc,result,offset,n);
     
     // omega_sig
+    if(p->P74==1)
+    {
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
+    }
 
     // elevation
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -354,7 +398,18 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
 	{
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
+    }
+    
+    if(p->P25==1 || p->P28==1)  
+	{
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+	}
+    
+    // floating
+    if(p->P28==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
 
@@ -395,8 +450,11 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     
     pnhfturb->name_vtu(p,d,pgc,result,offset,n);
     
+    if(p->P74==1)
+    {
     result<<"<DataArray type=\"Float32\" Name=\"omega_sig\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    }
 
 
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -419,7 +477,17 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
 	{
     result<<"<DataArray type=\"Float32\" Name=\"solid\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    }
+    
+    if(p->P25==1 || p->P28==1)
+	{
     result<<"<DataArray type=\"Float32\" Name=\"Heaviside\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
+    
+    if(p->P28==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"floating\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
 	
@@ -455,13 +523,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     {
     jj=j;
     j=0;
-	ffn=float(0.5*(d->U[IJK]+d->U[IJKp1]));
+	ffn=float(0.25*(d->U[IJK]+d->U[Ip1JK]+d->U[IJKp1]+d->U[Ip1JKp1]));
     j=jj;
     }
     
-    
     if(p->j_dir==1)
-	ffn=float(0.25*(d->U[IJK]+d->U[IJKp1]+d->U[IJp1K]+d->U[IJp1Kp1]));
+    ffn=float(0.125*(d->U[IJK]+d->U[Ip1JK]+d->U[IJp1K]+d->U[Ip1Jp1K]
+                  +  d->U[IJKp1]+d->U[Ip1JKp1]+d->U[IJp1Kp1]+d->U[Ip1Jp1Kp1]));
     
 	result.write((char*)&ffn, sizeof (float));
 
@@ -470,12 +538,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     {
     jj=j;
     j=0;
-	ffn=float(0.5*(d->V[IJK]+d->V[IJKp1]));
+	ffn=float(0.25*(d->V[IJK]+d->V[Ip1JK]+d->V[IJKp1]+d->V[Ip1JKp1]));
     j=jj;
     }
-
+    
     if(p->j_dir==1)
-	ffn=float(0.25*(d->V[IJK]+d->V[IJKp1]+d->V[IJp1K]+d->V[IJp1Kp1]));
+    ffn=float(0.125*(d->V[IJK]+d->V[Ip1JK]+d->V[IJp1K]+d->V[Ip1Jp1K]
+                  +  d->V[IJKp1]+d->V[Ip1JKp1]+d->V[IJp1Kp1]+d->V[Ip1Jp1Kp1]));
     
 	result.write((char*)&ffn, sizeof (float));
 
@@ -484,12 +553,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     {
     jj=j;
     j=0;
-	ffn=float(0.5*(d->W[IJK]+d->W[Im1JK]));
+	ffn=float(0.25*(d->W[IJK]+d->W[Ip1JK]+d->W[IJKp1]+d->W[Ip1JKp1]));
     j=jj;
     }
-
+    
     if(p->j_dir==1)
-	ffn=float(0.25*(d->W[IJK]+d->W[Im1JK]+d->W[IJK]+d->W[IJm1K]));
+    ffn=float(0.125*(d->W[IJK]+d->W[Ip1JK]+d->W[IJp1K]+d->W[Ip1Jp1K]
+                  +  d->W[IJKp1]+d->W[Ip1JKp1]+d->W[IJp1Kp1]+d->W[Ip1Jp1Kp1]));
     
 	result.write((char*)&ffn, sizeof (float));
 	}
@@ -499,41 +569,26 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
+     if(p->j_dir==0)
+     {
+     jj=j;
+     j=0;
+     ffn=float(0.5*(d->P[FIJKp1]+d->P[FIm1JKp1]));
+     j=jj;
+     }
         
-    if(p->A520<10)
-    {
-        if(p->j_dir==0)
-        {
-        jj=j;
-        j=0;
-        ffn=float(d->P[FIJKp1]);
-        j=jj;
-        }
+    if(p->j_dir==1)
+    ffn=float(0.25*(d->P[FIJKp1]+d->P[FIm1JKp1] + d->P[FIJm1Kp1]+d->P[FIm1Jm1Kp1]));
 
-        if(p->j_dir==1)
-        ffn=float(0.5*(d->P[FIJKp1]+d->P[FIJKp1]));
-    }
-    
-    if(p->A520>=10)
-    {
-        if(p->j_dir==0)
-        {
-        jj=j;
-        j=0;
-        ffn=float(0.25*(d->P[IJK]+d->P[IJKp1]+d->P[Ip1JK]+d->P[Ip1JKp1]));
-        j=jj;
-        }
-
-        if(p->j_dir==1)
-        ffn=float(0.25*(d->P[IJK]+d->P[IJKp1]+d->P[IJp1K]+d->P[IJp1Kp1]));
-    }
-    
 	result.write((char*)&ffn, sizeof (float));
 	}
+ 
 //  kin and eps
     pnhfturb->print_3D(p,d,pgc,result);
     
 //  Omega_sig
+    if(p->P74==1)
+    {
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
@@ -551,6 +606,7 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     
 	result.write((char*)&ffn, sizeof (float));
 	}
+    }
 
 //  elevation
 	iin=4*(p->pointnum)*3;
@@ -572,14 +628,15 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     {
     jj=j;
     j=0;
-	ffn=float(0.5*(d->test[IJK]+d->test[IJKp1]));
+	ffn=float(0.25*(d->test[IJK]+d->test[Ip1JK]+d->test[IJKp1]+d->test[Ip1JKp1]));
     j=jj;
     }
     
     if(p->j_dir==1)
-	ffn=float(0.25*(d->test[IJK]+d->test[IJKp1]+d->test[IJp1K]+d->test[IJp1Kp1]));
-    
-	result.write((char*)&ffn, sizeof (float));
+    ffn=float(0.125*(d->test[IJK]+d->test[Ip1JK]+d->test[IJp1K]+d->test[Ip1Jp1K]
+                  +  d->test[IJKp1]+d->test[Ip1JKp1]+d->test[IJp1Kp1]+d->test[Ip1Jp1Kp1]));
+                  
+    result.write((char*)&ffn, sizeof (float));
 	}
 	}
     
@@ -606,17 +663,20 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     {
     jj=j;
     j=0;
-	ffn=float(0.5*(d->SOLID[IJK]+d->SOLID[IJKp1]));
+	ffn=float(0.25*(d->SOLID[IJK]+d->SOLID[Ip1JK]+d->SOLID[IJKp1]+d->SOLID[Ip1JKp1]));
     j=jj;
     }
     
     if(p->j_dir==1)
-	ffn=float(0.25*(d->SOLID[IJK]+d->SOLID[IJKp1]+d->SOLID[IJp1K]+d->SOLID[IJp1Kp1]));
+    ffn=float(0.125*(d->SOLID[IJK]+d->SOLID[Ip1JK]+d->SOLID[IJp1K]+d->SOLID[Ip1Jp1K]
+                  +  d->SOLID[IJKp1]+d->SOLID[Ip1JKp1]+d->SOLID[IJp1Kp1]+d->SOLID[Ip1Jp1Kp1]));
     
 	result.write((char*)&ffn, sizeof (float));
     }
+    }
     
-    
+    if(p->P25==1 || p->P28==1)
+	{
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
@@ -625,15 +685,40 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     {
     jj=j;
     j=0;
-	ffn=float(0.5*(d->FHB[IJK]+d->FHB[IJKp1]));
+	ffn=float(0.25*(d->FHB[IJK]+d->FHB[Ip1JK]+d->FHB[IJKp1]+d->FHB[Ip1JKp1]));
     j=jj;
     }
     
     if(p->j_dir==1)
-	ffn=float(0.25*(d->FHB[IJK]+d->FHB[IJKp1]+d->FHB[IJp1K]+d->FHB[IJp1Kp1]));
+	ffn=float(0.125*(d->FHB[IJK]+d->FHB[Ip1JK]+d->FHB[IJp1K]+d->FHB[Ip1Jp1K]
+                  +  d->FHB[IJKp1]+d->FHB[Ip1JKp1]+d->FHB[IJp1Kp1]+d->FHB[Ip1Jp1Kp1]));
     
 	result.write((char*)&ffn, sizeof (float));
 	}
+	}
+    
+//  floating
+    if(p->P28==1)
+	{
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.25*(d->FB[IJK]+d->FB[Ip1JK]+d->FB[IJKp1]+d->FB[Ip1JKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+    ffn=float(0.125*(d->FB[IJK]+d->FB[Ip1JK]+d->FB[IJp1K]+d->FB[Ip1Jp1K]
+                  +  d->FB[IJKp1]+d->FB[Ip1JKp1]+d->FB[IJp1Kp1]+d->FB[Ip1Jp1Kp1]));
+    
+	result.write((char*)&ffn, sizeof (float));
+    }
+    
 	}
 
 //  XYZ

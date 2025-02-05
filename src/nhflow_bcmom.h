@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"surftens.h"
 #include"roughness.h"
 class lexer;
-class fdm;
+class fdm_nhf;
 class ghostcell;
 class field;
 class turbulence;
@@ -33,15 +33,15 @@ class turbulence;
 
 using namespace std;
 
-class bcmom_nhflow : public roughness
+class nhflow_bcmom : public roughness
 {
 public:
-	bcmom_nhflow(lexer*);
-	virtual ~bcmom_nhflow();
-	virtual void bcmom_nhflow_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
-	void wall_law_u(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
-	void wall_law_v(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
-	void wall_law_w(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
+	nhflow_bcmom(lexer*);
+	virtual ~nhflow_bcmom();
+	virtual void nhflow_bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
+	void roughness_u(lexer*, fdm_nhf*, double*, double*, slice&);
+	void roughness_v(lexer*, fdm_nhf*, double*, double*, slice&);
+	void roughness_w(lexer*, fdm_nhf*, double*, double*, slice&);
 
 private:
 	const double kappa;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -69,8 +69,6 @@ public:
     
     sliceint5 nodeval2D;
     slice4 breaking_print;
-    
-    cpt2D C4;
 	
     vec rhsvec;
     vec2D xvec,rvec;

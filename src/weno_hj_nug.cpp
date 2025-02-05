@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -141,13 +141,6 @@ double weno_hj_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, double 
          + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
 	}
     
-    /*
-    if(a->solid(i+1,j,k)<0.0 || a->topo(i+1,j,k)<0.0 || a->solid(i+2,j,k)<0.0 || a->topo(i+2,j,k)<0.0)
-    grad = (q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
-    
-    if(a->solid(i-1,j,k)<0.0 || a->topo(i-1,j,k)<0.0 || a->solid(i-2,j,k)<0.0 || a->topo(i-2,j,k)<0.0)
-    grad = (q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4));*/
-    
 	return grad;
 }
 
@@ -219,56 +212,56 @@ double weno_hj_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, double 
 
 void weno_hj_nug::iqmin(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {	
-	q1 = (f(i-2,j,k)-f(i-3,j,k))/DX[IM3];
-	q2 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
-	q3 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
-	q4 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
-	q5 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
+	q1 = (f.V[Im2JK] - f.V[Im3JK])/DX[IM3];
+	q2 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
+	q3 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
+	q4 = (f.V[Ip1JK] - f.V[IJK]  )/DX[IP];
+	q5 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
 }
 
 void weno_hj_nug::jqmin(lexer *p,fdm *a, field& f, field& vvel, int ipol)
 {
-	q1 = (f(i,j-2,k)-f(i,j-3,k))/DY[JM3];
-	q2 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
-	q3 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
-	q4 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
-	q5 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
+	q1 = (f.V[IJm2K] - f.V[IJm3K])/DY[JM3];
+	q2 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
+	q3 = (f.V[IJK]   - f.V[IJm1K])/DY[JM1];
+	q4 = (f.V[IJp1K] - f.V[IJK]  )/DY[JP];
+	q5 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
 }
 
 void weno_hj_nug::kqmin(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 {
-	q1 = (f(i,j,k-2)-f(i,j,k-3))/DZ[KM3];
-	q2 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
-	q3 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
-	q4 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
-	q5 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
+	q1 = (f.V[IJKm2] - f.V[IJKm3])/DZ[KM3];
+	q2 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
+	q3 = (f.V[IJK]   - f.V[IJKm1])/DZ[KM1];
+	q4 = (f.V[IJKp1] - f.V[IJK]  )/DZ[KP];
+	q5 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
 }
 
 void weno_hj_nug::iqmax(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {
-    q1 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
-	q2 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
-	q3 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
-	q4 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
-	q5 = (f(i+3,j,k)-f(i+2,j,k))/DX[IP2];
+    q1 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
+	q2 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
+	q3 = (f.V[Ip1JK] - f.V[IJK]  )/DX[IP];
+	q4 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
+	q5 = (f.V[Ip3JK] - f.V[Ip2JK])/DX[IP2];
 }
 
 void weno_hj_nug::jqmax(lexer *p,fdm *a, field& f, field& vvel, int ipol)
 {
-	q1 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
-	q2 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
-	q3 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
-	q4 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
-	q5 = (f(i,j+3,k)-f(i,j+2,k))/DY[JP2];
+	q1 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
+	q2 = (f.V[IJK]   - f.V[IJm1K])/DY[JM1];
+	q3 = (f.V[IJp1K] - f.V[IJK]  )/DY[JP];
+	q4 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
+	q5 = (f.V[IJp3K] - f.V[IJp2K])/DY[JP2];
 }
 
 void weno_hj_nug::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 {
-	q1 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
-	q2 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
-	q3 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
-	q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
-	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
+	q1 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
+	q2 = (f.V[IJK]   - f.V[IJKm1])/DZ[KM1];
+	q3 = (f.V[IJKp1] - f.V[IJK]  )/DZ[KP];
+	q4 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
+	q5 = (f.V[IJKp3] - f.V[IJKp2])/DZ[KP2];
 }
 
 void weno_hj_nug::is()

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,7 +44,6 @@ void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 	double u,v,w;
 	double denom;
 	double psi = 1.0e-8*p->DXM;
-
 
 	for(n=ts; n<te; ++n)
 	{ 
@@ -189,7 +188,7 @@ void nhflow_forcing::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
             for(k=0;k<p->knoz;++k)
             d->SOLID[IJK]=MIN(fabs(Rz-p->ZSP[IJK]),d->SOLID[IJK]);
             }
-		
+            
 		}
 	}
     }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -95,11 +95,10 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
 	geometry_stl(p,pgc);
     
     // Order Triangles for correct inside/outside orientation
-    if(p->A10==6)
-    triangle_switch_ray(p,pgc);
+    //triangle_switch_ray(p,pgc);
 	
 	// Refine triangles
-    if(p->X185>0 && p->X60==1)
+    if(p->X185>0 && p->X60==1 && entity_count>0)
 	geometry_refinement(p,pgc);	
 
     if(p->mpirank==0)

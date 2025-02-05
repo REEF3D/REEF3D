@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,7 +27,6 @@ class solver;
 class convection;
 class ioflow;
 class reini;
-class onephase;
 
 using namespace std;
 
@@ -37,8 +36,8 @@ using namespace std;
 class fnpf
 {
 public:
-	virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*)=0;
-    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*, onephase*)=0;
+	virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*)=0;
+    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*)=0;
     virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*)=0;
     virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*)=0;
 

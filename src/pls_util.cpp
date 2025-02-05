@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,15 +35,6 @@ double particle_pls::hside(fdm* a)
 		Hval=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
 		return Hval;
-}
-
-
-void particle_pls::dgc_update(lexer* p,fdm* a,ghostcell* pgc)
-{
-
-    pgc->start1(p,a->u,14);
-	pgc->start2(p,a->v,15);
-	pgc->start3(p,a->w,16);
 }
 
 void particle_pls::vel_setback(lexer* p,fdm* a,ghostcell* pgc)

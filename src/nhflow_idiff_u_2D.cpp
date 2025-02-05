@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,9 +33,9 @@ nhflow_idiff_2D::nhflow_idiff_2D(lexer* p)
 	gcval_v=11;
 	gcval_w=12;
     
-    gcval_uh=20;
-	gcval_vh=21;
-	gcval_wh=22;
+    gcval_uh=14;
+	gcval_vh=15;
+	gcval_wh=16;
 }
 
 nhflow_idiff_2D::~nhflow_idiff_2D()
@@ -54,7 +54,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv
     n=0;
     LOOP
 	{
-        if(p->wet[IJ]==1  && d->breaking(i,j)==0)
+        if(p->wet[IJ]==1)
         {
             visc = d->VISC[IJK] + d->EV[IJK];
             
@@ -89,7 +89,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]));
         }
         
-        if(p->wet[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
+        if(p->wet[IJ]==0 || p->flag4[IJK]<0)
         {
         d->M.p[n]  =  1.0;
 
@@ -109,7 +109,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv
     n=0;
 	LOOP
 	{
-        if(p->wet[IJ]==1 && d->breaking(i,j)==0)
+        if(p->wet[IJ]==1)
         {
             if(p->flag4[Im1JK]<0)
             {

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -47,6 +47,7 @@ public:
 	iowave(lexer*, ghostcell*,patchBC_interface*);
 	virtual ~iowave();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
+    virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
 	virtual void fsfinflow(lexer*,fdm*,ghostcell*);
 	virtual void discharge(lexer*,fdm*,ghostcell*);
@@ -55,10 +56,6 @@ public:
 	virtual void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&);
 	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&);
-	virtual void fsfrkinV(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkoutV(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&);
 	virtual void iogcb_update(lexer*,fdm*,ghostcell*);
 	virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void jsource(lexer*,fdm*,ghostcell*,vrans*);
@@ -291,8 +288,8 @@ private:
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
     double *uval,*vval,*wval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
     double *rb1val,*rb3val;
-    
     double *UHval,*VHval,*WHval;
+
     
     double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin,**Fifsfval_S_sin;
     double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos,**Fifsfval_S_cos;

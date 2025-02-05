@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
@@ -121,6 +122,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
     p->Darray(UHval,upt_count);
     p->Darray(VHval,vpt_count);
     p->Darray(WHval,wpt_count);
+
     
     
     if(p->B89==1) 
@@ -164,6 +166,7 @@ void iowave::nhflow_precalc_dirichlet_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
   
     // precalc array alloc
+
     p->Darray(uval,upt_count);
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);
@@ -193,4 +196,5 @@ void iowave::nhflow_precalc_dirichlet_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->Darray(wval_T_cos,wave_comp);
     p->Darray(etaval_T_cos,wave_comp);
     }
+    
 }

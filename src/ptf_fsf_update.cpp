@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -15,7 +15,7 @@ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/liceonephases/>.
+along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
@@ -25,18 +25,13 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"ioflow.h"
-#include"onephase.h"
 #include"slice.h"
-#include"reinifluid_RK3.h"
-
 
 ptf_fsf_update::ptf_fsf_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     gcval_u = 10;
     gcval_v = 11;
     gcval_w = 12;
-    
-    //preini = new reinifluid_RK3(p,1);
 }
 
 ptf_fsf_update::~ptf_fsf_update()
@@ -44,18 +39,14 @@ ptf_fsf_update::~ptf_fsf_update()
 
 }
 
-void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, onephase *poneph, slice &eta)
+void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, slice &eta)
 {
     // update phi
     FLUIDLOOP
     a->phi(i,j,k) = eta(i,j) + p->phimean - p->pos_z();
     
-    //preini->start(a,p, a->phi, pgc, pflow);
-
     pgc->start4(p,a->phi,50);
 
-    // update onephase
-    poneph->update(p,a,pgc,pflow);
 }
 
 void ptf_fsf_update::etaloc(lexer *p, fdm *a, ghostcell *pgc)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,17 +17,19 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<vector>
 #include <Eigen/Dense>
 #include"beam.h"
+#include"field4.h"
 
 class lexer;
 class fdm;
 class ghostcell;
 class field;
+class turbulence;
 
 using namespace std;
 
@@ -42,10 +44,10 @@ public:
     
     typedef Eigen::Matrix<double,3,Eigen::Dynamic> Matrix3Xd;
 	
-    fsi_strip(int);
+    fsi_strip(lexer*,int);
 	virtual ~fsi_strip();
 	virtual void start(lexer*,fdm*,ghostcell*,double);
-	virtual void initialize(lexer*,fdm*,ghostcell*);
+	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*);
     
     void interpolate_vel(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void update_points();
@@ -89,6 +91,9 @@ private:
     Matrix3Xd tri_x, tri_y, tri_z;
     
     double starttime, endtime;
+    
+    turbulence *pturb;
+    field4 eps0;
 };
 
 #endif

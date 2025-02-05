@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,6 +19,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+
+#ifndef MOMENTUM_FC2_H_
+#define MOMENTUM_FC2_H_
 
 #include"momentum.h"
 #include"momentum_forcing.h"
@@ -45,8 +48,6 @@ class fsi;
 
 using namespace std;
 
-#ifndef MOMENTUM_FC2_H_
-#define MOMENTUM_FC2_H_
 
 class momentum_FC2 : public momentum, public momentum_forcing, public bcmom
 {

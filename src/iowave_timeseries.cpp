@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,14 +66,14 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
         
         pout<<"t \t eta"<<endl<<endl;
         
-        p->simtime=0.0;
+        p->wavetime=0.0;
         do
         {
         pout<<p->simtime<<" "<<wave_eta(p,pgc,p->P58_x[n],p->P58_y[n])<<endl;
             
-        p->simtime+=0.1;
+        p->wavetime+=0.1;
         
-        }while(p->simtime<=p->P58_T[n]);
+        }while(p->wavetime<=p->P58_T[n]);
 
 
     pout.close();

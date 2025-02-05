@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,28 +31,13 @@ Author: Hans Bihs
 #include"sflow_gradient_weno.h"
 #include"patchBC_interface.h"
 
-#define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
-#define HXIMJ (fabs(b->hx(i-1,j))>1.0e-20?b->hx(i-1,j):1.0e20)
-
-#define HXP (0.5*(HXIJ + HXIMJ))
-#define HYP (0.5*(HYIJ + HYIJM))
-
-#define HYIJ (fabs(b->hy(i,j))>1.0e-20?b->hy(i,j):1.0e20)
-#define HYIJM (fabs(b->hy(i,j-1))>1.0e-20?b->hy(i,j-1):1.0e20)
-
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
 #define HPIP (fabs(b->hp(i+1,j))>1.0e-20?b->hp(i+1,j):1.0e20)
 #define HPJP (fabs(b->hp(i,j+1))>1.0e-20?b->hp(i,j+1):1.0e20)
 
-#define HPIM (fabs(b->hp(i-1,j))>1.0e-20?b->hp(i-1,j):1.0e20)
-#define HPJM (fabs(b->hp(i,j-1))>1.0e-20?b->hp(i,j-1):1.0e20)
-
 #define HPXP (0.5*(HP + HPIP))
 #define HPYP (0.5*(HP + HPJP))
-
-#define HPXM (0.5*(HP + HPIM))
-#define HPYM (0.5*(HP + HPJM))
  
 sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b, patchBC_interface *ppBC) : press_n(p),phi4(p), Ps(p), Qs(p)
 {
@@ -218,13 +203,27 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
     n=0;
 	SLICELOOP4
 	{
-		if(p->flagslice4[Im1J]<0)
+        // Inflow
+		if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==1)
+		{
+		b->rhsvec.V[n] -= 0.0;
+		b->M.s[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==0)
 		{
 		b->rhsvec.V[n] -= b->M.s[n]*b->press(i-1,j);
 		b->M.s[n] = 0.0;
 		}
 		
-		if(p->flagslice4[Ip1J]<0)
+         // Outflow
+		if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==1)
+		{
+		b->rhsvec.V[n] -= 0.0;
+		b->M.n[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==0)
 		{
 		b->rhsvec.V[n] -= b->M.n[n]*b->press(i+1,j);
 		b->M.n[n] = 0.0;
@@ -271,7 +270,7 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
         
-        if(p->B77==2)
+        if(p->B77==10)
         for(n=0;n<p->gcslout_count;n++)
         {
         i=p->gcslout[n][0]-1;
@@ -363,5 +362,7 @@ void sflow_pjm_quad::quad_prep(lexer *p,fdm2D *b,ghostcell *pgc,slice &P, slice 
 }
 
 void sflow_pjm_quad::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
-{	    
+{
+    SLICELOOP4
+    b->L(i,j)=0.0;	    
 }

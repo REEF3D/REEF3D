@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,7 +39,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
  
-pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcorr(p), pressure_reference(p)
+pjm_corr::pjm_corr(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : pcorr(p), pressure_reference(p)
 {
     if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
@@ -65,10 +65,6 @@ pjm_corr::pjm_corr(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) : pcor
     if(p->F300>=1)
     pd = new density_rheo(p);
     
-    if(p->G3==1)  
-	pd = new density_sf(p);
-    
-
     gcval_press=40;  
 	
 	gcval_u=7;
@@ -101,6 +97,9 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     reference_start(p,a,pgc);
 	pgc->start4(p,a->press,gcval_press);
 	
+    LOOP
+    a->test(i,j,k) = pcorr(i,j,k);
+    
 	ucorr(p,a,uvel,alpha);
 	vcorr(p,a,vvel,alpha);
 	wcorr(p,a,wvel,alpha);
@@ -157,9 +156,9 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
 
     LOOP
     {
-    a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
-                          -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
-                          -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+    a->rhsvec.V[count] =  -(u.V[IJK] - u.V[Im1JK])/(alpha*p->dt*p->DXN[IP])
+                          -(v.V[IJK] - v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])
+                          -(w.V[IJK] - w.V[IJKm1])/(alpha*p->dt*p->DZN[KP]);
                            
     ++count;
     }

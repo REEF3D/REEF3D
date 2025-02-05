@@ -65,6 +65,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Forcing">
+          <File Name="sflow_forcing.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
           <File Name="sflow_turb_kw_IM1_v1.h"/>
           <File Name="sflow_turb_io_void.h"/>
@@ -114,7 +117,6 @@
         <VirtualDirectory Name="Momentum">
           <File Name="sflow_momentum_RK3.h"/>
           <File Name="sflow_momentum_RK2.h"/>
-          <File Name="sflow_momentum_AB2.h"/>
           <File Name="sflow_momentum.h"/>
           <VirtualDirectory Name="BC">
             <File Name="sflow_roughness.h"/>
@@ -137,11 +139,6 @@
             <File Name="sflow_hxy_fou.h"/>
             <File Name="sflow_hxy_disc.h"/>
             <File Name="sflow_hxy_cds.h"/>
-            <File Name="sflow_eta_weno_hj.h"/>
-            <File Name="sflow_eta_weno.h"/>
-            <File Name="sflow_eta_uds.h"/>
-            <File Name="sflow_eta_disc.h"/>
-            <File Name="sflow_eta_cds.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -171,9 +168,6 @@
             <File Name="sflow_flux_face_HJ.h"/>
             <File Name="sflow_flux_face_FOU.h"/>
             <File Name="sflow_flux_face_CDS.h"/>
-            <File Name="sflow_flux_face_C_HJ.h"/>
-            <File Name="sflow_flux_face_C_FOU.h"/>
-            <File Name="sflow_flux_face_C_CDS.h"/>
             <File Name="sflow_flux.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Filtering">
@@ -186,18 +180,13 @@
             <File Name="sflow_diffusion.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
-            <File Name="sflow_cweno_flux.h"/>
-            <File Name="sflow_chires.h"/>
-            <File Name="sflow_csfou.h"/>
-            <File Name="sflow_cfou.h"/>
+            <File Name="sflow_convection.h"/>
             <File Name="sflow_weno_blend.h"/>
             <File Name="sflow_weno_hj.h"/>
             <File Name="sflow_weno_flux.h"/>
             <File Name="sflow_voidconv.h"/>
             <File Name="sflow_iweno_hj.h"/>
-            <File Name="sflow_hires.h"/>
             <File Name="sflow_fou.h"/>
-            <File Name="sflow_convection.h"/>
             <VirtualDirectory Name="Limiter">
               <File Name="sflow_fluxlim_vanleer.h"/>
               <File Name="sflow_fluxlim_smart.h"/>
@@ -212,18 +201,18 @@
           <File Name="nhflow_forcing.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="SST"/>
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="LES">
             <File Name="nhflow_LES_Smagorinsky.h"/>
-            <File Name="nhflow_LES.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
+            <File Name="nhflow_komega_func.h"/>
             <VirtualDirectory Name="BC">
-              <File Name="nhflow_bc_ikomega.h"/>
+              <File Name="nhflow_komega_bc.h"/>
             </VirtualDirectory>
-            <File Name="nhflow_ikomega.h"/>
             <File Name="nhflow_komega_void.h"/>
             <File Name="nhflow_komega_IM1.h"/>
           </VirtualDirectory>
@@ -235,6 +224,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_ifou.h"/>
             <File Name="nhflow_scalar_advec_CDS2.h"/>
             <File Name="nhflow_scalar_advec.h"/>
             <File Name="nhflow_scalar_iweno.h"/>
@@ -257,6 +247,12 @@
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Force ALE">
+            <File Name="nhflow_force_ale.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Force">
+            <File Name="nhflow_force.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Hs">
             <File Name="nhflow_print_Hs.h"/>
           </VirtualDirectory>
@@ -292,6 +288,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Potential Flow">
+            <File Name="nhflow_potential_v.h"/>
+            <File Name="nhflow_potential_f.h"/>
+            <File Name="nhflow_potential.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
             <File Name="nhflow_reinidisc_fsf.h"/>
           </VirtualDirectory>
@@ -352,14 +353,17 @@
           <File Name="fnpf_sigma.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Kinematics">
+            <File Name="fnpf_print_kinematics.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Hs">
             <File Name="fnpf_print_Hs.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="fnpf_runup.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="ALE Force">
-            <File Name="force_ale.h"/>
+          <VirtualDirectory Name="Force ALE">
+            <File Name="fnpf_force_ale.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="fnpf_state.h"/>
@@ -391,9 +395,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
-          <File Name="fnpf_laplace_cds4_bc2.h"/>
-          <File Name="fnpf_laplace_cds4.h"/>
-          <File Name="fnpf_laplace_cds2_v2.h"/>
           <File Name="fnpf_laplace_cds2.h"/>
           <File Name="fnpf_laplace.h"/>
         </VirtualDirectory>
@@ -453,10 +454,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
-      <VirtualDirectory Name="Particle">
-        <File Name="particle.h"/>
-        <File Name="particle_v.h"/>
-        <File Name="particle_f.h"/>
+      <VirtualDirectory Name="Wind">
+        <File Name="wind_v.h"/>
+        <File Name="wind_f.h"/>
+        <File Name="wind.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -482,6 +483,9 @@
           <File Name="sediment_fdm.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_direction.h"/>
+          <File Name="bedload_direction_v.h"/>
+          <File Name="bedload_direction_f.h"/>
           <File Name="bedload_EH.h"/>
           <File Name="bedload.h"/>
           <File Name="bedload_MPM.h"/>
@@ -491,6 +495,7 @@
           <File Name="bedload_einstein.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedshear">
+          <File Name="reduction_FD_gamma.h"/>
           <File Name="bedshear.h"/>
           <File Name="bedshear_reduction.h"/>
           <File Name="bedslope.h"/>
@@ -501,6 +506,7 @@
           <File Name="reduction_FD.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_nz.h"/>
           <File Name="sandslide_f3.h"/>
           <File Name="sandslide_f2.h"/>
           <File Name="sandslide_f.h"/>
@@ -547,6 +553,10 @@
         <File Name="sediment_f.h"/>
         <File Name="sediment_void.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="Sediment Particle">
+        <File Name="partres.h"/>
+        <File Name="part.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Heat Transfer">
         <File Name="heat_RK3CN.h"/>
         <VirtualDirectory Name="BC">
@@ -572,6 +582,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="External Motion">
+          <File Name="6DOF_motionext_wavemaker.h"/>
           <File Name="6DOF_motionext_CoG.h"/>
           <File Name="6DOF_motionext_void.h"/>
           <File Name="6DOF_motionext_file.h"/>
@@ -639,7 +650,6 @@
         <File Name="weno3_nug_func.h"/>
         <File Name="weno_nug_func.h"/>
         <File Name="ddweno_nug.h"/>
-        <File Name="ddweno.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Position">
         <File Name="position.h"/>
@@ -651,8 +661,6 @@
         <File Name="hcds6.h"/>
         <File Name="iweno_hj_df_nug.h"/>
         <File Name="weno_hj_df_nug.h"/>
-        <File Name="lust.h"/>
-        <File Name="iweno3_hj.h"/>
         <File Name="convection_void.h"/>
         <File Name="convection.h"/>
         <File Name="weno3_flux.h"/>
@@ -770,17 +778,16 @@
         <File Name="particle_pls.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
-        <File Name="reinidisc_sf.h"/>
-        <File Name="reinidisc_fsf_rig.h"/>
-        <File Name="reinifluid_RK3.h"/>
+        <VirtualDirectory Name="Reinidisc">
+          <File Name="reinidisc_fsf_rig.h"/>
+          <File Name="reinidisc_fsf.h"/>
+          <File Name="reinidisc_f.h"/>
+          <File Name="reinidisc.h"/>
+        </VirtualDirectory>
         <File Name="reini.h"/>
         <File Name="reini_RK3.h"/>
         <File Name="reini_void.h"/>
-        <File Name="reinidisc.h"/>
-        <File Name="reinidisc_f.h"/>
-        <File Name="reinidisc_fsf.h"/>
         <File Name="reini_walld.h"/>
-        <File Name="reinidisc_f2.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF Algebraic">
         <File Name="VOF_RK3.h"/>
@@ -791,16 +798,12 @@
         <File Name="VOF_PLIC.h"/>
       </VirtualDirectory>
       <File Name="freesurface.h"/>
-      <VirtualDirectory Name="One Phase">
-        <File Name="onephase_f.h"/>
-        <File Name="onephase.h"/>
-        <File Name="onephase_v.h"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <File Name="sediment_part.h"/>
       <VirtualDirectory Name="Driver">
         <File Name="nhflow_header.h"/>
         <File Name="FSI_header.h"/>
@@ -821,19 +824,13 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Grid Class">
-          <File Name="grid2D.h"/>
+        <VirtualDirectory Name="Boundary">
+          <File Name="boundary.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Grid">
           <File Name="grid.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
-          <File Name="fieldgen.h"/>
-          <VirtualDirectory Name="Cart">
-            <File Name="cart1.h"/>
-            <File Name="cart2.h"/>
-            <File Name="cart3.h"/>
-            <File Name="cart4.h"/>
-            <File Name="cart4a.h"/>
-          </VirtualDirectory>
           <File Name="field.h"/>
           <File Name="field1.h"/>
           <File Name="field2.h"/>
@@ -841,18 +838,6 @@
           <File Name="field4.h"/>
           <File Name="field4a.h"/>
           <File Name="field5.h"/>
-          <VirtualDirectory Name="MGC">
-            <File Name="mgc6.h"/>
-            <File Name="mgc1.h"/>
-            <File Name="mgc2.h"/>
-            <File Name="mgc3.h"/>
-            <File Name="mgc4.h"/>
-            <File Name="mgc4a.h"/>
-            <File Name="mgccart.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="GGC">
-            <File Name="ggccart.h"/>
-          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
           <File Name="fieldint6.h"/>
@@ -868,6 +853,7 @@
           <File Name="geotopo.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Increment">
+          <File Name="looping_part.h"/>
           <File Name="iterators1D.h"/>
           <File Name="increment.h"/>
           <File Name="looping.h"/>
@@ -881,17 +867,16 @@
           <File Name="boundarycheck.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
-          <File Name="slicegen.h"/>
+          <VirtualDirectory Name="MGC">
+            <File Name="mgcslice4.h"/>
+            <File Name="mgcslice2.h"/>
+            <File Name="mgcslice1.h"/>
+          </VirtualDirectory>
           <File Name="slice5.h"/>
           <File Name="slice.h"/>
           <File Name="slice1.h"/>
           <File Name="slice2.h"/>
           <File Name="slice4.h"/>
-          <VirtualDirectory Name="MGC">
-            <File Name="mgcslice1.h"/>
-            <File Name="mgcslice2.h"/>
-            <File Name="mgcslice4.h"/>
-          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
           <File Name="reinisolid_RK3.h"/>
@@ -959,9 +944,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="fsf_vtp.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Nodefill">
-          <File Name="nodefill.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="State">
           <File Name="cfd_state.h"/>
@@ -1035,7 +1017,6 @@
         <File Name="density.h"/>
         <File Name="density_f.h"/>
       </VirtualDirectory>
-      <File Name="pjm_comp.h"/>
       <File Name="pjm_nse.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
@@ -1078,9 +1059,9 @@
         <File Name="bc_ikepsilon.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Komega">
+        <File Name="komega_func.h"/>
+        <File Name="komega_bc.h"/>
         <File Name="komega_IM1.h"/>
-        <File Name="ikomega.h"/>
-        <File Name="bc_ikomega.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
         <VirtualDirectory Name="Filter">
@@ -1179,6 +1160,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Forcing">
+          <File Name="sflow_forcing.cpp"/>
+        </VirtualDirectory>
         <File Name="sflow_v.cpp"/>
         <File Name="sflow_f_logic.cpp"/>
         <File Name="sflow_f_ini.cpp"/>
@@ -1253,7 +1237,6 @@
         <VirtualDirectory Name="Momentum">
           <File Name="sflow_momentum_RK3.cpp"/>
           <File Name="sflow_momentum_RK2.cpp"/>
-          <File Name="sflow_momentum_AB2.cpp"/>
           <VirtualDirectory Name="Roughness">
             <File Name="sflow_rough_void.cpp"/>
             <File Name="sflow_rough_manning.cpp"/>
@@ -1271,10 +1254,6 @@
             <File Name="sflow_hxy_weno.cpp"/>
             <File Name="sflow_hxy_fou.cpp"/>
             <File Name="sflow_hxy_cds.cpp"/>
-            <File Name="sflow_eta_weno_hj.cpp"/>
-            <File Name="sflow_eta_weno.cpp"/>
-            <File Name="sflow_eta_uds.cpp"/>
-            <File Name="sflow_eta_cds.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -1301,9 +1280,6 @@
             <File Name="sflow_flux_face_HJ.cpp"/>
             <File Name="sflow_flux_face_FOU.cpp"/>
             <File Name="sflow_flux_face_CDS.cpp"/>
-            <File Name="sflow_flux_face_C_HJ.cpp"/>
-            <File Name="sflow_flux_face_C_FOU.cpp"/>
-            <File Name="sflow_flux_face_C_CDS.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Filtering">
             <File Name="sflow_filter.cpp"/>
@@ -1314,16 +1290,11 @@
             <File Name="sflow_diffusion_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
-            <File Name="sflow_cweno_flux.cpp"/>
-            <File Name="sflow_chires.cpp"/>
-            <File Name="sflow_csfou.cpp"/>
-            <File Name="sflow_cfou.cpp"/>
             <File Name="sflow_weno_blend.cpp"/>
             <File Name="sflow_weno_hj.cpp"/>
             <File Name="sflow_weno_flux.cpp"/>
             <File Name="sflow_voidconv.cpp"/>
             <File Name="sflow_iweno_hj.cpp"/>
-            <File Name="sflow_hires.cpp"/>
             <File Name="sflow_fou.cpp"/>
             <VirtualDirectory Name="Limiter">
               <File Name="sflow_limiter_vanleer.cpp"/>
@@ -1335,35 +1306,45 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Forcing">
+          <File Name="nhflow_forcing_solid.cpp"/>
           <File Name="nhflow_forcing_interface.cpp"/>
           <VirtualDirectory Name="Geometry">
-            <File Name="nhflow_forcing_raycast_y.cpp"/>
-            <File Name="nhflow_forcing_raycast_x.cpp"/>
-            <File Name="nhflow_forcing_raycast_z.cpp"/>
+            <File Name="nhflow_forcing_rotation.cpp"/>
+            <File Name="nhflow_jacketmember.cpp"/>
+            <File Name="nhflow_forcing_sphere.cpp"/>
+            <File Name="nhflow_forcing_stl.cpp"/>
+            <File Name="nhflow_forcing_wedge_z.cpp"/>
+            <File Name="nhflow_forcing_wedge_y.cpp"/>
+            <File Name="nhflow_forcing_wedge_x.cpp"/>
+            <File Name="nhflow_forcing_cylinder_y.cpp"/>
+            <VirtualDirectory Name="Ray Casting">
+              <File Name="nhflow_forcing_raycast_x.cpp"/>
+              <File Name="nhflow_forcing_reini_RK2.cpp"/>
+              <File Name="nhflow_forcing_raycast_y.cpp"/>
+              <File Name="nhflow_forcing_raycast_io.cpp"/>
+              <File Name="nhflow_forcing_raycast_direct.cpp"/>
+              <File Name="nhflow_forcing_raycast.cpp"/>
+              <File Name="nhflow_forcing_raycast_z.cpp"/>
+            </VirtualDirectory>
             <File Name="nhflow_forcing_refinement.cpp"/>
-            <File Name="nhflow_forcing_reini_RK2.cpp"/>
-            <File Name="nhflow_forcing_raycast_io.cpp"/>
-            <File Name="nhflow_forcing_raycast_direct.cpp"/>
             <File Name="nhflow_forcing_objects.cpp"/>
-            <File Name="nhflow_forcing_distance.cpp"/>
-            <File Name="nhflow_forcing_raycast.cpp"/>
             <File Name="nhflow_forcing_cylinder_z.cpp"/>
             <File Name="nhflow_forcing_box.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="SST"/>
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="LES">
             <File Name="nhflow_LES_Smagorinsky.cpp"/>
-            <File Name="nhflow_LES.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
-            <File Name="nhflow_ikomega.cpp"/>
+            <File Name="nhflow_komega_func.cpp"/>
             <VirtualDirectory Name="BC">
-              <File Name="nhflow_bc_ikomega.cpp"/>
+              <File Name="nhflow_komega_bc.cpp"/>
             </VirtualDirectory>
             <File Name="nhflow_komega_void.cpp"/>
             <File Name="nhflow_komega_IM1.cpp"/>
@@ -1376,6 +1357,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_ifou.cpp"/>
             <File Name="nhflow_scalar_advec_CDS2.cpp"/>
             <File Name="nhflow_scalar_iweno.cpp"/>
           </VirtualDirectory>
@@ -1392,6 +1374,24 @@
           <File Name="nhflow_HLL.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Force ALE">
+            <File Name="nhflow_force_ale_print.cpp"/>
+            <File Name="nhflow_force_ale_force.cpp"/>
+            <File Name="nhflow_force_ale.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Force">
+            <File Name="nhflow_force_allocate.cpp"/>
+            <File Name="nhflow_force_print.cpp"/>
+            <VirtualDirectory Name="Print VTP">
+              <File Name="nhflow_force_header.cpp"/>
+              <File Name="nhflow_force_vtp.cpp"/>
+              <File Name="nhflow_force_pvtp.cpp"/>
+            </VirtualDirectory>
+            <File Name="nhflow_force_forcecalc.cpp"/>
+            <File Name="nhflow_force_triangulate.cpp"/>
+            <File Name="nhflow_force_reconstruct.cpp"/>
+            <File Name="nhflow_force.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Hs">
             <File Name="nhflow_print_Hs.cpp"/>
           </VirtualDirectory>
@@ -1438,6 +1438,10 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Potential Flow">
+            <File Name="nhflow_potential_v.cpp"/>
+            <File Name="nhflow_potential_f.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
             <File Name="nhflow_reinidisc_fsf.cpp"/>
           </VirtualDirectory>
@@ -1475,14 +1479,14 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="nhflow_momentum_RK2.cpp"/>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.cpp"/>
           </VirtualDirectory>
-          <File Name="nhflow_momentum_RK2.cpp"/>
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
-          <File Name="nhflow_fsf_forcing.cpp"/>
+          <File Name="nhflow_fsf_update.cpp"/>
           <File Name="nhflow_fsf_guard.cpp"/>
           <File Name="nhflow_fsf_kbedbc.cpp"/>
           <File Name="nhflow_fsf_ucorr.cpp"/>
@@ -1524,6 +1528,11 @@
           <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
+          <VirtualDirectory Name="Kinematics">
+            <File Name="fnpf_print_kinematics_calc.cpp"/>
+            <File Name="fnpf_print_kinematics_print.cpp"/>
+            <File Name="fnpf_print_kinematics.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="fnpf_runup_calc.cpp"/>
             <File Name="fnpf_runup_print.cpp"/>
@@ -1534,9 +1543,9 @@
             <File Name="fnpf_vel_probe.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Force ALE">
-            <File Name="force_ale_print.cpp"/>
-            <File Name="force_ale_force.cpp"/>
-            <File Name="force_ale.cpp"/>
+            <File Name="fnpf_force_ale_print.cpp"/>
+            <File Name="fnpf_force_ale_force.cpp"/>
+            <File Name="fnpf_force_ale.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Hs">
             <File Name="fnpf_print_Hs.cpp"/>
@@ -1587,9 +1596,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
-          <File Name="fnpf_laplace_cds4.cpp"/>
-          <File Name="fnpf_laplace_cds4_bc2.cpp"/>
-          <File Name="fnpf_laplace_cds2_v2.cpp"/>
           <File Name="fnpf_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize">
@@ -1657,33 +1663,55 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
-      <VirtualDirectory Name="Particle">
-        <VirtualDirectory Name="Void">
-          <File Name="particle_v.cpp"/>
+      <VirtualDirectory Name="Sediment Particle">
+        <File Name="sediment_part_update.cpp"/>
+        <File Name="sediment_part_logic.cpp"/>
+        <File Name="sediment_part_cfd_ini.cpp"/>
+        <File Name="sediment_part_cfd.cpp"/>
+        <File Name="sediment_part.cpp"/>
+        <VirtualDirectory Name="Partres">
+          <File Name="partres_update.cpp"/>
+          <File Name="partres_stress_tensor.cpp"/>
+          <File Name="partres_sandslide.cpp"/>
+          <File Name="partres_move_RK2.cpp"/>
+          <File Name="partres_gradient.cpp"/>
+          <File Name="partres_drag.cpp"/>
+          <File Name="partres_cellSum.cpp"/>
+          <File Name="partres_bedchange.cpp"/>
+          <File Name="partres_advec_plain.cpp"/>
+          <File Name="partres_advec_mppic.cpp"/>
+          <File Name="partres.cpp"/>
+          <VirtualDirectory Name="Print">
+            <File Name="partres_printvtp.cpp"/>
+            <File Name="partres_printpvtp.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="FDM">
+            <File Name="partres_timestep.cpp"/>
+            <File Name="partres_seed.cpp"/>
+            <File Name="partres_relax.cpp"/>
+            <File Name="partres_count.cpp"/>
+            <File Name="partres_boundcheck.cpp"/>
+          </VirtualDirectory>
         </VirtualDirectory>
-        <VirtualDirectory Name="Print">
-          <File Name="particle_printvtu.cpp"/>
-          <File Name="particle_printpvtu.cpp"/>
-          <File Name="particle_printascii.cpp"/>
+        <VirtualDirectory Name="Part">
+          <File Name="part_remove.cpp"/>
+          <File Name="part_resize.cpp"/>
+          <VirtualDirectory Name="Parallel">
+            <File Name="part_xchange_sendid.cpp"/>
+            <File Name="part_xchange_resize.cpp"/>
+            <File Name="part_xchange_fillback.cpp"/>
+            <File Name="part_xchange_fill.cpp"/>
+            <File Name="part_xchange_count.cpp"/>
+            <File Name="part_xchange.cpp"/>
+          </VirtualDirectory>
+          <File Name="part_add.cpp"/>
+          <File Name="part.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Transport">
-          <File Name="particle_advect.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Util">
-          <File Name="particle_count.cpp"/>
-          <File Name="particle_remove.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Parallel">
-          <File Name="particle_updatex.cpp"/>
-          <File Name="particle_particlex.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Seed">
-          <File Name="particle_setup.cpp"/>
-          <File Name="particle_initialize.cpp"/>
-          <File Name="particle_seed.cpp"/>
-          <File Name="particle_allocate.cpp"/>
-        </VirtualDirectory>
-        <File Name="particle_f.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Wind">
+        <File Name="wind_f_drag_coeff.cpp"/>
+        <File Name="wind_v.cpp"/>
+        <File Name="wind_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -1707,6 +1735,9 @@
           <File Name="beam.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Strip">
+          <File Name="FSI_strip_forcing.cpp"/>
+          <File Name="FSI_strip_force.cpp"/>
+          <File Name="FSI_strip_kernel.cpp"/>
           <File Name="FSI_strips.cpp"/>
           <File Name="FSI_strip_update.cpp"/>
           <File Name="FSI_strip_rhs.cpp"/>
@@ -1731,6 +1762,8 @@
           <File Name="sediment_fdm.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedload">
+          <File Name="bedload_direction_v.cpp"/>
+          <File Name="bedload_direction_f.cpp"/>
           <File Name="bedload_EH.cpp"/>
           <File Name="bedload_MPM.cpp"/>
           <File Name="bedload_void.cpp"/>
@@ -1739,7 +1772,10 @@
           <File Name="bedload_einstein.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Bedshear">
-          <File Name="bedshear.cpp"/>
+          <File Name="reduction_FD_gamma.cpp"/>
+          <File Name="bedshear_cfd.cpp"/>
+          <File Name="bedshear_sflow.cpp"/>
+          <File Name="bedshear_nhflow.cpp"/>
           <File Name="bedslope.cpp"/>
           <File Name="reduction_deyana.cpp"/>
           <File Name="reduction_deyemp.cpp"/>
@@ -1748,6 +1784,7 @@
           <File Name="reduction_FD.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_nz.cpp"/>
           <File Name="sandslide_f3.cpp"/>
           <File Name="sandslide_f2.cpp"/>
           <File Name="sandslide_v.cpp"/>
@@ -1820,6 +1857,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="External Motion">
+          <VirtualDirectory Name="Motion Wavemaker">
+            <File Name="6DOF_motionext_wavemaker_read.cpp"/>
+            <File Name="6DOF_motionext_wavemaker.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Motion File CoG">
             <File Name="6DOF_motion-file_CoG_read.cpp"/>
             <File Name="6DOF_motion-file_CoG.cpp"/>
@@ -1835,35 +1876,38 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface NHFLOW">
+          <File Name="6DOF_nhflow_velsource.cpp"/>
+          <File Name="6DOF_nhflow_initialize.cpp"/>
           <File Name="6DOF_nhflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface CFD">
+          <File Name="6DOF_cfd_initialize.cpp"/>
           <File Name="6DOF_cfd_velsource.cpp"/>
-          <File Name="6DOF_cfd_setup.cpp"/>
           <File Name="6DOF_cfd.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Void">
+        <VirtualDirectory Name="Interface Void">
+          <File Name="6DOF_void_initialize.cpp"/>
           <File Name="6DOF_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface SFLOW">
           <File Name="6DOF_sflow_velsource.cpp"/>
-          <File Name="6DOF_sflow_motion.cpp"/>
-          <VirtualDirectory Name="Print">
-            <File Name="6DOF_sflow_print_stl.cpp"/>
-            <File Name="6DOF_sflow_print_vtp.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="RayCast"/>
-          <VirtualDirectory Name="Objects">
-            <File Name="6DOF_sflow_cylinder.cpp"/>
-            <File Name="6DOF_sflow_box.cpp"/>
-            <File Name="6DOF_sflow_STL_read.cpp"/>
-          </VirtualDirectory>
-          <File Name="6DOF_sflow_rotation.cpp"/>
           <File Name="6DOF_sflow_initialize.cpp"/>
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
-          <File Name="6DOF_obj_forcing_2D.cpp"/>
+          <VirtualDirectory Name="Forcing">
+            <File Name="6DOF_obj_forcing.cpp"/>
+            <File Name="6DOF_obj_forcing_sflow.cpp"/>
+            <File Name="6DOF_obj_forcing_nhflow.cpp"/>
+            <File Name="6DOF_obj_forcing_2D.cpp"/>
+          </VirtualDirectory>
+          <File Name="6DOF_obj_update_pos_nhflow.cpp"/>
+          <VirtualDirectory Name="Forces NHFLOW">
+            <File Name="6DOF_obj_nhflow_forces_lsm.cpp"/>
+            <File Name="6DOF_obj_nhflow_forces_stl.cpp"/>
+            <File Name="6DOF_obj_nhflow_forces_reconstruction.cpp"/>
+            <File Name="6DOF_obj_nhflow_forces_triangulation.cpp"/>
+          </VirtualDirectory>
           <File Name="6DOF_obj_update_pos_2D.cpp"/>
           <File Name="6DOF_obj_trans_matrices.cpp"/>
           <File Name="6DOF_obj_fbvel.cpp"/>
@@ -1871,9 +1915,9 @@
           <File Name="6DOF_obj_update_pos.cpp"/>
           <File Name="6DOF_obj_solve.cpp"/>
           <File Name="6DOF_obj_rotation.cpp"/>
-          <File Name="6DOF_obj_forcing.cpp"/>
           <VirtualDirectory Name="Initialize">
-            <File Name="6DOF_obj_ini_sflow.cpp"/>
+            <File Name="6DOF_obj_ini_nhflow.cpp"/>
+            <File Name="6DOF_obj_ini_shipwave.cpp"/>
             <File Name="6DOF_obj_ini_cfd.cpp"/>
             <File Name="6DOF_obj_ini_position.cpp"/>
             <File Name="6DOF_obj_ini_parameters.cpp"/>
@@ -1885,7 +1929,7 @@
             <File Name="6DOF_obj_print_normals_vtp.cpp"/>
             <File Name="6DOF_obj_print_ini.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Forces">
+          <VirtualDirectory Name="Forces CFD">
             <File Name="6DOF_obj_forces_lsm_triangulation.cpp"/>
             <VirtualDirectory Name="VTP">
               <File Name="6DOF_obj_forces_lsm_pvtp.cpp"/>
@@ -1898,6 +1942,16 @@
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
+            <VirtualDirectory Name="Reini NHFLOW">
+              <File Name="6DOF_obj_nhflow_reini_RK2.cpp"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="Ray Cast NHFLOW">
+              <File Name="6DOF_nhflow_forcing_raycast_io.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_z.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_y.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_x.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast.cpp"/>
+            </VirtualDirectory>
             <File Name="6DOF_obj_refinement.cpp"/>
             <File Name="6DOF_obj_geometry_parameters.cpp"/>
             <VirtualDirectory Name="Reini 2D">
@@ -2064,7 +2118,6 @@
         <File Name="weno_nug_func_precalc_isf.cpp"/>
         <File Name="weno_nug_func_precalc_cf.cpp"/>
         <File Name="ddweno_nug.cpp"/>
-        <File Name="ddweno.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Position">
         <File Name="position_conv.cpp"/>
@@ -2089,9 +2142,7 @@
         <File Name="hcds6.cpp"/>
         <File Name="iweno_hj_df_nug.cpp"/>
         <File Name="weno_hj_df_nug.cpp"/>
-        <File Name="lust.cpp"/>
         <File Name="ifou.cpp"/>
-        <File Name="iweno3_hj.cpp"/>
         <File Name="weno3_flux.cpp"/>
         <File Name="weno3_hj.cpp"/>
         <File Name="iweno_hj_nug.cpp"/>
@@ -2253,15 +2304,14 @@
         <File Name="pls_xupdate.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Reinitialization">
-        <File Name="reinidisc_sf.cpp"/>
-        <File Name="reinidisc_fsf_rig.cpp"/>
+        <VirtualDirectory Name="Reinidisc">
+          <File Name="reinidisc_fsf_rig.cpp"/>
+          <File Name="reinidisc_fsf.cpp"/>
+          <File Name="reinidisc_f.cpp"/>
+        </VirtualDirectory>
         <File Name="reini_RK3.cpp"/>
-        <File Name="reinifluid_RK3.cpp"/>
         <File Name="reini_void.cpp"/>
-        <File Name="reinidisc_f.cpp"/>
-        <File Name="reinidisc_fsf.cpp"/>
         <File Name="reini_walld.cpp"/>
-        <File Name="reinidisc_f2.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF Algebraic">
         <File Name="VOF_RK3.cpp"/>
@@ -2289,17 +2339,22 @@
         <File Name="VOF_PLIC_advection.cpp"/>
         <File Name="VOF_PLIC.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="One Phase">
-        <File Name="onephase_f_disc.cpp"/>
-        <File Name="onephase_f_extension.cpp"/>
-        <File Name="onephase_f.cpp"/>
-        <File Name="onephase_v.cpp"/>
-      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
+      <VirtualDirectory Name="DGC">
+        <File Name="gc_dgcpol4.cpp"/>
+        <File Name="gc_dgcpol3.cpp"/>
+        <File Name="gc_dgcpol2.cpp"/>
+        <File Name="gc_dgcpol1.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Parallel Particle">
+        <File Name="gcx_partx.cpp"/>
+        <File Name="gcx_partnum.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Forcing">
+        <File Name="gcsldf_update.cpp"/>
+        <File Name="gc_solid_forcing_eta.cpp"/>
         <File Name="gc_solid_forcing_lsm.cpp"/>
-        <File Name="gc_solid_forcing_topo_update.cpp"/>
         <File Name="gcdf_update.cpp"/>
         <File Name="gc_solid_forcing_interface.cpp"/>
         <File Name="gc_solid_forcing_ini.cpp"/>
@@ -2314,11 +2369,6 @@
         <File Name="gc_patchBC.cpp"/>
         <File Name="gc_periodic.cpp"/>
         <File Name="gc_heat.cpp"/>
-        <File Name="gc_dgcpol4.cpp"/>
-        <File Name="gc_dgcpol3.cpp"/>
-        <File Name="gc_dgcpol2.cpp"/>
-        <File Name="gc_dgcpol1.cpp"/>
-        <File Name="gc_dgcpol.cpp"/>
         <File Name="gc_debug.cpp"/>
         <File Name="gc_fivec.cpp"/>
         <File Name="gc_kinematic_bed.cpp"/>
@@ -2353,6 +2403,8 @@
         <File Name="gc_sommerfeld.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flag">
+        <File Name="gc_nhflow_ioflag.cpp"/>
+        <File Name="gc_buildflag.cpp"/>
         <File Name="gc_flagbase.cpp"/>
         <File Name="gc_flagfield.cpp"/>
         <File Name="gc_minmax.cpp"/>
@@ -2360,12 +2412,12 @@
         <File Name="gc_ndflag.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_parax4a_sum.cpp"/>
         <File Name="gcx_gcparaxintV.cpp"/>
         <File Name="gcx_paracoxV1.cpp"/>
         <File Name="gcx_paraxV1.cpp"/>
         <File Name="gcx_paracoxV.cpp"/>
         <File Name="gcx_paraxV.cpp"/>
-        <File Name="gcx_periodicvec.cpp"/>
         <File Name="gcx_periodic.cpp"/>
         <File Name="gcx_paraxijk_single.cpp"/>
         <File Name="gcx_paraxijk.cpp"/>
@@ -2385,7 +2437,6 @@
         <File Name="gcx_update.cpp"/>
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
-        <File Name="gcx_paraxvec.cpp"/>
         <File Name="gcx_verticalmax.cpp"/>
         <File Name="gcx_parax_generic.cpp"/>
         <File Name="gcx_crs.cpp"/>
@@ -2394,40 +2445,17 @@
         <File Name="gcx_parax_test.cpp"/>
         <File Name="gcx_verticalsum.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Topoupdate">
-        <File Name="gctopo_buildflag.cpp"/>
-        <File Name="gctopo_dist.cpp"/>
-        <File Name="gctopo_gcb.cpp"/>
-        <File Name="gctopo_cellmem.cpp"/>
-        <File Name="gctopo_update.cpp"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid">
-        <File Name="gc_column_pt_update.cpp"/>
-        <File Name="gc_column_pt.cpp"/>
-        <File Name="gc_cval_gcb.cpp"/>
-        <File Name="gc_cval_update.cpp"/>
         <File Name="gc_sizeM_update.cpp"/>
-        <File Name="gc_column_pt_count.cpp"/>
-        <File Name="gc_count_pt_resize.cpp"/>
-        <File Name="gc_cval_parax.cpp"/>
       </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
-      <VirtualDirectory Name="Solidupdate">
-        <File Name="gcsolid_gcb_update.cpp"/>
-        <File Name="gcsolid_gcb_seed.cpp"/>
-        <File Name="gcsolid_gcx_update.cpp"/>
-        <File Name="gcsolid_gcx_seed.cpp"/>
-        <File Name="gcsolid_update.cpp"/>
-        <File Name="gcsolid_buildflag.cpp"/>
-        <File Name="gcsolid_gcb.cpp"/>
-        <File Name="gcsolid_dist.cpp"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="Slice">
+        <File Name="gcsl_dgcslini.cpp"/>
+        <File Name="gcsl_dgcsl.cpp"/>
         <File Name="gcsl_potential.cpp"/>
         <File Name="gcsl_neumann.cpp"/>
         <File Name="gcxsl_paraxijk_single.cpp"/>
         <File Name="gcxsl_paraxijk.cpp"/>
-        <File Name="gcsl_solidupdate.cpp"/>
         <File Name="gcxsl_parax_fh.cpp"/>
         <File Name="gcxsl_update.cpp"/>
         <File Name="gcxsl_paracox_int.cpp"/>
@@ -2436,8 +2464,6 @@
         <File Name="gcsl_neumann_int.cpp"/>
         <File Name="gcxsl_parax_int.cpp"/>
         <File Name="gcsl_start.cpp"/>
-        <File Name="gcsl_dgcslini.cpp"/>
-        <File Name="gcsl_dgcsl.cpp"/>
         <File Name="gcxsl_parax.cpp"/>
         <File Name="gcxsl_paracox.cpp"/>
         <File Name="gcxsl_wait.cpp"/>
@@ -2474,66 +2500,27 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Grid Class">
-          <VirtualDirectory Name="UpdateFloating"/>
-          <VirtualDirectory Name="UpdateSolid"/>
-          <VirtualDirectory Name="Makegrid"/>
-          <VirtualDirectory Name="Makegrid CDS">
-            <File Name="grid_cval_update.cpp"/>
-            <File Name="grid_cval_parax.cpp"/>
-            <File Name="grid_cval_gcb.cpp"/>
-            <File Name="grid_column_pt_update.cpp"/>
-            <File Name="grid_column_pt_count.cpp"/>
-            <File Name="grid_column_pt_assign.cpp"/>
-          </VirtualDirectory>
+        <VirtualDirectory Name="Boundary">
+          <File Name="boundary_update_nhflow.cpp"/>
+          <File Name="boundary.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Grid">
+          <File Name="grid_gcb4a.cpp"/>
+          <File Name="grid_gcb3.cpp"/>
+          <File Name="grid_gcb2.cpp"/>
+          <File Name="grid_gcb1.cpp"/>
+          <File Name="grid_dgc4.cpp"/>
+          <File Name="grid_dgc3.cpp"/>
+          <File Name="grid_dgc2.cpp"/>
+          <File Name="grid_dgc1.cpp"/>
+          <File Name="grid.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
-          <File Name="fieldgen.cpp"/>
-          <VirtualDirectory Name="DGC">
-            <File Name="mgc_dgc4.cpp"/>
-            <File Name="mgc_dgc3.cpp"/>
-            <File Name="mgc_dgc2.cpp"/>
-            <File Name="mgc_dgc1.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="GCB">
-            <File Name="gcbcart1.cpp"/>
-            <File Name="gcbcart2.cpp"/>
-            <File Name="gcbcart3.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="GGC">
-            <File Name="ggc4.cpp"/>
-            <File Name="ggc4a.cpp"/>
-            <File Name="ggcpol4.cpp"/>
-            <File Name="ggcpol4a.cpp"/>
-            <File Name="ggc1.cpp"/>
-            <File Name="ggc2.cpp"/>
-            <File Name="ggc3.cpp"/>
-            <File Name="ggcpol1.cpp"/>
-            <File Name="ggcpol2.cpp"/>
-            <File Name="ggcpol3.cpp"/>
-            <File Name="ggccart.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Cart">
-            <File Name="cart1.cpp"/>
-            <File Name="cart2.cpp"/>
-            <File Name="cart3.cpp"/>
-            <File Name="cart4.cpp"/>
-            <File Name="cart4a.cpp"/>
-          </VirtualDirectory>
           <File Name="field1.cpp"/>
           <File Name="field2.cpp"/>
           <File Name="field3.cpp"/>
           <File Name="field4a.cpp"/>
           <File Name="field5.cpp"/>
-          <VirtualDirectory Name="MGC">
-            <File Name="mgccart6.cpp"/>
-            <File Name="mgccart1.cpp"/>
-            <File Name="mgccart2.cpp"/>
-            <File Name="mgccart3.cpp"/>
-            <File Name="mgccart4.cpp"/>
-            <File Name="mgccart4a.cpp"/>
-            <File Name="mgccart.cpp"/>
-          </VirtualDirectory>
           <File Name="field4.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
@@ -2557,31 +2544,29 @@
           <File Name="boundarycheck.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
-          <File Name="slicegen.cpp"/>
           <File Name="slice5.cpp"/>
           <File Name="slice1.cpp"/>
           <File Name="slice2.cpp"/>
           <File Name="slice4.cpp"/>
           <VirtualDirectory Name="MGC">
             <File Name="mgcslice4.cpp"/>
-            <File Name="mgcslice1.cpp"/>
             <File Name="mgcslice2.cpp"/>
+            <File Name="mgcslice1.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="GGC">
-            <File Name="ggcslice1.cpp"/>
-            <File Name="ggcslice2.cpp"/>
-            <File Name="ggcslice4.cpp"/>
-            <File Name="ggcslicepol1.cpp"/>
-            <File Name="ggcslicepol2.cpp"/>
             <File Name="ggcslicepol4.cpp"/>
+            <File Name="ggcslicepol2.cpp"/>
+            <File Name="ggcslicepol1.cpp"/>
+            <File Name="ggcslice4.cpp"/>
+            <File Name="ggcslice2.cpp"/>
+            <File Name="ggcslice1.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="GCB">
-            <File Name="gcbslice1.cpp"/>
-            <File Name="gcbslice2.cpp"/>
             <File Name="gcbslice4.cpp"/>
+            <File Name="gcbslice2.cpp"/>
+            <File Name="gcbslice1.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
-        <File Name="grid.cpp"/>
         <VirtualDirectory Name="Solid">
           <File Name="reinisolid_RK3.cpp"/>
           <File Name="solid.cpp"/>
@@ -2593,7 +2578,6 @@
           <File Name="sliceint4a.cpp"/>
           <File Name="sliceint5.cpp"/>
         </VirtualDirectory>
-        <File Name="grid2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Lexer">
         <File Name="lexer_read.cpp"/>
@@ -2693,10 +2677,7 @@
           <File Name="fsf_vtp_print.cpp"/>
           <File Name="fsf_finalize.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Nodefill">
-          <File Name="nodefill_4a.cpp"/>
-          <File Name="nodefill.cpp"/>
-        </VirtualDirectory>
+        <VirtualDirectory Name="Nodefill"/>
         <VirtualDirectory Name="State">
           <File Name="cfd_state_header.cpp"/>
           <File Name="cfd_state_mainheader.cpp"/>
@@ -2736,7 +2717,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
         <File Name="driver_loop_ptf.cpp"/>
-        <File Name="driver_loop_ngx.cpp"/>
         <File Name="driver_loop_cfd_sf.cpp"/>
         <File Name="driver_loop_fnpf.cpp"/>
         <File Name="driver_loop_cfd_df.cpp"/>
@@ -2773,9 +2753,6 @@
         <File Name="pressure_reference.cpp"/>
       </VirtualDirectory>
       <File Name="pjm_hydrostatic.cpp"/>
-      <VirtualDirectory Name="Debug">
-        <File Name="pjm_debug.cpp"/>
-      </VirtualDirectory>
       <File Name="pjm_corr.cpp"/>
       <VirtualDirectory Name="Poisson">
         <File Name="poisson_pcorr.cpp"/>
@@ -2794,7 +2771,6 @@
         <File Name="density_heat.cpp"/>
         <File Name="density_f.cpp"/>
       </VirtualDirectory>
-      <File Name="pjm_comp.cpp"/>
       <File Name="pjm_nse.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
@@ -2896,7 +2872,7 @@
         <File Name="ikomega.cpp"/>
         <File Name="komega_IM1.cpp"/>
         <VirtualDirectory Name="BC">
-          <File Name="bc_ikomega.cpp"/>
+          <File Name="komega_bc.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
@@ -3091,10 +3067,14 @@
         <File Name="wave_lib_hdc.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="HDC">
+          <VirtualDirectory Name="Interpolation">
+            <File Name="wave_lib_hdc_coordinate_shift.cpp"/>
+            <File Name="wave_lib_hdc_time_interpol.cpp"/>
+            <File Name="wave_lib_hdc_space_interpol_2D.cpp"/>
+            <File Name="wave_lib_hdc_space_interpol.cpp"/>
+          </VirtualDirectory>
           <File Name="wave_lib_hdc_fill_continuous.cpp"/>
           <File Name="wave_lib_hdc_read_result_continuous.cpp"/>
-          <File Name="wave_lib_hdc_time_interpol.cpp"/>
-          <File Name="wave_lib_hdc_space_interpol.cpp"/>
           <File Name="wave_lib_hdc_read_result.cpp"/>
           <File Name="wave_lib_hdc_read_header.cpp"/>
           <File Name="wave_lib_hdc_pos_ijk.cpp"/>
@@ -3198,13 +3178,13 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="overwrite" BuildLnkWithGlobalSettings="overwrite" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3; -w; -std=c++11; -g;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Compiler Options="-O3; -w; -std=c++11; -DVERSION=\&quot;$(shell git describe --abbrev=8 --dirty --always --tags)\&quot;; -DBRANCH=\&quot;$(shell git rev-parse --abbrev-ref HEAD)\&quot;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
       <Linker Options="-lm" Required="yes">
         <LibraryPath Value="/usr/local/hypre/lib"/>
         <Library Value="HYPRE"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="./Release/REEF3D" IntermediateDirectory="./obj" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="/Users/hansbihs/Dropbox/Codelite/REEF3D" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="./Release/REEF3D" IntermediateDirectory="./obj" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>

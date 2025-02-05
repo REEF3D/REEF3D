@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,7 +37,7 @@ public:
 	virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, slice&, double);
 	virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, slice&, double);
     virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, slice&, double);
-    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double);
+    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double, double);
     
 private:
     int gcval_u,gcval_v,gcval_w;

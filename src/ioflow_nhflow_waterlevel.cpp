@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,7 +28,8 @@ Author: Hans Bihs
 
 void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
 {
-     // fsf
+    // -------------------------------------
+     // fsf out
     p->phiout=0.0;
     count=0;
     for(n=0;n<p->gcslout_count;n++)
@@ -48,14 +49,67 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     
     p->phiout += p->phimean;
     
-    //cout<<"phiout: "<<p->phiout<<" phimean: "<<p->phimean<<endl;
     
+    // -------------------------------------
+    // Find Hi
+    double eta_in;
+    count=0;
+    zval=0.0;
+    for(n=0;n<p->gcslin_count;n++)
+    {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+
+        zval+=d->eta(i,j);
+        ++count;
+
+    }
+
+    count=pgc->globalisum(count);
+    zval=pgc->globalsum(zval);
     
+    eta_in=zval/double(count);
+    
+    p->Hi = p->wd+eta_in;
+    
+    /*
+    if(count>0)
+    {
+        if(p->F50==2 || p->F50==4)
+        for(n=0;n<p->gcin_count;++n)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+
+        WL(i-1,j) = eta_in + d->depth(i,j);
+        WL(i-2,j) = eta_in + d->depth(i,j);
+        WL(i-3,j) = eta_in + d->depth(i,j);
+        }
+    }*/
+    
+    // -------------------------------------
     // set fsf 
     double wsfout=p->phimean;
+    double f;
     
     if(p->F62>1.0e-20)
-    wsfout=p->F62;
+    {
+        if(p->F64==0)
+        wsfout=p->F62;
+        
+        if(p->F64>0)
+        {
+        if(p->count<p->F64)
+        f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
+        
+        if(p->count>=p->F64)
+        f = 1.0;
+        
+        wsfout = f*p->F62 + (1.0-f)*p->F60;
+        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
+        }
+    }
     
     for(n=0;n<p->gcslout_count;n++)
     {
@@ -69,14 +123,11 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
         WL(i+2,j) = wsfout-d->bed(i,j);
         WL(i+3,j) = wsfout-d->bed(i,j);
         
-        d->eta(i,j) = WL(i,j) - d->depth(i,j);
+        d->eta(i,j)   = WL(i,j)   - d->depth(i,j);
         d->eta(i+1,j) = WL(i+1,j) - d->depth(i,j);
         d->eta(i+2,j) = WL(i+2,j) - d->depth(i,j);
         d->eta(i+3,j) = WL(i+3,j) - d->depth(i,j);
         }
         
     }
-    
-    
-    
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,10 +38,13 @@ driver::driver(int& argc, char **argv)
 
 	if(p->mpirank==0)
     {
-    cout<<endl<<"REEF3D (c) 2008-2024 Hans Bihs"<<endl;
-    sprintf(version,"v_240720");
+    cout<<endl<<"REEF3D (c) 2008-2025 Hans Bihs"<<endl;
+    sprintf(version,"v_250203");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<version<<endl<<endl;
+    cout<<endl<<version<<endl;
+    cout<<endl<<"github branch: "<<BRANCH<<endl;
+    cout<<endl<<"github version: "<<VERSION<<endl;
+    
     }
 
     pgc->mpi_check(p);
@@ -150,7 +153,7 @@ void driver::cfd_driver()
     driver_ini_cfd();
 
     // Start MAINLOOP
-    if(p->X10==0 && p->Z10==0 && p->G3==1 && p->N40==4)
+    if(p->X10==0 && p->Z10==0 && p->N40==4)
     loop_cfd_sf(a);
 
     else

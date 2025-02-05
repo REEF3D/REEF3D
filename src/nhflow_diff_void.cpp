@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,9 +32,9 @@ nhflow_diff_void::nhflow_diff_void(lexer* p)
 	gcval_v=11;
 	gcval_w=12;
     
-    gcval_uh=20;
-	gcval_vh=21;
-	gcval_wh=22;
+    gcval_uh=14;
+	gcval_vh=15;
+	gcval_wh=16;
 }
 
 nhflow_diff_void::~nhflow_diff_void()
@@ -66,7 +66,7 @@ void nhflow_diff_void::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psol
     pgc->start4V(p,WHdiff,gcval_wh);
 }
 
-void nhflow_diff_void::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double alpha)
+void nhflow_diff_void::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double sig, double alpha)
 {
     
 }

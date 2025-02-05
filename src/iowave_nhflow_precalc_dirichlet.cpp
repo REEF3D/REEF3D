@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,6 +29,8 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {  
         double etaval=0.0;
         
+        p->wavetime = p->simtime;
+        
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
@@ -50,14 +52,16 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		i=p->gcin[n][0];
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
+
         
         x=xgen(p);
         y=ygen(p);
             
-        etaval = eta(i,j);
-        
-        if(p->B92>=20 && p->B92<=29)
+        if(p->A515==1)
         etaval = 0.0;
+        
+        if(p->A515==2 )
+        etaval = eta(i,j);
 
         z = p->ZSP[IJK]-p->phimean;
 
@@ -76,5 +80,7 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ++count;
         }
 }
+
+
 
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -49,6 +49,7 @@ public:
     
     slice4 eta,eta_n,WL,detadt,detadt_n;
     slice4 bed,depth;
+    slice4 solidbed,topobed;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;
     
@@ -58,6 +59,7 @@ public:
     slice4 Bxx,Byy;
     
     slice4 hx,hy;
+    slice4 ks;
     slice4 coastline;
     slice4 vb;
     slice4 test2D;
@@ -74,10 +76,11 @@ public:
     double *U,*V,*W,*omegaF;
     double *UH,*VH,*WH;
     
-    double *P,*RO,*VISC,*EV;
+    double *P,*RO,*VISC,*EV,*EV0;
     double *F,*G,*H,*L;
     double *porosity;
     double *test;
+    double *KIN;
     
     double *SOLID,*FB,*FHB;
     

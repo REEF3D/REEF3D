@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,60 +38,124 @@ void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
         box(p,pgc,qn);
         ++entity_count;
     }
-	
+    
+    for(qn=0;qn<p->A583;++qn)
+    {
+        cylinder_y(p,pgc,qn);
+        ++entity_count;
+    }
+    
 	for(qn=0;qn<p->A584;++qn)
     {
         cylinder_z(p,pgc,qn);
         ++entity_count;
     }
-	/*
-    if(p->X180==1)
+    
+    for(qn=0;qn<p->A585;++qn)
+    {
+        jacketmember(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A586;++qn)
+    {
+        sphere(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A587;++qn)
+    {
+        wedge_x(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A588;++qn)
+    {
+        wedge_y(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A589;++qn)
+    {
+        wedge_z(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    
+    if(p->A590==1)
     {
         read_stl(p,pgc);
 		++entity_count;
-    }*/
+    }
 
     if(p->mpirank==0)
 	cout<<"Surface triangles: "<<tricount<<endl;
-    
-    // Initialise STL geometric parameters
-	//geometry_stl(p,pgc);
-    
-    // Order Triangles for correct inside/outside orientation
-    /*if(p->A10==6)
-    triangle_switch_ray(p,pgc);
-	
-	// Refine triangles
-    if(p->X185>0 && p->X60==1)
-	geometry_refinement(p,pgc);	
-
-    if(p->mpirank==0)
-	cout<<"Refined surface triangles: "<<tricount<<endl;*/
 }
 
 void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     
-    entity_sum = p->A581 + p->A584;
+    entity_sum = p->A581 + p->A583 + p->A584 + p->A585 + p->A586 + p->A587 + p->A588 + p->A589;
 	tricount=0;
     trisum=0;
     
     // box
     trisum+=12*p->A581;
     
-    // cylinder_z
-    r=p->X133_rad;
-	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
+    // cylinder_y
+    for(n=0; n<p->A583;++n)
+	{
+	r = p->A583_r[n];
+	U = 2.0*PI*r;
+	ds = 0.75*(U*p->DXM);
 	snum = int(U/ds);
-    trisum+=5*(snum+1)*p->A584;
+	trisum+=6*snum;
+	}
+    
+    // cylinder_z
+    for(n=0; n<p->A584;++n)
+	{
+	r = p->A584_r[n];
+	U = 2.0*PI*r;
+	ds = 0.75*(U*p->DXM);
+	snum = int(U/ds);
+	trisum+=6*snum;
+	}
+    
+    // cylinder_member
+    for(n=0; n<p->A585;++n)
+	{
+	r = MAX(p->A585_r1[n],p->A585_r2[n]);
+	U = 2.0*PI*r;
+	ds = 0.75*(U*p->DXM);
+	snum = int(U/ds);
+	trisum+=6*snum;
+	}
+    
+    // sphere
+    for(n=0; n<p->A586;++n)
+    {
+	r = p->A586_r[n];
+	U = 2.0*PI*r;
+	ds = 0.75*(U*p->DXM);
+	snum = int(U/ds);
+    trisum+=snum*snum*2;
+    }
+    
+    // wedge
+    trisum+=8*p->A587;
+    
+    // wedge
+    trisum+=8*p->A588;
+    
+    // wedge
+    trisum+=8*p->A589;
 
     // STL
-    //if(p->X180==1)
-    //entity_sum=1;
+    if(p->A590==1)
+    entity_sum+=1;
 
-    
     p->Darray(tri_x,trisum,3);
 	p->Darray(tri_y,trisum,3);
 	p->Darray(tri_z,trisum,3);

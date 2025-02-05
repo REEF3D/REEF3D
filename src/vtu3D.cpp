@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -63,7 +63,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
+vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 {
     if(p->F50==1)
 	gcval_phi=51;
@@ -162,10 +162,10 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pbedliney=new bedprobe_line_y(p,a,pgc);
 
 	if(p->P125>0)
-	pbedshear = new bedshear_probe(p,a,pgc);
+	pbedshear = new bedshear_probe(p,pgc);
 
 	if(p->P126>0)
-	pbedshearmax = new bedshear_max(p,a,pgc);
+	pbedshearmax = new bedshear_max(p,pgc);
 
     for(n=0;n<p->P81;++n)
 	pforce[n]=new force(p,a,pgc,n);
@@ -309,10 +309,10 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	pbedliney->start(p,a,pgc,pflow);
 
 	if(p->P125>0)
-	pbedshear->bedshear_gauge(p,a,pgc,psed);
+	pbedshear->bedshear_gauge(p,pgc,psed);
 
 	if(p->P126>0)
-	pbedshearmax->bedshear_maxval(p,a,pgc,psed);
+	pbedshearmax->bedshear_maxval(p,pgc,psed);
 	}
 
 	// Multiphase
@@ -408,34 +408,7 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     pgc->start4a(p,a->test,1);
     pgc->start1(p,a->u,110);
     pgc->start2(p,a->v,111);
-	pgc->start3(p,a->w,112);
-
-
-	pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
-	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
-	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
-	pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->eddyv,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol4(p,a->phi,14);
-	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->visc,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->conc,p->dgc4,p->dgc4_count,14);
-    //pgc->dgcpol(p,a->test,p->dgc4,p->dgc4_count,14);
-
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
-	a->press.ggcpol(p);
-	a->eddyv.ggcpol(p);
-	a->phi.ggcpol(p);
-	a->conc.ggcpol(p);
-	a->ro.ggcpol(p);
-	a->visc.ggcpol(p);
-	a->phi.ggcpol(p);
-	a->fb.ggcpol(p);
-	a->fbh4.ggcpol(p);
-    //a->test.ggcpol(p);
-    
+	pgc->start3(p,a->w,112);    
 
     pgc->gcparacox(p,a->phi,50);
 	pgc->gcparacox(p,a->phi,50);
@@ -785,15 +758,11 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 
 //  phi
-	nodefill4(p,a,pgc,a->phi,eta);
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	if(p->P18==1)
 	ffn=float(p->ipol4phi(a,a->phi));
-	if(p->P18==2)
-	ffn = float(eta(i,j,k));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -1055,19 +1024,9 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	++p->printcount;
 
-
-
 	pgc->start1(p,a->u,114);
     pgc->start2(p,a->v,115);
 	pgc->start3(p,a->w,116);
 
-	pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
-	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
-	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
     pgc->start4a(p,a->topo,150);
-
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
-
 }

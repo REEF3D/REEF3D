@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -63,7 +63,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-vtr3D::vtr3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
+vtr3D::vtr3D(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 {
     if(p->F50==1)
 	gcval_phi=51;
@@ -162,10 +162,10 @@ vtr3D::vtr3D(lexer* p, fdm *a, ghostcell *pgc) : nodefill(p), eta(p)
 	pbedliney=new bedprobe_line_y(p,a,pgc);
 
 	if(p->P125>0)
-	pbedshear = new bedshear_probe(p,a,pgc);
+	pbedshear = new bedshear_probe(p,pgc);
 
 	if(p->P126>0)
-	pbedshearmax = new bedshear_max(p,a,pgc);
+	pbedshearmax = new bedshear_max(p,pgc);
 
     for(n=0;n<p->P81;++n)
 	pforce[n]=new force(p,a,pgc,n);
@@ -210,10 +210,8 @@ void vtr3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	pmean->averaging(p,a,pgc,pheat);
 
 	// Print out based on iteration
-	if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
-	{
-	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
-	}
+    if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
+        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
 	// Print out based on time
 	if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==2) || (p->count==0 &&  p->P30>0.0))
@@ -309,10 +307,10 @@ void vtr3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	pbedliney->start(p,a,pgc,pflow);
 
 	if(p->P125>0)
-	pbedshear->bedshear_gauge(p,a,pgc,psed);
+	pbedshear->bedshear_gauge(p,pgc,psed);
 
 	if(p->P126>0)
-	pbedshearmax->bedshear_maxval(p,a,pgc,psed);
+	pbedshearmax->bedshear_maxval(p,pgc,psed);
 	}
 
 	// Multiphase
@@ -410,32 +408,6 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     pgc->start2(p,a->v,111);
 	pgc->start3(p,a->w,112);
 
-
-	pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
-	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
-	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
-	pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->eddyv,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol4(p,a->phi,14);
-	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->visc,p->dgc4,p->dgc4_count,14);
-	pgc->dgcpol(p,a->conc,p->dgc4,p->dgc4_count,14);
-    //pgc->dgcpol(p,a->test,p->dgc4,p->dgc4_count,14);
-
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
-	a->press.ggcpol(p);
-	a->eddyv.ggcpol(p);
-	a->phi.ggcpol(p);
-	a->conc.ggcpol(p);
-	a->ro.ggcpol(p);
-	a->visc.ggcpol(p);
-	a->phi.ggcpol(p);
-	a->fb.ggcpol(p);
-	a->fbh4.ggcpol(p);
-    //a->test.ggcpol(p);
-    
 
     pgc->gcparacox(p,a->phi,50);
 	pgc->gcparacox(p,a->phi,50);
@@ -585,7 +557,14 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
-	
+
+    offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+
 	// end scalars
 	//---------------------------------------------
 
@@ -717,13 +696,19 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     result<<"</PointData>"<<endl;
 
 	result<<"<CellData>"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"topoSum\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"bedChange\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	result<<"<DataArray type=\"Float32\" Name=\"erosion/depositionion\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
 	result<<"</CellData>"<<endl;
     result<<"<Coordinates>"<<endl;
 	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
-	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"Y\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
-	result<<"<DataArray type=\"Float32\" Name=\"X\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"Z\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
 	n++;
 	result<<"</Coordinates>"<<endl<<"</Piece>"<<endl<<"</RectilinearGrid>"<<endl;
 
@@ -771,15 +756,11 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 
 //  phi
-	nodefill4(p,a,pgc,a->phi,eta);
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	TPLOOP
 	{
-	if(p->P18==1)
 	ffn=float(p->ipol4phi(a,a->phi));
-	if(p->P18==2)
-	ffn = float(eta(i,j,k));
 	result.write((char*)&ffn, sizeof (float));
 	}
 
@@ -945,6 +926,29 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	}
 	}
 
+    // debugOutput for sedPart
+    iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->test(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->fb(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    iin=4*(p->cellnum);
+	result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->vof(i,j,k));
+	result.write((char*)&ffn, sizeof (float));
+	}
+
 	// Coordinates
 	// x
 	iin=4*(p->knox+1);
@@ -982,15 +986,7 @@ void vtr3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 
 	pgc->start1(p,a->u,114);
     pgc->start2(p,a->v,115);
-	pgc->start3(p,a->w,116);
 
-	pgc->dgcpol(p,a->u,p->dgc1,p->dgc1_count,11);
-	pgc->dgcpol(p,a->v,p->dgc2,p->dgc2_count,12);
-	pgc->dgcpol(p,a->w,p->dgc3,p->dgc3_count,13);
     pgc->start4a(p,a->topo,150);
-
-	a->u.ggcpol(p);
-	a->v.ggcpol(p);
-	a->w.ggcpol(p);
 
 }

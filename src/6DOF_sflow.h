@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,22 +17,17 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin, Hans Bihs
+Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF.h"
 #include<vector>
-#include<fstream>
-#include<iostream>
-#include <Eigen/Dense>
 #include"increment.h"
-#include"slice4.h"
-#include"sliceint5.h"
-#include"ddweno_f_nug.h"
 #include"6DOF_obj.h"
 
 class lexer;
 class fdm2D;
+class fdm_nhf;
 class ghostcell;
 class net;
 class slice;
@@ -43,20 +38,26 @@ using namespace std;
 #ifndef SIXDOF_SFLOW_H_
 #define SIXDOF_SFLOW_H_
 
-class sixdof_sflow : public sixdof, public increment, public ddweno_f_nug
+class sixdof_sflow : public sixdof, public increment
 {
 public:
 	
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    
     sixdof_sflow(lexer*, ghostcell*);
     virtual ~sixdof_sflow();
     
-    virtual void start_oneway(lexer*,ghostcell*,slice&);
-    virtual void start_twoway(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
+    virtual void start_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
+    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool);
+    
+    virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
+    
+    void start_oneway(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
+    void start_shipwave(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,bool);
+
     
 	virtual void ini(lexer*,ghostcell*);
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
+    virtual void initialize(lexer*, fdm2D*, ghostcell*, vector<net*>&);
+    virtual void initialize(lexer*, fdm_nhf*, ghostcell*, vector<net*>&);
 	
     
     virtual void isource(lexer*,fdm*,ghostcell*);
@@ -72,72 +73,19 @@ public:
     
 private:
 	
-    void cylinder(lexer*,ghostcell*);
-    void box(lexer*,ghostcell*);
-	void geometry_refinement(lexer*);
-	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
-    void ini_parameter(lexer*, ghostcell*);
-    void print_ini_stl(lexer*, ghostcell*);
-    void print_parameter(lexer*,ghostcell*);
-    void print_stl(lexer*,ghostcell*);
-    void print_ini_vtp(lexer*, ghostcell*);
-    void print_vtp(lexer*,ghostcell*);
-    
-    void read_stl(lexer*, ghostcell*);
-    void rotation_stl(lexer*,double&,double&,double&);
-    void rotation_stl_quaternion(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
-    
-    void iniPosition_RBM(lexer*, ghostcell*);
-    void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
-    void quat_matrices(const Eigen::Vector4d&);
-   
-
-    void time_preproc(lexer*);
-    
     // hires gradient
     double limiter(double v1, double v2);
+    double starttime;
     
     double denom,val,r,phival;
     double dfdx_plus,dfdx_min,dfdy_plus,dfdy_min,dfdx,dfdy;
-    
-    // motion
-    double ramp_vel(lexer*);
-    double ramp_draft(lexer*);
+
 
     int number6DOF;
     vector<sixdof_obj*> fb_obj;
-    
-    double phi, theta, psi;
-    double Uext, Vext, Wext, Pext, Qext, Rext;
-    Eigen::Matrix3d quatRotMat;
-    int reiniter, tricount, n6DOF;
-    double printtime;
-    int q;
 
-    slice4 press,frk1,frk2,L,dt,fb,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax,draft;
-    
-    Eigen::Vector4d e_;
-    Eigen::Matrix<double, 3, 4> E_, G_;
-    Eigen::Matrix3d R_, Rinv_;
+    slice4 press;
 
-    // Raycast
-    sliceint5 cutl,cutr,fbio;
-    double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
-    double **tri_xn,**tri_yn,**tri_zn;
-	vector<vector<double> > tri_x_r;
-	vector<vector<double> > tri_y_r;
-	vector<vector<double> > tri_z_r;
-    double xs,xe,ys,ye,zs,ze;
-    int entity_sum,entity_count, count, rayiter;
-    int *tstart,*tend;
-    int trisum;
-    double epsifb;
-    const double epsi; 
-    
-    // STL
-    double STL_xmin,STL_xmax,STL_ymin,STL_ymax;
-    int iin,offset[100];
-    float ffn;
 
 };
 

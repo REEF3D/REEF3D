@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include"force_ale.h"
+#include"fnpf_force_ale.h"
 #include"ioflow.h"
 #include"fnpf_print_wsf.h"
 #include"fnpf_print_wsf_theory.h"
@@ -104,10 +104,10 @@ fnpf_vts3D::fnpf_vts3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     pbreaklog=new fnpf_breaking_log(p,c,pgc);
 	
 	if(p->P85>0)
-	pforce_ale = new force_ale*[p->P85];
+	pforce_ale = new fnpf_force_ale*[p->P85];
 	
 	for(n=0;n<p->P85;++n)
-	pforce_ale[n]=new force_ale(p,c,pgc,n);
+	pforce_ale[n]=new fnpf_force_ale(p,c,pgc,n);
     
     if(p->P110==1)
     phs = new fnpf_print_Hs(p,c->Hs);
@@ -270,13 +270,6 @@ void fnpf_vts3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     pgc->gcsl_start4(p,c->bed,50);
     pgc->gcsl_start4(p,c->breaking_print,50);
     pgc->start4(p,c->test,1);
-
-    pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,c->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
-
-    c->WL.ggcpol(p);
-    c->breaking_print.ggcpol(p);
 
     i=-1;
     j=-1;

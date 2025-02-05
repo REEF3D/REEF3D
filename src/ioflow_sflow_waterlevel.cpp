@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,5 +29,75 @@ Author: Hans Bihs
 
 void ioflow_f::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
 {
+    // -------------------------------------
+    // set fsf 
+    double wsfout=p->phimean;
+    double f=1.0;
+    
+    if(p->F62>1.0e-20)
+    {
+        if(p->F64==0)
+        wsfout=p->F62;
+        
+        if(p->F64>0)
+        {
+        if(p->count<p->F64)
+        f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
+        
+        if(p->count>=p->F64)
+        f = 1.0;
+        
+        wsfout = f*p->F62 + (1.0-f)*p->F60;
+        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
+        }
+    }
+/*
+        GCSL1LOOP
+        {
+        i = p->gcbsl1[n][0];
+        j = p->gcbsl1[n][1];
+                
+            if(p->gcbsl1[n][4]==2)
+            {
+            //b->hx(i,j) = MAX(wsfout - b->bed(i,j),0.0);
+            b->hx(i+1,j) = MAX(wsfout - b->bed(i,j),0.0);
+            b->hx(i+2,j) = MAX(wsfout - b->bed(i,j),0.0);
+            b->hx(i+3,j) = MAX(wsfout - b->bed(i,j),0.0);
+            }
+        }
+
+        GCSL2LOOP
+        {
+        i = p->gcbsl2[n][0];
+        j = p->gcbsl2[n][1];
+            
+            if(p->gcbsl2[n][4]==2)
+            {
+            b->hy(i+1,j) = MAX(wsfout - b->bed(i,j),0.0);
+            b->hy(i+2,j) = MAX(wsfout - b->bed(i,j),0.0);
+            b->hy(i+3,j) = MAX(wsfout - b->bed(i,j),0.0);
+            }
+        }*/
+        
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0];
+        j=p->gcslout[n][1];
+        
+        eta(i,j)   = wsfout-p->wd;
+        eta(i+1,j) = wsfout-p->wd;
+        eta(i+2,j) = wsfout-p->wd;
+        eta(i+3,j) = wsfout-p->wd;
+        
+        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
+
+        b->hp(i,j)   = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+        }
+
+    
+    
     pBC->patchBC_waterlevel2D(p,b,pgc,eta);
 }

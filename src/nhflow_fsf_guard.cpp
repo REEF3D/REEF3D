@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,16 +36,7 @@ void nhflow_fsf_f::fsf_guard(lexer* p, fdm_nhf* d, ghostcell* pgc, slice& WL, sl
     K(i,j) = 0.0;
         
     }
-    /*
-    LOOP
-    d->test[IJK] = 0.0;
-    
-    if(p->A580==1)
-    LOOP
-    if(p->flagfsf[IJ]==0)
-    d->test[IJK] = 1.0;*/
-    
-    
+
     SLICELOOP4
     if(p->flagfsf[IJ]==1)
     {  

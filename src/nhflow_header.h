@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,6 +36,7 @@ Author: Hans Bihs
 #include"nhflow_turbulence.h"
 #include"nhflow_komega_void.h"
 #include"nhflow_komega_IM1.h"
+#include"nhflow_LES_Smagorinsky.h"
 #include"nhflow_forcing.h"
 
 #include"nhflow_HLL.h"
@@ -43,6 +44,7 @@ Author: Hans Bihs
 #include"nhflow_convection_void.h"
 
 #include"nhflow_scalar_iweno.h"
+#include"nhflow_scalar_ifou.h"
 
 #include"nhflow_diff_void.h"
 #include"nhflow_ediff.h"
@@ -61,3 +63,6 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_reconstruct_wenograd.h"
 #include"nhflow_reconstruct_weno.h"
+
+#include"nhflow_potential_v.h"
+#include"nhflow_potential_f.h"

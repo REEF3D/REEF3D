@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -76,11 +76,16 @@ void ikepsilon::ksource(lexer *p, fdm* a)
 void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 {
 	double H;
-	double epsi = 1.6*p->DXM;
-	double factor;
+	double factor,epsi;
 	
 	LOOP
     {
+        
+        epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+        if(p->j_dir==0)
+        epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+
 		if(a->phi(i,j,k)>epsi)
 		H=1.0;
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,40 +42,37 @@ public:
 	 ddweno_nug_sf(lexer*);
 	 ~ddweno_nug_sf();
 
-	 double ddwenox(fdm*, vec&, double, int, cpt&);
-	 double ddwenoy(fdm*, vec&, double, int, cpt&);
-	 double ddwenoz(fdm*, vec&, double, int, cpt&);
+	 double ddwenox(fdm*, field&, double);
+	 double ddwenoy(fdm*, field&, double);
+	 double ddwenoz(fdm*, field&, double);
 
-	void iqmin0(fdm*, vec&, cpt&);
-	void jqmin0(fdm*, vec&, cpt&);
-	void kqmin0(fdm*, vec&, cpt&);
-	void iqmax0(fdm*, vec&, cpt&);
-	void jqmax0(fdm*, vec&, cpt&);
-	void kqmax0(fdm*, vec&, cpt&);
+	void iqmin0(fdm*, field&);
+	void jqmin0(fdm*, field&);
+	void kqmin0(fdm*, field&);
+	void iqmax0(fdm*, field&);
+	void jqmax0(fdm*, field&);
+	void kqmax0(fdm*, field&);
     
-    void iqmin1(fdm*, vec&, cpt&);
-	void jqmin1(fdm*, vec&, cpt&);
-	void kqmin1(fdm*, vec&, cpt&);
-	void iqmax1(fdm*, vec&, cpt&);
-	void jqmax1(fdm*, vec&, cpt&);
-	void kqmax1(fdm*, vec&, cpt&);
+    void iqmin1(fdm*, field&);
+	void jqmin1(fdm*, field&);
+	void kqmin1(fdm*, field&);
+	void iqmax1(fdm*, field&);
+	void jqmax1(fdm*, field&);
+	void kqmax1(fdm*, field&);
     
-    void iqmin2(fdm*, vec&, cpt&);
-	void jqmin2(fdm*, vec&, cpt&);
-	void kqmin2(fdm*, vec&, cpt&);
-	void iqmax2(fdm*, vec&, cpt&);
-	void jqmax2(fdm*, vec&, cpt&);
-	void kqmax2(fdm*, vec&, cpt&);
+    void iqmin2(fdm*, field&);
+	void jqmin2(fdm*, field&);
+	void kqmin2(fdm*, field&);
+	void iqmax2(fdm*, field&);
+	void jqmax2(fdm*, field&);
+	void kqmax2(fdm*, field&);
     
-    void iqmin3(fdm*, vec&, cpt&);
-	void jqmin3(fdm*, vec&, cpt&);
-	void kqmin3(fdm*, vec&, cpt&);
-	void iqmax3(fdm*, vec&, cpt&);
-	void jqmax3(fdm*, vec&, cpt&);
-	void kqmax3(fdm*, vec&, cpt&);
-    
-    void weight_min_sfcheck_x(fdm*);
-    void weight_max_sfcheck_x(fdm*);
+    void iqmin3(fdm*, field&);
+	void jqmin3(fdm*, field&);
+	void kqmin3(fdm*, field&);
+	void iqmax3(fdm*, field&);
+	void jqmax3(fdm*, field&);
+	void kqmax3(fdm*, field&);
 
     double grad;
     double *DX,*DY,*DZ;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,7 +66,8 @@ void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 
 //Step 1
 //--------------------------------------------------------
-
+    p->RK_alpha = 1.0;
+    
 	// U
 	starttime=pgc->timer();
 
@@ -136,7 +137,8 @@ void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 
 //Step 2
 //--------------------------------------------------------
-
+    p->RK_alpha = 0.5;
+    
 	// U
 	starttime=pgc->timer();
 
@@ -231,7 +233,6 @@ void momentum_RK2::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 void momentum_RK2::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
-	if(p->D20<4)
 	WLOOP
 	{
     a->maxH=MAX(fabs(a->rhsvec.V[n] + a->gk),a->maxH);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm;
-
 #ifndef FIELD_H_
 #define FIELD_H_
+
+class lexer;
+class fdm;
 
 using namespace std;
 
@@ -33,7 +33,6 @@ class field
 public:
 	virtual double& operator()(int, int, int)=0;
 	virtual double& operator[](int)=0;
-	virtual void ggcpol(lexer*)=0;
     virtual void resize(lexer*)=0;
     virtual void dealloc(lexer*)=0;
 	

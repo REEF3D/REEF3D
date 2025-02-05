@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,9 +26,11 @@ Author: Tobias Martin, Hans Bihs
 #include"ghostcell.h"
 #include"reinidisc_f.h"
 #include"reinidisc_fsf.h"
+#include"nhflow_reinidisc_fsf.h"
 #include"6DOF_motionext_fixed.h"
 #include"6DOF_motionext_file.h"
 #include"6DOF_motionext_CoG.h"
+#include"6DOF_motionext_wavemaker.h"
 #include"6DOF_motionext_void.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), dt(p), L(p), 
@@ -57,7 +59,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     zeta[1] = -17.0/60.0;
     zeta[2] = -5.0/12.0;
     
-    if(p->N40==3 || p->N40==23 || p->N40==33)
+    if(((p->N40==3 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2)) 
     {
     alpha[0] = 1.0;
     alpha[1] = 0.25;
@@ -72,7 +74,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     zeta[2] = 0.0;
     }
     
-    if(p->N40==2 || p->N40==22)
+    if(((p->N40==2 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2)) 
     {
     alpha[0] = 1.0;
     alpha[1] = 0.5;
@@ -99,8 +101,29 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     if(p->X240==11)
     pmotion = new sixdof_motionext_file_CoG(p,pgc);
     
+    if(p->X240==21)
+    pmotion = new sixdof_motionext_wavemaker(p,pgc);
+    
     Mass_fb =  Rfb = Vfb = 1.0;
-
+    
+    
+    if(p->A10==5)
+    {
+    pnhfrdisc = new nhflow_reinidisc_fsf(p);
+    
+    p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(DTT,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(LL,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(fsf,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(vert,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(nflag,p->imax*p->jmax*(p->kmax+2));
+    }
+    
 }
 
 sixdof_obj::~sixdof_obj()

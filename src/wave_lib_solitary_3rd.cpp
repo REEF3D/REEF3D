@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -65,7 +65,7 @@ double wave_lib_solitary_3rd::wave_horzvel(lexer *p, double x, double y, double 
 {
     double vel,eta,e,s,t,aval;
 	
-	teta = -(wC*(p->simtime) - (x - X0));
+	teta = -(wC*(p->wavetime) - (x - X0));
 	
 	e = wH/wdt;
 	
@@ -86,7 +86,7 @@ double wave_lib_solitary_3rd::wave_w(lexer *p, double x, double y, double z)
 {
     double vel,eta,e,s,t,aval;
 	
-	teta = -(wC*(p->simtime) - (x - X0));
+	teta = -(wC*(p->wavetime) - (x - X0));
 	
 	e = wH/wdt;
 	
@@ -110,7 +110,7 @@ double wave_lib_solitary_3rd::wave_eta(lexer *p, double x, double y)
     double eta,e,t,s,aval;
 
 	
-	teta = -(wC*(p->simtime) - (x - X0));
+	teta = -(wC*(p->wavetime) - (x - X0));
 	
 	e = wH/wdt;
 	

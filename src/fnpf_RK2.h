@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,7 +40,7 @@ public:
 	fnpf_RK2(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_RK2();
     
-    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*);
     virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*);
     virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*);
     

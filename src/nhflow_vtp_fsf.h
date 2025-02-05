@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,7 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 class ioflow;
+class sediment;
 
 using namespace std;
 
@@ -39,14 +40,14 @@ public:
 	nhflow_vtp_fsf(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vtp_fsf();
 	
-    virtual void start(lexer*,fdm_nhf*,ghostcell*);
-    virtual void print2D(lexer*,fdm_nhf*,ghostcell*);
+    virtual void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    virtual void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
     void preproc(lexer*,fdm_nhf*,ghostcell*);
 	
 private:
 	
 	void etend(lexer*,fdm_nhf*,ghostcell*);
-	void pvtu(lexer*,fdm_nhf*,ghostcell*);
+	void pvtu(lexer*,fdm_nhf*,ghostcell*,sediment*);
 	void name_iter(lexer*,fdm_nhf*,ghostcell*);
     void piecename(lexer*,fdm_nhf*,ghostcell*,int);
 	

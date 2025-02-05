@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,11 +39,11 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     n=0;
     LOOP
 	{
-        if(p->wet[IJ]==1 && d->breaking(i,j)==0)
+        if(p->wet[IJ]==1)
         {
             visc = d->VISC[IJK] + d->EV[IJK];
             
-            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
             
             
             d->M.p[n]  =  visc/(p->DXP[IP]*p->DXN[IP])
@@ -64,18 +64,14 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
             d->M.w[n] = -2.0*visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
             d->M.e[n] = -2.0*visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])     
-                        - 0.0*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
-                        
-            d->M.b[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1]) 
-                        + 0.0*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+            d->M.t[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP]);
+            d->M.b[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1]);
             
             
-            d->rhsvec.V[n] = visc*((UH[Ip1Jp1K]-UH[Ip1Jm1K]) - (UH[Im1Jp1K]-UH[Im1Jm1K]))/((p->DYN[JP]+p->DYN[JM1])*(p->DXP[IP]+p->DXP[IM1]))
-						 +  visc*((WH[IJp1Kp1]-WH[IJm1Kp1]) - (WH[IJp1Km1]-WH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))
+            d->rhsvec.V[n] =  visc*((UH[Ip1Jp1K]-UH[Ip1Jm1K]) - (UH[Im1Jp1K]-UH[Im1Jm1K]))/((p->DYN[JP]+p->DYN[JM1])*(p->DXP[IP]+p->DXP[IM1]))
+						 +  visc*((WH[IJp1Kp1]-WH[IJm1Kp1]) - (WH[IJp1Km1]-WH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1])*p->sigz[IJ])
 
 						 + (CPORNH*VHin[IJK])/(alpha*p->dt)
-                            
                             
                             + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(VH[Ip1JKp1] - VH[Im1JKp1] - VH[Ip1JKm1] + VH[Im1JKm1])
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
@@ -84,7 +80,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        if(p->wet[IJ]==0 || p->flag4[IJK]<0 || d->breaking(i,j)==1)
+        if(p->wet[IJ]==0 || p->flag4[IJK]<0)
         {
         d->M.p[n]  =  1.0;
 
@@ -105,11 +101,10 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	}
     
     
-    
     n=0;
 	LOOP
 	{
-        if(p->wet[IJ]==1 && d->breaking(i,j)==0)
+        if(p->wet[IJ]==1)
         {
             if(p->flag4[Im1JK]<0)
             {
@@ -146,7 +141,6 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
             d->rhsvec.V[n] -= d->M.t[n]*VH[IJKp1];
             d->M.t[n] = 0.0;
             }
-  
         }
 	++n;
 	}

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -57,7 +57,7 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     
 	b->rhsvec.V[n] = (visc/(p->DXM*p->DXM))*((v(i+1,j)-v(i,j)) - (v(i+1,j-1)-v(i,j-1)))
                          
-						 + (u(i,j))/(alpha*p->dt);
+						 + u(i,j)/(alpha*p->dt);
 
 	 b->M.s[n] = -2.0*visc/(p->DXM*p->DXM);
 	 b->M.n[n] = -2.0*visc/(p->DXM*p->DXM);

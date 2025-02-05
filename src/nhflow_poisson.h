@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,6 +42,8 @@ public:
 private:
 
 	int count,n,q;
+    double sigxyz2;
+    double pval;
 
 };
 

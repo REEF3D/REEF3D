@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"ioflow.h"
-#include"sflow_eta_weno.h"
 #include"sflow_hxy_weno.h"
 #include"sflow_hxy_hires.h"
 #include"sflow_hxy_cds.h"
@@ -55,9 +54,7 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
     b->eta(i,j) = 0.0;
 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
-	
-	pconvec = new sflow_eta_weno(p);
-	
+
 	if(p->A241==1)
 	phxy = new sflow_hxy_fou(p,pBC);
 	
@@ -86,25 +83,24 @@ sflow_eta::~sflow_eta()
 
 void sflow_eta::start(lexer* p, fdm2D* b, ghostcell* pgc, ioflow* pflow, slice &P, slice &Q, double alpha)
 {
-    starttime=pgc->timer();
+}
+
+void sflow_eta::disc(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slice &Q, slice &ws, slice &etark)
+{
+    double factor=1.0;
+    double eps=0.0;
     
-    if(p->A240==2)
-    {
-    wetdry(p,b,pgc,b->P,b->Q,b->ws);
-    depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+	phxy->start(p,b->hx,b->hy,b->depth,p->wet,etark,P,Q);
     
-    SLICELOOP4
-     b->eta(i,j)  =      b->eta(i,j) 
+    SLICELOOP1
+    b->hx(i,j) = MAX(b->hx(i,j), 0.0);
     
-                -      p->dt*(b->P(i,j)*b->hx(i,j) - b->P(i-1,j)*b->hx(i-1,j)
-                       +      b->Q(i,j)*b->hy(i,j) - b->Q(i,j-1)*b->hy(i,j-1))/p->DXM;
-                
-    pgc->gcsl_start4(p,b->eta,gcval_eta);
-    depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
-    breaking(p,b,pgc,b->eta,b->eta,1.0);
-    pflow->eta_relax(p,pgc,b->eta);
-    pgc->gcsl_start4(p,b->eta,gcval_eta);
-    }
+    SLICELOOP2
+    b->hy(i,j) = MAX(b->hy(i,j), 0.0);
+    
+
+	pgc->gcsl_start1(p,b->hx,gcval_eta);    
+	pgc->gcsl_start2(p,b->hy,gcval_eta);  
 }
 
 void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slice &Q, slice &ws, slice &etark)
@@ -114,6 +110,40 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
 	// cell center
 	SLICELOOP4
 	b->depth(i,j) = p->wd - b->bed(i,j);
+    
+    
+    // set fsf 
+    double wsfout=p->phimean;
+    double f=1.0;
+    
+    if(p->F62>1.0e-20)
+    {
+        if(p->F64==0)
+        wsfout=p->F62;
+        
+        if(p->F64>0)
+        {
+        if(p->count<p->F64)
+        f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
+        
+        if(p->count>=p->F64)
+        f = 1.0;
+        
+        wsfout = f*p->F62 + (1.0-f)*p->F60;
+        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
+        }
+    }
+    
+    
+    if(p->F50==2 || p->F50==3)
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+    if(p->wet[IJ]==1)
+    etark(i,j) = wsfout-p->wd;
+    }
     
     
     SLICELOOP4
@@ -150,10 +180,11 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
 	b->hp(i,j) = MAX(etark(i,j) + p->wd - b->bed(i,j),0.0);
     
     
+    
+    
 	pgc->gcsl_start4(p,b->hp,gcval_eta);
 	
-	phxy->start(p,b->hx,b->hy,b->depth,p->wet,etark,P,Q);
-    
+
     
     SLICELOOP1
     b->hx(i,j) = MAX(b->hx(i,j), 0.0);

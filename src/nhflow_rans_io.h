@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -57,7 +57,7 @@ public:
     virtual void name_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
     
-    double *KIN,*EPS,*EV0;
+    double *KIN,*EPS;
     int *WALLF;
 	
 	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
@@ -65,16 +65,20 @@ public:
 	double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
 
 private:
-    void tau_calc(fdm_nhf*, lexer*, double);
+    void tau_calc(lexer*,fdm_nhf*,ghostcell*);
+    void bedval_calc(lexer*, fdm_nhf*,ghostcell*);
     void kepsini_default(lexer*,fdm_nhf*,ghostcell*);
+    void flowdepth_inflow(lexer*, fdm_nhf*, ghostcell*);
 
 	float ffn;
 	int q,iin,ii,jj,kk;
 	int gcval_kin,gcval_eps,gcval_edv;
 
-	double M,I,tau,H,B,ks,kinbed,uvel,refwalldist,fc;
+	double M,I,tau,H,B,ks,shearvel,kinbed,epsbed,omegabed;
+    double uvel,refwalldist,fc,ev_fac, beddist, dist;
 	double kinw,epsw;
-	double walld,ddn,depth;
+	double walld,ddn,depth,depth_inflow;
+    
 };
 
 #endif

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -90,7 +90,7 @@ double rans_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, 
 {
     double val;
 
-    val=p->ccipol4_a( eps, xp, yp, zp);
+    val=p->ccipol4a( eps, xp, yp, zp);
 
     return val;
 }
@@ -98,8 +98,12 @@ double rans_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, 
 double rans_io::kinval(int ii, int jj, int kk)
 {
     double val;
-
+    
+    pip=4;
+    
     val=kin(ii,jj,kk);
+    
+    pip=0;
 
     return val;
 }
@@ -108,19 +112,31 @@ double rans_io::epsval(int ii, int jj, int kk)
 {
     double val;
 
+    pip=4;
+    
     val=eps(ii,jj,kk);
+    
+    pip=0;
 
     return val;
 }
 
 void rans_io::kinget(int ii, int jj, int kk,double val)
 {
+    pip=4;
+    
     kin(ii,jj,kk)=val;
+    
+    pip=0;
 }
 
 void rans_io::epsget(int ii, int jj, int kk,double val)
 {
+    pip=4;
+    
     eps(ii,jj,kk)=val;
+    
+    pip=0;
 }
 
 void rans_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)

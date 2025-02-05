@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -58,4 +58,3 @@ int & fieldint5::operator()(int ii, int jj, int kk)
 	return feld[iter];
 }
 
-int fieldint5::imin,fieldint5::imax,fieldint5::jmin,fieldint5::jmax,fieldint5::kmin,fieldint5::kmax;

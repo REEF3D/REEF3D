@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,13 +42,6 @@ void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* p
 	solid_topo(p,a,pgc);
     
     preso->start(p,a,pgc,a->solid);
-    
-    if(p->G3==0)
-    {
-    pgc->solid_update(p,a);
-
-    pflow->gcio_update(p,a,pgc);
-    }
 }
 
 void solid::solid_topo(lexer* p, fdm* a, ghostcell* pgc)

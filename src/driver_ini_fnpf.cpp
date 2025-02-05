@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,11 +38,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"6DOF_header.h"
 #include"waves_header.h"
 #include"lexer.h"
-#include"cart1.h"
-#include"cart2.h"
-#include"cart3.h"
-#include"cart4.h"
-#include"cart4a.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -194,7 +189,7 @@ void driver::driver_ini_fnpf()
     pflow->gcio_update(p,a,pgc);
     pflow->ini_fnpf(p,c,pgc);  // including fullini
 
-    ppfsg->ini(p,c,pgc,pflow,preini,poneph);  // --- 
+    ppfsg->ini(p,c,pgc,pflow,preini);  // --- 
     
     pgc->start7V(p,c->Fi,c->bc,250);
     ppfsg->inidisc(p,c,pgc,pflow,psolv);    // ini wetdry and coastline
@@ -213,7 +208,7 @@ void driver::driver_ini_fnpf()
     
 	p->gctime=0.0;
     p->xtime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->field4time=0.0;
 
     

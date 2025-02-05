@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"FSI_strips.h"
@@ -33,19 +34,22 @@ fsi_strips::fsi_strips(lexer *p, ghostcell *pgc)
     pstrip.reserve(numberStrips);
     for (int num = 0; num < numberStrips; num++)
 	{
-        pstrip.push_back(new fsi_strip(num));
+        pstrip.push_back(new fsi_strip(p,num));
     }
 }
     
 fsi_strips::~fsi_strips(){}
 
-void fsi_strips::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void fsi_strips::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {
     if (p->mpirank==0) cout<<"Initializing strips"<<endl;
 
     for (int num = 0; num < numberStrips; num++)
     {
-        pstrip[num]->initialize(p, a, pgc);
+        pstrip[num]->initialize(p, a, pgc, pturb);
+        
+        pstrip[num]->print_stl(p,a,pgc);
+        pstrip[num]->print_parameter(p, a, pgc);
     }
 }
 
@@ -60,73 +64,24 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
     {
         // Get velocity at Lagrangian points
         pstrip[num]->interpolate_vel(p,a,pgc,uvel,vvel,wvel);
-        
-        endtime=pgc->timer();
-        
-        if(p->mpirank==0)
-        cout<<"T0: "<<endtime-starttime<<endl;
-        
-        starttime=pgc->timer();
 
         // Advance strip in time
-        pstrip[num]->start(p,a,pgc,alpha);
+        pstrip[num]->start(p,a,pgc,alpha);     // main time consumer
         
-        endtime=pgc->timer();
-        
-        if(p->mpirank==0)
-        cout<<"T1: "<<endtime-starttime<<endl;
-        
-        starttime=pgc->timer();
-
         // Get coupling velocities at Lagrangian points
         pstrip[num]->coupling_vel();
-        
-        endtime=pgc->timer();
-        
-        if(p->mpirank==0)
-        cout<<"T2: "<<endtime-starttime<<endl;
-        
-        starttime=pgc->timer();
 
         // Get coupling forces at Lagrangian points
         pstrip[num]->coupling_force(p,alpha);
         
-        endtime=pgc->timer();
-        
-        if(p->mpirank==0)
-        cout<<"T3: "<<endtime-starttime<<endl;
-        
-        starttime=pgc->timer();
-        
         // Distribute coupling forces on Eulerian grid 
         pstrip[num]->distribute_forces(p,a,pgc,fx,fy,fz);
         
-        endtime=pgc->timer();
-        
-        if(p->mpirank==0)
-        cout<<"T4: "<<endtime-starttime<<endl;
-        
-        starttime=pgc->timer();
-        
         // Update Lagrangian points 
         pstrip[num]->update_points();
-        
-        endtime=pgc->timer();
-        
-        if(p->mpirank==0)
-        cout<<"T5: "<<endtime-starttime<<endl;
-        
-        starttime=pgc->timer();
 
         // Store variables
         pstrip[num]->store_variables(p);
-        
-        endtime=pgc->timer();
-        
-        if(p->mpirank==0)
-        cout<<"T6: "<<endtime-starttime<<endl;
-        
-        starttime=pgc->timer();
 
         // Print
         if (finalize==true)
@@ -134,13 +89,6 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
             pstrip[num]->print_stl(p,a,pgc);
             pstrip[num]->print_parameter(p, a, pgc);
         }
-        
-        endtime=pgc->timer();
-        
-        if(p->mpirank==0)
-        cout<<"T2: "<<endtime-starttime<<endl;
-        
-        starttime=pgc->timer();
     }
     
 

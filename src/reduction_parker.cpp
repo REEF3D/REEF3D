@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -72,8 +72,8 @@ void reduction_parker::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         r = 0.1/(fabs(s->gamma(i,j)) + 0.0000001)+0.1;
 	}
 	
-    r = MAX(r,0.01);
-    r = MIN(r,1.25);
+    r=MAX(r,0.01);
+    r=MIN(r,1.5);
 
 	if(p->pos_x()<p->S71)
 	r=1.0;

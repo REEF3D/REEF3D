@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,26 +26,19 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"reinidisc.h"
 
-void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field& b)
+void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field &f)
 {	
-	n=0;
-	ALOOP
+
+    LOOP
 	{
-	f.V[n]=b(i,j,k);
-	++n;
-	}
+    if(p->j_dir==0)
+    dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
     
-    pgc->start4avec(p,f,50);
-	
-    n=0;
-	ALOOP
-	{
-	dt.V[n] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
-	++n;
+    if(p->j_dir==1)
+	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	}
 	
 	reiniter=5;
-	
 	
 	if(p->count==0)
 	{
@@ -59,29 +52,21 @@ void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field& b)
         // Step 1
 		prdisc->start(p,a,pgc,f,L,5);
 
-		NLOOP4A
-		frk1.V[n] = f.V[n] + dt.V[n]*L.V[n];
+		ALOOP
+		frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
 
-         pgc->start4avec(p,frk1,50);
+         pgc->start4a(p,frk1,50);
         
         
         // Step 2
 		prdisc->start(p,a,pgc,frk1,L,5);
 
-		NLOOP4A
-		f.V[n] = 0.5*f.V[n] + 0.5*frk1.V[n] + 0.5*dt.V[n]*L.V[n];
+		ALOOP
+		f.V[IJK] = 0.5*f.V[IJK] + 0.5*frk1.V[IJK] + 0.5*dt.V[IJK]*L.V[IJK];
 
-        pgc->start4avec(p,f,50);
+        pgc->start4a(p,f,50);
 	}
 		
-	n=0;
-	ALOOP
-	{
-	b(i,j,k)=f.V[n];
-	++n;
-	}
-	
-	pgc->start4a(p,b,50);
 }
 
 

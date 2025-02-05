@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -72,7 +72,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ddn=p->stateprinttime;
     result.write((char*)&ddn, sizeof (double)); 
     
-    // read result section
+    // write result section
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
     PSLICECHECK4
@@ -83,7 +83,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
-    for(k=0; k<p->knoz+1; ++k)
+    for(k=0; k<p->knoz; ++k)
     PCHECK  
     {
     ffn=float(d->U[IJK]);
@@ -92,7 +92,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 	for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
-    for(k=0; k<p->knoz+1; ++k)
+    for(k=0; k<p->knoz; ++k)
     PCHECK 
     {
     ffn=float(d->V[IJK]);
@@ -101,7 +101,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 	for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
-    for(k=0; k<p->knoz+1; ++k)
+    for(k=0; k<p->knoz; ++k)
     PCHECK 
     {
     ffn=float(d->W[IJK]);

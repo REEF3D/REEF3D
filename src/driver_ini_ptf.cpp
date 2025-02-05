@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,11 +39,6 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"waves_header.h"
 #include"lexer.h"
-#include"cart1.h"
-#include"cart2.h"
-#include"cart3.h"
-#include"cart4.h"
-#include"cart4a.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -87,11 +82,11 @@ cout<<"starting driver_ini_PTF"<<endl;
 	a->bed(i,j) = p->bed[IJ];
     
     pflow->ini_ptf(p,a,pgc);
-    pptf->ini(p,a,pgc,pflow,preini,poneph); 
+    pptf->ini(p,a,pgc,pflow,preini); 
     pflow->ini_ptf(p,a,pgc);
 
     ptstep->ini(a,p,pgc);
-    pptf->ini(p,a,pgc,pflow,preini,poneph);  // --- 
+    pptf->ini(p,a,pgc,pflow,preini);  // --- 
     pflow->eta_relax(p,pgc,a->eta);
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
 
@@ -105,7 +100,7 @@ cout<<"starting driver_ini_PTF"<<endl;
 
 	p->gctime=0.0;
     p->xtime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->field4time=0.0;
 
 if(p->mpirank==0)

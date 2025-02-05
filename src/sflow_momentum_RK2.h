@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,6 +31,7 @@ class sflow_fsf;
 class sflow_diffusion;
 class sflow_roughness;
 class sflow_rheology;
+class sflow_forcing;
 
 using namespace std;
 
@@ -41,7 +42,7 @@ class sflow_momentum_RK2 : public sflow_momentum, public increment
 {
 public:
 	sflow_momentum_RK2(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 
-                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sixdof*);
+                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
 	virtual ~sflow_momentum_RK2();
 	virtual void start(lexer*, fdm2D*, ghostcell*);
 
@@ -67,6 +68,7 @@ private:
 	sflow_fsf *pfsf;
     sflow_roughness *prough;
     sflow_rheology *prheo;
+    sflow_forcing *psfdf;
     sixdof *p6dof;
 };
 

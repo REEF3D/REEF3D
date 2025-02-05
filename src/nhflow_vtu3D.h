@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,8 +27,8 @@ Author: Hans Bihs
 #include"increment.h"
 
 class fdm_nhf;
-class force_ale;
 class ioflow;
+class sediment;
 class nhflow_print_wsf;
 class nhflow_print_wsf_theory;
 class nhflow_print_wsfline;
@@ -43,6 +43,10 @@ class nhflow_vel_probe;
 class nhflow_vel_probe_theory;
 class nhflow_print_Hs;
 class nhflow_turbulence;
+class nhflow_force;
+class nhflow_force_ale;
+class bedshear_probe;
+class bedshear_max;
 
 using namespace std;
 
@@ -52,12 +56,12 @@ class nhflow_vtu3D : public nhflow_printer, public increment
 public:
 	nhflow_vtu3D(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vtu3D();
-	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*);
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*);
-    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*);
+	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
+    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
     
 private:
-    void pvtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*);
+    void pvtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
     void name_iter(lexer*,ghostcell*);
     void name_time(lexer*,ghostcell*);
     void piecename(lexer*,ghostcell*, int);
@@ -85,10 +89,14 @@ private:
     nhflow_vtp_bed *pbed;
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
-	force_ale **pforce_ale;
     nhflow_vel_probe *pvel;
     nhflow_vel_probe_theory *pveltheo;
     nhflow_print_Hs *phs;
+    nhflow_force **pforce;
+    nhflow_force_ale **pforce_ale;
+    bedshear_probe *pbedshear;
+    bedshear_max* pbedshearmax;
+    
 };
 
 #endif

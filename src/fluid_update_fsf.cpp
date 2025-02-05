@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -70,37 +70,14 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));
 
         // Construct floating body heaviside function if used
-        if(p->X10==1)
-        {
-            if(p->X15==1)
-            {
-            H_fb = a->fbh4(i,j,k);
-		
-             a->ro(i,j,k)= p->W_fb*H_fb + (1.0 - H_fb)*(ro_water*H +   ro_air*(1.0-H));
-		    a->visc(i,j,k)= visc_body*H_fb + (1.0 - H_fb)*(visc_water*H + visc_air*(1.0-H));
-
-		    p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-		    p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
-            }
+            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
+            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
             
-            if(p->X15==2)
+            if(p->flagsf4[IJK]>0)
             {
-            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
-            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
-
             p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
             p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
             }
-        }
-        
-        else
-        {
-            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
-            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
-
-            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
-        }
 	}
     
 	pgc->start4(p,a->ro,gcval_ro);

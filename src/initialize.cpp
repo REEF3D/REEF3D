@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -72,7 +72,7 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
     	
 	//iniphi_surfarea(p,a,pgc);
 
-	if(p->S10>0)
+	if(p->S10>0 || p->toporead==1)
 	topoini(p,a,pgc);
 	
 	pgc->flagbase(p,a);

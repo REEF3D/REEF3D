@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"initialize.h"
+
+#include"initialize.h"
 #include"fdm.h"
 #include"lexer.h"
 #include"field4.h"
@@ -303,10 +304,7 @@ void initialize::inivofPLIC(fdm*a, lexer* p, ghostcell* pgc)
 	pgc->start4(p,a->vof,50);
 	pgc->start4(p,a->ro,1);
 	pgc->start4(p,a->visc,1);
-    
-    
-
-
+   
 /*
     //- Initialise distance function at start of simulation
     p->F40 = 23;
@@ -325,3 +323,4 @@ void initialize::inivofPLIC(fdm*a, lexer* p, ghostcell* pgc)
 	} 
 	pgc->start4(p,a->test,50);*/
 }
+

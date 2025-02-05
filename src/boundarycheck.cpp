@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -102,7 +102,7 @@ int boundarycheck::positioncheck(lexer *p, double posx, double posy, double posz
 
 int boundarycheck::minboundcheck(lexer *p, int ii, int jj, int kk, int margin)
 {
-    check=1;
+    check=0;
 
     if(ii>=0)
     if(jj>=0)
@@ -114,11 +114,35 @@ int boundarycheck::minboundcheck(lexer *p, int ii, int jj, int kk, int margin)
 
 int boundarycheck::maxboundcheck(lexer *p, int ii, int jj, int kk, int margin)
 {
-    check=1;
+    check=0;
 
     if(ii<p->knox)
     if(jj<p->knoy)
     if(kk<p->knoz)
+    check=1;
+
+    return check;
+}
+
+int boundarycheck::globalminboundcheck(lexer *p, int ii, int jj, int kk)
+{
+    check=0;
+
+    if(ii+p->origin_i>=0)
+    if(jj+p->origin_j>=0)
+    if(kk+p->origin_k>=0)
+    check=1;
+
+    return check;
+}
+
+int boundarycheck::globalmaxboundcheck(lexer *p, int ii, int jj, int kk)
+{
+    check=0;
+
+    if(ii+p->origin_i<p->gknox)
+    if(jj+p->origin_j<p->gknoy)
+    if(kk+p->origin_k<p->gknoz)
     check=1;
 
     return check;

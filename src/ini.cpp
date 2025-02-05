@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
  *
 This file is part of REEF3D.
 
@@ -27,12 +27,13 @@ void lexer::ini_default()
     // Hydrodynamic Models
     A10=6;       // int turn on wave models
     
+    // SFLOW
     A209=1;      // int interpolation sweeps for bed
     A210=3;		  // int time scheme for SFLOW velocities
     A211=4;		  // int convection scheme for SLOW velocities
     A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
-    A215=0;      // int conservative discretization
+    A215=0;      // int 
     A216=2;      // int convection velocity
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
@@ -59,6 +60,7 @@ void lexer::ini_default()
     A261=0.267;  // double length scale factor
     A262=0.0667; // double parabolic turbulence model factor
 
+    // FNPF
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities
     A312=2;      // int discretization for second-order gradient
@@ -94,24 +96,28 @@ void lexer::ini_default()
     A365=1.86;   // double viscosity breaking wave
     A368=0;      // int breaking waves in numerical beach
 
-
+    
+    // PTF
     A410=1;      // int scheme eta
     A440=1.6;    // double epsi for depth integration
     
+    
+    // NHFLOW
     A501=1;      // int nhf mode
+    A509=1;      // int interpolation sweeps for bed
     A510=2;      // int NFHLOW time scheme
     A511=1;		// int NHFLOW HLL scheme
     A512=0;		// int NHFLOW diffusion
     A514=4;		// int NHFLOW reconstruction 
     
-    A515=3;      // int NHFLOW KFSFBC scheme
-    A516=3;      // int NFHLOW KFSFBED scheme
-    A517=3;      // int NHFLOW omega_sig scheme
+    A515=1;      // int Dirichlet wave BC type
+    A516=3;      // int
+    A517=3;      // int 
     A518=2;      // int NHFLOW bed BC
-    
+    A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=1;		// int
-    A522=4.0;    // double p_alpha
+    A521=0;		// int
+    A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Froude number limiter
     A540=1;      // int NFHLOW fsf scheme
@@ -123,17 +129,44 @@ void lexer::ini_default()
     
     A550=0;      // int turn on breaking (which method)
     A551=0;      // int type of breaking detection (deep / shallow)
-    A552=1;      // int additional filtering to viscosity based breaking
+    A552=0;      // int additional filtering to viscosity based breaking
     A553=0;      // int breaking in very shallow regions turned onf
     
     A560=0;      // int turbulence model
+    A564=1;      // int eddyv limiter
+    A565=0;      // int stabilization
+    A566=0;      // int buoyancy
+    A567=0;      // int fsf eps
+    A568=0;      // int 
+    A569=0;      // int 
+    
+    A570=0;      // int wind modle
+    A571_u=0.0;  // double wind velocity
+    A571_dir=0.0;  // double wind direction
+    A573=1;      // int wind forcing region
     
     A580=0;      // int block eta
     A581=0;      // int solid box
-    A584=0;      // int solid vertical cylinder
+    A583=0;      // int solid cylinder y
+    A584=0;      // int solid cylinder z
+    A585=0;      // int solid cylinder jacket member
+    A586=0;      // int solid sphere
+    A587=0;      // int solid wedge x
+    A588=0;      // int solid wedge y
+    A589=0;      // int solid wedge z
+    
+    A590=0;      // int STL
+    A591_x=A591_y=A591_z=1.0;  // double scaling of stl geometry
+    A592=0;     // int translation on/off
+    A592_x=A592_y=A592_z=0.0;  // double translation of stl geometry
+    A593=0;
+    A593_x=A593_y=A593_z=A593_phi=A593_theta=A593_psi=0.0;
+    A594=0;     // int invert STL
+    
 
     // Boundary Conditions
-	B10=1;			// int wall laws velocities on/off
+	B10=0;			// int wall function velocities on/off
+    B11=1;			// int wall function turbulence on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity
     B23=1;            // int ghostcell extrapolation or refective
 	B29=0.5;		// double gamma for gc image point
@@ -142,7 +175,7 @@ void lexer::ini_default()
     B32=0;           // int pressure reference location
     B32_x=B32_y=B32_z=0.0; // double pressure reference location
     B33=1;           // int pressure gage virtual or inline
-	B50=0.001;		// double global wall roughness ks
+	B50=0.0001;		// double global wall roughness ks
 	B51=-1.0;		// double global wall roughness ks
 	B52=-1.0;		// double global wall roughness ks
 	B53=-1.0;		// double global wall roughness ks
@@ -253,6 +286,7 @@ void lexer::ini_default()
     B281=0;         // int VRANS porous media wedge in x-direction
     B282=0;         // int VRANS porous media wedge in y-direction
     B291=0;         // int VRANS porous media plate in x-direction
+    B295=1;         // int VRANS source treatment fo turbulence model
     B307=0;         // int VRANS interface smoothing interations
     B308=1;         // int porosity effects on fluid acceleration for vegetation
     B309=2.0;       // double Cm for vegetation
@@ -354,11 +388,7 @@ void lexer::ini_default()
 	F61=-1.0e20;  // double inflow  ini
 	F62=-1.0e20;  // double outflow  ini
 	F63=-1.0e20;  // double xstart phi interpolate with outflow h
-	F64=0;			// int fsf plane with angle on/off
-	F64_xs=0.0;			// double xs
-	F64_ys=0.0;			// double xs
-	F64_zs=0.0;			// double xs
-	F64_alpha=0.0;			// double alpha
+	F64=0;			// iterations for relaxing outflow waterlevel
 	F70=0;             // int number of phi 1 ini boxes
 	F71=0;             // int number of phi 2 ini boxes
 	F72=0;             // int number of phi 1 ini regions
@@ -401,7 +431,6 @@ void lexer::ini_default()
 
     // Grid
     G2=0;            // int sigma grid
-    G3=1;            // int solid forcing
 	G10=3;			// int xmargin inflow
 	G11=3;			// int ymargin right
 	G12=3;			// int zmargin bottom
@@ -475,6 +504,13 @@ void lexer::ini_default()
     // Numerics
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
+    N18=0;         //
+    N20=20;        //  int precondioner switch iter
+    N22=0;         //  int precondioner switch SFLOW
+    N23=0;         //  int precondioner switch FNPF
+    N24=0;         //  int precondioner switch
+    N25=0;         //  int precondioner switch NHFLOW
+    N26=1;         //  int precondioner switch CFD
 	N40=3;			// int time scheme
 	N41=1.0e+19; 	// double total time
 	N43=1.0e-5;     // double stopping criteria convection-diffusion
@@ -497,7 +533,6 @@ void lexer::ini_default()
 	P12=1;			 // int terminal print frequency
 	P15=1;          // int print file numbering
     P16=0;          // int add timestamp to paraview files
-	P18=2;			// int option for phi print out
 	P20=-10;		// ith iteration file printed
     P21=0;          // int time averaged vtu print out
     P22=0.0;         // double start averging after transients
@@ -516,7 +551,7 @@ void lexer::ini_default()
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
     P44=0;             // int print out 3D potential for FNPF
-    P45=1;             // int print into single or continous state file
+    P45=2;             // int print into single or continous state file
     P46=0;             // int print state iteration window
     P47=0;             // int print state time window
     P50=0;				// int wave theory wave gages
@@ -538,15 +573,17 @@ void lexer::ini_default()
     P71=0;           // int print viscosity to vtu
     P72=0;           // int print vof function
     P73=0;           // int print hx and hy for sflow vtp
-    P74=0;           
+    P74=0;           // int print omega nhflow
 	P75=0;            // int print out vorticity vec
     P76=0;            // int print out bedload
     P77=0;            // int print out sediment parameters: 1
     P78=0;            // int print out sediment parameters: 2
 	P79=0;            // int print out bed shear stress when running sediment transport
-	P81=0;            // int force print out
+	P80=1;            // int force print out interval
+    P81=0;            // int force print out
     P82=0;            // int add eddyv to viscous force
 	P85=0;            // int ALE force print out for FNPF
+    P88=0;            // int kinematics print out for FNPF
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces
@@ -587,27 +624,39 @@ void lexer::ini_default()
 	P352=0;             // int print out wsf lsm2
     
     // Particles
-    Q10=0;              // int particle algorithm
-    Q21=1.0;            // double particle density
+    Q10=0;              // int time scheme
+    Q11=1;              // int move function
+    Q12=0;              // int susp load
+    Q13=0;              // int topo deformation
+    Q14=10;           // d continuum particle stress model parameter following Snider (2001) [Pressure]
+    Q15=3.5;            // d continuum particle stress model parameter following Snider (2001)
+    Q16=10e-7;          // d continuum particle stress model parameter following Snider (2001)
+    Q17=0.6;            // d critical solid volume fraction
+    Q20=-1;             // int iterations between cleanup cycles
     Q22=1.0;            // double absolute spacing
     Q23=1.0;            // double relative spacing in terms of diameter
     Q24=0;              // int particles per cell
     Q25=1.25;           // double safety factor particle allocate
     Q29=0;              // int seed number for random particle placement
-    Q31=0.001;          // double particle diameter
-    Q41=0.5;            // double porosity
+    Q30=0.58;           // double friction factor
+    Q41=0;              // double default parcel factor
     Q43=0;              // int number of water iteration, before particle transport starts
+    Q61=0;              // point source x,y,z, iterations between particles
+    Q73=0;              // int relax 
     Q101=0;             // int ini particle as topo
+    Q102=0.9;           // double max distance from topo = Q102*dz
     Q110=0;             // int ini particle as box
-    Q111=0;             // int ini particle x-dir
-    Q111_x=0.0;         // double ini particle x-dir
-    Q112=0;             // int ini particle y-dir
-    Q112_y=0.0;         // double ini particle y-dir
-    Q113=0;             // int ini particle z-dir
-    Q113_z=0.0;         // double ini particle z-dir
-    Q180=0;             // int print vtu
-    Q181=-10;           // int print vtu iter interval
-    Q182=-1.0;          // double print vtu time interval
+    Q111=0;             // int ini particle as box for dummy particles
+    Q120=0;             // int seed particles in suspension
+    Q121=1;             // int iterations between pariticle seeding in suspension
+    Q122=2;             // int particles per cell in susp seeding      
+    Q180=0;             // int print vtp
+    Q181=-10;           // int print vtp iter interval
+    Q182=-1.0;          // double print vtp time interval
+    Q183=0;             // int flag and above to print
+    Q200 = 1;           // int movement model erosion
+    Q201 = 0;           // int movement model deposition
+    Q202 = 1;           // int movement model transport
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module
@@ -629,6 +678,7 @@ void lexer::ini_default()
     S26_b=2.2;            // double beta for VRANS sediment
     S27=1;              // int number of inner iterations
     S30=0.047;          // double Shields parameter
+    S31=2;              // int type of Exner formulation
     S32=4;              // int exner discretization
     S33=1;              // int type of near bead velocity interpolation
     S34=1;              // int type of suspedned load D and E calculation
@@ -657,6 +707,7 @@ void lexer::ini_default()
     S82=5.0;              // double delta phi for slope reduction
     S83=2;                // double type of bedslope calc
     S84=1;                  // int type of critical bed shear stress reduction limiters
+    S85=1;                  // int bedload direction Koch and Flokstra
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
     S92=1.0;                // double sandslide correction factor
@@ -678,9 +729,9 @@ void lexer::ini_default()
     T39=0;              // blend fsf eddyv with sgs-eddyv
     T41=0;              // int RANS stabilization
     T42=0.05;           // double lambda1 factor
-    T43=1.0;            // double komega wall BC velocity factor
-    T44=1.6;            // double komega wall BC velocity factor for DF
-    T45=0;              // int buouncy term
+    T43=1.0;            // double komega_func wall BC velocity factor
+    T44=1.6;            // double komega_func wall BC velocity factor for DF
+    T45=0;              // int buoyancy term
 
     // Water Properties
 	W1=998.2;		// double density water
@@ -746,7 +797,6 @@ void lexer::ini_default()
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
     X14=1;      // int tangential velocity 
-    X15=2;      // int density treatment for direct forcing
 	X19=1;		// int print out interval 6DOF log files
 	X21=1;		// int presribe homogeneous density floating body
 	X21_d=900.0;		// double presribe homogeneous density floating body
@@ -768,8 +818,7 @@ void lexer::ini_default()
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
     X46=0;      // int density smoothing inside fb
-    X47=0;      // int reini diffusion inside fb
-    X48=0;
+    X48=1;      // int solid forcing level set
     X49=0;
     X50=1;      // int type of print out format for 6DOF structure
     X60=1;      // int type of print of force calculation
@@ -822,11 +871,13 @@ void lexer::ini_default()
     X242_y=0.0;     // double delta x for motion file
     X242_z=0.0;     // double delta x for motion file
     X243=0.0;     // double delta CoG for motion file
+    X310=0;     // int mooring model
     X311=0;     // int number of simple taut mooring lines
     X312=0;     // int number of springs
     X313=0;     // int initial rotation of mooring end points with 6DOF body
     X314=0;     // int breaking mooring lines due to tension
     X315=0;     // int breaking mooring lines due to time
+    X320=0;     // int net model
     X321=0;     // int number of nets
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
     X325_dt=0.001;   // double dynamic net time step
@@ -836,6 +887,7 @@ void lexer::ini_default()
     X401_cl=2.0;    // sflow external pressure term cl
     X401_cb=16.0;   // sflow external pressure term cb
     X401_a=16.0;    // sflow external pressure term a
+    X410=0;         // int etaval for draft
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model
@@ -863,4 +915,6 @@ void lexer::ini_default()
 	pressval=0;
     alpha=0.0;
     solidread=toporead=porousread=0;
+    net_count=0;
+    mooring_count=0;
 }

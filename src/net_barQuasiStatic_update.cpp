@@ -99,7 +99,7 @@ void net_barQuasiStatic::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 			}
 			else if (cmp==3)
 			{
-				coupledField[i][cmp] = p->ccipol4_a(a->phi,K_[i][0],K_[i][1],K_[i][2]);
+				coupledField[i][cmp] = p->ccipol4a(a->phi,K_[i][0],K_[i][1],K_[i][2]);
                 
                 if (coupledField[i][cmp] >= 0.0) // water
                 {

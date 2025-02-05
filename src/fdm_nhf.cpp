@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,9 +28,11 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               nodeval2D(p),eta_n(p),WL(p),
                               detadt(p),detadt_n(p),
                               bed(p),depth(p),K(p),
+                              solidbed(p),topobed(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
                               hx(p),hy(p),
+                              ks(p),
                               coastline(p),vb(p),
                               test2D(p),fs(p),
                               breaking_print(p),Hs(p),
@@ -59,6 +61,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray(RO,p->imax*p->jmax*(p->kmax+2));
     p->Darray(VISC,p->imax*p->jmax*(p->kmax+2));
     p->Darray(EV,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(EV0,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(F,p->imax*p->jmax*(p->kmax+2));
     p->Darray(G,p->imax*p->jmax*(p->kmax+2));
@@ -67,6 +70,8 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     
     p->Darray(porosity,p->imax*p->jmax*(p->kmax+2));
     p->Darray(test,p->imax*p->jmax*(p->kmax+2));
+    
+     p->Darray(KIN,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(SOLID,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FB,p->imax*p->jmax*(p->kmax+2));

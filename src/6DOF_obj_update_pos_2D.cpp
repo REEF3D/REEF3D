@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,7 +42,6 @@ void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
     
     pgc->gcsl_start4(p,fsglobal,50);
     
-    
     if(p->mpirank==0)
     {
         cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
@@ -52,19 +51,13 @@ void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
 
 void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
 {
-    double starttime, endtime;
-    starttime=pgc->timer();
-
-    
 	// Update position of triangles 
 	for(n=0; n<tricount; ++n)
 	{
         for(int q=0; q<3; q++)
         {
-
             // Update coordinates of triangles 
             // (tri_x0 is vector between tri_x and xg)
-  
             Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
 					
             point = R_*point;
@@ -74,32 +67,11 @@ void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
             tri_z[n][q] = point(2) + c_(2);
         }
 	}
-    
-    endtime=pgc->timer();
-    
-    //if(p->mpirank==0)
-    //cout<<"6DOF update time 1: "<<endtime-starttime<<endl;
-    
-    starttime=pgc->timer();
-	
+
     // Update floating level set function
 	ray_cast_2D(p,pgc);
-    
-    endtime=pgc->timer();
-    
-    //if(p->mpirank==0)
-    //cout<<"6DOF update time 2: "<<endtime-starttime<<endl;
-    
-    starttime=pgc->timer();
-    
-    
 	reini_2D(p,pgc,fs);
-    
-    endtime=pgc->timer();
-    
-    //if(p->mpirank==0)
-    //cout<<"6DOF update time 3: "<<endtime-starttime<<endl;
-    
+
     pgc->gcsl_start4(p,fs,50);  
 }
 

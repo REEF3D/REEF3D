@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"nhflow_scalar_convection.h"
 
-nhflow_komega_IM1::nhflow_komega_IM1(lexer* p, fdm_nhf* d, ghostcell *pgc) : nhflow_ikomega(p,d,pgc)
+nhflow_komega_IM1::nhflow_komega_IM1(lexer* p, fdm_nhf* d, ghostcell *pgc) : nhflow_komega_func(p,d,pgc)
 {
 	gcval_kin=20;
 	gcval_eps=30;
@@ -46,19 +46,22 @@ nhflow_komega_IM1::~nhflow_komega_IM1()
 void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans *pvrans)
 {
 	Pk_update(p,d,pgc);
+    Pk_b_update(p,d,pgc);
 	wallf_update(p,d,pgc,WALLF);
+    inflow(p,d,pgc);
 
 //kin
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,KIN,4,d->U,d->V,d->W);
-	pdiff->diff_scalar(p,d,pgc,psolv,KIN,1.0);
+    pconvec->start(p,d,KIN,4,d->U,d->V,d->omegaF);
+	pdiff->diff_scalar(p,d,pgc,psolv,KIN,kw_sigma_k,1.0);
 	kinsource(p,d,pvrans);
 	timesource(p,d,KN);
     bckomega_start(p,d,KIN,EPS,gcval_kin);
     bckin_matrix(p,d,KIN,EPS);
     psolv->startV(p,pgc,KIN,d->rhsvec,d->M,4);
-    pgc->start4V(p,KIN,gcval_kin);
+    pgc->start20V(p,KIN,gcval_kin);
+    kinupdate(p,d,pgc);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -67,15 +70,15 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 //omega
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,EPS,4,d->U,d->V,d->W);
-	pdiff->diff_scalar(p,d,pgc,psolv,EPS,1.0);
+    pconvec->start(p,d,EPS,4,d->U,d->V,d->omegaF);
+	pdiff->diff_scalar(p,d,pgc,psolv,EPS,kw_sigma_w,1.0);
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
-    bckin_matrix(p,d,KIN,EPS);
+    bcomega_matrix(p,d,KIN,EPS);
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
 	epsfsf(p,d,pgc);
 	bckomega_start(p,d,KIN,EPS,gcval_eps);
-	pgc->start4V(p,EPS,gcval_eps);
+	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -83,7 +86,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 
     eddyvisc(p,d,pgc,pvrans);
     pflow->turb_relax_nhflow(p,d,pgc,d->EV);
-    pgc->start4V(p,d->EV,24);
+    pgc->start24V(p,d->EV,24);
 }
 
 void nhflow_komega_IM1::ktimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
@@ -96,6 +99,14 @@ void nhflow_komega_IM1::etimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
 {
     LOOP
     EN[IJK]=EPS[IJK]; 
+}
+
+void nhflow_komega_IM1::kinupdate(lexer *p, fdm_nhf* d, ghostcell *pgc)
+{
+    LOOP
+    d->KIN[IJK]=KIN[IJK]; 
+    
+    pgc->start4V(p,d->KIN,gcval_kin);
 }
 
 void nhflow_komega_IM1::timesource(lexer* p, fdm_nhf* d, double *FN)
@@ -118,6 +129,7 @@ void nhflow_komega_IM1::clearrhs(lexer* p, fdm_nhf *d)
     {
     d->rhsvec.V[count]=0.0;
 	d->L[IJK]=0.0;
+
 	++count;
     }
 }

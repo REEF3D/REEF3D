@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,8 +27,6 @@ Author: Hans Bihs
  
 void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-    if(p->I230==0)
-    {
     if(p->B98==0)
     nhflow_inflow_plain(p,d,pgc,U,V,W,UH,VH,WH);
     
@@ -37,7 +35,6 @@ void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, doub
 	
 	if(p->B98==4)
 	nhflow_active_wavegen(p,d,pgc,U,V,W,UH,VH,WH);
-	}
     
 	if(p->B99==3||p->B99==4||p->B99==5)
 	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
@@ -59,6 +56,9 @@ void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, do
         VH[Im3JK]=VH[Im2JK]=VH[Im1JK]=d->VH[Im1JK];
         WH[Im3JK]=WH[Im2JK]=WH[Im1JK]=d->WH[Im1JK];
     }
+    
+    if(p->B99==3||p->B99==4||p->B99==5)
+	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
 }
 
 void iowave::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)

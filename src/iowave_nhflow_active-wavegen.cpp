@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,15 +29,42 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
 {
     double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
         
+        double etaval=0.0;
+        
+        // wave theory
+        if(p->B92<20 || p->B92>29)
         for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        ///d->eta(i,j) = eta(i,j);
-        d->eta(i-1,j) = eta(i,j)*ramp(p);
-        d->eta(i-2,j) = eta(i,j)*ramp(p);
-        d->eta(i-3,j) = eta(i,j)*ramp(p);
+        if(p->A515==1)
+        etaval = d->eta(i,j);
+        
+        if(p->A515==2)
+        etaval = eta(i,j);
+        
+        d->eta(i-1,j) = etaval;
+        d->eta(i-2,j) = etaval;
+        d->eta(i-3,j) = etaval;
+        }
+        
+        // wave maker
+        if(p->B92>=20 && p->B92<=29)
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        if(p->A515==1)
+        etaval = d->eta(i,j);
+        
+        if(p->A515==2)
+        etaval = d->eta(i,j);
+        
+        d->eta(i-1,j) = etaval;
+        d->eta(i-2,j) = etaval;
+        d->eta(i-3,j) = etaval;
         }
         
         
@@ -95,9 +122,9 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
                 U[Im2JK] += Uc;
                 U[Im3JK] += Uc;
                 
-                UH[Im1JK] += (d->eta(i,j)+d->depth(i,j))*Uc;
-                UH[Im2JK] += (d->eta(i,j)+d->depth(i,j))*Uc;
-                UH[Im3JK] += (d->eta(i,j)+d->depth(i,j))*Uc;
+                UH[Im1JK] += (eta_R+d->depth(i,j))*Uc;
+                UH[Im2JK] += (eta_R+d->depth(i,j))*Uc;
+                UH[Im3JK] += (eta_R+d->depth(i,j))*Uc;
          }
          ++count;
 		}
@@ -114,7 +141,7 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             
             d->EV[IJK]=MIN(d->EV[IJK],1.0e-4);
             }
-         pgc->start4V(p,d->EV,24);
+         pgc->start24V(p,d->EV,24);
 		}
         
 }

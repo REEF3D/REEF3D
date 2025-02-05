@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -206,7 +206,7 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         pgc->start3(p,fz,12);           
         
 
-        p6dof->start_twoway(p,a,pgc,pvrans,pnet,loop,urk,vrk,wrk,fx,fy,fz,final);
+        p6dof->start_cfd(p,a,pgc,pvrans,pnet,loop,urk,vrk,wrk,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);
  
@@ -239,10 +239,6 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         
         p->fbmax = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), p->fbmax);
         }
-
-        pgc->start1(p,a->u,gcval_u);
-        pgc->start2(p,a->v,gcval_v);
-        pgc->start3(p,a->w,gcval_w);
         
         p->fbtime+=pgc->timer()-starttime;
         

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -63,5 +63,4 @@ void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 	}
     
     pgc->gcsl_start4(p,s->qbe,1);
-    
 }

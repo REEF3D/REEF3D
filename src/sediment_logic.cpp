@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,16 +42,19 @@ Author: Hans Bihs
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
 #include"sandslide_f3.h"
+#include"sandslide_nz.h"
 #include"sandslide_pde.h"
 #include"sandslide_v.h"
 #include"topo_relax.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
+#include"bedslope.h"
 #include"reduction_void.h"
 #include"reduction_parker.h"
 #include"reduction_deyemp.h"
 #include"reduction_deyana.h"
 #include"reduction_FD.h"
+#include"reduction_FD_gamma.h"
 #include"diff_void.h"
 #include"ediff2.h"
 #include"idiff2.h"
@@ -64,6 +67,8 @@ Author: Hans Bihs
 #include"suspended_RK2.h"
 #include"suspended_RK3.h"
 #include"suspended_IM1.h"
+#include"bedload_direction_f.h"
+#include"bedload_direction_v.h"
 
 void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
@@ -110,12 +115,17 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     if(p->S90==4)
     pslide=new sandslide_pde(p);
     
+    if(p->S90==5)
+    pslide=new sandslide_nz(p);
+    
     if(p->S10!=2 && p->A10==6)
 	pvrans = new vrans_v(p,pgc);
 	
 	if(p->S10==2 && p->A10==6)
 	pvrans = new vrans_f(p,pgc);
     
+    
+    pslope = new bedslope(p);
     
     if(p->S80==0)
     preduce=new reduction_void(p);
@@ -131,6 +141,9 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	
 	if(p->S80==4)
     preduce=new reduction_FD(p);
+    
+    if(p->S80==5)
+    preduce=new reduction_FD_gamma(p);
     
     ptopo = new sediment_exner(p,pgc);
     
@@ -172,6 +185,12 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     if(p->S60==11)
     psusp = new suspended_IM1(p,a);
     }
+    
+    if(p->S85==0)
+    pbeddir = new bedload_direction_v(p);
+    
+    if(p->S85==1)
+    pbeddir = new bedload_direction_f(p);
     
 	
 	p->gcin4a_count=p->gcin_count;

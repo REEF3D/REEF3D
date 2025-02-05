@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -243,7 +243,7 @@ void sflow_pjm_corr_lin::poisson(lexer*p, fdm2D* b, double alpha)
         b->M.w[n] = 0.0;
         b->M.e[n] = 0.0;
         
-        b->rhsvec.V[n]=0.0;
+        b->rhsvec.V[n] = 0.0;
         }
 	++n;
 	}
@@ -251,19 +251,18 @@ void sflow_pjm_corr_lin::poisson(lexer*p, fdm2D* b, double alpha)
 
 void sflow_pjm_corr_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
-
     SLICELOOP1
     WETDRY1
     b->F(i,j) += -fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
-                                     - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM)
+                                     - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/p->DXM
                                      
                  - (((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)))
            
                  + ((b->press(i+1,j)+b->press(i,j))*(b->depth(i+1,j)-b->depth(i,j))     
 				             /(p->DXM*HPXP*p->W1));
+                             
 
-        
-        if(p->B77==2)
+        if(p->B77==10)
         for(n=0;n<p->gcslout_count;n++)
         {
         i=p->gcslout[n][0]-1;
@@ -272,7 +271,7 @@ void sflow_pjm_corr_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         WETDRY1
         {
         b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
-                                     - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                     - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/p->DXM;
                                      
         b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);

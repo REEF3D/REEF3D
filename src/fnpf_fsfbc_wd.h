@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -80,6 +80,7 @@ private:
     const double eps;
     
     sliceint4 bx,by;
+    sliceint4 wetcoast;
     int count_n;
     
 };

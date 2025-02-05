@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -51,7 +51,7 @@ private:
 	int* feld;
 	int iter;
 
-	static int imin,imax,jmax,jmin,kmin,kmax;
+	int imin,imax,jmax,jmin,kmin,kmax;
 	
 	lexer *pp;
 

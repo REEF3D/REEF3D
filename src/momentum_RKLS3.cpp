@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -184,9 +184,6 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
 
         p->wtime+=pgc->timer()-starttime;
 
-        pgc->start1(p,urk,gcval_u);
-        pgc->start2(p,vrk,gcval_v);
-        pgc->start3(p,wrk,gcval_w);
 
         momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk,vrk,wrk, fx, fy, fz, 2, 2.0*alpha(loop), final);
@@ -222,10 +219,6 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
         p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), p->sfmax);
         }
 
-        pgc->start1(p,a->u,gcval_u);
-        pgc->start2(p,a->v,gcval_v);
-        pgc->start3(p,a->w,gcval_w);
-        
         // Pressure
         pflow->pressure_io(p,a,pgc);
         ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, a->u, a->v, a->w, 2.0*alpha(loop));

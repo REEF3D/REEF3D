@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -246,56 +246,56 @@ double weno_flux_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, doubl
 
 void weno_flux_nug::iqmin(lexer *p, field& f, field& uvel, int ipol)
 {	
-	q1 = f(i-2,j,k);
-	q2 = f(i-1,j,k);
-	q3 = f(i,j,k);
-	q4 = f(i+1,j,k);
-	q5 = f(i+2,j,k);
+	q1 = f.V[Im2JK];
+	q2 = f.V[Im1JK];
+	q3 = f.V[IJK];
+	q4 = f.V[Ip1JK];
+	q5 = f.V[Ip2JK];
 }
 
 void weno_flux_nug::jqmin(lexer *p, field& f, field& vvel, int ipol)
 {
-	q1 = f(i,j-2,k);
-	q2 = f(i,j-1,k);
-	q3 = f(i,j,k);
-	q4 = f(i,j+1,k);
-	q5 = f(i,j+2,k);
+	q1 = f.V[IJm2K];
+	q2 = f.V[IJm1K];
+	q3 = f.V[IJK];
+	q4 = f.V[IJp1K];
+	q5 = f.V[IJp2K];
 }
 
 void weno_flux_nug::kqmin(lexer *p, field& f, field& wvel, int ipol)
 {
-	q1 = f(i,j,k-2);
-	q2 = f(i,j,k-1);
-	q3 = f(i,j,k);
-	q4 = f(i,j,k+1);
-	q5 = f(i,j,k+2);
+	q1 = f.V[IJKm2];
+	q2 = f.V[IJKm1];
+	q3 = f.V[IJK];
+	q4 = f.V[IJKp1];
+	q5 = f.V[IJKp2];
 }
 
 void weno_flux_nug::iqmax(lexer *p, field& f, field& uvel, int ipol)
 {
-    q1 = f(i-1,j,k);
-	q2 = f(i,j,k);
-	q3 = f(i+1,j,k);
-	q4 = f(i+2,j,k);
-	q5 = f(i+3,j,k);
+    q1 = f.V[Im1JK];
+	q2 = f.V[IJK];
+	q3 = f.V[Ip1JK];
+	q4 = f.V[Ip2JK];
+	q5 = f.V[Ip2JK];
 }
 
 void weno_flux_nug::jqmax(lexer *p, field& f, field& vvel, int ipol)
 {
-	q1 = f(i,j-1,k);
-	q2 = f(i,j,k);
-	q3 = f(i,j+1,k);
-	q4 = f(i,j+2,k);
-	q5 = f(i,j+3,k);
+	q1 = f.V[IJm1K];
+	q2 = f.V[IJK];
+	q3 = f.V[IJp1K];
+	q4 = f.V[IJp2K];
+	q5 = f.V[IJp3K];
 }
 
 void weno_flux_nug::kqmax(lexer *p, field& f, field& wvel, int ipol)
 {
-	q1 = f(i,j,k-1);
-	q2 = f(i,j,k);
-	q3 = f(i,j,k+1);
-	q4 = f(i,j,k+2);
-	q5 = f(i,j,k+3);
+	q1 = f.V[IJKm1];
+	q2 = f.V[IJK];
+	q3 = f.V[IJKp1];
+	q4 = f.V[IJKp2];
+	q5 = f.V[IJKp3];
 }
 
 

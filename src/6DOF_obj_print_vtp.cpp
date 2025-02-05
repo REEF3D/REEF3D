@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,7 +31,7 @@ Author: Hans Bihs
 void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 {
     // print normals
-    //print_normals_vtp(p,a,pgc);
+    //print_normals_vtp(p,pgc);
     
     
 	int num=0;

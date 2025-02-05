@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -144,19 +144,6 @@ void ghostcell::gcini(lexer* p)
 	p->Iarray(irecv5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
 	p->Iarray(irecv6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
 	
-	p->dgc1_count=1;
-	p->dgc2_count=1;
-	p->dgc3_count=1;
-	p->dgc4_count=1;
-	
-	p->Iarray(p->dgc1,p->dgc1_count,8);
-	p->Iarray(p->dgc2,p->dgc2_count,8);
-	p->Iarray(p->dgc3,p->dgc3_count,8);
-	p->Iarray(p->dgc4,p->dgc4_count,8);
-    
-    p->gcdf4_count=1;
-    p->Iarray(p->gcdf4,p->gcdf4_count,6);
-
     if(p->B20==1)
     {
     gclabel_u=4;
@@ -291,7 +278,7 @@ void ghostcell::gcini(lexer* p)
     
     // pressure outflow
     pressout_lable=0;
-	if(p->B77==1 || p->B77==2)
+	if(p->B77==1 || p->B77==10)
 	pressout_lable=1;
     
     

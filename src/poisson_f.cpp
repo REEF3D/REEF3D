@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -59,9 +59,6 @@ poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc)
     
     if(p->F300>=1)
     pd = new density_rheo(p);
-    
-    if(p->G3==1)  
-	pd = new density_sf(p);
 }
 
 poisson_f::~poisson_f()

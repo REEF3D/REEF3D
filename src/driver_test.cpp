@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -67,11 +67,11 @@ void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	
 	for(qn=0; qn<1000; ++qn)
 	for(n=0; n<p->cellnum; ++n)
-	f.V[n]=0.0;
+	f.V[IJK]=0.0;
 	
 	for(qn=0; qn<1000; ++qn)
 	for(n=0; n<p->cellnum; ++n)
-	val=f.V[n];
+	val=f.V[IJK];
 	
 	t2 = pgc->timer() - starttime;
 	
@@ -155,7 +155,8 @@ void driver::vec_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	t7=pgc->globalmax(t7);
 	
 	if(p->mpirank==0)
-	cout<<"t_field: "<<setprecision(15)<<t1<<"  t_field.V: "<<setprecision(9)<<t2<<"\n  t_vec: "<<setprecision(9)<<t3<<"  t_double: "<<setprecision(9)<<t4<<"    "<<"  t_stdvector: "<<setprecision(9)<<t5<<"  t_stdarray: "<<setprecision(9)<<t6<<"  t_EigenVector: "<<setprecision(9)<<t7<<endl;
+	cout<<"t_field: "<<setprecision(15)<<t1<<"  t_field.V: "<<setprecision(9)<<t2<<"\n  t_vec: "<<setprecision(9)
+    <<t3<<"  t_double: "<<setprecision(9)<<t4<<"    "<<"  t_stdvector: "<<setprecision(9)<<t5<<"  t_EigenVector: "<<setprecision(9)<<t7<<endl;
 
 
     //--
@@ -225,248 +226,6 @@ void driver::func_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	if(p->mpirank==0)
 	cout<<"t_inline: "<<setprecision(9)<<t1<<"  t_func: "<<setprecision(9)<<t2<<endl;
 	
-}
-
-void driver::mgc_test(lexer *p, fdm *a, ghostcell *pgc)
-{	
-    field1 u(p);
-    field2 v(p);
-    field3 w(p);
-    
-    GC1LOOP
-    {
-    i=p->gcb1[n][0];
-    j=p->gcb1[n][1];
-    k=p->gcb1[n][2];
-    
-        if(p->gcb1[n][3]==1)
-        {
-        u(i-1,j,k) = 10.0;
-        u(i-2,j,k) = 10.0;
-        u(i-3,j,k) = 10.0;
-        }
-        
-        if(p->gcb1[n][3]==4)
-        {
-        u(i+1,j,k) = 10.0;
-        u(i+2,j,k) = 10.0;
-        u(i+3,j,k) = 10.0;
-        }
-        
-        if(p->gcb1[n][3]==3)
-        {
-        u(i,j-1,k) = 10.0;
-        u(i,j-2,k) = 10.0;
-        u(i,j-3,k) = 10.0;
-        }
-        
-        if(p->gcb1[n][3]==2)
-        {
-        u(i,j+1,k) = 10.0;
-        u(i,j+2,k) = 10.0;
-        u(i,j+3,k) = 10.0;
-        }
-        
-        if(p->gcb1[n][3]==5)
-        {
-        u(i,j,k-1) = 10.0;
-        u(i,j,k-2) = 10.0;
-        u(i,j,k-3) = 10.0;
-        }
-        
-        if(p->gcb1[n][3]==6)
-        {
-        u(i,j,k+1) = 10.0;
-        u(i,j,k+2) = 10.0;
-        u(i,j,k+3) = 10.0;
-        }
-    }
-        
-        ULOOP
-        {
-        if(p->flag1[Im1JK]<0)
-        if(u(i-1,j,k)<10.0 || u(i-2,j,k)<10.0 || u(i-3,j,k)<10.0)
-        cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 1"<<endl;
-        
-        if(p->flag1[Ip1JK]<0)
-        if(u(i+1,j,k)<10.0 || u(i+2,j,k)<10.0 || u(i+3,j,k)<10.0)
-        cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 4"<<endl;
-        
-        if(p->flag1[IJm1K]<0)
-        if(u(i,j-1,k)<10.0 || u(i,j-2,k)<10.0 || u(i,j-3,k)<10.0)
-        cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 3"<<endl;
-        
-        if(p->flag1[IJp1K]<0)
-        if(u(i,j+1,k)<10.0 || u(i,j+2,k)<10.0 || u(i,j+3,k)<10.0)
-        cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 2"<<endl;
-        
-        if(p->flag1[IJKm1]<0)
-        if(u(i,j,k-1)<10.0 || u(i,j,k-2)<10.0 || u(i,j,k-3)<10.0)
-        cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 5"<<endl;
-        
-        if(p->flag1[IJKp1]<0)
-        if(u(i,j,k+1)<10.0 || u(i,j,k+2)<10.0 || u(i,j,k+3)<10.0)
-        cout<<"!!! U mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 6"<<endl;
-        }
-        
-        
-    GC2LOOP
-    {
-    i=p->gcb2[n][0];
-    j=p->gcb2[n][1];
-    k=p->gcb2[n][2];
-    
-        if(p->gcb2[n][3]==1)
-        {
-        v(i-1,j,k) = 10.0;
-        v(i-2,j,k) = 10.0;
-        v(i-3,j,k) = 10.0;
-        }
-        
-        if(p->gcb2[n][3]==4)
-        {
-        v(i+1,j,k) = 10.0;
-        v(i+2,j,k) = 10.0;
-        v(i+3,j,k) = 10.0;
-        }
-        
-        if(p->gcb2[n][3]==3)
-        {
-        v(i,j-1,k) = 10.0;
-        v(i,j-2,k) = 10.0;
-        v(i,j-3,k) = 10.0;
-        }
-        
-        if(p->gcb2[n][3]==2)
-        {
-        v(i,j+1,k) = 10.0;
-        v(i,j+2,k) = 10.0;
-        v(i,j+3,k) = 10.0;
-        }
-        
-        if(p->gcb2[n][3]==5)
-        {
-        v(i,j,k-1) = 10.0;
-        v(i,j,k-2) = 10.0;
-        v(i,j,k-3) = 10.0;
-        }
-        
-        if(p->gcb2[n][3]==6)
-        {
-        v(i,j,k+1) = 10.0;
-        v(i,j,k+2) = 10.0;
-        v(i,j,k+3) = 10.0;
-        }
-    }
-        
-        VLOOP
-        {
-        
-        if(p->flag2[Im1JK]<0)
-        if(v(i-1,j,k)<10.0 || v(i-2,j,k)<10.0 || v(i-3,j,k)<10.0)
-        cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 1"<<endl;
-        
-        if(p->flag2[Ip1JK]<0)
-        if(v(i+1,j,k)<10.0 || v(i+2,j,k)<10.0 || v(i+3,j,k)<10.0)
-        cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 4"<<endl;
-        
-        if(p->flag2[IJm1K]<0)
-        if(v(i,j-1,k)<10.0 || v(i,j-2,k)<10.0 || v(i,j-3,k)<10.0)
-        cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 3"<<endl;
-        
-        if(p->flag2[IJp1K]<0)
-        if(v(i,j+1,k)<10.0 || v(i,j+2,k)<10.0 || v(i,j+3,k)<10.0)
-        cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 2"<<endl;
-        
-        if(p->flag2[IJKm1]<0)
-        if(v(i,j,k-1)<10.0 || v(i,j,k-2)<10.0 || v(i,j,k-3)<10.0)
-        cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 5"<<endl;
-        
-        if(p->flag2[IJKp1]<0)
-        if(v(i,j,k+1)<10.0 || v(i,j,k+2)<10.0 || v(i,j,k+3)<10.0)
-        cout<<"!!! V mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 6"<<endl;
-        }
-    
-    
-    
-    GC3LOOP
-    {
-    i=p->gcb3[n][0];
-    j=p->gcb3[n][1];
-    k=p->gcb3[n][2];
-    
-        if(p->gcb3[n][3]==1)
-        {
-        w(i-1,j,k) = 10.0;
-        w(i-2,j,k) = 10.0;
-        w(i-3,j,k) = 10.0;
-        }
-        
-        if(p->gcb3[n][3]==4)
-        {
-        w(i+1,j,k) = 10.0;
-        w(i+2,j,k) = 10.0;
-        w(i+3,j,k) = 10.0;
-        }
-        
-        if(p->gcb3[n][3]==3)
-        {
-        w(i,j-1,k) = 10.0;
-        w(i,j-2,k) = 10.0;
-        w(i,j-3,k) = 10.0;
-        }
-        
-        if(p->gcb3[n][3]==2)
-        {
-        w(i,j+1,k) = 10.0;
-        w(i,j+2,k) = 10.0;
-        w(i,j+3,k) = 10.0;
-        }
-        
-        if(p->gcb3[n][3]==5)
-        {
-        w(i,j,k-1) = 10.0;
-        w(i,j,k-2) = 10.0;
-        w(i,j,k-3) = 10.0;
-        }
-        
-        if(p->gcb3[n][3]==6)
-        {
-        w(i,j,k+1) = 10.0;
-        w(i,j,k+2) = 10.0;
-        w(i,j,k+3) = 10.0;
-        }
-    }
-        
-        WLOOP
-        {
-        
-        if(p->flag3[Im1JK]<0)
-        if(w(i-1,j,k)<10.0 || w(i-2,j,k)<10.0 || w(i-3,j,k)<10.0)
-        cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 1"<<endl;
-        
-        if(p->flag3[Ip1JK]<0)
-        if(w(i+1,j,k)<10.0 || w(i+2,j,k)<10.0 || w(i+3,j,k)<10.0)
-        cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 4"<<endl;
-        
-        if(p->flag3[IJm1K]<0)
-        if(w(i,j-1,k)<10.0 || w(i,j-2,k)<10.0 || w(i,j-3,k)<10.0)
-        cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 3"<<endl;
-        
-        if(p->flag3[IJp1K]<0)
-        if(w(i,j+1,k)<10.0 || w(i,j+2,k)<10.0 || w(i,j+3,k)<10.0)
-        cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 2"<<endl;
-        
-        if(p->flag3[IJKm1]<0)
-        if(w(i,j,k-1)<10.0 || w(i,j,k-2)<10.0 || w(i,j,k-3)<10.0)
-        cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 5"<<endl;
-        
-        if(p->flag3[IJKp1]<0)
-        if(w(i,j,k+1)<10.0 || w(i,j,k+2)<10.0 || w(i,j,k+3)<10.0)
-        cout<<"!!! W mgc error !!!  "<<i<<"  "<<j<<"  "<<k<<" cs: 6"<<endl;
-        }
-    
-    
 }
 
 double driver::calc()

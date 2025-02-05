@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,6 +38,10 @@ public:
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
     virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*);
     
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
+    virtual void ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    virtual void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*);
+    
     virtual void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
     virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
     virtual void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*);
@@ -45,7 +49,7 @@ public:
     // ---
 	
     virtual void relax(lexer*,ghostcell*);
-	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
+	virtual double bedshear_point(lexer*,ghostcell*);
     
     virtual double qbeval(int,int);
     virtual void qbeget(int,int,double);

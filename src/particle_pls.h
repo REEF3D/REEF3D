@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,7 +66,6 @@ public:
 	double lint(field&,int&,int&,int&,double,double,double);
 	double cint(double,double,double,double,double);
 	double tricubic(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
-	void dgc_update(lexer*,fdm*,ghostcell*);
 	void vel_setback(lexer*,fdm*,ghostcell*);
 	void normal(fdm*, double&,double&,double&,double&);
 	void normreg(fdm*, int,int,int);

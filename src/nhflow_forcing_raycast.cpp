@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,28 +28,25 @@ Author: Hans Bihs
 
 void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    
-    
     // sigz
-    SLICELOOP4
+    /*SLICELOOP4
     {
     if(p->wet[IJ]==0)
     p->sigz[IJ] = 0.0;
     
     if(p->wet[IJ]==1)
     p->sigz[IJ] = 1.0/WLVL;
-    }
+    }*/
     
     zmin = 1.0e1;
     zmax = -1.0e8;
     
     LOOP
+    WETDRY
     {
     zmin = MIN(zmin, p->ZSP[IJK]);
     zmax = MAX(zmax, p->ZSP[IJK]);
     }
-    
-    //cout<<"ZMIN/ZMAX: "<<zmin<<"  "<<zmax<<endl;
     
     LOOP
 	{
@@ -68,16 +65,19 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(rayiter==1)
             {
             pgc->gcparaxintV(p,IO,1);
-            
+
             //ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
+            
             ray_cast_x(p,d,pgc,tstart[qn],tend[qn]);
-            //ray_cast_y(p,d,pgc,tstart[qn],tend[qn]);
+            if(p->j_dir==1)
+            ray_cast_y(p,d,pgc,tstart[qn],tend[qn]);
             ray_cast_z(p,d,pgc,tstart[qn],tend[qn]);
             }
         }
     }
     
     LOOP
+    WETDRY
     {
         if(IO[IJK]==-1)
         d->SOLID[IJK]=-fabs(d->SOLID[IJK]);
@@ -88,6 +88,7 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 	
 	LOOP
+    WETDRY
 	{
 		if(d->SOLID[IJK]>100.0*p->DXM)
 		d->SOLID[IJK]=100.0*p->DXM;
@@ -96,16 +97,10 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		d->SOLID[IJK]=-100.0*p->DXM;
 	}
     
-    /*
     LOOP
-    {
-        if(IO[IJK]==-1)
-        d->SOLID[IJK]=-1.0;
-        
-        
-        if(IO[IJK]==1)
-        d->SOLID[IJK]=1.0;
-    }*/
+    if(p->wet[IJ]==0)
+    d->SOLID[IJK]=100.0*p->DXM;
+    
     
 	pgc->start5V(p,d->SOLID,1); 
 }

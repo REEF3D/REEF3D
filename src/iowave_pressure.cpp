@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,17 +66,8 @@ void iowave::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 			a->press(i+2,j,k)=pval;
 			a->press(i+3,j,k)=pval;
 			}
-            
-            if(p->B77==0 && p->A10==5)
-			{
-			pval=0.0;
-			
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
 		
-			if(p->B77==2)
+			if(p->B77==10)
 			{
 			double eps,H;
                 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,12 +40,14 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
 	int is,ie,js,je,ks,ke;
-    int checkin;
+    double zs_x,zs_y,ze_x,ze_y;
+    int checkin,jj;
+    int i_zs,i_ze,j_zs,j_ze;
 	double u,v,w;
 	double denom;
 	double psi = 1.0e-8*p->DXM;
-
-
+    int margin=3;
+    
 	for(n=ts; n<te; ++n)
 	{
 	Ax = tri_x[n][0];
@@ -59,7 +61,7 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 	Cx = tri_x[n][2];
 	Cy = tri_y[n][2];
 	Cz = tri_z[n][2];
-    
+	
     checkin = 0;
     
 	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
@@ -76,56 +78,138 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
     && Cy>=p->global_ymin && Cy<=p->global_ymax
     && Cz>=p->global_zmin && Cz<=p->global_zmax)
     checkin=1;
+    
+    checkin=1;
         
     if(checkin==1)
     {
-	
-	
-	xs = MIN3(Ax,Bx,Cx);
+    xs = MIN3(Ax,Bx,Cx); 
 	xe = MAX3(Ax,Bx,Cx);
-	
-	zs = MIN3(Az,Bz,Cz);
-	ze = MAX3(Az,Bz,Cz);	
-	
-	is = p->posc_i(xs);
-	ie = p->posc_i(xe);
-	
-	ks = p->posc_k(zs);
-	ke = p->posc_k(ze);
     
-	xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is +marge];
-	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie +marge];
+	ys = MIN3(Ay,By,Cy);
+	ye = MAX3(Ay,By,Cy);
 	
-	zs = MIN3(Az,Bz,Cz) - epsi*p->DZP[ks +marge];
-	ze = MAX3(Az,Bz,Cz) + epsi*p->DZP[ke +marge];
-	
-	
-	is = p->posc_i(xs);
+    // zs
+    if(Az<=Bz)
+    {
+    zs = Az;
+    zs_x = Ax;
+    zs_y = Ay;
+    }
+    
+    if(Bz<Cz)
+    {
+    zs = Bz;
+    zs_x = Bx;
+    zs_y = By;
+    }
+    
+    if(Cz<Bz)
+    {
+    zs = Cz;
+    zs_x = Cx;
+    zs_y = Cy;
+    }
+    
+    // ze
+    if(Az>=Bz)
+    {
+    ze = Az;
+    ze_x = Ax;
+    ze_y = Ay;
+    }
+    
+    if(Bz>Cz)
+    {
+    ze = Bz;
+    ze_x = Bx;
+    ze_y = By;
+    }
+    
+    if(Cz>Bz)
+    {
+    ze = Cz;
+    ze_x = Cx;
+    ze_y = Cy;
+    }
+    
+    // i,j
+    is = p->posc_i(xs);
 	ie = p->posc_i(xe);
 	
-	ks = p->posc_k(zs);
-	ke = p->posc_k(ze);
-
+	js = p->posc_j(ys);
+	je = p->posc_j(ye);
 	
+    
+    // k
+    i_zs = p->posc_i(zs_x);
+	i_ze = p->posc_i(ze_x);
+	
+	j_zs = p->posc_j(zs_y);
+	j_ze = p->posc_j(ze_y);
+    
+    i_zs = MAX(is,0);
+	i_ze = MIN(ie,p->knox-1);
+    
+	j_zs = MAX(js,0);
+	j_ze = MIN(je,p->knoy-1);
+    
+    
+    ks = p->posc_sig(i_zs,j_zs,zs);
+	ke = p->posc_sig(i_ze,j_ze,ze);
+    
+    i=i_zs;
+    j=j_zs;
+    k=ks;
+    
+    
+    is-=margin;
+    ie+=margin;
+
+    js-=margin;
+    je+=margin;
+
+    ks-=margin;
+    ke+=margin;
+   
 	is = MAX(is,0);
 	ie = MIN(ie,p->knox);
+    
+	js = MAX(js,0);
+	je = MIN(je,p->knoy);
 	
 	ks = MAX(ks,0);
 	ke = MIN(ke,p->knoz);
-	
-	
-		for(i=is;i<ie;i++)
-		for(k=ks;k<ke;k++)
-		{
-		Px = p->XP[IP]+psi;
-		Py = p->global_ymin-10.0*p->DXM ;
-		Pz = p->ZP[KP]-psi;
+    
+    for(i=is;i<ie;i++)
+    for(j=js;j<je;j++)
+    for(k=ks;k<ke;k++)
+    if((IO[IJK] != IO[IJp1K]) || (IO[IJK] != IO[IJm1K]))
+    {
+        
+        if(IO[IJK] != IO[IJp1K])
+        {
+        Px = p->XP[IP]-psi;
+		Py = p->global_ymin-10.0*p->DXM;
+		Pz = p->ZSP[IJK]+psi;
 		
-		Qx = p->XP[IP]-psi;
-		Qy = p->global_ymax+10.0*p->DXM ;
-		Qz = p->ZP[KP]+psi;
+        Qx = p->XP[IP]+psi;
+		Qy = p->global_ymax+10.0*p->DXM;
+		Qz = p->ZSP[IJp1K]-psi;
+        }
+        
+        if(IO[IJK] != IO[IJm1K])
+        {
+        Px = p->XP[IP]-psi;
+		Py = p->global_ymax+10.0*p->DXM;
+		Pz = p->ZSP[IJK]+psi;
 		
-		
+        Qx = p->XP[IP]+psi;
+		Qy = p->global_ymin-10.0*p->DXM;
+		Qz = p->ZSP[IJm1K]-psi;
+        }
+        
+
 		PQx = Qx-Px;
 		PQy = Qy-Py;
 		PQz = Qz-Pz;
@@ -169,25 +253,14 @@ void nhflow_forcing::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
 			v *= denom;
 			w *= denom;
 			
-			Ry = u*Az + v*Bz + w*Cz;
+			Ry = u*Ay + v*By + w*Cy;
             
-             j = p->posc_j(Ry);
-
-            int distcheck=1;
-  
-            if(Ry<p->YP[JP])
-            if(j>=0 && j<p->knoy)
-            if(IO[IJK]<0 && IO[IJm1K]<0)
-            distcheck=0;
+            jj=j;
             
-            if(Ry>=p->YP[JP])
-            if(j>=0 && j<p->knoy)
-            if(IO[IJK]<0 && IO[IJp1K]<0)
-            distcheck=0;
-            
-            if(distcheck==1)
             for(j=0;j<p->knoy;++j)
             d->SOLID[IJK]=MIN(fabs(Ry-p->YP[JP]),d->SOLID[IJK]);
+
+            j=jj;
             }
 		
 		}

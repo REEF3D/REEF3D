@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MOMENTUM_FORCING_H_
+#define MOMENTUM_FORCING_H_
+
 #include"increment.h"
 #include<vector>
 
@@ -33,9 +36,6 @@ class vrans;
 class mooring;
 class net;
 class fsi;
-
-#ifndef MOMENTUM_FORCING_H_
-#define MOMENTUM_FORCING_H_
 
 using namespace std;
 

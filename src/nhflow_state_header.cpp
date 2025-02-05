@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -78,7 +78,7 @@ void nhflow_state::write_header(lexer *p, fdm_nhf *d, ghostcell *pgc)
     headout.write((char*)&iin, sizeof (int));
     
     
-    iin=p->knoz+1;
+    iin=p->knoz;
     headout.write((char*)&iin, sizeof (int));
     
     
@@ -108,9 +108,9 @@ void nhflow_state::write_header(lexer *p, fdm_nhf *d, ghostcell *pgc)
     headout.write((char*)&ddn, sizeof (double));
     } 
     
-    FKLOOP
+    KLOOP
     {
-    ddn=p->ZN[KP];
+    ddn=p->ZP[KP];
     headout.write((char*)&ddn, sizeof (double));
     } 
     

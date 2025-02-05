@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sflow_f.h"
 #include"lexer.h"
+#include"driver.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"iowave.h"
@@ -38,6 +39,21 @@ Author: Hans Bihs
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
+    int gcval_eta;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
+    
     p->count=0;
 	p->printcount=0;
 
@@ -72,7 +88,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->mpirank==0)
     cout<<"starting driver_ini"<<endl;
 
-    ptime->ini(p,b ,pgc);
+    ptime->ini(p,b,pgc);
     
     
     // bed ini
@@ -135,6 +151,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
 
      pflow->ini2D(p,b,pgc);
+      
      
      // P,Q ini
 	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
@@ -145,12 +162,13 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	pgc->gcsl_start1(p,b->P,10);
 	pgc->gcsl_start2(p,b->Q,11);
-	pgc->gcsl_start4(p,b->eta,50);
-    pgc->gcsl_start4(p,b->hp,50);
+	pgc->gcsl_start4(p,b->eta,gcval_eta);
+    pgc->gcsl_start4(p,b->hp,gcval_eta);
     pgc->gcsl_start4(p,b->bed,50);
     
-    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
     
+    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    pflow->ini2D(p,b,pgc);
     // potential flow ini
     potflow->start(p,b,ppoissonsolv,pgc);
     
@@ -169,7 +187,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     psed->ini_sflow(p,b,pgc);
 
     //6DOF ini
-    p6dof->ini(p,pgc);
+    p6dof->initialize(p, b, pgc, pnet);
 
     // print
     log_ini(p);
@@ -217,6 +235,15 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         if(i>=istart && i<iend && j>=jstart && j<jend)
         b->eta(i,j) = p->F72_h[qn]-p->wd;
 	}
+    
+    
+    
+    // ini hxy
+    SLICELOOP1
+    b->hx(i,j) = MAX(0.5*(b->eta(i+1,j)+b->eta(i,j)) + p->wd - b->bed(i,j),0.0);
+    
+    SLICELOOP2
+    b->hy(i,j) = MAX(0.5*(b->eta(i,j+1)+b->eta(i,j)) + p->wd - b->bed(i,j),0.0);
 
         // fix inflow fsf
         for(n=0;n<p->gcslin_count;n++)
@@ -324,7 +351,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     
     
     
-    if(p->F62>-1.0e20)
+    if(p->F62>-1.0e20 && p->F64==0)
     {
         GCSL1LOOP
         {
@@ -362,7 +389,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         b->eta(i+2,j) = p->F62-p->wd;
         b->eta(i+3,j) = p->F62-p->wd;
 
-        b->hp(i,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i,j)   = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
         b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
         b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
         b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
@@ -374,14 +401,28 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 }
 
 void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
-{
+{   
+    int gcval_eta;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
     // eta ini
 	pflow->eta_relax(p,pgc,b->eta);
-    pgc->gcsl_start4(p,b->eta,50);
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
 
     // eta_n ini
     SLICELOOP4
     b->eta_n(i,j) = b->eta(i,j);
     
-    pgc->gcsl_start4(p,b->eta_n,50);
+    pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }

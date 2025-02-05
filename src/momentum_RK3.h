@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MOMENTUM_RK3_H_
+#define MOMENTUM_RK3_H_
+
 #include"momentum.h"
 #include"momentum_forcing.h"
 #include"bcmom.h"
@@ -31,7 +34,6 @@ class convection;
 class diffusion;
 class pressure;
 class turbulence;
-class onephase;
 class solver;
 class poisson;
 class fluid_update;
@@ -41,14 +43,11 @@ class fsi;
 
 using namespace std;
 
-#ifndef MOMENTUM_RK3_H_
-#define MOMENTUM_RK3_H_
-
 class momentum_RK3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, 
-                turbulence*, onephase*, solver*, solver*, ioflow*, fsi*);
+                turbulence*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK3();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
@@ -74,7 +73,6 @@ private:
 	pressure *ppress;
 	poisson *ppois;
 	turbulence *pturb;
-    onephase *poneph;
 	solver *psolv;
     solver *ppoissonsolv;
 	ioflow *pflow;

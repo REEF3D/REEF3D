@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -59,26 +59,19 @@ void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc)
     
 	else
 	theta = asin(arg);														
-	
-		
+			
 	// around new x-axis
-	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));
-	
+	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));	
 }
 
 void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
 {
-    double starttime, endtime;
-    starttime=pgc->timer();
-    
 	// Update position of triangles 
 	for(n=0; n<tricount; ++n)
 	{
         for(int q=0; q<3; q++)
         {
             // Update coordinates of triangles 
-            // (tri_x0 is vector between tri_x and xg)
-  
             Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
 					
             point = R_*point;
@@ -86,41 +79,12 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
             tri_x[n][q] = point(0) + c_(0);
             tri_y[n][q] = point(1) + c_(1);
             tri_z[n][q] = point(2) + c_(2);
-
-			// 2D
-			/*if(p->X11_v!=1 && p->X11_p!=1 && p->X11_r!=1) 
-			{
-				tri_y[n][q] = tri_y0[n][q] + c_(1);	
-			}*/
         }
 	}
     
-    endtime=pgc->timer();
-    
-    //if(p->mpirank==0)
-    //cout<<"6DOF update time 1: "<<endtime-starttime<<endl;
-    
-    starttime=pgc->timer();
-	
     // Update floating level set function
 	ray_cast(p,a,pgc);
-    
-    endtime=pgc->timer();
-    
-    //if(p->mpirank==0)
-    //cout<<"6DOF update time 2: "<<endtime-starttime<<endl;
-    
-    starttime=pgc->timer();
-    
-    
-    //if(p->X188==1)
 	reini_RK2(p,a,pgc,a->fb);
-    
-    endtime=pgc->timer();
-    
-    //if(p->mpirank==0)
-    //cout<<"6DOF update time 3: "<<endtime-starttime<<endl;
-    
     
     pgc->start4a(p,a->fb,50);   
 }

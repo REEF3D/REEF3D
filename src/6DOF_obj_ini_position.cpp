@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -84,8 +84,6 @@ void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
 		- sin(0.5*phi)*sin(0.5*theta)*cos(0.5*psi);   
         
         
-    //cout<<"e_ "<<e_(0)<<" "<<e_(1)<<" "<<e_(2)<<" "<<e_(3)<<" "<<endl;
-    
     en1_ = e_;
     en2_ = e_;
     en3_ = e_;
@@ -108,12 +106,6 @@ void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
 
 
     // Initialise rotation matrices
-    quat_matrices();
-   
-/* 
-    cout<<p->mpirank<<" R_ "<<R_(0,0)<<" "<<R_(0,1)<<" "<<R_(0,2)<<" "<<R_(1,0)<<" "<<R_(1,2)<<" "<<R_(1,1)<<" "<<R_(2,0)<<" "<<R_(2,1)<<" "<<R_(2,2)<<" "<<endl;
-    cout<<p->mpirank<<" G_ "<<G_(0,0)<<" "<<G_(0,1)<<" "<<G_(0,2)<<" "<<G_(1,0)<<" "<<G_(1,2)<<" "<<G_(1,1)<<" "<<G_(2,0)<<" "<<G_(2,1)<<" "<<G_(2,2)<<" "<<endl;
-    cout<<p->mpirank<<" E_ "<<E_(0,0)<<" "<<E_(0,1)<<" "<<E_(0,2)<<" "<<E_(1,0)<<" "<<E_(1,2)<<" "<<E_(1,1)<<" "<<E_(2,0)<<" "<<E_(2,1)<<" "<<E_(2,2)<<" "<<endl;
-    */
+    quat_matrices(p);
 }
 

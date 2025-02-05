@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,10 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include"mgc1.h"
-#include"mgc2.h"
-#include"mgc3.h"
-#include"mgc4.h"
 #include"mgcslice4.h"
 
 void driver::makegrid_sigma(lexer *p, ghostcell *pgc)

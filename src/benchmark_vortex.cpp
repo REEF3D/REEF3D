@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -94,8 +94,6 @@ benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
 		{
 			a->vof(i,j,k) = 1.0;
 		}
-		
-		a->test(i,j,k) = a->vof(i,j,k);		
 	}
 
     

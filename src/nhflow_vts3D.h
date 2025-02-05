@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"increment.h"
 
 class fdm_nhf;
-class force_ale;
+class sediment;
 class nhflow_print_wsf;
 class nhflow_print_wsf_theory;
 class nhflow_print_wsfline;
@@ -51,12 +51,12 @@ class nhflow_vts3D : public nhflow_printer, public increment
 public:
 	nhflow_vts3D(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vts3D();
-	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*);
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*);
-    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*);
+	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
+    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
     
 private:
-    void pvts(lexer*,ghostcell*);
+    void pvts(lexer*,ghostcell*,sediment*);
     void name_iter(lexer*,ghostcell*);
     void name_time(lexer*,ghostcell*);
     void piecename(lexer*,ghostcell*, int);
@@ -88,7 +88,6 @@ private:
     nhflow_vtp_bed *pbed;
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
-	force_ale **pforce_ale;
     nhflow_vel_probe *pvel;
     nhflow_vel_probe_theory *pveltheo;
 };

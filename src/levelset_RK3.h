@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LEVELSET_RK3_H_
+#define LEVELSET_RK3_H_
+
 #include"freesurface.h"
 #include"gradient.h"
 #include"field4.h"
@@ -30,9 +33,6 @@ class concentration;
 class fluid_update;
 
 using namespace std;
-
-#ifndef LEVELSET_RK3_H_
-#define LEVELSET_RK3_H_
 
 class levelset_RK3 : public freesurface, gradient
 {
@@ -45,8 +45,6 @@ public:
 private:
     fluid_update *pupdate;
     picard *ppicard;
-    
-    void df_update(lexer*,field&);
     
     field4 ark1,ark2;
 

@@ -1,7 +1,7 @@
 
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -73,7 +73,7 @@ void LES_WALE::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,sol
     LOOP
 	{
 	MagSqrSd = magSqrSd(p,uprime,vprime,wprime);
-    a->eddyv(i,j,k) = pow(c_wale,2.0) * pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0) *  (pow(fabs(MagSqrSd), 3.0/2.0) / (pow(strainterm(p,uprime,vprime,wprime), 5.0) + pow(fabs(MagSqrSd), 5.0/4.0)));
+    a->eddyv(i,j,k) = pow(c_wale,2.0) * pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0) *  (pow(fabs(MagSqrSd), 3.0/2.0) / (pow(strainterm(p,uprime,vprime,wprime) / sqrt(2.0), 5.0) + pow(fabs(MagSqrSd), 5.0/4.0)));
 	}
 //		a->eddyv(i,j,k) = pow(p->DXM*c_wale,2.0) *  (pow(magSqrSd(p,uprime,vprime,wprime), 3.0/2.0) / (pow(strainterm(p,uprime,vprime,wprime), 5.0) + pow(magSqrSd(p,uprime,vprime,wprime), 5.0/4.0)));
 //    a->eddyv(i,j,k) = pow(p->DXM*c_wale,2.0) *  (pow(magSqrSd(p,a), 3.0/2.0) / (pow(strainterm(p,a), 5.0) + pow(magSqrSd(p,a), 5.0/4.0)));

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -59,8 +59,12 @@ void lexer::flagini()
     flagsf4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
     }
     
+    // boundary conditions
     Iarray(IO,imax*jmax*kmax);
+    Iarray(IOSL,imax*jmax);
+    Iarray(DF,imax*jmax*kmax);
     
+    // flag
 	Iarray(tpflag,imax*jmax*kmax);
     Iarray(ndbaseflag,imax*jmax*kmax);
 
@@ -69,6 +73,20 @@ void lexer::flagini()
 	makeflag(flag2);
 	makeflag(flag3);
 	makeflag(tpflag);
+    
+    for(i=-margin; i<knox+margin; ++i)
+    for(j=-margin; j<knoy+margin; ++j)
+    for(k=-margin; k<knoz+margin; ++k)
+    IO[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 0;
+    
+    for(i=-margin; i<knox+margin; ++i)
+    for(j=-margin; j<knoy+margin; ++j)
+    IOSL[(i-imin)*jmax + j-jmin] = 0;
+    
+    for(i=-margin; i<knox+margin; ++i)
+    for(j=-margin; j<knoy+margin; ++j)
+    for(k=-margin; k<knoz+margin; ++k)
+    DF[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 1;
 	
 	x_dir=y_dir=z_dir=1.0;
 	
@@ -86,6 +104,19 @@ void lexer::flagini()
 	for(n=0;n<gcb4_count;++n)
 	if(gcb4[n][4]==6)
 	gcb4[n][4]=1;	
+    
+    // gcdf
+    gcdf1_count=gcdf2_count=gcdf3_count=gcdf4_count=1;
+    
+    Iarray(gcdf1,gcdf1_count,6);
+    Iarray(gcdf2,gcdf2_count,6);
+    Iarray(gcdf3,gcdf3_count,6);
+    Iarray(gcdf4,gcdf4_count,6);
+    
+    // gcsldf
+    gcsldf4_count=1;
+    
+    Iarray(gcsldf4,gcsldf4_count,6);
 }
 
 void lexer::gridini_patchBC()

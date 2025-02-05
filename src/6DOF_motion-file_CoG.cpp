@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -72,7 +72,6 @@ void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen:
         dp_(0) = 0.0;
         dc_(0) = Uext*ramp_vel(p);
 
-
  
         Vext = 0.0;
         
@@ -81,6 +80,9 @@ void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen:
         
         dp_(1) = 0.0;
         dc_(1) = Vext*ramp_vel(p);
+        
+        dp_(2) = 0.0;
+        dc_(2) = 0.0;
 }
 
 void sixdof_motionext_file_CoG::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)

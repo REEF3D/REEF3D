@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,6 +46,10 @@ ioflow_v::~ioflow_v()
 }
 
 void ioflow_v::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void ioflow_v::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
@@ -327,32 +331,16 @@ void ioflow_v::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
     pBC->patchBC_waterlevel(p,a,pgc,f);
 }
 
-void ioflow_v::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_v::fsfrkinV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_v::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_v::fsfrkinVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
 void ioflow_v::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
 void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	a->rhsvec.V[n]=0.0;
 
 	count=0;
     if(p->B240>0 && p->B241==1)
@@ -381,10 +369,10 @@ void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	a->rhsvec.V[n]=0.0;
 
 	count=0;
     if(p->B240>0 && p->B242==1)
@@ -413,10 +401,10 @@ void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	a->rhsvec.V[n]=0.0;
 	
 	count=0;
     if(p->B240>0 && p->B243==1)
@@ -445,10 +433,10 @@ void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	d->rhsvec.V[n]=0.0;
 
 	// Darcy Porosity
 	count=0;
@@ -475,10 +463,10 @@ void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 
 void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	d->rhsvec.V[n]=0.0;
 
 	count=0;
     if(p->B240>0 && p->B242==1)
@@ -504,10 +492,10 @@ void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 
 void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	d->rhsvec.V[n]=0.0;
 	
 	count=0;
     if(p->B240>0 && p->B243==1)
@@ -552,7 +540,7 @@ void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
 			a->press(i+3,j,k)=pval;
 			}
 		
-			if(p->B77==2)
+			if(p->B77==10)
 			{
 			double eps,H;
                 

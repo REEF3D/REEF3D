@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"nhflow_forcing.h"
 #include"lexer.h"
-#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void nhflow_forcing::box(lexer *p, ghostcell *pgc, int id)
@@ -36,7 +35,7 @@ void nhflow_forcing::box(lexer *p, ghostcell *pgc, int id)
     zs = p->A581_zs[id];
     ze = p->A581_ze[id];
     
-	//cout<<p->mpirank<<" xs: "<<xs<<" xe: "<<xe<<" id: "<<id<<endl;
+	//cout<<p->mpirank<<" FORCING_CYLINDER  xs: "<<xs<<" xe: "<<xe<<" id: "<<id<<endl;
 	// Face 3
 	// Tri 1
 	tstart[entity_count]=tricount;

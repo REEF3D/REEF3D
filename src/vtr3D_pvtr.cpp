@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -131,6 +131,9 @@ void vtr3D::pvtr(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 
 	result<<"</PPointData>"<<endl;
 	result<<"<PCellData>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"topoSum\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"bedChange\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"erosion/depositionion\"/>"<<endl;
 	result<<"</PCellData>"<<endl;
 
 	result<<"<PCoordinates>"<<endl;

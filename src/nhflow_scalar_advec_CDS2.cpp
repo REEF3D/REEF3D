@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -54,8 +54,8 @@ void nhflow_scalar_advec_CDS2::wadvec(int ipol, double *W, double &wflux1, doubl
 {
 	if(ipol==4)
 	{
-	wflux1 = W[IJK];
-	wflux2 = W[IJK];
+	wflux1 = 0.5*(W[FIJK]+W[FIJKp1]);
+	wflux2 = 0.5*(W[FIJK]+W[FIJKp1]);
 	}
 }
 

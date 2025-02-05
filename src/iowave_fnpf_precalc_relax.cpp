@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,6 +29,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     double fsfloc;
     int dbcount;
     
+    p->wavetime = p->simtime;
     
     // pre-calc every iteration
     // eta

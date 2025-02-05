@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,8 +42,7 @@ momentum_forcing::~momentum_forcing()
 void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, sixdof* p6dof, vrans* pvrans, vector<net*>& pnet, fsi* pfsi,
                                               field &u, field &v, field &w, field &fx, field &fy, field &fz, int iter, double alpha, bool final)
 {
-    if(p->X10==1 || p->Z10>0 || p->G3==1)
-    {
+
 	starttime=pgc->timer();
     
         // Forcing
@@ -60,11 +59,9 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         pgc->start2(p,fy,11);
         pgc->start3(p,fz,12); 
          
-
-        if(p->G3==1)
         pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);         
         
-        p6dof->start_twoway(p,a,pgc,pvrans,pnet,iter,u,v,w,fx,fy,fz,final);
+        p6dof->start_cfd(p,a,pgc,pvrans,pnet,iter,u,v,w,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
  
@@ -97,13 +94,8 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         
         p->fbmax = MAX(fabs(alpha*CPOR3*fz(i,j,k)), p->fbmax);
         }
-
-        /*pgc->start1(p,u,gcval_u);
-        pgc->start2(p,v,gcval_v);
-        pgc->start3(p,w,gcval_w);*/
         
         p->fbtime+=pgc->timer()-starttime;
-    }
 }
 
 

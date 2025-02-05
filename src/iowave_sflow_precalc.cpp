@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,6 +28,8 @@ Author: Hans Bihs
 void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     starttime=pgc->timer();
+    
+    p->wavetime = p->simtime;
     
     double fsfloc;
     double u_val,v_val,w_val;
@@ -149,6 +151,6 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
             }
 		}
     }
-    p->wavetime+=pgc->timer()-starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
     

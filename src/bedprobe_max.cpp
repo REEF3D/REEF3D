@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,12 +31,12 @@ bedprobe_max::bedprobe_max(lexer *p, fdm* a, ghostcell *pgc)
 {
 	// Create Folder
 	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_SedimentMax",0777);
+	mkdir("./REEF3D_CFD_Sediment",0777);
 	
     if(p->mpirank==0 && p->P122>0)
     {
     // open file
-	wsfout.open("./REEF3D_CFD_SedimentMax/REEF3D-CFD-Sediment-Max.dat");
+	wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Max.dat");
 
     wsfout<<"time  maximum erosion"<<endl<<endl;
     }

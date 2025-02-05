@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,8 @@ Author: Hans Bihs
 void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
+    
+    p->wavetime = p->simtime;
     
         count=0;
 		for(n=0;n<p->gcslin_count;n++)

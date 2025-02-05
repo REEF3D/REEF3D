@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,9 +44,8 @@ public:
 	double sij(lexer*,fdm_nhf*,int,int);
 	double qij(lexer*,fdm_nhf*,int,int);
 	double pk(lexer*,fdm_nhf*);
-	double pk_k(lexer*,fdm_nhf*);
-	double pk_w(lexer*,fdm_nhf*);
 	void Pk_update(lexer*,fdm_nhf*,ghostcell*);
+    void Pk_b_update(lexer*,fdm_nhf*,ghostcell*);
 	void wallf_update(lexer*,fdm_nhf*,ghostcell*,int*);
 	virtual double strainterm(lexer*,fdm_nhf*);
     virtual double strainterm(lexer*,double*,double*,double*);
@@ -56,7 +55,7 @@ public:
     virtual double magSqrSd(lexer*,double*,double*,double*);
 	double strainplain(lexer*,fdm_nhf*);
     
-	double *PK;
+	double *PK,*PK0,*PK_b;
 
 private:
     double s11,s22,s33,s12,s13,s23;
@@ -66,8 +65,6 @@ private:
     double q11,q22,q33,q12,q13,q23;
 	double pkterm,s,q,val;
 	const double epsi;
-
-    
 
 };
 

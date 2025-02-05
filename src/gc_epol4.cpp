@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,13 +35,14 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==3||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
 	return 4;
-
-	else
-	if((bc==2||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==54))
-	return 4;
     
     else
 	if((bc==1||bc==6||bc==221||bc==211||bc==121||bc==111) && (gcv==52 || gcv==54))
+	return 4;
+    
+    // outflow
+    else
+	if((bc==2||bc==221||bc==211||bc==121||bc==111) && (gcv==51 || gcv==54 || (gcv==52 && p->B77==1)))
 	return 4;
 
 	else
@@ -111,6 +112,10 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 	else
 	if((bc==6 || bc==7 || bc==8) && gcv==20)
 	return 5;
+    
+    /*else
+	if((bc==1) && gcv==20)
+	return 4;*/
 
 // Turbulence eps
 	else
@@ -354,30 +359,5 @@ void ghostcell::gcdistro4(lexer *p, field &f, int ii, int jj, int kk, int nn, do
     if(bc_label==99)
 	gcb_debug(f,gcv,bc,cs);
 }
-
-void ghostcell::gcdistro4V(lexer *p, double *f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs)
-{
-    
-}
-
-void ghostcell::gcdistro4vec(lexer *p, fdm* a, vec &vec, int ii, int jj, int kk, double dist,  int gcv, int bc, int cs, int id)
-{
-    i=ii;
-	j=jj;
-	k=kk;
-
-	bc_label=gceval4(p,gcv,bc,cs);
-	
-	if(bc_label==22)
-	gcV_lsm(p,vec,dist,gcv,bc,cs,id);
-    
-    if(bc_label==3)
-	extendV(p,a,vec,dist,gcv,bc,cs);
-    
-	if(bc_label==4)
-	gcV_neumann(vec,gcv,bc,cs,id);
-
-}
-
 
 
