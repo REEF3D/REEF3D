@@ -37,6 +37,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
             WL(i,j) = p->A544;
             }
             
+            
             SLICEBASELOOP
             if(p->flagslice4[IJ]<0)
             {
@@ -53,8 +54,10 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     
     pgc->gcsl_start4Vint(p,p->wet,50);
     
-    //------------
-     /*
+    // ----------------
+    // ----------------
+    if(p->A540==1)
+    {
     SLICELOOP4
     {
         if(p->wet[IJ]==0)
@@ -84,19 +87,26 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     SLICELOOP4
     p->wet[IJ] = temp[IJ];
     
-    */
+     }
+    
+    // ----------------
+    // ----------------
+    if(p->A540==2)
+    { 
     
     SLICELOOP4
     {
         if(WL(i,j)>=p->A544)
         p->wet[IJ]=1;
         
-        if(WL(i,j)<p->A544)
+        if(WL(i,j)<=p->A544+eps)
         {
         p->wet[IJ]=0;
         d->eta(i,j) =  p->A544 - d->depth(i,j);
         WL(i,j) = p->A544;
         }
+    }
+    
     }
     
     // avoid isolated wetdry
@@ -182,9 +192,11 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
 
 void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-    
+   if(p->A540==1)
+   { 
     // eta + WL
-    SLICEBASELOOP  
+    //SLICEBASELOOP 
+    SLICELOOP1
     {
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
@@ -219,7 +231,8 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     }
     
     if(p->j_dir==1)
-    SLICEBASELOOP 
+    //SLICEBASELOOP 
+    SLICELOOP2
     {
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
@@ -254,7 +267,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     }
     
     // U,UH
-    BASELOOP
+    ULOOP
     {
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
@@ -333,7 +346,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         }
     }
     
-    BASELOOP
+    VLOOP
     {
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
@@ -394,5 +407,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->WHe[IJK] = 0.0;
         }
     }
+   }
     
 }

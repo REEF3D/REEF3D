@@ -67,7 +67,7 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     pflux->start_U(p,d,pgc);
     HLL(p,d,d->UHs,d->UHn,d->UHe,d->UHw);
     
-    wetdry_fluxes(p,d,ipol);
+    //wetdry_fluxes(p,d,ipol);
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,10);
