@@ -89,4 +89,7 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
     
     }
     
+    SLICEBASELOOP
+    b->test(i,j) = p->flagslice4[IJ];
+    
 }

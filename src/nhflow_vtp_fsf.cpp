@@ -77,7 +77,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     //pgc->gcsl_start4(p,d->eta,gcval_eta);
     //pgc->gcsl_start4(p,d->Fifsf,gcval_fifsf);
     
-    pgc->gcsl_start4(p,d->test2D,1);
+    //pgc->gcsl_start4(p,d->test2D,1);
     
     SLICELOOP4
     {

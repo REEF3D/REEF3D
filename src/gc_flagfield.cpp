@@ -59,8 +59,6 @@ void ghostcell::flagfield(lexer *p)
         p->flag4[IJK]=OBJ_FLAG;
     }
     
-
-
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
 	{
 	p->flag1[i]=p->flag4[i];
