@@ -70,7 +70,7 @@ public:
     virtual void w_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void p_relax(lexer*,fdm*,ghostcell*,field&)=0;
 	virtual void phi_relax(lexer*,ghostcell*,field&)=0;
-    virtual void vof_relax(lexer*,ghostcell*,field&)=0;
+    virtual void vof_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void turb_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void U_relax(lexer*,ghostcell*,double*,double*)=0;
     virtual void V_relax(lexer*,ghostcell*,double*,double*)=0;
