@@ -72,19 +72,19 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     {
     int istart, iend, jstart, jend, kstart, kend;
     
-    for(int qn=0;qn<p->F72;++qn)
-    {
-        istart = p->posc_i(p->F72_xs[qn]);
-        iend = p->posc_i(p->F72_xe[qn]);
-        
-        jstart = p->posc_j(p->F72_ys[qn]);
-        jend = p->posc_j(p->F72_ye[qn]);
+        for(int qn=0;qn<p->F72;++qn)
+        {
+            istart = p->posc_i(p->F72_xs[qn]);
+            iend = p->posc_i(p->F72_xe[qn]);
+            
+            jstart = p->posc_j(p->F72_ys[qn]);
+            jend = p->posc_j(p->F72_ye[qn]);
 
-        SLICELOOP4
-        if(i>=istart && i<iend && j>=jstart && j<jend)
-        d->eta(i,j)= p->F72_h[qn] - p->F60;
+            SLICELOOP4
+            if(i>=istart && i<iend && j>=jstart && j<jend)
+            d->eta(i,j)= p->F72_h[qn] - p->F60;
 
-	}
+        }
     }
     
     

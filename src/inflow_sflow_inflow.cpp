@@ -51,8 +51,6 @@ void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, 
 		Q(i-1,j)=0.0;
         Q(i-2,j)=0.0;
         Q(i-3,j)=0.0;
-        
-        //cout<<"b->P(i-1,j): "<<b->P(i-1,j)<<endl;
     }
     
     pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);

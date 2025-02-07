@@ -89,9 +89,7 @@ void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, slice
         etaval = p->ccslipol4(eta,xc,yc);
         }
         
-
         press(i,j) = -H*fabs(p->W22)*p->W1*(draft(i,j)+etaval)*ramp_draft(p);
-
     }
     
     pgc->gcsl_start4(p,press,50);

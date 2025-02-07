@@ -357,6 +357,9 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     ddn=0.5*(b->hy(i,j)+b->hy(i+1,j)) + p->sl_ipol4(b->bed);
     }
     
+    if(p->P73==3)
+    ddn=p->sl_ipol4(b->eta) + p->wd;
+    
 	result.write((char*)&ddn, sizeof (double));
 	}
 

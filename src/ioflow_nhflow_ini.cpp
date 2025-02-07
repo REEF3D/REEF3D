@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-
 void ioflow_f::ini_nhflow(lexer *p,fdm_nhf *d,ghostcell *pgc)
 {
 

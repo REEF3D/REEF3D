@@ -120,7 +120,7 @@ void lexer::ini_default()
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Froude number limiter
-    A540=1;      // int NFHLOW fsf scheme
+    A540=1;      // int NFHLOW wetdry scheme
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance
     A543=1;		// int NHFLOW wetting & drying or coastline
