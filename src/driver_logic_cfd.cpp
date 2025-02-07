@@ -349,16 +349,16 @@ void driver::logic_cfd()
 
 
 // Free Surface
-    if(p->F30==0 && p->F80==0)
+    if((p->F30==0 && p->F80==0) || (p->N40==22||p->N40==23))
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 
-	if(p->F30==1)
+	if(p->F30==1  && p->N40!=22 && p->N40!=23)
 	pfsf = new levelset_AB2(p,a,pgc,pheat,pconc);
 
-	if(p->F30==2)
+	if(p->F30==2  && p->N40!=22 && p->N40!=23)
 	pfsf = new levelset_RK2(p,a,pgc,pheat,pconc);
 
-	if(p->F30==3)
+	if(p->F30==3  && p->N40!=22 && p->N40!=23)
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
 
 

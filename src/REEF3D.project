@@ -323,6 +323,9 @@
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="Func">
+            <File Name="nhflow_momentum_func.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.h"/>
           </VirtualDirectory>
@@ -1477,6 +1480,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="Func">
+            <File Name="nhflow_momentum_func.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_momentum_RK2.cpp"/>
           <VirtualDirectory Name="BC">
             <File Name="nhflow_bcmom.cpp"/>
