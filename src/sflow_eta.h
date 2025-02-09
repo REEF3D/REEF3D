@@ -47,6 +47,8 @@ public:
 	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&);
 private:
     
+    void wetdry_eta(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+    
 	
 	
 	int gcval_eta;
@@ -60,6 +62,7 @@ private:
     patchBC_interface *pBC;
 	
 	slice4 Lab;
+    int *temp;
     
         
 

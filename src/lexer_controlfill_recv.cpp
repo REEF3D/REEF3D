@@ -69,13 +69,7 @@ void lexer::ctrlrecv()
 	ii++;
     A243 = ictrl[ii];
 	ii++;
-    A244 = ictrl[ii];
-	ii++;
-    A244_val = dctrl[dd];
-	dd++;
-    A245 = ictrl[ii];
-	ii++;
-    A245_val = dctrl[dd];
+    A244 = dctrl[dd];
 	dd++;
     A246 = ictrl[ii];
 	ii++;

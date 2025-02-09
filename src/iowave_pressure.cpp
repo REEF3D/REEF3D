@@ -105,6 +105,8 @@ void iowave::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 		
 		if(a->phi(i,j,k)>=0.0)
         pval=(p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+        
+        //cout<<"PVAL: "<<pval<<endl;
 		
 		if(a->phi(i,j,k)<0.0)
         pval = a->press(i,j,k);

@@ -65,11 +65,7 @@ sflow_pjm_corr_lin::sflow_pjm_corr_lin(lexer* p, fdm2D *b, patchBC_interface *pp
 	
     wd_criterion=0.00005;
     
-    if(p->A244==1)
-    wd_criterion=p->A244_val;
-    
-    if(p->A245==1)
-    wd_criterion=p->A245_val*p->DXM;
+    wd_criterion=p->A244;
 }
 
 sflow_pjm_corr_lin::~sflow_pjm_corr_lin()

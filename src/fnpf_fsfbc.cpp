@@ -119,10 +119,10 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(
     c->wd_criterion=0.00005;
     
     if(p->A344==1)
-    c->wd_criterion=p->A244_val;
+    c->wd_criterion=p->A344_val;
     
     if(p->A345==1)
-    c->wd_criterion=p->A245_val*p->DXM;
+    c->wd_criterion=p->A345_val*p->DXM;
     
     if(p->A350==1)
     psolv =  new sflow_bicgstab(p,pgc);

@@ -111,11 +111,7 @@ double interpolation::sl_ipol1eta(int *wet,slice &f, slice &bed)
     double wd_criterion=0.00005;
     int jj;
     
-    if(p->A244==1)
-    wd_criterion=p->A244_val;
-    
-    if(p->A245==1)
-    wd_criterion=p->A245_val*p->DXM;
+    wd_criterion=p->A244;
     
     
     v1=v2=v3=v4=0.0;
@@ -201,12 +197,8 @@ double interpolation::sl_ipol2eta(int *wet,slice &f, slice &bed)
     double wd_criterion=0.00005;
     int jj;
     
-    if(p->A244==1)
-    wd_criterion=p->A244_val;
-    
-    if(p->A245==1)
-    wd_criterion=p->A245_val*p->DXM;
-    
+
+    wd_criterion=p->A244;
     
     v1=v2=v3=v4=0.0;
     
@@ -292,11 +284,8 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     double wd_criterion=0.00005;
     int jj;
     
-    if(p->A244==1)
-    wd_criterion=p->A244_val;
-    
-    if(p->A245==1)
-    wd_criterion=p->A245_val*p->DXM;
+    wd_criterion=p->A244;
+
     
     
     v1=v2=v3=v4=0.0;
