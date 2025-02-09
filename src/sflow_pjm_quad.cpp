@@ -53,15 +53,7 @@ sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b, patchBC_interface *ppBC) : pr
     
     pgrad = new sflow_gradient_weno(p);
     
-    
-    
-    wd_criterion=0.00005;
-    
-    if(p->A244==1)
-    wd_criterion=p->A244_val;
-    
-    if(p->A245==1)
-    wd_criterion=p->A245_val*p->DXM;
+    wd_criterion=p->A244;
 	
 }
 
