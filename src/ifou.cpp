@@ -111,7 +111,7 @@ void ifou::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, fiel
 
 	 
 	 a->M.p[count] = udir*ivel2/DX[IM1] - (1.0-udir)*ivel1/DX[IP]
-					+ (vdir*jvel2/DY[JM1] - (1.0-vdir)*jvel1/DY[JP])*p->y_dir;
+					+ (vdir*jvel2/DY[JM1] - (1.0-vdir)*jvel1/DY[JP])*p->y_dir
 					+ wdir*kvel2/DZ[KM1] - (1.0-wdir)*kvel1/DZ[KP];
 	 
 	 a->M.s[count] = -udir*ivel1/DX[IM1];

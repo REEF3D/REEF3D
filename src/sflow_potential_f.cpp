@@ -182,7 +182,6 @@ void sflow_potential_f::ucalc(lexer *p, fdm2D *b, slice &phi)
     SLICELOOP1
     if(p->wet[IJ]==0 || p->wet[Ip1J]==0)
 	b->P(i,j) = 0.0;
-	
 }
 
 void sflow_potential_f::vcalc(lexer *p, fdm2D *b, slice &phi)
