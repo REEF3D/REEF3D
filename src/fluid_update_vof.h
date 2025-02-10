@@ -25,7 +25,7 @@ Author: Hans Bihs
 
 class fdm;
 class lexer;
-class ghostcell;
+class ghostcell;class density;
 
 using namespace std;
 
@@ -44,7 +44,7 @@ private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
 	const double dx,visc_air,visc_water,ro_air,ro_water,visc_body;
-    double epsi;
+    double epsi;    density *pd;
 
 };
 

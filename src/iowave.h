@@ -84,7 +84,7 @@ public:
     virtual void w_relax(lexer*,fdm*,ghostcell*,field&);
     virtual void p_relax(lexer*,fdm*,ghostcell*,field&);
 	virtual void phi_relax(lexer*,ghostcell*,field&);
-    virtual void vof_relax(lexer*,ghostcell*,field&);
+    virtual void vof_relax(lexer*,fdm*,ghostcell*,field&);
     virtual void turb_relax(lexer*,fdm*,ghostcell*,field&);
     virtual void U_relax(lexer*,ghostcell*,double*,double*);
     virtual void V_relax(lexer*,ghostcell*,double*,double*);
@@ -248,6 +248,10 @@ private:
     void distbeach_ini(lexer*);
     void distgen_ini(lexer*);
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
+    
+    //PLIC
+    double V0Calc_PLIC(lexer*, fdm*, double, double, double, double);
+    
 
     int n,count;
     int wtype;

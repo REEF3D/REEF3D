@@ -59,7 +59,7 @@ void VOF_PLIC::redistance
     {
 		reconstructPlane(a, p);
 		
-        if (a->vof(i, j, k) < 0.999 && a->vof(i, j, k) > 0.001)
+        if (a->vof(i, j, k) < 0.9999 && a->vof(i, j, k) > 0.0001)
         {
 	//		cout<<"\nCell ID: "<<i<<" "<<k<<" "<<p->pos_x()<<" "<<p->pos_z()<<" "<<a->vof(i, j, k)<<endl;
 			
@@ -129,7 +129,7 @@ void VOF_PLIC::calcSegmentPoint
     int ip, 
 	int jp, 
 	int kp,
-	field4& changedFlag
+	field& changedFlag
 )
 {
 	double xs, ys, zs;
@@ -183,7 +183,7 @@ int VOF_PLIC::calcProjectionPoint
     int ip, 
 	int jp, 
 	int kp,
-	field4& changedFlag
+	field& changedFlag
 )
 {
 	double xi = p->pos_x();
@@ -240,7 +240,7 @@ int VOF_PLIC::calcBoundaryPoint
     int ip, 
 	int jp, 
 	int kp,
-	field4& changedFlag
+	field& changedFlag
 )
 {
     int l = max(-1, min(1, ip - i));
