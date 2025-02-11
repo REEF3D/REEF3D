@@ -134,8 +134,11 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     Ho = Ho/(hcount>1.0e-20?hcount:1.0e20); 
 	
 	if(p->B60==1)
-	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
 	
+    if(p->I10==1 && p->count<=1)
+	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+    
 	if(p->B60==2)
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
 	
