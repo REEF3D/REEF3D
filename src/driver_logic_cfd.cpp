@@ -52,6 +52,7 @@ void driver::logic_cfd()
 	if(p->mpirank==0)
     cout<<"creating objects"<<endl;
 
+    
 // time stepping
     if(p->N48==0)
 	ptstep=new fixtimestep(p);
@@ -62,6 +63,8 @@ void driver::logic_cfd()
 	if((p->N48==1) && (p->D20==0||p->D20>=2))
 	ptstep=new ietimestep(p);
     
+  
+    
 // Multiphase
 	if(p->F300==0)
 	pmp = new multiphase_v();
@@ -69,7 +72,7 @@ void driver::logic_cfd()
 	if(p->F300>0)
 	pmp = new multiphase_f(p,a,pgc);
 
-
+   
 //discretization scheme
 
     //Convection
@@ -120,6 +123,7 @@ void driver::logic_cfd()
     if(p->T12==55)
 	pturbdisc=new iweno_hj(p);
 
+
 	//  Convection FSF
 	if(p->F35==0 && p->F85==0)
 	pfsfdisc=new convection_void(p);
@@ -154,6 +158,7 @@ void driver::logic_cfd()
 	if(p->F35>=40 && p->F35<50)
 	pfsfdisc=new hires(p,p->F35);
     
+  
 //  Convection Multiphase LSM
 	if(p->F305==0)
 	pmpconvec=new convection_void(p);
@@ -181,6 +186,7 @@ void driver::logic_cfd()
 	
 	if(p->F305>=40 && p->F305<50)
 	pmpconvec=new hires(p,p->F305);
+    
 
 
 
@@ -223,7 +229,8 @@ void driver::logic_cfd()
 
 	if(p->S60>0&&p->S60<10)
 	pconcdisc=new weno_hj(p);
-
+    
+  
 //turbulence model
 	if(p->T10==0)
 	pturb = new kepsilon_void(p,a,pgc);
@@ -347,7 +354,7 @@ void driver::logic_cfd()
 	if(p->D20>=2 && p->C10<=10 && p->C10>0)
 	pconcdiff=new idiff2_FS(p);
 
-
+   
 // Free Surface
     if((p->F30==0 && p->F80==0) || (p->N40==22||p->N40==23||p->N40==33))
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
@@ -387,8 +394,11 @@ void driver::logic_cfd()
 
 	if(p->F80==4)
 	pfsf = new VOF_PLIC(p,a,pgc,pheat);
+    
+    if(p->F80==5)
+    pfsf = new VOF_void(p,a,pgc,pheat);
 
-
+    
     //  Convection VOF
 	if(p->F85==0 && p->F35==0)
 	pfsfdisc=new convection_void(p);
@@ -426,7 +436,7 @@ void driver::logic_cfd()
 	if(p->F85==53)
 	pfsfdisc=new cicsam(p);
 
-
+    
 //pressure scheme
 	if(p->D30==0)
 	ppress = new pressure_void(p);
@@ -629,6 +639,9 @@ void driver::logic_cfd()
     
     if(p->N40==23)
 	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    if(p->F80==5)
+    pmom = new momentum_FC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pfsi,preini);
     
     if(p->N40==33)
 	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);

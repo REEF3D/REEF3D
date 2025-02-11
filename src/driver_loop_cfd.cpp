@@ -77,6 +77,7 @@ void driver::loop_cfd(fdm* a)
             
 			fill_vel(p,a,pgc);
 			
+            
             pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);

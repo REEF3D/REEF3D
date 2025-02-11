@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"VOF_AB.h"
 #include"VOF_RK3.h"
 #include"VOF_PLIC.h"
+#include"VOF_void.h"
 
 #include"multiphase_v.h"
 #include"multiphase_f.h"
