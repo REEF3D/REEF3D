@@ -119,6 +119,8 @@ void sflow_eta::wetdry_eta(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
     SLICELOOP4
 	b->hp(i,j) = eta(i,j) + b->depth(i,j);
     
+    pgc->gcsl_start4(p,b->hp,gcval_eta);
+    
         if(p->count==0)
         {
             SLICELOOP4
@@ -136,6 +138,10 @@ void sflow_eta::wetdry_eta(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
             p->wet[IJ]=0;
             temp[IJ]=0;
             }
+            
+            
+        pgc->gcsl_start4(p,eta,gcval_eta);
+        pgc->gcsl_start4(p,b->hp,gcval_eta);
         }
         
     SLICELOOP4
@@ -153,16 +159,16 @@ void sflow_eta::wetdry_eta(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
     {
         if(p->wet[IJ]==0)
         {
-            if(p->wet[Ip1J]==1 && eta(i,j)<eta(i+1,j))// && b->hp(i+1,j)>wd_criterion+eps)
+            if(p->wet[Ip1J]==1 && eta(i,j)<eta(i+1,j) && b->hp(i+1,j)>wd_criterion+eps)
             temp[IJ]=1;
             
-            if(p->wet[Im1J]==1 && eta(i,j)<eta(i-1,j))// && b->hp(i-1,j)>wd_criterion+eps)
+            if(p->wet[Im1J]==1 && eta(i,j)<eta(i-1,j) && b->hp(i-1,j)>wd_criterion+eps)
             temp[IJ]=1;
             
-            if(p->wet[IJp1]==1 && eta(i,j)<eta(i,j+1) )//&& b->hp(i,j+1)>wd_criterion+eps && p->j_dir==1)
+            if(p->wet[IJp1]==1 && eta(i,j)<eta(i,j+1) && b->hp(i,j+1)>wd_criterion+eps && p->j_dir==1)
             temp[IJ]=1;
             
-            if(p->wet[IJm1]==1 && eta(i,j)<eta(i,j-1))// && b->hp(i,j-1)>wd_criterion+eps && p->j_dir==1)
+            if(p->wet[IJm1]==1 && eta(i,j)<eta(i,j-1) && b->hp(i,j-1)>wd_criterion+eps && p->j_dir==1)
             temp[IJ]=1;
         }
         
