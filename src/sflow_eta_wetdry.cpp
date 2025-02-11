@@ -91,12 +91,12 @@ void sflow_eta::wetdry_eta(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
     double eps=1.0e-6;
     
     SLICELOOP4
-	b->hp(i,j) = MAX(eta(i,j) + p->wd - b->bed(i,j),0.0);
+	b->hp(i,j) = eta(i,j) + p->wd - b->bed(i,j);
     
         if(p->count==0)
         {
             SLICELOOP4
-            if(eta(i,j)< -p->wd  + b->bed(i,j) - wd_criterion + 1.0e-10)
+            if(eta(i,j)< -p->wd  + b->bed(i,j) + wd_criterion + 1.0e-10)
             {
             temp[IJ]=0;
             eta(i,j) = -p->wd  + b->bed(i,j)   - wd_criterion - 1.0e-15;
@@ -142,7 +142,7 @@ void sflow_eta::wetdry_eta(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
         }
         
         else              
-        if(eta(i,j)< -p->wd  + b->bed(i,j) - wd_criterion + 1.0e-10)
+       if(eta(i,j)< -p->wd  + b->bed(i,j) + wd_criterion + 1.0e-10)
         {
         temp[IJ]=0;
         eta(i,j) = -p->wd  + b->bed(i,j)   - wd_criterion - 1.0e-15;
@@ -194,7 +194,17 @@ void sflow_eta::wetdry_eta(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
     
     
     SLICELOOP4
-    if(eta(i,j)< -p->wd  + b->bed(i,j) - wd_criterion + 1.0e-20)
+    if(eta(i,j)< -p->wd  + b->bed(i,j) + wd_criterion + 1.0e-20)
     eta(i,j) = -p->wd  + b->bed(i,j)   - wd_criterion - 1.0e-15;
+    
+    
+    /*
+    WL = depth+eta;
+    depth = wd-bed;
+    WL = wd-bed+eta;
+    
+    hp = wd-bed+eta;
+    
+    eta = hp-wd+bed*/
     
 }

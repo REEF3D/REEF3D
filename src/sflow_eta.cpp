@@ -143,6 +143,8 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     }
     
     
+    if(p->A243==1)
+    {
     SLICELOOP4
     if(eta(i,j)< -p->wd  + b->bed(i,j) - wd_criterion + 1.0e-20)
     eta(i,j) = -p->wd  + b->bed(i,j)   - wd_criterion - 1.0e-15;
@@ -171,18 +173,16 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     
     
     // wetdry
-    if(p->A243==1)
+
     wetdry(p,b,pgc,P,Q,ws);
+    }
     
     if(p->A243==2)
     wetdry_eta(p,b,pgc,eta,P,Q,ws);
-    
-    
 }
 	
 void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)
 {
-    
     p->phimean=p->F60;
     
     SLICELOOP4
@@ -191,6 +191,5 @@ void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)
     pflow->eta_relax(p,pgc,b->eta);
     
     pgc->gcsl_start4(p,b->eta,gcval_eta);
-
 }
 
