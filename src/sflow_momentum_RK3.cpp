@@ -98,7 +98,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 //Step 1
 //--------------------------------------------------------
     // fsf
-    pfsf->wetdry(p,b,pgc,b->P,b->Q,b->ws);
+    pfsf->wetdry(p,b,pgc,b->eta,b->P,b->Q,b->ws);
     pfsf->disc(p,b,pgc,b->P,b->Q,b->ws,b->eta);
 
     SLICELOOP4
@@ -188,7 +188,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 //--------------------------------------------------------
 
     // fsf
-    pfsf->wetdry(p,b,pgc,Prk1,Qrk1,wrk1);
+    pfsf->wetdry(p,b,pgc,etark1,Prk1,Qrk1,wrk1);
     pfsf->disc(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
 
     SLICELOOP4
@@ -278,7 +278,7 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 //--------------------------------------------------------
 
     //fsf
-    pfsf->wetdry(p,b,pgc,Prk2,Qrk2,wrk2);
+    pfsf->wetdry(p,b,pgc,etark2,Prk2,Qrk2,wrk2);
     pfsf->disc(p,b,pgc,Prk2,Qrk2,wrk2,etark2);
 
     SLICELOOP4

@@ -345,7 +345,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
 	result.write((char*)&ddn, sizeof (double));
 
     if(p->P73==0)
-	ddn=p->sl_ipol4eta(p->wet,b->eta,b->bed)+p->wd;
+	ddn=p->sl_ipol4eta(p->wet,b->eta,b->bed) + p->wd;
+    
+    if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && p->wet[IJp1]==1 && p->wet[Ip1Jp1]==1)
+    ddn = MAX(ddn,b->bednode(i,j)+p->A244);
     
     if(p->P73==1)
     {

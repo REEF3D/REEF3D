@@ -116,12 +116,12 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
         if(p->wet[IJ]==1)
         {
     
-        area = p->DYN[JP]*b->hp(i,j);
+        area = p->DYN[JP]*b->hp(i+1,j);
         
         Ao+=area;
         p->Qo+=area*b->P(i,j);
         
-        hval += b->hp(i,j);
+        hval += b->hp(i+1,j);
         ++hcount;
         }
     }
