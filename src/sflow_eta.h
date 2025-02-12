@@ -47,7 +47,7 @@ public:
 	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
 private:
     
-    void wetdry_eta(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+    void wetdry_nb(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     
 	
 	
