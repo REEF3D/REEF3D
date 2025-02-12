@@ -152,7 +152,12 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	if(p->F46!=2 && p->F46!=3)
 	ppicard = new picard_void(p);
     
-    ro_threshold = 0.05*p->W1 + p->W3;
+    if(p->F45>=2.0)
+        ro_threshold = 0.05*p->W1 + p->W3;
+    else if(p->F45>=1.0)
+        ro_threshold = 0.1*p->W1 + p->W3;
+    else
+        ro_threshold = 0.16*p->W1 + p->W3;
 }
 
 momentum_FCC3::~momentum_FCC3()
