@@ -127,7 +127,7 @@ void sflow_eta::wetdry_eta(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
             if(eta(i,j)< -b->depth(i,j) + wd_criterion)
             {
             temp[IJ]=0;
-            eta(i,j) = -b->depth(i,j)  + wd_criterion - 1.0e-8;
+            eta(i,j) = -b->depth(i,j)  - wd_criterion - eps;
             b->hp(i,j) = wd_criterion;
             }
             
@@ -176,7 +176,7 @@ void sflow_eta::wetdry_eta(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
         if(eta(i,j)< -b->depth(i,j) + wd_criterion)
         {
         temp[IJ]=0;
-        eta(i,j) = -b->depth(i,j)  + wd_criterion - 1.0e-8;
+        eta(i,j) = -b->depth(i,j)  - wd_criterion - eps;
         b->hp(i,j) = wd_criterion;
         }
     }
