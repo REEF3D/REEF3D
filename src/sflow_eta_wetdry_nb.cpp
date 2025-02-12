@@ -37,13 +37,12 @@ void sflow_eta::wetdry_nb(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice 
         if(p->count==0)
         {
             SLICELOOP4
-            if(eta(i,j)< -b->depth(i,j) + wd_criterion + eps)
+            if(eta(i,j) <= wd_criterion - b->depth(i,j) + eps)
             {
             temp[IJ]=0;
             eta(i,j) = wd_criterion - b->depth(i,j);
             b->hp(i,j) = wd_criterion;
             }
-            
             
             SLICEBASELOOP
             if(p->flagslice4[IJ]<0)
@@ -51,7 +50,6 @@ void sflow_eta::wetdry_nb(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice 
             p->wet[IJ]=0;
             temp[IJ]=0;
             }
-            
             
         pgc->gcsl_start4(p,eta,gcval_eta);
         pgc->gcsl_start4(p,b->hp,gcval_eta);
@@ -86,7 +84,7 @@ void sflow_eta::wetdry_nb(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice 
         }
         
         else              
-        if(eta(i,j)< -b->depth(i,j) + wd_criterion + eps)
+        if(eta(i,j) < wd_criterion - b->depth(i,j) + eps)
         {
         temp[IJ]=0;
         eta(i,j) = wd_criterion - b->depth(i,j);
@@ -105,7 +103,7 @@ void sflow_eta::wetdry_nb(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice 
           if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
            b->wet1(i,j)=1;
            
-          if(p->wet[IJ]==0 || p->wet[Ip1J]==0)
+          if(p->wet[IJ]==0 || p->wet[Ip1J]==0)// || b->hx(i,j)<wd_criterion)
           {
            b->P(i,j)=0.0; 
            P(i,j)=0.0; 
@@ -118,7 +116,7 @@ void sflow_eta::wetdry_nb(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice 
           if(p->wet[IJ]==1 && p->wet[IJp1]==1)
            b->wet2(i,j)=1;
            
-          if(p->wet[IJ]==0 || p->wet[IJp1]==0)
+          if(p->wet[IJ]==0 || p->wet[IJp1]==0)// || b->hy(i,j)<wd_criterion)
           {
            b->Q(i,j)=0.0; 
            Q(i,j)=0.0; 
@@ -127,22 +125,12 @@ void sflow_eta::wetdry_nb(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice 
       }
     pgc->gcsl_start1int(p,b->wet1,50);
     pgc->gcsl_start2int(p,b->wet2,50);
-    
+    /*
     SLICELOOP1
     b->hx(i,j) = MAX(b->hx(i,j), wd_criterion);
     
     SLICELOOP2
     b->hy(i,j) = MAX(b->hy(i,j), wd_criterion);
-    
+    */
 
-    
-    /*
-    WL = depth+eta;
-    depth = wd-bed;
-    WL = wd-bed+eta;
-    
-    hp = wd-bed+eta;
-    
-    eta = hp-wd+bed*/
-    
 }

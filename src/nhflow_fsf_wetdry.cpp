@@ -94,19 +94,18 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     if(p->A540==2)
     { 
     
-    SLICELOOP4
-    {
-        if(WL(i,j)>=p->A544)
-        p->wet[IJ]=1;
-        
-        if(WL(i,j)<=p->A544+eps)
+        SLICELOOP4
         {
-        p->wet[IJ]=0;
-        d->eta(i,j) =  p->A544 - d->depth(i,j);
-        WL(i,j) = p->A544;
+            if(WL(i,j)>=p->A544)
+            p->wet[IJ]=1;
+            
+            if(WL(i,j)<=p->A544+eps)
+            {
+            p->wet[IJ]=0;
+            d->eta(i,j) =  p->A544 - d->depth(i,j);
+            WL(i,j) = p->A544;
+            }
         }
-    }
-    
     }
     
     // avoid isolated wetdry
