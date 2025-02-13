@@ -96,9 +96,8 @@ double wave_lib_irregular_1st::wave_u(lexer *p, double x, double y, double z)
 	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 	
 	for(n=0;n<p->wN;++n)
-    if(z<=Ai[n]*cos(Ti[n]))
     vel += wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinhkd[n] ) *cos(Ti[n]) * cosbeta[n];
-
+    
     if(p->B130==0)
     vel*=cosgamma;
     
@@ -154,7 +153,6 @@ double wave_lib_irregular_1st::wave_v(lexer *p, double x, double y, double z)
 	
 	
 	for(n=0;n<p->wN;++n)
-    if(z<=Ai[n]*cos(Ti[n]))
     vel += wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinhkd[n] ) * cos(Ti[n]) * sinbeta[n];
 	
     if(p->B130==0)
@@ -211,7 +209,6 @@ double wave_lib_irregular_1st::wave_w(lexer *p, double x, double y, double z)
 	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 
 	for(n=0;n<p->wN;++n)
-    if(z<=Ai[n]*cos(Ti[n]))
     vel += wi[n]*Ai[n]* (sinh(ki[n]*(wdt+z))/sinhkd[n]) * sin(Ti[n]);
 	
     return vel;
