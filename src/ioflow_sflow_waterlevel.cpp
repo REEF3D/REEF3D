@@ -83,15 +83,18 @@ void ioflow_f::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
         i=p->gcslout[n][0];
         j=p->gcslout[n][1];
         
-        eta(i,j)   = wsfout-p->wd;
-        eta(i+1,j) = wsfout-p->wd;
-        eta(i+2,j) = wsfout-p->wd;
-        eta(i+3,j) = wsfout-p->wd;
+            if(p->wet[IJ]==1)
+            {
+            eta(i,j)   = wsfout-p->wd;
+            eta(i+1,j) = wsfout-p->wd;
+            eta(i+2,j) = wsfout-p->wd;
+            eta(i+3,j) = wsfout-p->wd;
 
-        b->hp(i,j)   = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+            b->hp(i,j)   = MAX(eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+            b->hp(i+1,j) = MAX(eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+            b->hp(i+2,j) = MAX(eta(i+2,j) + p->wd - b->bed(i,j),0.0);
+            b->hp(i+3,j) = MAX(eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+            }
         }
 
     

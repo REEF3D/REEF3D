@@ -232,35 +232,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     pgc->gcslparaxijk(p, p->sigz, 1);
     
     
-    /*
-    if(p->mpirank==10)
-    {
-    cout<<"SIGMA_UPDATE ---------1"<<endl;
-    
-    k=0;
-    cout<<p->ZN[KM1]<<endl;
-    
-    FKLOOP
-    cout<<p->ZN[KP]<<endl;
-    
-    k=p->knoz;
-    cout<<p->ZN[KP1]<<endl;
-    }
-    
-    if(p->mpirank==10)
-    {
-    cout<<"SIGMA_UPDATE ---------2"<<endl;
-    
-    k=0;
-    cout<<p->ZP[KM1]<<endl;
-    
-    KLOOP
-    cout<<p->ZP[KP]<<endl;
-    
-    k=p->knoz;
-    cout<<p->ZP[KP1]<<endl;
-    }*/
-    
     SLICELOOP4
     {
         k=0;
@@ -268,10 +239,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->ZSN[FIJKm1] = p->ZN[KM1]*WL(i,j) + d->bed(i,j);
             p->ZSN[FIJKm2] = p->ZN[KM2]*WL(i,j) + d->bed(i,j);
             p->ZSN[FIJKm3] = p->ZN[KM3]*WL(i,j) + d->bed(i,j);
-            
-            //if(p->mpirank==0)
-            //cout<<p->mpirank<<" p->ZSN[FIJKm1]: "<<p->ZSN[FIJK]<<" "<<p->ZSN[FIJKm1]<<endl;
-
         
         k=p->knoz;
 
@@ -288,21 +255,12 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->ZSP[IJKm1] = p->ZP[KM1]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKm2] = p->ZP[KM2]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKm3] = p->ZP[KM3]*WL(i,j) + d->bed(i,j);
-            
-            
-            //cout<<p->ZSP[IJK]<<" "<<p->ZSP[IJKm1]<<" "<<p->ZSP[IJKm2]<<" "<<p->ZSP[IJKm3]<<" "<<WL(i,j)<<endl;
-            //cout<<p->ZP[KM1]<<" "<<p->ZP[KM2]<<" "<<p->ZP[KM3]<<endl;
-
         
         k=p->knoz-1;
 
             p->ZSP[IJKp1] = p->ZP[KP1]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKp2] = p->ZP[KP2]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
-            
-            //if(p->ZSP[IJKm1]==p->ZSP[IJK] || p->ZSP[IJK]==p->ZSP[IJKp1])
-            //if(i==0 && j==0)
-            //cout<<p->ZSP[IJKm1]<<" "<<p->ZSP[IJK]<<" "<<p->ZSP[IJKp1]<<" "<<p->ZSP[IJKp2]<<" "<<p->ZSP[IJKp3]<<" "<<WL(i,j)<<endl;
     }
 }
 

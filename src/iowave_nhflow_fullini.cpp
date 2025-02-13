@@ -57,9 +57,14 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         yg = ygen(p);
         
         z=p->ZSP[IJK]-p->phimean;
+        
+        
 
         d->U[IJK] = wave_u(p,pgc,xg,yg,z);
         d->UH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->U[IJK];
+        
+        
+        d->test[IJK] = xg;
 	}	
 	
 	LOOP

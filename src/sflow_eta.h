@@ -44,10 +44,10 @@ public:
     virtual void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
     virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
-	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&);
+	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
 private:
     
-    void wetdry_eta(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+    void wetdry_nb(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     
 	
 	
