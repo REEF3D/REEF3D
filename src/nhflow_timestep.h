@@ -48,7 +48,7 @@ private:
 	double isor,jsor,ksor;
 	double irsm,jrsm,krsm;
     const double maxtimestep, c0_orig;
-    double dx;
+    double dx,dz;
 
 };
 

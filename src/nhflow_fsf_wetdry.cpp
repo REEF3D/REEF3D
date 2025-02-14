@@ -109,7 +109,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     }
     
     // avoid isolated wetdry
-    SLICELOOP4
+   /* SLICELOOP4
     if(p->wet[IJ]==1)
     {
     if(p->wet[Im1J]==0 && p->flagslice4[Ip1J]<0)
@@ -138,7 +138,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     if(p->wet[IJp1]==0 && p->wet[IJm1]==0)
     p->wet[IJ]=0;
         
-    }
+    }*/
     
     //------------
     LOOP

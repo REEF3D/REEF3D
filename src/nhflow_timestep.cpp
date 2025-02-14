@@ -99,12 +99,15 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
 
     LOOP
+    WETDRY
     {
     if(p->j_dir==1 && p->knoy>1)
     dx = MIN(p->DXN[IP],p->DYN[JP]);
     
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
+    
+    dz = p->DZN[KP]*d->WL(i,j);
     
     /*cu = MIN(cu, 1.0/(MAX(fabs(p->umax), sqrt(9.81*depthmax))/dx));
     
@@ -122,11 +125,20 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     //co = MIN(co, 1.0/((fabs(p->omegamax)/dx)));
     }
-
+    
+    cu = pgc->globalmin(cu);
+    cw = pgc->globalmin(cw);
+    
+    if(p->mpirank==0)
+    cout<<"CU: "<<cu<<" CW: "<<cw<<endl;
+    
+    
     if(p->j_dir==1 )
     cu = MIN(cu,cv);
     
     cu = MIN(cu,cw);
+    
+    
     
     //cu = MIN(cu,co);
     
@@ -139,6 +151,9 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     else
 	p->dt=MIN(p->dt,maxtimestep);
+    
+    
+    
     
     // reini
     p->recontime=0.0;
