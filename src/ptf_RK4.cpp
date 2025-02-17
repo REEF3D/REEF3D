@@ -30,7 +30,6 @@ Author: Hans Bihs
 #include"solver.h"
 #include"reini.h"
 #include"ptf_laplace_cds2.h"
-#include"ptf_laplace_cds4.h"
 #include"ptf_fsf_update.h"
 #include"ptf_bed_update.h"
 
@@ -57,12 +56,8 @@ ptf_RK4::ptf_RK4(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),
     
     gcval_eta = 50;
     gcval_fifsf = 50;
-    
-    if(p->A320==1)
+
     plap = new ptf_laplace_cds2(p,a,pgc);
-    
-    if(p->A320==2)
-    plap = new ptf_laplace_cds4;
     
     pfsfupdate = new ptf_fsf_update(p,a,pgc);
     

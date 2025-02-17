@@ -129,9 +129,6 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cu = pgc->globalmin(cu);
     cw = pgc->globalmin(cw);
     
-    if(p->mpirank==0)
-    cout<<"CU: "<<cu<<" CW: "<<cw<<endl;
-    
     
     if(p->j_dir==1 )
     cu = MIN(cu,cv);

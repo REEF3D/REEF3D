@@ -60,8 +60,6 @@ public:
     void make_grid(lexer*,ghostcell*);
     void delete_grid(lexer*,ghostcell*);
 	void fill_matrix_7p(lexer*,fdm*, ghostcell*,field&);
-    void fill_matrix_13p(lexer*,fdm*, ghostcell*,field&);
-    void fill_matrix_19p(lexer*,fdm*, ghostcell*,field&);
     
     void fillbackvec_F(lexer*,double*,double*,int);
     void fillbackvec_F_v2(lexer*,double*,double*,int);
@@ -74,11 +72,7 @@ public:
     virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void make_grid_F(lexer*, ghostcell*);
     void fill_matrix_F_7p(lexer*,ghostcell*, matrix_diag&,double*,double*,vec&);
-    void fill_matrix_F_13p(lexer*, ghostcell*, matrix_diag&,double*,double*,vec&);
-    void fill_matrix_F_19p(lexer*, ghostcell*, matrix_diag&,double*,double*,vec&);
-    void fill_matrix_F_7p_v2(lexer*,ghostcell*, matrix_diag&,double*,double*,vec&);
-    void fill_matrix_F_13p_v2(lexer*, ghostcell*, matrix_diag&,double*,double*,vec&);
-    void fill_matrix_F_19p_v2(lexer*, ghostcell*, matrix_diag&,double*,double*,vec&);
+
 	
     
     
