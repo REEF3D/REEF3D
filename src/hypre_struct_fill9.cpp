@@ -175,8 +175,6 @@ void hypre_struct::fill_matrix9(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 		{
 		n=CVAL4[IJK];
 		values[count] = rhs.V[n];
-        
-        //cout<<rhs.V[n]<<endl;
 		}
 		
 		FSWDCHECK
