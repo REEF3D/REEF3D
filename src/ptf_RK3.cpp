@@ -61,11 +61,8 @@ ptf_RK3::ptf_RK3(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),erk1(p),
     gcval_fifsf = 160;
     }
     
-    if(p->A320==1)
     plap = new ptf_laplace_cds2(p,a,pgc);
     
-    if(p->A320==2)
-    plap = new ptf_laplace_cds4;
     
     pfsfupdate = new ptf_fsf_update(p,a,pgc);
     

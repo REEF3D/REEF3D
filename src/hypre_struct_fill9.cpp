@@ -155,6 +155,8 @@ void hypre_struct::fill_matrix9(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 	{
 		FPWDCHECK
 		values[count] = f[FIJK];
+        
+        //cout<< f[FIJK]<<endl;
 		
 		FSWDCHECK
 		values[count] = 0.0;

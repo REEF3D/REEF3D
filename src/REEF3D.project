@@ -1148,7 +1148,6 @@
           <File Name="ptf_bed_update.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
-          <File Name="ptf_laplace_cds4.cpp"/>
           <File Name="ptf_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
@@ -2785,7 +2784,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="HYPRE SStruct">
         <File Name="hypre_sstruct_fillM.cpp"/>
-        <File Name="hypre_sstruct_fill10.cpp"/>
         <File Name="hypre_sstruct_solve.cpp"/>
         <File Name="hypre_sstruct_grid.cpp"/>
         <File Name="hypre_sstruct_fill8.cpp"/>

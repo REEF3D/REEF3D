@@ -55,7 +55,6 @@ public:
     void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    void start_solver10(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solverM(lexer*, ghostcell*, double*, double*, double*);
     
     void solve(lexer*);
@@ -76,8 +75,7 @@ public:
     void fill_matrix3(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
-    void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
-    void fill_matrix10(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+     void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     
     void fill_matrixM(lexer*, ghostcell*,double*, double*, double*);
     void fill_matrixM_2Dvert(lexer*, ghostcell*,double*, double*, double*);
@@ -89,7 +87,6 @@ public:
 
     void fillbackvec7(lexer*,double*,int);
     void fillbackvec8(lexer*,double*,int);
-    void fillbackvec10(lexer*,double*,int);
     
     void fillbackvecM(lexer*,double*);
     
