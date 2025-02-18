@@ -527,7 +527,7 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
 	p->xtime+=timer()-starttime;
 }
 
-void ghostcell::start20V(lexer *p, double *f, int gcv)
+void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
 {
     starttime=timer();
     gcparaxV(p, f, gcv);
@@ -555,11 +555,21 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
 
     // xxxxxxx
         // s
-        if((p->flag4[Im1JK]<0 && inflow==0) || (p->DF[Im1JK]<0 && p->B11==1))
+        if((p->flag4[Im1JK]<0 && inflow==0) || (p->DF[Im1JK]<0))
         {
-        f[Im1JK] = f[IJK];
-        f[Im2JK] = f[IJK];
-        f[Im3JK] = f[IJK];
+            if(p->B11==1)
+            {
+            f[Im1JK] = f[IJK];
+            f[Im2JK] = f[IJK];
+            f[Im3JK] = f[IJK];
+            }
+            
+            if(p->B11!=1)
+            {
+            f[Im1JK] = 0.0;
+            f[Im2JK] = 0.0;
+            f[Im3JK] = 0.0;
+            }
         }
         
         if(p->flag4[Im1JK]<0 && inflow==1)
@@ -570,11 +580,21 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
         }
           
         // n
-        if((p->flag4[Ip1JK]<0 && outflow==0) || (p->DF[Ip1JK]<0 && p->B11==1))
+        if((p->flag4[Ip1JK]<0 && outflow==0) || (p->DF[Ip1JK]<0))
         {
-        f[Ip1JK] = f[IJK];
-        f[Ip2JK] = f[IJK];
-        f[Ip3JK] = f[IJK];
+            if(p->B11==1)
+            {
+            f[Ip1JK] = f[IJK];
+            f[Ip2JK] = f[IJK];
+            f[Ip3JK] = f[IJK];
+            }
+            
+            if(p->B11!=1)
+            {
+            f[Ip1JK] = 0.0;
+            f[Ip2JK] = 0.0;
+            f[Ip3JK] = 0.0;
+            }
         }
         
         if(p->flag4[Ip1JK]<0 && outflow==2)
@@ -585,41 +605,81 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)
         }
         
     // yyyyy
-        if((p->flag4[IJm1K]<0  || (p->DF[IJm1K]<0 && p->B11==1)) && p->j_dir==1) 
+        if((p->flag4[IJm1K]<0  || (p->DF[IJm1K]<0)) && p->j_dir==1) 
         {
-        f[IJm1K] = f[IJK];
-        f[IJm2K] = f[IJK];
-        f[IJm3K] = f[IJK];
+            if(p->B11==1)
+            {
+            f[IJm1K] = f[IJK];
+            f[IJm2K] = f[IJK];
+            f[IJm3K] = f[IJK];
+            }
+            
+            if(p->B11!=1)
+            {
+            f[IJm1K] = 0.0;
+            f[IJm2K] = 0.0;
+            f[IJm3K] = 0.0;
+            }
         }
         
-        if((p->flag4[IJp1K]<0  || (p->DF[IJp1K]<0 && p->B11==1)) && p->j_dir==1) 
+        if((p->flag4[IJp1K]<0  || (p->DF[IJp1K]<0)) && p->j_dir==1) 
         {
-        f[IJp1K] = f[IJK];
-        f[IJp2K] = f[IJK];
-        f[IJp3K] = f[IJK];
+            if(p->B11==1)
+            {
+            f[IJp1K] = f[IJK];
+            f[IJp2K] = f[IJK];
+            f[IJp3K] = f[IJK];
+            }
+            
+            if(p->B11!=1)
+            {
+            f[IJp1K] = 0.0;
+            f[IJp2K] = 0.0;
+            f[IJp3K] = 0.0;
+            }        
         }
         
     // zzzzz
-        if(p->flag4[IJKp1]<0  || (p->DF[IJKp1]<0 && p->B11==1) || k==p->knoz-1)
+        if(p->flag4[IJKp1]<0  || (p->DF[IJKp1]<0) || k==p->knoz-1)
         {
-        f[IJKp1] = f[IJK];
-        f[IJKp2] = f[IJK];
-        f[IJKp3] = f[IJK];
+            if(p->B11==1)
+            {
+            f[IJKp1] = f[IJK];
+            f[IJKp2] = f[IJK];
+            f[IJKp3] = f[IJK];
+            }
+            
+            if(p->B11!=1)
+            {
+            f[IJKp1] = 0.0;
+            f[IJKp2] = 0.0;
+            f[IJKp3] = 0.0;
+            }
         }
 
         // bed
         if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0 && p->B11==1)   || (k==0 && p->B11==2))
         {
-        f[IJKm1] = f[IJK];
-        f[IJKm2] = f[IJK];
-        f[IJKm3] = f[IJK];
+            if(p->B11>=1)
+            {
+            f[IJKm1] = f[IJK];
+            f[IJKm2] = f[IJK];
+            f[IJKm3] = f[IJK];
+            }
+            
+            if(p->B11==0)
+            {
+            f[IJKm1] = 0.0;
+            f[IJKm2] = 0.0;
+            f[IJKm3] = 0.0;
+            }
         }
     }
     
     p->gctime+=timer()-starttime;
 }
 
-void ghostcell::start24V(lexer *p, double *f, int gcv)
+void ghostcell::start24V(lexer *p, double *f, int gcv) //EDDYV
 {
     starttime=timer();
     gcparaxV(p, f, gcv);
@@ -718,7 +778,7 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)
     p->gctime+=timer()-starttime;
 }
 
-void ghostcell::start30V(lexer *p, double *f, int gcv)
+void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
 {
     starttime=timer();
     gcparaxV(p, f, gcv);
