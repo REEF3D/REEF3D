@@ -242,6 +242,9 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
         }
 	}
     
+    if(p->B99==1 || p->B99==2)
+    beach_relax=1;
+    
     expinverse = 1.0/(exp(1.0)-1.0);
     
     if(p->mpirank==0)

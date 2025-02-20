@@ -129,7 +129,7 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
          ++count;
 		}
         
-        
+        /*
          if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
 		{
             for(int q=0;q<4;++q)
@@ -142,6 +142,6 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             d->EV[IJK]=MIN(d->EV[IJK],1.0e-4);
             }
          pgc->start24V(p,d->EV,24);
-		}
+		}*/
         
 }
