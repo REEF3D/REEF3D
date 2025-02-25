@@ -45,17 +45,17 @@ sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b, patchBC_interface *ppBC) : pr
     pBC = ppBC;
     
     gcval_press=40;  
-	
-	gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
-	
-	disc = new sflow_weno_hj(p);
+    
+    gcval_u=10;
+    gcval_v=11;
+    gcval_w=12;
+    
+    disc = new sflow_weno_hj(p);
     
     pgrad = new sflow_gradient_weno(p);
     
     wd_criterion=p->A244;
-	
+    
 }
 
 sflow_pjm_quad::~sflow_pjm_quad()
@@ -66,86 +66,86 @@ void sflow_pjm_quad::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, 
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
-	
-	starttime=pgc->timer();
-	
+    
+    starttime=pgc->timer();
+    
     quad_prep(p,b,pgc,P,Q,eta,alpha);
     quad_calc(p,b,Ps,Qs,Pn,Qn,alpha);
     
     rhs(p,b,P,Q,ws,alpha);
-	pgc->gcsl_start4(p,b->press,gcval_press);
-	
+    pgc->gcsl_start4(p,b->press,gcval_press);
+    
     pgc->gcsl_start4(p,phi4,1);
     
     poisson(p,b,alpha);
-	
+    
         solvtime=pgc->timer();
 
     psolv->start(p,pgc,b->press,b->M,b->xvec,b->rhsvec,4);
-	
+    
         p->poissontime=pgc->timer()-solvtime;
   
     pflow->pm_relax(p,pgc,b->press);
-	pgc->gcsl_start4(p,b->press,gcval_press);
+    pgc->gcsl_start4(p,b->press,gcval_press);
     pgc->gcsl_start4(p,press_n,gcval_press);
     
     
-	ucorr(p,b,P,eta,alpha);
-	vcorr(p,b,Q,eta,alpha);
+    ucorr(p,b,P,eta,alpha);
+    vcorr(p,b,Q,eta,alpha);
     wcorr(p,b, alpha, P, Q, ws);
-	pgc->gcsl_start4(p,ws,12);
+    pgc->gcsl_start4(p,ws,12);
 
     p->poissoniter=p->solveriter;
 
-	ptime=pgc->timer()-starttime;
+    ptime=pgc->timer()-starttime;
 
-	if(p->mpirank==0 && (p->count%p->P12==0) && (p->count%p->P12==0))
-	cout<<"piter: "<<p->solveriter<<"  solvtime: "<<setprecision(3)<<p->poissontime<<"  ptime: "<<setprecision(3)<<ptime<<endl;
+    if(p->mpirank==0 && (p->count%p->P12==0) && (p->count%p->P12==0))
+    cout<<"piter: "<<p->solveriter<<"  solvtime: "<<setprecision(3)<<p->poissontime<<"  ptime: "<<setprecision(3)<<ptime<<endl;
 }
 
 void sflow_pjm_quad::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha)
-{	
-	SLICELOOP1
+{    
+    SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
-	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)));
+    P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)));
           
     SLICELOOP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
-	P(i,j) += alpha*p->dt*(0.75*(b->press(i+1,j)+b->press(i,j))*((b->depth(i+1,j)-b->depth(i,j))
+    P(i,j) += alpha*p->dt*(0.75*(b->press(i+1,j)+b->press(i,j))*((b->depth(i+1,j)-b->depth(i,j))
                             /(p->DXM*HPXP*p->W1))
     
                         + 0.125*(phi4(i+1,j)+phi4(i,j))*((b->depth(i+1,j)-b->depth(i,j))/(p->DXM)));
 }
 
 void sflow_pjm_quad::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha)
-{	
-	SLICELOOP2
+{    
+    SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
-	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)));
+    Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)));
                 
     SLICELOOP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
-	Q(i,j) += alpha*p->dt*(0.75*(b->press(i,j+1)+b->press(i,j))*((b->depth(i,j+1)-b->depth(i,j))
+    Q(i,j) += alpha*p->dt*(0.75*(b->press(i,j+1)+b->press(i,j))*((b->depth(i,j+1)-b->depth(i,j))
                             /(p->DXM*HPYP*p->W1))
                             
                         + 0.125*(phi4(i,j+1)+phi4(i,j))*((b->depth(i,j+1)-b->depth(i,j))/(p->DXM)));
 }
 
 void sflow_pjm_quad::wcorr(lexer* p, fdm2D* b, double alpha, slice &P, slice &Q, slice &ws)
-{	    
+{        
     SLICELOOP4
     if(b->breaking(i,j)==0)
-	 ws(i,j) += p->dt*alpha*(1.5*b->press(i,j)/(HP*p->W1)  +  0.25*phi4(i,j));
+     ws(i,j) += p->dt*alpha*(1.5*b->press(i,j)/(HP*p->W1)  +  0.25*phi4(i,j));
 }
 
 void sflow_pjm_quad::wcalc(lexer* p, fdm2D* b,double alpha, slice &P, slice &Q, slice &ws)
-{	
+{    
 }
 
 void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &ws, double alpha)
 {
     NSLICELOOP4
-	b->rhsvec.V[n]=0.0;
+    b->rhsvec.V[n]=0.0;
 
     count=0;
     SLICELOOP4
@@ -154,12 +154,12 @@ void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &ws, doub
                              + (Q(i,j) - Q(i,j-1))*b->hp(i,j))/(alpha*p->dt*p->DXM)
                            
                             - 2.0*
-							(
-								ws(i,j) 
-								+ 0.25*(P(i,j)+P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->DXM
-								+ 0.25*(Q(i,j)+Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->DXM
+                            (
+                                ws(i,j) 
+                                + 0.25*(P(i,j)+P(i-1,j))*(b->depth(i+1,j)-b->depth(i-1,j))/p->DXM
+                                + 0.25*(Q(i,j)+Q(i,j-1))*(b->depth(i,j+1)-b->depth(i,j-1))/p->DXM
                            )
-							/(alpha*p->dt);
+                            /(alpha*p->dt);
                            
     ++count;
     }
@@ -177,69 +177,69 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
         
      n=0;
     SLICELOOP4
-	{
-	b->M.p[n]  =  (b->hp(i,j)*sqd + b->hp(i,j)*sqd)*p->x_dir
+    {
+    b->M.p[n]  =  (b->hp(i,j)*sqd + b->hp(i,j)*sqd)*p->x_dir
                +  (b->hp(i,j)*sqd + b->hp(i,j)*sqd)*p->y_dir + 2.0/(HP*p->W1);     
 
                
 
-   	b->M.n[n] = -b->hp(i,j)*sqd*p->x_dir;
-	b->M.s[n] = -b->hp(i,j)*sqd*p->x_dir;
+       b->M.n[n] = -b->hp(i,j)*sqd*p->x_dir;
+    b->M.s[n] = -b->hp(i,j)*sqd*p->x_dir;
 
-	b->M.w[n] = -b->hp(i,j)*sqd*p->y_dir;
-	b->M.e[n] = -b->hp(i,j)*sqd*p->y_dir;
+    b->M.w[n] = -b->hp(i,j)*sqd*p->y_dir;
+    b->M.e[n] = -b->hp(i,j)*sqd*p->y_dir;
 
-	++n;
-	}
-	
-	
-    n=0;
-	SLICELOOP4
-	{
-        // Inflow
-		if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==1)
-		{
-		b->rhsvec.V[n] -= 0.0;
-		b->M.s[n] = 0.0;
-		}
-        
-        if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==0)
-		{
-		b->rhsvec.V[n] -= b->M.s[n]*b->press(i-1,j);
-		b->M.s[n] = 0.0;
-		}
-		
-         // Outflow
-		if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==1)
-		{
-		b->rhsvec.V[n] -= 0.0;
-		b->M.n[n] = 0.0;
-		}
-        
-        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==0)
-		{
-		b->rhsvec.V[n] -= b->M.n[n]*b->press(i+1,j);
-		b->M.n[n] = 0.0;
-		}
-		
-		if(p->flagslice4[IJm1]<0)
-		{
-		b->rhsvec.V[n] -= b->M.e[n]*b->press(i,j-1);
-		b->M.e[n] = 0.0;
-		}
-		
-		if(p->flagslice4[IJp1]<0)
-		{
-		b->rhsvec.V[n] -= b->M.w[n]*b->press(i,j+1);
-		b->M.w[n] = 0.0;
-		}
-		
-	++n;
-	}
+    ++n;
+    }
+    
     
     n=0;
     SLICELOOP4
-	{
+    {
+        // Inflow
+        if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==1)
+        {
+        b->rhsvec.V[n] -= 0.0;
+        b->M.s[n] = 0.0;
+        }
+        
+        if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==0)
+        {
+        b->rhsvec.V[n] -= b->M.s[n]*b->press(i-1,j);
+        b->M.s[n] = 0.0;
+        }
+        
+         // Outflow
+        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==1)
+        {
+        b->rhsvec.V[n] -= 0.0;
+        b->M.n[n] = 0.0;
+        }
+        
+        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==0)
+        {
+        b->rhsvec.V[n] -= b->M.n[n]*b->press(i+1,j);
+        b->M.n[n] = 0.0;
+        }
+        
+        if(p->flagslice4[IJm1]<0)
+        {
+        b->rhsvec.V[n] -= b->M.e[n]*b->press(i,j-1);
+        b->M.e[n] = 0.0;
+        }
+        
+        if(p->flagslice4[IJp1]<0)
+        {
+        b->rhsvec.V[n] -= b->M.w[n]*b->press(i,j+1);
+        b->M.w[n] = 0.0;
+        }
+        
+    ++n;
+    }
+    
+    n=0;
+    SLICELOOP4
+    {
         if(p->wet[IJ]==0|| p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 || b->breaking(i,j)==1)
         {
         b->M.p[n]  = 1.0;
@@ -252,8 +252,8 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
         
         b->rhsvec.V[n]=0.0;
         }
-	++n;
-	}
+    ++n;
+    }
 }
 
 void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
@@ -348,14 +348,14 @@ void sflow_pjm_quad::quad_prep(lexer *p,fdm2D *b,ghostcell *pgc,slice &P, slice 
     
     
     ucorr(p,b,Ps,eta,alpha);
-	vcorr(p,b,Qs,eta,alpha);
+    vcorr(p,b,Qs,eta,alpha);
     
     pgc->gcsl_start1(p,Ps,10);
-	pgc->gcsl_start2(p,Qs,11);
+    pgc->gcsl_start2(p,Qs,11);
 }
 
 void sflow_pjm_quad::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
     SLICELOOP4
-    b->L(i,j)=0.0;	    
+    b->L(i,j)=0.0;        
 }

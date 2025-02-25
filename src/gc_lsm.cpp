@@ -27,28 +27,28 @@ Author: Hans Bihs
 
 void ghostcell::lsm(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {
-	if(cs==1)
-	for(q=1;q<=margin;++q)
-	f(i-q,j,k) = double(q+1)*f(i,j,k) - double(q)*f(i+1,j,k);
+    if(cs==1)
+    for(q=1;q<=margin;++q)
+    f(i-q,j,k) = double(q+1)*f(i,j,k) - double(q)*f(i+1,j,k);
 
-	if(cs==2)
-	for(q=1;q<=margin;++q)
-	f(i,j+q,k) = double(q+1)*f(i,j,k) - double(q)*f(i,j-1,k);
+    if(cs==2)
+    for(q=1;q<=margin;++q)
+    f(i,j+q,k) = double(q+1)*f(i,j,k) - double(q)*f(i,j-1,k);
 
-	if(cs==3)
-	for(q=1;q<=margin;++q)
-	f(i,j-q,k) = double(q+1)*f(i,j,k) - double(q)*f(i,j+1,k);
+    if(cs==3)
+    for(q=1;q<=margin;++q)
+    f(i,j-q,k) = double(q+1)*f(i,j,k) - double(q)*f(i,j+1,k);
 
-	if(cs==4)
-	for(q=1;q<=margin;++q)
-	f(i+q,j,k) = double(q+1)*f(i,j,k) - double(q)*f(i-1,j,k);
+    if(cs==4)
+    for(q=1;q<=margin;++q)
+    f(i+q,j,k) = double(q+1)*f(i,j,k) - double(q)*f(i-1,j,k);
 
-	if(cs==5)
-	for(q=1;q<=margin;++q)
-	f(i,j,k-q) = double(q+1)*f(i,j,k) - double(q)*f(i,j,k+1);
+    if(cs==5)
+    for(q=1;q<=margin;++q)
+    f(i,j,k-q) = double(q+1)*f(i,j,k) - double(q)*f(i,j,k+1);
 
-	if(cs==6)
-	for(q=1;q<=margin;++q)
-	f(i,j,k+q) = double(q+1)*f(i,j,k) - double(q)*f(i,j,k-1);
+    if(cs==6)
+    for(q=1;q<=margin;++q)
+    f(i,j,k+q) = double(q+1)*f(i,j,k) - double(q)*f(i,j,k-1);
 }
 

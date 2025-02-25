@@ -27,24 +27,24 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
-{	
-	int num=0;
+{    
+    int num=0;
 
     if(p->P15==1)
     num = printcount;
 
     if(p->P15==2)
     num = p->count;
-	
-	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp",num);
+    
+    sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp",num);
 
 
-	ofstream result;
-	result.open(name);
+    ofstream result;
+    result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
+    result<<"<?xml version=\"1.0\"?>"<<endl;
+    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+    result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
     
     if(p->P16==1)
     {
@@ -53,15 +53,15 @@ void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
     result<<"</DataArray>"<<endl;
     result<<"</FieldData>"<<endl;
     }
-	
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
-	
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"WL\"/>"<<endl;
+    
+    result<<"<PPoints>"<<endl;
+    result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
+    result<<"</PPoints>"<<endl;
+    
+    result<<"<PPointData>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"WL\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"wetdry\"/>"<<endl;
@@ -73,24 +73,24 @@ void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
     result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
     if(p->P131==1)
     result<<"<PDataArray type=\"Float32\" Name=\"wetdry_max\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
-	
-	result<<"<Polys>"<<endl;
+    result<<"</PPointData>"<<endl;
+    
+    result<<"<Polys>"<<endl;
     result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
+    result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
     result<<"<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
-	result<<"</Polys>"<<endl;
+    result<<"</Polys>"<<endl;
 
-	for(n=0; n<p->M10; ++n)
-	{
+    for(n=0; n<p->M10; ++n)
+    {
     piecename(p,d,pgc,n);
     result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
-	}
+    }
 
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
+    result<<"</PPolyData>"<<endl;
+    result<<"</VTKFile>"<<endl;
 
-	result.close();
+    result.close();
 
 }
 

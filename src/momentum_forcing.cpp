@@ -31,8 +31,8 @@ Author: Hans Bihs
 momentum_forcing::momentum_forcing(lexer* p)
 {
     gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
+    gcval_v=11;
+    gcval_w=12;
 }
 
 momentum_forcing::~momentum_forcing()
@@ -43,7 +43,7 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
                                               field &u, field &v, field &w, field &fx, field &fy, field &fz, int iter, double alpha, bool final)
 {
 
-	starttime=pgc->timer();
+    starttime=pgc->timer();
     
         // Forcing
         ULOOP

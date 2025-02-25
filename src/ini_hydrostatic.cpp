@@ -32,19 +32,19 @@ void initialize::hydrostatic(lexer *p, fdm *a, ghostcell *pgc)
     maxh=MAX(maxh, p->pos_z());
 
     maxh=pgc->globalmax(maxh);
-	
+    
     if(p->F30>0)
     maxh=p->phimean;
-	
-	if(p->I12==1 && (p->I30==0||p->B90==0))
+    
+    if(p->I12==1 && (p->I30==0||p->B90==0))
     LOOP
     a->press(i,j,k) = (p->phimean-p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
 
-	if(p->I12==2 && (p->I30==0||p->B90==0))
+    if(p->I12==2 && (p->I30==0||p->B90==0))
     LOOP
     a->press(i,j,k) = a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22);
-	
-	if(p->I12==3 && (p->I30==0||p->B90==0))
+    
+    if(p->I12==3 && (p->I30==0||p->B90==0))
     LOOP
     a->press(i,j,k) = (maxh-p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
 
@@ -54,24 +54,24 @@ void initialize::hydrostatic(lexer *p, fdm *a, ghostcell *pgc)
     if(a->phi(i,j,k)<0.0)
     a->press(i,j,k)=0.0;
     }
-	
+    
     LOOP
     a->press(i,j,k)+=p->I55;
-	
-	if(p->I12==2 && p->I30==0)
+    
+    if(p->I12==2 && p->I30==0)
     GC4LOOP
-	{
-	i = p->gcb4[n][0];
-	j = p->gcb4[n][1];
-	k = p->gcb4[n][2];
-	
+    {
+    i = p->gcb4[n][0];
+    j = p->gcb4[n][1];
+    k = p->gcb4[n][2];
+    
     a->press(i,j,k) = a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22) + p->I55;
-	}
+    }
 
     
     
     
-	
+    
 
 }
 

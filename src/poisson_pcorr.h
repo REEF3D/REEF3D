@@ -37,15 +37,15 @@ class poisson_pcorr : public poisson, public increment
 
 public:
 
-	poisson_pcorr (lexer*, heat*&, concentration*&);
-	virtual ~poisson_pcorr();
+    poisson_pcorr (lexer*, heat*&, concentration*&);
+    virtual ~poisson_pcorr();
 
-	virtual void start(lexer *,fdm*,field&);
+    virtual void start(lexer *,fdm*,field&);
 
 private:
 
-	double pval;
-	int count,n,q;
+    double pval;
+    int count,n,q;
     
     density *pd;
 };

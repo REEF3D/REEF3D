@@ -38,17 +38,17 @@ class print_wsf : public boundarycheck
 {
 public:
     print_wsf(lexer*,fdm*,ghostcell*,int);
-	virtual ~print_wsf();
+    virtual ~print_wsf();
 
-	void height_gauge(lexer*, fdm*, ghostcell*,field&);
+    void height_gauge(lexer*, fdm*, ghostcell*,field&);
 
 
 private:
     void ini_location(lexer*, fdm*, ghostcell*);
     void write(lexer*, fdm*, ghostcell*);
-	
-	double *x,*y;
-	int gauge_num;
+    
+    double *x,*y;
+    int gauge_num;
 
     int *iloc,*jloc,*flag;
     double *wsf;

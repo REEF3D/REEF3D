@@ -36,16 +36,16 @@ class nhflow_state : public increment
 {
 
 public:
-	nhflow_state(lexer*,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_state();
-	void write(lexer*,fdm_nhf*,ghostcell*);
+    nhflow_state(lexer*,fdm_nhf*,ghostcell*);
+    virtual ~nhflow_state();
+    void write(lexer*,fdm_nhf*,ghostcell*);
     
     void ini_mainheader(lexer*,fdm_nhf*,ghostcell*);
     
     void write_result(lexer*,fdm_nhf*,ghostcell*);
     void write_mainheader(lexer*,fdm_nhf*,ghostcell*);
     void write_header(lexer*,fdm_nhf*,ghostcell*);
-	
+    
 private:
     void filename_single(lexer*,fdm_nhf*,ghostcell*,int);
     void filename_continuous(lexer*,fdm_nhf*,ghostcell*);
@@ -53,9 +53,9 @@ private:
 
     char name[500];
     float ffn;
-	int iin;
-	double ddn;
-	int printcount;
+    int iin;
+    double ddn;
+    int printcount;
     int ini_token;
     int file_version,file_type;
     int qn;

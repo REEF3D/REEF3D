@@ -40,10 +40,10 @@ class hypre_struct : public solver, public increment
 {
 public:
 
-	hypre_struct(lexer*,ghostcell*,int,int);
-	virtual ~hypre_struct();
+    hypre_struct(lexer*,ghostcell*,int,int);
+    virtual ~hypre_struct();
     
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
     virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
@@ -63,7 +63,7 @@ public:
     void solve1234(lexer*);
     void solve44(lexer*);
     
-	void fillxvec1(lexer*,fdm*,field&);
+    void fillxvec1(lexer*,fdm*,field&);
     void fillxvec2(lexer*,fdm*,field&);
     void fillxvec3(lexer*,fdm*,field&);
     void fillxvec4(lexer*,fdm*,field&);
@@ -103,8 +103,8 @@ public:
     virtual void fillbackvec7(lexer*,double*,int);
     virtual void fillbackvec8(lexer*,double*,int);
     virtual void fillbackvec9(lexer*,double*,int);
-	
-	void create_solver1234(lexer*,ghostcell*);
+    
+    void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);
 
     void create_solver5(lexer*,ghostcell*);
@@ -129,15 +129,15 @@ private:
    HYPRE_StructSolver   precond;
    
 
-	int *ilower,*iupper;
+    int *ilower,*iupper;
     double *values;
     int num_iterations;
     double final_res_norm;
-	int stencil_indices[7];
+    int stencil_indices[7];
     int periodic[3];
-	int nentries;
+    int nentries;
    
-	int numiter,count,q;
+    int numiter,count,q;
     
     int solve_type,precon_type;
     

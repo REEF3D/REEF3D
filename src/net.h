@@ -39,9 +39,9 @@ public:
     
     typedef vector<Eigen::Vector3d> EigenMat;
         
-	virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
-	virtual void initialize(lexer*, fdm*, ghostcell*)=0;	
-	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&)=0;
+    virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
+    virtual void initialize(lexer*, fdm*, ghostcell*)=0;    
+    virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&)=0;
     
     virtual const EigenMat& getLagrangePoints()=0;
     virtual const EigenMat& getLagrangeForces()=0;

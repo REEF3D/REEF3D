@@ -51,7 +51,7 @@ public:
     
     
     sixdof_motionext_wavemaker(lexer*, ghostcell*);
-	virtual ~sixdof_motionext_wavemaker();
+    virtual ~sixdof_motionext_wavemaker();
     
 private:
     double ramp_vel(lexer*);

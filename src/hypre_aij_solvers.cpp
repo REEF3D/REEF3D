@@ -92,7 +92,7 @@ void hypre_aij::create_solvers(lexer* p, ghostcell* pgc)
     HYPRE_BoomerAMGSetMaxIter(precond, 1); 
     }
     
-	  
+      
     
     if(p->N10==21 && p->N11==21)
     HYPRE_PCGSetPrecond(solver, (HYPRE_PtrToSolverFcn) HYPRE_BoomerAMGSolve, (HYPRE_PtrToSolverFcn) HYPRE_BoomerAMGSetup, precond);

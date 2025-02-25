@@ -40,8 +40,8 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     volume_calc(p,a,pgc);
     
     pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);
+    pgc->start2(p,a->v,11);
+    pgc->start3(p,a->w,12);
     
     if(p->mpirank==0)
     cout<<"Topo: update grid..."<<endl;
@@ -58,14 +58,14 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     bedlevel(p,a,pgc); 
     
     active_cfd(p,a,pgc);
-	
-	pgc->start4(p,a->conc,40);
+    
+    pgc->start4(p,a->conc,40);
 }
 
 void sediment_f::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
     SLICELOOP4
-	d->bed(i,j) = s->bedzh(i,j);
+    d->bed(i,j) = s->bedzh(i,j);
     
     pgc->gcsl_start4(p,d->bed,50);
     

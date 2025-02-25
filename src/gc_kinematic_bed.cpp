@@ -30,13 +30,13 @@ void ghostcell::kinematic_bed(lexer *p,field& f,double dist,int gcv, int bc, int
 {
     double wval;
     
-	wval = -0.5*(a->u(i,j,k)+a->u(i-1,j,k))*((a->bed(i+1,j)-a->bed(i-1,j))/(2.0*p->DXM))
+    wval = -0.5*(a->u(i,j,k)+a->u(i-1,j,k))*((a->bed(i+1,j)-a->bed(i-1,j))/(2.0*p->DXM))
     
           -0.5*(a->v(i,j,k)+a->v(i,j-1,k))*((a->bed(i,j+1)-a->bed(i,j-1))/(2.0*p->DXM));
 
     
-	if(cs==5)
-	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)= wval;
+    if(cs==5)
+    for(q=0;q<margin;++q)
+    f(i,j,k-q-1)= wval;
 }
 

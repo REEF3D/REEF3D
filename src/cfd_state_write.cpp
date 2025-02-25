@@ -34,29 +34,29 @@ Author: Hans Bihs
 void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     // Open File
-	int num=0;
+    int num=0;
 
     if(p->P15==1)
     num = printcount;
 
     if(p->P15==2)
     num = printcount;
-	
-	if(p->P40==1)
-	num=0;
+    
+    if(p->P40==1)
+    num=0;
     
     filename(p,a,pgc,num);
-	 
-	ofstream result;
-	result.open(name, ios::binary);
-	
-	iin=p->count;
+     
+    ofstream result;
+    result.open(name, ios::binary);
+    
+    iin=p->count;
     result.write((char*)&iin, sizeof (int));
-	
-	iin=p->printcount;
+    
+    iin=p->printcount;
     result.write((char*)&iin, sizeof (int));
-	
-	ddn=p->simtime;
+    
+    ddn=p->simtime;
     result.write((char*)&ddn, sizeof (double));
     
     ddn=p->printtime;
@@ -86,63 +86,63 @@ void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	VLOOP
+    VLOOP
     {
     ffn=a->v(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	WLOOP
+    
+    WLOOP
     {
     ffn=a->w(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	LOOP
+    
+    LOOP
     {
     ffn=a->press(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	LOOP
+    
+    LOOP
     {
     ffn=a->phi(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	LOOP
+    
+    LOOP
     {
     ffn=pturb->kinval(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	LOOP
+    
+    LOOP
     {
     ffn=pturb->epsval(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	LOOP
+    
+    LOOP
     {
     ffn=a->eddyv(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	SLICELOOP4
+    SLICELOOP4
     {
     ffn=psed->qbeval(i,j);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	LOOP
+    
+    LOOP
     {
     ffn=a->conc(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	
-	
-	result.close();
-	
-	++printcount;
+    
+    
+    
+    result.close();
+    
+    ++printcount;
 }

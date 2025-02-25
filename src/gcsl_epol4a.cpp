@@ -26,19 +26,19 @@ Author: Hans Bihs
 
 int ghostcell::gcsleval4a(lexer *p, int gcv, int bc, int cs)
 {
-	return 4;
+    return 4;
 }
 
 
 void ghostcell::gcsldistro4a(lexer *p, slice &f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
 {
     i=ii;
-	j=jj;
-	n=nn;
+    j=jj;
+    n=nn;
 
-	bc_label=gcsleval4a(p,gcv,bc,cs);
+    bc_label=gcsleval4a(p,gcv,bc,cs);
 
-	if(bc_label==4)
-	gcsl_neumann(f,gcv,bc,cs);
+    if(bc_label==4)
+    gcsl_neumann(f,gcv,bc,cs);
     
 }

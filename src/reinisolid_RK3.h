@@ -35,23 +35,23 @@ using namespace std;
 class reinisolid_RK3 : public reinitopo, public increment
 {
 public:
-	reinisolid_RK3(lexer* p);
-	virtual ~reinisolid_RK3();
-	virtual void start(lexer*,fdm*,ghostcell*,field&);
+    reinisolid_RK3(lexer* p);
+    virtual ~reinisolid_RK3();
+    virtual void start(lexer*,fdm*,ghostcell*,field&);
 
-	int *sizeM;
-	field4a f,frk1,frk2,L,dt;
+    int *sizeM;
+    field4a f,frk1,frk2,L,dt;
 
 private:
-	reinidisc *prdisc;
+    reinidisc *prdisc;
 
-	void step(lexer*, fdm*);
+    void step(lexer*, fdm*);
     void time_preproc(lexer*);
-	
-	double starttime,endtime;
+    
+    double starttime,endtime;
 
-	int gcval,gcval_topo,gcval_initopo,reiniter,n;
-	const double epsi;
+    int gcval,gcval_topo,gcval_initopo,reiniter,n;
+    const double epsi;
 };
 
 #endif

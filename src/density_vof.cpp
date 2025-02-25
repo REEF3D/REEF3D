@@ -41,10 +41,10 @@ density_vof::~density_vof()
 
 double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-	H= 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+    H= 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-		H=MAX(H,0.0);
-		H=MIN(H,1.0);
+        H=MAX(H,0.0);
+        H=MIN(H,1.0);
 
     roval = p->W1*H +   p->W3*(1.0-H);
     
@@ -65,8 +65,8 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
             
         roval = p->W1*H + p->W3*(1.0-H);
     */
-	
-	return roval;		
+    
+    return roval;        
 }
 
 

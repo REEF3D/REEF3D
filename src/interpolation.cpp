@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 
 interpolation::interpolation(lexer *pp) 
-{	
+{    
     p=pp;
 }
 

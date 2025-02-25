@@ -33,7 +33,7 @@ class wave_lib_piston : public wave_lib_precalc, public wave_lib_parameters, pub
 {
 public:
     wave_lib_piston(lexer*, ghostcell*);
-	virtual ~wave_lib_piston();
+    virtual ~wave_lib_piston();
     
     double wave_horzvel(lexer*,double,double,double);
     
@@ -48,14 +48,14 @@ public:
     virtual void wave_prestep(lexer*,ghostcell*);
     
 private:
-	void read(lexer*, ghostcell*);
-	
-	int ptnum;
-	
-	double **kinematics;
-	
-	double ts,te,val;
-	int timecount,timecount_old;
+    void read(lexer*, ghostcell*);
+    
+    int ptnum;
+    
+    double **kinematics;
+    
+    double ts,te,val;
+    int timecount,timecount_old;
     double singamma,cosgamma;
 };
 

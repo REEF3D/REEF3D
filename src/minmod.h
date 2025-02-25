@@ -33,17 +33,17 @@ class minmod : public fluxlim, public increment
 
 public:
 
-	minmod (lexer *);
-	virtual ~minmod();
+    minmod (lexer *);
+    virtual ~minmod();
 
-	virtual double iphi(field&,int,int,int,int);
-	virtual double jphi(field&,int,int,int,int);
-	virtual double kphi(field&,int,int,int,int);
+    virtual double iphi(field&,int,int,int,int);
+    virtual double jphi(field&,int,int,int,int);
+    virtual double kphi(field&,int,int,int,int);
 
 private:
     double r, phi,denom;
-	double dx,dy,dz;
-	double L;
+    double dx,dy,dz;
+    double L;
 };
 
 #endif

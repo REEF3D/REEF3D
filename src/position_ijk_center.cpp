@@ -243,10 +243,10 @@ int position::posc_sig(int ii, int jj, double zs)
     j = jj;
     
     i = MAX(i,0);
-	i = MIN(i,p->knox-1);
+    i = MIN(i,p->knox-1);
     
-	j = MAX(j,0);
-	j = MIN(j,p->knoy-1);
+    j = MAX(j,0);
+    j = MIN(j,p->knoy-1);
     
     k = 0;
     int IJK_start = IJK;

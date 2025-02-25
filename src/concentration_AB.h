@@ -35,18 +35,18 @@ class concentration_AB :public bc_concentration, public concentration_io
 {
 public:
     concentration_AB(lexer *, fdm*, ghostcell*);
-	virtual ~concentration_AB();
+    virtual ~concentration_AB();
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*);
-	virtual void ttimesave(lexer*, fdm*);
+    virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*);
+    virtual void ttimesave(lexer*, fdm*);
 
 private:
     void clearrhs(lexer*,fdm*,ghostcell*);
     
-	field4 cab;
-	
-	int gcval_concentration;
-	double starttime, endtime;
+    field4 cab;
+    
+    int gcval_concentration;
+    double starttime, endtime;
 };
 
 #endif

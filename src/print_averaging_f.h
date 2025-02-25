@@ -37,7 +37,7 @@ class print_averaging_f : public print_averaging, public increment
 {
 public:
     print_averaging_f(lexer*,fdm*,ghostcell*);
-	virtual ~print_averaging_f();
+    virtual ~print_averaging_f();
     
     virtual void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*);
     
@@ -52,7 +52,7 @@ private:
     int Tswitch;
     
     float ffn;
-	int q,iin;
+    int q,iin;
     
     field1 um;
     field2 vm;

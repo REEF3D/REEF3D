@@ -26,71 +26,71 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void mooring_Spring::print(lexer *p)
 {
-	int num=0;
-	
-	if(p->P15==1)
+    int num=0;
+    
+    if(p->P15==1)
     num = p->printcount_sixdof;
 
     if(p->P15==2)
     num = p->count;
-	
-	if(num<0)
-	num=0;
-	
+    
+    if(num<0)
+    num=0;
+    
     if (p->mpirank==0)
     {
-		eTout<<p->simtime<<" \t "<<T<<endl;	
+        eTout<<p->simtime<<" \t "<<T<<endl;    
     }  
-	
+    
     if
-	(
-		p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
-		|| (p->simtime>printtime && p->P30>0.0)   
-		|| p->count==0)
-	)
-	{
-		printtime+=p->P30;
-		
+    (
+        p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
+        || (p->simtime>printtime && p->P30>0.0)   
+        || p->count==0)
+    )
+    {
+        printtime+=p->P30;
+        
         if(p->A10==5)
-		sprintf(name,"./REEF3D_NHFLOW_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
+        sprintf(name,"./REEF3D_NHFLOW_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
         
         if(p->A10==6)
-		sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
+        sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
 
 
 
-		// Print results
-		ofstream result;
-		result.open(name, ios::binary);
-		
-		result << "# vtk DataFile Version 2.0" << endl;
-		result << "Mooring line " << line << endl;
-		result << "ASCII \nDATASET UNSTRUCTURED_GRID" << endl;
-		result << "POINTS " << 2 << " float" <<endl;
+        // Print results
+        ofstream result;
+        result.open(name, ios::binary);
+        
+        result << "# vtk DataFile Version 2.0" << endl;
+        result << "Mooring line " << line << endl;
+        result << "ASCII \nDATASET UNSTRUCTURED_GRID" << endl;
+        result << "POINTS " << 2 << " float" <<endl;
 
         result<<p->X311_xs[line]<<" "<<p->X311_ys[line]<<" "<<p->X311_zs[line]<<endl;
         result<<p->X311_xe[line]<<" "<<p->X311_ye[line]<<" "<<p->X311_ze[line]<<endl;
         
-		
-		result << "\nCELLS " << 1 << " " << 3 <<endl;	
+        
+        result << "\nCELLS " << 1 << " " << 3 <<endl;    
         
         result<<"2 "<< 0 << " " << 1 << endl;
 
-		
-		result << "\nCELL_TYPES " << 1 << endl;	
+        
+        result << "\nCELL_TYPES " << 1 << endl;    
 
         result<<"3"<<endl;
 
 
-		result<<"\nPOINT_DATA " << 2 <<endl;
-		result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;
-		
-        result<<T<<endl;
-        result<<T<<endl;
-		
+        result<<"\nPOINT_DATA " << 2 <<endl;
+        result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;
         
-		result.close();
+        result<<T<<endl;
+        result<<T<<endl;
+        
+        
+        result.close();
 
 
-	}
+    }
 }

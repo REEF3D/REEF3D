@@ -35,28 +35,28 @@ class position : virtual public increment
 {
 public:
     position(lexer*);
-	virtual ~position();
+    virtual ~position();
     
     // xyz
     double pos_x();
-	double pos_y();
-	double pos_z();
-	
-	double pos1_x();
-	double pos1_y();
-	double pos1_z();
-	
-	double pos2_x();
-	double pos2_y();
-	double pos2_z();
-	
-	double pos3_x();
-	double pos3_y();
-	double pos3_z();
-	
-	double posnode_x();
-	double posnode_y();
-	double posnode_z();
+    double pos_y();
+    double pos_z();
+    
+    double pos1_x();
+    double pos1_y();
+    double pos1_z();
+    
+    double pos2_x();
+    double pos2_y();
+    double pos2_z();
+    
+    double pos3_x();
+    double pos3_y();
+    double pos3_z();
+    
+    double posnode_x();
+    double posnode_y();
+    double posnode_z();
     
     // ijk
     int posf_i(double);

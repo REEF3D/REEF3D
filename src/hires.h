@@ -36,22 +36,22 @@ class hires : public convection, public increment
 
 public:
 
-	hires (lexer*,int);
-	virtual ~hires();
+    hires (lexer*,int);
+    virtual ~hires();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
-	
+    virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+    
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
-	
-	double udir,vdir,wdir;
+    
+    double udir,vdir,wdir;
 
-	double dx,dy,dz;
-	double L;
+    double dx,dy,dz;
+    double L;
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
-	
-	fluxlim *plim;
+    
+    fluxlim *plim;
     
     flux *pflux;
 };

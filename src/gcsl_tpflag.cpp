@@ -25,28 +25,28 @@ Author: Hans Bihs
 
 void ghostcell::gcsl_tpflag(lexer *p)
 {
-	for(i=0;i<imax*jmax;++i)
-	p->tpflagslice[i]=-1;
-	
-	
-	SLICEBASELOOP
-	p->tpflagslice[IJ]=1;
-
-	SLICEBASELOOP
-	{
-	    if(p->tpflagslice[Im1J]<=0)
-	    p->tpflagslice[Im1J]=9;
-
-	    if(p->tpflagslice[IJm1]<=0)
-	    p->tpflagslice[IJm1]=9;
-
-	}
+    for(i=0;i<imax*jmax;++i)
+    p->tpflagslice[i]=-1;
+    
+    
+    SLICEBASELOOP
+    p->tpflagslice[IJ]=1;
 
     SLICEBASELOOP
-	{
-	    if(p->tpflagslice[Im1J]==9)
-	    if(p->tpflagslice[IJm1]==9)
-	    p->tpflagslice[Im1Jm1]=11;
-	}
+    {
+        if(p->tpflagslice[Im1J]<=0)
+        p->tpflagslice[Im1J]=9;
+
+        if(p->tpflagslice[IJm1]<=0)
+        p->tpflagslice[IJm1]=9;
+
+    }
+
+    SLICEBASELOOP
+    {
+        if(p->tpflagslice[Im1J]==9)
+        if(p->tpflagslice[IJm1]==9)
+        p->tpflagslice[Im1Jm1]=11;
+    }
 }
 

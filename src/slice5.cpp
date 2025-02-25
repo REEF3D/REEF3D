@@ -31,26 +31,26 @@ slice5::slice5(lexer *p)
     jmin=p->jmin;
     jmax=p->jmax;
     
-	fieldalloc(p);
-	fieldgcalloc(p);
-	
-	pp=p;
+    fieldalloc(p);
+    fieldgcalloc(p);
+    
+    pp=p;
 }
 
 slice5::~slice5()
 {
-	delete [ ] V;
+    delete [ ] V;
 }
 
 void slice5::fieldalloc(lexer* p)
 {
-	int gridsize = imax*jmax;
-	p->Darray(V,gridsize);
+    int gridsize = imax*jmax;
+    p->Darray(V,gridsize);
 }
 
 void slice5::dealloc(lexer* p)
 {
-	delete [ ] V;
+    delete [ ] V;
 }
 
 void slice5::resize(lexer* p)
@@ -66,14 +66,14 @@ void slice5::fieldgcalloc(lexer* p)
 
 double & slice5::operator[](int n)
 {
-	return V[n];
+    return V[n];
 }
 
 double & slice5::operator()(int ii, int jj)
-{			
+{            
 
-	return V[(ii-imin)*jmax + (jj-jmin)];
-	
+    return V[(ii-imin)*jmax + (jj-jmin)];
+    
 }
 
 void slice5::ggcpol(lexer* p)

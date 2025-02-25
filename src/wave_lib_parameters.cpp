@@ -30,15 +30,15 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
   p->phiin=p->phimean;
 
-	wtype=p->B92;
+    wtype=p->B92;
 
   p->wd = p->phimean;
 
   if(p->B94==0)
-	wdt=p->phimean;
+    wdt=p->phimean;
 
-	if(p->B94==1)
-	wdt=p->B94_wdt;
+    if(p->B94==1)
+    wdt=p->B94_wdt;
 
 // Wave Length given
     if(p->B91==1 && (p->B92<30 || p->B92==70))
@@ -64,32 +64,32 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
     if(wtype==4 || wtype>5)
     ww= sqrt(fabs(9.81*wk*tanh(wk*(wdt))));
 
-  	wf = ww/(2.0*PI);
+      wf = ww/(2.0*PI);
     wT = 1.0/wf;
     wC = wL/wT;
 
         // 5th-order Stokes
         if(wtype==5)
         {
-	    eps = 0.5*wk*wH;
-	    S = 1.0/cosh(2*wk*wdt);
-	    C = 1.0 - S;
+        eps = 0.5*wk*wH;
+        S = 1.0/cosh(2*wk*wdt);
+        C = 1.0 - S;
 
-	    c0 = sqrt(tanh(wk*wdt));
+        c0 = sqrt(tanh(wk*wdt));
 
         c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
 
         c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
 
-	    wT= (2.0*PI)/(sqrt(9.81*wk)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
-	    wf = 1.0/wT;
-	    ww = 2.0*PI*wf;
+        wT= (2.0*PI)/(sqrt(9.81*wk)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
+        wf = 1.0/wT;
+        ww = 2.0*PI*wf;
 
-	    wC = ww/wk;
-	    ubar = (c0 + eps*eps*c2 + eps*eps*eps*eps*c4)/sqrt(wk/9.81);
+        wC = ww/wk;
+        ubar = (c0 + eps*eps*c2 + eps*eps*eps*eps*c4)/sqrt(wk/9.81);
         
         //cout<<"C-Umean: "<<wC-ubar<<" C: "<<wC<<" Umean: "<<ubar<<endl;
-	   }
+       }
        
     p->wT = wT;
     p->wC = wC;
@@ -98,41 +98,41 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 // Wave Period given
     if(p->B93==1 && (p->B92<30 || p->B92==70))
     {
-		// define wave parameters
-		wa = 0.5*p->B93_1;
-		wH = p->B93_1;
-		wT = p->B93_2;
+        // define wave parameters
+        wa = 0.5*p->B93_1;
+        wH = p->B93_1;
+        wT = p->B93_2;
         p->wT = wT;
 
-		// define wave length
-		if(wtype==1)
-		wL= wT*sqrt(9.81*wdt);
+        // define wave length
+        if(wtype==1)
+        wL= wT*sqrt(9.81*wdt);
 
-		if(wtype==3)
-		wL= (9.81/(2.0*PI))*wT*wT;
+        if(wtype==3)
+        wL= (9.81/(2.0*PI))*wT*wT;
 
 
-		if(wtype==2 || wtype==4 || wtype>5)
-		{
-		wL0 = (9.81/(2.0*PI))*wT*wT;
-		k0 = (2.0*PI)/wL0;
-		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+        if(wtype==2 || wtype==4 || wtype>5)
+        {
+        wL0 = (9.81/(2.0*PI))*wT*wT;
+        k0 = (2.0*PI)/wL0;
+        S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
 
-		wL = wL0*tanh(S0);
+        wL = wL0*tanh(S0);
 
         for(int qn=0; qn<500; ++qn)
         wL = wL0*tanh(2.0*PI*wdt/wL);
-		}
+        }
 
 
         // 5th-order Stokes
         if(wtype==5)
-		{
-		wL0 = (9.81/(2.0*PI))*wT*wT;
-		k0 = (2.0*PI)/wL0;
-		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+        {
+        wL0 = (9.81/(2.0*PI))*wT*wT;
+        k0 = (2.0*PI)/wL0;
+        S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
 
-		wL = wL0*tanh(S0);
+        wL = wL0*tanh(S0);
 
         for(int qn=0; qn<500; ++qn)
         wL = wL0*tanh(2.0*PI*wdt/wL);
@@ -165,14 +165,14 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
                 ++qn;
             }while(fabs(diff)>0.0001 && qn<9000);
 
-		}
+        }
 
 
-		wf = 1.0/wT;
-		ww = wf*2.0*PI;
+        wf = 1.0/wT;
+        ww = wf*2.0*PI;
          wC = wL/wT;
 
-		wk= (2.0*PI)/(wL>1.0e-20?wL:1.0e20);
+        wk= (2.0*PI)/(wL>1.0e-20?wL:1.0e20);
 
         if(wtype==5)
         {
@@ -183,7 +183,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
         wC = ww/wk;
         ubar = (c0 + eps*eps*c2 + eps*eps*eps*eps*c4)/sqrt(wk/9.81);
         }
-	   }
+       }
 
 
 
@@ -222,7 +222,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
          p->wT = wT;
          p->wwp = 2.0*PI/p->wTp;
        }
-	   }
+       }
 
     p->Darray(factcos,order);
 

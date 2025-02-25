@@ -29,7 +29,7 @@ fluid_update_fsf::fluid_update_fsf(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM
                                                                       ro_air(p->W3),ro_water(p->W1)
 {
     gcval_ro=1;
-	gcval_visc=1;
+    gcval_visc=1;
 }
 
 fluid_update_fsf::~fluid_update_fsf()
@@ -38,18 +38,18 @@ fluid_update_fsf::~fluid_update_fsf()
 
 void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 {
-	double H=0.0;
+    double H=0.0;
     double H_fb=0.0;
     double factor=1.0;
-	p->volume1=0.0;
-	p->volume2=0.0;
+    p->volume1=0.0;
+    p->volume2=0.0;
     
     if(p->count>iter)
     iocheck=0;
-	iter=p->count;
+    iter=p->count;
     
-	LOOP
-	{
+    LOOP
+    {
         factor = 1.0;
         
         if(p->j_dir==0 && p->X46==1) 
@@ -60,14 +60,14 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
         if(a->fb(i,j,k) <- 0.5*(1.0/3.0)*(p->DRM+p->DSM+p->DTM))
         factor = 2.0;
     
-		if(a->phi(i,j,k)>(p->psi*factor))
-		H=1.0;
+        if(a->phi(i,j,k)>(p->psi*factor))
+        H=1.0;
 
-		if(a->phi(i,j,k)<-(p->psi*factor))
-		H=0.0;
+        if(a->phi(i,j,k)<-(p->psi*factor))
+        H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=(p->psi*factor))
-		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));
+        if(fabs(a->phi(i,j,k))<=(p->psi*factor))
+        H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));
 
         // Construct floating body heaviside function if used
             a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
@@ -78,18 +78,18 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
             p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
             p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
             }
-	}
+    }
     
-	pgc->start4(p,a->ro,gcval_ro);
-	pgc->start4(p,a->visc,gcval_visc);
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
 
-	p->volume1 = pgc->globalsum(p->volume1);
-	p->volume2 = pgc->globalsum(p->volume2);
+    p->volume1 = pgc->globalsum(p->volume1);
+    p->volume2 = pgc->globalsum(p->volume2);
     
     if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))
     {
-	cout<<"Volume 1: "<<p->volume1<<endl;
-	cout<<"Volume 2: "<<p->volume2<<endl;
+    cout<<"Volume 1: "<<p->volume1<<endl;
+    cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
 }

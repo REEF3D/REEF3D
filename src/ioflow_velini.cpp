@@ -66,8 +66,8 @@ void ioflow_f::velini(lexer *p, fdm *a, ghostcell *pgc)
     p->Ua=p->Ui=hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/(Ai>1.0e-20?Ai:1.0e20); 
     p->Qi=hydrograph_ipol(p,pgc,hydro_in,hydro_in_count);
     }
-	
-	if(p->B60==3||p->B60==4)
+    
+    if(p->B60==3||p->B60==4)
     {
     p->Uo=p->Ui=hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
     p->Qo=hydrograph_ipol(p,pgc,hydro_out,hydro_out_count);

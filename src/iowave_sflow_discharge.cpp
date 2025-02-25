@@ -35,8 +35,8 @@ void iowave::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
     
     for(n=0;n<p->gcslin_count;n++)
     {
-		i=p->gcslin[n][0];
-		j=p->gcslin[n][1];
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
         
         area = b->hp(i,j)*p->DXM;
         
@@ -51,15 +51,15 @@ void iowave::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
     
 
 
-	if(p->count==0)
+    if(p->count==0)
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
     cout<<"Inflow_0:  "<<setprecision(5)<<p->W10<<" Ui: "<<p->Ui<<endl;
     cout<<"Outflow_0: "<<setprecision(5)<<p->W10<<" Uo: "<<p->Uo<<endl;
     }
-	
-	if(p->count>0)
-	if(p->mpirank==0 && (p->count%p->P12==0))
+    
+    if(p->count>0)
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
     cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<endl;
@@ -94,8 +94,8 @@ void iowave::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
             if(a->phi(i,j,k)<0.5*p->DXM && a->phi(i,j,k)>0.0*p->DXM)
             area=p->DXM*(p->DXM*0.5 + a->phi(i,j,k));
-			
-			if(a->phi(i,j,k)>=-0.5*p->DXM -1.0e-20 && a->phi(i,j,k)<=0.0*p->DXM)
+            
+            if(a->phi(i,j,k)>=-0.5*p->DXM -1.0e-20 && a->phi(i,j,k)<=0.0*p->DXM)
             area=p->DXM*(p->DXM*0.5 - a->phi(i,j,k));
 
 
@@ -116,7 +116,7 @@ void iowave::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     cout<<"Qi_ipol: "<<hydrograph_ipol(p,a,pgc,hydro_in,hydro_in_count)<<endl;
         
     p->Ua=p->Qi/Ai;
-	*/
+    */
 }
 
 void iowave::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -144,8 +144,8 @@ void iowave::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
             if(a->phi(i+1,j,k)<0.5*p->DXM && a->phi(i+1,j,k)>0.0*p->DXM)
             area=p->DXM*(p->DXM*0.5 + a->phi(i+1,j,k));
-			
-			if(a->phi(i+1,j,k)>=-0.5*p->DXM-1.0e-20 && a->phi(i+1,j,k)<=0.0*p->DXM)
+            
+            if(a->phi(i+1,j,k)>=-0.5*p->DXM-1.0e-20 && a->phi(i+1,j,k)<=0.0*p->DXM)
             area=p->DXM*(p->DXM*0.5 - a->phi(i+1,j,k));
 
             Ao+=area;
@@ -154,20 +154,20 @@ void iowave::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     }
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
-	
-	if(p->B60==1)
-	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
-	
-	if(p->B60==2)
-	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
-	
-	if(p->B60==3 || p->B60==4)
-	p->Uo=hydrograph_ipol(p,a,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
-	
-	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
+    
+    if(p->B60==1)
+    p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+    
+    if(p->B60==2)
+    p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
+    
+    if(p->B60==3 || p->B60==4)
+    p->Uo=hydrograph_ipol(p,a,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
+    
+    if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,a,pgc,hydro_out,hydro_out_count)<<endl;
-	
-	*/
+    
+    */
 }
 
 

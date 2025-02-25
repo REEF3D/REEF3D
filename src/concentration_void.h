@@ -32,13 +32,13 @@ class concentration_void : public concentration
 {
 public:
     concentration_void(lexer *, fdm*, ghostcell*);
-	virtual ~concentration_void();
+    virtual ~concentration_void();
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*);
-	virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration);
-	virtual void ttimesave(lexer*, fdm*);
+    virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*);
+    virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration);
+    virtual void ttimesave(lexer*, fdm*);
 
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void concentration_ini(lexer*, fdm*, ghostcell*,concentration*);
     virtual double val(int,int,int);
 

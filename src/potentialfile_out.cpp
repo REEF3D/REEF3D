@@ -28,43 +28,43 @@ Author: Hans Bihs
 
 potentialfile_out::potentialfile_out(lexer *p, fdm_fnpf *c, ghostcell *pgc) : probenum(p->P230), eps(1.0e-10*p->DXM)
 {
-	//------------------------------
+    //------------------------------
     initialize(p,c,pgc);
-	//------------------------------
-	ini_location(p,c,pgc);
-	//------------------------------
+    //------------------------------
+    ini_location(p,c,pgc);
+    //------------------------------
     header_file_ini(p,c,pgc);
     //------------------------------
 }
 
 potentialfile_out::~potentialfile_out()
 {
-	for(n=0;n<probenum;++n)
+    for(n=0;n<probenum;++n)
     fileout[n].close();
 }
 
 void potentialfile_out::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, turbulence *pturb)
 {
-	int num;
-	
-	if(p->P15==1)
+    int num;
+    
+    if(p->P15==1)
     num = filecount;
 
     if(p->P15==2)
     num = p->count;
 
 
-	for(n=0;n<p->P230;++n)
+    for(n=0;n<p->P230;++n)
     if(p->P230_x[n]>=p->originx && p->P230_x[n]<p->endx)
-	{
+    {
 
         
         
         // write
         write_data(p,c,pgc);
-	}
-	
-	++filecount;
+    }
+    
+    ++filecount;
 }
 
 

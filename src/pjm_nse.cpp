@@ -40,23 +40,23 @@ Author: Hans Bihs
  
 pjm_nse::pjm_nse(lexer* p, fdm *a, heat *&pheat, concentration *&pconc) 
 {
-	if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
-	pd = new density_f(p);
+    if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
+    pd = new density_f(p);
     
     if((p->F80==0||p->A10==5) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
-	pd = new density_df(p);
+    pd = new density_df(p);
     
-	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
-	pd = new density_comp(p);
-	
-	if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
-	pd = new density_heat(p,pheat);
-	
-	if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
-	pd = new density_conc(p,pconc);
+    if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
+    pd = new density_comp(p);
+    
+    if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
+    pd = new density_heat(p,pheat);
+    
+    if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
+    pd = new density_conc(p,pconc);
     
     if(p->F80>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0)
-	pd = new density_vof(p);
+    pd = new density_vof(p);
     
     if(p->F30>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90>0)
     pd = new density_rheo(p);
@@ -66,10 +66,10 @@ pjm_nse::pjm_nse(lexer* p, fdm *a, heat *&pheat, concentration *&pconc)
     
 
     gcval_press=40;  
-	
-	gcval_u=7;
-	gcval_v=8;
-	gcval_w=9;
+    
+    gcval_u=7;
+    gcval_v=8;
+    gcval_w=9;
 }
 
 pjm_nse::~pjm_nse()
@@ -80,44 +80,44 @@ void pjm_nse::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
-			
-	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
+            
+    vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);    
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
-	
+    
     
     pgc->start4(p,a->press,gcval_press);
     
     ppois->start(p,a,a->press);
-	
+    
         starttime=pgc->timer();
 
     psolv->start(p,a,pgc,a->press,a->rhsvec,5);
-	
+    
         endtime=pgc->timer();
 
-	pgc->start4(p,a->press,gcval_press);
-	
-	ucorr(p,a,uvel,alpha);
-	vcorr(p,a,vvel,alpha);
-	wcorr(p,a,wvel,alpha);
+    pgc->start4(p,a->press,gcval_press);
+    
+    ucorr(p,a,uvel,alpha);
+    vcorr(p,a,vvel,alpha);
+    wcorr(p,a,wvel,alpha);
 
     p->poissoniter=p->solveriter;
 
-	p->poissontime=endtime-starttime;
+    p->poissontime=endtime-starttime;
 
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
 }
 
 void pjm_nse::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
-{	
+{    
     if(p->D37==1)
-	ULOOP
-	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+    ULOOP
+    uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
+    /(p->DXP[IP]*pd->roface(p,a,1,0,0)));
     
     if(p->D37==2)
-	ULOOP
+    ULOOP
     {
     check=0;
         
@@ -173,26 +173,26 @@ void pjm_nse::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
         
     if(check==0)
     uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((a->press(i+1,j,k)-a->press(i,j,k))
-	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+    /(p->DXP[IP]*pd->roface(p,a,1,0,0)));
     }
 }
 
 void pjm_nse::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
-{	
-	VLOOP
-	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
-	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
+{    
+    VLOOP
+    vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
+    /(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
 
 void pjm_nse::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
-{	    
+{        
     if(p->D37==1)
-	WLOOP
-	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
+    WLOOP
+    wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
+    /(p->DZP[KP]*pd->roface(p,a,0,0,1)));
     
     if(p->D37==2)
-	WLOOP
+    WLOOP
     {
     check=0;
     
@@ -246,21 +246,21 @@ void pjm_nse::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
         
     if(check==0)
     wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((a->press(i,j,k+1)-a->press(i,j,k))
-	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
+    /(p->DZP[KP]*pd->roface(p,a,0,0,1)));
     }
 }
  
 void pjm_nse::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
-	double uvel,vvel,wvel;
-	
+    double uvel,vvel,wvel;
+    
     count=0;
     FLUIDLOOP
     {
-	a->rhsvec.V[count]=0.0;
+    a->rhsvec.V[count]=0.0;
     ++count;
     }
-	
+    
     pip=p->Y50;
     
     count=0;
@@ -278,9 +278,9 @@ void pjm_nse::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w
  
 void pjm_nse::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
-	pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
-	pgc->start3(p,w,gcval_w);
+    pgc->start1(p,u,gcval_u);
+    pgc->start2(p,v,gcval_v);
+    pgc->start3(p,w,gcval_w);
 }
 
 void pjm_nse::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)

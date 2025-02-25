@@ -34,10 +34,10 @@ using namespace std;
 class sflow_voidconv : public sflow_convection, public increment
 {
 public:
-	sflow_voidconv(lexer*);
-	virtual ~sflow_voidconv();
+    sflow_voidconv(lexer*);
+    virtual ~sflow_voidconv();
 
-	virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&);
+    virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&);
 
 
 

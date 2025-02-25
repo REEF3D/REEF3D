@@ -38,12 +38,12 @@ class density_conc : public density, virtual public increment
 
 public:
     density_conc(lexer*,concentration*&);
-	virtual ~density_conc();
+    virtual ~density_conc();
 
-	virtual double roface(lexer*,fdm*,int,int,int);
-	
+    virtual double roface(lexer*,fdm*,int,int,int);
+    
 private:
-	double H,roval,phival;
+    double H,roval,phival;
     double psi;
 
     concentration *pconc;

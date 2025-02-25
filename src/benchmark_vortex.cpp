@@ -29,7 +29,7 @@ Author: Hans Bihs
 benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
 {
     double xc,yc,radius;
-	double dist,sign;
+    double dist,sign;
     double H;
 
     xc = 0.5;
@@ -39,58 +39,58 @@ benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
     LOOP
     a->phi(i,j,k)=1.0;
 /*
-	LOOP
-	{
+    LOOP
+    {
     r = sqrt( pow(p->pos_x()-xc,2.0) + pow(p->pos_y()-yc,2.0));
-	if(r<=radius)
-	a->phi(i,j,k)=-1.0;
-	}
-	
-	*/
-	LOOP
-	{
-		
-	dist = sqrt( pow(p->pos_x()-xc,2.0) + pow(p->pos_y()-yc,2.0));
-	
-	if(dist<=radius)
-	sign=1.0;
-	
-	if(dist>radius)
-	sign=-1.0;
-	
-	a->phi(i,j,k)=sign*dist;	
-	}
-	
-	if(p->F151==1)
-	LOOP
+    if(r<=radius)
+    a->phi(i,j,k)=-1.0;
+    }
+    
+    */
+    LOOP
+    {
+        
+    dist = sqrt( pow(p->pos_x()-xc,2.0) + pow(p->pos_y()-yc,2.0));
+    
+    if(dist<=radius)
+    sign=1.0;
+    
+    if(dist>radius)
+    sign=-1.0;
+    
+    a->phi(i,j,k)=sign*dist;    
+    }
+    
+    if(p->F151==1)
+    LOOP
     a->phi(i,j,k)*=-1.0;
 
     LOOP
-	{
-		if(a->phi(i,j,k)>=p->F45*p->DXM)
-		H=1.0;
+    {
+        if(a->phi(i,j,k)>=p->F45*p->DXM)
+        H=1.0;
 
-		if(a->phi(i,j,k)<-p->F45*p->DXM)
-		H=0.0;
+        if(a->phi(i,j,k)<-p->F45*p->DXM)
+        H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=p->F45*p->DXM)
-		H=0.5*(1.0 + a->phi(i,j,k)/p->F45*p->DXM + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->F45*p->DXM));
+        if(fabs(a->phi(i,j,k))<=p->F45*p->DXM)
+        H=0.5*(1.0 + a->phi(i,j,k)/p->F45*p->DXM + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->F45*p->DXM));
 
-		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
-		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
-	}
+        a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
+        a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
+    }
 
 
     LOOP
-	{
-		a->vof(i,j,k) = 0.0;
-		
-		double r = sqrt(pow(p->pos_x() - xc, 2.0) + pow(p->pos_z() - yc, 2.0));
-		if (r <= radius)
-		{
-			a->vof(i,j,k) = 1.0;
-		}
-	}
+    {
+        a->vof(i,j,k) = 0.0;
+        
+        double r = sqrt(pow(p->pos_x() - xc, 2.0) + pow(p->pos_z() - yc, 2.0));
+        if (r <= radius)
+        {
+            a->vof(i,j,k) = 1.0;
+        }
+    }
 
     
     
@@ -144,6 +144,6 @@ void benchmark_vortex::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconv
 
     pgc->start1(p,a->u,10);
     pgc->start2(p,a->v,11);
-	pgc->start2(p,a->w,12);
+    pgc->start2(p,a->w,12);
 
 }

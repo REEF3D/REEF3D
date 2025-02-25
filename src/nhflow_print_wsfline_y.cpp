@@ -31,22 +31,22 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 nhflow_print_wsfline_y::nhflow_print_wsfline_y(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{	
-	p->Iarray(iloc,p->P56);
+{    
+    p->Iarray(iloc,p->P56);
 
     maxknoy=pgc->globalimax(p->knoy);
     sumknoy=pgc->globalisum(maxknoy);
-	
+    
     p->Darray(yloc,p->P56+2,maxknoy);
     p->Darray(wsf,p->P56+2,maxknoy);
     p->Iarray(flag,p->P56+2,maxknoy);
-	p->Iarray(wsfpoints,p->P56+2);
-	
+    p->Iarray(wsfpoints,p->P56+2);
+    
 
     p->Darray(yloc_all,p->P56+2,sumknoy);
     p->Darray(wsf_all,p->P56+2,sumknoy);
-	p->Iarray(flag_all,p->P56+2,sumknoy);
-	p->Iarray(rowflag,sumknoy);
+    p->Iarray(flag_all,p->P56+2,sumknoy);
+    p->Iarray(rowflag,sumknoy);
 
     for(q=0;q<p->P56;++q)
     for(n=0;n<maxknoy;++n)
@@ -60,15 +60,15 @@ nhflow_print_wsfline_y::nhflow_print_wsfline_y(lexer *p, fdm_nhf *d, ghostcell *
     {
     yloc_all[q][n]=0.0;
     wsf_all[q][n]=0.0;
-	flag_all[q][n]=0;
-	rowflag[n]=0;
+    flag_all[q][n]=0;
+    rowflag[n]=0;
     }
 
     ini_location(p,d,pgc);
-	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_NHFLOW_WSFLINE_Y",0777);
+    
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_NHFLOW_WSFLINE_Y",0777);
 }
 
 nhflow_print_wsfline_y::~nhflow_print_wsfline_y()
@@ -78,41 +78,41 @@ nhflow_print_wsfline_y::~nhflow_print_wsfline_y()
 
 void nhflow_print_wsfline_y::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, slice &f)
 {
-	
+    
     char name[250];
     double zval=0.0;
     int num,check;
-	
+    
     num = p->count;
 
     if(p->mpirank==0)
     {
-		// open file
-		sprintf(name,"./REEF3D_NHFLOW_WSFLINE_Y/REEF3D-NHFLOW-wsfline_y-%08i.dat",num);
-		
-		wsfout.open(name);
+        // open file
+        sprintf(name,"./REEF3D_NHFLOW_WSFLINE_Y/REEF3D-NHFLOW-wsfline_y-%08i.dat",num);
+        
+        wsfout.open(name);
 
-		wsfout<<"simtime:  "<<p->simtime<<endl;
-		wsfout<<"number of wsf-lines:  "<<p->P56<<endl<<endl;
-		wsfout<<"line_No     x_coord"<<endl;
-		for(q=0;q<p->P56;++q)
-		wsfout<<q+1<<"\t "<<p->P56_x[q]<<endl;
+        wsfout<<"simtime:  "<<p->simtime<<endl;
+        wsfout<<"number of wsf-lines:  "<<p->P56<<endl<<endl;
+        wsfout<<"line_No     x_coord"<<endl;
+        for(q=0;q<p->P56;++q)
+        wsfout<<q+1<<"\t "<<p->P56_x[q]<<endl;
 
-		if(p->P53==1)
-		wsfout<<q+1<<"\t "<<" Wave Theory "<<endl;
+        if(p->P53==1)
+        wsfout<<q+1<<"\t "<<" Wave Theory "<<endl;
 
-		wsfout<<endl<<endl;
+        wsfout<<endl<<endl;
 
-		
-		for(q=0;q<p->P56;++q)
-		{
-		wsfout<<"Y "<<q+1;
-		wsfout<<"\t P "<<q+1<<" \t \t ";
-		if(p->P53==1)
-		wsfout<<"\t \t W "<<q+1;
-		}
+        
+        for(q=0;q<p->P56;++q)
+        {
+        wsfout<<"Y "<<q+1;
+        wsfout<<"\t P "<<q+1<<" \t \t ";
+        if(p->P53==1)
+        wsfout<<"\t \t W "<<q+1;
+        }
 
-		wsfout<<endl<<endl;
+        wsfout<<endl<<endl;
     }
 
     //-------------------
@@ -136,72 +136,72 @@ void nhflow_print_wsfline_y::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow 
             yloc[q][j]=p->pos_y();
         }
     }
-	
-	
-	for(q=0;q<p->P56;++q)
+    
+    
+    for(q=0;q<p->P56;++q)
     wsfpoints[q]=sumknoy;
-	
+    
     // gather
     for(q=0;q<p->P56;++q)
     {
     pgc->gather_double(yloc[q],maxknoy,yloc_all[q],maxknoy);
     pgc->gather_double(wsf[q],maxknoy,wsf_all[q],maxknoy);
-	pgc->gather_int(flag[q],maxknoy,flag_all[q],maxknoy);
+    pgc->gather_int(flag[q],maxknoy,flag_all[q],maxknoy);
 
-		
+        
         if(p->mpirank==0)
         {
         sort(yloc_all[q], wsf_all[q], flag_all[q], 0, wsfpoints[q]-1);
         remove_multientry(p,yloc_all[q], wsf_all[q], flag_all[q], wsfpoints[q]); 
         }
-		
+        
     }
-	
+    
     // write to file
     if(p->mpirank==0)
     {
-		for(n=0;n<sumknoy;++n)
-		rowflag[n]=0;
-		
-		for(n=0;n<sumknoy;++n)
+        for(n=0;n<sumknoy;++n)
+        rowflag[n]=0;
+        
+        for(n=0;n<sumknoy;++n)
         {
-			check=0;
-		    for(q=0;q<p->P56;++q)
-			if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
-			check=1;
-			
-			if(check==1)
-			rowflag[n]=1;
-		}
+            check=0;
+            for(q=0;q<p->P56;++q)
+            if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
+            check=1;
+            
+            if(check==1)
+            rowflag[n]=1;
+        }
         
 
         for(n=0;n<sumknoy;++n)
         {
-			check=0;
-		    for(q=0;q<p->P56;++q)
-			{
-				if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
-				{
-				wsfout<<setprecision(5)<<yloc_all[q][n]<<" \t ";
-				wsfout<<setprecision(5)<<wsf_all[q][n]<<" \t  ";
-				
-				
-					if(p->P53==1)
-					wsfout<<pflow->wave_fsf(p,pgc,yloc_all[q][n])<<" \t  ";
-					
-				check=1;
-				}
-				
-				if((flag_all[q][n]<0 || yloc_all[q][n]>=1.0e20) && rowflag[n]==1)
-				{
-					wsfout<<setprecision(5)<<" \t ";
-					wsfout<<setprecision(5)<<" \t ";
-					
-				}
-			}
+            check=0;
+            for(q=0;q<p->P56;++q)
+            {
+                if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
+                {
+                wsfout<<setprecision(5)<<yloc_all[q][n]<<" \t ";
+                wsfout<<setprecision(5)<<wsf_all[q][n]<<" \t  ";
+                
+                
+                    if(p->P53==1)
+                    wsfout<<pflow->wave_fsf(p,pgc,yloc_all[q][n])<<" \t  ";
+                    
+                check=1;
+                }
+                
+                if((flag_all[q][n]<0 || yloc_all[q][n]>=1.0e20) && rowflag[n]==1)
+                {
+                    wsfout<<setprecision(5)<<" \t ";
+                    wsfout<<setprecision(5)<<" \t ";
+                    
+                }
+            }
 
             
-			if(check==1)
+            if(check==1)
             wsfout<<endl;
         }
 
@@ -246,15 +246,15 @@ void nhflow_print_wsfline_y::sort(double *a, double *b, int *c, int left, int ri
       if (l <= r) {
           double swap = a[l];
           double swapd = b[l];
-		  int swapc = c[l];
+          int swapc = c[l];
 
           a[l] = a[r];
           a[r] = swap;
 
           b[l] = b[r];
           b[r] = swapd;
-		  
-		  c[l] = c[r];
+          
+          c[l] = c[r];
           c[r] = swapc;
 
           l++;
@@ -275,11 +275,11 @@ void nhflow_print_wsfline_y::remove_multientry(lexer *p, double* b, double* c, i
     int count=0;
 
     double *f,*g;
-	int *h;
-	
-	p->Darray(f,num);
-	p->Darray(g,num);
-	p->Iarray(h,num);
+    int *h;
+    
+    p->Darray(f,num);
+    p->Darray(g,num);
+    p->Iarray(h,num);
 
     for(n=0;n<num;++n)
     g[n]=-1.12e22;
@@ -294,7 +294,7 @@ void nhflow_print_wsfline_y::remove_multientry(lexer *p, double* b, double* c, i
         {
         f[count]=b[n];
         g[count]=c[n];
-		h[count]=d[n];
+        h[count]=d[n];
         ++count;
         }
 
@@ -305,15 +305,15 @@ void nhflow_print_wsfline_y::remove_multientry(lexer *p, double* b, double* c, i
     {
     b[n]=f[n];
     c[n]=g[n];
-	d[n]=h[n];
+    d[n]=h[n];
     }
 
     
     p->del_Darray(f,num);
-	p->del_Darray(g,num);
-	p->del_Iarray(h,num);
-	
-	num=count;
+    p->del_Darray(g,num);
+    p->del_Iarray(h,num);
+    
+    num=count;
 
 }
 

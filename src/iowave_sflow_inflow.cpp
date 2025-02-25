@@ -31,11 +31,11 @@ void iowave::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, sl
     if(p->B98==0)
     inflow2D_plain(p,b,pgc,P,Q,eta);
     
-	if(p->B98==3 || p->B98==4)
-	wavegen2D(p,b,pgc,P,Q,bed,eta);
-	
-	if(p->B99==3 || p->B99==4)
-	active_beach2D(p,b,pgc,P,Q,bed,eta);
+    if(p->B98==3 || p->B98==4)
+    wavegen2D(p,b,pgc,P,Q,bed,eta);
+    
+    if(p->B99==3 || p->B99==4)
+    active_beach2D(p,b,pgc,P,Q,bed,eta);
     
     pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
@@ -71,7 +71,7 @@ void iowave::inflow2D_plain(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice 
         P(i-2,j)=p->Ui;
         P(i-3,j)=p->Ui;
 
-		Q(i-1,j)=0.0;
+        Q(i-1,j)=0.0;
         Q(i-2,j)=0.0;
         Q(i-3,j)=0.0;
         

@@ -30,19 +30,19 @@ double particle_pls::hside(fdm* a)
     phival=fabs(a->phi(i,j,k));
 
         if(phival>epsi)
-		Hval=0.0;
+        Hval=0.0;
 
-		if(phival<=epsi)
-		Hval=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+        if(phival<=epsi)
+        Hval=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
-		return Hval;
+        return Hval;
 }
 
 void particle_pls::vel_setback(lexer* p,fdm* a,ghostcell* pgc)
 {/*
     pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);*/
+    pgc->start2(p,a->v,11);
+    pgc->start3(p,a->w,12);*/
 }
 
 

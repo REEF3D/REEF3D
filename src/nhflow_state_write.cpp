@@ -40,8 +40,8 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
     num = printcount;
     
     filename_single(p,d,pgc,num);
-	 
-	result.open(name, ios::binary);
+     
+    result.open(name, ios::binary);
     }
      
     // read head section
@@ -50,11 +50,11 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     iin=p->count;
     result.write((char*)&iin, sizeof (int));
-	
-	iin=p->printcount;
+    
+    iin=p->printcount;
     result.write((char*)&iin, sizeof (int));
-	
-	ddn=p->simtime;
+    
+    ddn=p->simtime;
     result.write((char*)&ddn, sizeof (double));
     
     ddn=p->printtime;
@@ -90,7 +90,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	for(i=is;i<ie;++i)
+    for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
     for(k=0; k<p->knoz; ++k)
     PCHECK 
@@ -99,7 +99,7 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
     result.write((char*)&ffn, sizeof (float));
     } 
 
-	for(i=is;i<ie;++i)
+    for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
     for(k=0; k<p->knoz; ++k)
     PCHECK 
@@ -117,9 +117,9 @@ void nhflow_state::write_result(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ffn=float(d->P[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
-	if(p->P45==1)
-	result.close();
-	
-	++printcount;
+    
+    if(p->P45==1)
+    result.close();
+    
+    ++printcount;
 }

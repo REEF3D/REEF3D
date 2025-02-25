@@ -34,16 +34,16 @@ class concentration_RK3 :public bc_concentration, public concentration_io
 {
 public:
     concentration_RK3(lexer *, fdm*, ghostcell*);
-	virtual ~concentration_RK3();
+    virtual ~concentration_RK3();
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*);
-	virtual void ttimesave(lexer*, fdm*);
+    virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*);
+    virtual void ttimesave(lexer*, fdm*);
 
 private:
     void clearrhs(lexer*,fdm*,ghostcell*);
         
-	int gcval_concentration;
-	double starttime, endtime;
+    int gcval_concentration;
+    double starttime, endtime;
     
 };
 

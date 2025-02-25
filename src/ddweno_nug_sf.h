@@ -39,40 +39,40 @@ class ddweno_nug_sf : public weno_nug_func
 {
 public:
 
-	 ddweno_nug_sf(lexer*);
-	 ~ddweno_nug_sf();
+     ddweno_nug_sf(lexer*);
+     ~ddweno_nug_sf();
 
-	 double ddwenox(fdm*, field&, double);
-	 double ddwenoy(fdm*, field&, double);
-	 double ddwenoz(fdm*, field&, double);
+     double ddwenox(fdm*, field&, double);
+     double ddwenoy(fdm*, field&, double);
+     double ddwenoz(fdm*, field&, double);
 
-	void iqmin0(fdm*, field&);
-	void jqmin0(fdm*, field&);
-	void kqmin0(fdm*, field&);
-	void iqmax0(fdm*, field&);
-	void jqmax0(fdm*, field&);
-	void kqmax0(fdm*, field&);
+    void iqmin0(fdm*, field&);
+    void jqmin0(fdm*, field&);
+    void kqmin0(fdm*, field&);
+    void iqmax0(fdm*, field&);
+    void jqmax0(fdm*, field&);
+    void kqmax0(fdm*, field&);
     
     void iqmin1(fdm*, field&);
-	void jqmin1(fdm*, field&);
-	void kqmin1(fdm*, field&);
-	void iqmax1(fdm*, field&);
-	void jqmax1(fdm*, field&);
-	void kqmax1(fdm*, field&);
+    void jqmin1(fdm*, field&);
+    void kqmin1(fdm*, field&);
+    void iqmax1(fdm*, field&);
+    void jqmax1(fdm*, field&);
+    void kqmax1(fdm*, field&);
     
     void iqmin2(fdm*, field&);
-	void jqmin2(fdm*, field&);
-	void kqmin2(fdm*, field&);
-	void iqmax2(fdm*, field&);
-	void jqmax2(fdm*, field&);
-	void kqmax2(fdm*, field&);
+    void jqmin2(fdm*, field&);
+    void kqmin2(fdm*, field&);
+    void iqmax2(fdm*, field&);
+    void jqmax2(fdm*, field&);
+    void kqmax2(fdm*, field&);
     
     void iqmin3(fdm*, field&);
-	void jqmin3(fdm*, field&);
-	void kqmin3(fdm*, field&);
-	void iqmax3(fdm*, field&);
-	void jqmax3(fdm*, field&);
-	void kqmax3(fdm*, field&);
+    void jqmin3(fdm*, field&);
+    void kqmin3(fdm*, field&);
+    void iqmax3(fdm*, field&);
+    void jqmax3(fdm*, field&);
+    void kqmax3(fdm*, field&);
 
     double grad;
     double *DX,*DY,*DZ;

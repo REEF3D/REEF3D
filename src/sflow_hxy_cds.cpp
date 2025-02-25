@@ -47,7 +47,7 @@ sflow_hxy_cds::~sflow_hxy_cds()
 
 void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet, slice& eta, slice& uvel, slice& vvel)
 {
-	double eps=0.0;
+    double eps=0.0;
 
     SLICELOOP1
     hx(i,j) = 0.5*(eta(i,j)+eta(i+1,j)) + 0.5*(depth(i,j)+depth(i+1,j));
@@ -78,9 +78,9 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         if(wet[IJ]==1)
         hx(i,j) = 0.5*(eta(i,j)+eta(i+1,j)) + 0.5*(depth(i,j)+depth(i+1,j));
     }
-	
-	
-	SLICELOOP2
+    
+    
+    SLICELOOP2
     hy(i,j) = 0.5*(eta(i,j)+eta(i,j+1)) + 0.5*(depth(i,j)+depth(i,j+1));
     
     for(qq=0;qq<pBC->obj_count;++qq)

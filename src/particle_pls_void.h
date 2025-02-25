@@ -31,12 +31,12 @@ class particle_pls_void : public particle_corr
 {
 public:
     particle_pls_void();
-	virtual ~particle_pls_void();
+    virtual ~particle_pls_void();
 
     virtual void start(lexer*,fdm*,ghostcell*,ioflow*);
-	virtual void setup(lexer*,fdm*,ghostcell*);
-	virtual void correct(lexer*, fdm*, ghostcell*,ioflow*);
-	virtual void picardmove(lexer*, fdm*, ghostcell*);
+    virtual void setup(lexer*,fdm*,ghostcell*);
+    virtual void correct(lexer*, fdm*, ghostcell*,ioflow*);
+    virtual void picardmove(lexer*, fdm*, ghostcell*);
 };
 
 #endif

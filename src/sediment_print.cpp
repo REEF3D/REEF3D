@@ -50,134 +50,134 @@ void sediment_f::name_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, in
 void sediment_f::offset_vtp_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
 }
 
 void sediment_f::offset_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
 }
 
 void sediment_f::print_3D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
-{	
-	float ffn;
-	int iin;
+{    
+    float ffn;
+    int iin;
 
-	// qbe
+    // qbe
     pgc->gcsl_start4(p,s->qbe,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->qbe));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // qb
     pgc->gcsl_start4(p,s->qb,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->qb));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // cbe
     pgc->gcsl_start4(p,s->cbe,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->cbe));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // cb
     pgc->gcsl_start4(p,s->cbe,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->cb));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
 }
 
 void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
-{	
-	float ffn;
-	int iin;
+{    
+    float ffn;
+    int iin;
 
-	// qbe
+    // qbe
     pgc->gcsl_start4(p,s->qbe,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->qbe));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // qb
     pgc->gcsl_start4(p,s->qb,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->qb));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // cbe
     pgc->gcsl_start4(p,s->cbe,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->cbe));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // cb
     pgc->gcsl_start4(p,s->cbe,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->cb));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
 }
 
@@ -232,347 +232,347 @@ void sediment_f::name_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, i
 void sediment_f::offset_vtp_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
 }
 
 void sediment_f::offset_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
 }
 
 void sediment_f::print_2D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
-{	
-	float ffn;
-	int iin;
+{    
+    float ffn;
+    int iin;
     double tau_eff,shearvel_eff,shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
     
     if(p->P79==1)
     {
         
-	// tau_eff
+    // tau_eff
     pgc->gcsl_start4(p,s->tau_eff,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->tau_eff));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // tau_crit
     pgc->gcsl_start4(p,s->tau_crit,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->tau_crit));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     }
     
     
     if(p->P79==2)
     {
-	// shearvel_eff
+    // shearvel_eff
     pgc->gcsl_start4(p,s->shearvel_eff,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->shearvel_eff));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // shearvel_crit
     pgc->gcsl_start4(p,s->shearvel_crit,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->shearvel_crit));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     }
     
     
     if(p->P79==3)
     {
-	// shields_eff
+    // shields_eff
     pgc->gcsl_start4(p,s->shields_eff,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->shields_eff));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // shields_crit
     pgc->gcsl_start4(p,s->shields_crit,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->shields_crit));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     }
 }
 
 void sediment_f::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
-{	
-	float ffn;
-	int iin;
+{    
+    float ffn;
+    int iin;
     double tau_eff,shearvel_eff,shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
     
     if(p->P79==1)
     {
         
-	// tau_eff
+    // tau_eff
     pgc->gcsl_start4(p,s->tau_eff,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->tau_eff));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // tau_crit
     pgc->gcsl_start4(p,s->tau_crit,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->tau_crit));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     }
     
     
     if(p->P79==2)
     {
-	// shearvel_eff
+    // shearvel_eff
     pgc->gcsl_start4(p,s->shearvel_eff,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->shearvel_eff));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // shearvel_crit
     pgc->gcsl_start4(p,s->shearvel_crit,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->shearvel_crit));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     }
     
     
     if(p->P79==3)
     {
-	// shields_eff
+    // shields_eff
     pgc->gcsl_start4(p,s->shields_eff,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->shields_eff));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // shields_crit
     pgc->gcsl_start4(p,s->shields_crit,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->shields_crit));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     }
 }
 
 void sediment_f::print_2D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
-{	
-	float ffn;
-	int iin;
+{    
+    float ffn;
+    int iin;
     
     // alpha
     pgc->gcsl_start4(p,s->alpha,1);
-	
-	iin=4*(p->pointnum2D);
+    
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->alpha));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     
     // teta
     pgc->gcsl_start4(p,s->teta,1);
-	
-	iin=4*(p->pointnum2D);
+    
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->teta));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // gamma
     pgc->gcsl_start4(p,s->gamma,1);
-	
-	iin=4*(p->pointnum2D);
+    
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->gamma));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // beta
     pgc->gcsl_start4(p,s->beta,1);
-	
-	iin=4*(p->pointnum2D);
+    
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->beta));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // phi
     pgc->gcsl_start4(p,s->phi,1);
-	
-	iin=4*(p->pointnum2D);
+    
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->phi));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
 }
 
 void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
-{	
-	float ffn;
-	int iin;
+{    
+    float ffn;
+    int iin;
     
     // alpha
     pgc->gcsl_start4(p,s->alpha,1);
-	
-	iin=4*(p->pointnum);
+    
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->alpha));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     
     // teta
     pgc->gcsl_start4(p,s->teta,1);
-	
-	iin=4*(p->pointnum);
+    
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->teta));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // gamma
     pgc->gcsl_start4(p,s->gamma,1);
-	
-	iin=4*(p->pointnum);
+    
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->gamma));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // beta
     pgc->gcsl_start4(p,s->beta,1);
-	
-	iin=4*(p->pointnum);
+    
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->beta));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // phi
     pgc->gcsl_start4(p,s->phi,1);
-	
-	iin=4*(p->pointnum);
+    
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->phi));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
 }
 
 void sediment_f::name_pvtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result)
@@ -605,168 +605,168 @@ void sediment_f::name_vtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result,
 void sediment_f::offset_vtp_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
 }
 
 void sediment_f::offset_vtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
 }
 
 
 void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
-{	
-	float ffn;
-	int iin;
-	
+{    
+    float ffn;
+    int iin;
+    
     // dh,bedch,reduce,threshold,slideflag
     
     // dh
     pgc->gcsl_start4(p,s->vz,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->dtsed*p->sl_ipol4(s->vz));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // bedchange
     pgc->gcsl_start4(p,s->bedch,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->dtsed*p->sl_ipol4(s->bedch));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // reduce
     pgc->gcsl_start4(p,s->reduce,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->reduce));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // threshold
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=0.0;
     
     if(s->tau_eff(i,j)>s->tau_crit(i,j))
     ffn=1.0;
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // slideflag
     pgc->gcsl_start4(p,s->slideflag,1);
     
-	iin=4*(p->pointnum2D);
+    iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
-	
-	TPSLICELOOP
-	{
+    
+    TPSLICELOOP
+    {
     ffn=float(p->sl_ipol4(s->slideflag));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
 }
 
 void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
-{	
-	float ffn;
-	int iin;
-	
+{    
+    float ffn;
+    int iin;
+    
     // dh,bedch,reduce,threshold,slideflag
     
     // dh
     pgc->gcsl_start4(p,s->vz,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->dtsed*p->sl_ipol4(s->vz));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // bedchange
     pgc->gcsl_start4(p,s->bedch,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->dtsed*p->sl_ipol4(s->bedch));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // reduce
     pgc->gcsl_start4(p,s->reduce,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->reduce));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // threshold
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=0.0;
     
     if(s->tau_eff(i,j)>s->tau_crit(i,j))
     ffn=1.0;
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     // slideflag
     pgc->gcsl_start4(p,s->slideflag,1);
     
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
+    
+    TPLOOP
+    {
     ffn=float(p->sl_ipol4(s->slideflag));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    result.write((char*)&ffn, sizeof (float));
+    }
 }
 
 void sediment_f::name_pvtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result)
@@ -799,27 +799,27 @@ void sediment_f::name_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result,
 void sediment_f::offset_vtp_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
 }
 
 void sediment_f::offset_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
 }

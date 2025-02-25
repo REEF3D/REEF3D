@@ -30,15 +30,15 @@ Author: Hans Bihs
 
 void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-	double dqx,dqy;
+    double dqx,dqy;
     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
     double sgx1,sgx2,sgy1,sgy2;
     double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
-	
+    
 
     SLICELOOP4
-	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
-	{						
+    if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
+    {                        
         ux1=s->P(i-1,j);
         vx1=0.25*(s->Q(i,j)+s->Q(i-1,j)+s->Q(i,j-1)+s->Q(i-1,j-1)); 
         
@@ -73,14 +73,14 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
     // Exner equations
         s->vz(i,j) =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
-	}
+    }
     
     pgc->gcsl_start4(p,s->vz,1);
 }
 
 void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-	double dqx,dqy;
+    double dqx,dqy;
     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
     double sgx1,sgx2,sgy1,sgy2;
     double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
@@ -98,10 +98,10 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
         pip=2;
         vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
         pip=0;
-		
-		u_abs = sqrt(uvel*uvel + vvel*vvel);
-		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+        
+        u_abs = sqrt(uvel*uvel + vvel*vvel);
+        signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+        signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
         
         qbx(i,j) = signx*s->qb(i,j);
         qby(i,j) = signy*s->qb(i,j);
@@ -110,11 +110,11 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
     pgc->gcsl_start4(p,qbx,1);
     pgc->gcsl_start4(p,qby,1);
     
-	
+    
 
     SLICELOOP4
-	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
-	{						
+    if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
+    {                        
         ux1=s->P(i-1,j);
         vx1=0.25*(s->Q(i,j)+s->Q(i-1,j)+s->Q(i,j-1)+s->Q(i-1,j-1)); 
         
@@ -148,7 +148,7 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
     // Exner equations
         s->vz(i,j) =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
-	}
+    }
     
     pgc->gcsl_start4(p,s->vz,1);
 }

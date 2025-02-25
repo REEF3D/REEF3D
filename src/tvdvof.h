@@ -33,19 +33,19 @@ class tvdvof : public fluxlim, public increment
 
 public:
 
-	tvdvof (lexer *);
-	virtual ~tvdvof();
+    tvdvof (lexer *);
+    virtual ~tvdvof();
 
-	virtual double iphi(field&,int,int,int,int);
-	virtual double jphi(field&,int,int,int,int);
-	virtual double kphi(field&,int,int,int,int);
+    virtual double iphi(field&,int,int,int,int);
+    virtual double jphi(field&,int,int,int,int);
+    virtual double kphi(field&,int,int,int,int);
 
 private:
 
     double ul,ur,vl,vr,wl,wr;
     double rp,rn, phi,denom;
-	double dx,dy,dz;
-	double L;
+    double dx,dy,dz;
+    double L;
 };
 
 #endif

@@ -71,8 +71,8 @@ void nhflow_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
     SLICELOOP4
     WETDRY
     {
-	 // Here we do the wave-averaging NB: c->eta(i,j) is the FS
-	 // variance equation with etamean initially unknown
+     // Here we do the wave-averaging NB: c->eta(i,j) is the FS
+     // variance equation with etamean initially unknown
       
     ETAsum(i,j)      += eta(i,j)*p->dt;
     ETAmean(i,j)      = ETAsum(i,j)/(fabs(T_sum)>1.0e-10?T_sum:1.0e20);
@@ -83,11 +83,11 @@ void nhflow_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
     
     if(NumDT1>1)
     { 
-	    ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1.0));
+        ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1.0));
         //cout<<ETAvar(i,j)<<endl;
-	    Hs(i,j)         = 4.0*sqrt(MAX(ETAvar(i,j),0.0));
+        Hs(i,j)         = 4.0*sqrt(MAX(ETAvar(i,j),0.0));
     }
-	  
+      
     }
     
    }

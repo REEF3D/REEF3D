@@ -32,11 +32,11 @@ using namespace std;
 class fnpf_wenoflux : public fnpf_etadisc, public increment, public weno_nug_func
 {
 public:
-	fnpf_wenoflux(lexer*);
-	virtual ~fnpf_wenoflux();
+    fnpf_wenoflux(lexer*);
+    virtual ~fnpf_wenoflux();
 
     virtual double sx(lexer*, slice&, slice&);
-	virtual double sy(lexer*, slice&, slice&);
+    virtual double sy(lexer*, slice&, slice&);
 
 
 private:
@@ -45,9 +45,9 @@ private:
 
     
     void iqmin(lexer*, slice&);
-	void jqmin(lexer*, slice&);
-	void iqmax(lexer*, slice&);
-	void jqmax(lexer*, slice&);
+    void jqmin(lexer*, slice&);
+    void iqmax(lexer*, slice&);
+    void jqmax(lexer*, slice&);
     
     
     double **ckz;

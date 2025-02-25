@@ -65,7 +65,7 @@ void fnpf_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *F
 void fnpf_bed_update::waterdepth(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     SLICELOOP4
-	c->depth(i,j) = p->wd - c->bed(i,j);
+    c->depth(i,j) = p->wd - c->bed(i,j);
 }
 
 

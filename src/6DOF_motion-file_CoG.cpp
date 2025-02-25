@@ -33,7 +33,7 @@ sixdof_motionext_file_CoG::sixdof_motionext_file_CoG(lexer *p, ghostcell *pgc)
     colnum = 4;
     
     timecount_old=0;
-	timecount=1;
+    timecount=1;
     
     // read file
     read_format_1(p,pgc);
@@ -60,8 +60,8 @@ void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen:
     if((p->simtime>data[timecount][0]))
     timecount_old=timecount;
     
-	while(p->simtime>data[timecount][0])
-	++timecount;
+    while(p->simtime>data[timecount][0])
+    ++timecount;
     
     
         Uext = 0.0;

@@ -50,8 +50,8 @@ void lexer::lexer_ini()
     slidecells=0;
     bedmin=bedmax=0.0;
     solver_status=0;
-	
-	maxdt=mindt=0.0;
+    
+    maxdt=mindt=0.0;
     RK_alpha=0.0;
     wavetime=0.0;
 
@@ -65,18 +65,18 @@ void lexer::lexer_ini()
     wL=0.0;
     wd=0.0;
     wC=0.0;
-	
-	velcorr=1;
-	
-	ufbmax=0.0;
-	vfbmax=0.0;
-	wfbmax=0.0;
-	fbmax=0.0;
+    
+    velcorr=1;
+    
+    ufbmax=0.0;
+    vfbmax=0.0;
+    wfbmax=0.0;
+    fbmax=0.0;
     sfmax=0.0;
     pressgage=0.0;
     
-	ufbi=vfbi=wfbi=0.0;
-	pfbi=qfbi=rfbi=0.0;
+    ufbi=vfbi=wfbi=0.0;
+    pfbi=qfbi=rfbi=0.0;
     
     if(B98==1)
     B98=2;
@@ -88,16 +88,16 @@ void lexer::lexer_ini()
 void lexer::makeflag( int *field)
 {
     int n;
-	for(n=0;n<imax*jmax*kmax;++n)
-	field[n]=OBJ_FLAG;
+    for(n=0;n<imax*jmax*kmax;++n)
+    field[n]=OBJ_FLAG;
 }
 
 void lexer::parse()
 {
     if(F80>0 && F35>0)
     F35=0;
-	
-	if(I10==1)
+    
+    if(I10==1)
     {
     I11=1;
     I12=2;
@@ -110,10 +110,10 @@ void lexer::parse()
     I12=2;
     I13=1;
     }
-	
-	if(I40>0)
-	{
-	I10=0;
+    
+    if(I40>0)
+    {
+    I10=0;
     I11=0;
     I12=0;
     I13=0;
@@ -122,7 +122,7 @@ void lexer::parse()
 
     if(T10==0)
     I13=0;
-	
-	if(S10>=1 || toporead==1)
-	P27=1;
+    
+    if(S10>=1 || toporead==1)
+    P27=1;
 }

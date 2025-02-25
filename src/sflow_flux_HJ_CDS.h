@@ -34,11 +34,11 @@ class sflow_flux_HJ_CDS : public sflow_flux, public increment
 {
 public:
 
-	sflow_flux_HJ_CDS (lexer *p);
-	virtual ~sflow_flux_HJ_CDS();
+    sflow_flux_HJ_CDS (lexer *p);
+    virtual ~sflow_flux_HJ_CDS();
 
-	virtual void u_flux(int,slice&,double&,double&);
-	virtual void v_flux(int,slice&,double&,double&);
+    virtual void u_flux(int,slice&,double&,double&);
+    virtual void v_flux(int,slice&,double&,double&);
 
 private:
     lexer *p;

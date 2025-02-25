@@ -32,11 +32,11 @@ Author: Hans Bihs
 
 driver::driver(int& argc, char **argv)
 {
-	p = new lexer;
-	pgc = new ghostcell(argc,argv,p);
+    p = new lexer;
+    pgc = new ghostcell(argc,argv,p);
     cout<<fixed;
 
-	if(p->mpirank==0)
+    if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2025 Hans Bihs"<<endl;
     sprintf(version,"v_250220");
@@ -48,9 +48,9 @@ driver::driver(int& argc, char **argv)
     }
 
     pgc->mpi_check(p);
-	p->lexer_read(pgc);
+    p->lexer_read(pgc);
     p->vellast();
-	pgc->gcini(p);
+    pgc->gcini(p);
     p->gridini(pgc);
     patchBC_logic();
 
@@ -141,11 +141,11 @@ driver::driver(int& argc, char **argv)
 void driver::cfd_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm "<<endl;
+    cout<<"initialize fdm "<<endl;
 
     a=new fdm(p);
 
-	aa=a;
+    aa=a;
     pgc->fdm_update(a);
 
     logic_cfd();
@@ -167,9 +167,9 @@ void driver::cfd_driver()
 void driver::nhflow_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
+    cout<<"initialize fdm"<<endl;
 
-	d=new fdm_nhf(p);
+    d=new fdm_nhf(p);
 
     pgc->fdm_nhf_update(d);
 
@@ -186,7 +186,7 @@ void driver::nhflow_driver()
 void driver::fnpf_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
+    cout<<"initialize fdm"<<endl;
 
     p->grid2Dsize();
 
@@ -207,7 +207,7 @@ void driver::fnpf_driver()
 void driver::ptf_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
+    cout<<"initialize fdm"<<endl;
 
     a=new fdm(p);
 
@@ -225,7 +225,7 @@ void driver::ptf_driver()
 void driver::sflow_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
+    cout<<"initialize fdm"<<endl;
 
     b=new fdm2D(p);
     bb=b;
@@ -235,7 +235,7 @@ void driver::sflow_driver()
     makegrid2D_cds(p,pgc,b);
 
     // Start SFLOW
-	psflow->start(p,b,pgc);
+    psflow->start(p,b,pgc);
 }
 
 driver::~driver()

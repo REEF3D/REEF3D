@@ -32,14 +32,14 @@ using namespace std;
 
 class increment
 {
-	public:
-	increment();
-	virtual ~increment();
-	static int i,j,k,n,h;
-	static int innercounter;
-	static int pip;
+    public:
+    increment();
+    virtual ~increment();
+    static int i,j,k,n,h;
+    static int innercounter;
+    static int pip;
     static int marge;
-	static fdm *aa;
+    static fdm *aa;
     static fdm2D *bb;
 };
 #endif

@@ -169,7 +169,7 @@ void net_barQuasiStatic::screenForceCoeff
     
         double cd45 = p45[0]*v_mag+p45[1]*d_c+p45[2]*l_c+p45[3]*v_mag*d_c+p45[4]*v_mag*l_c+p45[5]*d_c*l_c+p45[6]*v_mag*v_mag+p45[7]*d_c*d_c+p45[8]*l_c*l_c
                       + p45[9]*v_mag*v_mag*v_mag+p45[10]*l_c*l_c*l_c+p45[11]*v_mag*d_c*l_c
-            +p45[12]*v_mag*d_c*d_c+p45[13]*v_mag*l_c*l_c+p45[14]*d_c*v_mag*v_mag+p45[15]*d_c*l_c*l_c+p45[16]*l_c*v_mag*v_mag+p45[17]*l_c*d_c*d_c+p45[18]*d_c*d_c*d_c+p45[19];	
+            +p45[12]*v_mag*d_c*d_c+p45[13]*v_mag*l_c*l_c+p45[14]*d_c*v_mag*v_mag+p45[15]*d_c*l_c*l_c+p45[16]*l_c*v_mag*v_mag+p45[17]*l_c*d_c*d_c+p45[18]*d_c*d_c*d_c+p45[19];    
     
         double cl45 = pl[0]*v_mag + pl[1]*d_c + pl[2]*l_c + pl[3]*v_mag*d_c + pl[4]*v_mag*l_c + pl[5]*d_c*l_c + pl[6]*v_mag*v_mag + pl[7]*d_c*d_c + pl[8]*l_c*l_c + pl[9];
     
@@ -219,15 +219,15 @@ void net_barQuasiStatic::morisonForceCoeff
 void net_barQuasiStatic::netForces
 (
     lexer *p,
-	double& Xne, double& Yne, double& Zne,
-	double& Kne, double& Mne, double& Nne
+    double& Xne, double& Yne, double& Zne,
+    double& Kne, double& Mne, double& Nne
 )
 {
-	Xne = 0.0;
-	Yne = 0.0;
-	Zne = 0.0;
-	Kne = 0.0;
-	Mne = 0.0;
-	Nne = 0.0;
+    Xne = 0.0;
+    Yne = 0.0;
+    Zne = 0.0;
+    Kne = 0.0;
+    Mne = 0.0;
+    Nne = 0.0;
 }
 

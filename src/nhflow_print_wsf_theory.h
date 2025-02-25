@@ -39,15 +39,15 @@ class nhflow_print_wsf_theory : public boundarycheck
 {
 public:
     nhflow_print_wsf_theory(lexer*,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_print_wsf_theory();
+    virtual ~nhflow_print_wsf_theory();
 
-	void height_gauge(lexer*, fdm_nhf*, ghostcell*,ioflow*);
+    void height_gauge(lexer*, fdm_nhf*, ghostcell*,ioflow*);
 
 
 private:
-	
-	double *x,*y;
-	int gauge_num;
+    
+    double *x,*y;
+    int gauge_num;
 
     int *iloc,*jloc,*flag;
     double *wsf;

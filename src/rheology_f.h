@@ -34,8 +34,8 @@ class rheology_f : public rheology, public strain
 
 public:
 
-	rheology_f(lexer*, fdm*);
-	virtual ~rheology_f();
+    rheology_f(lexer*, fdm*);
+    virtual ~rheology_f();
 
     virtual double viscosity(lexer*,fdm*,ghostcell*);
     
@@ -50,8 +50,8 @@ private:
     
     double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
     
-	
-	double gamma;
+    
+    double gamma;
     double val,f,H,phival,pval;
     double tau0;
     double tau0_p,tau0_m;
@@ -60,6 +60,6 @@ private:
     const double epsi;
     
     int count;
-	
+    
 };
 #endif

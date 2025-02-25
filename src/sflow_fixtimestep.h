@@ -31,14 +31,14 @@ using namespace std;
 class sflow_fixtimestep : public sflow_timestep, public increment
 {
 public:
-	sflow_fixtimestep(lexer*,fdm2D*);
-	virtual ~sflow_fixtimestep();
-	
+    sflow_fixtimestep(lexer*,fdm2D*);
+    virtual ~sflow_fixtimestep();
+    
     virtual void start(lexer*,fdm2D*,ghostcell*);
-	virtual void ini(lexer*,fdm2D*,ghostcell*);
-	
+    virtual void ini(lexer*,fdm2D*,ghostcell*);
+    
 private:
-	double cu,cv,velmax,wd_criterion;
+    double cu,cv,velmax,wd_criterion;
 
 };
 

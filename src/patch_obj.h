@@ -35,8 +35,8 @@ using namespace std;
 class patch_obj : public increment
 {
 public:
-	patch_obj(lexer*,int);
-	virtual ~patch_obj();
+    patch_obj(lexer*,int);
+    virtual ~patch_obj();
     
     void patch_obj_ini(lexer *p, ghostcell *pgc);
     

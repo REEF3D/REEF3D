@@ -40,7 +40,7 @@ void sediment_f::bedlevel(lexer *p, fdm *a, ghostcell *pgc)
         p->bedmin = MIN(p->bedmin, s->bedzh(i,j));
         p->bedmax = MAX(p->bedmax, s->bedzh(i,j));
     }
-	
+    
     p->bedmin=pgc->globalmin(p->bedmin);
     p->bedmax=pgc->globalmax(p->bedmax);
 
@@ -61,8 +61,8 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s
     for(int qn=0;qn<3;++qn)
     prelax->start(p,pgc,s);
     
-	pgc->gcsl_start4(p,s->bedzh,1);
-	
+    pgc->gcsl_start4(p,s->bedzh,1);
+    
     ALOOP
     {
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
@@ -70,9 +70,9 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s
     }
     
     SLICELOOP4
-	a->bed(i,j)=s->bedzh(i,j);
+    a->bed(i,j)=s->bedzh(i,j);
     
-	pgc->start4a(p,a->topo,150);
+    pgc->start4a(p,a->topo,150);
     
     pgc->gcsl_start4(p,a->bed,50);
 }
@@ -88,27 +88,27 @@ void sediment_f::bedchange_update(lexer *p, ghostcell *pgc)
 void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
 {
     double H=0.0;
-	double volume=0.0;
+    double volume=0.0;
     double epsi;
 
-	ALOOP
-	{
+    ALOOP
+    {
        epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
-		if(a->topo(i,j,k)>epsi)
-		H=1.0;
+        if(a->topo(i,j,k)>epsi)
+        H=1.0;
 
-		if(a->topo(i,j,k)<-epsi)
-		H=0.0;
+        if(a->topo(i,j,k)<-epsi)
+        H=0.0;
 
-		if(fabs(a->topo(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->topo(i,j,k)/epsi + (1.0/PI)*sin((PI*a->topo(i,j,k))/epsi));
+        if(fabs(a->topo(i,j,k))<=epsi)
+        H=0.5*(1.0 + a->topo(i,j,k)/epsi + (1.0/PI)*sin((PI*a->topo(i,j,k))/epsi));
 
-		volume += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H);
-	}
+        volume += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H);
+    }
     
         
-	volume = pgc->globalsum(volume);
+    volume = pgc->globalsum(volume);
 
     if(volume_token==0)
     {
@@ -119,6 +119,6 @@ void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
     
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
-	cout<<"Sediment Volume: "<<volume<<"  vol0: "<<volume0<<" Volume Change: "<<100.0*(volume-volume0)/volume0<<" %"<<endl;
+    cout<<"Sediment Volume: "<<volume<<"  vol0: "<<volume0<<" Volume Change: "<<100.0*(volume-volume0)/volume0<<" %"<<endl;
     }
 }

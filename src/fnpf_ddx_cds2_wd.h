@@ -34,10 +34,10 @@ class fnpf_ddx_cds2_wd : public fnpf_ddx, public increment
 {
 public:
     fnpf_ddx_cds2_wd(lexer*,fdm_fnpf*);
-	virtual ~fnpf_ddx_cds2_wd();
+    virtual ~fnpf_ddx_cds2_wd();
 
     virtual double sxx(lexer*, slice&);
-	virtual double syy(lexer*, slice&);
+    virtual double syy(lexer*, slice&);
     
 private:
     fdm_fnpf *c;

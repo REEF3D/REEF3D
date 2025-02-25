@@ -30,8 +30,8 @@ using namespace std;
 class patchBC : public patchBC_interface, public increment
 {
 public:
-	patchBC(lexer*,ghostcell*);
-	virtual ~patchBC();
+    patchBC(lexer*,ghostcell*);
+    virtual ~patchBC();
     
     virtual void patchBC_ini(lexer *p, ghostcell *pgc);
     

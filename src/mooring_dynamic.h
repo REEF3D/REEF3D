@@ -43,39 +43,39 @@ using namespace std;
 class mooring_dynamic : public mooring, public beam
 {
 public:
-	
+    
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
     mooring_dynamic(int);
-	virtual ~mooring_dynamic();
-	
-	virtual void start(lexer*, ghostcell*);
-	virtual void initialize(lexer*, ghostcell*);
-	virtual void mooringForces(double&, double&, double&);
+    virtual ~mooring_dynamic();
+    
+    virtual void start(lexer*, ghostcell*);
+    virtual void initialize(lexer*, ghostcell*);
+    virtual void mooringForces(double&, double&, double&);
     
     void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
     void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
     
 private:
 
-	// Initialisation
-	void ini_parallel(lexer*, ghostcell*);
+    // Initialisation
+    void ini_parallel(lexer*, ghostcell*);
 
-	// Runtime
+    // Runtime
     void updateFields(lexer*, ghostcell*);
     void updateFluidVel(lexer*, ghostcell*, int);
     void saveMooringPoint(lexer*);
 
-	// ------ 
-	
-	// Parallelisation
-	int line;
-	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
-	
-	// Material
-	double gamma, A, E, G, L, rho_c, d_c;
-	
-	// Mesh
+    // ------ 
+    
+    // Parallelisation
+    int line;
+    double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+    
+    // Material
+    double gamma, A, E, G, L, rho_c, d_c;
+    
+    // Mesh
     int Ne;
 
     // Fields
@@ -83,16 +83,16 @@ private:
     vector<vector<double> > fluid_vel, fluid_vel_n, fluid_acc;
 
     // Forces
-	double Xme_, Yme_, Zme_;
-	
+    double Xme_, Yme_, Zme_;
+    
     // Time control
-	double phi_mooring, t_mooring_n, t_mooring;
+    double phi_mooring, t_mooring_n, t_mooring;
 
     // Boundary conditions
     Eigen::Vector3d fixPoint, a_O;
 
-	// Print
-	ofstream eTout;
+    // Print
+    ofstream eTout;
     
     // Breaking
     bool broken;

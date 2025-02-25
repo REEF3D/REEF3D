@@ -94,13 +94,13 @@ void ifou::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
 
 void ifou::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
 {
-	udir=vdir=wdir=0.0;
+    udir=vdir=wdir=0.0;
     
     pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
     pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
     pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
 
-	if(0.5*(ivel1+ivel2)>=0.0)
+    if(0.5*(ivel1+ivel2)>=0.0)
     udir=1.0;
     
     if(0.5*(jvel1+jvel2)>=0.0)
@@ -109,21 +109,21 @@ void ifou::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, fiel
     if(0.5*(kvel1+kvel2)>=0.0)
     wdir=1.0;
 
-	 
-	 a->M.p[count] = udir*ivel2/DX[IM1] - (1.0-udir)*ivel1/DX[IP]
-					+ (vdir*jvel2/DY[JM1] - (1.0-vdir)*jvel1/DY[JP])*p->y_dir
-					+ wdir*kvel2/DZ[KM1] - (1.0-wdir)*kvel1/DZ[KP];
-	 
-	 a->M.s[count] = -udir*ivel1/DX[IM1];
-	 a->M.n[count] =  (1.0-udir)*ivel2/DX[IP];
-	 
-	 a->M.e[count] = -vdir*jvel1/DY[JM1]*p->y_dir;
-	 a->M.w[count] =  (1.0-vdir)*jvel2/DY[JP]*p->y_dir;
-	 
-	 a->M.b[count] = -wdir*kvel1/DZ[KM1];
-	 a->M.t[count] =  (1.0-wdir)*kvel2/DZ[KP];
      
-	 ++count;
+     a->M.p[count] = udir*ivel2/DX[IM1] - (1.0-udir)*ivel1/DX[IP]
+                    + (vdir*jvel2/DY[JM1] - (1.0-vdir)*jvel1/DY[JP])*p->y_dir
+                    + wdir*kvel2/DZ[KM1] - (1.0-wdir)*kvel1/DZ[KP];
+     
+     a->M.s[count] = -udir*ivel1/DX[IM1];
+     a->M.n[count] =  (1.0-udir)*ivel2/DX[IP];
+     
+     a->M.e[count] = -vdir*jvel1/DY[JM1]*p->y_dir;
+     a->M.w[count] =  (1.0-vdir)*jvel2/DY[JP]*p->y_dir;
+     
+     a->M.b[count] = -wdir*kvel1/DZ[KM1];
+     a->M.t[count] =  (1.0-wdir)*kvel2/DZ[KP];
+     
+     ++count;
 }
 
 

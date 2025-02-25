@@ -45,59 +45,59 @@ void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     count=0;
     KJILOOP
     {
-		PCHECK
-		{
-		n=CVAL4[IJK];
+        PCHECK
+        {
+        n=CVAL4[IJK];
         
-		values[count]=M.p[n];
-		++count;
-		
-		values[count]=M.s[n];
-		++count;
-		
-		values[count]=M.n[n];
-		++count;
-		
-		values[count]=M.b[n];
-		++count;
-		
-		values[count]=M.t[n];
-		++count; 
-		}     
-		
-		SCHECK
-		{
-		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;  
-		}    
+        values[count]=M.p[n];
+        ++count;
+        
+        values[count]=M.s[n];
+        ++count;
+        
+        values[count]=M.n[n];
+        ++count;
+        
+        values[count]=M.b[n];
+        ++count;
+        
+        values[count]=M.t[n];
+        ++count; 
+        }     
+        
+        SCHECK
+        {
+        values[count]=1.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;  
+        }    
     }
-	
+    
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
     
     
     // vec
     count=0;
-	KJILOOP
-	{
-		PCHECK
-		values[count] = f[IJK];
-		
-		SCHECK
-		values[count] = 0.0;
-	
+    KJILOOP
+    {
+        PCHECK
+        values[count] = f[IJK];
+        
+        SCHECK
+        values[count] = 0.0;
+    
     ++count;
     }
 
@@ -106,16 +106,16 @@ void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     
     
     count=0; 
-	KJILOOP
-	{
-		PCHECK
-		{
-		n=CVAL4[IJK];
-		values[count] = rhs.V[n];
-		}
-		
-		SCHECK
-		values[count] = 0.0;
+    KJILOOP
+    {
+        PCHECK
+        {
+        n=CVAL4[IJK];
+        values[count] = rhs.V[n];
+        }
+        
+        SCHECK
+        values[count] = 0.0;
 
     ++count;
     }

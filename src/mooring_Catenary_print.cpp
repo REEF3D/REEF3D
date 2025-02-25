@@ -27,83 +27,83 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void mooring_Catenary::print(lexer *p)
 {
-	int num=0;
-	
-	if(p->P15==1)
+    int num=0;
+    
+    if(p->P15==1)
     num = p->printcount_sixdof;
 
     if(p->P15==2)
     num = p->count;
-	
-	if(num<0)
-	num=0;
-	
-	if
-	(
-		p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
-		|| (p->simtime>printtime && p->P30>0.0)   
-		|| p->count==0)
-	)
-	{
-		printtime+=p->P30;
-		
+    
+    if(num<0)
+    num=0;
+    
+    if
+    (
+        p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
+        || (p->simtime>printtime && p->P30>0.0)   
+        || p->count==0)
+    )
+    {
+        printtime+=p->P30;
+        
         if(p->A10==5)
         sprintf(name,"./REEF3D_NHFLOW_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
         
         if(p->A10==6)
         sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
-		
-		// Reconstruct line
-		buildLine(p);
-		
+        
+        // Reconstruct line
+        buildLine(p);
+        
 
-		// Print results
-		ofstream result;
-		result.open(name, ios::binary);
-		
-		result << "# vtk DataFile Version 2.0" << endl;
-		result << "Mooring line " << line << endl;
-		result << "ASCII \nDATASET UNSTRUCTURED_GRID" << endl;
-		result << "POINTS " << H << " float" <<endl;
+        // Print results
+        ofstream result;
+        result.open(name, ios::binary);
+        
+        result << "# vtk DataFile Version 2.0" << endl;
+        result << "Mooring line " << line << endl;
+        result << "ASCII \nDATASET UNSTRUCTURED_GRID" << endl;
+        result << "POINTS " << H << " float" <<endl;
 
-		for (int n = 0; n < H; ++n)
-		{
-			result<<x[n]<<" "<<y[n]<<" "<<z[n]<<endl;
-		}
-		
-		result << "\nCELLS " << H-1 << " " << (H-1)*3 <<endl;	
-		
-		for(int n = 0; n < (H-1); ++n)
-		{
-			result<<"2 "<< n << " " << n+1 << endl;
-		}
-		
-		result << "\nCELL_TYPES " << H-1 << endl;	
-		
-		for(int n = 0; n < (H-1); ++n)
-		{
-			result<<"3"<<endl;
-		}	
+        for (int n = 0; n < H; ++n)
+        {
+            result<<x[n]<<" "<<y[n]<<" "<<z[n]<<endl;
+        }
+        
+        result << "\nCELLS " << H-1 << " " << (H-1)*3 <<endl;    
+        
+        for(int n = 0; n < (H-1); ++n)
+        {
+            result<<"2 "<< n << " " << n+1 << endl;
+        }
+        
+        result << "\nCELL_TYPES " << H-1 << endl;    
+        
+        for(int n = 0; n < (H-1); ++n)
+        {
+            result<<"3"<<endl;
+        }    
 
-		result<<"\nPOINT_DATA " << H <<endl;
-		result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;
-		
-		for(int n = 0; n < H; ++n)
-		{
-			result<<T[n]<<endl;
-		}
-		
-		result.close();
+        result<<"\nPOINT_DATA " << H <<endl;
+        result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;
+        
+        for(int n = 0; n < H; ++n)
+        {
+            result<<T[n]<<endl;
+        }
+        
+        result.close();
 
 
-		eTout<<p->simtime<<" \t "<<T[H-1]<<endl;	
-	}
+        eTout<<p->simtime<<" \t "<<T[H-1]<<endl;    
+    }
 }
 
 
 void mooring_Catenary::buildLine(lexer *p)
 {
-	double d_xy,dl, segLen, alpha;
+    double d_xy,dl, segLen, alpha;
     
     lms = L - FV/w;
     segLen = L/(H-1);
@@ -138,7 +138,7 @@ void mooring_Catenary::buildLine(lexer *p)
         }
         else
         {
-            z[cnt] = p->X311_zs[line] + FH/w*(sqrt(1+(w*(segLen*cnt-lms)/FH)*(w*(segLen*cnt-lms)/FH)) - 1) + w*(segLen*cnt-lms)*(segLen*cnt-lms)/(2*EA);		
+            z[cnt] = p->X311_zs[line] + FH/w*(sqrt(1+(w*(segLen*cnt-lms)/FH)*(w*(segLen*cnt-lms)/FH)) - 1) + w*(segLen*cnt-lms)*(segLen*cnt-lms)/(2*EA);        
             
             T[cnt] = sqrt(FH*FH + (w*(segLen*cnt - lms))*(w*(segLen*cnt - lms)));
                     
@@ -160,7 +160,7 @@ void mooring_Catenary::buildLine(lexer *p)
             else
             {
                 y[cnt] = p->X311_ys[line] - lms*fabs(sin(alpha)) - d_xy*fabs(sin(alpha));
-            }					
+            }                    
         }
     }
 }

@@ -44,12 +44,12 @@ using namespace std;
 class net_barDyn : public net, public boundarycheck
 {
 public:
-	net_barDyn(int, lexer*);
-	virtual ~net_barDyn();
+    net_barDyn(int, lexer*);
+    virtual ~net_barDyn();
     
-	virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
-	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&);
+    virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
+    virtual void initialize(lexer*, fdm*, ghostcell*);
+    virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&);
     virtual const EigenMat& getLagrangePoints(){return lagrangePoints;} 
     virtual const EigenMat& getLagrangeForces(){return lagrangeForces;} 
     virtual const EigenMat& getCollarVel(){return collarVel;} 
@@ -72,13 +72,13 @@ private:
     void cyl_ini(lexer*, fdm*, ghostcell*); 
     void wall_ini(lexer*, fdm*, ghostcell*); 
     
-	// Runtime
-	void startLoop(lexer*, fdm*, ghostcell*, int&);
+    // Runtime
+    void startLoop(lexer*, fdm*, ghostcell*, int&);
     void updateField(lexer*, fdm*, ghostcell*, int);
     
     void print(lexer*);
     
-	void buildNet_cyl(lexer*);
+    void buildNet_cyl(lexer*);
     void buildNet_wall(lexer*);
     
     Eigen::VectorXd timeWeight(lexer*);
@@ -110,19 +110,19 @@ private:
         );
     
     
-	// ------ 
-	
+    // ------ 
     
-	// Parallelisation
-	int nNet;
-	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
-	
-	// Material constants
-	double EA, w, rho_c, l_c, d_c, kappa, C1_, C2_;
-	
-	// Mesh
-	double origin_x, origin_y, origin_z, phi, theta, psi;
-	double *l0;
+    
+    // Parallelisation
+    int nNet;
+    double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+    
+    // Material constants
+    double EA, w, rho_c, l_c, d_c, kappa, C1_, C2_;
+    
+    // Mesh
+    double origin_x, origin_y, origin_z, phi, theta, psi;
+    double *l0;
     double L, D, al, ad, beta, gamma; 
     int nd, nl, niK, nbK, nK, nf;
     MatrixXd x0_, x_, xn_, xnn_, xdot_, xdotn_, xdotnn_, xdotdot_, top_xdot_, top_xdotdot_, A_, forces_knot;
@@ -139,10 +139,10 @@ private:
     vector<Eigen::Vector3d> lagrangeForces;  
     vector<Eigen::Vector3d> collarVel;    
     vector<Eigen::Vector3d> collarPoints;    
-	
+    
     // Forces
     double Tne,Fx,Fy,Fz;
-	int **nfK, *nfbK;
+    int **nfK, *nfbK;
 
     // Sinker
     double sinker_m, sinker_l, sinker_d;
@@ -153,10 +153,10 @@ private:
     // Probe Points
     Eigen::VectorXi probeKnot;
 
-	// Print
-	double *x, *y, *z, *T;
-	char name[100];
-	double printtime;
+    // Print
+    double *x, *y, *z, *T;
+    char name[100];
+    double printtime;
 };
 
 #endif

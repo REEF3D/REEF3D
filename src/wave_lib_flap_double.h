@@ -33,7 +33,7 @@ class wave_lib_flap_double : public wave_lib_precalc, public wave_lib_parameters
 {
 public:
     wave_lib_flap_double(lexer*, ghostcell*);
-	virtual ~wave_lib_flap_double();
+    virtual ~wave_lib_flap_double();
     
     double wave_horzvel(lexer*,double,double,double);
     
@@ -48,14 +48,14 @@ public:
     virtual void wave_prestep(lexer*,ghostcell*);
     
 private:
-	void read(lexer*, ghostcell*);
-	
-	int ptnum;
-	
-	double **kinematics;
-	
-	double ts,te,val;
-	int timecount,timecount_old,timecount_z;
+    void read(lexer*, ghostcell*);
+    
+    int ptnum;
+    
+    double **kinematics;
+    
+    double ts,te,val;
+    int timecount,timecount_old,timecount_z;
     double singamma,cosgamma;
 };
 

@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<string>
 
 void fnpf_vtp_bed::name_iter(lexer *p, fdm_fnpf *c, ghostcell* pgc)
-{	
+{    
     int num=0;
 
     if(p->P15==1)
@@ -38,7 +38,7 @@ void fnpf_vtp_bed::name_iter(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 
 
     sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%08i-%06i.vtp",num,p->mpirank+1);
-		
+        
 
 }
 

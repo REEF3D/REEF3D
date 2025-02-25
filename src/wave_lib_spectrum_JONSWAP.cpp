@@ -27,10 +27,10 @@ Author: Hans Bihs
 double wave_lib_spectrum::JONSWAP(lexer *p, double w)
 {
     if(w<=p->wwp)
-	sigma=0.07;
-	
-	if(w>p->wwp)
-	sigma=0.09;
+    sigma=0.07;
+    
+    if(w>p->wwp)
+    sigma=0.09;
     
     // PM
     Sval = (5.0/16.0)*pow(p->wHs,2.0)*pow(p->wwp,4.0)*pow(w,-5.0)*exp(-(5.0/4.0)*pow(w/p->wwp,-4.0));

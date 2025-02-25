@@ -45,7 +45,7 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
 
     i=0;
     
-	f(i-1,j,k) = val1;
+    f(i-1,j,k) = val1;
     f(i-2,j,k) = val2;
     f(i-3,j,k) = val3;
     
@@ -59,7 +59,7 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     
     i=p->knox-1;
     
-	f(i+1,j,k) = val1;
+    f(i+1,j,k) = val1;
     f(i+2,j,k) = val2;
     f(i+3,j,k) = val3;
     }
@@ -79,7 +79,7 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     
     j=0;
     
-	f(i,j-1,k) = val1;
+    f(i,j-1,k) = val1;
     f(i,j-2,k) = val2;
     f(i,j-3,k) = val3;
     
@@ -92,7 +92,7 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     
     j=p->knoy-1;
     
-	f(i,j+1,k) = val1;
+    f(i,j+1,k) = val1;
     f(i,j+2,k) = val2;
     f(i,j+3,k) = val3;
     }
@@ -112,7 +112,7 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     
     k=0;
     
-	f(i,j,k-1) = val1;
+    f(i,j,k-1) = val1;
     f(i,j,k-2) = val2;
     f(i,j,k-3) = val3;
     
@@ -125,7 +125,7 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     
     k=p->knoz-1;
 
-	f(i,j,k+1) = val1;
+    f(i,j,k+1) = val1;
     f(i,j,k+2) = val2;
     f(i,j,k+3) = val3;
     }

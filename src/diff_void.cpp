@@ -28,9 +28,9 @@ Author: Hans Bihs
 
 diff_void::diff_void()
 {
-	gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
+    gcval_u=10;
+    gcval_v=11;
+    gcval_w=12;
 }
 
 diff_void::~diff_void()
@@ -45,7 +45,7 @@ void diff_void::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 void diff_void::diff_scalar(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &diff, field &b, field &visc, field &eddyv, double sig, double alpha)
 {
     LOOP
-	diff(i,j,k) = b(i,j,k);
+    diff(i,j,k) = b(i,j,k);
 
 }
 
@@ -67,24 +67,24 @@ void diff_void::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u
 
 void diff_void::diff_u(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &udiff, field &u_in, field &u, field &v, field &w, double alpha)
 {
-	ULOOP
-	udiff(i,j,k) = u_in(i,j,k);
+    ULOOP
+    udiff(i,j,k) = u_in(i,j,k);
 
     pgc->start1(p,udiff,gcval_u);
 }
 
 void diff_void::diff_v(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &vdiff, field &v_in, field &u, field &v, field &w, double alpha)
 {
-	VLOOP
-	vdiff(i,j,k) = v_in(i,j,k);
+    VLOOP
+    vdiff(i,j,k) = v_in(i,j,k);
 
     pgc->start2(p,vdiff,gcval_v);
 }
 
 void diff_void::diff_w(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &wdiff, field &w_in, field &u, field &v, field &w, double alpha)
 {
-	WLOOP
-	wdiff(i,j,k) = w_in(i,j,k);
+    WLOOP
+    wdiff(i,j,k) = w_in(i,j,k);
 
     pgc->start3(p,wdiff,gcval_w);
 }

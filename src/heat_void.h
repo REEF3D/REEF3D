@@ -32,14 +32,14 @@ class heat_void : public heat
 {
 public:
     heat_void(lexer *, fdm*, ghostcell*);
-	virtual ~heat_void();
+    virtual ~heat_void();
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
-	virtual void ttimesave(lexer*, fdm*);
+    virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
+    virtual void ttimesave(lexer*, fdm*);
     
     virtual void diff_update(lexer*, fdm*, ghostcell*);
 
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void heat_ini(lexer*, fdm*, ghostcell*,heat*);
     virtual double val(int,int,int);
 

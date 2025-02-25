@@ -34,20 +34,20 @@ convection_void::~convection_void()
 
 void convection_void::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, field& wvel)
 {
-	int count=0;
-	LOOP
-	{
-	 a->M.p[count] = 0.0;
-	 
-	 a->M.s[count] = 0.0;
-	 a->M.n[count] = 0.0;
-	 
-	 a->M.e[count] = 0.0;
-	 a->M.w[count] = 0.0;
-	 
-	 a->M.b[count] = 0.0;
-	 a->M.t[count] = 0.0;
-	 
-	 ++count;
-	}
+    int count=0;
+    LOOP
+    {
+     a->M.p[count] = 0.0;
+     
+     a->M.s[count] = 0.0;
+     a->M.n[count] = 0.0;
+     
+     a->M.e[count] = 0.0;
+     a->M.w[count] = 0.0;
+     
+     a->M.b[count] = 0.0;
+     a->M.t[count] = 0.0;
+     
+     ++count;
+    }
 }

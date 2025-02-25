@@ -29,108 +29,108 @@ Author: Hans Bihs
 
 double iowave::hydrograph_ipol(lexer *p, fdm* a, ghostcell* pgc, double ** hydro, int hydrocount)
 {
-	double val;
+    double val;
     
     for(n=0;n<hydrocount-1;++n)
     if(p->simtime>=hydro[n][0] && p->simtime<hydro[n+1][0])
-	{
+    {
     val = ((hydro[n+1][1]-hydro[n][1])/(hydro[n+1][0]-hydro[n][0]))*(p->simtime-hydro[n][0]) + hydro[n][1];
-	}
+    }
     
     if(p->count==0 )
     val = hydro[0][1];
-	
-	if(p->simtime>=hydro[hydrocount-1][0])
-	val=hydro[hydrocount-1][1];
-	
-	return val;
-	
+    
+    if(p->simtime>=hydro[hydrocount-1][0])
+    val=hydro[hydrocount-1][1];
+    
+    return val;
+    
 }
 
 void iowave::hydrograph_in_read(lexer *p, fdm* a, ghostcell* pgc)
 {
-	char name[100];
-	double val;
-	int count;
-	
-	sprintf(name,"hydrograph.dat");
+    char name[100];
+    double val;
+    int count;
+    
+    sprintf(name,"hydrograph.dat");
 
 // open file------------
-	ifstream hg(name, ios_base::in);
-	
-	if(!hg)
-	{
-		cout<<endl<<("no 'hydrograph.dat' file found")<<endl<<endl;
+    ifstream hg(name, ios_base::in);
+    
+    if(!hg)
+    {
+        cout<<endl<<("no 'hydrograph.dat' file found")<<endl<<endl;
 
-	}
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>val;
-	++count;
-	}
-	
-	hg.close();
-	
-	count/=2;
+    }
+    
+    count=0;
+    while(!hg.eof())
+    {
+    hg>>val;
+    ++count;
+    }
+    
+    hg.close();
+    
+    count/=2;
     
     
     hydro_in_count=count;
-	
-	p->Darray(hydro_in,hydro_in_count,2);
-	
-	hg.open ("hydrograph.dat", ios_base::in);
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>hydro_in[count][0]>>hydro_in[count][1];
-	++count;
-	}
+    
+    p->Darray(hydro_in,hydro_in_count,2);
+    
+    hg.open ("hydrograph.dat", ios_base::in);
+    
+    count=0;
+    while(!hg.eof())
+    {
+    hg>>hydro_in[count][0]>>hydro_in[count][1];
+    ++count;
+    }
     
 }
 
 void iowave::hydrograph_out_read(lexer *p, fdm* a, ghostcell* pgc)
 {
-	char name[100];
-	double val;
-	int count;
-	
-	sprintf(name,"hydrograph_out.dat");
+    char name[100];
+    double val;
+    int count;
+    
+    sprintf(name,"hydrograph_out.dat");
 
 // open file------------
-	ifstream hg(name, ios_base::in);
-	
-	if(!hg)
-	{
-		cout<<endl<<("no 'hydrograph_out.dat' file found")<<endl<<endl;
+    ifstream hg(name, ios_base::in);
+    
+    if(!hg)
+    {
+        cout<<endl<<("no 'hydrograph_out.dat' file found")<<endl<<endl;
 
-	}
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>val;
-	++count;
-	}
-	
-	hg.close();
-	
-	count/=2;
+    }
+    
+    count=0;
+    while(!hg.eof())
+    {
+    hg>>val;
+    ++count;
+    }
+    
+    hg.close();
+    
+    count/=2;
     
     
     hydro_out_count=count;
-	
-	p->Darray(hydro_out,hydro_out_count,2);
-	
-	hg.open ("hydrograph_out.dat", ios_base::in);
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>hydro_out[count][0]>>hydro_out[count][1];
-	++count;
-	}
+    
+    p->Darray(hydro_out,hydro_out_count,2);
+    
+    hg.open ("hydrograph_out.dat", ios_base::in);
+    
+    count=0;
+    while(!hg.eof())
+    {
+    hg>>hydro_out[count][0]>>hydro_out[count][1];
+    ++count;
+    }
     
 }

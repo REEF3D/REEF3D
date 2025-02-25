@@ -38,9 +38,9 @@ class nhflow_print_wsf : public increment
 {
 public:
     nhflow_print_wsf(lexer*,fdm_nhf*);
-	virtual ~nhflow_print_wsf();
+    virtual ~nhflow_print_wsf();
 
-	void height_gauge(lexer*, fdm_nhf*, ghostcell*,slice&);
+    void height_gauge(lexer*, fdm_nhf*, ghostcell*,slice&);
 
 
 private:
@@ -49,9 +49,9 @@ private:
     void fill_deta(lexer*, fdm_nhf*, ghostcell*,slice&);
     void fill_Uhorz(lexer*, fdm_nhf*, ghostcell*,slice&);
 
-	
-	double *x,*y;
-	int gauge_num;
+    
+    double *x,*y;
+    int gauge_num;
 
     int *iloc,*jloc,*flag;
     double *wsf,*deta,*Uhorz;

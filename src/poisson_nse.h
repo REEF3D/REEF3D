@@ -38,15 +38,15 @@ class poisson_nse : public poisson, public increment
 
 public:
 
-	poisson_nse (lexer*, heat*&, concentration*&);
-	virtual ~poisson_nse();
+    poisson_nse (lexer*, heat*&, concentration*&);
+    virtual ~poisson_nse();
 
-	virtual void start(lexer *,fdm*,field&);
+    virtual void start(lexer *,fdm*,field&);
 
 private:
 
     double teta,phival;
-	int count,n,q;
+    int count,n,q;
     
     density *pd;
 };

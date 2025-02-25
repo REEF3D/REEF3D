@@ -39,8 +39,8 @@ class potentialfile_in : public increment
 {
 
 public:
-	potentialfile_in(lexer*,ghostcell*);
-	virtual ~potentialfile_in();
+    potentialfile_in(lexer*,ghostcell*);
+    virtual ~potentialfile_in();
     
     virtual void flowfile_start(lexer*,fdm*,ghostcell*,turbulence*);
     virtual void ff_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -64,9 +64,9 @@ private:
     char name1[400];
     int startup;
     float ffn;
-	int iin;
-	double ddn;
-	int printcount,entrycount;
+    int iin;
+    double ddn;
+    int printcount,entrycount;
     int q, qn, count;
     int q0,q1;
     double t0,t1,tn;

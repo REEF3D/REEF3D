@@ -27,16 +27,16 @@ Author: Hans Bihs
 
 topo_relax::topo_relax(lexer *p) 
 {
-	p->Darray(betaS73,p->S73);
-	p->Darray(tan_betaS73,p->S73);
-	p->Darray(dist_S73,p->S73);
+    p->Darray(betaS73,p->S73);
+    p->Darray(tan_betaS73,p->S73);
+    p->Darray(dist_S73,p->S73);
 
 
-	for(n=0;n<p->S73;++n)
-	betaS73[n] = (p->S73_b[n]+90.0)*(PI/180.0);
+    for(n=0;n<p->S73;++n)
+    betaS73[n] = (p->S73_b[n]+90.0)*(PI/180.0);
 
-	for(n=0;n<p->S73;++n)
-	tan_betaS73[n] = tan(betaS73[n]);
+    for(n=0;n<p->S73;++n)
+    tan_betaS73[n] = tan(betaS73[n]);
 }
 
 topo_relax::~topo_relax()
@@ -46,68 +46,68 @@ topo_relax::~topo_relax()
 void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     
-	double relax,distot,distcount,zhval,qbval,cbval;
-	double tauval, shearvelval, shieldsval;
-	if(p->S73>0)
-	SLICELOOP4
+    double relax,distot,distcount,zhval,qbval,cbval;
+    double tauval, shearvelval, shieldsval;
+    if(p->S73>0)
+    SLICELOOP4
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
     {
-		distot = 0.0;
-		distcount=0;
-		for(n=0;n<p->S73;++n)
-		{
-		dist_S73[n] =  distcalc(p,p->S73_x[n],p->S73_y[n],tan_betaS73[n]);
-		
-			if(dist_S73[n]<p->S73_dist[n])
-			{
-			zhval = s->bedzh(i,j);
+        distot = 0.0;
+        distcount=0;
+        for(n=0;n<p->S73;++n)
+        {
+        dist_S73[n] =  distcalc(p,p->S73_x[n],p->S73_y[n],tan_betaS73[n]);
+        
+            if(dist_S73[n]<p->S73_dist[n])
+            {
+            zhval = s->bedzh(i,j);
             qbval = s->qbe(i,j);
             cbval =  s->cbe(i,j);
             tauval = s->tau_eff(i,j);
             shearvelval = s->shearvel_eff(i,j);
             shieldsval = s->shields_eff(i,j);
-			s->bedzh(i,j)=0.0;
+            s->bedzh(i,j)=0.0;
             s->qbe(i,j)=0.0;
             s->cbe(i,j)=0.0;
             s->tau_eff(i,j)=0.0;
             s->shearvel_eff(i,j)=0.0;
             s->shields_eff(i,j)=0.0;
-			distot += dist_S73[n];
-			++distcount;
-			}
-		}
-		
-		for(n=0;n<p->S73;++n)
-		{
+            distot += dist_S73[n];
+            ++distcount;
+            }
+        }
+        
+        for(n=0;n<p->S73;++n)
+        {
             if(dist_S73[n]<p->S73_dist[n])
-			{
-			relax = r1(p,dist_S73[n],p->S73_dist[n]);
-			
-			if(distcount==1)
-			{
-			s->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
+            {
+            relax = r1(p,dist_S73[n],p->S73_dist[n]);
+            
+            if(distcount==1)
+            {
+            s->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
             s->qbe(i,j) +=  relax*qbval;
             s->cbe(i,j) +=  relax*cbval;
             s->tau_eff(i,j)=relax*tauval;
             s->shearvel_eff(i,j)=relax*shearvelval;
             s->shields_eff(i,j)=relax*shieldsval;
-			}
-			
-			
-			if(distcount>1)
-			{
-			s->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
+            }
+            
+            
+            if(distcount>1)
+            {
+            s->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
             s->qbe(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
             s->cbe(i,j) +=  relax*cbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
             s->tau_eff(i,j) +=  relax*tauval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
             s->shearvel_eff(i,j) +=  relax*shearvelval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
             s->shields_eff(i,j) +=  relax*shieldsval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-			}
-			
-			}
-		}
+            }
+            
+            }
+        }
     }
-	
+    
 }
 
 double topo_relax::rf(lexer *p, ghostcell *pgc)
@@ -116,35 +116,35 @@ double topo_relax::rf(lexer *p, ghostcell *pgc)
     double val=1.0;
     
         distot = 0.0;
-		distcount=0;
-		for(n=0;n<p->S73;++n)
-		{
-		dist_S73[n] =  distcalc(p,p->S73_x[n],p->S73_y[n],tan_betaS73[n]);
-		
-			if(dist_S73[n]<p->S73_dist[n])
-			{
-			distot += dist_S73[n];
-			++distcount;
-			}
-		}
-		
-		
-		for(n=0;n<p->S73;++n)
-		{
+        distcount=0;
+        for(n=0;n<p->S73;++n)
+        {
+        dist_S73[n] =  distcalc(p,p->S73_x[n],p->S73_y[n],tan_betaS73[n]);
+        
             if(dist_S73[n]<p->S73_dist[n])
-			{
+            {
+            distot += dist_S73[n];
+            ++distcount;
+            }
+        }
+        
+        
+        for(n=0;n<p->S73;++n)
+        {
+            if(dist_S73[n]<p->S73_dist[n])
+            {
             val=0.0;
-			relax = r1(p,dist_S73[n],p->S73_dist[n]);
-			
-			if(distcount==1)
+            relax = r1(p,dist_S73[n],p->S73_dist[n]);
+            
+            if(distcount==1)
             val=(relax);
                 
-			if(distcount>1)
+            if(distcount>1)
             val += (relax) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
             
             //cout<<p->XP[IP]<<" "<<val<<endl;
-			}
-		}
+            }
+        }
         
     return val;
     
@@ -165,15 +165,15 @@ double topo_relax::r1(lexer *p, double x, double threshold)
 
 double topo_relax::distcalc(lexer *p ,double x0, double y0, double tan_beta)
 {
-	double x1,y1;
-	double dist=1.0e20;
+    double x1,y1;
+    double dist=1.0e20;
 
-	x1 = p->pos_x();
-	y1 = p->pos_y();
-	
-	dist = fabs(y1 - tan_beta*x1 + tan_beta*x0 - y0)/sqrt(pow(tan_beta,2.0)+1.0);
-	
-	return dist;
+    x1 = p->pos_x();
+    y1 = p->pos_y();
+    
+    dist = fabs(y1 - tan_beta*x1 + tan_beta*x0 - y0)/sqrt(pow(tan_beta,2.0)+1.0);
+    
+    return dist;
 }
 
 

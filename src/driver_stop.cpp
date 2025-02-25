@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"nhflow_header.h"
 
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
-{	 
+{     
     
     if(p->A10==4 || p->A10==6)
     {

@@ -38,8 +38,8 @@ using namespace std;
 class nhflow_reconstruct_wenograd : public nhflow_reconstruct, public nhflow_gradient
 {
 public:
-	nhflow_reconstruct_wenograd(lexer*,patchBC_interface*);
-	virtual ~nhflow_reconstruct_wenograd();
+    nhflow_reconstruct_wenograd(lexer*,patchBC_interface*);
+    virtual ~nhflow_reconstruct_wenograd();
 
     virtual void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
     virtual void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);

@@ -26,10 +26,10 @@ Author: Hans Bihs
 
 void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
 {
-	starttime=timer();
-	
+    starttime=timer();
+    
     paramargin=3;
-	
+    
 //  FILL SEND
     count=0;
     for(q=0;q<p->gcslpara1_count;++q)
@@ -46,10 +46,10 @@ void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
         send1[count]=f[Ip2J];
         ++count;
     }
-	
-	count=0;
-	for(q=0;q<p->gcslpara2_count;++q)
-	{
+    
+    count=0;
+    for(q=0;q<p->gcslpara2_count;++q)
+    {
     i=p->gcslpara2[q][0];
     j=p->gcslpara2[q][1];
     
@@ -61,7 +61,7 @@ void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
   
         send2[count]=f[IJm2];
         ++count;
-	}
+    }
 
     count=0;
     for(q=0;q<p->gcslpara3_count;++q)
@@ -78,10 +78,10 @@ void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
         send3[count]=f[IJp2];
         ++count;
     }
-	
-	count=0;
-	for(q=0;q<p->gcslpara4_count;++q)
-	{
+    
+    count=0;
+    for(q=0;q<p->gcslpara4_count;++q)
+    {
     i=p->gcslpara4[q][0];
     j=p->gcslpara4[q][1];
     
@@ -93,7 +93,7 @@ void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
 
         send4[count]=f[Im2J];
         ++count;
-	}
+    }
 
 
 
@@ -102,26 +102,26 @@ void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
 
     if(p->gcslpara1_count>0)
     {
-	MPI_Isend(send1,p->gcslpara1_count*paramargin,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(recv1,p->gcslpara1_count*paramargin,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+    MPI_Isend(send1,p->gcslpara1_count*paramargin,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
+    MPI_Irecv(recv1,p->gcslpara1_count*paramargin,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
     }
 
     if(p->gcslpara4_count>0)
     {
-	MPI_Isend(send4,p->gcslpara4_count*paramargin,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(recv4,p->gcslpara4_count*paramargin,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+    MPI_Isend(send4,p->gcslpara4_count*paramargin,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
+    MPI_Irecv(recv4,p->gcslpara4_count*paramargin,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
     }
 
     if(p->gcslpara3_count>0)
     {
-	MPI_Isend(send3,p->gcslpara3_count*paramargin,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(recv3,p->gcslpara3_count*paramargin,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+    MPI_Isend(send3,p->gcslpara3_count*paramargin,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
+    MPI_Irecv(recv3,p->gcslpara3_count*paramargin,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
     }
 
     if(p->gcslpara2_count>0)
     {
-	MPI_Isend(send2,p->gcslpara2_count*paramargin,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(recv2,p->gcslpara2_count*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+    MPI_Isend(send2,p->gcslpara2_count*paramargin,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
+    MPI_Irecv(recv2,p->gcslpara2_count*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
     }
 
 //  WAIT
@@ -147,8 +147,8 @@ void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
     }
 
     count=0;
-	for(q=0;q<p->gcslpara2_count;++q)
-	{
+    for(q=0;q<p->gcslpara2_count;++q)
+    {
     i=p->gcslpara2[q][0];
     j=p->gcslpara2[q][1];
     
@@ -160,11 +160,11 @@ void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
         
         f[IJp3]=recv2[count];
         ++count;
-	}	
-	
-	count=0;
-	for(q=0;q<p->gcslpara3_count;++q)
-	{
+    }    
+    
+    count=0;
+    for(q=0;q<p->gcslpara3_count;++q)
+    {
     i=p->gcslpara3[q][0];
     j=p->gcslpara3[q][1];
     
@@ -176,11 +176,11 @@ void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
         
         f[IJm3]=recv3[count];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcslpara4_count;++q)
-	{
+    for(q=0;q<p->gcslpara4_count;++q)
+    {
     i=p->gcslpara4[q][0];
     j=p->gcslpara4[q][1];
     
@@ -192,9 +192,9 @@ void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
         
         f[Ip3J]=recv4[count];
         ++count;
-	}
-	
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    }
+    
+    endtime=timer();
+    p->xtime+=endtime-starttime;
 }
 

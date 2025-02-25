@@ -34,7 +34,7 @@ Author: Hans Bihs
 
 suspended_RK3::suspended_RK3(lexer* p, fdm* a) : wvel(p)
 {
-	gcval_susp=60;
+    gcval_susp=60;
 }
 
 suspended_RK3::~suspended_RK3()
@@ -52,48 +52,48 @@ void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
     clearrhs(p,a);
     suspsource(p,a,a->conc,s);
     pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
-	pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->visc,a->eddyv,1.0,1.0);
+    pdiff->diff_scalar(p,a,pgc,psolv,a->conc,a->visc,a->eddyv,1.0,1.0);
 
-	LOOP
-	ark1(i,j,k) = a->conc(i,j,k)
+    LOOP
+    ark1(i,j,k) = a->conc(i,j,k)
                 + p->dt*a->L(i,j,k);
-	
+    
     bcsusp_start(p,a,pgc,s,ark1);
     sedfsf(p,a,ark1);
-	pgc->start4(p,ark1,gcval_susp);
+    pgc->start4(p,ark1,gcval_susp);
 
 // Step 2
     clearrhs(p,a);
     suspsource(p,a,ark1,s);
     pconvec->start(p,a,ark1,4,a->u,a->v,wvel);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,a->eddyv,1.0,0.25);
+    pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,a->eddyv,1.0,0.25);
 
-	LOOP
-	ark2(i,j,k) = 0.75*a->conc(i,j,k)
+    LOOP
+    ark2(i,j,k) = 0.75*a->conc(i,j,k)
                 + 0.25*ark1(i,j,k)
                 + 0.25*p->dt*a->L(i,j,k);
-	
+    
     bcsusp_start(p,a,pgc,s,ark2);
     sedfsf(p,a,ark2);
-	pgc->start4(p,ark2,gcval_susp);
+    pgc->start4(p,ark2,gcval_susp);
 
 // Step 3
     clearrhs(p,a);
     suspsource(p,a,ark2,s);
     pconvec->start(p,a,ark2,4,a->u,a->v,wvel);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->visc,a->eddyv,1.0,2.0/3.0);
+    pdiff->diff_scalar(p,a,pgc,psolv,ark2,a->visc,a->eddyv,1.0,2.0/3.0);
 
-	LOOP
-	a->conc(i,j,k) = (1.0/3.0)*a->conc(i,j,k)
-				  + (2.0/3.0)*ark2(i,j,k)
-				  + (2.0/3.0)*p->dt*a->L(i,j,k);
-	
+    LOOP
+    a->conc(i,j,k) = (1.0/3.0)*a->conc(i,j,k)
+                  + (2.0/3.0)*ark2(i,j,k)
+                  + (2.0/3.0)*p->dt*a->L(i,j,k);
+    
     bcsusp_start(p,a,pgc,s,a->conc);
     sedfsf(p,a,a->conc);
-	pgc->start4(p,a->conc,gcval_susp);
+    pgc->start4(p,a->conc,gcval_susp);
     fillconc(p,a,s);
 
-	p->susptime=pgc->timer()-starttime;
+    p->susptime=pgc->timer()-starttime;
 }
 
 void suspended_RK3::ctimesave(lexer *p, fdm* a)
@@ -261,6 +261,6 @@ void suspended_RK3::clearrhs(lexer* p, fdm* a)
     LOOP
     {
     a->rhsvec.V[count]=0.0;
-	++count;
+    ++count;
     }
 }

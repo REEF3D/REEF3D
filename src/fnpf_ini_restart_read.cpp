@@ -33,28 +33,28 @@ void fnpf_ini::fnpf_restart_read(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     result.read((char*)&iin, sizeof (int));
     
     result.read((char*)&iin, sizeof (int));
-	p->count=p->count_statestart=iin;
-	
+    p->count=p->count_statestart=iin;
+    
     result.read((char*)&iin, sizeof (int));
-	p->printcount=iin;
-	
-    result.read((char*)&ddn, sizeof (double));
-	p->simtime=ddn;
+    p->printcount=iin;
     
     result.read((char*)&ddn, sizeof (double));
-	p->printtime=ddn;
+    p->simtime=ddn;
     
     result.read((char*)&ddn, sizeof (double));
-	p->sedprinttime=ddn;
+    p->printtime=ddn;
     
     result.read((char*)&ddn, sizeof (double));
-	p->fsfprinttime=ddn;
+    p->sedprinttime=ddn;
     
     result.read((char*)&ddn, sizeof (double));
-	p->probeprinttime=ddn;
+    p->fsfprinttime=ddn;
     
     result.read((char*)&ddn, sizeof (double));
-	p->stateprinttime=ddn;
+    p->probeprinttime=ddn;
+    
+    result.read((char*)&ddn, sizeof (double));
+    p->stateprinttime=ddn;
     
     // result section
     SLICELOOP4

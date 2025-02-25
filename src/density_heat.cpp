@@ -28,14 +28,14 @@ Author: Hans Bihs
 density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
     visc_2 = p->W4;
-	visc_1 = p->W2;
-	ro_2 = p->W3;
-	ro_1 = p->W1;
-	alpha_air = p->H2;
-	alpha_water = p->H1;
+    visc_1 = p->W2;
+    ro_2 = p->W3;
+    ro_1 = p->W1;
+    alpha_air = p->H2;
+    alpha_water = p->H1;
     H=0.0;
 
-	material(p);
+    material(p);
     
     pheat = ppheat;
     
@@ -54,26 +54,26 @@ density_heat::~density_heat()
 double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double temp;
-	
+    
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
         
         temp = 0.5*(pheat->val(i,j,k) + pheat->val(i+aa,j+bb,k+cc));
         
         if(p->H9==1)
         {
-	    ro_1 = material_ipol(water_density,water_density_num, temp);
-	    ro_2 = material_ipol(air_density,air_density_num, temp);
+        ro_1 = material_ipol(water_density,water_density_num, temp);
+        ro_2 = material_ipol(air_density,air_density_num, temp);
 
-	    visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
-	    visc_2 = material_ipol(air_viscosity,air_viscosity_num, temp);
+        visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
+        visc_2 = material_ipol(air_viscosity,air_viscosity_num, temp);
         }
         
         if(p->H9==2)
         {
-	    ro_1 = material_ipol(air_density,air_density_num, temp);
+        ro_1 = material_ipol(air_density,air_density_num, temp);
         ro_2 = material_ipol(water_density,water_density_num, temp);
 
-	    visc_1 = material_ipol(air_viscosity,air_viscosity_num, temp);
+        visc_1 = material_ipol(air_viscosity,air_viscosity_num, temp);
         visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
         }
         
@@ -89,7 +89,7 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         
         roval = ro_1*H + ro_2*(1.0-H);
 
-	return roval;		
+    return roval;        
 }
 
 double density_heat::material_ipol(double **pm, int num, double temp)
@@ -114,10 +114,10 @@ double density_heat::material_ipol(double **pm, int num, double temp)
 
 void density_heat::material(lexer *p)
 {
-	p->Darray(water_density,20,2);
-	p->Darray(air_density,20,2);
-	p->Darray(water_viscosity,20,2);
-	p->Darray(air_viscosity,20,2);
+    p->Darray(water_density,20,2);
+    p->Darray(air_density,20,2);
+    p->Darray(water_viscosity,20,2);
+    p->Darray(air_viscosity,20,2);
 
     water_density[0][0] = -30.0;
     water_density[0][1] = 983.854;

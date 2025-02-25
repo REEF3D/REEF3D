@@ -26,47 +26,47 @@ Author: Hans Bihs
 
 void ghostcell::largeval(field& f,double dist,int gcv, int bc, int cs)
 {
-	int qstart=1;
-	
-	if(cs==1)
-	{
+    int qstart=1;
+    
+    if(cs==1)
+    {
     f(i-1,j,k)=f(i,j,k);
-	for(q=qstart;q<margin;++q)
-	f(i-q-1,j,k)=pow(-1.0,q+1)*double(q+1)*1.0e20;
-	}
+    for(q=qstart;q<margin;++q)
+    f(i-q-1,j,k)=pow(-1.0,q+1)*double(q+1)*1.0e20;
+    }
 
-	if(cs==2)
-	{
+    if(cs==2)
+    {
     f(i,j+1,k)=f(i,j,k);
-	for(q=qstart;q<margin;++q)
-	f(i,j+q+1,k)=pow(-1.0,q+1)*double(q+1)*1.0e20;
-	}
+    for(q=qstart;q<margin;++q)
+    f(i,j+q+1,k)=pow(-1.0,q+1)*double(q+1)*1.0e20;
+    }
 
-	if(cs==3)
-	{
-	f(i,j-1,k)=f(i,j,k);
-	for(q=qstart;q<margin;++q)
-	f(i,j-q-1,k)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
-	}
+    if(cs==3)
+    {
+    f(i,j-1,k)=f(i,j,k);
+    for(q=qstart;q<margin;++q)
+    f(i,j-q-1,k)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
+    }
 
-	if(cs==4)
-	{
-	f(i+1,j,k)=f(i,j,k);
-	for(q=qstart;q<margin;++q)
-	f(i+q+1,j,k)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
-	}
+    if(cs==4)
+    {
+    f(i+1,j,k)=f(i,j,k);
+    for(q=qstart;q<margin;++q)
+    f(i+q+1,j,k)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
+    }
 
-	if(cs==5)
-	{
+    if(cs==5)
+    {
     f(i,j,k-1)=f(i,j,k);
-	for(q=qstart;q<margin;++q)
-	f(i,j,k-q-1)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
-	}
+    for(q=qstart;q<margin;++q)
+    f(i,j,k-q-1)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
+    }
 
-	if(cs==6)
-	{
+    if(cs==6)
+    {
     f(i,j,k+1)=f(i,j,k);
-	for(q=qstart;q<margin;++q)
-	f(i,j,k+q+1)=pow(-1.0,q+1)*double(q+1)*1.0e20;
-	}
+    for(q=qstart;q<margin;++q)
+    f(i,j,k+q+1)=pow(-1.0,q+1)*double(q+1)*1.0e20;
+    }
 }

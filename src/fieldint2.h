@@ -32,8 +32,8 @@ class fieldint2 : public fieldint, public increment
 {
 public:
 
-	fieldint2 (lexer *);
-	virtual ~fieldint2();
+    fieldint2 (lexer *);
+    virtual ~fieldint2();
 
     int& operator()(int, int , int);
     
@@ -44,21 +44,21 @@ public:
     void vel_update(lexer*);
 
     int di,dj,dk;
-	int imin,imax,jmax,jmin,kmin,kmax;
-	
-	int* V;
-	int*** gcfeld;
+    int imin,imax,jmax,jmin,kmin,kmax;
+    
+    int* V;
+    int*** gcfeld;
 
 private:
 
-	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
-	void fieldlength(lexer *);
-	
-	int iter;
-	int gcfeldsize;
-	
-	lexer *pp;
+    void fieldalloc(lexer *);
+    void fieldgcalloc(lexer*);
+    void fieldlength(lexer *);
+    
+    int iter;
+    int gcfeldsize;
+    
+    lexer *pp;
 };
 
 #endif

@@ -25,42 +25,42 @@ Author: Hans Bihs
 
 void ghostcell::inflowbc(field& f,double dist,int gcv, int bc, int cs)
 {
-	if(cs==1)
-	{
-	for(q=0;q<margin;++q)
-	f(i-q-1,j,k)=Qi;//Qi/((gcin_count)*dx*dx);
-	}
+    if(cs==1)
+    {
+    for(q=0;q<margin;++q)
+    f(i-q-1,j,k)=Qi;//Qi/((gcin_count)*dx*dx);
+    }
 
 /*
-	if(cs==2)
-	{
-	for(q=0;q<margin;++q)
-	f(i,j+q+1,k)=Qi/((gcin_count)*dx*dx);
-	}
+    if(cs==2)
+    {
+    for(q=0;q<margin;++q)
+    f(i,j+q+1,k)=Qi/((gcin_count)*dx*dx);
+    }
 
-	if(cs==3)
-	{
-	for(q=0;q<margin;++q)
-	f(i,j-q-1,k)=Qi/((gcin_count)*dx*dx);
-	}
+    if(cs==3)
+    {
+    for(q=0;q<margin;++q)
+    f(i,j-q-1,k)=Qi/((gcin_count)*dx*dx);
+    }
 
-	if(cs==4)
-	{
-	for(q=0;q<margin;++q)
-	f(i+q,j,k)=Qi/((gcin_count)*dx*dx);
-	}
+    if(cs==4)
+    {
+    for(q=0;q<margin;++q)
+    f(i+q,j,k)=Qi/((gcin_count)*dx*dx);
+    }
 
-	if(cs==5)
-	{
-	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)=Qi/((gcin_count)*dx*dx);
-	}
+    if(cs==5)
+    {
+    for(q=0;q<margin;++q)
+    f(i,j,k-q-1)=Qi/((gcin_count)*dx*dx);
+    }
 
-	if(cs==6)
-	{
-	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=Qi/((gcin_count)*dx*dx);
-	}*/
+    if(cs==6)
+    {
+    for(q=0;q<margin;++q)
+    f(i,j,k+q+1)=Qi/((gcin_count)*dx*dx);
+    }*/
 
 }
 

@@ -43,36 +43,36 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 fnpf_vts3D::fnpf_vts3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
-{	
+{    
     if(p->I40==0)
     {
-	p->printtime=0.0;
-	p->sedprinttime=0.0;
-	p->fsfprinttime=0.0;
-	p->probeprinttime=0.0;
-	p->stateprinttime=0.0;
+    p->printtime=0.0;
+    p->sedprinttime=0.0;
+    p->fsfprinttime=0.0;
+    p->probeprinttime=0.0;
+    p->stateprinttime=0.0;
     p->exportprinttime=0.0;
     }
 
-	p->Darray(printtime_wT,p->P35);
+    p->Darray(printtime_wT,p->P35);
     p->Iarray(printfsfiter_wI,p->P184);
     p->Darray(printfsftime_wT,p->P185);
 
-	for(int qn=0; qn<p->P35; ++qn)
-	printtime_wT[qn]=p->P35_ts[qn];
+    for(int qn=0; qn<p->P35; ++qn)
+    printtime_wT[qn]=p->P35_ts[qn];
 
     for(int qn=0; qn<p->P185; ++qn)
-	printfsftime_wT[qn]=p->P185_ts[qn];
+    printfsftime_wT[qn]=p->P185_ts[qn];
 
     for(int qn=0; qn<p->P184; ++qn)
-	printfsfiter_wI[qn]=p->P184_its[qn];
+    printfsfiter_wI[qn]=p->P184_its[qn];
 
 
-	printcount=0;
+    printcount=0;
 
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_FNPF_VTS",0777);
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_FNPF_VTS",0777);
 
 
     pwsf=new fnpf_print_wsf(p,c);
@@ -93,30 +93,30 @@ fnpf_vts3D::fnpf_vts3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     ppotentialfile = new potentialfile_out(p,c,pgc);
 
     if(p->P180==1)
-	pfsf = new fnpf_vtp_fsf(p,c,pgc);
+    pfsf = new fnpf_vtp_fsf(p,c,pgc);
 
     pbed = new fnpf_vtp_bed(p,c,pgc);
 
     if(p->P40>0)
-	pstate=new fnpf_state(p,c,pgc);
+    pstate=new fnpf_state(p,c,pgc);
 
     if(p->P59==1)
     pbreaklog=new fnpf_breaking_log(p,c,pgc);
-	
-	if(p->P85>0)
-	pforce_ale = new fnpf_force_ale*[p->P85];
-	
-	for(n=0;n<p->P85;++n)
-	pforce_ale[n]=new fnpf_force_ale(p,c,pgc,n);
+    
+    if(p->P85>0)
+    pforce_ale = new fnpf_force_ale*[p->P85];
+    
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]=new fnpf_force_ale(p,c,pgc,n);
     
     if(p->P110==1)
     phs = new fnpf_print_Hs(p,c->Hs);
     
     if(p->P140>0)
-	prunup = new fnpf_runup*[p->P140];
-	
-	for(n=0;n<p->P140;++n)
-	prunup[n]=new fnpf_runup(p,c,pgc,n);
+    prunup = new fnpf_runup*[p->P140];
+    
+    for(n=0;n<p->P140;++n)
+    prunup[n]=new fnpf_runup(p,c,pgc,n);
     
     if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
     {
@@ -133,8 +133,8 @@ fnpf_vts3D::~fnpf_vts3D()
 void fnpf_vts3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 {
     // Gages
-	if(p->P51>0)
-	pwsf->height_gauge(p,c,pgc,c->eta);
+    if(p->P51>0)
+    pwsf->height_gauge(p,c,pgc,c->eta);
 
     if(p->P50>0)
     pwsf_theory->height_gauge(p,c,pgc,pflow);
@@ -143,10 +143,10 @@ void fnpf_vts3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     phs->start(p,pgc,c->eta,c->Hs);
     
     if(p->P65>0)
-	pvel->start(p,c,pgc);
+    pvel->start(p,c,pgc);
     
     if(p->P66>0)
-	pveltheo->start(p,c,pgc,pflow);
+    pveltheo->start(p,c,pgc,pflow);
 
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==2 && p->P20>0)
@@ -233,8 +233,8 @@ void fnpf_vts3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
     if(p->P59==1)
     pbreaklog->write(p,c,pgc);
-	
-	// ALE force    
+    
+    // ALE force    
     if(p->count>0)
     for(n=0;n<p->P85;++n)
     pforce_ale[n]->start(p,c,pgc);
@@ -290,60 +290,60 @@ void fnpf_vts3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
     name_iter(p,pgc);
 
-	// Open File
-	ofstream result;
-	result.open(name, ios::binary);
+    // Open File
+    ofstream result;
+    result.open(name, ios::binary);
 
     n=0;
 
-	offset[n]=0;
-	++n;
+    offset[n]=0;
+    ++n;
 
-	// velocity
-	offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
-	++n;
-
-	// scalars
-
-    // Fi
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-
-    // elevation
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-    
-    // test
-    if(p->P23==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    
-    // Hs
-    if(p->P110==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-    
-    // solid
-    if(p->P25==1)
-	{
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	}
-
-	// Points
+    // velocity
     offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
     ++n;
 
-	//---------------------------------------------
+    // scalars
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"StructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt32\">"<<endl;
-	result<<"<StructuredGrid WholeExtent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">"<<endl;
-	result<<"    <Piece Extent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">"<<endl;
+    // Fi
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
+
+    // elevation
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
+    
+    // test
+    if(p->P23==1)
+    {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
+    }
+    
+    // Hs
+    if(p->P110==1)
+    {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
+    }
+    
+    // solid
+    if(p->P25==1)
+    {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
+    }
+
+    // Points
+    offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
+    ++n;
+
+    //---------------------------------------------
+
+    result<<"<?xml version=\"1.0\"?>"<<endl;
+    result<<"<VTKFile type=\"StructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt32\">"<<endl;
+    result<<"<StructuredGrid WholeExtent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">"<<endl;
+    result<<"    <Piece Extent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">"<<endl;
     
     if(p->P16==1)
     {
@@ -360,39 +360,39 @@ void fnpf_vts3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
 
     if(p->A10==3)
-	{
+    {
     result<<"        <DataArray type=\"Float32\" Name=\"Fi\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	}
+    }
 
     result<<"        <DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     
     if(p->P23==1)
-	{
+    {
     result<<"        <DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	}
+    }
     
     if(p->P110==1)
-	{
+    {
     result<<"        <DataArray type=\"Float32\" Name=\"Hs\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	}
+    }
 
     if(p->P25==1)
-	{
-	result<<"        <DataArray type=\"Float32\" Name=\"solid\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    {
+    result<<"        <DataArray type=\"Float32\" Name=\"solid\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	}
-	result<<"    </PointData>"<<endl;
+    }
+    result<<"    </PointData>"<<endl;
 
     result<<"    <Points>"<<endl;
-	result<<"        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
-	n++;
-	result<<"    </Points>"<<endl;
-	result<<"    </Piece>"<<endl;
-	result<<"</StructuredGrid>"<<endl;
+    result<<"        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>"<<endl;
+    n++;
+    result<<"    </Points>"<<endl;
+    result<<"    </Piece>"<<endl;
+    result<<"</StructuredGrid>"<<endl;
 
 //----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
@@ -400,47 +400,47 @@ void fnpf_vts3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
 //  Velocities
     iin=3*4*(p->pointnum);
-	result.write((char*)&iin, sizeof (int));
+    result.write((char*)&iin, sizeof (int));
     TPLOOP
-	{
-	ffn=float(c->U[FIJKp1]);
+    {
+    ffn=float(c->U[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(c->U[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
+    ffn=float(c->U[FIJp1Kp1]);
+    result.write((char*)&ffn, sizeof (float));
 
 
-	ffn=float(c->V[FIJKp1]);
-
-    if(k==-1 && j==-1)
-	ffn=float(c->V[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-
-
-	ffn=float(c->W[FIJKp1]);
+    ffn=float(c->V[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(c->W[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    ffn=float(c->V[FIJp1Kp1]);
+    result.write((char*)&ffn, sizeof (float));
+
+
+    ffn=float(c->W[FIJKp1]);
+
+    if(k==-1 && j==-1)
+    ffn=float(c->W[FIJp1Kp1]);
+    result.write((char*)&ffn, sizeof (float));
+    }
 
 
 //  Fi
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
     if(p->j_dir==1)
-	TPLOOP
-	{
+    TPLOOP
+    {
     ffn=float(c->Fi[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(c->Fi[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    ffn=float(c->Fi[FIJp1Kp1]);
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     if(p->j_dir==0)
-	TPLOOP
-	{
+    TPLOOP
+    {
     if(j==-1)
     ffn=float(c->Fi[FIJp1Kp1]);
     
@@ -448,68 +448,68 @@ void fnpf_vts3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     ffn=float(c->Fi[FIJKp1]);
 
     if(k==-1 && j==-1)
-	ffn=float(c->Fi[FIJp1Kp1]);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    ffn=float(c->Fi[FIJp1Kp1]);
+    result.write((char*)&ffn, sizeof (float));
+    }
 
 //  elevation
-	iin=4*(p->pointnum)*3;
-	result.write((char*)&iin, sizeof (int));
+    iin=4*(p->pointnum)*3;
+    result.write((char*)&iin, sizeof (int));
     TPLOOP
-	{
-	ffn=float(p->ZN[KP1]*c->WL(i,j) + c->bed(i,j));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    {
+    ffn=float(p->ZN[KP1]*c->WL(i,j) + c->bed(i,j));
+    result.write((char*)&ffn, sizeof (float));
+    }
 
 //  test
     if(p->P23==1)
-	{
+    {
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(c->test));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
+    TPLOOP
+    {
+    ffn=float(p->ipol4_a(c->test));
+    result.write((char*)&ffn, sizeof (float));
+    }
+    }
     
 //  Hs
     if(p->P110==1)
-	{
+    {
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(p->sl_ipol4(c->Hs));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
+    TPLOOP
+    {
+    ffn=float(p->sl_ipol4(c->Hs));
+    result.write((char*)&ffn, sizeof (float));
+    }
+    }
 
 //  solid
-	if(p->P25==1)
-	{
+    if(p->P25==1)
+    {
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	TPLOOP
-	{
-	ffn=float(1.0);
-	result.write((char*)&ffn, sizeof (float));
-	}
-	}
+    TPLOOP
+    {
+    ffn=float(1.0);
+    result.write((char*)&ffn, sizeof (float));
+    }
+    }
 
 //  XYZ
-	iin=4*(p->pointnum)*3;
-	result.write((char*)&iin, sizeof (int));
+    iin=4*(p->pointnum)*3;
+    result.write((char*)&iin, sizeof (int));
 
     double theta_y = p->B192_1*(PI/180.0);
-	double omega_y = 2.0*PI*p->B192_2;
+    double omega_y = 2.0*PI*p->B192_2;
     double waterlevel;
 
     if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
     phase = omega_y*p->simtime;
 
     TPLOOP
-	{
+    {
         waterlevel = p->sl_ipol4eta(p->wet,c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
 
         zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(c->bed);
@@ -530,13 +530,13 @@ void fnpf_vts3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
         ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
         result.write((char*)&ffn, sizeof (float));
-	}
+    }
 
-	result<<endl<<"</AppendedData>"<<endl;
+    result<<endl<<"</AppendedData>"<<endl;
     result<<"</VTKFile>"<<endl;
 
-	result.close();
+    result.close();
 
-	++printcount;
+    ++printcount;
 
 }

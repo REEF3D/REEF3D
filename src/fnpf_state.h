@@ -36,16 +36,16 @@ class fnpf_state : public increment
 {
 
 public:
-	fnpf_state(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_state();
-	void write(lexer*,fdm_fnpf*,ghostcell*);
+    fnpf_state(lexer*,fdm_fnpf*,ghostcell*);
+    virtual ~fnpf_state();
+    void write(lexer*,fdm_fnpf*,ghostcell*);
     
     void ini_mainheader(lexer*,fdm_fnpf*,ghostcell*);
     
     void write_result(lexer*,fdm_fnpf*,ghostcell*);
     void write_mainheader(lexer*,fdm_fnpf*,ghostcell*);
     void write_header(lexer*,fdm_fnpf*,ghostcell*);
-	
+    
 private:
     void filename_single(lexer*,fdm_fnpf*,ghostcell*,int);
     void filename_continuous(lexer*,fdm_fnpf*,ghostcell*);
@@ -53,9 +53,9 @@ private:
 
     char name[500];
     float ffn;
-	int iin;
-	double ddn;
-	int printcount;
+    int iin;
+    double ddn;
+    int printcount;
     int ini_token;
     int file_version,file_type;
     int qn;

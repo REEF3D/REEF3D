@@ -38,9 +38,9 @@ class benchmark_convection : public benchmark, public increment
 
 public:
     benchmark_convection(lexer*,fdm*);
-	virtual ~benchmark_convection();
+    virtual ~benchmark_convection();
 
-	virtual void start(lexer*, fdm*, ghostcell*, convection*);
+    virtual void start(lexer*, fdm*, ghostcell*, convection*);
 
 
 };

@@ -38,17 +38,17 @@ class sflow_print_wsf : public increment
 {
 public:
     sflow_print_wsf(lexer*,fdm2D*);
-	virtual ~sflow_print_wsf();
+    virtual ~sflow_print_wsf();
 
-	void height_gauge(lexer*, fdm2D*, ghostcell*,slice&);
+    void height_gauge(lexer*, fdm2D*, ghostcell*,slice&);
 
 
 private:
     void ini_location(lexer*, fdm2D*);
     int conv(double);
-	
-	double *x,*y;
-	int gauge_num;
+    
+    double *x,*y;
+    int gauge_num;
 
     int *iloc,*jloc,*flag;
     double *wsf;

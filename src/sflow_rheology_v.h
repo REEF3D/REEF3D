@@ -34,9 +34,9 @@ class sflow_rheology_v : public sflow_rheology, public increment
 
 public:
     sflow_rheology_v(lexer*);
-	virtual ~sflow_rheology_v();
+    virtual ~sflow_rheology_v();
     
-	virtual void u_source(lexer*, fdm2D*, slice&, slice&);
+    virtual void u_source(lexer*, fdm2D*, slice&, slice&);
     virtual void v_source(lexer*, fdm2D*, slice&, slice&);
 
 private:

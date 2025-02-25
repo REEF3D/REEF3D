@@ -28,34 +28,34 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 {   
     // general Neuman
     if(gcv==40 || gcv==50 || gcv==1 )
-	return 4;
+    return 4;
     
     // vertical w
     else
-	if(gcv==12 && bc!=1)
-	return 4;
+    if(gcv==12 && bc!=1)
+    return 4;
     
     else
-	if(gcv==12 && bc==1)
-	return 5;
+    if(gcv==12 && bc==1)
+    return 5;
     
     
     // pressure 40
     else
-	if((bc==3||bc==21||bc==6) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
-	return 4;
+    if((bc==3||bc==21||bc==6) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
+    return 4;
     
     else
-	if((bc==1||bc==2) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
-	return 4;
+    if((bc==1||bc==2) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
+    return 4;
     
     else
-	if((bc==8) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
-	return 4;
+    if((bc==8) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
+    return 4;
     
     else
-	if((bc==211 || bc==212 || bc==112 || bc==111) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
-	return 4;
+    if((bc==211 || bc==212 || bc==112 || bc==111) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
+    return 4;
     
     // Fifsf 60
     else
@@ -77,33 +77,33 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     
     //Patch eta / Hx / Hy
     else
-	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
-	return 4;
+    if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
+    return 4;
     
     // eta
     else
     if((bc==1||bc==6) && (gcv==52||gcv==54))//  && (p->B98<3))
-	return 4;
+    return 4;
     
     else
     if((bc==7) && (gcv==51||gcv==54 || p->B99==1 || p->B99==0))
-	return 4;
+    return 4;
     
     else
     if((bc==2) && (gcv==51||gcv==54))
-	return 4;
+    return 4;
     
     else
     if((bc==7 || bc==8) && (gcv==51||gcv==52||gcv==53||gcv==54) && p->B99==3)
-	return 4;
+    return 4;
     
     else
     if(bc==8 && (gcv==51||gcv==52||gcv==53||gcv==54) &&p->B99==4)
-	return 8;
+    return 8;
     
     else
     if((bc==21||bc==3) && (gcv==51||gcv==52||gcv==53||gcv==54))
-	return 4;
+    return 4;
     
     // Fifsf
     else
@@ -126,49 +126,49 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     
     else
     if((bc==1||bc==6) && (gcv==152||gcv==154))
-	return 14;
+    return 14;
     
     else
     if((bc==2||bc==7)&&(gcv==151||gcv==154))
-	return 14;
+    return 14;
     
     else
     if(bc==8 && (gcv==151||gcv==152||gcv==153||gcv==154) &&p->B99==3)
-	return 14;
+    return 14;
     
     else
     if(bc==8 && (gcv==151||gcv==152||gcv==153||gcv==154) &&p->B99==4)
-	return 8;
+    return 8;
     
     else
     if((bc==21||bc==3) && (gcv==151||gcv==152||gcv==153||gcv==154))
-	return 14;
+    return 14;
     
     // Turbulence
-	else
-	if(gcv==20)
-	return 4;
+    else
+    if(gcv==20)
+    return 4;
     
     else
-	if(gcv==24 && bc!=1)
-	return 4;
+    if(gcv==24 && bc!=1)
+    return 4;
     
     else
-	if(gcv==30)
-	return 4;
+    if(gcv==30)
+    return 4;
     
     // Potential Ini
-	else
-	if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==9)&&(gcv==49))
-	return 4;
+    else
+    if((bc==21||bc==22||bc==5||bc==41||bc==42||bc==43||bc==9)&&(gcv==49))
+    return 4;
 
-	else
-	if((bc==2||bc==1||bc==6||bc==7||bc==8)&&(gcv==49))
-	return 7;
-	
-	else
-	if(bc==3 && gcv==49)
-	return 4;
+    else
+    if((bc==2||bc==1||bc==6||bc==7||bc==8)&&(gcv==49))
+    return 7;
+    
+    else
+    if(bc==3 && gcv==49)
+    return 4;
     
     
     else
@@ -178,42 +178,42 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 void ghostcell::gcsldistro4(lexer *p, slice &f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
 {
     i=ii;
-	j=jj;
-	n=nn;
-	
-	bc_label=gcsleval4(p,gcv,bc,cs);
+    j=jj;
+    n=nn;
+    
+    bc_label=gcsleval4(p,gcv,bc,cs);
 
-	if(bc_label==4)
-	gcsl_neumann(f,gcv,bc,cs);
+    if(bc_label==4)
+    gcsl_neumann(f,gcv,bc,cs);
     
     if(bc_label==14)
-	gcsl_neumann_x(f,gcv,bc,cs);
+    gcsl_neumann_x(f,gcv,bc,cs);
     
     if(bc_label==5)
-	gcsl_noslip(f,gcv,bc,cs);
+    gcsl_noslip(f,gcv,bc,cs);
     
     if(bc_label==7)
-	gcsl_potentialbc(p,f,bc,cs);
+    gcsl_potentialbc(p,f,bc,cs);
     
     if(bc_label==8)
-	gcsl_sommerfeld(p,f,gcv,bc,cs);
+    gcsl_sommerfeld(p,f,gcv,bc,cs);
 }
 
 
 void ghostcell::gcsldistro4int(lexer *p, sliceint &f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
 {
     i=ii;
-	j=jj;
-	n=nn;
+    j=jj;
+    n=nn;
 
-	gcsl_neumann_int(f,gcv,bc,cs);    
+    gcsl_neumann_int(f,gcv,bc,cs);    
 }
 
 void ghostcell::gcsldistro4Vint(lexer *p, int *f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
 {
     i=ii;
-	j=jj;
-	n=nn;
+    j=jj;
+    n=nn;
 
-	gcsl_neumann_V_int(p,f,gcv,bc,cs);    
+    gcsl_neumann_V_int(p,f,gcv,bc,cs);    
 }

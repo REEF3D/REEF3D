@@ -38,8 +38,8 @@ Author: Hans Bihs
 
 #define SLICEREVLOOP4 IREVLOOP JREVLOOP  PSLICECHECK4
 
-#define IREVLOOP	for(i=p->knox-1; i>=0; --i)
-#define JREVLOOP	for(j=p->knoy-1; j>=0; --j)
+#define IREVLOOP    for(i=p->knox-1; i>=0; --i)
+#define JREVLOOP    for(j=p->knoy-1; j>=0; --j)
 #define SLICELOOPREV4 IREVLOOP JREVLOOP  PSLICECHECK4
 
 #define PSLICECHECK4E  if(p->flagslice4[IJ]>=-1)
@@ -57,9 +57,9 @@ Author: Hans Bihs
 #define NSLICELOOP2 for(n=p->sizeS2[0]; n<p->sizeS2[1]; ++n)
 #define NSLICELOOP4 for(n=p->sizeS4[0]; n<p->sizeS4[1]; ++n)
     
-#define IFLEXLOOP	for(i=0; i<p->knox-ulast; ++i)
-#define JFLEXLOOP	for(j=0; j<p->knoy-vlast; ++j)
-#define KFLEXLOOP	for(k=0; k<p->knoz-wlast; ++k)
+#define IFLEXLOOP    for(i=0; i<p->knox-ulast; ++i)
+#define JFLEXLOOP    for(j=0; j<p->knoy-vlast; ++j)
+#define KFLEXLOOP    for(k=0; k<p->knoz-wlast; ++k)
     
 #define SLICEFLEXCHECK  if(flagslice[IJ]>0)
 #define SLICEFLEXLOOP IFLEXLOOP JFLEXLOOP SLICEFLEXCHECK

@@ -33,7 +33,7 @@ Author: Hans Bihs
 
 concentration_AB::concentration_AB(lexer* p, fdm* a, ghostcell *pgc) : bc_concentration(p), concentration_io(p,a), cab(p)
 {
-	gcval_concentration=80;
+    gcval_concentration=80;
 }
 
 concentration_AB::~concentration_AB()
@@ -46,26 +46,26 @@ void concentration_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* p
     starttime=pgc->timer();
     
     clearrhs(p,a,pgc);
-	pconvec->start(p,a,C,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,C,a->visc,a->eddyv,1.0,1.0);
+    pconvec->start(p,a,C,4,a->u,a->v,a->w);
+    pdiff->diff_scalar(p,a,pgc,psolv,C,a->visc,a->eddyv,1.0,1.0);
 
-	if(p->count==1)
-	LOOP
-	cab(i,j,k)=a->L(i,j,k);
+    if(p->count==1)
+    LOOP
+    cab(i,j,k)=a->L(i,j,k);
 
-	LOOP
-	{
-	C(i,j,k)+=p->dt*0.5*(((p->dt+2.0*p->dt_old)/p->dt_old)*a->L(i,j,k)
-								-(p->dt/p->dt_old)*cab(i,j,k));
-	cab(i,j,k)=a->L(i,j,k);
-	}
-	
+    LOOP
+    {
+    C(i,j,k)+=p->dt*0.5*(((p->dt+2.0*p->dt_old)/p->dt_old)*a->L(i,j,k)
+                                -(p->dt/p->dt_old)*cab(i,j,k));
+    cab(i,j,k)=a->L(i,j,k);
+    }
+    
     bc_concentration_start(p,a,pgc,C);
-	pgc->start4(p,C,gcval_concentration);
+    pgc->start4(p,C,gcval_concentration);
 
-	pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc);
 
-	p->concentrationtime=pgc->timer()-starttime;
+    p->concentrationtime=pgc->timer()-starttime;
 }
 
 void concentration_AB::ttimesave(lexer *p, fdm* a)
@@ -75,10 +75,10 @@ void concentration_AB::ttimesave(lexer *p, fdm* a)
 void concentration_AB::clearrhs(lexer *p, fdm *a, ghostcell *pgc)
 {
     int n=0;
-	LOOP
-	{
+    LOOP
+    {
     a->L(i,j,k)=0.0;
-	a->rhsvec.V[n]=0.0;
-	++n;
-	}
+    a->rhsvec.V[n]=0.0;
+    ++n;
+    }
 }

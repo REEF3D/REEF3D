@@ -38,7 +38,7 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
     filename_header(p,b,pgc);
     
     // open file
-	headout.open(name, ios::binary);
+    headout.open(name, ios::binary);
     
     // ini write    
     iin=p->origin_i-is_global;

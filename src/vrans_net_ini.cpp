@@ -28,36 +28,36 @@ Author: Tobias Martin
 void vrans_net::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Disable common porosity
-	ALOOP
-	{
+    ALOOP
+    {
         a->porosity(i,j,k) = 1.0;
-	}
-	pgc->start4(p,a->porosity,1);
+    }
+    pgc->start4(p,a->porosity,1);
     p->B260 = 0.0;
     
     // Parallelisation ini
-	p->Darray(xstart, p->mpi_size);
-	p->Darray(xend, p->mpi_size);
-	p->Darray(ystart, p->mpi_size);
-	p->Darray(yend, p->mpi_size);
-	p->Darray(zstart, p->mpi_size);
-	p->Darray(zend, p->mpi_size);
-	
-	xstart[p->mpirank] = p->originx;
-	ystart[p->mpirank] = p->originy;
-	zstart[p->mpirank] = p->originz;
-	xend[p->mpirank] = p->endx;
-	yend[p->mpirank] = p->endy;
-	zend[p->mpirank] = p->endz;
-	
-	for (int ii = 0; ii < p->mpi_size; ii++)
-	{
-		MPI_Bcast(&xstart[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
-		MPI_Bcast(&xend[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
-		MPI_Bcast(&ystart[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
-		MPI_Bcast(&yend[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
-		MPI_Bcast(&zstart[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
-		MPI_Bcast(&zend[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+    p->Darray(xstart, p->mpi_size);
+    p->Darray(xend, p->mpi_size);
+    p->Darray(ystart, p->mpi_size);
+    p->Darray(yend, p->mpi_size);
+    p->Darray(zstart, p->mpi_size);
+    p->Darray(zend, p->mpi_size);
+    
+    xstart[p->mpirank] = p->originx;
+    ystart[p->mpirank] = p->originy;
+    zstart[p->mpirank] = p->originz;
+    xend[p->mpirank] = p->endx;
+    yend[p->mpirank] = p->endy;
+    zend[p->mpirank] = p->endz;
+    
+    for (int ii = 0; ii < p->mpi_size; ii++)
+    {
+        MPI_Bcast(&xstart[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+        MPI_Bcast(&xend[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+        MPI_Bcast(&ystart[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+        MPI_Bcast(&yend[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+        MPI_Bcast(&zstart[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
+        MPI_Bcast(&zend[ii],1,MPI_DOUBLE,ii,pgc->mpi_comm);
     }          
 }
 

@@ -32,31 +32,31 @@ using namespace std;
 class fnpf_weno7 : public fnpf_convection, public increment, public ddweno_f_nug
 {
 public:
-	fnpf_weno7(lexer*);
-	virtual ~fnpf_weno7();
+    fnpf_weno7(lexer*);
+    virtual ~fnpf_weno7();
 
     virtual double fx(lexer*, field&, double, double);
-	virtual double fy(lexer*, field&, double, double);
-	virtual double fz(lexer*, field&, double, double);
+    virtual double fy(lexer*, field&, double, double);
+    virtual double fz(lexer*, field&, double, double);
     
     virtual double sx(lexer*, slice&, double);
-	virtual double sy(lexer*, slice&, double);
+    virtual double sy(lexer*, slice&, double);
     virtual double sz(lexer*, double*);
 
 private:
     
     double is1,is2,is3,is4;
-	double alpha1,alpha2,alpha3,alpha4;
-	double w1,w2,w3,w4;
-	double q0,q1,q2,q3,q4,q5,q6,q7;
-	double gradx, grady, gradz;
+    double alpha1,alpha2,alpha3,alpha4;
+    double w1,w2,w3,w4;
+    double q0,q1,q2,q3,q4,q5,q6,q7;
+    double gradx, grady, gradz;
     
     double ivel1,ivel2,jvel1,jvel2;
 
 
-	void is();
-	void alpha();
-	void weight();
+    void is();
+    void alpha();
+    void weight();
     
     const double epsilon;
     

@@ -33,30 +33,30 @@ using namespace std;
 class weno_flux_nug : public convection, public weno_nug_func
 {
 public:
-	weno_flux_nug(lexer*);
-	virtual ~weno_flux_nug();
+    weno_flux_nug(lexer*);
+    virtual ~weno_flux_nug();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+    virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
-	virtual double fx(lexer*, fdm*, field&, field&, int, double);
-	virtual double fy(lexer*, fdm*, field&, field&, int, double);
-	virtual double fz(lexer*, fdm*, field&, field&, int, double);
-	void iqmin(lexer*, field&, field&, int);
-	void jqmin(lexer*, field&, field&, int);
-	void kqmin(lexer*, field&, field&, int);
-	void iqmax(lexer*, field&, field&, int);
-	void jqmax(lexer*, field&, field&, int);
-	void kqmax(lexer*, field&, field&, int);
+    virtual double fx(lexer*, fdm*, field&, field&, int, double);
+    virtual double fy(lexer*, fdm*, field&, field&, int, double);
+    virtual double fz(lexer*, fdm*, field&, field&, int, double);
+    void iqmin(lexer*, field&, field&, int);
+    void jqmin(lexer*, field&, field&, int);
+    void kqmin(lexer*, field&, field&, int);
+    void iqmax(lexer*, field&, field&, int);
+    void jqmax(lexer*, field&, field&, int);
+    void kqmax(lexer*, field&, field&, int);
 
     
-	double L,grad;
+    double L,grad;
     double sig;
 
-	double gradx, grady, gradz;
-	double fu1,fv1,fw1,fu2,fv2,fw2;
+    double gradx, grady, gradz;
+    double fu1,fv1,fw1,fu2,fv2,fw2;
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 

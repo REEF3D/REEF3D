@@ -33,10 +33,10 @@ using namespace std;
 class sflow_iweno_hj : public sflow_convection, public increment
 {
 public:
-	sflow_iweno_hj(lexer*);
-	virtual ~sflow_iweno_hj();
+    sflow_iweno_hj(lexer*);
+    virtual ~sflow_iweno_hj();
 
-	virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&);
+    virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&);
 
 private:
     double aij(lexer*, fdm2D*, slice&, int, slice&, slice&);
@@ -45,40 +45,40 @@ private:
     void wenoloop2(lexer*,fdm2D*,slice&,int,slice&,slice&);
     void wenoloop4(lexer*,fdm2D*,slice&,int,slice&,slice&);
 
-	void iqmin(lexer*, fdm2D*, slice&, int);
-	void jqmin(lexer*, fdm2D*, slice&, int);
-	void iqmax(lexer*, fdm2D*, slice&, int);
-	void jqmax(lexer*, fdm2D*, slice&, int);
+    void iqmin(lexer*, fdm2D*, slice&, int);
+    void jqmin(lexer*, fdm2D*, slice&, int);
+    void iqmax(lexer*, fdm2D*, slice&, int);
+    void jqmax(lexer*, fdm2D*, slice&, int);
     
-	void aij_south(lexer*,fdm2D*,slice&, slice&);
-	void aij_north(lexer*,fdm2D*,slice&, slice&);
-	void aij_east(lexer*,fdm2D*,slice&, slice&);
-	void aij_west(lexer*,fdm2D*,slice&, slice&);
+    void aij_south(lexer*,fdm2D*,slice&, slice&);
+    void aij_north(lexer*,fdm2D*,slice&, slice&);
+    void aij_east(lexer*,fdm2D*,slice&, slice&);
+    void aij_west(lexer*,fdm2D*,slice&, slice&);
     
-	void is_south(slice&);
-	void is_north(slice&);
-	void is_east(slice&);
-	void is_west(slice&);
+    void is_south(slice&);
+    void is_north(slice&);
+    void is_east(slice&);
+    void is_west(slice&);
 
     void alpha_calc();
 
-	void weight_calc();
+    void weight_calc();
 
 
-	double L,grad;
-	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-	const double sixten,treten;
-	const double epsilon;
-	double is1,is2,is3;
-	double alpha1,alpha2,alpha3;
-	double w1,w2,w3;
-	double q1,q2,q3,q4,q5;
-	double gradx, grady, gradz;
-	double fu1,fv1,fu2,fv2;
+    double L,grad;
+    const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+    const double sixten,treten;
+    const double epsilon;
+    double is1,is2,is3;
+    double alpha1,alpha2,alpha3;
+    double w1,w2,w3;
+    double q1,q2,q3,q4,q5;
+    double gradx, grady, gradz;
+    double fu1,fv1,fu2,fv2;
 
-	void is(slice&);
-	void alpha();
-	void weight();
+    void is(slice&);
+    void alpha();
+    void weight();
     
     sflow_flux *pflux;
     double ivel1,ivel2,jvel1,jvel2;

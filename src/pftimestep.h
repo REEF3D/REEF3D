@@ -33,24 +33,24 @@ using namespace std;
 class pftimestep : public timestep, public increment
 {
 public:
-	pftimestep(lexer*);
-	virtual ~pftimestep();
-	virtual void start(fdm*, lexer*,ghostcell*,turbulence*);
-	virtual void ini(fdm*, lexer*,ghostcell*);
+    pftimestep(lexer*);
+    virtual ~pftimestep();
+    virtual void start(fdm*, lexer*,ghostcell*,turbulence*);
+    virtual void ini(fdm*, lexer*,ghostcell*);
 
 
 private:
-	double max(double,double,double);
-	double max(double,double);
-	double min(double,double,double);
-	double min(double,double);
+    double max(double,double,double);
+    double max(double,double);
+    double min(double,double,double);
+    double min(double,double);
 
-	double visccrit,sqd,wallu,wallv,wallw;
-	double uplus;
-	double cu,cv,cw;
-	const double epsi;
-	double isor,jsor,ksor;
-	double irsm,jrsm,krsm;
+    double visccrit,sqd,wallu,wallv,wallw;
+    double uplus;
+    double cu,cv,cw;
+    const double epsi;
+    double isor,jsor,ksor;
+    double irsm,jrsm,krsm;
     const double maxtimestep, c0_orig;
     double dx;
     double depthmax;

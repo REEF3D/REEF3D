@@ -29,14 +29,14 @@ Author: Hans Bihs
 fluid_update_fsf_heat_Bouss::fluid_update_fsf_heat_Bouss(lexer *p, fdm* a, ghostcell* pgc, heat *&ppheat) : dx(p->DXM)
 {
     gcval_ro=1;
-	gcval_visc=1;
+    gcval_visc=1;
 
-	visc_2 = p->W4;
-	visc_1 = p->W2;
-	ro_2 = p->W3;
-	ro_1 = p->W1;
-	alpha_air = p->H2;
-	alpha_water = p->H1;
+    visc_2 = p->W4;
+    visc_1 = p->W2;
+    ro_2 = p->W3;
+    ro_1 = p->W1;
+    alpha_air = p->H2;
+    alpha_water = p->H1;
     
     if(p->H9==1)
     {
@@ -49,8 +49,8 @@ fluid_update_fsf_heat_Bouss::fluid_update_fsf_heat_Bouss(lexer *p, fdm* a, ghost
     T0_1 = p->H50_2 + 273.0;
     T0_2 = p->H50_1 + 273.0;
     }
-	
-	pheat = ppheat;
+    
+    pheat = ppheat;
     
 }
 
@@ -61,14 +61,14 @@ fluid_update_fsf_heat_Bouss::~fluid_update_fsf_heat_Bouss()
 void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc)
 {
     
-	double H=0.0;
-	double temp;
-	p->volume1=0.0;
-	p->volume2=0.0;
+    double H=0.0;
+    double temp;
+    p->volume1=0.0;
+    p->volume2=0.0;
 
     if(p->count>iter)
     iocheck=0;
-	iter=p->count;
+    iter=p->count;
     
     if(p->j_dir==0)        
     epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
@@ -77,8 +77,8 @@ void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc)
     epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 
    //
-	LOOP
-	{
+    LOOP
+    {
         temp = pheat->val(i,j,k) + 273.0;
         
         if(p->H4==0)
@@ -123,32 +123,32 @@ void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc)
             }
         }
 
-		if(a->phi(i,j,k)>epsi)
-		H=1.0;
+        if(a->phi(i,j,k)>epsi)
+        H=1.0;
 
-		if(a->phi(i,j,k)<-epsi)
-		H=0.0;
+        if(a->phi(i,j,k)<-epsi)
+        H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+        if(fabs(a->phi(i,j,k))<=epsi)
+        H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 
-		a->ro(i,j,k)=     ro_1*H +   ro_2*(1.0-H);
-		a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);
+        a->ro(i,j,k)=     ro_1*H +   ro_2*(1.0-H);
+        a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);
 
-		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
-	}
+        p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
+        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+    }
 
-	pgc->start4(p,a->ro,gcval_ro);
-	pgc->start4(p,a->visc,gcval_visc);
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
 
-	p->volume1 = pgc->globalsum(p->volume1);
-	p->volume2 = pgc->globalsum(p->volume2);
+    p->volume1 = pgc->globalsum(p->volume1);
+    p->volume2 = pgc->globalsum(p->volume2);
 
     if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))
     {
-	cout<<"Volume 1: "<<p->volume1<<endl;
-	cout<<"Volume 2: "<<p->volume2<<endl;
+    cout<<"Volume 1: "<<p->volume1<<endl;
+    cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
 

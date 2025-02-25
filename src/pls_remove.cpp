@@ -40,21 +40,21 @@ void particle_pls::remove(lexer* p, fdm* a, ghostcell* pgc)
             k=int((pos[n][2])/dx);
 
             check=boundcheck(p,i,j,k,1);
-			
-			// remove particle_plss too far away from ls
+            
+            // remove particle_plss too far away from ls
             if(check==1)
             if(p->flag5[IJK]>0  || fabs(pos[n][3])>epsi)
             {
-			pcount++;
+            pcount++;
             posflag[n]=0;
             posmem[pcount]=n;
             removed++;
             }
-			
-			// remove out of bounds particle_plss
+            
+            // remove out of bounds particle_plss
             if(check==0)
             {
-			pcount++;
+            pcount++;
             posflag[n]=0;
             posmem[pcount]=n;
             removed++;
@@ -77,7 +77,7 @@ void particle_pls::remove(lexer* p, fdm* a, ghostcell* pgc)
             if(check==1)
             if(p->flag5[IJK]>0 || fabs(neg[n][3])>epsi)
             {
-			ncount++;
+            ncount++;
             negflag[n]=0;
             negmem[ncount]=n;
             removed++;
@@ -85,7 +85,7 @@ void particle_pls::remove(lexer* p, fdm* a, ghostcell* pgc)
 
             if(check==0)
             {
-			ncount++;
+            ncount++;
             negflag[n]=0;
             negmem[ncount]=n;
             removed++;

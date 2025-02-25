@@ -36,7 +36,7 @@ class nhflow_coastline :  public ddweno_f_nug
 {
 public:
     nhflow_coastline(lexer*);
-	virtual ~nhflow_coastline();
+    virtual ~nhflow_coastline();
 
    void start(lexer*,ghostcell*,slice&,int*,sliceint&);
    

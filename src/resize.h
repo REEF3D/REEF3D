@@ -32,62 +32,62 @@ class resize_class
 {
 public:
 
-	resize_class();
-	virtual ~resize_class();
-	
-	void rank(int);
+    resize_class();
+    virtual ~resize_class();
+    
+    void rank(int);
 
-	void Darray(double*&, int);
-	void Darray(double**&, int, int);
-	void Darray(double***&, int, int, int);
-	void Darray(double****&, int, int, int, int);
-	
-	void Darray(double**&, int, int*);
+    void Darray(double*&, int);
+    void Darray(double**&, int, int);
+    void Darray(double***&, int, int, int);
+    void Darray(double****&, int, int, int, int);
+    
+    void Darray(double**&, int, int*);
 
-	void Iarray(int*&, int);
-	void Iarray(int**&, int, int);
-	void Iarray(int***&, int, int, int);
-	void Iarray(int****&, int, int, int, int);
-	void Iarray(int*****&, int, int, int, int, int);
-	
-	void Iarray(int**&, int, int*);
-	void Iarray(int***&, int, int*, int);
+    void Iarray(int*&, int);
+    void Iarray(int**&, int, int);
+    void Iarray(int***&, int, int, int);
+    void Iarray(int****&, int, int, int, int);
+    void Iarray(int*****&, int, int, int, int, int);
+    
+    void Iarray(int**&, int, int*);
+    void Iarray(int***&, int, int*, int);
 
-	void cvec(char*&, int);
-	void cvec(char**&, int, int);
-	void cvec(char***&, int, int, int);
+    void cvec(char*&, int);
+    void cvec(char**&, int, int);
+    void cvec(char***&, int, int, int);
 
 
-	void del_Darray(double*&,int);
-	void del_Darray(double**&,int, int);
-	void del_Darray(double***&,int, int, int);
-	void del_Darray(double****&,int,int, int, int);
+    void del_Darray(double*&,int);
+    void del_Darray(double**&,int, int);
+    void del_Darray(double***&,int, int, int);
+    void del_Darray(double****&,int,int, int, int);
 
-	void del_Iarray(int*&,int);
-	void del_Iarray(int**&,int, int);
-	void del_Iarray(int***&,int, int, int);
-	void del_Iarray(int****&,int, int, int, int);
-	void del_Iarray(int*****&,int,int, int, int, int);
-	
-	void del_Iarray(int***&,int, int*, int);
+    void del_Iarray(int*&,int);
+    void del_Iarray(int**&,int, int);
+    void del_Iarray(int***&,int, int, int);
+    void del_Iarray(int****&,int, int, int, int);
+    void del_Iarray(int*****&,int,int, int, int, int);
+    
+    void del_Iarray(int***&,int, int*, int);
 
-	void del_cvec(char*&,int);
-	void del_cvec(char**&,int, int);
-	void del_cvec(char***&,int, int, int);
-	
-	void Dresize(double*&,int,int);
-	void Dresize(double**&,int,int,int,int);
-	void Dresize(double***&,int,int,int,int,int,int);
-	void Dresize(double****&,int,int,int,int,int,int,int,int);
-	
-	void Iresize(int*&,int,int);
-	void Iresize(int**&,int,int,int,int);
-	void Iresize(int***&,int,int,int,int,int,int);
-	void Iresize(int****&,int,int,int,int,int,int,int,int);
-	
-	void Iresize(int***&,int,int,int*,int*,int,int);
-	
-	int pararank;
+    void del_cvec(char*&,int);
+    void del_cvec(char**&,int, int);
+    void del_cvec(char***&,int, int, int);
+    
+    void Dresize(double*&,int,int);
+    void Dresize(double**&,int,int,int,int);
+    void Dresize(double***&,int,int,int,int,int,int);
+    void Dresize(double****&,int,int,int,int,int,int,int,int);
+    
+    void Iresize(int*&,int,int);
+    void Iresize(int**&,int,int,int,int);
+    void Iresize(int***&,int,int,int,int,int,int);
+    void Iresize(int****&,int,int,int,int,int,int,int,int);
+    
+    void Iresize(int***&,int,int,int*,int*,int,int);
+    
+    int pararank;
 
 };
 

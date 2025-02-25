@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 
 position::position(lexer *pp) 
-{	
+{    
     p=pp;
 }
 

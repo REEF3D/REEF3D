@@ -37,13 +37,13 @@ class density_vof : public density, virtual public increment
 
 public:
     density_vof(lexer*);
-	virtual ~density_vof();
+    virtual ~density_vof();
 
-	virtual double roface(lexer*,fdm*,int,int,int);
-	
-	double H,roval,phival;
-	int ii,jj,kk;
-	const double epsi,eps;
+    virtual double roface(lexer*,fdm*,int,int,int);
+    
+    double H,roval,phival;
+    int ii,jj,kk;
+    const double epsi,eps;
     double psi;
 
 };

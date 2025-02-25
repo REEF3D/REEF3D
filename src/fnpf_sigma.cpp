@@ -39,7 +39,7 @@ fnpf_sigma::~fnpf_sigma()
 }
 
 void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, slice &eta)
-{	
+{    
     
     
     FLOOP
@@ -63,7 +63,7 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
     
     
     SLICELOOP4
-	c->bed(i,j) = p->bed[IJ];
+    c->bed(i,j) = p->bed[IJ];
     
     SLICELOOP4
     c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
@@ -71,10 +71,10 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
     SLICEBASELOOP
     {
     PSLICECHECK4
-	c->depth(i,j) = p->wd - c->bed(i,j);
+    c->depth(i,j) = p->wd - c->bed(i,j);
     
     SSLICECHECK4
-	c->depth(i,j) = p->wd - p->bed[IJ];
+    c->depth(i,j) = p->wd - p->bed[IJ];
     }
     
     pgc->gcsl_start4(p,c->depth,50);

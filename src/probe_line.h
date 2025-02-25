@@ -39,42 +39,42 @@ class probe_line : public boundarycheck
 {
 public:
     probe_line(lexer*,fdm*,ghostcell*);
-	virtual ~probe_line();
+    virtual ~probe_line();
 
-	void start(lexer*, fdm*, ghostcell*,turbulence*);
+    void start(lexer*, fdm*, ghostcell*,turbulence*);
 
 
 private:
-	void ini_global_location(lexer*, fdm*, ghostcell*);
+    void ini_global_location(lexer*, fdm*, ghostcell*);
     void ini_location(lexer*, fdm*, ghostcell*);
     void write(lexer*, fdm*, ghostcell*);
     int conv(double);
-	char name[100];
+    char name[100];
 
     int **flag,**active,**active_all,**flag_all,**elid,**elid_all;
     int **iloc, **iloc_all, **kloc, **kloc_all;
     double **xs,**xs_all;
     
-	int *totelnum,*totelnum_all,*elnum,**elnum_all,**displ;
-	int maxelnum,maxlocalelnum,count,allcount;
-	double *length,*ds,*norm;
-	double **U,**V,**W,**P,**K,**E,**VT,**LS;
-	double **U_all,**V_all,**W_all,**P_all,**K_all,**E_all,**VT_all,**LS_all,**VAL;
+    int *totelnum,*totelnum_all,*elnum,**elnum_all,**displ;
+    int maxelnum,maxlocalelnum,count,allcount;
+    double *length,*ds,*norm;
+    double **U,**V,**W,**P,**K,**E,**VT,**LS;
+    double **U_all,**V_all,**W_all,**P_all,**K_all,**E_all,**VT_all,**LS_all,**VAL;
 
     int n,q;
-	const int probenum;
-	const double eps;
+    const int probenum;
+    const double eps;
     ofstream *lineout;
-	
-	double domain_xs,domain_xe,domain_ys,domain_ye,domain_zs,domain_ze;
-	
-	double uval,vval,wval,pval,kval,eval,edval;
-	int check;
-	double t;
-	double xloc,yloc,zloc;
-	double xp,yp,zp;
-	double eps_xs, eps_xe, eps_ys, eps_ye, eps_zs, eps_ze;
-	int linecount;
+    
+    double domain_xs,domain_xe,domain_ys,domain_ye,domain_zs,domain_ze;
+    
+    double uval,vval,wval,pval,kval,eval,edval;
+    int check;
+    double t;
+    double xloc,yloc,zloc;
+    double xp,yp,zp;
+    double eps_xs, eps_xe, eps_ys, eps_ye, eps_zs, eps_ze;
+    int linecount;
 
 };
 

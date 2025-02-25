@@ -50,7 +50,7 @@ sflow_potential_f::~sflow_potential_f()
 void sflow_potential_f::start(lexer *p, fdm2D *b, solver2D *psolv, ghostcell *pgc)
 {
     if(p->mpirank==0 )
-	cout<<"starting potential flow solver..."<<endl<<endl;
+    cout<<"starting potential flow solver..."<<endl<<endl;
     
     slice4 psi(p);
     
@@ -61,7 +61,7 @@ void sflow_potential_f::start(lexer *p, fdm2D *b, solver2D *psolv, ghostcell *pg
 
     int itermem=p->N46;
     p->N46=2500;
-	
+    
 
     pgc->gcsl_start4(p,psi,gcval_pot);
     
@@ -69,20 +69,20 @@ void sflow_potential_f::start(lexer *p, fdm2D *b, solver2D *psolv, ghostcell *pg
     psolv->start(p,pgc,psi,b->M,b->xvec,b->rhsvec,4);
     pgc->gcsl_start4(p,psi,gcval_pot);
 
-	
+    
     ucalc(p,b,psi);
-	vcalc(p,b,psi);
+    vcalc(p,b,psi);
 
 
-	pgc->gcsl_start1(p,b->P,10);
-	pgc->gcsl_start2(p,b->Q,11);
+    pgc->gcsl_start1(p,b->P,10);
+    pgc->gcsl_start2(p,b->Q,11);
 
 
     endtime=pgc->timer();
     p->laplaceiter=p->solveriter;
-	p->laplacetime=endtime-starttime;
-	if(p->mpirank==0  && (p->count%p->P12==0))
-	cout<<"lapltime: "<<p->laplacetime<<"  lapiter: "<<p->laplaceiter<<endl<<endl;
+    p->laplacetime=endtime-starttime;
+    if(p->mpirank==0  && (p->count%p->P12==0))
+    cout<<"lapltime: "<<p->laplacetime<<"  lapiter: "<<p->laplaceiter<<endl<<endl;
 
     p->N46=itermem;
 }
@@ -105,7 +105,7 @@ void sflow_potential_f::laplace(lexer *p, fdm2D *b, slice &phi)
     }
     
     
-	n=0;
+    n=0;
     SLICELOOP4
     {
         if(p->wet[IJ]==1)
@@ -121,13 +121,13 @@ void sflow_potential_f::laplace(lexer *p, fdm2D *b, slice &phi)
         
         b->rhsvec.V[n] = 0.0;
         }
-	
-	++n;
-	}
+    
+    ++n;
+    }
     
     
     n=0;
-	SLICELOOP4
+    SLICELOOP4
     {
         if(p->wet[IJ]==1)
         {
@@ -170,30 +170,30 @@ void sflow_potential_f::laplace(lexer *p, fdm2D *b, slice &phi)
             b->M.w[n] = 0.0;
             }
         }
-	++n;
-	}
+    ++n;
+    }
 }
 
 void sflow_potential_f::ucalc(lexer *p, fdm2D *b, slice &phi)
-{	
-	SLICELOOP1
+{    
+    SLICELOOP1
     if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
-	b->P(i,j) = (phi(i+1,j)-phi(i,j))/(p->DXP[IP]*HXP);
+    b->P(i,j) = (phi(i+1,j)-phi(i,j))/(p->DXP[IP]*HXP);
     
     SLICELOOP1
     if(p->wet[IJ]==0 || p->wet[Ip1J]==0)
-	b->P(i,j) = 0.0;
+    b->P(i,j) = 0.0;
 }
 
 void sflow_potential_f::vcalc(lexer *p, fdm2D *b, slice &phi)
-{	
-	SLICELOOP2
+{    
+    SLICELOOP2
     if(p->wet[IJ]==1 && p->wet[IJp1]==1)
-	b->Q(i,j) = (phi(i,j+1)-phi(i,j))/(p->DYP[JP]*HYP);
+    b->Q(i,j) = (phi(i,j+1)-phi(i,j))/(p->DYP[JP]*HYP);
     
     SLICELOOP2
     if(p->wet[IJ]==0 || p->wet[IJp1]==0)
-	b->Q(i,j) = 0.0;
+    b->Q(i,j) = 0.0;
 
 }
 
@@ -205,16 +205,16 @@ void sflow_potential_f::ini_bc(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
         if(p->flagslice4[Im1J]<0 || p->wet[Im1J]==0)
-		bc(i-1,j)=0;
-		
-		if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
-		bc(i+1,j)=0;
-		
-		if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
-		bc(i,j-1)=0;
-		
-		if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
-		bc(i,j+1)=0;
+        bc(i-1,j)=0;
+        
+        if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
+        bc(i+1,j)=0;
+        
+        if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
+        bc(i,j-1)=0;
+        
+        if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
+        bc(i,j+1)=0;
     }
     
 

@@ -39,7 +39,7 @@ public:
     reduction_parker(lexer*);
     virtual ~reduction_parker();
 
-	virtual void start(lexer*,ghostcell*,sediment_fdm*);
+    virtual void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:
 
@@ -47,7 +47,7 @@ private:
     double uvel, vvel;
     double tetaval, alphaval, phival, tanphi, beta;
     double mu,qval,pval,d,eta;
-	double r1,r2;
+    double r1,r2;
 };
 
 #endif

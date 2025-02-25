@@ -31,17 +31,17 @@ using namespace std;
 class vrans_v : public vrans, public increment
 {
 public:
-	vrans_v(lexer*, ghostcell*);
-	virtual ~vrans_v();
+    vrans_v(lexer*, ghostcell*);
+    virtual ~vrans_v();
 
-	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);	
-	virtual void start(lexer*, fdm*, ghostcell*, net*&, int){};
+    virtual void initialize_cfd(lexer*, fdm*, ghostcell*);    
+    virtual void start(lexer*, fdm*, ghostcell*, net*&, int){};
     virtual void sed_update(lexer*, fdm*, ghostcell*);
     virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&){};
-	
-	virtual void u_source(lexer*, fdm*);
-	virtual void v_source(lexer*, fdm*);
-	virtual void w_source(lexer*, fdm*);
+    
+    virtual void u_source(lexer*, fdm*);
+    virtual void v_source(lexer*, fdm*);
+    virtual void w_source(lexer*, fdm*);
     
     virtual void ke_source(lexer*, fdm*, field&);
     virtual void kw_source(lexer*, fdm*, field&);

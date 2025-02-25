@@ -36,5 +36,5 @@ void iowave::ini2D(lexer *p, fdm2D* b, ghostcell* pgc)
     }
     
     if(p->I30==1)
-	full_initialize2D(p,b,pgc);
+    full_initialize2D(p,b,pgc);
 }

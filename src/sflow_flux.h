@@ -33,7 +33,7 @@ class sflow_flux
 public:
 
     virtual void u_flux(int,slice&,double&,double&)=0;
-	virtual void v_flux(int,slice&,double&,double&)=0;
+    virtual void v_flux(int,slice&,double&,double&)=0;
 
 };
 

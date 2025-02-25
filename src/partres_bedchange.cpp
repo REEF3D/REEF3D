@@ -36,15 +36,15 @@ void partres::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int m
     double h;
     ILOOP
     JLOOP
-	{
-		KLOOP
-		PBASECHECK
-		{
+    {
+        KLOOP
+        PBASECHECK
+        {
         if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
         h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
         }
-		s->bedzh(i,j)=h;
-	}
+        s->bedzh(i,j)=h;
+    }
 }
 
 void partres::bedchange_update(lexer *p, ghostcell *pgc, sediment_fdm *s, int mode)

@@ -39,7 +39,7 @@ pip=4;
     if(maxboundcheck(p,i,j,k,1)==0)
     i3=j3=k3=0;
 
-	value =  cint4a(wz, cint4a(wx, cint4a(wy, f(i-i0,j-j0,k-k0),f(i-i0,j,k-k0),
+    value =  cint4a(wz, cint4a(wx, cint4a(wy, f(i-i0,j-j0,k-k0),f(i-i0,j,k-k0),
                               f(i-i0,j+1,k-k0),f(i-i0,j+j3,k-k0)),
                               cint4a(wy, f(i,j-j0,k-k0),f(i,j,k-k0),
                               f(i,j+1,k-k0),f(i,j+j3,k-k0)),
@@ -83,14 +83,14 @@ double interpolation::cctripol4_a(fdm* a,field& f, double xp, double yp, double 
     kk=k;
 
     i=int(xp/p->DXP[IP]-0.5);
-		if(xp/p->DXP[IP]-0.5<0.0)
-		--i;
+        if(xp/p->DXP[IP]-0.5<0.0)
+        --i;
     j=int(yp/p->DYP[JP]-0.5);
-		if(yp/p->DYP[JP]-0.5<0.0)
-		--j;
+        if(yp/p->DYP[JP]-0.5<0.0)
+        --j;
     k=int(zp/p->DZP[KP]-0.5);
-		if(zp/p->DZP[KP]-0.5<0.0)
-		--k;
+        if(zp/p->DZP[KP]-0.5<0.0)
+        --k;
 
     wa=p->XP[IP1]-xp/p->DXP[IP];
     wb=p->YP[JP2]-yp/p->DYP[JP];

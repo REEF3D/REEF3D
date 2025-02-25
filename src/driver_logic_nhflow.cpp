@@ -42,7 +42,7 @@ Author: Hans Bihs
 
 void driver::logic_nhflow()
 {    
-	if(p->mpirank==0)
+    if(p->mpirank==0)
     cout<<"creating objects"<<endl;
     
     p->phimean = p->wd = p->F60;
@@ -62,18 +62,18 @@ void driver::logic_nhflow()
     
 // time stepping
     // time stepping
-	pnhfstep=new nhflow_timestep(p);
+    pnhfstep=new nhflow_timestep(p);
 
 //discretization scheme
     // signal speed
     pss = new nhflow_signal_speed(p);
     
-//Convection	
+//Convection    
     if(p->A511==1)
-	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
+    pnhfconvec = new nhflow_HLL(p,pgc,pBC);
     
     if(p->A511==2)
-	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
+    pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
     
     pnhfscalarconvec = new nhflow_scalar_ifou(p);
     
@@ -102,7 +102,7 @@ void driver::logic_nhflow()
     
 //pressure scheme
     if(p->A520==0)
-	pnhpress = new nhflow_pjm_hs(p,d,pBC);
+    pnhpress = new nhflow_pjm_hs(p,d,pBC);
     
     if(p->A520==1)
     pnhpress = new nhflow_pjm(p,d,pgc,pBC);
@@ -112,11 +112,11 @@ void driver::logic_nhflow()
 
 //Turbulence
     if(p->A560==0)
-	pnhfturb = new nhflow_komega_func_void(p,d,pgc);
+    pnhfturb = new nhflow_komega_func_void(p,d,pgc);
     
     if(p->A560==2 || p->A560==22)
     {
-	pnhfturb = new nhflow_komega_IM1(p,d,pgc);
+    pnhfturb = new nhflow_komega_IM1(p,d,pgc);
     
         if(p->j_dir==1)
         pnhfturbdiff = new nhflow_idiff(p);
@@ -126,46 +126,46 @@ void driver::logic_nhflow()
     }
     
     if(p->A560==31)
-	pnhfturb = new nhflow_LES_Smagorinsky(p,d,pgc);
+    pnhfturb = new nhflow_LES_Smagorinsky(p,d,pgc);
 
 //Solver
     if(p->j_dir==0)
-	psolv = new bicgstab_ijk_2D(p,a,pgc);
+    psolv = new bicgstab_ijk_2D(p,a,pgc);
     
     if(p->j_dir==1)
-	psolv = new bicgstab_ijk(p,a,pgc);
+    psolv = new bicgstab_ijk(p,a,pgc);
 
-//Poison Solver	
-	if(p->N10==0)
-	ppoissonsolv = new solver_void(p,a,pgc);
+//Poison Solver    
+    if(p->N10==0)
+    ppoissonsolv = new solver_void(p,a,pgc);
     
     if(p->N10==1 && p->j_dir==0)
-	ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
+    ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
     
     if(p->N10==1 && p->j_dir==1)
-	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
-	
-	#ifdef HYPRE_COMPILATION
-	if(p->N10>=10 && p->N10<20)
-	ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
-	#endif
+    ppoissonsolv = new bicgstab_ijk(p,a,pgc);
     
     #ifdef HYPRE_COMPILATION
-	if(p->N10>=20 && p->N10<30)
-	ppoissonsolv = new hypre_aij(p,a,pgc);
-	#endif
+    if(p->N10>=10 && p->N10<20)
+    ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
+    #endif
     
     #ifdef HYPRE_COMPILATION
-	if(p->N10>=30 && p->N10<40)
-	ppoissonsolv = new hypre_sstruct(p,a,pgc);
-	#endif
+    if(p->N10>=20 && p->N10<30)
+    ppoissonsolv = new hypre_aij(p,a,pgc);
+    #endif
+    
+    #ifdef HYPRE_COMPILATION
+    if(p->N10>=30 && p->N10<40)
+    ppoissonsolv = new hypre_sstruct(p,a,pgc);
+    #endif
     
 //Printer
     if(p->P150==0)
-	pdata = new data_void(p,a,pgc);
+    pdata = new data_void(p,a,pgc);
 
-	if(p->P150>0)
-	pdata = new data_f(p,a,pgc);
+    if(p->P150>0)
+    pdata = new data_f(p,a,pgc);
     
     if(p->P10==2)
     pnhfprint = new nhflow_vts3D(p,d,pgc);
@@ -174,29 +174,29 @@ void driver::logic_nhflow()
     
 //VRANS
     if(p->B269==0)
-	pvrans = new vrans_v(p,pgc);
+    pvrans = new vrans_v(p,pgc);
 
-	if(p->B269==1)
-	pvrans = new vrans_f(p,pgc);
+    if(p->B269==1)
+    pvrans = new vrans_f(p,pgc);
 
     if(p->B269==2)
-	pvrans = new vrans_veg(p,pgc);
+    pvrans = new vrans_veg(p,pgc);
 
     if(p->B269==3)
-	pvrans = new vrans_net(p,pgc);
+    pvrans = new vrans_net(p,pgc);
     
 //IOFlow
-	if(p->B60==0 && p->B90==0 && p->B180==0)
-	pflow = new ioflow_v(p,pgc,pBC);
+    if(p->B60==0 && p->B90==0 && p->B180==0)
+    pflow = new ioflow_v(p,pgc,pBC);
 
-	if(p->B60>=1)
-	pflow = new ioflow_f(p,pgc,pBC);
+    if(p->B60>=1)
+    pflow = new ioflow_f(p,pgc,pBC);
 
-	if(p->B90>=1)
-	pflow = new iowave(p,pgc,pBC);
+    if(p->B90>=1)
+    pflow = new iowave(p,pgc,pBC);
 
-	if(p->B180==1||p->B191==1||p->B192==1)
-	pflow = new ioflow_gravity(p,pgc,pBC);
+    if(p->B180==1||p->B191==1||p->B192==1)
+    pflow = new ioflow_gravity(p,pgc,pBC);
     
 //Potential Flow Solver
     if(p->I11==0)
@@ -221,9 +221,9 @@ void driver::logic_nhflow()
     
 //Momentum
     if(p->A510==2)
-	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);
+    pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);
     
     if(p->A510==3)
-	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);    
+    pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);    
     
 }

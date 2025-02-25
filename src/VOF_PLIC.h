@@ -41,57 +41,57 @@ using namespace std;
 class VOF_PLIC : public freesurface, gradient, norm_vec
 {
 public:
-	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
-	virtual ~VOF_PLIC();
-	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
-	virtual void update(lexer*,fdm*,ghostcell*,field&);
-	
-private:	
+    VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
+    virtual ~VOF_PLIC();
+    virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
+    virtual void update(lexer*,fdm*,ghostcell*,field&);
+    
+private:    
     void iniphi(fdm*, lexer*,ghostcell*);
-	void iniphi_io(fdm*, lexer*,ghostcell*);
+    void iniphi_io(fdm*, lexer*,ghostcell*);
     void iniphi_box(lexer*,fdm*,ghostcell*);
     void iniphi_surfarea(lexer*,fdm*,ghostcell*);
     int conv(double);
-	
-	void reconstructPlane(fdm*, lexer*);
-	double calcAlpha(fdm*, double&,  double&,  double&);
+    
+    void reconstructPlane(fdm*, lexer*);
+    double calcAlpha(fdm*, double&,  double&,  double&);
 
-	void ininorVecLS(lexer*);
-	void calcNormalFO(fdm*, lexer*);
-	void calcNormalLS(fdm*, lexer*);
+    void ininorVecLS(lexer*);
+    void calcNormalFO(fdm*, lexer*);
+    void calcNormalLS(fdm*, lexer*);
     void calcNormalWENO(fdm*, lexer*);
     void calcNormalPhi(fdm*, lexer*);
-	
-	void advectPlane(fdm*, lexer*, double, double, int);
-	void calcFlux(fdm*, lexer*, double&, double&, int);
-	
-	void updateVolumeFraction(fdm*, lexer*, double, double, int);
-	void updateVOF(fdm*, lexer*, int);
-	double calcV(const double&, const double&, const double&, const double&, double, double);
-	double calcV2(lexer*);
-	double F3(const double&);
-	
+    
+    void advectPlane(fdm*, lexer*, double, double, int);
+    void calcFlux(fdm*, lexer*, double&, double&, int);
+    
+    void updateVolumeFraction(fdm*, lexer*, double, double, int);
+    void updateVOF(fdm*, lexer*, int);
+    double calcV(const double&, const double&, const double&, const double&, double, double);
+    double calcV2(lexer*);
+    double F3(const double&);
+    
     void redistance(fdm*, lexer*, convection*, ghostcell*,ioflow*,int);
     int calcBoundaryPoint(fdm*, lexer*, int, int, int, field4&);
     int calcProjectionPoint(fdm*, lexer*, double&, double&, double&, int, int, int, field4&);
-	void calcSegmentPoint(fdm*, lexer*, double, double, double, int, int, int, field4&);
-    double calcDistance(double, double, double, double);	
-	
-	
+    void calcSegmentPoint(fdm*, lexer*, double, double, double, int, int, int, field4&);
+    double calcDistance(double, double, double, double);    
+    
+    
     fluid_update *pupdate;
     reini *reini_;
 
-	int gcval_frac;
-	double starttime; 
+    int gcval_frac;
+    double starttime; 
    
-	//- Sweep tracker for alternating starting point
-	int sSweep;
+    //- Sweep tracker for alternating starting point
+    int sSweep;
    
     //- Interface normal vector
     field4 nx;
     field4 ny;
     field4 nz;
-	double ****nxCoeff, ****nyCoeff, ****nzCoeff;
+    double ****nxCoeff, ****nyCoeff, ****nzCoeff;
     
     //- Plane distance coefficient
     field4 alpha;

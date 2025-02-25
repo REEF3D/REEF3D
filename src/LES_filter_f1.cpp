@@ -40,8 +40,8 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
 //    vel_label=veleval(p,gcv);
 
 
-	if(gcval==10)
-	{
+    if(gcval==10)
+    {
 
         ULOOP
         etta_u1(i,j,k) = -0.5*(p->DXN[IP]*(a->u(i+1,j,k) - a->u(i,j,k)) - p->DXN[IP1]*(a->u(i,j,k) - a->u(i-1,j,k)))/(p->DXN[IP]+p->DXN[IP1]);
@@ -73,10 +73,10 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start1(p,uprime,gcval);
 
         
-	}
+    }
 
-	if(gcval==11)
-	{
+    if(gcval==11)
+    {
         
         VLOOP
         etta_v1(i,j,k) = -0.5*(p->DXP[IM1]*(a->v(i+1,j,k) - a->v(i,j,k)) - p->DXP[IP]*(a->v(i,j,k) - a->v(i-1,j,k)))/(p->DXP[IP]+p->DXP[IM1]);
@@ -108,10 +108,10 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start2(p,vprime,gcval);
 
         
-	}
+    }
 
-	if(gcval==12)
-	{
+    if(gcval==12)
+    {
         
         WLOOP
         etta_w1(i,j,k) = -0.5*(p->DXP[IM1]*(a->w(i+1,j,k) - a->w(i,j,k)) - p->DXP[IP]*(a->w(i,j,k) - a->w(i-1,j,k)))/(p->DXP[IP]+p->DXP[IM1]);
@@ -143,27 +143,27 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start3(p,wprime,gcval);
 
 
-	}
+    }
  
 }
 
 /*int LES_filter_f1::veleval(lexer *p, int gcv)
 {
-//	Velocities
+//    Velocities
 
 
-	if(gcv==10)
-	return 1;
-	
-	if(gcv==11)
-	return 2;
-	
-	if(gcv==12)
-	return 3;
+    if(gcv==10)
+    return 1;
+    
+    if(gcv==11)
+    return 2;
+    
+    if(gcv==12)
+    return 3;
     
 
-	else
-	return 0;
+    else
+    return 0;
 }
 
 */

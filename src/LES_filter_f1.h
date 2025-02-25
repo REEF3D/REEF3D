@@ -38,10 +38,10 @@ using namespace std;
 class LES_filter_f1 : public LES_filter, public strain
 {
 public:
-	LES_filter_f1(lexer *, fdm*);
-	virtual ~LES_filter_f1();
+    LES_filter_f1(lexer *, fdm*);
+    virtual ~LES_filter_f1();
     
-	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&, int);
+    virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&, int);
     
 //    int veleval(lexer*,int);
 

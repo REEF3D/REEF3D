@@ -39,22 +39,22 @@ class sflow_print_probe_da : public boundarycheck
 {
 public:
     sflow_print_probe_da(lexer*,fdm2D*,ghostcell*);
-	virtual ~sflow_print_probe_da();
+    virtual ~sflow_print_probe_da();
 
-	void start(lexer*, fdm2D*, ghostcell*);
+    void start(lexer*, fdm2D*, ghostcell*);
 
 
 private:
     void ini_location(lexer*, fdm2D*, ghostcell*);
     void write(lexer*, fdm2D*, ghostcell*);
-	char name[100];
+    char name[100];
 
     int *iloc,*jloc,*flag;
     int n,q;
-	const int probenum;
+    const int probenum;
     ofstream *pout;
-	
-	double uval,vval,wval,pval,eval;
+    
+    double uval,vval,wval,pval,eval;
 
 };
 

@@ -29,26 +29,26 @@ void vrans_net::u_source(lexer *p, fdm *a)
 {
     count=0;
     ULOOP
-	{
+    {
         a->rhsvec.V[count++] -= Fx_net(i,j,k);
-	}
-	
+    }
+    
 }
 
 void vrans_net::v_source(lexer *p, fdm *a)
 {  
     count=0;
     VLOOP
-	{
+    {
        a->rhsvec.V[count++] -= Fy_net(i,j,k);        
-	}   
+    }   
 }
 
 void vrans_net::w_source(lexer *p, fdm *a)
 {   
     count=0;
     WLOOP
-	{
+    {
         a->rhsvec.V[count++] -= Fz_net(i,j,k);        
-	}		
+    }        
 }

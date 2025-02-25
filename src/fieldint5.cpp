@@ -25,27 +25,27 @@ Author: Hans Bihs
 
 fieldint5::fieldint5(lexer *p)
 {
-	imin=p->imin;
+    imin=p->imin;
     imax=p->imax;
     jmin=p->jmin;
     jmax=p->jmax;
     kmin=p->kmin;
     kmax=p->kmax;
-	
-	fieldalloc(p);
+    
+    fieldalloc(p);
 
-	pp=p;
+    pp=p;
 }
 
 fieldint5::~fieldint5()
 {
-	delete [] feld;
+    delete [] feld;
 }
 
 void fieldint5::fieldalloc(lexer* p)
 {
-	int gridsize = imax*jmax*kmax;
-	p->Iarray(feld,gridsize);
+    int gridsize = imax*jmax*kmax;
+    p->Iarray(feld,gridsize);
 }
 
 void fieldint5::resize(lexer* p)
@@ -55,6 +55,6 @@ void fieldint5::resize(lexer* p)
 int & fieldint5::operator()(int ii, int jj, int kk)
 {
     iter=(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin;
-	return feld[iter];
+    return feld[iter];
 }
 

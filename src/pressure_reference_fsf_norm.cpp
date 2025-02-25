@@ -28,7 +28,7 @@ Author: Hans Bihs
 void pressure_reference::fsf_normalize(lexer*p, fdm* a, ghostcell *pgc)
 {
     double epsi;
-	double dirac;
+    double dirac;
     double pressval;
     double dirac_sum;
 
@@ -45,8 +45,8 @@ void pressure_reference::fsf_normalize(lexer*p, fdm* a, ghostcell *pgc)
 
     pressval=0.0;
     dirac_sum=0.0;
-	LOOP
-	{
+    LOOP
+    {
         if(fabs(a->phi(i,j,k))<epsi)
         dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
             
@@ -80,8 +80,8 @@ void pressure_reference::fsf_normalize(lexer*p, fdm* a, ghostcell *pgc)
     /*
     pressval=0.0;
     count=0;
-	LOOP
-	{
+    LOOP
+    {
         if(fabs(a->phi(i,j,k))<epsi)
         dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
             
@@ -93,7 +93,7 @@ void pressure_reference::fsf_normalize(lexer*p, fdm* a, ghostcell *pgc)
         pressval += a->press(i,j,k);
         ++count;
         }
-	}
+    }
     
     pressval = pgc->globalsum(pressval);
     

@@ -33,7 +33,7 @@ Author: Hans Bihs
 
 concentration_RK2::concentration_RK2(lexer* p, fdm* a, ghostcell *pgc) : bc_concentration(p), concentration_io(p,a)
 {
-	gcval_concentration=80;
+    gcval_concentration=80;
 }
 
 concentration_RK2::~concentration_RK2()
@@ -49,32 +49,32 @@ void concentration_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* 
 
     clearrhs(p,a,pgc);
     pconvec->start(p,a,C,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,C,a->visc,a->eddyv,1.0,1.0);
+    pdiff->diff_scalar(p,a,pgc,psolv,C,a->visc,a->eddyv,1.0,1.0);
 
-	LOOP
-	ark1(i,j,k) = C(i,j,k)
-				+ p->dt*a->L(i,j,k);
+    LOOP
+    ark1(i,j,k) = C(i,j,k)
+                + p->dt*a->L(i,j,k);
 
     bc_concentration_start(p,a,pgc,ark1);
-	pgc->start4(p,ark1,gcval_concentration);
+    pgc->start4(p,ark1,gcval_concentration);
 
 
 // Step 2
     clearrhs(p,a,pgc);
     pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,a->eddyv,1.0,0.5);
+    pdiff->diff_scalar(p,a,pgc,psolv,ark1,a->visc,a->eddyv,1.0,0.5);
 
-	LOOP
-	C(i,j,k) = 0.5*C(i,j,k)
-				+ 0.5*ark1(i,j,k)
-				+ 0.5*p->dt*a->L(i,j,k);
-	
+    LOOP
+    C(i,j,k) = 0.5*C(i,j,k)
+                + 0.5*ark1(i,j,k)
+                + 0.5*p->dt*a->L(i,j,k);
+    
     bc_concentration_start(p,a,pgc,C);
-	pgc->start4(p,C,gcval_concentration);
+    pgc->start4(p,C,gcval_concentration);
 
-	pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc);
 
-	p->concentrationtime=pgc->timer()-starttime;
+    p->concentrationtime=pgc->timer()-starttime;
 
 }
 
@@ -85,10 +85,10 @@ void concentration_RK2::ttimesave(lexer *p, fdm* a)
 void concentration_RK2::clearrhs(lexer *p, fdm *a, ghostcell *pgc)
 {
     int n=0;
-	LOOP
-	{
+    LOOP
+    {
     a->L(i,j,k)=0.0;
-	a->rhsvec.V[n]=0.0;
-	++n;
-	}
+    a->rhsvec.V[n]=0.0;
+    ++n;
+    }
 }

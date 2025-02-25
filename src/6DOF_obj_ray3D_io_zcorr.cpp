@@ -28,50 +28,50 @@ Author: Hans Bihs
 
 void sixdof_obj::ray_cast_io_zcorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 {
-	double ys,ye,zs,ze;
-	double Px,Py,Pz;
-	double Qx,Qy,Qz;
-	double Rx,Ry,Rz;
-	double Ax,Ay,Az;
-	double Bx,By,Bz;
-	double Cx,Cy,Cz;
-	double PQx,PQy,PQz;
-	double PAx,PAy,PAz;
-	double PBx,PBy,PBz;
-	double PCx,PCy,PCz;
-	double Mx,My,Mz;
-	int is,ie,js,je,ks,ke;
-	int ir;
+    double ys,ye,zs,ze;
+    double Px,Py,Pz;
+    double Qx,Qy,Qz;
+    double Rx,Ry,Rz;
+    double Ax,Ay,Az;
+    double Bx,By,Bz;
+    double Cx,Cy,Cz;
+    double PQx,PQy,PQz;
+    double PAx,PAy,PAz;
+    double PBx,PBy,PBz;
+    double PCx,PCy,PCz;
+    double Mx,My,Mz;
+    int is,ie,js,je,ks,ke;
+    int ir;
     int checkin;
-	double u,v,w;
-	double denom;
-	double psi = 1.0e-8*p->DXM;
+    double u,v,w;
+    double denom;
+    double psi = 1.0e-8*p->DXM;
     
     ALOOP
-	{
-	cutl(i,j,k)=0;
-	cutr(i,j,k)=0;
-	}
+    {
+    cutl(i,j,k)=0;
+    cutr(i,j,k)=0;
+    }
 
 
-	for(n=ts; n<te; ++n)
-	{ 
-		
-	Ax = tri_x[n][0];
-	Ay = tri_y[n][0];
-	Az = tri_z[n][0];
-		
-	Bx = tri_x[n][1];
-	By = tri_y[n][1];
-	Bz = tri_z[n][1];
-		
-	Cx = tri_x[n][2];
-	Cy = tri_y[n][2];
-	Cz = tri_z[n][2];
+    for(n=ts; n<te; ++n)
+    { 
+        
+    Ax = tri_x[n][0];
+    Ay = tri_y[n][0];
+    Az = tri_z[n][0];
+        
+    Bx = tri_x[n][1];
+    By = tri_y[n][1];
+    Bz = tri_z[n][1];
+        
+    Cx = tri_x[n][2];
+    Cy = tri_y[n][2];
+    Cz = tri_z[n][2];
     
     checkin = 0;
     
-	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
+    if(Ax>=p->global_xmin && Ax<=p->global_xmax 
     && ((Ay>=p->global_ymin && Ay<=p->global_ymax) || p->j_dir==0)
     && Az>=p->global_zmin && Az<=p->global_zmax)
     checkin=1;
@@ -88,119 +88,119 @@ void sixdof_obj::ray_cast_io_zcorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
         
     if(checkin==1)
     {
-	
-	
-	xs = MIN3(Ax,Bx,Cx); 
-	xe = MAX3(Ax,Bx,Cx);
-	
-	ys = MIN3(Ay,By,Cy);
-	ye = MAX3(Ay,By,Cy);
-	
-	is = p->posc_i(xs);
-	ie = p->posc_i(xe);
-	
-	js = p->posc_j(ys);
-	je = p->posc_j(ye);
-		
-	
+    
+    
+    xs = MIN3(Ax,Bx,Cx); 
+    xe = MAX3(Ax,Bx,Cx);
+    
+    ys = MIN3(Ay,By,Cy);
+    ye = MAX3(Ay,By,Cy);
+    
+    is = p->posc_i(xs);
+    ie = p->posc_i(xe);
+    
+    js = p->posc_j(ys);
+    je = p->posc_j(ye);
+        
+    
     xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is + marge];
-	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie + marge];
-	
-	ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
-	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
+    xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie + marge];
+    
+    ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
+    ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
 
-	
-	is = p->posc_i(xs);
-	ie = p->posc_i(xe);
-	
-	js = p->posc_j(ys);
-	je = p->posc_j(ye);
-	
-	is = MAX(is,0);
-	ie = MIN(ie,p->knox);
-	
-	js = MAX(js,0);
-	je = MIN(je,p->knoy);
-	
-		for(i=is;i<ie;i++)
-		for(j=js;j<je;j++)
-		{
-		Px = p->XP[IP]-psi;
-		Py = p->YP[JP]+psi;
-		Pz = p->global_zmin-10.0*p->DXM ;
-		
-		Qx = p->XP[IP]+psi;
-		Qy = p->YP[JP]-psi;
-		Qz = p->global_zmax+10.0*p->DXM ;
-		
-		PQx = Qx-Px;
-		PQy = Qy-Py;
-		PQz = Qz-Pz;
-		
-		PAx = Ax-Px;
-		PAy = Ay-Py;
-		PAz = Az-Pz;
-		
-		PBx = Bx-Px;
-		PBy = By-Py;
-		PBz = Bz-Pz;
-		
-		PCx = Cx-Px;
-		PCy = Cy-Py;
-		PCz = Cz-Pz;
-		
-		// uvw
-		Mx = PQy*Pz - PQz*Py;
-		My = PQz*Px - PQx*Pz;
-		Mz = PQx*Py - PQy*Px;
+    
+    is = p->posc_i(xs);
+    ie = p->posc_i(xe);
+    
+    js = p->posc_j(ys);
+    je = p->posc_j(ye);
+    
+    is = MAX(is,0);
+    ie = MIN(ie,p->knox);
+    
+    js = MAX(js,0);
+    je = MIN(je,p->knoy);
+    
+        for(i=is;i<ie;i++)
+        for(j=js;j<je;j++)
+        {
+        Px = p->XP[IP]-psi;
+        Py = p->YP[JP]+psi;
+        Pz = p->global_zmin-10.0*p->DXM ;
+        
+        Qx = p->XP[IP]+psi;
+        Qy = p->YP[JP]-psi;
+        Qz = p->global_zmax+10.0*p->DXM ;
+        
+        PQx = Qx-Px;
+        PQy = Qy-Py;
+        PQz = Qz-Pz;
+        
+        PAx = Ax-Px;
+        PAy = Ay-Py;
+        PAz = Az-Pz;
+        
+        PBx = Bx-Px;
+        PBy = By-Py;
+        PBz = Bz-Pz;
+        
+        PCx = Cx-Px;
+        PCy = Cy-Py;
+        PCz = Cz-Pz;
+        
+        // uvw
+        Mx = PQy*Pz - PQz*Py;
+        My = PQz*Px - PQx*Pz;
+        Mz = PQx*Py - PQy*Px;
 
-		
-		u = PQx*(Cy*Bz - Cz*By) + PQy*(Cz*Bx - Cx*Bz) + PQz*(Cx*By - Cy*Bx)
-		  + Mx*(Cx-Bx) + My*(Cy-By) + Mz*(Cz-Bz);
-		  
-		v = PQx*(Ay*Cz - Az*Cy) + PQy*(Az*Cx - Ax*Cz) + PQz*(Ax*Cy - Ay*Cx)
-		  + Mx*(Ax-Cx) + My*(Ay-Cy) + Mz*(Az-Cz);
-		  
-		w = PQx*(By*Az - Bz*Ay) + PQy*(Bz*Ax - Bx*Az) + PQz*(Bx*Ay - By*Ax)
-		  + Mx*(Bx-Ax) + My*(By-Ay) + Mz*(Bz-Az);
+        
+        u = PQx*(Cy*Bz - Cz*By) + PQy*(Cz*Bx - Cx*Bz) + PQz*(Cx*By - Cy*Bx)
+          + Mx*(Cx-Bx) + My*(Cy-By) + Mz*(Cz-Bz);
+          
+        v = PQx*(Ay*Cz - Az*Cy) + PQy*(Az*Cx - Ax*Cz) + PQz*(Ax*Cy - Ay*Cx)
+          + Mx*(Ax-Cx) + My*(Ay-Cy) + Mz*(Az-Cz);
+          
+        w = PQx*(By*Az - Bz*Ay) + PQy*(Bz*Ax - Bx*Az) + PQz*(Bx*Ay - By*Ax)
+          + Mx*(Bx-Ax) + My*(By-Ay) + Mz*(Bz-Az);
     
         int check=1;
-		if(u==0.0 && v==0.0 && w==0.0)
-		check = 0;
+        if(u==0.0 && v==0.0 && w==0.0)
+        check = 0;
 
-			if(((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0)) && check==1)
-			{
-			denom = 1.0/(u+v+w);
-			u *= denom;
-			v *= denom;
-			w *= denom;
-			
-			Rz = u*Az + v*Bz + w*Cz;
-			
-			
+            if(((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0)) && check==1)
+            {
+            denom = 1.0/(u+v+w);
+            u *= denom;
+            v *= denom;
+            w *= denom;
+            
+            Rz = u*Az + v*Bz + w*Cz;
+            
+            
             for(k=0;k<p->knoz;++k)
             {
-				if(p->ZP[KP]<Rz)
-				cutr(i,j,k) += 1;
-				
-				if(p->ZP[KP]>=Rz)
-				cutl(i,j,k) += 1;
+                if(p->ZP[KP]<Rz)
+                cutr(i,j,k) += 1;
+                
+                if(p->ZP[KP]>=Rz)
+                cutl(i,j,k) += 1;
             }
             }
-		
-		}
-	}
+        
+        }
+    }
     }
     
     ALOOP
-	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
-	fbio(i,j,k)=-1;
+    if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
+    fbio(i,j,k)=-1;
 
     /*
     count=0;
-	ALOOP
-	if(a->fb(i,j,k)>0)
-	++count;
+    ALOOP
+    if(a->fb(i,j,k)>0)
+    ++count;
     
     count=pgc->globalisum(count);
     

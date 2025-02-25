@@ -35,7 +35,7 @@ class wave_lib_parameters : public increment
 {
 public:
     wave_lib_parameters(lexer*, ghostcell*);
-	virtual ~wave_lib_parameters();
+    virtual ~wave_lib_parameters();
     
     double sinhfunc(double);
     double coshfunc(double);
@@ -54,13 +54,13 @@ public:
     double wS;
     
     double X0;
-	
+    
     const double pshift;
-	
+    
     
 private: 
 
-	
+    
     int wtype;
     double diff;
     

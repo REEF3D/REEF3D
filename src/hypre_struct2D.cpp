@@ -29,14 +29,14 @@ Author: Hans Bihs
 #include"vec2D.h"
 
 hypre_struct2D::hypre_struct2D(lexer* p,ghostcell *pgc)
-{	
+{    
     int vecsize=p->knox*p->knoy; 
     
     p->Iarray(ilower,2);
     p->Iarray(iupper,2);
     p->Darray(values,vecsize*5);
     
-    make_grid(p,pgc);	  
+    make_grid(p,pgc);      
 }
 
 hypre_struct2D::~hypre_struct2D()
@@ -45,7 +45,7 @@ hypre_struct2D::~hypre_struct2D()
 
 void hypre_struct2D::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2D& xvec, vec2D& rhsvec, int var)
 {    
-	create_solvers(p,pgc);
+    create_solvers(p,pgc);
     
     // fill for cfd
     fill_matrix(p,pgc,M,f,rhsvec);
@@ -53,8 +53,8 @@ void hypre_struct2D::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2
     solve(p,pgc);
         
     fillbackvec(p,f,xvec,var);
-	
-	delete_solvers(p,pgc);
+    
+    delete_solvers(p,pgc);
 }
 
 

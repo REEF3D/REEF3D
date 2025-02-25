@@ -106,7 +106,7 @@ private:
     boundarycheck boundaries;
     
     const int irand;
-	const double drand;
+    const double drand;
     
     int num, printcount;
     double printtime;

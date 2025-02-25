@@ -32,23 +32,23 @@ void mooring_Spring::initialize(lexer *p, ghostcell *pgc)
 {   
     curr_time = p->simtime;
 
-    dx = p->X311_xe[line] - p->X311_xs[line];			
-    dy = p->X311_ye[line] - p->X311_ys[line];				
-    dz = p->X311_ze[line] - p->X311_zs[line];	
-	L0 = sqrt(dx*dx + dy*dy + dz*dz);	
+    dx = p->X311_xe[line] - p->X311_xs[line];            
+    dy = p->X311_ye[line] - p->X311_ys[line];                
+    dz = p->X311_ze[line] - p->X311_zs[line];    
+    L0 = sqrt(dx*dx + dy*dy + dz*dz);    
    
-	k = p->X312_k[line];
+    k = p->X312_k[line];
     T0 = p->X312_T0[line];
 
-	if(p->mpirank==0)
-	{
-		char str[1000];
-		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
-		eTout.open(str);
-		eTout<<"time \t T"<<endl;	
-	}
+    if(p->mpirank==0)
+    {
+        char str[1000];
+        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
+        eTout.open(str);
+        eTout<<"time \t T"<<endl;    
+    }
     
-	printtime = 0.0;     
+    printtime = 0.0;     
     
     // Initialise breaking
     broken = false;
@@ -60,15 +60,15 @@ void mooring_Spring::initialize(lexer *p, ghostcell *pgc)
 
 void mooring_Spring::start(lexer *p, ghostcell *pgc)
 {
-	//- Calculate distance between start and mooring points
-    dx = p->X311_xe[line] - p->X311_xs[line];			
-    dy = p->X311_ye[line] - p->X311_ys[line];				
-    dz = p->X311_ze[line] - p->X311_zs[line];	
-	L = sqrt(dx*dx + dy*dy + dz*dz);			
+    //- Calculate distance between start and mooring points
+    dx = p->X311_xe[line] - p->X311_xs[line];            
+    dy = p->X311_ye[line] - p->X311_ys[line];                
+    dz = p->X311_ze[line] - p->X311_zs[line];    
+    L = sqrt(dx*dx + dy*dy + dz*dz);            
     
     double dL = L - L0;
 
-	//- Calculate tension force in spring
+    //- Calculate tension force in spring
     T = T0;
 
     if (dL > 0.0)
@@ -80,32 +80,32 @@ void mooring_Spring::start(lexer *p, ghostcell *pgc)
         T = MAX(T0 - k*fabs(dL),0.0);
     }
 
-	//- Calculate reaction forces at mooring points	
+    //- Calculate reaction forces at mooring points    
     Xme_ = T*fabs(dx/L);
     Yme_ = T*fabs(dy/L);
     Zme_ = T*fabs(dz/L);
 
-	if (dx > 0)	
-	{
-		Xme_ *= -1.0;
-	}
-	if (dy > 0)	
-	{
-		Yme_ *= -1.0;
-	}
-	if (dz > 0)	
-	{
-		Zme_ *= -1.0;
-	}
+    if (dx > 0)    
+    {
+        Xme_ *= -1.0;
+    }
+    if (dy > 0)    
+    {
+        Yme_ *= -1.0;
+    }
+    if (dz > 0)    
+    {
+        Zme_ *= -1.0;
+    }
 
-	//- Print spring
-	print(p);
+    //- Print spring
+    print(p);
 }
 
 
 void mooring_Spring::mooringForces
 (
-	double& Xme, double& Yme, double& Zme
+    double& Xme, double& Yme, double& Zme
 )
 {
     // Tension forces if line is not broken

@@ -43,10 +43,10 @@ void isusprhs::isuspsource(lexer* p,fdm* a,field& conc)
     count=0;
     LOOP
     {
-	if(a->phi(i,j,k)>0.0)
-	a->rhsvec.V[count]  += -ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
-	
-	++count;
+    if(a->phi(i,j,k)>0.0)
+    a->rhsvec.V[count]  += -ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+    
+    ++count;
     }
 }
 
@@ -63,7 +63,7 @@ void isusprhs::clearrhs(lexer* p, fdm* a)
     LOOP
     {
     a->rhsvec.V[count]=0.0;
-	a->L(i,j,k)=0.0;
-	++count;
+    a->L(i,j,k)=0.0;
+    ++count;
     }
 }

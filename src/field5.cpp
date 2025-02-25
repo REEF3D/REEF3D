@@ -32,7 +32,7 @@ field5::field5(lexer *p)
     kmin=p->kmin;
     kmax=p->kmax;
 
-	fieldalloc(p);
+    fieldalloc(p);
 }
 
 field5::~field5()
@@ -42,8 +42,8 @@ field5::~field5()
 
 void field5::fieldalloc(lexer* p)
 {
-	int gridsize = imax*jmax*kmax;
-	p->Darray(V,gridsize);
+    int gridsize = imax*jmax*kmax;
+    p->Darray(V,gridsize);
 }
 
 void field5::resize(lexer* p)
@@ -52,18 +52,18 @@ void field5::resize(lexer* p)
 
 void field5::dealloc(lexer* p)
 {
-	delete [] V;
+    delete [] V;
 }
 
 double & field5::operator[](int n)
 {
-	return V[n];
+    return V[n];
 }
 
 double & field5::operator()(int ii, int jj, int kk)
 {
     iter=(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin;
-	return V[iter];
+    return V[iter];
 
 }
 

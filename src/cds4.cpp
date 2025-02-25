@@ -92,29 +92,29 @@ void cds4::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
 }
 
 double cds4::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel)
-{		
-		dx=dy=dz=0.0;
-		
-		pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
+{        
+        dx=dy=dz=0.0;
+        
+        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
         
-		
-		dx= (ivel2*(27.0*b(i,j,k) + 27.0*b(i+1,j,k) - 3.0*b(i+2,j,k) - 3.0*b(i-1,j,k))  
-		 -  ivel1* (27.0*b(i,j,k) + 27.0*b(i-1,j,k) - 3.0*b(i-2,j,k) - 3.0*b(i+1,j,k)))/(48.0*p->DXM);
+        
+        dx= (ivel2*(27.0*b(i,j,k) + 27.0*b(i+1,j,k) - 3.0*b(i+2,j,k) - 3.0*b(i-1,j,k))  
+         -  ivel1* (27.0*b(i,j,k) + 27.0*b(i-1,j,k) - 3.0*b(i-2,j,k) - 3.0*b(i+1,j,k)))/(48.0*p->DXM);
 
-		
-		
-		dy= (jvel2*(27.0*b(i,j,k) + 27.0*b(i,j+1,k) - 3.0*b(i,j+2,k) - 3.0*b(i,j-1,k))  
-		 -  jvel1* (27.0*b(i,j,k) + 27.0*b(i,j-1,k) - 3.0*b(i,j-2,k) - 3.0*b(i,j+1,k)))/(48.0*p->DXM);
+        
+        
+        dy= (jvel2*(27.0*b(i,j,k) + 27.0*b(i,j+1,k) - 3.0*b(i,j+2,k) - 3.0*b(i,j-1,k))  
+         -  jvel1* (27.0*b(i,j,k) + 27.0*b(i,j-1,k) - 3.0*b(i,j-2,k) - 3.0*b(i,j+1,k)))/(48.0*p->DXM);
 
 
-		
-		dz= (kvel2*(27.0*b(i,j,k) + 27.0*b(i,j,k+1) - 3.0*b(i,j,k+2) - 3.0*b(i,j,k-1))  
-		 -  kvel1* (27.0*b(i,j,k) + 27.0*b(i,j,k-1) - 3.0*b(i,j,k-2) - 3.0*b(i,j,k+1)))/(48.0*p->DXM);
-		
-		L = -dx-dy-dz;
+        
+        dz= (kvel2*(27.0*b(i,j,k) + 27.0*b(i,j,k+1) - 3.0*b(i,j,k+2) - 3.0*b(i,j,k-1))  
+         -  kvel1* (27.0*b(i,j,k) + 27.0*b(i,j,k-1) - 3.0*b(i,j,k-2) - 3.0*b(i,j,k+1)))/(48.0*p->DXM);
+        
+        L = -dx-dy-dz;
 
-		return L;
+        return L;
 }
 

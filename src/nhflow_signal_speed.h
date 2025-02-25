@@ -37,8 +37,8 @@ using namespace std;
 class nhflow_signal_speed : public increment
 {
 public:
-	nhflow_signal_speed(lexer*);
-	virtual ~nhflow_signal_speed();
+    nhflow_signal_speed(lexer*);
+    virtual ~nhflow_signal_speed();
 
     virtual void signal_speed_update(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*,double*,slice&, slice&, slice&, slice&);
 

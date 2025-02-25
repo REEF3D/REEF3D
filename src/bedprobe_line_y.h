@@ -40,9 +40,9 @@ class bedprobe_line_y : public boundarycheck
 {
 public:
     bedprobe_line_y(lexer*,fdm*,ghostcell*);
-	virtual ~bedprobe_line_y();
+    virtual ~bedprobe_line_y();
 
-	void start(lexer*, fdm*, ghostcell*,ioflow*);
+    void start(lexer*, fdm*, ghostcell*,ioflow*);
 
 
 private:
@@ -57,8 +57,8 @@ private:
     ofstream wsfout;
 
     double xcoor;
-	
-	wave_theory *pwave;
+    
+    wave_theory *pwave;
 
     int maxknox,sumknox;
 

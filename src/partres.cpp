@@ -32,15 +32,15 @@ partres::partres(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p), 
                                                dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p)
 {
     p->Darray(betaQ73,p->Q73);
-	p->Darray(tan_betaQ73,p->Q73);
-	p->Darray(dist_Q73,p->Q73);
+    p->Darray(tan_betaQ73,p->Q73);
+    p->Darray(dist_Q73,p->Q73);
 
 
-	for(n=0;n<p->Q73;++n)
-	betaQ73[n] = (p->Q73_b[n]+90.0)*(PI/180.0);
+    for(n=0;n<p->Q73;++n)
+    betaQ73[n] = (p->Q73_b[n]+90.0)*(PI/180.0);
 
-	for(n=0;n<p->Q73;++n)
-	tan_betaQ73[n] = tan(betaQ73[n]);
+    for(n=0;n<p->Q73;++n)
+    tan_betaQ73[n] = tan(betaQ73[n]);
     
     relax_ini(p);
     

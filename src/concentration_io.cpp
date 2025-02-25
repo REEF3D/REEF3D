@@ -35,24 +35,24 @@ concentration_io::~concentration_io()
 
 void concentration_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-	
-	iin=4*(p->pointnum);
+    
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
-	
-	TPLOOP
-	{
-	ffn=float(p->ipol4(C));
-	result.write((char*)&ffn, sizeof (float));
-	}	
-	
-	iin=4*(p->pointnum);
+    
+    TPLOOP
+    {
+    ffn=float(p->ipol4(C));
+    result.write((char*)&ffn, sizeof (float));
+    }    
+    
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 
-	TPLOOP
-	{
-	ffn=float(p->ipol4(a->ro));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    TPLOOP
+    {
+    ffn=float(p->ipol4(a->ro));
+    result.write((char*)&ffn, sizeof (float));
+    }
 }
 
 double concentration_io::val(int ii, int jj, int kk)
@@ -67,21 +67,21 @@ double concentration_io::val(int ii, int jj, int kk)
 void concentration_io::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"C\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
 }
 
 void concentration_io::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"C\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"rho\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"rho\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
 
 void concentration_io::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
 }

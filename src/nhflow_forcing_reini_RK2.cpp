@@ -27,44 +27,44 @@ Author: Hans Bihs
 #include"nhflow_reinidisc_fsf.h"
 
 void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
-{	
+{    
     if(p->j_dir==0)
     LOOP
     WETDRY
-	dt[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]*d->WL(i,j));
+    dt[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]*d->WL(i,j));
     
     if(p->j_dir==1)
     LOOP
     WETDRY
-	dt[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*d->WL(i,j));
+    dt[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*d->WL(i,j));
 
-	reiniter=5;
-	
-	if(p->count==0 && p->mpirank==0)
-	cout<<endl<<"initializing reini forcing..."<<endl<<endl;
+    reiniter=5;
+    
+    if(p->count==0 && p->mpirank==0)
+    cout<<endl<<"initializing reini forcing..."<<endl<<endl;
 
 
     for(int q=0;q<reiniter;++q)
-	{
+    {
         // Step 1
-		prdisc->start(p,d,pgc,F,L);
+        prdisc->start(p,d,pgc,F,L);
 
-		LOOP
+        LOOP
          WETDRY
-		FRK1[IJK] = F[IJK] + dt[IJK]*L[IJK];
+        FRK1[IJK] = F[IJK] + dt[IJK]*L[IJK];
 
          pgc->start5V(p,FRK1,1);
         
         
         // Step 2
-		prdisc->start(p,d,pgc,FRK1,L);
+        prdisc->start(p,d,pgc,FRK1,L);
 
-		LOOP
+        LOOP
          WETDRY
-		F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*dt[IJK]*L[IJK];
+        F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*dt[IJK]*L[IJK];
 
         pgc->start5V(p,F,1);
-	}
+    }
 }
 
 

@@ -35,18 +35,18 @@ class quick : public convection,  public increment
 
 public:
 
-	quick (lexer *);
-	virtual ~quick();
+    quick (lexer *);
+    virtual ~quick();
 
-	virtual void start(lexer*,fdm*, field&,int,field&,field&,field&);
+    virtual void start(lexer*,fdm*, field&,int,field&,field&,field&);
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&);
     
 
-	double dx,dy,dz;
-	double ul,ur,vl,vr,wl,wr;
-	double L;
+    double dx,dy,dz;
+    double ul,ur,vl,vr,wl,wr;
+    double L;
 
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 

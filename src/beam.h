@@ -43,7 +43,7 @@ using namespace std;
 class beam
 {
 public:
-	
+    
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
     typedef Eigen::Matrix<double,3,Eigen::Dynamic> Matrix3Xd;
@@ -140,8 +140,8 @@ private:
     Eigen::Vector4d dummy;
 
     // Print
-	char name[100];
-	double printtime;
+    char name[100];
+    double printtime;
 
     // Solver
     double **e1, **e2r, **e2i, **fjac, **fmas;

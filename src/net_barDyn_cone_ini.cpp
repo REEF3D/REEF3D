@@ -68,10 +68,10 @@ void net_barDyn::cone_ini(lexer *p, fdm *a, ghostcell *pgc)
      
     //- Initialise fields
     
-    p->Darray(coupledField, nK, 4);	// fluid coupling matrix (velocity 1,2,3 + phi 4)
+    p->Darray(coupledField, nK, 4);    // fluid coupling matrix (velocity 1,2,3 + phi 4)
     p->Darray(coupledFieldn, nK, 4);
     
-    p->Darray(l0, nf);			    // initial bar length
+    p->Darray(l0, nf);                // initial bar length
 
     p->Iarray(Pb,nbK);              // boundary owner knots
     p->Iarray(Nb,nbK);              // boundary neighbour knots
@@ -79,8 +79,8 @@ void net_barDyn::cone_ini(lexer *p, fdm *a, ghostcell *pgc)
     p->Iarray(Ni,nf);               // inner neighbour knots
     p->Darray(K,nK,3);              // knot coordinates
 
-    p->Iarray(nfK, niK, 5);		          // Bars per Knot -> first entry is knot ID, then up to four bars
-    p->Iarray(nfbK, nbK);		          // Bars per Knot -> first entry is knot ID, then up to four bars
+    p->Iarray(nfK, niK, 5);                  // Bars per Knot -> first entry is knot ID, then up to four bars
+    p->Iarray(nfbK, nbK);                  // Bars per Knot -> first entry is knot ID, then up to four bars
     meshID.resize(nd*nl,vector<int>(4));  // List of knots in each mesh
  
     x0_ = MatrixXd::Zero(nK,3); 
@@ -304,7 +304,7 @@ void net_barDyn::cone_ini(lexer *p, fdm *a, ghostcell *pgc)
     for (int i = 0; i < nK; i++)
     {
         bK = false;
-		
+        
         // Check whether it is a boundary knot
         for (int k = 0; k < nbK; k++)
         {
@@ -537,7 +537,7 @@ void net_barDyn::cone_ini(lexer *p, fdm *a, ghostcell *pgc)
             header_out<<"Knot point probe located near "<<ppI.transpose()<<endl;
             header_out<<"time [s] \t x [m] \t y [m] \t z [m]"<<endl;
             header_out.close();
-        }		
+        }        
     }
 
 
@@ -553,7 +553,7 @@ void net_barDyn::cone_ini(lexer *p, fdm *a, ghostcell *pgc)
         header_out.open(str);
         header_out<<"time [s] \t Ttop [N] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
         header_out.close();
-    }		
+    }        
     printtime = 0.0;
 
     // Initialise communication 

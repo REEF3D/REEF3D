@@ -46,11 +46,11 @@ void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, dou
         U[Im2JK]=0.0;
         U[Im3JK]=0.0;
         }
-		
+        
         V[Im1JK]=0.0;
         V[Im2JK]=0.0;
         V[Im3JK]=0.0;
-		
+        
         W[Im1JK]=0.0;
         W[Im2JK]=0.0;
         W[Im3JK]=0.0;
@@ -68,11 +68,11 @@ void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, dou
         UH[Im2JK]=0.0;
         UH[Im3JK]=0.0;
         }
-		
+        
         VH[Im1JK]=0.0;
         VH[Im2JK]=0.0;
         VH[Im3JK]=0.0;
-		
+        
         WH[Im1JK]=0.0;
         WH[Im2JK]=0.0;
         WH[Im3JK]=0.0;

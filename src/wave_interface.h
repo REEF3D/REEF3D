@@ -34,12 +34,12 @@ class wave_interface
 {
 
 public:
-	wave_interface(lexer*, ghostcell*);
-	virtual ~wave_interface();
-	
+    wave_interface(lexer*, ghostcell*);
+    virtual ~wave_interface();
+    
 
-	double wave_u(lexer*,ghostcell*,double,double,double);
-	double wave_v(lexer*,ghostcell*,double,double,double);
+    double wave_u(lexer*,ghostcell*,double,double,double);
+    double wave_v(lexer*,ghostcell*,double,double,double);
     double wave_w(lexer*,ghostcell*,double,double,double);
     double wave_h(lexer*,ghostcell*,double,double,double);
     double wave_fi(lexer*,ghostcell*,double,double,double);
@@ -85,7 +85,7 @@ private:
     int wtype;
     double wD;
 
-	double starttime,endtime;
+    double starttime,endtime;
     static int printcheck;
 
 };

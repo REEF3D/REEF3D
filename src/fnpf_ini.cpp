@@ -31,8 +31,8 @@ Author: Hans Bihs
 fnpf_ini::fnpf_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_fsf_update(p,c,pgc), fnpf_bed_update(p)
 {
     gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
+    gcval_v=11;
+    gcval_w=12;
 }
 
 fnpf_ini::~fnpf_ini()
@@ -40,7 +40,7 @@ fnpf_ini::~fnpf_ini()
 }
 
 void fnpf_ini::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, reini *preini)
-{	
+{    
     
     //pflow->fi_relax(p,pgc,a->Fi,a->phi);
     //pflow->fifsf_relax(p,pgc,a->Fifsf);

@@ -34,17 +34,17 @@ using namespace std;
 class susprhs : public increment
 {
 public:
-	susprhs(lexer*);
-	virtual ~susprhs();
-	void suspsource(lexer*,fdm*,field&);
-	void sedfsf(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
+    susprhs(lexer*);
+    virtual ~susprhs();
+    void suspsource(lexer*,fdm*,field&);
+    void sedfsf(lexer*,fdm*,field&);
+    void clearrhs(lexer*,fdm*);
 
 private:
-	int ii,jj,kk;
-	int count,q;
-	double ws,d50,ks,gi;
-	double rhosed,rhowat;
+    int ii,jj,kk;
+    int count,q;
+    double ws,d50,ks,gi;
+    double rhosed,rhowat;
 };
 #endif
 

@@ -37,27 +37,27 @@ class pjm_nse : public pressure, public increment
 
 public:
 
-	pjm_nse(lexer* p, fdm *a, heat*&, concentration*&);
-	virtual ~pjm_nse();
+    pjm_nse(lexer* p, fdm *a, heat*&, concentration*&);
+    virtual ~pjm_nse();
 
-	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
+    virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
     virtual void ini(lexer*,fdm*,ghostcell*);
-	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void ucorr(lexer*p,fdm*,field&,double);
-	virtual void vcorr(lexer*p,fdm*,field&,double);
-	virtual void wcorr(lexer*p,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
+    virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    virtual void ucorr(lexer*p,fdm*,field&,double);
+    virtual void vcorr(lexer*p,fdm*,field&,double);
+    virtual void wcorr(lexer*p,fdm*,field&,double);
+    virtual void upgrad(lexer*,fdm*,slice&,slice&);
+    virtual void vpgrad(lexer*,fdm*,slice&,slice&);
     virtual void wpgrad(lexer*,fdm*,slice&,slice&);
 
 private:
-	double starttime,endtime;
+    double starttime,endtime;
     double teta;
-	int count, gcval_press, check;
-	int gcval_u, gcval_v, gcval_w;
-	
-	void debug(lexer*,fdm*);
+    int count, gcval_press, check;
+    int gcval_u, gcval_v, gcval_w;
+    
+    void debug(lexer*,fdm*);
     
     density *pd;
 };

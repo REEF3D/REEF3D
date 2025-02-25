@@ -35,7 +35,7 @@ void nhflow_state::filename_continuous(lexer *p, fdm_nhf *c, ghostcell *pgc)
 
 void nhflow_state::filename_header(lexer *p, fdm_nhf *c, ghostcell *pgc)
 {
-	sprintf(name,"./REEF3D_NHFLOW_STATE/REEF3D-NHFLOW-State-Header-%06i.r3d",p->mpirank+1);
+    sprintf(name,"./REEF3D_NHFLOW_STATE/REEF3D-NHFLOW-State-Header-%06i.r3d",p->mpirank+1);
 }
 
 

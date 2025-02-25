@@ -37,59 +37,59 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
         dg = distgen(p);
         
         // Wave Generation
-		if(p->B98==2 && u_switch==1)
+        if(p->B98==2 && u_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
             ++upt_count;
-		}
+        }
     }
     
     
     // V ------------------------------------------------
     SLICEBASELOOP
     {
-		dg = distgen(p);
+        dg = distgen(p);
 
         
-		// Wave Generation
-		if(p->B98==2 && v_switch==1)
+        // Wave Generation
+        if(p->B98==2 && v_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
             ++vpt_count;
-		}
+        }
     }
     
     // W ------------------------------------------------
     SLICEBASELOOP
     {
-		dg = distgen(p); 
+        dg = distgen(p); 
 
-		// Wave Generation
-		if(p->B98==2 && w_switch==1)
+        // Wave Generation
+        if(p->B98==2 && w_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
             ++wpt_count;
 
-		}
+        }
     }
 
 // ETA ------------------------------------------------
     SLICEBASELOOP
     {
-		dg = distgen(p); 
+        dg = distgen(p); 
 
-		// Wave Generation
-		if(p->B98==2 && w_switch==1)
+        // Wave Generation
+        if(p->B98==2 && w_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
             ++ept_count;
 
-		}
-    }	
+        }
+    }    
     
     //cout<<"EPT_COUNT: "<<ept_count;
     

@@ -32,20 +32,20 @@ fieldint4a::fieldint4a(lexer *p)
     kmin=p->kmin;
     kmax=p->kmax;
 
-	fieldalloc(p);
+    fieldalloc(p);
 
-	pp=p;
+    pp=p;
 }
 
 fieldint4a::~fieldint4a()
 {
-	delete [ ] V;
+    delete [ ] V;
 }
 
 void fieldint4a::fieldalloc(lexer* p)
 {
-	int gridsize = imax*jmax*kmax;
-	p->Iarray(V,gridsize);
+    int gridsize = imax*jmax*kmax;
+    p->Iarray(V,gridsize);
 }
 
 void fieldint4a::resize(lexer* p)
@@ -53,8 +53,8 @@ void fieldint4a::resize(lexer* p)
 }
 
 int & fieldint4a::operator()(int ii, int jj, int kk)
-{			
-	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];	
+{            
+    return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];    
 }
 
 

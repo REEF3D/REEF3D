@@ -31,17 +31,17 @@ using namespace std;
 class umist : public fluxlim, public increment
 {
 public:
-	umist (lexer *);
-	virtual ~umist();
+    umist (lexer *);
+    virtual ~umist();
 
-	virtual double iphi(field&,int,int,int,int);
-	virtual double jphi(field&,int,int,int,int);
-	virtual double kphi(field&,int,int,int,int);
+    virtual double iphi(field&,int,int,int,int);
+    virtual double jphi(field&,int,int,int,int);
+    virtual double kphi(field&,int,int,int,int);
 
 private:
     double r, phi,denom;
-	double dx,dy,dz;
-	double L;
+    double dx,dy,dz;
+    double L;
 };
 
 #endif

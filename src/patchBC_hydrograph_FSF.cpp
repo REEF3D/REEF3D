@@ -28,63 +28,63 @@ Author: Hans Bihs
 void patchBC::patchBC_hydrograph_FSF_read(lexer *p, ghostcell *pgc, int qq, int ID)
 {
     char name[100];
-	double val;
-	int count;
+    double val;
+    int count;
 
     
     sprintf(name,"hydrograph_FSF_%i.dat",ID);
     
 // open file------------
-	ifstream hg(name, ios_base::in);
-	
-	if(!hg)
-	{
-		cout<<endl<<"no "<<name<<" file found !!!"<<endl<<endl;
-	}
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>val;
-	++count;
-	}
-	
-	hg.close();
+    ifstream hg(name, ios_base::in);
+    
+    if(!hg)
+    {
+        cout<<endl<<"no "<<name<<" file found !!!"<<endl<<endl;
+    }
+    
+    count=0;
+    while(!hg.eof())
+    {
+    hg>>val;
+    ++count;
+    }
+    
+    hg.close();
     
 
-	count/=2;
+    count/=2;
     
     patch[qq]->hydroFSF_count=count;
-	
-	p->Darray(patch[qq]->hydroFSF, patch[qq]->hydroFSF_count, 2);
-	
-	hg.open (name, ios_base::in);
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>patch[qq]->hydroFSF[count][0]>>patch[qq]->hydroFSF[count][1];
-	++count;
-	}
+    
+    p->Darray(patch[qq]->hydroFSF, patch[qq]->hydroFSF_count, 2);
+    
+    hg.open (name, ios_base::in);
+    
+    count=0;
+    while(!hg.eof())
+    {
+    hg>>patch[qq]->hydroFSF[count][0]>>patch[qq]->hydroFSF[count][1];
+    ++count;
+    }
     
     hg.close();
 }
 
 double patchBC::patchBC_hydrograph_FSF_ipol(lexer *p, ghostcell *pgc, int qq, int ID)
 {
-	double val;
+    double val;
     
     for(int n=0;n<patch[qq]->hydroFSF_count-1;++n)
     if(p->simtime>=patch[qq]->hydroFSF[n][0] && p->simtime<patch[qq]->hydroFSF[n+1][0])
-	{
+    {
     val = ((patch[qq]->hydroFSF[n+1][1]-patch[qq]->hydroFSF[n][1])/(patch[qq]->hydroFSF[n+1][0]-patch[qq]->hydroFSF[n][0]))*(p->simtime-patch[qq]->hydroFSF[n][0]) + patch[qq]->hydroFSF[n][1];
-	}
+    }
     
     if(p->count==0 )
     val = patch[qq]->hydroFSF[0][1];
-	
-	if(p->simtime>=patch[qq]->hydroFSF[patch[qq]->hydroFSF_count-1][0])
-	val=patch[qq]->hydroFSF[patch[qq]->hydroFSF_count-1][1];
+    
+    if(p->simtime>=patch[qq]->hydroFSF[patch[qq]->hydroFSF_count-1][0])
+    val=patch[qq]->hydroFSF[patch[qq]->hydroFSF_count-1][1];
 
-	return val;
+    return val;
 }

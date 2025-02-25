@@ -31,9 +31,9 @@ class nhflow_potential_v : public nhflow_potential
 {
 public:
     nhflow_potential_v();
-	virtual ~nhflow_potential_v();
+    virtual ~nhflow_potential_v();
 
-	virtual void start(lexer*, fdm_nhf*, solver*, ghostcell* pgc);
+    virtual void start(lexer*, fdm_nhf*, solver*, ghostcell* pgc);
 
 };
 

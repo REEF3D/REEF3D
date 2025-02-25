@@ -39,8 +39,8 @@ using namespace std;
 class fnpf_breaking : public fnpf_fsf, public increment 
 {
 public:
-	fnpf_breaking(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_breaking();
+    fnpf_breaking(lexer*, fdm_fnpf*, ghostcell*);
+    virtual ~fnpf_breaking();
     
     virtual void breaking_algorithm(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
 

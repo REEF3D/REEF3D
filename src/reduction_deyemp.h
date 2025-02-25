@@ -38,7 +38,7 @@ public:
     reduction_deyemp(lexer*);
     virtual ~reduction_deyemp();
 
-	virtual void start(lexer*,ghostcell*,sediment_fdm*);
+    virtual void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:
     double u_abs,u_plus,dist;

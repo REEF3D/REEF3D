@@ -56,8 +56,8 @@ void ghostcell::gcslparax_int(lexer* p,sliceint& f,int gcv)
     }
 
     count=0;
-	for(q=0;q<p->gcslpara4_count;++q)
-	{
+    for(q=0;q<p->gcslpara4_count;++q)
+    {
     i=p->gcslpara4[q][0];
     j=p->gcslpara4[q][1];
         
@@ -66,11 +66,11 @@ void ghostcell::gcslparax_int(lexer* p,sliceint& f,int gcv)
         isend4[count]=f(i-n,j);
         ++count;
         }
-	}
+    }
     
     count=0;
-	for(q=0;q<p->gcslpara2_count;++q)
-	{
+    for(q=0;q<p->gcslpara2_count;++q)
+    {
     i=p->gcslpara2[q][0];
     j=p->gcslpara2[q][1];
         
@@ -79,32 +79,32 @@ void ghostcell::gcslparax_int(lexer* p,sliceint& f,int gcv)
         isend2[count]=f(i,j-n);
         ++count;
         }
-	}
+    }
 
 //  SEND / RECEIVE
 
     if(p->gcslpara1_count>0)
     {
-	MPI_Isend(isend1,p->gcslpara1_count*paramargin,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(irecv1,p->gcslpara1_count*paramargin,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
+    MPI_Isend(isend1,p->gcslpara1_count*paramargin,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
+    MPI_Irecv(irecv1,p->gcslpara1_count*paramargin,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
     }
 
     if(p->gcslpara4_count>0)
     {
-	MPI_Isend(isend4,p->gcslpara4_count*paramargin,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(irecv4,p->gcslpara4_count*paramargin,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
+    MPI_Isend(isend4,p->gcslpara4_count*paramargin,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
+    MPI_Irecv(irecv4,p->gcslpara4_count*paramargin,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
     }
 
     if(p->gcslpara3_count>0)
     {
-	MPI_Isend(isend3,p->gcslpara3_count*paramargin,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(irecv3,p->gcslpara3_count*paramargin,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
+    MPI_Isend(isend3,p->gcslpara3_count*paramargin,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
+    MPI_Irecv(irecv3,p->gcslpara3_count*paramargin,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
     }
 
     if(p->gcslpara2_count>0)
     {
-	MPI_Isend(isend2,p->gcslpara2_count*paramargin,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(irecv2,p->gcslpara2_count*paramargin,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
+    MPI_Isend(isend2,p->gcslpara2_count*paramargin,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
+    MPI_Irecv(irecv2,p->gcslpara2_count*paramargin,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
     }
 
 
@@ -128,8 +128,8 @@ void ghostcell::gcslparax_int(lexer* p,sliceint& f,int gcv)
     }
 
     count=0;
-	for(q=0;q<p->gcslpara3_count;++q)
-	{
+    for(q=0;q<p->gcslpara3_count;++q)
+    {
     i=p->gcslpara3[q][0];
     j=p->gcslpara3[q][1];
         
@@ -138,12 +138,12 @@ void ghostcell::gcslparax_int(lexer* p,sliceint& f,int gcv)
         f(i,j-n-1)=irecv3[count];
         ++count;
         }
-	}
+    }
 
 
     count=0;
-	for(q=0;q<p->gcslpara4_count;++q)
-	{
+    for(q=0;q<p->gcslpara4_count;++q)
+    {
     i=p->gcslpara4[q][0];
     j=p->gcslpara4[q][1];
         
@@ -152,11 +152,11 @@ void ghostcell::gcslparax_int(lexer* p,sliceint& f,int gcv)
         f(i+n+1,j)=irecv4[count];
         ++count;
         }
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcslpara2_count;++q)
-	{
+    for(q=0;q<p->gcslpara2_count;++q)
+    {
     i=p->gcslpara2[q][0];
     j=p->gcslpara2[q][1];
         
@@ -165,7 +165,7 @@ void ghostcell::gcslparax_int(lexer* p,sliceint& f,int gcv)
         f(i,j+n+1)=irecv2[count];
         ++count;
         }
-	}
+    }
 }
 
 void ghostcell::gcslparaxV_int(lexer* p, int *f,int gcv)
@@ -202,8 +202,8 @@ void ghostcell::gcslparaxV_int(lexer* p, int *f,int gcv)
     }
 
     count=0;
-	for(q=0;q<p->gcslpara4_count;++q)
-	{
+    for(q=0;q<p->gcslpara4_count;++q)
+    {
     i=p->gcslpara4[q][0];
     j=p->gcslpara4[q][1];
         
@@ -213,11 +213,11 @@ void ghostcell::gcslparaxV_int(lexer* p, int *f,int gcv)
         ++count;
         isend4[count]=f[Im2J];
         ++count;
-	}
+    }
     
     count=0;
-	for(q=0;q<p->gcslpara2_count;++q)
-	{
+    for(q=0;q<p->gcslpara2_count;++q)
+    {
     i=p->gcslpara2[q][0];
     j=p->gcslpara2[q][1];
         
@@ -227,32 +227,32 @@ void ghostcell::gcslparaxV_int(lexer* p, int *f,int gcv)
         ++count;
         isend2[count]=f[IJm2];
         ++count;
-	}
+    }
 
 //  SEND / RECEIVE
 
     if(p->gcslpara1_count>0)
     {
-	MPI_Isend(isend1,p->gcslpara1_count*paramargin,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(irecv1,p->gcslpara1_count*paramargin,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
+    MPI_Isend(isend1,p->gcslpara1_count*paramargin,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
+    MPI_Irecv(irecv1,p->gcslpara1_count*paramargin,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
     }
 
     if(p->gcslpara4_count>0)
     {
-	MPI_Isend(isend4,p->gcslpara4_count*paramargin,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(irecv4,p->gcslpara4_count*paramargin,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
+    MPI_Isend(isend4,p->gcslpara4_count*paramargin,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
+    MPI_Irecv(irecv4,p->gcslpara4_count*paramargin,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
     }
 
     if(p->gcslpara3_count>0)
     {
-	MPI_Isend(isend3,p->gcslpara3_count*paramargin,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(irecv3,p->gcslpara3_count*paramargin,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
+    MPI_Isend(isend3,p->gcslpara3_count*paramargin,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
+    MPI_Irecv(irecv3,p->gcslpara3_count*paramargin,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
     }
 
     if(p->gcslpara2_count>0)
     {
-	MPI_Isend(isend2,p->gcslpara2_count*paramargin,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(irecv2,p->gcslpara2_count*paramargin,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
+    MPI_Isend(isend2,p->gcslpara2_count*paramargin,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
+    MPI_Irecv(irecv2,p->gcslpara2_count*paramargin,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
     }
 
 
@@ -277,8 +277,8 @@ void ghostcell::gcslparaxV_int(lexer* p, int *f,int gcv)
     }
 
     count=0;
-	for(q=0;q<p->gcslpara3_count;++q)
-	{
+    for(q=0;q<p->gcslpara3_count;++q)
+    {
     i=p->gcslpara3[q][0];
     j=p->gcslpara3[q][1];
         
@@ -288,12 +288,12 @@ void ghostcell::gcslparaxV_int(lexer* p, int *f,int gcv)
         ++count;
         f[IJm3]=irecv3[count];
         ++count;
-	}
+    }
 
 
     count=0;
-	for(q=0;q<p->gcslpara4_count;++q)
-	{
+    for(q=0;q<p->gcslpara4_count;++q)
+    {
     i=p->gcslpara4[q][0];
     j=p->gcslpara4[q][1];
         
@@ -303,11 +303,11 @@ void ghostcell::gcslparaxV_int(lexer* p, int *f,int gcv)
         ++count;
         f[Ip3J]=irecv4[count];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcslpara2_count;++q)
-	{
+    for(q=0;q<p->gcslpara2_count;++q)
+    {
     i=p->gcslpara2[q][0];
     j=p->gcslpara2[q][1];
         
@@ -317,5 +317,5 @@ void ghostcell::gcslparaxV_int(lexer* p, int *f,int gcv)
         ++count;
         f[IJp3]=irecv2[count];
         ++count;
-	}
+    }
 }

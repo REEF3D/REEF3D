@@ -28,7 +28,7 @@ Author: Hans Bihs
 double iowave::rb1_ext(lexer *p, int var)
 {
     double x0,y0,denom,r;
-	double dist=1.0e20;
+    double dist=1.0e20;
     int test1,test2,test_all;    
     int count;
     
@@ -99,7 +99,7 @@ double iowave::rb1_ext(lexer *p, int var)
 double iowave::rb3_ext(lexer *p, int var)
 {
     double x0,y0,denom,r;
-	double dist=1.0e20;
+    double dist=1.0e20;
     int test1,test2,test_all;    
     int count;
     
@@ -163,8 +163,8 @@ double iowave::rb3_ext(lexer *p, int var)
     
     if(test_all==1)
     r/=double(count);
-	
-	return r;
+    
+    return r;
 }
 
 double iowave::rb1(lexer *p, double x)
@@ -188,8 +188,8 @@ double iowave::rb3(lexer *p, double x)
     
     
     r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
-	
-	return r;
+    
+    return r;
 }
 
 double iowave::ramp(lexer *p)

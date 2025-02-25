@@ -35,9 +35,9 @@ density_rheo::~density_rheo()
 double density_rheo::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
 
-	roval = 0.5*(a->ro(i,j,k) + a->ro(i+aa,j+bb,k+cc));
+    roval = 0.5*(a->ro(i,j,k) + a->ro(i+aa,j+bb,k+cc));
 
-	return roval;		
+    return roval;        
 }
 
 

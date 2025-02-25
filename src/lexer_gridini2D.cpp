@@ -26,19 +26,19 @@ void lexer::flagini2D()
 {
     control_calc();
 
-	grid2Dsize();
+    grid2Dsize();
 
-	
-	x_dir=y_dir=z_dir=1.0;
-	
-	if(i_dir==0)
-	x_dir=0.0;
-	
-	if(j_dir==0)
-	y_dir=0.0;
-	
-	if(k_dir==0)
-	z_dir=0.0;
+    
+    x_dir=y_dir=z_dir=1.0;
+    
+    if(i_dir==0)
+    x_dir=0.0;
+    
+    if(j_dir==0)
+    y_dir=0.0;
+    
+    if(k_dir==0)
+    z_dir=0.0;
 }
 
 void lexer::gridini2D()
@@ -52,14 +52,14 @@ void lexer::gridini2D()
     sizeS1[n]=0;
     sizeS2[n]=0;
     sizeS4[n]=0;
-    }	
+    }    
     
     Iarray(IOSL,imax*jmax);
     
     for(i=-margin; i<knox+margin; ++i)
     for(j=-margin; j<knoy+margin; ++j)
     IOSL[(i-imin)*jmax + j-jmin] = 0;
-	
+    
 }
 
 

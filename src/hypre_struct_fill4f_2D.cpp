@@ -44,59 +44,59 @@ void hypre_struct::fill_matrix4f_2Dvert(lexer* p, ghostcell* pgc, field &f, vec 
     count=0;
     KJILOOP
     {
-		PFLUIDCHECK
-		{
-		n=CVAL4[IJK];
+        PFLUIDCHECK
+        {
+        n=CVAL4[IJK];
         
-		values[count]=M.p[n];
-		++count;
-		
-		values[count]=M.s[n];
-		++count;
-		
-		values[count]=M.n[n];
-		++count;
+        values[count]=M.p[n];
+        ++count;
+        
+        values[count]=M.s[n];
+        ++count;
+        
+        values[count]=M.n[n];
+        ++count;
 
-		values[count]=M.b[n];
-		++count;
-		
-		values[count]=M.t[n];
-		++count; 
-		}     
-		
-		SFLUIDCHECK
-		{
-		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;  
-		}    
+        values[count]=M.b[n];
+        ++count;
+        
+        values[count]=M.t[n];
+        ++count; 
+        }     
+        
+        SFLUIDCHECK
+        {
+        values[count]=1.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;  
+        }    
     }
-	
+    
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
     
     
     // vec
     count=0;
-	KJILOOP
-	{
-		PFLUIDCHECK
-		values[count] = f(i,j,k);
-		
-		SFLUIDCHECK
-		values[count] = 0.0;
-	
+    KJILOOP
+    {
+        PFLUIDCHECK
+        values[count] = f(i,j,k);
+        
+        SFLUIDCHECK
+        values[count] = 0.0;
+    
     ++count;
     }
 
@@ -105,16 +105,16 @@ void hypre_struct::fill_matrix4f_2Dvert(lexer* p, ghostcell* pgc, field &f, vec 
     
     
     count=0; 
-	KJILOOP
-	{
-		PFLUIDCHECK
-		{
-		n=CVAL4[IJK];
-		values[count] = rhs.V[n];
-		}
-		
-		SFLUIDCHECK
-		values[count] = 0.0;
+    KJILOOP
+    {
+        PFLUIDCHECK
+        {
+        n=CVAL4[IJK];
+        values[count] = rhs.V[n];
+        }
+        
+        SFLUIDCHECK
+        values[count] = 0.0;
 
     ++count;
     }

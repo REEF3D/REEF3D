@@ -33,16 +33,16 @@ class sflow_hydrostatic : public sflow_pressure, public increment
 {
 public:
     sflow_hydrostatic(lexer*, fdm2D*,patchBC_interface*);
-	virtual ~sflow_hydrostatic();
+    virtual ~sflow_hydrostatic();
     
-	virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double);
-	virtual void upgrad(lexer*, fdm2D*, slice&, slice&);
-	virtual void vpgrad(lexer*, fdm2D*, slice&, slice&);
+    virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double);
+    virtual void upgrad(lexer*, fdm2D*, slice&, slice&);
+    virtual void vpgrad(lexer*, fdm2D*, slice&, slice&);
     virtual void wpgrad(lexer*, fdm2D*, slice&, slice&);
     
     virtual void ucorr(lexer*,fdm2D*,slice&,slice&,double);
-	virtual void vcorr(lexer*,fdm2D*,slice&,slice&,double);
-	virtual void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&);
+    virtual void vcorr(lexer*,fdm2D*,slice&,slice&,double);
+    virtual void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&);
     virtual void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&);
     
 private:

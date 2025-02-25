@@ -35,8 +35,8 @@ class bedload_MPM : public bedload, public increment
 public:
 
     bedload_MPM(lexer*);
-	virtual ~bedload_MPM();
-	virtual void start(lexer*, ghostcell*, sediment_fdm*);
+    virtual ~bedload_MPM();
+    virtual void start(lexer*, ghostcell*, sediment_fdm*);
 
 private:
     double rhosed,rhowat;

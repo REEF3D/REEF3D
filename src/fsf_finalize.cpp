@@ -26,12 +26,12 @@ Author: Hans Bihs
 
 void fsf_vtp::finalize(lexer *p, fdm* a)
 {
-	p->del_Iarray(tri,numtri_mem,4);
+    p->del_Iarray(tri,numtri_mem,4);
     p->del_Darray(pt,numvert_mem,3);
     p->del_Darray(ls,numvert_mem);
     p->del_Iarray(facet,numtri_mem,4);
     p->del_Iarray(confac,numtri_mem);
     p->del_Iarray(numfac,numtri_mem);
-	p->del_Iarray(numpt,numtri_mem);
+    p->del_Iarray(numpt,numtri_mem);
     p->del_Darray(ccpt,numtri_mem*4,3);
 }

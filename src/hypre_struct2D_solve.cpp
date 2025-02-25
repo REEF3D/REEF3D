@@ -31,7 +31,7 @@ void hypre_struct2D::solve(lexer* p, ghostcell *pgc)
 {
     int feedback=0;
     numiter=0;
-	p->solveriter=0;
+    p->solveriter=0;
     
     if(p->N10==11)
     {
@@ -39,7 +39,7 @@ void hypre_struct2D::solve(lexer* p, ghostcell *pgc)
     feedback = HYPRE_StructPCGSolve(solver, A, rhs, x);
     
     HYPRE_StructPCGGetNumIterations(solver, &num_iterations);
-	HYPRE_StructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_StructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(p->N10==12)
@@ -48,7 +48,7 @@ void hypre_struct2D::solve(lexer* p, ghostcell *pgc)
     feedback = HYPRE_StructGMRESSolve(solver, A, rhs, x);
     
     HYPRE_StructGMRESGetNumIterations(solver, &num_iterations);
-	HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(p->N10==13)
@@ -57,7 +57,7 @@ void hypre_struct2D::solve(lexer* p, ghostcell *pgc)
     feedback = HYPRE_StructLGMRESSolve(solver, A, rhs, x);
     
     HYPRE_StructLGMRESGetNumIterations(solver, &num_iterations);
-	HYPRE_StructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_StructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(p->N10==14)
@@ -66,16 +66,16 @@ void hypre_struct2D::solve(lexer* p, ghostcell *pgc)
     feedback = HYPRE_StructBiCGSTABSolve(solver, A, rhs, x);
     
     HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
-	HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-	
-	if(p->N10==15 || p->N10==16 || p->N10==17)
+    
+    if(p->N10==15 || p->N10==16 || p->N10==17)
     {
     HYPRE_StructHybridSetup(solver, A, rhs, x);
     feedback = HYPRE_StructHybridSolve(solver, A, rhs, x);
     
     HYPRE_StructHybridGetNumIterations(solver, &num_iterations);
-	HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(p->N10==18)
@@ -84,7 +84,7 @@ void hypre_struct2D::solve(lexer* p, ghostcell *pgc)
     feedback = HYPRE_StructPFMGSolve(solver, A, rhs, x);
     
     HYPRE_StructPFMGGetNumIterations(solver, &num_iterations);
-	HYPRE_StructPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_StructPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(p->N10==19)
@@ -93,11 +93,11 @@ void hypre_struct2D::solve(lexer* p, ghostcell *pgc)
     feedback = HYPRE_StructSMGSolve(solver, A, rhs, x);
     
     HYPRE_StructSMGGetNumIterations(solver, &num_iterations);
-	HYPRE_StructSMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_StructSMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
 
-	
-	p->solveriter=num_iterations;
+    
+    p->solveriter=num_iterations;
     
     feedback = pgc->globalimax(feedback);
     /*

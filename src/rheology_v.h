@@ -33,8 +33,8 @@ class rheology_v : public rheology
 
 public:
 
-	rheology_v(lexer*,fdm*);
-	virtual ~rheology_v();
+    rheology_v(lexer*,fdm*);
+    virtual ~rheology_v();
 
     virtual double viscosity(lexer*,fdm*,ghostcell*);
     
@@ -48,6 +48,6 @@ private:
     double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
     
     double val;
-	
+    
 };
 #endif

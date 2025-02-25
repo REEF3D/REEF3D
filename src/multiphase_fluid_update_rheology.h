@@ -34,19 +34,19 @@ class multiphase_fluid_update_rheology : public multiphase_fluid_update, increme
 {
 public:
     multiphase_fluid_update_rheology(lexer*, fdm*, ghostcell*);
-	virtual ~multiphase_fluid_update_rheology();
+    virtual ~multiphase_fluid_update_rheology();
 
-	virtual void start(lexer*, fdm*, ghostcell*,field&,field&);
+    virtual void start(lexer*, fdm*, ghostcell*,field&,field&);
 
 private:
     rheology *prheo;
     
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	int n;
-	const double dx,visc3,visc2,ro1,ro2,ro3;
+    int n;
+    const double dx,visc3,visc2,ro1,ro2,ro3;
     double visc1;
-	double eps12,eps13,eps23;
+    double eps12,eps13,eps23;
     double epsi;
 };
 

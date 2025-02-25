@@ -39,7 +39,7 @@ class concentration_io : public concentration, increment
 {
 public:
     concentration_io(lexer*,fdm*);
-	virtual ~concentration_io();
+    virtual ~concentration_io();
 
     virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration);
@@ -50,16 +50,16 @@ public:
     virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
 
     field4 C;
-	fluid_update *pupdate;
+    fluid_update *pupdate;
 
 private:
 
-	float ffn;
-	double ddn;
-	int n,iin;
-	
-	double fx(double,double,double,double,double);
-	double fz(double,double,double,double,double);
+    float ffn;
+    double ddn;
+    int n,iin;
+    
+    double fx(double,double,double,double,double);
+    double fz(double,double,double,double,double);
 };
 
 #endif

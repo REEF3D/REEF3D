@@ -29,58 +29,58 @@ Author: Hans Bihs
 
 void  ioflow_f::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
+    NLOOP4
+    a->rhsvec.V[n]=0.0;
+    
     double porousterm;
 
-	// Darcy Porosity
-	count=0;
+    // Darcy Porosity
+    count=0;
     if(p->B240>0 && p->B241==1)
     ULOOP
-	{
-		
-		porousterm=0.0;
-		for(n=0;n<p->B240;++n)
-		{
-			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
-			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
-			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
-			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->u(i,j,k) + 0.5*p->B240_C[n]*a->u(i,j,k)*fabs(a->u(i,j,k));
-		}
-	
+    {
+        
+        porousterm=0.0;
+        for(n=0;n<p->B240;++n)
+        {
+            if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
+            if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
+            if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
+            porousterm=p->B240_D[n]*a->visc(i,j,k)*a->u(i,j,k) + 0.5*p->B240_C[n]*a->u(i,j,k)*fabs(a->u(i,j,k));
+        }
+    
     a->rhsvec.V[count] -= porousterm;
-	++count;
-	}
-	
-	//VRANS
+    ++count;
+    }
+    
+    //VRANS
     pvrans->u_source(p,a);
 }
 
 void  ioflow_f::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
+    NLOOP4
+    a->rhsvec.V[n]=0.0;
+    
     double porousterm;
 
-	count=0;
+    count=0;
     if(p->B240>0 && p->B242==1)
     VLOOP
-	{
-		// porous media
-		porousterm=0.0;
-		for(n=0;n<p->B240;++n)
-		{
-			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
-			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
-			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
-			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->v(i,j,k) + 0.5*p->B240_C[n]*a->v(i,j,k)*fabs(a->v(i,j,k));
-		}
-	
+    {
+        // porous media
+        porousterm=0.0;
+        for(n=0;n<p->B240;++n)
+        {
+            if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
+            if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
+            if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
+            porousterm=p->B240_D[n]*a->visc(i,j,k)*a->v(i,j,k) + 0.5*p->B240_C[n]*a->v(i,j,k)*fabs(a->v(i,j,k));
+        }
+    
     a->rhsvec.V[count] -= porousterm;
-	++count;
-	}
+    ++count;
+    }
     
     //VRANS
     pvrans->v_source(p,a);
@@ -88,28 +88,28 @@ void  ioflow_f::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void  ioflow_f::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
+    NLOOP4
+    a->rhsvec.V[n]=0.0;
+    
     double porousterm;
-	
-	count=0;
+    
+    count=0;
     if(p->B240>0 && p->B243==1)
     WLOOP
-	{
-		// porous media
-		porousterm=0.0;
-		for(n=0;n<p->B240;++n)
-		{
-			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
-			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
-			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
-			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->w(i,j,k) + 0.5*p->B240_C[n]*a->w(i,j,k)*fabs(a->w(i,j,k));
-		}
+    {
+        // porous media
+        porousterm=0.0;
+        for(n=0;n<p->B240;++n)
+        {
+            if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
+            if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
+            if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
+            porousterm=p->B240_D[n]*a->visc(i,j,k)*a->w(i,j,k) + 0.5*p->B240_C[n]*a->w(i,j,k)*fabs(a->w(i,j,k));
+        }
 
     a->rhsvec.V[count] -= porousterm;
-	++count;
-	}
+    ++count;
+    }
     
     //VRANS
     pvrans->w_source(p,a);

@@ -133,29 +133,29 @@ double fnpf_weno7::sx(lexer *p, slice &f, double ivel)
     
     if(ivel>0.0)
     {
-	iqmin(p,f);
-	is();
-	alpha();
-	weight();
-	
-	grad =  w1*(-(1.0/4.0)*q1 + (13.0/12.0)*q2 - (23.0/12.0)*q3 + (25.0/12.0)*q4)
+    iqmin(p,f);
+    is();
+    alpha();
+    weight();
+    
+    grad =  w1*(-(1.0/4.0)*q1 + (13.0/12.0)*q2 - (23.0/12.0)*q3 + (25.0/12.0)*q4)
           + w2*((1.0/12.0)*q2 - (5.0/12.0)*q3 + (13.0/12.0)*q4 + (1.0/4.0)*q5)
           + w3*(-(1.0/12.0)*q3 + (7.0/12.0)*q4 + (7.0/12.0)*q5 - (1.0/12.0)*q6)
           + w4*((1.0/4.0)*q4 + (13.0/12.0)*q5 - (5.0/12.0)*q6 + (1.0/12.0)*q7);
-	}
+    }
     
     if(ivel<0.0)
     {
-	iqmax(p,f);
-	is();
-	alpha();
-	weight();
-	
-	grad =  w1*(-(1.0/4.0)*q1 + (13.0/12.0)*q2 - (23.0/12.0)*q3 + (25.0/12.0)*q4)
+    iqmax(p,f);
+    is();
+    alpha();
+    weight();
+    
+    grad =  w1*(-(1.0/4.0)*q1 + (13.0/12.0)*q2 - (23.0/12.0)*q3 + (25.0/12.0)*q4)
           + w2*((1.0/12.0)*q2 - (5.0/12.0)*q3 + (13.0/12.0)*q4 + (1.0/4.0)*q5)
           + w3*(-(1.0/12.0)*q3 + (7.0/12.0)*q4 + (7.0/12.0)*q5 - (1.0/12.0)*q6)
           + w4*((1.0/4.0)*q4 + (13.0/12.0)*q5 - (5.0/12.0)*q6 + (1.0/12.0)*q7);
-	}
+    }
     
     
     return grad;
@@ -167,29 +167,29 @@ double fnpf_weno7::sy(lexer *p, slice &f, double jvel)
     
     if(jvel>0.0)
     {
-	jqmin(p,f);
-	is();
-	alpha();
-	weight();
-	
-	grad =  w1*(-(1.0/4.0)*q1 + (13.0/12.0)*q2 - (23.0/12.0)*q3 + (25.0/12.0)*q4)
+    jqmin(p,f);
+    is();
+    alpha();
+    weight();
+    
+    grad =  w1*(-(1.0/4.0)*q1 + (13.0/12.0)*q2 - (23.0/12.0)*q3 + (25.0/12.0)*q4)
           + w2*((1.0/12.0)*q2 - (5.0/12.0)*q3 + (13.0/12.0)*q4 + (1.0/4.0)*q5)
           + w3*(-(1.0/12.0)*q3 + (7.0/12.0)*q4 + (7.0/12.0)*q5 - (1.0/12.0)*q6)
           + w4*((1.0/4.0)*q4 + (13.0/12.0)*q5 - (5.0/12.0)*q6 + (1.0/12.0)*q7);
-	}
+    }
     
     if(jvel<0.0)
     {
-	jqmax(p,f);
-	is();
-	alpha();
-	weight();
-	
-	grad =  w1*(-(1.0/4.0)*q1 + (13.0/12.0)*q2 - (23.0/12.0)*q3 + (25.0/12.0)*q4)
+    jqmax(p,f);
+    is();
+    alpha();
+    weight();
+    
+    grad =  w1*(-(1.0/4.0)*q1 + (13.0/12.0)*q2 - (23.0/12.0)*q3 + (25.0/12.0)*q4)
           + w2*((1.0/12.0)*q2 - (5.0/12.0)*q3 + (13.0/12.0)*q4 + (1.0/4.0)*q5)
           + w3*(-(1.0/12.0)*q3 + (7.0/12.0)*q4 + (7.0/12.0)*q5 - (1.0/12.0)*q6)
           + w4*((1.0/4.0)*q4 + (13.0/12.0)*q5 - (5.0/12.0)*q6 + (1.0/12.0)*q7);
-	}
+    }
     
     return grad;   
 }
@@ -205,52 +205,52 @@ double fnpf_weno7::sz(lexer *p, double *f)
 // --------------
 
 void fnpf_weno7::iqmin(lexer *p, slice& f)
-{	
+{    
     q1 = (f(i-3,j) - f(i-4,j))/p->DXD;
-	q2 = (f(i-2,j) - f(i-3,j))/p->DXD;
-	q3 = (f(i-1,j) - f(i-2,j))/p->DXD;
-	q4 = (f(i,j)   - f(i-1,j))/p->DXD;
-	q5 = (f(i+1,j) - f(i,j  ))/p->DXD;
+    q2 = (f(i-2,j) - f(i-3,j))/p->DXD;
+    q3 = (f(i-1,j) - f(i-2,j))/p->DXD;
+    q4 = (f(i,j)   - f(i-1,j))/p->DXD;
+    q5 = (f(i+1,j) - f(i,j  ))/p->DXD;
     q6 = (f(i+2,j) - f(i+1,j))/p->DXD;
     q7 = (f(i+3,j) - f(i+2,j))/p->DXD;
 }
 
 void fnpf_weno7::jqmin(lexer *p, slice& f)
-{	
+{    
     q1 = (f(i,j-3) - f(i,j-4))/p->DYD;
-	q2 = (f(i,j-2) - f(i,j-3))/p->DYD;
-	q3 = (f(i,j-1) - f(i,j-2))/p->DYD;
-	q4 = (f(i,j)   - f(i,j-1))/p->DYD;
-	q5 = (f(i,j+1) - f(i,j  ))/p->DYD;
+    q2 = (f(i,j-2) - f(i,j-3))/p->DYD;
+    q3 = (f(i,j-1) - f(i,j-2))/p->DYD;
+    q4 = (f(i,j)   - f(i,j-1))/p->DYD;
+    q5 = (f(i,j+1) - f(i,j  ))/p->DYD;
     q6 = (f(i,j+2) - f(i,j+1))/p->DYD;
     q7 = (f(i,j+3) - f(i,j+2))/p->DYD;
 }
 
 void fnpf_weno7::iqmax(lexer *p, slice& f)
-{	
+{    
     q1 = (f(i+4,j) - f(i+3,j))/p->DXD;
-	q2 = (f(i+3,j) - f(i+2,j))/p->DXD;
-	q3 = (f(i+2,j) - f(i+1,j))/p->DXD;
-	q4 = (f(i+1,j) - f(i,j  ))/p->DXD;
-	q5 = (f(i,j)   - f(i-1,j))/p->DXD;
+    q2 = (f(i+3,j) - f(i+2,j))/p->DXD;
+    q3 = (f(i+2,j) - f(i+1,j))/p->DXD;
+    q4 = (f(i+1,j) - f(i,j  ))/p->DXD;
+    q5 = (f(i,j)   - f(i-1,j))/p->DXD;
     q6 = (f(i-1,j) - f(i-2,j))/p->DXD;
     q7 = (f(i-2,j) - f(i-3,j))/p->DXD;
 }
 
 void fnpf_weno7::jqmax(lexer *p, slice& f)
-{	
-	q1 = (f(i,j+4) - f(i,j+3))/p->DYD;
+{    
+    q1 = (f(i,j+4) - f(i,j+3))/p->DYD;
     q2 = (f(i,j+3) - f(i,j+2))/p->DYD;
-	q3 = (f(i,j+2) - f(i,j+1))/p->DYD;
-	q4 = (f(i,j+1) - f(i,j  ))/p->DYD;
-	q5 = (f(i,j)   - f(i,j-1))/p->DYD;
+    q3 = (f(i,j+2) - f(i,j+1))/p->DYD;
+    q4 = (f(i,j+1) - f(i,j  ))/p->DYD;
+    q5 = (f(i,j)   - f(i,j-1))/p->DYD;
     q6 = (f(i,j-1) - f(i,j-2))/p->DYD;
     q7 = (f(i,j-2) - f(i,j-3))/p->DYD;
 }
 
 void fnpf_weno7::is()
 {
-	is1 = q1*(547.0*q1 - 3882.0*q2 + 4642.0*q3 - 1854.0*q4) + q2*(7043.0*q2 - 17246.0*q3 + 7042.0*q4) 
+    is1 = q1*(547.0*q1 - 3882.0*q2 + 4642.0*q3 - 1854.0*q4) + q2*(7043.0*q2 - 17246.0*q3 + 7042.0*q4) 
         + q3*(11003.0*q3 - 9402.0*q4) + 2107.0*q4*q4;
         
     is2 = q2*(267.0*q2 - 1642.0*q3 + 1602.0*q4 - 494.0*q5) + q3*(2843.0*q3 - 5966.0*q4 + 1922.0*q5) 
@@ -265,17 +265,17 @@ void fnpf_weno7::is()
 
 void fnpf_weno7::alpha()
 {
-	alpha1=(1.0/35.0)/pow(epsilon+is1,2.0);
-	alpha2=(12.0/35.0)/pow(epsilon+is2,2.0);
-	alpha3=(18.0/35.0)/pow(epsilon+is3,2.0);
+    alpha1=(1.0/35.0)/pow(epsilon+is1,2.0);
+    alpha2=(12.0/35.0)/pow(epsilon+is2,2.0);
+    alpha3=(18.0/35.0)/pow(epsilon+is3,2.0);
     alpha4=(4.0/35.0)/pow(epsilon+is4,2.0);
 }
 
 void fnpf_weno7::weight()
 {
-	w1=alpha1/(alpha1+alpha2+alpha3+alpha4);
-	w2=alpha2/(alpha1+alpha2+alpha3+alpha4);
-	w3=alpha3/(alpha1+alpha2+alpha3+alpha4);
+    w1=alpha1/(alpha1+alpha2+alpha3+alpha4);
+    w2=alpha2/(alpha1+alpha2+alpha3+alpha4);
+    w3=alpha3/(alpha1+alpha2+alpha3+alpha4);
     w4=alpha4/(alpha1+alpha2+alpha3+alpha4);
 }
 

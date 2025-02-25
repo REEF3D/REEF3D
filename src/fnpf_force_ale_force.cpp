@@ -27,15 +27,15 @@ Authors: Arun Kamath, Hans Bihs
 #include <math.h>
 
 void fnpf_force_ale::force_ale_force(lexer* p, fdm_fnpf *c, ghostcell *pgc)
-{	
+{    
     double ztot=0; // check for strip total
     
     double uvel,vvel,wvel;
 
-	Fx=Fy=0;
-	
+    Fx=Fy=0;
+    
     for(k=0; k<p->knoz; ++k)
-	{
+    {
         uvel = 0.5*(c->U[FIJK]+c->U[FIJKp1]);
         vvel = 0.5*(c->V[FIJK]+c->V[FIJKp1]);
         wvel = 0.5*(c->W[FIJK]+c->W[FIJKp1]);
@@ -71,34 +71,34 @@ void fnpf_force_ale::force_ale_force(lexer* p, fdm_fnpf *c, ghostcell *pgc)
         // Storing current time step information for next time step gradient calculation
         un[k] = uvel; 
         vn[k] = vvel;
-	}
-	
-	etan=c->eta(i,j);
+    }
+    
+    etan=c->eta(i,j);
 }
 
 double fnpf_force_ale::dndt(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
 {
     double dndt = (c->eta(i,j) - etan)/ p->dt;
-		 
+         
     return dndt;
 }
 
-double fnpf_force_ale::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	
+double fnpf_force_ale::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc)     
 {
     double dudsig_ = 0;
     
     dudsig_ = (c->U[FIJKp1] - c->U[FIJK])/(p->DZN[KP]);
 
-	return dudsig_;        
+    return dudsig_;        
 }
 
-double fnpf_force_ale::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	
+double fnpf_force_ale::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc)     
 {
-	double dvdsig_ = 0;
+    double dvdsig_ = 0;
 
     dvdsig_ = (c->V[FIJKp1] - c->V[FIJK])/(p->DZN[KP]);
 
-	return dvdsig_;        
+    return dvdsig_;        
 }
 
 double fnpf_force_ale::dudxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 

@@ -40,9 +40,9 @@ class nhflow_print_runup_gage_x : public increment
 {
 public:
     nhflow_print_runup_gage_x(lexer*,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_print_runup_gage_x();
+    virtual ~nhflow_print_runup_gage_x();
 
-	void start(lexer*, fdm_nhf*, ghostcell*,ioflow*,slice &f);
+    void start(lexer*, fdm_nhf*, ghostcell*,ioflow*,slice &f);
 
 
 private:
@@ -58,7 +58,7 @@ private:
     char name[250];
 
     double xcoor;
-	
+    
 
 
 };

@@ -29,26 +29,26 @@ Author: Hans Bihs
 
 void heat_print::heat_ini(lexer* p, fdm *a, ghostcell* pgc,heat *pheat)
 {
-	if(p->H10>0 && p->W90==0 && p->H3==1)
-	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
+    if(p->H10>0 && p->W90==0 && p->H3==1)
+    pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
     
     if(p->H10>0 && p->W90==0 && p->H3==2)
-	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
+    pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
 
 double dx=p->DXM;
 double r;
 
 
     LOOP
-	T(i,j,k)=p->H50_2;
+    T(i,j,k)=p->H50_2;
 
     double psi=1.0e-20;
 
-	LOOP
-	if(p->XP[IP]>p->H51-psi && p->XP[IP]<p->H54+psi
-	&& p->YP[JP]>p->H52-psi && p->YP[JP]<p->H55+psi
-	&& p->ZP[KP]>p->H53-psi && p->ZP[KP]<p->H56+psi)
-	T(i,j,k)=p->H50_1;
+    LOOP
+    if(p->XP[IP]>p->H51-psi && p->XP[IP]<p->H54+psi
+    && p->YP[JP]>p->H52-psi && p->YP[JP]<p->H55+psi
+    && p->ZP[KP]>p->H53-psi && p->ZP[KP]<p->H56+psi)
+    T(i,j,k)=p->H50_1;
 
 
 

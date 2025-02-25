@@ -33,10 +33,10 @@ using namespace std;
 class sflow_hxy_cds : public sflow_hxy_disc, public increment
 {
 public:
-	sflow_hxy_cds(lexer*,patchBC_interface*);
-	virtual ~sflow_hxy_cds();
+    sflow_hxy_cds(lexer*,patchBC_interface*);
+    virtual ~sflow_hxy_cds();
 
-	virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&);
+    virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&);
 
 private:
 

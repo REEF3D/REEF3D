@@ -57,8 +57,8 @@ void force::reconstruct(lexer *p,fdm* a, field& b)
 
 void force::addpoint(lexer *p, fdm *a, int q1, int q2)
 {
-	// p. 917
-	
+    // p. 917
+    
     double dist,xd,dnom;
 
     dnom=ls[q2]-ls[q1];
@@ -81,7 +81,7 @@ void force::addpoint(lexer *p, fdm *a, int q1, int q2)
     }
 
     facet[nn][numpt[nn]] = ccptcount;
-	++numpt[nn];
+    ++numpt[nn];
     ++numfac[n];
 
     ++ccptcount;

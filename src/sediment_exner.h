@@ -39,9 +39,9 @@ using namespace std;
 class sediment_exner : public topo, public increment
 {
 public:
-	sediment_exner(lexer*, ghostcell*);
-	virtual ~sediment_exner();
-	virtual void start(lexer*, ghostcell*, sediment_fdm*);
+    sediment_exner(lexer*, ghostcell*);
+    virtual ~sediment_exner();
+    virtual void start(lexer*, ghostcell*, sediment_fdm*);
 
 
 private:
@@ -57,14 +57,14 @@ private:
     
     vec2D xvec,rhsvec;
 
-	matrix2D M;
+    matrix2D M;
     slice4 qbx,qby;
     
-	int gcval_topo;
-	double starttime;
+    int gcval_topo;
+    double starttime;
     double maxdh,maxvz;
-	double vz;
-	double vzmax;
+    double vz;
+    double vzmax;
     double rhosed, rhowat, g, d50;
     double Ls;
     double tau_eff, shearvel_eff, shields_eff;

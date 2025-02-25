@@ -26,14 +26,14 @@ Author: Hans Bihs
 #include"fdm.h"
 
 void mgcslice4::gcb_seed(lexer *p)
-{	
+{    
     // count gcbsl
-	count=0;
-	SLICELOOP4
+    count=0;
+    SLICELOOP4
     {   
         if(p->flagslice4[Im1J]<0)
         ++count;
-	
+    
         if(p->flagslice4[IJp1]<0)
         ++count;
 
@@ -43,13 +43,13 @@ void mgcslice4::gcb_seed(lexer *p)
         if(p->flagslice4[Ip1J]<0)
         ++count;
     }
-	
-	p->Iresize(p->gcbsl4,p->gcbsl4_count, count, 6, 6); 
-	p->Dresize(p->gcdsl4,p->gcbsl4_count, count); 
-	
+    
+    p->Iresize(p->gcbsl4,p->gcbsl4_count, count, 6, 6); 
+    p->Dresize(p->gcdsl4,p->gcbsl4_count, count); 
+    
     // find gcbsl
-	count=0;
-	SLICELOOP4
+    count=0;
+    SLICELOOP4
     {
         if(p->flagslice4[Im1J]<0)
         {
@@ -89,5 +89,5 @@ void mgcslice4::gcb_seed(lexer *p)
 
     }
     p->gcbsl4_count=count;
-	
+    
 }

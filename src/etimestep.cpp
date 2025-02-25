@@ -40,7 +40,7 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;
 
-	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
+    p->umax=p->vmax=p->wmax=p->viscmax=0.0;
     
     p->umax=MAX(p->W11_u,p->umax);
     p->umax=MAX(p->W12_u,p->umax);
@@ -63,38 +63,38 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     p->wmax=MAX(p->W15_w,p->wmax);
     p->wmax=MAX(p->W16_w,p->wmax);
     
-	sqd=1.0/(p->DXM*p->DXM);
-	
+    sqd=1.0/(p->DXM*p->DXM);
+    
 // maximum velocities
 
 
-	ULOOP
-	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
+    ULOOP
+    p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
 
-	p->umax=pgc->globalmax(p->umax);
-
-
-	VLOOP
-	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
-
-	p->vmax=pgc->globalmax(p->vmax);
+    p->umax=pgc->globalmax(p->umax);
 
 
-	WLOOP
-	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
+    VLOOP
+    p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
 
-	p->wmax=pgc->globalmax(p->wmax);
+    p->vmax=pgc->globalmax(p->vmax);
+
+
+    WLOOP
+    p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
+
+    p->wmax=pgc->globalmax(p->wmax);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
-	cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
-	cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
-	cout<<"wmax: "<<setprecision(3)<<p->wmax<<" \t wtime: "<<p->wtime<<endl;
+    cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
+    cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
+    cout<<"wmax: "<<setprecision(3)<<p->wmax<<" \t wtime: "<<p->wtime<<endl;
     }
-	
-	p->umax=MAX(p->umax,p->ufbmax);
-	p->vmax=MAX(p->vmax,p->vfbmax);
-	p->wmax=MAX(p->wmax,p->wfbmax);
+    
+    p->umax=MAX(p->umax,p->ufbmax);
+    p->vmax=MAX(p->vmax,p->vfbmax);
+    p->wmax=MAX(p->wmax,p->wfbmax);
 
     velmax=max(p->umax,p->vmax,p->wmax);
     
@@ -104,45 +104,45 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     a->maxH=pgc->globalmax(a->maxH);
 
 // maximum viscosity
-	LOOP
-	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
-
-	p->viscmax=pgc->globalmax(p->viscmax);
-
-    if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"viscmax: "<<p->viscmax<<endl;
-	//----kin
-	LOOP
-	p->kinmax=MAX(p->kinmax,pturb->kinval(i,j,k));
-
-	p->kinmax=pgc->globalmax(p->kinmax);
-
-    if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"kinmax: "<<p->kinmax<<endl;
-
-	//---eps
     LOOP
-	p->epsmax=MAX(p->epsmax,pturb->epsval(i,j,k));
+    p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
 
-	p->epsmax=pgc->globalmax(p->epsmax);
+    p->viscmax=pgc->globalmax(p->viscmax);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"epsmax: "<<p->epsmax<<endl;
+    cout<<"viscmax: "<<p->viscmax<<endl;
+    //----kin
+    LOOP
+    p->kinmax=MAX(p->kinmax,pturb->kinval(i,j,k));
+
+    p->kinmax=pgc->globalmax(p->kinmax);
+
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"kinmax: "<<p->kinmax<<endl;
+
+    //---eps
+    LOOP
+    p->epsmax=MAX(p->epsmax,pturb->epsval(i,j,k));
+
+    p->epsmax=pgc->globalmax(p->epsmax);
+
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"epsmax: "<<p->epsmax<<endl;
 
 
-	//---press
+    //---press
     LOOP
     {
-	p->pressmax=MAX(p->pressmax,a->press(i,j,k));
-	p->pressmin=MIN(p->pressmin,a->press(i,j,k));
+    p->pressmax=MAX(p->pressmax,a->press(i,j,k));
+    p->pressmin=MIN(p->pressmin,a->press(i,j,k));
     }
 
-	p->pressmax=pgc->globalmax(p->pressmax);
-	p->pressmin=pgc->globalmin(p->pressmin);
+    p->pressmax=pgc->globalmax(p->pressmax);
+    p->pressmin=pgc->globalmin(p->pressmin);
 
 
 // maximum reynolds stress source term
-	visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));  
+    visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));  
  
     cu=1.0e10;
     cv=1.0e10;
@@ -155,7 +155,7 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
     visc = 0.5*(a->eddyv(i,j,k) + a->eddyv(i+1,j,k)) + 0.5*(a->visc(i,j,k) + a->visc(i+1,j,k));
     
-	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax)/dx +  visc*(6.0/pow(dx,2.0)))
+    cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax)/dx +  visc*(6.0/pow(dx,2.0)))
     
             +sqrt(pow(sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax)/dx+visc,2.0)
             
@@ -169,7 +169,7 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
     visc = 0.5*(a->eddyv(i,j,k) + a->eddyv(i+1,j,k)) + 0.5*(a->visc(i,j,k) + a->visc(i+1,j,k));
     
-	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax)/p->DXP[IP] +  visc*(6.0/pow(p->DXP[IP],2.0)))
+    cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax)/p->DXP[IP] +  visc*(6.0/pow(p->DXP[IP],2.0)))
     
             +sqrt(pow(sqrt(p->umax*p->umax)/p->DXP[IP]+visc,2.0)
             
@@ -192,23 +192,23 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
     cu = MIN3(cu,cv,cw);
 
-	p->dt=p->N47*cu;
+    p->dt=p->N47*cu;
     
-	p->dt=pgc->timesync(p->dt);
+    p->dt=pgc->timesync(p->dt);
    // p->dt = MIN(p->dt,10.0*p->dt_old);
     p->dt_old=p->dt;
     
-	a->maxF=0.0;
-	a->maxG=0.0;
-	a->maxH=0.0;
+    a->maxF=0.0;
+    a->maxG=0.0;
+    a->maxH=0.0;
 }
 
 void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 {
 
-	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
+    p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
 
-	p->umax=MAX(p->W10,p->umax);
+    p->umax=MAX(p->W10,p->umax);
     p->viscmax = MAX(p->W2,p->W4);
     
     p->umax=MAX(p->W11_u,p->umax);
@@ -235,119 +235,119 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
     
     ULOOP
-	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
+    p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
 
-	p->umax=pgc->globalmax(p->umax);
-
-
-	VLOOP
-	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
-
-	p->vmax=pgc->globalmax(p->vmax);
+    p->umax=pgc->globalmax(p->umax);
 
 
-	WLOOP
-	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
+    VLOOP
+    p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
 
-	p->wmax=pgc->globalmax(p->wmax);
-	
-	p->umax=MAX(p->umax,2.0*p->ufbmax);
-	p->umax=MAX(p->umax,2.0*p->vfbmax);
-	p->umax=MAX(p->umax,2.0*p->wfbmax);
+    p->vmax=pgc->globalmax(p->vmax);
+
+
+    WLOOP
+    p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
+
+    p->wmax=pgc->globalmax(p->wmax);
+    
+    p->umax=MAX(p->umax,2.0*p->ufbmax);
+    p->umax=MAX(p->umax,2.0*p->vfbmax);
+    p->umax=MAX(p->umax,2.0*p->wfbmax);
     
     p->umax=MAX(p->umax,2.0*p->X210_u);
-	p->umax=MAX(p->umax,2.0*p->X210_v);
-	p->umax=MAX(p->umax,2.0*p->X210_w);
+    p->umax=MAX(p->umax,2.0*p->X210_v);
+    p->umax=MAX(p->umax,2.0*p->X210_w);
     
     p->umax=MAX(p->umax,2.0);
     
     p->umax+=2.0;
 
 
-	p->dt=p->DXM/(p->umax+epsi);
+    p->dt=p->DXM/(p->umax+epsi);
 
-	LOOP
-	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
+    LOOP
+    p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
 
-	visccrit=(p->viscmax*(6.0/pow(p->DXM,2.0)));
+    visccrit=(p->viscmax*(6.0/pow(p->DXM,2.0)));
 
-	dx = p->DXM;
+    dx = p->DXM;
     
     LOOP
     {
     dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
 
-	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax))/dx
+    cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax))/dx
     
             + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
-	p->dt=p->N47*cu*0.25;
-	p->dt=pgc->timesync(p->dt);
-	p->dt_old=p->dt;
+    p->dt=p->N47*cu*0.25;
+    p->dt=pgc->timesync(p->dt);
+    p->dt_old=p->dt;
 }
 
 double etimestep::min(double val1,double val2,double val3)
 {
-	double mini;
+    double mini;
 
-	mini=val1;
+    mini=val1;
 
-	if(mini>val2)
-	mini=val2;
+    if(mini>val2)
+    mini=val2;
 
-	if(mini>val3)
-	mini=val3;
+    if(mini>val3)
+    mini=val3;
 
-	if(mini<0.0)
-	mini=0.0;
+    if(mini<0.0)
+    mini=0.0;
 
-	return mini;
+    return mini;
 }
 
 double etimestep::min(double val1,double val2)
 {
-	double mini;
+    double mini;
 
-	mini=val1;
+    mini=val1;
 
-	if(mini>val2)
-	mini=val2;
+    if(mini>val2)
+    mini=val2;
 
-	if(mini<0.0)
-	mini=0.0;
+    if(mini<0.0)
+    mini=0.0;
 
-	return mini;
+    return mini;
 }
 
 double etimestep::max(double val1,double val2,double val3)
 {
-	double maxi;
+    double maxi;
 
-	maxi=val1;
+    maxi=val1;
 
-	if(maxi<val2)
-	maxi=val2;
+    if(maxi<val2)
+    maxi=val2;
 
-	if(maxi<val3)
-	maxi=val3;
+    if(maxi<val3)
+    maxi=val3;
 
-	if(maxi<0.0)
-	maxi=0.0;
+    if(maxi<0.0)
+    maxi=0.0;
 
-	return maxi;
+    return maxi;
 }
 
 double etimestep::max(double val1,double val2)
 {
-	double maxi;
+    double maxi;
 
-	maxi=val1;
+    maxi=val1;
 
-	if(maxi<val2)
-	maxi=val2;
+    if(maxi<val2)
+    maxi=val2;
 
-	if(maxi<0.0)
-	maxi=0.0;
+    if(maxi<0.0)
+    maxi=0.0;
 
-	return maxi;
+    return maxi;
 }

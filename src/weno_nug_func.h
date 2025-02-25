@@ -34,10 +34,10 @@ using namespace std;
 class weno_nug_func : public increment
 {
 public:
-	weno_nug_func(lexer*);
-	virtual ~weno_nug_func();
+    weno_nug_func(lexer*);
+    virtual ~weno_nug_func();
 
-	void precalc_qf(lexer*);
+    void precalc_qf(lexer*);
     void precalc_cf(lexer*);
     void precalc_isf(lexer*);
     
@@ -45,7 +45,7 @@ public:
     
 
 
-	void is_min_x();
+    void is_min_x();
     void is_min_y();
     void is_min_z();
     
@@ -53,7 +53,7 @@ public:
     void is_max_y();
     void is_max_z();
     
-	void weight_min_x();
+    void weight_min_x();
     void weight_min_y();
     void weight_min_z();
     
@@ -68,17 +68,17 @@ public:
     static double ***cfx,***cfy,***cfz;
     static double ****isfx,****isfy,****isfz;
     
-	static int iniflag;
+    static int iniflag;
     
     
     
     double q1,q2,q3,q4,q5;
     
     const double epsilon,psi;
-	double is1x,is2x,is3x;
+    double is1x,is2x,is3x;
     double is1y,is2y,is3y;
     double is1z,is2z,is3z;
-	double w1x,w2x,w3x;
+    double w1x,w2x,w3x;
     double w1y,w2y,w3y;
     double w1z,w2z,w3z;
     

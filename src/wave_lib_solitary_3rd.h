@@ -35,7 +35,7 @@ class wave_lib_solitary_3rd : public wave_lib_precalc, public wave_lib_parameter
 {
 public:
     wave_lib_solitary_3rd(lexer*, ghostcell*);
-	virtual ~wave_lib_solitary_3rd();
+    virtual ~wave_lib_solitary_3rd();
     
     double wave_horzvel(lexer*,double,double,double);
     

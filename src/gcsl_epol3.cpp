@@ -28,22 +28,22 @@ int ghostcell::gcsleval3(lexer *p, int gcv, int bc, int cs)
 {
  
     if(bc==1)
-	return 5;
+    return 5;
     
     else
-	return 4;
+    return 4;
 }
 
 
 void ghostcell::gcsldistro3(lexer *p, slice &f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
 {
     i=ii;
-	j=jj;
-	n=nn;
+    j=jj;
+    n=nn;
 
-	bc_label=gcsleval3(p,gcv,bc,cs);
+    bc_label=gcsleval3(p,gcv,bc,cs);
     
-	if(bc_label==4)
-	gcsl_neumann(f,gcv,bc,cs);
+    if(bc_label==4)
+    gcsl_neumann(f,gcv,bc,cs);
     
 }

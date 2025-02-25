@@ -47,8 +47,8 @@ void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, 
         P(i-2,j)=0.0;
         P(i-3,j)=0.0;
         }
-		
-		Q(i-1,j)=0.0;
+        
+        Q(i-1,j)=0.0;
         Q(i-2,j)=0.0;
         Q(i-3,j)=0.0;
     }

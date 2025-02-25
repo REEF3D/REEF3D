@@ -35,22 +35,22 @@ class sflow_flux : public increment
 {
 public:
 
-	sflow_flux (lexer*);
-	virtual ~sflow_flux();
+    sflow_flux (lexer*);
+    virtual ~sflow_flux();
     
     void iflux(int,slice&);
-	void jflux(int,slice&);
+    void jflux(int,slice&);
 
-	void ifluxC(fdm2D*,int,slice&);
-	void jfluxC(fdm2D*,int,slice&);
-	
-	void ifluxHJ(int,slice&);
-	void jfluxHJ(int,slice&);
+    void ifluxC(fdm2D*,int,slice&);
+    void jfluxC(fdm2D*,int,slice&);
+    
+    void ifluxHJ(int,slice&);
+    void jfluxHJ(int,slice&);
     
 
-	double iadvec,jadvec;
-	double ivel1,jvel1;
-	double ivel2,jvel2;
+    double iadvec,jadvec;
+    double ivel1,jvel1;
+    double ivel2,jvel2;
 
 };
 

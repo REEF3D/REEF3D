@@ -32,7 +32,7 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     double ux,vy,wz,vel,pressure,density,viscosity;
     double du,dv,dw;
     double xloc,yloc,zloc;
-	double xlocvel,ylocvel,zlocvel;
+    double xlocvel,ylocvel,zlocvel;
     double sgnx,sgny,sgnz;
     double Ax=0.0;
     double Ay=0.0;

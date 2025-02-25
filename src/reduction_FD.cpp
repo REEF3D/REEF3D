@@ -52,12 +52,12 @@ void reduction_FD::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     r=MAX(r,0.01);
     r=MIN(r,1.5);
 
-	if(p->pos_x()<p->S71)
-	r=1.0;
+    if(p->pos_x()<p->S71)
+    r=1.0;
 
-	if(p->pos_x()>p->S72)
-	r=10.0;
-	
+    if(p->pos_x()>p->S72)
+    r=10.0;
+    
     s->reduce(i,j)=r;
     }
 }

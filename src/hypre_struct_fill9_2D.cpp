@@ -47,84 +47,84 @@ void hypre_struct::fill_matrix9_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     count=0;
     KJILOOP
     {
-		FPWDCHECK
-		{
-		n=CVAL4[IJK];
+        FPWDCHECK
+        {
+        n=CVAL4[IJK];
         
-		values[count]=M.p[n];
-		++count;
-		
-		values[count]=M.s[n];
-		++count;
-		
-		values[count]=M.n[n];
-		++count;
+        values[count]=M.p[n];
+        ++count;
+        
+        values[count]=M.s[n];
+        ++count;
+        
+        values[count]=M.n[n];
+        ++count;
 
-		values[count]=M.b[n];
-		++count;
-		
-		values[count]=M.t[n];
-		++count; 
+        values[count]=M.b[n];
+        ++count;
+        
+        values[count]=M.t[n];
+        ++count; 
         
         values[count]=M.sb[n];
-		++count; 
+        ++count; 
         
         values[count]=M.st[n];
-		++count; 
+        ++count; 
         
         values[count]=M.nb[n];
-		++count; 
+        ++count; 
         
         values[count]=M.nt[n];
-		++count; 
-		}     
-		
-		FSWDCHECK
-		{
-		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;  
+        ++count; 
+        }     
+        
+        FSWDCHECK
+        {
+        values[count]=1.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;  
         
          values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		}    
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        }    
     }
     
-	
+    
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
     
     
     // vec
     count=0;
-	KJILOOP
-	{
-		FPWDCHECK
-		values[count] = f[FIJK];
-		
-		FSWDCHECK
-		values[count] = 0.0;
-	
+    KJILOOP
+    {
+        FPWDCHECK
+        values[count] = f[FIJK];
+        
+        FSWDCHECK
+        values[count] = 0.0;
+    
     ++count;
     }
 
@@ -133,16 +133,16 @@ void hypre_struct::fill_matrix9_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     
     
     count=0; 
-	KJILOOP
-	{
-		FPWDCHECK
-		{
-		n=CVAL4[IJK];
-		values[count] = rhs.V[n];
-		}
-		
-		FSWDCHECK
-		values[count] = 0.0;
+    KJILOOP
+    {
+        FPWDCHECK
+        {
+        n=CVAL4[IJK];
+        values[count] = rhs.V[n];
+        }
+        
+        FSWDCHECK
+        values[count] = 0.0;
 
     ++count;
     }

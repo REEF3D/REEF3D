@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"vec.h"
 
 hypre_sstruct_fnpf::hypre_sstruct_fnpf(lexer* p,ghostcell *pgc, int solve_input, int precon_input) : solve_type(solve_input), precon_type(precon_input)
-{	
+{    
     int vecsize=p->knox*p->knoy*p->knoz; 
     
     vecsize=p->knox*p->knoy*(p->knoz+1); 
@@ -38,7 +38,7 @@ hypre_sstruct_fnpf::hypre_sstruct_fnpf(lexer* p,ghostcell *pgc, int solve_input,
     p->Iarray(iupper,3);
 
     if(p->j_dir==1)
-    make_grid(p,pgc);	
+    make_grid(p,pgc);    
     
     if(p->j_dir==0)
     make_grid_2Dvert(p,pgc);
@@ -61,8 +61,8 @@ void hypre_sstruct_fnpf::startF(lexer* p, ghostcell* pgc, double *f, double *rhs
 void hypre_sstruct_fnpf::start_solver5(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
     numiter=0;
-	p->solveriter=0;
-	
+    p->solveriter=0;
+    
     create_solver5(p,pgc);
 
     if(p->j_dir==1)
@@ -73,19 +73,19 @@ void hypre_sstruct_fnpf::start_solver5(lexer* p, ghostcell* pgc, double *f, doub
 
     solve(p,pgc);
 
-	p->solveriter=num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
         
     fillbackvec8(p,f,rhs,M);
-	
-	delete_solver5(p,pgc);
+    
+    delete_solver5(p,pgc);
 }
 
 void hypre_sstruct_fnpf::start_solver8(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
     numiter=0;
-	p->solveriter=0;
-	
+    p->solveriter=0;
+    
     create_solver5(p,pgc);
 
     if(p->j_dir==1)
@@ -96,12 +96,12 @@ void hypre_sstruct_fnpf::start_solver8(lexer* p, ghostcell* pgc, double *f, doub
 
     solve(p,pgc);
 
-	p->solveriter=num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
         
     fillbackvec8(p,f,rhs,M);
-	
-	delete_solver5(p,pgc);
+    
+    delete_solver5(p,pgc);
 }
 
 #endif

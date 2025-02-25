@@ -29,7 +29,7 @@ void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Input data
  
-	// Net wall in current
+    // Net wall in current
     L = 1.0;        // length of net in y-direction
     D = 1.0;        // length of net in x-direction b
 
@@ -50,14 +50,14 @@ void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
     psi = 0.0;
     
 /*
-	// Net wall in waves
+    // Net wall in waves
     L = 1.0;        // length of net in y-direction
     D = 1.0;        // length of net in x-direction 
 
     nd = 8;          // number of meshes in x-direction  
     nl = 8;          // number of meshes in y-direction   
 
-    al = 0.13;     	// length of mesh in [m]
+    al = 0.13;         // length of mesh in [m]
     EA = 1e9;       // Elasticity
     d_c = 0.002;    // diameter
     rho_c = 1100;    // density material
@@ -91,11 +91,11 @@ void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
 
     
     // Initialise fields
-    p->Darray(v_t, nf, 3);		// tangential direction
-    p->Darray(v_n, nf, 3);		// normal direction
+    p->Darray(v_t, nf, 3);        // tangential direction
+    p->Darray(v_n, nf, 3);        // normal direction
     
-    p->Darray(l0, nf);			// initial bar length
-    p->Darray(l, nf);			// bar length
+    p->Darray(l0, nf);            // initial bar length
+    p->Darray(l, nf);            // bar length
     
     fi = MatrixXd::Zero(nf,3);  // inner bar matrix      
     p->Darray(fb,nbK,3);         // boundary bar matrix
@@ -107,7 +107,7 @@ void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
     p->Darray(K,nK,3);          // knot coordinates
     p->Darray(K_, nK, 3);
 
-    p->Iarray(nfK, niK, 4);		// Bars per Knot
+    p->Iarray(nfK, niK, 4);        // Bars per Knot
  
 
     // Get standard net coordinates in K
@@ -117,7 +117,7 @@ void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
     iniInnerKnots();
 
     // Initialise boundary owner and neighbour lists
-    iniBoundaryKnots();   												
+    iniBoundaryKnots();                                                   
 
     // Stretch net
     stretch();
@@ -149,7 +149,7 @@ void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
         sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
         eTout.open(str);
         eTout<<"time \t Tmax \t Fx \t Fy \t Fz"<<endl;
-    }		
+    }        
     printtime = 0.0;
 
     // Initialise communication 
@@ -234,7 +234,7 @@ void net_barQuasiStatic::iniInnerKnots()
     // vertical direction
     k = 0;
     
-    for (int i = 0; i < K[nK-1][0]; i++)							
+    for (int i = 0; i < K[nK-1][0]; i++)                            
     {
         for (int j = 0; j < nK; j++)
         {

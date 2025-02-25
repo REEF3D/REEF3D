@@ -40,8 +40,8 @@ fnpf_RK2::fnpf_RK2(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     gcval=150;
    
     gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
+    gcval_v=11;
+    gcval_w=12;
     
     // 3D
     gcval_eta = 55;
@@ -69,7 +69,7 @@ fnpf_RK2::~fnpf_RK2()
 }
 
 void fnpf_RK2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
-{	   
+{       
     
 // Step 1
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
@@ -79,14 +79,14 @@ void fnpf_RK2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
     
     SLICELOOP4
-	erk1(i,j) = c->eta(i,j) + p->dt*c->K(i,j);
+    erk1(i,j) = c->eta(i,j) + p->dt*c->K(i,j);
     
     // fsf Fi
     pf->dfsfbc(p,c,pgc,c->eta);
     pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);
 
     SLICELOOP4
-	frk1(i,j) = c->Fifsf(i,j) + p->dt*c->K(i,j);
+    frk1(i,j) = c->Fifsf(i,j) + p->dt*c->K(i,j);
    
     pflow->eta_relax(p,pgc,erk1);
     pgc->gcsl_start4(p,erk1,gcval_eta);
@@ -121,14 +121,14 @@ void fnpf_RK2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->damping(p,c,pgc,erk1,gcval_eta,0.5);
     
     SLICELOOP4
-	c->eta(i,j) = 0.5*c->eta(i,j) + 0.5*erk1(i,j) + 0.5*p->dt*c->K(i,j);
+    c->eta(i,j) = 0.5*c->eta(i,j) + 0.5*erk1(i,j) + 0.5*p->dt*c->K(i,j);
     
     // fsf Fi
     pf->dfsfbc(p,c,pgc,erk1);
     pf->damping(p,c,pgc,frk1,gcval_fifsf,0.5);
     
     SLICELOOP4
-	c->Fifsf(i,j) = 0.5*c->Fifsf(i,j) + 0.5*frk1(i,j) + 0.5*p->dt*c->K(i,j);
+    c->Fifsf(i,j) = 0.5*c->Fifsf(i,j) + 0.5*frk1(i,j) + 0.5*p->dt*c->K(i,j);
     
     pflow->eta_relax(p,pgc,c->eta);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
@@ -162,7 +162,7 @@ void fnpf_RK2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 }
 
 void fnpf_RK2::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
-{	
+{    
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     etaloc_sig(p,c,pgc);
@@ -218,7 +218,7 @@ void fnpf_RK2::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
 }
 
 void fnpf_RK2::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
+{    
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   // coastline ini
 
     pf->coastline_eta(p,c,pgc,c->eta);

@@ -76,8 +76,8 @@ void directreini::triangulation(lexer *p,fdm* a, field& b, fieldint& nodeflag, f
         if(b(i,j,k)<zero && b(i+1,j,k)<zero && b(i+1,j+1,k)<zero && b(i,j+1,k)<zero &&
            b(i,j,k+1)<zero && b(i+1,j,k+1)<zero && b(i+1,j+1,k+1)<zero && b(i,j+1,k+1)<zero)
         check=0;
-		
-		if(b(i,j,k)>zero && b(i+1,j,k)>zero && b(i+1,j+1,k)>zero && b(i,j+1,k)>zero &&
+        
+        if(b(i,j,k)>zero && b(i+1,j,k)>zero && b(i+1,j+1,k)>zero && b(i,j+1,k)>zero &&
            b(i,j,k+1)>zero && b(i+1,j,k+1)>zero && b(i+1,j+1,k+1)>zero && b(i,j+1,k+1)>zero)
         check=0;
 
@@ -101,8 +101,8 @@ void directreini::triangulation(lexer *p,fdm* a, field& b, fieldint& nodeflag, f
         if(b(i,j,k)<zero && b(i-1,j,k)<zero && b(i-1,j-1,k)<zero && b(i,j-1,k)<zero &&
            b(i,j,k-1)<zero && b(i-1,j,k-1)<zero && b(i-1,j-1,k-1)<zero && b(i,j-1,k-1)<zero)
         check=0;
-		
-		if(b(i,j,k)>zero && b(i-1,j,k)>zero && b(i-1,j-1,k)>zero && b(i,j-1,k)>zero &&
+        
+        if(b(i,j,k)>zero && b(i-1,j,k)>zero && b(i-1,j-1,k)>zero && b(i,j-1,k)>zero &&
            b(i,j,k-1)>zero && b(i-1,j,k-1)>zero && b(i-1,j-1,k-1)>zero && b(i,j-1,k-1)>zero)
         check=0;
 
@@ -135,11 +135,11 @@ void directreini::triangulation(lexer *p,fdm* a, field& b, fieldint& nodeflag, f
     Darray(pt,numvert,3);
     Iarray(ijk,numvert,3);
     Darray(ls,numvert);
-	Darray(ls0,numvert);
-	Darray(ls1,numvert);
-	Darray(lsvert,numvert);
-	Darray(lsfac,numvert);
-	Iarray(reiniflag,numvert);
+    Darray(ls0,numvert);
+    Darray(ls1,numvert);
+    Darray(lsvert,numvert);
+    Darray(lsfac,numvert);
+    Iarray(reiniflag,numvert);
 
     Iarray(facet,numtri,4);
     Iarray(confac,numtri);
@@ -160,16 +160,16 @@ void directreini::triangulation(lexer *p,fdm* a, field& b, fieldint& nodeflag, f
     ijk[countM][2] = k;
 
     ls[countM] = b(i,j,k);
-	ls0[countM] = b(i,j,k);
-	lsvert[countM] = b(i,j,k);
-	lsfac[countM] = b(i,j,k);
+    ls0[countM] = b(i,j,k);
+    lsvert[countM] = b(i,j,k);
+    lsfac[countM] = b(i,j,k);
 
     vertice(i,j,k) = countM;
 
     ++countM;
     }
 
-	// p. 725, 956
+    // p. 725, 956
     count=0;
     countM=0;
     TPLOOP
@@ -182,7 +182,7 @@ void directreini::triangulation(lexer *p,fdm* a, field& b, fieldint& nodeflag, f
     if(nodeflag(i+1,j+1,k+1)==1)
     if(nodeflag(i,j+1,k+1)==1)
     {
-		
+        
     // 1
     tri[count][0] = vertice(i,j,k);
     tri[count][1] = vertice(i,j+1,k);
@@ -212,7 +212,7 @@ void directreini::triangulation(lexer *p,fdm* a, field& b, fieldint& nodeflag, f
     ++count;
 
     // 5
-	tri[count][0] = vertice(i,j+1,k);
+    tri[count][0] = vertice(i,j+1,k);
     tri[count][1] = vertice(i,j+1,k+1);
     tri[count][2] = vertice(i+1,j+1,k+1);
     tri[count][3] = vertice(i+1,j,k+1);

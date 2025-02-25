@@ -83,31 +83,31 @@ void hypre_sstruct_fnpf::create_solver5(lexer* p, ghostcell* pgc)
     if(p->N10==38)
     {
     HYPRE_SStructSysPFMGCreate(pgc->mpi_comm, &solver);
-	HYPRE_SStructSysPFMGSetMaxIter(solver, p->N46);
-	HYPRE_SStructSysPFMGSetTol(solver, p->N44);
-	HYPRE_SStructSysPFMGSetZeroGuess(solver);		
-	//HYPRE_SStructSysPFMGSetRAPType(solver, 0);
-	HYPRE_SStructSysPFMGSetRelaxType(solver, 1);
-	HYPRE_SStructSysPFMGSetNumPreRelax(solver, 1);
-	HYPRE_SStructSysPFMGSetNumPostRelax(solver, 1);
-	HYPRE_SStructSysPFMGSetSkipRelax(solver, 0);
-	HYPRE_SStructSysPFMGSetPrintLevel(solver, 0);
-	HYPRE_SStructSysPFMGSetLogging(solver, 0);
+    HYPRE_SStructSysPFMGSetMaxIter(solver, p->N46);
+    HYPRE_SStructSysPFMGSetTol(solver, p->N44);
+    HYPRE_SStructSysPFMGSetZeroGuess(solver);        
+    //HYPRE_SStructSysPFMGSetRAPType(solver, 0);
+    HYPRE_SStructSysPFMGSetRelaxType(solver, 1);
+    HYPRE_SStructSysPFMGSetNumPreRelax(solver, 1);
+    HYPRE_SStructSysPFMGSetNumPostRelax(solver, 1);
+    HYPRE_SStructSysPFMGSetSkipRelax(solver, 0);
+    HYPRE_SStructSysPFMGSetPrintLevel(solver, 0);
+    HYPRE_SStructSysPFMGSetLogging(solver, 0);
     }
     
     if(p->N11==31)
     {
     HYPRE_SStructSysPFMGCreate(pgc->mpi_comm, &precond);
-	HYPRE_SStructSysPFMGSetMaxIter(precond, 1);
-	HYPRE_SStructSysPFMGSetTol(precond, 0.0);
-	HYPRE_SStructSysPFMGSetZeroGuess(precond);		
-	//HYPRE_SStructSysPFMGSetRAPType(precond, 0);
-	HYPRE_SStructSysPFMGSetRelaxType(precond, 3);
-	HYPRE_SStructSysPFMGSetNumPreRelax(precond, 1);
-	HYPRE_SStructSysPFMGSetNumPostRelax(precond, 1);
-	HYPRE_SStructSysPFMGSetSkipRelax(precond, 0);
-	HYPRE_SStructSysPFMGSetPrintLevel(precond, 0);
-	HYPRE_SStructSysPFMGSetLogging(precond, 0);
+    HYPRE_SStructSysPFMGSetMaxIter(precond, 1);
+    HYPRE_SStructSysPFMGSetTol(precond, 0.0);
+    HYPRE_SStructSysPFMGSetZeroGuess(precond);        
+    //HYPRE_SStructSysPFMGSetRAPType(precond, 0);
+    HYPRE_SStructSysPFMGSetRelaxType(precond, 3);
+    HYPRE_SStructSysPFMGSetNumPreRelax(precond, 1);
+    HYPRE_SStructSysPFMGSetNumPostRelax(precond, 1);
+    HYPRE_SStructSysPFMGSetSkipRelax(precond, 0);
+    HYPRE_SStructSysPFMGSetPrintLevel(precond, 0);
+    HYPRE_SStructSysPFMGSetLogging(precond, 0);
     }
     
     if(p->N11==32)
@@ -168,7 +168,7 @@ void hypre_sstruct_fnpf::delete_solver5(lexer* p,ghostcell* pgc)
     
     if(p->N10==34)
     HYPRE_SStructBiCGSTABDestroy(solver);
-	
+    
     if(p->N10==38)
     HYPRE_SStructSysPFMGDestroy(solver);
     

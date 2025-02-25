@@ -32,20 +32,20 @@ fieldint6::fieldint6(lexer *p)
     kmin=p->kmin;
     kmax=p->kmax;
 
-	fieldalloc(p);
-	
-	pp=p;
+    fieldalloc(p);
+    
+    pp=p;
 }
 
 fieldint6::~fieldint6()
 {
-	delete [ ] V;
+    delete [ ] V;
 }
 
 void fieldint6::fieldalloc(lexer* p)
 {
-	int gridsize = imax*jmax*kmax;
-	p->Iarray(V,gridsize);
+    int gridsize = imax*jmax*kmax;
+    p->Iarray(V,gridsize);
 }
 
 void fieldint6::resize(lexer* p)
@@ -53,8 +53,8 @@ void fieldint6::resize(lexer* p)
 }
 
 int & fieldint6::operator()(int ii, int jj, int kk)
-{			
-	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
+{            
+    return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
 }
 
 

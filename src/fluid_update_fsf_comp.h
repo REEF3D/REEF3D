@@ -36,16 +36,16 @@ class fluid_update_fsf_comp : public fluid_update, increment
 {
 public:
     fluid_update_fsf_comp(lexer*, fdm*, ghostcell*);
-	virtual ~fluid_update_fsf_comp();
+    virtual ~fluid_update_fsf_comp();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+    virtual void start(lexer*, fdm*, ghostcell*);
 
 private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	int n;
-	double ro_air,epsi;
-	const double dx,visc_air,visc_water,ro_water;
+    int n;
+    double ro_air,epsi;
+    const double dx,visc_air,visc_water,ro_water;
 
 };
 

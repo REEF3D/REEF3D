@@ -38,21 +38,21 @@ class strain : public gradient
 {
 
 public:
-	strain (lexer*,fdm*);
-	virtual ~strain();
+    strain (lexer*,fdm*);
+    virtual ~strain();
 
-	double sij(lexer*,fdm*,int,int);
-	double qij(lexer*,fdm*,int,int);
-	double pk(lexer*,fdm*,field&);
+    double sij(lexer*,fdm*,int,int);
+    double qij(lexer*,fdm*,int,int);
+    double pk(lexer*,fdm*,field&);
     double pk_b(lexer*,fdm*,field&);
-	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
-	virtual double strainterm(lexer*,fdm*);
+    void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
+    virtual double strainterm(lexer*,fdm*);
     virtual double strainterm(lexer*,field&,field&,field&);
-	virtual double rotationterm(lexer*,fdm*);
+    virtual double rotationterm(lexer*,fdm*);
     virtual double rotationterm(lexer*,field&,field&,field&);
-	virtual double magSqrSd(lexer*,fdm*);
+    virtual double magSqrSd(lexer*,fdm*);
     virtual double magSqrSd(lexer*,field&,field&,field&);
-	double strainplain(lexer*,fdm*);
+    double strainplain(lexer*,fdm*);
 
 private:
     double roface(lexer*,fdm*,int,int,int);
@@ -62,8 +62,8 @@ private:
     double ss11,ss22,ss33,ss12,ss13,ss23;
     double rr11,rr22,rr33,rr12,rr13,rr23;
     double q11,q22,q33,q12,q13,q23;
-	double pkterm,s,q,val;
-	const double epsi;
+    double pkterm,s,q,val;
+    const double epsi;
 
 };
 

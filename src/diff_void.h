@@ -35,22 +35,22 @@ class diff_void : public diffusion, public increment
 
 public:
 
-	diff_void();
-	virtual ~diff_void();
+    diff_void();
+    virtual ~diff_void();
 
-	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double);
-	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double);
+    virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double);
+    virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double);
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
     
     virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
+    virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
+    virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 
     virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
-	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
-	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
+    virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
+    virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
 
 private:
-	int gcval_u,gcval_v,gcval_w;
+    int gcval_u,gcval_v,gcval_w;
 };
 #endif

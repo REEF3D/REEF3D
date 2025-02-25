@@ -33,17 +33,17 @@ using namespace std;
 class LES_smagorinsky : public LES
 {
 public:
-	LES_smagorinsky(lexer *, fdm*);
-	virtual ~LES_smagorinsky();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
+    LES_smagorinsky(lexer *, fdm*);
+    virtual ~LES_smagorinsky();
+    virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
+    virtual void ktimesave(lexer*, fdm*, ghostcell*);
+    virtual void etimesave(lexer*, fdm*, ghostcell*);
 
 private:
-	int gcval_sgs;
-	double c_sgs;
-	int gcval_u1, gcval_v1, gcval_w1;
-	int gcval_u2, gcval_v2, gcval_w2;
+    int gcval_sgs;
+    double c_sgs;
+    int gcval_u1, gcval_v1, gcval_w1;
+    int gcval_u2, gcval_v2, gcval_w2;
     
     LES_filter *pfilter;
 

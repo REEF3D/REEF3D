@@ -41,31 +41,31 @@ using namespace std;
 class sflow_momentum_RK3 : public sflow_momentum, public increment
 {
 public:
-	sflow_momentum_RK3(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 
+    sflow_momentum_RK3(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 
                         solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
-	virtual ~sflow_momentum_RK3();
-	virtual void start(lexer*, fdm2D*, ghostcell*);
+    virtual ~sflow_momentum_RK3();
+    virtual void start(lexer*, fdm2D*, ghostcell*);
 
     slice1 Prk1,Prk2;
-	slice2 Qrk1,Qrk2;
-	slice4 wrk1,wrk2;
+    slice2 Qrk1,Qrk2;
+    slice4 wrk1,wrk2;
     slice4 etark1,etark2;
 
 private:
-	void irhs(lexer*,fdm2D*,ghostcell*,slice&,double);
-	void jrhs(lexer*,fdm2D*,ghostcell*,slice&,double);
-	
-	int gcval_u, gcval_v, gcval_w;
-	int gcval_eta;
-	double starttime;
+    void irhs(lexer*,fdm2D*,ghostcell*,slice&,double);
+    void jrhs(lexer*,fdm2D*,ghostcell*,slice&,double);
+    
+    int gcval_u, gcval_v, gcval_w;
+    int gcval_eta;
+    double starttime;
 
-	sflow_convection *pconvec;
-	sflow_diffusion *pdiff;
-	sflow_pressure *ppress;
-	solver2D *psolv;
+    sflow_convection *pconvec;
+    sflow_diffusion *pdiff;
+    sflow_pressure *ppress;
+    solver2D *psolv;
     solver2D *ppoissonsolv;
-	ioflow *pflow;
-	sflow_fsf *pfsf;
+    ioflow *pflow;
+    sflow_fsf *pfsf;
     sflow_roughness *prough;
     sflow_rheology *prheo;
     sflow_forcing *psfdf;

@@ -32,7 +32,7 @@ class sflow_gradient_weno : public sflow_gradient, public increment
 {
 public:
     sflow_gradient_weno(lexer*);
-	virtual ~sflow_gradient_weno();
+    virtual ~sflow_gradient_weno();
 
     virtual double ddx(lexer*,fdm2D*,slice&,int,double);
     virtual double ddy(lexer*,fdm2D*,slice&,int,double);
@@ -40,26 +40,26 @@ public:
 private:
 
 
-	void iqmin(lexer*, fdm2D*, slice&, int);
-	void jqmin(lexer*, fdm2D*, slice&, int);
-	void iqmax(lexer*, fdm2D*, slice&, int);
-	void jqmax(lexer*, fdm2D*, slice&, int);
+    void iqmin(lexer*, fdm2D*, slice&, int);
+    void jqmin(lexer*, fdm2D*, slice&, int);
+    void iqmax(lexer*, fdm2D*, slice&, int);
+    void jqmax(lexer*, fdm2D*, slice&, int);
 
 
-	double L,grad;
-	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-	const double sixten,treten;
-	const double epsilon,smallnum;
-	double is1,is2,is3;
-	double alpha1,alpha2,alpha3;
-	double w1,w2,w3;
-	double q1,q2,q3,q4,q5;
-	double gradx, grady, gradz;
-	double fu1,fv1,fu2,fv2;
+    double L,grad;
+    const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+    const double sixten,treten;
+    const double epsilon,smallnum;
+    double is1,is2,is3;
+    double alpha1,alpha2,alpha3;
+    double w1,w2,w3;
+    double q1,q2,q3,q4,q5;
+    double gradx, grady, gradz;
+    double fu1,fv1,fu2,fv2;
 
-	void is(slice&);
-	void alpha();
-	void weight();
+    void is(slice&);
+    void alpha();
+    void weight();
 
 };
 

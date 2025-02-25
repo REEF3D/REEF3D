@@ -54,7 +54,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     preduce->start(p,pgc,s);
     
     // bedshear stress -------
-	pbedshear->taubed(p,a,pgc,s);
+    pbedshear->taubed(p,a,pgc,s);
     pbedshear->taucritbed(p,a,pgc,s);
 
     // bedload *******
@@ -67,7 +67,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     pcbed->start(p,pgc,s);
     
     // relax  *******
-	prelax->start(p,pgc,s);
+    prelax->start(p,pgc,s);
     
     for(int qqn=0;qqn<p->S27;++qqn)
     {
@@ -82,11 +82,11 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     }
     
     // relax  *******
-	prelax->start(p,pgc,s);
-	
+    prelax->start(p,pgc,s);
+    
     // filter bedzh *******
-	if(p->S100>0)
-	filter(p,pgc,s->bedzh,p->S100,p->S101);
+    if(p->S100>0)
+    filter(p,pgc,s->bedzh,p->S100,p->S101);
     
     // update cfd  --------
     update_cfd(p,a,pgc,pflow,preto);
@@ -97,7 +97,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     if(p->mpirank==0 && p->count>0)
     cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;
 
-	if(p->mpirank==0)
+    if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
 }
 

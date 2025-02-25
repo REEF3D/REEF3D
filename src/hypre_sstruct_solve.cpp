@@ -31,13 +31,13 @@ Author: Hans Bihs
 
 void hypre_sstruct::solve1234(lexer* p)
 {
-	p->solveriter=0;
-	    
+    p->solveriter=0;
+        
     HYPRE_SStructBiCGSTABSetup(solver, A, b, x);
     HYPRE_SStructBiCGSTABSolve(solver, A, b, x);
     
     HYPRE_SStructBiCGSTABGetNumIterations(solver, &num_iterations);
-	HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     
     
     p->solveriter=num_iterations;
@@ -46,7 +46,7 @@ void hypre_sstruct::solve1234(lexer* p)
 
 void hypre_sstruct::solve(lexer* p)
 {
-	p->solveriter=0;
+    p->solveriter=0;
 
     if(p->N10==31)
     {
@@ -54,7 +54,7 @@ void hypre_sstruct::solve(lexer* p)
     HYPRE_SStructPCGSolve(solver, A, b, x);
     
     HYPRE_SStructPCGGetNumIterations(solver, &num_iterations);
-	HYPRE_SStructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_SStructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(p->N10==32)
@@ -63,7 +63,7 @@ void hypre_sstruct::solve(lexer* p)
     HYPRE_SStructGMRESSolve(solver, A, b, x);
     
     HYPRE_SStructGMRESGetNumIterations(solver, &num_iterations);
-	HYPRE_SStructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_SStructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(p->N10==33)
@@ -72,7 +72,7 @@ void hypre_sstruct::solve(lexer* p)
     HYPRE_SStructLGMRESSolve(solver, A, b, x);
     
     HYPRE_SStructLGMRESGetNumIterations(solver, &num_iterations);
-	HYPRE_SStructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_SStructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(p->N10==34)
@@ -81,19 +81,19 @@ void hypre_sstruct::solve(lexer* p)
     HYPRE_SStructBiCGSTABSolve(solver, A, b, x);
     
     HYPRE_SStructBiCGSTABGetNumIterations(solver, &num_iterations);
-	HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-	
+    
     if(p->N10==38)
     {
     HYPRE_SStructSysPFMGSetup(solver, A, b, x);
     HYPRE_SStructSysPFMGSolve(solver, A, b, x);
     
     HYPRE_SStructSysPFMGGetNumIterations(solver, &num_iterations);
-	HYPRE_SStructSysPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    HYPRE_SStructSysPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
-	p->solveriter=num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 }
 

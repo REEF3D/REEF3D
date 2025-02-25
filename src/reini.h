@@ -36,7 +36,7 @@ class reini
 {
 public:
 
-	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*)=0;
+    virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*)=0;
 };
 
 #endif

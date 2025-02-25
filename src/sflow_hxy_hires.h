@@ -36,21 +36,21 @@ class sflow_hxy_hires : public sflow_hxy_disc, public increment
 
 public:
 
-	sflow_hxy_hires(lexer*,patchBC_interface*,int);
-	virtual ~sflow_hxy_hires();
+    sflow_hxy_hires(lexer*,patchBC_interface*,int);
+    virtual ~sflow_hxy_hires();
 
-	virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&);
-	
+    virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&);
+    
 private:
     double fx(lexer*, slice&, int, double);
-	double fy(lexer*, slice&, int, double);
-	
-	double ul,ur,vl,vr,wl,wr;
+    double fy(lexer*, slice&, int, double);
+    
+    double ul,ur,vl,vr,wl,wr;
 
-	double dx,dy,dz;
-	double L;
-	
-	sflow_fluxlim *plim;
+    double dx,dy,dz;
+    double L;
+    
+    sflow_fluxlim *plim;
     sflow_flux *pflux;
     
     double ivel1,ivel2,jvel1,jvel2;

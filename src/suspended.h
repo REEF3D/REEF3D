@@ -38,8 +38,8 @@ class suspended
 {
 public:
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*)=0;
-	virtual void ctimesave(lexer*, fdm*)=0;
+    virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*)=0;
+    virtual void ctimesave(lexer*, fdm*)=0;
 
 };
 

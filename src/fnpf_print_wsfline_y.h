@@ -41,9 +41,9 @@ class fnpf_print_wsfline_y : public boundarycheck
 {
 public:
     fnpf_print_wsfline_y(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_print_wsfline_y();
+    virtual ~fnpf_print_wsfline_y();
 
-	void start(lexer*, fdm_fnpf*, ghostcell*,ioflow*,slice &f);
+    void start(lexer*, fdm_fnpf*, ghostcell*,ioflow*,slice &f);
 
 
 private:
@@ -60,8 +60,8 @@ private:
     ofstream wsfout;
 
     double xcoor;
-	
-	wave_theory *pwave;
+    
+    wave_theory *pwave;
 
     int maxknoy,sumknoy;
 

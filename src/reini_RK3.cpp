@@ -33,46 +33,46 @@ Author: Hans Bihs
 
 reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),dt(p)
 {
-	if(p->F50==1)
-	gcval_phi=51;
+    if(p->F50==1)
+    gcval_phi=51;
 
-	if(p->F50==2)
-	gcval_phi=52;
+    if(p->F50==2)
+    gcval_phi=52;
 
-	if(p->F50==3)
-	gcval_phi=53;
+    if(p->F50==3)
+    gcval_phi=53;
 
-	if(p->F50==4)
-	gcval_phi=54;
+    if(p->F50==4)
+    gcval_phi=54;
     
     gcval_iniphi=50;
 
     if((p->F61>1.0e-20 || p->F60>1.0e-20) && p->F50==1)
     gcval_iniphi=51;
-	
-	if((p->F62>1.0e-20 || p->F60>1.0e-20) && p->F50==2)
+    
+    if((p->F62>1.0e-20 || p->F60>1.0e-20) && p->F50==2)
     gcval_iniphi=52;
-	
-	if(((p->F61>1.0e-20 && p->F62>1.0e-20) || p->F60>1.0e-20) && p->F50==3)
+    
+    if(((p->F61>1.0e-20 && p->F62>1.0e-20) || p->F60>1.0e-20) && p->F50==3)
     gcval_iniphi=53;
 
-	gcval_ro=1;
-	
-	if(type==41)
-	gcval_iniphi=50;
+    gcval_ro=1;
+    
+    if(type==41)
+    gcval_iniphi=50;
 
     
-	if(p->F46==1)
-	ppicard = new picard_f(p);
+    if(p->F46==1)
+    ppicard = new picard_f(p);
 
-	if(p->F46!=1)
-	ppicard = new picard_void(p);
-	
-	if(p->F49==0)
-	prdisc = new reinidisc_fsf(p);
+    if(p->F46!=1)
+    ppicard = new picard_void(p);
+    
+    if(p->F49==0)
+    prdisc = new reinidisc_fsf(p);
 
-	if(p->F49==1)
-	prdisc = new reinidisc_f(p);
+    if(p->F49==1)
+    prdisc = new reinidisc_f(p);
     
     time_preproc(p);   
 }
@@ -91,20 +91,20 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
     if(p->count>0)
     gcval = gcval_phi;
     
-	ppicard->volcalc(p,a,pgc,a->phi);
-	
-	if(p->count==0)
-	{
+    ppicard->volcalc(p,a,pgc,a->phi);
+    
+    if(p->count==0)
+    {
         if(p->mpirank==0)
         cout<<"initializing level set..."<<endl<<endl;
         reiniter=2*int(p->maxlength/(p->F43*p->DXM));
         pgc->start4(p,f,gcval_iniphi);
-	}
+    }
     
-	if(p->count>0)
-	step(p,a);
-	
-	pflow->fsfrkin(p,a,pgc,frk1);
+    if(p->count>0)
+    step(p,a);
+    
+    pflow->fsfrkin(p,a,pgc,frk1);
     pflow->fsfrkin(p,a,pgc,frk2);
     pflow->fsfrkout(p,a,pgc,frk1);
     pflow->fsfrkout(p,a,pgc,frk2);
@@ -135,28 +135,28 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*a->L.V[IJK];
 
         pgc->start4(p,f,gcval);
-	}
+    }
     
-	ppicard->correct_ls(p,a,pgc,a->phi);
-	
-	p->reinitime+=pgc->timer()-starttime;
+    ppicard->correct_ls(p,a,pgc,a->phi);
+    
+    p->reinitime+=pgc->timer()-starttime;
 }
 
 void reini_RK3::step(lexer* p, fdm *a)
 {
-	reiniter=p->F44;
+    reiniter=p->F44;
 }
 
 void reini_RK3::time_preproc(lexer* p)
 {
-	LOOP
-	{
+    LOOP
+    {
     if(p->j_dir==0)
     dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
     
     if(p->j_dir==1)
-	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
-	}
+    dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+    }
 }
 
 

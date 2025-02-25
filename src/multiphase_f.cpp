@@ -38,10 +38,10 @@ Author: Hans Bihs
 
 multiphase_f::multiphase_f(lexer* p, fdm *a, ghostcell* pgc) : ls1(p), ls2(p)
 {
-	logic(p,a,pgc);
-	
-	pwsf1=new print_wsf(p,a,pgc,1);
-	pwsf2=new print_wsf(p,a,pgc,2);
+    logic(p,a,pgc);
+    
+    pwsf1=new print_wsf(p,a,pgc,1);
+    pwsf2=new print_wsf(p,a,pgc,2);
 }
 
 multiphase_f::~multiphase_f()
@@ -50,9 +50,9 @@ multiphase_f::~multiphase_f()
 
 void multiphase_f::start(lexer *p, fdm *a, ghostcell *pgc, convection *pmpconvec, solver *psolv, ioflow *pflow, reini* preini2, particle_corr* ppls, printer *pprint)
 {
-	pfsf1->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppls,ls1);
-	pfsf2->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppls,ls2);	
-	
-	update(p,a,pgc);
+    pfsf1->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppls,ls1);
+    pfsf2->start(a,p,pmpconvec,psolv,pgc,pflow,preini,ppls,ls2);    
+    
+    update(p,a,pgc);
 }
 

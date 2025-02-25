@@ -92,12 +92,12 @@ void ioflow_f::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         u(i-1,j,k)=p->Ui;
         u(i-2,j,k)=p->Ui;
         u(i-3,j,k)=p->Ui;
-		
-		v(i-1,j,k)=0.0;
+        
+        v(i-1,j,k)=0.0;
         v(i-2,j,k)=0.0;
         v(i-3,j,k)=0.0;
-		
-		w(i-1,j,k)=0.0;
+        
+        w(i-1,j,k)=0.0;
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
         
@@ -158,11 +158,11 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Ui/(M*pow(H,(2.0/3.0))),2.0);
         tau=(9.81*H*I*1000.0);
-		
-		if(p->mpirank==0 && p->count==0)
-		cout<<"I   "<<I<<endl;
-		
-		shearvel = p->Ui/(2.5*log((11.0*H/ks)));
+        
+        if(p->mpirank==0 && p->count==0)
+        cout<<"I   "<<I<<endl;
+        
+        shearvel = p->Ui/(2.5*log((11.0*H/ks)));
 
         for(n=0;n<p->gcin_count;n++)
         {
@@ -193,14 +193,14 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
     {
     Qin(p,a,pgc);
 
-	if(p->B60==1)
+    if(p->B60==1)
     ratio = p->W10/p->Qi;
-	
-	if(p->B60==2||p->B60==4)
-	ratio = hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/p->Qi;
+    
+    if(p->B60==2||p->B60==4)
+    ratio = hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/p->Qi;
 
-	if(fabs(p->Qi)<1.0e-20)
-	ratio=1.0;
+    if(fabs(p->Qi)<1.0e-20)
+    ratio=1.0;
 
 
         for(n=0;n<p->gcin_count;++n)
@@ -224,8 +224,8 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-	
-		if(a->phi(i-1,j,k)<-epsi1*p->DXM && a->phi(i-1,j,k)>=-epsi2*p->DXM && a->topo(i,j,k)>0.0)
+    
+        if(a->phi(i-1,j,k)<-epsi1*p->DXM && a->phi(i-1,j,k)>=-epsi2*p->DXM && a->topo(i,j,k)>0.0)
         {
         fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->DXM);
         u(i-1,j,k)=u(i-1,j,k)*fac;
@@ -242,20 +242,20 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 
         if(a->phi(i,j,k)<-epsi2*p->DXM)
         pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
-		
+        
     }
-	
-	for(n=0;n<p->gcin_count;n++)
+    
+    for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-		
-		v(i-1,j,k)=0.0;
+        
+        v(i-1,j,k)=0.0;
         v(i-2,j,k)=0.0;
         v(i-3,j,k)=0.0;
-		
-		w(i-1,j,k)=0.0;
+        
+        w(i-1,j,k)=0.0;
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
     }
@@ -306,18 +306,18 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         if(a->phi(i-1,j,k)<-epsi2*p->DXM)
         pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
     }
-	
-	for(n=0;n<p->gcin_count;n++)
+    
+    for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-		
-		v(i-1,j,k)=0.0;
+        
+        v(i-1,j,k)=0.0;
         v(i-2,j,k)=0.0;
         v(i-3,j,k)=0.0;
-		
-		w(i-1,j,k)=0.0;
+        
+        w(i-1,j,k)=0.0;
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
     }

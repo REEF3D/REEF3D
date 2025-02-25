@@ -35,17 +35,17 @@ using namespace std;
 class vrans_veg : public vrans, public increment
 {
 public:
-	vrans_veg(lexer*, ghostcell*);
-	virtual ~vrans_veg();
+    vrans_veg(lexer*, ghostcell*);
+    virtual ~vrans_veg();
 
-	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);	
-	virtual void start(lexer*, fdm*, ghostcell*, net*&, int){};
+    virtual void initialize_cfd(lexer*, fdm*, ghostcell*);    
+    virtual void start(lexer*, fdm*, ghostcell*, net*&, int){};
     virtual void sed_update(lexer*, fdm*, ghostcell*);
-	virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&){};	
+    virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&){};    
     
-	virtual void u_source(lexer*, fdm*);
-	virtual void v_source(lexer*, fdm*);
-	virtual void w_source(lexer*, fdm*);
+    virtual void u_source(lexer*, fdm*);
+    virtual void v_source(lexer*, fdm*);
+    virtual void w_source(lexer*, fdm*);
     
     virtual void ke_source(lexer*, fdm*, field&);
     virtual void kw_source(lexer*, fdm*, field&);
@@ -55,24 +55,24 @@ public:
     virtual void eddyv_func(lexer*, fdm*);
     
     virtual void veltimesave(lexer*,fdm*,ghostcell*);
-	
+    
 private:
-	
-	field4a N,D,Cd;
+    
+    field4a N,D,Cd;
     field1 un,unn;
     field2 vn,vnn;
     field3 wn,wnn;
-	
-	double Apor(double,double,double,double);
-	double Bpor(double,double,double);
-	
-	int count;
+    
+    double Apor(double,double,double,double);
+    double Bpor(double,double,double);
+    
+    int count;
     
     double N_val,D_val,Cd_val,Fi,Fd;
     double porval,partval,alphaval,betaval,viscval;
-	double val;
-	double porousterm;
-	const double Cval;
+    double val;
+    double porousterm;
+    const double Cval;
 };
 
 #endif
