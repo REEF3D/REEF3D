@@ -36,18 +36,18 @@ using namespace std;
 class bcmom : public surftens, public roughness
 {
 public:
-	bcmom(lexer*);
-	virtual ~bcmom();
-	virtual void bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
-	void wall_law_u(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
-	void wall_law_v(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
-	void wall_law_w(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
+    bcmom(lexer*);
+    virtual ~bcmom();
+    virtual void bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
+    void wall_law_u(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
+    void wall_law_v(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
+    void wall_law_w(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
 
 private:
-	const double kappa;
-	double uplus,ks_plus,dist,ks,ustar;
-	int ii,jj,kk;
-	double value;
-	int gcval_phi, bckin;
+    const double kappa;
+    double uplus,ks_plus,dist,ks,ustar;
+    int ii,jj,kk;
+    double value;
+    int gcval_phi, bckin;
 };
 #endif

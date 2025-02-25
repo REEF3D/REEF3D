@@ -33,10 +33,10 @@ using namespace std;
 class iweno_hj : public convection, public increment
 {
 public:
-	iweno_hj (lexer*);
-	virtual ~iweno_hj();
+    iweno_hj (lexer*);
+    virtual ~iweno_hj();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+    virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 
 private:
     void wenoloop1(lexer*,fdm*,field&,int,field&,field&,field&);
@@ -44,35 +44,35 @@ private:
     void wenoloop3(lexer*,fdm*,field&,int,field&,field&,field&);
     void wenoloop4(lexer*,fdm*,field&,int,field&,field&,field&);
 
-	void is_south(field&);
-	void is_north(field&);
-	void is_east(field&);
-	void is_west(field&);
-	void is_top(field&);
-	void is_bottom(field&);
+    void is_south(field&);
+    void is_north(field&);
+    void is_east(field&);
+    void is_west(field&);
+    void is_top(field&);
+    void is_bottom(field&);
 
-	void alpha_calc();
+    void alpha_calc();
 
-	void weight_calc();
+    void weight_calc();
 
-	void aij(fdm*, field&,field&,field&,field&);
-	void aij_south(lexer*,fdm*,field&, field&);
-	void aij_north(lexer*,fdm*,field&, field&);
-	void aij_east(lexer*,fdm*,field&, field&);
-	void aij_west(lexer*,fdm*,field&, field&);
-	void aij_top(lexer*,fdm*,field&, field&);
-	void aij_bottom(lexer*,fdm*,field&, field&);
+    void aij(fdm*, field&,field&,field&,field&);
+    void aij_south(lexer*,fdm*,field&, field&);
+    void aij_north(lexer*,fdm*,field&, field&);
+    void aij_east(lexer*,fdm*,field&, field&);
+    void aij_west(lexer*,fdm*,field&, field&);
+    void aij_top(lexer*,fdm*,field&, field&);
+    void aij_bottom(lexer*,fdm*,field&, field&);
 
-	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-	const double sixten,treten,epsilon,deltin;
+    const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+    const double sixten,treten,epsilon,deltin;
 
 
-	double is1,is2,is3;
-	double alpha1,alpha2,alpha3;
-	double w1,w2,w3;
-	double umin, umax, uplus;
-	int count,rocount,countN,coliN,aiipos;
-	int *range;
+    double is1,is2,is3;
+    double alpha1,alpha2,alpha3;
+    double w1,w2,w3;
+    double umin, umax, uplus;
+    int count,rocount,countN,coliN,aiipos;
+    int *range;
     
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;

@@ -41,15 +41,15 @@ using namespace std;
 class sixdof_void : public sixdof
 {
 public:
-	sixdof_void(lexer*,ghostcell*);
-	virtual ~sixdof_void();
+    sixdof_void(lexer*,ghostcell*);
+    virtual ~sixdof_void();
     
     virtual void start_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
     virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool);
     
     virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
     
-	virtual void ini(lexer*,ghostcell*);
+    virtual void ini(lexer*,ghostcell*);
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
     virtual void initialize(lexer*, fdm2D*, ghostcell*, vector<net*>&);
     virtual void initialize(lexer*, fdm_nhf*, ghostcell*, vector<net*>&);
@@ -71,8 +71,8 @@ private:
 
     vector<mooring*> pmooring;
 
-	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
-	vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
+    vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
+    vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
 };
 
 #endif

@@ -28,10 +28,10 @@ void slice1::ggcpol(lexer* p)
     double val=0.0;
     int a,n,q,count;
 
-	 for(n=0;n<p->ggcslcount1;n++)
-	 {
-		 i=p->ggcsl1[n][0];
-		 j=p->ggcsl1[n][1];
+     for(n=0;n<p->ggcslcount1;n++)
+     {
+         i=p->ggcsl1[n][0];
+         j=p->ggcsl1[n][1];
    
         val=0.0;
         count=0;
@@ -69,14 +69,14 @@ void slice1::ggcpol(lexer* p)
         val+=gcfeld[p->mgcsl1[iter]-10][1][q];
         ++count;
         }
-		 
+         
         if(count>0)
         val/=double(count);
     
 
         V[iter]=val; 
         
-	 }
+     }
 }
 
 

@@ -34,41 +34,41 @@ using namespace std;
 class weno_hj : public convection, public increment
 {
 public:
-	weno_hj(lexer*);
-	virtual ~weno_hj();
+    weno_hj(lexer*);
+    virtual ~weno_hj();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+    virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
-	virtual double ddx(lexer*, fdm*, field&);
-	virtual double ddy(lexer*, fdm*, field&);
-	virtual double ddz(lexer*, fdm*, field&);
-	void iqmin(field&, double, double*);
-	void jqmin(field&, double, double*);
-	void kqmin(field&, double, double*);
-	void iqmax(field&, double, double*);
-	void jqmax(field&, double, double*);
-	void kqmax(field&, double, double*);
+    virtual double ddx(lexer*, fdm*, field&);
+    virtual double ddy(lexer*, fdm*, field&);
+    virtual double ddz(lexer*, fdm*, field&);
+    void iqmin(field&, double, double*);
+    void jqmin(field&, double, double*);
+    void kqmin(field&, double, double*);
+    void iqmax(field&, double, double*);
+    void jqmax(field&, double, double*);
+    void kqmax(field&, double, double*);
 
-	double L,grad;
-	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-	const double sixten,treten;
-	const double epsilon,smallnum;
-	double is1,is2,is3;
-	double alpha1,alpha2,alpha3;
-	double w1,w2,w3;
-	double q1,q2,q3,q4,q5;
-	double gradx, grady, gradz;
+    double L,grad;
+    const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+    const double sixten,treten;
+    const double epsilon,smallnum;
+    double is1,is2,is3;
+    double alpha1,alpha2,alpha3;
+    double w1,w2,w3;
+    double q1,q2,q3,q4,q5;
+    double gradx, grady, gradz;
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
     double iadvec,jadvec,kadvec;
 
 
-	void is();
-	void alpha();
-	void weight();
+    void is();
+    void alpha();
+    void weight();
     
     flux *pflux;
 };

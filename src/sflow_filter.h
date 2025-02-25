@@ -41,12 +41,12 @@ using namespace std;
 class sflow_filter : public increment
 {
 public:
-	sflow_filter(lexer*);
-	virtual ~sflow_filter();
+    sflow_filter(lexer*);
+    virtual ~sflow_filter();
 
     virtual void filter(lexer*, fdm2D*, ghostcell*);
-	virtual void filter1(lexer*, fdm2D*, ghostcell*);
-	virtual void filter2(lexer*, fdm2D*, ghostcell*);
+    virtual void filter1(lexer*, fdm2D*, ghostcell*);
+    virtual void filter2(lexer*, fdm2D*, ghostcell*);
     virtual void filter4(lexer*, fdm2D*, ghostcell*);
     
     slice1 f1x,f1y;

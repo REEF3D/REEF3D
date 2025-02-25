@@ -106,167 +106,167 @@ double weno3_flux::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vv
         pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
-		
-		i-=1;
-		fu1 = fx(p,a,b,uvel,ipol,ivel1);
-		i+=1;
-		
-		fu2 = fx(p,a,b,uvel,ipol,ivel2);
+        
+        i-=1;
+        fu1 = fx(p,a,b,uvel,ipol,ivel1);
+        i+=1;
+        
+        fu2 = fx(p,a,b,uvel,ipol,ivel2);
 
         fv1=fv2=0.0;
-		if(p->j_dir==1)
+        if(p->j_dir==1)
         {
-		j-=1;
-		fv1 = fy(p,a,b,vvel,ipol,jvel1);
-		j+=1;
-		
-		fv2 = fy(p,a,b,vvel,ipol,jvel2);
+        j-=1;
+        fv1 = fy(p,a,b,vvel,ipol,jvel1);
+        j+=1;
+        
+        fv2 = fy(p,a,b,vvel,ipol,jvel2);
         }
 
 
 
-		k-=1;
-		fw1 = fz(p,a,b,wvel,ipol,kvel1);
-		k+=1;
-		
-		fw2 = fz(p,a,b,wvel,ipol,kvel2);
-		
-		
-		L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
-		      - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
-			  - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
-			  
+        k-=1;
+        fw1 = fz(p,a,b,wvel,ipol,kvel1);
+        k+=1;
         
-		return L;
+        fw2 = fz(p,a,b,wvel,ipol,kvel2);
+        
+        
+        L =   - ((ivel2*fu2-ivel1*fu1)/DX[IP]) 
+              - ((jvel2*fv2-jvel1*fv1)/DY[JP]) 
+              - ((kvel2*fw2-kvel1*fw1)/DZ[KP]);
+              
+        
+        return L;
 }
 
 double weno3_flux::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, double advec)
 {
     grad = 0.0;
 
-	if(advec>0.0)
-	{
-	iqmin(p,a,b,uvel,ipol);
-	is_min_x();
-	weight_min_x();
+    if(advec>0.0)
+    {
+    iqmin(p,a,b,uvel,ipol);
+    is_min_x();
+    weight_min_x();
 
-	grad = w1x*(qfx[IP][uf][0][0]*q2 + qfx[IP][uf][0][1]*q3)
+    grad = w1x*(qfx[IP][uf][0][0]*q2 + qfx[IP][uf][0][1]*q3)
     
          + w2x*(qfx[IP][uf][1][0]*q2 - qfx[IP][uf][1][1]*q1);
-	}
+    }
 
-	if(advec<0.0)
-	{
-	iqmax(p,a,b,uvel,ipol);
-	is_max_x();
-	weight_max_x();
+    if(advec<0.0)
+    {
+    iqmax(p,a,b,uvel,ipol);
+    is_max_x();
+    weight_max_x();
     
-	grad = w1x*(qfx[IP][uf][2][0]*q2 - qfx[IP][uf][2][1]*q3)
+    grad = w1x*(qfx[IP][uf][2][0]*q2 - qfx[IP][uf][2][1]*q3)
     
          + w2x*(qfx[IP][uf][3][0]*q1 + qfx[IP][uf][3][1]*q2);
-	}
+    }
     
-	return grad;
+    return grad;
 }
 
 double weno3_flux::fy(lexer *p,fdm *a, field& b, field& vvel, int ipol, double advec)
 {
     grad = 0.0;
 
-	if(advec>0.0)
-	{
-	jqmin(p,a,b,vvel,ipol);
-	is_min_y();
-	weight_min_y();
-	
-	grad = w1y*(qfy[JP][vf][0][0]*q2 + qfy[JP][vf][0][1]*q3)
+    if(advec>0.0)
+    {
+    jqmin(p,a,b,vvel,ipol);
+    is_min_y();
+    weight_min_y();
+    
+    grad = w1y*(qfy[JP][vf][0][0]*q2 + qfy[JP][vf][0][1]*q3)
     
          + w2y*(qfy[JP][vf][1][0]*q2 - qfy[JP][vf][1][1]*q1);
-	}
+    }
 
-	if(advec<0.0)
-	{
-	jqmax(p,a,b,vvel,ipol);
-	is_max_y();
-	weight_max_y();
-	
-	grad = w1y*(qfy[JP][vf][2][0]*q2 - qfy[JP][vf][2][1]*q3)
+    if(advec<0.0)
+    {
+    jqmax(p,a,b,vvel,ipol);
+    is_max_y();
+    weight_max_y();
+    
+    grad = w1y*(qfy[JP][vf][2][0]*q2 - qfy[JP][vf][2][1]*q3)
     
          + w2y*(qfy[JP][vf][3][0]*q1 + qfy[JP][vf][3][1]*q2);
-	}
-	
-	return grad;
+    }
+    
+    return grad;
 }
 
 double weno3_flux::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, double advec)
 {
     grad = 0.0;
 
-	if(advec>0.0)
-	{
-	kqmin(p,a,b,wvel,ipol);
-	is_min_z();
-	weight_min_z();
-	
-	grad = w1z*(qfz[KP][wf][0][0]*q2 + qfz[KP][wf][0][1]*q3)
+    if(advec>0.0)
+    {
+    kqmin(p,a,b,wvel,ipol);
+    is_min_z();
+    weight_min_z();
+    
+    grad = w1z*(qfz[KP][wf][0][0]*q2 + qfz[KP][wf][0][1]*q3)
     
          + w2z*(qfz[KP][wf][1][0]*q2 - qfz[KP][wf][1][1]*q1);
-	}
+    }
 
-	if(advec<0.0)
-	{
-	kqmax(p,a,b,wvel,ipol);
-	is_max_z();
-	weight_max_z();
-	
-	grad = w1z*(qfz[KP][wf][2][0]*q2 - qfz[KP][wf][2][1]*q3)
+    if(advec<0.0)
+    {
+    kqmax(p,a,b,wvel,ipol);
+    is_max_z();
+    weight_max_z();
+    
+    grad = w1z*(qfz[KP][wf][2][0]*q2 - qfz[KP][wf][2][1]*q3)
     
          + w2z*(qfz[KP][wf][3][0]*q1 + qfz[KP][wf][3][1]*q2);
-	}
+    }
 
-	return grad;
+    return grad;
 }
 
 void weno3_flux::iqmin(lexer *p,fdm *a, field& f, field& uvel, int ipol)
-{	
-	q1 = f(i-1,j,k);
-	q2 = f(i,j,k);
-	q3 = f(i+1,j,k);
+{    
+    q1 = f(i-1,j,k);
+    q2 = f(i,j,k);
+    q3 = f(i+1,j,k);
 }
 
 void weno3_flux::jqmin(lexer *p,fdm *a, field& f, field& vvel, int ipol)
 {
-	q1 = f(i,j-1,k);
-	q2 = f(i,j,k);
-	q3 = f(i,j+1,k);
+    q1 = f(i,j-1,k);
+    q2 = f(i,j,k);
+    q3 = f(i,j+1,k);
 }
 
 void weno3_flux::kqmin(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 {
-	q1 = f(i,j,k-1);
-	q2 = f(i,j,k);
-	q3 = f(i,j,k+1);
+    q1 = f(i,j,k-1);
+    q2 = f(i,j,k);
+    q3 = f(i,j,k+1);
 }
 
 void weno3_flux::iqmax(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {
     q1 = f(i,j,k);
-	q2 = f(i+1,j,k);
-	q3 = f(i+2,j,k);
+    q2 = f(i+1,j,k);
+    q3 = f(i+2,j,k);
 }
 
 void weno3_flux::jqmax(lexer *p,fdm *a, field& f, field& vvel, int ipol)
 {
-	q1 = f(i,j,k);
-	q2 = f(i,j+1,k);
-	q3 = f(i,j+2,k);
+    q1 = f(i,j,k);
+    q2 = f(i,j+1,k);
+    q3 = f(i,j+2,k);
 }
 
 void weno3_flux::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 {
-	q1 = f(i,j,k);
-	q2 = f(i,j,k+1);
-	q3 = f(i,j,k+2);
+    q1 = f(i,j,k);
+    q2 = f(i,j,k+1);
+    q3 = f(i,j,k+2);
 }
 
 

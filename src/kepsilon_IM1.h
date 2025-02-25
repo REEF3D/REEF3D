@@ -31,14 +31,14 @@ using namespace std;
 class kepsilon_IM1 : public ikepsilon
 {
 public:
-	kepsilon_IM1(lexer*,fdm*,ghostcell*);
-	virtual ~kepsilon_IM1();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
-	void timesource(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
-	field4 kn,en;
+    kepsilon_IM1(lexer*,fdm*,ghostcell*);
+    virtual ~kepsilon_IM1();
+    virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
+    virtual void ktimesave(lexer*, fdm*, ghostcell*);
+    virtual void etimesave(lexer*, fdm*, ghostcell*);
+    void timesource(lexer*,fdm*,field&);
+    void clearrhs(lexer*,fdm*);
+    field4 kn,en;
 
 private:
     int gcval_kin, gcval_eps;

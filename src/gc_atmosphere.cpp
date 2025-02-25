@@ -27,11 +27,11 @@ Author: Hans Bihs
 void ghostcell::atmosphere(lexer *p, field& f, int gcv, int bc, int cs)
 {
     if(p->B30==3)
-	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=p->B31;
+    for(q=0;q<margin;++q)
+    f(i,j,k+q+1)=p->B31;
     
     if(p->B30!=3)
-	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=f(i,j,k);
+    for(q=0;q<margin;++q)
+    f(i,j,k+q+1)=f(i,j,k);
 }
 

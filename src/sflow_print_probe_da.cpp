@@ -31,75 +31,75 @@ Author: Hans Bihs
 sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) : probenum(p->P63)
 {
     p->Iarray(iloc,probenum);
-	p->Iarray(jloc,probenum);
-	p->Iarray(flag,probenum);
-	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_SFLOW_ProbePoint",0777);
-	
-	pout = new ofstream[probenum];
-	
+    p->Iarray(jloc,probenum);
+    p->Iarray(flag,probenum);
+    
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_SFLOW_ProbePoint",0777);
+    
+    pout = new ofstream[probenum];
+    
     if(p->mpirank==0 && probenum>0)
     {
-		cout<<"probepoint_num: "<<probenum<<endl;
-		// open file
-		for(n=0;n<probenum;++n)
-		{
-		sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
-		
-		pout[n].open(name);
+        cout<<"probepoint_num: "<<probenum<<endl;
+        // open file
+        for(n=0;n<probenum;++n)
+        {
+        sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
+        
+        pout[n].open(name);
 
-	    pout[n]<<"Depth Averaged Point Probe ID:  "<<n<<endl<<endl;
-		pout[n]<<"x_coord     y_coord"<<endl;
-		
-		pout[n]<<n+1<<"\t "<<p->P63_x[n]<<"\t "<<p->P63_y[n]<<endl;
+        pout[n]<<"Depth Averaged Point Probe ID:  "<<n<<endl<<endl;
+        pout[n]<<"x_coord     y_coord"<<endl;
+        
+        pout[n]<<n+1<<"\t "<<p->P63_x[n]<<"\t "<<p->P63_y[n]<<endl;
 
-		pout[n]<<endl<<endl;
-		
-		pout[n]<<"t \t Um \t Vm \t Wm \t Pm \t eta"<<endl;
-		}
+        pout[n]<<endl<<endl;
+        
+        pout[n]<<"t \t Um \t Vm \t Wm \t Pm \t eta"<<endl;
+        }
     }
-	
+    
     ini_location(p,b,pgc);
 }
 
 sflow_print_probe_da::~sflow_print_probe_da()
 {
-	for(n=0;n<probenum;++n)
+    for(n=0;n<probenum;++n)
     pout[n].close();
 }
 
 void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-	double xp,yp;
-	
-	for(n=0;n<probenum;++n)
-	{
-	uval=vval=wval=pval=eval=-1.0e20;
-	
-		if(flag[n]>0)
-		{
-		xp=p->P63_x[n];
-		yp=p->P63_y[n];
+    double xp,yp;
+    
+    for(n=0;n<probenum;++n)
+    {
+    uval=vval=wval=pval=eval=-1.0e20;
+    
+        if(flag[n]>0)
+        {
+        xp=p->P63_x[n];
+        yp=p->P63_y[n];
         
-		uval = p->ccslipol1(b->P, xp, yp);
-		vval = p->ccslipol2(b->Q, xp, yp);
-		wval = p->ccslipol4(b->ws,xp,yp); 
-		pval = p->ccslipol4(b->press,xp,yp);
+        uval = p->ccslipol1(b->P, xp, yp);
+        vval = p->ccslipol2(b->Q, xp, yp);
+        wval = p->ccslipol4(b->ws,xp,yp); 
+        pval = p->ccslipol4(b->press,xp,yp);
         eval = p->ccslipol4(b->eta,xp,yp); 
-		}
-	
-	uval=pgc->globalmax(uval);
-	vval=pgc->globalmax(vval);
-	wval=pgc->globalmax(wval);
-	pval=pgc->globalmax(pval);
+        }
+    
+    uval=pgc->globalmax(uval);
+    vval=pgc->globalmax(vval);
+    wval=pgc->globalmax(wval);
+    pval=pgc->globalmax(pval);
     eval=pgc->globalmax(eval);
-	
-	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<endl;
-	}
-			
+    
+    if(p->mpirank==0)
+    pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<endl;
+    }
+            
 }
 
 void sflow_print_probe_da::write(lexer *p, fdm2D *b, ghostcell *pgc)

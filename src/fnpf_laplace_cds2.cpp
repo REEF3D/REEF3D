@@ -44,9 +44,9 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     p->poissoniter=0;
     p->poissontime=0.0;
 
-	n=0;
+    n=0;
     LOOP
-	{
+    {
         if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
         {
         sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
@@ -95,14 +95,14 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         
         c->rhsvec.V[n] =  0.0;
         }
-	++n;
-	}
+    ++n;
+    }
     
     
     
     n=0;
-	LOOP
-	{
+    LOOP
+    {
             if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
             {
             // south
@@ -231,8 +231,8 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
                 c->M.b[n] = 0.0;
             }
             }
-	++n;
-	}
+    ++n;
+    }
     
     double starttime=pgc->timer();
     psolv->startF(p,pgc,f,c->rhsvec,c->M,8);
@@ -242,7 +242,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     p->poissontime+=endtime-starttime;
     
     
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"Fi_iter: "<<p->poissoniter<<" Final_residual: "<<p->final_res<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"Fi_iter: "<<p->poissoniter<<" Final_residual: "<<p->final_res<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
 }
 

@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"sliceint.h"
 
 void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
-{	
+{    
     FLOOP
     {  
         if(p->B98!=3||bc(i-1,j)==0)
@@ -62,7 +62,7 @@ void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
 }
 
 void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
-{	
+{    
     FLOOP
     {
         if(p->B98!=3||bc(i-1,j)==0)
@@ -101,7 +101,7 @@ void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
 
 
 void ghostcell::fivec_vel(lexer *p, double *f, sliceint &bc)
-{	
+{    
     FLOOP
     {  
         if(p->flag7[FIm1JK]<0)
@@ -135,7 +135,7 @@ void ghostcell::fivec_vel(lexer *p, double *f, sliceint &bc)
 }
 
 void ghostcell::fivec2D_vel(lexer *p, double *f, sliceint &bc)
-{	
+{    
     FLOOP
     {
         if(p->flag7[FIm1JK]<0)

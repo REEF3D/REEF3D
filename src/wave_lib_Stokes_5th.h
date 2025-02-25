@@ -32,7 +32,7 @@ class wave_lib_Stokes_5th : public wave_lib, public increment
 {
 public:
     wave_lib_Stokes_5th(lexer*, ghostcell*);
-	virtual ~wave_lib_Stokes_5th();
+    virtual ~wave_lib_Stokes_5th();
     
     double wave_horzvel(lexer*,double,double,double);
     virtual double wave_horzvel_space_sin(lexer*,double,double,double,int);
@@ -98,7 +98,7 @@ private:
     double wS;
     
     double X0;
-	
+    
     const double pshift;
 };
 

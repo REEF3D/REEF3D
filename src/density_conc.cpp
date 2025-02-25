@@ -63,8 +63,8 @@ double density_conc::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         roval = (p->W1+concval*p->C1)*H + (p->W3+concval*p->C3)*(1.0-H);
     
 
-	
-	return roval;		
+    
+    return roval;        
 }
 
 

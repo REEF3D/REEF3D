@@ -29,26 +29,26 @@ Author: Hans Bihs
 
 flowfile_out::flowfile_out(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P230), eps(1.0e-10*p->DXM)
 {
-	//------------------------------
+    //------------------------------
     initialize(p,a,pgc);
-	//------------------------------
-	ini_location(p,a,pgc);
-	//------------------------------
+    //------------------------------
+    ini_location(p,a,pgc);
+    //------------------------------
     header_file_ini(p,a,pgc);
     //------------------------------
 }
 
 flowfile_out::~flowfile_out()
 {
-	for(n=0;n<probenum;++n)
+    for(n=0;n<probenum;++n)
     fileout[n].close();
 }
 
 void flowfile_out::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {
-	int num;
-	
-	if(p->P15==1)
+    int num;
+    
+    if(p->P15==1)
     num = filecount;
 
     if(p->P15==2)
@@ -56,14 +56,14 @@ void flowfile_out::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     
     for(n=0;n<p->P230;++n)
     if(p->mpirank==0)
-	{
+    {
         // header file
         header_file(p,a,pgc);
     }
 
-	for(n=0;n<p->P230;++n)
+    for(n=0;n<p->P230;++n)
     if(p->P230_x[n]>=p->originx && p->P230_x[n]<p->endx)
-	{
+    {
 
         // filename
         filename(p,a,pgc);
@@ -71,9 +71,9 @@ void flowfile_out::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
         
         // write
         write_data(p,a,pgc);
-	}
-	
-	++filecount;
+    }
+    
+    ++filecount;
 }
 
 

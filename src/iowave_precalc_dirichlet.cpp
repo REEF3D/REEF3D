@@ -31,7 +31,7 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
     p->wavetime = p->simtime;
     
         count=0;
-		for(n=0;n<p->gcslin_count;n++)
+        for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
@@ -47,11 +47,11 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         
     
         count=0;
-		for(n=0;n<p->gcin_count;n++)
-		{
-		i=p->gcin[n][0];
-		j=p->gcin[n][1];
-		k=p->gcin[n][2];
+        for(n=0;n<p->gcin_count;n++)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
         
         x=xgen(p);
         y=ygen(p);
@@ -72,8 +72,8 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         {
         if(zloc3<=p->phimean)
         z3 = -(fabs(p->phimean-zloc3));
-		
-		if(zloc3>p->phimean)
+        
+        if(zloc3>p->phimean)
         z3 = (fabs(p->phimean-zloc3));
         }
         
@@ -85,8 +85,8 @@ void iowave::wavegen_precalc_dirichlet(lexer *p, ghostcell *pgc)
         {
         if(zloc4<=p->phimean)
         z=-(fabs(p->phimean-zloc4));
-		
-		if(zloc4>p->phimean)
+        
+        if(zloc4>p->phimean)
         z=(fabs(p->phimean-zloc4));
         }
         

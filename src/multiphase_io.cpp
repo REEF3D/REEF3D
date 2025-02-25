@@ -27,52 +27,52 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"reini.h"
 #include"print_wsf.h"
-	
+    
 void multiphase_f::print_3D(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 
     TPLOOP
-	{
-	ffn=float(p->ipol4(ls1));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    {
+    ffn=float(p->ipol4(ls1));
+    result.write((char*)&ffn, sizeof (float));
+    }
 
 
-	iin=4*(p->pointnum);
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 
-	TPLOOP
-	{
-	ffn=float(p->ipol4(ls2));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    TPLOOP
+    {
+    ffn=float(p->ipol4(ls2));
+    result.write((char*)&ffn, sizeof (float));
+    }
 
-	
-	iin=4*(p->pointnum);
+    
+    iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(a->ro));
-	result.write((char*)&ffn, sizeof (float));
-	}
-	
+    TPLOOP
+    {
+    ffn=float(p->ipol4_a(a->ro));
+    result.write((char*)&ffn, sizeof (float));
+    }
+    
 }
 
 void multiphase_f::print_file(lexer *p, fdm *a, ghostcell *pgc)
 {
-	if(p->P351>0)
-	pwsf1->height_gauge(p,a,pgc,ls1);
-	
-	if(p->P352>0)
-    pwsf2->height_gauge(p,a,pgc,ls2);	
+    if(p->P351>0)
+    pwsf1->height_gauge(p,a,pgc,ls1);
+    
+    if(p->P352>0)
+    pwsf2->height_gauge(p,a,pgc,ls2);    
 }
 
 double multiphase_f::ls1val(int ii, int jj, int kk)
 {
-	double val;
+    double val;
     i=ii;
     j=jj;
     k=kk;
@@ -80,12 +80,12 @@ double multiphase_f::ls1val(int ii, int jj, int kk)
     val=ls1(i,j,k);
 
     return val;
-	
+    
 }
 
 double multiphase_f::ls2val(int ii, int jj, int kk)
 {
-	double val;
+    double val;
     i=ii;
     j=jj;
     k=kk;
@@ -93,12 +93,12 @@ double multiphase_f::ls2val(int ii, int jj, int kk)
     val=ls2(i,j,k);
 
     return val;
-	
+    
 }
 
 double multiphase_f::ccipol_ls1val(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
-	double val;
+    double val;
 
     val=p->ccipol4( ls1, xp, yp, zp);
 
@@ -107,7 +107,7 @@ double multiphase_f::ccipol_ls1val(lexer *p, ghostcell *pgc, double xp, double y
 
 double multiphase_f::ccipol_ls2val(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
-	double val;
+    double val;
 
     val=p->ccipol4( ls2, xp, yp, zp);
 
@@ -116,7 +116,7 @@ double multiphase_f::ccipol_ls2val(lexer *p, ghostcell *pgc, double xp, double y
 
 void multiphase_f::ls1get(int ii, int jj, int kk, double val)
 {
-	i=ii;
+    i=ii;
     j=jj;
     k=kk;
 
@@ -125,7 +125,7 @@ void multiphase_f::ls1get(int ii, int jj, int kk, double val)
 
 void multiphase_f::ls2get(int ii, int jj, int kk, double val)
 {
-	i=ii;
+    i=ii;
     j=jj;
     k=kk;
 
@@ -134,29 +134,29 @@ void multiphase_f::ls2get(int ii, int jj, int kk, double val)
 
 void multiphase_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-	result<<"<PDataArray type=\"Float32\" Name=\"ls1\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"ls1\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"ls2\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
 }
 
 void multiphase_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-	result<<"<DataArray type=\"Float32\" Name=\"ls1\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ls1\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"ls2\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"ls2\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"rho\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"rho\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
 
 void multiphase_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
 }
 
 

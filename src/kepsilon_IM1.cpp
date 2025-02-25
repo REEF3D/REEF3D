@@ -32,8 +32,8 @@ Author: Hans Bihs
 
 kepsilon_IM1::kepsilon_IM1(lexer* p, fdm* a, ghostcell *pgc) : ikepsilon(p,a,pgc),kn(p),en(p)
 {
-	gcval_kin=20;
-	gcval_eps=30;
+    gcval_kin=20;
+    gcval_eps=30;
 }
 
 kepsilon_IM1::~kepsilon_IM1()
@@ -42,57 +42,57 @@ kepsilon_IM1::~kepsilon_IM1()
 
 void kepsilon_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
 {
-	wallf_update(p,a,pgc,wallf);
+    wallf_update(p,a,pgc,wallf);
 
 // kin
     starttime=pgc->timer();
-	clearrhs(p,a);
+    clearrhs(p,a);
     pconvec->start(p,a,kin,4,a->u,a->v,a->w);
-	pdiff->idiff_scalar(p,a,pgc,psolv,kin,a->eddyv,ke_sigma_k,1.0);
-	kinsource(p,a,pvrans);
-	timesource(p,a,kn);
+    pdiff->idiff_scalar(p,a,pgc,psolv,kin,a->eddyv,ke_sigma_k,1.0);
+    kinsource(p,a,pvrans);
+    timesource(p,a,kn);
     bckeps_start(a,p,kin,eps,gcval_kin);
-	psolv->start(p,a,pgc,kin,a->rhsvec,4);
-	pgc->start4(p,kin,gcval_kin);
-	p->kintime=pgc->timer()-starttime;
-	p->kiniter=p->solveriter;
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"kiniter: "<<p->kiniter<<"  kintime: "<<setprecision(3)<<p->kintime<<endl;
+    psolv->start(p,a,pgc,kin,a->rhsvec,4);
+    pgc->start4(p,kin,gcval_kin);
+    p->kintime=pgc->timer()-starttime;
+    p->kiniter=p->solveriter;
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"kiniter: "<<p->kiniter<<"  kintime: "<<setprecision(3)<<p->kintime<<endl;
 
 // eps
     starttime=pgc->timer();
-	clearrhs(p,a);
+    clearrhs(p,a);
     pconvec->start(p,a,eps,4,a->u,a->v,a->w);
-	pdiff->idiff_scalar(p,a,pgc,psolv,eps,a->eddyv,ke_sigma_e,1.0);
-	epssource(p,a,pvrans);
-	timesource(p,a,en);
-	psolv->start(p,a,pgc,eps,a->rhsvec,4);
-	epsfsf(p,a,pgc);
-	bckeps_start(a,p,kin,eps,gcval_eps);
-	pgc->start4(p,eps,gcval_eps);
-	p->epstime=pgc->timer()-starttime;
-	p->epsiter=p->solveriter;
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"epsiter: "<<p->epsiter<<"  epstime: "<<setprecision(3)<<p->epstime<<endl;
+    pdiff->idiff_scalar(p,a,pgc,psolv,eps,a->eddyv,ke_sigma_e,1.0);
+    epssource(p,a,pvrans);
+    timesource(p,a,en);
+    psolv->start(p,a,pgc,eps,a->rhsvec,4);
+    epsfsf(p,a,pgc);
+    bckeps_start(a,p,kin,eps,gcval_eps);
+    pgc->start4(p,eps,gcval_eps);
+    p->epstime=pgc->timer()-starttime;
+    p->epsiter=p->solveriter;
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"epsiter: "<<p->epsiter<<"  epstime: "<<setprecision(3)<<p->epstime<<endl;
 
-	eddyvisc(a,p,pgc,pvrans);
-	pgc->start4(p,a->eddyv,24);
+    eddyvisc(a,p,pgc,pvrans);
+    pgc->start4(p,a->eddyv,24);
 }
 
 void kepsilon_IM1::ktimesave(lexer *p, fdm* a, ghostcell *pgc)
 {
     LOOP
     kn(i,j,k)=kin(i,j,k);
-	
-	pgc->start4(p,kn,1);
+    
+    pgc->start4(p,kn,1);
 }
 
 void kepsilon_IM1::etimesave(lexer *p, fdm* a, ghostcell *pgc)
 {
     LOOP
     en(i,j,k)=eps(i,j,k);
-	
-	pgc->start4(p,en,1);
+    
+    pgc->start4(p,en,1);
 }
 
 void kepsilon_IM1::timesource(lexer* p, fdm* a, field& fn)
@@ -104,7 +104,7 @@ void kepsilon_IM1::timesource(lexer* p, fdm* a, field& fn)
 
         a->rhsvec.V[count] += a->L(i,j,k) + fn(i,j,k)/DT;
 
-	++count;
+    ++count;
     }
 }
 
@@ -114,8 +114,8 @@ void kepsilon_IM1::clearrhs(lexer* p, fdm* a)
     LOOP
     {
     a->rhsvec.V[count]=0.0;
-	a->L(i,j,k)=0.0;
-	++count;
+    a->L(i,j,k)=0.0;
+    ++count;
     }
 }
 

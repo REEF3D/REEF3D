@@ -34,7 +34,7 @@ class reinitopo
 {
 public:
 
-	virtual void start(lexer*,fdm*,ghostcell*,field&)=0;
+    virtual void start(lexer*,fdm*,ghostcell*,field&)=0;
 
 };
 

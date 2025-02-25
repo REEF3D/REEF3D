@@ -35,32 +35,32 @@ roughness::~roughness()
 
 double roughness::ks_val(lexer *p, fdm* a,int ii,int jj, int kk, int cs, int bc)
 {
-	ks=p->B50;
-	
-	if(cs==1 && p->B51>0.0)
-	ks=p->B51;	
-	
-	if(cs==2 && p->B52>0.0)
-	ks=p->B52;	
-	
-	if(cs==3 && p->B53>0.0)
-	ks=p->B53;	
-	
-	if(cs==4 && p->B54>0.0)
-	ks=p->B54;	
-	
-	if(cs==5 && p->B55>0.0)
-	ks=p->B55;	
-	
-	if(cs==6 && p->B56>0.0)
-	ks=p->B56;	
-	
-	if(bc==5)
-	ks=p->S21*p->S20;
+    ks=p->B50;
+    
+    if(cs==1 && p->B51>0.0)
+    ks=p->B51;    
+    
+    if(cs==2 && p->B52>0.0)
+    ks=p->B52;    
+    
+    if(cs==3 && p->B53>0.0)
+    ks=p->B53;    
+    
+    if(cs==4 && p->B54>0.0)
+    ks=p->B54;    
+    
+    if(cs==5 && p->B55>0.0)
+    ks=p->B55;    
+    
+    if(cs==6 && p->B56>0.0)
+    ks=p->B56;    
+    
+    if(bc==5)
+    ks=p->S21*p->S20;
     
     if(p->S10>0 && (a->topo(i-1,j,k)<0.0 || a->topo(i+1,j,k-1)<0.0 || a->topo(i,j-1,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k-1)<0.0))
     ks=p->S21*p->S20;
-			
-		
-	return ks;
+            
+        
+    return ks;
 }

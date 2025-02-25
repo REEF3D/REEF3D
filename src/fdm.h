@@ -59,25 +59,25 @@ public:
 
     fdm(lexer*);
 
-	double gi,gj,gk;
+    double gi,gj,gk;
 
-	field1 u,F;
-	field2 v,G;
-	field3 w,H;
-	field4 press;
+    field1 u,F;
+    field2 v,G;
+    field3 w,H;
+    field4 press;
     field4 Fi;
-	field4 eddyv;
-	field4 L;
-	field4 ro,dro,visc;
-	field4 phi,vof;
-	field4 conc;
+    field4 eddyv;
+    field4 L;
+    field4 ro,dro,visc;
+    field4 phi,vof;
+    field4 conc;
     field4 test;
-	field4a topo,solid;
-	field4a fb;
-	field4a porosity,porpart;
-	field5 walld;
-	 
-	fieldint5 nodeval;
+    field4a topo,solid;
+    field4a fb;
+    field4a porosity,porpart;
+    field5 walld;
+     
+    fieldint5 nodeval;
     sliceint5 nodeval2D;
    
     // 6DOF
@@ -99,14 +99,14 @@ public:
     
     slice4 bed;
     
-	vec rhsvec;
+    vec rhsvec;
 
-	matrix_diag M;
+    matrix_diag M;
 
     double maxF,maxG,maxH;
     double wd_criterion;
-	
-	double t1,t2,t3,t4,t5;
+    
+    double t1,t2,t3,t4,t5;
 };
 
 #endif

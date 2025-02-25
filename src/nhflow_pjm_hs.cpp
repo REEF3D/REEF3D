@@ -41,7 +41,7 @@ nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d, patchBC_interface *ppBC) : nh
 {
     pBC = ppBC;
     
-	pd = new density_f(p);
+    pd = new density_f(p);
 
     gcval_press=540;  
 }
@@ -55,11 +55,11 @@ void nhflow_pjm_hs::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pgc, io
 }
 
 void nhflow_pjm_hs::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *U, double *P, double alpha)
-{	
+{    
 }
 
 void nhflow_pjm_hs::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *V, double *P, double alpha)
-{	 
+{     
 }
 
 void nhflow_pjm_hs::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *W, double *P, double alpha)
@@ -86,7 +86,7 @@ void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
-	d->G[IJK] += PORVALNH*0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
+    d->G[IJK] += PORVALNH*0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
 }
 

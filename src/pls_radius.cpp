@@ -40,28 +40,28 @@ void particle_pls::setradius(lexer* p, fdm* a)
 
 void particle_pls::posradius(lexer *p, fdm *a, int qx)
 {
-	pos[qx][3]=phipol(p,a,pos[qx][0],pos[qx][1],pos[qx][2]);
-	
-	if(pos[qx][3]<rmin)
-	pos[qx][4]=rmin;
+    pos[qx][3]=phipol(p,a,pos[qx][0],pos[qx][1],pos[qx][2]);
+    
+    if(pos[qx][3]<rmin)
+    pos[qx][4]=rmin;
 
-	if(pos[qx][3]>rmax)
-	pos[qx][4]=rmax;
+    if(pos[qx][3]>rmax)
+    pos[qx][4]=rmax;
 
-	if(pos[qx][3]>=rmin && pos[qx][3]<=rmax)
-	pos[qx][4]=fabs(pos[qx][3]);
+    if(pos[qx][3]>=rmin && pos[qx][3]<=rmax)
+    pos[qx][4]=fabs(pos[qx][3]);
 }
 
 void particle_pls::negradius(lexer *p, fdm *a, int qx)
 {
-	neg[qx][3]=phipol(p,a,neg[qx][0],neg[qx][1],neg[qx][2]);
+    neg[qx][3]=phipol(p,a,neg[qx][0],neg[qx][1],neg[qx][2]);
 
-	if(neg[qx][3]>-rmin)
-	neg[qx][4]=rmin;
+    if(neg[qx][3]>-rmin)
+    neg[qx][4]=rmin;
 
     if(neg[qx][3]<-rmax)
-	neg[qx][4]=rmax;
+    neg[qx][4]=rmax;
 
-	if(neg[qx][3]<=-rmin && neg[qx][3]>=-rmax)
-	neg[qx][4]=fabs(neg[qx][3]);
+    if(neg[qx][3]<=-rmin && neg[qx][3]>=-rmax)
+    neg[qx][4]=fabs(neg[qx][3]);
 }

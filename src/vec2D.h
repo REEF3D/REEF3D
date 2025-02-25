@@ -36,7 +36,7 @@ public:
     
     void resize(lexer*,int,int);
     
-	double *V;
+    double *V;
 
 };
 

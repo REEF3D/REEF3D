@@ -36,15 +36,15 @@ class sflow_fluxlim_minmod : public sflow_fluxlim, public increment
 {
 public:
     sflow_fluxlim_minmod (lexer *);
-	virtual ~sflow_fluxlim_minmod();
+    virtual ~sflow_fluxlim_minmod();
 
-	virtual double iphi(slice&,int,int,int,int);
-	virtual double jphi(slice&,int,int,int,int);
+    virtual double iphi(slice&,int,int,int,int);
+    virtual double jphi(slice&,int,int,int,int);
     
 private:
     double r, phi,denom;
-	double dx,dy;
-	double L;
+    double dx,dy;
+    double L;
 
 };
 

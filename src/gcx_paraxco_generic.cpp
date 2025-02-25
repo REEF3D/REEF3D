@@ -27,13 +27,13 @@ Author: Hans Bihs
 void ghostcell::gcparacox_generic(lexer* p,field& f,int *gcx_count, int ***gcx)
 {    
     int aa,bb,cc;
-	int r;
-	int count[6];
+    int r;
+    int count[6];
     
     paramargin=3;
-	
-	for(qn=0;qn<6;++qn)
-	count[qn]=0;
+    
+    for(qn=0;qn<6;++qn)
+    count[qn]=0;
 
 //  FILL SEND
 
@@ -46,58 +46,58 @@ void ghostcell::gcparacox_generic(lexer* p,field& f,int *gcx_count, int ***gcx)
     
     aa=bb=cc=0;
     
-		for(r=1;r<=paramargin;++r)
-		{
-		if(n==0)
-		aa=r;
-		
-		if(n==1)
-		bb=r;
-		
-		if(n==2)
-		bb=r;
-		
-		if(n==3)
-		aa=r;
-		
-		if(n==4)
-		cc=r;
-		
-		if(n==5)
-		cc=-r;
-			
+        for(r=1;r<=paramargin;++r)
+        {
+        if(n==0)
+        aa=r;
+        
+        if(n==1)
+        bb=r;
+        
+        if(n==2)
+        bb=r;
+        
+        if(n==3)
+        aa=r;
+        
+        if(n==4)
+        cc=r;
+        
+        if(n==5)
+        cc=-r;
+            
         //cout<<"Xs: "<<i<<" "<<k<<" "<<f(i+aa,j+bb,k+cc)<<"  "<<n<<endl;
-		send[n][count[n]]=f(i+aa,j+bb,k+cc);
-		++count[n];
-		}
+        send[n][count[n]]=f(i+aa,j+bb,k+cc);
+        ++count[n];
+        }
     }
-	
+    
 
 //  SEND / RECEIVE
 
     for(qn=0;qn<6;++qn)
     if(count[qn]>0)
-	{
-	MPI_Isend(send[qn],count[qn],MPI_DOUBLE,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
-	MPI_Irecv(recv[qn],count[qn],MPI_DOUBLE,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
+    {
+    MPI_Isend(send[qn],count[qn],MPI_DOUBLE,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
+    MPI_Irecv(recv[qn],count[qn],MPI_DOUBLE,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
     }
 
 
 //  WAIT
 
-	for(qn=0;qn<6;++qn)
+    for(qn=0;qn<6;++qn)
     if(count[qn]>0)
-	{
+    {
     MPI_Wait(&sreq[qn],&status);
-	MPI_Wait(&rreq[qn],&status);
-	}
+    MPI_Wait(&rreq[qn],&status);
+    }
 
 //  FILL RECEIVE
 
-	for(qn=0;qn<6;++qn)
-	count[qn]=0;
+    for(qn=0;qn<6;++qn)
+    count[qn]=0;
 
-	for(n=0;n<6;++n)
+    for(n=0;n<6;++n)
     for(q=0;q<gcx_count[n];++q)
     {
     i=gcx[n][q][0];
@@ -106,29 +106,29 @@ void ghostcell::gcparacox_generic(lexer* p,field& f,int *gcx_count, int ***gcx)
     
     aa=bb=cc=0;
     
-		for(r=1;r<=paramargin;++r)
-		{
-		if(n==0)
-		aa=-r;
-		
-		if(n==1)
-		bb=r;
-		
-		if(n==2)
-		bb=-r;
-		
-		if(n==3)
-		aa=r;
-		
-		if(n==4)
-		cc=-r;
-		
-		if(n==5)
-		cc=r;
-			
+        for(r=1;r<=paramargin;++r)
+        {
+        if(n==0)
+        aa=-r;
+        
+        if(n==1)
+        bb=r;
+        
+        if(n==2)
+        bb=-r;
+        
+        if(n==3)
+        aa=r;
+        
+        if(n==4)
+        cc=-r;
+        
+        if(n==5)
+        cc=r;
+            
 
-		f(i+aa,j+bb,k+cc)=recv[n][count[n]];
-		++count[n];
-		}
-    }						
+        f(i+aa,j+bb,k+cc)=recv[n][count[n]];
+        ++count[n];
+        }
+    }                        
 }

@@ -39,16 +39,16 @@ public:
     topo_relax(lexer*);
     virtual ~topo_relax();
 
-	virtual void start(lexer*,ghostcell*,sediment_fdm*);
+    virtual void start(lexer*,ghostcell*,sediment_fdm*);
     virtual double rf(lexer*,ghostcell*);
 
 private:
-	double distcalc(lexer*, double, double, double);
-	double r1(lexer*, double, double);
-	
-	double *tan_betaS73,*betaS73,*dist_S73;
-	double val;
-	
+    double distcalc(lexer*, double, double, double);
+    double r1(lexer*, double, double);
+    
+    double *tan_betaS73,*betaS73,*dist_S73;
+    double val;
+    
 
 };
 

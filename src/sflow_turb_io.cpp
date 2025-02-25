@@ -37,23 +37,23 @@ sflow_turb_io::~sflow_turb_io()
 void sflow_turb_io::print_2D(lexer *p, fdm2D *b, ghostcell *pgc, ofstream &result)
 {
     iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
+    result.write((char*)&iin, sizeof (int));
     
-	TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(kin));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    TPSLICELOOP
+    {
+    ffn=float(p->sl_ipol4(kin));
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     
     iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
+    result.write((char*)&iin, sizeof (int));
     
-	TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(eps));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    TPSLICELOOP
+    {
+    ffn=float(p->sl_ipol4(eps));
+    result.write((char*)&ffn, sizeof (float));
+    }
     
 }
 
@@ -84,10 +84,10 @@ double sflow_turb_io::epsval(int ii, int jj)
 void sflow_turb_io::name_pvtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>"<<endl;
-	
-	if(p->A260==1)
-	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>"<<endl;
-	if(p->A260==2 || p->A260==5)
+    
+    if(p->A260==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>"<<endl;
+    if(p->A260==2 || p->A260==5)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>"<<endl;
 }
 
@@ -95,9 +95,9 @@ void sflow_turb_io::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result
 {
     result<<"<DataArray type=\"Float32\" Name=\"kin\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	if(p->A260==1)
-	result<<"<DataArray type=\"Float32\" Name=\"epsilon\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	if(p->A260==2 || p->A260==5)
+    if(p->A260==1)
+    result<<"<DataArray type=\"Float32\" Name=\"epsilon\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    if(p->A260==2 || p->A260==5)
     result<<"<DataArray type=\"Float32\" Name=\"omega\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
@@ -105,7 +105,7 @@ void sflow_turb_io::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result
 void sflow_turb_io::offset_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+    ++n;
 }

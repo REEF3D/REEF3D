@@ -38,7 +38,7 @@ void cfd_state::write_header(lexer *p, fdm *a, ghostcell *pgc)
     filename_header(p,a,pgc);
     
     // open file
-	headout.open(name, ios::binary);
+    headout.open(name, ios::binary);
     
     // ijk origin    
     iin=p->origin_i-is_global;

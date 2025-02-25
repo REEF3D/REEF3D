@@ -29,18 +29,18 @@ Author: Hans Bihs
 fluid_update_fsf_heat::fluid_update_fsf_heat(lexer *p, fdm* a, ghostcell* pgc, heat *&ppheat) : dx(p->DXM)
 {
     gcval_ro=1;
-	gcval_visc=1;
+    gcval_visc=1;
 
-	visc_2 = p->W4;
-	visc_1 = p->W2;
-	ro_2 = p->W3;
-	ro_1 = p->W1;
-	alpha_air = p->H2;
-	alpha_water = p->H1;
+    visc_2 = p->W4;
+    visc_1 = p->W2;
+    ro_2 = p->W3;
+    ro_1 = p->W1;
+    alpha_air = p->H2;
+    alpha_water = p->H1;
 
-	material(p,a,pgc);
-	
-	pheat = ppheat;
+    material(p,a,pgc);
+    
+    pheat = ppheat;
 }
 
 fluid_update_fsf_heat::~fluid_update_fsf_heat()
@@ -49,14 +49,14 @@ fluid_update_fsf_heat::~fluid_update_fsf_heat()
 
 void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc)
 {
-	double H=0.0;
-	double temp;
-	p->volume1=0.0;
-	p->volume2=0.0;
+    double H=0.0;
+    double temp;
+    p->volume1=0.0;
+    p->volume2=0.0;
 
     if(p->count>iter)
     iocheck=0;
-	iter=p->count;
+    iter=p->count;
     
     if(p->j_dir==0)        
     epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
@@ -65,54 +65,54 @@ void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc)
     epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 
    //
-	LOOP
-	{
+    LOOP
+    {
         temp = pheat->val(i,j,k);
-	    
+        
         if(p->H9==1)
         {
-	    ro_1 = material_ipol(water_density,water_density_num, temp);
-	    ro_2 = material_ipol(air_density,air_density_num, temp);
+        ro_1 = material_ipol(water_density,water_density_num, temp);
+        ro_2 = material_ipol(air_density,air_density_num, temp);
 
-	    visc_1 = material_ipol(water_viscosity,water_viscosity_num, temp);
-	    visc_2 = material_ipol(air_viscosity,air_viscosity_num, temp);
+        visc_1 = material_ipol(water_viscosity,water_viscosity_num, temp);
+        visc_2 = material_ipol(air_viscosity,air_viscosity_num, temp);
         }
         
         if(p->H9==2)
         {
-	    ro_1 = material_ipol(air_density,air_density_num, temp);
+        ro_1 = material_ipol(air_density,air_density_num, temp);
         ro_2 = material_ipol(water_density,water_density_num, temp);
 
-	    visc_1 = material_ipol(air_viscosity,air_viscosity_num, temp);
+        visc_1 = material_ipol(air_viscosity,air_viscosity_num, temp);
         visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
         }
 
-		if(a->phi(i,j,k)>epsi)
-		H=1.0;
+        if(a->phi(i,j,k)>epsi)
+        H=1.0;
 
-		if(a->phi(i,j,k)<-epsi)
-		H=0.0;
+        if(a->phi(i,j,k)<-epsi)
+        H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+        if(fabs(a->phi(i,j,k))<=epsi)
+        H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
 
-		a->ro(i,j,k)=      ro_1*H +   ro_2*(1.0-H);
-		a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);
+        a->ro(i,j,k)=      ro_1*H +   ro_2*(1.0-H);
+        a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);
 
-		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
-	}
+        p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
+        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+    }
 
-	pgc->start4(p,a->ro,gcval_ro);
-	pgc->start4(p,a->visc,gcval_visc);
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
 
-	p->volume1 = pgc->globalsum(p->volume1);
-	p->volume2 = pgc->globalsum(p->volume2);
+    p->volume1 = pgc->globalsum(p->volume1);
+    p->volume2 = pgc->globalsum(p->volume2);
 
     if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))
     {
-	cout<<"Volume 1: "<<p->volume1<<endl;
-	cout<<"Volume 2: "<<p->volume2<<endl;
+    cout<<"Volume 1: "<<p->volume1<<endl;
+    cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
 
@@ -140,10 +140,10 @@ double fluid_update_fsf_heat::material_ipol(double **pm, int num, double temp)
 
 void fluid_update_fsf_heat::material(lexer *p, fdm* a, ghostcell* pgc)
 {
-	p->Darray(water_density,20,2);
-	p->Darray(air_density,20,2);
-	p->Darray(water_viscosity,20,2);
-	p->Darray(air_viscosity,20,2);
+    p->Darray(water_density,20,2);
+    p->Darray(air_density,20,2);
+    p->Darray(water_viscosity,20,2);
+    p->Darray(air_viscosity,20,2);
 
     water_density[0][0] = -30.0;
     water_density[0][1] = 983.854;

@@ -39,31 +39,31 @@ void fnpf_force_ale::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     // Read cylinder force input - xc,yc,rc,cd,cm
     xc = p->P85_x[ID];
-	yc = p->P85_y[ID];
+    yc = p->P85_y[ID];
     rc = p->P85_r[ID];
-	cd = p->P85_cd[ID];
-	cm = p->P85_cm[ID];
+    cd = p->P85_cd[ID];
+    cm = p->P85_cm[ID];
 
     // Open files
     print_ini(p,c,pgc);
 
     // Ini arrays
-	p->Darray(un, p->knoz);
-	//p->Darray(u2n, p->knoz);
-	p->Darray(vn, p->knoz);
+    p->Darray(un, p->knoz);
+    //p->Darray(u2n, p->knoz);
+    p->Darray(vn, p->knoz);
 
     // Ini eta
-	etan=p->wd;
-	//eta2n=p->wd;
+    etan=p->wd;
+    //eta2n=p->wd;
 
     // Ini time
     //dtn=0;
 
     // Ini processor boundaries
-	xstart = p->originx;
-	ystart = p->originy;
-	xend = p->endx;
-	yend = p->endy;
+    xstart = p->originx;
+    ystart = p->originy;
+    xend = p->endx;
+    yend = p->endy;
 }
 
 void fnpf_force_ale::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)

@@ -37,16 +37,16 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     double h;
     ILOOP
     JLOOP
-	{
-		KLOOP
-		PBASECHECK
-		{
+    {
+        KLOOP
+        PBASECHECK
+        {
         if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
         h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
-		}
-		s->bedzh(i,j)=h;
+        }
+        s->bedzh(i,j)=h;
         s->bedzh0(i,j)=h;
-	}
+    }
 
     pgc->gcsl_start4(p,s->bedzh0,50); 
 

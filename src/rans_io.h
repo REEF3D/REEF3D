@@ -39,7 +39,7 @@ class rans_io : public turbulence, public strain
 {
 public:
     rans_io(lexer*,fdm*);
-	virtual ~rans_io();
+    virtual ~rans_io();
 
     virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void ini(lexer*, fdm*, ghostcell*);
@@ -47,11 +47,11 @@ public:
     virtual void inflow(lexer*, fdm*, ghostcell*);
     virtual double kinval(int,int,int);
     virtual double epsval(int,int,int);
-	virtual void gcupdate(lexer*, fdm*, ghostcell*);
-	virtual double ccipol_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_epsval(lexer*,ghostcell*,double,double,double);
+    virtual void gcupdate(lexer*, fdm*, ghostcell*);
+    virtual double ccipol_kinval(lexer*,ghostcell*,double,double,double);
+    virtual double ccipol_epsval(lexer*,ghostcell*,double,double,double);
     virtual double ccipol_a_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_a_epsval(lexer*,ghostcell*,double,double,double);
+    virtual double ccipol_a_epsval(lexer*,ghostcell*,double,double,double);
     virtual void kinget(int,int,int,double);
     virtual void epsget(int,int,int,double);
 
@@ -60,23 +60,23 @@ public:
     virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     
     field4 kin,eps,eddyv0;
-	fieldint4 wallf;
-	
-	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
-	double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
-	double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
+    fieldint4 wallf;
+    
+    double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
+    double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
+    double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
 
 private:
     void tau_calc(fdm*, lexer*, double);
     void kepsini_default(lexer*,fdm*,ghostcell*);
 
-	float ffn;
-	int q,iin;
-	int gcval_kin,gcval_eps,gcval_edv;
+    float ffn;
+    int q,iin;
+    int gcval_kin,gcval_eps,gcval_edv;
 
-	double M,I,tau,H,B,ks,kinbed,uvel,refwalldist,fc;
-	double kinw,epsw;
-	double walld,ddn,depth;
+    double M,I,tau,H,B,ks,kinbed,uvel,refwalldist,fc;
+    double kinw,epsw;
+    double walld,ddn,depth;
 };
 
 #endif

@@ -27,14 +27,14 @@ Author: Hans Bihs
 
 void vrans_f::eps_source(lexer *p, fdm *a, field &kin, field &eps)
 {
-	int count;
+    int count;
     double uvel,vvel,wvel,uu;
     double por;
     double kinf,einf;
     double ke_c_2e=1.92;
     
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
     {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));

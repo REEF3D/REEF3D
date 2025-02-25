@@ -40,20 +40,20 @@ void kepsilon_void::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 }
 void kepsilon_void::isource(lexer* p, fdm* a)
 {
-	ULOOP
-	a->F(i,j,k)=0.0;
+    ULOOP
+    a->F(i,j,k)=0.0;
 }
 
 void kepsilon_void::jsource(lexer *p,fdm* a)
 {
-	VLOOP
-	a->G(i,j,k)=0.0;
+    VLOOP
+    a->G(i,j,k)=0.0;
 }
 
 void kepsilon_void::ksource(lexer *p,fdm* a)
 {
-	WLOOP
-	a->H(i,j,k)=0.0;
+    WLOOP
+    a->H(i,j,k)=0.0;
 }
 
 void kepsilon_void::ktimesave(lexer *p, fdm* a, ghostcell *pgc)

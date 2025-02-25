@@ -38,19 +38,19 @@ class les_io : public turbulence, public strain
 {
 public:
     les_io(lexer*,fdm*);
-	virtual ~les_io();
+    virtual ~les_io();
 
     virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void ini(lexer*, fdm*, ghostcell*);
     virtual double kinval(int,int,int);
     virtual double epsval(int,int,int);
-	virtual double ccipol_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_epsval(lexer*,ghostcell*,double,double,double);
+    virtual double ccipol_kinval(lexer*,ghostcell*,double,double,double);
+    virtual double ccipol_epsval(lexer*,ghostcell*,double,double,double);
     virtual double ccipol_a_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_a_epsval(lexer*,ghostcell*,double,double,double);
+    virtual double ccipol_a_epsval(lexer*,ghostcell*,double,double,double);
     virtual void kinget(int,int,int,double);
     virtual void epsget(int,int,int,double);
-	virtual void gcupdate(lexer*, fdm*, ghostcell*);
+    virtual void gcupdate(lexer*, fdm*, ghostcell*);
 
     virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
@@ -63,8 +63,8 @@ public:
 private:
     void tau_calc(fdm*, lexer*, double*);
 
-	float ffn;
-	int n,iin;
+    float ffn;
+    int n,iin;
 };
 
 #endif

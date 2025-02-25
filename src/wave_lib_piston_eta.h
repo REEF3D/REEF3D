@@ -33,7 +33,7 @@ class wave_lib_piston_eta : public wave_lib_precalc, public wave_lib_parameters,
 {
 public:
     wave_lib_piston_eta(lexer*, ghostcell*);
-	virtual ~wave_lib_piston_eta();
+    virtual ~wave_lib_piston_eta();
     
     double wave_horzvel(lexer*,double,double,double);
     
@@ -47,14 +47,14 @@ public:
     virtual void wave_prestep(lexer*,ghostcell*);
     
 private:
-	void read(lexer*, ghostcell*);
-	
-	int ptnum;
-	
-	double **eta;
-	
-	double ts,te,val;
-	int timecount,timecount_old;
+    void read(lexer*, ghostcell*);
+    
+    int ptnum;
+    
+    double **eta;
+    
+    double ts,te,val;
+    int timecount,timecount_old;
     double singamma,cosgamma;
 };
 

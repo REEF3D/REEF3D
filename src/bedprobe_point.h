@@ -38,9 +38,9 @@ class bedprobe_point : public boundarycheck
 {
 public:
     bedprobe_point(lexer*,fdm*,ghostcell*);
-	virtual ~bedprobe_point();
+    virtual ~bedprobe_point();
 
-	void bed_gauge(lexer*, fdm*, ghostcell*);
+    void bed_gauge(lexer*, fdm*, ghostcell*);
 
 
 private:

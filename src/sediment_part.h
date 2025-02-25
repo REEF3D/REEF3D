@@ -51,7 +51,7 @@ class sediment_part : public sediment, public increment
 {
 public:
     sediment_part(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
-	virtual ~sediment_part();
+    virtual ~sediment_part();
     
     // CFD interface
     virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
@@ -91,7 +91,7 @@ public:
 
 
     virtual void relax(lexer*,ghostcell*){};
-	virtual double bedshear_point(lexer*,ghostcell*){};
+    virtual double bedshear_point(lexer*,ghostcell*){};
     
     virtual double qbeval(int,int){};
     virtual void qbeget(int,int,double){};
@@ -101,37 +101,37 @@ public:
     virtual void ctimesave(lexer*, fdm*){};
     
     void fill_bedk(lexer*,fdm*,ghostcell*){};
-	void bedlevel(lexer*,fdm*,ghostcell*){};
+    void bedlevel(lexer*,fdm*,ghostcell*){};
     void waterlevel(lexer*,fdm*,ghostcell*){};
-	void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*){};
+    void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*){};
     void volume_calc(lexer*,fdm*,ghostcell*){};
-	void filter(lexer*,ghostcell*,slice&,int,int){};
+    void filter(lexer*,ghostcell*,slice&,int,int){};
     
     // print
     virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&){};
     virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&){};
-	virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&){};
+    virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&){};
     virtual void name_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &){};
     virtual void offset_vtp_bedload(lexer*, ghostcell*,ofstream&, int*, int &){};
     virtual void offset_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &){};
     
-	virtual void print_2D_bedshear(lexer*, ghostcell*,ofstream&){};
+    virtual void print_2D_bedshear(lexer*, ghostcell*,ofstream&){};
     virtual void print_3D_bedshear(lexer*, ghostcell*,ofstream&){};
-	virtual void name_pvtu_bedshear(lexer*, ghostcell*,ofstream&){};
+    virtual void name_pvtu_bedshear(lexer*, ghostcell*,ofstream&){};
     virtual void name_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &){};
     virtual void offset_vtp_bedshear(lexer*, ghostcell*,ofstream&, int*, int &){};
     virtual void offset_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &){};
     
     virtual void print_2D_parameter1(lexer*, ghostcell*,ofstream&){};
     virtual void print_3D_parameter1(lexer*, ghostcell*,ofstream&){};
-	virtual void name_pvtu_parameter1(lexer*, ghostcell*,ofstream&){};
+    virtual void name_pvtu_parameter1(lexer*, ghostcell*,ofstream&){};
     virtual void name_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &){};
     virtual void offset_vtp_parameter1(lexer*, ghostcell*,ofstream&, int*, int &){};
     virtual void offset_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &){};
     
     virtual void print_2D_parameter2(lexer*, ghostcell*,ofstream&){};
     virtual void print_3D_parameter2(lexer*, ghostcell*,ofstream&){};
-	virtual void name_pvtu_parameter2(lexer*, ghostcell*,ofstream&){};
+    virtual void name_pvtu_parameter2(lexer*, ghostcell*,ofstream&){};
     virtual void name_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &){};
     virtual void offset_vtp_parameter2(lexer*, ghostcell*,ofstream&, int*, int &){};
     virtual void offset_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &){};
@@ -156,7 +156,7 @@ private:
     suspended *psusp;
     diffusion *psuspdiff;
     convection *psuspdisc;
-	bedshear *pbedshear;
+    bedshear *pbedshear;
     patchBC_interface *pBC;
     bedload_direction *pbeddir;
     bedslope *pslope;
@@ -169,7 +169,7 @@ private:
     int volume_token,sedcalc;
     int gcval_eta;
     double volume0;
-	
+    
 };
 
 #endif

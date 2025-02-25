@@ -42,57 +42,57 @@ using namespace std;
 class mooring_barQuasiStatic : public mooring
 {
 public:
-	mooring_barQuasiStatic(int);
-	virtual ~mooring_barQuasiStatic();
-	
-	virtual void start(lexer*, ghostcell*);
-	virtual void initialize(lexer*, ghostcell*);
-	virtual void mooringForces(double&, double&, double&);
-	
+    mooring_barQuasiStatic(int);
+    virtual ~mooring_barQuasiStatic();
+    
+    virtual void start(lexer*, ghostcell*);
+    virtual void initialize(lexer*, ghostcell*);
+    virtual void mooringForces(double&, double&, double&);
+    
 private:
 
-	// Preprocessing
-	void ini_parallel(lexer*, ghostcell*);
-	
-	// Runtime
-	vector< vector<double> > solveGauss(vector< vector<double> >, vector< vector<double> >);
+    // Preprocessing
+    void ini_parallel(lexer*, ghostcell*);
+    
+    // Runtime
+    vector< vector<double> > solveGauss(vector< vector<double> >, vector< vector<double> >);
     void updateVel(lexer*, ghostcell*, int);
- 	void getVel(lexer*, ghostcell*);
+     void getVel(lexer*, ghostcell*);
         vector<double> getC(double);
     void print(lexer*,ghostcell*);
     void buildLine(lexer*,ghostcell*);
     void checkBottom(lexer*,ghostcell*);
-	
-	// ------ 
-	
-	// Parallelisation
-	int line;
-	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
-	
-	// Material constants
-	double w, EA, L, rho_c, d_c;
-	
-	// Mesh
-	int sigma;
-	double dx, dy, dz;
-	vector<double> l0, l;
-	double *x, *y, *z;
-	
-	// Fields
+    
+    // ------ 
+    
+    // Parallelisation
+    int line;
+    double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+    
+    // Material constants
+    double w, EA, L, rho_c, d_c;
+    
+    // Mesh
+    int sigma;
+    double dx, dy, dz;
+    vector<double> l0, l;
+    double *x, *y, *z;
+    
+    // Fields
         vector< vector<double> > u_, v_, w_, A, B, f, R, v;
-	
-	// Forces
-	double *T, *Fb;
-	vector< vector<double> > e, c_coeff, e_q, e_d, e_l;
-	double Xme_, Yme_, Zme_;
-	
-	// Print
-	char name[100];
-	ofstream eTout;
-	double printtime;
+    
+    // Forces
+    double *T, *Fb;
+    vector< vector<double> > e, c_coeff, e_q, e_d, e_l;
+    double Xme_, Yme_, Zme_;
+    
+    // Print
+    char name[100];
+    ofstream eTout;
+    double printtime;
 
     // Catenary
-	mooring_Catenary *pcatenary;
+    mooring_Catenary *pcatenary;
 
     // Breaking
     bool broken;

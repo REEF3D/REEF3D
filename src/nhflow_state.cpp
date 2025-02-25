@@ -30,12 +30,12 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 nhflow_state::nhflow_state(lexer *p, fdm_nhf *c, ghostcell *pgc)
-{	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_NHFLOW_STATE",0777);
-	
-	printcount=0;
+{    
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_NHFLOW_STATE",0777);
+    
+    printcount=0;
     
     file_version=5;
     
@@ -178,8 +178,8 @@ nhflow_state::nhflow_state(lexer *p, fdm_nhf *c, ghostcell *pgc)
     if(p->P45==2)
     {
     filename_continuous(p,c,pgc);
-	 
-	result.open(name, ios::binary);
+     
+    result.open(name, ios::binary);
     }
     
 

@@ -38,24 +38,24 @@ class fnpf_runup :  public increment
 {
 
 public:
-	fnpf_runup(lexer*,fdm_fnpf*,ghostcell*,int);
-	virtual ~fnpf_runup();
-	virtual void start(lexer*,fdm_fnpf*,ghostcell*);
+    fnpf_runup(lexer*,fdm_fnpf*,ghostcell*,int);
+    virtual ~fnpf_runup();
+    virtual void start(lexer*,fdm_fnpf*,ghostcell*);
     virtual void ini(lexer*,fdm_fnpf*,ghostcell*);
 
-private:	
-	
+private:    
+    
     void fnpf_runup_calc(lexer*,fdm_fnpf*,ghostcell*);
-	void print_fnpf_runup(lexer*,fdm_fnpf*,ghostcell*);
+    void print_fnpf_runup(lexer*,fdm_fnpf*,ghostcell*);
     void print_ini(lexer*,fdm_fnpf*,ghostcell*);
     double acceleration(lexer*, fdm_fnpf*, ghostcell*);
-	double dndt(lexer*, fdm_fnpf*, ghostcell*);
-	double dudsig(lexer*, fdm_fnpf*, ghostcell*);
-	double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
-	double dudxi(lexer*, fdm_fnpf*, ghostcell*);
-	double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
+    double dndt(lexer*, fdm_fnpf*, ghostcell*);
+    double dudsig(lexer*, fdm_fnpf*, ghostcell*);
+    double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
+    double dudxi(lexer*, fdm_fnpf*, ghostcell*);
+    double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
     double roundFunc(double, int);
-	
+    
     // run-up variabes
     double un,vn,xc,yc,rc,etan;
     int k;

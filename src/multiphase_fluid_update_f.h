@@ -32,16 +32,16 @@ class multiphase_fluid_update_f : public multiphase_fluid_update, increment
 {
 public:
     multiphase_fluid_update_f(lexer*, fdm*, ghostcell*);
-	virtual ~multiphase_fluid_update_f();
+    virtual ~multiphase_fluid_update_f();
 
-	virtual void start(lexer*, fdm*, ghostcell*,field&,field&);
+    virtual void start(lexer*, fdm*, ghostcell*,field&,field&);
 
 private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	int n;
-	const double dx,visc3,visc2,visc1,ro1,ro2,ro3;
-	double eps12,eps13,eps23;
+    int n;
+    const double dx,visc3,visc2,visc1,ro1,ro2,ro3;
+    double eps12,eps13,eps23;
     double epsi;
 };
 

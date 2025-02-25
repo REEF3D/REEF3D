@@ -33,7 +33,7 @@ class wave_lib_solitary_1st : public wave_lib_precalc, public wave_lib_parameter
 {
 public:
     wave_lib_solitary_1st(lexer*, ghostcell*);
-	virtual ~wave_lib_solitary_1st();
+    virtual ~wave_lib_solitary_1st();
     
     double wave_horzvel(lexer*,double,double,double);
     

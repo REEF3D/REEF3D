@@ -33,21 +33,21 @@ field1::field1(lexer *p)
     kmin=p->kmin;
     kmax=p->kmax;
 
-	fieldalloc(p);
-	rank=p->mpirank;
-	
-	pp=p;
+    fieldalloc(p);
+    rank=p->mpirank;
+    
+    pp=p;
 }
 
 field1::~field1()
 {
-	delete [ ] V;
+    delete [ ] V;
 }
 
 void field1::fieldalloc(lexer* p)
 {
-	int gridsize = p->imax*p->jmax*p->kmax;
-	p->Darray(V,gridsize);
+    int gridsize = p->imax*p->jmax*p->kmax;
+    p->Darray(V,gridsize);
 }
 
 void field1::resize(lexer* p)
@@ -56,14 +56,14 @@ void field1::resize(lexer* p)
 
 void field1::dealloc(lexer* p)
 {
-	delete [ ] V;
+    delete [ ] V;
 }
 
 double & field1::operator[](int n)
 {
-	return V[n];
+    return V[n];
 }
 double & field1::operator()(int ii, int jj, int kk)
 {
-	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
+    return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
 }

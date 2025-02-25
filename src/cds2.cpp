@@ -92,23 +92,23 @@ void cds2::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
 }
 
 double cds2::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
-{		
-		dx=dy=dz=0.0;
+{        
+        dx=dy=dz=0.0;
 
         pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        pflux->w_flux(a,ipol,wvel,kvel1,kvel2);		
-		
-		dx = (ivel2*0.5*(b(i,j,k) + b(i+1,j,k))  -  ivel1*0.5*(b(i-1,j,k) +  b(i,j,k)))/DX[IP];
-		
-		
-		dy = (jvel2*0.5*(b(i,j,k) + b(i,j+1,k))  -  jvel1*0.5*(b(i,j-1,k) +  b(i,j,k)))/DY[JP];
-		
-	
-		dz = (kvel2*0.5*(b(i,j,k) + b(i,j,k+1))  -  kvel1*0.5*(b(i,j,k-1) +  b(i,j,k)))/DZ[KP];
+        pflux->w_flux(a,ipol,wvel,kvel1,kvel2);        
+        
+        dx = (ivel2*0.5*(b(i,j,k) + b(i+1,j,k))  -  ivel1*0.5*(b(i-1,j,k) +  b(i,j,k)))/DX[IP];
+        
+        
+        dy = (jvel2*0.5*(b(i,j,k) + b(i,j+1,k))  -  jvel1*0.5*(b(i,j-1,k) +  b(i,j,k)))/DY[JP];
+        
+    
+        dz = (kvel2*0.5*(b(i,j,k) + b(i,j,k+1))  -  kvel1*0.5*(b(i,j,k-1) +  b(i,j,k)))/DZ[KP];
 
-		L = -dx-dy-dz;
+        L = -dx-dy-dz;
 
-		return L;
+        return L;
 }
 

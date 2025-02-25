@@ -39,23 +39,23 @@ class nhflow_vel_probe_theory : public boundarycheck
 {
 public:
     nhflow_vel_probe_theory(lexer*,fdm_nhf*);
-	virtual ~nhflow_vel_probe_theory();
+    virtual ~nhflow_vel_probe_theory();
 
-	void start(lexer*, fdm_nhf*, ghostcell*,ioflow*);
+    void start(lexer*, fdm_nhf*, ghostcell*,ioflow*);
 
 
 private:
     void ini_location(lexer*, fdm_nhf*);
 
 
-	char name[100];
+    char name[100];
 
     int *iloc,*jloc,*kloc,*flag;
     int n,q;
-	const int probenum;
+    const int probenum;
     ofstream *pout;
-	
-	double uval,vval,wval,pval,kval,eval,edval;
+    
+    double uval,vval,wval,pval,kval,eval,edval;
     
     
     

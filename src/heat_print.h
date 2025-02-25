@@ -39,7 +39,7 @@ class heat_print : public heat, increment
 {
 public:
     heat_print(lexer*,fdm*);
-	virtual ~heat_print();
+    virtual ~heat_print();
 
     virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void heat_ini(lexer*, fdm*, ghostcell*, heat*);
@@ -50,13 +50,13 @@ public:
     virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
 
     field4 T;
-	fluid_update *pupdate;
+    fluid_update *pupdate;
 
 private:
 
-	float ffn;
-	double ddn;
-	int n,iin;
+    float ffn;
+    double ddn;
+    int n,iin;
 };
 
 #endif

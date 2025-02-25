@@ -27,34 +27,34 @@ Author: Hans Bihs
 
 void sixdof_obj::triangle_switch_ray(lexer *p, ghostcell *pgc)
 {
-	double ys,ye,zs,ze;
-	double Px,Py,Pz;
-	double Qx,Qy,Qz;
+    double ys,ye,zs,ze;
+    double Px,Py,Pz;
+    double Qx,Qy,Qz;
     double Sx,Sy,Sz;
     double Tx,Ty,Tz;
-	double Rx,Ry,Rz;
-	double Ax,Ay,Az;
-	double Bx,By,Bz;
-	double Cx,Cy,Cz;
-	double PQx,PQy,PQz;
-	double PAx,PAy,PAz;
-	double PBx,PBy,PBz;
-	double PCx,PCy,PCz;
-	double Mx,My,Mz;
-	double u,v,w;
-	double denom;	
-	double psi = 1.0e-8*p->DXM;
+    double Rx,Ry,Rz;
+    double Ax,Ay,Az;
+    double Bx,By,Bz;
+    double Cx,Cy,Cz;
+    double PQx,PQy,PQz;
+    double PAx,PAy,PAz;
+    double PBx,PBy,PBz;
+    double PCx,PCy,PCz;
+    double Mx,My,Mz;
+    double u,v,w;
+    double denom;    
+    double psi = 1.0e-8*p->DXM;
     
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
-	double xc,yc,zc;
-	double at,bt,ct,st;
-	double nx,ny,nz,norm;
+    double xc,yc,zc;
+    double at,bt,ct,st;
+    double nx,ny,nz,norm;
     int tricount_local_max,sum;
     int cutnum;
     int domdir;
     
     if(p->mpirank==0)
-	cout<<"Triangle Switch "<<endl;
+    cout<<"Triangle Switch "<<endl;
     
     // allocate
     p->Iarray(tricount_local_list,p->M10+1);
@@ -99,8 +99,8 @@ void sixdof_obj::triangle_switch_ray(lexer *p, ghostcell *pgc)
     */
 
     // ray cast
-	for(q=tricount_local_displ[p->mpirank];q<tricount_local_displ[p->mpirank+1];++q)
-	{
+    for(q=tricount_local_displ[p->mpirank];q<tricount_local_displ[p->mpirank+1];++q)
+    {
         //cout<<p->mpirank<<"q: "<<q<<endl;
         
         // triangle points
@@ -122,7 +122,7 @@ void sixdof_obj::triangle_switch_ray(lexer *p, ghostcell *pgc)
         nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
 
         norm = sqrt(nx*nx + ny*ny + nz*nz);
-			
+            
         nx /= norm>1.0e-20?norm:1.0e20;
         ny /= norm>1.0e-20?norm:1.0e20;
         nz /= norm>1.0e-20?norm:1.0e20;
@@ -146,9 +146,9 @@ void sixdof_obj::triangle_switch_ray(lexer *p, ghostcell *pgc)
         }
         
         // Center of triangle
-		xc = (x0 + x1 + x2)/3.0;
-		yc = (y0 + y1 + y2)/3.0;
-		zc = (z0 + z1 + z2)/3.0;
+        xc = (x0 + x1 + x2)/3.0;
+        yc = (y0 + y1 + y2)/3.0;
+        zc = (z0 + z1 + z2)/3.0;
         
         
             cutnum=0;
@@ -338,7 +338,7 @@ void sixdof_obj::triangle_switch_ray(lexer *p, ghostcell *pgc)
         tri_switch_local[q-tricount_local_displ[p->mpirank]] = 1;
         //cout<<p->mpirank<<" cutnum2: "<<cutnum<<endl;
         }
-	}
+    }
     
     count=0;
     for (q=tricount_local_displ[p->mpirank];q<tricount_local_displ[p->mpirank+1];++q)
@@ -381,5 +381,5 @@ void sixdof_obj::triangle_switch_ray(lexer *p, ghostcell *pgc)
     p->del_Iarray(tri_switch,tricount);
     p->del_Iarray(tricount_local_list,p->M10+1);
     p->del_Iarray(tricount_local_displ,p->M10+1);
-    p->del_Iarray(tri_switch_local,tricount_local);	
+    p->del_Iarray(tri_switch_local,tricount_local);    
 }

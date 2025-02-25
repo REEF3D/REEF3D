@@ -31,17 +31,17 @@ using namespace std;
 class superbee : public fluxlim, public increment
 {
 public:
-	superbee (lexer *);
-	virtual ~superbee();
+    superbee (lexer *);
+    virtual ~superbee();
 
-	virtual double iphi(field&,int,int,int,int);
-	virtual double jphi(field&,int,int,int,int);
-	virtual double kphi(field&,int,int,int,int);
+    virtual double iphi(field&,int,int,int,int);
+    virtual double jphi(field&,int,int,int,int);
+    virtual double kphi(field&,int,int,int,int);
 
 private:
     double r, phi,denom;
-	double dx,dy,dz;
-	double L;
+    double dx,dy,dz;
+    double L;
 };
 
 #endif

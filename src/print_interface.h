@@ -56,10 +56,10 @@ class print_interface : public printer, public increment
 {
 
 public:
-	print_interface(lexer*,fdm*,ghostcell*);
-	virtual ~print_interface();
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,sediment*);
-	
+    print_interface(lexer*,fdm*,ghostcell*);
+    virtual ~print_interface();
+    virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,sediment*);
+    
 
 private:
     void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,sediment*);
@@ -68,33 +68,33 @@ private:
     void name_iter(fdm*,lexer*,ghostcell*);
     void name_time(fdm*,lexer*,ghostcell*);
     void piecename(fdm*,lexer*,ghostcell*, int);
-	void ggcfacet_fill(lexer*,fdm*,ghostcell*,field&);
+    void ggcfacet_fill(lexer*,fdm*,ghostcell*,field&);
 
     char name[200],pname[200],epsvar[200];
     int n,iin,offset[200];
     float ffn;
     int gcval_phi,gcval_phiext;
-	double *printtime_wT;
+    double *printtime_wT;
     double phase;
-	
-	field5 eta;
+    
+    field5 eta;
 
     print_wsf *pwsf;
-	print_wsf_theory *pwsf_theory;
+    print_wsf_theory *pwsf_theory;
     print_wsfline_x *pwsfline_x;
-	print_wsfline_y *pwsfline_y;
+    print_wsfline_y *pwsfline_y;
 
     vorticity *pvort;
-	probe_point *pprobe;
-	probe_line *pline;
-	bedprobe_point *pbedpt;
-	bedprobe_max *pbedmax;
-	bedshear_probe *pbedshear;
-	gage_discharge_x *pq;
-	fsf_vtp *pfsf;
-	state *pstate;
+    probe_point *pprobe;
+    probe_line *pline;
+    bedprobe_point *pbedpt;
+    bedprobe_max *pbedmax;
+    bedshear_probe *pbedshear;
+    gage_discharge_x *pq;
+    fsf_vtp *pfsf;
+    state *pstate;
     sloshing_force *pslosh;
-	print_porous *ppor;
+    print_porous *ppor;
 };
 
 #endif

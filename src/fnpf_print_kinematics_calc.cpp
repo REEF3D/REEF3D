@@ -27,9 +27,9 @@ Author: Hans Bihs
 #include <math.h>
 
 void fnpf_print_kinematics::kinematics_calc(lexer* p, fdm_fnpf *c, ghostcell *pgc)
-{	
+{    
     for(k=0; k<p->knoz+1; ++k)
-	{
+    {
         dudsig_= dudsig(p,c,pgc); 
         dvdsig_= dvdsig(p,c,pgc); 
         
@@ -53,22 +53,22 @@ void fnpf_print_kinematics::kinematics_calc(lexer* p, fdm_fnpf *c, ghostcell *pg
         // Storing current time step information for next time step gradient calculation
         un[k] = c->U[FIJK]; 
         vn[k] = c->V[FIJK];
-	}
-	
-	etan=c->eta(i,j);
+    }
+    
+    etan=c->eta(i,j);
 }
 
 double fnpf_print_kinematics::dndt(lexer *p, fdm_fnpf *c, ghostcell *pgc) // to calculate dn dt for ax3
 {
     double dndt = (c->eta(i,j) - etan)/ p->dt;
-		 
+         
     return dndt;
 }
 
-double fnpf_print_kinematics::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dudsig for ax2 and 3
+double fnpf_print_kinematics::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc)     // getting dudsig for ax2 and 3
 {
     double dudsig_ = 0;
-	double dudsig2_ = 0;
+    double dudsig2_ = 0;
     
     if(k<p->knoz)
     {
@@ -80,12 +80,12 @@ double fnpf_print_kinematics::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// 
         dudsig_ = (c->U[FIJK] - c->U[FIJKm1])/(p->DZN[KM1]);
     }
 
-	return dudsig_;        
+    return dudsig_;        
 }
 
-double fnpf_print_kinematics::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dvdsig for ax2 and 3
+double fnpf_print_kinematics::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc)     // getting dvdsig for ax2 and 3
 {
-	double dvdsig_ = 0;
+    double dvdsig_ = 0;
 
     if(k<p->knoz)
     dvdsig_ =  (c->V[FIJKp1] - c->V[FIJKm1])/(p->DZN[KP1] + p->DZN[KM1]);
@@ -96,12 +96,12 @@ double fnpf_print_kinematics::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// 
     return dvdsig_;        
 }
 
-double fnpf_print_kinematics::dudxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dudxi
+double fnpf_print_kinematics::dudxi(lexer *p, fdm_fnpf *c, ghostcell *pgc)     // getting dudxi
 {
     return (c->U[FIp1JK] - c->U[FIm1JK])/(p->DXN[IP1] + p->DXN[IM1]); 
 }
 
-double fnpf_print_kinematics::dvdxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dvdxi
+double fnpf_print_kinematics::dvdxi(lexer *p, fdm_fnpf *c, ghostcell *pgc)     // getting dvdxi
 {
     return (c->V[FIJp1K] - c->V[FIJm1K])/(p->DYN[JP1] + p->DYN[JM1]); 
 }

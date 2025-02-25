@@ -72,26 +72,26 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
 
     if(p->gcslpara1_count>0)
     {
-	MPI_Isend(isend1,p->gcslpara1_count,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(irecv1,p->gcslpara1_count,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
+    MPI_Isend(isend1,p->gcslpara1_count,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
+    MPI_Irecv(irecv1,p->gcslpara1_count,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
     }
 
     if(p->gcslpara2_count>0)
     {
-	MPI_Isend(isend2,p->gcslpara2_count,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(irecv2,p->gcslpara2_count,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
+    MPI_Isend(isend2,p->gcslpara2_count,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
+    MPI_Irecv(irecv2,p->gcslpara2_count,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
     }
 
     if(p->gcslpara3_count>0)
     {
-	MPI_Isend(isend3,p->gcslpara3_count,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(irecv3,p->gcslpara3_count,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
+    MPI_Isend(isend3,p->gcslpara3_count,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
+    MPI_Irecv(irecv3,p->gcslpara3_count,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
     }
 
     if(p->gcslpara4_count>0)
     {
-	MPI_Isend(isend4,p->gcslpara4_count,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(irecv4,p->gcslpara4_count,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
+    MPI_Isend(isend4,p->gcslpara4_count,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
+    MPI_Irecv(irecv4,p->gcslpara4_count,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
     }
 
     gcslwait(p);

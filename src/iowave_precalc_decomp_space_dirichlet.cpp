@@ -37,10 +37,10 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
     
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
+        dg = distgen(p);
+        db = distbeach(p);
+        
+        // Wave Generation
         if(p->B98==3 && h_switch==1)
         {
             // Zone 1
@@ -53,7 +53,7 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
                 }
             ++count;
             }
-		}
+        }
     }
     pgc->gcsl_start4(p,eta,50);
     
@@ -75,15 +75,15 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
 
         if(zloc1<=p->phimean)
         z=-(fabs(p->phimean-zloc1));
-		
-		if(zloc1>p->phimean)
+        
+        if(zloc1>p->phimean)
         z=(fabs(p->phimean-zloc1));
         
         if(zloc1>p->phimean+p->wA)
         z = 0.5*(eta(i,j)+eta(i+1,j));
 
-		// Wave Generation
-		if(p->B98>=3 && u_switch==1)
+        // Wave Generation
+        if(p->B98>=3 && u_switch==1)
         {
                 for(qn=0;qn<wave_comp;++qn)
                 {
@@ -91,7 +91,7 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
                 uval_S_cos[count][qn] = wave_u_space_cos(p,pgc,xg,yg,z,qn);
                 }
             ++count;
-		}
+        }
         }
     }
 
@@ -112,15 +112,15 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
 
         if(zloc2<=p->phimean)
         z=-(fabs(p->phimean-zloc2));
-		
-		if(zloc2>p->phimean)
+        
+        if(zloc2>p->phimean)
         z=(fabs(p->phimean-zloc2));
         
         if(zloc2>p->phimean+p->wA)
         z = 0.5*(eta(i,j)+eta(i,j+1));
         
-		// Wave Generation		
-		if(p->B98>=3 && v_switch==1)
+        // Wave Generation        
+        if(p->B98>=3 && v_switch==1)
         {
                 for(qn=0;qn<wave_comp;++qn)
                 {
@@ -128,7 +128,7 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
                 vval_S_cos[count][qn] = wave_v_space_cos(p,pgc,xg,yg,z,qn);
                 }
             ++count;
-		}
+        }
         }
     }
 
@@ -151,15 +151,15 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
 
         if(zloc3<=p->phimean)
         z=-(fabs(p->phimean-zloc3));
-		
-		if(zloc3>p->phimean)
+        
+        if(zloc3>p->phimean)
         z=(fabs(p->phimean-zloc3));
         
         if(zloc3>p->phimean+p->wA)
         z = eta(i,j);
         
-		// Wave Generation
-		if(p->B98>=3 && w_switch==1)
+        // Wave Generation
+        if(p->B98>=3 && w_switch==1)
         {
                 for(qn=0;qn<wave_comp;++qn)
                 {
@@ -167,9 +167,9 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
                 wval_S_cos[count][qn] = wave_w_space_cos(p,pgc,xg,yg,z,qn);
                 }
             ++count;
-		}
         }
-    }	
+        }
+    }    
 
 
     
@@ -192,12 +192,12 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
 
         if(zloc4<=p->phimean)
         z=-(fabs(p->phimean-zloc4));
-		
-		if(zloc4>p->phimean)
+        
+        if(zloc4>p->phimean)
         z=(fabs(p->phimean-zloc4));
-		
-		// Wave Generation
-		if(p->B98==3)
+        
+        // Wave Generation
+        if(p->B98==3)
         {
             // Zone 1
             if(dg<dist1)
@@ -209,7 +209,7 @@ void iowave::wavegen_precalc_space_dirichlet(lexer *p, ghostcell *pgc)
                 }
             ++count;
             }
-		}
+        }
         }
     }
 

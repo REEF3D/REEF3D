@@ -37,14 +37,14 @@ class poisson_f : public poisson, public increment
 
 public:
 
-	poisson_f (lexer*, heat*&, concentration*&);
-	virtual ~poisson_f();
+    poisson_f (lexer*, heat*&, concentration*&);
+    virtual ~poisson_f();
 
-	virtual void start(lexer *,fdm*,field&);
+    virtual void start(lexer *,fdm*,field&);
 
 private:
 
-	int count,n,q;
+    int count,n,q;
     
     density *pd;
 };

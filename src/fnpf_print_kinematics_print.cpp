@@ -35,13 +35,13 @@ void fnpf_print_kinematics::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     fout.open(name);
     
     /*ddn=p->P88_x[ID];
-	fout.write((char*)&ddn, sizeof (double));
+    fout.write((char*)&ddn, sizeof (double));
     
     ddn=p->P88_y[ID];
-	fout.write((char*)&ddn, sizeof (double));
+    fout.write((char*)&ddn, sizeof (double));
     
     iin=p->knoz+1;
-	fout.write((char*)&iin, sizeof (int));*/
+    fout.write((char*)&iin, sizeof (int));*/
     
     fout<<p->P88_x[ID]<<" "<<p->P88_y[ID]<<" "<<p->knoz+1<<endl;
 }
@@ -50,25 +50,25 @@ void fnpf_print_kinematics::print_kinematics(lexer* p, fdm_fnpf *c, ghostcell *p
 {
     // time
     ddn=p->simtime;
-	fout.write((char*)&ddn, sizeof (double));
+    fout.write((char*)&ddn, sizeof (double));
     
     // results: z ; U ; dUdt ; V ; dVdt
     for(k=0;k<p->knoz+1;++k)
     {
     ddn=p->ZSN[FIJK];
-	fout.write((char*)&ddn, sizeof (double));
+    fout.write((char*)&ddn, sizeof (double));
     
     ddn=c->U[FIJK];
-	fout.write((char*)&ddn, sizeof (double));
+    fout.write((char*)&ddn, sizeof (double));
     
     ddn=ax[k];
-	fout.write((char*)&ddn, sizeof (double));
+    fout.write((char*)&ddn, sizeof (double));
     
     ddn=c->V[FIJK];
-	fout.write((char*)&ddn, sizeof (double));
+    fout.write((char*)&ddn, sizeof (double));
     
     ddn=ay[k];
-	fout.write((char*)&ddn, sizeof (double));
+    fout.write((char*)&ddn, sizeof (double));
     
     //if(ID==0)
     //cout<<k<<" "<<p->ZSN[FIJK]<<" "<<c->U[FIJK]<<" "<<ax[k]<<endl;

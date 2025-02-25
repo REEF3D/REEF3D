@@ -31,17 +31,17 @@ using namespace std;
 class bedconc_VR : public bedconc, public increment
 {
 public:
-	bedconc_VR(lexer*);
-	virtual ~bedconc_VR();
-	void start(lexer*,ghostcell*,sediment_fdm*);
+    bedconc_VR(lexer*);
+    virtual ~bedconc_VR();
+    void start(lexer*,ghostcell*,sediment_fdm*);
 
 private:
-	int ii,jj,kk;
-	
-	double d50,ks,shields,kappa;
-	double Rstar, g, visc;
-	double rhosed,rhowat;
-	double Ti,Ds;
+    int ii,jj,kk;
+    
+    double d50,ks,shields,kappa;
+    double Rstar, g, visc;
+    double rhosed,rhowat;
+    double Ti,Ds;
     double adist,zdist,deltab;
 
 };

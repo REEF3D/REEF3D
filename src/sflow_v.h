@@ -34,10 +34,10 @@ using namespace std;
 class sflow_v : public sflow
 {
 public:
-	sflow_v(lexer*, fdm2D*);
-	virtual ~sflow_v();
+    sflow_v(lexer*, fdm2D*);
+    virtual ~sflow_v();
 
-	virtual void start(lexer*, fdm2D*, ghostcell*);
+    virtual void start(lexer*, fdm2D*, ghostcell*);
 };
 
 #endif

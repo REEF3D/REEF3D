@@ -38,9 +38,9 @@ class cfd_state : public increment
 {
 
 public:
-	cfd_state(lexer*,fdm*,ghostcell*);
-	virtual ~cfd_state();
-	void write(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
+    cfd_state(lexer*,fdm*,ghostcell*);
+    virtual ~cfd_state();
+    void write(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
     void read(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
     
     void ini_mainheader(lexer*,fdm*,ghostcell*);
@@ -48,7 +48,7 @@ public:
     void write_result(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
     void write_mainheader(lexer*,fdm*,ghostcell*);
     void write_header(lexer*,fdm*,ghostcell*);
-	
+    
 private:
     void filename(lexer*,fdm*,ghostcell*,int);
     
@@ -58,9 +58,9 @@ private:
 
     char name[500];
     float ffn;
-	int iin;
-	double ddn;
-	int printcount;
+    int iin;
+    double ddn;
+    int printcount;
     int ini_token;
     int file_version,file_type;
     int qn;

@@ -28,68 +28,68 @@ Author: Hans Bihs
 
 void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
 {
-	if(p->mpirank==0)
+    if(p->mpirank==0)
     pvtp(p,a,pgc,psed);
-	
-	name_iter(p,a,pgc);
+    
+    name_iter(p,a,pgc);
 
-	ofstream result;
-	result.open(name, ios::binary);
+    ofstream result;
+    result.open(name, ios::binary);
 
-	//---------------------------------------------
+    //---------------------------------------------
     n=0;
-	offset[n]=0;
-	++n;
+    offset[n]=0;
+    ++n;
     // Points
     offset[n]=offset[n-1] + 8*p->pointnum2D*3 + 4;
     ++n;
     
-	//Velocity
-	offset[n]=offset[n-1] + 4*p->pointnum2D*3+ 4;
+    //Velocity
+    offset[n]=offset[n-1] + 4*p->pointnum2D*3+ 4;
     ++n;
     // Elevation
-	offset[n]=offset[n-1] + 4*p->pointnum2D + 4;
+    offset[n]=offset[n-1] + 4*p->pointnum2D + 4;
     ++n;
     
     // sediment bedlaod
-	if(p->P76==1)
-	psed->offset_vtp_bedload(p,pgc,result,offset,n);
+    if(p->P76==1)
+    psed->offset_vtp_bedload(p,pgc,result,offset,n);
 
     // sediment parameters 1
-	if(p->P77==1)
-	psed->offset_vtp_parameter1(p,pgc,result,offset,n);
+    if(p->P77==1)
+    psed->offset_vtp_parameter1(p,pgc,result,offset,n);
 
     // sediment parameters 2
-	if(p->P78==1)
-	psed->offset_vtp_parameter2(p,pgc,result,offset,n);
+    if(p->P78==1)
+    psed->offset_vtp_parameter2(p,pgc,result,offset,n);
 
     // bed shear stress
-	if(p->P79>=1)
-	psed->offset_vtp_bedshear(p,pgc,result,offset,n);
+    if(p->P79>=1)
+    psed->offset_vtp_bedshear(p,pgc,result,offset,n);
     
-	//End Data
+    //End Data
     
     offset[n]=offset[n-1] + 4*polygon_sum*3 + 4;
     ++n;
     offset[n]=offset[n-1] + 4*polygon_sum + 4;
     ++n;
-	offset[n]=offset[n-1] + 4*polygon_sum + 4;
+    offset[n]=offset[n-1] + 4*polygon_sum + 4;
     ++n;
-	//---------------------------------------------
-	
-	
+    //---------------------------------------------
+    
+    
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PolyData>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<polygon_sum<<"\">"<<endl;
+    result<<"<?xml version=\"1.0\"?>"<<endl;
+    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+    result<<"<PolyData>"<<endl;
+    result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<polygon_sum<<"\">"<<endl;
 
     n=0;
     result<<"<Points>"<<endl;
     result<<"<DataArray type=\"Float64\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"</Points>"<<endl;
-	
+    
     result<<"<PointData >"<<endl;
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -97,26 +97,26 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
     ++n;
     
     if(p->P76==1)
-	psed->name_vtu_bedload(p,pgc,result,offset,n);
+    psed->name_vtu_bedload(p,pgc,result,offset,n);
     
     if(p->P77==1)
-	psed->name_vtu_parameter1(p,pgc,result,offset,n);
+    psed->name_vtu_parameter1(p,pgc,result,offset,n);
 
     if(p->P78==1)
-	psed->name_vtu_parameter2(p,pgc,result,offset,n);
+    psed->name_vtu_parameter2(p,pgc,result,offset,n);
 
-	if(p->P79>=1)
-	psed->name_vtu_bedshear(p,pgc,result,offset,n);
+    if(p->P79>=1)
+    psed->name_vtu_bedshear(p,pgc,result,offset,n);
     result<<"</PointData>"<<endl;
 
     result<<"<Polys>"<<endl;
     result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	++n;
+    result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
     result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	result<<"</Polys>"<<endl;
-	
+    result<<"</Polys>"<<endl;
+    
 
     result<<"</Piece>"<<endl;
     result<<"</PolyData>"<<endl;
@@ -126,58 +126,58 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
 
 //  XYZ
-	iin=8*(p->pointnum2D)*3;
-	result.write((char*)&iin, sizeof (int));
+    iin=8*(p->pointnum2D)*3;
+    result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
-	{
+    {
     ddn=p->XN[IP1];
-	result.write((char*)&ddn, sizeof (double));
-
-	ddn=p->YN[JP1];
-	result.write((char*)&ddn, sizeof (double));
-
-	ddn=p->sl_ipol4(a->bed);
     result.write((char*)&ddn, sizeof (double));
-	}
+
+    ddn=p->YN[JP1];
+    result.write((char*)&ddn, sizeof (double));
+
+    ddn=p->sl_ipol4(a->bed);
+    result.write((char*)&ddn, sizeof (double));
+    }
     
 //  Velocities
     iin=4*(p->pointnum2D)*3;
-	result.write((char*)&iin, sizeof (int));
+    result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol1a(a->P));
-	result.write((char*)&ffn, sizeof (float));
+    {
+    ffn=float(p->sl_ipol1a(a->P));
+    result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(p->sl_ipol2a(a->Q));
-	result.write((char*)&ffn, sizeof (float));
+    ffn=float(p->sl_ipol2a(a->Q));
+    result.write((char*)&ffn, sizeof (float));
 
-	ffn=0.0;
-	result.write((char*)&ffn, sizeof (float));
-	}
-	
+    ffn=0.0;
+    result.write((char*)&ffn, sizeof (float));
+    }
+    
 //  Elevation
-	iin=4*p->pointnum2D;
-	result.write((char*)&iin, sizeof (int));
+    iin=4*p->pointnum2D;
+    result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(a->bed));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    {
+    ffn=float(p->sl_ipol4(a->bed));
+    result.write((char*)&ffn, sizeof (float));
+    }
     
     //  sediment bedload
-	if(p->P76==1)
+    if(p->P76==1)
     psed->print_2D_bedload(p,pgc,result);
     
     //  sediment parameter 1
-	if(p->P77==1)
+    if(p->P77==1)
     psed->print_2D_parameter1(p,pgc,result);
 
     //  sediment parameter 2
-	if(p->P78==1)
+    if(p->P78==1)
     psed->print_2D_parameter2(p,pgc,result);
 
     //  bed shear stress
-	if(p->P79>=1)
+    if(p->P79>=1)
     psed->print_2D_bedshear(p,pgc,result);
     
 
@@ -185,52 +185,52 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
     iin=4*(polygon_sum)*3;
     result.write((char*)&iin, sizeof (int));
     SLICEBASELOOP
-	{
-	// Triangle 1
-	iin=int(a->nodeval2D(i-1,j-1))-1;
-	result.write((char*)&iin, sizeof (int));
+    {
+    // Triangle 1
+    iin=int(a->nodeval2D(i-1,j-1))-1;
+    result.write((char*)&iin, sizeof (int));
 
-	iin=int(a->nodeval2D(i,j-1))-1;
-	result.write((char*)&iin, sizeof (int));
+    iin=int(a->nodeval2D(i,j-1))-1;
+    result.write((char*)&iin, sizeof (int));
 
-	iin=int(a->nodeval2D(i,j))-1;
-	result.write((char*)&iin, sizeof (int));
+    iin=int(a->nodeval2D(i,j))-1;
+    result.write((char*)&iin, sizeof (int));
 
 
-	// Triangle 2
-	iin=int(a->nodeval2D(i-1,j-1))-1;
-	result.write((char*)&iin, sizeof (int));
+    // Triangle 2
+    iin=int(a->nodeval2D(i-1,j-1))-1;
+    result.write((char*)&iin, sizeof (int));
 
-	iin=int(a->nodeval2D(i,j))-1;
-	result.write((char*)&iin, sizeof (int));
+    iin=int(a->nodeval2D(i,j))-1;
+    result.write((char*)&iin, sizeof (int));
 
-	iin=int(a->nodeval2D(i-1,j))-1;
-	result.write((char*)&iin, sizeof (int));
-	}
+    iin=int(a->nodeval2D(i-1,j))-1;
+    result.write((char*)&iin, sizeof (int));
+    }
 
 
     // Offset of Connectivity
     iin=4*(polygon_sum);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<polygon_sum;++n)
-	{
-	iin=(n+1)*3;
-	result.write((char*)&iin, sizeof (int));
-	}
+    for(n=0;n<polygon_sum;++n)
+    {
+    iin=(n+1)*3;
+    result.write((char*)&iin, sizeof (int));
+    }
 
 //  Cell types
     iin=4*(polygon_sum);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<polygon_sum;++n)
-	{
-	iin=7;
-	result.write((char*)&iin, sizeof (int));
-	}
+    for(n=0;n<polygon_sum;++n)
+    {
+    iin=7;
+    result.write((char*)&iin, sizeof (int));
+    }
 
-	result<<endl<<"</AppendedData>"<<endl;
+    result<<endl<<"</AppendedData>"<<endl;
     result<<"</VTKFile>"<<endl;
 
-	result.close();	
+    result.close();    
 }
 
 

@@ -44,14 +44,14 @@ void sflow_filter::filter(lexer* p, fdm2D *b, ghostcell *pgc)
 
 void sflow_filter::filter1(lexer* p, fdm2D *b, ghostcell *pgc)
 {
-	//SLICELOOP1
-	//f1x(i,j) = (1.0/254.0)*(186.0*b->P(i,j) + 56.0*(b->P(i+1,j) + b->P(i-1,j)) - 28.0*(b->P(i+2,j) + b->P(i-2,j)) + 8.0*(b->P(i+3,j) + b->P(i-3,j)));
+    //SLICELOOP1
+    //f1x(i,j) = (1.0/254.0)*(186.0*b->P(i,j) + 56.0*(b->P(i+1,j) + b->P(i-1,j)) - 28.0*(b->P(i+2,j) + b->P(i-2,j)) + 8.0*(b->P(i+3,j) + b->P(i-3,j)));
     
     SLICELOOP1
-	f1x(i,j) = (1.0/4.0)*(2.0*b->P(i,j) + (b->P(i+1,j) + b->P(i-1,j)));
+    f1x(i,j) = (1.0/4.0)*(2.0*b->P(i,j) + (b->P(i+1,j) + b->P(i-1,j)));
     
     //SLICELOOP1
-	//f1y(i,j) = (1.0/254.0)*(186.0*f1x(i,j) + 56.0*(f1x(i,j+1) + f1x(i,j+1)) - 28.0*(f1x(i,j+2) + f1x(i,j-2)) + 8.0*(f1x(i,j+3) + f1x(i,j-3)));
+    //f1y(i,j) = (1.0/254.0)*(186.0*f1x(i,j) + 56.0*(f1x(i,j+1) + f1x(i,j+1)) - 28.0*(f1x(i,j+2) + f1x(i,j-2)) + 8.0*(f1x(i,j+3) + f1x(i,j-3)));
 
     SLICELOOP1
     b->P(i,j) = f1x(i,j);
@@ -66,13 +66,13 @@ void sflow_filter::filter2(lexer* p, fdm2D *b, ghostcell *pgc)
 void sflow_filter::filter4(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     //SLICELOOP4
-	//f4x(i,j) = (1.0/254.0)*(186.0*b->eta(i,j) + 56.0*(b->eta(i+1,j) + b->eta(i-1,j)) - 28.0*(b->eta(i+2,j) + b->eta(i-2,j)) + 8.0*(b->eta(i+3,j) + b->eta(i-3,j)));
+    //f4x(i,j) = (1.0/254.0)*(186.0*b->eta(i,j) + 56.0*(b->eta(i+1,j) + b->eta(i-1,j)) - 28.0*(b->eta(i+2,j) + b->eta(i-2,j)) + 8.0*(b->eta(i+3,j) + b->eta(i-3,j)));
     
     SLICELOOP4
-	f4x(i,j) = (1.0/4.0)*(2.0*b->eta(i,j) + (b->eta(i+1,j) + b->eta(i-1,j)));
+    f4x(i,j) = (1.0/4.0)*(2.0*b->eta(i,j) + (b->eta(i+1,j) + b->eta(i-1,j)));
     
     //SLICELOOP1
-	//f1y(i,j) = (1.0/254.0)*(186.0*f1x(i,j) + 56.0*(f1x(i,j+1) + f1x(i,j+1)) - 28.0*(f1x(i,j+2) + f1x(i,j-2)) + 8.0*(f1x(i,j+3) + f1x(i,j-3)));
+    //f1y(i,j) = (1.0/254.0)*(186.0*f1x(i,j) + 56.0*(f1x(i,j+1) + f1x(i,j+1)) - 28.0*(f1x(i,j+2) + f1x(i,j-2)) + 8.0*(f1x(i,j+3) + f1x(i,j-3)));
 
     SLICELOOP4
     b->eta(i,j) = f4x(i,j);

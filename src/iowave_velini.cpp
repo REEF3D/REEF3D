@@ -27,65 +27,65 @@ Author: Hans Bihs
 
 void iowave::velini(lexer *p, fdm *a, ghostcell *pgc)
 {
-	double Ai,Ui,area;
-	
-	
-	if(p->B98==3 || p->B98==4)
-	{
-		area=0.0;
-		Ai=0.0;
-		p->Qi=0.0;
-		p->Qo=0.0;
+    double Ai,Ui,area;
+    
+    
+    if(p->B98==3 || p->B98==4)
+    {
+        area=0.0;
+        Ai=0.0;
+        p->Qi=0.0;
+        p->Qo=0.0;
 
-		// in
-		for(n=0;n<p->gcin_count;n++)
-		{
-		i=p->gcin[n][0];
-		j=p->gcin[n][1];
-		k=p->gcin[n][2];
+        // in
+        for(n=0;n<p->gcin_count;n++)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
 
-			if(a->phi(i-1,j,k)>=0.0)
-			{
+            if(a->phi(i-1,j,k)>=0.0)
+            {
 
-				if(a->phi(i-1,j,k)>=0.5*p->DXM)
-				area=p->DXM*p->DXM;
+                if(a->phi(i-1,j,k)>=0.5*p->DXM)
+                area=p->DXM*p->DXM;
 
-				if(a->phi(i-1,j,k)<0.5*p->DXM)
-				area=p->DXM*(p->DXM*0.5 + a->phi(i-1,j,k));
+                if(a->phi(i-1,j,k)<0.5*p->DXM)
+                area=p->DXM*(p->DXM*0.5 + a->phi(i-1,j,k));
 
-				Ai+=area;
-				p->Qi+=area*a->u(i-1,j,k);
-			}
-		}
+                Ai+=area;
+                p->Qi+=area*a->u(i-1,j,k);
+            }
+        }
 
-		Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20);
+        Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20);
 
-		Ui=pgc->globalmax(Ui);
-
-
-		ULOOP
-		a->u(i,j,k)=Ui;
-
-		for(n=0;n<p->gcin_count;n++)
-		{
-		i=p->gcin[n][0];
-		j=p->gcin[n][1];
-		k=p->gcin[n][2];
+        Ui=pgc->globalmax(Ui);
 
 
-				a->u(i-1,j,k)=Ui;
-				a->u(i-2,j,k)=Ui;
-				a->u(i-3,j,k)=Ui;
+        ULOOP
+        a->u(i,j,k)=Ui;
 
-				a->v(i-1,j,k)=0.0;
-				a->v(i-2,j,k)=0.0;
-				a->v(i-3,j,k)=0.0;
+        for(n=0;n<p->gcin_count;n++)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
 
-				a->w(i-1,j,k)=0.0;
-				a->w(i-2,j,k)=0.0;
-				a->w(i-3,j,k)=0.0;
-		}
-	}
+
+                a->u(i-1,j,k)=Ui;
+                a->u(i-2,j,k)=Ui;
+                a->u(i-3,j,k)=Ui;
+
+                a->v(i-1,j,k)=0.0;
+                a->v(i-2,j,k)=0.0;
+                a->v(i-3,j,k)=0.0;
+
+                a->w(i-1,j,k)=0.0;
+                a->w(i-2,j,k)=0.0;
+                a->w(i-3,j,k)=0.0;
+        }
+    }
 }
 
 

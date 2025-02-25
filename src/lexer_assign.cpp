@@ -24,37 +24,37 @@ Author: Hans Bihs
 
 void lexer::control_calc()
 {
-	dt=dt_old=0.0;
-	simtime=I50;
-	sedtime=0.0;
-	dtsed=0.0;
-	presstime=veltime=lsmtime=reinitime=reinitime=turbtime=0.0;
+    dt=dt_old=0.0;
+    simtime=I50;
+    sedtime=0.0;
+    dtsed=0.0;
+    presstime=veltime=lsmtime=reinitime=reinitime=turbtime=0.0;
     fsitime=fbtime=0.0;
     fbdt=fbmax=0.0;
-	printouttime=0.0;
-	xtime=0.0;
-	gctime=0.0;
-	totaltime=0.0;
-	meantime=0.0;
-	Xmeantime=Xtotaltime=0.0;
-	gcmeantime=gctotaltime=0.0;
+    printouttime=0.0;
+    xtime=0.0;
+    gctime=0.0;
+    totaltime=0.0;
+    meantime=0.0;
+    Xmeantime=Xtotaltime=0.0;
+    gcmeantime=gctotaltime=0.0;
 }
 
 void lexer::assign_margin()
-{	
+{    
     margin=3; 
     
     if(A311==7)
-	margin=4;
+    margin=4;
     
-	imax=knox+2*margin;
-	jmax=knoy+2*margin;
-	kmax=knoz+2*margin;
+    imax=knox+2*margin;
+    jmax=knoy+2*margin;
+    kmax=knoz+2*margin;
     kmaxF=knoz+1+2*margin;
-	
-	imin=-margin;
-	jmin=-margin;
-	kmin=-margin;
+    
+    imin=-margin;
+    jmin=-margin;
+    kmin=-margin;
 }
 
 int lexer::maxparacount()

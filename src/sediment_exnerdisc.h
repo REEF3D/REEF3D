@@ -33,7 +33,7 @@ class sediment_exnerdisc
 {
 public:
     virtual double sx(lexer*, slice&, double, double)=0;
-	virtual double sy(lexer*, slice&, double, double)=0;
+    virtual double sy(lexer*, slice&, double, double)=0;
 
 
 };

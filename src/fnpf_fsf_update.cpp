@@ -20,7 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_fsf_update.h"#include"lexer.h"
+#include"fnpf_fsf_update.h"
+#include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"ioflow.h"

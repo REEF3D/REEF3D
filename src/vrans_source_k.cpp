@@ -34,7 +34,7 @@ void vrans_f::kw_source(lexer *p, fdm *a, field &kin)
     double ke_c_2e=1.92;
     
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
     if(a->porosity(i,j,k)<1.0)
     {
@@ -64,7 +64,7 @@ void vrans_f::ke_source(lexer *p, fdm *a, field &kin)
     double ke_c_2e=1.92;
     
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
     if(a->porosity(i,j,k)<1.0)
     {

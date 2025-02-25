@@ -30,36 +30,36 @@ int ii,jj;
 // -------
     cellnum=0;
 
-	for(i=0; i<knox; ++i)
+    for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     for(k=0; k<knoz+flast; ++k)
     if(flag4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]>0)
     ++cellnum;
 // --------
 
-	Iarray(sizeM1, 5);
-	Iarray(sizeM2, 5);
-	Iarray(sizeM3, 5);
-	Iarray(sizeM4, 5);
-	Iarray(sizeM4a, 5);
+    Iarray(sizeM1, 5);
+    Iarray(sizeM2, 5);
+    Iarray(sizeM3, 5);
+    Iarray(sizeM4, 5);
+    Iarray(sizeM4a, 5);
     Iarray(sizeM6, 5);
     Iarray(sizeM9, 5);
 
     for(int n=0;n<5;++n)
     {
-	sizeM1[n]=0;
-	sizeM2[n]=0;
-	sizeM3[n]=0;
-	sizeM4[n]=0;
-	sizeM4a[n]=0;
+    sizeM1[n]=0;
+    sizeM2[n]=0;
+    sizeM3[n]=0;
+    sizeM4[n]=0;
+    sizeM4a[n]=0;
     sizeM6[n]=0;
     sizeM9[n]=0;
     }
-	
-	Iarray(range_row4, M10+5);
-	Iarray(range_col4, M10+5);
-	Iarray(range_row7, M10+5);
-	Iarray(range_col7, M10+5);
+    
+    Iarray(range_row4, M10+5);
+    Iarray(range_col4, M10+5);
+    Iarray(range_row7, M10+5);
+    Iarray(range_col7, M10+5);
 
 }
 

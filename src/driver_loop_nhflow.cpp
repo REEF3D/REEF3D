@@ -45,8 +45,8 @@ void driver::loop_nhflow()
     cout<<"starting mainloop.NHFLOW"<<endl;
     
 //-----------MAINLOOP NSEWAVE----------------------------
-	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
-	{		
+    while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
+    {        
         ++p->count;
         starttime=pgc->timer();
 
@@ -58,19 +58,19 @@ void driver::loop_nhflow()
         cout<<"simtime: "<<p->simtime<<endl;
         cout<<"timestep: "<<p->dt<<endl;
         
-		if(p->B90>0 && p->B92<=11)
-		cout<<"t/T: "<<p->simtime/p->wT<<endl;
+        if(p->B90>0 && p->B92<=11)
+        cout<<"t/T: "<<p->simtime/p->wT<<endl;
         
         if(p->B90>0 && p->B92>11)
-		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
+        cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
         pflow->flowfile(p,a,pgc,pturb);
         pflow->wavegen_precalc_nhflow(p,d,pgc);
-			
+            
         pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pvrans);        
         
-		// Sediment Computation
+        // Sediment Computation
         psed->start_nhflow(p,d,pgc,pflow);
         pnhfsf->depth_update(p,d,pgc,pflow);
         
@@ -94,24 +94,24 @@ void driver::loop_nhflow()
         {
         endtime=pgc->timer();
         
-		p->itertime=endtime-starttime;
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
-		
-		
+        p->itertime=endtime-starttime;
+        p->totaltime+=p->itertime;
+        p->gctotaltime+=p->gctime;
+        p->Xtotaltime+=p->xtime;
+        p->meantime=(p->totaltime/double(p->count));
+        p->gcmeantime=(p->gctotaltime/double(p->count));
+        p->Xmeantime=(p->Xtotaltime/double(p->count));
+        
+        
         if(p->count%p->P12==0)
         {
         if(p->B90>0)
-		cout<<"wavegentime: "<<setprecision(5)<<p->wavecalctime<<endl;
-		if(p->X10>0)
+        cout<<"wavegentime: "<<setprecision(5)<<p->wavecalctime<<endl;
+        if(p->X10>0)
         cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;        
+        cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
         cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
         }
 
@@ -122,25 +122,25 @@ void driver::loop_nhflow()
         }
     p->gctime=0.0;
     p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-	p->field4time=0.0;
+    p->reinitime=0.0;
+    p->wavecalctime=0.0;
+    p->field4time=0.0;
     p->fbtime=0.0;
-	
+    
     stop(p,a,pgc);
-	}
+    }
 
-	if(p->mpirank==0)
-	{
-	cout<<endl<<"******************************"<<endl<<endl;
+    if(p->mpirank==0)
+    {
+    cout<<endl<<"******************************"<<endl<<endl;
 
-	cout<<"modelled time: "<<p->simtime<<endl;
-	cout<<endl;
+    cout<<"modelled time: "<<p->simtime<<endl;
+    cout<<endl;
 
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-	}
+    }
 
     pgc->final();
 }

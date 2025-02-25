@@ -41,7 +41,7 @@ public:
 
     virtual void startF(lexer*, ghostcell*, double*, double*, double*, int)=0;
 
-	
+    
 };
 
 #endif

@@ -57,5 +57,5 @@ void ghostcell::solid_forcing_eta(lexer *p, slice &f)
         f(i,j+2)=f(i,j);
         }
 
-	}
+    }
 }

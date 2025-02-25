@@ -35,25 +35,25 @@ class potential_water : public potential, public increment
 {
 
 public:
-	potential_water(lexer* p);
-	virtual ~potential_water();
+    potential_water(lexer* p);
+    virtual ~potential_water();
 
-	virtual void start(lexer*,fdm*, solver*, ghostcell* pgc);
+    virtual void start(lexer*,fdm*, solver*, ghostcell* pgc);
 
 
 private:
     void rhs(lexer*,fdm*);
-	void ucalc(lexer*,fdm*,field&);
-	void vcalc(lexer*,fdm*,field&);
-	void wcalc(lexer*,fdm*,field&);
+    void ucalc(lexer*,fdm*,field&);
+    void vcalc(lexer*,fdm*,field&);
+    void wcalc(lexer*,fdm*,field&);
     
     void laplace(lexer*,fdm*,field&);
     void ini_bc(lexer*,fdm*,ghostcell*);
     
     
-	double starttime,endtime;
-	int count;
-	int gcval_pot;
+    double starttime,endtime;
+    int count;
+    int gcval_pot;
     
     fieldint4 bc;
     

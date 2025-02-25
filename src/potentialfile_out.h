@@ -39,9 +39,9 @@ class potentialfile_out : public boundarycheck
 {
 public:
     potentialfile_out(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~potentialfile_out();
+    virtual ~potentialfile_out();
 
-	void start(lexer*, fdm_fnpf*, ghostcell*,turbulence*);
+    void start(lexer*, fdm_fnpf*, ghostcell*,turbulence*);
 
 
 private:
@@ -56,7 +56,7 @@ private:
 
     
     
-	char name[450];
+    char name[450];
     char headername[450];
 
     int **flag;
@@ -65,15 +65,15 @@ private:
     int count;
     int elnum;
     int *iloc;
-	const int probenum;
-	const double eps;
+    const int probenum;
+    const double eps;
     ofstream *fileout;
     ofstream headerout;
 
-	double xloc,yloc,zloc;
-	double xp,yp,zp;
+    double xloc,yloc,zloc;
+    double xp,yp,zp;
 
-	int filecount;
+    int filecount;
     
     double ddn;
     float ffn;

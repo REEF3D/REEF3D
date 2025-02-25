@@ -30,15 +30,15 @@ void ioflow_f::discharge_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
     Qin_nhf(p,d,pgc);
     Qout_nhf(p,d,pgc);
 
-	if(p->count==0)
+    if(p->count==0)
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
     cout<<"Inflow_0:  "<<setprecision(5)<<p->W10<<" Ui: "<<p->Ui<<" Hi: "<<p->Hi<<endl;
     cout<<"Outflow_0: "<<setprecision(5)<<p->W10<<" Uo: "<<p->Uo<<" Ho: "<<p->phiout<<endl;
     }
-	
-	if(p->count>0)
-	if(p->mpirank==0 && (p->count%p->P12==0))
+    
+    if(p->count>0)
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
     cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<" Hi: "<<p->Hi<<" Ai: "<<Ai<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ho: "<<p->phiout<<endl;
@@ -117,22 +117,22 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
-	
-	if(p->B60==1)
+    
+    if(p->B60==1)
     {
-	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
+    p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
     
     if(p->count==0 && p->I11==1)
     p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
     }
-	
-	if(p->B60==2)
-	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
-	
-	if(p->B60==3 || p->B60==4)
-	p->Uo=hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
-	
-	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
+    
+    if(p->B60==2)
+    p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
+    
+    if(p->B60==3 || p->B60==4)
+    p->Uo=hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
+    
+    if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)<<endl;
     
 }

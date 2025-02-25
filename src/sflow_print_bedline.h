@@ -41,9 +41,9 @@ class sflow_print_bedline : public boundarycheck
 {
 public:
     sflow_print_bedline(lexer*,fdm2D*,ghostcell*);
-	virtual ~sflow_print_bedline();
+    virtual ~sflow_print_bedline();
 
-	void start(lexer*, fdm2D*, ghostcell*,ioflow*,slice &f);
+    void start(lexer*, fdm2D*, ghostcell*,ioflow*,slice &f);
 
 
 private:
@@ -60,8 +60,8 @@ private:
     ofstream wsfout;
 
     double xcoor;
-	
-	wave_theory *pwave;
+    
+    wave_theory *pwave;
 
     int maxknox,sumknox;
 

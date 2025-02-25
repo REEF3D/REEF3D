@@ -28,7 +28,7 @@ Author: Hans Bihs
 #define WLVL (fabs(d->WL(i,j))>(p->A544)?d->WL(i,j):1.0e20)
 
 void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
-{	
+{    
 
     d->wd_criterion=p->A544;
     

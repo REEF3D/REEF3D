@@ -46,45 +46,45 @@ void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool final
 
 void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc)
 {
-	// Calculate Euler angles from quaternion
-	
-	// around z-axis
-	psi = atan2(2.0*(e_(1)*e_(2) + e_(3)*e_(0)), 1.0 - 2.0*(e_(2)*e_(2) + e_(3)*e_(3))); 
-	
-	// around new y-axis
-	double arg = 2.0*(e_(0)*e_(2) - e_(1)*e_(3));
-	
-	if (fabs(arg) >= 1.0)
-	theta = SIGN(arg)*PI/2.0;
+    // Calculate Euler angles from quaternion
     
-	else
-	theta = asin(arg);														
-			
-	// around new x-axis
-	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));	
+    // around z-axis
+    psi = atan2(2.0*(e_(1)*e_(2) + e_(3)*e_(0)), 1.0 - 2.0*(e_(2)*e_(2) + e_(3)*e_(3))); 
+    
+    // around new y-axis
+    double arg = 2.0*(e_(0)*e_(2) - e_(1)*e_(3));
+    
+    if (fabs(arg) >= 1.0)
+    theta = SIGN(arg)*PI/2.0;
+    
+    else
+    theta = asin(arg);                                                        
+            
+    // around new x-axis
+    phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));    
 }
 
 void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
 {
-	// Update position of triangles 
-	for(n=0; n<tricount; ++n)
-	{
+    // Update position of triangles 
+    for(n=0; n<tricount; ++n)
+    {
         for(int q=0; q<3; q++)
         {
             // Update coordinates of triangles 
             Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
-					
+                    
             point = R_*point;
         
             tri_x[n][q] = point(0) + c_(0);
             tri_y[n][q] = point(1) + c_(1);
             tri_z[n][q] = point(2) + c_(2);
         }
-	}
+    }
     
     // Update floating level set function
-	ray_cast(p,a,pgc);
-	reini_RK2(p,a,pgc,a->fb);
+    ray_cast(p,a,pgc);
+    reini_RK2(p,a,pgc,a->fb);
     
     pgc->start4a(p,a->fb,50);   
 }

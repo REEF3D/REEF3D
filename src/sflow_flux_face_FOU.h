@@ -34,11 +34,11 @@ class sflow_flux_face_FOU : public sflow_flux, public increment
 {
 public:
 
-	sflow_flux_face_FOU (lexer *p);
-	virtual ~sflow_flux_face_FOU();
+    sflow_flux_face_FOU (lexer *p);
+    virtual ~sflow_flux_face_FOU();
 
-	virtual void u_flux(int,slice&,double&,double&);
-	virtual void v_flux(int,slice&,double&,double&);
+    virtual void u_flux(int,slice&,double&,double&);
+    virtual void v_flux(int,slice&,double&,double&);
 
 private:
     lexer *p;

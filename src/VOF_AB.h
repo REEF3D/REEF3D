@@ -40,26 +40,26 @@ using namespace std;
 class VOF_AB : public freesurface, gradient
 {
 public:
-	VOF_AB(lexer*, fdm*, ghostcell*,heat*);
-	virtual ~VOF_AB();
-	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
-	virtual void update(lexer*,fdm*,ghostcell*,field&);
+    VOF_AB(lexer*, fdm*, ghostcell*,heat*);
+    virtual ~VOF_AB();
+    virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
+    virtual void update(lexer*,fdm*,ghostcell*,field&);
 
-	void compression(lexer*,fdm*,ghostcell*,convection*,field&,double);
-	
+    void compression(lexer*,fdm*,ghostcell*,convection*,field&,double);
+    
 private:
     fluid_update *pupdate;
-	
-	field1 uc;
-	field2 vc;
-	field3 wc;
+    
+    field1 uc;
+    field2 vc;
+    field3 wc;
     field4 F;
-	field4 lab;
+    field4 lab;
 
-	int gcval_frac;
-	double starttime;
-	
-	convection *ppconvec;
+    int gcval_frac;
+    double starttime;
+    
+    convection *ppconvec;
 };
 #endif
 

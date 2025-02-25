@@ -28,7 +28,7 @@ Author: Hans Bihs
 wave_lib_irregular_2nd_a::wave_lib_irregular_2nd_a(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
 { 
     if(p->B85!=4 && p->B85!=5 && p->B85!=6 && p->B92!=52)
-	{
+    {
         irregular_parameters(p);
         parameters(p,pgc);
         
@@ -44,8 +44,8 @@ wave_lib_irregular_2nd_a::wave_lib_irregular_2nd_a(lexer *p, ghostcell *pgc) : w
         amplitudes_focused(p);
         phases_focused(p);
         }
-	}
-	
+    }
+    
     if(p->B92==52)
     {
     recon_read(p,pgc);
@@ -53,11 +53,11 @@ wave_lib_irregular_2nd_a::wave_lib_irregular_2nd_a(lexer *p, ghostcell *pgc) : w
     parameters(p,pgc);
     }
     
-	if(p->B85==4 || p->B85==5 || p->B85==6)
-	{
-	wavepackets_parameters(p);
-	parameters(p,pgc);
-	}
+    if(p->B85==4 || p->B85==5 || p->B85==6)
+    {
+    wavepackets_parameters(p);
+    parameters(p,pgc);
+    }
     
     print_components(p);
     
@@ -81,12 +81,12 @@ wave_lib_irregular_2nd_a::~wave_lib_irregular_2nd_a()
 double wave_lib_irregular_2nd_a::wave_u(lexer *p, double x, double y, double z)
 {
     vel=0.0;
-	
-	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
-	
-	 // 1st-order
-	for(n=0;n<p->wN;++n)
+    
+    for(n=0;n<p->wN;++n)
+    Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
+    
+     // 1st-order
+    for(n=0;n<p->wN;++n)
     vel += wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinh(ki[n]*wdt) ) * cos(Ti[n]) * cosbeta[n];
     
     // 2nd-order
@@ -107,19 +107,19 @@ double wave_lib_irregular_2nd_a::wave_u(lexer *p, double x, double y, double z)
     
     if(p->B130==0)
     vel*=cosgamma;
-	
+    
     return vel;
 }
 
 double wave_lib_irregular_2nd_a::wave_v(lexer *p, double x, double y, double z)
 {
     vel=0.0;
-	
-	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
-	
-	 // 1st-order
-	for(n=0;n<p->wN;++n)
+    
+    for(n=0;n<p->wN;++n)
+    Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
+    
+     // 1st-order
+    for(n=0;n<p->wN;++n)
     vel += wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinh(ki[n]*wdt) ) * cos(Ti[n]) * sinbeta[n];
     
     // 2nd-order
@@ -140,7 +140,7 @@ double wave_lib_irregular_2nd_a::wave_v(lexer *p, double x, double y, double z)
     
     if(p->B130==0)
     vel*=singamma;
-	
+    
     return vel;
 }
 
@@ -155,11 +155,11 @@ double wave_lib_irregular_2nd_a::wave_w(lexer *p, double x, double y, double z)
 {
     vel=0.0;
 
-	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
+    for(n=0;n<p->wN;++n)
+    Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
     
      // 1st-order
-	for(n=0;n<p->wN;++n)
+    for(n=0;n<p->wN;++n)
     vel += wi[n]*Ai[n]* (sinh(ki[n]*(wdt+z))/sinh(ki[n]*wdt)) * sin(Ti[n]);
     
     // 2nd-order
@@ -177,19 +177,19 @@ double wave_lib_irregular_2nd_a::wave_w(lexer *p, double x, double y, double z)
         -(Fval[n][m]*sinh(ki[n]+ki[m])*(wdt+z)*sin(Ti[n]+Ti[m])*(ki[n]-ki[m]))
         /   denom2;
     }
-	
+    
     return vel;
 }
 
 double wave_lib_irregular_2nd_a::wave_eta(lexer *p, double x, double y)
 {
     eta=0.0;
-		
-	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
+        
+    for(n=0;n<p->wN;++n)
+    Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 
     // 1st-order
-	for(n=0;n<p->wN;++n)
+    for(n=0;n<p->wN;++n)
     eta +=  Ai[n]*cos(Ti[n]);
     
     // 2nd-order
@@ -197,7 +197,7 @@ double wave_lib_irregular_2nd_a::wave_eta(lexer *p, double x, double y)
     for(m=n+1;m<p->wN;++m)
     eta +=  ((Ai[n]*Ai[m])/(2.0*fabs(p->W22))) 
         * (Cval[n][m]*cos(Ti[n]-Ti[m]) - Dval[n][m]*cos(Ti[n]+Ti[m]));
-	
+    
     return eta;
 }
 

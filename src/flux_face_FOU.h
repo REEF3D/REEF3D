@@ -34,12 +34,12 @@ class flux_face_FOU : public flux, public increment
 {
 public:
 
-	flux_face_FOU (lexer *p);
-	virtual ~flux_face_FOU();
+    flux_face_FOU (lexer *p);
+    virtual ~flux_face_FOU();
 
-	virtual void u_flux(fdm* a,int,field&,double&,double&);
-	virtual void v_flux(fdm* a,int,field&,double&,double&);
-	virtual void w_flux(fdm* a,int,field&,double&,double&);
+    virtual void u_flux(fdm* a,int,field&,double&,double&);
+    virtual void v_flux(fdm* a,int,field&,double&,double&);
+    virtual void w_flux(fdm* a,int,field&,double&,double&);
 
 private:
     lexer *p;

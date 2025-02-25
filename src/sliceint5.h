@@ -32,28 +32,28 @@ class sliceint5 : public sliceint, increment
 {
 public:
 
-	sliceint5 (lexer*);
-	virtual ~sliceint5();
+    sliceint5 (lexer*);
+    virtual ~sliceint5();
 
     virtual int& operator()(int, int);
 
     virtual void resize(lexer*);
     virtual void dealloc(lexer*);
     
-	int di,dj;
-	int imin,imax,jmax,jmin;
+    int di,dj;
+    int imin,imax,jmax,jmin;
 
 private:
 
-	void fieldalloc(lexer *);
+    void fieldalloc(lexer *);
 
     int iter;
-	int feldsize;
-	
-	
-	double starttime;
-	
-	lexer *pp;
+    int feldsize;
+    
+    
+    double starttime;
+    
+    lexer *pp;
 
 };
 

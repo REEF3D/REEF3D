@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 void initialize::stateini(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
-	cfd_state state_ini(p,a,pgc);
-	
-	state_ini.read(p,a,pgc,pturb,psed);
+    cfd_state state_ini(p,a,pgc);
+    
+    state_ini.read(p,a,pgc,pturb,psed);
 }

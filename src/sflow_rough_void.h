@@ -34,9 +34,9 @@ class sflow_rough_void : public sflow_roughness
 
 public:
     sflow_rough_void(lexer*);
-	virtual ~sflow_rough_void();
+    virtual ~sflow_rough_void();
     
-	virtual void u_source(lexer*, fdm2D*, slice&);
+    virtual void u_source(lexer*, fdm2D*, slice&);
     virtual void v_source(lexer*, fdm2D*, slice&);
 
 };

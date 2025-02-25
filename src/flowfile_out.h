@@ -39,9 +39,9 @@ class flowfile_out : public boundarycheck
 {
 public:
     flowfile_out(lexer*,fdm*,ghostcell*);
-	virtual ~flowfile_out();
+    virtual ~flowfile_out();
 
-	void start(lexer*, fdm*, ghostcell*,turbulence*);
+    void start(lexer*, fdm*, ghostcell*,turbulence*);
 
 
 private:
@@ -56,7 +56,7 @@ private:
 
     
     
-	char name[450];
+    char name[450];
     char headername[450];
 
     int **flag;
@@ -65,15 +65,15 @@ private:
     int count;
     int elnum;
     int *iloc;
-	const int probenum;
-	const double eps;
+    const int probenum;
+    const double eps;
     ofstream *fileout;
     ofstream *headerout;
 
-	double xloc,yloc,zloc;
-	double xp,yp,zp;
+    double xloc,yloc,zloc;
+    double xp,yp,zp;
 
-	int filecount;
+    int filecount;
     
     double ddn;
     float ffn;

@@ -36,7 +36,7 @@ void hypre_struct_fnpf::fill_matrix8(lexer* p, ghostcell* pgc, double *f, double
     stencil_indices[j] = j;
 
    
-	// M
+    // M
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, M);
     HYPRE_StructMatrixAssemble(A);
     
@@ -53,7 +53,7 @@ void hypre_struct_fnpf::fill_matrix8(lexer* p, ghostcell* pgc, double *f, double
 
 void hypre_struct_fnpf::fillbackvec8(lexer *p, double *f, double *rhs, double *M)
 {
-	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, f);
+    HYPRE_StructVectorGetBoxValues(x, ilower, iupper, f);
 }
 
 #endif

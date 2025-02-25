@@ -46,12 +46,12 @@ bedload_EH::~bedload_EH()
 
 void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-	double qb,qbx,qby,Ts,Tb;
-	
-	SLICELOOP4
+    double qb,qbx,qby,Ts,Tb;
+    
+    SLICELOOP4
     {
         Ts = s->shields_crit(i,j);
-	    Tb = s->tau_eff(i,j);
+        Tb = s->tau_eff(i,j);
 
         if(Tb>Ts)
         if(s->active(i,j)==1)
@@ -59,9 +59,9 @@ void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
         if(Tb<=Ts || s->active(i,j)==0)
         qb=0.0;
-	
+    
         s->qbe(i,j) = qb;
-	}
+    }
     
     pgc->gcsl_start4(p,s->qbe,1);
     

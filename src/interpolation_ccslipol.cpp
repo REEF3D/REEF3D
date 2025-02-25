@@ -31,7 +31,7 @@ double interpolation::ccslipol1(slice& f, double xp, double yp)
     
     i = p->posf_i(xp);
     j = p->posc_j(yp);
-		
+        
     // wa
     wa = (p->XN[IP1]-xp)/p->DXP[IP];
     
@@ -78,7 +78,7 @@ double interpolation::ccslipol2(slice& f, double xp, double yp)
     
     i = p->posc_i(xp);
     j = p->posf_j(yp);
-		
+        
     // wa
     wa = (p->XP[IP1]-xp)/p->DXN[IP];
     
@@ -127,7 +127,7 @@ double interpolation::ccslipol4(slice& f, double xp, double yp)
     j = p->posc_j(yp);
     
     
-		
+        
     // wa
     wa = (p->XP[IP1]-xp)/p->DXN[IP];
     

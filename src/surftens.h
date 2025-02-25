@@ -30,13 +30,13 @@ using namespace std;
 class surftens : public gradient
 {
 public:
-	surftens(lexer*);
-	virtual ~surftens();
-	void surface_tension(fdm*,lexer*,field&,int);
+    surftens(lexer*);
+    virtual ~surftens();
+    void surface_tension(fdm*,lexer*,field&,int);
 
 private:
     const double epsi;
-	double tension,dirac,curv;
+    double tension,dirac,curv;
 
 };
 #endif

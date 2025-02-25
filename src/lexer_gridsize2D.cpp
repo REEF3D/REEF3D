@@ -25,7 +25,7 @@ Author: Hans Bihs
 
 void lexer::grid2Dsize()
 {
-	int gcbnum=0;
+    int gcbnum=0;
     int gcparanum=0;
     
     count=0;
@@ -34,7 +34,7 @@ void lexer::grid2Dsize()
     {   
         if(flagslice4[(i-imin-1)*jmax + (j-jmin)]<0)
         ++count;
-	
+    
         if(flagslice4[(i-imin)*jmax + (j-jmin)+1]<0)
         ++count;
 
@@ -46,14 +46,14 @@ void lexer::grid2Dsize()
     }
 
     
-	gcbnum = count;
-	gcbnum+=100;
+    gcbnum = count;
+    gcbnum+=100;
     
     
     slicenum= 0;
     for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
-	if(flagslice4[(i-imin)*jmax + (j-jmin)]>0)
+    if(flagslice4[(i-imin)*jmax + (j-jmin)]>0)
     ++slicenum;
     
     gcparanum = gcslpara1_count + gcslpara2_count + gcslpara3_count + gcslpara4_count

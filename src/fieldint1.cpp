@@ -32,20 +32,20 @@ fieldint1::fieldint1(lexer *p)
     kmin=p->kmin;
     kmax=p->kmax;
 
-	fieldalloc(p);
+    fieldalloc(p);
 
-	pp=p;
+    pp=p;
 }
 
 fieldint1::~fieldint1()
 {
-	delete [ ] V;
+    delete [ ] V;
 }
 
 void fieldint1::fieldalloc(lexer* p)
 {
-	int gridsize = p->imax*p->jmax*p->kmax;
-	p->Iarray(V,gridsize);
+    int gridsize = p->imax*p->jmax*p->kmax;
+    p->Iarray(V,gridsize);
 }
 
 void fieldint1::resize(lexer* p)
@@ -54,6 +54,6 @@ void fieldint1::resize(lexer* p)
 
 int & fieldint1::operator()(int ii, int jj, int kk)
 {
-	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
+    return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
 }
 

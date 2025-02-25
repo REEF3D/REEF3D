@@ -38,7 +38,7 @@ class solver2D
 
 public:
 
-	virtual void start(lexer*,ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int)=0;
+    virtual void start(lexer*,ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int)=0;
 };
 
 #endif

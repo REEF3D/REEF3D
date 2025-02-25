@@ -39,24 +39,24 @@ class fnpf_print_kinematics :  public increment
 {
 
 public:
-	fnpf_print_kinematics(lexer*,fdm_fnpf*,ghostcell*,int);
-	virtual ~fnpf_print_kinematics();
-	virtual void start(lexer*,fdm_fnpf*,ghostcell*);
+    fnpf_print_kinematics(lexer*,fdm_fnpf*,ghostcell*,int);
+    virtual ~fnpf_print_kinematics();
+    virtual void start(lexer*,fdm_fnpf*,ghostcell*);
     virtual void ini(lexer*,fdm_fnpf*,ghostcell*);
 
-private:	
+private:    
     void kinematics_calc(lexer*,fdm_fnpf*,ghostcell*);
-	void print_kinematics(lexer*,fdm_fnpf*,ghostcell*);
+    void print_kinematics(lexer*,fdm_fnpf*,ghostcell*);
     void print_ini(lexer*,fdm_fnpf*,ghostcell*);
-	double dndt(lexer*, fdm_fnpf*, ghostcell*);
-	double dudsig(lexer*, fdm_fnpf*, ghostcell*);
-	double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
-	double dudxi(lexer*, fdm_fnpf*, ghostcell*);
-	double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
-	
+    double dndt(lexer*, fdm_fnpf*, ghostcell*);
+    double dudsig(lexer*, fdm_fnpf*, ghostcell*);
+    double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
+    double dudxi(lexer*, fdm_fnpf*, ghostcell*);
+    double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
+    
     // force ale variabes
     double Fx1,Fy1,Fx,Fy,xc,yc,rc,cd,cm,etan,dtn,eta2n,ax1,ay1,ax2,ay2,ax3,ay3,dudsig_,dvdsig_;
-	double *u,*v,*un,*vn,*ax,*ay;
+    double *u,*v,*un,*vn,*ax,*ay;
     const int ID;
     
     // printing

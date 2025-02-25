@@ -52,29 +52,29 @@ using namespace std;
 class momentum_FCC3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
-	momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
+    momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
-	virtual ~momentum_FCC3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
+    virtual ~momentum_FCC3();
+    virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
     field1 ur,udiff,urk1,urk2,fx;
-	field2 vr,vdiff,vrk1,vrk2,fy;
-	field3 wr,wdiff,wrk1,wrk2,fz;
+    field2 vr,vdiff,vrk1,vrk2,fy;
+    field3 wr,wdiff,wrk1,wrk2,fz;
     
     field1 Mx,rox;
     field2 My,roy;
     field3 Mz,roz;
     
     field1 Mx_rk1,Mx_rk2;
-	field2 My_rk1,My_rk2;
-	field3 Mz_rk1,Mz_rk2;
+    field2 My_rk1,My_rk2;
+    field3 Mz_rk1,Mz_rk2;
     
     field1 rox_rk1,rox_rk2;
-	field2 roy_rk1,roy_rk2;
-	field3 roz_rk1,roz_rk2;
+    field2 roy_rk1,roy_rk2;
+    field3 roz_rk1,roz_rk2;
     
     field4 ls,frk1,frk2;
 
@@ -82,10 +82,10 @@ private:
     fluid_update *pupdate;
     picard *ppicard;
     
-	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	
+    void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    
     void clear_FGH(lexer*,fdm*);
     void face_density(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
@@ -94,21 +94,21 @@ private:
     double ro_filter(lexer*,fdm*,field&);
 
     
-	int gcval_u, gcval_v, gcval_w;
+    int gcval_u, gcval_v, gcval_w;
     int gcval_phi;
     double val;
-	double starttime;
+    double starttime;
     double ro_threshold;
 
-	convection *pconvec;
+    convection *pconvec;
     convection *pfsfdisc;
-	diffusion *pdiff;
-	pressure *ppress;
-	poisson *ppois;
-	turbulence *pturb;
-	solver *psolv;
+    diffusion *pdiff;
+    pressure *ppress;
+    poisson *ppois;
+    turbulence *pturb;
+    solver *psolv;
     solver *ppoissonsolv;
-	ioflow *pflow;
+    ioflow *pflow;
     nhflow *pnh;
     reini *preini;
     density *pd;

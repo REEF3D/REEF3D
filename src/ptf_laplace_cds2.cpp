@@ -30,7 +30,7 @@ ptf_laplace_cds2::ptf_laplace_cds2(lexer *p, fdm *a, ghostcell *pgc) : bc(p)
 {
     // bc ini
     SLICELOOP4
-	bc(i,j) = 0;
+    bc(i,j) = 0;
 
     pgc->gcsl_start4int(p,bc,50);
 
@@ -60,13 +60,13 @@ ptf_laplace_cds2::~ptf_laplace_cds2()
 void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, field &f, slice &Fifsf)
 {
 
-	n=0;
+    n=0;
     FLUIDLOOP
-	{
+    {
 
     if(p->flag4[IJK]>0)
     {
-	a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])
+    a->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP])
                 + 1.0/(p->DXP[IM1]*p->DXN[IP])
 
                 + 1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir
@@ -75,42 +75,42 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
                 + 1.0/(p->DZP[KP]*p->DZN[KP])
                 + 1.0/(p->DZP[KM1]*p->DZN[KP]);
 
-   	a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
-	a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
+       a->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
+    a->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
 
-	a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
-	a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+    a->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+    a->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-	a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
-	a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
+    a->M.t[n] = -1.0/(p->DZP[KP]*p->DZN[KP]);
+    a->M.b[n] = -1.0/(p->DZP[KM1]*p->DZN[KP]);
 
-	a->rhsvec.V[n] = 0.0;
+    a->rhsvec.V[n] = 0.0;
     }
 
 
     if(p->flag4[IJK]<0)
     {
-	a->M.p[n] =  1.0;
+    a->M.p[n] =  1.0;
 
-   	a->M.n[n] = 0.0;
-	a->M.s[n] = 0.0;
+       a->M.n[n] = 0.0;
+    a->M.s[n] = 0.0;
 
-	a->M.w[n] = 0.0;
-	a->M.e[n] = 0.0;
+    a->M.w[n] = 0.0;
+    a->M.e[n] = 0.0;
 
-	a->M.t[n] = 0.0;
-	a->M.b[n] = 0.0;
+    a->M.t[n] = 0.0;
+    a->M.b[n] = 0.0;
 
-	a->rhsvec.V[n] = 0.0;
+    a->rhsvec.V[n] = 0.0;
     }
     
-	++n;
-	}
+    ++n;
+    }
 
     // Boundary Conditions
     n=0;
-	FLUIDLOOP
-	{
+    FLUIDLOOP
+    {
         if(p->flag4[IJK]>0)
         {
 
@@ -411,8 +411,8 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
             a->M.b[n] = 0.0;
             }
         }
-	++n;
-	}
+    ++n;
+    }
     
     double starttime=pgc->timer();
     psolv->start(p,a,pgc,a->Fi,a->rhsvec,5);
@@ -421,6 +421,6 @@ void ptf_laplace_cds2::start(lexer* p, fdm *a, ghostcell *pgc, solver *psolv, fi
 
     p->poissoniter=p->solveriter;
     p->poissontime=endtime-starttime;
-	if(p->mpirank==0 && p->count%p->P12==0)
-	cout<<"Fi_iter: "<<p->solveriter<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
+    if(p->mpirank==0 && p->count%p->P12==0)
+    cout<<"Fi_iter: "<<p->solveriter<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
 }

@@ -37,52 +37,52 @@ sflow_fixtimestep::~sflow_fixtimestep()
 }
 
 void sflow_fixtimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
-{	
-	p->umax=p->vmax=p->viscmax=0.0;
-	p->dt_old=p->dt;
-	double depthmax=-10.0;
+{    
+    p->umax=p->vmax=p->viscmax=0.0;
+    p->dt_old=p->dt;
+    double depthmax=-10.0;
 
 
 // maximum velocities
 
 
-	SLICELOOP1
-	p->umax=MAX(p->umax,fabs(b->P(i,j)));
+    SLICELOOP1
+    p->umax=MAX(p->umax,fabs(b->P(i,j)));
 
-	p->umax=pgc->globalmax(p->umax);
+    p->umax=pgc->globalmax(p->umax);
 
 
-	SLICELOOP2
-	p->vmax=MAX(p->vmax,fabs(b->Q(i,j)));
+    SLICELOOP2
+    p->vmax=MAX(p->vmax,fabs(b->Q(i,j)));
 
-	p->vmax=pgc->globalmax(p->vmax);
+    p->vmax=pgc->globalmax(p->vmax);
 
-	SLICELOOP4
-	depthmax=MAX(depthmax,b->depth(i,j));
-	
-	depthmax=pgc->globalmax(depthmax);
-	
+    SLICELOOP4
+    depthmax=MAX(depthmax,b->depth(i,j));
+    
+    depthmax=pgc->globalmax(depthmax);
+    
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
-	cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
-	cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
-	cout<<"fsftime: "<<p->lsmtime<<endl;
+    cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
+    cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
+    cout<<"fsftime: "<<p->lsmtime<<endl;
     }
 
-	p->dt=p->N49;
+    p->dt=p->N49;
 
 
-	b->maxF=0.0;
-	b->maxG=0.0;
+    b->maxF=0.0;
+    b->maxG=0.0;
 }
 
 
 void sflow_fixtimestep::ini(lexer *p, fdm2D* b, ghostcell* pgc)
-{	
+{    
 
-	p->dt=p->N49;
-	p->dt_old=p->dt;
+    p->dt=p->N49;
+    p->dt_old=p->dt;
 
-	b->maxF=0.0;
-	b->maxG=0.0;
+    b->maxF=0.0;
+    b->maxG=0.0;
 }

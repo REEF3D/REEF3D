@@ -33,29 +33,29 @@ void fnpf_ini::fnpf_restart_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     sprintf(name,"./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d");
     
-	mainhead.open(name, ios::binary);
+    mainhead.open(name, ios::binary);
     
     // count numiter
     mainhead.read((char*)&iin, sizeof (int));
-	//numprocs=iin;
+    //numprocs=iin;
     
     mainhead.read((char*)&iin, sizeof (int));
-	//jdir=iin;
+    //jdir=iin;
     
     mainhead.read((char*)&iin, sizeof (int));
-	//NGx=iin;
+    //NGx=iin;
     
     mainhead.read((char*)&iin, sizeof (int));
-	//NGy=iin;
+    //NGy=iin;
     
     mainhead.read((char*)&iin, sizeof (int));
-	//NGz=iin;
+    //NGz=iin;
     
     mainhead.read((char*)&iin, sizeof (int));
-	//file_version=iin;
+    //file_version=iin;
     
     mainhead.read((char*)&iin, sizeof (int));
-	file_type=iin;
+    file_type=iin;
     
     mainhead.close();
 

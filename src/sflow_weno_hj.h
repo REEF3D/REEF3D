@@ -33,36 +33,36 @@ using namespace std;
 class sflow_weno_hj : public sflow_convection, public increment
 {
 public:
-	sflow_weno_hj(lexer*);
-	virtual ~sflow_weno_hj();
+    sflow_weno_hj(lexer*);
+    virtual ~sflow_weno_hj();
 
-	virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&);
+    virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&);
 
 private:
     double aij(lexer*, fdm2D*, slice&, int, slice&, slice&);
 
-	virtual double fx(lexer*, fdm2D*, slice&, int, double);
-	virtual double fy(lexer*, fdm2D*, slice&, int, double);
-	void iqmin(lexer*, fdm2D*, slice&, int);
-	void jqmin(lexer*, fdm2D*, slice&, int);
-	void iqmax(lexer*, fdm2D*, slice&, int);
-	void jqmax(lexer*, fdm2D*, slice&, int);
+    virtual double fx(lexer*, fdm2D*, slice&, int, double);
+    virtual double fy(lexer*, fdm2D*, slice&, int, double);
+    void iqmin(lexer*, fdm2D*, slice&, int);
+    void jqmin(lexer*, fdm2D*, slice&, int);
+    void iqmax(lexer*, fdm2D*, slice&, int);
+    void jqmax(lexer*, fdm2D*, slice&, int);
 
 
-	double L,grad;
-	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-	const double sixten,treten;
-	const double epsilon,smallnum;
-	double is1,is2,is3;
-	double alpha1,alpha2,alpha3;
-	double w1,w2,w3;
-	double q1,q2,q3,q4,q5;
-	double gradx, grady, gradz;
-	double fu1,fv1,fu2,fv2;
+    double L,grad;
+    const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+    const double sixten,treten;
+    const double epsilon,smallnum;
+    double is1,is2,is3;
+    double alpha1,alpha2,alpha3;
+    double w1,w2,w3;
+    double q1,q2,q3,q4,q5;
+    double gradx, grady, gradz;
+    double fu1,fv1,fu2,fv2;
 
-	void is(slice&);
-	void alpha();
-	void weight();
+    void is(slice&);
+    void alpha();
+    void weight();
     
     sflow_flux *pflux;
     double ivel1,ivel2,jvel1,jvel2;

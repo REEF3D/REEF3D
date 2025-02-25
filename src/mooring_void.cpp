@@ -22,7 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"mooring_void.h"
 
 void mooring_void::start(lexer *p, ghostcell *pgc)
-{	
+{    
 }
 
 void mooring_void::initialize(lexer *p, ghostcell *pgc)
@@ -31,10 +31,10 @@ void mooring_void::initialize(lexer *p, ghostcell *pgc)
 
 void mooring_void::mooringForces
 (
-	double& Xme, double& Yme, double& Zme
+    double& Xme, double& Yme, double& Zme
 )
 {
-	Xme = 0.0;
-	Yme = 0.0;
-	Zme = 0.0;
+    Xme = 0.0;
+    Yme = 0.0;
+    Zme = 0.0;
 }

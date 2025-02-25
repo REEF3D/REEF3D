@@ -29,12 +29,12 @@ Author: Hans Bihs
 nhflow_diff_void::nhflow_diff_void(lexer* p)
 {
     gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
+    gcval_v=11;
+    gcval_w=12;
     
     gcval_uh=14;
-	gcval_vh=15;
-	gcval_wh=16;
+    gcval_vh=15;
+    gcval_wh=16;
 }
 
 nhflow_diff_void::~nhflow_diff_void()

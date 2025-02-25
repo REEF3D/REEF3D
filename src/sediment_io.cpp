@@ -31,7 +31,7 @@ Author: Hans Bihs
 
 double sediment_f::bedshear_point(lexer *p, ghostcell *pgc)
 {
-	return s->tau_eff(i,j);
+    return s->tau_eff(i,j);
 }
 
 void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
@@ -55,7 +55,7 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     k=s->bedk(i,j);
     
     xip= p->XN[IP1];
-	yip= p->YP[JP];
+    yip= p->YP[JP];
     zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[k];
     
     s->P(i,j) = a->P(i,j) = p->ccipol1_a(a->u,xip,yip,zval);
@@ -66,17 +66,17 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     k=s->bedk(i,j);
     
     xip= p->XP[IP];
-	yip= p->YN[JP1];
+    yip= p->YN[JP1];
     zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[k];
     
     s->Q(i,j) = a->Q(i,j)  = p->ccipol2_a(a->v,xip,yip,zval);
     }
     
     pgc->gcsl_start1(p,s->P,10);
-	pgc->gcsl_start2(p,s->Q,11);
+    pgc->gcsl_start2(p,s->Q,11);
     
     pgc->gcsl_start1(p,a->P,10);
-	pgc->gcsl_start2(p,a->Q,11);
+    pgc->gcsl_start2(p,a->Q,11);
 }
 
 void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -90,7 +90,7 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     s->Q(i,j) = 0.5*(d->V[IJK] + d->V[IJp1K]);
     
     pgc->gcsl_start1(p,s->P,10);
-	pgc->gcsl_start2(p,s->Q,11);  
+    pgc->gcsl_start2(p,s->Q,11);  
     
     k=0;
 }
@@ -104,7 +104,7 @@ void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice
     s->Q(i,j) = Q(i,j);
     
     pgc->gcsl_start1(p,s->P,10);
-	pgc->gcsl_start2(p,s->Q,11);
+    pgc->gcsl_start2(p,s->Q,11);
 }
 
 double sediment_f::qbeval(int ii, int jj)

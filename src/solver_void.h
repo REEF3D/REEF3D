@@ -31,9 +31,9 @@ class solver_void : public solver
 {
 public:
 
-	solver_void(lexer*,fdm*,ghostcell*);
-	virtual ~solver_void();
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+    solver_void(lexer*,fdm*,ghostcell*);
+    virtual ~solver_void();
+    virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
     virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);

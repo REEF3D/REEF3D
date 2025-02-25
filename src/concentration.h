@@ -39,12 +39,12 @@ class concentration
 {
 public:
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*)=0;
-	virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration)=0;
-	virtual void ttimesave(lexer*, fdm*)=0;
+    virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*)=0;
+    virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration)=0;
+    virtual void ttimesave(lexer*, fdm*)=0;
 
-	virtual void print_3D(lexer*, fdm*, ghostcell *pgc, ofstream&)=0;
-	virtual double val(int,int,int)=0;
+    virtual void print_3D(lexer*, fdm*, ghostcell *pgc, ofstream&)=0;
+    virtual double val(int,int,int)=0;
 
     virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)=0;
     virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;

@@ -96,8 +96,8 @@ class driver : public increment
 {
 public:
 
-	driver(int&,char**);
-	virtual ~driver();
+    driver(int&,char**);
+    virtual ~driver();
     
     void start();
     
@@ -107,14 +107,14 @@ public:
     void ptf_driver();
     void sflow_driver();
     
-	void loop_cfd(fdm*);
-	void loop_cfd_df(fdm*);
+    void loop_cfd(fdm*);
+    void loop_cfd_df(fdm*);
     void loop_cfd_sf(fdm*);
     void loop_nhflow();
     void loop_ptf(fdm*);
     void loop_fnpf();
     
-	void logic_cfd();
+    void logic_cfd();
     void logic_ptf();
     void logic_fnpf();
     void logic_nhflow();
@@ -122,73 +122,73 @@ public:
     
     void patchBC_logic();
     
-	void driver_ini_cfd();
+    void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_fnpf();
     void driver_ini_ptf();
     void driver_ini_sflow();
     
-	void log_ini();
-	void mainlog(lexer*);
-	void maxlog(lexer*);
-	void solverlog(lexer*);
+    void log_ini();
+    void mainlog(lexer*);
+    void maxlog(lexer*);
+    void solverlog(lexer*);
     
-	void makegrid(lexer*,ghostcell*);
-	void makegrid_cds();
+    void makegrid(lexer*,ghostcell*);
+    void makegrid_cds();
     void makegrid2D(lexer*,ghostcell*);
     void makegrid2D_basic(lexer*,ghostcell*);
     void makegrid2D_cds(lexer*,ghostcell*,fdm2D*);
     void makegrid_sigma(lexer*,ghostcell*);
     void makegrid_sigma_cds(lexer*,ghostcell*);  
     
-	void fill_vel(lexer*,fdm*,ghostcell*);
-	void vec_test(lexer*,fdm*,ghostcell*,field&);
-	void func_test(lexer*,fdm*,ghostcell*,field&);
-	double calc();
+    void fill_vel(lexer*,fdm*,ghostcell*);
+    void vec_test(lexer*,fdm*,ghostcell*,field&);
+    void func_test(lexer*,fdm*,ghostcell*,field&);
+    double calc();
     
     void stop(lexer*,fdm*,ghostcell*);
 
-	printer* pprint;
-	initialize* pini;
-	diffusion* pdiff;
-	diffusion* pturbdiff;
-	diffusion* pconcdiff;
-	diffusion* psuspdiff;
-	fdm* a;
+    printer* pprint;
+    initialize* pini;
+    diffusion* pdiff;
+    diffusion* pturbdiff;
+    diffusion* pconcdiff;
+    diffusion* psuspdiff;
+    fdm* a;
     fdm2D* b;
     fdm_fnpf *c;
     fdm_nhf *d;
-	lexer* p;
-	momentum* pmom;
-	ioflow* pflow;
-	pressure* ppress;
-	poisson* ppois;
-	convection* pconvec;
-	convection* pturbdisc;
-	convection* pfsfdisc;
+    lexer* p;
+    momentum* pmom;
+    ioflow* pflow;
+    pressure* ppress;
+    poisson* ppois;
+    convection* pconvec;
+    convection* pturbdisc;
+    convection* pfsfdisc;
     convection* pmpconvec;
-	convection* pconcdisc;
+    convection* pconcdisc;
     convection* pheatdisc;
-	turbulence* pturb;
-	solver* psolv;
-	solver* ppoissonsolv;
+    turbulence* pturb;
+    solver* psolv;
+    solver* ppoissonsolv;
     solver* plapsolv;
-	ghostcell* pgc;
-	timestep* ptstep;
-	freesurface* pfsf;
-	reini* preini;
-	particle_corr* ppls; 
-	sediment* psed;
-	reinitopo* preto;
+    ghostcell* pgc;
+    timestep* ptstep;
+    freesurface* pfsf;
+    reini* preini;
+    particle_corr* ppls; 
+    sediment* psed;
+    reinitopo* preto;
     reinitopo* preso;
-	heat* pheat;
-	potential* potflow;
-	benchmark* pbench;
-	fsi* pfsi;
-	vrans* pvrans;
+    heat* pheat;
+    potential* potflow;
+    benchmark* pbench;
+    fsi* pfsi;
+    vrans* pvrans;
     vector<net*> pnet;
-	data *pdata;
-	concentration *pconc;
+    data *pdata;
+    concentration *pconc;
     fnpf *ppfsg;
     ptf *pptf;
     nhflow_fsf *pnhfsf;
@@ -221,8 +221,8 @@ private:
     ofstream mainlogout;
     ofstream maxlogout;
     ofstream solvlogout;
-	
-	double nom,val;
+    
+    double nom,val;
     char version[100];
 };
 

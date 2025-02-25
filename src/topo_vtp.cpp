@@ -30,15 +30,15 @@ Author: Hans Bihs
 
 topo_vtp::topo_vtp(lexer* p, fdm *a, ghostcell *pgc)
 {
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_Topo",0777);
-	
-	topoprintcount=0;
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_CFD_Topo",0777);
+    
+    topoprintcount=0;
     polygon_sum=0;
     
     SLICEBASELOOP
-	++polygon_sum;
+    ++polygon_sum;
     
     polygon_sum*=2;
 }
@@ -48,8 +48,8 @@ topo_vtp::~topo_vtp()
 }
 
 void topo_vtp::start(lexer *p, fdm *a, ghostcell *pgc, sediment *psed)
-{	
-	print(p,a,pgc,psed);
-	++topoprintcount;
+{    
+    print(p,a,pgc,psed);
+    ++topoprintcount;
 } 
 

@@ -31,15 +31,15 @@ void iowave::discharge(lexer *p, fdm* a, ghostcell* pgc)
     Qin(p,a,pgc);
     Qout(p,a,pgc);
 
-	if(p->count==0)
+    if(p->count==0)
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
     cout<<"Inflow_0:  "<<setprecision(5)<<p->W10<<" Ui: "<<p->Ui<<" Hi: "<<p->phimean<<endl;
     cout<<"Outflow_0: "<<setprecision(5)<<p->W10<<" Uo: "<<p->Uo<<" Ho: "<<p->phiout<<endl;
     }
-	
-	if(p->count>0)
-	if(p->mpirank==0 && (p->count%p->P12==0))
+    
+    if(p->count>0)
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
     cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ua<<" Hi: "<<p->phimean<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ho: "<<p->phiout<<endl;
@@ -72,8 +72,8 @@ void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)
 
             if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
-			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+            
+            if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
 
@@ -95,7 +95,7 @@ void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)
     cout<<"Qi_ipol: "<<hydrograph_ipol(p,a,pgc,hydro_in,hydro_in_count)<<endl;
         
     p->Ua=p->Qi/Ai;
-	
+    
 }
 
 void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
@@ -122,8 +122,8 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
 
             if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i+1,j,k));
-			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
+            
+            if(a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
             Ao+=area;
@@ -132,48 +132,48 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
     }
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
-	
-	//if(p->B60==1)
-	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
-	
-	if(p->B60==2)
-	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
-	
-	if(p->B60==3 || p->B60==4)
-	p->Uo=hydrograph_ipol(p,a,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
-	
-	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
+    
+    //if(p->B60==1)
+    p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+    
+    if(p->B60==2)
+    p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
+    
+    if(p->B60==3 || p->B60==4)
+    p->Uo=hydrograph_ipol(p,a,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
+    
+    if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,a,pgc,hydro_out,hydro_out_count)<<endl;
-	
-	//cout<<"area_o: "<<Ao<<endl;
+    
+    //cout<<"area_o: "<<Ao<<endl;
 }
 
 
 void iowave::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)
 {
-	if(p->B98>=3 || p->B99>=3)
-	{
-		for(n=0;n<p->gcin_count;n++)
-		{
-		i=p->gcin[n][0];
-		j=p->gcin[n][1];
-		k=p->gcin[n][2];
+    if(p->B98>=3 || p->B99>=3)
+    {
+        for(n=0;n<p->gcin_count;n++)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
 
 
-			if(a->phi(i-1,j,k)<-1.0*p->F45*p->DXM)
-			{
-			a->u(i-1,j,k)=a->u(i,j,k);
-			a->u(i-2,j,k)=a->u(i,j,k);
-			a->u(i-3,j,k)=a->u(i,j,k);
+            if(a->phi(i-1,j,k)<-1.0*p->F45*p->DXM)
+            {
+            a->u(i-1,j,k)=a->u(i,j,k);
+            a->u(i-2,j,k)=a->u(i,j,k);
+            a->u(i-3,j,k)=a->u(i,j,k);
 
-			a->v(i-1,j,k)=a->v(i,j,k);
-			a->v(i-2,j,k)=a->v(i,j,k);
-			a->v(i-3,j,k)=a->v(i,j,k);
+            a->v(i-1,j,k)=a->v(i,j,k);
+            a->v(i-2,j,k)=a->v(i,j,k);
+            a->v(i-3,j,k)=a->v(i,j,k);
 
-			a->w(i-1,j,k)=a->w(i,j,k);
-			a->w(i-2,j,k)=a->w(i,j,k);
-			a->w(i-3,j,k)=a->w(i,j,k);
-			}
-		}
-	}
+            a->w(i-1,j,k)=a->w(i,j,k);
+            a->w(i-2,j,k)=a->w(i,j,k);
+            a->w(i-3,j,k)=a->w(i,j,k);
+            }
+        }
+    }
 }

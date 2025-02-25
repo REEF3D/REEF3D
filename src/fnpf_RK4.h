@@ -37,8 +37,8 @@ using namespace std;
 class fnpf_RK4 : public fnpf_ini, public fnpf_sigma
 {
 public:
-	fnpf_RK4(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_RK4();
+    fnpf_RK4(lexer*, fdm_fnpf*, ghostcell*);
+    virtual ~fnpf_RK4();
     
     virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*);
     virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*);

@@ -33,8 +33,8 @@ class sflow_fluxlim
 {
 public:
 
-	virtual double iphi(slice&,int,int,int,int)=0;
-	virtual double jphi(slice&,int,int,int,int)=0;
+    virtual double iphi(slice&,int,int,int,int)=0;
+    virtual double jphi(slice&,int,int,int,int)=0;
 
 };
 

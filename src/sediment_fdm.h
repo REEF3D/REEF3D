@@ -36,7 +36,7 @@ class sediment_fdm
 {
 public:
     sediment_fdm(lexer*);
-	virtual ~sediment_fdm();
+    virtual ~sediment_fdm();
     
     slice1 P;
     slice2 Q;

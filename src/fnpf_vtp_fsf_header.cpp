@@ -19,14 +19,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"fnpf_vtp_fsf.h"
+
+#include"fnpf_vtp_fsf.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<string>
 
 void fnpf_vtp_fsf::name_iter(lexer *p, fdm_fnpf *c, ghostcell* pgc)
-{	
+{    
     int num=0;
 
     if(p->P15==1)

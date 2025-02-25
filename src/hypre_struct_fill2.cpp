@@ -44,71 +44,71 @@ void hypre_struct::fill_matrix2(lexer* p,fdm* a, ghostcell* pgc, field &f)
     count=0;
     KJILOOP
     {
-		VCHECK
-		{
-		n=CVAL4[IJK];
+        VCHECK
+        {
+        n=CVAL4[IJK];
         
-		values[count]=a->M.p[n];
-		++count;
-		
-		values[count]=a->M.s[n];
-		++count;
-		
-		values[count]=a->M.n[n];
-		++count;
-		
-		values[count]=a->M.e[n];
-		++count;
-		
-		values[count]=a->M.w[n];
-		++count;
-		
-		values[count]=a->M.b[n];
-		++count;
-		
-		values[count]=a->M.t[n];
-		++count; 
-		}     
-		
-		VSCHECK
-		{
-		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;  
-		}    
+        values[count]=a->M.p[n];
+        ++count;
+        
+        values[count]=a->M.s[n];
+        ++count;
+        
+        values[count]=a->M.n[n];
+        ++count;
+        
+        values[count]=a->M.e[n];
+        ++count;
+        
+        values[count]=a->M.w[n];
+        ++count;
+        
+        values[count]=a->M.b[n];
+        ++count;
+        
+        values[count]=a->M.t[n];
+        ++count; 
+        }     
+        
+        VSCHECK
+        {
+        values[count]=1.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;  
+        }    
     }
-	
+    
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
     
     
     // vec
     count=0;
-	KJILOOP
-	{
-		VCHECK
-		values[count] = f(i,j,k);
-		
-		VSCHECK
-		values[count] = 0.0;
-	
+    KJILOOP
+    {
+        VCHECK
+        values[count] = f(i,j,k);
+        
+        VSCHECK
+        values[count] = 0.0;
+    
     ++count;
     }
 
@@ -117,16 +117,16 @@ void hypre_struct::fill_matrix2(lexer* p,fdm* a, ghostcell* pgc, field &f)
     
     
     count=0; 
-	KJILOOP
-	{
-		VCHECK
-		{
-		n=CVAL4[IJK];
-		values[count] = a->rhsvec.V[n];
-		}
-		
-		VSCHECK
-		values[count] = 0.0;
+    KJILOOP
+    {
+        VCHECK
+        {
+        n=CVAL4[IJK];
+        values[count] = a->rhsvec.V[n];
+        }
+        
+        VSCHECK
+        values[count] = 0.0;
 
     ++count;
     }
@@ -137,14 +137,14 @@ void hypre_struct::fill_matrix2(lexer* p,fdm* a, ghostcell* pgc, field &f)
 
 void hypre_struct::fillbackvec2(lexer *p, field &f, int var)
 {
-	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
-	
+    HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
+    
         count=0;
         KJILOOP
         {
-		VCHECK
+        VCHECK
         f(i,j,k)=values[count];
-		
+        
         ++count;
         }
 }

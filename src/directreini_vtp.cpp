@@ -27,30 +27,30 @@ Author: Hans Bihs
 
 void directreini::vtp(lexer* p, fdm* a, ghostcell *pgc)
 {
-	if(p->mpirank==0)
+    if(p->mpirank==0)
     pvtp(p,a,pgc);
-	
-	name_iter(p,a,pgc);
+    
+    name_iter(p,a,pgc);
 
-	ofstream result;
-	result.open(name, ios::binary);
-	//---------------------------------------------
-	
-	polygon_num=facount;
-	
-	polygon_sum=0;
-	for(n=0;n<polygon_num;++n)
-	polygon_sum+=numfac[n];
-	
-	vertice_num = ccptcount;
-	
-	cout<<p->mpirank<<" Vertice_num: "<<vertice_num<<" Polygon_Num: "<<polygon_num<<" Polygon_Sum: "<<polygon_sum<<endl;
-	
-	//---------------------------------------------
+    ofstream result;
+    result.open(name, ios::binary);
+    //---------------------------------------------
+    
+    polygon_num=facount;
+    
+    polygon_sum=0;
+    for(n=0;n<polygon_num;++n)
+    polygon_sum+=numfac[n];
+    
+    vertice_num = ccptcount;
+    
+    cout<<p->mpirank<<" Vertice_num: "<<vertice_num<<" Polygon_Num: "<<polygon_num<<" Polygon_Sum: "<<polygon_sum<<endl;
+    
+    //---------------------------------------------
     n=0;
 
-	offset[n]=0;
-	++n;
+    offset[n]=0;
+    ++n;
 
     offset[n]=offset[n-1] + 4*(vertice_num)*3 + 4;
     ++n;
@@ -58,12 +58,12 @@ void directreini::vtp(lexer* p, fdm* a, ghostcell *pgc)
     ++n;
     offset[n]=offset[n-1] + 4*polygon_num + 4;
     ++n;
-	//---------------------------------------------
+    //---------------------------------------------
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PolyData>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<vertice_num<<"\" NumberOfPolys=\""<<polygon_num<<"\">"<<endl;
+    result<<"<?xml version=\"1.0\"?>"<<endl;
+    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+    result<<"<PolyData>"<<endl;
+    result<<"<Piece NumberOfPoints=\""<<vertice_num<<"\" NumberOfPolys=\""<<polygon_num<<"\">"<<endl;
 
     n=0;
     result<<"<Points>"<<endl;
@@ -74,11 +74,11 @@ void directreini::vtp(lexer* p, fdm* a, ghostcell *pgc)
     result<<"<Polys>"<<endl;
     result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	++n;
+    result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
     result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
 
-	result<<"</Polys>"<<endl;
+    result<<"</Polys>"<<endl;
 
     result<<"</Piece>"<<endl;
     result<<"</PolyData>"<<endl;
@@ -88,53 +88,53 @@ void directreini::vtp(lexer* p, fdm* a, ghostcell *pgc)
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
 
 //  XYZ
-	iin=4*vertice_num*3;
-	result.write((char*)&iin, sizeof (int));
+    iin=4*vertice_num*3;
+    result.write((char*)&iin, sizeof (int));
     for(n=0;n<vertice_num;++n)
-	{
-	ffn=ccpt[n][0];
-	result.write((char*)&ffn, sizeof (float));
+    {
+    ffn=ccpt[n][0];
+    result.write((char*)&ffn, sizeof (float));
 
-	ffn=ccpt[n][1];
-	result.write((char*)&ffn, sizeof (float));
+    ffn=ccpt[n][1];
+    result.write((char*)&ffn, sizeof (float));
 
-	ffn=ccpt[n][2];
-	result.write((char*)&ffn, sizeof (float));
-	}
+    ffn=ccpt[n][2];
+    result.write((char*)&ffn, sizeof (float));
+    }
 
 //  Connectivity POLYGON
     iin=4*polygon_sum;
     result.write((char*)&iin, sizeof (int));
     for(n=0;n<polygon_num;++n)
-	for(q=0;q<numfac[n];++q)
-	{
-	iin=facet[n][q];
-	result.write((char*)&iin, sizeof (int));
-	}
+    for(q=0;q<numfac[n];++q)
+    {
+    iin=facet[n][q];
+    result.write((char*)&iin, sizeof (int));
+    }
 
 //  Offset of Connectivity
     iin=4*polygon_num;
     result.write((char*)&iin, sizeof (int));
-	iin=0;
-	for(n=0;n<polygon_num;++n)
-	{
-	iin+= numfac[n];
-	result.write((char*)&iin, sizeof (int));
-	}
+    iin=0;
+    for(n=0;n<polygon_num;++n)
+    {
+    iin+= numfac[n];
+    result.write((char*)&iin, sizeof (int));
+    }
 
 //  Cell types
     iin=4*polygon_num;
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<polygon_num;++n)
-	{
-	iin=7;
-	result.write((char*)&iin, sizeof (int));
-	}
+    for(n=0;n<polygon_num;++n)
+    {
+    iin=7;
+    result.write((char*)&iin, sizeof (int));
+    }
 
-	result<<endl<<"</AppendedData>"<<endl;
+    result<<endl<<"</AppendedData>"<<endl;
     result<<"</VTKFile>"<<endl;
 
-	result.close();	
+    result.close();    
 }
 
 

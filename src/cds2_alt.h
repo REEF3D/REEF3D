@@ -35,16 +35,16 @@ class cds2_alt : public convection,  public increment
 
 public:
 
-	cds2_alt (lexer *);
-	virtual ~cds2_alt();
+    cds2_alt (lexer *);
+    virtual ~cds2_alt();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+    virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
-	double dx,dy,dz;
-	double L;
+    double dx,dy,dz;
+    double L;
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
     double iadvec,jadvec,kadvec;
     

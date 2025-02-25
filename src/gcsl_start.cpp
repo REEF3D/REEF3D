@@ -28,21 +28,21 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
 {
     starttime=timer();
 
-	QQGCSL1LOOP
-	gcsldistro1(p,f,p->gcbsl1[qq][0], p->gcbsl1[qq][1], p->gcbsl1[qq][5], p->gcdsl1[qq], gcv, p->gcbsl1[qq][4], p->gcbsl1[qq][3]);
+    QQGCSL1LOOP
+    gcsldistro1(p,f,p->gcbsl1[qq][0], p->gcbsl1[qq][1], p->gcbsl1[qq][5], p->gcdsl1[qq], gcv, p->gcbsl1[qq][4], p->gcbsl1[qq][3]);
 
-	endtime=timer();
-	p->gctime+=endtime-starttime;
+    endtime=timer();
+    p->gctime+=endtime-starttime;
 
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcslparax(p,f,1);
-	gcslparacox(p,f,gcv);
+    gcslparax(p,f,1);
     gcslparacox(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcslparacox(p,f,gcv);
+    endtime=timer();
+    p->xtime+=endtime-starttime;
     }
 
     if(p->Y40==1  || p->Y40==3)
@@ -56,21 +56,21 @@ void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
 {
     starttime=timer();
 
-	QQGCSL2LOOP
-	gcsldistro2(p,f,p->gcbsl2[qq][0], p->gcbsl2[qq][1], p->gcbsl2[qq][5], p->gcdsl2[qq], gcv, p->gcbsl2[qq][4], p->gcbsl2[qq][3]);
+    QQGCSL2LOOP
+    gcsldistro2(p,f,p->gcbsl2[qq][0], p->gcbsl2[qq][1], p->gcbsl2[qq][5], p->gcdsl2[qq], gcv, p->gcbsl2[qq][4], p->gcbsl2[qq][3]);
 
-	endtime=timer();
-	p->gctime+=endtime-starttime;
+    endtime=timer();
+    p->gctime+=endtime-starttime;
 
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcslparax(p,f,2);
-	gcslparacox(p,f,gcv);
+    gcslparax(p,f,2);
     gcslparacox(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcslparacox(p,f,gcv);
+    endtime=timer();
+    p->xtime+=endtime-starttime;
     }
 
     if(p->Y40==1  || p->Y40==3)
@@ -84,19 +84,19 @@ void ghostcell::gcsl_start3(lexer *p, slice &f, int gcv)
 {
     starttime=timer();
     QQGCSL3LOOP
-	gcsldistro3(p,f,p->gcbsl3[qq][0], p->gcbsl3[qq][1], p->gcbsl3[qq][5], p->gcdsl3[qq], gcv, p->gcbsl3[qq][4], p->gcbsl3[qq][3]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
+    gcsldistro3(p,f,p->gcbsl3[qq][0], p->gcbsl3[qq][1], p->gcbsl3[qq][5], p->gcdsl3[qq], gcv, p->gcbsl3[qq][4], p->gcbsl3[qq][3]);
+    endtime=timer();
+    p->gctime+=endtime-starttime;
 
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcslparax(p,f,3);
-	gcslparacox(p,f,gcv);
-	gcslparacox(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcslparax(p,f,3);
+    gcslparacox(p,f,gcv);
+    gcslparacox(p,f,gcv);
+    endtime=timer();
+    p->xtime+=endtime-starttime;
     }
 
     if(p->Y40==1  || p->Y40==3)
@@ -108,21 +108,21 @@ void ghostcell::gcsl_start3(lexer *p, slice &f, int gcv)
 
 void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
 {
-	starttime=timer();
-	QQGCSL4LOOP
-	gcsldistro4(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
+    starttime=timer();
+    QQGCSL4LOOP
+    gcsldistro4(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
+    endtime=timer();
+    p->gctime+=endtime-starttime;
 
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcslparax(p,f,4);
-	gcslparacox(p,f,gcv);
-	gcslparacox(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcslparax(p,f,4);
+    gcslparacox(p,f,gcv);
+    gcslparacox(p,f,gcv);
+    endtime=timer();
+    p->xtime+=endtime-starttime;
     }
 
     if(p->Y40==1  || p->Y40==3)
@@ -135,70 +135,70 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
 void ghostcell::gcsl_start1int(lexer *p, sliceint &f, int gcv)
 {
     starttime=timer();
-	QQGCSL1LOOP
-	gcsldistro1int(p,f,p->gcbsl1[qq][0],p->gcbsl1[qq][1], p->gcbsl1[qq][5], p->gcdsl1[qq], gcv, p->gcbsl1[qq][4], p->gcbsl1[qq][3]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
+    QQGCSL1LOOP
+    gcsldistro1int(p,f,p->gcbsl1[qq][0],p->gcbsl1[qq][1], p->gcbsl1[qq][5], p->gcdsl1[qq], gcv, p->gcbsl1[qq][4], p->gcbsl1[qq][3]);
+    endtime=timer();
+    p->gctime+=endtime-starttime;
 
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcslparax_int(p,f,1);
+    gcslparax_int(p,f,1);
     gcslparacox_int(p,f,gcv);
-	gcslparacox_int(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcslparacox_int(p,f,gcv);
+    endtime=timer();
+    p->xtime+=endtime-starttime;
     }
 }
 
 void ghostcell::gcsl_start2int(lexer *p, sliceint &f, int gcv)
 {
     starttime=timer();
-	QQGCSL2LOOP
-	gcsldistro2int(p,f,p->gcbsl2[qq][0],p->gcbsl2[qq][1], p->gcbsl2[qq][5], p->gcdsl2[qq], gcv, p->gcbsl2[qq][4], p->gcbsl2[qq][3]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
+    QQGCSL2LOOP
+    gcsldistro2int(p,f,p->gcbsl2[qq][0],p->gcbsl2[qq][1], p->gcbsl2[qq][5], p->gcdsl2[qq], gcv, p->gcbsl2[qq][4], p->gcbsl2[qq][3]);
+    endtime=timer();
+    p->gctime+=endtime-starttime;
 
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcslparax_int(p,f,1);
+    gcslparax_int(p,f,1);
     gcslparacox_int(p,f,gcv);
-	gcslparacox_int(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcslparacox_int(p,f,gcv);
+    endtime=timer();
+    p->xtime+=endtime-starttime;
     }
 }
 
 void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
 {
     starttime=timer();
-	QQGCSL4LOOP
-	gcsldistro4int(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
+    QQGCSL4LOOP
+    gcsldistro4int(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
+    endtime=timer();
+    p->gctime+=endtime-starttime;
 
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcslparax_int(p,f,4);
+    gcslparax_int(p,f,4);
     gcslparacox_int(p,f,gcv);
-	gcslparacox_int(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcslparacox_int(p,f,gcv);
+    endtime=timer();
+    p->xtime+=endtime-starttime;
     }
 }
 
 void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
 {
     starttime=timer();
-	QQGCSL4LOOP
-	gcsldistro4Vint(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
+    QQGCSL4LOOP
+    gcsldistro4Vint(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], p->gcdsl4[qq], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
+    endtime=timer();
+    p->gctime+=endtime-starttime;
     
 
     SLICELOOP4
@@ -216,35 +216,35 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
         f[Ip1Jp1] = f[IJ];
     }
 
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcslparaxV_int(p,f,4);
+    gcslparaxV_int(p,f,4);
     gcslparacoxV_int(p,f,gcv);
-	gcslparacoxV_int(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcslparacoxV_int(p,f,gcv);
+    endtime=timer();
+    p->xtime+=endtime-starttime;
     }
 }
 
 void ghostcell::gcsl_start4a(lexer *p, slice &f, int gcv)
 {
     starttime=timer();
-	QQGCSL4ALOOP
-	gcsldistro4a(p,f,p->gcbsl4a[qq][0], p->gcbsl4a[qq][1], p->gcbsl4a[qq][5], p->gcdsl4a[qq], gcv, p->gcbsl4a[qq][4], p->gcbsl4a[qq][3]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
+    QQGCSL4ALOOP
+    gcsldistro4a(p,f,p->gcbsl4a[qq][0], p->gcbsl4a[qq][1], p->gcbsl4a[qq][5], p->gcdsl4a[qq], gcv, p->gcbsl4a[qq][4], p->gcbsl4a[qq][3]);
+    endtime=timer();
+    p->gctime+=endtime-starttime;
 
-	//  MPI Boundary Swap
+    //  MPI Boundary Swap
     if(p->M10>0)
     {
     starttime=timer();
-	gcslparax(p,f,4);
-	gcslparacox(p,f,gcv);
+    gcslparax(p,f,4);
     gcslparacox(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    gcslparacox(p,f,gcv);
+    endtime=timer();
+    p->xtime+=endtime-starttime;
     }
 
     if(p->Y40==2  || p->Y40==3)

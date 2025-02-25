@@ -43,7 +43,7 @@ void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_conve
     
     alpha_t = p->A262;
     
-	SLICELOOP4
+    SLICELOOP4
     {
     manning = pow(b->ks(i,j),1.0/6.0)/26.0;
     

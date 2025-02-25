@@ -63,6 +63,6 @@ void susprhs::clearrhs(lexer* p, fdm* a)
     LOOP
     {
     a->rhsvec.V[count]=0.0;
-	++count;
+    ++count;
     }
 }

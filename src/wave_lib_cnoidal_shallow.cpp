@@ -65,8 +65,8 @@ double wave_lib_cnoidal_shallow::wave_v(lexer *p, double x, double y, double z)
 double wave_lib_cnoidal_shallow::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel,eta;
-	
-	eta = wave_eta(p,x,y);
+    
+    eta = wave_eta(p,x,y);
 
     vel = sqrt(9.81/wdt) * eta; 
 
@@ -76,11 +76,11 @@ double wave_lib_cnoidal_shallow::wave_horzvel(lexer *p, double x, double y, doub
 double wave_lib_cnoidal_shallow::wave_w(lexer *p, double x, double y, double z)
 {
     double vel;
-	double sn,cn,dn;
-	
-	teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
+    double sn,cn,dn;
+    
+    teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
 
-	elliptic(p,teta,sn,cn,dn);
+    elliptic(p,teta,sn,cn,dn);
 
     vel = sqrt(9.81/wdt)*wH * ((4.0*Km*wdt)/wL) * ((wdt+z)/wdt) * cn*sn*dn;
 
@@ -90,15 +90,15 @@ double wave_lib_cnoidal_shallow::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_cnoidal_shallow::wave_eta(lexer *p, double x, double y)
 {
     double eta;
-	double sn,cn,dn;
-	
-	teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
-	
-	elliptic(p,teta,sn,cn,dn);
-	
-	eta =  wH*cn*cn + eta2;
-	
-	return eta;	
+    double sn,cn,dn;
+    
+    teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
+    
+    elliptic(p,teta,sn,cn,dn);
+    
+    eta =  wH*cn*cn + eta2;
+    
+    return eta;    
 }
 
 double wave_lib_cnoidal_shallow::wave_fi(lexer *p, double x, double y, double z)
@@ -111,53 +111,53 @@ double wave_lib_cnoidal_shallow::wave_fi(lexer *p, double x, double y, double z)
 void wave_lib_cnoidal_shallow::parameters(lexer *p, ghostcell *pgc)
 {
     double diff=1.0;
-	int qq,maxiter;
-	double modulus_old=0.5;
-	double Ur;
-	modulus = 0.9;
-	maxiter =5000;
-	
-	Ur = (wH*wL*wL)/pow(wdt,3.0);
-	if(p->mpirank==0)
-	cout<<"Ursell number: "<<Ur<<endl;
-	
-	qq=1;
-	while(fabs(diff)>1.0e-12)
-	{
-		++qq;
-		modulus_old = modulus;
-		
-		
-		modulus = sqrt((3.0/16.0)* ((wH*wL*wL)/(wdt*wdt*wdt*modulus_old*pow(K_elliptic_1(modulus_old),2.0))));
-		
-		diff = modulus - modulus_old;
-		
-		modulus = modulus_old + 0.1*diff;
-		
-		modulus=MIN(0.999, modulus);
-	
-		if(qq>maxiter)
-		break;
-	}
-	//modulus=MAX(0.9, modulus);
-	if(p->mpirank==0)
-	cout<<"MODULUS: "<<modulus<<"    qq: "<<qq<<endl;	
-	
-	Km = K_elliptic_1(modulus);
-	Em = E_elliptic_1(modulus);
-	
-	
-	eta2 = (1.0/modulus - 1.0 - Em/(Km*modulus))*wH;
-	
-	//wC = sqrt((9.81*wdt)/(1.0 + wH/wdt*(1.0/pow(modulus,2.0) -2.0)));
-	
-	wC = sqrt(9.81*wdt*(1.0 +(wH/wdt)*(2.0/modulus - 1.0 - 3.0/modulus*Em/Km)));
-	
-	if(p->mpirank==0)	
-	{
-	cout<<"WAVE TROUGH: "<<eta2+wdt<<endl;
-	cout<<"wC: "<<wC<<" wC_old: "<<(wL/wT)<<endl;
-	}
+    int qq,maxiter;
+    double modulus_old=0.5;
+    double Ur;
+    modulus = 0.9;
+    maxiter =5000;
+    
+    Ur = (wH*wL*wL)/pow(wdt,3.0);
+    if(p->mpirank==0)
+    cout<<"Ursell number: "<<Ur<<endl;
+    
+    qq=1;
+    while(fabs(diff)>1.0e-12)
+    {
+        ++qq;
+        modulus_old = modulus;
+        
+        
+        modulus = sqrt((3.0/16.0)* ((wH*wL*wL)/(wdt*wdt*wdt*modulus_old*pow(K_elliptic_1(modulus_old),2.0))));
+        
+        diff = modulus - modulus_old;
+        
+        modulus = modulus_old + 0.1*diff;
+        
+        modulus=MIN(0.999, modulus);
+    
+        if(qq>maxiter)
+        break;
+    }
+    //modulus=MAX(0.9, modulus);
+    if(p->mpirank==0)
+    cout<<"MODULUS: "<<modulus<<"    qq: "<<qq<<endl;    
+    
+    Km = K_elliptic_1(modulus);
+    Em = E_elliptic_1(modulus);
+    
+    
+    eta2 = (1.0/modulus - 1.0 - Em/(Km*modulus))*wH;
+    
+    //wC = sqrt((9.81*wdt)/(1.0 + wH/wdt*(1.0/pow(modulus,2.0) -2.0)));
+    
+    wC = sqrt(9.81*wdt*(1.0 +(wH/wdt)*(2.0/modulus - 1.0 - 3.0/modulus*Em/Km)));
+    
+    if(p->mpirank==0)    
+    {
+    cout<<"WAVE TROUGH: "<<eta2+wdt<<endl;
+    cout<<"wC: "<<wC<<" wC_old: "<<(wL/wT)<<endl;
+    }
     
 }
 

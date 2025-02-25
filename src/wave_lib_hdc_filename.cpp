@@ -35,5 +35,5 @@ void wave_lib_hdc::filename_continuous(lexer *p, ghostcell *pgc)
 
 void wave_lib_hdc::filename_header(lexer *p, ghostcell *pgc)
 {
-	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-%06i.r3d",p->mpirank+1);  
+    sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-%06i.r3d",p->mpirank+1);  
 }

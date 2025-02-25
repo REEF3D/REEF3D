@@ -31,14 +31,14 @@ double particle_pls::phipol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
     kk=k;
 
     i=int((xp)/dx-0.5);
-		if(xp/dx-0.5<0.0)
-		--i;
+        if(xp/dx-0.5<0.0)
+        --i;
     j=int((yp)/dx-0.5);
-		if(yp/dx-0.5<0.0)
-		--j;
+        if(yp/dx-0.5<0.0)
+        --j;
     k=int((zp)/dx-0.5);
-		if(zp/dx-0.5<0.0)
-		--k;
+        if(zp/dx-0.5<0.0)
+        --k;
 
     wa=((double(i) + 1.5)-xp/dx);
     wb=((double(j) + 1.5)-yp/dx);
@@ -64,16 +64,16 @@ double particle_pls::upol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
     kk=k;
 
     i=int((xp)/dx-1.0);
-		if(xp/dx-1.0<0.0)
-		--i;
-		
+        if(xp/dx-1.0<0.0)
+        --i;
+        
     j=int((yp)/dx-0.5);
-		if(yp/dx-0.5<0.0)
-		--j;
-		
+        if(yp/dx-0.5<0.0)
+        --j;
+        
     k=int((zp)/dx-0.5);
-		if(zp/dx-0.5<0.0)
-		--k;
+        if(zp/dx-0.5<0.0)
+        --k;
 
     wa=((double(i) + 2.0)-xp/dx);
     wb=((double(j) + 1.5)-yp/dx);
@@ -99,16 +99,16 @@ double particle_pls::vpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
     kk=k;
 
     i=int((xp)/dx-0.5);
-		if(xp/dx-0.5<0.0)
-		--i;
-		
+        if(xp/dx-0.5<0.0)
+        --i;
+        
     j=int((yp)/dx-1.0);
-		if(yp/dx-1.0<0.0)
-		--j;
-		
+        if(yp/dx-1.0<0.0)
+        --j;
+        
     k=int((zp)/dx-0.5);
-		if(zp/dx-0.5<0.0)
-		--k;
+        if(zp/dx-0.5<0.0)
+        --k;
 
     wa=((double(i) + 1.5)-xp/dx);
     wb=((double(j) + 2.0)-yp/dx);
@@ -134,16 +134,16 @@ double particle_pls::wpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
     kk=k;
 
     i=int((xp)/dx-0.5);
-		if(xp/dx-0.5<0.0)
-		--i;
-		
+        if(xp/dx-0.5<0.0)
+        --i;
+        
     j=int((yp)/dx-0.5);
-		if(yp/dx-0.5<0.0)
-		--j;
-		
+        if(yp/dx-0.5<0.0)
+        --j;
+        
     k=int((zp)/dx-1.0);
-		if(zp/dx-1.0<0.0)
-		--k;
+        if(zp/dx-1.0<0.0)
+        --k;
 
     wa=((double(i) + 1.5)-xp/dx);
     wb=((double(j) + 1.5)-yp/dx);
@@ -220,7 +220,7 @@ pip=4;
     if(maxboundcheck(p,i,j,k,1)==0)
     i3=j3=k3=0;
 
-	value =  cint(wz, cint(wx, cint(wy, f(i-i0,j-j0,k-k0),f(i-i0,j,k-k0),
+    value =  cint(wz, cint(wx, cint(wy, f(i-i0,j-j0,k-k0),f(i-i0,j,k-k0),
                               f(i-i0,j+1,k-k0),f(i-i0,j+j3,k-k0)),
                               cint(wy, f(i,j-j0,k-k0),f(i,j,k-k0),
                               f(i,j+1,k-k0),f(i,j+j3,k-k0)),

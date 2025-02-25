@@ -51,7 +51,7 @@ public:
     
     
     sixdof_motionext_file(lexer*, ghostcell*);
-	virtual ~sixdof_motionext_file();
+    virtual ~sixdof_motionext_file();
     
 private:
     double ramp_vel(lexer*);

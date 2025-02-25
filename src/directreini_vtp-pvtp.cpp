@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"directreini.h"
+
+#include"directreini.h"
 #include<string>
 #include"lexer.h"
 #include"fdm.h"
@@ -34,31 +35,31 @@ void directreini::pvtp(lexer* p, fdm* a, ghostcell* pgc)
 
     if(p->P15==2)
     num = p->count;
-	
-	sprintf(name,"./REEF3D_FSF/REEF3D-FSF-%08i.vtp",num);
+    
+    sprintf(name,"./REEF3D_FSF/REEF3D-FSF-%08i.vtp",num);
 
-	ofstream result;
-	result.open(name);
+    ofstream result;
+    result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
+    result<<"<?xml version=\"1.0\"?>"<<endl;
+    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+    result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
 
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
+    result<<"<PPoints>"<<endl;
+    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
+    result<<"</PPoints>"<<endl;
 
-	for(n=0; n<p->M10; ++n)
-	{
+    for(n=0; n<p->M10; ++n)
+    {
     piecename(p,a,pgc,n);
     result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
-	}
+    }
 
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
+    result<<"</PPolyData>"<<endl;
+    result<<"</VTKFile>"<<endl;
 
-	result.close();
+    result.close();
 }
 
 void directreini::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)

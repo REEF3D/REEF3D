@@ -31,7 +31,7 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     int count1,count2;
 
-	count1=0;
+    count1=0;
     count2=0;
     GC4LOOP
     {
@@ -45,9 +45,9 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->flagsf4[IJK]>0)
         ++count2;
     }
-	
-	p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
-	p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
+    
+    p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
+    p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
 
     count1=0;
     count2=0;
@@ -98,9 +98,9 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     }
     
     p->Iresize(p->gcin4a,p->gcin4a_count, count1, 6, 6); 
-	p->Iresize(p->gcout4a,p->gcout4a_count, count2, 6, 6); 
-	
-	count1=0;
+    p->Iresize(p->gcout4a,p->gcout4a_count, count2, 6, 6); 
+    
+    count1=0;
     count2=0;
     GC4ALOOP
     {
@@ -221,10 +221,10 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
 void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-	
+    
     int count1,count2;
-	
-	count1=0;
+    
+    count1=0;
     count2=0;
     GC4LOOP
     {
@@ -238,11 +238,11 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->DF[IJK]>0)
         ++count2;
     }
-	
-	//cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
-	
-	p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
-	p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
+    
+    //cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
+    
+    p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
+    p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
 
     count1=0;
     count2=0;
@@ -280,7 +280,7 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     //if(p->I10==1)
     //velini(p,a,pgc);
-	    
+        
     
     // IO update
     MALOOP
@@ -375,13 +375,13 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void ioflow_f::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 
-	p->del_Darray(walldin, walldin_size);
-	p->del_Darray(walldout, walldout_size);
-	
-	walldin_size=p->gcin_count;
-	walldout_size=p->gcout_count;
-	
-	p->Darray(walldin, walldin_size);
+    p->del_Darray(walldin, walldin_size);
+    p->del_Darray(walldout, walldout_size);
+    
+    walldin_size=p->gcin_count;
+    walldout_size=p->gcout_count;
+    
+    p->Darray(walldin, walldin_size);
     p->Darray(walldout, walldout_size);
 
 

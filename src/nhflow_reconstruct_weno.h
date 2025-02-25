@@ -38,8 +38,8 @@ using namespace std;
 class nhflow_reconstruct_weno : public nhflow_reconstruct, public weno_nug_func
 {
 public:
-	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
-	virtual ~nhflow_reconstruct_weno();
+    nhflow_reconstruct_weno(lexer*,patchBC_interface*);
+    virtual ~nhflow_reconstruct_weno();
 
     virtual void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
     virtual void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
@@ -53,11 +53,11 @@ public:
 
 private:
     void iqmin(lexer*, double*);
-	void jqmin(lexer*, double*);
-	void kqmin(lexer*, double*);
-	void iqmax(lexer*, double*);
-	void jqmax(lexer*, double*);
-	void kqmax(lexer*, double*);
+    void jqmin(lexer*, double*);
+    void kqmin(lexer*, double*);
+    void iqmax(lexer*, double*);
+    void jqmax(lexer*, double*);
+    void kqmax(lexer*, double*);
     
     void iqmin_sl(lexer*, slice&);
     void iqmax_sl(lexer*, slice&);

@@ -27,110 +27,110 @@ Author: Hans Bihs
 
 double iowave::xgen(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos_x();
-	y1 = p->pos_y();
-	
-	dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+    double x1,y1;
+    double x0,y0;
+    double dist=0.0;
+    
+    x0=p->B105_2;
+    y0=p->B105_3;
+    
+    x1 = p->pos_x();
+    y1 = p->pos_y();
+    
+    dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
+    
+    return dist;
 }
 
 double iowave::xgen1(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos1_x();
-	y1 = p->pos1_y();
-	
-	dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+    double x1,y1;
+    double x0,y0;
+    double dist=0.0;
+    
+    x0=p->B105_2;
+    y0=p->B105_3;
+    
+    x1 = p->pos1_x();
+    y1 = p->pos1_y();
+    
+    dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
+    
+    return dist;
 }
 
 double iowave::xgen2(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos2_x();
-	y1 = p->pos2_y();
-	
-	dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+    double x1,y1;
+    double x0,y0;
+    double dist=0.0;
+    
+    x0=p->B105_2;
+    y0=p->B105_3;
+    
+    x1 = p->pos2_x();
+    y1 = p->pos2_y();
+    
+    dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
+    
+    return dist;
 }
 
 double iowave::ygen(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos_x();
-	y1 = p->pos_y();
-	
-	dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
+    double x1,y1;
+    double x0,y0;
+    double dist=0.0;
     
-	return dist;
+    x0=p->B105_2;
+    y0=p->B105_3;
+    
+    x1 = p->pos_x();
+    y1 = p->pos_y();
+    
+    dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
+    
+    return dist;
 }
 
 double iowave::ygen1(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos1_x();
-	y1 = p->pos1_y();
-	
-	dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+    double x1,y1;
+    double x0,y0;
+    double dist=0.0;
+    
+    x0=p->B105_2;
+    y0=p->B105_3;
+    
+    x1 = p->pos1_x();
+    y1 = p->pos1_y();
+    
+    dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
+    
+    return dist;
 }
 
 double iowave::ygen2(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos2_x();
-	y1 = p->pos2_y();
-	
-	dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+    double x1,y1;
+    double x0,y0;
+    double dist=0.0;
+    
+    x0=p->B105_2;
+    y0=p->B105_3;
+    
+    x1 = p->pos2_x();
+    y1 = p->pos2_y();
+    
+    dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
+    
+    return dist;
 }
 
 double iowave::distgen(lexer *p)
 {
     double x0,y0,denom;
-	double dist=1.0e20;
+    double dist=1.0e20;
     int test1,test2;    
     
     x0 = p->pos_x();
@@ -155,13 +155,13 @@ double iowave::distgen(lexer *p)
         }
     }
     
-	return dist;
+    return dist;
 }
 
 double iowave::distbeach(lexer *p)
 {
     double x0,y0,denom;
-	double dist=1.0e20;
+    double dist=1.0e20;
     int test1,test2;    
     
     x0 = p->pos_x();
@@ -186,6 +186,6 @@ double iowave::distbeach(lexer *p)
         }
     }
     
-	return dist;
+    return dist;
 }
 

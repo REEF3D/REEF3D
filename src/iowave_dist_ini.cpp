@@ -140,49 +140,49 @@ void iowave::distgen_ini(lexer *p)
 
 int iowave::intriangle(lexer *p, double Ax, double Ay, double Bx, double By, double Cx, double Cy, double x0,double y0)
 {
-	double Px,Py,Pz;
-	double Qx,Qy,Qz;
-	double Rx,Ry;
-	double PQx,PQy,PQz;
-	
-	double Mx,My;
-	double u,v,w;
-					
-		Px = x0;
-		Py = y0;
-		Pz = -10.0;
-		
-		Qx = x0;
-		Qy = y0;
-		Qz = +10.0;
-		
-		
-		PQx = Qx-Px;
-		PQy = Qy-Py;
-		PQz = Qz-Pz; 
+    double Px,Py,Pz;
+    double Qx,Qy,Qz;
+    double Rx,Ry;
+    double PQx,PQy,PQz;
+    
+    double Mx,My;
+    double u,v,w;
+                    
+        Px = x0;
+        Py = y0;
+        Pz = -10.0;
+        
+        Qx = x0;
+        Qy = y0;
+        Qz = +10.0;
+        
+        
+        PQx = Qx-Px;
+        PQy = Qy-Py;
+        PQz = Qz-Pz; 
 
-		
-		// uvw
-		Mx = PQy*Pz - PQz*Py;
-		My = PQz*Px - PQx*Pz;
+        
+        // uvw
+        Mx = PQy*Pz - PQz*Py;
+        My = PQz*Px - PQx*Pz;
 
-		
-		u = PQz*(Cx*By - Cy*Bx)
-		  + Mx*(Cx-Bx) + My*(Cy-By);
-		  
-		v = PQz*(Ax*Cy - Ay*Cx)
-		  + Mx*(Ax-Cx) + My*(Ay-Cy);
-		  
-		w = PQz*(Bx*Ay - By*Ax)
-		  + Mx*(Bx-Ax) + My*(By-Ay);
-		
-		
-		int check=1;
-		if(u==0.0 && v==0.0 && w==0.0)
-		check = 0;
-		
+        
+        u = PQz*(Cx*By - Cy*Bx)
+          + Mx*(Cx-Bx) + My*(Cy-By);
+          
+        v = PQz*(Ax*Cy - Ay*Cx)
+          + Mx*(Ax-Cx) + My*(Ay-Cy);
+          
+        w = PQz*(Bx*Ay - By*Ax)
+          + Mx*(Bx-Ax) + My*(By-Ay);
+        
+        
+        int check=1;
+        if(u==0.0 && v==0.0 && w==0.0)
+        check = 0;
+        
         if((u>=0.0 && v>=0.0 && w>=0.0) || (u<0.0 && v<0.0 && w<0.0) && check==1)
-		return 1;
+        return 1;
         
         else
         return 0;

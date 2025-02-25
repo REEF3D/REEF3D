@@ -32,15 +32,15 @@ using namespace std;
 class fnpf_weno5_wd : public fnpf_convection, public increment, public fnpf_ddweno_f_nug
 {
 public:
-	fnpf_weno5_wd(lexer*,fdm_fnpf*);
-	virtual ~fnpf_weno5_wd();
+    fnpf_weno5_wd(lexer*,fdm_fnpf*);
+    virtual ~fnpf_weno5_wd();
 
     virtual double fx(lexer*, field&, double, double);
-	virtual double fy(lexer*, field&, double, double);
-	virtual double fz(lexer*, field&, double, double);
+    virtual double fy(lexer*, field&, double, double);
+    virtual double fz(lexer*, field&, double, double);
     
     virtual double sx(lexer*, slice&, double);
-	virtual double sy(lexer*, slice&, double);
+    virtual double sy(lexer*, slice&, double);
     virtual double sz(lexer*, double*);
 
 private:

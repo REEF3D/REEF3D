@@ -64,15 +64,15 @@ void particle_pls::seed(lexer* p, fdm* a, ghostcell* pgc, double fraction,double
         // POS
         if(partcount(i,j,k)<double(pnum)*fraction && a->phi(i,j,k)>0.0)
         {
-			while(partcount(i,j,k)<double(pnum)*fraction)
-			{
-			check=posseed(p,a,pgc,1.0);
-			
-			if(check==1)
-			partcount(i,j,k)+=1.0;
-			}
-			
-		}	
+            while(partcount(i,j,k)<double(pnum)*fraction)
+            {
+            check=posseed(p,a,pgc,1.0);
+            
+            if(check==1)
+            partcount(i,j,k)+=1.0;
+            }
+            
+        }    
 
         //NEG
         if(partcount(i,j,k)<double(pnum)*fraction && a->phi(i,j,k)<0.0)
@@ -80,22 +80,22 @@ void particle_pls::seed(lexer* p, fdm* a, ghostcell* pgc, double fraction,double
 
             while(partcount(i,j,k)<double(pnum)*fraction)
             {
-			check=negseed(p,a,pgc,1.0);
-			
-			if(check==1)
-			partcount(i,j,k)+=1.0;
-			}
-			
-		}	
-	}
+            check=negseed(p,a,pgc,1.0);
+            
+            if(check==1)
+            partcount(i,j,k)+=1.0;
+            }
+            
+        }    
+    }
 
 }
 
 
 int particle_pls::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
 {
-	int success=1;
-	
+    int success=1;
+    
         // POS
             if(pcount>0)
             {
@@ -132,20 +132,20 @@ int particle_pls::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
                 lambda/=2.0;
                 ++qq;
                 }while((pos[posmem[pcount]][3]>epsi || pos[posmem[pcount]][3]<rmin)&& qq<15);
-				
-				//posradius(p,a,posmem[pcount]);
+                
+                //posradius(p,a,posmem[pcount]);
 
                 if((pos[posmem[pcount]][3]>epsi || pos[posmem[pcount]][3]<rmin) || check==0)
                 {
                 posflag[posmem[pcount]]=0;
-				 pcount++;
+                 pcount++;
                 reseeded--;
-				success=0;
+                success=0;
                 }
             }
-			
+            
             if(pcount==0 && posactive<maxparticle)
-            {	
+            {    
                 pos[posactive][0] = (double(i)  + (rand()%(irand))/drand)*dx;
                 pos[posactive][1] = (double(j)  + (rand()%(irand))/drand)*dx;
                 pos[posactive][2] = (double(k)  + (rand()%(irand))/drand)*dx;
@@ -179,24 +179,24 @@ int particle_pls::posseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
 
                 if(pos[posactive][3]<=epsi && pos[posactive][3]>=rmin && check==1)
                 {
-				//posradius(p,a,posactive);
+                //posradius(p,a,posactive);
                 posactive++;
                 reseeded++;
-				success=1;
+                success=1;
                 }
             }
-			
-			
-	return success;
+            
+            
+    return success;
 
 }
 
 
 int particle_pls::negseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
-{	
-	int success=1;
-	
-	
+{    
+    int success=1;
+    
+    
             if(ncount>0)
             {
                 reseeded++;
@@ -231,21 +231,21 @@ int particle_pls::negseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
                 lambda/=2.0;
                 ++qq;
                 }while((neg[negmem[ncount]][3]<-epsi || neg[negmem[ncount]][3]>-rmin)&& qq<15);
-				
-				//negradius(p,a,negmem[ncount]);
-				
+                
+                //negradius(p,a,negmem[ncount]);
+                
                 if((neg[negmem[ncount]][3]<-epsi || neg[negmem[ncount]][3]>-rmin)||check==0)
                 {
                 
                 negflag[negmem[ncount]]=0;
-				++ncount;
+                ++ncount;
                 --reseeded;
-				success=0;
+                success=0;
                 }
             }
 
             if(ncount==0 && negactive<maxparticle)
-            {	
+            {    
                 neg[negactive][0] = (double(i) + (rand()%(irand))/drand)*dx;
                 neg[negactive][1] = (double(j) + (rand()%(irand))/drand)*dx;
                 neg[negactive][2] = (double(k) + (rand()%(irand))/drand)*dx;
@@ -280,13 +280,13 @@ int particle_pls::negseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
 
                 if(neg[negactive][3]>=-epsi && neg[negactive][3]<=-rmin && check==1)
                 {
-				//negradius(p,a,negactive);
+                //negradius(p,a,negactive);
                 ++negactive;
                 ++reseeded;
-				success=1;
+                success=1;
                 }
             }
-	
-	return success;
+    
+    return success;
 }
-	
+    

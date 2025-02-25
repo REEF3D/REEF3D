@@ -25,27 +25,27 @@ Author: Hans Bihs
 
 void ghostcell::gcslwait(lexer* p)
 {
-	if(p->gcslpara1_count>0)
+    if(p->gcslpara1_count>0)
     {
     MPI_Wait(&sreq1,&status);
-	MPI_Wait(&rreq1,&status);
+    MPI_Wait(&rreq1,&status);
     }
 
     if(p->gcslpara4_count>0)
     {
     MPI_Wait(&sreq4,&status);
-	MPI_Wait(&rreq4,&status);
+    MPI_Wait(&rreq4,&status);
     }
 
     if(p->gcslpara3_count>0)
     {
-	MPI_Wait(&sreq3,&status);
-	MPI_Wait(&rreq3,&status);
+    MPI_Wait(&sreq3,&status);
+    MPI_Wait(&rreq3,&status);
     }
 
     if(p->gcslpara2_count>0)
     {
     MPI_Wait(&sreq2,&status);
-	MPI_Wait(&rreq2,&status);
+    MPI_Wait(&rreq2,&status);
     }
 }

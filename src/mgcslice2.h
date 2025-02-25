@@ -34,29 +34,29 @@ class mgcslice2 :  public increment
 {
 public:
 
-	mgcslice2 (lexer *);
-	virtual ~mgcslice2();
+    mgcslice2 (lexer *);
+    virtual ~mgcslice2();
 
     //mgcslice2
-	void makemgc(lexer*);
-	void mgcsetup(lexer*);
-	void gcdirfill(lexer*);
-	void fillmgc(lexer*);
-	void make_ggc(lexer*);
-	void fill_ggc(lexer*);
+    void makemgc(lexer*);
+    void mgcsetup(lexer*);
+    void gcdirfill(lexer*);
+    void fillmgc(lexer*);
+    void make_ggc(lexer*);
+    void fill_ggc(lexer*);
 
     
     void gcb_seed(lexer*);
-	
-	int imin,imax,jmax,jmin,kmin,kmax;
-	int gcdirsize;
-	int ggcsize;
-	
+    
+    int imin,imax,jmax,jmin,kmin,kmax;
+    int gcdirsize;
+    int ggcsize;
+    
 private:
-	int di,dj;
-	int qn;
+    int di,dj;
+    int qn;
     int count;
-	
+    
 };
 
 #endif

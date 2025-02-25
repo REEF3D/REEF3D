@@ -28,10 +28,10 @@ Author: Hans Bihs
 
 void sixdof_obj::ray_cast_2D(lexer *p, ghostcell *pgc)
 {
-	SLICELOOP4
-	{
+    SLICELOOP4
+    {
         fsio(i,j)=1;
-	    fs(i,j)=1.0e9;
+        fs(i,j)=1.0e9;
         Rxmin(i,j)=1.0e9;
         Rxmax(i,j)=-1.0e9;
         Rymin(i,j)=1.0e9;
@@ -39,8 +39,8 @@ void sixdof_obj::ray_cast_2D(lexer *p, ghostcell *pgc)
         Ls(i,j) = 1.0e-6;
         Bs(i,j) = 1.0e-6;
         draft(i,j) = 0.0;
-	}
-	
+    }
+    
     for(int rayiter=0; rayiter<2; ++rayiter)
     {
         if(rayiter==0)
@@ -59,7 +59,7 @@ void sixdof_obj::ray_cast_2D(lexer *p, ghostcell *pgc)
         }
     }
     
-	SLICELOOP4
+    SLICELOOP4
     {
         if(fsio(i,j)==-1)
         fs(i,j) = -fabs(fs(i,j));
@@ -68,17 +68,17 @@ void sixdof_obj::ray_cast_2D(lexer *p, ghostcell *pgc)
         fs(i,j) = fabs(fs(i,j));
     }
     
-	SLICELOOP4
-	{
-		if(fs(i,j) > 10.0*p->DXM)
-		fs(i,j) = 10.0*p->DXM;
-		
-		if(fs(i,j) < -10.0*p->DXM)
-		fs(i,j) = -10.0*p->DXM;
-	}
+    SLICELOOP4
+    {
+        if(fs(i,j) > 10.0*p->DXM)
+        fs(i,j) = 10.0*p->DXM;
+        
+        if(fs(i,j) < -10.0*p->DXM)
+        fs(i,j) = -10.0*p->DXM;
+    }
     
     SLICELOOP4
-	{
+    {
     if(Rxmax(i,j)>-1.0e9 && Rxmin(i,j)<1.0e9)
     Ls(i,j) = Rxmax(i,j)-Rxmin(i,j);
     
@@ -86,7 +86,7 @@ void sixdof_obj::ray_cast_2D(lexer *p, ghostcell *pgc)
     Bs(i,j) = Rymax(i,j)-Rymin(i,j);
     }
     
-	pgc->gcsl_start4(p,fs,50);
+    pgc->gcsl_start4(p,fs,50);
     pgc->gcsl_start4(p,draft,50);
 }
 

@@ -68,35 +68,35 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
     HYPRE_StructBiCGSTABSetPrintLevel(solver, 0 ); 
     HYPRE_StructBiCGSTABSetLogging(solver, 1);
     }
-	
-	if(p->N10==15)
+    
+    if(p->N10==15)
     {
     HYPRE_StructHybridCreate(pgc->mpi_comm, &solver);
-	HYPRE_StructHybridSetSolverType(solver,0);
+    HYPRE_StructHybridSetSolverType(solver,0);
     HYPRE_StructHybridSetPCGMaxIter(solver, p->N46);
-	HYPRE_StructHybridSetDSCGMaxIter(solver,1);
+    HYPRE_StructHybridSetDSCGMaxIter(solver,1);
     HYPRE_StructHybridSetTol(solver, p->N44);
     HYPRE_StructHybridSetPrintLevel(solver, 0 ); 
     HYPRE_StructHybridSetLogging(solver, 1);
     }
-	
-	if(p->N10==16)
+    
+    if(p->N10==16)
     {
     HYPRE_StructHybridCreate(pgc->mpi_comm, &solver);
-	HYPRE_StructHybridSetSolverType(solver,1);
+    HYPRE_StructHybridSetSolverType(solver,1);
     HYPRE_StructHybridSetPCGMaxIter(solver, p->N46);
-	HYPRE_StructHybridSetDSCGMaxIter(solver,1);
+    HYPRE_StructHybridSetDSCGMaxIter(solver,1);
     HYPRE_StructHybridSetTol(solver, p->N44);
     HYPRE_StructHybridSetPrintLevel(solver, 0 ); 
     HYPRE_StructHybridSetLogging(solver, 1);
     }
-	
-	if(p->N10==17)
+    
+    if(p->N10==17)
     {
     HYPRE_StructHybridCreate(pgc->mpi_comm, &solver);
-	HYPRE_StructHybridSetSolverType(solver,2);
+    HYPRE_StructHybridSetSolverType(solver,2);
     HYPRE_StructHybridSetPCGMaxIter(solver, p->N46);
-	HYPRE_StructHybridSetDSCGMaxIter(solver,1);
+    HYPRE_StructHybridSetDSCGMaxIter(solver,1);
     HYPRE_StructHybridSetTol(solver, p->N44);
     HYPRE_StructHybridSetPrintLevel(solver, 0 ); 
     HYPRE_StructHybridSetLogging(solver, 1);
@@ -105,16 +105,16 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
     if(p->N10==18)
     {
     HYPRE_StructPFMGCreate(pgc->mpi_comm, &solver);
-	HYPRE_StructPFMGSetMaxIter(solver, p->N46);
-	HYPRE_StructPFMGSetTol(solver, p->N44);
-	HYPRE_StructPFMGSetZeroGuess(solver);		
-	HYPRE_StructPFMGSetRAPType(solver, 0);
-	HYPRE_StructPFMGSetRelaxType(solver, 1);
-	HYPRE_StructPFMGSetNumPreRelax(solver, 1);
-	HYPRE_StructPFMGSetNumPostRelax(solver, 1);
-	HYPRE_StructPFMGSetSkipRelax(solver, 0);
-	HYPRE_StructPFMGSetPrintLevel(solver, 0);
-	HYPRE_StructPFMGSetLogging(solver, 0);
+    HYPRE_StructPFMGSetMaxIter(solver, p->N46);
+    HYPRE_StructPFMGSetTol(solver, p->N44);
+    HYPRE_StructPFMGSetZeroGuess(solver);        
+    HYPRE_StructPFMGSetRAPType(solver, 0);
+    HYPRE_StructPFMGSetRelaxType(solver, 1);
+    HYPRE_StructPFMGSetNumPreRelax(solver, 1);
+    HYPRE_StructPFMGSetNumPostRelax(solver, 1);
+    HYPRE_StructPFMGSetSkipRelax(solver, 0);
+    HYPRE_StructPFMGSetPrintLevel(solver, 0);
+    HYPRE_StructPFMGSetLogging(solver, 0);
     }
     
     if(p->N10==19)
@@ -131,16 +131,16 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
     if(p->N11==11)
     {
     HYPRE_StructPFMGCreate(pgc->mpi_comm, &precond);
-	HYPRE_StructPFMGSetMaxIter(precond, 1);
-	HYPRE_StructPFMGSetTol(precond, 0.0);
-	HYPRE_StructPFMGSetZeroGuess(precond);		
-	HYPRE_StructPFMGSetRAPType(precond, 0);
-	HYPRE_StructPFMGSetRelaxType(precond, 1);
-	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
-	HYPRE_StructPFMGSetNumPostRelax(precond, 3);
-	HYPRE_StructPFMGSetSkipRelax(precond, 0);
-	HYPRE_StructPFMGSetPrintLevel(precond, 0);
-	HYPRE_StructPFMGSetLogging(precond, 0);
+    HYPRE_StructPFMGSetMaxIter(precond, 1);
+    HYPRE_StructPFMGSetTol(precond, 0.0);
+    HYPRE_StructPFMGSetZeroGuess(precond);        
+    HYPRE_StructPFMGSetRAPType(precond, 0);
+    HYPRE_StructPFMGSetRelaxType(precond, 1);
+    HYPRE_StructPFMGSetNumPreRelax(precond, 1);
+    HYPRE_StructPFMGSetNumPostRelax(precond, 3);
+    HYPRE_StructPFMGSetSkipRelax(precond, 0);
+    HYPRE_StructPFMGSetPrintLevel(precond, 0);
+    HYPRE_StructPFMGSetLogging(precond, 0);
     }
     
     if(p->N11==12)
@@ -153,7 +153,7 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
     HYPRE_StructSMGSetNumPreRelax(precond,1);
     HYPRE_StructSMGSetNumPostRelax(precond,1);
     }
-	  
+      
     
     if(p->N10==11 && p->N11==11)
     HYPRE_StructPCGSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
@@ -181,13 +181,13 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
     
     if(p->N10==14 && p->N11==12)
     HYPRE_StructBiCGSTABSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
-	
-	if((p->N10==15 || p->N10==16 || p->N10==17) && p->N11==11)
+    
+    if((p->N10==15 || p->N10==16 || p->N10==17) && p->N11==11)
     HYPRE_StructHybridSetPrecond(solver, HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, precond);
     
     if((p->N10==15 || p->N10==16 || p->N10==17) && p->N11==12)
     HYPRE_StructHybridSetPrecond(solver, HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, precond);
-	
+    
 }
 
 void hypre_struct2D::delete_solvers(lexer* p, ghostcell* pgc)
@@ -203,9 +203,9 @@ void hypre_struct2D::delete_solvers(lexer* p, ghostcell* pgc)
     
     if(p->N10==14)
     HYPRE_StructBiCGSTABDestroy(solver);
-	
-	if(p->N10==15 || p->N10==16 || p->N10==17)
-	HYPRE_StructHybridDestroy(solver);
+    
+    if(p->N10==15 || p->N10==16 || p->N10==17)
+    HYPRE_StructHybridDestroy(solver);
     
     if(p->N10==18)
     HYPRE_StructPFMGDestroy(solver);

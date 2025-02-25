@@ -47,19 +47,19 @@ void driver::driver_ini_fnpf()
 {
     // count cells
     int count=0;
-	p->pointnum=0;
-	p->cellnum=0;
-	p->tpcellnum=0;
+    p->pointnum=0;
+    p->cellnum=0;
+    p->tpcellnum=0;
 
-	TPLOOP
-	{
-	++count;
-	++p->pointnum;
+    TPLOOP
+    {
+    ++count;
+    ++p->pointnum;
     c->nodeval(i,j,k)=count;
-	}
+    }
 
-	LOOP
-	++p->cellnum;
+    LOOP
+    ++p->cellnum;
     
     PLAINLOOP
     ++p->tpcellnum;
@@ -101,28 +101,28 @@ void driver::driver_ini_fnpf()
      p->maxlength=MAX(p->maxlength,p->zcoormax-p->zcoormin);
 
      p->maxlength=pgc->globalmax(p->maxlength);
-	 
-	 p->xcoormax=pgc->globalmax(p->xcoormax);
-	 p->ycoormax=pgc->globalmax(p->ycoormax);
-	 p->zcoormax=pgc->globalmax(p->zcoormax);
-	 
-	 p->xcoormin=pgc->globalmin(p->xcoormin);
-	 p->ycoormin=pgc->globalmin(p->ycoormin);
-	 p->zcoormin=pgc->globalmin(p->zcoormin);
+     
+     p->xcoormax=pgc->globalmax(p->xcoormax);
+     p->ycoormax=pgc->globalmax(p->ycoormax);
+     p->zcoormax=pgc->globalmax(p->zcoormax);
+     
+     p->xcoormin=pgc->globalmin(p->xcoormin);
+     p->ycoormin=pgc->globalmin(p->ycoormin);
+     p->zcoormin=pgc->globalmin(p->zcoormin);
      
     if(p->mpirank==0)
     cout<<"starting driver_ini_FNPF"<<endl;
 
-	
+    
     // bed ini
     SLICELOOP4
-	c->bed(i,j) = p->bed[IJ];
+    c->bed(i,j) = p->bed[IJ];
     
     pgc->gcsl_start4(p,c->bed,50);
     
     // bc ini
     SLICELOOP4
-	c->bc(i,j) = 0;
+    c->bc(i,j) = 0;
     
     pgc->gcsl_start4int(p,c->bc,50);
    
@@ -144,35 +144,35 @@ void driver::driver_ini_fnpf()
    
     // 2D mesh
     count=0;
-	p->pointnum2D=0;
-	p->cellnum2D=0;
-	p->polygon_sum=0;
+    p->pointnum2D=0;
+    p->cellnum2D=0;
+    p->polygon_sum=0;
     
    
     TPSLICELOOP  
-	{
-	++count;
-	++p->pointnum2D;
-	c->nodeval2D(i,j)=count;
+    {
+    ++count;
+    ++p->pointnum2D;
+    c->nodeval2D(i,j)=count;
     }
-	
-	SLICEBASELOOP
-	++p->polygon_sum;
-	
-	p->polygon_sum *=2;
+    
+    SLICEBASELOOP
+    ++p->polygon_sum;
+    
+    p->polygon_sum *=2;
 
-	SLICELOOP4
-	++p->cellnum2D;
+    SLICELOOP4
+    ++p->cellnum2D;
     
     SLICELOOP4
-	++p->cellnum2D;
+    ++p->cellnum2D;
 
     p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
     
     
     // eta ini
-	SLICELOOP4
-	c->eta(i,j) = 0.0;
+    SLICELOOP4
+    c->eta(i,j) = 0.0;
 
     pgc->gcsl_start4(p,c->eta,50);
     
@@ -202,14 +202,14 @@ void driver::driver_ini_fnpf()
     pgc->start7V(p,c->Fi,c->bc,250);
     
     pftstep->ini(c,p,pgc);
-	
-	pfprint->start(p,c,pgc,pflow);
-	
     
-	p->gctime=0.0;
+    pfprint->start(p,c,pgc,pflow);
+    
+    
+    p->gctime=0.0;
     p->xtime=0.0;
-	p->wavecalctime=0.0;
-	p->field4time=0.0;
+    p->wavecalctime=0.0;
+    p->field4time=0.0;
 
     
      if(p->mpirank==0)

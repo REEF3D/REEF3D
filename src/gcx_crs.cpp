@@ -34,7 +34,7 @@ void ghostcell::rangex(lexer* p, int* range, int cellcount)
     
     for(n=0;n<=p->M10;++n)
     p->colnum[n]=0;
-	
+    
     MPI_Allgather(&offset,1,MPI_INT,colnum,1,MPI_INT,mpi_comm);
 
     range[0]=0;

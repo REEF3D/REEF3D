@@ -69,24 +69,24 @@ void sflow_ifou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vv
     pflux->v_flux(ipol,vvel,jadvec,jvel2);
 
 
-	if(0.5*(ivel1+ivel2)>=0.0)
+    if(0.5*(ivel1+ivel2)>=0.0)
     udir=1.0;
     
     if(0.5*(jvel1+jvel2)>=0.0)
     vdir=1.0;
     
 
-	 
-	 b->M.p[count] = udir*ivel2/p->DXM - (1.0-udir)*ivel1/p->DXM
-					+ (vdir*jvel2/p->DXM - (1.0-vdir)*jvel1/p->DXM)*p->y_dir;
+     
+     b->M.p[count] = udir*ivel2/p->DXM - (1.0-udir)*ivel1/p->DXM
+                    + (vdir*jvel2/p->DXM - (1.0-vdir)*jvel1/p->DXM)*p->y_dir;
 
-	 
-	 b->M.s[count] = -udir*ivel1/p->DXM;
-	 b->M.n[count] =  (1.0-udir)*ivel2/p->DXM;
-	 
-	 b->M.e[count] = -vdir*jvel1/p->DXM*p->y_dir;
-	 b->M.w[count] =  (1.0-vdir)*jvel2/p->DXM*p->y_dir;
-	 
-	 ++count;
+     
+     b->M.s[count] = -udir*ivel1/p->DXM;
+     b->M.n[count] =  (1.0-udir)*ivel2/p->DXM;
+     
+     b->M.e[count] = -vdir*jvel1/p->DXM*p->y_dir;
+     b->M.w[count] =  (1.0-vdir)*jvel2/p->DXM*p->y_dir;
+     
+     ++count;
 }
 

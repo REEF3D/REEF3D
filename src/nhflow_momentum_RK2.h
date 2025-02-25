@@ -36,10 +36,10 @@ using namespace std;
 class nhflow_momentum_RK2 : public nhflow_momentum_func
 {
 public:
-	nhflow_momentum_RK2(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans*, vector<net*>&, nhflow_forcing*);
-	virtual ~nhflow_momentum_RK2();
+    nhflow_momentum_RK2(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans*, vector<net*>&, nhflow_forcing*);
+    virtual ~nhflow_momentum_RK2();
     
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
+    virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
 
     double *UHDIFF;
     double *VHDIFF;
@@ -51,10 +51,12 @@ public:
     slice4 WLRK1;
 
 private:
-	int gcval_u, gcval_v, gcval_w;    int gcval_uh, gcval_vh, gcval_wh;
-	double starttime;
+    int gcval_u, gcval_v, gcval_w;
+    int gcval_uh, gcval_vh, gcval_wh;
+    double starttime;
     
-    nhflow_convection *pweno;    sixdof *p6dof;
+    nhflow_convection *pweno;
+    sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;
     vrans* pvrans;

@@ -27,13 +27,13 @@ Author: Hans Bihs
 
 void vrans_veg::eps_source(lexer *p, fdm *a, field &kin, field &eps)
 {
-	int count;
+    int count;
     double uvel,vvel,wvel,uu;
     double ew;
     double Cep=3.5;
     
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
     if(a->porosity(i,j,k)<1.0)
     {

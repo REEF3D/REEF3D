@@ -31,22 +31,22 @@ double strain::pk(lexer *p, fdm *a,field &eddyv)
 { 
     if(p->j_dir==1)
     {
-	s11 = pudx(p,a);
-	s22 = pvdy(p,a);
-	s33 = pwdz(p,a);
-	s12 = (pudy(p,a) + pvdx(p,a));
-	s13 = (pudz(p,a) + pwdx(p,a));
-	s23 = (pvdz(p,a) + pwdy(p,a));
+    s11 = pudx(p,a);
+    s22 = pvdy(p,a);
+    s33 = pwdz(p,a);
+    s12 = (pudy(p,a) + pvdx(p,a));
+    s13 = (pudz(p,a) + pwdx(p,a));
+    s23 = (pvdz(p,a) + pwdy(p,a));
     }
     
     if(p->j_dir==0)
     {
-	s11 = pudx(p,a);
-	s22 = 0.0;
-	s33 = pwdz(p,a);
-	s12 = 0.0;
-	s13 = (pudz(p,a) + pwdx(p,a));
-	s23 = 0.0;
+    s11 = pudx(p,a);
+    s22 = 0.0;
+    s33 = pwdz(p,a);
+    s12 = 0.0;
+    s13 = (pudz(p,a) + pwdx(p,a));
+    s23 = 0.0;
     }
 
     val = eddyv(i,j,k)*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);

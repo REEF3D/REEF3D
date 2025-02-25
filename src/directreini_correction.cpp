@@ -29,76 +29,76 @@ Author: Hans Bihs
 void directreini::correction(lexer *p, fdm* a, ghostcell *pgc, field& b)
 {
 
-	double phival,dval,H0,denom;
+    double phival,dval,H0,denom;
 
-	for(n=0;n<numvert;++n)
-	ls1[n]=ls[n];
+    for(n=0;n<numvert;++n)
+    ls1[n]=ls[n];
 
-		
-	for(n=0;n<numvert;++n)
+        
+    for(n=0;n<numvert;++n)
     {
-		dV1 = 1.0;
-		dV2 = 1.0;
-		C1 = 0.0;
-		C2 = 0.0;
-		mi = 0.0;
-		eta = 0.0;
-		
-		count=0;
-		while(dV1>1.0e-10*dV && count<1000)
-		{
-			
-			phival = ls0[n];
-			if(phival>epsi)
-			H0=1.0;
+        dV1 = 1.0;
+        dV2 = 1.0;
+        C1 = 0.0;
+        C2 = 0.0;
+        mi = 0.0;
+        eta = 0.0;
+        
+        count=0;
+        while(dV1>1.0e-10*dV && count<1000)
+        {
+            
+            phival = ls0[n];
+            if(phival>epsi)
+            H0=1.0;
 
-			if(phival<-epsi)
-			H0=0.0;
+            if(phival<-epsi)
+            H0=0.0;
 
-			if(fabs(phival)<=epsi)
-			H0=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-			
-			dval = ls[n];
-			if(dval>epsi)
-			H=1.0;
+            if(fabs(phival)<=epsi)
+            H0=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+            
+            dval = ls[n];
+            if(dval>epsi)
+            H=1.0;
 
-			if(dval<-epsi)
-			H=0.0;
+            if(dval<-epsi)
+            H=0.0;
 
-			if(fabs(dval)<=epsi)
-			H=0.5*(1.0 + dval/epsi + (1.0/PI)*sin((PI*dval)/epsi));
-			
-			
-			/*
-			phival = ls0[n];
-			if(phival>=0.0)
-			H0=1.0;
+            if(fabs(dval)<=epsi)
+            H=0.5*(1.0 + dval/epsi + (1.0/PI)*sin((PI*dval)/epsi));
+            
+            
+            /*
+            phival = ls0[n];
+            if(phival>=0.0)
+            H0=1.0;
 
-			if(phival<0.0)
-			H0=0.0;
-			
-			dval = ls[n];
-			if(dval>=0)
-			H=1.0;
+            if(phival<0.0)
+            H0=0.0;
+            
+            dval = ls[n];
+            if(dval>=0)
+            H=1.0;
 
-			if(dval<0)
-			H=0.0;
-			*/
-			
-			dV1 = dV*(H0-H);
-			
-			denom = fabs(ls[n])>1.0e-19?fabs(ls[n]):1.0e20;
-			eta = dV1/denom;
-			
-			ls[n] += eta;
-			
-			
-			++count;
-		}
-	}
-	
-	
-	for(n=0;n<numvert;++n)
+            if(dval<0)
+            H=0.0;
+            */
+            
+            dV1 = dV*(H0-H);
+            
+            denom = fabs(ls[n])>1.0e-19?fabs(ls[n]):1.0e20;
+            eta = dV1/denom;
+            
+            ls[n] += eta;
+            
+            
+            ++count;
+        }
+    }
+    
+    
+    for(n=0;n<numvert;++n)
     {
     i=ijk[n][0];
     j=ijk[n][1];

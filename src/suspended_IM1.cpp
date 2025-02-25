@@ -32,7 +32,7 @@ Author: Hans Bihs
 
 suspended_IM1::suspended_IM1(lexer* p, fdm* a) : concn(p),wvel(p)
 {
-	gcval_susp=60;
+    gcval_susp=60;
 }
 
 suspended_IM1::~suspended_IM1()
@@ -45,19 +45,19 @@ void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
     clearrhs(p,a);
     fill_wvel(p,a,pgc,s);
     pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
-	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
-	suspsource(p,a,a->conc,s);
-	timesource(p,a,a->conc);
+    pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
+    suspsource(p,a,a->conc,s);
+    timesource(p,a,a->conc);
     bcsusp_start(p,a,pgc,s,a->conc);
-	psolv->start(p,a,pgc,a->conc,a->rhsvec,4);
+    psolv->start(p,a,pgc,a->conc,a->rhsvec,4);
     bcsusp_start(p,a,pgc,s,a->conc);
-	sedfsf(p,a,a->conc);
-	pgc->start4(p,a->conc,gcval_susp);
+    sedfsf(p,a,a->conc);
+    pgc->start4(p,a->conc,gcval_susp);
     fillconc(p,a,s);
-	p->susptime=pgc->timer()-starttime;
-	p->suspiter=p->solveriter;
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"suspiter: "<<p->suspiter<<"  susptime: "<<setprecision(3)<<p->susptime<<endl;
+    p->susptime=pgc->timer()-starttime;
+    p->suspiter=p->solveriter;
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"suspiter: "<<p->suspiter<<"  susptime: "<<setprecision(3)<<p->susptime<<endl;
 }
 
 void suspended_IM1::timesource(lexer* p, fdm* a, field& fn)
@@ -71,7 +71,7 @@ void suspended_IM1::timesource(lexer* p, fdm* a, field& fn)
 
         a->rhsvec.V[count] += a->L(i,j,k) + concn(i,j,k)/DT;
 
-	++count;
+    ++count;
     }
 }
 
@@ -95,10 +95,10 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     count=0;
     LOOP
     {
-	if(a->phi(i,j,k)>0.0)
-	a->rhsvec.V[count]  += -s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
-	
-	++count;
+    if(a->phi(i,j,k)>0.0)
+    a->rhsvec.V[count]  += -s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+    
+    ++count;
     }*/
 }
 
@@ -274,6 +274,6 @@ void suspended_IM1::clearrhs(lexer* p, fdm* a)
     {
     a->rhsvec.V[count]=0.0;
     a->L(i,j,k)=0.0;
-	++count;
+    ++count;
     }
 }

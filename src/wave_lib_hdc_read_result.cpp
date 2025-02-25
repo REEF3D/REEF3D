@@ -29,7 +29,7 @@ void wave_lib_hdc::read_result(lexer *p, ghostcell *pgc, double **E0, double ***
     if(file_type==1)
     {
     filename_single(p,pgc,q0);
-	result.open(name, ios::binary);
+    result.open(name, ios::binary);
     }
     
     // read file_iter

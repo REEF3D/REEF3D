@@ -48,7 +48,7 @@ public:
     virtual void ini(lexer*,ghostcell*);
     
     sixdof_motionext_fixed(lexer*, ghostcell*);
-	virtual ~sixdof_motionext_fixed();
+    virtual ~sixdof_motionext_fixed();
     
 private:
     double ramp_vel(lexer*);

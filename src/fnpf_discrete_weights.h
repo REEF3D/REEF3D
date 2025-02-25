@@ -37,8 +37,8 @@ using namespace std;
 class fnpf_discrete_weights : public increment
 {
 public:
-	fnpf_discrete_weights(lexer*);
-	virtual ~fnpf_discrete_weights();
+    fnpf_discrete_weights(lexer*);
+    virtual ~fnpf_discrete_weights();
 
     void ck_weights(lexer*, double**, double *, int, int, int, int);
 

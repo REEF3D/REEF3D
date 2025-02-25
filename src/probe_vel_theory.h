@@ -39,23 +39,23 @@ class probe_vel_theory : public boundarycheck
 {
 public:
     probe_vel_theory(lexer*,fdm*);
-	virtual ~probe_vel_theory();
+    virtual ~probe_vel_theory();
 
-	void start(lexer*, fdm*, ghostcell*,ioflow*);
+    void start(lexer*, fdm*, ghostcell*,ioflow*);
 
 
 private:
     void ini_location(lexer*, fdm*);
 
 
-	char name[100];
+    char name[100];
 
     int *iloc,*jloc,*kloc,*flag;
     int n,q;
-	const int probenum;
+    const int probenum;
     ofstream *pout;
-	
-	double uval,vval,wval,pval,kval,eval,edval;
+    
+    double uval,vval,wval,pval,kval,eval,edval;
     
     
     

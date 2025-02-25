@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"nhflow_f.h"
+
+#include"nhflow_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -38,19 +39,19 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     // count cells 3D
     int count=0;
     p->count=0;
-	p->pointnum=0;
-	p->cellnum=0;
-	p->tpcellnum=0;
+    p->pointnum=0;
+    p->cellnum=0;
+    p->tpcellnum=0;
 
-	TPLOOP
-	{
-	++count;
-	++p->pointnum;
+    TPLOOP
+    {
+    ++count;
+    ++p->pointnum;
     d->NODEVAL[IJK]=count;
-	}
+    }
 
-	LOOP
-	++p->cellnum;
+    LOOP
+    ++p->cellnum;
     
     PLAINLOOP
     ++p->tpcellnum;
@@ -59,28 +60,28 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     
     // 2D mesh
     count=0;
-	p->pointnum2D=0;
-	p->cellnum2D=0;
-	p->polygon_sum=0;
+    p->pointnum2D=0;
+    p->cellnum2D=0;
+    p->polygon_sum=0;
     
    
     TPSLICELOOP  
-	{
-	++count;
-	++p->pointnum2D;
-	d->nodeval2D(i,j)=count;
+    {
+    ++count;
+    ++p->pointnum2D;
+    d->nodeval2D(i,j)=count;
     }
-	
-	SLICEBASELOOP
-	++p->polygon_sum;
-	
-	p->polygon_sum *=2;
+    
+    SLICEBASELOOP
+    ++p->polygon_sum;
+    
+    p->polygon_sum *=2;
 
-	SLICELOOP4
-	++p->cellnum2D;
+    SLICELOOP4
+    ++p->cellnum2D;
     
     SLICELOOP4
-	++p->cellnum2D;
+    ++p->cellnum2D;
 
     p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
     
@@ -95,14 +96,14 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     // SIGMA grid
     // bed ini
     SLICELOOP4
-	d->bed(i,j) = p->bed[IJ];
+    d->bed(i,j) = p->bed[IJ];
     
     pgc->gcsl_start4(p,d->bed,50);
     
     for(int qn=0; qn<p->A509;++qn)
     {
-	SLICELOOP4
-	d->bed(i,j) = 0.5*d->bed(i,j) + 0.125*(d->bed(i-1,j) +d->bed(i+1,j) +d->bed(i,j-1) +d->bed(i,j+1) );
+    SLICELOOP4
+    d->bed(i,j) = 0.5*d->bed(i,j) + 0.125*(d->bed(i-1,j) +d->bed(i+1,j) +d->bed(i,j-1) +d->bed(i,j+1) );
     
     pgc->gcsl_start4(p,d->bed,50);
     }
@@ -110,25 +111,25 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     pgc->gcsl_start4(p,d->bed,50);
     
     SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
+    d->depth(i,j) = p->wd - d->bed(i,j);
     
     pgc->gcsl_start4(p,d->depth,50);
     
     ILOOP
     JLOOP
-	d->solidbed(i,j) = p->solidbed[IJ];
+    d->solidbed(i,j) = p->solidbed[IJ];
 
     ILOOP
     JLOOP
-	d->topobed(i,j) = p->topobed[IJ];
+    d->topobed(i,j) = p->topobed[IJ];
     
     pgc->gcsl_start4(p,d->solidbed,50);
     pgc->gcsl_start4(p,d->topobed,50);
     
     // eta ini
-	SLICELOOP4
+    SLICELOOP4
     {
-	d->eta(i,j) = 0.0;
+    d->eta(i,j) = 0.0;
     p->deep[IJ] = 1;
     p->wet[IJ]=1;
     d->breaking(i,j)=0;

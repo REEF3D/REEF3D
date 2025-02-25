@@ -37,11 +37,11 @@ class density_rheo : public density, virtual public increment
 
 public:
     density_rheo(lexer*);
-	virtual ~density_rheo();
+    virtual ~density_rheo();
 
-	virtual double roface(lexer*,fdm*,int,int,int);
-	
-	double H,roval,phival;
+    virtual double roface(lexer*,fdm*,int,int,int);
+    
+    double H,roval,phival;
 
 };
 

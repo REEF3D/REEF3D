@@ -29,35 +29,35 @@ void grid::fill_dgc2(lexer* p)
     int q, count;
     
     QGC2LOOP
-	{
+    {
         i=p->gcb2[q][0];
         j=p->gcb2[q][1];
         k=p->gcb2[q][2];
-		
-		if(p->gcb2[q][3]==1)
-		for(n=0;n<p->margin;++n)
+        
+        if(p->gcb2[q][3]==1)
+        for(n=0;n<p->margin;++n)
         hgc[(i-imin-n-1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
 
-		if(p->gcb2[q][3]==4)
-		for(n=0;n<p->margin;++n)
-		hgc[(i-imin+n+1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
+        if(p->gcb2[q][3]==4)
+        for(n=0;n<p->margin;++n)
+        hgc[(i-imin+n+1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
 
-		if(p->gcb2[q][3]==3)
-		for(n=0;n<p->margin;++n)
+        if(p->gcb2[q][3]==3)
+        for(n=0;n<p->margin;++n)
         hgc[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]+=1;
 
-		if(p->gcb2[q][3]==2)
-		for(n=0;n<p->margin;++n)
-		hgc[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]+=1;
+        if(p->gcb2[q][3]==2)
+        for(n=0;n<p->margin;++n)
+        hgc[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]+=1;
 
-		if(p->gcb2[q][3]==5)
-		for(n=0;n<p->margin;++n)
-		hgc[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]+=1;
+        if(p->gcb2[q][3]==5)
+        for(n=0;n<p->margin;++n)
+        hgc[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]+=1;
 
-		if(p->gcb2[q][3]==6)
-		for(n=0;n<p->margin;++n)
-		hgc[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]+=1;
-	}
+        if(p->gcb2[q][3]==6)
+        for(n=0;n<p->margin;++n)
+        hgc[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]+=1;
+    }
     /*
     for(q=0;q<p->gcpara1_count;++q)
     {
@@ -81,8 +81,8 @@ void grid::fill_dgc2(lexer* p)
         hgc[(i-imin)*jmax*kmax + (j-jmin-n-1)*kmax + k-kmin]+=1;
     }
 
-	for(q=0;q<p->gcpara5_count;++q)
-	{
+    for(q=0;q<p->gcpara5_count;++q)
+    {
     i=p->gcpara5[q][0];
     j=p->gcpara5[q][1];
     k=p->gcpara5[q][2];
@@ -90,10 +90,10 @@ void grid::fill_dgc2(lexer* p)
         if(p->gcpara5[q][4]==1)
         for(n=0;n<p->margin;++n)
         hgc[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin-n-1]+=1;
-	}
+    }
 
-	for(q=0;q<p->gcpara4_count;++q)
-	{
+    for(q=0;q<p->gcpara4_count;++q)
+    {
     i=p->gcpara4[q][0];
     j=p->gcpara4[q][1];
     k=p->gcpara4[q][2];
@@ -101,10 +101,10 @@ void grid::fill_dgc2(lexer* p)
         if(p->gcpara4[q][4]==1)
         for(n=0;n<p->margin;++n)
         hgc[(i-imin+n+1)*jmax*kmax + (j-jmin)*kmax + k-kmin]+=1;
-	}
+    }
 
-	for(q=0;q<p->gcpara2_count;++q)
-	{
+    for(q=0;q<p->gcpara2_count;++q)
+    {
     i=p->gcpara2[q][0];
     j=p->gcpara2[q][1];
     k=p->gcpara2[q][2];
@@ -112,18 +112,18 @@ void grid::fill_dgc2(lexer* p)
         if(p->gcpara2[q][4]==1)
         for(n=0;n<p->margin;++n)
         hgc[(i-imin)*jmax*kmax + (j-jmin+n+1)*kmax + k-kmin]+=1;
-	}
+    }
 
-	for(q=0;q<p->gcpara6_count;++q)
-	{
-	i=p->gcpara6[q][0];
+    for(q=0;q<p->gcpara6_count;++q)
+    {
+    i=p->gcpara6[q][0];
     j=p->gcpara6[q][1];
     k=p->gcpara6[q][2];
         
         if(p->gcpara6[q][4]==1)
         for(n=0;n<p->margin;++n)
         hgc[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin+n+1]+=1;
-	}*/
+    }*/
     
     count=0;
     VLOOP

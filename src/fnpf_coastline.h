@@ -37,7 +37,7 @@ class fnpf_coastline :  public ddweno_f_nug
 {
 public:
     fnpf_coastline(lexer*);
-	virtual ~fnpf_coastline();
+    virtual ~fnpf_coastline();
 
    void start(lexer*,fdm_fnpf*,ghostcell*,slice&,int*,sliceint&);
    

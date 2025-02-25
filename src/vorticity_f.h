@@ -38,7 +38,7 @@ class vorticity_f : public vorticity, public strain
 {
 public:
     vorticity_f(lexer*,fdm*);
-	virtual ~vorticity_f();
+    virtual ~vorticity_f();
 
     virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
 
@@ -49,10 +49,10 @@ public:
 private:
     field4 omega1,omega2,omega3;
 
-	float ffn;
-	int n,q,iin;
+    float ffn;
+    int n,q,iin;
 
-	double val,ddn;
+    double val,ddn;
 };
 
 #endif

@@ -46,7 +46,7 @@ void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     double qb;
 
-	SLICELOOP4
+    SLICELOOP4
     {
 
         if(s->shields_eff(i,j)>s->shields_crit(i,j))
@@ -55,9 +55,9 @@ void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
         if(s->shields_eff(i,j)<=s->shields_crit(i,j) || s->active(i,j)==0)
         qb=0.0;
-		
+        
         s->qbe(i,j) = qb;
-	}
+    }
     
     pgc->gcsl_start4(p,s->qbe,1);
 }

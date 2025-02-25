@@ -38,9 +38,9 @@ class bedprobe_max : public boundarycheck
 {
 public:
     bedprobe_max(lexer*,fdm*,ghostcell*);
-	virtual ~bedprobe_max();
+    virtual ~bedprobe_max();
 
-	void bed_max(lexer*, fdm*, ghostcell*);
+    void bed_max(lexer*, fdm*, ghostcell*);
 
 
 private:

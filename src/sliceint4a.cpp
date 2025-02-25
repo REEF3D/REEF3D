@@ -16,7 +16,9 @@ for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
---------------------------------------------------------------------Author: Hans Bihs--------------------------------------------------------------------*/
+--------------------------------------------------------------------
+Author: Hans Bihs
+--------------------------------------------------------------------*/
 
 #include"sliceint4a.h"
 #include"lexer.h"
@@ -29,26 +31,26 @@ sliceint4a::sliceint4a(lexer *p)
     jmin=p->jmin;
     jmax=p->jmax;
     
-	fieldalloc(p);
+    fieldalloc(p);
 
-	pp=p;
+    pp=p;
 }
 
 sliceint4a::~sliceint4a()
 {
-	delete [ ] V;
+    delete [ ] V;
 }
 
 void sliceint4a::fieldalloc(lexer* p)
 {
-	int gridsize = imax*jmax;
-	p->Iarray(V,gridsize);
+    int gridsize = imax*jmax;
+    p->Iarray(V,gridsize);
 }
 
 void sliceint4a::dealloc(lexer* p)
 {
 
-	delete [ ] V;
+    delete [ ] V;
 
 }
 
@@ -57,7 +59,7 @@ void sliceint4a::resize(lexer* p)
 }
 
 int & sliceint4a::operator()(int ii, int jj)
-{			
-	return V[(ii-imin)*jmax + (jj-jmin)];	
+{            
+    return V[(ii-imin)*jmax + (jj-jmin)];    
 }
 

@@ -30,8 +30,8 @@ Author: Tobias Martin
 void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
 {
     // Store initial position of triangles
-	for(n=0; n<tricount; ++n)
-	{
+    for(n=0; n<tricount; ++n)
+    {
         for(int q=0; q<3; q++)
         {        
             tri_x0[n][q] = tri_x[n][q] - c_(0);
@@ -39,49 +39,49 @@ void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
             tri_z0[n][q] = tri_z[n][q] - c_(2);
         }
     }
-	
-	// Initial rotation
+    
+    // Initial rotation
 
-	if (p->X101==1)
-	{	
+    if (p->X101==1)
+    {    
         phi = p->X101_phi*(PI/180.0);
         theta = p->X101_theta*(PI/180.0);
-        psi = p->X101_psi*(PI/180.0);	
-	
-		for (n=0; n<tricount; ++n)
-		{
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][0],tri_y[n][0],tri_z[n][0],c_(0),c_(1),c_(2));
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][1],tri_y[n][1],tri_z[n][1],c_(0),c_(1),c_(2));
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][2],tri_y[n][2],tri_z[n][2],c_(0),c_(1),c_(2));
-		}
+        psi = p->X101_psi*(PI/180.0);    
+    
+        for (n=0; n<tricount; ++n)
+        {
+            rotation_tri
+                (p,-phi,-theta,-psi,tri_x[n][0],tri_y[n][0],tri_z[n][0],c_(0),c_(1),c_(2));
+            rotation_tri
+                (p,-phi,-theta,-psi,tri_x[n][1],tri_y[n][1],tri_z[n][1],c_(0),c_(1),c_(2));
+            rotation_tri
+                (p,-phi,-theta,-psi,tri_x[n][2],tri_y[n][2],tri_z[n][2],c_(0),c_(1),c_(2));
+        }
 
         // Rotate mooring end point
         if (p->X313==1) 
         {
             for (int line=0; line < p->mooring_count; line++)
             {
-			    rotation_tri(p,-phi,-theta,-psi,p->X311_xe[line],p->X311_ye[line],p->X311_ze[line],c_(0),c_(1),c_(2));
+                rotation_tri(p,-phi,-theta,-psi,p->X311_xe[line],p->X311_ye[line],p->X311_ze[line],c_(0),c_(1),c_(2));
             }
         }
-	}
-	
+    }
+    
 
-	// Initialise quaternions (Goldstein p. 604)
-	e_(0) = 
-		 cos(0.5*phi)*cos(0.5*theta)*cos(0.5*psi) 
-		+ sin(0.5*phi)*sin(0.5*theta)*sin(0.5*psi);
-	e_(1) = 
-		 sin(0.5*phi)*cos(0.5*theta)*cos(0.5*psi) 
-		- cos(0.5*phi)*sin(0.5*theta)*sin(0.5*psi);
-	e_(2) = 
-		 cos(0.5*phi)*sin(0.5*theta)*cos(0.5*psi) 
-		+ sin(0.5*phi)*cos(0.5*theta)*sin(0.5*psi);
-	e_(3) = 
-		 cos(0.5*phi)*cos(0.5*theta)*sin(0.5*psi) 
-		- sin(0.5*phi)*sin(0.5*theta)*cos(0.5*psi);   
+    // Initialise quaternions (Goldstein p. 604)
+    e_(0) = 
+         cos(0.5*phi)*cos(0.5*theta)*cos(0.5*psi) 
+        + sin(0.5*phi)*sin(0.5*theta)*sin(0.5*psi);
+    e_(1) = 
+         sin(0.5*phi)*cos(0.5*theta)*cos(0.5*psi) 
+        - cos(0.5*phi)*sin(0.5*theta)*sin(0.5*psi);
+    e_(2) = 
+         cos(0.5*phi)*sin(0.5*theta)*cos(0.5*psi) 
+        + sin(0.5*phi)*cos(0.5*theta)*sin(0.5*psi);
+    e_(3) = 
+         cos(0.5*phi)*cos(0.5*theta)*sin(0.5*psi) 
+        - sin(0.5*phi)*sin(0.5*theta)*cos(0.5*psi);   
         
         
     en1_ = e_;

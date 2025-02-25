@@ -164,7 +164,7 @@ void VOF_PLIC::start
     //pgc->start4(p,a->phi,gcval_frac);
 
     pflow->vof_relax(p,pgc,a->vof);
-	pgc->start4(p,a->vof,gcval_frac);
+    pgc->start4(p,a->vof,gcval_frac);
     pupdate->start(p,a,pgc);
 
     p->lsmtime=pgc->timer()-starttime;

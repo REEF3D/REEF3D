@@ -32,20 +32,20 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb)
     
     pturb = ppturb;
     
-	// Initialise parameter
+    // Initialise parameter
     double x_ini = p->Z11_x[nstrip]; // x-position of strip bottom
     double y_ini = p->Z11_y[nstrip]; // y-position of strip bottom
     double z_ini = p->Z11_z[nstrip]; // z-position of strip bottom
     double L = p->Z11_l[nstrip];     // Length of strip [m]
     W_el = p->Z11_w[nstrip];         // Width of strip [m]
     double T = p->Z11_t[nstrip];     // Thickness of strip [m]
-	rho_s = p->Z11_rho[nstrip];      // Density of material [kg/m3]
-	double E = p->Z11_e[nstrip];   	 // Young modulus [N/m^2]
-	double Ix = p->Z11_ix[nstrip];   // X-moment of area [m^4]
-	double Iy = p->Z11_iy[nstrip];   // Y-moment of area [m^4]
-	double Iz = p->Z11_iz[nstrip];   // Z-moment of area [m^4]
-	double Nu = p->Z11_nu[nstrip];   // Poisson ratio [-]
-	Ne = p->Z11_n[nstrip];           // Number of elements
+    rho_s = p->Z11_rho[nstrip];      // Density of material [kg/m3]
+    double E = p->Z11_e[nstrip];        // Young modulus [N/m^2]
+    double Ix = p->Z11_ix[nstrip];   // X-moment of area [m^4]
+    double Iy = p->Z11_iy[nstrip];   // Y-moment of area [m^4]
+    double Iz = p->Z11_iz[nstrip];   // Z-moment of area [m^4]
+    double Nu = p->Z11_nu[nstrip];   // Poisson ratio [-]
+    Ne = p->Z11_n[nstrip];           // Number of elements
 
     thinStrip = false;
     if (p->Y2==1) thinStrip = true;
@@ -78,9 +78,9 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb)
 
     // Initialise solver
     iniSolver();
-	
-	// Initialise communication 
-	ini_parallel(p, a, pgc);
+    
+    // Initialise communication 
+    ini_parallel(p, a, pgc);
 
     // Initialise cell size
     get_cellsize(p, a, pgc);
@@ -157,29 +157,29 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb)
 
 void fsi_strip::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
 {
-	p->Darray(xstart, p->mpi_size);
-	p->Darray(xend, p->mpi_size);
-	p->Darray(ystart, p->mpi_size);
-	p->Darray(yend, p->mpi_size);
-	p->Darray(zstart, p->mpi_size);
-	p->Darray(zend, p->mpi_size);
-	
-	xstart[p->mpirank] = p->originx;
-	ystart[p->mpirank] = p->originy;
-	zstart[p->mpirank] = p->originz;
-	xend[p->mpirank] = p->endx;
-	yend[p->mpirank] = p->endy;
-	zend[p->mpirank] = p->endz;
-	
-	for (int i = 0; i < p->mpi_size; i++)
-	{
-		MPI_Bcast(&xstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&xend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&ystart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&yend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&zstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-	}
+    p->Darray(xstart, p->mpi_size);
+    p->Darray(xend, p->mpi_size);
+    p->Darray(ystart, p->mpi_size);
+    p->Darray(yend, p->mpi_size);
+    p->Darray(zstart, p->mpi_size);
+    p->Darray(zend, p->mpi_size);
+    
+    xstart[p->mpirank] = p->originx;
+    ystart[p->mpirank] = p->originy;
+    zstart[p->mpirank] = p->originz;
+    xend[p->mpirank] = p->endx;
+    yend[p->mpirank] = p->endy;
+    zend[p->mpirank] = p->endz;
+    
+    for (int i = 0; i < p->mpi_size; i++)
+    {
+        MPI_Bcast(&xstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+        MPI_Bcast(&xend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+        MPI_Bcast(&ystart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+        MPI_Bcast(&yend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+        MPI_Bcast(&zstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+        MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+    }
 }
 
 void fsi_strip::get_cellsize(lexer *p, fdm *a, ghostcell *pgc)
@@ -207,4 +207,4 @@ void fsi_strip::get_cellsize(lexer *p, fdm *a, ghostcell *pgc)
 
     dx_body = pgc->globalsum(dx_body);
 }
-	
+    

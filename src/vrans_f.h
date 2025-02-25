@@ -32,17 +32,17 @@ using namespace std;
 class vrans_f : public vrans, public increment
 {
 public:
-	vrans_f(lexer*, ghostcell*);
-	virtual ~vrans_f();
+    vrans_f(lexer*, ghostcell*);
+    virtual ~vrans_f();
 
-	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);	
-	virtual void start(lexer*, fdm*, ghostcell*, net*&, int){};
-    virtual void sed_update(lexer*, fdm*, ghostcell*);	
+    virtual void initialize_cfd(lexer*, fdm*, ghostcell*);    
+    virtual void start(lexer*, fdm*, ghostcell*, net*&, int){};
+    virtual void sed_update(lexer*, fdm*, ghostcell*);    
     virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&);
-	
-	virtual void u_source(lexer*, fdm*);
-	virtual void v_source(lexer*, fdm*);
-	virtual void w_source(lexer*, fdm*);
+    
+    virtual void u_source(lexer*, fdm*);
+    virtual void v_source(lexer*, fdm*);
+    virtual void w_source(lexer*, fdm*);
     
     virtual void ke_source(lexer*, fdm*, field&);
     virtual void kw_source(lexer*, fdm*, field&);
@@ -52,20 +52,20 @@ public:
     virtual void eddyv_func(lexer*, fdm*);
     
     virtual void veltimesave(lexer*,fdm*,ghostcell*);
-	
+    
 private:
-	
-	field4a alpha,beta;
-	
-	double Apor(double,double,double,double);
-	double Bpor(double,double,double);
-	
-	int count;
+    
+    field4a alpha,beta;
+    
+    double Apor(double,double,double,double);
+    double Bpor(double,double,double);
+    
+    int count;
     
     double Aporval,Bporval,porval,partval,alphaval,betaval,viscval;
-	double val;
-	double porousterm;
-	const double Cval;
+    double val;
+    double porousterm;
+    const double Cval;
 };
 
 #endif

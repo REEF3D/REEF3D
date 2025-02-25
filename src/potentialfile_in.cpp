@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 potentialfile_in::potentialfile_in(lexer *p, ghostcell *pgc) 
-{	
+{    
     if(p->I230>0 && p->gcin_count>0)
     {
     header_read(p,pgc);
@@ -156,7 +156,7 @@ void potentialfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, fie
     
     if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->DXM)
     wval = 0.0;
-	
+    
     w(i-1,j,k)=wval;
     w(i-2,j,k)=wval;
     w(i-3,j,k)=wval;

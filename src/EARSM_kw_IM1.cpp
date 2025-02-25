@@ -32,7 +32,7 @@ Author: Hans Bihs
 
 EARSM_kw_IM1::EARSM_kw_IM1(lexer* p, fdm* a, ghostcell *pgc): komega_IM1(p,a,pgc),EARSM(p,a),cmu(cmu)
 {
-	gcval_earsm=25;
+    gcval_earsm=25;
 }
 
 EARSM_kw_IM1::~EARSM_kw_IM1()
@@ -41,39 +41,39 @@ EARSM_kw_IM1::~EARSM_kw_IM1()
 
 void EARSM_kw_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
 {
-	komega_IM1::start(a,p,pconvec,pdiff,psolv,pgc,pflow,pvrans);
+    komega_IM1::start(a,p,pconvec,pdiff,psolv,pgc,pflow,pvrans);
 
-	LOOP
-	{
-	tk = tau(a);
-	sq(p,a);
-	invar();
-	beta(a);
-	terms();
-	aniso(a);
-	}
+    LOOP
+    {
+    tk = tau(a);
+    sq(p,a);
+    invar();
+    beta(a);
+    terms();
+    aniso(a);
+    }
 
-	pgc->start4(p,rs11,gcval_earsm);
-	pgc->start4(p,rs22,gcval_earsm);
-	pgc->start4(p,rs33,gcval_earsm);
-	pgc->start4(p,rs12,gcval_earsm);
-	pgc->start4(p,rs13,gcval_earsm);
-	pgc->start4(p,rs23,gcval_earsm);
+    pgc->start4(p,rs11,gcval_earsm);
+    pgc->start4(p,rs22,gcval_earsm);
+    pgc->start4(p,rs33,gcval_earsm);
+    pgc->start4(p,rs12,gcval_earsm);
+    pgc->start4(p,rs13,gcval_earsm);
+    pgc->start4(p,rs23,gcval_earsm);
 }
 
 void EARSM_kw_IM1::aniso(fdm* a)
 {
-	rs11(i,j,k) = (T1_11 + T3_11 + T4_11 + T6_11 + T9_11 )*kin(i,j,k);
-	rs22(i,j,k) = (T1_22 + T3_22 + T4_22 + T6_22 + T9_22 )*kin(i,j,k);
-	rs33(i,j,k) = -rs11(i,j,k)-rs22(i,j,k);
-	rs12(i,j,k) = (T1_12 + T3_12 + T4_12 + T6_12 + T9_12 )*kin(i,j,k);
-	rs13(i,j,k) = (T1_13 + T3_13 + T4_13 + T6_13 + T9_13 )*kin(i,j,k);
-	rs23(i,j,k) = (T1_23 + T3_23 + T4_23 + T6_23 + T9_23 )*kin(i,j,k);
+    rs11(i,j,k) = (T1_11 + T3_11 + T4_11 + T6_11 + T9_11 )*kin(i,j,k);
+    rs22(i,j,k) = (T1_22 + T3_22 + T4_22 + T6_22 + T9_22 )*kin(i,j,k);
+    rs33(i,j,k) = -rs11(i,j,k)-rs22(i,j,k);
+    rs12(i,j,k) = (T1_12 + T3_12 + T4_12 + T6_12 + T9_12 )*kin(i,j,k);
+    rs13(i,j,k) = (T1_13 + T3_13 + T4_13 + T6_13 + T9_13 )*kin(i,j,k);
+    rs23(i,j,k) = (T1_23 + T3_23 + T4_23 + T6_23 + T9_23 )*kin(i,j,k);
 }
 
 double EARSM_kw_IM1::tau(fdm* a)
 {
-	double t2;
+    double t2;
 
         t = 6.0*sqrt(fabs(a->visc(i,j,k)*eps(i,j,k))
         /(fabs(cmu*kin(i,j,k))>(0.0)?(fabs(cmu*kin(i,j,k))):(1.0e20)));
@@ -81,10 +81,10 @@ double EARSM_kw_IM1::tau(fdm* a)
 
         t2=fabs(eps(i,j,k))/(cmu>(0.0)?(cmu):(1.0e20));
 
-		if(t2>t)
-		t=t2;
+        if(t2>t)
+        t=t2;
 
-	return t;
+    return t;
 }
 
 

@@ -37,20 +37,20 @@ class fluid_update_fsf_concentration : public fluid_update, increment
 {
 public:
     fluid_update_fsf_concentration(lexer*, fdm*, ghostcell*, concentration*&);
-	virtual ~fluid_update_fsf_concentration();
+    virtual ~fluid_update_fsf_concentration();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+    virtual void start(lexer*, fdm*, ghostcell*);
 
 private:
 
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	const double dx;
+    const double dx;
     double epsi;
-	double visc_air,visc_water,ro_air,ro_water;
-	double ro_conc, visc_conc;
+    double visc_air,visc_water,ro_air,ro_water;
+    double ro_conc, visc_conc;
 
-	concentration *pconcentration;
+    concentration *pconcentration;
 
 };
 

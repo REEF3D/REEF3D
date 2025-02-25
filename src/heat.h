@@ -38,14 +38,14 @@ class heat
 {
 public:
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*)=0;
-	virtual void ttimesave(lexer*, fdm*)=0;
+    virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*)=0;
+    virtual void ttimesave(lexer*, fdm*)=0;
     
     virtual void diff_update(lexer*, fdm*, ghostcell *pgc)=0;
 
-	virtual void print_3D(lexer*, fdm*, ghostcell *pgc, ofstream&)=0;
-	virtual void heat_ini(lexer*, fdm*, ghostcell*,heat*)=0;
-	virtual double val(int,int,int)=0;
+    virtual void print_3D(lexer*, fdm*, ghostcell *pgc, ofstream&)=0;
+    virtual void heat_ini(lexer*, fdm*, ghostcell*,heat*)=0;
+    virtual double val(int,int,int)=0;
 
     virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)=0;
     virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;

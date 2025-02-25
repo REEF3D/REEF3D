@@ -33,7 +33,7 @@ class wave_lib_Stokes_5th_SH : public wave_lib_precalc, public wave_lib_paramete
 {
 public:
     wave_lib_Stokes_5th_SH(lexer*, ghostcell*);
-	virtual ~wave_lib_Stokes_5th_SH();
+    virtual ~wave_lib_Stokes_5th_SH();
 
     double wave_horzvel(lexer*,double,double,double);
     

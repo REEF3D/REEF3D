@@ -39,10 +39,10 @@ rheology_f::~rheology_f()
 
 double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc)
 {
-	val=0.0;
-	
-	if(p->W90==1)
-	val = Herschel_Bulkley(p,a,pgc);
+    val=0.0;
+    
+    if(p->W90==1)
+    val = Herschel_Bulkley(p,a,pgc);
     
     return val;
 }

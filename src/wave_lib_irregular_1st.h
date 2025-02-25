@@ -35,7 +35,7 @@ class wave_lib_irregular_1st : public wave_lib, public wave_lib_parameters, publ
 {
 public:
     wave_lib_irregular_1st(lexer*, ghostcell*);
-	virtual ~wave_lib_irregular_1st();
+    virtual ~wave_lib_irregular_1st();
     
     double wave_horzvel(lexer*,double,double,double);
     

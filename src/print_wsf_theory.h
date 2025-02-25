@@ -39,15 +39,15 @@ class print_wsf_theory : public boundarycheck
 {
 public:
     print_wsf_theory(lexer*,fdm*,ghostcell*,int);
-	virtual ~print_wsf_theory();
+    virtual ~print_wsf_theory();
 
-	void height_gauge(lexer*, fdm*, ghostcell*,ioflow*,field&);
+    void height_gauge(lexer*, fdm*, ghostcell*,ioflow*,field&);
 
 
 private:
-	
-	double *x,*y;
-	int gauge_num;
+    
+    double *x,*y;
+    int gauge_num;
 
     int *iloc,*jloc,*flag;
     double *wsf;

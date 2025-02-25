@@ -47,73 +47,73 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
         dg = distgen(p);
         
         // Wave Generation
-		if(p->B98==2)
+        if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
             ++upt_count;
-		}
+        }
     }
     
     // V ------------------------------------------------
     BASELOOP
     {
-		dg = distgen(p);
+        dg = distgen(p);
 
         
-		// Wave Generation
-		if(p->B98==2)
+        // Wave Generation
+        if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
             ++vpt_count;
-		}
+        }
     }
     
     // W ------------------------------------------------
     BASELOOP
     {
-		dg = distgen(p); 
+        dg = distgen(p); 
 
-		// Wave Generation
-		if(p->B98==2)
+        // Wave Generation
+        if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
             ++wpt_count;
 
-		}
+        }
     }
 
     // FI ------------------------------------------------
     FBASELOOP
     {
-		dg = distgen(p); 
+        dg = distgen(p); 
 
-		// Wave Generation
-		if(p->B98==2)
+        // Wave Generation
+        if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
             ++ppt_count;
 
-		}
-    }	
+        }
+    }    
 
 // ETA ------------------------------------------------
     SLICEBASELOOP
     {
-		dg = distgen(p); 
+        dg = distgen(p); 
 
-		// Wave Generation
-		if(p->B98==2)
+        // Wave Generation
+        if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
             ++ept_count;
 
-		}
-    }	
+        }
+    }    
     
     // precalc array alloc
     p->Darray(uval,upt_count);

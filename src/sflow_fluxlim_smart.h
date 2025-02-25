@@ -36,16 +36,16 @@ class sflow_fluxlim_smart : public sflow_fluxlim, public increment
 {
 public:
     sflow_fluxlim_smart (lexer *);
-	virtual ~sflow_fluxlim_smart();
+    virtual ~sflow_fluxlim_smart();
 
-	virtual double iphi(slice&,int,int,int,int);
-	virtual double jphi(slice&,int,int,int,int);
+    virtual double iphi(slice&,int,int,int,int);
+    virtual double jphi(slice&,int,int,int,int);
     
 private:
     double r, phi,denom;
-	double dx,dy;
+    double dx,dy;
     double minphi;
-	double L;
+    double L;
 
 };
 

@@ -42,48 +42,48 @@ using namespace std;
 class mooring_Catenary : public mooring
 {
 public:
-	mooring_Catenary(int);
-	virtual ~mooring_Catenary();
-	
-	virtual void start(lexer*, ghostcell*);
-	virtual void initialize(lexer*, ghostcell*);
-	virtual void mooringForces(double&, double&, double&);
-	
-	void getForce(lexer*, ghostcell*, double&, double&);
-	void getShape(lexer*, ghostcell*, double*&, double*&, double*&, double*&);
-	void iniShape(lexer*, ghostcell*, Eigen::VectorXd&, Eigen::VectorXd&, Eigen::VectorXd&);
-	
-private:	
+    mooring_Catenary(int);
+    virtual ~mooring_Catenary();
+    
+    virtual void start(lexer*, ghostcell*);
+    virtual void initialize(lexer*, ghostcell*);
+    virtual void mooringForces(double&, double&, double&);
+    
+    void getForce(lexer*, ghostcell*, double&, double&);
+    void getShape(lexer*, ghostcell*, double*&, double*&, double*&, double*&);
+    void iniShape(lexer*, ghostcell*, Eigen::VectorXd&, Eigen::VectorXd&, Eigen::VectorXd&);
+    
+private:    
 
     void calcForce(lexer*, ghostcell*);
 
-	// Print
-	void print(lexer*);
-	void buildLine(lexer*);
-	
-	// ------ 
-	
-	// Line number
-	int line;
-	
-	// Material constants
-	double w, L, lms, rho_c, EA;
-	
-	// Mesh
-	int H;
-	double *x, *y, *z, *B, *F, **A;
-	double xs, ys, zs, dx, dy, dz, dxy_aim;
-	
-	// Forces
-	double *T;	
-	double FH, FV, FH_0, FV_0, f_Fh, ddf_Fh;
-	double Xme_, Yme_, Zme_;
-	
-	// Print
-	char name[100];
-	ofstream eTout;
-	double printtime;
-	
+    // Print
+    void print(lexer*);
+    void buildLine(lexer*);
+    
+    // ------ 
+    
+    // Line number
+    int line;
+    
+    // Material constants
+    double w, L, lms, rho_c, EA;
+    
+    // Mesh
+    int H;
+    double *x, *y, *z, *B, *F, **A;
+    double xs, ys, zs, dx, dy, dz, dxy_aim;
+    
+    // Forces
+    double *T;    
+    double FH, FV, FH_0, FV_0, f_Fh, ddf_Fh;
+    double Xme_, Yme_, Zme_;
+    
+    // Print
+    char name[100];
+    ofstream eTout;
+    double printtime;
+    
     // Breaking
     bool broken;
     double breakTension, breakTime, curr_time;

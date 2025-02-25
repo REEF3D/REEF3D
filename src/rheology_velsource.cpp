@@ -34,7 +34,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
     count=0;
     if(p->W110==2 || p->W110==3)
     ULOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         
         if(phival>epsi)
@@ -106,7 +106,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
 
         ++count;
     
-	}
+    }
     
     
     
@@ -122,7 +122,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
     count=0;
     if(p->W110==4 || p->W110==5)
     ULOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         
         if(phival>epsi)
@@ -213,13 +213,13 @@ void rheology_f::u_source(lexer *p, fdm *a)
         a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)))); // *f ?
 
         ++count;
-	}
+    }
     
     
     count=0;
     if(p->W110==6 || p->W110==7)
     ULOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         
         if(phival>epsi)
@@ -268,7 +268,7 @@ void rheology_f::v_source(lexer *p, fdm *a)
     count=0;
     if(p->W110>=2)
     VLOOP
-	{
+    {
     phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
     
     if(phival>epsi)
@@ -333,18 +333,18 @@ void rheology_f::v_source(lexer *p, fdm *a)
     if(p->W110==5)
     tau0 +=  ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
     
-	f = fabs(a->v(i,j,k))>1.0e-20?(a->v(i,j,k)/fabs(a->v(i,j,k))):0.0;
+    f = fabs(a->v(i,j,k))>1.0e-20?(a->v(i,j,k)/fabs(a->v(i,j,k))):0.0;
     
     a->rhsvec.V[count] -= H*(tau0/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))))*f;
     
-	++count;
-	}
+    ++count;
+    }
     
     
     count=0;
     if(p->W110==6 || p->W110==7)
     VLOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
         
         if(phival>epsi)
@@ -385,7 +385,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
     count=0;
     if(p->W110==2 || p->W110==3)
     WLOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
         
         if(phival>epsi)
@@ -455,7 +455,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
         a->rhsvec.V[count] -= H*(tau0/(0.5*(p->DXM*a->ro(i,j,k)+a->ro(i,j,k+1))))*f;
 
         ++count;
-	}
+    }
     
     
     
@@ -473,7 +473,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
     count=0;
     if(p->W110==4 || p->W110==5)
     WLOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
         
         if(phival>epsi)
@@ -564,13 +564,13 @@ void rheology_f::w_source(lexer *p, fdm *a)
         a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)))); // PFo: Missing "*f" ?
 
         ++count;
-	}
+    }
     
     
     count=0;
     if(p->W110==6 || p->W110==7)
     WLOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
         
         if(phival>epsi)
@@ -619,7 +619,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
     count=0;
     if(p->W110==2 || p->W110==3)
     ULOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         
         if(phival>epsi)
@@ -691,7 +691,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
 
         ++count;
     
-	}
+    }
     
     
     
@@ -708,7 +708,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
     count=0;
     if(p->W110==4 || p->W110==5)
     ULOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         
         if(phival>epsi)
@@ -799,13 +799,13 @@ void rheology_f::u_source(lexer *p, fdm *a)
         a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)))); // *f ?
 
         ++count;
-	}
+    }
     
     
     count=0;
     if(p->W110==6 || p->W110==7)
     ULOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         
         if(phival>epsi)
@@ -937,7 +937,7 @@ void rheology_f::v_source(lexer *p, fdm *a)
     count=0;
     if(p->W110>=2)
     VLOOP
-	{
+    {
     phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
     
     if(phival>epsi)
@@ -1002,18 +1002,18 @@ void rheology_f::v_source(lexer *p, fdm *a)
     if(p->W110==5)
     tau0 +=  ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
     
-	f = fabs(a->v(i,j,k))>1.0e-20?(a->v(i,j,k)/fabs(a->v(i,j,k))):0.0;
+    f = fabs(a->v(i,j,k))>1.0e-20?(a->v(i,j,k)/fabs(a->v(i,j,k))):0.0;
     
     a->rhsvec.V[count] -= H*(tau0/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))))*f;
     
-	++count;
-	}
+    ++count;
+    }
     
     
     count=0;
     if(p->W110==6 || p->W110==7)
     VLOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
         
         if(phival>epsi)
@@ -1095,7 +1095,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
     count=0;
     if(p->W110==2 || p->W110==3)
     WLOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
         
         if(phival>epsi)
@@ -1165,7 +1165,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
         a->rhsvec.V[count] -= H*(tau0/(0.5*(p->DXM*a->ro(i,j,k)+a->ro(i,j,k+1))))*f;
 
         ++count;
-	}
+    }
     
     
     
@@ -1181,7 +1181,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
     count=0;
     if(p->W110==4 || p->W110==5)
     WLOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
         
         if(phival>epsi)
@@ -1272,13 +1272,13 @@ void rheology_f::w_source(lexer *p, fdm *a)
         a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)))); // PFo: Missing "*f" ?
 
         ++count;
-	}
+    }
     
     
     count=0;
     if(p->W110==6 || p->W110==7)
     WLOOP
-	{
+    {
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
         
         if(phival>epsi)

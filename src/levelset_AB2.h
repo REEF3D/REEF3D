@@ -38,19 +38,19 @@ using namespace std;
 class levelset_AB2 : public freesurface, gradient
 {
 public:
-	levelset_AB2(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~levelset_AB2();
-	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
+    levelset_AB2(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
+    virtual ~levelset_AB2();
+    virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
     virtual void update(lexer*,fdm*,ghostcell*,field&);
 
-	field4 lab;
+    field4 lab;
 
 private:
     fluid_update *pupdate;
     picard *ppicard;
 
-	int gcval_phi;
-	double starttime;
+    int gcval_phi;
+    double starttime;
 };
 
 #endif

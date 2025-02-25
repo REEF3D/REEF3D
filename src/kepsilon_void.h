@@ -32,29 +32,29 @@ class kepsilon_void : public turbulence, public increment
 {
 
 public:
-	kepsilon_void(lexer *,fdm*,ghostcell*);
-	virtual ~kepsilon_void();
+    kepsilon_void(lexer *,fdm*,ghostcell*);
+    virtual ~kepsilon_void();
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
+    virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
+    virtual void ktimesave(lexer*, fdm*, ghostcell*);
+    virtual void etimesave(lexer*, fdm*, ghostcell*);
 
-	virtual void isource(lexer*, fdm*);
-	virtual void jsource(lexer*, fdm*);
-	virtual void ksource(lexer*, fdm*);
+    virtual void isource(lexer*, fdm*);
+    virtual void jsource(lexer*, fdm*);
+    virtual void ksource(lexer*, fdm*);
 
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void ini(lexer*, fdm*, ghostcell*);
     virtual double kinval(int,int,int);
     virtual double epsval(int,int,int);
-	virtual double ccipol_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_epsval(lexer*,ghostcell*,double,double,double);
+    virtual double ccipol_kinval(lexer*,ghostcell*,double,double,double);
+    virtual double ccipol_epsval(lexer*,ghostcell*,double,double,double);
     virtual double ccipol_a_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_a_epsval(lexer*,ghostcell*,double,double,double);
+    virtual double ccipol_a_epsval(lexer*,ghostcell*,double,double,double);
     virtual void kinget(int,int,int,double);
     virtual void epsget(int,int,int,double);
-	virtual void gcupdate(lexer*, fdm*, ghostcell*);
-	
+    virtual void gcupdate(lexer*, fdm*, ghostcell*);
+    
     virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);

@@ -32,12 +32,12 @@ wave_lib_flap::wave_lib_flap(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
     {
     cout<<"Wave_Lib: flap wavemaker theory"<<endl;
     }
-	
+    
     timecount_old=0;
-	timecount=1;
+    timecount=1;
     timecount_z=0;
-	
-	read(p,pgc);
+    
+    read(p,pgc);
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
@@ -68,27 +68,27 @@ double wave_lib_flap::wave_v(lexer *p, double x, double y, double z)
 double wave_lib_flap::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel,fac;
-	
-	z+=p->wd;
+    
+    z+=p->wd;
 
     if(p->wavetime<ts || p->wavetime>te)
-	return 0.0;
-	
-	if(z<p->B111_zs || z>p->B111_ze)
-	return 0.0;
-	
+    return 0.0;
+    
+    if(z<p->B111_zs || z>p->B111_ze)
+    return 0.0;
+    
     
     if((p->wavetime>kinematics[timecount][0]))
     timecount_old=timecount;
     
-	while(p->wavetime>kinematics[timecount][0])
-	++timecount;
-	
-	vel = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
-	
-	fac = (z-p->B111_zs)/(p->B111_ze-p->B111_zs);
-	
-	vel = fac*((kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+    while(p->wavetime>kinematics[timecount][0])
+    ++timecount;
+    
+    vel = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
+    
+    fac = (z-p->B111_zs)/(p->B111_ze-p->B111_zs);
+    
+    vel = fac*((kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
 
     return vel;
 }
@@ -99,18 +99,18 @@ double wave_lib_flap::wave_w(lexer *p, double x, double y, double z)
     
     if(p->B115==0)
     return 0.0;
-	
-	z+=p->wd;
+    
+    z+=p->wd;
 
     if(p->wavetime<ts || p->wavetime>te)
-	return 0.0;
-	
-	if(z<p->B111_zs || z>p->B111_ze)
-	return 0.0;
-	
-	fac = (z-p->B111_zs)/(p->B111_ze-p->B111_zs);
-	
-	vel = fac*((kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+    return 0.0;
+    
+    if(z<p->B111_zs || z>p->B111_ze)
+    return 0.0;
+    
+    fac = (z-p->B111_zs)/(p->B111_ze-p->B111_zs);
+    
+    vel = fac*((kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
 
     return vel;
 }
@@ -140,43 +140,43 @@ void wave_lib_flap::parameters(lexer *p, ghostcell *pgc)
 
 void wave_lib_flap::read(lexer *p, ghostcell* pgc)
 {
-	char name[100];
-	double val,val0,val1;
+    char name[100];
+    double val,val0,val1;
     double sign,beta,s;
-	int count;
-	
-	sprintf(name,"wavemaker.dat");
+    int count;
+    
+    sprintf(name,"wavemaker.dat");
 
 // open file------------
-	ifstream file(name, ios_base::in);
-	
-	if(!file)
-	{
-		cout<<endl<<("no 'wavemaker.dat' file found")<<endl<<endl;
+    ifstream file(name, ios_base::in);
+    
+    if(!file)
+    {
+        cout<<endl<<("no 'wavemaker.dat' file found")<<endl<<endl;
 
-	}
-	
-	count=0;
-	while(!file.eof())
-	{
-	file>>val0>>val1;
-	if(val0>=p->B117)
-	++count;
-	}
-	
-	file.close();
+    }
+    
+    count=0;
+    while(!file.eof())
+    {
+    file>>val0>>val1;
+    if(val0>=p->B117)
+    ++count;
+    }
+    
+    file.close();
 
     
     ptnum=count;
-	
-	p->Darray(kinematics,ptnum,3);
-	
-	file.open ("wavemaker.dat", ios_base::in);
-	
-	count=0;
-	while(!file.eof())
-	{
-	
+    
+    p->Darray(kinematics,ptnum,3);
+    
+    file.open ("wavemaker.dat", ios_base::in);
+    
+    count=0;
+    while(!file.eof())
+    {
+    
         file>>val0>>val1;
         
         if(val0>=p->B117)
@@ -185,10 +185,10 @@ void wave_lib_flap::read(lexer *p, ghostcell* pgc)
         kinematics[count][1] = val1;
         ++count;
         }
-	}
-	
-	ts = kinematics[0][0];
-	te = kinematics[ptnum-1][0];
+    }
+    
+    ts = kinematics[0][0];
+    te = kinematics[ptnum-1][0];
     
     
     

@@ -59,7 +59,7 @@ void ghostcell::dgcslini1(lexer* p)
     }
     
     p->Iarray(p->dgcsl1,count,3);
-	p->dgcsl1_count=count;
+    p->dgcsl1_count=count;
     
         //------------
         
@@ -144,7 +144,7 @@ void ghostcell::dgcslini2(lexer* p)
     }
     
     p->Iarray(p->dgcsl2,count,3);
-	p->dgcsl2_count=count;
+    p->dgcsl2_count=count;
     
         //------------
         
@@ -191,12 +191,12 @@ void ghostcell::dgcslini2(lexer* p)
         ++count;
         }
     }
-    		
+            
 }
 
 void ghostcell::dgcslini3(lexer* p)
 {
-		
+        
 }
 
 void ghostcell::dgcslini4(lexer* p)
@@ -234,7 +234,7 @@ void ghostcell::dgcslini4(lexer* p)
     }
     
     p->Iarray(p->dgcsl4,count,3);
-	p->dgcsl4_count=count;
+    p->dgcsl4_count=count;
     
         //------------
         

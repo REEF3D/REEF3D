@@ -46,71 +46,71 @@ void hypre_struct::fill_matrix4V(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
     count=0;
     KJILOOP
     {
-		PFLUIDCHECK
-		{
-		n=CVAL4[IJK];
+        PFLUIDCHECK
+        {
+        n=CVAL4[IJK];
         
-		values[count]=M.p[n];
-		++count;
-		
-		values[count]=M.s[n];
-		++count;
-		
-		values[count]=M.n[n];
-		++count;
-		
-		values[count]=M.e[n];
-		++count;
-		
-		values[count]=M.w[n];
-		++count;
-		
-		values[count]=M.b[n];
-		++count;
-		
-		values[count]=M.t[n];
-		++count; 
-		}     
-		
-		SFLUIDCHECK
-		{
-		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;  
-		}   
+        values[count]=M.p[n];
+        ++count;
+        
+        values[count]=M.s[n];
+        ++count;
+        
+        values[count]=M.n[n];
+        ++count;
+        
+        values[count]=M.e[n];
+        ++count;
+        
+        values[count]=M.w[n];
+        ++count;
+        
+        values[count]=M.b[n];
+        ++count;
+        
+        values[count]=M.t[n];
+        ++count; 
+        }     
+        
+        SFLUIDCHECK
+        {
+        values[count]=1.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;
+        
+        values[count]=0.0;
+        ++count;  
+        }   
     }
-	
+    
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
     
     
     // vec
     count=0;
-	KJILOOP
-	{
-		PFLUIDCHECK
-		values[count] = f[IJK];
-		
-		SFLUIDCHECK
-		values[count] = 0.0;
-	
+    KJILOOP
+    {
+        PFLUIDCHECK
+        values[count] = f[IJK];
+        
+        SFLUIDCHECK
+        values[count] = 0.0;
+    
     ++count;
     }
 
@@ -119,16 +119,16 @@ void hypre_struct::fill_matrix4V(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
     
     
     count=0; 
-	KJILOOP
-	{
-		PFLUIDCHECK
-		{
-		n=CVAL4[IJK];
-		values[count] = rhs.V[n];
-		}
-		
-		SFLUIDCHECK
-		values[count] = 0.0;
+    KJILOOP
+    {
+        PFLUIDCHECK
+        {
+        n=CVAL4[IJK];
+        values[count] = rhs.V[n];
+        }
+        
+        SFLUIDCHECK
+        values[count] = 0.0;
 
     ++count;
     }
@@ -141,13 +141,13 @@ void hypre_struct::fill_matrix4V(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
 void hypre_struct::fillbackvec4V(lexer *p, double *f, int var)
 {
     HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
-	
+    
         count=0;
         KJILOOP
         {
         PFLUIDCHECK
         f[IJK]=values[count];
-		
+        
         ++count;
         }
 }

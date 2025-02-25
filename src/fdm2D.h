@@ -48,7 +48,7 @@ public:
 
     fdm2D(lexer*);
 
-	double gi,gj,gk;
+    double gi,gj,gk;
     
     slice4 eta,eta_n;
     slice1 P,Pn,F;
@@ -57,9 +57,9 @@ public:
     slice4 ws;
     slice4 press;
     slice4 eddyv,kin,eps;
-	slice1 hx;
-	slice2 hy;
-	slice4 hp,dpx,dpy;
+    slice1 hx;
+    slice2 hy;
+    slice4 hp,dpx,dpy;
     slice4 test;
     slice4 Hs,fs;
     slice1 fx;
@@ -77,16 +77,16 @@ public:
     sliceint2 wet2;
     
     slice4 ks;
-	
-	vec2D xvec,rhsvec;
+    
+    vec2D xvec,rhsvec;
 
-	matrix2D M;
+    matrix2D M;
 
     double maxF,maxG,maxH,maxK,maxE;
-	double inverse,sigT,Ui,Ua,Uo;
-	const double cmu;
-	
-	double t1,t2,t3,t4,t5;
+    double inverse,sigT,Ui,Ua,Uo;
+    const double cmu;
+    
+    double t1,t2,t3,t4,t5;
     
     void gridsize(lexer*);
 };

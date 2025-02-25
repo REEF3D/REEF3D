@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<string>
 
 void nhflow_vtp_bed::name_iter(lexer *p, fdm_nhf *d, ghostcell* pgc)
-{	
+{    
     int num=0;
 
     if(p->P15==1)

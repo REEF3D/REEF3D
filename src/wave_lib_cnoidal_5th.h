@@ -35,7 +35,7 @@ class wave_lib_cnoidal_5th : public wave_lib_precalc, public wave_lib_parameters
 {
 public:
     wave_lib_cnoidal_5th(lexer*, ghostcell*);
-	virtual ~wave_lib_cnoidal_5th();
+    virtual ~wave_lib_cnoidal_5th();
     
     double wave_horzvel(lexer*,double,double,double);
     

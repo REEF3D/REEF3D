@@ -27,206 +27,206 @@ Author: Hans Bihs
 
 void particle_pls::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *flag,int active, int sign)
 {
-	int numpt=0;
-	int count;
-	
-	for(n=0;n<active;++n)
+    int numpt=0;
+    int count;
+    
+    for(n=0;n<active;++n)
     if(flag[n]>0)
-	++numpt;
-	
-	
-	
+    ++numpt;
+    
+    
+    
     if(p->count>0)
     
-	
-	if(p->mpirank==0)
-	{
-		if(sign==1)
-		pvtu_pos(a,p,pgc);
-		
-		if(sign==2)
-		pvtu_neg(a,p,pgc);	
-	}
-	
-	if(sign==1)
+    
+    if(p->mpirank==0)
+    {
+        if(sign==1)
+        pvtu_pos(a,p,pgc);
+        
+        if(sign==2)
+        pvtu_neg(a,p,pgc);    
+    }
+    
+    if(sign==1)
     header_pos(a,p,pgc);
-	
-	if(sign==2)
+    
+    if(sign==2)
     header_neg(a,p,pgc);
 
 
-	ofstream result;
-	result.open(name, ios::binary);
+    ofstream result;
+    result.open(name, ios::binary);
 
     n=0;
 
-	offset[n]=0;
-	++n;
-	
-	offset[n]=offset[n-1]+4*(numpt)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(numpt)+4;
-	++n;	
-	offset[n]=offset[n-1]+4*(numpt)+4;
-	++n;	
-	
-	// end scalars
+    offset[n]=0;
+    ++n;
+    
+    offset[n]=offset[n-1]+4*(numpt)+4;
+    ++n;
+    offset[n]=offset[n-1]+4*(numpt)+4;
+    ++n;    
+    offset[n]=offset[n-1]+4*(numpt)+4;
+    ++n;    
+    
+    // end scalars
     offset[n]=offset[n-1]+4*(numpt)*3+4;
     ++n;
     offset[n]=offset[n-1]+4*(numpt)*2+4;
     ++n;
-	offset[n]=offset[n-1]+4*(numpt)+4;
+    offset[n]=offset[n-1]+4*(numpt)+4;
     ++n;
-	offset[n]=offset[n-1]+4*(numpt)+4;
+    offset[n]=offset[n-1]+4*(numpt)+4;
     ++n;
 
-	//---------------------------------------------
-	n=0;
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfCells=\""<<numpt<<"\">"<<endl;
-	
-	
-	result<<"<PointData >"<<endl;
-	result<<"<DataArray type=\"Float32\" Name=\"phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    //---------------------------------------------
+    n=0;
+    result<<"<?xml version=\"1.0\"?>"<<endl;
+    result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+    result<<"<UnstructuredGrid>"<<endl;
+    result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfCells=\""<<numpt<<"\">"<<endl;
+    
+    
+    result<<"<PointData >"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"radius\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"correction\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"correction\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"</PointData>"<<endl;
-	
-	
-	
+    result<<"</PointData>"<<endl;
+    
+    
+    
 
     result<<"<Points>"<<endl;
     result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"</Points>"<<endl;
-	
-	
+    
+    
 
     result<<"<Cells>"<<endl;
-	result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	++n;
+    result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
     result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-	result<<"</Cells>"<<endl;
+    result<<"</Cells>"<<endl;
 
     result<<"</Piece>"<<endl;
     result<<"</UnstructuredGrid>"<<endl;
 
 //----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
-	
+    
 
 //  lsv
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
+    for(n=0;n<active;++n)
     if(flag[n]>0)
-	{
-	ffn=float(f[n][3]);
-	result.write((char*)&ffn, sizeof (float));
-	}
-	
+    {
+    ffn=float(f[n][3]);
+    result.write((char*)&ffn, sizeof (float));
+    }
+    
 //  radius
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
+    for(n=0;n<active;++n)
     if(flag[n]>0)
-	{
-	ffn=float(f[n][4]);
-	result.write((char*)&ffn, sizeof (float));
-	}
+    {
+    ffn=float(f[n][4]);
+    result.write((char*)&ffn, sizeof (float));
+    }
 
 //  correction
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-    if(flag[n]>0)
-	{
-		if(sign==1)
-		{
-		if(f[n][3]<=-f[n][4])
-		ffn=float(1.0);
-		
-		if(f[n][3]>-f[n][4])
-		ffn=float(0.0);
-		}
-		
-		if(sign==2)
-		{
-		if(f[n][3]>=f[n][4])
-		ffn=float(1.0);
-		
-		if(f[n][3]<f[n][4])
-		ffn=float(0.0);
-		}
-		
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  XYZ
-	iin=4*(numpt)*3;
-	result.write((char*)&iin, sizeof (int));
     for(n=0;n<active;++n)
     if(flag[n]>0)
-	{
-	ffn=float(f[n][0]+p->originx);
-	result.write((char*)&ffn, sizeof (float));
+    {
+        if(sign==1)
+        {
+        if(f[n][3]<=-f[n][4])
+        ffn=float(1.0);
+        
+        if(f[n][3]>-f[n][4])
+        ffn=float(0.0);
+        }
+        
+        if(sign==2)
+        {
+        if(f[n][3]>=f[n][4])
+        ffn=float(1.0);
+        
+        if(f[n][3]<f[n][4])
+        ffn=float(0.0);
+        }
+        
+    result.write((char*)&ffn, sizeof (float));
+    }
 
-	ffn=float(f[n][1]+p->originy);
-	result.write((char*)&ffn, sizeof (float));
+//  XYZ
+    iin=4*(numpt)*3;
+    result.write((char*)&iin, sizeof (int));
+    for(n=0;n<active;++n)
+    if(flag[n]>0)
+    {
+    ffn=float(f[n][0]+p->originx);
+    result.write((char*)&ffn, sizeof (float));
 
-	ffn=float(f[n][2]+p->originz);
-	result.write((char*)&ffn, sizeof (float));
-	}
-	
+    ffn=float(f[n][1]+p->originy);
+    result.write((char*)&ffn, sizeof (float));
+
+    ffn=float(f[n][2]+p->originz);
+    result.write((char*)&ffn, sizeof (float));
+    }
+    
 //  Connectivity
-	count=0;
+    count=0;
     iin=4*(numpt)*2;
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
-	if(flag[n]>0)
-	{
-	iin=int(0);
-	result.write((char*)&iin, sizeof (int));
+    for(n=0;n<active;++n)
+    if(flag[n]>0)
+    {
+    iin=int(0);
+    result.write((char*)&iin, sizeof (int));
 
-	iin=int(count);
-	result.write((char*)&iin, sizeof (int));
-	++count;
-	}
+    iin=int(count);
+    result.write((char*)&iin, sizeof (int));
+    ++count;
+    }
 
 //  Offset of Connectivity
-	count=0;
+    count=0;
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
+    for(n=0;n<active;++n)
     if(flag[n]>0)
-	{
-	iin=(count+1)*2;
-	result.write((char*)&iin, sizeof (int));
-	++count;
-	}
+    {
+    iin=(count+1)*2;
+    result.write((char*)&iin, sizeof (int));
+    ++count;
+    }
 
 
 //  Cell types
     iin=4*(numpt);
     result.write((char*)&iin, sizeof (int));
-	for(n=0;n<active;++n)
+    for(n=0;n<active;++n)
     if(flag[n]>0)
-	{
-	iin=1;
-	result.write((char*)&iin, sizeof (int));
-	}
+    {
+    iin=1;
+    result.write((char*)&iin, sizeof (int));
+    }
 
-	result<<endl<<"</AppendedData>"<<endl;
+    result<<endl<<"</AppendedData>"<<endl;
     result<<"</VTKFile>"<<endl;
 
-	result.close();
+    result.close();
 }
 

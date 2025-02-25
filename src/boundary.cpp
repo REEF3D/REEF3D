@@ -24,7 +24,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"lexer.h"
 
 boundary::boundary(lexer *p, ghostcell *pgc)
-{	
+{    
     capacity=1;
     index=1;
     index_empty=capacity;

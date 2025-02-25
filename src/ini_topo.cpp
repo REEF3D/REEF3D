@@ -30,7 +30,7 @@ void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
     double dx=p->DXM;
 
     ALOOP
-	a->topo(i,j,k)=1.0;
+    a->topo(i,j,k)=1.0;
     
     p->topoforcing=1;
 
@@ -46,7 +46,7 @@ void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
     if(p->S10==2)
     p->topoforcing=0;
     }
-	
-	pgc->start4a(p,a->topo,150);
+    
+    pgc->start4a(p,a->topo,150);
 
 }

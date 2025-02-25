@@ -101,12 +101,12 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
 
     if(p->B60==1)
     ratio = p->W10/p->Qo;
-	
-	if(p->B60==2)
-	ratio = hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/p->Qi;
-	
-	if(p->B60==3||p->B60==4)
-	ratio = hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/p->Qo;
+    
+    if(p->B60==2)
+    ratio = hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/p->Qi;
+    
+    if(p->B60==3||p->B60==4)
+    ratio = hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/p->Qo;
 
         for(n=0;n<p->gcout_count;++n)
         {

@@ -32,11 +32,11 @@ using namespace std;
 class sediment_wenoflux : public sediment_exnerdisc, public increment, public weno_nug_func
 {
 public:
-	sediment_wenoflux(lexer*);
-	virtual ~sediment_wenoflux();
+    sediment_wenoflux(lexer*);
+    virtual ~sediment_wenoflux();
 
     virtual double sx(lexer*, slice&, double, double);
-	virtual double sy(lexer*, slice&, double, double);
+    virtual double sy(lexer*, slice&, double, double);
 
 
 private:
@@ -45,9 +45,9 @@ private:
 
     
     void iqmin(lexer*, slice&);
-	void jqmin(lexer*, slice&);
-	void iqmax(lexer*, slice&);
-	void jqmax(lexer*, slice&);
+    void jqmin(lexer*, slice&);
+    void iqmax(lexer*, slice&);
+    void jqmax(lexer*, slice&);
     
     
     double **ckz;

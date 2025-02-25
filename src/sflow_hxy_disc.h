@@ -33,7 +33,7 @@ using namespace std;
 class sflow_hxy_disc 
 {
 public:
-	virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&)=0;
+    virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&)=0;
 
 };
 

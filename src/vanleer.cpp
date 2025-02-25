@@ -48,7 +48,7 @@ double vanleer::jphi(field& b,int n1, int n2, int q1, int q2)
     r=(b(i,j+n1,k)-b(i,j+n2,k))/(denom+1.0e-20);
 
     phi = (r+fabs(r))/(1.0+fabs(r));
-	
+    
     return phi;
 }
 
@@ -58,6 +58,6 @@ double vanleer::kphi(field& b,int n1, int n2, int q1, int q2)
     r=(b(i,j,k+n1)-b(i,j,k+n2))/(denom+1.0e-20);
 
     phi = (r+fabs(r))/(1.0+fabs(r));
-	
+    
     return phi;
 }

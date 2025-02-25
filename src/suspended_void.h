@@ -31,10 +31,10 @@ using namespace std;
 class suspended_void : public suspended
 {
 public:
-	suspended_void();
-	virtual ~suspended_void();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
-	virtual void ctimesave(lexer*, fdm*);
+    suspended_void();
+    virtual ~suspended_void();
+    virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
+    virtual void ctimesave(lexer*, fdm*);
 
 };
 

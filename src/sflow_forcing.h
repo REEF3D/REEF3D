@@ -45,8 +45,8 @@ using namespace std;
 class sflow_forcing : public increment
 {
 public:
-	sflow_forcing(lexer*);
-	virtual ~sflow_forcing();
+    sflow_forcing(lexer*);
+    virtual ~sflow_forcing();
     
     void forcing(lexer*, fdm2D*, ghostcell*, sixdof *p6dof, 
                  int, double, slice&, slice&, slice&, slice&, slice&, bool);

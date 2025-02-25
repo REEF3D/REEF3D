@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"hypre_sstruct_fnpf.h"
+
+#include"hypre_sstruct_fnpf.h"
 
 #ifdef HYPRE_COMPILATION
 #include"lexer.h"

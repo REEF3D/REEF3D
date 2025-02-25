@@ -108,8 +108,8 @@ void flowfile_out::write_data(lexer *p, fdm *a, ghostcell *pgc)
             fileout[n].write((char*)&ffn, sizeof (float));
             }
             
-		fileout[n].close();
-		
+        fileout[n].close();
+        
     
 }
 

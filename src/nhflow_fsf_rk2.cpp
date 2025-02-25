@@ -34,16 +34,16 @@ nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, 
     p->Iarray(temp,p->imax*p->jmax);
     
     if(p->F50==1)
-	gcval_eta = 51;
+    gcval_eta = 51;
     
     if(p->F50==2)
-	gcval_eta = 52;
+    gcval_eta = 52;
     
     if(p->F50==3)
-	gcval_eta = 53;
+    gcval_eta = 53;
     
     if(p->F50==4)
-	gcval_eta = 54;
+    gcval_eta = 54;
 
     SLICELOOP4
     p->flagfsf[IJ]=1;

@@ -37,17 +37,17 @@ class fluid_update_rheology : public fluid_update, increment
 {
 public:
     fluid_update_rheology(lexer*, fdm*);
-	virtual ~fluid_update_rheology();
+    virtual ~fluid_update_rheology();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+    virtual void start(lexer*, fdm*, ghostcell*);
 
 private:
-	rheology *prheo;
-	static int iocheck,iter;
+    rheology *prheo;
+    static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	int n;
-	const double dx,ro1,visc2,ro2;
-	double visc1;
+    int n;
+    const double dx,ro1,visc2,ro2;
+    double visc1;
     double epsi;
 
 };

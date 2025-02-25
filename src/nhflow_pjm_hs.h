@@ -37,27 +37,27 @@ class nhflow_pjm_hs : public nhflow_pressure, public nhflow_gradient
 
 public:
 
-	nhflow_pjm_hs(lexer* p, fdm_nhf*,patchBC_interface*);
-	virtual ~nhflow_pjm_hs();
+    nhflow_pjm_hs(lexer* p, fdm_nhf*,patchBC_interface*);
+    virtual ~nhflow_pjm_hs();
 
-	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double);
-	virtual void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
-	virtual void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
-	virtual void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
-	virtual void upgrad(lexer*,fdm_nhf*,slice&);
-	virtual void vpgrad(lexer*,fdm_nhf*,slice&);
+    virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double);
+    virtual void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+    virtual void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+    virtual void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+    virtual void upgrad(lexer*,fdm_nhf*,slice&);
+    virtual void vpgrad(lexer*,fdm_nhf*,slice&);
     virtual void wpgrad(lexer*,fdm_nhf*,slice&);
     
-	void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 
 private:
 
-	double starttime,endtime;
-	int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
+    double starttime,endtime;
+    int count, gcval_press;
+    int gcval_u, gcval_v, gcval_w;
     double val, denom;
     
     

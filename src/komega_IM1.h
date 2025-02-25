@@ -31,13 +31,13 @@ using namespace std;
 class komega_IM1 : public komega_func
 {
 public:
-	komega_IM1(lexer *, fdm*, ghostcell*);
-	virtual ~komega_IM1();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
-	void timesource(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
+    komega_IM1(lexer *, fdm*, ghostcell*);
+    virtual ~komega_IM1();
+    virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
+    virtual void ktimesave(lexer*, fdm*, ghostcell*);
+    virtual void etimesave(lexer*, fdm*, ghostcell*);
+    void timesource(lexer*,fdm*,field&);
+    void clearrhs(lexer*,fdm*);
 
 private:
     int gcval_kin, gcval_eps;

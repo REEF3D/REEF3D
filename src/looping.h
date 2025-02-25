@@ -31,12 +31,12 @@ Author: Hans Bihs
 #define PI 3.14159265359
 #define EE 2.71828182846
 
-#define ILOOP	for(i=0; i<p->knox; ++i)
-#define JLOOP	for(j=0; j<p->knoy; ++j)
-#define KLOOP 	for(k=0; k<p->knoz; ++k)
-#define IREVLOOP	for(i=p->knox-1; i>=0; --i)
-#define JREVLOOP	for(j=p->knoy-1; j>=0; --j)
-#define KREVLOOP 	for(k=p->knoz-1; k>=0; --k)
+#define ILOOP    for(i=0; i<p->knox; ++i)
+#define JLOOP    for(j=0; j<p->knoy; ++j)
+#define KLOOP     for(k=0; k<p->knoz; ++k)
+#define IREVLOOP    for(i=p->knox-1; i>=0; --i)
+#define JREVLOOP    for(j=p->knoy-1; j>=0; --j)
+#define KREVLOOP     for(k=p->knoz-1; k>=0; --k)
 #define PCHECK  if(p->flag4[IJK]>0)
 #define LOOP ILOOP JLOOP KLOOP PCHECK
 
@@ -61,24 +61,24 @@ Author: Hans Bihs
 
 #define PLAINLOOP ILOOP JLOOP KLOOP
 
-#define IMALOOP	for(i=-p->margin; i<p->knox+p->margin; ++i)
-#define JMALOOP	for(j=-p->margin; j<p->knoy+p->margin; ++j)
-#define KMALOOP 	for(k=-p->margin; k<p->knoz+p->margin; ++k)
+#define IMALOOP    for(i=-p->margin; i<p->knox+p->margin; ++i)
+#define JMALOOP    for(j=-p->margin; j<p->knoy+p->margin; ++j)
+#define KMALOOP     for(k=-p->margin; k<p->knoz+p->margin; ++k)
 #define MALOOP IMALOOP JMALOOP KMALOOP
 
-#define ILOOP	for(i=0; i<p->knox; ++i)
-#define JLOOP	for(j=0; j<p->knoy; ++j)
-#define KLOOP 	for(k=0; k<p->knoz; ++k)
+#define ILOOP    for(i=0; i<p->knox; ++i)
+#define JLOOP    for(j=0; j<p->knoy; ++j)
+#define KLOOP     for(k=0; k<p->knoz; ++k)
 #define PCHECK  if(p->flag4[IJK]>0)
 #define LOOP ILOOP JLOOP KLOOP PCHECK
 
-#define IBLOOP	for(i=-1; i<p->knox+1; ++i)
-#define JBLOOP	for(j=-1; j<p->knoy+1; ++j)
+#define IBLOOP    for(i=-1; i<p->knox+1; ++i)
+#define JBLOOP    for(j=-1; j<p->knoy+1; ++j)
 #define KBLOOP for(k=-1; k<p->knoz+1; ++k)
 #define BLOOP IBLOOP JBLOOP KBLOOP
 
-#define IBLOOP	for(i=-1; i<p->knox+1; ++i)
-#define JBLOOP	for(j=-1; j<p->knoy+1; ++j)
+#define IBLOOP    for(i=-1; i<p->knox+1; ++i)
+#define JBLOOP    for(j=-1; j<p->knoy+1; ++j)
 #define KBLOOP for(k=-1; k<p->knoz+1; ++k)
 #define BBASELOOP IBLOOP JBLOOP KBLOOP PBASECHECK
 
@@ -88,27 +88,27 @@ Author: Hans Bihs
 #define TCHECK if(p->flag4[IJK]>OBJ_FLAG)
 #define TLOOP ITLOOP JTLOOP KTLOOP
 
-#define IFLEXLOOP	for(i=0; i<p->knox-ulast; ++i)
-#define JFLEXLOOP	for(j=0; j<p->knoy-vlast; ++j)
-#define KFLEXLOOP	for(k=0; k<p->knoz-wlast; ++k)
+#define IFLEXLOOP    for(i=0; i<p->knox-ulast; ++i)
+#define JFLEXLOOP    for(j=0; j<p->knoy-vlast; ++j)
+#define KFLEXLOOP    for(k=0; k<p->knoz-wlast; ++k)
 #define FLEXCHECK  if(flag[IJK]>0)
 #define FLEXLOOP IFLEXLOOP JFLEXLOOP KFLEXLOOP FLEXCHECK
 
-#define IULOOP	for(i=0; i<p->knox-p->ulast; ++i)
-#define JULOOP	for(j=0; j<p->knoy; ++j)
-#define KULOOP	for(k=0; k<p->knoz; ++k)
+#define IULOOP    for(i=0; i<p->knox-p->ulast; ++i)
+#define JULOOP    for(j=0; j<p->knoy; ++j)
+#define KULOOP    for(k=0; k<p->knoz; ++k)
 #define UCHECK  if(p->flag1[IJK]>0)
 #define ULOOP IULOOP JULOOP KULOOP UCHECK
 
-#define IVLOOP	for(i=0; i<p->knox; ++i)
-#define JVLOOP	for(j=0; j<p->knoy-p->vlast; ++j)
-#define KVLOOP	for(k=0; k<p->knoz; ++k)
+#define IVLOOP    for(i=0; i<p->knox; ++i)
+#define JVLOOP    for(j=0; j<p->knoy-p->vlast; ++j)
+#define KVLOOP    for(k=0; k<p->knoz; ++k)
 #define VCHECK  if(p->flag2[IJK]>0)
 #define VLOOP IVLOOP JVLOOP KVLOOP VCHECK
 
-#define IWLOOP	for(i=0; i<p->knox; ++i)
-#define JWLOOP	for(j=0; j<p->knoy; ++j)
-#define KWLOOP	for(k=0; k<p->knoz-p->wlast; ++k)
+#define IWLOOP    for(i=0; i<p->knox; ++i)
+#define JWLOOP    for(j=0; j<p->knoy; ++j)
+#define KWLOOP    for(k=0; k<p->knoz-p->wlast; ++k)
 #define WCHECK  if(p->flag3[IJK]>0)
 #define WLOOP IWLOOP JWLOOP KWLOOP WCHECK
 
@@ -169,8 +169,8 @@ Author: Hans Bihs
 #define WFLUIDLOOP IWLOOP JWLOOP KWLOOP WFLUIDCHECK
 #define FLUIDLOOP ILOOP JLOOP KLOOP PFLUIDCHECK  
 
-#define FILOOP	for(i=0; i<p->knox; ++i)
-#define FJLOOP	for(j=0; j<p->knoy; ++j)
+#define FILOOP    for(i=0; i<p->knox; ++i)
+#define FJLOOP    for(j=0; j<p->knoy; ++j)
 #define FKLOOP for(k=0; k<p->knoz+1; ++k)
 #define FLOOP FILOOP FJLOOP FKLOOP FPCHECK  
 #define FBASELOOP FILOOP FJLOOP FKLOOP 

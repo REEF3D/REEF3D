@@ -30,14 +30,14 @@ Author: Hans Bihs
 
 sloshing_force::sloshing_force(lexer *p, fdm* a, ghostcell *pgc)
 {
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_Force",0777);
-	
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_CFD_Force",0777);
+    
     if(p->mpirank==0 && p->P101>0)
     {
     // open file
-	result.open("./REEF3D_CFD_Force/REEF3D-CFD-Sloshing-Force.dat");
+    result.open("./REEF3D_CFD_Force/REEF3D-CFD-Sloshing-Force.dat");
 
     result<<"time \t Fx_l \t Fx_r \t Fz \t M "<<endl;
     }

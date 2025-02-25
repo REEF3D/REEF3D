@@ -37,14 +37,14 @@ class vrans
 {
 public:
 
-	virtual void initialize_cfd(lexer*, fdm*, ghostcell*)=0;	
-	virtual void start(lexer*, fdm*, ghostcell*, net*&, int)=0;
-    virtual void sed_update(lexer*, fdm*, ghostcell*)=0;	
-    virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&)=0;	
-	
-	virtual void u_source(lexer*, fdm*)=0;
-	virtual void v_source(lexer*, fdm*)=0;
-	virtual void w_source(lexer*, fdm*)=0;
+    virtual void initialize_cfd(lexer*, fdm*, ghostcell*)=0;    
+    virtual void start(lexer*, fdm*, ghostcell*, net*&, int)=0;
+    virtual void sed_update(lexer*, fdm*, ghostcell*)=0;    
+    virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&)=0;    
+    
+    virtual void u_source(lexer*, fdm*)=0;
+    virtual void v_source(lexer*, fdm*)=0;
+    virtual void w_source(lexer*, fdm*)=0;
     
     virtual void ke_source(lexer*, fdm*, field&)=0;
     virtual void kw_source(lexer*, fdm*, field&)=0;

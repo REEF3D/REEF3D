@@ -39,7 +39,7 @@ solid::~solid()
 void solid::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, convection* pconvec, reinitopo* preso)
 {
 
-	solid_topo(p,a,pgc);
+    solid_topo(p,a,pgc);
     
     preso->start(p,a,pgc,a->solid);
 }

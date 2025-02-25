@@ -56,14 +56,14 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     wtype=p->B92;
     
     if(p->B94==0)
-	 wD=p->phimean;
-	
-	if(p->B94==1)
-	wD=p->B94_wdt;
+     wD=p->phimean;
+    
+    if(p->B94==1)
+    wD=p->B94_wdt;
     
     if(wtype==0)
     pwave = new wave_lib_void(p,pgc);
-	
+    
     if(wtype==1)
     pwave = new wave_lib_shallow(p,pgc);
     
@@ -79,19 +79,19 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     if(wtype==5)
     pwave = new wave_lib_Stokes_5th(p,pgc);
     
-	if(wtype==6)
+    if(wtype==6)
     pwave = new wave_lib_cnoidal_shallow(p,pgc);
     
-	if(wtype==7)
+    if(wtype==7)
     pwave = new wave_lib_cnoidal_1st(p,pgc);
     
-	if(wtype==8)
+    if(wtype==8)
     pwave = new wave_lib_cnoidal_5th(p,pgc);
     
-	if(wtype==9)
+    if(wtype==9)
     pwave = new wave_lib_solitary_1st(p,pgc);
     
-	if(wtype==10)
+    if(wtype==10)
     pwave = new wave_lib_solitary_3rd(p,pgc);
     
     if(wtype==11)
@@ -100,10 +100,10 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     if(wtype==20)
     pwave = new wave_lib_piston_eta(p,pgc);
     
-	if(wtype==21)
+    if(wtype==21)
     pwave = new wave_lib_piston(p,pgc);
     
-	if(wtype==22)
+    if(wtype==22)
     pwave = new wave_lib_flap(p,pgc);
     
     if(wtype==23)
@@ -112,22 +112,22 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     if(wtype==24)
     pwave = new wave_lib_flap_eta(p,pgc);
     
-	if(wtype==31)
+    if(wtype==31)
     pwave = new wave_lib_irregular_1st(p,pgc);
     
     if(wtype==32)
     pwave = new wave_lib_irregular_2nd_a(p,pgc);
     
-	if(wtype==33)
+    if(wtype==33)
     pwave = new wave_lib_irregular_2nd_b(p,pgc);
     
-	if(wtype==41)
+    if(wtype==41)
     pwave = new wave_lib_irregular_1st(p,pgc);
     
     if(wtype==42)
     pwave = new wave_lib_irregular_2nd_a(p,pgc);
     
-	if(wtype==43)
+    if(wtype==43)
     pwave = new wave_lib_irregular_2nd_b(p,pgc);
     
     if(wtype==51)
@@ -136,7 +136,7 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     if(wtype==52)
     pwave = new wave_lib_irregular_2nd_a(p,pgc);
     
-	if(wtype==53)
+    if(wtype==53)
     pwave = new wave_lib_irregular_2nd_b(p,pgc);
     
     if(wtype==61)
@@ -159,7 +159,7 @@ double wave_interface::wave_u(lexer *p, ghostcell *pgc, double x, double y, doub
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     uvel = pwave->wave_u(p,x,y,z);
-	
+    
     return uvel;
 }
 
@@ -204,7 +204,7 @@ double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, dou
     z = MAX(z,-wD);
     
     pval = pwave->wave_fi(p,x,y,z);
-	
+    
     return pval;
 }
 
@@ -214,7 +214,7 @@ double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     eta = pwave->wave_eta(p,x,y);
-	
+    
     return eta;
 }
 

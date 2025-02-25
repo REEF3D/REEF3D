@@ -98,7 +98,7 @@ double fnpf_fsfbc_wd::rb3(lexer *p, double x)
     
     r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 
-	return r;
+    return r;
 }
 
 double fnpf_fsfbc_wd::rb4(lexer *p, double x)
@@ -115,5 +115,5 @@ double fnpf_fsfbc_wd::rb4(lexer *p, double x)
     
     r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 
-	return r;
+    return r;
 }

@@ -33,15 +33,15 @@ using namespace std;
 class fnpf_cds2_wd : public fnpf_convection, public increment
 {
 public:
-	fnpf_cds2_wd(lexer*,fdm_fnpf*);
-	virtual ~fnpf_cds2_wd();
+    fnpf_cds2_wd(lexer*,fdm_fnpf*);
+    virtual ~fnpf_cds2_wd();
 
     virtual double fx(lexer*, field&, double, double);
-	virtual double fy(lexer*, field&, double, double);
-	virtual double fz(lexer*, field&, double, double);
+    virtual double fy(lexer*, field&, double, double);
+    virtual double fz(lexer*, field&, double, double);
     
     virtual double sx(lexer*, slice&, double);
-	virtual double sy(lexer*, slice&, double);
+    virtual double sy(lexer*, slice&, double);
     virtual double sz(lexer*, double*);
 
 private:

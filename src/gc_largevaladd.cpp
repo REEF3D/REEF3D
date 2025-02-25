@@ -26,31 +26,31 @@ Author: Hans Bihs
 
 void ghostcell::largevaladd(field &f,double dist,int gcv, int bc, int cs)
 {
-	int qstart=1;
-	
-	margin=3;
+    int qstart=1;
+    
+    margin=3;
 
-	if(cs==1)
-	for(q=qstart;q<margin;++q)
-	f(i-q-1,j,k)=pow(-1.0,q+1)*double(q+1)*1.0e20;
+    if(cs==1)
+    for(q=qstart;q<margin;++q)
+    f(i-q-1,j,k)=pow(-1.0,q+1)*double(q+1)*1.0e20;
 
-	if(cs==2)
-	for(q=qstart;q<margin;++q)
-	f(i,j+q+1,k)=pow(-1.0,q+1)*double(q+1)*1.0e20;
+    if(cs==2)
+    for(q=qstart;q<margin;++q)
+    f(i,j+q+1,k)=pow(-1.0,q+1)*double(q+1)*1.0e20;
 
-	if(cs==3)
-	for(q=qstart;q<margin;++q)
-	f(i,j-q-1,k)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
+    if(cs==3)
+    for(q=qstart;q<margin;++q)
+    f(i,j-q-1,k)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
 
-	if(cs==4)
-	for(q=qstart;q<margin;++q)
-	f(i+q+1,j,k)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
+    if(cs==4)
+    for(q=qstart;q<margin;++q)
+    f(i+q+1,j,k)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
 
-	if(cs==5)
-	for(q=qstart;q<margin;++q)
-	f(i,j,k-q-1)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
+    if(cs==5)
+    for(q=qstart;q<margin;++q)
+    f(i,j,k-q-1)=-pow(-1.0,q+1)*double(q+1)*1.0e20;
 
-	if(cs==6)
-	for(q=qstart;q<margin;++q)
-	f(i,j,k+q+1)=pow(-1.0,q+1)*double(q+1)*1.0e20;
+    if(cs==6)
+    for(q=qstart;q<margin;++q)
+    f(i,j,k+q+1)=pow(-1.0,q+1)*double(q+1)*1.0e20;
 }

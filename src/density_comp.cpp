@@ -58,7 +58,7 @@ double density_comp::roface(lexer *p, fdm *a, int aa, int bb, int cc)
             
         roval = p->W1*H + ro_air*(1.0-H);
 
-	return roval;		
+    return roval;        
 }
 
 

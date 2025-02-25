@@ -36,7 +36,7 @@ using namespace std;
 class fnpf
 {
 public:
-	virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*)=0;
+    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*)=0;
     virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*)=0;
     virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*)=0;
     virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*)=0;

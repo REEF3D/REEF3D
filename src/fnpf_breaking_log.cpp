@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"fnpf_breaking_log.h"
+
+#include"fnpf_breaking_log.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -29,14 +30,14 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 fnpf_breaking_log::fnpf_breaking_log(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
-	// Create Folder
-	mkdir("./REEF3D_FNPF_Breaking_Log",0777);
-	
-	// result file
+{    
+    // Create Folder
+    mkdir("./REEF3D_FNPF_Breaking_Log",0777);
+    
+    // result file
     filename(p,c,pgc);
-	
-	result.open(name);
+    
+    result.open(name);
 }
 
 fnpf_breaking_log::~fnpf_breaking_log()

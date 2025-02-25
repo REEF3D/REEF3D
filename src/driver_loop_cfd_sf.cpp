@@ -45,8 +45,8 @@ void driver::loop_cfd_sf(fdm* a)
     cout<<"starting mainloop.CFD_SF"<<endl;
 
 //-----------MAINLOOP CFD SF----------------------------
-	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
-	{
+    while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
+    {
         ++p->count;
         starttime=pgc->timer();
 
@@ -97,7 +97,7 @@ void driver::loop_cfd_sf(fdm* a)
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
-	
+    
         // Momentum 
         pmom_sf->starti(p,a,pgc,p6dof,pvrans,pnet,pfsi);
 
@@ -121,13 +121,13 @@ void driver::loop_cfd_sf(fdm* a)
         {
         endtime=pgc->timer();
 
-		p->itertime=endtime-starttime;
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
+        p->itertime=endtime-starttime;
+        p->totaltime+=p->itertime;
+        p->gctotaltime+=p->gctime;
+        p->Xtotaltime+=p->xtime;
+        p->meantime=(p->totaltime/double(p->count));
+        p->gcmeantime=(p->gctotaltime/double(p->count));
+        p->Xmeantime=(p->Xtotaltime/double(p->count));
 
             if( (p->count%p->P12==0))
             {
@@ -149,25 +149,25 @@ void driver::loop_cfd_sf(fdm* a)
     p->utime=p->vtime=p->wtime=0.0;
     p->gctime=0.0;
     p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-	p->field4time=0.0;
+    p->reinitime=0.0;
+    p->wavecalctime=0.0;
+    p->field4time=0.0;
     p->sftime=0.0;
 
     stop(p,a,pgc);
-	}
+    }
 
-	if(p->mpirank==0)
-	{
-	cout<<endl<<"******************************"<<endl<<endl;
+    if(p->mpirank==0)
+    {
+    cout<<endl<<"******************************"<<endl<<endl;
 
-	cout<<"modelled time: "<<p->simtime<<endl;
-	cout << endl;
+    cout<<"modelled time: "<<p->simtime<<endl;
+    cout << endl;
 
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-	}
+    }
 
     pgc->final();
 }

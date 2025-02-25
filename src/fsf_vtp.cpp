@@ -30,11 +30,11 @@ Author: Hans Bihs
 
 fsf_vtp::fsf_vtp(lexer* p, fdm *a, ghostcell *pgc):vertice(p),nodeflag(p),eta(p),interfac(1.6),zero(0.0)
 {
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_FSF",0777);
-	
-	fsfprintcount=0;
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_CFD_FSF",0777);
+    
+    fsfprintcount=0;
 }
 
 fsf_vtp::~fsf_vtp()
@@ -42,13 +42,13 @@ fsf_vtp::~fsf_vtp()
 }
 
 void fsf_vtp::start(lexer *p, fdm *a, ghostcell *pgc)
-{	
-	triangulation(p,a,pgc,a->phi);
-	reconstruct(p,a,a->phi);
-	
-	print(p,a,pgc);
-	++fsfprintcount;
-	
-	finalize(p,a);
+{    
+    triangulation(p,a,pgc,a->phi);
+    reconstruct(p,a,a->phi);
+    
+    print(p,a,pgc);
+    ++fsfprintcount;
+    
+    finalize(p,a);
 } 
 

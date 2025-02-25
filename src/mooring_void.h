@@ -43,9 +43,9 @@ class mooring_void : public mooring
 {
 public:
 
-	virtual void start(lexer*, ghostcell*);
-	virtual void initialize(lexer*, ghostcell*);
-	virtual void mooringForces(double&, double&, double&);
+    virtual void start(lexer*, ghostcell*);
+    virtual void initialize(lexer*, ghostcell*);
+    virtual void mooringForces(double&, double&, double&);
 };
 
 #endif

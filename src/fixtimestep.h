@@ -33,10 +33,10 @@ using namespace std;
 class fixtimestep : public timestep, public increment
 {
 public:
-	fixtimestep(lexer*);
-	virtual ~fixtimestep();
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*);
-	virtual void ini(fdm*,lexer*,ghostcell*);
+    fixtimestep(lexer*);
+    virtual ~fixtimestep();
+    virtual void start(fdm*,lexer*,ghostcell*,turbulence*);
+    virtual void ini(fdm*,lexer*,ghostcell*);
 
 
 };

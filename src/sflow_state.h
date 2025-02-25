@@ -36,16 +36,16 @@ class sflow_state : public increment
 {
 
 public:
-	sflow_state(lexer*,fdm2D*,ghostcell*);
-	virtual ~sflow_state();
-	void write(lexer*,fdm2D*,ghostcell*);
+    sflow_state(lexer*,fdm2D*,ghostcell*);
+    virtual ~sflow_state();
+    void write(lexer*,fdm2D*,ghostcell*);
     
     void ini_mainheader(lexer*,fdm2D*,ghostcell*);
     
     void write_result(lexer*,fdm2D*,ghostcell*);
     void write_mainheader(lexer*,fdm2D*,ghostcell*);
     void write_header(lexer*,fdm2D*,ghostcell*);
-	
+    
 private:
     void filename_single(lexer*,fdm2D*,ghostcell*,int);
     void filename_continuous(lexer*,fdm2D*,ghostcell*);
@@ -53,9 +53,9 @@ private:
     
     char name[500];
     float ffn;
-	int iin;
-	double ddn;
-	int printcount;
+    int iin;
+    double ddn;
+    int printcount;
     int ini_token;
     int file_version,file_type;
     int qn;

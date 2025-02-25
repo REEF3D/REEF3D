@@ -48,42 +48,42 @@ void ioflow_f::p_relax(lexer *p, fdm *a, ghostcell *pgc, field &press)
 
 void ioflow_f::phi_relax(lexer *p, ghostcell *pgc, field &f)
 {
-	double relax,distot,distcount;
+    double relax,distot,distcount;
 
-	
-	if(p->B71>0 && p->count==0)
-	LOOP
+    
+    if(p->B71>0 && p->count==0)
+    LOOP
     {
-		distot = 0.0;
-		distcount=0;
-		for(n=0;n<p->B71;++n)
-		{
-		dist_B71[n] =  distcalc(p,p->B71_x[n],p->B71_y[n],tan_betaB71[n]);
-		
-			if(dist_B71[n]<p->B71_dist[n])
-			{
-			val = f(i,j,k);
-			f(i,j,k)=0.0;
-			distot += dist_B71[n];
-			++distcount;
-			}
-		}
-		
-		
-		for(n=0;n<p->B71;++n)
-		{
+        distot = 0.0;
+        distcount=0;
+        for(n=0;n<p->B71;++n)
+        {
+        dist_B71[n] =  distcalc(p,p->B71_x[n],p->B71_y[n],tan_betaB71[n]);
+        
             if(dist_B71[n]<p->B71_dist[n])
-			{
-			relax = r1(p,dist_B71[n],p->B71_dist[n]);
-			
-			if(distcount==1)
+            {
+            val = f(i,j,k);
+            f(i,j,k)=0.0;
+            distot += dist_B71[n];
+            ++distcount;
+            }
+        }
+        
+        
+        for(n=0;n<p->B71;++n)
+        {
+            if(dist_B71[n]<p->B71_dist[n])
+            {
+            relax = r1(p,dist_B71[n],p->B71_dist[n]);
+            
+            if(distcount==1)
             f(i,j,k) += (1.0-relax)*(p->B71_val[n]-p->pos_z()) + relax*val;
-			
-			if(distcount>1)
+            
+            if(distcount>1)
             f(i,j,k) += ((1.0-relax)*(p->B71_val[n]-p->pos_z()) + relax*val) * (1.0 - dist_B71[n]/(distot>1.0e-10?distot:1.0e20));
-			}
-		}
-		
+            }
+        }
+        
     }
 }
 
@@ -169,22 +169,22 @@ double ioflow_f::r1(lexer *p, double x, double threshold)
 
 double ioflow_f::distcalc(lexer *p,double x0, double y0, double tan_beta)
 {
-	double x1,y1;
-	double dist=1.0e20;
+    double x1,y1;
+    double dist=1.0e20;
 
-	x1 = p->pos_x();
-	y1 = p->pos_y();
-	
-	dist = fabs(y1 - tan_beta*x1 + tan_beta*x0 - y0)/sqrt(pow(tan_beta,2.0)+1.0);
-	
-	return dist;
+    x1 = p->pos_x();
+    y1 = p->pos_y();
+    
+    dist = fabs(y1 - tan_beta*x1 + tan_beta*x0 - y0)/sqrt(pow(tan_beta,2.0)+1.0);
+    
+    return dist;
 }
 
 int ioflow_f::iozonecheck(lexer *p, fdm*a)
-{	
-	int check = 1;
-	
-	return check;
+{    
+    int check = 1;
+    
+    return check;
 }
 
 void ioflow_f::wavegen_precalc(lexer *p, ghostcell *pgc)

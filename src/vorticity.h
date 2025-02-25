@@ -40,7 +40,7 @@ class vorticity
 
 public:
 
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&)=0;
+    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&)=0;
 
 
     virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)=0;

@@ -39,9 +39,9 @@ class nhflow_print_Hs : public increment
 {
 public:
     nhflow_print_Hs(lexer*,slice&);
-	virtual ~nhflow_print_Hs();
+    virtual ~nhflow_print_Hs();
 
-	void start(lexer*,ghostcell*,slice&,slice&);
+    void start(lexer*,ghostcell*,slice&,slice&);
     
     slice4 ETAsum, ETAmean; //DKAF
     slice4 ETA2sum, ETAvar; //DKAF

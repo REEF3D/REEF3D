@@ -31,54 +31,54 @@ void ghostcell::gcslparacox_int(lexer* p,sliceint& f,int gcv)
     {
     i=p->gcslparaco1[q][0];
     j=p->gcslparaco1[q][1];
-	isend1[q]=f(i,j);
+    isend1[q]=f(i,j);
     }
 
     for(q=0;q<p->gcslparaco3_count;++q)
     {
     i=p->gcslparaco3[q][0];
     j=p->gcslparaco3[q][1];
-	isend3[q]=f(i,j);
+    isend3[q]=f(i,j);
     }
 
-	for(q=0;q<p->gcslparaco4_count;++q)
-	{
+    for(q=0;q<p->gcslparaco4_count;++q)
+    {
     i=p->gcslparaco4[q][0];
     j=p->gcslparaco4[q][1];
-	isend4[q]=f(i,j);
-	}
+    isend4[q]=f(i,j);
+    }
 
-	for(q=0;q<p->gcslparaco2_count;++q)
-	{
+    for(q=0;q<p->gcslparaco2_count;++q)
+    {
     i=p->gcslparaco2[q][0];
     j=p->gcslparaco2[q][1];
-	isend2[q]=f(i,j);
-	}
+    isend2[q]=f(i,j);
+    }
 
 
 //  SEND / RECEIVE
     if(p->gcslparaco1_count>0)
     {
-	MPI_Isend(isend1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&sreq1);
-	MPI_Irecv(irecv1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&rreq1);
+    MPI_Isend(isend1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&sreq1);
+    MPI_Irecv(irecv1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&rreq1);
     }
 
     if(p->gcslparaco4_count>0)
     {
-	MPI_Isend(isend4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&sreq4);
-	MPI_Irecv(irecv4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&rreq4);
+    MPI_Isend(isend4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&sreq4);
+    MPI_Irecv(irecv4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&rreq4);
     }
 
     if(p->gcslparaco3_count>0)
     {
-	MPI_Isend(isend3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&sreq3);
-	MPI_Irecv(irecv3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&rreq3);
+    MPI_Isend(isend3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&sreq3);
+    MPI_Irecv(irecv3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&rreq3);
     }
 
     if(p->gcslparaco2_count>0)
     {
-	MPI_Isend(isend2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&sreq2);
-	MPI_Irecv(irecv2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&rreq2);
+    MPI_Isend(isend2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&sreq2);
+    MPI_Irecv(irecv2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&rreq2);
     }
 
 //  WAIT
@@ -89,29 +89,29 @@ void ghostcell::gcslparacox_int(lexer* p,sliceint& f,int gcv)
     {
     i=p->gcslparaco1[q][0];
     j=p->gcslparaco1[q][1];
-	f(i-1,j)=irecv1[q];
+    f(i-1,j)=irecv1[q];
     }
 
-	for(q=0;q<p->gcslparaco3_count;++q)
-	{
+    for(q=0;q<p->gcslparaco3_count;++q)
+    {
     i=p->gcslparaco3[q][0];
     j=p->gcslparaco3[q][1];
-	f(i,j-1)=irecv3[q];
-	}
+    f(i,j-1)=irecv3[q];
+    }
 
-	for(q=0;q<p->gcslparaco4_count;++q)
-	{
+    for(q=0;q<p->gcslparaco4_count;++q)
+    {
     i=p->gcslparaco4[q][0];
     j=p->gcslparaco4[q][1];
-	f(i+1,j)=irecv4[q];
-	}
+    f(i+1,j)=irecv4[q];
+    }
 
-	for(q=0;q<p->gcslparaco2_count;++q)
-	{
+    for(q=0;q<p->gcslparaco2_count;++q)
+    {
     i=p->gcslparaco2[q][0];
     j=p->gcslparaco2[q][1];
-	f(i,j+1)=irecv2[q];
-	}
+    f(i,j+1)=irecv2[q];
+    }
 }
 
 void ghostcell::gcslparacoxV_int(lexer* p, int *f, int gcv)
@@ -121,54 +121,54 @@ void ghostcell::gcslparacoxV_int(lexer* p, int *f, int gcv)
     {
     i=p->gcslparaco1[q][0];
     j=p->gcslparaco1[q][1];
-	isend1[q]=f[IJ];
+    isend1[q]=f[IJ];
     }
 
     for(q=0;q<p->gcslparaco3_count;++q)
     {
     i=p->gcslparaco3[q][0];
     j=p->gcslparaco3[q][1];
-	isend3[q]=f[IJ];
+    isend3[q]=f[IJ];
     }
 
-	for(q=0;q<p->gcslparaco4_count;++q)
-	{
+    for(q=0;q<p->gcslparaco4_count;++q)
+    {
     i=p->gcslparaco4[q][0];
     j=p->gcslparaco4[q][1];
-	isend4[q]=f[IJ];
-	}
+    isend4[q]=f[IJ];
+    }
 
-	for(q=0;q<p->gcslparaco2_count;++q)
-	{
+    for(q=0;q<p->gcslparaco2_count;++q)
+    {
     i=p->gcslparaco2[q][0];
     j=p->gcslparaco2[q][1];
-	isend2[q]=f[IJ];
-	}
+    isend2[q]=f[IJ];
+    }
 
 
 //  SEND / RECEIVE
     if(p->gcslparaco1_count>0)
     {
-	MPI_Isend(isend1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&sreq1);
-	MPI_Irecv(irecv1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&rreq1);
+    MPI_Isend(isend1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&sreq1);
+    MPI_Irecv(irecv1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&rreq1);
     }
 
     if(p->gcslparaco4_count>0)
     {
-	MPI_Isend(isend4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&sreq4);
-	MPI_Irecv(irecv4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&rreq4);
+    MPI_Isend(isend4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&sreq4);
+    MPI_Irecv(irecv4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&rreq4);
     }
 
     if(p->gcslparaco3_count>0)
     {
-	MPI_Isend(isend3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&sreq3);
-	MPI_Irecv(irecv3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&rreq3);
+    MPI_Isend(isend3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&sreq3);
+    MPI_Irecv(irecv3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&rreq3);
     }
 
     if(p->gcslparaco2_count>0)
     {
-	MPI_Isend(isend2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&sreq2);
-	MPI_Irecv(irecv2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&rreq2);
+    MPI_Isend(isend2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&sreq2);
+    MPI_Irecv(irecv2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&rreq2);
     }
 
 //  WAIT
@@ -179,28 +179,28 @@ void ghostcell::gcslparacoxV_int(lexer* p, int *f, int gcv)
     {
     i=p->gcslparaco1[q][0];
     j=p->gcslparaco1[q][1];
-	f[Im1J]=irecv1[q];
+    f[Im1J]=irecv1[q];
     }
 
-	for(q=0;q<p->gcslparaco3_count;++q)
-	{
+    for(q=0;q<p->gcslparaco3_count;++q)
+    {
     i=p->gcslparaco3[q][0];
     j=p->gcslparaco3[q][1];
-	f[IJm1]=irecv3[q];
-	}
+    f[IJm1]=irecv3[q];
+    }
 
-	for(q=0;q<p->gcslparaco4_count;++q)
-	{
+    for(q=0;q<p->gcslparaco4_count;++q)
+    {
     i=p->gcslparaco4[q][0];
     j=p->gcslparaco4[q][1];
-	f[Ip1J]=irecv4[q];
-	}
+    f[Ip1J]=irecv4[q];
+    }
 
-	for(q=0;q<p->gcslparaco2_count;++q)
-	{
+    for(q=0;q<p->gcslparaco2_count;++q)
+    {
     i=p->gcslparaco2[q][0];
     j=p->gcslparaco2[q][1];
-	f[IJp1]=irecv2[q];
-	}
+    f[IJp1]=irecv2[q];
+    }
 }
 

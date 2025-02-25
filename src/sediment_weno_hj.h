@@ -32,11 +32,11 @@ using namespace std;
 class sediment_weno_hj : public sediment_exnerdisc, public increment, public ddweno_f_nug
 {
 public:
-	sediment_weno_hj(lexer*);
-	virtual ~sediment_weno_hj();
+    sediment_weno_hj(lexer*);
+    virtual ~sediment_weno_hj();
 
     virtual double sx(lexer*, slice&, double,double);
-	virtual double sy(lexer*, slice&, double,double);
+    virtual double sy(lexer*, slice&, double,double);
 
 private:
     double **ckz;

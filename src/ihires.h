@@ -36,23 +36,23 @@ class ihires : public convection,  public increment
 
 public:
 
-	ihires (lexer*,int);
-	virtual ~ihires();
+    ihires (lexer*,int);
+    virtual ~ihires();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+    virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
 
 private:
     double ul,ur,vl,vr,wl,wr;
-	double dx,dy,dz;
-	double L;
-	int count,rocount,countN,coliN;
-	int *range;
+    double dx,dy,dz;
+    double L;
+    int count,rocount,countN,coliN;
+    int *range;
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 
-	void aij(lexer*, fdm*, field&, field&, int,field&,field&,field&);
-	
-	fluxlim *plim;
+    void aij(lexer*, fdm*, field&, field&, int,field&,field&,field&);
+    
+    fluxlim *plim;
     
     flux *pflux;
 };

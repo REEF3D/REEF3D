@@ -26,11 +26,11 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 print_1Dline::print_1Dline(lexer *p, fdm* a, ghostcell *pgc)
-{	
-	p->Iarray(iloc,p->P51);
-	p->Iarray(jloc,p->P51);
-	p->Iarray(flag,p->P51);
-	p->Darray(wsf,p->P51);
+{    
+    p->Iarray(iloc,p->P51);
+    p->Iarray(jloc,p->P51);
+    p->Iarray(flag,p->P51);
+    p->Darray(wsf,p->P51);
 
     for(n=0;n<p->P51;++n)
     {

@@ -37,32 +37,32 @@ void ghostcell::imagepoint(lexer *p, field& f,double &x_ip, double& val_ip, doub
     if(cs==5||cs==6)
     dx = p->DZP[KP];
     
-	double y0,y1;
-	y1=0.0;      // x_j-1
+    double y0,y1;
+    y1=0.0;      // x_j-1
     y0=f(i,j,k); // x_j
 
-	//fill y[]
-	if(cs==1 )
-	y1=f(i+1,j,k);
+    //fill y[]
+    if(cs==1 )
+    y1=f(i+1,j,k);
 
-	if(cs==2)
-	y1=f(i,j-1,k);
+    if(cs==2)
+    y1=f(i,j-1,k);
 
-	if(cs==3)
-	y1=f(i,j+1,k);
+    if(cs==3)
+    y1=f(i,j+1,k);
 
-	if(cs==4)
-	y1=f(i-1,j,k);
+    if(cs==4)
+    y1=f(i-1,j,k);
 
-	if(cs==5)
-	y1=f(i,j,k+1);
+    if(cs==5)
+    y1=f(i,j,k+1);
 
-	if(cs==6)
-	y1=f(i,j,k-1);
+    if(cs==6)
+    y1=f(i,j,k-1);
 
 
-	x_ip = -(gamma*dx);
+    x_ip = -(gamma*dx);
 
-	val_ip= (1.0-gamma)*y0  + gamma*y1;
+    val_ip= (1.0-gamma)*y0  + gamma*y1;
 }
 

@@ -38,7 +38,7 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     filename_header(p,c,pgc);
     
     // open file
-	headout.open(name, ios::binary);
+    headout.open(name, ios::binary);
     
     // ini write    
     iin=p->origin_i-is_global;

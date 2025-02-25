@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 mgcslice1::mgcslice1(lexer *p)
 {
-	imin=p->imin;
+    imin=p->imin;
     imax=p->imax;
     jmin=p->jmin;
     jmax=p->jmax;
@@ -39,17 +39,17 @@ mgcslice1::~mgcslice1()
 
 void mgcslice1::makemgc(lexer* p)
 {
-	p->Iarray(p->mgcsl1,imax*jmax);
+    p->Iarray(p->mgcsl1,imax*jmax);
 
 //make gcdir
-	p->gcsldirsize1=1;	
-	p->Iarray(p->gcslorig1, p->gcsldirsize1, 6,4);
+    p->gcsldirsize1=1;    
+    p->Iarray(p->gcslorig1, p->gcsldirsize1, 6,4);
     
 //flag1
     for(i=0;i<p->imax*p->jmax; ++i)
-	{
-	p->flagslice1[i]=p->flagslice4[i];
-	}
+    {
+    p->flagslice1[i]=p->flagslice4[i];
+    }
 
     SLICELOOP4
     {
@@ -61,86 +61,86 @@ void mgcslice1::makemgc(lexer* p)
 
 void mgcslice1::mgcsetup(lexer* p)
 {
-	for(i=0;i<imax*jmax;++i)
-	p->mgcsl1[i]=0;
+    for(i=0;i<imax*jmax;++i)
+    p->mgcsl1[i]=0;
 
-	SLICELOOP1
-	p->mgcsl1[IJ]=1;
+    SLICELOOP1
+    p->mgcsl1[IJ]=1;
 }
 
 void mgcslice1::fillmgc(lexer* p)
 {
-	int q,n;
-	
+    int q,n;
+    
 //--------------------------
 //WALL1
-	QGCSL1LOOP
-	{
+    QGCSL1LOOP
+    {
         i=p->gcbsl1[q][0];
         j=p->gcbsl1[q][1];
-		
-		if(p->gcbsl1[q][3]==1)
-		for(n=0;n<p->margin;++n)
+        
+        if(p->gcbsl1[q][3]==1)
+        for(n=0;n<p->margin;++n)
         p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]+=1;
 
-		if(p->gcbsl1[q][3]==4)
-		for(n=0;n<p->margin;++n)
-		p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]+=1;
+        if(p->gcbsl1[q][3]==4)
+        for(n=0;n<p->margin;++n)
+        p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]+=1;
 
-		if(p->gcbsl1[q][3]==3)
-		for(n=0;n<p->margin;++n)
+        if(p->gcbsl1[q][3]==3)
+        for(n=0;n<p->margin;++n)
         p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]+=1;
 
-		if(p->gcbsl1[q][3]==2)
-		for(n=0;n<p->margin;++n)
-		p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]+=1;
-	}
+        if(p->gcbsl1[q][3]==2)
+        for(n=0;n<p->margin;++n)
+        p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]+=1;
+    }
 
 //--------------------------
 //WALL2
     p->gcsl_extra1=10;
     
-	QGCSL1LOOP
-	{
+    QGCSL1LOOP
+    {
         i=p->gcbsl1[q][0];
         j=p->gcbsl1[q][1];
 
-		if(p->gcbsl1[q][3]==1)
-		for(n=0;n<p->margin;++n)
-		if(p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]>1
-		&& p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]<10)
+        if(p->gcbsl1[q][3]==1)
+        for(n=0;n<p->margin;++n)
+        if(p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]>1
+        && p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]<10)
         {
-			p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]=p->gcsl_extra1;
-			++p->gcsl_extra1;
+            p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]=p->gcsl_extra1;
+            ++p->gcsl_extra1;
         }
 
-		if(p->gcbsl1[q][3]==4)
-		for(n=0;n<p->margin;++n)
+        if(p->gcbsl1[q][3]==4)
+        for(n=0;n<p->margin;++n)
         if(p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]>1
-		&& p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]<10)
+        && p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]<10)
         {
-			p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]=p->gcsl_extra1;
-			++p->gcsl_extra1;
+            p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]=p->gcsl_extra1;
+            ++p->gcsl_extra1;
         }
 
-		if(p->gcbsl1[q][3]==3)
-		for(n=0;n<p->margin;++n)
-		if(p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]>1
-		&& p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]<10)
+        if(p->gcbsl1[q][3]==3)
+        for(n=0;n<p->margin;++n)
+        if(p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]>1
+        && p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]<10)
         {
-			p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]=p->gcsl_extra1;
-			++p->gcsl_extra1;
+            p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]=p->gcsl_extra1;
+            ++p->gcsl_extra1;
         }
 
-		if(p->gcbsl1[q][3]==2)
-		for(n=0;n<p->margin;++n)
-		if(p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]>1
-		&& p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]<10)
+        if(p->gcbsl1[q][3]==2)
+        for(n=0;n<p->margin;++n)
+        if(p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]>1
+        && p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]<10)
         {
-			p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]=p->gcsl_extra1;
-			++p->gcsl_extra1;
+            p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]=p->gcsl_extra1;
+            ++p->gcsl_extra1;
         }
-	}
+    }
 }
 
 void mgcslice1::gcdirfill(lexer* p)
@@ -148,51 +148,51 @@ void mgcslice1::gcdirfill(lexer* p)
 // GCORIG
     int q,n;
     
-	p->Iresize(p->gcslorig1,p->gcsldirsize1, p->gcsl_extra1, 6, 6, 4, 4); 
-	p->gcsldirsize1=p->gcsl_extra1;
-	
-	
-	for(n=0;n<p->gcsldirsize1;++n)
-	for(q=0;q<6;++q)	
-	for(qn=0;qn<4;++qn)	
-	p->gcslorig1[n][q][qn]=0;	
-	
-	QGCSL1LOOP
-	{
+    p->Iresize(p->gcslorig1,p->gcsldirsize1, p->gcsl_extra1, 6, 6, 4, 4); 
+    p->gcsldirsize1=p->gcsl_extra1;
+    
+    
+    for(n=0;n<p->gcsldirsize1;++n)
+    for(q=0;q<6;++q)    
+    for(qn=0;qn<4;++qn)    
+    p->gcslorig1[n][q][qn]=0;    
+    
+    QGCSL1LOOP
+    {
         i=p->gcbsl1[q][0];
         j=p->gcbsl1[q][1];
 
-		if(p->gcbsl1[q][3]==1)
-		for(n=0;n<p->margin;++n)
-		if( p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]>1)
+        if(p->gcbsl1[q][3]==1)
+        for(n=0;n<p->margin;++n)
+        if( p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]>1)
         {
-			di = (n+1);
-			p->gcslorig1[p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]-10][0][di]=1;
+            di = (n+1);
+            p->gcslorig1[p->mgcsl1[(i-imin-n-1)*jmax + (j-jmin)]-10][0][di]=1;
         }
 
-		if(p->gcbsl1[q][3]==4)
-		for(n=0;n<p->margin;++n)
+        if(p->gcbsl1[q][3]==4)
+        for(n=0;n<p->margin;++n)
         if( p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]>1)
         {
-			di = (n+1);
-			p->gcslorig1[p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]-10][3][di]=1;
+            di = (n+1);
+            p->gcslorig1[p->mgcsl1[(i-imin+n+1)*jmax + (j-jmin)]-10][3][di]=1;
         }
 
-		if(p->gcbsl1[q][3]==3)
-		for(n=0;n<p->margin;++n)
-		if(p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]>1)
+        if(p->gcbsl1[q][3]==3)
+        for(n=0;n<p->margin;++n)
+        if(p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]>1)
         {
-			dj = (n+1);
-			p->gcslorig1[p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]-10][2][dj]=1;
-	    }
-
-		if(p->gcbsl1[q][3]==2)
-		for(n=0;n<p->margin;++n)
-		if( p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]>1)
-        {
-			dj = (n+1);
-			p->gcslorig1[p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]-10][1][dj]=1;
+            dj = (n+1);
+            p->gcslorig1[p->mgcsl1[(i-imin)*jmax + (j-jmin-n-1)]-10][2][dj]=1;
         }
-	}
+
+        if(p->gcbsl1[q][3]==2)
+        for(n=0;n<p->margin;++n)
+        if( p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]>1)
+        {
+            dj = (n+1);
+            p->gcslorig1[p->mgcsl1[(i-imin)*jmax + (j-jmin+n+1)]-10][1][dj]=1;
+        }
+    }
 }
 

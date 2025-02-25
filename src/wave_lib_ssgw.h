@@ -58,7 +58,7 @@ class wave_lib_ssgw : public wave_lib_precalc, public wave_lib_parameters, publi
 {
 public:
     wave_lib_ssgw(lexer*, ghostcell*);
-	virtual ~wave_lib_ssgw();
+    virtual ~wave_lib_ssgw();
     
     double wave_horzvel(lexer*,double,double,double);
     

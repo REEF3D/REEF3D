@@ -40,21 +40,21 @@ void particle_pls::xupdate(lexer* p, fdm* a, ghostcell* pgc)
             k=int((pos[n][2])/dx);
 
             check=boundcheck(p,i,j,k,1);
-			
-			// remove particle_plss, which have been sent off
-			if(check==1)
+            
+            // remove particle_plss, which have been sent off
+            if(check==1)
             if(posflag[n]==2)
             {
-			pcount++;
+            pcount++;
             posflag[n]=0;
             posmem[pcount]=n;
             removed++;
             }
-			
-			check=boundcheck(p,i,j,k,0);
-			
-			// reinstate received particle_plss, after they have left the para zone
-			if(check==1)
+            
+            check=boundcheck(p,i,j,k,0);
+            
+            // reinstate received particle_plss, after they have left the para zone
+            if(check==1)
             if(posflag[n]==3)
             posflag[n]=1;
         }
@@ -75,15 +75,15 @@ void particle_pls::xupdate(lexer* p, fdm* a, ghostcell* pgc)
             if(check==1)
             if(negflag[n]==2)
             {
-			ncount++;
+            ncount++;
             negflag[n]=0;
             negmem[ncount]=n;
             removed++;
             }
-			
-			check=boundcheck(p,i,j,k,0);
-			
-			if(check==1)
+            
+            check=boundcheck(p,i,j,k,0);
+            
+            if(check==1)
             if(negflag[n]==3)
             negflag[n]=1;
         }

@@ -44,7 +44,7 @@ double flowfile_in::ccipol4(lexer *p, double**F, double xp, double yp, double zp
     j=0;
     
     k=int((zp-zs)/deltax-0.5);
-	
+    
 
     k=MAX(k,0);
     k=MIN(k,Nk);
@@ -54,7 +54,7 @@ double flowfile_in::ccipol4(lexer *p, double**F, double xp, double yp, double zp
     wa=((double(i) + 1.5)-xp/deltax);
     wb=((double(j) + 1.5)-yp/deltax);
     wc=((double(k) + 1.5)-zp/deltax);
-	
+    
 
     value =  lint4(F,i,j,k,wa,wb,wc);
 
@@ -82,7 +82,7 @@ double flowfile_in::lint4(double **F, int& i,int& j, int& k, double wa, double w
     y2 = F[0][k+1];
 
     value = wc*y1 +(1.0-wc)*y2;
-	
+    
     
     return value;
 }

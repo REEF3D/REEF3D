@@ -33,18 +33,18 @@ class smart : public fluxlim, public increment
 
 public:
 
-	smart (lexer *);
-	virtual ~smart();
-	
-	virtual double iphi(field&,int,int,int,int);
-	virtual double jphi(field&,int,int,int,int);
-	virtual double kphi(field&,int,int,int,int);
-	
+    smart (lexer *);
+    virtual ~smart();
+    
+    virtual double iphi(field&,int,int,int,int);
+    virtual double jphi(field&,int,int,int,int);
+    virtual double kphi(field&,int,int,int,int);
+    
 private:
 
     double r, phi, minphi, denom;
-	double dx,dy,dz;
-	double L;
+    double dx,dy,dz;
+    double L;
 };
 
 #endif

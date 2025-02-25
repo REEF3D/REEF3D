@@ -32,19 +32,19 @@ using namespace std;
 class ikepsilon : public rans_io, public bc_ikepsilon
 {
 public:
-	ikepsilon(lexer*,fdm*,ghostcell*);
-	virtual ~ikepsilon();
-	virtual void isource(lexer*,fdm*);
-	virtual void jsource(lexer*,fdm*);
-	virtual void ksource(lexer*,fdm*);
-	virtual void kinsource(lexer*,fdm*,vrans*);
-	virtual void epssource(lexer*,fdm*,vrans*);
-	virtual void epsfsf(lexer*,fdm*,ghostcell*);
-	virtual void eddyvisc(fdm*,lexer*,ghostcell*,vrans*);
-	virtual void clearfield(lexer*,fdm*,field&);
+    ikepsilon(lexer*,fdm*,ghostcell*);
+    virtual ~ikepsilon();
+    virtual void isource(lexer*,fdm*);
+    virtual void jsource(lexer*,fdm*);
+    virtual void ksource(lexer*,fdm*);
+    virtual void kinsource(lexer*,fdm*,vrans*);
+    virtual void epssource(lexer*,fdm*,vrans*);
+    virtual void epsfsf(lexer*,fdm*,ghostcell*);
+    virtual void eddyvisc(fdm*,lexer*,ghostcell*,vrans*);
+    virtual void clearfield(lexer*,fdm*,field&);
 
-	int count,q;
-	double starttime;
+    int count,q;
+    double starttime;
 };
 
 #endif

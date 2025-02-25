@@ -35,22 +35,22 @@ Author: Hans Bihs
 
 reinisolid_RK3::reinisolid_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)
 {
-	if(p->S50==1)
-	gcval_topo=151;
+    if(p->S50==1)
+    gcval_topo=151;
 
-	if(p->S50==2)
-	gcval_topo=152;
+    if(p->S50==2)
+    gcval_topo=152;
 
-	if(p->S50==3)
-	gcval_topo=153;
-	
-	if(p->S50==4)
-	gcval_topo=150;
+    if(p->S50==3)
+    gcval_topo=153;
+    
+    if(p->S50==4)
+    gcval_topo=150;
 
-	gcval_initopo=150;
+    gcval_initopo=150;
 
 
-	prdisc = new reinidisc_fsf_rig(p);
+    prdisc = new reinidisc_fsf_rig(p);
 
     time_preproc(p);    
 }
@@ -63,68 +63,68 @@ void reinisolid_RK3::start(lexer *p, fdm *a, ghostcell *pgc, field &f)
 { 
     gcval=gcval_topo;
 
-	pgc->start4a(p,f,gcval);
-	
-	if(p->count==0)
-	{
+    pgc->start4a(p,f,gcval);
+    
+    if(p->count==0)
+    {
     if(p->mpirank==0)
-	cout<<"initializing solid..."<<endl<<endl;
-	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
+    cout<<"initializing solid..."<<endl<<endl;
+    reiniter=2*int(p->maxlength/(p->F43*p->DXM));
     gcval=gcval_initopo;
-	pgc->start4a(p,f,gcval);
+    pgc->start4a(p,f,gcval);
     }
 
-	if(p->count>0)
-	step(p,a);
+    if(p->count>0)
+    step(p,a);
 
 
     for(int q=0;q<reiniter;++q)
     {
-	// Step 1
-	prdisc->start(p,a,pgc,f,L,5);
+    // Step 1
+    prdisc->start(p,a,pgc,f,L,5);
 
-	ALOOP
-	frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
+    ALOOP
+    frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
 
-	pgc->start4a(p,frk1,gcval);
+    pgc->start4a(p,frk1,gcval);
     
     
     // Step 2
     prdisc->start(p,a,pgc,frk1,L,5);
 
-	ALOOP
-	frk2.V[IJK]=  0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*L.V[IJK];
+    ALOOP
+    frk2.V[IJK]=  0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*L.V[IJK];
 
-	pgc->start4a(p,frk2,gcval);
+    pgc->start4a(p,frk2,gcval);
     
 
     // Step 3
     prdisc->start(p,a,pgc,frk2,L,5);
 
-	ALOOP
-	f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*L.V[IJK];
+    ALOOP
+    f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*L.V[IJK];
 
-	pgc->start4a(p,f,gcval);
-	}
+    pgc->start4a(p,f,gcval);
+    }
 }
 
 void reinisolid_RK3::step(lexer* p, fdm *a)
 {
-	reiniter=p->S37;
+    reiniter=p->S37;
 }
 
 void reinisolid_RK3::time_preproc(lexer* p)
-{	
+{    
     n=0;
-	ALOOP
-	{
-	if(p->j_dir==0)
+    ALOOP
+    {
+    if(p->j_dir==0)
     dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
     
     if(p->j_dir==1)
-	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
-	++n;
-	}
+    dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+    ++n;
+    }
 }
 
 

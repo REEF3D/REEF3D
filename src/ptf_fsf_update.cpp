@@ -200,13 +200,13 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+1,j,k));
 
         if(phival>epsi)
-		H=1.0;
+        H=1.0;
 
-		if(phival<-epsi)
-		H=0.0;
+        if(phival<-epsi)
+        H=0.0;
 
-		if(fabs(phival)<=epsi)
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+        if(fabs(phival)<=epsi)
+        H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
     a->u(i,j,k) = H*(f(i+1,j,k)-f(i,j,k))/p->DXP[IP];
 
@@ -223,15 +223,15 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
         phival = 0.5*(a->phi(i,j,k) + a->phi(i,j+1,k));
 
         if(phival>epsi)
-		H=1.0;
+        H=1.0;
 
-		if(phival<-epsi)
-		H=0.0;
+        if(phival<-epsi)
+        H=0.0;
 
-		if(fabs(phival)<=epsi)
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+        if(fabs(phival)<=epsi)
+        H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
-	a->v(i,j,k) = H*(f(i,j+1,k)-f(i,j,k))/p->DYP[JP];
+    a->v(i,j,k) = H*(f(i,j+1,k)-f(i,j,k))/p->DYP[JP];
 
     //if(i+p->origin_i==0)
     //a->v(i,j,k)=0.0;
@@ -244,22 +244,22 @@ void ptf_fsf_update::velcalc(lexer *p, fdm *a, ghostcell *pgc, field &f)
         phival = 0.5*(a->phi(i,j,k) + a->phi(i,j,k+1));
 
         if(phival>epsi)
-		H=1.0;
+        H=1.0;
 
-		if(phival<-epsi)
-		H=0.0;
+        if(phival<-epsi)
+        H=0.0;
 
-		if(fabs(phival)<=epsi)
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+        if(fabs(phival)<=epsi)
+        H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
-	a->w(i,j,k) = H*(f(i,j,k+1)-f(i,j,k))/p->DZP[KP];
+    a->w(i,j,k) = H*(f(i,j,k+1)-f(i,j,k))/p->DZP[KP];
 
     //if(i+p->origin_i==0)
     //a->w(i,j,k)=0.0;
     }
 
     pgc->start1(p,a->u,gcval_u);
-	pgc->start2(p,a->v,gcval_v);
-	pgc->start3(p,a->w,gcval_w);
+    pgc->start2(p,a->v,gcval_v);
+    pgc->start3(p,a->w,gcval_w);
 
 }

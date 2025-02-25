@@ -33,163 +33,163 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     
     p->wavetime = 0.0;
     
-	FLUIDLOOP
+    FLUIDLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		a->phi(i,j,k) = (wave_h(p,pgc,xg,yg,0.0)-p->pos_z());
-	}
-	
-	UFLUIDLOOP
-    {
-		xg = xgen1(p);
-        yg = ygen1(p);
-		dg = distgen(p);
-		db = distbeach(p); 
+        dg = distgen(p);
+        db = distbeach(p);
         
-		if(p->pos_z()<=p->phimean)
+        a->phi(i,j,k) = (wave_h(p,pgc,xg,yg,0.0)-p->pos_z());
+    }
+    
+    UFLUIDLOOP
+    {
+        xg = xgen1(p);
+        yg = ygen1(p);
+        dg = distgen(p);
+        db = distbeach(p); 
+        
+        if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
-		
-		if(p->pos_z()>p->phimean)
+        
+        if(p->pos_z()>p->phimean)
         z=(fabs(p->phimean-p->pos_z()));
-		
-		phival = 0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
+        
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
         
         if(phival<0.0)
         z = wave_h(p,pgc,xg,yg,0.0)-p->pos_z();
         
         if(phival>=-psi)
-		H=1.0;
+        H=1.0;
 
-		if(phival<-epsi)
-		H=0.0;
+        if(phival<-epsi)
+        H=0.0;
 
-		if(phival>=-epsi && phival<-psi)
-		H=0.5*(1.0 + phival/fabs(epsi) + (1.0/PI)*sin((PI*phival)/fabs(epsi)));
-	
-		a->u(i,j,k) = wave_u(p,pgc,xg,yg,z)*H;
-	}	
-	
-	
-	VFLUIDLOOP
+        if(phival>=-epsi && phival<-psi)
+        H=0.5*(1.0 + phival/fabs(epsi) + (1.0/PI)*sin((PI*phival)/fabs(epsi)));
+    
+        a->u(i,j,k) = wave_u(p,pgc,xg,yg,z)*H;
+    }    
+    
+    
+    VFLUIDLOOP
     {
         xg = xgen2(p);
         yg = ygen2(p);
-		dg = distgen(p);
-		db = distbeach(p); 
+        dg = distgen(p);
+        db = distbeach(p); 
         
-		if(p->pos_z()<=p->phimean)
+        if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
-		
-		if(p->pos_z()>p->phimean)
+        
+        if(p->pos_z()>p->phimean)
         z=(fabs(p->phimean-p->pos_z()));
-		
-		phival = 0.5*(a->phi(i,j,k)+a->phi(i,j-1,k));
+        
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j-1,k));
         
         if(phival<0.0)
         z = wave_h(p,pgc,xg,yg,0.0)-p->pos_z();
         
         if(phival>=-psi)
-		H=1.0;
+        H=1.0;
 
-		if(phival<-epsi)
-		H=0.0;
+        if(phival<-epsi)
+        H=0.0;
 
-		if(phival>=-epsi && phival<-psi)
-		H=0.5*(1.0 + phival/fabs(epsi) + (1.0/PI)*sin((PI*phival)/fabs(epsi)));
-		
-		a->v(i,j,k) = wave_v(p,pgc,xg,yg,z)*H;
-	}
-	
-	WFLUIDLOOP
+        if(phival>=-epsi && phival<-psi)
+        H=0.5*(1.0 + phival/fabs(epsi) + (1.0/PI)*sin((PI*phival)/fabs(epsi)));
+        
+        a->v(i,j,k) = wave_v(p,pgc,xg,yg,z)*H;
+    }
+    
+    WFLUIDLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
+        dg = distgen(p);
+        db = distbeach(p); 
         
-		if(p->pos_z()<=p->phimean)
+        if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos3_z()));
-		
-		if(p->pos_z()>p->phimean)
+        
+        if(p->pos_z()>p->phimean)
         z=(fabs(p->phimean-p->pos3_z()));
-		
-		phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k-1));
+        
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k-1));
         
         if(phival<0.0)
         z = wave_h(p,pgc,xg,yg,0.0)-p->pos_z();
         
         if(phival>=-psi)
-		H=1.0;
+        H=1.0;
 
-		if(phival<-epsi)
-		H=0.0;
+        if(phival<-epsi)
+        H=0.0;
 
-		if(phival>=-epsi && phival<-psi)
-		H=0.5*(1.0 + phival/fabs(epsi) + (1.0/PI)*sin((PI*phival)/fabs(epsi)));
-		
-		a->w(i,j,k) = wave_w(p,pgc,xg,yg,z)*H;
-	}
-	
-	FLUIDLOOP
+        if(phival>=-epsi && phival<-psi)
+        H=0.5*(1.0 + phival/fabs(epsi) + (1.0/PI)*sin((PI*phival)/fabs(epsi)));
+        
+        a->w(i,j,k) = wave_w(p,pgc,xg,yg,z)*H;
+    }
+    
+    FLUIDLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
+        dg = distgen(p);
+        db = distbeach(p); 
         
-		if(p->pos_z()<=p->phimean)
+        if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
-		
-		if(p->pos_z()>p->phimean)
+        
+        if(p->pos_z()>p->phimean)
         z=(fabs(p->phimean-p->pos_z()));
-		
-		a->press(i,j,k) = (wave_h(p,pgc,xg,0.0,0.0) - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-	}
-	
-	
-	FLUIDLOOP
+        
+        a->press(i,j,k) = (wave_h(p,pgc,xg,0.0,0.0) - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+    }
+    
+    
+    FLUIDLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p); 
+        dg = distgen(p);
+        db = distbeach(p); 
         
-		if(p->pos_z()<=p->phimean)
+        if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
-		
-		if(p->pos_z()>p->phimean)
+        
+        if(p->pos_z()>p->phimean)
         z=(fabs(p->phimean-p->pos_z()));
-		
-		phival = a->phi(i,j,k);
+        
+        phival = a->phi(i,j,k);
 
         if(phival>=-psi)
-		H=1.0;
+        H=1.0;
 
-		if(phival<-epsi)
-		H=0.0;
+        if(phival<-epsi)
+        H=0.0;
 
-		if(phival>=-epsi && phival<-psi)
-		H=0.5*(1.0 + phival/fabs(epsi) + (1.0/PI)*sin((PI*phival)/fabs(epsi)));
+        if(phival>=-epsi && phival<-psi)
+        H=0.5*(1.0 + phival/fabs(epsi) + (1.0/PI)*sin((PI*phival)/fabs(epsi)));
         
         if(p->A10==3)
         H=1.0;
-		
-		a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z)*H;
-	}
+        
+        a->Fi(i,j,k) = wave_fi(p,pgc,xg,yg,z)*H;
+    }
     
     // eta
-	SLICELOOP4
+    SLICELOOP4
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);
+        db = distbeach(p);
 
-		a->eta(i,j) = wave_eta(p,pgc,xg,yg);
+        a->eta(i,j) = wave_eta(p,pgc,xg,yg);
     }
     
     // Fifsf
@@ -197,12 +197,12 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);
+        db = distbeach(p);
         
         z = a->eta(i,j);
 
-		a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
+        a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
     }
 }
 
@@ -212,14 +212,14 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
     cout<<"full NWT initialize"<<endl;
     
     // eta
-	SLICELOOP4
+    SLICELOOP4
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);
+        db = distbeach(p);
 
-		a->eta(i,j) = wave_eta(p,pgc,xg,yg);
+        a->eta(i,j) = wave_eta(p,pgc,xg,yg);
 
     }
     
@@ -228,12 +228,12 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);
+        db = distbeach(p);
         
         z = a->eta(i,j);
 
-		a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
+        a->Fifsf(i,j) = wave_fi(p,pgc,xg,yg,z);
     }
 
     
@@ -243,12 +243,12 @@ void iowave::full_initialize_ptf(lexer *p, fdm *a, ghostcell *pgc)
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-		db = distbeach(p);
+        db = distbeach(p);
         
         if(p->pos_z()<=p->phimean)
         z=-(fabs(p->phimean-p->pos_z()));
-		
-		if(p->pos_z()>p->phimean)
+        
+        if(p->pos_z()>p->phimean)
         z=(fabs(p->phimean-p->pos_z()));
         
         

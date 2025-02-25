@@ -68,22 +68,22 @@ void cds2_alt::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& v
 }
 
 double cds2_alt::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
-{		
-		dx=dy=dz=0.0;	
+{        
+        dx=dy=dz=0.0;    
 
-		pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
+        pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
         pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
-		
         
-		dx = iadvec*(0.5*(b(i,j,k) + b(i+1,j,k))  -  0.5*(b(i-1,j,k) +  b(i,j,k)))/DX[IP];
-		
-		dy = jadvec*(0.5*(b(i,j,k) + b(i,j+1,k))  -  0.5*(b(i,j-1,k) +  b(i,j,k)))/DY[JP];
-	        
-		dz = kadvec*(0.5*(b(i,j,k) + b(i,j,k+1))  -  0.5*(b(i,j,k-1) +  b(i,j,k)))/DZ[KP];
+        
+        dx = iadvec*(0.5*(b(i,j,k) + b(i+1,j,k))  -  0.5*(b(i-1,j,k) +  b(i,j,k)))/DX[IP];
+        
+        dy = jadvec*(0.5*(b(i,j,k) + b(i,j+1,k))  -  0.5*(b(i,j-1,k) +  b(i,j,k)))/DY[JP];
+            
+        dz = kadvec*(0.5*(b(i,j,k) + b(i,j,k+1))  -  0.5*(b(i,j,k-1) +  b(i,j,k)))/DZ[KP];
 
-		L = -dx-dy-dz;
+        L = -dx-dy-dz;
 
-		return L;
+        return L;
 }
 

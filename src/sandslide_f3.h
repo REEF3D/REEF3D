@@ -36,12 +36,12 @@ public:
     sandslide_f3(lexer*);
     virtual ~sandslide_f3();
 
-	virtual void start(lexer*,ghostcell*, sediment_fdm*);
+    virtual void start(lexer*,ghostcell*, sediment_fdm*);
 
 private:
 
     void slide(lexer*,ghostcell*, sediment_fdm*);
-	
+    
     slice4 fh;
     
     int gcval_topo,count;
@@ -49,7 +49,7 @@ private:
     double fac1, fac2;
     double dh,maxdh,maxdhs,dh_corr;
     double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
+    double teta, alpha, beta, gamma;
     double phi;
 }; 
 

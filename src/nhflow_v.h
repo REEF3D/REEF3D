@@ -32,7 +32,7 @@ class nhflow_v : public nhflow
 public: 
 
     nhflow_v(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_v();
+    virtual ~nhflow_v();
 
     virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*);
      

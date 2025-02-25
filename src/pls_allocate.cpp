@@ -28,15 +28,15 @@ Author: Hans Bihs
 void particle_pls::allocate(lexer* p,fdm* a,ghostcell* pgc)
 {
      maxparticle = int(p->F33*double(p->cellnum*pnum/2));
-	 
-	 p->Darray(neg,maxparticle,5);
-	 p->Darray(pos,maxparticle,5);
-	 
-	 p->Iarray(negflag,maxparticle);
-	 p->Iarray(posflag,maxparticle);
-	 
-	 p->Iarray(negmem,maxparticle);
-	 p->Iarray(posmem,maxparticle);
+     
+     p->Darray(neg,maxparticle,5);
+     p->Darray(pos,maxparticle,5);
+     
+     p->Iarray(negflag,maxparticle);
+     p->Iarray(posflag,maxparticle);
+     
+     p->Iarray(negmem,maxparticle);
+     p->Iarray(posmem,maxparticle);
 
      for(n=0;n<maxparticle;++n)
      {
@@ -49,42 +49,42 @@ void particle_pls::allocate(lexer* p,fdm* a,ghostcell* pgc)
      }
 
     // parallel
-	p->Iarray(pxs,6);
-	p->Iarray(nxs,6);
-	
-	p->Iarray(pxr,6);
-	p->Iarray(nxr,6);
+    p->Iarray(pxs,6);
+    p->Iarray(nxs,6);
+    
+    p->Iarray(pxr,6);
+    p->Iarray(nxr,6);
 
 
     posxs= new double*[6];
     negxs= new double*[6];
 
     for(n=0;n<6;++n)
-	{	
-	if(p->gcpara1_count>0)
-	posxs[0] = new double[5*p->gcpara1_count*pnum];
-	if(p->gcpara2_count>0)
+    {    
+    if(p->gcpara1_count>0)
+    posxs[0] = new double[5*p->gcpara1_count*pnum];
+    if(p->gcpara2_count>0)
     posxs[1] = new double[5*p->gcpara2_count*pnum];
-	if(p->gcpara3_count>0)
-	posxs[2] = new double[5*p->gcpara3_count*pnum];
-	if(p->gcpara4_count>0)
+    if(p->gcpara3_count>0)
+    posxs[2] = new double[5*p->gcpara3_count*pnum];
+    if(p->gcpara4_count>0)
     posxs[3] = new double[5*p->gcpara4_count*pnum];
-	if(p->gcpara5_count>0)
+    if(p->gcpara5_count>0)
     posxs[4] = new double[5*p->gcpara5_count*pnum];
-	if(p->gcpara6_count>0)
+    if(p->gcpara6_count>0)
     posxs[5] = new double[5*p->gcpara6_count*pnum];
-	
-	if(p->gcpara1_count>0)
+    
+    if(p->gcpara1_count>0)
     negxs[0] = new double[5*p->gcpara1_count*pnum];
-	if(p->gcpara2_count>0)
+    if(p->gcpara2_count>0)
     negxs[1] = new double[5*p->gcpara2_count*pnum];
-	if(p->gcpara3_count>0)
+    if(p->gcpara3_count>0)
     negxs[2] = new double[5*p->gcpara3_count*pnum];
-	if(p->gcpara4_count>0)
+    if(p->gcpara4_count>0)
     negxs[3] = new double[5*p->gcpara4_count*pnum];
-	if(p->gcpara5_count>0)
+    if(p->gcpara5_count>0)
     negxs[4] = new double[5*p->gcpara5_count*pnum];
-	if(p->gcpara6_count>0)
+    if(p->gcpara6_count>0)
     negxs[5] = new double[5*p->gcpara6_count*pnum];
     }
 
@@ -93,30 +93,30 @@ void particle_pls::allocate(lexer* p,fdm* a,ghostcell* pgc)
 
     for(n=0;n<6;++n)
     {
-	if(p->gcpara1_count>0)
-	posxr[0] = new double[5*p->gcpara1_count*pnum];
-	if(p->gcpara2_count>0)
+    if(p->gcpara1_count>0)
+    posxr[0] = new double[5*p->gcpara1_count*pnum];
+    if(p->gcpara2_count>0)
     posxr[1] = new double[5*p->gcpara2_count*pnum];
-	if(p->gcpara3_count>0)
+    if(p->gcpara3_count>0)
     posxr[2] = new double[5*p->gcpara3_count*pnum];
-	if(p->gcpara4_count>0)
-	posxr[3] = new double[5*p->gcpara4_count*pnum];
-	if(p->gcpara5_count>0)
-	posxr[4] = new double[5*p->gcpara5_count*pnum];
-	if(p->gcpara6_count>0)
-	posxr[5] = new double[5*p->gcpara6_count*pnum];
-	
-	if(p->gcpara1_count>0)
+    if(p->gcpara4_count>0)
+    posxr[3] = new double[5*p->gcpara4_count*pnum];
+    if(p->gcpara5_count>0)
+    posxr[4] = new double[5*p->gcpara5_count*pnum];
+    if(p->gcpara6_count>0)
+    posxr[5] = new double[5*p->gcpara6_count*pnum];
+    
+    if(p->gcpara1_count>0)
     negxr[0] = new double[5*p->gcpara1_count*pnum];
-	if(p->gcpara2_count>0)
+    if(p->gcpara2_count>0)
     negxr[1] = new double[5*p->gcpara2_count*pnum];
-	if(p->gcpara3_count>0)
+    if(p->gcpara3_count>0)
     negxr[2] = new double[5*p->gcpara3_count*pnum];
-	if(p->gcpara4_count>0)
+    if(p->gcpara4_count>0)
     negxr[3] = new double[5*p->gcpara4_count*pnum];
-	if(p->gcpara5_count>0)
+    if(p->gcpara5_count>0)
     negxr[4] = new double[5*p->gcpara5_count*pnum];
-	if(p->gcpara6_count>0)
+    if(p->gcpara6_count>0)
     negxr[5] = new double[5*p->gcpara6_count*pnum];
     }
 

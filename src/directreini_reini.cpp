@@ -37,18 +37,18 @@ void directreini::reini(lexer *p,fdm* a, ghostcell *pgc, field& b, fieldint& nod
 
     for(n=0;n<numtri; ++n)
     if(numfac[n]>0)
-	for(q=0;q<4;++q)	
+    for(q=0;q<4;++q)    
     {
     ls[tri[n][q]] = sg(ls[tri[n][q]])*1.0e20;
-	
-	lsvert[tri[n][q]] = sg(lsvert[tri[n][q]])*1.0e20;
-	
-	lsfac[tri[n][q]] = sg(lsfac[tri[n][q]])*1.0e20;
+    
+    lsvert[tri[n][q]] = sg(lsvert[tri[n][q]])*1.0e20;
+    
+    lsfac[tri[n][q]] = sg(lsfac[tri[n][q]])*1.0e20;
 
-	reiniflag[tri[n][q]]=0;	
+    reiniflag[tri[n][q]]=0;    
     }
 
-	int checker=0;
+    int checker=0;
     for(n=0;n<numtri; ++n)
     if(numfac[n]>0)
     for(q=0;q<4;++q)
@@ -65,8 +65,8 @@ void directreini::reini(lexer *p,fdm* a, ghostcell *pgc, field& b, fieldint& nod
     nx=yp[0]*zp[1] - zp[0]*yp[1];
     ny=zp[0]*xp[1] - xp[0]*zp[1];
     nz=xp[0]*yp[1] - yp[0]*xp[1];
-	
-	nl = sqrt(nx*nx + ny*ny + nz*nz);
+    
+    nl = sqrt(nx*nx + ny*ny + nz*nz);
 
 
     d = nx*ccpt[facet[confac[n]][0]][0] + ny*ccpt[facet[confac[n]][0]][1] + nz*ccpt[facet[confac[n]][0]][2];
@@ -112,21 +112,21 @@ void directreini::reini(lexer *p,fdm* a, ghostcell *pgc, field& b, fieldint& nod
 
     if(det0<=0.0 && det1<=0.0 && det2<=0.0 && det3<=0.0 && det4<=0.0)
     check=1;
-	
-	if(check==1)
-	++checker;
+    
+    if(check==1)
+    ++checker;
 
         if(check==1)
-		{
+        {
         dist = sqrt(pow(x0-pt[tri[n][q]][0], 2.0) + pow(y0-pt[tri[n][q]][1], 2.0) + pow(z0-pt[tri[n][q]][2], 2.0));
-		
-		++reiniflag[tri[n][q]];
-		lsfac[tri[n][q]] = sg(lsfac[tri[n][q]])*MIN(fabs(lsfac[tri[n][q]]), fabs(dist));
-		}
-		
+        
+        ++reiniflag[tri[n][q]];
+        lsfac[tri[n][q]] = sg(lsfac[tri[n][q]])*MIN(fabs(lsfac[tri[n][q]]), fabs(dist));
+        }
+        
 
         if(check==0)
-		if(reiniflag[tri[n][q]]==0)
+        if(reiniflag[tri[n][q]]==0)
         {
         dist=1.0e20;
         for(qn=0;qn<numfac[n];++qn)
@@ -134,33 +134,33 @@ void directreini::reini(lexer *p,fdm* a, ghostcell *pgc, field& b, fieldint& nod
                sqrt(pow(ccpt[facet[confac[n]][qn]][0]-pt[tri[n][q]][0], 2.0)
                   + pow(ccpt[facet[confac[n]][qn]][1]-pt[tri[n][q]][1], 2.0)
                   + pow(ccpt[facet[confac[n]][qn]][2]-pt[tri[n][q]][2], 2.0)));
-				  
-		lsvert[tri[n][q]] = sg(lsvert[tri[n][q]])*MIN(fabs(lsvert[tri[n][q]]), fabs(dist));
+                  
+        lsvert[tri[n][q]] = sg(lsvert[tri[n][q]])*MIN(fabs(lsvert[tri[n][q]]), fabs(dist));
         }
-	
-	//ls[tri[n][q]] = sg(ls[tri[n][q]])*MIN(fabs(ls[tri[n][q]]), fabs(dist));
+    
+    //ls[tri[n][q]] = sg(ls[tri[n][q]])*MIN(fabs(ls[tri[n][q]]), fabs(dist));
     
     }
-	
-	for(n=0;n<numtri;++n)
+    
+    for(n=0;n<numtri;++n)
     for(q=0;q<4;++q)
     if(numfac[n]>0)
-	{
-		if(reiniflag[tri[n][q]]>=1)
-		{
-		ls[tri[n][q]]=lsfac[tri[n][q]];	
-		}
-		
-		if(reiniflag[tri[n][q]]==0)
-		ls[tri[n][q]]=fabs(lsvert[tri[n][q]])<fabs(lsfac[tri[n][q]])?lsvert[tri[n][q]]:lsfac[tri[n][q]];
-		
-	}
-	
-	checker=pgc->globalisum(checker);
+    {
+        if(reiniflag[tri[n][q]]>=1)
+        {
+        ls[tri[n][q]]=lsfac[tri[n][q]];    
+        }
+        
+        if(reiniflag[tri[n][q]]==0)
+        ls[tri[n][q]]=fabs(lsvert[tri[n][q]])<fabs(lsfac[tri[n][q]])?lsvert[tri[n][q]]:lsfac[tri[n][q]];
+        
+    }
+    
+    checker=pgc->globalisum(checker);
 
-	if(p->mpirank==0)
-	cout<<"DirectReini Corrections: "<<checker<<endl;
-	/*
+    if(p->mpirank==0)
+    cout<<"DirectReini Corrections: "<<checker<<endl;
+    /*
     for(n=0;n<numtri;++n)
     for(q=0;q<4;++q)
     if(numfac[n]>0)
@@ -170,8 +170,8 @@ void directreini::reini(lexer *p,fdm* a, ghostcell *pgc, field& b, fieldint& nod
     k=ijk[tri[n][q]][2];
     b(i,j,k)=ls[tri[n][q]];
     }
-	*/
-	for(n=0;n<numvert;++n)
+    */
+    for(n=0;n<numvert;++n)
     {
     i=ijk[n][0];
     j=ijk[n][1];

@@ -37,7 +37,7 @@ class print_averaging_v : public print_averaging, public increment
 {
 public:
     print_averaging_v(lexer*,fdm*,ghostcell*);
-	virtual ~print_averaging_v();
+    virtual ~print_averaging_v();
     
     virtual void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*);
     

@@ -39,22 +39,22 @@ class probe_point : public boundarycheck
 {
 public:
     probe_point(lexer*,fdm*,ghostcell*);
-	virtual ~probe_point();
+    virtual ~probe_point();
 
-	void start(lexer*, fdm*, ghostcell*,turbulence*);
+    void start(lexer*, fdm*, ghostcell*,turbulence*);
 
 
 private:
     void ini_location(lexer*, fdm*, ghostcell*);
     void write(lexer*, fdm*, ghostcell*);
-	char name[100];
+    char name[100];
 
     int *iloc,*jloc,*kloc,*flag;
     int n,q;
-	const int probenum;
+    const int probenum;
     ofstream *pout;
-	
-	double uval,vval,wval,pval,kval,eval,edval;
+    
+    double uval,vval,wval,pval,kval,eval,edval;
 
 };
 

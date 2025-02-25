@@ -29,57 +29,57 @@ Author: Hans Bihs
 
 void iowave::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
+    NLOOP4
+    a->rhsvec.V[n]=0.0;
 
     double porousterm;
     double ep=1.0e-10*p->DXM;
-	count=0;
-	if(p->B240>0 && p->B241==1)
+    count=0;
+    if(p->B240>0 && p->B241==1)
     ULOOP
-	{
-		// porous media
-		porousterm=0.0;
-		for(n=0;n<p->B240;++n)
-		{
-			if(p->pos1_x() > p->B240_xs[n]+ep && p->pos1_x() <= p->B240_xe[n]+ep)
-			if(p->pos1_y() > p->B240_ys[n]+ep && p->pos1_y() <= p->B240_ye[n]+ep)
-			if(p->pos1_z() > p->B240_zs[n]+ep && p->pos1_z() <= p->B240_ze[n]+ep)
-			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->u(i,j,k) + 0.5*p->B240_C[n]*a->u(i,j,k)*fabs(a->u(i,j,k));
-		}
+    {
+        // porous media
+        porousterm=0.0;
+        for(n=0;n<p->B240;++n)
+        {
+            if(p->pos1_x() > p->B240_xs[n]+ep && p->pos1_x() <= p->B240_xe[n]+ep)
+            if(p->pos1_y() > p->B240_ys[n]+ep && p->pos1_y() <= p->B240_ye[n]+ep)
+            if(p->pos1_z() > p->B240_zs[n]+ep && p->pos1_z() <= p->B240_ze[n]+ep)
+            porousterm=p->B240_D[n]*a->visc(i,j,k)*a->u(i,j,k) + 0.5*p->B240_C[n]*a->u(i,j,k)*fabs(a->u(i,j,k));
+        }
 
     a->rhsvec.V[count] -= porousterm;
-	++count;
-	}
+    ++count;
+    }
 
-	//VRANS
+    //VRANS
     pvrans->u_source(p,a);
 }
 
 void iowave::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
+    NLOOP4
+    a->rhsvec.V[n]=0.0;
 
     double porousterm;
-	double ep=1.0e-10*p->DXM;
-	count=0;
-	if(p->B240>0 && p->B242==1)
+    double ep=1.0e-10*p->DXM;
+    count=0;
+    if(p->B240>0 && p->B242==1)
     VLOOP
-	{
-		// porous media
-		porousterm=0.0;
-		for(n=0;n<p->B240;++n)
-		{
-			if(p->pos2_x() > p->B240_xs[n]+ep && p->pos2_x() <= p->B240_xe[n]+ep)
-			if(p->pos2_y() > p->B240_ys[n]+ep && p->pos2_y() <= p->B240_ye[n]+ep)
-			if(p->pos2_z() > p->B240_zs[n]+ep && p->pos2_z() <= p->B240_ze[n]+ep)
-			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->v(i,j,k) + 0.5*p->B240_C[n]*a->v(i,j,k)*fabs(a->v(i,j,k));
-		}
+    {
+        // porous media
+        porousterm=0.0;
+        for(n=0;n<p->B240;++n)
+        {
+            if(p->pos2_x() > p->B240_xs[n]+ep && p->pos2_x() <= p->B240_xe[n]+ep)
+            if(p->pos2_y() > p->B240_ys[n]+ep && p->pos2_y() <= p->B240_ye[n]+ep)
+            if(p->pos2_z() > p->B240_zs[n]+ep && p->pos2_z() <= p->B240_ze[n]+ep)
+            porousterm=p->B240_D[n]*a->visc(i,j,k)*a->v(i,j,k) + 0.5*p->B240_C[n]*a->v(i,j,k)*fabs(a->v(i,j,k));
+        }
 
     a->rhsvec.V[count] -= porousterm;
-	++count;
-	}
+    ++count;
+    }
 
     //VRANS
     pvrans->v_source(p,a);
@@ -87,33 +87,33 @@ void iowave::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void iowave::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
+    NLOOP4
+    a->rhsvec.V[n]=0.0;
 
     double porousterm;
 
 
     double ep=1.0e-10*p->DXM;
-	count=0;
-	if(p->B240>0 && p->B243==1)
+    count=0;
+    if(p->B240>0 && p->B243==1)
     WLOOP
-	{
-		// porous media
-		porousterm=0.0;
-		for(n=0;n<p->B240;++n)
-		{
-			if(p->pos3_x() > p->B240_xs[n]+ep && p->pos3_x() <= p->B240_xe[n]+ep)
-			if(p->pos3_y() > p->B240_ys[n]+ep && p->pos3_y() <= p->B240_ye[n]+ep)
-			if(p->pos3_z() > p->B240_zs[n]+ep && p->pos3_z() <= p->B240_ze[n]+ep)
+    {
+        // porous media
+        porousterm=0.0;
+        for(n=0;n<p->B240;++n)
+        {
+            if(p->pos3_x() > p->B240_xs[n]+ep && p->pos3_x() <= p->B240_xe[n]+ep)
+            if(p->pos3_y() > p->B240_ys[n]+ep && p->pos3_y() <= p->B240_ye[n]+ep)
+            if(p->pos3_z() > p->B240_zs[n]+ep && p->pos3_z() <= p->B240_ze[n]+ep)
             {
             //cout<<"k: "<<k<<" pos_z: "<<p->pos3_z()<<endl;
-			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->w(i,j,k) + 0.5*p->B240_C[n]*a->w(i,j,k)*fabs(a->w(i,j,k));
+            porousterm=p->B240_D[n]*a->visc(i,j,k)*a->w(i,j,k) + 0.5*p->B240_C[n]*a->w(i,j,k)*fabs(a->w(i,j,k));
             }
-		}
+        }
 
     a->rhsvec.V[count] -= porousterm;
-	++count;
-	}
+    ++count;
+    }
 
     //VRANS
     pvrans->w_source(p,a);
@@ -121,12 +121,12 @@ void iowave::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void iowave::isource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
-	SLICELOOP1
-	b->F(i,j)=0.0;
+    SLICELOOP1
+    b->F(i,j)=0.0;
 }
 
 void iowave::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
-	SLICELOOP2
-	b->G(i,j)=0.0;
+    SLICELOOP2
+    b->G(i,j)=0.0;
 }
