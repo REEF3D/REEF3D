@@ -21,7 +21,13 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"increment.h"
-class lexer;class fdm_nhf;class ghostcell;class ioflow;class poisson;class solver;
+
+class lexer;
+class fdm_nhf;
+class ghostcell;
+class ioflow;
+class poisson;
+class solver;
 
 #ifndef NHFLOW_POISSON_H_
 #define NHFLOW_POISSON_H_

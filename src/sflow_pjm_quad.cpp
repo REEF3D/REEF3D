@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_pjm_quad.h"
+
+#include"sflow_pjm_quad.h"
 #include"lexer.h"
 #include"fdm2D.h" 
 #include"ghostcell.h"

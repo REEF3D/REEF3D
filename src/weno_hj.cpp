@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"weno_hj.h"
+
+#include"weno_hj.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"

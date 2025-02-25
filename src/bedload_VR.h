@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"bedload.h"
+
+#include"bedload.h"
 #include"increment.h"
 
 using namespace std;

@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"rheology_v.h"
+
+#include"rheology_v.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h" a

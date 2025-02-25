@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"position.h"
+
+#include"position.h"
 #include"lexer.h"
 
 int position::posf_i(double xs)

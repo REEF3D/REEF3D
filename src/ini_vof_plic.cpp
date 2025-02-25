@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"initialize.h"
+
+#include"initialize.h"
 #include"fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"

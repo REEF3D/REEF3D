@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"levelset_RK3.h"
+
+#include"levelset_RK3.h"
 #include"gradient.h"
 #include"lexer.h"
 #include"fdm.h"

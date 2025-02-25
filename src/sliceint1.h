@@ -20,7 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sliceint.h"
+
+#include"sliceint.h"
 #include"increment.h"
 
 #ifndef SLICEINT1_H_

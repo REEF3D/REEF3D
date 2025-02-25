@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_potential_f.h"
+
+#include"sflow_potential_f.h"
 #include"solver2D.h"
 #include"ghostcell.h"
 #include"fdm2D.h"

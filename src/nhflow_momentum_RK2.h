@@ -51,10 +51,12 @@ public:
     slice4 WLRK1;
 
 private:
-	int gcval_u, gcval_v, gcval_w;    int gcval_uh, gcval_vh, gcval_wh;
+	int gcval_u, gcval_v, gcval_w;
+    int gcval_uh, gcval_vh, gcval_wh;
 	double starttime;
     
-    nhflow_convection *pweno;    sixdof *p6dof;
+    nhflow_convection *pweno;
+    sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;
     vrans* pvrans;
