@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BENCHMARK_HEADER_H_
+#define BENCHMARK_HEADER_H_
+
 #include"benchmark.h"
 #include"benchmark_void.h"
 #include"benchmark_vortex.h"
@@ -28,4 +31,4 @@ Author: Hans Bihs
 #include"benchmark_convection.h"
 #include"benchmark_TaylorGreen.h"
 
-
+#endif
