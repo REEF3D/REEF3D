@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BCMOM_NHFLOW_H_
+#define BCMOM_NHFLOW_H_
+
 #include"surftens.h"
 #include"roughness.h"
 class lexer;
@@ -27,9 +30,6 @@ class fdm_nhf;
 class ghostcell;
 class field;
 class turbulence;
-
-#ifndef BCMOM_NHFLOW_H_
-#define BCMOM_NHFLOW_H_
 
 using namespace std;
 

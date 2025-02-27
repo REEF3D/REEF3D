@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LOOPING_H_
+#define LOOPING_H_
+
 #include"iterators.h"
 #include"boundcheck.h"
 #include"definitions.h"
@@ -338,11 +341,4 @@ Author: Hans Bihs
 #define DT p->dt
 #define NDT p->dt_old
 
-
-
-
-
-
-
-
-
+#endif

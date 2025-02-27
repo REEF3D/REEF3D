@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOFLOW_H_
+#define IOFLOW_H_
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -36,9 +39,6 @@ class turbulence;
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef IOFLOW_H_
-#define IOFLOW_H_
 
 class ioflow
 {

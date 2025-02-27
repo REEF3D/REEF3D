@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_RHEOLOGY_V_H_
+#define SFLOW_RHEOLOGY_V_H_
+
 #include"sflow_rheology.h"
 #include"increment.h"
 #include"slice4.h"
-
-#ifndef SFLOW_RHEOLOGY_V_H_
-#define SFLOW_RHEOLOGY_V_H_
 
 using namespace std;
 

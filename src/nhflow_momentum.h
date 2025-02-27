@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_MOMENTUM_H_
+#define NHFLOW_MOMENTUM_H_
+
 class lexer;
 class fdm_nhf;
 class ghostcell;
@@ -40,9 +43,6 @@ class sixdof;
 class nhflow_forcing;
 
 using namespace std;
-
-#ifndef NHFLOW_MOMENTUM_H_
-#define NHFLOW_MOMENTUM_H_
 
 class nhflow_momentum
 {

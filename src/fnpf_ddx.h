@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_DDX_H_
+#define FNPF_DDX_H_
+
 class lexer;  
 class field;
 class slice;
 class sliceint;
 
 using namespace std;
-
-#ifndef FNPF_DDX_H_
-#define FNPF_DDX_H_
 
 class fnpf_ddx
 {

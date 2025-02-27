@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRINT_AVERAGING_F_H_
+#define PRINT_AVERAGING_F_H_
+
 #include"print_averaging.h"
 #include"increment.h"
 #include"field1.h"
@@ -29,9 +32,6 @@ Author: Hans Bihs
 #include<iostream>
 
 using namespace std;
-
-#ifndef PRINT_AVERAGING_F_H_
-#define PRINT_AVERAGING_F_H_
 
 class print_averaging_f : public print_averaging, public increment
 {

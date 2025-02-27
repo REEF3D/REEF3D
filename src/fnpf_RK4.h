@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_RK4_H_
+#define FNPF_RK4_H_
+
 #include"fnpf.h"
 #include"fnpf_ini.h"
 #include"fnpf_sigma.h"
@@ -30,9 +33,6 @@ class fnpf_fsf;
 class field;
 
 using namespace std;
-
-#ifndef FNPF_RK4_H_
-#define FNPF_RK4_H_
 
 class fnpf_RK4 : public fnpf_ini, public fnpf_sigma
 {

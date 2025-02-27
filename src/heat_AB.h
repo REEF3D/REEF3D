@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef HEAT_AB_H_
+#define HEAT_AB_H_
+
 #include"heat_print.h"
 #include"field4.h"
 #include"bcheat.h"
@@ -27,9 +30,6 @@ Author: Hans Bihs
 class heat;
 
 using namespace std;
-
-#ifndef HEAT_AB_H_
-#define HEAT_AB_H_
 
 class heat_AB :public bcheat, public heat_print
 {

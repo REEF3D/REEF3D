@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_GRADIENT_H_
+#define SFLOW_GRADIENT_H_
+
 class lexer;
 class fdm2D;
 class slice;
 class sliceint;
 
 using namespace std;
-
-#ifndef SFLOW_GRADIENT_H_
-#define SFLOW_GRADIENT_H_
 
 class sflow_gradient
 {

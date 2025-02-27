@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_DDX_CDS2_WD_H_
+#define FNPF_DDX_CDS2_WD_H_
+
 #include"fnpf_ddx.h"
 #include"increment.h"
 
 class fdm_fnpf;
 
 using namespace std;
-
-#ifndef FNPF_DDX_CDS2_WD_H_
-#define FNPF_DDX_CDS2_WD_H_
 
 class fnpf_ddx_cds2_wd : public fnpf_ddx, public increment
 {

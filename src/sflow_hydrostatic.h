@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_HYDROSTATIC_H_
+#define SFLOW_HYDROSTATIC_H_
+
 #include"sflow_pressure.h"
 #include"increment.h"
 #include"slice4.h"
 
 using namespace std;
-
-#ifndef SFLOW_HYDROSTATIC_H_
-#define SFLOW_HYDROSTATIC_H_
 
 class sflow_hydrostatic : public sflow_pressure, public increment
 {

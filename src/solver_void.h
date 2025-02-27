@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SOLVER_VOID_H_
+#define SOLVER_VOID_H_
+
 #include"solver.h"
 
 using namespace std;
-
-#ifndef SOLVER_VOID_H_
-#define SOLVER_VOID_H_
 
 class solver_void : public solver
 {

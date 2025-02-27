@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 
+#ifndef HYPRE_SSTRUCT_H_
+#define HYPRE_SSTRUCT_H_
+
 #define HYPRE_COMPILATION
 
 #ifdef HYPRE_COMPILATION
@@ -35,9 +38,6 @@ Author: Hans Bihs
 #include"HYPRE.h"
 
 using namespace std;
-
-#ifndef HYPRE_SSTRUCT_H_
-#define HYPRE_SSTRUCT_H_
 
 class hypre_sstruct : public solver, public increment
 {

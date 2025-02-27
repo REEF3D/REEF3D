@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SIXDOF_NHFLOW_H_
+#define SIXDOF_NHFLOW_H_
+
 #include"6DOF.h"
 #include<vector>
 #include"increment.h"
@@ -34,9 +37,6 @@ class slice;
 class fdm;
 
 using namespace std;
-
-#ifndef SIXDOF_NHFLOW_H_
-#define SIXDOF_NHFLOW_H_
 
 class sixdof_nhflow : public sixdof, public increment
 {

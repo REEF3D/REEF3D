@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef GAGE_DISCHARGE_X_H_
+#define GAGE_DISCHARGE_X_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -30,9 +33,6 @@ class ghostcell;
 class field;
 
 using namespace std;
-
-#ifndef GAGE_DISCHARGE_X_H_
-#define GAGE_DISCHARGE_X_H_
 
 class gage_discharge_x : public boundarycheck
 {

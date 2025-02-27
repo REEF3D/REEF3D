@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_PJM_CORR_H_
+#define NHFLOW_PJM_CORR_H_
+
 #include"nhflow_pressure.h"
 #include"increment.h"
 
@@ -29,9 +32,6 @@ class nhflow_poisson;
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef NHFLOW_PJM_CORR_H_
-#define NHFLOW_PJM_CORR_H_
 
 class nhflow_pjm_corr : public nhflow_pressure, public increment
 {

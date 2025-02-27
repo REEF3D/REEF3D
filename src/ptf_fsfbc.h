@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PTF_FSFBC_H_
+#define PTF_FSFBC_H_
+
 #include"ptf.h"
 #include"slice4.h"
 
@@ -28,9 +31,6 @@ class field;
 class fnpf_convection;
 
 using namespace std;
-
-#ifndef PTF_FSFBC_H_
-#define PTF_FSFBC_H_
 
 class ptf_fsfbc : public increment
 {

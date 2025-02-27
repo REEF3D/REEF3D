@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_SIGMA_H_
+#define FNPF_SIGMA_H_
+
 #include"fnpf.h"
 #include"increment.h"
 #include"slice4.h"
@@ -30,9 +33,6 @@ class ghostcell;
 class fnpf_fsf;
 
 using namespace std;
-
-#ifndef FNPF_SIGMA_H_
-#define FNPF_SIGMA_H_
 
 class fnpf_sigma : public increment
 {

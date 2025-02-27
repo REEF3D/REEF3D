@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef MOORING_VOID_H_
+#define MOORING_VOID_H_
+
 #include"mooring.h"
 
 #include"field1.h"
@@ -35,9 +38,6 @@ Author: Tobias Martin
 
 
 using namespace std;
-
-#ifndef MOORING_VOID_H_
-#define MOORING_VOID_H_
 
 class mooring_void : public mooring
 {

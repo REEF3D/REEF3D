@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SIXDOF_MOTIONEXT_FIXED_H_
+#define SIXDOF_MOTIONEXT_FIXED_H_
+
 #include"6DOF_motionext.h"
 #include <Eigen/Dense>
 
@@ -33,9 +36,6 @@ class net;
 class field;
 
 using namespace std;
-
-#ifndef SIXDOF_MOTIONEXT_FIXED_H_
-#define SIXDOF_MOTIONEXT_FIXED_H_
 
 class sixdof_motionext_fixed : public sixdof_motionext
 {

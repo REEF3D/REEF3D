@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRINT_INTERFACE_H_
+#define PRINT_INTERFACE_H_
+
 #include"printer.h"
 #include"increment.h"
 #include"field5.h"
@@ -46,9 +49,6 @@ class state;
 class bedshear_probe;
 class sloshing_force;
 class print_porous;
-
-#ifndef PRINT_INTERFACE_H_
-#define PRINT_INTERFACE_H_
 
 using namespace std;
 

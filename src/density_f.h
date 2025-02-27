@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DENSITY_F_H_
+#define DENSITY_F_H_
+
 #include"density.h"
 #include"increment.h"
 
 class fdm;
 class lexer;
-
-#ifndef DENSITY_F_H_
-#define DENSITY_F_H_
 
 
 using namespace std;

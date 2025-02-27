@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SANDSLIDE_PDE_H_
+#define SANDSLIDE_PDE_H_
+
 #include"norm_vec.h"
 #include"bedslope.h"
 #include"slice4.h"
 #include"sandslide.h"
 
 using namespace std;
-
-#ifndef SANDSLIDE_PDE_H_
-#define SANDSLIDE_PDE_H_
 
 class sandslide_pde :  public sandslide, public norm_vec, public bedslope
 {

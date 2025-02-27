@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SANDSLIDE_NZ_H_
+#define SANDSLIDE_NZ_H_
+
 #include"norm_vec.h"
 #include"bedslope.h"
 #include"slice4.h"
@@ -28,9 +31,6 @@ Author: Hans Bihs
 class sediment_fdm;
 
 using namespace std;
-
-#ifndef SANDSLIDE_NZ_H_
-#define SANDSLIDE_NZ_H_
 
 class sandslide_nz :  public sandslide, public norm_vec, public bedslope
 {

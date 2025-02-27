@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_WENO3_H_
+#define FNPF_WENO3_H_
+
 #include"fnpf_convection.h"
 #include"increment.h"
 #include"ddweno3_f_nug.h"
-
-#ifndef FNPF_WENO3_H_
-#define FNPF_WENO3_H_
 
 using namespace std;
 

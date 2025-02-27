@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SANDSLIDE_V_H_
+#define SANDSLIDE_V_H_
+
 #include"norm_vec.h"
 #include"bedslope.h"
 #include"field4a.h"
@@ -27,9 +30,6 @@ Author: Hans Bihs
 
 
 using namespace std;
-
-#ifndef SANDSLIDE_V_H_
-#define SANDSLIDE_V_H_
 
 class sandslide_v :  public sandslide
 {

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef RHEOLOGY_H_
+#define RHEOLOGY_H_
+
 class lexer;
 class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef RHEOLOGY_H_
-#define RHEOLOGY_H_
 
 
 class rheology 

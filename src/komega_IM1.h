@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef KOMEGA_IM1_H_
+#define KOMEGA_IM1_H_
+
 #include"komega_func.h"
 #include"field4.h"
 
 using namespace std;
-
-#ifndef KOMEGA_IM1_H_
-#define KOMEGA_IM1_H_
 
 class komega_IM1 : public komega_func
 {

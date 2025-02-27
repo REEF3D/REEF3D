@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef POISSON_NSE_H_
+#define POISSON_NSE_H_
+
 #include"poisson.h"
 #include"increment.h"
 
 class heat;
 class concentration;
 class density;
-
-#ifndef poisson_NSE_H_
-#define poisson_NSE_H_
 
 using namespace std;
 

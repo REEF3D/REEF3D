@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDLOAD_DIRECTION_V_H_
+#define BEDLOAD_DIRECTION_V_H_
+
 #include"increment.h"
 #include"bedload_direction.h"
 
 using namespace std;
-
-#ifndef BEDLOAD_DIRECTION_V_H_
-#define BEDLOAD_DIRECTION_V_H_
 
 class bedload_direction_v : public bedload_direction, public increment
 {

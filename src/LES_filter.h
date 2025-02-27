@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LES_FILTER_H_
+#define LES_FILTER_H_
+
 class lexer;
 class fdm;
 class ghostcell;
 class field;
 
 using namespace std;
-
-#ifndef LES_FILTER_H_
-#define LES_FILTER_H_
 
 class LES_filter 
 {

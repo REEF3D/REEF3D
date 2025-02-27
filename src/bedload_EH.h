@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDLOAD_EH_H_
+#define BEDLOAD_EH_H_
+
 #include"bedload.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef BEDLOAD_EH_H_
-#define BEDLOAD_EH_H_
 
 class bedload_EH : public bedload, public increment
 {

@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SUSPENDED_IM1_H_
+#define SUSPENDED_IM1_H_
+
 #include"suspended.h"
 #include"increment.h"
 #include"field3.h"
 #include"field4.h"
 
 using namespace std;
-
-#ifndef SUSPENDED_IM1_H_
-#define SUSPENDED_IM1_H_
 
 class suspended_IM1 : public suspended, public increment
 {

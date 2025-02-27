@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef INITIALIZE_H_
+#define INITIALIZE_H_
+
 #include"resize.h"
 #include"increment.h"
 
@@ -28,9 +31,6 @@ class lexer;
 class ghostcell;
 class turbulence;
 class sediment;
-
-#ifndef INITIALIZE_H_
-#define INITIALIZE_H_
 
 using namespace std;
 
