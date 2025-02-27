@@ -20,7 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LOOPING_PART_H_
+#define LOOPING_PART_H_
 
 #define PARTBASELOOP for(n=0; n<P.index; ++n)
 #define PARTFLAGCHECK if(P.Flag[n]>0)
 #define PARTLOOP PARTBASELOOP PARTFLAGCHECK
+
+#endif

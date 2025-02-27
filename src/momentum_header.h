@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MOMENTUM_HEADER_H_
+#define MOMENTUM_HEADER_H_
+
 #include"momentum_RK2.h"
 #include"momentum_RK3.h"
 #include"momentum_RK3CN.h"
@@ -32,3 +35,4 @@ Author: Hans Bihs
 #include"momentum_RKLS3_df.h"
 #include"momentum_RKLS3_sf.h"
 
+#endif

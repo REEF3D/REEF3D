@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef TURBULENCE_HEADER_H_
+#define TURBULENCE_HEADER_H_
+
 #include"komega_IM1.h"
 #include"EARSM_kw_IM1.h"
 #include"kepsilon_IM1.h"
@@ -28,3 +31,4 @@ Author: Hans Bihs
 #include"LES_smagorinsky.h"
 #include"LES_WALE.h"
 
+#endif

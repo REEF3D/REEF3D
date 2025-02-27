@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_HEADER_H_
+#define SEDIMENT_HEADER_H_
+
 #include"sediment_f.h"
 #include"sediment_void.h"
 
@@ -30,3 +33,5 @@ Author: Hans Bihs
 #include"reinitopo_void.h"
 
 #include"sediment_part.h"
+
+#endif

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef ITERATORS_H_
+#define ITERATORS_H_
+
 #define NLOOP1 for(n=p->sizeM1[0]; n<p->sizeM1[1]; ++n)
 #define NLOOP2 for(n=p->sizeM2[0]; n<p->sizeM2[1]; ++n)
 #define NLOOP3 for(n=p->sizeM3[0]; n<p->sizeM3[1]; ++n)
@@ -224,3 +227,4 @@ Author: Hans Bihs
 #define FIJm1Kp2  (i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin-1)*p->kmaxF + k-p->kmin+2
 #define FIJp1Kp2  (i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin+1)*p->kmaxF + k-p->kmin+2
 
+#endif
