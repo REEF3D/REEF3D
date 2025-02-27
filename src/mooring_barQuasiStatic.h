@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#ifndef mooring_BARQUASISTATIC_H_
-#define mooring_BARQUASISTATIC_H_
+#ifndef MOORING_BARQUASISTATIC_H_
+#define MOORING_BARQUASISTATIC_H_
 
 #include"mooring.h"
 #include"mooring_Catenary.h"

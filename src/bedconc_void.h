@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef BEDCONC_void_H_
-#define BEDCONC_void_H_
+#ifndef BEDCONC_VOID_H_
+#define BEDCONC_VOID_H_
 
 #include"bedconc.h"
 #include"increment.h"
