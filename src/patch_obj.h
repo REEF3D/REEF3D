@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PATCH_OBJ_H_
+#define PATCH_OBJ_H_
+
 #include"increment.h"
 
 class lexer;
@@ -28,9 +31,6 @@ class ghostcell;
 class field;
 
 using namespace std;
-
-#ifndef PATCH_OBJ_H_
-#define PATCH_OBJ_H_
 
 class patch_obj : public increment
 {

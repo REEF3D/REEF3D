@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINITOPO_AB2_H_
+#define REINITOPO_AB2_H_
+
 #include"reinitopo.h"
 #include"field4a.h"
 #include"gradient.h"
@@ -27,9 +30,6 @@ Author: Hans Bihs
 class reinidisc;
 
 using namespace std;
-
-#ifndef REINITOPO_AB2_H_
-#define REINITOPO_AB2_H_
 
 class reinitopo_AB2 : public reinitopo, gradient
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_MOMENTUM_RK3_H_
+#define SFLOW_MOMENTUM_RK3_H_
+
 #include"sflow_momentum.h"
 #include"slice1.h"
 #include"slice2.h"
@@ -34,9 +37,6 @@ class sflow_rheology;
 class sflow_forcing;
 
 using namespace std;
-
-#ifndef SFLOW_MOMENTUM_RK3_H_
-#define SFLOW_MOMENTUM_RK3_H_
 
 class sflow_momentum_RK3 : public sflow_momentum, public increment
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REDUCTION_FD_GAMMA_H_
+#define REDUCTION_FD_GAMMA_H_
+
 #include"bedshear_reduction.h"
 #include"bedslope.h"
 
@@ -28,9 +31,6 @@ class ghostcell;
 class sediment_fdm;
 
 using namespace std;
-
-#ifndef REDUCTION_FD_GAMMA_H_
-#define REDUCTION_FD_GAMMA_H_
 
 class reduction_FD_gamma :  public bedshear_reduction, public bedslope
 {

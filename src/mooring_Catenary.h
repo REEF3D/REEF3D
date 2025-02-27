@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef MOORING_CATENARY_H_
+#define MOORING_CATENARY_H_
+
 #include"mooring.h"
 #include"field1.h"
 #include"field2.h"
@@ -35,9 +38,6 @@ Author: Tobias Martin
 
 
 using namespace std;
-
-#ifndef MOORING_CATENARY_H_
-#define MOORING_CATENARY_H_
 
 class mooring_Catenary : public mooring
 {

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_GRADIENT_H_
+#define NHFLOW_GRADIENT_H_
+
 #include"increment.h"
 
 class fdm_nhf;
 class lexer;
 class slice;
-
-#ifndef NHFLOW_GRADIENT_H_
-#define NHFLOW_GRADIENT_H_
 
 using namespace std;
 

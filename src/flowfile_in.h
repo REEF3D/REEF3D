@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FLOWFILE_IN_H_
+#define FLOWFILE_IN_H_
+
 #include"increment.h"
 #include<iostream>
 #include<fstream>
@@ -31,9 +34,6 @@ class turbulence;
 class field;
 
 using namespace std;
-
-#ifndef FLOWFILE_IN_H_
-#define FLOWFILE_IN_H_
 
 class flowfile_in : public increment
 {

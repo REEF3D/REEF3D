@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_FORCE_H_
+#define NHFLOW_FORCE_H_
+
 #include"fieldint5.h"
 #include"field5.h"
 #include"increment.h"
@@ -29,9 +32,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 class ghostcell;
-
-#ifndef NHFLOW_FORCE_H_
-#define NHFLOW_FORCE_H_
 
 using namespace std;
 

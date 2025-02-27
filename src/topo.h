@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef TOPO_H_
+#define TOPO_H_
+
 class lexer;
 class fdm;
 class convection;
@@ -30,9 +33,6 @@ class reinitopo;
 class slice;
 
 using namespace std;
-
-#ifndef TOPO_H_
-#define TOPO_H_
 
 class topo
 {

@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef POTENTIAL_H_
+#define POTENTIAL_H_
+
 class fdm;
 class lexer;
 class solver;
 class ghostcell;
 
 using namespace std;
-
-#ifndef POTENTIAL_H_
-#define POTENTIAL_H_
 
 class potential
 {

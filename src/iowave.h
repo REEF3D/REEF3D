@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOWAVE_RELAX_H_
+#define IOWAVE_RELAX_H_
+
 #include"ioflow.h"
 #include"wave_interface.h"
 #include"field1.h"
@@ -36,9 +39,6 @@ class patchBC_interface;
 class linear_regression_cont;
 
 using namespace std;
-
-#ifndef IOWAVE_RELAX_H_
-#define IOWAVE_RELAX_H_
 
 class iowave : public ioflow, public wave_interface, public increment, public flowfile_in
 {

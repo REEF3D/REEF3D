@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_FORCING_H_
+#define SFLOW_FORCING_H_
+
 #include"increment.h"
 #include"slice1.h"
 #include"slice2.h"
@@ -38,9 +41,6 @@ class nhflow_reinidisc_fsf;
 #include<vector>
 
 using namespace std;
-
-#ifndef SFLOW_FORCING_H_
-#define SFLOW_FORCING_H_
 
 class sflow_forcing : public increment
 {

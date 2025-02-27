@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IWENO_HJ_H_
+#define IWENO_HJ_H_
+
 #include"convection.h"
 #include"increment.h"
 
 class flux;
-
-#ifndef IWENO_HJ_H_
-#define IWENO_HJ_H_
 
 using namespace std;
 

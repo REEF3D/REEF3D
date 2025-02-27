@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef SIXDOF_OBJ_H_
+#define SIXDOF_OBJ_H_
+
 #include"ddweno_f_nug.h"
 #include"field1.h"
 #include"field2.h"
@@ -48,9 +51,6 @@ class vrans;
 class sixdof_motionext;
  
 using namespace std;
-
-#ifndef SIXDOF_OBJ_H_
-#define SIXDOF_OBJ_H_
 
 class sixdof_obj : public ddweno_f_nug
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDLOAD_DIRECTION_H_
+#define BEDLOAD_DIRECTION_H_
+
 #include"increment.h"
 
 class lexer;
@@ -29,9 +32,6 @@ class slice;
 class sliceint;
 
 using namespace std;
-
-#ifndef BEDLOAD_DIRECTION_H_
-#define BEDLOAD_DIRECTION_H_
 
 class bedload_direction : public increment
 {

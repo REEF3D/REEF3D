@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
-
 #ifndef SURFTENS_H_
 #define SURFTENS_H_
+
+#include"gradient.h"
 
 using namespace std;
 

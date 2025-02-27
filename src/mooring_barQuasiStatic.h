@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef mooring_BARQUASISTATIC_H_
+#define mooring_BARQUASISTATIC_H_
+
 #include"mooring.h"
 #include"mooring_Catenary.h"
 #include"field1.h"
@@ -35,9 +38,6 @@ Author: Tobias Martin
 
 
 using namespace std;
-
-#ifndef mooring_BARQUASISTATIC_H_
-#define mooring_BARQUASISTATIC_H_
 
 class mooring_barQuasiStatic : public mooring
 {

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_DIFFUSION_H_
+#define NHFLOW_DIFFUSION_H_
+
 class lexer;
 class fdm_nhf;
 class ghostcell;
 class solver;
 class slice;
-
-#ifndef NHFLOW_DIFFUSION_H_
-#define NHFLOW_DIFFUSION_H_
 
 using namespace std;
 

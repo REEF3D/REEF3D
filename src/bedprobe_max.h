@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDPROBE_MAX_H_
+#define BEDPROBE_MAX_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -30,9 +33,6 @@ class ghostcell;
 class field;
 
 using namespace std;
-
-#ifndef BEDPROBE_MAX_H_
-#define BEDPROBE_MAX_H_
 
 class bedprobe_max : public boundarycheck
 {

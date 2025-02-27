@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_TIMESTEP_H_
+#define NHFLOW_TIMESTEP_H_
+
 #include"timestep.h"
 #include"increment.h"
 
@@ -28,9 +31,6 @@ class lexer;
 class ghostcell;
 
 using namespace std;
-
-#ifndef NHFLOW_TIMESTEP_H_
-#define NHFLOW_TIMESTEP_H_
 
 class nhflow_timestep : public increment
 {

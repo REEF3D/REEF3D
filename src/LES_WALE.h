@@ -23,15 +23,15 @@ Source: Nicoud, F., Ducros, F. Subgrid-Scale Stress Modelling Based on the Squar
 Flow, Turbulence and Combustion 62, 183–200 (1999). https://doi.org/10.1023/A:1009995426001
 --------------------------------------------------------------------*/
 
+#ifndef LES_WALE_H_
+#define LES_WALE_H_
+
 #include"LES.h"
 #include"field4.h"
 
 class LES_filter;
 
 using namespace std;
-
-#ifndef LES_WALE_H_
-#define LES_WALE_H_
 
 class LES_WALE : public LES
 {

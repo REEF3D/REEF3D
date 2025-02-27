@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MULTIPHASE_FLUID_UPDATE_F_H_
+#define MULTIPHASE_FLUID_UPDATE_F_H_
+
 #include"multiphase_fluid_update.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef MULTIPHASE_FLUID_UPDATE_F_H_
-#define MULTIPHASE_FLUID_UPDATE_F_H_
 
 class multiphase_fluid_update_f : public multiphase_fluid_update, increment
 {

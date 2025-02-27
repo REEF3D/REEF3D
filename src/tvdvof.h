@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fluxlim.h"
-#include"increment.h"
-
 #ifndef TVDVOF_H_
 #define TVDVOF_H_
+
+#include"fluxlim.h"
+#include"increment.h"
 
 using namespace std;
 

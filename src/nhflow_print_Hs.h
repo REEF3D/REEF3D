@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Dave Kelly, Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_PRINT_HS_H_
+#define NHFLOW_PRINT_HS_H_
+
 #include"increment.h"
 #include"slice4.h"
 #include<iostream>
@@ -31,9 +34,6 @@ class ghostcell;
 class slice;
 
 using namespace std;
-
-#ifndef NHFLOW_PRINT_HS_H_
-#define NHFLOW_PRINT_HS_H_
 
 class nhflow_print_Hs : public increment
 {

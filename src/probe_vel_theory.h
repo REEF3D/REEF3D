@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PROBE_VEL_THEORY_H_
+#define PROBE_VEL_THEORY_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -31,9 +34,6 @@ class slice;
 class ioflow;
 
 using namespace std;
-
-#ifndef PROBE_VEL_THEORY_H_
-#define PROBE_VEL_THEORY_H_
 
 class probe_vel_theory : public boundarycheck
 {

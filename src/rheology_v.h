@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef RHEOLOGY_V_H_
+#define RHEOLOGY_V_H_
+
 #include"rheology.h"
 
 using namespace std;
-
-#ifndef RHEOLOGY_V_H_
-#define RHEOLOGY_V_H_
 
 
 class rheology_v : public rheology

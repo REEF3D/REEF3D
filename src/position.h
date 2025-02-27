@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef POSITION_H_
+#define POSITION_H_
+
 #include"increment.h"
 
 class fdm;
 class lexer;
 class field;
-
-#ifndef POSITION_H_
-#define POSITION_H_
 
 using namespace std;
 

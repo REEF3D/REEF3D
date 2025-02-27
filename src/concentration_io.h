@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef CONCENTRATION_IO_H_
+#define CONCENTRATION_IO_H_
+
 #include"concentration.h"
 #include"increment.h"
 #include"field4.h"
@@ -31,9 +34,6 @@ class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef CONCENTRATION_IO_H_
-#define CONCENTRATION_IO_H_
 
 class concentration_io : public concentration, increment
 {

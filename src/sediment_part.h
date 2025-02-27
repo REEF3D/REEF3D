@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_PART2_H_
+#define SEDIMENT_PART2_H_
+
 #include"sediment.h"
 #include"sliceint4.h"
 #include"slice4.h"
@@ -43,9 +46,6 @@ class bedload_direction;
 class bedslope;
 class partres;
 using namespace std;
-
-#ifndef SEDIMENT_PART2_H_
-#define SEDIMENT_PART2_H_
 
 class sediment_part : public sediment, public increment
 {

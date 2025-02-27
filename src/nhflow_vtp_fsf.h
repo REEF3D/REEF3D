@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_VTP_FSF_H_
+#define NHFLOW_VTP_FSF_H_
+
 #include"increment.h"
 #include<fstream>
 
@@ -30,9 +33,6 @@ class ioflow;
 class sediment;
 
 using namespace std;
-
-#ifndef NHFLOW_VTP_FSF_H_
-#define NHFLOW_VTP_FSF_H_
 
 class nhflow_vtp_fsf : public increment
 {

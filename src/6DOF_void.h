@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef SIXDOF_VOID_H_
+#define SIXDOF_VOID_H_
+
 #include"6DOF.h"
 #include<vector>
 #include<fstream>
@@ -34,9 +37,6 @@ class mooring;
 class net;
 
 using namespace std;
-
-#ifndef SIXDOF_VOID_H_
-#define SIXDOF_VOID_H_
 
 class sixdof_void : public sixdof
 {

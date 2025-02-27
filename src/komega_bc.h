@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef KOMEGA_BC_H_
+#define KOMEGA_BC_H_
+
 #include"increment.h"
 #include"roughness.h"
 class fdm;
 class lexer;
 class field;
-
-#ifndef KOMEGA_BC_H_
-#define KOMEGA_BC_H_
 
 using namespace std;
 

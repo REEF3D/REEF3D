@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef SIXDOF_CFD_H_
+#define SIXDOF_CFD_H_
+
 #include"6DOF.h"
 #include"6DOF_obj.h"
 #include<vector>
@@ -29,9 +32,6 @@ class net;
 class ddweno_f_nug;
 
 using namespace std;
-
-#ifndef SIXDOF_CFD_H_
-#define SIXDOF_CFD_H_
 
 class sixdof_cfd : public sixdof, public increment
 {
