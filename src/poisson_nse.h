@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef poisson_NSE_H_
-#define poisson_NSE_H_
+#ifndef POISSON_NSE_H_
+#define POISSON_NSE_H_
 
 #include"poisson.h"
 #include"increment.h"

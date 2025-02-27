@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SUSPENDED_void_H_
-#define SUSPENDED_void_H_
+#ifndef SUSPENDED_VOID_H_
+#define SUSPENDED_VOID_H_
 
 #include<iostream>
 #include"suspended.h"
