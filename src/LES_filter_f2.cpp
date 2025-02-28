@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"strain.h"
 
-LES_filter_f2::LES_filter_f2(lexer* p, fdm* a) : strain(p,a)
+LES_filter_f2::LES_filter_f2(lexer* p, fdm* a) : strain(p)
 {
 
 }

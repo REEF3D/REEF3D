@@ -35,8 +35,8 @@ class strain : public gradient
 {
 
 public:
-    strain (lexer*,fdm*);
-    virtual ~strain();
+    strain(lexer*);
+    virtual ~strain()=default;
 
     double sij(lexer*,fdm*,int,int);
     double qij(lexer*,fdm*,int,int);

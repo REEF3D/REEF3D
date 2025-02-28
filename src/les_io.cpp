@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-les_io::les_io(lexer *p, fdm *a) : strain(p,a), uprime(p), vprime(p), wprime(p)
+les_io::les_io(lexer *p, fdm *a) : strain(p), uprime(p), vprime(p), wprime(p)
 {
 }
 
