@@ -34,7 +34,7 @@ class rheology;
 class fluid_update_rheology : public fluid_update, increment
 {
 public:
-    fluid_update_rheology(lexer*, fdm*);
+    fluid_update_rheology(lexer*);
     virtual ~fluid_update_rheology();
 
     void start(lexer*, fdm*, ghostcell*) override;

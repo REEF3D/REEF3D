@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h" 
 
-rheology_f::rheology_f(lexer *p, fdm *a) : strain(p), tau_x(p), tau_y(p), tau_z(p), epsi(p->F45*p->DXM)
+rheology_f::rheology_f(lexer *p) : strain(p), tau_x(p), tau_y(p), tau_z(p), epsi(p->F45*p->DXM)
 {
     tanphi=0.0;
     if(p->W101>0)

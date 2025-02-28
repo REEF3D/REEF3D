@@ -26,12 +26,12 @@ Author: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include"rheology_f.h"
 
-fluid_update_rheology::fluid_update_rheology(lexer *p, fdm* a) : ro1(p->W1), ro2(p->W3), visc2(p->W4)
+fluid_update_rheology::fluid_update_rheology(lexer *p) : ro1(p->W1), ro2(p->W3), visc2(p->W4)
 {
     iter=0;
     iocheck = true;
     
-    prheo = new rheology_f(p,a);
+    prheo = new rheology_f(p);
 }
 
 fluid_update_rheology::~fluid_update_rheology()

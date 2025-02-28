@@ -34,7 +34,7 @@ class rheology_f : public rheology, public strain
 
 public:
 
-    rheology_f(lexer*, fdm*);
+    rheology_f(lexer*);
     virtual ~rheology_f();
 
     virtual double viscosity(lexer*,fdm*,ghostcell*);
