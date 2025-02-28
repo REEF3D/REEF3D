@@ -20,19 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-
-class ghostcell;
-class fieldint;
-
 #ifndef STRAIN_H_
 #define STRAIN_H_
 
-using namespace std;
+#include"gradient.h"
+
+class lexer;
+class fdm;
+class ghostcell;
+class field;
+class fieldint;
 
 class strain : public gradient
 {
@@ -46,16 +43,17 @@ public:
     double pk(lexer*,fdm*,field&);
     double pk_b(lexer*,fdm*,field&);
     void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
-    virtual double strainterm(lexer*,fdm*);
-    virtual double strainterm(lexer*,field&,field&,field&);
-    virtual double rotationterm(lexer*,fdm*);
-    virtual double rotationterm(lexer*,field&,field&,field&);
-    virtual double magSqrSd(lexer*,fdm*);
-    virtual double magSqrSd(lexer*,field&,field&,field&);
+    double strainterm(lexer*,fdm*);
+    double strainterm(lexer*,field&,field&,field&);
+    double rotationterm(lexer*,fdm*);
+    double rotationterm(lexer*,field&,field&,field&);
+    double magSqrSd(lexer*,fdm*);
+    double magSqrSd(lexer*,field&,field&,field&);
     double strainplain(lexer*,fdm*);
 
 private:
-    double roface(lexer*,fdm*,int,int,int);
+    void symmetricStrainRateTensor(lexer*,field&,field&,field&);
+    void skewSymmetricStrainRateTensor(lexer*,field&,field&,field&);
     
     double s11,s22,s33,s12,s13,s23;
     double r11,r22,r33,r12,r13,r23;
