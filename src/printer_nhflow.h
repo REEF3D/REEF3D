@@ -60,10 +60,10 @@ public:
     printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual ~printer_nhflow() = default;
     void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override;
-    void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
     void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override;
 
 private:
+    void print(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
     void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
 
     vtk3D *outputFormat;

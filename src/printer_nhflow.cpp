@@ -172,13 +172,13 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
     {
-        print_vtu(p,d,pgc,pnhfturb,psed);
+        print(p,d,pgc,pnhfturb,psed);
     }
 
     // Print out based on time
     if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0) || (p->count==0 &&  p->P30>0.0))
     {
-        print_vtu(p,d,pgc,pnhfturb,psed);
+        print(p,d,pgc,pnhfturb,psed);
 
         p->printtime+=p->P30;
     }
@@ -186,7 +186,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     // Print out based on sediment time
     if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0) || (p->count==0 &&  p->P34>0.0))
     {
-        print_vtu(p,d,pgc,pnhfturb,psed);
+        print(p,d,pgc,pnhfturb,psed);
 
         p->sedprinttime+=p->P34;
     }
@@ -196,7 +196,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
         for(int qn=0; qn<p->P35; ++qn)
             if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
             {
-                print_vtu(p,d,pgc,pnhfturb,psed);
+                print(p,d,pgc,pnhfturb,psed);
 
                 printtime_wT[qn]+=p->P35_dt[qn];
             }
@@ -306,7 +306,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
 
 void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
-    print_vtu(p,d,pgc,pnhfturb,psed);
+    print(p,d,pgc,pnhfturb,psed);
 
     if(p->S10>0)
         pbed->start(p,d,pgc,psed);
@@ -315,7 +315,7 @@ void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pf
         pfsf->start(p,d,pgc,psed);
 }
 
-void printer_nhflow::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
+void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     if(p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts)
     {
