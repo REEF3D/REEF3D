@@ -32,7 +32,6 @@ class turbulence;
 class nhflow_turbulence;
 class heat;
 class ioflow;
-class solver;
 class data;
 class concentration;
 class multiphase;
@@ -42,8 +41,8 @@ class printer
 {
 public:
     // CFD
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*){};
-    virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*){};
+    virtual void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,data*,concentration*,multiphase*,sediment*){};
+    virtual void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,data*,concentration*,multiphase*,sediment*){};
     // NHFLOW
     virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*){};
     virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*){};
