@@ -624,9 +624,9 @@ public:
     int X20;
     double X21_d,X22_m;
     double X23_x,X23_y,X23_z;
-    double X24_Ix,X24_Iy,X24_Iz;    
-    double X25_Cp,X25_Cq,X25_Cr;    
-    double X26_Cu,X26_Cv,X26_Cw;    
+    double X24_Ix,X24_Iy,X24_Iz;
+    double X25_Cp,X25_Cq,X25_Cr;
+    double X26_Cu,X26_Cv,X26_Cw;
     double X41,X42,X43,X44;
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;
@@ -634,6 +634,7 @@ public:
     int *X102_objID;
     double X103_p, X103_q, X103_r;
     double *X110_xs,*X110_xe,*X110_ys,*X110_ye,*X110_zs,*X110_ze;
+    int *X110_objID;
     double X120_rad,X120_xc,X120_yc,X120_zc;
     double X131_rad,X131_h,X131_xc,X131_yc,X131_zc;
     double X132_rad,X132_h,X132_xc,X132_yc,X132_zc;

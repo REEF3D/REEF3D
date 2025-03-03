@@ -2684,7 +2684,7 @@ void lexer::ctrlrecv()
     Darray(X102_w,X102);
     Iarray(X102_objID,X102);
     }
-    
+
     if(X110>0)
     {
     Darray(X110_xs,X110);  
@@ -2694,7 +2694,8 @@ void lexer::ctrlrecv()
     Darray(X110_ye,X110);  
     
     Darray(X110_zs,X110);  
-    Darray(X110_ze,X110);  
+    Darray(X110_ze,X110); 
+    Iarray(X110_objID,X110);
     }
     
     if(X163>0)
@@ -3968,7 +3969,7 @@ for(n=0;n<F369;++n)
     X102_objID[n] = ictrl[ii];
     ii++;
     }
-    
+
     for(n=0;n<X110;++n)
     {
     X110_xs[n] = dctrl[dd];
@@ -3983,6 +3984,8 @@ for(n=0;n<F369;++n)
     dd++;
     X110_ze[n] = dctrl[dd];
     dd++;
+    X110_objID[n] = ictrl[ii];
+    ii++;
     }
     
     for(n=0;n<X163;++n)

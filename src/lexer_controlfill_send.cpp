@@ -3041,7 +3041,7 @@ void lexer::ctrlsend()
     dd++;
     }
     
-for(n=0;n<X102;++n)
+    for(n=0;n<X102;++n)
     {
     dctrl[dd] = X102_u[n];
     dd++;
@@ -3067,6 +3067,8 @@ for(n=0;n<X102;++n)
     dd++;
     dctrl[dd] = X110_ze[n];
     dd++;
+    ictrl[ii] = X110_objID[n];
+    ii++;
     }
     
     for(n=0;n<X163;++n)
