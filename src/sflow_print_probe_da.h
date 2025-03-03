@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_PRINT_PROBE_DA_H_
+#define SFLOW_PRINT_PROBE_DA_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -31,9 +34,6 @@ class field;
 class turbulence;
 
 using namespace std;
-
-#ifndef SFLOW_PRINT_PROBE_DA_H_
-#define SFLOW_PRINT_PROBE_DA_H_
 
 class sflow_print_probe_da : public boundarycheck
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_PJM_HS_H_
+#define NHFLOW_PJM_HS_H_
+
 #include"nhflow_pressure.h"
 #include"nhflow_gradient.h"
 
@@ -28,9 +31,6 @@ class solver;
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef NHFLOW_PJM_HS_H_
-#define NHFLOW_PJM_HS_H_
 
 class nhflow_pjm_hs : public nhflow_pressure, public nhflow_gradient
 {

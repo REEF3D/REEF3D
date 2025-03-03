@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_FLUXLIM_SMART_H_
+#define SFLOW_FLUXLIM_SMART_H_
+
 #include"sflow_fluxlim.h"
 #include"increment.h"
 
 class slice;
 class fdm;
 class lexer;
-
-#ifndef SFLOW_FLUXLIM_SMART_H_
-#define SFLOW_FLUXLIM_SMART_H_
 
 using namespace std;
 

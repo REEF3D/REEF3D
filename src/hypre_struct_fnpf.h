@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef HYPRE_STRUCT_FNPF_H_
+#define HYPRE_STRUCT_FNPF_H_
+
 #define HYPRE_COMPILATION
 
 #ifdef HYPRE_COMPILATION
@@ -32,9 +35,6 @@ Author: Hans Bihs
 #include"HYPRE_sstruct_ls.h"
 
 using namespace std;
-
-#ifndef HYPRE_STRUCT_FNPF_H_
-#define HYPRE_STRUCT_FNPF_H_
 
 class hypre_struct_fnpf : public solver_fnpf, public increment
 {

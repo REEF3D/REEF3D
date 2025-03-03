@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_SIGMA_H_
+#define NHFLOW_SIGMA_H_
+
 #include"fnpf.h"
 #include"nhflow_gradient.h"
 
@@ -31,9 +34,6 @@ class nhflow_sigma_data;
 class slice;
 
 using namespace std;
-
-#ifndef NHFLOW_SIGMA_H_
-#define NHFLOW_SIGMA_H_
 
 class nhflow_sigma : public nhflow_gradient
 {

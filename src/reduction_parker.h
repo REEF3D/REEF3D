@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 
+#ifndef REDUCTION_PARKER_H_
+#define REDUCTION_PARKER_H_
+
 #include"bedshear_reduction.h"
 #include"bedslope.h"
 
@@ -29,9 +32,6 @@ class ghostcell;
 class sediment_fdm;
 
 using namespace std;
-
-#ifndef REDUCTION_PARKER_H_
-#define REDUCTION_PARKER_H_
 
 class reduction_parker :  public bedshear_reduction, public bedslope
 {

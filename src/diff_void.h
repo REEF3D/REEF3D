@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DIFF_VOID_H_
+#define DIFF_VOID_H_
+
 #include"increment.h"
 #include"diffusion.h"
 #include"looping.h"
 
 using namespace std;
-
-#ifndef DIFF_VOID_H_
-#define DIFF_VOID_H_
 
 
 class diff_void : public diffusion, public increment

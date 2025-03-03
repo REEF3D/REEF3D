@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef NET_SHEET_H_
+#define NET_SHEET_H_
+
 #include"net.h"
 #include"field1.h"
 #include"field2.h"
@@ -37,9 +40,6 @@ Author: Tobias Martin
 class reinidisc;
 
 using namespace std;
-
-#ifndef NET_SHEET_H_
-#define NET_SHEET_H_
 
 class net_sheet : public net, public boundarycheck
 {

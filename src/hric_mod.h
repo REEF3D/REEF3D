@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef HRIC_MOD_H_
+#define HRIC_MOD_H_
+
 #include"convection.h"
 #include"increment.h"
 
 class flux;
-
-#ifndef HRIC_MOD_H_
-#define HRIC_MOD_H_
 
 using namespace std;
 

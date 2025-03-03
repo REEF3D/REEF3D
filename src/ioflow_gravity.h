@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOFLOW_GRAVITY_H_
+#define IOFLOW_GRAVITY_H_
+
 #include"ioflow.h"
 #include"increment.h"
 
 class fdm_fnpf;
 
 using namespace std;
-
-#ifndef IOFLOW_GRAVITY_H_
-#define IOFLOW_GRAVITY_H_
 
 
 class ioflow_gravity : public ioflow, public increment

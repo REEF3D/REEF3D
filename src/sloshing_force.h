@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SLOSHING_FORCE_H_
+#define SLOSHING_FORCE_H_
+
 #include"increment.h"
 #include<iostream>
 #include<fstream>
@@ -30,9 +33,6 @@ class ghostcell;
 class field;
 
 using namespace std;
-
-#ifndef SLOSHING_FORCE_H_
-#define SLOSHING_FORCE_H_
 
 class sloshing_force : public increment
 {

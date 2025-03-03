@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Dave Kelly
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_PRINT_HS_H_
+#define FNPF_PRINT_HS_H_
+
 #include"increment.h"
 #include"slice4.h"
 #include<iostream>
@@ -30,9 +33,6 @@ class ghostcell;
 class slice;
 
 using namespace std;
-
-#ifndef FNPF_PRINT_HS_H_
-#define FNPF_PRINT_HS_H_
 
 class fnpf_print_Hs : public increment
 {

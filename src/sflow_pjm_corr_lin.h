@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_PJM_CORR_LIN_H_
+#define SFLOW_PJM_CORR_LIN_H_
+
 #include"sflow_pressure.h"
 #include"increment.h"
 #include"slice4.h"
 
 using namespace std;
-
-#ifndef SFLOW_PJM_CORR_LIN_H_
-#define SFLOW_PJM_CORR_LIN_H_
 
 class sflow_pjm_corr_lin : public sflow_pressure, public increment
 {

@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef WAVE_LIB_H_
+#define WAVE_LIB_H_
+
 class lexer;
 class fdm;
 class ghostcell;
 class field;
-
-#ifndef WAVE_LIB_H_
-#define WAVE_LIB_H_
 
 using namespace std;
 

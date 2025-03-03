@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef CFD_STATE_H_
+#define CFD_STATE_H_
+
 #include"increment.h"
 #include<fstream>
 
@@ -30,9 +33,6 @@ class turbulence;
 class sediment;
 
 using namespace std;
-
-#ifndef CFD_STATE_H_
-#define CFD_STATE_H_
 
 class cfd_state : public increment
 {

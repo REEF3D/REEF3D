@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_MOMENTUM_FUNC_H_
+#define NHFLOW_MOMENTUM_FUNC_H_
+
 #include"nhflow_momentum.h"
 #include"nhflow_bcmom.h"
 #include"nhflow_sigma.h"
@@ -30,9 +33,6 @@ class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
 
 using namespace std;
-
-#ifndef NHFLOW_MOMENTUM_FUNC_H_
-#define NHFLOW_MOMENTUM_FUNC_H_
 
 class nhflow_momentum_func : public nhflow_momentum, public nhflow_bcmom, public nhflow_sigma
 {

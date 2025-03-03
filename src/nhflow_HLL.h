@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_HLL_H_
+#define NHFLOW_HLL_H_
+
 #include"nhflow_convection.h"
 #include"slice1.h"
 #include"slice2.h"
@@ -29,9 +32,6 @@ class nhflow_flux_build;
 
 class patchBC_interface;
 class ghostcell;
-
-#ifndef NHFLOW_HLL_H_
-#define NHFLOW_HLL_H_
 
 using namespace std;
 

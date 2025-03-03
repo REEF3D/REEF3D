@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_TURBULENCE_H_
+#define NHFLOW_TURBULENCE_H_
+
 class fdm_nhf;
 class lexer;
 class nhflow_scalar_convection;
@@ -30,9 +33,6 @@ class ioflow;
 class vrans;
 
 #include<fstream>
-
-#ifndef NHFLOW_TURBULENCE_H_
-#define NHFLOW_TURBULENCE_H_
 
 using namespace std;
 

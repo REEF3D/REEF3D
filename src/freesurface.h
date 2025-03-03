@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FREESURFACE_H_
+#define FREESURFACE_H_
+
 class fdm;
 class lexer;
 class convection;
@@ -31,9 +34,6 @@ class particle_corr;
 class field;
 
 using namespace std;
-
-#ifndef FREESURFACE_H_
-#define FREESURFACE_H_
 
 class freesurface
 {

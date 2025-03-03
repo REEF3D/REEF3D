@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
+#define NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
+
 #include"increment.h"
 #include<iostream>
 #include<fstream>
@@ -32,9 +35,6 @@ class ioflow;
 class slice;
 
 using namespace std;
-
-#ifndef NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
-#define NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
 
 class nhflow_print_runup_max_gage_x : public increment
 {

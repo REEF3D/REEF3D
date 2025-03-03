@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef WENO_NUG_FUNC_H_
+#define WENO_NUG_FUNC_H_
+
 #include"increment.h"
 
 class lexer;
 class fdm;
 class field;
-
-#ifndef WENO_NUG_FUNC_H_
-#define WENO_NUG_FUNC_H_
 
 using namespace std;
 

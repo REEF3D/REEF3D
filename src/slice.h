@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm;
-
 #ifndef SLICE_H_
 #define SLICE_H_
+
+class lexer;
+class fdm;
 
 using namespace std;
 

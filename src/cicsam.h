@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef CICSAM_H_
+#define CICSAM_H_
+
 #include"convection.h"
 #include"increment.h"
 
 class flux;
-
-#ifndef CICSAM_H_
-#define CICSAM_H_
 
 using namespace std;
 

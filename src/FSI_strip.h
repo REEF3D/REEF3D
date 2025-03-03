@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FSI_STRIP_H_
+#define FSI_STRIP_H_
+
 #include<vector>
 #include <Eigen/Dense>
 #include"beam.h"
@@ -32,9 +35,6 @@ class field;
 class turbulence;
 
 using namespace std;
-
-#ifndef FSI_STRIP_H_
-#define FSI_STRIP_H_
 
 class fsi_strip : public beam, public increment
 {

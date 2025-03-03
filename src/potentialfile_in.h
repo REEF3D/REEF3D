@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef POTENTIALFILE_IN_H_
+#define POTENTIALFILE_IN_H_
+
 #include"increment.h"
 #include<iostream>
 #include<fstream>
@@ -31,9 +34,6 @@ class turbulence;
 class field;
 
 using namespace std;
-
-#ifndef POTENTIALFILE_IN_H_
-#define POTENTIALFILE_IN_H_
 
 class potentialfile_in : public increment
 {

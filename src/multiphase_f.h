@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MULTIPHASE_F_H_
+#define MULTIPHASE_F_H_
+
 class fdm;
 class lexer;
 class convection;
@@ -40,9 +43,6 @@ class concentration;
 #include<fstream>
 
 using namespace std;
-
-#ifndef MULTIPHASE_F_H_
-#define MULTIPHASE_F_H_
 
 class multiphase_f : public multiphase, public increment
 {

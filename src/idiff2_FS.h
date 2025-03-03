@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IDIFF2_FS_H_
+#define IDIFF2_FS_H_
+
 #include"increment.h"
 #include"diffusion.h"
 
 class rheology;
 
 using namespace std;
-
-#ifndef IDIFF2_FS_H_
-#define IDIFF2_FS_H_
 
 
 class idiff2_FS : public diffusion, public increment

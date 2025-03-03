@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef NET_H_
+#define NET_H_
+
 #include<vector>
 #include <Eigen/Dense>
 
@@ -29,9 +32,6 @@ class ghostcell;
 class sixdof;
 
 using namespace std;
-
-#ifndef NET_H_
-#define NET_H_
 
 class net
 {    

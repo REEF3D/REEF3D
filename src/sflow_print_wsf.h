@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_PRINT_WSF_H_
+#define SFLOW_PRINT_WSF_H_
+
 #include"increment.h"
 #include<iostream>
 #include<fstream>
@@ -30,9 +33,6 @@ class ghostcell;
 class slice;
 
 using namespace std;
-
-#ifndef SFLOW_PRINT_WSF_H_
-#define SFLOW_PRINT_WSF_H_
 
 class sflow_print_wsf : public increment
 {

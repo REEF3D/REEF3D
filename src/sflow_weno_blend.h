@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_WENO_BLEND_H_
+#define SFLOW_WENO_BLEND_H_
+
 #include"sflow_convection.h"
 #include"increment.h"
 
 class sflow_flux;
 
 using namespace std;
-
-#ifndef SFLOW_WENO_BLEND_H_
-#define SFLOW_WENO_BLEND_H_
 
 class sflow_weno_blend : public sflow_convection, public increment
 {

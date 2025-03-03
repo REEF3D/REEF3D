@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FDM_HEADER_H_
+#define FDM_HEADER_H_
+
 #include"vtu3D.h"
 #include"vtr3D.h"
 #include"vts3D.h"
@@ -48,4 +51,4 @@ Author: Hans Bihs
 #include"potential_f.h"
 #include"potential_water.h"
 
-
+#endif

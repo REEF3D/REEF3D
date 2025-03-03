@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_DIFFUSION_H_
+#define SFLOW_DIFFUSION_H_
+
 class lexer;
 class fdm2D;
 class ghostcell;
 class solver2D;
 class slice;
 class sliceint;
-
-#ifndef SFLOW_DIFFUSION_H_
-#define SFLOW_DIFFUSION_H_
 
 using namespace std;
 

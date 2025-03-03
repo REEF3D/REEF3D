@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef MOORING_DYN_H_
+#define MOORING_DYN_H_
+
 #include"mooring.h"
 #include"beam.h"
 #include"mooring_Catenary.h"
@@ -36,9 +39,6 @@ Author: Tobias Martin
 #include <Eigen/Dense>
 
 using namespace std;
-
-#ifndef MOORING_DYN_H_
-#define MOORING_DYN_H
 
 class mooring_dynamic : public mooring, public beam
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FREESURFACE_HEADER_H_
+#define FREESURFACE_HEADER_H_
+
 #include"levelset_AB2.h"
 #include"levelset_RK2.h"
 #include"levelset_RK3.h"
@@ -38,3 +41,5 @@ Author: Hans Bihs
 
 #include"multiphase_v.h"
 #include"multiphase_f.h"
+
+#endif

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINIDISC_H_
+#define REINIDISC_H_
+
 class lexer;
 class fdm;
 class field;
 
 using namespace std;
-
-#ifndef REINIDISC_H_
-#define REINIDISC_H_
 
 class reinidisc
 {

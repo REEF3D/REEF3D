@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IDIFF2_H_
+#define IDIFF2_H_
+
 #include"gradient.h"
 #include"diffusion.h"
 
 using namespace std;
-
-#ifndef IDIFF2_H_
-#define IDIFF2_H_
 
 class rheology;
 

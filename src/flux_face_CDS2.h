@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"flux.h"
-#include"increment.h"
-
 #ifndef FLUX_FACE_CDS2_H_
 #define FLUX_FACE_CDS2_H_
+
+#include"flux.h"
+#include"increment.h"
 
 using namespace std;
 

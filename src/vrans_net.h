@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef VRANS_NET_H_
+#define VRANS_NET_H_
+
 #include"vrans.h"
 #include"increment.h"
 #include"field1.h"
@@ -30,9 +33,6 @@ Author: Tobias Martin
 #include<vector>
 
 using namespace std;
-
-#ifndef VRANS_NET_H_
-#define VRANS_NET_H_
 
 class vrans_net : public vrans, public increment
 {

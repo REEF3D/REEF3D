@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Elyas Larkermani
 --------------------------------------------------------------------*/
 
+#ifndef IDIFF2_CN_H_
+#define IDIFF2_CN_H_
+
 #include"increment.h"
 #include"diffusion.h"
 
 class rheology;
 
 using namespace std;
-
-#ifndef IDIFF2_CN_H_
-#define IDIFF2_CN_H_
 
 
 class idiff2_CN : public diffusion, public increment

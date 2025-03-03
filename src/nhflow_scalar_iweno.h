@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_SCALAR_IWENO_H_
+#define NHFLOW_SCALAR_IWENO_H_
+
 #include"nhflow_scalar_convection.h"
 #include"weno_nug_func.h"
 
 class nhflow_scalar_advec;
-
-#ifndef NHFLOW_SCALAR_IWENO_H_
-#define NHFLOW_SCALAR_IWENO_H_
 
 using namespace std;
 

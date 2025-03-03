@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DATA_F_H_
+#define DATA_F_H_
+
 #include"data.h"
 #include"increment.h"
 #include"field4.h"
@@ -29,9 +32,6 @@ class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef DATA_F_H_
-#define DATA_F_H_
 
 class data_f : public data, public increment
 {

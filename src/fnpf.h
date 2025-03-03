@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_H_
+#define FNPF_H_
+
 class lexer;
 class fdm_fnpf;
 class ghostcell;
@@ -29,9 +32,6 @@ class ioflow;
 class reini;
 
 using namespace std;
-
-#ifndef FNPF_H_
-#define FNPF_H_
 
 class fnpf
 {
