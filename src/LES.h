@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LES_H_
+#define LES_H_
+
 #include"les_io.h"
 #include"ghostcell.h"
 
 using namespace std;
-
-#ifndef LES_H_
-#define LES_H_
 
 class LES : public les_io
 {

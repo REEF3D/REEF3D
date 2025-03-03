@@ -19,15 +19,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+#ifndef EARSM_H_
+#define EARSM_H_
+
 #include"strain.h"
 #include"field4.h"
 
 class fdm;
 
 using namespace std;
-
-#ifndef EARSM_H_
-#define EARSM_H_
 
 class EARSM : private strain
 {

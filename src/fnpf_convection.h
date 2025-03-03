@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_CONVECTION_H_
+#define FNPF_CONVECTION_H_
+
 class lexer;
 class field;
 class slice;
@@ -27,9 +30,6 @@ class sliceint;
 class vec;
 
 using namespace std;
-
-#ifndef FNPF_CONVECTION_H_
-#define FNPF_CONVECTION_H_
 
 class fnpf_convection
 {

@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_IKOMEGA_H_
+#define NHFLOW_IKOMEGA_H_
+
 #include"nhflow_rans_io.h"
 #include"nhflow_komega_bc.h"
 #include"ghostcell.h"
 #include"vrans.h"
 
 using namespace std;
-
-#ifndef NHFLOW_IKOMEGA_H_
-#define NHFLOW_IKOMEGA_H_
 
 class nhflow_komega_func : public nhflow_rans_io, public nhflow_komega_bc
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FLUID_UPDATE_FSF_CONCENTRATION_H_
+#define FLUID_UPDATE_FSF_CONCENTRATION_H_
+
 #include"fluid_update.h"
 #include"increment.h"
 
@@ -29,9 +32,6 @@ class ghostcell;
 class concentration;
 
 using namespace std;
-
-#ifndef FLUID_UPDATE_FSF_CONCENTRATION_H_
-#define FLUID_UPDATE_FSF_CONCENTRATION_H_
 
 class fluid_update_fsf_concentration : public fluid_update, increment
 {

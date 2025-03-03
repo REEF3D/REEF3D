@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_TIMESTEP_H_
+#define SFLOW_TIMESTEP_H_
+
 class fdm2D;
 class lexer;
 class ghostcell;
 
 using namespace std;
-
-#ifndef SFLOW_TIMESTEP_H_
-#define SFLOW_TIMESTEP_H_
 
 class sflow_timestep
 {

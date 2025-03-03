@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FIXTIMESTEP_H_
+#define FIXTIMESTEP_H_
+
 #include"timestep.h"
 #include"increment.h"
 
 class turbulence;
 
 using namespace std;
-
-#ifndef FIXTIMESTEP_H_
-#define FIXTIMESTEP_H_
 
 class fixtimestep : public timestep, public increment
 {

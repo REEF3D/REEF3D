@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_F_H_
+#define SFLOW_F_H_
+
 #include"sflow.h"
 #include"increment.h"
 #include<iostream>
@@ -51,9 +54,6 @@ class sixdof;
 class net;
 
 using namespace std;
-
-#ifndef SFLOW_F_H_
-#define SFLOW_F_H_
 
 class sflow_f : public sflow, public increment
 {

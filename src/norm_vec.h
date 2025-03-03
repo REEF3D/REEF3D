@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NORM_VEC_H_
+#define NORM_VEC_H_
+
 #include"ddweno_f_nug.h"
 
 using namespace std;
-
-#ifndef NORM_VEC_H_
-#define NORM_VEC_H_
 
 class norm_vec : public ddweno_f_nug
 {

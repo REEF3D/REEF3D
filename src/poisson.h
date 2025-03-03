@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef POISSON_H_
+#define POISSON_H_
+
 class lexer;
 class fdm;
 class field;
-
-#ifndef POISSON_H_
-#define POISSON_H_
 
 using namespace std;
 

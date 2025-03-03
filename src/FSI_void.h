@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FSI_VOID_H_
+#define FSI_VOID_H_
+
 #include"FSI.h"
 
 using namespace std;
-
-#ifndef FSI_VOID_H_
-#define FSI_VOID_H_
 
 class fsi_void : public fsi
 {

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_MOMENTUM_RK3_H_
+#define NHFLOW_MOMENTUM_RK3_H_
+
 #include"slice4.h"
 #include"nhflow_momentum_func.h"
 #include<vector>
@@ -29,9 +32,6 @@ class vrans;
 class net;
 
 using namespace std;
-
-#ifndef NHFLOW_MOMENTUM_RK3_H_
-#define NHFLOW_MOMENTUM_RK3_H_
 
 class nhflow_momentum_RK3 : public nhflow_momentum_func
 {

@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef HEAT_VOID_H_
+#define HEAT_VOID_H_
+
 #include"heat.h"
 #include<fstream>
 
 using namespace std;
-
-#ifndef HEAT_VOID_H_
-#define HEAT_VOID_H_
 
 class heat_void : public heat
 {

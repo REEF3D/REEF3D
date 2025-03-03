@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOFLOW_F_H_
+#define IOFLOW_F_H_
+
 #include"ioflow.h"
 #include"resize.h"
 #include"increment.h"
@@ -29,9 +32,6 @@ class fdm_fnpf;
 
 
 using namespace std;
-
-#ifndef IOFLOW_F_H_
-#define IOFLOW_F_H_
 
 
 class ioflow_f : public ioflow, private resize_class, public increment

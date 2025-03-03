@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef INTERPOLATION_H_
+#define INTERPOLATION_H_
+
 #include"boundarycheck.h"
 
 class fdm;
@@ -27,9 +30,6 @@ class lexer;
 class field;
 class slice;
 class sliceint;
-
-#ifndef INTERPOLATION_H_
-#define INTERPOLATION_H_
 
 using namespace std;
 

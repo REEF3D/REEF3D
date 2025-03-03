@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DIFFUSION_H_
+#define DIFFUSION_H_
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -27,9 +30,6 @@ class field;
 class solver;
 
 using namespace std;
-
-#ifndef DIFFUSION_H_
-#define DIFFUSION_H_
 
 
 class diffusion

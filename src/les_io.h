@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LES_IO_H_
+#define LES_IO_H_
+
 #include"turbulence.h"
 #include"field1.h"
 #include"field2.h"
@@ -33,9 +36,6 @@ class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef LES_IO_H_
-#define LES_IO_H_
 
 class les_io : public turbulence, public strain
 {

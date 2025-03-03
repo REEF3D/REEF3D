@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PROBE_LINE_H_
+#define PROBE_LINE_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -31,9 +34,6 @@ class field;
 class turbulence;
 
 using namespace std;
-
-#ifndef PROBE_LINE_H_
-#define PROBE_LINE_H_
 
 class probe_line : public boundarycheck
 {

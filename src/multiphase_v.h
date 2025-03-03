@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MULTIPHASE_V_H_
+#define MULTIPHASE_V_H_
+
 class fdm;
 class lexer;
 class convection;
@@ -34,9 +37,6 @@ class field;
 #include<fstream>
 
 using namespace std;
-
-#ifndef MULTIPHASE_V_H_
-#define MULTIPHASE_V_H_
 
 class multiphase_v : public multiphase
 {

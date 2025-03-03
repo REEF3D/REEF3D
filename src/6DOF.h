@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SIXDOF_H_
+#define SIXDOF_H_
+
 #include<vector>
 
 class lexer;
@@ -33,9 +36,6 @@ class field;
 class slice;
 
 using namespace std;
-
-#ifndef SIXDOF_H_
-#define SIXDOF_H_
 
 class sixdof
 {

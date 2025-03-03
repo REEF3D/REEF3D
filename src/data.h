@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DATA_H_
+#define DATA_H_
+
 class fdm;
 class lexer;
 class ghostcell;
 
 #include<fstream>
-
-#ifndef DATA_H_
-#define DATA_H_
 
 using namespace std;
 

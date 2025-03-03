@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDLOAD_EINSTEIN_H_
+#define BEDLOAD_EINSTEIN_H_
+
 #include"bedload.h"
 #include"increment.h"
 
 class turbulence;
 
 using namespace std;
-
-#ifndef BEDLOAD_EINSTEIN_H_
-#define BEDLOAD_EINSTEIN_H_
 
 class bedload_einstein : public bedload, public increment
 {

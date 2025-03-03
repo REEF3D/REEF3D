@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Arun Kamath, Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_PRINT_KINEMATICS_H_
+#define FNPF_PRINT_KINEMATICS_H_
+
 #include"increment.h"
 #include"fieldint5.h"
 #include"field5.h"
@@ -29,9 +32,6 @@ Author: Arun Kamath, Tobias Martin
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-
-#ifndef FNPF_PRINT_KINEMATICS_H_
-#define FNPF_PRINT_KINEMATICS_H_
 
 using namespace std;
 

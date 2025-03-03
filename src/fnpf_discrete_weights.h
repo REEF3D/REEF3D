@@ -26,11 +26,11 @@ Author: Hans Bihs
     Mathematics of Compuation, 51, 184, 1988, pp. 699-706
 */
 
-#include"fnpf_convection.h"
-#include"increment.h"
-
 #ifndef FNPF_DISCRETE_WEIGHTS_H_
 #define FNPF_DISCRETE_WEIGHTS_H_
+
+#include"fnpf_convection.h"
+#include"increment.h"
 
 using namespace std;
 

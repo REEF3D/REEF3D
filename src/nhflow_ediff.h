@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_diffusion.h"
-#include"increment.h"
-
 #ifndef NHFLOW_EDIFF_H_
 #define NHFLOW_EDIFF_H_
+
+#include"nhflow_diffusion.h"
+#include"increment.h"
 
 using namespace std;
 

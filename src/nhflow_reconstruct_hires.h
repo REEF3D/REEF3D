@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_RECONSTRUCT_HIRES_H_
+#define NHFLOW_RECONSTRUCT_HIRES_H_
+
 #include"nhflow_reconstruct.h"
 #include"nhflow_gradient.h"
 #include"slice4.h"
@@ -29,9 +32,6 @@ class ghostcell;
 class fdm_nhf;
 class slice;
 class patchBC_interface;
-
-#ifndef NHFLOW_RECONSTRUCT_HIRES_H_
-#define NHFLOW_RECONSTRUCT_HIRES_H_
 
 using namespace std;
 

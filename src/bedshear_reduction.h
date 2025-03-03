@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDSHEAR_REDUCTION_H_
+#define BEDSHEAR_REDUCTION_H_
+
 class lexer;
 class ghostcell;
 class slice;
 class sediment_fdm;
 
 using namespace std;
-
-#ifndef BEDSHEAR_REDUCTION_H_
-#define BEDSHEAR_REDUCTION_H_
 
 class bedshear_reduction
 {

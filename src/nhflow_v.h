@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_V_H_
+#define NHFLOW_V_H_
+
 #include"nhflow.h"
 
 using namespace std;
-
-#ifndef NHFLOW_V_H_
-#define NHFLOW_V_H_
 
 class nhflow_v : public nhflow
 {

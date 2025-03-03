@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_VOID_H_
+#define FNPF_VOID_H_
+
 #include"fnpf.h"
 
 using namespace std;
-
-#ifndef FNPF_VOID_H_
-#define FNPF_VOID_H_
 
 class fnpf_void : public fnpf
 {

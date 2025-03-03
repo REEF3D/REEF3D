@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_GRADIENT_WENO_H_
+#define SFLOW_GRADIENT_WENO_H_
+
 #include"sflow_gradient.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef SFLOW_GRADIENT_WENO_H_
-#define SFLOW_GRADIENT_WENO_H_
 
 class sflow_gradient_weno : public sflow_gradient, public increment
 {

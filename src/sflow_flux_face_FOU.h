@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_FLUX_FACE_FOU_H_
+#define SFLOW_FLUX_FACE_FOU_H_
+
 #include"increment.h"
 #include"sflow_flux.h"
 
 class lexer;
-
-#ifndef SFLOW_FLUX_FACE_FOU_H_
-#define SFLOW_FLUX_FACE_FOU_H_
 
 using namespace std;
 

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef GEOTOPO_H_
+#define GEOTOPO_H_
+
 #include"increment.h"
 
 class lexer;
@@ -30,9 +33,6 @@ class ioflow;
 class vrans;
 
 using namespace std;
-
-#ifndef GEOTOPO_H_
-#define GEOTOPO_H_
 
 class geotopo : public increment
 {

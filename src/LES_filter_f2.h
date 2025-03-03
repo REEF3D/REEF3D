@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LES_FILTER_F2_H_
+#define LES_FILTER_F2_H_
+
 #include"LES_filter.h"
 #include"strain.h"
 #include"field1.h"
@@ -31,9 +34,6 @@ class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef LES_FILTER_F2_H_
-#define LES_FILTER_F2_H_
 
 class LES_filter_f2 : public LES_filter, public strain
 {

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LINEAR_REGRESSION_CONT_H_
+#define LINEAR_REGRESSION_CONT_H_
+
 #include"increment.h"
 
 class lexer;
 class ghostcell;
 class flux;
-
-#ifndef LINEAR_REGRESSION_CONT_H_
-#define LINEAR_REGRESSION_CONT_H_
 
 using namespace std;
 

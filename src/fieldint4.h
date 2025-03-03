@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fieldint.h"
-#include"increment.h"
-
 #ifndef FIELDINT4_H_
 #define FIELDINT4_H_
+
+#include"fieldint.h"
+#include"increment.h"
 
 using namespace std;
 

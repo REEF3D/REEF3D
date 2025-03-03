@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef WAVE_LIB_SOLITARY_3RD_H_
+#define WAVE_LIB_SOLITARY_3RD_H_
+
 #include"wave_lib_precalc.h"
 #include"wave_lib_parameters.h"
 #include"wave_lib_elliptic.h"
 #include"increment.h"
-
-#ifndef WAVE_LIB_SOLITARY_3RD_H_
-#define WAVE_LIB_SOLITARY_3RD_H_
 
 using namespace std;
 

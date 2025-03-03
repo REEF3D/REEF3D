@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef TOPO_VTP_H_
+#define TOPO_VTP_H_
+
 #include"increment.h"
 #include"fieldint5.h"
 #include"field5.h"
@@ -28,9 +31,6 @@ class lexer;
 class fdm;
 class ghostcell;
 class sediment;
-
-#ifndef TOPO_VTP_H_
-#define TOPO_VTP_H_
 
 using namespace std;
 

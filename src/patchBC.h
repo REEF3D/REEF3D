@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PATCHBC_H_
+#define PATCHBC_H_
+
 #include"patchBC_interface.h"
 
 using namespace std;
-
-#ifndef PATCHBC_H_
-#define PATCHBC_H_
 
 class patchBC : public patchBC_interface, public increment
 {

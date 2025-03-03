@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_STATE_H_
+#define SFLOW_STATE_H_
+
 #include"increment.h"
 #include<fstream>
 
@@ -28,9 +31,6 @@ class fdm2D;
 class ghostcell;
 
 using namespace std;
-
-#ifndef SFLOW_STATE_H_
-#define SFLOW_STATE_H_
 
 class sflow_state : public increment
 {

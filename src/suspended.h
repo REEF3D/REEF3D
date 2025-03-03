@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SUSPENDED_H_
+#define SUSPENDED_H_
+
 class lexer;
 class fdm;
 class convection;
@@ -30,9 +33,6 @@ class ioflow;
 class sediment_fdm;
 
 using namespace std;
-
-#ifndef SUSPENDED_H_
-#define SUSPENDED_H_
 
 class suspended
 {

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SUSPENDED_RK2_H_
+#define SUSPENDED_RK2_H_
+
 #include"suspended.h"
 #include"increment.h"
 #include"field3.h"
 
 using namespace std;
-
-#ifndef SUSPENDED_RK2_H_
-#define SUSPENDED_RK2_H_
 
 class suspended_RK2 : public suspended, public increment
 {
