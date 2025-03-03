@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SFLOW_EDIFF_H_
-#define SFLOW_EDIFF_H_
+#ifndef SFLOW_FILTER_H_
+#define SFLOW_FILTER_H_
 
 #include"sflow_diffusion.h"
 #include"increment.h"
