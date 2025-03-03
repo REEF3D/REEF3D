@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"turbulence.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
 #include"field4.h"
 #include"strain.h"
 #include<fstream>

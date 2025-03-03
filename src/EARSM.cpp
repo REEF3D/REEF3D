@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"lexer.h"
 
-EARSM::EARSM(lexer* p, fdm* a) : strain(p,a),rs11(p),rs22(p),rs33(p),rs12(p),rs13(p),rs23(p),
+EARSM::EARSM(lexer* p, fdm* a) : strain(p),rs11(p),rs22(p),rs33(p),rs12(p),rs13(p),rs23(p),
 c_1(1.8), c1(1.8),tt(2.0/3.0),ot(1.0/3.0),ctau(6.0)
 {
 }

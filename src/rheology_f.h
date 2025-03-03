@@ -17,49 +17,56 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
+
+#ifndef RHEOLOGY_F_H_
+#define RHEOLOGY_F_H_
 
 #include"rheology.h"
 #include"strain.h"
 #include"field4.h"
-
-using namespace std;
-
-#ifndef RHEOLOGY_F_H_
-#define RHEOLOGY_F_H_
 
 class rheology_f : public rheology, public strain
 {
 
 public:
 
-    rheology_f(lexer*, fdm*);
-    virtual ~rheology_f();
+    rheology_f(lexer*);
+    virtual ~rheology_f()=default;
 
-    virtual double viscosity(lexer*,fdm*,ghostcell*);
+    double viscosity(lexer*,fdm*,ghostcell*) override;
     
-    virtual void u_source(lexer*,fdm*);
-    virtual void v_source(lexer*,fdm*);
-    virtual void w_source(lexer*,fdm*);
+    void u_source(lexer*,fdm*) override;
+    void v_source(lexer*,fdm*) override;
+    void w_source(lexer*,fdm*) override;
     
-    virtual void filltau(lexer*,fdm*,ghostcell*);
+    void filltau(lexer*,fdm*,ghostcell*) override;
 
 private:
+    double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
+    double Mohr_Coulomb_and_Herschel_Bulkley(lexer*,fdm*,ghostcell*);
+    double heaviside(int);
+    void yield_stress(lexer*,fdm*);
+    void yieldStressGradient(lexer*,fdm*,int,int,int);
+    void pressurePhi(lexer*,fdm*,int,int,int,bool=false);
+    void pressurePhiGradient(lexer*,fdm*,int,int,int);
+
     field4 tau_x,tau_y,tau_z;
     
-    double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
-    
-    
     double gamma;
-    double val,f,H,phival,pval;
+    double val,f,H,phival,pressureval;
     double tau0;
     double tau0_p,tau0_m;
     double tanphi;
+
+    double pressureval1,pressureval2;
+    double tau01,tau02;
     
     const double epsi;
+    const double gravity;
+    const double density_interstitial_fluid;
     
     int count;
-    
 };
 #endif

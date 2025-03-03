@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"fluid_update_rheology.h"
@@ -26,31 +26,31 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"rheology_f.h"
 
-fluid_update_rheology::fluid_update_rheology(lexer *p, fdm* a) : dx(p->DXM),
-                                                visc2(p->W4),ro2(p->W3),ro1(p->W1)
+fluid_update_rheology::fluid_update_rheology(lexer *p) : ro1(p->W1), ro2(p->W3), visc2(p->W4)
 {
-    gcval_ro=1;
-    gcval_visc=1;
+    iter=0;
+    iocheck = true;
     
-    prheo = new rheology_f(p,a);    
+    prheo = new rheology_f(p);
 }
 
 fluid_update_rheology::~fluid_update_rheology()
 {
+    delete prheo;
 }
 
 void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
 {
-    double H=0.0;
-    double Hro=0.0;
+    const int gcval_ro = 1;
+    const int gcval_visc = 1;
+
+    double H_phi=0.0;
     p->volume1=0.0;
     p->volume2=0.0;
     
     if(p->count>iter)
-    iocheck=0;
+        iocheck = true;
     iter=p->count;
-    
-    visc1 = p->W2;
     
     if(p->j_dir==0)        
     epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
@@ -58,63 +58,40 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
     if(p->j_dir==1)
     epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 
-
-    // density
-    LOOP
-    {
-        if(a->phi(i,j,k)>epsi)
-        H=1.0;
-
-        if(a->phi(i,j,k)<-epsi)
-        H=0.0;
-
-        if(fabs(a->phi(i,j,k))<=epsi)
-        H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-
-        a->ro(i,j,k)=      ro1*H +   ro2*(1.0-H);
-
-        p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
-    }
-    pgc->start4(p,a->ro,gcval_ro);
-    
-    // viscosity
+    // density, viscosity & volumes
     LOOP
     {  
         if(a->phi(i,j,k)>epsi)
         {
-        H=1.0;
-        visc1 = prheo->viscosity(p,a,pgc);
+            H_phi=1.0;
         }
-
-        if(a->phi(i,j,k)<-epsi)
+        else if(a->phi(i,j,k)<-epsi)
         {
-        H=0.0;
-        visc1 = 0.0;
+            H_phi=0.0;
         }
-
-        if(fabs(a->phi(i,j,k))<=epsi)
+        else
         {
-        H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-        visc1 = prheo->viscosity(p,a,pgc);
+            H_phi=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
         }
 
-        a->visc(i,j,k) =    visc1*H + visc2*(1.0-H);
+        a->ro(i,j,k) = ro1*H_phi + ro2*(1.0-H_phi);
+
+        visc1 = prheo->viscosity(p,a,pgc);
+        a->visc(i,j,k) = visc1*H_phi + visc2*(1.0-H_phi);
+
+        p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H_phi-(1.0-a->porosity(i,j,k)));
+        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H_phi-(1.0-a->porosity(i,j,k)));
     }
-    
-    pgc->start4(p,a->visc,gcval_visc);
 
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
     p->volume1 = pgc->globalsum(p->volume1);
     p->volume2 = pgc->globalsum(p->volume2);
     
-    if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))
+    if(p->mpirank==0 && iocheck && (p->count%p->P12==0))
     {
-    cout<<"Volume 1: "<<p->volume1<<endl;
-    cout<<"Volume 2: "<<p->volume2<<endl;
+        cout<<"Volume 1: "<<p->volume1<<endl;
+        cout<<"Volume 2: "<<p->volume2<<endl;
     }
-    ++iocheck;
+    iocheck = false;
 }
-
-int fluid_update_rheology::iocheck;
-int fluid_update_rheology::iter;
-

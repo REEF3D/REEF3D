@@ -2097,6 +2097,7 @@
       <VirtualDirectory Name="Rheology">
         <File Name="rheology_filltau.cpp"/>
         <File Name="rheology_Herschel-Bulkley.cpp"/>
+        <File Name="rheology_Mohr_Coulomb_and_Herschel_Bulkley.cpp"/>
         <File Name="rheology_f.cpp"/>
         <File Name="rheology_v.cpp"/>
         <File Name="rheology_velsource.cpp"/>

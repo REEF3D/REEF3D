@@ -20,34 +20,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"rheology.h"
-
-using namespace std;
-
 #ifndef RHEOLOGY_V_H_
 #define RHEOLOGY_V_H_
 
+#include"rheology.h"
 
 class rheology_v : public rheology
 {
 
 public:
 
-    rheology_v(lexer*,fdm*);
+    rheology_v();
     virtual ~rheology_v();
 
-    virtual double viscosity(lexer*,fdm*,ghostcell*);
+    double viscosity(lexer*,fdm*,ghostcell*) override;
     
-    virtual void u_source(lexer*,fdm*);
-    virtual void v_source(lexer*,fdm*);
-    virtual void w_source(lexer*,fdm*);
+    void u_source(lexer*,fdm*) override;
+    void v_source(lexer*,fdm*) override;
+    void w_source(lexer*,fdm*) override;
     
-    virtual void filltau(lexer*,fdm*,ghostcell*);
-
-private:
-    double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
-    
-    double val;
+    void filltau(lexer*,fdm*,ghostcell*) override;
     
 };
 #endif

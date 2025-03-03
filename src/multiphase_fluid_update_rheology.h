@@ -33,7 +33,7 @@ using namespace std;
 class multiphase_fluid_update_rheology : public multiphase_fluid_update, increment
 {
 public:
-    multiphase_fluid_update_rheology(lexer*, fdm*, ghostcell*);
+    multiphase_fluid_update_rheology(lexer*);
     virtual ~multiphase_fluid_update_rheology();
 
     virtual void start(lexer*, fdm*, ghostcell*,field&,field&);

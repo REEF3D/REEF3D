@@ -20,21 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOFLOW_V_H_
+#define IOFLOW_V_H_
+
 #include"ioflow.h"
 #include"increment.h"
 #include"field4.h"
 #include"flowfile_in.h"
 
 class vec;
-class vrans;
 class rheology;
 class fdm_fnpf;
 
 using namespace std;
-
-#ifndef IOFLOW_V_H_
-#define IOFLOW_V_H_
-
 
 class ioflow_v : public ioflow, public increment, public flowfile_in
 {
@@ -132,10 +130,7 @@ private:
     int count;
     
     double Apor,Bpor,porval,partval;
-    vrans *pvrans;
     rheology *prheo;
-    
-    double tanphi;
     
     patchBC_interface *pBC;
 };

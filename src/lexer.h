@@ -593,6 +593,17 @@ public:
     int W101;
     double W102_c,W102_phi;
     double W103,W104;
+    double W105_tau_00;
+    double W105_C_total;
+    double W105_C_kaolinite_chlorite;
+    double W105_C_illite;
+    double W105_C_montmorillonite;
+    double W106_b;
+    double W106_m_y;
+    double W107_mu_min;
+    double W107_delta;
+    double W107_mu_0;
+    double W108_a_2;
     int W110,W111;
     double W112;
     

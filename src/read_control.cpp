@@ -2079,6 +2079,18 @@ void lexer::read_control()
                 case 104: control>>W104;
                          clear(c,numint);
                          break;
+                case 105: control>>W105_tau_00>>W105_C_total>>W105_C_kaolinite_chlorite>>W105_C_illite>>W105_C_montmorillonite;
+                         clear(c,numint);
+                         break;
+                case 106: control>>W106_b>>W106_m_y;
+                         clear(c,numint);
+                         break;
+                case 107: control>>W107_mu_min>>W107_delta>>W107_mu_0;
+                         clear(c,numint);
+                         break;
+                case 108: control>>W108_a_2;
+                         clear(c,numint);
+                         break;
                 case 110: control>>W110;
                          clear(c,numint);
                          break;
