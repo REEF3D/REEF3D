@@ -831,7 +831,6 @@ void lexer::ini_default()
     X101=0;        // int ini Euler angles
     X101_phi=X101_theta=X101_psi=0.0;
     X102=0;        // int ini linear velocity
-    X102_u=X102_v=X102_w=0.0;
     X103=0;        // int ini angular velocity
     X103_p=X103_q=X103_r=0.0;
     X110=0;        // int rectangular box floating body

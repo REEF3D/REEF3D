@@ -1689,12 +1689,6 @@ void lexer::ctrlsend()
     dd++;
     ictrl[ii] = X102;
     ii++;
-    dctrl[dd] = X102_u;
-    dd++;
-    dctrl[dd] = X102_v;
-    dd++;
-    dctrl[dd] = X102_w;
-    dd++;
     ictrl[ii] = X103;
     ii++;
     dctrl[dd] = X103_p;
@@ -3047,6 +3041,18 @@ void lexer::ctrlsend()
     dd++;
     }
     
+for(n=0;n<X102;++n)
+    {
+    dctrl[dd] = X102_u[n];
+    dd++;
+    dctrl[dd] = X102_v[n];
+    dd++;
+    dctrl[dd] = X102_w[n];
+    dd++;
+    ictrl[ii] = X102_objID[n];
+    ii++;
+    }
+
     for(n=0;n<X110;++n)
     {
     dctrl[dd] = X110_xs[n];
