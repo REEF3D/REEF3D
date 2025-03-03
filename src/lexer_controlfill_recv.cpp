@@ -1595,6 +1595,8 @@ void lexer::ctrlrecv()
     ii++;
     X19 = ictrl[ii];
     ii++;
+    X20 = ictrl[ii];
+    ii++;
     X21 = ictrl[ii];
     ii++;
     X21_d = dctrl[dd];

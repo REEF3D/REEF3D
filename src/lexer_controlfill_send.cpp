@@ -1601,6 +1601,8 @@ void lexer::ctrlsend()
     ii++;           
     ictrl[ii] = X19;
     ii++;
+    ictrl[ii] = X20;
+    ii++;
     ictrl[ii] = X21;
     ii++;
     dctrl[dd] = X21_d;

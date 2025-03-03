@@ -801,6 +801,7 @@ void lexer::ini_default()
     X12=1;      // int turn force calculation on
     X14=1;      // int tangential velocity 
     X19=1;        // int print out interval 6DOF log files
+    X20=1;        // int number of floating body
     X21=1;        // int presribe homogeneous density floating body
     X21_d=900.0;        // double presribe homogeneous density floating body
     X22=0;        // int prescribe mass floating body
