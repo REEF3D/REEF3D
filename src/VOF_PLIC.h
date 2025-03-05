@@ -120,6 +120,7 @@ private:
     void calcNormalMYC2D(fdm*,lexer*, field&);
     int searchMarkerInVicinity(lexer*,fdm*,int,double,int,int,int);
     int searchMarkerAlongDims(lexer*,fdm*,int,double,int,int,int);
+    void calculateSubFractions(lexer*,fdm*,ghostcell*,field&);
    
     field4 V_w_p;
     field4 V_w_m;

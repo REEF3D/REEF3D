@@ -43,9 +43,9 @@ void VOF_PLIC::updatePhasemarkers( lexer* p, fdm* a, ghostcell* pgc)
     
     LOOP
     {
-        if(a->phasemarker(i,j,k)<0.1 && a->phasemarker(i,j,k)>-0.1)
+        if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<1.0)
         {   
-            if(searchMarkerAlongDims(p,a,1,10.0,i,j,k)>=1)
+            if(searchMarkerInVicinity(p,a,1,10.0,i,j,k)>=1)
             {
                 a->phasemarker(i,j,k)=6.0;
             }
@@ -54,7 +54,7 @@ void VOF_PLIC::updatePhasemarkers( lexer* p, fdm* a, ghostcell* pgc)
     
     pgc->start4(p,a->phasemarker,1);
     
-    LOOP
+   /* LOOP
     {
         if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
         {
@@ -63,7 +63,7 @@ void VOF_PLIC::updatePhasemarkers( lexer* p, fdm* a, ghostcell* pgc)
                 a->phasemarker(i,j,k)=4.0;
             }
         }
-    }
+    }*/
     
     pgc->start4(p,a->phasemarker,1);
     

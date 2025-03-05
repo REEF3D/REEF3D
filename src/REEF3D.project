@@ -2329,6 +2329,7 @@
       <VirtualDirectory Name="VOF PLIC">
         <File Name="VOF_void.cpp"/>
         <VirtualDirectory Name="FCRK3_functions">
+          <File Name="VOF_PLIC_calculateSubFracions.cpp"/>
           <File Name="VOF_PLIC_updatePhasemarkers.cpp"/>
           <File Name="VOF_PLIC_RK_transportVOF.cpp"/>
           <File Name="VOF_PLIC_RK_advection.cpp"/>
