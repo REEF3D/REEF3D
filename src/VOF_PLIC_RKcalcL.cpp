@@ -30,13 +30,17 @@ void VOF_PLIC::RKcalcL
 (
     fdm *a,
     lexer *p,
-    ghostcell* pgc
+    ghostcell* pgc,
+    field& uvel,
+    field& vvel,
+    field& wvel
 )
 {
     pgc->start4(p,a->vof,1);
-    pgc->start1(p,a->u,10);
-    pgc->start2(p,a->v,11);
-    pgc->start3(p,a->w,12);
+    pgc->start1(p,uvel,10);
+    pgc->start2(p,vvel,11);
+    pgc->start3(p,wvel,12);
+    updatePhasemarkers(p,a,pgc);
     starttime=pgc->timer();
     if(p->j_dir>0)
     {
@@ -52,5 +56,6 @@ void VOF_PLIC::RKcalcL
         else
             sSweep=0;
     }
-    symmetric_scheme2D_FCRK3(a,p,pgc);
+    symmetric_scheme2D_FCRK3(a,p,pgc,uvel,vvel,wvel);
+    
 }

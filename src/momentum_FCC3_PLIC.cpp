@@ -17,10 +17,10 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#include"momentum_FCC3.h"
+#include"momentum_FCC3_PLIC.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -34,28 +34,17 @@ Author: Hans Bihs
 #include"solver.h"
 #include"reini.h"
 #include"picard.h"
-#include"fluid_update_fsf.h"
-#include"fluid_update_fsf_heat.h"
-#include"fluid_update_fsf_heat_Bouss.h"
-#include"fluid_update_fsf_comp.h"
-#include"fluid_update_void.h"
-#include"fluid_update_fsf_concentration.h"
-#include"fluid_update_rheology.h"
+#include"fluid_update_vof.h"
 #include"picard_f.h"
 #include"picard_lsm.h"
 #include"picard_void.h"
 #include"nhflow.h"
 #include"heat.h"
 #include"concentration.h"
-#include"density_f.h"
-#include"density_df.h"
-#include"density_comp.h"
-#include"density_conc.h"
-#include"density_heat.h"
 #include"density_vof.h"
-#include"density_rheo.h"
+#include"VOF_PLIC.h"
 
-momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_FCC3_PLIC::momentum_FCC3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
                                                     heat *&pheat, concentration *&pconc, reini *ppreini,
                                                     fsi *ppfsi)
@@ -63,7 +52,7 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
                                                     Mx(p),rox(p),My(p),roy(p),Mz(p),roz(p),
                                                     Mx_rk1(p),Mx_rk2(p),My_rk1(p),My_rk2(p),Mz_rk1(p),Mz_rk2(p),
                                                     rox_rk1(p),rox_rk2(p),roy_rk1(p),roy_rk2(p),roz_rk1(p),roz_rk2(p),
-                                                    fx(p),fy(p),fz(p)
+                                                    fx(p),fy(p),fz(p),VoF(p),vof_rk1(p),vof_rk2(p)
                                                     
 {
 	gcval_u=10;
@@ -71,6 +60,7 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	gcval_w=12;
     gcval_ro=1;
     gcval_visc=1;
+    gcval_vof=1;
     
     if(p->F50==1)
 	gcval_phi=51;
@@ -85,7 +75,6 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	gcval_phi=54;
 
 	pconvec=pconvection;
-    pfsfdisc=ppfsfdisc;
 	pdiff=pdiffusion;
 	ppress=ppressure;
 	ppois=ppoisson;
@@ -95,54 +84,10 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	pflow=pioflow;
     preini=ppreini;
     pfsi=ppfsi;
-    
-    // fluid update
-    if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
-	pupdate = new fluid_update_fsf(p,a,pgc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
-	pupdate = new fluid_update_fsf_comp(p,a,pgc);
-	
-	if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==1)
-	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
-    
-    if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==2)
-	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
-	
-	if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
-	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
-    
-    if(p->F300>0)
-	pupdate = new fluid_update_void();
-    
-    // face density
-    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
-	pd = new density_f(p);
-    
-    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
-	pd = new density_df(p);
-    
-	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
-	pd = new density_comp(p);
-	
-	if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
-	pd = new density_heat(p,pheat);
-	
-	if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
-	pd = new density_conc(p,pconc);
-    
-    if(p->F80>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0)
+    pplic= new VOF_PLIC(p,a,pgc,pheat);
+    pupdate = new fluid_update_vof(p,a,pgc);
 	pd = new density_vof(p);
     
-    if(p->F30>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90>0)
-    pd = new density_rheo(p);
-    
-    if(p->F300>=1)
-    pd = new density_rheo(p);
-
 	if(p->F46==2)
 	ppicard = new picard_f(p);
 
@@ -152,19 +97,15 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	if(p->F46!=2 && p->F46!=3)
 	ppicard = new picard_void(p);
     
-    if(p->F45>=2.0)
-        ro_threshold = 0.05*p->W1 + p->W3;
-    else if(p->F45>=1.0)
-        ro_threshold = 0.1*p->W1 + p->W3;
-    else
-        ro_threshold = 0.16*p->W1 + p->W3;
+   //!!! change this back after test!!!
+    ro_threshold = p->F45*p->W1 + p->W3;
 }
 
-momentum_FCC3::~momentum_FCC3()
+momentum_FCC3_PLIC::~momentum_FCC3_PLIC()
 {
 }
 
-void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, vector<net*>& pnet)
+void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, vector<net*>& pnet)
 {	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -174,40 +115,47 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 //********************************************************
 //Step 1
 //********************************************************
-    //get vectorised face density before phi is updated, since it influences the face density
+    // get vectorized face density from density_f
     pgc->start4(p,a->ro,gcval_ro);
     face_density(p,a,pgc,rox,roy,roz);
+    
     //-------------------------------------------
     // FSF
-    FLUIDLOOP
+    LOOP
     {
 	a->L(i,j,k)=0.0;
-    ls(i,j,k)=a->phi(i,j,k);
+    VoF(i,j,k)=a->vof(i,j,k);
     }
 
-	pfsfdisc->start(p,a,ls,4,a->u,a->v,a->w);
+	pplic->RKcalcL(a,p,pgc,a->u,a->v,a->w);
 	
-	FLUIDLOOP
-	frk1(i,j,k) = ls(i,j,k)
-				+ p->dt*a->L(i,j,k);
+	LOOP
+    {
+        vof_rk1(i,j,k) = VoF(i,j,k) + a->L(i,j,k);
+        
+        if(vof_rk1(i,j,k)<0.0)
+            vof_rk1(i,j,k)=0.0;
+        if(vof_rk1(i,j,k)>1.0)
+            vof_rk1(i,j,k)=1.0;
+    }
+    
+	//pflow->vof_relax(p,pgc,frk1);
 	
-	pflow->phi_relax(p,pgc,frk1);
-	
-	pgc->start4(p,frk1,gcval_phi);
+	pgc->start4(p,vof_rk1,gcval_vof);
     
-    FLUIDLOOP
-    a->phi(i,j,k) = frk1(i,j,k);
+    LOOP
+    {
+     a->vof(i,j,k) = vof_rk1(i,j,k);
+     a->L(i,j,k)=0.0;
+    }
+    pplic->updatePhasemarkers(p,a,pgc);
+    pgc->start4(p,a->vof,gcval_vof); 
     
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    p->F44=2;
-    preini->start(a,p,a->phi, pgc, pflow);
-    ppicard->correct_ls(p,a,pgc,frk1);
-    
- //   pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc);
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
     
     //-------------------------------------------
-    // get vectorized face density from density_f
     
     pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
@@ -305,10 +253,9 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vr,gcval_v);
 	pgc->start3(p,wr,gcval_w);
     
-    
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
+   // pupdate->start(p,a,pgc);
+   // pgc->start4(p,a->ro,gcval_ro);
+  //  pgc->start4(p,a->visc,gcval_visc);
     //-------------------------------------------
 	// U
 	starttime=pgc->timer();
@@ -386,38 +333,41 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 //********************************************************
 //Step 2
 //********************************************************
-	 // get vectorized face density from density_f (depends on phi)
-   // pgc->start4(p,a->ro,gcval_ro);
-   // face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1);
-    
+	// pgc->start4(p,a->ro,gcval_ro);
+    // face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1);
     //-------------------------------------------
     // FSF
-    FLUIDLOOP
-	a->L(i,j,k)=0.0;
-
-	pfsfdisc->start(p,a,frk1,4,urk1,vrk1,wrk1);
-
-	FLUIDLOOP
-	frk2(i,j,k) = 0.75*ls(i,j,k)
-				   + 0.25*frk1(i,j,k)
-				   + 0.25*p->dt*a->L(i,j,k);
-				
-	pflow->phi_relax(p,pgc,frk2);
+    LOOP
+        a->L(i,j,k)=0.0;
+    
+    pplic->RKcalcL(a,p,pgc,urk1,vrk1,wrk1);
 	
-	pgc->start4(p,frk2,gcval_phi);
+	LOOP
+    {
+        vof_rk2(i,j,k) = 0.75*VoF(i,j,k) + 0.25*vof_rk1(i,j,k)+0.25*a->L(i,j,k);
+        
+        if(vof_rk2(i,j,k)<0.0)
+            vof_rk2(i,j,k)=0.0;
+        if(vof_rk2(i,j,k)>1.0)
+            vof_rk2(i,j,k)=1.0;
+    }
     
-    FLUIDLOOP
-    a->phi(i,j,k) =  frk2(i,j,k);
+	//pflow->vof_relax(p,pgc,frk1);
+	
+    pgc->start4(p,vof_rk2,gcval_vof);
     
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    p->F44=2;
-    preini->start(a,p,a->phi, pgc, pflow);
-    ppicard->correct_ls(p,a,pgc,frk2);
-    
-   // pupdate->start(p,a,pgc);
+    LOOP
+        a->vof(i,j,k) = vof_rk2(i,j,k);
+    pplic->updatePhasemarkers(p,a,pgc);
+    pgc->start4(p,a->vof,gcval_vof);
+
+    pupdate->start(p,a,pgc);
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
     
     //-------------------------------------------
+    // get vectorized face density from density_f
+   // face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1);
     
     // advect U
     pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
@@ -498,6 +448,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     clear_FGH(p,a);
     
     // reconstruct U
+    
     ULOOP
     ur(i,j,k) = vel_limiter(p,a,urk2,Mx_rk2,rox_rk2,rox_rk1);
     
@@ -511,9 +462,9 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vr,gcval_v);
 	pgc->start3(p,wr,gcval_w);
     
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
+   // pupdate->start(p,a,pgc);
+  //  pgc->start4(p,a->ro,gcval_ro);
+  //  pgc->start4(p,a->visc,gcval_visc);
     
     //-------------------------------------------
 	// U
@@ -592,36 +543,43 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 //********************************************************
 //Step 3
 //********************************************************
-    // get vectorized face density from density_f (depends on phi)
-  //  pgc->start4(p,a->ro,gcval_ro);
+   // pgc->start4(p,a->ro,gcval_ro);
    // face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2);
     //-------------------------------------------
     // FSF
-    FLUIDLOOP
-	a->L(i,j,k)=0.0;
-
-	pfsfdisc->start(p,a,frk2,4,urk2,vrk2,wrk2);
-
-	FLUIDLOOP
-	ls(i,j,k) =  (1.0/3.0)*ls(i,j,k)
-				  + (2.0/3.0)*frk2(i,j,k)
-				  + (2.0/3.0)*p->dt*a->L(i,j,k);
-
-    pflow->phi_relax(p,pgc,ls);
-	pgc->start4(p,a->phi,gcval_phi);
+    LOOP
+        a->L(i,j,k)=0.0;
     
-    FLUIDLOOP
-    a->phi(i,j,k) =  ls(i,j,k);
+    pplic->RKcalcL(a,p,pgc,urk2,vrk2,wrk2);
+	
+	LOOP
+    {
+        VoF(i,j,k) = (1.0/3.0)*VoF(i,j,k)
+                            + (2.0/3.0)*vof_rk2(i,j,k)
+                            + (2.0/3.0)*a->L(i,j,k);
+        
+        if(VoF(i,j,k)<0.0)
+            VoF(i,j,k)=0.0;
+        if(VoF(i,j,k)>1.0)
+            VoF(i,j,k)=1.0;
+    }
     
-    pgc->start4(p,a->phi,gcval_phi);
+	//pflow->vof_relax(p,pgc,frk1);
+	
+    pgc->start4(p,VoF,gcval_vof);
     
-    p->F44=3;
-    preini->start(a,p,a->phi, pgc, pflow);
-    ppicard->correct_ls(p,a,pgc,a->phi);
+    LOOP
+        a->vof(i,j,k) = VoF(i,j,k);
+    pplic->updatePhasemarkers(p,a,pgc);
+    pgc->start4(p,a->vof,gcval_vof);
 
-   // pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc);
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
     
     //-------------------------------------------
+    // get vectorized face density from density_f
+    //face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2);
     
     // advect U
     pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
@@ -716,9 +674,9 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vr,gcval_v);
 	pgc->start3(p,wr,gcval_w);
     
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
+   // pupdate->start(p,a,pgc);
+    //pgc->start4(p,a->ro,gcval_ro);
+   // pgc->start4(p,a->visc,gcval_visc);
     
     //-------------------------------------------
 	// U
@@ -793,9 +751,11 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     clear_FGH(p,a);
     
     pupdate->start(p,a,pgc);
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
 }
 
-void momentum_FCC3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_FCC3_PLIC::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	ULOOP
@@ -807,7 +767,7 @@ void momentum_FCC3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel
 	}
 }
 
-void momentum_FCC3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_FCC3_PLIC::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	VLOOP
@@ -819,7 +779,7 @@ void momentum_FCC3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel
 	}
 }
 
-void momentum_FCC3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_FCC3_PLIC::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	WLOOP
@@ -832,19 +792,19 @@ void momentum_FCC3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel
 }
 
 
-void momentum_FCC3::utimesave(lexer *p, fdm *a, ghostcell *pgc)
+void momentum_FCC3_PLIC::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_FCC3::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
+void momentum_FCC3_PLIC::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_FCC3::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
+void momentum_FCC3_PLIC::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_FCC3::clear_FGH(lexer *p, fdm *a)
+void momentum_FCC3_PLIC::clear_FGH(lexer *p, fdm *a)
 {
     ULOOP
     a->F(i,j,k) = 0.0;
@@ -856,7 +816,7 @@ void momentum_FCC3::clear_FGH(lexer *p, fdm *a)
     a->H(i,j,k) = 0.0;
 }
 
-void momentum_FCC3::face_density(lexer *p, fdm *a, ghostcell *pgc, field &rox, field &roy, field &roz)
+void momentum_FCC3_PLIC::face_density(lexer *p, fdm *a, ghostcell *pgc, field &rox, field &roy, field &roz)
 {
     ULOOP
     rox(i,j,k) = pd->roface(p,a,1,0,0);
@@ -872,7 +832,7 @@ void momentum_FCC3::face_density(lexer *p, fdm *a, ghostcell *pgc, field &rox, f
 	pgc->start3(p,roz,50);
 }
 
-double momentum_FCC3::vel_limiter(lexer *p, fdm *a, field &vel, field &M, field &ro,field &ro_n)
+double momentum_FCC3_PLIC::vel_limiter(lexer *p, fdm *a, field &vel, field &M, field &ro,field &ro_n)
 {
     if(ro(i,j,k)>=ro_threshold)
     val = M(i,j,k)/ro(i,j,k);
@@ -887,7 +847,7 @@ double momentum_FCC3::vel_limiter(lexer *p, fdm *a, field &vel, field &M, field 
     return val;
 }
 
-double momentum_FCC3::ro_filter(lexer *p, fdm *a, field &ro)
+double momentum_FCC3_PLIC::ro_filter(lexer *p, fdm *a, field &ro)
 {
     if(ro(i,j,k)<p->W3)
     val = p->W3;

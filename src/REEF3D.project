@@ -979,6 +979,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FCC3_PLIC.h"/>
       <File Name="momentum_FC3_PLIC.h"/>
       <File Name="momentum_RK3CN.h"/>
       <File Name="momentum_RKLS3.h"/>
@@ -2328,6 +2329,10 @@
       <VirtualDirectory Name="VOF PLIC">
         <File Name="VOF_void.cpp"/>
         <VirtualDirectory Name="FCRK3_functions">
+          <File Name="VOF_PLIC_updatePhasemarkers.cpp"/>
+          <File Name="VOF_PLIC_RK_transportVOF.cpp"/>
+          <File Name="VOF_PLIC_RK_advection.cpp"/>
+          <File Name="VOF_PLIC_RK_schemefuncs.cpp"/>
           <File Name="VOF_PLIC_RK_redistance.cpp"/>
           <File Name="VOF_PLIC_RKcalcL.cpp"/>
         </VirtualDirectory>
@@ -2734,6 +2739,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FCC3_PLIC.cpp"/>
       <File Name="momentum_FC3_PLIC.cpp"/>
       <File Name="momentum_RK3CN.cpp"/>
       <File Name="momentum_FC2.cpp"/>

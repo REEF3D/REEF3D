@@ -395,9 +395,6 @@ void driver::logic_cfd()
 	if(p->F80==4)
 	pfsf = new VOF_PLIC(p,a,pgc,pheat);
     
-    if(p->F80==5)
-    pfsf = new VOF_void(p,a,pgc,pheat);
-
     
     //  Convection VOF
 	if(p->F85==0 && p->F35==0)
@@ -637,14 +634,17 @@ void driver::logic_cfd()
     if(p->N40==22)
 	pmom = new momentum_FC2(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
-    if(p->N40==23)
+    if(p->N40==23 && p->F80!=4)
 	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
-    if(p->F80==5)
+    if(p->N40==23 && p->F80==4)
     pmom = new momentum_FC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pfsi,preini);
     
-    if(p->N40==33)
+    if(p->N40==33 && p->F80!=4)
 	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    if(p->N40==33 && p->F80==4)
+    pmom = new momentum_FCC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
 
 }
 

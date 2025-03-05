@@ -47,8 +47,9 @@ public:
 	virtual void update(lexer*,fdm*,ghostcell*,field&);
     
     virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
-    void RKcalcL(fdm*,lexer*,ghostcell*);
+    void RKcalcL(fdm*,lexer*,ghostcell*, field&, field&, field&);
     void RK_redistance(fdm*,lexer*,ghostcell*);
+    void updatePhasemarkers(lexer*,fdm*,ghostcell*);
 	
 private:	
     void iniphi(fdm*, lexer*,ghostcell*);
@@ -97,23 +98,28 @@ private:
     void transportVOF_Bonn(fdm*,lexer*,int,int);
     void transportVOF_NewWang(fdm*,lexer*,int);
     void vof_transport_COSMIC2D(fdm*,lexer*,int,int);
+    void vof_transport_COSMIC2D_RK(fdm*,lexer*,int,int,field&,field&,field&);
     void simpleNormal_Bonn(fdm*, lexer*);
     void advectPlane_forBonnScheme(fdm*, lexer*,int);
     void advectPlane_NewWang(fdm*, lexer*,int);
     void advectWater_forBonnScheme(fdm*, lexer*,int);
     void advectPlane_forCOSMIC2D_simple(fdm*,lexer*,int,int);
     void advectWater_forCOSMIC2D_simple(fdm*,lexer*,int,int);
+    void advectPlane_forCOSMIC2D_RK(fdm*,lexer*,int,int,field&,field&,field&);
+    void advectWater_forCOSMIC2D_RK(fdm*,lexer*,int,int,field&,field&,field&);
     void redistancePhiByPlane_Bonn(fdm*, lexer*);
     double ShortestDistanceOnBoundaryCandidate(fdm*, lexer*, int, int, int, double);
     double ProjectionPointCandidate(fdm*, lexer*, int, int, int, double);
     double IntersectionPointCandidate(fdm*, lexer*, int, int, int, double);
     void stepwise_scheme(fdm*,lexer*,ghostcell*);
     void symmetric_scheme2D(fdm*, lexer*,ghostcell*);
-    void symmetric_scheme2D_FCRK3(fdm*, lexer*,ghostcell*);
+    void symmetric_scheme2D_FCRK3(fdm*, lexer*,ghostcell*, field&, field&, field&);
     double calcL2vofError2D(fdm*, lexer*, field&, double, double, double, double);
     double calcAlphaFromInput(fdm*, lexer*, double, double, double, double, double, double, double);
     void calcNormalELVIRA2D(fdm*, lexer*, field&);
     void calcNormalMYC2D(fdm*,lexer*, field&);
+    int searchMarkerInVicinity(lexer*,fdm*,int,double,int,int,int);
+    int searchMarkerAlongDims(lexer*,fdm*,int,double,int,int,int);
    
     field4 V_w_p;
     field4 V_w_m;

@@ -38,197 +38,14 @@ Author: Fabian Knoblauch
 #include"hric.h"
 #include"interpolation.h"
 
-void VOF_PLIC::stepwise_scheme
+void VOF_PLIC::symmetric_scheme2D_FCRK3
 (
     fdm* a,
     lexer* p,
-    ghostcell* pgc
-)
-{
-    for(int nSweep=0 ; nSweep<Sweepdim; nSweep++)
-    {
-        LOOP
-        {
-            V_w_p(i,j,k)=0.0;
-            V_w_m(i,j,k)=0.0;
-        }
-        pgc->start4(p,V_w_p,1);
-        pgc->start4(p,V_w_m,1);
-        
-        if(p->j_dir>0)
-            sweep=S_S[sSweep][nSweep];
-        else
-            sweep=S_2D[sSweep][nSweep];
-        
-        if(nSweep==0)
-        {
-            pgc->start4(p,a->phi,1);
-            pgc->start4(p,a->vof,1);
-            LOOP
-            {
-                phistep(i,j,k)=a->phi(i,j,k);
-                vofstep(i,j,k)=a->vof(i,j,k);
-            }
-            pgc->start4(p,phistep,1);
-            pgc->start4(p,vofstep,1);
-        }
-        else if(nSweep==1)
-        {
-            pgc->start4(p,phiS0,1);
-            pgc->start4(p,vofS0,1);
-            LOOP
-            {
-                phistep(i,j,k)=phiS0(i,j,k);
-                vofstep(i,j,k)=vofS0(i,j,k);
-            }
-            pgc->start4(p,phistep,1);
-            pgc->start4(p,vofstep,1);
-        }
-        else
-        {
-            pgc->start4(p,phiS1,1);
-            pgc->start4(p,vofS1,1);
-            LOOP
-            {
-                phistep(i,j,k)=phiS1(i,j,k);
-                vofstep(i,j,k)=vofS1(i,j,k);
-            }
-            pgc->start4(p,phistep,1);
-            pgc->start4(p,vofstep,1);
-        }
-        
-        LOOP
-        {
-            switch(p->F89)
-                {
-                    case 0:
-                        break;
-                    case 1:
-                        transportPhi_Bonn(a,p,nSweep,sweep);
-                        break;
-                    case 2:
-                        break;
-                }
-            
-            
-            if((vofstep(i,j,k)>0.0001 && vofstep(i,j,k)<0.9999))
-            {
-                reconstructPlane_alt(a,p,vofstep);
-                
-                switch(p->F90)
-                {
-                    case 0:
-                        break;
-                    case 1:
-                        advectPlane_forBonnScheme(a,p,sweep);
-                        break;
-                    case 3:
-                        advectPlane_NewWang(a,p,sweep);
-                        break;
-                }
-                
-            }
-            else if( vofstep(i,j,k)>0.9999)
-            {   
-                switch(p->F90)
-                {
-                    case 0:
-                        break;
-                    case 1:
-                        advectWater_forBonnScheme(a,p,sweep);
-                        break;
-                    case 3:
-                        advectPlane_NewWang(a,p,sweep);
-                        break;
-                }
-                
-            }
-            else
-            {
-                switch(p->F90)
-                {
-                    case 0:
-                        break;
-                    case 1:
-                        break;
-                    case 3:
-                        advectPlane_NewWang(a,p,sweep);
-                        break;
-                }
-            }
-        }
-        
-        pgc->start4(p,nx,1);
-        pgc->start4(p,ny,1);
-        pgc->start4(p,nz,1);
-        pgc->start4(p,alpha,1);
-        pgc->start4(p,V_w_p,1);
-        pgc->start4(p,V_w_m,1);
-        pgc->start4(p,phiS1,1);
-        pgc->start4(p,vofS1,1);
-        pgc->start4(p,phiS0,1);
-        pgc->start4(p,vofS0,1);
-        
-        switch(p->F90)
-        {
-            case 0:
-                break;
-            case 1:
-                transportVOF_Bonn(a,p,nSweep,sweep);
-                break;
-            case 3:
-                transportVOF_NewWang(a,p,nSweep);
-                break;
-        }
-        
-        pgc->start4(p,phiS1,1);
-        pgc->start4(p,vofS1,1);
-        pgc->start4(p,phiS0,1);
-        pgc->start4(p,vofS0,1);
-        pgc->start4(p,vofS2,1);
-        
-        
-        if(p->j_dir>0)
-        {
-             if(nSweep==2)
-             {
-                 pgc->start4(p,phiS2,1);
-                 pgc->start4(p,vofS2,1);
-                 LOOP
-                 {
-                     phistep(i,j,k)=phiS2(i,j,k);
-                     vofstep(i,j,k)=vofS2(i,j,k);
-                 }
-                 pgc->start4(p,phistep,1);
-                 pgc->start4(p,vofstep,1);
-             }
-        }
-        else
-        {
-            if(nSweep==1)
-            {
-                pgc->start4(p,phiS1,1);
-                pgc->start4(p,vofS1,1);
-                LOOP
-                {
-                    phistep(i,j,k)=phiS1(i,j,k);
-                    vofstep(i,j,k)=vofS1(i,j,k);
-                }
-                pgc->start4(p,phistep,1);
-                pgc->start4(p,vofstep,1);
-            }
-        }
-    }
-    
-    pgc->start4(p,phistep,1);
-    pgc->start4(p,vofstep,1);
-}
-
-void VOF_PLIC::symmetric_scheme2D
-(
-    fdm* a,
-    lexer* p,
-    ghostcell* pgc
+    ghostcell* pgc,
+    field& uvel,
+    field& vvel,
+    field& wvel
 )
 {
     LOOP
@@ -275,30 +92,30 @@ void VOF_PLIC::symmetric_scheme2D
             if(F_n(i,j,k)>=0.001 && F_n(i,j,k)<=0.999)
             {
                 reconstructPlane_alt(a,p,F_n);
-                advectPlane_forCOSMIC2D_simple(a,p,sweep,-1);
+                advectPlane_forCOSMIC2D_RK(a,p,sweep,-1,uvel,vvel,wvel);
             }
             else if(F_n(i,j,k)>0.999)
-                advectWater_forCOSMIC2D_simple(a,p,sweep,-1);
+                advectWater_forCOSMIC2D_RK(a,p,sweep,-1,uvel,vvel,wvel);
                 
             if(nSweep==1 && sweep==0)
             {
                 if(F_z(i,j,k)>=0.001 && F_z(i,j,k)<=0.999)
                 {
                     reconstructPlane_alt(a,p,F_z);
-                    advectPlane_forCOSMIC2D_simple(a,p,sweep,2);
+                    advectPlane_forCOSMIC2D_RK(a,p,sweep,2,uvel,vvel,wvel);
                 }
                 else if(F_z(i,j,k)>0.999)
-                    advectWater_forCOSMIC2D_simple(a,p,sweep,2);
+                    advectWater_forCOSMIC2D_RK(a,p,sweep,2,uvel,vvel,wvel);
             }
             else if(nSweep==1 && sweep==2)
             {
                 if(F_x(i,j,k)>=0.001 && F_x(i,j,k)<=0.999)
                 {
                     reconstructPlane_alt(a,p,F_x);
-                    advectPlane_forCOSMIC2D_simple(a,p,sweep,0);
+                    advectPlane_forCOSMIC2D_RK(a,p,sweep,0,uvel,vvel,wvel);
                 }
                 else if(F_x(i,j,k)>0.999)
-                    advectWater_forCOSMIC2D_simple(a,p,sweep,0);
+                    advectWater_forCOSMIC2D_RK(a,p,sweep,0,uvel,vvel,wvel);
             }
         }
         
@@ -352,7 +169,7 @@ void VOF_PLIC::symmetric_scheme2D
             pgc->start4(p,Vx_m,1);
         }
                     
-        vof_transport_COSMIC2D(a,p,nSweep,sweep);
+        vof_transport_COSMIC2D_RK(a,p,nSweep,sweep,uvel,vvel,wvel);
     }
     
     if(sweep==0)
@@ -362,10 +179,10 @@ void VOF_PLIC::symmetric_scheme2D
                 if(F_x(i,j,k)>=0.001 && F_x(i,j,k)<=0.999)
                 {
                     reconstructPlane_alt(a,p,F_x);
-                    advectPlane_forCOSMIC2D_simple(a,p,2,0);
+                    advectPlane_forCOSMIC2D_RK(a,p,2,0,uvel,vvel,wvel);
                 }
                 else if(F_x(i,j,k)>0.999)
-                    advectWater_forCOSMIC2D_simple(a,p,2,0);
+                    advectWater_forCOSMIC2D_RK(a,p,2,0,uvel,vvel,wvel);
             }
             
             pgc->start4(p,Vx_p,1);
@@ -389,10 +206,10 @@ void VOF_PLIC::symmetric_scheme2D
                 if(F_z(i,j,k)>=0.001 && F_z(i,j,k)<=0.999)
                 {
                     reconstructPlane_alt(a,p,F_z);
-                    advectPlane_forCOSMIC2D_simple(a,p,0,2);
+                    advectPlane_forCOSMIC2D_RK(a,p,0,2,uvel,vvel,wvel);
                 }
                 else if(F_z(i,j,k)>0.999)
-                    advectWater_forCOSMIC2D_simple(a,p,0,2);
+                    advectWater_forCOSMIC2D_RK(a,p,0,2,uvel,vvel,wvel);
             }
             pgc->start4(p,Vz_p,1);
             pgc->start4(p,Vz_m,1);
@@ -410,15 +227,15 @@ void VOF_PLIC::symmetric_scheme2D
            
     }
     
-    vof_transport_COSMIC2D(a,p,2,sweep);
+    vof_transport_COSMIC2D_RK(a,p,2,sweep,uvel,vvel,wvel);
    // cout<<"F_n:"<<F_n(5,0,5)<<" ;F_x:"<<F_x(5,0,5)<<" ;F_z:"<<F_z(5,0,5)<<endl;
    // cout<<"Flux_x:"<<Flux_x(5,0,5)<<" ;Flux_z:"<<Flux_z(5,0,5)<<" ;Crossflux_xz:"<<Crossflux_xz(5,0,5)<<" ;Crossflux_zx:"<<Crossflux_zx(5,0,5)<<endl;
    // cout<<"F_new:"<<F_new(5,0,5)<<endl;
     
     LOOP
     {
-        vofstep(i,j,k)=F_new(i,j,k);
+        a->L(i,j,k)=-0.5*(Flux_x(i,j,k)+Crossflux_zx(i,j,k)+Flux_z(i,j,k)+Crossflux_xz(i,j,k));
     }
+    pgc->start4(p,a->L,1);
    // cout<<"vofstep:"<<vofstep(5,0,5)<<endl;
 }
-

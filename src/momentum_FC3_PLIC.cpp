@@ -78,14 +78,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     {
 	a->L(i,j,k)=0.0;
     ls(i,j,k)=a->vof(i,j,k);
-    lu(i,j,k)=lu(i,j,k);
-    lv(i,j,k)=lv(i,j,k);
-    lw(i,j,k)=lw(i,j,k);
     }
-    
-    pgc->start1(p,lu,gcval_u);
-	pgc->start2(p,lv,gcval_v);
-	pgc->start3(p,lw,gcval_w);
     
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,lu,lv,lw);
@@ -98,10 +91,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 
     // FSF
     
-    
-    
-    /*
-    pplic->RKcalcL(a,p,pgc);
+    pplic->RKcalcL(a,p,pgc,a->u,a->v,a->w);
     
 	LOOP
     {
@@ -129,7 +119,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     preini->start(a,p,a->phi,pgc,pflow);
     pgc->start4(p,a->phi,gcval_phi);
     
-    pupdate->start(p,a,pgc);*/
+    pupdate->start(p,a,pgc);
 
 	// U
 	starttime=pgc->timer();
@@ -189,52 +179,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
                            
-    LOOP
-    {
-        a->u(i,j,k)=urk1(i,j,k);
-        a->v(i,j,k)=vrk1(i,j,k);
-        a->w(i,j,k)=wrk1(i,j,k);
-    }
-    pgc->start1(p,a->u,gcval_u);
-	pgc->start2(p,a->v,gcval_v);
-	pgc->start3(p,a->w,gcval_w);
-    
-    
-     pplic->RKcalcL(a,p,pgc);
-    
-	LOOP
-    {
-        frk1(i,j,k) = ls(i,j,k) + a->L(i,j,k);
-        
-        if(frk1(i,j,k)<0.0)
-            frk1(i,j,k)=0.0;
-        if(frk1(i,j,k)>1.0)
-            frk1(i,j,k)=1.0;
-    }
-    pgc->start4(p,frk1,gcval_vof);
-   // pflow->vof_relax(p,a,pgc,frk1);
-	pgc->start4(p,frk1,gcval_vof);
-    
-    LOOP
-        a->vof(i,j,k) = frk1(i,j,k);
-    pgc->start4(p,a->vof,gcval_vof);
-    pplic->RK_redistance(a,p,pgc);
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    pupdate->start(p,a,pgc);
-
-    
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1, 1.0);
 	
@@ -253,10 +197,10 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 //--------------------------------------------------------
 	
     // FSF
-    /*LOOP
+    LOOP
         a->L(i,j,k)=0.0;
 
-	pplic->RKcalcL(a,p,pgc);
+	pplic->RKcalcL(a,p,pgc,urk1,vrk1,wrk1);
 
 	LOOP
     {
@@ -287,7 +231,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     preini->start(a,p,a->phi,pgc,pflow);
     pgc->start4(p,a->phi,gcval_phi);
     
-    pupdate->start(p,a,pgc);*/
+    pupdate->start(p,a,pgc);
     
 	// U
 	starttime=pgc->timer();
@@ -347,57 +291,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
                            
-                           
-     LOOP
-    {
-        a->u(i,j,k)=urk2(i,j,k);
-        a->v(i,j,k)=vrk2(i,j,k);
-        a->w(i,j,k)=wrk2(i,j,k);
-    }
-    pgc->start1(p,a->u,gcval_u);
-	pgc->start2(p,a->v,gcval_v);
-	pgc->start3(p,a->w,gcval_w);
-    
-    LOOP
-        a->L(i,j,k)=0.0;
-
-	pplic->RKcalcL(a,p,pgc);
-
-	LOOP
-    {
-        frk2(i,j,k) = 0.75*ls(i,j,k)
-                + 0.25*frk1(i,j,k)
-                + 0.25*a->L(i,j,k);
-                
-        if(frk2(i,j,k)<0.0)
-            frk2(i,j,k)=0.0;
-        if(frk2(i,j,k)>1.0)
-            frk2(i,j,k)=1.0;
-	}			
-	pgc->start4(p,frk2,gcval_vof);
-    //pflow->vof_relax(p,a,pgc,frk2);
-	pgc->start4(p,frk2,gcval_vof);
-    
-    LOOP
-        a->vof(i,j,k) =  frk2(i,j,k);
-        
-    pgc->start4(p,a->vof,gcval_vof);
-    pplic->RK_redistance(a,p,pgc);
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    pupdate->start(p,a,pgc);
-
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2, 0.25);
 	
@@ -416,10 +309,10 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 //--------------------------------------------------------
     
     // FSF
-  /*  LOOP
+    LOOP
         a->L(i,j,k)=0.0;
 
-	pplic->RKcalcL(a,p,pgc);
+	pplic->RKcalcL(a,p,pgc,urk2,vrk2,wrk2);
 
 	LOOP
     {
@@ -451,7 +344,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     preini->start(a,p,a->phi,pgc,pflow);
     pgc->start4(p,a->phi,gcval_phi);
     
-    pupdate->start(p,a,pgc);*/
+    pupdate->start(p,a,pgc);
     
     
 	// U
@@ -511,47 +404,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
-                           
-    LOOP
-        a->L(i,j,k)=0.0;
-
-	pplic->RKcalcL(a,p,pgc);
-
-	LOOP
-    {
-        ls(i,j,k) =   (1.0/3.0)*ls(i,j,k)
-                + (2.0/3.0)*frk2(i,j,k)
-                + (2.0/3.0)*a->L(i,j,k);
-        
-        if(ls(i,j,k)<0.0)
-            ls(i,j,k)=0.0;
-        if(ls(i,j,k)>1.0)
-            ls(i,j,k)=1.0;
-    }
-
-    pgc->start4(p,ls,gcval_vof);
-   // pflow->vof_relax(p,a,pgc,ls);
-	pgc->start4(p,ls,gcval_vof);
-    
-    LOOP
-        a->vof(i,j,k) =  ls(i,j,k);
-    
-    pgc->start4(p,a->vof,gcval_vof);
-    pplic->RK_redistance(a,p,pgc);
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    preini->start(a,p,a->phi,pgc,pflow);
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    pupdate->start(p,a,pgc);
 
 	pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v,a->w,2.0/3.0);
