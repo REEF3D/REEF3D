@@ -392,6 +392,13 @@ void lexer::ini_default()
     F80=0;             // int time scheme VOF
     F84=1.0;             // double cgamma for vof compression
     F85=0;             // int convection scheme VOF
+    F112=0;            // int tilted wedge
+    F112_xs=-1.0e20;            // double i-dir zero level set start
+    F112_xe=-1.0e20;            // double j-dir zero level set start
+    F112_ys=-1.0e20;            // double k-dir zero level set start
+    F112_ye=1.0e20;        // double i-dir zero level set end
+    F112_zs=1.0e20;        // double j-dir zero level set end
+    F112_ze=1.0e20;        // double k-dir zero level set end
     F150=0;         // int benchmark
     F151=0;         // int benchmark inverse sign of level set
     F300=0;             // int multiphase flow level set
