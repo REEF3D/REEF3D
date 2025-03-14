@@ -101,20 +101,18 @@ void pjm_hydrostatic::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, 
 
     LOOP
     {
-    phival = a->phi(i,j,k);
+        phival = a->phi(i,j,k);
 
-    if(phival>psi)
-    H=1.0;
-
-    if(phival<-psi)
-    H=0.0;
-
-    if(fabs(phival)<=psi)
-    H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
-    
-    roval = p->W1*H + p->W3*(1.0-H);
-    
-    a->press(i,j,k) = a->phi(i,j,k)*roval*fabs(p->W22); 
+        if(phival>psi)
+            H=1.0;
+        else if(phival<-psi)
+            H=0.0;
+        else
+            H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
+        
+        roval = p->W1*H + p->W3*(1.0-H);
+        
+        a->press(i,j,k) = a->phi(i,j,k)*roval*fabs(p->W22); 
     } 
 }
  

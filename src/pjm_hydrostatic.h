@@ -47,7 +47,7 @@ public:
     void vcorr(lexer*,fdm*,field&,double) override;
     void wcorr(lexer*,fdm*,field&,double) override;
 
-private:    
+private:
     void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
     void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
     
