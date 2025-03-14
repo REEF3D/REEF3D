@@ -83,7 +83,7 @@ class nhflow_momentum;
 class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
 class nhflow_printer;
-class particle_base;
+class density;
 
 #include<iostream>
 #include<fstream>
@@ -216,6 +216,10 @@ public:
     turbulence *pturbcfd;
 
 private:
+    void assign_density();
+
+    density* pd;
+    
     double starttime, endtime;
     ofstream mainlogout;
     ofstream maxlogout;

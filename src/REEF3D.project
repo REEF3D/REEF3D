@@ -2487,6 +2487,7 @@
         <File Name="driver_makegrid.cpp"/>
         <File Name="driver_makgrid_2D.cpp"/>
         <File Name="driver_stop.cpp"/>
+        <File Name="driver_assign.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
         <VirtualDirectory Name="Boundary">

@@ -426,6 +426,7 @@ void driver::logic_cfd()
 	if(p->F85==53)
 	pfsfdisc=new cicsam(p);
 
+    assign_density();
 //pressure scheme
 	if(p->D30==0)
 	ppress = new pressure_void();
