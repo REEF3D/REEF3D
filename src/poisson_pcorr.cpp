@@ -36,25 +36,25 @@ Author: Hans Bihs
 
 poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc) 
 {
-    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
-	pd = new density_f(p);
+    if(p->F80==0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0 && p->X10==0)
+    pd = new density_f(p);
     
-    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
-	pd = new density_df(p);
+    if(p->F80==0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0 && p->X10==1)  
+    pd = new density_df(p);
     
-	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
-	pd = new density_comp(p);
-	
-	if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
-	pd = new density_heat(p,pheat);
-	
-	if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
-	pd = new density_conc(p,pconc);
+    if(p->F80==0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
+    pd = new density_comp(p);
     
-    if(p->F80>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0)
-	pd = new density_vof(p);
+    if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
+    pd = new density_heat(p,pheat);
     
-    if((p->F30>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90>0) || p->F300>=1)
+    if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
+    pd = new density_conc(p,pconc);
+    
+    if(p->F80>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
+    pd = new density_vof(p);
+    
+    if((p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0) || p->F300>=1)
     pd = new density_rheo(p);
 }
 
