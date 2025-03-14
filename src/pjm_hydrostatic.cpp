@@ -44,7 +44,7 @@ pjm_hydrostatic::~pjm_hydrostatic()
 {
 }
 
-void pjm_hydrostatic::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void pjm_hydrostatic::start(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, solver* psolv, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";

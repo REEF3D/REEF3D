@@ -246,7 +246,7 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         
         // Pressure
         pflow->pressure_io(p,a,pgc);
-        ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, a->u, a->v, a->w, 2.0*alpha(loop));
+        ppress->start(p,a,pgc,pflow,ppoissonsolv,a->u,a->v,a->w,2.0*alpha(loop));
         
         pflow->u_relax(p,a,pgc,a->u);
         pflow->v_relax(p,a,pgc,a->v);

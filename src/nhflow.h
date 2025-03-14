@@ -25,7 +25,6 @@ Author: Hans Bihs
 #define NHFLOW_H_
 
 class convection;
-class pressure;
 class solver;
 class fdm_nhf;
 class lexer;

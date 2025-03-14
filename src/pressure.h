@@ -35,7 +35,7 @@ class pressure
 {
 public:
 
-    virtual void start(fdm*,lexer*,poisson*,solver*,ghostcell*,ioflow*,field&,field&,field&,double)=0;
+    virtual void start(lexer*,fdm*,ghostcell*,ioflow*,solver*,field&,field&,field&,double)=0;
     virtual void ini(lexer*,fdm*,ghostcell*)=0;
     virtual void upgrad(lexer*,fdm*,slice&,slice&)=0;
     virtual void vpgrad(lexer*,fdm*,slice&,slice&)=0;

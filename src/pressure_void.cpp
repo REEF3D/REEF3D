@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"pressure_void.h"
 
-void pressure_void::start(fdm*, lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&, double)
+void pressure_void::start(lexer*, fdm*, ghostcell*, ioflow*, solver*, field&, field&, field&, double)
 {
 }
 

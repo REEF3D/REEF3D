@@ -40,7 +40,7 @@ public:
     pjm_corr(lexer*, density*);
     virtual ~pjm_corr();
 
-    void start(fdm*,lexer*,poisson*,solver*,ghostcell*,ioflow*,field&,field&,field&,double) override;
+    void start(lexer*,fdm*,ghostcell*,ioflow*,solver*,field&,field&,field&,double) override;
     void ini(lexer*,fdm*,ghostcell*) override;
     void upgrad(lexer*,fdm*,slice&,slice&) override;
     void vpgrad(lexer*,fdm*,slice&,slice&) override;

@@ -132,12 +132,12 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
     pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1, 1.0);
-	
-	pflow->u_relax(p,a,pgc,urk1);
-	pflow->v_relax(p,a,pgc,vrk1);
-	pflow->w_relax(p,a,pgc,wrk1);
-	pflow->p_relax(p,a,pgc,a->press);
+    ppress->start(p,a,pgc,pflow,ppoissonsolv,urk1,vrk1,wrk1,1.0);
+    
+    pflow->u_relax(p,a,pgc,urk1);
+    pflow->v_relax(p,a,pgc,vrk1);
+    pflow->w_relax(p,a,pgc,wrk1);
+    pflow->p_relax(p,a,pgc,a->press);
 
 	pgc->start1(p,urk1,gcval_u);
 	pgc->start2(p,vrk1,gcval_v);
@@ -205,16 +205,16 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
     pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2, 0.25);
-	
-	pflow->u_relax(p,a,pgc,urk2);
-	pflow->v_relax(p,a,pgc,vrk2);
-	pflow->w_relax(p,a,pgc,wrk2);
-	pflow->p_relax(p,a,pgc,a->press);
-	
-	pgc->start1(p,urk2,gcval_u);
-	pgc->start2(p,vrk2,gcval_v);
-	pgc->start3(p,wrk2,gcval_w);
+    ppress->start(p,a,pgc,pflow,ppoissonsolv,urk2,vrk2,wrk2,0.25);
+    
+    pflow->u_relax(p,a,pgc,urk2);
+    pflow->v_relax(p,a,pgc,vrk2);
+    pflow->w_relax(p,a,pgc,wrk2);
+    pflow->p_relax(p,a,pgc,a->press);
+    
+    pgc->start1(p,urk2,gcval_u);
+    pgc->start2(p,vrk2,gcval_v);
+    pgc->start3(p,wrk2,gcval_w);
 
 //Step 3
 //--------------------------------------------------------
@@ -273,13 +273,13 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
-	pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow,a->u,a->v,a->w,2.0/3.0);
-	
-	pflow->u_relax(p,a,pgc,a->u);
-	pflow->v_relax(p,a,pgc,a->v);
-	pflow->w_relax(p,a,pgc,a->w);
-	pflow->p_relax(p,a,pgc,a->press);
+    pflow->pressure_io(p,a,pgc);
+    ppress->start(p,a,pgc,pflow,ppoissonsolv,a->u,a->v,a->w,2.0/3.0);
+    
+    pflow->u_relax(p,a,pgc,a->u);
+    pflow->v_relax(p,a,pgc,a->v);
+    pflow->w_relax(p,a,pgc,a->w);
+    pflow->p_relax(p,a,pgc,a->press);
 
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
