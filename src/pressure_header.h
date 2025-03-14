@@ -24,7 +24,6 @@ Author: Hans Bihs
 #define PRESSURE_HEADER_H_
 
 #include"pressure_void.h"
-#include"pjm.h"
 #include"pjm_corr.h"
 #include"pjm_hydrostatic.h"
 #include"poisson_pcorr.h"

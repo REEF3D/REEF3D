@@ -1005,7 +1005,6 @@
       </VirtualDirectory>
       <File Name="pressure.h"/>
       <File Name="pressure_void.h"/>
-      <File Name="pjm.h"/>
       <VirtualDirectory Name="Density">
         <File Name="density_sf.h"/>
         <File Name="density_df.h"/>
@@ -2742,7 +2741,6 @@
         <File Name="poisson_pcorr.cpp"/>
       </VirtualDirectory>
       <File Name="pressure_void.cpp"/>
-      <File Name="pjm.cpp"/>
       <VirtualDirectory Name="Density">
         <File Name="density_sf.cpp"/>
         <File Name="density_df.cpp"/>
