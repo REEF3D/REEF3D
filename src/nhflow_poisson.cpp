@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"heat.h"
 #include"concentration.h"
-#include"density_f.h"
 #include"density_comp.h"
 #include"density_conc.h"
 #include"density_heat.h"
