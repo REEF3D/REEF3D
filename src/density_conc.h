@@ -26,24 +26,21 @@ Author: Hans Bihs
 #include"density.h"
 #include"increment.h"
 
-class fdm;
 class lexer;
+class fdm;
 class concentration;
-
-
-using namespace std;
 
 class density_conc : public density, virtual public increment
 {
 
 public:
     density_conc(lexer*,concentration*&);
-	virtual ~density_conc();
+    virtual ~density_conc() = default;
 
-	virtual double roface(lexer*,fdm*,int,int,int);
-	
+    double roface(lexer*,fdm*,int,int,int) override;
+    
 private:
-	double H,roval,phival;
+    double H,roval,phival,concval;
     double psi;
 
     concentration *pconc;
