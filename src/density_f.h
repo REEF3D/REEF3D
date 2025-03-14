@@ -26,30 +26,21 @@ Author: Hans Bihs
 #include"density.h"
 #include"increment.h"
 
-class fdm;
 class lexer;
-
-
-using namespace std;
+class fdm;
 
 class density_f : public density, virtual public increment
 {
 
 public:
     density_f(lexer*);
-	virtual ~density_f();
+    virtual ~density_f() = default;
 
-	virtual double roface(lexer*,fdm*,int,int,int);
-	
-	double H,H_fb,roval,phival;
-	int ii,jj,kk;
-	const double epsi,eps;
-    double r,s;
+    double roface(lexer*,fdm*,int,int,int) override;
+
+private:
+    double H,roval,phival;
 
 };
 
 #endif
-
-
-
-

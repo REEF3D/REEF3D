@@ -24,12 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 
-density_f::density_f(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
-{
-    H=0.0;
-}
-
-density_f::~density_f()
+density_f::density_f(lexer* p)
 {
 }
 
@@ -38,19 +33,13 @@ double density_f::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
     if(phival>p->psi)
-    H=1.0;
+        H=1.0;
+    else if(phival<-p->psi)
+        H=0.0;
+    else
+        H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
 
-    if(phival<-p->psi)
-    H=0.0;
-
-    if(fabs(phival)<=p->psi)
-    H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
-    
     roval = p->W1*H + p->W3*(1.0-H);
 
-	return roval;		
+    return roval;
 }
-
-
-
-
