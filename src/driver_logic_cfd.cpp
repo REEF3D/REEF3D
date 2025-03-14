@@ -432,15 +432,15 @@ void driver::logic_cfd()
 	ppress = new pressure_void();
 
     if((p->D30==1 || p->D30==2 || p->D30==3))
-	ppress = new pjm_corr(p,a,pgc,pheat,pconc);
+	ppress = new pjm_corr(p,pd);
 
     if(p->D30==10)
-	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
+	ppress = new pjm_hydrostatic(pd);
 
 
 //poisson scheme for pressure
     if((p->D30==1 || p->D30==2 || p->D30==3))
-	ppois = new poisson_pcorr(p,pheat,pconc);
+	ppois = new poisson_pcorr(pd);
 
 //Solver
     if(p->j_dir==0)
@@ -621,7 +621,7 @@ void driver::logic_cfd()
 	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
     if(p->N40==33)
-	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi,pd);
 
 }
 

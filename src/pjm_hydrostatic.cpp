@@ -28,40 +28,11 @@ Author: Hans Bihs
 #include"solver.h"
 #include"momentum.h"
 #include"ioflow.h"
-#include"heat.h"
-#include"concentration.h"
-#include"density_f.h"
-#include"density_df.h"
-#include"density_comp.h"
-#include"density_conc.h"
-#include"density_heat.h"
-#include"density_vof.h"
-#include"density_rheo.h"
+#include"density.h"
  
-pjm_hydrostatic::pjm_hydrostatic(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
+pjm_hydrostatic::pjm_hydrostatic(density* ppd)
 {
-    pconc = ppconc;
-    
-    if(p->F80==0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0 && p->X10==0)
-    pd = new density_f(p);
-    
-    if(p->F80==0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0 && p->X10==1)  
-    pd = new density_df(p);
-    
-    if(p->F80==0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
-    pd = new density_comp(p);
-    
-    if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
-    pd = new density_heat(p,pheat);
-    
-    if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
-    pd = new density_conc(p,pconc);
-    
-    if(p->F80>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
-    pd = new density_vof(p);
-    
-    if((p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0) || p->F300>=1)
-    pd = new density_rheo(p);
+    pd = ppd;
     
     gcval_press=40;  
 	

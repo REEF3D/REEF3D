@@ -52,10 +52,10 @@ using namespace std;
 class momentum_FCC3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
-	momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
-                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
-	virtual ~momentum_FCC3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
+    momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
+                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*, density*);
+    virtual ~momentum_FCC3();
+    virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
 
     field1 ur,udiff,urk1,urk2,fx;
 	field2 vr,vdiff,vrk1,vrk2,fy;

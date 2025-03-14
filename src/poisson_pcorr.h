@@ -26,19 +26,15 @@ Author: Hans Bihs
 #include"poisson.h"
 #include"increment.h"
 
-class heat;
-class concentration;
 class density;
-
-using namespace std;
 
 class poisson_pcorr : public poisson, public increment
 {
 
 public:
 
-	poisson_pcorr (lexer*, heat*&, concentration*&);
-	virtual ~poisson_pcorr();
+    poisson_pcorr(density*);
+    virtual ~poisson_pcorr() = default;
 
     void start(lexer *,fdm*,field&) override;
 

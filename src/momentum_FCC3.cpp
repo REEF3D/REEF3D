@@ -47,18 +47,12 @@ Author: Hans Bihs
 #include"nhflow.h"
 #include"heat.h"
 #include"concentration.h"
-#include"density_f.h"
-#include"density_df.h"
-#include"density_comp.h"
-#include"density_conc.h"
-#include"density_heat.h"
-#include"density_vof.h"
-#include"density_rheo.h"
+#include"density.h"
 
 momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
                                                     heat *&pheat, concentration *&pconc, reini *ppreini,
-                                                    fsi *ppfsi)
+                                                    fsi *ppfsi, density* ppd)
                                                     :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),ur(p),vr(p),wr(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p),ls(p),frk1(p),frk2(p),
                                                     Mx(p),rox(p),My(p),roy(p),Mz(p),roz(p),
                                                     Mx_rk1(p),Mx_rk2(p),My_rk1(p),My_rk2(p),Mz_rk1(p),Mz_rk2(p),
@@ -117,26 +111,7 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	pupdate = new fluid_update_void();
     
     // face density
-    if(p->F80==0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0 && p->X10==0)
-    pd = new density_f(p);
-    
-    if(p->F80==0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0 && p->X10==1)  
-    pd = new density_df(p);
-    
-    if(p->F80==0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
-    pd = new density_comp(p);
-
-    if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
-    pd = new density_heat(p,pheat);
-
-    if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
-    pd = new density_conc(p,pconc);
-
-    if(p->F80>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
-    pd = new density_vof(p);
-    
-    if((p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0) || p->F300>=1)
-    pd = new density_rheo(p);
+    pd = ppd;
 
 	if(p->F46==2)
 	ppicard = new picard_f(p);

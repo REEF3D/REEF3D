@@ -23,43 +23,11 @@ Author: Hans Bihs
 #include"poisson_pcorr.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"heat.h"
-#include"concentration.h"
-#include"density_f.h"
-#include"density_df.h"
-#include"density_sf.h"
-#include"density_comp.h"
-#include"density_conc.h"
-#include"density_heat.h"
-#include"density_vof.h"
-#include"density_rheo.h"
+#include"density.h"
 
-poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc) 
+poisson_pcorr::poisson_pcorr(density* ppd) 
 {
-    if(p->F80==0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0 && p->X10==0)
-    pd = new density_f(p);
-    
-    if(p->F80==0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0 && p->X10==1)  
-    pd = new density_df(p);
-    
-    if(p->F80==0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
-    pd = new density_comp(p);
-    
-    if(p->F80==0 && p->H10>0 && p->F300==0 && p->W90==0)
-    pd = new density_heat(p,pheat);
-    
-    if(p->F80==0 && p->C10>0 && p->F300==0 && p->W90==0)
-    pd = new density_conc(p,pconc);
-    
-    if(p->F80>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
-    pd = new density_vof(p);
-    
-    if((p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0) || p->F300>=1)
-    pd = new density_rheo(p);
-}
-
-poisson_pcorr::~poisson_pcorr()
-{
+    pd = ppd;   
 }
 
 void poisson_pcorr::start(lexer* p, fdm *a, field &press)

@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"pressure.h"
 #include"increment.h"
 
-class heat;
-class concentration;
 class density;
 
 using namespace std;
@@ -37,8 +35,8 @@ class pjm_hydrostatic : public pressure, public increment
 
 public:
 
-	pjm_hydrostatic(lexer* p, fdm *a, heat*&, concentration*&);
-	virtual ~pjm_hydrostatic();
+    pjm_hydrostatic(density*);
+    virtual ~pjm_hydrostatic();
 
     void start(fdm*,lexer*,poisson*,solver*,ghostcell*,ioflow*,field&,field&,field&,double) override;
     void ini(lexer*,fdm*,ghostcell*) override;
@@ -58,8 +56,6 @@ private:
     int gcval_u, gcval_v, gcval_w;
     
     density *pd;
-	
-    concentration *pconc;
 };
 
 #endif
