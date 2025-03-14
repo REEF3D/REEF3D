@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"nhflow_pressure.h"
 #include"nhflow_gradient.h"
 
-class density;
 class solver;
 class patchBC_interface;
 
@@ -60,8 +59,6 @@ private:
 	int gcval_u, gcval_v, gcval_w;
     double val, denom;
     
-    
-    density *pd;
     patchBC_interface *pBC;
 };
 

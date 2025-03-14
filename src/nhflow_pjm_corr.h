@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"nhflow_pressure.h"
 #include"increment.h"
 
-class density;
 class solver;
 class nhflow_poisson;
 class patchBC_interface;
@@ -68,7 +67,6 @@ private:
     double *PCORR;
     double dPdx,dPdy,dPdz;
 
-    density *pd;
     nhflow_poisson *ppois;
     patchBC_interface *pBC;
 

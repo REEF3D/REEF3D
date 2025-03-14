@@ -30,14 +30,11 @@ Author: Hans Bihs
 #include"solver.h"
 #include"ioflow.h"
 #include"nhflow_poisson.h"
-#include"density_f.h"
 #include"patchBC_interface.h"
 
 nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC) : teta(1.0)
 {
     pBC = ppBC;
-    
-	pd = new density_f(p);
 
     ppois = new nhflow_poisson(p);
     
