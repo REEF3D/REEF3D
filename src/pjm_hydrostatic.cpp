@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
-#include"poisson.h"
 #include"solver.h"
 #include"momentum.h"
 #include"ioflow.h"

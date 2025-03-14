@@ -24,15 +24,16 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
-#include"poisson.h"
 #include"solver.h"
 #include"momentum.h"
 #include"ioflow.h"
 #include"density.h"
+#include"poisson_pcorr.h"
  
 pjm_corr::pjm_corr(lexer* p, density* ppd) : pcorr(p), pressure_reference(p)
 {
     pd = ppd;
+    ppois = new poisson_pcorr(pd);
     
     gcval_press=40;  
 	
@@ -43,9 +44,10 @@ pjm_corr::pjm_corr(lexer* p, density* ppd) : pcorr(p), pressure_reference(p)
 
 pjm_corr::~pjm_corr()
 {
+    delete ppois;
 }
 
-void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
+void pjm_corr::start(fdm* a,lexer*p, poisson*,solver* psolv, ghostcell* pgc, ioflow *pflow, field& uvel, field& vvel, field& wvel, double alpha)
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
         cout<<".";

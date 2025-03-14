@@ -27,7 +27,6 @@ class lexer;
 class fdm;
 class ghostcell;
 class ioflow;
-class poisson;
 class solver;
 class field;
 class slice;

@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"field4.h"
 
 class density;
+class poisson_pcorr;
 
 using namespace std;
 
@@ -55,6 +56,7 @@ private:
 
     field4 pcorr;
     density* pd;
+    poisson_pcorr* ppois;
 
     double starttime,endtime;
     int count, gcval_press;
