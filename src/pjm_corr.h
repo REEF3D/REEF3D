@@ -41,17 +41,19 @@ public:
 	pjm_corr(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~pjm_corr();
 
-	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);
-    virtual void ini(lexer*,fdm*,ghostcell*);
-	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-    virtual void presscorr(lexer*p,fdm *a,field&,field&,field&,field&, double);
-	virtual void ucorr(lexer*p,fdm*,field&,double);
-	virtual void vcorr(lexer*p,fdm*,field&,double);
-	virtual void wcorr(lexer*p,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
-    virtual void wpgrad(lexer*,fdm*,slice&,slice&);
+    void start(fdm*,lexer*,poisson*,solver*,ghostcell*,ioflow*,field&,field&,field&,double) override;
+    void ini(lexer*,fdm*,ghostcell*) override;
+    void upgrad(lexer*,fdm*,slice&,slice&) override;
+    void vpgrad(lexer*,fdm*,slice&,slice&) override;
+    void wpgrad(lexer*,fdm*,slice&,slice&) override;
+    void ucorr(lexer*,fdm*,field&,double) override;
+    void vcorr(lexer*,fdm*,field&,double) override;
+    void wcorr(lexer*,fdm*,field&,double) override;
+
+private:
+    void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    void presscorr(lexer*,fdm*,field&,field&,field&,field&,double);
 
     field4 pcorr;
 
@@ -65,7 +67,4 @@ private:
     density *pd;
 };
 
-
-
 #endif
-

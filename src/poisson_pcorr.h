@@ -40,7 +40,7 @@ public:
 	poisson_pcorr (lexer*, heat*&, concentration*&);
 	virtual ~poisson_pcorr();
 
-	virtual void start(lexer *,fdm*,field&);
+    void start(lexer *,fdm*,field&) override;
 
 private:
 
@@ -50,8 +50,4 @@ private:
     density *pd;
 };
 
-
 #endif
-
-
-
