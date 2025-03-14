@@ -980,7 +980,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
       <File Name="momentum_RK3CN.h"/>
-      <File Name="momentum_RKLS3.h"/>
       <File Name="momentum_FC2.h"/>
       <File Name="momentum_forcing.h"/>
       <File Name="momentum_RKLS3_sf.h"/>
@@ -2719,7 +2718,6 @@
       </VirtualDirectory>
       <File Name="momentum_RKLS3_df.cpp"/>
       <File Name="momentum_RKLS3_sf.cpp"/>
-      <File Name="momentum_RKLS3.cpp"/>
       <File Name="momentum_FCC3.cpp"/>
       <File Name="momentum_FC3.cpp"/>
       <VirtualDirectory Name="BC">
