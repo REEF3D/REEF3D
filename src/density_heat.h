@@ -30,29 +30,17 @@ class fdm;
 class lexer;
 class heat;
 
-
-using namespace std;
-
 class density_heat : public density, virtual public increment
 {
 
 public:
     density_heat(lexer*,heat*&);
-	virtual ~density_heat();
+    virtual ~density_heat() = default;
 
-	virtual double roface(lexer*,fdm*,int,int,int);
-	
-	double H,roval,phival;
-	int ii,jj,kk;
-	const double epsi,eps;
-    double psi;
-    
-    heat *pheat;
+    double roface(lexer*,fdm*,int,int,int) override;
 private:
     void material(lexer*);
     double material_ipol(double**,int,double);
-
-    static int iocheck,iter;
     //--
     double visc_1,visc_2,ro_1,ro_2,alpha_air,alpha_water;
 	double **water_density;
@@ -64,6 +52,11 @@ private:
 	int water_viscosity_num;
 	int air_density_num;
 	int air_viscosity_num;
+
+    double H,roval,phival,temp;
+    double psi;
+    
+    heat *pheat;
 
 };
 
