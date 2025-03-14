@@ -1007,7 +1007,6 @@
       <VirtualDirectory Name="Density">
         <File Name="density_sf.h"/>
         <File Name="density_df.h"/>
-        <File Name="density_rheo.h"/>
         <File Name="density_conc.h"/>
         <File Name="density_vof.h"/>
         <File Name="density_heat.h"/>
@@ -2743,7 +2742,6 @@
       <VirtualDirectory Name="Density">
         <File Name="density_sf.cpp"/>
         <File Name="density_df.cpp"/>
-        <File Name="density_rheo.cpp"/>
         <File Name="density_vof.cpp"/>
         <File Name="density_conc.cpp"/>
         <File Name="density_comp.cpp"/>
