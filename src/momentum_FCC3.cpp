@@ -28,7 +28,6 @@ Author: Hans Bihs
 #include"convection.h"
 #include"diffusion.h"
 #include"pressure.h"
-#include"poisson.h"
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
@@ -44,12 +43,11 @@ Author: Hans Bihs
 #include"picard_f.h"
 #include"picard_lsm.h"
 #include"picard_void.h"
-#include"nhflow.h"
 #include"heat.h"
 #include"concentration.h"
 #include"density.h"
 
-momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
                                                     heat *&pheat, concentration *&pconc, reini *ppreini,
                                                     fsi *ppfsi, density* ppd)
@@ -65,24 +63,20 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	gcval_w=12;
     
     if(p->F50==1)
-	gcval_phi=51;
-
-	if(p->F50==2)
-	gcval_phi=52;
-
-	if(p->F50==3)
-	gcval_phi=53;
-
-	if(p->F50==4)
-	gcval_phi=54;
+        gcval_phi=51;
+    else if(p->F50==2)
+        gcval_phi=52;
+    else if(p->F50==3)
+        gcval_phi=53;
+    else if(p->F50==4)
+        gcval_phi=54;
 
 	pconvec=pconvection;
     pfsfdisc=ppfsfdisc;
-	pdiff=pdiffusion;
-	ppress=ppressure;
-	ppois=ppoisson;
-	pturb=pturbulence;
-	psolv=psolver;
+    pdiff=pdiffusion;
+    ppress=ppressure;
+    pturb=pturbulence;
+    psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
     preini=ppreini;

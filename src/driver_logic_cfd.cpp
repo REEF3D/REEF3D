@@ -586,35 +586,35 @@ void driver::logic_cfd()
 	if(p->N40==0)
 	pmom = new momentum_void();
 
-	if(p->N40==2)
-	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
+    if(p->N40==2)
+    pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
     if(p->N40==3)
-    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
+    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
     if(p->N40==4 && (p->X10==0 && p->Z10==0))
     {
-    pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,pturb,psolv,ppoissonsolv,pflow); 
     pmom = new momentum_void();
     }
     
     if(p->N40==4 && (p->X10==1 || p->Z10>0))
     {
-    pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
+    pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,pturb,psolv,ppoissonsolv,pflow); 
     pmom = new momentum_void();
     }
 
-	if(p->N40==5)
-	pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
+    if(p->N40==5)
+    pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,pturb,psolv,ppoissonsolv,pflow,pfsi);
 
     if(p->N40==22)
-	pmom = new momentum_FC2(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    pmom = new momentum_FC2(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
     if(p->N40==23)
-	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
     if(p->N40==33)
-	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi,pd);
+    pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi,pd);
 
 }
 

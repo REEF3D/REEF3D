@@ -40,7 +40,6 @@ class pressure;
 class turbulence;
 class solver;
 class density;
-class poisson;
 class sixdof;
 class net;
 class fsi;
@@ -53,7 +52,7 @@ public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-	momentum_RKLS3_df(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	momentum_RKLS3_df(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_RKLS3_df();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
 
@@ -71,10 +70,9 @@ private:
 	field2 vrk, Cv, Dv, fy;
 	field3 wrk, Cw, Dw, fz;
 
-	convection *pconvec;
-	diffusion *pdiff;
-	pressure *ppress;
-	poisson *ppois;
+    convection *pconvec;
+    diffusion *pdiff;
+    pressure *ppress;
     turbulence *pturb;
 	solver *psolv;
     solver *ppoissonsolv;
@@ -88,4 +86,3 @@ private:
 };
 
 #endif
-

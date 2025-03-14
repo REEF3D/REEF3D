@@ -37,9 +37,7 @@ class pressure;
 class density;
 class turbulence;
 class solver;
-class poisson;
 class fluid_update;
-class nhflow;
 class reini;
 class picard;
 class heat;
@@ -52,7 +50,7 @@ using namespace std;
 class momentum_FCC3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
-    momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
+    momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*,
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*, density*);
     virtual ~momentum_FCC3();
     virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
@@ -99,14 +97,12 @@ private:
 
 	convection *pconvec;
     convection *pfsfdisc;
-	diffusion *pdiff;
-	pressure *ppress;
-	poisson *ppois;
-	turbulence *pturb;
-	solver *psolv;
+    diffusion *pdiff;
+    pressure *ppress;
+    turbulence *pturb;
+    solver *psolv;
     solver *ppoissonsolv;
-	ioflow *pflow;
-    nhflow *pnh;
+    ioflow *pflow;
     reini *preini;
     density *pd;
     sixdof *p6dof;

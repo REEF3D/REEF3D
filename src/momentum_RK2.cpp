@@ -28,12 +28,11 @@ Author: Hans Bihs
 #include"convection.h"
 #include"diffusion.h"
 #include"pressure.h"
-#include"poisson.h"
 #include"ioflow.h"
 #include"turbulence.h"
 #include"solver.h"
 
-momentum_RK2::momentum_RK2(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_RK2::momentum_RK2(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
                                                     fsi *ppfsi)
                                                     :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),
@@ -43,12 +42,11 @@ momentum_RK2::momentum_RK2(lexer *p, fdm *a, convection *pconvection, diffusion 
 	gcval_v=11;
 	gcval_w=12;
 
-	pconvec=pconvection;
-	pdiff=pdiffusion;
-	ppress=ppressure;
-	ppois=ppoisson;
-	pturb=pturbulence;
-	psolv=psolver;
+    pconvec=pconvection;
+    pdiff=pdiffusion;
+    ppress=ppressure;
+    pturb=pturbulence;
+    psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
     pfsi=ppfsi;

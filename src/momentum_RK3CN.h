@@ -35,9 +35,7 @@ class diffusion;
 class pressure;
 class turbulence;
 class solver;
-class poisson;
 class fluid_update;
-class nhflow;
 class sixdof;
 class fsi;
 
@@ -46,7 +44,7 @@ using namespace std;
 class momentum_RK3CN : public momentum, public momentum_forcing, public bcmom
 {
 public:
-	momentum_RK3CN(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, fsi*);
+	momentum_RK3CN(lexer*, fdm*, convection*, diffusion*, pressure*, turbulence*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK3CN();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
 
@@ -55,29 +53,25 @@ public:
 	field3 wdiff,wrk1,wrk2,fz;
 
 private:
-        fluid_update *pupdate;
+    fluid_update *pupdate;
     
-	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-        void addirhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-        void addjrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-        void addkrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	
-        void timecheck(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void addirhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void addjrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void addkrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
     
 	int gcval_u, gcval_v, gcval_w;
 	double starttime;
 
-	convection *pconvec;
-	diffusion *pdiff;
-	pressure *ppress;
-	poisson *ppois;
-	turbulence *pturb;
-	solver *psolv;
+    convection *pconvec;
+    diffusion *pdiff;
+    pressure *ppress;
+    turbulence *pturb;
+    solver *psolv;
     solver *ppoissonsolv;
-	ioflow *pflow;
-    nhflow *pnh;
+    ioflow *pflow;
     fsi *pfsi;
 };
 

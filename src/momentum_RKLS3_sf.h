@@ -40,7 +40,6 @@ class pressure;
 class turbulence;
 class solver;
 class density;
-class poisson;
 class sixdof;
 class net;
 class fsi;
@@ -53,16 +52,13 @@ public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-	momentum_RKLS3_sf(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+	momentum_RKLS3_sf(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_RKLS3_sf();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
 
 	void starti(lexer*, fdm*, ghostcell*, sixdof*, vrans*, vector<net*>&, fsi*);
 
 private:
-
-    double Hsolidface(lexer*, fdm*, int, int, int);
-	
     void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);    
@@ -71,12 +67,11 @@ private:
 	field2 vrk, Cv, Dv, fy;
 	field3 wrk, Cw, Dw, fz;
 
-	convection *pconvec;
-	diffusion *pdiff;
-	diffusion *pdiff_e;
-	pressure *ppress;
-	poisson *ppois;
-	density *pdensity;
+    convection *pconvec;
+    diffusion *pdiff;
+    diffusion *pdiff_e;
+    pressure *ppress;
+    density *pdensity;
     turbulence *pturb;
 	solver *psolv;
     solver *ppoissonsolv;
@@ -90,4 +85,3 @@ private:
 };
 
 #endif
-
