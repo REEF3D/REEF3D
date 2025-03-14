@@ -26,41 +26,27 @@ Author: Hans Bihs
 
 density_comp::density_comp(lexer* p) 
 {
-        if(p->j_dir==0)        
-        psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
-        
-        if(p->j_dir==1)
-        psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
-        
-        H=0.0;
-}
-
-density_comp::~density_comp()
-{
+    if(p->j_dir==0)        
+    psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+    
+    if(p->j_dir==1)
+    psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
 double density_comp::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {       
-        phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
-        
-        ro_air = (0.0035*(101325.0 + 0.5*(a->press(i,j,k) + a->press(i+aa,j+bb,k+cc))))  / (273.15 + p->W31);
+    phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+    
+    ro_air = (0.0035*(101325.0 + 0.5*(a->press(i,j,k) + a->press(i+aa,j+bb,k+cc))))  / (273.15 + p->W31);
 
-
-        if(phival>psi)
+    if(phival>psi)
         H=1.0;
-
-        if(phival<-psi)
+    else if(phival<-psi)
         H=0.0;
-
-        if(fabs(phival)<=psi)
+    else
         H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
         
-            
-        roval = p->W1*H + ro_air*(1.0-H);
+    roval = p->W1*H + ro_air*(1.0-H);
 
 	return roval;		
 }
-
-
-
-
