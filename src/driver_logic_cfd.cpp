@@ -428,7 +428,7 @@ void driver::logic_cfd()
 
 //pressure scheme
 	if(p->D30==0)
-	ppress = new pressure_void(p);
+	ppress = new pressure_void();
 
     if((p->D30==1 || p->D30==2 || p->D30==3))
 	ppress = new pjm_corr(p,a,pgc,pheat,pconc);

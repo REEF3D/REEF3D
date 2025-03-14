@@ -26,24 +26,21 @@ Author: Hans Bihs
 #include"pressure.h"
 #include"increment.h"
 
-using namespace std;
-
 class pressure_void : public pressure, public increment
 {
 
 public:
-	pressure_void(lexer* p);
-	virtual ~pressure_void();
+    pressure_void() = default;
+    virtual ~pressure_void() = default;
 
-	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
-    virtual void ini(lexer*,fdm*,ghostcell*);
-	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void ucorr(lexer*p,fdm*,field&,double);
-	virtual void vcorr(lexer*p,fdm*,field&,double);
-	virtual void wcorr(lexer*p,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
-	virtual void wpgrad(lexer*,fdm*,slice&,slice&);
+    void start(fdm*,lexer*,poisson*,solver*,ghostcell*,ioflow*,field&,field&,field&,double) override;
+    void ini(lexer*,fdm*,ghostcell*) override;
+    void upgrad(lexer*,fdm*,slice&,slice&) override;
+    void vpgrad(lexer*,fdm*,slice&,slice&) override;
+    void wpgrad(lexer*,fdm*,slice&,slice&) override;
+    void ucorr(lexer*,fdm*,field&,double) override;
+    void vcorr(lexer*,fdm*,field&,double) override;
+    void wcorr(lexer*,fdm*,field&,double) override;
 };
 
 #endif
