@@ -261,6 +261,7 @@
             <File Name="nhflow_state.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="nhflow_u_profile.h"/>
             <File Name="nhflow_vel_probe.h"/>
             <File Name="nhflow_vel_probe_theory.h"/>
           </VirtualDirectory>
@@ -1406,6 +1407,7 @@
             <File Name="nhflow_state.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="nhflow_u_profile.cpp"/>
             <File Name="nhflow_vel_probe_theory.cpp"/>
             <File Name="nhflow_vel_probe.cpp"/>
           </VirtualDirectory>

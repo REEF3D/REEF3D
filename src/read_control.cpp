@@ -1499,6 +1499,15 @@ void lexer::read_control()
                 case 66: ++P66;
                          clear(c,numint);
                          break;
+                case 67: ++P67;
+                         clear(c,numint);
+                         break;
+                case 68: ++P68;
+                         clear(c,numint);
+                         break;
+                case 69: ++P69;
+                         clear(c,numint);
+                         break;
                 case 71: control>>P71;
                          clear(c,numint);
                          break;
@@ -2843,6 +2852,15 @@ void lexer::read_control()
     Darray(P66_x,P66);
     Darray(P66_y,P66);
     Darray(P66_z,P66);
+    
+    Darray(P67_x,P67);
+    Darray(P67_y,P67);
+    
+    Darray(P68_x,P68);
+    Darray(P68_y,P68);
+    
+    Darray(P69_x,P69);
+    Darray(P69_y,P69);
 
     Darray(P167_x,P167);
     
@@ -3162,6 +3180,9 @@ void lexer::read_control()
     int countP64=0;
     int countP65=0;
     int countP66=0;
+    int countP67=0;
+    int countP68=0;
+    int countP69=0;
     int countP167=0;
     int countP168=0;
     int countP81=0;
@@ -3490,6 +3511,18 @@ void lexer::read_control()
                          break;
                 case 66: control>>P66_x[countP66]>>P66_y[countP66]>>P66_z[countP66];
                         ++countP66;
+                         clear(c,numint);
+                         break;
+                case 67: control>>P67_x[countP67]>>P67_y[countP67];
+                        ++countP67;
+                         clear(c,numint);
+                         break;
+                case 68: control>>P68_x[countP68]>>P68_y[countP68];
+                        ++countP68;
+                         clear(c,numint);
+                         break;
+                case 69: control>>P69_x[countP69]>>P69_y[countP69];
+                        ++countP69;
                          clear(c,numint);
                          break;
                 case 81: control>>P81_xs[countP81]>>P81_xe[countP81]>>P81_ys[countP81]>>P81_ye[countP81]>>P81_zs[countP81]>>P81_ze[countP81];

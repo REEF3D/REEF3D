@@ -569,6 +569,9 @@ void lexer::ini_default()
     P64=0;              // int print pressure probes
     P65=0;              // int print velocity probes
     P66=0;              // int print velocity probes from wave theory
+    P67=0;              // int print vertical velocity profile in x-direction
+    P68=0;              // int print vertical velocity profile in y-direction
+    P69=0;              // int print vertical velocity profile in  horiontal direction
     P71=0;           // int print viscosity to vtu
     P72=0;           // int print vof function
     P73=0;           // int print hx and hy for sflow vtp

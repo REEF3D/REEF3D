@@ -1128,6 +1128,12 @@ void lexer::ctrlrecv()
     ii++;
     P66 = ictrl[ii];
     ii++;
+    P67 = ictrl[ii];
+    ii++;
+    P68 = ictrl[ii];
+    ii++;
+    P69 = ictrl[ii];
+    ii++;
     P71 = ictrl[ii];
     ii++;
     P72 = ictrl[ii];
@@ -2515,6 +2521,24 @@ void lexer::ctrlrecv()
     Darray(P66_z,P66);  
     }
     
+    if(P67>0)
+    {
+    Darray(P67_x,P67);  
+    Darray(P67_y,P67);  
+    }
+    
+    if(P68>0)
+    {
+    Darray(P68_x,P68);  
+    Darray(P68_y,P68);  
+    }
+    
+    if(P69>0)
+    {
+    Darray(P69_x,P69);  
+    Darray(P69_y,P69);  
+    }
+    
     if(P81>0)
     {
     Darray(P81_xs,P81); 
@@ -3712,6 +3736,30 @@ for(n=0;n<F369;++n)
     P66_y[n] = dctrl[dd];
     dd++;
     P66_z[n] = dctrl[dd];
+    dd++;
+    }
+    
+    for(n=0;n<P67;++n)
+    {
+    P67_x[n] = dctrl[dd];
+    dd++;
+    P67_y[n] = dctrl[dd];
+    dd++;
+    }
+    
+    for(n=0;n<P68;++n)
+    {
+    P68_x[n] = dctrl[dd];
+    dd++;
+    P68_y[n] = dctrl[dd];
+    dd++;
+    }
+    
+    for(n=0;n<P69;++n)
+    {
+    P69_x[n] = dctrl[dd];
+    dd++;
+    P69_y[n] = dctrl[dd];
     dd++;
     }
     
