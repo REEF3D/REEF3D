@@ -2673,7 +2673,6 @@
           <File Name="fsf_vtp_print.cpp"/>
           <File Name="fsf_finalize.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Nodefill"/>
         <VirtualDirectory Name="State">
           <File Name="cfd_state_header.cpp"/>
           <File Name="cfd_state_mainheader.cpp"/>

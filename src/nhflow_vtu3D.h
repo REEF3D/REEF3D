@@ -35,6 +35,7 @@ class nhflow_print_wsfline;
 class nhflow_print_wsfline_y;
 class nhflow_print_runup_gage_x;
 class nhflow_print_runup_max_gage_x;
+class nhflow_u_profile;
 class nhflow_vtp_fsf;
 class nhflow_vtp_bed;
 class nhflow_state;
@@ -85,6 +86,7 @@ private:
     nhflow_print_wsfline_y *pwsfline_y;
     nhflow_print_runup_gage_x *prunupx;
     nhflow_print_runup_max_gage_x *prunupmaxx;
+    nhflow_u_profile *puprofile;
     nhflow_vtp_fsf *pfsf;
     nhflow_vtp_bed *pbed;
     nhflow_state *pstate;
