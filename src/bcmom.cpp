@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include<math.h>
 
 bcmom::bcmom(lexer* p):surftens(p),roughness(p),kappa(0.4)
 {
@@ -44,6 +45,13 @@ bcmom::bcmom(lexer* p):surftens(p),roughness(p),kappa(0.4)
     bckin=0;
     if(p->T10>0 || p->T10<20)
     bckin=1;
+    
+    // Initialize wall function constants
+    E = 9.8;                 // Wall constant for smooth walls
+    yPlusViscous = 11.0;     // Transition point between viscous sublayer and log region
+    ksPlusSmooth = 2.25;     // Hydraulically smooth limit 
+    ksPlusRough = 90.0;      // Fully rough limit 
+    
 }
 
 bcmom::~bcmom()
@@ -93,24 +101,79 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
     j=jj;
     k=kk;
     
+    // Adjust distance based on cell orientation
     if(cs==2 || cs==3)
     dist=p->DYN[JP];
     
     if(cs==5 || cs==6)
     dist=p->DZN[KP];
     
-    
+    // Get roughness height
     ks=ks_val(p,a,ii,jj,kk,cs,bc);
-
-
-        if(30.0*dist<ks)
-        dist=ks/30.0;
-
-        uplus = (1.0/kappa)*log(30.0*(dist/ks));
+    
+    // Ensure minimum distance for numerical stability
+    if(dist < 1.0e-10)
+    dist = 1.0e-10;
+    
+    // Get local properties
+    double nu = a->visc(i,j,k);      // Kinematic viscosity
+    double rho = a->ro(i,j,k);       // Density
+    double velocity = a->u(i,j,k);   // Local velocity
+    double velMag = fabs(velocity);  // Velocity magnitude
+    
+    // Avoid division by zero
+    if(velMag < 1.0e-10)
+    {
+        return; // No wall stress for essentially zero velocity
+    }
+    
+    double wallStress; // Will store the calculated wall stress
+    
+    // Initial guess for friction velocity using log law
+    double uTau_guess = velMag * kappa / log(E * dist/max(ks, 1.0e-10));
+    
+    // Calculate y+
+    double yPlus = dist * uTau_guess / max(nu, 1.0e-10);
+    
+    // Calculate ks+
+    double ksPlus = ks * uTau_guess / max(nu, 1.0e-10);
+    
+    // Calculate wall stress based on appropriate wall model
+    if(yPlus < yPlusViscous)
+    {
+        // Viscous sublayer - linear profile
+        // tau_w = mu * dU/dy = mu * U/y
+        wallStress = rho * nu * velMag / dist;
+    }
+    else
+    {
+        // Log law region with roughness effects
+        double uTau; // Friction velocity
         
-    //cout<<((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*dist))<<" "<<ks<<endl;
-
-    a->F(i,j,k) -= ((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*dist));
+        if(ksPlus < ksPlusSmooth)
+        {
+            // Hydraulically smooth regime
+            uTau = velMag * kappa / log(E * yPlus);
+        }
+        else if(ksPlus < ksPlusRough)
+        {
+            // Transitionally rough regime
+            // Use Cebeci-Chang roughness model
+            double delta_B = (1.0/kappa) * log(ksPlus) * sin(0.4258 * (log(ksPlus) - 0.811));
+            uTau = velMag * kappa / (log(E * yPlus) - delta_B);
+        }
+        else
+        {
+            // Fully rough regime
+            uTau = velMag * kappa / log(30.0 * dist/ks);
+        }
+        
+        // Wall stress from friction velocity
+        wallStress = rho * uTau * uTau;
+    }
+    
+    // Apply wall stress with correct sign
+    a->F(i,j,k) -= (wallStress * (velocity/velMag));
 }
 
 void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist)
@@ -119,20 +182,79 @@ void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
     j=jj;
     k=kk;
     
+    // Adjust distance based on cell orientation
     if(cs==1 || cs==4)
     dist=p->DXN[IP];
     
     if(cs==5 || cs==6)
     dist=p->DZN[KP];
     
+    // Get roughness height
     ks=ks_val(p,a,ii,jj,kk,cs,bc);
-
-        if(30.0*dist<ks)
-        dist=ks/30.0;
-
-        uplus = (1.0/kappa)*log(30.0*(dist/ks));
-
-    a->G(i,j,k) -= ((fabs(a->v(i,j,k))*a->v(i,j,k))/(uplus*uplus*dist));
+    
+    // Ensure minimum distance for numerical stability
+    if(dist < 1.0e-10)
+    dist = 1.0e-10;
+    
+    // Get local properties
+    double nu = a->visc(i,j,k);      // Kinematic viscosity
+    double rho = a->ro(i,j,k);       // Density
+    double velocity = a->v(i,j,k);   // Local velocity
+    double velMag = fabs(velocity);  // Velocity magnitude
+    
+    // Avoid division by zero
+    if(velMag < 1.0e-10)
+    {
+        return; // No wall stress for essentially zero velocity
+    }
+    
+    double wallStress; // Will store the calculated wall stress
+    
+    // Initial guess for friction velocity using log law
+    double uTau_guess = velMag * kappa / log(E * dist/max(ks, 1.0e-10));
+    
+    // Calculate y+
+    double yPlus = dist * uTau_guess / max(nu, 1.0e-10);
+    
+    // Calculate ks+
+    double ksPlus = ks * uTau_guess / max(nu, 1.0e-10);
+    
+    // Calculate wall stress based on appropriate wall model
+    if(yPlus < yPlusViscous)
+    {
+        // Viscous sublayer - linear profile
+        // tau_w = mu * dU/dy = mu * U/y
+        wallStress = rho * nu * velMag / dist;
+    }
+    else
+    {
+        // Log law region with roughness effects
+        double uTau; // Friction velocity
+        
+        if(ksPlus < ksPlusSmooth)
+        {
+            // Hydraulically smooth regime
+            uTau = velMag * kappa / log(E * yPlus);
+        }
+        else if(ksPlus < ksPlusRough)
+        {
+            // Transitionally rough regime
+            // Use Cebeci-Chang roughness model
+            double delta_B = (1.0/kappa) * log(ksPlus) * sin(0.4258 * (log(ksPlus) - 0.811));
+            uTau = velMag * kappa / (log(E * yPlus) - delta_B);
+        }
+        else
+        {
+            // Fully rough regime
+            uTau = velMag * kappa / log(30.0 * dist/ks);
+        }
+        
+        // Wall stress from friction velocity
+        wallStress = rho * uTau * uTau;
+    }
+    
+    // Apply wall stress with correct sign
+    a->G(i,j,k) -= (wallStress * (velocity/velMag));
 }
 
 void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist)
@@ -141,20 +263,79 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
     j=jj;
     k=kk;
     
+    // Adjust distance based on cell orientation
     if(cs==1 || cs==4)
     dist=p->DXN[IP];
     
     if(cs==2 || cs==3)
     dist=p->DYN[JP];
     
+    // Get roughness height
     ks=ks_val(p,a,ii,jj,kk,cs,bc);
-
-        if(30.0*dist<ks)
-        dist=ks/30.0;
-
-        uplus = (1.0/kappa)*log(30.0*(dist/ks));
-
-    a->H(i,j,k) -= ((fabs(a->w(i,j,k))*a->w(i,j,k))/(uplus*uplus*dist));
+    
+    // Ensure minimum distance for numerical stability
+    if(dist < 1.0e-10)
+    dist = 1.0e-10;
+    
+    // Get local properties
+    double nu = a->visc(i,j,k);      // Kinematic viscosity
+    double rho = a->ro(i,j,k);       // Density
+    double velocity = a->w(i,j,k);   // Local velocity
+    double velMag = fabs(velocity);  // Velocity magnitude
+    
+    // Avoid division by zero
+    if(velMag < 1.0e-10)
+    {
+        return; // No wall stress for essentially zero velocity
+    }
+    
+    double wallStress; // Will store the calculated wall stress
+    
+    // Initial guess for friction velocity using log law
+    double uTau_guess = velMag * kappa / log(E * dist/max(ks, 1.0e-10));
+    
+    // Calculate y+
+    double yPlus = dist * uTau_guess / max(nu, 1.0e-10);
+    
+    // Calculate ks+
+    double ksPlus = ks * uTau_guess / max(nu, 1.0e-10);
+    
+    // Calculate wall stress based on appropriate wall model
+    if(yPlus < yPlusViscous)
+    {
+        // Viscous sublayer - linear profile
+        // tau_w = mu * dU/dy = mu * U/y
+        wallStress = rho * nu * velMag / dist;
+    }
+    else
+    {
+        // Log law region with roughness effects
+        double uTau; // Friction velocity
+        
+        if(ksPlus < ksPlusSmooth)
+        {
+            // Hydraulically smooth regime
+            uTau = velMag * kappa / log(E * yPlus);
+        }
+        else if(ksPlus < ksPlusRough)
+        {
+            // Transitionally rough regime
+            // Use Cebeci-Chang roughness model
+            double delta_B = (1.0/kappa) * log(ksPlus) * sin(0.4258 * (log(ksPlus) - 0.811));
+            uTau = velMag * kappa / (log(E * yPlus) - delta_B);
+        }
+        else
+        {
+            // Fully rough regime
+            uTau = velMag * kappa / log(30.0 * dist/ks);
+        }
+        
+        // Wall stress from friction velocity
+        wallStress = rho * uTau * uTau;
+    }
+    
+    // Apply wall stress with correct sign
+    a->H(i,j,k) -= (wallStress * (velocity/velMag));
 }
 
 
