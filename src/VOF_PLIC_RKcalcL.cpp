@@ -40,7 +40,6 @@ void VOF_PLIC::RKcalcL
     pgc->start1(p,uvel,10);
     pgc->start2(p,vvel,11);
     pgc->start3(p,wvel,12);
-    updatePhasemarkers(p,a,pgc);
     starttime=pgc->timer();
     if(p->j_dir>0)
     {

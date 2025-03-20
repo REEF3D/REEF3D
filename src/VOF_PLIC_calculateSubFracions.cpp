@@ -30,14 +30,14 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
 {
     LOOP
     {
-        if(a->phasemarker(i,j,k)>-1E-06 && a->phasemarker(i,j,k)<1E-06)
+        if(a->vof(i,j,k)<a_thres)
         {
             a->vof_nt(i,j,k)=0.0;
             a->vof_nb(i,j,k)=0.0;
             a->vof_st(i,j,k)=0.0;
             a->vof_sb(i,j,k)=0.0;
         }
-        else if(a->phasemarker(i,j,k)>10.0 -1E-06 && a->phasemarker(i,j,k)<10.0+ 1E-06)
+        else if(a->vof(i,j,k)>w_thres)
         {
             a->vof_nt(i,j,k)=1.0;
             a->vof_nb(i,j,k)=1.0;
@@ -52,7 +52,7 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
             //NT
             r0xz=-(nx(i,j,k)*(0.25*p->DXN[IP])+nz(i,j,k)*(0.25*p->DZN[KP])-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*0.5*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*0.5*p->DZN[KP])-fabs(r0xz);
-            if(recheck>0.0)
+            if(recheck>1E-20)
             {
                 scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),0.5*p->DXN[IP],p->DYN[JP],0.5*p->DZN[KP],r0xz);
                 a->vof_nt(i,j,k)=scaledVol;
@@ -77,7 +77,7 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
             //NB
             r0xz=-(nx(i,j,k)*(0.25*p->DXN[IP])+nz(i,j,k)*(-0.25*p->DZN[KP])-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*0.5*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*0.5*p->DZN[KP])-fabs(r0xz);
-            if(recheck>0.0)
+            if(recheck>1E-20)
             {
                 scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),0.5*p->DXN[IP],p->DYN[JP],0.5*p->DZN[KP],r0xz);
                 a->vof_nb(i,j,k)=scaledVol;
@@ -100,7 +100,7 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
             //ST
             r0xz=-(nx(i,j,k)*(-0.25*p->DXN[IP])+nz(i,j,k)*(0.25*p->DZN[KP])-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*0.5*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*0.5*p->DZN[KP])-fabs(r0xz);
-            if(recheck>0.0)
+            if(recheck>1E-20)
             {
                 scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),0.5*p->DXN[IP],p->DYN[JP],0.5*p->DZN[KP],r0xz);
                 a->vof_st(i,j,k)=scaledVol;
@@ -123,7 +123,7 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
             //SB
             r0xz=-(nx(i,j,k)*(-0.25*p->DXN[IP])+nz(i,j,k)*(-0.25*p->DZN[KP])-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*0.5*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*0.5*p->DZN[KP])-fabs(r0xz);
-            if(recheck>0.0)
+            if(recheck>1E-20)
             {
                 scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),0.5*p->DXN[IP],p->DYN[JP],0.5*p->DZN[KP],r0xz);
                 a->vof_sb(i,j,k)=scaledVol;

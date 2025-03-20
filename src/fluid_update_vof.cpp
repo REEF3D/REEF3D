@@ -81,11 +81,14 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
             
         if(p->F92>1)
         {
-            Hro=a->vof(i,j,k);
             H=a->vof(i,j,k);
+            if(H>1.0)
+                H=1.0;
+            if(H<0.0)
+                H=0.0;
         }
             
-        a->ro(i,j,k)=     ro_water*Hro +   ro_air*(1.0-Hro);
+        a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
         a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
             
         p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));

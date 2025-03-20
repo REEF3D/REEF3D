@@ -78,7 +78,7 @@ public:
 	field3 roz_rk1,roz_rk2;
     
     field4 ls,frk1,frk2;
-    field4 VoF,vof_rk1,vof_rk2;
+    field4 VoF,vof_rk1,vof_rk2,vof_rk3;
 
 private:
     fluid_update *pupdate;

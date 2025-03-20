@@ -26,14 +26,57 @@ Author: Fabian Knoblauch
 #include"lexer.h"
 #include"gradient.h"
 
-void VOF_PLIC::updatePhasemarkers( lexer* p, fdm* a, ghostcell* pgc)
+void VOF_PLIC::updatePhasemarkers( lexer* p, fdm* a, ghostcell* pgc,field& voffield)
 {
     LOOP
         a->phasemarker(i,j,k)=0.0;
         
     LOOP
     {
-        if(a->vof(i,j,k)>0.995)
+        if(voffield(i,j,k)>w_thres)
+        {
+            a->phasemarker(i,j,k)=10.0;
+        }
+    }
+    
+    pgc->start4(p,a->phasemarker,1);
+    
+    LOOP
+    {
+        if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<1.0)
+        {   
+            if(searchMarkerInVicinity(p,a,1,10.0,i,j,k)>=1)
+            {
+                a->phasemarker(i,j,k)=6.0;
+            }
+        }
+    }
+    
+    pgc->start4(p,a->phasemarker,1);
+    /*
+    LOOP
+    {
+        if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
+        {
+            if((searchMarkerAlongDims(p,a,1,6.0,i,j,k)>=2) && (searchMarkerInVicinity(p,a,1,10.0,i,j,k)>=1))
+            {
+                a->phasemarker(i,j,k)=4.0;
+            }
+        }
+    }
+    
+    pgc->start4(p,a->phasemarker,1);*/
+
+} 
+
+void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,field& voffield)
+{
+    LOOP
+        a->phasemarker(i,j,k)=0.0;
+        
+    LOOP
+    {
+        if(voffield(i,j,k)>corr_thres)
         {
             a->phasemarker(i,j,k)=10.0;
         }
@@ -54,7 +97,74 @@ void VOF_PLIC::updatePhasemarkers( lexer* p, fdm* a, ghostcell* pgc)
     
     pgc->start4(p,a->phasemarker,1);
     
-   /* LOOP
+    LOOP
+    {
+        if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<1.0)
+        {   
+            if(searchMarkerInVicinity(p,a,1,6.0,i,j,k)>=1)
+            {
+                a->phasemarker(i,j,k)=5.0;
+            }
+        }
+    }
+    
+    pgc->start4(p,a->phasemarker,1);
+    
+    LOOP
+    {
+        if(a->phasemarker(i,j,k)>=5.9 && a->phasemarker(i,j,k)<=6.1)
+        {
+            if(a->phasemarker(i,j,k+1)>=4.9 && a->phasemarker(i,j,k+1)<=5.1)
+            {
+                if(voffield(i,j,k)+voffield(i,j,k+1)<=1.0)
+                {
+                    voffield(i,j,k)+=voffield(i,j,k+1);
+                    voffield(i,j,k+1)=0.0;
+                }
+                else
+                {
+                    a->phasemarker(i,j,k)=10.0;
+                    a->phasemarker(i,j,k+1)=6.0;
+                    voffield(i,j,k+1)=voffield(i,j,k)+voffield(i,j,k+1)-1.0;
+                    voffield(i,j,k)=1.0;
+                }
+            }
+        }
+    }
+    
+    pgc->start4(p,a->phasemarker,1);
+    pgc->start4(p,voffield,1); 
+}
+
+void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,field& voffield)
+{
+    LOOP
+        a->phasemarker(i,j,k)=0.0;
+        
+    LOOP
+    {
+        if(voffield(i,j,k)>corr_thres)
+        {
+            a->phasemarker(i,j,k)=10.0;
+        }
+    }
+    
+    pgc->start4(p,a->phasemarker,1);
+    
+    LOOP
+    {
+        if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<1.0)
+        {   
+            if(searchMarkerInVicinity(p,a,1,10.0,i,j,k)>=1)
+            {
+                a->phasemarker(i,j,k)=6.0;
+            }
+        }
+    }
+    
+    pgc->start4(p,a->phasemarker,1);
+    
+    /*LOOP
     {
         if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
         {
@@ -63,20 +173,20 @@ void VOF_PLIC::updatePhasemarkers( lexer* p, fdm* a, ghostcell* pgc)
                 a->phasemarker(i,j,k)=4.0;
             }
         }
-    }*/
+    }
     
-    pgc->start4(p,a->phasemarker,1);
+    pgc->start4(p,a->phasemarker,1);*/
     
     LOOP
     {
         if(a->phasemarker(i,j,k)>9.9 && a->phasemarker(i,j,k)<10.1)
-            a->vof(i,j,k)=1.0;
+            voffield(i,j,k)=1.0;
             
-        if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
-            a->vof(i,j,k)=0.0;
+        if((a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1))
+            voffield(i,j,k)=0.0;
     }
     
-    pgc->start4(p,a->vof,1);
+    pgc->start4(p,voffield,1); 
 }
 
 int VOF_PLIC::searchMarkerInVicinity(lexer*p, fdm* a, int dist, double markernum,int ii, int jj, int kk)

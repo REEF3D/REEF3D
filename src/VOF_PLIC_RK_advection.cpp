@@ -55,7 +55,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
             dsx=uvel(i,j,k)*p->dt;
             r0x=-(nx(i,j,k)*(0.5*p->DXN[IP]-0.5*dsx)-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*fabs(dsx)+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*p->DZN[KP])-fabs(r0x);
-            if(recheck>0.0)
+            if(recheck>1E-20)
             {
                 scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),dsx,p->DYN[JP],p->DZN[KP],r0x);
                 Vol=scaledVol*dsx*p->DYN[JP]*p->DZN[KP];
@@ -100,7 +100,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
             dsx=fabs(uvel(i-1,j,k)*p->dt);
             r0x=-(nx(i,j,k)*(-0.5*p->DXN[IP]+0.5*dsx)-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*fabs(dsx)+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*p->DZN[KP])-fabs(r0x);
-            if(recheck>0.0)
+            if(recheck>1E-20)
             {
                 scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),dsx,p->DYN[JP],p->DZN[KP],r0x);
                 Vol=scaledVol*dsx*p->DYN[JP]*p->DZN[KP];
@@ -147,7 +147,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
             dsz=wvel(i,j,k)*p->dt;
             r0z=-(nz(i,j,k)*(0.5*p->DZN[KP]-0.5*dsz)-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*dsz)-fabs(r0z);
-            if(recheck>0.0)
+            if(recheck>1E-20)
             {
                 scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],dsz,r0z);
                 Vol=scaledVol*p->DXN[IP]*p->DYN[JP]*dsz;
@@ -190,7 +190,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
             dsz=fabs(wvel(i,j,k-1)*p->dt);
             r0z=-(nz(i,j,k)*(-0.5*p->DZN[KP]+0.5*dsz)-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*dsz)-fabs(r0z);
-            if(recheck>0.0)
+            if(recheck>1E-20)
             {
                 scaledVol=calculateVolume(nx(i,j,k),ny(i,j,k),nz(i,j,k),p->DXN[IP],p->DYN[JP],dsz,r0z);
                 Vol=scaledVol*p->DXN[IP]*p->DYN[JP]*dsz;

@@ -80,6 +80,28 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
                     ) /2.0;
         }
     }
+    
+    if(p->F92==3)
+    {
+        double H;
+        
+        if(aa==1)
+            H=0.25*a->vof_nt(i,j,k)+0.25*a->vof_nb(i,j,k)+0.25*a->vof_st(i+1,j,k)+0.25*a->vof_sb(i+1,j,k);
+        else if(aa==-1)
+            H=0.25*a->vof_st(i,j,k)+0.25*a->vof_sb(i,j,k)+0.25*a->vof_nt(i-1,j,k)+0.25*a->vof_nb(i-1,j,k);
+        else if(bb==1)
+            H=a->vof(i,j,k);
+        else if(bb==-1)
+            H=a->vof(i,j,k);
+        else if(cc==1)
+            H=0.25*a->vof_nt(i,j,k)+0.25*a->vof_st(i,j,k)+0.25*a->vof_nb(i,j,k+1)+0.25*a->vof_sb(i,j,k+1);
+        else if(cc==-1)
+            H=0.25*a->vof_nb(i,j,k)+0.25*a->vof_sb(i,j,k)+0.25*a->vof_nt(i,j,k-1)+0.25*a->vof_st(i,j,k-1);
+        else
+            cout<<"density case missing"<<endl;
+            
+        roval=roval = p->W1*H + p->W3*(1.0-H);
+    }
 
 	return roval;
 	

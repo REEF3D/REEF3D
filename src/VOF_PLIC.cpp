@@ -97,6 +97,10 @@ VOF_PLIC::VOF_PLIC
     S_2D[0][1]=2;
     S_2D[1][0]=2;
     S_2D[1][1]=0;
+    
+    a_thres=0.001;
+    w_thres=0.999;
+    corr_thres=0.999;
 }
 
 VOF_PLIC::~VOF_PLIC()

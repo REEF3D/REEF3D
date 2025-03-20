@@ -17,39 +17,20 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#include"convection_void.h"
-#include"fou.h"
-#include"ifou.h"
-#include"cds2.h"
-#include"hcds6.h"
-#include"cds2_alt.h"
-#include"cds4.h"
-#include"quick.h"
-#include"weno_hj.h"
-#include"weno_hj_nug.h"
-#include"weno_hj_df_nug.h"
-#include"weno_flux.h"
-#include"weno_flux_nug.h"
-#include"iweno_hj.h"
-#include"iweno_hj_nug.h"
-#include"iweno_hj_df_nug.h"
-#include"weno3_hj.h"
-#include"weno3_flux.h"
-#include"diff_void.h"
-#include"ediff2.h"
-#include"idiff2.h"
-#include"idiff2_FS.h"
-#include"idiff2_CN.h"
-#include"idiff2_FS_2D.h"
 #include"idiff2_PLIC_2D.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"solver.h"
 
-#include"hires.h"
-
-#include"hric.h"
-#include"hric_mod.h"
-#include"cicsam.h"
+void idiff2_PLIC_2D::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, field &v, field &w, double alpha)
+{
+}
 
 
+void idiff2_PLIC_2D::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &v_in, field &u, field &v, field &w, double alpha)
+{
+}

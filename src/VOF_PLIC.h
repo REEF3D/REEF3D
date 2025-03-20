@@ -49,7 +49,10 @@ public:
     virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
     void RKcalcL(fdm*,lexer*,ghostcell*, field&, field&, field&);
     void RK_redistance(fdm*,lexer*,ghostcell*);
-    void updatePhasemarkers(lexer*,fdm*,ghostcell*);
+    void updatePhasemarkers(lexer*,fdm*,ghostcell*,field&);
+    void updatePhasemarkersCompression(lexer*,fdm*,ghostcell*,field&);
+    void updatePhasemarkersCorrection(lexer*,fdm*,ghostcell*,field&);
+     void calculateSubFractions(lexer*,fdm*,ghostcell*,field&);
 	
 private:	
     void iniphi(fdm*, lexer*,ghostcell*);
@@ -114,13 +117,13 @@ private:
     void stepwise_scheme(fdm*,lexer*,ghostcell*);
     void symmetric_scheme2D(fdm*, lexer*,ghostcell*);
     void symmetric_scheme2D_FCRK3(fdm*, lexer*,ghostcell*, field&, field&, field&);
+    void symmetric_scheme2D_markerBased(fdm*, lexer*,ghostcell*, field&, field&, field&);
     double calcL2vofError2D(fdm*, lexer*, field&, double, double, double, double);
     double calcAlphaFromInput(fdm*, lexer*, double, double, double, double, double, double, double);
     void calcNormalELVIRA2D(fdm*, lexer*, field&);
     void calcNormalMYC2D(fdm*,lexer*, field&);
     int searchMarkerInVicinity(lexer*,fdm*,int,double,int,int,int);
     int searchMarkerAlongDims(lexer*,fdm*,int,double,int,int,int);
-    void calculateSubFractions(lexer*,fdm*,ghostcell*,field&);
    
     field4 V_w_p;
     field4 V_w_m;
@@ -167,6 +170,8 @@ private:
     field4 nz;
     
 	double ****nxCoeff, ****nyCoeff, ****nzCoeff;
+    
+    double w_thres, a_thres, corr_thres;
     
     //- Plane distance coefficient
     field4 alpha;
