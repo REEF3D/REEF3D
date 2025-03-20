@@ -98,6 +98,20 @@ void ioflow_f::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, d
 
 }
 
+void ioflow_f::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *F, double *G)
+{
+    for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    
+    //cout<<G[Im1JK]<<" "<<G[IJK]<<endl;
+
+        F[Im3JK]=F[Im2JK]=F[Im1JK]=G[Im1JK];
+    }
+}
+
 void ioflow_f::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     

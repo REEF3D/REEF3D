@@ -34,9 +34,9 @@ public:
     nhflow_idiff_2D(lexer*);
     virtual ~nhflow_idiff_2D();
 
-    virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, slice&, double);
-    virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, slice&, double);
-    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, slice&, double);
+    virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double);
+    virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double);
+    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double);
     virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double, double);
     
 private:

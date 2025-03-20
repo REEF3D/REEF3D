@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"ioflow.h"
 #include"solver.h"
 #include"slice.h"
 
@@ -42,7 +43,7 @@ nhflow_idiff_2D::~nhflow_idiff_2D()
 {
 }
 
-void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
+void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     starttime=pgc->timer();
 
@@ -50,10 +51,13 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv
     UHdiff[IJK] = UHin[IJK];
     
     pgc->start4V(p,UHdiff,gcval_uh);
+    
+    pflow->rkinflow_nhflow(p,d,pgc,UHdiff,UHin);
 
     n=0;
     LOOP
     {
+    d->test[IJK] = 2.0*(UH[Ip1JK]-UH[IJK])/p->DXP[IP];
         if(p->wet[IJ]==1)
         {
             visc = d->VISC[IJK] + d->EV[IJK];

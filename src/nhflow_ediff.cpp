@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"ioflow.h"
 #include"solver.h"
 
 nhflow_ediff::nhflow_ediff(lexer* p)
@@ -41,7 +42,7 @@ nhflow_ediff::~nhflow_ediff()
 {
 }
 
-void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
+void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     
     starttime=pgc->timer();
@@ -51,9 +52,11 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     
     pgc->start4V(p,UHdiff,gcval_uh);
     
+    pflow->rkinflow_nhflow(p,d,pgc,UHdiff,UHin);
+    
     LOOP
     {
-    visc = d->VISC[IJK];
+    visc = d->VISC[IJK] + d->EV[IJK];
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
@@ -79,17 +82,19 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     }
 }
 
-void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
+void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     LOOP
     VHdiff[IJK] = VHin[IJK];
     
     pgc->start4V(p,VHdiff,gcval_vh);
     
+    pflow->rkinflow_nhflow(p,d,pgc,VHdiff,VHin);
+    
     
     LOOP
     {
-    visc = d->VISC[IJK];
+    visc = d->VISC[IJK] + d->EV[IJK];
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
@@ -114,17 +119,19 @@ void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     }
 }
 
-void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
+void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     LOOP
     WHdiff[IJK] = WHin[IJK];
     
     pgc->start4V(p,WHdiff,gcval_wh);
     
+    pflow->rkinflow_nhflow(p,d,pgc,WHdiff,WHin);
+    
     
     LOOP
     {
-    visc = d->VISC[IJK];
+    visc = d->VISC[IJK] + d->EV[IJK];
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     

@@ -61,6 +61,18 @@ void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, do
     nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
 }
 
+void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *F, double *G)
+{
+    for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+
+        F[Im3JK]=F[Im2JK]=F[Im1JK]=G[Im1JK];
+    }
+}
+
 void iowave::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 

@@ -194,6 +194,7 @@ public:
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*);
     virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
