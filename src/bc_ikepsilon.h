@@ -46,7 +46,11 @@ private:
     int count,q;
     double fac,value;
     const double kappa;
-
+    double E;                  // Wall roughness parameter for smooth walls
+    double yPlusLam;           // y+ value for viscous/buffer layer transition
+    double ksPlusSmooth;       // ks+ threshold for hydraulically smooth regime
+    double ksPlusRough;        // ks+ threshold for fully rough regime
+    double yPlus;              // Non-dimensional wall distance
 };
 #endif
 
