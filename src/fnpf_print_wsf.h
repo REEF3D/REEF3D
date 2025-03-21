@@ -56,6 +56,7 @@ private:
     double *wsf,*deta,*Uhorz;
     int n;
     ofstream wsfout,detaout,Uhorzout;
+    const int fileFlushMaxCount;
     
 
 };

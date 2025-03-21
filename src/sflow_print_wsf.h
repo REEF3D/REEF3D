@@ -54,6 +54,7 @@ private:
     double *wsf;
     int n;
     ofstream wsfout;
+    const int fileFlushMaxCount;
 
 };
 
