@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
+print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCount(100)
 {
     gauge_num = p->P51;
     x = p->P51_x;
@@ -177,7 +177,12 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
     {
     wsfout<<setprecision(9)<<p->simtime<<"\t";
     for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
+    {
+        wsfout<<setprecision(9)<<wsf[n]<<"\t";
+        // flush print to disc limited to prevent data loss for many gauges
+        if(n%fileFlushMaxCount==0&&n!=0)
+            wsfout<<std::flush;
+    }
     wsfout<<endl;
     }
 }
