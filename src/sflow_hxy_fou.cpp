@@ -63,13 +63,13 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
     hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
     }
     
-    
+    if(p->F50==1 || p->F50==4)
     for(n=0;n<p->gcslout_count;n++)
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
     
-        if(p->F50==1 || p->F50==4)
+
         if(wet[IJ]==1)
         {
         ivel1 = P(i,j);
@@ -83,6 +83,12 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
+        
+    if(j==3)
+    {
+    cout<<"HX: "<<hx(i-1,j)<<" "<<hx(i,j)<<" "<<hx(i+1,j)<<endl;
+    cout<<"eta: "<<eta(i-1,j)<<" "<<eta(i,j)<<" "<<eta(i+1,j)<<endl;
+    }
     }
      
     int qq;    

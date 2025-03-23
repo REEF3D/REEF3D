@@ -381,7 +381,6 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     result.write((char*)&ffn, sizeof (float));
     }
 
-
     //  Pressure
     iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));

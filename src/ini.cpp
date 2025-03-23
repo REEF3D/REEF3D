@@ -44,7 +44,7 @@ void lexer::ini_default()
     A230=0;      // int turn on Boussinesq wave model
     A240=1;      // int FSF algorithm SFLOW
     A241=1;          // int discretization of water level SFLOW
-      A242=0;          // int non-hydostatic pressure for shallow areas
+    A242=0;          // int non-hydostatic pressure for shallow areas
     A243=1;      // int turn on wetting-drying
     A244=0.001; // double absolute wetting criterion value
     A246=1;      // int turn on breaking
