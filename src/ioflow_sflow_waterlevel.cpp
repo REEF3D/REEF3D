@@ -78,6 +78,7 @@ void ioflow_f::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
             }
         }*/
         
+        if(p->F50==2 || p->F50==3)
         for(n=0;n<p->gcslout_count;n++)
         {
         i=p->gcslout[n][0];
