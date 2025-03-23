@@ -42,22 +42,22 @@ void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice
 {
     if(p->A519>=1)
     {
-    k=0;
+	k=0;
     
     SLICELOOP4
     {
     dist=p->DZN[KP]*WL(i,j);
-    
-    ks=d->ks(i,j);
+	
+	ks=d->ks(i,j);
 
 
-        if(30.0*dist<ks)
-        dist=ks/30.0;
+		if(30.0*dist<ks)
+		dist=ks/30.0;
 
-        uplus = (1.0/kappa)*log(30.0*(dist/ks));
+		uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
-    
-    F[IJK] -= (fabs(U[IJK])*U[IJK]*WL(i,j))/(uplus*uplus*dist);
+	
+	F[IJK] -= (fabs(U[IJK])*U[IJK]*WL(i,j))/(uplus*uplus*dist);
     }
     }
 }
@@ -71,20 +71,20 @@ void nhflow_bcmom::roughness_v(lexer* p, fdm_nhf *d, double *V, double *G, slice
     SLICELOOP4
     {
     dist=p->DZN[KP]*WL(i,j);
-    
-    ks=d->ks(i,j);
+	
+	ks=d->ks(i,j);
 
 
-        if(30.0*dist<ks)
-        dist=ks/30.0;
+		if(30.0*dist<ks)
+		dist=ks/30.0;
 
-        uplus = (1.0/kappa)*log(30.0*(dist/ks));
+		uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
-    
-    G[IJK] -= (fabs(V[IJK])*V[IJK]*WL(i,j))/(uplus*uplus*dist);
+	
+	G[IJK] -= (fabs(V[IJK])*V[IJK]*WL(i,j))/(uplus*uplus*dist);
     }
     }
-    
+	
 }
 
 void nhflow_bcmom::roughness_w(lexer* p, fdm_nhf *d, double *W, double *H, slice &WL)

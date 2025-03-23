@@ -33,10 +33,10 @@ void flowfile_in::header_read(lexer *p, ghostcell *pgc)
 {
     // Open File
     sprintf(name,"./REEF3D_FlowFile/REEF3D-flowheader-%i.r3d",p->I230);
-    
+	
     
     // count entries
-    headerfile.open(name, ios::binary);
+	headerfile.open(name, ios::binary);
     
     entrycount=0;
     
@@ -52,7 +52,7 @@ void flowfile_in::header_read(lexer *p, ghostcell *pgc)
     headerfile.read((char*)&iin, sizeof (int));
 
     while(!headerfile.eof())
-    {
+	{
     headerfile.read((char*)&iin, sizeof (int));
     headerfile.read((char*)&ddn, sizeof (double));
     ++entrycount;
@@ -92,7 +92,7 @@ void flowfile_in::header_read(lexer *p, ghostcell *pgc)
 //cout<<p->mpirank<<" Ni: "<<Ni<<" Nj: "<<Nj<<" Nk: "<<Nk<<endl;
 
     while(!headerfile.eof())
-    {
+	{
     headerfile.read((char*)&iin, sizeof (int));
     iter[q] = iin;
     

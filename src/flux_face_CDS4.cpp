@@ -36,83 +36,83 @@ flux_face_CDS4::~flux_face_CDS4()
 void flux_face_CDS4::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double &uflux2)
 {
     
-    if(ipol==1)
-    {
-    uflux1= (1.0/16.0)*(-uvel(i-2,j,k)+9.0*uvel(i-1,j,k)+9.0*uvel(i,j,k)-uvel(i+1,j,k));
-    uflux2= (1.0/16.0)*(-uvel(i-1,j,k)+9.0*uvel(i,j,k)+9.0*uvel(i+1,j,k)-uvel(i+2,j,k));
-    }
+	if(ipol==1)
+	{
+	uflux1= (1.0/16.0)*(-uvel(i-2,j,k)+9.0*uvel(i-1,j,k)+9.0*uvel(i,j,k)-uvel(i+1,j,k));
+	uflux2= (1.0/16.0)*(-uvel(i-1,j,k)+9.0*uvel(i,j,k)+9.0*uvel(i+1,j,k)-uvel(i+2,j,k));
+	}
 
-    if(ipol==2)
-    {
-    uflux1= (1.0/16.0)*(-uvel(i-1,j-1,k)+9.0*uvel(i-1,j,k)+9.0*uvel(i-1,j+1,k)-uvel(i-1,j+2,k));
-    uflux2= (1.0/16.0)*(-uvel(i,j-1,k)+9.0*uvel(i,j,k)+9.0*uvel(i,j+1,k)-uvel(i,j+2,k));
-    }
+	if(ipol==2)
+	{
+	uflux1= (1.0/16.0)*(-uvel(i-1,j-1,k)+9.0*uvel(i-1,j,k)+9.0*uvel(i-1,j+1,k)-uvel(i-1,j+2,k));
+	uflux2= (1.0/16.0)*(-uvel(i,j-1,k)+9.0*uvel(i,j,k)+9.0*uvel(i,j+1,k)-uvel(i,j+2,k));
+	}
 
-    if(ipol==3)
-    {
-    uflux1= (1.0/16.0)*(-uvel(i-1,j,k-1)+9.0*uvel(i-1,j,k)+9.0*uvel(i-1,j,k+1)-uvel(i-1,j,k+2));
-    uflux2= (1.0/16.0)*(-uvel(i,j,k-1)+9.0*uvel(i,j,k)+9.0*uvel(i,j,k+1)-uvel(i,j,k+2));
-    }
+	if(ipol==3)
+	{
+	uflux1= (1.0/16.0)*(-uvel(i-1,j,k-1)+9.0*uvel(i-1,j,k)+9.0*uvel(i-1,j,k+1)-uvel(i-1,j,k+2));
+	uflux2= (1.0/16.0)*(-uvel(i,j,k-1)+9.0*uvel(i,j,k)+9.0*uvel(i,j,k+1)-uvel(i,j,k+2));
+	}
     
     if(ipol==4)
-    {
-    uflux1= uvel(i-1,j,k);
-    uflux2= uvel(i,j,k);
-    }
+	{
+	uflux1= uvel(i-1,j,k);
+	uflux2= uvel(i,j,k);
+	}
 }
 
 void flux_face_CDS4::v_flux(fdm* a, int ipol, field& vvel, double &vflux1, double &vflux2)
 {
-    if(ipol==1)
-    {
-    vflux1= (1.0/16.0)*(-vvel(i-1,j-1,k)+9.0*vvel(i,j-1,k)+9.0*vvel(i+1,j-1,k)-vvel(i+2,j-1,k));
-    vflux2= (1.0/16.0)*(-vvel(i-1,j,k)+9.0*vvel(i,j,k)+9.0*vvel(i+1,j,k)-vvel(i+2,j,k));
-    }
+	if(ipol==1)
+	{
+	vflux1= (1.0/16.0)*(-vvel(i-1,j-1,k)+9.0*vvel(i,j-1,k)+9.0*vvel(i+1,j-1,k)-vvel(i+2,j-1,k));
+	vflux2= (1.0/16.0)*(-vvel(i-1,j,k)+9.0*vvel(i,j,k)+9.0*vvel(i+1,j,k)-vvel(i+2,j,k));
+	}
 
-    if(ipol==2)
-    {
-    vflux1= (1.0/16.0)*(-vvel(i,j-2,k)+9.0*vvel(i,j-1,k)+9.0*vvel(i,j,k)-vvel(i,j+1,k));
-    vflux2= (1.0/16.0)*(-vvel(i,j-1,k)+9.0*vvel(i,j,k)+9.0*vvel(i,j+1,k)-vvel(i,j+2,k));
-    }
+	if(ipol==2)
+	{
+	vflux1= (1.0/16.0)*(-vvel(i,j-2,k)+9.0*vvel(i,j-1,k)+9.0*vvel(i,j,k)-vvel(i,j+1,k));
+	vflux2= (1.0/16.0)*(-vvel(i,j-1,k)+9.0*vvel(i,j,k)+9.0*vvel(i,j+1,k)-vvel(i,j+2,k));
+	}
 
-    if(ipol==3)
-    {
-    vflux1= (1.0/16.0)*(-vvel(i,j-1,k-1)+9.0*vvel(i,j-1,k)+9.0*vvel(i,j-1,k+1)-vvel(i,j-1,k+2));
-    vflux2= (1.0/16.0)*(-vvel(i,j,k-1)+9.0*vvel(i,j,k)+9.0*vvel(i,j,k+1)-vvel(i,j,k+2));
-    }
+	if(ipol==3)
+	{
+	vflux1= (1.0/16.0)*(-vvel(i,j-1,k-1)+9.0*vvel(i,j-1,k)+9.0*vvel(i,j-1,k+1)-vvel(i,j-1,k+2));
+	vflux2= (1.0/16.0)*(-vvel(i,j,k-1)+9.0*vvel(i,j,k)+9.0*vvel(i,j,k+1)-vvel(i,j,k+2));
+	}
 
-    if(ipol==4)
-    {
-    vflux1= vvel(i,j-1,k);
-    vflux2= vvel(i,j,k);
-    }
+	if(ipol==4)
+	{
+	vflux1= vvel(i,j-1,k);
+	vflux2= vvel(i,j,k);
+	}
 }
 
 void flux_face_CDS4::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, double &wflux2)
 {
 
-    if(ipol==1)
-    {
-    wflux1= (1.0/16.0)*(-wvel(i-1,j,k-1)+9.0*wvel(i,j,k-1)+9.0*wvel(i+1,j,k-1)-wvel(i+2,j,k-1));
-    wflux2= (1.0/16.0)*(-wvel(i-1,j,k)+9.0*wvel(i,j,k)+9.0*wvel(i+1,j,k)-wvel(i+2,j,k));
-    }
+	if(ipol==1)
+	{
+	wflux1= (1.0/16.0)*(-wvel(i-1,j,k-1)+9.0*wvel(i,j,k-1)+9.0*wvel(i+1,j,k-1)-wvel(i+2,j,k-1));
+	wflux2= (1.0/16.0)*(-wvel(i-1,j,k)+9.0*wvel(i,j,k)+9.0*wvel(i+1,j,k)-wvel(i+2,j,k));
+	}
 
-    if(ipol==2)
-    {
-    wflux1= (1.0/16.0)*(-wvel(i,j-1,k-1)+9.0*wvel(i,j,k-1)+9.0*wvel(i,j+1,k-1)-wvel(i,j+2,k-1));
-    wflux2= (1.0/16.0)*(-wvel(i,j-1,k)+9.0*wvel(i,j,k)+9.0*wvel(i,j+1,k)-wvel(i,j+1,k));
-    }
+	if(ipol==2)
+	{
+	wflux1= (1.0/16.0)*(-wvel(i,j-1,k-1)+9.0*wvel(i,j,k-1)+9.0*wvel(i,j+1,k-1)-wvel(i,j+2,k-1));
+	wflux2= (1.0/16.0)*(-wvel(i,j-1,k)+9.0*wvel(i,j,k)+9.0*wvel(i,j+1,k)-wvel(i,j+1,k));
+	}
 
-    if(ipol==3)
-    {
-    wflux1= (1.0/16.0)*(-wvel(i,j,k-2)+9.0*wvel(i,j,k-1)+9.0*wvel(i,j,k)-wvel(i,j,k+1));
-    wflux2= (1.0/16.0)*(-wvel(i,j,k-1)+9.0*wvel(i,j,k)+9.0*wvel(i,j,k+1)-wvel(i,j,k+2));
-    }
+	if(ipol==3)
+	{
+	wflux1= (1.0/16.0)*(-wvel(i,j,k-2)+9.0*wvel(i,j,k-1)+9.0*wvel(i,j,k)-wvel(i,j,k+1));
+	wflux2= (1.0/16.0)*(-wvel(i,j,k-1)+9.0*wvel(i,j,k)+9.0*wvel(i,j,k+1)-wvel(i,j,k+2));
+	}
 
-    if(ipol==4)
-    {
-    wflux1= wvel(i,j,k-1);
-    wflux2= wvel(i,j,k);
-    }
+	if(ipol==4)
+	{
+	wflux1= wvel(i,j,k-1);
+	wflux2= wvel(i,j,k);
+	}
     
 }

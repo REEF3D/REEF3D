@@ -35,22 +35,22 @@ Author: Hans Bihs
 poisson_nse::poisson_nse(lexer * p, heat *&pheat, concentration *&pconc)
 {
     if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
-    pd = new density_f(p);
+	pd = new density_f(p);
     
     if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
-    pd = new density_df(p);
-    
-    if(p->F80==0 && p->H10==0 && p->W30==1)
-    pd = new density_comp(p);
-    
-    if(p->F80==0 && p->H10>0)
-    pd = new density_heat(p,pheat);
-    
-    if(p->F80==0 && p->C10>0)
-    pd = new density_conc(p,pconc);
+	pd = new density_df(p);
+	
+	if(p->F80==0 && p->H10==0 && p->W30==1)
+	pd = new density_comp(p);
+	
+	if(p->F80==0 && p->H10>0)
+	pd = new density_heat(p,pheat);
+	
+	if(p->F80==0 && p->C10>0)
+	pd = new density_conc(p,pconc);
     
     if(p->F80>0 && p->H10==0 && p->W30==0)
-    pd = new density_vof(p);
+	pd = new density_vof(p);
 }
 
 poisson_nse::~poisson_nse()
@@ -59,9 +59,9 @@ poisson_nse::~poisson_nse()
 
 void poisson_nse::start(lexer* p, fdm *a, field &press)
 {
-    n=0;
+	n=0;
     FLUIDLOOP
-    {
+	{
         if(p->flag4[IJK]>0)
         {
         a->M.p[n]  =   (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])*p->x_dir
@@ -98,13 +98,13 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
         a->M.t[n] = 0.0;
         a->M.b[n] = 0.0;
         }
-    
-    ++n;
-    }
+	
+	++n;
+	}
      
     n=0;
-    FLUIDLOOP
-    {
+	FLUIDLOOP
+	{
         if(p->flag4[IJK]>0)
         {
             // Solid boundaries
@@ -238,7 +238,7 @@ void poisson_nse::start(lexer* p, fdm *a, field &press)
             
         }
 
-    ++n;
-    }
+	++n;
+	}
 }
 

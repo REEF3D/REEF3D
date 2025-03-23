@@ -24,7 +24,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc_fsf.h"
-#include"vrans.h"    
+#include"vrans.h"	
 
 void net_barQuasiStatic::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -47,17 +47,17 @@ void net_barQuasiStatic::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
     for (int i = 0; i < tend; i++)
     {
         // Coordinates
-        x0 = tri_x[i][0];
-        x1 = tri_x[i][1];
-        x2 = tri_x[i][2];
-        
-        y0 = tri_y[i][0];
-        y1 = tri_y[i][1];
-        y2 = tri_y[i][2];
-        
-        z0 = tri_z[i][0];
-        z1 = tri_z[i][1];
-        z2 = tri_z[i][2];  
+		x0 = tri_x[i][0];
+		x1 = tri_x[i][1];
+		x2 = tri_x[i][2];
+		
+		y0 = tri_y[i][0];
+		y1 = tri_y[i][1];
+		y2 = tri_y[i][2];
+		
+		z0 = tri_z[i][0];
+		z1 = tri_z[i][1];
+		z2 = tri_z[i][2];  
         
         xc = (x0 + x1 + x2)/3.0;
         yc = (y0 + y1 + y2)/3.0;
@@ -215,80 +215,80 @@ void net_barQuasiStatic::triangulation(lexer *p, fdm *a, ghostcell *pgc)
 
     // Refine according to cell size DXM
 
-    double x01,x02,x12,y01,y02,y12,z01,z02,z12,mag;
-    double at,bt,ct,st;
-    double nx,ny,nz;    
+	double x01,x02,x12,y01,y02,y12,z01,z02,z12,mag;
+	double at,bt,ct,st;
+	double nx,ny,nz;	
   
     tri_x.reserve(tend*4);
     tri_y.reserve(tend*4);
     tri_z.reserve(tend*4); 
 
 
-    for (int n = 0; n < tend; n++)
-    {
-        double x0 = tri_x[n][0];
-        double x1 = tri_x[n][1];
-        double x2 = tri_x[n][2];
-        
-        double y0 = tri_y[n][0];
-        double y1 = tri_y[n][1];
-        double y2 = tri_y[n][2];
-        
-        double z0 = tri_z[n][0];
-        double z1 = tri_z[n][1];
-        double z2 = tri_z[n][2];  
+	for (int n = 0; n < tend; n++)
+	{
+		double x0 = tri_x[n][0];
+		double x1 = tri_x[n][1];
+		double x2 = tri_x[n][2];
+		
+		double y0 = tri_y[n][0];
+		double y1 = tri_y[n][1];
+		double y2 = tri_y[n][2];
+		
+		double z0 = tri_z[n][0];
+		double z1 = tri_z[n][1];
+		double z2 = tri_z[n][2];  
            
-        at = sqrt(pow(x1 - x0, 2.0) + pow(y1 - y0, 2.0) + pow(z1 - z0, 2.0));
-        bt = sqrt(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0) + pow(z1 - z2, 2.0));
-        ct = sqrt(pow(x2 - x0, 2.0) + pow(y2 - y0, 2.0) + pow(z2 - z0, 2.0));   
-           
+		at = sqrt(pow(x1 - x0, 2.0) + pow(y1 - y0, 2.0) + pow(z1 - z0, 2.0));
+		bt = sqrt(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0) + pow(z1 - z2, 2.0));
+		ct = sqrt(pow(x2 - x0, 2.0) + pow(y2 - y0, 2.0) + pow(z2 - z0, 2.0));   
+		   
 
-        // Check size of triangle and split into 4 triangles if too big
-        
-        if ((at + bt + ct)/3.0 > p->DXM)
-        {
-            // Half points
-            
-            x01 = x0 + (x1 - x0)/2.0;
-            y01 = y0 + (y1 - y0)/2.0;
-            z01 = z0 + (z1 - z0)/2.0;
+		// Check size of triangle and split into 4 triangles if too big
+		
+		if ((at + bt + ct)/3.0 > p->DXM)
+		{
+			// Half points
+			
+			x01 = x0 + (x1 - x0)/2.0;
+			y01 = y0 + (y1 - y0)/2.0;
+			z01 = z0 + (z1 - z0)/2.0;
 
-            x02 = x0 + (x2 - x0)/2.0;
-            y02 = y0 + (y2 - y0)/2.0;
-            z02 = z0 + (z2 - z0)/2.0;            
+			x02 = x0 + (x2 - x0)/2.0;
+			y02 = y0 + (y2 - y0)/2.0;
+			z02 = z0 + (z2 - z0)/2.0;			
 
-            x12 = x1 + (x2 - x1)/2.0;
-            y12 = y1 + (y2 - y1)/2.0;
-            z12 = z1 + (z2 - z1)/2.0;
+			x12 = x1 + (x2 - x1)/2.0;
+			y12 = y1 + (y2 - y1)/2.0;
+			z12 = z1 + (z2 - z1)/2.0;
+			
+			
+			// Old normal vector    
+				
+			nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
+			ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
+			nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
             
-            
-            // Old normal vector    
-                
-            nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-            ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-            nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
-            
-            
-            // Delete old triangles
-        
-            tri_x.erase(tri_x.begin() + n); 
-            tri_y.erase(tri_y.begin() + n); 
-            tri_z.erase(tri_z.begin() + n); 
-            n--;
+			
+			// Delete old triangles
+		
+			tri_x.erase(tri_x.begin() + n); 
+			tri_y.erase(tri_y.begin() + n); 
+			tri_z.erase(tri_z.begin() + n); 
+			n--;
             
 
             // Create new triangles
             
-            create_triangle(tri_x,tri_y,tri_z,x0,y0,z0,x01,y01,z01,x02,y02,z02,nx,ny,nz);
-            create_triangle(tri_x,tri_y,tri_z,x01,y01,z01,x12,y12,z12,x02,y02,z02,nx,ny,nz);
-            create_triangle(tri_x,tri_y,tri_z,x01,y01,z01,x1,y1,z1,x12,y12,z12,nx,ny,nz);
-            create_triangle(tri_x,tri_y,tri_z,x02,y02,z02,x12,y12,z12,x2,y2,z2,nx,ny,nz);
-        }
+			create_triangle(tri_x,tri_y,tri_z,x0,y0,z0,x01,y01,z01,x02,y02,z02,nx,ny,nz);
+			create_triangle(tri_x,tri_y,tri_z,x01,y01,z01,x12,y12,z12,x02,y02,z02,nx,ny,nz);
+			create_triangle(tri_x,tri_y,tri_z,x01,y01,z01,x1,y1,z1,x12,y12,z12,nx,ny,nz);
+			create_triangle(tri_x,tri_y,tri_z,x02,y02,z02,x12,y12,z12,x2,y2,z2,nx,ny,nz);
+		}
 
-        if (tri_x.size() > 5000) break;
+		if (tri_x.size() > 5000) break;
         
         tend = tri_x.size(); 
-    }
+	}
 
     // Save net as .stl
 /*
@@ -297,21 +297,21 @@ void net_barQuasiStatic::triangulation(lexer *p, fdm *a, ghostcell *pgc)
     result.open("REEF3D_CFD_6DOF_Net/REEF3D_net.stl", ios::binary);
     result2.open("REEF3D_CFD_6DOF_Net/REEF3D_net_points.csv", ios::binary);
 
-    result<<"solid"<<" "<<"ascii"<<endl;
+	result<<"solid"<<" "<<"ascii"<<endl;
 
-    for(int n = 0; n < tend; ++n)
-    {
-        double x0 = tri_x[n][0];
-        double x1 = tri_x[n][1];
-        double x2 = tri_x[n][2];
-        
-        double y0 = tri_y[n][0];
-        double y1 = tri_y[n][1];
-        double y2 = tri_y[n][2];
-    
-        double z0 = tri_z[n][0];
-        double z1 = tri_z[n][1];
-        double z2 = tri_z[n][2];          
+	for(int n = 0; n < tend; ++n)
+	{
+		double x0 = tri_x[n][0];
+		double x1 = tri_x[n][1];
+		double x2 = tri_x[n][2];
+		
+		double y0 = tri_y[n][0];
+		double y1 = tri_y[n][1];
+		double y2 = tri_y[n][2];
+	
+		double z0 = tri_z[n][0];
+		double z1 = tri_z[n][1];
+		double z2 = tri_z[n][2];          
         
         double xc = (x0 + x1 + x2)/3.0;
         double yc = (y0 + y1 + y2)/3.0;
@@ -336,82 +336,82 @@ void net_barQuasiStatic::triangulation(lexer *p, fdm *a, ghostcell *pgc)
         result<<" endfacet"<<endl;
 
         result2<<xc<<","<<yc<<","<<zc<<endl;
-    }
+	}
 
-    result<<"endsolid"<<endl;
+	result<<"endsolid"<<endl;
 
-    result.close();  
-    result2.close();  
+	result.close();  
+	result2.close();  
 */
 }
 void net_barQuasiStatic::create_triangle
 (
     MatrixVd& tri_x_, MatrixVd& tri_y_, MatrixVd& tri_z_, 
-    const double& x0, const double& y0, const double& z0,
-    const double& x1, const double& y1, const double& z1,
-    const double& x2, const double& y2, const double& z2,
-    const double& nx_old, const double& ny_old, const double& nz_old
+	const double& x0, const double& y0, const double& z0,
+	const double& x1, const double& y1, const double& z1,
+	const double& x2, const double& y2, const double& z2,
+	const double& nx_old, const double& ny_old, const double& nz_old
 )
 {
-    double nx,ny,nz,temp;
+	double nx,ny,nz,temp;
 
-    vector<double> tri_x_new(3,0.0);
-    vector<double> tri_y_new(3,0.0);
-    vector<double> tri_z_new(3,0.0); 
+	vector<double> tri_x_new(3,0.0);
+	vector<double> tri_y_new(3,0.0);
+	vector<double> tri_z_new(3,0.0); 
 
-    // Calculate new normal vector
-    
-    nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-    ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-    nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);        
+	// Calculate new normal vector
+	
+	nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
+	ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
+	nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);		
 
-    nx = nx > 1.0e-5 ? nx : nx_old;
-    ny = ny > 1.0e-5 ? ny : ny_old;
-    nz = nz > 1.0e-5 ? nz : nz_old;    
-    
-    
-    // Arrange triangle such that normal vector points outward
-    
-    if 
-    (
-           SIGN(nx)!=SIGN(nx_old) 
-        || SIGN(ny)!=SIGN(ny_old) 
-        || SIGN(nz)!=SIGN(nz_old)
-    )
-    {
-        tri_x_new[0] = x2;
-        tri_x_new[1] = x1;
-        tri_x_new[2] = x0;
+	nx = nx > 1.0e-5 ? nx : nx_old;
+	ny = ny > 1.0e-5 ? ny : ny_old;
+	nz = nz > 1.0e-5 ? nz : nz_old;	
+	
+	
+	// Arrange triangle such that normal vector points outward
+	
+	if 
+	(
+		   SIGN(nx)!=SIGN(nx_old) 
+		|| SIGN(ny)!=SIGN(ny_old) 
+		|| SIGN(nz)!=SIGN(nz_old)
+	)
+	{
+		tri_x_new[0] = x2;
+		tri_x_new[1] = x1;
+		tri_x_new[2] = x0;
 
-        tri_y_new[0] = y2;
-        tri_y_new[1] = y1;
-        tri_y_new[2] = y0;
+		tri_y_new[0] = y2;
+		tri_y_new[1] = y1;
+		tri_y_new[2] = y0;
 
-        tri_z_new[0] = z2;
-        tri_z_new[1] = z1;
-        tri_z_new[2] = z0;                
-    }
-    else
-    {    
-        tri_x_new[0] = x0;
-        tri_x_new[1] = x1;
-        tri_x_new[2] = x2;
+		tri_z_new[0] = z2;
+		tri_z_new[1] = z1;
+		tri_z_new[2] = z0;				
+	}
+	else
+	{	
+		tri_x_new[0] = x0;
+		tri_x_new[1] = x1;
+		tri_x_new[2] = x2;
 
-        tri_y_new[0] = y0;
-        tri_y_new[1] = y1;
-        tri_y_new[2] = y2;
+		tri_y_new[0] = y0;
+		tri_y_new[1] = y1;
+		tri_y_new[2] = y2;
 
-        tri_z_new[0] = z0;
-        tri_z_new[1] = z1;
-        tri_z_new[2] = z2;    
-    }
-    
-    
-    // Add triangle to list
-    
-    tri_x_.push_back(tri_x_new);
-    tri_y_.push_back(tri_y_new);
-    tri_z_.push_back(tri_z_new);
+		tri_z_new[0] = z0;
+		tri_z_new[1] = z1;
+		tri_z_new[2] = z2;	
+	}
+	
+	
+	// Add triangle to list
+	
+	tri_x_.push_back(tri_x_new);
+	tri_y_.push_back(tri_y_new);
+	tri_z_.push_back(tri_z_new);
 }
 
 

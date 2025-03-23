@@ -69,5 +69,5 @@ void ghostcell::solid_forcing_lsm(lexer *p, fdm *a, field &f)
         f(i,j,k+1)=f(i,j,k);
         f(i,j,k+2)=f(i,j,k);
         }
-    }
+	}
 }

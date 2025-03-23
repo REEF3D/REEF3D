@@ -41,20 +41,20 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     
     typedef vector<Eigen::Vector3d> EigenMat;
-    typedef Eigen::Matrix<double, 3, 3> Matrix3d;
+	typedef Eigen::Matrix<double, 3, 3> Matrix3d;
     typedef vector<vector<double> > MatrixVd;    
     
-    vrans_net(lexer*, ghostcell*);
-    virtual ~vrans_net();
+	vrans_net(lexer*, ghostcell*);
+	virtual ~vrans_net();
 
-    virtual void initialize_cfd(lexer*, fdm*, ghostcell*);    
-    virtual void start(lexer*, fdm*, ghostcell*, net*&, int);
+	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);	
+	virtual void start(lexer*, fdm*, ghostcell*, net*&, int);
     virtual void sed_update(lexer*, fdm*, ghostcell*){};
     virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&){};
     
-    virtual void u_source(lexer*, fdm*);
-    virtual void v_source(lexer*, fdm*);
-    virtual void w_source(lexer*, fdm*);
+	virtual void u_source(lexer*, fdm*);
+	virtual void v_source(lexer*, fdm*);
+	virtual void w_source(lexer*, fdm*);
     
     virtual void ke_source(lexer*, fdm*, field&){};
     virtual void kw_source(lexer*, fdm*, field&){};
@@ -82,7 +82,7 @@ private:
     field2 Fy_net, kernel_y;
     field3 Fz_net, kernel_z;
     
-    int count;
+	int count;
 };
 
 #endif

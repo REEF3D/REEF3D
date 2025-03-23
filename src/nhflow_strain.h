@@ -38,24 +38,24 @@ class nhflow_strain : public nhflow_gradient
 {
 
 public:
-    nhflow_strain (lexer*,fdm_nhf*);
-    virtual ~nhflow_strain();
+	nhflow_strain (lexer*,fdm_nhf*);
+	virtual ~nhflow_strain();
 
-    double sij(lexer*,fdm_nhf*,int,int);
-    double qij(lexer*,fdm_nhf*,int,int);
-    double pk(lexer*,fdm_nhf*);
-    void Pk_update(lexer*,fdm_nhf*,ghostcell*);
+	double sij(lexer*,fdm_nhf*,int,int);
+	double qij(lexer*,fdm_nhf*,int,int);
+	double pk(lexer*,fdm_nhf*);
+	void Pk_update(lexer*,fdm_nhf*,ghostcell*);
     void Pk_b_update(lexer*,fdm_nhf*,ghostcell*);
-    void wallf_update(lexer*,fdm_nhf*,ghostcell*,int*);
-    virtual double strainterm(lexer*,fdm_nhf*);
+	void wallf_update(lexer*,fdm_nhf*,ghostcell*,int*);
+	virtual double strainterm(lexer*,fdm_nhf*);
     virtual double strainterm(lexer*,double*,double*,double*);
-    virtual double rotationterm(lexer*,fdm_nhf*);
+	virtual double rotationterm(lexer*,fdm_nhf*);
     virtual double rotationterm(lexer*,double*,double*,double*);
-    virtual double magSqrSd(lexer*,fdm_nhf*);
+	virtual double magSqrSd(lexer*,fdm_nhf*);
     virtual double magSqrSd(lexer*,double*,double*,double*);
-    double strainplain(lexer*,fdm_nhf*);
+	double strainplain(lexer*,fdm_nhf*);
     
-    double *PK,*PK0,*PK_b;
+	double *PK,*PK0,*PK_b;
 
 private:
     double s11,s22,s33,s12,s13,s23;
@@ -63,8 +63,8 @@ private:
     double ss11,ss22,ss33,ss12,ss13,ss23;
     double rr11,rr22,rr33,rr12,rr13,rr23;
     double q11,q22,q33,q12,q13,q23;
-    double pkterm,s,q,val;
-    const double epsi;
+	double pkterm,s,q,val;
+	const double epsi;
 
 };
 

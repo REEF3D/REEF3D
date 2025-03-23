@@ -33,25 +33,25 @@ field4a::field4a(lexer *p)
     kmin=p->kmin;
     kmax=p->kmax;
 
-    fieldalloc(p);
+	fieldalloc(p);
 
-    pp=p;
+	pp=p;
 }
 
 field4a::~field4a()
 {
-    delete [ ] V;
+	delete [ ] V;
 }
 
 void field4a::fieldalloc(lexer* p)
 {
-    int gridsize = imax*jmax*kmax;
-    p->Darray(V,gridsize);
+	int gridsize = imax*jmax*kmax;
+	p->Darray(V,gridsize);
 }
 
 void field4a::dealloc(lexer* p)
 {
-    delete [ ] V;
+	delete [ ] V;
 }
 
 void field4a::resize(lexer* p)
@@ -60,10 +60,10 @@ void field4a::resize(lexer* p)
 
 double & field4a::operator[](int n)
 {
-    return V[n];
+	return V[n];
 }
 
 double & field4a::operator()(int ii, int jj, int kk)
-{            
-    return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
+{			
+	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
 }

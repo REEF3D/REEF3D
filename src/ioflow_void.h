@@ -39,19 +39,19 @@ class ioflow_v : public ioflow, public increment, public flowfile_in
 
 public:
 
-    ioflow_v(lexer*,ghostcell*,patchBC_interface*);
-    virtual ~ioflow_v();
-    virtual void gcio_update(lexer*,fdm*,ghostcell*);
+	ioflow_v(lexer*,ghostcell*,patchBC_interface*);
+	virtual ~ioflow_v();
+	virtual void gcio_update(lexer*,fdm*,ghostcell*);
     virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*);
-    virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
-    virtual void discharge(lexer*,fdm*,ghostcell*);
-    virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    virtual void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    virtual void fsfinflow(lexer*,fdm*,ghostcell*);
-    virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&);
-    virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&);
+	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
+	virtual void discharge(lexer*,fdm*,ghostcell*);
+	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
+	virtual void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
+	virtual void fsfinflow(lexer*,fdm*,ghostcell*);
+	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&);
+	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&);
     virtual void iogcb_update(lexer*,fdm*,ghostcell*);
-    virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
+	virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void jsource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void ksource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void pressure_io(lexer*,fdm*,ghostcell*);
@@ -65,7 +65,7 @@ public:
     virtual void v_relax(lexer*,fdm*, ghostcell*,field&);
     virtual void w_relax(lexer*,fdm*, ghostcell*,field&);
     virtual void p_relax(lexer*,fdm*,ghostcell*,field&);
-    virtual void phi_relax(lexer*,ghostcell*,field&);
+	virtual void phi_relax(lexer*,ghostcell*,field&);
     virtual void vof_relax(lexer*,ghostcell*,field&);
     virtual void turb_relax(lexer*,fdm*,ghostcell*,field&);
     virtual void U_relax(lexer*,ghostcell*,double*,double*);
@@ -80,10 +80,10 @@ public:
     virtual void eta_relax(lexer*,ghostcell*,slice&);
     virtual void um_relax(lexer*,ghostcell*,slice&,slice&,slice&);
     virtual void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&);
-    virtual void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&);
+	virtual void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&);
     virtual void ws_relax(lexer*,ghostcell*,slice&,slice&,slice&);
-    virtual void pm_relax(lexer*,ghostcell*,slice&);
-    virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*);
+	virtual void pm_relax(lexer*,ghostcell*,slice&);
+	virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*);
     
     virtual void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*);
     virtual void wavegen_2D_precalc_ini(lexer*,ghostcell*);
@@ -91,10 +91,10 @@ public:
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*);
     virtual void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&);
     virtual void Qin2D(lexer*,fdm2D*,ghostcell*);
-    virtual void Qout2D(lexer*,fdm2D*,ghostcell*);
+	virtual void Qout2D(lexer*,fdm2D*,ghostcell*);
     virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
-    virtual void rkinflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
-    virtual void isource2D(lexer*,fdm2D*,ghostcell*);
+	virtual void rkinflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
+	virtual void isource2D(lexer*,fdm2D*,ghostcell*);
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
     
     virtual double wave_fsf(lexer*,ghostcell*,double);
@@ -102,7 +102,7 @@ public:
     virtual double wave_yvel(lexer*,ghostcell*,double,double,double);
     virtual double wave_zvel(lexer*,ghostcell*,double,double,double);
     
-    virtual int iozonecheck(lexer*,fdm*);
+	virtual int iozonecheck(lexer*,fdm*);
     
     virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*){};
     virtual void ini(lexer*,fdm*,ghostcell*);
@@ -125,12 +125,16 @@ public:
     virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
     virtual void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*){};
-    
+	
 private:
     void velocity_inlet(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    int count;
+	int count;
     
     double Apor,Bpor,porval,partval;
+<<<<<<< HEAD
+=======
+	vrans *pvrans;
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     rheology *prheo;
     
     patchBC_interface *pBC;

@@ -36,9 +36,9 @@ void nhflow_force_ale::print_force_ale(lexer* p, fdm_nhf *d, ghostcell *pgc)
 void nhflow_force_ale::print_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
     // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_NHFLOW_Force_ALE",0777);
-    
+	if(p->mpirank==0)
+	mkdir("./REEF3D_NHFLOW_Force_ALE",0777);
+	
     if(p->mpirank==0)
     {
         // open force_ale file
@@ -54,5 +54,5 @@ void nhflow_force_ale::print_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
         fout<<"it \t time \t Fx \t Fy ";
 
         fout<<endl;
-    }
+	}
 }

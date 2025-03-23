@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"grid.h"
 
 void driver::makegrid(lexer *p, ghostcell *pgc)
-{    
+{	
     // flag
     pgc->flagx(p,p->flagsf1);
     pgc->flagx(p,p->flagsf2);
@@ -39,7 +39,7 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     pgc->flagx(p,p->flag3);
     pgc->flagx(p,p->flag4);
     pgc->flagx(p,p->flag);
-    pgc->gcxupdate(p);
+	pgc->gcxupdate(p);
     
     p->vecsize(pgc);
     
@@ -60,9 +60,9 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
     
     gridgen.unmake_dgc(p);
 }
-    
+	
 void driver::makegrid_cds()
-{    
-    pgc->sizeM_update(p,a);
+{	
+	pgc->sizeM_update(p,a);
 }
-    
+	

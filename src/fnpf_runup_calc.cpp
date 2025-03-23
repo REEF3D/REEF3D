@@ -27,7 +27,7 @@ Author: Hans Bihs, Edgar Chavez
 #include <math.h>
 
 void fnpf_runup::fnpf_runup_calc(lexer* p, fdm_fnpf *c, ghostcell *pgc)
-{    
+{	
     double ru_eta, ru_L, ru_k, ru_m, ru_u, ru_g, ru_H, ru_Hm0, ru_Tp, ru_s0p, ru_mLA, ru_mLB, ru_mLC, ru_h, ru_Ur, ru_gammaD; //Free Surface, Wave length, Wave number, VSHT adjusment coefficient, particle velocity, gravity acceleration, Wave height, peak deep water steepness, m Level A, m Level B, m Level C, water depth, Ursell number, Diameter-run-up increasing factor
     
     k==0; //**Initial sigma grid**
@@ -139,13 +139,13 @@ double fnpf_runup::dndt(lexer *p, fdm_fnpf *c, ghostcell *pgc) //Free surface el
 
 double fnpf_runup::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) //Velocity in X direction derivated on sigma grid
 {
-    return (c->U[FIJKp1] - c->U[FIJKm1])/(p->DZN[KP1] + p->DZN[KM1]);     
+	return (c->U[FIJKp1] - c->U[FIJKm1])/(p->DZN[KP1] + p->DZN[KM1]);     
 }
 
 
 double fnpf_runup::dvdsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) //Velocity in Y direction derivated on sigma grid
 {
-    return (c->V[FIJKp1] - c->V[FIJKm1])/(p->DZN[KP1] + p->DZN[KM1]);       
+	return (c->V[FIJKp1] - c->V[FIJKm1])/(p->DZN[KP1] + p->DZN[KM1]);       
 }
 
 
@@ -155,7 +155,7 @@ double fnpf_runup::dudxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) //Velocity in Y 
 }
 
 
-double fnpf_runup::dvdxi(lexer *p, fdm_fnpf *c, ghostcell *pgc)     // getting dvdxi
+double fnpf_runup::dvdxi(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dvdxi
 {
     return (c->V[FIJp1K] - c->V[FIJm1K])/(p->DYN[JP1] + p->DYN[JM1]); 
 }

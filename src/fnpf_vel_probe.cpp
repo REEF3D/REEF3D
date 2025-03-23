@@ -31,40 +31,40 @@ fnpf_vel_probe::fnpf_vel_probe(lexer *p, fdm_fnpf *c) : probenum(p->P65)
 {
 
     p->Iarray(iloc,probenum);
-    p->Iarray(jloc,probenum);
-    p->Iarray(kloc,probenum);
-    p->Iarray(flag,probenum);
-    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_FNPF_ProbePoint",0777);
-    
-    pout = new ofstream[probenum];
-    
+	p->Iarray(jloc,probenum);
+	p->Iarray(kloc,probenum);
+	p->Iarray(flag,probenum);
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_FNPF_ProbePoint",0777);
+	
+	pout = new ofstream[probenum];
+	
     if(p->mpirank==0 && probenum>0)
     {
-        cout<<"probepoint_num: "<<probenum<<endl;
-        // open file
-        for(n=0;n<probenum;++n)
-        {
-        sprintf(name,"./REEF3D_FNPF_ProbePoint/REEF3D-FNPF-Vel-Probe-%i.dat",n+1);
-        
-        pout[n].open(name);
+		cout<<"probepoint_num: "<<probenum<<endl;
+		// open file
+		for(n=0;n<probenum;++n)
+		{
+		sprintf(name,"./REEF3D_FNPF_ProbePoint/REEF3D-FNPF-Vel-Probe-%i.dat",n+1);
+		
+		pout[n].open(name);
         
         //cout<<pout[n].is_open()<<" "<<n+1<<endl;
 
-        pout[n]<<"Vel Probe ID:  "<<n<<endl<<endl;
-        pout[n]<<"x_coord     y_coord     z_coord"<<endl;
-        
-        pout[n]<<n+1<<"\t "<<p->P65_x[n]<<"\t "<<p->P65_y[n]<<"\t "<<p->P65_z[n]<<endl;
+	    pout[n]<<"Vel Probe ID:  "<<n<<endl<<endl;
+		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
+		
+		pout[n]<<n+1<<"\t "<<p->P65_x[n]<<"\t "<<p->P65_y[n]<<"\t "<<p->P65_z[n]<<endl;
 
-        pout[n]<<endl<<endl;
-        
-        pout[n]<<"t \t U \t V \t W "<<endl;
-        
-        }
+		pout[n]<<endl<<endl;
+		
+		pout[n]<<"t \t U \t V \t W "<<endl;
+		
+		}
     }
-    
+	
 }
 
 fnpf_vel_probe::~fnpf_vel_probe()
@@ -80,30 +80,30 @@ void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     double xp,yp,zp;
     
     ini_location(p,c);
+	
+	for(n=0;n<probenum;++n)
+	{
+	uval=vval=wval=-1.0e20;
+	
+		if(flag[n]>0)
+		{
+		xp=p->P65_x[n];
+		yp=p->P65_y[n];
+		zp=p->P65_z[n];
     
-    for(n=0;n<probenum;++n)
-    {
-    uval=vval=wval=-1.0e20;
-    
-        if(flag[n]>0)
-        {
-        xp=p->P65_x[n];
-        yp=p->P65_y[n];
-        zp=p->P65_z[n];
-    
-        uval = p->ccipol7V(c->U, c->WL, c->bed, xp, yp, zp);
-        vval = p->ccipol7V(c->V, c->WL, c->bed, xp, yp, zp);
-        wval = p->ccipol7V(c->W, c->WL, c->bed, xp, yp, zp);
-        }
-    
-    uval=pgc->globalmax(uval);
-    vval=pgc->globalmax(vval);
-    wval=pgc->globalmax(wval);
+		uval = p->ccipol7V(c->U, c->WL, c->bed, xp, yp, zp);
+		vval = p->ccipol7V(c->V, c->WL, c->bed, xp, yp, zp);
+		wval = p->ccipol7V(c->W, c->WL, c->bed, xp, yp, zp);
+		}
+	
+	uval=pgc->globalmax(uval);
+	vval=pgc->globalmax(vval);
+	wval=pgc->globalmax(wval);
 
-    
-    if(p->mpirank==0)
-    pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<endl;
-    }    
+	
+	if(p->mpirank==0)
+	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<endl;
+	}	
 }
 
 void fnpf_vel_probe::ini_location(lexer *p, fdm_fnpf *c)
@@ -122,7 +122,7 @@ void fnpf_vel_probe::ini_location(lexer *p, fdm_fnpf *c)
     if(p->j_dir==1)
     jloc[n]=p->posc_j(p->P65_y[n]);
     
-    kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P65_z[n]);
+	kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P65_z[n]);
 
     check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
     //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;

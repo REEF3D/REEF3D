@@ -68,12 +68,12 @@ class vtr3D : public printer, public increment
 {
 
 public:
-    vtr3D(lexer*,fdm*,ghostcell*);
-    virtual ~vtr3D();
-    virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
+	vtr3D(lexer*,fdm*,ghostcell*);
+	virtual ~vtr3D();
+	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
     virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
     virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-    virtual void ini(lexer*,fdm*,ghostcell*);
+	virtual void ini(lexer*,fdm*,ghostcell*);
 
 private:
     void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,multiphase*,sediment*);
@@ -91,36 +91,36 @@ private:
     int n,iin,offset[300];
     float ffn;
     int gcval_phi,gcval_phiext;
-    double *printtime_wT;
+	double *printtime_wT;
     double *printfsftime_wT;
     int *printfsfiter_wI;
     double phase;
     double zcoor;
-    
-    field5 eta;
+	
+	field5 eta;
 
     print_wsf *pwsf;
-    print_wsf_theory *pwsf_theory;
+	print_wsf_theory *pwsf_theory;
     print_wsfline_x *pwsfline_x;
-    print_wsfline_y *pwsfline_y;
+	print_wsfline_y *pwsfline_y;
     force **pforce;
     vorticity *pvort;
-    probe_point *pprobe;
+	probe_point *pprobe;
     probe_pressure *ppressprobe;
-    probe_line *pline;
-    bedprobe_point *pbedpt;
-    bedprobe_line_x *pbedlinex;
-    bedprobe_line_y *pbedliney;
-    bedprobe_max *pbedmax;
-    bedshear_probe *pbedshear;
-    bedshear_max *pbedshearmax;
-    gage_discharge_x *pq;
+	probe_line *pline;
+	bedprobe_point *pbedpt;
+	bedprobe_line_x *pbedlinex;
+	bedprobe_line_y *pbedliney;
+	bedprobe_max *pbedmax;
+	bedshear_probe *pbedshear;
+	bedshear_max *pbedshearmax;
+	gage_discharge_x *pq;
     gage_discharge_window_x *pqw;
-    fsf_vtp *pfsf;
+	fsf_vtp *pfsf;
     topo_vtp *ptopo;
-    cfd_state *pstate;
+	cfd_state *pstate;
     sloshing_force *pslosh;
-    print_porous *ppor;
+	print_porous *ppor;
     exportfile *pexport;
     flowfile_out *pflowfile;
     print_averaging *pmean;

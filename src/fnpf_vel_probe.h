@@ -38,23 +38,23 @@ class fnpf_vel_probe : public boundarycheck
 {
 public:
     fnpf_vel_probe(lexer*,fdm_fnpf*);
-    virtual ~fnpf_vel_probe();
+	virtual ~fnpf_vel_probe();
 
-    void start(lexer*, fdm_fnpf*, ghostcell*);
+	void start(lexer*, fdm_fnpf*, ghostcell*);
 
 
 private:
     void ini_location(lexer*, fdm_fnpf*);
 
 
-    char name[100];
+	char name[100];
 
     int *iloc,*jloc,*kloc,*flag;
     int n,q;
-    const int probenum;
+	const int probenum;
     ofstream *pout;
-    
-    double uval,vval,wval,pval,kval,eval,edval;
+	
+	double uval,vval,wval,pval,kval,eval,edval;
     
     
     

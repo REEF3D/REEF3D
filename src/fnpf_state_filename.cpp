@@ -35,7 +35,7 @@ void fnpf_state::filename_continuous(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void fnpf_state::filename_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    sprintf(name,"./REEF3D_FNPF_STATE/REEF3D-FNPF-State-Header-%06i.r3d",p->mpirank+1);
+	sprintf(name,"./REEF3D_FNPF_STATE/REEF3D-FNPF-State-Header-%06i.r3d",p->mpirank+1);
 }
 
 

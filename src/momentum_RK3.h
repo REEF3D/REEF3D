@@ -46,36 +46,36 @@ using namespace std;
 class momentum_RK3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
-    momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, 
+	momentum_RK3(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*, fsi*);
-    virtual ~momentum_RK3();
-    virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
+	virtual ~momentum_RK3();
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
     field1 udiff,urk1,urk2,fx;
-    field2 vdiff,vrk1,vrk2,fy;
-    field3 wdiff,wrk1,wrk2,fz;
+	field2 vdiff,vrk1,vrk2,fy;
+	field3 wdiff,wrk1,wrk2,fz;
 
 private:
     fluid_update *pupdate;
     
-    void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-    void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-    void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
     
-    int gcval_u, gcval_v, gcval_w;
-    double starttime;
+	int gcval_u, gcval_v, gcval_w;
+	double starttime;
 
-    convection *pconvec;
-    diffusion *pdiff;
-    pressure *ppress;
-    poisson *ppois;
-    turbulence *pturb;
-    solver *psolv;
+	convection *pconvec;
+	diffusion *pdiff;
+	pressure *ppress;
+	poisson *ppois;
+	turbulence *pturb;
+	solver *psolv;
     solver *ppoissonsolv;
-    ioflow *pflow;
+	ioflow *pflow;
     nhflow *pnh;
     fsi *pfsi;
 };

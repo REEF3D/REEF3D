@@ -42,7 +42,7 @@ void beam::iniBeam(double Ne_, double E_, double A_, double rho_, double L_, dou
 
     // Initialise printing
     mkdir("./REEF3D_CFD_Beam",0777);
-    printtime = 0.0;
+	printtime = 0.0;
 }
     
 
@@ -83,8 +83,8 @@ void beam::iniDamping(double cdx, double cdy, double cdz, double ckx, double cky
 void beam::iniFields()
 {
     // State vector
-    n_dim = 6*(Ne+1) + 8*(Ne+2);
-    y = new double[n_dim];
+	n_dim = 6*(Ne+1) + 8*(Ne+2);
+	y = new double[n_dim];
     
     // Matrices
     Iq = Eigen::Matrix4d::Zero(4,4);
@@ -192,33 +192,33 @@ void beam::iniSolver()
 {
     setState(y);
     resetSolver();
-    
+	
     z1 = new double[n_dim];
-    z2 = new double[n_dim];
-    z3 = new double[n_dim];
-    y0 = new double[n_dim];
-    scal = new double[n_dim];
-    f1 = new double[n_dim];
-    f2 = new double[n_dim];
-    f3 = new double[n_dim];
-    cont = new double[4*n_dim];
-    ip1 = new int[nm1];
-    ip2 = new int[nm1];
-    iphes = new int[n_dim];
+	z2 = new double[n_dim];
+	z3 = new double[n_dim];
+	y0 = new double[n_dim];
+	scal = new double[n_dim];
+	f1 = new double[n_dim];
+	f2 = new double[n_dim];
+	f3 = new double[n_dim];
+	cont = new double[4*n_dim];
+	ip1 = new int[nm1];
+	ip2 = new int[nm1];
+	iphes = new int[n_dim];
 
-    fjac = new double*[ldjac];
-    fmas = new double*[ldmas];
-    e1 = new double*[lde1];
-    e2r = new double*[lde1];
-    e2i = new double*[lde1];
+	fjac = new double*[ldjac];
+	fmas = new double*[ldmas];
+	e1 = new double*[lde1];
+	e2r = new double*[lde1];
+	e2i = new double*[lde1];
 
-    for (int i = 0; i < ldjac; i++) fjac[i] = new double[n_dim];
+	for (int i = 0; i < ldjac; i++) fjac[i] = new double[n_dim];
 
-    for (int i = 0; i < ldmas; i++) fmas[i] = new double[n_dim];
+	for (int i = 0; i < ldmas; i++) fmas[i] = new double[n_dim];
 
-    for (int i = 0; i < lde1; i++) {
-        e1[i] = new double[nm1];
-        e2r[i] = new double[nm1];
-        e2i[i] = new double[nm1];
-    }
+	for (int i = 0; i < lde1; i++) {
+		e1[i] = new double[nm1];
+		e2r[i] = new double[nm1];
+		e2i[i] = new double[nm1];
+	}
 }

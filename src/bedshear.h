@@ -42,8 +42,8 @@ public:
     bedshear(lexer*,turbulence*);
     virtual ~bedshear();
 
-    virtual void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
-    virtual void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	virtual void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);
     
     virtual void taubed(lexer*, fdm*, ghostcell*, double&);
     virtual void taucritbed(lexer*, fdm*, ghostcell*, double&);
@@ -54,7 +54,7 @@ public:
     virtual void taubed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);
     virtual void taucritbed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);
 
-    const double ks,kappa;
+	const double ks,kappa;
     
     slice4 taueff_loc,taucrit_loc;
 
@@ -65,7 +65,7 @@ private:
     double nx,ny,nz,norm;
     double xip,yip,zip;
     double uvel,vvel,wvel;
-    double kinval;
+	double kinval;
     double scale;
 };
 

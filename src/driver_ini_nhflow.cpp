@@ -49,7 +49,7 @@ void driver::driver_ini_nhflow()
     
     pnhf->ini(p,d,pgc,pflow);
 
-    log_ini();
+	log_ini();
     
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
@@ -75,10 +75,10 @@ void driver::driver_ini_nhflow()
 
     pnhfstep->ini(p,d,pgc);
  
-    pflow->gcio_update_nhflow(p,d,pgc); 
+	pflow->gcio_update_nhflow(p,d,pgc); 
 
     // inflow ini
-    pflow->discharge_nhflow(p,d,pgc);
+	pflow->discharge_nhflow(p,d,pgc);
     pflow->wavegen_precalc_nhflow(p,d,pgc);
     
     SLICELOOP4
@@ -101,7 +101,7 @@ void driver::driver_ini_nhflow()
     pgc->start4V(p,d->RO,1);
     pgc->start4V(p,d->VISC,1);
 
-    pgc->start4V(p,d->U,10);
+	pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
     pgc->start4V(p,d->W,12);
     pgc->start5V(p,d->P,540);
@@ -140,9 +140,9 @@ void driver::driver_ini_nhflow()
 
     p->gctime=0.0;
     p->xtime=0.0;
-    p->reinitime=0.0;
-    p->wavecalctime=0.0;
-    p->field4time=0.0;
+	p->reinitime=0.0;
+	p->wavecalctime=0.0;
+	p->field4time=0.0;
 }
 
 

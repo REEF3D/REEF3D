@@ -35,22 +35,22 @@ using namespace std;
 class reini_walld : public reini, gradient
 {
 public:
-    reini_walld(lexer* p, fdm *a);
-    virtual ~reini_walld();
-    virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
+	reini_walld(lexer* p, fdm *a);
+	virtual ~reini_walld();
+	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
 
     field4 dab;
-    reinidisc *prdisc;
+	reinidisc *prdisc;
 
 private:
 
 
-    void step(fdm*, lexer*);
-    double dt,minsign,maxdiff;
+	void step(fdm*, lexer*);
+	double dt,minsign,maxdiff;
 
-    int gcval_phi,gcval_iniphi,gcval_ro,reiniter;    
-    int q;
-    double starttime;
+	int gcval_phi,gcval_iniphi,gcval_ro,reiniter;	
+	int q;
+	double starttime;
 };
 
 #endif

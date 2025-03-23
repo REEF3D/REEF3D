@@ -37,7 +37,7 @@ class interpolation : virtual public boundarycheck
 {
 public:
     interpolation(lexer*);
-    virtual ~interpolation();
+	virtual ~interpolation();
     
     double ccipol1(field&,double,double,double);
     double ccipol1c(field&,double,double,double);
@@ -52,7 +52,7 @@ public:
     double ccipol4c(double*,double,double,double);
     double ccipol7V(double*,slice&,slice&,double,double,double);
     double ccipol7P(double*,slice&,slice&,double,double,double);
-    double ccipol1_a(field&,double,double,double);
+	double ccipol1_a(field&,double,double,double);
     double ccipol2_a(field&,double,double,double);
     double ccipol3_a(field&,double,double,double);
     double ccipol4a(field&,double,double,double);
@@ -61,15 +61,15 @@ public:
     double ccipol4_kin(field&,double,double,double);
     
     double cctripol4_a(fdm*,field&,double,double,double);
-    double cint4a(double,double,double,double,double);
-    double tricubic4a(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
+	double cint4a(double,double,double,double,double);
+	double tricubic4a(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
     
     double ipol1(field&);
     double ipol2(field&);
     double ipol3(field&);
     double ipol4(field&);    
 
-    double ipol4ro(fdm*,field&);
+	double ipol4ro(fdm*,field&);
     double ipol4phi(fdm*,field&);
     double ipol4topo(fdm*,field&);
     double ipol4press(field&);
@@ -108,7 +108,7 @@ public:
     // slice
     double sl_ipol1(slice&);
     double sl_ipol2(slice&);
-    double sl_ipol1a(slice&);
+	double sl_ipol1a(slice&);
     double sl_ipol2a(slice&);
     double sl_ipol4(slice&);
     double sl_ipol1eta(int*,slice&,slice&);

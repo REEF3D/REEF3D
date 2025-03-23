@@ -39,11 +39,11 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     LOOP
-    {
+	{
     IO[IJK]=1;
-    d->FB[IJK]=1.0e8;
-    }
-        
+	d->FB[IJK]=1.0e8;
+	}
+    	
     for(int rayiter=0; rayiter<2; ++rayiter)
     {
         for(int qn=0;qn<entity_sum;++qn)
@@ -72,21 +72,21 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(IO[IJK]==1)
         d->FB[IJK]=fabs(d->FB[IJK]);
     }
-    
-    LOOP
+	
+	LOOP
     WETDRY
-    {
-        if(d->FB[IJK]>100.0*p->DXM)
-        d->FB[IJK]=100.0*p->DXM;
-        
-        if(d->FB[IJK]<-100.0*p->DXM)
-        d->FB[IJK]=-100.0*p->DXM;
-    }
+	{
+		if(d->FB[IJK]>100.0*p->DXM)
+		d->FB[IJK]=100.0*p->DXM;
+		
+		if(d->FB[IJK]<-100.0*p->DXM)
+		d->FB[IJK]=-100.0*p->DXM;
+	}
     
     LOOP
     if(p->wet[IJ]==0)
     d->FB[IJK]=100.0*p->DXM;
     
         
-    pgc->start5V(p,d->FB,1); 
+	pgc->start5V(p,d->FB,1); 
 }

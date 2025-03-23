@@ -43,12 +43,12 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
     wavegen_precalc(p,pgc);
     
     u_relax(p,a,pgc,a->u);
-    v_relax(p,a,pgc,a->v);
-    w_relax(p,a,pgc,a->w);
+	v_relax(p,a,pgc,a->v);
+	w_relax(p,a,pgc,a->w);
     }
     
     if(p->I30==1)
-    full_initialize(p,a,pgc);
+	full_initialize(p,a,pgc);
 }
 
 void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
@@ -62,6 +62,6 @@ void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
     wavegen_precalc(p,pgc);
     
     if(p->I30==1)
-    full_initialize_ptf(p,a,pgc);
+	full_initialize_ptf(p,a,pgc);
 }
 

@@ -78,9 +78,9 @@ void sixdof_obj::update_fbvel(lexer *p, ghostcell *pgc)
         
         
     // Velocities
-    p->ufbi = p_(0)/Mass_fb;
-    p->vfbi = p_(1)/Mass_fb;
-    p->wfbi = p_(2)/Mass_fb;
+	p->ufbi = p_(0)/Mass_fb;
+	p->vfbi = p_(1)/Mass_fb;
+	p->wfbi = p_(2)/Mass_fb;
     
     p->pfbi = omega_I(0);
     p->qfbi = omega_I(1);
@@ -88,13 +88,13 @@ void sixdof_obj::update_fbvel(lexer *p, ghostcell *pgc)
 
 
     // Position
-    p->xg = c_(0);
-    p->yg = c_(1);
-    p->zg = c_(2);
+	p->xg = c_(0);
+	p->yg = c_(1);
+	p->zg = c_(2);
 
-    p->phi_fb = phi;
-    p->theta_fb = theta;
-    p->psi_fb = psi;
+	p->phi_fb = phi;
+	p->theta_fb = theta;
+	p->psi_fb = psi;
     
     maxvel(p,pgc);
 }
@@ -139,14 +139,14 @@ void sixdof_obj::saveTimeStep(lexer *p, int iter)
 
 void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
 {
-    p->ufbmax = p->ufbi;
+	p->ufbmax = p->ufbi;
     p->vfbmax = p->vfbi; 
     p->wfbmax = p->wfbi;
     
     double uvel,vvel,wvel;
 
-    ALOOP
-    {
+	ALOOP
+	{
         uvel = p->ufbi + (p->pos_z() - p->zg)*p->qfbi - (p->pos_y() - p->yg)*p->rfbi;
         vvel = p->vfbi + (p->pos_x() - p->xg)*p->rfbi - (p->pos_z() - p->zg)*p->pfbi;
         wvel = p->wfbi + (p->pos_y() - p->yg)*p->pfbi - (p->pos_x() - p->xg)*p->qfbi;
@@ -154,6 +154,6 @@ void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
         p->ufbmax = MAX(p->ufbmax, fabs(uvel));
         p->vfbmax = MAX(p->vfbmax, fabs(vvel));
         p->wfbmax = MAX(p->wfbmax, fabs(wvel));
-    }
+	}
 }
 

@@ -34,22 +34,22 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
     
         // get the fsf elevation
         LOOP
-        wsfmax[i][j]=-1.0e20;
+		wsfmax[i][j]=-1.0e20;
 
-        LOOP
-        if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
-        wsfmax[i][j]=MAX(wsfmax[i][j],-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
+		LOOP
+		if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+		wsfmax[i][j]=MAX(wsfmax[i][j],-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
 
         for(int qn=0; qn<p->mz;++qn)
-        pgc->verticalmax(p,a,wsfmax);
+		pgc->verticalmax(p,a,wsfmax);
         
         // wavegen
         count=0;
-        for(n=0;n<p->gcin_count;n++)
-        {
-        i=p->gcin[n][0];
-        j=p->gcin[n][1];
-        k=p->gcin[n][2];        
+		for(n=0;n<p->gcin_count;n++)
+		{
+		i=p->gcin[n][0];
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];		
 
         uvel=uval[count]*ramp(p);
         vvel=vval[count]*ramp(p);
@@ -58,29 +58,29 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         phival = a->phi(i-1,j,k);
 
         if(phival>=-psi)
-        H=1.0;
+		H=1.0;
 
-        if(phival<-epsi)
-        H=0.0;
+		if(phival<-epsi)
+		H=0.0;
 
 
-        if(phival>=-epsi && phival<-psi)
-        H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+		if(phival>=-epsi && phival<-psi)
+		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
             
 
-            u(i-1,j,k)=uvel*H + p->Ui;
-            u(i-2,j,k)=uvel*H + p->Ui;
-            u(i-3,j,k)=uvel*H + p->Ui;
+			u(i-1,j,k)=uvel*H + p->Ui;
+			u(i-2,j,k)=uvel*H + p->Ui;
+			u(i-3,j,k)=uvel*H + p->Ui;
             
              v(i-1,j,k)=vvel*H;
-            v(i-2,j,k)=vvel*H;
-            v(i-3,j,k)=vvel*H;
-            
-            w(i-1,j,k)=wvel*H;
-            w(i-2,j,k)=wvel*H;
-            w(i-3,j,k)=wvel*H;
-            
+			v(i-2,j,k)=vvel*H;
+			v(i-3,j,k)=vvel*H;
+			
+			w(i-1,j,k)=wvel*H;
+			w(i-2,j,k)=wvel*H;
+			w(i-3,j,k)=wvel*H;
+			
             
             if(p->W50_air==1 && phival<-epsi)
             {
@@ -90,54 +90,54 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
             }
             /*
 
-            if(a->phi(i-1,j,k)>=0.0)
-            {
+			if(a->phi(i-1,j,k)>=0.0)
+			{
             
-            u(i-1,j,k)=uvel+p->Ui;
-            u(i-2,j,k)=uvel+p->Ui;
-            u(i-3,j,k)=uvel+p->Ui;
+			u(i-1,j,k)=uvel+p->Ui;
+			u(i-2,j,k)=uvel+p->Ui;
+			u(i-3,j,k)=uvel+p->Ui;
             
              v(i-1,j,k)=vvel;
-            v(i-2,j,k)=vvel;
-            v(i-3,j,k)=vvel;
-            
-            w(i-1,j,k)=wvel;
-            w(i-2,j,k)=wvel;
-            w(i-3,j,k)=wvel;
-            }
+			v(i-2,j,k)=vvel;
+			v(i-3,j,k)=vvel;
+			
+			w(i-1,j,k)=wvel;
+			w(i-2,j,k)=wvel;
+			w(i-3,j,k)=wvel;
+			}
 
-            if(a->phi(i-1,j,k)<0.0 && a->phi(i-1,j,k)>=-p->F45*p->DZP[KP])
-            {
-            fac= p->B122*(1.0 - fabs(a->phi(i-1,j,k))/(p->F45*p->DZP[KP]));
+			if(a->phi(i-1,j,k)<0.0 && a->phi(i-1,j,k)>=-p->F45*p->DZP[KP])
+			{
+			fac= p->B122*(1.0 - fabs(a->phi(i-1,j,k))/(p->F45*p->DZP[KP]));
             
-            u(i-1,j,k)=uvel*fac + p->Ui;
-            u(i-2,j,k)=uvel*fac + p->Ui;
-            u(i-3,j,k)=uvel*fac + p->Ui;
+			u(i-1,j,k)=uvel*fac + p->Ui;
+			u(i-2,j,k)=uvel*fac + p->Ui;
+			u(i-3,j,k)=uvel*fac + p->Ui;
             
              v(i-1,j,k)=vvel*fac;
-            v(i-2,j,k)=vvel*fac;
-            v(i-3,j,k)=vvel*fac;
+			v(i-2,j,k)=vvel*fac;
+			v(i-3,j,k)=vvel*fac;
             
-            w(i-1,j,k)=wvel*fac;
-            w(i-2,j,k)=wvel*fac;
-            w(i-3,j,k)=wvel*fac;
-            }
+			w(i-1,j,k)=wvel*fac;
+			w(i-2,j,k)=wvel*fac;
+			w(i-3,j,k)=wvel*fac;
+			}
 
-            if(a->phi(i-1,j,k)<-p->F45*p->DXM)
-            {
-            //pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
-            u(i-1,j,k)=0.0 + p->Ui;
-            u(i-2,j,k)=0.0 + p->Ui;
-            u(i-3,j,k)=0.0 + p->Ui;
+			if(a->phi(i-1,j,k)<-p->F45*p->DXM)
+			{
+			//pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
+			u(i-1,j,k)=0.0 + p->Ui;
+			u(i-2,j,k)=0.0 + p->Ui;
+			u(i-3,j,k)=0.0 + p->Ui;
             
             v(i-1,j,k)=0.0;
-            v(i-2,j,k)=0.0;
-            v(i-3,j,k)=0.0;
+			v(i-2,j,k)=0.0;
+			v(i-3,j,k)=0.0;
 
-            w(i-1,j,k)=0.0;
-            w(i-2,j,k)=0.0;
-            w(i-3,j,k)=0.0;
-            }*/
+			w(i-1,j,k)=0.0;
+			w(i-2,j,k)=0.0;
+			w(i-3,j,k)=0.0;
+			}*/
             
                 
                 // fsf deviation
@@ -157,13 +157,13 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         
         
                 if(p->pos_z()<=p->phimean)
-                z=-(fabs(p->phimean-p->pos_z()));
-                
-                if(p->pos_z()>p->phimean)
-                z=(fabs(p->phimean-p->pos_z()));
-                
-                if(p->B98==4)
-                Uc=eta_R*sqrt(9.81/p->wd);
+				z=-(fabs(p->phimean-p->pos_z()));
+				
+				if(p->pos_z()>p->phimean)
+				z=(fabs(p->phimean-p->pos_z()));
+				
+				if(p->B98==4)
+				Uc=eta_R*sqrt(9.81/p->wd);
                 
                 
                 
@@ -181,45 +181,45 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
                 
                 
                 if(z<=eta_M)
-                {
-                u(i-1,j,k)+=Uc;
-                u(i-2,j,k)+=Uc;
-                u(i-3,j,k)+=Uc;
-                }
+				{
+				u(i-1,j,k)+=Uc;
+				u(i-2,j,k)+=Uc;
+				u(i-3,j,k)+=Uc;
+				}
 
-                if(z>=eta_M && z<eta_M+epsi)
-                {
-                u(i-1,j,k)+=Uc*H*fac1;
-                u(i-2,j,k)+=Uc*H*fac1;
-                u(i-3,j,k)+=Uc*H*fac1;
-                }
+				if(z>=eta_M && z<eta_M+epsi)
+				{
+				u(i-1,j,k)+=Uc*H*fac1;
+				u(i-2,j,k)+=Uc*H*fac1;
+				u(i-3,j,k)+=Uc*H*fac1;
+				}
 
-                if(z>=eta_M+epsi)
-                {
-                u(i-1,j,k)+=0.0;
-                u(i-2,j,k)+=0.0;
-                u(i-3,j,k)+=0.0;
-                }
+				if(z>=eta_M+epsi)
+				{
+				u(i-1,j,k)+=0.0;
+				u(i-2,j,k)+=0.0;
+				u(i-3,j,k)+=0.0;
+				}
             
             
             
         ++count;
-        }
+		}
         
         
         if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
-        {
-        for(int q=0;q<4;++q)
-        for(n=0;n<p->gcin_count;++n)
-        {
-        i=p->gcin[n][0]+q;
-        j=p->gcin[n][1];
-        k=p->gcin[n][2];
+		{
+		for(int q=0;q<4;++q)
+		for(n=0;n<p->gcin_count;++n)
+		{
+		i=p->gcin[n][0]+q;
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];
 
-        if(a->phi(i,j,k)<0.0)
-        a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
-        }
-        pgc->start4(p,a->eddyv,24);
-        }
+		if(a->phi(i,j,k)<0.0)
+		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
+		}
+		pgc->start4(p,a->eddyv,24);
+		}
 }
 

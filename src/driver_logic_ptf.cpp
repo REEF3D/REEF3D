@@ -46,25 +46,25 @@ void driver::logic_ptf()
     pini = new initialize(p);
 
     if(p->mpirank==0)
-    cout<<"starting ini"<<endl;
-    pini->start(a,p,pgc);
+	cout<<"starting ini"<<endl;
+	pini->start(a,p,pgc);
 
 // time stepping
     if(p->N48==0)
-    ptstep=new fixtimestep(p);
+	ptstep=new fixtimestep(p);
 
-    if(p->N48==1)
-    ptstep=new pftimestep(p);
+	if(p->N48==1)
+	ptstep=new pftimestep(p);
     
 // Printer
-    pprint = new vtu3D(p,a,pgc);
+	pprint = new vtu3D(p,a,pgc);
     
 //IOFlow
-    if(p->B60==0 && p->B90==0 && p->B180==0 )
-    pflow = new ioflow_v(p,pgc,pBC);
+	if(p->B60==0 && p->B90==0 && p->B180==0 )
+	pflow = new ioflow_v(p,pgc,pBC);
 
-    if(p->B90>=1)
-    pflow= new iowave(p,pgc,pBC);
+	if(p->B90>=1)
+	pflow= new iowave(p,pgc,pBC);
     
 // Geodat
     if(p->G1==0)
@@ -82,25 +82,25 @@ void driver::logic_ptf()
     preto = new reinitopo_RK3(p);
     }
     
-//  Laplace Solver    
-    if(p->N10==0)
-    plapsolv = new solver_void(p,a,pgc);
-    
-    if(p->N10==1)
-    plapsolv = new bicgstab_ijk(p,a,pgc);
-    
-    #ifdef HYPRE_COMPILATION
-    if(p->N10>10 && p->N10<=20)
+//  Laplace Solver	
+	if(p->N10==0)
+	plapsolv = new solver_void(p,a,pgc);
+	
+	if(p->N10==1)
+	plapsolv = new bicgstab_ijk(p,a,pgc);
+	
+	#ifdef HYPRE_COMPILATION
+	if(p->N10>10 && p->N10<=20)
     plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     #endif
     
     #ifdef HYPRE_COMPILATION
-    if(p->N10>20 && p->N10<=30)
-    plapsolv = new hypre_aij(p,a,pgc);
-    #endif
+	if(p->N10>20 && p->N10<=30)
+	plapsolv = new hypre_aij(p,a,pgc);
+	#endif
     
 //  Voids
-    pturb = new kepsilon_void(p,a,pgc);
+	pturb = new kepsilon_void(p,a,pgc);
     
     pdata = new data_void(p,a,pgc);
     

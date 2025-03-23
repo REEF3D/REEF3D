@@ -36,9 +36,9 @@ fsi_strip::~fsi_strip()
 
 void fsi_strip::start(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
-    // Set mooring time step
-    t_strip_n = t_strip;
-    t_strip += alpha*p->dt;
+	// Set mooring time step
+	t_strip_n = t_strip;
+	t_strip += alpha*p->dt;
 
     // Integrate from t_mooring_n to t_mooring
     Integrate(t_strip_n,t_strip);

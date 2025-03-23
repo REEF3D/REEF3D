@@ -29,16 +29,16 @@ Author: Hans Bihs
 
 fnpf_vtp_bed::fnpf_vtp_bed(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(p->I40==0)
+	if(p->I40==0)
     {
-    p->printtime=0.0;
+	p->printtime=0.0;
     }
-    
-    printcount=0;
-    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_FNPF_VTP_BED",0777);
+	
+	printcount=0;
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_FNPF_VTP_BED",0777);
 }
 
 fnpf_vtp_bed::~fnpf_vtp_bed()
@@ -46,53 +46,53 @@ fnpf_vtp_bed::~fnpf_vtp_bed()
 }
 
 void fnpf_vtp_bed::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
-{    
+{	
     print2D(p,c,pgc);
 }
 
 void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
-{    
+{	
     
-    if(p->mpirank==0)
+	if(p->mpirank==0)
     pvtu(p,c,pgc);
     
-    name_iter(p,c,pgc);
-    
-    
-    // Open File
-    ofstream result;
-    result.open(name, ios::binary);
+	name_iter(p,c,pgc);
+	
+	
+	// Open File
+	ofstream result;
+	result.open(name, ios::binary);
     
     // offsets
     n=0;
-    offset[n]=0;
-    ++n;
-    
-    // Points
+	offset[n]=0;
+	++n;
+	
+	// Points
     offset[n]=offset[n-1]+4*(p->pointnum2D)*3+4;
     ++n;
     
     // elevation
-    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-    ++n;
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+	
+	// depth
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
     
-    // depth
-    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-    ++n;
-    
-    // Cells
+	// Cells
     offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
     ++n;
     offset[n]=offset[n-1] + 4*p->polygon_sum+4;
     ++n;
-    offset[n]=offset[n-1] + 4*p->polygon_sum+4;
+	offset[n]=offset[n-1] + 4*p->polygon_sum+4;
     ++n;
-    
-    
-    result<<"<?xml version=\"1.0\"?>"<<endl;
-    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-    result<<"<PolyData>"<<endl;
-    result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">"<<endl;
+	
+	
+	result<<"<?xml version=\"1.0\"?>"<<endl;
+	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+	result<<"<PolyData>"<<endl;
+	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">"<<endl;
     
     if(p->P16==1)
     {
@@ -103,16 +103,16 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     }
     
     n=0;
-    result<<"<Points>"<<endl;
+	result<<"<Points>"<<endl;
     result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"</Points>"<<endl;
-    
-    
+	
+	
     result<<"<PointData >"<<endl;
     result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"depth\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"depth\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"</PointData>"<<endl;
 
@@ -121,11 +121,11 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     result<<"<Polys>"<<endl;
     result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
+	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	++n;
     result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"</Polys>"<<endl;
+	result<<"</Polys>"<<endl;
 
     result<<"</Piece>"<<endl;
     result<<"</PolyData>"<<endl;
@@ -133,93 +133,93 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     
     //----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
-    
-    //  XYZ
-    iin=4*(p->pointnum2D)*3;
-    result.write((char*)&iin, sizeof (int));
+	
+	//  XYZ
+	iin=4*(p->pointnum2D)*3;
+	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
-    {
+	{
     
-    ffn=float(p->XN[IP1]);
-    result.write((char*)&ffn, sizeof (float));
+	ffn=float(p->XN[IP1]);
+	result.write((char*)&ffn, sizeof (float));
 
-    ffn=float(p->YN[JP1]);
-    result.write((char*)&ffn, sizeof (float));
+	ffn=float(p->YN[JP1]);
+	result.write((char*)&ffn, sizeof (float));
 
-    ffn=float(p->sl_ipol4(c->bed));
-    result.write((char*)&ffn, sizeof (float));
-    }
-    
+	ffn=float(p->sl_ipol4(c->bed));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	
     //  Elevation
-    iin=4*(p->pointnum2D);
-    result.write((char*)&iin, sizeof (int));
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP
-    {
-    ffn=float(p->sl_ipol4(c->bed));
-    result.write((char*)&ffn, sizeof (float));
-    }
-    
-    //  Depth
-    iin=4*(p->pointnum2D);
-    result.write((char*)&iin, sizeof (int));
-    TPSLICELOOP
-    {
-    ffn=float(p->sl_ipol4(c->depth));
-    result.write((char*)&ffn, sizeof (float));
-    }
+	{
+	ffn=float(p->sl_ipol4(c->bed));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	
+	//  Depth
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(c->depth));
+	result.write((char*)&ffn, sizeof (float));
+	}
 
     //  Connectivity
     iin=4*(p->polygon_sum)*3;
     result.write((char*)&iin, sizeof (int));
     SLICEBASELOOP
-    {
-    // Triangle 1
-    iin=int(c->nodeval2D(i-1,j-1))-1;
-    result.write((char*)&iin, sizeof (int));
+	{
+	// Triangle 1
+	iin=int(c->nodeval2D(i-1,j-1))-1;
+	result.write((char*)&iin, sizeof (int));
 
-    iin=int(c->nodeval2D(i,j-1))-1;
-    result.write((char*)&iin, sizeof (int));
+	iin=int(c->nodeval2D(i,j-1))-1;
+	result.write((char*)&iin, sizeof (int));
 
-    iin=int(c->nodeval2D(i,j))-1;
-    result.write((char*)&iin, sizeof (int));
-    
-    
-    // Triangle 2
-    iin=int(c->nodeval2D(i-1,j-1))-1;
-    result.write((char*)&iin, sizeof (int));
+	iin=int(c->nodeval2D(i,j))-1;
+	result.write((char*)&iin, sizeof (int));
+	
+	
+	// Triangle 2
+	iin=int(c->nodeval2D(i-1,j-1))-1;
+	result.write((char*)&iin, sizeof (int));
 
-    iin=int(c->nodeval2D(i,j))-1;
-    result.write((char*)&iin, sizeof (int));
+	iin=int(c->nodeval2D(i,j))-1;
+	result.write((char*)&iin, sizeof (int));
 
-    iin=int(c->nodeval2D(i-1,j))-1;
-    result.write((char*)&iin, sizeof (int));
-    }
+	iin=int(c->nodeval2D(i-1,j))-1;
+	result.write((char*)&iin, sizeof (int));
+	}
     
     
     //  Offset of Connectivity
     iin=4*(p->polygon_sum);
     result.write((char*)&iin, sizeof (int));
-    for(n=0;n<p->polygon_sum;++n)
-    {
-    iin=(n+1)*3;
-    result.write((char*)&iin, sizeof (int));
-    }
+	for(n=0;n<p->polygon_sum;++n)
+	{
+	iin=(n+1)*3;
+	result.write((char*)&iin, sizeof (int));
+	}
     
 //  Cell types
     iin=4*(p->polygon_sum);
     result.write((char*)&iin, sizeof (int));
-    for(n=0;n<p->polygon_sum;++n)
-    {
-    iin=7;
-    result.write((char*)&iin, sizeof (int));
-    }
+	for(n=0;n<p->polygon_sum;++n)
+	{
+	iin=7;
+	result.write((char*)&iin, sizeof (int));
+	}
 
     result<<endl<<"</AppendedData>"<<endl;
     result<<"</VTKFile>"<<endl;
 
-    result.close();
-    
-    ++printcount;
+	result.close();
+	
+	++printcount;
 
 }
 

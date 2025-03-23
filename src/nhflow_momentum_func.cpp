@@ -40,13 +40,13 @@ Author: Hans Bihs
 nhflow_momentum_func::nhflow_momentum_func(lexer *p, fdm_nhf *d, ghostcell *pgc)
                                                     : nhflow_bcmom(p), nhflow_sigma(p)
 {
-    gcval_u=10;
-    gcval_v=11;
-    gcval_w=12;
+	gcval_u=10;
+	gcval_v=11;
+	gcval_w=12;
     
     gcval_uh=14;
-    gcval_vh=15;
-    gcval_wh=16;
+	gcval_vh=15;
+	gcval_wh=16;
    
 }
 
@@ -154,27 +154,27 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
 void nhflow_momentum_func::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     /*
-    n=0;
-    LOOP
-    {
+	n=0;
+	LOOP
+	{
     d->maxF=MAX(fabs(d->rhsvec.V[n]),d->maxF);
-    d->F[IJK] += (d->rhsvec.V[n])*PORVALNH;
-    d->rhsvec.V[n]=0.0;
-    ++n;
-    }*/
+	d->F[IJK] += (d->rhsvec.V[n])*PORVALNH;
+	d->rhsvec.V[n]=0.0;
+	++n;
+	}*/
 }
 
 void nhflow_momentum_func::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     /*
-    n=0;
-    VLOOP
-    {
+	n=0;
+	VLOOP
+	{
     a->maxG=MAX(fabs(a->rhsvec.V[n]),a->maxG);
-    a->G[IJK] += (a->rhsvec.V[n])*PORVAL2;
-    a->rhsvec.V[n]=0.0;
-    ++n;
-    }*/
+	a->G[IJK] += (a->rhsvec.V[n])*PORVAL2;
+	a->rhsvec.V[n]=0.0;
+	++n;
+	}*/
 }
 
 void nhflow_momentum_func::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -183,12 +183,12 @@ void nhflow_momentum_func::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_func::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    n=0;
-    LOOP
-    {
-    d->rhsvec.V[n]=0.0;
-    ++n;
-    }
+	n=0;
+	LOOP
+	{
+	d->rhsvec.V[n]=0.0;
+	++n;
+	}
 }
 
 void nhflow_momentum_func::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)

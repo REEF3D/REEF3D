@@ -41,7 +41,7 @@ using namespace std;
 class sixdof_sflow : public sixdof, public increment
 {
 public:
-    
+	
     sixdof_sflow(lexer*, ghostcell*);
     virtual ~sixdof_sflow();
     
@@ -54,11 +54,11 @@ public:
     void start_shipwave(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,bool);
 
     
-    virtual void ini(lexer*,ghostcell*);
+	virtual void ini(lexer*,ghostcell*);
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
     virtual void initialize(lexer*, fdm2D*, ghostcell*, vector<net*>&);
     virtual void initialize(lexer*, fdm_nhf*, ghostcell*, vector<net*>&);
-    
+	
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);
@@ -72,7 +72,7 @@ public:
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
     
 private:
-    
+	
     // hires gradient
     double limiter(double v1, double v2);
     double starttime;

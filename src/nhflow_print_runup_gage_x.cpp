@@ -31,8 +31,8 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 nhflow_print_runup_gage_x::nhflow_print_runup_gage_x(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{    
-    p->Iarray(jloc,p->P133);
+{	
+	p->Iarray(jloc,p->P133);
 
 
     p->Darray(xloc,p->P133+1);
@@ -43,35 +43,35 @@ nhflow_print_runup_gage_x::nhflow_print_runup_gage_x(lexer *p, fdm_nhf *d, ghost
     p->Darray(zloc_all,p->P133+1,p->M10+1);
 
     ini_location(p,d,pgc);
-    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_NHFLOW_RUNUP",0777);
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_NHFLOW_RUNUP",0777);
     
     
     if(p->mpirank==0)
     {
-        // open file
-        sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-x.dat");
+		// open file
+		sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-x.dat");
 
-        wsfout.open(name);
+		wsfout.open(name);
 
-        wsfout<<"number of runup-probes:  "<<p->P133<<endl<<endl;
-        wsfout<<"line_No     y_coord"<<endl;
-        for(q=0;q<p->P133;++q)
-        wsfout<<q+1<<"\t "<<p->P133_y[q]<<endl;
+		wsfout<<"number of runup-probes:  "<<p->P133<<endl<<endl;
+		wsfout<<"line_No     y_coord"<<endl;
+		for(q=0;q<p->P133;++q)
+		wsfout<<q+1<<"\t "<<p->P133_y[q]<<endl;
 
 
-        wsfout<<endl<<endl;
+		wsfout<<endl<<endl;
 
-        
-        for(q=0;q<p->P133;++q)
-        {
-        wsfout<<"X "<<q+1;
-        wsfout<<"\t P "<<q+1<<" \t \t ";
-        }
+		
+		for(q=0;q<p->P133;++q)
+		{
+		wsfout<<"X "<<q+1;
+		wsfout<<"\t P "<<q+1<<" \t \t ";
+		}
 
-        wsfout<<endl<<endl;
+		wsfout<<endl<<endl;
     }
 }
 
@@ -116,8 +116,8 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
             }
         }
     }
-    
-    
+	
+	
     // gather
     for(q=0;q<p->P133;++q)
     {
@@ -140,7 +140,7 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
         }
     }
     
-    
+	
     // write to file
     if(p->mpirank==0)
     {

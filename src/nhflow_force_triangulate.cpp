@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    int negcount, poscount;
+	int negcount, poscount;
     
     is = p->posc_i(p->P81_xs[ID]);
     ie = p->posc_i(p->P81_xe[ID]);
@@ -44,13 +44,13 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     NDBASELOOP
     eta[IJK] = 0.125*(d->SOLID[IJK] + d->SOLID[Ip1JK] + d->SOLID[IJp1K] + d->SOLID[Ip1Jp1K]
                       + d->SOLID[IJKp1] + d->SOLID[Ip1JKp1] + d->SOLID[IJp1Kp1] + d->SOLID[Ip1Jp1Kp1]);
-    
+	
     NDBASELOOP
     vertice[IJK]=-1;
 
     NDBASELOOP
     nodeflag[IJK]=0;
-    
+	
 
     BASELOOP
     if(i>=is && i<=ie && j>=js && j<=je && k>=ks && k<=ke)
@@ -83,7 +83,7 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-    //--------------------
+	//--------------------
     countM=0;
     NDBASELOOP
     if(nodeflag[IJK]==1)
@@ -113,7 +113,7 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ++countM;
     }
     
-    // p. 725, 956
+	// p. 725, 956
     count=0;
     BASELOOP
     if(nodeflag[IJK]==1)
@@ -154,7 +154,7 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ++count;
 
     // 5
-    tri[count][0] = vertice[Im1JKm1];
+	tri[count][0] = vertice[Im1JKm1];
     tri[count][1] = vertice[Im1JK];
     tri[count][2] = vertice[IJK];
     tri[count][3] = vertice[IJm1K];
@@ -167,6 +167,6 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     tri[count][3] = vertice[Im1JK];
     ++count;
     }
-    
+	
     numtri=count;
 }

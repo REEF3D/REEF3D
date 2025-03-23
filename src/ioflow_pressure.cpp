@@ -44,11 +44,11 @@ void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-        
-        if(a->phi(i,j,k)>=0.0)
+		
+		if(a->phi(i,j,k)>=0.0)
         pval=(p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-        
-        if(a->phi(i,j,k)<0.0)
+		
+		if(a->phi(i,j,k)<0.0)
         pval = a->press(i,j,k);
 
         a->press(i-1,j,k)=pval;
@@ -63,11 +63,11 @@ void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
     j=p->gcin[n][1];
     k=p->gcin[n][2];
     
-        
-        if(a->phi(i,j,k)>=0.0)
+		
+		if(a->phi(i,j,k)>=0.0)
         pval=a->press(i,j,k) + p->Ui*p->DXP[IM1]; 
-        
-        if(a->phi(i,j,k)<0.0)
+		
+		if(a->phi(i,j,k)<0.0)
         pval = a->press(i,j,k);
     
         a->press(i-1,j,k)=pval;
@@ -111,10 +111,10 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
         a->press(i+2,j,k)=pval;
         a->press(i+3,j,k)=pval;
         }
+		
         
-        
-            if(p->B77==1)
-            {
+			if(p->B77==1)
+			{
                 
                 
             /*
@@ -142,24 +142,24 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
                 
                 pval=a->press(i,j,k);
             
-            a->press(i+1,j,k)=pval;
-            a->press(i+2,j,k)=pval;
-            a->press(i+3,j,k)=pval;
-            }
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
             
             if(p->B77==2)
-            {
+			{
                 pval=a->press(i,j,k);
             
-            a->press(i+1,j,k)=pval;
-            a->press(i+2,j,k)=pval;
-            a->press(i+3,j,k)=pval;
-            }
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
+		
         
         
-        
-            if(p->B77==10)
-            {
+			if(p->B77==10)
+			{
             eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
             if(a->phi(i,j,k)>eps)
@@ -173,10 +173,10 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
         
             pval=(1.0-H)*a->press(i,j,k);
             
-            a->press(i+1,j,k)=pval;
-            a->press(i+2,j,k)=pval;
-            a->press(i+3,j,k)=pval;
-            }
+			a->press(i+1,j,k)=pval;
+			a->press(i+2,j,k)=pval;
+			a->press(i+3,j,k)=pval;
+			}
         }
 }
 

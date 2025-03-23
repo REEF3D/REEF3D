@@ -32,18 +32,18 @@ class pressure_void : public pressure, public increment
 {
 
 public:
-    pressure_void(lexer* p);
-    virtual ~pressure_void();
+	pressure_void(lexer* p);
+	virtual ~pressure_void();
 
-    virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
+	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
     virtual void ini(lexer*,fdm*,ghostcell*);
-    virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-    virtual void ucorr(lexer*p,fdm*,field&,double);
-    virtual void vcorr(lexer*p,fdm*,field&,double);
-    virtual void wcorr(lexer*p,fdm*,field&,double);
-    virtual void upgrad(lexer*,fdm*,slice&,slice&);
-    virtual void vpgrad(lexer*,fdm*,slice&,slice&);
-    virtual void wpgrad(lexer*,fdm*,slice&,slice&);
+	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+	virtual void ucorr(lexer*p,fdm*,field&,double);
+	virtual void vcorr(lexer*p,fdm*,field&,double);
+	virtual void wcorr(lexer*p,fdm*,field&,double);
+	virtual void upgrad(lexer*,fdm*,slice&,slice&);
+	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
+	virtual void wpgrad(lexer*,fdm*,slice&,slice&);
 };
 
 #endif

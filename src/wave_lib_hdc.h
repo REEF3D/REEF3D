@@ -34,7 +34,7 @@ class wave_lib_hdc : public wave_lib_precalc, public wave_lib_parameters, public
 {
 public:
     wave_lib_hdc(lexer*, ghostcell*);
-    virtual ~wave_lib_hdc();
+	virtual ~wave_lib_hdc();
     
     virtual double wave_u(lexer*,double,double,double);
     virtual double wave_v(lexer*,double,double,double);
@@ -103,7 +103,7 @@ private:
     int iin;
     float ffn;
     double ddn;
-    char name[200];
+	char name[200];
     ifstream result;
     
     int file_version,file_type;

@@ -27,45 +27,45 @@ Author: Hans Bihs
 
 void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
-    int qn;
+	int qn;
     double zmin,zmax,slope;
     double xs,xe,ys,ye;
-    
-    
-    ALOOP
-    {
-    N(i,j,k)=0.0;
-    D(i,j,k)=0.0;
-    Cd(i,j,k)=0.0;
+	
+	
+	ALOOP
+	{
+	N(i,j,k)=0.0;
+	D(i,j,k)=0.0;
+	Cd(i,j,k)=0.0;
     a->porosity(i,j,k)=1.0;
-    }
-    
-    pgc->start4a(p,a->porosity,1);
-    pgc->start4a(p,N,1);
-    pgc->start4a(p,D,1);
-    pgc->start4a(p,Cd,1);
-    
-    
-    
-    // Box
+	}
+	
+	pgc->start4a(p,a->porosity,1);
+	pgc->start4a(p,N,1);
+	pgc->start4a(p,D,1);
+	pgc->start4a(p,Cd,1);
+	
+	
+	
+	// Box
     for(qn=0;qn<p->B310;++qn)
     ALOOP
-    if(p->XN[IP]>=p->B310_xs[qn] && p->XN[IP]<p->B310_xe[qn]
-    && p->YN[JP]>=p->B310_ys[qn] && p->YN[JP]<p->B310_ye[qn]
-    && p->ZN[KP]>=p->B310_zs[qn] && p->ZN[KP]<p->B310_ze[qn])
-    {
-    N(i,j,k) = p->B310_N[qn];
-    D(i,j,k) = p->B310_D[qn];
-    Cd(i,j,k) = p->B310_Cd[qn];
+	if(p->XN[IP]>=p->B310_xs[qn] && p->XN[IP]<p->B310_xe[qn]
+	&& p->YN[JP]>=p->B310_ys[qn] && p->YN[JP]<p->B310_ye[qn]
+	&& p->ZN[KP]>=p->B310_zs[qn] && p->ZN[KP]<p->B310_ze[qn])
+	{
+	N(i,j,k) = p->B310_N[qn];
+	D(i,j,k) = p->B310_D[qn];
+	Cd(i,j,k) = p->B310_Cd[qn];
     
     if(p->B308==1)
     a->porosity(i,j,k) =  1.0 - (p->B310_N[qn]*PI*pow(p->B310_D[qn],2.0)*0.25); 
-    }
+	}
     
     // Wedge x-dir
     for(qn=0;qn<p->B321;++qn)
     {
-        zmin=MIN(p->B321_zs[qn],p->B321_ze[qn]);
+		zmin=MIN(p->B321_zs[qn],p->B321_ze[qn]);
         
             if(p->B321_xs[qn]<=p->B321_xe[qn])
             {
@@ -79,26 +79,26 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
             xe = p->B321_xs[qn];
             }
 
-        slope=(p->B321_ze[qn]-p->B321_zs[qn])/(p->B321_xe[qn]-p->B321_xs[qn]);
+		slope=(p->B321_ze[qn]-p->B321_zs[qn])/(p->B321_xe[qn]-p->B321_xs[qn]);
 
-        ALOOP
-        if(p->pos_x()>=xs && p->pos_x()<xe
-        && p->pos_y()>=p->B321_ys[qn] && p->pos_y()<p->B321_ye[qn]
-        && p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_x()-p->B321_xs[qn])+p->B321_zs[qn] )
-        {
-        N(i,j,k) = p->B321_N[qn];
+		ALOOP
+		if(p->pos_x()>=xs && p->pos_x()<xe
+		&& p->pos_y()>=p->B321_ys[qn] && p->pos_y()<p->B321_ye[qn]
+		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_x()-p->B321_xs[qn])+p->B321_zs[qn] )
+		{
+		N(i,j,k) = p->B321_N[qn];
          D(i,j,k) = p->B321_D[qn];
         Cd(i,j,k) = p->B321_Cd[qn];
         
         if(p->B308==1)
         a->porosity(i,j,k) =  1.0 - (p->B321_N[qn]*PI*pow(p->B321_D[qn],2.0)*0.25); 
-        }
+		}
     }
     
     // Wedge y-dir
     for(qn=0;qn<p->B322;++qn)
     {
-        zmin=MIN(p->B322_zs[qn],p->B322_ze[qn]);
+		zmin=MIN(p->B322_zs[qn],p->B322_ze[qn]);
         
             if(p->B322_xs[qn]<=p->B322_xe[qn])
             {
@@ -112,20 +112,20 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
             ye = p->B322_ys[qn];
             }
 
-        slope=(p->B322_ze[qn]-p->B322_zs[qn])/(p->B322_ye[qn]-p->B322_ys[qn]);
+		slope=(p->B322_ze[qn]-p->B322_zs[qn])/(p->B322_ye[qn]-p->B322_ys[qn]);
 
-        ALOOP
-        if(p->pos_x()>=p->B322_xs[qn] && p->pos_x()<p->B322_xe[qn]
-        && p->pos_y()>=ys && p->pos_y()<ye
-        && p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B322_ys[qn])+p->B322_zs[qn] )
-        {
-        N(i,j,k) = p->B322_N[qn];
+		ALOOP
+		if(p->pos_x()>=p->B322_xs[qn] && p->pos_x()<p->B322_xe[qn]
+		&& p->pos_y()>=ys && p->pos_y()<ye
+		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B322_ys[qn])+p->B322_zs[qn] )
+		{
+		N(i,j,k) = p->B322_N[qn];
          D(i,j,k) = p->B322_D[qn];
         Cd(i,j,k) = p->B322_Cd[qn];
         
         if(p->B308==1)
         a->porosity(i,j,k) =  1.0 - (p->B322_N[qn]*PI*pow(p->B322_D[qn],2.0)*0.25); 
-        }
+		}
     }
     
     if(p->B307>0)
@@ -147,9 +147,9 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     
     pgc->start4a(p,a->porosity,1);
-    pgc->start4a(p,N,1);
-    pgc->start4a(p,D,1);
-    pgc->start4a(p,Cd,1);
+	pgc->start4a(p,N,1);
+	pgc->start4a(p,D,1);
+	pgc->start4a(p,Cd,1);
     
     
     

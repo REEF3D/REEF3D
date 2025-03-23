@@ -75,7 +75,7 @@ int boundarycheck::boundcheck_ik(lexer *p, int ii, int jj, int kk, int margin)
 
 int boundarycheck::positioncheck(lexer *p, double posx, double posy, double posz, int margin)
 {
-    int ii,jj,kk;    
+	int ii,jj,kk;	
     check=0;
 
     ii = p->posf_i(posx);
@@ -160,7 +160,7 @@ int boundarycheck::ij_boundcheck(lexer *p, int ii, int jj, int margin)
     if(check==1)
     {
     check=0;
-    
+	
     for(c=0; c<p->knoz; ++c)
     if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + c-p->kmin]>0 || p->flag5[IJK]<0)
     check=1;
@@ -181,7 +181,7 @@ int boundarycheck::ij_boundcheck_topo(lexer *p, int ii, int jj, int margin)
     if(check==1)
     {
     check=0;
-    
+	
     for(c=0; c<p->knoz; ++c)
     if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + c-p->kmin]>SOLID_FLAG || p->flag5[IJK]<0)
     check=1;

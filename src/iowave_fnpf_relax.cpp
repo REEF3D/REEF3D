@@ -34,20 +34,20 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
         dg = distgen(p);    
         db = distbeach(p);
         
-        // Wave Generation
-        if(p->B98==2 && f_switch==1)
+		// Wave Generation
+		if(p->B98==2 && f_switch==1)
         {
             if(dg<1.0e20)
             {
             f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*Fifsfval[count]  + relax4_wg(i,j)*f(i,j);
             ++count;
             }
-        }
-        
-        // Numerical Beach
+		}
+		
+		// Numerical Beach
         if(p->A10!=3 || p->A348==1 || p->A348==3)
         if(p->B99==1||p->B99==2||beach_relax==1)
-        {
+		{
             // Zone 2
             if(db<1.0e20)
             f(i,j) = relax4_nb(i,j)*f(i,j);

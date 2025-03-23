@@ -46,18 +46,18 @@ wave_lib_solitary_1st::~wave_lib_solitary_1st()
 double wave_lib_solitary_1st::wave_u(lexer *p, double x, double y, double z)
 {
     double vel;
-    
-    vel = wave_horzvel(p,x,y,z);
-                                            
+	
+	vel = wave_horzvel(p,x,y,z);
+											
     return cosgamma*vel;
 }
 
 double wave_lib_solitary_1st::wave_v(lexer *p, double x, double y, double z)
 {
     double vel;
-    
-    vel = wave_horzvel(p,x,y,z);
-                                            
+	
+	vel = wave_horzvel(p,x,y,z);
+											
     return singamma*vel;
 }
 
@@ -65,10 +65,10 @@ double wave_lib_solitary_1st::wave_horzvel(lexer *p, double x, double y, double 
 {
     double vel,eta;
 
-    eta = wave_eta(p,x,y);
-    
-    vel = wC * ( ( wH/wdt + 3.0*pow(wH/wdt,2.0) * (1.0/6.0 - 0.5*pow((wdt+z)/wdt,2.0)))*(eta/wH)
-                                -pow(wH/wdt,2.0)*(7.0/4.0 - (9.0/4.0)*pow((wdt+z)/wdt,2.0))*pow(eta/wH,2.0));
+	eta = wave_eta(p,x,y);
+	
+	vel = wC * ( ( wH/wdt + 3.0*pow(wH/wdt,2.0) * (1.0/6.0 - 0.5*pow((wdt+z)/wdt,2.0)))*(eta/wH)
+								-pow(wH/wdt,2.0)*(7.0/4.0 - (9.0/4.0)*pow((wdt+z)/wdt,2.0))*pow(eta/wH,2.0));
                             
     return vel;
 }
@@ -77,25 +77,25 @@ double wave_lib_solitary_1st::wave_w(lexer *p, double x, double y, double z)
 {
     double vel,eta;
 
-    eta = wave_eta(p,x,y);
-    
-    teta = -(wC*(p->wavetime) - (x - X0));
-    
-    vel = wC * sqrt((3.0*wH)/wdt)*((wdt+z)/wdt)*(eta/wdt) * tanh(sqrt(0.75*(wH/pow(wdt,3.0)))*teta)
-        * (1.0 + (wH/(2.0*wdt))*(1.0 - 7.0*(eta/wdt) - pow((wdt+z)/wdt,2.0)*(1.0-(3.0*eta)/wH)));
-        
+	eta = wave_eta(p,x,y);
+	
+	teta = -(wC*(p->wavetime) - (x - X0));
+	
+	vel = wC * sqrt((3.0*wH)/wdt)*((wdt+z)/wdt)*(eta/wdt) * tanh(sqrt(0.75*(wH/pow(wdt,3.0)))*teta)
+		* (1.0 + (wH/(2.0*wdt))*(1.0 - 7.0*(eta/wdt) - pow((wdt+z)/wdt,2.0)*(1.0-(3.0*eta)/wH)));
+		
     return vel;
 }
 
 double wave_lib_solitary_1st::wave_eta(lexer *p, double x, double y)
 {
     double eta;
-    
-    teta = -(wC*(p->wavetime) - (x - X0));
-    
-    eta =  wH/pow(cosh(sqrt(0.75*wH/pow(wdt,3.0)) * teta),2.0);
-    
-    return eta;    
+	
+	teta = -(wC*(p->wavetime) - (x - X0));
+	
+	eta =  wH/pow(cosh(sqrt(0.75*wH/pow(wdt,3.0)) * teta),2.0);
+	
+	return eta;	
 }
 
 double wave_lib_solitary_1st::wave_fi(lexer *p, double x, double y, double z)
@@ -106,17 +106,17 @@ double wave_lib_solitary_1st::wave_fi(lexer *p, double x, double y, double z)
 }
 
 void wave_lib_solitary_1st::parameters(lexer *p, ghostcell *pgc)
-{    
-    wC = sqrt(9.81*(wH+wdt));
-    
-    X0 = - (2.12*wdt)/(sqrt((0.5*wa)/wdt));
+{	
+	wC = sqrt(9.81*(wH+wdt));
+	
+	X0 = - (2.12*wdt)/(sqrt((0.5*wa)/wdt));
 
-    
-    if(p->mpirank==0)
-    cout<<"X0: "<<X0<<endl;
-    
-    if(p->mpirank==0)
-    cout<<"wC: "<<wC<<" wC_old: "<<sqrt(wdt*9.81)*(1.0+0.5*(wH/wdt))<<endl;
+	
+	if(p->mpirank==0)
+	cout<<"X0: "<<X0<<endl;
+	
+	if(p->mpirank==0)
+	cout<<"wC: "<<wC<<" wC_old: "<<sqrt(wdt*9.81)*(1.0+0.5*(wH/wdt))<<endl;
     
 }
 

@@ -36,16 +36,16 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
         xg = xgen(p);
         yg = ygen(p);
-        dg = distgen(p);
-        db = distbeach(p);
-        
-        // Wave Generation
+		dg = distgen(p);
+		db = distbeach(p);
+		
+		// Wave Generation
         if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
             eta(i,j) = wave_eta(p,pgc,xg,yg);
-        }
+		}
     }
     pgc->gcsl_start4(p,eta,50);
     
@@ -53,15 +53,15 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
     count=0;
     LOOP
     {
-        xg = xgen(p);
+		xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-        db = distbeach(p);
+		db = distbeach(p);
         
         z=p->ZSP[IJK]-p->phimean;
-        
-        // Wave Generation
-        if(p->B98==2)
+		
+		// Wave Generation
+		if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -70,9 +70,9 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
             UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
             ++count;
             }
-        }
+		}
     }
-        
+		
 // V
     count=0;
     if(p->j_dir==1)
@@ -81,12 +81,12 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-        db = distbeach(p);
+		db = distbeach(p);
         
         z=p->ZSP[IJK]-p->phimean;
         
-        // Wave Generation
-        if(p->B98==2 && v_switch==1)
+		// Wave Generation
+		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -95,7 +95,7 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
             VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
             ++count;
             }
-        }
+		}
     }
     
 // W
@@ -105,15 +105,15 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-        db = distbeach(p);
+		db = distbeach(p);
         
         zloc3 = p->pos3_z();
         fsfloc = eta(i,j) + p->phimean;
 
         z=p->ZSP[IJK]-p->phimean;
 
-        // Wave Generation        
-        if(p->B98==2 && w_switch==1)
+		// Wave Generation		
+		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -122,8 +122,8 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
             WHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
             ++count;
             }
-        }
-    }    
+		}
+    }	
     
 }
     

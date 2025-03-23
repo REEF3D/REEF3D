@@ -27,37 +27,37 @@ Author: Hans Bihs
 void grid::fillgcb1(lexer *p)
 {
     int q,n;
-    
-    p->Iarray(p->fgc,imax*jmax*kmax,6);
+	
+	p->Iarray(p->fgc,imax*jmax*kmax,6);
 
 
-    if(p->gcb1_count!=p->gcb4_count)
-    {
-    p->Iresize(p->gcb1,p->gcb1_count, p->gcb4_count, 6, 6);     
-    p->Dresize(p->gcd1,p->gcb1_count, p->gcb4_count); 
-    
-    p->gcb1_count=p->gcb4_count;
-    }
-    
-    
-    QGCB4
-    {
-    for(n=0;n<5;++n)
-    p->gcb1[q][n]=p->gcb4[q][n];
+	if(p->gcb1_count!=p->gcb4_count)
+	{
+	p->Iresize(p->gcb1,p->gcb1_count, p->gcb4_count, 6, 6); 	
+	p->Dresize(p->gcd1,p->gcb1_count, p->gcb4_count); 
+	
+	p->gcb1_count=p->gcb4_count;
+	}
+	
+	
+	QGCB4
+	{
+	for(n=0;n<5;++n)
+	p->gcb1[q][n]=p->gcb4[q][n];
 
     if(p->gcb1[q][3]==1 || p->gcb1[q][3]==4)
-    p->gcd1[q]=p->gcd4[q];
+	p->gcd1[q]=p->gcd4[q];
 
-    if(p->gcb1[q][3]!=1 && p->gcb1[q][3]!=4)
-    p->gcd1[q]=p->gcd4[q];
-    }
-    
+	if(p->gcb1[q][3]!=1 && p->gcb1[q][3]!=4)
+	p->gcd1[q]=p->gcd4[q];
+	}
+	
 
     QGC1LOOP
-    {
-        i=p->gcb1[q][0];
-        j=p->gcb1[q][1];
-        k=p->gcb1[q][2];
+	{
+	    i=p->gcb1[q][0];
+		j=p->gcb1[q][1];
+		k=p->gcb1[q][2];
         
         if(p->gcb1[q][3]==1 || p->gcb1[q][3]==4)
         {
@@ -65,29 +65,29 @@ void grid::fillgcb1(lexer *p)
         
         }
 
-        p->fgc[IJK][p->gcb1[q][3]-1]=1;
-    }
+		p->fgc[IJK][p->gcb1[q][3]-1]=1;
+	}
 
 
-    QGC1LOOP
-    {
-        i=p->gcb1[q][0];
-        j=p->gcb1[q][1];
-        k=p->gcb1[q][2];
+	QGC1LOOP
+	{
+	    i=p->gcb1[q][0];
+		j=p->gcb1[q][1];
+		k=p->gcb1[q][2];
 
             if(p->gcb1[q][3]==4 && (p->periodic1!=1 || i+p->origin_i<p->gknox-1))
             p->gcb1[q][0]-=1;
-        
-    }
+		
+	}
     
     QGC1LOOP
-    {
-        i=p->gcb1[q][0];
-        j=p->gcb1[q][1];
-        k=p->gcb1[q][2];
+	{
+	    i=p->gcb1[q][0];
+		j=p->gcb1[q][1];
+		k=p->gcb1[q][2];
 
             if(p->gcb1[q][3]!=4 && p->fgc[IJK][3]==1 && (p->periodic1!=1 || i+p->origin_i<p->gknox-1))
             p->gcb1[q][3]=-fabs(p->gcb1[q][3]);
-        
-    }
+		
+	}
 }

@@ -30,8 +30,13 @@ class rheology_v : public rheology
 
 public:
 
+<<<<<<< HEAD
     rheology_v();
     virtual ~rheology_v();
+=======
+	rheology_v(lexer*,fdm*);
+	virtual ~rheology_v();
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 
     double viscosity(lexer*,fdm*,ghostcell*) override;
     
@@ -39,7 +44,17 @@ public:
     void v_source(lexer*,fdm*) override;
     void w_source(lexer*,fdm*) override;
     
+<<<<<<< HEAD
     void filltau(lexer*,fdm*,ghostcell*) override;
     
+=======
+    virtual void filltau(lexer*,fdm*,ghostcell*);
+
+private:
+    double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
+    
+    double val;
+	
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 };
 #endif

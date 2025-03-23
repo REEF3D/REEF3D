@@ -31,8 +31,8 @@ using namespace std;
 class ptf_void : public ptf
 {
 public:
-    ptf_void();
-    virtual ~ptf_void();
+	ptf_void();
+	virtual ~ptf_void();
     
     virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, convection*);

@@ -40,14 +40,14 @@ class nhflow_poisson : public increment
 
 public:
 
-    nhflow_poisson (lexer *);
-    virtual ~nhflow_poisson();
+	nhflow_poisson (lexer *);
+	virtual ~nhflow_poisson();
 
-    virtual void start(lexer *,fdm_nhf*,double*);
+	virtual void start(lexer *,fdm_nhf*,double*);
 
 private:
 
-    int count,n,q;
+	int count,n,q;
     double sigxyz2;
     double pval;
 

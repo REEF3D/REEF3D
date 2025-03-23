@@ -28,16 +28,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void net_sheet::print(lexer *p)
 {
-    int num=0;
-    
-    if(p->P15==1)
+	int num=0;
+	
+	if(p->P15==1)
     num = p->printcount_sixdof-1;
 
     if(p->P15==2)
     num = p->count;
-    
-    if(num<0)
-    num=0;
+	
+	if(num<0)
+	num=0;
  
     // Print forces
     if (p->mpirank==0)
@@ -47,7 +47,7 @@ void net_sheet::print(lexer *p)
         sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         ofstream header_out;
         header_out.open(str, std::ofstream::out | std::ofstream::app);
-        header_out<<p->simtime<<" \t "<<Fx<<" "<<Fy<<" "<<Fz<<endl;
+		header_out<<p->simtime<<" \t "<<Fx<<" "<<Fy<<" "<<Fz<<endl;
         header_out.close();
     }  
     
@@ -65,23 +65,23 @@ void net_sheet::print(lexer *p)
         }
     }  
     
-    
+	
     if
-    (
-        p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
-        || (p->simtime>printtime && p->P30>0.0)   
-        || p->count==0)
-    )
-    {
-        printtime += p->P30;
-        
+	(
+		p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
+		|| (p->simtime>printtime && p->P30>0.0)   
+		|| p->count==0)
+	)
+	{
+		printtime += p->P30;
+		
         sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.stl",nNet,num);
 
         // Save net as .stl
         ofstream result;
         result.open(name, ios::binary);
 
-        result<<"solid"<<" "<<"ascii"<<endl;
+	    result<<"solid"<<" "<<"ascii"<<endl;
 
         double x0, x1, x2, y0, y1, y2, z0, z1, z2, nx, ny, nz, mag;
 
@@ -146,5 +146,5 @@ void net_sheet::print(lexer *p)
             result<<x_(ii,0)<<","<<x_(ii,1)<<","<<x_(ii,2)<<","<<forces_knot(ii,0)<<","<<forces_knot(ii,1)<<","<<forces_knot(ii,2)<<endl;
         }
         result.close();
-    }
+	}
 }

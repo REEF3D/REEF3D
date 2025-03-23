@@ -38,7 +38,7 @@ void sixdof_obj::updateForcing_box(lexer *p, ghostcell *pgc, slice &press)
     Ls = p->X110_xe[0] - p->X110_xs[0];
     Bs = p->X110_ye[0] - p->X110_ys[0];
 
-    SLICELOOP4
+	SLICELOOP4
     {
         xpos = p->pos_x() - p->xg;
         ypos = p->pos_y() - p->yg;
@@ -63,7 +63,7 @@ void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, slice
     double H,etaval,fbval;
     double dfdx,dfdy,dnorm,nx,nz,xc,yc;
 
-    SLICELOOP4
+	SLICELOOP4
     {
         H = Hsolidface_2D(p,0,0);
         
@@ -103,7 +103,7 @@ void sixdof_obj::updateForcing_oned(lexer *p, ghostcell *pgc, slice &press)
     press0 = p->X401_p0;
     as = p->X401_a; 
 
-    SLICELOOP4
+	SLICELOOP4
     {
         xpos = p->pos_x() - p->xg;
    

@@ -37,7 +37,7 @@ class nhflow_fsf_f : public nhflow_fsf, public increment
 {
 public:
     nhflow_fsf_f(lexer*, fdm_nhf*, ghostcell*,ioflow*,patchBC_interface*);
-    virtual ~nhflow_fsf_f();
+	virtual ~nhflow_fsf_f();
     
     virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*);
@@ -79,9 +79,9 @@ private:
     int *temp;
 
     int gcval_phi,gcval_eta;
-    double starttime;
+	double starttime;
     double phival,H;
-    double d;
+	double d;
     double val, denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     double detadx,detady;

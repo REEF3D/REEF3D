@@ -44,67 +44,67 @@ class lexer : public increment, public resize_class, public position, public int
 {
 public:
 
-    lexer();
-    virtual ~lexer();
+	lexer();
+	virtual ~lexer();
 
 //-----functions------------------
 //---- setup
     void lexer_read(ghostcell*);
     void flagini();
-    void gridini(ghostcell*);
+	void gridini(ghostcell*);
     void gcd_ini(ghostcell*);
     void gridini_patchBC();
     void makeflag(int*);
     void sigma_coord_ini();
-    
-    void read_grid();
-    void read_control();
-    void control_calc();
-    void ini_default();
-    void assign_margin();
-    void ctrlsend();
-    void ctrlrecv();
-    int maxparacount();
-    void gridsize();
-    void vecsize(ghostcell*);
+	
+	void read_grid();
+	void read_control();
+	void control_calc();
+	void ini_default();
+	void assign_margin();
+	void ctrlsend();
+	void ctrlrecv();
+	int maxparacount();
+	void gridsize();
+	void vecsize(ghostcell*);
     void gcbextra_est(ghostcell*);
-    void vellast();
-    void indices_minmax();
-    void lexer_ini();
+	void vellast();
+	void indices_minmax();
+	void lexer_ini();
     void lexer_gridspacing(ghostcell*);
-    void parse();
-    void fieldlogic();
-    int conv(double);
+	void parse();
+	void fieldlogic();
+	int conv(double);
     
     // 2D
     void grid2Dsize();
     void flagini2D();
-    void gridini2D();
+	void gridini2D();
 
 
 //-----data-----------------------
 
-    //REEF3D
-    double dx,dy,dz;
+	//REEF3D
+	double dx,dy,dz;
     double *xpoint,*ypoint,*zpoint;
     double *xnode,*ynode,*znode;
     
     
-    int imin,imax,jmin,jmax,kmin,kmax;
+	int imin,imax,jmin,jmax,kmin,kmax;
     int kmaxF;
-    int pointnum,cellnum,tpcellnum;
-    int cellnum1,cellnum2,cellnum3;
+	int pointnum,cellnum,tpcellnum;
+	int cellnum1,cellnum2,cellnum3;
     int pointnumtot,cellnumtot;
     int N4,N4_row,N4_col;
     int N7,N7_row,N7_col;
-    double originx,originy,originz;
+	double originx,originy,originz;
     double endx,endy,endz;
-    double global_xmin,global_ymin,global_zmin;
-    double global_xmax,global_ymax,global_zmax;
-    int origin_i, origin_j, origin_k;
-    int gknox,gknoy,gknoz;
-    int surf_tot;
-    int *flag1,*flag2,*flag3,*flag4,*flag5,*flag7,*flag;
+	double global_xmin,global_ymin,global_zmin;
+	double global_xmax,global_ymax,global_zmax;
+	int origin_i, origin_j, origin_k;
+	int gknox,gknoy,gknoz;
+	int surf_tot;
+	int *flag1,*flag2,*flag3,*flag4,*flag5,*flag7,*flag;
     int *flagsf1,*flagsf2,*flagsf3,*flagsf4;
     
     // boundary conditions
@@ -112,39 +112,39 @@ public:
     int *DF;
     
     // flag
-    int*mgflag;
+	int*mgflag;
     double *flag_solid,*flag_topo;
     double *data;
-    double *topobed,*solidbed,*bed,*depth;
+	double *topobed,*solidbed,*bed,*depth;
     int *wet,*wet_n;
     int *deep;
-    int *tpflag,*ndbaseflag;
-    int i_dir,j_dir,k_dir;
-    double x_dir,y_dir,z_dir;
+	int *tpflag,*ndbaseflag;
+	int i_dir,j_dir,k_dir;
+	double x_dir,y_dir,z_dir;
     int gcbextra;
     int solidread,toporead,porousread,topoforcing;
 
 
     //GHOSTCELL
-    int **gcb1,**gcb2,**gcb3,**gcb4,**gcb4a,*gcb6;
-    int **gcin, **gcout, **gcpress,**gcin6, **gcout6;
-    int **gcin4a, **gcout4a;
-    double *gcd1,*gcd2,*gcd3,*gcd4,*gcd4a;
-    double **gcn;
-    int gcextra1,gcextra2,gcextra3,gcextra4,gcextra4a,gcextra6;
+	int **gcb1,**gcb2,**gcb3,**gcb4,**gcb4a,*gcb6;
+	int **gcin, **gcout, **gcpress,**gcin6, **gcout6;
+	int **gcin4a, **gcout4a;
+	double *gcd1,*gcd2,*gcd3,*gcd4,*gcd4a;
+	double **gcn;
+	int gcextra1,gcextra2,gcextra3,gcextra4,gcextra4a,gcextra6;
     
     int gcdf1_count,gcdf2_count,gcdf3_count,gcdf4_count;
     int **gcdf1,**gcdf2,**gcdf3,**gcdf4;
     int gcsldf4_count;
     int **gcsldf4;
 
-    int gcwall_count, gcin_count, gcout_count, gcpress_count, gcfsf_count, gcbed_count;
+	int gcwall_count, gcin_count, gcout_count, gcpress_count, gcfsf_count, gcbed_count;
     int gcin6_count, gcout6_count;
-    int gcin4a_count, gcout4a_count;
-    int gcb1_count,gcb2_count,gcb3_count,gcb4_count,gcb4a_count;
-    int gcpara_sum, gcparaco_sum;
-    int gcb_fix,gcb_solid,gcb_topo,gcb_fb, solid_gcb_est, topo_gcb_est, solid_gcbextra_est, topo_gcbextra_est, tot_gcbextra_est;
-    int gcb_sediment_est, gcb_floating_est;
+	int gcin4a_count, gcout4a_count;
+	int gcb1_count,gcb2_count,gcb3_count,gcb4_count,gcb4a_count;
+	int gcpara_sum, gcparaco_sum;
+	int gcb_fix,gcb_solid,gcb_topo,gcb_fb, solid_gcb_est, topo_gcb_est, solid_gcbextra_est, topo_gcbextra_est, tot_gcbextra_est;
+	int gcb_sediment_est, gcb_floating_est;
     int bcside1,bcside2,bcside3,bcside4,bcside5,bcside6;
     
     // serial periodic BC
@@ -160,53 +160,53 @@ public:
     int **dgc1,**dgc2,**dgc3,**dgc4;
     int dgc1_count,dgc2_count,dgc3_count,dgc4_count;
     
-    // PARALLEL
-    int** gcpara1;
-    int** gcpara2;
-    int** gcpara3;
-    int** gcpara4;
-    int** gcpara5;
-    int** gcpara6;
+	// PARALLEL
+	int** gcpara1;
+	int** gcpara2;
+	int** gcpara3;
+	int** gcpara4;
+	int** gcpara5;
+	int** gcpara6;
 
-    int** gcparaco1;
-    int** gcparaco2;
-    int** gcparaco3;
-    int** gcparaco4;
-    int** gcparaco5;
-    int** gcparaco6;
+	int** gcparaco1;
+	int** gcparaco2;
+	int** gcparaco3;
+	int** gcparaco4;
+	int** gcparaco5;
+	int** gcparaco6;
     
     int*** gcx7;
     int* gcx7_count;
     int*** gcxco7;
     int* gcxco7_count;
 
-    int gcpara1_count, gcpara2_count, gcpara3_count, gcpara4_count, gcpara5_count, gcpara6_count;
-    int gcparaco1_count, gcparaco2_count, gcparaco3_count, gcparaco4_count, gcparaco5_count, gcparaco6_count;
+	int gcpara1_count, gcpara2_count, gcpara3_count, gcpara4_count, gcpara5_count, gcpara6_count;
+	int gcparaco1_count, gcparaco2_count, gcparaco3_count, gcparaco4_count, gcparaco5_count, gcparaco6_count;
     int gcslpara1_count, gcslpara2_count, gcslpara3_count, gcslpara4_count;
     int gcslparaco1_count, gcslparaco2_count, gcslparaco3_count, gcslparaco4_count;
-    int maxpara;
-    int nb1,nb2,nb3,nb4,nb5,nb6;
-    int mx,my,mz;
+	int maxpara;
+	int nb1,nb2,nb3,nb4,nb5,nb6;
+	int mx,my,mz;
     int mi,mj,mk;
-    int mpi_edgenum,mpi_nodes,mpi_size;
-    int *mpi_index, *mpi_edges;
-    
-    int ulast,vlast,wlast,flast,ulastsflow;
-    int velcorr;
-    int* ictrl;
-    double* dctrl;
-    int ctrlsize;
-    int stencil;    
+	int mpi_edgenum,mpi_nodes,mpi_size;
+	int *mpi_index, *mpi_edges;
+	
+	int ulast,vlast,wlast,flast,ulastsflow;
+	int velcorr;
+	int* ictrl;
+	double* dctrl;
+	int ctrlsize;
+	int stencil;	
 
-    // Solver
-    int *colnum;
+	// Solver
+	int *colnum;
     int *range_col4,*range_row4,*range_col7,*range_row7;
-    int *sizeM1,*sizeM2,*sizeM3,*sizeM4,*sizeM4a,*sizeM6,*sizeM9;
+	int *sizeM1,*sizeM2,*sizeM3,*sizeM4,*sizeM4a,*sizeM6,*sizeM9;
     int *sizeS1,*sizeS2,*sizeS4; 
-    int mglevel_max,*MGL;
+	int mglevel_max,*MGL;
 
-    // SMO
-    int veclength;
+	// SMO
+	int veclength;
     int C4_size,C4a_size,C6_size;
     int C1_2D_size,C2_2D_size,C4_2D_size;
     int M_size,M_2D_size;
@@ -216,7 +216,7 @@ public:
     int *flagfsf;
     int *mgcsl1,*mgcsl2,*mgcsl3,*mgcsl4,*mgcsl4a;
     int ***gcslorig1,***gcslorig2,***gcslorig3,***gcslorig4,***gcslorig4a;
-    int gcsldirsize1,gcsldirsize2,gcsldirsize3,gcsldirsize4,gcsldirsize4a;
+	int gcsldirsize1,gcsldirsize2,gcsldirsize3,gcsldirsize4,gcsldirsize4a;
     
     int slicenum,vec2Dlength;
     
@@ -227,14 +227,14 @@ public:
     int gcslin_count,gcslout_count;
     int gcslawa1_count,gcslawa2_count;
     int **gcbsl1,**gcbsl2,**gcbsl3,**gcbsl4,**gcbsl4a;
-    int **gcslin, **gcslout;
+	int **gcslin, **gcslout;
     int **gcslawa1, **gcslawa2;
-    double *gcdsl1,*gcdsl2,*gcdsl3,*gcdsl4,*gcdsl4a;
+	double *gcdsl1,*gcdsl2,*gcdsl3,*gcdsl4,*gcdsl4a;
 
     int gcsl_extra1,gcsl_extra2,gcsl_extra3,gcsl_extra4,gcsl_extra4a;
 
-    int **dgcsl1,**dgcsl2,**dgcsl3,**dgcsl4;
-    int dgcsl1_count,dgcsl2_count,dgcsl3_count,dgcsl4_count;
+	int **dgcsl1,**dgcsl2,**dgcsl3,**dgcsl4;
+	int dgcsl1_count,dgcsl2_count,dgcsl3_count,dgcsl4_count;
     
     int **ggcsl1,**ggcsl2,**ggcsl3,**ggcsl4,**ggcsl4a;
     int *ggcslmem1,*ggcslmem2,*ggcslmem3,*ggcslmem4,*ggcslmem4a;
@@ -242,15 +242,15 @@ public:
     int ggcslsize1,ggcslsize2,ggcslsize3,ggcslsize4,ggcslsize4a;
     
     // SLICE parallel
-    int** gcslpara1;
-    int** gcslpara2;
-    int** gcslpara3;
-    int** gcslpara4;
+	int** gcslpara1;
+	int** gcslpara2;
+	int** gcslpara3;
+	int** gcslpara4;
 
-    int** gcslparaco1;
-    int** gcslparaco2;
-    int** gcslparaco3;
-    int** gcslparaco4;
+	int** gcslparaco1;
+	int** gcslparaco2;
+	int** gcslparaco3;
+	int** gcslparaco4;
     
     
     // flow parameters
@@ -262,7 +262,7 @@ public:
     int A10;
     
     // SFLOW
-    int A209,A210,A211,A212,A214,A215,A216,A217,A218,A219,A220,A221,A230,A240,A241,A242,A243,A246,A248;
+	int A209,A210,A211,A212,A214,A215,A216,A217,A218,A219,A220,A221,A230,A240,A241,A242,A243,A246,A248;
     int A251,A260;
     double A261,A262;
     double A223,A247,A249,A244,A251_val;
@@ -314,23 +314,23 @@ public:
     double A592_x,A592_y,A592_z;
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
     
-    // boundary conditions
-    int B10,B11,B20,B23;
+	// boundary conditions
+	int B10,B11,B20,B23;
     int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;    
     int B60,B61,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
-    int B136,B138,B138_1,B138_2,B139;
+	int B136,B138,B138_1,B138_2,B139;
     int B180,B191,B192,B240,B241,B242,B243;
-    double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
-    double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
-    double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
-    double *B106_b,*B106_x,*B106_y;
+	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B87_1,B87_2,B88;
+	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
+	double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
+	double *B106_b,*B106_x,*B106_y;
     double *B107_xs,*B107_xe,*B107_ys, *B107_ye, *B107_d;
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
     int B110;
     double B110_zs,B110_ze;
-    double B111_zs,B111_ze;
+	double B111_zs,B111_ze;
     double B112_zs,B112_z2,B112_ze;
     int B115,B116,B125,B127;
     double B120,B122,B123,B125_y;
@@ -339,9 +339,9 @@ public:
     double B134,B135;
     int B160, B170;
     int B181,B182,B183;
-    double B181_1,B181_2,B181_3,B182_1,B182_2,B182_3,B183_1,B183_2,B183_3;
-    double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
-    double B194_s,B194_e;
+	double B181_1,B181_2,B181_3,B182_1,B182_2,B182_3,B183_1,B183_2,B183_3;
+	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
+	double B194_s,B194_e;
     
     int B411,B412,B413,B414,B415,B416,B417,B418,B421,B422;
     int *B411_ID;
@@ -372,7 +372,7 @@ public:
     int *B442_ID,*B442_face;
     double *B442_xm,*B442_ym,*B442_zm,*B442_r;
     
-    double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
+	double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
     double B260,B264,B267;
     int B269,B270;
     double *B270_xs, *B270_xe, *B270_ys, *B270_ye, *B270_zs, *B270_ze, *B270_n, *B270_d50, *B270_alpha, *B270_beta;
@@ -382,7 +382,7 @@ public:
     double *B281_xs, *B281_xe, *B281_ys, *B281_ye, *B281_zs, *B281_ze, *B281_n, *B281_d50, *B281_alpha, *B281_beta;
     int B282;
     double *B282_xs, *B282_xe, *B282_ys, *B282_ye, *B282_zs, *B282_ze, *B282_n, *B282_d50, *B282_alpha, *B282_beta;
-    int B291;
+	int B291;
     double *B291_xs, *B291_xe, *B291_ys, *B291_ye, *B291_zs, *B291_ze, *B291_d, *B291_n, *B291_d50, *B291_alpha, *B291_beta;
     int B295;
     int B307,B308,B310,B311;
@@ -393,28 +393,29 @@ public:
     double *B321_xs, *B321_xe, *B321_ys, *B321_ye, *B321_zs, *B321_ze, *B321_N, *B321_D, *B321_Cd;
     int B322;
     double *B322_xs, *B322_xe, *B322_ys, *B322_ye, *B322_zs, *B322_ze, *B322_N, *B322_D, *B322_Cd;
-    
+	
     // Concentration Options
-    double C1,C2,C3,C4,C5;
-    int C9,C10,C15,C20;
-    double C50_1,C50_2;
-    double C51,C52,C53,C54,C55,C56;
-    double C57_1,C57_2,C57_3,C57_4;
-    double C58_1,C58_2,C58_3,C58_4;
-    int C75;
-    double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
+	double C1,C2,C3,C4,C5;
+	int C9,C10,C15,C20;
+	double C50_1,C50_2;
+	double C51,C52,C53,C54,C55,C56;
+	double C57_1,C57_2,C57_3,C57_4;
+	double C58_1,C58_2,C58_3,C58_4;
+	int C75;
+	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
-    // discretization
-    int D10,D11,D20,D21,D30,D31,D33,D37;
+	// discretization
+	int D10,D11,D20,D21,D30,D31,D33,D37;
 
-    // Free Surface
-    int F10,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
-    double F33,F39,F42,F43,F45;
-    double F51,F52,F53,F54,F55,F56;
+	// Free Surface
+	int F10,F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
+	double F33,F39,F42,F43,F45;
+	double F51,F52,F53,F54,F55,F56;
     int F50_flag;
-    double F57_1,F57_2,F57_3,F57_4;
-    double F58_1,F58_2,F58_3,F58_4;
+	double F57_1,F57_2,F57_3,F57_4;
+	double F58_1,F58_2,F58_3,F58_4;
     double F59_xm, F59_ym, F59_zs, F59_ze, F59_r;
+<<<<<<< HEAD
     double F60,F61,F62,F63;
     int F64;
     int F70;
@@ -427,90 +428,116 @@ public:
     double F84;
     int F112;
     double F112_xs,F112_xe,F112_ys,F112_ye,F112_zs,F112_ze;
+=======
+	double F60,F61,F62,F63;
+	int F64;
+	int F70;
+	double *F70_xs, *F70_xe, *F70_ys, *F70_ye, *F70_zs, *F70_ze;
+	int F71;
+	double *F71_xs, *F71_xe, *F71_ys, *F71_ye, *F71_zs, *F71_ze;
+	int F72;
+	double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
+	int F80,F85;
+	double F84;
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     
     int F300,F305,F310,F350;
-    double F321,F322,F323,F360,F361,F362;
-    int F369,F370,F371,F374,F375,F378,F379;
+	double F321,F322,F323,F360,F361,F362;
+	int F369,F370,F371,F374,F375,F378,F379;
     double *F369_x,*F369_z,*F369_a,*F369_s,*F369_l,*F369_v;
-    double *F370_xs, *F370_xe, *F370_ys, *F370_ye, *F370_zs, *F370_ze;
-    double *F371_xs, *F371_xe, *F371_ys, *F371_ye, *F371_zs, *F371_ze;
-    double *F374_xc, *F374_zc, *F374_r;
+	double *F370_xs, *F370_xe, *F370_ys, *F370_ye, *F370_zs, *F370_ze;
+	double *F371_xs, *F371_xe, *F371_ys, *F371_ye, *F371_zs, *F371_ze;
+	double *F374_xc, *F374_zc, *F374_r;
     double *F375_xc, *F375_zc, *F375_r;
     double *F378_xc, *F378_yc,*F378_zc, *F378_r;
     double *F379_xc, *F379_yc,*F379_zc, *F379_r;
-    double F380,F381,F382;
-    int F390,F391,F394,F395,F398,F399;
-    double *F390_xs, *F390_xe, *F390_ys, *F390_ye, *F390_zs, *F390_ze;
-    double *F391_xs, *F391_xe, *F391_ys, *F391_ye, *F391_zs, *F391_ze;
+	double F380,F381,F382;
+	int F390,F391,F394,F395,F398,F399;
+	double *F390_xs, *F390_xe, *F390_ys, *F390_ye, *F390_zs, *F390_ze;
+	double *F391_xs, *F391_xe, *F391_ys, *F391_ye, *F391_zs, *F391_ze;
     double *F394_xc, *F394_zc, *F394_r;
     double *F395_xc, *F395_zc, *F395_r;
     double *F398_xc, *F398_yc,*F398_zc, *F398_r;
     double *F399_xc, *F399_yc,*F399_zc, *F399_r;
     
-    // Grid Options
+	// Grid Options
     int G1,G2;
-    int G10,G11,G12,G20,G21,G22,G30;
-    int G40;
+	int G10,G11,G12,G20,G21,G22,G30;
+	int G40;
 
-    // Heat Options
-    double H1,H2;
-    int H3,H4,H9,H10,H15;
-    double H4_beta1,H4_beta2,H50_1,H50_2;
-    double H51,H52,H53,H54,H55,H56;
-    double H57_1,H57_2,H57_3,H57_4;
-    double H58_1,H58_2,H58_3,H58_4;
+	// Heat Options
+	double H1,H2;
+	int H3,H4,H9,H10,H15;
+	double H4_beta1,H4_beta2,H50_1,H50_2;
+	double H51,H52,H53,H54,H55,H56;
+	double H57_1,H57_2,H57_3,H57_4;
+	double H58_1,H58_2,H58_3,H58_4;
     int H61,H62,H63,H64,H65,H66;
     double H61_T,H62_T,H63_T,H64_T,H65_T,H66_T;
-    
-    // Initialize Options
-    int I10,I11,I12,I13,I30,I40,I41,I44,I56;
-    double I21,I50,I55,I58_1,I58_2;
+	
+	// Initialize Options
+	int I10,I11,I12,I13,I30,I40,I41,I44,I56;
+	double I21,I50,I55,I58_1,I58_2;
     int I230;
     double I231,I232,I233;
     int I240;
     double I241;
 
-    // Numerical Options
-    int N10,N11,N18,N40,N45,N46,N48,N60;
+	// Numerical Options
+	int N10,N11,N18,N40,N45,N46,N48,N60;
     int N20,N22,N23,N24,N25,N26;
-    double N41,N43,N44,N47,N49,N50,N61;
+	double N41,N43,N44,N47,N49,N50,N61;
 
-    // MPI Options
-    int M10;
+	// MPI Options
+	int M10;
 
+<<<<<<< HEAD
     // Print options
     int P10,P11,P12,P15,P16,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
     int P61,P62,P63,P64,P65,P66,P67,P68,P69,P71,P72,P73,P74,P75,P76,P77,P78,P79,P80,P81,P82,P85,P88,P92,P101,P120,P121,P122,P123,P124,P125,P126;
     int P140,P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195,P351,P352;
     double P22,P30,P34,P42;
     double *P35_ts,*P35_te,*P35_dt;
+=======
+	// Print options
+	int P10,P11,P12,P15,P16,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
+	int P61,P62,P63,P64,P65,P66,P71,P72,P73,P74,P75,P76,P77,P78,P79,P80,P81,P82,P85,P88,P92,P101,P120,P121,P122,P123,P124,P125,P126;
+	int P140,P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195,P351,P352;
+	double P22,P30,P34,P42;
+	double *P35_ts,*P35_te,*P35_dt;
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     double P43_xs,P43_xe,P43_ys,P43_ye;
     int P46,P46_is,P46_ie;
     int P47,P47_ts,P47_te;
-    double *P50_x,*P50_y;
-    double *P51_x,*P51_y;
-    double *P52_y,*P56_x;
-    double P55;
+	double *P50_x,*P50_y;
+	double *P51_x,*P51_y;
+	double *P52_y,*P56_x;
+	double P55;
     double *P58_x,*P58_y,*P58_T;   
-    double *P61_x,*P61_y,*P61_z;
-    double *P62_xs,*P62_ys,*P62_zs,*P62_xe,*P62_ye,*P62_ze;
+	double *P61_x,*P61_y,*P61_z;
+	double *P62_xs,*P62_ys,*P62_zs,*P62_xe,*P62_ye,*P62_ze;
     double *P63_x,*P63_y;
     double *P64_x,*P64_y,*P64_z;
     double *P65_x,*P65_y,*P65_z;
     double *P66_x,*P66_y,*P66_z;
+<<<<<<< HEAD
     double *P67_x,*P67_y;
     double *P68_x,*P68_y;
     double *P69_x,*P69_y;
     double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
     double *P85_x,*P85_y,*P85_r,*P85_cd,*P85_cm;
+=======
+	double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
+	double *P85_x,*P85_y,*P85_r,*P85_cd,*P85_cm;
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     double *P88_x,*P88_y;
-    double P91;
-    double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
+	double P91;
+	double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
     int P110;
     double P111;
-    double *P121_x,*P121_y;
-    double *P123_y,*P124_x;
-    double *P125_x,*P125_y;
+	double *P121_x,*P121_y;
+	double *P123_y,*P124_x;
+	double *P125_x,*P125_y;
     int P131,P132,P133,P134;
     double *P133_y;
     double *P134_y;
@@ -518,7 +545,7 @@ public:
     double *P167_x;
     double P141;
     double *P168_x,*P168_zs,*P168_ze;
-    double P182;
+	double P182;
     int *P184_its,*P184_ite,*P184_dit;
     double *P185_ts,*P185_te,*P185_dt;
     double P192;
@@ -526,8 +553,8 @@ public:
     double *P195_ts,*P195_te,*P195_dt;
     int P230,P240;
     double *P230_x,*P240_x;
-    double *P351_x,*P351_y;
-    double *P352_x,*P352_y;
+	double *P351_x,*P351_y;
+	double *P352_x,*P352_y;
     
     // Particles
     int Q10;
@@ -573,22 +600,22 @@ public:
     int Q202;
     
 
-    // Sediment Transport
-    int S10,S11,S12,S15,S16,S17,S25,S27,S31,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S77,S78,S79,S80,S83,S84,S85,S90,S91,S100,S101;
-    double S13,S14,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
-    double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
+	// Sediment Transport
+	int S10,S11,S12,S15,S16,S17,S25,S27,S31,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S77,S78,S79,S80,S83,S84,S85,S90,S91,S100,S101;
+	double S13,S14,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
+	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
 
-    // Turbulence
-    int T10,T12,T21,T33,T36,T39,T41,T45;
-    double T31,T32,T35,T37,T38,T42,T43,T44;
+	// Turbulence
+	int T10,T12,T21,T33,T36,T39,T41,T45;
+	double T31,T32,T35,T37,T38,T42,T43,T44;
 
-    // Waterflow
-    double W1,W2,W3,W4,W5,W6,W7,W10,W_fb;
+	// Waterflow
+	double W1,W2,W3,W4,W5,W6,W7,W10,W_fb;
     int W11,W12,W13,W14,W15,W16;
     double W11_u,W11_v,W11_w,W12_u,W12_v,W12_w,W13_u,W13_v,W13_w,W14_u,W14_v,W14_w,W15_u,W15_v,W15_w,W16_u,W16_v,W16_w;
     double W20,W21,W22,W31,W29_x,W29_y,W29_z;
-    int W30;
+	int W30;
     int W41;
     double *W41_xc,*W41_yc,*W41_zs,*W41_ze,*W41_vel,*W41_beta;
     double W50;
@@ -613,17 +640,18 @@ public:
     double W112;
     
     // 6DOF
-    double ufb,vfb,wfb;
-    double pfb,qfb,rfb;
-    double ufbi,vfbi,wfbi;
-    double pfbi,qfbi,rfbi;
-    double xg,yg,zg;
-    double xgn,ygn,zgn;
-    double phi_fb,theta_fb,psi_fb;
-    double ufbmax, vfbmax, wfbmax;
-    //Eigen::Matrix3d quatRotMat;    
+	double ufb,vfb,wfb;
+	double pfb,qfb,rfb;
+	double ufbi,vfbi,wfbi;
+	double pfbi,qfbi,rfbi;
+	double xg,yg,zg;
+	double xgn,ygn,zgn;
+	double phi_fb,theta_fb,psi_fb;
+	double ufbmax, vfbmax, wfbmax;
+	//Eigen::Matrix3d quatRotMat;	
     int X10,X12,X14,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
     int X39,X40,X45,X46,X48,X49,X50,X60,X110,X120,X131,X132,X133;
+<<<<<<< HEAD
     int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
     int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
     int X20;
@@ -645,6 +673,26 @@ public:
     double X132_rad,X132_h,X132_xc,X132_yc,X132_zc;
     double X133_rad,X133_h,X133_xc,X133_yc,X133_zc;
     double X153_xs,X153_xe,X153_ys,X153_ye,X153_zs,X153_ze;
+=======
+	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
+	int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
+	double X21_d,X22_m;
+	double X23_x,X23_y,X23_z;
+	double X24_Ix,X24_Iy,X24_Iz;	
+	double X25_Cp,X25_Cq,X25_Cr;	
+    double X26_Cu,X26_Cv,X26_Cw;	
+	double X41,X42,X43,X44;
+	double X100_x,X100_y,X100_z;
+	double X101_phi, X101_theta, X101_psi;
+	double X102_u, X102_v, X102_w;
+	double X103_p, X103_q, X103_r;
+	double *X110_xs,*X110_xe,*X110_ys,*X110_ye,*X110_zs,*X110_ze;
+	double X120_rad,X120_xc,X120_yc,X120_zc;
+	double X131_rad,X131_h,X131_xc,X131_yc,X131_zc;
+	double X132_rad,X132_h,X132_xc,X132_yc,X132_zc;
+	double X133_rad,X133_h,X133_xc,X133_yc,X133_zc;
+	double X153_xs,X153_xe,X153_ys,X153_ye,X153_zs,X153_ze;
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     int X163;
     double *X163_x1,*X163_y1,*X163_z1;
     double *X163_x2,*X163_y2,*X163_z2;
@@ -670,8 +718,8 @@ public:
     int X205;
     int X206,X207;
     double X206_ts,X206_te,X207_ts,X207_te;
-    double X210_u,X210_v,X210_w;
-    double X211_p,X211_q,X211_r;
+	double X210_u,X210_v,X210_w;
+	double X211_p,X211_q,X211_r;
     int X240;
     double X241,X242_x,X242_y,X242_z,X243;
     double *X311_xs,*X311_xe,*X311_ys,*X311_ye,*X311_zs,*X311_ze;
@@ -679,7 +727,7 @@ public:
     double *X312_k,*X312_T0;
     double *X314_T, *X315_t;
     int *X320_type;
-    double *X321_Sn,*X321_d,*X321_lambda,*X321_dk,*X321_rho,*X321_nd,*X321_nl;
+	double *X321_Sn,*X321_d,*X321_lambda,*X321_dk,*X321_rho,*X321_nd,*X321_nl;
     double *X322_D,*X322_L,*X322_x0,*X322_y0,*X322_z0,*X322_phi,*X322_theta,*X322_psi;
     int X324;
     double X323_m,X323_d,X323_l;
@@ -693,97 +741,97 @@ public:
     int Z10,Z11,FSI_count;
     double *Z11_x,*Z11_y,*Z11_z,*Z11_l,*Z11_w,*Z11_t,*Z11_rho,*Z11_e,*Z11_ix,*Z11_iy,*Z11_iz,*Z11_nu,*Z11_n;
     double Z12_ckx,Z12_cky,Z12_ckz,Z12_cdx,Z12_cdy,Z12_cdz;
-    
-    // Grid
-    int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
+	
+	// Grid
+	int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
 
     // Test options
     int Y1,Y2,Y3,Y4,Y5;
 
-    // time + iterations
-    int inneriter,count,solveriter,preconiter,count_statestart;
+	// time + iterations
+	int inneriter,count,solveriter,preconiter,count_statestart;
     int solver_status;
     int sediter;
     double final_res;
-    double dt,dt_old,simtime,viscmax;
-    double mindt,maxdt;
-    double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
-    double presstime,veltime,reinitime,turbtime,plstime,itertime;
-    double sedsimtime,sedwavetime;
-    double wavecalctime;
-    double meantime,totaltime;
-    double gcmeantime,gctotaltime;
-    double Xmeantime,Xtotaltime;
-    double maxbed, minbed;
-    double susptime,maxtopovel;
-    double gctime, xtime;
-    double volume1,volume2,volume3;
-    double Qi,Qo;
-    double dtsed,sedtime,slidecells;
-    double bedmax,bedmin;
-    double field4time;
+	double dt,dt_old,simtime,viscmax;
+	double mindt,maxdt;
+	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
+	double presstime,veltime,reinitime,turbtime,plstime,itertime;
+	double sedsimtime,sedwavetime;
+	double wavecalctime;
+	double meantime,totaltime;
+	double gcmeantime,gctotaltime;
+	double Xmeantime,Xtotaltime;
+	double maxbed, minbed;
+	double susptime,maxtopovel;
+	double gctime, xtime;
+	double volume1,volume2,volume3;
+	double Qi,Qo;
+	double dtsed,sedtime,slidecells;
+	double bedmax,bedmin;
+	double field4time;
     double printtime, sedprinttime,fsfprinttime,probeprinttime,stateprinttime,exportprinttime;
     double partprinttime;
     double wavetime;
     double RK_alpha;
 
-    // solver watch
-    int uiter,viter,witer;
-    int kiniter,epsiter;
-    int poissoniter, laplaceiter;
-    int lsmiter;
-    int suspiter,topoiter;
-    int heatiter,concentrationiter;
-    int printcount, printcount_sixdof;
-    double utime,vtime,wtime;
+	// solver watch
+	int uiter,viter,witer;
+	int kiniter,epsiter;
+	int poissoniter, laplaceiter;
+	int lsmiter;
+	int suspiter,topoiter;
+	int heatiter,concentrationiter;
+	int printcount, printcount_sixdof;
+	double utime,vtime,wtime;
     double recontime,fsftime;
     double dftime;
-    double kintime,epstime;
-    double poissontime, laplacetime;
+	double kintime,epstime;
+	double poissontime, laplacetime;
     double sftime,fbtime,fsitime;
     double fbdt,fbmax;
     double sfdt,sfmax;
-    double lsmtime,heattime,concentrationtime;
-    double printouttime;
-    double phimean,phiout,phiin;
+	double lsmtime,heattime,concentrationtime;
+	double printouttime;
+	double phimean,phiout,phiin;
     double fsfin,fsfout;
     double fsfinval,fsfoutval;
-    double pcnorm,ucnorm,vcnorm,wcnorm;
+	double pcnorm,ucnorm,vcnorm,wcnorm;
     double alpha;
     double pressgage;
 
-    // maxcoor
-    double xcoormax,xcoormin,ycoormax,ycoormin,zcoormax,zcoormin;
-    double maxlength;
+	// maxcoor
+	double xcoormax,xcoormin,ycoormax,ycoormin,zcoormax,zcoormin;
+	double maxlength;
 
 
-    // wave coefficients
-    double wT,wV,wH,wA,wL,wd,ww,wk,wC;
-    double wHs,wAs,wwp,ww_s,ww_e,wTp;
-    int wN;
+	// wave coefficients
+	double wT,wV,wH,wA,wL,wd,ww,wk,wC;
+	double wHs,wAs,wwp,ww_s,ww_e,wTp;
+	int wN;
     double wts,wte;
     
     // free surface
     double psi,psi0;
-    int pressval;
+	int pressval;
 
 // Boundary
     //int **boundary;
     int **fgc;
 
-    static int knox,knoy,knoz;
-    static int margin;
+	static int knox,knoy,knoz;
+	static int margin;
 
-    static int xtp,ytp,ztp;
-    static int xmax,ymax,zmax;
+	static int xtp,ytp,ztp;
+	static int xmax,ymax,zmax;
 
 // PARALELL
     int mpirank;
-    int gcx_1range1[7],gcx_3range1[7];
-    int gcx_1range2[7],gcx_3range2[7];
-    int gcx_1range3[7],gcx_3range3[7];
-    int gcx_1range4[7],gcx_3range4[7];
-    
+	int gcx_1range1[7],gcx_3range1[7];
+	int gcx_1range2[7],gcx_3range2[7];
+	int gcx_1range3[7],gcx_3range3[7];
+	int gcx_1range4[7],gcx_3range4[7];
+	
 // Non-Uniform Mesh    
     double *XN,*YN,*ZN;
     double *XP,*YP,*ZP;
@@ -812,7 +860,7 @@ public:
     double *sigxx;
     
 private:
-    void clear(char&, int&);
+	void clear(char&, int&);
     
 };
 

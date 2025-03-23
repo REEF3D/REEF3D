@@ -35,7 +35,7 @@ void force::print_force(lexer* p, fdm *a, ghostcell *pgc)
     fout<<setprecision(9)<<p->simtime<<"\t";
     fout<<Fx<<" \t ";
     fout<<Fy<<" \t ";
-    fout<<Fz;
+	fout<<Fz;
     
 
     fout<<endl;
@@ -44,15 +44,15 @@ void force::print_force(lexer* p, fdm *a, ghostcell *pgc)
 void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
 {
     // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_CFD_Force",0777);
-    
+	if(p->mpirank==0)
+	mkdir("./REEF3D_CFD_Force",0777);
+	
     if(p->mpirank==0)
     {
     // open force surf file
-    sprintf(name,"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
-    
-    fout.open(name);
+	sprintf(name,"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
+	
+	fout.open(name);
 
     fout<<"x_start xend     y_start y_end     z_start z_end"<<endl;
 
@@ -64,7 +64,7 @@ void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
     
 
     fout<<endl;
-    }
+	}
 
     
 }

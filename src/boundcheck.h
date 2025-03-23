@@ -23,19 +23,19 @@ Author: Hans Bihs
 #ifndef BOUND_CHECK_H_
 #define BOUND_CHECK_H_
 
-#define ILOOP    for(i=0; i<p->knox; ++i)
-#define JLOOP    for(j=0; j<p->knoy; ++j)
-#define KLOOP     for(k=0; k<p->knoz; ++k)
+#define ILOOP	for(i=0; i<p->knox; ++i)
+#define JLOOP	for(j=0; j<p->knoy; ++j)
+#define KLOOP 	for(k=0; k<p->knoz; ++k)
 #define PCHECK  if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]>0)
 #define LOOP ILOOP JLOOP KLOOP PCHECK
 
 
-#define ISTARTCHECK    if(si>=0)
-#define IENDCHECK    if(si<p->knox)
-#define JSTARTCHECK    if(sj>=0)
-#define JENDCHECK    if(sj<p->knoy)
-#define KSTARTCHECK    if(sk>=0)
-#define KENDCHECK    if(sk<p->knoz)
+#define ISTARTCHECK	if(si>=0)
+#define IENDCHECK	if(si<p->knox)
+#define JSTARTCHECK	if(sj>=0)
+#define JENDCHECK	if(sj<p->knoy)
+#define KSTARTCHECK	if(sk>=0)
+#define KENDCHECK	if(sk<p->knoz)
 #define SOLIDCHECK  if(p->flag4[(si-p->imin)*p->jmax*p->kmax + (sj-p->jmin)*p->kmax + sk-p->kmin]!=OBJ_FLAG)
 #define BFBCHK ISTARTCHECK IENDCHECK JSTARTCHECK JENDCHECK KSTARTCHECK KENDCHECK SOLIDCHECK
 

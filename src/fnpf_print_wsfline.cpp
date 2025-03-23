@@ -31,22 +31,22 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 fnpf_print_wsfline::fnpf_print_wsfline(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{    
-    p->Iarray(jloc,p->P52);
+{	
+	p->Iarray(jloc,p->P52);
 
     maxknox=pgc->globalimax(p->knox);
     sumknox=pgc->globalisum(maxknox);
-    
+	
     p->Darray(xloc,p->P52+2,maxknox);
     p->Darray(wsf,p->P52+2,maxknox);
     p->Iarray(flag,p->P52+2,maxknox);
-    p->Iarray(wsfpoints,p->P52+2);
-    
+	p->Iarray(wsfpoints,p->P52+2);
+	
 
     p->Darray(xloc_all,p->P52+2,sumknox);
     p->Darray(wsf_all,p->P52+2,sumknox);
-    p->Iarray(flag_all,p->P52+2,sumknox);
-    p->Iarray(rowflag,sumknox);
+	p->Iarray(flag_all,p->P52+2,sumknox);
+	p->Iarray(rowflag,sumknox);
 
     for(q=0;q<p->P52;++q)
     for(n=0;n<maxknox;++n)
@@ -60,15 +60,15 @@ fnpf_print_wsfline::fnpf_print_wsfline(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
     xloc_all[q][n]=0.0;
     wsf_all[q][n]=0.0;
-    flag_all[q][n]=0;
-    rowflag[n]=0;
+	flag_all[q][n]=0;
+	rowflag[n]=0;
     }
 
     ini_location(p,c,pgc);
-    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_FNPF_WSFLINE",0777);
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_FNPF_WSFLINE",0777);
 }
 
 fnpf_print_wsfline::~fnpf_print_wsfline()
@@ -78,41 +78,41 @@ fnpf_print_wsfline::~fnpf_print_wsfline()
 
 void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, slice &f)
 {
-    
+	
     char name[250];
     double zval=0.0;
     int num,check;
-    
+	
     num = p->count;
 
     if(p->mpirank==0)
     {
-        // open file
-        sprintf(name,"./REEF3D_FNPF_WSFLINE/REEF3D-FNPF-wsfline-%06i.dat",num);
-        
-        wsfout.open(name);
+		// open file
+		sprintf(name,"./REEF3D_FNPF_WSFLINE/REEF3D-FNPF-wsfline-%06i.dat",num);
+		
+		wsfout.open(name);
 
-        wsfout<<"simtime:  "<<p->simtime<<endl;
-        wsfout<<"number of wsf-lines:  "<<p->P52<<endl<<endl;
-        wsfout<<"line_No     y_coord"<<endl;
-        for(q=0;q<p->P52;++q)
-        wsfout<<q+1<<"\t "<<p->P52_y[q]<<endl;
+		wsfout<<"simtime:  "<<p->simtime<<endl;
+		wsfout<<"number of wsf-lines:  "<<p->P52<<endl<<endl;
+		wsfout<<"line_No     y_coord"<<endl;
+		for(q=0;q<p->P52;++q)
+		wsfout<<q+1<<"\t "<<p->P52_y[q]<<endl;
 
-        if(p->P53==1)
-        wsfout<<q+1<<"\t "<<" Wave Theory "<<endl;
+		if(p->P53==1)
+		wsfout<<q+1<<"\t "<<" Wave Theory "<<endl;
 
-        wsfout<<endl<<endl;
+		wsfout<<endl<<endl;
 
-        
-        for(q=0;q<p->P52;++q)
-        {
-        wsfout<<"X "<<q+1;
-        wsfout<<"\t P "<<q+1<<" \t \t ";
-        if(p->P53==1)
-        wsfout<<"\t \t W "<<q+1;
-        }
+		
+		for(q=0;q<p->P52;++q)
+		{
+		wsfout<<"X "<<q+1;
+		wsfout<<"\t P "<<q+1<<" \t \t ";
+		if(p->P53==1)
+		wsfout<<"\t \t W "<<q+1;
+		}
 
-        wsfout<<endl<<endl;
+		wsfout<<endl<<endl;
     }
 
     //-------------------
@@ -136,71 +136,71 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
             xloc[q][i]=p->pos_x();
         }
     }
-    
-    for(q=0;q<p->P52;++q)
+	
+	for(q=0;q<p->P52;++q)
     wsfpoints[q]=sumknox;
-    
+	
     // gather
     for(q=0;q<p->P52;++q)
     {
     pgc->gather_double(xloc[q],maxknox,xloc_all[q],maxknox);
     pgc->gather_double(wsf[q],maxknox,wsf_all[q],maxknox);
-    pgc->gather_int(flag[q],maxknox,flag_all[q],maxknox);
+	pgc->gather_int(flag[q],maxknox,flag_all[q],maxknox);
 
-        
+		
         if(p->mpirank==0)
         {
         sort(xloc_all[q], wsf_all[q], flag_all[q], 0, wsfpoints[q]-1);
         remove_multientry(p,xloc_all[q], wsf_all[q], flag_all[q], wsfpoints[q]); 
         }
     }
-    
+	
     // write to file
     if(p->mpirank==0)
     {
-        for(n=0;n<sumknox;++n)
-        rowflag[n]=0;
+		for(n=0;n<sumknox;++n)
+		rowflag[n]=0;
+		
+		for(n=0;n<sumknox;++n)
+        {
+			check=0;
+		    for(q=0;q<p->P52;++q)
+			if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
+			check=1;
+			
+			if(check==1)
+			rowflag[n]=1;
+		}
         
+
         for(n=0;n<sumknox;++n)
         {
-            check=0;
-            for(q=0;q<p->P52;++q)
-            if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
-            check=1;
             
-            if(check==1)
-            rowflag[n]=1;
-        }
-        
+			check=0;
+		    for(q=0;q<p->P52;++q)
+			{
+				if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
+				{
 
-        for(n=0;n<sumknox;++n)
-        {
-            
-            check=0;
-            for(q=0;q<p->P52;++q)
-            {
-                if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
-                {
-
-                wsfout<<setprecision(12)<<xloc_all[q][n]<<" \t ";
-                wsfout<<setprecision(12)<<wsf_all[q][n]<<" \t  ";
-                
-                
-                    if(p->P53==1)
-                    wsfout<<pflow->wave_fsf(p,pgc,xloc_all[q][n])<<" \t  ";
-                    
-                check=1;
-                }
-                
-                if((flag_all[q][n]<0 || xloc_all[q][n]>=1.0e20) && rowflag[n]==1)
-                {
-                    wsfout<<setprecision(5)<<" \t ";
-                    wsfout<<setprecision(5)<<" \t ";
-                }
-            }
+				wsfout<<setprecision(12)<<xloc_all[q][n]<<" \t ";
+				wsfout<<setprecision(12)<<wsf_all[q][n]<<" \t  ";
+				
+				
+					if(p->P53==1)
+					wsfout<<pflow->wave_fsf(p,pgc,xloc_all[q][n])<<" \t  ";
+					
+				check=1;
+				}
+				
+				if((flag_all[q][n]<0 || xloc_all[q][n]>=1.0e20) && rowflag[n]==1)
+				{
+					wsfout<<setprecision(5)<<" \t ";
+					wsfout<<setprecision(5)<<" \t ";
+				}
+			}
 
             
-            if(check==1)
+			if(check==1)
             wsfout<<endl;
         }
         
@@ -251,15 +251,15 @@ void fnpf_print_wsfline::sort(double *a, double *b, int *c, int left, int right)
       if (l <= r) {
           double swap = a[l];
           double swapd = b[l];
-          int swapc = c[l];
+		  int swapc = c[l];
 
           a[l] = a[r];
           a[r] = swap;
 
           b[l] = b[r];
           b[r] = swapd;
-          
-          c[l] = c[r];
+		  
+		  c[l] = c[r];
           c[r] = swapc;
 
           l++;
@@ -280,11 +280,11 @@ void fnpf_print_wsfline::remove_multientry(lexer *p, double* b, double* c, int *
     int count=0;
 
     double *f,*g;
-    int *h;
-    
-    p->Darray(f,num);
-    p->Darray(g,num);
-    p->Iarray(h,num);
+	int *h;
+	
+	p->Darray(f,num);
+	p->Darray(g,num);
+	p->Iarray(h,num);
 
     for(n=0;n<num;++n)
     g[n]=-1.12e22;
@@ -299,7 +299,7 @@ void fnpf_print_wsfline::remove_multientry(lexer *p, double* b, double* c, int *
         {
         f[count]=b[n];
         g[count]=c[n];
-        h[count]=d[n];
+		h[count]=d[n];
         ++count;
         }
 
@@ -310,15 +310,15 @@ void fnpf_print_wsfline::remove_multientry(lexer *p, double* b, double* c, int *
     {
     b[n]=f[n];
     c[n]=g[n];
-    d[n]=h[n];
+	d[n]=h[n];
     }
 
     
     p->del_Darray(f,num);
-    p->del_Darray(g,num);
-    p->del_Iarray(h,num);
-    
-    num=count;
+	p->del_Darray(g,num);
+	p->del_Iarray(h,num);
+	
+	num=count;
 
 }
 

@@ -35,34 +35,34 @@ komega_bc::~komega_bc()
 
 void komega_bc::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 {
-    int q;
+	int q;
 
-    if(gcval==20)
-    {
-        QGC4LOOP
-        if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43)
-        wall_law_kin(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
+	if(gcval==20)
+	{
+		QGC4LOOP
+		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43)
+		wall_law_kin(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
         QGCDF4LOOP
-        wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
+		wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
         
         if(p->S10==2 || p->B269==1 || p->B269==2)
         vrans_wall_law_kin(p,a,kin,eps);
-    }
+	}
 
 // ----------------- 
-    if(gcval==30)
-    {
-        QGC4LOOP
-        if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43  || (p->gcb4[q][4]==3 && p->gcb4[q][3]==6))
-        wall_law_omega(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
+	if(gcval==30)
+	{
+		QGC4LOOP
+		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43  || (p->gcb4[q][4]==3 && p->gcb4[q][3]==6))
+		wall_law_omega(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
         QGCDF4LOOP
-        wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
+		wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
         
         if(p->S10==2 || p->B269==1 || p->B269==2)
         vrans_wall_law_omega(p,a,kin,eps);
-    }
+	}
 }
 
 void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
@@ -70,9 +70,9 @@ void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj
     double uvel,vvel,wvel;
     double zval;
     
-    i=ii;
-    j=jj;
-    k=kk;
+	i=ii;
+	j=jj;
+	k=kk;
     
     if(cs==1 || cs==4)
     dist = 0.5*p->DXN[IP];
@@ -83,7 +83,7 @@ void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj
     if(cs==5 || cs==6)
     dist = 0.5*p->DZN[KP];
     
-    ks=ks_val(p,a,ii,jj,kk,cs,bc);
+	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
         uvel=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
@@ -100,23 +100,23 @@ void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj
         
         u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 
-        if(30.0*dist<ks)
-        dist=ks/30.0;
-        
+		if(30.0*dist<ks)
+		dist=ks/30.0;
+		
         uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
 
-    tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
-    
-    a->M.p[id] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;
-    a->rhsvec.V[id] += (tau*u_abs)/dist;
+	tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+	
+	a->M.p[id] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;
+	a->rhsvec.V[id] += (tau*u_abs)/dist;
 }
 
 void komega_bc::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs, int bc, int id, double dist)
 {    
     i=ii;
-    j=jj;
-    k=kk;
-    
+	j=jj;
+	k=kk;
+	
     if(cs==1 || cs==4)
     dist = 0.5*p->DXN[IP];
     
@@ -126,7 +126,7 @@ void komega_bc::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
     if(cs==5 || cs==6)
     dist = 0.5*p->DZN[KP];
 
-    eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
+	eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
     
     a->M.p[id] += 1.0e20;
     a->rhsvec.V[id] += eps_star*1.0e20;

@@ -31,8 +31,8 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 nhflow_print_runup_max_gage_x::nhflow_print_runup_max_gage_x(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{    
-    p->Iarray(jloc,p->P134);
+{	
+	p->Iarray(jloc,p->P134);
 
     p->Darray(xloc,p->P134+1);
     p->Darray(yloc,p->P134+1);
@@ -43,10 +43,10 @@ nhflow_print_runup_max_gage_x::nhflow_print_runup_max_gage_x(lexer *p, fdm_nhf *
 
 
     ini_location(p,d,pgc);
-    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_NHFLOW_RUNUP",0777);
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_NHFLOW_RUNUP",0777);
     
     
 
@@ -79,27 +79,27 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     //-------------------
     if(p->mpirank==0)
     {
-        // open file
-        sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-max-x.dat");
-        
-        wsfout.open(name);
+		// open file
+		sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-max-x.dat");
+		
+		wsfout.open(name);
 
-        wsfout<<"number of runup-max-probes:  "<<p->P134<<endl<<endl;
-        wsfout<<"line_No     y_coord"<<endl;
-        for(q=0;q<p->P134;++q)
-        wsfout<<q+1<<"\t "<<p->P134_y[q]<<endl;
+		wsfout<<"number of runup-max-probes:  "<<p->P134<<endl<<endl;
+		wsfout<<"line_No     y_coord"<<endl;
+		for(q=0;q<p->P134;++q)
+		wsfout<<q+1<<"\t "<<p->P134_y[q]<<endl;
 
 
-        wsfout<<endl<<endl;
+		wsfout<<endl<<endl;
 
-        
-        for(q=0;q<p->P134;++q)
-        {
-        wsfout<<"X "<<q+1;
-        wsfout<<"\t P "<<q+1<<" \t \t ";
-        }
+		
+		for(q=0;q<p->P134;++q)
+		{
+		wsfout<<"X "<<q+1;
+		wsfout<<"\t P "<<q+1<<" \t \t ";
+		}
 
-        wsfout<<endl<<endl;
+		wsfout<<endl<<endl;
     }
     
 
@@ -119,8 +119,8 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
             }
         }
     }
-    
-    
+	
+	
     // gather
     for(q=0;q<p->P134;++q)
     {
@@ -146,7 +146,7 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     }
     
     
-    
+	
     // write to file
     if(p->mpirank==0)
     {

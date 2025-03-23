@@ -46,37 +46,37 @@ Author: Hans Bihs
 void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     // Open File
-    filename(p,a,pgc,p->I41);
-    
-    
-    ifstream result;
-    result.open(name, ios::binary);
-    
+	filename(p,a,pgc,p->I41);
+	
+	
+	ifstream result;
+	result.open(name, ios::binary);
+	
     result.read((char*)&iin, sizeof (int));
-    p->count=p->count_statestart=iin;
-    
+	p->count=p->count_statestart=iin;
+	
     result.read((char*)&iin, sizeof (int));
-    p->printcount=iin-1;
+	p->printcount=iin-1;
     
     p->printcount = MAX(p->printcount,0);
+	
+    result.read((char*)&ddn, sizeof (double));
+	p->simtime=ddn;
     
     result.read((char*)&ddn, sizeof (double));
-    p->simtime=ddn;
+	p->printtime=ddn;
     
     result.read((char*)&ddn, sizeof (double));
-    p->printtime=ddn;
+	p->sedprinttime=ddn;
     
     result.read((char*)&ddn, sizeof (double));
-    p->sedprinttime=ddn;
+	p->fsfprinttime=ddn;
     
     result.read((char*)&ddn, sizeof (double));
-    p->fsfprinttime=ddn;
+	p->probeprinttime=ddn;
     
     result.read((char*)&ddn, sizeof (double));
-    p->probeprinttime=ddn;
-    
-    result.read((char*)&ddn, sizeof (double));
-    p->stateprinttime=ddn;
+	p->stateprinttime=ddn;
     
     
     ALOOP
@@ -93,102 +93,102 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
     result.read((char*)&ffn, sizeof (float));
     a->u(i,j,k)=double(ffn);
     }
-    
-    VLOOP
+	
+	VLOOP
     {
     result.read((char*)&ffn, sizeof (float));
     a->v(i,j,k)=double(ffn);
     }
-    
-    WLOOP
+	
+	WLOOP
     {
     result.read((char*)&ffn, sizeof (float));
     a->w(i,j,k)=double(ffn);
     }
-    
-    LOOP
+	
+	LOOP
     {
     result.read((char*)&ffn, sizeof (float));
     a->press(i,j,k)=double(ffn);
     }
-    
-    LOOP
+	
+	LOOP
     {
     result.read((char*)&ffn, sizeof (float));
     a->phi(i,j,k)=double(ffn);
     }
-    
-    LOOP
+	
+	LOOP
     {
     result.read((char*)&ffn, sizeof (float));
     pturb->kinget(i,j,k,ffn);
     }
-    
-    LOOP
+	
+	LOOP
     {
     result.read((char*)&ffn, sizeof (float));
     pturb->epsget(i,j,k,ffn);
     }
-    
-    LOOP
+	
+	LOOP
     {
     result.read((char*)&ffn, sizeof (float));
     a->eddyv(i,j,k)=double(ffn);
     }
-    
-    SLICELOOP4
+	
+	SLICELOOP4
     {
     result.read((char*)&ffn, sizeof (float));
     psed->qbeget(i,j,double(ffn));
     }
-    
-    LOOP
+	
+	LOOP
     {
     result.read((char*)&ffn, sizeof (float));
     a->conc(i,j,k)=double(ffn);
     }
-    
-    int gcval_press, gcval_phi, gcval_topo;
-    
+	
+	int gcval_press, gcval_phi, gcval_topo;
+	
     gcval_press=40;  
-    
-    if(p->F50==1)
-    gcval_phi=51;
+	
+	if(p->F50==1)
+	gcval_phi=51;
 
-    if(p->F50==2)
-    gcval_phi=52;
+	if(p->F50==2)
+	gcval_phi=52;
 
-    if(p->F50==3)
-    gcval_phi=53;
+	if(p->F50==3)
+	gcval_phi=53;
 
-    if(p->F50==4)
-    gcval_phi=54;
-    
-    
-    if(p->S50==1)
-    gcval_topo=151;
+	if(p->F50==4)
+	gcval_phi=54;
+	
+	
+	if(p->S50==1)
+	gcval_topo=151;
 
-    if(p->S50==2)
-    gcval_topo=152;
+	if(p->S50==2)
+	gcval_topo=152;
 
-    if(p->S50==3)
-    gcval_topo=153;
-    
-    if(p->S50==4)
-    gcval_topo=154;
-    
-    
-    pgc->start1(p,a->u,10);
-    pgc->start2(p,a->v,11);
-    pgc->start3(p,a->w,12);
+	if(p->S50==3)
+	gcval_topo=153;
+	
+	if(p->S50==4)
+	gcval_topo=154;
+	
+	
+	pgc->start1(p,a->u,10);
+	pgc->start2(p,a->v,11);
+	pgc->start3(p,a->w,12);
     pgc->start4(p,a->press,gcval_press);
-    pgc->start4(p,a->phi,gcval_phi);
-    pturb->gcupdate(p,a,pgc);
-    pgc->start4(p,a->eddyv,24);
-    pgc->start4a(p,a->topo,gcval_topo);
-    pgc->start4(p,a->conc,40);
-    
-    result.close();
+	pgc->start4(p,a->phi,gcval_phi);
+	pturb->gcupdate(p,a,pgc);
+	pgc->start4(p,a->eddyv,24);
+	pgc->start4a(p,a->topo,gcval_topo);
+	pgc->start4(p,a->conc,40);
+	
+	result.close();
 }
 
 

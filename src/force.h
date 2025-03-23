@@ -39,35 +39,35 @@ class force :  public increment
 {
 
 public:
-    force(lexer*,fdm*,ghostcell*,int);
-    virtual ~force();
-    virtual void start(lexer*,fdm*,ghostcell*);
+	force(lexer*,fdm*,ghostcell*,int);
+	virtual ~force();
+	virtual void start(lexer*,fdm*,ghostcell*);
     virtual void ini(lexer*,fdm*,ghostcell*);
 
 private:
-    void triangulation(lexer*, fdm*, ghostcell*, field&);
-    void reconstruct(lexer*, fdm*, field&);
-    void addpoint(lexer*,fdm*,int,int);
-    void finalize(lexer*,fdm*);
-    
-    int **tri, **facet, *confac, *numfac,*numpt;
-    double **ccpt, **pt, *ls;
-    double   dV1,dV2,C1,C2,mi;
-    int numtri,numvert, numtri_mem, numvert_mem;
-    int count,countM,n,nn,q;
-    int ccptcount,facount,check;
-    int polygon_sum,polygon_num,vertice_num;
-    const double zero,interfac;
+	void triangulation(lexer*, fdm*, ghostcell*, field&);
+	void reconstruct(lexer*, fdm*, field&);
+	void addpoint(lexer*,fdm*,int,int);
+	void finalize(lexer*,fdm*);
+	
+	int **tri, **facet, *confac, *numfac,*numpt;
+	double **ccpt, **pt, *ls;
+	double   dV1,dV2,C1,C2,mi;
+	int numtri,numvert, numtri_mem, numvert_mem;
+	int count,countM,n,nn,q;
+	int ccptcount,facount,check;
+	int polygon_sum,polygon_num,vertice_num;
+	const double zero,interfac;
     double epsi;
-    
+	
 
-    fieldint5 vertice, nodeflag;
+	fieldint5 vertice, nodeflag;
     field5 eta;
-    
-    
+	
+	
     void force_calc(lexer*,fdm*,ghostcell*);
     
-    void print_force(lexer*,fdm*,ghostcell*);
+	void print_force(lexer*,fdm*,ghostcell*);
     void print_ini(lexer*,fdm*,ghostcell*);
     void print_vtp(lexer*,fdm*,ghostcell*);
     void pvtp(lexer*,fdm*,ghostcell*);
@@ -81,7 +81,7 @@ private:
     float ffn;
     int gcval_phi;
     double printtime,printtime2;
-    int forceprintcount;
+	int forceprintcount;
     int gcval_press;
     
     // force
@@ -100,9 +100,9 @@ private:
     
     double xs,xe,ys,ye,zs,ze;
     double xm,ym,zm;
-    int is,ie,js,je,ks,ke;
+	int is,ie,js,je,ks,ke;
     const int ID;
-    
+	
 
 };
 

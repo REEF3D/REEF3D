@@ -44,9 +44,9 @@ Author: Hans Bihs
 void driver::log_ini()
 {
 
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_Log",0777);
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_Log",0777);
 
     if(p->mpirank==0)
     {
@@ -78,36 +78,36 @@ void driver::log_ini()
 
 void driver::mainlog(lexer *p)
 {
-     if(p->count%p->P12==0)
-     {
+	 if(p->count%p->P12==0)
+	 {
      mainlogout<<fixed<<p->count<<" \t "<<setprecision(5)<<p->dt<<" \t "<<setprecision(5)<<p->simtime<<" \t ";
-     mainlogout<<fixed<<setprecision(4)<<p->itertime<<" \t ";
-     mainlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
+	 mainlogout<<fixed<<setprecision(4)<<p->itertime<<" \t ";
+	 mainlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
      mainlogout<<fixed<<setprecision(4)<<p->volume1<<" \t "<<setprecision(4)<<p->volume2<<" \t ";
      mainlogout<<fixed<<setprecision(6)<<p->Qi<<" \t "<<setprecision(6)<<p->Qo<<" \t ";
-     mainlogout<<fixed<<setprecision(4)<<p->Ui<<" \t "<<setprecision(6)<<p->phimean<<" \t "<<setprecision(6)<<p->phiout;
-     mainlogout<<endl;
-     }
+	 mainlogout<<fixed<<setprecision(4)<<p->Ui<<" \t "<<setprecision(6)<<p->phimean<<" \t "<<setprecision(6)<<p->phiout;
+	 mainlogout<<endl;
+	 }
 }
 
 void driver::maxlog(lexer *p)
 {
-     if(p->count%p->P12==0)
-     {
+	 if(p->count%p->P12==0)
+	 {
      maxlogout<<p->count<<"\t \t"<<p->umax<<" \t "<<setprecision(4)<<p->vmax<<" \t "<<setprecision(4)<<p->wmax<<" \t ";
      maxlogout<<setprecision(4)<<p->viscmax<<" \t "<<setprecision(4)<<p->kinmax<<" \t "<<setprecision(4)<<p->epsmax<<" \t ";
      maxlogout<<setprecision(4)<<p->pressmax<<endl;
-     }
+	 }
 }
 
 void driver::solverlog(lexer* p)
 {
-     if(p->count%p->P12==0)
-     {
+	 if(p->count%p->P12==0)
+	 {
      solvlogout<<p->count<<"\t \t";
-     solvlogout<<setprecision(4)<<p->itertime<<" \t ";
-     solvlogout<<setprecision(4)<<p->totaltime<<" \t ";
-     solvlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
+	 solvlogout<<setprecision(4)<<p->itertime<<" \t ";
+	 solvlogout<<setprecision(4)<<p->totaltime<<" \t ";
+	 solvlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
      solvlogout<<p->uiter<<" \t "<<setprecision(4)<<p->utime<<" \t ";
      solvlogout<<p->viter<<" \t "<<setprecision(4)<<p->vtime<<" \t ";
      solvlogout<<p->witer<<" \t "<<setprecision(4)<<p->wtime<<" \t ";
@@ -117,7 +117,7 @@ void driver::solverlog(lexer* p)
      
      solvlogout<<p->lsmiter<<" \t "<<setprecision(4)<<p->lsmtime<<" \t ";
      solvlogout<<p->F44<<" \t "<<setprecision(4)<<p->reinitime<<" \t "<<endl;
-     }
+	 }
 }
 
 

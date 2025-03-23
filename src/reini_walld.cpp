@@ -31,7 +31,7 @@ Author: Hans Bihs
 
 reini_walld::reini_walld(lexer* p, fdm *a):gradient(p),dab(p)
 {
-    prdisc = new reinidisc_f(p);
+	prdisc = new reinidisc_f(p);
 }
 
 reini_walld::~reini_walld()
@@ -40,12 +40,12 @@ reini_walld::~reini_walld()
 
 void reini_walld::start(fdm* a,lexer* p, field &f, ghostcell* pgc,ioflow* pflow)
 {
-    starttime=pgc->timer();
+	starttime=pgc->timer();
 
-    pgc->start4(p,f,50);
+	pgc->start4(p,f,50);
     
     int qq;
-    QQGC4LOOP
+	QQGC4LOOP
     if(p->gcb4[qq][4]==5|| p->gcb4[qq][4]==21|| p->gcb4[qq][4]==22)
     {
         i=p->gcb4[qq][0];
@@ -160,26 +160,26 @@ void reini_walld::start(fdm* a,lexer* p, field &f, ghostcell* pgc,ioflow* pflow)
     
     reiniter = pgc->globalimax(reiniter);
   
-    pgc->gcparax(p,f,4);
+	pgc->gcparax(p,f,4);
    
-    for(int q=0;q<reiniter;++q)
-    {
+	for(int q=0;q<reiniter;++q)
+	{
 
-        prdisc->start(p,a,pgc,f,a->L,4);
+		prdisc->start(p,a,pgc,f,a->L,4);
 
-        if(q==0)
-        LOOP
-        dab.V[IJK]=a->L.V[IJK];
+		if(q==0)
+		LOOP
+		dab.V[IJK]=a->L.V[IJK];
 
 
-        LOOP
-        {
-        f.V[IJK] += dt*0.5*(3.0*a->L.V[IJK] - dab.V[IJK]);
+		LOOP
+		{
+		f.V[IJK] += dt*0.5*(3.0*a->L.V[IJK] - dab.V[IJK]);
 
-        dab.V[IJK]=a->L.V[IJK];
-        }
+		dab.V[IJK]=a->L.V[IJK];
+		}
         
-    QQGC4LOOP
+	QQGC4LOOP
     if(p->gcb4[qq][4]==5|| p->gcb4[qq][4]==21|| p->gcb4[qq][4]==22)
     {
     i=p->gcb4[qq][0];
@@ -195,17 +195,17 @@ void reini_walld::start(fdm* a,lexer* p, field &f, ghostcell* pgc,ioflow* pflow)
         
         if(p->gcb4[qq][3]==5 || p->gcb4[qq][3]==6)
         f.V[IJK] = 0.5*p->DZN[KP];  
-    }
-    
-    pgc->gcparax(p,f,4);
-    }
+	}
+	
+	pgc->gcparax(p,f,4);
+	}
 
 }
 
 
 void reini_walld::step(fdm* a, lexer *p)
 {
-    
+	
 
 }
 

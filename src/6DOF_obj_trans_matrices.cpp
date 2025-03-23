@@ -31,8 +31,8 @@ void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen
     dp_ = Ffb_; 
     dc_ = pp_/Mass_fb;
 
-    // External motions
-    pmotion->motionext_trans(p,pgc,dp_,dc_);
+	// External motions
+	pmotion->motionext_trans(p,pgc,dp_,dc_);
 } 
 
 void sixdof_obj::get_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector4d& de_, Eigen::Vector3d& h_, Eigen::Vector4d& e_)

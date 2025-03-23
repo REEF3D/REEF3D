@@ -41,7 +41,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     
     n=0;
     LOOP
-    {
+	{
         if(p->wet[IJ]==1)
         {
             visc = d->VISC[IJK] + d->EV[IJK];
@@ -72,9 +72,9 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             
             
             d->rhsvec.V[n] =  visc*((UH[Ip1Jp1K]-UH[Ip1Jm1K]) - (UH[Im1Jp1K]-UH[Im1Jm1K]))/((p->DYN[JP]+p->DYN[JM1])*(p->DXP[IP]+p->DXP[IM1]))
-                         +  visc*((WH[IJp1Kp1]-WH[IJm1Kp1]) - (WH[IJp1Km1]-WH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1])*p->sigz[IJ])
+						 +  visc*((WH[IJp1Kp1]-WH[IJm1Kp1]) - (WH[IJp1Km1]-WH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1])*p->sigz[IJ])
 
-                         + (CPORNH*VHin[IJK])/(alpha*p->dt)
+						 + (CPORNH*VHin[IJK])/(alpha*p->dt)
                             
                             + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(VH[Ip1JKp1] - VH[Im1JKp1] - VH[Ip1JKm1] + VH[Im1JKm1])
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
@@ -99,14 +99,14 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
         
         d->rhsvec.V[n] =  0.0;
         }
-    
-    ++n;
-    }
+	
+	++n;
+	}
     
     
     n=0;
-    LOOP
-    {
+	LOOP
+	{
         if(p->wet[IJ]==1)
         {
             if(p->flag4[Im1JK]<0)
@@ -145,17 +145,17 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             d->M.t[n] = 0.0;
             }
         }
-    ++n;
-    }
-    
+	++n;
+	}
+	
     psolv->startV(p,pgc,VHdiff,d->rhsvec,d->M,4);
     
-    
+	
     pgc->start4V(p,VHdiff,gcval_vh);
     
     
-    time=pgc->timer()-starttime;
-    p->viter=p->solveriter;
-    if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-    cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(4)<<time<<endl;
+	time=pgc->timer()-starttime;
+	p->viter=p->solveriter;
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
+	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(4)<<time<<endl;
 }

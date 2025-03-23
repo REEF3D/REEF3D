@@ -31,21 +31,21 @@ Author: Hans Bihs
 bedshear_probe::bedshear_probe(lexer *p, ghostcell *pgc)
 {
     p->Iarray(iloc,p->P125);
-    p->Iarray(jloc,p->P125);
-    p->Iarray(flag,p->P125);
-    p->Darray(bsg,p->P125);
-    
-    // Create Folder
-    if(p->mpirank==0)
+	p->Iarray(jloc,p->P125);
+	p->Iarray(flag,p->P125);
+	p->Darray(bsg,p->P125);
+	
+	// Create Folder
+	if(p->mpirank==0)
     {
         char folder[40];
         if(p->A10==5)
             snprintf(folder,sizeof(folder),"./REEF3D_NHFLOW_Sediment");
         else
             snprintf(folder,sizeof(folder),"./REEF3D_CFD_Sediment");
-        mkdir(folder,0777);
+	    mkdir(folder,0777);
     }
-    
+	
     if(p->mpirank==0 && p->P125>0)
     {
     // open file
@@ -54,7 +54,7 @@ bedshear_probe::bedshear_probe(lexer *p, ghostcell *pgc)
             snprintf(file,sizeof(file),"./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear.dat");
         else
             snprintf(file,sizeof(file),"./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear.dat");
-        bsgout.open(file);
+	    bsgout.open(file);
 
     bsgout<<"number of gauges:  "<<p->P125<<endl<<endl;
     bsgout<<"x_coord     y_coord"<<endl;
@@ -69,7 +69,7 @@ bedshear_probe::bedshear_probe(lexer *p, ghostcell *pgc)
 
     bsgout<<endl<<endl;
     }
-    
+	
 
     ini_location(p,pgc);
 }
@@ -84,7 +84,7 @@ void bedshear_probe::bedshear_gauge(lexer *p, ghostcell *pgc, sediment *psed)
     for(n=0;n<p->P125;++n)
         bsg[n]=-1.0e20;
 
-    
+	
     for(n=0;n<p->P125;++n)
         if(flag[n]>0)
         {
@@ -93,8 +93,8 @@ void bedshear_probe::bedshear_gauge(lexer *p, ghostcell *pgc, sediment *psed)
             j=jloc[n];
             bsg[n] = psed->bedshear_point(p,pgc);
         }
-    
-    for(n=0;n<p->P125;++n)
+	
+	for(n=0;n<p->P125;++n)
         bsg[n]=pgc->globalmax(bsg[n]);
 
     // write to file
@@ -123,7 +123,7 @@ void bedshear_probe::ini_location(lexer *p, ghostcell *pgc)
 
     check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
-    
+	
     if(check==1)
     flag[n]=1;
     }

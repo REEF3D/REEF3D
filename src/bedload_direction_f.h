@@ -35,7 +35,7 @@ public:
     bedload_direction_f(lexer*);
     virtual ~bedload_direction_f();
 
-    void start(lexer*, ghostcell*, sediment_fdm*);
+	void start(lexer*, ghostcell*, sediment_fdm*);
 
 private:
     double beta;

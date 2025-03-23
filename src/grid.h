@@ -33,8 +33,8 @@ class grid :  public increment
 {
 public:
 
-    grid (lexer *);
-    virtual ~grid();
+	grid (lexer *);
+	virtual ~grid();
     
     // gcb
     void fillgcb1(lexer*);
@@ -53,11 +53,11 @@ public:
     int imin,imax,jmax,jmin,kmin,kmax;
     
 private:
-    int di,dj,dk;
-    int qn;
+	int di,dj,dk;
+	int qn;
     
     int *hgc;
-    
+	
 };
 
 #endif

@@ -30,12 +30,12 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc)
-{    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_SFLOW_STATE",0777);
-    
-    printcount=0;
+{	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_SFLOW_STATE",0777);
+	
+	printcount=0;
     
     file_version=2;
     
@@ -178,8 +178,8 @@ sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->P45==2)
     {
     filename_continuous(p,b,pgc);
-     
-    result.open(name, ios::binary);
+	 
+	result.open(name, ios::binary);
     }
     
 

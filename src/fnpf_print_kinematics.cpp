@@ -32,8 +32,8 @@ Author: Hans Bihs
 fnpf_print_kinematics::fnpf_print_kinematics(lexer* p, fdm_fnpf *c, ghostcell *pgc, int qn) : ID(qn)
 {
     // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_FNPF_Kinematics",0777);
+	if(p->mpirank==0)
+	mkdir("./REEF3D_FNPF_Kinematics",0777);
 }
 
 fnpf_print_kinematics::~fnpf_print_kinematics()
@@ -45,27 +45,27 @@ void fnpf_print_kinematics::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     fnpf_print_kinematicsprintcount=0;
     
     // Ini processor boundaries
-    xstart = p->originx;
-    ystart = p->originy;
-    xend = p->endx;
-    yend = p->endy;
+	xstart = p->originx;
+	ystart = p->originy;
+	xend = p->endx;
+	yend = p->endy;
 
     // Read cylinder force input - xc,yc,rc,cd,cm
     xc = p->P88_x[ID];
-    yc = p->P88_y[ID];
+	yc = p->P88_y[ID];
 
     // Open files
     if (xc >= xstart && xc < xend && yc >= ystart && yc < yend) 
     print_ini(p,c,pgc);
 
     // Ini arrays
-    p->Darray(un, p->knoz+1);
-    p->Darray(vn, p->knoz+1);
+	p->Darray(un, p->knoz+1);
+	p->Darray(vn, p->knoz+1);
     p->Darray(ax, p->knoz+1);
-    p->Darray(ay, p->knoz+1);
+	p->Darray(ay, p->knoz+1);
 
     // Ini eta
-    etan=p->wd;
+	etan=p->wd;
 }
 
 void fnpf_print_kinematics::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)

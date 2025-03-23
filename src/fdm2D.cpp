@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 
 fdm2D::fdm2D(lexer *p)
-            :eta(p),eta_n(p),
+			:eta(p),eta_n(p),
             P(p),Pn(p),Q(p),Qn(p),
             F(p),G(p),L(p),
             ws(p),
@@ -33,29 +33,29 @@ fdm2D::fdm2D(lexer *p)
             bed(p),bed0(p),depth(p),
             solidbed(p),topobed(p),
             bednode(p),
-             hx(p),hy(p),hp(p),
-             xvec(p),rhsvec(p),M(p),
+			 hx(p),hy(p),hp(p),
+			 xvec(p),rhsvec(p),M(p),
             dpx(p),dpy(p),test(p),Hs(p),fs(p),
             fx(p),fy(p),fz(p),
             breaking(p),breaking_print(p),
             wet1(p),wet2(p),
-             nodeval(p),
-             cmu(0.09),
+			 nodeval(p),
+			 cmu(0.09),
             ks(p)
 {
 
-    inverse=1.0/p->DXM;
+	inverse=1.0/p->DXM;
 
-    maxF=0.0;
-    maxG=0.0; 
-    maxK=0.0;
-    maxE=0.0;
+	maxF=0.0;
+	maxG=0.0; 
+	maxK=0.0;
+	maxE=0.0;
 
-    sigT=0.9;
+	sigT=0.9;
 
-    gi=p->W20;
-    gj=p->W21;
-    gk=p->W22;
+	gi=p->W20;
+	gj=p->W21;
+	gk=p->W22;
 
 
 }

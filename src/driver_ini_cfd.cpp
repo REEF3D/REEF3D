@@ -67,7 +67,7 @@ void driver::driver_ini_cfd()
     if(p->Z10>0)
     pfsi->initialize(p,a,pgc,pturb);
     
-    // Solid
+	// Solid
     if(p->solidread==1)
     {
     solid solid_object(p,a,pgc);
@@ -91,7 +91,7 @@ void driver::driver_ini_cfd()
     pgc->solid_forcing_ini(p,a);
     
     // Sediment
-    if(p->S10>0)
+	if(p->S10>0)
     {
         if(p->Q10==2)
             psed->ini_cfd(p,a,pgc);
@@ -126,28 +126,28 @@ void driver::driver_ini_cfd()
     pflow->ini(p,a,pgc);
 
     
-    starttime=pgc->timer();
+	starttime=pgc->timer();
     if(p->B60>0 || p->T36==2)
-    pgc->walldistance(p,a,pgc,pconvec,preini,pflow,a->walld);
-    
-    pflow->inflow_walldist(p,a,pgc,pconvec,preini,pflow);
-    
-    double walltime=pgc->timer()-starttime;
-    
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"Walldist time: "<<setprecision(4)<<walltime<<endl;
-    
-    pdata->start(p,a,pgc);
+	pgc->walldistance(p,a,pgc,pconvec,preini,pflow,a->walld);
+	
+	pflow->inflow_walldist(p,a,pgc,pconvec,preini,pflow);
+	
+	double walltime=pgc->timer()-starttime;
+	
+	if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"Walldist time: "<<setprecision(4)<<walltime<<endl;
+	
+	pdata->start(p,a,pgc);
     
 
     pheat->heat_ini(p,a,pgc,pheat);
     pmp->ini(p,a,pgc,pflow,pprint,pconvec,psolv);
-    pconc->ini(p,a,pgc,pconc);
+	pconc->ini(p,a,pgc,pconc);
 
     ptstep->ini(a,p,pgc);
     pini->iniphi_io(a,p,pgc);
-    pflow->gcio_update(p,a,pgc);
-    pflow->pressure_io(p,a,pgc);
+	pflow->gcio_update(p,a,pgc);
+	pflow->pressure_io(p,a,pgc);
     if (p->F80>0)
     pflow->vof_relax(p,pgc,a->vof);
 
@@ -162,45 +162,45 @@ void driver::driver_ini_cfd()
         pini->iniphi_surfarea(p,a,pgc);
     }
 
-    ppls->setup(p,a,pgc);
-    pini->iniphi_io(a,p,pgc);
-    pflow->discharge(p,a,pgc);
-    pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-    potflow->start(p,a,ppoissonsolv,pgc);
+	ppls->setup(p,a,pgc);
+	pini->iniphi_io(a,p,pgc);
+	pflow->discharge(p,a,pgc);
+	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+	potflow->start(p,a,ppoissonsolv,pgc);
     pflow->wavegen_precalc(p,pgc);
-    if(p->I12>=1)
-    pini->hydrostatic(p,a,pgc);
+	if(p->I12>=1)
+	pini->hydrostatic(p,a,pgc);
     
     if(p->X10==0)
     ptstep->start(a,p,pgc,pturb);
     
     if(p->I13==1)
     pturb->ini(p,a,pgc);
-    
+	
     if(p->I58_2>0.0)
-    pini->droplet_ini(p,a,pgc);
+	pini->droplet_ini(p,a,pgc);
 
-    pflow->pressure_io(p,a,pgc);
+	pflow->pressure_io(p,a,pgc);
     
     ppress->ini(p,a,pgc);
     
-    pgc->start1(p,a->u,10);
-    pgc->start2(p,a->v,11);
-    pgc->start3(p,a->w,12);
+	pgc->start1(p,a->u,10);
+	pgc->start2(p,a->v,11);
+	pgc->start3(p,a->w,12);
 
     pgc->start4(p,a->press,40);
 
-    if(p->I40==1)
+	if(p->I40==1)
     {
-    pini->stateini(p,a,pgc,pturb,psed);
+	pini->stateini(p,a,pgc,pturb,psed);
     
     if(p->S10==1||(p->Q10==2&&p->S10==2))
     psed->ini_cfd(p,a,pgc);
     }
 
-    pgc->start4(p,a->press,40);
+	pgc->start4(p,a->press,40);
     
-    
+	
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 // ini variables
@@ -212,8 +212,8 @@ void driver::driver_ini_cfd()
 
     p->gctime=0.0;
     p->xtime=0.0;
-    p->reinitime=0.0;
-    p->wavecalctime=0.0;
-    p->field4time=0.0;
+	p->reinitime=0.0;
+	p->wavecalctime=0.0;
+	p->field4time=0.0;
 }
 

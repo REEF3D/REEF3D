@@ -28,239 +28,239 @@ void nhflow_forcing::wedge_y(lexer *p, ghostcell *pgc, int id)
 {
     xs = p->A588_xs[id];
     xe = p->A588_xe[id];
-    
+	
     ys = p->A588_ys[id];
     ye = p->A588_ye[id];
 
     zs = p->A588_zs[id];
     ze = p->A588_ze[id];
     
-    // Face 3
-    // Tri 1
-    tstart[entity_count]=tricount;
+	// Face 3
+	// Tri 1
+	tstart[entity_count]=tricount;
+	
+	if(zs<ze)
+	{
+	// sides
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xs;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = zs;
+
+	tri_x[tricount][2] = xs;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	tri_x[tricount][0] = xe;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = zs;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	// bottom
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xs;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = zs;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ys;
+	tri_z[tricount][1] = zs;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// front
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ye;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = zs;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ye;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xs;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = ze;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	// top
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = ze;
+
+	tri_x[tricount][2] = xs;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ys;
+	tri_z[tricount][1] = zs;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
+	}
+
+	if(zs>=ze)
+	{
+	// sides
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = ze;
+
+	tri_x[tricount][1] = xs;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = ze;
+
+	tri_x[tricount][2] = xs;
+	tri_y[tricount][2] = ys;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	tri_x[tricount][0] = xe;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = ze;
+
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = ze;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ys;
+	tri_z[tricount][2] = zs;
+	++tricount;
+
+	// bottom
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = ze;
+
+	tri_x[tricount][1] = xs;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = ze;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = ze;
+
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ys;
+	tri_z[tricount][1] = ze;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	// front
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ys;
+	tri_z[tricount][1] = zs;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ys;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xs;
+	tri_y[tricount][1] = ys;
+	tri_z[tricount][1] = ze;
+
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ys;
+	tri_z[tricount][2] = ze;
+	++tricount;
+
+	// top
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
+
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ye;
+	tri_z[tricount][1] = ze;
+
+	tri_x[tricount][2] = xs;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
     
-    if(zs<ze)
-    {
-    // sides
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
+	tri_x[tricount][0] = xs;
+	tri_y[tricount][0] = ys;
+	tri_z[tricount][0] = zs;
 
-    tri_x[tricount][1] = xs;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = zs;
+	tri_x[tricount][1] = xe;
+	tri_y[tricount][1] = ys;
+	tri_z[tricount][1] = zs;
 
-    tri_x[tricount][2] = xs;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-
-    tri_x[tricount][0] = xe;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = zs;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-
-    // bottom
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xs;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = zs;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = zs;
-    ++tricount;
-
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ys;
-    tri_z[tricount][1] = zs;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = zs;
-    ++tricount;
-
-    // front
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ye;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = zs;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ye;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xs;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = ze;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-
-    // top
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = ze;
-
-    tri_x[tricount][2] = xs;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ys;
-    tri_z[tricount][1] = zs;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-    }
-
-    if(zs>=ze)
-    {
-    // sides
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = ze;
-
-    tri_x[tricount][1] = xs;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = ze;
-
-    tri_x[tricount][2] = xs;
-    tri_y[tricount][2] = ys;
-    tri_z[tricount][2] = zs;
-    ++tricount;
-
-    tri_x[tricount][0] = xe;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = ze;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = ze;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ys;
-    tri_z[tricount][2] = zs;
-    ++tricount;
-
-    // bottom
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = ze;
-
-    tri_x[tricount][1] = xs;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = ze;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = ze;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ys;
-    tri_z[tricount][1] = ze;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-
-    // front
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ys;
-    tri_z[tricount][1] = zs;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ys;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xs;
-    tri_y[tricount][1] = ys;
-    tri_z[tricount][1] = ze;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ys;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-
-    // top
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ye;
-    tri_z[tricount][1] = ze;
-
-    tri_x[tricount][2] = xs;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-    
-    tri_x[tricount][0] = xs;
-    tri_y[tricount][0] = ys;
-    tri_z[tricount][0] = zs;
-
-    tri_x[tricount][1] = xe;
-    tri_y[tricount][1] = ys;
-    tri_z[tricount][1] = zs;
-
-    tri_x[tricount][2] = xe;
-    tri_y[tricount][2] = ye;
-    tri_z[tricount][2] = ze;
-    ++tricount;
-    }
-     
-    tend[entity_count]=tricount;
+	tri_x[tricount][2] = xe;
+	tri_y[tricount][2] = ye;
+	tri_z[tricount][2] = ze;
+	++tricount;
+	}
+	 
+	tend[entity_count]=tricount;
     
 }

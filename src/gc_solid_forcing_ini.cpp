@@ -50,7 +50,7 @@ void ghostcell::solid_forcing_ini(lexer *p, fdm *a)
      start4(p,a->fbh4,40);
      
     double psi;
-    
+	
     psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
     if (p->j_dir==0)

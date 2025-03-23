@@ -40,40 +40,40 @@ sflow_etimestep::~sflow_etimestep()
 }
 
 void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
-{    
-    p->umax=p->vmax=p->viscmax=0.0;
-    p->dt_old=p->dt;
-    double depthmax=-10.0;
+{	
+	p->umax=p->vmax=p->viscmax=0.0;
+	p->dt_old=p->dt;
+	double depthmax=-10.0;
 
 
 // maximum velocities
 
 
-    SLICELOOP1
-    p->umax=MAX(p->umax,fabs(b->P(i,j)));
+	SLICELOOP1
+	p->umax=MAX(p->umax,fabs(b->P(i,j)));
 
-    p->umax=pgc->globalmax(p->umax);
+	p->umax=pgc->globalmax(p->umax);
 
 
-    SLICELOOP2
-    p->vmax=MAX(p->vmax,fabs(b->Q(i,j)));
+	SLICELOOP2
+	p->vmax=MAX(p->vmax,fabs(b->Q(i,j)));
 
-    p->vmax=pgc->globalmax(p->vmax);
+	p->vmax=pgc->globalmax(p->vmax);
 
-    SLICELOOP4
-    depthmax=MAX(depthmax,b->depth(i,j));
+	SLICELOOP4
+	depthmax=MAX(depthmax,b->depth(i,j));
     
     depthmax=MAX(depthmax,0.00001);
+	
+	depthmax=pgc->globalmax(depthmax);
     
-    depthmax=pgc->globalmax(depthmax);
     
-    
-    
+	
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
-    cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
-    cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
-    cout<<"fsftime: "<<p->lsmtime<<endl;
+	cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
+	cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
+	cout<<"fsftime: "<<p->lsmtime<<endl;
     }
 
     velmax=MAX(p->umax,p->vmax);
@@ -81,68 +81,68 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
 // 
     
-    cu=2.0/((p->umax/p->DXM)+sqrt(4.0*fabs(b->maxF)/p->DXM));
-    cv=2.0/((p->vmax/p->DXM)+sqrt(4.0*fabs(b->maxG)/p->DXM));
+	cu=2.0/((p->umax/p->DXM)+sqrt(4.0*fabs(b->maxF)/p->DXM));
+	cv=2.0/((p->vmax/p->DXM)+sqrt(4.0*fabs(b->maxG)/p->DXM));
     
-    if(p->A219==1)
+	if(p->A219==1)
     {
     cu=MIN(cu,2.0/((p->umax+sqrt(9.81*depthmax))/p->DXM));
-    cv=MIN(cv,2.0/((p->vmax+sqrt(9.81*depthmax))/p->DXM));
+	cv=MIN(cv,2.0/((p->vmax+sqrt(9.81*depthmax))/p->DXM));
     }
     
     if(p->A219==2)
     {
     cu=p->DXM/(fabs(p->umax)>1.0e-20?p->umax:1.0);
-    cv=p->DXM/(fabs(p->vmax)>1.0e-20?p->vmax:1.0);
+	cv=p->DXM/(fabs(p->vmax)>1.0e-20?p->vmax:1.0);
     }
     
     if(p->A219==3)
     {
     cu=2.0/((p->umax+sqrt(9.81*depthmax))/p->DXM);
-    cv=2.0/((p->vmax+sqrt(9.81*depthmax))/p->DXM);
+	cv=2.0/((p->vmax+sqrt(9.81*depthmax))/p->DXM);
     }
     
 
-    p->dt=p->N47*MIN(cu,cv);
-    p->dt=pgc->timesync(p->dt);
+	p->dt=p->N47*MIN(cu,cv);
+	p->dt=pgc->timesync(p->dt);
 
 
-    b->maxF=0.0;
-    b->maxG=0.0;
+	b->maxF=0.0;
+	b->maxG=0.0;
 }
 
 
 void sflow_etimestep::ini(lexer *p, fdm2D* b, ghostcell* pgc)
-{    
-    
+{	
+	
     p->umax=p->W10;
     
-    SLICELOOP1
-    p->umax=MAX(p->umax,fabs(b->P(i,j)));
+	SLICELOOP1
+	p->umax=MAX(p->umax,fabs(b->P(i,j)));
     
 
-    p->umax=pgc->globalmax(p->umax);
+	p->umax=pgc->globalmax(p->umax);
 
 
-    SLICELOOP2
-    p->vmax=MAX(p->vmax,fabs(b->Q(i,j)));
+	SLICELOOP2
+	p->vmax=MAX(p->vmax,fabs(b->Q(i,j)));
 
-    p->vmax=pgc->globalmax(p->vmax);
-    
-    p->umax=MAX(p->umax,p->vmax);
-    p->umax=MAX(p->umax,5.0);
-    
+	p->vmax=pgc->globalmax(p->vmax);
+	
+	p->umax=MAX(p->umax,p->vmax);
+	p->umax=MAX(p->umax,5.0);
+	
 
-    
-    cu=2.0/((p->umax/p->DXM));
-    
-    
-    
-    p->dt=p->N47*cu;
-    p->dt=pgc->timesync(p->dt);
+	
+	cu=2.0/((p->umax/p->DXM));
+	
+	
+	
+	p->dt=p->N47*cu;
+	p->dt=pgc->timesync(p->dt);
 
-    p->dt_old=p->dt;
+	p->dt_old=p->dt;
 
-    b->maxF=0.0;
-    b->maxG=0.0;
+	b->maxF=0.0;
+	b->maxG=0.0;
 }

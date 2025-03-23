@@ -520,11 +520,11 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
     }
     
     starttime=timer();
-    gcparaxV(p, f, gcv);
+	gcparaxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
-    p->xtime+=timer()-starttime;
+	p->xtime+=timer()-starttime;
 }
 
 void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
@@ -903,11 +903,11 @@ void ghostcell::start49V(lexer *p, double *f, int gcv)
     }
     
     starttime=timer();
-    gcparaxV(p, f, gcv);
+	gcparaxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
     gcparacoxV(p, f, gcv);
-    p->xtime+=timer()-starttime;
+	p->xtime+=timer()-starttime;
 }
 
 void ghostcell::startintV(lexer *p, int *f, int gcv)
@@ -934,8 +934,8 @@ void ghostcell::startintV(lexer *p, int *f, int gcv)
     }
     
     starttime=timer();
-    gcparaxintV(p, f, gcv);
-    p->xtime+=timer()-starttime;
+	gcparaxintV(p, f, gcv);
+	p->xtime+=timer()-starttime;
 }
 
 void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
@@ -943,10 +943,10 @@ void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
     if(p->M10>0)
     {
     starttime=timer();
-    gcparax7(p,f,7);
+	gcparax7(p,f,7);
     gcparax7co(p,f,7);
     gcparax7co(p,f,7);
-    p->xtime+=timer()-starttime;
+	p->xtime+=timer()-starttime;
     }
     
     starttime=timer();
@@ -990,11 +990,11 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
     if(p->M10>0)
     {
     starttime=timer();
-    gcparax7(p,f,7);
+	gcparax7(p,f,7);
     gcparax7co(p,f,7);
     gcparax7co(p,f,7);
     gcparax7co(p,f,7);
-    p->xtime+=timer()-starttime;
+	p->xtime+=timer()-starttime;
     }
 }
 
@@ -1024,11 +1024,11 @@ void ghostcell::start7S(lexer *p, double *f, int gcv)
     if(p->M10>0)
     {
     starttime=timer();
-    gcparax7(p,f,7);
+	gcparax7(p,f,7);
     gcparax7co(p,f,7);
     gcparax7co(p,f,7);
     gcparax7co(p,f,7);
-    p->xtime+=timer()-starttime;
+	p->xtime+=timer()-starttime;
     }
 }
 

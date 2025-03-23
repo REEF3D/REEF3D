@@ -35,33 +35,33 @@ using namespace std;
 class sflow_eta : public sflow_fsf, public increment
 {
 public:    
-    sflow_eta(lexer*, fdm2D*, ghostcell*,patchBC_interface*);
-    virtual ~sflow_eta();
-    
+	sflow_eta(lexer*, fdm2D*, ghostcell*,patchBC_interface*);
+	virtual ~sflow_eta();
+	
     virtual void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double);
-    virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*);
-    virtual void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+	virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*);
+	virtual void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     virtual void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
     virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
-    virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
 private:
     
     void wetdry_nb(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     
-    
-    
-    int gcval_eta;
+	
+	
+	int gcval_eta;
     
     double hxp,hxm,hyp,hym;
-    double starttime;
-    
+	double starttime;
+	
     double wd_criterion;
     
-    sflow_hxy_disc *phxy;
+	sflow_hxy_disc *phxy;
     patchBC_interface *pBC;
-    
-    slice4 Lab;
+	
+	slice4 Lab;
     int *temp;
     
         

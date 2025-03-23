@@ -32,7 +32,7 @@ double nhflow_forcing::Hsolidface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
     
     if (p->j_dir==0)
     psi = p->X41*(1.0/1.0)*(p->DXN[IP]);
-    
+	
     if (p->j_dir==1)
     psi = p->X41*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);
 
@@ -40,7 +40,7 @@ double nhflow_forcing::Hsolidface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
     // Construct solid heaviside function
     phival_sf = d->SOLID[IJK];
     
-    
+	
     if(-phival_sf > psi)
     H = 1.0;
 

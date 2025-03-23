@@ -57,22 +57,22 @@ class sixdof_obj : public ddweno_f_nug
 public:
     
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    
+	
     sixdof_obj(lexer*, ghostcell*, int);
-    virtual ~sixdof_obj();
+	virtual ~sixdof_obj();
+	
+	virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,int,vrans*,vector<net*>&);
     
-    virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,int,vrans*,vector<net*>&);
-    
-    void initialize_cfd(lexer*,fdm*,ghostcell*,vector<net*>&);
+	void initialize_cfd(lexer*,fdm*,ghostcell*,vector<net*>&);
     void initialize_nhflow(lexer*,fdm_nhf*,ghostcell*,vector<net*>&);
     void initialize_shipwave(lexer*,ghostcell*,slice&,slice&);
     
-    // Additional functions
+	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,bool);
-    
+	
     void quat_matrices(lexer*);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
@@ -91,11 +91,11 @@ public:
     void saveTimeStep(lexer*,int);
     void print_parameter(lexer*,ghostcell*);
     void print_ini_vtp(lexer*,ghostcell*);
-    void print_vtp(lexer*,ghostcell*);
+	void print_vtp(lexer*,ghostcell*);
     void print_normals_vtp(lexer*,ghostcell*);
     void print_ini_stl(lexer*,ghostcell*);
-    void print_stl(lexer*,ghostcell*);
-    void update_fbvel(lexer*,ghostcell*);
+	void print_stl(lexer*,ghostcell*);
+	void update_fbvel(lexer*,ghostcell*);
     
     // SFLOW
     double Hsolidface_2D(lexer*, int,int);
@@ -112,7 +112,7 @@ public:
 
 private:
 
-    void ini_parameter_stl(lexer*, fdm*, ghostcell*);
+	void ini_parameter_stl(lexer*, fdm*, ghostcell*);
     void ini_fbvel(lexer*, ghostcell*);
     void maxvel(lexer*, ghostcell*);
     
@@ -127,13 +127,13 @@ private:
     
     void objects_create(lexer*, ghostcell*);
     void objects_allocate(lexer*, ghostcell*);
-    void geometry_refinement(lexer*,ghostcell*);
-    void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
-    void box(lexer*, ghostcell*,int);
-    void cylinder_x(lexer*, ghostcell*,int);
-    void cylinder_y(lexer*, ghostcell*,int);
-    void cylinder_z(lexer*, ghostcell*,int);
-    void wedge_sym(lexer*, ghostcell*,int);
+	void geometry_refinement(lexer*,ghostcell*);
+	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
+	void box(lexer*, ghostcell*,int);
+	void cylinder_x(lexer*, ghostcell*,int);
+	void cylinder_y(lexer*, ghostcell*,int);
+	void cylinder_z(lexer*, ghostcell*,int);
+	void wedge_sym(lexer*, ghostcell*,int);
     void wedge(lexer*, ghostcell*,int);
     void hexahedron(lexer*, ghostcell*,int);
     void read_stl(lexer*, ghostcell*);
@@ -143,14 +143,14 @@ private:
     void ini_parallel(lexer*, ghostcell*);
     
     double Hsolidface(lexer*, fdm*, int,int,int);
-    double Hsolidface_t(lexer*, fdm*, int,int,int);
+	double Hsolidface_t(lexer*, fdm*, int,int,int);
     
-    
-    void geometry_parameters(lexer*, fdm*, ghostcell*);
+	
+	void geometry_parameters(lexer*, fdm*, ghostcell*);
     void geometry_parameters_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void geometry_parameters_2D(lexer*, ghostcell*);
     void geometry_stl(lexer*, ghostcell*);
-    void geometry_f(double&,double&,double&,double&,double&,double&,double&,double&,double&);
+	void geometry_f(double&,double&,double&,double&,double&,double&,double&,double&,double&);
     void geometry_ls(lexer*, fdm*, ghostcell*);
     void geometry_ls_nhflow(lexer*, fdm_nhf*, ghostcell*);
     
@@ -158,7 +158,7 @@ private:
     void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void forces_lsm(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void triangulation(lexer*, fdm*, ghostcell*, field&);
-    void reconstruct(lexer*, fdm*, field&);
+	void reconstruct(lexer*, fdm*, field&);
     void addpoint(lexer*,fdm*,int,int);
     void forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc,int,bool);
     
@@ -194,12 +194,12 @@ private:
    
    // ray cast 3D
     void ray_cast(lexer*, fdm*, ghostcell*);
-    void ray_cast_io_x(lexer*, fdm*, ghostcell*,int,int);
-    void ray_cast_io_ycorr(lexer*, fdm*, ghostcell*,int,int);
-    void ray_cast_io_zcorr(lexer*, fdm*, ghostcell*,int,int);
+	void ray_cast_io_x(lexer*, fdm*, ghostcell*,int,int);
+	void ray_cast_io_ycorr(lexer*, fdm*, ghostcell*,int,int);
+	void ray_cast_io_zcorr(lexer*, fdm*, ghostcell*,int,int);
     void ray_cast_x(lexer*, fdm*, ghostcell*,int,int);
-    void ray_cast_y(lexer*, fdm*, ghostcell*,int,int);
-    void ray_cast_z(lexer*, fdm*, ghostcell*,int,int);
+	void ray_cast_y(lexer*, fdm*, ghostcell*,int,int);
+	void ray_cast_z(lexer*, fdm*, ghostcell*,int,int);
     void ray_cast_direct(lexer*, fdm*, ghostcell*,int,int);
     void reini_AB2(lexer*, fdm*, ghostcell*, field&);
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
@@ -210,9 +210,9 @@ private:
     int *tri_switch,*tri_switch_id,*tri_switch_local,*tri_switch_local_id;
     int tricount_local,*tricount_local_list,*tricount_local_displ;
     int tricount_switch_total;
-    vector<vector<double> > tri_x_r;
-    vector<vector<double> > tri_y_r;
-    vector<vector<double> > tri_z_r;
+	vector<vector<double> > tri_x_r;
+	vector<vector<double> > tri_y_r;
+	vector<vector<double> > tri_z_r;
     double xs,xe,ys,ye,zs,ze;
     int entity_sum, count, rayiter;
     int *tstart,*tend;
@@ -220,7 +220,7 @@ private:
     const double epsi; 
     
     reinidisc *prdisc;
-    field4a f, frk1, L, dt; 
+	field4a f, frk1, L, dt; 
     int reiniter;
     
     // ray cast NHFLOW
@@ -250,16 +250,16 @@ private:
     double xp1,xp2,yp1,yp2,zp1,zp2;
     double sgnx,sgny,sgnz;
     double xloc,yloc,zloc;
-    double xlocvel,ylocvel,zlocvel;
+	double xlocvel,ylocvel,zlocvel;
     double etaval,hspval;
     
     // -----
     // ray cast 2D
     void ray_cast_2D(lexer*, ghostcell*);
-    void ray_cast_2D_io_x(lexer*, ghostcell*,int,int);
-    void ray_cast_2D_io_ycorr(lexer*, ghostcell*,int,int);
+	void ray_cast_2D_io_x(lexer*, ghostcell*,int,int);
+	void ray_cast_2D_io_ycorr(lexer*, ghostcell*,int,int);
     void ray_cast_2D_x(lexer*, ghostcell*,int,int);
-    void ray_cast_2D_y(lexer*, ghostcell*,int,int);
+	void ray_cast_2D_y(lexer*, ghostcell*,int,int);
     void ray_cast_2D_z(lexer*, ghostcell*,int,int);
     void reini_2D(lexer*,ghostcell*,slice&);
     void disc_2D(lexer*,ghostcell*,slice&);
@@ -273,9 +273,9 @@ private:
     void force_calc_stl(lexer*, fdm_nhf*, ghostcell*,bool);
     void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
-    void reconstruct(lexer*, fdm_nhf*);
-    void addpoint(lexer*,fdm_nhf*,int,int);
-    void finalize(lexer*,fdm_nhf*);
+	void reconstruct(lexer*, fdm_nhf*);
+	void addpoint(lexer*,fdm_nhf*,int,int);
+	void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
     
     // -----
@@ -314,13 +314,13 @@ private:
     
     // forces
     int **tri, **facet, *confac, *numfac,*numpt;
-    double **ccpt, **pt, *ls;
-    double   dV1,dV2,C1,C2,mi;
-    int numtri,numvert, numtri_mem, numvert_mem;
-    int countM,n,nn;
-    int ccptcount,facount,check;
-    int polygon_sum,polygon_num,vertice_num;
-    const double zero,interfac;
+	double **ccpt, **pt, *ls;
+	double   dV1,dV2,C1,C2,mi;
+	int numtri,numvert, numtri_mem, numvert_mem;
+	int countM,n,nn;
+	int ccptcount,facount,check;
+	int polygon_sum,polygon_num,vertice_num;
+	const double zero,interfac;
     double eps;
     
     double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4;
@@ -331,13 +331,13 @@ private:
     double du,dv,dw;
     double at,bt,ct,st;
     char name[100],pname[100];
-    
-    fieldint5 vertice, nodeflag;
+	
+	fieldint5 vertice, nodeflag;
     field5 eta;
     
     
-    // Parallel    
-    double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+    // Parallel	
+	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
    
     double kernel(const double&);
 
@@ -358,9 +358,9 @@ private:
 
 
     // Mooring
-    vector<double> X311_xen, X311_yen, X311_zen;
-    vector<mooring*> pmooring;
-    vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
+	vector<double> X311_xen, X311_yen, X311_zen;
+	vector<mooring*> pmooring;
+	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
     
     // Net
     vector<double> Xne, Yne, Zne, Kne, Mne, Nne;   

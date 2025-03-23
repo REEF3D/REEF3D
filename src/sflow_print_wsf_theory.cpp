@@ -31,25 +31,25 @@ Author: Hans Bihs
 sflow_print_wsf_theory::sflow_print_wsf_theory(lexer *p, fdm2D* b, ghostcell *pgc)
 {
 
-    gauge_num = p->P50;
-    x = p->P50_x;
-    y = p->P50_y;
+	gauge_num = p->P50;
+	x = p->P50_x;
+	y = p->P50_y;
 
-    if(p->P50>0)
-    {
-    gauge_num = p->P50;
-    x = p->P50_x;
-    y = p->P50_y;
-    }
+	if(p->P50>0)
+	{
+	gauge_num = p->P50;
+	x = p->P50_x;
+	y = p->P50_y;
+	}
 
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_SFLOW_WSF",0777);
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_SFLOW_WSF",0777);
 
   if(p->mpirank==0 && p->P50>0)
   {
     // open file
-    wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG-THEORY.dat");
+	wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG-THEORY.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;

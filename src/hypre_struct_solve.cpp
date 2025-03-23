@@ -34,13 +34,13 @@ void hypre_struct::solve1234(lexer* p)
 {
     p->solver_status=0;
     
-    p->solveriter=0;
-        
+	p->solveriter=0;
+	    
     HYPRE_StructBiCGSTABSetup(solver, A, b, x);
     p->solver_status = HYPRE_StructBiCGSTABSolve(solver, A, b, x);
     
     HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
-    HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
+	HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     
     
     p->solveriter=num_iterations;
@@ -51,7 +51,7 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
 {
     p->solver_status=0;
     
-    p->solveriter=0;
+	p->solveriter=0;
     
     if(solve_type==11)
     {
@@ -59,7 +59,7 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
     p->solver_status = HYPRE_StructPCGSolve(solver, A, b, x);
     
     HYPRE_StructPCGGetNumIterations(solver, &num_iterations);
-    HYPRE_StructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
+	HYPRE_StructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(solve_type==12)
@@ -68,7 +68,7 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
     p->solver_status = HYPRE_StructGMRESSolve(solver, A, b, x);
     
     HYPRE_StructGMRESGetNumIterations(solver, &num_iterations);
-    HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
+	HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(solve_type==13)
@@ -77,7 +77,7 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
     p->solver_status = HYPRE_StructLGMRESSolve(solver, A, b, x);
     
     HYPRE_StructLGMRESGetNumIterations(solver, &num_iterations);
-    HYPRE_StructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
+	HYPRE_StructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(solve_type==14)
@@ -86,16 +86,16 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
     p->solver_status = HYPRE_StructBiCGSTABSolve(solver, A, b, x);
     
     HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
-    HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
+	HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    
-    if(solve_type==15 || solve_type==16 || solve_type==17)
+	
+	if(solve_type==15 || solve_type==16 || solve_type==17)
     {
     HYPRE_StructHybridSetup(solver, A, b, x);
     p->solver_status = HYPRE_StructHybridSolve(solver, A, b, x);
     
     HYPRE_StructHybridGetNumIterations(solver, &num_iterations);
-    HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &final_res_norm);
+	HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(solve_type==18)
@@ -104,7 +104,7 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
     p->solver_status = HYPRE_StructPFMGSolve(solver, A, b, x);
     
     HYPRE_StructPFMGGetNumIterations(solver, &num_iterations);
-    HYPRE_StructPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
+	HYPRE_StructPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
     if(solve_type==19)
@@ -113,10 +113,10 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
     p->solver_status = HYPRE_StructSMGSolve(solver, A, b, x);
     
     HYPRE_StructSMGGetNumIterations(solver, &num_iterations);
-    HYPRE_StructSMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
+	HYPRE_StructSMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
     
-    p->solveriter=num_iterations;
+	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
     
 }
@@ -125,13 +125,13 @@ void hypre_struct::solve44(lexer* p)
 {
     p->solver_status=0;
     
-    p->solveriter=0;
-        
+	p->solveriter=0;
+	    
     HYPRE_StructGMRESSetup(solver, A, b, x);
     p->solver_status = HYPRE_StructGMRESSolve(solver, A, b, x);
     
     HYPRE_StructGMRESGetNumIterations(solver, &num_iterations);
-    HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
+	HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     
     
     p->solveriter=num_iterations;

@@ -32,8 +32,13 @@ class rheology_f : public rheology, public strain
 
 public:
 
+<<<<<<< HEAD
     rheology_f(lexer*);
     virtual ~rheology_f()=default;
+=======
+	rheology_f(lexer*, fdm*);
+	virtual ~rheology_f();
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 
     double viscosity(lexer*,fdm*,ghostcell*) override;
     
@@ -54,8 +59,16 @@ private:
 
     field4 tau_x,tau_y,tau_z;
     
+<<<<<<< HEAD
     double gamma;
     double val,f,H,phival,pressureval;
+=======
+    double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
+    
+	
+	double gamma;
+    double val,f,H,phival,pval;
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     double tau0;
     double tau0_p,tau0_m;
     double tanphi;
@@ -68,5 +81,9 @@ private:
     const double density_interstitial_fluid;
     
     int count;
+<<<<<<< HEAD
+=======
+	
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 };
 #endif

@@ -36,8 +36,8 @@ void iowave::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 
 void iowave::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
-    for(n=0;n<p->gcout_count;++n)
-    {
+	for(n=0;n<p->gcout_count;++n)
+	{
         i=p->gcout[n][0];
         j=p->gcout[n][1];
         k=p->gcout[n][2];
@@ -45,17 +45,17 @@ void iowave::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
         f(i+1,j,k)=a->phi(i+1,j,k);
         f(i+2,j,k)=a->phi(i+2,j,k);
         f(i+3,j,k)=a->phi(i+3,j,k);
-    }
+	}
 }
 
 void iowave::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
-    for(n=0;n<p->gcin_count;++n)
-    {
+	for(n=0;n<p->gcin_count;++n)
+	{
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
-        
+		
         f(i-1,j,k)=a->phi(i-1,j,k);
         f(i-2,j,k)=a->phi(i-2,j,k);
         f(i-3,j,k)=a->phi(i-3,j,k);

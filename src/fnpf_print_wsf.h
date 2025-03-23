@@ -38,9 +38,9 @@ class fnpf_print_wsf : public increment
 {
 public:
     fnpf_print_wsf(lexer*,fdm_fnpf*);
-    virtual ~fnpf_print_wsf();
+	virtual ~fnpf_print_wsf();
 
-    void height_gauge(lexer*, fdm_fnpf*, ghostcell*,slice&);
+	void height_gauge(lexer*, fdm_fnpf*, ghostcell*,slice&);
 
 
 private:
@@ -49,8 +49,8 @@ private:
     void fill_deta(lexer*, fdm_fnpf*, ghostcell*,slice&);
     void fill_Uhorz(lexer*, fdm_fnpf*, ghostcell*,slice&);
     
-    double *x,*y;
-    int gauge_num;
+	double *x,*y;
+	int gauge_num;
 
     int *iloc,*jloc,*flag;
     double *wsf,*deta,*Uhorz;

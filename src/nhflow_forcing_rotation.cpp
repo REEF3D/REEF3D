@@ -28,51 +28,51 @@ void nhflow_forcing::rotate_triangle(lexer* p, int ts, int te)
 {
     double beta,xval,yval;
 
-    for(int qr=ts;qr<te;++qr)
-    {
-        rotation(tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],phi,theta,psi);
-        rotation(tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],phi,theta,psi);
-        rotation(tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],phi,theta,psi);
-    }
+	for(int qr=ts;qr<te;++qr)
+	{
+		rotation(tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],phi,theta,psi);
+		rotation(tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],phi,theta,psi);
+		rotation(tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],phi,theta,psi);
+	}
 }
 
 void nhflow_forcing::rotation(double &xvec,double &yvec,double &zvec,double phi, double theta, double psi)
 {
-    double a,b,c;
+	double a,b,c;
 
     // psi
-    a = (xvec-xrot)*cos(psi) - (yvec-yrot)*sin(psi);
+	a = (xvec-xrot)*cos(psi) - (yvec-yrot)*sin(psi);
 
-    b = (xvec-xrot)*sin(psi) + (yvec-yrot)*cos(psi);
+	b = (xvec-xrot)*sin(psi) + (yvec-yrot)*cos(psi);
 
-    c = zvec-zrot;
+	c = zvec-zrot;
 
-    xvec=a;
-    yvec=b;
-    zvec=c;
+	xvec=a;
+	yvec=b;
+	zvec=c;
 
     // theta
-    a = (xvec)*cos(theta) + (zvec)*sin(theta);
+	a = (xvec)*cos(theta) + (zvec)*sin(theta);
 
-    b = yvec;
+	b = yvec;
 
-    c = -(xvec)*sin(theta) + (zvec)*cos(theta);
+	c = -(xvec)*sin(theta) + (zvec)*cos(theta);
 
-    xvec=a;
-    yvec=b;
-    zvec=c;
+	xvec=a;
+	yvec=b;
+	zvec=c;
 
 
     // phi
-    a = xvec;
+	a = xvec;
 
-    b = (yvec)*cos(phi) - (zvec)*sin(phi);
+	b = (yvec)*cos(phi) - (zvec)*sin(phi);
 
-    c = (yvec)*sin(phi) + (zvec)*cos(phi);
+	c = (yvec)*sin(phi) + (zvec)*cos(phi);
 
     xvec=a+xrot;
-    yvec=b+yrot;
-    zvec=c+zrot;
+	yvec=b+yrot;
+	zvec=c+zrot;
 
 }
 

@@ -54,20 +54,20 @@ p->pointnumtot=pgc->globalisum(p->pointnum);
 if(p->mpirank==0)
 cout<<"number of cells: "<<p->cellnumtot<<endl;
 
-    log_ini();
+	log_ini();
 
 
 if(p->mpirank==0)
 cout<<"starting driver_ini_PFLOW"<<endl;
     
     pflow->ini2D(p,b,pgc);
-    
+	
     if(p->toporead>0 ||p->solidread==1)
     {
     geotopo gtopo(p,a,pgc);
     gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
-    
+	
     ptstep->ini(a,p,pgc);
     preini->start(a,p,a->phi, pgc, pflow);
     pflow->gcio_update(p,a,pgc);
@@ -75,17 +75,17 @@ cout<<"starting driver_ini_PFLOW"<<endl;
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,250);
     
-    
-    pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+	
+	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
     
 
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
-    
-    p->gctime=0.0;
+	
+	p->gctime=0.0;
     p->xtime=0.0;
-    p->wavecalctime=0.0;
-    p->field4time=0.0;
+	p->wavecalctime=0.0;
+	p->field4time=0.0;
 
 if(p->mpirank==0)
 cout<<"starting mainloop.PFLOW"<<endl;

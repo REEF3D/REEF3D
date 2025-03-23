@@ -36,80 +36,80 @@ void hypre_aij::fill_matrix_F_7p(lexer* p, ghostcell* pgc, matrix_diag &M, doubl
     pgc->rownum7_update(p,rownum7);
     pgc->flagx7(p,rownum7);
 
-    n=0;
-    FLOOP
-    {
-    count=0;
-    val[count] = M.p[n];    
-    col[count] = rownum7[FIJK];
-    rownum = rownum7[FIJK];
-    ++count;
+	n=0;
+	FLOOP
+	{
+	count=0;
+	val[count] = M.p[n];	
+	col[count] = rownum7[FIJK];
+	rownum = rownum7[FIJK];
+	++count;
 
-    
+	
     if(p->flag7[FIm1JK]>0)
-    {
-    val[count] = M.s[n];
-    col[count] = rownum7[FIm1JK];
-    ++count;
-    }
+	{
+	val[count] = M.s[n];
+	col[count] = rownum7[FIm1JK];
+	++count;
+	}
     
     if(p->flag7[FIp1JK]>0)
-    {
-    val[count] = M.n[n];
-    col[count] = rownum7[FIp1JK];
-    ++count;
-    }
+	{
+	val[count] = M.n[n];
+	col[count] = rownum7[FIp1JK];
+	++count;
+	}
     
     if(p->flag7[FIJm1K]>0)
-    {
-    val[count] = M.e[n];
-    col[count] = rownum7[FIJm1K];
-    ++count;
-    }
+	{
+	val[count] = M.e[n];
+	col[count] = rownum7[FIJm1K];
+	++count;
+	}
     
     if(p->flag7[FIJp1K]>0)
-    {
-    val[count] = M.w[n];
-    col[count] = rownum7[FIJp1K];
-    ++count;
-    }
+	{
+	val[count] = M.w[n];
+	col[count] = rownum7[FIJp1K];
+	++count;
+	}
     
     if(p->flag7[FIJKm1]>0)
-    {
-    val[count] = M.b[n];
-    col[count] = rownum7[FIJKm1];
-    ++count;
-    }
+	{
+	val[count] = M.b[n];
+	col[count] = rownum7[FIJKm1];
+	++count;
+	}
     
     if(p->flag7[FIJKp1]>0)
-    {
-    val[count] = M.t[n];
-    col[count] = rownum7[FIJKp1];
-    ++count;
-    }
-    
-    HYPRE_IJMatrixSetValues(A, 1, &count, &rownum, col, val);
-    
-    ++n;
-    }
-    
-    
-    HYPRE_IJMatrixAssemble(A);
-    HYPRE_IJMatrixGetObject(A, (void**) &parcsr_A);
-    
+	{
+	val[count] = M.t[n];
+	col[count] = rownum7[FIJKp1];
+	++count;
+	}
+	
+	HYPRE_IJMatrixSetValues(A, 1, &count, &rownum, col, val);
+	
+	++n;
+	}
+	
+	
+	HYPRE_IJMatrixAssemble(A);
+	HYPRE_IJMatrixGetObject(A, (void**) &parcsr_A);
+	
     // vec
-    n=0;
-    FLOOP
-    {
-        xvec[n] = f[FIJK];
-        rows[n] = rownum7[FIJK];
-    ++n;
-    }
+	n=0;
+	FLOOP
+	{
+		xvec[n] = f[FIJK];
+		rows[n] = rownum7[FIJK];
+	++n;
+	}
 
-    HYPRE_IJVectorSetValues(b, p->N7_row, rows, rhsvec.V);
-    HYPRE_IJVectorSetValues(x, p->N7_row, rows, xvec);
-    
-    HYPRE_IJVectorAssemble(b);
+	HYPRE_IJVectorSetValues(b, p->N7_row, rows, rhsvec.V);
+	HYPRE_IJVectorSetValues(x, p->N7_row, rows, xvec);
+	
+	HYPRE_IJVectorAssemble(b);
     HYPRE_IJVectorGetObject(b, (void **) &par_b);
     HYPRE_IJVectorAssemble(x);
     HYPRE_IJVectorGetObject(x, (void **) &par_x);

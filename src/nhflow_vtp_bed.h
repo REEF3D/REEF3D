@@ -36,26 +36,26 @@ using namespace std;
 class nhflow_vtp_bed : public increment
 {
 public:
-    nhflow_vtp_bed(lexer*,fdm_nhf*,ghostcell*);
-    virtual ~nhflow_vtp_bed();
-    
+	nhflow_vtp_bed(lexer*,fdm_nhf*,ghostcell*);
+	virtual ~nhflow_vtp_bed();
+	
     virtual void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
     virtual void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
-    
+	
 private:
-    
-    void etend(lexer*,fdm_nhf*,ghostcell*);
-    void pvtu(lexer*,fdm_nhf*,ghostcell*,sediment*);
-    void name_iter(lexer*,fdm_nhf*,ghostcell*);
+	
+	void etend(lexer*,fdm_nhf*,ghostcell*);
+	void pvtu(lexer*,fdm_nhf*,ghostcell*,sediment*);
+	void name_iter(lexer*,fdm_nhf*,ghostcell*);
     void piecename(lexer*,fdm_nhf*,ghostcell*,int);
-    
-    
-    char name[200],pname[200];
+	
+	
+	char name[200],pname[200];
     int n,iin,offset[200];
     float ffn;
-    
-    double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
-    double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
+	
+	double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
+	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
     int printcount;
 
 };

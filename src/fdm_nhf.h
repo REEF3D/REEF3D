@@ -105,7 +105,7 @@ public:
     slice2 dfy;
 
     matrix2D N;
-    matrix_diag M;    
+	matrix_diag M;    
     
     double gi,gj,gk;
     double maxF,maxG,maxH;

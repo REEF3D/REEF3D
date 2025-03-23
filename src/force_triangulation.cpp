@@ -27,18 +27,18 @@ Author: Hans Bihs
 
 void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 {
-    int negcount, poscount;
+	int negcount, poscount;
     
     NDBASELOOP
     eta(i,j,k) = 0.125*(a->solid(i,j,k) + a->solid(i+1,j,k) + a->solid(i,j+1,k) + a->solid(i+1,j+1,k)
                       + a->solid(i,j,k+1) + a->solid(i+1,j,k+1) + a->solid(i,j+1,k+1) + a->solid(i+1,j+1,k+1));
-    
+	
     NDBASELOOP
     vertice(i,j,k)=-1;
 
     NDBASELOOP
     nodeflag(i,j,k)=0;
-    
+	
 
     BASELOOP
     if(i>=is && i<=ie && j>=js && j<=je && k>=ks && k<=ke)
@@ -71,8 +71,8 @@ void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
         }
     }
 
-    
-    //--------------------
+	
+	//--------------------
     countM=0;
     NDBASELOOP
     if(nodeflag(i,j,k)==1)
@@ -90,7 +90,7 @@ void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     p->Iarray(facet,numtri,4);
     p->Iarray(confac,numtri);
     p->Iarray(numfac,numtri);
-    p->Iarray(numpt,numtri);
+	p->Iarray(numpt,numtri);
     p->Darray(ccpt,numtri*4,3);
 
 
@@ -109,7 +109,7 @@ void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     ++countM;
     }
 
-    // p. 725, 956
+	// p. 725, 956
     count=0;
     BASELOOP
     if(nodeflag(i,j,k)==1)
@@ -150,7 +150,7 @@ void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     ++count;
 
     // 5
-    tri[count][0] = vertice(i-1,j,k-1);
+	tri[count][0] = vertice(i-1,j,k-1);
     tri[count][1] = vertice(i-1,j,k);
     tri[count][2] = vertice(i,j,k);
     tri[count][3] = vertice(i,j-1,k);
@@ -163,6 +163,6 @@ void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     tri[count][3] = vertice(i-1,j,k);
     ++count;
     }
-    
+	
     numtri=count;
 }

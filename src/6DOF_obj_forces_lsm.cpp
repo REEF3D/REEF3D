@@ -29,7 +29,7 @@ Author: Hans Bihs
 void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {
     triangulation(p,a,pgc,a->fb);
-    reconstruct(p,a,a->fb);
+	reconstruct(p,a,a->fb);
     
     //print_vtp(p,a,pgc);
     
@@ -42,7 +42,7 @@ void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
     p->del_Iarray(facet,numtri,4);
     p->del_Iarray(confac,numtri);
     p->del_Iarray(numfac,numtri);
-    p->del_Iarray(numpt,numtri);
+	p->del_Iarray(numpt,numtri);
     p->del_Darray(ccpt,numtri*4,3);
 }
 
@@ -51,7 +51,7 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
     double ux,vy,wz,vel,pressure,density,viscosity;
     double du,dv,dw;
     double xloc,yloc,zloc;
-    double xlocvel,ylocvel,zlocvel;
+	double xlocvel,ylocvel,zlocvel;
     double sgnx,sgny,sgnz;
     double Ax=0.0;
     double Ay=0.0;
@@ -72,14 +72,14 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
     nx=ny=nz=0.0;
     
     polygon_num=facount;
+	
+	polygon_sum=0;
+	for(n=0;n<polygon_num;++n)
+	polygon_sum+=numpt[n];
+	
+	//cout<<p->mpirank<<" polygon_num: "<<polygon_num<<endl;
     
-    polygon_sum=0;
-    for(n=0;n<polygon_num;++n)
-    polygon_sum+=numpt[n];
-    
-    //cout<<p->mpirank<<" polygon_num: "<<polygon_num<<endl;
-    
-    vertice_num = ccptcount;
+	vertice_num = ccptcount;
 
     for(n=0;n<polygon_num;++n)
     {       
@@ -283,14 +283,14 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
     
     
     // Add forces to global forces
-            
-            Xe += Fx;
-            Ye += Fy;
-            Ze += Fz;
+			
+			Xe += Fx;
+			Ye += Fy;
+			Ze += Fz;
 
-            Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
-            Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
-            Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
+			Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
+			Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
+			Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
             
             Xe_p += Fp_x;
             Ye_p += Fp_y;
@@ -299,27 +299,27 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
             Xe_v += Fv_x;
             Ye_v += Fv_y;
             Ze_v += Fv_z;
-                            
+							
             A_tot+=A;
     }
     
     // Communication with other processors
-    
+	
     A = pgc->globalsum(A);
-    
-    Xe = pgc->globalsum(Xe);
-    Ye = pgc->globalsum(Ye);
-    Ze = pgc->globalsum(Ze);
-    Ke = pgc->globalsum(Ke);
-    Me = pgc->globalsum(Me);
-    Ne = pgc->globalsum(Ne);
+	
+	Xe = pgc->globalsum(Xe);
+	Ye = pgc->globalsum(Ye);
+	Ze = pgc->globalsum(Ze);
+	Ke = pgc->globalsum(Ke);
+	Me = pgc->globalsum(Me);
+	Ne = pgc->globalsum(Ne);
 
-    Xe_p = pgc->globalsum(Xe_p);
-    Ye_p = pgc->globalsum(Ye_p);
-    Ze_p = pgc->globalsum(Ze_p);
-    Xe_v = pgc->globalsum(Xe_v);
-    Ye_v = pgc->globalsum(Ye_v);
-    Ze_v = pgc->globalsum(Ze_v);
+	Xe_p = pgc->globalsum(Xe_p);
+	Ye_p = pgc->globalsum(Ye_p);
+	Ze_p = pgc->globalsum(Ze_p);
+	Xe_v = pgc->globalsum(Xe_v);
+	Ye_v = pgc->globalsum(Ye_v);
+	Ze_v = pgc->globalsum(Ze_v);
     
     if(Xe!=Xe)
     cout<<"Xe ....... ###"<<endl;
@@ -351,12 +351,12 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
     cout<<"Hydrodynamic Forces:  Fx_p: "<<Xe_p<<" Fy_p: "<<Ye_p<<" Fz_p: "<<Ze_p<<"  |  Fx_v: "<<Xe_v<<" Fy_v: "<<Ye_v<<" Fz_v: "<<Ze_v<<endl;
     
     Xe += a->gi*Mass_fb;
-    Ye += a->gj*Mass_fb;
-    Ze += a->gk*Mass_fb;
+	Ye += a->gj*Mass_fb;
+	Ze += a->gk*Mass_fb;
     
     
     // Print results
-    
+	
     if (p->mpirank==0 && finalize==1)  
     {
         ofstream print;
@@ -366,8 +366,8 @@ void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, boo
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
     }
 
-    if (p->mpirank==0)
-    cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
+	if (p->mpirank==0)
+	cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
     
  
 }

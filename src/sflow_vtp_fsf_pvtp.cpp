@@ -28,23 +28,23 @@ Author: Hans Bihs
 #include"sediment.h"
 
 void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
-{    
-    int num=0;
+{	
+	int num=0;
 
     if(p->P15==1)
     num = p->printcount;
 
     if(p->P15==2)
     num = p->count;
-    
-    sprintf(name,"./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i.pvtp",num);
+	
+	sprintf(name,"./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i.pvtp",num);
 
-    ofstream result;
-    result.open(name);
+	ofstream result;
+	result.open(name);
 
-    result<<"<?xml version=\"1.0\"?>"<<endl;
-    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-    result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>"<<endl;
+	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
     
     if(p->P16==1)
     {
@@ -53,18 +53,18 @@ void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *p
     result<<"</DataArray>"<<endl;
     result<<"</FieldData>"<<endl;
     }
-    
-    result<<"<PPoints>"<<endl;
-    result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
-    result<<"</PPoints>"<<endl;
-    
-    result<<"<PPointData>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
+	
+	result<<"<PPoints>"<<endl;
+	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
+	result<<"</PPoints>"<<endl;
+	
+	result<<"<PPointData>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
     pturb->name_pvtp(p,b,pgc,result);
-    result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"waterlevel\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"waterlevel\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"wetdry\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
     
@@ -75,24 +75,24 @@ void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *p
     if(p->P110==1)
     result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
     
-    result<<"</PPointData>"<<endl;
-    
-    result<<"<Polys>"<<endl;
+	result<<"</PPointData>"<<endl;
+	
+	result<<"<Polys>"<<endl;
     result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
+	result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
     result<<"<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
-    result<<"</Polys>"<<endl;
+	result<<"</Polys>"<<endl;
 
-    for(n=0; n<p->M10; ++n)
-    {
+	for(n=0; n<p->M10; ++n)
+	{
     piecename(p,b,pgc,n);
     result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
-    }
+	}
 
-    result<<"</PPolyData>"<<endl;
-    result<<"</VTKFile>"<<endl;
+	result<<"</PPolyData>"<<endl;
+	result<<"</VTKFile>"<<endl;
 
-    result.close();
+	result.close();
 
 }
 
@@ -107,5 +107,5 @@ void sflow_vtp_fsf::piecename(lexer *p, fdm2D *b, ghostcell *pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-    sprintf(pname,"REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,n+1);
+	sprintf(pname,"REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,n+1);
 }

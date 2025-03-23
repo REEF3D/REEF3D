@@ -33,15 +33,15 @@ void potentialfile_in::header_read(lexer *p, ghostcell *pgc)
 {
     // Open File
     sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialheader-%i.r3d",p->I240);
-    
+	
     
     // count entries
-    headerfile.open(name, ios::binary);
+	headerfile.open(name, ios::binary);
     
     entrycount=0;
     
     while(!headerfile.eof())
-    {
+	{
     headerfile.read((char*)&iin, sizeof (int));
     headerfile.read((char*)&ffn, sizeof (float));
     
@@ -54,11 +54,11 @@ void potentialfile_in::header_read(lexer *p, ghostcell *pgc)
     p->Darray(xloc,entrycount);
     
     // read entries
-    headerfile.open(name, ios::binary);
+	headerfile.open(name, ios::binary);
     
     n=0;
     while(!headerfile.eof())
-    {
+	{
     headerfile.read((char*)&iin, sizeof (int));
     iter[n]=iin;
     headerfile.read((char*)&ffn, sizeof (float));

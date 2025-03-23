@@ -56,7 +56,7 @@ void multiphase_v::update(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 void multiphase_v::print_3D(lexer*, fdm*, ghostcell*,ofstream&)
-{    
+{	
 }
 
 void multiphase_v::print_file(lexer *p, fdm *a, ghostcell *pgc)
@@ -65,55 +65,55 @@ void multiphase_v::print_file(lexer *p, fdm *a, ghostcell *pgc)
 
 double multiphase_v::ls1val(int,int,int)
 {
-    double val=0.0;
-    
-    return val;
+	double val=0.0;
+	
+	return val;
 }
 
 double multiphase_v::ls2val(int,int,int)
 {
-    double val=0.0;
-    
-    return val;
+	double val=0.0;
+	
+	return val;
 }
 
 double multiphase_v::ccipol_ls1val(lexer*,ghostcell*,double,double,double)
 {
-    double val=0.0;
-    
-    return val;
+	double val=0.0;
+	
+	return val;
 }
 
 double multiphase_v::ccipol_ls2val(lexer*,ghostcell*,double,double,double)
 {
-    double val=0.0;
-    
-    return val;
+	double val=0.0;
+	
+	return val;
 }
 
 void multiphase_v::ls1get(int,int,int,double)
 {
-    
+	
 }
 
 void multiphase_v::ls2get(int,int,int,double)
 {
-    
+	
 }
 
 
 void multiphase_v::name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)
 {
-    
+	
 }
 
 void multiphase_v::name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
 {
-    
+	
 }
 
 void multiphase_v::offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
 {
-    
+	
 }
 

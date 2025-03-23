@@ -39,25 +39,25 @@ class fnpf_force_ale :  public increment
 {
 
 public:
-    fnpf_force_ale(lexer*,fdm_fnpf*,ghostcell*,int);
-    virtual ~fnpf_force_ale();
-    virtual void start(lexer*,fdm_fnpf*,ghostcell*);
+	fnpf_force_ale(lexer*,fdm_fnpf*,ghostcell*,int);
+	virtual ~fnpf_force_ale();
+	virtual void start(lexer*,fdm_fnpf*,ghostcell*);
     virtual void ini(lexer*,fdm_fnpf*,ghostcell*);
 
-private:    
-    
+private:	
+	
     void force_ale_force(lexer*,fdm_fnpf*,ghostcell*);
-    void print_force_ale(lexer*,fdm_fnpf*,ghostcell*);
+	void print_force_ale(lexer*,fdm_fnpf*,ghostcell*);
     void print_ini(lexer*,fdm_fnpf*,ghostcell*);
-    double dndt(lexer*, fdm_fnpf*, ghostcell*);
-    double dudsig(lexer*, fdm_fnpf*, ghostcell*);
-    double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
-    double dudxi(lexer*, fdm_fnpf*, ghostcell*);
-    double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
-    
+	double dndt(lexer*, fdm_fnpf*, ghostcell*);
+	double dudsig(lexer*, fdm_fnpf*, ghostcell*);
+	double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
+	double dudxi(lexer*, fdm_fnpf*, ghostcell*);
+	double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
+	
     // force ale variabes
     double Fx1,Fy1,Fx,Fy,xc,yc,rc,cd,cm,etan,dtn,eta2n,ax1,ay1,ax2,ay2,ax3,ay3,dudsig_,dvdsig_,ax,ay;
-    double *un, *u2n, *vn;
+	double *un, *u2n, *vn;
     const int ID;
     
     // printing

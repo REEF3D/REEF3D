@@ -32,8 +32,8 @@ Author: Hans Bihs
 
 nhflow_komega_IM1::nhflow_komega_IM1(lexer* p, fdm_nhf* d, ghostcell *pgc) : nhflow_komega_func(p,d,pgc)
 {
-    gcval_kin=20;
-    gcval_eps=30;
+	gcval_kin=20;
+	gcval_eps=30;
     
     p->Darray(KN,p->imax*p->jmax*(p->kmax+2));
     p->Darray(EN,p->imax*p->jmax*(p->kmax+2));
@@ -45,44 +45,44 @@ nhflow_komega_IM1::~nhflow_komega_IM1()
 
 void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans *pvrans)
 {
-    Pk_update(p,d,pgc);
+	Pk_update(p,d,pgc);
     Pk_b_update(p,d,pgc);
-    wallf_update(p,d,pgc,WALLF);
+	wallf_update(p,d,pgc,WALLF);
     inflow(p,d,pgc);
 
 //kin
     starttime=pgc->timer();
-    clearrhs(p,d);
+	clearrhs(p,d);
     pconvec->start(p,d,KIN,4,d->U,d->V,d->omegaF);
-    pdiff->diff_scalar(p,d,pgc,psolv,KIN,kw_sigma_k,1.0);
-    kinsource(p,d,pvrans);
-    timesource(p,d,KN);
+	pdiff->diff_scalar(p,d,pgc,psolv,KIN,kw_sigma_k,1.0);
+	kinsource(p,d,pvrans);
+	timesource(p,d,KN);
     bckomega_start(p,d,KIN,EPS,gcval_kin);
     bckin_matrix(p,d,KIN,EPS);
     psolv->startV(p,pgc,KIN,d->rhsvec,d->M,4);
     pgc->start20V(p,KIN,gcval_kin);
     kinupdate(p,d,pgc);
-    p->kintime=pgc->timer()-starttime;
-    p->kiniter=p->solveriter;
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"kin_iter: "<<p->kiniter<<"  kin_time: "<<setprecision(3)<<p->kintime<<endl;
+	p->kintime=pgc->timer()-starttime;
+	p->kiniter=p->solveriter;
+	if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"kin_iter: "<<p->kiniter<<"  kin_time: "<<setprecision(3)<<p->kintime<<endl;
 
 //omega
     starttime=pgc->timer();
-    clearrhs(p,d);
+	clearrhs(p,d);
     pconvec->start(p,d,EPS,4,d->U,d->V,d->omegaF);
-    pdiff->diff_scalar(p,d,pgc,psolv,EPS,kw_sigma_w,1.0);
-    epssource(p,d,pvrans);
-    timesource(p,d,EN);
+	pdiff->diff_scalar(p,d,pgc,psolv,EPS,kw_sigma_w,1.0);
+	epssource(p,d,pvrans);
+	timesource(p,d,EN);
     bcomega_matrix(p,d,KIN,EPS);
-    psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
-    epsfsf(p,d,pgc);
-    bckomega_start(p,d,KIN,EPS,gcval_eps);
-    pgc->start30V(p,EPS,gcval_eps);
-    p->epstime=pgc->timer()-starttime;
-    p->epsiter=p->solveriter;
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
+	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
+	epsfsf(p,d,pgc);
+	bckomega_start(p,d,KIN,EPS,gcval_eps);
+	pgc->start30V(p,EPS,gcval_eps);
+	p->epstime=pgc->timer()-starttime;
+	p->epsiter=p->solveriter;
+	if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
     eddyvisc(p,d,pgc,pvrans);
     pflow->turb_relax_nhflow(p,d,pgc,KIN);
@@ -119,7 +119,7 @@ void nhflow_komega_IM1::timesource(lexer* p, fdm_nhf* d, double *FN)
 
         d->rhsvec.V[count] += d->L[IJK] + FN[IJK]/DT;
 
-    ++count;
+	++count;
     }
 }
 
@@ -129,8 +129,8 @@ void nhflow_komega_IM1::clearrhs(lexer* p, fdm_nhf *d)
     LOOP
     {
     d->rhsvec.V[count]=0.0;
-    d->L[IJK]=0.0;
+	d->L[IJK]=0.0;
 
-    ++count;
+	++count;
     }
 }

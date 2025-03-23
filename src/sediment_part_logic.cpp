@@ -91,10 +91,10 @@ void sediment_part::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *
     pslide=new sandslide_pde(p);
     
     if(p->S10!=2 && p->A10==6)
-    pvrans = new vrans_v(p,pgc);
-    
-    if(p->S10==2 && p->A10==6)
-    pvrans = new vrans_f(p,pgc);
+	pvrans = new vrans_v(p,pgc);
+	
+	if(p->S10==2 && p->A10==6)
+	pvrans = new vrans_f(p,pgc);
     
     
     pslope = new bedslope(p);
@@ -110,21 +110,21 @@ void sediment_part::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *
 
     if(p->S80==3)
     preduce=new reduction_deyana(p);
-    
-    if(p->S80==4)
+	
+	if(p->S80==4)
     preduce=new reduction_FD(p);
     
     ptopo = new sediment_exner(p,pgc);
    
     
 
-    p->gcin4a_count=p->gcin_count;
-    p->gcout4a_count=p->gcout_count;
-    
+	p->gcin4a_count=p->gcin_count;
+	p->gcout4a_count=p->gcout_count;
+	
     
     prelax = new topo_relax(p);
-    
-    pbedshear  = new bedshear(p,pturb);
+	
+	pbedshear  = new bedshear(p,pturb);
     
     volume_token=0;
     

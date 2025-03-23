@@ -41,8 +41,8 @@ using namespace std;
 class fnpf_ini : public fnpf, public increment, public fnpf_fsf_update, public fnpf_bed_update
 {
 public:
-    fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
-    virtual ~fnpf_ini();
+	fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
+	virtual ~fnpf_ini();
     
     virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*);
     
@@ -63,8 +63,8 @@ private:
     
     int iin,file_type;
     float ffn;
-    double ddn;
-    int printcount;
+	double ddn;
+	int printcount;
     ifstream result;
 
 };

@@ -36,33 +36,33 @@ beam::beam(int number):nBeam(number),iout(0),imas(0),ijac(0)
 
 beam::~beam()
 {
-    delete [] z1;
-    delete [] z2;
-    delete [] z3;
-    delete [] y0;
-    delete [] scal;
-    delete [] f1;
-    delete [] f2;
-    delete [] f3;
-    delete [] cont;
-    delete [] ip1;
-    delete [] ip2;
-    delete rtoler;
-    delete atoler;
-    delete [] iphes;
-    for (int i = 0; i < lde1; i++) {
-        delete [] e1[i];
-        delete [] e2r[i];
-        delete [] e2i[i];
-    }
-    for (int i = 0; i < ldjac; i++) delete [] fjac[i];
-    for (int i = 0; i < ldmas; i++) delete [] fmas[i];
-    delete [] e1;
-    delete [] e2r;
-    delete [] e2i;
-    delete [] fjac;
-    delete [] fmas;
-    delete [] y;
+	delete [] z1;
+	delete [] z2;
+	delete [] z3;
+	delete [] y0;
+	delete [] scal;
+	delete [] f1;
+	delete [] f2;
+	delete [] f3;
+	delete [] cont;
+	delete [] ip1;
+	delete [] ip2;
+	delete rtoler;
+	delete atoler;
+	delete [] iphes;
+	for (int i = 0; i < lde1; i++) {
+		delete [] e1[i];
+		delete [] e2r[i];
+		delete [] e2i[i];
+	}
+	for (int i = 0; i < ldjac; i++) delete [] fjac[i];
+	for (int i = 0; i < ldmas; i++) delete [] fmas[i];
+	delete [] e1;
+	delete [] e2r;
+	delete [] e2i;
+	delete [] fjac;
+	delete [] fmas;
+	delete [] y;
 }
 
 void beam::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)

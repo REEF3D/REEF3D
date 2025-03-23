@@ -47,39 +47,39 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     // FI ------------------------------------------------
     FLOOP
     {
-        dg = distgen(p); 
+		dg = distgen(p); 
         db = distbeach(p); 
 
-        // Wave Generation
-        if(p->B98==2)
+		// Wave Generation
+		if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
             ++ppt_count;
 
-        }
+		}
         
         if(p->B99==1||p->B99==2)
-        {
+		{
             if(db<1.0e20)
             ++dbcount;
         }
-    }    
+    }	
 
 // ETA ------------------------------------------------
     SLICEBASELOOP
     {
-        dg = distgen(p); 
+		dg = distgen(p); 
 
-        // Wave Generation
-        if(p->B98==2)
+		// Wave Generation
+		if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
             ++ept_count;
 
-        }
-    }    
+		}
+    }	
     
     // precalc array alloc
     p->Darray(Fival,ppt_count);
@@ -128,11 +128,11 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
         db = distbeach(p); 
         
         if(p->B99==1||p->B99==2)
-        {
+		{
             if(db<1.0e20)
             ++dbcount;
         }
-    }    
+    }	
     
     for(n=0;n<p->gcslin_count;n++)
     {

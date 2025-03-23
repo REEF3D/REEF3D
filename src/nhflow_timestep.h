@@ -35,18 +35,18 @@ using namespace std;
 class nhflow_timestep : public increment
 {
 public:
-    nhflow_timestep(lexer*);
-    virtual ~nhflow_timestep();
-    virtual void start(lexer*,fdm_nhf*,ghostcell*);
-    virtual void ini(lexer*,fdm_nhf*,ghostcell*);
+	nhflow_timestep(lexer*);
+	virtual ~nhflow_timestep();
+	virtual void start(lexer*,fdm_nhf*,ghostcell*);
+	virtual void ini(lexer*,fdm_nhf*,ghostcell*);
 
 
 private:
-    double wallu,wallv,wallw;
-    double cu,cv,cw,co;
-    const double epsi;
-    double isor,jsor,ksor;
-    double irsm,jrsm,krsm;
+	double wallu,wallv,wallw;
+	double cu,cv,cw,co;
+	const double epsi;
+	double isor,jsor,ksor;
+	double irsm,jrsm,krsm;
     const double maxtimestep, c0_orig;
     double dx,dz;
 

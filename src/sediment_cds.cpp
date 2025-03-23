@@ -53,7 +53,7 @@ double sediment_cds::sy(lexer *p, slice &f, double jvel1, double jvel2)
     
     if(p->S31==2)
     grad = (f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-              
+			  
     return grad;  
 }
 

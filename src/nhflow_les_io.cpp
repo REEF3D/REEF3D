@@ -42,21 +42,21 @@ void nhflow_les_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, ofstream &res
     result.write((char*)&iin, sizeof (int));
 
     TPLOOP
-    {
-    if(p->j_dir==0)
+	{
+	if(p->j_dir==0)
     {
     jj=j;
     j=0;
-    ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
+	ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
     j=jj;
     }
     
     if(p->j_dir==1)
-    ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
+	ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
         
         
-    result.write((char*)&ffn, sizeof (float));
-    }
+	result.write((char*)&ffn, sizeof (float));
+	}
 
 }
 
@@ -140,7 +140,7 @@ void nhflow_les_io::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &res
 void nhflow_les_io::offset_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-    ++n;
+	++n;
 }
 
 
@@ -163,18 +163,18 @@ void nhflow_les_io::tau_calc(fdm_nhf *d, lexer* p, double maxwdist)
 
 void nhflow_les_io::isource(lexer *p, fdm_nhf *d)
 {
-    LOOP
-    d->F[IJK]=0.0;
+	LOOP
+	d->F[IJK]=0.0;
 }
 
 void nhflow_les_io::jsource(lexer *p, fdm_nhf *d)
 {
-    LOOP
-    d->G[IJK]=0.0;
+	LOOP
+	d->G[IJK]=0.0;
 }
 
 void nhflow_les_io::ksource(lexer *p, fdm_nhf *d)
 {
-    LOOP
-    d->H[IJK]=0.0;
+	LOOP
+	d->H[IJK]=0.0;
 }

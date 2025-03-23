@@ -41,8 +41,8 @@ void vtu3D::name_iter(fdm* a,lexer* p,ghostcell* pgc)
 
     sprintf(epsvar,"epsilon");
 
-    if(p->T10==2||p->T10==12 || p->T10==22)
-    sprintf(epsvar,"omega");
+	if(p->T10==2||p->T10==12 || p->T10==22)
+	sprintf(epsvar,"omega");
 
 
 }

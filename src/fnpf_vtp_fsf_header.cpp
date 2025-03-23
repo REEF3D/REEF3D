@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<string>
 
 void fnpf_vtp_fsf::name_iter(lexer *p, fdm_fnpf *c, ghostcell* pgc)
-{    
+{	
     int num=0;
 
     if(p->P15==1)

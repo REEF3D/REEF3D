@@ -28,43 +28,43 @@ Author: Hans Bihs
 
 void sixdof_obj::ray_cast_direct(lexer *p, fdm *a, ghostcell *pgc, int ts, int te)
 {
-    double ys,ye,zs,ze;
-    double Px,Py,Pz;
-    double Qx,Qy,Qz;
-    double Rx,Ry,Rz;
-    double Ax,Ay,Az;
-    double Bx,By,Bz;
-    double Cx,Cy,Cz;
-    double PQx,PQy,PQz;
-    double PAx,PAy,PAz;
-    double PBx,PBy,PBz;
-    double PCx,PCy,PCz;
-    double Mx,My,Mz;
-    int is,ie,js,je,ks,ke;
-    int ir;
-    double u,v,w;
-    double denom;    
-    int checkin;
-    double psi = 1.0e-8*p->DXM;
+	double ys,ye,zs,ze;
+	double Px,Py,Pz;
+	double Qx,Qy,Qz;
+	double Rx,Ry,Rz;
+	double Ax,Ay,Az;
+	double Bx,By,Bz;
+	double Cx,Cy,Cz;
+	double PQx,PQy,PQz;
+	double PAx,PAy,PAz;
+	double PBx,PBy,PBz;
+	double PCx,PCy,PCz;
+	double Mx,My,Mz;
+	int is,ie,js,je,ks,ke;
+	int ir;
+	double u,v,w;
+	double denom;	
+	int checkin;
+	double psi = 1.0e-8*p->DXM;
     double dist;
 
-    for(n=ts; n<te; ++n)
-    {
-    Ax = tri_x[n][0];
-    Ay = tri_y[n][0];
-    Az = tri_z[n][0];
-        
-    Bx = tri_x[n][1];
-    By = tri_y[n][1];
-    Bz = tri_z[n][1];
-        
-    Cx = tri_x[n][2];
-    Cy = tri_y[n][2];
-    Cz = tri_z[n][2];
-    
+	for(n=ts; n<te; ++n)
+	{
+	Ax = tri_x[n][0];
+	Ay = tri_y[n][0];
+	Az = tri_z[n][0];
+		
+	Bx = tri_x[n][1];
+	By = tri_y[n][1];
+	Bz = tri_z[n][1];
+		
+	Cx = tri_x[n][2];
+	Cy = tri_y[n][2];
+	Cz = tri_z[n][2];
+	
     checkin = 0;
     
-    if(Ax>=p->global_xmin && Ax<=p->global_xmax 
+	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
     && Ay>=p->global_ymin && Ay<=p->global_ymax
     && Az>=p->global_zmin && Az<=p->global_zmax)
     checkin=1;
@@ -82,37 +82,37 @@ void sixdof_obj::ray_cast_direct(lexer *p, fdm *a, ghostcell *pgc, int ts, int t
     if(checkin==1)
     {
     xs = MIN3(Ax,Bx,Cx);
-    xe = MAX3(Ax,Bx,Cx);
+	xe = MAX3(Ax,Bx,Cx);
     
-    ys = MIN3(Ay,By,Cy);
-    ye = MAX3(Ay,By,Cy);
-    
-    zs = MIN3(Az,Bz,Cz);
-    ze = MAX3(Az,Bz,Cz);
+	ys = MIN3(Ay,By,Cy);
+	ye = MAX3(Ay,By,Cy);
+	
+	zs = MIN3(Az,Bz,Cz);
+	ze = MAX3(Az,Bz,Cz);
     
 
-    is = p->posc_i(xs)-2;
-    ie = p->posc_i(xe)+2;
+	is = p->posc_i(xs)-2;
+	ie = p->posc_i(xe)+2;
     
     js = p->posc_j(ys)-2;
-    je = p->posc_j(ye)+2;
-    
-    ks = p->posc_k(zs)-2;
-    ke = p->posc_k(ze)+2;    
+	je = p->posc_j(ye)+2;
+	
+	ks = p->posc_k(zs)-2;
+	ke = p->posc_k(ze)+2;	
 
-    is = MAX(is,0);
-    ie = MIN(ie,p->knox);
+	is = MAX(is,0);
+	ie = MIN(ie,p->knox);
     
-    js = MAX(js,0);
-    je = MIN(je,p->knoy);
-    
-    ks = MAX(ks,0);
-    ke = MIN(ke,p->knoz);            
+	js = MAX(js,0);
+	je = MIN(je,p->knoy);
+	
+	ks = MAX(ks,0);
+	ke = MIN(ke,p->knoz);			
         
          for(i=is;i<ie;i++)
-        for(j=js;j<je;j++)
-        for(k=ks;k<ke;k++)
-        {
+		for(j=js;j<je;j++)
+		for(k=ks;k<ke;k++)
+		{
         xc = p->XP[IP];
         yc = p->YP[JP];
         zc = p->ZP[KP];
@@ -128,8 +128,8 @@ void sixdof_obj::ray_cast_direct(lexer *p, fdm *a, ghostcell *pgc, int ts, int t
         dist = sqrt(pow(xc-Cx,2.0) + pow(yc-Cy,2.0) + pow(zc-Cz,2.0));
         
         a->fb(i,j,k)=MIN(dist,fabs(a->fb(i,j,k)));
-        }
+		}
+	}
     }
-    }
-    
+	
 }

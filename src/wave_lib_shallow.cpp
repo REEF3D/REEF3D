@@ -65,8 +65,8 @@ double wave_lib_shallow::wave_v(lexer *p, double x, double y, double z)
 double wave_lib_shallow::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
-    
-    teta = wk*x-ww*(p->wavetime) + pshift;
+	
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = wa*sqrt(9.81/wdt) * cos(teta);
 
@@ -76,8 +76,8 @@ double wave_lib_shallow::wave_horzvel(lexer *p, double x, double y, double z)
 double wave_lib_shallow::wave_w(lexer *p, double x, double y, double z)
 {
     double vel;
-    
-    teta = wk*x-ww*(p->wavetime) + pshift;
+	
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = wa*sqrt(9.81/wdt)*((z+wdt)/wdt) * sin(teta);
 
@@ -87,8 +87,8 @@ double wave_lib_shallow::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_shallow::wave_eta(lexer *p, double x, double y)
 {
     double eta;
-    
-    teta = wk*x-ww*(p->wavetime) + pshift;
+	
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     eta =  wa * cos(teta);
 

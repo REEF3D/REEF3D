@@ -31,9 +31,9 @@ using namespace std;
 class bedconc_void : public bedconc, public increment
 {
 public:
-    bedconc_void(lexer*);
-    virtual ~bedconc_void();
-    void start(lexer*,ghostcell*,sediment_fdm*);
+	bedconc_void(lexer*);
+	virtual ~bedconc_void();
+	void start(lexer*,ghostcell*,sediment_fdm*);
 
 
 };

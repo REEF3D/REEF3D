@@ -28,20 +28,20 @@ Author: Hans Bihs
 sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p), ci(p)
 {
     if(p->S50==1)
-    gcval_topo=151;
+	gcval_topo=151;
 
-    if(p->S50==2)
-    gcval_topo=152;
+	if(p->S50==2)
+	gcval_topo=152;
 
-    if(p->S50==3)
-    gcval_topo=153;
-    
-    if(p->S50==4)
-    gcval_topo=154;
+	if(p->S50==3)
+	gcval_topo=153;
+	
+	if(p->S50==4)
+	gcval_topo=154;
 
-    dxs=sqrt(2.0*p->DXM*p->DXM);
-    fac1 = (1.0/6.0);
-    fac2 = (1.0/12.0);
+	dxs=sqrt(2.0*p->DXM*p->DXM);
+	fac1 = (1.0/6.0);
+	fac2 = (1.0/12.0);
 }
 
 sandslide_pde::~sandslide_pde()

@@ -202,7 +202,7 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     
     SLICELOOP4
-    d->depth(i,j) = p->wd - d->bed(i,j);
+	d->depth(i,j) = p->wd - d->bed(i,j);
     }
     
     // --------------

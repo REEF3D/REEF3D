@@ -30,7 +30,7 @@ void sflow_eta::wetdry_nb(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice 
     double eps=1.0e-6;
     
     SLICELOOP4
-    b->hp(i,j) = eta(i,j) + b->depth(i,j);
+	b->hp(i,j) = eta(i,j) + b->depth(i,j);
     
     pgc->gcsl_start4(p,b->hp,gcval_eta);
     

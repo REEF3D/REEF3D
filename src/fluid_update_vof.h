@@ -39,14 +39,14 @@ class fluid_update_vof : public fluid_update, increment
 {
 public:
     fluid_update_vof(lexer*, fdm*, ghostcell*);
-    virtual ~fluid_update_vof();
+	virtual ~fluid_update_vof();
 
-    virtual void start(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, fdm*, ghostcell*);
 
 private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-    const double dx,visc_air,visc_water,ro_air,ro_water,visc_body;
+	const double dx,visc_air,visc_water,ro_air,ro_water,visc_body;
     double epsi;
 
 };

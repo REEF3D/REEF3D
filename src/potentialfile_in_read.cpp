@@ -40,7 +40,7 @@ void potentialfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
     potentialfile.open(name, ios::binary);
 
     while(!potentialfile.eof())
-    {
+	{
     potentialfile.read((char*)&ffn, sizeof (float));
     bedlevel = ffn;
     
@@ -79,7 +79,7 @@ void potentialfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
 
     
     while(!potentialfile.eof())
-    {
+	{
     for(qn=0; qn<2+2*Nk; ++qn)
     potentialfile.read((char*)&ffn, sizeof (float));
     

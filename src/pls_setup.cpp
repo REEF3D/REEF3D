@@ -27,26 +27,26 @@ Author: Hans Bihs
 
 void particle_pls::setup(lexer* p, fdm* a, ghostcell* pgc)
 {
-    LOOP
-    {
-        posnum(i,j,k)=0.0;
-        negnum(i,j,k)=0.0;
-    }
-    
-    pgc->start4(p,posnum,1);
-    pgc->start4(p,negnum,1);
-    
+	LOOP
+	{
+		posnum(i,j,k)=0.0;
+		negnum(i,j,k)=0.0;
+	}
+	
+	pgc->start4(p,posnum,1);
+	pgc->start4(p,negnum,1);
+	
     allocate(p,a,pgc);
     reseed(p,a,pgc,1.0);
     setradius(p,a);
     remove(p,a,pgc);
     
-    if((p->count%p->F34==0 || p->count==0 )&& p->F34>0)
-    {
+	if((p->count%p->F34==0 || p->count==0 )&& p->F34>0)
+	{
     print_vtu(p,a,pgc,pos,posflag,posactive,1);
-    print_vtu(p,a,pgc,neg,negflag,negactive,2);
-    ++printcount;
-    }
+	print_vtu(p,a,pgc,neg,negflag,negactive,2);
+	++printcount;
+	}
 }
 
 

@@ -35,15 +35,15 @@ void iowave::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field&
     inflow_plain(p,a,pgc,u,v,w);
 
     
-    if(p->B98==3)
-    dirichlet_wavegen(p,a,pgc,u,v,w);
+	if(p->B98==3)
+	dirichlet_wavegen(p,a,pgc,u,v,w);
+	
+	if(p->B98==4)
+	active_wavegen(p,a,pgc,u,v,w);
+	}
     
-    if(p->B98==4)
-    active_wavegen(p,a,pgc,u,v,w);
-    }
-    
-    if(p->B99==3||p->B99==4||p->B99==5)
-    active_beach(p,a,pgc,u,v,w);
+	if(p->B99==3||p->B99==4||p->B99==5)
+	active_beach(p,a,pgc,u,v,w);
     
     if(p->I230>0)
     ff_inflow(p,a,pgc,u,v,w);
@@ -65,7 +65,7 @@ void iowave::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
     }
     
     if(p->B99==3||p->B99==4||p->B99==5)
-    active_beach(p,a,pgc,u,v,w);
+	active_beach(p,a,pgc,u,v,w);
     
     pBC->patchBC_rkioflow(p,a,pgc,u,v,w);
 }
@@ -81,12 +81,12 @@ void iowave::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         u(i-1,j,k)=p->Ui;
         u(i-2,j,k)=p->Ui;
         u(i-3,j,k)=p->Ui;
-        
-        v(i-1,j,k)=0.0;
+		
+		v(i-1,j,k)=0.0;
         v(i-2,j,k)=0.0;
         v(i-3,j,k)=0.0;
-        
-        w(i-1,j,k)=0.0;
+		
+		w(i-1,j,k)=0.0;
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
         

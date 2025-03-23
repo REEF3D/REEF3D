@@ -30,8 +30,8 @@ using namespace std;
 class fnpf_void : public fnpf
 {
 public:
-    fnpf_void();
-    virtual ~fnpf_void();
+	fnpf_void();
+	virtual ~fnpf_void();
     
     virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*);
     virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*);

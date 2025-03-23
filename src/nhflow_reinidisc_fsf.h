@@ -34,24 +34,24 @@ using namespace std;
 class nhflow_reinidisc_fsf : public increment, public ddweno_nug_sig
 {
 public:
-    nhflow_reinidisc_fsf(lexer* p);
-    virtual ~nhflow_reinidisc_fsf();
+	nhflow_reinidisc_fsf(lexer* p);
+	virtual ~nhflow_reinidisc_fsf();
     
-    virtual void start(lexer*, fdm_nhf*, ghostcell*, double*, double*);
-    
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, double*, double*);
+	
 private:
 
-    void disc(lexer*, fdm_nhf*, ghostcell*, double*, double*);
-    
-    double xmin,xplus,ymin,yplus,zmin,zplus;
-    double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
-    double uwx,uwy,uwz,ddt;
-    double lsv,dv,lsSig;
-    
-    double dx, dy, dz, dnorm, sign;
-    double sx,sy,sz,snorm,op;
-    
-    double deltax,denom;
+	void disc(lexer*, fdm_nhf*, ghostcell*, double*, double*);
+	
+	double xmin,xplus,ymin,yplus,zmin,zplus;
+	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
+	double uwx,uwy,uwz,ddt;
+	double lsv,dv,lsSig;
+	
+	double dx, dy, dz, dnorm, sign;
+	double sx,sy,sz,snorm,op;
+	
+	double deltax,denom;
 };
 
 #endif

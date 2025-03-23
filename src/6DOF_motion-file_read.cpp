@@ -28,31 +28,31 @@ Authors: Hans Bihs
 void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
 {
     char name[100];
-    double val,val0,val1;
+	double val,val0,val1;
     double sign,beta,s;
-    int count;
-    
-    sprintf(name,"6DOF_motion.dat");
+	int count;
+	
+	sprintf(name,"6DOF_motion.dat");
 
 // open file and count
-    ifstream file(name, ios_base::in);
-    
-    if(!file)
-    cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+	ifstream file(name, ios_base::in);
+	
+	if(!file)
+	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
 
     
     count=0;
-    while(!file.eof())
-    {
+	while(!file.eof())
+	{
         for(qn=0;qn<colnum;++qn)
         file>>val;
-    ++count;
-    }
-    ptnum=count;
+	++count;
+	}
+	ptnum=count;
     
     //cout<<"6DOF MOTION READ "<<count<<endl;
     
-    file.close();
+	file.close();
     
 // allocate
     p->Darray(data,ptnum,colnum);
@@ -60,19 +60,19 @@ void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
 
 // re.open file
     file.open (name, ios_base::in);
-    
-    if(!file)
-    cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+	
+	if(!file)
+	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
     
  // read file   
     rowcount=colcount=0;
-    while(!file.eof())
-    {
+	while(!file.eof())
+	{
         for(qn=0;qn<colnum;++qn)
         file>>data[rowcount][qn];
         
         ++rowcount;
-    }
+	}
     
     ts = data[0][0];
     te = data[ptnum-1][0];

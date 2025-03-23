@@ -76,7 +76,7 @@ double sediment_fou::sy(lexer *p, slice &f, double jvel1, double jvel2)
         
         if(p->S31==2)
         grad = ((fv2-fv1)/p->DYN[JP]);
-              
+			  
     return grad;  
 }
 

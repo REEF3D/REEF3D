@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 vrans_veg::vrans_veg(lexer *p, ghostcell *pgc) : Cval(p->B264), N(p), D(p), Cd(p), un(p), unn(p), vn(p), vnn(p), wn(p), wnn(p)
 {
-    //initialize(p,a,pgc);
+	//initialize(p,a,pgc);
 }
 
 vrans_veg::~vrans_veg()

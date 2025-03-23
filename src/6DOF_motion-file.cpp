@@ -45,7 +45,7 @@ sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc)
     colnum = 5;
     
     timecount_old=0;
-    timecount=1;
+	timecount=1;
     
     // read file
     //if(p->mpirank==0)
@@ -73,8 +73,8 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
     if((p->simtime>data[timecount][0]))
     timecount_old=timecount;
     
-    while(p->simtime>data[timecount][0])
-    ++timecount;
+	while(p->simtime>data[timecount][0])
+	++timecount;
     
     
     if(p->X11_u==2)

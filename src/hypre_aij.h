@@ -41,25 +41,25 @@ class hypre_aij : public solver, public increment
 {
 public:
 
-    hypre_aij(lexer*,fdm*,ghostcell*);
-    virtual ~hypre_aij();
-    virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
+	hypre_aij(lexer*,fdm*,ghostcell*);
+	virtual ~hypre_aij();
+	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
     virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     
-    void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&);
+	void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&);
 
-    void fillxvec1(lexer*,fdm*,field&);
+	void fillxvec1(lexer*,fdm*,field&);
     void fillxvec2(lexer*,fdm*,field&);
     void fillxvec3(lexer*,fdm*,field&);
     void fillxvec4(lexer*,fdm*,field&);
-    void fillbackvec(lexer*,fdm*,field&,vec&,int);
+	void fillbackvec(lexer*,fdm*,field&,vec&,int);
     
     
     void make_grid(lexer*,ghostcell*);
     void delete_grid(lexer*,ghostcell*);
-    void fill_matrix_7p(lexer*,fdm*, ghostcell*,field&);
+	void fill_matrix_7p(lexer*,fdm*, ghostcell*,field&);
     
     void fillbackvec_F(lexer*,double*,double*,int);
     void fillbackvec_F_v2(lexer*,double*,double*,int);
@@ -73,7 +73,7 @@ public:
     void make_grid_F(lexer*, ghostcell*);
     void fill_matrix_F_7p(lexer*,ghostcell*, matrix_diag&,double*,double*,vec&);
 
-    
+	
     
     
 private:
@@ -90,25 +90,25 @@ private:
     
     vec xvec;
    
-    double val[19];
-    int col[19];
-    int *rows;
-    int rownum;
+	double val[19];
+	int col[19];
+	int *rows;
+	int rownum;
     int num_iterations;
     double final_res_norm;
    
     int is,ie,js,je,ks,ke;
-    
+	
     
 // -------------
-    
-    int *sizeM;
+	
+	int *sizeM;
 
-    int numiter,count,q;
-    double resi,y,residual;
-    double p1,p2,p3;
-    int margin;
-    int matlength;
+	int numiter,count,q;
+	double resi,y,residual;
+	double p1,p2,p3;
+	int margin;
+	int matlength;
 
 };
 

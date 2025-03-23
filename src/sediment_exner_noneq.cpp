@@ -123,61 +123,61 @@ starttime=pgc->timer();
 
     n=0;
     SLICELOOP4
-    {
+	{
     Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 1.0e-6)*d50;
     
-    M.p[n]  =  1.0;     
+	M.p[n]  =  1.0;     
                
 
-       M.n[n] = Ls/(p->DXP[IP]+p->DXP[IM1]);
-    M.s[n] = -Ls/(p->DXP[IP]+p->DXP[IM1]);
+   	M.n[n] = Ls/(p->DXP[IP]+p->DXP[IM1]);
+	M.s[n] = -Ls/(p->DXP[IP]+p->DXP[IM1]);
 
-    M.w[n] = Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
-    M.e[n] = -Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
+	M.w[n] = Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
+	M.e[n] = -Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
     
     rhsvec.V[n] = s->qbe(i,j);
     s->qb(i,j)  = s->qbe(i,j);
     
-    ++n;
-    }
-    
-    
+	++n;
+	}
+	
+	
     n=0;
-    SLICELOOP4
-    {
-        if(p->flagslice4[Im1J]<0)
-        {
-        rhsvec.V[n] -= M.s[n]*s->qb(i-1,j);
-        M.s[n] = 0.0;
-        }
-        
-        if(p->flagslice4[Ip1J]<0)
-        {
-        rhsvec.V[n] -= M.n[n]*s->qb(i+1,j);
-        M.n[n] = 0.0;
-        }
-        
-        if(p->flagslice4[IJm1]<0)
-        {
-        rhsvec.V[n] -= M.e[n]*s->qb(i,j-1);
-        M.e[n] = 0.0;
-        }
-        
-        if(p->flagslice4[IJp1]<0)
-        {
-        rhsvec.V[n] -= M.w[n]*s->qb(i,j+1);
-        M.w[n] = 0.0;
-        }
-        
-    ++n;
-    }
+	SLICELOOP4
+	{
+		if(p->flagslice4[Im1J]<0)
+		{
+		rhsvec.V[n] -= M.s[n]*s->qb(i-1,j);
+		M.s[n] = 0.0;
+		}
+		
+		if(p->flagslice4[Ip1J]<0)
+		{
+		rhsvec.V[n] -= M.n[n]*s->qb(i+1,j);
+		M.n[n] = 0.0;
+		}
+		
+		if(p->flagslice4[IJm1]<0)
+		{
+		rhsvec.V[n] -= M.e[n]*s->qb(i,j-1);
+		M.e[n] = 0.0;
+		}
+		
+		if(p->flagslice4[IJp1]<0)
+		{
+		rhsvec.V[n] -= M.w[n]*s->qb(i,j+1);
+		M.w[n] = 0.0;
+		}
+		
+	++n;
+	}
     
     psolv->start(p,pgc,qb,M,xvec,rhsvec,4);
     
     pgc->gcsl_start4(p,qb,1);
     
-    time=pgc->timer()-starttime;
-    p->uiter=p->solveriter;
-    if(p->mpirank==0 && p->count%p->P12==0)
-    cout<<"qb_iter: "<<p->uiter<<"  qb_time: "<<setprecision(3)<<time<<endl;*/
+	time=pgc->timer()-starttime;
+	p->uiter=p->solveriter;
+	if(p->mpirank==0 && p->count%p->P12==0)
+	cout<<"qb_iter: "<<p->uiter<<"  qb_time: "<<setprecision(3)<<time<<endl;*/
 }

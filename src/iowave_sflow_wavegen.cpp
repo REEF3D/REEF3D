@@ -32,18 +32,18 @@ void iowave::wavegen2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
     
     p->wavetime = p->simtime;
     
-    for(n=0;n<p->gcslin_count;n++)
+	for(n=0;n<p->gcslin_count;n++)
     {
-        i=p->gcslin[n][0];
-        j=p->gcslin[n][1];
+		i=p->gcslin[n][0];
+		j=p->gcslin[n][1];
 
         x=xgen(p);
         y=ygen(p);
         x1=xgen1(p);
         y2=ygen2(p);
-        
+		
         // u
-        deltaz = (0.5*(eta(i,j)+eta(i+1,j)) + p->wd - 0.5*(bed(i,j)+bed(i+1,j)))/(double(p->B160));
+		deltaz = (0.5*(eta(i,j)+eta(i+1,j)) + p->wd - 0.5*(bed(i,j)+bed(i+1,j)))/(double(p->B160));
         
         uval=0.0;
         z=-p->wd;
@@ -91,5 +91,5 @@ void iowave::wavegen2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
         eta(i-1,j)=wave_eta(p,pgc,x,y);
         eta(i-2,j)=wave_eta(p,pgc,x,y);
         eta(i-3,j)=wave_eta(p,pgc,x,y);
-    }    
+    }	
 }

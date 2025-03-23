@@ -25,121 +25,121 @@ Author: Hans Bihs
 
 void mgcslice1::make_ggc(lexer* p)
 {
-    p->ggcslsize1=1;
-    p->Iarray(p->ggcsl1,p->ggcslsize1,3);
+	p->ggcslsize1=1;
+	p->Iarray(p->ggcsl1,p->ggcslsize1,3);
 }
 
 void mgcslice1::fill_ggc(lexer* p)
 {
-    int q,qq,n,nn,a;
-    int check;
+	int q,qq,n,nn,a;
+	int check;
 
-    p->Iarray(p->ggcslmem1,imax*jmax);
+	p->Iarray(p->ggcslmem1,imax*jmax);
 
 //--------------------------
 //WALL1
 
-    GCSL1LOOP
-    {
+	GCSL1LOOP
+	{
         i=p->gcbsl1[n][0];
-        j=p->gcbsl1[n][1];
+		j=p->gcbsl1[n][1];
 
-        if(p->gcbsl1[n][3]==1)
-        for(q=0;q<p->margin;++q)
+		if(p->gcbsl1[n][3]==1)
+		for(q=0;q<p->margin;++q)
         p->ggcslmem1[(i-imin-q-1)*jmax + (j-jmin)]+=1;
 
-        if(p->gcbsl1[n][3]==4)
-        for(q=0;q<p->margin;++q)
-        p->ggcslmem1[(i-imin+q+1)*jmax + (j-jmin)]+=1;
+		if(p->gcbsl1[n][3]==4)
+		for(q=0;q<p->margin;++q)
+		p->ggcslmem1[(i-imin+q+1)*jmax + (j-jmin)]+=1;
 
-        if(p->gcbsl1[n][3]==3)
-        for(q=0;q<p->margin;++q)
+		if(p->gcbsl1[n][3]==3)
+		for(q=0;q<p->margin;++q)
         p->ggcslmem1[(i-imin)*jmax + (j-jmin-q-1)]+=1;
 
-        if(p->gcbsl1[n][3]==2)
-        for(q=0;q<p->margin;++q)
-        p->ggcslmem1[(i-imin)*jmax + (j-jmin+q+1)]+=1;
+		if(p->gcbsl1[n][3]==2)
+		for(q=0;q<p->margin;++q)
+		p->ggcslmem1[(i-imin)*jmax + (j-jmin+q+1)]+=1;
 
-    }
+	}
 
 // count entries
-    p->ggcslcount1=0;
-    a=0;
-    for(i=0;i<imax;++i)
-    for(j=0;j<jmax;++j)
-    {
+	p->ggcslcount1=0;
+	a=0;
+	for(i=0;i<imax;++i)
+	for(j=0;j<jmax;++j)
+	{
         if(p->ggcslmem1[a]>1)
         ++p->ggcslcount1;
 
-    ++a;
-    }
+	++a;
+	}
 
-    p->Iresize(p->ggcsl1,p->ggcslsize1,p->ggcslcount1*p->margin, 3, 3);
-    p->ggcslsize1=p->ggcslcount1*p->margin;
+	p->Iresize(p->ggcsl1,p->ggcslsize1,p->ggcslcount1*p->margin, 3, 3);
+	p->ggcslsize1=p->ggcslcount1*p->margin;
 
 //--------------------------
 //WALL2
-    n=0;
-    QQGCSL1LOOP
-    {
+	n=0;
+	QQGCSL1LOOP
+	{
         i=p->gcbsl1[qq][0];
-        j=p->gcbsl1[qq][1];
+		j=p->gcbsl1[qq][1];
 
-        if(p->gcbsl1[qq][3]==1)
-        for(q=0;q<p->margin;++q)
-        if(p->ggcslmem1[(i-imin-q-1)*jmax + (j-jmin)]>1)
+		if(p->gcbsl1[qq][3]==1)
+		for(q=0;q<p->margin;++q)
+		if(p->ggcslmem1[(i-imin-q-1)*jmax + (j-jmin)]>1)
         {
             if(p->ggcslmem1[(i-imin-q-1)*jmax + (j-jmin)]<10)
             {
              p->ggcslmem1[(i-imin-q-1)*jmax + (j-jmin)]=n+10;
-             p->ggcsl1[n][0]=i-q-1;
-             p->ggcsl1[n][1]=j;
-             ++n;
+			 p->ggcsl1[n][0]=i-q-1;
+			 p->ggcsl1[n][1]=j;
+			 ++n;
             }
         }
 
         if(p->gcbsl1[qq][3]==4)
         for(q=0;q<p->margin;++q)
-        if(p->ggcslmem1[(i-imin+q+1)*jmax + (j-jmin)]>1)
+		if(p->ggcslmem1[(i-imin+q+1)*jmax + (j-jmin)]>1)
         {
             if(p->ggcslmem1[(i-imin+q+1)*jmax + (j-jmin)]<10)
             {
             p->ggcslmem1[(i-imin+q+1)*jmax + (j-jmin)]=n+10;
-            p->ggcsl1[n][0]=i+q+1;
-            p->ggcsl1[n][1]=j;
-            ++n;
+			p->ggcsl1[n][0]=i+q+1;
+			p->ggcsl1[n][1]=j;
+			++n;
             }
         }
 
         if(p->gcbsl1[qq][3]==3)
         for(q=0;q<p->margin;++q)
-        if(p->ggcslmem1[(i-imin)*jmax + (j-jmin-q-1)]>1)
+		if(p->ggcslmem1[(i-imin)*jmax + (j-jmin-q-1)]>1)
         {
             if(p->ggcslmem1[(i-imin)*jmax + (j-jmin-q-1)]<10)
             {
             p->ggcslmem1[(i-imin)*jmax + (j-jmin-q-1)]=n+10;
-            p->ggcsl1[n][0]=i;
-            p->ggcsl1[n][1]=j-q-1;
-            ++n;
+			p->ggcsl1[n][0]=i;
+			p->ggcsl1[n][1]=j-q-1;
+			++n;
             }
         }
 
-        if(p->gcbsl1[qq][3]==2)
-        for(q=0;q<p->margin;++q)
-        if(p->ggcslmem1[(i-imin)*jmax + (j-jmin+q+1)]>1)
+		if(p->gcbsl1[qq][3]==2)
+		for(q=0;q<p->margin;++q)
+		if(p->ggcslmem1[(i-imin)*jmax + (j-jmin+q+1)]>1)
         {
             if(p->ggcslmem1[(i-imin)*jmax + (j-jmin+q+1)]<10)
             {
             p->ggcslmem1[(i-imin)*jmax + (j-jmin+q+1)]=n+10;
-            p->ggcsl1[n][0]=i;
-            p->ggcsl1[n][1]=j+q+1;
-            ++n;
+			p->ggcsl1[n][0]=i;
+			p->ggcsl1[n][1]=j+q+1;
+			++n;
             }
         }
-    }
-    p->ggcslcount1=n;
+	}
+	p->ggcslcount1=n;
 
-    p->del_Iarray(p->ggcslmem1,imax*jmax);
+	p->del_Iarray(p->ggcslmem1,imax*jmax);
 }
 
 

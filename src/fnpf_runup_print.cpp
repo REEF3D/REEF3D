@@ -31,9 +31,9 @@ Author: Hans Bihs
 void fnpf_runup::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
     // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_FNPF_Runup",0777);
-    
+	if(p->mpirank==0)
+	mkdir("./REEF3D_FNPF_Runup",0777);
+	
     if(p->mpirank==0)
     {
         // open fnpf_runup file
@@ -48,7 +48,7 @@ void fnpf_runup::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
         fout<<"it \t time \t R1 \t R2 \t R3 \t R4 \t R5 \t R6";
 
         fout<<endl;
-    }
+	}
 }
 
 void fnpf_runup::print_fnpf_runup(lexer* p, fdm_fnpf *c, ghostcell *pgc)

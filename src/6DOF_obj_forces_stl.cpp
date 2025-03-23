@@ -28,17 +28,17 @@ Author: Hans Bihs
 
 void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {
-    double x0,x1,x2,y0,y1,y2,z0,z1,z2;
-    double xc,yc,zc;
-    double at,bt,ct,st;
-    double nx,ny,nz,norm;
-    double A_triang,A;
-    double p_int,rho_int,nu_int,enu_int,u_int,v_int,w_int;
-    double du,dv,dw, dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
-    double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
-    double dudxb, dudyb, dudzb, dvdxb, dvdyb, dvdzb, dwdxb, dwdyb, dwdzb;
-    double xlocvel,ylocvel,zlocvel,xlocp,ylocp,zlocp;
-    double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
+	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
+	double xc,yc,zc;
+	double at,bt,ct,st;
+	double nx,ny,nz,norm;
+	double A_triang,A;
+	double p_int,rho_int,nu_int,enu_int,u_int,v_int,w_int;
+	double du,dv,dw, dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
+	double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
+	double dudxb, dudyb, dudzb, dvdxb, dvdyb, dvdzb, dwdxb, dwdyb, dwdzb;
+	double xlocvel,ylocvel,zlocvel,xlocp,ylocp,zlocp;
+	double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
 
     A=0.0;
@@ -51,7 +51,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
 
     for (int n = 0; n < tricount; ++n)
     {     
-        // Vertices of triangle
+		// Vertices of triangle
         x0 = tri_x[n][0];
         y0 = tri_y[n][0];
         z0 = tri_z[n][0];
@@ -63,63 +63,63 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
         x2 = tri_x[n][2];
         y2 = tri_y[n][2];
         z2 = tri_z[n][2];  
-           
-        // Center of triangle
-        xc = (x0 + x1 + x2)/3.0;
-        yc = (y0 + y1 + y2)/3.0;
-        zc = (z0 + z1 + z2)/3.0;
+		   
+		// Center of triangle
+		xc = (x0 + x1 + x2)/3.0;
+		yc = (y0 + y1 + y2)/3.0;
+		zc = (z0 + z1 + z2)/3.0;
         
              /*at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-            bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
-            ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-                
-            st = 0.5*(at+bt+ct);
-                
-            A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
-                
+			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
+			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+				
+			st = 0.5*(at+bt+ct);
+				
+			A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+				
 
-            // Normal vectors (always pointing outwards)      
+			// Normal vectors (always pointing outwards)      
             nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
             ny = (x2 - x0)*(z1 - z0) - (x1 - x0)*(z2 - z0); 
             nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
 
-            norm = sqrt(nx*nx + ny*ny + nz*nz);
-            
-            nx /= norm > 1.0e-20 ? norm : 1.0e20;
-            ny /= norm > 1.0e-20 ? norm : 1.0e20;
-            nz /= norm > 1.0e-20 ? norm : 1.0e20;*/
+			norm = sqrt(nx*nx + ny*ny + nz*nz);
+			
+			nx /= norm > 1.0e-20 ? norm : 1.0e20;
+			ny /= norm > 1.0e-20 ? norm : 1.0e20;
+			nz /= norm > 1.0e-20 ? norm : 1.0e20;*/
         
  
-        if (xc >= p->originx && xc < p->endx &&
-            yc >= p->originy && yc < p->endy &&
-            zc >= p->originz && zc < p->endz)
-        {
+		if (xc >= p->originx && xc < p->endx &&
+			yc >= p->originy && yc < p->endy &&
+			zc >= p->originz && zc < p->endz)
+		{
             // Position of triangle
             i = p->posc_i(xc);
             j = p->posc_j(yc);
             k = p->posc_k(zc);
-            
+			
             // Area of triangle using Heron's formula
-            at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-            bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
-            ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-                
-            st = 0.5*(at+bt+ct);
-                
-            A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
-                
+			at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
+			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
+			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
+				
+			st = 0.5*(at+bt+ct);
+				
+			A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+				
 
-            // Normal vectors (always pointing outwards)      
-                
-            nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-            ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-            nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
+			// Normal vectors (always pointing outwards)      
+				
+			nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
+			ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
+			nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
 
-            norm = sqrt(nx*nx + ny*ny + nz*nz);
-            
-            nx /= norm > 1.0e-20 ? norm : 1.0e20;
-            ny /= norm > 1.0e-20 ? norm : 1.0e20;
-            nz /= norm > 1.0e-20 ? norm : 1.0e20;
+			norm = sqrt(nx*nx + ny*ny + nz*nz);
+			
+			nx /= norm > 1.0e-20 ? norm : 1.0e20;
+			ny /= norm > 1.0e-20 ? norm : 1.0e20;
+			nz /= norm > 1.0e-20 ? norm : 1.0e20;
             
             if(p->j_dir==0)
             ny=0.0;
@@ -138,7 +138,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             if(p->j_dir==0)
             Fp_y = 0.0;
              
-           
+		   
     // Add viscous stress contributions
         
             double ustar, uplus, dist, value;
@@ -158,12 +158,12 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             zlocvel = zc + p->X43*nz*p->DZP[KP];
             
              nu_int = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
-            enu_int = 0.0; //p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
-            rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
-            
+			enu_int = 0.0; //p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
+			rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
+	        
              i = p->posc_i(xlocvel);
-            j = p->posc_j(ylocvel);
-            k = p->posc_k(zlocvel);
+			j = p->posc_j(ylocvel);
+			k = p->posc_k(zlocvel);
             
             dudx = (uvel(i+1,j,k) - uvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
             dudy = (uvel(i,j+1,k) - uvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
@@ -196,7 +196,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
             vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
             wval=p->ccipol3(wvel,xlocvel,ylocvel,zlocvel);
-            
+	        
             i = p->posc_i(xlocvel);
             j = p->posc_j(ylocvel);
             k = p->posc_k(zlocvel);
@@ -245,7 +245,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             nu_int  = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
             enu_int = p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
             rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
-            
+	        
             i = p->posc_i(xlocvel);
             j = p->posc_j(ylocvel);
             k = p->posc_k(zlocvel);
@@ -298,7 +298,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
             vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
             wval=p->ccipol3(wvel,xlocvel,ylocvel,zlocvel);
-            
+	        
             i = p->posc_i(xlocvel);
             j = p->posc_j(ylocvel);
             k = p->posc_k(zlocvel);
@@ -339,14 +339,14 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             Fz = Fp_z + Fv_z;
             
 
-            // Add forces to global forces
-            Xe += Fx;
-            Ye += Fy;
-            Ze += Fz;
+			// Add forces to global forces
+			Xe += Fx;
+			Ye += Fy;
+			Ze += Fz;
 
-            Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
-            Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
-            Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
+			Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
+			Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
+			Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
             
             Xe_p += Fp_x;
             Ye_p += Fp_y;
@@ -355,41 +355,41 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             Xe_v += Fv_x;
             Ye_v += Fv_y;
             Ze_v += Fv_z;
-                            
-            A += A_triang;
-        }
-    }        
+							
+			A += A_triang;
+		}
+	}		
  
-    // Communication with other processors
-    
+	// Communication with other processors
+	
     A = pgc->globalsum(A);
-    
-    Xe = pgc->globalsum(Xe);
-    Ye = pgc->globalsum(Ye);
-    Ze = pgc->globalsum(Ze);
-    Ke = pgc->globalsum(Ke);
-    Me = pgc->globalsum(Me);
-    Ne = pgc->globalsum(Ne);
+	
+	Xe = pgc->globalsum(Xe);
+	Ye = pgc->globalsum(Ye);
+	Ze = pgc->globalsum(Ze);
+	Ke = pgc->globalsum(Ke);
+	Me = pgc->globalsum(Me);
+	Ne = pgc->globalsum(Ne);
 
-    Xe_p = pgc->globalsum(Xe_p);
-    Ye_p = pgc->globalsum(Ye_p);
-    Ze_p = pgc->globalsum(Ze_p);
-    Xe_v = pgc->globalsum(Xe_v);
-    Ye_v = pgc->globalsum(Ye_v);
-    Ze_v = pgc->globalsum(Ze_v);
+	Xe_p = pgc->globalsum(Xe_p);
+	Ye_p = pgc->globalsum(Ye_p);
+	Ze_p = pgc->globalsum(Ze_p);
+	Xe_v = pgc->globalsum(Xe_v);
+	Ye_v = pgc->globalsum(Ye_v);
+	Ze_v = pgc->globalsum(Ze_v);
 
-    // Add gravity force
-    
+	// Add gravity force
+	
     if(p->mpirank==0)
     cout<<"Hydrodynamic Forces:  Fx_p: "<<Xe_p<<" Fy_p: "<<Ye_p<<" Fz_p: "<<Ze_p<<"  |  Fx_v: "<<Xe_v<<" Fy_v: "<<Ye_v<<" Fz_v: "<<Ze_v<<endl;
     
-    Xe += a->gi*Mass_fb;
-    Ye += a->gj*Mass_fb;
-    Ze += a->gk*Mass_fb;
+	Xe += a->gi*Mass_fb;
+	Ye += a->gj*Mass_fb;
+	Ze += a->gk*Mass_fb;
 
 
     // Print results
-    
+	
     if (p->mpirank==0 && finalize==1) 
     {
 
@@ -398,6 +398,6 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
 
     }
 
-    if (p->mpirank==0)
-    cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
+	if (p->mpirank==0)
+	cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
 }

@@ -31,15 +31,15 @@ void ioflow_f::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
     Qin2D(p,b,pgc);
     Qout2D(p,b,pgc);
 
-    if(p->count==0)
+	if(p->count==0)
     if(p->mpirank==0)
     {
     cout<<"Inflow_0:  "<<setprecision(5)<<p->W10<<" Ui: "<<p->Ui<<" Ai: "<<Ai<<" Hi: "<<Hi<<endl;
     cout<<"Outflow_0: "<<setprecision(5)<<p->W10<<" Uo: "<<p->Uo<<" Ao: "<<Ao<<" Ho: "<<Ho<<endl;
     }
-    
-    if(p->count>0)
-    if(p->mpirank==0)
+	
+	if(p->count>0)
+	if(p->mpirank==0)
     {
     cout<<"Inflow:  "<<setprecision(5)<<p->Qi<<" Ui: "<<p->Ui<<" Ai: "<<Ai<<" Hi: "<<Hi<<endl;
     cout<<"Outflow: "<<setprecision(5)<<p->Qo<<" Uo: "<<p->Uo<<" Ao: "<<Ao<<" Ho: "<<Ho<<endl;
@@ -132,20 +132,20 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     hcount=pgc->globalisum(hcount);
     
     Ho = Ho/(hcount>1.0e-20?hcount:1.0e20); 
-    
-    if(p->B60==1)
-    p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
-    
+	
+	if(p->B60==1)
+	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
+	
     if(p->I10==1 && p->count<=1)
-    p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
     
-    if(p->B60==2)
-    p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
-    
-    if(p->B60==3 || p->B60==4)
-    p->Uo=hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
-    
-    if(p->mpirank==0 && (p->B60==3 || p->B60==4))
+	if(p->B60==2)
+	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
+	
+	if(p->B60==3 || p->B60==4)
+	p->Uo=hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
+	
+	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)<<endl;
 }
 

@@ -37,8 +37,8 @@ using namespace std;
 class ptf_RK3 : public ptf, public ptf_fsfbc
 {
 public:
-    ptf_RK3(lexer*, fdm*, ghostcell*);
-    virtual ~ptf_RK3();
+	ptf_RK3(lexer*, fdm*, ghostcell*);
+	virtual ~ptf_RK3();
     
     virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*);

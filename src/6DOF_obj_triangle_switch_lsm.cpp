@@ -28,9 +28,9 @@ void sixdof_obj::triangle_switch_lsm(lexer *p, ghostcell *pgc)
 {
     /*
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
-    double xc,yc,zc;
-    double at,bt,ct,st;
-    double nx,ny,nz,norm;
+	double xc,yc,zc;
+	double at,bt,ct,st;
+	double nx,ny,nz,norm;
     double n0,n1,n2;
     double fbval;
     
@@ -75,15 +75,15 @@ void sixdof_obj::triangle_switch_lsm(lexer *p, ghostcell *pgc)
         nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
 
         norm = sqrt(nx*nx + ny*ny + nz*nz);
-            
+			
         nx /= norm > 1.0e-20 ? norm : 1.0e20;
         ny /= norm > 1.0e-20 ? norm : 1.0e20;
         nz /= norm > 1.0e-20 ? norm : 1.0e20;
         
         // Center of triangle
-        xc = (x0 + x1 + x2)/3.0;
-        yc = (y0 + y1 + y2)/3.0;
-        zc = (z0 + z1 + z2)/3.0;
+		xc = (x0 + x1 + x2)/3.0;
+		yc = (y0 + y1 + y2)/3.0;
+		zc = (z0 + z1 + z2)/3.0;
         
         // switch list
         if( xc >= p->originx && xc <= p->endx &&
@@ -134,15 +134,15 @@ void sixdof_obj::triangle_switch_lsm(lexer *p, ghostcell *pgc)
         nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
 
         norm = sqrt(nx*nx + ny*ny + nz*nz);
-            
+			
         nx /= norm > 1.0e-20 ? norm : 1.0e20;
         ny /= norm > 1.0e-20 ? norm : 1.0e20;
         nz /= norm > 1.0e-20 ? norm : 1.0e20;
         
         // Center of triangle
-        xc = (x0 + x1 + x2)/3.0;
-        yc = (y0 + y1 + y2)/3.0;
-        zc = (z0 + z1 + z2)/3.0;
+		xc = (x0 + x1 + x2)/3.0;
+		yc = (y0 + y1 + y2)/3.0;
+		zc = (z0 + z1 + z2)/3.0;
         
         //if((p->j_dir==1 || fabs(ny)<0.001))
         //cout<<"yc: "<<yc<<" j: "<<j<<" fbval: "<<fbval<<endl;
@@ -169,8 +169,8 @@ void sixdof_obj::triangle_switch_lsm(lexer *p, ghostcell *pgc)
             norm = sqrt(n0*n0 + n1*n1 + n2*n2);
             
              n0 /= norm > 1.0e-20 ? norm : 1.0e20;
-            n1 /= norm > 1.0e-20 ? norm : 1.0e20;
-            n2 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n1 /= norm > 1.0e-20 ? norm : 1.0e20;
+			n2 /= norm > 1.0e-20 ? norm : 1.0e20;
 
             if((n0>0.0 && nx<0.0 || n0<0.0 && nx>0.0) || (n2>0.0 && nz<0.0 || n2<0.0 && nz>0.0))
             fbval=-1.0;

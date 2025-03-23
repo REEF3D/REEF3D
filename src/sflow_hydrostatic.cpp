@@ -49,19 +49,19 @@ void sflow_hydrostatic::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psol
 }
 
 void sflow_hydrostatic::ucorr(lexer* p, fdm2D* b, slice& uvel, slice &eta,double alpha)
-{    
+{	
 }
 
 void sflow_hydrostatic::vcorr(lexer* p, fdm2D* b, slice& vvel, slice &eta,double alpha)
-{    
+{	
 }
 
 void sflow_hydrostatic::wcorr(lexer* p, fdm2D* b,double alpha, slice &uvel, slice &vvel, slice &ws)
-{    
+{	
 }
 
 void sflow_hydrostatic::wcalc(lexer* p, fdm2D* b,double alpha, slice &uvel, slice &vvel, slice &ws)
-{    
+{	
 }
 
 void sflow_hydrostatic::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
@@ -102,7 +102,7 @@ void sflow_hydrostatic::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 }
 
 void sflow_hydrostatic::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
-{    
+{	
     SLICELOOP4
     b->L(i,j)=b->ws(i,j)=0.0;    
 }

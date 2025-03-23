@@ -30,13 +30,13 @@ Author: Hans Bihs
 
 nhflow_idiff_2D::nhflow_idiff_2D(lexer* p)
 {
-    gcval_u=10;
-    gcval_v=11;
-    gcval_w=12;
+	gcval_u=10;
+	gcval_v=11;
+	gcval_w=12;
     
     gcval_uh=14;
-    gcval_vh=15;
-    gcval_wh=16;
+	gcval_vh=15;
+	gcval_wh=16;
 }
 
 nhflow_idiff_2D::~nhflow_idiff_2D()
@@ -45,7 +45,7 @@ nhflow_idiff_2D::~nhflow_idiff_2D()
 
 void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
-    starttime=pgc->timer();
+	starttime=pgc->timer();
 
     LOOP
     UHdiff[IJK] = UHin[IJK];
@@ -56,8 +56,12 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 
     n=0;
     LOOP
+<<<<<<< HEAD
     {
     d->test[IJK] = 2.0*(UH[Ip1JK]-UH[IJK])/p->DXP[IP];
+=======
+	{
+>>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
         if(p->wet[IJ]==1)
         {
             visc = d->VISC[IJK] + d->EV[IJK];
@@ -86,7 +90,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             
             d->rhsvec.V[n] = visc*((WH[Ip1JKp1]-WH[Im1JKp1]) - (WH[Ip1JKm1]-WH[Im1JKm1]))/((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
 
-                         + (CPORNH*UHin[IJK])/(alpha*p->dt)
+						 + (CPORNH*UHin[IJK])/(alpha*p->dt)
                             
                             
                             + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(UH[Ip1JKp1] - UH[Im1JKp1] - UH[Ip1JKm1] + UH[Im1JKm1])
@@ -106,13 +110,13 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
         d->rhsvec.V[n] =  0.0;
         }
         
-    ++n;
-    }
+	++n;
+	}
     
     
     n=0;
-    LOOP
-    {
+	LOOP
+	{
         if(p->wet[IJ]==1)
         {
             if(p->flag4[Im1JK]<0)
@@ -140,17 +144,17 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             }
   
         }
-    ++n;
-    }
-    
+	++n;
+	}
+	
     psolv->startV(p,pgc,UHdiff,d->rhsvec,d->M,4);
     
-    
+	
     pgc->start4V(p,UHdiff,gcval_uh);
     
     
-    time=pgc->timer()-starttime;
-    p->uiter=p->solveriter;
-    if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-    cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(4)<<time<<endl;
+	time=pgc->timer()-starttime;
+	p->uiter=p->solveriter;
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
+	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(4)<<time<<endl;
 }

@@ -58,38 +58,38 @@ using namespace std;
 class sflow_f : public sflow, public increment
 {
 public:
-    sflow_f(lexer*, fdm2D*,ghostcell*,patchBC_interface*);
-    virtual ~sflow_f();
-    
-    virtual void start(lexer*, fdm2D*, ghostcell*);
-    
+	sflow_f(lexer*, fdm2D*,ghostcell*,patchBC_interface*);
+	virtual ~sflow_f();
+	
+	virtual void start(lexer*, fdm2D*, ghostcell*);
+	
 private:
-    void logic(lexer*, fdm2D*, ghostcell*);
-    void ini(lexer*, fdm2D*, ghostcell*);
-    void loop(lexer*, fdm2D*, ghostcell*);
+	void logic(lexer*, fdm2D*, ghostcell*);
+	void ini(lexer*, fdm2D*, ghostcell*);
+	void loop(lexer*, fdm2D*, ghostcell*);
     
     void ini_fsf(lexer*, fdm2D*, ghostcell*);
     void ini_fsf_2(lexer*, fdm2D*, ghostcell*);
-    
-    void maxcoor(lexer*, fdm2D*, ghostcell*);
-    
-    void print_debug(lexer*, fdm2D*, ghostcell*);
+	
+	void maxcoor(lexer*, fdm2D*, ghostcell*);
+	
+	void print_debug(lexer*, fdm2D*, ghostcell*);
     
     void log_ini(lexer*);
     void mainlog(lexer*);
-    
-    sflow_timestep *ptime;
-    sflow_momentum *pmom;
-    sflow_pressure *ppress;
+	
+	sflow_timestep *ptime;
+	sflow_momentum *pmom;
+	sflow_pressure *ppress;
     sflow_forcing *psfdf;
-    solver2D *psolv;
-    solver2D *ppoissonsolv;
-    ioflow *pflow;
-    sflow_fsf *pfsf;
-    sflow_vtp_fsf *pprint;
-    sflow_vtp_bed *pprintbed;
-    sflow_convection *pconvec;
-    sflow_diffusion *pdiff;
+	solver2D *psolv;
+	solver2D *ppoissonsolv;
+	ioflow *pflow;
+	sflow_fsf *pfsf;
+	sflow_vtp_fsf *pprint;
+	sflow_vtp_bed *pprintbed;
+	sflow_convection *pconvec;
+	sflow_diffusion *pdiff;
     sflow_filter *pfilter;
     sflow_turbulence *pturb;
     sediment *psed;
@@ -102,8 +102,8 @@ private:
     patchBC_interface *pBC;
     
     sixdof *p6dof;
-    
-    double starttime, endtime;
+	
+	double starttime, endtime;
     
     ofstream mainlogout;
 };

@@ -27,44 +27,44 @@ Author: Hans Bihs
 #include"reinidisc.h"
 
 void sixdof_obj::reini_AB2(lexer* p, fdm* a, ghostcell* pgc, field &f)
-{    
+{	
     LOOP
-    {
+	{
     if(p->j_dir==0)
     dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
     
     if(p->j_dir==1)
-    dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
-    }
-    
-    reiniter=10;
-    
-    
-    if(p->count==0)
-    {
+	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	}
+	
+	reiniter=10;
+	
+	
+	if(p->count==0)
+	{
     if(p->mpirank==0)
-    cout<<endl<<"initializing fb..."<<endl<<endl;
-    reiniter=10;
-    }
+	cout<<endl<<"initializing fb..."<<endl<<endl;
+	reiniter=10;
+	}
 
     for(int q=0;q<reiniter;++q)
-    {
-        prdisc->start(p,a,pgc,f,L,5);
+	{
+		prdisc->start(p,a,pgc,f,L,5);
 
-        if(q==0)
-        ALOOP
-        frk1.V[IJK]=L.V[IJK];
+		if(q==0)
+		ALOOP
+		frk1.V[IJK]=L.V[IJK];
 
 
-        ALOOP
-        {
-        f.V[IJK] += dt.V[IJK]*0.5*(3.0*L.V[IJK] - frk1.V[IJK]);
+		ALOOP
+		{
+		f.V[IJK] += dt.V[IJK]*0.5*(3.0*L.V[IJK] - frk1.V[IJK]);
 
-        frk1.V[IJK]=L.V[IJK];
-        }
+		frk1.V[IJK]=L.V[IJK];
+		}
 
-    pgc->start4a(p,f,50);
-    }
+	pgc->start4a(p,f,50);
+	}
 }
 
 

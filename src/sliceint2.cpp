@@ -31,25 +31,25 @@ sliceint2::sliceint2(lexer *p)
     jmin=p->jmin;
     jmax=p->jmax;
     
-    fieldalloc(p);
+	fieldalloc(p);
 
-    pp=p;
+	pp=p;
 }
 
 sliceint2::~sliceint2()
 {
-    delete [ ] V;
+	delete [ ] V;
 }
 
 void sliceint2::fieldalloc(lexer* p)
 {
-    int gridsize = imax*jmax;
-    p->Iarray(V,gridsize);
+	int gridsize = imax*jmax;
+	p->Iarray(V,gridsize);
 }
 
 void sliceint2::dealloc(lexer* p)
 {
-    delete [ ] V;
+	delete [ ] V;
 }
 
 void sliceint2::resize(lexer* p)
@@ -57,7 +57,7 @@ void sliceint2::resize(lexer* p)
 }
 
 int & sliceint2::operator()(int ii, int jj)
-{            
-    return V[(ii-imin)*jmax + (jj-jmin)];
+{			
+	return V[(ii-imin)*jmax + (jj-jmin)];
 }
 

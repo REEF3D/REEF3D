@@ -69,13 +69,13 @@ public:
     
     sliceint5 nodeval2D;
     slice4 breaking_print;
-    
+	
     vec rhsvec;
     vec2D xvec,rvec;
     double *Fi,*Uin,*Uout,*U,*V,*W;
 
     matrix2D N;
-    matrix_diag M;    
+	matrix_diag M;    
     
     double gi,gj,gk;
     double wd_criterion;

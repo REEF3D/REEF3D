@@ -32,12 +32,12 @@ wave_lib_flap_double::wave_lib_flap_double(lexer *p, ghostcell *pgc) : wave_lib_
     {
     cout<<"Wave_Lib: double-hinged flap wavemaker theory"<<endl;
     }
-    
-    timecount_old=0;
+	
+	timecount_old=0;
     timecount=1;
     timecount_z=0;
-    
-    read(p,pgc);
+	
+	read(p,pgc);
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
@@ -72,29 +72,29 @@ double wave_lib_flap_double::wave_horzvel(lexer *p, double x, double y, double z
     z+=p->wd;
 
     if(p->wavetime<ts || p->wavetime>te)
-    return 0.0;
-    
-    if(z<p->B112_zs || z>p->B112_ze)
-    return 0.0;
-    
-    if((p->wavetime>kinematics[timecount][0]))
+	return 0.0;
+	
+	if(z<p->B112_zs || z>p->B112_ze)
+	return 0.0;
+	
+	if((p->wavetime>kinematics[timecount][0]))
     timecount_old=timecount;
     
-    while(p->wavetime>kinematics[timecount][0])
-    ++timecount;
+	while(p->wavetime>kinematics[timecount][0])
+	++timecount;
     
     
-    dX=0.0;
+	dX=0.0;
     if(z>p->B112_zs && z<p->B112_ze)
     {
     fac = (z-p->B112_zs)/(p->B112_z2-p->B112_zs);
-    dX = fac*((kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+	dX = fac*((kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
     }
     
     if(z>=p->B112_z2 && z<p->B112_ze)
     {
     fac = (z-p->B112_z2)/(p->B112_ze-p->B112_z2);
-    dX += fac*((kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+	dX += fac*((kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
     }
     
     vel = dX;
@@ -108,27 +108,27 @@ double wave_lib_flap_double::wave_w(lexer *p, double x, double y, double z)
     
     if(p->B115==0)
     return 0.0;
-    
-    z+=p->wd;
+	
+	z+=p->wd;
 
     if(p->wavetime<ts || p->wavetime>te)
-    return 0.0;
-    
-    if(z<p->B112_zs || z>p->B112_ze)
-    return 0.0;
-    
-    
-    dZ=0.0;
+	return 0.0;
+	
+	if(z<p->B112_zs || z>p->B112_ze)
+	return 0.0;
+	
+	
+	dZ=0.0;
     if(z>p->B112_zs && z<p->B112_ze)
     {
     fac = (z-p->B112_zs)/(p->B112_z2-p->B112_zs);
-    dZ = fac*((kinematics[timecount][3]-kinematics[timecount_old][3])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+	dZ = fac*((kinematics[timecount][3]-kinematics[timecount_old][3])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
     }
     
     if(z>=p->B112_z2 && z<p->B112_ze)
     {
     fac = (z-p->B112_z2)/(p->B112_ze-p->B112_z2);
-    dZ += fac*((kinematics[timecount][4]-kinematics[timecount_old][4])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+	dZ += fac*((kinematics[timecount][4]-kinematics[timecount_old][4])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
     }
     
     vel = dZ;
@@ -163,44 +163,44 @@ void wave_lib_flap_double::parameters(lexer *p, ghostcell *pgc)
 
 void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
 {
-    char name[100];
-    double val,val0,val1,val2;
+	char name[100];
+	double val,val0,val1,val2;
     double sign1,sign2;
     double beta,s,sign;
-    int count;
-    
-    sprintf(name,"wavemaker.dat");
+	int count;
+	
+	sprintf(name,"wavemaker.dat");
 
 // open file------------
-    ifstream file(name, ios_base::in);
-    
-    if(!file)
-    {
-        cout<<endl<<("no 'wavemaker.dat' file found")<<endl<<endl;
+	ifstream file(name, ios_base::in);
+	
+	if(!file)
+	{
+		cout<<endl<<("no 'wavemaker.dat' file found")<<endl<<endl;
 
-    }
-    
-    count=0;
-    while(!file.eof())
-    {
-    file>>val0>>val1>>val2;
-    if(val0>=p->B117)
-    ++count;
-    }
-    
-    file.close();
+	}
+	
+	count=0;
+	while(!file.eof())
+	{
+	file>>val0>>val1>>val2;
+	if(val0>=p->B117)
+	++count;
+	}
+	
+	file.close();
 
     
     ptnum=count;
-    
-    p->Darray(kinematics,ptnum,5);
-    
-    file.open ("wavemaker.dat", ios_base::in);
-    
-    count=0;
-    while(!file.eof())
-    {
-    
+	
+	p->Darray(kinematics,ptnum,5);
+	
+	file.open ("wavemaker.dat", ios_base::in);
+	
+	count=0;
+	while(!file.eof())
+	{
+	
         file>>val0>>val1>>val2;
         
         if(val0>=p->B117)
@@ -210,10 +210,10 @@ void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
         kinematics[count][2] = val2;
         ++count;
         }
-    }
-    
-    ts = kinematics[0][0];
-    te = kinematics[ptnum-1][0];
+	}
+	
+	ts = kinematics[0][0];
+	te = kinematics[ptnum-1][0];
     
     // convert from angles to X
     if(p->B116==2)
@@ -246,7 +246,7 @@ void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
     for(int qn=0; qn<ptnum; ++qn)
     cout<<kinematics[qn][1]<<" "<<kinematics[qn][2]<<" | "<<kinematics[qn][3]<<" "<<kinematics[qn][4]<<endl;
     */
-        
+	    
 }
 
 void wave_lib_flap_double::wave_prestep(lexer *p, ghostcell *pgc)

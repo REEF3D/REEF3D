@@ -27,30 +27,30 @@ Author: Hans Bihs
 void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
 {
     double U,ds,dt,phi,theta;
-    int snum;
+	int snum;
     double xm,ym,zm,r;
     int q;
 
-    xm=p->A586_xm[id];
+	xm=p->A586_xm[id];
     ym=p->A586_ym[id];
     zm=p->A586_zm[id];
     r=p->A586_r[id];
 
 
-    U = 2.0 * PI * r;
-    ds = 0.75*(U*p->DXM);
-    snum = int(U/ds);
+	U = 2.0 * PI * r;
+	ds = 0.75*(U*p->DXM);
+	snum = int(U/ds);
 
 
 // Vertices
-    ds = (2.0*PI)/double(snum);
+	ds = (2.0*PI)/double(snum);
 
     dt = ds;
 
-    phi=-0.5*PI;
-    theta=-0.5*PI;
+	phi=-0.5*PI;
+	theta=-0.5*PI;
 
-    tstart[entity_count]=tricount;
+	tstart[entity_count]=tricount;
 
         // bottom start /triangles
         for(q=0;q<snum;++q)
@@ -75,7 +75,7 @@ void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
     theta+=dt;
 
     // middle section / hexahedrons
-    for(n=1;n<snum/2-1;++n)
+	for(n=1;n<snum/2-1;++n)
     {
         phi=-0.5*PI;
         for(q=0;q<snum;++q)
@@ -114,7 +114,7 @@ void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
         phi+=ds;
         }
     theta+=dt;
-    }
+	}
 
     // top start /triangles
 
@@ -142,5 +142,5 @@ void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
     // end point
 
 
-    tend[entity_count]=tricount;
+	tend[entity_count]=tricount;
 }

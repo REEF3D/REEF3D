@@ -31,12 +31,12 @@ void partres::update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, field &p
 {
     
     ALOOP
-    {
-    por(i,j,k)=p->S24;
-    d50(i,j,k)=p->S20;
+	{
+	por(i,j,k)=p->S24;
+	d50(i,j,k)=p->S20;
     
     //a->visc(i,j,k) = p->W2*pow((1.0 + 0.5*p->W2*Ts(i,j,k))/(1.0 - Ts(i,j,k)/0.6) ,2.0);
-    }
+	}
     
     
     pgc->start4a(p,por,1);

@@ -28,32 +28,32 @@ Author: Hans Bihs
 
 void nhflow_idiff_2D::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double sig, double alpha)
 {
-    n=0;
+	n=0;
 
-    LOOP
-    {
-    visc = d->VISC[IJK] + d->EV[IJK]/sig;
+	LOOP
+	{
+	visc = d->VISC[IJK] + d->EV[IJK]/sig;
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
-    
+	
 //   M
+	
+	d->M.p[n]  +=        visc/(p->DXN[IP]*p->DXP[IM1])
+					+   visc/(p->DXN[IP]*p->DXP[IP])
+					+   visc/(p->DYN[JP]*p->DYP[JM1])*p->y_dir
+					+   visc/(p->DYN[JP]*p->DYP[JP])*p->y_dir
+					+   (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KM1])
+					+   (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
     
-    d->M.p[n]  +=        visc/(p->DXN[IP]*p->DXP[IM1])
-                    +   visc/(p->DXN[IP]*p->DXP[IP])
-                    +   visc/(p->DYN[JP]*p->DYP[JM1])*p->y_dir
-                    +   visc/(p->DYN[JP]*p->DYP[JP])*p->y_dir
-                    +   (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KM1])
-                    +   (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
-    
-     d->M.s[n] -= visc/(p->DXN[IP]*p->DXP[IM1]);
-     d->M.n[n] -= visc/(p->DXN[IP]*p->DXP[IP]);
-     
-     d->M.b[n] -= (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KM1]);
-     d->M.t[n] -= (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
+	 d->M.s[n] -= visc/(p->DXN[IP]*p->DXP[IM1]);
+	 d->M.n[n] -= visc/(p->DXN[IP]*p->DXP[IP]);
+	 
+	 d->M.b[n] -= (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KM1]);
+	 d->M.t[n] -= (visc*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
      
      d->rhsvec.V[n] +=       visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(F[Ip1JKp1] - F[Im1JKp1] - F[Ip1JKm1] + F[Im1JKm1])
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-     
-     ++n;
-    }
+	 
+	 ++n;
+	}
 }

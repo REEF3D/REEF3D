@@ -31,8 +31,8 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 print_wsfline_y::print_wsfline_y(lexer *p, fdm* a, ghostcell *pgc)
-{    
-    p->Iarray(iloc,p->P56);
+{	
+	p->Iarray(iloc,p->P56);
 
     maxknoy=pgc->globalimax(p->knoy);
     sumknoy=pgc->globalisum(maxknoy);
@@ -40,11 +40,11 @@ print_wsfline_y::print_wsfline_y(lexer *p, fdm* a, ghostcell *pgc)
     p->Darray(yloc,p->P56+1,maxknoy);
     p->Darray(wsf,p->P56+1,maxknoy);
     p->Iarray(flag,p->P56+1,maxknoy);
-    p->Iarray(wsfpoints,p->P56+1);
+	p->Iarray(wsfpoints,p->P56+1);
 
     p->Darray(yloc_all,p->P56+1,sumknoy*5);
     p->Darray(wsf_all,p->P56+1,sumknoy*5);
-    p->Iarray(flag_all,p->P56+1,sumknoy*3);
+	p->Iarray(flag_all,p->P56+1,sumknoy*3);
     p->Iarray(rowflag,sumknoy);
 
     for(q=0;q<p->P56;++q)
@@ -59,15 +59,15 @@ print_wsfline_y::print_wsfline_y(lexer *p, fdm* a, ghostcell *pgc)
     {
     yloc_all[q][n]=0.0;
     wsf_all[q][n]=0.0;
-    flag_all[q][n]=0;
+	flag_all[q][n]=0;
     rowflag[n]=0;
     }
 
     ini_location(p,a,pgc);
-    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_CFD_WSFLINE_Y",0777);
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_CFD_WSFLINE_Y",0777);
 }
 
 print_wsfline_y::~print_wsfline_y()
@@ -81,32 +81,32 @@ void print_wsfline_y::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     char name[250];
     double zval=0.0;
     int num,check;
-    
+	
     num = p->count;
 
     if(p->mpirank==0)
     {
-        // open file
-        sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-%08i.dat",num);
+		// open file
+		sprintf(name,"./REEF3D_CFD_WSFLINE_Y/REEF3D-CFD-wsfline_y-%08i.dat",num);
 
-        wsfout.open(name);
+		wsfout.open(name);
 
-        wsfout<<"simtime:  "<<p->simtime<<endl;
-        wsfout<<"number of wsf-lines_y:  "<<p->P56<<endl<<endl;
-        wsfout<<"line_No     x_coord"<<endl;
-        for(q=0;q<p->P56;++q)
-        wsfout<<q+1<<"\t "<<p->P56_x[q]<<endl;
+		wsfout<<"simtime:  "<<p->simtime<<endl;
+		wsfout<<"number of wsf-lines_y:  "<<p->P56<<endl<<endl;
+		wsfout<<"line_No     x_coord"<<endl;
+		for(q=0;q<p->P56;++q)
+		wsfout<<q+1<<"\t "<<p->P56_x[q]<<endl;
 
-        if(p->P53==1)
-        wsfout<<q+1<<"\t "<<" Wave Theory "<<endl;
+		if(p->P53==1)
+		wsfout<<q+1<<"\t "<<" Wave Theory "<<endl;
 
-        wsfout<<endl<<endl;
+		wsfout<<endl<<endl;
 
-        wsfout<<"y_coord";
-        for(q=0;q<p->P56+p->P53;++q)
-        wsfout<<"\t \t P "<<q+1;
+		wsfout<<"y_coord";
+		for(q=0;q<p->P56+p->P53;++q)
+		wsfout<<"\t \t P "<<q+1;
 
-        wsfout<<endl<<endl;
+		wsfout<<endl<<endl;
     }
 
     //-------------------
@@ -124,7 +124,7 @@ void print_wsfline_y::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
         if(flag[q][j]>0)
         {
         zval=0.0;
-        
+		
         i=iloc[q];
 
             KLOOP
@@ -139,15 +139,15 @@ void print_wsfline_y::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
         }
     }
 
-    for(q=0;q<p->P56;++q)
+	for(q=0;q<p->P56;++q)
     wsfpoints[q]=sumknoy;
-    
+	
     // gather
     for(q=0;q<p->P56;++q)
     {
     pgc->gather_double(yloc[q],maxknoy,yloc_all[q],maxknoy);
     pgc->gather_double(wsf[q],maxknoy,wsf_all[q],maxknoy);
-    pgc->gather_int(flag[q],maxknoy,flag_all[q],maxknoy);
+	pgc->gather_int(flag[q],maxknoy,flag_all[q],maxknoy);
 
         if(p->mpirank==0)
         {
@@ -160,46 +160,46 @@ void print_wsfline_y::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     if(p->mpirank==0)
     {
         for(n=0;n<sumknoy;++n)
-        rowflag[n]=0;
-        
-        for(n=0;n<sumknoy;++n)
+		rowflag[n]=0;
+		
+		for(n=0;n<sumknoy;++n)
         {
-            check=0;
-            for(q=0;q<p->P56;++q)
-            if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
-            check=1;
-            
-            if(check==1)
-            rowflag[n]=1;
-        }
-        
-        for(n=0;n<sumknoy;++n)
+			check=0;
+		    for(q=0;q<p->P56;++q)
+			if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
+			check=1;
+			
+			if(check==1)
+			rowflag[n]=1;
+		}
+		
+		for(n=0;n<sumknoy;++n)
         {
-            check=0;
-            for(q=0;q<p->P56;++q)
-            {
-                if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
-                {
-                wsfout<<setprecision(5)<<yloc_all[q][n]<<" \t ";
-                wsfout<<setprecision(5)<<wsf_all[q][n]<<" \t  ";
-                
-                
-                    if(p->P53==1)
-                    wsfout<<pflow->wave_fsf(p,pgc,yloc_all[q][n])<<" \t  ";
-                    
-                check=1;
-                }
-                
-                if((flag_all[q][n]<0 || yloc_all[q][n]>=1.0e20) && rowflag[n]==1)
-                {
-                    wsfout<<setprecision(5)<<" \t \t  ";
-                    wsfout<<setprecision(5)<<" \t \t  ";
-                    
-                }
-            }
+			check=0;
+		    for(q=0;q<p->P56;++q)
+			{
+				if(flag_all[q][n]>0 && yloc_all[q][n]<1.0e20)
+				{
+				wsfout<<setprecision(5)<<yloc_all[q][n]<<" \t ";
+				wsfout<<setprecision(5)<<wsf_all[q][n]<<" \t  ";
+				
+				
+					if(p->P53==1)
+					wsfout<<pflow->wave_fsf(p,pgc,yloc_all[q][n])<<" \t  ";
+					
+				check=1;
+				}
+				
+				if((flag_all[q][n]<0 || yloc_all[q][n]>=1.0e20) && rowflag[n]==1)
+				{
+					wsfout<<setprecision(5)<<" \t \t  ";
+					wsfout<<setprecision(5)<<" \t \t  ";
+					
+				}
+			}
 
             
-            if(check==1)
+			if(check==1)
             wsfout<<endl;
         }
 
@@ -246,15 +246,15 @@ void print_wsfline_y::sort(double *a, double *b, int *c, int left, int right)
       if (l <= r) {
           double swap = a[l];
           double swapd = b[l];
-          int swapc = c[l];
+		  int swapc = c[l];
 
           a[l] = a[r];
           a[r] = swap;
 
           b[l] = b[r];
           b[r] = swapd;
-          
-          c[l] = c[r];
+		  
+		  c[l] = c[r];
           c[r] = swapc;
 
           l++;
@@ -275,11 +275,11 @@ void print_wsfline_y::remove_multientry(lexer *p, double* b, double* c, int *d, 
     int count=0;
 
     double *f,*g;
-    int *h;
-    
-    p->Darray(f,num);
-    p->Darray(g,num);
-    p->Iarray(h,num);
+	int *h;
+	
+	p->Darray(f,num);
+	p->Darray(g,num);
+	p->Iarray(h,num);
 
     for(n=0;n<num;++n)
     g[n]=-1.12e22;
@@ -294,10 +294,10 @@ void print_wsfline_y::remove_multientry(lexer *p, double* b, double* c, int *d, 
         {
         f[count]=b[n];
         g[count]=c[n];
-        h[count]=d[n];
+		h[count]=d[n];
         ++count;
         }
-    
+	
     yval=b[n];
     }
 
@@ -305,12 +305,12 @@ void print_wsfline_y::remove_multientry(lexer *p, double* b, double* c, int *d, 
     {
     b[n]=f[n];
     c[n]=g[n];
-    d[n]=h[n];
+	d[n]=h[n];
     }
-    
-    p->del_Darray(f,num);
-    p->del_Darray(g,num);
-    p->del_Iarray(h,num);
+	
+	p->del_Darray(f,num);
+	p->del_Darray(g,num);
+	p->del_Iarray(h,num);
 
     num=count;
 }

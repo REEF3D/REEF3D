@@ -29,14 +29,14 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 {
     starttime=pgc->timer();
     
-    count=0;
+	count=0;
     SLICELOOP4
     {
-        dg = distgen(p);
-        db = distbeach(p);
+		dg = distgen(p);
+		db = distbeach(p);
         
 
-        // Wave Generation
+		// Wave Generation
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
@@ -45,12 +45,12 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
             f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*eta(i,j) + relax4_wg(i,j) * f(i,j);
             ++count;
             }
-        }
+		}
         
-        
-        // Numerical Beach
-        if(p->B99==1 || p->B99==2)
-        {
+		
+		// Numerical Beach
+		if(p->B99==1 || p->B99==2)
+		{
             // Zone 2
             if(p->A10!=3 || p->A348==1 || p->A348==2)
             if(db<1.0e20)
@@ -71,12 +71,12 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
     count=0;
     SLICELOOP1
     {
-        dg = distgen(p);
-        db = distbeach(p);
+		dg = distgen(p);
+		db = distbeach(p);
         
     
         // Wave Generation
-        if(p->B98==2 && u_switch==1)
+		if(p->B98==2 && u_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -84,11 +84,11 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
             P(i,j) = (1.0-relax1_wg(i,j))*ramp(p) * uval[count] + relax1_wg(i,j)*P(i,j);
             ++count;
             }
-        }
-        
-        // Numerical Beach
+		}
+		
+		// Numerical Beach
         if(p->B99==1 || p->B99==2)
-        {
+		{
             // Zone 2
             if(db<1.0e20)
             P(i,j) = relax1_nb(i,j)*P(i,j);
@@ -105,11 +105,11 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
     count=0;
     SLICELOOP2
     {
-        dg = distgen(p);
-        db = distbeach(p);
+		dg = distgen(p);
+		db = distbeach(p);
 
         // Wave Generation
-        if(p->B98==2 && v_switch==1)
+		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -117,11 +117,11 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
             Q(i,j) = (1.0-relax2_wg(i,j))*ramp(p) * vval[count] + relax2_wg(i,j)*Q(i,j);
             ++count;
             }
-        }
-        
-        // Numerical Beach
+		}
+		
+		// Numerical Beach
         if(p->B99==1 || p->B99==2)
-        {
+		{
             // Zone 2
             if(db<1.0e20)
             Q(i,j) = relax2_nb(i,j)*Q(i,j);
@@ -139,11 +139,11 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
     SLICELOOP4
     {
 
-        dg = distgen(p);
-        db = distbeach(p);
+		dg = distgen(p);
+		db = distbeach(p);
 
         // Wave Generation
-        if(p->B98==2 && w_switch==1)
+		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -151,11 +151,11 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
             W(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * wval[count] + relax4_wg(i,j)*W(i,j);
             ++count;
             }
-        }
-        
-        // Numerical Beach
+		}
+		
+		// Numerical Beach
         if(p->B99==1 || p->B99==2)
-        {
+		{
             // Zone 2
             if(db<1.0e20)
             W(i,j) = relax4_nb(i,j)*W(i,j);
@@ -169,14 +169,14 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
 {
     starttime=pgc->timer();
     
-    double wval=0.0;
+	double wval=0.0;
     
     SLICELOOP4
     {
         xg = xgen(p);
         yg = ygen(p);
-        dg = distgen(p);
-        db = distbeach(p);
+		dg = distgen(p);
+		db = distbeach(p);
 
         z=eta(i,j);
 
@@ -184,16 +184,16 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
         
         
         // Wave Generation
-        if(p->B98==2 && w_switch==1)
+		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
             W(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*wval + relax4_wg(i,j)*W(i,j);
-        }
-        
-        // Numerical Beach
+		}
+		
+		// Numerical Beach
         if(p->B99==1 || p->B99==2)
-        {
+		{
             // Zone 2
             if(db<1.0e20)
             W(i,j) = relax4_nb(i,j)*W(i,j);
@@ -205,26 +205,26 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
 
 void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 {
-    starttime=pgc->timer();
+	starttime=pgc->timer();
     
     SLICELOOP4
     {
-        xg = xgen(p);
+		xg = xgen(p);
         yg = ygen(p);
-        dg = distgen(p);
-        db = distbeach(p);
-        
-        // Wave Generation
+		dg = distgen(p);
+		db = distbeach(p);
+		
+		// Wave Generation
         if(p->B98==2)
         {
             // Zone 1
             //if(dg<1.0e20)
             //f(i,j) = relax4_wg(i,j) * f(i,j);
-        }
-        
-        // Numerical Beach
-        if(p->B99==1 || p->B99==2)
-        {
+		}
+		
+		// Numerical Beach
+		if(p->B99==1 || p->B99==2)
+		{
             // Zone 2
             if(db<1.0e20)
             f(i,j) = relax4_nb(i,j)*f(i,j);

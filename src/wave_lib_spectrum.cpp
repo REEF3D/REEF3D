@@ -63,58 +63,58 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 {
 
     if(p->B94==0)
-    wD=p->phimean;
+	wD=p->phimean;
     
-    if(p->B94==1)
-    wD=p->B94_wdt;
+	if(p->B94==1)
+	wD=p->B94_wdt;
 
-    if(p->B85==10)
-    spectrum_file_read(p);
+	if(p->B85==10)
+	spectrum_file_read(p);
 
 
   double maxS=-1.0;
-    double S,w,sigma;
-    int check_s,check_e;
+	double S,w,sigma;
+	int check_s,check_e;
   int n;
 
   p->wN = p->B86;
 
-    w=0.0;
-    wp=0.0;
+	w=0.0;
+	wp=0.0;
 
-    // Find spectrum peak
-    do{
-    w+=0.01;
+	// Find spectrum peak
+	do{
+	w+=0.01;
 
-    if(w<=p->wwp)
+	if(w<=p->wwp)
     {
         sigma=0.07;
     }
 
-    if(w>p->wwp)
+	if(w>p->wwp)
     {
         sigma=0.09;
     }
 
-     S = wave_spectrum(p,w);
+	 S = wave_spectrum(p,w);
 
-     if(S>maxS)
+	 if(S>maxS)
      {
         wp=w;
      }
 
-     maxS = MAX(S,maxS);
+	 maxS = MAX(S,maxS);
 
-    }while(w<100.0);
+	}while(w<100.0);
 
-    if(p->mpirank==0)
-    cout<<"maxS: "<<maxS<<"  wp: "<<wp<<"  wwp: "<<p->wwp<<endl;
+	if(p->mpirank==0)
+	cout<<"maxS: "<<maxS<<"  wp: "<<wp<<"  wwp: "<<p->wwp<<endl;
 
-    // find omega_start and omega_end
-    check_s=0;
-    check_e=0;
-    w=0.0;
-    do{
+	// find omega_start and omega_end
+	check_s=0;
+	check_e=0;
+	w=0.0;
+	do{
         w+=0.01;
 
         if(w<=p->wwp)
@@ -141,15 +141,15 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             check_e=1;
         }
 
-    }while(w<100.0);
+	}while(w<100.0);
 
-    if(p->B87==1)
-    {
+	if(p->B87==1)
+	{
         ws=p->B87_1;
         we=p->B87_2;
-    }
+	}
 
-    if(p->B130==0)
+	if(p->B130==0)
     {
     numcomp=p->wN;
     }
@@ -243,22 +243,22 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
     }
 
-        // Equal Energy Method
+		// Equal Energy Method
     if(p->B84==2)
     {
-            double ddw, sum;
-            double cdf_s, cdf_e, w_low, w_high, cdf_low, cdf_high;
-            int m, NN;
+        	double ddw, sum;
+        	double cdf_s, cdf_e, w_low, w_high, cdf_low, cdf_high;
+        	int m, NN;
 
-               for(n=0;n<numcomp;++n)
-            {
+       		for(n=0;n<numcomp;++n)
+        	{
             beta[n]=0.0;
             sinbeta[n]=0.0;
             cosbeta[n]=1.0;
-            }
+        	}
 
-            if(p->B87==1)
-            {
+        	if(p->B87==1)
+        	{
             ws=p->B87_1;
             we=p->B87_2;
 
@@ -295,10 +295,10 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             {
                 dee[n] = cdf[0]+n*(cdf[NN-1]-cdf[0])/double (p->wN-1);
             }
-            }
+        	}
 
-            if(p->B87==0)
-            {
+        	if(p->B87==0)
+        	{
 
             ws=0.01*wp;
             we=10.0*wp;
@@ -356,11 +356,11 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
             {
                 dee[n] = cdf_s + double (n)*(cdf_e-cdf_s)/double (p->wN-1);
             }
-            }
+        	}
 
         // Interpolate the corresponding frequencies and frequency intervals at each equal energy bins
-            for(n=0;n<p->wN;++n)
-            {
+        	for(n=0;n<p->wN;++n)
+        	{
             for(m=0;m<NN;++m)
             {
                 if(cdf[m]<=dee[n])
@@ -387,9 +387,9 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
                 wi[n]=(dee[n]-cdf_low)*(w_high-w_low)/(cdf_high-cdf_low)+w_low;
             }
             Si[n] = wave_spectrum(p,wi[n]);
-                        Sn[n] = Si[n];
+						Sn[n] = Si[n];
             dw[n]=(cdf[NN-1]-cdf[0])/p->wN/Si[n];
-            }
+        	}
 
     }
 
@@ -448,16 +448,16 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     double wdt,wL;
     
     if(p->B94==0)
-    wdt=p->phimean;
+	wdt=p->phimean;
 
-    if(p->B94==1)
-    wdt=p->B94_wdt;
+	if(p->B94==1)
+	wdt=p->B94_wdt;
 
-        wL0 = (9.81/(2.0*PI))*p->wTp*p->wTp;
-        k0 = (2.0*PI)/wL0;
-        S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+		wL0 = (9.81/(2.0*PI))*p->wTp*p->wTp;
+		k0 = (2.0*PI)/wL0;
+		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
 
-        wL = wL0*tanh(S0);
+		wL = wL0*tanh(S0);
 
         for(int qn=0; qn<500; ++qn)
         wL = wL0*tanh(2.0*PI*wdt/wL);
@@ -492,22 +492,22 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
     double Sw_sum;
 
     // Amplitudes
-    if(p->B82==1 || p->B82==11)
-    {
+	if(p->B82==1 || p->B82==11)
+	{
     Sw_sum=0.0;
 
-    for(n=0;n<p->wN;++n)
-    Sw_sum+=Si[n]*dw[n];
+	for(n=0;n<p->wN;++n)
+	Sw_sum+=Si[n]*dw[n];
 
-    for(n=0;n<p->wN;++n)
-    Ai[n] = (p->wAs*Si[n]*dw[n])/Sw_sum;
-    }
+	for(n=0;n<p->wN;++n)
+	Ai[n] = (p->wAs*Si[n]*dw[n])/Sw_sum;
+	}
 
   if(p->B82==2 || p->B82==12)
-    for(n=0;n<p->wN;++n)
-    Ai[n] = sqrt(2.0*Si[n]*dw[n]);
+	for(n=0;n<p->wN;++n)
+	Ai[n] = sqrt(2.0*Si[n]*dw[n]);
 
-    if(p->B82==3 || p->B82==13)
+	if(p->B82==3 || p->B82==13)
     {
         for(n=0;n<p->wN;++n)
         {
@@ -517,9 +517,9 @@ void wave_lib_spectrum::amplitudes_focused(lexer *p)
         }
     }
 
-    if(p->B82==4 || p->B82==14)
-    for(n=0;n<p->wN;++n)
-    Ai[n] = p->wAs;
+	if(p->B82==4 || p->B82==14)
+	for(n=0;n<p->wN;++n)
+	Ai[n] = p->wAs;
 
 }
 
@@ -532,8 +532,8 @@ void wave_lib_spectrum::phases_irregular(lexer *p)
     srand((unsigned)time(0));
 
     // make phases
-    for(int n=0;n<p->wN;++n)
-    ei[n]  = double(rand() % 628)/100.0;
+	for(int n=0;n<p->wN;++n)
+	ei[n]  = double(rand() % 628)/100.0;
 }
 
 void wave_lib_spectrum::phases_focused(lexer *p)
@@ -543,18 +543,18 @@ void wave_lib_spectrum::phases_focused(lexer *p)
     {
         if(p->B82<11)
         {
-            for(int n=0;n<p->wN;++n)
-                {
-                ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2;
-                }
-        }
-        if(p->B82>=11)
-            {
-            for(int n=0;n<p->wN;++n)
-                {
-                ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2 + PI;
-                }
-            }
+	    	for(int n=0;n<p->wN;++n)
+				{
+				ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2;
+				}
+	    }
+	    if(p->B82>=11)
+			{
+	    	for(int n=0;n<p->wN;++n)
+				{
+				ei[n]  = ki[n]*p->B81_1 - wi[n]*p->B81_2 + PI;
+				}
+			}
     }
 
     if(p->B130 > 0)
@@ -568,69 +568,69 @@ void wave_lib_spectrum::phases_focused(lexer *p)
 
 void wave_lib_spectrum::print_spectrum(lexer *p)
 {
-    ofstream result;
+	ofstream result;
 
-    double xval=ws;
+	double xval=ws;
 
-    // Create Folder
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_Log-Wave",0777);
+
     if(p->mpirank==0)
-    mkdir("./REEF3D_Log-Wave",0777);
+  	result.open("./REEF3D_Log-Wave/REEF3D_wave-spectrum.dat");
 
-    if(p->mpirank==0)
-      result.open("./REEF3D_Log-Wave/REEF3D_wave-spectrum.dat");
+	for(int n=0;n<p->wN;++n)
+	{
+		xval+=dw[n];
+		result<<wi[n]<<" "<<Si[n]<<endl;
+	}
 
-    for(int n=0;n<p->wN;++n)
-    {
-        xval+=dw[n];
-        result<<wi[n]<<" "<<Si[n]<<endl;
-    }
-
-    result.close();
+	result.close();
 
 }
 
 void wave_lib_spectrum::print_components(lexer *p)
 {
-    ofstream result;
+	ofstream result;
 
-    double xval=ws;
+	double xval=ws;
 
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_Log-Wave",0777);
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_Log-Wave",0777);
 
     if(p->mpirank==0)
     result.open("./REEF3D_Log-Wave/REEF3D_wave-components.dat");
 
 
-    for(int n=0;n<p->wN;++n)
-    {
-        xval+=dw[n];
-        result<<Ai[n]<<" "<<wi[n]<<" "<<ei[n]<<endl;
-    }
+	for(int n=0;n<p->wN;++n)
+	{
+		xval+=dw[n];
+		result<<Ai[n]<<" "<<wi[n]<<" "<<ei[n]<<endl;
+	}
 
-    result.close();
+	result.close();
 }
 
 void wave_lib_spectrum::print_spreading(lexer *p)
 {
-    ofstream result;
+	ofstream result;
 
-    // double xval=p->B132_s;
+	// double xval=p->B132_s;
 
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_Log-Wave",0777);
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_Log-Wave",0777);
 
     if(p->mpirank==0)
     result.open("./REEF3D_Log-Wave/REEF3D_spreading-function.dat");
 
 
-    for(int n=0;n<p->B133;++n)
-    {
-        // xval+=dbeta[n];
-        result<<beta_n[n]<<" "<<Di_n[n]<<endl;
-    }
+	for(int n=0;n<p->B133;++n)
+	{
+		// xval+=dbeta[n];
+		result<<beta_n[n]<<" "<<Di_n[n]<<endl;
+	}
 
-    result.close();
+	result.close();
 }

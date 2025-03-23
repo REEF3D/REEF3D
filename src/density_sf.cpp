@@ -61,7 +61,7 @@ double density_sf::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 
     roval = p->W1*H + p->W3*(1.0-H);
 
-    return roval;        
+	return roval;		
 }
 
 

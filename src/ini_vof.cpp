@@ -35,21 +35,21 @@ p->phimean=p->F56;
 
 
     LOOP
-    a->vof(i,j,k)=0.0;
+	a->vof(i,j,k)=0.0;
 
 
-    LOOP
-    if(double(i)*dx+p->originx>=p->F51 && double(i)*dx+p->originx<p->F54
-    && double(j)*dx+p->originy>=p->F52 && double(j)*dx+p->originy<p->F55
-    && double(k)*dx+p->originz>=p->F53 && double(k)*dx+p->originz<p->F56)
-    a->vof(i,j,k)=1.0;
+	LOOP
+	if(double(i)*dx+p->originx>=p->F51 && double(i)*dx+p->originx<p->F54
+	&& double(j)*dx+p->originy>=p->F52 && double(j)*dx+p->originy<p->F55
+	&& double(k)*dx+p->originz>=p->F53 && double(k)*dx+p->originz<p->F56)
+	a->vof(i,j,k)=1.0;
 
 
 if(p->F57_1>0||p->F57_2>0||p->F57_3>0||p->F57_4>0)
 {
-    LOOP
-    if(p->F57_1*((double(i)+0.5)*dx + p->originx )+ p->F57_2*((double(j)+0.5)*dx + p->originy )+ p->F57_3*((double(k)+0.5)*dx + p->originz ) < p->F57_4)
-    a->vof(i,j,k)=1.0;
+	LOOP
+	if(p->F57_1*((double(i)+0.5)*dx + p->originx )+ p->F57_2*((double(j)+0.5)*dx + p->originy )+ p->F57_3*((double(k)+0.5)*dx + p->originz ) < p->F57_4)
+	a->vof(i,j,k)=1.0;
 }
 
 if(p->F58_4>0.0)
@@ -58,12 +58,12 @@ if(p->F58_4>0.0)
     p->F58_2 -= p->originy;
     p->F58_3 -= p->originz;
 
-    LOOP
-    {
+	LOOP
+	{
     r = sqrt( pow((double(i)+0.5)*dx-p->F58_1,2.0)+pow((double(j)+0.5)*dx-p->F58_2,2.0)+pow((double(k)+0.5)*dx-p->F58_3,2.0));
-    if(r<=p->F58_4)
-    a->vof(i,j,k)=1.0;
-    }
+	if(r<=p->F58_4)
+	a->vof(i,j,k)=1.0;
+	}
 }
 
 if(p->F60>-1.0e20)
@@ -84,26 +84,26 @@ p->phimean=p->F60;
         a->vof(i,j,k)=(vofdiff/xdiff)*(p->pos_x()-p->F63) + p->phimean    - p->pos_z() ;
     }
 
-    double H=0.0;
+	double H=0.0;
 
-    LOOP
-    {
-        H=a->vof(i,j,k);
+	LOOP
+	{
+		H=a->vof(i,j,k);
 
-        H=MAX(H,0.0);
-        H=MIN(H,1.0);
+		H=MAX(H,0.0);
+		H=MIN(H,1.0);
 
-        a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
-        a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
-    }
+		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
+		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
+	}
     
     LOOP
     a->phi(i,j,k) = a->vof(i,j,k);
 
-    pgc->start4(p,a->vof,50);
+	pgc->start4(p,a->vof,50);
     pgc->start4(p,a->phi,50);
-    pgc->start4(p,a->ro,1);
-    pgc->start4(p,a->visc,1);
+	pgc->start4(p,a->ro,1);
+	pgc->start4(p,a->visc,1);
 }
 
 void initialize::inivof_io(fdm*a, lexer* p, ghostcell* pgc)

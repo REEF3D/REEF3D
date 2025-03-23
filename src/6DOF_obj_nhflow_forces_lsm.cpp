@@ -31,7 +31,7 @@ Author: Hans Bihs
 
 void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
 {
-    // forcecalc
+	// forcecalc
     if(p->X60==1)
     force_calc_stl(p,d,pgc,finalize);
         
@@ -39,7 +39,7 @@ void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     if(p->X60==2)
     {
     triangulation(p,d,pgc);
-    reconstruct(p,d);
+	reconstruct(p,d);
     force_calc_lsm(p,d,pgc);
         
     deallocate(p,d,pgc);
@@ -215,11 +215,11 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc)
     }
     
     Xe = pgc->globalsum(Xe);
-    Ye = pgc->globalsum(Ye);
-    Ze = pgc->globalsum(Ze);
-    Ke = pgc->globalsum(Ke);
-    Me = pgc->globalsum(Me);
-    Ne = pgc->globalsum(Ne);
+	Ye = pgc->globalsum(Ye);
+	Ze = pgc->globalsum(Ze);
+	Ke = pgc->globalsum(Ke);
+	Me = pgc->globalsum(Me);
+	Ne = pgc->globalsum(Ne);
     
     Fx = Xe;
     Fy = Ye;
@@ -230,8 +230,8 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Az = pgc->globalsum(Az);
     
     Xe += p->W20*Mass_fb;
-    Ye += p->W21*Mass_fb;
-    Ze += p->W22*Mass_fb;
+	Ye += p->W21*Mass_fb;
+	Ze += p->W22*Mass_fb;
     
     if(p->mpirank==0)
     {
@@ -241,7 +241,7 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc)
     }
     
     /*
-    // Print results    
+    // Print results	
     if (p->mpirank==0 && finalize==1) 
     {
         printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
@@ -257,7 +257,7 @@ void sixdof_obj::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
     p->Iarray(facet,numtri,4);
     p->Iarray(confac,numtri);
     p->Iarray(numfac,numtri);
-    p->Iarray(numpt,numtri);
+	p->Iarray(numpt,numtri);
     p->Darray(ccpt,numtri*4,3);
     
     // ini
@@ -299,7 +299,7 @@ void sixdof_obj::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
     p->del_Iarray(facet,numtri,4);
     p->del_Iarray(confac,numtri);
     p->del_Iarray(numfac,numtri);
-    p->del_Iarray(numpt,numtri);
+	p->del_Iarray(numpt,numtri);
     p->del_Darray(ccpt,numtri*4,3);
 }
 

@@ -28,12 +28,12 @@ Authors: Tobias Martin, Hans Bihs
 
 fsi_strips::fsi_strips(lexer *p, ghostcell *pgc)
 {
-    MPI_Bcast(&p->FSI_count,1,MPI_DOUBLE,0,pgc->mpi_comm);
+	MPI_Bcast(&p->FSI_count,1,MPI_DOUBLE,0,pgc->mpi_comm);
     numberStrips = p->FSI_count;
 
     pstrip.reserve(numberStrips);
     for (int num = 0; num < numberStrips; num++)
-    {
+	{
         pstrip.push_back(new fsi_strip(p,num));
     }
 }

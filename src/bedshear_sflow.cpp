@@ -80,7 +80,7 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 
 void bedshear::taucritbed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
-    double r;
+	double r;
     
     SLICELOOP4
     {

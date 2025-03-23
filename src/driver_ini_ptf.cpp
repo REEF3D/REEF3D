@@ -54,7 +54,7 @@ p->pointnumtot=pgc->globalisum(p->pointnum);
 if(p->mpirank==0)
 cout<<"number of cells: "<<p->cellnumtot<<endl;
 
-    log_ini();
+	log_ini();
 
 if(p->mpirank==0)
 cout<<"starting driver_ini_PTF"<<endl;
@@ -79,7 +79,7 @@ cout<<"starting driver_ini_PTF"<<endl;
     p->wet[IJ]=1;
 
     SLICELOOP4
-    a->bed(i,j) = p->bed[IJ];
+	a->bed(i,j) = p->bed[IJ];
     
     pflow->ini_ptf(p,a,pgc);
     pptf->ini(p,a,pgc,pflow,preini); 
@@ -93,15 +93,15 @@ cout<<"starting driver_ini_PTF"<<endl;
     pgc->start4(p,a->Fi,250);
     
     pflow->gcio_update(p,a,pgc);
-    pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 
     pptf->inidisc(p,a,pgc);
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
-    p->gctime=0.0;
+	p->gctime=0.0;
     p->xtime=0.0;
-    p->wavecalctime=0.0;
-    p->field4time=0.0;
+	p->wavecalctime=0.0;
+	p->field4time=0.0;
 
 if(p->mpirank==0)
 cout<<"starting mainloop.PTF"<<endl;

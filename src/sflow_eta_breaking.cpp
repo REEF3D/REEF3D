@@ -138,8 +138,8 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
     if(p->B77==10)
     for(n=0;n<p->gcslout_count;++n)
     {
-        i=p->gcslout[n][0];
-        j=p->gcslout[n][1];
+		i=p->gcslout[n][0];
+		j=p->gcslout[n][1];
         
         b->breaking(i-1,j)=1;
         b->breaking(i,j)=1;

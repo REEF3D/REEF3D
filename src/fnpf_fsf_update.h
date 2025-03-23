@@ -39,10 +39,10 @@ class fnpf_fsf_update : public increment
 {
 public:
     fnpf_fsf_update(lexer*, fdm_fnpf*, ghostcell*);
-    virtual ~fnpf_fsf_update();
+	virtual ~fnpf_fsf_update();
     
     virtual void fsfepol(lexer*, fdm_fnpf*, ghostcell*,slice&,field&);
-    virtual void fsfupdate(lexer*, fdm_fnpf*, ghostcell*,ioflow*,slice&);
+	virtual void fsfupdate(lexer*, fdm_fnpf*, ghostcell*,ioflow*,slice&);
     virtual void etaloc_sig(lexer*, fdm_fnpf*, ghostcell*);
     virtual void etaloc(lexer*, fdm_fnpf*, ghostcell*);
     virtual void fsfbc_sig(lexer*, fdm_fnpf*, ghostcell*,slice&,double*);

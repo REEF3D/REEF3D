@@ -33,10 +33,10 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &P,
 
     
     // WL update
-    SLICELOOP4
-    b->hp(i,j) = MAX(eta(i,j) + p->wd - b->bed(i,j),0.0);
+	SLICELOOP4
+	b->hp(i,j) = MAX(eta(i,j) + p->wd - b->bed(i,j),0.0);
     
-    pgc->gcsl_start4(p,b->hp,gcval_eta);
+	pgc->gcsl_start4(p,b->hp,gcval_eta);
 
     
     SLICELOOP1
@@ -46,8 +46,8 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &P,
     b->hy(i,j) = MAX(b->hy(i,j), 0.0);
     
 
-    pgc->gcsl_start1(p,b->hx,gcval_eta);    
-    pgc->gcsl_start2(p,b->hy,gcval_eta);
+	pgc->gcsl_start1(p,b->hx,gcval_eta);    
+	pgc->gcsl_start2(p,b->hy,gcval_eta);
     
     
     

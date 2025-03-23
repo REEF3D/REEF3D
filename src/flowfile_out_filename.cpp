@@ -27,8 +27,8 @@ Author: Hans Bihs
 
 void flowfile_out::filename(lexer *p, fdm *a, ghostcell *pgc)
 {
-    int num;
-    
+	int num;
+	
     num = p->count;
 
     // open file

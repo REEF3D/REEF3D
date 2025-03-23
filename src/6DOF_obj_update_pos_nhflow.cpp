@@ -53,23 +53,23 @@ void sixdof_obj::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
 
 void sixdof_obj::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
 {
-    // Update position of triangles 
-    for(n=0; n<tricount; ++n)
-    {
+	// Update position of triangles 
+	for(n=0; n<tricount; ++n)
+	{
         for(int q=0; q<3; q++)
         {
             // Update coordinates of triangles 
             Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
-                    
+					
             point = R_*point;
         
             tri_x[n][q] = point(0) + c_(0);
             tri_y[n][q] = point(1) + c_(1);
             tri_z[n][q] = point(2) + c_(2);
         }
-    }
+	}
     
     // Update floating level set function
-    ray_cast(p,d,pgc);
-    nhflow_reini_RK2(p,d,pgc,d->FB);
+	ray_cast(p,d,pgc);
+	nhflow_reini_RK2(p,d,pgc,d->FB);
 }

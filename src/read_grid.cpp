@@ -28,66 +28,66 @@ Author: Hans Bihs
 
 void lexer::read_grid()
 {
-    int i,n;
-    int isurf,jsurf,ksurf,surfside,surfgroup,side1,side2,paraconum;
-    int para_active;
+	int i,n;
+	int isurf,jsurf,ksurf,surfside,surfgroup,side1,side2,paraconum;
+	int para_active;
     char name[100];
-    int DM_M10;
+	int DM_M10;
     int iin;
     double ddn;
 
-    gcwall_count=0;
-    gcin_count=0;
-    gcout_count=0;
+	gcwall_count=0;
+	gcin_count=0;
+	gcout_count=0;
     gcin6_count=0;
-    gcout6_count=0;
-    gcfsf_count=0;
-    gcbed_count=0;
-    gcpara1_count=0;
-    gcpara2_count=0;
-    gcpara3_count=0;
-    gcpara4_count=0;
-    gcpara5_count=0;
-    gcpara6_count=0;
-    gcparaco1_count=0;
-    gcparaco2_count=0;
-    gcparaco3_count=0;
-    gcparaco4_count=0;
-    gcparaco5_count=0;
-    gcparaco6_count=0;
-    surf_tot=0;
+	gcout6_count=0;
+	gcfsf_count=0;
+	gcbed_count=0;
+	gcpara1_count=0;
+	gcpara2_count=0;
+	gcpara3_count=0;
+	gcpara4_count=0;
+	gcpara5_count=0;
+	gcpara6_count=0;
+	gcparaco1_count=0;
+	gcparaco2_count=0;
+	gcparaco3_count=0;
+	gcparaco4_count=0;
+	gcparaco5_count=0;
+	gcparaco6_count=0;
+	surf_tot=0;
 
-    if(mpirank<9)
-    sprintf(name,"grid-00000%i.dat",mpirank+1);
+	if(mpirank<9)
+	sprintf(name,"grid-00000%i.dat",mpirank+1);
 
-    if(mpirank<99&&mpirank>8)
-    sprintf(name,"grid-0000%i.dat",mpirank+1);
+	if(mpirank<99&&mpirank>8)
+	sprintf(name,"grid-0000%i.dat",mpirank+1);
 
-    if(mpirank<999&&mpirank>98)
-    sprintf(name,"grid-000%i.dat",mpirank+1);
+	if(mpirank<999&&mpirank>98)
+	sprintf(name,"grid-000%i.dat",mpirank+1);
 
-    if(mpirank<9999&&mpirank>998)
-    sprintf(name,"grid-00%i.dat",mpirank+1);
+	if(mpirank<9999&&mpirank>998)
+	sprintf(name,"grid-00%i.dat",mpirank+1);
 
-    if(mpirank<99999&&mpirank>9998)
-    sprintf(name,"grid-0%i.dat",mpirank+1);
-    
-    if(mpirank>99998)
-    sprintf(name,"grid-%i.dat",mpirank+1);
+	if(mpirank<99999&&mpirank>9998)
+	sprintf(name,"grid-0%i.dat",mpirank+1);
+	
+	if(mpirank>99998)
+	sprintf(name,"grid-%i.dat",mpirank+1);
     
     
     
 
 // open file------------
-    ifstream grid(name, ios_base::binary);
-    
+	ifstream grid(name, ios_base::binary);
+	
 //read grid file-------------
     
     grid.read((char*)&iin, sizeof (int));
     DM_M10=iin;
-    
-    if(mpirank==0)
-    if(DM_M10!=M10 || M10!=mpi_size || DM_M10!=mpi_size)
+	
+	if(mpirank==0)
+	if(DM_M10!=M10 || M10!=mpi_size || DM_M10!=mpi_size)
     {
     cout<<endl;
     cout<<"!!! Inconsistent M 10 parameter, needs to be the same in REEF3D and DIVEMesh !"<<endl;
@@ -121,7 +121,7 @@ void lexer::read_grid()
     originy=ddn;
     grid.read((char*)&ddn, sizeof (double));
     originz=ddn;
-    
+	
     grid.read((char*)&ddn, sizeof (double));
     endx=ddn;
     grid.read((char*)&ddn, sizeof (double));
@@ -217,7 +217,7 @@ void lexer::read_grid()
     nb6=iin;
     
 
-    grid.read((char*)&iin, sizeof (int));
+	grid.read((char*)&iin, sizeof (int));
     mx=iin;
     grid.read((char*)&iin, sizeof (int));
     my=iin;
@@ -297,57 +297,57 @@ void lexer::read_grid()
     grid.read((char*)&iin, sizeof (int));
 
     
-// ---------------------------------------------------------------------------------------------------------------------    
-// ---------------------------------------------------------------------------------------------------------------------    
+// ---------------------------------------------------------------------------------------------------------------------	
+// ---------------------------------------------------------------------------------------------------------------------	
    
     topo_gcb_est*=4;
-        
-    gcb1_count=gcb2_count=gcb3_count=gcb4_count=gcb4a_count=gcb_fix=gcb_solid=gcb_topo=gcb_fb=gcwall_count;
-    
+		
+	gcb1_count=gcb2_count=gcb3_count=gcb4_count=gcb4a_count=gcb_fix=gcb_solid=gcb_topo=gcb_fb=gcwall_count;
+	
     gcpara_sum=gcpara1_count+gcpara2_count+gcpara3_count+gcpara4_count+gcpara5_count+gcpara6_count;
     gcparaco_sum=gcparaco1_count+gcparaco2_count+gcparaco3_count+gcparaco4_count+gcparaco5_count+gcparaco6_count;
 
-    maxpara=maxparacount();
+	maxpara=maxparacount();
     assign_margin();
-    
-    Iarray(flag4,imax*jmax*kmax);
+	
+	Iarray(flag4,imax*jmax*kmax);
     
     //if(solidread==1)
-    Darray(flag_solid,imax*jmax*kmax);
+	Darray(flag_solid,imax*jmax*kmax);
     
     //if(toporead==1)
     Darray(flag_topo,imax*jmax*kmax);
     
-    Iarray(mgflag,imax*jmax*kmax);
-    Darray(solidbed,imax*jmax);
+	Iarray(mgflag,imax*jmax*kmax);
+	Darray(solidbed,imax*jmax);
     Darray(topobed,imax*jmax);
     Darray(bed,imax*jmax);
     Iarray(wet,imax*jmax);
     Iarray(wet_n,imax*jmax);
     Iarray(deep,imax*jmax);
     Darray(depth,imax*jmax);
-    Darray(data,imax*jmax);
+	Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);
     Iarray(flagslice2,imax*jmax);
     Iarray(flagslice4,imax*jmax);
     Iarray(flagfsf,imax*jmax);
-    Iarray(tpflagslice,imax*jmax);
+	Iarray(tpflagslice,imax*jmax);
 
-    for(i=0;i<imax*jmax*kmax;++i)
-    flag4[i]=-1;
-    
-    for(i=0;i<imax*jmax*kmax;++i)
-    flag_solid[i]=0.0;
-    
-    for(i=0;i<imax*jmax;++i)
-    {
-    flagslice1[i]=-10;
-    flagslice2[i]=-10;
-    flagslice4[i]=-10;
-    }
-    
-    if(gcb4_count>0)
-    {
+	for(i=0;i<imax*jmax*kmax;++i)
+	flag4[i]=-1;
+	
+	for(i=0;i<imax*jmax*kmax;++i)
+	flag_solid[i]=0.0;
+	
+	for(i=0;i<imax*jmax;++i)
+	{
+	flagslice1[i]=-10;
+	flagslice2[i]=-10;
+	flagslice4[i]=-10;
+	}
+	
+	if(gcb4_count>0)
+	{
     Iarray(gcb1, gcb1_count,6);
     Iarray(gcb2, gcb2_count,6);
     Iarray(gcb3, gcb3_count,6);
@@ -360,7 +360,7 @@ void lexer::read_grid()
     Darray(gcd3, gcb3_count);
     Darray(gcd4, gcb4_count);
     Darray(gcd4a, gcb4a_count);
-    }
+	}
     
     if(periodic1==1||periodic2==1||periodic3==1)
     {
@@ -374,7 +374,7 @@ void lexer::read_grid()
     Iarray(gc4periodic,6,gc4periodic_maxcount);
     Iarray(gc4aperiodic,6,gc4periodic_maxcount);
     }
-    
+	
     Iarray(gcpara1, gcpara1_count,16);
     Iarray(gcpara2, gcpara2_count,16);
     Iarray(gcpara3, gcpara3_count,16);
@@ -426,10 +426,10 @@ void lexer::read_grid()
     Darray(SN,knoy+1+4*marge);
     Darray(TN,knoz+1+4*marge);
     
-    
-// ---------------------------------------------------------------------------------------------------------------------        
-// ---------------------------------------------------------------------------------------------------------------------    
-    
+	
+// ---------------------------------------------------------------------------------------------------------------------		
+// ---------------------------------------------------------------------------------------------------------------------	
+	
 //  Flag
     for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
@@ -438,8 +438,8 @@ void lexer::read_grid()
     grid.read((char*)&iin, sizeof (int));
     flag4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=iin;
     }
-    
-    for(i=0;i<imax*jmax*kmax;++i)
+	
+	for(i=0;i<imax*jmax*kmax;++i)
     mgflag[i]=flag4[i];
     
 // Nodes XYZ
@@ -480,9 +480,9 @@ void lexer::read_grid()
     TN[KP]=ddn;
     }
     
-//  Solid    
-    if(solidread==1)
-    for(i=0; i<knox; ++i)
+//  Solid	
+	if(solidread==1)
+	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     for(k=0; k<knoz; ++k)
     {
@@ -491,8 +491,8 @@ void lexer::read_grid()
     }
     
 //  Topo
-    if(toporead==1)
-    for(i=0; i<knox; ++i)
+	if(toporead==1)
+	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     for(k=0; k<knoz; ++k)
     {
@@ -502,12 +502,12 @@ void lexer::read_grid()
     
 // Porous Structure
     
-    
+	
 //  GC Surfaces
     gcin_count=0;
     gcout_count=0;
-    for(i=0; i<gcb4_count; ++i)
-    {     
+	for(i=0; i<gcb4_count; ++i)
+	{     
         grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
@@ -523,26 +523,26 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         surfgroup=iin;
     
-            gcb4[i][0]=isurf;
-            gcb4[i][1]=jsurf;
-            gcb4[i][2]=ksurf;
-            gcb4[i][3]=surfside;
-            gcb4[i][4]=surfgroup;
+			gcb4[i][0]=isurf;
+			gcb4[i][1]=jsurf;
+			gcb4[i][2]=ksurf;
+			gcb4[i][3]=surfside;
+			gcb4[i][4]=surfgroup;
 
-            if(surfgroup==1 || surfgroup==6)
-            ++gcin_count;
+			if(surfgroup==1 || surfgroup==6)
+			++gcin_count;
 
-            if(surfgroup==2 || surfgroup==7 || surfgroup==8)
-            ++gcout_count;
-    }
+			if(surfgroup==2 || surfgroup==7 || surfgroup==8)
+			++gcout_count;
+	}
     
     gcin4a_count=gcin_count;
-    gcout4a_count=gcout_count;
+	gcout4a_count=gcout_count;
     
     gcin6_count=gcin_count;
-    gcout6_count=gcout_count;
+	gcout6_count=gcout_count;
     
-    Iarray(gcin, gcin_count,6);
+	Iarray(gcin, gcin_count,6);
     Iarray(gcout, gcout_count,6);
     
     Iarray(gcin4a, gcin_count,6);
@@ -573,8 +573,8 @@ void lexer::read_grid()
     }
     
 //  Para Surfaces
-    for(i=0; i<gcpara1_count; ++i)
-    { 
+	for(i=0; i<gcpara1_count; ++i)
+	{ 
         grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
@@ -584,15 +584,15 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         ksurf=iin;
 
-            gcpara1[i][0]=isurf;
-            gcpara1[i][1]=jsurf;
-            gcpara1[i][2]=ksurf;
-            gcpara1[i][3]=1;
-    }
+			gcpara1[i][0]=isurf;
+			gcpara1[i][1]=jsurf;
+			gcpara1[i][2]=ksurf;
+			gcpara1[i][3]=1;
+	}
 
-    for(i=0; i<gcpara2_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcpara2_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -601,15 +601,15 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         ksurf=iin;
 
-            gcpara2[i][0]=isurf;
-            gcpara2[i][1]=jsurf;
-            gcpara2[i][2]=ksurf;
-            gcpara2[i][3]=1;
-    }
+			gcpara2[i][0]=isurf;
+			gcpara2[i][1]=jsurf;
+			gcpara2[i][2]=ksurf;
+			gcpara2[i][3]=1;
+	}
 
-    for(i=0; i<gcpara3_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcpara3_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -618,15 +618,15 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         ksurf=iin;
 
-            gcpara3[i][0]=isurf;
-            gcpara3[i][1]=jsurf;
-            gcpara3[i][2]=ksurf;
-            gcpara3[i][3]=1;
-    }
+			gcpara3[i][0]=isurf;
+			gcpara3[i][1]=jsurf;
+			gcpara3[i][2]=ksurf;
+			gcpara3[i][3]=1;
+	}
 
-    for(i=0; i<gcpara4_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcpara4_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -635,15 +635,15 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         ksurf=iin;
 
-            gcpara4[i][0]=isurf;
-            gcpara4[i][1]=jsurf;
-            gcpara4[i][2]=ksurf;
-            gcpara4[i][3]=1;
-    }
+			gcpara4[i][0]=isurf;
+			gcpara4[i][1]=jsurf;
+			gcpara4[i][2]=ksurf;
+			gcpara4[i][3]=1;
+	}
 
-    for(i=0; i<gcpara5_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcpara5_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -652,15 +652,15 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         ksurf=iin;
 
-            gcpara5[i][0]=isurf;
-            gcpara5[i][1]=jsurf;
-            gcpara5[i][2]=ksurf;
-            gcpara5[i][3]=1;
-    }
+			gcpara5[i][0]=isurf;
+			gcpara5[i][1]=jsurf;
+			gcpara5[i][2]=ksurf;
+			gcpara5[i][3]=1;
+	}
 
-    for(i=0; i<gcpara6_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcpara6_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -669,15 +669,15 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         ksurf=iin;
 
-            gcpara6[i][0]=isurf;
-            gcpara6[i][1]=jsurf;
-            gcpara6[i][2]=ksurf;
-            gcpara6[i][3]=1;
-    }
-    
+			gcpara6[i][0]=isurf;
+			gcpara6[i][1]=jsurf;
+			gcpara6[i][2]=ksurf;
+			gcpara6[i][3]=1;
+	}
+	
 //  Para Corners
-    for(i=0; i<gcparaco1_count; ++i)
-    {
+	for(i=0; i<gcparaco1_count; ++i)
+	{
         grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
@@ -696,17 +696,17 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         paraconum=iin;
 
-            gcparaco1[i][0]=isurf;
-            gcparaco1[i][1]=jsurf;
-            gcparaco1[i][2]=ksurf;
-            gcparaco1[i][3]=side1;
-            gcparaco1[i][4]=side2;
-            gcparaco1[i][5]=paraconum;
-    }
+			gcparaco1[i][0]=isurf;
+			gcparaco1[i][1]=jsurf;
+			gcparaco1[i][2]=ksurf;
+			gcparaco1[i][3]=side1;
+			gcparaco1[i][4]=side2;
+			gcparaco1[i][5]=paraconum;
+	}
 
-    for(i=0; i<gcparaco2_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcparaco2_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -724,17 +724,17 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         paraconum=iin;
 
-            gcparaco2[i][0]=isurf;
-            gcparaco2[i][1]=jsurf;
-            gcparaco2[i][2]=ksurf;
-            gcparaco2[i][3]=side1;
-            gcparaco2[i][4]=side2;
-            gcparaco2[i][5]=paraconum;
-    }
+			gcparaco2[i][0]=isurf;
+			gcparaco2[i][1]=jsurf;
+			gcparaco2[i][2]=ksurf;
+			gcparaco2[i][3]=side1;
+			gcparaco2[i][4]=side2;
+			gcparaco2[i][5]=paraconum;
+	}
 
-    for(i=0; i<gcparaco3_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcparaco3_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -752,17 +752,17 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         paraconum=iin;
 
-            gcparaco3[i][0]=isurf;
-            gcparaco3[i][1]=jsurf;
-            gcparaco3[i][2]=ksurf;
-            gcparaco3[i][3]=side1;
-            gcparaco3[i][4]=side2;
-            gcparaco3[i][5]=paraconum;
-    }
+			gcparaco3[i][0]=isurf;
+			gcparaco3[i][1]=jsurf;
+			gcparaco3[i][2]=ksurf;
+			gcparaco3[i][3]=side1;
+			gcparaco3[i][4]=side2;
+			gcparaco3[i][5]=paraconum;
+	}
 
-    for(i=0; i<gcparaco4_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcparaco4_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -780,17 +780,17 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         paraconum=iin;
 
-            gcparaco4[i][0]=isurf;
-            gcparaco4[i][1]=jsurf;
-            gcparaco4[i][2]=ksurf;
-            gcparaco4[i][3]=side1;
-            gcparaco4[i][4]=side2;
-            gcparaco4[i][5]=paraconum;
-    }
+			gcparaco4[i][0]=isurf;
+			gcparaco4[i][1]=jsurf;
+			gcparaco4[i][2]=ksurf;
+			gcparaco4[i][3]=side1;
+			gcparaco4[i][4]=side2;
+			gcparaco4[i][5]=paraconum;
+	}
 
-    for(i=0; i<gcparaco5_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcparaco5_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -808,17 +808,17 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         paraconum=iin;
 
-            gcparaco5[i][0]=isurf;
-            gcparaco5[i][1]=jsurf;
-            gcparaco5[i][2]=ksurf;
-            gcparaco5[i][3]=side1;
-            gcparaco5[i][4]=side2;
-            gcparaco5[i][5]=paraconum;
-    }
+			gcparaco5[i][0]=isurf;
+			gcparaco5[i][1]=jsurf;
+			gcparaco5[i][2]=ksurf;
+			gcparaco5[i][3]=side1;
+			gcparaco5[i][4]=side2;
+			gcparaco5[i][5]=paraconum;
+	}
 
-    for(i=0; i<gcparaco6_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcparaco6_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -836,15 +836,15 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         paraconum=iin;
 
-            gcparaco6[i][0]=isurf;
-            gcparaco6[i][1]=jsurf;
-            gcparaco6[i][2]=ksurf;
-            gcparaco6[i][3]=side1;
-            gcparaco6[i][4]=side2;
-            gcparaco6[i][5]=paraconum;
-    }
+			gcparaco6[i][0]=isurf;
+			gcparaco6[i][1]=jsurf;
+			gcparaco6[i][2]=ksurf;
+			gcparaco6[i][3]=side1;
+			gcparaco6[i][4]=side2;
+			gcparaco6[i][5]=paraconum;
+	}
 
-    for(i=0; i<knox; ++i)
+	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {
     grid.read((char*)&iin, sizeof (int));
@@ -852,58 +852,58 @@ void lexer::read_grid()
     }
     
     //  Paraslice Surfaces
-    for(i=0; i<gcslpara1_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcslpara1_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
         jsurf=iin;
 
-            gcslpara1[i][0]=isurf;
-            gcslpara1[i][1]=jsurf;
-    }
+			gcslpara1[i][0]=isurf;
+			gcslpara1[i][1]=jsurf;
+	}
     
     for(i=0; i<gcslpara2_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
         jsurf=iin;
 
-            gcslpara2[i][0]=isurf;
-            gcslpara2[i][1]=jsurf;
-    }
+			gcslpara2[i][0]=isurf;
+			gcslpara2[i][1]=jsurf;
+	}
     
     for(i=0; i<gcslpara3_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
         jsurf=iin;
 
-            gcslpara3[i][0]=isurf;
-            gcslpara3[i][1]=jsurf;
-    }
+			gcslpara3[i][0]=isurf;
+			gcslpara3[i][1]=jsurf;
+	}
     
     for(i=0; i<gcslpara4_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
         jsurf=iin;
 
-            gcslpara4[i][0]=isurf;
-            gcslpara4[i][1]=jsurf;
-    }
+			gcslpara4[i][0]=isurf;
+			gcslpara4[i][1]=jsurf;
+	}
     
     //  Paraslice Surfaces
-    for(i=0; i<gcslparaco1_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	for(i=0; i<gcslparaco1_count; ++i)
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -912,14 +912,14 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         side1=iin;
 
-            gcslparaco1[i][0]=isurf;
-            gcslparaco1[i][1]=jsurf;
+			gcslparaco1[i][0]=isurf;
+			gcslparaco1[i][1]=jsurf;
            gcslparaco1[i][3]=side1;
-    }
+	}
     
     for(i=0; i<gcslparaco2_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -928,14 +928,14 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         side1=iin;
 
-            gcslparaco2[i][0]=isurf;
-            gcslparaco2[i][1]=jsurf;
+			gcslparaco2[i][0]=isurf;
+			gcslparaco2[i][1]=jsurf;
             gcslparaco2[i][3]=side1;
-    }
+	}
     
     for(i=0; i<gcslparaco3_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -944,14 +944,14 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         side1=iin;
 
-            gcslparaco3[i][0]=isurf;
-            gcslparaco3[i][1]=jsurf;
+			gcslparaco3[i][0]=isurf;
+			gcslparaco3[i][1]=jsurf;
             gcslparaco3[i][3]=side1;
-    }
+	}
     
     for(i=0; i<gcslparaco4_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
+	{
+		grid.read((char*)&iin, sizeof (int));
         isurf=iin;
         
         grid.read((char*)&iin, sizeof (int));
@@ -963,7 +963,7 @@ void lexer::read_grid()
             gcslparaco4[i][0]=isurf;
             gcslparaco4[i][1]=jsurf;
             gcslparaco4[i][3]=side1;
-    }
+	}
     
     
     // bed
@@ -974,8 +974,8 @@ void lexer::read_grid()
     bed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
     
-    if(solidread>0)
-    for(i=0; i<knox; ++i)
+	if(solidread>0)
+	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {
     grid.read((char*)&ddn, sizeof (double));
@@ -983,15 +983,15 @@ void lexer::read_grid()
     }
     
     if(toporead>0)
-    for(i=0; i<knox; ++i)
+	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {
     grid.read((char*)&ddn, sizeof (double));
     topobed[(i-imin)*jmax + (j-jmin)]=ddn;
     }
-    
-    if(P150>0)
-    for(i=0; i<knox; ++i)
+	
+	if(P150>0)
+	for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     {
     grid.read((char*)&ddn, sizeof (double));
@@ -999,14 +999,14 @@ void lexer::read_grid()
     }
     
     gcin4a_count=gcin_count;
-    gcout4a_count=gcout_count;
+	gcout4a_count=gcout_count;
     
 
-    grid.close();
+	grid.close();
 }
 
 void lexer::clear(char& b, int& j)
 {
-    b='a';
-    j=0;
+	b='a';
+	j=0;
 }

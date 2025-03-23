@@ -32,7 +32,7 @@ Author: Tobias Martin
 void fsi_strip::print_ini(lexer *p)
 {
     // Ini print stl
-    if(p->mpirank==0)
+	if(p->mpirank==0)
     {
         mkdir("./REEF3D_CFD_Beam_STL", 0777);
     }
@@ -42,13 +42,13 @@ void fsi_strip::print_ini(lexer *p)
     char str[1000];
     sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
     print.open(str);
-    print<<"time \t x [m] \t y [m] \t z [m]"<<endl;
-    print.close();
+	print<<"time \t x [m] \t y [m] \t z [m]"<<endl;
+	print.close();
     
     sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
     print.open(str);
-    print<<"time \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
-    print.close();
+	print<<"time \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
+	print.close();
 
     // Ini triangulised strip
     tri_x = Matrix3Xd::Zero(3,2*Ne);
@@ -56,7 +56,7 @@ void fsi_strip::print_ini(lexer *p)
     tri_z = Matrix3Xd::Zero(3,2*Ne);
 
     // Ini print time
-    printtime = 0.0;
+	printtime = 0.0;
     printcount_fsi = 0;
 }
 
@@ -132,7 +132,7 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
         
         result.open(path, ios::binary);
 
-        result<<"X \t Y \t Z \t U \t V \t W"<<endl;
+	    result<<"X \t Y \t Z \t U \t V \t W"<<endl;
         for (int eI = 0; eI < Ne; eI++)
         {
             for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
@@ -145,13 +145,13 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
         }
         result.close();
 
-        printcount_fsi++;    
+        printcount_fsi++;	
     }
 }
 
 void fsi_strip::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
 {
-    if(p->mpirank==0 && p->count%p->X19==0)
+	if(p->mpirank==0 && p->count%p->X19==0)
     {
         ofstream print;
         char str[1000];

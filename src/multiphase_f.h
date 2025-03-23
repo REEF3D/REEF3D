@@ -47,46 +47,46 @@ using namespace std;
 class multiphase_f : public multiphase, public increment
 {
 public:
-    multiphase_f(lexer*, fdm*, ghostcell*);
-    virtual ~multiphase_f();
-    virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*);
-    virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*);
-    virtual void update(lexer*,fdm*,ghostcell*);
-    
-    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void print_file(lexer*, fdm*, ghostcell*);
+	multiphase_f(lexer*, fdm*, ghostcell*);
+	virtual ~multiphase_f();
+	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*);
+	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*);
+	virtual void update(lexer*,fdm*,ghostcell*);
+	
+	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void print_file(lexer*, fdm*, ghostcell*);
     virtual double ls1val(int,int,int);
     virtual double ls2val(int,int,int);
-    virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double);
-    virtual double ccipol_ls2val(lexer*,ghostcell*,double,double,double);
+	virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double);
+	virtual double ccipol_ls2val(lexer*,ghostcell*,double,double,double);
     virtual void ls1get(int,int,int,double);
     virtual void ls2get(int,int,int,double);
 
     virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    
-    void logic(lexer*,fdm*,ghostcell*);
-    
-    freesurface *pfsf1,*pfsf2;
-    reini *preini;
-    multiphase_fluid_update *pupdate;
-    heat *pheat;
-    concentration *pconc;
-    particle_corr *ppls;
-    print_wsf *pwsf1;
-    print_wsf *pwsf2;
-    
-    field4 ls1,ls2;
-    
-    int n;
-    int iin;
-    float ffn;
-    double ddn;
+	
+	void logic(lexer*,fdm*,ghostcell*);
+	
+	freesurface *pfsf1,*pfsf2;
+	reini *preini;
+	multiphase_fluid_update *pupdate;
+	heat *pheat;
+	concentration *pconc;
+	particle_corr *ppls;
+	print_wsf *pwsf1;
+	print_wsf *pwsf2;
+	
+	field4 ls1,ls2;
+	
+	int n;
+	int iin;
+	float ffn;
+	double ddn;
 
 private:
-    double fx(double,double,double,double,double);
-    double fz(double,double,double,double,double);
+	double fx(double,double,double,double,double);
+	double fz(double,double,double,double,double);
 };
 
 #endif

@@ -28,7 +28,7 @@ Author: Hans Bihs
 void ghostcell::gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb)
 { 
     int aa,bb,cc;
-    int r;
+	int r;
     double gravity;
     
     for(n=0;n<6;++n)
@@ -40,32 +40,32 @@ void ghostcell::gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb)
     
     aa=bb=cc=0;
     
-        for(r=1;r<=2;++r)
-        {
-        if(n==0)
-        aa=r;
+		for(r=1;r<=2;++r)
+		{
+		if(n==0)
+		aa=r;
 
-        if(n==1)
-        bb=r;
+		if(n==1)
+		bb=r;
+		
+		if(n==2)
+		bb=-r;
+		
+		if(n==3)
+		aa=-r;
+		
+		if(n==4)
+		cc=-r;
+		
+		if(n==5)
+		cc=r;
         
-        if(n==2)
-        bb=-r;
         
-        if(n==3)
-        aa=-r;
-        
-        if(n==4)
-        cc=-r;
-        
-        if(n==5)
-        cc=r;
-        
-        
-        f(i+aa,j+bb,k+cc)=f(i,j,k);
+		f(i+aa,j+bb,k+cc)=f(i,j,k);
         
         //if(k==5)
         //cout<<p->mpirank<<" i: "<<i<<" n: "<<n<<" f(i,j,k): "<<f(i,j,k)<<" f(i+aa,j+bb,k+cc): "<<f(i+aa,j+bb,k+cc)<<" aa: "<<aa<<endl;
-        }
+		}
     }
 
 }

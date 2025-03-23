@@ -33,37 +33,37 @@ using namespace std;
 class nhflow_scalar_iweno : public nhflow_scalar_convection, public weno_nug_func
 {
 public:
-    nhflow_scalar_iweno (lexer*);
-    virtual ~nhflow_scalar_iweno();
+	nhflow_scalar_iweno (lexer*);
+	virtual ~nhflow_scalar_iweno();
 
-    virtual void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
+	virtual void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
 
 private:
 
-    void aij(fdm_nhf*, double*,double*,double*,double*);
-    void aij_south(lexer*,fdm_nhf*,double*, double*);
-    void aij_north(lexer*,fdm_nhf*,double*, double*);
-    void aij_east(lexer*,fdm_nhf*,double*, double*);
-    void aij_west(lexer*,fdm_nhf*,double*, double*);
-    void aij_top(lexer*,fdm_nhf*,double*, double*);
-    void aij_bottom(lexer*,fdm_nhf*,double*, double*);
+	void aij(fdm_nhf*, double*,double*,double*,double*);
+	void aij_south(lexer*,fdm_nhf*,double*, double*);
+	void aij_north(lexer*,fdm_nhf*,double*, double*);
+	void aij_east(lexer*,fdm_nhf*,double*, double*);
+	void aij_west(lexer*,fdm_nhf*,double*, double*);
+	void aij_top(lexer*,fdm_nhf*,double*, double*);
+	void aij_bottom(lexer*,fdm_nhf*,double*, double*);
     
     void iqmin(lexer*, fdm_nhf*, double*);
-    void jqmin(lexer*, fdm_nhf*, double*);
-    void kqmin(lexer*, fdm_nhf*, double*);
-    void iqmax(lexer*, fdm_nhf*, double*);
-    void jqmax(lexer*, fdm_nhf*, double*);
-    void kqmax(lexer*, fdm_nhf*, double*);
+	void jqmin(lexer*, fdm_nhf*, double*);
+	void kqmin(lexer*, fdm_nhf*, double*);
+	void iqmax(lexer*, fdm_nhf*, double*);
+	void jqmax(lexer*, fdm_nhf*, double*);
+	void kqmax(lexer*, fdm_nhf*, double*);
 
-    const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-    const double sixten,treten,epsi;
+	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+	const double sixten,treten,epsi;
 
 
-    double is1,is2,is3;
-    double alpha1,alpha2,alpha3;
-    double w1,w2,w3;
-    double umin, umax, uplus;
-    int count;
+	double is1,is2,is3;
+	double alpha1,alpha2,alpha3;
+	double w1,w2,w3;
+	double umin, umax, uplus;
+	int count;
 
     
     

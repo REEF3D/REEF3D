@@ -31,13 +31,13 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<"full NWT initialize "<<endl;
     
     // eta
-    SLICELOOP4
+	SLICELOOP4
     WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
 
-        d->eta(i,j) = wave_eta(p,pgc,xg,yg);
+		d->eta(i,j) = wave_eta(p,pgc,xg,yg);
     }
     
     SLICELOOP4
@@ -48,9 +48,9 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
+	
     
-    
-    LOOP
+	LOOP
     WETDRY
     {
         xg = xgen(p);
@@ -65,35 +65,35 @@ void iowave::full_initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         
         d->test[IJK] = xg;
-    }    
-    
-    LOOP
+	}	
+	
+	LOOP
     WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
         
         z=p->ZSP[IJK]-p->phimean;
-        
+		
         d->V[IJK] = wave_v(p,pgc,xg,yg,z);
         d->VH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->V[IJK];
-    }
-    
-    LOOP
+	}
+	
+	LOOP
     WETDRY
     {
         xg = xgen(p);
         yg = ygen(p);
         
         z=p->ZSP[IJK]-p->phimean;
-        
+		
         d->W[IJK] = wave_w(p,pgc,xg,yg,z);
         d->WH[IJK] = (d->eta(i,j)+d->depth(i,j))*d->W[IJK];
-    }
-    
-    FLOOP
+	}
+	
+	FLOOP
     d->P[FIJK] = 0.0;
-    
+	
     pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
     pgc->start4V(p,d->W,12);

@@ -29,7 +29,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
     p->wavetime = p->simtime;
     
         count=0;
-        for(n=0;n<p->gcslin_count;n++)
+		for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
@@ -56,7 +56,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         
         // Uin
         count=0;
-        for(n=0;n<p->gcslin_count;n++)
+		for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
@@ -82,7 +82,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
     FJLOOP 
     {
 
-        db = distbeach(p);
+		db = distbeach(p);
         
         FKLOOP 
         FPCHECK

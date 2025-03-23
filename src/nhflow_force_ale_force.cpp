@@ -27,15 +27,15 @@ Author: Hans Bihs
 #include <math.h>
 
 void nhflow_force_ale::force_ale_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
-{    
+{	
     double ztot=0; // check for strip total
     
     double uvel,vvel,wvel;
 
-    Fx=Fy=0;
-    
+	Fx=Fy=0;
+	
     for(k=0; k<p->knoz; ++k)
-    {
+	{
         uvel = d->U[IJK];
         vvel = d->V[IJK];
         wvel = d->W[IJK];
@@ -71,34 +71,34 @@ void nhflow_force_ale::force_ale_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
         // Storing current time step information for next time step gradient calculation
         un[k] = uvel; 
         vn[k] = vvel;
-    }
-    
-    etan=d->eta(i,j);
+	}
+	
+	etan=d->eta(i,j);
 }
 
 double nhflow_force_ale::dndt(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
     double dndt = (d->eta(i,j) - etan)/ p->dt;
-         
+		 
     return dndt;
 }
 
-double nhflow_force_ale::dudsig(lexer *p, fdm_nhf *d, ghostcell *pgc)     
+double nhflow_force_ale::dudsig(lexer *p, fdm_nhf *d, ghostcell *pgc) 	
 {
     double dudsig_ = 0;
     
     dudsig_ = (d->U[IJKp1] - d->U[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
 
-    return dudsig_;        
+	return dudsig_;        
 }
 
-double nhflow_force_ale::dvdsig(lexer *p, fdm_nhf *d, ghostcell *pgc)     
+double nhflow_force_ale::dvdsig(lexer *p, fdm_nhf *d, ghostcell *pgc) 	
 {
-    double dvdsig_ = 0;
+	double dvdsig_ = 0;
 
     dvdsig_ = (d->V[IJKp1] - d->V[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
 
-    return dvdsig_;        
+	return dvdsig_;        
 }
 
 double nhflow_force_ale::dudxi(lexer *p, fdm_nhf *d, ghostcell *pgc) 

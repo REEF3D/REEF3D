@@ -33,30 +33,30 @@ class sliceint1 : public sliceint, increment
 {
 public:
 
-    sliceint1 (lexer*);
-    virtual ~sliceint1();
+	sliceint1 (lexer*);
+	virtual ~sliceint1();
 
     virtual int& operator()(int, int);
 
     virtual void resize(lexer*);
     virtual void dealloc(lexer*);
     
-    int di,dj;
-    int imin,imax,jmax,jmin;
+	int di,dj;
+	int imin,imax,jmax,jmin;
 
 private:
 
-    void fieldalloc(lexer *);
-    void fieldlength(lexer *);
+	void fieldalloc(lexer *);
+	void fieldlength(lexer *);
 
     int iter;
-    int feldsize;
-    
-    int rank, gcsl_extra;
-    
-    double starttime;
-    
-    lexer *pp;
+	int feldsize;
+	
+	int rank, gcsl_extra;
+	
+	double starttime;
+	
+	lexer *pp;
 
 };
 

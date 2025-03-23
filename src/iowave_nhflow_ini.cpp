@@ -43,5 +43,5 @@ void iowave::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc)
     W_relax(p,pgc,d->W,d->WH);
 
     if(p->I30==1)
-    full_initialize_nhflow(p,d,pgc);
+	full_initialize_nhflow(p,d,pgc);
 }

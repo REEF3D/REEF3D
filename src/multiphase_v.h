@@ -41,18 +41,18 @@ using namespace std;
 class multiphase_v : public multiphase
 {
 public:
-    multiphase_v();
-    virtual ~multiphase_v();
-    virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*);
-    virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*);
-    virtual void update(lexer*,fdm*,ghostcell*);
-    
-    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void print_file(lexer*, fdm*, ghostcell*);
+	multiphase_v();
+	virtual ~multiphase_v();
+	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*);
+	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*);
+	virtual void update(lexer*,fdm*,ghostcell*);
+	
+	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void print_file(lexer*, fdm*, ghostcell*);
     virtual double ls1val(int,int,int);
     virtual double ls2val(int,int,int);
-    virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double);
-    virtual double ccipol_ls2val(lexer*,ghostcell*,double,double,double);
+	virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double);
+	virtual double ccipol_ls2val(lexer*,ghostcell*,double,double,double);
     virtual void ls1get(int,int,int,double);
     virtual void ls2get(int,int,int,double);
 

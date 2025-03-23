@@ -30,18 +30,18 @@ Author: Hans Bihs
 bedprobe_point::bedprobe_point(lexer *p, fdm* a, ghostcell *pgc)
 {
     p->Iarray(iloc,p->P121);
-    p->Iarray(jloc,p->P121);
-    p->Iarray(flag,p->P121);
-    p->Darray(wsf,p->P121);
-    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_CFD_Sediment",0777);
-    
+	p->Iarray(jloc,p->P121);
+	p->Iarray(flag,p->P121);
+	p->Darray(wsf,p->P121);
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_CFD_Sediment",0777);
+	
     if(p->mpirank==0 && p->P121>0)
     {
     // open file
-    wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
+	wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
 
     wsfout<<"number of gauges:  "<<p->P121<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
@@ -72,7 +72,7 @@ void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
     for(n=0;n<p->P121;++n)
     wsf[n]=-1.0e20;
 
-    
+	
     for(n=0;n<p->P121;++n)
     if(flag[n]>0)
     {
@@ -80,8 +80,8 @@ void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
 
     i=iloc[n];
     j=jloc[n];
-    
-    //cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
+	
+	//cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
 
         KLOOP
         PBASECHECK
@@ -90,7 +90,7 @@ void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
             wsf[n]=MAX(wsf[n],-(a->topo(i,j,k)*p->DXM)/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
         }
     }
-    
+	
     for(n=0;n<p->P121;++n)
     wsf[n]=pgc->globalmax(wsf[n]);
 
@@ -121,8 +121,8 @@ void bedprobe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 
     if(check==1)
     flag[n]=1;
-    
-    //cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
+	
+	//cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
     }
 }
 

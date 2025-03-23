@@ -31,7 +31,7 @@ class ioflow;
 class fnpf_printer
 {
 public:
-    virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*)=0;
+	virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*)=0;
     virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*)=0;
     virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*)=0;
 };

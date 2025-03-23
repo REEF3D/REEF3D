@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc)
 {
-    if(p->mpirank==0 && p->count%p->X19==0)
+	if(p->mpirank==0 && p->count%p->X19==0)
     {
         ofstream print;
         char str[1000];

@@ -46,7 +46,7 @@ void driver::logic_fnpf()
     p->phimean = p->F60;
 
 // time stepping
-    pftstep=new fnpf_timestep(p);
+	pftstep=new fnpf_timestep(p);
     
 // Printer
     if(p->P10==2)
@@ -55,11 +55,11 @@ void driver::logic_fnpf()
     pfprint = new fnpf_vtu3D(p,c,pgc);
     
 //IOFlow
-    if(p->B60==0 && p->B90==0 && p->B180==0 )
-    pflow = new ioflow_v(p,pgc,pBC);
+	if(p->B60==0 && p->B90==0 && p->B180==0 )
+	pflow = new ioflow_v(p,pgc,pBC);
 
-    if(p->B90>=1)
-    pflow= new iowave(p,pgc,pBC);
+	if(p->B90>=1)
+	pflow= new iowave(p,pgc,pBC);
     
 // Geodat
     if(p->G1==0)
@@ -77,30 +77,30 @@ void driver::logic_fnpf()
     preto = new reinitopo_RK3(p);
     }
     
-//  Laplace Solver    
-    if(p->N10==0)
-    plapsolv = new solver_void(p,a,pgc);
+//  Laplace Solver	
+	if(p->N10==0)
+	plapsolv = new solver_void(p,a,pgc);
 
-    if(p->N10==1)
-    plapsolv = new bicgstab_ijk(p,a,pgc);
-    
-    #ifdef HYPRE_COMPILATION
-    if(p->N10>=10 && p->N10<20)
+	if(p->N10==1)
+	plapsolv = new bicgstab_ijk(p,a,pgc);
+	
+	#ifdef HYPRE_COMPILATION
+	if(p->N10>=10 && p->N10<20)
     plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     #endif
     
     #ifdef HYPRE_COMPILATION
-    if(p->N10>=20 && p->N10<30)
-    plapsolv = new hypre_aij(p,a,pgc);
-    #endif
+	if(p->N10>=20 && p->N10<30)
+	plapsolv = new hypre_aij(p,a,pgc);
+	#endif
     
     #ifdef HYPRE_COMPILATION
-    if(p->N10>=30 && p->N10<40)
-    plapsolv = new hypre_sstruct(p,a,pgc);
-    #endif
+	if(p->N10>=30 && p->N10<40)
+	plapsolv = new hypre_sstruct(p,a,pgc);
+	#endif
     
 //  Voids
-    pturb = new kepsilon_void(p,a,pgc);
+	pturb = new kepsilon_void(p,a,pgc);
     
     pdata = new data_void(p,a,pgc);
     

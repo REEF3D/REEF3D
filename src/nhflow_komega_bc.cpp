@@ -35,11 +35,11 @@ nhflow_komega_bc::~nhflow_komega_bc()
 
 void nhflow_komega_bc::bckomega_start(lexer *p, fdm_nhf *d, double *KIN, double *EPS, int gcval)
 {
-    if(gcval==20)
+	if(gcval==20)
     wall_law_kin(p,d,KIN,EPS);
         
-    if(gcval==30)
-    wall_law_omega(p,d,KIN,EPS);
+	if(gcval==30)
+	wall_law_omega(p,d,KIN,EPS);
 }
 
 void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
@@ -190,7 +190,7 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
 
 void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    int q;
+	int q;
     int inflow=0;
     int outflow=0;
     
@@ -283,7 +283,7 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
 
 void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    int q;
+	int q;
     int inflow=0;
     int outflow=0;
     

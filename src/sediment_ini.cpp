@@ -31,26 +31,26 @@ Author: Hans Bihs
 
 void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
-    double h,h1;
+	double h,h1;
 
-    ILOOP
+	ILOOP
     JLOOP
-    {
-        KLOOP
-        PBASECHECK
-        {
+	{
+		KLOOP
+		PBASECHECK
+		{
         if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
         h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
-        }
-        s->bedzh(i,j)=h;
+		}
+		s->bedzh(i,j)=h;
         s->bedzh0(i,j)=h;
-    }
+	}
     
     SLICELOOP4
     s->ks(i,j) = p->S21*p->S20;
-    
-    pgc->gcsl_start4(p,s->bedzh,1);
-    
+	
+	pgc->gcsl_start4(p,s->bedzh,1);
+	
     active_ini_cfd(p,a,pgc);
     
     topo_zh_update(p,a,pgc,s);

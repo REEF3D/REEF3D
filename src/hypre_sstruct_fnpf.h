@@ -41,8 +41,8 @@ class hypre_sstruct_fnpf : public solver_fnpf, public increment
 {
 public:
 
-    hypre_sstruct_fnpf(lexer*,ghostcell*,int,int);
-    virtual ~hypre_sstruct_fnpf();
+	hypre_sstruct_fnpf(lexer*,ghostcell*,int,int);
+	virtual ~hypre_sstruct_fnpf();
 
     virtual void start(lexer*, ghostcell*, double*, double*, double*, int);
     virtual void startF(lexer*, ghostcell*, double*, double*, double*, int);
@@ -60,7 +60,7 @@ public:
 
 
     virtual void fillbackvec8(lexer*,double*,double*,double*);
-    
+	
 
     void create_solver5(lexer*,ghostcell*);
     void delete_solver5(lexer*,ghostcell*);
@@ -81,13 +81,13 @@ private:
    HYPRE_SStructVariable vartypes[1];
    
 
-    int *ilower,*iupper;
+	int *ilower,*iupper;
     int num_iterations;
     double final_res_norm;
-    int stencil_indices[15];
-    int nentries;
+	int stencil_indices[15];
+	int nentries;
    
-    int numiter,count,q;
+	int numiter,count,q;
      int numparts;
     int part;
     int dimensions;

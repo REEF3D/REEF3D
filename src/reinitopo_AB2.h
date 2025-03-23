@@ -34,22 +34,22 @@ using namespace std;
 class reinitopo_AB2 : public reinitopo, gradient
 {
 public:
-    reinitopo_AB2(lexer* p);
-    virtual ~reinitopo_AB2();
-    virtual void start(lexer*,fdm*,ghostcell*,field&);
+	reinitopo_AB2(lexer* p);
+	virtual ~reinitopo_AB2();
+	virtual void start(lexer*,fdm*,ghostcell*,field&);
 
-    int *sizeM;
+	int *sizeM;
 
 
 
 private:
-    reinidisc *prdisc;
-    field4a f,frk1,frk2,L,dt;
+	reinidisc *prdisc;
+	field4a f,frk1,frk2,L,dt;
     
     void step(lexer*, fdm*);
     void time_preproc(lexer*);
 
-    int gcval_topo,gcval_initopo,reiniter,gcval;    
+	int gcval_topo,gcval_initopo,reiniter,gcval;	
 };
 
 #endif

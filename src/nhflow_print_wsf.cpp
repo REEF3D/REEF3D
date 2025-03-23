@@ -30,19 +30,19 @@ Author: Hans Bihs
 nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d) : fileFlushMaxCount(100)
 {
 
-    gauge_num = p->P51;
-    x = p->P51_x;
-    y = p->P51_y;
+	gauge_num = p->P51;
+	x = p->P51_x;
+	y = p->P51_y;
 
-    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_NHFLOW_WSF",0777);
-    
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_NHFLOW_WSF",0777);
+	
     if(p->mpirank==0 && p->P51>0)
     {
     // open WSF file
-    wsfout.open("./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat");
+	wsfout.open("./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
@@ -57,14 +57,14 @@ nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d) : fileFlushMaxCount(100
 
     wsfout<<endl<<endl;
     }
-    
-    //-------------------
-    
-    
-    p->Iarray(iloc,gauge_num);
-    p->Iarray(jloc,gauge_num);
-    p->Iarray(flag,gauge_num);
-    p->Darray(wsf,gauge_num);
+	
+	//-------------------
+	
+	
+	p->Iarray(iloc,gauge_num);
+	p->Iarray(jloc,gauge_num);
+	p->Iarray(flag,gauge_num);
+	p->Darray(wsf,gauge_num);
     p->Darray(deta,gauge_num);
     p->Darray(Uhorz,gauge_num);
 
@@ -104,7 +104,7 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     for(n=0;n<gauge_num;++n)
     wsf[n]=-1.0e20;
 
-    
+	
     for(n=0;n<gauge_num;++n)
     if(flag[n]>0)
     {
@@ -115,7 +115,7 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     
     wsf[n] = p->ccslipol4(f, x[n], y[n]);
     }
-    
+	
     for(n=0;n<gauge_num;++n)
     wsf[n]=pgc->globalmax(wsf[n]);
 }

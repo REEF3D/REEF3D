@@ -25,13 +25,13 @@ Author: Hans Bihs
 
 matrix_diag::matrix_diag(lexer *pp)
 {
-    pp->Darray(n,pp->veclength);
-    pp->Darray(s,pp->veclength);
-    pp->Darray(e,pp->veclength);
-    pp->Darray(w,pp->veclength);
-    pp->Darray(t,pp->veclength);
-    pp->Darray(b,pp->veclength);
-    pp->Darray(p,pp->veclength);
+	pp->Darray(n,pp->veclength);
+	pp->Darray(s,pp->veclength);
+	pp->Darray(e,pp->veclength);
+	pp->Darray(w,pp->veclength);
+	pp->Darray(t,pp->veclength);
+	pp->Darray(b,pp->veclength);
+	pp->Darray(p,pp->veclength);
     
     if(pp->D33==1)
     {
@@ -50,20 +50,20 @@ matrix_diag::matrix_diag(lexer *pp)
 matrix_diag::~matrix_diag()
 {
     delete [] n;
-    delete [] s;
-    delete [] w;
-    delete [] e;
-    delete [] t;
-    delete [] b;
-    delete [] p;
+	delete [] s;
+	delete [] w;
+	delete [] e;
+	delete [] t;
+	delete [] b;
+	delete [] p;
     
     delete [] sb;
-    delete [] st;
-    delete [] nb;
-    delete [] nt;
-    delete [] eb;
-    delete [] et;
-    delete [] wb;
+	delete [] st;
+	delete [] nb;
+	delete [] nt;
+	delete [] eb;
+	delete [] et;
+	delete [] wb;
     delete [] wt;
 }
 

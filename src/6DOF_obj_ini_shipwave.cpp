@@ -34,7 +34,7 @@ void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc, slice &eta, slice
     
     // Initialise folder structure
     if(p->X50==1)
-    print_ini_vtp(p,pgc);
+	print_ini_vtp(p,pgc);
     
     if(p->X50==2)
     print_ini_stl(p,pgc);
@@ -43,14 +43,14 @@ void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc, slice &eta, slice
     ini_parallel(p,pgc);
     
     // Initialise objects
-    objects_create(p,pgc);
+	objects_create(p,pgc);
     
     // Initialise fbvel
-    ini_fbvel(p,pgc);
+	ini_fbvel(p,pgc);
     
     // Raycast
     ray_cast_2D(p,pgc);
-    reini_2D(p,pgc,fs);
+	reini_2D(p,pgc,fs);
     pgc->gcsl_start4(p,fs,50);
     
     // Calculate geometrical properties
@@ -61,11 +61,11 @@ void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc, slice &eta, slice
     
     // Raycast
     ray_cast_2D(p,pgc);
-    reini_2D(p,pgc,fs);
+	reini_2D(p,pgc,fs);
     pgc->gcsl_start4(p,fs,50);
     
     // Initialise global variables
-    update_fbvel(p,pgc);
+	update_fbvel(p,pgc);
     
     // Print initial body 
     if(p->X50==1)

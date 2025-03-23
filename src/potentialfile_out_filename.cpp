@@ -26,8 +26,8 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void potentialfile_out::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{    
-    int num;
+{	
+	int num;
 
     num = p->count;
 

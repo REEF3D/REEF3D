@@ -40,8 +40,8 @@ class nhflow_HLL : public nhflow_convection, public increment
 
 public:
 
-    nhflow_HLL (lexer*,ghostcell*,patchBC_interface*);
-    virtual ~nhflow_HLL();
+	nhflow_HLL (lexer*,ghostcell*,patchBC_interface*);
+	virtual ~nhflow_HLL();
 
     virtual void start(lexer*&, fdm_nhf*&, int, slice&);
     virtual void precalc(lexer*, fdm_nhf*, int, slice&);
@@ -58,9 +58,9 @@ private:
     
     void wetdry_fluxes(lexer*&, fdm_nhf*&, int);
     
-    double dx,dy,dz;
-    double udir,vdir,wdir;
-    double L;
+	double dx,dy,dz;
+	double udir,vdir,wdir;
+	double L;
     double denom;
 
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;

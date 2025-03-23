@@ -38,7 +38,7 @@ void nhflow_state::write_header(lexer *p, fdm_nhf *d, ghostcell *pgc)
     filename_header(p,d,pgc);
     
     // open file
-    headout.open(name, ios::binary);
+	headout.open(name, ios::binary);
     
     // ini write    
     iin=p->origin_i-is_global;

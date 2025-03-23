@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"mgcslice4.h"
 
 void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
-{    
+{	
     int q;
     
 // flag7
@@ -327,12 +327,12 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
      }
      
      p->xcoormax=pgc->globalmax(p->xcoormax);
-     p->ycoormax=pgc->globalmax(p->ycoormax);
-     p->zcoormax=pgc->globalmax(p->zcoormax);
-     
-     p->xcoormin=pgc->globalmin(p->xcoormin);
-     p->ycoormin=pgc->globalmin(p->ycoormin);
-     p->zcoormin=pgc->globalmin(p->zcoormin);
+	 p->ycoormax=pgc->globalmax(p->ycoormax);
+	 p->zcoormax=pgc->globalmax(p->zcoormax);
+	 
+	 p->xcoormin=pgc->globalmin(p->xcoormin);
+	 p->ycoormin=pgc->globalmin(p->ycoormin);
+	 p->zcoormin=pgc->globalmin(p->zcoormin);
 
 }
 
@@ -356,15 +356,15 @@ void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
     pgc->gcsl_setbc4(p);
     pgc->gcsl_setbcio(p);
     
-    pgc->dgcslini4(p); 
+	pgc->dgcslini4(p); 
 }
-    
+	
 void driver::makegrid_sigma_cds(lexer *p, ghostcell *pgc)
-{    
+{	
     p->flagini2D();
-    p->gridini2D();    
+    p->gridini2D();	
     
     pgc->sizeS_update(p);
     pgc->gcxslupdate(p);
 }
-    
+	

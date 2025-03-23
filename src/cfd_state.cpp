@@ -30,12 +30,12 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
-{    
-    // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_CFD_STATE",0777);
-    
-    printcount=0;
+{	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_CFD_STATE",0777);
+	
+	printcount=0;
     
     file_version=6;
     
@@ -178,8 +178,8 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
     if(p->P45==2)
     {
     filename_continuous(p,a,pgc);
-     
-    result.open(name, ios::binary);
+	 
+	result.open(name, ios::binary);
     }
     
 

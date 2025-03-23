@@ -35,25 +35,25 @@ class potential_f : public potential, public increment
 {
 
 public:
-    potential_f(lexer*);
-    virtual ~potential_f();
+	potential_f(lexer*);
+	virtual ~potential_f();
 
-    virtual void start(lexer*,fdm*, solver*, ghostcell*);
+	virtual void start(lexer*,fdm*, solver*, ghostcell*);
 
 
 private:
     void rhs(lexer*,fdm*);
-    void ucalc(lexer*,fdm*,field&);
-    void vcalc(lexer*,fdm*,field&);
-    void wcalc(lexer*,fdm*,field&);
+	void ucalc(lexer*,fdm*,field&);
+	void vcalc(lexer*,fdm*,field&);
+	void wcalc(lexer*,fdm*,field&);
     
     void laplace(lexer*,fdm*,ghostcell*,field&);
     void ini_bc(lexer*,fdm*,ghostcell*);
     
     
-    double starttime,endtime;
-    int count;
-    int gcval_pot;
+	double starttime,endtime;
+	int count;
+	int gcval_pot;
     
     fieldint4 bc;
 };
