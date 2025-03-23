@@ -98,15 +98,9 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
 	geometry_stl(p,pgc);
     
     // Order Triangles for correct inside/outside orientation
-<<<<<<< HEAD
     triangle_switch_ray(p,pgc);
     
     // Refine triangles
-=======
-    //triangle_switch_ray(p,pgc);
-	
-	// Refine triangles
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     if(p->X185>0 && p->X60==1 && entity_count>0)
 	geometry_refinement(p,pgc);	
 

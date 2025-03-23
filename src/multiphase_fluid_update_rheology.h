@@ -33,13 +33,8 @@ using namespace std;
 class multiphase_fluid_update_rheology : public multiphase_fluid_update, increment
 {
 public:
-<<<<<<< HEAD
     multiphase_fluid_update_rheology(lexer*);
     virtual ~multiphase_fluid_update_rheology();
-=======
-    multiphase_fluid_update_rheology(lexer*, fdm*, ghostcell*);
-	virtual ~multiphase_fluid_update_rheology();
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 
 	virtual void start(lexer*, fdm*, ghostcell*,field&,field&);
 

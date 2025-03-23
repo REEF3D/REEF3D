@@ -34,7 +34,6 @@ class rheology;
 class fluid_update_rheology : public fluid_update, increment
 {
 public:
-<<<<<<< HEAD
     fluid_update_rheology(lexer*);
     virtual ~fluid_update_rheology();
 
@@ -47,20 +46,6 @@ private:
     const double ro1,ro2;
     const double visc2;
     double visc1;
-=======
-    fluid_update_rheology(lexer*, fdm*);
-	virtual ~fluid_update_rheology();
-
-	virtual void start(lexer*, fdm*, ghostcell*);
-
-private:
-	rheology *prheo;
-	static int iocheck,iter;
-    int gcval_ro,gcval_visc;
-	int n;
-	const double dx,ro1,visc2,ro2;
-	double visc1;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     double epsi;
 
     bool iocheck;

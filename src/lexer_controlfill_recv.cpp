@@ -770,7 +770,6 @@ void lexer::ctrlrecv()
     F84 = dctrl[dd];
 	dd++;
     F85 = ictrl[ii];
-<<<<<<< HEAD
     ii++;
     F112 = ictrl[ii];
     ii++;
@@ -810,33 +809,6 @@ void lexer::ctrlrecv()
     dd++;
     F362 = dctrl[dd];
     dd++;
-=======
-	ii++;
-	F150 = ictrl[ii];
-	ii++;
-	F151 = ictrl[ii];
-	ii++;
-	F300 = ictrl[ii];
-	ii++;
-	F305 = ictrl[ii];
-	ii++;
-	F310 = ictrl[ii];
-	ii++;
-	F321 = dctrl[dd];
-	dd++;
-	F322 = dctrl[dd];
-	dd++;
-	F323 = dctrl[dd];
-	dd++;
-	F350 = ictrl[ii];
-	ii++;
-	F360 = dctrl[dd];
-	dd++;
-	F361 = dctrl[dd];
-	dd++;
-	F362 = dctrl[dd];
-	dd++;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     F369 = ictrl[ii];
 	ii++;
 	F370 = ictrl[ii];
@@ -1155,7 +1127,6 @@ void lexer::ctrlrecv()
     P65 = ictrl[ii];
 	ii++;
     P66 = ictrl[ii];
-<<<<<<< HEAD
     ii++;
     P67 = ictrl[ii];
     ii++;
@@ -1163,9 +1134,6 @@ void lexer::ctrlrecv()
     ii++;
     P69 = ictrl[ii];
     ii++;
-=======
-	ii++;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     P71 = ictrl[ii];
 	ii++;
     P72 = ictrl[ii];
@@ -1644,7 +1612,6 @@ void lexer::ctrlrecv()
     X12 = ictrl[ii];
 	ii++;
     X14 = ictrl[ii];
-<<<<<<< HEAD
     ii++;
     X19 = ictrl[ii];
     ii++;
@@ -1680,41 +1647,6 @@ void lexer::ctrlrecv()
     dd++;
     X25_Cr = dctrl[dd];
     dd++;
-=======
-	ii++;
-	X19 = ictrl[ii];
-	ii++;
-	X21 = ictrl[ii];
-	ii++;
-	X21_d = dctrl[dd];
-	dd++;
-	X22 = ictrl[ii];
-	ii++;
-	X22_m = dctrl[dd];
-	dd++;
-	X23 = ictrl[ii];
-	ii++;
-	X23_x = dctrl[dd];
-	dd++;
-	X23_y = dctrl[dd];
-	dd++;
-	X23_z = dctrl[dd];
-	dd++;
-	X24 = ictrl[ii];
-	ii++;
-	X24_Ix = dctrl[dd];
-	dd++;
-	X24_Iy = dctrl[dd];
-	dd++;
-	X24_Iz = dctrl[dd];
-	dd++;
-	X25_Cp = dctrl[dd];
-	dd++;
-	X25_Cq = dctrl[dd];
-	dd++;
-	X25_Cr = dctrl[dd];
-	dd++;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     X26_Cu = dctrl[dd];
 	dd++;
 	X26_Cv = dctrl[dd];
@@ -1752,7 +1684,6 @@ void lexer::ctrlrecv()
     X50 = ictrl[ii];
 	ii++;
     X60 = ictrl[ii];
-<<<<<<< HEAD
     ii++;
     X100 = ictrl[ii];
     ii++;
@@ -1842,103 +1773,6 @@ void lexer::ctrlrecv()
     dd++;
     X153_ze = dctrl[dd];
     dd++;
-=======
-	ii++;
-	X100 = ictrl[ii];
-	ii++;
-	X100_x = dctrl[dd];
-	dd++;
-	X100_y = dctrl[dd];
-	dd++;
-	X100_z = dctrl[dd];
-	dd++;
-	X101 = ictrl[ii];
-	ii++;
-	X101_phi = dctrl[dd];
-	dd++;
-	X101_theta = dctrl[dd];
-	dd++;
-	X101_psi = dctrl[dd];
-	dd++;
-	X102 = ictrl[ii];
-	ii++;
-	X102_u = dctrl[dd];
-	dd++;
-	X102_v = dctrl[dd];
-	dd++;
-	X102_w = dctrl[dd];
-	dd++;
-	X103 = ictrl[ii];
-	ii++;
-	X103_p = dctrl[dd];
-	dd++;
-	X103_q = dctrl[dd];
-	dd++;
-	X103_r = dctrl[dd];
-	dd++;
-	X110 = ictrl[ii];
-	ii++;
-	X120 = ictrl[ii];
-	ii++;
-	X120_rad = dctrl[dd];
-	dd++;
-	X120_xc = dctrl[dd];
-	dd++;
-	X120_yc = dctrl[dd];
-	dd++;
-	X120_zc = dctrl[dd];
-	dd++;
-	X131 = ictrl[ii];
-	ii++;
-	X131_rad = dctrl[dd];
-	dd++;
-	X131_h = dctrl[dd];
-	dd++;
-	X131_xc = dctrl[dd];
-	dd++;
-	X131_yc = dctrl[dd];
-	dd++;
-	X131_zc = dctrl[dd];
-	dd++;
-	X132 = ictrl[ii];
-	ii++;
-	X132_rad = dctrl[dd];
-	dd++;
-	X132_h = dctrl[dd];
-	dd++;
-	X132_xc = dctrl[dd];
-	dd++;
-	X132_yc = dctrl[dd];
-	dd++;
-	X132_zc = dctrl[dd];
-	dd++;
-	X133 = ictrl[ii];
-	ii++;
-	X133_rad = dctrl[dd];
-	dd++;
-	X133_h = dctrl[dd];
-	dd++;
-	X133_xc = dctrl[dd];
-	dd++;
-	X133_yc = dctrl[dd];
-	dd++;
-	X133_zc = dctrl[dd];
-	dd++;
-	X153 = ictrl[ii];
-	ii++;
-	X153_xs = dctrl[dd];
-	dd++;
-	X153_xe = dctrl[dd];
-	dd++;
-	X153_ys = dctrl[dd];
-	dd++;
-	X153_ye = dctrl[dd];
-	dd++;
-	X153_zs = dctrl[dd];
-	dd++;
-	X153_ze = dctrl[dd];
-	dd++;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     X163 = ictrl[ii];
 	ii++;
     X164 = ictrl[ii];
@@ -2683,7 +2517,6 @@ void lexer::ctrlrecv()
     if(P66>0)
 	{
     Darray(P66_x,P66);  
-<<<<<<< HEAD
     Darray(P66_y,P66); 
     Darray(P66_z,P66);  
     }
@@ -2726,32 +2559,6 @@ void lexer::ctrlrecv()
     Darray(P85_cd,P85);
     Darray(P85_cm,P85);
     }
-=======
-	Darray(P66_y,P66); 
-	Darray(P66_z,P66);  
-	}
-	
-	if(P81>0)
-	{
-	Darray(P81_xs,P81); 
-	Darray(P81_xe,P81); 
-	
-	Darray(P81_ys,P81); 
-	Darray(P81_ye,P81); 
-	
-	Darray(P81_zs,P81); 
-	Darray(P81_ze,P81); 
-	}
-	
-	if(P85>0)
-	{
-	Darray(P85_x,P85); 
-	Darray(P85_y,P85); 
-	Darray(P85_r,P85);
-	Darray(P85_cd,P85);
-	Darray(P85_cm,P85);
-	}
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     
     if(P88>0)
 	{
@@ -2907,7 +2714,6 @@ void lexer::ctrlrecv()
     Darray(W41_vel,W41);
     Darray(W41_beta,W41);
     }
-<<<<<<< HEAD
 
     if(X102>0)
     {
@@ -2929,20 +2735,6 @@ void lexer::ctrlrecv()
     Darray(X110_ze,X110); 
     Iarray(X110_objID,X110);
     }
-=======
-	
-	if(X110>0)
-	{
-	Darray(X110_xs,X110);  
-	Darray(X110_xe,X110);  
-	
-	Darray(X110_ys,X110);  
-	Darray(X110_ye,X110);  
-	
-	Darray(X110_zs,X110);  
-	Darray(X110_ze,X110);  
-	}
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     
     if(X163>0)
 	{
@@ -3946,7 +3738,6 @@ for(n=0;n<F369;++n)
 	P66_z[n] = dctrl[dd];
     dd++;
     }
-<<<<<<< HEAD
     
     for(n=0;n<P67;++n)
     {
@@ -3973,10 +3764,6 @@ for(n=0;n<F369;++n)
     }
     
     for(n=0;n<P81;++n)
-=======
-	
-	for(n=0;n<P81;++n)
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     {
     P81_xs[n] = dctrl[dd];
     dd++;
@@ -4232,7 +4019,6 @@ for(n=0;n<F369;++n)
     W41_beta[n] = dctrl[dd];
     dd++;
     }
-<<<<<<< HEAD
     
     for(n=0;n<X102;++n)
     {
@@ -4247,10 +4033,6 @@ for(n=0;n<F369;++n)
     }
 
     for(n=0;n<X110;++n)
-=======
-	
-	for(n=0;n<X110;++n)
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     {
     X110_xs[n] = dctrl[dd];
     dd++;

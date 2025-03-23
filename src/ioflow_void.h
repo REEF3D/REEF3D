@@ -131,12 +131,8 @@ private:
 	int count;
     
     double Apor,Bpor,porval,partval;
-<<<<<<< HEAD
-=======
-	vrans *pvrans;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
-    rheology *prheo;
     
+    rheology *prheo;
     patchBC_interface *pBC;
 };
 

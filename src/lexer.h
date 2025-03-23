@@ -415,7 +415,7 @@ public:
 	double F57_1,F57_2,F57_3,F57_4;
 	double F58_1,F58_2,F58_3,F58_4;
     double F59_xm, F59_ym, F59_zs, F59_ze, F59_r;
-<<<<<<< HEAD
+
     double F60,F61,F62,F63;
     int F64;
     int F70;
@@ -428,18 +428,6 @@ public:
     double F84;
     int F112;
     double F112_xs,F112_xe,F112_ys,F112_ye,F112_zs,F112_ze;
-=======
-	double F60,F61,F62,F63;
-	int F64;
-	int F70;
-	double *F70_xs, *F70_xe, *F70_ys, *F70_ye, *F70_zs, *F70_ze;
-	int F71;
-	double *F71_xs, *F71_xe, *F71_ys, *F71_ye, *F71_zs, *F71_ze;
-	int F72;
-	double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
-	int F80,F85;
-	double F84;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     
     int F300,F305,F310,F350;
 	double F321,F322,F323,F360,F361,F362;
@@ -491,21 +479,12 @@ public:
 	// MPI Options
 	int M10;
 
-<<<<<<< HEAD
     // Print options
     int P10,P11,P12,P15,P16,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
     int P61,P62,P63,P64,P65,P66,P67,P68,P69,P71,P72,P73,P74,P75,P76,P77,P78,P79,P80,P81,P82,P85,P88,P92,P101,P120,P121,P122,P123,P124,P125,P126;
     int P140,P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195,P351,P352;
     double P22,P30,P34,P42;
     double *P35_ts,*P35_te,*P35_dt;
-=======
-	// Print options
-	int P10,P11,P12,P15,P16,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
-	int P61,P62,P63,P64,P65,P66,P71,P72,P73,P74,P75,P76,P77,P78,P79,P80,P81,P82,P85,P88,P92,P101,P120,P121,P122,P123,P124,P125,P126;
-	int P140,P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195,P351,P352;
-	double P22,P30,P34,P42;
-	double *P35_ts,*P35_te,*P35_dt;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     double P43_xs,P43_xe,P43_ys,P43_ye;
     int P46,P46_is,P46_ie;
     int P47,P47_ts,P47_te;
@@ -520,16 +499,11 @@ public:
     double *P64_x,*P64_y,*P64_z;
     double *P65_x,*P65_y,*P65_z;
     double *P66_x,*P66_y,*P66_z;
-<<<<<<< HEAD
     double *P67_x,*P67_y;
     double *P68_x,*P68_y;
     double *P69_x,*P69_y;
     double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
     double *P85_x,*P85_y,*P85_r,*P85_cd,*P85_cm;
-=======
-	double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
-	double *P85_x,*P85_y,*P85_r,*P85_cd,*P85_cm;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     double *P88_x,*P88_y;
 	double P91;
 	double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
@@ -651,7 +625,6 @@ public:
 	//Eigen::Matrix3d quatRotMat;	
     int X10,X12,X14,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
     int X39,X40,X45,X46,X48,X49,X50,X60,X110,X120,X131,X132,X133;
-<<<<<<< HEAD
     int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
     int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
     int X20;
@@ -673,26 +646,6 @@ public:
     double X132_rad,X132_h,X132_xc,X132_yc,X132_zc;
     double X133_rad,X133_h,X133_xc,X133_yc,X133_zc;
     double X153_xs,X153_xe,X153_ys,X153_ye,X153_zs,X153_ze;
-=======
-	int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
-	int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
-	double X21_d,X22_m;
-	double X23_x,X23_y,X23_z;
-	double X24_Ix,X24_Iy,X24_Iz;	
-	double X25_Cp,X25_Cq,X25_Cr;	
-    double X26_Cu,X26_Cv,X26_Cw;	
-	double X41,X42,X43,X44;
-	double X100_x,X100_y,X100_z;
-	double X101_phi, X101_theta, X101_psi;
-	double X102_u, X102_v, X102_w;
-	double X103_p, X103_q, X103_r;
-	double *X110_xs,*X110_xe,*X110_ys,*X110_ye,*X110_zs,*X110_ze;
-	double X120_rad,X120_xc,X120_yc,X120_zc;
-	double X131_rad,X131_h,X131_xc,X131_yc,X131_zc;
-	double X132_rad,X132_h,X132_xc,X132_yc,X132_zc;
-	double X133_rad,X133_h,X133_xc,X133_yc,X133_zc;
-	double X153_xs,X153_xe,X153_ys,X153_ye,X153_zs,X153_ze;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     int X163;
     double *X163_x1,*X163_y1,*X163_z1;
     double *X163_x2,*X163_y2,*X163_z2;

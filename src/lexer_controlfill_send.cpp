@@ -775,7 +775,6 @@ void lexer::ctrlsend()
     dctrl[dd] = F84;
 	dd++;
     ictrl[ii] = F85;
-<<<<<<< HEAD
     ii++;
     ictrl[ii] = F112;
     ii++;
@@ -791,9 +790,6 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = F112_ze;
     dd++;
-=======
-	ii++;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     ictrl[ii] = F150;
 	ii++;
 	ictrl[ii] = F151;
@@ -1135,7 +1131,6 @@ void lexer::ctrlsend()
     ictrl[ii] = P65;
 	ii++;
     ictrl[ii] = P66;
-<<<<<<< HEAD
     ii++;
     ictrl[ii] = P67;
     ii++;
@@ -1143,9 +1138,6 @@ void lexer::ctrlsend()
     ii++;
     ictrl[ii] = P69;
     ii++;
-=======
-	ii++;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     ictrl[ii] = P71;
 	ii++;
     ictrl[ii] = P72;
@@ -1626,7 +1618,6 @@ void lexer::ctrlsend()
 	ictrl[ii] = X12;
 	ii++;
     ictrl[ii] = X14;
-<<<<<<< HEAD
     ii++;           
     ictrl[ii] = X19;
     ii++;
@@ -1662,41 +1653,6 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = X25_Cr;
     dd++;
-=======
-	ii++;  	 	
-	ictrl[ii] = X19;
-	ii++;
-	ictrl[ii] = X21;
-	ii++;
-	dctrl[dd] = X21_d;
-	dd++;
-	ictrl[ii] = X22;
-	ii++;
-	dctrl[dd] = X22_m;
-	dd++;
-	ictrl[ii] = X23;
-	ii++;
-	dctrl[dd] = X23_x;
-	dd++;
-	dctrl[dd] = X23_y;
-	dd++;
-	dctrl[dd] = X23_z;
-	dd++;
-	ictrl[ii] = X24;
-	ii++;
-	dctrl[dd] = X24_Ix;
-	dd++;
-	dctrl[dd] = X24_Iy;
-	dd++;
-	dctrl[dd] = X24_Iz;
-	dd++;
-	dctrl[dd] = X25_Cp;
-	dd++;
-	dctrl[dd] = X25_Cq;
-	dd++;
-	dctrl[dd] = X25_Cr;
-	dd++;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     dctrl[dd] = X26_Cu;
 	dd++;
 	dctrl[dd] = X26_Cv;
@@ -1734,7 +1690,6 @@ void lexer::ctrlsend()
     ictrl[ii] = X50;
 	ii++;
     ictrl[ii] = X60;
-<<<<<<< HEAD
     ii++;
     ictrl[ii] = X100;
     ii++;
@@ -1824,103 +1779,6 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = X153_ze;
     dd++;
-=======
-	ii++;
-	ictrl[ii] = X100;
-	ii++;
-	dctrl[dd] = X100_x;
-	dd++;
-	dctrl[dd] = X100_y;
-	dd++;
-	dctrl[dd] = X100_z;
-	dd++;
-	ictrl[ii] = X101;
-	ii++;
-	dctrl[dd] = X101_phi;
-	dd++;
-	dctrl[dd] = X101_theta;
-	dd++;
-	dctrl[dd] = X101_psi;
-	dd++;
-	ictrl[ii] = X102;
-	ii++;
-	dctrl[dd] = X102_u;
-	dd++;
-	dctrl[dd] = X102_v;
-	dd++;
-	dctrl[dd] = X102_w;
-	dd++;
-	ictrl[ii] = X103;
-	ii++;
-	dctrl[dd] = X103_p;
-	dd++;
-	dctrl[dd] = X103_q;
-	dd++;
-	dctrl[dd] = X103_r;
-	dd++;
-	ictrl[ii] = X110;
-	ii++;
-	ictrl[ii] = X120;
-	ii++;
-	dctrl[dd] = X120_rad;
-	dd++;
-	dctrl[dd] = X120_xc;
-	dd++;
-	dctrl[dd] = X120_yc;
-	dd++;
-	dctrl[dd] = X120_zc;
-	dd++;
-	ictrl[ii] = X131;
-	ii++;
-	dctrl[dd] = X131_rad;
-	dd++;
-	dctrl[dd] = X131_h;
-	dd++;
-	dctrl[dd] = X131_xc;
-	dd++;
-	dctrl[dd] = X131_yc;
-	dd++;
-	dctrl[dd] = X131_zc;
-	dd++;
-	ictrl[ii] = X132;
-	ii++;
-	dctrl[dd] = X132_rad;
-	dd++;
-	dctrl[dd] = X132_h;
-	dd++;
-	dctrl[dd] = X132_xc;
-	dd++;
-	dctrl[dd] = X132_yc;
-	dd++;
-	dctrl[dd] = X132_zc;
-	dd++;
-	ictrl[ii] = X133;
-	ii++;
-	dctrl[dd] = X133_rad;
-	dd++;
-	dctrl[dd] = X133_h;
-	dd++;
-	dctrl[dd] = X133_xc;
-	dd++;
-	dctrl[dd] = X133_yc;
-	dd++;
-	dctrl[dd] = X133_zc;
-	dd++;
-	ictrl[ii] = X153;
-	ii++;
-	dctrl[dd] = X153_xs;
-	dd++;
-	dctrl[dd] = X153_xe;
-	dd++;
-	dctrl[dd] = X153_ys;
-	dd++;
-	dctrl[dd] = X153_ye;
-	dd++;
-	dctrl[dd] = X153_zs;
-	dd++;
-	dctrl[dd] = X153_ze;
-	dd++;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     ictrl[ii] = X163;
 	ii++;
     ictrl[ii] = X164;
@@ -2960,7 +2818,6 @@ void lexer::ctrlsend()
 	dd++;
     }
     
-<<<<<<< HEAD
     for(n=0;n<P67;++n)
     {
     dctrl[dd] = P67_x[n];
@@ -2987,10 +2844,6 @@ void lexer::ctrlsend()
     
     for(n=0;n<P167;++n)
     {
-=======
-	for(n=0;n<P167;++n)
-	{
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     dctrl[dd] = P167_x[n];
 	dd++;
 	}
@@ -3231,8 +3084,7 @@ void lexer::ctrlsend()
     dctrl[dd] = W41_beta[n];
     dd++;
     }
-<<<<<<< HEAD
-    
+
     for(n=0;n<X102;++n)
     {
     dctrl[dd] = X102_u[n];
@@ -3246,10 +3098,6 @@ void lexer::ctrlsend()
     }
 
     for(n=0;n<X110;++n)
-=======
-	
-	for(n=0;n<X110;++n)
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     {
     dctrl[dd] = X110_xs[n];
     dd++;

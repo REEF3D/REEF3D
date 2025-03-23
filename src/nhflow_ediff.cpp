@@ -55,13 +55,8 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     pflow->rkinflow_nhflow(p,d,pgc,UHdiff,UHin);
     
     LOOP
-<<<<<<< HEAD
     {
     visc = d->VISC[IJK] + d->EV[IJK];
-=======
-	{
-    visc = d->VISC[IJK];
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
@@ -98,13 +93,8 @@ void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     
     
     LOOP
-<<<<<<< HEAD
     {
     visc = d->VISC[IJK] + d->EV[IJK];
-=======
-	{
-    visc = d->VISC[IJK];
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
@@ -140,13 +130,8 @@ void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     
     
     LOOP
-<<<<<<< HEAD
     {
     visc = d->VISC[IJK] + d->EV[IJK];
-=======
-	{
-    visc = d->VISC[IJK];
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     

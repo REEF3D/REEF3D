@@ -1020,17 +1020,12 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 85: control>>F85;
-<<<<<<< HEAD
                          clear(c,numint);
                          break;
                 case 112: control>>F112_xs>>F112_xe>>F112_ys>>F112_ye>>F112_zs>>F112_ze;
                          F112=1;
                          clear(c,numint);
                          break;
-=======
-						 clear(c,numint);
-						 break;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
                 case 150: control>>F150;
 						 clear(c,numint);
 						 break;
@@ -1502,7 +1497,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 66: ++P66;
-<<<<<<< HEAD
                          clear(c,numint);
                          break;
                 case 67: ++P67;
@@ -1514,10 +1508,6 @@ void lexer::read_control()
                 case 69: ++P69;
                          clear(c,numint);
                          break;
-=======
-						 clear(c,numint);
-						 break;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
                 case 71: control>>P71;
 						 clear(c,numint);
 						 break;
@@ -2100,7 +2090,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 104: control>>W104;
-<<<<<<< HEAD
                          clear(c,numint);
                          break;
                 case 105: control>>W105_tau_00>>W105_C_total>>W105_C_kaolinite_chlorite>>W105_C_illite>>W105_C_montmorillonite;
@@ -2115,10 +2104,6 @@ void lexer::read_control()
                 case 108: control>>W108_a_2;
                          clear(c,numint);
                          break;
-=======
-						 clear(c,numint);
-						 break;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
                 case 110: control>>W110;
 						 clear(c,numint);
 						 break;
@@ -2144,7 +2129,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                  case  14: control>>X14;
-<<<<<<< HEAD
                          clear(c,numint);
                          break;
                 case  19: control>>X19;
@@ -2172,32 +2156,6 @@ void lexer::read_control()
                 case  25: control>>X25_Cp>>X25_Cq>>X25_Cr;
                          clear(c,numint);
                          break;
-=======
-						 clear(c,numint);
-						 break;
-				case  19: control>>X19;
-						 clear(c,numint);
-						 break;
-				case  21: control>>X21_d;
-						 X21=1;
-						 clear(c,numint);
-						 break;
-				case  22: control>>X22_m;
-						 X22=1;
-						 clear(c,numint);
-						 break;
-				case  23: control>>X23_x>>X23_y>>X23_z;
-						 X23=1;
-						 clear(c,numint);
-						 break;
-				case  24: control>>X24_Ix>>X24_Iy>>X24_Iz;
-						 X24=1;
-						 clear(c,numint);
-						 break;
-				case  25: control>>X25_Cp>>X25_Cq>>X25_Cr;
-						 clear(c,numint);
-						 break;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
                 case  26: control>>X26_Cu>>X26_Cv>>X26_Cw;
 						 clear(c,numint);
 						 break;
@@ -2247,7 +2205,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case  60: control>>X60;
-<<<<<<< HEAD
                          clear(c,numint);
                          break;
                 case  100: control>>X100_x>>X100_y>>X100_z;
@@ -2288,49 +2245,6 @@ void lexer::read_control()
                          X153=1;
                          clear(c,numint);
                          break;
-=======
-						 clear(c,numint);
-						 break;
-				case  100: control>>X100_x>>X100_y>>X100_z;
-						 X100=1;
-						 clear(c,numint);
-						 break;
-				case  101: control>>X101_phi>>X101_theta>>X101_psi;
-						 X101=1;
-						 clear(c,numint);
-						 break;
-				case  102: control>>X102_u>>X102_v>>X102_w;
-						 X102=1;
-						 clear(c,numint);
-						 break;
-				case  103: control>>X103_p>>X103_q>>X103_r;
-						 X103=1;
-						 clear(c,numint);
-						 break;
-				case  110: ++X110;
-						 clear(c,numint);
-						 break;
-				case  120: control>>X120_rad>>X120_xc>>X120_yc>>X120_zc;
-						 X120=1;
-						 clear(c,numint);
-						 break;
-				case  131: control>>X131_rad>>X131_h>>X131_xc>>X131_yc>>X131_zc;
-						 X131=1;
-						 clear(c,numint);
-						 break;
-				case  132: control>>X132_rad>>X132_h>>X132_xc>>X132_yc>>X132_zc;
-						 X132=1;
-						 clear(c,numint);
-						 break;
-				case  133: control>>X133_rad>>X133_h>>X133_xc>>X133_yc>>X133_zc;
-						 X133=1;
-						 clear(c,numint);
-						 break;
-				case  153: control>>X153_xs>>X153_xe>>X153_ys>>X153_ye>>X153_zs>>X153_ze;
-						 X153=1;
-						 clear(c,numint);
-						 break;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
                 case  163: ++X163;
 						 clear(c,numint);
 						 break;
@@ -2936,7 +2850,6 @@ void lexer::read_control()
 	Darray(P65_z,P65);
     
     Darray(P66_x,P66);
-<<<<<<< HEAD
     Darray(P66_y,P66);
     Darray(P66_z,P66);
     
@@ -2948,10 +2861,6 @@ void lexer::read_control()
     
     Darray(P69_x,P69);
     Darray(P69_y,P69);
-=======
-	Darray(P66_y,P66);
-	Darray(P66_z,P66);
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 
 	Darray(P167_x,P167);
     
@@ -3053,7 +2962,6 @@ void lexer::read_control()
     Darray(W41_vel,W41);
     Darray(W41_beta,W41);
 
-<<<<<<< HEAD
     // X
     Darray(X102_u,X102);
     Darray(X102_v,X102);
@@ -3067,15 +2975,6 @@ void lexer::read_control()
     Darray(X110_ye,X110);
     Darray(X110_ze,X110);
     Iarray(X110_objID,X110);
-=======
-	// X
-	Darray(X110_xs,X110);
-	Darray(X110_ys,X110);
-	Darray(X110_zs,X110);
-	Darray(X110_xe,X110);
-	Darray(X110_ye,X110);
-	Darray(X110_ze,X110);
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 
     Darray(X163_x1,X163);
     Darray(X163_y1,X163);
@@ -3281,14 +3180,10 @@ void lexer::read_control()
     int countP64=0;
     int countP65=0;
     int countP66=0;
-<<<<<<< HEAD
     int countP67=0;
     int countP68=0;
     int countP69=0;
     int countP167=0;
-=======
-	int countP167=0;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     int countP168=0;
 	int countP81=0;
 	int countP85=0;
@@ -3314,12 +3209,8 @@ void lexer::read_control()
     int countQ111=0;
 	int countS73=0;
     int countW41=0;
-<<<<<<< HEAD
     int countX102=0;
     int countX110=0;
-=======
-	int countX110=0;
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     int countX163=0;
     int countX164=0;
     int countX311=0;
@@ -3620,7 +3511,6 @@ void lexer::read_control()
 						 break;
                 case 66: control>>P66_x[countP66]>>P66_y[countP66]>>P66_z[countP66];
                         ++countP66;
-<<<<<<< HEAD
                          clear(c,numint);
                          break;
                 case 67: control>>P67_x[countP67]>>P67_y[countP67];
@@ -3636,11 +3526,6 @@ void lexer::read_control()
                          clear(c,numint);
                          break;
                 case 81: control>>P81_xs[countP81]>>P81_xe[countP81]>>P81_ys[countP81]>>P81_ye[countP81]>>P81_zs[countP81]>>P81_ze[countP81];
-=======
-						 clear(c,numint);
-						 break;
-				case 81: control>>P81_xs[countP81]>>P81_xe[countP81]>>P81_ys[countP81]>>P81_ye[countP81]>>P81_zs[countP81]>>P81_ze[countP81];
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
                         ++countP81;
 						 clear(c,numint);
 						 break;

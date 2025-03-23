@@ -55,7 +55,6 @@ levelset_void::levelset_void(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, con
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
     
     if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==2)
-<<<<<<< HEAD
     pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
     
     if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
@@ -63,15 +62,7 @@ levelset_void::levelset_void(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, con
     
     if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
     pupdate = new fluid_update_rheology(p);
-=======
-	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
-	
-	if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
-	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
+
     
     if(p->F300>0)
 	pupdate = new fluid_update_void();

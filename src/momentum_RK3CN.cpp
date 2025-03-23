@@ -59,15 +59,8 @@ momentum_RK3CN::momentum_RK3CN(lexer *p, fdm *a, convection *pconvection, diffus
     if(p->W90==0  || p->F300>0)
 	pupdate = new fluid_update_void();
     
-<<<<<<< HEAD
     if(p->W90>0 && p->F300==0)
     pupdate = new fluid_update_rheology(p);
-=======
-    if(p->W90==1 && p->F300==0)
-	pupdate = new fluid_update_rheology(p,a);
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
-    
-
 }
 
 momentum_RK3CN::~momentum_RK3CN()

@@ -381,7 +381,6 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
 	result.write((char*)&ffn, sizeof (float));
 	}
 
-<<<<<<< HEAD
     //  Pressure
     iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
@@ -390,17 +389,6 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     ffn=float(p->sl_ipol4(b->press));
     result.write((char*)&ffn, sizeof (float));
     }
-=======
-
-	//  Pressure
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-	TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(b->press));
-	result.write((char*)&ffn, sizeof (float));
-	}
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 
     //  eddyv
 	iin=4*(p->pointnum2D);

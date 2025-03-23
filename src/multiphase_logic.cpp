@@ -84,9 +84,5 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	pupdate = new multiphase_fluid_update_f(p,a,pgc);
     
     if(p->W90>0)
-<<<<<<< HEAD
     pupdate = new multiphase_fluid_update_rheology(p);
-=======
-	pupdate = new multiphase_fluid_update_rheology(p,a,pgc);
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 }

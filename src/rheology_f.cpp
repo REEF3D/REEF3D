@@ -35,7 +35,6 @@ rheology_f::rheology_f(lexer *p) : strain(p), tau_x(p), tau_y(p), tau_z(p), epsi
 
 double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc)
 {
-<<<<<<< HEAD
     switch(p->W90)
     {
     case 1:
@@ -49,13 +48,6 @@ double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc)
         break;
     }
 
-=======
-	val=0.0;
-	
-	if(p->W90==1)
-	val = Herschel_Bulkley(p,a,pgc);
-    
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     return val;
 }
 

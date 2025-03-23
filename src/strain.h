@@ -35,19 +35,14 @@ class strain : public gradient
 {
 
 public:
-<<<<<<< HEAD
     strain(lexer*);
     virtual ~strain()=default;
-=======
-	strain (lexer*,fdm*);
-	virtual ~strain();
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 
 	double sij(lexer*,fdm*,int,int);
 	double qij(lexer*,fdm*,int,int);
 	double pk(lexer*,fdm*,field&);
     double pk_b(lexer*,fdm*,field&);
-<<<<<<< HEAD
+
     void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
     double strainterm(lexer*,fdm*);
     double strainterm(lexer*,field&,field&,field&);
@@ -56,16 +51,6 @@ public:
     double magSqrSd(lexer*,fdm*);
     double magSqrSd(lexer*,field&,field&,field&);
     double strainplain(lexer*,fdm*);
-=======
-	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
-	virtual double strainterm(lexer*,fdm*);
-    virtual double strainterm(lexer*,field&,field&,field&);
-	virtual double rotationterm(lexer*,fdm*);
-    virtual double rotationterm(lexer*,field&,field&,field&);
-	virtual double magSqrSd(lexer*,fdm*);
-    virtual double magSqrSd(lexer*,field&,field&,field&);
-	double strainplain(lexer*,fdm*);
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 
 private:
     void symmetricStrainRateTensor(lexer*,field&,field&,field&);

@@ -34,13 +34,6 @@ Author: Hans Bihs
 ioflow_v::ioflow_v(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : flowfile_in(p,pgc)
 {
     pBC = ppBC;
-<<<<<<< HEAD
-=======
-    
-	tanphi=0.0;
-    if(p->W101>0)
-    tanphi=tan(p->W102_phi*(PI/180.0));
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
 }
 
 ioflow_v::~ioflow_v()
@@ -843,24 +836,11 @@ void ioflow_v::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void ioflow_v::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
-<<<<<<< HEAD
     if(p->W90>0)
-        prheo = new rheology_f(p);
+    prheo = new rheology_f(p);
+    
     else
-        prheo = new rheology_v();
-=======
-    if(p->B269==0)
-	pvrans = new vrans_v(p,pgc);
-	
-	if(p->B269==1 || p->S10==2)
-	pvrans = new vrans_f(p,pgc);
-    
-    if(p->W90==0)
-    prheo = new rheology_v(p,a);
-    
-    if(p->W90==1)
-    prheo = new rheology_f(p,a);
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
+    prheo = new rheology_v();
 }
 
 void ioflow_v::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)

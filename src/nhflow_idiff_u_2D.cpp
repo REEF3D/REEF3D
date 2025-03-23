@@ -56,12 +56,9 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 
     n=0;
     LOOP
-<<<<<<< HEAD
     {
     d->test[IJK] = 2.0*(UH[Ip1JK]-UH[IJK])/p->DXP[IP];
-=======
-	{
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
+
         if(p->wet[IJ]==1)
         {
             visc = d->VISC[IJK] + d->EV[IJK];

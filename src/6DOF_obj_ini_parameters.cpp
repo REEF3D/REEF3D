@@ -63,7 +63,6 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
     
     
     
-<<<<<<< HEAD
     for(int qn=0;qn<p->X102;++qn)
     {
         if(p->X102_objID[qn]==n6DOF)
@@ -80,14 +79,6 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
         h_(1) = p->X103_q;
         h_(2) = p->X103_r;
     }  
-=======
-	if (p->X102==1)
-	{
-		p_(0) += p->X102_u*Mass_fb;
-		p_(1) += p->X102_v*Mass_fb;
-		p_(2) += p->X102_w*Mass_fb;
-	} 
->>>>>>> parent of 516fad2a7 (Replaced \t with 4 spaces)
     
 	if (p->X103==1)
 	{
