@@ -72,62 +72,45 @@ Author: Hans Bihs
 void sediment_part::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
     pst = new partres(p,pgc);
-    
+
     s = new sediment_fdm(p);
-    
+
     if(p->S90==0)
-    pslide=new sandslide_v(p);   
-    
-    if(p->S90==1)
-    pslide=new sandslide_f(p);
-    
-    if(p->S90==2)
-    pslide=new sandslide_f2(p);
-    
-    if(p->S90==3)
-    pslide=new sandslide_f3(p);
-    
-    if(p->S90==4)
-    pslide=new sandslide_pde(p);
-    
+        pslide = new sandslide_v(p);
+    else if(p->S90==1)
+        pslide = new sandslide_f(p);
+    else if(p->S90==2)
+        pslide = new sandslide_f2(p);
+    else if(p->S90==3)
+        pslide = new sandslide_f3(p);
+    else if(p->S90==4)
+        pslide = new sandslide_pde(p);
+
     if(p->S10!=2 && p->A10==6)
-	pvrans = new vrans_v(p,pgc);
-	
-	if(p->S10==2 && p->A10==6)
-	pvrans = new vrans_f(p,pgc);
-    
-    
+        pvrans = new vrans_v(p,pgc);
+    else if(p->S10==2 && p->A10==6)
+        pvrans = new vrans_f(p,pgc);
+
     pslope = new bedslope(p);
-    
+
     if(p->S80==0)
-    preduce=new reduction_void(p);
+        preduce = new reduction_void(p);
+    else if(p->S80==1)
+        preduce = new reduction_parker(p);
+    else if(p->S80==2)
+        preduce = new reduction_deyemp(p);
+    else if(p->S80==3)
+        preduce = new reduction_deyana(p);
+    else if(p->S80==4)
+        preduce = new reduction_FD(p);
 
-    if(p->S80==1)
-    preduce=new reduction_parker(p);
-
-    if(p->S80==2)
-    preduce=new reduction_deyemp(p);
-
-    if(p->S80==3)
-    preduce=new reduction_deyana(p);
-	
-	if(p->S80==4)
-    preduce=new reduction_FD(p);
-    
     ptopo = new sediment_exner(p,pgc);
-   
-    
 
-	p->gcin4a_count=p->gcin_count;
-	p->gcout4a_count=p->gcout_count;
-	
-    
     prelax = new topo_relax(p);
-	
-	pbedshear  = new bedshear(p,pturb);
-    
+
+    pbedshear = new bedshear(p,pturb);
+
     volume_token=0;
-    
-    
-    
+    p->gcin4a_count = p->gcin_count;
+    p->gcout4a_count = p->gcout_count;
 }
