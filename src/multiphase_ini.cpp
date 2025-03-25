@@ -359,20 +359,10 @@ void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer 
 
 double multiphase_f::fx(double x1, double z1, double x2, double z2, double x)
 {
-	double f;
-	
-	f = ((z2-z1)/(x2-x1))*(x-x1) + z1;
-	
-	return f;
-	
+    return ((z2-z1)/(x2-x1))*(x-x1) + z1;
 }
 
 double multiphase_f::fz(double x1, double z1, double x2, double z2, double z)
 {
-	double f;
-	
-	f = ((x2-x1)/(z2-z1))*(z-z1) + x1;
-	
-	return f;
-	
+    return ((x2-x1)/(z2-z1))*(z-z1) + x1;
 }

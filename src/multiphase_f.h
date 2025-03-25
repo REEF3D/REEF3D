@@ -47,46 +47,46 @@ using namespace std;
 class multiphase_f : public multiphase, public increment
 {
 public:
-	multiphase_f(lexer*, fdm*, ghostcell*);
-	virtual ~multiphase_f();
-	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*);
-	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*);
-	virtual void update(lexer*,fdm*,ghostcell*);
-	
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-	virtual void print_file(lexer*, fdm*, ghostcell*);
-    virtual double ls1val(int,int,int);
-    virtual double ls2val(int,int,int);
-	virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_ls2val(lexer*,ghostcell*,double,double,double);
-    virtual void ls1get(int,int,int,double);
-    virtual void ls2get(int,int,int,double);
+    multiphase_f(lexer*, fdm*, ghostcell*);
+    virtual ~multiphase_f() = default;
+    void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*) override;
+    void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*) override;
+    void update(lexer*,fdm*,ghostcell*) override;
+    
+    void print_3D(lexer*,fdm*,ghostcell*,ofstream&) override;
+    void print_file(lexer*,fdm*, ghostcell*) override;
+    double ls1val(int,int,int) override;
+    double ls2val(int,int,int) override;
+    double ccipol_ls1val(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_ls2val(lexer*,ghostcell*,double,double,double) override;
+    void ls1get(int,int,int,double) override;
+    void ls2get(int,int,int,double) override;
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-	
-	void logic(lexer*,fdm*,ghostcell*);
-	
-	freesurface *pfsf1,*pfsf2;
-	reini *preini;
-	multiphase_fluid_update *pupdate;
-	heat *pheat;
-	concentration *pconc;
-	particle_corr *ppls;
-	print_wsf *pwsf1;
-	print_wsf *pwsf2;
-	
-	field4 ls1,ls2;
-	
-	int n;
-	int iin;
-	float ffn;
-	double ddn;
-
+    void name_pvtu(lexer*,fdm*,ghostcell*,ofstream&) override;
+    void name_vtu(lexer*,fdm*,ghostcell*,ofstream&,int*,int&) override;
+    void offset_vtu(lexer*,fdm*,ghostcell*,ofstream&,int*,int&) override;
+    
 private:
-	double fx(double,double,double,double,double);
-	double fz(double,double,double,double,double);
+    void logic(lexer*,fdm*,ghostcell*);
+    double fx(double,double,double,double,double);
+    double fz(double,double,double,double,double);
+    
+    freesurface *pfsf1,*pfsf2;
+    reini *preini;
+    multiphase_fluid_update *pupdate;
+    heat *pheat;
+    concentration *pconc;
+    convection* pmpconvec;
+    particle_corr *ppls;
+    print_wsf *pwsf1;
+    print_wsf *pwsf2;
+    
+    field4 ls1,ls2;
+    
+    int n;
+    int iin;
+    float ffn;
+    double ddn;
 };
 
 #endif

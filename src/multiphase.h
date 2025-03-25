@@ -23,10 +23,8 @@ Author: Hans Bihs
 #ifndef MULTIPHASE_H_
 #define MULTIPHASE_H_
 
-class fdm;
 class lexer;
-class convection;
-class solver;
+class fdm;
 class ghostcell;
 class ioflow;
 class reini;

@@ -39,81 +39,63 @@ multiphase_v::multiphase_v()
 {
 }
 
-multiphase_v::~multiphase_v()
+void multiphase_v::ini(lexer*, fdm*, ghostcell*, ioflow*, printer*, convection*, solver*)
 {
 }
 
-void multiphase_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer *pprint, convection *pconvec, solver *psolv)
+void multiphase_v::start(lexer*, fdm*, ghostcell*, convection*, solver*, ioflow*, reini*, particle_corr*, printer*)
 {
 }
 
-void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, solver *psolv, ioflow *pflow, reini* preini, particle_corr* ppls, printer *pprint)
+void multiphase_v::update(lexer*, fdm*, ghostcell* )
 {
 }
 
-void multiphase_v::update(lexer *p, fdm *a, ghostcell *pgc)
+void multiphase_v::print_3D(lexer*, fdm*, ghostcell*, ofstream&)
 {
 }
 
-void multiphase_v::print_3D(lexer*, fdm*, ghostcell*,ofstream&)
-{	
-}
-
-void multiphase_v::print_file(lexer *p, fdm *a, ghostcell *pgc)
+void multiphase_v::print_file(lexer*, fdm*, ghostcell*)
 {
 }
 
-double multiphase_v::ls1val(int,int,int)
+double multiphase_v::ls1val(int, int, int)
 {
-	double val=0.0;
-	
-	return val;
+    return 0.0;
 }
 
-double multiphase_v::ls2val(int,int,int)
+double multiphase_v::ls2val(int, int, int)
 {
-	double val=0.0;
-	
-	return val;
+    return 0.0;
 }
 
-double multiphase_v::ccipol_ls1val(lexer*,ghostcell*,double,double,double)
+double multiphase_v::ccipol_ls1val(lexer*, ghostcell*, double, double, double)
 {
-	double val=0.0;
-	
-	return val;
+    return 0.0;
 }
 
-double multiphase_v::ccipol_ls2val(lexer*,ghostcell*,double,double,double)
+double multiphase_v::ccipol_ls2val(lexer*, ghostcell*, double, double, double)
 {
-	double val=0.0;
-	
-	return val;
+    return 0.0;
 }
 
-void multiphase_v::ls1get(int,int,int,double)
+void multiphase_v::ls1get(int, int, int, double)
 {
-	
 }
 
-void multiphase_v::ls2get(int,int,int,double)
+void multiphase_v::ls2get(int, int, int, double)
 {
-	
 }
 
 
-void multiphase_v::name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)
+void multiphase_v::name_pvtu(lexer*, fdm*, ghostcell*, ofstream&)
 {
-	
 }
 
-void multiphase_v::name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
+void multiphase_v::name_vtu(lexer*, fdm*, ghostcell*, ofstream&, int*, int &)
 {
-	
 }
 
-void multiphase_v::offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
+void multiphase_v::offset_vtu(lexer*, fdm*, ghostcell*, ofstream&, int*, int &)
 {
-	
 }
-
