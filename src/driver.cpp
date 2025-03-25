@@ -133,8 +133,7 @@ void driver::sflow_driver()
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
 
-    b=new fdm2D(p);
-    bb=b;
+    b = new fdm2D(p);
 
     psflow = new sflow_f(p,b,pgc,pBC);
 
@@ -151,7 +150,7 @@ void driver::fnpf_driver()
 
     p->grid2Dsize();
 
-    c=new fdm_fnpf(p);
+    c = new fdm_fnpf(p);
 
     pgc->fdm_fnpf_update(c);
 
@@ -170,9 +169,7 @@ void driver::ptf_driver()
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
 
-    a=new fdm(p);
-
-    aa=a;
+    a = new fdm(p);
     pgc->fdm_update(a);
 
     logic_ptf();
@@ -188,7 +185,7 @@ void driver::nhflow_driver()
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
 
-	d=new fdm_nhf(p);
+	d = new fdm_nhf(p);
 
     pgc->fdm_nhf_update(d);
 
@@ -205,11 +202,10 @@ void driver::nhflow_driver()
 void driver::cfd_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm "<<endl;
+    cout<<"initialize fdm "<<endl;
 
-    a=new fdm(p);
+    a = new fdm(p);
 
-	aa=a;
     pgc->fdm_update(a);
 
     logic_cfd();

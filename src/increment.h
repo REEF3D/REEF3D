@@ -23,23 +23,15 @@ Author: Hans Bihs
 #ifndef INCREMENT_H_
 #define INCREMENT_H_
 
-class fdm;
-class fdm2D;
-
 #include"looping.h"
-
-using namespace std;
 
 class increment
 {
-	public:
-	increment();
-	virtual ~increment();
-	static int i,j,k,n,h;
-	static int innercounter;
-	static int pip;
-    static int marge;
-	static fdm *aa;
-    static fdm2D *bb;
+    public:
+        increment();
+        virtual ~increment() = default;
+        static int i,j,k,n;
+        static int pip;
+        static int marge;
 };
 #endif

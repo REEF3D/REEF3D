@@ -29,6 +29,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class fdm_nhf;
+class fdm2D;
 class ghostcell;
 class sediment_fdm;
 class turbulence;
