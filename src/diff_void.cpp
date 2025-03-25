@@ -53,18 +53,6 @@ void diff_void::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fi
 {
 }
 
-void diff_void::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, field &v, field &w, double alpha)
-{
-}
-
-void diff_void::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, field &v, field &w, double alpha)
-{
-}
-
-void diff_void::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &u, field &v, field &w, double alpha)
-{
-}
-
 void diff_void::diff_u(lexer* p, fdm* a, ghostcell* pgc, solver* psolv, field &udiff, field &u_in, field &u, field &v, field &w, double alpha)
 {
 	ULOOP

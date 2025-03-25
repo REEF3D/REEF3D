@@ -25,6 +25,15 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
+idiff2::idiff2(lexer* p):gradient(p)
+{
+}
+
+idiff2::~idiff2()
+{
+}
+
+
 void idiff2::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &eddyv, double sig, double alpha)
 {
     count=0;

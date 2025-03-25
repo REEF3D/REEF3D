@@ -1203,6 +1203,7 @@
             <File Name="sflow_print_bedline.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
+            <File Name="sflow_state_read.cpp"/>
             <File Name="sflow_state_write.cpp"/>
             <File Name="sflow_state_mainheader.cpp"/>
             <File Name="sflow_state_header.cpp"/>
@@ -1400,6 +1401,7 @@
             <File Name="nhflow_print_Hs.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
+            <File Name="nhflow_state_read.cpp"/>
             <File Name="nhflow_state_write.cpp"/>
             <File Name="nhflow_state_mainheader.cpp"/>
             <File Name="nhflow_state_header.cpp"/>
@@ -2195,9 +2197,6 @@
         <File Name="idiff2_FSu.cpp"/>
         <File Name="idiff2_FSv.cpp"/>
         <File Name="idiff2_FSw.cpp"/>
-        <File Name="idiff2_u.cpp"/>
-        <File Name="idiff2_v.cpp"/>
-        <File Name="idiff2_w.cpp"/>
         <File Name="idiff2_FS-scalar.cpp"/>
         <File Name="idiff2_scalar.cpp"/>
       </VirtualDirectory>

@@ -72,7 +72,7 @@ void momentum_AB2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
-	pdiff->diff_u(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
+	pdiff->diff_u(p,a,pgc,psolv,a->u,a->u,a->u,a->v,a->w,1.0);
 	p->utime=pgc->timer()-starttime;
 
 	//--------------------------------------------------------
@@ -85,7 +85,7 @@ void momentum_AB2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
-	pdiff->diff_v(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
+	pdiff->diff_v(p,a,pgc,psolv,a->v,a->v,a->u,a->v,a->w,1.0);
 	p->vtime=pgc->timer()-starttime;
 
 	//--------------------------------------------------------
@@ -98,7 +98,7 @@ void momentum_AB2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
-	pdiff->diff_w(p,a,pgc,psolv,a->u,a->v,a->w,1.0);
+	pdiff->diff_w(p,a,pgc,psolv,a->w,a->w,a->u,a->v,a->w,1.0);
 	p->wtime=pgc->timer()-starttime;
 	
 	//--------------------------------------------------------
