@@ -31,9 +31,9 @@ class multiphase_v : public multiphase
 public:
     multiphase_v();
     virtual ~multiphase_v() = default;
-    void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*) override;
-    void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*) override;
-    virtual void update(lexer*,fdm*,ghostcell*) override;
+    void start(lexer*,fdm*,ghostcell*,solver*,ioflow*,reini*,particle_corr*,printer*) override;
+    void ini(lexer*,fdm*,ghostcell*,ioflow*) override;
+    void update(lexer*,fdm*,ghostcell*) override;
     
     void print_3D(lexer*,fdm*,ghostcell*,ofstream&) override;
     void print_file(lexer*,fdm*,ghostcell*) override;

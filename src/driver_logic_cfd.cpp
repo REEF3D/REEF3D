@@ -151,38 +151,8 @@ void driver::logic_cfd()
 	if(p->F35>=10 && p->F35<30)
 	pfsfdisc=new hires(p,p->F35);
 
-	if(p->F35>=40 && p->F35<50)
-	pfsfdisc=new hires(p,p->F35);
-    
-//  Convection Multiphase LSM
-	if(p->F305==0)
-	pmpconvec=new convection_void(p);
-	
-	if(p->F305==1)
-	pmpconvec=new fou(p);
-
-	if(p->F305==2)
-	pmpconvec=new cds2(p);
-
-	if(p->F305==3)
-	pmpconvec=new quick(p);
-
-	if(p->F305==4)
-	pmpconvec=new weno_flux_nug(p);
-
-	if(p->F305==5)
-	pmpconvec=new weno_hj_nug(p);
-	
-	if(p->F305==6)
-	pmpconvec=new cds4(p);
-	
-	if(p->F305>=10 && p->F305<30)
-	pmpconvec=new hires(p,p->F305);
-	
-	if(p->F305>=40 && p->F305<50)
-	pmpconvec=new hires(p,p->F305);
-
-
+    if(p->F35>=40 && p->F35<50)
+    pfsfdisc=new hires(p,p->F35);
 
 //  Convection Concentration
 	if(p->C15==0)

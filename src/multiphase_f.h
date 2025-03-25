@@ -49,8 +49,8 @@ class multiphase_f : public multiphase, public increment
 public:
     multiphase_f(lexer*, fdm*, ghostcell*);
     virtual ~multiphase_f() = default;
-    void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*) override;
-    void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*) override;
+    void start(lexer*,fdm*,ghostcell*,solver*,ioflow*,reini*,particle_corr*,printer*) override;
+    void ini(lexer*,fdm*,ghostcell*,ioflow*) override;
     void update(lexer*,fdm*,ghostcell*) override;
     
     void print_3D(lexer*,fdm*,ghostcell*,ofstream&) override;

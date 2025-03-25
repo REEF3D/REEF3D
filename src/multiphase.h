@@ -26,6 +26,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class solver;
 class ioflow;
 class reini;
 class printer;
@@ -40,16 +41,16 @@ class multiphase
 {
 public:
 
-	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*)=0;
-	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*)=0;
-	virtual void update(lexer*,fdm*,ghostcell*)=0;
-	
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&)=0;
-	virtual void print_file(lexer*, fdm*, ghostcell*)=0;
+    virtual void start(lexer*,fdm*,ghostcell*,solver*,ioflow*,reini*,particle_corr*,printer*)=0;
+    virtual void ini(lexer*,fdm*,ghostcell*,ioflow*)=0;
+    virtual void update(lexer*,fdm*,ghostcell*)=0;
+    
+    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&)=0;
+    virtual void print_file(lexer*, fdm*, ghostcell*)=0;
     virtual double ls1val(int,int,int)=0;
     virtual double ls2val(int,int,int)=0;
-	virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double)=0;
-	virtual double ccipol_ls2val(lexer*,ghostcell*,double,double,double)=0;
+    virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double)=0;
+    virtual double ccipol_ls2val(lexer*,ghostcell*,double,double,double)=0;
     virtual void ls1get(int,int,int,double)=0;
     virtual void ls2get(int,int,int,double)=0;
 

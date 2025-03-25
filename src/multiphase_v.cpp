@@ -39,11 +39,11 @@ multiphase_v::multiphase_v()
 {
 }
 
-void multiphase_v::ini(lexer*, fdm*, ghostcell*, ioflow*, printer*, convection*, solver*)
+void multiphase_v::ini(lexer*, fdm*, ghostcell*, ioflow*)
 {
 }
 
-void multiphase_v::start(lexer*, fdm*, ghostcell*, convection*, solver*, ioflow*, reini*, particle_corr*, printer*)
+void multiphase_v::start(lexer*, fdm*, ghostcell*, solver*, ioflow*, reini*, particle_corr*, printer*)
 {
 }
 
