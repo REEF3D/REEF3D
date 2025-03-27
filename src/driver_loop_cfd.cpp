@@ -24,62 +24,56 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"freesurface_header.h"
-#include"turbulence_header.h"
-#include"momentum_header.h"
-#include"pressure_header.h"
-#include"fdm_header.h"
-#include"sediment_header.h"
-#include"heat_header.h"
-#include"concentration_header.h"
-#include"benchmark_header.h"
-#include"convection_header.h"
-#include"solver_header.h"
-#include"field_header.h"
-#include"6DOF_header.h"
+#include"ioflow.h"
+#include"freesurface.h"
+#include"turbulence.h"
+#include"heat.h"
+#include"concentration.h"
+#include"multiphase.h"
+#include"sediment.h"
+#include"momentum.h"
+#include"benchmark.h"
+#include"timestep.h"
+#include"printer.h"
 
-
-void driver::loop_cfd(fdm* a)
+void driver::loop_cfd()
 {
     if(p->mpirank==0)
-    cout<<"starting mainloop.CFD"<<endl;
+        cout<<"starting mainloop.CFD"<<endl;
     
-    //vec_test(p,a,pgc,a->test);
-    
-//-----------MAINLOOP CFD----------------------------
-	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
-	{		
+    //-----------MAINLOOP CFD----------------------------
+    while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
+    {        
         ++p->count;
         starttime=pgc->timer();
         
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------------"<<endl;
-        cout<<p->count<<endl;
-        
-        cout<<"simtime: "<<p->simtime<<endl;
-		cout<<setprecision(5)<<"timestep: "<<p->dt<<endl;
-        
-        if(p->X10>0)
-        cout<<"fbtimestep: "<<p->fbdt<<" fbmax: "<<p->fbmax<<endl;
-        
-		if(p->B90>0 && p->B92<=11)
-		cout<<"t/T: "<<p->simtime/p->wT<<endl;
-        
-        if(p->B90>0 && p->B92>11)
-		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
+            cout<<"------------------------------------\n"
+                <<p->count<<endl;
+            
+            cout<<"simtime: "<<p->simtime<<endl;
+            cout<<"timestep: "<<setprecision(5)<<p->dt<<endl;
+            
+            if(p->X10>0)
+                cout<<"fbtimestep: "<<p->fbdt<<" fbmax: "<<p->fbmax<<endl;
+            
+            if(p->B90>0 && p->B92<=11)
+                cout<<"t/T: "<<p->simtime/p->wT<<endl;
+            
+            if(p->B90>0 && p->B92>11)
+                cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
         pflow->flowfile(p,a,pgc,pturb);
         
         pflow->wavegen_precalc(p,pgc);
 
-        
-            pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
-            pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
-            pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
-            pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-            pmp->start(p,a,pgc,psolv,pflow,preini,ppls,pprint);
+        pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
+        pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
+        pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
+        pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
+        pmp->start(p,a,pgc,psolv,pflow,preini,ppls,pprint);
         
         psed->start_susp(p,a,pgc,pflow,psolv);
         psed->start_cfd(p,a,pgc,pflow,preto,psolv);
@@ -106,57 +100,53 @@ void driver::loop_cfd(fdm* a)
         // Shell-Printout
         if(p->mpirank==0)
         {
-        endtime=pgc->timer();
-        
-		p->itertime=endtime-starttime;
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
+            endtime=pgc->timer();
+            
+            p->itertime=endtime-starttime;
+            p->totaltime+=p->itertime;
+            p->gctotaltime+=p->gctime;
+            p->Xtotaltime+=p->xtime;
+            p->meantime=(p->totaltime/double(p->count));
+            p->gcmeantime=(p->gctotaltime/double(p->count));
+            p->Xmeantime=(p->Xtotaltime/double(p->count));
         
             if( (p->count%p->P12==0))
             {
-            if(p->B90>0)
-            cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
-            if(p->X10>0)
-            cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
-            cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
-            cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-            cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-            cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
-            cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
+                if(p->B90>0)
+                    cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
+                if(p->X10>0)
+                    cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
+                cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
+                cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
+                cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;        
+                cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+                cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
             }
-        // Write log files
-        mainlog(p);
-        maxlog(p);
-        solverlog(p);
+            // Write log files
+            mainlog(p);
+            maxlog(p);
+            solverlog(p);
         }
-    p->gctime=0.0;
-    p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-	p->field4time=0.0;
-    
-    pgc->gcparax(p,a->press,4);
-    
-    
-    stop(p,a,pgc);
-	}
+        p->gctime=0.0;
+        p->xtime=0.0;
+        p->reinitime=0.0;
+        p->wavecalctime=0.0;
+        p->field4time=0.0;
+        
+        pgc->gcparax(p,a->press,4);
+        
+        stop(p,a,pgc);
+    }
 
-	if(p->mpirank==0)
-	{
-	cout<<endl<<"******************************"<<endl<<endl;
+    if(p->mpirank==0)
+    {
+        cout<<"\n******************************\n\n"
+            <<"modelled time: "<<p->simtime<<"\n"<<endl;
 
-	cout<<"modelled time: "<<p->simtime<<endl;
-	cout << endl;
-
-    mainlogout.close();
-    maxlogout.close();
-    solvlogout.close();
-	}
+        mainlogout.close();
+        maxlogout.close();
+        solvlogout.close();
+    }
 
     pgc->final();
 }
-

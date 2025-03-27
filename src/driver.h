@@ -107,8 +107,8 @@ public:
     void ptf_driver();
     void sflow_driver();
     
-	void loop_cfd(fdm*);
-	void loop_cfd_df(fdm*);
+    void loop_cfd();
+    void loop_cfd_df(fdm*);
     void loop_cfd_sf(fdm*);
     void loop_nhflow();
     void loop_ptf(fdm*);
