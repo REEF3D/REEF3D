@@ -22,36 +22,26 @@ Author: Hans Bihs
 
 #include"solver_void.h"
 
-solver_void::solver_void(lexer* p,fdm* a,ghostcell *pgc)
+solver_void::solver_void()
 {
 }
 
-solver_void::~solver_void()
+void solver_void::start(lexer*,fdm* a, ghostcell*, field&, vec&, int)
 {
 }
 
-void solver_void::start(lexer* p,fdm* a, ghostcell* pgc, field& xfield, vec& rhsvec, int var)
+void solver_void::startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int)
 {
 }
 
-void solver_void::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
-{
-    
-}
-
-void solver_void::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
+void solver_void::startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int)
 {
 }
 
-void solver_void::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
-{
-    
-}
-
-void solver_void::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
+void solver_void::startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int)
 {
 }
 
-
-
-
+void solver_void::startM(lexer*, ghostcell*, double*, double*, double*, int)
+{
+}

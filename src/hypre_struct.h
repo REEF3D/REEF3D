@@ -20,12 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-
 #ifndef HYPRE_STRUCT_H_
 #define HYPRE_STRUCT_H_
 
 #define HYPRE_COMPILATION
-
 #ifdef HYPRE_COMPILATION
 
 #include"solver.h"
@@ -40,14 +38,14 @@ class hypre_struct : public solver, public increment
 {
 public:
 
-	hypre_struct(lexer*,ghostcell*,int,int);
-	virtual ~hypre_struct();
+    hypre_struct(lexer*,ghostcell*,int,int);
+    virtual ~hypre_struct() = default;
     
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
-    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
-    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
+    void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
     
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver4f(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
@@ -67,8 +65,6 @@ public:
     void fillxvec2(lexer*,fdm*,field&);
     void fillxvec3(lexer*,fdm*,field&);
     void fillxvec4(lexer*,fdm*,field&);
-    
-    
     
     void make_grid(lexer*, ghostcell*);
     void make_grid_2Dvert(lexer*, ghostcell*);
@@ -114,8 +110,6 @@ public:
     void delete_solver44(lexer*,ghostcell*);
     
     void precon_switch(lexer*,ghostcell*);
-    
-
 private:
     
 // HYPRE 
@@ -128,8 +122,7 @@ private:
    HYPRE_StructSolver   solver;
    HYPRE_StructSolver   precond;
    
-
-	int *ilower,*iupper;
+    int *ilower,*iupper;
     double *values;
     int num_iterations;
     double final_res_norm;
@@ -143,12 +136,9 @@ private:
     
     int solve_type,precon_type;
     
-    
     int *CVAL4;
-
 };
 
 #endif
 
 #endif
-

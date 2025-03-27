@@ -25,37 +25,29 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-data_f::data_f(lexer* p, fdm *a, ghostcell* pgc) : data(p)
-{
-}
-
-data_f::~data_f()
+data_f::data_f(lexer* p) : data(p)
 {
 }
 
 void data_f::start(lexer* p, fdm* a, ghostcell* pgc)
 {
-	cout<<"DATA "<<p->P150<<endl;
-	
-	if(p->P151==1)
-    LOOP
-    data(i,j,k)=p->data[(i-p->imin)*p->jmax + (j-p->jmin)];
-	
-	if(p->P151==2)
-	LOOP
-	data(i,j,k)=-p->data[(i-p->imin)*p->jmax + (j-p->jmin)]+p->pos_z();
-	
-	if(p->P152==1)
-	pgc->start4(p,data,101);
-	
-	if(p->P152==2)
-	pgc->start4(p,data,102);
-	
-	if(p->P152==3)
-	pgc->start4(p,data,103);
-	
-	if(p->P152==4)
-	pgc->start4(p,data,1);
+    cout<<"DATA "<<p->P150<<endl;
+    
+    if(p->P151==1)
+        LOOP
+            data(i,j,k)=p->data[(i-p->imin)*p->jmax + (j-p->jmin)];
+    else if(p->P151==2)
+        LOOP
+            data(i,j,k)=-p->data[(i-p->imin)*p->jmax + (j-p->jmin)]+p->pos_z();
+    
+    if(p->P152==1)
+        pgc->start4(p,data,101);
+    else if(p->P152==2)
+        pgc->start4(p,data,102);
+    else if(p->P152==3)
+        pgc->start4(p,data,103);
+    else if(p->P152==4)
+        pgc->start4(p,data,1);
 }
 
 
@@ -65,10 +57,10 @@ void data_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
     result.write((char*)&iin, sizeof (int));
 
     TPLOOP
-	{
-	ffn=float(p->ipol4(data));
-	result.write((char*)&ffn, sizeof (float));
-	}
+    {
+        ffn=float(p->ipol4(data));
+        result.write((char*)&ffn, sizeof (float));
+    }
 }
 
 void data_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
@@ -87,5 +79,3 @@ void data_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int 
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 }
-
-

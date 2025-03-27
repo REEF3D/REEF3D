@@ -56,18 +56,18 @@ void driver::assign_density()
 void driver::assign_poisson_solver()
 {
     if(p->N10==0)
-        ppoissonsolv = new solver_void(p,a,pgc);
+        ppoissonsolv = new solver_void();
     else if(p->N10==1 && p->j_dir==0)
-        ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
+        ppoissonsolv = new bicgstab_ijk_2D(p);
     else if(p->N10==1 && p->j_dir==1)
-        ppoissonsolv = new bicgstab_ijk(p,a,pgc);
+        ppoissonsolv = new bicgstab_ijk(p);
     #ifdef HYPRE_COMPILATION
     else if(p->N10>=10 && p->N10<20)
         ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     else if(p->N10>=20 && p->N10<30)
-        ppoissonsolv = new hypre_aij(p,a,pgc);
+        ppoissonsolv = new hypre_aij(p);
     else if(p->N10>=30 && p->N10<40)
-        ppoissonsolv = new hypre_sstruct(p,a,pgc);
+        ppoissonsolv = new hypre_sstruct(p,pgc);
     #endif
 }
 
@@ -98,17 +98,17 @@ void driver::assign_VRANS()
 void driver::assign_solver()
 {
     if(p->j_dir==0)
-        psolv = new bicgstab_ijk_2D(p,a,pgc);
+        psolv = new bicgstab_ijk_2D(p);
     else if(p->j_dir==1)
-        psolv = new bicgstab_ijk(p,a,pgc);
+        psolv = new bicgstab_ijk(p);
 }
 
 void driver::assign_data()
 {
     if(p->P150==0)
-        pdata = new data_void(p,a,pgc);
+        pdata = new data_void();
     else if(p->P150>0)
-        pdata = new data_f(p,a,pgc);
+        pdata = new data_f(p);
 }
 
 void driver::assign_reinitopo()

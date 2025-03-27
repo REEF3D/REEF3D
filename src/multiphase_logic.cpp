@@ -35,8 +35,8 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
     pwsf1 = new print_wsf(p,a,pgc,1);
     pwsf2 = new print_wsf(p,a,pgc,2);
 
-    pheat = new heat_void(p,a,pgc);
-    pconc = new concentration_void(p,a,pgc);
+    pheat = new heat_void();
+    pconc = new concentration_void();
     
     // Free Surface
     if(p->F300==0)

@@ -43,8 +43,8 @@ class hypre_sstruct : public solver, public increment
 {
 public:
 
-	hypre_sstruct(lexer*,fdm*,ghostcell*);
-	virtual ~hypre_sstruct();
+    hypre_sstruct(lexer*,ghostcell*);
+    virtual ~hypre_sstruct() = default;
     
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
     virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
@@ -66,10 +66,10 @@ public:
     void fillxvec3(lexer*,fdm*,field&);
     void fillxvec4(lexer*,fdm*,field&);
     
-    void make_grid_7p(lexer*,fdm*, ghostcell*);
-    void make_grid_13p(lexer*,fdm*, ghostcell*);
-    void make_grid_15p(lexer*,fdm*, ghostcell*);
-    void make_grid_2Dvert_9p(lexer*,fdm*, ghostcell*);
+    void make_grid_7p(lexer*,ghostcell*);
+    void make_grid_13p(lexer*,ghostcell*);
+    void make_grid_15p(lexer*,ghostcell*);
+    void make_grid_2Dvert_9p(lexer*,ghostcell*);
     
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix2(lexer*,fdm*, ghostcell*,field&);

@@ -32,8 +32,8 @@ class kepsilon_void : public turbulence, public increment
 {
 
 public:
-	kepsilon_void(lexer *,fdm*,ghostcell*);
-	virtual ~kepsilon_void();
+    kepsilon_void();
+    virtual ~kepsilon_void() = default;
 
 	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
 	virtual void ktimesave(lexer*, fdm*, ghostcell*);

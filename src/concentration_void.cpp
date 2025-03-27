@@ -30,11 +30,7 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include"solver.h"
 
-concentration_void::concentration_void(lexer* p, fdm* a, ghostcell *pgc)
-{
-}
-
-concentration_void::~concentration_void()
+concentration_void::concentration_void()
 {
 }
 

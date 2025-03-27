@@ -21,13 +21,11 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"hypre_sstruct.h"
-
 #ifdef HYPRE_COMPILATION
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void hypre_sstruct::make_grid_7p(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_sstruct::make_grid_7p(lexer* p, ghostcell* pgc)
 {
     kend=0;
     numparts=1;
@@ -63,7 +61,7 @@ void hypre_sstruct::make_grid_7p(lexer* p,fdm* a, ghostcell* pgc)
     int offsets[7][3] = {{0,0,0}, {-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}, {0,0,-1}, {0,0,1}};
 
     for (entry=0; entry<7; ++entry)
-    HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
+        HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
 
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
@@ -87,7 +85,7 @@ void hypre_sstruct::make_grid_7p(lexer* p,fdm* a, ghostcell* pgc)
 }
 
 
-void hypre_sstruct::make_grid_13p(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_sstruct::make_grid_13p(lexer* p, ghostcell* pgc)
 {
     kend=0;
     numparts=1;
@@ -116,7 +114,6 @@ void hypre_sstruct::make_grid_13p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructGridSetVariables(grid, part, numvar, vartypes);
     HYPRE_SStructGridAssemble(grid);
     
-    
     // stencil
     HYPRE_SStructStencilCreate(3, 13, &stencil);
 
@@ -126,7 +123,7 @@ void hypre_sstruct::make_grid_13p(lexer* p,fdm* a, ghostcell* pgc)
                                  {-2,0,0}, {2,0,0}, {0,-2,0}, {0,2,0}, {0,0,-2}, {0,0,2}};
 
     for (entry=0; entry<13; ++entry)
-    HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
+        HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
     
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
@@ -149,7 +146,7 @@ void hypre_sstruct::make_grid_13p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructVectorInitialize(x);
 }
 
-void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_sstruct::make_grid_15p(lexer* p, ghostcell* pgc)
 {
     kend=0;
     numparts=1;
@@ -175,7 +172,6 @@ void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructGridSetVariables(grid, part, numvar, vartypes);
     HYPRE_SStructGridAssemble(grid);
     
-    
     // stencil
     HYPRE_SStructStencilCreate(3, 15, &stencil);
 
@@ -184,7 +180,7 @@ void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
                           {-1,0,-1},{-1,0,1},{1,0,-1},{1,0,1},{0,-1,-1},{0,-1,1},{0,1,-1},{0,1,1}};
 
     for (entry=0; entry<15; ++entry)
-    HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
+        HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
     
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
@@ -207,7 +203,7 @@ void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructVectorInitialize(x);
 }
 
-void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
+void hypre_sstruct::make_grid_2Dvert_9p(lexer* p, ghostcell* pgc)
 { 
     kend=0;
     numparts=1;
@@ -238,7 +234,7 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
     int offsets[9][2] = {{0,0}, {-1,0},{1,0}, {0,-1},{0,1}, {-1,-1},{-1,1},{1,-1},{1,1}};
 
     for (entry=0; entry<9; ++entry)
-    HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
+        HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
     
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
@@ -262,5 +258,3 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
 }
 
 #endif
-
-

@@ -23,25 +23,24 @@ Author: Hans Bihs
 #ifndef DATA_VOID_H_
 #define DATA_VOID_H_
 
-#include"data.h"
-
 class lexer;
 class fdm;
 class ghostcell;
 
-using namespace std;
+#include"data.h"
 
 class data_void : public data
 {
 public:
-	data_void(lexer*, fdm*, ghostcell*);
-	virtual ~data_void();
-	virtual void start(lexer*, fdm*, ghostcell*);
-	
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-	virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    data_void();
+    virtual ~data_void() = default;
+
+    void start(lexer*, fdm*, ghostcell*) override;
+    
+    void print_3D(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
+    void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
 };
 
 #endif

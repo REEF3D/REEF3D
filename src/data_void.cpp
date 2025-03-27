@@ -21,36 +21,27 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"data_void.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 
-data_void::data_void(lexer* p, fdm *a, ghostcell* pgc)
+data_void::data_void()
 {
 }
 
-data_void::~data_void()
+void data_void::start(lexer*, fdm*, ghostcell*)
 {
 }
 
-void data_void::start(lexer* p, fdm* a, ghostcell* pgc)
+void data_void::print_3D(lexer*, fdm*, ghostcell*, ofstream&)
 {
 }
 
-void data_void::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void data_void::name_pvtu(lexer*, fdm*, ghostcell*, ofstream&)
 {
 }
 
-void data_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void data_void::name_vtu(lexer*, fdm*, ghostcell*, ofstream&, int*, int&)
 {
 }
 
-void data_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void data_void::offset_vtu(lexer*, fdm*, ghostcell*, ofstream&, int*, int&)
 {
 }
-
-void data_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
-{
-}
-
-

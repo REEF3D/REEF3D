@@ -159,7 +159,7 @@ void driver::logic_cfd()
     
     //turbulence model
     if(p->T10==0)
-        pturb = new kepsilon_void(p,a,pgc);
+        pturb = new kepsilon_void();
     //ke
     else if(p->T10==1 || p->T10==21)
         pturb = new kepsilon_IM1(p,a,pgc);
@@ -177,7 +177,7 @@ void driver::logic_cfd()
 
     //Heat
     if(p->H10==0)
-        pheat = new heat_void(p,a,pgc);
+        pheat = new heat_void();
     else if(p->H10==1)
         pheat = new heat_AB(p,a,pgc,pheat);
     else if(p->H10==2)
@@ -215,7 +215,7 @@ void driver::logic_cfd()
 
     // Concentration
     if(p->C10==0)
-        pconc = new concentration_void(p,a,pgc);
+        pconc = new concentration_void();
     else if(p->C10==1)
         pconc = new concentration_AB(p,a,pgc);
     else if(p->C10==2)

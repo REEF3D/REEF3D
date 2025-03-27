@@ -72,24 +72,24 @@ void driver::logic_ptf()
     
     //  Laplace Solver    
     if(p->N10==0)
-        plapsolv = new solver_void(p,a,pgc);
+        plapsolv = new solver_void();
     else if(p->N10==1)
-        plapsolv = new bicgstab_ijk(p,a,pgc);
+        plapsolv = new bicgstab_ijk(p);
     #ifdef HYPRE_COMPILATION
     else if(p->N10>10 && p->N10<=20)
         plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     else if(p->N10>20 && p->N10<=30)
-        plapsolv = new hypre_aij(p,a,pgc);
+        plapsolv = new hypre_aij(p);
     #endif
     
     //  Voids
-    pturb = new kepsilon_void(p,a,pgc);
+    pturb = new kepsilon_void();
     
-    pdata = new data_void(p,a,pgc);
+    pdata = new data_void();
     
-    pconc = new concentration_void(p,a,pgc);
+    pconc = new concentration_void();
     
-    pheat = new heat_void(p,a,pgc);
+    pheat = new heat_void();
     
     psed = new sediment_void();
     

@@ -32,21 +32,21 @@ using namespace std;
 class bicgstab_ijk : public solver, public increment
 {
 public:
-	bicgstab_ijk(lexer*,fdm*,ghostcell*);
+    bicgstab_ijk(lexer*);
 
-	virtual ~bicgstab_ijk();
+    virtual ~bicgstab_ijk() = default;
 
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
-    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
-    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
+    void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
     
-	virtual void solve(lexer*, ghostcell*, vec&, matrix_diag&, int, int&,int,double);
-	virtual void setup(lexer*, ghostcell*,int);
-	
-	void fillxvec(lexer*,fdm*,field&,vec&);
-	void finalize(lexer*,fdm*,field&);
+    void solve(lexer*, ghostcell*, vec&, matrix_diag&, int, int&,int,double);
+    void setup(lexer*, ghostcell*,int);
+    
+    void fillxvec(lexer*,fdm*,field&,vec&);
+    void finalize(lexer*,fdm*,field&);
     
     void fillxvecV(lexer*,double*,vec&);
 	void finalizeV(lexer*,double*);

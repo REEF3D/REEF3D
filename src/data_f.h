@@ -23,34 +23,34 @@ Author: Hans Bihs
 #ifndef DATA_F_H_
 #define DATA_F_H_
 
-#include"data.h"
-#include"increment.h"
-#include"field4.h"
-
 class lexer;
 class fdm;
 class ghostcell;
+
+#include"data.h"
+#include"increment.h"
+#include"field4.h"
 
 using namespace std;
 
 class data_f : public data, public increment
 {
 public:
-	data_f(lexer*, fdm*, ghostcell*);
-	virtual ~data_f();
-	virtual void start(lexer*, fdm*, ghostcell*);
-	
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-	virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    data_f(lexer*);
+    virtual ~data_f() = default;
+
+    void start(lexer*, fdm*, ghostcell*) override;
+    
+    void print_3D(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
+    void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
 
 private:
-	
-	field4 data;
-	float ffn;
-	int n,q,iin;
-
+    
+    field4 data;
+    float ffn;
+    int n,q,iin;
 };
 
 #endif

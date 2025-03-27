@@ -27,11 +27,7 @@ Author: Hans Bihs
 #include"strain.h"
 #include"convection.h"
 
-kepsilon_void::kepsilon_void(lexer* p, fdm* a, ghostcell *pgc)
-{
-}
-
-kepsilon_void::~kepsilon_void()
+kepsilon_void::kepsilon_void()
 {
 }
 

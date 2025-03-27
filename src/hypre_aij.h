@@ -24,7 +24,6 @@ Author: Hans Bihs
 #define HYPRE_AIJ_H_
 
 #define HYPRE_COMPILATION
-
 #ifdef HYPRE_COMPILATION
 
 #include"solver.h"
@@ -41,12 +40,14 @@ class hypre_aij : public solver, public increment
 {
 public:
 
-	hypre_aij(lexer*,fdm*,ghostcell*);
-	virtual ~hypre_aij();
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
-    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
-    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
-    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    hypre_aij(lexer*);
+    virtual ~hypre_aij() = default;
+
+    void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
     
 	void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&);
 
@@ -56,7 +57,6 @@ public:
     void fillxvec4(lexer*,fdm*,field&);
 	void fillbackvec(lexer*,fdm*,field&,vec&,int);
     
-    
     void make_grid(lexer*,ghostcell*);
     void delete_grid(lexer*,ghostcell*);
 	void fill_matrix_7p(lexer*,fdm*, ghostcell*,field&);
@@ -64,18 +64,12 @@ public:
     void fillbackvec_F(lexer*,double*,double*,int);
     void fillbackvec_F_v2(lexer*,double*,double*,int);
     
-    
     void create_solvers(lexer*,ghostcell*);
     void delete_solvers(lexer*,ghostcell*);
     
     // FNPF Laplace solver 
-    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void make_grid_F(lexer*, ghostcell*);
     void fill_matrix_F_7p(lexer*,ghostcell*, matrix_diag&,double*,double*,vec&);
-
-	
-    
-    
 private:
     
 // HYPRE 
@@ -98,11 +92,10 @@ private:
     double final_res_norm;
    
     int is,ie,js,je,ks,ke;
-	
     
-// -------------
-	
-	int *sizeM;
+    // -------------
+    
+    int *sizeM;
 
 	int numiter,count,q;
 	double resi,y,residual;
@@ -115,4 +108,3 @@ private:
 #endif
 
 #endif
-

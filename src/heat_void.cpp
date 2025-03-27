@@ -30,11 +30,7 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include"solver.h"
 
-heat_void::heat_void(lexer* p, fdm* a, ghostcell *pgc)
-{
-}
-
-heat_void::~heat_void()
+heat_void::heat_void()
 {
 }
 
