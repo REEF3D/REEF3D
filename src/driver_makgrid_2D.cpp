@@ -22,14 +22,13 @@ Author: Hans Bihs
 
 #include"driver.h"
 #include"lexer.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
 #include"mgcslice1.h"
 #include"mgcslice2.h"
 #include"mgcslice4.h"
 
 void driver::makegrid2D(lexer *p, ghostcell *pgc)
-{   
+{
     pgc->gcslflagx(p,p->flagslice4);
     
     mgcslice1 m1(p);
@@ -75,11 +74,11 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
 }
  
 void driver::makegrid2D_cds(lexer *p, ghostcell *pgc, fdm2D *b)
-{      
+{
     p->flagini2D();
-    p->gridini2D();	
+    p->gridini2D();
 
     pgc->sizeS_update(p);
     
-    pgc->gcxslupdate(p); 
+    pgc->gcxslupdate(p);
 }

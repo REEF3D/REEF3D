@@ -135,9 +135,9 @@ private:
     void makegrid_sigma(lexer*,ghostcell*);
     void makegrid_sigma_cds(lexer*,ghostcell*);
     
-	void vec_test(lexer*,fdm*,ghostcell*,field&);
-	void func_test(lexer*,fdm*,ghostcell*,field&);
-	double calc();
+    void vec_test(lexer*,fdm*,ghostcell*,field&);
+    void func_test(lexer*,fdm*,ghostcell*,field&);
+    double calc();
     
     void stop(lexer*,fdm*,ghostcell*);
 

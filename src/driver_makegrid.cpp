@@ -22,12 +22,11 @@ Author: Hans Bihs
 
 #include"driver.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"grid.h"
 
 void driver::makegrid(lexer *p, ghostcell *pgc)
-{	
+{
     // flag
     pgc->flagx(p,p->flagsf1);
     pgc->flagx(p,p->flagsf2);
@@ -62,7 +61,6 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
 }
 	
 void driver::makegrid_cds()
-{	
-	pgc->sizeM_update(p,a);
+{
+    pgc->sizeM_update(p,a);
 }
-	
