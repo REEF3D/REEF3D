@@ -68,14 +68,7 @@ void driver::logic_ptf()
     if(p->G1==0)
         preto = new reinitopo_void();
     else if(p->G1==1)
-    {
-        if(p->G40==0)
-            preto = new reinitopo_void();
-        else if(p->G40==1)
-            preto = new reinitopo_AB2(p);
-        else if(p->G40==3)
-            preto = new reinitopo_RK3(p);
-    }
+        assign_reinitopo();
     
     //  Laplace Solver    
     if(p->N10==0)

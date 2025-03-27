@@ -142,6 +142,12 @@ private:
     void stop(lexer*,fdm*,ghostcell*);
 
     void assign_density();
+    void assign_poisson_solver();
+    void assign_IOFlow();
+    void assign_VRANS();
+    void assign_solver();
+    void assign_data();
+    void assign_reinitopo();
 
     benchmark* pbench;
     concentration* pconc;

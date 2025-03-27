@@ -27,6 +27,17 @@ Author: Alexander Hanke, Hans Bihs
 #include"density_df.h"
 #include"density_heat.h"
 #include"density_vof.h"
+#include"solver_header.h"
+#include"ioflow_void.h"
+#include"ioflow_f.h"
+#include"iowave.h"
+#include"ioflow_gravity.h"
+#include"vrans_header.h"
+#include"data_f.h"
+#include"data_void.h"
+#include"reinitopo_AB2.h"
+#include"reinitopo_RK3.h"
+#include"reinitopo_void.h"
 
 void driver::assign_density()
 {
@@ -40,4 +51,72 @@ void driver::assign_density()
         pd = new density_comp(p);
     else
         pd = new density_df(p);
+}
+
+void driver::assign_poisson_solver()
+{
+    if(p->N10==0)
+        ppoissonsolv = new solver_void(p,a,pgc);
+    else if(p->N10==1 && p->j_dir==0)
+        ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
+    else if(p->N10==1 && p->j_dir==1)
+        ppoissonsolv = new bicgstab_ijk(p,a,pgc);
+    #ifdef HYPRE_COMPILATION
+    else if(p->N10>=10 && p->N10<20)
+        ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
+    else if(p->N10>=20 && p->N10<30)
+        ppoissonsolv = new hypre_aij(p,a,pgc);
+    else if(p->N10>=30 && p->N10<40)
+        ppoissonsolv = new hypre_sstruct(p,a,pgc);
+    #endif
+}
+
+void driver::assign_IOFlow()
+{
+    if(p->B60==0 && p->B90==0 && p->B180==0)
+        pflow = new ioflow_v(p,pgc,pBC);
+    else if(p->B60>=1)
+        pflow = new ioflow_f(p,pgc,pBC);
+    else if(p->B90>=1)
+        pflow = new iowave(p,pgc,pBC);
+    else if(p->B180==1||p->B191==1||p->B192==1)
+        pflow = new ioflow_gravity(p,pgc,pBC);
+}
+
+void driver::assign_VRANS()
+{
+    if(p->B269==0)
+        pvrans = new vrans_v(p,pgc);
+    else if(p->B269==1)
+        pvrans = new vrans_f(p,pgc);
+    else if(p->B269==2)
+        pvrans = new vrans_veg(p,pgc);
+    else if(p->B269==3)
+        pvrans = new vrans_net(p,pgc);
+}
+
+void driver::assign_solver()
+{
+    if(p->j_dir==0)
+        psolv = new bicgstab_ijk_2D(p,a,pgc);
+    else if(p->j_dir==1)
+        psolv = new bicgstab_ijk(p,a,pgc);
+}
+
+void driver::assign_data()
+{
+    if(p->P150==0)
+        pdata = new data_void(p,a,pgc);
+    else if(p->P150>0)
+        pdata = new data_f(p,a,pgc);
+}
+
+void driver::assign_reinitopo()
+{
+    if(p->G40==0)
+        preto = new reinitopo_void();
+    else if(p->G40==1)
+        preto = new reinitopo_AB2(p);
+    else if(p->G40==3)
+        preto = new reinitopo_RK3(p);
 }
