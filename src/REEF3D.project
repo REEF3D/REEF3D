@@ -2168,7 +2168,7 @@
         <File Name="cds4.cpp"/>
         <File Name="cds2.cpp"/>
         <File Name="hires.cpp"/>
-        <File Name="discrete_void.cpp"/>
+        <File Name="convection_void.cpp"/>
         <File Name="cd2_alt.cpp"/>
         <File Name="hric.cpp"/>
         <File Name="cicsam.cpp"/>
