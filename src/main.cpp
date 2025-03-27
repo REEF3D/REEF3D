@@ -22,12 +22,7 @@ Author: Hans Bihs
 
 #include"driver.h"
 
-using namespace std;
-
 int main(int argc, char **argv)
 {
-	driver reef3D(argc,argv);
-
-	return 0;
-
+    driver reef3D(argc,argv);
 }

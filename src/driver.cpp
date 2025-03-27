@@ -215,7 +215,3 @@ void driver::cfd_driver()
     else
         loop_cfd();
 }
-
-driver::~driver()
-{
-}

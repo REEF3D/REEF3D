@@ -23,71 +23,66 @@ Author: Hans Bihs
 #ifndef DRIVER_H_
 #define DRIVER_H_
 
-#include"increment.h"
-
-class field;
-class printer;
-class initialize;
+class benchmark;
+class concentration;
+class convection;
+class data;
+class density;
 class diffusion;
 class fdm;
 class fdm2D;
 class fdm_fnpf;
 class fdm_nhf;
-class lexer;
-class momentum;
-class ioflow;
-class pressure;
-class poisson;
-class convection;
-class turbulence;
-class solver;
-class ghostcell;
-class timestep;
-class freesurface;
-class reini;
-class particle_corr;
-class sediment;
-class bedload;
-class reinitopo;
-class potential;
-class heat;
-class benchmark;
-class sixdof;
-class fsi;
-class vrans;
-class net;
-class data;
-class concentration;
-class ptf;
+class field;
 class fnpf;
-class nhflow_fsf;
-class nhflow_convection;
-class nhflow_scalar_convection;
-class nhflow_signal_speed;
-class nhflow_reconstruct;
-class nhflow_fsf_reconstruct;
-class nhflow_turbulence;
-class nhflow_pressure;
-class nhflow_diffusion;
-class nhflow_forcing;
-class nhflow_potential;
-class sflow;
 class fnpf_printer;
 class fnpf_timestep;
-class nhflow_timestep;
+class freesurface;
+class fsi;
+class ghostcell;
 class grid;
-class patchBC_interface;
-class nhflow;
-class multiphase;
-class nhflow_momentum;
+class heat;
+class initialize;
+class ioflow;
+class lexer;
+class momentum;
 class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
+class multiphase;
+class net;
+class nhflow;
+class nhflow_convection;
+class nhflow_diffusion;
+class nhflow_forcing;
+class nhflow_fsf;
+class nhflow_momentum;
+class nhflow_potential;
+class nhflow_pressure;
 class nhflow_printer;
-class density;
+class nhflow_reconstruct;
+class nhflow_scalar_convection;
+class nhflow_signal_speed;
+class nhflow_timestep;
+class nhflow_turbulence;
+class particle_corr;
+class patchBC_interface;
+class poisson;
+class potential;
+class pressure;
+class printer;
+class ptf;
+class reini;
+class reinitopo;
+class sediment;
+class sixdof;
+class sflow;
+class solver;
+class timestep;
+class turbulence;
+class vrans;
 
-#include<iostream>
+#include"increment.h"
 #include<fstream>
-#include<iomanip>
 #include<vector>
 
 using namespace std;
@@ -96,10 +91,10 @@ class driver : public increment
 {
 public:
 
-	driver(int&,char**);
-	virtual ~driver();
-    
-    void start();
+    driver(int&,char**);
+    virtual ~driver() = default;
+
+private:
     
     void cfd_driver();
     void nhflow_driver();
@@ -139,7 +134,7 @@ public:
     void makegrid2D_basic(lexer*,ghostcell*);
     void makegrid2D_cds(lexer*,ghostcell*,fdm2D*);
     void makegrid_sigma(lexer*,ghostcell*);
-    void makegrid_sigma_cds(lexer*,ghostcell*);  
+    void makegrid_sigma_cds(lexer*,ghostcell*);
     
 	void vec_test(lexer*,fdm*,ghostcell*,field&);
 	void func_test(lexer*,fdm*,ghostcell*,field&);
@@ -147,84 +142,83 @@ public:
     
     void stop(lexer*,fdm*,ghostcell*);
 
-	printer* pprint;
-	initialize* pini;
-	diffusion* pdiff;
-	diffusion* pturbdiff;
-	diffusion* pconcdiff;
-	diffusion* psuspdiff;
-	fdm* a;
-    fdm2D* b;
-    fdm_fnpf *c;
-    fdm_nhf *d;
-    lexer* p;
-    momentum* pmom;
-    ioflow* pflow;
-    pressure* ppress;
-    poisson* ppois;
-    convection* pconvec;
-    convection* pturbdisc;
-    convection* pfsfdisc;
-    convection* pconcdisc;
-    convection* pheatdisc;
-	turbulence* pturb;
-	solver* psolv;
-	solver* ppoissonsolv;
-    solver* plapsolv;
-	ghostcell* pgc;
-	timestep* ptstep;
-	freesurface* pfsf;
-	reini* preini;
-	particle_corr* ppls; 
-	sediment* psed;
-	reinitopo* preto;
-    reinitopo* preso;
-	heat* pheat;
-	potential* potflow;
-	benchmark* pbench;
-	fsi* pfsi;
-	vrans* pvrans;
-    vector<net*> pnet;
-	data *pdata;
-	concentration *pconc;
-    fnpf *ppfsg;
-    ptf *pptf;
-    nhflow_fsf *pnhfsf;
-    sflow *psflow;
-    fnpf_printer *pfprint; 
-    fnpf_timestep *pftstep;
-    grid *pgrid;
-    patchBC_interface *pBC;
-    nhflow *pnhf;
-    nhflow_convection *pnhfconvec;
-    nhflow_scalar_convection *pnhfscalarconvec;
-    nhflow_signal_speed *pss;
-    nhflow_reconstruct *precon;
-    nhflow_pressure *pnhpress;
-    nhflow_turbulence *pnhfturb;
-    nhflow_diffusion *pnhfdiff,*pnhfturbdiff; 
-    nhflow_potential *pnhfpot;
-    multiphase *pmp;
-    nhflow_timestep *pnhfstep;
-    nhflow_momentum *pnhfmom;
-    nhflow_printer *pnhfprint;
-    nhflow_forcing *pnhfdf;
-    momentum_RKLS3_df *pmom_df;
-    momentum_RKLS3_sf *pmom_sf;
-    sixdof *p6dof;
-    turbulence *pturbcfd;
-
-private:
     void assign_density();
 
+    benchmark* pbench;
+    concentration* pconc;
+    convection* pconcdisc;
+    convection* pconvec;
+    convection* pfsfdisc;
+    convection* pheatdisc;
+    convection* pturbdisc;
+    data* pdata;
     density* pd;
+    diffusion* pdiff;
+    diffusion* pturbdiff;
+    diffusion* pconcdiff;
+    diffusion* psuspdiff;
+    freesurface* pfsf;
+    fdm* a;
+    fdm2D* b;
+    fdm_fnpf* c;
+    fdm_nhf* d;
+    fnpf* ppfsg;
+    fnpf_printer* pfprint;
+    fnpf_timestep* pftstep;
+    fsi* pfsi;
+    ghostcell* pgc;
+    grid* pgrid;
+    heat* pheat;
+    ioflow* pflow;
+    initialize* pini;
+    lexer* p;
+    multiphase* pmp;
+    momentum* pmom;
+    momentum_RKLS3_df* pmom_df;
+    momentum_RKLS3_sf* pmom_sf;
+    std::vector<net*> pnet;
+    nhflow* pnhf;
+    nhflow_convection* pnhfconvec;
+    nhflow_diffusion* pnhfdiff;
+    nhflow_diffusion* pnhfturbdiff;
+    nhflow_forcing* pnhfdf;
+    nhflow_fsf* pnhfsf;
+    nhflow_momentum* pnhfmom;
+    nhflow_pressure* pnhpress;
+    nhflow_potential* pnhfpot;
+    nhflow_timestep* pnhfstep;
+    nhflow_printer* pnhfprint;
+    nhflow_reconstruct* precon;
+    nhflow_scalar_convection* pnhfscalarconvec;
+    nhflow_signal_speed* pss;
+    nhflow_turbulence* pnhfturb;
+    particle_corr* ppls;
+    patchBC_interface* pBC;
+    poisson* ppois;
+    potential* potflow;
+    pressure* ppress;
+    printer* pprint;
+    ptf* pptf;
+    reini* preini;
+    reinitopo* preso;
+    reinitopo* preto;
+    sediment* psed;
+    sflow* psflow;
+    sixdof* p6dof;
+    solver* plapsolv;
+    solver* ppoissonsolv;
+    solver* psolv;
+    turbulence* pturb;
+    turbulence* pturbcfd;
+    timestep* ptstep;
+    vrans* pvrans;
     
     double starttime, endtime;
-    ofstream mainlogout;
-    ofstream maxlogout;
-    ofstream solvlogout;
-	
-	double nom,val;
+    std::ofstream mainlogout;
+    std::ofstream maxlogout;
+    std::ofstream solvlogout;
+    
+    double nom,val;
     char version[100];
 };
 
