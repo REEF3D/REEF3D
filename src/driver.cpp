@@ -21,14 +21,14 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"lexer.h"
 #include"ghostcell.h"
 #include"fdm.h"
 #include"fdm2D.h"
 #include"fdm_fnpf.h"
 #include"fdm_nhf.h"
-#include"lexer.h"
-#include"waves_header.h"
-#include"patchBC.h"
+#include"sflow_f.h"
+#include"patchBC_interface.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -38,12 +38,12 @@ driver::driver(int& argc, char **argv)
 
 	if(p->mpirank==0)
     {
-    cout<<endl<<"REEF3D (c) 2008-2025 Hans Bihs"<<endl;
-    sprintf(version,"v_250424");
-    cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
-    cout<<endl<<version<<endl;
-    cout<<endl<<"github branch: "<<BRANCH<<endl;
-    cout<<endl<<"github version: "<<VERSION<<endl;
+        cout<<"\nREEF3D (c) 2008-2025 Hans Bihs"<<endl;
+        sprintf(version,"v_250424");
+        cout<<"\n:: Open-Source Hydrodynamics"<<endl;
+        cout<<version<<endl;
+        cout<<"\ngithub branch: "<<BRANCH<<endl;
+        cout<<"\ngithub version: "<<VERSION<<endl;
     }
 
     pgc->mpi_check(p);
@@ -56,23 +56,19 @@ driver::driver(int& argc, char **argv)
 
     if(p->mpirank==0)
     {
-    if(p->A10==2)
-    cout<<endl<<"REEF3D::SFLOW" <<endl<<endl;
-
-    if(p->A10==3)
-    cout<<endl<<"REEF3D::FNPF" <<endl<<endl;
-
-    if(p->A10==4)
-    cout<<endl<<"REEF3D::PTF" <<endl<<endl;
-
-    if(p->A10==5)
-    cout<<endl<<"REEF3D::NHFLOW"<<endl<<endl;
-
-    if(p->A10==6)
-    cout<<endl<<"REEF3D::CFD" <<endl<<endl;
+        if(p->A10==2)
+            cout<<endl<<"REEF3D::SFLOW" <<endl<<endl;
+        else if(p->A10==3)
+            cout<<endl<<"REEF3D::FNPF" <<endl<<endl;
+        else if(p->A10==4)
+            cout<<endl<<"REEF3D::PTF" <<endl<<endl;
+        else if(p->A10==5)
+            cout<<endl<<"REEF3D::NHFLOW"<<endl<<endl;
+        else if(p->A10==6)
+            cout<<endl<<"REEF3D::CFD" <<endl<<endl;
     }
 
-// 2D Framework - SFLOW
+    // 2D Framework - SFLOW
     if(p->A10==2)
     {
         p->flagini2D();
@@ -82,7 +78,7 @@ driver::driver(int& argc, char **argv)
         sflow_driver();
     }
 
-// 3D Framework
+    // 3D Framework
     // sigma grid - FNPF
     if(p->A10==3)
     {
@@ -111,7 +107,7 @@ driver::driver(int& argc, char **argv)
         nhflow_driver();
     }
 
-    // fixed grid - PTF & NSEWAVE & CFD
+    // fixed grid - PTF & CFD
     if(p->A10==4 || p->A10==6)
     {
         p->flagini();
@@ -121,17 +117,16 @@ driver::driver(int& argc, char **argv)
         makegrid2D(p,pgc);
 
         if(p->A10==4)
-        ptf_driver();
-
-        if(p->A10==6)
-        cfd_driver();
+            ptf_driver();
+        else if(p->A10==6)
+            cfd_driver();
     }
 }
 
 void driver::sflow_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
+        cout<<"initialize fdm"<<endl;
 
     b = new fdm2D(p);
 
@@ -146,7 +141,7 @@ void driver::sflow_driver()
 void driver::fnpf_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
+        cout<<"initialize fdm"<<endl;
 
     p->grid2Dsize();
 
@@ -167,7 +162,7 @@ void driver::fnpf_driver()
 void driver::ptf_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
+        cout<<"initialize fdm"<<endl;
 
     a = new fdm(p);
     pgc->fdm_update(a);
@@ -183,7 +178,7 @@ void driver::ptf_driver()
 void driver::nhflow_driver()
 {
     if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
+        cout<<"initialize fdm"<<endl;
 
 	d = new fdm_nhf(p);
 
@@ -202,7 +197,7 @@ void driver::nhflow_driver()
 void driver::cfd_driver()
 {
     if(p->mpirank==0)
-    cout<<"initialize fdm "<<endl;
+        cout<<"initialize fdm "<<endl;
 
     a = new fdm(p);
 
@@ -214,14 +209,11 @@ void driver::cfd_driver()
 
     // Start MAINLOOP
     if(p->X10==0 && p->Z10==0 && p->N40==4)
-    loop_cfd_sf(a);
-
+        loop_cfd_sf(a);
+    else if((p->X10==1  || p->Z10!=0) && (p->N40==4))
+        loop_cfd_df(a);
     else
-    if((p->X10==1  || p->Z10!=0) && (p->N40==4))
-    loop_cfd_df(a);
-
-    else
-    loop_cfd(a);
+        loop_cfd();
 }
 
 driver::~driver()
