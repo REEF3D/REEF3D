@@ -21,29 +21,19 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
-#include"ghostcell.h"
-#include"freesurface_header.h"
-#include"turbulence_header.h"
-#include"momentum_header.h"
-#include"pressure_header.h"
-#include"fdm_header.h"
-#include"sediment_header.h"
-#include"heat_header.h"
-#include"concentration_header.h"
-#include"benchmark_header.h"
-#include"convection_header.h"
-#include"solver_header.h"
-#include"field_header.h"
-#include"6DOF_header.h"
-#include"waves_header.h"
 #include"lexer.h"
+#include"ghostcell.h"
+#include"ioflow.h"
+#include"ptf.h"
+#include"printer.h"
+#include"timestep.h"
 
-void driver::loop_ptf(fdm* a)
+void driver::loop_ptf()
 {
     if(p->mpirank==0)
-    cout<<"starting mainloop.PTF"<<endl;
+        cout<<"starting mainloop.PTF"<<endl;
     
-//-----------MAINLOOP PTF----------------------------
+    //-----------MAINLOOP PTF----------------------------
     
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{
@@ -52,17 +42,17 @@ void driver::loop_ptf(fdm* a)
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"------------------------------------"<<endl;
-        cout<<p->count<<endl;
-        
-        cout<<"simtime: "<<p->simtime<<endl;
-		cout<<"timestep: "<<p->dt<<endl;
-        
-		if(p->B90>0 && p->B92<=11)
-		cout<<"t/T: "<<p->simtime/p->wT<<endl;
-        
-        if(p->B90>0 && p->B92>11)
-		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
+            cout<<"------------------------------------\n"
+                <<p->count<<endl;
+            
+            cout<<"simtime: "<<p->simtime<<endl;
+            cout<<"timestep: "<<p->dt<<endl;
+            
+            if(p->B90>0 && p->B92<=11)
+                cout<<"t/T: "<<p->simtime/p->wT<<endl;
+            
+            if(p->B90>0 && p->B92>11)
+                cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
         pflow->wavegen_precalc(p,pgc);
@@ -74,60 +64,56 @@ void driver::loop_ptf(fdm* a)
         p->simtime+=p->dt;
         ptstep->start(a,p,pgc,pturb);
         
-        
         // printer
         pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
         // Shell-Printout
         if(p->mpirank==0)
         {
-        endtime=pgc->timer();
-        
-		p->itertime=endtime-starttime;
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
-		
-		if(p->B90>0)
-        if(p->count%p->P12==0)
-        {
-		cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
-		
-		cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
-        cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
-        cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
+            endtime=pgc->timer();
+            
+            p->itertime=endtime-starttime;
+            p->totaltime+=p->itertime;
+            p->gctotaltime+=p->gctime;
+            p->Xtotaltime+=p->xtime;
+            p->meantime=(p->totaltime/double(p->count));
+            p->gcmeantime=(p->gctotaltime/double(p->count));
+            p->Xmeantime=(p->Xtotaltime/double(p->count));
+            
+            if(p->B90>0)
+            if(p->count%p->P12==0)
+            {
+                cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
+                
+                cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
+                cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
+                cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;        
+                cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+                cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
+            }
+            
+            // Write log files
+            mainlog(p);
+            maxlog(p);
+            solverlog(p);
         }
+        p->gctime=0.0;
+        p->xtime=0.0;
+        p->reinitime=0.0;
+        p->wavecalctime=0.0;
         
-        // Write log files
-        mainlog(p);
-        maxlog(p);
-        solverlog(p);
-        }
-    p->gctime=0.0;
-    p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-    
-    stop(p,a,pgc);
-	}
+        stop(p,a,pgc);
+    }
 
-	if(p->mpirank==0)
-	{
-	cout<<endl<<"******************************"<<endl<<endl;
+    if(p->mpirank==0)
+    {
+        cout<<"\n******************************\n\n"
+            <<"modelled time: "<<p->simtime<<"\n"<<endl;
 
-	cout<<"modelled time: "<<p->simtime<<endl;
-	cout << endl;
+        mainlogout.close();
+        maxlogout.close();
+        solvlogout.close();
+    }
 
-    mainlogout.close();
-    maxlogout.close();
-    solvlogout.close();
-	}
-
-    pgc->final();
-    
+    pgc->final();   
 }

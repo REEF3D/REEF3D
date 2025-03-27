@@ -172,7 +172,7 @@ void driver::ptf_driver()
     driver_ini_ptf();
 
     // Start MAINLOOP
-    loop_ptf(a);
+    loop_ptf();
 }
 
 void driver::nhflow_driver()
@@ -209,9 +209,9 @@ void driver::cfd_driver()
 
     // Start MAINLOOP
     if(p->X10==0 && p->Z10==0 && p->N40==4)
-        loop_cfd_sf(a);
+        loop_cfd_sf();
     else if((p->X10==1  || p->Z10!=0) && (p->N40==4))
-        loop_cfd_df(a);
+        loop_cfd_df();
     else
         loop_cfd();
 }

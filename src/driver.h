@@ -103,17 +103,16 @@ private:
     void sflow_driver();
     
     void loop_cfd();
-    void loop_cfd_df(fdm*);
-    void loop_cfd_sf(fdm*);
+    void loop_cfd_df();
+    void loop_cfd_sf();
     void loop_nhflow();
-    void loop_ptf(fdm*);
+    void loop_ptf();
     void loop_fnpf();
     
 	void logic_cfd();
     void logic_ptf();
     void logic_fnpf();
     void logic_nhflow();
-    void logic_sflow();
     
     void patchBC_logic();
     
