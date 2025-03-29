@@ -27,6 +27,28 @@ Author: Hans Bihs
 
 void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
+    if(p->B60>0 || p->count==0)
+    {
+        if(p->B61==1)
+        {
+        inflow_plain_nhflow(p,d,pgc,U,V,W,UH,VH,WH);
+
+            //if((p->count==0&&p->I11==1)||p->B60==3||p->B60==4)
+            //outflow_log(p,a,pgc,u,v,w);
+        }
+
+        if(p->B61==2 || p->B61==4 || p->B61==5)
+        {
+        inflow_log_nhflow(p,d,pgc,U,V,W,UH,VH,WH);
+
+            //if((p->count==0&&p->I11==1)||p->B60==3||p->B60==4)
+            //outflow_log(p,a,pgc,u,v,w);
+        }
+    }
+}
+
+void ioflow_f::inflow_plain_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+{
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
@@ -69,6 +91,125 @@ void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, dou
         UH[Im3JK]=0.0;
         }
 		
+        VH[Im1JK]=0.0;
+        VH[Im2JK]=0.0;
+        VH[Im3JK]=0.0;
+		
+        WH[Im1JK]=0.0;
+        WH[Im2JK]=0.0;
+        WH[Im3JK]=0.0;
+    }
+}
+
+void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+{
+    double hmax=-1.0e20;
+    double dmax=-1.0e20;
+    double hmin=+1.0e20;
+    
+    double zcoor;
+
+    double depth, ks, H, B, M, I;
+    double tau, shearvel;
+    const double visc = p->W2;
+    double ratio;
+
+    // water depth
+    for(n=0;n<p->gcin_count;++n)
+    {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+        
+        hmin=MIN(hmin,d->WL(i,j));
+        hmax=MAX(hmax,d->WL(i,j));
+    }
+    hmax=pgc->globalmax(hmax);
+    hmin=pgc->globalmin(hmin);
+    dmax=pgc->globalmax(dmax);
+
+  
+    // bed shear stress and bed shear velocity
+        if(p->S10==0)
+        ks=p->B50;
+        
+        if(p->S10>0)
+        ks=p->S20*p->S21;
+        
+        H=B=hmax;
+        M=26.0/pow(ks,(1.0/6.0));
+        I=pow(p->Ui/(M*pow(H,(2.0/3.0))),2.0);
+        tau=(9.81*H*I*1000.0);
+		
+		if(p->mpirank==0 && p->count==0)
+		cout<<"I   "<<I<<endl;
+		
+		shearvel = p->Ui/(2.5*log((11.0*H/ks)));
+
+        for(n=0;n<p->gcin_count;n++)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+        
+        zcoor = p->ZSP[IJK]-d->bed(i,j);
+        
+        //cout<<"zcoor: "<<MAX(30.0*MIN(zcoor,dmax)/ks,1.0)<<endl;
+        //cout<<"Uvel: "<<shearvel*2.5*log(MAX(30.0*MIN(zcoor,hmax)/ks,1.0))<<endl;
+
+            U[Im1JK]=U[Im2JK]=U[Im3JK] = shearvel*2.5*log(MAX(30.0*MIN(zcoor,hmax)/ks,1.0));
+            
+        }
+
+
+    // calculate discharge and correct velocities
+    for(int q=0; q<5; ++q)
+    {
+    Qin_nhf(p,d,pgc);
+
+	if(p->B60==1)
+    ratio = p->W10/p->Qi;
+	
+	if(p->B60==2||p->B60==4)
+	ratio = hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/p->Qi;
+
+	if(fabs(p->Qi)<1.0e-20)
+	ratio=1.0;
+    
+    //if(p->mpirank==0)
+    //cout<<"W10: "<<p->W10<<" Qi: "<<p->Qi<<" ratio: "<<ratio<<endl;
+
+        for(n=0;n<p->gcin_count;++n)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+        
+
+        U[Im1JK]*=ratio;
+        U[Im2JK]*=ratio;
+        U[Im3JK]*=ratio;
+        }
+    }
+	
+	for(n=0;n<p->gcin_count;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    
+        V[Im1JK]=0.0;
+        V[Im2JK]=0.0;
+        V[Im3JK]=0.0;
+		
+        W[Im1JK]=0.0;
+        W[Im2JK]=0.0;
+        W[Im3JK]=0.0;
+    
+        UH[Im1JK] = U[Im1JK]*d->WL(i,j);
+        UH[Im2JK] = U[Im2JK]*d->WL(i,j);
+        UH[Im3JK] = U[Im3JK]*d->WL(i,j);
+        
         VH[Im1JK]=0.0;
         VH[Im2JK]=0.0;
         VH[Im3JK]=0.0;
