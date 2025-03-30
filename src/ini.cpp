@@ -545,6 +545,9 @@ void lexer::ini_default()
 	P30=-1.0;       // double time between file printout in seconds
 	P34=-1.0;       // double time between file printout in seconds for sediment
 	P35=0;        	// int print for interval
+    P37=0;			// int print restart state file
+	P38=1;			// int print restartstate file each ith iteration
+    P39=-1.0;			// double print restartstate file every ith second
 	P40=0;				// int print state file
 	P41=1;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec

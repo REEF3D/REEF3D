@@ -171,7 +171,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 	pforce[n]=new force(p,a,pgc,n);
 
 	if(p->P40>0)
-	pstate=new cfd_state(p,a,pgc);
+	pstate=new cfd_state(p,a,pgc,0);
 
     if(p->P101>0)
 	pslosh=new sloshing_force(p,a,pgc);

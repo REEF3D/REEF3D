@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
+cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc, int state_restart)
 {	
 	// Create Folder
 	if(p->mpirank==0)
@@ -40,6 +40,8 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
     file_version=6;
     
     file_type=p->P45;
+    
+    restart = state_restart;
     
     ini_token=0;
     

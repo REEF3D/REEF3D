@@ -38,7 +38,7 @@ class cfd_state : public increment
 {
 
 public:
-	cfd_state(lexer*,fdm*,ghostcell*);
+	cfd_state(lexer*,fdm*,ghostcell*,int);
 	virtual ~cfd_state();
 	void write(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
     void read(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
@@ -63,6 +63,7 @@ private:
 	int printcount;
     int ini_token;
     int file_version,file_type;
+    int restart;
     int qn;
     ofstream result;
     
