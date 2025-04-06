@@ -28,8 +28,8 @@ Author: Tobias Martin
 
 void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_, Eigen::Vector3d& pp_, Eigen::Vector3d& c_)
 {
-    dp_ = Ffb_; 
-    dc_ = pp_/Mass_fb;
+    dp_ = Ffb_;  // forces 
+    dc_ = pp_/Mass_fb; // moments
 
 	// External motions
 	pmotion->motionext_trans(p,pgc,dp_,dc_);
