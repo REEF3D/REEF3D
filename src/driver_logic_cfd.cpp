@@ -426,7 +426,6 @@ void driver::logic_cfd()
 	if(p->F85==53)
 	pfsfdisc=new cicsam(p);
 
-
 //pressure scheme
 	if(p->D30==0)
 	ppress = new pressure_void(p);
@@ -479,7 +478,6 @@ void driver::logic_cfd()
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
 	#endif
-
 
 //VRANS
     if(p->B269==0)
