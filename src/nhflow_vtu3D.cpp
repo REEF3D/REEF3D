@@ -251,7 +251,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     pwsfline_y->start(p,d,pgc,pflow,d->eta);
     
     // Vel Profile
-    if((p->P67>0 && p->count%p->P54==0 && p->P55<0.0) || (p->P67>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
+    if(p->P67>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     puprofile->start(p,d,pgc);
 
 
