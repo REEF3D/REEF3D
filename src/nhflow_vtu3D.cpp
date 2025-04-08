@@ -96,9 +96,6 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->P67>0)
     puprofile = new nhflow_u_profile(p,d);
     
-    for(n=0;n<p->P85;++n)
-    pforce_ale[n]=new nhflow_force_ale(p,d,pgc,n);
-    
     if(p->P66>0)
     pveltheo=new nhflow_vel_probe_theory(p,d);
     
