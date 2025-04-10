@@ -31,12 +31,11 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"patchBC_interface.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC)
+sediment_f::sediment_f(lexer *p, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC)
 {
-
     pBC = ppBC;
     
-    sediment_logic(p,a,pgc,pturb);
+    sediment_logic(p,pgc,pturb);
 
 	p->gcin4a_count=p->gcin_count;
 	p->gcout4a_count=p->gcout_count;

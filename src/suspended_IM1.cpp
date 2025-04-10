@@ -30,13 +30,9 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment_fdm.h"
 
-suspended_IM1::suspended_IM1(lexer* p, fdm* a) : concn(p),wvel(p)
+suspended_IM1::suspended_IM1(lexer* p) : concn(p), wvel(p)
 {
 	gcval_susp=60;
-}
-
-suspended_IM1::~suspended_IM1()
-{
 }
 
 void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment_fdm *s)

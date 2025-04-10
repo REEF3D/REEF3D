@@ -32,13 +32,9 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment_fdm.h"
 
-suspended_RK3::suspended_RK3(lexer* p, fdm* a) : wvel(p)
+suspended_RK3::suspended_RK3(lexer* p) : wvel(p)
 {
 	gcval_susp=60;
-}
-
-suspended_RK3::~suspended_RK3()
-{
 }
 
 void suspended_RK3::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment_fdm *s)

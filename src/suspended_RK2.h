@@ -32,10 +32,10 @@ using namespace std;
 class suspended_RK2 : public suspended, public increment
 {
 public:
-	suspended_RK2(lexer *, fdm*);
-	virtual ~suspended_RK2();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
-	virtual void ctimesave(lexer*, fdm*);
+    suspended_RK2(lexer *);
+    virtual ~suspended_RK2() = default;
+    virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*);
+    virtual void ctimesave(lexer*, fdm*);
 
     void suspsource(lexer*,fdm*,field&,sediment_fdm*);
     void bcsusp_start(lexer*,fdm*,ghostcell*,sediment_fdm*,field&);

@@ -22,8 +22,6 @@ Author: Hans Bihs
 
 #include"sediment_f.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"sediment_exner.h"
@@ -70,7 +68,7 @@ Author: Hans Bihs
 #include"bedload_direction_f.h"
 #include"bedload_direction_v.h"
 
-void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
+void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 {
     s = new sediment_fdm(p);
     
@@ -177,13 +175,13 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     
 
     if(p->S60==2)
-    psusp = new suspended_RK2(p,a);
+    psusp = new suspended_RK2(p);
 
     if(p->S60==3)
-    psusp = new suspended_RK3(p,a);
+    psusp = new suspended_RK3(p);
 
     if(p->S60==11)
-    psusp = new suspended_IM1(p,a);
+    psusp = new suspended_IM1(p);
     }
     
     if(p->S85==0)

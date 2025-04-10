@@ -49,15 +49,15 @@ using namespace std;
 class sediment_f : public sediment, public increment
 {
 public:
-    sediment_f(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
-	virtual ~sediment_f();
+    sediment_f(lexer*,ghostcell*,turbulence*, patchBC_interface*);
+    virtual ~sediment_f();
     
     // CFD interface
     virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
     virtual void ini_cfd(lexer*,fdm*,ghostcell*);
     virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*);
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
-    void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
+    void sediment_logic(lexer*,ghostcell*,turbulence*);
     void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
     void prep_cfd(lexer*,fdm*,ghostcell*);
     void fill_PQ_cfd(lexer*,fdm*,ghostcell*);
