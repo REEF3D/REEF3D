@@ -24,135 +24,106 @@ Author: Hans Bihs
 #include"sflow_header.h"
 
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
-{	
-    
+{
     // forcing
-    psfdf=new sflow_forcing(p);
-    
-	// timestep
+    psfdf = new sflow_forcing(p);
+
+    // timestep
     if(p->N48==0)
-	ptime = new sflow_fixtimestep(p,b);
-    
-    if(p->N48==1)
-	ptime = new sflow_etimestep(p,b);
-	
+        ptime = new sflow_fixtimestep(p,b);
+    else if(p->N48==1)
+        ptime = new sflow_etimestep(p,b);
+
     // convection
     if(p->A211==0)
-    pconvec = new sflow_voidconv(p);
-        
-    if(p->A211==1)
-    pconvec = new sflow_fou(p);
-        
-    if(p->A211==4)
-    pconvec = new sflow_weno_flux(p);
-        
-    if(p->A211==5)
-    pconvec = new sflow_weno_hj(p);
-        
-    if(p->A211==9)
-    pconvec = new sflow_weno_blend(p);
-         
+        pconvec = new sflow_voidconv(p);
+    else if(p->A211==1)
+        pconvec = new sflow_fou(p);
+    else if(p->A211==4)
+        pconvec = new sflow_weno_flux(p);
+    else if(p->A211==5)
+        pconvec = new sflow_weno_hj(p);
+    else if(p->A211==9)
+        pconvec = new sflow_weno_blend(p);
+
     // filter
     pfilter = new sflow_filter(p);
-	
-	// free surface
-	if(p->A240>=1)
-	pfsf = new sflow_eta(p,b,pgc,pBC);
 
-	// diffusion
-	if(p->A212==0)
-	pdiff =  new sflow_diffusion_void(p);
-	
-	if(p->A212==1)
-	pdiff =  new sflow_ediff(p);
-    
-    if(p->A212==2)
-	pdiff =  new sflow_idiff(p);
-	
-	// pressure
-    if(p->A220==0)
-	ppress = new sflow_hydrostatic(p,b,pBC);
-    
-    if(p->A220==1)
-	ppress = new sflow_pjm_lin(p,b,pBC);
-    
-    if(p->A220==2)
-	ppress = new sflow_pjm_quad(p,b,pBC);
-    
-    if(p->A220==3)
-	ppress = new sflow_pjm_corr_lin(p,b,pBC);
-    
-    if(p->A220==5)
-	ppress = new sflow_pjm_sw(p,b,pBC);
-    
+    // free surface
+    if(p->A240>=1)
+        pfsf = new sflow_eta(p,b,pgc,pBC);
+
     // diffusion
-	if(p->A260==0)
-	pturb =  new sflow_turb_void(p);
-    
-    if(p->A260==1)
-	pturb =  new sflow_turb_ke_IM1(p);
-    
-    if(p->A260==2)
-	pturb =  new sflow_turb_kw_IM1(p);
-    
-    if(p->A260==3)
-	pturb =  new sflow_turb_prandtl(p);
-    
-    if(p->A260==4)
-	pturb =  new sflow_turb_parabolic(p);
-    
-    if(p->A260==5)
-	pturb =  new sflow_turb_kw_IM1_v1(p);
-    
+    if(p->A212==0)
+        pdiff = new sflow_diffusion_void(p);
+    else if(p->A212==1)
+        pdiff = new sflow_ediff(p);
+    else if(p->A212==2)
+        pdiff = new sflow_idiff(p);
+
+    // pressure
+    if(p->A220==0)
+        ppress = new sflow_hydrostatic(p,b,pBC);
+    else if(p->A220==1)
+        ppress = new sflow_pjm_lin(p,b,pBC);
+    else if(p->A220==2)
+        ppress = new sflow_pjm_quad(p,b,pBC);
+    else if(p->A220==3)
+        ppress = new sflow_pjm_corr_lin(p,b,pBC);
+    else if(p->A220==5)
+        ppress = new sflow_pjm_sw(p,b,pBC);
+
+    // diffusion
+    if(p->A260==0)
+        pturb = new sflow_turb_void(p);
+    else if(p->A260==1)
+        pturb = new sflow_turb_ke_IM1(p);
+    else if(p->A260==2)
+        pturb = new sflow_turb_kw_IM1(p);
+    else if(p->A260==3)
+        pturb = new sflow_turb_prandtl(p);
+    else if(p->A260==4)
+        pturb = new sflow_turb_parabolic(p);
+    else if(p->A260==5)
+        pturb = new sflow_turb_kw_IM1_v1(p);
+
     // Sediment
     if(p->S10==0)
-    psed = new sediment_void();
+        psed = new sediment_void();
+    else if(p->S10>0)
+        psed = new sediment_f(p,pgc,pturbcfd,pBC);
 
-    if(p->S10>0)
-    psed = new sediment_f(p,pgc,pturbcfd,pBC);
-    
     // solver
     ppoissonsolv = new hypre_struct2D(p,pgc);
-    
-    
     psolv = new sflow_bicgstab(p,pgc);
-    
+
     //IOFlow
-	if(p->B60==0 && p->B90==0)
-	pflow = new ioflow_v(p,pgc,pBC);
+    if(p->B60==0 && p->B90==0)
+        pflow = new ioflow_v(p,pgc,pBC);
+    else if(p->B60>=1)
+        pflow = new ioflow_f(p,pgc,pBC);
+    else if(p->B90>=1)
+        pflow= new iowave(p,pgc,pBC);
 
-	if(p->B60>=1)
-	pflow = new ioflow_f(p,pgc,pBC);
+    // printer
+    pprint = new sflow_vtp_fsf(p,b,pgc);
+    pprintbed = new sflow_vtp_bed(p,b);
 
-	if(p->B90>=1)
-	pflow= new iowave(p,pgc,pBC);
-
-	
-	// printer
-	pprint = new sflow_vtp_fsf(p,b,pgc);
-	
-	pprintbed = new sflow_vtp_bed(p,b);
-    
     //6DOF
     if(p->X10<2)
-    p6dof = new sixdof_void(p,pgc);
-    
-    if(p->X10>=2)
-    p6dof = new sixdof_sflow(p,pgc);
-	
-	// momentum
+        p6dof = new sixdof_void(p,pgc);
+    else if(p->X10>=2)
+        p6dof = new sixdof_sflow(p,pgc);
+
+    // momentum
     if(p->A210==2)
-	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
-    
-	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
-    
-    
+        pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
+    else if(p->A210==3)
+        pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
+
     //Potential Flow Solver
     if(p->I11==0)
-    potflow = new sflow_potential_v(p);
-
-    if(p->I11==1)
-    potflow = new sflow_potential_f(p);
-    
+        potflow = new sflow_potential_v(p);
+    else if(p->I11==1)
+        potflow = new sflow_potential_f(p);
 }
