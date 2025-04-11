@@ -92,6 +92,8 @@ void mooring_dynamic::initialize(lexer *p, ghostcell *pgc)
     broken = false;
     breakTension = p->X314 > 0 ? p->X314_T[line]: 0.0;
     breakTime = p->X315 > 0 ? p->X315_t[line]: 0.0;
+
+    print(p);
 }
 
 void mooring_dynamic::ini_parallel(lexer *p, ghostcell *pgc)
