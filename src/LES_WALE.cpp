@@ -45,13 +45,11 @@ LES_WALE::LES_WALE(lexer* p, fdm* a) : LES(p,a)
 	c_wale=0.6;
     
     if(p->T21==0)
-    pfilter = new LES_filter_box(p,a);
-    
-    if(p->T21==1)
-    pfilter = new LES_filter_f1(p,a);
-    
-    if(p->T21==2)
-    pfilter = new LES_filter_f2(p,a);
+        pfilter = new LES_filter_box(p,a);
+    else if(p->T21==1)
+        pfilter = new LES_filter_f1(p,a);
+    else if(p->T21==2)
+        pfilter = new LES_filter_f2(p,a);
 }
 
 LES_WALE::~LES_WALE()
