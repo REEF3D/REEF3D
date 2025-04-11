@@ -62,17 +62,14 @@ reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),d
 	gcval_iniphi=50;
 
     
-	if(p->F46==1)
-	ppicard = new picard_f(p);
-
-	if(p->F46!=1)
-	ppicard = new picard_void(p);
-	
-	if(p->F49==0)
-	prdisc = new reinidisc_fsf(p);
-
-	if(p->F49==1)
-	prdisc = new reinidisc_f(p);
+    if(p->F46==1)
+        ppicard = new picard_f(p);
+    else
+        ppicard = new picard_void(p);
+    if(p->F49==0)
+        prdisc = new reinidisc_fsf(p);
+    else if(p->F49==1)
+        prdisc = new reinidisc_f(p);
     
     time_preproc(p);   
 }

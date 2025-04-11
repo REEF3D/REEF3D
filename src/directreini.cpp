@@ -56,10 +56,9 @@ directreini::directreini(lexer* p, fdm *a):gradient(p),vertice(p), nodeflag(p),d
 	gcval_ro=1;
 
 	if(p->F46==1)
-	ppicard = new picard_f(p);
-
-	if(p->F46!=1)
-	ppicard = new picard_void(p);
+	    ppicard = new picard_f(p);
+    else
+	    ppicard = new picard_void(p);
 
 	ppreini = new reini_RK3(p,1);
 	
