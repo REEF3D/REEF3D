@@ -33,7 +33,7 @@ using namespace std;
 class weno_flux : public convection, public increment
 {
 public:
-	weno_flux(lexer*);
+	weno_flux(flux*);
 	virtual ~weno_flux();
 
 	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);

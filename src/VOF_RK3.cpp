@@ -35,7 +35,7 @@ Author: Hans Bihs
 #include"weno_hj.h"
 #include"hric.h"
 
-VOF_RK3::VOF_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *pheat):gradient(p),uc(p),vc(p),wc(p),F(p)
+VOF_RK3::VOF_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *pheat, flux* pflux):gradient(p),uc(p),vc(p),wc(p),F(p)
 {
     if(p->F50==1)
 	gcval_frac=71;
@@ -51,7 +51,7 @@ VOF_RK3::VOF_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *pheat):gradient(p),uc(p
 
 	pupdate = new fluid_update_vof(p,a,pgc);
 	
-	ppconvec = new hric(p);
+	ppconvec = new hric(pflux);
 }
 
 VOF_RK3::~VOF_RK3()

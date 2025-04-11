@@ -32,6 +32,7 @@ Author: Hans Bihs
 
 class picard;
 class heat;
+class flux;
 class convection;
 class fluid_update;
 
@@ -40,7 +41,7 @@ using namespace std;
 class VOF_AB : public freesurface, gradient
 {
 public:
-	VOF_AB(lexer*, fdm*, ghostcell*,heat*);
+	VOF_AB(lexer*, fdm*, ghostcell*,heat*,flux*);
 	virtual ~VOF_AB();
 	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
 	virtual void update(lexer*,fdm*,ghostcell*,field&);

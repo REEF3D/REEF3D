@@ -23,61 +23,14 @@ Author: Hans Bihs
 #include"weno_flux.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"flux_face_CDS2.h"
-#include"flux_face_CDS2_vrans.h"
-#include"flux_face_FOU.h"
-#include"flux_face_FOU_vrans.h"
-#include"flux_face_CDS2_2D.h"
-#include"flux_face_CDS2_vrans_2D.h"
-#include"flux_face_FOU_2D.h"
-#include"flux_face_FOU_vrans_2D.h"
+#include"flux.h"
 
-weno_flux::weno_flux(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
+weno_flux::weno_flux(flux* _pflux):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
 			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
 {
     
-    if(p->j_dir==0)
-    {
-    if(p->B269==0)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU_2D(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2_2D(p);
-    }
-    
-    if(p->B269>=1 || p->S10==2)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU_vrans_2D(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2_vrans_2D(p);
-    }
-    }
-    
-    if(p->j_dir==1)
-    {
-    if(p->B269==0)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2(p);
-    }
-    
-    if(p->B269>=1 || p->S10==2)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU_vrans(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2_vrans(p);
-    }
-    }
+        pflux = _pflux;
 }
 
 weno_flux::~weno_flux()

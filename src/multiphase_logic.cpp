@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"print_wsf.h"
 #include"convection_header.h"
 
-void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
+void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc, flux* pflux)
 {
     pwsf1 = new print_wsf(p,a,pgc,1);
     pwsf2 = new print_wsf(p,a,pgc,2);
@@ -64,19 +64,19 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
     if(p->F305==0)
         pmpconvec = new convection_void(p);
     else if(p->F305==1)
-        pmpconvec = new fou(p);
+        pmpconvec = new fou(pflux);
     else if(p->F305==2)
-        pmpconvec = new cds2(p);
+        pmpconvec = new cds2(pflux);
     else if(p->F305==3)
-        pmpconvec = new quick(p);
+        pmpconvec = new quick(pflux);
     else if(p->F305==4)
-        pmpconvec = new weno_flux_nug(p);
+        pmpconvec = new weno_flux_nug(p,pflux);
     else if(p->F305==5)
         pmpconvec = new weno_hj_nug(p);
     else if(p->F305==6)
-        pmpconvec = new cds4(p);
+        pmpconvec = new cds4(pflux);
     else if((p->F305>=10 && p->F305<30) || (p->F305>=40 && p->F305<50))
-        pmpconvec = new hires(p,p->F305);
+        pmpconvec = new hires(p,pflux,p->F305);
     
     if(p->F310==0)
         preini = new reini_void(p);

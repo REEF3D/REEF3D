@@ -36,13 +36,11 @@ sflow_hxy_weno::sflow_hxy_weno(lexer* p, patchBC_interface *ppBC) :tttw(13.0/12.
     pBC = ppBC;
     
     if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
-    pflux = new sflow_flux_face_CDS(p);
-    
-    if(p->A216==4)
-    pflux = new sflow_flux_face_HJ(p);
+        pflux = new sflow_flux_face_FOU(p); 
+    else if(p->A216==2)
+        pflux = new sflow_flux_face_CDS(p);
+    else if(p->A216==4)
+        pflux = new sflow_flux_face_HJ(p);
 }
 
 sflow_hxy_weno::~sflow_hxy_weno()

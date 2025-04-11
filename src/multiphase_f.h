@@ -37,6 +37,7 @@ class multiphase_fluid_update;
 class heat;
 class print_wsf;
 class concentration;
+class flux;
 
 #include"multiphase.h"
 #include"field4.h"
@@ -47,7 +48,7 @@ using namespace std;
 class multiphase_f : public multiphase, public increment
 {
 public:
-    multiphase_f(lexer*, fdm*, ghostcell*);
+    multiphase_f(lexer*,fdm*,ghostcell*,flux*);
     virtual ~multiphase_f() = default;
     void start(lexer*,fdm*,ghostcell*,solver*,ioflow*,reini*,particle_corr*,printer*) override;
     void ini(lexer*,fdm*,ghostcell*,ioflow*) override;
@@ -67,7 +68,7 @@ public:
     void offset_vtu(lexer*,fdm*,ghostcell*,ofstream&,int*,int&) override;
     
 private:
-    void logic(lexer*,fdm*,ghostcell*);
+    void logic(lexer*,fdm*,ghostcell*,flux*);
     double fx(double,double,double,double,double);
     double fz(double,double,double,double,double);
     

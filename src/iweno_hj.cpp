@@ -35,20 +35,17 @@ iweno_hj::iweno_hj(lexer *p)
 {
     if(p->j_dir==0)
     {
-    if(p->B269==0 && p->S10!=2)
-    pflux = new flux_HJ_CDS2_2D(p);
-    
-    if(p->B269>=1 || p->S10==2)
-    pflux = new flux_HJ_CDS2_vrans_2D(p);
+        if(p->B269==0 && p->S10!=2)
+            pflux = new flux_HJ_CDS2_2D(p);
+        else if(p->B269>=1 || p->S10==2)
+            pflux = new flux_HJ_CDS2_vrans_2D(p);
     }
-    
-    if(p->j_dir==1)
+    else if(p->j_dir==1)
     {
-    if(p->B269==0 && p->S10!=2)
-    pflux = new flux_HJ_CDS2(p);
-    
-    if(p->B269>=1 || p->S10==2)
-    pflux = new flux_HJ_CDS2_vrans(p);
+        if(p->B269==0 && p->S10!=2)
+            pflux = new flux_HJ_CDS2(p);
+        else if(p->B269>=1 || p->S10==2)
+            pflux = new flux_HJ_CDS2_vrans(p);
     }
 }
 

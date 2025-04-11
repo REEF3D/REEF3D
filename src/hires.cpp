@@ -31,83 +31,29 @@ Author: Hans Bihs
 #include"smart.h"
 #include"limo3.h"
 #include"tvdvof.h"
-#include"flux_face_CDS2.h"
-#include"flux_face_CDS2_vrans.h"
-#include"flux_face_FOU.h"
-#include"flux_face_FOU_vrans.h"
-#include"flux_face_CDS2_2D.h"
-#include"flux_face_CDS2_vrans_2D.h"
-#include"flux_face_FOU_2D.h"
-#include"flux_face_FOU_vrans_2D.h"
+#include"flux.h"
 
-hires::hires (lexer *p, int limiter) 
+hires::hires(lexer *p, flux* _pflux, int limiter) 
 {
-    if(p->j_dir==0)
-    {
-    if(p->B269==0)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU_2D(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2_2D(p);
-    }
-    
-    if(p->B269>=1 || p->S10==2)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU_vrans_2D(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2_vrans_2D(p);
-    }
-    }
-    
-    if(p->j_dir==1)
-    {
-    if(p->B269==0)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2(p);
-    }
-    
-    if(p->B269>=1 || p->S10==2)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU_vrans(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2_vrans(p);
-    }
-    }
+    pflux = _pflux;
     
     
 	if(limiter==10)
-	plim = new minmod(p);
-	
-	if(limiter==11)
-	plim = new vanleer(p);
-	
-	if(limiter==12)
-	plim = new umist(p);
-	
-	if(limiter==13)
-	plim = new vanalbada(p);
-	
-	if(limiter==14)
-	plim = new superbee(p);
-	
-	if(limiter==15)
-	plim = new smart(p);
-	
-	if(limiter==16)
-	plim = new limo3(p);
-	
-	if(limiter==42)
-	plim = new tvdvof(p);
+	    plim = new minmod(p);
+	else if(limiter==11)
+	    plim = new vanleer(p);
+	else if(limiter==12)
+	    plim = new umist(p);
+	else if(limiter==13)
+	    plim = new vanalbada(p);
+	else if(limiter==14)
+	    plim = new superbee(p);
+	else if(limiter==15)
+	    plim = new smart(p);
+	else if(limiter==16)
+	    plim = new limo3(p);
+	else if(limiter==42)
+	    plim = new tvdvof(p);
 }
 
 hires::~hires()

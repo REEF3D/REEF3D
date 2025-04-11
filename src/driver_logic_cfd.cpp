@@ -58,42 +58,43 @@ void driver::logic_cfd()
     else if(p->N48==1 && (p->D20==0 || p->D20>=2))
         ptstep = new ietimestep(p);
     
+    assign_flux();
     // Multiphase
     if(p->F300==0)
         pmp = new multiphase_v();
     else if(p->F300>0)
-        pmp = new multiphase_f(p,a,pgc);
+        pmp = new multiphase_f(p,a,pgc,pflux);
 
     //discretization schemes
     //Convection
     if(p->D10==0)
         pconvec = new convection_void(p);
     else if(p->D10==1)
-        pconvec = new fou(p);
+        pconvec = new fou(pflux);
     else if(p->D10==2)
-        pconvec = new cds2(p);
+        pconvec = new cds2(pflux);
     else if(p->D10==60)
-        pconvec = new hcds6(p);
+        pconvec = new hcds6(pflux);
     else if(p->D10==3)
-        pconvec = new quick(p);
+        pconvec = new quick(pflux);
     else if(p->D10==4)
-        pconvec = new weno_flux_nug(p);
+        pconvec = new weno_flux_nug(p,pflux);
     else if(p->D10==5)
         pconvec = new weno_hj_nug(p);
     else if(p->D10==6)
-        pconvec = new cds4(p);
+        pconvec = new cds4(pflux);
     else if(p->D10==7)
-        pconvec = new weno3_flux(p);
+        pconvec = new weno3_flux(p,pflux);
     else if(p->D10==8)
         pconvec = new weno3_hj(p);
     else if(p->D10>=10 && p->D10<30)
-        pconvec = new hires(p,p->D10);
+        pconvec = new hires(p,pflux,p->D10);
 
     // Convection Turbulence
     if(p->T12==0)
         pturbdisc = new convection_void(p);
     else if(p->T12==1)
-        pturbdisc = new ifou(p);
+        pturbdisc = new ifou(pflux);
     else if(p->T12==5)
         pturbdisc = new iweno_hj_df_nug(p);
     else if(p->T12==55)
@@ -103,55 +104,55 @@ void driver::logic_cfd()
     if(p->F35==0 && p->F85==0)
         pfsfdisc = new convection_void(p);
     else if(p->F35==1 || p->F85==1)
-        pfsfdisc = new fou(p);
+        pfsfdisc = new fou(pflux);
     else if(p->F35==2 || p->F85==2)
         pfsfdisc = new cds2_alt(p);
     else if(p->F35==3 || p->F85==3)
-        pfsfdisc = new quick(p);
+        pfsfdisc = new quick(pflux);
     else if(p->F35==4 || p->F85==4)
-        pfsfdisc = new weno_flux_nug(p);
+        pfsfdisc = new weno_flux_nug(p,pflux);
     else if(p->F35==5)
         pfsfdisc = new weno_hj_df_nug(p);
     else if(p->F85==5)
         pfsfdisc = new weno_hj_nug(p);
     else if(p->F35==6 || p->F85==6)
-        pfsfdisc = new cds4(p);
+        pfsfdisc = new cds4(pflux);
     else if(p->F35==7)
-        pfsfdisc = new weno3_flux(p);
+        pfsfdisc = new weno3_flux(p,pflux);
     else if(p->F35==8)
         pfsfdisc = new weno3_hj(p);
     else if((p->F35>=10 && p->F35<30) || (p->F35>=40 && p->F35<50))
-        pfsfdisc = new hires(p,p->F35);
+        pfsfdisc = new hires(p,pflux,p->F35);
     else if((p->F85>=10 && p->F85<30) || (p->F85>=40 && p->F85<50))
-        pfsfdisc = new hires(p,p->F85);
+        pfsfdisc = new hires(p,pflux,p->F85);
     else if(p->F85==51)
-        pfsfdisc = new hric(p);
+        pfsfdisc = new hric(pflux);
     else if(p->F85==52)
-        pfsfdisc = new hric_mod(p);
+        pfsfdisc = new hric_mod(pflux);
     else if(p->F85==53)
-        pfsfdisc = new cicsam(p);
+        pfsfdisc = new cicsam(pflux);
 
     //  Convection Concentration
     if(p->C15==0)
         pconcdisc = new convection_void(p);
     else if(p->C15==1)
-        pconcdisc = new fou(p);
+        pconcdisc = new fou(pflux);
     else if(p->C15==2)
         pconcdisc = new cds2_alt(p);
     else if(p->C15==3)
-        pconcdisc = new quick(p);
+        pconcdisc = new quick(pflux);
     else if(p->C15==4)
-        pconcdisc = new weno_flux_nug(p);
+        pconcdisc = new weno_flux_nug(p,pflux);
     else if(p->C15==5)
         pconcdisc = new weno_hj_nug(p);
     else if(p->C15==6)
-        pconcdisc = new cds4(p);
+        pconcdisc = new cds4(pflux);
     else if(p->C15==7)
-        pconcdisc = new weno3_flux(p);
+        pconcdisc = new weno3_flux(p,pflux);
     else if(p->C15==8)
         pconcdisc = new weno3_hj(p);
     else if((p->C15>=10 && p->C15<30) || (p->C15>=40 && p->C15<50))
-        pconcdisc = new hires(p,p->C15);
+        pconcdisc = new hires(p,pflux,p->C15);
     else if(p->S60>0 && p->S60<10)
         pconcdisc = new weno_hj(p);
     else if(p->S60==11 || p->S60==12)
@@ -191,27 +192,27 @@ void driver::logic_cfd()
     if(p->H15==0)
         pheatdisc = new convection_void(p);
     else if(p->H15==1)
-        pheatdisc = new fou(p);
+        pheatdisc = new fou(pflux);
     else if(p->H15==2)
-        pheatdisc = new cds2(p);
+        pheatdisc = new cds2(pflux);
     else if(p->H15==60)
-        pheatdisc = new hcds6(p);
+        pheatdisc = new hcds6(pflux);
     else if(p->H15==3)
-        pheatdisc = new quick(p);
+        pheatdisc = new quick(pflux);
     else if(p->H15==4)
-        pheatdisc = new weno_flux_nug(p);
+        pheatdisc = new weno_flux_nug(p,pflux);
     else if(p->H15==5)
         pheatdisc = new weno_hj_nug(p);
     else if(p->H15==6)
-        pheatdisc = new cds4(p);
+        pheatdisc = new cds4(pflux);
     else if(p->H15==7)
-        pheatdisc = new weno3_flux(p);
+        pheatdisc = new weno3_flux(p,pflux);
     else if(p->H15==8)
         pheatdisc = new weno3_hj(p);
     else if(p->H15==9)
-        pheatdisc = new weno_flux(p);
+        pheatdisc = new weno_flux(pflux);
     else if(p->H15>=10 && p->H15<30)
-        pheatdisc = new hires(p,p->H15);
+        pheatdisc = new hires(p,pflux,p->H15);
 
     // Concentration
     if(p->C10==0)
@@ -260,9 +261,9 @@ void driver::logic_cfd()
     else if(p->F30==3 && p->N40!=22 && p->N40!=23 && p->N40!=33)
         pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
     else if(p->F80==1)
-        pfsf = new VOF_AB(p,a,pgc,pheat);
+        pfsf = new VOF_AB(p,a,pgc,pheat,pflux);
     else if(p->F80==3)
-        pfsf = new VOF_RK3(p,a,pgc,pheat);
+        pfsf = new VOF_RK3(p,a,pgc,pheat,pflux);
     else if(p->F80==4)
         pfsf = new VOF_PLIC(p,a,pgc,pheat);
 

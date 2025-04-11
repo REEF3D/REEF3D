@@ -23,58 +23,11 @@ Author: Hans Bihs
 #include"cds2.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"flux_face_CDS2.h"
-#include"flux_face_CDS2_vrans.h"
-#include"flux_face_FOU.h"
-#include"flux_face_FOU_vrans.h"
-#include"flux_face_CDS2_2D.h"
-#include"flux_face_CDS2_vrans_2D.h"
-#include"flux_face_FOU_2D.h"
-#include"flux_face_FOU_vrans_2D.h"
+#include"flux.h"
 
-cds2::cds2(lexer *p)
+cds2::cds2(flux* _pflux)
 {
-    if(p->j_dir==0)
-    {
-    if(p->B269==0)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU_2D(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2_2D(p);
-    }
-    
-    if(p->B269>=1 || p->S10==2)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU_vrans_2D(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2_vrans_2D(p);
-    }
-    }
-    
-    if(p->j_dir==1)
-    {
-    if(p->B269==0)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2(p);
-    }
-    
-    if(p->B269>=1 || p->S10==2)
-    {
-        if(p->D11==1)
-        pflux = new flux_face_FOU_vrans(p);
-        
-        if(p->D11==2)
-        pflux = new flux_face_CDS2_vrans(p);
-    }
-    }
+    pflux = _pflux;
 }
 
 cds2::~cds2()

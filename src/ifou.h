@@ -35,7 +35,7 @@ class ifou : public convection,  public increment
 
 public:
 
-	ifou (lexer *);
+	ifou(flux*);
 	virtual ~ifou();
 
 	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);

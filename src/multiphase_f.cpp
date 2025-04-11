@@ -23,9 +23,9 @@ Author: Hans Bihs
 #include"multiphase_f.h"
 #include"freesurface.h"
 
-multiphase_f::multiphase_f(lexer* p, fdm *a, ghostcell* pgc) : ls1(p), ls2(p)
+multiphase_f::multiphase_f(lexer* p, fdm *a, ghostcell* pgc, flux* pflux) : ls1(p), ls2(p)
 {
-    logic(p,a,pgc);
+    logic(p,a,pgc,pflux);
 }
 
 void multiphase_f::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, ioflow *pflow, reini* preini2, particle_corr* ppls, printer *pprint)

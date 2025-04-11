@@ -36,7 +36,7 @@ class hires : public convection, public increment
 
 public:
 
-	hires (lexer*,int);
+	hires(lexer*,flux*,int);
 	virtual ~hires();
 
 	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);

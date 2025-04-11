@@ -34,6 +34,7 @@ class fdm2D;
 class fdm_fnpf;
 class fdm_nhf;
 class field;
+class flux;
 class fnpf;
 class fnpf_printer;
 class fnpf_timestep;
@@ -148,6 +149,7 @@ private:
     void assign_solver();
     void assign_data();
     void assign_reinitopo();
+    void assign_flux();
 
     benchmark* pbench;
     concentration* pconc;
@@ -171,6 +173,7 @@ private:
     fnpf_printer* pfprint;
     fnpf_timestep* pftstep;
     fsi* pfsi;
+    flux* pflux;
     ghostcell* pgc;
     grid* pgrid;
     heat* pheat;

@@ -35,7 +35,7 @@ class cicsam : public convection,  public increment
 
 public:
 
-	cicsam (lexer *);
+	cicsam(flux*);
 	virtual ~cicsam();
 
 	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);

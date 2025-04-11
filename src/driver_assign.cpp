@@ -38,6 +38,14 @@ Author: Alexander Hanke, Hans Bihs
 #include"reinitopo_AB2.h"
 #include"reinitopo_RK3.h"
 #include"reinitopo_void.h"
+#include"flux_face_CDS2.h"
+#include"flux_face_CDS2_vrans.h"
+#include"flux_face_FOU.h"
+#include"flux_face_FOU_vrans.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 void driver::assign_density()
 {
@@ -119,4 +127,42 @@ void driver::assign_reinitopo()
         preto = new reinitopo_AB2(p);
     else if(p->G40==3)
         preto = new reinitopo_RK3(p);
+}
+
+void driver::assign_flux()
+{
+    if(p->j_dir==0)
+    {
+        if(p->B269==0)
+        {
+            if(p->D11==1)
+                pflux = new flux_face_FOU_2D(p);
+            else if(p->D11==2)
+                pflux = new flux_face_CDS2_2D(p);
+        }
+        else if(p->B269>=1 || p->S10==2)
+        {
+            if(p->D11==1)
+                pflux = new flux_face_FOU_vrans_2D(p);
+            else if(p->D11==2)
+                pflux = new flux_face_CDS2_vrans_2D(p);
+        }
+    }
+    else if(p->j_dir==1)
+    {
+        if(p->B269==0)
+        {
+            if(p->D11==1)
+                pflux = new flux_face_FOU(p);
+            else if(p->D11==2)
+                pflux = new flux_face_CDS2(p);
+        }
+        else if(p->B269>=1 || p->S10==2)
+        {
+            if(p->D11==1)
+                pflux = new flux_face_FOU_vrans(p);
+            else if(p->D11==2)
+                pflux = new flux_face_CDS2_vrans(p);
+        }
+    }
 }

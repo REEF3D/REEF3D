@@ -35,7 +35,7 @@ class quick : public convection,  public increment
 
 public:
 
-	quick (lexer *);
+	quick(flux*);
 	virtual ~quick();
 
 	virtual void start(lexer*,fdm*, field&,int,field&,field&,field&);

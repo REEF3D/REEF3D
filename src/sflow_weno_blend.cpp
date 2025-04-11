@@ -32,13 +32,11 @@ sflow_weno_blend::sflow_weno_blend(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),thi
 			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
 {
     if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
-    pflux = new sflow_flux_face_CDS(p);
-    
-    if(p->A216==4)
-    pflux = new sflow_flux_face_HJ(p);
+        pflux = new sflow_flux_face_FOU(p);
+    else if(p->A216==2)
+        pflux = new sflow_flux_face_CDS(p);
+    else if(p->A216==4)
+        pflux = new sflow_flux_face_HJ(p);
     
     pflux_hj = new sflow_flux_face_HJ(p);
 

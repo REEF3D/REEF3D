@@ -36,24 +36,19 @@ sflow_hxy_hires::sflow_hxy_hires (lexer* p, patchBC_interface *ppBC, int limiter
 {
     pBC = ppBC;
     
-	if(limiter==6)
-	plim = new sflow_fluxlim_minmod(p);
-    
-    if(limiter==7)
-	plim = new sflow_fluxlim_vanleer(p);
-    
-    if(limiter==8)
-	plim = new sflow_fluxlim_smart(p);
-	
+    if(limiter==6)
+        plim = new sflow_fluxlim_minmod(p);
+    else if(limiter==7)
+        plim = new sflow_fluxlim_vanleer(p);
+    else if(limiter==8)
+        plim = new sflow_fluxlim_smart(p);
+
     if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
-    pflux = new sflow_flux_face_CDS(p);
-    
-    if(p->A216==4)
-    pflux = new sflow_flux_face_HJ(p);
-        
+        pflux = new sflow_flux_face_FOU(p); 
+    else if(p->A216==2)
+        pflux = new sflow_flux_face_CDS(p);
+    else if(p->A216==4)
+        pflux = new sflow_flux_face_HJ(p);  
 }
 
 sflow_hxy_hires::~sflow_hxy_hires()
