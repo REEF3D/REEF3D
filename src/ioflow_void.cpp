@@ -837,10 +837,9 @@ void ioflow_v::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 void ioflow_v::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
     if(p->W90>0)
-    prheo = new rheology_f(p);
-    
+        prheo = new rheology_f(p);
     else
-    prheo = new rheology_v();
+        prheo = new rheology_v();
 }
 
 void ioflow_v::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
