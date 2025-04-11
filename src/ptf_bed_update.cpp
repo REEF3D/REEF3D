@@ -30,12 +30,11 @@ Author: Hans Bihs
 #include"fnpf_cds4.h"
 
 ptf_bed_update::ptf_bed_update(lexer *p, fdm *a, ghostcell *pgc) 
-{    
+{
     if(p->A313==2)
-    pconvec = new fnpf_cds2(p);
-    
-    if(p->A313==3)
-    pconvec = new fnpf_cds4(p);
+        pconvec = new fnpf_cds2(p);
+    else if(p->A313==3)
+        pconvec = new fnpf_cds4(p);
 }
 
 ptf_bed_update::~ptf_bed_update()

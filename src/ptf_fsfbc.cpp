@@ -37,25 +37,19 @@ Author: Hans Bihs
 #include"fnpf_weno7.h"
 
 ptf_fsfbc::ptf_fsfbc(lexer *p, fdm *a, ghostcell *pgc) : Fx(p),Fy(p),Fz(p),Ex(p),Ey(p)
-{    
+{
     if(p->A311==0)
-    pconvec = new fnpf_voiddisc(p);
-    
-    if(p->A311==2)
-    pconvec = new fnpf_cds2(p);
-    
-    if(p->A311==3)
-    pconvec = new fnpf_cds4(p);
-    
-    if(p->A311==4)
-    pconvec = new fnpf_weno5(p);
-    
-    if(p->A311==6)
-    pconvec = new fnpf_cds6(p);
-    
-    if(p->A311==7)
-    pconvec = new fnpf_weno7(p);
-    
+        pconvec = new fnpf_voiddisc(p);
+    else if(p->A311==2)
+        pconvec = new fnpf_cds2(p);
+    else if(p->A311==3)
+        pconvec = new fnpf_cds4(p);
+    else if(p->A311==4)
+        pconvec = new fnpf_weno5(p);
+    else if(p->A311==6)
+        pconvec = new fnpf_cds6(p);
+    else if(p->A311==7)
+        pconvec = new fnpf_weno7(p);
 }
 
 ptf_fsfbc::~ptf_fsfbc()
