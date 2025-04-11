@@ -55,17 +55,14 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
 
-	if(p->A241==1)
-	phxy = new sflow_hxy_fou(p,pBC);
-	
-	if(p->A241==2)
-	phxy = new sflow_hxy_cds(p,pBC);
-	
-	if(p->A241==4)
-	phxy = new sflow_hxy_weno(p,pBC);
-    
-    if(p->A241>=6)
-	phxy = new sflow_hxy_hires(p,pBC,p->A241);
+    if(p->A241==1)
+        phxy = new sflow_hxy_fou(p,pBC);
+    else if(p->A241==2)
+        phxy = new sflow_hxy_cds(p,pBC);
+    else if(p->A241==4)
+        phxy = new sflow_hxy_weno(p,pBC);
+    else if(p->A241>=6)
+        phxy = new sflow_hxy_hires(p,pBC,p->A241);
     
     wd_criterion=p->A244;
     
