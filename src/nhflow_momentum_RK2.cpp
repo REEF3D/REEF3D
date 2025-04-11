@@ -73,10 +73,9 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     
     // wind forcing
     if(p->A570==0)
-    pwind = new wind_v(p);
-    
-    if(p->A570>0)
-    pwind = new wind_f(p);
+        pwind = new wind_v(p);
+    else if(p->A570>0)
+        pwind = new wind_f(p);
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()

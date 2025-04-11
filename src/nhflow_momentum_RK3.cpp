@@ -75,10 +75,9 @@ nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     pnet = ppnet;
     
     if(p->A570==0)
-    pwind = new wind_v(p);
-    
-    if(p->A570>0)
-    pwind = new wind_f(p);
+        pwind = new wind_v(p);
+    else if(p->A570>0)
+        pwind = new wind_f(p);
 }
 
 nhflow_momentum_RK3::~nhflow_momentum_RK3()

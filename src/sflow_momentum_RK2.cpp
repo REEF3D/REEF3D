@@ -69,17 +69,14 @@ sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, sflow_convection *pco
     psfdf=ppsfdf;
     
     if(p->A218==0)
-    prough = new sflow_rough_void(p);
-    
-    if(p->A218==1)
-    prough = new sflow_rough_manning(p);
-    
-    
+        prough = new sflow_rough_void(p);
+    else if(p->A218==1)
+        prough = new sflow_rough_manning(p);
+
     if(p->W90==0)
-    prheo = new sflow_rheology_v(p);
-    
-    if(p->W90==1)
-    prheo = new sflow_rheology_f(p);
+        prheo = new sflow_rheology_v(p);
+    else if(p->W90==1)
+        prheo = new sflow_rheology_f(p);
 }
 
 sflow_momentum_RK2::~sflow_momentum_RK2()

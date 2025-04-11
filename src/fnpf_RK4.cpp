@@ -59,10 +59,9 @@ fnpf_RK4::fnpf_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     
     
     if(p->A343==0)
-    pf = new fnpf_fsfbc(p,c,pgc);
-    
-    if(p->A343>=1)
-    pf = new fnpf_fsfbc_wd(p,c,pgc);
+        pf = new fnpf_fsfbc(p,c,pgc);
+    else if(p->A343>0)
+        pf = new fnpf_fsfbc_wd(p,c,pgc);
 }
 
 fnpf_RK4::~fnpf_RK4()
