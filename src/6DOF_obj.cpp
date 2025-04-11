@@ -90,19 +90,15 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     
     
     if(p->X210==0 && p->X211==0)
-    pmotion = new sixdof_motionext_void(p,pgc);
-    
-    if((p->X210==1 || p->X211==1) && p->X240==0)
-    pmotion = new sixdof_motionext_fixed(p,pgc);
-    
-    if(p->X240==1)
-    pmotion = new sixdof_motionext_file(p,pgc);
-    
-    if(p->X240==11)
-    pmotion = new sixdof_motionext_file_CoG(p,pgc);
-    
-    if(p->X240==21)
-    pmotion = new sixdof_motionext_wavemaker(p,pgc);
+        pmotion = new sixdof_motionext_void(p,pgc);
+    else if((p->X210==1 || p->X211==1) && p->X240==0)
+        pmotion = new sixdof_motionext_fixed(p,pgc);
+    else if(p->X240==1)
+        pmotion = new sixdof_motionext_file(p,pgc);
+    else if(p->X240==11)
+        pmotion = new sixdof_motionext_file_CoG(p,pgc);
+    else if(p->X240==21)
+        pmotion = new sixdof_motionext_wavemaker(p,pgc);
     
     Mass_fb =  Rfb = Vfb = 1.0;
     
