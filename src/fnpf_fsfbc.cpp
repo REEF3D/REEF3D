@@ -48,84 +48,75 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(
 {    
     if(p->A311==0)
     {
-    pconvec = new fnpf_voiddisc(p);
-    pconeta = new fnpf_voiddisc(p);
+        pconvec = new fnpf_voiddisc(p);
+        pconeta = new fnpf_voiddisc(p);
     }
-    
-    if(p->A311==1)
+    else if(p->A311==1)
     {
-    pconvec = new fnpf_cds2(p);
-    pconeta = new fnpf_cds2(p);
+        pconvec = new fnpf_cds2(p);
+        pconeta = new fnpf_cds2(p);
     }
-    
-    if(p->A311==2)
+    else if(p->A311==2)
     {
-    pconvec = new fnpf_cds4(p);
-    pconeta = new fnpf_cds4(p);
+        pconvec = new fnpf_cds4(p);
+        pconeta = new fnpf_cds4(p);
     }
-    
-    if(p->A311==3)
+    else if(p->A311==3)
     {
-    pconvec = new fnpf_weno3(p);
-    pconeta = new fnpf_weno3(p);
+        pconvec = new fnpf_weno3(p);
+        pconeta = new fnpf_weno3(p);
     }
-    
-    if(p->A311==4 || p->A311==5)
+    else if(p->A311==4 || p->A311==5)
     {
-    pconvec = new fnpf_weno5(p);
-    pconeta = new fnpf_weno5(p);
+        pconvec = new fnpf_weno5(p);
+        pconeta = new fnpf_weno5(p);
     }
-    
+    else if(p->A311==6)
+    {
+        pconvec = new fnpf_cds6(p);
+        pconeta = new fnpf_cds6(p);
+    }
+    else if(p->A311==7)
+    {
+        pconvec = new fnpf_weno7(p);
+        pconeta = new fnpf_weno7(p);
+    }
+
     pdf = new fnpf_wenoflux(p);
-
-    if(p->A311==6)
-    {
-    pconvec = new fnpf_cds6(p);
-    pconeta = new fnpf_cds6(p);
-    }
     
-    if(p->A311==7)
-    {
-    pconvec = new fnpf_weno7(p);
-    pconeta = new fnpf_weno7(p);
-    }
-    
-
-    // ---
     if(p->A312==2)
     {
-    pddx = new fnpf_ddx_cds2(p);
-    pdx = new fnpf_cds2(p);
+        pddx = new fnpf_ddx_cds2(p);
+        pdx = new fnpf_cds2(p);
     }
-    
-    if(p->A312==3)
+    else if(p->A312==3)
     {
-    pddx = new fnpf_ddx_cds4(p);
-    pdx = new fnpf_cds4(p);
+        pddx = new fnpf_ddx_cds4(p);
+        pdx = new fnpf_cds4(p);
     }
+
+    if(p->A350==1)
+        psolv =  new sflow_bicgstab(p,pgc);
     
     
     FFILOOP4
     {
-    c->Fy(i,j) = 0.0;
-    c->Ey(i,j) = 0.0;
-    c->Hy(i,j) = 0.0;
-    c->Eyy(i,j) = 0.0;
-    c->By(i,j) = 0.0;
-    c->Byy(i,j) = 0.0;
+        c->Fy(i,j) = 0.0;
+        c->Ey(i,j) = 0.0;
+        c->Hy(i,j) = 0.0;
+        c->Eyy(i,j) = 0.0;
+        c->By(i,j) = 0.0;
+        c->Byy(i,j) = 0.0;
     }
     
     
     c->wd_criterion=0.00005;
     
     if(p->A344==1)
-    c->wd_criterion=p->A344_val;
+        c->wd_criterion=p->A344_val;
     
     if(p->A345==1)
-    c->wd_criterion=p->A345_val*p->DXM;
-    
-    if(p->A350==1)
-    psolv =  new sflow_bicgstab(p,pgc);
+        c->wd_criterion=p->A345_val*p->DXM;
     
     
     p->Iarray(temp,p->imax*p->jmax);
@@ -137,8 +128,8 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(
     // 2D
     if(p->j_dir==0)
     {
-    gcval_eta = 155;
-    gcval_fifsf = 160;
+        gcval_eta = 155;
+        gcval_fifsf = 160;
     }
 }
 

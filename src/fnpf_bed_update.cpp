@@ -32,10 +32,9 @@ Author: Hans Bihs
 fnpf_bed_update::fnpf_bed_update(lexer *p) 
 {    
     if(p->A313==2)
-    pconvec = new fnpf_cds2(p);
-    
-    if(p->A313==3)
-    pconvec = new fnpf_cds4(p);
+        pconvec = new fnpf_cds2(p);
+    else if(p->A313==3)
+        pconvec = new fnpf_cds4(p);
 }
 
 fnpf_bed_update::~fnpf_bed_update()

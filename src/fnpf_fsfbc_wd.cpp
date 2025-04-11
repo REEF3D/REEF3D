@@ -52,44 +52,37 @@ Author: Hans Bihs
 fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),wetcoast(p),eps(1.0e-6)
 {    
     if(p->A311==0)
-    pconvec = pconeta = new fnpf_voiddisc(p);
-    
-    if(p->A311==1)
-    pconvec = pconeta = new fnpf_cds2_wd(p,c);
-    
-    if(p->A311==2)
-    pconvec = pconeta = new fnpf_cds4_wd(p);
-    
-    if(p->A311==3)
-    pconvec = pconeta = new fnpf_weno3(p);
-    
-    if(p->A311==4  || p->A311==5)
+        pconvec = pconeta = new fnpf_voiddisc(p);
+    else if(p->A311==1)
+        pconvec = pconeta = new fnpf_cds2_wd(p,c);
+    else if(p->A311==2)
+        pconvec = pconeta = new fnpf_cds4_wd(p);
+    else if(p->A311==3)
+        pconvec = pconeta = new fnpf_weno3(p);
+    else if(p->A311==4  || p->A311==5)
     {
-    pconvec = new fnpf_weno5_wd(p,c);
-    pconeta = new fnpf_weno5(p);
+        pconvec = new fnpf_weno5_wd(p,c);
+        pconeta = new fnpf_weno5(p);
     }
-
-    if(p->A311==6)
-    pconvec = pconeta = new fnpf_cds6_wd(p);
-    
+    else if(p->A311==6)
+        pconvec = pconeta = new fnpf_cds6_wd(p);
     if(p->A311==7)
     {
-    pconvec = new fnpf_weno7(p);
-    pconeta = new fnpf_weno7(p);
+        pconvec = new fnpf_weno7(p);
+        pconeta = new fnpf_weno7(p);
     }
     
     
     // ---
     if(p->A312==2)
     {
-    pddx = new fnpf_ddx_cds2(p);
-    pdx = new fnpf_cds2(p);
+        pddx = new fnpf_ddx_cds2(p);
+        pdx = new fnpf_cds2(p);
     }
-    
-    if(p->A312==3)
+    else if(p->A312==3)
     {
-    pddx = new fnpf_ddx_cds4(p);
-    pdx = new fnpf_cds4(p);
+        pddx = new fnpf_ddx_cds4(p);
+        pdx = new fnpf_cds4(p);
     }
     
     
@@ -128,7 +121,7 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     expinverse = 1.0/(exp(1.0)-1.0);
     
     if(p->A350==1)
-    psolv = new sflow_bicgstab(p,pgc);
+        psolv = new sflow_bicgstab(p,pgc);
     
     count_n=0;
     
