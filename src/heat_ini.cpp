@@ -29,14 +29,16 @@ Author: Hans Bihs
 
 void heat_print::heat_ini(lexer* p, fdm *a, ghostcell* pgc,heat *pheat)
 {
-	if(p->H10>0 && p->W90==0 && p->H3==1)
-	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
-    
-    if(p->H10>0 && p->W90==0 && p->H3==2)
-	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
+    if(p->H10>0 && p->W90==0)
+    {
+        if(p->H3==1)
+	        pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
+        else if(p->H3==2)
+            pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
+    }
 
-double dx=p->DXM;
-double r;
+    double dx=p->DXM;
+    double r;
 
 
     LOOP
