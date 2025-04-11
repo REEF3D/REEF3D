@@ -37,13 +37,11 @@ wave_lib_reconstruct::wave_lib_reconstruct(lexer *p, ghostcell *pgc)
 
     
     if(p->B92==51)
-    ppwave = new wave_lib_irregular_1st(p,pgc);
-    
-    if(p->B92==52)
-    ppwave = new wave_lib_irregular_2nd_a(p,pgc);
-    
-	if(p->B92==53)
-    ppwave = new wave_lib_irregular_2nd_b(p,pgc);
+        ppwave = new wave_lib_irregular_1st(p,pgc);
+    else if(p->B92==52)
+        ppwave = new wave_lib_irregular_2nd_a(p,pgc);
+    else if(p->B92==53)
+        ppwave = new wave_lib_irregular_2nd_b(p,pgc);
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));

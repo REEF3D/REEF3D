@@ -62,88 +62,61 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
 	wD=p->B94_wdt;
     
     if(wtype==0)
-    pwave = new wave_lib_void(p,pgc);
-	
-    if(wtype==1)
-    pwave = new wave_lib_shallow(p,pgc);
-    
-    if(wtype==2)
-    pwave = new wave_lib_linear(p,pgc);
-    
-    if(wtype==3)
-    pwave = new wave_lib_deep(p,pgc);
-    
-    if(wtype==4)
-    pwave = new wave_lib_Stokes_2nd(p,pgc);
-    
-    if(wtype==5)
-    pwave = new wave_lib_Stokes_5th(p,pgc);
-    
-	if(wtype==6)
-    pwave = new wave_lib_cnoidal_shallow(p,pgc);
-    
-	if(wtype==7)
-    pwave = new wave_lib_cnoidal_1st(p,pgc);
-    
-	if(wtype==8)
-    pwave = new wave_lib_cnoidal_5th(p,pgc);
-    
-	if(wtype==9)
-    pwave = new wave_lib_solitary_1st(p,pgc);
-    
-	if(wtype==10)
-    pwave = new wave_lib_solitary_3rd(p,pgc);
-    
-    if(wtype==11)
-    pwave = new wave_lib_Stokes_5th_SH(p,pgc);
-    
-    if(wtype==20)
-    pwave = new wave_lib_piston_eta(p,pgc);
-    
-	if(wtype==21)
-    pwave = new wave_lib_piston(p,pgc);
-    
-	if(wtype==22)
-    pwave = new wave_lib_flap(p,pgc);
-    
-    if(wtype==23)
-    pwave = new wave_lib_flap_double(p,pgc);
-    
-    if(wtype==24)
-    pwave = new wave_lib_flap_eta(p,pgc);
-    
-	if(wtype==31)
-    pwave = new wave_lib_irregular_1st(p,pgc);
-    
-    if(wtype==32)
-    pwave = new wave_lib_irregular_2nd_a(p,pgc);
-    
-	if(wtype==33)
-    pwave = new wave_lib_irregular_2nd_b(p,pgc);
-    
-	if(wtype==41)
-    pwave = new wave_lib_irregular_1st(p,pgc);
-    
-    if(wtype==42)
-    pwave = new wave_lib_irregular_2nd_a(p,pgc);
-    
-	if(wtype==43)
-    pwave = new wave_lib_irregular_2nd_b(p,pgc);
-    
-    if(wtype==51)
-    pwave = new wave_lib_irregular_1st(p,pgc);
-    
-    if(wtype==52)
-    pwave = new wave_lib_irregular_2nd_a(p,pgc);
-    
-	if(wtype==53)
-    pwave = new wave_lib_irregular_2nd_b(p,pgc);
-    
-    if(wtype==61)
-    pwave = new wave_lib_hdc(p,pgc);
-    
-    if(wtype==70)
-    pwave = new wave_lib_ssgw(p,pgc);
+        pwave = new wave_lib_void(p,pgc);
+    else if(wtype==1)
+        pwave = new wave_lib_shallow(p,pgc);
+    else if(wtype==2)
+        pwave = new wave_lib_linear(p,pgc);
+    else if(wtype==3)
+        pwave = new wave_lib_deep(p,pgc);
+    else if(wtype==4)
+        pwave = new wave_lib_Stokes_2nd(p,pgc);
+    else if(wtype==5)
+        pwave = new wave_lib_Stokes_5th(p,pgc);
+    else if(wtype==6)
+        pwave = new wave_lib_cnoidal_shallow(p,pgc);
+    else if(wtype==7)
+        pwave = new wave_lib_cnoidal_1st(p,pgc);
+    else if(wtype==8)
+        pwave = new wave_lib_cnoidal_5th(p,pgc);
+    else if(wtype==9)
+        pwave = new wave_lib_solitary_1st(p,pgc);
+    else if(wtype==10)
+        pwave = new wave_lib_solitary_3rd(p,pgc);
+    else if(wtype==11)
+        pwave = new wave_lib_Stokes_5th_SH(p,pgc);
+    else if(wtype==20)
+        pwave = new wave_lib_piston_eta(p,pgc);
+    else if(wtype==21)
+        pwave = new wave_lib_piston(p,pgc);
+    else if(wtype==22)
+        pwave = new wave_lib_flap(p,pgc);
+    else if(wtype==23)
+        pwave = new wave_lib_flap_double(p,pgc);
+    else if(wtype==24)
+        pwave = new wave_lib_flap_eta(p,pgc);
+    else if(wtype==31)
+        pwave = new wave_lib_irregular_1st(p,pgc);
+    else if(wtype==32)
+        pwave = new wave_lib_irregular_2nd_a(p,pgc);
+    else if(wtype==33)
+        pwave = new wave_lib_irregular_2nd_b(p,pgc);
+    else if(wtype==41)
+        pwave = new wave_lib_irregular_1st(p,pgc);
+    else if(wtype==42)
+        pwave = new wave_lib_irregular_2nd_a(p,pgc);
+    else if(wtype==43)
+        pwave = new wave_lib_irregular_2nd_b(p,pgc);
+    else if(wtype==51)
+        pwave = new wave_lib_irregular_1st(p,pgc);
+    else if(wtype==52)
+        pwave = new wave_lib_irregular_2nd_a(p,pgc);
+    else if(wtype==53)
+        pwave = new wave_lib_irregular_2nd_b(p,pgc);
+    else if(wtype==61)
+        pwave = new wave_lib_hdc(p,pgc);
+    else if(wtype==70)
+        pwave = new wave_lib_ssgw(p,pgc);
 }
 
 wave_interface::~wave_interface()
