@@ -59,19 +59,15 @@ sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(
     prelax = new topo_relax(p);
     
     if(p->S32==1)
-    pdx = new sediment_fou(p);
-    
-    if(p->S32==2)
-    pdx = new sediment_cds(p);
-    
-    if(p->S32==3)
-    pdx = new sediment_cds_hj(p);
-    
-    if(p->S32==4)
-    pdx = new sediment_wenoflux(p);
-    
-    if(p->S32==5)
-    pdx = new sediment_weno_hj(p);
+        pdx = new sediment_fou(p);
+    else if(p->S32==2)
+        pdx = new sediment_cds(p);
+    else if(p->S32==3)
+        pdx = new sediment_cds_hj(p);
+    else if(p->S32==4)
+        pdx = new sediment_wenoflux(p);
+    else if(p->S32==5)
+        pdx = new sediment_weno_hj(p);
     
     psolv = new sflow_bicgstab(p,pgc);
 }
