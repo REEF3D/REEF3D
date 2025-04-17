@@ -598,9 +598,6 @@ void driver::logic_cfd()
 	if(p->N40==0)
 	pmom = new momentum_void();
 
-    if(p->N40==1)
-	pmom = new momentum_AB2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
-
 	if(p->N40==2)
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     

@@ -991,7 +991,6 @@
       <File Name="momentum_RK3.h"/>
       <File Name="momentum_void.h"/>
       <File Name="momentum_RK2.h"/>
-      <File Name="momentum_AB2.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
       <VirtualDirectory Name="Reference">
@@ -2731,7 +2730,6 @@
       <File Name="momentum_RK3.cpp"/>
       <File Name="momentum_void.cpp"/>
       <File Name="momentum_RK2.cpp"/>
-      <File Name="momentum_AB2.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
       <VirtualDirectory Name="Reference">
