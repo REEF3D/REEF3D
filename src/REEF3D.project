@@ -2486,7 +2486,6 @@
         <File Name="driver_log.cpp"/>
         <File Name="driver_test.cpp"/>
         <File Name="driver_makegrid.cpp"/>
-        <File Name="driver_fillvec.cpp"/>
         <File Name="driver_makgrid_2D.cpp"/>
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>

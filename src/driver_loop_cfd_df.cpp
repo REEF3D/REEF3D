@@ -73,8 +73,6 @@ void driver::loop_cfd_df(fdm* a)
 
         pflow->wavegen_precalc(p,pgc);
 
-        fill_vel(p,a,pgc);
-        
         // Benchmark cases
         pbench->start(p,a,pgc,pconvec);
 
