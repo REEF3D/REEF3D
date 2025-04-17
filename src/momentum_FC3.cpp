@@ -469,15 +469,3 @@ void momentum_FC3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	}
 }
 
-void momentum_FC3::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FC3::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FC3::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-

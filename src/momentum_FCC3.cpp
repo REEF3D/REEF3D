@@ -786,17 +786,6 @@ void momentum_FCC3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel
 }
 
 
-void momentum_FCC3::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FCC3::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FCC3::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
 
 void momentum_FCC3::clear_FGH(lexer *p, fdm *a)
 {

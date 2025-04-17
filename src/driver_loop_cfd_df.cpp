@@ -101,9 +101,6 @@ void driver::loop_cfd_df(fdm* a)
         pmom_df->starti(p,a,pgc,p6dof,pvrans,pnet,pfsi);
 
         // Save previous timestep
-        pmom_df->utimesave(p,a,pgc);
-        pmom_df->vtimesave(p,a,pgc);
-        pmom_df->wtimesave(p,a,pgc);
         pflow->veltimesave(p,a,pgc,pvrans);
         pturb->ktimesave(p,a,pgc);
         pturb->etimesave(p,a,pgc);

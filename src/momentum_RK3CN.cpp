@@ -388,15 +388,3 @@ void momentum_RK3CN::addkrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
        }
 }
 
-void momentum_RK3CN::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RK3CN::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RK3CN::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-

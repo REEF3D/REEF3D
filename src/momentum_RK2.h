@@ -48,9 +48,6 @@ public:
                 solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK2();
 	virtual void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*,vector<net*>&);
-    virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
     field1 udiff, urk1, fx;
 	field2 vdiff, vrk1, fy;
