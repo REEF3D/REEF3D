@@ -172,7 +172,6 @@ public:
 // IBM
     void flagfield(lexer*);
     void flagfield_topo(lexer*);
-	void ndflag_update(lexer*);
     void flagbase(lexer*,fdm*);
 
 // PARALLEL

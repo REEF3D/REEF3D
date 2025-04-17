@@ -118,7 +118,6 @@ public:
 	double *topobed,*solidbed,*bed,*depth;
     int *wet,*wet_n;
     int *deep;
-	int *ndbaseflag;
 	int i_dir,j_dir,k_dir;
 	double x_dir,y_dir,z_dir;
     int gcbextra;

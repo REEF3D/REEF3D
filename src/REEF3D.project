@@ -2402,7 +2402,6 @@
         <File Name="gc_flagbase.cpp"/>
         <File Name="gc_flagfield.cpp"/>
         <File Name="gc_minmax.cpp"/>
-        <File Name="gc_ndflag.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
         <File Name="gcx_parax4a_sum.cpp"/>

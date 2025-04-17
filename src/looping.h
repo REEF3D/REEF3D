@@ -191,8 +191,7 @@ Author: Hans Bihs
 #define KTPLOOP for(k=-1; k<p->knoz; ++k)
 #define TPLOOP KTPLOOP JTPLOOP ITPLOOP 
 
-#define NDBASECHECK  if(p->ndbaseflag[IJK]>OBJ_FLAG)
-#define NDBASELOOP ITPLOOP JTPLOOP KTPLOOP NDBASECHECK
+#define NDBASELOOP ITPLOOP JTPLOOP KTPLOOP
 
 #define MAX(aAa,bBb) ((aAa)>(bBb)?(aAa):(bBb))
 #define MIN(aAa,bBb) ((aAa)<(bBb)?(aAa):(bBb))

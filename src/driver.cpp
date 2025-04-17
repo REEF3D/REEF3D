@@ -34,7 +34,7 @@ driver::driver(int& argc, char **argv)
 {
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
-    cout<<fixed;
+    //cout<<fixed;
 
 	if(p->mpirank==0)
     {
@@ -92,8 +92,6 @@ driver::driver(int& argc, char **argv)
         makegrid_sigma(p,pgc);
         makegrid2D_basic(p,pgc);
 
-        pgc->ndflag_update(p);
-
         fnpf_driver();
     }
 
@@ -109,7 +107,6 @@ driver::driver(int& argc, char **argv)
         pgc->flagfield(p);
         makegrid_sigma(p,pgc);
         makegrid2D(p,pgc);
-        pgc->ndflag_update(p);
 
         nhflow_driver();
     }
@@ -122,7 +119,6 @@ driver::driver(int& argc, char **argv)
         pgc->flagfield(p);
         makegrid(p,pgc);
         makegrid2D(p,pgc);
-        pgc->ndflag_update(p);
 
         if(p->A10==4)
         ptf_driver();
@@ -231,7 +227,6 @@ void driver::cfd_driver()
     else
     loop_cfd(a);
 }
-
 
 driver::~driver()
 {
