@@ -902,9 +902,6 @@ void lexer::read_control()
 		case 'F': control>>numint;
 				switch(numint)
 				{
-				case 10: control>>F10;
-						 clear(c,numint);
-						 break;
 				case 30: control>>F30;
 						 clear(c,numint);
 						 break;

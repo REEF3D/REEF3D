@@ -430,22 +430,16 @@ void driver::logic_cfd()
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-    if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==2)
+    if((p->D30==1 || p->D30==2 || p->D30==3))
 	ppress = new pjm_corr(p,a,pgc,pheat,pconc);
-    
-    if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==1)
-	ppress = new pjm_nse(p,a,pheat,pconc);
 
     if(p->D30==10)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
 
 
 //poisson scheme for pressure
-    if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==2)
+    if((p->D30==1 || p->D30==2 || p->D30==3))
 	ppois = new poisson_pcorr(p,pheat,pconc);
-
-    if(p->D30<9 && p->F10==1)
-	ppois = new poisson_nse(p,pheat,pconc);
 
 //Solver
     if(p->j_dir==0)

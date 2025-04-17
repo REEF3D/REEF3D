@@ -40,8 +40,6 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
 	p->xtime+=endtime-starttime;
     }
     
-    //if(p->F10==1)
-    //nse1(p,a,f,gcv);
     
     // solid ghostcells
     starttime=timer();
@@ -62,8 +60,6 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
     if(p->periodic3==1)
     gc_periodic(p, f, 1, 3);
     
-    //if(p->F10==1)
-    //nse1(p,a,f,gcv);
     
     if(p->Y40==1  || p->Y40==3)
     dgcpol1(p,f,gcv);
@@ -90,9 +86,6 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     
     if(p->j_dir==1)
     {
-    //if(p->F10==1)
-    //nse2(p,a,f,gcv);
-    
     starttime=timer();
 	QQGC2LOOP
 	gcdistro2(p,f,p->gcb2[qq][0], p->gcb2[qq][1], p->gcb2[qq][2], p->gcb2[qq][5], p->gcd2[qq], gcv, p->gcb2[qq][4], p->gcb2[qq][3]);
@@ -110,9 +103,6 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     
     if(p->periodic3==1)
     gc_periodic(p, f, 2, 3);
-    
-    //if(p->F10==1)
-    //nse2(p,a,f,gcv);
     }
     
     if(p->Y40==1  || p->Y40==3)
@@ -136,9 +126,6 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
 	p->xtime+=endtime-starttime;
     }
     
-    //if(p->F10==1)
-    //nse3(p,a,f,gcv);
-    
     starttime=timer();
     QQGC3LOOP
 	gcdistro3(p,f,p->gcb3[qq][0], p->gcb3[qq][1], p->gcb3[qq][2], p->gcb3[qq][5], p->gcd3[qq], gcv, p->gcb3[qq][4], p->gcb3[qq][3]);
@@ -157,8 +144,6 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
     if(p->periodic3==1)
     gc_periodic(p, f, 3, 3);
     
-    //if(p->F10==1)
-    //nse3(p,a,f,gcv);
     
     if(p->Y40==1  || p->Y40==3)
     dgcpol3(p,f,gcv);
@@ -181,17 +166,12 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
 	p->xtime+=endtime-starttime;
     }
     
-    if(p->F10==1)
-    nse4(p,a,f,gcv);
 	
 	starttime=timer();
 	QQGC4LOOP
 	gcdistro4(p,f,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcb4[qq][5], p->gcd4[qq], gcv, p->gcb4[qq][4], p->gcb4[qq][3]);
 	endtime=timer();
 	p->gctime+=endtime-starttime;
-    
-    if(p->F10==1)
-    nse4(p,a,f,gcv);
     
     // periodic ghostcells
     gcperiodicx(p,f,4);

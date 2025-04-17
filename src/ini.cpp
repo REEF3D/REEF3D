@@ -343,7 +343,6 @@ void lexer::ini_default()
     D37=0;          // int type of FSFBC for single fluid flow
 
     // Free Surface
-	F10=2;			    // int free surface scheme
 	F30=3;			    // int level set scheme
 	F31=0;             // particle level set
 	F32=64;			// number of particles per cell

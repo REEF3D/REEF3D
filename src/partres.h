@@ -27,7 +27,6 @@ Authora: Hans Bihs, Alexander Hanke
 #include"part.h"
 #include"slice4.h"
 #include"field4a.h"
-#include"fieldint4a.h"
 #include"boundarycheck.h"
 
 class lexer;
