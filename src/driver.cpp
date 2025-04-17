@@ -39,7 +39,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2025 Hans Bihs"<<endl;
-    sprintf(version,"v_250413");
+    sprintf(version,"v_250417");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
@@ -89,7 +89,6 @@ driver::driver(int& argc, char **argv)
         p->flagini();
         p->gridini_patchBC();
         pgc->flagfield(p);
-        pgc->tpflagfield_sigma(p);
         makegrid_sigma(p,pgc);
         makegrid2D_basic(p,pgc);
 
@@ -108,10 +107,8 @@ driver::driver(int& argc, char **argv)
         p->flagini();
         p->gridini_patchBC();
         pgc->flagfield(p);
-        pgc->tpflagfield_sigma(p);
         makegrid_sigma(p,pgc);
         makegrid2D(p,pgc);
-
         pgc->ndflag_update(p);
 
         nhflow_driver();
@@ -123,10 +120,8 @@ driver::driver(int& argc, char **argv)
         p->flagini();
         p->gridini_patchBC();
         pgc->flagfield(p);
-        pgc->tpflagfield(p);
         makegrid(p,pgc);
         makegrid2D(p,pgc);
-
         pgc->ndflag_update(p);
 
         if(p->A10==4)
@@ -137,49 +132,20 @@ driver::driver(int& argc, char **argv)
     }
 }
 
-void driver::cfd_driver()
-{
-    if(p->mpirank==0)
-	cout<<"initialize fdm "<<endl;
-
-    a=new fdm(p);
-
-	aa=a;
-    pgc->fdm_update(a);
-
-    logic_cfd();
-
-    driver_ini_cfd();
-
-    // Start MAINLOOP
-    if(p->X10==0 && p->Z10==0 && p->N40==4)
-    loop_cfd_sf(a);
-
-    else
-    if((p->X10==1  || p->Z10!=0) && (p->N40==4))
-    loop_cfd_df(a);
-
-    else
-    loop_cfd(a);
-}
-
-void driver::nhflow_driver()
+void driver::sflow_driver()
 {
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
 
-	d=new fdm_nhf(p);
+    b=new fdm2D(p);
+    bb=b;
 
-    pgc->fdm_nhf_update(d);
+    psflow = new sflow_f(p,b,pgc,pBC);
 
-    makegrid_sigma_cds(p,pgc);
+    makegrid2D_cds(p,pgc,b);
 
-    logic_nhflow();
-
-    driver_ini_nhflow();
-
-    // Start MAINLOOP
-    loop_nhflow();
+    // Start SFLOW
+	psflow->start(p,b,pgc);
 }
 
 void driver::fnpf_driver()
@@ -221,21 +187,51 @@ void driver::ptf_driver()
     loop_ptf(a);
 }
 
-void driver::sflow_driver()
+void driver::nhflow_driver()
 {
     if(p->mpirank==0)
 	cout<<"initialize fdm"<<endl;
 
-    b=new fdm2D(p);
-    bb=b;
+	d=new fdm_nhf(p);
 
-    psflow = new sflow_f(p,b,pgc,pBC);
+    pgc->fdm_nhf_update(d);
 
-    makegrid2D_cds(p,pgc,b);
+    makegrid_sigma_cds(p,pgc);
 
-    // Start SFLOW
-	psflow->start(p,b,pgc);
+    logic_nhflow();
+
+    driver_ini_nhflow();
+
+    // Start MAINLOOP
+    loop_nhflow();
 }
+
+void driver::cfd_driver()
+{
+    if(p->mpirank==0)
+	cout<<"initialize fdm "<<endl;
+
+    a=new fdm(p);
+
+	aa=a;
+    pgc->fdm_update(a);
+
+    logic_cfd();
+
+    driver_ini_cfd();
+
+    // Start MAINLOOP
+    if(p->X10==0 && p->Z10==0 && p->N40==4)
+    loop_cfd_sf(a);
+
+    else
+    if((p->X10==1  || p->Z10!=0) && (p->N40==4))
+    loop_cfd_df(a);
+
+    else
+    loop_cfd(a);
+}
+
 
 driver::~driver()
 {

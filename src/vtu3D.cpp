@@ -388,13 +388,13 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	pstate->write(p,a,pgc,pturb,psed);
 
 	p->stateprinttime+=p->P42;
-	}*/
+	}
     
     // Print state restart out based on iteration
 	if(p->count%p->P38==0 && p->P37>0)
 	{
 	pstate_restart->write(p,a,pgc,pturb,psed);
-	}
+	}*/
 
 }
 

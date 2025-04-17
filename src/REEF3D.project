@@ -2402,7 +2402,6 @@
         <File Name="gc_flagbase.cpp"/>
         <File Name="gc_flagfield.cpp"/>
         <File Name="gc_minmax.cpp"/>
-        <File Name="gc_tpflagfield.cpp"/>
         <File Name="gc_ndflag.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
@@ -2467,7 +2466,6 @@
         <File Name="gcsl_epol4.cpp"/>
         <File Name="gcsl_epol4a.cpp"/>
         <File Name="gcxsl_flagx.cpp"/>
-        <File Name="gcsl_tpflag.cpp"/>
         <File Name="gcsl_noslip.cpp"/>
         <File Name="gcsl_setbc.cpp"/>
       </VirtualDirectory>

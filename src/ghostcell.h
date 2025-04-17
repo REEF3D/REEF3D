@@ -172,8 +172,6 @@ public:
 // IBM
     void flagfield(lexer*);
     void flagfield_topo(lexer*);
-    void tpflagfield(lexer*);
-    void tpflagfield_sigma(lexer*);
 	void ndflag_update(lexer*);
     void flagbase(lexer*,fdm*);
 
@@ -248,8 +246,6 @@ public:
 	int gcsleval3(lexer*,int,int,int);
 	int gcsleval4(lexer*,int,int,int);
 	int gcsleval4a(lexer*,int,int,int);
-
-	void gcsl_tpflag(lexer*);
 
     void gcsl_setbc1(lexer*);
     void gcsl_setbc2(lexer*);

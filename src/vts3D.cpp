@@ -913,7 +913,6 @@ void vts3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     KTLOOP
 	JTLOOP
 	ITLOOP
-	TPCHECK
 	{
 	ffn=float(p->XN[IP]);
 	result.write((char*)&ffn, sizeof (float));

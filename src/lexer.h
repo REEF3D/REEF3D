@@ -118,7 +118,7 @@ public:
 	double *topobed,*solidbed,*bed,*depth;
     int *wet,*wet_n;
     int *deep;
-	int *tpflag,*ndbaseflag;
+	int *ndbaseflag;
 	int i_dir,j_dir,k_dir;
 	double x_dir,y_dir,z_dir;
     int gcbextra;
@@ -212,7 +212,7 @@ public:
     int M_size,M_2D_size;
     
     //SLICE
-    int *flagslice1,*flagslice2,*flagslice4,*tpflagslice;
+    int *flagslice1,*flagslice2,*flagslice4;
     int *flagfsf;
     int *mgcsl1,*mgcsl2,*mgcsl3,*mgcsl4,*mgcsl4a;
     int ***gcslorig1,***gcslorig2,***gcslorig3,***gcslorig4,***gcslorig4a;

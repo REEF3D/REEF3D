@@ -30,8 +30,6 @@ Author: Hans Bihs
 
 void driver::makegrid2D(lexer *p, ghostcell *pgc)
 {   
-    pgc->gcsl_tpflag(p);
-    
     pgc->gcslflagx(p,p->flagslice4);
     
     mgcslice1 m1(p);
