@@ -116,7 +116,7 @@ void sflow_state::read(lexer *p, fdm2D *b, ghostcell *pgc)
     
 	
 	
-	if(p->P45==1)
+	if(p->P45==1 || restart==1)
 	result.close();
 	
 	++printcount;

@@ -114,6 +114,7 @@ private:
 	fsf_vtp *pfsf;
     topo_vtp *ptopo;
 	cfd_state *pstate;
+    cfd_state *pstate_restart;
     sloshing_force *pslosh;
 	print_porous *ppor;
     exportfile *pexport;

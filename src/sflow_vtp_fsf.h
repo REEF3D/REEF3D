@@ -78,6 +78,7 @@ private:
     sflow_print_bedline *pbedline;
     sflow_print_bedline_y *pbedline_y;
     sflow_state *pstate;
+    sflow_state *pstate_restart;
     fnpf_print_Hs *phs;
 
 };

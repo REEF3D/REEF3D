@@ -69,8 +69,11 @@ sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 
     pbedline_y=new sflow_print_bedline_y(p,b,pgc);
     
+    //if(p->P37>0)
+	//pstate_restart=new sflow_state(p,b,pgc,1);
+    
     if(p->P40>0)
-	pstate=new sflow_state(p,b,pgc);
+	pstate=new sflow_state(p,b,pgc,0);
     
     if(p->P110==1)
     phs = new fnpf_print_Hs(p,b->Hs);
@@ -130,6 +133,12 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
     if(p->P124>0)
     pbedline_y->start(p,b,pgc,pflow,b->bed);
     }
+    
+     // Print state restart out based on iteration
+    /*if(p->count%p->P38==0 && p->P37>0)
+    {
+    pstate_restart->write(p,b,pgc);
+    }*/
     
     // Print state out based on iteration
     if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))

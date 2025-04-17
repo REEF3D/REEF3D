@@ -34,7 +34,11 @@ void sflow_state::ini_mainheader(lexer *p, fdm2D *b, ghostcell *pgc)
     ofstream mainout;
     
     // open file
+    if(restart==0)
 	mainout.open("./REEF3D_SFLOW_STATE/REEF3D-SFLOW_State_Mainheader.r3d", ios::binary);
+    
+    if(restart==1)
+	mainout.open("./REEF3D_SFLOW_STATE_RESTART/REEF3D-SFLOW_State_Mainheader.r3d", ios::binary);
 
 
     // ini write
@@ -86,7 +90,11 @@ void sflow_state::write_mainheader(lexer *p, fdm2D *c, ghostcell *pgc)
     ofstream mainout;
     
     // open file
+    if(restart==0)
 	mainout.open("./REEF3D_SFLOW_STATE/REEF3D-SFLOW_State_Mainheader.r3d", ios::binary | ios::app);
+    
+    if(restart==1)
+	mainout.open("./REEF3D_SFLOW_STATE_RESTART/REEF3D-SFLOW_State_Mainheader.r3d", ios::binary | ios::app);
 
     iin=p->count;
     mainout.write((char*)&iin, sizeof (int));

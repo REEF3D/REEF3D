@@ -1202,6 +1202,7 @@
             <File Name="sflow_print_bedline.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
+            <File Name="sflow_state_boundary.cpp"/>
             <File Name="sflow_state_read.cpp"/>
             <File Name="sflow_state_write.cpp"/>
             <File Name="sflow_state_mainheader.cpp"/>

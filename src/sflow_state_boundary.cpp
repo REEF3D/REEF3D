@@ -20,33 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"cfd_state.h"
+#include"sflow_state.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
 
-cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc, int state_restart)
-{	
-	// Create Folder
-	if(p->mpirank==0)
-    {
-	mkdir("./REEF3D_CFD_STATE",0777);
-    mkdir("./REEF3D_CFD_STATE_RESTART",0777);
-    }
-	
-	printcount=0;
-    
-    file_version=6;
-    
-    file_type=p->P45;
-    
-    restart = state_restart;
-    
-    ini_token=0;
+void sflow_state::boundary(lexer *p, fdm2D* b, ghostcell* pgc, int restart)
+{
     
     p->Iarray(flag_all,p->M10+1);
     p->Iarray(is_flag_all,p->M10);
@@ -69,7 +53,7 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc, int state_restart)
     je = p->knoy;
     je_global = p->gknoy;
     
-    if(p->P43==1)
+    if(p->P43==1 && restart==0)
     {
         flag=0;
         
@@ -103,6 +87,7 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc, int state_restart)
         je = p->posc_j(p->P43_ye);
         je_flag=1;
         }
+    
     }
     
     pgc->gather_int(&flag,1,flag_all,1);
@@ -138,6 +123,7 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc, int state_restart)
     }
     
     pgc->bcast_int(&ie_global,1);
+    
     
     // js communication
     if(js_flag==1)
@@ -178,12 +164,13 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc, int state_restart)
     je_global = 1;
     }
     
-    if(p->P45==2)
+    if(p->P45==2 && restart==0)
     {
-    filename_continuous(p,a,pgc);
+    filename_continuous(p,b,pgc);
 	 
 	result.open(name, ios::binary);
     }
+    
 
     p->del_Iarray(is_flag_all,p->M10);
     p->del_Iarray(ie_flag_all,p->M10);
@@ -193,33 +180,7 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc, int state_restart)
     p->del_Iarray(ie_global_all,p->M10);
     p->del_Iarray(js_global_all,p->M10);
     p->del_Iarray(je_global_all,p->M10);
-}
-
-cfd_state::~cfd_state()
-{
-    result.close();
-}
-
-void cfd_state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
-{
-    /*// header file
-    if(ini_token==0)
-    {
-    if(p->mpirank==0)
-    ini_mainheader(p,a,pgc);
-    
-    if(flag==1)
-    write_header(p,a,pgc);
-    
-    ini_token=1;
-    }
-    
-    if(p->mpirank==0)
-    write_mainheader(p,a,pgc);
     
     
-    // result file
-    if(flag==1)*/
-        
-    write_result(p,a,pgc,pturb,psed);
+    
 }

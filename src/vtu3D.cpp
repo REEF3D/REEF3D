@@ -169,6 +169,9 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 
     for(n=0;n<p->P81;++n)
 	pforce[n]=new force(p,a,pgc,n);
+    
+    //if(p->P37>0)
+    //pstate_restart=new cfd_state(p,a,pgc,0);
 
 	if(p->P40>0)
 	pstate=new cfd_state(p,a,pgc,0);
@@ -380,11 +383,17 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	}
 
 	// Print state out based on time
-	if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<<p->P47_te)))
+	/*if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<<p->P47_te)))
 	{
 	pstate->write(p,a,pgc,pturb,psed);
 
 	p->stateprinttime+=p->P42;
+	}*/
+    
+    // Print state restart out based on iteration
+	if(p->count%p->P38==0 && p->P37>0)
+	{
+	pstate_restart->write(p,a,pgc,pturb,psed);
 	}
 
 }
