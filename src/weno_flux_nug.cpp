@@ -27,9 +27,36 @@ Author: Hans Bihs
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -47,6 +74,7 @@ weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
     }
+    }
 }
 
 weno_flux_nug::~weno_flux_nug()
@@ -63,7 +91,8 @@ void weno_flux_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fie
         ULOOP
         a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
         }
-
+        
+        if(p->j_dir==1)
         if(ipol==2)
         {
         vf=1;

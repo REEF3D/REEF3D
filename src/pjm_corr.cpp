@@ -96,9 +96,6 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
     reference_start(p,a,pgc);
 	pgc->start4(p,a->press,gcval_press);
-	
-    LOOP
-    a->test(i,j,k) = pcorr(i,j,k);
     
 	ucorr(p,a,uvel,alpha);
 	vcorr(p,a,vvel,alpha);
@@ -121,6 +118,7 @@ void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 
 void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
+    if(p->j_dir==1)
 	VLOOP
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((pcorr(i,j+1,k)-pcorr(i,j,k))
 	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
@@ -157,7 +155,7 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     LOOP
     {
     a->rhsvec.V[count] =  -(u.V[IJK] - u.V[Im1JK])/(alpha*p->dt*p->DXN[IP])
-                          -(v.V[IJK] - v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])
+                          -(v.V[IJK] - v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])*p->y_dir
                           -(w.V[IJK] - w.V[IJKm1])/(alpha*p->dt*p->DZN[KP]);
                            
     ++count;
@@ -181,6 +179,7 @@ void pjm_corr::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 
 void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    if(p->j_dir==1)
     VLOOP
     a->G(i,j,k) -= PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
 }

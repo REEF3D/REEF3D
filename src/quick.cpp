@@ -27,9 +27,36 @@ Author: Hans Bihs
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 quick::quick (lexer *p)
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -47,6 +74,7 @@ quick::quick (lexer *p)
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
     }
+    }
 }
 
 quick::~quick()
@@ -59,7 +87,8 @@ void quick::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel
     if(ipol==1)
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel);
-
+    
+    if(p->j_dir==1)
     if(ipol==2)
     VLOOP
     a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel);
@@ -101,7 +130,8 @@ double quick::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
 
 
 
-		
+		if(p->j_dir==1)
+        {
 		if(jvel1>=0.0)
 		vl=1.0;
 
@@ -113,7 +143,7 @@ double quick::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
 
            -  jvel1*(vl*(3.0*b(i,j,k) + 6.0*b(i,j-1,k) - b(i,j-2,k))
               +(1.0-vl)*(3.0*b(i,j-1,k) + 6.0*b(i,j,k) - b(i,j+1,k))))/(8.0*p->DXM);
-
+        }
 
 
 

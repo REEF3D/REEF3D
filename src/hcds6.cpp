@@ -27,9 +27,36 @@ Author: Elyas Larkermani
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 hcds6::hcds6 (lexer *p)
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -47,6 +74,7 @@ hcds6::hcds6 (lexer *p)
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
     }
+    }
 }
 
 hcds6::~hcds6()
@@ -59,6 +87,7 @@ void hcds6::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN,p->DXN,p->DYP,p->DZP);
 
+    if(p->j_dir==1)
     if(ipol==2)
     VLOOP
     a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,p->DXN,p->DYP,p->DZN,p->DXP,p->DYN,p->DZP);
@@ -78,8 +107,7 @@ void hcds6::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel
 }
 
 double hcds6::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ, double *DXX,double *DYY, double *DZZ)
-{		
-		
+{				
 		dx=dy=dz=0.0;
 
 
@@ -89,12 +117,11 @@ double hcds6::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
 
 
 
-
 		dx = (ivel2*(111.0*b(i,j,k) + 111.0*b(i+1,j,k) - 24.0*b(i+2,j,k) + 3.0*b(i+3,j,k) - 24.0*b(i-1,j,k) + 3.0*b(i-2,j,k))  
 		 -  ivel1* (111.0*b(i,j,k) + 111.0*b(i-1,j,k) - 24.0*b(i-2,j,k) + 3.0*b(i-3,j,k) - 24.0*b(i+1,j,k) + 3.0*b(i+2,j,k)))/(180.0*DX[IP]);
 
 		
-		
+		if(p->j_dir==1)
 		dy = (jvel2*(111.0*b(i,j,k) + 111.0*b(i,j+1,k) - 24.0*b(i,j+2,k) + 3.0*b(i,j+3,k) - 24.0*b(i,j-1,k) + 3.0*b(i,j-2,k))  
 		 -  jvel1* (111.0*b(i,j,k) + 111.0*b(i,j-1,k) - 24.0*b(i,j-2,k) + 3.0*b(i,j-3,k) - 24.0*b(i,j+1,k) + 3.0*b(i,j+2,k)))/(180.0*DY[JP]);
 
@@ -105,7 +132,6 @@ double hcds6::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
 		
 	
     		
-       
 		L = -dx-dy-dz;
 
 		return L;

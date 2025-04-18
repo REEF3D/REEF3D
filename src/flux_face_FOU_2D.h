@@ -20,35 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
-#include"lexer.h"
-#include"field.h"
-#include"vec.h"
-#include"fdm.h"
+#ifndef FLUX_FACE_FOU_2D_H_
+#define FLUX_FACE_FOU_2D_H_
 
-void ghostcell::neumann(field& f, int gcv, int bc, int cs)
+#include"flux.h"
+#include"increment.h"
+
+class lexer;
+
+using namespace std;
+
+class flux_face_FOU_2D : public flux, public increment
 {
-	if(cs==1)
-	for(q=0;q<margin;++q)
-	f(i-q-1,j,k)=f(i,j,k);
+public:
 
-	if(cs==2 && p->j_dir==1)
-	for(q=0;q<margin;++q)
-	f(i,j+q+1,k)=f(i,j,k);
+	flux_face_FOU_2D (lexer *p);
+	virtual ~flux_face_FOU_2D();
 
-	if(cs==3 && p->j_dir==1)
-	for(q=0;q<margin;++q)
-	f(i,j-q-1,k)=f(i,j,k);
+	virtual void u_flux(fdm* a,int,field&,double&,double&);
+	virtual void v_flux(fdm* a,int,field&,double&,double&);
+	virtual void w_flux(fdm* a,int,field&,double&,double&);
 
-	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j,k)=f(i,j,k);
+private:
+    lexer *p;
+};
 
-	if(cs==5)
-	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)=f(i,j,k);
-
-	if(cs==6)
-	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=f(i,j,k);
-}
+#endif

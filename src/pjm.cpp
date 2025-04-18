@@ -124,6 +124,7 @@ void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 
 void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
+    if(p->j_dir==1)
     VLOOP
     {
     vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
@@ -152,7 +153,7 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
     LOOP
     {
     a->rhsvec.V[count] =  -(u.V[IJK] - u.V[Im1JK])/(alpha*p->dt*p->DXN[IP])
-                          -(v.V[IJK] - v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])
+                          -(v.V[IJK] - v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])*p->y_dir
                           -(w.V[IJK] - w.V[IJKm1])/(alpha*p->dt*p->DZN[KP]);
     
     ++count;

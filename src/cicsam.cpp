@@ -27,9 +27,36 @@ Author: Hans Bihs
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 cicsam::cicsam (lexer *p) 
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -47,6 +74,7 @@ cicsam::cicsam (lexer *p)
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
     }
+    }
 }
 
 cicsam::~cicsam()
@@ -59,6 +87,7 @@ void cicsam::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vve
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel);
 
+    if(p->j_dir==1)
     if(ipol==2)
     VLOOP
     a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel);
@@ -82,7 +111,7 @@ double cicsam::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, 
     ul=ur=vl=vr=wl=wr=dx=dy=dz=0.0;
 		
 
-		pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
+        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
         
@@ -93,11 +122,13 @@ double cicsam::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, 
 		dx= (ivel2*fx2 - ivel1*fx1)/(p->DXM);
 		
 		
-
+        if(p->j_dir==1)
+        {
 		fy1 = cface(p,a,b,2,-1,jvel1);
 	    fy2 = cface(p,a,b,2,0,jvel2);
 
 		dy= (jvel2*fy2 - jvel1*fy1)/(p->DXM);
+        }
 		
 		
 		

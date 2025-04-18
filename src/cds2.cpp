@@ -27,9 +27,36 @@ Author: Hans Bihs
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
-cds2::cds2 (lexer *p)
+cds2::cds2(lexer *p)
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -47,6 +74,7 @@ cds2::cds2 (lexer *p)
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
     }
+    }
 }
 
 cds2::~cds2()
@@ -59,6 +87,7 @@ void cds2::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
 
+    if(p->j_dir==1)
     if(ipol==2)
     VLOOP
     a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,p->DXN,p->DYP,p->DZN);
@@ -87,7 +116,7 @@ double cds2::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, fi
 		
 		dx = (ivel2*0.5*(b(i,j,k) + b(i+1,j,k))  -  ivel1*0.5*(b(i-1,j,k) +  b(i,j,k)))/DX[IP];
 		
-		
+		if(p->j_dir==1)
 		dy = (jvel2*0.5*(b(i,j,k) + b(i,j+1,k))  -  jvel1*0.5*(b(i,j-1,k) +  b(i,j,k)))/DY[JP];
 		
 	
