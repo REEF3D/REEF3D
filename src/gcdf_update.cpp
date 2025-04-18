@@ -167,7 +167,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     count=0;
 
-    FLUIDLOOP
+    LOOP
 	{
     cval(i,j,k)=count;
     

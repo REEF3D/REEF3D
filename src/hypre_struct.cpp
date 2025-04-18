@@ -61,7 +61,7 @@ hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_
     
     
     count=0;
-    FLUIDLOOP
+    LOOP
     {
     CVAL4[IJK]=count;
     ++count;

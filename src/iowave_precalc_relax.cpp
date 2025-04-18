@@ -154,7 +154,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     }	
 
     count=0;
-    FLUIDLOOP
+    LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -202,7 +202,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     
     count=0;
     if(p->A10==3)
-    FLUIDLOOP
+    LOOP
     {
 		
         xg = xgen(p);

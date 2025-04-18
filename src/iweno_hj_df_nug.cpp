@@ -304,7 +304,7 @@ void iweno_hj_df_nug::wenoloop4(lexer *p, fdm *a, field& f, int ipol, field& uve
     
 	count=0;
 
-	FLUIDLOOP
+	LOOP
 	{
         pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);

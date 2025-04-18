@@ -92,7 +92,7 @@ void weno_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vv
     if(ipol==4)
 	{
 		n=0;
-		FLUIDLOOP
+		LOOP
 		{
 		a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DRDXP,p->DSDYP,p->DTDZP);
 		++n;
