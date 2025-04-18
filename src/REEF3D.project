@@ -720,14 +720,12 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Flux">
         <File Name="flux_HJ_CDS4.h"/>
-        <File Name="flux_face_CDS4.h"/>
         <File Name="flux.h"/>
         <File Name="flux_face_FOU.h"/>
         <File Name="flux_HJ_CDS2.h"/>
         <File Name="flux_face_CDS2.h"/>
         <File Name="flux_face_CDS2_vrans.h"/>
         <File Name="flux_HJ_CDS2_vrans.h"/>
-        <File Name="flux_face_QOU.h"/>
         <File Name="flux_face_FOU_vrans.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Gradient">
@@ -1015,7 +1013,6 @@
         <File Name="density.h"/>
         <File Name="density_f.h"/>
       </VirtualDirectory>
-      <File Name="pjm_nse.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="HYPRE FNPF">
@@ -2207,13 +2204,11 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Flux">
         <File Name="flux_HJ_CDS4.cpp"/>
-        <File Name="flux_face_CDS4.cpp"/>
         <File Name="flux_HJ_CDS2.cpp"/>
         <File Name="flux_face_CDS2.cpp"/>
         <File Name="flux_face_CDS2_vrans.cpp"/>
         <File Name="flux_HJ_CDS2_vrans.cpp"/>
         <File Name="flux_face_FOU.cpp"/>
-        <File Name="flux_face_QOU.cpp"/>
         <File Name="flux_face_FOU_vrans.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Gradient">
@@ -2750,7 +2745,6 @@
         <File Name="density_heat.cpp"/>
         <File Name="density_f.cpp"/>
       </VirtualDirectory>
-      <File Name="pjm_nse.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="HYPRE SStruct FNPF">

@@ -44,8 +44,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::driver_ini_cfd()
 {
-    if(p->mpirank==0)
-    cout<<"DRIVER_INI_001 "<<endl;
     
     p->count=0;
 
@@ -171,17 +169,12 @@ void driver::driver_ini_cfd()
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	potflow->start(p,a,ppoissonsolv,pgc);
     pflow->wavegen_precalc(p,pgc);
+    
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
     
-    if(p->mpirank==0)
-    cout<<"DRIVER_INI_002 "<<endl;
-    
     if(p->X10==0)
     ptstep->start(a,p,pgc,pturb);
-    
-    if(p->mpirank==0)
-    cout<<"DRIVER_INI_003 "<<endl;
     
     if(p->I13==1)
     pturb->ini(p,a,pgc);
@@ -209,13 +202,7 @@ void driver::driver_ini_cfd()
 
 	pgc->start4(p,a->press,40);
     
-    if(p->mpirank==0)
-    cout<<"DRIVER_INI_004 "<<endl;
-	
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
-    
-    if(p->mpirank==0)
-    cout<<"DRIVER_INI_005 "<<endl;
 
 // ini variables
     for(int qn=0; qn<2; ++qn)

@@ -80,18 +80,18 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
-			
+    
+    starttime=pgc->timer();
+    
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
     
     ppois->start(p,a,pcorr);
 	
-        starttime=pgc->timer();
-
+        
     psolv->start(p,a,pgc,pcorr,a->rhsvec,5);
 	
-        endtime=pgc->timer();
-    
+
     pgc->start4(p,pcorr,gcval_press);
     presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
     reference_start(p,a,pgc);
@@ -106,7 +106,7 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 
     p->poissoniter=p->solveriter;
 
-	p->poissontime=endtime-starttime;
+	p->poissontime=pgc->timer()-starttime;
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
