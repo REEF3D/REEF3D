@@ -448,7 +448,7 @@ public:
     double *F399_xc, *F399_yc,*F399_zc, *F399_r;
     
 	// Grid Options
-    int G1,G2;
+    int G1,G2,G5;
 	int G10,G11,G12,G20,G21,G22,G30;
 	int G40;
 

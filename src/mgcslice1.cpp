@@ -45,7 +45,7 @@ void mgcslice1::makemgc(lexer* p)
 	p->gcsldirsize1=1;	
 	p->Iarray(p->gcslorig1, p->gcsldirsize1, 6,4);
     
-//flag1
+//flagslice1
     for(i=0;i<p->imax*p->jmax; ++i)
 	{
 	p->flagslice1[i]=p->flagslice4[i];

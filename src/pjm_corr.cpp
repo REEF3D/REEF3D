@@ -139,11 +139,14 @@ void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel
  
 void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
-    count=0;
 	double uvel,vvel,wvel;
 	
-    NLOOP4
-	a->rhsvec.V[n]=0.0;
+    count=0;
+    LOOP
+    {
+	a->rhsvec.V[count]=0.0;
+    ++count;
+    }
     
     LOOP
     pcorr(i,j,k)=0.0;
@@ -151,7 +154,8 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     pgc->start4(p,pcorr,1);
 	
     pip=p->Y50;
-
+    
+    count=0;
     LOOP
     {
     a->rhsvec.V[count] =  -(u.V[IJK] - u.V[Im1JK])/(alpha*p->dt*p->DXN[IP])

@@ -1113,7 +1113,10 @@ void lexer::read_control()
 		case 'G':control>>numint;
 				switch(numint)
 				{
-				case 10: control>>G10;
+				case 5: control>>G5;
+						 clear(c,numint);
+						 break;
+                 case 10: control>>G10;
 						 clear(c,numint);
 						 break;
 				case 11: control>>G11;

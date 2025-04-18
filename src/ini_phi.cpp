@@ -111,7 +111,7 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
 
 	double H=0.0;
 
-	LOOP
+	BASELOOP
 	{
 		if(a->phi(i,j,k)>(p->psi))
 		H=1.0;

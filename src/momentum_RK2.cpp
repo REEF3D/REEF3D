@@ -202,6 +202,13 @@ void momentum_RK2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
+    
+    /*
+    IULOOP 
+    JLOOP
+    KLOOP
+    if(p->flag1[IJK]<0)
+    cout<<"flag1[IJK] "<<p->flag1[IJK]<<endl;*/
 }
 
 void momentum_RK2::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

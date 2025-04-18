@@ -39,7 +39,7 @@ Author: Hans Bihs
 #define KLOOP 	for(k=0; k<p->knoz; ++k)
 #define IREVLOOP	for(i=p->knox-1; i>=0; --i)
 #define JREVLOOP	for(j=p->knoy-1; j>=0; --j)
-#define KREVLOOP 	for(k=p->knoz-1; k>=0; --k)
+#define KREVLOOP for(k=p->knoz-1; k>=0; --k)
 #define PCHECK  if(p->flag4[IJK]>0)
 #define LOOP ILOOP JLOOP KLOOP PCHECK
 
@@ -170,7 +170,7 @@ Author: Hans Bihs
 #define UFLUIDLOOP IULOOP JULOOP KULOOP UFLUIDCHECK
 #define VFLUIDLOOP IVLOOP JVLOOP KVLOOP VFLUIDCHECK
 #define WFLUIDLOOP IWLOOP JWLOOP KWLOOP WFLUIDCHECK
-#define LOOP ILOOP JLOOP KLOOP PFLUIDCHECK  
+#define FLUIDLOOP ILOOP JLOOP KLOOP PFLUIDCHECK  
 
 #define FILOOP	for(i=0; i<p->knox; ++i)
 #define FJLOOP	for(j=0; j<p->knoy; ++j)

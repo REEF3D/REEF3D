@@ -36,6 +36,16 @@ void hypre_struct::fill_matrix4(lexer* p,fdm* a, ghostcell* pgc, field &f)
     ++count;
     }
     
+    /*
+    count=0;
+    LOOP
+    ++count;
+    
+    count=pgc->globalisum(count);
+
+    if(p->mpirank==0)
+    cout<<"number of active cells: "<<count<<endl;*/
+    
     nentries=7;
     
     for (j = 0; j < nentries; j++)
