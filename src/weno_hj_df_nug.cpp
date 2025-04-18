@@ -24,18 +24,14 @@ Authors: Hans Bihs, Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
-#include"flux_HJ_CDS4.h"
 #include"flux_HJ_CDS2_vrans.h"
 
 weno_hj_df_nug::weno_hj_df_nug(lexer* p):weno_nug_func(p),tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
 			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
 {
-    if(p->B269==0 && p->D11!=4)
+    if(p->B269==0 && p->S10!=2)
     pflux = new flux_HJ_CDS2(p);
-    
-    if(p->B269==0 && p->D11==4)
-    pflux = new flux_HJ_CDS4(p);
     
     if(p->B269>=1 || p->S10==2)
     pflux = new flux_HJ_CDS2_vrans(p);
