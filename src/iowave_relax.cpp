@@ -289,6 +289,44 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
     
     starttime=pgc->timer();
     
+    count=0;
+    FLUIDLOOP
+    {
+        dg = distgen(p);    
+        db = distbeach(p);
+
+        if(p->pos_z()<=p->phimean)
+        z=-(fabs(p->phimean-p->pos_z()));
+            
+        if(p->pos_z()>p->phimean)
+        z=(fabs(p->phimean-p->pos_z()));
+            
+            
+        
+        // Wave Generation
+        if(p->B98==2 && h_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            {
+            f(i,j,k) = (1.0-relax4_wg(i,j))*ramp(p) * vofval[count] + relax4_wg(i,j)*f(i,j,k);
+            ++count;
+            }
+        }
+            
+        // Numerical Beach    
+        if(p->B99==2)
+        {
+            // Zone 2
+            if(db<1.0e20)
+            f(i,j,k) = (1.0-relax4_nb(i,j)) * (p->phimean-p->pos_z()) + relax4_nb(i,j)*f(i,j,k);
+        }
+    }
+    
+    p->wavecalctime+=pgc->timer()-starttime;
+    /*
+    starttime=pgc->timer();
+    
     if(p->F80==4)
     {
         phi_relax(p,pgc,a->phi);
@@ -300,11 +338,11 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
                 dg = distgen(p);
                 if(dg<1e20)
                 {
-                    if(a->phi(i,j,k)<-0.29*p->psi)
+                    if(a->phi(i,j,k)<-p->psi)
                         f(i,j,k)=0.0;
-                    if(a->phi(i,j,k)>0.29*p->psi)
+                    if(a->phi(i,j,k)>p->psi)
                         f(i,j,k)=1.0;
-                    if(fabs(a->phi(i,j,k))<=0.29*p->psi)
+                    if(fabs(a->phi(i,j,k))<=p->psi)
                     {
                         double nX,nY,nZ,d0,nsum,V0;
                         nX=-(a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
@@ -419,7 +457,7 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
         }
     }
     p->wavecalctime+=pgc->timer()-starttime;
-    }
+    } */
 }
 
 void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)

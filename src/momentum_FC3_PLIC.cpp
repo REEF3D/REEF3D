@@ -103,7 +103,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
             frk1(i,j,k)=1.0;
     }
     pgc->start4(p,frk1,gcval_vof);
-   // pflow->vof_relax(p,a,pgc,frk1);
+    pflow->vof_relax(p,a,pgc,frk1);
 	pgc->start4(p,frk1,gcval_vof);
     
     LOOP
@@ -214,7 +214,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
             frk1(i,j,k)=1.0;
 	}			
 	pgc->start4(p,frk2,gcval_vof);
-    //pflow->vof_relax(p,a,pgc,frk2);
+    pflow->vof_relax(p,a,pgc,frk2);
 	pgc->start4(p,frk2,gcval_vof);
     
     LOOP
@@ -327,7 +327,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     }
 
     pgc->start4(p,ls,gcval_vof);
-   // pflow->vof_relax(p,a,pgc,ls);
+    pflow->vof_relax(p,a,pgc,ls);
 	pgc->start4(p,ls,gcval_vof);
     
     LOOP

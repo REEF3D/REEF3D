@@ -52,7 +52,8 @@ public:
     void updatePhasemarkers(lexer*,fdm*,ghostcell*,field&);
     void updatePhasemarkersCompression(lexer*,fdm*,ghostcell*,field&);
     void updatePhasemarkersCorrection(lexer*,fdm*,ghostcell*,field&);
-     void calculateSubFractions(lexer*,fdm*,ghostcell*,field&);
+    void calculateSubFractions(lexer*,fdm*,ghostcell*,field&);
+    void surface_tension2D(lexer*,fdm*,ghostcell*,int);
 	
 private:	
     void iniphi(fdm*, lexer*,ghostcell*);
@@ -124,6 +125,8 @@ private:
     void calcNormalMYC2D(fdm*,lexer*, field&);
     int searchMarkerInVicinity(lexer*,fdm*,int,double,int,int,int);
     int searchMarkerAlongDims(lexer*,fdm*,int,double,int,int,int);
+    double twoStepVel(lexer*,fdm*,double,double,double);
+    
    
     field4 V_w_p;
     field4 V_w_m;
@@ -152,9 +155,11 @@ private:
     field4 vofS1;
     field4 vofS2;
     field4 phiaux;
+    field4 curv;
     fluid_update *pupdate;
     reini *reini_;
     interpolation *ipol;
+    field4 compressvol;
 
 	int gcval_frac;
 	double starttime; 

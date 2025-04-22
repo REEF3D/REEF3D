@@ -1333,6 +1333,8 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
     nz_Cz=1.0*sign;
     nx_Cz=-(zsum_xp-zsum_xm)/(p->DXP[IM1]+p->DXP[IP]);
     nsum=sqrt(nx_Cz*nx_Cz+nz_Cz*nz_Cz);
+    if(nsum<1E-20)
+        cout<<"nsumNAN Cz"<<endl;
     nz_Cz=nz_Cz/nsum;
     nx_Cz=nx_Cz/nsum;
     
@@ -1350,6 +1352,8 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
     nx_Cx=1.0*sign;
     nz_Cx=-(xsum_zp-xsum_zm)/(p->DZP[KM1]+p->DZP[KP]);
     nsum=sqrt(nx_Cx*nx_Cx+nz_Cx*nz_Cx);
+    if(nsum<1E-20)
+        cout<<"nsumNAN Cx"<<endl;
     nx_Cx=nx_Cx/nsum;
     nz_Cx=nz_Cx/nsum;
     
@@ -1393,6 +1397,8 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
     nx_CY=(nx1+nx2+nx3+nx4)/4.0;
     nz_CY=(nz1+nz2+nz3+nz4)/4.0;
     nsum=sqrt(nx_CY*nx_CY+nz_CY*nz_CY);
+    if(nsum<1E-20)
+        cout<<"nsumNAN CY"<<endl;
     nx_CY=nx_CY/nsum;
     nz_CY=nz_CY/nsum;
     
@@ -1420,17 +1426,29 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
         
-        if(fabs(nz_CC)<fabs(nz_CY))
+        if(fabs(nz_CC)<fabs(nz_CY) || (nz_CY!=nz_CY))
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
             nz(i,j,k)=nz_CC;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cz"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cz"<<endl;
         }
         else
         {
             nx(i,j,k)=nx_CY;
             ny(i,j,k)=0.0;
             nz(i,j,k)=nz_CY;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_CY"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_CY"<<endl;
         }
     }
     else
@@ -1438,17 +1456,29 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
         nx_CC=nx_Cx;
         nz_CC=nz_Cx;
         
-        if(fabs(nx_CC)<fabs(nx_CY))
+        if(fabs(nx_CC)<fabs(nx_CY) || (nx_CY!=nx_CY))
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
             nz(i,j,k)=nz_CC;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cx"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cx"<<endl;
         }
         else
         {
             nx(i,j,k)=nx_CY;
             ny(i,j,k)=0.0;
             nz(i,j,k)=nz_CY;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_CY"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_CY"<<endl;
         }
     }
     

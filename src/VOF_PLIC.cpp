@@ -45,7 +45,7 @@ VOF_PLIC::VOF_PLIC
     ghostcell* pgc,
     heat *pheat
 ):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p),phival(p),V_w_p(p),V_w_m(p),alphastore(p),phistep(p),phiS0(p),phiS1(p),phiS2(p),vofstep(p),vofS0(p),vofS1(p),vofS2(p),
-    phiaux(p),Vx_p(p),Vx_m(p),Vz_p(p),Vz_m(p),Vn_p(p),Vn_m(p),F_x(p),F_z(p),F_n(p),F_new(p),Flux_x(p),Flux_z(p),Crossflux_xz(p),Crossflux_zx(p)
+    phiaux(p),Vx_p(p),Vx_m(p),Vz_p(p),Vz_m(p),Vn_p(p),Vn_m(p),F_x(p),F_z(p),F_n(p),F_new(p),Flux_x(p),Flux_z(p),Crossflux_xz(p),Crossflux_zx(p),curv(p),compressvol(p)
 {
     if(p->F50==1)
     gcval_frac=71;
@@ -98,9 +98,9 @@ VOF_PLIC::VOF_PLIC
     S_2D[1][0]=2;
     S_2D[1][1]=0;
     
-    a_thres=0.001;
-    w_thres=0.999;
-    corr_thres=0.999;
+    a_thres=p->F93;
+    w_thres=p->F94;
+    corr_thres=p->F95;
 }
 
 VOF_PLIC::~VOF_PLIC()
@@ -142,7 +142,7 @@ void VOF_PLIC::start
     }
    // pflow->fsfinflow(p,a,pgc);
 
-   // pflow->vof_relax(p,a,pgc,a->vof);
+    pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->phi,1);
     pgc->start4(p,a->vof,1);
     pgc->start1(p,a->u,10);
@@ -166,7 +166,7 @@ void VOF_PLIC::start
     }
     if(p->F90<=3)
         stepwise_scheme(a,p,pgc);
-    else if(p->F90==4);
+    else if(p->F90==4 || p->F90==5);
         symmetric_scheme2D(a,p,pgc);
     pgc->start4(p,vofstep,1);
     LOOP

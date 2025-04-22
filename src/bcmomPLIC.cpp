@@ -62,6 +62,8 @@ void bcmom::bcmomPLIC_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb, 
 		wall_law_w(a,p,pturb,b,p->gcdf3[q][0], p->gcdf3[q][1], p->gcdf3[q][2], p->gcdf3[q][3], p->gcdf3[q][4],  0.5*p->DXM);
 
 	}
+    
+    pplic->surface_tension2D(p,a,pgc,gcval);
 	//
 }
 
