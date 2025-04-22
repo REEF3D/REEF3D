@@ -130,7 +130,9 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
 	result<<"<PDataArray type=\"Float32\" Name=\"walldist\"/>"<<endl;
 
 	result<<"</PPointData>"<<endl;
-
+    result<<"<PCellData>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"VOF_C\"/>"<<endl;
+    result<<"</PCellData>"<<endl;
 	result<<"<PPoints>"<<endl;
 	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
 	result<<"</PPoints>"<<endl;

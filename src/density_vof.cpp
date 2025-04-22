@@ -17,22 +17,30 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
+#include"initialize.h"
 #include"density_vof.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"ghostcell.h"
 
 density_vof::density_vof(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
+    
+    
+    double psim;
+    int count;
+    
     if(p->j_dir==0)        
-    psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+    p->psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
         
     if(p->j_dir==1)
-    psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    p->psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
     
-    H=0.0;
+    
+    p->psi0=p->psi;
 }
 
 density_vof::~density_vof()
@@ -40,33 +48,63 @@ density_vof::~density_vof()
 }
 
 double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
-{
-	H= 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
-
-		H=MAX(H,0.0);
-		H=MIN(H,1.0);
-
-    roval = p->W1*H +   p->W3*(1.0-H);
-    
-    /*
-    phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+{  
+    if(p->F92==1)   
+    {
+        double phival, psiro;
+        phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+        psiro = p->psi;
         
-        psi = p->F45*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+        if(phival>psiro)
+            H=1.0;
+
+        if(phival<-psiro)
+            H=0.0;
+
+        if(fabs(phival)<=psiro)
+            H=0.5*(1.0 + phival/(psiro) + (1.0/PI)*sin((PI*phival)/(psiro)));
     
-        if(phival>psi)
-        H=1.0;
-
-        if(phival<-psi)
-        H=0.0;
-
-        if(fabs(phival)<=psi)
-        H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
-        
-            
         roval = p->W1*H + p->W3*(1.0-H);
-    */
+    }
+    
+    if(p->F92==2)
+    {
+        if(a->vof(i,j,k)>0.999 && a->vof(i+aa,j+bb,k+cc)>0.999)
+            roval=p->W1;
+        else if(a->vof(i,j,k)<0.001 && a->vof(i+aa,j+bb,k+cc)<0.001)
+            roval=p->W3;
+        else
+        {
+            roval=((a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                    + (a->vof(i+aa,j+bb,k+cc)*p->W1+(1.0-a->vof(i+aa,j+bb,k+cc))*p->W3)
+                    ) /2.0;
+        }
+    }
+    
+    if(p->F92==3)
+    {
+        double H;
+        
+        if(aa==1)
+            H=0.25*a->vof_nt(i,j,k)+0.25*a->vof_nb(i,j,k)+0.25*a->vof_st(i+1,j,k)+0.25*a->vof_sb(i+1,j,k);
+        else if(aa==-1)
+            H=0.25*a->vof_st(i,j,k)+0.25*a->vof_sb(i,j,k)+0.25*a->vof_nt(i-1,j,k)+0.25*a->vof_nb(i-1,j,k);
+        else if(bb==1)
+            H=a->vof(i,j,k);
+        else if(bb==-1)
+            H=a->vof(i,j,k);
+        else if(cc==1)
+            H=0.25*a->vof_nt(i,j,k)+0.25*a->vof_st(i,j,k)+0.25*a->vof_nb(i,j,k+1)+0.25*a->vof_sb(i,j,k+1);
+        else if(cc==-1)
+            H=0.25*a->vof_nb(i,j,k)+0.25*a->vof_sb(i,j,k)+0.25*a->vof_nt(i,j,k-1)+0.25*a->vof_st(i,j,k-1);
+        else
+            cout<<"density case missing"<<endl;
+            
+        roval=roval = p->W1*H + p->W3*(1.0-H);
+    }
+
+	return roval;
 	
-	return roval;		
 }
 
 

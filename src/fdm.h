@@ -67,9 +67,10 @@ public:
     field4 Fi;
 	field4 eddyv;
 	field4 L;
-	field4 ro,visc;
-    field4 dro;
-	field4 phi,vof;
+	field4 ro,dro,visc;
+	field4 phi;
+    field4 phasemarker;
+    field4 vof, vof_nt,vof_nb,vof_st,vof_sb;
 	field4 conc;
     field4 test;
 	field4a topo,solid;

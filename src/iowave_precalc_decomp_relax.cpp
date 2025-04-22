@@ -219,8 +219,39 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
             }
 		}
     }
-
     
+    count=0;
+    LOOP
+    {
+        dg = distgen(p);
+        
+		if(p->pos_z()<=p->phimean)
+        z=-(fabs(p->phimean-p->pos_z()));
+		
+		if(p->pos_z()>p->phimean)
+        z=(fabs(p->phimean-p->pos_z()));
+		
+		// Wave Generation
+        if(p->B98==2 && h_switch==1)
+        {
+            // Zone 1
+            if(dg<dist1)
+            {
+            if(eta(i,j)+p->phimean>=p->pos_z()+0.5*p->DZN[KP])
+                vofval[count]=1.0;
+            else if(eta(i,j)+p->phimean<=p->pos_z()-0.5*p->DZN[KP])
+                vofval[count]=0.0;
+            else
+            {
+                vofval[count]=(eta(i,j)+p->phimean - p->pos_z()-0.5*p->DZN[KP])/p->DZN[KP];
+                if(vofval[count]>1.0 || vofval[count]<0.0)
+                    cout<<"decomp relax vof error, vof:"<<vofval[count]<<endl;
+            }
+            
+            ++count;
+            }
+		}
+    }
     count=0;
     LOOP
     {

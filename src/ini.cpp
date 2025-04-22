@@ -391,6 +391,14 @@ void lexer::ini_default()
 	F80=0;             // int time scheme VOF
 	F84=1.0;             // double cgamma for vof compression
     F85=0;             // int convection scheme VOF
+    F88=10;             // int normal calculation method for VOF PLIC,2D MYC as default
+    F89=0;             // int phi transport schome for VOF PLIC, turned off by default
+    F90=4;             // int vof transport scheme for VOF PLIC, 2D COSMIC as default
+    F91=0.1;          // rho threshold input for FCCRK3 PLIC
+    F92=2;              // PLIC density method, fine vof-based as default
+    F93=0.001;          // PLIC air phase threshold
+    F94=0.999;          // PLIC water phase thresold
+    F95=0.999;          // PLIC threshold for water in phasemarker functions
     F112=0;            // int tilted wedge
     F112_xs=-1.0e20;            // double i-dir zero level set start
     F112_xe=-1.0e20;            // double j-dir zero level set start

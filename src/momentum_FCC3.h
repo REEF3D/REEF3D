@@ -92,7 +92,7 @@ private:
 
     
 	int gcval_u, gcval_v, gcval_w;
-    int gcval_phi;
+    int gcval_phi, gcval_ro, gcval_visc;
     double val;
 	double starttime;
     double ro_threshold;
