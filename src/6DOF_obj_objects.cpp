@@ -34,8 +34,11 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
 	
 	for(qn=0;qn<p->X110;++qn)
     {
-        box(p,pgc,qn);
-        ++entity_count;
+        if(p->X110_objID[qn]==n6DOF)
+        {
+            box(p,pgc,qn);
+            ++entity_count;
+        }
     }
     
     for(qn=0;qn<p->X131;++qn)
@@ -95,9 +98,9 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
 	geometry_stl(p,pgc);
     
     // Order Triangles for correct inside/outside orientation
-    //triangle_switch_ray(p,pgc);
-	
-	// Refine triangles
+    triangle_switch_ray(p,pgc);
+    
+    // Refine triangles
     if(p->X185>0 && p->X60==1 && entity_count>0)
 	geometry_refinement(p,pgc);	
 

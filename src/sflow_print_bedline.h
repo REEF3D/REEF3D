@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_PRINT_BEDLINE_H_
+#define SFLOW_PRINT_BEDLINE_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -33,9 +36,6 @@ class wave_theory;
 class slice;
 
 using namespace std;
-
-#ifndef SFLOW_PRINT_BEDLINE_H_
-#define SFLOW_PRINT_BEDLINE_H_
 
 class sflow_print_bedline : public boundarycheck
 {

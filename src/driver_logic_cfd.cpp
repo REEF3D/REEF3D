@@ -436,27 +436,20 @@ void driver::logic_cfd()
 	if(p->F85==53)
 	pfsfdisc=new cicsam(p);
 
-    
 //pressure scheme
 	if(p->D30==0)
 	ppress = new pressure_void(p);
 
-    if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==2)
+    if((p->D30==1 || p->D30==2 || p->D30==3))
 	ppress = new pjm_corr(p,a,pgc,pheat,pconc);
-    
-    if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==1)
-	ppress = new pjm_nse(p,a,pheat,pconc);
 
     if(p->D30==10)
 	ppress = new pjm_hydrostatic(p,a,pheat,pconc);
 
 
 //poisson scheme for pressure
-    if((p->D30==1 || p->D30==2 || p->D30==3) && p->F10==2)
+    if((p->D30==1 || p->D30==2 || p->D30==3))
 	ppois = new poisson_pcorr(p,pheat,pconc);
-
-    if(p->D30<9 && p->F10==1)
-	ppois = new poisson_nse(p,pheat,pconc);
 
 //Solver
     if(p->j_dir==0)
@@ -489,7 +482,6 @@ void driver::logic_cfd()
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
 	#endif
-
 
 //VRANS
     if(p->B269==0)
@@ -609,9 +601,6 @@ void driver::logic_cfd()
 // Velocities
 	if(p->N40==0)
 	pmom = new momentum_void();
-
-    if(p->N40==1)
-	pmom = new momentum_AB2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow);
 
 	if(p->N40==2)
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);

@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef VRANS_V_H_
+#define VRANS_V_H_
+
 #include"vrans.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef VRANS_V_H_
-#define VRANS_V_H_
 
 class vrans_v : public vrans, public increment
 {

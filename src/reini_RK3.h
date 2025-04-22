@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINI_RK3_H_
+#define REINI_RK3_H_
+
 #include"reini.h"
 #include"field4.h"
 #include"increment.h"
@@ -28,9 +31,6 @@ class reinidisc;
 class picard;
 
 using namespace std;
-
-#ifndef REINI_RK3_H_
-#define REINI_RK3_H_
 
 class reini_RK3 : public reini, public increment
 {

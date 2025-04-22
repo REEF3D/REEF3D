@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DDWENO_F_NUG_H_
+#define DDWENO_F_NUG_H_
+
 #include"increment.h"
 #include"weno_nug_func.h"
 
@@ -30,9 +33,6 @@ class lexer;
 class ghostcell;
 class vec;
 class cpt;
-
-#ifndef DDWENO_F_NUG_H_
-#define DDWENO_F_NUG_H_
 
 using namespace std;
 

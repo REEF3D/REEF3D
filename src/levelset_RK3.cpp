@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"levelset_RK3.h"
+
+#include"levelset_RK3.h"
 #include"gradient.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -68,13 +69,13 @@ levelset_RK3::levelset_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *&pheat, conce
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
     
     if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==2)
-	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
-	
-	if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
-	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
+    pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
+    
+    if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
+    pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
+    
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
+    pupdate = new fluid_update_rheology(p);
     
     if(p->F300>0)
 	pupdate = new fluid_update_void();
@@ -111,13 +112,13 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 // Step 1
     starttime=pgc->timer();
 
-    FLUIDLOOP
+    LOOP
 	a->L.V[IJK]=0.0;
 
 	pconvec->start(p,a,ls,4,a->u,a->v,a->w);
 	
 
-	FLUIDLOOP
+	LOOP
 	ark1.V[IJK] = ls.V[IJK]
 				+ p->dt*a->L.V[IJK];
 	
@@ -128,12 +129,12 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     
     
 // Step 2
-    FLUIDLOOP
+    LOOP
 	a->L.V[IJK]=0.0;
 
 	pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 
-	FLUIDLOOP
+	LOOP
 	ark2.V[IJK] =     0.75*ls.V[IJK]
 				   + 0.25*ark1.V[IJK]
 				   + 0.25*p->dt*a->L.V[IJK];
@@ -144,12 +145,12 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     pgc->solid_forcing_lsm(p,a,ark2);
     
 // Step 3
-    FLUIDLOOP
+    LOOP
 	a->L.V[IJK]=0.0;
 
 	pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 
-	FLUIDLOOP
+	LOOP
 	ls.V[IJK] =      (1.0/3.0)*ls.V[IJK]
 				  + (2.0/3.0)*ark2.V[IJK]
 				  + (2.0/3.0)*p->dt*a->L.V[IJK];

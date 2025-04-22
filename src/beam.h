@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2024 Tobias Martin
+Copyright 2018-2025 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -27,6 +27,9 @@ and G. Wanner (gerhard.wanner@math.unige.ch), Universite de Geneve.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef BEAM_H_
+#define BEAM_H_
+
 #include"vec.h"
 #include"boundarycheck.h"
 #include<iostream>
@@ -36,9 +39,6 @@ Author: Tobias Martin
 class lexer;
 
 using namespace std;
-
-#ifndef BEAM_H_
-#define BEAM_H
 
 class beam
 {

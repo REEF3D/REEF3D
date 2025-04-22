@@ -32,11 +32,11 @@ void ghostcell::neumann(field& f, int gcv, int bc, int cs)
 	for(q=0;q<margin;++q)
 	f(i-q-1,j,k)=f(i,j,k);
 
-	if(cs==2)
+	if(cs==2 && p->j_dir==1)
 	for(q=0;q<margin;++q)
 	f(i,j+q+1,k)=f(i,j,k);
 
-	if(cs==3)
+	if(cs==3 && p->j_dir==1)
 	for(q=0;q<margin;++q)
 	f(i,j-q-1,k)=f(i,j,k);
 

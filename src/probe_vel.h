@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PROBE_VEL_H_
+#define PROBE_VEL_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -30,9 +33,6 @@ class ghostcell;
 class slice;
 
 using namespace std;
-
-#ifndef PROBE_VEL_H_
-#define PROBE_VEL_H_
 
 class probe_vel : public boundarycheck
 {

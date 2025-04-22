@@ -338,8 +338,7 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
 
 void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
 {
-    // 2D
-    pgc->gcsl_tpflag(p);    
+    // 2D   
     pgc->gcslflagx(p,p->flagslice4);
     
     mgcslice4 msl4(p);

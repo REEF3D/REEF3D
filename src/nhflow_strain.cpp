@@ -92,8 +92,6 @@ void nhflow_strain::Pk_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         PK0[IJK] = d->EV0[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
         PK[IJK]  =  d->EV[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
-        
-        d->test[IJK]=PK[IJK];
     }
 }
 

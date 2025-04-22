@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PARTICLE_PLS_H_
+#define PARTICLE_PLS_H_
+
 #include"particle_corr.h"
 #include"norm_vec.h"
 #include"boundarycheck.h"
 #include"field4.h"
 
 using namespace std;
-
-#ifndef PARTICLE_PLS_H_
-#define PARTICLE_PLS_H_
 
 class particle_pls : public particle_corr, public norm_vec, public boundarycheck
 {

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FLUXLIM_H_
+#define FLUXLIM_H_
+
 class field;
 class fdm;
 class lexer;
-
-#ifndef FLUXLIM_H_
-#define FLUXLIM_H_
 
 using namespace std;
 

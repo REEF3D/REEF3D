@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"fnpf_ini.h"
+
+#include"fnpf_ini.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"

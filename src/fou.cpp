@@ -24,14 +24,39 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_face_CDS2.h"
-#include"flux_face_CDS4.h"
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
-#include"flux_face_QOU.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 fou::fou (lexer *p)
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -39,12 +64,6 @@ fou::fou (lexer *p)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_QOU(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS4(p);
     }
     
     if(p->B269>=1 || p->S10==2)
@@ -54,12 +73,7 @@ fou::fou (lexer *p)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_FOU_vrans(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS2(p);
+    }
     }
 }
 
@@ -72,7 +86,8 @@ void fou::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, 
     if(ipol==1)
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
-
+    
+    if(p->j_dir==1)
     if(ipol==2)
     VLOOP
     a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,p->DXN,p->DYP,p->DZN);
@@ -93,6 +108,7 @@ void fou::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, 
 double fou::aij(lexer* p,fdm* a,field& f,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
 {
     udir=vdir=wdir=0.0;
+    dx=dy=dz=0.0;
     
     pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
     pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
@@ -109,12 +125,15 @@ double fou::aij(lexer* p,fdm* a,field& f,int ipol, field& uvel, field& vvel, fie
     
     
     // y-dir
+    if(p->j_dir==1)
+    {
     if(0.5*(jvel1+jvel2)>=0.0)
     vdir=1.0;
     
     dy =     vdir*(jvel2*f(i,j,k)- jvel1*f(i,j-1,k))/DY[JM1] 
     
     +   (1.0-vdir)*(jvel2*f(i,j+1,k)- jvel1*f(i,j,k))/DY[JP]; 
+    }
     
     
     // z-dir

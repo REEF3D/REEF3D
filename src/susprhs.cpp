@@ -47,7 +47,6 @@ void susprhs::suspsource(lexer* p,fdm* a,field& conc)
         if(a->phi(i,j,k)>0.0)
         a->L(i,j,k)=-ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
     }
-
 }
 
 void susprhs::sedfsf(lexer* p,fdm* a,field& conc)

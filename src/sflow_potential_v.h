@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_POTENTIAL_V_H_
+#define SFLOW_POTENTIAL_V_H_
+
 #include"sflow_potential.h"
 #include"increment.h"
 #include"sliceint4.h"
@@ -27,9 +30,6 @@ Author: Hans Bihs
 class slice;
 
 using namespace std;
-
-#ifndef SFLOW_POTENTIAL_V_H_
-#define SFLOW_POTENTIAL_V_H_
 
 class sflow_potential_v : public sflow_potential, public increment
 {

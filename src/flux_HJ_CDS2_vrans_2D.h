@@ -20,42 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fieldint4a.h"
-#include"lexer.h"
+#ifndef FLUX_HJ_CDS_VRANS_2D_H_
+#define FLUX_HJ_CDS_VRANS_2D_H_
 
-fieldint4a::fieldint4a(lexer *p)
+#include"flux.h"
+#include"increment.h"
+
+using namespace std;
+
+class flux_HJ_CDS2_vrans_2D : public flux, public increment
 {
-    imin=p->imin;
-    imax=p->imax;
-    jmin=p->jmin;
-    jmax=p->jmax;
-    kmin=p->kmin;
-    kmax=p->kmax;
+public:
 
-	fieldalloc(p);
+	flux_HJ_CDS2_vrans_2D (lexer *p);
+	virtual ~flux_HJ_CDS2_vrans_2D();
 
-	pp=p;
-}
+	virtual void u_flux(fdm* a,int,field&,double&,double&);
+	virtual void v_flux(fdm* a,int,field&,double&,double&);
+	virtual void w_flux(fdm* a,int,field&,double&,double&);
 
-fieldint4a::~fieldint4a()
-{
-	delete [ ] V;
-}
+};
 
-void fieldint4a::fieldalloc(lexer* p)
-{
-	int gridsize = imax*jmax*kmax;
-	p->Iarray(V,gridsize);
-}
-
-void fieldint4a::resize(lexer* p)
-{
-}
-
-int & fieldint4a::operator()(int ii, int jj, int kk)
-{			
-	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];	
-}
-
-
-
+#endif

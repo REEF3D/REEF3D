@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_WENOFLUX_H_
+#define FNPF_WENOFLUX_H_
+
 #include"fnpf_etadisc.h"
 #include"increment.h"
 #include"weno_nug_func.h"
-
-#ifndef FNPF_WENOFLUX_H_
-#define FNPF_WENOFLUX_H_
 
 using namespace std;
 

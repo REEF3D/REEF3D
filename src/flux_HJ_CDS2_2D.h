@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,39 +20,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"poisson.h"
+#ifndef FLUX_HJ_CDS2_2D_H_
+#define FLUX_HJ_CDS2_2D_H_
+
+#include"flux.h"
 #include"increment.h"
 
-class heat;
-class concentration;
-class density;
-
-#ifndef poisson_NSE_H_
-#define poisson_NSE_H_
 
 using namespace std;
 
-
-class poisson_nse : public poisson, public increment
+class flux_HJ_CDS2_2D : public flux, public increment
 {
-
 public:
 
-	poisson_nse (lexer*, heat*&, concentration*&);
-	virtual ~poisson_nse();
+	flux_HJ_CDS2_2D (lexer *p);
+	virtual ~flux_HJ_CDS2_2D();
 
-	virtual void start(lexer *,fdm*,field&);
+	virtual void u_flux(fdm* a,int,field&,double&,double&);
+	virtual void v_flux(fdm* a,int,field&,double&,double&);
+	virtual void w_flux(fdm* a,int,field&,double&,double&);
 
-private:
-
-    double teta,phival;
-	int count,n,q;
-    
-    density *pd;
 };
 
-
 #endif
-
-
-

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOFLOW_H_
+#define IOFLOW_H_
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -36,9 +39,6 @@ class turbulence;
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef IOFLOW_H_
-#define IOFLOW_H_
 
 class ioflow
 {
@@ -118,6 +118,7 @@ public:
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*)=0;
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*)=0;
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*)=0;
     virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*)=0;

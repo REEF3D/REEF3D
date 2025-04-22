@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-
 #ifndef CPT2D_H_
 #define CPT2D_H_
+
+class lexer;
 
 using namespace std;
 

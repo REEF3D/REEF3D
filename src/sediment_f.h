@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_F_H_
+#define SEDIMENT_F_H_
+
 #include"sediment.h"
 #include"sliceint4.h"
 #include"slice4.h"
@@ -42,9 +45,6 @@ class convection;
 class patchBC_interface;
 class bedload_direction;
 using namespace std;
-
-#ifndef SEDIMENT_F_H_
-#define SEDIMENT_F_H_
 
 class sediment_f : public sediment, public increment
 {

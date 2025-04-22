@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"directreini.h"
+
+#include"directreini.h"
 #include<string>
 #include"lexer.h"
 #include"fdm.h"

@@ -677,9 +677,6 @@ void lexer::ctrlsend()
     ictrl[ii] = D37;
 	ii++;
 	
-
-    ictrl[ii] = F10;
-	ii++;
     ictrl[ii] = F30;
 	ii++;
     ictrl[ii] = F31;
@@ -775,7 +772,7 @@ void lexer::ctrlsend()
     dctrl[dd] = F84;
 	dd++;
     ictrl[ii] = F85;
-	ii++;
+    ii++;
     ictrl[ii] = F88;
     ii++;
     ictrl[ii] = F89;
@@ -791,6 +788,20 @@ void lexer::ctrlsend()
     dctrl[dd] = F94;
     dd++;
     dctrl[dd] = F95;
+    dd++;
+    ictrl[ii] = F112;
+    ii++;
+    dctrl[dd] = F112_xs;
+    dd++;
+    dctrl[dd] = F112_xe;
+    dd++;
+    dctrl[dd] = F112_ys;
+    dd++;
+    dctrl[dd] = F112_ye;
+    dd++;
+    dctrl[dd] = F112_zs;
+    dd++;
+    dctrl[dd] = F112_ze;
     dd++;
     ictrl[ii] = F150;
 	ii++;
@@ -853,6 +864,8 @@ void lexer::ctrlsend()
     ictrl[ii] = G1;
 	ii++;
     ictrl[ii] = G2;
+	ii++;
+    ictrl[ii] = G5;
 	ii++;
     ictrl[ii] = G10;
 	ii++;
@@ -1070,6 +1083,12 @@ void lexer::ctrlsend()
 	dd++;
     ictrl[ii] = P35;
 	ii++;
+    ictrl[ii] = P37;
+	ii++;
+    ictrl[ii] = P38;
+	ii++;
+    dctrl[dd] = P39;
+	dd++;
     ictrl[ii] = P40;
 	ii++;
     ictrl[ii] = P41;
@@ -1133,7 +1152,13 @@ void lexer::ctrlsend()
     ictrl[ii] = P65;
 	ii++;
     ictrl[ii] = P66;
-	ii++;
+    ii++;
+    ictrl[ii] = P67;
+    ii++;
+    ictrl[ii] = P68;
+    ii++;
+    ictrl[ii] = P69;
+    ii++;
     ictrl[ii] = P71;
 	ii++;
     ictrl[ii] = P72;
@@ -1568,6 +1593,28 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = W104;
     dd++;
+    dctrl[dd] = W105_tau_00;
+    dd++;
+    dctrl[dd] = W105_C_total;
+    dd++;
+    dctrl[dd] = W105_C_kaolinite_chlorite;
+    dd++;
+    dctrl[dd] = W105_C_illite;
+    dd++;
+    dctrl[dd] = W105_C_montmorillonite;
+    dd++;
+    dctrl[dd] = W106_b;
+    dd++;
+    dctrl[dd] = W106_m_y;
+    dd++;
+    dctrl[dd] = W107_mu_min;
+    dd++;
+    dctrl[dd] = W107_delta;
+    dd++;
+    dctrl[dd] = W107_mu_0;
+    dd++;
+    dctrl[dd] = W108_a_2;
+    dd++;
     ictrl[ii] = W110;
     ii++;
     ictrl[ii] = W111;
@@ -1592,39 +1639,41 @@ void lexer::ctrlsend()
 	ictrl[ii] = X12;
 	ii++;
     ictrl[ii] = X14;
-	ii++;  	 	
-	ictrl[ii] = X19;
-	ii++;
-	ictrl[ii] = X21;
-	ii++;
-	dctrl[dd] = X21_d;
-	dd++;
-	ictrl[ii] = X22;
-	ii++;
-	dctrl[dd] = X22_m;
-	dd++;
-	ictrl[ii] = X23;
-	ii++;
-	dctrl[dd] = X23_x;
-	dd++;
-	dctrl[dd] = X23_y;
-	dd++;
-	dctrl[dd] = X23_z;
-	dd++;
-	ictrl[ii] = X24;
-	ii++;
-	dctrl[dd] = X24_Ix;
-	dd++;
-	dctrl[dd] = X24_Iy;
-	dd++;
-	dctrl[dd] = X24_Iz;
-	dd++;
-	dctrl[dd] = X25_Cp;
-	dd++;
-	dctrl[dd] = X25_Cq;
-	dd++;
-	dctrl[dd] = X25_Cr;
-	dd++;
+    ii++;           
+    ictrl[ii] = X19;
+    ii++;
+    ictrl[ii] = X20;
+    ii++;
+    ictrl[ii] = X21;
+    ii++;
+    dctrl[dd] = X21_d;
+    dd++;
+    ictrl[ii] = X22;
+    ii++;
+    dctrl[dd] = X22_m;
+    dd++;
+    ictrl[ii] = X23;
+    ii++;
+    dctrl[dd] = X23_x;
+    dd++;
+    dctrl[dd] = X23_y;
+    dd++;
+    dctrl[dd] = X23_z;
+    dd++;
+    ictrl[ii] = X24;
+    ii++;
+    dctrl[dd] = X24_Ix;
+    dd++;
+    dctrl[dd] = X24_Iy;
+    dd++;
+    dctrl[dd] = X24_Iz;
+    dd++;
+    dctrl[dd] = X25_Cp;
+    dd++;
+    dctrl[dd] = X25_Cq;
+    dd++;
+    dctrl[dd] = X25_Cr;
+    dd++;
     dctrl[dd] = X26_Cu;
 	dd++;
 	dctrl[dd] = X26_Cv;
@@ -1662,101 +1711,95 @@ void lexer::ctrlsend()
     ictrl[ii] = X50;
 	ii++;
     ictrl[ii] = X60;
-	ii++;
-	ictrl[ii] = X100;
-	ii++;
-	dctrl[dd] = X100_x;
-	dd++;
-	dctrl[dd] = X100_y;
-	dd++;
-	dctrl[dd] = X100_z;
-	dd++;
-	ictrl[ii] = X101;
-	ii++;
-	dctrl[dd] = X101_phi;
-	dd++;
-	dctrl[dd] = X101_theta;
-	dd++;
-	dctrl[dd] = X101_psi;
-	dd++;
-	ictrl[ii] = X102;
-	ii++;
-	dctrl[dd] = X102_u;
-	dd++;
-	dctrl[dd] = X102_v;
-	dd++;
-	dctrl[dd] = X102_w;
-	dd++;
-	ictrl[ii] = X103;
-	ii++;
-	dctrl[dd] = X103_p;
-	dd++;
-	dctrl[dd] = X103_q;
-	dd++;
-	dctrl[dd] = X103_r;
-	dd++;
-	ictrl[ii] = X110;
-	ii++;
-	ictrl[ii] = X120;
-	ii++;
-	dctrl[dd] = X120_rad;
-	dd++;
-	dctrl[dd] = X120_xc;
-	dd++;
-	dctrl[dd] = X120_yc;
-	dd++;
-	dctrl[dd] = X120_zc;
-	dd++;
-	ictrl[ii] = X131;
-	ii++;
-	dctrl[dd] = X131_rad;
-	dd++;
-	dctrl[dd] = X131_h;
-	dd++;
-	dctrl[dd] = X131_xc;
-	dd++;
-	dctrl[dd] = X131_yc;
-	dd++;
-	dctrl[dd] = X131_zc;
-	dd++;
-	ictrl[ii] = X132;
-	ii++;
-	dctrl[dd] = X132_rad;
-	dd++;
-	dctrl[dd] = X132_h;
-	dd++;
-	dctrl[dd] = X132_xc;
-	dd++;
-	dctrl[dd] = X132_yc;
-	dd++;
-	dctrl[dd] = X132_zc;
-	dd++;
-	ictrl[ii] = X133;
-	ii++;
-	dctrl[dd] = X133_rad;
-	dd++;
-	dctrl[dd] = X133_h;
-	dd++;
-	dctrl[dd] = X133_xc;
-	dd++;
-	dctrl[dd] = X133_yc;
-	dd++;
-	dctrl[dd] = X133_zc;
-	dd++;
-	ictrl[ii] = X153;
-	ii++;
-	dctrl[dd] = X153_xs;
-	dd++;
-	dctrl[dd] = X153_xe;
-	dd++;
-	dctrl[dd] = X153_ys;
-	dd++;
-	dctrl[dd] = X153_ye;
-	dd++;
-	dctrl[dd] = X153_zs;
-	dd++;
-	dctrl[dd] = X153_ze;
-	dd++;
+    ii++;
+    ictrl[ii] = X100;
+    ii++;
+    dctrl[dd] = X100_x;
+    dd++;
+    dctrl[dd] = X100_y;
+    dd++;
+    dctrl[dd] = X100_z;
+    dd++;
+    ictrl[ii] = X101;
+    ii++;
+    dctrl[dd] = X101_phi;
+    dd++;
+    dctrl[dd] = X101_theta;
+    dd++;
+    dctrl[dd] = X101_psi;
+    dd++;
+    ictrl[ii] = X102;
+    ii++;
+    ictrl[ii] = X103;
+    ii++;
+    dctrl[dd] = X103_p;
+    dd++;
+    dctrl[dd] = X103_q;
+    dd++;
+    dctrl[dd] = X103_r;
+    dd++;
+    ictrl[ii] = X110;
+    ii++;
+    ictrl[ii] = X120;
+    ii++;
+    dctrl[dd] = X120_rad;
+    dd++;
+    dctrl[dd] = X120_xc;
+    dd++;
+    dctrl[dd] = X120_yc;
+    dd++;
+    dctrl[dd] = X120_zc;
+    dd++;
+    ictrl[ii] = X131;
+    ii++;
+    dctrl[dd] = X131_rad;
+    dd++;
+    dctrl[dd] = X131_h;
+    dd++;
+    dctrl[dd] = X131_xc;
+    dd++;
+    dctrl[dd] = X131_yc;
+    dd++;
+    dctrl[dd] = X131_zc;
+    dd++;
+    ictrl[ii] = X132;
+    ii++;
+    dctrl[dd] = X132_rad;
+    dd++;
+    dctrl[dd] = X132_h;
+    dd++;
+    dctrl[dd] = X132_xc;
+    dd++;
+    dctrl[dd] = X132_yc;
+    dd++;
+    dctrl[dd] = X132_zc;
+    dd++;
+    ictrl[ii] = X133;
+    ii++;
+    dctrl[dd] = X133_rad;
+    dd++;
+    dctrl[dd] = X133_h;
+    dd++;
+    dctrl[dd] = X133_xc;
+    dd++;
+    dctrl[dd] = X133_yc;
+    dd++;
+    dctrl[dd] = X133_zc;
+    dd++;
+    ictrl[ii] = X153;
+    ii++;
+    dctrl[dd] = X153_xs;
+    dd++;
+    dctrl[dd] = X153_xe;
+    dd++;
+    dctrl[dd] = X153_ys;
+    dd++;
+    dctrl[dd] = X153_ye;
+    dd++;
+    dctrl[dd] = X153_zs;
+    dd++;
+    dctrl[dd] = X153_ze;
+    dd++;
     ictrl[ii] = X163;
 	ii++;
     ictrl[ii] = X164;
@@ -2796,8 +2839,32 @@ void lexer::ctrlsend()
 	dd++;
     }
     
-	for(n=0;n<P167;++n)
-	{
+    for(n=0;n<P67;++n)
+    {
+    dctrl[dd] = P67_x[n];
+    dd++;
+    dctrl[dd] = P67_y[n];
+    dd++;
+    }
+    
+    for(n=0;n<P68;++n)
+    {
+    dctrl[dd] = P68_x[n];
+    dd++;
+    dctrl[dd] = P68_y[n];
+    dd++;
+    }    
+    
+    for(n=0;n<P69;++n)
+    {
+    dctrl[dd] = P69_x[n];
+    dd++;
+    dctrl[dd] = P69_y[n];
+    dd++;
+    }
+    
+    for(n=0;n<P167;++n)
+    {
     dctrl[dd] = P167_x[n];
 	dd++;
 	}
@@ -3038,8 +3105,20 @@ void lexer::ctrlsend()
     dctrl[dd] = W41_beta[n];
     dd++;
     }
-	
-	for(n=0;n<X110;++n)
+
+    for(n=0;n<X102;++n)
+    {
+    dctrl[dd] = X102_u[n];
+    dd++;
+    dctrl[dd] = X102_v[n];
+    dd++;
+    dctrl[dd] = X102_w[n];
+    dd++;
+    ictrl[ii] = X102_objID[n];
+    ii++;
+    }
+
+    for(n=0;n<X110;++n)
     {
     dctrl[dd] = X110_xs[n];
     dd++;
@@ -3053,6 +3132,8 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = X110_ze[n];
     dd++;
+    ictrl[ii] = X110_objID[n];
+    ii++;
     }
     
     for(n=0;n<X163;++n)

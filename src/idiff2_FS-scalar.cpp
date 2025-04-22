@@ -114,7 +114,6 @@ void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 	cout<<"scalar_diffiter: "<<p->solveriter<<"  scalar_difftime: "<<setprecision(3)<<time<<endl;
 }
 
-
 void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& diff, field& b, field &visc, field &eddyv, double sig, double alpha)
 {
 

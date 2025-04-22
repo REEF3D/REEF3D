@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"fnpf_vtp_bed.h"
+
+#include"fnpf_vtp_bed.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"

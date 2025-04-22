@@ -429,6 +429,8 @@ double interpolation::ipol4press( field& b)
     denom+=1.0;
     }
     
+    denom = denom>0.0?denom:1.0e20;
+    
 	 value=(1.0/denom)*(v1+v2+v3+v4+v5+v6+v7+v8);
 	 
 	 return value;

@@ -20,27 +20,44 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"flux.h"
-#include"increment.h"
+#ifndef NHFLOW_U_PROFILE_H_
+#define NHFLOW_U_PROFILE_H_
 
-#ifndef FLUX_FACE_CDS4_H_
-#define FLUX_FACE_CDS4_H_
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
+
+class lexer;
+class fdm_nhf;
+class ghostcell;
+class slice;
 
 using namespace std;
 
-class flux_face_CDS4 : public flux, public increment
+class nhflow_u_profile : public boundarycheck
 {
 public:
+    nhflow_u_profile(lexer*,fdm_nhf*);
+    virtual ~nhflow_u_profile();
 
-	flux_face_CDS4 (lexer *p);
-	virtual ~flux_face_CDS4();
+    void start(lexer*, fdm_nhf*, ghostcell*);
 
-	virtual void u_flux(fdm* a,int,field&,double&,double&);
-	virtual void v_flux(fdm* a,int,field&,double&,double&);
-	virtual void w_flux(fdm* a,int,field&,double&,double&);
-    
+
 private:
-    lexer *p;
+    void ini_location(lexer*, fdm_nhf*);
+
+
+    char name[100];
+
+    int *iloc,*jloc,*kloc,*flag;
+    int n,q;
+    const int probenum;
+    ofstream *pout;
+    
+    double uval,vval,wval,pval,kval,eval,edval;
+    
+    
+    
 
 };
 

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MULTIPHASE_FLUID_UPDATE_RHEOLOGY_H_
+#define MULTIPHASE_FLUID_UPDATE_RHEOLOGY_H_
+
 #include"multiphase_fluid_update.h"
 #include"increment.h"
 
@@ -27,14 +30,11 @@ class rheology;
 
 using namespace std;
 
-#ifndef MULTIPHASE_FLUID_UPDATE_RHEOLOGY_H_
-#define MULTIPHASE_FLUID_UPDATE_RHEOLOGY_H_
-
 class multiphase_fluid_update_rheology : public multiphase_fluid_update, increment
 {
 public:
-    multiphase_fluid_update_rheology(lexer*, fdm*, ghostcell*);
-	virtual ~multiphase_fluid_update_rheology();
+    multiphase_fluid_update_rheology(lexer*);
+    virtual ~multiphase_fluid_update_rheology();
 
 	virtual void start(lexer*, fdm*, ghostcell*,field&,field&);
 

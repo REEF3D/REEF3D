@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
@@ -216,10 +216,22 @@ void iowave::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
         {
             // Zone 1
             if(dg<1.0e20)
-            F[IJK] = relax4_wg(i,j)*F[IJK] + (1.0-H)*F[IJK];
+            F[IJK] = relax4_wg(i,j)*F[IJK];
 
 		}
+        
+        // Numerical Beach
+        if(p->B99==1||p->B99==2||beach_relax==1)
+		{
+            // Zone 2
+            if(db<1.0e20)
+            {
+            F[IJK] = relax4_nb(i,j)*F[IJK];
+            }
+        }
     }
+    LOOP
+    d->test[IJK]=relax4_nb(i,j);
     
     p->wavecalctime+=pgc->timer()-starttime;
 }

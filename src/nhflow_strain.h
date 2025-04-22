@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_STRAIN_H_
+#define NHFLOW_STRAIN_H_
+
 #include"nhflow_gradient.h"
 #include"field1.h"
 #include"field2.h"
@@ -28,9 +31,6 @@ Author: Hans Bihs
 
 class ghostcell;
 class fieldint;
-
-#ifndef NHFLOW_STRAIN_H_
-#define NHFLOW_STRAIN_H_
 
 using namespace std;
 

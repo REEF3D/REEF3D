@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_ETA_H_
+#define SFLOW_ETA_H_
+
 #include"sflow_fsf.h"
 #include"increment.h"
 #include"slice4.h" 
@@ -28,9 +31,6 @@ class sflow_hxy_disc;
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef SFLOW_ETA_H_
-#define SFLOW_ETA_H_
 
 class sflow_eta : public sflow_fsf, public increment
 {
@@ -44,10 +44,10 @@ public:
     virtual void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
     virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
-	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&);
+	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
 private:
     
-    void wetdry_eta(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+    void wetdry_nb(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     
 	
 	

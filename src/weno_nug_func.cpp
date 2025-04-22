@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
-#include"flux_face_QOU.h"
 
 weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6)
 {

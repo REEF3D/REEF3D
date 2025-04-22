@@ -40,7 +40,6 @@ fluid_update_vof::~fluid_update_vof()
 
 void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
 {
-
 	double H=0.0, Hro=0.0;
     double H_fb=0.0;
     double psiro;
@@ -97,7 +96,6 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
     
 	pgc->start4(p,a->ro,gcval_ro);
 	pgc->start4(p,a->visc,gcval_visc);
-    
 
 	p->volume1 = pgc->globalsum(p->volume1);
 	p->volume2 = pgc->globalsum(p->volume2);
@@ -107,7 +105,6 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc)
 	cout<<"Volume 1: "<<p->volume1<<endl;
 	cout<<"Volume 2: "<<p->volume2<<endl;
     }
-   
     ++iocheck;
 
 }

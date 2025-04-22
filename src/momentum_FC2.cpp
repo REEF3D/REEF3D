@@ -94,13 +94,13 @@ momentum_FC2::momentum_FC2(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
     
     if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==2)
-	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
-	
-	if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
-	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
+    pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
+    
+    if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
+    pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
+    
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
+    pupdate = new fluid_update_rheology(p);
     
     if(p->F300>0)
 	pupdate = new fluid_update_void();
@@ -129,7 +129,7 @@ void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 //--------------------------------------------------------
 
     // FSF
-    FLUIDLOOP
+    LOOP
     {
 	a->L(i,j,k)=0.0;
     ls(i,j,k)=a->phi(i,j,k);
@@ -137,7 +137,7 @@ void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 
 	pfsfdisc->start(p,a,ls,4,a->u,a->v,a->w);
 	
-	FLUIDLOOP
+	LOOP
 	frk1(i,j,k) = ls(i,j,k)
 				+ p->dt*a->L(i,j,k);
 	
@@ -145,7 +145,7 @@ void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	
 	pgc->start4(p,frk1,gcval_phi);
     
-    FLUIDLOOP
+    LOOP
     a->phi(i,j,k) =  frk1(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
@@ -233,12 +233,12 @@ void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 //--------------------------------------------------------
     
     // FSF
-    FLUIDLOOP
+    LOOP
 	a->L(i,j,k)=0.0;
 
 	pfsfdisc->start(p,a,frk1,4,urk1,vrk1,wrk1);
 
-	FLUIDLOOP
+	LOOP
 	ls(i,j,k) =  0.5*ls(i,j,k)
 				  + 0.5*frk1(i,j,k)
 				  + 0.5*p->dt*a->L(i,j,k);
@@ -246,7 +246,7 @@ void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,a->phi,gcval_phi);
     
-    FLUIDLOOP
+    LOOP
     a->phi(i,j,k) =  ls(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
@@ -365,17 +365,5 @@ void momentum_FC2::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	a->rhsvec.V[n]=0.0;
 	++n;
 	}
-}
-
-void momentum_FC2::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FC2::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FC2::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
 }
 

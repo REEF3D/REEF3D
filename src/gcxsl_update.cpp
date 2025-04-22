@@ -18,7 +18,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
---------------------------------------------------------------------*/#include"ghostcell.h"
+--------------------------------------------------------------------*/
+
+#include"ghostcell.h"
 #include"lexer.h"
 
 void ghostcell::gcxslupdate(lexer* p)

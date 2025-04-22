@@ -24,21 +24,31 @@ Authors: Hans Bihs, Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
-#include"flux_HJ_CDS4.h"
 #include"flux_HJ_CDS2_vrans.h"
+#include"flux_HJ_CDS2_2D.h"
+#include"flux_HJ_CDS2_vrans_2D.h"
 
 weno_hj_df_nug::weno_hj_df_nug(lexer* p):weno_nug_func(p),tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
 			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
 {
-    if(p->B269==0 && p->D11!=4)
-    pflux = new flux_HJ_CDS2(p);
+    if(p->j_dir==0)
+    {
+    if(p->B269==0 && p->S10!=2)
+    pflux = new flux_HJ_CDS2_2D(p);
     
-    if(p->B269==0 && p->D11==4)
-    pflux = new flux_HJ_CDS4(p);
+    if(p->B269>=1 || p->S10==2)
+    pflux = new flux_HJ_CDS2_vrans_2D(p);
+    }
+    
+    if(p->j_dir==1)
+    {
+    if(p->B269==0 && p->S10!=2)
+    pflux = new flux_HJ_CDS2(p);
     
     if(p->B269>=1 || p->S10==2)
     pflux = new flux_HJ_CDS2_vrans(p);
+    }
 }
 
 weno_hj_df_nug::~weno_hj_df_nug()
@@ -55,7 +65,8 @@ void weno_hj_df_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fi
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXN,p->DYP,p->DZP);
     }
-
+    
+    if(p->j_dir==1)
     if(ipol==2)
     {
     vf=1;
@@ -71,7 +82,7 @@ void weno_hj_df_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fi
     }
 
     if(ipol==4)
-    FLUIDLOOP
+    LOOP
     a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXP,p->DYP,p->DZP);
     
     if(ipol==5)

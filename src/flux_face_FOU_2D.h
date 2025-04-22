@@ -20,49 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fieldint.h"
+#ifndef FLUX_FACE_FOU_2D_H_
+#define FLUX_FACE_FOU_2D_H_
+
+#include"flux.h"
 #include"increment.h"
 
-#ifndef FIELDINT4A_H_
-#define FIELDINT4A_H_
+class lexer;
 
 using namespace std;
 
-class fieldint4a : public fieldint, public increment
+class flux_face_FOU_2D : public flux, public increment
 {
 public:
 
-	fieldint4a (lexer *);
-	virtual ~fieldint4a();
+	flux_face_FOU_2D (lexer *p);
+	virtual ~flux_face_FOU_2D();
 
-    int& operator()(int, int , int);
-    
-    virtual void resize(lexer*);
-    
-    void gcdebug(lexer*);
-    void vel_update(lexer*);
-
-    int di,dj,dk;
-	int imin,imax,jmax,jmin,kmin,kmax;
-	
-	int* V;
-	int*** gcfeld;
+	virtual void u_flux(fdm* a,int,field&,double&,double&);
+	virtual void v_flux(fdm* a,int,field&,double&,double&);
+	virtual void w_flux(fdm* a,int,field&,double&,double&);
 
 private:
-
-	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
-	void fieldlength(lexer *);
-
-	int iter;
-	int gcfeldsize;
-	
-	lexer *pp;
+    lexer *p;
 };
 
 #endif
-
-
-
-
-

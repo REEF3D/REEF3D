@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BENCHMARK_TAYLORGREEN_H_
+#define BENCHMARK_TAYLORGREEN_H_
+
 #include"benchmark.h"
 #include"increment.h"
 #include"gradient.h"
@@ -28,9 +31,6 @@ Author: Hans Bihs
 class fdm;
 class lexer;
 class ghostcell;
-
-#ifndef BENCHMARK_TAYLORGREEN_H_
-#define BENCHMARK_TAYLORGREEN_H_
 
 using namespace std;
 

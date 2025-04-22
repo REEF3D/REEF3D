@@ -1,4 +1,30 @@
 
+25.02
+x improved wetting & drying consistency (SFLOW)
+x fixed a problem with the fully coupled level set-momentum solver (CFD)
+x updated wetting and drying for open channel flow (NHFLOW)
+x added local draft calculation for ship waves (SFLOW and NHFLOW)
+x added initial draft for ship waves (SFLOW and NHFLOW)
+x added github branch and version info to terminal
+x updated 1st-order irregular waves (NHFLOW)
+x removed onephase flow (CFD)
+x updated 6DOF shipwave generation (SFLOW and NHFLOW)
+x updated 6DOF forcing (SFLOW)
+x improved nh-pressure stability for 6DOF shipwave generation (SFLOW)
+x added LES turbulence model (NHFLOW)
+x added k-omega stabilization (NHFLOW)
+x added k-omega buoyancy term (NHFLOW)
+x updated strainterm (CFD,  NHFLOW and SFLOW)
+x added outflow waterlevel control (SFLOW)
+x improved non-hydrostatic pressure solver stability (NHFLOW)
+x added ramp function for outflow water level (NHFLOW and CFD)
+x added potential flow ini (NHFLOW)
+x updated bedshear probe (NHFLOW)
+x updated bedshear probe (CFD)
+x fixed a problem with the free surface discretization (SFLOW)
+x fixed a problem with controlled outflow (SFLOW)
+x fixed a problem with k-e turbulence model wall law (SFLOW)
+
 24.12
 x updated roughness boundary condition (NHFLOW)
 x updated FNPF wetdry algorithm

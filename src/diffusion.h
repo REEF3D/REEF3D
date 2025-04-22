@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DIFFUSION_H_
+#define DIFFUSION_H_
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -28,28 +31,19 @@ class solver;
 
 using namespace std;
 
-#ifndef DIFFUSION_H_
-#define DIFFUSION_H_
-
 
 class diffusion
 {
 
 public:
 
-
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double)=0;
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double)=0;
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double)=0;
-    
-	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double)=0;
-	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double)=0;
-	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double)=0;
-	
+
 	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double)=0;
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double)=0;
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double)=0;
-
 };
 
 #endif

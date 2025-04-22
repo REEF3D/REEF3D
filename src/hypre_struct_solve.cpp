@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"hypre_struct.h"
 
 #ifdef HYPRE_COMPILATION
+ 
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"

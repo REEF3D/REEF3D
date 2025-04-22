@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_turbulence.h"
-#include"increment.h"
-
 #ifndef SFLOW_TURB_VOID_H_
 #define SFLOW_TURB_VOID_H_
+
+#include"sflow_turbulence.h"
+#include"increment.h"
 
 using namespace std;
 

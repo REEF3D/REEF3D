@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PICARD_VOID_H_
+#define PICARD_VOID_H_
+
 #include"picard.h"
 
 using namespace std;
-
-#ifndef PICARD_VOID_H_
-#define PICARD_VOID_H_
 
 class picard_void : public picard
 {

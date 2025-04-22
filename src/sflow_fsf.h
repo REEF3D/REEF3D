@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_FSF_H_
+#define SFLOW_FSF_H_
+
 class lexer;
 class fdm2D;
 class ghostcell;
@@ -27,9 +30,6 @@ class ioflow;
 class slice;
 
 using namespace std;
-
-#ifndef SFLOW_FSF_H_
-#define SFLOW_FSF_H_
 
 class sflow_fsf
 {
@@ -40,7 +40,7 @@ public:
     virtual void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
     virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double)=0;
     virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double)=0;
-    virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&)=0;
+    virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
     
         
 

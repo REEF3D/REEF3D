@@ -59,10 +59,8 @@ momentum_RK3CN::momentum_RK3CN(lexer *p, fdm *a, convection *pconvection, diffus
     if(p->W90==0  || p->F300>0)
 	pupdate = new fluid_update_void();
     
-    if(p->W90==1 && p->F300==0)
-	pupdate = new fluid_update_rheology(p,a);
-    
-
+    if(p->W90>0 && p->F300==0)
+    pupdate = new fluid_update_rheology(p);
 }
 
 momentum_RK3CN::~momentum_RK3CN()
@@ -388,17 +386,5 @@ void momentum_RK3CN::addkrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
        a->H(i,j,k) = 0.0;
        ++n;
        }
-}
-
-void momentum_RK3CN::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RK3CN::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RK3CN::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
 }
 

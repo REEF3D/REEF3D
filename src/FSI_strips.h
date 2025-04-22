@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FSI_STRIPS_H_
+#define FSI_STRIPS_H_
+
 #include"FSI.h"
 #include<vector>
 #include <Eigen/Dense>
@@ -31,9 +34,6 @@ class fsi_strip;
 class turbulence;
 
 using namespace std;
-
-#ifndef FSI_STRIPS_H_
-#define FSI_STRIPS_H_
 
 class fsi_strips : public fsi
 {

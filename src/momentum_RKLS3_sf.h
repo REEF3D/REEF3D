@@ -56,12 +56,6 @@ public:
 	momentum_RKLS3_sf(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
 	virtual ~momentum_RKLS3_sf();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
-	virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
-    virtual void fillaij1(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
 
 	void starti(lexer*, fdm*, ghostcell*, sixdof*, vrans*, vector<net*>&, fsi*);
 

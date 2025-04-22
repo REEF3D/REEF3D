@@ -21,15 +21,15 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 
+#ifndef WIND_H_
+#define WIND_H_
+
 class lexer;
 class fdm_nhf;
 class ghostcell;
 class slice;
 
 using namespace std;
-
-#ifndef WIND_H_
-#define WIND_H_
 
 class wind 
 {

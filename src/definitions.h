@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DEFINITIONS_H_
+#define DEFINITIONS_H_
+
 #define WATER_FLAG      10
 #define AIR_FLAG       -1
 #define INFLOW_FLAG    -3
@@ -28,3 +31,5 @@ Author: Hans Bihs
 #define TOPO_FLAG      -18
 #define SOLID_FLAG     -19
 #define OBJ_FLAG       -20
+
+#endif

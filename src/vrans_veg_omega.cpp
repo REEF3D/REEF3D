@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"vrans_veg.h"
+
+#include"vrans_veg.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"

@@ -24,10 +24,11 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"ioflow.h"
 #include"solver.h"
 #include"slice.h"
 
-void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
+void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
 	starttime=pgc->timer();
     
@@ -35,6 +36,8 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     WHdiff[IJK] = WHin[IJK];
     
     pgc->start4V(p,WHdiff,gcval_wh);
+    
+    pflow->rkinflow_nhflow(p,d,pgc,WHdiff,WHin);
 
 
     n=0;

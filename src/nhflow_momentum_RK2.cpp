@@ -119,8 +119,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	irhs(p,d,pgc);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, WLRK1, d->eta);
     roughness_u(p,d,d->U,d->F,WLRK1);
-	pconvec->start(p,d,1,WLRK1);
-	pnhfdiff->diff_u(p,d,pgc,psolv,UHDIFF,d->UH,d->UH,d->VH,d->WH,WLRK1,1.0);
+    pconvec->start(p,d,1,WLRK1);
+    pnhfdiff->diff_u(p,d,pgc,pflow,psolv,UHDIFF,d->UH,d->UH,d->VH,d->WH,WLRK1,1.0);
 
 	LOOP
 	UHRK1[IJK] = UHDIFF[IJK]
@@ -139,7 +139,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, WLRK1, d->eta);
     roughness_v(p,d,d->V,d->G,WLRK1);
     pconvec->start(p,d,2,WLRK1);
-	pnhfdiff->diff_v(p,d,pgc,psolv,VHDIFF,d->VH,d->UH,d->VH,d->WH,WLRK1,1.0);
+    pnhfdiff->diff_v(p,d,pgc,pflow,psolv,VHDIFF,d->VH,d->UH,d->VH,d->WH,WLRK1,1.0);
 
 	LOOP
 	VHRK1[IJK] = VHDIFF[IJK]
@@ -149,13 +149,13 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
 	// W
 	starttime=pgc->timer();
-
-	pnhfturb->ksource(p,d);
-	//pflow->ksource_nhflow(p,d,pgc,pvrans); 
-	ppress->wpgrad(p,d,WLRK1);
-	krhs(p,d,pgc);
-	pconvec->start(p,d,3,WLRK1);
-	pnhfdiff->diff_w(p,d,pgc,psolv,WHDIFF,d->WH,d->UH,d->VH,d->WH,WLRK1,1.0);
+    
+    pnhfturb->ksource(p,d);
+    //pflow->ksource_nhflow(p,d,pgc,pvrans); 
+    ppress->wpgrad(p,d,WLRK1);
+    krhs(p,d,pgc);
+    pconvec->start(p,d,3,WLRK1);
+    pnhfdiff->diff_w(p,d,pgc,pflow,psolv,WHDIFF,d->WH,d->UH,d->VH,d->WH,WLRK1,1.0);
 
 	LOOP
 	WHRK1[IJK] = WHDIFF[IJK]
@@ -213,7 +213,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, d->WL, d->eta);
     roughness_u(p,d,d->U,d->F,d->WL);
     pconvec->start(p,d,1,d->WL);
-	pnhfdiff->diff_u(p,d,pgc,psolv,UHDIFF,UHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
+    pnhfdiff->diff_u(p,d,pgc,pflow,psolv,UHDIFF,UHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
 
 	LOOP
 	d->UH[IJK] = 0.5*d->UH[IJK] + 0.5*UHDIFF[IJK]
@@ -231,8 +231,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	jrhs(p,d,pgc);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, d->WL, d->eta);
     roughness_v(p,d,d->V,d->G,d->WL);
-	pconvec->start(p,d,2,d->WL);
-	pnhfdiff->diff_v(p,d,pgc,psolv,VHDIFF,VHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
+    pconvec->start(p,d,2,d->WL);
+    pnhfdiff->diff_v(p,d,pgc,pflow,psolv,VHDIFF,VHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
 
 	LOOP
 	d->VH[IJK] = 0.5*d->VH[IJK] + 0.5*VHDIFF[IJK]
@@ -243,12 +243,12 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	// W
 	starttime=pgc->timer();
 
-	pnhfturb->ksource(p,d);
-	//pflow->ksource(p,a,pgc,pvrans);
-	ppress->wpgrad(p,d,d->WL);
-	krhs(p,d,pgc);
-	pconvec->start(p,d,3,d->WL);
-	pnhfdiff->diff_w(p,d,pgc,psolv,WHDIFF,WHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
+    pnhfturb->ksource(p,d);
+    //pflow->ksource(p,a,pgc,pvrans);
+    ppress->wpgrad(p,d,d->WL);
+    krhs(p,d,pgc);
+    pconvec->start(p,d,3,d->WL);
+    pnhfdiff->diff_w(p,d,pgc,pflow,psolv,WHDIFF,WHRK1,UHRK1,VHRK1,WHRK1,d->WL,0.5);
 
 	LOOP
 	d->WH[IJK] = 0.5*d->WH[IJK] + 0.5*WHDIFF[IJK]

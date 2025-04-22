@@ -75,9 +75,7 @@ void driver::driver_ini_fnpf()
     cout<<"number of cells: "<<p->cellnumtot<<endl;
     
     
-    
     // maxcoor
-
     p->maxlength=-1.0e9;
     p->xcoormax=-1.0e9;
     p->xcoormin=1.0e9;
@@ -214,7 +212,6 @@ void driver::driver_ini_fnpf()
     
      if(p->mpirank==0)
     cout<<"starting mainloop.FNPF"<<endl;
-
 }
 
 

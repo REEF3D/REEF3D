@@ -25,6 +25,9 @@ Based on Clamond and Dutykh (2018). Accurate fast computation of steady two-dime
 surface gravity waves in arbitrary depth. Journal of Fluid Mechanics, Vol. 844, pp. 491-518.
 --------------------------------------------------------------------*/
 
+#ifndef WAVE_LIB_SSGW_H_
+#define WAVE_LIB_SSGW_H_
+
 #include"wave_lib_precalc.h"
 #include"wave_lib_parameters.h"
 #include"increment.h"
@@ -37,9 +40,6 @@ surface gravity waves in arbitrary depth. Journal of Fluid Mechanics, Vol. 844, 
 #include <complex>
 #include <string>
 #include <fstream>
-
-#ifndef WAVE_LIB_SSGW_H_
-#define WAVE_LIB_SSGW_H_
 
 using namespace std;
 

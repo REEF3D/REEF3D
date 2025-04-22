@@ -31,7 +31,7 @@ void hypre_struct::fill_matrix4f(lexer* p, ghostcell* pgc, field &f, vec &rhs, m
 {
     
     count=0;
-    FLUIDLOOP
+    LOOP
     {
     CVAL4[IJK]=count;
     ++count;

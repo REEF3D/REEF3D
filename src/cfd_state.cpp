@@ -29,17 +29,22 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
+cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc, int state_restart)
 {	
 	// Create Folder
 	if(p->mpirank==0)
+    {
 	mkdir("./REEF3D_CFD_STATE",0777);
+    mkdir("./REEF3D_CFD_STATE_RESTART",0777);
+    }
 	
 	printcount=0;
     
     file_version=6;
     
     file_type=p->P45;
+    
+    restart = state_restart;
     
     ini_token=0;
     
@@ -98,7 +103,6 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
         je = p->posc_j(p->P43_ye);
         je_flag=1;
         }
-    
     }
     
     pgc->gather_int(&flag,1,flag_all,1);
@@ -134,7 +138,6 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
     }
     
     pgc->bcast_int(&ie_global,1);
-    
     
     // js communication
     if(js_flag==1)
@@ -181,7 +184,6 @@ cfd_state::cfd_state(lexer *p, fdm *a, ghostcell *pgc)
 	 
 	result.open(name, ios::binary);
     }
-    
 
     p->del_Iarray(is_flag_all,p->M10);
     p->del_Iarray(ie_flag_all,p->M10);

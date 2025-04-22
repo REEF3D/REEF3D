@@ -179,7 +179,7 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             k = p->posc_k(zloc);
             
             // Force
-            if(phival>-1.6*p->DXM || p->P92==1)
+            if((phival>-1.6*p->DXM || p->P92==1) && a->topo(i,j,k)>0.0)
             {
             Fx += -(pval)*A*nx
                        + density*viscosity*A*(du*ny+du*nz);

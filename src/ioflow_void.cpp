@@ -25,8 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"fdm2D.h"
 #include"fdm_nhf.h"
-#include"vrans_v.h"
-#include"vrans_f.h"
+#include"vrans.h"
 #include"rheology_v.h"
 #include"rheology_f.h"
 #include"turbulence.h"
@@ -35,10 +34,6 @@ Author: Hans Bihs
 ioflow_v::ioflow_v(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : flowfile_in(p,pgc)
 {
     pBC = ppBC;
-    
-	tanphi=0.0;
-    if(p->W101>0)
-    tanphi=tan(p->W102_phi*(PI/180.0));
 }
 
 ioflow_v::~ioflow_v()
@@ -841,17 +836,11 @@ void ioflow_v::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void ioflow_v::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
-    if(p->B269==0)
-	pvrans = new vrans_v(p,pgc);
-	
-	if(p->B269==1 || p->S10==2)
-	pvrans = new vrans_f(p,pgc);
+    if(p->W90>0)
+    prheo = new rheology_f(p);
     
-    if(p->W90==0)
-    prheo = new rheology_v(p,a);
-    
-    if(p->W90==1)
-    prheo = new rheology_f(p,a);
+    else
+    prheo = new rheology_v();
 }
 
 void ioflow_v::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)

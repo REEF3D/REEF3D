@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_flux_face_HJ.h"
+
+#include"sflow_flux_face_HJ.h"
 #include"lexer.h"
 #include"slice.h"
 #include"fdm2D.h"

@@ -24,19 +24,29 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
-#include"flux_HJ_CDS4.h"
 #include"flux_HJ_CDS2_vrans.h"
+#include"flux_HJ_CDS2_2D.h"
+#include"flux_HJ_CDS2_vrans_2D.h"
 
 weno3_hj::weno3_hj(lexer* p) : weno3_nug_func(p)
 {
-    if(p->B269==0 && p->D11!=4)
-    pflux = new flux_HJ_CDS2(p);
+    if(p->j_dir==0)
+    {
+    if(p->B269==0 && p->S10!=2)
+    pflux = new flux_HJ_CDS2_2D(p);
     
-    if(p->B269==0 && p->D11==4)
-    pflux = new flux_HJ_CDS4(p);
+    if(p->B269>=1 || p->S10==2)
+    pflux = new flux_HJ_CDS2_vrans_2D(p);
+    }
+    
+    if(p->j_dir==1)
+    {
+    if(p->B269==0 && p->S10!=2)
+    pflux = new flux_HJ_CDS2(p);
     
     if(p->B269>=1 || p->S10==2)
     pflux = new flux_HJ_CDS2_vrans(p);
+    }
 }
 
 weno3_hj::~weno3_hj()
@@ -53,7 +63,8 @@ void weno3_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& v
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
     }
-
+    
+    if(p->j_dir==1)
     if(ipol==2)
     {
     vf=1;
@@ -69,7 +80,7 @@ void weno3_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& v
     }
 
     if(ipol==4)
-    FLUIDLOOP
+    LOOP
     a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
     
     if(ipol==5)

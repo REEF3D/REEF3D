@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LOOPING2D_H_
+#define LOOPING2D_H_
+
 // LOOP
 
 #define PSLICECHECK1  if(p->flagslice1[IJ]>0)
@@ -49,8 +52,7 @@ Author: Hans Bihs
 #define SLICEBASELOOP ILOOP JLOOP 
 
 
-#define TPSLICECHECK  if(p->tpflagslice[IJ]>0)
-#define TPSLICELOOP ITPLOOP JTPLOOP TPSLICECHECK
+#define TPSLICELOOP ITPLOOP JTPLOOP
 
 #define NSLICELOOP for(n=sizeS[0]; n<sizeS[1]; ++n)
 #define NSLICELOOP1 for(n=p->sizeS1[0]; n<p->sizeS1[1]; ++n)
@@ -163,3 +165,4 @@ Author: Hans Bihs
 #define GCSLDF4CHECK if(p->gcsldf4[n][3]>0)
 #define GCSLDF4LOOP GCSLDF4 GCSLDF4CHECK
 
+#endif

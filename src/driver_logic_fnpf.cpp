@@ -115,10 +115,7 @@ void driver::logic_fnpf()
     pfsfdisc=new convection_void(p);
     
 //  Wave Models
-    
-    if(p->A310==2)
-    ppfsg = new fnpf_RK2(p,c,pgc);
-    
+
     if(p->A310==3)
     ppfsg = new fnpf_RK3(p,c,pgc);
         

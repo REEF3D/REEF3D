@@ -20,42 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fieldint6.h"
-#include"lexer.h"
+#ifndef FLUX_FACE_FOU_VRANS_2D_H_
+#define FLUX_FACE_FOU_VRANS_2D_H_
 
-fieldint6::fieldint6(lexer *p)
+#include"flux.h"
+#include"increment.h"
+
+class lexer;
+
+using namespace std;
+
+class flux_face_FOU_vrans_2D : public flux, public increment
 {
-    imin=p->imin;
-    imax=p->imax;
-    jmin=p->jmin;
-    jmax=p->jmax;
-    kmin=p->kmin;
-    kmax=p->kmax;
+public:
 
-	fieldalloc(p);
-	
-	pp=p;
-}
+	flux_face_FOU_vrans_2D (lexer *p);
+	virtual ~flux_face_FOU_vrans_2D();
 
-fieldint6::~fieldint6()
-{
-	delete [ ] V;
-}
+	virtual void u_flux(fdm* a,int,field&,double&,double&);
+	virtual void v_flux(fdm* a,int,field&,double&,double&);
+	virtual void w_flux(fdm* a,int,field&,double&,double&);
 
-void fieldint6::fieldalloc(lexer* p)
-{
-	int gridsize = imax*jmax*kmax;
-	p->Iarray(V,gridsize);
-}
+private:
+    lexer *p;
+};
 
-void fieldint6::resize(lexer* p)
-{
-}
-
-int & fieldint6::operator()(int ii, int jj, int kk)
-{			
-	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
-}
-
-
-
+#endif

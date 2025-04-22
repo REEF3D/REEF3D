@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef CONVECTION_HEADER_H_
+#define CONVECTION_HEADER_H_
+
 #include"convection_void.h"
 #include"fou.h"
 #include"ifou.h"
@@ -52,4 +55,4 @@ Author: Hans Bihs
 #include"hric_mod.h"
 #include"cicsam.h"
 
-
+#endif

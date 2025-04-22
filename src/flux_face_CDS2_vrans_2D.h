@@ -20,33 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
-#include"lexer.h"
+#ifndef FLUX_FACE_CDS2_VRANS_2D_H_
+#define FLUX_FACE_CDS2_VRANS_2D_H_
 
-void ghostcell::gcsl_tpflag(lexer *p)
+#include"flux.h"
+#include"increment.h"
+
+using namespace std;
+
+class flux_face_CDS2_vrans_2D : public flux, public increment
 {
-	for(i=0;i<imax*jmax;++i)
-	p->tpflagslice[i]=-1;
-	
-	
-	SLICEBASELOOP
-	p->tpflagslice[IJ]=1;
+public:
 
-	SLICEBASELOOP
-	{
-	    if(p->tpflagslice[Im1J]<=0)
-	    p->tpflagslice[Im1J]=9;
+	flux_face_CDS2_vrans_2D (lexer *p);
+	virtual ~flux_face_CDS2_vrans_2D();
 
-	    if(p->tpflagslice[IJm1]<=0)
-	    p->tpflagslice[IJm1]=9;
+	virtual void u_flux(fdm* a,int,field&,double&,double&);
+	virtual void v_flux(fdm* a,int,field&,double&,double&);
+	virtual void w_flux(fdm* a,int,field&,double&,double&);
 
-	}
+};
 
-    SLICEBASELOOP
-	{
-	    if(p->tpflagslice[Im1J]==9)
-	    if(p->tpflagslice[IJm1]==9)
-	    p->tpflagslice[Im1Jm1]=11;
-	}
-}
-
+#endif

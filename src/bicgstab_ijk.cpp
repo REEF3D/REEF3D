@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"bicgstab_ijk.h"
+
+#include"bicgstab_ijk.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"

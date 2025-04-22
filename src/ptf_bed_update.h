@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PTF_BED_UPDATE_H_
+#define PTF_BED_UPDATE_H_
+
 #include"increment.h"
 #include"slice4.h"
 
@@ -28,9 +31,6 @@ class fnpf_convection;
 class ghostcell;
 
 using namespace std;
-
-#ifndef PTF_BED_UPDATE_H_
-#define PTF_BED_UPDATE_H_
 
 class ptf_bed_update : public increment
 {

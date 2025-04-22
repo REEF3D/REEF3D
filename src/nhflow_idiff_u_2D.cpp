@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"ioflow.h"
 #include"solver.h"
 #include"slice.h"
 
@@ -42,7 +43,7 @@ nhflow_idiff_2D::~nhflow_idiff_2D()
 {
 }
 
-void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
+void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
 	starttime=pgc->timer();
 
@@ -50,10 +51,12 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv
     UHdiff[IJK] = UHin[IJK];
     
     pgc->start4V(p,UHdiff,gcval_uh);
+    
+    pflow->rkinflow_nhflow(p,d,pgc,UHdiff,UHin);
 
     n=0;
     LOOP
-	{
+    {
         if(p->wet[IJ]==1)
         {
             visc = d->VISC[IJK] + d->EV[IJK];
@@ -61,7 +64,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             
-            d->M.p[n]  =  2.0*visc/(p->DXP[IP]*p->DXN[IP])
+            d->M.p[n]  =   2.0*visc/(p->DXP[IP]*p->DXN[IP])
                         + 2.0*visc/(p->DXP[IM1]*p->DXN[IP])
                         
                         + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
@@ -73,11 +76,9 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv
             d->M.n[n] = -2.0*visc/(p->DXP[IP]*p->DXN[IP]);
             d->M.s[n] = -2.0*visc/(p->DXP[IM1]*p->DXN[IP]);
 
-            d->M.t[n] = -(visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP])     
-                        - 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]);
+            d->M.t[n] = -(visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP]);
                         
-            d->M.b[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP]) 
-                        + 0.0*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]);
+            d->M.b[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP]);
             
             
             d->rhsvec.V[n] = visc*((WH[Ip1JKp1]-WH[Im1JKp1]) - (WH[Ip1JKm1]-WH[Im1JKm1]))/((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))

@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_weno_flux.h"
+
+#include"sflow_weno_flux.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"sflow_flux_face_FOU.h"

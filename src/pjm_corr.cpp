@@ -80,25 +80,22 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
-			
+    
+    starttime=pgc->timer();
+    
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
     
     ppois->start(p,a,pcorr);
 	
-        starttime=pgc->timer();
-
+        
     psolv->start(p,a,pgc,pcorr,a->rhsvec,5);
 	
-        endtime=pgc->timer();
-    
+
     pgc->start4(p,pcorr,gcval_press);
     presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
     reference_start(p,a,pgc);
 	pgc->start4(p,a->press,gcval_press);
-	
-    LOOP
-    a->test(i,j,k) = pcorr(i,j,k);
     
 	ucorr(p,a,uvel,alpha);
 	vcorr(p,a,vvel,alpha);
@@ -106,7 +103,7 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 
     p->poissoniter=p->solveriter;
 
-	p->poissontime=endtime-starttime;
+	p->poissontime=pgc->timer()-starttime;
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
@@ -121,6 +118,7 @@ void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 
 void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
+    if(p->j_dir==1)
 	VLOOP
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((pcorr(i,j+1,k)-pcorr(i,j,k))
 	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
@@ -141,11 +139,14 @@ void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel
  
 void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
 {
-    count=0;
 	double uvel,vvel,wvel;
 	
-    NLOOP4
-	a->rhsvec.V[n]=0.0;
+    count=0;
+    LOOP
+    {
+	a->rhsvec.V[count]=0.0;
+    ++count;
+    }
     
     LOOP
     pcorr(i,j,k)=0.0;
@@ -153,11 +154,12 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     pgc->start4(p,pcorr,1);
 	
     pip=p->Y50;
-
+    
+    count=0;
     LOOP
     {
     a->rhsvec.V[count] =  -(u.V[IJK] - u.V[Im1JK])/(alpha*p->dt*p->DXN[IP])
-                          -(v.V[IJK] - v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])
+                          -(v.V[IJK] - v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])*p->y_dir
                           -(w.V[IJK] - w.V[IJKm1])/(alpha*p->dt*p->DZN[KP]);
                            
     ++count;
@@ -181,6 +183,7 @@ void pjm_corr::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 
 void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    if(p->j_dir==1)
     VLOOP
     a->G(i,j,k) -= PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
 }

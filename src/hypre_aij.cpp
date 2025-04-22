@@ -48,14 +48,7 @@ void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, in
     make_grid(p,pgc);
     create_solvers(p,pgc);
     
-    if(var<=5)
 	fill_matrix_7p(p,a,pgc,f);
-    
-    if(var==6)
-	fill_matrix_13p(p,a,pgc,f);
-    
-    if(var==7)
-	fill_matrix_19p(p,a,pgc,f);
   
 
     if(p->N10==21)
@@ -140,7 +133,7 @@ void hypre_aij::fillbackvec(lexer *p, fdm *a, field &f, vec &xvec, int var)
 	HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec.V);
 	
         n=0;
-        FLUIDLOOP
+        LOOP
         {
         f(i,j,k)=xvec.V[n];
         ++n;

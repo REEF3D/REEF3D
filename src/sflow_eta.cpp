@@ -142,47 +142,16 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     eta(i,j) = wsfout-p->wd;
     }
     
-    
-    SLICELOOP4
-    if(eta(i,j)< -p->wd  + b->bed(i,j) - wd_criterion + 1.0e-20)
-    eta(i,j) = -p->wd  + b->bed(i,j)   - wd_criterion - 1.0e-15;
-
- 
-	pgc->gcsl_start4(p,b->depth,50);
-    
-    // WL update
-
-	SLICELOOP4
-	b->hp(i,j) = MAX(eta(i,j) + p->wd - b->bed(i,j),0.0);
-    
-	pgc->gcsl_start4(p,b->hp,gcval_eta);
-	
-
-    
-    SLICELOOP1
-    b->hx(i,j) = MAX(b->hx(i,j), 0.0);
-    
-    SLICELOOP2
-    b->hy(i,j) = MAX(b->hy(i,j), 0.0);
-    
-
-	pgc->gcsl_start1(p,b->hx,gcval_eta);    
-	pgc->gcsl_start2(p,b->hy,gcval_eta);
-    
-    
     // wetdry
     if(p->A243==1)
-    wetdry(p,b,pgc,P,Q,ws);
-    
+    wetdry(p,b,pgc,eta,P,Q,ws);
+
     if(p->A243==2)
-    wetdry_eta(p,b,pgc,eta,P,Q,ws);
-    
-    
+    wetdry_nb(p,b,pgc,eta,P,Q,ws);
 }
 	
 void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)
 {
-    
     p->phimean=p->F60;
     
     SLICELOOP4
@@ -191,6 +160,5 @@ void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)
     pflow->eta_relax(p,pgc,b->eta);
     
     pgc->gcsl_start4(p,b->eta,gcval_eta);
-
 }
 

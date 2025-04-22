@@ -123,7 +123,6 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
         f = 1.0;
         
         wsfout = f*p->F62 + (1.0-f)*p->F60;
-        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
         }
     }
     

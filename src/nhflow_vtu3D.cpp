@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"nhflow_print_wsfline_y.h"
 #include"nhflow_print_runup_gage_x.h"
 #include"nhflow_print_runup_max_gage_x.h"
+#include"nhflow_u_profile.h"
 #include"nhflow_vel_probe.h"
 #include"nhflow_vel_probe_theory.h"
 #include"nhflow_print_Hs.h"
@@ -91,6 +92,9 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->P65>0)
     pvel=new nhflow_vel_probe(p,d);
+    
+    if(p->P67>0)
+    puprofile = new nhflow_u_profile(p,d);
     
     if(p->P66>0)
     pveltheo=new nhflow_vel_probe_theory(p,d);
@@ -242,6 +246,10 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
     pwsfline_y->start(p,d,pgc,pflow,d->eta);
+    
+    // Vel Profile
+    if(p->P67>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+    puprofile->start(p,d,pgc);
 
 
     // Print state out based on iteration
@@ -277,10 +285,6 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
-    /*
-    if(p->P59==1)
-    pbreaklog->write(p,d,pgc);
-    */
 
     // sediment probes
     if(p->P125>0)
@@ -321,11 +325,9 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     }
     
     //
-    //pgc->gcsl_start4(p,d->WL,50);
     pgc->gcsl_start4(p,d->bed,50);
     pgc->gcsl_start4(p,d->breaking_print,50);
     pgc->start4V(p,d->test,50);
-    //pgc->start4(p,d->test,1);
     
     pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
     pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);

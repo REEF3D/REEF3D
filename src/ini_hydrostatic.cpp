@@ -28,7 +28,7 @@ Author: Hans Bihs
 void initialize::hydrostatic(lexer *p, fdm *a, ghostcell *pgc)
 {
     double maxh=0.0;
-    LOOP
+    BASELOOP
     maxh=MAX(maxh, p->pos_z());
 
     maxh=pgc->globalmax(maxh);
@@ -37,25 +37,25 @@ void initialize::hydrostatic(lexer *p, fdm *a, ghostcell *pgc)
     maxh=p->phimean;
 	
 	if(p->I12==1 && (p->I30==0||p->B90==0))
-    LOOP
+    BASELOOP
     a->press(i,j,k) = (p->phimean-p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
 
 	if(p->I12==2 && (p->I30==0||p->B90==0))
-    LOOP
+    BASELOOP
     a->press(i,j,k) = a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22);
 	
 	if(p->I12==3 && (p->I30==0||p->B90==0))
-    LOOP
+    BASELOOP
     a->press(i,j,k) = (maxh-p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
 
     if(p->I56==1)
-    LOOP
+    BASELOOP
     {
     if(a->phi(i,j,k)<0.0)
     a->press(i,j,k)=0.0;
     }
 	
-    LOOP
+    BASELOOP
     a->press(i,j,k)+=p->I55;
 	
 	if(p->I12==2 && p->I30==0)

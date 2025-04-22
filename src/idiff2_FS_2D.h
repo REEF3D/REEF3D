@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IDIFF2_FS_2D_H_
+#define IDIFF2_FS_2D_H_
+
 #include"increment.h"
 #include"diffusion.h"
 
 class rheology;
 
 using namespace std;
-
-#ifndef IDIFF2_FS_2D_H_
-#define IDIFF2_FS_2D_H_
 
 
 class idiff2_FS_2D : public diffusion, public increment
@@ -43,10 +43,6 @@ public:
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double);
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
     
-	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	
     virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);

@@ -26,8 +26,8 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"rheology_f.h"
 
-multiphase_fluid_update_rheology::multiphase_fluid_update_rheology(lexer *p, fdm* a, ghostcell* pgc) : dx(p->dx),
-												visc3(p->W7),visc2(p->W4),visc1(p->W2),ro3(p->W6),ro2(p->W3),ro1(p->W1)
+multiphase_fluid_update_rheology::multiphase_fluid_update_rheology(lexer *p) : dx(p->dx),
+                                                visc3(p->W7),visc2(p->W4),visc1(p->W2),ro3(p->W6),ro2(p->W3),ro1(p->W1)
 {
     gcval_ro=1;
 	gcval_visc=1;
@@ -36,11 +36,12 @@ multiphase_fluid_update_rheology::multiphase_fluid_update_rheology(lexer *p, fdm
 	eps13 = p->F322;
 	eps23 = p->F323;
     
-    prheo = new rheology_f(p,a);
+    prheo = new rheology_f(p);
 }
 
 multiphase_fluid_update_rheology::~multiphase_fluid_update_rheology()
 {
+    delete prheo;
 }
 
 void multiphase_fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2)

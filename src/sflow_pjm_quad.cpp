@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_pjm_quad.h"
+
+#include"sflow_pjm_quad.h"
 #include"lexer.h"
 #include"fdm2D.h" 
 #include"ghostcell.h"
@@ -239,7 +240,7 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
     n=0;
     SLICELOOP4
 	{
-        if(p->wet[IJ]==0 || b->breaking(i,j)==1)
+        if(p->wet[IJ]==0|| p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 || b->breaking(i,j)==1)
         {
         b->M.p[n]  = 1.0;
 

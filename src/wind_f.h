@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef WIND_F_H_
+#define WIND_F_H_
+
 #include"increment.h"
 #include"wind.h"
 
@@ -29,9 +32,6 @@ class ghostcell;
 class slice;
 
 using namespace std;
-
-#ifndef WIND_F_H_
-#define WIND_F_H_
 
 class wind_f : public wind, public increment
 {

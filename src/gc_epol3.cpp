@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"ghostcell.h"
+
+#include"ghostcell.h"
 #include"lexer.h"
 
 int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)

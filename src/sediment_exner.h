@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_EXNER_H_
+#define SEDIMENT_EXNER_H_
+
 #include"topo.h"
 #include"slice4.h"
 #include"vec2D.h"
@@ -32,9 +35,6 @@ class turbulence;
 class ghostcell;
 
 using namespace std;
-
-#ifndef SEDIMENT_EXNER_H_
-#define SEDIMENT_EXNER_H_
 
 class sediment_exner : public topo, public increment
 {

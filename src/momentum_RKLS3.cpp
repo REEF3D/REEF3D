@@ -308,19 +308,3 @@ void momentum_RKLS3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uve
         }
     }
 }
-
-void momentum_RKLS3::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RKLS3::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RKLS3::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
