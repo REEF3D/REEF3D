@@ -71,12 +71,15 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     pgc->start49V(p,PSI,gcval_pot);
 	
     itermem=p->N46;
-    p->N46=5000;
+    p->N46=50;
 	
+    for(int qn=0; qn<1;++qn)
+    {
     laplace(p,d,pgc);
     psolv->startV(p,pgc,PSI,d->rhsvec,d->M,44);
     
     pgc->start49V(p,PSI,gcval_pot);
+    }
     
     ucalc(p,d);
 	vcalc(p,d);
@@ -108,6 +111,11 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     
 
     finalize:
+    
+    LOOP
+    {
+	d->test[IJK]=PSI[IJK];
+    }
 
     p->del_Iarray(BC,p->imax*p->jmax*(p->kmax+3));
     p->del_Darray(PSI,p->imax*p->jmax*(p->kmax+2));
@@ -127,7 +135,8 @@ void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
     
     
     LOOP
-    if(p->DF[IJK]<0 || p->DF[Im1JK]<0 || p->DF[Ip1JK]<0)
+    if(p->DF[IJK]<0 || p->DF[Im1JK]<0 || p->DF[Ip1JK]<0 
+    || p->wet[IJ]==0 || p->wet[Im1J]==0 || p->wet[Ip1J]==0)
     {
 	d->U[IJK] = 0.0;
     d->UH[IJK] = 0.0;
@@ -147,7 +156,8 @@ void nhflow_potential_f::vcalc(lexer *p, fdm_nhf *d)
 
 
     LOOP
-    if(p->DF[IJK]<0 || p->DF[IJm1K]<0 || p->DF[IJp1K]<0)
+    if(p->DF[IJK]<0 || p->DF[IJm1K]<0 || p->DF[IJp1K]<0 
+    || p->wet[IJ]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0)
     {
 	d->V[IJK] = 0.0;
     d->VH[IJK] = 0.0;
@@ -165,7 +175,7 @@ void nhflow_potential_f::wcalc(lexer *p, fdm_nhf *d)
     
     
 	LOOP
-    if(p->DF[IJK]<0 || p->DF[IJm1K]<0 || p->DF[IJp1K]<0)
+    if(p->DF[IJK]<0 || p->DF[IJm1K]<0 || p->DF[IJp1K]<0 || p->wet[IJ]==0)
     {
 	d->W[IJK] = 0.0;
     d->WH[IJK] = 0.0;
@@ -202,7 +212,6 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
     ++n;
     }
-    
 
     
     n=0;
@@ -235,11 +244,12 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
                         + p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
             
             
-            d->rhsvec.V[n] =  0.0;(p->sigx[FIJK]+p->sigx[FIJKp1])*(PSI[Ip1JKp1] - PSI[Im1JKp1] - PSI[Ip1JKm1] + PSI[Im1JKm1])
+            d->rhsvec.V[n] =  (p->sigx[FIJK]+p->sigx[FIJKp1])*(PSI[Ip1JKp1] - PSI[Im1JKp1] - PSI[Ip1JKm1] + PSI[Im1JKm1])
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
                             + (p->sigx[FIJK]+p->sigx[FIJKp1])*(PSI[IJp1Kp1] - PSI[IJm1Kp1] - PSI[IJp1Km1] + PSI[IJm1Km1])
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+
         }
         
         if(p->wet[IJ]==0 || p->DF[IJK]<0)
@@ -270,10 +280,10 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
     n=0;
 	LOOP
 	{
-        if(p->DF[IJK]>0 && p->flag4[IJK]>0)
+        if(p->DF[IJK]>0 && p->flag4[IJK]>0 && p->wet[IJ]==1)
         {
            
-		if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && BC[Im1JK]==0)
+		if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0 ||  p->wet[Im1J]==0) && BC[Im1JK]==0)
 		{
 		d->M.p[n] += d->M.s[n];
 		d->M.s[n] = 0.0;
@@ -286,7 +296,7 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		d->M.s[n] = 0.0;
 		}
 		
-		if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && BC[Ip1JK]==0)
+		if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0 || p->wet[Ip1J]==0) && BC[Ip1JK]==0)
 		{
 		d->M.p[n] += d->M.n[n];
 		d->M.n[n] = 0.0;
@@ -299,13 +309,13 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		d->M.n[n] = 0.0;
 		}
 		
-		if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
+		if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0 || p->wet[IJm1]==0)
 		{
 		d->M.p[n] += d->M.e[n];
 		d->M.e[n] = 0.0;
 		}
 		
-		if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
+		if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0 || p->wet[IJp1]==0)
 		{
 		d->M.p[n] += d->M.w[n];
 		d->M.w[n] = 0.0;
@@ -353,6 +363,8 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	++n;
 	}
     
+    
+    
 }
 
 void nhflow_potential_f::ini_bc(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -381,7 +393,8 @@ void nhflow_potential_f::ini_bc(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		BC[IJKp1]=0;
     }
     
-
+    // -----
+    
     GC4LOOP
     {
         if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
