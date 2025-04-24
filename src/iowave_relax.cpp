@@ -250,7 +250,7 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
     starttime=pgc->timer();
     
     count=0;
-    LOOP
+    FLUIDLOOP
     {
         dg = distgen(p);    
         db = distbeach(p);

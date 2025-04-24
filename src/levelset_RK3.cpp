@@ -169,6 +169,7 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     
 
     ppicard->correct_ls(p,a,pgc,ls);
+    cout<<"RK3 called"<<endl;
 	ppart->picardmove(p,a,pgc);
     
 	pupdate->start(p,a,pgc);

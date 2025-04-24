@@ -127,4 +127,5 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	p->uiter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && p->count%p->P12==0)
 	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
+    cout<<"rightdiff"<<endl;
 }

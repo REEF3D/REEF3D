@@ -334,10 +334,10 @@ void driver::logic_cfd()
 	if(p->D20==3 && p->j_dir==1)
 	pdiff=new idiff2_CN(p);
 
-    if((p->D20==2 && p->j_dir==0) && (p->F92!=3))
+    if(p->D20==2 && p->j_dir==0)
 	pdiff=new idiff2_FS_2D(p);
     
-    if((p->D20==2 && p->j_dir==0) && (p->F92==3))
+    if((p->D20==2 && p->j_dir==0) && (p->F80==4))
     pdiff=new idiff2_PLIC_2D(p);
 
 	// turbulence
