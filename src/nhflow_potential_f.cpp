@@ -71,7 +71,7 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     pgc->start49V(p,PSI,gcval_pot);
 	
     itermem=p->N46;
-    p->N46=50;
+    p->N46=5000;
 	
     for(int qn=0; qn<1;++qn)
     {
