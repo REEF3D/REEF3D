@@ -221,6 +221,9 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     }
     
     count=0;
+    
+    if(p->F80==4)
+    {
     LOOP
     {
         dg = distgen(p);
@@ -251,6 +254,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
             ++count;
             }
 		}
+    }
     }
     count=0;
     LOOP

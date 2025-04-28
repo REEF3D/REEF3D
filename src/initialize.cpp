@@ -24,12 +24,10 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
-#include"reini_RK3.h"
 
 
 initialize::initialize(lexer* p):smallnum(1.0e-20)
 {
-    preini=new reini_RK3(p,1);
 }
 
 initialize::~initialize()
@@ -103,7 +101,7 @@ void initialize::inifdm(fdm* a, lexer* p, ghostcell* pgc)
 		a->visc(i,j,k)=p->W2;
 		a->eddyv(i,j,k)=0.0;
 		a->phi(i,j,k)=1.0;
-        a->vof(i,j,k)=0.0;
+        a->vof(i,j,k)=1.0;
 
 		a->conc(i,j,k)=0.0;
 	}

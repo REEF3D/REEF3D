@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"linear_regression_cont.h"
 
 iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interface(p,pgc),flowfile_in(p,pgc),epsi(3.0*p->DXM),psi(0.6*p->DXM), 
-                                          eta(p),relax1_wg(p),relax1_nb(p),relax2_wg(p),relax2_nb(p),relax4_wg(p),relax4_nb(p)
+                                          eta(p),relax1_wg(p),relax1_nb(p),relax2_wg(p),relax2_nb(p),relax4_wg(p),relax4_nb(p),vofheight(p)
 {
     pBC = ppBC;
     

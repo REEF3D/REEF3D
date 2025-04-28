@@ -250,7 +250,7 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
     starttime=pgc->timer();
     
     count=0;
-    FLUIDLOOP
+    LOOP
     {
         dg = distgen(p);    
         db = distbeach(p);
@@ -286,9 +286,16 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
 
 void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
 {
-    
+    double localheight=0.0;
     starttime=pgc->timer();
-    
+    SLICELOOP4
+    {
+        vofheight(i,j)=0.0;
+        KLOOP
+        {
+            vofheight(i,j)+=f(i,j,k)*p->DZN[KP];
+        }
+    }
     count=0;
     LOOP
     {
@@ -309,7 +316,14 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
             // Zone 1
             if(dg<1.0e20)
             {
-            f(i,j,k) = (1.0-relax4_wg(i,j))*ramp(p) * vofval[count] + relax4_wg(i,j)*f(i,j,k);
+            localheight = (1.0-relax4_wg(i,j))*ramp(p) * (eta(i,j)+p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+            if(p->pos_z()+0.5*p->DZN[KP]<=localheight)
+                f(i,j,k)=1.0;
+            else if(p->pos_z()-0.5*p->DZN[KP]>=localheight)
+                f(i,j,k)=0.0;
+            else
+                f(i,j,k)=(localheight-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+                
             ++count;
             }
         }
@@ -319,9 +333,18 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
         {
             // Zone 2
             if(db<1.0e20)
-            f(i,j,k) = (1.0-relax4_nb(i,j)) * (p->phimean-p->pos_z()) + relax4_nb(i,j)*f(i,j,k);
+            {
+                localheight = (1.0-relax4_wg(i,j))*ramp(p) * (p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+            if(p->pos_z()+0.5*p->DZN[KP]<=localheight)
+                f(i,j,k)=1.0;
+            else if(p->pos_z()-0.5*p->DZN[KP]>=localheight)
+                f(i,j,k)=0.0;
+            else
+                f(i,j,k)=(localheight-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+            }
         }
     }
+    
     
     p->wavecalctime+=pgc->timer()-starttime;
     /*

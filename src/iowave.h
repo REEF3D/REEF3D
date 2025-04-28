@@ -252,6 +252,7 @@ private:
     
     //PLIC
     double V0Calc_PLIC(lexer*, fdm*, double, double, double, double);
+    slice4 vofheight;
     
 
     int n,count;

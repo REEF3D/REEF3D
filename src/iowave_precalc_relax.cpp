@@ -154,7 +154,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     }	
 
     count=0;
-    FLUIDLOOP
+    LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -176,6 +176,8 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     
     count=0;
     if(p->F80==4)
+    {
+    
     FLUIDLOOP
     {
         xg = xgen(p);
@@ -189,21 +191,11 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
-                
-            if(eta(i,j)+p->phimean>=p->pos_z()+0.5*p->DZN[KP])
-                vofval[count]=1.0;
-            else if(eta(i,j)+p->phimean<=p->pos_z()-0.5*p->DZN[KP])
-                vofval[count]=0.0;
-            else
-            {
-                vofval[count]=(eta(i,j)+p->phimean - p->pos_z()-0.5*p->DZN[KP])/p->DZN[KP];
-                if(vofval[count]>1.0 || vofval[count]<0.0)
-                    cout<<"relax vof error, vof:"<<vofval[count]<<endl;
-            }
-            
+                vofval[count]=eta(i,j);
             ++count;
             }
 		}
+    }
     }
     
     count=0;
