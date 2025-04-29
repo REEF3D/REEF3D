@@ -42,10 +42,10 @@ private:
     double aij_flux(lexer*, fdm2D*, slice&, int, slice&, slice&);
     double aij_hj(lexer*, fdm2D*, slice&, int, slice&, slice&);
 
-	double fx_flux(lexer*, fdm2D*, slice&, int, double) override;
-	double fy_flux(lexer*, fdm2D*, slice&, int, double) override;
-    double fx_hj(lexer*, fdm2D*, slice&, int, double) override;
-	double fy_hj(lexer*, fdm2D*, slice&, int, double) override;
+	double fx_flux(lexer*, fdm2D*, slice&, int, double);
+	double fy_flux(lexer*, fdm2D*, slice&, int, double);
+    double fx_hj(lexer*, fdm2D*, slice&, int, double);
+	double fy_hj(lexer*, fdm2D*, slice&, int, double);
     
 	void iqmin_flux(lexer*, fdm2D*, slice&, int);
 	void jqmin_flux(lexer*, fdm2D*, slice&, int);

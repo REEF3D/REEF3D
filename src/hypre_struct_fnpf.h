@@ -47,7 +47,7 @@ public:
     
     void start_solver8(lexer*, ghostcell*, double*, double*, double*);
     
-    void solve(lexer*,ghostcell*) override;
+    void solve(lexer*,ghostcell*);
     
     void make_grid(lexer*, ghostcell*);
     void make_grid_2Dvert(lexer*, ghostcell*);
@@ -56,7 +56,7 @@ public:
     void fill_matrix8_2Dvert(lexer*, ghostcell*, double*, double*, double*);
 
 
-    void fillbackvec8(lexer*,double*,double*,double*) override;
+    void fillbackvec8(lexer*,double*,double*,double*);
 	
 
     void create_solver5(lexer*,ghostcell*);

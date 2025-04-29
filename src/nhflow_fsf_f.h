@@ -55,7 +55,7 @@ public:
     void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&) override;
     void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*) override;
     
-    void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double) override;
+    void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double);
     
     void ucorr(lexer*, fdm_nhf*, double*, slice&, double) override;
     void vcorr(lexer*, fdm_nhf*, double*, slice&, double) override;

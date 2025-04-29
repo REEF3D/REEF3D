@@ -42,12 +42,12 @@ public:
 	directreini(lexer* p, fdm *a);
 	virtual ~directreini();
 	void start(fdm*,lexer*,field&, ghostcell*,ioflow*) override;
-    void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*) override;
+    void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 	
-	void vtp(lexer*,fdm*,ghostcell*) override;
-	void name_iter(lexer*,fdm*,ghostcell*) override;
-	void pvtp(lexer*,fdm*,ghostcell*) override;
-	void piecename(lexer*,fdm*,ghostcell*,int) override;
+	void vtp(lexer*,fdm*,ghostcell*);
+	void name_iter(lexer*,fdm*,ghostcell*);
+	void pvtp(lexer*,fdm*,ghostcell*);
+	void piecename(lexer*,fdm*,ghostcell*,int);
 
 	double dstx, dsty, dstz, dnorm, sign;
 	double sx,sy,sz,snorm,op;

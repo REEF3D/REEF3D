@@ -39,7 +39,7 @@ public:
 	void ttimesave(lexer*, fdm*) override;
 
 	void print_3D(lexer*, fdm*, ghostcell*,ofstream&) override;
-    void concentration_ini(lexer*, fdm*, ghostcell*,concentration*) override;
+    void concentration_ini(lexer*, fdm*, ghostcell*,concentration*);
     double val(int,int,int) override;
 
     void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&) override;

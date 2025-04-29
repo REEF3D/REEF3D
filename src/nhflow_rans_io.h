@@ -41,8 +41,8 @@ public:
 
     void print_3D(lexer*, fdm_nhf*, ghostcell*,ofstream&) override;
     void ini(lexer*, fdm_nhf*, ghostcell*) override;
-    void plain_wallfunc(lexer*, fdm_nhf*, ghostcell*) override;
-    void inflow(lexer*, fdm_nhf*, ghostcell*) override;
+    void plain_wallfunc(lexer*, fdm_nhf*, ghostcell*);
+    void inflow(lexer*, fdm_nhf*, ghostcell*);
     double kinval(int,int,int) override;
     double epsval(int,int,int) override;
 	void gcupdate(lexer*, fdm_nhf*, ghostcell*) override;
