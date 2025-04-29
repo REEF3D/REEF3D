@@ -44,17 +44,17 @@ public:
     void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
 	void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*) override;
 	void discharge(lexer*,fdm*,ghostcell*) override;
-	void Qin(lexer*,fdm*,ghostcell*) override;
-	void Qout(lexer*,fdm*,ghostcell*) override;
+	void Qin(lexer*,fdm*,ghostcell*);
+	void Qout(lexer*,fdm*,ghostcell*);
 	void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
 	void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
 	void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void inflow_log(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    void outflow_log(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
-    void outflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
-    void outflow_water(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
-    void outflow_corresponding(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
-    void inflow_water(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
+    void outflow_log(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void outflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void outflow_water(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void outflow_corresponding(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void inflow_water(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	void fsfinflow(lexer*,fdm*,ghostcell*) override;
 	void fsfrkin(lexer*,fdm*,ghostcell*,field&) override;
 	void fsfrkout(lexer*,fdm*,ghostcell*,field&) override;
@@ -105,8 +105,8 @@ public:
     void jsource2D(lexer*,fdm2D*,ghostcell*) override;
 	void full_initialize2D(lexer*,fdm2D*,ghostcell*) override;
     
-    void Qin_nhf(lexer*,fdm_nhf*,ghostcell*) override;
-	void Qout_nhf(lexer*,fdm_nhf*,ghostcell*) override;
+    void Qin_nhf(lexer*,fdm_nhf*,ghostcell*);
+	void Qout_nhf(lexer*,fdm_nhf*,ghostcell*);
     
     double wave_fsf(lexer*,ghostcell*,double) override;
     double wave_xvel(lexer*,ghostcell*,double,double,double) override;

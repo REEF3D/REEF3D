@@ -43,8 +43,8 @@ private:
     
     double aij_fou(lexer*, fdm2D*, slice&, int, slice&, slice&);
 
-	double fx(lexer*, fdm2D*, slice&, int, double) override;
-	double fy(lexer*, fdm2D*, slice&, int, double) override;
+	double fx(lexer*, fdm2D*, slice&, int, double);
+	double fy(lexer*, fdm2D*, slice&, int, double);
 	void iqmin(lexer*, fdm2D*, slice&, int);
 	void jqmin(lexer*, fdm2D*, slice&, int);
 	void iqmax(lexer*, fdm2D*, slice&, int);

@@ -52,7 +52,7 @@ public:
 	void fsfinflow(lexer*,fdm*,ghostcell*) override;
 	void discharge(lexer*,fdm*,ghostcell*) override;
 	void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
-    void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
+    void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
 	void fsfrkin(lexer*,fdm*,ghostcell*,field&) override;
 	void fsfrkout(lexer*,fdm*,ghostcell*,field&) override;
@@ -63,8 +63,8 @@ public:
     void pressure_io(lexer*,fdm*,ghostcell*) override;
     void turbulence_io(lexer*,fdm*,ghostcell*) override;
     void veltimesave(lexer*,fdm*,ghostcell*,vrans*) override;
-    void Qin(lexer*,fdm*,ghostcell*) override;
-	void Qout(lexer*,fdm*,ghostcell*) override;
+    void Qin(lexer*,fdm*,ghostcell*);
+	void Qout(lexer*,fdm*,ghostcell*);
     
     void flowfile(lexer*,fdm*,ghostcell*,turbulence*) override;
     
@@ -129,12 +129,12 @@ public:
     double wave_zvel(lexer*,ghostcell*,double,double,double) override;
     
 	int iozonecheck(lexer*,fdm*) override;
-	void full_initialize(lexer*,fdm*,ghostcell*) override;
+	void full_initialize(lexer*,fdm*,ghostcell*);
     void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     void full_initialize_ptf(lexer*,fdm*,ghostcell*);
-	void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
-	void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
-	void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
+	void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
+	void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
+	void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
     void ini(lexer*,fdm*,ghostcell*) override;
     void ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override;

@@ -37,9 +37,9 @@ class print_porous :  public increment
 public:
 	print_porous(lexer*,fdm*,ghostcell*);
 	virtual ~print_porous();
-	void start(lexer*,fdm*,ghostcell*) override;
-    void print_vtp(lexer*,fdm*,ghostcell*) override;
-	void objects(lexer*,fdm*,ghostcell*) override;
+	void start(lexer*,fdm*,ghostcell*);
+    void print_vtp(lexer*,fdm*,ghostcell*);
+	void objects(lexer*,fdm*,ghostcell*);
 	
     void box(lexer*,fdm*,ghostcell*,int);
     void cylinder_z(lexer*,fdm*,ghostcell*,int);
