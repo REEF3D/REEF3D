@@ -39,7 +39,7 @@ class fsf_vtp :  public increment
 public:
 	fsf_vtp(lexer*,fdm*,ghostcell*);
 	virtual ~fsf_vtp();
-	virtual void start(lexer*,fdm*,ghostcell*);
+	void start(lexer*,fdm*,ghostcell*) override;
 
 private:
 	void triangulation(lexer*, fdm*, ghostcell*, field&);

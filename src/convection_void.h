@@ -36,7 +36,7 @@ public:
 	convection_void (lexer *);
 	virtual ~convection_void();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
 

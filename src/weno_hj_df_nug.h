@@ -36,14 +36,14 @@ public:
 	weno_hj_df_nug(lexer*);
 	virtual ~weno_hj_df_nug();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
 
-	virtual double fx(lexer*, fdm*, field&, field&, int, double);
-	virtual double fy(lexer*, fdm*, field&, field&, int, double);
-	virtual double fz(lexer*, fdm*, field&, field&, int, double);
+	double fx(lexer*, fdm*, field&, field&, int, double) override;
+	double fy(lexer*, fdm*, field&, field&, int, double) override;
+	double fz(lexer*, fdm*, field&, field&, int, double) override;
     
     void iqmin_0(lexer*, fdm*, field&, field&, int);
 	void jqmin_0(lexer*, fdm*, field&, field&, int);

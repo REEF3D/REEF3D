@@ -32,9 +32,9 @@ class nhflow_LES_Smagorinsky : public nhflow_les_io
 public:
 	nhflow_LES_Smagorinsky(lexer *, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_LES_Smagorinsky();
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*);
-	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*);
+	void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*) override;
+	void ktimesave(lexer*, fdm_nhf*, ghostcell*) override;
+	void etimesave(lexer*, fdm_nhf*, ghostcell*) override;
 	void timesource(lexer*,fdm_nhf*,double*);
     void kinupdate(lexer*, fdm_nhf*, ghostcell*);
 	void clearrhs(lexer*,fdm_nhf*);

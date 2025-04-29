@@ -38,8 +38,8 @@ public:
     sflow_fluxlim_vanleer (lexer *);
 	virtual ~sflow_fluxlim_vanleer();
 
-	virtual double iphi(slice&,int,int,int,int);
-	virtual double jphi(slice&,int,int,int,int);
+	double iphi(slice&,int,int,int,int) override;
+	double jphi(slice&,int,int,int,int) override;
     
 private:
     double r, phi,denom;

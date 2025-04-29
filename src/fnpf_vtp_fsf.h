@@ -38,8 +38,8 @@ public:
 	fnpf_vtp_fsf(lexer*,fdm_fnpf*,ghostcell*);
 	virtual ~fnpf_vtp_fsf();
 	
-    virtual void start(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void print2D(lexer*,fdm_fnpf*,ghostcell*);
+    void start(lexer*,fdm_fnpf*,ghostcell*) override;
+    void print2D(lexer*,fdm_fnpf*,ghostcell*) override;
 	
 private:
 	

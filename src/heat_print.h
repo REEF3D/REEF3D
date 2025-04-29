@@ -41,13 +41,13 @@ public:
     heat_print(lexer*,fdm*);
 	virtual ~heat_print();
 
-    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void heat_ini(lexer*, fdm*, ghostcell*, heat*);
-    virtual double val(int,int,int);
+    void print_3D(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void heat_ini(lexer*, fdm*, ghostcell*, heat*) override;
+    double val(int,int,int) override;
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
+    void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
 
     field4 T;
 	fluid_update *pupdate;

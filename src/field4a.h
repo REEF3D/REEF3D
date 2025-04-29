@@ -37,8 +37,8 @@ public:
 
     double& operator()(int, int , int);
 	double& operator[](int);
-    virtual void resize(lexer*);
-    virtual void dealloc(lexer*);
+    void resize(lexer*) override;
+    void dealloc(lexer*) override;
 
     void gcdebug(lexer*);
 

@@ -37,7 +37,7 @@ class reini_walld : public reini, gradient
 public:
 	reini_walld(lexer* p, fdm *a);
 	virtual ~reini_walld();
-	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*);
+	void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override;
 
     field4 dab;
 	reinidisc *prdisc;

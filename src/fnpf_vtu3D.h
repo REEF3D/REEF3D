@@ -52,9 +52,9 @@ class fnpf_vtu3D : public fnpf_printer, public increment
 public:
 	fnpf_vtu3D(lexer*,fdm_fnpf*,ghostcell*);
 	virtual ~fnpf_vtu3D();
-	virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
-    virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
+	void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override;
+    void print_stop(lexer*,fdm_fnpf*,ghostcell*) override;
+    void print_vtu(lexer*,fdm_fnpf*,ghostcell*) override;
     
 private:
     void pvtu(lexer*,ghostcell*);

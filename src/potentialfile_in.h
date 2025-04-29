@@ -42,10 +42,10 @@ public:
 	potentialfile_in(lexer*,ghostcell*);
 	virtual ~potentialfile_in();
     
-    virtual void flowfile_start(lexer*,fdm*,ghostcell*,turbulence*);
-    virtual void ff_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void flowfile_start(lexer*,fdm*,ghostcell*,turbulence*) override;
+    void ff_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
 
-    virtual void ff_waterlevel(lexer*,fdm*,ghostcell*,field&);
+    void ff_waterlevel(lexer*,fdm*,ghostcell*,field&) override;
 
 private:
      void filename(lexer*,fdm*,ghostcell*,char*,int);

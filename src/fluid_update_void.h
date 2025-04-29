@@ -38,7 +38,7 @@ public:
     fluid_update_void();
 	virtual ~fluid_update_void();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+	void start(lexer*, fdm*, ghostcell*) override;
 };
 
 #endif

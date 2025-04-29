@@ -39,28 +39,28 @@ public:
     nhflow_fsf_f(lexer*, fdm_nhf*, ghostcell*,ioflow*,patchBC_interface*);
 	virtual ~nhflow_fsf_f();
     
-    virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*);
-    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*);
+    void start(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
+    void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*) override;
     
-    virtual void rk2_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
-    virtual void rk2_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
+    void rk2_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
+    void rk2_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
     
-    virtual void rk3_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
-    virtual void rk3_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
-    virtual void rk3_step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
+    void rk3_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
+    void rk3_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
+    void rk3_step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
 
-    virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&);
-    virtual void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*);
+    void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&) override;
+    void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*) override;
     
-    virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
-    virtual void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*);
+    void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&) override;
+    void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*) override;
     
-    virtual void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double);
+    void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double) override;
     
-    virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double);
-    virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double);
+    void ucorr(lexer*, fdm_nhf*, double*, slice&, double) override;
+    void vcorr(lexer*, fdm_nhf*, double*, slice&, double) override;
     
-    virtual void depth_update(lexer*, fdm_nhf*, ghostcell*, ioflow*);
+    void depth_update(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
     
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     
