@@ -39,7 +39,7 @@ public:
 
     int& operator()(int, int , int);
     
-    virtual void resize(lexer*);
+    void resize(lexer*) override;
 
 private:
 

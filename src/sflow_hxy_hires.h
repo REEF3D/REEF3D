@@ -39,7 +39,7 @@ public:
 	sflow_hxy_hires(lexer*,patchBC_interface*,int);
 	virtual ~sflow_hxy_hires();
 
-	virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&);
+	void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override;
 	
 private:
     double fx(lexer*, slice&, int, double);

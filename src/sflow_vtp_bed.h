@@ -39,7 +39,7 @@ public:
 	sflow_vtp_bed(lexer*,fdm2D*);
 	virtual ~sflow_vtp_bed();
 	
-    virtual void start(lexer*,fdm2D*,ghostcell*,sediment*);
+    void start(lexer*,fdm2D*,ghostcell*,sediment*);
 	
 private:
 	void print2D(lexer*,fdm2D*,ghostcell*,sediment*);

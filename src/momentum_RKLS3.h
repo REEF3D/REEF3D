@@ -54,8 +54,8 @@ public:
 
 	momentum_RKLS3(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RKLS3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
-    
+	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&) override;
+
 private:
 
     void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);

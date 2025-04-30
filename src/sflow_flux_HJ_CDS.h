@@ -37,8 +37,8 @@ public:
 	sflow_flux_HJ_CDS (lexer *p);
 	virtual ~sflow_flux_HJ_CDS();
 
-	virtual void u_flux(int,slice&,double&,double&);
-	virtual void v_flux(int,slice&,double&,double&);
+	void u_flux(int,slice&,double&,double&) override;
+	void v_flux(int,slice&,double&,double&) override;
 
 private:
     lexer *p;

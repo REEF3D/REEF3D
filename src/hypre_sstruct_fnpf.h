@@ -44,13 +44,13 @@ public:
 	hypre_sstruct_fnpf(lexer*,ghostcell*,int,int);
 	virtual ~hypre_sstruct_fnpf();
 
-    virtual void start(lexer*, ghostcell*, double*, double*, double*, int);
-    virtual void startF(lexer*, ghostcell*, double*, double*, double*, int);
+    void start(lexer*, ghostcell*, double*, double*, double*, int);
+    void startF(lexer*, ghostcell*, double*, double*, double*, int) override;
     
     void start_solver5(lexer*, ghostcell*, double*, double*, double*);
     void start_solver8(lexer*, ghostcell*, double*, double*, double*);
     
-    virtual void solve(lexer*,ghostcell*);
+    void solve(lexer*,ghostcell*);
     
     void make_grid(lexer*, ghostcell*);
     void make_grid_2Dvert(lexer*, ghostcell*);
@@ -59,7 +59,7 @@ public:
     void fill_matrix8_2Dvert(lexer*, ghostcell*, double*, double*, double*);
 
 
-    virtual void fillbackvec8(lexer*,double*,double*,double*);
+    void fillbackvec8(lexer*,double*,double*,double*);
 	
 
     void create_solver5(lexer*,ghostcell*);
