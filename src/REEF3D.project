@@ -1247,6 +1247,7 @@
           <File Name="sflow_maxcoor.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="sflow_eta_deep.cpp"/>
           <File Name="sflow_eta_wetdry_nb.cpp"/>
           <File Name="sflow_eta_wetdry.cpp"/>
           <File Name="sflow_eta_breaking.cpp"/>
