@@ -43,7 +43,7 @@ void lexer::ini_default()
     A223=0.5;    // double blending factor hydrostatic pressure gradient
     A230=0;      // int turn on Boussinesq wave model
     A240=1;      // int FSF algorithm SFLOW
-    A241=1;          // int discretization of water level SFLOW
+    A241=0;          // int
     A242=0;          // int non-hydostatic pressure for shallow areas
     A243=1;      // int turn on wetting-drying
     A244=0.001; // double absolute wetting criterion value
