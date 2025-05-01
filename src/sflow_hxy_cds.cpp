@@ -24,21 +24,14 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"slice.h"
-#include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
-#include"sflow_flux_HJ_CDS.h"
 #include"patchBC_interface.h"
 
 sflow_hxy_cds::sflow_hxy_cds(lexer* p, patchBC_interface *ppBC)  
 {
     pBC = ppBC;
     
-    if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
     pflux = new sflow_flux_face_CDS(p);
-    
 }
 
 sflow_hxy_cds::~sflow_hxy_cds()

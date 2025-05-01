@@ -23,8 +23,6 @@ Author: Hans Bihs
 #include"sflow_weno_hj.h"
 #include"lexer.h"
 #include"fdm2D.h"
-#include"sflow_flux_face_FOU.h"
-#include"sflow_flux_face_CDS.h"
 #include"sflow_flux_face_HJ.h"
 
 sflow_weno_hj::sflow_weno_hj(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),

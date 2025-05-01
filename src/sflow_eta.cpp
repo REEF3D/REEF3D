@@ -150,6 +150,7 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
     wetdry_nb(p,b,pgc,eta,P,Q,ws);
     
     // wetdeepdry
+    if(p->A221==0)
     wetdrydeep(p,b,pgc,eta,P,Q,ws);
 }
 	

@@ -26,10 +26,7 @@ Author: Hans Bihs
 #include"sflow_fluxlim_minmod.h"
 #include"sflow_fluxlim_vanleer.h"
 #include"sflow_fluxlim_smart.h"
-#include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
-#include"sflow_flux_face_HJ.h"
-#include"sflow_flux_HJ_CDS.h"
 #include"patchBC_interface.h"
 
 sflow_hxy_hires::sflow_hxy_hires (lexer* p, patchBC_interface *ppBC, int limiter)
@@ -45,15 +42,7 @@ sflow_hxy_hires::sflow_hxy_hires (lexer* p, patchBC_interface *ppBC, int limiter
     if(limiter==8)
 	plim = new sflow_fluxlim_smart(p);
 	
-    if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
     pflux = new sflow_flux_face_CDS(p);
-    
-    if(p->A216==4)
-    pflux = new sflow_flux_face_HJ(p);
-        
 }
 
 sflow_hxy_hires::~sflow_hxy_hires()
