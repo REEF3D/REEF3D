@@ -45,7 +45,7 @@ void lexer::ini_default()
     A240=1;      // int FSF algorithm SFLOW
     A241=0;          // int
     A242=0;          // int non-hydostatic pressure for shallow areas
-    A243=1;      // int turn on wetting-drying
+    A243=2;      // int turn on wetting-drying
     A244=0.001; // double absolute wetting criterion value
     A246=1;      // int turn on breaking
     A247=0.6;    // double breaking parameter alpha
