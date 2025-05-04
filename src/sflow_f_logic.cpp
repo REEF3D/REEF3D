@@ -49,8 +49,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A211==5)
     pconvec = new sflow_weno_hj(p);
         
-    if(p->A211==9)
-    pconvec = new sflow_weno_blend(p);
          
     // filter
     pfilter = new sflow_filter(p);

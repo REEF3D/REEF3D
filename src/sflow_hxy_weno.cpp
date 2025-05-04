@@ -24,9 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"slice.h"
-#include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
-#include"sflow_flux_face_HJ.h"
 #include"patchBC_interface.h"
 
 sflow_hxy_weno::sflow_hxy_weno(lexer* p, patchBC_interface *ppBC) :tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
@@ -35,14 +33,7 @@ sflow_hxy_weno::sflow_hxy_weno(lexer* p, patchBC_interface *ppBC) :tttw(13.0/12.
 {
     pBC = ppBC;
     
-    if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
     pflux = new sflow_flux_face_CDS(p);
-    
-    if(p->A216==4)
-    pflux = new sflow_flux_face_HJ(p);
 }
 
 sflow_hxy_weno::~sflow_hxy_weno()

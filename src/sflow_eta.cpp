@@ -55,17 +55,7 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
 
-	if(p->A241==1)
 	phxy = new sflow_hxy_fou(p,pBC);
-	
-	if(p->A241==2)
-	phxy = new sflow_hxy_cds(p,pBC);
-	
-	if(p->A241==4)
-	phxy = new sflow_hxy_weno(p,pBC);
-    
-    if(p->A241>=6)
-	phxy = new sflow_hxy_hires(p,pBC,p->A241);
     
     wd_criterion=p->A244;
     
@@ -148,6 +138,10 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &P, slic
 
     if(p->A243==2)
     wetdry_nb(p,b,pgc,eta,P,Q,ws);
+    
+    // wetdeepdry
+    if(p->A221==0)
+    wetdrydeep(p,b,pgc,eta,P,Q,ws);
 }
 	
 void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)

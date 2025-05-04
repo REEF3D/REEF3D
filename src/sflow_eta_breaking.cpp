@@ -157,7 +157,20 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
         b->breaking(i,j-1)=1;
         b->breaking(i,j+1)=1;  
         }
-        
+    }
+    
+    if(p->X10>0 && p->A220>0 && p->A246>0)
+    SLICELOOP4
+    {
+        if(b->fs(i,j)<p->X41*p->DXM)
+        {
+        b->breaking(i-1,j)=1;
+        b->breaking(i,j)=1;
+        b->breaking(i+1,j)=1;
+            
+        b->breaking(i,j-1)=1;
+        b->breaking(i,j+1)=1;  
+        }
     }
     
     pgc->gcsl_start4int(p,b->breaking,1);
