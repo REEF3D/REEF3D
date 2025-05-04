@@ -137,7 +137,7 @@ void lexer::ini_default()
     A568=0;      // int 
     A569=0;      // int 
     
-    A570=0;      // int wind modle
+    A570=0;      // int wind model
     A571_u=0.0;  // double wind velocity
     A571_dir=0.0;  // double wind direction
     A573=1;      // int wind forcing region
