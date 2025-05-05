@@ -1421,12 +1421,12 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if(fabs(nz_Cz)>=fabs(nx_Cx))
+    if((fabs(nz_Cz)>=fabs(nx_Cx) || (nx_Cx!=nx_Cx)) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
         
-        if(fabs(nz_CC)<fabs(nz_CY) || (nz_CY!=nz_CY))
+        if((fabs(nz_CC)<fabs(nz_CY)) || (nz_CY!=nz_CY))
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
@@ -1451,7 +1451,7 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
                 cout<<"NAN nz_CY"<<endl;
         }
     }
-    else
+    else if(nx_Cx==nx_Cx)
     {
         nx_CC=nx_Cx;
         nz_CC=nz_Cx;
@@ -1480,6 +1480,13 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
             if(nz(i,j,k)!=nz(i,j,k))
                 cout<<"NAN nz_CY"<<endl;
         }
+    }
+    else
+    {
+        cout<<"All normal options NAN!";
+        nx(i,j,k)=0.0;
+        ny(i,j,k)=0.0;
+        nz(i,j,k)=1.0;
     }
     
 

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#include"momentum_FC3_PLIC.h"
+#include"momentum_RK3_PLIC.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -44,33 +44,18 @@ Author: Fabian Knoblauch
 #include"density_vof.h"
 #include"VOF_PLIC.h"
 
-momentum_FC3_PLIC::momentum_FC3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_RK3_PLIC::momentum_RK3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
-                                                    heat *&pheat, concentration *&pconc, reini *ppreini,
+                                                    heat *&pheat, concentration *&pconc,
                                                     fsi *ppfsi)
                                                     :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p),
-                                                    VoF(p),vof_rk1(p),vof_rk2(p),fx(p),fy(p),fz(p)
+                                                    fx(p),fy(p),fz(p)
                                                     
 {
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
-    gcval_ro=1;
-    gcval_visc=1;
-    gcval_vof=1;
     
-    if(p->F50==1)
-	gcval_phi=51;
-
-	if(p->F50==2)
-	gcval_phi=52;
-
-	if(p->F50==3)
-	gcval_phi=53;
-
-	if(p->F50==4)
-	gcval_phi=54;
-
 	pconvec=pconvection;
 	pdiff=pdiffusion;
 	ppress=ppressure;
@@ -79,28 +64,15 @@ momentum_FC3_PLIC::momentum_FC3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convectio
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
-    preini=ppreini;
     pfsi=ppfsi;
-    pplic= new VOF_PLIC(p,a,pgc,pheat);
-    pupdate = new fluid_update_vof(p,a,pgc);
-	pd = new density_vof(p);
-    
-	if(p->F46==2)
-	ppicard = new picard_f(p);
-
-	if(p->F46==3)
-	ppicard = new picard_lsm(p);
-
-	if(p->F46!=2 && p->F46!=3)
-	ppicard = new picard_void(p);
-    
+    pplic=new VOF_PLIC(p,a,pgc,pheat);
 }
 
-momentum_FC3_PLIC::~momentum_FC3_PLIC()
+momentum_RK3_PLIC::~momentum_RK3_PLIC()
 {
 }
 
-void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, vector<net*>& pnet)
+void momentum_RK3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, vector<net*>& pnet)
 {	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -110,50 +82,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 //********************************************************
 //Step 1
 //********************************************************
-    // get vectorized face density from density_f
-    
-    //-------------------------------------------
-    // FSF
-    LOOP
-    {
-	a->L(i,j,k)=0.0;
-    VoF(i,j,k)=a->vof(i,j,k);
-    }
-
-	pplic->RKcalcL(a,p,pgc,a->u,a->v,a->w);
-	
-	LOOP
-    {
-        vof_rk1(i,j,k) = VoF(i,j,k) + a->L(i,j,k);
-        
-        if(vof_rk1(i,j,k)<0.0)
-            vof_rk1(i,j,k)=0.0;
-        if(vof_rk1(i,j,k)>1.0)
-            vof_rk1(i,j,k)=1.0;
-    }
-    
-     pgc->start4(p,vof_rk1,gcval_vof);
-	pflow->vof_relax(p,a,pgc,vof_rk1);
-	pgc->start4(p,vof_rk1,gcval_vof);
-    
-    LOOP
-    {
-     a->vof(i,j,k) = vof_rk1(i,j,k);
-     a->L(i,j,k)=0.0;
-    }
-    pgc->start4(p,a->vof,gcval_vof); 
-    
-    //!no update yet -> update after diffusion!
-    
-    if(p->F92==1)
-    {
-        pplic->RK_redistance(a,p,pgc);
-        pgc->start4(p,a->phi,gcval_phi);
-        
-        p->F44=3;
-        preini->start(a,p,a->phi, pgc, pflow);
-        ppicard->correct_ls(p,a,pgc,a->phi);
-    }
     
     //-------------------------------------------
     
@@ -241,13 +169,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     pgc->start3(p,wrk1,gcval_w);
     clear_FGH(p,a);
     
-    //update rho(vof) after diffusion but before pressure
-    if(p->F92==3)
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
@@ -264,59 +185,11 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	pgc->start3(p,wrk1,gcval_w);
     
     clear_FGH(p,a);
-    
-    pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk1);
-    LOOP
-        a->vof(i,j,k)=vof_rk1(i,j,k);
-    pgc->start4(p,a->vof,gcval_vof);
-    pgc->start4(p,vof_rk1,gcval_vof);
-    
-    if(p->F92==3)
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-
 	
 //********************************************************
 //Step 2
 //********************************************************
 
-    //-------------------------------------------
-    // FSF
-    
-    pplic->RKcalcL(a,p,pgc,urk1,vrk1,wrk1);
-	
-	LOOP
-    {
-        vof_rk2(i,j,k) = 0.75*VoF(i,j,k) + 0.25*vof_rk1(i,j,k)+0.25*a->L(i,j,k);
-        
-        if(vof_rk2(i,j,k)<0.0)
-            vof_rk2(i,j,k)=0.0;
-        if(vof_rk2(i,j,k)>1.0)
-            vof_rk2(i,j,k)=1.0;
-    }
-    
-	pflow->vof_relax(p,a,pgc,vof_rk2);
-    pgc->start4(p,vof_rk2,gcval_vof);
-    
-    LOOP
-    {
-        a->vof(i,j,k) = vof_rk2(i,j,k);
-        a->L(i,j,k)=0.0;
-    }
-    pgc->start4(p,a->vof,gcval_vof);
-    
-     if(p->F92==1)
-    {
-        pplic->RK_redistance(a,p,pgc);
-        pgc->start4(p,a->phi,gcval_phi);
-        
-        p->F44=3;
-        preini->start(a,p,a->phi, pgc, pflow);
-        ppicard->correct_ls(p,a,pgc,a->phi);
-    }
-    
     // advect U
     pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
     pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
@@ -395,12 +268,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     pgc->start3(p,wrk2,gcval_w);
     clear_FGH(p,a);
     
-    if(p->F92==3)
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
@@ -416,55 +283,10 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	pgc->start2(p,vrk2,gcval_v);
 	pgc->start3(p,wrk2,gcval_w);
     clear_FGH(p,a);
-    
-    pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
-    LOOP
-        a->vof(i,j,k)=vof_rk2(i,j,k);
-    pgc->start4(p,a->vof,gcval_vof);
-    pgc->start4(p,vof_rk1,gcval_vof);
-    
-    if(p->F92==3)
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
 
 //********************************************************
 //Step 3
 //********************************************************
-    //-------------------------------------------
-    // FSF
-    
-    pplic->RKcalcL(a,p,pgc,urk2,vrk2,wrk2);
-	
-	LOOP
-    {
-        a->vof(i,j,k) = (1.0/3.0)*VoF(i,j,k)
-                            + (2.0/3.0)*vof_rk2(i,j,k)
-                            + (2.0/3.0)*a->L(i,j,k);
-        
-        if(a->vof(i,j,k)<0.0)
-            a->vof(i,j,k)=0.0;
-        if(a->vof(i,j,k)>1.0)
-            a->vof(i,j,k)=1.0;
-    }
-    
-    pflow->vof_relax(p,a,pgc,a->vof);
-    pgc->start4(p,a->vof,gcval_vof);
-    
-    LOOP
-        a->L(i,j,k)=0.0;
-    
-    if(p->F92==1)
-    {
-        pplic->RK_redistance(a,p,pgc);
-        pgc->start4(p,a->phi,gcval_phi);
-        
-        p->F44=4;
-        preini->start(a,p,a->phi, pgc, pflow);
-        ppicard->correct_ls(p,a,pgc,a->phi);
-    }
     
     //-------------------------------------------
     pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
@@ -544,12 +366,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	pgc->start3(p,a->w,gcval_w);
     clear_FGH(p,a);
     
-    if(p->F92==3)
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
@@ -566,36 +382,9 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	pgc->start3(p,a->w,gcval_w);
     clear_FGH(p,a);
     
-    pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
-    pgc->start4(p,a->vof,gcval_vof);
-    
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
-    LOOP
-    {
-        if(a->vof(i,j,k)>p->F94)
-            a->phi(i,j,k)=1.0;
-        else if(a->vof(i,j,k)<p->F93)
-            a->phi(i,j,k)=-1.0;
-        else
-            a->phi(i,j,k)=(a->vof(i,j,k)-0.5)*p->DZN[KP];
-    }
-    pgc->start4(p,a->phi,1);
-    
-    
-    double vofchecksum;
-    vofchecksum=0.0;
-    LOOP
-        vofchecksum+=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-    vofchecksum=pgc->globalsum(vofchecksum);
-    cout<<"Total water volume:"<<vofchecksum<<endl;
-        
-    
 }
 
-void momentum_FC3_PLIC::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_RK3_PLIC::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	ULOOP
@@ -607,7 +396,7 @@ void momentum_FC3_PLIC::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
 	}
 }
 
-void momentum_FC3_PLIC::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_RK3_PLIC::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	VLOOP
@@ -619,7 +408,7 @@ void momentum_FC3_PLIC::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
 	}
 }
 
-void momentum_FC3_PLIC::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_RK3_PLIC::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	WLOOP
@@ -632,19 +421,8 @@ void momentum_FC3_PLIC::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
 }
 
 
-void momentum_FC3_PLIC::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
 
-void momentum_FC3_PLIC::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FC3_PLIC::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FC3_PLIC::clear_FGH(lexer *p, fdm *a)
+void momentum_RK3_PLIC::clear_FGH(lexer *p, fdm *a)
 {
     ULOOP
     a->F(i,j,k) = 0.0;

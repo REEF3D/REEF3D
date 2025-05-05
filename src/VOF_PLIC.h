@@ -33,7 +33,7 @@ Author: Tobias Martin, Fabian Knoblauch
 #include"field4.h"
 #include"interpolation.h"
 
-class picard;
+class picard_f;
 class heat;
 class fluid_update;
 
@@ -54,6 +54,8 @@ public:
     void updatePhasemarkersCorrection(lexer*,fdm*,ghostcell*,field&);
     void calculateSubFractions(lexer*,fdm*,ghostcell*,field&);
     void surface_tension2D(lexer*,fdm*,ghostcell*,int);
+    double return_alpha_reconstructPlane_alt(fdm*, lexer*,field&,int,int,int);
+    
 	
 private:	
     void iniphi(fdm*, lexer*,ghostcell*);
@@ -157,9 +159,13 @@ private:
     field4 phiaux;
     field4 curv;
     fluid_update *pupdate;
-    reini *reini_;
+    reini *preini;
     interpolation *ipol;
     field4 compressvol;
+    
+    field4 VoF,vof_rk1,vof_rk2;
+    int gcval_vof, gcval_ro, gcval_visc;
+    int gcval_phi;
 
 	int gcval_frac;
 	double starttime; 
@@ -188,6 +194,8 @@ private:
     
     int S_S[6][3];
     int S_2D[2][2];
+    
+    picard_f *ppicard;
     
 };
 #endif

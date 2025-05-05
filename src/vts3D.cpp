@@ -249,9 +249,12 @@ void vts3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	if(p->P50>0)
 	pwsf_theory->height_gauge(p,a,pgc,pflow,a->phi);
 
-	if(p->P51>0)
+	if(p->P51>0 && p->F80!=4)
 	pwsf->height_gauge(p,a,pgc,a->phi);
-
+    
+    if(p->P51>0 && p->F80==4)
+    pwsf->height_gauge(p,a,pgc,a->vof);
+  
 	if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
 	pwsfline_x->wsfline(p,a,pgc,pflow);
 

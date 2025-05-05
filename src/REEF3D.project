@@ -981,6 +981,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK3_PLIC.h"/>
       <File Name="momentum_FCC3_PLIC.h"/>
       <File Name="momentum_FC3_PLIC.h"/>
       <File Name="momentum_RK3CN.h"/>
@@ -2740,6 +2741,7 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK3_PLIC.cpp"/>
       <File Name="momentum_FCC3_PLIC.cpp"/>
       <File Name="momentum_FC3_PLIC.cpp"/>
       <File Name="momentum_RK3CN.cpp"/>
