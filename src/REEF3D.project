@@ -1311,6 +1311,9 @@
           <File Name="nhflow_forcing_solid.cpp"/>
           <File Name="nhflow_forcing_interface.cpp"/>
           <VirtualDirectory Name="Geometry">
+            <VirtualDirectory Name="Print VTP">
+              <File Name="nhflow_forcing_print_vtp.cpp"/>
+            </VirtualDirectory>
             <File Name="nhflow_forcing_rotation.cpp"/>
             <File Name="nhflow_jacketmember.cpp"/>
             <File Name="nhflow_forcing_sphere.cpp"/>
