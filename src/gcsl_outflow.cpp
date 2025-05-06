@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fdm.h"
+#include"fdm2D.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
@@ -40,8 +40,13 @@ void ghostcell::gcsl_outflow(lexer *p, slice& f, int gcv, int bc, int cs)
 	f(i,j-q-1)=f(i,j);
 
 	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j)=MAX(f(i,j),0.0);
+    {
+	f(i+1,j) = MAX(0.0, f(i,j));//MAX(0.0, f(i+1,j) - (p->dt/p->dx)*sqrt(9.81*b->hp(i,j))*(f(i+1,j)-f(i,j)));
+    
+    f(i+2,j) = f(i+1,j);
+    f(i+3,j) = f(i+1,j);
+    }
+    
 }
 
 void ghostcell::gcsl_outflow_fsf(lexer *p, slice& f, int gcv, int bc, int cs)
