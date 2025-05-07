@@ -43,6 +43,25 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 {	
     double ab,denom;
     
+    n=0;
+    BASELOOP
+    {
+    d->M.p[n]  =  1.0;
+
+        d->M.n[n] = 0.0;
+        d->M.s[n] = 0.0;
+
+        d->M.w[n] = 0.0;
+        d->M.e[n] = 0.0;
+        
+        d->M.t[n] = 0.0;
+        d->M.b[n] = 0.0;
+        
+        d->rhsvec.V[n] =  0.0;
+        
+    ++n;
+    }
+    
 	n=0;
     LOOP
 	{

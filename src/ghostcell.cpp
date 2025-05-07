@@ -36,7 +36,6 @@ ghostcell::ghostcell(int& argc, char **argv,lexer *pp):size(15),tag1(1),tag2(2),
     
     MPI_Comm_rank(MPI_COMM_WORLD,&p->mpirank);
 	MPI_Comm_size(MPI_COMM_WORLD,&p->mpi_size);	
-    rank=p->mpirank;
 	
 	mpi_comm = MPI_COMM_WORLD;
 }

@@ -63,8 +63,6 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
 
     starttime=pgc->timer();
 	
-	pgc->start49V(p,PSI,gcval_pot);
-	
 	LOOP
 	PSI[IJK] = 0.0;
     
@@ -274,8 +272,7 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	}
     
     
-  double denom,ab;  
-    
+    double denom,ab;  
     
     n=0;
 	LOOP
@@ -290,11 +287,11 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		}
         
         if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && BC[Im1JK]==1)
-		{
+        {
         d->rhsvec.V[n] += d->M.s[n]*p->Ui*p->DXP[IM1];
-		d->M.p[n] += d->M.s[n];
-		d->M.s[n] = 0.0;
-		}
+        d->M.p[n] += d->M.s[n];
+        d->M.s[n] = 0.0;
+        }
 		
 		if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0 || p->wet[Ip1J]==0) && BC[Ip1JK]==0)
 		{
@@ -303,11 +300,11 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		}
         
         if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && BC[Ip1JK]==2)
-		{
-         d->rhsvec.V[n] -= d->M.n[n]*p->Uo*p->DXP[IP1];
-         d->M.p[n] += d->M.n[n];
-		d->M.n[n] = 0.0;
-		}
+        {
+        d->rhsvec.V[n] -= d->M.n[n]*p->Uo*p->DXP[IP1];
+        d->M.p[n] += d->M.n[n];
+        d->M.n[n] = 0.0;
+        }
 		
 		if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0 || p->wet[IJm1]==0)
 		{
@@ -365,6 +362,29 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     
     
+    /*
+    count=0;
+    if(p->mpirank==2)
+	for(int q=0;q<p->gcpara4_count;++q)
+	{
+    i=p->gcpara4[q][0];
+    j=p->gcpara4[q][1];
+    k=p->gcpara4[q][2];
+        
+        cout<<"DF2: "<<p->DF[Ip1JK]<<" "<<p->DF[Ip2JK]<<endl;
+	}
+    
+    
+    count=0;
+    if(p->mpirank==3)
+	for(int q=0;q<p->gcpara1_count;++q)
+	{
+    i=p->gcpara1[q][0];
+    j=p->gcpara1[q][1];
+    k=p->gcpara1[q][2];
+        
+        cout<<"DF3: "<<p->DF[IJK]<<" "<<p->DF[Ip1JK]<<endl;
+	}*/
 }
 
 void nhflow_potential_f::ini_bc(lexer *p, fdm_nhf *d, ghostcell *pgc)

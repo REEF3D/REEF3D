@@ -35,7 +35,7 @@ void nhflow_forcing::print_vtp(lexer *p, ghostcell *pgc)
         
         mkdir("./REEF3D_NHFLOW_FORCING_VTP", 0777);
         
-        sprintf(path,"./REEF3D_NHFLOW_FORCING_VTP/REEF3D-FORCING.vtp");
+        sprintf(path,"./REEF3D_NHFLOW_FORCING_VTP/REEF3D-NHFLOW-FORCING.vtp");
 
         ofstream result;
         result.open(path, ios::binary);
