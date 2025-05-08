@@ -2357,7 +2357,7 @@
         <File Name="gc_solid_forcing_ini.cpp"/>
         <File Name="gc_solid_forcing.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Epol">
+      <VirtualDirectory Name="Epol Field">
         <File Name="gc_startV.cpp"/>
         <File Name="gc_dirichlet-para-reflect.cpp"/>
         <File Name="gc_dirichlet-ortho-reflect.cpp"/>
@@ -2444,7 +2444,7 @@
         <File Name="gc_sizeM_update.cpp"/>
       </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
-      <VirtualDirectory Name="Slice">
+      <VirtualDirectory Name="Epol Slice">
         <File Name="gcsl_dgcslini.cpp"/>
         <File Name="gcsl_dgcsl.cpp"/>
         <File Name="gcsl_potential.cpp"/>

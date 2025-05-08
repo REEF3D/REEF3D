@@ -72,9 +72,30 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     
     p->Hi = p->wd+eta_in;
     
+    // -------------------------------------
+    // set fsf  inflow
+    for(n=0;n<p->gcslin_count;n++)
+    {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+
+        if(p->F50==2 || p->F50==4)
+        if(p->wet[IJ]==1)
+        {
+        WL(i-1,j) = p->Hi - d->bed(i,j);
+        WL(i-2,j) = p->Hi - d->bed(i,j);
+        WL(i-3,j) = p->Hi - d->bed(i,j);
+        
+        //cout<<"WL(i-1,j): "<<WL(i-1,j)<<endl;
+        
+        d->eta(i-1,j) = WL(i-1,j) - d->depth(i,j);
+        d->eta(i-2,j) = WL(i-2,j) - d->depth(i,j);
+        d->eta(i-3,j) = WL(i-3,j) - d->depth(i,j);
+        }
+    }
     
     // -------------------------------------
-    // set fsf 
+    // set fsf  outflow
     double wsfout=p->phimean;
     double f=1.0;
     
