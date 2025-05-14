@@ -81,8 +81,6 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
         a->M.t[n] = 0.0;
         a->M.b[n] = 0.0;
         
-        a->rhsvec.V[n] =  0.0;
-        
     ++n;
     }
     
