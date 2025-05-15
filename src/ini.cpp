@@ -106,7 +106,6 @@ void lexer::ini_default()
     A511=1;		// int NHFLOW HLL scheme
     A512=0;		// int NHFLOW diffusion
     A514=4;		// int NHFLOW reconstruction 
-    
     A515=1;      // int Dirichlet wave BC type
     A516=3;      // int
     A517=3;      // int 
