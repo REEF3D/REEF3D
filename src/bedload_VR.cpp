@@ -45,21 +45,24 @@ bedload_VR::~bedload_VR()
 
 void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-    double Ti,r;
+    double Ti,r,f,Ts,Tb;
 	double qb;
 	
 	SLICELOOP4
     {
+        Ts = s->shields_crit(i,j);
+	    Tb = s->shields_eff(i,j);
 
-        Ti=MAX((s->shields_eff(i,j)-s->shields_crit(i,j))/(s->shields_crit(i,j)),0.0);
-
+        Ti=MAX((Tb-Ts)/(Ts),0.0);
         
-        if(s->shearvel_eff(i,j)>s->shearvel_crit(i,j))
+        f = MAX(MIN(2.0*Tb/Ts-1.0,1.0),0.0);
+        
+        //if(s->shearvel_eff(i,j)>s->shearvel_crit(i,j))
         if(s->active(i,j)==1)
-        qb = (0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
+        qb = f * (0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
 
 
-        if(s->shearvel_eff(i,j)<=s->shearvel_crit(i,j) || s->active(i,j)==0)
+        if(s->active(i,j)==0)
         qb=0.0;
 		
 		s->qbe(i,j) = qb;
