@@ -173,7 +173,7 @@ void nhflow_potential_f::wcalc(lexer *p, fdm_nhf *d)
     
     
 	LOOP
-    if(p->DF[IJK]<0 || p->DF[IJm1K]<0 || p->DF[IJp1K]<0 || p->wet[IJ]==0)
+    if(p->DF[IJK]<0 || p->DF[IJm1K]<0 || p->DF[IJp1K]<0||p->wet[IJ]==0)
     {
 	d->W[IJK] = 0.0;
     d->WH[IJK] = 0.0;
