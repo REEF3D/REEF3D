@@ -134,7 +134,7 @@ void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
     
     LOOP
     if(p->DF[IJK]<0 || p->DF[Im1JK]<0 || p->DF[Ip1JK]<0 
-    || p->wet[IJ]==0||p->wet[Im1J]==0||p->wet[Ip1J]==0)
+    ||p->wet[IJ]==0||p->wet[Im1J]==0||p->wet[Ip1J]==0)
     {
 	d->U[IJK] = 0.0;
     d->UH[IJK] = 0.0;
@@ -155,7 +155,7 @@ void nhflow_potential_f::vcalc(lexer *p, fdm_nhf *d)
 
     LOOP
     if(p->DF[IJK]<0 || p->DF[IJm1K]<0 || p->DF[IJp1K]<0 
-    || p->wet[IJ]==0||p->wet[IJm1]==0||p->wet[IJp1]==0)
+    ||p->wet[IJ]==0||p->wet[IJm1]==0||p->wet[IJp1]==0)
     {
 	d->V[IJK] = 0.0;
     d->VH[IJK] = 0.0;
