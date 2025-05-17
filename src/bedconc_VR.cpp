@@ -35,7 +35,7 @@ bedconc_VR::bedconc_VR(lexer *p)
     visc=p->W2;
     kappa=0.4;
     ks=2.5*d50;
-    adist=0.5*d50;
+    adist=3.0*d50;
     deltab=3.0*d50;
     Rstar=(rhosed-rhowat)/rhowat;
 }
@@ -46,45 +46,44 @@ bedconc_VR::~bedconc_VR()
 
 void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
+    double Ts,Tb,f;
+    
     SLICELOOP4
     s->cbn(i,j) = s->cbe(i,j);
     
     // cb* van Rijn
     SLICELOOP4
     {
-    Ti=MAX((s->tau_eff(i,j)-s->tau_crit(i,j))/s->tau_crit(i,j),0.0);
+    Ts = s->shields_crit(i,j);
+    Tb = s->shields_eff(i,j);
+        
+    f = MAX(MIN(2.0*Tb/Ts-1.0,1.0),0.0);    
+        
+    Ti = (Tb-Ts)/Ts;
 
-    Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
+    Ds = d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     
-    if(s->active(i,j)==1)
-    s->cbe(i,j) = (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
+    adist = (p->ZP[KP]-s->bedzh(i,j));
     
-    if(s->active(i,j)==0)
-    s->cbe(i,j) = 0.0;
+
+    s->cbe(i,j) = f * (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
     }
     
+    pgc->gcsl_start4(p,s->qbe,1);
+    
     // cb at first cell center
-    SLICELOOP4
+    /*SLICELOOP4
     {
         k=s->bedk(i,j);
         
-        //zdist = (p->ZP[KP]-s->bedzh(i,j));
+        zdist = (p->ZP[KP]-s->bedzh(i,j));
         
-        //zdist = 0.5*p->DZN[KP];
         
-        //s->cb(i,j) = s->cbe(i,j)*pow(((s->waterlevel(i,j)-zdist)/zdist)*(adist/(s->waterlevel(i,j)-adist)),1.0);
+        s->cb(i,j) = s->cbe(i,j)*pow(((s->waterlevel(i,j)-zdist)/zdist)*(adist/(s->waterlevel(i,j)-adist)),1.0);
 
         //if(s->cb(i,j)>1.0)
         //cout<<"!! CB: "<<s->cbe(i,j)<<" "<<s->cb(i,j)<<" "<<zdist<<" "<<adist<<" "<<s->waterlevel(i,j)<<endl;
-    }
-    
-    if(p->S34==2)
-    {
-    SLICELOOP4
-    s->qbe(i,j) += s->conc(i,j);
-    
-    pgc->gcsl_start4(p,s->qbe,1);
-    }
+    }*/
 }
 
 

@@ -90,22 +90,28 @@ void suspended_IM1::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 }
 
 void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
-{
-    /*
+{    
+    double zdist;
+    
     count=0;
     LOOP
     {
-	if(a->phi(i,j,k)>0.0)
-	a->rhsvec.V[count]  += -s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+	if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
+    {
+    zdist = (p->ZP[KP]-s->bedzh(i,j));
+    
+	a->rhsvec.V[count]  += p->dt*s->ws*(conc(i,j,k)-s->cbe(i,j))/(2.0*zdist);
+    }
 	
 	++count;
-    }*/
+    }
 }
 
 void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {
     double cval;
     
+    /*
     GCDF4LOOP
     {
         i=p->gcdf4[n][0];
@@ -118,7 +124,7 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         conc(i,j,k-1) =  cval;
         conc(i,j,k-2) =  cval;
         conc(i,j,k-3) =  cval;
-    }
+    }*/
     
         n=0;
         LOOP
@@ -198,30 +204,25 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
 
     double cx,cy;
     
-    if(p->S34==1)
-    GC4LOOP
-    if(p->gcb4[n][4]==5)
+
+    GCDF4LOOP
     {
-        i=p->gcb4[n][0];
-        j=p->gcb4[n][1];
-        k=p->gcb4[n][2];
+        i=p->gcdf4[n][0];
+        j=p->gcdf4[n][1];
+        k=p->gcdf4[n][2];
         
-        dist = 0.5*p->DZN[KP]-adist;
+        //s->conc(i,j) = a->conc(i,j,k+1);
+        
+        dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
         
         s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
         
-        //s->conc(i,j) = a->conc(i,j,k);
-        
-        //s->conc(i,j)=concn(i,j,k);
-        
-        //if(s->conc(i,j)>s->cbe(i,j))
-       // cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;
-       
-       s->conc(i,j) = (a->visc(i,j,k)+a->eddyv(i,j,k))*(a->conc(i,j,k+1) - a->conc(i,j,k))/p->DZP[KP];
+        //s->conc(i,j)=concn(i,j,k+1);
 
+        s->conc(i,j) = (a->visc(i,j,k)+a->eddyv(i,j,k))*(a->conc(i,j,k+1) - a->conc(i,j,k))/p->DZP[KP];
     }
     
-    if(p->S34==1)
+    /*
     GCDF4LOOP
     {
         i=p->gcdf4[n][0];
@@ -236,28 +237,9 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         
         //s->conc(i,j)=concn(i,j,k+1);
         
-        //if(s->conc(i,j)>s->cbe(i,j))
-        //cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;
-        
         s->conc(i,j) = (a->visc(i,j,k)+a->eddyv(i,j,k))*(a->conc(i,j,k+1) - a->conc(i,j,k))/p->DZP[KP];
-    }
+    }*/
 
-    
-    if(p->S34==2)
-    ILOOP
-    JLOOP
-    {
-        cx=0.0;
-        cy=0.0;
-    
-        KLOOP
-        PCHECK
-        {
-        cx += 0.5*(a->u(i,j,k) + a->u(i-1,j,k))*a->conc(i,j,k)*p->DZN[KP];
-        cy += 0.5*(a->v(i,j,k) + a->v(i,j-1,k))*a->conc(i,j,k)*p->DZN[KP];
-        }
-    s->conc(i,j) = sqrt(cx*cx + cy*cy);
-    }
 }
 
 void suspended_IM1::sedfsf(lexer* p,fdm* a,field& conc)
