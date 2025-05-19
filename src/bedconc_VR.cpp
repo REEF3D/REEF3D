@@ -54,18 +54,22 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // cb* van Rijn
     SLICELOOP4
     {
+    k=s->bedk(i,j);
+    
     Ts = s->shields_crit(i,j);
     Tb = s->shields_eff(i,j);
+    
+    Ti=MAX((Tb-Ts)/(Ts),0.0);
         
     f = MAX(MIN(2.0*Tb/Ts-1.0,1.0),0.0);    
         
-    Ti = (Tb-Ts)/Ts;
 
     Ds = d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     
-    adist = (p->ZP[KP]-s->bedzh(i,j));
+    Ds = Ds>1.0e-10?Ds:1.0e10;
     
-
+    adist = 0.5*p->ZP[KP];
+    
     s->cbe(i,j) = f * (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
     }
     

@@ -428,7 +428,7 @@ void lexer::ini_default()
 
     // Grid
     G2=0;            // int sigma grid
-    G5=1;             // int turn of topo and solid cells
+    G5=0;             // int turn of topo and solid cells
 	G10=3;			// int xmargin inflow
 	G11=3;			// int ymargin right
 	G12=3;			// int zmargin bottom

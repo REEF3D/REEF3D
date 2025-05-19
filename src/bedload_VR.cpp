@@ -57,7 +57,6 @@ void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
         
         f = MAX(MIN(2.0*Tb/Ts-1.0,1.0),0.0);
         
-        //if(s->shearvel_eff(i,j)>s->shearvel_crit(i,j))
         if(s->active(i,j)==1)
         qb = f * (0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
 

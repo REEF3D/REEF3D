@@ -523,7 +523,6 @@
             <File Name="bedconc_void.h"/>
             <File Name="bedconc_VR.h"/>
           </VirtualDirectory>
-          <File Name="isusprhs.h"/>
           <File Name="suspended.h"/>
           <File Name="suspended_IM1.h"/>
           <File Name="suspended_RK2.h"/>
@@ -1805,7 +1804,6 @@
             <File Name="bedconc_void.cpp"/>
             <File Name="bedconc_VR.cpp"/>
           </VirtualDirectory>
-          <File Name="isusprhs.cpp"/>
           <File Name="suspended_IM1.cpp"/>
           <File Name="suspended_RK2.cpp"/>
           <File Name="suspended_RK3.cpp"/>
