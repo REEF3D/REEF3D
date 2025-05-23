@@ -99,9 +99,9 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     {
     //zdist = 2.0*(p->ZP[KP]-s->bedzh(i,j));
     
-    zdist = 0.5*p->ZP[KP];
+    zdist = 0.5*p->DZP[KP];
     
-	a->rhsvec.V[count]  += (-s->ws)*(conc(i,j,k)-s->cbe(i,j))/(zdist);
+	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
     }
 	
 	++count;
@@ -243,7 +243,7 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, ghostcell *pgc, sediment_fdm *s)
         s->conc(i,j) = (a->visc(i,j,k)+a->eddyv(i,j,k))*(a->conc(i,j,k+1) - a->conc(i,j,k))/p->DZP[KP];
     }*/
     
-    pgc->gcsl_start4(p,s->qb,1);
+    pgc->gcsl_start4(p,s->cb,1);
 
 }
 

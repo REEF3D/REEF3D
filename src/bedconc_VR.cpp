@@ -68,9 +68,12 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     Ds = Ds>1.0e-10?Ds:1.0e10;
     
-    adist = 0.5*p->ZP[KP];
+    adist = 0.5*p->DZP[KP];
     
     s->cbe(i,j) = f * (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
+    
+    if(s->cbe(i,j)<0.0)
+    cout<<"C_BE: "<<f<<" "<<Ti<<" "<<Ds<<" "<<endl;
     }
     
     pgc->gcsl_start4(p,s->qbe,1);

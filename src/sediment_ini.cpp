@@ -118,7 +118,7 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
 
     
     if(p->mpirank==0)
-    cout<<"ws: "<<s->ws<<endl;
+    cout<<"fall velocity ws: "<<s->ws<<endl;
 }
 
 void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
