@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,48 +20,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"susprhs.h"
-#include"lexer.h"
-#include"fdm.h"
+#ifndef NHFLOW_SUSPENDED_H_
+#define NHFLOW_SUSPENDED_H_
 
-susprhs::susprhs(lexer* p)
+class lexer;
+class fdm_nhf;
+class nhflow_scalar_convection;
+class nhflow_diffusion;
+class solver;
+class ghostcell;
+class ioflow;
+class sediment_fdm;
+
+using namespace std;
+
+class nhflow_suspended
 {
-    d50=0.01;
-    ks=2.5*d50;
-    gi=9.81;
-    rhosed=2650.0;
-    rhowat=p->W1;
-    ws=1.1*(rhosed/rhowat-1.0)*gi*d50*d50;
-}
+public:
 
-susprhs::~susprhs()
-{
-}
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*)=0;
+    virtual void ctimesave(lexer*, fdm_nhf*)=0;
+};
 
-void susprhs::suspsource(lexer* p,fdm* a,field& conc)
-{
-    LOOP
-    {
-    a->L(i,j,k)=0.0;
-
-        if(a->phi(i,j,k)>0.0)
-        a->L(i,j,k)=-ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
-    }
-}
-
-void susprhs::sedfsf(lexer* p,fdm* a,field& conc)
-{
-    LOOP
-    if(a->phi(i,j,k)<0.0)
-    conc(i,j,k)=0.0;
-}
-
-void susprhs::clearrhs(lexer* p, fdm* a)
-{
-    count=0;
-    LOOP
-    {
-    a->rhsvec.V[count]=0.0;
-	++count;
-    }
-}
+#endif

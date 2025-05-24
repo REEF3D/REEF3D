@@ -509,6 +509,7 @@
           <File Name="reduction_FD.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_f4.h"/>
           <File Name="sandslide_nz.h"/>
           <File Name="sandslide_f3.h"/>
           <File Name="sandslide_f2.h"/>
@@ -518,17 +519,24 @@
           <File Name="sandslide_pde.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
+          <VirtualDirectory Name="NHFLOW">
+            <File Name="nhflow_suspended_RK2.h"/>
+            <File Name="nhflow_suspended_IM1.h"/>
+            <File Name="nhflow_suspended_void.h"/>
+            <File Name="nhflow_suspended.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="CFD">
+            <File Name="suspended_void.h"/>
+            <File Name="suspended_RK3.h"/>
+            <File Name="suspended_RK2.h"/>
+            <File Name="suspended_IM1.h"/>
+            <File Name="suspended.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="bedconc">
             <File Name="bedconc.h"/>
             <File Name="bedconc_void.h"/>
             <File Name="bedconc_VR.h"/>
           </VirtualDirectory>
-          <File Name="suspended.h"/>
-          <File Name="suspended_IM1.h"/>
-          <File Name="suspended_RK2.h"/>
-          <File Name="suspended_RK3.h"/>
-          <File Name="suspended_void.h"/>
-          <File Name="susprhs.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Exner">
           <File Name="sediment_exner.h"/>
@@ -1792,6 +1800,7 @@
           <File Name="reduction_FD.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_f4.cpp"/>
           <File Name="sandslide_nz.cpp"/>
           <File Name="sandslide_f3.cpp"/>
           <File Name="sandslide_f2.cpp"/>
@@ -1800,15 +1809,21 @@
           <File Name="sandslide_pde.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
+          <VirtualDirectory Name="NHFLOW">
+            <File Name="nhflow_suspended_void.cpp"/>
+            <File Name="nhflow_suspended_RK2.cpp"/>
+            <File Name="nhflow_suspended_IM1.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="CFD">
+            <File Name="suspended_void.cpp"/>
+            <File Name="suspended_RK2.cpp"/>
+            <File Name="suspended_IM1.cpp"/>
+            <File Name="suspended_RK3.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="bedconc">
             <File Name="bedconc_void.cpp"/>
             <File Name="bedconc_VR.cpp"/>
           </VirtualDirectory>
-          <File Name="suspended_IM1.cpp"/>
-          <File Name="suspended_RK2.cpp"/>
-          <File Name="suspended_RK3.cpp"/>
-          <File Name="suspended_void.cpp"/>
-          <File Name="susprhs.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Exner">
           <File Name="sediment_exner_susp_qb.cpp"/>

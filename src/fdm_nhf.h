@@ -81,6 +81,7 @@ public:
     double *porosity;
     double *test;
     double *KIN;
+    double *CONC;
     
     double *SOLID,*FB,*FHB;
     

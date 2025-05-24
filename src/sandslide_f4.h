@@ -20,32 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SUSPRHS_H_
-#define SUSPRHS_H_
+#ifndef SANDSLIDE_F4_H_
+#define SANDSLIDE_F4_H_
 
-#include"increment.h"
-
-class lexer;
-class fdm;
-class field;
+#include"norm_vec.h"
+#include"bedslope.h"
+#include"slice4.h"
+#include"sandslide.h"
 
 using namespace std;
 
-class susprhs : public increment
+class sandslide_f4 :  public sandslide, public norm_vec, public bedslope
 {
 public:
-	susprhs(lexer*);
-	virtual ~susprhs();
-	void suspsource(lexer*,fdm*,field&);
-	void sedfsf(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
+    sandslide_f4(lexer*);
+    virtual ~sandslide_f4();
+
+	virtual void start(lexer*,ghostcell*, sediment_fdm*);
 
 private:
-	int ii,jj,kk;
-	int count,q;
-	double ws,d50,ks,gi;
-	double rhosed,rhowat;
-};
-#endif
 
+    void slide(lexer*,ghostcell*, sediment_fdm*);
+
+    slice4 fh;
+    
+    int gcval_topo,count;
+
+    double fac1, fac2;
+    double dh,maxdh,maxdhs,dh_corr;
+    double slide_dh,slide_dhs;
+	double teta, alpha, beta, gamma;
+    double phi;
+}; 
+
+#endif
 

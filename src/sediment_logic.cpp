@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
 #include"sandslide_f3.h"
+#include"sandslide_f4.h"
 #include"sandslide_nz.h"
 #include"sandslide_pde.h"
 #include"sandslide_v.h"
@@ -117,6 +118,9 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     
     if(p->S90==5)
     pslide=new sandslide_nz(p);
+    
+    if(p->S90==6)
+    pslide=new sandslide_f4(p);
     
     if(p->S10!=2 && p->A10==6)
 	pvrans = new vrans_v(p,pgc);
