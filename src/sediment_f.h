@@ -40,6 +40,7 @@ class sediment_fdm;
 class bedslope;
 class bedshear_reduction;
 class suspended;
+class nhflow_suspended;
 class diffusion;
 class convection;
 class patchBC_interface;
@@ -57,6 +58,7 @@ public:
     virtual void ini_cfd(lexer*,fdm*,ghostcell*);
     virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*);
     virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
+    
     void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
     void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
     void prep_cfd(lexer*,fdm*,ghostcell*);
@@ -68,7 +70,9 @@ public:
     // NHFLOW interface
     virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     virtual void ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    virtual void start_susp_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*);
     virtual void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*);
+    
     void sediment_algorithm_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     void prep_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void fill_PQ_nhflow(lexer*,fdm_nhf*,ghostcell*);
@@ -152,6 +156,7 @@ private:
     bedshear_reduction *preduce;
     topo *ptopo;
     suspended *psusp;
+    nhflow_suspended *pnhfsusp;
     diffusion *psuspdiff;
     convection *psuspdisc;
 	bedshear *pbedshear;

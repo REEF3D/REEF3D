@@ -70,6 +70,12 @@ Author: Hans Bihs
 #include"suspended_IM1.h"
 #include"bedload_direction_f.h"
 #include"bedload_direction_v.h"
+#include"nhflow_diff_void.h"
+#include"nhflow_ediff.h"
+#include"nhflow_idiff.h"
+#include"nhflow_idiff_2D.h"
+#include"nhflow_scalar_iweno.h"
+#include"nhflow_scalar_ifou.h"
 
 void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {

@@ -38,7 +38,6 @@ public:
     
     void suspsource(lexer*,fdm_nhf*,double*,sediment_fdm*);
     void bcsusp_start(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*,double*);
-	void sedfsf(lexer*,fdm_nhf*,double*);
 	void clearrhs(lexer*,fdm_nhf*);
     void fillconc(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*);
 

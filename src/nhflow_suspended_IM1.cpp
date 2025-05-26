@@ -43,23 +43,22 @@ nhflow_suspended_IM1::~nhflow_suspended_IM1()
 }
 
 void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff, solver *psolv, ioflow *pflow, sediment_fdm *s)
-{/*
+{
     starttime=pgc->timer();
-    clearrhs(p,a);
-    fill_wvel(p,a,pgc,s);
-    pconvec->start(p,a,d->conc,4,d->u,d->v,wvel);
-	pdiff->idiff_scalar(p,a,pgc,psolv,d->conc,d->eddyv,1.0,1.0);
-	suspsource(p,a,d->conc,s);
-	timesource(p,a,d->conc);
-    bcsusp_start(p,a,pgc,s,d->conc);
-	psolv->start(p,a,pgc,d->conc,d->rhsvec,4);
-	sedfsf(p,a,d->conc);
-	pgc->start4(p,d->conc,gcval_susp);
-    fillconc(p,a,pgc,s);
+    clearrhs(p,d);
+    fill_wvel(p,d,pgc,s);
+    pconvec->start(p,d,d->CONC,4,d->U,d->V,WVEL);
+    pdiff->diff_scalar(p,d,pgc,psolv,d->CONC,1.0,1.0);
+	suspsource(p,d,d->CONC,s);
+	timesource(p,d,d->CONC);
+    bcsusp_start(p,d,pgc,s,d->CONC);
+    psolv->startV(p,pgc,d->CONC,d->rhsvec,d->M,4);
+	pgc->start4V(p,d->CONC,gcval_susp);
+    fillconc(p,d,pgc,s);
 	p->susptime=pgc->timer()-starttime;
 	p->suspiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"suspiter: "<<p->suspiter<<"  susptime: "<<setprecision(3)<<p->susptime<<endl;*/
+	cout<<"suspiter: "<<p->suspiter<<"  susptime: "<<setprecision(3)<<p->susptime<<endl;
 }
 
 void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
@@ -85,10 +84,10 @@ void nhflow_suspended_IM1::ctimesave(lexer *p, fdm_nhf *d)
 
 void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 {
-    LOOP
-    WVEL[IJK] = d->W[IJK] - s->ws;
+    FLOOP
+    WVEL[FIJK] = d->omegaF[FIJK] - s->ws;
     
-    pgc->start4V(p,d->W,12);
+    pgc->start7S(p,WVEL,17);
 }
 
 void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sediment_fdm *s)
@@ -184,57 +183,16 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
 
 void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 {
-    double dist;
-    double d50=p->S20;
-    double adist=0.5*d50;
-    double deltab=3.0*d50;
-
-    double cx,cy;
-    
-
     GCDF4LOOP
     {
         i=p->gcdf4[n][0];
         j=p->gcdf4[n][1];
         k=p->gcdf4[n][2];
-        
-        //s->conc(i,j) = d->conc(i,j,k+1);
-        
-        //dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
-        
-        //s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + d->conc(i,j,k+1)*(deltab-adist))/(dist);
-        
-        //s->conc(i,j)=concn(i,j,k+1);
-
-        //s->conc(i,j) = (d->visc(i,j,k)+d->eddyv(i,j,k))*(d->conc(i,j,k+1) - d->conc(i,j,k))/p->DZP[KP];
         
         s->cb(i,j) = d->CONC[IJK];
     }
     
-    /*
-    GCDF4LOOP
-    {
-        i=p->gcdf4[n][0];
-        j=p->gcdf4[n][1];
-        k=p->gcdf4[n][2];
-        
-        //s->conc(i,j) = d->conc(i,j,k+1);
-        
-        dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
-        
-        s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + d->conc(i,j,k+1)*(deltab-adist))/(dist);
-        
-        //s->conc(i,j)=concn(i,j,k+1);
-        
-        s->conc(i,j) = (d->visc(i,j,k)+d->eddyv(i,j,k))*(d->conc(i,j,k+1) - d->conc(i,j,k))/p->DZP[KP];
-    }*/
-    
     pgc->gcsl_start4(p,s->cb,1);
-
-}
-
-void nhflow_suspended_IM1::sedfsf(lexer* p, fdm_nhf *d, double *CONC)
-{
 }
 
 void nhflow_suspended_IM1::clearrhs(lexer* p, fdm_nhf *d)
