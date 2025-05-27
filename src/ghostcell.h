@@ -129,9 +129,10 @@ public:
 
     void sizeS_update(lexer*);
     
-// Forcing
+// Forcing CFD
     void solid_forcing(lexer*,fdm*,double,field&,field&,field&,field&,field&,field&);
     void solid_forcing_ini(lexer*,fdm*);
+    void solid_forcing_flag_update(lexer*,fdm*);
     void solid_forcing_lsm(lexer*,fdm*,field&);
     void solid_forcing_eta(lexer*,slice&);
     double Hsolidface(lexer*, fdm*, int,int,int);

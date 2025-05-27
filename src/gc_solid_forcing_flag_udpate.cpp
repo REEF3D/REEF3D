@@ -17,54 +17,34 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Tobias Martin, Ahmet Soydan
+Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
 
-void ghostcell::solid_forcing_ini(lexer *p, fdm *a)
+void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
 {
-    double dirac,H;
-    
-     // ghostcell update
-    gcdf_update(p,a);
-    
-    // Initialise floating fields
-     ULOOP
-     a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
-
-     VLOOP
-     a->fbh2(i,j,k) = Hsolidface(p,a,0,1,0);
-
-     WLOOP
-     a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
-
-     LOOP
-     a->fbh4(i,j,k) = H = Hsolidface(p,a,0,0,0);
-
-     start1(p,a->fbh1,10);
-     start2(p,a->fbh2,11);
-     start3(p,a->fbh3,12);
-     start4(p,a->fbh4,40);
-     
-    double psi;
-	
-    psi = 1.1*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-    if (p->j_dir==0)
-    psi = 1.1*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-     
+    // Update DF
     LOOP
-    {
-        dirac = 0.0;
-        if(fabs(MIN(a->solid(i,j,k),a->topo(i,j,k)))<psi)
-        dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
-        
-        a->fbh5(i,j,k) =  1.0-MIN(dirac,1.0);
-    }
-     
+    p->DF[IJK]=1;
+    
+    if(p->topoforcing>0 && p->solidread>0)
+    LOOP
+    if(a->solid(i,j,k)<0.0 || a->topo(i,j,j)<0.0)
+    p->DF[IJK]=-1;
+    
+    if(p->topoforcing>0 && p->solidread==0)
+    LOOP
+    if(a->topo(i,j,j)<0.0)
+    p->DF[IJK]=-1;
+    
+    if(p->topoforcing==0 && p->solidread>0)
+    LOOP
+    if(a->solid(i,j,k)<0.0)
+    p->DF[IJK]=-1;
     
     
+    startintV(p,p->DF,1);
 }

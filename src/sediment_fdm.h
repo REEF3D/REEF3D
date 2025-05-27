@@ -62,6 +62,8 @@ public:
     slice4 waterlevel;
     slice4 guard;
     
+    sliceint4 dfs;
+    
     double ws;
 
 };

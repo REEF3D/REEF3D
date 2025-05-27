@@ -2362,6 +2362,7 @@
         <File Name="gcx_partnum.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Forcing">
+        <File Name="gc_solid_forcing_flag_udpate.cpp"/>
         <File Name="gcsldf_update.cpp"/>
         <File Name="gc_solid_forcing_eta.cpp"/>
         <File Name="gc_solid_forcing_lsm.cpp"/>

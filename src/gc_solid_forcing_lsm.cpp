@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
