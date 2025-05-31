@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-nhflow_force_ale::nhflow_force_ale(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn) : ID(qn){}
+nhflow_force_ale::nhflow_force_ale(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn) : nhflow_gradient(p), ID(qn){}
 
 nhflow_force_ale::~nhflow_force_ale(){}
 

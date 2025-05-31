@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef NHFLOW_FORCE_ALE_H_
 #define NHFLOW_FORCE_ALE_H_
 
-#include"increment.h"
+#include"nhflow_gradient.h"
 #include"fieldint5.h"
 #include"field5.h"
 #include<iostream>
@@ -35,7 +35,7 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_force_ale :  public increment
+class nhflow_force_ale :  public nhflow_gradient
 {
 
 public:
@@ -59,6 +59,7 @@ private:
     double Fx1,Fy1,Fx,Fy,xc,yc,rc,cd,cm,etan,dtn,eta2n,ax1,ay1,ax2,ay2,ax3,ay3,dudsig_,dvdsig_,ax,ay;
 	double *un, *u2n, *vn;
     const int ID;
+    double grad;
     
     // printing
     char name[100],pname[100],epsvar[100];

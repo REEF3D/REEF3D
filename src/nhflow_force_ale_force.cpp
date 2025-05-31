@@ -31,6 +31,7 @@ void nhflow_force_ale::force_ale_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
     double ztot=0; // check for strip total
     
     double uvel,vvel,wvel;
+    double axrk;
 
 	Fx=Fy=0;
 	
@@ -45,6 +46,11 @@ void nhflow_force_ale::force_ale_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
         
         // Term 1 from eqn (9) of Pakozdi et al (2021) MS
         ax1= (uvel - un[k])/(p->dt);  
+        
+        axrk = 
+        
+        ax1= (uvel - un[k])/(p->dt); 
+
         ay1= (vvel - vn[k])/ (p->dt);
         
         // Term 2
@@ -103,12 +109,18 @@ double nhflow_force_ale::dvdsig(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 double nhflow_force_ale::dudxi(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
-    return (d->U[Ip1JK] - d->U[Im1JK])/(p->DXN[IP1] + p->DXN[IM1]); 
+    grad = (d->U[Ip1JK] - d->U[Im1JK])/(p->DXN[IP1] + p->DXN[IM1]); 
+    
+    //grad = dwenox(d->U, d->U[IJK]);
+    
+    return grad;
 }
 
 double nhflow_force_ale::dvdxi(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
-    return (d->V[IJp1K] - d->V[IJm1K])/(p->DYN[JP1] + p->DYN[JM1]); 
+    grad = (d->V[IJp1K] - d->V[IJm1K])/(p->DYN[JP1] + p->DYN[JM1]); 
+    
+    return grad;
 }
 
 
