@@ -30,17 +30,8 @@ void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
     LOOP
     p->DF[IJK]=1;
     
-    if(p->topoforcing>0 && p->solidread>0)
-    LOOP
-    if(a->solid(i,j,k)<0.0 || a->topo(i,j,j)<0.0)
-    p->DF[IJK]=-1;
     
-    if(p->topoforcing>0 && p->solidread==0)
-    LOOP
-    if(a->topo(i,j,j)<0.0)
-    p->DF[IJK]=-1;
-    
-    if(p->topoforcing==0 && p->solidread>0)
+    if(p->solidread>0)
     LOOP
     if(a->solid(i,j,k)<0.0)
     p->DF[IJK]=-1;

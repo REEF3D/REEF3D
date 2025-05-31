@@ -59,9 +59,15 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     
     active_cfd(p,a,pgc);
     
-    k=s->bedk(i,j);
     SLICELOOP4
+    s->dfs(i,j) = 1;
+    
+    
+    SLICELOOP4
+    {
+    k=s->bedk(i,j);
     s->dfs(i,j) = p->DF[IJK];
+    }
     
     pgc->gcsl_start4int(p,s->dfs,50);
 	
