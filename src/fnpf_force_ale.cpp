@@ -53,7 +53,7 @@ void fnpf_force_ale::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	p->Darray(vn, p->knoz);
 
     // Ini eta
-	etan=p->wd;
+	etan=0.0;
 	//eta2n=p->wd;
 
     // Ini time
