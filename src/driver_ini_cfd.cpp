@@ -44,6 +44,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 void driver::driver_ini_cfd()
 {
+    
     p->count=0;
 
     p->cellnumtot=pgc->globalisum(p->cellnum);
@@ -168,6 +169,7 @@ void driver::driver_ini_cfd()
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	potflow->start(p,a,ppoissonsolv,pgc);
     pflow->wavegen_precalc(p,pgc);
+    
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
     
@@ -200,7 +202,6 @@ void driver::driver_ini_cfd()
 
 	pgc->start4(p,a->press,40);
     
-	
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 // ini variables

@@ -1,4 +1,5 @@
-/*--------------------------------------------------------------------
+
+/*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2025 Hans Bihs
 
@@ -20,7 +21,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fluid_update.h"
+
+
+#ifndef FLUID_UPDATE_FSF_H_
+#define FLUID_UPDATE_FSF_H_
+
+#include"fluid_update.h"
 #include"increment.h"
 
 class fdm;
@@ -28,9 +34,6 @@ class lexer;
 class ghostcell;
 
 using namespace std;
-
-#ifndef FLUID_UPDATE_FSF_H_
-#define FLUID_UPDATE_FSF_H_
 
 class fluid_update_vof : public fluid_update, increment
 {

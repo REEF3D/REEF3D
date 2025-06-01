@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOFLOW_F_H_
+#define IOFLOW_F_H_
+
 #include"ioflow.h"
 #include"resize.h"
 #include"increment.h"
@@ -29,9 +32,6 @@ class fdm_fnpf;
 
 
 using namespace std;
-
-#ifndef IOFLOW_F_H_
-#define IOFLOW_F_H_
 
 
 class ioflow_f : public ioflow, private resize_class, public increment
@@ -48,8 +48,8 @@ public:
 	virtual void Qout(lexer*,fdm*,ghostcell*);
 	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
-	virtual void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    virtual void inflow_log(lexer*,fdm*,ghostcell*,field&,field&,field&);
+	void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void inflow_log(lexer*,fdm*,ghostcell*,field&,field&,field&);
     virtual void outflow_log(lexer*,fdm*,ghostcell*,field&,field&,field&);
     virtual void outflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
     virtual void outflow_water(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -131,10 +131,15 @@ public:
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*);
     virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
-    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);    virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
+    virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
     virtual void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*){};
+    
+    void inflow_plain_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    void inflow_log_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     
     
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
@@ -179,7 +184,9 @@ private:
     
     double Apor,Bpor,porval,partval;
     
-    double epsi1,epsi2;    int iter0;
+    double epsi1,epsi2;
+
+    int iter0;
     
     patchBC_interface *pBC;
 };

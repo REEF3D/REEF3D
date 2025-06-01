@@ -87,22 +87,27 @@ void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
     en1_ = e_;
     en2_ = e_;
     en3_ = e_;
-    ek_ = e_;
+    ek_  = e_;
     
     cn1_ = c_;
     cn2_ = c_;
     cn3_ = c_;
-    ck_ = c_;
+    ck_  = c_;
     
     pn1_ = p_;
     pn2_ = p_;
     pn3_ = p_;
-    pk_ = p_;
+    pk_  = p_;
     
     hn1_ = h_;
     hn2_ = h_;
     hn3_ = h_;
-    hk_ = h_;  
+    hk_  = h_;  
+    
+    dpk_ = dp_;
+    dck_ = dc_;
+    dhk_ = dh_;
+    dek_ = de_;
 
 
     // Initialise rotation matrices

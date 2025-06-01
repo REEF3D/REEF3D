@@ -24,14 +24,39 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_face_CDS2.h"
-#include"flux_face_CDS4.h"
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
-#include"flux_face_QOU.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 weno3_flux::weno3_flux(lexer* p) : weno3_nug_func(p)
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -39,12 +64,6 @@ weno3_flux::weno3_flux(lexer* p) : weno3_nug_func(p)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_QOU(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS4(p);
     }
     
     if(p->B269>=1 || p->S10==2)
@@ -54,12 +73,7 @@ weno3_flux::weno3_flux(lexer* p) : weno3_nug_func(p)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_FOU_vrans(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS2(p);
+    }
     }
 }
 
@@ -77,7 +91,8 @@ void weno3_flux::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field&
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
     }
-
+    
+    if(p->j_dir==1)
     if(ipol==2)
     {
     vf=1;
@@ -93,7 +108,7 @@ void weno3_flux::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field&
     }
 
     if(ipol==4)
-    FLUIDLOOP
+    LOOP
     a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
     
     if(ipol==5)
@@ -103,6 +118,8 @@ void weno3_flux::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field&
 
 double weno3_flux::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
 {
+        fv1=fv2=0.0;
+        
         pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->w_flux(a,ipol,wvel,kvel1,kvel2);

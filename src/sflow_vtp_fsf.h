@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_VTP_FSF_H_
+#define SFLOW_VTP_FSF_H_
+
 #include"increment.h"
 
 class lexer;
@@ -40,9 +43,6 @@ class sflow_state;
 class fnpf_print_Hs;
 
 using namespace std;
-
-#ifndef SFLOW_VTP_FSF_H_
-#define SFLOW_VTP_FSF_H_
 
 class sflow_vtp_fsf : public increment
 {
@@ -78,6 +78,7 @@ private:
     sflow_print_bedline *pbedline;
     sflow_print_bedline_y *pbedline_y;
     sflow_state *pstate;
+    sflow_state *pstate_restart;
     fnpf_print_Hs *phs;
 
 };

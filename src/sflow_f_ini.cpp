@@ -126,10 +126,16 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     p->wet[IJ]=1;
     
     SLICELOOP1
+    {
     b->wet1(i,j)=1;
+    b->deep1(i,j)=1;
+    }
     
     SLICELOOP2
+    {
     b->wet2(i,j)=1;
+    b->deep2(i,j)=1;
+    }
     
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start1int(p,b->wet1,50);

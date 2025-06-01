@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_hxy_fou.h"
+
+#include"sflow_hxy_fou.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"slice.h"
@@ -31,13 +32,8 @@ Author: Hans Bihs
 sflow_hxy_fou::sflow_hxy_fou(lexer* p, patchBC_interface *ppBC) 
 {
     pBC = ppBC;
-    
-    if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216>=2)
-    pflux = new sflow_flux_face_CDS(p);
 
+    pflux = new sflow_flux_face_CDS(p);
 }
 
 sflow_hxy_fou::~sflow_hxy_fou()
@@ -62,13 +58,13 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
     hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
 	}
     
-    
+    if(p->F50==1 || p->F50==4)
     for(n=0;n<p->gcslout_count;n++)
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
     
-        if(p->F50==1 || p->F50==4)
+
         if(wet[IJ]==1)
         {
         ivel1 = P(i,j);

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_LES_SMAGORINSKY_H_
+#define NHFLOW_LES_SMAGORINSKY_H_
+
 #include"nhflow_les_io.h"
 
 using namespace std;
-
-#ifndef NHFLOW_LES_SMAGORINSKY_H_
-#define NHFLOW_LES_SMAGORINSKY_H_
 
 class nhflow_LES_Smagorinsky : public nhflow_les_io
 {

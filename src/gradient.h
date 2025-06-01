@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef GRADIENT_H_
+#define GRADIENT_H_
+
 #include"increment.h"
 
 class fdm;
 class field;
 class lexer;
 class slice;
-
-#ifndef GRADIENT_H_
-#define GRADIENT_H_
 
 using namespace std;
 

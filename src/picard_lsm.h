@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PICARD_LSM_H_
+#define PICARD_LSM_H_
+
 #include"gradient.h"
 #include"picard.h"
 
 using namespace std;
-
-#ifndef PICARD_LSM_H_
-#define PICARD_LSM_H_
 
 class picard_lsm : public gradient, public picard
 {

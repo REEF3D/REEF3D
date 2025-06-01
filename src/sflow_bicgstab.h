@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_BICGSTAB_H_
+#define SFLOW_BICGSTAB_H_
+
 #include"solver2D.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef SFLOW_BICGSTAB_H_
-#define SFLOW_BICGSTAB_H_
 
 class sflow_bicgstab : public solver2D, public increment
 {

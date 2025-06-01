@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_ediff.h"
+
+#include"sflow_ediff.h"
 #include"lexer.h"
 #include"fdm2D.h"
 

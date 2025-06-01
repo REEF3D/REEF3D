@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_STATE_H_
+#define SFLOW_STATE_H_
+
 #include"increment.h"
 #include<fstream>
 
@@ -29,16 +32,18 @@ class ghostcell;
 
 using namespace std;
 
-#ifndef SFLOW_STATE_H_
-#define SFLOW_STATE_H_
-
 class sflow_state : public increment
 {
 
 public:
-	sflow_state(lexer*,fdm2D*,ghostcell*);
+	sflow_state(lexer*,fdm2D*,ghostcell*,int);
 	virtual ~sflow_state();
 	void write(lexer*,fdm2D*,ghostcell*);
+    void write_single(lexer*,fdm2D*,ghostcell*);
+    void write_contiuous(lexer*,fdm2D*,ghostcell*);
+    void write_restart(lexer*,fdm2D*,ghostcell*);
+    
+    void read(lexer*,fdm2D*,ghostcell*);
     
     void ini_mainheader(lexer*,fdm2D*,ghostcell*);
     
@@ -47,6 +52,8 @@ public:
     void write_header(lexer*,fdm2D*,ghostcell*);
 	
 private:
+    void boundary(lexer*,fdm2D*,ghostcell*,int);
+    
     void filename_single(lexer*,fdm2D*,ghostcell*,int);
     void filename_continuous(lexer*,fdm2D*,ghostcell*);
     void filename_header(lexer*,fdm2D*,ghostcell*);
@@ -57,6 +64,7 @@ private:
 	double ddn;
 	int printcount;
     int ini_token;
+    int restart;
     int file_version,file_type;
     int qn;
     ofstream result;

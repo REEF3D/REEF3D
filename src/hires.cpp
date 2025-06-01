@@ -32,14 +32,39 @@ Author: Hans Bihs
 #include"limo3.h"
 #include"tvdvof.h"
 #include"flux_face_CDS2.h"
-#include"flux_face_CDS4.h"
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
-#include"flux_face_QOU.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 hires::hires (lexer *p, int limiter) 
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -47,12 +72,6 @@ hires::hires (lexer *p, int limiter)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_QOU(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS4(p);
     }
     
     if(p->B269>=1 || p->S10==2)
@@ -62,12 +81,7 @@ hires::hires (lexer *p, int limiter)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_FOU_vrans(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS2(p);
+    }
     }
     
     
@@ -106,7 +120,8 @@ void hires::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel
     if(ipol==1)
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
-
+    
+    if(p->j_dir==1)
     if(ipol==2)
     VLOOP
     a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,p->DXN,p->DYP,p->DZN);
@@ -129,6 +144,7 @@ double hires::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
 {
 
     udir=vdir=wdir=0.0;
+    dx=dy=dz=0.0;
 
     pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
     pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
@@ -149,6 +165,8 @@ double hires::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
              
 
 		// y-dir
+        if(p->j_dir==1)
+        {
         if(0.5*(jvel1+jvel2)>=0.0)
         vdir=1.0;
 
@@ -160,6 +178,7 @@ double hires::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
              + (1.0-vdir)*(jvel2*(b(i,j+1,k) - 0.5*plim->jphi(b,1,0,2,1)*(b(i,j+2,k)-b(i,j+1,k)))
 
              -             jvel1*(b(i,j,k) - 0.5*plim->jphi(b,0,-1,1,0)*(b(i,j,k)-b(i+1,j,k))))/DY[JP]; 
+        }
 
 
 		// z-dir

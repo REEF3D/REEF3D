@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"lexer.h"
+
+#include"lexer.h"
 
 void lexer::lexer_ini()
 {
@@ -118,10 +119,12 @@ void lexer::parse()
     I13=0;
     }
 
-
     if(T10==0)
     I13=0;
 	
 	if(S10>=1 || toporead==1)
 	P27=1;
+    
+    if(N40==3 && X10>0)
+    N40=4;
 }

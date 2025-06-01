@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
+#include"lexer.h"
 #include"field.h"
 
 void ghostcell::noslip(field& f, double dist, int gcv, int bc, int cs)
@@ -29,11 +30,11 @@ void ghostcell::noslip(field& f, double dist, int gcv, int bc, int cs)
 	for(q=0;q<margin;++q)
 	f(i-q-1,j,k)=0.0;
 
-	if(cs==2)
+	if(cs==2 && p->j_dir==1)
 	for(q=0;q<margin;++q)
 	f(i,j+q+1,k)=0.0;
 
-	if(cs==3)
+	if(cs==3 && p->j_dir==1)
 	for(q=0;q<margin;++q)
 	f(i,j-q-1,k)=0.0;
 

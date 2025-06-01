@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_momentum_RK2.h"
+
+#include"sflow_momentum_RK2.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -101,10 +102,11 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
                 -      p->dt*(b->P(i,j)*b->hx(i,j) - b->P(i-1,j)*b->hx(i-1,j)
                        +      b->Q(i,j)*b->hy(i,j) - b->Q(i,j-1)*b->hy(i,j-1))/p->DXM;
-                
+                             
     pgc->gcsl_start4(p,etark1,gcval_eta);
     pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,etark1);
-    pfsf->disc(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    pgc->gcsl_start4(p,etark1,gcval_eta);
+    pfsf->disc(p,b,pgc,b->P,b->Q,b->ws,etark1);
     pfsf->breaking(p,b,pgc,etark1,b->eta,1.0);
     pflow->waterlevel2D(p,b,pgc,etark1);
     pflow->eta_relax(p,pgc,etark1);
@@ -188,10 +190,10 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
                 - 0.5*p->dt*(Prk1(i,j)*b->hx(i,j) - Prk1(i-1,j)*b->hx(i-1,j)
                        +     Qrk1(i,j)*b->hy(i,j) - Qrk1(i,j-1)*b->hy(i,j-1))/p->DXM;
-                
-    pgc->gcsl_start4(p,b->eta,gcval_eta);
+                       
+    pgc->gcsl_start4(p,b->eta,gcval_eta);   
     pfsf->depth_update(p,b,pgc,Prk1,Qrk1,wrk1,b->eta);
-    pfsf->disc(p,b,pgc,Prk1,Qrk1,wrk1,etark1);
+    pfsf->disc(p,b,pgc,Prk1,Qrk1,wrk1,b->eta);
     pfsf->breaking(p,b,pgc,b->eta,etark1,0.5);
     pflow->waterlevel2D(p,b,pgc,b->eta);
     pflow->eta_relax(p,pgc,b->eta);

@@ -45,18 +45,21 @@ bedload_EF::~bedload_EF()
 
 void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-	double qb,qbx,qby,Ts,Tb;
+	double qb,qbx,qby,Ts,Tb,f;
 	
 	SLICELOOP4
     {
         Ts = s->shields_crit(i,j);
 	    Tb = s->shields_eff(i,j);
+        
+        f = MAX(MIN(2.0*Tb/Ts-1.0,1.0),0.0);
 
         if(Tb>Ts)
         if(s->active(i,j)==1)
-        qb =  d50*sqrt((rhosed/rhowat-1.0)*g*d50) * 11.6* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
+        qb = f * d50*sqrt((rhosed/rhowat-1.0)*g*d50) * 11.6* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
 
-        if(Tb<=Ts || s->active(i,j)==0)
+        //if(s->active(i,j)==0)
+            if(Tb<=Ts || s->active(i,j)==0)
         qb=0.0;
 	
         s->qbe(i,j) = qb;

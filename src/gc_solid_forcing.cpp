@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Tobias Martin, Hans Bihs, Ahmet Soydan
+Authors: Hans Bihs, Tobias Martin, Ahmet Soydan
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -28,6 +28,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
                               field& fx, field &fy, field &fz)
 {
     // ghostcell update
+    solid_forcing_flag_update(p,a);
     gcdf_update(p,a);
     gcb_velflagio(p,a);
     

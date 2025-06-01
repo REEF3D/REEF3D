@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SUSPENDED_IM1_H_
+#define SUSPENDED_IM1_H_
+
 #include"suspended.h"
 #include"increment.h"
 #include"field3.h"
 #include"field4.h"
 
 using namespace std;
-
-#ifndef SUSPENDED_IM1_H_
-#define SUSPENDED_IM1_H_
 
 class suspended_IM1 : public suspended, public increment
 {
@@ -42,7 +42,7 @@ public:
     void bcsusp_start(lexer*,fdm*,ghostcell*,sediment_fdm*,field&);
 	void sedfsf(lexer*,fdm*,field&);
 	void clearrhs(lexer*,fdm*);
-    void fillconc(lexer*,fdm*,sediment_fdm*);
+    void fillconc(lexer*,fdm*,ghostcell*,sediment_fdm*);
 
 	int gcval_susp;
 

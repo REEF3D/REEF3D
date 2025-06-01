@@ -141,7 +141,6 @@ void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
     } 
 	
 	
-	
 	result.close();
 	
 	++printcount;

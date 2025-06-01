@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_HEADER_H_
+#define SFLOW_HEADER_H_
+
 #include"lexer.h"
 #include"fdm2D.h"
 #include"fdm.h"
@@ -36,7 +39,6 @@ Author: Hans Bihs
 #include"sflow_fou.h"
 #include"sflow_weno_flux.h"
 #include"sflow_weno_hj.h"
-#include"sflow_weno_blend.h"
 #include"sflow_voidconv.h"
 #include"sflow_eta.h"
 #include"sflow_momentum_RK3.h"
@@ -75,6 +77,4 @@ Author: Hans Bihs
 #include"vrans_header.h"
 #include"turbulence.h"
 
-
-
-
+#endif

@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef RESIZE_CLASS_H_
+#define RESIZE_CLASS_H_
+
 #include<iostream>
 #include<string>
 
 using namespace std;
-
-#ifndef RESIZE_CLASS_H_
-#define RESIZE_CLASS_H_
 
 class resize_class
 {

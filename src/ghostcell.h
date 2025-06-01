@@ -118,9 +118,10 @@ public:
 
 	void sizeM_update(lexer*,fdm*);
 
-    void fdm_update(fdm*);
+    void fdm2D_update(fdm2D*);
     void fdm_fnpf_update(fdm_fnpf*);
     void fdm_nhf_update(fdm_nhf*);
+    void fdm_update(fdm*);
     
     void gcb_velflagio(lexer*, fdm*);
 
@@ -128,9 +129,10 @@ public:
 
     void sizeS_update(lexer*);
     
-// Forcing
+// Forcing CFD
     void solid_forcing(lexer*,fdm*,double,field&,field&,field&,field&,field&,field&);
     void solid_forcing_ini(lexer*,fdm*);
+    void solid_forcing_flag_update(lexer*,fdm*);
     void solid_forcing_lsm(lexer*,fdm*,field&);
     void solid_forcing_eta(lexer*,slice&);
     double Hsolidface(lexer*, fdm*, int,int,int);
@@ -172,9 +174,6 @@ public:
 // IBM
     void flagfield(lexer*);
     void flagfield_topo(lexer*);
-    void tpflagfield(lexer*);
-    void tpflagfield_sigma(lexer*);
-	void ndflag_update(lexer*);
     void flagbase(lexer*,fdm*);
 
 // PARALLEL
@@ -248,8 +247,6 @@ public:
 	int gcsleval3(lexer*,int,int,int);
 	int gcsleval4(lexer*,int,int,int);
 	int gcsleval4a(lexer*,int,int,int);
-
-	void gcsl_tpflag(lexer*);
 
     void gcsl_setbc1(lexer*);
     void gcsl_setbc2(lexer*);
@@ -396,7 +393,6 @@ private:
     int gclabel_u_in,gclabel_v_in,gclabel_w_in,gclabel_press_in,gclabel_lsm_in;
 	int gclabel_u_out, gclabel_v_out, gclabel_w_out;
 	int gclabel_vel;
-	int rank;
 	int nb[6],stag[6],rtag[6];
 	int **isend,**irecv;
 	double **dsend,**drecv;
@@ -444,10 +440,10 @@ private:
     int ***gcbsd,*gcbsd_count;
     int ***gcxsd,*gcxsd_count;
 
-    fdm *a;
     lexer *p;
+    fdm2D *b;
     fdm_fnpf *c;
     fdm_nhf *d;
-
+    fdm *a;
 };
 #endif

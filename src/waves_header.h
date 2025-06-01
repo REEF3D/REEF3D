@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef WAVES_HEADER_H_
+#define WAVES_HEADER_H_
 
 #include"sflow_v.h"
 #include"sflow_f.h"
@@ -27,7 +29,6 @@ Author: Hans Bihs
 #include"fnpf_v.h"
 #include"ptf_RK3.h"
 #include"ptf_RK4.h"
-#include"fnpf_RK2.h"
 #include"fnpf_RK3.h"
 #include"fnpf_RK4.h"
 #include"fnpf_printer.h"
@@ -35,5 +36,4 @@ Author: Hans Bihs
 #include"fnpf_vts3D.h"
 #include"fnpf_timestep.h"
 
-
-
+#endif

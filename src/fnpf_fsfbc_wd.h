@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_FSFBC_WD_H_
+#define FNPF_FSFBC_WD_H_
+
 #include"fnpf_fsf.h"
 #include"sliceint4.h"
 
@@ -32,9 +35,6 @@ class fnpf_coastline;
 class solver2D;
 
 using namespace std;
-
-#ifndef FNPF_FSFBC_WD_H_
-#define FNPF_FSFBC_WD_H_
 
 class fnpf_fsfbc_wd : public fnpf_fsf, public increment 
 {

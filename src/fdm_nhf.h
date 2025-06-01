@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FDM_NHF_H_
+#define FDM_NHF_H_
+
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
@@ -33,9 +36,6 @@ Author: Hans Bihs
 #include"cpt2D.h"
 
 class lexer;
-
-#ifndef FDM_NHF_H_
-#define FDM_NHF_H_
 
 using namespace std;
 
@@ -81,6 +81,7 @@ public:
     double *porosity;
     double *test;
     double *KIN;
+    double *CONC;
     
     double *SOLID,*FB,*FHB;
     

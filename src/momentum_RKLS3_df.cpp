@@ -333,19 +333,3 @@ void momentum_RKLS3_df::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
         }
     }
 }
-
-void momentum_RKLS3_df::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3_df::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3_df::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3_df::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RKLS3_df::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RKLS3_df::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}

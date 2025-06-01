@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm_nhf;
-
 #ifndef NHFLOW_SCALAR_ADVEC_H_
 #define NHFLOW_SCALAR_ADVEC_H_
+
+class lexer;
+class fdm_nhf;
 
 using namespace std;
 

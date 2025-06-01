@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wave_lib.h"
-
 #ifndef WAVE_LIB_PRECALC_H_
 #define WAVE_LIB_PRECALC_H_
+
+#include"wave_lib.h"
 
 using namespace std;
 

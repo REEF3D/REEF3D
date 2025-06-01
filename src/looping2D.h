@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LOOPING2D_H_
+#define LOOPING2D_H_
+
 // LOOP
 
 #define PSLICECHECK1  if(p->flagslice1[IJ]>0)
@@ -49,8 +52,7 @@ Author: Hans Bihs
 #define SLICEBASELOOP ILOOP JLOOP 
 
 
-#define TPSLICECHECK  if(p->tpflagslice[IJ]>0)
-#define TPSLICELOOP ITPLOOP JTPLOOP TPSLICECHECK
+#define TPSLICELOOP ITPLOOP JTPLOOP
 
 #define NSLICELOOP for(n=sizeS[0]; n<sizeS[1]; ++n)
 #define NSLICELOOP1 for(n=p->sizeS1[0]; n<p->sizeS1[1]; ++n)
@@ -68,6 +70,8 @@ Author: Hans Bihs
 
 #define WETDRY1 if(b->wet1(i,j)==1)
 #define WETDRY2 if(b->wet2(i,j)==1)    
+#define WETDRYDEEP1 if(b->wet1(i,j)==1 && b->deep1(i,j)==1)
+#define WETDRYDEEP2 if(b->wet2(i,j)==1 && b->deep2(i,j)==1)    
 #define WETDRY if(p->wet[IJ]==1)
 #define WETDRYDEEP if(p->wet[IJ]==1 && p->deep[IJ]==1)
 #define WETDRYDEEPBREAK if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
@@ -163,3 +167,4 @@ Author: Hans Bihs
 #define GCSLDF4CHECK if(p->gcsldf4[n][3]>0)
 #define GCSLDF4LOOP GCSLDF4 GCSLDF4CHECK
 
+#endif

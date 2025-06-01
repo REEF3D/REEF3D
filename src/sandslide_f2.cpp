@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sandslide_f2.h"
+
+#include"sandslide_f2.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
@@ -65,6 +66,7 @@ void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         
         // slide loop
         SLICELOOP4
+        if(s->dfs(i,j)>0)
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
             slide(p,pgc,s);

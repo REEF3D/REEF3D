@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_PRINT_WSFLINE_Y_H_
+#define FNPF_PRINT_WSFLINE_Y_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -33,9 +36,6 @@ class wave_theory;
 class slice;
 
 using namespace std;
-
-#ifndef FNPF_PRINT_WSFLINE_Y_H_
-#define FNPF_PRINT_WSFLINE_Y_H_
 
 class fnpf_print_wsfline_y : public boundarycheck
 {

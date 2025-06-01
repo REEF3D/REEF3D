@@ -20,38 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FLUID_UPDATE_RHEOLOGY_H_
+#define FLUID_UPDATE_RHEOLOGY_H_
+
 #include"fluid_update.h"
 #include"increment.h"
 
-class fdm;
 class lexer;
+class fdm;
 class ghostcell;
 class rheology;
-
-using namespace std;
-
-#ifndef FLUID_UPDATE_RHEOLOGY_H_
-#define FLUID_UPDATE_RHEOLOGY_H_
 
 class fluid_update_rheology : public fluid_update, increment
 {
 public:
-    fluid_update_rheology(lexer*, fdm*);
-	virtual ~fluid_update_rheology();
+    fluid_update_rheology(lexer*);
+    virtual ~fluid_update_rheology();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+    void start(lexer*, fdm*, ghostcell*) override;
 
 private:
-	rheology *prheo;
-	static int iocheck,iter;
-    int gcval_ro,gcval_visc;
-	int n;
-	const double dx,ro1,visc2,ro2;
-	double visc1;
+    rheology *prheo;
+    int iter;
+    int n;
+    const double ro1,ro2;
+    const double visc2;
+    double visc1;
     double epsi;
+
+    bool iocheck;
 
 };
 
 #endif
-
-

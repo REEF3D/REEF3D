@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_EXNERDISC_H_
+#define SEDIMENT_EXNERDISC_H_
+
 class lexer;
 class slice;
 
-
-#ifndef SEDIMENT_EXNERDISC_H_
-#define SEDIMENT_EXNERDISC_H_
 
 using namespace std;
 

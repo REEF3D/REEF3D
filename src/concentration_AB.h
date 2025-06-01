@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef CONCENTRATION_AB_H_
+#define CONCENTRATION_AB_H_
+
 #include"concentration_io.h"
 #include"field4.h"
 #include"bc_concentration.h"
@@ -27,9 +30,6 @@ Author: Hans Bihs
 class concentration;
 
 using namespace std;
-
-#ifndef CONCENTRATION_AB_H_
-#define CONCENTRATION_AB_H_
 
 class concentration_AB :public bc_concentration, public concentration_io
 {

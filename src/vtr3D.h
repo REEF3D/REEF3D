@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef vtr3D_H_
+#define vtr3D_H_
+
 #include"printer.h"
 #include"increment.h"
 #include"field5.h"
@@ -58,9 +61,6 @@ class probe_vel_theory;
 class exportfile;
 class flowfile_out;
 class print_averaging;
-
-#ifndef vtr3D_H_
-#define vtr3D_H_
 
 using namespace std;
 

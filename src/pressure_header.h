@@ -20,11 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRESSURE_HEADER_H_
+#define PRESSURE_HEADER_H_
+
 #include"pressure_void.h"
 #include"pjm.h"
 #include"pjm_corr.h"
-#include"pjm_nse.h"
 #include"pjm_hydrostatic.h"
 #include"poisson_f.h"
 #include"poisson_pcorr.h"
-#include"poisson_nse.h"
+
+#endif

@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FSI_H_
+#define FSI_H_
+
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -31,9 +34,6 @@ class ghostcell;
 class turbulence;
 
 using namespace std;
-
-#ifndef FSI_H_
-#define FSI_H_
 
 class fsi
 {

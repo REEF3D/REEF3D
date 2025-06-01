@@ -95,10 +95,23 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
         if(p->pos_x() > p->F63)
         a->phi(i,j,k)=(phidiff/xdiff)*(p->pos_x()-p->F63) + p->phimean - p->pos_z() ;
     }
+    
+   
+    if(p->F112==1)
+    {
+    double slope=(p->F112_ze-p->F112_zs)/(p->F112_xe-p->F112_xs);
+    
+ 	LOOP
+ 	if(p->pos_x()>=p->F112_xs && p->pos_x()<p->F112_xe
+    && p->pos_y()>=p->F112_ys && p->pos_y()<p->F112_ye
+    && p->pos_z()>=p->F112_zs && p->pos_z()<slope*(p->pos_x()-p->F112_xs)+p->F112_zs)
+ 	    a->phi(i,j,k)=1.0;
+     }
+
 
 	double H=0.0;
 
-	LOOP
+	BASELOOP
 	{
 		if(a->phi(i,j,k)>(p->psi))
 		H=1.0;

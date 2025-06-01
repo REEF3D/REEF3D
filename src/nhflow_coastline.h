@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_COASTLINE_H_
+#define NHFLOW_COASTLINE_H_
+
 #include"ddweno_f_nug.h"
 #include"slice4.h"
 class lexer;
 class slice;
 class sliceint;
 class ghostcell;
-
-#ifndef NHFLOW_COASTLINE_H_
-#define NHFLOW_COASTLINE_H_
 
 using namespace std;
 

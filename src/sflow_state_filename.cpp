@@ -25,17 +25,29 @@ Author: Hans Bihs
 
 void sflow_state::filename_single(lexer *p, fdm2D *b, ghostcell *pgc, int num)
 {
+    if(restart==0)
     sprintf(name,"./REEF3D_SFLOW_STATE/REEF3D_SFLOW-State-%08i-%06i.r3d",num,p->mpirank+1);
+    
+    if(restart==1)
+    sprintf(name,"./REEF3D_SFLOW_STATE_RESTART/REEF3D_SFLOW-State-%08i-%06i.r3d",0,p->mpirank+1);
 }
 
 void sflow_state::filename_continuous(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    if(restart==0)
     sprintf(name,"./REEF3D_SFLOW_STATE/REEF3D_SFLOW-State-%06i.r3d",p->mpirank+1);
+    
+    if(restart==1)
+    sprintf(name,"./REEF3D_SFLOW_STATE_RESTART/REEF3D_SFLOW-State-%06i.r3d",p->mpirank+1);
 }
 
 void sflow_state::filename_header(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    if(restart==0)
 	sprintf(name,"./REEF3D_SFLOW_STATE/REEF3D-SFLOW-State-Header-%06i.r3d",p->mpirank+1);
+    
+    if(restart==1)
+	sprintf(name,"./REEF3D_SFLOW_STATE_RESTART/REEF3D-SFLOW-State-Header-%06i.r3d",p->mpirank+1);
 }
 
 

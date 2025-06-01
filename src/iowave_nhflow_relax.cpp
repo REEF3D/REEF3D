@@ -230,8 +230,6 @@ void iowave::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
             }
         }
     }
-    LOOP
-    d->test[IJK]=relax4_nb(i,j);
     
     p->wavecalctime+=pgc->timer()-starttime;
 }

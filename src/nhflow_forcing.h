@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_FORCING_H_
+#define NHFLOW_FORCING_H_
+
 #include"increment.h"
 #include"net.h"
 #include<vector>
@@ -36,9 +39,6 @@ class fsi;
 class nhflow_reinidisc_fsf;
 
 using namespace std;
-
-#ifndef NHFLOW_FORCING_H_
-#define NHFLOW_FORCING_H_
 
 class nhflow_forcing : public increment
 {
@@ -91,6 +91,8 @@ private:
     
     void angle_calc(double,double,double,double&,double&,double&);
     
+    void print_vtp(lexer *p, ghostcell *pgc);
+    
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
     double *FX,*FY,*FZ;
@@ -124,6 +126,10 @@ private:
     
     double phi,theta,psi;
     double xrot,yrot,zrot;
+    
+    int q,iin;
+    float ffn;
+    int offset[100];
  
 };
 

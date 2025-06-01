@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LOOPING_H_
+#define LOOPING_H_
+
 #include"iterators.h"
 #include"boundcheck.h"
 #include"definitions.h"
@@ -36,7 +39,7 @@ Author: Hans Bihs
 #define KLOOP 	for(k=0; k<p->knoz; ++k)
 #define IREVLOOP	for(i=p->knox-1; i>=0; --i)
 #define JREVLOOP	for(j=p->knoy-1; j>=0; --j)
-#define KREVLOOP 	for(k=p->knoz-1; k>=0; --k)
+#define KREVLOOP for(k=p->knoz-1; k>=0; --k)
 #define PCHECK  if(p->flag4[IJK]>0)
 #define LOOP ILOOP JLOOP KLOOP PCHECK
 
@@ -186,11 +189,9 @@ Author: Hans Bihs
 #define ITPLOOP for(i=-1; i<p->knox; ++i)
 #define JTPLOOP for(j=-1; j<p->knoy; ++j)
 #define KTPLOOP for(k=-1; k<p->knoz; ++k)
-#define TPCHECK  if(p->tpflag[IJK]>0)
-#define TPLOOP KTPLOOP JTPLOOP ITPLOOP TPCHECK
+#define TPLOOP KTPLOOP JTPLOOP ITPLOOP 
 
-#define NDBASECHECK  if(p->ndbaseflag[IJK]>OBJ_FLAG)
-#define NDBASELOOP ITPLOOP JTPLOOP KTPLOOP NDBASECHECK
+#define NDBASELOOP ITPLOOP JTPLOOP KTPLOOP
 
 #define MAX(aAa,bBb) ((aAa)>(bBb)?(aAa):(bBb))
 #define MIN(aAa,bBb) ((aAa)<(bBb)?(aAa):(bBb))
@@ -338,11 +339,4 @@ Author: Hans Bihs
 #define DT p->dt
 #define NDT p->dt_old
 
-
-
-
-
-
-
-
-
+#endif

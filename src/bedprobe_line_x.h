@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDPROBE_LINE_X_H_
+#define BEDPROBE_LINE_X_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -32,9 +35,6 @@ class ioflow;
 class wave_theory;
 
 using namespace std;
-
-#ifndef BEDPROBE_LINE_X_H_
-#define BEDPROBE_LINE_X_H_
 
 class bedprobe_line_x : public boundarycheck
 {

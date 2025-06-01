@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINI_WALLD_H_
+#define REINI_WALLD_H_
+
 #include"reini.h"
 #include"field4.h"
 #include"gradient.h"
@@ -28,9 +31,6 @@ class reinidisc;
 class picard;
 
 using namespace std;
-
-#ifndef REINI_WALLD_H_
-#define REINI_WALLD_H_
 
 class reini_walld : public reini, gradient
 {

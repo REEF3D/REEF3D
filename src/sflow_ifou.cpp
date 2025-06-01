@@ -23,21 +23,11 @@ Author: Hans Bihs
 #include"sflow_ifou.h"
 #include"lexer.h"
 #include"fdm2D.h"
-#include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
-#include"sflow_flux_face_HJ.h"
-#include"sflow_flux_HJ_CDS.h"
 
 sflow_ifou::sflow_ifou(lexer* p)
 {
-    if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
     pflux = new sflow_flux_face_CDS(p);
-    
-    if(p->A216==4)
-    pflux = new sflow_flux_face_HJ(p);
 }
 
 sflow_ifou::~sflow_ifou()

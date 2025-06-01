@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2024 Tobias Martin
+Copyright 2018-2025 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef MOORING_BARQUASISTATIC_H_
+#define MOORING_BARQUASISTATIC_H_
+
 #include"mooring.h"
 #include"mooring_Catenary.h"
 #include"field1.h"
@@ -35,9 +38,6 @@ Author: Tobias Martin
 
 
 using namespace std;
-
-#ifndef mooring_BARQUASISTATIC_H_
-#define mooring_BARQUASISTATIC_H_
 
 class mooring_barQuasiStatic : public mooring
 {

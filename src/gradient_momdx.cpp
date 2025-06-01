@@ -20,7 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
+
+#include"gradient.h"
 #include"fdm.h"
 #include"lexer.h"
 

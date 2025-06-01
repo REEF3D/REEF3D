@@ -141,7 +141,6 @@ public:
     void makegrid_sigma(lexer*,ghostcell*);
     void makegrid_sigma_cds(lexer*,ghostcell*);  
     
-	void fill_vel(lexer*,fdm*,ghostcell*);
 	void vec_test(lexer*,fdm*,ghostcell*,field&);
 	void func_test(lexer*,fdm*,ghostcell*,field&);
 	double calc();

@@ -221,7 +221,6 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
 void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-	
     int count1,count2;
 	
 	count1=0;
@@ -232,7 +231,7 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     j = p->gcb4[n][1];
     k = p->gcb4[n][2];
          
-        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->DF[IJK]>0)
+        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->DF[IJK]>0 && p->wet[IJ]==1)
         ++count1;
 
         if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->DF[IJK]>0)
@@ -252,7 +251,7 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     j = p->gcb4[n][1];
     k = p->gcb4[n][2];
     
-        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->DF[IJK]>0)
+        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->DF[IJK]>0 && p->wet[IJ]==1)
         {
         p->gcin[count1][0]=p->gcb4[n][0];
         p->gcin[count1][1]=p->gcb4[n][1];

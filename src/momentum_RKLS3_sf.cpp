@@ -345,19 +345,3 @@ void momentum_RKLS3_sf::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
         }
     }
 }
-
-void momentum_RKLS3_sf::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3_sf::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3_sf::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3_sf::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RKLS3_sf::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RKLS3_sf::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}

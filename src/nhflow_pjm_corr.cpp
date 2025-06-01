@@ -110,7 +110,7 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     double dWdz;
     
     n=0;
-    FLOOP
+     FBASELOOP
     {
 	d->rhsvec.V[n]=0.0;
     PCORR[FIJK]=0.0;

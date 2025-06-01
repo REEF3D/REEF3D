@@ -48,7 +48,7 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
     iocheck=0;
 	iter=p->count;
     
-	LOOP
+	BASELOOP
 	{
         factor = 1.0;
         

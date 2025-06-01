@@ -33,9 +33,6 @@ public:
 	momentum_void();
 	virtual ~momentum_void();
 	virtual void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*,vector<net*>&);
-    virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
 private:
 };

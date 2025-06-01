@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BICGSTAB_IJK_2D_H_
+#define BICGSTAB_IJK_2D_H_
+
 #include"solver.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef BICGSTAB_IJK_2D_H_
-#define BICGSTAB_IJK_2D_H_
 
 
 class bicgstab_ijk_2D : public solver, public increment

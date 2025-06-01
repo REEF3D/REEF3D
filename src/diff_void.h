@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef DIFF_VOID_H_
+#define DIFF_VOID_H_
+
 #include"increment.h"
 #include"diffusion.h"
 #include"looping.h"
 
 using namespace std;
-
-#ifndef DIFF_VOID_H_
-#define DIFF_VOID_H_
 
 
 class diff_void : public diffusion, public increment
@@ -41,10 +41,6 @@ public:
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double);
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double);
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
-    
-    virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 
     virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);

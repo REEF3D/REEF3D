@@ -46,18 +46,19 @@ bedload_EH::~bedload_EH()
 
 void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-	double qb,qbx,qby,Ts,Tb;
+	double qb,qbx,qby,Ts,Tb,f;
 	
 	SLICELOOP4
     {
         Ts = s->shields_crit(i,j);
 	    Tb = s->tau_eff(i,j);
+        
+        f = MAX(MIN(2.0*Tb/Ts-1.0,1.0),0.0);
 
-        if(Tb>Ts)
         if(s->active(i,j)==1)
-        qb =  (0.1/fh)*pow((s->tau_eff(i,j)*rhowat)/(g*d50*(rhosed-rhowat)),2.5);
+        qb = f * (0.1/fh)*pow((s->tau_eff(i,j)*rhowat)/(g*d50*(rhosed-rhowat)),2.5);
 
-        if(Tb<=Ts || s->active(i,j)==0)
+        if(s->active(i,j)==0)
         qb=0.0;
 	
         s->qbe(i,j) = qb;

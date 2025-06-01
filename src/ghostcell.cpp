@@ -36,7 +36,6 @@ ghostcell::ghostcell(int& argc, char **argv,lexer *pp):size(15),tag1(1),tag2(2),
     
     MPI_Comm_rank(MPI_COMM_WORLD,&p->mpirank);
 	MPI_Comm_size(MPI_COMM_WORLD,&p->mpi_size);	
-    rank=p->mpirank;
 	
 	mpi_comm = MPI_COMM_WORLD;
 }
@@ -365,10 +364,11 @@ void ghostcell::gcini(lexer* p)
 	pdens = new density_f(p);
 }
 
-void ghostcell::fdm_update(fdm *aa)
+void ghostcell::fdm2D_update(fdm2D *bb)
 {
-    a=aa;
+    b=bb;
 }
+
 
 void ghostcell::fdm_fnpf_update(fdm_fnpf *cc)
 {
@@ -379,6 +379,12 @@ void ghostcell::fdm_nhf_update(fdm_nhf *dd)
 {
     d=dd;
 }
+
+void ghostcell::fdm_update(fdm *aa)
+{
+    a=aa;
+}
+
 
 void ghostcell::final()
 {

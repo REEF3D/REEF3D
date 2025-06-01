@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef WENO_HJ_NUG_H_
+#define WENO_HJ_NUG_H_
+
 #include"convection.h"
 #include"weno_nug_func.h"
 
 class flux;
-
-#ifndef WENO_HJ_NUG_H_
-#define WENO_HJ_NUG_H_
 
 using namespace std;
 

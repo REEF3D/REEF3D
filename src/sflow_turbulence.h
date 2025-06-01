@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_TURBULENCE_H_
+#define SFLOW_TURBULENCE_H_
+
 class fdm2D;
 class lexer;
 class sflow_convection;
@@ -30,9 +33,6 @@ class ioflow;
 class slice;
 
 #include<fstream>
-
-#ifndef SFLOW_TURBULENCE_H_
-#define SFLOW_TURBULENCE_H_
 
 using namespace std;
 

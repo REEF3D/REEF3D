@@ -20,15 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-class lexer;
-class fdm;
-class ghostcell;
-
-using namespace std;
-
 #ifndef RHEOLOGY_H_
 #define RHEOLOGY_H_
 
+class lexer;
+class fdm;
+class ghostcell;
 
 class rheology 
 {
@@ -44,5 +41,5 @@ public:
     virtual void filltau(lexer*,fdm*,ghostcell*)=0;
 
 };
-#endif
 
+#endif

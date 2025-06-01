@@ -93,6 +93,10 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
 }
 
+void sediment_f::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv)
+{
+    //psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
+}
 
 
 

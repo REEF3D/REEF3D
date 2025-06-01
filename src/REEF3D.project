@@ -182,7 +182,6 @@
           <VirtualDirectory Name="Convection">
             <File Name="sflow_ifou.h"/>
             <File Name="sflow_convection.h"/>
-            <File Name="sflow_weno_blend.h"/>
             <File Name="sflow_weno_hj.h"/>
             <File Name="sflow_weno_flux.h"/>
             <File Name="sflow_voidconv.h"/>
@@ -261,6 +260,7 @@
             <File Name="nhflow_state.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="nhflow_u_profile.h"/>
             <File Name="nhflow_vel_probe.h"/>
             <File Name="nhflow_vel_probe_theory.h"/>
           </VirtualDirectory>
@@ -411,7 +411,6 @@
           <File Name="fnpf_fsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
-          <File Name="fnpf_RK2.h"/>
           <File Name="fnpf_v.h"/>
           <File Name="fnpf_RK3.h"/>
           <File Name="fnpf_RK4.h"/>
@@ -510,6 +509,7 @@
           <File Name="reduction_FD.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_f4.h"/>
           <File Name="sandslide_nz.h"/>
           <File Name="sandslide_f3.h"/>
           <File Name="sandslide_f2.h"/>
@@ -519,18 +519,24 @@
           <File Name="sandslide_pde.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
+          <VirtualDirectory Name="NHFLOW">
+            <File Name="nhflow_suspended_RK2.h"/>
+            <File Name="nhflow_suspended_IM1.h"/>
+            <File Name="nhflow_suspended_void.h"/>
+            <File Name="nhflow_suspended.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="CFD">
+            <File Name="suspended_void.h"/>
+            <File Name="suspended_RK3.h"/>
+            <File Name="suspended_RK2.h"/>
+            <File Name="suspended_IM1.h"/>
+            <File Name="suspended.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="bedconc">
             <File Name="bedconc.h"/>
             <File Name="bedconc_void.h"/>
             <File Name="bedconc_VR.h"/>
           </VirtualDirectory>
-          <File Name="isusprhs.h"/>
-          <File Name="suspended.h"/>
-          <File Name="suspended_IM1.h"/>
-          <File Name="suspended_RK2.h"/>
-          <File Name="suspended_RK3.h"/>
-          <File Name="suspended_void.h"/>
-          <File Name="susprhs.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Exner">
           <File Name="sediment_exner.h"/>
@@ -719,15 +725,18 @@
         <File Name="fluid_update_rheology.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flux">
-        <File Name="flux_HJ_CDS4.h"/>
-        <File Name="flux_face_CDS4.h"/>
+        <File Name="flux_HJ_CDS2_vrans_2D.h"/>
+        <File Name="flux_HJ_CDS2_2D.h"/>
+        <File Name="flux_face_FOU_vrans_2D.h"/>
+        <File Name="flux_face_FOU_2D.h"/>
+        <File Name="flux_face_CDS2_vrans_2D.h"/>
+        <File Name="flux_face_CDS2_2D.h"/>
         <File Name="flux.h"/>
         <File Name="flux_face_FOU.h"/>
         <File Name="flux_HJ_CDS2.h"/>
         <File Name="flux_face_CDS2.h"/>
         <File Name="flux_face_CDS2_vrans.h"/>
         <File Name="flux_HJ_CDS2_vrans.h"/>
-        <File Name="flux_face_QOU.h"/>
         <File Name="flux_face_FOU_vrans.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Gradient">
@@ -843,14 +852,12 @@
           <File Name="field5.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
-          <File Name="fieldint6.h"/>
           <File Name="fieldint.h"/>
           <File Name="fieldint1.h"/>
           <File Name="fieldint2.h"/>
           <File Name="fieldint3.h"/>
           <File Name="fieldint4.h"/>
           <File Name="fieldint5.h"/>
-          <File Name="fieldint4a.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geotopo">
           <File Name="geotopo.h"/>
@@ -991,7 +998,6 @@
       <File Name="momentum_RK3.h"/>
       <File Name="momentum_void.h"/>
       <File Name="momentum_RK2.h"/>
-      <File Name="momentum_AB2.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
       <VirtualDirectory Name="Reference">
@@ -1003,7 +1009,6 @@
         <File Name="poisson_pcorr.h"/>
         <File Name="poisson_f.h"/>
         <File Name="poisson.h"/>
-        <File Name="poisson_nse.h"/>
       </VirtualDirectory>
       <File Name="pressure.h"/>
       <File Name="pressure_void.h"/>
@@ -1019,7 +1024,6 @@
         <File Name="density.h"/>
         <File Name="density_f.h"/>
       </VirtualDirectory>
-      <File Name="pjm_nse.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="HYPRE FNPF">
@@ -1202,6 +1206,8 @@
             <File Name="sflow_print_bedline.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
+            <File Name="sflow_state_boundary.cpp"/>
+            <File Name="sflow_state_read.cpp"/>
             <File Name="sflow_state_write.cpp"/>
             <File Name="sflow_state_mainheader.cpp"/>
             <File Name="sflow_state_header.cpp"/>
@@ -1247,6 +1253,7 @@
           <File Name="sflow_maxcoor.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="sflow_eta_deep.cpp"/>
           <File Name="sflow_eta_wetdry_nb.cpp"/>
           <File Name="sflow_eta_wetdry.cpp"/>
           <File Name="sflow_eta_breaking.cpp"/>
@@ -1293,7 +1300,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
             <File Name="sflow_ifou.cpp"/>
-            <File Name="sflow_weno_blend.cpp"/>
             <File Name="sflow_weno_hj.cpp"/>
             <File Name="sflow_weno_flux.cpp"/>
             <File Name="sflow_voidconv.cpp"/>
@@ -1312,6 +1318,9 @@
           <File Name="nhflow_forcing_solid.cpp"/>
           <File Name="nhflow_forcing_interface.cpp"/>
           <VirtualDirectory Name="Geometry">
+            <VirtualDirectory Name="Print VTP">
+              <File Name="nhflow_forcing_print_vtp.cpp"/>
+            </VirtualDirectory>
             <File Name="nhflow_forcing_rotation.cpp"/>
             <File Name="nhflow_jacketmember.cpp"/>
             <File Name="nhflow_forcing_sphere.cpp"/>
@@ -1399,6 +1408,7 @@
             <File Name="nhflow_print_Hs.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
+            <File Name="nhflow_state_read.cpp"/>
             <File Name="nhflow_state_write.cpp"/>
             <File Name="nhflow_state_mainheader.cpp"/>
             <File Name="nhflow_state_header.cpp"/>
@@ -1406,6 +1416,7 @@
             <File Name="nhflow_state.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="nhflow_u_profile.cpp"/>
             <File Name="nhflow_vel_probe_theory.cpp"/>
             <File Name="nhflow_vel_probe.cpp"/>
           </VirtualDirectory>
@@ -1623,7 +1634,6 @@
           <File Name="fnpf_fsfbc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
-          <File Name="fnpf_RK2.cpp"/>
           <File Name="fnpf_v.cpp"/>
           <File Name="fnpf_RK4.cpp"/>
           <File Name="fnpf_RK3.cpp"/>
@@ -1790,6 +1800,7 @@
           <File Name="reduction_FD.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
+          <File Name="sandslide_f4.cpp"/>
           <File Name="sandslide_nz.cpp"/>
           <File Name="sandslide_f3.cpp"/>
           <File Name="sandslide_f2.cpp"/>
@@ -1798,16 +1809,21 @@
           <File Name="sandslide_pde.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
+          <VirtualDirectory Name="NHFLOW">
+            <File Name="nhflow_suspended_void.cpp"/>
+            <File Name="nhflow_suspended_RK2.cpp"/>
+            <File Name="nhflow_suspended_IM1.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="CFD">
+            <File Name="suspended_void.cpp"/>
+            <File Name="suspended_RK2.cpp"/>
+            <File Name="suspended_IM1.cpp"/>
+            <File Name="suspended_RK3.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="bedconc">
             <File Name="bedconc_void.cpp"/>
             <File Name="bedconc_VR.cpp"/>
           </VirtualDirectory>
-          <File Name="isusprhs.cpp"/>
-          <File Name="suspended_IM1.cpp"/>
-          <File Name="suspended_RK2.cpp"/>
-          <File Name="suspended_RK3.cpp"/>
-          <File Name="suspended_void.cpp"/>
-          <File Name="susprhs.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Exner">
           <File Name="sediment_exner_susp_qb.cpp"/>
@@ -2097,6 +2113,7 @@
       <VirtualDirectory Name="Rheology">
         <File Name="rheology_filltau.cpp"/>
         <File Name="rheology_Herschel-Bulkley.cpp"/>
+        <File Name="rheology_Mohr_Coulomb_and_Herschel_Bulkley.cpp"/>
         <File Name="rheology_f.cpp"/>
         <File Name="rheology_v.cpp"/>
         <File Name="rheology_velsource.cpp"/>
@@ -2192,9 +2209,6 @@
         <File Name="idiff2_FSu.cpp"/>
         <File Name="idiff2_FSv.cpp"/>
         <File Name="idiff2_FSw.cpp"/>
-        <File Name="idiff2_u.cpp"/>
-        <File Name="idiff2_v.cpp"/>
-        <File Name="idiff2_w.cpp"/>
         <File Name="idiff2_FS-scalar.cpp"/>
         <File Name="idiff2_scalar.cpp"/>
       </VirtualDirectory>
@@ -2209,14 +2223,17 @@
         <File Name="fluid_update_rheology.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flux">
-        <File Name="flux_HJ_CDS4.cpp"/>
-        <File Name="flux_face_CDS4.cpp"/>
+        <File Name="flux_HJ_CDS2_vrans_2D.cpp"/>
+        <File Name="flux_HJ_CDS2_2D.cpp"/>
+        <File Name="flux_face_FOU_vrans_2D.cpp"/>
+        <File Name="flux_face_FOU_2D.cpp"/>
+        <File Name="flux_face_CDS2_vrans_2D.cpp"/>
+        <File Name="flux_face_CDS2_2D.cpp"/>
         <File Name="flux_HJ_CDS2.cpp"/>
         <File Name="flux_face_CDS2.cpp"/>
         <File Name="flux_face_CDS2_vrans.cpp"/>
         <File Name="flux_HJ_CDS2_vrans.cpp"/>
         <File Name="flux_face_FOU.cpp"/>
-        <File Name="flux_face_QOU.cpp"/>
         <File Name="flux_face_FOU_vrans.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Gradient">
@@ -2345,6 +2362,7 @@
         <File Name="gcx_partnum.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Forcing">
+        <File Name="gc_solid_forcing_flag_udpate.cpp"/>
         <File Name="gcsldf_update.cpp"/>
         <File Name="gc_solid_forcing_eta.cpp"/>
         <File Name="gc_solid_forcing_lsm.cpp"/>
@@ -2353,7 +2371,7 @@
         <File Name="gc_solid_forcing_ini.cpp"/>
         <File Name="gc_solid_forcing.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Epol">
+      <VirtualDirectory Name="Epol Field">
         <File Name="gc_startV.cpp"/>
         <File Name="gc_dirichlet-para-reflect.cpp"/>
         <File Name="gc_dirichlet-ortho-reflect.cpp"/>
@@ -2401,8 +2419,6 @@
         <File Name="gc_flagbase.cpp"/>
         <File Name="gc_flagfield.cpp"/>
         <File Name="gc_minmax.cpp"/>
-        <File Name="gc_tpflagfield.cpp"/>
-        <File Name="gc_ndflag.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
         <File Name="gcx_parax4a_sum.cpp"/>
@@ -2442,7 +2458,7 @@
         <File Name="gc_sizeM_update.cpp"/>
       </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
-      <VirtualDirectory Name="Slice">
+      <VirtualDirectory Name="Epol Slice">
         <File Name="gcsl_dgcslini.cpp"/>
         <File Name="gcsl_dgcsl.cpp"/>
         <File Name="gcsl_potential.cpp"/>
@@ -2466,7 +2482,6 @@
         <File Name="gcsl_epol4.cpp"/>
         <File Name="gcsl_epol4a.cpp"/>
         <File Name="gcxsl_flagx.cpp"/>
-        <File Name="gcsl_tpflag.cpp"/>
         <File Name="gcsl_noslip.cpp"/>
         <File Name="gcsl_setbc.cpp"/>
       </VirtualDirectory>
@@ -2488,7 +2503,6 @@
         <File Name="driver_log.cpp"/>
         <File Name="driver_test.cpp"/>
         <File Name="driver_makegrid.cpp"/>
-        <File Name="driver_fillvec.cpp"/>
         <File Name="driver_makgrid_2D.cpp"/>
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
@@ -2517,20 +2531,17 @@
           <File Name="field4.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
-          <File Name="fieldint6.cpp"/>
           <File Name="fieldint2.cpp"/>
           <File Name="fieldint1.cpp"/>
           <File Name="fieldint3.cpp"/>
           <File Name="fieldint4.cpp"/>
           <File Name="fieldint5.cpp"/>
-          <File Name="fieldint4a.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Increment">
           <File Name="increment.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geotopo">
           <File Name="geotopo.cpp"/>
-          <File Name="geotopo_conv.cpp"/>
           <File Name="geotopo_dat.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Util">
@@ -2670,7 +2681,6 @@
           <File Name="fsf_vtp_print.cpp"/>
           <File Name="fsf_finalize.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Nodefill"/>
         <VirtualDirectory Name="State">
           <File Name="cfd_state_header.cpp"/>
           <File Name="cfd_state_mainheader.cpp"/>
@@ -2735,7 +2745,6 @@
       <File Name="momentum_RK3.cpp"/>
       <File Name="momentum_void.cpp"/>
       <File Name="momentum_RK2.cpp"/>
-      <File Name="momentum_AB2.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Pressure">
       <VirtualDirectory Name="Reference">
@@ -2749,7 +2758,6 @@
       <VirtualDirectory Name="Poisson">
         <File Name="poisson_pcorr.cpp"/>
         <File Name="poisson_f.cpp"/>
-        <File Name="poisson_nse.cpp"/>
       </VirtualDirectory>
       <File Name="pressure_void.cpp"/>
       <File Name="pjm.cpp"/>
@@ -2763,7 +2771,6 @@
         <File Name="density_heat.cpp"/>
         <File Name="density_f.cpp"/>
       </VirtualDirectory>
-      <File Name="pjm_nse.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="HYPRE SStruct FNPF">

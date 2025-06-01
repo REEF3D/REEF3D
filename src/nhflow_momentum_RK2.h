@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_MOMENTUM_RK2_H_
+#define NHFLOW_MOMENTUM_RK2_H_
+
 #include"slice4.h"
 #include"nhflow_momentum_func.h"
 #include<vector>
@@ -29,9 +32,6 @@ class vrans;
 class net;
 
 using namespace std;
-
-#ifndef NHFLOW_MOMENTUM_RK2_H_
-#define NHFLOW_MOMENTUM_RK2_H_
 
 class nhflow_momentum_RK2 : public nhflow_momentum_func
 {
@@ -51,10 +51,12 @@ public:
     slice4 WLRK1;
 
 private:
-	int gcval_u, gcval_v, gcval_w;    int gcval_uh, gcval_vh, gcval_wh;
+	int gcval_u, gcval_v, gcval_w;
+    int gcval_uh, gcval_vh, gcval_wh;
 	double starttime;
     
-    nhflow_convection *pweno;    sixdof *p6dof;
+    nhflow_convection *pweno;
+    sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;
     vrans* pvrans;

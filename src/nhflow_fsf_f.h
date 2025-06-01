@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_FSF_F_H_
+#define NHFLOW_FSF_F_H_
+
 #include"nhflow_fsf.h"
 #include"increment.h"
 #include"slice1.h"
@@ -29,9 +32,6 @@ Author: Hans Bihs
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef NHFLOW_FSF_F_H_
-#define NHFLOW_FSF_F_H_
 
 class nhflow_fsf_f : public nhflow_fsf, public increment
 {

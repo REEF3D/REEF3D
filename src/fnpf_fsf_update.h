@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_FSF_UPDATE_H_
+#define FNPF_FSF_UPDATE_H_
+
 #include"increment.h"
 
 class lexer;
@@ -31,9 +34,6 @@ class field;
 class vec;
 
 using namespace std;
-
-#ifndef FNPF_FSF_UPDATE_H_
-#define FNPF_FSF_UPDATE_H_
 
 class fnpf_fsf_update : public increment
 {

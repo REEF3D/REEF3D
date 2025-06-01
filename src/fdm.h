@@ -34,7 +34,6 @@ Author: Hans Bihs
 #include"fieldint2.h"
 #include"fieldint3.h"
 #include"fieldint4.h"
-#include"fieldint4a.h"
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
@@ -68,7 +67,8 @@ public:
     field4 Fi;
 	field4 eddyv;
 	field4 L;
-	field4 ro,dro,visc;
+	field4 ro,visc;
+    field4 dro;
 	field4 phi,vof;
 	field4 conc;
     field4 test;

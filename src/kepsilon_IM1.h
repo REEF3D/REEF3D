@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef KEPSILON_IM1_H_
+#define KEPSILON_IM1_H_
+
 #include"ikepsilon.h"
 #include"field4.h"
 
 using namespace std;
-
-#ifndef KEPSILON_IM1_H_
-#define KEPSILON_IM1_H_
 
 class kepsilon_IM1 : public ikepsilon
 {

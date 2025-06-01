@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-vorticity_f::vorticity_f(lexer *p, fdm *a) : strain(p,a), omega1(p), omega2(p), omega3(p)
+vorticity_f::vorticity_f(lexer *p, fdm *a) : strain(p), omega1(p), omega2(p), omega3(p)
 {
 }
 

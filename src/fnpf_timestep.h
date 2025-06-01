@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_TIMESTEP_H_
+#define FNPF_TIMESTEP_H_
+
 #include"timestep.h"
 #include"increment.h"
 
@@ -28,9 +31,6 @@ class lexer;
 class ghostcell;
 
 using namespace std;
-
-#ifndef FNPF_TIMESTEP_H_
-#define FNPF_TIMESTEP_H_
 
 class fnpf_timestep : public increment
 {

@@ -33,7 +33,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
     
     p->wavetime = 0.0;
     
-	FLUIDLOOP
+	LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -134,7 +134,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 		a->w(i,j,k) = wave_w(p,pgc,xg,yg,z)*H;
 	}
 	
-	FLUIDLOOP
+	LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -151,7 +151,7 @@ void iowave::full_initialize(lexer *p, fdm*a, ghostcell *pgc)
 	}
 	
 	
-	FLUIDLOOP
+	LOOP
     {
         xg = xgen(p);
         yg = ygen(p);

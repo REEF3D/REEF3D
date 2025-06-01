@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_COASTLINE_H_
+#define FNPF_COASTLINE_H_
+
 #include"ddweno_f_nug.h"
 #include"slice4.h"
 class lexer;
@@ -27,9 +30,6 @@ class fdm_fnpf;
 class slice;
 class sliceint;
 class ghostcell;
-
-#ifndef FNPF_COASTLINE_H_
-#define FNPF_COASTLINE_H_
 
 using namespace std;
 

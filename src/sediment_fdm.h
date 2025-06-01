@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 
+#ifndef SEDIMENT_FDM_H_
+#define SEDIMENT_FDM_H_
+
 #include"sliceint4.h"
 #include"slice1.h"
 #include"slice2.h"
@@ -28,9 +31,6 @@ Author: Hans Bihs
 #include"field4a.h"
 
 using namespace std;
-
-#ifndef SEDIMENT_FDM_H_
-#define SEDIMENT_FDM_H_
 
 class sediment_fdm
 {
@@ -61,6 +61,8 @@ public:
     
     slice4 waterlevel;
     slice4 guard;
+    
+    sliceint4 dfs;
     
     double ws;
 

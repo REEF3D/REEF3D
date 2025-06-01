@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PTF_FSF_UPDATE_H_
+#define PTF_FSF_UPDATE_H_
+
 #include"increment.h"
 
 class lexer;
@@ -30,9 +33,6 @@ class slice;
 class field;
 
 using namespace std;
-
-#ifndef PTF_FSF_UPDATE_H_
-#define PTF_FSF_UPDATE_H_
 
 class ptf_fsf_update : public increment
 {

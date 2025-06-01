@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef CONCENTRATION_VOID_H_
+#define CONCENTRATION_VOID_H_
+
 #include"concentration.h"
 #include<fstream>
 
 using namespace std;
-
-#ifndef CONCENTRATION_VOID_H_
-#define CONCENTRATION_VOID_H_
 
 class concentration_void : public concentration
 {

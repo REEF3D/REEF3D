@@ -44,16 +44,19 @@ bedload_MPM::~bedload_MPM()
 
 void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-    double qb;
+    double qb,Ts,Tb,f;
 
 	SLICELOOP4
     {
+        Ts = s->shields_crit(i,j);
+	    Tb = s->shields_eff(i,j);
+        
+        f = MAX(MIN(2.0*Tb/Ts-1.0,1.0),0.0);
 
-        if(s->shields_eff(i,j)>s->shields_crit(i,j))
         if(s->active(i,j)==1)
-        qb = 8.0*pow(MAX(s->shields_eff(i,j) - s->shields_crit(i,j),0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+        qb = f * 8.0*pow(MAX(Tb - Ts,0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
 
-        if(s->shields_eff(i,j)<=s->shields_crit(i,j) || s->active(i,j)==0)
+        if(s->active(i,j)==0)
         qb=0.0;
 		
         s->qbe(i,j) = qb;

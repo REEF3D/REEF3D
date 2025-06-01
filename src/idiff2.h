@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IDIFF2_H_
+#define IDIFF2_H_
+
 #include"gradient.h"
 #include"diffusion.h"
 
 using namespace std;
-
-#ifndef IDIFF2_H_
-#define IDIFF2_H_
 
 class rheology;
 
@@ -42,10 +42,6 @@ public:
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double);
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double){};
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
-    
-	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
     
     virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double){};
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double){};

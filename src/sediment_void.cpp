@@ -196,6 +196,10 @@ void sediment_void::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
 {
 }
 
+void sediment_void::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv)
+{
+}
+
 void sediment_void::ctimesave(lexer *p, fdm* a)
 {
 

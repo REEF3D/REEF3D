@@ -105,14 +105,14 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
 	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
     
     if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==2)
-	pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
-	
-	if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
-	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
-	
-	if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
-	pupdate = new fluid_update_rheology(p,a);
+    pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
     
+    if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
+    pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
+    
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
+    pupdate = new fluid_update_rheology(p);
+
     if(p->F300>0)
 	pupdate = new fluid_update_void();
     
@@ -135,10 +135,7 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
     if(p->F80>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0)
 	pd = new density_vof(p);
     
-    if(p->F30>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90>0)
-    pd = new density_rheo(p);
-    
-    if(p->F300>=1)
+    if((p->F30>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90>0) || p->F300>=1)
     pd = new density_rheo(p);
 
 	if(p->F46==2)
@@ -170,7 +167,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     
     //-------------------------------------------
     // FSF
-    FLUIDLOOP
+    LOOP
     {
 	a->L(i,j,k)=0.0;
     ls(i,j,k)=a->phi(i,j,k);
@@ -178,7 +175,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 
 	pfsfdisc->start(p,a,ls,4,a->u,a->v,a->w);
 	
-	FLUIDLOOP
+	LOOP
 	frk1(i,j,k) = ls(i,j,k)
 				+ p->dt*a->L(i,j,k);
 	
@@ -186,7 +183,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	
 	pgc->start4(p,frk1,gcval_phi);
     
-    FLUIDLOOP
+    LOOP
     a->phi(i,j,k) = frk1(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
@@ -368,12 +365,12 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	
     //-------------------------------------------
     // FSF
-    FLUIDLOOP
+    LOOP
 	a->L(i,j,k)=0.0;
 
 	pfsfdisc->start(p,a,frk1,4,urk1,vrk1,wrk1);
 
-	FLUIDLOOP
+	LOOP
 	frk2(i,j,k) = 0.75*ls(i,j,k)
 				   + 0.25*frk1(i,j,k)
 				   + 0.25*p->dt*a->L(i,j,k);
@@ -382,7 +379,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	
 	pgc->start4(p,frk2,gcval_phi);
     
-    FLUIDLOOP
+    LOOP
     a->phi(i,j,k) =  frk2(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
@@ -563,12 +560,12 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     
     //-------------------------------------------
     // FSF
-    FLUIDLOOP
+    LOOP
 	a->L(i,j,k)=0.0;
 
 	pfsfdisc->start(p,a,frk2,4,urk2,vrk2,wrk2);
 
-	FLUIDLOOP
+	LOOP
 	ls(i,j,k) =  (1.0/3.0)*ls(i,j,k)
 				  + (2.0/3.0)*frk2(i,j,k)
 				  + (2.0/3.0)*p->dt*a->L(i,j,k);
@@ -576,7 +573,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,a->phi,gcval_phi);
     
-    FLUIDLOOP
+    LOOP
     a->phi(i,j,k) =  ls(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
@@ -789,17 +786,6 @@ void momentum_FCC3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel
 }
 
 
-void momentum_FCC3::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FCC3::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FCC3::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
 
 void momentum_FCC3::clear_FGH(lexer *p, fdm *a)
 {

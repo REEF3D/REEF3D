@@ -56,9 +56,6 @@ public:
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_FCC3();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
-    virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
     field1 ur,udiff,urk1,urk2,fx;
 	field2 vr,vdiff,vrk1,vrk2,fy;

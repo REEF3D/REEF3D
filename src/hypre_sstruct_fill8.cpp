@@ -33,7 +33,7 @@ void hypre_sstruct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
     fieldint4 cval4(p);
     
     count=0;
-    FLUIDLOOP
+    LOOP
     {
     cval4(i,j,k)=count;
     ++count;

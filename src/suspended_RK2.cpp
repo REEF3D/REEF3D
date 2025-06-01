@@ -101,7 +101,8 @@ void suspended_RK2::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     {
     a->L(i,j,k)=0.0;
 
-    // if(a->phi(i,j,k)>0.0)    //a->L(i,j,k)=-s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+    // if(a->phi(i,j,k)>0.0)
+    //a->L(i,j,k)=-s->ws*(conc(i,j,k+1)-conc(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
     }
 
 }

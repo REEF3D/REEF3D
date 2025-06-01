@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"ioflow.h"
 #include"solver.h"
 
 nhflow_ediff::nhflow_ediff(lexer* p)
@@ -41,7 +42,7 @@ nhflow_ediff::~nhflow_ediff()
 {
 }
 
-void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
+void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     
 	starttime=pgc->timer();
@@ -51,19 +52,20 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     
     pgc->start4V(p,UHdiff,gcval_uh);
     
+    pflow->rkinflow_nhflow(p,d,pgc,UHdiff,UHin);
+    
     LOOP
-	{
-    visc = d->VISC[IJK];
+    {
+    visc = d->VISC[IJK] + d->EV[IJK];
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
 
-    d->F[IJK] += 2.0*visc*((UH[Ip1JK]-UH[IJK])/p->DXP[IP] - (UH[IJK]-UH[Im1JK])/p->DXP[IP])/p->DXN[IP]
+    d->F[IJK] =  2.0*visc*((UH[Ip1JK]-UH[IJK])/p->DXP[IP] - (UH[IJK]-UH[Im1JK])/p->DXP[IP])/p->DXN[IP]
     
-                   + visc*((UH[IJp1K]-UH[IJK])/p->DYP[JP] - (UH[IJK]-UH[IJm1K])/p->DYP[JP])/p->DYN[JP]
+                   + visc*((UH[IJp1K]-UH[IJK])/p->DYP[JP] - (UH[IJK]-UH[IJm1K])/p->DYP[JP])/p->DYN[JP]*p->y_dir
                    
                    + visc*sigxyz2*((UH[IJKp1]-UH[IJK])/p->DZP[KP] - (UH[IJK]-UH[IJKm1])/p->DZP[KP])/p->DZN[KP]
-    
     
         
          + visc*((VH[Ip1Jp1K]-VH[Im1Jp1K]) - (VH[Ip1Jm1K]-VH[Im1Jm1K]))/((p->DXP[IP]+p->DXP[IM1])*(p->DYN[JP]+p->DYN[JM1]))
@@ -79,17 +81,19 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	}
 }
 
-void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
+void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     LOOP
     VHdiff[IJK] = VHin[IJK];
     
     pgc->start4V(p,VHdiff,gcval_vh);
     
+    pflow->rkinflow_nhflow(p,d,pgc,VHdiff,VHin);
+    
     
     LOOP
-	{
-    visc = d->VISC[IJK];
+    {
+    visc = d->VISC[IJK] + d->EV[IJK];
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
@@ -114,22 +118,24 @@ void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
 	}
 }
 
-void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
+void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     LOOP
     WHdiff[IJK] = WHin[IJK];
     
     pgc->start4V(p,WHdiff,gcval_wh);
     
+    pflow->rkinflow_nhflow(p,d,pgc,WHdiff,WHin);
+    
     
     LOOP
-	{
-    visc = d->VISC[IJK];
+    {
+    visc = d->VISC[IJK] + d->EV[IJK];
     
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
 
-    d->H[IJK] +=    visc*((WH[Ip1JK]-WH[IJK])/p->DXP[IP] - (WH[IJK]-WH[Im1JK])/p->DXP[IP])/p->DXN[IP]
+    d->H[IJK] +=     visc*((WH[Ip1JK]-WH[IJK])/p->DXP[IP] - (WH[IJK]-WH[Im1JK])/p->DXP[IP])/p->DXN[IP]
     
                    + visc*((WH[IJp1K]-WH[IJK])/p->DYP[JP] - (WH[IJK]-WH[IJm1K])/p->DYP[JP])/p->DYN[JP]
                    
@@ -138,7 +144,7 @@ void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, d
     
         
          + visc*((UH[Ip1JKp1]-UH[Ip1JKm1]) - (UH[Im1JKp1]-UH[Im1JKm1]))/((p->DZN[KP]+p->DZN[KM1])*(p->DXP[IP]+p->DXP[IM1]))
-         +  visc*((VH[IJp1Kp1]-VH[IJp1Km1]) - (VH[IJp1Kp1]-VH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))
+         + visc*((VH[IJp1Kp1]-VH[IJp1Km1]) - (VH[IJp1Kp1]-VH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))
         
         + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(WH[Ip1JKp1] - WH[Im1JKp1] - WH[Ip1JKm1] + WH[Im1JKm1])
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))

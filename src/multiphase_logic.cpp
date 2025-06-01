@@ -84,5 +84,5 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	pupdate = new multiphase_fluid_update_f(p,a,pgc);
     
     if(p->W90>0)
-	pupdate = new multiphase_fluid_update_rheology(p,a,pgc);
+    pupdate = new multiphase_fluid_update_rheology(p);
 }

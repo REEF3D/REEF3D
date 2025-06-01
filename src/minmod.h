@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fluxlim.h"
-#include"increment.h"
-
 #ifndef MINMOD_H_
 #define MINMOD_H_
+
+#include"fluxlim.h"
+#include"increment.h"
 
 using namespace std;
 

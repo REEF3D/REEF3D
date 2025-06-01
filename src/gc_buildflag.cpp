@@ -78,7 +78,6 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
     }
     
     
-    
     GC3LOOP
     {
         if(p->gcb3[n][4]==1)

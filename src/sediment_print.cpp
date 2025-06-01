@@ -687,6 +687,16 @@ void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	result.write((char*)&ffn, sizeof (float));
 	}
     
+    // MOB
+	iin=4*(p->pointnum2D);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPSLICELOOP
+	{
+    ffn= float(s->tau_eff(i,j)/(fabs(s->tau_crit(i,j))>1.0e-10?s->tau_crit(i,j):1.0e10));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
     // slideflag
     pgc->gcsl_start4(p,s->slideflag,1);
     
@@ -756,6 +766,16 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	result.write((char*)&ffn, sizeof (float));
 	}
     
+    // MOB
+	iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPLOOP
+	{
+    ffn= float(s->tau_eff(i,j)/(fabs(s->tau_crit(i,j))>1.0e-10?s->tau_crit(i,j):1.0e10));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
     // slideflag
     pgc->gcsl_start4(p,s->slideflag,1);
     
@@ -779,6 +799,8 @@ void sediment_f::name_pvtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result
     
     result<<"<PDataArray type=\"Float32\" Name=\"ST_threshold\"/>"<<endl;
     
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_MOB\"/>"<<endl;
+    
     result<<"<PDataArray type=\"Float32\" Name=\"ST_slideflag\"/>"<<endl;
 }
 
@@ -791,6 +813,8 @@ void sediment_f::name_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result,
     result<<"<DataArray type=\"Float32\" Name=\"ST_reduce\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"ST_threshold\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_MOB\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"ST_slideflag\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -808,10 +832,14 @@ void sediment_f::offset_vtp_parameter2(lexer *p, ghostcell *pgc, ofstream &resul
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
 }
 
 void sediment_f::offset_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;

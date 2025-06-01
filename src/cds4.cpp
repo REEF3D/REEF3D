@@ -24,14 +24,39 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_face_CDS2.h"
-#include"flux_face_CDS4.h"
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
-#include"flux_face_QOU.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 cds4::cds4 (lexer *p)
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -39,12 +64,6 @@ cds4::cds4 (lexer *p)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_QOU(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS4(p);
     }
     
     if(p->B269>=1 || p->S10==2)
@@ -54,12 +73,7 @@ cds4::cds4 (lexer *p)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_FOU_vrans(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS2(p);
+    }
     }
 }
 
@@ -72,7 +86,8 @@ void cds4::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
     if(ipol==1)
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel);
-
+    
+    if(p->j_dir==1)
     if(ipol==2)
     VLOOP
     a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel);
@@ -104,7 +119,7 @@ double cds4::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, fi
 		 -  ivel1* (27.0*b(i,j,k) + 27.0*b(i-1,j,k) - 3.0*b(i-2,j,k) - 3.0*b(i+1,j,k)))/(48.0*p->DXM);
 
 		
-		
+		if(p->j_dir==1)
 		dy= (jvel2*(27.0*b(i,j,k) + 27.0*b(i,j+1,k) - 3.0*b(i,j+2,k) - 3.0*b(i,j-1,k))  
 		 -  jvel1* (27.0*b(i,j,k) + 27.0*b(i,j-1,k) - 3.0*b(i,j-2,k) - 3.0*b(i,j+1,k)))/(48.0*p->DXM);
 

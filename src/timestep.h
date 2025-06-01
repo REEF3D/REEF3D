@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef TIMESTEP_H_
+#define TIMESTEP_H_
+
 class fdm;
 class lexer;
 class ghostcell;
 class turbulence;
 
 using namespace std;
-
-#ifndef TIMESTEP_H_
-#define TIMESTEP_H_
 
 class timestep
 {
