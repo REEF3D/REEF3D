@@ -34,11 +34,8 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
 	
 	for(qn=0;qn<p->X110;++qn)
     {
-        if(p->X110_objID[qn]==n6DOF)
-        {
-            box(p,pgc,qn);
-            ++entity_count;
-        }
+        box(p,pgc,qn);
+        ++entity_count;
     }
     
     for(qn=0;qn<p->X131;++qn)
