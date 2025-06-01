@@ -196,10 +196,6 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
 
     p->wtime+=pgc->timer()-starttime;
-    
-    pgc->start1(p,urk2,gcval_u);
-	pgc->start2(p,vrk2,gcval_v);
-    pgc->start3(p,wrk2,gcval_w);
 
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
