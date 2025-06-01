@@ -95,6 +95,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 			if(wsf>-1.0e19)
 			KLOOP 
              PCHECK
+             if(p->flagsf4[IJK]>0)
 			{
 
 				if(p->pos_z()<=p->phimean)
@@ -184,6 +185,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
             if(wsf<-1.0e19 && fabs(p->W10)<1.0e-10)
             KLOOP
             PCHECK 
+            if(p->flagsf4[IJK]>0)
             {
             u(i+1*aa,j+1*bb,k) = 0.0;
             u(i+2*aa,j+2*bb,k) = 0.0;
@@ -193,6 +195,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
             if(wsf<-1.0e19 && p->W10>1.0e-10)
             KLOOP
             PCHECK 
+            if(p->flagsf4[IJK]>0)
             {
             u(i+1*aa,j+1*bb,k) = u(i,j,k);
             u(i+2*aa,j+2*bb,k) = u(i,j,k);
@@ -246,6 +249,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 			if(wsf>-1.0e19)
 			KLOOP
              PCHECK
+             if(p->flagsf4[IJK]>0)
 			{
 				if(p->pos_z()<=p->phimean)
 				z=-(fabs(p->phimean-p->pos_z()));
@@ -309,7 +313,8 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 			}
             
             if(wsf>-1.0e19)
-			KLOOP 
+			KLOOP
+            if(p->flagsf4[IJK]>0)
 			{
             v(i+1*aa,j+1*bb,k)=0.0;
             v(i+2*aa,j+2*bb,k)=0.0;
@@ -364,6 +369,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
             if(wsf>-1.0e19)
 			KLOOP 
              PCHECK
+             if(p->flagsf4[IJK]>0)
 			{
 			pval = (wsf - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
             
