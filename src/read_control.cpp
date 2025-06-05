@@ -1019,8 +1019,10 @@ void lexer::read_control()
                 case 85: control>>F85;
                          clear(c,numint);
                          break;
-                case 112: control>>F112_xs>>F112_xe>>F112_ys>>F112_ye>>F112_zs>>F112_ze;
-                         F112=1;
+                case 112: ++F112;
+                         clear(c,numint);
+                         break;
+                case 113: ++F113;
                          clear(c,numint);
                          break;
                 case 150: control>>F150;
@@ -2698,6 +2700,24 @@ void lexer::read_control()
 	Darray(F72_ye,F72);
 
 	Darray(F72_h,F72);
+
+    Darray(F112_xs,F112);
+    Darray(F112_xe,F112);
+
+    Darray(F112_ys,F112);
+    Darray(F112_ye,F112);
+
+    Darray(F112_zs,F112);
+    Darray(F112_ze,F112);
+
+    Darray(F113_xs,F113);
+    Darray(F113_xe,F113);
+
+    Darray(F113_ys,F113);
+    Darray(F113_ye,F113);
+
+    Darray(F113_zs,F113);
+    Darray(F113_ze,F113);
     
     if(F369>0)
 	{
@@ -3162,6 +3182,8 @@ void lexer::read_control()
 	int countF70=0;
 	int countF71=0;
 	int countF72=0;
+    int countF112=0;
+    int countF113=0;
     int countF369=0;
 	int countF370=0;
 	int countF371=0;
@@ -3410,8 +3432,16 @@ void lexer::read_control()
 						 break;
 				case 72: control>>F72_xs[countF72]>>F72_xe[countF72]>>F72_ys[countF72]>>F72_ye[countF72]>>F72_h[countF72];
                         ++countF72;
-						 clear(c,numint);
-						 break;
+                         clear(c,numint);
+                         break;
+                case 112: control>>F112_xs[countF112]>>F112_xe[countF112]>>F112_ys[countF112]>>F112_ye[countF112]>>F112_zs[countF112]>>F112_ze[countF112];
+                        ++countF112;
+                        clear(c,numint);
+                        break;
+                case 113: control>>F113_xs[countF113]>>F113_xe[countF113]>>F113_ys[countF113]>>F113_ye[countF113]>>F113_zs[countF113]>>F113_ze[countF113];
+                        ++countF113;
+                        clear(c,numint);
+                        break;
                 case 369: control>>F369_x[countF369]>>F369_z[countF369]>>F369_a[countF369]>>F369_s[countF369]>>F369_l[countF369]>>F369_v[countF369];
                         ++countF369;
 						 clear(c,numint);
