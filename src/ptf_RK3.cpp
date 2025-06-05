@@ -214,8 +214,6 @@ void ptf_RK3::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
     
     pgc->gcsl_start4(p,a->eta,50);
     
-    FLUIDLOOP
-    a->test(i,j,k) = a->Fifsf(i,j);
     
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
