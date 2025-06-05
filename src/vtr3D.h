@@ -17,116 +17,34 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#ifndef vtr3D_H_
-#define vtr3D_H_
+#ifndef VTR3D_H_
+#define VTR3D_H_
 
-#include"printer.h"
-#include"increment.h"
-#include"field5.h"
+#include "vtk3D.h"
+#include "increment.h"
 
-class turbulence;
-class heat;
-class suspended;
-class bedload;
-class topo;
-class print_wsf;
-class print_wsf_theory;
-class print_wsfline_x;
-class print_wsfline_y;
-class force;
-class force;
-class vorticity;
-class solver;
-class probe_point;
-class probe_pressure;
-class probe_line;
-class bedprobe_point;
-class bedprobe_max;
-class gage_discharge_x;
-class gage_discharge_window_x;
-class fsf_vtp;
-class topo_vtp;
-class cfd_state;
-class bedshear_probe;
-class bedshear_max;
-class sloshing_force;
-class print_porous;
-class bedprobe_line_x;
-class bedprobe_line_y;
-class probe_vel;
-class probe_vel_theory;
-class exportfile;
-class flowfile_out;
-class print_averaging;
-
-using namespace std;
-
-class vtr3D : public printer, public increment 
+class vtr3D : public vtk3D , increment
 {
+    public:
+        void folder(const char*) override;
+        void offset(lexer*, int*, int&) override;
+        void structureWrite(lexer*, fdm*, std::ofstream&) override;
 
-public:
-	vtr3D(lexer*,fdm*,ghostcell*);
-	virtual ~vtr3D();
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-    virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-    virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,multiphase*,sediment*);
-	virtual void ini(lexer*,fdm*,ghostcell*);
-
-private:
-    void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,multiphase*,sediment*);
-    void pvtr(fdm*,lexer*,ghostcell*,turbulence*,heat*,data*,concentration*,multiphase*,sediment*);
-    void header(fdm*,lexer*,ghostcell*);
-    void name_iter(fdm*,lexer*,ghostcell*);
-    void name_time(fdm*,lexer*,ghostcell*);
-    void piecename(fdm*,lexer*,ghostcell*, int);
-    void extent(lexer*,int);
-    void fextent(lexer*);
-
-    char name[200],pname[200],epsvar[200],pextent[20];
-    int iextent[6];
-    int *piextent;
-    int n,iin,offset[300];
-    float ffn;
-    int gcval_phi,gcval_phiext;
-	double *printtime_wT;
-    double *printfsftime_wT;
-    int *printfsfiter_wI;
-    double phase;
-    double zcoor;
-	
-	field5 eta;
-
-    print_wsf *pwsf;
-	print_wsf_theory *pwsf_theory;
-    print_wsfline_x *pwsfline_x;
-	print_wsfline_y *pwsfline_y;
-    force **pforce;
-    vorticity *pvort;
-	probe_point *pprobe;
-    probe_pressure *ppressprobe;
-	probe_line *pline;
-	bedprobe_point *pbedpt;
-	bedprobe_line_x *pbedlinex;
-	bedprobe_line_y *pbedliney;
-	bedprobe_max *pbedmax;
-	bedshear_probe *pbedshear;
-	bedshear_max *pbedshearmax;
-	gage_discharge_x *pq;
-    gage_discharge_window_x *pqw;
-	fsf_vtp *pfsf;
-    topo_vtp *ptopo;
-	cfd_state *pstate;
-    sloshing_force *pslosh;
-	print_porous *ppor;
-    exportfile *pexport;
-    flowfile_out *pflowfile;
-    print_averaging *pmean;
-    probe_vel *pvel;
-    probe_vel_theory *pveltheo;
+        
+        void extent(lexer* ,ghostcell*) override;
+        void beginning(lexer*, std::ofstream&) override;
+        void beginningParallel(lexer*, std::ofstream&) override;
+        void ending(std::ofstream&, const int*, int&) override;
+        void endingParallel(std::ofstream&, const char*, const int, const int) override;
+        void fileName(char *name, const char *A10, const int num, const int rank) override {sprintf(name,"./REEF3D_%s_VTR/REEF3D-%s-%08i-%06i.vtr",A10,A10,num,rank);};
+        void parallelFileName(char *name, const char *A10, const int num) override {sprintf(name,"./REEF3D_%s_VTR/REEF3D-%s-%08i.pvtr",A10,A10,num);};
+    private:
+        int *piextent;
+        char pname[50];
+        char pextent[200];
 };
 
 #endif
-
