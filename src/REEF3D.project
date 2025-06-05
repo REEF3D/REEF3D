@@ -476,6 +476,14 @@
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Print">
+          <File Name="bedshear_probe.h"/>
+          <File Name="bedshear_max.h"/>
+          <File Name="bedprobe_point.h"/>
+          <File Name="bedprobe_max.h"/>
+          <File Name="bedprobe_line_y.h"/>
+          <File Name="bedprobe_line_x.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Sediment FDM">
           <File Name="sediment_fdm.h"/>
         </VirtualDirectory>
@@ -928,14 +936,6 @@
           <File Name="probe_pressure.h"/>
           <File Name="probe_point.h"/>
           <File Name="probe_line.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Sediment">
-          <File Name="bedprobe_point.h"/>
-          <File Name="bedprobe_max.h"/>
-          <File Name="bedshear_probe.h"/>
-          <File Name="bedshear_max.h"/>
-          <File Name="bedprobe_line_x.h"/>
-          <File Name="bedprobe_line_y.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Data">
           <File Name="data_f.h"/>
@@ -1749,6 +1749,14 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Print">
+          <File Name="bedshear_probe.cpp"/>
+          <File Name="bedshear_max.cpp"/>
+          <File Name="bedprobe_point.cpp"/>
+          <File Name="bedprobe_max.cpp"/>
+          <File Name="bedprobe_line_y.cpp"/>
+          <File Name="bedprobe_line_x.cpp"/>
+        </VirtualDirectory>
         <File Name="sediment_algorithm_nhflow.cpp"/>
         <File Name="sediment_algorithm_sflow.cpp"/>
         <File Name="sediment_algorithm_cfd.cpp"/>
@@ -1827,11 +1835,12 @@
         </VirtualDirectory>
         <File Name="sediment_f.cpp"/>
         <VirtualDirectory Name="Sediment">
+          <File Name="sediment_print_probes.cpp"/>
+          <File Name="sediment_print_vtk.cpp"/>
           <File Name="sediment_log.cpp"/>
           <File Name="sediment_waterlevel.cpp"/>
           <File Name="sediment_logic.cpp"/>
           <File Name="sediment_active.cpp"/>
-          <File Name="sediment_print.cpp"/>
           <File Name="sediment_void.cpp"/>
           <File Name="sediment_prep.cpp"/>
           <File Name="sediment_update.cpp"/>
@@ -2623,14 +2632,6 @@
           <File Name="probe_pressure.cpp"/>
           <File Name="probe_line.cpp"/>
           <File Name="probe_point.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Sediment">
-          <File Name="bedprobe_point.cpp"/>
-          <File Name="bedprobe_max.cpp"/>
-          <File Name="bedshear_probe.cpp"/>
-          <File Name="bedshear_max.cpp"/>
-          <File Name="bedprobe_line_x.cpp"/>
-          <File Name="bedprobe_line_y.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Data">
           <File Name="data_f.cpp"/>
