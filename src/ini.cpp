@@ -593,7 +593,7 @@ void lexer::ini_default()
 	P101=0;			  // int print sloshing forces
     P110=0;           // int print significant wave height
     P111=0.0;         // double start averging after transients
-    P120=1;          // int sediment log print out
+    P120=1;          // int
 	P121=0;             // int bed level gages
 	P122=0;             // int max bed level gages
 	P123=0;             // int topoline in x-direction

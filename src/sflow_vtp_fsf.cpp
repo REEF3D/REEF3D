@@ -63,12 +63,6 @@ sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 
     pprobe=new sflow_print_probe_da(p,b,pgc);
     
-    pbed=new sflow_print_bed(p,b);
-
-    pbedline=new sflow_print_bedline(p,b,pgc);
-
-    pbedline_y=new sflow_print_bedline_y(p,b,pgc);
-    
     //if(p->P37>0)
 	//pstate_restart=new sflow_state(p,b,pgc,1);
     
@@ -119,20 +113,6 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
     // Hs
     if(p->P110==1)
     phs->start(p,pgc,b->eta,b->Hs);
-    
-    // BED Gages
-    if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
-    if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
-    {      
-    if(p->P121>0)
-    pbed->height_gauge(p,b,pgc,b->bed);
-
-    if(p->P123>0)
-    pbedline->start(p,b,pgc,pflow,b->bed);
-
-    if(p->P124>0)
-    pbedline_y->start(p,b,pgc,pflow,b->bed);
-    }
     
      // Print state restart out based on iteration
     /*if(p->count%p->P38==0 && p->P37>0)

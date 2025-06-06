@@ -74,9 +74,6 @@ private:
     sflow_print_wsfline *pwsfline;
     sflow_print_wsfline_y *pwsfline_y;
     sflow_print_probe_da *pprobe;
-    sflow_print_bed *pbed;
-    sflow_print_bedline *pbedline;
-    sflow_print_bedline_y *pbedline_y;
     sflow_state *pstate;
     sflow_state *pstate_restart;
     fnpf_print_Hs *phs;
