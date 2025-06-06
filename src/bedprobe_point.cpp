@@ -22,12 +22,12 @@ Author: Hans Bihs
 
 #include"bedprobe_point.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"sediment_fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-bedprobe_point::bedprobe_point(lexer *p, fdm* a, ghostcell *pgc)
+bedprobe_point::bedprobe_point(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     p->Iarray(iloc,p->P121);
 	p->Iarray(jloc,p->P121);
@@ -57,7 +57,7 @@ bedprobe_point::bedprobe_point(lexer *p, fdm* a, ghostcell *pgc)
     wsfout<<endl<<endl;
     }
 
-    ini_location(p,a,pgc);
+    ini_location(p,pgc,s);
 }
 
 bedprobe_point::~bedprobe_point()
@@ -65,7 +65,7 @@ bedprobe_point::~bedprobe_point()
     wsfout.close();
 }
 
-void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_point::bed_gauge(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double zval=0.0;
 
@@ -81,14 +81,7 @@ void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
     i=iloc[n];
     j=jloc[n];
 	
-	//cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
-
-        KLOOP
-        PBASECHECK
-        {
-            if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-            wsf[n]=MAX(wsf[n],-(a->topo(i,j,k)*p->DXM)/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
-        }
+    wsf[n] = MAX(wsf[n],s->bedzh(i,j));
     }
 	
     for(n=0;n<p->P121;++n)
@@ -104,11 +97,11 @@ void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
-void bedprobe_point::write(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_point::write(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 }
 
-void bedprobe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_point::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     int check;
 

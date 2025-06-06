@@ -543,11 +543,14 @@ double interpolation::ipol4phi(fdm *a, field& b)
 
 double interpolation::ipol4_a( field& b)
 {
-
-pip=4;
+    if(p->j_dir==0)
+    value=0.25*(b(i,j,k)+b(i+1,j,k)+b(i,j,k+1)+b(i+1,j,k+1));
+                 
+                 
+    if(p->j_dir==1)
     value=0.125*(b(i,j,k)+b(i,j+1,k)+b(i+1,j,k)+b(i+1,j+1,k) +
                  b(i,j,k+1)+b(i,j+1,k+1)+b(i+1,j,k+1)+b(i+1,j+1,k+1));
-
+                 
     return value;
 }
 

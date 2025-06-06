@@ -37,8 +37,6 @@ Author: Hans Bihs
 #include"probe_point.h"
 #include"probe_pressure.h"
 #include"probe_line.h"
-#include"bedprobe_point.h"
-#include"bedprobe_max.h"
 #include"ioflow.h"
 #include"data.h"
 #include"concentration.h"
@@ -47,10 +45,7 @@ Author: Hans Bihs
 #include"fsf_vtp.h"
 #include"topo_vtp.h"
 #include"cfd_state.h"
-#include"bedshear_probe.h"
-#include"bedshear_max.h"
-#include"bedprobe_line_x.h"
-#include"bedprobe_line_y.h"
+
 #include"probe_vel.h"
 #include"probe_vel_theory.h"
 #include"multiphase.h"
@@ -149,23 +144,7 @@ vtu3D::vtu3D(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
     if(p->P81>0)
 	pforce = new force*[p->P81];
 
-	if(p->P121>0)
-	pbedpt = new bedprobe_point(p,a,pgc);
-
-	if(p->P122>0)
-	pbedmax = new bedprobe_max(p,a,pgc);
-
-	if(p->P123>0)
-	pbedlinex=new bedprobe_line_x(p,a,pgc);
-
-	if(p->P124>0)
-	pbedliney=new bedprobe_line_y(p,a,pgc);
-
-	if(p->P125>0)
-	pbedshear = new bedshear_probe(p,pgc);
-
-	if(p->P126>0)
-	pbedshearmax = new bedshear_max(p,pgc);
+	
 
     for(n=0;n<p->P81;++n)
 	pforce[n]=new force(p,a,pgc,n);
@@ -295,28 +274,7 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	if(p->P101>0)
 	pslosh->start(p,a,pgc);
 
-	// sediment probes
-	if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
-	if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
-	{
-	if(p->P121>0)
-	pbedpt->bed_gauge(p,a,pgc);
-
-	if(p->P122>0)
-	pbedmax->bed_max(p,a,pgc);
-
-	if(p->P123>0)
-	pbedlinex->start(p,a,pgc,pflow);
-
-	if(p->P124>0)
-	pbedliney->start(p,a,pgc,pflow);
-
-	if(p->P125>0)
-	pbedshear->bedshear_gauge(p,pgc,psed);
-
-	if(p->P126>0)
-	pbedshearmax->bedshear_maxval(p,pgc,psed);
-	}
+	
 
 	// Multiphase
 	pmp->print_file(p,a,pgc);

@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<fstream>
 
 class lexer;
-class fdm;
+class sediment_fdm;
 class ghostcell;
 class field;
 class ioflow;
@@ -39,14 +39,14 @@ using namespace std;
 class bedprobe_line_x : public boundarycheck
 {
 public:
-    bedprobe_line_x(lexer*,fdm*,ghostcell*);
+    bedprobe_line_x(lexer*,ghostcell*,sediment_fdm*);
 	virtual ~bedprobe_line_x();
 
-	void start(lexer*, fdm*, ghostcell*,ioflow*);
+	void start(lexer*, ghostcell*,ioflow*,sediment_fdm*);
 
 
 private:
-    void ini_location(lexer*, fdm*, ghostcell*);
+    void ini_location(lexer*, ghostcell*,sediment_fdm*);
     void sort(double*, double*, int*, int,int);
     void remove_multientry(lexer*,double*, double*, int*, int&);
 

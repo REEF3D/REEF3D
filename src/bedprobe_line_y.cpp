@@ -23,14 +23,14 @@ Author: Hans Bihs
 #include<iomanip>
 #include"bedprobe_line_y.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"sediment_fdm.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"wave_interface.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-bedprobe_line_y::bedprobe_line_y(lexer *p, fdm* a, ghostcell *pgc)
+bedprobe_line_y::bedprobe_line_y(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {	
 	p->Iarray(iloc,p->P124);
 
@@ -64,7 +64,7 @@ bedprobe_line_y::bedprobe_line_y(lexer *p, fdm* a, ghostcell *pgc)
 	rowflag[n]=0;
     }
 
-    ini_location(p,a,pgc);
+    ini_location(p,pgc,s);
 	
 	// Create Folder
 	if(p->mpirank==0)
@@ -79,7 +79,7 @@ bedprobe_line_y::~bedprobe_line_y()
     wsfout.close();
 }
 
-void bedprobe_line_y::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void bedprobe_line_y::start(lexer *p, ghostcell *pgc, ioflow *pflow, sediment_fdm *s)
 {
 	
     char name[250];
@@ -133,17 +133,8 @@ void bedprobe_line_y::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
         {
         i=iloc[q];
 
-            KLOOP
-            PBASECHECK
-            {
-                if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-                {
-                wsf[q][j]=MAX(wsf[q][j],-(a->topo(i,j,k)*p->DZP[KP])/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
-                yloc[q][j]=p->pos_y();
-				
-				
-                }
-            }
+        wsf[q][n] = MAX(wsf[q][n], s->bedzh(i,j));
+        yloc[q][j]=p->DYP[JP];
         }
     }
 	
@@ -216,7 +207,7 @@ void bedprobe_line_y::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     }
 }
 
-void bedprobe_line_y::ini_location(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_line_y::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     int check,count;
 

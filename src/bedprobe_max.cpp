@@ -22,12 +22,12 @@ Author: Hans Bihs
 
 #include"bedprobe_max.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"sediment_fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-bedprobe_max::bedprobe_max(lexer *p, fdm* a, ghostcell *pgc)
+bedprobe_max::bedprobe_max(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 	// Create Folder
 	if(p->mpirank==0)
@@ -47,7 +47,7 @@ bedprobe_max::~bedprobe_max()
     wsfout.close();
 }
 
-void bedprobe_max::bed_max(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_max::bed_max(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     // write to file
     if(p->mpirank==0)

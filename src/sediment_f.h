@@ -45,6 +45,13 @@ class diffusion;
 class convection;
 class patchBC_interface;
 class bedload_direction;
+class bedprobe_point;
+class bedprobe_max;
+class bedshear_probe;
+class bedshear_max;
+class bedprobe_line_x;
+class bedprobe_line_y;
+
 using namespace std;
 
 class sediment_f : public sediment, public increment
@@ -113,6 +120,8 @@ public:
 	void filter(lexer*,ghostcell*,slice&,int,int);
     
     // print
+    virtual void print_probes(lexer*, ghostcell*,sediment_fdm*);
+    
     virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&);
     virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&);
 	virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&);
@@ -162,6 +171,12 @@ private:
 	bedshear *pbedshear;
     patchBC_interface *pBC;
     bedload_direction *pbeddir;
+    bedprobe_point *pbedpt;
+	bedprobe_line_x *pbedlinex;
+	bedprobe_line_y *pbedliney;
+	bedprobe_max *pbedmax;
+	bedshear_probe *pbedshearprobe;
+	bedshear_max *pbedshearmax;
 
     ofstream sedlogout;
     

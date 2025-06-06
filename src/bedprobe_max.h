@@ -23,6 +23,8 @@ Author: Hans Bihs
 #ifndef BEDPROBE_MAX_H_
 #define BEDPROBE_MAX_H_
 
+class sediment_fdm;
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -37,10 +39,10 @@ using namespace std;
 class bedprobe_max : public boundarycheck
 {
 public:
-    bedprobe_max(lexer*,fdm*,ghostcell*);
+    bedprobe_max(lexer*,ghostcell*,sediment_fdm*);
 	virtual ~bedprobe_max();
 
-	void bed_max(lexer*, fdm*, ghostcell*);
+	void bed_max(lexer*, ghostcell*, sediment_fdm*);
 
 
 private:

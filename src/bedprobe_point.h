@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<fstream>
 
 class lexer;
-class fdm;
+class sediment_fdm;
 class ghostcell;
 class field;
 
@@ -37,15 +37,15 @@ using namespace std;
 class bedprobe_point : public boundarycheck
 {
 public:
-    bedprobe_point(lexer*,fdm*,ghostcell*);
+    bedprobe_point(lexer*, ghostcell*, sediment_fdm*);
 	virtual ~bedprobe_point();
 
-	void bed_gauge(lexer*, fdm*, ghostcell*);
+	void bed_gauge(lexer*, ghostcell*, sediment_fdm*);
 
 
 private:
-    void ini_location(lexer*, fdm*, ghostcell*);
-    void write(lexer*, fdm*, ghostcell*);
+    void ini_location(lexer*, ghostcell*, sediment_fdm*);
+    void write(lexer*, ghostcell*, sediment_fdm*);
     int conv(double);
 
     int *iloc,*jloc,*flag;

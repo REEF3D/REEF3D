@@ -96,8 +96,6 @@ private:
     nhflow_print_Hs *phs;
     nhflow_force **pforce;
     nhflow_force_ale **pforce_ale;
-    bedshear_probe *pbedshear;
-    bedshear_max* pbedshearmax;
     
 };
 

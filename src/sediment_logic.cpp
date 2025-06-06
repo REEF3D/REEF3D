@@ -76,6 +76,12 @@ Author: Hans Bihs
 #include"nhflow_idiff_2D.h"
 #include"nhflow_scalar_iweno.h"
 #include"nhflow_scalar_ifou.h"
+#include"bedprobe_point.h"
+#include"bedprobe_max.h"
+#include"bedshear_probe.h"
+#include"bedshear_max.h"
+#include"bedprobe_line_x.h"
+#include"bedprobe_line_y.h"
 
 void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
@@ -208,10 +214,30 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	
     
     prelax = new topo_relax(p);
+    
+    pbedshear  = new bedshear(p,pturb);
 	
-	pbedshear  = new bedshear(p,pturb);
     
     volume_token=0;
+    
+    
+    if(p->P121>0)
+	pbedpt = new bedprobe_point(p,pgc,s);
+
+	if(p->P122>0)
+	pbedmax = new bedprobe_max(p,pgc,s);
+
+	if(p->P123>0)
+	pbedlinex=new bedprobe_line_x(p,pgc,s);
+
+	if(p->P124>0)
+	pbedliney=new bedprobe_line_y(p,pgc,s);
+
+	if(p->P125>0)
+	pbedshearprobe = new bedshear_probe(p,pgc);
+
+	if(p->P126>0)
+	pbedshearmax = new bedshear_max(p,pgc);
     
     
     

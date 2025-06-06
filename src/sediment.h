@@ -37,6 +37,7 @@ class reinitopo;
 class field;
 class slice;
 class solver;
+class sediment_fdm;
 
 #include<fstream>
 
@@ -78,6 +79,8 @@ public:
     virtual void read_state_particles(lexer *, ifstream&){};
     
     virtual void ctimesave(lexer*, fdm*){};
+    
+    virtual void print_probes(lexer*, ghostcell*,sediment_fdm*)=0;
     
     virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&){};
     virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&){};

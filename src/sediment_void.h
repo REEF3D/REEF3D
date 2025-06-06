@@ -59,6 +59,8 @@ public:
     
     virtual void ctimesave(lexer*, fdm*);
     
+    virtual void print_probes(lexer*, ghostcell*,sediment_fdm*){};
+    
     virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&);
     virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&);
 	virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&);
