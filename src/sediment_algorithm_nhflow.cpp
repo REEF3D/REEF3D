@@ -83,6 +83,9 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     // update sflow  --------
     update_nhflow(p,d,pgc,pflow);
     
+    // sediment print
+    print_probes(p,pgc,s,pflow);
+    
     // sediment log
     sedimentlog(p);
     

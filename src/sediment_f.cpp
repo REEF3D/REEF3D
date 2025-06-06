@@ -55,6 +55,8 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patc
     
     if(p->F50==4)
 	gcval_eta = 54;
+    
+    psed = this;
 }
 
 sediment_f::~sediment_f()

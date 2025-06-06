@@ -79,7 +79,7 @@ bedprobe_line_y::~bedprobe_line_y()
     wsfout.close();
 }
 
-void bedprobe_line_y::start(lexer *p, ghostcell *pgc, ioflow *pflow, sediment_fdm *s)
+void bedprobe_line_y::start(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow *pflow)
 {
 	
     char name[250];

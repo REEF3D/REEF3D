@@ -42,7 +42,7 @@ public:
     bedprobe_line_x(lexer*,ghostcell*,sediment_fdm*);
 	virtual ~bedprobe_line_x();
 
-	void start(lexer*, ghostcell*,ioflow*,sediment_fdm*);
+	void start(lexer*, ghostcell*,sediment_fdm*,ioflow*);
 
 
 private:

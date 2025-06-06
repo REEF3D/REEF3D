@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"sediment_f.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"bedshear.h"
@@ -33,31 +32,31 @@ Author: Hans Bihs
 #include"bedprobe_line_x.h"
 #include"bedprobe_line_y.h"
 
-void sediment_f::print_probes(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void sediment_f::print_probes(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow *pflow)
 {
 
 
 // sediment probes
-	/*if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
-	if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
-	{
+	//if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
+	//if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
+	//{
 	if(p->P121>0)
-	pbedpt->bed_gauge(p,a,pgc);
+	pbedpt->bed_gauge(p,pgc,s);
 
 	if(p->P122>0)
-	pbedmax->bed_max(p,a,pgc);
+	pbedmax->bed_max(p,pgc,s);
 
 	if(p->P123>0)
-	pbedlinex->start(p,a,pgc,pflow);
+	pbedlinex->start(p,pgc,s,pflow);
 
 	if(p->P124>0)
-	pbedliney->start(p,a,pgc,pflow);
+	pbedliney->start(p,pgc,s,pflow);
 
 	if(p->P125>0)
-	pbedshear->bedshear_gauge(p,pgc,psed);
+	pbedshearprobe->bedshear_gauge(p,pgc,psed);
 
 	if(p->P126>0)
 	pbedshearmax->bedshear_maxval(p,pgc,psed);
-	}*/
+	//}
     
 }

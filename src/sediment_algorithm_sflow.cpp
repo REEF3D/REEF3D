@@ -84,7 +84,7 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     update_sflow(p,b,pgc,pflow);
     
     // sediment print
-    print_probes(p,pgc,s);
+    print_probes(p,pgc,s,pflow);
     
     // sediment log
     sedimentlog(p);
