@@ -99,13 +99,6 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
      pgc->start3(p,a->fbh3,12);
      pgc->start4(p,a->fbh4,40);
 
-    // Print initial body 
-    if(p->X50==1)
-    print_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_stl(p,pgc);
-
 	// Mooring
 	if(p->X310==0)
 	{
@@ -207,6 +200,12 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
             pnet[ii]->initialize(p,a,pgc);
 		}
     }
+
+    // Print initial body 
+    if(p->X50==1)
+        print_vtp(p,pgc);
+    else if(p->X50==2)
+        print_stl(p,pgc);
     
     // ghostcell update
     pgc->gcdf_update(p,a);
