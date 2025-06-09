@@ -23,21 +23,14 @@ Author: Hans Bihs
 #ifndef FLUID_UPDATE_H_
 #define FLUID_UPDATE_H_
 
-class fdm;
 class lexer;
+class fdm;
 class ghostcell;
-class field;
-
-using namespace std;
 
 class fluid_update
 {
 public:
-
-	virtual void start(lexer*, fdm*, ghostcell*)=0;
-
-
+    virtual void start(lexer*, fdm*, ghostcell*)=0;
 };
 
 #endif
-
