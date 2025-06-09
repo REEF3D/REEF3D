@@ -35,26 +35,24 @@ void printer_fnpf::parallel(lexer *p, ghostcell* pgc)
 
     outputFormat->parallelFileName(name,sizeof(name),"FNPF",num);
 
-
     ofstream result;
     result.open(name);
 
     outputFormat->beginningParallel(p,result);
 
-    result<<"<PPointData>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
     if(p->P110==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
     if(p->P25==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
-    result<<"</PPointData>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
+    result<<"</PPointData>\n";
 
     outputFormat->endingParallel(result,"FNPF",p->M10,num);
 
     result.close();
-
 }

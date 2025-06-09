@@ -53,11 +53,11 @@ class printer_fnpf : public fnpf_printer, public increment
 
 public:
     printer_fnpf(lexer*,fdm_fnpf*,ghostcell*);
-    virtual ~printer_fnpf();
-    virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
-    virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*);
+    virtual ~printer_fnpf() = default;
+    void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override;
+    void print_stop(lexer*,fdm_fnpf*,ghostcell*) override;
     virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
-    
+
 private:
     void parallel(lexer*,ghostcell*);
 
@@ -69,12 +69,9 @@ private:
     int gcval_phi,gcval_phiext;
     double *printtime_wT;
     double *printfsftime_wT;
-    int *printfsfiter_wI;
-    double phase;
-    double zcoor;
-    
+
     int printcount;
-    
+
     fnpf_print_wsf *pwsf;
     fnpf_print_wsf_theory *pwsf_theory;
     fnpf_print_wsfline *pwsfline;
@@ -93,4 +90,3 @@ private:
 };
 
 #endif
-
