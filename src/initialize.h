@@ -26,8 +26,8 @@ Author: Hans Bihs
 #include"resize.h"
 #include"increment.h"
 
-class fdm;
 class lexer;
+class fdm;
 class ghostcell;
 class turbulence;
 class sediment;
@@ -41,38 +41,36 @@ public:
 	initialize(lexer*);
 	virtual ~initialize();
 
-	void start(fdm*, lexer*, ghostcell*);
+    void start(lexer*,fdm*,ghostcell*);
     void droplet_ini(lexer*,fdm*,ghostcell*);
-	void hydrostatic(lexer*,fdm*,ghostcell*);
-	void iniphi_io(fdm*, lexer*,ghostcell*);
-	void inivof_io(fdm*, lexer*,ghostcell*);
-	void iniphi_surfarea(lexer*,fdm*,ghostcell*);
-	void stateini(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
+    void hydrostatic(lexer*,fdm*,ghostcell*);
+    void iniphi_io(fdm*,lexer*,ghostcell*);
+    void inivof_io(fdm*,lexer*,ghostcell*);
+    void iniphi_surfarea(lexer*,fdm*,ghostcell*);
+    void stateini(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
     void inipsi(lexer*,fdm*,ghostcell*);
 
 private:
-	void inifdm(fdm*, lexer*, ghostcell*);
-	void iniphi(fdm*, lexer*,ghostcell*);
-	void iniphi_box(lexer*,fdm*,ghostcell*);	
-	void inivof(fdm*, lexer*,ghostcell*);
-	void inivof_box(lexer*,fdm*,ghostcell*);
-	void inivofPLIC(fdm*, lexer*,ghostcell*);
-	void bcwall_check(fdm*,lexer*);
-	void nodecalc(fdm*, lexer*);
-	void faceneighbors(lexer*,fdm*);
-	void maxcoor(fdm*, lexer*,ghostcell*);
-	void paraini(lexer*, fdm*,ghostcell*);
-	void pressini(lexer*,fdm*,ghostcell*);
-	void topoini(lexer*,fdm*,ghostcell*);
+    void inifdm(lexer*,fdm*,ghostcell*);
+    void iniphi(lexer*,fdm*,ghostcell*);
+    void iniphi_box(lexer*,fdm*,ghostcell*);
+    void iniphi_wedge(lexer*,fdm*);
+    void iniphi_fields(lexer*,fdm*,ghostcell*);
+    void inivof(fdm*,lexer*,ghostcell*);
+    void inivof_box(lexer*,fdm*,ghostcell*);
+    void inivofPLIC(fdm*,lexer*,ghostcell*);
+    void nodecalc(lexer*,fdm*);
+    void maxcoor(lexer*,fdm*,ghostcell*);
+    void paraini(lexer*,fdm*,ghostcell*);
+    void pressini(lexer*,fdm*,ghostcell*);
+    void topoini(lexer*,fdm*,ghostcell*);
     
-	int conv(double);
+    int conv(double);
 
-	const double smallnum;
-	double epsi;
+    double epsi;
 
-	int n,q,iend,kend;
-	double deltax;
-	double H;
+    int n,q,iend,kend;
+    double H;
 };
 
 #endif

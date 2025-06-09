@@ -24,8 +24,9 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include<utility>
 
-void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
+void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
 {
     double dx=p->DXM;
     double r;
@@ -81,9 +82,6 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
     {
         LOOP
         a->phi(i,j,k)=p->F60-p->pos_z();
-
-        p->phimean=p->F60;
-        
     }
 
     if((p->F60>-1.0e20 || p->F56>-1.0e20) && p->F62>-1.0e-20&& p->F63>-1.0e-20 )
@@ -95,41 +93,6 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
         if(p->pos_x() > p->F63)
         a->phi(i,j,k)=(phidiff/xdiff)*(p->pos_x()-p->F63) + p->phimean - p->pos_z() ;
     }
-    
-   
-    if(p->F112==1)
-    {
-    double slope=(p->F112_ze-p->F112_zs)/(p->F112_xe-p->F112_xs);
-    
- 	LOOP
- 	if(p->pos_x()>=p->F112_xs && p->pos_x()<p->F112_xe
-    && p->pos_y()>=p->F112_ys && p->pos_y()<p->F112_ye
-    && p->pos_z()>=p->F112_zs && p->pos_z()<slope*(p->pos_x()-p->F112_xs)+p->F112_zs)
- 	    a->phi(i,j,k)=1.0;
-     }
-
-
-	double H=0.0;
-
-	BASELOOP
-	{
-		if(a->phi(i,j,k)>(p->psi))
-		H=1.0;
-
-		if(a->phi(i,j,k)<-(p->psi))
-		H=0.0;
-
-		if(fabs(a->phi(i,j,k))<=(p->psi))
-		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi)));
-
-		a->ro(i,j,k)= 0.0; p->W1*H + p->W3*(1.0-H);
-		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
-	}
-
-	pgc->start4(p,a->phi,50);
-	pgc->start4(p,a->ro,1);
-	pgc->start4(p,a->visc,1);
-
 
 	p->phimean=p->F56;
 
@@ -152,9 +115,6 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
     p->phiout=p->F62;
     p->fsfout=p->F62;
     }
-	
-	
-	pgc->start4(p,a->phi,50);
 }
 
 void initialize::iniphi_io(fdm*a, lexer* p, ghostcell* pgc)
@@ -249,6 +209,47 @@ void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
 	}
 }
 
+void initialize::iniphi_wedge(lexer* p, fdm* a)
+{
+    for(int qn=0; qn<p->F112; ++qn)
+    {
+        double slope=(p->F112_ze[qn]-p->F112_zs[qn])/(p->F112_xe[qn]-p->F112_xs[qn]);
+        double z = p->F112_zs[qn];
+        if(p->F112_ze[qn]<p->F112_zs[qn])
+        {
+            std::swap(p->F112_ze[qn],p->F112_zs[qn]);
+            z = p->F112_ze[qn];
+        }
+
+        LOOP
+            if(p->pos_x()>=p->F112_xs[qn] && p->pos_x()<p->F112_xe[qn]
+                && p->pos_y()>=p->F112_ys[qn] && p->pos_y()<p->F112_ye[qn]
+                && p->pos_z()>=p->F112_zs[qn] && p->pos_z()<slope*(p->pos_x()-p->F112_xs[qn])+z)
+            {
+                a->phi(i,j,k)=1.0;
+            }
+    }
+
+    for(int qn=0; qn<p->F113; ++qn)
+    {
+        double slope=(p->F113_ze[qn]-p->F113_zs[qn])/(p->F113_ye[qn]-p->F113_ys[qn]);
+        double z = p->F113_zs[qn];
+        if(p->F113_ze[qn]<p->F113_zs[qn])
+        {
+            std::swap(p->F113_ze[qn],p->F113_zs[qn]);
+            z = p->F113_ze[qn];
+        }
+
+        LOOP
+            if(p->pos_x()>=p->F113_xs[qn] && p->pos_x()<p->F113_xe[qn]
+                && p->pos_y()>=p->F113_ys[qn] && p->pos_y()<p->F113_ye[qn]
+                && p->pos_z()>=p->F113_zs[qn] && p->pos_z()<slope*(p->pos_y()-p->F113_ys[qn])+z)
+            {
+                a->phi(i,j,k)=1.0;
+            }
+    }
+}
+
 void initialize::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
 {
 	double dx,dy,dz,dnorm,dirac;
@@ -276,4 +277,26 @@ void initialize::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
 	
 	area = pgc->globalsum(area);
 	
+}
+
+void initialize::iniphi_fields(lexer* p, fdm* a, ghostcell* pgc)
+{
+    pgc->start4(p,a->phi,50);
+    
+    double H;
+    BASELOOP
+    {
+        if(a->phi(i,j,k)>p->psi)
+            H=1.0;
+        else if(a->phi(i,j,k)<-p->psi)
+            H=0.0;
+        else
+            H=0.5*(1.0 + a->phi(i,j,k)/(p->psi) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi)));
+
+        a->ro(i,j,k)= 0.0; p->W1*H + p->W3*(1.0-H);
+        a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
+    }
+
+    pgc->start4(p,a->ro,1);
+    pgc->start4(p,a->visc,1);
 }
