@@ -40,7 +40,7 @@ public:
     void start(lexer*, fdm*, ghostcell*) override;
 
 private:
-    rheology *prheo;
+    rheology* prheo;
     int iter;
     int n;
     const double ro1,ro2;
@@ -49,7 +49,6 @@ private:
     double epsi;
 
     bool iocheck;
-
 };
 
 #endif
