@@ -59,7 +59,7 @@ void sediment_f::offset_vtp_bedload(lexer *p, ghostcell *pgc, ofstream &result, 
 	++n;
 }
 
-void sediment_f::offset_vtu_bedload(lexer *p, int *offset, int &n)
+void sediment_f::offset_ParaView_bedload(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -237,7 +237,7 @@ void sediment_f::offset_vtp_bedshear(lexer *p, ghostcell *pgc, ofstream &result,
 	++n;
 }
 
-void sediment_f::offset_vtu_bedshear(lexer *p, int *offset, int &n)
+void sediment_f::offset_ParaView_bedshear(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -616,7 +616,7 @@ void sediment_f::offset_vtp_parameter1(lexer *p, ghostcell *pgc, ofstream &resul
 	++n;
 }
 
-void sediment_f::offset_vtu_parameter1(lexer *p, int *offset, int &n)
+void sediment_f::offset_ParaView_parameter1(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -840,7 +840,7 @@ void sediment_f::offset_vtp_parameter2(lexer *p, ghostcell *pgc, ofstream &resul
 	++n;
 }
 
-void sediment_f::offset_vtu_parameter2(lexer *p, int *offset, int &n)
+void sediment_f::offset_ParaView_parameter2(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
