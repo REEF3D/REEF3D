@@ -144,7 +144,7 @@ void nhflow_komega_func_void::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofs
 {
 }
 
-void nhflow_komega_func_void::offset_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_komega_func_void::offset_vtu(lexer *p, int *offset, int &n)
 {
 }
 
