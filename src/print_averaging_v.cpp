@@ -55,7 +55,7 @@ void print_averaging_v::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream
 
 }
 
-void print_averaging_v::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void print_averaging_v::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 
 }
