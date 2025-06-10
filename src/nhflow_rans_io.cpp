@@ -185,7 +185,7 @@ void nhflow_rans_io::gcupdate(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start4V(p,EPS,30);
 }
 
-void nhflow_rans_io::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_rans_io::name_ParaView_parallel(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
     
