@@ -175,7 +175,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     }
     
     count=0;
-    if(p->F80==4)
+    /*if(p->F80==4)
     {
     
     FLUIDLOOP
@@ -196,7 +196,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             }
 		}
     }
-    }
+    }*/
     
     count=0;
     if(p->A10==3)
@@ -294,6 +294,24 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             }
 		}
     }
-
+    
+    if(p->F80==4)
+    {
+    LOOP
+        {
+        if((eta(i,j)+p->phimean)>=(p->pos_z()+0.5*p->DZN[KP]))
+            vofgen(i,j,k)=1.0;
+        else if((eta(i,j)+p->phimean)<=(p->pos_z()-0.5*p->DZN[KP]))
+            vofgen(i,j,k)=0.0;
+        else
+            vofgen(i,j,k)=(eta(i,j)+p->phimean-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+                    
+        if(vofgen(i,j,k)>1.0)
+            vofgen(i,j,k)=1.0;
+        else if(vofgen(i,j,k)<0.0)
+            vofgen(i,j,k)=0.0;
+        }
+        
+    }
 }
     

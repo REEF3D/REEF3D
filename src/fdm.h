@@ -88,6 +88,8 @@ public:
     field4 fbh4;
     field4 fbh5;
     
+    //PLIC
+    field4 nX,nY,nZ,Alpha;
     
     // PTF
     slice4 eta,eta_n,depth;

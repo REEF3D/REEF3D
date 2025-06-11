@@ -253,6 +253,8 @@ private:
     //PLIC
     double V0Calc_PLIC(lexer*, fdm*, double, double, double, double);
     slice4 vofheight;
+    slice4 genheight;
+    field4 vofgen;
     
 
     int n,count;

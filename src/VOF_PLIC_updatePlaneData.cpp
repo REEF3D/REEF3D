@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2024 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,60 +17,36 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
+#include"VOF_PLIC.h"
 #include"fdm.h"
 #include"lexer.h"
-
-fdm::fdm(lexer *p) :
-            u(p),F(p),
-            v(p),G(p),
-            w(p),H(p),
-            press(p),
-            Fi(p),
-            eddyv(p),
-            L(p),
-            ro(p),dro(p),visc(p),
-            phi(p),
-            vof(p),vof_nt(p),vof_nb(p),vof_st(p),vof_sb(p),phasemarker(p),
-            conc(p),
-            topo(p),solid(p),
-            test(p),
-            fb(p),fbh1(p),fbh2(p),fbh3(p),fbh4(p),fbh5(p),
-            porosity(p),porpart(p),
-            walld(p),
-            nodeval(p),nodeval2D(p),etaloc(p),
-            eta(p),eta_n(p),depth(p),
-            Fifsf(p),K(p),
-            P(p),Q(p),bed(p),
-            rhsvec(p),M(p),
-            nX(p),nY(p),nZ(p),Alpha(p)
-            
+#include"ghostcell.h"
+void VOF_PLIC::updatePlaneData(lexer* p,fdm* a,ghostcell* pgc ,field& voffield)
 {
-	maxF=0.0;
-	maxG=0.0; 
-	maxH=0.0;
-    
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
+    pgc->start4(p,voffield,1);
+    LOOP
+    {
+        if(voffield(i,j,k)>=a_thres && voffield(i,j,k)<=w_thres)
+        {
+            reconstructPlane_alt(a,p,voffield);
+            a->nX(i,j,k)=nx(i,j,k);
+            a->nY(i,j,k)=ny(i,j,k);
+            a->nZ(i,j,k)=nz(i,j,k);
+            a->Alpha(i,j,k)=alpha(i,j,k);
+        }
+        else
+        {
+            a->nX(i,j,k)=1E06;
+            a->nY(i,j,k)=1E06;
+            a->nZ(i,j,k)=1E06;
+            a->Alpha(i,j,k)=1E06;
+        }
+    }
+    pgc->start4(p,a->nX,1);
+    pgc->start4(p,a->nY,1);
+    pgc->start4(p,a->nZ,1);
+    pgc->start4(p,a->Alpha,1);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

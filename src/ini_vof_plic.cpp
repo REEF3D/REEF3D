@@ -36,6 +36,10 @@ double vofdiff, xdiff;
 
     LOOP
 	a->vof(i,j,k)=0.0;
+    a->nZ(i,j,k)=1E06;
+    a->nY(i,j,k)=1E06;
+    a->nZ(i,j,k)=1E06;
+    a->Alpha(i,j,k)=1E06;
     
     pgc->start4(p,a->vof,1);
 

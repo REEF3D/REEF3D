@@ -271,6 +271,7 @@
 /Users/fk/Codefiles/REEF3D/src/nhflow_poisson.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_timestep.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_gradient.h
+/Users/fk/Codefiles/REEF3D/src/nhflow_reinidisc_fsf.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_print_wsf_theory.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_print_wsfline_y.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_vtp_fsf.h
@@ -1187,6 +1188,7 @@
 /Users/fk/Codefiles/REEF3D/src/driver_memory.cpp
 /Users/fk/Codefiles/REEF3D/src/density_df.cpp
 /Users/fk/Codefiles/REEF3D/src/6DOF_motionext_wavemaker.h
+/Users/fk/Codefiles/REEF3D/src/VOF_PLIC_updatePlaneData.cpp
 /Users/fk/Codefiles/REEF3D/src/fnpf_print_wsfline.cpp
 /Users/fk/Codefiles/REEF3D/src/gcx_parax4a.cpp
 /Users/fk/Codefiles/REEF3D/src/hypre_struct2D_grid.cpp
@@ -1937,7 +1939,6 @@
 /Users/fk/Codefiles/REEF3D/src/6DOF_nhflow.h
 /Users/fk/Codefiles/REEF3D/src/fnpf_vtu3D_header.cpp
 /Users/fk/Codefiles/REEF3D/src/levelset_void.h
-/Users/fk/Codefiles/REEF3D/src/nhflow_reinidisc_fsf.h
 /Users/fk/Codefiles/REEF3D/src/reinidisc_fsf.cpp
 /Users/fk/Codefiles/REEF3D/src/net_barQuasiStatic.h
 /Users/fk/Codefiles/REEF3D/src/bedconc_void.h

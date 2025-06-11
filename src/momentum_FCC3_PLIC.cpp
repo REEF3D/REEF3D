@@ -140,6 +140,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             vof_rk1(i,j,k)=1.0;
     }
     
+    pplic->updatePlaneData(p,a,pgc,vof_rk1);
 	pflow->vof_relax(p,a,pgc,vof_rk1);
 	pgc->start4(p,vof_rk1,gcval_vof);
     
@@ -259,6 +260,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	pgc->start2(p,vr,gcval_v);
 	pgc->start3(p,wr,gcval_w);
     
+    
     //-------------------------------------------
 	// U
 	starttime=pgc->timer();
@@ -341,6 +343,9 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk1);
     pgc->start4(p,vof_rk1,gcval_vof);
+    LOOP
+        a->vof(i,j,k)=vof_rk1(i,j,k);
+    pgc->start4(p,a->vof,gcval_vof);
     if(p->F92==3)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc);
@@ -366,6 +371,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             vof_rk2(i,j,k)=1.0;
     }
     
+    pplic->updatePlaneData(p,a,pgc,vof_rk2);
 	pflow->vof_relax(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
     
@@ -553,7 +559,9 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
-    
+    LOOP
+        a->vof(i,j,k)=vof_rk2(i,j,k);
+    pgc->start4(p,a->vof,gcval_vof);
     if(p->F92==3)
     {
         pplic->calculateSubFractions(p,a,pgc,a->vof);
@@ -584,6 +592,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             a->vof(i,j,k)=1.0;
     }
     
+    pplic->updatePlaneData(p,a,pgc,a->vof);
 	pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     

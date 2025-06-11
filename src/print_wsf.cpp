@@ -172,7 +172,30 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
             if(f(i,j,k)>p->F94 && f(i,j,k+1)<p->F93)
                 wsf[n]=MAX(wsf[n],p->pos_z()+0.5*p->DZN[KP]);
             else if(f(i,j,k)<=p->F94 && f(i,j,k)>=p->F93)
-                wsf[n]=MAX(wsf[n],p->pos_z()+f(i,j,k)*p->DZN[KP]);
+            {
+                /*if(a->Alpha(i,j,k)<1E05)
+                {
+                    if(a->nZ(i,j,k)>1E-06 || a->nZ(i,j,k)<-1E-06)
+                    {
+                        if(fabs(a->Alpha(i,j,k)/a->nZ(i,j,k))<0.5*p->DZN[KP])
+                            wsf[n]=MAX(wsf[n],p->pos_z()+a->Alpha(i,j,k)/a->nZ(i,j,k));
+                        else
+                        {
+                            if(a->nZ(i,j,k)>0.0)
+                                wsf[n]=MAX(wsf[n],p->pos_z()+0.5*p->DZN[KP]);
+                            else
+                                wsf[n]=MAX(wsf[n],p->pos_z()-0.5*p->DZN[KP]);
+                        }
+                    }
+                    else
+                        wsf[n]=MAX(wsf[n],p->pos_z()+0.5*p->DZN[KP]);
+                }
+                else
+                {
+                    cout<<"surface cell in wave gauge does not have a plane"<<endl;*/
+                    wsf[n]=MAX(wsf[n],(p->pos_z()-0.5*p->DZN[KP])+f(i,j,k)*p->DZN[KP]);
+               // }
+            }
         }
     }
     }

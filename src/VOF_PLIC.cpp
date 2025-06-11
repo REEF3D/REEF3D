@@ -157,6 +157,7 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     }
     
     pgc->start4(p,vof_rk1,gcval_vof);
+    updatePlaneData(p,a,pgc,vof_rk1);
 	pflow->vof_relax(p,a,pgc,vof_rk1);
 	pgc->start4(p,vof_rk1,gcval_vof);
     
@@ -202,6 +203,7 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
             vof_rk2(i,j,k)=1.0;
     }
     
+    updatePlaneData(p,a,pgc,vof_rk2);
 	pflow->vof_relax(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
     
@@ -245,6 +247,7 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
             a->vof(i,j,k)=1.0;
     }
     
+    updatePlaneData(p,a,pgc,a->vof);
     pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     
@@ -265,6 +268,7 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
         
     updatePhasemarkersCompression(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
+    updatePlaneData(p,a,pgc,a->vof);
     
     pupdate->start(p,a,pgc);
     pgc->start4(p,a->ro,gcval_ro);

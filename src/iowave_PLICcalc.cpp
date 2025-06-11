@@ -115,9 +115,15 @@ double iowave::V0Calc_PLIC(lexer* p, fdm* a, double n_a, double n_b, double n_c,
     }
     
     if(V0<0.0)
+    {
         cout<<"neg VO output"<<endl;
+        V0=0.0;
+    }
     if(V0>1.0)
+    {
         cout<<"too hight V0 output"<<endl;
+        V0=1.0;
+    }
         
     return V0;
 }

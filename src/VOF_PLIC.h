@@ -54,6 +54,7 @@ public:
     void updatePhasemarkersCorrection(lexer*,fdm*,ghostcell*,field&);
     void calculateSubFractions(lexer*,fdm*,ghostcell*,field&);
     void surface_tension2D(lexer*,fdm*,ghostcell*,int);
+    void updatePlaneData(lexer*,fdm*,ghostcell*,field&);
     double return_alpha_reconstructPlane_alt(fdm*, lexer*,field&,int,int,int);
     
 	

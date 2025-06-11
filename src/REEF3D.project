@@ -2337,6 +2337,7 @@
       <VirtualDirectory Name="VOF PLIC">
         <File Name="VOF_void.cpp"/>
         <VirtualDirectory Name="FCRK3_functions">
+          <File Name="VOF_PLIC_updatePlaneData.cpp"/>
           <File Name="VOF_PLIC_surfaceTension.cpp"/>
           <File Name="VOF_PLIC_calculateSubFracions.cpp"/>
           <File Name="VOF_PLIC_updatePhasemarkers.cpp"/>

@@ -246,7 +246,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
                 vofval[count]=0.0;
             else
             {
-                vofval[count]=(eta(i,j)+p->phimean - p->pos_z()-0.5*p->DZN[KP])/p->DZN[KP];
+                vofval[count]=(eta(i,j)+p->phimean - (p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
                 if(vofval[count]>1.0 || vofval[count]<0.0)
                     cout<<"decomp relax vof error, vof:"<<vofval[count]<<endl;
             }

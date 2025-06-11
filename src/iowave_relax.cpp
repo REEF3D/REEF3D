@@ -224,6 +224,8 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
     p->wavecalctime+=pgc->timer()-starttime;
 }
 
+
+
 void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
 {
     starttime=pgc->timer();
@@ -286,27 +288,61 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
 
 void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
 {
-    double localheight=0.0;
+    
     starttime=pgc->timer();
     SLICELOOP4
     {
         vofheight(i,j)=0.0;
+        genheight(i,j)=0.0;
         KLOOP
-        {
+        {   
             vofheight(i,j)+=f(i,j,k)*p->DZN[KP];
+            
+            /*if(f(i,j,k)>p->F94 && f(i,j,k+1)<p->F93)
+                vofheight(i,j)=MAX(vofheight(i,j),p->pos_z()+0.5*p->DZN[KP]);
+            else if(f(i,j,k)<=p->F94 && f(i,j,k)>=p->F93)
+            {
+                if((a->nZ(i,j,k)>1E-06 || a->nZ(i,j,k)<-1E-06) && a->Alpha(i,j,k)<1E05)
+                {
+                    if(fabs(a->Alpha(i,j,k)/a->nZ(i,j,k))<0.5*p->DZN[KP])
+                        vofheight(i,j)=MAX(vofheight(i,j),p->pos_z()+a->Alpha(i,j,k)/a->nZ(i,j,k));
+                    else
+                    {
+                        if(a->nZ(i,j,k)>0.0)
+                            vofheight(i,j)=MAX(vofheight(i,j),p->pos_z()-0.5*p->DZN[KP]);
+                        else
+                            vofheight(i,j)=MAX(vofheight(i,j),p->pos_z()+0.5*p->DZN[KP]);
+                    }
+                }
+                else
+                {
+                    cout<<"surface cell in relax func does not have a plane"<<endl;
+                    vofheight(i,j)=MAX(vofheight(i,j),(p->pos_z()-0.5*p->DZN[KP])+f(i,j,k)*p->DZN[KP]);
+                }
+            }*/
         }
     }
     count=0;
+    
     LOOP
     {
-        dg = distgen(p);    
+    dg = distgen(p);
+    db = distbeach(p);
+    if(dg<1.0e20)
+        genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (eta(i,j)+p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+    else if (db<1.0e20)
+        genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+    else
+        genheight(i,j)=vofheight(i,j);
+    }
+    
+    pgc->gcsl_start4(p,genheight,1);
+    
+    LOOP
+    {
+        dg = distgen(p);
         db = distbeach(p);
 
-        if(p->pos_z()<=p->phimean)
-        z=-(fabs(p->phimean-p->pos_z()));
-            
-        if(p->pos_z()>p->phimean)
-        z=(fabs(p->phimean-p->pos_z()));
             
             
         
@@ -316,14 +352,103 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
             // Zone 1
             if(dg<1.0e20)
             {
-            localheight = (1.0-relax4_wg(i,j))*ramp(p) * (eta(i,j)+p->phimean) + relax4_wg(i,j)*vofheight(i,j);
-            if(p->pos_z()+0.5*p->DZN[KP]<=localheight)
+            if(p->pos_z()+0.5*p->DZN[KP]<=genheight(i,j))
                 f(i,j,k)=1.0;
-            else if(p->pos_z()-0.5*p->DZN[KP]>=localheight)
+            else if(p->pos_z()-0.5*p->DZN[KP]>=genheight(i,j))
                 f(i,j,k)=0.0;
             else
-                f(i,j,k)=(localheight-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+            {
+               /* double nx_eta,ny_eta,nz_eta,alpha_eta,nsum_eta;
+                double nx_vof,ny_vof,nz_vof,alpha_vof,nsum_vof;
                 
+                nz_vof=1.0;
+                nx_vof=-((genheight(i+1,j))-(genheight(i-1,j)))/(p->DXP[IP]+p->DXP[IM1]);
+                ny_vof=0.0;
+                nsum_vof=sqrt(nx_vof*nx_vof+ny_vof*ny_vof+nz_vof*nz_vof);
+                nx_vof=nx_vof/nsum_vof;
+                ny_vof=ny_vof/nsum_vof;
+                nz_vof=nz_vof/nsum_vof;
+                alpha_vof=(genheight(i,j)-p->pos_z())*nz_vof;*/
+                
+                /*nz_eta=1.0;
+                nx_eta=((eta(i+1,j))-(eta(i-1,j)))/(p->DXP[IP]+p->DXP[IM1]);
+                ny_eta=((eta(i,j+1))-(eta(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+                nsum_eta=sqrt(nx_eta*nx_eta+ny_eta*ny_eta+nz_eta*nz_eta);
+                nx_eta=nx_eta/nsum_eta;
+                ny_eta=ny_eta/nsum_eta;
+                nz_eta=nz_eta/nsum_eta;
+                if(fabs(eta(i,j)+p->phimean-p->pos_z())<=0.5*p->DZN[KP])
+                    alpha_eta=(eta(i,j)+p->phimean-p->pos_z())*nz_eta;
+                else if(((eta(i,j)+p->phimean)>p->pos_z()+0.5*p->DZN[KP]) && ((eta(i,j)+p->phimean)<=p->pos_z()+0.5*p->DZN[KP]+p->DZN[KP1]))
+                    alpha_eta=(eta(i,j)+p->phimean-(p->pos_z()+p->DZP[KP]))*nz_eta;
+                else if(((eta(i,j)+p->phimean)<p->pos_z()-0.5*p->DZN[KP]) && ((eta(i,j)+p->phimean)>=p->pos_z()-0.5*p->DZN[KP]-p->DZN[KM1]))
+                    alpha_eta=(eta(i,j)+p->phimean-(p->pos_z()-p->DZP[KM1]))*nz_eta;
+                else
+                {
+                    //cout<<"eta out of relax normal bounds"<<endl;
+                    alpha_eta=1E06;
+                }
+                
+                if(a->Alpha(i,j,k)<1E05)
+                {
+                    nx_vof=a->nX(i,j,k);
+                    ny_vof=a->nY(i,j,k);
+                    nz_vof=a->nZ(i,j,k);
+                    alpha_vof=a->Alpha(i,j,k);
+                }
+                else if(a->Alpha(i,j,k+1)<1E05)
+                {
+                    nx_vof=a->nX(i,j,k+1);
+                    ny_vof=a->nY(i,j,k+1);
+                    nz_vof=a->nZ(i,j,k+1);
+                    alpha_vof=a->Alpha(i,j,k+1);
+                }
+                else if(a->Alpha(i,j,k-1)<1E05)
+                {
+                    nx_vof=a->nX(i,j,k-1);
+                    ny_vof=a->nY(i,j,k-1);
+                    nz_vof=a->nZ(i,j,k-1);
+                    alpha_vof=a->Alpha(i,j,k-1);
+                }
+                else
+                {
+                    cout<<"vofheight out of relax normal bounds"<<endl;
+                    alpha_vof=1E06;
+                }
+    
+                if(alpha_vof<1E05 && alpha_eta<1E05)
+                {
+                    nx_vof = (1.0-relax4_wg(i,j))*ramp(p) * nx_eta + relax4_wg(i,j)*nx_vof;
+                    ny_vof = (1.0-relax4_wg(i,j))*ramp(p) * ny_eta + relax4_wg(i,j)*ny_vof;
+                    nz_vof = (1.0-relax4_wg(i,j))*ramp(p) * nz_eta + relax4_wg(i,j)*nz_vof;
+                    alpha_vof = (1.0-relax4_wg(i,j))*ramp(p) * alpha_eta + relax4_wg(i,j)*alpha_vof;
+                    nsum_vof=sqrt(nx_vof*nx_vof+ny_vof*ny_vof+nz_vof*nz_vof);
+                    nx_vof=nx_vof/nsum_vof;
+                    ny_vof=ny_vof/nsum_vof;
+                    nz_vof=nz_vof/nsum_vof;
+                }
+                else if(alpha_eta<1E05)
+                {
+                    nx_vof=nx_eta;
+                    ny_vof=ny_eta;
+                    nz_vof=nz_eta;
+                    alpha_vof=alpha_eta;
+                }
+                */
+                
+              /*  if(alpha_vof<1E05)
+                {
+                    f(i,j,k)=V0Calc_PLIC(p,a,nx_vof,ny_vof,nz_vof,alpha_vof);
+                }
+                else*/
+                //{
+                    //cout<<"both eta and vof out of relax normal bounds"<<endl;
+                    f(i,j,k)=(genheight(i,j)-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+               // }
+                
+            }
+            //    f(i,j,k)=(localheight-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+           // f(i,j,k) = (1.0-relax4_wg(i,j))*ramp(p) * vofgen(i,j,k) + relax4_wg(i,j)*f(i,j,k);
             ++count;
             }
         }
@@ -334,153 +459,19 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
             // Zone 2
             if(db<1.0e20)
             {
-                localheight = (1.0-relax4_wg(i,j))*ramp(p) * (p->phimean) + relax4_wg(i,j)*vofheight(i,j);
-            if(p->pos_z()+0.5*p->DZN[KP]<=localheight)
+            if(p->pos_z()+0.5*p->DZN[KP]<=genheight(i,j))
                 f(i,j,k)=1.0;
-            else if(p->pos_z()-0.5*p->DZN[KP]>=localheight)
+            else if(p->pos_z()-0.5*p->DZN[KP]>=genheight(i,j))
                 f(i,j,k)=0.0;
             else
-                f(i,j,k)=(localheight-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+                f(i,j,k)=(genheight(i,j)-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
             }
         }
     }
     
     
     p->wavecalctime+=pgc->timer()-starttime;
-    /*
-    starttime=pgc->timer();
-    
-    if(p->F80==4)
-    {
-        phi_relax(p,pgc,a->phi);
-        
-        LOOP
-        {
-            if(p->B98==2)
-            {
-                dg = distgen(p);
-                if(dg<1e20)
-                {
-                    if(a->phi(i,j,k)<-p->psi)
-                        f(i,j,k)=0.0;
-                    if(a->phi(i,j,k)>p->psi)
-                        f(i,j,k)=1.0;
-                    if(fabs(a->phi(i,j,k))<=p->psi)
-                    {
-                        double nX,nY,nZ,d0,nsum,V0;
-                        nX=-(a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
-                        nY=-(a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
-                        nZ=-(a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DXP[KP]+p->DXP[KM1]);
-                        nsum=sqrt(nX*nX+nY*nY+nZ*nZ);
-                        nX=nX/nsum;
-                        nY=nY/nsum;
-                        nZ=nZ/nsum;
-                        d0=a->phi(i,j,k);
-                        V0=V0Calc_PLIC(p,a,nX,nY,nZ,d0);
-                        f(i,j,k)=V0;
-                    }
-                }
-            }
-            
-            if(p->B99==2)
-            {
-                db = distbeach(p);
-                if(db<1.0e20)
-                {
-                    if(a->phi(i,j,k)<-0.29*p->psi)
-                        f(i,j,k)=0.0;
-                    if(a->phi(i,j,k)>0.29*p->psi)
-                        f(i,j,k)=1.0;
-                    if(fabs(a->phi(i,j,k))<=0.29*p->psi)
-                    {
-                        double nX,nY,nZ,d0,nsum,V0;
-                        nX=-(a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
-                        nY=-(a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
-                        nZ=-(a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DXP[KP]+p->DXP[KM1]);
-                        nsum=sqrt(nX*nX+nY*nY+nZ*nZ);
-                        nX=nX/nsum;
-                        nY=nY/nsum;
-                        nZ=nZ/nsum;
-                        d0=a->phi(i,j,k);
-                        V0=V0Calc_PLIC(p,a,nX,nY,nZ,d0);
-                        f(i,j,k)=V0;
-                    }
-                }
-            }
-            
-        }
-    }
-    else
-    {
-    count=0;
-    FLUIDLOOP
-    {
-        dg = distgen(p);    
-        db = distbeach(p);
 
-		if(p->pos_z()<=p->phimean)
-        z=-(fabs(p->phimean-p->pos_z()));
-		
-		if(p->pos_z()>p->phimean)
-        z=(fabs(p->phimean-p->pos_z()));	
-  
-        double fl = (eta(i-1,j)*p->DXN[IP] + eta(i,j)*p->DXN[IM1])/(p->DXN[IP] + p->DXN[IM1]) + p->phimean;
-        double fr = (eta(i,j)*p->DXN[IP] + eta(i+1,j)*p->DXN[IP1])/(p->DXN[IP] + p->DXN[IP1]) + p->phimean;
-        double fc = (fl + fr)/2.0;
-                
-		// Wave Generation
-        if(p->B98==2 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-                if (MIN(fl,fr) >= p->pos_z() + p->DZN[KP]/2.0)
-                {
-                    lsval[count] = 1.0;
-                }
-                else if (MAX(fl,fr) <= p->pos_z() - p->DZN[KP]/2.0)
-                {
-                    lsval[count] = 0.0;
-                }
-                else
-                {
-                    lsval[count] = (fc - p->pos_z() + p->DZN[KP]/2.0)/p->DZN[KP];
-                }
-                
-                f(i,j,k) = (1.0-relax4_wg(i,j))*ramp(p)*lsval[count] + relax4_wg(i,j)*f(i,j,k);
-                ++count;
-            }
-		}
-        
-        
-        fc = p->phimean;
-		double value;
-        
-		// Numerical Beach
-		if(p->B99==2)
-		{
-            // Zone 2
-            if(db<1.0e20)
-            {
-                if (fc >= p->pos_z() + p->DZN[KP]/2.0)
-                {
-                    value = 1.0;
-                }
-                else if (fc <= p->pos_z() - p->DZN[KP]/2.0)
-                {
-                    value = 0.0;
-                }
-                else 
-                {
-                    value = (fc - p->pos_z() + p->DZN[KP]/2.0)/p->DZN[KP];
-                }
-
-                f(i,j,k) = (1.0-relax4_nb(i,j)) * value + relax4_nb(i,j)*f(i,j,k);
-            }
-        }
-    }
-    p->wavecalctime+=pgc->timer()-starttime;
-    } */
 }
 
 void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
