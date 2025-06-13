@@ -61,6 +61,7 @@ public:
     
     slice4 waterlevel;
     slice4 guard;
+    slice4 MOB;
     
     sliceint4 dfs;
     

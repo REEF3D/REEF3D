@@ -688,12 +688,14 @@ void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	}
     
     // MOB
+    pgc->gcsl_start4(p,s->MOB,1);
+    
 	iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
 	
 	TPSLICELOOP
 	{
-    ffn= float(s->tau_eff(i,j)/(fabs(s->tau_crit(i,j))>1.0e-10?s->tau_crit(i,j):1.0e10));
+    ffn=float(p->sl_ipol4(s->MOB));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -767,12 +769,14 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	}
     
     // MOB
+    pgc->gcsl_start4(p,s->MOB,1);
+    
 	iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 	
 	TPLOOP
 	{
-    ffn= float(s->tau_eff(i,j)/(fabs(s->tau_crit(i,j))>1.0e-10?s->tau_crit(i,j):1.0e10));
+    ffn=float(p->sl_ipol4(s->MOB));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

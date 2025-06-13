@@ -35,6 +35,7 @@ Author: Hans Bihs
 void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
     double uabs,cf,manning,tau;
+    double density=p->W1;
     double U,V;
     
     SLICELOOP4
@@ -72,22 +73,24 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     tau=p->W1*b->kin(i,j)*0.3;
     }
     
-    s->tau_eff(i,j) = taueff_loc(i,j) = tau;
-    s->shearvel_eff(i,j) = sqrt(tau/p->W1);
-    s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    s->tau_eff(i,j) = tau;
+    s->shearvel_eff(i,j) = sqrt(tau/density);
+    s->shields_eff(i,j) = tau/((p->S22-density)*fabs(p->W22)*p->S20);
     }
 }
 
 void bedshear::taucritbed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
-	double r;
+	double density = p->W1;
     
     SLICELOOP4
     {
     tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->reduce(i,j);
   
-    s->tau_crit(i,j) = taucrit_loc(i,j) = tauc;
-    s->shearvel_crit(i,j) = sqrt(tauc/p->W1);
-    s->shields_crit(i,j) = tauc/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    s->tau_crit(i,j) = tauc;
+    s->shearvel_crit(i,j) = sqrt(tauc/density);
+    s->shields_crit(i,j) = tauc/((p->S22-density)*fabs(p->W22)*p->S20);
+    
+    s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
     }
 }

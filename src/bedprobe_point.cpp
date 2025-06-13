@@ -128,7 +128,7 @@ void bedprobe_point::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
     if(check==1)
     flag[n]=1;
 	
-	cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
+	//cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
     }
 }
 

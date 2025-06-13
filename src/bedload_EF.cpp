@@ -37,6 +37,7 @@ bedload_EF::bedload_EF(lexer *p)
     ks=p->S21*d50;
     Rstar=(rhosed-rhowat)/rhowat;
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
+    nu_d = 0.6;
 }
 
 bedload_EF::~bedload_EF()
@@ -56,7 +57,8 @@ void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
         if(Tb>Ts)
         if(s->active(i,j)==1)
-        qb = f * d50*sqrt((rhosed/rhowat-1.0)*g*d50) * 11.6* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
+        qb = f * d50*sqrt((rhosed/rhowat-1.0)*g*d50) * (30.0/(PI*nu_d))* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
+    
 
         //if(s->active(i,j)==0)
             if(Tb<=Ts || s->active(i,j)==0)
@@ -64,6 +66,7 @@ void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 	
         s->qbe(i,j) = qb;
 	}
+    
     
     pgc->gcsl_start4(p,s->qbe,1);
 }
