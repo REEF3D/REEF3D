@@ -35,12 +35,25 @@ bedprobe_point::bedprobe_point(lexer *p, ghostcell *pgc, sediment_fdm *s)
 	p->Darray(wsf,p->P121);
 	
 	// Create Folder
-	if(p->mpirank==0)
+	if(p->mpirank==0 && p->A10==2)
+	mkdir("./REEF3D_SFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==5)
+	mkdir("./REEF3D_NHFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==6)
 	mkdir("./REEF3D_CFD_Sediment",0777);
 	
     if(p->mpirank==0 && p->P121>0)
     {
     // open file
+    if(p->A10==2)
+	wsfout.open("./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Point.dat");
+    
+    if(p->A10==5)
+	wsfout.open("./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Point.dat");
+    
+    if(p->A10==6)
 	wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
 
     wsfout<<"number of gauges:  "<<p->P121<<endl<<endl;
@@ -107,15 +120,15 @@ void bedprobe_point::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
     for(n=0;n<p->P121;++n)
     {
-    iloc[n]=conv((p->P121_x[n]-p->originx)/p->DXM);
-    jloc[n]=conv((p->P121_y[n]-p->originy)/p->DXM);
+    iloc[n] = p->posc_i(p->P121_x[n]);
+    jloc[n] = p->posc_j(p->P121_y[n]);
 
     check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
     if(check==1)
     flag[n]=1;
 	
-	//cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
+	cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
     }
 }
 

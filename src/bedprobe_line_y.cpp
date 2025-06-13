@@ -66,11 +66,23 @@ bedprobe_line_y::bedprobe_line_y(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
     ini_location(p,pgc,s);
 	
-	// Create Folder
-	if(p->mpirank==0)
+	// Create Folder     
+    if(p->mpirank==0 && p->A10==2)
     {
-        mkdir("./REEF3D_CFD_Sediment",0777);
-	    mkdir("./REEF3D_CFD_Sediment/Line",0777);
+	mkdir("./REEF3D_SFLOW_Sediment",0777);
+    mkdir("./REEF3D_SFLOW_Sediment/Line",0777);
+    }
+    
+    if(p->mpirank==0 && p->A10==5)
+    {
+	mkdir("./REEF3D_NHFLOW_Sediment",0777);
+    mkdir("./REEF3D_NHFLOW_Sediment/Line",0777);
+    }
+    
+    if(p->mpirank==0 && p->A10==6)
+    {
+	mkdir("./REEF3D_CFD_Sediment",0777);
+    mkdir("./REEF3D_CFD_Sediment/Line",0777);
     }
 }
 
@@ -91,8 +103,14 @@ void bedprobe_line_y::start(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow *p
     if(p->mpirank==0)
     {
 		// open file
-		sprintf(name,"./REEF3D_CFD_Sediment/Line/REEF3D-CFD-bedprobe_line_y-%06i.dat",num);
-
+        if(p->A10==2)
+        sprintf(name,"./REEF3D_SFLOW_Sediment/Line/REEF3D-SFLOW-bedprobe_line_y-%06i.dat",num);
+        
+        if(p->A10==5)
+        sprintf(name,"./REEF3D_NHFLOW_Sediment/Line/REEF3D-NHFLOW-bedprobe_line_y-%06i.dat",num);
+        
+        if(p->A10==6)
+        sprintf(name,"./REEF3D_CFD_Sediment/Line/REEF3D-CFD-bedprobe_line_y-%06i.dat",num);
 
 		
 		wsfout.open(name);

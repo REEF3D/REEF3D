@@ -113,7 +113,7 @@ public:
     virtual void ctimesave(lexer*, fdm*);
     
     void fill_bedk(lexer*,fdm*,ghostcell*);
-	void bedlevel(lexer*,fdm*,ghostcell*);
+	void bedlevel(lexer*,ghostcell*);
     void waterlevel(lexer*,fdm*,ghostcell*);
 	void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
     void volume_calc(lexer*,fdm*,ghostcell*);

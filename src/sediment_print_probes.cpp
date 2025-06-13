@@ -35,11 +35,7 @@ Author: Hans Bihs
 void sediment_f::print_probes(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow *pflow)
 {
 
-
 // sediment probes
-	//if(((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47) ) && p->S10>0)
-	//if((p->S42==1 && p->count%p->S44==0 && p->sediter%p->P120==0) || (p->S42==2 && p->simtime>=p->sedsimtime && p->sediter%p->P120==0) || (p->S42==3  && p->simtime/p->wT>=p->sedwavetime && p->sediter%p->P120==0))
-	//{
 	if(p->P121>0)
 	pbedpt->bed_gauge(p,pgc,s);
 
@@ -56,7 +52,5 @@ void sediment_f::print_probes(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow 
 	pbedshearprobe->bedshear_gauge(p,pgc,psed);
 
 	if(p->P126>0)
-	pbedshearmax->bedshear_maxval(p,pgc,psed);
-	//}
-    
+	pbedshearmax->bedshear_maxval(p,pgc,psed);    
 }

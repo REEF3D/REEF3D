@@ -36,25 +36,27 @@ bedshear_probe::bedshear_probe(lexer *p, ghostcell *pgc)
 	p->Darray(bsg,p->P125);
 	
 	// Create Folder
-	if(p->mpirank==0)
-    {
-        char folder[40];
-        if(p->A10==5)
-            snprintf(folder,sizeof(folder),"./REEF3D_NHFLOW_Sediment");
-        else
-            snprintf(folder,sizeof(folder),"./REEF3D_CFD_Sediment");
-	    mkdir(folder,0777);
-    }
+	// Create Folder
+	if(p->mpirank==0 && p->A10==2)
+	mkdir("./REEF3D_SFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==5)
+	mkdir("./REEF3D_NHFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==6)
+	mkdir("./REEF3D_CFD_Sediment",0777);
 	
     if(p->mpirank==0 && p->P125>0)
     {
     // open file
-        char file[100];
-        if(p->A10==5)
-            snprintf(file,sizeof(file),"./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear.dat");
-        else
-            snprintf(file,sizeof(file),"./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear.dat");
-	    bsgout.open(file);
+    if(p->A10==2)
+	bsgout.open("./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Bedshear.dat");
+    
+    if(p->A10==5)
+	bsgout.open("./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear.dat");
+    
+    if(p->A10==6)
+	bsgout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear.dat");
 
     bsgout<<"number of gauges:  "<<p->P125<<endl<<endl;
     bsgout<<"x_coord     y_coord"<<endl;
