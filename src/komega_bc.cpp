@@ -298,10 +298,10 @@ void komega_bc::vrans_wall_law_kin(lexer *p,fdm *a,field &kin,field &eps)
         if(a->porosity(i+1,j,k)<0.99)
         ks=fac*a->porpart(i+1,j,k);
         
-        if(fac*a->porosity(i,j-1,k)<0.99)
-        ks=a->porpart(i,j-1,k);
+        if(a->porosity(i,j-1,k)<0.99 && p->j_dir==1)
+        ks=fac*a->porpart(i,j-1,k);
         
-        if(a->porosity(i,j+1,k)<0.99)
+        if(a->porosity(i,j+1,k)<0.99 && p->j_dir==1)
         ks=fac*a->porpart(i,j+1,k);
         
         if(a->porosity(i,j,k-1)<0.99)
