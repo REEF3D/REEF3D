@@ -47,12 +47,29 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
         
-
         uabs = sqrt(U*U + V*V + W*W);
         
         u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
         tau=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        }
+        
+        if(p->S16==3)
+        {
+        double v_t,v_d;
+
+        U = d->U[IJK];
+        V = d->V[IJK];
+        W = d->W[IJK];
+        
+        v_d = d->VISC[IJK];
+        v_t = d->EV[IJK];
+        
+        dist = 0.5*p->DZN[KP]*d->WL(i,j);
+        
+        uabs = sqrt(U*U + V*V + W*W);
+    
+        tau=density*(v_d + v_t)*(uabs/dist);
         }
         
         if(p->S16==4)
