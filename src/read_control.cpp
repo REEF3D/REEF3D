@@ -1808,6 +1808,9 @@ void lexer::read_control()
                case 17: control>>S17;
 						 clear(c,numint);
 						 break;
+                case 18: control>>S18;
+						 clear(c,numint);
+						 break;
 				case 19: control>>S19;
 						 clear(c,numint);
 						 break;

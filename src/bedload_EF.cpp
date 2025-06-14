@@ -37,7 +37,7 @@ bedload_EF::bedload_EF(lexer *p)
     ks=p->S21*d50;
     Rstar=(rhosed-rhowat)/rhowat;
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
-    nu_d = 0.6;
+    nu_d = p->S18;
 }
 
 bedload_EF::~bedload_EF()
