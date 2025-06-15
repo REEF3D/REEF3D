@@ -75,7 +75,7 @@ private:
     
     const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
 	const double sixten,treten;
-	const double epsilon,smallnum;
+	const double epsilon;
 };
 
 #endif

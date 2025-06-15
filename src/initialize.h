@@ -57,9 +57,7 @@ private:
 	void inivof(fdm*, lexer*,ghostcell*);
 	void inivof_box(lexer*,fdm*,ghostcell*);
 	void inivofPLIC(fdm*, lexer*,ghostcell*);
-	void bcwall_check(fdm*,lexer*);
 	void nodecalc(fdm*, lexer*);
-	void faceneighbors(lexer*,fdm*);
 	void maxcoor(fdm*, lexer*,ghostcell*);
 	void paraini(lexer*, fdm*,ghostcell*);
 	void pressini(lexer*,fdm*,ghostcell*);
@@ -67,7 +65,6 @@ private:
     
 	int conv(double);
 
-	const double smallnum;
 	double epsi;
 
 	int n,q,iend,kend;

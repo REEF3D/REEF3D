@@ -36,12 +36,6 @@ void partres::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbul
     stress_tensor(p,pgc,s);
     stress_gradient(p,a,pgc,s);
     
-    ALOOP
-    a->test(i,j,k) = cellSum(i,j,k)/P.ParcelFactor;
-    //a->test(i,j,k) = Ts(i,j,k);
-   // a->test(i,j,k) = rf(p,p->pos_x(),p->pos_y());
-    //a->test(i,j,k) = (Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
-    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {        
