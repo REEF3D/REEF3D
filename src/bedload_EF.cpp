@@ -56,7 +56,7 @@ void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
         f = MAX(MIN(2.0*Tb/Ts-1.0,1.0),0.0);
 
         if(s->active(i,j)==1)
-        qb = f * d50*sqrt((rhosed/rhowat-1.0)*g*d50) * (30.0/(PI*nu_d))* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
+        qb = f * d50*sqrt((rhosed/rhowat-1.0)*g*d50) * (30.0/(PI*mu_d))* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
     
         if(s->active(i,j)==0)
         qb=0.0;
