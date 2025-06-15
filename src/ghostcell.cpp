@@ -386,7 +386,8 @@ void ghostcell::fdm_update(fdm *aa)
 }
 
 
-void ghostcell::final()
+void ghostcell::final(bool error)
 {
        MPI_Finalize();
+       exit(error);
 }

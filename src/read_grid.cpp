@@ -94,7 +94,7 @@ void lexer::read_grid()
     cout<<"mpi_size: "<<mpi_size<<" REEFD M10: "<<M10<<" DIVEMesh M10: "<<DM_M10<<endl;
     cout<<"!!! please check the manual!"<<endl<<endl<<endl<<endl;
     
-    exit(0);
+    exit(1);
     }
     
     grid.read((char*)&iin, sizeof (int));
