@@ -40,6 +40,7 @@ void mooring_Spring::initialize(lexer *p, ghostcell *pgc)
    
 	k = p->X312_k[line];
     T0 = p->X312_T0[line];
+    T = T0;
 
 	if(p->mpirank==0)
 	{
@@ -56,6 +57,8 @@ void mooring_Spring::initialize(lexer *p, ghostcell *pgc)
     curr_time = 0.0;
     breakTension = p->X314 > 0 ? p->X314_T[line]: 0.0;
     breakTime = p->X315 > 0 ? p->X315_t[line]: 0.0;
+
+    print(p);
 }
 
 
