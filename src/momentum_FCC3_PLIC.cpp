@@ -322,7 +322,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc);
     pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
+    pgc->start4(p,a->visc,gcval_visc); 
     
     momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
@@ -355,7 +355,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 //********************************************************
 //Step 2
 //********************************************************
-    face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1); 
+   // face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1); 
     //-------------------------------------------
     // FSF
     
@@ -575,7 +575,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 //Step 3
 //********************************************************
     
-    face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2); 
+   // face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2); 
     //-------------------------------------------
     // FSF
     pplic->RKcalcL(a,p,pgc,urk2,vrk2,wrk2);

@@ -298,7 +298,7 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
         {   
             vofheight(i,j)+=f(i,j,k)*p->DZN[KP];
             
-            /*if(f(i,j,k)>p->F94 && f(i,j,k+1)<p->F93)
+           /* if(f(i,j,k)>p->F94 && f(i,j,k+1)<p->F93)
                 vofheight(i,j)=MAX(vofheight(i,j),p->pos_z()+0.5*p->DZN[KP]);
             else if(f(i,j,k)<=p->F94 && f(i,j,k)>=p->F93)
             {

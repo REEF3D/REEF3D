@@ -384,8 +384,8 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 //Step 2
 //********************************************************
 	 // get vectorized face density from density_f (depends on phi)
-   // pgc->start4(p,a->ro,gcval_ro);
-   // face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1);
+    pgc->start4(p,a->ro,gcval_ro);
+    face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1);
     
     //-------------------------------------------
     // FSF
@@ -590,8 +590,8 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 //Step 3
 //********************************************************
     // get vectorized face density from density_f (depends on phi)
-  //  pgc->start4(p,a->ro,gcval_ro);
-   // face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2);
+    pgc->start4(p,a->ro,gcval_ro);
+    face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2);
     //-------------------------------------------
     // FSF
     LOOP

@@ -143,7 +143,7 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
 	a->L(i,j,k)=0.0;
     VoF(i,j,k)=a->vof(i,j,k);
     }
-
+/*
 	RKcalcL(a,p,pgc,a->u,a->v,a->w);
 	
 	LOOP
@@ -232,14 +232,12 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
 //********************************************************
     //-------------------------------------------
     // FSF
-    
+    */
     RKcalcL(a,p,pgc,a->u,a->v,a->w);
 	
 	LOOP
     {
-        a->vof(i,j,k) = (1.0/3.0)*VoF(i,j,k)
-                            + (2.0/3.0)*vof_rk2(i,j,k)
-                            + (2.0/3.0)*a->L(i,j,k);
+        a->vof(i,j,k) = VoF(i,j,k) + a->L(i,j,k);
         
         if(a->vof(i,j,k)<0.0)
             a->vof(i,j,k)=0.0;
@@ -270,6 +268,8 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     pgc->start4(p,a->vof,gcval_vof);
     updatePlaneData(p,a,pgc,a->vof);
     
+    if(p->F92==3)
+        calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
