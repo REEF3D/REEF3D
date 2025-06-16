@@ -95,52 +95,10 @@ void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
         if(p->pos_x() > p->F63)
         a->phi(i,j,k)=(phidiff/xdiff)*(p->pos_x()-p->F63) + p->phimean - p->pos_z() ;
     }
-    
-   
-    if(p->F112>0)
-    {
-        for(int qn=0; qn<p->F112; ++qn)
-        {
-            double slope=(p->F112_ze[qn]-p->F112_zs[qn])/(p->F112_xe[qn]-p->F112_xs[qn]);
-            double z = p->F112_zs[qn];
-            if(p->F112_ze[qn]<p->F112_zs[qn])
-            {
-                std::swap(p->F112_ze[qn],p->F112_zs[qn]);
-                z = p->F112_ze[qn];
-            }
 
-            LOOP
-                if(p->pos_x()>=p->F112_xs[qn] && p->pos_x()<p->F112_xe[qn]
-                    && p->pos_y()>=p->F112_ys[qn] && p->pos_y()<p->F112_ye[qn]
-                    && p->pos_z()>=p->F112_zs[qn] && p->pos_z()<slope*(p->pos_x()-p->F112_xs[qn])+z)
-                {
-                    a->phi(i,j,k)=1.0;
-                }
-        }
-     }
-     
-     if(p->F113>0)
-    {
-        for(int qn=0; qn<p->F113; ++qn)
-        {
-            double slope=(p->F113_ze[qn]-p->F113_zs[qn])/(p->F113_ye[qn]-p->F113_ys[qn]);
-            double z = p->F113_zs[qn];
-            if(p->F113_ze[qn]<p->F113_zs[qn])
-            {
-                std::swap(p->F113_ze[qn],p->F113_zs[qn]);
-                z = p->F113_ze[qn];
-            }
+	iniphi_box(p,a,pgc);
 
-            LOOP
-                if(p->pos_x()>=p->F113_xs[qn] && p->pos_x()<p->F113_xe[qn]
-                    && p->pos_y()>=p->F113_ys[qn] && p->pos_y()<p->F113_ye[qn]
-                    && p->pos_z()>=p->F113_zs[qn] && p->pos_z()<slope*(p->pos_y()-p->F113_ys[qn])+z)
-                {
-                    a->phi(i,j,k)=1.0;
-                }
-        }
-     }
-
+    iniphi_wedge(p,a,pgc);
 
 	double H=0.0;
 
@@ -228,7 +186,7 @@ void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
 {
     int istart, iend, jstart, jend, kstart, kend;
     int qn;
-    
+
     if(p->F70>0)
     for(qn=0;qn<p->F70;++qn)
     {
@@ -247,6 +205,7 @@ void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
         a->phi(i,j,k)=1;
     }
 	
+    if(p->F71>0)
 	for(qn=0;qn<p->F71;++qn)
     {
         istart = p->posc_i(p->F71_xs[qn]);
@@ -264,6 +223,7 @@ void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
         a->phi(i,j,k)=-1;
     }
 	
+    if(p->F72>0)
 	for(qn=0;qn<p->F72;++qn)
     {
 		istart = p->posc_i(p->F72_xs[qn]);
@@ -277,6 +237,53 @@ void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
         a->phi(i,j,k)=p->F72_h[qn]-p->pos_z();
 
 	}
+}
+
+void initialize::iniphi_wedge(lexer* p, fdm *a, ghostcell* pgc)
+{
+    if(p->F112>0)
+    {
+        for(int qn=0; qn<p->F112; ++qn)
+        {
+            double slope=(p->F112_ze[qn]-p->F112_zs[qn])/(p->F112_xe[qn]-p->F112_xs[qn]);
+            double z = p->F112_zs[qn];
+            if(p->F112_ze[qn]<p->F112_zs[qn])
+            {
+                std::swap(p->F112_ze[qn],p->F112_zs[qn]);
+                z = p->F112_ze[qn];
+            }
+
+            LOOP
+                if(p->pos_x()>=p->F112_xs[qn] && p->pos_x()<p->F112_xe[qn]
+                    && p->pos_y()>=p->F112_ys[qn] && p->pos_y()<p->F112_ye[qn]
+                    && p->pos_z()>=p->F112_zs[qn] && p->pos_z()<slope*(p->pos_x()-p->F112_xs[qn])+z)
+                {
+                    a->phi(i,j,k)=1.0;
+                }
+        }
+    }
+     
+    if(p->F113>0)
+    {
+        for(int qn=0; qn<p->F113; ++qn)
+        {
+            double slope=(p->F113_ze[qn]-p->F113_zs[qn])/(p->F113_ye[qn]-p->F113_ys[qn]);
+            double z = p->F113_zs[qn];
+            if(p->F113_ze[qn]<p->F113_zs[qn])
+            {
+                std::swap(p->F113_ze[qn],p->F113_zs[qn]);
+                z = p->F113_ze[qn];
+            }
+
+            LOOP
+                if(p->pos_x()>=p->F113_xs[qn] && p->pos_x()<p->F113_xe[qn]
+                    && p->pos_y()>=p->F113_ys[qn] && p->pos_y()<p->F113_ye[qn]
+                    && p->pos_z()>=p->F113_zs[qn] && p->pos_z()<slope*(p->pos_y()-p->F113_ys[qn])+z)
+                {
+                    a->phi(i,j,k)=1.0;
+                }
+        }
+    }
 }
 
 void initialize::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)

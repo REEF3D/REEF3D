@@ -54,6 +54,7 @@ private:
 	void inifdm(lexer*,fdm*,ghostcell*);
 	void iniphi(lexer*,fdm*,ghostcell*);
 	void iniphi_box(lexer*,fdm*,ghostcell*);	
+    void iniphi_wedge(lexer*,fdm*,ghostcell*);	
 	void inivof(fdm*, lexer*,ghostcell*);
 	void inivof_box(lexer*,fdm*,ghostcell*);
 	void inivofPLIC(fdm*, lexer*,ghostcell*);
@@ -62,7 +63,7 @@ private:
 	void paraini(lexer*, fdm*,ghostcell*);
 	void pressini(lexer*,fdm*,ghostcell*);
 	void topoini(lexer*,fdm*,ghostcell*);
-    
+
 	int conv(double);
 
 	double epsi;
