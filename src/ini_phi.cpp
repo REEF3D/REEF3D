@@ -24,10 +24,10 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include<utility>
 
-void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
+void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
 {
-    double dx=p->DXM;
     double r;
     double phidiff, xdiff;
     p->phimean=p->F56;
@@ -230,9 +230,6 @@ void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
     int qn;
     
     if(p->F70>0)
-    LOOP
-	a->phi(i,j,k)=-1.0;
-
     for(qn=0;qn<p->F70;++qn)
     {
         istart = p->posc_i(p->F70_xs[qn]);
