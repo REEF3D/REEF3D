@@ -520,7 +520,7 @@ public:
     double *P167_x;
     double P141;
     double *P168_x,*P168_zs,*P168_ze;
-	double P182;
+	double P182,P183;
     int *P184_its,*P184_ite,*P184_dit;
     double *P185_ts,*P185_te,*P185_dt;
     double P192;
@@ -722,7 +722,7 @@ public:
 	double dtsed,sedtime,slidecells;
 	double bedmax,bedmin;
 	double field4time;
-    double printtime, sedprinttime,fsfprinttime,probeprinttime,stateprinttime,exportprinttime;
+    double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
     double partprinttime;
     double wavetime;
     double RK_alpha;

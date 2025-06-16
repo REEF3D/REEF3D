@@ -1222,6 +1222,8 @@ void lexer::ctrlrecv()
 	ii++;
 	P182 = dctrl[dd];
 	dd++;
+    P183 = dctrl[dd];
+	dd++;
     P184 = ictrl[ii];
 	ii++;
     P185 = ictrl[ii];

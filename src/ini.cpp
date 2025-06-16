@@ -608,8 +608,9 @@ void lexer::ini_default()
 	P167=0;			  // int discharge gages in x-direction
     P168=0;			  // int discharge gages in x-direction
 	P180=0;			  // int print fsf
-	P181=-10;		  // int ith iteration fsf printed
-	P182=-1.0;       // double time between fsf file printout in seconds
+	P181=-10;		  // int ith iteration vtp (fsf, bed) printed
+	P182=-1.0;       // double time between vtp (fsf, bed) file printout in seconds
+    P183=-1.0;       // double time between vtp (fsf, bed) file printout in seconds for sediment time
     P184=0;       // int time between file printout in iterations
 	P185=0;        	// int time between file printout in seconds
     P190=0;			  // int print topo

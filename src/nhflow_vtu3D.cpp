@@ -173,6 +173,15 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         
         p->printtime+=p->P30;
         }
+        
+        // Print out based on sediment time
+        if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0 && p->P10==1) || (p->count==0 &&  p->P34>0.0))
+        {
+        print_vtu(p,d,pgc,pnhfturb,psed);
+
+        p->sedprinttime+=p->P34;
+        }
+
 
 		// Print out based on time interval
 		if(p->P10==1 && p->P35>0)
@@ -184,8 +193,8 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
 
-        // Print FSF
-		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
+        // Print FSF + Bed
+		if(((p->count%p->P181==0 && p->P182<0.0 && p->P183<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
         {
 		pfsf->start(p,d,pgc,psed);
         
@@ -194,7 +203,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         }
 
 
-		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
+		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P183<0.0 && p->P180==1) || (p->count==0 && p->P182>0.0))
         {
         pfsf->start(p,d,pgc,psed);
         
@@ -202,6 +211,16 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         pbed->start(p,d,pgc,psed);
         
         p->fsfprinttime+=p->P182;
+        }
+        
+        if((p->simtime>p->fsfsedprinttime && p->P182<0.0 && p->P183>0.0 && p->P180==1) || (p->count==0 && p->P183>0.0))
+        {
+        pfsf->start(p,d,pgc,psed);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc,psed);
+        
+        p->fsfsedprinttime+=p->P183;
         }
 
         if(p->P180==1 && p->P184>0)
