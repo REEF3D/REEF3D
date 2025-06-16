@@ -34,7 +34,7 @@ Author: Hans Bihs
 
 weno_flux::weno_flux(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
-			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
+			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001)
 {
     
     if(p->j_dir==0)

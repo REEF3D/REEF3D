@@ -80,8 +80,11 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
         visc1 = prheo->viscosity(p,a,pgc);
         a->visc(i,j,k) = visc1*H_phi + visc2*(1.0-H_phi);
 
-        p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H_phi-(1.0-a->porosity(i,j,k)));
-        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H_phi-(1.0-a->porosity(i,j,k)));
+        if(p->flagsf4[IJK]>0)
+        {
+            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H_phi-(1.0-a->porosity(i,j,k)));
+            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H_phi-(1.0-a->porosity(i,j,k)));
+        }
     }
 
     pgc->start4(p,a->ro,gcval_ro);
