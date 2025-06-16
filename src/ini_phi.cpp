@@ -284,6 +284,50 @@ void initialize::iniphi_wedge(lexer* p, fdm *a, ghostcell* pgc)
                 }
         }
     }
+
+    if(p->F114>0)
+    {
+        for(int qn=0; qn<p->F114; ++qn)
+        {
+            double slope=(p->F114_ze[qn]-p->F114_zs[qn])/(p->F114_xe[qn]-p->F114_xs[qn]);
+            double z = p->F114_zs[qn];
+            if(p->F114_ze[qn]<p->F114_zs[qn])
+            {
+                std::swap(p->F114_ze[qn],p->F114_zs[qn]);
+                z = p->F114_ze[qn];
+            }
+
+            LOOP
+                if(p->pos_x()>=p->F114_xs[qn] && p->pos_x()<p->F114_xe[qn]
+                    && p->pos_y()>=p->F114_ys[qn] && p->pos_y()<p->F114_ye[qn]
+                    && p->pos_z()>=z+slope*(p->pos_x()-p->F114_xs[qn]) && p->pos_z()<p->F114_ze[qn])
+                {
+                    a->phi(i,j,k)=1.0;
+                }
+        }
+    }
+
+    if(p->F115>0)
+    {
+        for(int qn=0; qn<p->F115; ++qn)
+        {
+            double slope=(p->F115_ze[qn]-p->F115_zs[qn])/(p->F115_ye[qn]-p->F115_ys[qn]);
+            double z = p->F115_zs[qn];
+            if(p->F115_ze[qn]<p->F115_zs[qn])
+            {
+                std::swap(p->F115_ze[qn],p->F115_zs[qn]);
+                z = p->F115_ze[qn];
+            }
+
+            LOOP
+                if(p->pos_x()>=p->F115_xs[qn] && p->pos_x()<p->F115_xe[qn]
+                    && p->pos_y()>=p->F115_ys[qn] && p->pos_y()<p->F115_ye[qn]
+                    && p->pos_z()>=z+slope*(p->pos_y()-p->F115_ys[qn]) && p->pos_z()<p->F115_ze[qn])
+                {
+                    a->phi(i,j,k)=1.0;
+                }
+        }
+    }
 }
 
 void initialize::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
