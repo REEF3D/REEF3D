@@ -163,8 +163,9 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     d->omegaF[FIJK] = 0.0;
     
         
-    
+    // --------------------------
     wetdry_fluxes(p,d,pgc,WL,d->U,d->V,d->W,UH,VH,WH);
+    // --------------------------
     
     //
     SLICELOOP4

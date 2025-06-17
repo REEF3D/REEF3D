@@ -30,7 +30,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
    if(p->A540==1)
    { 
     // eta + WL
-    //SLICEBASELOOP 
     SLICELOOP1
     {
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
@@ -40,7 +39,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->Ds(i,j) = WL(i,j);
         d->Dn(i,j) = WL(i,j);
         d->dfx(i,j) = d->depth(i,j);
-        //d->dfx(i+1,j) = d->depth(i+1,j);
         }
         
         else
@@ -51,7 +49,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->Ds(i,j) = WL(i+1,j);
         d->Dn(i,j) = WL(i+1,j);
         d->dfx(i,j) = d->depth(i+1,j);
-        //d->dfx(i-1,j) = d->depth(i,j);
         }
         
         else
@@ -66,7 +63,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     }
     
     if(p->j_dir==1)
-    //SLICEBASELOOP 
     SLICELOOP2
     {
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
@@ -76,7 +72,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->De(i,j) = WL(i,j);
         d->Dw(i,j) = WL(i,j);
         d->dfy(i,j) = d->depth(i,j);
-        //d->dfy(i,j+1) = d->depth(i,j+1);
         }
         
         else
@@ -87,7 +82,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->De(i,j) = WL(i,j+1);
         d->Dw(i,j) = WL(i,j+1);
         d->dfy(i,j) = d->depth(i,j+1);
-        //d->dfy(i,j-1) = d->depth(i,j);
         }
         
         else
@@ -121,23 +115,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->UHs[IJK] = 0.0;
         d->VHs[IJK] = 0.0;
         d->WHs[IJK] = 0.0;
-        
-        
-        d->Un[Ip1JK] = 0.0;
-        d->Vn[Ip1JK] = 0.0;
-        d->Wn[Ip1JK] = 0.0;
-    
-        d->UHn[Ip1JK] = 0.0;
-        d->VHn[Ip1JK] = 0.0;
-        d->WHn[Ip1JK] = 0.0;
-        
-        d->Us[Ip1JK] = 0.0;
-        d->Vs[Ip1JK] = 0.0;
-        d->Ws[Ip1JK] = 0.0;
-        
-        d->UHs[Ip1JK] = 0.0;
-        d->VHs[Ip1JK] = 0.0;
-        d->WHs[Ip1JK] = 0.0;
         }
         
         else

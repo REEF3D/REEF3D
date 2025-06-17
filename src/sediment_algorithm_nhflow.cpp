@@ -57,9 +57,6 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
 	pbedshear->taubed(p,d,pgc,s);
     pbedshear->taucritbed(p,d,pgc,s);
     
-    SLICELOOP4
-    d->test2D(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
-
     // bedload *******
     pbed->start(p,pgc,s);
     
@@ -91,7 +88,6 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // sediment log
     sedimentlog(p);
-    
     
     
     if(p->mpirank==0 && p->count>0)

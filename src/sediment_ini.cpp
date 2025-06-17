@@ -67,8 +67,8 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     s->ks(i,j) = p->S21*p->S20;
     
-    s->bedzh(i,j)=d->topobed(i,j);
-    s->bedzh0(i,j)=d->topobed(i,j);
+    s->bedzh(i,j)=d->bed(i,j);
+    s->bedzh0(i,j)=d->bed(i,j);
     }
     
     ini_parameters(p,pgc);

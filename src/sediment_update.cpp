@@ -78,7 +78,6 @@ void sediment_f::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pfl
 {
     bedlevel(p,pgc); 
     
-    
     SLICELOOP4
 	d->bed(i,j) = s->bedzh(i,j);
     
