@@ -1486,6 +1486,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>
           <File Name="nhflow_fsf_update.cpp"/>
           <File Name="nhflow_fsf_guard.cpp"/>
           <File Name="nhflow_fsf_kbedbc.cpp"/>
