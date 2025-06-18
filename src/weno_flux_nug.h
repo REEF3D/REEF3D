@@ -36,14 +36,14 @@ public:
 	weno_flux_nug(lexer*);
 	virtual ~weno_flux_nug();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
-	virtual double fx(lexer*, fdm*, field&, field&, int, double);
-	virtual double fy(lexer*, fdm*, field&, field&, int, double);
-	virtual double fz(lexer*, fdm*, field&, field&, int, double);
+	double fx(lexer*, fdm*, field&, field&, int, double) override;
+	double fy(lexer*, fdm*, field&, field&, int, double) override;
+	double fz(lexer*, fdm*, field&, field&, int, double) override;
 	void iqmin(lexer*, field&, field&, int);
 	void jqmin(lexer*, field&, field&, int);
 	void kqmin(lexer*, field&, field&, int);

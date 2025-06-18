@@ -41,7 +41,7 @@ public:
     fluid_update_vof(lexer*, fdm*, ghostcell*);
 	virtual ~fluid_update_vof();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+	void start(lexer*, fdm*, ghostcell*) override;
 
 private:
     static int iocheck,iter;

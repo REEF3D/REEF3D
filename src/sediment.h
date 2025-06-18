@@ -67,48 +67,48 @@ public:
     
     
     //
-    virtual void relax(lexer*,ghostcell*){};
-	virtual double bedshear_point(lexer*,ghostcell*){};
+    void relax(lexer*,ghostcell*) override {};
+	double bedshear_point(lexer*,ghostcell*) override {};
     
-    virtual double qbeval(int,int){};
-    virtual void qbeget(int,int,double){};
+    double qbeval(int,int) override {};
+    void qbeget(int,int,double) override {};
     
-    virtual double bedzhval(int,int){};
+    double bedzhval(int,int) override {};
 
-    virtual void write_state_particles(lexer *, ofstream&){};
-    virtual void read_state_particles(lexer *, ifstream&){};
+    void write_state_particles(lexer *, ofstream&) override {};
+    void read_state_particles(lexer *, ifstream&) override {};
     
-    virtual void ctimesave(lexer*, fdm*){};
+    void ctimesave(lexer*, fdm*) override {};
     
     virtual void print_probes(lexer*, ghostcell*,sediment_fdm*, ioflow*)=0;
     
-    virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&){};
-    virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&){};
-	virtual void name_pvtu_bedload(lexer*, ghostcell*,ofstream&){};
-    virtual void name_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtp_bedload(lexer*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &){};
+    void print_2D_bedload(lexer*, ghostcell*,ofstream&) override {};
+    void print_3D_bedload(lexer*, ghostcell*,ofstream&) override {};
+	void name_pvtu_bedload(lexer*, ghostcell*,ofstream&) override {};
+    void name_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &) override {};
+    void offset_vtp_bedload(lexer*, ghostcell*,ofstream&, int*, int &) override {};
+    void offset_vtu_bedload(lexer*, ghostcell*,ofstream&, int*, int &) override {};
     
-	virtual void print_2D_bedshear(lexer*, ghostcell*,ofstream&){};
-    virtual void print_3D_bedshear(lexer*, ghostcell*,ofstream&){};
-	virtual void name_pvtu_bedshear(lexer*, ghostcell*,ofstream&){};
-    virtual void name_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtp_bedshear(lexer*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &){};
+	void print_2D_bedshear(lexer*, ghostcell*,ofstream&) override {};
+    void print_3D_bedshear(lexer*, ghostcell*,ofstream&) override {};
+	void name_pvtu_bedshear(lexer*, ghostcell*,ofstream&) override {};
+    void name_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &) override {};
+    void offset_vtp_bedshear(lexer*, ghostcell*,ofstream&, int*, int &) override {};
+    void offset_vtu_bedshear(lexer*, ghostcell*,ofstream&, int*, int &) override {};
     
-    virtual void print_2D_parameter1(lexer*, ghostcell*,ofstream&){};
-    virtual void print_3D_parameter1(lexer*, ghostcell*,ofstream&){};
-	virtual void name_pvtu_parameter1(lexer*, ghostcell*,ofstream&){};
-    virtual void name_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtp_parameter1(lexer*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &){};
+    void print_2D_parameter1(lexer*, ghostcell*,ofstream&) override {};
+    void print_3D_parameter1(lexer*, ghostcell*,ofstream&) override {};
+	void name_pvtu_parameter1(lexer*, ghostcell*,ofstream&) override {};
+    void name_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &) override {};
+    void offset_vtp_parameter1(lexer*, ghostcell*,ofstream&, int*, int &) override {};
+    void offset_vtu_parameter1(lexer*, ghostcell*,ofstream&, int*, int &) override {};
     
-    virtual void print_2D_parameter2(lexer*, ghostcell*,ofstream&){};
-    virtual void print_3D_parameter2(lexer*, ghostcell*,ofstream&){};
-	virtual void name_pvtu_parameter2(lexer*, ghostcell*,ofstream&){};
-    virtual void name_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtp_parameter2(lexer*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &){};
+    void print_2D_parameter2(lexer*, ghostcell*,ofstream&) override {};
+    void print_3D_parameter2(lexer*, ghostcell*,ofstream&) override {};
+	void name_pvtu_parameter2(lexer*, ghostcell*,ofstream&) override {};
+    void name_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &) override {};
+    void offset_vtp_parameter2(lexer*, ghostcell*,ofstream&, int*, int &) override {};
+    void offset_vtu_parameter2(lexer*, ghostcell*,ofstream&, int*, int &) override {};
 
 };
 

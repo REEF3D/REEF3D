@@ -40,8 +40,8 @@ public:
 	nhflow_vtp_fsf(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vtp_fsf();
 	
-    virtual void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
-    virtual void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    void start(lexer*,fdm_nhf*,ghostcell*,sediment*) override;
+    void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*) override;
     void preproc(lexer*,fdm_nhf*,ghostcell*);
 	
 private:

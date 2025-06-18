@@ -41,9 +41,9 @@ public:
 	nhflow_sigma(lexer*);
 	virtual ~nhflow_sigma();
     
-    virtual void sigma_coord_ini(lexer*);
-    virtual void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
-    virtual void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&);
+    void sigma_coord_ini(lexer*) override;
+    void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&) override;
+    void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&) override;
     
     void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
 

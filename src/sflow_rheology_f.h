@@ -40,8 +40,8 @@ public:
     sflow_rheology_f(lexer*);
 	virtual ~sflow_rheology_f();
     
-	virtual void u_source(lexer*, fdm2D*, slice&, slice&);
-    virtual void v_source(lexer*, fdm2D*, slice&, slice&);
+	void u_source(lexer*, fdm2D*, slice&, slice&) override;
+    void v_source(lexer*, fdm2D*, slice&, slice&) override;
 
 private:
     double bingham(lexer*, fdm2D*, double, double, double, double);

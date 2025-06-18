@@ -38,7 +38,7 @@ public:
     reduction_deyana(lexer*);
     virtual ~reduction_deyana();
 
-	virtual void start(lexer*,ghostcell*,sediment_fdm*);
+	void start(lexer*,ghostcell*,sediment_fdm*) override;
 
 private:
 

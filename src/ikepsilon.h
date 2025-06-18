@@ -34,14 +34,14 @@ class ikepsilon : public rans_io, public bc_ikepsilon
 public:
 	ikepsilon(lexer*,fdm*,ghostcell*);
 	virtual ~ikepsilon();
-	virtual void isource(lexer*,fdm*);
-	virtual void jsource(lexer*,fdm*);
-	virtual void ksource(lexer*,fdm*);
-	virtual void kinsource(lexer*,fdm*,vrans*);
-	virtual void epssource(lexer*,fdm*,vrans*);
-	virtual void epsfsf(lexer*,fdm*,ghostcell*);
-	virtual void eddyvisc(fdm*,lexer*,ghostcell*,vrans*);
-	virtual void clearfield(lexer*,fdm*,field&);
+	void isource(lexer*,fdm*) override;
+	void jsource(lexer*,fdm*) override;
+	void ksource(lexer*,fdm*) override;
+	void kinsource(lexer*,fdm*,vrans*) override;
+	void epssource(lexer*,fdm*,vrans*) override;
+	void epsfsf(lexer*,fdm*,ghostcell*) override;
+	void eddyvisc(fdm*,lexer*,ghostcell*,vrans*) override;
+	void clearfield(lexer*,fdm*,field&) override;
 
 	int count,q;
 	double starttime;
