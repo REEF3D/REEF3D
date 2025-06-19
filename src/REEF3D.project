@@ -593,6 +593,9 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Net Interface">
+          <File Name="net_interface.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="External Motion">
           <File Name="6DOF_motionext_wavemaker.h"/>
           <File Name="6DOF_motionext_CoG.h"/>
@@ -1866,6 +1869,14 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Net Interface">
+          <File Name="net_interface_dlm_kernel.cpp"/>
+          <File Name="net_interface_dlm.cpp"/>
+          <File Name="net_interface_cfd.cpp"/>
+          <File Name="net_interface_nhflow.cpp"/>
+          <File Name="net_interface_ini.cpp"/>
+          <File Name="net_interface.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="External Motion">
           <VirtualDirectory Name="Motion Wavemaker">
             <File Name="6DOF_motionext_wavemaker_read.cpp"/>

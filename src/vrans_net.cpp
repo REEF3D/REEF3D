@@ -125,14 +125,14 @@ void vrans_net::start(lexer *p, fdm *a, ghostcell *pgc, net *&ppnet, int nNet)
                          
                         test = forcesI(2)*D/(dx*dy*dz);
                         Fz_net(i_it,j_it,k_it) += test;
-
+                        
+                        /*
                         if (p->mpirank==1)
                         {
-                        //cout<<"in"<<endl;
-                        //    cout<<i_it<<" "<<j_it<<" "<<k_it<<" "<<test<<" "<<Fx_net(i_it,j_it,k_it)<<" "<<Fy_net(i_it,j_it,k_it)<<" "<<Fz_net(i_it,j_it,k_it)<<endl;
-                        //cout<<"out"<<endl;
-                        
-                        }
+                        cout<<"in"<<endl;
+                        cout<<i_it<<" "<<j_it<<" "<<k_it<<" "<<test<<" "<<Fx_net(i_it,j_it,k_it)<<" "<<Fy_net(i_it,j_it,k_it)<<" "<<Fz_net(i_it,j_it,k_it)<<endl;
+                        cout<<"out"<<endl;
+                        }*/
                     }
                 }
             }
