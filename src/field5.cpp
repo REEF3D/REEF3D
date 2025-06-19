@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"field5.h"
 #include"lexer.h"
 
-field5::field5(lexer *p):fip(4)
+field5::field5(lexer *p)
 {
     imin=p->imin;
     imax=p->imax;
@@ -37,13 +37,13 @@ field5::field5(lexer *p):fip(4)
 
 field5::~field5()
 {
-    delete [] feld;
+    delete [] V;
 }
 
 void field5::fieldalloc(lexer* p)
 {
 	int gridsize = imax*jmax*kmax;
-	p->Darray(feld,gridsize);
+	p->Darray(V,gridsize);
 }
 
 void field5::resize(lexer* p)
@@ -53,23 +53,17 @@ void field5::resize(lexer* p)
 void field5::dealloc(lexer* p)
 {
 	delete [] V;
-    
-    gcfeldsize=feldsize=0;
-}
-
-void field5::ggcpol(lexer* p)
-{
 }
 
 double & field5::operator[](int n)
 {
-	return feld[n];
+	return V[n];
 }
 
 double & field5::operator()(int ii, int jj, int kk)
 {
     iter=(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin;
-	return feld[iter];
+	return V[iter];
 
 }
 

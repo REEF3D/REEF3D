@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2024 Tobias Martin
+Copyright 2018-2025 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include<sys/stat.h>
@@ -57,7 +58,7 @@ void mooring_barQuasiStatic::initialize(lexer *p, ghostcell *pgc)
 	e_d.resize(sigma+1, three);
 	e_l.resize(sigma+1, three);
 
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	{
 		char str[1000];
 		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);

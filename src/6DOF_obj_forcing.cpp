@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,70 +25,42 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
+void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
-    // Determine floating body velocities
-    Eigen::Matrix<double, 6, 1> u_fb;
     
-        // U
-        if(p->X11_u==0)
-        u_fb(0) = 0.0;
-        
-        if(p->X11_u==1)
-        u_fb(0) = p_(0)/Mass_fb;
-        
-        if(p->X11_u==2)
-        u_fb(0) = Uext*ramp_vel(p);
-        
-        // V
-        if(p->X11_v==0 || p->j_dir==0)
-        u_fb(1) = 0.0;
-        
-        if(p->X11_u==1 && p->j_dir==1)
-        u_fb(1) = p_(1)/Mass_fb;
-        
-        if(p->X11_u==2 && p->j_dir==1)
-        u_fb(1) = Vext*ramp_vel(p);
-        
-        // W
-        if(p->X11_w==0)
-        u_fb(2) = 0.0;
-        
-        if(p->X11_w==1)
-        u_fb(2) = p_(2)/Mass_fb;
-        
-        if(p->X11_w==2)
-        u_fb(2) = Wext*ramp_vel(p);
-        
-        // rotation
-        if(p->j_dir==0)
-        {
-        u_fb(3) = 0.0;
-        u_fb(4) = omega_I(1);
-        u_fb(5) = 0.0;
-        }
-        
-        if(p->j_dir==1)
-        {
-        u_fb(3) = omega_I(0);
-        u_fb(4) = omega_I(1);
-        u_fb(5) = omega_I(2);
-        }
-        
-
+    // Update DF
+    LOOP
+    p->DF[IJK]=1;
+    
+    LOOP
+    if(a->fb(i,j,k)<0.0)
+    p->DF[IJK]=-1;
+    
+    pgc->startintV(p,p->DF,1);
+    
 // Calculate forcing fields
     double H,Ht, uf, vf, wf;
 	double nx, ny, nz,norm ;
 	double psi, phival_fb;
     double dirac;
     
+    H=Ht=0.0;
+  
     if(p->X14==1)
     {
-        
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+        
+        if(uf!=uf)
+        {
+        cout<<"UF "<<uf<<" "<<u_fb(0)<<" "<<u_fb(4)<<" "<<(p->pos1_z() - c_(2))<<" "<<u_fb(5)<<" "<<(p->pos1_y() - c_(1))<<endl;
+        }
+        
         H = Hsolidface(p,a,1,0,0);
+        
+        if(H!=H)
+        cout<<"H "<<uf<<endl;
        
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);   
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
@@ -96,7 +68,14 @@ void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fie
     VLOOP
     {
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
+        
+        if(vf!=vf)
+        cout<<"VF "<<vf<<endl;
+        
         H = Hsolidface(p,a,0,1,0);
+        
+        if(H!=H)
+        cout<<"H "<<uf<<endl;
        
         fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
@@ -104,7 +83,14 @@ void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fie
     WLOOP
     {
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
+        
+        if(wf!=wf)
+        cout<<"WF "<<wf<<endl;
+        
         H = Hsolidface(p,a,0,0,1);
+        
+        if(H!=H)
+        cout<<"H "<<uf<<endl;
 
         fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
@@ -131,6 +117,7 @@ void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fie
     
     }
 
+
 // Construct solid heaviside function	
     if(p->X14>=2)
     {
@@ -138,6 +125,9 @@ void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fie
     ULOOP
     {
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
+        
+        if(uf!=uf)
+        cout<<"UF "<<uf<<endl;
         
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
@@ -182,6 +172,8 @@ void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fie
     {
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         
+        if(vf!=vf)
+        cout<<"VF "<<vf<<endl;
     
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
@@ -195,7 +187,7 @@ void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fie
 		nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
         
-        H = Hsolidface(p,a,0,1,0);
+         H = Hsolidface(p,a,0,1,0);
 		Ht = Hsolidface_t(p,a,0,1,0);
 		
       
@@ -227,7 +219,9 @@ void sixdof_obj::updateForcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fie
     {
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
         
-
+        if(wf!=wf)
+        cout<<"WF "<<wf<<endl;
+        
 		// Normal vectors calculation 
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -311,27 +305,22 @@ double sixdof_obj::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 	
     psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-    if (p->knoy == 1)
-    {
-        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-    }
+    if(p->j_dir==0)
+    psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+
 
     // Construct solid heaviside function
     phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
 	
     if (-phival_fb > psi)
-    {
-        H = 1.0;
-    }
+    H = 1.0;
+
     else if (-phival_fb < -psi)
-    {
-        H = 0.0;
-    }
+    H = 0.0;
+
     else
-    {
-        H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
-    }
-	
+    H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
+    
     return H;
 }
 

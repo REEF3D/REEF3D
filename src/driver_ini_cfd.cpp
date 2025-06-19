@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,16 +39,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"FSI_header.h"
 #include"waves_header.h"
 #include"lexer.h"
-#include"cart1.h"
-#include"cart2.h"
-#include"cart3.h"
-#include"cart4.h"
-#include"cart4a.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
 void driver::driver_ini_cfd()
 {
+    
     p->count=0;
 
     p->cellnumtot=pgc->globalisum(p->cellnum);
@@ -63,7 +59,6 @@ void driver::driver_ini_cfd()
     cout<<"starting driver_ini"<<endl;
     
     // 6DOF_df and FSI
-    if(p->X10==1)
     p6dof->initialize(p, a, pgc, pnet);
      
     if(p->mpirank==0)
@@ -71,7 +66,7 @@ void driver::driver_ini_cfd()
     cout<<"driver FSI initialize"<<endl;
     
     if(p->Z10>0)
-    pfsi->initialize(p,a,pgc);
+    pfsi->initialize(p,a,pgc,pturb);
     
 	// Solid
     if(p->solidread==1)
@@ -81,7 +76,7 @@ void driver::driver_ini_cfd()
     }
     
     // VRANS ini
-    pvrans->initialize(p,a,pgc);
+    pvrans->initialize_cfd(p,a,pgc);
     
     // Geotopo
     if(p->toporead>0)
@@ -91,40 +86,44 @@ void driver::driver_ini_cfd()
     }
     
     // Solid Forcing
-    if(p->G3==1)
-    {
     if(p->mpirank==0)
     cout<<"driver solid forcing initialize"<<endl;
     
     pgc->solid_forcing_ini(p,a);
-    }
     
-
     // Sediment
 	if(p->S10>0)
     {
-    psed->ini_cfd(p,a,pgc);
-    for(int qn=0;qn<5;++qn)
-    psed->relax(p,pgc);
-    preto->start(p,a,pgc,a->topo);
-    psed->update_cfd(p,a,pgc,pflow,preto);
-    pgc->start4a(p,a->topo,150);
+        if(p->Q10==2)
+            psed->ini_cfd(p,a,pgc);
+        else
+        {
+            psed->ini_cfd(p,a,pgc);
+            for(int qn=0;qn<5;++qn)
+                psed->relax(p,pgc);
+            preto->start(p,a,pgc,a->topo);
+            psed->update_cfd(p,a,pgc,pflow,preto);
+            pgc->start4a(p,a->topo,150);
+        }
     
         // Solid Forcing
-        if(p->G3==1)
-        {
+
         if(p->mpirank==0)
         cout<<"driver solid forcing initialize"<<endl;
         
         pgc->solid_forcing_ini(p,a);
-        }
+
+        
+        SLICEBASELOOP
+        p->wet[IJ]=1;
+        
+        pgc->gcsl_start4Vint(p,p->wet,50);
     }
     
     // patchBC ini
     pBC->patchBC_ini(p,pgc);
     
     //ioflow ini --------------------------------------------------------------
-    poneph->update(p,a,pgc,pflow);
     pflow->ini(p,a,pgc);
 
     
@@ -142,8 +141,6 @@ void driver::driver_ini_cfd()
 	pdata->start(p,a,pgc);
     
 
-    pnse->ini(p,a,pgc,pflow);     
-	
     pheat->heat_ini(p,a,pgc,pheat);
     pmp->ini(p,a,pgc,pflow,pprint,pconvec,psolv);
 	pconc->ini(p,a,pgc,pconc);
@@ -172,6 +169,7 @@ void driver::driver_ini_cfd()
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	potflow->start(p,a,ppoissonsolv,pgc);
     pflow->wavegen_precalc(p,pgc);
+    
 	if(p->I12>=1)
 	pini->hydrostatic(p,a,pgc);
     
@@ -186,12 +184,8 @@ void driver::driver_ini_cfd()
 
 	pflow->pressure_io(p,a,pgc);
     
-    poneph->update(p,a,pgc,pflow);
-    
     ppress->ini(p,a,pgc);
     
-    ppart->ini(p,a,pgc,pflow);
-
 	pgc->start1(p,a->u,10);
 	pgc->start2(p,a->v,11);
 	pgc->start3(p,a->w,12);
@@ -202,13 +196,12 @@ void driver::driver_ini_cfd()
     {
 	pini->stateini(p,a,pgc,pturb,psed);
     
-    if(p->S10==1)
+    if(p->S10==1||(p->Q10==2&&p->S10==2))
     psed->ini_cfd(p,a,pgc);
     }
 
 	pgc->start4(p,a->press,40);
     
-	
     pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
 
 // ini variables
@@ -221,7 +214,7 @@ void driver::driver_ini_cfd()
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->field4time=0.0;
 }
 

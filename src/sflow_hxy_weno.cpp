@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,38 +24,30 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"slice.h"
-#include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
-#include"sflow_flux_face_HJ.h"
 #include"patchBC_interface.h"
 
 sflow_hxy_weno::sflow_hxy_weno(lexer* p, patchBC_interface *ppBC) :tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
-			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
+			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001)
 {
     pBC = ppBC;
     
-    if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
     pflux = new sflow_flux_face_CDS(p);
-    
-    if(p->A216==4)
-    pflux = new sflow_flux_face_HJ(p);
 }
 
 sflow_hxy_weno::~sflow_hxy_weno()
 {
 }
 
-void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet, slice& eta, slice& uvel, slice& vvel)
+void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet, slice& eta, slice &P, slice &Q)
 {
     double eps=1.0e-7;
 
 	SLICELOOP1
 	{
-	pflux->u_flux(4,uvel,ivel1,ivel2);
+	ivel1 = P(i,j);
+    
     if(ivel1>=0.0)
     hx(i,j) = fx(p,eta,1,ivel1) + MIN(depth(i,j), depth(i+1,j));
     
@@ -72,7 +64,7 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *we
     
         if(wet[IJ]==1)
         {
-        pflux->u_flux(4,uvel,ivel1,ivel2);
+        ivel1 = P(i,j);
 
         if(ivel1>eps)
         hx(i,j) = eta(i,j) + depth(i,j);
@@ -99,7 +91,7 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *we
         
         if(wet[IJ]==1)
         {
-        pflux->u_flux(4,uvel,ivel1,ivel2);
+        ivel1 = P(i,j);
 
         if(ivel1>eps)
         hx(i,j) = eta(i,j) + depth(i,j);
@@ -114,7 +106,8 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *we
 	
 	SLICELOOP2
 	{
-	pflux->v_flux(4,vvel,jvel1,jvel2);
+	jvel1 = Q(i,j);
+    
     if(jvel1>=0.0)
 	hy(i,j) = fy(p,eta,2,jvel1) + MIN(depth(i,j), depth(i,j+1));
     
@@ -136,7 +129,7 @@ void sflow_hxy_weno::start(lexer* p, slice& hx, slice& hy, slice& depth, int *we
         
         if(wet[IJ]==1)
         {
-        pflux->v_flux(4,vvel,jvel1,jvel2);
+        jvel1 = Q(i,j);
 	
         if(jvel1>eps)
         hy(i,j) = eta(i,j) + depth(i,j);
@@ -212,7 +205,6 @@ double sflow_hxy_weno::fy(lexer *p, slice& f, int ipol, double advec)
 	
 	return grad;
 }
-
 
 void sflow_hxy_weno::iqmin(lexer *p, slice& f, int ipol)
 {	

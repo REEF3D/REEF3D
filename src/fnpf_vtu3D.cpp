@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
-#include"force_ale.h"
+#include"fnpf_force_ale.h"
 #include"ioflow.h"
 #include"fnpf_print_wsf.h"
 #include"fnpf_print_wsf_theory.h"
@@ -34,8 +34,12 @@ Author: Hans Bihs
 #include"fnpf_vtp_bed.h"
 #include"fnpf_breaking_log.h"
 #include"fnpf_print_Hs.h"
+#include"fnpf_vel_probe.h"
+#include"fnpf_vel_probe_theory.h"
+#include"fnpf_runup.h"
 #include"potentialfile_out.h"
 #include"fnpf_state.h"
+#include"fnpf_print_kinematics.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -68,7 +72,7 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 	printcount=0;
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_FNPF_VTU",0777);
 
 
@@ -79,6 +83,12 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     pwsfline=new fnpf_print_wsfline(p,c,pgc);
 
     pwsfline_y=new fnpf_print_wsfline_y(p,c,pgc);
+    
+    if(p->P65>0)
+    pvel=new fnpf_vel_probe(p,c);
+    
+    if(p->P66>0)
+    pveltheo=new fnpf_vel_probe_theory(p,c);
 
     if(p->P230>0)
     ppotentialfile = new potentialfile_out(p,c,pgc);
@@ -95,14 +105,38 @@ fnpf_vtu3D::fnpf_vtu3D(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     pbreaklog=new fnpf_breaking_log(p,c,pgc);
 	
 	if(p->P85>0)
-	pforce_ale = new force_ale*[p->P85];
-	
-	for(n=0;n<p->P85;++n)
-	pforce_ale[n]=new force_ale(p,c,pgc,n);
+    {
+	pforce_ale = new fnpf_force_ale*[p->P85];
+    
+    for(n=0;n<p->P85;++n)
+	pforce_ale[n]=new fnpf_force_ale(p,c,pgc,n);
+    
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->ini(p,c,pgc);
+    }
+    
+    if(p->P88>0)
+    {
+	pkin = new fnpf_print_kinematics*[p->P88];
+    
+    for(n=0;n<p->P88;++n)
+	pkin[n]=new fnpf_print_kinematics(p,c,pgc,n);
+    
+    for(n=0;n<p->P88;++n)
+    pkin[n]->ini(p,c,pgc);
+    }
     
     if(p->P110==1)
     phs = new fnpf_print_Hs(p,c->Hs);
-
+    
+    if(p->P140>0)
+	prunup = new fnpf_runup*[p->P140];
+	
+	for(n=0;n<p->P140;++n)
+	prunup[n]=new fnpf_runup(p,c,pgc,n);
+    
+    for(n=0;n<p->P140;++n)
+	prunup[n]->ini(p,c,pgc);
 }
 
 fnpf_vtu3D::~fnpf_vtu3D()
@@ -120,6 +154,12 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     
     if(p->P110==1)
     phs->start(p,pgc,c->eta,c->Hs);
+    
+    if(p->P65>0)
+	pvel->start(p,c,pgc);
+    
+    if(p->P66>0)
+	pveltheo->start(p,c,pgc,pflow);
 
 		// Print out based on iteration
         if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
@@ -207,17 +247,22 @@ void fnpf_vtu3D::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     if(p->P59==1)
     pbreaklog->write(p,c,pgc);
 	
-	// ALE force
-	  if((p->count==0 || p->count==p->count_statestart) && p->P85>0)
-	  {
-		for(n=0;n<p->P85;++n)
-        pforce_ale[n]->ini(p,c,pgc);
-	  }
-        if(p->count>0 && p->P85>0)
-		{
-        for(n=0;n<p->P85;++n)
-        pforce_ale[n]->start(p,c,pgc);
-		}
+	// ALE force    
+    if(p->count>0)
+    if(p->count%p->P80==0)
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->start(p,c,pgc);
+    
+    // print kinematics    
+    if(p->count>0)
+    if(p->count%p->P80==0)
+    for(n=0;n<p->P88;++n)
+    pkin[n]->start(p,c,pgc);
+    
+    // Runup  
+    if(p->count>0)
+    for(n=0;n<p->P140;++n)
+    prunup[n]->start(p,c,pgc);
 }
 
 void fnpf_vtu3D::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
@@ -245,13 +290,6 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     pgc->gcsl_start4(p,c->bed,50);
     pgc->gcsl_start4(p,c->breaking_print,50);
     pgc->start4(p,c->test,1);
-
-    pgc->dgcslpol(p,c->WL,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,c->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
-    pgc->dgcslpol(p,c->bed,p->dgcsl4,p->dgcsl4_count,14);
-
-    c->WL.ggcpol(p);
-    c->breaking_print.ggcpol(p);
 
     i=-1;
     j=-1;
@@ -327,6 +365,14 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
 	result<<"<UnstructuredGrid>"<<endl;
 	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">"<<endl;
+    
+    if(p->P16==1)
+    {
+    result<<"<FieldData>"<<endl;
+    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+    result<<"</DataArray>"<<endl;
+    result<<"</FieldData>"<<endl;
+    }
 
     n=0;
     result<<"<PointData >"<<endl;
@@ -414,8 +460,23 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 //  Fi
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
+    if(p->j_dir==1)
 	TPLOOP
 	{
+    ffn=float(c->Fi[FIJKp1]);
+
+    if(k==-1 && j==-1)
+	ffn=float(c->Fi[FIJp1Kp1]);
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    if(p->j_dir==0)
+	TPLOOP
+	{
+    if(j==-1)
+    ffn=float(c->Fi[FIJp1Kp1]);
+    
+    if(j==0)
     ffn=float(c->Fi[FIJKp1]);
 
     if(k==-1 && j==-1)
@@ -491,7 +552,7 @@ void fnpf_vtu3D::print_vtu(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
     zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j);
 
-    ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
+    ffn=float((p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
 	result.write((char*)&ffn, sizeof (float));
 
 	ffn=float(p->YN[JP1]);

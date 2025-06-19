@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -82,7 +82,6 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     }	
     
     // precalc array alloc
-    p->Darray(etaval,ept_count);
     p->Darray(Fival,ppt_count);
     p->Darray(rb1val,ppt_count);
     p->Darray(rb3val,dbcount);
@@ -155,12 +154,11 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     }
       
     // precalc array alloc
-    p->Darray(etaval,ept_count);
     p->Darray(Fival,ppt_count);
     p->Darray(Uinval,ppt_count);
     p->Darray(Fifsfval,ept_count);
-     p->Darray(Fifsfval0,ept_count);
-     p->Darray(Fifsfval1,ept_count);
+    p->Darray(Fifsfval0,ept_count);
+    p->Darray(Fifsfval1,ept_count);
     p->Darray(uval,upt_count);
     
     p->Darray(rb3val,dbcount);

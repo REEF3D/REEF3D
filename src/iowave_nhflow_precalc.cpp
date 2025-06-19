@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,8 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    starttime=pgc->timer();
+    
     wave_prestep(p,pgc);
     
     if(p->B89==0)
@@ -47,8 +49,13 @@ void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
             
         if(p->B98==3 || p->B98==4)
+        {
+        nhflow_wavegen_precalc_decomp_time(p,pgc);
         nhflow_wavegen_precalc_decomp_dirichlet(p,pgc);
+        }
     }
+    
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"bedload_VR.h"
+
+#include"bedload_VR.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -44,20 +45,21 @@ bedload_VR::~bedload_VR()
 
 void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-    double Ti,r;
+    double Ti,r,f,Ts,Tb;
 	double qb;
 	
 	SLICELOOP4
     {
+        Ts = s->shields_crit(i,j);
+	    Tb = s->shields_eff(i,j);
 
-        Ti=MAX((s->shields_eff(i,j)-s->shields_crit(i,j))/(s->shields_crit(i,j)),0.0);
-
+        Ti=MAX((Tb-Ts)/(Ts),0.0);
         
-        if(s->shearvel_eff(i,j)>s->shearvel_crit(i,j))        if(s->active(i,j)==1)
+        if(s->active(i,j)==1 && Tb>=Ts)
         qb = (0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
 
 
-        if(s->shearvel_eff(i,j)<=s->shearvel_crit(i,j) || s->active(i,j)==0)
+        if(s->active(i,j)==0 || Tb<Ts)
         qb=0.0;
 		
 		s->qbe(i,j) = qb;

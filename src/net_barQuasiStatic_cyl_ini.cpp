@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2024 Tobias Martin
+Copyright 2018-2025 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include<sys/stat.h>
@@ -121,11 +122,11 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
            
             for (int k = 0; k < nK; k++)
             {
-                if (K[k][0] == coord_owner[0] && K[k][1] == coord_owner[1] && K[k][2] == coord_owner[2])
+                if (K[k][0]==coord_owner[0] && K[k][1]==coord_owner[1] && K[k][2]==coord_owner[2])
                 {
                     Pi[index] = k;
                 }
-                else if (K[k][0] == coord_neigh[0] && K[k][1] == coord_neigh[1] && K[k][2] == coord_neigh[2])
+                else if (K[k][0]==coord_neigh[0] && K[k][1]==coord_neigh[1] && K[k][2]==coord_neigh[2])
                 {
                     Ni[index] = k;
                 }
@@ -149,15 +150,15 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
             coord_neigh[2] = 0.0;
             
             // Close cylinder
-            if (i == nd-1) coord_neigh[0] = 0;              
+            if (i==nd-1) coord_neigh[0] = 0;              
 
             for (int k = 0; k < nK; k++)
             {
-                if (K[k][0] == coord_owner[0] && K[k][1] == coord_owner[1] && K[k][2] == coord_owner[2])
+                if (K[k][0]==coord_owner[0] && K[k][1]==coord_owner[1] && K[k][2]==coord_owner[2])
                 {
                     Pi[index] = k;
                 }
-                else if (K[k][0] == coord_neigh[0] && K[k][1] == coord_neigh[1] && K[k][2] == coord_neigh[2])
+                else if (K[k][0]==coord_neigh[0] && K[k][1]==coord_neigh[1] && K[k][2]==coord_neigh[2])
                 {
                     Ni[index] = k;
                 }
@@ -186,7 +187,7 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
             v4[1] = j;
             
             // Close cylinder
-            if (i == nd-1)
+            if (i==nd-1)
             {
                 v3[0] = 0.0;
                 v4[0] = 0.0;
@@ -197,8 +198,8 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
                 // left half, bar always pointing downwards
                 if 
                 (
-                    v1[0] == K[Pi[s]][0] && v1[1] == K[Pi[s]][1] && v1[2] == K[Pi[s]][2]
-                    && v2[0] == K[Ni[s]][0] && v2[1] == K[Ni[s]][1] && v2[2] == K[Ni[s]][2]
+                    v1[0]==K[Pi[s]][0] && v1[1]==K[Pi[s]][1] && v1[2]==K[Pi[s]][2]
+                    && v2[0]==K[Ni[s]][0] && v2[1]==K[Ni[s]][1] && v2[2]==K[Ni[s]][2]
                 )
                 {
                     meshID[index][0] = Pi[s];
@@ -208,8 +209,8 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
                 // right half, bar always pointing downwards
                 if 
                 (
-                    v4[0] == K[Pi[s]][0] && v4[1] == K[Pi[s]][1] && v4[2] == K[Pi[s]][2]
-                    && v3[0] == K[Ni[s]][0] && v3[1] == K[Ni[s]][1] && v3[2] == K[Ni[s]][2]
+                    v4[0]==K[Pi[s]][0] && v4[1]==K[Pi[s]][1] && v4[2]==K[Pi[s]][2]
+                    && v3[0]==K[Ni[s]][0] && v3[1]==K[Ni[s]][1] && v3[2]==K[Ni[s]][2]
                 )
                 {
                     meshID[index][2] = Pi[s];
@@ -236,15 +237,15 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
         coord_neigh[2] = 0.0;  
     
         // Close cylinder
-        if (i == nd-1) coord_neigh[0] = 0.0;      
+        if (i==nd-1) coord_neigh[0] = 0.0;      
    
         for (int k = 0; k < nK; k++)
         {
-            if (K[k][0] == coord_owner[0] && K[k][1] == coord_owner[1] && K[k][2] == coord_owner[2])
+            if (K[k][0]==coord_owner[0] && K[k][1]==coord_owner[1] && K[k][2]==coord_owner[2])
             {
                 Pb[index] = k;
             }
-            else if (K[k][0] == coord_neigh[0] && K[k][1] == coord_neigh[1] && K[k][2] == coord_neigh[2])
+            else if (K[k][0]==coord_neigh[0] && K[k][1]==coord_neigh[1] && K[k][2]==coord_neigh[2])
             {
                 Nb[index] = k;
             }
@@ -273,14 +274,14 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
         // Check whether it is a boundary knot
         for (int k = 0; k < nd; k++)
         {
-            if (i == Pb[k] || i == Nb[k])
+            if (i==Pb[k] || i==Nb[k])
             {
                 bK = true;
                 break;
             }
         }
 
-        if (bK == false) // then a inner knot
+        if (bK==false) // then a inner knot
         {
             nfK[indexK][0] = i;
 
@@ -288,7 +289,7 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
             index = 1;
             for (int j = 0; j < nf; j++)
             {
-                if (Pi[j] == i || Ni[j] == i)
+                if (Pi[j]==i || Ni[j]==i)
                 {
                     nfK[indexK][index] = j;
                     index++;
@@ -296,7 +297,7 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
             }
             
             // Switch bottom edge knots to be consistent with side edge knots
-            if (K[i][1] == nl)
+            if (K[i][1]==nl)
             {
                 tmp = nfK[indexK][3];
                 nfK[indexK][3] = nfK[indexK][1];
@@ -322,7 +323,7 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
         
             for (int k = 0; k < nK; k++)
             {
-                if (K[k][0] == i && K[k][1] == j && K[k][2] == 0.0 && transK[k] == 0)
+                if (K[k][0]==i && K[k][1]==j && K[k][2]==0.0 && transK[k]==0)
                 { 
                     K[k][0] = coord_owner[0];
                     K[k][1] = coord_owner[1];
@@ -404,12 +405,12 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
         
         for (int j = 0; j < nf; j++)
         {
-            if (Pi[j] == nfK[i][0])
+            if (Pi[j]==nfK[i][0])
             {
                 A(index,j) = F_ini;
                 nBars++;
             }
-            else if (Ni[j] == nfK[i][0])
+            else if (Ni[j]==nfK[i][0])
             {
                 A(index,j) = -F_ini;
                 nBars++;
@@ -417,7 +418,7 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
         }
         
         // Calculate total length of bars adjoint to knot nfK[i]
-        if (nBars == 3)
+        if (nBars==3)
         {
             As = 0.5*l_c*l_c;
         }  
@@ -454,22 +455,22 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
         // Vertical bars
         for (int j = 0; j < nf; j++)
         {
-            if (Pi[j] == Pb[i])
+            if (Pi[j]==Pb[i])
             {
                 A(index,j) = -al;
                 addOwner = Ni[j];
             }
-            else if (Ni[j] == Pb[i])
+            else if (Ni[j]==Pb[i])
             {
                 A(index,j) = al;
                 addOwner = Pi[j];               
             }
-            else if (Pi[j] == Nb[i])
+            else if (Pi[j]==Nb[i])
             {
                 A(index,j) = al;
                 addNeigh = Ni[j];               
             }
-            else if (Ni[j] == Nb[i])
+            else if (Ni[j]==Nb[i])
             {
                 A(index,j) = -al;
                 addNeigh = Pi[j];              
@@ -479,11 +480,11 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
         // Horizontal bar from addOwner, addNeigh
         for (int j = 0; j < nf; j++)
         {
-            if (Pi[j] == addOwner && Ni[j] == addNeigh)
+            if (Pi[j]==addOwner && Ni[j]==addNeigh)
             {
                 A(index,j) = -ad;
             }
-            else if (Pi[j] == addNeigh && Ni[j] == addOwner)
+            else if (Pi[j]==addNeigh && Ni[j]==addOwner)
             {
                 A(index,j) = al;              
             }
@@ -502,21 +503,21 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
         for (int j = 0; j < nf; j++)
         {
             // vertical bars
-            if (Pi[j] == meshID[i][0] && Ni[j] == meshID[i][1])
+            if (Pi[j]==meshID[i][0] && Ni[j]==meshID[i][1])
             {
                 A(index,j) = -al;
             }
-            else if (Pi[j] == meshID[i][2] && Ni[j] == meshID[i][3])
+            else if (Pi[j]==meshID[i][2] && Ni[j]==meshID[i][3])
             {
                 A(index,j) = al;
             }  
           
             // horizontal bars, bars always positiv to the right
-            if (Pi[j] == meshID[i][0] && Ni[j] == meshID[i][2])
+            if (Pi[j]==meshID[i][0] && Ni[j]==meshID[i][2])
             {
                 A(index,j) = ad;
             }
-            else if (Pi[j] == meshID[i][1] && Ni[j] == meshID[i][3])
+            else if (Pi[j]==meshID[i][1] && Ni[j]==meshID[i][3])
             {
                 A(index,j) = -ad;
             }    
@@ -533,7 +534,7 @@ void net_barQuasiStatic::cyl_ini(lexer *p, fdm *a, ghostcell *pgc)
     
 
     // Initialise print
-    if(p->mpirank==0 && p->P14==1)
+    if(p->mpirank==0)
     {
         char str[1000];
         sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,10 +27,9 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include<sys/stat.h>
 
-void sixdof_obj::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
 {
     // Store initial position of triangles
-    
 	for(n=0; n<tricount; ++n)
 	{
         for(int q=0; q<3; q++)
@@ -60,7 +59,7 @@ void sixdof_obj::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
 		}
 
         // Rotate mooring end point
-        if (p->X313==1)
+        if (p->X313==1) 
         {
             for (int line=0; line < p->mooring_count; line++)
             {
@@ -83,30 +82,35 @@ void sixdof_obj::iniPosition_RBM(lexer *p, fdm *a, ghostcell *pgc)
 	e_(3) = 
 		 cos(0.5*phi)*cos(0.5*theta)*sin(0.5*psi) 
 		- sin(0.5*phi)*sin(0.5*theta)*cos(0.5*psi);   
-
-    
+        
+        
     en1_ = e_;
     en2_ = e_;
     en3_ = e_;
-    ek_ = e_;
+    ek_  = e_;
     
     cn1_ = c_;
     cn2_ = c_;
     cn3_ = c_;
-    ck_ = c_;
+    ck_  = c_;
     
     pn1_ = p_;
     pn2_ = p_;
     pn3_ = p_;
-    pk_ = p_;
+    pk_  = p_;
     
     hn1_ = h_;
     hn2_ = h_;
     hn3_ = h_;
-    hk_ = h_;  
+    hk_  = h_;  
+    
+    dpk_ = dp_;
+    dck_ = dc_;
+    dhk_ = dh_;
+    dek_ = de_;
 
 
     // Initialise rotation matrices
-    quat_matrices(e_);
+    quat_matrices(p);
 }
 

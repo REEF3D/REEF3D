@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
     N   = p->B170;  // default = 1024
     tol = 1e-14;
     
-    if (p->B91 == 1)
+    if (p->B91==1)
     {
         // Wave length known
         allocated = false;
@@ -39,7 +39,7 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
         getPhysicsParameters();
         surfaceCalculated = computeSurfaceVariables();
     } 
-    else if (p->B93 == 1)
+    else if (p->B93==1)
     {
         // Wave period known
         wk = 2.0*PI/(wT*sqrt(9.81*wdt));
@@ -59,7 +59,7 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
          
             if (wk <= 0)
             {
-                if (p->mpirank == 0)
+                if (p->mpirank==0)
                 {
                     cout<<"SSGW has to use shallow water assumption to calculate wavenumber!"<<endl;
                 }
@@ -121,8 +121,8 @@ wave_lib_ssgw::~wave_lib_ssgw()
 
 double wave_lib_ssgw::wave_eta(lexer *p, double x, double y)
 {
-    // Transform x location to current position xcurr at time instance p->simtime
-    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->simtime, wL));
+    // Transform x location to current position xcurr at time instance p->wavetime
+    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->wavetime, wL));
     xcurr = xcurr>0.5*wL ? xcurr-wL : xcurr;
    
     // Linear interpolation
@@ -139,8 +139,8 @@ double wave_lib_ssgw::wave_eta(lexer *p, double x, double y)
 
 double wave_lib_ssgw::wave_fi(lexer *p, double x, double y, double z)
 {
-    // Transform x location to current position xcurr at time instance p->simtime
-    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->simtime, wL));
+    // Transform x location to current position xcurr at time instance p->wavetime
+    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->wavetime, wL));
     xcurr = xcurr>0.5*wL ? xcurr-wL : xcurr;
 
     // Linear interpolation

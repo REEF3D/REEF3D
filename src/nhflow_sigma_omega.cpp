@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,81 +34,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 { 
     double wval,Pval,Qval,Rval,fac;
     
-    if(p->A517==1)
-    FLOOP
-    {
-        if(U[IJK]>=0.0)
-        Pval=0.5*(U[Im1JK] + U[IJK]);
-            
-        if(U[IJK]<0.0)
-        Pval=0.5*(U[IJK] + U[Ip1JK]);
-        
-        
-        if(V[IJK]>=0.0)
-        Qval=0.5*(V[IJm1K] + V[IJK]);
-            
-        if(V[IJK]<0.0)
-        Qval=0.5*(V[IJK] + V[IJp1K]);
-        
-        
-        if(W[IJK]>=0.0)
-        Rval=0.5*(W[IJKm1] + W[IJK]);
-            
-        if(W[IJK]<0.0)
-        Rval=0.5*(W[IJK] + W[IJKp1]);
 
-    // omega
-        d->omegaF[FIJK] =  d->WL(i,j)*(p->sigt[FIJK]
-                        
-                        +  Pval*p->sigx[FIJK]
-                        
-                        +  Qval*p->sigy[FIJK]
-                        
-                        +  Rval*p->sigz[IJ]);
-    }
-    
-    if(p->A517==2)
-    {
-        FLOOP
-        {
-            
-            Pval = 0.5*(U[IJK]+U[IJKm1]);
-            Qval = 0.5*(V[IJK]+V[IJKm1]);
-            Rval = 0.5*(W[IJK]+W[IJKm1]);
-        
-            // omega
-            d->omegaF[FIJK] =  WL(i,j)*(p->sigt[FIJK]
-                            
-                            +  Pval*p->sigx[FIJK]
-                            
-                            +  Qval*p->sigy[FIJK]
-                            
-                            +  Rval*p->sigz[IJ]);
-        }
-        
-        
-        ILOOP 
-        JLOOP
-        if(p->wet[IJ]==0 || p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0
-        || p->wet[Im2J]==0 || p->wet[Ip2J]==0 || p->wet[IJm2]==0 || p->wet[IJp2]==0)
-        {
-        FKLOOP 
-        FPCHECK 
-        d->omegaF[FIJK] = 0.0;  
-        
-        KLOOP 
-        PCHECK 
-        d->omegaF[FIJKp1] =   d->omegaF[FIJK]
-                        
-                        - p->DZN[KP]*(d->detadt(i,j) 
-                        
-                        + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
-        }
-        
-    }
-    
-    if(p->A517==3)
-    {
         FLOOP
         d->omegaF[FIJK] = 0.0;
         
@@ -121,23 +47,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                             
                             + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
         }
-    }
     
-    if(p->A517==4)
-    {
-        FLOOP
-        d->omegaF[FIJK] = 0.0;
-        
-        LOOP
-        {
-        d->omegaF[FIJKp1] =   d->omegaF[FIJK]
-                            
-                            - p->DZN[KP]*(d->detadt_n(i,j) 
-                            
-                            + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
-        }
-    }
-
       
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)

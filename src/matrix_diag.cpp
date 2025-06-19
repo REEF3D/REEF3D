@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,23 +33,6 @@ matrix_diag::matrix_diag(lexer *pp)
 	pp->Darray(b,pp->veclength);
 	pp->Darray(p,pp->veclength);
     
-    if(pp->A320>=2)
-    {
-    pp->Darray(nn,pp->veclength);
-    pp->Darray(ss,pp->veclength);
-	pp->Darray(ee,pp->veclength);
-	pp->Darray(ww,pp->veclength);
-	pp->Darray(tt,pp->veclength);
-	pp->Darray(bb,pp->veclength);
-    
-    /*pp->Darray(nnn,pp->veclength);
-    pp->Darray(sss,pp->veclength);
-	pp->Darray(eee,pp->veclength);
-	pp->Darray(www,pp->veclength);
-	pp->Darray(ttt,pp->veclength);
-	pp->Darray(bbb,pp->veclength);*/
-    }
-    
     if(pp->D33==1)
     {
     pp->Darray(sb,pp->veclength);
@@ -73,6 +56,15 @@ matrix_diag::~matrix_diag()
 	delete [] t;
 	delete [] b;
 	delete [] p;
+    
+    delete [] sb;
+	delete [] st;
+	delete [] nb;
+	delete [] nt;
+	delete [] eb;
+	delete [] et;
+	delete [] wb;
+    delete [] wt;
 }
 
 void matrix_diag::resize(lexer *pp, int size_old, int size_new)
@@ -85,20 +77,15 @@ void matrix_diag::resize(lexer *pp, int size_old, int size_new)
     pp->Dresize(b,size_old,size_new);
     pp->Dresize(p,size_old,size_new);
     
-    if(pp->A320>=2)
+    if(pp->D33==1)
     {
-    pp->Dresize(nn,size_old,size_new);
-    pp->Dresize(ss,size_old,size_new);
-    pp->Dresize(ee,size_old,size_new);
-    pp->Dresize(ww,size_old,size_new);
-    pp->Dresize(tt,size_old,size_new);
-    pp->Dresize(bb,size_old,size_new);
-    
-    pp->Dresize(nnn,size_old,size_new);
-    pp->Dresize(sss,size_old,size_new);
-    pp->Dresize(eee,size_old,size_new);
-    pp->Dresize(www,size_old,size_new);
-    pp->Dresize(ttt,size_old,size_new);
-    pp->Dresize(bbb,size_old,size_new);
+    pp->Dresize(sb,size_old,size_new);
+    pp->Dresize(st,size_old,size_new);
+    pp->Dresize(nb,size_old,size_new);
+    pp->Dresize(nt,size_old,size_new);
+    pp->Dresize(eb,size_old,size_new);
+    pp->Dresize(et,size_old,size_new);
+    pp->Dresize(wb,size_old,size_new);
+    pp->Dresize(wt,size_old,size_new);
     }
 }

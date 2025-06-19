@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,24 +43,9 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
     
     create_solvers(p,pgc);
     
-    if(var==7)
+
 	fill_matrix_F_7p(p,pgc,M,f,xvec,rhsvec);
     
-    if(var==8)
-	fill_matrix_F_7p_v2(p,pgc,M,f,xvec,rhsvec);
-    
-    if(var==9)
-	fill_matrix_F_13p(p,pgc,M,f,xvec,rhsvec);
-    
-    if(var==10)
-	fill_matrix_F_13p_v2(p,pgc,M,f,xvec,rhsvec);
-    
-    if(var==11)
-	fill_matrix_F_19p(p,pgc,M,f,xvec,rhsvec);
-    
-    if(var==12)
-	fill_matrix_F_19p_v2(p,pgc,M,f,xvec,rhsvec);
-  
 
     if(p->N10==21)
     {

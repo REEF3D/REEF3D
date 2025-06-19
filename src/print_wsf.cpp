@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
+print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCount(100)
 {
 	gauge_num = p->P51;
 	x = p->P51_x;
@@ -55,16 +55,12 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
 	}
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_WSF",0777);
 	
     if(p->mpirank==0 && p->P51>0 && num==0)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -86,10 +82,6 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
 	if(p->mpirank==0 && p->P351>0 && num==1)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG-1.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-1.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -111,10 +103,6 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num)
 	if(p->mpirank==0 && p->P352>0 && num==2)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-WSF-HG-2.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-2.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -189,7 +177,12 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
     {
     wsfout<<setprecision(9)<<p->simtime<<"\t";
     for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
+    {
+        wsfout<<setprecision(9)<<wsf[n]<<"\t";
+        // flush print to disc limited to prevent data loss for many gauges
+        if(n%fileFlushMaxCount==0&&n!=0)
+            wsfout<<std::flush;
+    }
     wsfout<<endl;
     }
 }
@@ -212,7 +205,7 @@ void print_wsf::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     if(p->j_dir==1)
     jloc[n] = p->posc_j(y[n]); 
 
-    check=ij_boundcheck(p,a,iloc[n],jloc[n],0);
+    check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
     if(check==1)
     flag[n]=1;

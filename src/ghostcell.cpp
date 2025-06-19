@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,7 +36,6 @@ ghostcell::ghostcell(int& argc, char **argv,lexer *pp):size(15),tag1(1),tag2(2),
     
     MPI_Comm_rank(MPI_COMM_WORLD,&p->mpirank);
 	MPI_Comm_size(MPI_COMM_WORLD,&p->mpi_size);	
-    rank=p->mpirank;
 	
 	mpi_comm = MPI_COMM_WORLD;
 }
@@ -45,9 +44,31 @@ ghostcell::~ghostcell()
 {
 }
 
+void ghostcell::mpi_check(lexer* p)
+{
+    int check=1;
+    int ok=0;
+    
+    check=globalisum(check);
+    
+    if(check==p->mpi_size)
+    ok=1;
+    
+    if(p->mpirank==0 && ok==0)
+    cout<<"mpi - checksum: "<<check<<" vs "<<p->mpi_size;
+    
+    //if(p->mpirank==0 && ok==1)
+    //cout<<" ... ok";
+    
+    if(p->mpirank==0 && ok==0)
+    cout<<" ... mismatch";
+    
+    if(p->mpirank==0)
+    cout<<endl;
+}
+
 void ghostcell::gcini(lexer* p)
 {
-
     margin=p->margin;
 	paramargin=p->margin;
     gamma=p->B29;
@@ -122,19 +143,6 @@ void ghostcell::gcini(lexer* p)
 	p->Iarray(irecv5,p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin);
 	p->Iarray(irecv6,p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin);
 	
-	p->dgc1_count=1;
-	p->dgc2_count=1;
-	p->dgc3_count=1;
-	p->dgc4_count=1;
-	
-	p->Iarray(p->dgc1,p->dgc1_count,8);
-	p->Iarray(p->dgc2,p->dgc2_count,8);
-	p->Iarray(p->dgc3,p->dgc3_count,8);
-	p->Iarray(p->dgc4,p->dgc4_count,8);
-    
-    p->gcdf4_count=1;
-    p->Iarray(p->gcdf4,p->gcdf4_count,6);
-
     if(p->B20==1)
     {
     gclabel_u=4;
@@ -269,7 +277,7 @@ void ghostcell::gcini(lexer* p)
     
     // pressure outflow
     pressout_lable=0;
-	if(p->B77==1 || p->B77==2)
+	if(p->B77==1 || p->B77==10)
 	pressout_lable=1;
     
     
@@ -356,10 +364,11 @@ void ghostcell::gcini(lexer* p)
 	pdens = new density_f(p);
 }
 
-void ghostcell::fdm_update(fdm *aa)
+void ghostcell::fdm2D_update(fdm2D *bb)
 {
-    a=aa;
+    b=bb;
 }
+
 
 void ghostcell::fdm_fnpf_update(fdm_fnpf *cc)
 {
@@ -370,6 +379,12 @@ void ghostcell::fdm_nhf_update(fdm_nhf *dd)
 {
     d=dd;
 }
+
+void ghostcell::fdm_update(fdm *aa)
+{
+    a=aa;
+}
+
 
 void ghostcell::final()
 {

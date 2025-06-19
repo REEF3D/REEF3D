@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PTF_RK4_H_
+#define PTF_RK4_H_
+
 #include"ptf.h"
 #include"ptf_fsfbc.h"
 #include"slice4.h"
@@ -31,17 +34,14 @@ class ptf_bed_update;
 
 using namespace std;
 
-#ifndef PTF_RK4_H_
-#define PTF_RK4_H_
-
 class ptf_RK4 : public ptf, public ptf_fsfbc
 {
 public:
 	ptf_RK4(lexer*, fdm*, ghostcell*);
 	virtual ~ptf_RK4();
     
-    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
-    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, onephase*);
+    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*);
+    virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*);
     virtual void inidisc(lexer*, fdm*, ghostcell*);
     
     

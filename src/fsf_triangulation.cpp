@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,7 +28,9 @@ Author: Hans Bihs
 void fsf_vtp::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f) 
 {
 	int negcount, poscount;
-	nodefill4(p,a,pgc,f,eta);
+    
+    TPLOOP
+	eta(i,j,k) = (p->ipol4phi(a,a->phi));
 
 	
     NDBASELOOP

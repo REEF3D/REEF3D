@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,7 +29,7 @@ void ghostcell::rownum4_update(lexer* p,fieldint &rownum4)
 	p->N4_row=0;
 	p->N4_col=0;
 
-    FLUIDLOOP
+    LOOP
 	{
     rownum4(i,j,k)=p->N4_row;
     ++p->N4_row;
@@ -38,7 +38,7 @@ void ghostcell::rownum4_update(lexer* p,fieldint &rownum4)
 
     rangex(p,p->range_row4,p->N4_row);
 
-	FLUIDLOOP
+	LOOP
     rownum4(i,j,k)+=p->range_row4[p->mpirank];
 }
 

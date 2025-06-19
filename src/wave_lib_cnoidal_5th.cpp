@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,13 +28,6 @@ Author: Hans Bihs
 wave_lib_cnoidal_5th::wave_lib_cnoidal_5th(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
 { 
     parameters(p,pgc);
-    
-    if(p->mpirank==0)
-    {
-    cout<<"Wave_Lib: 5th-order cnoidal waves"<<endl;
-    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
-    cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
-    }
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
@@ -70,11 +63,11 @@ double wave_lib_cnoidal_5th::wave_horzvel(lexer *p, double x, double y, double z
 	
 	yh = (z+wdt)/wht; 
 		
-	teta = 2.0*Km*(x/wL - p->simtime/wT) + pshift;
+	teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
 	
 	elliptic(p,teta,sn,cn,dn);
 	
-	vel =  wC + sqrt(9.81*wht)*(-1.0 + delta*(-0.5 + cn*cn) 
+	vel =  ubar + sqrt(9.81*wht)*(-1.0 + delta*(-0.5 + cn*cn) 
 	    + pow(delta,2.0)*((-(19.0/40.0) + (3.0/2.0)*cn*cn - pow(cn,4.0)) + yh*yh*(-(3.0/2.0)*cn*cn + (9.0/4.0)*pow(cn,4.0)))
 	
 		+ pow(delta,3.0)*(-(55.0/112.0) + (71.0/40.0)*cn*cn - (27.0/10.0)*pow(cn,4.0) + (6.0/5.0)*pow(cn,6.0)
@@ -118,7 +111,7 @@ double wave_lib_cnoidal_5th::wave_w(lexer *p, double x, double y, double z)
 	
 	yh = (z+wdt)/wht;
 	
-	teta = 2.0*Km*(x/wL - p->simtime/wT) + pshift;
+	teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
 
 	elliptic(p,teta,sn,cn,dn);
 	
@@ -163,7 +156,7 @@ double wave_lib_cnoidal_5th::wave_eta(lexer *p, double x, double y)
     double eta;
 	double sn,cn,dn;
 	
-	teta = 2.0*Km*(x/wL - p->simtime/wT) + pshift;
+	teta = 2.0*Km*(x/wL - p->wavetime/wT) + pshift;
 	
 	elliptic(p,teta,sn,cn,dn);
 	
@@ -248,14 +241,29 @@ void wave_lib_cnoidal_5th::parameters(lexer *p, ghostcell *pgc)
 	
 	delta = (4.0/3.0)*acn*acn;
 	
-	wC = sqrt(9.81*wht)*(1.0 + (wH/wht)*(0.5-ell) + pow(wH/wht,2.0)*(-3.0/20.0 + (5.0/12.0)*ell) + pow(wH/wht,3.0)*(3.0/56.0 - (19.0/600.0)*ell)
+	ubar = sqrt(9.81*wht)*(1.0 + (wH/wht)*(0.5-ell) + pow(wH/wht,2.0)*(-3.0/20.0 + (5.0/12.0)*ell) + pow(wH/wht,3.0)*(3.0/56.0 - (19.0/600.0)*ell)
 					    + pow(wH/wht,4.0)*(-309.0/5600.0  + (3719.0/21000.0)*ell) + pow(wH/wht,5.0)*(12237.0/616000.0  - (997699.0/8820000.0)*ell));
 						
 						
 	wR = 9.81*wht*(1.5 + 0.5*(wH/wht) - pow(wH/wht,2.0)*(1.0/40.0) - pow(wH/wht,3.0)*(3.0/140.0) - pow(wH/wht,4.0)*(3.0/175.0)
 						- pow(wH/wht,5.0)*(2427.0/154000.0));
-	if(p->mpirank==0)
-	cout<<"wC: "<<wC<<" wR: "<<wR<<endl;
+    
+    wC = ubar;
+    
+    // Find wave length
+    if(p->B93==1)
+    wL = wC*wT;
+    
+    if(p->B91==1)
+    wT = wL/wC;
+
+    
+    if(p->mpirank==0)
+    {
+    cout<<"Wave_Lib: 5th-order cnoidal waves"<<endl;
+    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
+    cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
+    }
 }
 
 void wave_lib_cnoidal_5th::wave_prestep(lexer *p, ghostcell *pgc)

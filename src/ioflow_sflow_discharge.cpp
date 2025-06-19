@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -71,8 +71,7 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
         area = p->DYN[JP]*b->hp(i-1,j);
         
         Ai+=area;
-        p->Qi+=area*b->P(i,j);
-        
+        p->Qi+=area*b->P(i-1,j);
         hval += b->hp(i,j);
         ++hcount;
         }
@@ -113,6 +112,9 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     area=0.0;
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
+        
+        if(p->wet[IJ]==1)
+        {
     
         area = p->DYN[JP]*b->hp(i,j);
         
@@ -121,6 +123,7 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
         
         hval += b->hp(i,j);
         ++hcount;
+        }
     }
     
     Ao=pgc->globalsum(Ao);
@@ -131,8 +134,11 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     Ho = Ho/(hcount>1.0e-20?hcount:1.0e20); 
 	
 	if(p->B60==1)
-	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
 	
+    if(p->I10==1 && p->count<=1)
+	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+    
 	if(p->B60==2)
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
 	

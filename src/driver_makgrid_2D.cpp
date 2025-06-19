@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,8 +30,6 @@ Author: Hans Bihs
 
 void driver::makegrid2D(lexer *p, ghostcell *pgc)
 {   
-    pgc->gcsl_tpflag(p);
-    
     pgc->gcslflagx(p,p->flagslice4);
     
     mgcslice1 m1(p);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,10 +29,10 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
+force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
 {
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SOLID",0777);
 	
     forceprintcount=0;
@@ -69,12 +69,11 @@ force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):nodefill(p),vertice(p),no
 force::~force()
 {
 }
+
 void force::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     triangulation(p,a,pgc,a->phi);
 	reconstruct(p,a,a->phi);
-    pgc->gcxsd_seed(p,a);
-    pgc->gcbsd_seed(p,a);
 	
 	print_vtp(p,a,pgc);
 } 
@@ -82,9 +81,7 @@ void force::ini(lexer *p, fdm *a, ghostcell *pgc)
 void force::start(lexer *p, fdm *a, ghostcell *pgc)
 {
     pgc->start4(p,a->press,gcval_press);
-    pgc->gcxsd_update(p, a, a->press);
-    pgc->gcbsd_update(p, a, a->press);
-    
+
 	// forcecalc
     force_calc(p,a,pgc);
     

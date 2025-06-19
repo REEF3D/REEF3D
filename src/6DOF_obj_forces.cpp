@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,7 +28,16 @@ Author: Tobias Martin
 #include"net.h"
 #include"vrans.h"
 
-void sixdof_obj::updateForces()
+void sixdof_obj::hydrodynamic_forces_cfd(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
+{
+    if(p->X60==1)
+    forces_stl(p,a,pgc,uvel,vvel,wvel,iter,finalize);
+    
+    if(p->X60==2)
+    forces_lsm(p,a,pgc,uvel,vvel,wvel,iter,finalize);
+}
+
+void sixdof_obj::update_forces(lexer *p)
 {
     // Forces in inertial system
     Ffb_ << 0.0, 0.0, 0.0;
@@ -52,4 +61,24 @@ void sixdof_obj::updateForces()
     
     if(p->X11_r==1)
     Mfb_(2) = Next + Ne - p->X25_Cr*omega_I(2);
+    
+    
+    if(Ffb_(0)!=Ffb_(0))
+    cout<<"Ffb_(0)....###"<<endl;
+    
+    if(Ffb_(1)!=Ffb_(1))
+    cout<<"Ffb_(1)....###"<<endl;
+    
+    if(Ffb_(2)!=Ffb_(2))
+    cout<<"Ffb_(2)....###"<<endl;
+    
+    
+    if(Mfb_(0)!=Mfb_(0))
+    cout<<"Mfb_(0)....###"<<endl;
+    
+    if(Mfb_(1)!=Mfb_(1))
+    cout<<"Mfb_(1)....###"<<endl;
+    
+    if(Mfb_(2)!=Mfb_(2))
+    cout<<"Mfb_(2)....###"<<endl;
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,7 +46,7 @@ void vrans_f::omega_source(lexer *p, fdm *a, field &kin, field &eps)
         por = a->porosity(i,j,k);
         
         kinf = 3.7*(1.0-por)*pow(por,1.5)*uu;
-        winf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/porpart(i,j,k))*(p->cmu*(kinf>1.0e-20?kinf:1.0e20));
+        winf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/a->porpart(i,j,k))*(p->cmu*(kinf>1.0e-20?kinf:1.0e20));
         
         a->rhsvec.V[count] += por*(winf*winf);
         ++count;  

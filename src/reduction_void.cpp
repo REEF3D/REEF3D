@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"reduction_void.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"sediment_fdm.h"
 
 reduction_void::reduction_void(lexer *p)
 {
@@ -34,6 +35,8 @@ reduction_void::~reduction_void()
 
 void reduction_void::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
+    SLICELOOP4
+    s->reduce(i,j)=1.0;
 }
 
 

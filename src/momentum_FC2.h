@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,6 +19,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+
+#ifndef MOMENTUM_FC2_H_
+#define MOMENTUM_FC2_H_
 
 #include"momentum.h"
 #include"momentum_forcing.h"
@@ -45,8 +48,6 @@ class fsi;
 
 using namespace std;
 
-#ifndef MOMENTUM_FC2_H_
-#define MOMENTUM_FC2_H_
 
 class momentum_FC2 : public momentum, public momentum_forcing, public bcmom
 {
@@ -55,9 +56,6 @@ public:
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_FC2();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
-    virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
     field1 udiff,urk1,fx;
 	field2 vdiff,vrk1,fy;

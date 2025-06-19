@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,7 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define HYPRE_COMPILATION
+
+#ifndef HYPRE_STRUCT_H_
+#define HYPRE_STRUCT_H_
+
+#define HYPRE_COMPILATION
 
 #ifdef HYPRE_COMPILATION
 
@@ -31,9 +35,6 @@ Author: Hans Bihs
 #include"HYPRE_sstruct_ls.h"
  
 using namespace std;
-
-#ifndef HYPRE_STRUCT_H_
-#define HYPRE_STRUCT_H_
 
 class hypre_struct : public solver, public increment
 {
@@ -51,13 +52,16 @@ public:
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver4f(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     void start_solver4V(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver44V(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&, int);
     void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver9(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void start_solver44(lexer*,fdm*, ghostcell*, field&, vec&,int);
     
     void solve(lexer*,ghostcell*);
     void solve1234(lexer*);
+    void solve44(lexer*);
     
 	void fillxvec1(lexer*,fdm*,field&);
     void fillxvec2(lexer*,fdm*,field&);
@@ -106,6 +110,9 @@ public:
     void create_solver5(lexer*,ghostcell*);
     void delete_solver5(lexer*,ghostcell*);
     
+    void create_solver44(lexer*,ghostcell*);
+    void delete_solver44(lexer*,ghostcell*);
+    
     void precon_switch(lexer*,ghostcell*);
     
 
@@ -129,6 +136,8 @@ private:
 	int stencil_indices[7];
     int periodic[3];
 	int nentries;
+    
+    double starttime, hypretime;
    
 	int numiter,count,q;
     

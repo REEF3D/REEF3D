@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,10 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_F_H_
+#define SFLOW_F_H_
+
 #include"sflow.h"
 #include"increment.h"
 #include<iostream>
 #include<fstream>
+#include<vector>
 
 class lexer;
 class fdm2D;
@@ -42,15 +46,14 @@ class sflow_convection;
 class sflow_diffusion;
 class sflow_filter;
 class sflow_turbulence;
+class sflow_forcing;
 class sediment;
 class turbulence;
 class patchBC_interface;
 class sixdof;
+class net;
 
 using namespace std;
-
-#ifndef SFLOW_F_H_
-#define SFLOW_F_H_
 
 class sflow_f : public sflow, public increment
 {
@@ -78,6 +81,7 @@ private:
 	sflow_timestep *ptime;
 	sflow_momentum *pmom;
 	sflow_pressure *ppress;
+    sflow_forcing *psfdf;
 	solver2D *psolv;
 	solver2D *ppoissonsolv;
 	ioflow *pflow;
@@ -90,6 +94,7 @@ private:
     sflow_turbulence *pturb;
     sediment *psed;
     sflow_potential *potflow;
+    vector<net*> pnet;
     
     fdm *aa;
     turbulence *pturbcfd;

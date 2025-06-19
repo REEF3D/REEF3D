@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FDM2D_H_
+#define FDM2D_H_
+
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
@@ -36,9 +39,6 @@ Author: Hans Bihs
 #include<iostream>
 
 class lexer;
-
-#ifndef FDM2D_H_
-#define FDM2D_H_
 
 using namespace std;
 
@@ -61,7 +61,10 @@ public:
 	slice2 hy;
 	slice4 hp,dpx,dpy;
     slice4 test;
-    slice4 Hs;
+    slice4 Hs,fs;
+    slice1 fx;
+    slice2 fy;
+    slice4 fz;
     
     slice4 bed,bed0,depth;
     slice4 solidbed,topobed;
@@ -70,8 +73,8 @@ public:
     sliceint4 breaking; 
     slice4 breaking_print;
     
-    sliceint1 wet1;
-    sliceint2 wet2;
+    sliceint1 wet1,deep1;
+    sliceint2 wet2,deep2;
     
     slice4 ks;
 	

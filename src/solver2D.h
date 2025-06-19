@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SOLVER2D_H_
+#define SOLVER2D_H_
+
 class lexer;
 class fdm2D;
 class ghostcell;
@@ -29,9 +32,6 @@ class cpt2D;
 class matrix2D;
 
 using namespace std;
-
-#ifndef SOLVER2D_H_
-#define SOLVER2D_H_
 
 class solver2D
 {

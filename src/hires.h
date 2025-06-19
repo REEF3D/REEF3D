@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef HIRES_H_
+#define HIRES_H_
+
 #include"convection.h"
 #include"increment.h"
 
 class flux;
 class fluxlim;
-
-#ifndef HIRES_H_
-#define HIRES_H_
 
 using namespace std;
 

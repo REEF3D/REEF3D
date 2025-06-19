@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_INI_H_
+#define FNPF_INI_H_
+
 #include"fnpf.h"
 #include"increment.h"
 #include"fnpf_fsf_update.h"
@@ -32,12 +35,8 @@ class ghostcell;
 class print;
 class ioflow;
 class reini;
-class onephase;
 
 using namespace std;
-
-#ifndef FNPF_INI_H_
-#define FNPF_INI_H_
 
 class fnpf_ini : public fnpf, public increment, public fnpf_fsf_update, public fnpf_bed_update
 {
@@ -45,7 +44,7 @@ public:
 	fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_ini();
     
-    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*, onephase*);
+    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*);
     
     void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
     

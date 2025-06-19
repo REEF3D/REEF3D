@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,6 +19,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+
+#ifndef DRIVER_H_
+#define DRIVER_H_
 
 #include"increment.h"
 
@@ -57,18 +60,19 @@ class data;
 class concentration;
 class ptf;
 class fnpf;
-class onephase;
-class nsewave;
 class nhflow_fsf;
 class nhflow_convection;
+class nhflow_scalar_convection;
 class nhflow_signal_speed;
 class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
 class nhflow_turbulence;
 class nhflow_pressure;
 class nhflow_diffusion;
+class nhflow_forcing;
+class nhflow_potential;
 class sflow;
-class fnpf_vtu3D;
+class fnpf_printer;
 class fnpf_timestep;
 class nhflow_timestep;
 class grid;
@@ -78,16 +82,13 @@ class multiphase;
 class nhflow_momentum;
 class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
-class nhflow_vtu3D;
+class nhflow_printer;
 class particle_base;
 
 #include<iostream>
 #include<fstream>
 #include<iomanip>
 #include<vector>
-
-#ifndef DRIVER_H_
-#define DRIVER_H_
 
 using namespace std;
 
@@ -101,7 +102,6 @@ public:
     void start();
     
     void cfd_driver();
-	void nsewave_driver();
     void nhflow_driver();
     void fnpf_driver();
     void ptf_driver();
@@ -110,7 +110,6 @@ public:
 	void loop_cfd(fdm*);
 	void loop_cfd_df(fdm*);
     void loop_cfd_sf(fdm*);
-    void loop_nsewave(fdm*);
     void loop_nhflow();
     void loop_ptf(fdm*);
     void loop_fnpf();
@@ -125,7 +124,6 @@ public:
     
 	void driver_ini_cfd();
     void driver_ini_nhflow();
-    void driver_ini_nsewave();
     void driver_ini_fnpf();
     void driver_ini_ptf();
     void driver_ini_sflow();
@@ -143,10 +141,8 @@ public:
     void makegrid_sigma(lexer*,ghostcell*);
     void makegrid_sigma_cds(lexer*,ghostcell*);  
     
-	void fill_vel(lexer*,fdm*,ghostcell*);
 	void vec_test(lexer*,fdm*,ghostcell*,field&);
 	void func_test(lexer*,fdm*,ghostcell*,field&);
-    void mgc_test(lexer*,fdm*,ghostcell*);
 	double calc();
     
     void stop(lexer*,fdm*,ghostcell*);
@@ -194,29 +190,30 @@ public:
 	concentration *pconc;
     fnpf *ppfsg;
     ptf *pptf;
-    onephase *poneph;
-    nsewave *pnse;
     nhflow_fsf *pnhfsf;
     sflow *psflow;
-    fnpf_vtu3D *pfprint; 
+    fnpf_printer *pfprint; 
     fnpf_timestep *pftstep;
     grid *pgrid;
     patchBC_interface *pBC;
     nhflow *pnhf;
     nhflow_convection *pnhfconvec;
+    nhflow_scalar_convection *pnhfscalarconvec;
     nhflow_signal_speed *pss;
     nhflow_reconstruct *precon;
     nhflow_pressure *pnhpress;
     nhflow_turbulence *pnhfturb;
-    nhflow_diffusion *pnhfdiff; 
+    nhflow_diffusion *pnhfdiff,*pnhfturbdiff; 
+    nhflow_potential *pnhfpot;
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
-    nhflow_vtu3D *pnhfprint;
+    nhflow_printer *pnhfprint;
+    nhflow_forcing *pnhfdf;
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;
-    particle_base *ppart;
+    turbulence *pturbcfd;
 
 private:
     double starttime, endtime;

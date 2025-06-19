@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,22 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef WAVES_HEADER_H_
+#define WAVES_HEADER_H_
 
 #include"sflow_v.h"
 #include"sflow_f.h"
-#include"nsewave_v.h"
-#include"nsewave_f.h"
-#include"nsewave_geo.h"
-#include"nsewave_RK3.h"
 #include"ptf_v.h"
 #include"fnpf_v.h"
 #include"ptf_RK3.h"
 #include"ptf_RK4.h"
-#include"fnpf_RK2.h"
 #include"fnpf_RK3.h"
 #include"fnpf_RK4.h"
+#include"fnpf_printer.h"
 #include"fnpf_vtu3D.h"
 #include"fnpf_timestep.h"
 
-
-
+#endif

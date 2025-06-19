@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BOUND_CHECK_H_
+#define BOUND_CHECK_H_
 
 #define ILOOP	for(i=0; i<p->knox; ++i)
 #define JLOOP	for(j=0; j<p->knoy; ++j)
@@ -34,7 +36,7 @@ Author: Hans Bihs
 #define JENDCHECK	if(sj<p->knoy)
 #define KSTARTCHECK	if(sk>=0)
 #define KENDCHECK	if(sk<p->knoz)
-#define SOLIDCHECK  if(p->flag4[(si-p->imin)*p->jmax*p->kmax + (sj-p->jmin)*p->kmax + sk-p->kmin]!=OBJ)
+#define SOLIDCHECK  if(p->flag4[(si-p->imin)*p->jmax*p->kmax + (sj-p->jmin)*p->kmax + sk-p->kmin]!=OBJ_FLAG)
 #define BFBCHK ISTARTCHECK IENDCHECK JSTARTCHECK JENDCHECK KSTARTCHECK KENDCHECK SOLIDCHECK
 
-
+#endif

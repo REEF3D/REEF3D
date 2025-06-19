@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -79,7 +79,7 @@ double wave_lib_solitary_1st::wave_w(lexer *p, double x, double y, double z)
 
 	eta = wave_eta(p,x,y);
 	
-	teta = -(wC*(p->simtime) - (x - X0));
+	teta = -(wC*(p->wavetime) - (x - X0));
 	
 	vel = wC * sqrt((3.0*wH)/wdt)*((wdt+z)/wdt)*(eta/wdt) * tanh(sqrt(0.75*(wH/pow(wdt,3.0)))*teta)
 		* (1.0 + (wH/(2.0*wdt))*(1.0 - 7.0*(eta/wdt) - pow((wdt+z)/wdt,2.0)*(1.0-(3.0*eta)/wH)));
@@ -91,7 +91,7 @@ double wave_lib_solitary_1st::wave_eta(lexer *p, double x, double y)
 {
     double eta;
 	
-	teta = -(wC*(p->simtime) - (x - X0));
+	teta = -(wC*(p->wavetime) - (x - X0));
 	
 	eta =  wH/pow(cosh(sqrt(0.75*wH/pow(wdt,3.0)) * teta),2.0);
 	

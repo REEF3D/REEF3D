@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,10 +22,9 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::wedge(lexer *p, fdm *a, ghostcell *pgc, int id)
+void sixdof_obj::wedge(lexer *p, ghostcell *pgc, int id)
 {
 
     double x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4;

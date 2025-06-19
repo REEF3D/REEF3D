@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -93,12 +93,11 @@ double wave_lib_irregular_1st::wave_u(lexer *p, double x, double y, double z)
     vel=0.0;
 	
 	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 	
 	for(n=0;n<p->wN;++n)
-    if(z<=Ai[n]*cos(Ti[n]))
     vel += wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinhkd[n] ) *cos(Ti[n]) * cosbeta[n];
-
+    
     if(p->B130==0)
     vel*=cosgamma;
     
@@ -131,14 +130,14 @@ double wave_lib_irregular_1st::wave_u_space_cos(lexer *p, double x, double y, do
 
 double wave_lib_irregular_1st::wave_u_time_sin(lexer *p, int n)
 {
-	T = sin( -wi[n]*p->simtime - ei[n]);
+	T = sin( -wi[n]*p->wavetime - ei[n]);
 	
     return T;
 }
 
 double wave_lib_irregular_1st::wave_u_time_cos(lexer *p, int n)
 {
-    T = cos( -wi[n]*p->simtime - ei[n]);
+    T = cos( -wi[n]*p->wavetime - ei[n]);
 	
     return T;
 }
@@ -150,11 +149,10 @@ double wave_lib_irregular_1st::wave_v(lexer *p, double x, double y, double z)
     vel=0.0;
 	
 	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 	
 	
 	for(n=0;n<p->wN;++n)
-    if(z<=Ai[n]*cos(Ti[n]))
     vel += wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinhkd[n] ) * cos(Ti[n]) * sinbeta[n];
 	
     if(p->B130==0)
@@ -189,14 +187,14 @@ double wave_lib_irregular_1st::wave_v_space_cos(lexer *p, double x, double y, do
 
 double wave_lib_irregular_1st::wave_v_time_sin(lexer *p, int n)
 {
-	T = sin(- wi[n]*(p->simtime) - ei[n]);
+	T = sin(- wi[n]*(p->wavetime) - ei[n]);
     
     return T;
 }
 
 double wave_lib_irregular_1st::wave_v_time_cos(lexer *p, int n)
 {
-	T = cos(- wi[n]*(p->simtime) - ei[n]);
+	T = cos(- wi[n]*(p->wavetime) - ei[n]);
     
     return T;
 }
@@ -208,10 +206,9 @@ double wave_lib_irregular_1st::wave_w(lexer *p, double x, double y, double z)
     vel=0.0;
 	
 	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 
 	for(n=0;n<p->wN;++n)
-    if(z<=Ai[n]*cos(Ti[n]))
     vel += wi[n]*Ai[n]* (sinh(ki[n]*(wdt+z))/sinhkd[n]) * sin(Ti[n]);
 	
     return vel;
@@ -237,14 +234,14 @@ double wave_lib_irregular_1st::wave_w_space_cos(lexer *p, double x, double y, do
 
 double wave_lib_irregular_1st::wave_w_time_sin(lexer *p, int n)
 {
-	T = sin(- wi[n]*(p->simtime) - ei[n]);
+	T = sin(- wi[n]*(p->wavetime) - ei[n]);
 
     return T;
 }
 
 double wave_lib_irregular_1st::wave_w_time_cos(lexer *p, int n)
 {
-	T = cos(- wi[n]*(p->simtime) - ei[n]);
+	T = cos(- wi[n]*(p->wavetime) - ei[n]);
 
     return T;
 }
@@ -255,7 +252,7 @@ double wave_lib_irregular_1st::wave_eta(lexer *p, double x, double y)
     eta=0.0;
 
 	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 
 	for(n=0;n<p->wN;++n)
     eta +=  Ai[n]*cos(Ti[n]);
@@ -283,14 +280,14 @@ double wave_lib_irregular_1st::wave_eta_space_cos(lexer *p, double x, double y, 
 
 double wave_lib_irregular_1st::wave_eta_time_sin(lexer *p, int n)
 {
-	T = sin(-wi[n]*(p->simtime) - ei[n]);
+	T = sin(-wi[n]*(p->wavetime) - ei[n]);
 	
     return T;
 }
 
 double wave_lib_irregular_1st::wave_eta_time_cos(lexer *p, int n)
 {
-	T = cos(-wi[n]*(p->simtime) - ei[n]);
+	T = cos(-wi[n]*(p->wavetime) - ei[n]);
 	
     return T;
 }
@@ -301,7 +298,7 @@ double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z)
     fi=0.0;
     
     for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->simtime) - ei[n];
+	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 
     for(n=0;n<p->wN;++n)
     fi += ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wdt+z))/sinhkd[n] ) * sin(Ti[n]);
@@ -330,14 +327,14 @@ double wave_lib_irregular_1st::wave_fi_space_cos(lexer *p, double x, double y, d
 
 double wave_lib_irregular_1st::wave_fi_time_sin(lexer *p, int n)
 {
-    T = sin( -wi[n]*p->simtime - ei[n]);
+    T = sin( -wi[n]*p->wavetime - ei[n]);
 	
     return T;
 }
 
 double wave_lib_irregular_1st::wave_fi_time_cos(lexer *p, int n)
 {
-    T = cos( -wi[n]*p->simtime - ei[n]);
+    T = cos( -wi[n]*p->wavetime - ei[n]);
 	
     return T;
 }

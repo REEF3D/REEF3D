@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINIDISC_FSF_H_
+#define REINIDISC_FSF_H_
+
 #include"reinidisc.h"
 #include"ddweno_nug.h"
 #include"vec.h"
@@ -29,19 +32,15 @@ class cpt;
 
 using namespace std;
 
-#ifndef REINIDISC_FSF_H_
-#define REINIDISC_FSF_H_
-
 class reinidisc_fsf : public reinidisc, public ddweno_nug
 {
 public:
 	reinidisc_fsf(lexer* p);
 	virtual ~reinidisc_fsf();
-	virtual void start(lexer*, fdm*, ghostcell*, vec&, vec&,int);
+	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, int);
 	
 private:
-
-	void disc(lexer*, fdm*, ghostcell*, vec&, vec&, int*, int, cpt&);
+	void disc(lexer*, fdm*, ghostcell*, field&, field&);
 	
 	double xmin,xplus,ymin,yplus,zmin,zplus;
 	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,7 +66,6 @@ void ghostcell::gcparax_generic(lexer* p,field& f,int *gcx_count, int ***gcx)
 		if(n==5)
 		cc=-r;
 			
-        //cout<<"Xs: "<<i<<" "<<k<<" "<<f(i+aa,j+bb,k+cc)<<"  "<<n<<endl;
 		send[n][count[n]]=f(i+aa,j+bb,k+cc);
 		++count[n];
 		}

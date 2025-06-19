@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PATCHBC_2D_H_
+#define PATCHBC_2D_H_
+
 #include"patchBC_interface.h"
 
 using namespace std;
-
-#ifndef PATCHBC_2D_H_
-#define PATCHBC_2D_H_
 
 class patchBC_2D : public patchBC_interface, public increment
 {

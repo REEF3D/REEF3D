@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef INTERPOLATION_H_
+#define INTERPOLATION_H_
+
 #include"boundarycheck.h"
 
 class fdm;
@@ -27,9 +30,6 @@ class lexer;
 class field;
 class slice;
 class sliceint;
-
-#ifndef INTERPOLATION_H_
-#define INTERPOLATION_H_
 
 using namespace std;
 
@@ -40,16 +40,24 @@ public:
 	virtual ~interpolation();
     
     double ccipol1(field&,double,double,double);
+    double ccipol1c(field&,double,double,double);
     double ccipol2(field&,double,double,double);
+    double ccipol2c(field&,double,double,double);
     double ccipol3(field&,double,double,double);
+    double ccipol3c(field&,double,double,double);
     double ccipol4(field&,double,double,double);
     double ccipol4phi(fdm*,field&,double,double,double);
     double ccipol4press(fdm*,field&,double,double,double);
+    double ccipol4V(double*,slice&,slice&,double,double,double);
+    double ccipol4c(double*,double,double,double);
+    double ccipol7V(double*,slice&,slice&,double,double,double);
+    double ccipol7P(double*,slice&,slice&,double,double,double);
 	double ccipol1_a(field&,double,double,double);
     double ccipol2_a(field&,double,double,double);
     double ccipol3_a(field&,double,double,double);
-    double ccipol4_a(field&,double,double,double);
+    double ccipol4a(field&,double,double,double);
     double ccipol4_b(field&,double,double,double);
+    double ccipol4_c(field&,double,double,double);
     double ccipol4_kin(field&,double,double,double);
     
     double cctripol4_a(fdm*,field&,double,double,double);
@@ -59,8 +67,8 @@ public:
     double ipol1(field&);
     double ipol2(field&);
     double ipol3(field&);
-    double ipol4(field&);
-    
+    double ipol4(field&);    
+
 	double ipol4ro(fdm*,field&);
     double ipol4phi(fdm*,field&);
     double ipol4topo(fdm*,field&);
@@ -70,9 +78,16 @@ public:
     
     double lint(field&,int&,int&,int&,double,double,double);
     double lint1(field&,int&,int&,int&,double,double,double);
+    double lint1c(field&,int&,int&,int&,double,double,double);
     double lint2(field&,int&,int&,int&,double,double,double);
+    double lint2c(field&,int&,int&,int&,double,double,double);
     double lint3(field&,int&,int&,int&,double,double,double);
+    double lint3c(field&,int&,int&,int&,double,double,double);
     double lint4(field&,int&,int&,int&,double,double,double);
+    double lint4c(field&,int&,int&,int&,double,double,double);
+    double lint4V(double*,int&,int&,int&,double,double,double);
+    double lint7V(double*,int&,int&,int&,double,double,double);
+    double lint4c(double*,int&,int&,int&,double,double,double);
     double lint4phi(fdm*,field&,int&,int&,int&,double,double,double);
     double lint_a(field&,int&,int&,int&,double,double,double);
     double lint4b(field&,int&,int&,int&,double,double,double);
@@ -82,6 +97,8 @@ public:
     double lint2_2D(field&,int&,int&,int&,double,double,double);
     double lint3_2D(field&,int&,int&,int&,double,double,double);
     double lint4_2D(field&,int&,int&,int&,double,double,double);
+    double lint4V_2D(double*,int&,int&,int&,double,double,double);
+    double lint7V_2D(double*,int&,int&,int&,double,double,double);
     double lint_a_2D(field&,int&,int&,int&,double,double,double);
     double lint4phi_2D(fdm*,field&,int&,int&,int&,double,double,double);
     
@@ -99,6 +116,8 @@ public:
     double sl_ipol4eta(int*,slice&,slice&);
     double sl_ipol4eta_wd(int*,slice&,slice&);
     double sl_ipolint(sliceint&);
+    
+    double nhf_ipol4eta(int*,slice&,slice&);
     
     double ccslipol1(slice&,double,double);
     double ccslipol2(slice&,double,double);

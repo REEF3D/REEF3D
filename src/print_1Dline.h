@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRINT_1DLINE_H_
+#define PRINT_1DLINE_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -30,9 +33,6 @@ class ghostcell;
 class field;
 
 using namespace std;
-
-#ifndef PRINT_1DLINE_H_
-#define PRINT_1DLINE_H_
 
 class print_1Dline : public boundarycheck
 {

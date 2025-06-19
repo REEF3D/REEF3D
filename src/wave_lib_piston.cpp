@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ wave_lib_piston::wave_lib_piston(lexer *p, ghostcell *pgc) : wave_lib_parameters
 { 
     if(p->mpirank==0)
     {
-    cout<<"Wave_Lib: piston wavemaker theory";
+    cout<<"Wave_Lib: piston wavemaker theory"<<endl;
     }
 	
     timecount_old=0;
@@ -69,14 +69,13 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
     
-
-    if(p->simtime<ts || p->simtime>te)
+    if(p->wavetime<ts || p->wavetime>te)
 	return 0.0;
 	
-    if((p->simtime>kinematics[timecount][0]))
+    if((p->wavetime>kinematics[timecount][0]))
     timecount_old=timecount;
     
-	while(p->simtime>kinematics[timecount][0])
+	while(p->wavetime>kinematics[timecount][0])
 	++timecount;
 	
 	vel = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
@@ -103,10 +102,12 @@ double wave_lib_piston::wave_w(lexer *p, double x, double y, double z)
 
 double wave_lib_piston::wave_eta(lexer *p, double x, double y)
 {
-    double eta;
-
-    eta =  0.0;
-
+    double eta=0.0;
+    
+    double depth = p->wd - p->bed[IJ];
+    
+    eta =  (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]) * sqrt(depth/9.81);    
+    
     return eta;
 }
 

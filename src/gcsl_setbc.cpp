@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -118,9 +118,7 @@ void ghostcell::gcsl_setbcio(lexer *p)
     ++p->gcslout_count;
     }  
     
-    //cout<<p->mpirank<<" "<<p->gcslin_count<<" "<<p->gcslout_count<<endl;
-    
-    
+
     p->Iarray(p->gcslin,p->gcslin_count,6);
     p->Iarray(p->gcslout,p->gcslout_count,6);
     
@@ -194,4 +192,29 @@ void ghostcell::gcsl_setbcio(lexer *p)
         }
     } 
     p->gcslawa2_count=count2;
+    
+    
+    // IOSL
+    SLICEBASELOOP
+    p->IOSL[IJ]=0;
+    
+    GCSL4LOOP
+    {
+    i = p->gcbsl4[n][0];
+    j = p->gcbsl4[n][1];
+    cs = p->gcbsl4[n][3];
+    bc = p->gcbsl4[n][4];
+    
+        if(bc==1 || bc==6)
+        {
+        if(cs==1)
+        p->IOSL[Im1J]=1;
+        }
+
+        if(bc==2 || bc==7 || bc==8)
+        {
+        if(cs==4)
+        p->IOSL[Ip1J]=2;
+        }
+    }  
 }

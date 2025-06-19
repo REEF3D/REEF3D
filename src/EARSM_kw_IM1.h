@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,15 +19,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+#ifndef EARSM_KW_IM1_H_
+#define EARSM_KW_IM1_H_
+
 #include"komega_IM1.h"
 #include"EARSM.h"
 
 class multiphase;
 
 using namespace std;
-
-#ifndef EARSM_KW_IM1_H_
-#define EARSM_KW_IM1_H_
 
 
 class EARSM_kw_IM1 : public komega_IM1, public EARSM

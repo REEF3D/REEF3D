@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -55,8 +55,8 @@ void driver::loop_cfd_sf(fdm* a)
             cout<<"------------------------------------"<<endl;
             cout<<p->count<<endl;
 
-            cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
-            cout<<"timestep: "<<p->dt<<endl;
+            cout<<"simtime: "<<p->simtime<<endl;
+            cout<<setprecision(5)<<"timestep: "<<p->dt<<endl;
             cout<<"sftimestep: "<<p->sfdt<<" sfmax: "<<p->sfmax<<endl;
             
 
@@ -74,13 +74,10 @@ void driver::loop_cfd_sf(fdm* a)
 
         pflow->wavegen_precalc(p,pgc);
 
-        fill_vel(p,a,pgc);
-        
         // Benchmark cases
         pbench->start(p,a,pgc,pconvec);
 
         pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
-        poneph->update(p,a,pgc,pflow);
 
         // Turbulence computation
         pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
@@ -103,9 +100,6 @@ void driver::loop_cfd_sf(fdm* a)
         pmom_sf->starti(p,a,pgc,p6dof,pvrans,pnet,pfsi);
 
         // Save previous timestep
-        pmom_sf->utimesave(p,a,pgc);
-        pmom_sf->vtimesave(p,a,pgc);
-        pmom_sf->wtimesave(p,a,pgc);
         pflow->veltimesave(p,a,pgc,pvrans);
         pturb->ktimesave(p,a,pgc);
         pturb->etimesave(p,a,pgc);
@@ -133,7 +127,7 @@ void driver::loop_cfd_sf(fdm* a)
             if( (p->count%p->P12==0))
             {
             if(p->B90>0)
-            cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
+            cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
             cout<<"sftime: "<<setprecision(3)<<p->sftime<<endl;
             cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
@@ -151,7 +145,7 @@ void driver::loop_cfd_sf(fdm* a)
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->field4time=0.0;
     p->sftime=0.0;
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
+Authors: Hans Bihs, Tobias Martin, Ahmet Soydan
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -27,40 +27,38 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 double ghostcell::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_sf,dirac;
+    
+    //cout<<"p->topoforcing: "<<p->topoforcing<<" p->toporead: "<<p->toporead<<endl;
+    
+    if (p->j_dir==0)
+    psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
 	
     if (p->j_dir==1)
     psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-    if (p->j_dir==0)
-    psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-
-
     // Construct solid heaviside function
 
-    if(p->toporead>0 && p->solidread>0)
+    if(p->topoforcing>0 && p->solidread>0)
     phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc)), 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc))); 
     
-    if(p->toporead>0 && p->solidread==0)
+    if(p->topoforcing>0 && p->solidread==0)
     phival_sf = 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc)); 
     
-    if(p->toporead==0 && p->solidread>0)
+    if(p->topoforcing==0 && p->solidread>0)
     phival_sf = 0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc));
     
 	
     if (-phival_sf > psi)
-    {
-        H = 1.0;
-    }
-    else if (-phival_sf < -psi)
-    {
-        H = 0.0;
-    }
-    else
-    {
-        H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
-    }
+    H = 1.0;
     
-    if(p->toporead==0 && p->solidread==0)
+    else if (-phival_sf < -psi)
+    H = 0.0;
+
+    else
+    H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
+
+    
+    if(p->topoforcing==0 && p->solidread==0)
     H = 0.0;
     
     return H;
@@ -72,7 +70,7 @@ double ghostcell::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 	
     psi = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-    if (p->knoy == 1)
+    if (p->knoy==1)
     {
         psi = 0.5*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
     }

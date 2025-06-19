@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef SIXDOF_VOID_H_
+#define SIXDOF_VOID_H_
+
 #include"6DOF.h"
 #include<vector>
 #include<fstream>
@@ -28,14 +31,12 @@ Author: Tobias Martin
 
 class lexer;
 class fdm;
+class fdm_nhf;
 class ghostcell;
 class mooring;
 class net;
 
 using namespace std;
-
-#ifndef SIXDOF_VOID_H_
-#define SIXDOF_VOID_H_
 
 class sixdof_void : public sixdof
 {
@@ -43,20 +44,24 @@ public:
 	sixdof_void(lexer*,ghostcell*);
 	virtual ~sixdof_void();
     
-    virtual void start_twoway(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
-    virtual void start_oneway(lexer*,ghostcell*);
+    virtual void start_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
+    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool);
+    
+    virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
     
 	virtual void ini(lexer*,ghostcell*);
     virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
+    virtual void initialize(lexer*, fdm2D*, ghostcell*, vector<net*>&);
+    virtual void initialize(lexer*, fdm_nhf*, ghostcell*, vector<net*>&);
 
     
     virtual void isource(lexer*,fdm*,ghostcell*);
     virtual void jsource(lexer*,fdm*,ghostcell*);
     virtual void ksource(lexer*,fdm*,ghostcell*);
     
-    virtual void isource(lexer*,fdm_nhf*,ghostcell*);
-    virtual void jsource(lexer*,fdm_nhf*,ghostcell*);
-    virtual void ksource(lexer*,fdm_nhf*,ghostcell*);
+    virtual void isource(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void jsource(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void ksource(lexer*,fdm_nhf*,ghostcell*,slice&);
     
     virtual void isource2D(lexer*,fdm2D*,ghostcell*);
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);

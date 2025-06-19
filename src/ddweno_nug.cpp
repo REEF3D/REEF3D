@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,7 +36,7 @@ ddweno_nug::~ddweno_nug()
 {
 }
 
-double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
+double ddweno_nug::ddwenox(fdm* a, field &f, double uw)
 {
     DX = p->DXP;
     DY = p->DYP;
@@ -49,7 +49,7 @@ double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
 
 	if(uw>0.0)
 	{
-	iqmin(b,C);
+	iqmin(f);
 
 	is_min_x();
 	weight_min_x();
@@ -64,7 +64,7 @@ double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
 
 	if(uw<0.0)
 	{
-	iqmax(b,C);
+	iqmax(f);
 	is_max_x();
 	weight_max_x();
     
@@ -80,7 +80,7 @@ double ddweno_nug::ddwenox(fdm* a, vec& b, double uw, int ipol, cpt &C)
 	return grad;
 }
 
-double ddweno_nug::ddwenoy(fdm* a, vec& b, double uw, int ipol, cpt &C)
+double ddweno_nug::ddwenoy(fdm* a, field &f, double uw)
 {
     DX = p->DXP;
     DY = p->DYP;
@@ -91,7 +91,7 @@ double ddweno_nug::ddwenoy(fdm* a, vec& b, double uw, int ipol, cpt &C)
 
 	if(uw>0.0)
 	{
-	jqmin(b,C);
+	jqmin(f);
 	is_min_y();
 	weight_min_y();
 	
@@ -104,7 +104,7 @@ double ddweno_nug::ddwenoy(fdm* a, vec& b, double uw, int ipol, cpt &C)
 
 	if(uw<0.0)
 	{
-	jqmax(b,C);
+	jqmax(f);
 	is_max_y();
 	weight_max_y();
 	
@@ -118,7 +118,7 @@ double ddweno_nug::ddwenoy(fdm* a, vec& b, double uw, int ipol, cpt &C)
 	return grad;
 }
 
-double ddweno_nug::ddwenoz(fdm* a, vec& b, double uw, int ipol, cpt &C)
+double ddweno_nug::ddwenoz(fdm* a, field &f, double uw)
 {
     DX = p->DXP;
     DY = p->DYP;
@@ -129,7 +129,7 @@ double ddweno_nug::ddwenoz(fdm* a, vec& b, double uw, int ipol, cpt &C)
 
 	if(uw>0.0)
 	{
-	kqmin(b,C);
+	kqmin(f);
 	is_min_z();
 	weight_min_z();
 
@@ -143,7 +143,7 @@ double ddweno_nug::ddwenoz(fdm* a, vec& b, double uw, int ipol, cpt &C)
 
 	if(uw<0.0)
 	{
-	kqmax(b,C);
+	kqmax(f);
 	is_max_z();
 	weight_max_z();
     
@@ -157,57 +157,57 @@ double ddweno_nug::ddwenoz(fdm* a, vec& b, double uw, int ipol, cpt &C)
 	return grad;
 }
     
-void ddweno_nug::iqmin(vec& f, cpt &C)
+void ddweno_nug::iqmin(field &f)
 {
-	q1 = (f.V[Im2_J_K] - f.V[Im3_J_K])/DX[IM3];
-	q2 = (f.V[Im1_J_K] - f.V[Im2_J_K])/DX[IM2];
-	q3 = (f.V[I_J_K]   - f.V[Im1_J_K])/DX[IM1];
-	q4 = (f.V[Ip1_J_K] - f.V[I_J_K]  )/DX[IP];
-	q5 = (f.V[Ip2_J_K] - f.V[Ip1_J_K])/DX[IP1];
+	q1 = (f.V[Im2JK] - f.V[Im3JK])/DX[IM3];
+	q2 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
+	q3 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
+	q4 = (f.V[Ip1JK] - f.V[IJK]  )/DX[IP];
+	q5 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
 
 }
 
-void ddweno_nug::jqmin(vec& f, cpt &C)
+void ddweno_nug::jqmin(field &f)
 {
-	q1 = (f.V[I_Jm2_K] - f.V[I_Jm3_K])/DY[JM3];
-	q2 = (f.V[I_Jm1_K] - f.V[I_Jm2_K])/DY[JM2];
-	q3 = (f.V[I_J_K]   - f.V[I_Jm1_K])/DY[JM1];
-	q4 = (f.V[I_Jp1_K] - f.V[I_J_K]  )/DY[JP];
-	q5 = (f.V[I_Jp2_K] - f.V[I_Jp1_K])/DY[JP1];
+	q1 = (f.V[IJm2K] - f.V[IJm3K])/DY[JM3];
+	q2 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
+	q3 = (f.V[IJK]   - f.V[IJm1K])/DY[JM1];
+	q4 = (f.V[IJp1K] - f.V[IJK]  )/DY[JP];
+	q5 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
 }
 
-void ddweno_nug::kqmin(vec& f, cpt &C)
+void ddweno_nug::kqmin(field &f)
 {
-	q1 = (f.V[I_J_Km2] - f.V[I_J_Km3])/DZ[KM3];
-	q2 = (f.V[I_J_Km1] - f.V[I_J_Km2])/DZ[KM2];
-	q3 = (f.V[I_J_K]   - f.V[I_J_Km1])/DZ[KM1];
-	q4 = (f.V[I_J_Kp1] - f.V[I_J_K]  )/DZ[KP];
-	q5 = (f.V[I_J_Kp2] - f.V[I_J_Kp1])/DZ[KP1];
+	q1 = (f.V[IJKm2] - f.V[IJKm3])/DZ[KM3];
+	q2 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
+	q3 = (f.V[IJK]   - f.V[IJKm1])/DZ[KM1];
+	q4 = (f.V[IJKp1] - f.V[IJK]  )/DZ[KP];
+	q5 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
 }
 
-void ddweno_nug::iqmax(vec& f, cpt &C)
+void ddweno_nug::iqmax(field &f)
 {
-	q1 = (f.V[Im1_J_K] - f.V[Im2_J_K])/DX[IM2];
-    q2 = (f.V[I_J_K]   - f.V[Im1_J_K])/DX[IM1];
-    q3 = (f.V[Ip1_J_K] - f.V[I_J_K]  )/DX[IP];
-    q4 = (f.V[Ip2_J_K] - f.V[Ip1_J_K])/DX[IP1];
-    q5 = (f.V[Ip3_J_K] - f.V[Ip2_J_K])/DX[IP2];
+	q1 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
+    q2 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
+    q3 = (f.V[Ip1JK] - f.V[IJK]  )/DX[IP];
+    q4 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
+    q5 = (f.V[Ip3JK] - f.V[Ip2JK])/DX[IP2];
 }
 
-void ddweno_nug::jqmax(vec& f, cpt &C)
+void ddweno_nug::jqmax(field &f)
 {
-	q1 = (f.V[I_Jm1_K] - f.V[I_Jm2_K])/DY[JM2];
-    q2 = (f.V[I_J_K]   - f.V[I_Jm1_K])/DY[JM1];
-    q3 = (f.V[I_Jp1_K] - f.V[I_J_K]  )/DY[JP];
-    q4 = (f.V[I_Jp2_K] - f.V[I_Jp1_K])/DY[JP1];
-    q5 = (f.V[I_Jp3_K] - f.V[I_Jp2_K])/DY[JP2];
+	q1 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
+    q2 = (f.V[IJK]   - f.V[IJm1K])/DY[JM1];
+    q3 = (f.V[IJp1K] - f.V[IJK]  )/DY[JP];
+    q4 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
+    q5 = (f.V[IJp3K] - f.V[IJp2K])/DY[JP2];
 }
 
-void ddweno_nug::kqmax(vec& f, cpt &C)
+void ddweno_nug::kqmax(field &f)
 {
-	q1 = (f.V[I_J_Km1] - f.V[I_J_Km2])/DZ[KM2];
-    q2 = (f.V[I_J_K]   - f.V[I_J_Km1])/DZ[KM1];
-    q3 = (f.V[I_J_Kp1] - f.V[I_J_K]  )/DZ[KP];
-    q4 = (f.V[I_J_Kp2] - f.V[I_J_Kp1])/DZ[KP1];
-    q5 = (f.V[I_J_Kp3] - f.V[I_J_Kp2])/DZ[KP2];
+	q1 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
+    q2 = (f.V[IJK]   - f.V[IJKm1])/DZ[KM1];
+    q3 = (f.V[IJKp1] - f.V[IJK]  )/DZ[KP];
+    q4 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
+    q5 = (f.V[IJKp3] - f.V[IJKp2])/DZ[KP2];
 }

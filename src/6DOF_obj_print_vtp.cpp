@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,10 +28,10 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 {
     // print normals
-    //print_normals_vtp(p,a,pgc);
+    //print_normals_vtp(p,pgc);
     
     
 	int num=0;
@@ -64,26 +64,16 @@ void sixdof_obj::print_vtp(lexer *p, fdm *a, ghostcell *pgc)
         
         char path[300];
         
-        if(p->P14==1)
-        {
-            if(num<10)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-00000%i.vtp",n6DOF,num);
+        if(p->A10==2)
+        sprintf(path,"./REEF3D_SFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
+        
+        if(p->A10==5)
+        sprintf(path,"./REEF3D_NHFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
+        
+        if(p->A10==6)
+        sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
+        
 
-            if(num<100&&num>9)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-0000%i.vtp",n6DOF,num);
-
-            if(num<1000&&num>99)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-000%i.vtp",n6DOF,num);
-
-            if(num<10000&&num>999)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-00%i.vtp",n6DOF,num);
-
-            if(num<100000&&num>9999)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-0%i.vtp",n6DOF,num);
-
-            if(num>99999)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%i.vtp",n6DOF,num);
-        }
 
         ofstream result;
         result.open(path, ios::binary);

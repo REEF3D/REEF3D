@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
+#define NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
+
 #include"increment.h"
 #include<iostream>
 #include<fstream>
@@ -29,13 +32,9 @@ class fdm_nhf;
 class ghostcell;
 class field;
 class ioflow;
-class wave_theory;
 class slice;
 
 using namespace std;
-
-#ifndef NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
-#define NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
 
 class nhflow_print_runup_max_gage_x : public increment
 {
@@ -53,7 +52,7 @@ private:
     double *xloc,**xloc_all;
     double *yloc;
     double *zloc,**zloc_all;
-    int *jloc,*flag,**flag_all;
+    int *jloc;
     int n,q;
     ofstream wsfout;
     char name[250];
@@ -61,9 +60,6 @@ private:
     double xcoor;
     double T;
 	
-	wave_theory *pwave;
-
-    int maxknox,sumknox;
 
 };
 

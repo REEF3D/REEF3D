@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include <math.h>
 
-void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter)
+void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;
@@ -46,7 +46,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
     // Set new time
-    curr_time += alpha[iter]*p->dt; 
+    curr_time = p->simtime;
 
 
     for (int n = 0; n < tricount; ++n)
@@ -121,12 +121,15 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
 			nz /= norm > 1.0e-20 ? norm : 1.0e20;
             
+            if(p->j_dir==0)
+            ny=0.0;
+            
             // Add normal stress contributions
             xlocp = xc + p->X42*nx*p->DXP[IP];
             ylocp = yc + p->X42*ny*p->DYP[JP];
             zlocp = zc + p->X42*nz*p->DZP[KP];
 
-            p_int = p->ccipol4_a(a->press,xlocp,ylocp,zlocp) - p->pressgage;
+            p_int = p->ccipol4a(a->press,xlocp,ylocp,zlocp) - p->pressgage;
             
             Fp_x = -nx*p_int*A_triang;
             Fp_y = -ny*p_int*A_triang;
@@ -154,9 +157,9 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             ylocvel = yc + p->X43*ny*p->DYP[JP];
             zlocvel = zc + p->X43*nz*p->DZP[KP];
             
-             nu_int = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
-			enu_int = 0.0; //p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
-			rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
+             nu_int = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
+			enu_int = 0.0; //p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
+			rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
 	        
              i = p->posc_i(xlocvel);
 			j = p->posc_j(ylocvel);
@@ -186,9 +189,9 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             ylocvel = yc + p->X43*ny*p->DYP[JP];
             zlocvel = zc + p->X43*nz*p->DZP[KP];
             
-            nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
-            enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
-            rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
+            nu_int  = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
             
             uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
             vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
@@ -239,9 +242,9 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             ylocvel = yc + p->X43*ny*p->DYP[JP];
             zlocvel = zc + p->X43*nz*p->DZP[KP];
             
-            nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
-            enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
-            rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
+            nu_int  = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
 	        
             i = p->posc_i(xlocvel);
             j = p->posc_j(ylocvel);
@@ -288,9 +291,9 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             ylocvel = yc + p->X43*ny*p->DYP[JP];
             zlocvel = zc + p->X43*nz*p->DZP[KP];
             
-            nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
-            enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
-            rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
+            nu_int  = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
             
             uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
             vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
@@ -303,9 +306,9 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             double delta = sqrt(pow(xc-xlocvel,2.0) + pow(yc-ylocvel,2.0) + pow(zc-zlocvel,2.0));
             
                 
-            nu_int  = p->ccipol4_a(a->visc,xlocvel,ylocvel,zlocvel);
-            enu_int = p->ccipol4_a(a->eddyv,xlocvel,ylocvel,zlocvel);
-            rho_int = p->ccipol4_a(a->ro,xlocvel,ylocvel,zlocvel);
+            nu_int  = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
 
 
             u_abs = sqrt(uval*uval + vval*vval + wval*wval);
@@ -331,14 +334,12 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
 
 
             // Total forces
-            
             Fx = Fp_x + Fv_x;
             Fy = Fp_y + Fv_y;
             Fz = Fp_z + Fv_z;
             
 
 			// Add forces to global forces
-			
 			Xe += Fx;
 			Ye += Fy;
 			Ze += Fz;
@@ -389,22 +390,14 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
 
     // Print results
 	
-    if (p->mpirank == 0) 
+    if (p->mpirank==0 && finalize==1) 
     {
-        ofstream print;
-        char str[1000];
-       
-        if(p->P14==0)
-        sprintf(str,"REEF3D_6DOF_forces_%i.dat",n6DOF);
-        if(p->P14==1)
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 
-        print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
+        printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
-        print.close();
+
     }
 
-	if (p->mpirank == 0)
+	if (p->mpirank==0)
 	cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
 }

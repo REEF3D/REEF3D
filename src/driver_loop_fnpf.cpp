@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -41,9 +41,10 @@ Author: Hans Bihs
 
 void driver::loop_fnpf()
 {
+    if(p->mpirank==0)
+    cout<<"starting mainloop.FNPF"<<endl;
    
 //-----------MAINLOOP FNPF----------------------------
-
     
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{
@@ -55,7 +56,7 @@ void driver::loop_fnpf()
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
+        cout<<"simtime: "<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
 		if(p->B90>0 && p->B92<=11)
@@ -65,7 +66,7 @@ void driver::loop_fnpf()
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
-        pflow->wavegen_precalc(p,pgc);
+        pflow->wavegen_precalc_fnpf(p,c,pgc);
         
         
         SLICELOOP4
@@ -73,7 +74,7 @@ void driver::loop_fnpf()
 
 
         // PFLOW
-		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini,poneph);
+		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini);
         
         // printer
         pfprint->start(p,c,pgc,pflow);
@@ -99,7 +100,7 @@ void driver::loop_fnpf()
 		if(p->B90>0)
         if(p->count%p->P12==0)
         {
-		cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
+		cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
 		
 		cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
@@ -112,7 +113,7 @@ void driver::loop_fnpf()
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
     
     stop(p,a,pgc);
 	}

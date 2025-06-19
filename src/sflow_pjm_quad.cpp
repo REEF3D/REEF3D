@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_pjm_quad.h"
+
+#include"sflow_pjm_quad.h"
 #include"lexer.h"
 #include"fdm2D.h" 
 #include"ghostcell.h"
@@ -31,28 +32,13 @@ Author: Hans Bihs
 #include"sflow_gradient_weno.h"
 #include"patchBC_interface.h"
 
-#define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
-#define HXIMJ (fabs(b->hx(i-1,j))>1.0e-20?b->hx(i-1,j):1.0e20)
-
-#define HXP (0.5*(HXIJ + HXIMJ))
-#define HYP (0.5*(HYIJ + HYIJM))
-
-#define HYIJ (fabs(b->hy(i,j))>1.0e-20?b->hy(i,j):1.0e20)
-#define HYIJM (fabs(b->hy(i,j-1))>1.0e-20?b->hy(i,j-1):1.0e20)
-
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
 #define HPIP (fabs(b->hp(i+1,j))>1.0e-20?b->hp(i+1,j):1.0e20)
 #define HPJP (fabs(b->hp(i,j+1))>1.0e-20?b->hp(i,j+1):1.0e20)
 
-#define HPIM (fabs(b->hp(i-1,j))>1.0e-20?b->hp(i-1,j):1.0e20)
-#define HPJM (fabs(b->hp(i,j-1))>1.0e-20?b->hp(i,j-1):1.0e20)
-
 #define HPXP (0.5*(HP + HPIP))
 #define HPYP (0.5*(HP + HPJP))
-
-#define HPXM (0.5*(HP + HPIM))
-#define HPYM (0.5*(HP + HPJM))
  
 sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b, patchBC_interface *ppBC) : press_n(p),phi4(p), Ps(p), Qs(p)
 {
@@ -68,15 +54,7 @@ sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b, patchBC_interface *ppBC) : pr
     
     pgrad = new sflow_gradient_weno(p);
     
-    
-    
-    wd_criterion=0.00005;
-    
-    if(p->A244==1)
-    wd_criterion=p->A244_val;
-    
-    if(p->A245==1)
-    wd_criterion=p->A245_val*p->DXM;
+    wd_criterion=p->A244;
 	
 }
 
@@ -128,10 +106,12 @@ void sflow_pjm_quad::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, 
 void sflow_pjm_quad::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha)
 {	
 	SLICELOOP1
+    WETDRY1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)));
           
     SLICELOOP1
+    WETDRY1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) += alpha*p->dt*(0.75*(b->press(i+1,j)+b->press(i,j))*((b->depth(i+1,j)-b->depth(i,j))
                             /(p->DXM*HPXP*p->W1))
@@ -142,10 +122,12 @@ void sflow_pjm_quad::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alph
 void sflow_pjm_quad::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha)
 {	
 	SLICELOOP2
+    WETDRY2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)));
                 
     SLICELOOP2
+    WETDRY2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) += alpha*p->dt*(0.75*(b->press(i,j+1)+b->press(i,j))*((b->depth(i,j+1)-b->depth(i,j))
                             /(p->DXM*HPYP*p->W1))
@@ -156,6 +138,7 @@ void sflow_pjm_quad::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alph
 void sflow_pjm_quad::wcorr(lexer* p, fdm2D* b, double alpha, slice &P, slice &Q, slice &ws)
 {	    
     SLICELOOP4
+    WETDRY
     if(b->breaking(i,j)==0)
 	 ws(i,j) += p->dt*alpha*(1.5*b->press(i,j)/(HP*p->W1)  +  0.25*phi4(i,j));
 }
@@ -218,13 +201,27 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
     n=0;
 	SLICELOOP4
 	{
-		if(p->flagslice4[Im1J]<0)
+        // Inflow
+		if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==1)
+		{
+		b->rhsvec.V[n] -= 0.0;
+		b->M.s[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==0)
 		{
 		b->rhsvec.V[n] -= b->M.s[n]*b->press(i-1,j);
 		b->M.s[n] = 0.0;
 		}
 		
-		if(p->flagslice4[Ip1J]<0)
+         // Outflow
+		if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==1)
+		{
+		b->rhsvec.V[n] -= 0.0;
+		b->M.n[n] = 0.0;
+		}
+        
+        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==0)
 		{
 		b->rhsvec.V[n] -= b->M.n[n]*b->press(i+1,j);
 		b->M.n[n] = 0.0;
@@ -248,7 +245,7 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, double alpha)
     n=0;
     SLICELOOP4
 	{
-        if(p->wet[IJ]==0 || b->breaking(i,j)==1)
+        if(p->wet[IJ]==0|| p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 || b->breaking(i,j)==1)
         {
         b->M.p[n]  = 1.0;
 
@@ -271,7 +268,7 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
         
-        if(p->B77==2)
+        if(p->B77==10)
         for(n=0;n<p->gcslout_count;n++)
         {
         i=p->gcslout[n][0]-1;
@@ -363,5 +360,7 @@ void sflow_pjm_quad::quad_prep(lexer *p,fdm2D *b,ghostcell *pgc,slice &P, slice 
 }
 
 void sflow_pjm_quad::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
-{	    
+{
+    SLICELOOP4
+    b->L(i,j)=0.0;	    
 }

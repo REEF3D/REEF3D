@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,10 +36,10 @@ Author: Hans Bihs
 
 poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc) 
 {
-    if((p->F80==0||p->A10==55) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==55) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
 	pd = new density_df(p);
     
 	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
@@ -59,9 +59,6 @@ poisson_f::poisson_f(lexer *p, heat *&pheat, concentration *&pconc)
     
     if(p->F300>=1)
     pd = new density_rheo(p);
-    
-    if(p->G3==1)  
-	pd = new density_sf(p);
 }
 
 poisson_f::~poisson_f()
@@ -70,6 +67,23 @@ poisson_f::~poisson_f()
 
 void poisson_f::start(lexer* p, fdm *a, field &press)
 {	
+    n=0;
+    BASELOOP
+    {
+    a->M.p[n]  =  1.0;
+
+        a->M.n[n] = 0.0;
+        a->M.s[n] = 0.0;
+
+        a->M.w[n] = 0.0;
+        a->M.e[n] = 0.0;
+        
+        a->M.t[n] = 0.0;
+        a->M.b[n] = 0.0;
+        
+    ++n;
+    }
+    
 	n=0;
     LOOP
 	{

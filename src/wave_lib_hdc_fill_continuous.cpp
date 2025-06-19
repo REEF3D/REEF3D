@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,7 +25,6 @@ Author: Hans Bihs
 
 void wave_lib_hdc::fill_result_continuous(lexer *p, ghostcell *pgc)
 {
-
     // fill
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)

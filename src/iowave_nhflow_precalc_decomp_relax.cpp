@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -57,13 +57,10 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
             if(dg<1.0e20)
             {
                 eta(i,j) = 0.0;
-                etaval[count] = 0.0;
                 
                 for(qn=0;qn<wave_comp;++qn)
-                {
                 eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-                etaval[count] = eta(i,j);
-                }
+
             ++count;
             }
 		}

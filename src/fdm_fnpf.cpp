@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -46,8 +46,6 @@ fdm_fnpf::fdm_fnpf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
     p->Darray(W,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
-
-    C4.allocate(p);
 }
 
 

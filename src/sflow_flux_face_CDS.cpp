@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -76,7 +76,6 @@ void sflow_flux_face_CDS::v_flux(int ipol, slice& vvel, double &vflux1, double &
 	vflux2 = 0.5*(vvel(i,j)+vvel(i,j+1));
 	pip=0;
 	}
-
 
 	if(ipol==4)
 	{

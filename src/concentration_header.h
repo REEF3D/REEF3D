@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,8 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef CONCENTRATION_HEADER_H_
+#define CONCENTRATION_HEADER_H_
+
 #include"concentration_AB.h"
 #include"concentration_RK2.h"
 #include"concentration_RK3.h"
 #include"concentration_void.h"
 
+#endif

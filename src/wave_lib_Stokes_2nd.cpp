@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,7 +66,7 @@ double wave_lib_Stokes_2nd::wave_w(lexer *p, double x, double y, double z)
 {
     double vel;
 	
-	teta = wk*x-ww*(p->simtime) + pshift;
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*( sinh(wk*(wdt+z))/sinh(wk*(wdt)) ) * sin(teta)
          + 0.75*wk*ww*wa*wa*( sinh(2.0*wk*(wdt+z))/pow(sinh(wk*(wdt)),4.0) ) * sin(2.0*teta);
@@ -78,7 +78,7 @@ double wave_lib_Stokes_2nd::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
 	
-	teta = wk*x-ww*(p->simtime) + pshift;
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*( cosh(wk*(wdt+z))/sinh(wk*(wdt)) ) * cos(teta)
          + 0.75*wk*ww*wa*wa*( cosh(2.0*wk*(wdt+z))/pow(sinh(wk*(wdt)),4.0) ) * cos(2.0*teta);
@@ -90,7 +90,7 @@ double wave_lib_Stokes_2nd::wave_eta(lexer *p, double x, double y)
 {
     double eta;
 	
-	teta = wk*x-ww*(p->simtime) + pshift;
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     eta =  wa*cos(teta) + 0.25*wk*wa*wa*(cosh(wk*wdt)/pow(sinh(wk*wdt),3.0)) * (2.0 + cosh(2.0*wk*wdt)) * cos(2.0*teta);
 
@@ -101,7 +101,7 @@ double wave_lib_Stokes_2nd::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
     
-	teta = wk*x-ww*(p->simtime) + pshift;
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
     fi = ((ww*wa)/wk)*( cosh(wk*(wdt+z))/sinh(wk*(wdt)) ) * sin(teta)
     

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"bedconc.h"
 #include"topo_relax.h"
 #include"sediment_fou.h"
 #include"sediment_cds.h"
@@ -34,7 +33,7 @@ Author: Hans Bihs
 #include"sflow_bicgstab.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),dqx0(p),dqy0(p), xvec(p),rhsvec(p),M(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -56,8 +55,6 @@ sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),dqx0(p),dqy0(p)
     
     Ls = p->S20;
     
-    
-    pcb = new bedconc(p);
     
     prelax = new topo_relax(p);
     
@@ -85,27 +82,36 @@ sediment_exner::~sediment_exner()
 
 void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
-    non_equillibrium_solve(p,pgc,s); 
-   
+    // eq.
+    if(p->S17==0)
     SLICELOOP4
-    {
-		topovel(p,pgc,s,vx,vy,vz);
-        dqx0(i,j) = vx;
-        dqy0(i,j) = vy;
-		s->vz(i,j) = vz;
-	}
+    s->qb(i,j)=s->qbe(i,j);
     
-	pgc->gcsl_start4(p,s->vz,1);
+    // non-eq.
+    if(p->S17==1)
+    non_equillibrium_solve(p,pgc,s); 
+    
+    pgc->gcsl_start4(p,s->qb,1);
+    
+    
+    // Exner
+    if(p->S31==1)
+    topovel1(p,pgc,s);
+    
+    if(p->S31==2)
+    topovel2(p,pgc,s);
+
 	
+    // Bedch
     timestep(p,pgc,s);
-    
-    
 	
 	SLICELOOP4
-    {
-    if(s->active(i,j)==1 || s->vz(i,j)>0.0)
+    WETDRY
     s->bedzh(i,j) += p->dtsed*s->vz(i,j);
-    }
+
+    
+    SLICELOOP4
+    s->dh(i,j)=s->vz(i,j);
 
 	pgc->gcsl_start4(p,s->bedzh,1);
 }

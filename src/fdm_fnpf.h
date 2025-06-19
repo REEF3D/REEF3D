@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FDM_FNPF_H_
+#define FDM_FNPF_H_
+
 #include"field5.h"
 #include"fieldint5.h"
 #include"slice1.h"
@@ -35,9 +38,6 @@ Author: Hans Bihs
 #include"cpt2D.h"
 
 class lexer;
-
-#ifndef FDM_FNPF_H_
-#define FDM_FNPF_H_
 
 using namespace std;
 
@@ -69,8 +69,6 @@ public:
     
     sliceint5 nodeval2D;
     slice4 breaking_print;
-    
-    cpt2D C4;
 	
     vec rhsvec;
     vec2D xvec,rvec;

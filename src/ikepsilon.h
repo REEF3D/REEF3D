@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IKEPSILON_H_
+#define IKEPSILON_H_
+
 #include"rans_io.h"
 #include"bc_ikepsilon.h"
 #include"vrans.h"
 
 using namespace std;
-
-#ifndef IKEPSILON_H_
-#define IKEPSILON_H_
 
 class ikepsilon : public rans_io, public bc_ikepsilon
 {

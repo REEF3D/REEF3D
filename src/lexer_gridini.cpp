@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -38,32 +38,50 @@ void lexer::flagini()
     control_calc();
 	gridsize();
 	
-    
-    //cout<<mpirank<<" imax: "<<imax<<" jmax: "<<jmax<<" kmax: "<<kmax<<" imax*jmax*kmax: "<<imax*jmax*kmax<<endl;
-	
 	Iarray(flag1,imax*jmax*kmax);
 	Iarray(flag2,imax*jmax*kmax);
 	Iarray(flag3,imax*jmax*kmax);
     Iarray(flag5,imax*jmax*kmax);
     Iarray(flag,imax*jmax*kmax);
     
-    //cout<<mpirank<<" flagini: "<<imax*jmax*kmax<<endl;
-	
     Iarray(flagsf1,imax*jmax*kmax);
 	Iarray(flagsf2,imax*jmax*kmax);
 	Iarray(flagsf3,imax*jmax*kmax);
 	Iarray(flagsf4,imax*jmax*kmax);
     
-    Iarray(BC,imax*jmax*kmax);
+    for(i=0; i<knox; ++i)
+    for(j=0; j<knoy; ++j)
+    for(k=0; k<knoz; ++k)
+    {
+    flagsf1[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
+    flagsf2[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
+    flagsf3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
+    flagsf4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
+    }
     
-	Iarray(tpflag,imax*jmax*kmax);
-    Iarray(ndbaseflag,imax*jmax*kmax);
-
-
+    // boundary conditions
+    Iarray(IO,imax*jmax*kmax);
+    Iarray(IOSL,imax*jmax);
+    Iarray(DF,imax*jmax*kmax);
+    
+    // flag
 	makeflag(flag1);
 	makeflag(flag2);
 	makeflag(flag3);
-	makeflag(tpflag);
+    
+    for(i=-margin; i<knox+margin; ++i)
+    for(j=-margin; j<knoy+margin; ++j)
+    for(k=-margin; k<knoz+margin; ++k)
+    IO[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 0;
+    
+    for(i=-margin; i<knox+margin; ++i)
+    for(j=-margin; j<knoy+margin; ++j)
+    IOSL[(i-imin)*jmax + j-jmin] = 0;
+    
+    for(i=-margin; i<knox+margin; ++i)
+    for(j=-margin; j<knoy+margin; ++j)
+    for(k=-margin; k<knoz+margin; ++k)
+    DF[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 1;
 	
 	x_dir=y_dir=z_dir=1.0;
 	
@@ -81,6 +99,19 @@ void lexer::flagini()
 	for(n=0;n<gcb4_count;++n)
 	if(gcb4[n][4]==6)
 	gcb4[n][4]=1;	
+    
+    // gcdf
+    gcdf1_count=gcdf2_count=gcdf3_count=gcdf4_count=1;
+    
+    Iarray(gcdf1,gcdf1_count,6);
+    Iarray(gcdf2,gcdf2_count,6);
+    Iarray(gcdf3,gcdf3_count,6);
+    Iarray(gcdf4,gcdf4_count,6);
+    
+    // gcsldf
+    gcsldf4_count=1;
+    
+    Iarray(gcsldf4,gcsldf4_count,6);
 }
 
 void lexer::gridini_patchBC()

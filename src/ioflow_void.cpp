@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,8 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"fdm2D.h"
 #include"fdm_nhf.h"
-#include"vrans_v.h"
-#include"vrans_f.h"
+#include"vrans.h"
 #include"rheology_v.h"
 #include"rheology_f.h"
 #include"turbulence.h"
@@ -35,10 +34,6 @@ Author: Hans Bihs
 ioflow_v::ioflow_v(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : flowfile_in(p,pgc)
 {
     pBC = ppBC;
-    
-	tanphi=0.0;
-    if(p->W101>0)
-    tanphi=tan(p->W102_phi*(PI/180.0));
 }
 
 ioflow_v::~ioflow_v()
@@ -46,6 +41,10 @@ ioflow_v::~ioflow_v()
 }
 
 void ioflow_v::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void ioflow_v::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
@@ -327,32 +326,16 @@ void ioflow_v::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
     pBC->patchBC_waterlevel(p,a,pgc,f);
 }
 
-void ioflow_v::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_v::fsfrkinV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_v::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_v::fsfrkinVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
 void ioflow_v::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
 void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	a->rhsvec.V[n]=0.0;
 
 	count=0;
     if(p->B240>0 && p->B241==1)
@@ -381,10 +364,10 @@ void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	a->rhsvec.V[n]=0.0;
 
 	count=0;
     if(p->B240>0 && p->B242==1)
@@ -413,10 +396,10 @@ void  ioflow_v::jsource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	a->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	a->rhsvec.V[n]=0.0;
 	
 	count=0;
     if(p->B240>0 && p->B243==1)
@@ -445,10 +428,10 @@ void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 
 void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	d->rhsvec.V[n]=0.0;
 
 	// Darcy Porosity
 	count=0;
@@ -475,10 +458,10 @@ void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 
 void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	d->rhsvec.V[n]=0.0;
 
 	count=0;
     if(p->B240>0 && p->B242==1)
@@ -504,10 +487,10 @@ void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 
 void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
 {
-	NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
     double porousterm;
+    
+    NLOOP4
+	d->rhsvec.V[n]=0.0;
 	
 	count=0;
     if(p->B240>0 && p->B243==1)
@@ -552,7 +535,7 @@ void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
 			a->press(i+3,j,k)=pval;
 			}
 		
-			if(p->B77==2)
+			if(p->B77==10)
 			{
 			double eps,H;
                 
@@ -783,6 +766,27 @@ double ioflow_v::wave_fsf(lexer *p, ghostcell *pgc, double x)
     return val;
 }
 
+double ioflow_v::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_v::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_v::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
 int ioflow_v::iozonecheck(lexer *p, fdm*a)
 {	
 	int check =1;
@@ -832,17 +836,11 @@ void ioflow_v::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void ioflow_v::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
-    if(p->B269==0)
-	pvrans = new vrans_v(p,pgc);
-	
-	if(p->B269==1 || p->S10==2)
-	pvrans = new vrans_f(p,pgc);
+    if(p->W90>0)
+    prheo = new rheology_f(p);
     
-    if(p->W90==0)
-    prheo = new rheology_v(p,a);
-    
-    if(p->W90==1)
-    prheo = new rheology_f(p,a);
+    else
+    prheo = new rheology_v();
 }
 
 void ioflow_v::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)

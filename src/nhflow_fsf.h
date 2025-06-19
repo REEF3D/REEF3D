@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 
+#ifndef NHFLOW_FSF_H_
+#define NHFLOW_FSF_H_
+
 class convection;
 class pressure;
 class solver;
@@ -40,9 +43,6 @@ class turbulence;
 
 using namespace std;
 
-#ifndef NHFLOW_FSF_H_
-#define NHFLOW_FSF_H_
-
 class nhflow_fsf
 {
 public:    
@@ -51,12 +51,10 @@ public:
     
     virtual void rk2_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
     virtual void rk2_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
-    
+
     virtual void rk3_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
     virtual void rk3_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
     virtual void rk3_step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
-    
-    virtual void flux_update(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double)=0;
     
     virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&)=0;
     virtual void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*)=0;
@@ -66,7 +64,8 @@ public:
     
     virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double)=0;
     virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double)=0;
-
+    
+    virtual void depth_update(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
 
 };
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -55,9 +55,7 @@ void iowave::nhflow_wavegen_precalc_decomp_space_dirichlet(lexer *p, ghostcell *
             }
 		}
     }
-    
-    
-    
+        
 // U
     count=0;
     for(n=0;n<p->gcslin_count;n++)
@@ -115,7 +113,6 @@ void iowave::nhflow_wavegen_precalc_decomp_space_dirichlet(lexer *p, ghostcell *
     }
 
 
-    
     count=0;
     for(n=0;n<p->gcslin_count;n++)
     {

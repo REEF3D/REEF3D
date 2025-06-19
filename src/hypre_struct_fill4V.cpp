@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -94,7 +94,7 @@ void hypre_struct::fill_matrix4V(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
 		
 		values[count]=0.0;
 		++count;  
-		}    
+		}   
     }
 	
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);

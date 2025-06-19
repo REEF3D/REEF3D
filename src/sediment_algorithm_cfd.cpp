@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,11 +30,13 @@ Author: Hans Bihs
 #include"reinitopo.h"
 #include"suspended.h"
 #include"bedload.h"
-#include"bedconc.h"
+#include"bedconc_VR.h"
 #include"bedshear.h"
 #include"sandslide.h"
 #include"topo_relax.h"
+#include"bedslope.h"
 #include"bedshear_reduction.h"
+#include"bedload_direction.h"
 
 void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
@@ -42,16 +44,11 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     
     ++p->sediter;
     
-    // prep CFD
+    // prep CFD -------
     prep_cfd(p,a,pgc);
     
     // bedslope cds ******
-    if(p->S83==2)
-    slope_cds(p,pgc,s);
-    
-    // bedslope weno -------
-    if(p->S83==5)
-    slope_weno(p,pgc,s,a->topo);
+    pslope->slope_cds(p,pgc,s);
     
     // bedslope reduction ******
     preduce->start(p,pgc,s);
@@ -62,6 +59,9 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 
     // bedload *******
     pbed->start(p,pgc,s);
+    
+    // bedload_direction *******
+    pbeddir->start(p,pgc,s);
     
     // suspended load -------
     pcbed->start(p,pgc,s);
@@ -91,6 +91,9 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     // update cfd  --------
     update_cfd(p,a,pgc,pflow,preto);
     
+    // sediment print
+    print_probes(p,pgc,s,pflow);
+    
     // sediment log
     sedimentlog(p);
     
@@ -98,22 +101,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;
 
 	if(p->mpirank==0)
-    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl<<endl;
-    
-    /*
-    if(p->mpirank==7)
-    {
-     i= p->knox-2;
-     j=15;
-     
-     //cout<<"!! qbe: "<<s->qbe(i-1,j)<<" "<<s->qbe(i,j)<<" "<<s->qbe(i+1,j)<<endl;
-     
-     KLOOP
-     cout<<k<<" !! flag1: "<<p->flag1[IJK]<<" "<<p->flag1[Ip1JK]<<endl;
-        
-        
-    }*/
-    
+    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
 }
 
 void sediment_f::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)

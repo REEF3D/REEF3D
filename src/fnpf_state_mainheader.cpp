@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"fnpf_state.h"
+
+#include"fnpf_state.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -33,10 +34,6 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     ofstream mainout;
     
     // open file
-	if(p->P14==0)
-    mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
-
-	if(p->P14==1)
 	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
 
 
@@ -61,6 +58,15 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     iin=file_type;
     mainout.write((char*)&iin, sizeof (int));
+    
+    ddn=p->wd;
+    mainout.write((char*)&ddn, sizeof (double));
+    
+    ddn=0.0;
+    mainout.write((char*)&ddn, sizeof (double));
+    
+    ddn=0.0;
+    mainout.write((char*)&ddn, sizeof (double));
 
     // flag: is process within P43 bounds
     for(int qn=0;qn<p->M10;++qn)
@@ -77,10 +83,6 @@ void fnpf_state::write_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     ofstream mainout;
     
     // open file
-	if(p->P14==0)
-    mainout.open("REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
-
-	if(p->P14==1)
 	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
 
     iin=p->count;

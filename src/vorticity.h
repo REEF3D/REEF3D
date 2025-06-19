@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef VORTICITY_H_
+#define VORTICITY_H_
+
 class fdm;
 class lexer;
 class convection;
@@ -29,9 +32,6 @@ class ghostcell;
 class ioflow;
 
 #include<fstream>
-
-#ifndef VORTICITY_H_
-#define VORTICITY_H_
 
 using namespace std;
 

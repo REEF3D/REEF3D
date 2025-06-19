@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FLUID_UPDATE_VOID_H_
+#define FLUID_UPDATE_VOID_H_
+
 #include"fluid_update.h"
 #include"increment.h"
 
@@ -28,9 +31,6 @@ class lexer;
 class ghostcell;
 
 using namespace std;
-
-#ifndef FLUID_UPDATE_VOID_H_
-#define FLUID_UPDATE_VOID_H_
 
 class fluid_update_void : public fluid_update, increment
 {

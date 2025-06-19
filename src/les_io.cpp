@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-les_io::les_io(lexer *p, fdm *a) : strain(p,a), uprime(p), vprime(p), wprime(p)
+les_io::les_io(lexer *p, fdm *a) : strain(p), uprime(p), vprime(p), wprime(p)
 {
 }
 

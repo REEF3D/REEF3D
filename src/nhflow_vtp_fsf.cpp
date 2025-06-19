@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"sediment.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -37,7 +38,7 @@ nhflow_vtp_fsf::nhflow_vtp_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	printcount=0;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_VTP_FSF",0777);
     
     // 3D
@@ -66,17 +67,17 @@ nhflow_vtp_fsf::~nhflow_vtp_fsf()
 {
 }
 
-void nhflow_vtp_fsf::start(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_fsf::start(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 {	
-    print2D(p,d,pgc);
+    print2D(p,d,pgc,psed);
 }
 
-void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 {	
     //pgc->gcsl_start4(p,d->eta,gcval_eta);
     //pgc->gcsl_start4(p,d->Fifsf,gcval_fifsf);
     
-    pgc->gcsl_start4(p,d->test2D,1);
+    //pgc->gcsl_start4(p,d->test2D,1);
     
     SLICELOOP4
     {
@@ -89,11 +90,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     
     //pgd->gcsl_start4(p,d->breaking_print,50);
     
-    d->eta.ggcpol(p);
-    
+
 	if(p->mpirank==0)
-    pvtu(p,d,pgc);
-    
+    pvtu(p,d,pgc,psed);
+
 	name_iter(p,d,pgc);
 	
 	
@@ -117,10 +117,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     // Fifsf
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
-    
-    // elevation
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
 	
 	// WL
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
@@ -141,6 +137,13 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     // test
     if(p->P23==1)
 	{
+	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
+    
+    // fb
+    if(p->P28==1)
+    {
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
     }
@@ -173,6 +176,14 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	result<<"<PolyData>"<<endl;
 	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">"<<endl;
     
+    if(p->P16==1)
+    {
+    result<<"<FieldData>"<<endl;
+    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+    result<<"</DataArray>"<<endl;
+    result<<"</FieldData>"<<endl;
+    }
+    
     n=0;
 	result<<"<Points>"<<endl;
     result<<"<DataArray type=\"Float64\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -185,8 +196,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"eta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"detadt\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
 	result<<"<DataArray type=\"Float32\" Name=\"WL\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -195,21 +204,31 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"wetdry\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
+    
     if(p->P23==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
+    
+    if(p->P28==1)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"fb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
+    
     if(p->P110==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
+    
     if(p->P131==1)
     {
     result<<"<DataArray type=\"Float32\" Name=\"wetdry_max\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
     }
+    
     result<<"</PointData>"<<endl;
 
     
@@ -244,7 +263,8 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     //ddn=float(p->sl_ipol4(d->eta) + p->wd);
     
     //ddn=float(0.5*(d->eta(i,j) + d->eta(i,j))  + p->wd);
-    ddn=p->sl_ipol4eta(p->wet,d->eta, d->bed)+p->wd;
+    //ddn=p->nhf_ipol4eta(p->wet,d->eta, d->bed)+p->wd;
+    ddn=p->sl_ipol4eta(p->wet,d->eta,d->bed)+p->wd;
 	result.write((char*)&ddn, sizeof (double));
 	}
 	
@@ -273,7 +293,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     {
 	jj=j;
     j=0;
-	ffn=float(d->UH[IJK]);
+	ffn=float(d->V[IJK]);
     j=jj;
     }
     
@@ -303,16 +323,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
     TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4eta_wd(p->wet,d->eta,d->bed));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-    //  Detadt
-    k=p->knoz-1;
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-    TPSLICELOOP
-	{
-    ffn=float(p->sl_ipol4(d->detadt));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -361,6 +371,18 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc)
 	TPSLICELOOP
 	{
 	ffn=float(p->sl_ipol4(d->test2D));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
+    
+    //  fb
+    if(p->P28==1)
+    {
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+	TPSLICELOOP
+	{
+	ffn=float(p->sl_ipol4(d->fs));
 	result.write((char*)&ffn, sizeof (float));
 	}
     }

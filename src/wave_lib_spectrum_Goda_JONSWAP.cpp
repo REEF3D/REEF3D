@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,12 +17,12 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Weizhi Wang
+Author: Widar W. Wang
 --------------------------------------------------------------------*/
 
-#include "wave_lib_spectrum.h"
-#include "lexer.h"
-#include "ghostcell.h"
+#include"wave_lib_spectrum.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
 double wave_lib_spectrum::Goda_JONSWAP(lexer* p, double w) 
 {

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -61,7 +61,7 @@ hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_
     
     
     count=0;
-    FLUIDLOOP
+    LOOP
     {
     CVAL4[IJK]=count;
     ++count;
@@ -77,11 +77,17 @@ hypre_struct::~hypre_struct()
 
 void hypre_struct::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
+    // diffusion and turbulence
     if(var>=1 && var<=4)
     start_solver1234(p,a,pgc,f,rhsvec,var);
-
+    
+    // pressure
     if(var==5)
     start_solver5(p,a,pgc,f,rhsvec,var);
+    
+    // potential flow
+    if(var==44)
+    start_solver44(p,a,pgc,f,rhsvec,var);
 }
 
 void hypre_struct::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
@@ -105,6 +111,9 @@ void hypre_struct::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_
 {
     if(var==4)
     start_solver4V(p,pgc,f,rhs,M,var); 
+    
+    if(var==44)
+    start_solver44V(p,pgc,f,rhs,M,var); 
 }
 
 void hypre_struct::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
@@ -177,17 +186,21 @@ void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec&
 {
 	numiter=0;
 	p->solveriter=0;
-	
+    
+    starttime=pgc->timer();
+    
     create_solver5(p,pgc);
+    
     
     if(p->j_dir==1)
     fill_matrix4(p,a,pgc,f);
     
     if(p->j_dir==0)
     fill_matrix4_2Dvert(p,a,pgc,f);
+    
 
     solve(p,pgc);
-	
+
 	p->solveriter=num_iterations;
         
     fillbackvec4(p,f,var);
@@ -195,6 +208,11 @@ void hypre_struct::start_solver5(lexer* p,fdm* a, ghostcell* pgc, field &f, vec&
 	delete_solver5(p,pgc);
     
     precon_switch(p,pgc);
+    
+    hypretime=pgc->timer()-starttime;
+    
+    //if(p->mpirank==0 && (p->count%p->P12==0))
+	//cout<<"hypretime: "<<setprecision(5)<<hypretime<<endl;
     
 }
 
@@ -219,6 +237,31 @@ void hypre_struct::start_solver4V(lexer* p, ghostcell* pgc, double *f, vec& rhs,
     fillbackvec4V(p,f,var);
 	
 	delete_solver5(p,pgc);
+    
+    precon_switch(p,pgc);
+}
+
+void hypre_struct::start_solver44V(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
+{
+    numiter=0;
+	p->solveriter=0;
+	
+    create_solver44(p,pgc);
+    
+    if(p->j_dir==1)
+    fill_matrix4V(p,pgc,f,rhs,M);
+    
+    if(p->j_dir==0)
+    fill_matrix4V_2D(p,pgc,f,rhs,M);
+
+    solve44(p);
+
+	p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
+        
+    fillbackvec4V(p,f,var);
+	
+	delete_solver44(p,pgc);
     
     precon_switch(p,pgc);
 }
@@ -322,6 +365,26 @@ void hypre_struct::start_solver9(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 	delete_solver5(p,pgc);
     
     precon_switch(p,pgc);
+}
+
+void hypre_struct::start_solver44(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
+{
+    numiter=0;
+	p->solveriter=0;
+	
+	create_solver44(p,pgc);
+    
+        if(p->j_dir==1)
+        fill_matrix4(p,a,pgc,f);
+        
+        if(p->j_dir==0)
+        fill_matrix4_2Dvert(p,a,pgc,f);
+
+    solve44(p);
+        
+    fillbackvec4(p,f,var);
+	
+	delete_solver44(p,pgc);
 }
 
 void hypre_struct::fillxvec1(lexer* p, fdm* a, field& f)

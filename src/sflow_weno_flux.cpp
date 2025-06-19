@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,26 +19,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_weno_flux.h"
+
+#include"sflow_weno_flux.h"
 #include"lexer.h"
 #include"fdm2D.h"
-#include"sflow_flux_face_FOU.h"
 #include"sflow_flux_face_CDS.h"
-#include"sflow_flux_face_HJ.h"
 
 sflow_weno_flux::sflow_weno_flux(lexer* p):tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
-			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
+			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001)
 {
-    if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
-    pflux = new sflow_flux_face_CDS(p);
-    
-    if(p->A216==4)
-    pflux = new sflow_flux_face_HJ(p);
 
+    pflux = new sflow_flux_face_CDS(p);
 }
 
 sflow_weno_flux::~sflow_weno_flux()
@@ -49,11 +41,23 @@ void sflow_weno_flux::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel,
 {
     if(ipol==1)
     SLICELOOP1
+    {
+    //if(p->flagslice1[Im1J]>0 && p->flagslice1[Ip1J]>0 && p->flagslice1[IJm1]>0 && p->flagslice1[IJp1]>0)
     b->F(i,j)+=aij(p,b,f,1,uvel,vvel);
+    
+    //if(p->flagslice1[Im1J]<0 || p->flagslice1[Ip1J]<0 || p->flagslice1[IJm1]<0 || p->flagslice1[IJp1]<0)
+    //b->F(i,j)+=aij_fou(p,b,f,1,uvel,vvel);
+    }
 
     if(ipol==2)
     SLICELOOP2
+    {
+    if(p->flagslice2[IJm1]>0 && p->flagslice2[IJp1]>0 && p->flagslice2[Im1J]>0 && p->flagslice2[Ip1J]>0)
     b->G(i,j)+=aij(p,b,f,2,uvel,vvel);
+    
+    if(p->flagslice2[IJm1]<0 || p->flagslice2[IJp1]<0 || p->flagslice2[Im1J]<0 || p->flagslice2[Ip1J]<0)
+    b->G(i,j)+=aij_fou(p,b,f,2,uvel,vvel);
+    }
     
     if(ipol==4)
     SLICELOOP4
@@ -67,7 +71,7 @@ void sflow_weno_flux::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel,
 
 double sflow_weno_flux::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
 {
-		pflux->u_flux(ipol,uvel,ivel1,ivel2);
+        pflux->u_flux(ipol,uvel,ivel1,ivel2);
         pflux->v_flux(ipol,vvel,jvel1,jvel2);
 
 		i-=1;
@@ -87,6 +91,39 @@ double sflow_weno_flux::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, sl
 		L =   - ((ivel2*fu2-ivel1*fu1)/p->DXM) 
 		      - ((jvel2*fv2-jvel1*fv1)/p->DXM);
   			  
+		return L;
+}
+
+double sflow_weno_flux::aij_fou(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
+{
+    double q1,q2;
+    
+	ul=ur=vl=vr=dx=dy=0.0;
+    
+    pflux->u_flux(ipol,uvel,ivel1,ivel2);
+    pflux->v_flux(ipol,vvel,jvel1,jvel2);
+		
+        // X-dir
+		if(ivel1>=0.0)
+		ul=1.0;
+
+		if(ivel2>=0.0)
+		ur=1.0;
+
+		dx= (ivel2*(ur*f(i,j) +  (1.0-ur)*f(i+1,j))  -  ivel1*(ul*f(i-1,j) +  (1.0-ul)*f(i,j)))/(p->DXM);
+
+        // Y-dir
+		if(jvel1>=0.0)
+		vl=1.0;
+
+		if(jvel2>=0.0)
+		vr=1.0;
+
+		dy= (jvel2*(vr*f(i,j) +  (1.0-vr)*f(i,j+1))  -  jvel1*(vl*f(i,j-1) +  (1.0-vl)*f(i,j)))/(p->DXM);
+        
+		
+		L = -dx-dy;
+
 		return L;
 }
 

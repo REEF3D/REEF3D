@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,26 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
 {
+        if(p->count==0)
+        {
+            SLICELOOP4
+            if(WL(i,j)<=p->A544+eps)
+            {
+            temp[IJ]=0;
+            d->eta(i,j) =  p->A544 - d->depth(i,j);
+            WL(i,j) = p->A544;
+            }
+            
+            
+            SLICEBASELOOP
+            if(p->flagslice4[IJ]<0)
+            {
+            p->wet[IJ]=0;
+            temp[IJ]=0;
+            }
+        pgc->gcsl_start4(p,d->eta,gcval_eta);
+        }
+    
     SLICELOOP4
     {
     p->wet_n[IJ] = p->wet[IJ];
@@ -35,8 +55,10 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     
     pgc->gcsl_start4Vint(p,p->wet,50);
     
-    //------------
-     
+    // ----------------
+    // ----------------
+    if(p->A540==1)
+    {
     SLICELOOP4
     {
         if(p->wet[IJ]==0)
@@ -55,32 +77,73 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
         }
         
         else              
-        if(WL(i,j)<=p->A544)
+        if(WL(i,j)<=p->A544+eps)
         {
         temp[IJ]=0;
-        d->eta(i,j) = p->A544 - d->depth(i,j);
-        WL(i,j) = d->eta(i,j) + d->depth(i,j);
-        //cout<<d->eta(i,j)<<" "<<WL(i,j)<<endl;
+        d->eta(i,j) =  p->A544 - d->depth(i,j);
+        WL(i,j) = p->A544;
         }
     }
     
     SLICELOOP4
     p->wet[IJ] = temp[IJ];
+     }
+     
+     pgc->gcsl_start4(p,d->eta,gcval_eta);
+     pgc->gcsl_start4Vint(p,p->wet,50);
     
-    //------------
-    /*
-    SLICELOOP4
-    {
-        if(WL(i,j)>=p->A544)
-        p->wet[IJ]=1;
-               
-        if(WL(i,j)<p->A544)
+    // ----------------
+    // ----------------
+    if(p->A540==2)
+    { 
+    
+        SLICELOOP4
         {
-        p->wet[IJ]=0;
-        d->eta(i,j) = p->A544 - d->depth(i,j);
-        WL(i,j) = d->eta(i,j) + d->depth(i,j);
+            if(WL(i,j)>=p->A544)
+            p->wet[IJ]=1;
+            
+            if(WL(i,j)<=p->A544+eps)
+            {
+            p->wet[IJ]=0;
+            d->eta(i,j) =  p->A544 - d->depth(i,j);
+            WL(i,j) = p->A544;
+            }
         }
-    }*/
+    }
+    
+    // avoid isolated wetdry
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+    if(p->wet[Im1J]==0 && p->flagslice4[Ip1J]<0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[Ip1J]==0 && p->flagslice4[Im1J]<0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[IJm1]==0 && p->flagslice4[IJp1]<0 && p->j_dir==1)
+    p->wet[IJ]=0;
+    
+    if(p->wet[IJp1]==0 && p->flagslice4[IJm1]<0 && p->j_dir==1)
+    p->wet[IJ]=0;
+    
+    
+    
+    if(p->wet[Im1J]==0 && p->wet[Ip1J]==0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[Ip1J]==0 && p->wet[Im1J]==0)
+    p->wet[IJ]=0;
+    
+    if(p->wet[IJm1]==0 && p->wet[IJp1]==0 && p->j_dir==1)
+    p->wet[IJ]=0;
+    
+    if(p->wet[IJp1]==0 && p->wet[IJm1]==0 && p->j_dir==1)
+    p->wet[IJ]=0;
+        
+    }
+    
+    pgc->gcsl_start4Vint(p,p->wet,50);
     
     //------------
     LOOP
@@ -98,11 +161,11 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     FLOOP
     if(p->wet[IJ]==0)
     d->omegaF[FIJK] = 0.0;
-        
-    pgc->gcsl_start4(p,d->eta,gcval_eta);
-    pgc->gcsl_start4Vint(p,p->wet,50);
     
+        
+    // --------------------------
     wetdry_fluxes(p,d,pgc,WL,d->U,d->V,d->W,UH,VH,WH);
+    // --------------------------
     
     //
     SLICELOOP4
@@ -110,282 +173,22 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     
     SLICELOOP4
     {
-    if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0 || p->wet[Ip3J]==0 || p->wet[Im1J]==0 || p->wet[Im2J]==0 || p->wet[Im3J]==0)
+    if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0 || p->wet[Im1J]==0 || p->wet[Im2J]==0)
     p->deep[IJ]=0;
     
+    
+    if(p->j_dir==1)
     if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJp3]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0 || p->wet[IJm3]==0)
     p->deep[IJ]=0;
     
+    if(p->j_dir==1)
     if(p->wet[Ip1Jp1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Im1Jm1]==0)
     p->deep[IJ]=0;
     }
     
     SLICELOOP4
-    if(WL(i,j)<=10.0*p->A544)
+    if(WL(i,j)<=p->A545*p->A544)
     p->deep[IJ]=0;
 
     pgc->gcsl_start4Vint(p,p->deep,50);
-    
-}
-
-void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
-{
-    
-    // eta + WL
-    SLICELOOP1  
-    {
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        //d->ETAs(i,j) = d->eta(i,j);
-        d->ETAn(i,j) = d->eta(i,j);
-        //d->Ds(i,j) = WL(i,j);
-        d->Dn(i,j) = WL(i,j);
-        d->dfx(i,j) = d->depth(i,j);
-        //d->dfx(i+1,j) = d->depth(i+1,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
-        {
-        d->ETAs(i,j) = d->eta(i+1,j);
-        //d->ETAn(i,j) = d->eta(i+1,j);
-        d->Ds(i,j) = WL(i+1,j);
-        //d->Dn(i,j) = WL(i+1,j);
-        d->dfx(i,j) = d->depth(i+1,j);
-        //d->dfx(i-1,j) = d->depth(i,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[Ip1J]==0) 
-        {
-        d->ETAs(i,j) = d->eta(i,j);
-        d->Ds(i,j) = WL(i,j);
-        
-        d->ETAn(i,j) = d->eta(i+1,j);
-        d->Dn(i,j) = WL(i+1,j);
-        }
-        
-        
-        /*
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        d->ETAs(i,j) = d->eta(i,j);
-        d->ETAn(i,j) = d->eta(i,j);
-        d->Ds(i,j) = WL(i,j);
-        d->Dn(i,j) = WL(i,j);
-        d->Dn(i-1,j) = WL(i,j);
-        d->dfx(i,j) = d->depth(i,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
-        {
-        d->ETAs(i,j) = d->eta(i+1,j);
-        d->ETAn(i,j) = d->eta(i+1,j);
-        d->Ds(i,j) = WL(i+1,j);
-        d->Dn(i,j) = WL(i+1,j);
-        d->dfx(i,j) = d->depth(i+1,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[Ip1J]==0) 
-        {
-        d->ETAs(i,j) = d->eta(i,j);
-        d->Ds(i,j) = WL(i,j);
-        
-        d->ETAn(i,j) = d->eta(i+1,j);
-        d->Dn(i,j) = WL(i+1,j);
-        }*/
-    }
-    
-    if(p->j_dir==1)
-    SLICELOOP2 
-    {
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        //d->ETAe(i,j) = d->eta(i,j);
-        d->ETAw(i,j) = d->eta(i,j);
-        //d->De(i,j) = WL(i,j);
-        d->Dw(i,j) = WL(i,j);
-        d->dfy(i,j) = d->depth(i,j);
-        //d->dfy(i,j+1) = d->depth(i,j+1);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[IJp1]==1)
-        {
-        d->ETAe(i,j) = d->eta(i,j+1);
-        //d->ETAw(i,j) = d->eta(i,j+1);
-        d->De(i,j) = WL(i,j+1);
-        //d->Dw(i,j) = WL(i,j+1);
-        d->dfy(i,j) = d->depth(i,j+1);
-        //d->dfy(i,j-1) = d->depth(i,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[IJp1]==0)
-        {
-        d->ETAe(i,j) = d->eta(i,j);
-        d->De(i,j) = WL(i,j);
-        
-        d->ETAw(i,j) = d->eta(i,j+1);
-        d->Dw(i,j) = WL(i,j+1);
-        }
-        
-        /*
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        d->ETAe(i,j) = d->eta(i,j);
-        d->ETAw(i,j) = d->eta(i,j+1);
-        d->De(i,j) = WL(i,j);
-        d->Dw(i,j) = WL(i,j+1);
-        d->dfy(i,j) = d->depth(i,j);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[IJp1]==1)
-        {
-        d->ETAe(i,j) = d->eta(i,j);
-        d->ETAw(i,j) = d->eta(i,j+1);
-        d->De(i,j) = WL(i,j);
-        d->Dw(i,j) = WL(i,j+1);
-        d->dfy(i,j) = d->depth(i,j+1);
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[IJp1]==0)
-        {
-        d->ETAe(i,j) = d->eta(i,j);
-        d->De(i,j) = WL(i,j);
-        
-        d->ETAw(i,j) = d->eta(i,j+1);
-        d->Dw(i,j) = WL(i,j+1);
-        }*/
-    }
-    
-    // U,UH
-    ULOOP 
-    {
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        d->Un[IJK] = 0.0;
-        d->Vn[IJK] = 0.0;
-        d->Wn[IJK] = 0.0;
-    
-        d->UHn[IJK] = 0.0;
-        d->VHn[IJK] = 0.0;
-        d->WHn[IJK] = 0.0;
-        
-        d->Us[IJK] = 0.0;
-        d->Vs[IJK] = 0.0;
-        d->Ws[IJK] = 0.0;
-        
-        d->UHs[IJK] = 0.0;
-        d->VHs[IJK] = 0.0;
-        d->WHs[IJK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
-        {
-        d->Un[IJK] = 0.0;
-        d->Vn[IJK] = 0.0;
-        d->Wn[IJK] = 0.0;
-    
-        d->UHn[IJK] = 0.0;
-        d->VHn[IJK] = 0.0;
-        d->WHn[IJK] = 0.0;
-        
-        d->Us[IJK] = 0.0;
-        d->Vs[IJK] = 0.0;
-        d->Ws[IJK] = 0.0;
-        
-        d->UHs[IJK] = 0.0;
-        d->VHs[IJK] = 0.0;
-        d->WHs[IJK] = 0.0;
-        }
-
-        else
-        if(p->wet[IJ]==0 && p->wet[Ip1J]==0)
-        {
-        d->Un[IJK] = 0.0;
-        d->Vn[IJK] = 0.0;
-        d->Wn[IJK] = 0.0;
-        
-        d->UHn[IJK] = 0.0;
-        d->VHn[IJK] = 0.0;
-        d->WHn[IJK] = 0.0;
-        
-        d->Us[IJK] = 0.0;
-        d->Vs[IJK] = 0.0;
-        d->Ws[IJK] = 0.0;
-        
-        d->UHs[IJK] = 0.0;
-        d->VHs[IJK] = 0.0;
-        d->WHs[IJK] = 0.0;
-        }
-    }
-    
-    VLOOP 
-    {
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        d->Uw[IJK] = 0.0;
-        d->Vw[IJK] = 0.0;
-        d->Ww[IJK] = 0.0;
-    
-        d->UHw[IJK] = 0.0;
-        d->VHw[IJK] = 0.0;
-        d->WHw[IJK] = 0.0;
-        
-        d->Ue[IJK] = 0.0;
-        d->Ve[IJK] = 0.0;
-        d->We[IJK] = 0.0;
-        
-        d->UHe[IJK] = 0.0;
-        d->VHe[IJK] = 0.0;
-        d->WHe[IJK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[IJp1]==1)
-        {
-        d->Uw[IJK] = 0.0;
-        d->Vw[IJK] = 0.0;
-        d->Ww[IJK] = 0.0;
-    
-        d->UHw[IJK] = 0.0;
-        d->VHw[IJK] = 0.0;
-        d->WHw[IJK] = 0.0;
-        
-        d->Ue[IJK] = 0.0;
-        d->Ve[IJK] = 0.0;
-        d->We[IJK] = 0.0;
-        
-        d->UHe[IJK] = 0.0;
-        d->VHe[IJK] = 0.0;
-        d->WHe[IJK] = 0.0;
-        }
-        
-        else
-        if(p->wet[IJ]==0 && p->wet[IJp1]==0)
-        {
-        d->Uw[IJK] = 0.0;
-        d->Vw[IJK] = 0.0;
-        d->Ww[IJK] = 0.0;
-        
-        d->UHw[IJK] = 0.0;
-        d->VHw[IJK] = 0.0;
-        d->WHw[IJK] = 0.0;
-        
-        d->Ue[IJK] = 0.0;
-        d->Ve[IJK] = 0.0;
-        d->We[IJK] = 0.0;
-        
-        d->UHe[IJK] = 0.0;
-        d->VHe[IJK] = 0.0;
-        d->WHe[IJK] = 0.0;
-        }
-    }
-    
 }

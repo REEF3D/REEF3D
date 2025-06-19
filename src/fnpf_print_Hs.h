@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,20 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Dave Kelly
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_PRINT_HS_H_
+#define FNPF_PRINT_HS_H_
+
 #include"increment.h"
 #include"slice4.h"
 #include<iostream>
 #include<fstream>
 
 class lexer;
-class fdm_fnpf;
 class ghostcell;
 class slice;
 
 using namespace std;
-
-#ifndef FNPF_PRINT_HS_H_
-#define FNPF_PRINT_HS_H_
 
 class fnpf_print_Hs : public increment
 {
@@ -41,7 +40,7 @@ public:
     fnpf_print_Hs(lexer*,slice&);
 	virtual ~fnpf_print_Hs();
 
-	void start(lexer*, ghostcell*,slice&,slice&);
+	void start(lexer*,ghostcell*,slice&,slice&);
     
     slice4 ETAsum, ETAmean; //DKAF
     slice4 ETA2sum, ETAvar; //DKAF

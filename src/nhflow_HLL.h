@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_HLL_H_
+#define NHFLOW_HLL_H_
+
 #include"nhflow_convection.h"
 #include"slice1.h"
 #include"slice2.h"
@@ -29,9 +32,6 @@ class nhflow_flux_build;
 
 class patchBC_interface;
 class ghostcell;
-
-#ifndef NHFLOW_HLL_H_
-#define NHFLOW_HLL_H_
 
 using namespace std;
 
@@ -55,6 +55,8 @@ private:
     
     void HLL(lexer*&, fdm_nhf*&, double*, double*, double*, double*);
     void HLL_E(lexer*&, fdm_nhf*&);
+    
+    void wetdry_fluxes(lexer*&, fdm_nhf*&, int);
     
 	double dx,dy,dz;
 	double udir,vdir,wdir;

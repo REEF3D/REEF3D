@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,41 +20,49 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"printer.h"
+#ifndef NHFLOW_VTU3D_H_
+#define NHFLOW_VTU3D_H_
+
+#include"nhflow_printer.h"
 #include"increment.h"
 
 class fdm_nhf;
-class force_ale;
+class ioflow;
+class sediment;
 class nhflow_print_wsf;
 class nhflow_print_wsf_theory;
 class nhflow_print_wsfline;
 class nhflow_print_wsfline_y;
 class nhflow_print_runup_gage_x;
 class nhflow_print_runup_max_gage_x;
+class nhflow_u_profile;
 class nhflow_vtp_fsf;
 class nhflow_vtp_bed;
 class nhflow_state;
 class nhflow_breaking_log;
-class potentialfile_out;
-class ioflow;
-
-#ifndef NHFLOW_VTU3D_H_
-#define NHFLOW_VTU3D_H_
+class nhflow_vel_probe;
+class nhflow_vel_probe_theory;
+class nhflow_print_Hs;
+class nhflow_turbulence;
+class nhflow_force;
+class nhflow_force_ale;
+class bedshear_probe;
+class bedshear_max;
 
 using namespace std;
 
-class nhflow_vtu3D : public increment
+class nhflow_vtu3D : public nhflow_printer, public increment
 {
 
 public:
 	nhflow_vtu3D(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vtu3D();
-	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*);
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*);
-    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*);
+	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
+    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
     
 private:
-    void pvtu(lexer*,ghostcell*);
+    void pvtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
     void name_iter(lexer*,ghostcell*);
     void name_time(lexer*,ghostcell*);
     void piecename(lexer*,ghostcell*, int);
@@ -78,12 +86,17 @@ private:
     nhflow_print_wsfline_y *pwsfline_y;
     nhflow_print_runup_gage_x *prunupx;
     nhflow_print_runup_max_gage_x *prunupmaxx;
-    potentialfile_out *ppotentialfile;
+    nhflow_u_profile *puprofile;
     nhflow_vtp_fsf *pfsf;
     nhflow_vtp_bed *pbed;
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
-	force_ale **pforce_ale;
+    nhflow_vel_probe *pvel;
+    nhflow_vel_probe_theory *pveltheo;
+    nhflow_print_Hs *phs;
+    nhflow_force **pforce;
+    nhflow_force_ale **pforce_ale;
+    
 };
 
 #endif

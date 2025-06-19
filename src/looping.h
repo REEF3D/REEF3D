@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,10 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LOOPING_H_
+#define LOOPING_H_
+
 #include"iterators.h"
 #include"boundcheck.h"
 #include"definitions.h"
 #include"looping2D.h"
+//#include"looping_part.h"
 #include"iterators2D.h"
 #include"iterators1D.h"
 
@@ -35,14 +39,14 @@ Author: Hans Bihs
 #define KLOOP 	for(k=0; k<p->knoz; ++k)
 #define IREVLOOP	for(i=p->knox-1; i>=0; --i)
 #define JREVLOOP	for(j=p->knoy-1; j>=0; --j)
-#define KREVLOOP 	for(k=p->knoz-1; k>=0; --k)
+#define KREVLOOP for(k=p->knoz-1; k>=0; --k)
 #define PCHECK  if(p->flag4[IJK]>0)
 #define LOOP ILOOP JLOOP KLOOP PCHECK
 
 #define FSCHECK  if(p->flag7[FIJK]<=0)
 #define FPCHECK  if(p->flag7[FIJK]>0)
 #define SCHECK  if(p->flag4[IJK]<0)
-#define SFLUIDCHECK  if(p->flag4[IJK]<AIR)
+#define SFLUIDCHECK  if(p->flag4[IJK]<AIR_FLAG)
 #define USCHECK  if(p->flag1[IJK]<0)
 #define VSCHECK  if(p->flag2[IJK]<0)
 #define WSCHECK  if(p->flag3[IJK]<0)
@@ -84,7 +88,7 @@ Author: Hans Bihs
 #define ITLOOP for(i=0; i<p->knox+1; ++i)
 #define JTLOOP for(j=0; j<p->knoy+1; ++j)
 #define KTLOOP for(k=0; k<p->knoz+1; ++k)
-#define TCHECK if(p->flag4[IJK]>OBJ)
+#define TCHECK if(p->flag4[IJK]>OBJ_FLAG)
 #define TLOOP ITLOOP JTLOOP KTLOOP
 
 #define IFLEXLOOP	for(i=0; i<p->knox-ulast; ++i)
@@ -111,15 +115,16 @@ Author: Hans Bihs
 #define WCHECK  if(p->flag3[IJK]>0)
 #define WLOOP IWLOOP JWLOOP KWLOOP WCHECK
 
-#define UBASECHECK  if(p->flag1[IJK]>OBJ)
-#define VBASECHECK  if(p->flag2[IJK]>OBJ)
-#define WBASECHECK  if(p->flag3[IJK]>OBJ)
-#define PBASECHECK  if(p->flag4[IJK]>OBJ)
+#define UBASECHECK  if(p->flag1[IJK]>OBJ_FLAG)
+#define VBASECHECK  if(p->flag2[IJK]>OBJ_FLAG)
+#define WBASECHECK  if(p->flag3[IJK]>OBJ_FLAG)
+#define PBASECHECK  if(p->flag4[IJK]>OBJ_FLAG)
 
 #define UBASELOOP IULOOP JULOOP KULOOP UBASECHECK
 #define VBASELOOP IVLOOP JVLOOP KVLOOP VBASECHECK
 #define WBASELOOP IWLOOP JWLOOP KWLOOP WBASECHECK
 #define BASELOOP ILOOP JLOOP KLOOP PBASECHECK
+#define BASEREVLOOP KLOOP JLOOP ILOOP PBASECHECK
 
 #define URAWLOOP IULOOP JULOOP KULOOP
 #define VRAWLOOP IVLOOP JVLOOP KVLOOP 
@@ -133,32 +138,32 @@ Author: Hans Bihs
 
 #define ALOOP ILOOP JLOOP KLOOP PSOLIDCHECK
 
-#define USOLIDCHECK  if(p->flag1[IJK]>SOLID)
-#define VSOLIDCHECK  if(p->flag2[IJK]>SOLID)
-#define WSOLIDCHECK  if(p->flag3[IJK]>SOLID)
-#define PSOLIDCHECK  if(p->flag4[IJK]>SOLID)
+#define USOLIDCHECK  if(p->flag1[IJK]>SOLID_FLAG)
+#define VSOLIDCHECK  if(p->flag2[IJK]>SOLID_FLAG)
+#define WSOLIDCHECK  if(p->flag3[IJK]>SOLID_FLAG)
+#define PSOLIDCHECK  if(p->flag4[IJK]>SOLID_FLAG)
 
 #define USOLIDLOOP IULOOP JULOOP KULOOP USOLIDCHECK
 #define VSOLIDLOOP IVLOOP JVLOOP KVLOOP VSOLIDCHECK
 #define WSOLIDLOOP IWLOOP JWLOOP KWLOOP WSOLIDCHECK
 #define SOLIDLOOP ILOOP JLOOP KLOOP PSOLIDCHECK    
 
-#define UAIRCHECK  if(p->flag1[IJK]==AIR)
-#define VAIRCHECK  if(p->flag2[IJK]==AIR)
-#define WAIRCHECK  if(p->flag3[IJK]==AIR)
-#define PAIRCHECK  if(p->flag4[IJK]==AIR)
+#define UAIR_FLAGCHECK  if(p->flag1[IJK]==AIR_FLAG)
+#define VAIR_FLAGCHECK  if(p->flag2[IJK]==AIR_FLAG)
+#define WAIR_FLAGCHECK  if(p->flag3[IJK]==AIR_FLAG)
+#define PAIR_FLAGCHECK  if(p->flag4[IJK]==AIR_FLAG)
 
-#define UAIRLOOP IULOOP JULOOP KULOOP UAIRCHECK
-#define VAIRLOOP IVLOOP JVLOOP KVLOOP VAIRCHECK
-#define WAIRLOOP IWLOOP JWLOOP KWLOOP WAIRCHECK
-#define AIRLOOP ILOOP JLOOP KLOOP PAIRCHECK    
+#define UAIRLOOP IULOOP JULOOP KULOOP UAIR_FLAGCHECK
+#define VAIRLOOP IVLOOP JVLOOP KVLOOP VAIR_FLAGCHECK
+#define WAIRLOOP IWLOOP JWLOOP KWLOOP WAIR_FLAGCHECK
+#define AIRLOOP ILOOP JLOOP KLOOP PAIR_FLAGCHECK    
 
-#define UFLUIDCHECK  if(p->flag1[IJK]>=AIR)
-#define VFLUIDCHECK  if(p->flag2[IJK]>=AIR)
-#define WFLUIDCHECK  if(p->flag3[IJK]>=AIR)
-#define PFLUIDCHECK  if(p->flag4[IJK]>=AIR)
+#define UFLUIDCHECK  if(p->flag1[IJK]>=AIR_FLAG)
+#define VFLUIDCHECK  if(p->flag2[IJK]>=AIR_FLAG)
+#define WFLUIDCHECK  if(p->flag3[IJK]>=AIR_FLAG)
+#define PFLUIDCHECK  if(p->flag4[IJK]>=AIR_FLAG)
     
-#define PWDFLUIDCHECK  if(p->flag4[IJK]>=AIR && p->wet[IJ]>0)
+#define PWDFLUIDCHECK  if(p->flag4[IJK]>=AIR_FLAG && p->wet[IJ]>0)
 #define FSWDCHECK  if(p->flag7[FIJK]<=0 || p->wet[IJ]==0)
 #define FPWDCHECK  if(p->flag7[FIJK]>0  && p->wet[IJ]>0)
 
@@ -184,11 +189,9 @@ Author: Hans Bihs
 #define ITPLOOP for(i=-1; i<p->knox; ++i)
 #define JTPLOOP for(j=-1; j<p->knoy; ++j)
 #define KTPLOOP for(k=-1; k<p->knoz; ++k)
-#define TPCHECK  if(p->tpflag[IJK]>0)
-#define TPLOOP ITPLOOP JTPLOOP KTPLOOP TPCHECK
+#define TPLOOP KTPLOOP JTPLOOP ITPLOOP 
 
-#define NDBASECHECK  if(p->ndbaseflag[IJK]>OBJ)
-#define NDBASELOOP ITPLOOP JTPLOOP KTPLOOP NDBASECHECK
+#define NDBASELOOP ITPLOOP JTPLOOP KTPLOOP
 
 #define MAX(aAa,bBb) ((aAa)>(bBb)?(aAa):(bBb))
 #define MIN(aAa,bBb) ((aAa)<(bBb)?(aAa):(bBb))
@@ -262,6 +265,30 @@ Author: Hans Bihs
 #define QQGC4LOOP QQGCB4 QQGCB4CHECK
 
 //df
+#define QGCDF1 for(q=0;q<p->gcdf1_count;++q)
+#define QGCDF1CHECK if(p->gcdf1[q][3]>0)
+#define QGCDF1LOOP QGCDF1 QGCDF1CHECK
+
+#define GCDF1 for(n=0;n<p->gcdf1_count;++n)
+#define GCDF1CHECK if(p->gcdf1[n][3]>0)
+#define GCDF1LOOP GCDF1 GCDF1CHECK
+
+#define QGCDF2 for(q=0;q<p->gcdf2_count;++q)
+#define QGCDF2CHECK if(p->gcdf2[q][3]>0)
+#define QGCDF2LOOP QGCDF2 QGCDF2CHECK
+
+#define GCDF2 for(n=0;n<p->gcdf2_count;++n)
+#define GCDF2CHECK if(p->gcdf2[n][3]>0)
+#define GCDF2LOOP GCDF2 GCDF2CHECK
+
+#define QGCDF3 for(q=0;q<p->gcdf3_count;++q)
+#define QGCDF3CHECK if(p->gcdf3[q][3]>0)
+#define QGCDF3LOOP QGCDF3 QGCDF3CHECK
+
+#define GCDF3 for(n=0;n<p->gcdf3_count;++n)
+#define GCDF3CHECK if(p->gcdf3[n][3]>0)
+#define GCDF3LOOP GCDF3 GCDF3CHECK
+
 #define QGCDF4 for(q=0;q<p->gcdf4_count;++q)
 #define QGCDF4CHECK if(p->gcdf4[q][3]>0)
 #define QGCDF4LOOP QGCDF4 QGCDF4CHECK
@@ -312,11 +339,4 @@ Author: Hans Bihs
 #define DT p->dt
 #define NDT p->dt_old
 
-
-
-
-
-
-
-
-
+#endif

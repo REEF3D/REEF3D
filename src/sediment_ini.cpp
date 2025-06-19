@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
@@ -41,16 +42,34 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
         if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
         h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
 		}
-		
 		s->bedzh(i,j)=h;
         s->bedzh0(i,j)=h;
 	}
+    
+    SLICELOOP4
+    s->ks(i,j) = p->S21*p->S20;
 	
 	pgc->gcsl_start4(p,s->bedzh,1);
 	
     active_ini_cfd(p,a,pgc);
     
     topo_zh_update(p,a,pgc,s);
+    waterlevel(p,a,pgc);
+    
+    ini_parameters(p,pgc);
+    ini_guard(p,pgc);
+    log_ini(p);
+}
+
+void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    SLICELOOP4
+    {
+    s->ks(i,j) = p->S21*p->S20;
+    
+    s->bedzh(i,j)=d->bed(i,j);
+    s->bedzh0(i,j)=d->bed(i,j);
+    }
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
@@ -62,7 +81,7 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     //relax(p,b,pgc);
     SLICELOOP4
     {
-    s->ks(i,j) = p->S20;
+    s->ks(i,j) = p->S21*p->S20;
     
     s->bedzh(i,j)=b->topobed(i,j);
     s->bedzh0(i,j)=b->topobed(i,j);
@@ -88,18 +107,18 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     double visc=p->W2;
     double Ls = p->S20;
     double cd = 1.5;
+    double R = rhosed/rhowat-1.0;
     
-    //s->ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
+    if(p->S25==0)
+    s->ws = p->S23;
     
-    if(p->S23==0)
-    s->ws = sqrt(4.0*(rhosed/rhowat-1.0)*g*d50/(3.0*cd));
-    
-    if(p->S23==1)
-    s->ws = p->S23_val;
+    if(p->S25==1)
+    s->ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
+    //s->ws = sqrt(4.0*R*g*d50/(3.0*cd));
+
     
     if(p->mpirank==0)
-    cout<<"ws: "<<s->ws<<endl;
-    
+    cout<<"fall velocity ws: "<<s->ws<<endl;
 }
 
 void sediment_f::ini_guard(lexer *p, ghostcell *pgc)

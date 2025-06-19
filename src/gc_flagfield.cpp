@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,7 +35,7 @@ void ghostcell::flagfield(lexer *p)
     p->flag4[i]=10;
 
     if(p->flag4[i]==-1)
-    p->flag4[i]=OBJ;
+    p->flag4[i]=OBJ_FLAG;
     }
     
     flagx(p,p->flag4);
@@ -46,21 +46,19 @@ void ghostcell::flagfield(lexer *p)
         if(p->i_dir==1)
         if(p->flag4[Im1JK]<0
         && p->flag4[Ip1JK]<0)
-        p->flag4[IJK]=OBJ;
+        p->flag4[IJK]=OBJ_FLAG;
         
         if(p->j_dir==1)
         if(p->flag4[IJm1K]<0
         && p->flag4[IJp1K]<0)
-        p->flag4[IJK]=OBJ;
+        p->flag4[IJK]=OBJ_FLAG;
         
         if(p->k_dir==1)
         if(p->flag4[IJKm1]<0
         && p->flag4[IJKp1]<0)
-        p->flag4[IJK]=OBJ;
+        p->flag4[IJK]=OBJ_FLAG;
     }
     
-
-
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
 	{
 	p->flag1[i]=p->flag4[i];
@@ -75,7 +73,7 @@ void ghostcell::flagfield(lexer *p)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==4 && (p->periodic1!=1 || i+p->origin_i<p->gknox-1))
-        p->flag1[IJK]=OBJ;
+        p->flag1[IJK]=OBJ_FLAG;
     }
 
     GC4LOOP
@@ -85,7 +83,7 @@ void ghostcell::flagfield(lexer *p)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==2 && (p->periodic2!=1 || j+p->origin_j<p->gknoy-1))
-        p->flag2[IJK]=OBJ;
+        p->flag2[IJK]=OBJ_FLAG;
     }
 
     GC4LOOP
@@ -95,9 +93,8 @@ void ghostcell::flagfield(lexer *p)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==6 && (p->periodic3!=1 || k+p->origin_k<p->gknoz-1))
-        p->flag3[IJK]=OBJ;
-    }
-	
+        p->flag3[IJK]=OBJ_FLAG;
+    }	
 }
 
 void ghostcell::flagfield_topo(lexer *p)
@@ -109,7 +106,7 @@ void ghostcell::flagfield_topo(lexer *p)
     p->flag4[i]=10;
 
     if(p->flag4[i]==-1)
-    p->flag4[i]=OBJ;
+    p->flag4[i]=OBJ_FLAG;
     }
     
     flagx(p,p->flag4);
@@ -119,15 +116,15 @@ void ghostcell::flagfield_topo(lexer *p)
     {
         if(p->flag4[(i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0
         && p->flag4[(i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]<0)
-        p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ;
+        p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ_FLAG;
 
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin]<0
         && p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin]<0)
-        p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ;
+        p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ_FLAG;
 
         if(p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1]<0
         && p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1]<0)
-        p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ;
+        p->flag4[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin]=OBJ_FLAG;
     }
 
 
@@ -145,7 +142,7 @@ void ghostcell::flagfield_topo(lexer *p)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==4)
-        p->flag1[IJK]=OBJ;
+        p->flag1[IJK]=OBJ_FLAG;
     }
 
     GC4LOOP
@@ -155,7 +152,7 @@ void ghostcell::flagfield_topo(lexer *p)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==2)
-        p->flag2[IJK]=OBJ;
+        p->flag2[IJK]=OBJ_FLAG;
     }
 
     GC4LOOP
@@ -165,7 +162,7 @@ void ghostcell::flagfield_topo(lexer *p)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==6)
-        p->flag3[IJK]=OBJ;
+        p->flag3[IJK]=OBJ_FLAG;
     }
 	
 }

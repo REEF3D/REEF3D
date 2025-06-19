@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ Author: Hans Bihs
 void hypre_struct::fill_matrix4f_2Dvert(lexer* p, ghostcell* pgc, field &f, vec &rhs, matrix_diag &M)
 {
     count=0;
-    FLUIDLOOP
+    LOOP
     {
     CVAL4[IJK]=count;
     ++count;

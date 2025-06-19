@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 void patchBC::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-    
     // Uio
     for(qq=0;qq<obj_count;++qq)
     if(patch[qq]->Uio_flag==1)

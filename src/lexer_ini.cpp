@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"lexer.h"
+
+#include"lexer.h"
 
 void lexer::lexer_ini()
 {
@@ -32,7 +33,7 @@ void lexer::lexer_ini()
     omegamax=0.0;
 
     utime=vtime=wtime=0.0;
-    kintime=epstime=poissontime=lsmtime=susptime=printouttime=0.0;
+    kintime=epstime=poissontime=lsmtime=susptime=printouttime=dftime=0.0;
     recontime=fsftime=0.0;
 
     uiter=viter=witer=0;
@@ -43,8 +44,6 @@ void lexer::lexer_ini()
     phiout=0.0;
     phiin=0.0;
 
-    gcextra1=gcextra2=gcextra3=gcextra4=gcextra4a=0;
-
     dtsed=0.0;
     sedtime=0.0;
     sediter=0;
@@ -53,6 +52,8 @@ void lexer::lexer_ini()
     solver_status=0;
 	
 	maxdt=mindt=0.0;
+    RK_alpha=0.0;
+    wavetime=0.0;
 
     G1=0;
     if(S10>0 || toporead>0 || solidread==1)
@@ -82,14 +83,13 @@ void lexer::lexer_ini()
     
     if(A10==3 || A10==5)
     G2=1;
-		
 }
 
 void lexer::makeflag( int *field)
 {
     int n;
 	for(n=0;n<imax*jmax*kmax;++n)
-	field[n]=OBJ;
+	field[n]=OBJ_FLAG;
 }
 
 void lexer::parse()
@@ -119,12 +119,12 @@ void lexer::parse()
     I13=0;
     }
 
-
     if(T10==0)
     I13=0;
 	
 	if(S10>=1 || toporead==1)
 	P27=1;
-	
-	
+    
+    if(N40==3 && X10>0)
+    N40=4;
 }

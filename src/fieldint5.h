@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef INTFIELD_H_
+#define INTFIELD_H_
+
 #include"increment.h"
 #include"fieldint.h"
 
 class lexer;
-
-#ifndef INTFIELD_H_
-#define INTFIELD_H_
 
 using namespace std;
 
@@ -51,7 +51,7 @@ private:
 	int* feld;
 	int iter;
 
-	static int imin,imax,jmax,jmin,kmin,kmax;
+	int imin,imax,jmax,jmin,kmin,kmax;
 	
 	lexer *pp;
 

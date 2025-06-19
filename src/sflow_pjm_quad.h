@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_PJM_QUAD_H_
+#define SFLOW_PJM_QUAD_H_
+
 #include"sflow_pressure.h"
 #include"increment.h"
 #include"slice1.h"
@@ -30,9 +33,6 @@ class sflow_weno_hj;
 class sflow_gradient_weno;
 
 using namespace std;
-
-#ifndef SFLOW_PJM_QUAD_H_
-#define SFLOW_PJM_QUAD_H_
 
 class sflow_pjm_quad : public sflow_pressure, public increment
 {

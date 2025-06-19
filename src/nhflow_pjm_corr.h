@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_PJM_CORR_H_
+#define NHFLOW_PJM_CORR_H_
+
 #include"nhflow_pressure.h"
 #include"increment.h"
 
@@ -29,9 +32,6 @@ class nhflow_poisson;
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef NHFLOW_PJM_CORR_H_
-#define NHFLOW_PJM_CORR_H_
 
 class nhflow_pjm_corr : public nhflow_pressure, public increment
 {
@@ -54,7 +54,6 @@ public:
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-    void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&);
 
 private:
     
@@ -67,7 +66,7 @@ private:
     double val, denom;
     double gamma;
     double *PCORR;
-    double wfac;
+    double dPdx,dPdy,dPdz;
 
     density *pd;
     nhflow_poisson *ppois;

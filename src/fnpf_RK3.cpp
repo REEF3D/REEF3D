@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,10 +29,6 @@ Author: Hans Bihs
 #include"solver.h"
 #include"reini.h"
 #include"fnpf_laplace_cds2.h"
-#include"fnpf_laplace_cds2_v2.h"
-#include"fnpf_laplace_cds4.h"
-#include"fnpf_laplace_cds4_bc2.h"
-#include"onephase.h"
 #include"fnpf_fsfbc.h"
 #include"fnpf_fsfbc_wd.h"
 
@@ -59,19 +55,8 @@ fnpf_RK3::fnpf_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     }
     
     
-    if(p->A320==1)
     plap = new fnpf_laplace_cds2(p);
-    
-    if(p->A320==2)
-    plap = new fnpf_laplace_cds4(p);
-    
-    if(p->A320==3)
-    plap = new fnpf_laplace_cds4_bc2(p);
-    
-    if(p->A320==5)
-    plap = new fnpf_laplace_cds2_v2(p,pgc);
-    
-    
+        
     
     if(p->A343==0)
     pf = new fnpf_fsfbc(p,c,pgc);
@@ -84,7 +69,7 @@ fnpf_RK3::~fnpf_RK3()
 {
 }
 
-void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini, onephase* poneph)
+void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
 {	   
     
 // Step 1
@@ -112,7 +97,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     
     // fsfdisc and sigma update
+    if(p->A358==1)
     pf->breaking(p, c, pgc, erk1, c->eta, frk1,1.0);
+    if(p->A358==2)
+    pf->breaking0(p, c, pgc, erk1, c->eta, frk1,1.0);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);
     pf->fsfdisc(p,c,pgc,erk1,frk1);
     sigma_update(p,c,pgc,pf,erk1);
@@ -154,7 +142,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     
     // fsfdisc and sigma update
+    if(p->A358==1)
     pf->breaking(p, c, pgc, erk2, erk1, frk2, 0.25);
+    if(p->A358==2)
+    pf->breaking0(p, c, pgc, erk2, erk1, frk2, 0.25);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk2,erk2);
     pf->fsfdisc(p,c,pgc,erk2,frk2);
     sigma_update(p,c,pgc,pf,erk2);
@@ -196,7 +187,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     
     // fsfdisc and sigma update
+    if(p->A358==1)
     pf->breaking(p, c, pgc, c->eta, erk2,c->Fifsf,2.0/3.0);
+    if(p->A358==2)
+    pf->breaking0(p, c, pgc, c->eta, erk2,c->Fifsf,2.0/3.0);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);

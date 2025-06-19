@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ikomega.h"
+#include"komega_func.h"
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"vrans.h"
 
-ikomega::ikomega(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a),bc_ikomega(p)
+komega_func::komega_func(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a),komega_bc(p)
 {
     if(p->j_dir==0)        
     epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
@@ -35,17 +35,17 @@ ikomega::ikomega(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a),bc_ikomega(p)
     epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
-ikomega::~ikomega()
+komega_func::~komega_func()
 {
 }
 
-void  ikomega::clearfield(lexer *p, fdm*  a, field& b)
+void  komega_func::clearfield(lexer *p, fdm*  a, field& b)
 {
 	LOOP
 	b(i,j,k)=0.0;
 }
 
-void ikomega::isource(lexer *p, fdm* a)
+void komega_func::isource(lexer *p, fdm* a)
 {
     if(p->T33==0)
 	ULOOP
@@ -56,7 +56,7 @@ void ikomega::isource(lexer *p, fdm* a)
 	a->F(i,j,k) = (2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
 }
 
-void ikomega::jsource(lexer *p, fdm* a)
+void komega_func::jsource(lexer *p, fdm* a)
 {
     if(p->T33==0)
 	VLOOP
@@ -67,7 +67,7 @@ void ikomega::jsource(lexer *p, fdm* a)
 	a->G(i,j,k) = (2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
 }
 
-void ikomega::ksource(lexer *p, fdm* a)
+void komega_func::ksource(lexer *p, fdm* a)
 {
     if(p->T33==0)
 	WLOOP
@@ -78,15 +78,19 @@ void ikomega::ksource(lexer *p, fdm* a)
 	a->H(i,j,k) = (2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
 }
 
-void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
+void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 {
 	double factor;
 	double H;
-	double epsi = 1.6*p->DXM;
 	int n;
 	
 		LOOP
 		{
+            epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+            if(p->j_dir==0)
+            epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+        
 			if(a->phi(i,j,k)>epsi)
 			H=1.0;
 
@@ -127,7 +131,7 @@ void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     if(p->T41==1)
     LOOP
 	a->eddyv(i,j,k) = MIN(eddyv0(i,j,k), MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0)
-                                         *(p->cmu*kw_alpha*rotationterm(p,a))/(p->T42*kw_beta*strainterm(p,a)));
+                                         *(p->cmu*kw_alpha*pow(rotationterm(p,a),2.0))/(p->T42*kw_beta*pow(strainterm(p,a),2.0)));
 	
     
     if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
@@ -158,6 +162,12 @@ void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     
         LOOP
         {
+        epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+        if(p->j_dir==0)
+        epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+        
+        
         if(fabs(a->phi(i,j,k))<epsi)
         dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
             
@@ -183,25 +193,35 @@ void ikomega::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     
 }
 
-void ikomega::kinsource(lexer *p, fdm* a, vrans* pvrans)
+void komega_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
 {	
     int count=0;
 
     LOOP
     {
-	if(wallf(i,j,k)==0)
-	a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
-	
-	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  += pk(p,a);
-
+        if(wallf(i,j,k)==0)
+        {
+        a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
+        a->rhsvec.V[count]  += pk(p,a,a->eddyv);
+        }
+        
+	++count;
+    }
+    
+    count=0;
+    
+    if(p->T45==1)
+    LOOP
+    {
+        a->rhsvec.V[count]  -= pk_b(p,a,a->eddyv);
+        
 	++count;
     }
     
     pvrans->kw_source(p,a,kin);
 }
 
-void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
+void komega_func::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
 {
     count=0;
     double dirac;
@@ -210,20 +230,23 @@ void ikomega::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
         {
 		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
 
-        a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a);
+        a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a,eddyv0);
         ++count;
         }
 
-    
     pvrans->omega_source(p,a,kin,eps);
 }
 
-void ikomega::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
+void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 {
-	
 	if(p->T36>0)
 	LOOP
 	{
+    epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+    if(p->j_dir==0)
+    epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+        
     if(fabs(a->phi(i,j,k))<epsi)
     dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
 		

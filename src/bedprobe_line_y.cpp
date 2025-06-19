@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,14 +23,14 @@ Author: Hans Bihs
 #include<iomanip>
 #include"bedprobe_line_y.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"sediment_fdm.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"wave_interface.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-bedprobe_line_y::bedprobe_line_y(lexer *p, fdm* a, ghostcell *pgc)
+bedprobe_line_y::bedprobe_line_y(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {	
 	p->Iarray(iloc,p->P124);
 
@@ -64,11 +64,26 @@ bedprobe_line_y::bedprobe_line_y(lexer *p, fdm* a, ghostcell *pgc)
 	rowflag[n]=0;
     }
 
-    ini_location(p,a,pgc);
+    ini_location(p,pgc,s);
 	
-	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_CFD_SedimentLine",0777);
+	// Create Folder     
+    if(p->mpirank==0 && p->A10==2)
+    {
+	mkdir("./REEF3D_SFLOW_Sediment",0777);
+    mkdir("./REEF3D_SFLOW_Sediment/Line",0777);
+    }
+    
+    if(p->mpirank==0 && p->A10==5)
+    {
+	mkdir("./REEF3D_NHFLOW_Sediment",0777);
+    mkdir("./REEF3D_NHFLOW_Sediment/Line",0777);
+    }
+    
+    if(p->mpirank==0 && p->A10==6)
+    {
+	mkdir("./REEF3D_CFD_Sediment",0777);
+    mkdir("./REEF3D_CFD_Sediment/Line",0777);
+    }
 }
 
 bedprobe_line_y::~bedprobe_line_y()
@@ -76,7 +91,7 @@ bedprobe_line_y::~bedprobe_line_y()
     wsfout.close();
 }
 
-void bedprobe_line_y::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
+void bedprobe_line_y::start(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow *pflow)
 {
 	
     char name[250];
@@ -88,47 +103,15 @@ void bedprobe_line_y::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     if(p->mpirank==0)
     {
 		// open file
-		if(p->P14==0)
-		{
-		if(num<10)
-		sprintf(name,"REEF3D-CFD-bedprobe_line_y-00000%i.dat",num);
+        if(p->A10==2)
+        sprintf(name,"./REEF3D_SFLOW_Sediment/Line/REEF3D-SFLOW-bedprobe_line_y-%06i.dat",num);
+        
+        if(p->A10==5)
+        sprintf(name,"./REEF3D_NHFLOW_Sediment/Line/REEF3D-NHFLOW-bedprobe_line_y-%06i.dat",num);
+        
+        if(p->A10==6)
+        sprintf(name,"./REEF3D_CFD_Sediment/Line/REEF3D-CFD-bedprobe_line_y-%06i.dat",num);
 
-		if(num<100&&num>9)
-		sprintf(name,"REEF3D-CFD-bedprobe_line_y-0000%i.dat",num);
-
-		if(num<1000&&num>99)
-		sprintf(name,"REEF3D-CFD-bedprobe_line_y-000%i.dat",num);
-
-		if(num<10000&&num>999)
-		sprintf(name,"REEF3D-CFD-bedprobe_line_y-00%i.dat",num);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"REEF3D-CFD-bedprobe_line_y-0%i.dat",num);
-
-		if(num>99999)
-		sprintf(name,"REEF3D-CFD-bedprobe_line_y-%i.dat",num);
-		}
-		
-		if(p->P14==1)
-		{
-		if(num<10)
-		sprintf(name,"./REEF3D_CFD_SedimentLine/REEF3D-CFD-bedprobe_line_y-00000%i.dat",num);
-
-		if(num<100&&num>9)
-		sprintf(name,"./REEF3D_CFD_SedimentLine/REEF3D-CFD-bedprobe_line_y-0000%i.dat",num);
-
-		if(num<1000&&num>99)
-		sprintf(name,"./REEF3D_CFD_SedimentLine/REEF3D-CFD-bedprobe_line_y-000%i.dat",num);
-
-		if(num<10000&&num>999)
-		sprintf(name,"./REEF3D_CFD_SedimentLine/REEF3D-CFD-bedprobe_line_y-00%i.dat",num);
-
-		if(num<100000&&num>9999)
-		sprintf(name,"./REEF3D_CFD_SedimentLine/REEF3D-CFD-bedprobe_line_y-0%i.dat",num);
-
-		if(num>99999)
-		sprintf(name,"./REEF3D_CFD_SedimentLine/REEF3D-CFD-bedprobe_line_y-%i.dat",num);
-		}
 		
 		wsfout.open(name);
 		
@@ -168,17 +151,8 @@ void bedprobe_line_y::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
         {
         i=iloc[q];
 
-            KLOOP
-            PBASECHECK
-            {
-                if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-                {
-                wsf[q][j]=MAX(wsf[q][j],-(a->topo(i,j,k)*p->DZP[KP])/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
-                yloc[q][j]=p->pos_y();
-				
-				
-                }
-            }
+        wsf[q][n] = MAX(wsf[q][n], s->bedzh(i,j));
+        yloc[q][j]=p->DYP[JP];
         }
     }
 	
@@ -251,7 +225,7 @@ void bedprobe_line_y::start(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     }
 }
 
-void bedprobe_line_y::ini_location(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_line_y::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     int check,count;
 
@@ -262,7 +236,7 @@ void bedprobe_line_y::ini_location(lexer *p, fdm *a, ghostcell *pgc)
         {
         iloc[q]=p->posc_i(p->P124_x[q]);
 
-        check=ij_boundcheck_topo(p,a,iloc[q],j,0);
+        check=ij_boundcheck_topo(p,iloc[q],j,0);
 
         if(check==1)
         flag[q][count]=1;

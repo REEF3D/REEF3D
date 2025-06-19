@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PARTICLE_PLS_H_
+#define PARTICLE_PLS_H_
+
 #include"particle_corr.h"
 #include"norm_vec.h"
 #include"boundarycheck.h"
 #include"field4.h"
 
 using namespace std;
-
-#ifndef PARTICLE_PLS_H_
-#define PARTICLE_PLS_H_
 
 class particle_pls : public particle_corr, public norm_vec, public boundarycheck
 {
@@ -66,7 +66,6 @@ public:
 	double lint(field&,int&,int&,int&,double,double,double);
 	double cint(double,double,double,double,double);
 	double tricubic(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
-	void dgc_update(lexer*,fdm*,ghostcell*);
 	void vel_setback(lexer*,fdm*,ghostcell*);
 	void normal(fdm*, double&,double&,double&,double&);
 	void normreg(fdm*, int,int,int);

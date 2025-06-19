@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -36,12 +36,12 @@ fnpf_cds2::~fnpf_cds2()
 
 double fnpf_cds2::fx(lexer *p, field &f, double ivel1, double ivel2)
 {
-    return (f(i+1,j,k)-f(i-1,j,k))/(p->DXN[IP]+p->DXN[IM1]);
+    return (f(i+1,j,k)-f(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
 }
 
 double fnpf_cds2::fy(lexer *p, field &f, double jvel1, double jvel2)
 {
-    return (f(i,j+1,k)-f(i,j-1,k))/(p->DYN[JP]+p->DYN[JM1]);
+    return (f(i,j+1,k)-f(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
 }
 
 double fnpf_cds2::fz(lexer *p, field &f, double kvel1, double kvel2)
@@ -51,12 +51,12 @@ double fnpf_cds2::fz(lexer *p, field &f, double kvel1, double kvel2)
 
 double fnpf_cds2::sx(lexer *p, slice &f, double ivel)
 {
-    return (f(i+1,j)-f(i-1,j))/(p->DXN[IP]+p->DXN[IM1]);
+    return (f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 }
 
 double fnpf_cds2::sy(lexer *p, slice &f, double jvel)
 {
-    return (f(i,j+1)-f(i,j-1))/(p->DYN[JP]+p->DYN[JM1]);    
+    return (f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);    
 }
 
 double fnpf_cds2::sz(lexer *p, double *f)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,16 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef TURBULENCE_HEADER_H_
+#define TURBULENCE_HEADER_H_
+
 #include"komega_IM1.h"
-#include"komega_IM2.h"
-
 #include"EARSM_kw_IM1.h"
-#include"EARSM_kw_IM2.h"
-
 #include"kepsilon_IM1.h"
-#include"kepsilon_IM2.h"
 #include"kepsilon_void.h"
 
 #include"LES_smagorinsky.h"
 #include"LES_WALE.h"
 
+#endif

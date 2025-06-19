@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,6 +19,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+
+#ifndef MOMENTUM_H_
+#define MOMENTUM_H_
 
 #include<vector>
 
@@ -40,16 +43,10 @@ class sixdof;
 
 using namespace std;
 
-#ifndef MOMENTUM_H_
-#define MOMENTUM_H_
-
 class momentum
 {
 public:
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*, sixdof*, vector<net*>&)=0;
-    virtual void utimesave(lexer*,fdm*, ghostcell*)=0;
-    virtual void vtimesave(lexer*,fdm*, ghostcell*)=0;
-    virtual void wtimesave(lexer*,fdm*, ghostcell*)=0;
 
 };
 

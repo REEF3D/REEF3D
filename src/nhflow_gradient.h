@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_GRADIENT_H_
+#define NHFLOW_GRADIENT_H_
+
 #include"increment.h"
 
 class fdm_nhf;
 class lexer;
 class slice;
-
-#ifndef NHFLOW_GRADIENT_H_
-#define NHFLOW_GRADIENT_H_
 
 using namespace std;
 
@@ -103,7 +103,7 @@ private:
     
     const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
 	const double sixten,treten;
-	const double epsilon,smallnum,dx;
+	const double epsilon,dx;
 	double is1,is2,is3;
 	double alpha1,alpha2,alpha3;
 	double w1,w2,w3;

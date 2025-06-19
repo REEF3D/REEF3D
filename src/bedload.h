@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDLOAD_H_
+#define BEDLOAD_H_
+
 class lexer;
 class ghostcell;
 class sediment_fdm;
@@ -27,9 +30,6 @@ class slice;
 class sliceint;
 
 using namespace std;
-
-#ifndef BEDLOAD_H_
-#define BEDLOAD_H_
 
 class bedload
 {

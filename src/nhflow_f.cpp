@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"nhflow_f.h"
+
+#include"nhflow_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -52,7 +53,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 	LOOP
 	++p->cellnum;
     
-    LOOP
+    PLAINLOOP
     ++p->tpcellnum;
     
     p->count=0;
@@ -99,10 +100,31 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     
     pgc->gcsl_start4(p,d->bed,50);
     
+    for(int qn=0; qn<p->A509;++qn)
+    {
+	SLICELOOP4
+	d->bed(i,j) = 0.5*d->bed(i,j) + 0.125*(d->bed(i-1,j) +d->bed(i+1,j) +d->bed(i,j-1) +d->bed(i,j+1) );
+    
+    pgc->gcsl_start4(p,d->bed,50);
+    }
+    
+    pgc->gcsl_start4(p,d->bed,50);
+    
     SLICELOOP4
 	d->depth(i,j) = p->wd - d->bed(i,j);
     
     pgc->gcsl_start4(p,d->depth,50);
+    
+    ILOOP
+    JLOOP
+	d->solidbed(i,j) = p->solidbed[IJ];
+
+    ILOOP
+    JLOOP
+	d->topobed(i,j) = p->topobed[IJ];
+    
+    pgc->gcsl_start4(p,d->solidbed,50);
+    pgc->gcsl_start4(p,d->topobed,50);
     
     // eta ini
 	SLICELOOP4

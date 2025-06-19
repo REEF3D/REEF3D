@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef INITIALIZE_H_
+#define INITIALIZE_H_
+
 #include"resize.h"
 #include"increment.h"
 
@@ -28,9 +31,6 @@ class lexer;
 class ghostcell;
 class turbulence;
 class sediment;
-
-#ifndef INITIALIZE_H_
-#define INITIALIZE_H_
 
 using namespace std;
 
@@ -57,9 +57,7 @@ private:
 	void inivof(fdm*, lexer*,ghostcell*);
 	void inivof_box(lexer*,fdm*,ghostcell*);
 	void inivofPLIC(fdm*, lexer*,ghostcell*);
-	void bcwall_check(fdm*,lexer*);
 	void nodecalc(fdm*, lexer*);
-	void faceneighbors(lexer*,fdm*);
 	void maxcoor(fdm*, lexer*,ghostcell*);
 	void paraini(lexer*, fdm*,ghostcell*);
 	void pressini(lexer*,fdm*,ghostcell*);
@@ -67,7 +65,6 @@ private:
     
 	int conv(double);
 
-	const double smallnum;
 	double epsi;
 
 	int n,q,iend,kend;

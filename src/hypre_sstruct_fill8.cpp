@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,7 +33,7 @@ void hypre_sstruct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, 
     fieldint4 cval4(p);
     
     count=0;
-    FLUIDLOOP
+    LOOP
     {
     cval4(i,j,k)=count;
     ++count;

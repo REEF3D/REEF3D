@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"vrans_v.h"
 #include"vrans_f.h"
 
-void sediment_f::bedlevel(lexer *p, fdm *a, ghostcell *pgc)
+void sediment_f::bedlevel(lexer *p, ghostcell *pgc)
 {
     p->bedmin=1.0e15;
     p->bedmax=-1.0e15;

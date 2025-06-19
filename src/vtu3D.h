@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,8 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef VTU3D_H_
+#define VTU3D_H_
+
 #include"printer.h"
-#include"nodefill.h"
+#include"increment.h"
 #include"field5.h"
 
 class turbulence;
@@ -34,35 +37,27 @@ class print_wsf_theory;
 class print_wsfline_x;
 class print_wsfline_y;
 class force;
-class force;
 class vorticity;
 class solver;
 class probe_point;
 class probe_pressure;
 class probe_line;
-class bedprobe_point;
-class bedprobe_max;
 class gage_discharge_x;
 class gage_discharge_window_x;
 class fsf_vtp;
 class topo_vtp;
 class cfd_state;
-class bedshear_probe;
-class bedshear_max;
 class sloshing_force;
 class print_porous;
-class bedprobe_line_x;
-class bedprobe_line_y;
+class probe_vel;
+class probe_vel_theory;
 class exportfile;
 class flowfile_out;
 class print_averaging;
 
-#ifndef VTU3D_H_
-#define VTU3D_H_
-
 using namespace std;
 
-class vtu3D : public printer, public nodefill 
+class vtu3D : public printer, public increment
 {
 
 public:
@@ -102,22 +97,20 @@ private:
 	probe_point *pprobe;
     probe_pressure *ppressprobe;
 	probe_line *pline;
-	bedprobe_point *pbedpt;
-	bedprobe_line_x *pbedlinex;
-	bedprobe_line_y *pbedliney;
-	bedprobe_max *pbedmax;
-	bedshear_probe *pbedshear;
-	bedshear_max *pbedshearmax;
+	
 	gage_discharge_x *pq;
     gage_discharge_window_x *pqw;
 	fsf_vtp *pfsf;
     topo_vtp *ptopo;
 	cfd_state *pstate;
+    cfd_state *pstate_restart;
     sloshing_force *pslosh;
 	print_porous *ppor;
     exportfile *pexport;
     flowfile_out *pflowfile;
     print_averaging *pmean;
+    probe_vel *pvel;
+    probe_vel_theory *pveltheo;
 };
 
 #endif

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,32 +23,61 @@ Author: Tobias Martin
 #include"6DOF_obj.h"
 #include"lexer.h"
 #include"momentum.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
   
-void sixdof_obj::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
 {
+    // external velocity
+      Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
 
-    // Rigid body motion ini
-    
+    // Rigid body motion ini    
     R_ << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
     e_ << 0.0, 0.0, 0.0, 0.0;
-    p_ << Uext*Mass_fb, Vext*Mass_fb, Wext*Mass_fb;
+    p_ << 0.0, 0.0, 0.0;
     c_ << 0.0, 0.0, 0.0;
     h_ << 0.0, 0.0, 0.0;
+    
+    dp_   << 0.0, 0.0, 0.0;
+    dpn1_ << 0.0, 0.0, 0.0;
+    dpn2_ << 0.0, 0.0, 0.0;
+    dpn3_ << 0.0, 0.0, 0.0;
+    
+    dc_   << 0.0, 0.0, 0.0;
+    dcn1_ << 0.0, 0.0, 0.0;
+    dcn2_ << 0.0, 0.0, 0.0;
+    dcn3_ << 0.0, 0.0, 0.0;
+    
+    dh_   << 0.0, 0.0, 0.0;
+    dhn1_ << 0.0, 0.0, 0.0;
+    dhn2_ << 0.0, 0.0, 0.0;
+    dhn3_ << 0.0, 0.0, 0.0;
+    
+    de_   << 0.0, 0.0, 0.0, 0.0;
+    den1_ << 0.0, 0.0, 0.0, 0.0;
+    den2_ << 0.0, 0.0, 0.0, 0.0;
+    den3_ << 0.0, 0.0, 0.0, 0.0;
     
     omega_B << 0.0, 0.0, 0.0;
     omega_I << 0.0, 0.0, 0.0;
     
-	if (p->X102 == 1)
-	{
-		p_(0) += p->X102_u*Mass_fb;
-		p_(1) += p->X102_v*Mass_fb;
-		p_(2) += p->X102_w*Mass_fb;
-	} 
     
-	if (p->X103 == 1)
+    
+    for(int qn=0;qn<p->X102;++qn)
+    {
+            p_(0) += p->X102_u[qn]*Mass_fb;
+            p_(1) += p->X102_v[qn]*Mass_fb;
+            p_(2) += p->X102_w[qn]*Mass_fb;
+    }
+    
+    if (p->X103==1)
+    {
+        h_(0) = p->X103_p;
+        h_(1) = p->X103_q;
+        h_(2) = p->X103_r;
+    }  
+    
+	if (p->X103==1)
 	{
 		h_(0) = p->X103_p;
 		h_(1) = p->X103_q;
@@ -75,38 +104,8 @@ void sixdof_obj::ini_fbvel(lexer *p, fdm *a, ghostcell *pgc)
         p->rfbi = p->X211_r;
 	}
 
-    p->ufbn = p->ufbi;
-    p->vfbn = p->vfbi;
-    p->wfbn = p->wfbi;
-    p->pfbn = p->pfbi;   
-    p->qfbn = p->qfbi;   
-    p->rfbn = p->rfbi;
-    
-    // external velocity
-      Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
-    
-    if (p->X210 == 1)
-    {
-        Uext = p->X210_u;
-        Vext = p->X210_v;
-        Wext = p->X210_w;
-    }
-    if (p->X211 == 1)
-    {
-        Pext = p->X211_p;
-        Qext = p->X211_q;
-        Rext = p->X211_r;
-    }
-    if (p->X221==1)
-    {
-        //motion_vec(p,a,pgc);
-        cout<<"not implemented yet"<<endl;
-    }
-    
-
     // Positions
     phi = theta = psi = 0.0;
-    
     
     // Forces
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;

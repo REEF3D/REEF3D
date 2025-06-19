@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,7 +19,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
-#include"sflow_potential_f.h"
+
+#include"sflow_potential_f.h"
 #include"solver2D.h"
 #include"ghostcell.h"
 #include"fdm2D.h"
@@ -182,7 +183,6 @@ void sflow_potential_f::ucalc(lexer *p, fdm2D *b, slice &phi)
     SLICELOOP1
     if(p->wet[IJ]==0 || p->wet[Ip1J]==0)
 	b->P(i,j) = 0.0;
-	
 }
 
 void sflow_potential_f::vcalc(lexer *p, fdm2D *b, slice &phi)

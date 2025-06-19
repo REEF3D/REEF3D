@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -51,7 +51,7 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
 //Outflow
 	else
 	if((bc==2)&&(cs==1||cs==4) && (gcv==10||gcv==20||gcv==1))
-	return 4;
+	return 7;
 
 //Symmetry
 	else

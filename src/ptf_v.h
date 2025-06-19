@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PTF_VOID_H_
+#define PTF_VOID_H_
+
 #include"ptf.h"
 
 
 using namespace std;
-
-#ifndef PTF_VOID_H_
-#define PTF_VOID_H_
 
 class ptf_void : public ptf
 {
@@ -34,7 +34,7 @@ public:
 	ptf_void();
 	virtual ~ptf_void();
     
-    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*);
     virtual void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*, convection*);
     virtual void inidisc(lexer*, fdm*, ghostcell*);
     

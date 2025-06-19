@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,6 +19,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Tobias Martin
 --------------------------------------------------------------------*/
+
+#ifndef MOMENTUM_RKLS3_H_
+#define MOMENTUM_RKLS3_H_
 
 #include"momentum.h"
 #include"momentum_forcing.h"
@@ -43,9 +46,6 @@ class fsi;
 
 using namespace std;
 
-#ifndef MOMENTUM_RKLS3_H_
-#define MOMENTUM_RKLS3_H_
-
 class momentum_RKLS3 : public momentum, public momentum_forcing, public bcmom
 {
 public:
@@ -55,14 +55,7 @@ public:
 	momentum_RKLS3(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RKLS3();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
-	virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
-    virtual void fillaij1(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij2(lexer*, fdm*, ghostcell*, solver*);
-    virtual void fillaij3(lexer*, fdm*, ghostcell*, solver*);
-
-
+    
 private:
 
     void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);

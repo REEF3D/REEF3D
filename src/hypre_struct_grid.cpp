@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -127,6 +127,53 @@ void hypre_struct::make_grid_2Dvert(lexer* p,ghostcell* pgc)
     HYPRE_StructVectorInitialize(x);
 }
 
+void hypre_struct::make_grid_2D_9pt(lexer* p,ghostcell* pgc)
+{    
+    // grid
+    ilower[0] = p->origin_i;
+    ilower[1] = p->origin_k;
+    
+    iupper[0] = p->knox+p->origin_i-1;
+    iupper[1] = p->knoz+p->origin_k-1;
+    
+    // periodic BC
+    periodic[0]=0;
+    periodic[1]=0;
+    periodic[2]=0;
+    
+    if(p->periodic1>0)
+    periodic[0]=p->gknox;
+    
+    if(p->periodic3>0)
+    periodic[1]=p->gknoz;
+    
+    HYPRE_StructGridCreate(pgc->mpi_comm, 2, &grid);
+    HYPRE_StructGridSetExtents(grid, ilower, iupper);
+    HYPRE_StructGridSetPeriodic(grid, periodic);
+    HYPRE_StructGridAssemble(grid);
+    
+    
+    // stencil
+    HYPRE_StructStencilCreate(2, 9, &stencil);
+
+    int entry;
+    int offsets[9][2] = {{0,0}, {-1,0}, {1,0},  {0,-1}, {0,1}, {-1,-1}, {-1,1}, {1,-1}, {1,1}};
+
+    for (entry=0; entry<9; ++entry)
+    HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
+    
+    // matrix
+    HYPRE_StructMatrixCreate(pgc->mpi_comm, grid, stencil, &A);
+    HYPRE_StructMatrixInitialize(A);
+    
+    // vec
+    HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &b);
+    HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &x);
+
+    HYPRE_StructVectorInitialize(b);
+    HYPRE_StructVectorInitialize(x);
+}
+
 void hypre_struct::make_grid_15pt(lexer* p, ghostcell* pgc)
 {    
     // grid
@@ -177,54 +224,6 @@ wt 14
                          {-1,0,-1}, {-1,0,1}, {1,0,-1}, {1,0,1}, {0,-1,-1}, {0,-1,1}, {0,1,-1}, {0,1,1}};
 
     for (entry=0; entry<15; ++entry)
-    HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
-    
-    // matrix
-    HYPRE_StructMatrixCreate(pgc->mpi_comm, grid, stencil, &A);
-    HYPRE_StructMatrixInitialize(A);
-    
-    // vec
-    HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &b);
-    HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &x);
-
-    HYPRE_StructVectorInitialize(b);
-    HYPRE_StructVectorInitialize(x);
-}
-
-
-void hypre_struct::make_grid_2D_9pt(lexer* p,ghostcell* pgc)
-{    
-    // grid
-    ilower[0] = p->origin_i;
-    ilower[1] = p->origin_k;
-    
-    iupper[0] = p->knox+p->origin_i-1;
-    iupper[1] = p->knoz+p->origin_k-1;
-    
-    // periodic BC
-    periodic[0]=0;
-    periodic[1]=0;
-    periodic[2]=0;
-    
-    if(p->periodic1>0)
-    periodic[0]=p->gknox;
-    
-    if(p->periodic3>0)
-    periodic[1]=p->gknoz;
-    
-    HYPRE_StructGridCreate(pgc->mpi_comm, 2, &grid);
-    HYPRE_StructGridSetExtents(grid, ilower, iupper);
-    HYPRE_StructGridSetPeriodic(grid, periodic);
-    HYPRE_StructGridAssemble(grid);
-    
-    
-    // stencil
-    HYPRE_StructStencilCreate(2, 9, &stencil);
-
-    int entry;
-    int offsets[9][2] = {{0,0}, {-1,0}, {1,0},  {0,-1}, {0,1}, {-1,-1}, {-1,1}, {1,-1}, {1,1}};
-
-    for (entry=0; entry<9; ++entry)
     HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
     
     // matrix

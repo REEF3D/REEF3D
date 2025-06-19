@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,18 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINISOLID_RK3_H_
+#define REINISOLID_RK3_H_
+
 #include"reinitopo.h"
-#include"ddweno.h"
-#include"vec.h"
+#include"field4a.h"
 #include"increment.h"
 
 class reinidisc;
 class picard;
 
 using namespace std;
-
-#ifndef REINISOLID_RK3_H_
-#define REINISOLID_RK3_H_
 
 class reinisolid_RK3 : public reinitopo, public increment
 {
@@ -41,7 +40,7 @@ public:
 	virtual void start(lexer*,fdm*,ghostcell*,field&);
 
 	int *sizeM;
-	vec f,frk1,frk2,L,dt;
+	field4a f,frk1,frk2,L,dt;
 
 private:
 	reinidisc *prdisc;

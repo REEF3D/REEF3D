@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FREESURFACE_HEADER_H_
+#define FREESURFACE_HEADER_H_
+
 #include"levelset_AB2.h"
 #include"levelset_RK2.h"
 #include"levelset_RK3.h"
 #include"levelset_void.h"
 
 #include"reini_RK3.h"
-#include"reinifluid_RK3.h"
 #include"directreini.h"
 #include"reini_void.h"
 
@@ -37,8 +39,7 @@ Author: Hans Bihs
 #include"VOF_RK3.h"
 #include"VOF_PLIC.h"
 
-#include"onephase_v.h"
-#include"onephase_f.h"
-
 #include"multiphase_v.h"
 #include"multiphase_f.h"
+
+#endif

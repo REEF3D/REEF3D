@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,6 +29,8 @@ void iowave::wavegen2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
 {
     double uval,vval,wval;
     double deltaz;
+    
+    p->wavetime = p->simtime;
     
 	for(n=0;n<p->gcslin_count;n++)
     {

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOWAVE_RELAX_H_
+#define IOWAVE_RELAX_H_
+
 #include"ioflow.h"
 #include"wave_interface.h"
 #include"field1.h"
@@ -33,11 +36,9 @@ Author: Hans Bihs
 class vec;
 class fdm_fnpf;
 class patchBC_interface;
+class linear_regression_cont;
 
 using namespace std;
-
-#ifndef IOWAVE_RELAX_H_
-#define IOWAVE_RELAX_H_
 
 class iowave : public ioflow, public wave_interface, public increment, public flowfile_in
 {
@@ -46,6 +47,7 @@ public:
 	iowave(lexer*, ghostcell*,patchBC_interface*);
 	virtual ~iowave();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
+    virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
 	virtual void fsfinflow(lexer*,fdm*,ghostcell*);
 	virtual void discharge(lexer*,fdm*,ghostcell*);
@@ -54,10 +56,6 @@ public:
 	virtual void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&);
 	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&);
-	virtual void fsfrkinV(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkoutV(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&);
 	virtual void iogcb_update(lexer*,fdm*,ghostcell*);
 	virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void jsource(lexer*,fdm*,ghostcell*,vrans*);
@@ -126,6 +124,10 @@ public:
     
 	
     virtual double wave_fsf(lexer*,ghostcell*,double);
+    virtual double wave_xvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_yvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_zvel(lexer*,ghostcell*,double,double,double);
+    
 	virtual int iozonecheck(lexer*,fdm*);
 	virtual void full_initialize(lexer*,fdm*,ghostcell*);
     void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
@@ -170,6 +172,7 @@ public:
     
     
     // FNPF
+    virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     void fnpf_precalc_relax(lexer*,ghostcell*);
@@ -191,10 +194,12 @@ public:
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*);
     virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*);
     
     void nhflow_precalc_relax(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_precalc_relax_ini(lexer*,fdm_nhf*,ghostcell*);
@@ -248,6 +253,7 @@ private:
     int n,count;
     int wtype;
     double inflow_bed,uvel,vvel,wvel;
+    double uhvel,vhvel,whvel;
     double area,Ai,Ao,Ui,fac;
     double dist1,dist2,dist2_fac;
     double x,y,z;
@@ -262,6 +268,7 @@ private:
 	double tan_alpha,*tan_beta;
 	double wh;
     int beach_relax;
+    double starttime;
 	
 	int gcawa1_count,gcawa2_count,gcawa3_count,gcawa4_count;
 	int **gcawa1,**gcawa2,**gcawa3,**gcawa4;
@@ -276,10 +283,10 @@ private:
     // relax pre-calc
     int wave_comp;
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
-    double *uval,*vval,*wval,*etaval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
+    double *uval,*vval,*wval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
     double *rb1val,*rb3val;
-    
     double *UHval,*VHval,*WHval;
+
     
     double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin,**Fifsfval_S_sin;
     double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos,**Fifsfval_S_cos;
@@ -303,6 +310,16 @@ private:
     int hydro_in_count,hydro_out_count;
     
     patchBC_interface *pBC;
+    
+    
+    double ramp_corr(lexer*);
+    
+    double netQ,netQ_n,netV;
+    double netV_corr,netV_corr_n;
+    double b0,b1;
+    
+    linear_regression_cont *linreg;
+    
 };
 
 #endif

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,6 +30,12 @@ void geotopo::dat(lexer* p, fdm* a, ghostcell* pgc)
     if(p->toporead>0)
     BASELOOP
     a->topo(i,j,k) = p->flag_topo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
+    
+    if(p->S57>-1.0e20)
+    ALOOP
+    a->topo(i,j,k)=-p->S57+p->ZP[KP];
+    
+    pgc->start4a(p,a->topo,150);
     
     p->del_Darray(p->flag_topo,p->imax*p->jmax*p->kmax);
     

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2024 Tobias Martin
+Copyright 2018-2025 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef MOORING_SPRING_H_
+#define MOORING_SPRING_H_
+
 #include"mooring.h"
 #include"field1.h"
 #include"field2.h"
@@ -34,9 +37,6 @@ Author: Tobias Martin
 
 
 using namespace std;
-
-#ifndef MOORING_SPRING_H_
-#define MOORING_SPRING_H_
 
 class mooring_Spring : public mooring
 {

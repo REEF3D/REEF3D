@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,24 +27,14 @@ Author: Hans Bihs
 
 double nhflow_gradient::sx(slice &f)
 {
-	dfdx_plus = (f(i+1,j)-f(i,j))/p->DXP[IP];
-    dfdx_min  = (f(i,j)-f(i-1,j))/p->DXP[IM1];
-        
-    grad = limiter(dfdx_plus,dfdx_min);
-    
-    //grad = (f(i+1,j)-f(i-1,j))/(p->DXN[IP]+p->DXN[IM1]);
+    grad = (f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
 	return grad;
 }
 
 double nhflow_gradient::sy(slice &f)
 {
-	dfdy_plus = (f(i,j+1)-f(i,j))/p->DYP[JP];
-    dfdy_min  = (f(i,j)-f(i,j-1))/p->DYP[JM1];
-        
-    grad = limiter(dfdy_plus,dfdy_min);
-    
-    //grad = (f(i,j+1)-f(i,j-1))/(p->DYN[JP]+p->DYN[JM1]);
+    grad = (f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
 
 	return grad;
 }

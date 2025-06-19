@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -95,10 +95,56 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
         if(p->pos_x() > p->F63)
         a->phi(i,j,k)=(phidiff/xdiff)*(p->pos_x()-p->F63) + p->phimean - p->pos_z() ;
     }
+    
+   
+    if(p->F112>0)
+    {
+        for(int qn=0; qn<p->F112; ++qn)
+        {
+            double slope=(p->F112_ze[qn]-p->F112_zs[qn])/(p->F112_xe[qn]-p->F112_xs[qn]);
+            double z = p->F112_zs[qn];
+            if(p->F112_ze[qn]<p->F112_zs[qn])
+            {
+                std::swap(p->F112_ze[qn],p->F112_zs[qn]);
+                z = p->F112_ze[qn];
+            }
+
+            LOOP
+                if(p->pos_x()>=p->F112_xs[qn] && p->pos_x()<p->F112_xe[qn]
+                    && p->pos_y()>=p->F112_ys[qn] && p->pos_y()<p->F112_ye[qn]
+                    && p->pos_z()>=p->F112_zs[qn] && p->pos_z()<slope*(p->pos_x()-p->F112_xs[qn])+z)
+                {
+                    a->phi(i,j,k)=1.0;
+                }
+        }
+     }
+     
+     if(p->F113>0)
+    {
+        for(int qn=0; qn<p->F113; ++qn)
+        {
+            double slope=(p->F113_ze[qn]-p->F113_zs[qn])/(p->F113_ye[qn]-p->F113_ys[qn]);
+            double z = p->F113_zs[qn];
+            if(p->F113_ze[qn]<p->F113_zs[qn])
+            {
+                std::swap(p->F113_ze[qn],p->F113_zs[qn]);
+                z = p->F113_ze[qn];
+            }
+
+            LOOP
+                if(p->pos_x()>=p->F113_xs[qn] && p->pos_x()<p->F113_xe[qn]
+                    && p->pos_y()>=p->F113_ys[qn] && p->pos_y()<p->F113_ye[qn]
+                    && p->pos_z()>=p->F113_zs[qn] && p->pos_z()<slope*(p->pos_y()-p->F113_ys[qn])+z)
+                {
+                    a->phi(i,j,k)=1.0;
+                }
+        }
+     }
+
 
 	double H=0.0;
 
-	LOOP
+	BASELOOP
 	{
 		if(a->phi(i,j,k)>(p->psi))
 		H=1.0;
@@ -141,14 +187,6 @@ void initialize::iniphi(fdm*a, lexer* p, ghostcell* pgc)
     }
 	
 	
-	if(p->F64==1)
-	LOOP
-	{
-	
-	//a->phi(i,j,k) = p->F61-p->pos_z()
-	}
-	
-	
 	pgc->start4(p,a->phi,50);
 }
 
@@ -183,7 +221,7 @@ void initialize::iniphi_io(fdm*a, lexer* p, ghostcell* pgc)
         a->phi(i+2,j,k)=p->F62-p->pos_z();
         a->phi(i+3,j,k)=p->F62-p->pos_z();
         }
-    } */
+    }*/
 }
 
 void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)

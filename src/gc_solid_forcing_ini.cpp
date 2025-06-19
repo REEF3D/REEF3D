@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
+Authors: Hans Bihs, Tobias Martin, Ahmet Soydan
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -42,10 +42,7 @@ void ghostcell::solid_forcing_ini(lexer *p, fdm *a)
      a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
 
      LOOP
-     {
      a->fbh4(i,j,k) = H = Hsolidface(p,a,0,0,0);
-     a->test(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
-     }
 
      start1(p,a->fbh1,10);
      start2(p,a->fbh2,11);

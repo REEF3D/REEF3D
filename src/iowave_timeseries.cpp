@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,7 +35,7 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
     double time0=p->simtime;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_Log-Wave",0777);
     
     if(p->P58==0)
@@ -52,13 +52,9 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
     }
     
 	
-
+    if(p->B92!=20 && p->B92!=21 && p->B92!=22 && p->B92!=23 && p->B92!=61)
     for(int n=0; n<p->P58; ++n)
     {
-		if(p->P14==0)
-		sprintf(name,"REEF3D-Wave-Timeseries-%i.dat",n+1);
-		
-		if(p->P14==1)
 		sprintf(name,"./REEF3D_Log-Wave/REEF3D-Wave-Timeseries-%i.dat",n+1);
 		
 		pout.open(name);
@@ -70,14 +66,14 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
         
         pout<<"t \t eta"<<endl<<endl;
         
-        p->simtime=0.0;
+        p->wavetime=0.0;
         do
         {
         pout<<p->simtime<<" "<<wave_eta(p,pgc,p->P58_x[n],p->P58_y[n])<<endl;
             
-        p->simtime+=0.1;
+        p->wavetime+=0.1;
         
-        }while(p->simtime<=p->P58_T[n]);
+        }while(p->wavetime<=p->P58_T[n]);
 
 
     pout.close();

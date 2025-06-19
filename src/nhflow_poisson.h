@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,11 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-class lexer;class fdm_nhf;class ghostcell;class ioflow;class poisson;class solver;
-
 #ifndef NHFLOW_POISSON_H_
 #define NHFLOW_POISSON_H_
+
+#include"increment.h"
+
+class lexer;
+class fdm_nhf;
+class ghostcell;
+class ioflow;
+class poisson;
+class solver;
 
 using namespace std;
 
@@ -42,8 +48,9 @@ public:
 private:
 
 	int count,n,q;
-    double KB_fac;
-    
+    double sigxyz2;
+    double pval;
+
 };
 
 #endif

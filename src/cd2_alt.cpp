@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,15 +24,11 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
-#include"flux_HJ_CDS4.h"
 #include"flux_HJ_CDS2_vrans.h"
 
 cds2_alt::cds2_alt (lexer *p)
 {
-    if(p->B269==0 && p->D11!=4)
-    pflux = new flux_HJ_CDS2(p);
-    
-    if(p->B269==0 && p->D11==4)
+    if(p->B269==0 && p->S10!=2)
     pflux = new flux_HJ_CDS2(p);
     
     if(p->B269>=1 || p->S10==2)

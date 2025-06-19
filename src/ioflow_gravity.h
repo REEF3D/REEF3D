@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef IOFLOW_GRAVITY_H_
+#define IOFLOW_GRAVITY_H_
+
 #include"ioflow.h"
 #include"increment.h"
 
 class fdm_fnpf;
 
 using namespace std;
-
-#ifndef IOFLOW_GRAVITY_H_
-#define IOFLOW_GRAVITY_H_
 
 
 class ioflow_gravity : public ioflow, public increment
@@ -39,6 +39,7 @@ public:
 	ioflow_gravity(lexer*,ghostcell*,patchBC_interface*);
 	virtual ~ioflow_gravity();
 	virtual void gcio_update(lexer*,fdm*,ghostcell*);
+    virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*);
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
 	virtual void discharge(lexer*,fdm*,ghostcell*);
 	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -46,10 +47,6 @@ public:
 	virtual void fsfinflow(lexer*,fdm*,ghostcell*);
 	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&);
 	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&);
-	virtual void fsfrkinV(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkoutV(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkinVa(lexer*,fdm*,ghostcell*,vec&);
-	virtual void fsfrkoutVa(lexer*,fdm*,ghostcell*,vec&);
     virtual void iogcb_update(lexer*,fdm*,ghostcell*);
     virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
     virtual void jsource(lexer*,fdm*,ghostcell*,vrans*);
@@ -98,9 +95,14 @@ public:
 	virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*);
     
     virtual double wave_fsf(lexer*,ghostcell*,double);
+    virtual double wave_xvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_yvel(lexer*,ghostcell*,double,double,double);
+    virtual double wave_zvel(lexer*,ghostcell*,double,double,double);
+    
 	virtual int iozonecheck(lexer*,fdm*);
     
     virtual void ini(lexer*,fdm*,ghostcell*);
+    virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*){};
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
     virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
@@ -114,10 +116,12 @@ public:
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*){};
     virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
     virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*){};
     
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
 	

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BICGSTAB_IJK_2D_H_
+#define BICGSTAB_IJK_2D_H_
+
 #include"solver.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef BICGSTAB_IJK_2D_H_
-#define BICGSTAB_IJK_2D_H_
 
 
 class bicgstab_ijk_2D : public solver, public increment
@@ -42,18 +42,20 @@ public:
     virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
     
-	virtual void solve(lexer*,fdm*, ghostcell*, vec&, int, int&,int,double);
+	virtual void solve(lexer*, ghostcell*, vec&, matrix_diag&, int, int&,int,double);
 	
 	void fillxvec(lexer*,fdm*,field&,vec&);
 	void finalize(lexer*,fdm*,field&);
 
-	double res_calc(lexer*,fdm*, ghostcell*, double*);
-	void matvec_axb(lexer*,fdm*, double*, double*);
-	void matvec_std(lexer*,fdm* a, double*, double*);
+	void fillxvecV(lexer*,double*,vec&);
+	void finalizeV(lexer*,double*);
+
+	double res_calc(lexer*,ghostcell*, double*, matrix_diag&);
+	void matvec_axb(lexer*, double*, double*, matrix_diag&);
+	void matvec_std(lexer*, double*, double*, matrix_diag&);
     
-    void precon_setup(lexer*,fdm*,ghostcell*);
-    void precon_solve(lexer*,fdm*,ghostcell*,double*,double*);
-	
+    void precon_setup(lexer*,ghostcell*, matrix_diag&);
+    void precon_solve(lexer*,ghostcell*,double*,double*, matrix_diag&);
 	
 
 private:

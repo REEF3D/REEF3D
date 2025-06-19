@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_WENO_HJ_H_
+#define SFLOW_WENO_HJ_H_
+
 #include"sflow_convection.h"
 #include"increment.h"
 
 class sflow_flux;
 
 using namespace std;
-
-#ifndef SFLOW_WENO_HJ_H_
-#define SFLOW_WENO_HJ_H_
 
 class sflow_weno_hj : public sflow_convection, public increment
 {
@@ -52,7 +52,7 @@ private:
 	double L,grad;
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
 	const double sixten,treten;
-	const double epsilon,smallnum;
+	const double epsilon;
 	double is1,is2,is3;
 	double alpha1,alpha2,alpha3;
 	double w1,w2,w3;

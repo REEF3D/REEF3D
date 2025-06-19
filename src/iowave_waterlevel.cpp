@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -60,89 +60,5 @@ void iowave::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
         f(i-2,j,k)=a->phi(i-2,j,k);
         f(i-3,j,k)=a->phi(i-3,j,k);
     }
-}
-
-void iowave::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-        for(int q=0;q<p->gcout_count;++q)
-        {
-        i=p->gcout[q][0];
-        j=p->gcout[q][1];
-        k=p->gcout[q][2];
-        n=p->gcout[q][5];
-		
-		PCHECK
-		{
-        f.V[Ip1_J_K_4]=a->phi(i+1,j,k);
-        f.V[Ip2_J_K_4]=a->phi(i+2,j,k);
-        f.V[Ip3_J_K_4]=a->phi(i+3,j,k);
-		}
-        }
-}
-
-void iowave::fsfrkinV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-        for(int q=0;q<p->gcin_count;++q)
-        {
-        i=p->gcin[q][0];
-        j=p->gcin[q][1];
-        k=p->gcin[q][2];
-        n=p->gcin[q][5];
-		
-		PCHECK
-		{
-        f.V[Im1_J_K_4]=a->phi(i-1,j,k);
-        f.V[Im2_J_K_4]=a->phi(i-2,j,k);
-        f.V[Im3_J_K_4]=a->phi(i-3,j,k);
-		}
-        }
-}
-
-void iowave::fsfrkinVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{        
-    for(int q=0;q<p->gcin4a_count;++q)
-    {
-        i=p->gcin4a[q][0];
-        j=p->gcin4a[q][1];
-        k=p->gcin4a[q][2];
-        n=p->gcin4a[q][5];
-
-        f.V[Im1_J_K_4a]=a->phi(i-1,j,k);
-        f.V[Im2_J_K_4a]=a->phi(i-2,j,k);
-        f.V[Im3_J_K_4a]=a->phi(i-3,j,k);
-    }
-}
-
-
-void iowave::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-    for(int q=0;q<p->gcout4a_count;++q)
-    {
-        i=p->gcout4a[q][0];
-        j=p->gcout4a[q][1];
-        k=p->gcout4a[q][2];
-        n=p->gcout4a[q][5];
-		
-        f.V[Ip1_J_K_4a]=a->phi(i+1,j,k);
-        f.V[Ip2_J_K_4a]=a->phi(i+2,j,k);
-        f.V[Ip3_J_K_4a]=a->phi(i+3,j,k);
-    }
-}
-
-double iowave::wave_fsf(lexer *p, ghostcell *pgc, double x)
-{
-    double val=0.0;
-    int jmem=j;
-    int imem=i;
-    
-    i=0;//int((x-p->originx-0.5*p->DXM)/p->DXM);
-    j=0;
-    
-    val = wave_h(p,pgc,x,0.0,0.0);
-    
-    j=jmem;
-    i=imem;
-
-    return val;
 }
 

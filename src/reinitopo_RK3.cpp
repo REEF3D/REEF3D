@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -31,8 +31,8 @@ Author: Hans Bihs
 #include"picard_f.h"
 #include"picard_void.h"
 #include"reinidisc_f.h"
-#include"reinidisc_f2.h"
 #include"reinidisc_fsf.h"
+#include"reinidisc_fsf_rig.h"
 
 reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)
 {
@@ -51,8 +51,7 @@ reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p
 
 	gcval_initopo=150;
 	
-
-	prdisc = new reinidisc_fsf(p);
+	prdisc = new reinidisc_fsf_rig(p);
 
     time_preproc(p);    
 }
@@ -61,24 +60,11 @@ reinitopo_RK3::~reinitopo_RK3()
 {
 }
 
-void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
+void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field &f)
 { 
-    
-    starttime=pgc->timer();
-	
-	sizeM=p->sizeM4;
-	
-    // fill lsm to reini
-	n=0;
-	ALOOP
-	{
-	f.V[n]=b(i,j,k);
-	++n;
-	}
+	pgc->start4a(p,f,gcval);
     
     gcval=gcval_topo;
-
-	pgc->start4avec(p,f,gcval);
 	
 	if(p->count==0)
 	{
@@ -86,7 +72,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	cout<<"initializing topo..."<<endl<<endl;
 	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
     gcval=gcval_initopo;
-	pgc->start4avec(p,f,gcval);
+	pgc->start4a(p,f,gcval);
 	}
 
 	if(p->count>0)
@@ -97,49 +83,29 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field& b)
 	// Step 1
 	prdisc->start(p,a,pgc,f,L,5);
 
-	NLOOP4A
-	frk1.V[n] = f.V[n] + dt.V[n]*L.V[n];
+	ALOOP
+	frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
 
-	pgc->start4avec(p,frk1,gcval);
+	pgc->start4a(p,frk1,gcval);
     
 
     // Step 2
     prdisc->start(p,a,pgc,frk1,L,5);
 
-	NLOOP4A
-	frk2.V[n]=  0.75*f.V[n] + 0.25*frk1.V[n] + 0.25*dt.V[n]*L.V[n];
+	ALOOP
+	frk2.V[IJK]=  0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*L.V[IJK];
 
-	pgc->start4avec(p,frk2,gcval);
+	pgc->start4a(p,frk2,gcval);
 
 
     // Step 3
     prdisc->start(p,a,pgc,frk2,L,5);
 
-	NLOOP4A
-	f.V[n] = (1.0/3.0)*f.V[n] + (2.0/3.0)*frk2.V[n] + (2.0/3.0)*dt.V[n]*L.V[n];
-
-	pgc->start4avec(p,f,gcval);
-	}
-	
-	// backfill
-	n=0;
 	ALOOP
-	{
-	b(i,j,k)=f.V[n];
-	
-	++n;
-	}
-	
-	pgc->start4a(p,b,gcval);
-    
-    if(p->count==0)
-	pgc->start4a(p,b,gcval_initopo);
-    
-    if(p->count>0)
-	pgc->start4a(p,b,gcval_topo);
+	f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*L.V[IJK];
 
-    
-	p->reinitime+=pgc->timer()-starttime;
+	pgc->start4a(p,f,gcval);
+	}
 }
 
 void reinitopo_RK3::step(lexer* p, fdm *a)
@@ -153,7 +119,7 @@ void reinitopo_RK3::time_preproc(lexer* p)
     n=0;
 	ALOOP
 	{
-	dt.V[n] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	++n;
 	}
 }

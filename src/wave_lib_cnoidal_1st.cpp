@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -67,7 +67,7 @@ double wave_lib_cnoidal_1st::wave_horzvel(lexer *p, double x, double y, double z
     double vel,eta;
 	double sn,cn,dn;
 	
-	teta = 2.0*Km*(p->simtime/wT - x/wL) + pshift;
+	teta = 2.0*Km*(p->wavetime/wT - x/wL) + pshift;
 	
 	eta = wave_eta(p,x,y);
 	
@@ -84,7 +84,7 @@ double wave_lib_cnoidal_1st::wave_w(lexer *p, double x, double y, double z)
     double vel,eta,deta;
 	double sn,cn,dn;
 	
-	teta = 2.0*Km*(p->simtime/wT - x/wL) + pshift;
+	teta = 2.0*Km*(p->wavetime/wT - x/wL) + pshift;
 	
 	eta = wave_eta(p,x,y);
 	
@@ -105,7 +105,7 @@ double wave_lib_cnoidal_1st::wave_eta(lexer *p, double x, double y)
     double eta;
 	double sn,cn,dn;
 	
-	teta = 2.0*Km*(p->simtime/wT - x/wL);
+	teta = 2.0*Km*(p->wavetime/wT - x/wL);
 	
 	
 	elliptic(p,teta,sn,cn,dn);

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,13 +39,8 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     double Px=0.0;
     double xp1,xp2,yp1,yp2,zp1,zp2;
     
-
     Fx=Fy=Fz=0.0;
     A_tot=0.0;
-    
-
-    pgc->dgcpol(p,a->press,p->dgc4,p->dgc4_count,14);
-    a->press.ggcpol(p);
     
     for(n=0;n<polygon_num;++n)
     {       
@@ -171,20 +166,20 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             dv = vval/p->DYN[JP];
             dw = wval/p->DZN[KP];
             
-            pval =      p->ccipol4_a(a->press,xloc,yloc,zloc) - p->pressgage;
-            density =   p->ccipol4_a(a->ro,xloc,yloc,zloc);
-            viscosity = p->ccipol4_a(a->visc,xloc,yloc,zloc);
-            phival =    p->ccipol4_a(a->phi,xloc,yloc,zloc);
+            pval =      p->ccipol4a(a->press,xloc,yloc,zloc) - p->pressgage;
+            density =   p->ccipol4a(a->ro,xloc,yloc,zloc);
+            viscosity = p->ccipol4a(a->visc,xloc,yloc,zloc);
+            phival =    p->ccipol4a(a->phi,xloc,yloc,zloc);
             
             if(p->P82==1)
-            viscosity += p->ccipol4_a(a->eddyv,xloc,yloc,zloc);   
+            viscosity += p->ccipol4a(a->eddyv,xloc,yloc,zloc);   
             
             i = p->posc_i(xloc);
             j = p->posc_j(yloc);
             k = p->posc_k(zloc);
             
             // Force
-            if(phival>-1.6*p->DXM || p->P92==1)
+            if((phival>-1.6*p->DXM || p->P92==1) && a->topo(i,j,k)>0.0)
             {
             Fx += -(pval)*A*nx
                        + density*viscosity*A*(du*ny+du*nz);
@@ -215,8 +210,6 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     
     //if(p->mpirank==0)
     //cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
-    
- 
 }
 
 

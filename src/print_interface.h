@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,8 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef PRINT_INTERFACE_H_
+#define PRINT_INTERFACE_H_
+
 #include"printer.h"
-#include"nodefill.h"
+#include"increment.h"
 #include"field5.h"
 
 class turbulence;
@@ -47,12 +50,9 @@ class bedshear_probe;
 class sloshing_force;
 class print_porous;
 
-#ifndef PRINT_INTERFACE_H_
-#define PRINT_INTERFACE_H_
-
 using namespace std;
 
-class print_interface : public printer, public nodefill 
+class print_interface : public printer, public increment
 {
 
 public:

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -117,15 +117,12 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     // only at startup
     if(startup==0)
     {
-        //if(p->mpirank==0)
-        //cout<<"simtim: "<<simtime[0]<<" "<<simtime[1]<<" "<<simtime[2]<<" "<<simtime[3]<<endl;
-        
         deltaT = simtime[1]-simtime[0];
         
         deltaT = deltaT>0.0?deltaT:1.0e20;
         
-        t1 = (simtime[1]-(p->simtime+p->I241))/deltaT;
-        t2 = ((p->simtime+p->I241)-simtime[0])/deltaT;
+        t1 = (simtime[1]-(p->wavetime+p->I241))/deltaT;
+        t2 = ((p->wavetime+p->I241)-simtime[0])/deltaT;
         
         q1 = diter;
         q2 = diter+1;
@@ -142,21 +139,19 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         
         
         // find q1
-        while(simtime[q1+1-diter]<=p->simtime+p->I241)
+        while(simtime[q1+1-diter]<=p->wavetime+p->I241)
         {
         ++q1;
         
-        //cout<<"HDC ++q1: "<<q1<<endl;
         if(file_type==2)
         read_result_continuous(p,pgc,E1,U1,V1,W1,q1);
         }
             
         // find q2
-        while(simtime[q2-diter]<p->simtime+p->I241)
+        while(simtime[q2-diter]<p->wavetime+p->I241)
         {
         ++q2;
         
-        //cout<<"HDC ++q2: "<<q2<<endl;
         if(file_type==2 )
         read_result_continuous(p,pgc,E2,U2,V2,W2,q2);
         }
@@ -168,11 +163,11 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     // check: open next timestep
            
     // find q1
-    while(simtime[q1+1-diter]<=p->simtime+p->I241)
+    while(simtime[q1+1-diter]<=p->wavetime+p->I241)
     ++q1;
         
     // find q2
-    while(simtime[q2-diter]<p->simtime+p->I241)
+    while(simtime[q2-diter]<p->wavetime+p->I241)
     ++q2;
     
     if(q2>=numiter+diter)
@@ -219,8 +214,8 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         if(p->mpirank==0)
         cout<<"HDC  q1: "<<q1<<" q2: "<<q2<<" t1: "<<t1<<" t2: "<<t2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1-diter]<<" simtime[q2]: "<<simtime[q2-diter]<<endl;
 
-        t1 = (simtime[q2-diter]-(p->simtime+p->I241))/deltaT;
-        t2 = ((p->simtime+p->I241)-simtime[q1-diter])/deltaT;
+        t1 = (simtime[q2-diter]-(p->wavetime+p->I241))/deltaT;
+        t2 = ((p->wavetime+p->I241)-simtime[q1-diter])/deltaT;
         
         
     // time interpolation

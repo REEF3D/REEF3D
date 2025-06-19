@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -18,7 +18,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
---------------------------------------------------------------------*/#include"ghostcell.h"
+--------------------------------------------------------------------*/
+
+#include"ghostcell.h"
 #include"lexer.h"
 
 void ghostcell::gcxslupdate(lexer* p)

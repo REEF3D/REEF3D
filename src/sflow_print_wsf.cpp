@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b)
+sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b) : fileFlushMaxCount(100)
 {
 
 	gauge_num = p->P51;
@@ -36,16 +36,12 @@ sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b)
 
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_WSF",0777);
 	
     if(p->mpirank==0 && p->P51>0)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-SFLOW-WSF-HG.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -106,7 +102,12 @@ void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
     {
     wsfout<<setprecision(9)<<p->simtime<<"\t";
     for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
+    {
+        wsfout<<setprecision(9)<<wsf[n]<<"\t";
+        // flush print to disc limited to prevent data loss for many gauges
+        if(n%fileFlushMaxCount==0&&n!=0)
+            wsfout<<std::flush;
+    }
     wsfout<<endl;
     }
 }

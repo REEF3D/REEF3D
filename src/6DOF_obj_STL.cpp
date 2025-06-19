@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,10 +22,9 @@ Author: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::read_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 {
 	string word;
 	int count, vert_count;
@@ -33,7 +32,7 @@ void sixdof_obj::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 	
 	// read and count number of triangles
     ifstream stl;
-    if (n6DOF == 0)
+    if (n6DOF==0)
     {
 	    stl.open("floating.stl", ios_base::in);
     }
@@ -82,7 +81,7 @@ void sixdof_obj::read_stl(lexer *p, fdm *a, ghostcell *pgc)
 	tricount=count;
 	
 	// reopen and read triangles
-    if (n6DOF == 0)
+    if (n6DOF==0)
     {
 	    stl.open("floating.stl", ios_base::in);
     }
@@ -121,11 +120,11 @@ void sixdof_obj::read_stl(lexer *p, fdm *a, ghostcell *pgc)
     tend[entity_count] = tricount;
 	
 	// scale STL model
-	if (p->X181 == 1)
+	if (p->X181==1)
 	for(n=0; n<tricount; ++n)
 	for(int q=0; q<3; ++q)
 	{
-        tri_x[n][q] *= p->X181_x;
+         tri_x[n][q] *= p->X181_x;
 		tri_y[n][q] *= p->X181_y;
 		tri_z[n][q] *= p->X181_z;
 	}

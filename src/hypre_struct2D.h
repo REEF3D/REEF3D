@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef HYPRE_STRUCT2D_H_
+#define HYPRE_STRUCT2D_H_
+
 #define HYPRE_COMPILATION
 #ifdef  HYPRE_COMPILATION
 
@@ -30,9 +33,6 @@ Author: Hans Bihs
 #include"HYPRE_struct_ls.h"
 
 using namespace std;
-
-#ifndef HYPRE_STRUCT2D_H_
-#define HYPRE_STRUCT2D_H_
 
 class hypre_struct2D : public solver2D, public increment
 {

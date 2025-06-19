@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,18 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_ETA_H_
+#define SFLOW_ETA_H_
+
 #include"sflow_fsf.h"
 #include"increment.h"
 #include"slice4.h" 
 
-class sflow_eta_weno;
 class sflow_hxy_disc;
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef SFLOW_ETA_H_
-#define SFLOW_ETA_H_
 
 class sflow_eta : public sflow_fsf, public increment
 {
@@ -42,10 +41,14 @@ public:
     virtual void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double);
 	virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*);
 	virtual void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+    virtual void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
     virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
-	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&);
+	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
 private:
+    
+    void wetdry_nb(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+    void wetdrydeep(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     
 	
 	
@@ -56,11 +59,11 @@ private:
 	
     double wd_criterion;
     
-	sflow_eta_weno *pconvec;
 	sflow_hxy_disc *phxy;
     patchBC_interface *pBC;
 	
 	slice4 Lab;
+    int *temp;
     
         
 

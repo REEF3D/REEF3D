@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_FSF_F_H_
+#define NHFLOW_FSF_F_H_
+
 #include"nhflow_fsf.h"
 #include"increment.h"
 #include"slice1.h"
@@ -29,9 +32,6 @@ Author: Hans Bihs
 class patchBC_interface;
 
 using namespace std;
-
-#ifndef NHFLOW_FSF_F_H_
-#define NHFLOW_FSF_F_H_
 
 class nhflow_fsf_f : public nhflow_fsf, public increment
 {
@@ -48,9 +48,7 @@ public:
     virtual void rk3_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     virtual void rk3_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
     virtual void rk3_step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
-    
-    virtual void flux_update(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double);
-    
+
     virtual void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&);
     virtual void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*);
     
@@ -62,10 +60,14 @@ public:
     virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double);
     virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double);
     
+    virtual void depth_update(lexer*, fdm_nhf*, ghostcell*, ioflow*);
+    
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     
 private: 
     void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
+    
+    void fsf_guard(lexer*, fdm_nhf*, ghostcell*, slice&, slice&);
     
     double limiter(double, double);
     
@@ -83,6 +85,8 @@ private:
     double val, denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     double detadx,detady;
+    
+    int guard_is,guard_ie,guard_js,guard_je;
     
     const double eps;
 

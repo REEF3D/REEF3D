@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_DIFFUSION_H_
+#define NHFLOW_DIFFUSION_H_
+
 class lexer;
 class fdm_nhf;
 class ghostcell;
+class ioflow;
 class solver;
-
-#ifndef NHFLOW_DIFFUSION_H_
-#define NHFLOW_DIFFUSION_H_
+class slice;
 
 using namespace std;
 
@@ -34,10 +36,10 @@ class nhflow_diffusion
 {
 public:
 
-	virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
-	virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
-    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
-    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double*, double*, double*, double*, double)=0;
+    virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double)=0;
+    virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double)=0;
+    virtual void diff_w(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double)=0;
+    virtual void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double, double)=0;
 
 };
 

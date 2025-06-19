@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d)
+nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d) : fileFlushMaxCount(100)
 {
 
 	gauge_num = p->P51;
@@ -36,16 +36,12 @@ nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d)
 
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_NHFLOW_WSF",0777);
 	
     if(p->mpirank==0 && p->P51>0)
     {
     // open WSF file
-	if(p->P14==0)
-    wsfout.open("REEF3D-NHFLOW-WSF-HG.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -57,7 +53,7 @@ nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d)
 
     wsfout<<"time";
     for(n=0;n<gauge_num;++n)
-    wsfout<<"\t P"<<n+1;
+    wsfout<<"\tP"<<n+1;
 
     wsfout<<endl<<endl;
     }
@@ -88,11 +84,16 @@ void nhflow_print_wsf::height_gauge(lexer *p, fdm_nhf *d, ghostcell *pgc, slice 
     // write to file
     if(p->mpirank==0)
     {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
-    wsfout<<endl;
-    }
+        wsfout<<setprecision(9)<<p->simtime<<"\t";
+        for(n=0;n<gauge_num;++n)
+        {
+            wsfout<<setprecision(9)<<wsf[n]<<"\t";
+            // flush print to disc limited to prevent data loss for many gauges
+            if(n%fileFlushMaxCount==0&&n!=0)
+                wsfout<<std::flush;
+        }
+        wsfout<<endl;
+	}
 
 }
 
@@ -113,8 +114,6 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     j=jloc[n];
     
     wsf[n] = p->ccslipol4(f, x[n], y[n]);
-    
-    //wsf[n] = f(i,j);
     }
 	
     for(n=0;n<gauge_num;++n)
@@ -136,21 +135,21 @@ void nhflow_print_wsf::ini_location(lexer *p, fdm_nhf *d)
 {
     for(n=0;n<gauge_num;++n)
     {
-    iloc[n] = p->posc_i(x[n]); 
-    
-    if(p->j_dir==0)
-    {
-    jloc[n] = 0;
-    j=0;
-    y[n] = p->YP[JP];
-    }
-    
-    if(p->j_dir==1)
-    jloc[n] = p->posc_j(y[n]); 
+        iloc[n] = p->posc_i(x[n]); 
+        
+        if(p->j_dir==0)
+        {
+        jloc[n] = 0;
+        j=0;
+        y[n] = p->YP[JP];
+        }
+        
+        if(p->j_dir==1)
+        jloc[n] = p->posc_j(y[n]); 
 
-    if(iloc[n]>=0 && iloc[n]<p->knox)
-    if(jloc[n]>=0 && jloc[n]<p->knoy)
-    flag[n]=1;
+        if(iloc[n]>=0 && iloc[n]<p->knox)
+        if(jloc[n]>=0 && jloc[n]<p->knoy)
+        flag[n]=1;
     }
 }
 

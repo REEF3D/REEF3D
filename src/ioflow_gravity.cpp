@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -77,6 +77,10 @@ void ioflow_gravity::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     p->gcout_count=count2;
 }
 
+void ioflow_gravity::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+}
+
 void ioflow_gravity::discharge(lexer *p, fdm* a, ghostcell* pgc)
 {
     // patchBC
@@ -141,22 +145,6 @@ void ioflow_gravity::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 void ioflow_gravity::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
     pBC->patchBC_waterlevel(p,a,pgc,f);
-}
-
-void ioflow_gravity::fsfrkoutV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_gravity::fsfrkinV(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_gravity::fsfrkoutVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
-}
-
-void ioflow_gravity::fsfrkinVa(lexer *p, fdm *a, ghostcell *pgc, vec& f)
-{
 }
 
 void ioflow_gravity::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
@@ -414,6 +402,27 @@ void ioflow_gravity::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 }
 
 double ioflow_gravity::wave_fsf(lexer *p, ghostcell *pgc, double x)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_gravity::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_gravity::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
+{
+    double val=0.0;
+
+    return val;
+}
+
+double ioflow_gravity::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
     double val=0.0;
 

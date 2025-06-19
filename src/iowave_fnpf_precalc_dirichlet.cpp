@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,6 +26,8 @@ Author: Hans Bihs
 
 void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
+    p->wavetime = p->simtime;
+    
         count=0;
 		for(n=0;n<p->gcslin_count;n++)
         {
@@ -37,9 +39,7 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         x1=xgen1(p);
         y2=ygen2(p);
         
-
         eta(i,j) = wave_eta(p,pgc,xg,yg);
-        etaval[count] = eta(i,j);
         
         z = eta(i,j);
         

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,8 @@ Author: Hans Bihs
 
 void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 {
+    starttime=pgc->timer();
+    
 	count=0;
     SLICELOOP4
     {
@@ -40,7 +42,7 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
             // Zone 1
             if(dg<1.0e20)
             { 
-            f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*etaval[count] + relax4_wg(i,j) * f(i,j);
+            f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*eta(i,j) + relax4_wg(i,j) * f(i,j);
             ++count;
             }
 		}
@@ -58,11 +60,14 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
             }
         }
     }
+    
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta)
 {
- 
+    starttime=pgc->timer();
+    
     count=0;
     SLICELOOP1
     {
@@ -89,10 +94,14 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &P, slice &bed, slice &eta
             P(i,j) = relax1_nb(i,j)*P(i,j);
         }
     }
+    
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
 {
+    starttime=pgc->timer();
+    
     count=0;
     SLICELOOP2
     {
@@ -105,7 +114,7 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
             // Zone 1
             if(dg<1.0e20)
             {
-            Q(i,j) = (1.0-relax1_wg(i,j))*ramp(p) * vval[count] + relax1_wg(i,j)*Q(i,j);
+            Q(i,j) = (1.0-relax2_wg(i,j))*ramp(p) * vval[count] + relax2_wg(i,j)*Q(i,j);
             ++count;
             }
 		}
@@ -115,13 +124,16 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta
 		{
             // Zone 2
             if(db<1.0e20)
-            Q(i,j) = relax1_nb(i,j)*Q(i,j);
+            Q(i,j) = relax2_nb(i,j)*Q(i,j);
         }
     }
+    
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta)
 {
+    starttime=pgc->timer();
     
     count=0;
     SLICELOOP4
@@ -149,10 +161,14 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
             W(i,j) = relax4_nb(i,j)*W(i,j);
         }
     }
+    
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta)
 {
+    starttime=pgc->timer();
+    
 	double wval=0.0;
     
     SLICELOOP4
@@ -183,11 +199,14 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
             W(i,j) = relax4_nb(i,j)*W(i,j);
         }
     }
+    
+    p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 {
-	
+	starttime=pgc->timer();
+    
     SLICELOOP4
     {
 		xg = xgen(p);
@@ -199,8 +218,8 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
         if(p->B98==2)
         {
             // Zone 1
-            if(dg<1.0e20)
-            f(i,j) = relax4_wg(i,j) * f(i,j);
+            //if(dg<1.0e20)
+            //f(i,j) = relax4_wg(i,j) * f(i,j);
 		}
 		
 		// Numerical Beach
@@ -211,4 +230,6 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
             f(i,j) = relax4_nb(i,j)*f(i,j);
         }
     }
+    
+    p->wavecalctime+=pgc->timer()-starttime;
 }

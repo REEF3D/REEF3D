@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_PRINT_WSF_THEORY_H_
+#define SFLOW_PRINT_WSF_THEORY_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -31,9 +34,6 @@ class field;
 class ioflow;
 
 using namespace std;
-
-#ifndef SFLOW_PRINT_WSF_THEORY_H_
-#define SFLOW_PRINT_WSF_THEORY_H_
 
 class sflow_print_wsf_theory : public boundarycheck
 {

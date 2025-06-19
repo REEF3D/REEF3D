@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SUSPENDED_VOID_H_
+#define SUSPENDED_VOID_H_
+
 #include<iostream>
 #include"suspended.h"
 
 using namespace std;
-
-#ifndef SUSPENDED_void_H_
-#define SUSPENDED_void_H_
 
 class suspended_void : public suspended
 {

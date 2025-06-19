@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"convection.h"
-#include"increment.h"
-
 #ifndef CONVECTION_VOID_H_
 #define CONVECTION_VOID_H_
+
+#include"convection.h"
+#include"increment.h"
 
 using namespace std;
 

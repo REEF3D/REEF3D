@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2024 Tobias Martin
+Copyright 2018-2025 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef VRANS_NET_H_
+#define VRANS_NET_H_
+
 #include"vrans.h"
 #include"increment.h"
 #include"field1.h"
@@ -30,9 +33,6 @@ Author: Tobias Martin
 #include<vector>
 
 using namespace std;
-
-#ifndef VRANS_NET_H_
-#define VRANS_NET_H_
 
 class vrans_net : public vrans, public increment
 {
@@ -47,9 +47,10 @@ public:
 	vrans_net(lexer*, ghostcell*);
 	virtual ~vrans_net();
 
-	virtual void initialize(lexer*, fdm*, ghostcell*);	
+	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);	
 	virtual void start(lexer*, fdm*, ghostcell*, net*&, int);
     virtual void sed_update(lexer*, fdm*, ghostcell*){};
+    virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&){};
     
 	virtual void u_source(lexer*, fdm*);
 	virtual void v_source(lexer*, fdm*);

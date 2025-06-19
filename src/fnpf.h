@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_H_
+#define FNPF_H_
+
 class lexer;
 class fdm_fnpf;
 class ghostcell;
@@ -27,18 +30,14 @@ class solver;
 class convection;
 class ioflow;
 class reini;
-class onephase;
 
 using namespace std;
-
-#ifndef FNPF_H_
-#define FNPF_H_
 
 class fnpf
 {
 public:
-	virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*)=0;
-    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*, onephase*)=0;
+	virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*)=0;
+    virtual void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*)=0;
     virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*)=0;
     virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*)=0;
 

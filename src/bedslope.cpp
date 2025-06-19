@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -92,19 +92,19 @@ void bedslope::slope_weno(lexer *p, ghostcell *pgc, sediment_fdm *s, field &topo
     // bed normal
 	nx0=-(topo(i+1,j,k)-topo(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
     
-    if(p->flag4[Im1JK]<=SOLID)
+    if(p->flag4[Im1JK]<=SOLID_FLAG)
     nx0=-(topo(i+1,j,k)-topo(i,j,k))/(p->DXP[IP]);
     
-    if(p->flag4[Ip1JK]<=SOLID)
+    if(p->flag4[Ip1JK]<=SOLID_FLAG)
     nx0=-(topo(i,j,k)-topo(i-1,j,k))/(p->DXP[IM1]);
     
     
 	ny0=-(topo(i,j+1,k)-topo(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
     
-    if(p->flag4[IJm1K]<=SOLID)
+    if(p->flag4[IJm1K]<=SOLID_FLAG)
     ny0=-(topo(i,j+1,k)-topo(i,j,k))/(p->DYP[JP]);
     
-    if(p->flag4[IJp1K]<=SOLID)
+    if(p->flag4[IJp1K]<=SOLID_FLAG)
     ny0=-(topo(i,j,k)-topo(i,j-1,k))/(p->DYP[JM1]);
     
     
@@ -228,7 +228,7 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
     s->gamma(i,j)=0.0;
 
-    s->gamma(i,j) = atan(sqrt(bx0*bx0 + by0*by0));
+    s->gamma(i,j) = atan(sqrt(bx0*bx0 + by0*by0));// * s->teta(i,j)/(fabs(s->teta(i,j))>1.0e-10?fabs(s->teta(i,j)):1.0e10);
 
     s->phi(i,j) = midphi + MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
     }

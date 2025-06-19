@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 
+#ifndef NHFLOW_H_
+#define NHFLOW_H_
+
 class convection;
 class pressure;
 class solver;
@@ -40,9 +43,6 @@ class vrans;
 class turbulence;
 
 using namespace std;
-
-#ifndef NHFLOW_H_
-#define NHFLOW_H_
 
 class nhflow
 {

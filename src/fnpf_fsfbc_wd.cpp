@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,6 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
-#include"onephase.h"
 #include"fnpf_voiddisc.h"
 #include"fnpf_cds2_wd.h"
 #include"fnpf_cds4_wd.h"
@@ -50,7 +49,7 @@ Author: Hans Bihs
 #include"fnpf_coastline.h"
 #include"sflow_bicgstab.h"
 
-fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(1.0e-6)
+fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),wetcoast(p),eps(1.0e-6)
 {    
     if(p->A311==0)
     pconvec = pconeta = new fnpf_voiddisc(p);
@@ -145,6 +144,8 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     gcval_eta = 155;
     gcval_fifsf = 160;
     }
+    
+    
 }
 
 fnpf_fsfbc_wd::~fnpf_fsfbc_wd()

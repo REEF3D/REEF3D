@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -74,7 +74,7 @@ void ghostcell::nse1(lexer *p, fdm *a, field &f, int gcv)
         f(i,j,k) = p->ccipol1_a(f, xp, yp, zp);
         
         //if(p->mpirank==3)
-        cout<<" xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<" | "<<" xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<" |  nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" lsm: "<<lsv<<" |  "<<p->ccipol1_a(f, xp, yp, zp)<<" "<<p->ccipol4_a(a->phi, xp, yp, zp)<<endl;
+        cout<<" xc: "<<xc<<" yc: "<<yc<<" zc: "<<zc<<" | "<<" xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<" |  nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" lsm: "<<lsv<<" |  "<<p->ccipol1_a(f, xp, yp, zp)<<" "<<p->ccipol4a(a->phi, xp, yp, zp)<<endl;
         }
     
     }

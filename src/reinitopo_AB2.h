@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef REINITOPO_AB2_H_
+#define REINITOPO_AB2_H_
+
 #include"reinitopo.h"
-#include"vec.h"
+#include"field4a.h"
 #include"gradient.h"
 
 class reinidisc;
 
 using namespace std;
-
-#ifndef REINITOPO_AB2_H_
-#define REINITOPO_AB2_H_
 
 class reinitopo_AB2 : public reinitopo, gradient
 {
@@ -44,7 +44,7 @@ public:
 
 private:
 	reinidisc *prdisc;
-	vec f,frk1,frk2,L,dt;
+	field4a f,frk1,frk2,L,dt;
     
     void step(lexer*, fdm*);
     void time_preproc(lexer*);

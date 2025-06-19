@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef CONCENTRATION_RK2_H_
+#define CONCENTRATION_RK2_H_
+
 #include"concentration_io.h"
 #include"field4.h"
 #include"bc_concentration.h"
@@ -27,9 +30,6 @@ Author: Hans Bihs
 class concentration;
 
 using namespace std;
-
-#ifndef CONCENTRATION_RK2_H_
-#define CONCENTRATION_RK2_H_
 
 class concentration_RK2 :public bc_concentration, public concentration_io
 {

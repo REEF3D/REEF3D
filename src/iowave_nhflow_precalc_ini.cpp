@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
@@ -53,7 +54,6 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
             ++upt_count;
 		}
     }
-    
     
     // V ------------------------------------------------
     BASELOOP
@@ -122,8 +122,7 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
     p->Darray(UHval,upt_count);
     p->Darray(VHval,vpt_count);
     p->Darray(WHval,wpt_count);
-    p->Darray(etaval,ept_count);
-    
+
     
     
     if(p->B89==1) 
@@ -167,11 +166,35 @@ void iowave::nhflow_precalc_dirichlet_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
   
     // precalc array alloc
+
     p->Darray(uval,upt_count);
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);
     p->Darray(UHval,upt_count);
     p->Darray(VHval,vpt_count);
     p->Darray(WHval,wpt_count);
-    p->Darray(etaval,ept_count);
+    
+    if(p->B89==1) 
+    {
+    p->Darray(uval_S_sin,upt_count,wave_comp);
+    p->Darray(vval_S_sin,vpt_count,wave_comp);
+    p->Darray(wval_S_sin,wpt_count,wave_comp);
+    p->Darray(etaval_S_sin,ept_count,wave_comp);
+
+    p->Darray(uval_S_cos,upt_count,wave_comp);
+    p->Darray(vval_S_cos,vpt_count,wave_comp);
+    p->Darray(wval_S_cos,wpt_count,wave_comp);
+    p->Darray(etaval_S_cos,ept_count,wave_comp);
+
+    p->Darray(uval_T_sin,wave_comp);
+    p->Darray(vval_T_sin,wave_comp);
+    p->Darray(wval_T_sin,wave_comp);
+    p->Darray(etaval_T_sin,wave_comp);
+    
+    p->Darray(uval_T_cos,wave_comp);
+    p->Darray(vval_T_cos,wave_comp);
+    p->Darray(wval_T_cos,wave_comp);
+    p->Darray(etaval_T_cos,wave_comp);
+    }
+    
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,11 +25,11 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-rans_io::rans_io(lexer *p, fdm *a) : strain(p,a), eps(p), kin(p), eddyv0(p), wallf(p),
-									 ke_c_1e(1.44), ke_c_2e(1.92),ke_sigma_k(1.0),ke_sigma_e(1.3),
-									 kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0),
-									 sst_alpha1(5.0/9.0), sst_alpha2(0.44), sst_beta1(3.0/40.0), sst_beta2(0.0828), 
-									 sst_sigma_k1(0.85), sst_sigma_k2(1.0), sst_sigma_w1(0.5), sst_sigma_w2(0.856)
+rans_io::rans_io(lexer *p, fdm *a) : strain(p), eps(p), kin(p), eddyv0(p), wallf(p),
+                                     ke_c_1e(1.44), ke_c_2e(1.92),ke_sigma_k(1.0),ke_sigma_e(1.3),
+                                     kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0),
+                                     sst_alpha1(5.0/9.0), sst_alpha2(0.44), sst_beta1(3.0/40.0), sst_beta2(0.0828), 
+                                     sst_sigma_k1(0.85), sst_sigma_k2(1.0), sst_sigma_w1(0.5), sst_sigma_w2(0.856)
 {
 }
 
@@ -90,7 +90,7 @@ double rans_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, 
 {
     double val;
 
-    val=p->ccipol4_a( eps, xp, yp, zp);
+    val=p->ccipol4a( eps, xp, yp, zp);
 
     return val;
 }
@@ -98,8 +98,12 @@ double rans_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, 
 double rans_io::kinval(int ii, int jj, int kk)
 {
     double val;
-
+    
+    pip=4;
+    
     val=kin(ii,jj,kk);
+    
+    pip=0;
 
     return val;
 }
@@ -108,19 +112,31 @@ double rans_io::epsval(int ii, int jj, int kk)
 {
     double val;
 
+    pip=4;
+    
     val=eps(ii,jj,kk);
+    
+    pip=0;
 
     return val;
 }
 
 void rans_io::kinget(int ii, int jj, int kk,double val)
 {
+    pip=4;
+    
     kin(ii,jj,kk)=val;
+    
+    pip=0;
 }
 
 void rans_io::epsget(int ii, int jj, int kk,double val)
 {
+    pip=4;
+    
     eps(ii,jj,kk)=val;
+    
+    pip=0;
 }
 
 void rans_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)

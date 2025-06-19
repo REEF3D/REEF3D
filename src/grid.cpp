@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,24 +26,38 @@ Author: Hans Bihs
 
 grid::grid(lexer *p)
 {
-    margin=3;
+    imin=p->imin;
+    imax=p->imax;
+    jmin=p->jmin;
+    jmax=p->jmax;
+    kmin=p->kmin;
+    kmax=p->kmax;
 }
 
 grid::~grid()
 {
 }
 
-void grid::makegrid(lexer *p, ghostcell *pgc)
+void grid::make_dgc(lexer* p)
 {
+    p->dgc1_count=1;
+	p->dgc2_count=1;
+	p->dgc3_count=1;
+	p->dgc4_count=1;
 	
+	p->Iarray(p->dgc1,p->dgc1_count,8);
+	p->Iarray(p->dgc2,p->dgc2_count,8);
+	p->Iarray(p->dgc3,p->dgc3_count,8);
+	p->Iarray(p->dgc4,p->dgc4_count,8);
+    
+    
+    p->Iarray(hgc,imax*jmax*kmax);
+    
+    for(i=0;i<imax*jmax*kmax;++i)
+    hgc[i]=0;
 }
 
-void grid::update_topo_grid(lexer *p, ghostcell *pgc)
+void grid::unmake_dgc(lexer* p)
 {
-	
-}
-
-void grid::update_sixdof_grid(lexer *p, ghostcell *pgc)
-{
-	
+    p->del_Iarray(hgc,imax*jmax*kmax);
 }

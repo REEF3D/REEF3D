@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -164,8 +164,6 @@ double interpolation::ccslipol4(slice& f, double xp, double yp)
 
     i=ii;
     j=jj;
-    
-    //cout<<i<<" "<<j<<" "<<wa<<" "<<wb<<" | "<<value<<endl;
     
 
     return value;

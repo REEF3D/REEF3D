@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SFLOW_FSF_H_
+#define SFLOW_FSF_H_
+
 class lexer;
 class fdm2D;
 class ghostcell;
@@ -28,18 +31,16 @@ class slice;
 
 using namespace std;
 
-#ifndef SFLOW_FSF_H_
-#define SFLOW_FSF_H_
-
 class sflow_fsf
 {
 public:    
     virtual void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double)=0;
 	virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*)=0;
-	virtual void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
+	virtual void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
+    virtual void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
     virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double)=0;
     virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double)=0;
-    virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&)=0;
+    virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
     
         
 

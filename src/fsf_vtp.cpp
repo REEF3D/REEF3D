@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,10 +28,10 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fsf_vtp::fsf_vtp(lexer* p, fdm *a, ghostcell *pgc):nodefill(p),vertice(p),nodeflag(p),eta(p),interfac(1.6),zero(0.0)
+fsf_vtp::fsf_vtp(lexer* p, fdm *a, ghostcell *pgc):vertice(p),nodeflag(p),eta(p),interfac(1.6),zero(0.0)
 {
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_FSF",0777);
 	
 	fsfprintcount=0;

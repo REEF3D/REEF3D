@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -42,10 +42,10 @@ pjm::pjm(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&ppconc)
 {
     pconc = ppconc;
     
-    if((p->F80==0||p->A10==55) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==0)
 	pd = new density_f(p);
     
-    if((p->F80==0||p->A10==55) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
+    if((p->F80==0) && p->H10==0 && p->W30==0  && p->F300==0 && p->W90==0 && p->X10==1)  
 	pd = new density_df(p);
     
 	if(p->F80==0 && p->H10==0 && p->W30==1  && p->F300==0 && p->W90==0)
@@ -124,6 +124,7 @@ void pjm::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
 
 void pjm::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 {	
+    if(p->j_dir==1)
     VLOOP
     {
     vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((a->press(i,j+1,k)-a->press(i,j,k))
@@ -151,9 +152,9 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
     count=0;
     LOOP
     {
-    a->rhsvec.V[count] =  -(u(i,j,k)-u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
-                          -(v(i,j,k)-v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])
-                          -(w(i,j,k)-w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
+    a->rhsvec.V[count] =  -(u.V[IJK] - u.V[Im1JK])/(alpha*p->dt*p->DXN[IP])
+                          -(v.V[IJK] - v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])*p->y_dir
+                          -(w.V[IJK] - w.V[IJKm1])/(alpha*p->dt*p->DZN[KP]);
     
     ++count;
     }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -155,6 +155,8 @@ void hypre_struct::fill_matrix9(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 	{
 		FPWDCHECK
 		values[count] = f[FIJK];
+        
+        //cout<< f[FIJK]<<endl;
 		
 		FSWDCHECK
 		values[count] = 0.0;

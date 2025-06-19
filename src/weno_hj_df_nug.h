@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef WENO_HJ_DF_NUG_H_
+#define WENO_HJ_DF_NUG_H_
+
 #include"convection.h"
 #include"weno_nug_func.h"
 
 class flux;
-
-#ifndef WENO_HJ_DF_NUG_H_
-#define WENO_HJ_DF_NUG_H_
 
 using namespace std;
 
@@ -86,6 +86,13 @@ private:
 	void iqmax_5(lexer*, fdm*, field&, field&, int);
 	void jqmax_5(lexer*, fdm*, field&, field&, int);
 	void kqmax_5(lexer*, fdm*, field&, field&, int);
+    
+    void iqmin_6(lexer*, fdm*, field&, field&, int);
+	void jqmin_6(lexer*, fdm*, field&, field&, int);
+	void kqmin_6(lexer*, fdm*, field&, field&, int);
+	void iqmax_6(lexer*, fdm*, field&, field&, int);
+	void jqmax_6(lexer*, fdm*, field&, field&, int);
+	void kqmax_6(lexer*, fdm*, field&, field&, int);
 
 
 	double L,grad;
@@ -111,7 +118,7 @@ private:
     
     const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
 	const double sixten,treten;
-	const double epsilon,smallnum;
+	const double epsilon;
 };
 
 #endif

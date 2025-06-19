@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FNPF_VOID_H_
+#define FNPF_VOID_H_
+
 #include"fnpf.h"
 
 using namespace std;
-
-#ifndef FNPF_VOID_H_
-#define FNPF_VOID_H_
 
 class fnpf_void : public fnpf
 {
@@ -33,7 +33,7 @@ public:
 	fnpf_void();
 	virtual ~fnpf_void();
     
-    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*,onephase*);
+    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*);
     virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*);
     virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*);
     

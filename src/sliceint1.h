@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sliceint.h"
-#include"increment.h"
 
 #ifndef SLICEINT1_H_
 #define SLICEINT1_H_
+
+#include"sliceint.h"
+#include"increment.h"
 
 using namespace std;
 
@@ -43,16 +44,13 @@ public:
 	int di,dj;
 	int imin,imax,jmax,jmin;
 
-	int ***gcfeld;
-
 private:
 
 	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
 	void fieldlength(lexer *);
 
     int iter;
-	int gcfeldsize,feldsize;
+	int feldsize;
 	
 	int rank, gcsl_extra;
 	

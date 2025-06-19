@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MOMENTUM_VOID_H_
+#define MOMENTUM_VOID_H_
+
 #include"momentum.h"
 
 using namespace std;
-
-#ifndef MOMENTUM_VOID_H_
-#define MOMENTUM_VOID_H_
 
 class momentum_void : public momentum
 {
@@ -33,9 +33,6 @@ public:
 	momentum_void();
 	virtual ~momentum_void();
 	virtual void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*,vector<net*>&);
-    virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
 
 private:
 };

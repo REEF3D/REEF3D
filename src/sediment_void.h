@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_VOID_H_
+#define SEDIMENT_VOID_H_
+
 #include"sediment.h"
 
 using namespace std;
-
-#ifndef SEDIMENT_VOID_H_
-#define SEDIMENT_VOID_H_
 
 class sediment_void : public sediment
 {
@@ -35,8 +35,13 @@ public:
     
     virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
     virtual void ini_cfd(lexer*,fdm*,ghostcell*);
-    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
     virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*);
+    virtual void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*);
+    
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
+    virtual void ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    virtual void start_susp_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*);
+    virtual void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*);
     
     virtual void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
     virtual void ini_sflow(lexer*, fdm2D*, ghostcell*);
@@ -45,7 +50,7 @@ public:
     // ---
 	
     virtual void relax(lexer*,ghostcell*);
-	virtual double bedshear_point(lexer*,fdm*,ghostcell*);
+	virtual double bedshear_point(lexer*,ghostcell*);
     
     virtual double qbeval(int,int);
     virtual void qbeget(int,int,double);
@@ -53,6 +58,8 @@ public:
     virtual double bedzhval(int,int);
     
     virtual void ctimesave(lexer*, fdm*);
+    
+    virtual void print_probes(lexer*, ghostcell*,sediment_fdm*, ioflow*){};
     
     virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&);
     virtual void print_3D_bedload(lexer*, ghostcell*,ofstream&);

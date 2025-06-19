@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,12 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDPROBE_LINE_Y_H_
+#define BEDPROBE_LINE_Y_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
 
 class lexer;
-class fdm;
+class sediment_fdm;
 class ghostcell;
 class field;
 class ioflow;
@@ -33,20 +36,17 @@ class wave_theory;
 
 using namespace std;
 
-#ifndef BEDPROBE_LINE_Y_H_
-#define BEDPROBE_LINE_Y_H_
-
 class bedprobe_line_y : public boundarycheck
 {
 public:
-    bedprobe_line_y(lexer*,fdm*,ghostcell*);
+    bedprobe_line_y(lexer*,ghostcell*,sediment_fdm*);
 	virtual ~bedprobe_line_y();
 
-	void start(lexer*, fdm*, ghostcell*,ioflow*);
+	void start(lexer*, ghostcell*,sediment_fdm*, ioflow*);
 
 
 private:
-    void ini_location(lexer*, fdm*, ghostcell*);
+    void ini_location(lexer*, ghostcell*,sediment_fdm*);
     void sort(double*, double*, int*, int,int);
     void remove_multientry(lexer*,double*, double*, int*, int&);
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FDM_NHF_H_
+#define FDM_NHF_H_
+
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
@@ -34,9 +37,6 @@ Author: Hans Bihs
 
 class lexer;
 
-#ifndef FDM_NHF_H_
-#define FDM_NHF_H_
-
 using namespace std;
 
 class fdm_nhf : public increment
@@ -49,6 +49,7 @@ public:
     
     slice4 eta,eta_n,WL,detadt,detadt_n;
     slice4 bed,depth;
+    slice4 solidbed,topobed;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;
     
@@ -58,9 +59,11 @@ public:
     slice4 Bxx,Byy;
     
     slice4 hx,hy;
+    slice4 ks;
     slice4 coastline;
     slice4 vb;
     slice4 test2D;
+    slice4 fs;
     
     slice4 breaking_print,Hs;
     
@@ -73,10 +76,14 @@ public:
     double *U,*V,*W,*omegaF;
     double *UH,*VH,*WH;
     
-    double *P,*RO,*VISC,*EV;
+    double *P,*RO,*VISC,*EV,*EV0;
     double *F,*G,*H,*L;
     double *porosity;
     double *test;
+    double *KIN;
+    double *CONC;
+    
+    double *SOLID,*FB,*FHB;
     
     double *Fx,*Fy,*Fz;
     double *Fs,*Fn,*Fe,*Fw;

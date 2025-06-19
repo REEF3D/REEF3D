@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,32 +20,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDPROBE_POINT_H_
+#define BEDPROBE_POINT_H_
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
 
 class lexer;
-class fdm;
+class sediment_fdm;
 class ghostcell;
 class field;
 
 using namespace std;
 
-#ifndef BEDPROBE_POINT_H_
-#define BEDPROBE_POINT_H_
-
 class bedprobe_point : public boundarycheck
 {
 public:
-    bedprobe_point(lexer*,fdm*,ghostcell*);
+    bedprobe_point(lexer*, ghostcell*, sediment_fdm*);
 	virtual ~bedprobe_point();
 
-	void bed_gauge(lexer*, fdm*, ghostcell*);
+	void bed_gauge(lexer*, ghostcell*, sediment_fdm*);
 
 
 private:
-    void ini_location(lexer*, fdm*, ghostcell*);
-    void write(lexer*, fdm*, ghostcell*);
+    void ini_location(lexer*, ghostcell*, sediment_fdm*);
+    void write(lexer*, ghostcell*, sediment_fdm*);
     int conv(double);
 
     int *iloc,*jloc,*flag;

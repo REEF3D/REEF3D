@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef SEDIMENT_HEADER_H_
+#define SEDIMENT_HEADER_H_
+
 #include"sediment_f.h"
 #include"sediment_void.h"
 
@@ -29,7 +32,6 @@ Author: Hans Bihs
 #include"reinitopo_RK3.h"
 #include"reinitopo_void.h"
 
-#include"particle_v.h"
-#include"particle_f.h"
+#include"sediment_part.h"
 
-
+#endif

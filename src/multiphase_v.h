@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MULTIPHASE_V_H_
+#define MULTIPHASE_V_H_
+
 class fdm;
 class lexer;
 class convection;
@@ -35,9 +38,6 @@ class field;
 
 using namespace std;
 
-#ifndef MULTIPHASE_V_H_
-#define MULTIPHASE_V_H_
-
 class multiphase_v : public multiphase
 {
 public:
@@ -49,7 +49,6 @@ public:
 	
 	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
 	virtual void print_file(lexer*, fdm*, ghostcell*);
-	virtual void nodefill(lexer*,fdm*,ghostcell*,field&);
     virtual double ls1val(int,int,int);
     virtual double ls2val(int,int,int);
 	virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double);

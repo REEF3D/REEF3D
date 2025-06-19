@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,11 +29,7 @@ sflow_fixtimestep::sflow_fixtimestep(lexer *p, fdm2D *b)
 {
     wd_criterion=0.00005;
     
-    if(p->A244==1)
-    wd_criterion=p->A244_val;
-    
-    if(p->A245==1)
-    wd_criterion=p->A245_val*p->DXM;
+    wd_criterion=p->A244;
 }
 
 sflow_fixtimestep::~sflow_fixtimestep()

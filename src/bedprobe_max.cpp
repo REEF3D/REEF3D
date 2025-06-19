@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,25 +22,35 @@ Author: Hans Bihs
 
 #include"bedprobe_max.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"sediment_fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-bedprobe_max::bedprobe_max(lexer *p, fdm* a, ghostcell *pgc)
+bedprobe_max::bedprobe_max(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
-	mkdir("./REEF3D_CFD_SedimentMax",0777);
+	if(p->mpirank==0 && p->A10==2)
+	mkdir("./REEF3D_SFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==5)
+	mkdir("./REEF3D_NHFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==6)
+	mkdir("./REEF3D_CFD_Sediment",0777);
 	
     if(p->mpirank==0 && p->P122>0)
     {
     // open file
-	if(p->P14==0)
-    wsfout.open("REEF3D-CFD-Sediment-Max.dat");
-	
-	if(p->P14==1)
-	wsfout.open("./REEF3D_CFD_SedimentMax/REEF3D-CFD-Sediment-Max.dat");
+    
+    if(p->A10==2)
+	wsfout.open("./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Max.dat");
+    
+    if(p->A10==5)
+	wsfout.open("./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Max.dat");
+    
+    if(p->A10==6)
+	wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Max.dat");
 
     wsfout<<"time  maximum erosion"<<endl<<endl;
     }
@@ -51,7 +61,7 @@ bedprobe_max::~bedprobe_max()
     wsfout.close();
 }
 
-void bedprobe_max::bed_max(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_max::bed_max(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     // write to file
     if(p->mpirank==0)

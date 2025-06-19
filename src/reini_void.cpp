@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,14 +33,3 @@ reini_void::~reini_void()
 void reini_void::start(fdm* a,lexer* p,field& b, ghostcell* pgc,ioflow* pflow)
 {
 }
-
-void reini_void::startV(fdm* a,lexer* p,vec &f, ghostcell* pgc,ioflow* pflow)
-{ 
-    
-}
-
-void reini_void::update(fdm* a, lexer* p,ghostcell* pgc)
-{
-}
-
-

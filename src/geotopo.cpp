@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,14 +40,6 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, reinitopo* 
     dat(p,a,pgc);
     
     preto->start(p,a,pgc,a->topo);
-    
-    if(p->G3==0)
-    {
-        if(p->S10!=2)
-        pgc->topo_update(p,a);
-        
-        pflow->gcio_update(p,a,pgc);
-    }
     
     if(p->S10==2)
     pflow->vrans_sed_update(p,a,pgc,pvrans);

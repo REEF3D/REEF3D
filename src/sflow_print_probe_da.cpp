@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -35,7 +35,7 @@ sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) :
 	p->Iarray(flag,probenum);
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_ProbePoint",0777);
 	
 	pout = new ofstream[probenum];
@@ -46,10 +46,6 @@ sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) :
 		// open file
 		for(n=0;n<probenum;++n)
 		{
-		if(p->P14==0)
-		sprintf(name,"REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
-		
-		if(p->P14==1)
 		sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
 		
 		pout[n].open(name);
@@ -66,6 +62,11 @@ sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) :
     }
 	
     ini_location(p,b,pgc);
+    
+    // close
+    if(p->mpirank==0)
+    for(n=0;n<probenum;++n)
+    pout[n].close();
 }
 
 sflow_print_probe_da::~sflow_print_probe_da()
@@ -77,7 +78,20 @@ sflow_print_probe_da::~sflow_print_probe_da()
 void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	double xp,yp;
+    
+    
+    
+    // open
+    if(p->mpirank==0)
+    for(n=0;n<probenum;++n)
+    {
+    sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
+        
+    pout[n].open(name, std::ofstream::out | std::ofstream::app);
+    }
 	
+    
+    // find values and write
 	for(n=0;n<probenum;++n)
 	{
 	uval=vval=wval=pval=eval=-1.0e20;
@@ -103,7 +117,11 @@ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 	if(p->mpirank==0)
 	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<endl;
 	}
-			
+    
+    // close
+    if(p->mpirank==0)
+    for(n=0;n<probenum;++n)
+    pout[n].close();
 }
 
 void sflow_print_probe_da::write(lexer *p, fdm2D *b, ghostcell *pgc)

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,7 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LES_IO_H_
+#define LES_IO_H_
+
 #include"turbulence.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
 #include"field4.h"
 #include"strain.h"
 #include<fstream>
@@ -30,9 +36,6 @@ class fdm;
 class ghostcell;
 
 using namespace std;
-
-#ifndef LES_IO_H_
-#define LES_IO_H_
 
 class les_io : public turbulence, public strain
 {

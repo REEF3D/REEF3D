@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BC_CONCENTRATION_H_
+#define BC_CONCENTRATION_H_
+
 #include"increment.h"
 
 class lexer;
 class fdm;
 class field;
 class ghostcell;
-
-#ifndef BC_CONCENTRATION_H_
-#define BC_CONCENTRATION_H_
 
 using namespace std;
 

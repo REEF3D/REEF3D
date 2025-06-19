@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,21 +24,31 @@ Authors: Hans Bihs, Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
-#include"flux_HJ_CDS4.h"
 #include"flux_HJ_CDS2_vrans.h"
+#include"flux_HJ_CDS2_2D.h"
+#include"flux_HJ_CDS2_vrans_2D.h"
 
 weno_hj_df_nug::weno_hj_df_nug(lexer* p):weno_nug_func(p),tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
-			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001),smallnum(1.0e-20)
+			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001)
 {
-    if(p->B269==0 && p->D11!=4)
-    pflux = new flux_HJ_CDS2(p);
+    if(p->j_dir==0)
+    {
+    if(p->B269==0 && p->S10!=2)
+    pflux = new flux_HJ_CDS2_2D(p);
     
-    if(p->B269==0 && p->D11==4)
-    pflux = new flux_HJ_CDS4(p);
+    if(p->B269>=1 || p->S10==2)
+    pflux = new flux_HJ_CDS2_vrans_2D(p);
+    }
+    
+    if(p->j_dir==1)
+    {
+    if(p->B269==0 && p->S10!=2)
+    pflux = new flux_HJ_CDS2(p);
     
     if(p->B269>=1 || p->S10==2)
     pflux = new flux_HJ_CDS2_vrans(p);
+    }
 }
 
 weno_hj_df_nug::~weno_hj_df_nug()
@@ -55,7 +65,8 @@ void weno_hj_df_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fi
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXN,p->DYP,p->DZP);
     }
-
+    
+    if(p->j_dir==1)
     if(ipol==2)
     {
     vf=1;
@@ -71,7 +82,7 @@ void weno_hj_df_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fi
     }
 
     if(ipol==4)
-    FLUIDLOOP
+    LOOP
     a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXP,p->DYP,p->DZP);
     
     if(ipol==5)
@@ -123,6 +134,9 @@ double weno_hj_df_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, doub
     if(p->X45==5)
 	iqmin_5(p,a,b,uvel,ipol);
     
+    if(p->X45==6)
+	iqmin_6(p,a,b,uvel,ipol);
+    
 	is_min_x();
 	weight_min_x();
     
@@ -165,6 +179,9 @@ double weno_hj_df_nug::fx(lexer *p,fdm *a, field& b, field& uvel, int ipol, doub
     if(p->X45==5)
 	iqmax_5(p,a,b,uvel,ipol);
     
+    if(p->X45==6)
+	iqmax_6(p,a,b,uvel,ipol);
+    
 	is_max_x();
 	weight_max_x();
     
@@ -202,6 +219,9 @@ double weno_hj_df_nug::fy(lexer *p,fdm *a, field& b, field& vvel, int ipol, doub
     if(p->X45==5)
 	jqmin_5(p,a,b,vvel,ipol);
     
+    if(p->X45==6)
+	jqmin_6(p,a,b,vvel,ipol);
+    
 	is_min_y();
 	weight_min_y();
 	
@@ -231,6 +251,9 @@ double weno_hj_df_nug::fy(lexer *p,fdm *a, field& b, field& vvel, int ipol, doub
     
     if(p->X45==5)
 	jqmax_5(p,a,b,vvel,ipol);
+    
+    if(p->X45==6)
+	jqmax_6(p,a,b,vvel,ipol);
     
 	is_max_y();
 	weight_max_y();
@@ -269,6 +292,9 @@ double weno_hj_df_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, doub
     if(p->X45==5)
 	kqmin_5(p,a,b,wvel,ipol);
     
+    if(p->X45==6)
+	kqmin_6(p,a,b,wvel,ipol);
+    
 	is_min_z();
 	weight_min_z();
 	
@@ -299,6 +325,9 @@ double weno_hj_df_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, doub
     if(p->X45==5)
 	kqmax_5(p,a,b,wvel,ipol);
     
+    if(p->X45==6)
+	kqmax_6(p,a,b,wvel,ipol);
+    
 	is_max_z();
 	weight_max_z();
 	
@@ -314,56 +343,56 @@ double weno_hj_df_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, doub
 
 void weno_hj_df_nug::iqmin_0(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {	
-	q1 = (f(i-2,j,k)-f(i-3,j,k))/DX[IM3];
-	q2 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
-	q3 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
-	q4 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
-	q5 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
+	q1 = (f.V[Im2JK] - f.V[Im3JK])/DX[IM3];
+	q2 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
+	q3 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
+	q4 = (f.V[Ip1JK] - f.V[IJK]  )/DX[IP];
+	q5 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
 }
 
 void weno_hj_df_nug::jqmin_0(lexer *p,fdm *a, field& f, field& vvel, int ipol)
 {
-	q1 = (f(i,j-2,k)-f(i,j-3,k))/DY[JM3];
-	q2 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
-	q3 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
-	q4 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
-	q5 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
+	q1 = (f.V[IJm2K] - f.V[IJm3K])/DY[JM3];
+	q2 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
+	q3 = (f.V[IJK]   - f.V[IJm1K])/DY[JM1];
+	q4 = (f.V[IJp1K] - f.V[IJK]  )/DY[JP];
+	q5 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
 }
 
 void weno_hj_df_nug::kqmin_0(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 {
-	q1 = (f(i,j,k-2)-f(i,j,k-3))/DZ[KM3];
-	q2 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
-	q3 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
-	q4 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
-	q5 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
+	q1 = (f.V[IJKm2] - f.V[IJKm3])/DZ[KM3];
+	q2 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
+	q3 = (f.V[IJK]   - f.V[IJKm1])/DZ[KM1];
+	q4 = (f.V[IJKp1] - f.V[IJK]  )/DZ[KP];
+	q5 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
 }
 
 void weno_hj_df_nug::iqmax_0(lexer *p,fdm *a, field& f, field& uvel, int ipol)
 {
-    q1 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
-	q2 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
-	q3 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
-	q4 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
-	q5 = (f(i+3,j,k)-f(i+2,j,k))/DX[IP2];
+    q1 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
+	q2 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
+	q3 = (f.V[Ip1JK] - f.V[IJK]  )/DX[IP];
+	q4 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
+	q5 = (f.V[Ip3JK] - f.V[Ip2JK])/DX[IP2];
 }
 
 void weno_hj_df_nug::jqmax_0(lexer *p,fdm *a, field& f, field& vvel, int ipol)
 {
-	q1 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
-	q2 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
-	q3 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
-	q4 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
-	q5 = (f(i,j+3,k)-f(i,j+2,k))/DY[JP2];
+	q1 = (f.V[IJm1K] - f.V[IJm2K])/DY[JM2];
+	q2 = (f.V[IJK]   - f.V[IJm1K])/DY[JM1];
+	q3 = (f.V[IJp1K] - f.V[IJK]  )/DY[JP];
+	q4 = (f.V[IJp2K] - f.V[IJp1K])/DY[JP1];
+	q5 = (f.V[IJp3K] - f.V[IJp2K])/DY[JP2];
 }
 
 void weno_hj_df_nug::kqmax_0(lexer *p,fdm *a, field& f, field& wvel, int ipol)
 {
-	q1 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
-	q2 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
-	q3 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
-	q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
-	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
+	q1 = (f.V[IJKm1] - f.V[IJKm2])/DZ[KM2];
+	q2 = (f.V[IJK]   - f.V[IJKm1])/DZ[KM1];
+	q3 = (f.V[IJKp1] - f.V[IJK]  )/DZ[KP];
+	q4 = (f.V[IJKp2] - f.V[IJKp1])/DZ[KP1];
+	q5 = (f.V[IJKp3] - f.V[IJKp2])/DZ[KP2];
 }
 
 void weno_hj_df_nug::iqmin_1(lexer *p,fdm *a, field& f, field& uvel, int ipol)
@@ -833,6 +862,127 @@ void weno_hj_df_nug::kqmax_5(lexer *p,fdm *a, field& f, field& wvel, int ipol)
     
     if(a->solid(i,j,k+3)>0.0 && a->topo(i,j,k+3)>0.0 && a->solid(i,j,k+2)>0.0 && a->topo(i,j,k+2)>0.0)
 	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
+}
+
+
+void weno_hj_df_nug::iqmin_6(lexer *p,fdm *a, field& f, field& uvel, int ipol)
+{
+    q1=q2=q3=q4=q5=1.0e20;
+
+    if(a->fbh4(i-2,j,k)  < 0.5 && a->fbh4(i-3,j,k)  < 0.5)
+        q1 = (f(i-2,j,k)-f(i-3,j,k))/DX[IM3];
+
+    if(a->fbh4(i-1,j,k)  < 0.5 && a->fbh4(i-2,j,k)  < 0.5)
+    q2 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
+
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i-1,j,k)  < 0.5)
+        q3 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
+
+    if(a->fbh4(i+1,j,k)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
+        q4 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
+
+    if(a->fbh4(i+2,j,k)  < 0.5 && a->fbh4(i+1,j,k)  < 0.5)
+        q5 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
+}
+
+void weno_hj_df_nug::jqmin_6(lexer *p,fdm *a, field& f, field& vvel, int ipol)
+{
+    q1=q2=q3=q4=q5=1.0e20;
+
+    if(a->fbh4(i,j-2,k)  < 0.5 && a->fbh4(i,j-3,k)  < 0.5)
+    q1 = (f(i,j-2,k)-f(i,j-3,k))/DY[JM3];
+
+    if(a->fbh4(i,j-1,k)  < 0.5 && a->fbh4(i,j-2,k)  < 0.5)
+    q2 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
+
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i,j-1,k)  < 0.5)
+    q3 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
+
+    if(a->fbh4(i,j+1,k)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
+    q4 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
+
+    if(a->fbh4(i,j+2,k)  < 0.5 && a->fbh4(i,j+1,k)  < 0.5)
+    q5 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
+}
+
+void weno_hj_df_nug::kqmin_6(lexer *p,fdm *a, field& f, field& wvel, int ipol)
+{
+    q1=q2=q3=q4=q5=1.0e20;
+
+    if(a->fbh4(i,j,k-2)  < 0.5 && a->fbh4(i,j,k-3)  < 0.5)
+    q1 = (f(i,j,k-2)-f(i,j,k-3))/DZ[KM3];
+
+    if(a->fbh4(i,j,k-1)  < 0.5 && a->fbh4(i,j,k-2)  < 0.5)
+    q2 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
+
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i,j,k-1)  < 0.5)
+    q3 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
+
+    if(a->fbh4(i,j,k+1)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
+    q4 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
+
+    if(a->fbh4(i,j,k+2)  < 0.5 && a->fbh4(i,j,k+1)  < 0.5)
+    q5 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
+}
+
+void weno_hj_df_nug::iqmax_6(lexer *p,fdm *a, field& f, field& uvel, int ipol)
+{
+    q1=q2=q3=q4=q5=1.0e20;
+
+    if(a->fbh4(i-1,j,k)  < 0.5 && a->fbh4(i-2,j,k)  < 0.5)
+    q1 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
+
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i-1,j,k)  < 0.5)
+    q2 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
+
+    if(a->fbh4(i+1,j,k)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
+    q3 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
+
+    if(a->fbh4(i+2,j,k)  < 0.5 && a->fbh4(i+1,j,k)  < 0.5)
+    q4 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
+
+    if(a->fbh4(i+3,j,k)  < 0.5 && a->fbh4(i+2,j,k)  < 0.5)
+    q5 = (f(i+3,j,k)-f(i+2,j,k))/DX[IP2];
+}
+
+void weno_hj_df_nug::jqmax_6(lexer *p,fdm *a, field& f, field& vvel, int ipol)
+{
+    q1=q2=q3=q4=q5=1.0e20;
+
+    if(a->fbh4(i,j-1,k)  < 0.5 && a->fbh4(i,j-2,k)  < 0.5)
+    q1 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
+
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i,j-1,k)  < 0.5)
+    q2 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
+
+    if(a->fbh4(i,j+1,k)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
+    q3 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
+
+    if(a->fbh4(i,j+2,k)  < 0.5 && a->fbh4(i,j+1,k)  < 0.5)
+    q4 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
+
+    if(a->fbh4(i,j+3,k)  < 0.5 && a->fbh4(i,j+2,k)  < 0.5)
+    q5 = (f(i,j+3,k)-f(i,j+2,k))/DY[JP2];
+}
+
+void weno_hj_df_nug::kqmax_6(lexer *p,fdm *a, field& f, field& wvel, int ipol)
+{
+    q1=q2=q3=q4=q5=1.0e20;
+
+    if(a->fbh4(i,j,k-1)  < 0.5 && a->fbh4(i,j,k-2)  < 0.5)
+    q1 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
+
+    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i,j,k-1)  < 0.5)
+    q2 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
+
+    if(a->fbh4(i,j,k+1)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
+    q3 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
+
+    if(a->fbh4(i,j,k+2)  < 0.5 && a->fbh4(i,j,k+1)  < 0.5)
+    q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
+
+    if(a->fbh4(i,j,k+3)  < 0.5 && a->fbh4(i,j,k+2)  < 0.5)
+    q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
 
 void weno_hj_df_nug::is()

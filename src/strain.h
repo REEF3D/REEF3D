@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,44 +20,42 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-
-class ghostcell;
-class fieldint;
-
 #ifndef STRAIN_H_
 #define STRAIN_H_
 
-using namespace std;
+#include"gradient.h"
+
+class lexer;
+class fdm;
+class ghostcell;
+class field;
+class fieldint;
 
 class strain : public gradient
 {
 
 public:
-	strain (lexer*,fdm*);
-	virtual ~strain();
+    strain(lexer*);
+    virtual ~strain()=default;
 
 	double sij(lexer*,fdm*,int,int);
 	double qij(lexer*,fdm*,int,int);
-	double pk(lexer*,fdm*);
-	double pk_k(lexer*,fdm*);
-	double pk_w(lexer*,fdm*);
-	void Pk_update(lexer*,fdm*,ghostcell*);
-	void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
-	virtual double strainterm(lexer*,fdm*);
-    virtual double strainterm(lexer*,field&,field&,field&);
-	virtual double rotationterm(lexer*,fdm*);
-    virtual double rotationterm(lexer*,field&,field&,field&);
-	virtual double magSqrSd(lexer*,fdm*);
-    virtual double magSqrSd(lexer*,field&,field&,field&);
-	double strainplain(lexer*,fdm*);
-	field4 Pk;
+	double pk(lexer*,fdm*,field&);
+    double pk_b(lexer*,fdm*,field&);
+
+    void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
+    double strainterm(lexer*,fdm*);
+    double strainterm(lexer*,field&,field&,field&);
+    double rotationterm(lexer*,fdm*);
+    double rotationterm(lexer*,field&,field&,field&);
+    double magSqrSd(lexer*,fdm*);
+    double magSqrSd(lexer*,field&,field&,field&);
+    double strainplain(lexer*,fdm*);
 
 private:
+    void symmetricStrainRateTensor(lexer*,field&,field&,field&);
+    void skewSymmetricStrainRateTensor(lexer*,field&,field&,field&);
+    
     double s11,s22,s33,s12,s13,s23;
     double r11,r22,r33,r12,r13,r23;
     double ss11,ss22,ss33,ss12,ss13,ss23;
@@ -65,8 +63,6 @@ private:
     double q11,q22,q33,q12,q13,q23;
 	double pkterm,s,q,val;
 	const double epsi;
-
-    
 
 };
 

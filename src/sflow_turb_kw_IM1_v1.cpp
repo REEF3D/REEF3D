@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"sflow_idiff.h"
 #include"solver2D.h"
 #include"sflow_iweno_hj.h"
+#include"sflow_ifou.h"
 
 
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
@@ -38,7 +39,8 @@ sflow_turb_kw_IM1_v1::sflow_turb_kw_IM1_v1(lexer* p) : sflow_turb_io(p), kn(p), 
     gcval_kin=20;
 	gcval_eps=30;
     
-    pconvec = new sflow_iweno_hj(p);
+    //pconvec = new sflow_iweno_hj(p);
+    pconvec = new sflow_ifou(p);
     pdiff = new sflow_idiff(p);
 }
 
@@ -158,7 +160,7 @@ void sflow_turb_kw_IM1_v1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
     
-    S(i,j) = sqrt(pow(dudx,2.0) + pow(dvdy,2.0) + 0.5*pow(dudy+dvdx,2.0));
+    S(i,j) = sqrt(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
     
     Qw(i,j) = sqrt(fabs(0.5*(dudy - dvdx)*(dvdx - dudy)));
     

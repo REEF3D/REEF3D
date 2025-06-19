@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -44,6 +44,11 @@ nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, 
     
     if(p->F50==4)
 	gcval_eta = 54;
+
+    SLICELOOP4
+    p->flagfsf[IJ]=1;
+    
+    pgc->gcslflagx(p,p->flagfsf);
 }
 
 nhflow_fsf_f::~nhflow_fsf_f()
@@ -67,8 +72,10 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     WETDRY
     K(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
     
+    
     SLICELOOP4
     WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
+    
      
     pflow->WL_relax(p,pgc,WLRK1,d->depth);
     pflow->fsfinflow_nhflow(p,d,pgc,WLRK1);
@@ -89,8 +96,10 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
     
-    wetdry(p,d,pgc,U,V,W,WLRK1);
-    //breaking(p,d,pgc,d->eta,d->eta_n,1.0);
+    pgc->solid_forcing_eta(p,WLRK1);
+    pgc->solid_forcing_eta(p,d->eta);
+    
+    wetdry(p,d,pgc,U,V,W,WLRK1); 
 }
 
 void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
@@ -104,7 +113,7 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     SLICELOOP4
     d->WL(i,j) = 0.5*d->WL(i,j) + 0.5*WLRK1(i,j) + 0.5*p->dt*K(i,j);
-
+    
     pflow->WL_relax(p,pgc,d->WL,d->depth);
     pflow->fsfinflow_nhflow(p,d,pgc,d->WL);
     pgc->gcsl_start4(p,d->WL,gcval_eta);
@@ -124,17 +133,9 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,d->detadt,1);
     
-    wetdry(p,d,pgc,U,V,W,d->WL);
-    //breaking(p,d,pgc,d->eta,d->eta_n,1.0);
-}
-
-void nhflow_fsf_f::flux_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& etark1, slice &etark2, double alpha)
-{    
-    SLICELOOP4
-    K(i,j) = 0.0;
+    pgc->solid_forcing_eta(p,d->WL);
+    pgc->solid_forcing_eta(p,d->eta);
     
-    LOOP
-    K(i,j) += - p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+    wetdry(p,d,pgc,U,V,W,d->WL); 
 }
-
 

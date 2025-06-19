@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDPROBE_MAX_H_
+#define BEDPROBE_MAX_H_
+
+class sediment_fdm;
+
 #include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
@@ -31,16 +36,13 @@ class field;
 
 using namespace std;
 
-#ifndef BEDPROBE_MAX_H_
-#define BEDPROBE_MAX_H_
-
 class bedprobe_max : public boundarycheck
 {
 public:
-    bedprobe_max(lexer*,fdm*,ghostcell*);
+    bedprobe_max(lexer*,ghostcell*,sediment_fdm*);
 	virtual ~bedprobe_max();
 
-	void bed_max(lexer*, fdm*, ghostcell*);
+	void bed_max(lexer*, ghostcell*, sediment_fdm*);
 
 
 private:

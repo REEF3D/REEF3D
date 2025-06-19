@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"strain.h"
 
-LES_filter_f1::LES_filter_f1(lexer* p, fdm* a) : strain(p,a), ubar(p), vbar(p), wbar(p), etta_u1(p), etta_v1(p), etta_w1(p), etta_u2(p), etta_v2(p), etta_w2(p)
+LES_filter_f1::LES_filter_f1(lexer* p, fdm* a) : strain(p), ubar(p), vbar(p), wbar(p), etta_u1(p), etta_v1(p), etta_w1(p), etta_u2(p), etta_v2(p), etta_w2(p)
 {
 
 }

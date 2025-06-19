@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -25,13 +25,34 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &ws)
+void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &P, slice &Q, slice &ws)
 {
-    if(p->A243>=1)
-    {
+    SLICELOOP4
+    if(eta(i,j)< -p->wd  + b->bed(i,j) - wd_criterion + 1.0e-20)
+    eta(i,j) = -p->wd  + b->bed(i,j)   - wd_criterion - 1.0e-15;
+
+    
+    // WL update
+	SLICELOOP4
+	b->hp(i,j) = MAX(eta(i,j) + p->wd - b->bed(i,j),0.0);
+    
+	pgc->gcsl_start4(p,b->hp,gcval_eta);
+
+    
+    SLICELOOP1
+    b->hx(i,j) = MAX(b->hx(i,j), 0.0);
+    
+    SLICELOOP2
+    b->hy(i,j) = MAX(b->hy(i,j), 0.0);
+    
+
+	pgc->gcsl_start1(p,b->hx,gcval_eta);    
+	pgc->gcsl_start2(p,b->hy,gcval_eta);
+    
+    
+    
       SLICELOOP4
       {
-          
           if(b->hp(i,j)>=wd_criterion)
           p->wet[IJ]=1;
               
@@ -73,6 +94,7 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
       }
     pgc->gcsl_start1int(p,b->wet1,50);
     pgc->gcsl_start2int(p,b->wet2,50);
+    
       
     // gcslin update
     if(p->count<=1)
@@ -86,7 +108,4 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
         p->gcslin[n][5]=0;
         }
     }
-    
-    }
-    
 }

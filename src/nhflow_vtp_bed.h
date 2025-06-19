@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,17 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_VTP_BED_H_
+#define NHFLOW_VTP_BED_H_
+
 #include"increment.h"
 
 class lexer;
 class fdm_nhf;
 class ghostcell;
 class ioflow;
+class sediment;
 
 using namespace std;
-
-#ifndef NHFLOW_VTP_BED_H_
-#define NFHLOW_VTP_BED_H_
 
 class nhflow_vtp_bed : public increment
 {
@@ -38,13 +39,13 @@ public:
 	nhflow_vtp_bed(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vtp_bed();
 	
-    virtual void start(lexer*,fdm_nhf*,ghostcell*);
-    virtual void print2D(lexer*,fdm_nhf*,ghostcell*);
+    virtual void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    virtual void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
 	
 private:
 	
 	void etend(lexer*,fdm_nhf*,ghostcell*);
-	void pvtu(lexer*,fdm_nhf*,ghostcell*);
+	void pvtu(lexer*,fdm_nhf*,ghostcell*,sediment*);
 	void name_iter(lexer*,fdm_nhf*,ghostcell*);
     void piecename(lexer*,fdm_nhf*,ghostcell*,int);
 	

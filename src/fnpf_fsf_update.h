@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -15,26 +15,25 @@ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/liceonephases/>.
+along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+
+#ifndef FNPF_FSF_UPDATE_H_
+#define FNPF_FSF_UPDATE_H_
 
 #include"increment.h"
 
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-class onephase;
 class ioflow;
 class slice;
 class field;
 class vec;
 
 using namespace std;
-
-#ifndef FNPF_FSF_UPDATE_H_
-#define FNPF_FSF_UPDATE_H_
 
 class fnpf_fsf_update : public increment
 {
@@ -43,7 +42,7 @@ public:
 	virtual ~fnpf_fsf_update();
     
     virtual void fsfepol(lexer*, fdm_fnpf*, ghostcell*,slice&,field&);
-	virtual void fsfupdate(lexer*, fdm_fnpf*, ghostcell*,ioflow*,onephase*,slice&);
+	virtual void fsfupdate(lexer*, fdm_fnpf*, ghostcell*,ioflow*,slice&);
     virtual void etaloc_sig(lexer*, fdm_fnpf*, ghostcell*);
     virtual void etaloc(lexer*, fdm_fnpf*, ghostcell*);
     virtual void fsfbc_sig(lexer*, fdm_fnpf*, ghostcell*,slice&,double*);

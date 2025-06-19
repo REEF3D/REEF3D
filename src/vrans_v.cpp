@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,7 +37,7 @@ void vrans_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void vrans_v::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void vrans_v::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,13 +30,6 @@ Author: Hans Bihs
 	
 void multiphase_f::print_3D(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-	pgc->dgcpol(p,ls1,p->dgc4,p->dgc4_count,14);
-    ls1.ggcpol(p);
-    pgc->dgcpol(p,ls2,p->dgc4,p->dgc4_count,14);
-    ls2.ggcpol(p);
-	pgc->dgcpol(p,a->ro,p->dgc4,p->dgc4_count,14);
-    a->ro.ggcpol(p);
-
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
 
@@ -75,11 +68,6 @@ void multiphase_f::print_file(lexer *p, fdm *a, ghostcell *pgc)
 	
 	if(p->P352>0)
     pwsf2->height_gauge(p,a,pgc,ls2);	
-}
-
-void multiphase_f::nodefill(lexer *p, fdm *a, ghostcell *pgc, field &eta)
-{
-	
 }
 
 double multiphase_f::ls1val(int ii, int jj, int kk)

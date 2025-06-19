@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Tobias Martin
+Copyright 2018-2025 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -17,6 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include<sys/stat.h>
@@ -150,7 +151,7 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 
 void fsi_strip::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
 {
-	if(p->mpirank == 0 && p->count%p->X19==0)
+	if(p->mpirank==0 && p->count%p->X19==0)
     {
         ofstream print;
         char str[1000];

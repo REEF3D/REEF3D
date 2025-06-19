@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef VRANS_V_H_
+#define VRANS_V_H_
+
 #include"vrans.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef VRANS_V_H_
-#define VRANS_V_H_
 
 class vrans_v : public vrans, public increment
 {
@@ -34,9 +34,10 @@ public:
 	vrans_v(lexer*, ghostcell*);
 	virtual ~vrans_v();
 
-	virtual void initialize(lexer*, fdm*, ghostcell*);	
+	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);	
 	virtual void start(lexer*, fdm*, ghostcell*, net*&, int){};
     virtual void sed_update(lexer*, fdm*, ghostcell*);
+    virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&){};
 	
 	virtual void u_source(lexer*, fdm*);
 	virtual void v_source(lexer*, fdm*);

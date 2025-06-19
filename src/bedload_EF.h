@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BEDLOAD_EF_H_
+#define BEDLOAD_EF_H_
+
 #include"bedload.h"
 #include"increment.h"
 
 using namespace std;
-
-#ifndef BEDLOAD_EF_H_
-#define BEDLOAD_EF_H_
 
 class bedload_EF : public bedload, public increment
 {
@@ -42,6 +42,7 @@ private:
     double g,d50;
     double visc;
     double kappa,u_plus,ks;
+    double mu_d;
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
 };

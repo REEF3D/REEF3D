@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -78,8 +78,7 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
             if(dg<1.0e20)
             ++upt_count;
 		}
-    }
-    
+    }    
     
     // V ------------------------------------------------
     BASELOOP
@@ -145,7 +144,6 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
     p->Darray(uval,upt_count);
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);
-    p->Darray(etaval,ept_count);
     p->Darray(lsval,ppt_count);
     p->Darray(Fival,ppt_count);
     p->Darray(Fifsfval,ept_count);
@@ -197,7 +195,6 @@ void iowave::wavegen_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     p->Darray(uval,upt_count);
     p->Darray(vval,vpt_count);
     p->Darray(wval,wpt_count);
-    p->Darray(etaval,ept_count);
     p->Darray(lsval,ppt_count);
     p->Darray(Fival,ppt_count);
     p->Darray(Fifsfval,ept_count);

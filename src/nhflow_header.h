@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef NHFLOW_HEADER_H_
+#define NHFLOW_HEADER_H_
+
 #include"nhflow.h"
 #include"nhflow_f.h"
 #include"nhflow_v.h"
@@ -28,19 +31,27 @@ Author: Hans Bihs
 #include"nhflow_fsf_f.h"
 #include"nhflow_fsf_v.h"
 
+#include"nhflow_printer.h"
 #include"nhflow_vtu3D.h"
 #include"nhflow_timestep.h"
 #include"nhflow_momentum.h"
 #include"nhflow_turbulence.h"
 #include"nhflow_komega_void.h"
 #include"nhflow_komega_IM1.h"
+#include"nhflow_LES_Smagorinsky.h"
+#include"nhflow_forcing.h"
 
 #include"nhflow_HLL.h"
 #include"nhflow_HLLC.h"
 #include"nhflow_convection_void.h"
 
+#include"nhflow_scalar_iweno.h"
+#include"nhflow_scalar_ifou.h"
+
 #include"nhflow_diff_void.h"
+#include"nhflow_ediff.h"
 #include"nhflow_idiff.h"
+#include"nhflow_idiff_2D.h"
 
 #include"nhflow_momentum_RK2.h"
 #include"nhflow_momentum_RK3.h"
@@ -54,3 +65,8 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_reconstruct_wenograd.h"
 #include"nhflow_reconstruct_weno.h"
+
+#include"nhflow_potential_v.h"
+#include"nhflow_potential_f.h"
+
+#endif

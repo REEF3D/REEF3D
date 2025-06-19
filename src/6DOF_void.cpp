@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2023 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,28 +37,61 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
     
-sixdof_void::sixdof_void(lexer*,ghostcell*)
+sixdof_void::sixdof_void(lexer *p, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    mkdir("./REEF3D_CFD_6DOF",0777);
 }
 
 sixdof_void::~sixdof_void()
 {
 }
 
-void sixdof_void::start_twoway(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field& uvel, field& vvel, field& wvel, field& fx, field& fy, field& fz, bool finalise)
-{
-}
-
-void sixdof_void::start_oneway(lexer *p, ghostcell *pgc)
-{
-}
-
-void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
-{
-}
-
 void sixdof_void::ini(lexer *p, ghostcell *pgc)
 {
+}
+
+void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
+{
+
+    if (p->X310 > 0)
+    {
+        for (int i=0; i<p->mooring_count; i++)
+        {
+            pmooring[i]->start(p, pgc);
+        }
+    }
+    
+    if (p->X320 > 0)
+    {
+        for (int ii = 0; ii < p->net_count; ii++)
+        {
+            pnet[ii]->start(p, a, pgc, 1.0, quatRotMat);
+            pvrans->start(p, a, pgc, pnet[ii], ii);
+
+            // Forces on rigid body
+            pnet[ii]->netForces(p,Xne[ii],Yne[ii],Zne[ii],Kne[ii],Mne[ii],Nne[ii]);
+
+            if( p->mpirank == 0)
+            {
+                cout<<"Xne"<< ii <<" : "<<Xne[ii]<<" Yne"<< ii <<" : "<<Yne[ii]<<" Zne"<< ii <<" : "<<Zne[ii]
+                <<" Kne"<< ii <<" : "<<Kne[ii]<<" Mne"<< ii <<" : "<<Mne[ii]<<" Nne"<< ii <<" : "<<Nne[ii]<<endl;		
+            }
+        }
+    }
+    
+    ++p->printcount_sixdof;
+}
+
+
+void sixdof_void::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
+                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
+{
+}
+
+void sixdof_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
+{
+    
 }
 
 void sixdof_void::isource(lexer *p, fdm *a, ghostcell *pgc)
@@ -73,18 +106,17 @@ void sixdof_void::ksource(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void sixdof_void::isource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_void::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
 }
 
-void sixdof_void::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_void::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
 }
 
-void sixdof_void::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_void::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
 }
-
 
 void sixdof_void::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {

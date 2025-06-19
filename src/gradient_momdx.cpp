@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,7 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
+
+#include"gradient.h"
 #include"fdm.h"
 #include"lexer.h"
 
@@ -46,14 +47,14 @@ double gradient::udx(fdm* a)
 
 double gradient::udy(fdm* a)
 {
-	grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYP[JP]+p->DXP[IM1]);
+	grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
 
 	return grad;
 }
 
 double gradient::udz(fdm* a)
 {
-	grad = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DZP[KP]+p->DZP[KM1]);
+	grad = (a->u(i,j,k+1) - a->u(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
 
 	return grad;
 }

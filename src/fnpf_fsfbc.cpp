@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -30,7 +30,6 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"solver.h"
 #include"reini.h"
-#include"onephase.h"
 #include"fnpf_voiddisc.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
@@ -120,10 +119,10 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(
     c->wd_criterion=0.00005;
     
     if(p->A344==1)
-    c->wd_criterion=p->A244_val;
+    c->wd_criterion=p->A344_val;
     
     if(p->A345==1)
-    c->wd_criterion=p->A245_val*p->DXM;
+    c->wd_criterion=p->A345_val*p->DXM;
     
     if(p->A350==1)
     psolv =  new sflow_bicgstab(p,pgc);

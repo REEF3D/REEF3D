@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -39,6 +39,21 @@ void rans_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 	
     if(fabs(uref)<1.0e-6)
     uref=0.01;
+    
+    //cout<<"UREF: "<<uref<<endl;
+    /*
+    if(p->T10==2)
+    {
+    
+    
+    LOOP
+    {
+    kin(i,j,k) = (2.0/3.0)*uref*0.07;
+    eps(i,j,k) = 0.16*pow(kin(i,j,k),1.5)/(0.07*p->F60);
+        
+        
+    }
+    }*/
 
     plain_wallfunc(p,a,pgc);
 }

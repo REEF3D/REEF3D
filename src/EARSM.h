@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,15 +19,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+#ifndef EARSM_H_
+#define EARSM_H_
+
 #include"strain.h"
 #include"field4.h"
 
 class fdm;
 
 using namespace std;
-
-#ifndef EARSM_H_
-#define EARSM_H_
 
 class EARSM : private strain
 {

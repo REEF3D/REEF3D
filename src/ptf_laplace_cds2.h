@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef LAPLACE_PTF_CDS2_H_
+#define LAPLACE_PTF_CDS2_H_
+
 #include"ptf_laplace.h"
 #include"increment.h"
 #include"sliceint4.h"
-
-#ifndef LAPLACE_PTF_CDS2_H_
-#define LAPLACE_PTF_CDS2_H_
 
 using namespace std;
 

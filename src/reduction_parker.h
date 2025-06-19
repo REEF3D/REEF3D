@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,7 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedshear_reduction.h"
+
+#ifndef REDUCTION_PARKER_H_
+#define REDUCTION_PARKER_H_
+
+#include"bedshear_reduction.h"
 #include"bedslope.h"
 
 class lexer;
@@ -28,9 +32,6 @@ class ghostcell;
 class sediment_fdm;
 
 using namespace std;
-
-#ifndef REDUCTION_PARKER_H_
-#define REDUCTION_PARKER_H_
 
 class reduction_parker :  public bedshear_reduction, public bedslope
 {

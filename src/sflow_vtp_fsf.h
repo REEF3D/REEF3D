@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,6 +19,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+
+#ifndef SFLOW_VTP_FSF_H_
+#define SFLOW_VTP_FSF_H_
 
 #include"increment.h"
 
@@ -40,9 +43,6 @@ class sflow_state;
 class fnpf_print_Hs;
 
 using namespace std;
-
-#ifndef SFLOW_VTP_FSF_H_
-#define SFLOW_VTP_FSF_H_
 
 class sflow_vtp_fsf : public increment
 {
@@ -74,10 +74,8 @@ private:
     sflow_print_wsfline *pwsfline;
     sflow_print_wsfline_y *pwsfline_y;
     sflow_print_probe_da *pprobe;
-    sflow_print_bed *pbed;
-    sflow_print_bedline *pbedline;
-    sflow_print_bedline_y *pbedline_y;
     sflow_state *pstate;
+    sflow_state *pstate_restart;
     fnpf_print_Hs *phs;
 
 };

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -32,7 +32,7 @@ Author: Hans Bihs
 void sflow_state::write_result(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // Open result file single file
-    if(p->P45==1)
+    if(p->P45==1 || restart==1)
     {
     int num=0;
 
@@ -114,7 +114,6 @@ void sflow_state::write_result(lexer *p, fdm2D *b, ghostcell *pgc)
     result.write((char*)&ffn, sizeof (float));
     } 
     
-	
 	
 	if(p->P45==1)
 	result.close();

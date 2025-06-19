@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,14 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef MOMENTUM_HEADER_H_
+#define MOMENTUM_HEADER_H_
+
 #include"momentum_RK2.h"
 #include"momentum_RK3.h"
+#include"momentum_RK3CN.h"
 #include"momentum_RKLS3.h"
 #include"momentum_FC2.h"
 #include"momentum_FC3.h"
 #include"momentum_FCC3.h"
-#include"momentum_AB2.h"
 #include"momentum_void.h"
 #include"momentum_RKLS3_df.h"
 #include"momentum_RKLS3_sf.h"
 
+#endif

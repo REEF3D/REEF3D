@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef BCMOM_H_
+#define BCMOM_H_
+
 #include"surftens.h"
 #include"roughness.h"
 class lexer;
@@ -27,9 +30,6 @@ class fdm;
 class ghostcell;
 class field;
 class turbulence;
-
-#ifndef BCMOM_H_
-#define BCMOM_H_
 
 using namespace std;
 
@@ -48,6 +48,6 @@ private:
 	double uplus,ks_plus,dist,ks,ustar;
 	int ii,jj,kk;
 	double value;
-	int gcval_phi, bckin, wallfunc_type;
+	int gcval_phi, bckin;
 };
 #endif

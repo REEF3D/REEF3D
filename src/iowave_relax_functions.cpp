@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -204,6 +204,20 @@ double iowave::ramp(lexer *p)
     if(p->B101==2 && p->simtime<p->B102)
     {
     f = p->simtime/(p->B102) - (1.0/PI)*sin(PI*(p->simtime/(p->B102)));
+    }
+
+    return f;
+}
+
+double iowave::ramp_corr(lexer *p)
+{
+    double f=1.0;
+
+    double duration=10.0;
+    
+    if( p->simtime<duration)
+    {
+    f = p->simtime/(duration) - (1.0/PI)*sin(PI*(p->simtime/(duration)));
     }
 
     return f;

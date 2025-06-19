@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -96,7 +96,7 @@ void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
 
     for (int loop=0; loop<3; loop++)
     {
-        if (loop == 2) final = true;
+        if (loop==2) final = true;
         
         pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
         pflow->pressure_io(p,a,pgc);
@@ -244,10 +244,6 @@ void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), p->sfmax);
         }
 
-        pgc->start1(p,a->u,gcval_u);
-        pgc->start2(p,a->v,gcval_v);
-        pgc->start3(p,a->w,gcval_w);
-        
         // Pressure
         pflow->pressure_io(p,a,pgc);
         ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, a->u, a->v, a->w, 2.0*alpha(loop));
@@ -349,19 +345,3 @@ void momentum_RKLS3_sf::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
         }
     }
 }
-
-void momentum_RKLS3_sf::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3_sf::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3_sf::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_RKLS3_sf::fillaij1(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RKLS3_sf::fillaij2(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}
-void momentum_RKLS3_sf::fillaij3(lexer *p, fdm *a, ghostcell* pgc, solver *psolv){}

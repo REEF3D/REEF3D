@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::print_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj::print_stl(lexer *p, ghostcell *pgc)
 {
 	int num=0;
     int printflag=0;
@@ -60,26 +60,15 @@ void sixdof_obj::print_stl(lexer *p, fdm *a, ghostcell *pgc)
         
         char path[300];
         
-        if(p->P14==1)
-        {
-            if(num<10)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-00000%i.stl",n6DOF,num);
+        if(p->A10==2)
+        sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
+        
+        if(p->A10==5)
+        sprintf(path,"./REEF3D_NHFLOW_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
+        
+        if(p->A10==6)
+        sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
 
-            if(num<100&&num>9)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-0000%i.stl",n6DOF,num);
-
-            if(num<1000&&num>99)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-000%i.stl",n6DOF,num);
-
-            if(num<10000&&num>999)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-00%i.stl",n6DOF,num);
-
-            if(num<100000&&num>9999)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-0%i.stl",n6DOF,num);
-
-            if(num>99999)
-            sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-%i.stl",n6DOF,num);
-        }
 
         ofstream result;
         result.open(path, ios::binary);
@@ -110,30 +99,3 @@ void sixdof_obj::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_obj::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
-{
-	if(p->mpirank == 0 && p->count%p->X19==0)
-    {
-        ofstream print;
-        char str[1000];
-        
-        if(p->P14==0)
-        sprintf(str,"REEF3D_6DOF_position_%i.dat",n6DOF);
-        if(p->P14==1)
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
-        
-        print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<p->simtime<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
-        print.close();
-        
-        
-        if(p->P14==0)
-        sprintf(str,"REEF3D_6DOF_velocity_%i.dat",n6DOF);
-        if(p->P14==1)
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
-        
-        print.open(str, std::ofstream::out | std::ofstream::app);
-        print<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
-        print.close();
-    }
-}

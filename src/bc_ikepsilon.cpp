@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -142,25 +142,25 @@ void bc_ikepsilon::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 {
     double uvel,vvel,wvel;
     double zval;
-    dist=0.5*p->DXM;
-
+    
 	i=ii;
 	j=jj;
 	k=kk;
+    
+    if(cs==1 || cs==4)
+    dist = 0.5*p->DXN[IP];
+    
+    if(cs==2 || cs==3)
+    dist = 0.5*p->DYN[JP];
+    
+    if(cs==5 || cs==6)
+    dist = 0.5*p->DZN[KP];
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
-        pip=1;
         uvel=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
-        pip=0;
-
-        pip=2;
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
-        pip=0;
-
-        pip=3;
         wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
-        pip=0;
 
         u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 
@@ -184,7 +184,15 @@ void bc_ikepsilon::wall_law_eps(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 	i=ii;
 	j=jj;
 	k=kk;
-    dist=0.5*p->DXM;
+    
+    if(cs==1 || cs==4)
+    dist = 0.5*p->DXN[IP];
+    
+    if(cs==2 || cs==3)
+    dist = 0.5*p->DYN[JP];
+    
+    if(cs==5 || cs==6)
+    dist = 0.5*p->DZN[KP];
 
 	eps_star = (pow(p->cmu, 0.75)*pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),1.5)) / (0.4*dist);
 

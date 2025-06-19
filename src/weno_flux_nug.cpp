@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -24,14 +24,39 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_face_CDS2.h"
-#include"flux_face_CDS4.h"
 #include"flux_face_CDS2_vrans.h"
 #include"flux_face_FOU.h"
 #include"flux_face_FOU_vrans.h"
-#include"flux_face_QOU.h"
+#include"flux_face_CDS2_2D.h"
+#include"flux_face_CDS2_vrans_2D.h"
+#include"flux_face_FOU_2D.h"
+#include"flux_face_FOU_vrans_2D.h"
 
 weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
 {
+    if(p->j_dir==0)
+    {
+    if(p->B269==0)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_2D(p);
+    }
+    
+    if(p->B269>=1 || p->S10==2)
+    {
+        if(p->D11==1)
+        pflux = new flux_face_FOU_vrans_2D(p);
+        
+        if(p->D11==2)
+        pflux = new flux_face_CDS2_vrans_2D(p);
+    }
+    }
+    
+    if(p->j_dir==1)
+    {
     if(p->B269==0)
     {
         if(p->D11==1)
@@ -39,12 +64,6 @@ weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_QOU(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS4(p);
     }
     
     if(p->B269>=1 || p->S10==2)
@@ -54,12 +73,7 @@ weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
         
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
-        
-        if(p->D11==3)
-        pflux = new flux_face_FOU_vrans(p);
-        
-        if(p->D11==4)
-        pflux = new flux_face_CDS2(p);
+    }
     }
 }
 
@@ -77,7 +91,8 @@ void weno_flux_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fie
         ULOOP
         a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
         }
-
+        
+        if(p->j_dir==1)
         if(ipol==2)
         {
         vf=1;
@@ -93,7 +108,7 @@ void weno_flux_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fie
         }
 
         if(ipol==4)
-        FLUIDLOOP
+        LOOP
         a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
         
         if(ipol==5)
@@ -239,63 +254,62 @@ double weno_flux_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, doubl
          + w3z*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
 	}
 
-    
 
 	return grad;
 }
 
 void weno_flux_nug::iqmin(lexer *p, field& f, field& uvel, int ipol)
 {	
-	q1 = f(i-2,j,k);
-	q2 = f(i-1,j,k);
-	q3 = f(i,j,k);
-	q4 = f(i+1,j,k);
-	q5 = f(i+2,j,k);
+	q1 = f.V[Im2JK];
+	q2 = f.V[Im1JK];
+	q3 = f.V[IJK];
+	q4 = f.V[Ip1JK];
+	q5 = f.V[Ip2JK];
 }
 
 void weno_flux_nug::jqmin(lexer *p, field& f, field& vvel, int ipol)
 {
-	q1 = f(i,j-2,k);
-	q2 = f(i,j-1,k);
-	q3 = f(i,j,k);
-	q4 = f(i,j+1,k);
-	q5 = f(i,j+2,k);
+	q1 = f.V[IJm2K];
+	q2 = f.V[IJm1K];
+	q3 = f.V[IJK];
+	q4 = f.V[IJp1K];
+	q5 = f.V[IJp2K];
 }
 
 void weno_flux_nug::kqmin(lexer *p, field& f, field& wvel, int ipol)
 {
-	q1 = f(i,j,k-2);
-	q2 = f(i,j,k-1);
-	q3 = f(i,j,k);
-	q4 = f(i,j,k+1);
-	q5 = f(i,j,k+2);
+	q1 = f.V[IJKm2];
+	q2 = f.V[IJKm1];
+	q3 = f.V[IJK];
+	q4 = f.V[IJKp1];
+	q5 = f.V[IJKp2];
 }
 
 void weno_flux_nug::iqmax(lexer *p, field& f, field& uvel, int ipol)
 {
-    q1 = f(i-1,j,k);
-	q2 = f(i,j,k);
-	q3 = f(i+1,j,k);
-	q4 = f(i+2,j,k);
-	q5 = f(i+3,j,k);
+    q1 = f.V[Im1JK];
+	q2 = f.V[IJK];
+	q3 = f.V[Ip1JK];
+	q4 = f.V[Ip2JK];
+	q5 = f.V[Ip2JK];
 }
 
 void weno_flux_nug::jqmax(lexer *p, field& f, field& vvel, int ipol)
 {
-	q1 = f(i,j-1,k);
-	q2 = f(i,j,k);
-	q3 = f(i,j+1,k);
-	q4 = f(i,j+2,k);
-	q5 = f(i,j+3,k);
+	q1 = f.V[IJm1K];
+	q2 = f.V[IJK];
+	q3 = f.V[IJp1K];
+	q4 = f.V[IJp2K];
+	q5 = f.V[IJp3K];
 }
 
 void weno_flux_nug::kqmax(lexer *p, field& f, field& wvel, int ipol)
 {
-	q1 = f(i,j,k-1);
-	q2 = f(i,j,k);
-	q3 = f(i,j,k+1);
-	q4 = f(i,j,k+2);
-	q5 = f(i,j,k+3);
+	q1 = f.V[IJKm1];
+	q2 = f.V[IJK];
+	q3 = f.V[IJKp1];
+	q4 = f.V[IJKp2];
+	q5 = f.V[IJKp3];
 }
 
 

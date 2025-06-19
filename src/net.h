@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2024 Tobias Martin
+Copyright 2018-2025 Tobias Martin
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#ifndef NET_H_
+#define NET_H_
+
 #include<vector>
 #include <Eigen/Dense>
 
@@ -29,9 +32,6 @@ class ghostcell;
 class sixdof;
 
 using namespace std;
-
-#ifndef NET_H_
-#define NET_H_
 
 class net
 {    

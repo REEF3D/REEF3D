@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -33,16 +33,3 @@ momentum_void::~momentum_void()
 void momentum_void::start(lexer *p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof *p6dof, vector<net*>& pnet)
 {
 }
-
-void momentum_void::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_void::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_void::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-

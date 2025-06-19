@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -66,17 +66,8 @@ void iowave::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 			a->press(i+2,j,k)=pval;
 			a->press(i+3,j,k)=pval;
 			}
-            
-            if(p->B77==0 && p->A10==5)
-			{
-			pval=0.0;
-			
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
 		
-			if(p->B77==2)
+			if(p->B77==10)
 			{
 			double eps,H;
                 
@@ -92,15 +83,12 @@ void iowave::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
             H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
         
         
-    
             pval=(1.0-H)*a->press(i,j,k);
 			
-
 			a->press(i+1,j,k)=pval;
 			a->press(i+2,j,k)=pval;
 			a->press(i+3,j,k)=pval;
 			}
-			
         }
 }
 
@@ -108,7 +96,7 @@ void iowave::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 {
     double pval=0.0;
     
-    if(p->B76==0 && p->A10 != 5)
+    if(p->B76==0 && p->A10!=5)
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
@@ -117,6 +105,8 @@ void iowave::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 		
 		if(a->phi(i,j,k)>=0.0)
         pval=(p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+        
+        //cout<<"PVAL: "<<pval<<endl;
 		
 		if(a->phi(i,j,k)<0.0)
         pval = a->press(i,j,k);
@@ -146,7 +136,7 @@ void iowave::pressure_wall(lexer *p, fdm *a, ghostcell *pgc)
     double pval=0.0;
 
     GC4LOOP
-    if(p->gcb4[n][3] != 5 && p->gcb4[n][3] != 6 && (p->gcb4[n][4] ==3 && p->gcb4[n][4] ==21 && p->gcb4[n][4] ==22))
+    if(p->gcb4[n][3]!=5 && p->gcb4[n][3]!=6 && (p->gcb4[n][4] ==3 && p->gcb4[n][4] ==21 && p->gcb4[n][4] ==22))
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
@@ -193,7 +183,7 @@ void iowave::pressure_bed(lexer *p, fdm *a, ghostcell *pgc)
     double pval=0.0;
 
     GC4LOOP
-    if(p->gcb4[n][3] == 5 )
+    if(p->gcb4[n][3]==5 )
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];

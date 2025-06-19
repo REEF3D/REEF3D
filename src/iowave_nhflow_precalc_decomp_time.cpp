@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,6 +27,8 @@ Author: Hans Bihs
 void iowave::nhflow_wavegen_precalc_decomp_time(lexer *p, ghostcell *pgc)
 {
     int qn;
+    
+    p->wavetime = p->simtime;
     
     for(qn=0;qn<wave_comp;++qn)
     {

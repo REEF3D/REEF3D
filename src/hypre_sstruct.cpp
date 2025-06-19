@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -74,8 +74,6 @@ void hypre_sstruct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix
     if(var==8)
     start_solver8(p,pgc,f,rhs,M,var);
     
-    if(var==10)
-    start_solver10(p,pgc,f,rhs,M,var);
 }
 
 void hypre_sstruct::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
@@ -187,25 +185,7 @@ void hypre_sstruct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs,
 	delete_solver5(p,pgc);
 }
 
-void hypre_sstruct::start_solver10(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
-{
-    numiter=0;
-	p->solveriter=0;
-	
-    create_solver5(p,pgc);
 
-    fill_matrix10(p,pgc,f,rhs,M);
-
-
-    solve(p);
-
-	p->solveriter=num_iterations;
-    p->final_res = final_res_norm;
-        
-    fillbackvec10(p,f,var);
-	
-	delete_solver5(p,pgc);
-}
 
 
 void hypre_sstruct::start_solverM(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)

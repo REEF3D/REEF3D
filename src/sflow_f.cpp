@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -78,7 +78,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<setprecision(3)<<p->simtime<<endl;
+        cout<<"simtime: "<<p->simtime<<endl;
 		cout<<"timestep: "<<p->dt<<endl;
         
 		if(p->B90>0)
@@ -118,9 +118,6 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         // sediment transport
         psed->start_sflow(p,b,pgc,pflow,b->P,b->Q);
         pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
-        
-        // 6DOF
-        p6dof->start_oneway(p,pgc);
 
         // timesave
         pturb->ktimesave(p,b,pgc);
@@ -158,7 +155,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
             {
             if(p->B90>0)
             cout<<"mtime: "<<setprecision(3)<<mtime<<endl;
-            cout<<"wavegentime: "<<setprecision(3)<<p->wavetime<<endl;
+            if(p->X10>0)
+            cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
+            cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
             cout<<"printouttime: "<<setprecision(3)<<p->printouttime<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
             cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
@@ -172,9 +171,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
-	p->wavetime=0.0;
+	p->wavecalctime=0.0;
 	p->lsmtime=0.0;
 	p->printouttime=0.0;
+    p->fbtime=0.0;
     
     SLICELOOP1
     b->Pn(i,j) = b->P(i,j);
@@ -215,15 +215,12 @@ void sflow_f::print_debug(lexer *p, fdm2D* b, ghostcell* pgc)
 	ofstream debug;
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_Log",0777);
 	
 	
 	sprintf(name,"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
 
-	if(p->P14==0)
-	sprintf(name,"/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
-	if(p->P14==1)
 	sprintf(name,"./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
 		
 		
@@ -241,21 +238,16 @@ void sflow_f::log_ini(lexer *p)
 {
 
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_SFLOW_Log",0777);
 
     if(p->mpirank==0)
     {
-    if(p->P14==0)
-    mainlogout.open("REEF3D_SFLOW_mainlog.dat");
-    if(p->P14==1)
     mainlogout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat");
 
     mainlogout<<"number of cells:  "<<p->cellnumtot2D<<endl;
-    mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime "<<endl;
-    }
-
-    
+    mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Inflow \t #Outflow "<<endl;
+    }    
 }
 
 void sflow_f::mainlog(lexer *p)
@@ -265,6 +257,7 @@ void sflow_f::mainlog(lexer *p)
      mainlogout<<fixed<<p->count<<" \t "<<setprecision(5)<<p->dt<<" \t "<<setprecision(5)<<p->simtime<<" \t ";
 	 mainlogout<<fixed<<setprecision(4)<<p->itertime<<" \t ";
 	 mainlogout<<p->poissoniter<<" \t "<<setprecision(4)<<p->poissontime<<" \t ";
+      mainlogout<<fixed<<setprecision(6)<<p->Qi<<" \t "<<setprecision(6)<<p->Qo<<" \t ";
 	 mainlogout<<endl;
 	 }
 }

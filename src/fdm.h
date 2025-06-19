@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifndef FDM_H_
+#define FDM_H_
+
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -31,7 +34,6 @@ Author: Hans Bihs
 #include"fieldint2.h"
 #include"fieldint3.h"
 #include"fieldint4.h"
-#include"fieldint4a.h"
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
@@ -47,9 +49,6 @@ Author: Hans Bihs
 #include<vector>
 
 class lexer;
-
-#ifndef FDM_H_
-#define FDM_H_
 
 using namespace std;
 
@@ -69,12 +68,13 @@ public:
 	field4 eddyv;
 	field4 L;
 	field4 ro,visc;
+    field4 dro;
 	field4 phi,vof;
 	field4 conc;
     field4 test;
 	field4a topo,solid;
 	field4a fb;
-	field4a porosity;
+	field4a porosity,porpart;
 	field5 walld;
 	 
 	fieldint5 nodeval;
@@ -102,7 +102,6 @@ public:
 	vec rhsvec;
 
 	matrix_diag M;
-	cpt C4,C4a,C6;
 
     double maxF,maxG,maxH;
     double wd_criterion;

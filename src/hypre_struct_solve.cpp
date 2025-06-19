@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"hypre_struct.h"
 
 #ifdef HYPRE_COMPILATION
+ 
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -118,6 +119,23 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
     
+}
+
+void hypre_struct::solve44(lexer* p)
+{
+    p->solver_status=0;
+    
+	p->solveriter=0;
+	    
+    HYPRE_StructGMRESSetup(solver, A, b, x);
+    p->solver_status = HYPRE_StructGMRESSolve(solver, A, b, x);
+    
+    HYPRE_StructGMRESGetNumIterations(solver, &num_iterations);
+	HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
+    
+    
+    p->solveriter=num_iterations;
+    p->final_res = final_res_norm;
 }
 
 #endif

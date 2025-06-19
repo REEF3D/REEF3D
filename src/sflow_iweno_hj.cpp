@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,8 +23,6 @@ Author: Hans Bihs
 #include"sflow_iweno_hj.h"
 #include"lexer.h"
 #include"fdm2D.h"
-#include"sflow_flux_face_FOU.h"
-#include"sflow_flux_face_CDS.h"
 #include"sflow_flux_face_HJ.h"
 
 sflow_iweno_hj::sflow_iweno_hj(lexer *p)
@@ -32,13 +30,6 @@ sflow_iweno_hj::sflow_iweno_hj(lexer *p)
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
 			sixten(6.0/10.0),treten(3.0/10.0),epsilon(1.0e-6),deltin (1.0/p->DXM)
 {
-    if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216==2)
-    pflux = new sflow_flux_face_CDS(p);
-    
-    if(p->A216==4)
     pflux = new sflow_flux_face_HJ(p);
 }
 
@@ -74,7 +65,7 @@ void sflow_iweno_hj::wenoloop4(lexer *p, fdm2D *b, slice &f, int ipol, slice &uv
 	{
 		
         pflux->u_flux(ipol,uvel,iadvec,ivel2);
-		pflux->v_flux(ipol,vvel,jadvec,jvel2);
+        pflux->v_flux(ipol,vvel,jadvec,jvel2);
 
 			if(iadvec>=0.0)
 			{

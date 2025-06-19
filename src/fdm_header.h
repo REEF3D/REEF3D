@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -19,6 +19,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
 --------------------------------------------------------------------*/
+
+#ifndef FDM_HEADER_H_
+#define FDM_HEADER_H_
 
 #include"vtu3D.h"
 
@@ -41,3 +44,9 @@ Author: Hans Bihs
 #include"patchBC.h"
 #include"patchBC_2D.h"
 #include"patchBC_void.h"
+
+#include"potential_v.h"
+#include"potential_f.h"
+#include"potential_water.h"
+
+#endif

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -139,7 +139,6 @@ void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
     ffn=a->conc(i,j,k);
     result.write((char*)&ffn, sizeof (float));
     } 
-	
 	
 	
 	result.close();

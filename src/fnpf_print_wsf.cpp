@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2024 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
+fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
 {
 
 	gauge_num = p->P51;
@@ -36,16 +36,12 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
 
 	
 	// Create Folder
-	if(p->mpirank==0 && p->P14==1)
+	if(p->mpirank==0)
 	mkdir("./REEF3D_FNPF_WSF",0777);
 	
     if(p->mpirank==0 && p->P51>0)
     {
     // open WSF file
-	if(p->P14==0)
-    wsfout.open("REEF3D-FNPF-WSF-HG.dat");
-	
-	if(p->P14==1)
 	wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
@@ -65,10 +61,6 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
         if(p->P57==1 || p->P57==3)
         {
         // open rise velovity file
-        if(p->P14==0)
-        detaout.open("REEF3D-FNPF-Rise-Velocity.dat");
-        
-        if(p->P14==1)
         detaout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-Rise-Velocity.dat");
 
         detaout<<"number of rise velocity gauges:  "<<gauge_num<<endl<<endl;
@@ -88,10 +80,6 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c)
         if(p->P57==2 || p->P57==3)
         {
         // open horizontal velocity file
-        if(p->P14==0)
-        Uhorzout.open("REEF3D-FNPF-Horiontal-FSF-Velocity.dat");
-        
-        if(p->P14==1)
         Uhorzout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-Horiontal-FSF-Velocity.dat");
 
         Uhorzout<<"number of horizontal fsf velocity gauges:  "<<gauge_num<<endl<<endl;
@@ -137,7 +125,12 @@ void fnpf_print_wsf::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
     {
     wsfout<<setprecision(9)<<p->simtime<<"\t";
     for(n=0;n<gauge_num;++n)
-    wsfout<<setprecision(9)<<wsf[n]<<"  \t  ";
+    {
+        wsfout<<setprecision(9)<<wsf[n]<<"\t";
+        // flush print to disc limited to prevent data loss for many gauges
+        if(n%fileFlushMaxCount==0&&n!=0)
+            wsfout<<std::flush;
+    }
     wsfout<<endl;
     }
     
