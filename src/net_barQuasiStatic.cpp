@@ -58,6 +58,8 @@ void net_barQuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
     
     //- Update porous zone
     vransCoupling(p,a,pgc);
+
+    print(p);
 }
 
 
