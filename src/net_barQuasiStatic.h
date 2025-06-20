@@ -47,9 +47,9 @@ public:
 	net_barQuasiStatic(int, lexer*);
 	virtual ~net_barQuasiStatic();
     
-	virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
-	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&);
+	void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d) override;
+	void initialize(lexer*, fdm*, ghostcell*) override;
+	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
     virtual const EigenMat& getLagrangePoints(){return lagrangePoints;} 
     virtual const EigenMat& getLagrangeForces(){return lagrangeForces;} 
     virtual const EigenMat& getCollarVel(){return collarVel;} 

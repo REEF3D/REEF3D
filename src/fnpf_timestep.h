@@ -37,8 +37,8 @@ class fnpf_timestep : public increment
 public:
 	fnpf_timestep(lexer*);
 	virtual ~fnpf_timestep();
-	virtual void start(fdm_fnpf*, lexer*,ghostcell*);
-	virtual void ini(fdm_fnpf*, lexer*,ghostcell*);
+	void start(fdm_fnpf*, lexer*,ghostcell*);
+	void ini(fdm_fnpf*, lexer*,ghostcell*);
 
 
 private:

@@ -52,13 +52,13 @@ public:
     beam(int);
     ~beam();
     
-    virtual void iniMaterial();
-    virtual void meshBeam(const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::Vector3d&);
-    virtual void meshBeam(double, double, double, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
+    void iniMaterial();
+    void meshBeam(const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::Vector3d&);
+    void meshBeam(double, double, double, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
     virtual void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
     virtual void setVariableLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&, const double);
     virtual void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
-    virtual void print(lexer *p);
+    void print(lexer *p);
 
     void iniDamping(double, double, double, double, double, double, bool);
     void iniBeam(double, double, double, double, double, double, double, double, double);
