@@ -74,6 +74,6 @@ void directreini::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)
     num = p->count;
 
 
-    sprintf(pname,"REEF3D-FSF-%08i-%06i.vtp",num,n+1);
+    snprintf(pname,sizeof(pname),"REEF3D-FSF-%08i-%06i.vtp",num,n+1);
 
 }

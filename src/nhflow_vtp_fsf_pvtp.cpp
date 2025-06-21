@@ -106,6 +106,6 @@ void nhflow_vtp_fsf::piecename(lexer *p, fdm_nhf *d, ghostcell *pgc, int n)
     num = p->count;
 
 
-    sprintf(pname,"REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,n+1);
+    snprintf(pname,sizeof(pname),"REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,n+1);
 
 }

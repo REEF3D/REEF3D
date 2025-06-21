@@ -123,7 +123,7 @@ void particle_pls::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
     num = p->count;
 
 
-    sprintf(pname,"XPLS-POS-%08i-%08i.vtu",num,n+1);
+    snprintf(pname,sizeof(pname),"XPLS-POS-%08i-%08i.vtu",num,n+1);
 
 }
 
@@ -138,7 +138,7 @@ void particle_pls::piecename_neg(fdm* a, lexer* p, ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"XPLS-NEG-%08i-%08i.vtu",num,n+1);
+	snprintf(pname,sizeof(pname),"XPLS-NEG-%08i-%08i.vtu",num,n+1);
 }
 
 void particle_pls::header_pos(fdm* a,lexer* p,ghostcell* pgc)

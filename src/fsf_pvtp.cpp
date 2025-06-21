@@ -93,6 +93,6 @@ void fsf_vtp::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"REEF3D-CFD-FSF-%08i-%06i.vtp",num,n+1);
+	snprintf(pname,sizeof(pname),"REEF3D-CFD-FSF-%08i-%06i.vtp",num,n+1);
 
 }

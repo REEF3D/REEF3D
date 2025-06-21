@@ -107,5 +107,5 @@ void sflow_vtp_fsf::piecename(lexer *p, fdm2D *b, ghostcell *pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,n+1);
+	snprintf(pname,sizeof(pname),"REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,n+1);
 }

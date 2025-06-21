@@ -86,6 +86,6 @@ void force::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"REEF3D-SOLID-%08i-%i-%06i.vtp",num,ID,n+1);
+	snprintf(pname,sizeof(pname),"REEF3D-SOLID-%08i-%i-%06i.vtp",num,ID,n+1);
 
 }

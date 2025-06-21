@@ -78,7 +78,7 @@ void partres::pvtp(lexer* p)
 
 void partres::piecename_pos(lexer* p, int n)
 {
-	sprintf(pname,"REEF3D-SedPart-%08i-%06i.vtp",printcount,n+1);
+	snprintf(pname,sizeof(pname),"REEF3D-SedPart-%08i-%06i.vtp",printcount,n+1);
 }
 
 /// @brief Setting name of indivdual vtp file
