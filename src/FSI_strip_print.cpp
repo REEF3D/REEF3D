@@ -40,12 +40,12 @@ void fsi_strip::print_ini(lexer *p)
     // Ini print parameter
     ofstream print;
     char str[1000];
-    sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
     print.open(str);
 	print<<"time \t x [m] \t y [m] \t z [m]"<<endl;
 	print.close();
     
-    sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
     print.open(str);
 	print<<"time \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
 	print.close();
@@ -156,7 +156,7 @@ void fsi_strip::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
         ofstream print;
         char str[1000];
         
-        sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
         print.open(str, std::ofstream::out | std::ofstream::app);
         
         for (int eI = 0; eI < Ne+1; eI++)
@@ -165,7 +165,7 @@ void fsi_strip::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
         }
         print.close();
         
-        sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
         print.open(str, std::ofstream::out | std::ofstream::app);
         Eigen::Vector3d sum = Eigen::Vector3d::Zero();
         for (int eI = 0; eI < Ne; eI++)
