@@ -296,13 +296,13 @@ void wave_lib_irregular_2nd_b::parameters(lexer *p, ghostcell *pgc)
     p->Darray(cosh_2k,p->wN*p->wN);
     p->Darray(sinh_4kh,p->wN*p->wN);
     
-    int count=0;
-    for(n=0;n<p->wN-1;++n)
-    for(m=n+1;m<p->wN;++m)
-    {
+    // int count=0;
+    // for(n=0;n<p->wN-1;++n)
+    // for(m=n+1;m<p->wN;++m)
+    // {
         
-        +count;
-    }
+    //     +count;
+    // }
 }
 
 double wave_lib_irregular_2nd_b::wave_A_plus(double w1, double w2, double k1, double k2)
