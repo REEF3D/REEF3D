@@ -32,8 +32,6 @@ class fdm_fnpf;
 class ghostcell;
 class fnpf_fsf;
 
-using namespace std;
-
 class fnpf_sigma : public increment
 {
 public:

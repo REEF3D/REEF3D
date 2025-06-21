@@ -36,8 +36,6 @@ class picard;
 class heat;
 class fluid_update;
 
-using namespace std;
-
 class VOF_PLIC : public freesurface, gradient, norm_vec
 {
 public:

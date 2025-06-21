@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"nhflow_potential.h"
 #include"increment.h"
 
-using namespace std;
-
 class nhflow_potential_f : public nhflow_potential, public increment
 {
 

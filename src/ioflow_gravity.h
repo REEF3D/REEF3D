@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class fdm_fnpf;
 
-using namespace std;
-
 
 class ioflow_gravity : public ioflow, public increment
 {

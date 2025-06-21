@@ -39,8 +39,6 @@ Author: Hans Bihs
 
 class lexer;
 
-using namespace std;
-
 class fdm_fnpf : public increment
 {
 public:

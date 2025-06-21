@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"field.h"
 #include"increment.h"
 
-using namespace std;
-
 class field4a : public field, increment
 {
 public:

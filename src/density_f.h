@@ -30,8 +30,6 @@ class fdm;
 class lexer;
 
 
-using namespace std;
-
 class density_f : public density, virtual public increment
 {
 

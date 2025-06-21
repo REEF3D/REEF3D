@@ -30,8 +30,6 @@ class slice;
 class ghostcell;
 class solver;
 
-using namespace std;
-
 class ptf_laplace
 {
 public:

@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"ddweno_f_nug.h"
 
-using namespace std;
-
 class norm_vec : public ddweno_f_nug
 {
 public:

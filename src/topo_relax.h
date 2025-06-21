@@ -31,8 +31,6 @@ class ghostcell;
 class sediment_fdm;
 class slice;
 
-using namespace std;
-
 class topo_relax : public increment
 {
 public:

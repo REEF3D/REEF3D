@@ -27,8 +27,6 @@ class fdm;
 class lexer;
 class field;
 
-using namespace std;
-
 class flux 
 {
 public:

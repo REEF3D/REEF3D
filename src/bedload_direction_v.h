@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"bedload_direction.h"
 
-using namespace std;
-
 class bedload_direction_v : public bedload_direction, public increment
 {
 public:

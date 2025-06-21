@@ -28,8 +28,6 @@ class fdm_nhf;
 class ghostcell;
 class solver;
 
-using namespace std;
-
 class nhflow_potential
 {
 public:

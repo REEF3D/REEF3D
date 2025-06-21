@@ -29,8 +29,6 @@ class lexer;
 class ghostcell;
 class flux;
 
-using namespace std;
-
 class linear_regression_cont : public increment
 {
 

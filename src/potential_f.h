@@ -29,8 +29,6 @@ Author: Hans Bihs
 
 class field;
 
-using namespace std;
-
 class potential_f : public potential, public increment
 {
 

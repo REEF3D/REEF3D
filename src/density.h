@@ -26,8 +26,6 @@ Author: Hans Bihs
 class fdm;
 class lexer;
 
-using namespace std;
-
 class density
 {
 

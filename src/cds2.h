@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class flux;
 
-using namespace std;
-
 class cds2 : public convection,  public increment
 {
 

@@ -30,8 +30,6 @@ class fdm;
 class ghostcell;
 class field;
 
-using namespace std;
-
 class patch_obj : public increment
 {
 public:

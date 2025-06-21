@@ -28,8 +28,6 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"sandslide.h"
 
-using namespace std;
-
 class sandslide_f3 :  public sandslide, public norm_vec, public bedslope
 {
 public:

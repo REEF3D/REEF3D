@@ -29,8 +29,6 @@ class ghostcell;
 
 #include"increment.h"
 
-using namespace std;
-
 class wave_lib_parameters : public increment
 {
 public:

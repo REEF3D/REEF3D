@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"fnpf_ddx.h"
 #include"increment.h"
 
-using namespace std;
-
 class fnpf_ddx_cds2 : public fnpf_ddx, public increment
 {
 public:

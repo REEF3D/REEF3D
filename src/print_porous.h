@@ -29,8 +29,6 @@ class lexer;
 class fdm;
 class ghostcell;
 
-using namespace std;
-
 class print_porous :  public increment
 {
 

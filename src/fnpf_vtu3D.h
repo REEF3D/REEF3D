@@ -44,8 +44,6 @@ class fnpf_vel_probe_theory;
 class fnpf_runup;
 class fnpf_print_kinematics;
 
-using namespace std;
-
 class fnpf_vtu3D : public fnpf_printer, public increment
 {
 

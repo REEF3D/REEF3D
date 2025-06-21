@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"reini.h"
 #include"particle_corr.h"
 
-using namespace std;
-
 class reini_void : public reini
 {
 public:

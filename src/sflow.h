@@ -27,8 +27,6 @@ class lexer;
 class fdm2D;
 class ghostcell;
 
-using namespace std;
-
 class sflow
 {
 public:

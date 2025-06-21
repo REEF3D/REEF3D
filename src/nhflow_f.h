@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"nhflow.h"
 #include"increment.h"
 
-using namespace std;
-
 class nhflow_f : public nhflow, public increment
 {
 public:    

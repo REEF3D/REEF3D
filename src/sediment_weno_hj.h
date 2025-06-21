@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"ddweno_f_nug.h"
 
-using namespace std;
-
 class sediment_weno_hj : public sediment_exnerdisc, public increment, public ddweno_f_nug
 {
 public:

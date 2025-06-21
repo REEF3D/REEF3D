@@ -29,8 +29,6 @@ Author: Hans Bihs
 class flux;
 class cpt;
 
-using namespace std;
-
 class weno_hj : public convection, public increment
 {
 public:

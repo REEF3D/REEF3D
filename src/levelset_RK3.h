@@ -32,8 +32,6 @@ class heat;
 class concentration;
 class fluid_update;
 
-using namespace std;
-
 class levelset_RK3 : public freesurface, gradient
 {
 public:

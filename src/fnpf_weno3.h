@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"ddweno3_f_nug.h"
 
-using namespace std;
-
 class fnpf_weno3 : public fnpf_convection, public increment, public ddweno3_f_nug
 {
 public:

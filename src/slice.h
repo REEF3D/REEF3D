@@ -26,8 +26,6 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 
-using namespace std;
-
 class slice
 {
 public:

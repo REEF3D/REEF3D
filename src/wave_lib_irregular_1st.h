@@ -28,8 +28,6 @@ Author: Hans Bihs
 #include"wave_lib_spectrum.h"
 #include"increment.h"
 
-using namespace std;
-
 class wave_lib_irregular_1st : public wave_lib, public wave_lib_parameters, public wave_lib_spectrum,
                                public increment
 {

@@ -27,8 +27,6 @@ class slice;
 class fdm;
 class lexer;
 
-using namespace std;
-
 class sflow_fluxlim 
 {
 public:

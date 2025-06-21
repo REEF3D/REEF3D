@@ -42,8 +42,6 @@ class vrans;
 class sixdof;
 class nhflow_forcing;
 
-using namespace std;
-
 class nhflow_momentum
 {
 public:

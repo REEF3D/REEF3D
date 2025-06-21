@@ -31,8 +31,6 @@ class convection;
 class ioflow;
 class reini;
 
-using namespace std;
-
 class fnpf
 {
 public:

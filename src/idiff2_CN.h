@@ -28,8 +28,6 @@ Author: Elyas Larkermani
 
 class rheology;
 
-using namespace std;
-
 
 class idiff2_CN : public diffusion, public increment
 {

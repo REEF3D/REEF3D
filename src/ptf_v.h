@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"ptf.h"
 
 
-using namespace std;
-
 class ptf_void : public ptf
 {
 public:

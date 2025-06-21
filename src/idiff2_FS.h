@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class rheology;
 
-using namespace std;
-
 
 class idiff2_FS : public diffusion, public increment
 {

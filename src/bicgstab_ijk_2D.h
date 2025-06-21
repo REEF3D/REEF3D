@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"solver.h"
 #include"increment.h"
 
-using namespace std;
-
 
 class bicgstab_ijk_2D : public solver, public increment
 {

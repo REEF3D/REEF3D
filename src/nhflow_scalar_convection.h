@@ -26,8 +26,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 
-using namespace std;
-
 class nhflow_scalar_convection
 {
 public:

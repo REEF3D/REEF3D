@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"wave_lib_precalc.h"
 #include"increment.h"
 
-using namespace std;
-
 class wave_lib_reconstruct : public wave_lib_precalc,  public increment
 {
 public:

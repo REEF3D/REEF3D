@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"weno_nug_func.h"
 
-using namespace std;
-
 class fnpf_wenoflux : public fnpf_etadisc, public increment, public weno_nug_func
 {
 public:

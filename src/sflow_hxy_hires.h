@@ -29,8 +29,6 @@ Author: Hans Bihs
 class sflow_flux;
 class sflow_fluxlim;
 
-using namespace std;
-
 class sflow_hxy_hires : public sflow_hxy_disc, public increment
 {
 

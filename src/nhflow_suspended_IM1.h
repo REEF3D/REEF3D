@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"nhflow_suspended.h"
 #include"increment.h"
 
-using namespace std;
-
 class nhflow_suspended_IM1 : public nhflow_suspended, public increment
 {
 public:

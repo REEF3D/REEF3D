@@ -32,8 +32,6 @@ class solver;
 class field;
 class slice;
 
-using namespace std;
-
 class pressure
 {
 public:

@@ -33,8 +33,6 @@ class nhflow_flux_build;
 class patchBC_interface;
 class ghostcell;
 
-using namespace std;
-
 class nhflow_HLLC : public nhflow_convection, public increment
 {
 

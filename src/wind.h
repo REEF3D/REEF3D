@@ -29,8 +29,6 @@ class fdm_nhf;
 class ghostcell;
 class slice;
 
-using namespace std;
-
 class wind 
 {
 public:

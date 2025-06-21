@@ -27,8 +27,6 @@ class lexer;
 class fdm_nhf;
 class slice;
 
-using namespace std;
-
 class nhflow_convection
 {
 public:

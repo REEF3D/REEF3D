@@ -27,8 +27,6 @@ class fdm2D;
 class lexer;
 class ghostcell;
 
-using namespace std;
-
 class sflow_timestep
 {
 public:

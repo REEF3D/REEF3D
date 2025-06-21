@@ -32,8 +32,6 @@ Author: Hans Bihs
 #include"fnpf_convection.h"
 #include"increment.h"
 
-using namespace std;
-
 class fnpf_discrete_weights : public increment
 {
 public:

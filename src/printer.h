@@ -36,8 +36,6 @@ class concentration;
 class multiphase;
 class sediment;
 
-using namespace std;
-
 class printer
 {
 public:

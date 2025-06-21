@@ -30,8 +30,6 @@ class fdm_fnpf;
 class lexer;
 class ghostcell;
 
-using namespace std;
-
 class fnpf_timestep : public increment
 {
 public:

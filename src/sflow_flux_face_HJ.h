@@ -29,8 +29,6 @@ Author: Hans Bihs
 class lexer;
 class fdm2D;
 
-using namespace std;
-
 class sflow_flux_face_HJ : public sflow_flux, public increment
 {
 public:

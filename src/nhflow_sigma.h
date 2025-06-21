@@ -33,8 +33,6 @@ class field;
 class nhflow_sigma_data;
 class slice;
 
-using namespace std;
-
 class nhflow_sigma : public nhflow_gradient
 {
 public:

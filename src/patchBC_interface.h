@@ -34,8 +34,6 @@ class slice;
 
 #include"patch_obj.h"
 
-using namespace std;
-
 class patchBC_interface
 {
 public:

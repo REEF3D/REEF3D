@@ -30,8 +30,6 @@ class density;
 class solver;
 class patchBC_interface;
 
-using namespace std;
-
 class nhflow_pjm_hs : public nhflow_pressure, public nhflow_gradient
 {
 

@@ -28,8 +28,6 @@ class lexer;
 class solver2D;
 class ghostcell;
 
-using namespace std;
-
 class sflow_potential
 {
 public:

@@ -31,8 +31,6 @@ class solver2D;
 class ioflow;
 class sixdof;
 
-using namespace std;
-
 class sflow_momentum 
 {
 public:

@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"sliceint.h"
 #include"increment.h"
 
-using namespace std;
-
 class sliceint4a : public sliceint, increment
 {
 public:

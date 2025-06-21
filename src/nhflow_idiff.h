@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"nhflow_diffusion.h"
 #include"increment.h"
 
-using namespace std;
-
 class nhflow_idiff : public nhflow_diffusion, public increment
 {
 public:

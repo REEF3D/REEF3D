@@ -28,8 +28,6 @@ class fdm;
 class ghostcell;
 class field;
 
-using namespace std;
-
 class picard
 {
 public:

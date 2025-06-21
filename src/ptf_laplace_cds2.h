@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"sliceint4.h"
 
-using namespace std;
-
 class ptf_laplace_cds2 : public ptf_laplace, public increment
 {
 public:
