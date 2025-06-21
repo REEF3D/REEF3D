@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"wave_lib_parameters.h"
 #include"increment.h"
 
-class wave_lib_linear : public wave_lib_precalc, public wave_lib_parameters, public increment
+class wave_lib_linear : public wave_lib_precalc, public wave_lib_parameters
 {
 public:
     wave_lib_linear(lexer*, ghostcell*);

@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"weno_nug_func.h"
 
-class fnpf_wenoflux : public fnpf_etadisc, public increment, public weno_nug_func
+class fnpf_wenoflux : public fnpf_etadisc, public weno_nug_func
 {
 public:
 	fnpf_wenoflux(lexer*);

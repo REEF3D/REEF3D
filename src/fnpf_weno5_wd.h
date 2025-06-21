@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"fnpf_ddweno_f_nug.h"
 
-class fnpf_weno5_wd : public fnpf_convection, public increment, public fnpf_ddweno_f_nug
+class fnpf_weno5_wd : public fnpf_convection, public fnpf_ddweno_f_nug
 {
 public:
 	fnpf_weno5_wd(lexer*,fdm_fnpf*);

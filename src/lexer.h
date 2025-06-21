@@ -40,7 +40,7 @@ class ghostcell;
 
 using namespace std;
 
-class lexer : public increment, public resize_class, public position, public interpolation
+class lexer : public resize_class, public position, public interpolation
 {
 public:
 
