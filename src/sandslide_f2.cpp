@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"sliceint.h"
 
-sandslide_f2::sandslide_f2(lexer *p) : norm_vec(p), bedslope(p), fh(p)
+sandslide_f2::sandslide_f2(lexer *p) : bedslope(p), fh(p)
 {
     if(p->S50==1)
 	gcval_topo=151;

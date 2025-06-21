@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"sandslide.h"
 
-class sandslide_f2 :  public sandslide, public norm_vec, public bedslope
+class sandslide_f2 :  public sandslide, public bedslope
 {
 public:
     sandslide_f2(lexer*);
