@@ -107,14 +107,14 @@ void les_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 {
 }
 
-void les_io::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void les_io::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 
-void les_io::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void les_io::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
-void les_io::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void les_io::offset_ParaView(lexer *p, int *offset, int &n)
 {
 }
