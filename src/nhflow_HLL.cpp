@@ -242,7 +242,8 @@ void nhflow_HLL::wetdry_fluxes(lexer *&p, fdm_nhf *&d, int ipol)
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
         //cout<<"d->Fx[IJK] : "<<d->Fx[IJK] <<endl;
-        d->Fx[IJK] = 0.0;0.5*fabs(p->W22)*d->eta(i+2,j)*d->eta(i+2,j) + fabs(p->W22)*d->eta(i+2,j)*d->dfx(i+1,j);
+        d->Fx[IJK] = 0.0;
+        // 0.5*fabs(p->W22)*d->eta(i+2,j)*d->eta(i+2,j) + fabs(p->W22)*d->eta(i+2,j)*d->dfx(i+1,j);
         
         }
         
