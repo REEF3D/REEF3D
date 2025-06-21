@@ -31,7 +31,7 @@ class rheology
 {
 
 public:
-
+    virtual ~rheology() = default;
     virtual double viscosity(lexer*,fdm*,ghostcell*)=0;
     
     virtual void u_source(lexer*,fdm*)=0;
