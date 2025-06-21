@@ -76,7 +76,7 @@ void net_sheet::print(lexer *p)
 	{
 		printtime += p->P30;
 		
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.stl",nNet,num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.stl",nNet,num);
 
         // Save net as .stl
         ofstream result;
@@ -125,22 +125,22 @@ void net_sheet::print(lexer *p)
 
         //- Print Lagrangian points
         if(num<10)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-00000%i.csv",num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-00000%i.csv",num);
 
         if(num<100&&num>9)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-0000%i.csv",num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-0000%i.csv",num);
 
         if(num<1000&&num>99)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-000%i.csv",num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-000%i.csv",num);
 
         if(num<10000&&num>999)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-00%i.csv",num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-00%i.csv",num);
 
         if(num<100000&&num>9999)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-0%i.csv",num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-0%i.csv",num);
 
         if(num>99999)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-%i.csv",num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-%i.csv",num);
         result.open(name, ios::binary);
         for (int ii = 0; ii < nK; ii++)
         {

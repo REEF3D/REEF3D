@@ -38,7 +38,7 @@ void nhflow_vtu3D::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence 
     num = p->count;
 	
 
-	sprintf(name,"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-%08i.pvtu",num);
+	snprintf(name,sizeof(name),"./REEF3D_NHFLOW_VTU/REEF3D-NHFLOW-%08i.pvtu",num);
 
 
 	ofstream result;

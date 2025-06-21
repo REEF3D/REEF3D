@@ -38,7 +38,7 @@ void topo_vtp::pvtp(lexer* p, fdm* a, ghostcell* pgc, sediment *psed)
     num = p->count;
 	
 
-	sprintf(name,"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i.pvtp",num);
+	snprintf(name,sizeof(name),"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i.pvtp",num);
 
 
 	ofstream result;

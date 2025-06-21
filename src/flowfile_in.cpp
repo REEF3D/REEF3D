@@ -83,7 +83,7 @@ void flowfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulence *p
         flowfile0.close();
         
         // Open File 0
-        filename(p,a,pgc,name0,q0);
+        filename(p,a,pgc,name0,sizeof(name0),q0);
         flowfile0.open(name0, ios::binary);
         read0(p,a,pgc,pturb);
         }
@@ -95,7 +95,7 @@ void flowfile_in::flowfile_start(lexer *p, fdm *a, ghostcell *pgc, turbulence *p
         flowfile1.close();
         
         // Open File 1
-        filename(p,a,pgc,name1,q1);
+        filename(p,a,pgc,name1,sizeof(name1),q1);
         flowfile1.open(name1, ios::binary);
         read1(p,a,pgc,pturb);
         }

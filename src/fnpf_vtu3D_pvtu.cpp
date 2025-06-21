@@ -36,7 +36,7 @@ void fnpf_vtu3D::pvtu(lexer *p, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 	
-	sprintf(name,"./REEF3D_FNPF_VTU/REEF3D-FNPF-%08i.pvtu",num);
+	snprintf(name,sizeof(name),"./REEF3D_FNPF_VTU/REEF3D-FNPF-%08i.pvtu",num);
 
 
 	ofstream result;

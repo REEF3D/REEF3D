@@ -32,7 +32,7 @@ void sixdof_motionext_wavemaker::read_format_1(lexer *p, ghostcell *pgc)
     double sign,beta,s;
 	int count;
 	
-	sprintf(name,"6DOF_motion.dat");
+	snprintf(name,sizeof(name),"6DOF_motion.dat");
 
 // open file and count
 	ifstream file(name, ios_base::in);

@@ -36,7 +36,7 @@ void fsf_vtp::pvtp(lexer* p, fdm* a, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 	
-	sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i.pvtp",num);
+	snprintf(name,sizeof(name),"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i.pvtp",num);
 
 	ofstream result;
 	result.open(name);

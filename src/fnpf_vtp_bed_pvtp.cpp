@@ -35,7 +35,7 @@ void fnpf_vtp_bed::pvtu(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%08i.pvtp",num);
+	snprintf(name,sizeof(name),"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%08i.pvtp",num);
 	
 
 	ofstream result;

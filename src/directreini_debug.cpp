@@ -35,7 +35,7 @@ void directreini::debug(lexer* p,fdm* a)
     double x0,y0,z0;
 
     char name[100];
-    sprintf(name,"directreini_debug-%i.dat",p->mpirank+1);
+    snprintf(name,sizeof(name),"directreini_debug-%i.dat",p->mpirank+1);
 	ofstream result;
 	result.open(name);
     count=0;

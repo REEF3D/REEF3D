@@ -25,15 +25,15 @@ Author: Hans Bihs
 
 void wave_lib_hdc::filename_single(lexer *p, ghostcell *pgc,int num)
 {
-    sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%08i-%06i.r3d",num,p->mpirank+1);    
+    snprintf(name,sizeof(name),"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%08i-%06i.r3d",num,p->mpirank+1);    
 }
 
 void wave_lib_hdc::filename_continuous(lexer *p, ghostcell *pgc)
 {
-    sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%06i.r3d",p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%06i.r3d",p->mpirank+1);
 }
 
 void wave_lib_hdc::filename_header(lexer *p, ghostcell *pgc)
 {
-	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-%06i.r3d",p->mpirank+1);  
+	snprintf(name,sizeof(name),"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-%06i.r3d",p->mpirank+1);  
 }

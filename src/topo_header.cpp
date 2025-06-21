@@ -37,6 +37,6 @@ void topo_vtp::name_iter(lexer* p,fdm* a,ghostcell* pgc)
     num = p->count;
 
 
-    sprintf(name,"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i-%06i.vtp",num,p->mpirank+1);
 
 }

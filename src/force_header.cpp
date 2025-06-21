@@ -36,5 +36,5 @@ void force::name_iter(lexer* p,fdm* a,ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-    sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-00000%i-%08i-%06i.vtp",num,ID,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_SOLID/REEF3D-SOLID-00000%i-%08i-%06i.vtp",num,ID,p->mpirank+1);
 }

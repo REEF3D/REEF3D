@@ -44,7 +44,7 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
     if(p->P15==2)
     num = p->count;
 
-	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-%08i.pvtu",num);
+	snprintf(name,sizeof(name),"./REEF3D_CFD_VTU/REEF3D-CFD-%08i.pvtu",num);
 
 	ofstream result;
 	result.open(name);

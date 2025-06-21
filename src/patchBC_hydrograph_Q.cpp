@@ -31,7 +31,7 @@ void patchBC::patchBC_hydrograph_Q_read(lexer *p, ghostcell *pgc, int qq, int ID
 	double val;
 	int count;
     
-    sprintf(name,"hydrograph_Q_%i.dat",ID);
+    snprintf(name,sizeof(name),"hydrograph_Q_%i.dat",ID);
     
 
 // open file------------

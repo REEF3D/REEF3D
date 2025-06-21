@@ -48,7 +48,7 @@ public:
     virtual void ff_waterlevel(lexer*,fdm*,ghostcell*,field&);
 
 private:
-     void filename(lexer*,fdm*,ghostcell*,char*,int);
+     void filename(lexer*,fdm*,ghostcell*,char*,size_t,int);
     void read0(lexer*,fdm*,ghostcell*,turbulence*);
     void read1(lexer*,fdm*,ghostcell*,turbulence*);
      void header_read(lexer*,ghostcell*);

@@ -48,7 +48,7 @@ fnpf_vel_probe_theory::fnpf_vel_probe_theory(lexer *p, fdm_fnpf *c) : probenum(p
 		// open file
 		for(n=0;n<probenum;++n)
 		{
-		sprintf(name,"./REEF3D_FNPF_ProbePoint/REEF3D-FNPF-Vel-Probe-Theory-%i.dat",n+1);
+		snprintf(name,sizeof(name),"./REEF3D_FNPF_ProbePoint/REEF3D-FNPF-Vel-Probe-Theory-%i.dat",n+1);
 		
 		pout[n].open(name);
         

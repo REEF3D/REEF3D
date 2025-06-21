@@ -39,7 +39,7 @@ void particle_pls::print_ascii(lexer* p, fdm* a, ghostcell* pgc)
 if(posactive-pcount>0)
 {
     char name[100];
-    sprintf(name,"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
 	ofstream result;
 	result.open(name);
 
@@ -54,7 +54,7 @@ if(posactive-pcount>0)
 if(negactive-ncount>0)
 {
     char name[100];
-    sprintf(name,"./REEF3D_PLS/NEG-%i-%i.dat",p->count,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_PLS/NEG-%i-%i.dat",p->count,p->mpirank+1);
     ofstream result;
 	result.open(name);
 

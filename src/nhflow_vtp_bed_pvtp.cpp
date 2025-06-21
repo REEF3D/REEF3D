@@ -36,7 +36,7 @@ void nhflow_vtp_bed::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
     if(p->P15==2)
     num = p->count;
 	
-	sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%08i.pvtp",num);
+	snprintf(name,sizeof(name),"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%08i.pvtp",num);
 
 
 	ofstream result;
