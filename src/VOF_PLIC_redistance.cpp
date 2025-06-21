@@ -106,9 +106,9 @@ void VOF_PLIC::redistance
 									//- Calculate closest point on boundary of 
 									//- interface segment
 									//calcSegmentPoint
-									(
-										a, p, xp, yp, zp, ip, jp, kp, changedFlag
-									);
+									// (
+									// 	a, p, xp, yp, zp, ip, jp, kp, changedFlag
+									// );
 								}                               
                             }
                         }
