@@ -34,8 +34,6 @@ class fnpf_etadisc;
 class fnpf_coastline;
 class solver2D;
 
-using namespace std;
-
 class fnpf_fsfbc_wd : public fnpf_fsf, public increment 
 {
 public:

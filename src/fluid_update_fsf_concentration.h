@@ -31,8 +31,6 @@ class lexer;
 class ghostcell;
 class concentration;
 
-using namespace std;
-
 class fluid_update_fsf_concentration : public fluid_update, increment
 {
 public:

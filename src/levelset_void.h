@@ -29,8 +29,6 @@ class fluid_update;
 class heat;
 class concentration;
 
-using namespace std;
-
 class levelset_void : public freesurface
 {
 public:

@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class sflow_flux;
 
-using namespace std;
-
 class sflow_iweno_hj : public sflow_convection, public increment
 {
 public:

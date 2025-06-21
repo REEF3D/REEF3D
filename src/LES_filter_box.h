@@ -30,8 +30,6 @@ class lexer;
 class fdm;
 class ghostcell;
 
-using namespace std;
-
 class LES_filter_box : public LES_filter, public strain
 {
 public:

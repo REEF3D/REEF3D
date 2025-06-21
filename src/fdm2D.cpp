@@ -40,7 +40,6 @@ fdm2D::fdm2D(lexer *p)
             breaking(p),breaking_print(p),
             wet1(p),deep1(p),wet2(p),deep2(p),
 			 nodeval(p),
-			 cmu(0.09),
             ks(p)
 {
 

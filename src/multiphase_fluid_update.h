@@ -28,8 +28,6 @@ class lexer;
 class ghostcell;
 class field;
 
-using namespace std;
-
 class multiphase_fluid_update
 {
 public:

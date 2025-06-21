@@ -29,8 +29,6 @@ class slice;
 class sliceint;
 class vec;
 
-using namespace std;
-
 class fnpf_convection
 {
 public:

@@ -39,7 +39,7 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
     else
     {
         char str[1000];
-        sprintf(str,"floating-%i.stl",n6DOF);
+        snprintf(str,sizeof(str),"floating-%i.stl",n6DOF);
 	    stl.open(str, ios_base::in);
     }
     
@@ -88,7 +88,7 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
     else
     {
         char str[1000];
-        sprintf(str,"floating-%i.stl",n6DOF);
+        snprintf(str,sizeof(str),"floating-%i.stl",n6DOF);
 	    stl.open(str, ios_base::in);
     }
 	

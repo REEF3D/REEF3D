@@ -37,8 +37,6 @@ class turbulence;
 class part;
 class vrans;
 
-using namespace std;
-
 
 class partres : public increment
 {

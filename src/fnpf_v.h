@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"fnpf.h"
 
-using namespace std;
-
 class fnpf_void : public fnpf
 {
 public:

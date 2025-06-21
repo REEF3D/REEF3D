@@ -31,8 +31,6 @@ Author: Hans Bihs
 #define HYIJ (fabs(b->hy(i,j))>1.0e-10?b->hy(i,j):1.0e20)
 #define HPIJ (fabs(b->hp(i,j))>1.0e-10?b->hp(i,j):1.0e20)
 
-using namespace std;
-
 class sflow_rheology_f : public sflow_rheology, public increment
 {
 

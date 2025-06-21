@@ -33,8 +33,6 @@ class ghostcell;
 class vec;
 class cpt;
 
-using namespace std;
-
 class ddweno_nug_sf : public weno_nug_func
 {
 public:

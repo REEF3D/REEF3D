@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"fluxlim.h"
 #include"increment.h"
 
-using namespace std;
-
 class superbee : public fluxlim, public increment
 {
 public:

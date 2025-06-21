@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class turbulence;
 
-using namespace std;
-
 class pftimestep : public timestep, public increment
 {
 public:

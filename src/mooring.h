@@ -28,8 +28,6 @@ class fdm;
 class ghostcell;
 class sixdof;
 
-using namespace std;
-
 class mooring
 {
 public:

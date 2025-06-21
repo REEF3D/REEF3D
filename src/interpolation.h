@@ -31,8 +31,6 @@ class field;
 class slice;
 class sliceint;
 
-using namespace std;
-
 class interpolation : virtual public boundarycheck
 {
 public:

@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 class lexer;
 
-using namespace std;
-
 class cpt
 {
 public:

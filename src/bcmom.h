@@ -31,8 +31,6 @@ class ghostcell;
 class field;
 class turbulence;
 
-using namespace std;
-
 class bcmom : public surftens, public roughness
 {
 public:

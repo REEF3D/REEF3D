@@ -28,8 +28,6 @@ class ghostcell;
 class slice;
 class sediment_fdm;
 
-using namespace std;
-
 class bedshear_reduction
 {
 public:

@@ -27,8 +27,6 @@ Author: Hans Bihs
 
 class lexer;
 
-using namespace std;
-
 class grid :  public increment
 {
 public:

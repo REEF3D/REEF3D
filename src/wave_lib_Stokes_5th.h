@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"wave_lib.h"
 #include"increment.h"
 
-using namespace std;
-
 class wave_lib_Stokes_5th : public wave_lib, public increment
 {
 public:

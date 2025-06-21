@@ -31,8 +31,6 @@ class ghostcell;
 class ioflow;
 class sediment;
 
-using namespace std;
-
 class nhflow_vtp_bed : public increment
 {
 public:

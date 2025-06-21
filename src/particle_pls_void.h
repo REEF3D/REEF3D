@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"particle_corr.h"
 
-using namespace std;
-
 class particle_pls_void : public particle_corr
 {
 public:

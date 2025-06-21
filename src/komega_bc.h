@@ -29,8 +29,6 @@ class fdm;
 class lexer;
 class field;
 
-using namespace std;
-
 class komega_bc : public roughness
 {
 public:

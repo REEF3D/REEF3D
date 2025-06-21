@@ -30,8 +30,6 @@ class fdm_fnpf;
 class ghostcell;
 class ioflow;
 
-using namespace std;
-
 class fnpf_vtp_bed : public increment
 {
 public:

@@ -33,8 +33,6 @@ class fdm;
 class lexer;
 class ghostcell;
 
-using namespace std;
-
 class fluid_update_vof : public fluid_update, increment
 {
 public:

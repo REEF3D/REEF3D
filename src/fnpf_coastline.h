@@ -31,8 +31,6 @@ class slice;
 class sliceint;
 class ghostcell;
 
-using namespace std;
-
 class fnpf_coastline :  public ddweno_f_nug
 {
 public:

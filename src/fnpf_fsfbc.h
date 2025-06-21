@@ -33,8 +33,6 @@ class fnpf_ddx;
 class fnpf_etadisc;
 class solver2D;
 
-using namespace std;
-
 class fnpf_fsfbc : public fnpf_fsf, public increment 
 {
 public:

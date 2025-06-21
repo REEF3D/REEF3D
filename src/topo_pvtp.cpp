@@ -38,7 +38,7 @@ void topo_vtp::pvtp(lexer* p, fdm* a, ghostcell* pgc, sediment *psed)
     num = p->count;
 	
 
-	sprintf(name,"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i.pvtp",num);
+	snprintf(name,sizeof(name),"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i.pvtp",num);
 
 
 	ofstream result;
@@ -102,6 +102,6 @@ void topo_vtp::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"REEF3D-CFD-Topo-%08i-%06i.vtp",num,n+1);
+	snprintf(pname,sizeof(pname),"REEF3D-CFD-Topo-%08i-%06i.vtp",num,n+1);
 
 }

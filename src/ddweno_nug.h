@@ -31,8 +31,6 @@ class field;
 class lexer;
 class ghostcell;
 
-using namespace std;
-
 class ddweno_nug : public weno_nug_func
 {
 public:

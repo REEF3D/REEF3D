@@ -30,8 +30,6 @@ Author: Hans Bihs
 class reinidisc;
 class picard;
 
-using namespace std;
-
 class reini_RK3 : public reini, public increment
 {
 public:

@@ -28,8 +28,6 @@ Author: Hans Bihs
 #include"field3.h"
 #include"field4.h"
 
-using namespace std;
-
 class suspended_IM1 : public suspended, public increment
 {
 public:

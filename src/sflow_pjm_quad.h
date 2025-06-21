@@ -32,8 +32,6 @@ Author: Hans Bihs
 class sflow_weno_hj;
 class sflow_gradient_weno;
 
-using namespace std;
-
 class sflow_pjm_quad : public sflow_pressure, public increment
 {
 public:

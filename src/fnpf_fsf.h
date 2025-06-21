@@ -32,8 +32,6 @@ class fnpf_convection;
 class fnpf_ddx;
 class fnpf_etadisc;
 
-using namespace std;
-
 class fnpf_fsf 
 {
 public:

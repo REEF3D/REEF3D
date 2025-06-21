@@ -31,8 +31,6 @@ class ghostcell;
 class sflow_print_wsf;
 class sediment;
 
-using namespace std;
-
 class sflow_vtp_bed : public increment
 {
 public:

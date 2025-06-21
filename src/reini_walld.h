@@ -30,8 +30,6 @@ Author: Hans Bihs
 class reinidisc;
 class picard;
 
-using namespace std;
-
 class reini_walld : public reini, gradient
 {
 public:

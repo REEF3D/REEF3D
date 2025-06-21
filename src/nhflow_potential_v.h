@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"nhflow_potential.h"
 
-using namespace std;
-
 class nhflow_potential_v : public nhflow_potential
 {
 public:

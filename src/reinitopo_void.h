@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"reinitopo.h"
 
-using namespace std;
-
 class reinitopo_void : public reinitopo
 {
 public:

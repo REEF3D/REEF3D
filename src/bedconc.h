@@ -27,8 +27,6 @@ class lexer;
 class sediment_fdm;
 class ghostcell;
 
-using namespace std;
-
 class bedconc 
 {
 public:

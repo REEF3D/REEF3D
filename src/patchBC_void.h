@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"patchBC_interface.h"
 
-using namespace std;
-
 class patchBC_void : public patchBC_interface
 {
 public:

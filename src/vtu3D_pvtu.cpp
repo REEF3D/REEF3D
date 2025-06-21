@@ -44,7 +44,7 @@ void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *phea
     if(p->P15==2)
     num = p->count;
 
-	sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-%08i.pvtu",num);
+	snprintf(name,sizeof(name),"./REEF3D_CFD_VTU/REEF3D-CFD-%08i.pvtu",num);
 
 	ofstream result;
 	result.open(name);
@@ -167,6 +167,6 @@ void vtu3D::piecename(fdm* a, lexer* p, ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"REEF3D-CFD-%08i-%06i.vtu",num,n+1);
+	snprintf(pname,sizeof(pname),"REEF3D-CFD-%08i-%06i.vtu",num,n+1);
 
 }

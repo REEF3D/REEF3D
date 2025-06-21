@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"gradient.h"
 #include"picard.h"
 
-using namespace std;
-
 class picard_f : public gradient, public picard
 {
 public:

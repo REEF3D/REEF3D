@@ -36,7 +36,7 @@ void nhflow_force::name_iter(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->P15==2)
     num = p->count;
 
-    sprintf(name,"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,p->mpirank+1);
 
 
 }

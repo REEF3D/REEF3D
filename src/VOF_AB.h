@@ -35,8 +35,6 @@ class heat;
 class convection;
 class fluid_update;
 
-using namespace std;
-
 class VOF_AB : public freesurface, gradient
 {
 public:

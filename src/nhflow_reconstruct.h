@@ -32,8 +32,6 @@ class fdm_nhf;
 class slice;
 class patchBC_interface;
 
-using namespace std;
-
 class nhflow_reconstruct
 {
 public:

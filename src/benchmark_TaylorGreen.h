@@ -32,9 +32,7 @@ class fdm;
 class lexer;
 class ghostcell;
 
-using namespace std;
-
-class benchmark_TaylorGreen : public benchmark, public increment, public gradient
+class benchmark_TaylorGreen : public benchmark, public gradient
 {
 
 public:

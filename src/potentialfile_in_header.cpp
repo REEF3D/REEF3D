@@ -32,7 +32,7 @@ Author: Hans Bihs
 void potentialfile_in::header_read(lexer *p, ghostcell *pgc)
 {
     // Open File
-    sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialheader-%i.r3d",p->I240);
+    snprintf(name,sizeof(name),"./REEF3D_PotentialFile/REEF3D-potentialheader-%i.r3d",p->I240);
 	
     
     // count entries

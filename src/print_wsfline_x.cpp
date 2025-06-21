@@ -88,7 +88,7 @@ void print_wsfline_x::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
     if(p->mpirank==0)
     {
 		// open file
-		sprintf(name,"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-%08i.dat",num);
+		snprintf(name,sizeof(name),"./REEF3D_CFD_WSFLINE/REEF3D-CFD-wsfline-%08i.dat",num);
         
 		wsfout.open(name);
 

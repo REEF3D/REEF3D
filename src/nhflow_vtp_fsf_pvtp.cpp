@@ -36,7 +36,7 @@ void nhflow_vtp_fsf::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
     if(p->P15==2)
     num = p->count;
 	
-	sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp",num);
+	snprintf(name,sizeof(name),"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp",num);
 
 
 	ofstream result;
@@ -106,6 +106,6 @@ void nhflow_vtp_fsf::piecename(lexer *p, fdm_nhf *d, ghostcell *pgc, int n)
     num = p->count;
 
 
-    sprintf(pname,"REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,n+1);
+    snprintf(pname,sizeof(pname),"REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,n+1);
 
 }

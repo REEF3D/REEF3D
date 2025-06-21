@@ -38,8 +38,6 @@ class fdm_nhf;
 class turbulence;
 class patchBC_interface;
 
-using namespace std;
-
 class ioflow
 {
 public:

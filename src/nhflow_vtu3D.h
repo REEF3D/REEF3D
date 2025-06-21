@@ -49,8 +49,6 @@ class nhflow_force_ale;
 class bedshear_probe;
 class bedshear_max;
 
-using namespace std;
-
 class nhflow_vtu3D : public nhflow_printer, public increment
 {
 

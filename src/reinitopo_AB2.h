@@ -29,8 +29,6 @@ Author: Hans Bihs
 
 class reinidisc;
 
-using namespace std;
-
 class reinitopo_AB2 : public reinitopo, gradient
 {
 public:

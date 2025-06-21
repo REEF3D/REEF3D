@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class lexer;
 
-using namespace std;
-
 class fieldint5 :  public fieldint, public increment
 {
 public:

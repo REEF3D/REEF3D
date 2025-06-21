@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"slice4.h"
 
-using namespace std;
-
 class sflow_rough_manning : public sflow_roughness, public increment
 {
 

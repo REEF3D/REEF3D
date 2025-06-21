@@ -28,8 +28,6 @@ Authors: Hans Bihs, Tobias Martin
 
 class flux;
 
-using namespace std;
-
 class weno_hj_df_nug : public convection, public weno_nug_func
 {
 public:

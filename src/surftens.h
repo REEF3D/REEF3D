@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"gradient.h"
 
-using namespace std;
-
 class surftens : public gradient
 {
 public:

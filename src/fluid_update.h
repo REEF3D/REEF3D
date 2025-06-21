@@ -28,8 +28,6 @@ class lexer;
 class ghostcell;
 class field;
 
-using namespace std;
-
 class fluid_update
 {
 public:

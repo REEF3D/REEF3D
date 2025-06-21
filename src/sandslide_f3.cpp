@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sliceint.h"
 
-sandslide_f3::sandslide_f3(lexer *p) : norm_vec(p), bedslope(p), fh(p)
+sandslide_f3::sandslide_f3(lexer *p) : bedslope(p), fh(p)
 {
     if(p->S50==1)
 	gcval_topo=151;

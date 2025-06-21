@@ -55,8 +55,6 @@ class exportfile;
 class flowfile_out;
 class print_averaging;
 
-using namespace std;
-
 class vtu3D : public printer, public increment
 {
 

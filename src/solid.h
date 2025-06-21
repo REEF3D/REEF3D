@@ -32,8 +32,6 @@ class reinitopo;
 class convection;
 class ioflow;
 
-using namespace std;
-
 class solid : public increment
 {
 public:

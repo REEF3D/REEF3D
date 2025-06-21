@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"potential.h"
 #include"increment.h"
 
-using namespace std;
-
 class potential_v : public potential, public increment
 {
 public:

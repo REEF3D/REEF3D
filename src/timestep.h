@@ -28,8 +28,6 @@ class lexer;
 class ghostcell;
 class turbulence;
 
-using namespace std;
-
 class timestep
 {
 public:

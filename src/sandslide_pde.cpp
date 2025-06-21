@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p), ci(p)
+sandslide_pde::sandslide_pde(lexer *p) : bedslope(p), fh(p), ci(p)
 {
     if(p->S50==1)
 	gcval_topo=151;

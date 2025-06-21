@@ -30,8 +30,6 @@ Author: Hans Bihs
 class sflow_hxy_disc;
 class patchBC_interface;
 
-using namespace std;
-
 class sflow_eta : public sflow_fsf, public increment
 {
 public:    

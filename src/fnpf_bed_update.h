@@ -35,8 +35,6 @@ class fnpf_ddx;
 class fnpf_convection;
 class fnpf_fsf;
 
-using namespace std;
-
 class fnpf_bed_update : public increment
 {
 public:

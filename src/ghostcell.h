@@ -46,8 +46,6 @@ class ioflow;
 class tracers_obj;
 class particles_obj;
 
-using namespace std;
-
 class ghostcell : public boundarycheck
 {
 public:

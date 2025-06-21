@@ -105,13 +105,13 @@ void bedprobe_line_x::start(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow *p
     {
 		// open file
         if(p->A10==2)
-        sprintf(name,"./REEF3D_SFLOW_Sediment/Line/REEF3D-SFLOW-bedprobe_line_x-%06i.dat",num);
+        snprintf(name,sizeof(name),"./REEF3D_SFLOW_Sediment/Line/REEF3D-SFLOW-bedprobe_line_x-%06i.dat",num);
         
         if(p->A10==5)
-        sprintf(name,"./REEF3D_NHFLOW_Sediment/Line/REEF3D-NHFLOW-bedprobe_line_x-%06i.dat",num);
+        snprintf(name,sizeof(name),"./REEF3D_NHFLOW_Sediment/Line/REEF3D-NHFLOW-bedprobe_line_x-%06i.dat",num);
         
         if(p->A10==6)
-        sprintf(name,"./REEF3D_CFD_Sediment/Line/REEF3D-CFD-bedprobe_line_x-%06i.dat",num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_Sediment/Line/REEF3D-CFD-bedprobe_line_x-%06i.dat",num);
 
 		wsfout.open(name);
 

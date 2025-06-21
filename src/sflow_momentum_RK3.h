@@ -36,8 +36,6 @@ class sflow_roughness;
 class sflow_rheology;
 class sflow_forcing;
 
-using namespace std;
-
 class sflow_momentum_RK3 : public sflow_momentum, public increment
 {
 public:

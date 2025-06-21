@@ -30,7 +30,7 @@ void fnpf_runup::fnpf_runup_calc(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {	
     double ru_eta, ru_L, ru_k, ru_m, ru_u, ru_g, ru_H, ru_Hm0, ru_Tp, ru_s0p, ru_mLA, ru_mLB, ru_mLC, ru_h, ru_Ur, ru_gammaD; //Free Surface, Wave length, Wave number, VSHT adjusment coefficient, particle velocity, gravity acceleration, Wave height, peak deep water steepness, m Level A, m Level B, m Level C, water depth, Ursell number, Diameter-run-up increasing factor
     
-    k==0; //**Initial sigma grid**
+    k=0; //**Initial sigma grid**
     //Calculation of wvae Height and Period
     //ru_Hm0 = (c->eta(i,j)-p->F60) * 2; //Aproximation considering intial SWL and equal through and crest sizes
     
@@ -91,12 +91,9 @@ void fnpf_runup::fnpf_runup_calc(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     R6 = 7.39 * ru_gammaD * log(0.27 * ru_Ur +1); //Peng et al (2012)
     
     //Temporary calculations
-    R1 = R1; //Fee surface
-    R2 = R2;
     R3 = ru_eta + ru_mLA * pow(ru_u,2)/(2 * ru_g);
     R4 = ru_eta + ru_mLA * pow(ru_u,2)/(2 * ru_g);
     R5 = ru_eta + ru_mLA * pow(ru_u,2)/(2 * ru_g);
-    R6 = R6;
     
     // Storing current time step information for next time step gradient calculation
     un = c->U[FIJK];

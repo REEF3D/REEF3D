@@ -32,8 +32,6 @@ class ghostcell;
 class ioflow;
 class sediment_fdm;
 
-using namespace std;
-
 class nhflow_suspended
 {
 public:

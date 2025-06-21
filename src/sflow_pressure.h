@@ -31,8 +31,6 @@ class slice;
 class ioflow;
 class patchBC_interface;
 
-using namespace std;
-
 class sflow_pressure
 {
 public:

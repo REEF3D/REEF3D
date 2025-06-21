@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"solver.h"
 
-using namespace std;
-
 class solver_void : public solver
 {
 public:

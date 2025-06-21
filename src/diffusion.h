@@ -29,8 +29,6 @@ class ghostcell;
 class field;
 class solver;
 
-using namespace std;
-
 
 class diffusion
 {

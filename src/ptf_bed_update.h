@@ -30,8 +30,6 @@ class field;
 class fnpf_convection;
 class ghostcell;
 
-using namespace std;
-
 class ptf_bed_update : public increment
 {
 public:

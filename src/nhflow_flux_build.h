@@ -27,8 +27,6 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 
-using namespace std;
-
 class nhflow_flux_build 
 {
 

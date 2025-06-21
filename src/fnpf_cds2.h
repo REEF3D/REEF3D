@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"fnpf_convection.h"
 #include"increment.h"
 
-using namespace std;
-
 class fnpf_cds2 : public fnpf_convection, public increment
 {
 public:

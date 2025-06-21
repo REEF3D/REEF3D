@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"nhflow.h"
 
-using namespace std;
-
 class nhflow_v : public nhflow
 {
 public: 

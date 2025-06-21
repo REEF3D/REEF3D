@@ -30,8 +30,6 @@ class ioflow;
 class solver;
 class slice;
 
-using namespace std;
-
 class nhflow_diffusion
 {
 public:

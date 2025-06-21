@@ -31,8 +31,6 @@ class ghostcell;
 class ddweno_f_nug;
 class sediment_fdm;
 
-using namespace std;
-
 class bedslope :  public norm_vec
 {
 public:

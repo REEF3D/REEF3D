@@ -31,8 +31,6 @@ class solver;
 class nhflow_poisson;
 class patchBC_interface;
 
-using namespace std;
-
 class nhflow_pjm_corr : public nhflow_pressure, public increment
 {
 

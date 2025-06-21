@@ -27,8 +27,6 @@ class lexer;
 class fdm;
 class field;
 
-using namespace std;
-
 class poisson
 {
 public:

@@ -85,7 +85,7 @@ void wave_lib_spectrum::recon_read(lexer *p, ghostcell* pgc)
 	double val,val0,val1,val2,val0n,val1n,val2n;
 	int count;
 	
-	sprintf(name,"waverecon.dat");
+	snprintf(name,sizeof(name),"waverecon.dat");
 
 // open file------------
 	ifstream file(name, ios_base::in);

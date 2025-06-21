@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"solver2D.h"
 #include"increment.h"
 
-using namespace std;
-
 class sflow_bicgstab : public solver2D, public increment
 {
 public:

@@ -29,8 +29,6 @@ Author: Hans Bihs
 
 class field;
 
-using namespace std;
-
 class potential_water : public potential, public increment
 {
 

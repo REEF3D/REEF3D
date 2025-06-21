@@ -30,8 +30,6 @@ class fdm;
 class field;
 class ghostcell;
 
-using namespace std;
-
 class bcheat : public increment
 {
 public:

@@ -28,8 +28,6 @@ class lexer;
 class solver;
 class ghostcell;
 
-using namespace std;
-
 class potential
 {
 public:

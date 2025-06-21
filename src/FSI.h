@@ -33,8 +33,6 @@ class fdm;
 class ghostcell;
 class turbulence;
 
-using namespace std;
-
 class fsi
 {
 public:

@@ -37,7 +37,7 @@ void particle_pls::pvtu_pos(fdm* a, lexer* p, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(name,"./REEF3D_PLS/XPLS-POS-%08i.pvtu",num);
+	snprintf(name,sizeof(name),"./REEF3D_PLS/XPLS-POS-%08i.pvtu",num);
 
 
 	ofstream result;
@@ -80,7 +80,7 @@ void particle_pls::pvtu_neg(fdm* a, lexer* p, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 	
-	sprintf(name,"./REEF3D_PLS/XPLS-NEG-%08i.pvtu",num);
+	snprintf(name,sizeof(name),"./REEF3D_PLS/XPLS-NEG-%08i.pvtu",num);
 	
 	ofstream result;
 	result.open(name);
@@ -123,7 +123,7 @@ void particle_pls::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
     num = p->count;
 
 
-    sprintf(pname,"XPLS-POS-%08i-%08i.vtu",num,n+1);
+    snprintf(pname,sizeof(pname),"XPLS-POS-%08i-%08i.vtu",num,n+1);
 
 }
 
@@ -138,7 +138,7 @@ void particle_pls::piecename_neg(fdm* a, lexer* p, ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"XPLS-NEG-%08i-%08i.vtu",num,n+1);
+	snprintf(pname,sizeof(pname),"XPLS-NEG-%08i-%08i.vtu",num,n+1);
 }
 
 void particle_pls::header_pos(fdm* a,lexer* p,ghostcell* pgc)
@@ -152,7 +152,7 @@ void particle_pls::header_pos(fdm* a,lexer* p,ghostcell* pgc)
     num = p->count;
 
     
-    sprintf(name,"./REEF3D_PLS/XPLS-POS-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_PLS/XPLS-POS-%08i-%06i.vtp",num,p->mpirank+1);
 
 }
 
@@ -167,6 +167,6 @@ void particle_pls::header_neg(fdm* a,lexer* p,ghostcell* pgc)
     num = p->count;
 
 
-    sprintf(name,"./REEF3D_PLS/XPLS-NEG-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_PLS/XPLS-NEG-%08i-%06i.vtp",num,p->mpirank+1);
 
 }

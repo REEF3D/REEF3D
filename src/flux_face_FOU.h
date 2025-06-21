@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class lexer;
 
-using namespace std;
-
 class flux_face_FOU : public flux, public increment
 {
 public:

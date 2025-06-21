@@ -31,8 +31,6 @@ class fdm_nhf;
 class ghostcell;
 class slice;
 
-using namespace std;
-
 class wind_f : public wind, public increment
 {
 public:

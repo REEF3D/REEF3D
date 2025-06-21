@@ -32,8 +32,6 @@ class reinitopo;
 class ioflow;
 class vrans;
 
-using namespace std;
-
 class geotopo : public increment
 {
 public:

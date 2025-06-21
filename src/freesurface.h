@@ -33,8 +33,6 @@ class reini;
 class particle_corr;
 class field;
 
-using namespace std;
-
 class freesurface
 {
 public:

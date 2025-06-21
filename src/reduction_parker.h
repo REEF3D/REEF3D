@@ -31,8 +31,6 @@ class lexer;
 class ghostcell;
 class sediment_fdm;
 
-using namespace std;
-
 class reduction_parker :  public bedshear_reduction, public bedslope
 {
 public:

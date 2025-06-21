@@ -27,9 +27,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"weno_nug_func.h"
 
-using namespace std;
-
-class sediment_wenoflux : public sediment_exnerdisc, public increment, public weno_nug_func
+class sediment_wenoflux : public sediment_exnerdisc, public weno_nug_func
 {
 public:
 	sediment_wenoflux(lexer*);

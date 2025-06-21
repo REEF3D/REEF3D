@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"slice.h"
 #include"increment.h"
 
-using namespace std;
-
 class slice4 : public slice, increment
 {
 public:

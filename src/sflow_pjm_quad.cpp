@@ -336,7 +336,7 @@ void sflow_pjm_quad::quad_calc(lexer *p,fdm2D *b,slice &P, slice &Q, slice &Pn, 
                                     + Qval*((Q(i,j-1)-Q(i,j))/p->DXM))
                                             
                                                           
-                - pow(Pval,2.0)*((b->depth(i+1,j) - 2.0*b->depth(i,j) + b->depth(i-1,j))/(p->DXM*p->DXM));
+                - pow(Pval,2.0)*((b->depth(i+1,j) - 2.0*b->depth(i,j) + b->depth(i-1,j))/(p->DXM*p->DXM))
                 
                 - pow(Qval,2.0)*((b->depth(i,j+1) - 2.0*b->depth(i,j) + b->depth(i,j-1))/(p->DXM*p->DXM));
        

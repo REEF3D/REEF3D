@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"field3.h"
 
-using namespace std;
-
 class suspended_RK3 : public suspended, public increment
 {
 public:

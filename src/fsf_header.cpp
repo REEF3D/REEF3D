@@ -36,5 +36,5 @@ void fsf_vtp::name_iter(lexer* p,fdm* a,ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-    sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i-%06i.vtp",num,p->mpirank+1);
 }

@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 
 
-using namespace std;
-
 class flux_HJ_CDS2_2D : public flux, public increment
 {
 public:

@@ -32,8 +32,6 @@ class solver2D;
 class slice;
 class sliceint;
 
-using namespace std;
-
 class sflow_diffusion_void : public sflow_diffusion
 {
 public:

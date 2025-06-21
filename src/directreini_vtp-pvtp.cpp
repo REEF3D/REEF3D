@@ -36,7 +36,7 @@ void directreini::pvtp(lexer* p, fdm* a, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 	
-	sprintf(name,"./REEF3D_FSF/REEF3D-FSF-%08i.vtp",num);
+	snprintf(name,sizeof(name),"./REEF3D_FSF/REEF3D-FSF-%08i.vtp",num);
 
 	ofstream result;
 	result.open(name);
@@ -74,6 +74,6 @@ void directreini::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)
     num = p->count;
 
 
-    sprintf(pname,"REEF3D-FSF-%08i-%06i.vtp",num,n+1);
+    snprintf(pname,sizeof(pname),"REEF3D-FSF-%08i-%06i.vtp",num,n+1);
 
 }

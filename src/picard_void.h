@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"picard.h"
 
-using namespace std;
-
 class picard_void : public picard
 {
 public:

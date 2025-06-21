@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"convection.h"
 
-EARSM_kw_IM1::EARSM_kw_IM1(lexer* p, fdm* a, ghostcell *pgc): komega_IM1(p,a,pgc),EARSM(p,a),cmu(cmu)
+EARSM_kw_IM1::EARSM_kw_IM1(lexer* p, fdm* a, ghostcell *pgc): komega_IM1(p,a,pgc),EARSM(p,a),cmu(p->cmu)
 {
 	gcval_earsm=25;
 }

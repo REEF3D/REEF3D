@@ -88,7 +88,7 @@ void sflow_print_bedline::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflo
     if(p->mpirank==0)
     {
 		// open file
-		sprintf(name,"./REEF3D_SFLOW_BEDLINE/REEF3D-SFLOW-bedline-%08i.dat",num);
+		snprintf(name,sizeof(name),"./REEF3D_SFLOW_BEDLINE/REEF3D-SFLOW-bedline-%08i.dat",num);
 		
 		wsfout.open(name);
 

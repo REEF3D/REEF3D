@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"gradient.h"
 #include"diffusion.h"
 
-using namespace std;
-
 class rheology;
 
 

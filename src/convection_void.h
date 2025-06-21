@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"convection.h"
 #include"increment.h"
 
-using namespace std;
-
 class convection_void : public convection, public increment
 {
 

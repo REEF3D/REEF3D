@@ -28,8 +28,6 @@ Author: Hans Bihs
 #include"boundarycheck.h"
 #include"field4.h"
 
-using namespace std;
-
 class particle_pls : public particle_corr, public norm_vec, public boundarycheck
 {
 public:

@@ -32,8 +32,6 @@ class ptf_fsf_update;
 class ptf_bed_update;
 class field;
 
-using namespace std;
-
 class ptf_RK3 : public ptf, public ptf_fsfbc
 {
 public:

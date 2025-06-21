@@ -29,8 +29,6 @@ Author: Hans Bihs
 #include"sandslide.h"
 
 
-using namespace std;
-
 class sandslide_v :  public sandslide
 {
 public:

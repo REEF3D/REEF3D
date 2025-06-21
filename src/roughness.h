@@ -29,8 +29,6 @@ class fdm;
 class lexer;
 class ghostcell;
 
-using namespace std;
-
 class roughness : virtual public increment
 {
 public:

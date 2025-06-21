@@ -31,8 +31,6 @@ Author: Hans Bihs
 
 class patchBC_interface;
 
-using namespace std;
-
 class nhflow_fsf_f : public nhflow_fsf, public increment
 {
 public:

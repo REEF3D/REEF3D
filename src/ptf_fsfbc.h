@@ -30,8 +30,6 @@ class ptf_laplace;
 class field;
 class fnpf_convection;
 
-using namespace std;
-
 class ptf_fsfbc : public increment
 {
 public:

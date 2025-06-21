@@ -29,8 +29,6 @@ class fdm_nhf;
 class lexer;
 class slice;
 
-using namespace std;
-
 class nhflow_gradient : virtual public increment
 {
 public:

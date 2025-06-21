@@ -28,8 +28,6 @@ class slice;
 class sliceint;
 class patchBC_interface;
 
-using namespace std;
-
 class sflow_hxy_disc 
 {
 public:

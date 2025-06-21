@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include"diffusion.h"
 #include"looping.h"
 
-using namespace std;
-
 
 class diff_void : public diffusion, public increment
 {

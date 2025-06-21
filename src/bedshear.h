@@ -34,8 +34,6 @@ class sediment_fdm;
 class turbulence;
 class sliceint;
 
-using namespace std;
-
 class bedshear :  public norm_vec
 {
 public:

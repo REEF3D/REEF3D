@@ -28,8 +28,6 @@ class fdm2D;
 
 #include"looping.h"
 
-using namespace std;
-
 class increment
 {
 	public:

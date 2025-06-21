@@ -31,8 +31,6 @@ class sediment_fdm;
 class slice;
 class sliceint;
 
-using namespace std;
-
 class bedload_direction : public increment
 {
 public:

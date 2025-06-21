@@ -80,7 +80,7 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     if(p->mpirank==0)
     {
 		// open file
-		sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-max-x.dat");
+		snprintf(name,sizeof(name),"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-max-x.dat");
 		
 		wsfout.open(name);
 

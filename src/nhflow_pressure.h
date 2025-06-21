@@ -31,8 +31,6 @@ class solver;
 class field;
 class slice;
 
-using namespace std;
-
 class nhflow_pressure
 {
 public:

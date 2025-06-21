@@ -28,8 +28,6 @@ class fdm;
 class ghostcell;
 class wave_lib;
 
-using namespace std;
-
 class wave_interface 
 {
 

@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"bedload.h"
 
-using namespace std;
-
 class bedload_void : public bedload
 {
 public:

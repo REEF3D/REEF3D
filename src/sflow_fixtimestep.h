@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"sflow_timestep.h"
 #include"increment.h"
 
-using namespace std;
-
 class sflow_fixtimestep : public sflow_timestep, public increment
 {
 public:

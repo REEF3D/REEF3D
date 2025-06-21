@@ -219,9 +219,7 @@ void sflow_f::print_debug(lexer *p, fdm2D* b, ghostcell* pgc)
 	mkdir("./REEF3D_SFLOW_Log",0777);
 	
 	
-	sprintf(name,"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
-
-	sprintf(name,"./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
+	snprintf(name,sizeof(name),"./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
 		
 		
 	debug.open(name);

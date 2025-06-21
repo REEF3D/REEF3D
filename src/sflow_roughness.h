@@ -27,8 +27,6 @@ class lexer;
 class fdm2D;
 class slice;
 
-using namespace std;
-
 class sflow_roughness 
 {
 

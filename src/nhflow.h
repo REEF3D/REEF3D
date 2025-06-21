@@ -42,8 +42,6 @@ class poisson;
 class vrans;
 class turbulence;
 
-using namespace std;
-
 class nhflow
 {
 public:    

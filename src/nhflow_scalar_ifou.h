@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class nhflow_scalar_advec;
 
-using namespace std;
-
 class nhflow_scalar_ifou : public nhflow_scalar_convection, public increment
 {
 public:

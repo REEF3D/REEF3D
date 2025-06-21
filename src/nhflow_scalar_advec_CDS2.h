@@ -29,8 +29,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 
-using namespace std;
-
 class nhflow_scalar_advec_CDS2 : public nhflow_scalar_advec, public increment
 {
 public:

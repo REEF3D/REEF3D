@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class lexer;
 
-using namespace std;
-
 class sflow_flux_HJ_CDS : public sflow_flux, public increment
 {
 public:

@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"pressure.h"
 #include"increment.h"
 
-using namespace std;
-
 class pressure_void : public pressure, public increment
 {
 

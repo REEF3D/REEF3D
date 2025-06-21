@@ -41,8 +41,6 @@ class diffusion;
 class poisson;
 class turbulence;
 
-using namespace std;
-
 class nhflow_fsf
 {
 public:    
