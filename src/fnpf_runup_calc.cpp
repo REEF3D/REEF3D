@@ -91,12 +91,9 @@ void fnpf_runup::fnpf_runup_calc(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     R6 = 7.39 * ru_gammaD * log(0.27 * ru_Ur +1); //Peng et al (2012)
     
     //Temporary calculations
-    R1 = R1; //Fee surface
-    R2 = R2;
     R3 = ru_eta + ru_mLA * pow(ru_u,2)/(2 * ru_g);
     R4 = ru_eta + ru_mLA * pow(ru_u,2)/(2 * ru_g);
     R5 = ru_eta + ru_mLA * pow(ru_u,2)/(2 * ru_g);
-    R6 = R6;
     
     // Storing current time step information for next time step gradient calculation
     un = c->U[FIJK];
