@@ -131,7 +131,7 @@ private:
     double *values;
     int num_iterations;
     double final_res_norm;
-	int stencil_indices[13];
+	int stencil_indices[15];
 	int nentries;
    
 	int numiter,count,q;
