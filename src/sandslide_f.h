@@ -30,9 +30,7 @@ Author: Hans Bihs
 
 class sediment_fdm;
 
-using namespace std;
-
-class sandslide_f :  public sandslide, public norm_vec, public bedslope
+class sandslide_f :  public sandslide, public bedslope
 {
 public:
     sandslide_f(lexer*);

@@ -29,8 +29,6 @@ class ghostcell;
 class ioflow;
 class slice;
 
-using namespace std;
-
 class sflow_fsf
 {
 public:    

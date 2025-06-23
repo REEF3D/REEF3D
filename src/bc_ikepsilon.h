@@ -29,9 +29,7 @@ class fdm;
 class lexer;
 class field;
 
-using namespace std;
-
-class bc_ikepsilon : public increment, public roughness
+class bc_ikepsilon : public roughness
 {
 public:
 	bc_ikepsilon(lexer*);

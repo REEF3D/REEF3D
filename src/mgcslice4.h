@@ -28,8 +28,6 @@ Author: Hans Bihs
 class lexer;
 class ghostcell;
 
-using namespace std;
-
 class mgcslice4 :  public increment
 {
 public:

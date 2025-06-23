@@ -31,8 +31,6 @@ class lexer;
 class convection;
 class ghostcell;
 
-using namespace std;
-
 class benchmark_vortex : public benchmark, public increment
 {
 

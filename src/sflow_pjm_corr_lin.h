@@ -27,8 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"slice4.h"
 
-using namespace std;
-
 class sflow_pjm_corr_lin : public sflow_pressure, public increment
 {
 public:

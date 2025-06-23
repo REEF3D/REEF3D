@@ -28,8 +28,6 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 
-using namespace std;
-
 class boundarycheck : public increment
 {
 public:

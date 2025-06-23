@@ -65,8 +65,6 @@ Author: Hans Bihs
     
 #define SLICEFLEXCHECK  if(flagslice[IJ]>0)
 #define SLICEFLEXLOOP IFLEXLOOP JFLEXLOOP SLICEFLEXCHECK
-    
-#define SSLICECHECK4  if(p->flagslice4[IJ]<0)
 
 #define WETDRY1 if(b->wet1(i,j)==1)
 #define WETDRY2 if(b->wet2(i,j)==1)    

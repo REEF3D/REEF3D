@@ -30,8 +30,6 @@ class ioflow;
 class field;
 class vec;
 
-using namespace std;
-
 class reini
 {
 public:

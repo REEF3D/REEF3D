@@ -36,7 +36,7 @@ void nhflow_force::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->P15==2)
     num = p->count;
 	
-	sprintf(name,"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i.pvtp",ID,num);
+	snprintf(name,sizeof(name),"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i.pvtp",ID,num);
 
 	ofstream result;
 	result.open(name);
@@ -86,7 +86,7 @@ void nhflow_force::piecename(lexer* p, fdm_nhf *d,  ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
+	snprintf(pname,sizeof(pname),"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
 }
 
 

@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class flux;
 
-using namespace std;
-
 class iweno_hj : public convection, public increment
 {
 public:

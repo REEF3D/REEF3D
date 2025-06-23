@@ -28,8 +28,6 @@ Author: Hans Bihs
 class fdm_nhf;
 class lexer;
 
-using namespace std;
-
 class nhflow_komega_bc : public roughness
 {
 public:

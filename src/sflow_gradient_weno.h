@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"sflow_gradient.h"
 #include"increment.h"
 
-using namespace std;
-
 class sflow_gradient_weno : public sflow_gradient, public increment
 {
 public:

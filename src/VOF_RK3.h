@@ -34,8 +34,6 @@ class picard;
 class heat;
 class fluid_update;
 
-using namespace std;
-
 class VOF_RK3 : public freesurface, gradient
 {
 public:

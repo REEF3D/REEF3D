@@ -29,8 +29,6 @@ Author: Hans Bihs
 
 class slice;
 
-using namespace std;
-
 class sflow_potential_v : public sflow_potential, public increment
 {
 

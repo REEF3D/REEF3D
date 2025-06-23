@@ -42,8 +42,6 @@ class sflow_turbulence;
 class sflow_state;
 class fnpf_print_Hs;
 
-using namespace std;
-
 class sflow_vtp_fsf : public increment
 {
 public:

@@ -32,7 +32,7 @@ void patchBC_2D::patchBC_hydrograph_FSF_read(lexer *p, ghostcell *pgc, int qq, i
 	int count;
 
     
-    sprintf(name,"hydrograph_FSF_%i.dat",ID);
+    snprintf(name,sizeof(name),"hydrograph_FSF_%i.dat",ID);
     
 // open file------------
 	ifstream hg(name, ios_base::in);

@@ -29,8 +29,6 @@ class ghostcell;
 class field;
 class ioflow;
 
-using namespace std;
-
 class particle_corr
 {
 public:

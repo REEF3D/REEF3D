@@ -32,8 +32,6 @@ class ioflow;
 class poisson;
 class solver;
 
-using namespace std;
-
 
 class nhflow_poisson : public increment
 {

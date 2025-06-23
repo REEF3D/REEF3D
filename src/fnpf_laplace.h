@@ -32,8 +32,6 @@ class vec;
 class fnpf_fsf;
 class slice;
 
-using namespace std;
-
 class fnpf_laplace
 {
 public:

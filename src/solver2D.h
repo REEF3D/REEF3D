@@ -31,8 +31,6 @@ class vec2D;
 class cpt2D;
 class matrix2D;
 
-using namespace std;
-
 class solver2D
 {
 

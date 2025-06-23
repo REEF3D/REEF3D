@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"patchBC_interface.h"
 
-using namespace std;
-
 class patchBC_2D : public patchBC_interface, public increment
 {
 public:

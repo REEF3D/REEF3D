@@ -34,8 +34,6 @@ class solver2D;
 class turbulence;
 class ghostcell;
 
-using namespace std;
-
 class sediment_exner : public topo, public increment
 {
 public:

@@ -30,8 +30,6 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"field4a.h"
 
-using namespace std;
-
 class sediment_fdm
 {
 public:

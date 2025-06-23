@@ -88,7 +88,7 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
     if(p->mpirank==0)
     {
 		// open file
-		sprintf(name,"./REEF3D_FNPF_WSFLINE/REEF3D-FNPF-wsfline-%06i.dat",num);
+		snprintf(name,sizeof(name),"./REEF3D_FNPF_WSFLINE/REEF3D-FNPF-wsfline-%06i.dat",num);
 		
 		wsfout.open(name);
 

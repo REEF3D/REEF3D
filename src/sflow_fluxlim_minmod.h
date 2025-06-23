@@ -30,8 +30,6 @@ class slice;
 class fdm;
 class lexer;
 
-using namespace std;
-
 class sflow_fluxlim_minmod : public sflow_fluxlim, public increment 
 {
 public:

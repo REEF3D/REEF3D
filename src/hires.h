@@ -29,8 +29,6 @@ Author: Hans Bihs
 class flux;
 class fluxlim;
 
-using namespace std;
-
 class hires : public convection, public increment
 {
 

@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class turbulence;
 
-using namespace std;
-
 class bedload_einstein : public bedload, public increment
 {
 public:

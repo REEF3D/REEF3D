@@ -32,8 +32,6 @@ class sediment_exnerdisc;
 class reinitopo;
 class slice;
 
-using namespace std;
-
 class topo
 {
 public:

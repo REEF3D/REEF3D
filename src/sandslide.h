@@ -29,8 +29,6 @@ class sediment_fdm;
 class slice;
 class sliceint;
 
-using namespace std;
-
 class sandslide  
 {
 public:

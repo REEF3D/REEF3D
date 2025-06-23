@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 class rheology;
 
-using namespace std;
-
 class multiphase_fluid_update_rheology : public multiphase_fluid_update, increment
 {
 public:

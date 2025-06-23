@@ -25,8 +25,6 @@ Author: Hans Bihs
 
 #include"wave_lib.h"
 
-using namespace std;
-
 class wave_lib_precalc : public wave_lib
 {
 public:

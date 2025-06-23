@@ -36,13 +36,13 @@ void vtu3D::name_iter(fdm* a,lexer* p,ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-    sprintf(name,"./REEF3D_CFD_VTU/REEF3D-CFD-%08i-%06i.vtu",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_CFD_VTU/REEF3D-CFD-%08i-%06i.vtu",num,p->mpirank+1);
 
 
-    sprintf(epsvar,"epsilon");
+    snprintf(epsvar,sizeof(epsvar),"epsilon");
 
 	if(p->T10==2||p->T10==12 || p->T10==22)
-	sprintf(epsvar,"omega");
+	snprintf(epsvar,sizeof(epsvar),"omega");
 
 
 }

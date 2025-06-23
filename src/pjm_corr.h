@@ -31,8 +31,6 @@ class heat;
 class concentration;
 class density;
 
-using namespace std;
-
 class pjm_corr : public pressure, public pressure_reference
 {
 

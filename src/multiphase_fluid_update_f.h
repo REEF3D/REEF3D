@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"multiphase_fluid_update.h"
 #include"increment.h"
 
-using namespace std;
-
 class multiphase_fluid_update_f : public multiphase_fluid_update, increment
 {
 public:

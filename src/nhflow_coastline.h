@@ -30,8 +30,6 @@ class slice;
 class sliceint;
 class ghostcell;
 
-using namespace std;
-
 class nhflow_coastline :  public ddweno_f_nug
 {
 public:

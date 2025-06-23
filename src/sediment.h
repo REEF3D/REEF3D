@@ -68,12 +68,12 @@ public:
     
     //
     virtual void relax(lexer*,ghostcell*){};
-	virtual double bedshear_point(lexer*,ghostcell*){};
+	virtual double bedshear_point(lexer*,ghostcell*)=0;
     
-    virtual double qbeval(int,int){};
+    virtual double qbeval(int,int)=0;
     virtual void qbeget(int,int,double){};
     
-    virtual double bedzhval(int,int){};
+    virtual double bedzhval(int,int)=0;
 
     virtual void write_state_particles(lexer *, ofstream&){};
     virtual void read_state_particles(lexer *, ifstream&){};

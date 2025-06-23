@@ -28,8 +28,6 @@ Author: Hans Bihs
 #include"slice4.h"
 class sflow_weno_hj;
 
-using namespace std;
-
 class sflow_pjm_sw : public sflow_pressure, public increment
 {
 public:

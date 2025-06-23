@@ -45,7 +45,7 @@ void net_barDyn::print(lexer *p)
     {
         char str[1000];
 
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         ofstream header_out;
         header_out.open(str, std::ofstream::out | std::ofstream::app);
 		header_out<<p->simtime<<" \t "<<Tne<<" "<<Fx<<" "<<Fy<<" "<<Fz<<endl;
@@ -58,7 +58,7 @@ void net_barDyn::print(lexer *p)
         for (int pp = 0; pp < p->X324; pp++)
         {
             char str[1000];
-            sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
+            snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
             ofstream header_out;
             header_out.open(str, std::ofstream::out | std::ofstream::app);
             header_out<<p->simtime<<" \t "<<x_(probeKnot(pp),0)<<" \t "<<x_(probeKnot(pp),1)<<" \t "<<x_(probeKnot(pp),2)<<endl;
@@ -76,12 +76,12 @@ void net_barDyn::print(lexer *p)
 	{
 		printtime += p->P30;
 
-		sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
+		snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
 
 
         /*
         char str[1000];
-        sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_Net_Tension_%i_%i.dat",nNet,num);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_Net_Tension_%i_%i.dat",nNet,num);
         ofstream header_out;
         header_out.open(str, std::ofstream::out | std::ofstream::app);
 		

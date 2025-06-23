@@ -50,7 +50,7 @@ void wave_lib_spectrum::spectrum_file_read(lexer *p)
 	double ts,te;
 	int timecount;
 
-	sprintf(name,"spectrum-file.dat");
+	snprintf(name,sizeof(name),"spectrum-file.dat");
 
 // open file------------
 	ifstream file(name, ios_base::in);

@@ -32,8 +32,6 @@ class fdm;
 class ghostcell;
 class sediment;
 
-using namespace std;
-
 class topo_vtp :  public increment
 {
 

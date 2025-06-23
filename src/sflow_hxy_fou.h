@@ -29,8 +29,6 @@ Author: Hans Bihs
 
 class sflow_flux;  
 
-using namespace std;
-
 class sflow_hxy_fou : public sflow_hxy_disc, public increment
 {
 public:

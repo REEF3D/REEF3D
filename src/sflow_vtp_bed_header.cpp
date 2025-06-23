@@ -36,7 +36,7 @@ void sflow_vtp_bed::name_iter(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-    sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-%08i-%06i.vtp",num,p->mpirank+1);
 
 }
 

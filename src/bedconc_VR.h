@@ -26,8 +26,6 @@ Author: Hans Bihs
 #include"bedconc.h"
 #include"increment.h"
 
-using namespace std;
-
 class bedconc_VR : public bedconc, public increment
 {
 public:

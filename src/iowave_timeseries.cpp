@@ -55,7 +55,7 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
     if(p->B92!=20 && p->B92!=21 && p->B92!=22 && p->B92!=23 && p->B92!=61)
     for(int n=0; n<p->P58; ++n)
     {
-		sprintf(name,"./REEF3D_Log-Wave/REEF3D-Wave-Timeseries-%i.dat",n+1);
+		snprintf(name,sizeof(name),"./REEF3D_Log-Wave/REEF3D-Wave-Timeseries-%i.dat",n+1);
 		
 		pout.open(name);
 

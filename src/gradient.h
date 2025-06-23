@@ -30,8 +30,6 @@ class field;
 class lexer;
 class slice;
 
-using namespace std;
-
 class gradient : virtual public increment
 {
 public:

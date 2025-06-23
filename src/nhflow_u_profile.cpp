@@ -60,7 +60,7 @@ void nhflow_u_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(n=0;n<probenum;++n)
         if(flag[n]==1)
         {
-        sprintf(name,"./REEF3D_NHFLOW_U-Profile/REEF3D-NHFLOW-U-Profile-%i-%i.dat",n+1,p->count);
+        snprintf(name,sizeof(name),"./REEF3D_NHFLOW_U-Profile/REEF3D-NHFLOW-U-Profile-%i-%i.dat",n+1,p->count);
         
         pout[n].open(name);
         

@@ -28,8 +28,6 @@ class fdm;
 class fieldint;
 class field;
 
-using namespace std;
-
 class convection
 {
 public:

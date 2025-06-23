@@ -30,8 +30,6 @@ class fdm_nhf;
 class lexer;
 class ghostcell;
 
-using namespace std;
-
 class nhflow_timestep : public increment
 {
 public:

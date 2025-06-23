@@ -54,7 +54,7 @@ struct Parameters
     double MomentumFlux, EnergyFlux;
 };
 
-class wave_lib_ssgw : public wave_lib_precalc, public wave_lib_parameters, public increment
+class wave_lib_ssgw : public wave_lib_precalc, public wave_lib_parameters
 {
 public:
     wave_lib_ssgw(lexer*, ghostcell*);

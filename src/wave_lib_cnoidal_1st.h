@@ -28,10 +28,7 @@ Author: Hans Bihs
 #include"wave_lib_elliptic.h"
 #include"increment.h"
 
-using namespace std;
-
-class wave_lib_cnoidal_1st : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_elliptic,
-                                 public increment
+class wave_lib_cnoidal_1st : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_elliptic
 {
 public:
     wave_lib_cnoidal_1st(lexer*, ghostcell*);

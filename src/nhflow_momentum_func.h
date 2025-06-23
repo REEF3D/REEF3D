@@ -32,8 +32,6 @@ class nhflow_signal_speed;
 class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
 
-using namespace std;
-
 class nhflow_momentum_func : public nhflow_momentum, public nhflow_bcmom, public nhflow_sigma
 {
 public:

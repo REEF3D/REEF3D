@@ -30,8 +30,6 @@ class lexer;
 class sediment_fdm;
 class ghostcell;
 
-using namespace std;
-
 class reduction_void :  public bedshear_reduction, public increment
 {
 public:

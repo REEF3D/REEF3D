@@ -33,8 +33,6 @@ class heat;
 class concentration;
 class picard;
 
-using namespace std;
-
 class levelset_AB2 : public freesurface, gradient
 {
 public:

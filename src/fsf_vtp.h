@@ -31,8 +31,6 @@ class lexer;
 class fdm;
 class ghostcell;
 
-using namespace std;
-
 class fsf_vtp :  public increment
 {
 

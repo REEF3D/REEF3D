@@ -30,8 +30,6 @@ class heat;
 class concentration;
 class density;
 
-using namespace std;
-
 class poisson_pcorr : public poisson, public increment
 {
 
