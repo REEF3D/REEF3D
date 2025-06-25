@@ -24,10 +24,8 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"reinidisc_fsf.h"
-#include"vrans.h"	
 
-void net_barQuasiStatic::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
+void net_barQuasiStatic::coupling_dlm_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     //- Triangulate net
     if (p->count==0) triangulation(p,a,pgc);
@@ -165,7 +163,7 @@ void net_barQuasiStatic::vransCoupling(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void net_barQuasiStatic::triangulation(lexer *p, fdm *a, ghostcell *pgc)
+void net_barQuasiStatic::triangulation(lexer *p, ghostcell *pgc)
 {
     // Triangulate rectangular meshes into 2 triangles
     

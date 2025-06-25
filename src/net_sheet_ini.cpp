@@ -23,10 +23,9 @@ Author: Tobias Martin
 #include<sys/stat.h>
 #include"net_sheet.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
-void net_sheet::ini(lexer *p, fdm *a, ghostcell *pgc)
+void net_sheet::ini(lexer *p, ghostcell *pgc)
 {
     l_c = p->X321_lambda[nNet];  // Length of twine
     d_c = p->X321_d[nNet];       // Diameter of twine

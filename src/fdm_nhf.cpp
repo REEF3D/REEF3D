@@ -68,6 +68,10 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray(H,p->imax*p->jmax*(p->kmax+2));
     p->Darray(L,p->imax*p->jmax*(p->kmax+2));
     
+    p->Darray(Fext,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Gext,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(Hext,p->imax*p->jmax*(p->kmax+2));
+    
     p->Darray(porosity,p->imax*p->jmax*(p->kmax+2));
     p->Darray(test,p->imax*p->jmax*(p->kmax+2));
     

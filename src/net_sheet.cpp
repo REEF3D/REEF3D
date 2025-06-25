@@ -23,24 +23,33 @@ Author: Tobias Martin
 #include"net_sheet.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"ghostcell.h"
-#include"reinidisc_fsf.h"	
+#include"fdm_nhf.h"
+#include"ghostcell.h"	
 
 net_sheet::net_sheet(int number, lexer *p):nNet(number){}
 
 net_sheet::~net_sheet(){}
 
 
-void net_sheet::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void net_sheet::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {    
     //- Initialise net model
-    ini(p,a,pgc);
+    ini(p,pgc);
     
     //- Initialise printing
     printtime = 0.0;
     print(p);
 }
 
+void net_sheet::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{    
+    //- Initialise net model
+    ini(p,pgc);
+    
+    //- Initialise printing
+    printtime = 0.0;
+    print(p);
+}
 
 void net_sheet::start
 (
@@ -120,7 +129,7 @@ void net_sheet::start
 	}
 
     //- Coupling to vrans model
-    vransCoupling(p,a,pgc);
+    coupling_dlm_cfd(p,a,pgc);
 	
     //- Build and save net
 	print(p);	

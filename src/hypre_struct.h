@@ -133,7 +133,7 @@ private:
     double *values;
     int num_iterations;
     double final_res_norm;
-	int stencil_indices[7];
+	int stencil_indices[15];
     int periodic[3];
 	int nentries;
     

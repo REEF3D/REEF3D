@@ -59,7 +59,7 @@ void driver::driver_ini_cfd()
     cout<<"starting driver_ini"<<endl;
     
     // 6DOF_df and FSI
-    p6dof->initialize(p, a, pgc, pnet);
+    p6dof->initialize(p, a, pgc);
      
     if(p->mpirank==0)
     if(p->X10==1 || p->Z10>0)

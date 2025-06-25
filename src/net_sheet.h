@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef NET_SHEET_H_
@@ -47,9 +47,13 @@ public:
 	net_sheet(int, lexer*);
 	virtual ~net_sheet();
     
-	virtual void start(lexer*, fdm*, ghostcell*,double,Eigen::Matrix3d);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d)=0;
+    
+	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);
+    virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);
 	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&);
+    
     virtual const EigenMat& getLagrangePoints(){return lagrangePoints;} 
     virtual const EigenMat& getLagrangeForces(){return lagrangeForces;} 
     virtual const EigenMat& getCollarVel(){return collarVel;} 
@@ -57,6 +61,24 @@ public:
 
     
 private:
+    
+    // -------------------------------
+	// Runtime
+	void startLoop(lexer*, ghostcell*, int&);
+    void update_velocity_cfd(lexer*, fdm*, ghostcell*);
+    void update_velocity_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    
+    void updateField_cfd(lexer*, fdm*, ghostcell*, int);
+    void updateField_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
+    
+    void coupling_vrans(lexer*, fdm*, ghostcell*);
+    
+    // -------------------------------
+    
+    // Preprocessing
+    void ini(lexer*, ghostcell*); 
+    void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
+    
 
     typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
     typedef Eigen::Matrix<double, 1, Eigen::Dynamic> VectorXd;
@@ -67,12 +89,6 @@ private:
     typedef vector<vector<int> > MatrixVi;
     
     
-    // Preprocessing
-    void ini(lexer*, fdm*, ghostcell*); 
-    void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
-    
-	// Runtime
-    void updateField(lexer*, fdm*, ghostcell*, int);
     void print(lexer*);
     Eigen::VectorXd timeWeight(lexer*);
     void gravityForce(lexer*);
@@ -82,8 +98,7 @@ private:
    
 
 
-    void vransCoupling(lexer*, fdm*, ghostcell*);
-    void triangulation(lexer*, fdm*, ghostcell*);
+    void triangulation(lexer*, ghostcell*);
     void create_triangle
         (
             MatrixVd&, MatrixVd&, MatrixVd&,

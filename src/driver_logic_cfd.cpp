@@ -483,9 +483,6 @@ void driver::logic_cfd()
     if(p->B269==2)
 	pvrans = new vrans_veg(p,pgc);
 
-    if(p->B269==3)
-	pvrans = new vrans_net(p,pgc);
-
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
 	pflow = new ioflow_v(p,pgc,pBC);

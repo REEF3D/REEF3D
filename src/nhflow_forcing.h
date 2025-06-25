@@ -24,7 +24,6 @@ Author: Hans Bihs
 #define NHFLOW_FORCING_H_
 
 #include"increment.h"
-#include"net.h"
 #include<vector>
 #include"slice4.h"
 
@@ -33,7 +32,6 @@ class fdm_nhf;
 class ghostcell;
 class slice;
 class sixdof;
-class vrans;
 class mooring;
 class fsi;
 class nhflow_reinidisc_fsf;
@@ -46,7 +44,7 @@ public:
 	nhflow_forcing(lexer*);
 	virtual ~nhflow_forcing();
     
-    void forcing(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, vrans* pvrans, vector<net*>& pnet, 
+    void forcing(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, 
                  int, double, double*, double*, double*, slice&, bool);
     
     void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);

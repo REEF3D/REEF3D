@@ -96,7 +96,7 @@ void driver::loop_cfd_df(fdm* a)
         pfsf->update(p,a,pgc,a->phi);
 	
         // Momentum and 6DOF motion
-        pmom_df->starti(p,a,pgc,p6dof,pvrans,pnet,pfsi);
+        pmom_df->starti(p,a,pgc,p6dof,pvrans,pfsi);
 
         // Save previous timestep
         pflow->veltimesave(p,a,pgc,pvrans);

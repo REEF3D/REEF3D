@@ -55,7 +55,6 @@ class benchmark;
 class sixdof;
 class fsi;
 class vrans;
-class net;
 class data;
 class concentration;
 class ptf;
@@ -185,7 +184,6 @@ public:
 	benchmark* pbench;
 	fsi* pfsi;
 	vrans* pvrans;
-    vector<net*> pnet;
 	data *pdata;
 	concentration *pconc;
     fnpf *ppfsg;

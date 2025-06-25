@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2025 Tobias Martin
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,38 +17,25 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_net.h"
+#include"FSI_interface.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"net.h"
 
-void vrans_net::u_source(lexer *p, fdm *a)
+FSI_interface::FSI_interface(lexer *p, ghostcell *pgc) 
 {
-    count=0;
-    ULOOP
-	{
-        a->rhsvec.V[count++] -= Fx_net(i,j,k);
-	}
-	
+    
 }
 
-void vrans_net::v_source(lexer *p, fdm *a)
-{  
-    count=0;
-    VLOOP
-	{
-       a->rhsvec.V[count++] -= Fy_net(i,j,k);        
-	}   
+FSI_interface::~FSI_interface()
+{
 }
 
-void vrans_net::w_source(lexer *p, fdm *a)
-{   
-    count=0;
-    WLOOP
-	{
-        a->rhsvec.V[count++] -= Fz_net(i,j,k);        
-	}		
+void FSI_interface::start(lexer *p, ghostcell *pgc)
+{ 
+    
 }

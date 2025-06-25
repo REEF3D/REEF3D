@@ -49,24 +49,7 @@ double nhflow_forcing::Hsolidface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
 
     if(fabs(phival_sf)<=psi)
     H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
-    
-    /*
-    H = 0.0;
-    if(fabs(phival_sf)<psi)
-    H = (0.5/psi)*(1.0 + cos((PI*(phival_sf))/psi));
-
-    
-    H=MIN(H,1.0);*/
-    
-    
-    /*
-    H = 0.0;
-    if(fabs(phival_sf)<10.0*psi)
-    H = psi/(PI*(phival_sf*phival_sf + psi*psi));
-    */
-    
-    //H=MIN(H,1.0);
-    
+        
 
     return H;
 }

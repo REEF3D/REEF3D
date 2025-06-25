@@ -23,43 +23,15 @@ Author: Tobias Martin
 #include"net_barQuasiStatic.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"ghostcell.h"
-#include"reinidisc_fsf.h"	
-#include"vrans.h"
+#include"ghostcell.h"	
 
-net_barQuasiStatic::net_barQuasiStatic(int number, lexer *p):nNet(number),f_(p),dt(p),frk1(p),frk2(p),L_(p), cutl(p), cutr(p){}
-
-net_barQuasiStatic::~net_barQuasiStatic(){}
-
-
-void net_barQuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
+net_barQuasiStatic::net_barQuasiStatic(int number, lexer *p):nNet(number),f_(p),dt(p),frk1(p),frk2(p),L_(p), cutl(p), cutr(p)
 {
-    prdisc = new reinidisc_fsf(p);    
-   
-    //- Initialise net model
-    if (p->X320_type[nNet]==1)
-    {
-        bag_ini(p,a,pgc);
-        
-        buildNet_bag(p);
-    }
-    else if (p->X320_type[nNet]==2)   
-    {
-        cyl_ini(p,a,pgc);
-        
-        buildNet_cyl(p); 
-    }
-    else if (p->X320_type[nNet]==3)   
-    {
-        wall_ini(p,a,pgc);
-        
-        buildNet_wall(p);    
-    }  
-    
-    //- Update porous zone
-    vransCoupling(p,a,pgc);
 }
 
+net_barQuasiStatic::~net_barQuasiStatic()
+{    
+}
 
 void net_barQuasiStatic::start
 (
@@ -149,7 +121,7 @@ void net_barQuasiStatic::start
     
     //- Update porous zone and coefficients
     
-    vransCoupling(p,a,pgc);
+    coupling_dlm_cfd(p,a,pgc);
     
 
     double endtime1 = pgc->timer()-starttime1; 

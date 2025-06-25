@@ -78,6 +78,7 @@ public:
     
     double *P,*RO,*VISC,*EV,*EV0;
     double *F,*G,*H,*L;
+    double *Fext,*Gext,*Hext;
     double *porosity;
     double *test;
     double *KIN;

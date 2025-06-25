@@ -26,9 +26,9 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter, vrans *pvrans, vector<net*>& pnet)
+void sixdof_obj::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {
-    externalForces(p, a, pgc, alpha[iter], pvrans, pnet);
+    externalForces_cfd(p, a, pgc, alpha[iter], pnet);
     
     update_forces(p);
     
@@ -42,9 +42,9 @@ void sixdof_obj::solve_eqmotion(lexer *p, fdm *a, ghostcell *pgc, int iter, vran
     rkls3(p,pgc,iter);
 }
 
-void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, vrans *pvrans, vector<net*>& pnet)
+void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter)
 {
-    externalForces_nhflow(p, d, pgc, alpha[iter], pvrans, pnet);
+    externalForces_nhflow(p, d, pgc, alpha[iter]);
 
     update_forces(p);
     

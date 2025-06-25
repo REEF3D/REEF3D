@@ -32,6 +32,7 @@ Author: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_CoG.h"
 #include"6DOF_motionext_wavemaker.h"
 #include"6DOF_motionext_void.h"
+#include"net_interface.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), dt(p), L(p), 
                                                                                 f(p), frk1(p), cutl(p), cutr(p), 
@@ -43,6 +44,8 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
                                                                                 Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),draft(p),press(p)
 {
     prdisc = new reinidisc_fsf(p);
+    
+    pnetinter = new net_interface(p,pgc);
     
     triangle_token=0;
     printnormal_count=0;

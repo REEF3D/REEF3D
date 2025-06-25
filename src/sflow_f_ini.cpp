@@ -193,7 +193,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     psed->ini_sflow(p,b,pgc);
 
     //6DOF ini
-    p6dof->initialize(p, b, pgc, pnet);
+    p6dof->initialize(p, b, pgc);
 
     // print
     log_ini(p);

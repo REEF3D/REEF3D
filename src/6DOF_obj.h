@@ -46,8 +46,7 @@ class ghostcell;
 class reinidisc;
 class nhflow_reinidisc_fsf;
 class mooring;
-class net;
-class vrans;
+class net_interface;
 class sixdof_motionext;
  
 using namespace std;
@@ -61,10 +60,10 @@ public:
     sixdof_obj(lexer*, ghostcell*, int);
 	virtual ~sixdof_obj();
 	
-	virtual void solve_eqmotion(lexer*,fdm*,ghostcell*,int,vrans*,vector<net*>&);
+	virtual void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int);
     
-	void initialize_cfd(lexer*,fdm*,ghostcell*,vector<net*>&);
-    void initialize_nhflow(lexer*,fdm_nhf*,ghostcell*,vector<net*>&);
+	void initialize_cfd(lexer*,fdm*,ghostcell*);
+    void initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void initialize_shipwave(lexer*,ghostcell*,slice&,slice&);
     
 	// Additional functions
@@ -81,7 +80,7 @@ public:
     void solve_eqmotion_oneway_onestep(lexer*,ghostcell*);
     
     // NHFLOW
-    virtual void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,vrans*,vector<net*>&);
+    virtual void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int);
     void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     
@@ -116,10 +115,11 @@ private:
     void ini_fbvel(lexer*, ghostcell*);
     void maxvel(lexer*, ghostcell*);
     
-    void externalForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
-    void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, vrans*, vector<net*>&);
+    void externalForces_cfd(lexer*, fdm*, ghostcell*, double);
+    void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
     void mooringForces(lexer*,  ghostcell*, double);
-    void netForces(lexer*, fdm*, ghostcell*, double, vrans*, vector<net*>&);
+    void netForces_cfd(lexer*, fdm*, ghostcell*, double);
+    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
     void update_forces(lexer*);
     
     double ramp_vel(lexer*);
@@ -220,8 +220,11 @@ private:
     const double epsi; 
     
     reinidisc *prdisc;
+    net_interface *pnetinter;
+    
 	field4a f, frk1, L, dt; 
     int reiniter;
+    
     
     // ray cast NHFLOW
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
@@ -362,7 +365,7 @@ private:
 	vector<mooring*> pmooring;
 	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
     
-    // Net
+    // Net Forces
     vector<double> Xne, Yne, Zne, Kne, Mne, Nne;   
 
     // Number

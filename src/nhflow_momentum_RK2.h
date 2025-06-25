@@ -29,14 +29,13 @@ Author: Hans Bihs
 
 class wind;
 class vrans;
-class net;
 
 using namespace std;
 
 class nhflow_momentum_RK2 : public nhflow_momentum_func
 {
 public:
-	nhflow_momentum_RK2(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans*, vector<net*>&, nhflow_forcing*);
+	nhflow_momentum_RK2(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans*, nhflow_forcing*);
 	virtual ~nhflow_momentum_RK2();
     
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*);
@@ -60,7 +59,6 @@ private:
     nhflow_forcing *pnhfdf;
     wind *pwind;
     vrans* pvrans;
-    vector<net*> pnet;
 };
 
 #endif

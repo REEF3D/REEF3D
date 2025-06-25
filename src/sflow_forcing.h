@@ -35,7 +35,6 @@ class slice;
 class sixdof;
 class vrans;
 class mooring;
-class net;
 class fsi;
 class nhflow_reinidisc_fsf;
 #include<vector>

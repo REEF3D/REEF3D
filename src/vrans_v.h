@@ -35,7 +35,7 @@ public:
 	virtual ~vrans_v();
 
 	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);	
-	virtual void start(lexer*, fdm*, ghostcell*, net*&, int){};
+	virtual void start(lexer*, fdm*, ghostcell*, int){};
     virtual void sed_update(lexer*, fdm*, ghostcell*);
     virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&){};
 	

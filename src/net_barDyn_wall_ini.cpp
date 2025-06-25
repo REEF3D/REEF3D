@@ -26,7 +26,7 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void net_barDyn::wall_ini(lexer *p, fdm *a, ghostcell *pgc)
+void net_barDyn::wall_ini(lexer *p, ghostcell *pgc)
 {
     D = p->X322_D[nNet];        // Width of wall
     L = p->X322_L[nNet];        // Height of wall

@@ -41,7 +41,6 @@ class solver;
 class density;
 class poisson;
 class sixdof_base;
-class net;
 class fsi;
 
 using namespace std;
@@ -54,7 +53,7 @@ public:
 
 	momentum_RKLS3(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RKLS3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*);
     
 private:
 

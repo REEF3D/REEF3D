@@ -467,6 +467,7 @@
         <File Name="multiphase_f.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FSI">
+        <File Name="FSI_interface.h"/>
         <VirtualDirectory Name="Beam">
           <File Name="beam.h"/>
         </VirtualDirectory>
@@ -641,7 +642,6 @@
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
-        <File Name="vrans_net.h"/>
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
         <File Name="vrans_v.h"/>
@@ -1724,6 +1724,8 @@
         <File Name="multiphase_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FSI">
+        <File Name="FSI_interface_logic.cpp"/>
+        <File Name="FSI_interface.cpp"/>
         <VirtualDirectory Name="Beam">
           <File Name="beam_solver_routines.cpp"/>
           <File Name="beam_solver.cpp"/>
@@ -1870,11 +1872,15 @@
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="Net Interface">
+          <File Name="net_interface_netForces_nhflow.cpp"/>
+          <File Name="net_interface_netForces_cfd.cpp"/>
+          <File Name="net_interface_dlm_nhflow.cpp"/>
+          <File Name="net_interface_dlm_cfd.cpp"/>
+          <File Name="net_interface_ini_nhflow.cpp"/>
+          <File Name="net_interface_ini_cfd.cpp"/>
           <File Name="net_interface_dlm_kernel.cpp"/>
-          <File Name="net_interface_dlm.cpp"/>
           <File Name="net_interface_cfd.cpp"/>
           <File Name="net_interface_nhflow.cpp"/>
-          <File Name="net_interface_ini.cpp"/>
           <File Name="net_interface.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="External Motion">
@@ -2021,23 +2027,31 @@
             <File Name="net_sheet.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="BarQuasiStatic">
+            <File Name="net_barQuasiStatic_coupling_nhflow.cpp"/>
+            <File Name="net_barQuasiStatic_coupling_cfd.cpp"/>
+            <File Name="net_barQuasiStatic_ini.cpp"/>
             <File Name="net_barQuasiStatic_wall_ini.cpp"/>
             <File Name="net_barQuasiStatic_update.cpp"/>
             <File Name="net_barQuasiStatic_print.cpp"/>
             <File Name="net_barQuasiStatic_forces.cpp"/>
             <File Name="net_barQuasiStatic_cyl_ini.cpp"/>
-            <File Name="net_barQuasiStatic_coupling.cpp"/>
             <File Name="net_barQuasiStatic_bag_ini.cpp"/>
             <File Name="net_barQuasiStatic.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="BarDyn">
+            <File Name="net_barDyn_coupling_nhflow.cpp"/>
+            <File Name="net_barDyn_coupling_cfd.cpp"/>
+            <File Name="net_barDyn_update_acc.cpp"/>
+            <File Name="net_barDyn_update_vel_nhflow.cpp"/>
+            <File Name="net_barDyn_update_vel_cfd.cpp"/>
+            <File Name="net_barDyn_ini.cpp"/>
+            <File Name="net_barDyn_triangulation.cpp"/>
             <File Name="net_barDyn_wall_ini.cpp"/>
             <File Name="net_barDyn_print.cpp"/>
             <File Name="net_barDyn_nonlin.cpp"/>
             <File Name="net_barDyn_lin.cpp"/>
             <File Name="net_barDyn_forces.cpp"/>
             <File Name="net_barDyn_cyl_ini.cpp"/>
-            <File Name="net_barDyn_coupling.cpp"/>
             <File Name="net_barDyn_cone_ini.cpp"/>
             <File Name="net_barDyn.cpp"/>
           </VirtualDirectory>
@@ -2080,11 +2094,6 @@
         <File Name="concentration_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
-        <VirtualDirectory Name="Net">
-          <File Name="vrans_net_velsource.cpp"/>
-          <File Name="vrans_net_ini.cpp"/>
-          <File Name="vrans_net.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="vrans_v.cpp"/>
         </VirtualDirectory>

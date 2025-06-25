@@ -31,13 +31,9 @@ Author: Tobias Martin
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
 #include"mooring_dynamic.h"
-#include"net.h"
-#include"net_void.h"
-#include"net_barQuasiStatic.h"
-#include"net_barDyn.h"
-#include"net_sheet.h"
+#include"net_interface.h"
 
-void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& pnet)
+void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
@@ -159,54 +155,7 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc, vector<net*>& 
 	}	
 
 
-    // Net
-    if (p->X320==0)
-    {
-        pnet.push_back(new net_void());
-    }
-    
-    else
-    {
-		MPI_Bcast(&p->net_count,1,MPI_DOUBLE,0,pgc->mpi_comm);
-        
-        Xne.resize(p->net_count);
-		Yne.resize(p->net_count);
-		Zne.resize(p->net_count);
-		Kne.resize(p->net_count);
-		Mne.resize(p->net_count);
-		Nne.resize(p->net_count);
-
-        if(p->mpirank==0)
-        {
-            mkdir("./REEF3D_CFD_6DOF_Net",0777);	
-        }
-        else
-        {
-            p->X320_type = new int[p->net_count];
-        }
-		
-        pnet.reserve(p->net_count);	
-  
-		for (int ii=0; ii < p->net_count; ii++)
-		{
-            MPI_Bcast(&p->X320_type[ii],1,MPI_INT,0,pgc->mpi_comm);
-			
-            if(p->X320_type[ii] > 10)
-			{
-				pnet.push_back(new net_barDyn(ii,p));
-			}
-            else if (p->X320_type[ii] < 4)
-            {
-                pnet.push_back(new net_barQuasiStatic(ii,p));
-            }
-            else
-            {
-                 pnet.push_back(new net_sheet(ii,p));
-            }
-			
-            pnet[ii]->initialize(p,a,pgc);
-		}
-    }
+    pnetinter->initialize_cfd(p,a,gpc);
     
     // ghostcell update
     pgc->gcdf_update(p,a);

@@ -30,8 +30,6 @@ class fdm;
 class fdm_nhf;
 class fdm2D;
 class ghostcell;
-class vrans;
-class net;
 class field;
 class slice;
 
@@ -40,14 +38,14 @@ using namespace std;
 class sixdof
 {
 public:
-    virtual void start_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool)=0;
-    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
+    virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool)=0;
+    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
     virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool)=0;
     
     virtual void ini(lexer*,ghostcell*)=0;
-    virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&)=0;
-    virtual void initialize(lexer*, fdm2D*, ghostcell*, vector<net*>&)=0;
-    virtual void initialize(lexer*, fdm_nhf*, ghostcell*, vector<net*>&)=0;
+    virtual void initialize(lexer*, fdm*, ghostcell*)=0;
+    virtual void initialize(lexer*, fdm2D*, ghostcell*)=0;
+    virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;
 	
     virtual void isource(lexer*,fdm*,ghostcell*)=0;
     virtual void jsource(lexer*,fdm*,ghostcell*)=0;

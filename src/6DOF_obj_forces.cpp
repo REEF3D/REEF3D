@@ -25,8 +25,6 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 #include"mooring.h"
-#include"net.h"
-#include"vrans.h"
 
 void sixdof_obj::hydrodynamic_forces_cfd(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {

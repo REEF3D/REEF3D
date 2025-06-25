@@ -29,7 +29,6 @@ class lexer;
 class fdm;
 class ghostcell;
 class field;
-class net;
 
 using namespace std;
 
@@ -38,7 +37,7 @@ class vrans
 public:
 
 	virtual void initialize_cfd(lexer*, fdm*, ghostcell*)=0;	
-	virtual void start(lexer*, fdm*, ghostcell*, net*&, int)=0;
+	virtual void start(lexer*, fdm*, ghostcell*, int)=0;
     virtual void sed_update(lexer*, fdm*, ghostcell*)=0;	
     virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&)=0;	
 	

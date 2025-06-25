@@ -38,7 +38,6 @@ class turbulence;
 class pressure;
 class poisson;
 class momentum;
-class net;
 class sixdof;
 
 using namespace std;
@@ -46,7 +45,7 @@ using namespace std;
 class momentum
 {
 public:
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*, sixdof*, vector<net*>&)=0;
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*, sixdof*)=0;
 
 };
 

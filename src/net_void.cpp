@@ -35,7 +35,11 @@ void net_void::start
 	
 }
 
-void net_void::initialize(lexer *p, fdm *a, ghostcell *pgc)
+void net_void::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
+{
+}
+
+void net_void::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 

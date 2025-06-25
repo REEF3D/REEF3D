@@ -26,7 +26,7 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
+void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
 {
     // Input data
  
@@ -154,11 +154,11 @@ void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
     printtime = 0.0;
 
     // Initialise communication 
-    ini_parallel(p, a, pgc);
+    ini_parallel(p, pgc);
 }
 
 
-void net_barQuasiStatic::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
+void net_barQuasiStatic::ini_parallel(lexer *p, ghostcell *pgc)
 {
     p->Darray(xstart, p->mpi_size);
     p->Darray(xend, p->mpi_size);
