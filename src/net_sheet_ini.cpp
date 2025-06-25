@@ -702,7 +702,7 @@ void net_sheet::ini(lexer *p, ghostcell *pgc)
     }
     
     //- Triangulate net sheet
-    triangulation(p,a,pgc);
+    triangulation(p,pgc);
     nK = tend;             
     
     //- Initialise fields    
@@ -841,9 +841,7 @@ void net_sheet::ini(lexer *p, ghostcell *pgc)
     }
 }
 
-
-
-void net_sheet::triangulation(lexer *p, fdm *a, ghostcell *pgc)
+void net_sheet::triangulation(lexer *p, ghostcell *pgc)
 {
     // Refine according to cell size DXM
 

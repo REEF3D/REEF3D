@@ -155,7 +155,7 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 	}	
 
 
-    pnetinter->initialize_cfd(p,a,gpc);
+    pnetinter->initialize_cfd(p,a,pgc);
     
     // ghostcell update
     pgc->gcdf_update(p,a);

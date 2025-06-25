@@ -31,6 +31,7 @@ Author: Tobias Martin
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
 #include"mooring_dynamic.h"
+#include"net_interface.h"
 
 void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
@@ -136,7 +137,7 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	}	
 
     // Net
-    pnetinter->initialize_nhflow(p,d,gpc);
+    pnetinter->initialize_nhflow(p,d,pgc);
     
 }
 

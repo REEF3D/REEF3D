@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"net_barQuasiStatic.h"
@@ -25,51 +25,19 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-
-void net_barQuasiStatic::updateLength()
+void net_barQuasiStatic::update_velocity_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
-	double T, func, eps;
+
+    //- Get velocities at knots
+    updateField_cfd(p, a, pgc, 0);
+    updateField_cfd(p, a, pgc, 1);	
+    updateField_cfd(p, a, pgc, 2);
     
-    double E1 = 1160;
-    double E2 = 37300;
-	
-	for (int j = 0; j < nf; j++)	
-	{
-		T = 0.0;
-		
-		for (int i = 0; i < niK; i++)	
-		{	
-			T = MAX(fabs(A(i,j)),T); 
-		}
-		
-        // Newtons method to find eps = f(T)
-        func = 1.0;
-        eps = 0.5;
-
-        while (func > 1e-5)
-        {
-            func = E1*eps + E2*eps*eps - T;
-            eps -= func/(E1 + 2.0*E2*eps);
-        }
-
-        l[j] = l0[j]*(1.0 + MAX(eps,0.0));
-        
-		for (int i = niK; i < nf; i++)	
-		{	
-			if (A(i,j) > 0.0)
-			{
-				A(i,j) = l[j];
-			}
-			else if (A(i,j) < 0.0)
-			{
-				A(i,j) = -l[j];
-			}
-		}
-	}
+    //- Get density at knots
+    updateField_cfd(p, a, pgc, 3);  
 }
 
-
-void net_barQuasiStatic::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
+void net_barQuasiStatic::updateField_cfd(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 {
 	int *recField, *count;
 	
@@ -247,4 +215,46 @@ void net_barQuasiStatic::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 	
 	p->del_Iarray(count,p->mpi_size);
 	p->del_Iarray(recField, nK);
+}
+
+void net_barQuasiStatic::updateLength()
+{
+	double T, func, eps;
+    
+    double E1 = 1160;
+    double E2 = 37300;
+	
+	for (int j = 0; j < nf; j++)	
+	{
+		T = 0.0;
+		
+		for (int i = 0; i < niK; i++)	
+		{	
+			T = MAX(fabs(A(i,j)),T); 
+		}
+		
+        // Newtons method to find eps = f(T)
+        func = 1.0;
+        eps = 0.5;
+
+        while (func > 1e-5)
+        {
+            func = E1*eps + E2*eps*eps - T;
+            eps -= func/(E1 + 2.0*E2*eps);
+        }
+
+        l[j] = l0[j]*(1.0 + MAX(eps,0.0));
+        
+		for (int i = niK; i < nf; i++)	
+		{	
+			if (A(i,j) > 0.0)
+			{
+				A(i,j) = l[j];
+			}
+			else if (A(i,j) < 0.0)
+			{
+				A(i,j) = -l[j];
+			}
+		}
+	}
 }

@@ -47,8 +47,8 @@ public:
 	net_barDyn(int, lexer*);
 	virtual ~net_barDyn();
     
-	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
-    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d)=0;
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d);
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d);
     
 	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);
     virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);

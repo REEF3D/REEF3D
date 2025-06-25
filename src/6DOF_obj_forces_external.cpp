@@ -25,6 +25,7 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 #include"mooring.h"
+#include"net_interface.h"
 
 void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
 {
@@ -98,7 +99,7 @@ void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
 
 void sixdof_obj::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
 {
-    pnetinter->netForces_cfd(p,a,pgc,alpha,Xne,Yne,Zne,Kne,Mne,Nne);
+    pnetinter->netForces_cfd(p,a,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
     
     NETLOOP
     {
@@ -114,7 +115,7 @@ void sixdof_obj::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
 
 void sixdof_obj::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha)
 {
-    pnetinter->netForces_nhflow(p,d,pgc,alpha,Xne,Yne,Zne,Kne,Mne,Nne);
+    pnetinter->netForces_nhflow(p,d,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
     
     NETLOOP
     {

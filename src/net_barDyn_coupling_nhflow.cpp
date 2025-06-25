@@ -23,6 +23,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"net_barDyn.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void net_barDyn::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)

@@ -25,7 +25,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgca)
+void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_cfd(p, a, pgc);

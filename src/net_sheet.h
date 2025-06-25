@@ -37,8 +37,6 @@ Authors: Tobias Martin, Hans Bihs
 #include<vector>
 #include"boundarycheck.h"
 
-class reinidisc;
-
 using namespace std;
 
 class net_sheet : public net, public boundarycheck
@@ -47,8 +45,8 @@ public:
 	net_sheet(int, lexer*);
 	virtual ~net_sheet();
     
-	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
-    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d)=0;
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d);
     
 	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);
     virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);
@@ -71,7 +69,8 @@ private:
     void updateField_cfd(lexer*, fdm*, ghostcell*, int);
     void updateField_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
     
-    void coupling_vrans(lexer*, fdm*, ghostcell*);
+    void coupling_dlm_cfd(lexer*, fdm*, ghostcell*);
+    void coupling_dlm_nhflow(lexer*, fdm_nhf*, ghostcell*);
     
     // -------------------------------
     

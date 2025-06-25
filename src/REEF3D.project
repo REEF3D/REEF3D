@@ -2020,18 +2020,22 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Net">
           <VirtualDirectory Name="StaticSheet">
+            <File Name="net_sheet_coupling_nhflow.cpp"/>
+            <File Name="net_sheet_coupling_cfd.cpp"/>
+            <File Name="net_sheet_update_vel_nhflow.cpp"/>
+            <File Name="net_sheet_update_vel_cfd.cpp"/>
             <File Name="net_sheet_print.cpp"/>
             <File Name="net_sheet_ini.cpp"/>
             <File Name="net_sheet_forces.cpp"/>
-            <File Name="net_sheet_coupling.cpp"/>
             <File Name="net_sheet.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="BarQuasiStatic">
+            <File Name="net_barQuasiStatic_update_vel_nhflow.cpp"/>
+            <File Name="net_barQuasiStatic_update_vel_cfd.cpp"/>
             <File Name="net_barQuasiStatic_coupling_nhflow.cpp"/>
             <File Name="net_barQuasiStatic_coupling_cfd.cpp"/>
             <File Name="net_barQuasiStatic_ini.cpp"/>
             <File Name="net_barQuasiStatic_wall_ini.cpp"/>
-            <File Name="net_barQuasiStatic_update.cpp"/>
             <File Name="net_barQuasiStatic_print.cpp"/>
             <File Name="net_barQuasiStatic_forces.cpp"/>
             <File Name="net_barQuasiStatic_cyl_ini.cpp"/>

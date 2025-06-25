@@ -28,7 +28,7 @@ Author: Tobias Martin
 void net_barQuasiStatic::coupling_dlm_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     //- Triangulate net
-    if (p->count==0) triangulation(p,a,pgc);
+    if (p->count==0) triangulation(p,pgc);
     
     //- Save Lagrangian coordinates and forces
      

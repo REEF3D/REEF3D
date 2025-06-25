@@ -25,7 +25,7 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void net_sheet::coupling_vrans(lexer *p, fdm *a, ghostcell *pgc)
+void net_sheet::coupling_dlm_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     double rho;
 

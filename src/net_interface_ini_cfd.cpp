@@ -72,7 +72,7 @@ void net_interface::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
                  pnet.push_back(new net_sheet(ii,p));
             }
 			
-            pnet[ii]->initialize(p,a,pgc);
+            pnet[ii]->initialize_cfd(p,a,pgc);
 		}
     }
 

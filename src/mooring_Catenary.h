@@ -36,7 +36,6 @@ Author: Tobias Martin
 #include<vector>
 #include <Eigen/Dense>
 
-
 using namespace std;
 
 class mooring_Catenary : public mooring

@@ -28,7 +28,7 @@ Authors: Tobias Martin, Hans Bihs
 
 void sixdof_obj::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {
-    externalForces_cfd(p, a, pgc, alpha[iter], pnet);
+    externalForces_cfd(p, a, pgc, alpha[iter]);
     
     update_forces(p);
     

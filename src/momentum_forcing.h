@@ -43,7 +43,7 @@ class momentum_forcing : public increment
 public:
 	momentum_forcing(lexer*);
 	virtual ~momentum_forcing();
-	void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof*, vrans*, fsi*,
+	void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof*, fsi*,
                                 field&,field&,field&,field&,field&,field&,int,double,bool);
 
 private:

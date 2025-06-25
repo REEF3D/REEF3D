@@ -24,7 +24,9 @@ Authors: Tobias Martin, Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"net.h"
 #include<sys/stat.h>
+#include <Eigen/Dense>
 
 void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
 { 
@@ -33,8 +35,8 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
     double dist, D, dx, dy, dz;
     double test = 0.0;
 
-    const EigenMat& lagrangePoints = ppnet->getLagrangePoints();
-    const EigenMat& lagrangeForces = ppnet->getLagrangeForces();
+    const EigenMat& lagrangePoints = pnet[nNet]->getLagrangePoints();
+    const EigenMat& lagrangeForces = pnet[nNet]->getLagrangeForces();
 
     ULOOP
     kernel_x(i,j,k) = 0.0;

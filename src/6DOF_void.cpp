@@ -38,6 +38,47 @@ sixdof_void::sixdof_void(lexer *p, ghostcell *pgc)
     mkdir("./REEF3D_CFD_6DOF",0777);
     
     pnetinter = new net_interface(p,pgc);
+    
+    alpha[0] = 8.0/15.0;
+    alpha[1] = 2.0/15.0;
+    alpha[2] = 2.0/6.0;
+    
+    gamma[0] = 8.0/15.0;
+    gamma[1] = 5.0/12.0;
+    gamma[2] = 3.0/4.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = -17.0/60.0;
+    zeta[2] = -5.0/12.0;
+    
+    if(((p->N40==3 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2)) 
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 0.25;
+    alpha[2] = 2.0/3.0;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
+    
+    if(((p->N40==2 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2)) 
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 0.5;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
 }
 
 sixdof_void::~sixdof_void()
@@ -61,18 +102,7 @@ void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &u
     
     if(p->X320>0)
     {
-        pnetinter->netForces_cfd(p,a,pgc,alpha,Xne,Yne,Zne,Kne,Mne,Nne);
-        
-        NETLOOP
-        {
-        // Add to external forces
-            Xext += Xne[n];
-            Yext += Yne[n];
-            Zext += Zne[n];
-            Kext += Kne[n];
-            Mext += Mne[n];
-            Next += Nne[n];
-        }
+        pnetinter->netForces_cfd(p,a,pgc,alpha[iter],quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
     }
     
     ++p->printcount_sixdof;

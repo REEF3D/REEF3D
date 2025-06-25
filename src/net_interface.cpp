@@ -32,51 +32,14 @@ Authors: Tobias, Hans Bihs
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
 
-void net_ionterface::net_logic(lexer *p, ghostcell *pgc, vector<net*>& pnet)
+net_interface::net_interface(lexer *p, ghostcell *pgc) : kernel_x(p),kernel_y(p),kernel_z(p)
 {
+    p->Darray(KX, p->imax*p->jmax*(p->kmax+2));
+    p->Darray(KY, p->imax*p->jmax*(p->kmax+2));
+    p->Darray(KZ, p->imax*p->jmax*(p->kmax+2));
+}
 
-// Net
-    if (p->X320==0)
-    {
-        pnet.push_back(new net_void());
-    }
-    
-    else
-    {
-		MPI_Bcast(&p->net_count,1,MPI_DOUBLE,0,pgc->mpi_comm);
-        
-        Xne.resize(p->net_count);
-		Yne.resize(p->net_count);
-		Zne.resize(p->net_count);
-		Kne.resize(p->net_count);
-		Mne.resize(p->net_count);
-		Nne.resize(p->net_count);
+net_interface::~net_interface()
+{
+}
 
-        if(p->mpirank==0)
-        mkdir("./REEF3D_CFD_6DOF_Net",0777);	
-
-        else
-        p->X320_type = new int[p->net_count];
-		
-        pnet.reserve(p->net_count);	
-  
-		for (int n=0; n < p->net_count; n++)
-		{
-            MPI_Bcast(&p->X320_type[n],1,MPI_INT,0,pgc->mpi_comm);
-			
-            if(p->X320_type[n] > 10)
-			{
-				pnet.push_back(new net_barDyn(n,p));
-			}
-            else if (p->X320_type[n] < 4)
-            {
-                pnet.push_back(new net_barQuasiStatic(n,p));
-            }
-            else
-            {
-                 pnet.push_back(new net_sheet(n,p));
-            }
-			
-            pnet[n]->initialize(p,a,pgc);
-		}
-    }

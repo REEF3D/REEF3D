@@ -24,7 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"net.h"
 #include<sys/stat.h>
+#include <Eigen/Dense>
 
 void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
 { 
@@ -33,8 +35,8 @@ void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
     double dist, D, dx, dy, dz;
     double test = 0.0;
 
-    const EigenMat& lagrangePoints = ppnet->getLagrangePoints();
-    const EigenMat& lagrangeForces = ppnet->getLagrangeForces();
+    const EigenMat& lagrangePoints = pnet[nNet]->getLagrangePoints();
+    const EigenMat& lagrangeForces = pnet[nNet]->getLagrangeForces();
 
     LOOP
     kernel_x(i,j,k) = 0.0;
@@ -108,7 +110,7 @@ void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
         }
     } 
     
-    pgc->start1(p,d->Fext,10); 
-    pgc->start2(p,d->Gext,11); 
-    pgc->start3(p,d->Hext,12); 
+    pgc->start4V(p,d->Fext,10); 
+    pgc->start4V(p,d->Gext,11); 
+    pgc->start4V(p,d->Hext,12); 
 }

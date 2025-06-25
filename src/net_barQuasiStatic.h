@@ -47,8 +47,8 @@ public:
 	net_barQuasiStatic(int, lexer*);
 	virtual ~net_barQuasiStatic();
     
-	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
-    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d)=0;
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d);
     
 	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);
     virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);
@@ -74,6 +74,7 @@ private:
     void coupling_dlm_cfd(lexer*, fdm*, ghostcell*);
     void coupling_dlm_nhflow(lexer*, fdm_nhf*, ghostcell*);
     
+    void updateLength();
     // -------------------------------
     
     // Preprocessing

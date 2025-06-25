@@ -23,6 +23,7 @@ Author: Tobias Martin
 #include"net_barDyn.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"	
 
 net_barDyn::net_barDyn(int number, lexer *p):nNet(number)
@@ -56,7 +57,7 @@ void net_barDyn::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen
     {
         convIt(loop) = loop;
         
-        update_velocity(p,a,pgc);
+        update_velocity_cfd(p,a,pgc);
         startLoop(p,pgc,convIt(loop));
     }
 
@@ -90,7 +91,7 @@ void net_barDyn::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha
     {
         convIt(loop) = loop;
         
-        update_velocity(p,a,pgc);
+        update_velocity_nhflow(p,d,pgc);
         startLoop(p,pgc,convIt(loop));
     }
 
@@ -155,7 +156,7 @@ void net_barDyn::startLoop(lexer *p, ghostcell *pgc, int& iter)
 	        limitTension();
 
 	        // Accelerated Newton step
-	        fillNonLinRhs(p, a, pgc);
+	        fillNonLinRhs(p, pgc);
 	        
             T_ -= inv.solve(B_.transpose());
             limitTension();

@@ -23,8 +23,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"net_interface.h"
 #include<sys/stat.h>
-
 #include"mooring_void.h"
 #include"mooring_barQuasiStatic.h"
 #include"mooring_Catenary.h"
@@ -86,7 +86,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc)
 		}
 	}
 
-    pnetinter->initialize_cfd(p,a,gpc);
+    pnetinter->initialize_cfd(p,a,pgc);
 
     // Ini parameters
 	p->ufbi=p->vfbi=p->wfbi=0.0;
@@ -97,7 +97,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_void::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<net*>& pnet)
+void sixdof_void::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"6DOF: ini"<<endl;
@@ -155,7 +155,7 @@ void sixdof_void::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc, vector<net*>&
 	}	
     
     // Net
-    pnetinter->initialize_nhflow(p,d,gpc);
+    pnetinter->initialize_nhflow(p,d,pgc);
 
     // Ini parameters
 	p->ufbi=p->vfbi=p->wfbi=0.0;
