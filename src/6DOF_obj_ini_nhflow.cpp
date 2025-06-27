@@ -139,6 +139,18 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // Net
     pnetinter->initialize_nhflow(p,d,pgc);
     
+    if(p->X320>0)
+    {
+    Xne.resize(p->net_count);
+    Yne.resize(p->net_count);
+    Zne.resize(p->net_count);
+    Kne.resize(p->net_count);
+    Mne.resize(p->net_count);
+    Nne.resize(p->net_count);
+    
+    cout<<"p->net_count  "<<p->net_count<<endl;
+    }
+    
 }
 
 

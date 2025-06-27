@@ -157,6 +157,18 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     pnetinter->initialize_cfd(p,a,pgc);
     
+    if(p->X320>0)
+    {
+    Xne.resize(p->net_count);
+    Yne.resize(p->net_count);
+    Zne.resize(p->net_count);
+    Kne.resize(p->net_count);
+    Mne.resize(p->net_count);
+    Nne.resize(p->net_count);
+    
+    cout<<"p->net_count  "<<p->net_count<<endl;
+    }
+    
     // ghostcell update
     pgc->gcdf_update(p,a);
 }

@@ -36,24 +36,12 @@ void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha
 {
     NETLOOP
     {
-        //if(p->mpirank==0)
-        cout<<"netForces_cfd 001  "<<p->mpirank<<endl<<endl;
-        
         pnet[n]->start_cfd(p, a, pgc, alpha, quatRotMat);
         
-        //if(p->mpirank==0)
-        cout<<"netForces_cfd 002  "<<p->mpirank<<endl<<endl;
-
         dlm_cfd(p, a, pgc, n);
-        
-        //if(p->mpirank==0)
-        cout<<"netForces_cfd 003  "<<p->mpirank<<endl<<endl;
         
         // Forces on rigid body
         pnet[n]->netForces(p,Xne[n],Yne[n],Zne[n],Kne[n],Mne[n],Nne[n]);
-        
-        //if(p->mpirank==0)
-        cout<<"netForces_cfd 004  "<<p->mpirank<<endl<<endl;
         
         // Distribute forces and moments to all processors
         MPI_Bcast(&Xne[n],1,MPI_DOUBLE,0,pgc->mpi_comm);
