@@ -500,7 +500,13 @@ void net_barDyn::wall_ini(lexer *p, ghostcell *pgc)
         if(p->mpirank==0)
         {
             char str[1000];
+            
+            if(p->A10==5)
+            sprintf(str,"./REEF3D_NHFLOW_6DOF_Net/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
+            
+            if(p->A10==6)
             sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
+            
             ofstream header_out;
             header_out.open(str);
             header_out<<"Knot point probe located near ("<<ppI.transpose()<<")"<<endl;
@@ -514,7 +520,13 @@ void net_barDyn::wall_ini(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     {
         char str[1000];
+        
+        if(p->A10==5)
+        sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
+        
+        if(p->A10==6)
         sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
+        
         ofstream header_out;
         header_out.open(str);
         header_out<<"time [s] \t Ttop [N] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;

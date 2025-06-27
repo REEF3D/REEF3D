@@ -165,8 +165,6 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     Kne.resize(p->net_count);
     Mne.resize(p->net_count);
     Nne.resize(p->net_count);
-    
-    cout<<"p->net_count  "<<p->net_count<<endl;
     }
     
     // ghostcell update

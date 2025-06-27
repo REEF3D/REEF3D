@@ -47,6 +47,7 @@ void net_interface::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
         if(p->mpirank==0)
         mkdir("./REEF3D_CFD_6DOF_Net",0777);	
 
+
         else
         {
             p->X320_type = new int[p->net_count];

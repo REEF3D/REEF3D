@@ -147,7 +147,13 @@ void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     {
         char str[1000];
+        
+        if(p->A10==5)
+        sprintf(str,"./REEF3D_NHFLOW_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
+        
+        if(p->A10==6)
         sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
+        
         eTout.open(str);
         eTout<<"time \t Tmax \t Fx \t Fy \t Fz"<<endl;
     }		

@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"net_barQuasiStatic.h"
@@ -288,61 +288,8 @@ void net_barQuasiStatic::triangulation(lexer *p, ghostcell *pgc)
         
         tend = tri_x.size(); 
 	}
-
-    // Save net as .stl
-/*
-    ofstream result;
-    ofstream result2;
-    result.open("REEF3D_CFD_6DOF_Net/REEF3D_net.stl", ios::binary);
-    result2.open("REEF3D_CFD_6DOF_Net/REEF3D_net_points.csv", ios::binary);
-
-	result<<"solid"<<" "<<"ascii"<<endl;
-
-	for(int n = 0; n < tend; ++n)
-	{
-		double x0 = tri_x[n][0];
-		double x1 = tri_x[n][1];
-		double x2 = tri_x[n][2];
-		
-		double y0 = tri_y[n][0];
-		double y1 = tri_y[n][1];
-		double y2 = tri_y[n][2];
-	
-		double z0 = tri_z[n][0];
-		double z1 = tri_z[n][1];
-		double z2 = tri_z[n][2];          
-        
-        double xc = (x0 + x1 + x2)/3.0;
-        double yc = (y0 + y1 + y2)/3.0;
-        double zc = (z0 + z1 + z2)/3.0;
-        
-        nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-        ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-        nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
-            
-        mag = sqrt(nx*nx + ny*ny + nz*nz);
-        
-        nx /= mag;
-        ny /= mag;
-        nz /= mag;
-        
-        result<<" facet normal "<<nx<<" "<<ny<<" "<<nz<<endl;
-        result<<"  outer loop"<<endl;
-        result<<"   vertex "<<tri_x[n][0]<<" "<<tri_y[n][0]<<" "<<tri_z[n][0]<<endl;
-        result<<"   vertex "<<tri_x[n][1]<<" "<<tri_y[n][1]<<" "<<tri_z[n][1]<<endl;
-        result<<"   vertex "<<tri_x[n][2]<<" "<<tri_y[n][2]<<" "<<tri_z[n][2]<<endl;
-        result<<"  endloop"<<endl;
-        result<<" endfacet"<<endl;
-
-        result2<<xc<<","<<yc<<","<<zc<<endl;
-	}
-
-	result<<"endsolid"<<endl;
-
-	result.close();  
-	result2.close();  
-*/
 }
+
 void net_barQuasiStatic::create_triangle
 (
     MatrixVd& tri_x_, MatrixVd& tri_y_, MatrixVd& tri_z_, 

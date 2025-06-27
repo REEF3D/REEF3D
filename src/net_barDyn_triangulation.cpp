@@ -193,52 +193,6 @@ void net_barDyn::triangulation(lexer *p, ghostcell *pgc)
         tend = tri_x.size(); 
 	}
 
-    // Save net as .stl
-/*
-    ofstream result;
-    result.open("REEF3D_CFD_6DOF_Net/REEF3D_net.stl", ios::binary);
-
-	result<<"solid"<<" "<<"ascii"<<endl;
-
-    double x0, x1, x2, y0, y1, y2, z0, z1, z2;
-
-	for(int n = 0; n < tend; ++n)
-	{
-		x0 = tri_x[n][0];
-		x1 = tri_x[n][1];
-		x2 = tri_x[n][2];
-		
-		y0 = tri_y[n][0];
-		y1 = tri_y[n][1];
-		y2 = tri_y[n][2];
-		
-		z0 = tri_z[n][0];
-		z1 = tri_z[n][1];
-		z2 = tri_z[n][2];          
-        
-        nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-        ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-        nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
-            
-        mag = sqrt(nx*nx + ny*ny + nz*nz);
-        
-        nx /= mag;
-        ny /= mag;
-        nz /= mag;
-        
-        result<<" facet normal "<<nx<<" "<<ny<<" "<<nz<<endl;
-        result<<"  outer loop"<<endl;
-        result<<"   vertex "<<tri_x[n][0]<<" "<<tri_y[n][0]<<" "<<tri_z[n][0]<<endl;
-        result<<"   vertex "<<tri_x[n][1]<<" "<<tri_y[n][1]<<" "<<tri_z[n][1]<<endl;
-        result<<"   vertex "<<tri_x[n][2]<<" "<<tri_y[n][2]<<" "<<tri_z[n][2]<<endl;
-        result<<"  endloop"<<endl;
-        result<<" endfacet"<<endl;
-	}
-
-	result<<"endsolid"<<endl;
-
-	result.close();  
-*/
 }
 
 
