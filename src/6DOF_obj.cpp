@@ -127,6 +127,14 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     p->Iarray(nflag,p->imax*p->jmax*(p->kmax+2));
     }
     
+    
+        Xne.resize(p->net_count);
+        Yne.resize(p->net_count);
+        Zne.resize(p->net_count);
+        Kne.resize(p->net_count);
+        Mne.resize(p->net_count);
+        Nne.resize(p->net_count);
+    
 }
 
 sixdof_obj::~sixdof_obj()

@@ -30,11 +30,11 @@ Author: Tobias Martin
 void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
-
+    
     // Mooring forces
 	if (p->X310>0)
 	mooringForces(p,pgc,alpha);
-	
+
     // Net forces
 	if (p->X320>0)
 	netForces_cfd(p,a,pgc,alpha);
@@ -98,7 +98,7 @@ void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
 }
 
 void sixdof_obj::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
-{
+{    
     pnetinter->netForces_cfd(p,a,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
     
     NETLOOP

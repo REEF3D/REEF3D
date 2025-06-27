@@ -1879,8 +1879,6 @@
           <File Name="net_interface_ini_nhflow.cpp"/>
           <File Name="net_interface_ini_cfd.cpp"/>
           <File Name="net_interface_dlm_kernel.cpp"/>
-          <File Name="net_interface_cfd.cpp"/>
-          <File Name="net_interface_nhflow.cpp"/>
           <File Name="net_interface.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="External Motion">

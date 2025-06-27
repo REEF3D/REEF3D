@@ -2342,7 +2342,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
 				case  320: ++X320;
-                         B269=3;
 						 clear(c,numint);
 						 break;
 				case  321: ++X321;

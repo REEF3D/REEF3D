@@ -53,19 +53,18 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         
         // Advance body in time
         fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter);
-        
+         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
         
         // Update position and trimesh
         fb_obj[nb]->update_position_3D(p,a,pgc,finalize);  //----> main time consumer
-        
+
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
         
         // Update forcing terms
         fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
-        
         
         // Print
         if(finalize==true)

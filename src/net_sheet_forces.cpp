@@ -215,12 +215,7 @@ void net_sheet::screenForceCoeff
     }
 }
 
-void net_sheet::netForces
-(
-    lexer *p,
-	double& Xne, double& Yne, double& Zne,
-	double& Kne, double& Mne, double& Nne
-)
+void net_sheet::netForces(lexer *p, double& Xne, double& Yne, double& Zne, double& Kne, double& Mne, double& Nne)
 {
     Xne = 0.0;
 	Yne = 0.0;
