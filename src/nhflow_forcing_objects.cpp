@@ -81,7 +81,6 @@ void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
         ++entity_count;
     }
     
-    
     if(p->A590==1)
     {
         read_stl(p,pgc);

@@ -286,6 +286,9 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Geometry">
+            <File Name="nhflow_geometry.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Potential Flow">
             <File Name="nhflow_potential_v.h"/>
             <File Name="nhflow_potential_f.h"/>
@@ -642,6 +645,7 @@
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <File Name="vrans_interface.h"/>
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
         <File Name="vrans_v.h"/>
@@ -654,6 +658,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
+      <VirtualDirectory Name="Geometry"/>
       <VirtualDirectory Name="Function">
         <File Name="linear_regression_cont.h"/>
       </VirtualDirectory>
@@ -841,6 +846,9 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Geometry">
+          <File Name="geometry_objects.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Boundary">
           <File Name="boundary.h"/>
         </VirtualDirectory>
@@ -1305,6 +1313,10 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Geometry">
+          <File Name="nhflow_geometry_ini.cpp"/>
+          <File Name="nhflow_geometry.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
           <File Name="nhflow_forcing_solid.cpp"/>
           <File Name="nhflow_forcing_interface.cpp"/>
@@ -2096,11 +2108,13 @@
         <File Name="concentration_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <VirtualDirectory Name="VRANS Interface">
+          <File Name="vrans_interface.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="vrans_v.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Porous Structures">
-          <VirtualDirectory Name="Geometry"/>
           <File Name="vrans_sed_update.cpp"/>
           <File Name="vrans_velsource.cpp"/>
           <File Name="vrans_source_omega.cpp"/>
@@ -2130,6 +2144,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
+      <VirtualDirectory Name="Geometry"/>
       <VirtualDirectory Name="Functions">
         <File Name="linear_regression_cont.cpp"/>
       </VirtualDirectory>
@@ -2517,6 +2532,20 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Geometry">
+          <File Name="geometry_objects_jacketmember.cpp"/>
+          <File Name="geometry_objects_cylinder_y.cpp"/>
+          <File Name="geometry_objects_cylinder_z.cpp"/>
+          <File Name="geometry_objects_refinement.cpp"/>
+          <File Name="geometry_objects_rotation.cpp"/>
+          <File Name="geometry_objects_stl.cpp"/>
+          <File Name="geometry_objects_sphere.cpp"/>
+          <File Name="geometry_objects_wedge_z.cpp"/>
+          <File Name="geometry_objects_wedge_y.cpp"/>
+          <File Name="geometry_objects_wedge_x.cpp"/>
+          <File Name="geometry_objects_box.cpp"/>
+          <File Name="geometry_objects.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Boundary">
           <File Name="boundary_update_nhflow.cpp"/>
           <File Name="boundary.cpp"/>

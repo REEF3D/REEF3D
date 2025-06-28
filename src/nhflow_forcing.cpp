@@ -158,7 +158,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     
     pgc->startintV(p,p->DF,1);
     
-    
     pgc->gciobc_update(p,d);
     
     p->dftime+=pgc->timer()-starttime;
@@ -179,7 +178,6 @@ void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICELOOP4
     fe(i,j) = 0.0;
     }
-    
 }
 
 void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
