@@ -194,7 +194,6 @@ void sflow_potential_f::vcalc(lexer *p, fdm2D *b, slice &phi)
     SLICELOOP2
     if(p->wet[IJ]==0 || p->wet[IJp1]==0)
 	b->Q(i,j) = 0.0;
-
 }
 
 void sflow_potential_f::ini_bc(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -238,7 +237,6 @@ void sflow_potential_f::ini_bc(lexer *p, fdm2D *b, ghostcell *pgc)
             if(p->gcbsl4[n][3]==4)
             bc(i+1,j)=1;
             
- 
         }
         
         if(p->gcbsl4[n][4]==2)

@@ -25,8 +25,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 
-
-             
 double interpolation::sl_ipol1(slice &f)
 {
     v1=v2=0;

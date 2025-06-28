@@ -165,9 +165,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	pgc->gcsl_start1(p,b->P,10);
 	pgc->gcsl_start2(p,b->Q,11);
-
-	pgc->gcsl_start1(p,b->P,10);
-	pgc->gcsl_start2(p,b->Q,11);
 	pgc->gcsl_start4(p,b->eta,gcval_eta);
     pgc->gcsl_start4(p,b->hp,gcval_eta);
     pgc->gcsl_start4(p,b->bed,50);
@@ -177,6 +174,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->ini2D(p,b,pgc);
     // potential flow ini
     potflow->start(p,b,ppoissonsolv,pgc);
+    
+    pgc->gcsl_start1(p,b->P,10);
+	pgc->gcsl_start2(p,b->Q,11);
+
     
     // FSF ini
     ini_fsf_2(p,b,pgc);
@@ -246,10 +247,10 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     
     // ini hxy
     SLICELOOP1
-    b->hx(i,j) = MAX(0.5*(b->eta(i+1,j)+b->eta(i,j)) + p->wd - b->bed(i,j),0.0);
+    b->hx(i,j) = MAX(0.5*(b->eta(i+1,j)+b->eta(i,j)) + p->wd - 0.5*(b->bed(i+1,j)+b->bed(i,j)),0.0);
     
     SLICELOOP2
-    b->hy(i,j) = MAX(0.5*(b->eta(i,j+1)+b->eta(i,j)) + p->wd - b->bed(i,j),0.0);
+    b->hy(i,j) = MAX(0.5*(b->eta(i,j+1)+b->eta(i,j)) + p->wd - 0.5*(b->bed(i,j+1)+b->bed(i,j)),0.0);
 
         // fix inflow fsf
         for(n=0;n<p->gcslin_count;n++)
@@ -403,6 +404,23 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     }
       
 	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    
+    int gcval_eta;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
+    pgc->gcsl_start1(p,b->hx,gcval_eta);    
+	pgc->gcsl_start2(p,b->hy,gcval_eta);  
 
 }
 
