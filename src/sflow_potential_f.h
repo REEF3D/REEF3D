@@ -48,10 +48,18 @@ private:
     void laplace(lexer*,fdm2D*,slice&);
     void ini_bc(lexer*,fdm2D*,ghostcell*);
     
+    void Qin2D(lexer*,fdm2D*,ghostcell*);
+    void Qout2D(lexer*,fdm2D*,ghostcell*);
+    
     
 	double starttime,endtime;
 	int count;
 	int gcval_pot;
+    
+    double Qi_pf,Qo_pf;
+    double Ui_pf,Uo_pf;
+    double Ai,Ao,area;
+    double fac_i,fac_o;
     
     sliceint4 bc;
 };

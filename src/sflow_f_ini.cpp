@@ -156,7 +156,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
 	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
 
-     pflow->ini2D(p,b,pgc);
+    pflow->ini2D(p,b,pgc);
       
      
      // P,Q ini
@@ -225,9 +225,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     // eta slope
     if(p->A251==1)
     SLICELOOP4
-    {
     b->eta(i,j)= -p->A251_val*(p->XP[IP]-p->global_xmin);
-    }
 
     // eta box area
     for(int qn=0;qn<p->F72;++qn)
