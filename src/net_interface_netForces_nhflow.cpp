@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -43,11 +43,11 @@ void net_interface::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, doubl
         pnet[n]->netForces(p,Xne[n],Yne[n],Zne[n],Kne[n],Mne[n],Nne[n]);
         
         // Distribute forces and moments to all processors
-        MPI_Bcast(&Xne[n],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Yne[n],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Zne[n],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Kne[n],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Mne[n],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Nne[n],1,MPI_DOUBLE,0,pgc->mpi_comm);	
+        pgc->bcast_double(&Xne[n],1);
+        pgc->bcast_double(&Yne[n],1);
+        pgc->bcast_double(&Zne[n],1);
+        pgc->bcast_double(&Kne[n],1);
+        pgc->bcast_double(&Mne[n],1);
+        pgc->bcast_double(&Nne[n],1);	
     }
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,11 +34,8 @@ Author: Hans Bihs
 
 void net_interface::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
     if (p->X320 == 0)
-    {
-        pnet.push_back(new net_void());
-    }
+    pnet.push_back(new net_void());
     
     else
     {
@@ -48,31 +45,25 @@ void net_interface::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         mkdir("./REEF3D_NHFLOW_6DOF_Net",0777);	
 
         else
-        {
-            p->X320_type = new int[p->net_count];
-        }
+        p->X320_type = new int[p->net_count];
+
 		
         pnet.reserve(p->net_count);	
   
-		for (int ii=0; ii < p->net_count; ii++)
+		NETLOOP
 		{
-    
-            pgc->bcast_int(&p->X320_type[ii], 1);
+            pgc->bcast_int(&p->X320_type[n], 1);
 			
-            if(p->X320_type[ii] > 10)
-			{
-				pnet.push_back(new net_barDyn(ii,p));
-			}
-            else if (p->X320_type[ii] < 4)
-            {
-                pnet.push_back(new net_barQuasiStatic(ii,p));
-            }
+            if(p->X320_type[n]>10)
+            pnet.push_back(new net_barDyn(n,p));
+
+            else if(p->X320_type[n]<4)
+            pnet.push_back(new net_barQuasiStatic(n,p));
+
             else
-            {
-                 pnet.push_back(new net_sheet(ii,p));
-            }
-			
-            pnet[ii]->initialize_nhflow(p,d,pgc);
+            pnet.push_back(new net_sheet(n,p));
+
+            pnet[n]->initialize_nhflow(p,d,pgc);
 		}
     }
 
