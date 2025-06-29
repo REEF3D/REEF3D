@@ -106,7 +106,7 @@ void hypre_struct2D::solve(lexer* p, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<endl<<" HYPRE solver broke down! Emergency Stop! "<<feedback<<endl<<endl;
     
-    exit(0);
+    exit(1);
     }*/
 }
 

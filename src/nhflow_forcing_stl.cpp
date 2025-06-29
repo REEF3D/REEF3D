@@ -59,8 +59,7 @@ void nhflow_forcing::read_stl(lexer *p, ghostcell *pgc)
 	{
 	cout<<"Please convert STL file to ASCII format!"<<endl<<endl;
 	cout<<"See User's Guide for more information!"<<endl<<endl<<endl;
-    pgc->final();
-	exit(0);
+    pgc->final(true);
 	}
 	
 	// create vecs
