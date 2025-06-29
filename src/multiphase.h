@@ -55,9 +55,9 @@ public:
     virtual void ls1get(int,int,int,double)=0;
     virtual void ls2get(int,int,int,double)=0;
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)=0;
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void name_ParaView_parallel(lexer*, fdm*, ghostcell*,ofstream&)=0;
+    virtual void name_ParaView(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_ParaView(lexer*, int*, int &)=0;
 };
 
 #endif

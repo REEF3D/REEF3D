@@ -57,10 +57,10 @@ public:
 	virtual void jsource(lexer*,fdm_nhf*);
 	virtual void ksource(lexer*,fdm_nhf*);
 
-    virtual void name_pvtu(lexer*, fdm_nhf*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
-	
+    virtual void name_ParaView_parallel(lexer*, fdm_nhf*, ghostcell*,ofstream&);
+    virtual void name_ParaView(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_ParaView(lexer*, int*, int &);
+    
 
 private:
     void tau_calc(fdm_nhf*, lexer*, double);

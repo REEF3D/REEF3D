@@ -62,27 +62,27 @@ public:
     virtual void ls1get(int,int,int,double);
     virtual void ls2get(int,int,int,double);
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-	
-	void logic(lexer*,fdm*,ghostcell*);
-	
-	freesurface *pfsf1,*pfsf2;
-	reini *preini;
-	multiphase_fluid_update *pupdate;
-	heat *pheat;
-	concentration *pconc;
-	particle_corr *ppls;
-	print_wsf *pwsf1;
-	print_wsf *pwsf2;
-	
-	field4 ls1,ls2;
-	
-	int n;
-	int iin;
-	float ffn;
-	double ddn;
+    virtual void name_ParaView_parallel(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_ParaView(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_ParaView(lexer*, int*, int &);
+    
+    void logic(lexer*,fdm*,ghostcell*);
+    
+    freesurface *pfsf1,*pfsf2;
+    reini *preini;
+    multiphase_fluid_update *pupdate;
+    heat *pheat;
+    concentration *pconc;
+    particle_corr *ppls;
+    print_wsf *pwsf1;
+    print_wsf *pwsf2;
+    
+    field4 ls1,ls2;
+    
+    int n;
+    int iin;
+    float ffn;
+    double ddn;
 
 private:
 	double fx(double,double,double,double,double);

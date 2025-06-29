@@ -137,15 +137,15 @@ void kepsilon_void::ini(lexer* p, fdm*a, ghostcell* pgc)
 {
 }
 
-void kepsilon_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void kepsilon_void::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 
-void kepsilon_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void kepsilon_void::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
-void kepsilon_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void kepsilon_void::offset_ParaView(lexer *p, int *offset, int &n)
 {
 }
 
