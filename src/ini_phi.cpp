@@ -113,7 +113,7 @@ void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
 		if(fabs(a->phi(i,j,k))<=(p->psi))
 		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi)));
 
-		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
+		a->ro(i,j,k)=p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
 	}
 
