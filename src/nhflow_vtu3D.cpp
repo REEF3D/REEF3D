@@ -52,6 +52,7 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	p->printtime=0.0;
 	p->sedprinttime=0.0;
 	p->fsfprinttime=0.0;
+    p->fsfsedprinttime=0.0;
 	p->probeprinttime=0.0;
 	p->stateprinttime=0.0;
     p->exportprinttime=0.0;
