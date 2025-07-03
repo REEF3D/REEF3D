@@ -82,6 +82,7 @@ void sediment_f::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pfl
 	d->bed(i,j) = s->bedzh(i,j);
     
     pgc->gcsl_start4(p,d->bed,50);
+    pgc->solid_forcing_eta(p,s->bedzh);
     
     k=0;
     SLICELOOP4
