@@ -158,7 +158,7 @@ void lexer::ini_default()
     A593=0;
     A593_x=A593_y=A593_z=A593_phi=A593_theta=A593_psi=0.0;
     A594=0;     // int invert STL
-    
+    A599=0;     // use dlm instead of df
 
     // Boundary Conditions
 	B10=0;			// int wall function velocities on/off

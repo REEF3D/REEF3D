@@ -32,6 +32,7 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6), fe(p)
     forcing_flag=0;
     solid_flag=0;
     floating_flag=0;
+    dlm_flag=0;
     
     if(p->A581>0 || p->A583>0 || p->A584>0   || p->A585>0  || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0)
     {
@@ -44,7 +45,16 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6), fe(p)
     forcing_flag=1;
     floating_flag=1;
     }
-        
+    
+    if(p->A599==1)
+    {
+    dlm_flag=1;
+    forcing_flag=0;
+    solid_flag=0;
+    floating_flag=0;
+    }
+    
+    // ----
     if(forcing_flag==1)
     {
     p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
@@ -157,6 +167,13 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     pgc->solid_forcing_eta(p,d->bed);
     }
     
+    if(dlm_flag==1)
+    {
+    dlm_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
+        
+        
+    }
+    
     pgc->startintV(p,p->DF,1);
     
     pgc->gciobc_update(p,d);
@@ -166,7 +183,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
 
 void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(forcing_flag==1)
+    if(forcing_flag==1|| dlm_flag==1)
     {
     LOOP
     {
@@ -218,6 +235,10 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     LOOP
     if(d->FB[IJK]<0.0)
     p->DF[IJK]=-1;
+    
+    // -------------
+    if(dlm_flag==1)
+    objects_create(p, pgc);
     
     // DFSL slice
     pgc->gcsldf_update(p);

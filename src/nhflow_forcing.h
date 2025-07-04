@@ -50,6 +50,10 @@ public:
     void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
     
+    void dlm_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+     void dlm_forcing_ini(lexer*, fdm_nhf*, ghostcell*);
+    double kernel_peskin(const double&);
+    
     void reset(lexer*, fdm_nhf*, ghostcell*);
     
     double Hsolidface(lexer*, fdm_nhf*, int, int, int);
@@ -110,6 +114,7 @@ private:
     
     int reiniter;
     int forcing_flag,solid_flag,floating_flag;
+    int dlm_flag;
     
     const double epsi;
     
@@ -128,6 +133,14 @@ private:
     int q,iin;
     float ffn;
     int offset[100];
+    
+    
+    // DLM
+    double *EL_L,*EL_dx;
+    double **EL_X,**EL_Y,**EL_Z,**EL_V;
+    int **EL_f;
+    
+    int Ne,Np;
  
 };
 

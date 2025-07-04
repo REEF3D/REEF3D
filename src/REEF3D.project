@@ -1318,14 +1318,19 @@
           <File Name="nhflow_geometry.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
+          <VirtualDirectory Name="DLM">
+            <File Name="nhflow_forcing_dlm_ini.cpp"/>
+            <File Name="nhflow_forcing_dlm_kernel.cpp"/>
+            <File Name="nhflow_forcing_dlm.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_forcing_solid.cpp"/>
           <File Name="nhflow_forcing_interface.cpp"/>
           <VirtualDirectory Name="Geometry">
+            <File Name="nhflow_forcing_jacketmember.cpp"/>
             <VirtualDirectory Name="Print VTP">
               <File Name="nhflow_forcing_print_vtp.cpp"/>
             </VirtualDirectory>
             <File Name="nhflow_forcing_rotation.cpp"/>
-            <File Name="nhflow_jacketmember.cpp"/>
             <File Name="nhflow_forcing_sphere.cpp"/>
             <File Name="nhflow_forcing_stl.cpp"/>
             <File Name="nhflow_forcing_wedge_z.cpp"/>

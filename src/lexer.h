@@ -308,7 +308,7 @@ public:
     int A589;
     double *A589_xs,*A589_xe,*A589_ys,*A589_ye,*A589_zs,*A589_ze;
     
-    int A590,A591,A592,A593,A594;
+    int A590,A591,A592,A593,A594,A599;
     double A591_x,A591_y,A591_z;
     double A592_x,A592_y,A592_z;
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;

@@ -404,6 +404,9 @@ void lexer::read_control()
                case 594: ++A594;
                         clear(c,numint);
                         break;
+               case 599: control>>A599;
+                        clear(c,numint);
+                        break;
 				}
 				break;
 		case 'B': control>>numint;
