@@ -56,18 +56,20 @@ void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
             D = kernel(dist);
             dist = (p->YP[JP] - EL_Y[n][q])/dy;
             D *= kernel(dist);
-            dist = (p->ZP[KP] - EL_Z[n][q])/dz;
-            D *= kernel(dist);
+            //dist = (p->ZP[KP] - EL_Z[n][q])/dz;
+            //D *= kernel(dist);
                         
             FX[IJK] += EL_FX[n][q]*D*EL_V[n][q]/(dx*dy*dz);
+            
+            d->test[IJK] += D;
       
 
             dist = (p->XP[IP] - EL_X[n][q])/dx;
             D = kernel(dist);
             dist = (p->YN[JP] - EL_Y[n][q])/dy;
             D *= kernel(dist);
-            dist = (p->ZP[KP] - EL_Z[n][q])/dz;
-            D *= kernel(dist);
+            //dist = (p->ZP[KP] - EL_Z[n][q])/dz;
+            //D *= kernel(dist);
                         
             FY[IJK] += EL_FY[n][q]*D*EL_V[n][q]/(dx*dy*dz);
                 
@@ -76,8 +78,8 @@ void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
             D = kernel(dist);
             dist = (p->YP[JP] - EL_Y[n][q])/dy;
             D *= kernel(dist);
-            dist = (p->ZN[KP] - EL_Z[n][q])/dz;
-            D *= kernel(dist);
+            //dist = (p->ZN[KP] - EL_Z[n][q])/dz;
+            //D *= kernel(dist);
                         
             FZ[IJK] += EL_FZ[n][q]*D*EL_V[n][q]/(dx*dy*dz);
                         
