@@ -1319,6 +1319,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
           <VirtualDirectory Name="DLM">
+            <File Name="nhflow_forcing_dlm_force.cpp"/>
             <File Name="nhflow_forcing_dlm_ini.cpp"/>
             <File Name="nhflow_forcing_dlm_kernel.cpp"/>
             <File Name="nhflow_forcing_dlm.cpp"/>

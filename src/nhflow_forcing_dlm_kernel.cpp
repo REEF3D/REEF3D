@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-double nhflow_forcing::kernel_peskin(const double& dist)
+double nhflow_forcing::kernel(const double& dist)
 {
     double D = 0.0;
 

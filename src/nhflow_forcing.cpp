@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"6DOF.h"
 #include"nhflow_reinidisc_fsf.h"
 
-nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6), fe(p)
+nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : epsi(1.6), fe(p)
 {
     forcing_flag=0;
     solid_flag=0;
@@ -64,13 +64,16 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6), fe(p)
     p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(dt,p->imax*p->jmax*(p->kmax+2));
     p->Darray(L,p->imax*p->jmax*(p->kmax+2));
+
+    prdisc = new nhflow_reinidisc_fsf(p);
+    }
     
     p->Darray(FX,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FY,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FZ,p->imax*p->jmax*(p->kmax+2));
     
-    prdisc = new nhflow_reinidisc_fsf(p);
-    }
+    if(dlm_flag==1)
+    dlm_forcing_ini(p,pgc);
 }
 
 nhflow_forcing::~nhflow_forcing()
@@ -84,7 +87,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     
     // ini forcing terms
     reset(p,d,pgc);
-    
     
     if(solid_flag==1)
     {
@@ -166,12 +168,33 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     pgc->solid_forcing_eta(p,d->eta);
     pgc->solid_forcing_eta(p,d->bed);
     }
-    
+
+    // DLM
     if(dlm_flag==1)
     {
-    dlm_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
+        dlm_forcecalc(p,d,pgc,alpha,d->U,d->V,d->W,WL);
+        dlm_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
         
+        LOOP
+        {
+            UH[IJK] += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
+            
+            d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
+        }
         
+        LOOP
+        {
+            VH[IJK] += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
+            
+            d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
+        }
+        
+        LOOP
+        {
+            WH[IJK] += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
+            
+            d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
+        }
     }
     
     pgc->startintV(p,p->DF,1);
@@ -183,7 +206,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
 
 void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(forcing_flag==1|| dlm_flag==1)
+    if(forcing_flag==1 || dlm_flag==1)
     {
     LOOP
     {

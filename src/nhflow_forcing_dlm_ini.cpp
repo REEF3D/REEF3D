@@ -25,11 +25,10 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_forcing::dlm_forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_forcing::dlm_forcing_ini(lexer *p, ghostcell *pgc)
 {
     Ne = 10;
     Np = Ne + 1;
-    
 
     
     p->Darray(EL_L, p->A584);
@@ -39,11 +38,13 @@ void nhflow_forcing::dlm_forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->Darray(EL_Z, p->A584, Np);
     p->Darray(EL_V, p->A584, Np);
     p->Iarray(EL_f, p->A584, Np);
-    
+    p->Darray(EL_FX, p->A584, Np);
+    p->Darray(EL_FY, p->A584, Np);
+    p->Darray(EL_FZ, p->A584, Np);
     
     // Initialise parameter
     for(int n=0; n<entity_count; ++n)
-    for(int q=0; q<Ne; ++q)
+    for(int q=0; q<Np; ++q)
     EL_f[n][q] = 0;
     
     for(int n=0; n<p->A584; ++n)
@@ -53,14 +54,14 @@ void nhflow_forcing::dlm_forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
         EL_L[n] = p->A584_ze[n] - p->A584_zs[n];
         EL_dx[n] = (p->A584_ze[n] - p->A584_zs[n]) / double(Ne);
         
-        for(int q=0; q<Ne; ++q)
+        for(int q=0; q<Np; ++q)
         {
-            
         // if on local proc
         EL_X[n][q] = p->A584_xc[n];
         EL_Y[n][q] = p->A584_yc[n];
         EL_Z[n][q] = p->A584_zs[n] + double(n)*(p->A584_ze[n] - p->A584_zs[n])/double(Ne);
         EL_V[n][q] = PI*p->A584_r[n]*p->A584_r[n]*EL_dx[n];
+        
         EL_f[n][q] = 1;
         }
     }

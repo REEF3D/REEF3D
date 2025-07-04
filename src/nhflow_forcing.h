@@ -41,7 +41,7 @@ using namespace std;
 class nhflow_forcing : public increment
 {
 public:
-	nhflow_forcing(lexer*);
+	nhflow_forcing(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_forcing();
     
     void forcing(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, 
@@ -49,11 +49,7 @@ public:
     
     void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
-    
-    void dlm_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
-     void dlm_forcing_ini(lexer*, fdm_nhf*, ghostcell*);
-    double kernel_peskin(const double&);
-    
+        
     void reset(lexer*, fdm_nhf*, ghostcell*);
     
     double Hsolidface(lexer*, fdm_nhf*, int, int, int);
@@ -69,6 +65,13 @@ public:
     void objects_allocate(lexer*, ghostcell*);
     
     void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
+    
+    
+    // DLM
+    void dlm_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    void dlm_forcecalc(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    void dlm_forcing_ini(lexer*, ghostcell*);
+    double kernel(const double&);
     
 private:
     void box(lexer*, ghostcell*, int);
@@ -138,10 +141,13 @@ private:
     // DLM
     double *EL_L,*EL_dx;
     double **EL_X,**EL_Y,**EL_Z,**EL_V;
+    double **EL_FX,**EL_FY,**EL_FZ;
     int **EL_f;
     
     int Ne,Np;
- 
+    int ii,jj,kk;
+    double dx,dy,dz;
+    double D,dist;
 };
 
 #endif

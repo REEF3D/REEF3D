@@ -55,7 +55,7 @@ void driver::logic_nhflow()
     pnhf=new nhflow_f(p,d,pgc);
     
 // forcing
-    pnhfdf=new nhflow_forcing(p);
+    pnhfdf=new nhflow_forcing(p,d,pgc);
     
 // FSF
     pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
