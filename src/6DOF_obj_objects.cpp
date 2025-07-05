@@ -84,8 +84,7 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
 	/*if (entity_count > 1)
 	{
 		cout<<"Multiple floating bodies are not fully supported yet."<<endl<<endl;
-		//pgc->final();
-		//exit(0);
+		//pgc->final(true);
 	}*/
 
     if(p->mpirank==0)
