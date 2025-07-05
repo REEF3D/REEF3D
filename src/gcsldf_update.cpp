@@ -29,6 +29,7 @@ void ghostcell::gcsldf_update(lexer *p)
 {
     count=0;
     
+    // eta
     k=p->knoz-1;
     SLICELOOP4
     if(p->DF[IJK]==1)
@@ -47,15 +48,12 @@ void ghostcell::gcsldf_update(lexer *p)
     }
     
     
-    if(p->gcsldf4_count!=count)
+    if(p->gcsldfeta4_count!=count)
     {
-    p->Iresize(p->gcsldf4,p->gcsldf4_count,count,6,6);
+    p->Iresize(p->gcsldfeta4,p->gcsldfeta4_count,count,6,6);
     
-    p->gcsldf4_count=count;
+    p->gcsldfeta4_count=count;
     }
-    
-    
-    
     
     // assign gcsldf entries
     
@@ -67,40 +65,115 @@ void ghostcell::gcsldf_update(lexer *p)
     {
         if(p->DF[Im1JK]<0)
         {
-        p->gcsldf4[count][0]=i;
-        p->gcsldf4[count][1]=j;
-        p->gcsldf4[count][3]=1;
-        p->gcsldf4[count][4]=48;
+        p->gcsldfeta4[count][0]=i;
+        p->gcsldfeta4[count][1]=j;
+        p->gcsldfeta4[count][3]=1;
+        p->gcsldfeta4[count][4]=48;
         ++count;
         }
         
         if(p->DF[Ip1JK]<0)
         {
-        p->gcsldf4[count][0]=i;
-        p->gcsldf4[count][1]=j;
-        p->gcsldf4[count][3]=4;      
-        p->gcsldf4[count][4]=48;
+        p->gcsldfeta4[count][0]=i;
+        p->gcsldfeta4[count][1]=j;
+        p->gcsldfeta4[count][3]=4;      
+        p->gcsldfeta4[count][4]=48;
         ++count;
         }
         
         if(p->DF[IJm1K]<0)
         {
-        p->gcsldf4[count][0]=i;
-        p->gcsldf4[count][1]=j;
-        p->gcsldf4[count][3]=3;
-        p->gcsldf4[count][4]=48;
+        p->gcsldfeta4[count][0]=i;
+        p->gcsldfeta4[count][1]=j;
+        p->gcsldfeta4[count][3]=3;
+        p->gcsldfeta4[count][4]=48;
         ++count;
         }
         
         if(p->DF[IJp1K]<0)
         {
-        p->gcsldf4[count][0]=i;
-        p->gcsldf4[count][1]=j;
-        p->gcsldf4[count][3]=2;
-        p->gcsldf4[count][4]=48;
+        p->gcsldfeta4[count][0]=i;
+        p->gcsldfeta4[count][1]=j;
+        p->gcsldfeta4[count][3]=2;
+        p->gcsldfeta4[count][4]=48;
         ++count;
         }
     }
+    
+    // -------------------------
+    // bed
+    k=0;
+    SLICELOOP4
+    if(p->DF[IJK]==1)
+    {
+        if(p->DF[Im1JK]<0)
+        ++count;
+        
+        if(p->DF[Ip1JK]<0)
+        ++count;
+        
+        if(p->DF[IJm1K]<0)
+        ++count;
+        
+        if(p->DF[IJp1K]<0)
+        ++count;
+    }
+    
+    
+    if(p->gcsldfbed4_count!=count)
+    {
+    p->Iresize(p->gcsldfbed4,p->gcsldfbed4_count,count,6,6);
+    
+    p->gcsldfbed4_count=count;
+    }
+    
+    
+    // assign gcsldfbed entries
+    
+    count=0;
+    
+    k=0;
+    SLICELOOP4
+    if(p->DF[IJK]==1)
+    {
+        if(p->DF[Im1JK]<0)
+        {
+        p->gcsldfbed4[count][0]=i;
+        p->gcsldfbed4[count][1]=j;
+        p->gcsldfbed4[count][3]=1;
+        p->gcsldfbed4[count][4]=48;
+        ++count;
+        }
+        
+        if(p->DF[Ip1JK]<0)
+        {
+        p->gcsldfbed4[count][0]=i;
+        p->gcsldfbed4[count][1]=j;
+        p->gcsldfbed4[count][3]=4;      
+        p->gcsldfbed4[count][4]=48;
+        ++count;
+        }
+        
+        if(p->DF[IJm1K]<0)
+        {
+        p->gcsldfbed4[count][0]=i;
+        p->gcsldfbed4[count][1]=j;
+        p->gcsldfbed4[count][3]=3;
+        p->gcsldfbed4[count][4]=48;
+        ++count;
+        }
+        
+        if(p->DF[IJp1K]<0)
+        {
+        p->gcsldfbed4[count][0]=i;
+        p->gcsldfbed4[count][1]=j;
+        p->gcsldfbed4[count][3]=2;
+        p->gcsldfbed4[count][4]=48;
+        ++count;
+        }
+    }
+    
+    
     
     
 }

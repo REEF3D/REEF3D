@@ -110,11 +110,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
         UH[IJK] += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
         
         d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
-        
-        /*if(p->count<10)
-        d->maxF = MAX(fabs(alpha*CPORNH*d->FX[IJK]), d->maxF);
-        
-        p->fbmax = MAX(fabs(alpha*CPORNH*d->FX[IJK]), p->fbmax);*/
     }
     
     LOOP
@@ -122,11 +117,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
         VH[IJK] += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
         
         d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
-        
-        /*if(p->count<10)
-        d->maxG = MAX(fabs(alpha*CPORNH*d->FY[IJK]), d->maxG);
-        
-        p->fbmax = MAX(fabs(alpha*CPORNH*d->FY[IJK]), p->fbmax);*/
     }
     
     LOOP
@@ -134,11 +124,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
         WH[IJK] += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
         
         d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
-        
-        /*if(p->count<10)
-        d->maxH = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), d->maxH);
-        
-        p->fbmax = MAX(fabs(alpha*CPORNH*d FZ[IJK]), p->fbmax);*/
     }
     
     /*
@@ -166,7 +151,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     pgc->gcsldf_update(p);
     pgc->solid_forcing_eta(p,WL);
     pgc->solid_forcing_eta(p,d->eta);
-    pgc->solid_forcing_eta(p,d->bed);
+    pgc->solid_forcing_bed(p,d->bed);
     }
 
     // DLM

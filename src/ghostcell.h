@@ -135,6 +135,7 @@ public:
     void solid_forcing_flag_update(lexer*,fdm*);
     void solid_forcing_lsm(lexer*,fdm*,field&);
     void solid_forcing_eta(lexer*,slice&);
+    void solid_forcing_bed(lexer*,slice&);
     double Hsolidface(lexer*, fdm*, int,int,int);
 	double Hsolidface_t(lexer*, fdm*, int,int,int);
 
