@@ -43,7 +43,7 @@ void nhflow_forcing::dlm_forcing_ini(lexer *p, ghostcell *pgc)
     p->Darray(EL_FZ, p->A584, Np);
     
     // Initialise parameter
-    for(int n=0; n<entity_count; ++n)
+    for(int n=0; n<p->A584; ++n)
     for(int q=0; q<Np; ++q)
     EL_f[n][q] = 0;
     
@@ -59,7 +59,7 @@ void nhflow_forcing::dlm_forcing_ini(lexer *p, ghostcell *pgc)
         // if on local proc
         EL_X[n][q] = p->A584_xc[n];
         EL_Y[n][q] = p->A584_yc[n];
-        EL_Z[n][q] = p->A584_zs[n] + double(n)*(p->A584_ze[n] - p->A584_zs[n])/double(Ne);
+        EL_Z[n][q] = p->A584_zs[n] + double(q)*(p->A584_ze[n] - p->A584_zs[n])/double(Ne);
         EL_V[n][q] = PI*p->A584_r[n]*p->A584_r[n]*EL_dx[n];
         
         EL_f[n][q] = 1;
