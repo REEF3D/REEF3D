@@ -51,24 +51,24 @@ public:
     void inipsi(lexer*,fdm*,ghostcell*);
 
 private:
-	void inifdm(fdm*, lexer*, ghostcell*);
-	void iniphi(fdm*, lexer*,ghostcell*);
+	void inifdm(lexer*,fdm*,ghostcell*);
+	void iniphi(lexer*,fdm*,ghostcell*);
 	void iniphi_box(lexer*,fdm*,ghostcell*);	
+    void iniphi_wedge(lexer*,fdm*,ghostcell*);	
 	void inivof(fdm*, lexer*,ghostcell*);
 	void inivof_box(lexer*,fdm*,ghostcell*);
 	void inivofPLIC(fdm*, lexer*,ghostcell*);
-	void nodecalc(fdm*, lexer*);
-	void maxcoor(fdm*, lexer*,ghostcell*);
+	void nodecalc(lexer*,fdm*);
+	void maxcoor(lexer*,fdm*,ghostcell*);
 	void paraini(lexer*, fdm*,ghostcell*);
 	void pressini(lexer*,fdm*,ghostcell*);
 	void topoini(lexer*,fdm*,ghostcell*);
-    
+
 	int conv(double);
 
 	double epsi;
 
 	int n,q,iend,kend;
-	double deltax;
 	double H;
 };
 
