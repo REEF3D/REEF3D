@@ -55,7 +55,7 @@ void ghostcell::gcsldf_update(lexer *p)
     p->gcsldfeta4_count=count;
     }
     
-    // assign gcsldf entries
+    // assign gcsldfeta entries
     
     count=0;
     

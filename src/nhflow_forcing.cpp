@@ -147,6 +147,8 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     if(d->FB[IJK]<0.0)
     p->DF[IJK]=-1;
     
+    pgc->startintV(p,p->DF,1);
+    
     // DFSL slice
     pgc->gcsldf_update(p);
     pgc->solid_forcing_eta(p,WL);
