@@ -64,7 +64,9 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             if(rayiter==1)
             {
-            pgc->gcparaxintV(p,IO,1);
+            //pgc->gcparaxintV(p,IO,1);
+            pgc->startintV(p,IO,1);
+            pgc->start4V(p,p->ZSP,1);
 
             //ray_cast_direct(p,d,pgc,tstart[qn],tend[qn]);
             
