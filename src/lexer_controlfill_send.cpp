@@ -779,6 +779,10 @@ void lexer::ctrlsend()
     ii++;
     ictrl[ii] = F113;
     ii++;
+    ictrl[ii] = F114;
+    ii++;
+    ictrl[ii] = F115;
+    ii++;
     ictrl[ii] = F150;
 	ii++;
 	ictrl[ii] = F151;
@@ -2568,6 +2572,38 @@ void lexer::ctrlsend()
     dctrl[dd] = F113_zs[n];
     dd++;
     dctrl[dd] = F113_ze[n];
+    dd++;
+    }
+
+    for(n=0;n<F114;++n)
+    {
+    dctrl[dd] = F114_xs[n];
+    dd++;
+    dctrl[dd] = F114_xe[n];
+    dd++;
+    dctrl[dd] = F114_ys[n];
+    dd++;
+    dctrl[dd] = F114_ye[n];
+    dd++;
+    dctrl[dd] = F114_zs[n];
+    dd++;
+    dctrl[dd] = F114_ze[n];
+    dd++;
+    }
+
+    for(n=0;n<F115;++n)
+    {
+    dctrl[dd] = F115_xs[n];
+    dd++;
+    dctrl[dd] = F115_xe[n];
+    dd++;
+    dctrl[dd] = F115_ys[n];
+    dd++;
+    dctrl[dd] = F115_ye[n];
+    dd++;
+    dctrl[dd] = F115_zs[n];
+    dd++;
+    dctrl[dd] = F115_ze[n];
     dd++;
     }
 
