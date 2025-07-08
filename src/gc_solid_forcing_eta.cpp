@@ -59,7 +59,7 @@ void ghostcell::solid_forcing_eta(lexer *p, slice &f)
 }
 
 void ghostcell::solid_forcing_bed(lexer *p, slice &f)
-{
+{/*
     GCSLDFBED4LOOP
     {
     i=p->gcsldfbed4[n][0];
@@ -89,5 +89,5 @@ void ghostcell::solid_forcing_bed(lexer *p, slice &f)
         f(i,j+2)=f(i,j);
         }
 
-	}
+	}*/
 }

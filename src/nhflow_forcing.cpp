@@ -183,9 +183,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
             d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
         }
     }
-    
-    pgc->startintV(p,p->DF,1);
-    
+
     pgc->gciobc_update(p,d);
     
     p->dftime+=pgc->timer()-starttime;
@@ -258,4 +256,5 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->gcsldf_update(p);
     pgc->solid_forcing_eta(p,d->WL);
     pgc->solid_forcing_eta(p,d->eta);
+    pgc->solid_forcing_bed(p,d->bed);
 }
