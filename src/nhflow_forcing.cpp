@@ -248,6 +248,8 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(d->FB[IJK]<0.0)
     p->DF[IJK]=-1;
     
+    pgc->startintV(p,p->DF,1);
+    
     // -------------
     if(dlm_flag==1)
     objects_create(p, pgc);
