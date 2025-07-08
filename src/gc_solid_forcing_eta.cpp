@@ -34,32 +34,32 @@ void ghostcell::solid_forcing_eta(lexer *p, slice &f)
         if(p->gcsldfeta4[n][3]==1)
         {
         f(i-1,j)=f(i,j);
-        f(i-2,j)=f(i,j);
+        //f(i-2,j)=f(i,j);
         }
 
         if(p->gcsldfeta4[n][3]==4)
         {
         f(i+1,j)=f(i,j);
-        f(i+2,j)=f(i,j);
+        //f(i+2,j)=f(i,j);
         }
 
         if(p->gcsldfeta4[n][3]==3)
         {
         f(i,j-1)=f(i,j);
-        f(i,j-2)=f(i,j);
+        //f(i,j-2)=f(i,j);
         }
 
         if(p->gcsldfeta4[n][3]==2)
         {
         f(i,j+1)=f(i,j);
-        f(i,j+2)=f(i,j);
+        //f(i,j+2)=f(i,j);
         }
 
 	}
 }
 
 void ghostcell::solid_forcing_bed(lexer *p, slice &f)
-{/*
+{
     GCSLDFBED4LOOP
     {
     i=p->gcsldfbed4[n][0];
@@ -89,5 +89,5 @@ void ghostcell::solid_forcing_bed(lexer *p, slice &f)
         f(i,j+2)=f(i,j);
         }
 
-	}*/
+	}
 }

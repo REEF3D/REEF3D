@@ -120,7 +120,6 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     if(efc<0.1)
     ef = d->depth(i,j);
-    
     }
     
     //if(efc>0.1 && d->SOLID[IJK]<0.0)
