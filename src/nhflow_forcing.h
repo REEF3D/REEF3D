@@ -146,6 +146,7 @@ private:
     
     int Ne,Np;
     int ii,jj,kk;
+    int gcval_eta;
     double dx,dy,dz;
     double D,dist;
 };

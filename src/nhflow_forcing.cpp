@@ -74,6 +74,18 @@ nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : epsi(1.6)
     
     if(dlm_flag==1)
     dlm_forcing_ini(p,pgc);
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
 }
 
 nhflow_forcing::~nhflow_forcing()
@@ -183,6 +195,9 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
             d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
         }
     }
+    
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
+    pgc->gcsl_start4(p,WL,gcval_eta);
 
     pgc->gciobc_update(p,d);
     
@@ -221,11 +236,8 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start5V(p,p->ZSP,1);
     
     objects_create(p, pgc);
-    
     ray_cast(p, d, pgc);
-    
     reini_RK2(p, d, pgc, d->SOLID);
-    
     
     SLICELOOP4
 	d->depth(i,j) = p->wd - d->bed(i,j);

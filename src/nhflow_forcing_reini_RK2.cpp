@@ -31,12 +31,12 @@ void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
     if(p->j_dir==0)
     LOOP
     WETDRY
-	dt[IJK] = 0.4*MIN(p->DXP[IP],p->DZP[KP]*d->WL(i,j));
+	dt[IJK] = 0.45*MIN(p->DXP[IP],p->DZP[KP]*d->WL(i,j));
     
     if(p->j_dir==1)
     LOOP
     WETDRY
-	dt[IJK] = 0.4*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*d->WL(i,j));
+	dt[IJK] = 0.45*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*d->WL(i,j));
 
 	reiniter=5;
 	
