@@ -119,21 +119,21 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     // add forcing term to RHS
     LOOP
     {
-        UH[IJK] += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
+        UH[IJK]   += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
         
         d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
     }
     
     LOOP
     {
-        VH[IJK] += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
+        VH[IJK]   += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
         
         d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
     }
     
     LOOP
     {
-        WH[IJK] += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
+        WH[IJK]   += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
         
         d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
     }
@@ -202,71 +202,4 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     pgc->gciobc_update(p,d);
     
     p->dftime+=pgc->timer()-starttime;
-}
-
-void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    if(forcing_flag==1 || dlm_flag==1)
-    {
-    LOOP
-    {
-    FX[IJK] = 0.0;   
-    FY[IJK] = 0.0;   
-    FZ[IJK] = 0.0;   
-    d->FHB[IJK] = 0.0;
-    
-    d->test[IJK] = 0.0;
-    }
-
-    SLICELOOP4
-    fe(i,j) = 0.0;
-    }
-}
-
-void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    if(solid_flag==1)
-    {
-    if(p->mpirank==0)
-    cout<<"Forcing ini "<<endl;
-    
-    LOOP
-    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
-    
-    pgc->start5V(p,p->ZSP,1);
-    
-    objects_create(p, pgc);
-    ray_cast(p, d, pgc);
-    reini_RK2(p, d, pgc, d->SOLID);
-    
-    SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
-    }
-    
-    // --------------
-    // DF
-    LOOP
-    p->DF[IJK]=1;
-    
-    if(solid_flag==1)
-    LOOP
-    if(d->SOLID[IJK]<0.0)
-    p->DF[IJK]=-1;
-
-    if(floating_flag==1)
-    LOOP
-    if(d->FB[IJK]<0.0)
-    p->DF[IJK]=-1;
-    
-    pgc->startintV(p,p->DF,1);
-    
-    // -------------
-    if(dlm_flag==1)
-    objects_create(p, pgc);
-    
-    // DFSL slice
-    pgc->gcsldf_update(p);
-    pgc->solid_forcing_eta(p,d->WL);
-    pgc->solid_forcing_eta(p,d->eta);
-    pgc->solid_forcing_bed(p,d->bed);
 }
