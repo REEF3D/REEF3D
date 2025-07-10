@@ -86,6 +86,14 @@ nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : epsi(1.6)
     
     if(p->F50==4)
 	gcval_eta = 54;
+    
+    gcval_u=10;
+	gcval_v=11;
+	gcval_w=12;
+    
+    gcval_uh=14;
+	gcval_vh=15;
+	gcval_wh=16;
 }
 
 nhflow_forcing::~nhflow_forcing()
@@ -199,7 +207,15 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,WL,gcval_eta);
     pgc->gcsl_start4(p,d->bed,1);
-
+    
+    pgc->start4V(p,d->U,gcval_u);
+    pgc->start4V(p,d->V,gcval_v);
+    pgc->start4V(p,d->W,gcval_w);
+    
+    pgc->start4V(p,UH,gcval_uh);
+    pgc->start4V(p,VH,gcval_vh);
+    pgc->start4V(p,WH,gcval_wh);
+    
     pgc->gciobc_update(p,d);
     
     p->dftime+=pgc->timer()-starttime;

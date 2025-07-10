@@ -149,6 +149,9 @@ private:
     int gcval_eta;
     double dx,dy,dz;
     double D,dist;
+    
+    int gcval_u, gcval_v, gcval_w;
+    int gcval_uh, gcval_vh, gcval_wh;
 };
 
 #endif
