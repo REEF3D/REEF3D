@@ -198,6 +198,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,WL,gcval_eta);
+    pgc->gcsl_start4(p,d->bed,1);
 
     pgc->gciobc_update(p,d);
     
