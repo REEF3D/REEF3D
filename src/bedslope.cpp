@@ -46,8 +46,10 @@ void bedslope::slope_weno(lexer *p, ghostcell *pgc, sediment_fdm *s, field &topo
     double nx0,ny0,nx1,ny1,nz1;
     double nz0,bx0,by0;
     
+    
     SLICELOOP4
     {
+    k = s->bedk(i,j);
     
     // beta
     uvel=0.5*(s->P(i,j)+s->P(i-1,j));
@@ -92,19 +94,19 @@ void bedslope::slope_weno(lexer *p, ghostcell *pgc, sediment_fdm *s, field &topo
     // bed normal
 	nx0=-(topo(i+1,j,k)-topo(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
     
-    if(p->flag4[Im1JK]<=SOLID_FLAG)
+    if(p->DF[Im1JK]<0 || p->flag4[Im1JK]<=SOLID_FLAG)
     nx0=-(topo(i+1,j,k)-topo(i,j,k))/(p->DXP[IP]);
     
-    if(p->flag4[Ip1JK]<=SOLID_FLAG)
+    if(p->DF[Ip1JK]<0 || p->flag4[Ip1JK]<=SOLID_FLAG)
     nx0=-(topo(i,j,k)-topo(i-1,j,k))/(p->DXP[IM1]);
     
     
 	ny0=-(topo(i,j+1,k)-topo(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
     
-    if(p->flag4[IJm1K]<=SOLID_FLAG)
+    if(p->DF[IJm1K]<0 || p->flag4[IJm1K]<=SOLID_FLAG)
     ny0=-(topo(i,j+1,k)-topo(i,j,k))/(p->DYP[JP]);
     
-    if(p->flag4[IJp1K]<=SOLID_FLAG)
+    if(p->DF[IJp1K]<0 || p->flag4[IJp1K]<=SOLID_FLAG)
     ny0=-(topo(i,j,k)-topo(i,j-1,k))/(p->DYP[JM1]);
     
     

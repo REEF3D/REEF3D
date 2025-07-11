@@ -74,9 +74,6 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);
-    
-    pgc->gcsl_start1(p,a->P,10);
-	pgc->gcsl_start2(p,a->Q,11);
 }
 
 void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)

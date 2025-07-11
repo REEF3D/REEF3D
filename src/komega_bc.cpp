@@ -204,7 +204,6 @@ void komega_bc::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
 
 void komega_bc::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
-    
     // bc
         n=0;
         LOOP

@@ -30,7 +30,6 @@ Author: Hans Bihs
 
 void sediment_f::prep_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {    
-    
     // vel prep --------
     pgc->start1(p,a->u,14);
 	pgc->start2(p,a->v,15);
@@ -42,7 +41,6 @@ void sediment_f::prep_cfd(lexer *p, fdm *a,ghostcell *pgc)
     fill_PQ_cfd(p,a,pgc);
     
     waterlevel(p,a,pgc);
-    
 }
 
 void sediment_f::prep_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
@@ -54,7 +52,5 @@ void sediment_f::prep_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
 
 void sediment_f::prep_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)
 {
-    
     fill_PQ_sflow(p,b,pgc,P,Q);
-    
 }
