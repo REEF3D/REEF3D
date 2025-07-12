@@ -96,7 +96,7 @@ cout<<"starting driver_ini_PTF"<<endl;
 	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 
     pptf->inidisc(p,a,pgc);
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+    pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
 
 	p->gctime=0.0;
     p->xtime=0.0;
