@@ -158,6 +158,7 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     SLICELOOP4
     {
+    k = s->bedk(i,j);
     
     // beta
     uvel=0.5*(s->P(i,j)+s->P(i-1,j));
@@ -200,8 +201,22 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
    
     // ----
     
-     bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+     
+    if(p->DF[Im1JK]<0)
+    bx0 = (s->bedzh(i+1,j)-s->bedzh(i,j))/(p->DXP[IP]);
+    
+    if(p->DF[Ip1JK]<0)
+    bx0 = (s->bedzh(i,j)-s->bedzh(i-1,j))/(p->DXP[IM1]);
+     
+     
+    by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    
+    if(p->DF[IJm1K]<0)
+    by0 = (s->bedzh(i,j+1)-s->bedzh(i,j))/(p->DYP[JP]);
+    
+    if(p->DF[IJp1K]<0)
+    by0 = (s->bedzh(i,j)-s->bedzh(i,j-1))/(p->DYP[JM1]);
      
      nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
      ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
