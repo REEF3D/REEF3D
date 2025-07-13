@@ -48,7 +48,6 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p, field& voffield)
                 break;
                 
         case 1:
-                simpleNormal_Bonn(a,p);
                 break;
         case 2: 
                 calcNormalWeymouth(a,p,voffield);
@@ -77,6 +76,16 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p, field& voffield)
         case 10:
                 calcNormalMYC2D(a,p,voffield);
                 break;
+        case 11:
+                calcNormalMYC2D_V2(a,p,voffield);
+                break;
+        case 12:
+                calcNormalMYC2D_V3(a,p,voffield);
+                break;
+        case 13:
+                calcNormalMYC2D_V4(a,p,voffield);
+                break;
+        
     }
     //normalise normal vector (to be sure)
     
@@ -294,7 +303,6 @@ double VOF_PLIC::return_alpha_reconstructPlane_alt(fdm* a, lexer* p, field& voff
                 break;
                 
         case 1:
-                simpleNormal_Bonn(a,p);
                 break;
         case 2: 
                 calcNormalWeymouth(a,p,voffield);

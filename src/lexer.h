@@ -428,6 +428,10 @@ public:
     double F91;
     int F92;
     double F93, F94, F95;
+    int F96;
+    double F96_xs,F96_xe;
+    int F97;
+    double F97_ys,F97_ye;
     int F112;
     double F112_xs,F112_xe,F112_ys,F112_ye,F112_zs,F112_ze;
     int F300,F305,F310,F350;

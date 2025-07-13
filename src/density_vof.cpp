@@ -107,22 +107,68 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     if(p->F92==3)
     {
         double H;
-        
-        if(aa==1)
-            H=(0.25*p->DXN[IP]*a->vof_nt(i,j,k)+0.25*p->DXN[IP]*a->vof_nb(i,j,k)+0.25*p->DXN[IP1]*a->vof_st(i+1,j,k)+0.25*p->DXN[IP1]*a->vof_sb(i+1,j,k))/p->DXP[IP];
-        else if(aa==-1)
-            H=(0.25*p->DXN[IP]*a->vof_st(i,j,k)+0.25*p->DXN[IP]*a->vof_sb(i,j,k)+0.25*p->DXN[IM1]*a->vof_nt(i-1,j,k)+0.25*p->DXN[IM1]*a->vof_nb(i-1,j,k))/p->DXP[IM1];
-        else if(bb==1)
-            H=a->vof(i,j,k);
-        else if(bb==-1)
-            H=a->vof(i,j,k);
-        else if(cc==1)
-            H=(0.25*p->DZN[KP]*a->vof_nt(i,j,k)+0.25*p->DZN[KP]*a->vof_st(i,j,k)+0.25*p->DZN[KP1]*a->vof_nb(i,j,k+1)+0.25*p->DZN[KP1]*a->vof_sb(i,j,k+1))/p->DZP[KP];
-        else if(cc==-1)
-            H=(0.25*p->DZN[KP]*a->vof_nb(i,j,k)+0.25*p->DZN[KP]*a->vof_sb(i,j,k)+0.25*p->DZN[KM1]*a->vof_nt(i,j,k-1)+0.25*p->DZN[KM1]*a->vof_st(i,j,k-1))/p->DZP[KM1];
-        else
-            cout<<"density case missing"<<endl;
-            
+        int excepcheck;
+        excepcheck=0;
+        if(p->F96==1)
+        {
+            if(p->pos_x()>=p->F96_xs && p->pos_x()<=p->F96_xe)
+            {
+                excepcheck=1;
+                
+                if(a->vof(i,j,k)>p->F94 && a->vof(i+aa,j+bb,k+cc)>p->F94)
+                    roval=p->W1;
+                else if(a->vof(i,j,k)<p->F93 && a->vof(i+aa,j+bb,k+cc)<p->F93)
+                    roval=p->W3;
+                else
+                {
+                    if(aa==1)
+                        roval=(0.5*p->DXN[IP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                        +0.5*p->DXN[IP1]*(a->vof(i+aa,j+bb,k+cc)*p->W1+(1.0-a->vof(i+aa,j+bb,k+cc))*p->W3)
+                        )/p->DXP[IP];
+                    else if(aa==-1)
+                        roval=(0.5*p->DXN[IP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                        +0.5*p->DXN[IM1]*(a->vof(i+aa,j+bb,k+cc)*p->W1+(1.0-a->vof(i+aa,j+bb,k+cc))*p->W3)
+                        )/p->DXP[IM1];
+                    else if(cc==1)
+                        roval=(0.5*p->DZN[KP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                        +0.5*p->DZN[KP1]*(a->vof(i+aa,j+bb,k+cc)*p->W1+(1.0-a->vof(i+aa,j+bb,k+cc))*p->W3)
+                        )/p->DZP[KP];
+                    else if(cc==-1)
+                        roval=(0.5*p->DZN[KP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                        +0.5*p->DZN[KM1]*(a->vof(i+aa,j+bb,k+cc)*p->W1+(1.0-a->vof(i+aa,j+bb,k+cc))*p->W3)
+                        )/p->DZP[KM1];
+                    else if(bb==1)
+                        roval=(0.5*p->DYN[JP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                        +0.5*p->DYN[JP1]*(a->vof(i+aa,j+bb,k+cc)*p->W1+(1.0-a->vof(i+aa,j+bb,k+cc))*p->W3)
+                        )/p->DYP[JP];
+                    else if(bb==-1)
+                        roval=(0.5*p->DYN[JP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                        +0.5*p->DYN[JM1]*(a->vof(i+aa,j+bb,k+cc)*p->W1+(1.0-a->vof(i+aa,j+bb,k+cc))*p->W3)
+                        )/p->DYP[JM1];
+                    else
+                        cout<<"density case missing"<<endl;
+                }
+            }
+        }
+                
+
+        if(excepcheck==0)
+        {
+            if(aa==1)
+                H=(0.25*p->DXN[IP]*a->vof_nt(i,j,k)+0.25*p->DXN[IP]*a->vof_nb(i,j,k)+0.25*p->DXN[IP1]*a->vof_st(i+1,j,k)+0.25*p->DXN[IP1]*a->vof_sb(i+1,j,k))/p->DXP[IP];
+            else if(aa==-1)
+                H=(0.25*p->DXN[IP]*a->vof_st(i,j,k)+0.25*p->DXN[IP]*a->vof_sb(i,j,k)+0.25*p->DXN[IM1]*a->vof_nt(i-1,j,k)+0.25*p->DXN[IM1]*a->vof_nb(i-1,j,k))/p->DXP[IM1];
+            else if(bb==1)
+                H=a->vof(i,j,k);
+            else if(bb==-1)
+                H=a->vof(i,j,k);
+            else if(cc==1)
+                H=(0.25*p->DZN[KP]*a->vof_nt(i,j,k)+0.25*p->DZN[KP]*a->vof_st(i,j,k)+0.25*p->DZN[KP1]*a->vof_nb(i,j,k+1)+0.25*p->DZN[KP1]*a->vof_sb(i,j,k+1))/p->DZP[KP];
+            else if(cc==-1)
+                H=(0.25*p->DZN[KP]*a->vof_nb(i,j,k)+0.25*p->DZN[KP]*a->vof_sb(i,j,k)+0.25*p->DZN[KM1]*a->vof_nt(i,j,k-1)+0.25*p->DZN[KM1]*a->vof_st(i,j,k-1))/p->DZP[KM1];
+            else
+                cout<<"density case missing"<<endl;
+        }
         roval=roval = p->W1*H + p->W3*(1.0-H);
     }
 

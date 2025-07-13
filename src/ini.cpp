@@ -399,6 +399,12 @@ void lexer::ini_default()
     F93=0.001;          // PLIC air phase threshold
     F94=0.999;          // PLIC water phase thresold
     F95=0.999;          // PLIC threshold for water in phasemarker functions
+    F96=0;           // PLIC density softening from superfine to fine x direction start & end
+    F96_xs=-1.0e20;
+    F96_xe=-1.0e20;
+    F97=0;           // PLIC density softening from superfine to fine y direction start & end
+    F97_ys=-1.0e20;
+    F97_ye=-1.0e20;
     F112=0;            // int tilted wedge
     F112_xs=-1.0e20;            // double i-dir zero level set start
     F112_xe=-1.0e20;            // double j-dir zero level set start

@@ -140,7 +140,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             vof_rk1(i,j,k)=1.0;
     }
     
-    pplic->updatePlaneData(p,a,pgc,vof_rk1);
+   // pplic->updatePlaneData(p,a,pgc,vof_rk1);
 	pflow->vof_relax(p,a,pgc,vof_rk1);
 	pgc->start4(p,vof_rk1,gcval_vof);
     
@@ -341,7 +341,8 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     clear_FGH(p,a);
     
-    pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk1);
+    //pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk1);
+    pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk1);
     pgc->start4(p,vof_rk1,gcval_vof);
     LOOP
         a->vof(i,j,k)=vof_rk1(i,j,k);
@@ -371,7 +372,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             vof_rk2(i,j,k)=1.0;
     }
     
-    pplic->updatePlaneData(p,a,pgc,vof_rk2);
+   // pplic->updatePlaneData(p,a,pgc,vof_rk2);
 	pflow->vof_relax(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
     
@@ -557,7 +558,8 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	pgc->start3(p,wrk2,gcval_w);
     clear_FGH(p,a);
     
-    pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
+   // pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
+    pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
     LOOP
         a->vof(i,j,k)=vof_rk2(i,j,k);
@@ -592,7 +594,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             a->vof(i,j,k)=1.0;
     }
     
-    pplic->updatePlaneData(p,a,pgc,a->vof);
+   // pplic->updatePlaneData(p,a,pgc,a->vof);
 	pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     
@@ -773,7 +775,8 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     clear_FGH(p,a);
     
-    pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
+   // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
+    pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     pupdate->start(p,a,pgc);
     pgc->start4(p,a->ro,gcval_ro);

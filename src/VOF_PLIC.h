@@ -73,59 +73,29 @@ private:
 	void calcNormalLS(fdm*, lexer*, field&);
     void calcNormalWENO(fdm*, lexer*, field&);
     void calcNormalPhi(fdm*, lexer*);
-	
-	void advectPlane(fdm*, lexer*, double, double, int);
-	void calcFlux(fdm*, lexer*, double&, double&, int);
-	
-	void updateVolumeFraction(fdm*, lexer*, double, double, int);
-	void updateVOF(fdm*, lexer*, int);
-	double calcV(const double&, const double&, const double&, const double&, double, double);
-	double calcV2(lexer*);
-	double F3(const double&);
-	
-    void redistance(fdm*, lexer*, convection*, ghostcell*,ioflow*,int);
-    int calcBoundaryPoint(fdm*, lexer*, int, int, int, field&);
-    int calcProjectionPoint(fdm*, lexer*, double&, double&, double&, int, int, int, field&);
-	void calcSegmentPoint(fdm*, lexer*, double, double, double, int, int, int, field&);
-    double calcDistance(double, double, double, double);	
-	
+		
     //Alternative version by Fabian
-    void calculateNormal_alt(fdm*, lexer*);
     void calcNormalWeymouth(fdm*, lexer*, field&);
     void calcNormalWang(fdm*, lexer*);
     void calcNormalMassCentre(fdm*, lexer*, field&);
-    void sprayfilter(fdm*, lexer*);
     void reconstructPlane_alt(fdm*, lexer*,field&);
     double calculateVolume(double,double,double,double,double,double,double);
-    void updateVOF_alt(fdm*, lexer*,int);
-    void updateVOF_sweepless(fdm*, lexer*);
-    void updateVOF_MACHO2D(fdm*, lexer*, int, int);
-    void updateVOF_Weymouth(fdm*, lexer*, int);
-    void transportPhi_Bonn(fdm*,lexer*,int,int);
-    void transportVOF_Bonn(fdm*,lexer*,int,int);
-    void transportVOF_NewWang(fdm*,lexer*,int);
-    void vof_transport_COSMIC2D(fdm*,lexer*,int,int);
     void vof_transport_COSMIC2D_RK(fdm*,lexer*,int,int,field&,field&,field&);
     void simpleNormal_Bonn(fdm*, lexer*);
-    void advectPlane_forBonnScheme(fdm*, lexer*,int);
-    void advectPlane_NewWang(fdm*, lexer*,int);
-    void advectWater_forBonnScheme(fdm*, lexer*,int);
-    void advectPlane_forCOSMIC2D_simple(fdm*,lexer*,int,int);
-    void advectWater_forCOSMIC2D_simple(fdm*,lexer*,int,int);
     void advectPlane_forCOSMIC2D_RK(fdm*,lexer*,int,int,field&,field&,field&);
     void advectWater_forCOSMIC2D_RK(fdm*,lexer*,int,int,field&,field&,field&);
     void redistancePhiByPlane_Bonn(fdm*, lexer*);
     double ShortestDistanceOnBoundaryCandidate(fdm*, lexer*, int, int, int, double);
     double ProjectionPointCandidate(fdm*, lexer*, int, int, int, double);
     double IntersectionPointCandidate(fdm*, lexer*, int, int, int, double);
-    void stepwise_scheme(fdm*,lexer*,ghostcell*);
-    void symmetric_scheme2D(fdm*, lexer*,ghostcell*);
     void symmetric_scheme2D_FCRK3(fdm*, lexer*,ghostcell*, field&, field&, field&);
-    void symmetric_scheme2D_markerBased(fdm*, lexer*,ghostcell*, field&, field&, field&);
     double calcL2vofError2D(fdm*, lexer*, field&, double, double, double, double);
     double calcAlphaFromInput(fdm*, lexer*, double, double, double, double, double, double, double);
     void calcNormalELVIRA2D(fdm*, lexer*, field&);
     void calcNormalMYC2D(fdm*,lexer*, field&);
+    void calcNormalMYC2D_V2(fdm*,lexer*, field&);
+    void calcNormalMYC2D_V3(fdm*,lexer*, field&);
+    void calcNormalMYC2D_V4(fdm*,lexer*, field&);
     int searchMarkerInVicinity(lexer*,fdm*,int,double,int,int,int);
     int searchMarkerAlongDims(lexer*,fdm*,int,double,int,int,int);
     double twoStepVel(lexer*,fdm*,double,double,double);

@@ -785,6 +785,18 @@ void lexer::ctrlrecv()
     dd++;
     F95 = dctrl[dd];
     dd++;
+    F96 = ictrl[ii];
+    ii++;
+    F96_xs = dctrl[dd];
+    dd++;
+    F96_xe = dctrl[dd];
+    dd++;
+    F97 = ictrl[ii];
+    ii++;
+    F97_ys = dctrl[dd];
+    dd++;
+    F97_ye = dctrl[dd];
+    dd++;
     F112 = ictrl[ii];
     ii++;
     F112_xs = dctrl[dd];

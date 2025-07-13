@@ -245,7 +245,7 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
             a->vof(i,j,k)=1.0;
     }
     
-    updatePlaneData(p,a,pgc,a->vof);
+    //updatePlaneData(p,a,pgc,a->vof);
     pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     
@@ -264,9 +264,9 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     
     //-------------------------------------------
         
-    updatePhasemarkersCompression(p,a,pgc,a->vof);
+    updatePhasemarkersCorrection(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
-    updatePlaneData(p,a,pgc,a->vof);
+    //updatePlaneData(p,a,pgc,a->vof);
     
     if(p->F92==3)
         calculateSubFractions(p,a,pgc,a->vof);

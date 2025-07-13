@@ -2347,20 +2347,10 @@
           <File Name="VOF_PLIC_RK_redistance.cpp"/>
           <File Name="VOF_PLIC_RKcalcL.cpp"/>
         </VirtualDirectory>
-        <File Name="VOF_PLIC_schemefuncs.cpp"/>
-        <File Name="VOF_PLIC_transportVOF.cpp"/>
-        <File Name="VOF_PLIC_sprayfilter.cpp"/>
-        <File Name="VOF_PLIC_Transport.cpp"/>
         <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
-        <File Name="VOF_PLIC_normal_Bonn.cpp"/>
-        <File Name="VOF_PLIC_advection_alt.cpp"/>
         <File Name="VOF_PLIC_reconstruction_alt.cpp"/>
         <File Name="VOF_PLIC_inilsVOF.cpp"/>
-        <File Name="VOF_PLIC_updateVol.cpp"/>
-        <File Name="VOF_PLIC_redistance.cpp"/>
-        <File Name="VOF_PLIC_reconstruction.cpp"/>
         <File Name="VOF_PLIC_normalVector.cpp"/>
-        <File Name="VOF_PLIC_advection.cpp"/>
         <File Name="VOF_PLIC.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>

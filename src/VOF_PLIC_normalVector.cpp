@@ -1322,8 +1322,8 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
     //Candidate CC1 height function is z dimension
     zsum_xm=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1];
     zsum_xp=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
-    vofsumup=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
-    vofsumdown=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
+    vofsumup=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
     
     if(vofsumup>vofsumdown)
         sign=-1.0;
@@ -1333,16 +1333,17 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
     nz_Cz=1.0*sign;
     nx_Cz=-(zsum_xp-zsum_xm)/(p->DXP[IM1]+p->DXP[IP]);
     nsum=sqrt(nx_Cz*nx_Cz+nz_Cz*nz_Cz);
-    if(nsum<1E-20)
+    if(nsum!=nsum)
         cout<<"nsumNAN Cz"<<endl;
     nz_Cz=nz_Cz/nsum;
     nx_Cz=nx_Cz/nsum;
     
+    
     //Candidate CC2 height function is x dimension
     xsum_zm=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
     xsum_zp=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
-    vofsumup=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
-    vofsumdown=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
+    vofsumup=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1] ;
     
     if(vofsumup>vofsumdown)
         sign=-1.0;
@@ -1352,8 +1353,9 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
     nx_Cx=1.0*sign;
     nz_Cx=-(xsum_zp-xsum_zm)/(p->DZP[KM1]+p->DZP[KP]);
     nsum=sqrt(nx_Cx*nx_Cx+nz_Cx*nz_Cx);
-    if(nsum<1E-20)
+    if(nsum!=nsum)
         cout<<"nsumNAN Cx"<<endl;
+    
     nx_Cx=nx_Cx/nsum;
     nz_Cx=nz_Cx/nsum;
     
@@ -1362,43 +1364,100 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
     double nx1,nz1,nx2,nz2,nx3,nz3,nx4,nz4;
     double nx_CY, nz_CY;
     
-    nx1=-((voffield(i+1,j,k)+voffield(i+1,j,k+1))/2.0
-            -(voffield(i,j,k)+voffield(i,j,k+1))/2.0)
+    nx1=-((voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1])/2.0
+            -(voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1])/2.0)
             /p->DXP[IP];
             
-    nz1=-((voffield(i,j,k+1)+voffield(i+1,j,k+1))/2.0
-            -(voffield(i,j,k)+voffield(i+1,j,k))/2.0)
+    nz1=-((voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1))*p->DXN[IP1]/2.0
+            -(voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1])/2.0)
             /p->DZP[IP];
             
-    nx2=-((voffield(i+1,j,k)+voffield(i+1,j,k-1))/2.0
-            -(voffield(i,j,k)+voffield(i,j,k-1))/2.0)
+    nx2=-((voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k-1)*p->DZN[KM1])/2.0
+            -(voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k-1)*p->DZN[KM1])/2.0)
             /p->DXP[IP];
             
-    nz2=-((voffield(i,j,k)+voffield(i+1,j,k))/2.0
-            -(voffield(i,j,k-1)+voffield(i+1,j,k-1))/2.0)
+    nz2=-((voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1])/2.0
+            -(voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1])/2.0)
             /p->DZP[KM1];
             
-    nx3=-((voffield(i,j,k)+voffield(i,j,k-1))/2.0
-            -(voffield(i-1,j,k)+voffield(i-1,j,k-1))/2.0)
+    nx3=-((voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k-1)*p->DZN[KM1])/2.0
+            -(voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k-1)*p->DZN[KM1])/2.0)
             /p->DXP[IM1];
             
-    nz3=-((voffield(i,j,k)+voffield(i-1,j,k))/2.0
-            -(voffield(i,j,k-1)+voffield(i-1,j,k-1))/2.0)
+    nz3=-((voffield(i,j,k)*p->DXN[IP]+voffield(i-1,j,k)*p->DXN[IM1])/2.0
+            -(voffield(i,j,k-1)*p->DXN[IP]+voffield(i-1,j,k-1)*p->DXN[IM1])/2.0)
             /p->DZP[KM1];
             
-    nx4=-((voffield(i,j,k)+voffield(i,j,k+1))/2.0
-            -(voffield(i-1,j,k)+voffield(i-1,j,k+1))/2.0)
+    nx4=-((voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1])/2.0
+            -(voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1])/2.0)
             /p->DXP[IM1];
             
-    nz4=-((voffield(i,j,k+1)+voffield(i-1,j,k+1))/2.0
-            -(voffield(i,j,k)+voffield(i-1,j,k))/2.0)
+    nz4=-((voffield(i,j,k+1)*p->DXN[IP]+voffield(i-1,j,k+1)*p->DXN[IM1])/2.0
+            -(voffield(i,j,k)*p->DXN[IP]+voffield(i-1,j,k)*p->DXN[IM1])/2.0)
             /p->DZP[KP];
-
-    nx_CY=(nx1+nx2+nx3+nx4)/4.0;
-    nz_CY=(nz1+nz2+nz3+nz4)/4.0;
+            
+    nsum=sqrt(nx1*nx1+nz1*nz1);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n1"<<endl;
+    nx1=nx1/nsum;
+    nz1=nz1/nsum;
+    
+    nsum=sqrt(nx2*nx2+nz2*nz2);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n2"<<endl;
+    nx2=nx2/nsum;
+    nz2=nz2/nsum;
+    
+    nsum=sqrt(nx3*nx3+nz3*nz3);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n3"<<endl;
+    nx3=nx3/nsum;
+    nz3=nz3/nsum;
+    
+    nsum=sqrt(nx4*nx4+nz4*nz4);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n4"<<endl;
+    nx4=nx4/nsum;
+    nz4=nz4/nsum;
+    
+    double divN=0.0;
+    double vecsumX=0.0;
+    double vecsumZ=0.0;
+    
+    if(nx1==nx1 && nz1==nz1)
+    {
+        vecsumX+=nx1;
+        vecsumZ+=nz1;
+        divN+=1.0;
+    }
+    
+    if(nx2==nx2 && nz2==nz2)
+    {
+        vecsumX+=nx2;
+        vecsumZ+=nz2;
+        divN+=1.0;
+    }
+    
+    if(nx3==nx3 && nz3==nz3)
+    {
+        vecsumX+=nx3;
+        vecsumZ+=nz3;
+        divN+=1.0;
+    }
+    
+    if(nx4==nx4 && nz4==nz4)
+    {
+        vecsumX+=nx4;
+        vecsumZ+=nz4;
+        divN+=1.0;
+    }
+    
+    nx_CY=vecsumX/divN;
+    nz_CY=vecsumZ/divN;
     nsum=sqrt(nx_CY*nx_CY+nz_CY*nz_CY);
-    if(nsum<1E-20)
-        cout<<"nsumNAN CY"<<endl;
+    if(nsum!=nsum)
+        cout<<"nsumNAN CY"<<" divN="<<divN<<endl;
+        
     nx_CY=nx_CY/nsum;
     nz_CY=nz_CY/nsum;
     
@@ -1421,12 +1480,265 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || (nx_Cx!=nx_Cx)) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
         
-        if((fabs(nz_CC)<fabs(nz_CY)) || (nz_CY!=nz_CY))
+       // if(fabs(nz_CC)<fabs(nz_CY) || nz_CY!=nz_CY)
+        {
+            nx(i,j,k)=nx_CC;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CC;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cz"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cz"<<endl;
+        }
+       /* else
+        {
+            nx(i,j,k)=nx_CY;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CY;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_CY"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_CY"<<endl;
+        }*/
+    }
+    else if(nx_Cx==nx_Cx)
+    {
+        nx_CC=nx_Cx;
+        nz_CC=nz_Cx;
+        
+      //  if(fabs(nx_CC)<fabs(nx_CY) || nx_CY!=nx_CY)
+        {
+            nx(i,j,k)=nx_CC;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CC;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cx"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cx"<<endl;
+        }
+      /*  else
+        {
+            nx(i,j,k)=nx_CY;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CY;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_CY"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_CY"<<endl;
+        }*/
+    }
+    else
+    {
+        cout<<"All normal options NAN!";
+        nx(i,j,k)=0.0;
+        ny(i,j,k)=0.0;
+        nz(i,j,k)=1.0;
+    }
+    return;
+}
+
+void VOF_PLIC::calcNormalMYC2D_V2(fdm* a,lexer* p, field& voffield)
+{
+    //First two Candidates by Centred Columns Scheme
+    
+    double zsum_xm, zsum_xp,zsum_xc, xsum_zm, xsum_zp,xsum_zc;
+    double vofsumup,vofsumdown,sign;
+    double nx_Cz,nx_Cz_c,nx_Cz_m,nx_Cz_p;
+    double nz_Cz;
+    double nz_Cx,nz_Cx_c,nz_Cx_m,nz_Cx_p;
+    double nx_Cx;
+    double nx_CC, nz_CC;
+    double ny_all=0.0;
+    double nsum;
+    
+    //Candidate CC1 height function is z dimension
+    zsum_xm=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1];
+    zsum_xp=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
+    zsum_xc=voffield(i,j,k-1)*p->DZN[KM1]+voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1];
+    vofsumup=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+    
+    nz_Cz=1.0*sign;
+    
+    nx_Cz_c=-(zsum_xp-zsum_xm)/(p->DXP[IM1]+p->DXP[IP]);
+    if(nx_Cz_c!=nx_Cz_c)
+        cout<<"Cz_c NAN"<<endl;
+        
+    nx_Cz_m=-(zsum_xc-zsum_xm)/p->DXP[IM1];
+    if(nx_Cz_m!=nx_Cz_m)
+        cout<<"Cz_m NAN"<<endl;
+        
+    
+    nx_Cz_p=-(zsum_xp-zsum_xc)/p->DXP[IP];
+    if(nx_Cz_p!=nx_Cz_p)
+        cout<<"Cz_p NAN"<<endl;
+       
+    
+    if(fabs(nx_Cz_m)>=fabs(nx_Cz_c) && fabs(nx_Cz_m)>=fabs(nx_Cz_p) && nx_Cz_m == nx_Cz_m)
+        nx_Cz=nx_Cz_m;
+    else if (fabs(nx_Cz_p)>=fabs(nx_Cz_c) && fabs(nx_Cz_p)>=fabs(nx_Cz_m) && nx_Cz_p==nx_Cz_p)
+        nx_Cz=nx_Cz_p;
+    else
+        nx_Cz=nx_Cz_c;
+    
+    nsum=sqrt(nx_Cz*nx_Cz+nz_Cz*nz_Cz);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cz"<<endl;
+    nx_Cz=nx_Cz/nsum;
+    nz_Cz=nz_Cz/nsum;
+    
+    //Candidate CC2 height function is x dimension
+    xsum_zm=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
+    xsum_zp=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
+    xsum_zc=voffield(i-1,j,k)*p->DXN[IM1]+voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1];
+    vofsumup=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1] ;
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+        
+    nx_Cx=1.0*sign;
+    
+    nz_Cx_c=-(xsum_zp-xsum_zm)/(p->DZP[KM1]+p->DZP[KP]);
+    if(nz_Cx_c!=nz_Cx_c)
+        cout<<"Cx_c NAN"<<endl;
+        
+    nz_Cx_m=-(xsum_zc-xsum_zm)/p->DZP[KM1];
+    if(nz_Cx_m!=nz_Cx_m)
+        cout<<"Cx_m NAN"<<endl;
+        
+    nz_Cx_p=-(xsum_zp-xsum_zc)/p->DZP[KP];
+    if(nz_Cx_p!=nz_Cx_p)
+        cout<<"Cx_p NAN"<<endl;
+       
+    if(fabs(nz_Cx_m)>=fabs(nz_Cx_c) && fabs(nz_Cx_m)>=fabs(nz_Cx_p) && nz_Cx_m==nz_Cx_m)
+        nz_Cx=nz_Cx_m;
+    else if (fabs(nz_Cx_p)>=fabs(nz_Cx_c) && fabs(nz_Cx_p)>=fabs(nz_Cx_m) && nz_Cx_p==nz_Cx_p)
+        nz_Cx=nz_Cx_p;
+    else
+        nz_Cx=nz_Cx_c;
+    
+    nsum=sqrt(nx_Cx*nx_Cx+nz_Cx*nz_Cx);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cx"<<endl;
+    nx_Cx=nx_Cx/nsum;
+    nz_Cx=nz_Cx/nsum;
+    
+    //Third Candidate by Youngs as average of all 4 cell corners 1=i+1,k+1 2=i+1,k-1, 3=i-1,k-1, 4=i-1,k+1
+    
+    double nx1,nz1,nx2,nz2,nx3,nz3,nx4,nz4;
+    double nx_CY, nz_CY;
+    
+    nx1=-((voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1])/2.0
+            -(voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1])/2.0)
+            /p->DXP[IP];
+            
+    nz1=-((voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1))*p->DXN[IP1]/2.0
+            -(voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1])/2.0)
+            /p->DZP[IP];
+            
+    nx2=-((voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k-1)*p->DZN[KM1])/2.0
+            -(voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k-1)*p->DZN[KM1])/2.0)
+            /p->DXP[IP];
+            
+    nz2=-((voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1])/2.0
+            -(voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1])/2.0)
+            /p->DZP[KM1];
+            
+    nx3=-((voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k-1)*p->DZN[KM1])/2.0
+            -(voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k-1)*p->DZN[KM1])/2.0)
+            /p->DXP[IM1];
+            
+    nz3=-((voffield(i,j,k)*p->DXN[IP]+voffield(i-1,j,k)*p->DXN[IM1])/2.0
+            -(voffield(i,j,k-1)*p->DXN[IP]+voffield(i-1,j,k-1)*p->DXN[IM1])/2.0)
+            /p->DZP[KM1];
+            
+    nx4=-((voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1])/2.0
+            -(voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1])/2.0)
+            /p->DXP[IM1];
+            
+    nz4=-((voffield(i,j,k+1)*p->DXN[IP]+voffield(i-1,j,k+1)*p->DXN[IM1])/2.0
+            -(voffield(i,j,k)*p->DXN[IP]+voffield(i-1,j,k)*p->DXN[IM1])/2.0)
+            /p->DZP[KP];
+            
+    nsum=sqrt(nx1*nx1+nz1*nz1);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n1"<<endl;
+    nx1=nx1/nsum;
+    nz1=nz1/nsum;
+    
+    nsum=sqrt(nx2*nx2+nz2*nz2);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n2"<<endl;
+    nx2=nx2/nsum;
+    nz2=nz2/nsum;
+    
+    nsum=sqrt(nx3*nx3+nz3*nz3);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n3"<<endl;
+    nx3=nx3/nsum;
+    nz3=nz3/nsum;
+    
+    nsum=sqrt(nx4*nx4+nz4*nz4);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n4"<<endl;
+    nx4=nx4/nsum;
+    nz4=nz4/nsum;
+            
+    nx_CY=(nx1+nx2+nx3+nx4)/4.0;
+    nz_CY=(nz1+nz2+nz3+nz4)/4.0;
+    nsum=sqrt(nx_CY*nx_CY+nz_CY*nz_CY);
+    if(nsum!=nsum)
+        cout<<"nsumNAN CY"<<endl;
+        
+    nx_CY=nx_CY/nsum;
+    nz_CY=nz_CY/nsum;
+    
+    //zcomp
+ /*   vofsumup=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
+    
+    if(vofsumup>vofsumdown)
+        nz_CY=-fabs(nz_CY);
+    else
+        nz_CY=fabs(nz_CY);
+    
+    //xcomp
+    vofsumup=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
+    
+    if(vofsumup>vofsumdown)
+        nx_CY=-fabs(nx_CY);
+    else
+        nx_CY=fabs(nx_CY);*/
+        
+// figure out which CC Candidate is used and inside compare tou Young
+    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    {
+        nx_CC=nx_Cz;
+        nz_CC=nz_Cz;
+        
+        if(fabs(nz_CC)<fabs(nz_CY) || nz_CY!=nz_CY)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
@@ -1456,7 +1768,7 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
         nx_CC=nx_Cx;
         nz_CC=nz_Cx;
         
-        if(fabs(nx_CC)<fabs(nx_CY) || (nx_CY!=nx_CY))
+        if(fabs(nx_CC)<fabs(nx_CY) || nx_CY!=nx_CY)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
@@ -1488,7 +1800,570 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
         ny(i,j,k)=0.0;
         nz(i,j,k)=1.0;
     }
+    return;
+}
+
+void VOF_PLIC::calcNormalMYC2D_V3(fdm* a,lexer* p, field& voffield)
+{
+    //First two Candidates by Centred Columns Scheme
     
+    double zsum_xm, zsum_xp, xsum_zm, xsum_zp;
+    double vofsumup,vofsumdown,sign;
+    double nx_Cz, nz_Cz, nx_Cx, nz_Cx, nx_CC, nz_CC;
+    double ny_all=0.0;
+    double nsum;
+    
+    //Candidate CC1 height function is z dimension
+    zsum_xm=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1];
+    zsum_xp=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
+    vofsumup=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+    
+    nz_Cz=1.0*sign;
+    nx_Cz=-(zsum_xp-zsum_xm)/(p->DXP[IM1]+p->DXP[IP]);
+    nsum=sqrt(nx_Cz*nx_Cz+nz_Cz*nz_Cz);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cz"<<endl;
+    nz_Cz=nz_Cz/nsum;
+    nx_Cz=nx_Cz/nsum;
+    
+    
+    //Candidate CC2 height function is x dimension
+    xsum_zm=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
+    xsum_zp=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
+    vofsumup=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1] ;
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+        
+    nx_Cx=1.0*sign;
+    nz_Cx=-(xsum_zp-xsum_zm)/(p->DZP[KM1]+p->DZP[KP]);
+    nsum=sqrt(nx_Cx*nx_Cx+nz_Cx*nz_Cx);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cx"<<endl;
+      
+    nx_Cx=nx_Cx/nsum;
+    nz_Cx=nz_Cx/nsum;
 
     
+    //Third Candidate by Youngs as average of all 4 cell corners 1=i+1,k+1 2=i+1,k-1, 3=i-1,k-1, 4=i-1,k+1
+    
+    /*double nx1,nz1,nx2,nz2,nx3,nz3,nx4,nz4;
+    double nx_CY, nz_CY;
+    
+    nx1=-((voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1])/2.0
+            -(voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1])/2.0)
+            /p->DXP[IP];
+            
+    nz1=-((voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1))*p->DXN[IP1]/2.0
+            -(voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1])/2.0)
+            /p->DZP[IP];
+            
+    nx2=-((voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k-1)*p->DZN[KM1])/2.0
+            -(voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k-1)*p->DZN[KM1])/2.0)
+            /p->DXP[IP];
+            
+    nz2=-((voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1])/2.0
+            -(voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1])/2.0)
+            /p->DZP[KM1];
+            
+    nx3=-((voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k-1)*p->DZN[KM1])/2.0
+            -(voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k-1)*p->DZN[KM1])/2.0)
+            /p->DXP[IM1];
+            
+    nz3=-((voffield(i,j,k)*p->DXN[IP]+voffield(i-1,j,k)*p->DXN[IM1])/2.0
+            -(voffield(i,j,k-1)*p->DXN[IP]+voffield(i-1,j,k-1)*p->DXN[IM1])/2.0)
+            /p->DZP[KM1];
+            
+    nx4=-((voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1])/2.0
+            -(voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1])/2.0)
+            /p->DXP[IM1];
+            
+    nz4=-((voffield(i,j,k+1)*p->DXN[IP]+voffield(i-1,j,k+1)*p->DXN[IM1])/2.0
+            -(voffield(i,j,k)*p->DXN[IP]+voffield(i-1,j,k)*p->DXN[IM1])/2.0)
+            /p->DZP[KP];
+    
+    nsum=sqrt(nx1*nx1+nz1*nz1);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n1"<<endl;
+        
+    nx1=nx1/nsum;
+    nz1=nz1/nsum;
+    
+    nsum=sqrt(nx2*nx2+nz2*nz2);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n2"<<endl;
+       
+    nx2=nx2/nsum;
+    nz2=nz2/nsum;
+    
+    nsum=sqrt(nx3*nx3+nz3*nz3);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n3"<<endl;
+      
+    nx3=nx3/nsum;
+    nz3=nz3/nsum;
+    
+    nsum=sqrt(nx4*nx4+nz4*nz4);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n4"<<endl;
+      
+    nx4=nx4/nsum;
+    nz4=nz4/nsum;*/
+    
+    //zcomp
+   /* vofsumup=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
+    
+    if(vofsumup>vofsumdown)
+        nz_CY=-fabs(nz_CY);
+    else
+        nz_CY=fabs(nz_CY);
+    
+    //xcomp
+    vofsumup=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
+    
+    if(vofsumup>vofsumdown)
+        nx_CY=-fabs(nx_CY);
+    else
+        nx_CY=fabs(nx_CY);*/
+        
+// figure out which CC Candidate is used and inside compare tou Young
+    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    {
+        nx_CC=nx_Cz;
+        nz_CC=nz_Cz;
+        
+       /* if(fabs(nz1)<=fabs(nz2) && fabs(nz1)<=fabs(nz3) && fabs(nz1)<=fabs(nz4) && nz1==nz1)
+        {
+            nz_CY=nz1;
+            nx_CY=nx1;
+        }
+        else if(fabs(nz2)<=fabs(nz1) && fabs(nz2)<=fabs(nz3) && fabs(nz2)<=fabs(nz4) && nz2==nz2)
+        {
+            nz_CY=nz2;
+            nx_CY=nx2;
+        }
+         else if(fabs(nz3)<=fabs(nz1) && fabs(nz3)<=fabs(nz2) && fabs(nz3)<=fabs(nz4) && nz3==nz3)
+        {
+            nz_CY=nz3;
+            nx_CY=nx3;
+        }
+        else
+        {
+            nz_CY=nz4;
+            nx_CY=nz4;
+        }*/
+        
+       // if(fabs(nz_CC)<fabs(nz_CY) || nz_CY!=nz_CY)
+       // {
+            nx(i,j,k)=nx_CC;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CC;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cz"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cz"<<endl;
+        //}
+       /* else
+        {
+            nx(i,j,k)=nx_CY;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CY;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_CY"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_CY"<<endl;
+        }*/
+    }
+    else if(nx_Cx==nx_Cx)
+    {
+        nx_CC=nx_Cx;
+        nz_CC=nz_Cx;
+        
+       /* if(fabs(nx1)<=fabs(nx2) && fabs(nx1)<=fabs(nx3) && fabs(nx1)<=fabs(nx4) && nx1==nx1)
+        {
+            nz_CY=nz1;
+            nx_CY=nx1;
+        }
+        else if(fabs(nx2)<=fabs(nx1) && fabs(nx2)<=fabs(nx3) && fabs(nx2)<=fabs(nx4) && nx2==nx2)
+        {
+            nz_CY=nz2;
+            nx_CY=nx2;
+        }
+         else if(fabs(nx3)<=fabs(nx1) && fabs(nx3)<=fabs(nx2) && fabs(nx3)<=fabs(nx4) && nx3==nx3)
+        {
+            nz_CY=nz3;
+            nx_CY=nx3;
+        }
+        else
+        {
+            nz_CY=nz4;
+            nx_CY=nz4;
+        }*/
+        
+        //if(fabs(nx_CC)<fabs(nx_CY) || nx_CY!=nx_CY)
+       // {
+            nx(i,j,k)=nx_CC;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CC;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cx"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cx"<<endl;
+      /*  }
+        else
+        {
+            nx(i,j,k)=nx_CY;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CY;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_CY"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_CY"<<endl;
+        }*/
+    }
+    /*else if( nz1==nz1 || nz2==nz2 || nz3==nz3 || nz4==nz4)
+    {
+        if(nz1==nz1)
+        {
+            nx(i,j,k)=nx1;
+            nz(i,j,k)=nz1;
+            cout<<"last chance n1"<<endl;
+        }
+        
+        if(nz2==nz2)
+        {
+            nx(i,j,k)=nx2;
+            nz(i,j,k)=nz2;
+            cout<<"last chance n2"<<endl;
+        }
+        
+        if(nz3==nz3)
+        {
+            nx(i,j,k)=nx3;
+            nz(i,j,k)=nz3;
+            cout<<"last chance n3"<<endl;
+        }
+        
+        if(nz4==nz4)
+        {
+            nx(i,j,k)=nx4;
+            nz(i,j,k)=nz4;
+            cout<<"last chance n4"<<endl;
+        }
+    }*/
+    else 
+    {
+        cout<<"All normal options NAN!";
+        nx(i,j,k)=0.0;
+        ny(i,j,k)=0.0;
+        nz(i,j,k)=1.0;
+    }
+    return;
+}
+
+void VOF_PLIC::calcNormalMYC2D_V4(fdm* a,lexer* p, field& voffield)
+{
+    //First two Candidates by Centred Columns Scheme
+    
+    double zsum_xm, zsum_xp,zsum_xc, xsum_zm, xsum_zp,xsum_zc;
+    double vofsumup,vofsumdown,sign;
+    double nx_Cz,nx_Cz_c,nx_Cz_m,nx_Cz_p;
+    double nz_Cz;
+    double nz_Cx,nz_Cx_c,nz_Cx_m,nz_Cx_p;
+    double nx_Cx;
+    double nx_CC, nz_CC;
+    double ny_all=0.0;
+    double nsum;
+    
+    //Candidate CC1 height function is z dimension
+    zsum_xm=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1];
+    zsum_xp=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
+    zsum_xc=voffield(i,j,k-1)*p->DZN[KM1]+voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1];
+    vofsumup=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+    
+    nz_Cz=1.0*sign;
+    
+    nx_Cz_c=-(zsum_xp-zsum_xm)/(p->DXP[IM1]+p->DXP[IP]);
+    if(nx_Cz_c!=nx_Cz_c)
+        cout<<"Cz_c NAN"<<endl;
+        
+    nx_Cz_m=-(zsum_xc-zsum_xm)/p->DXP[IM1];
+    if(nx_Cz_m!=nx_Cz_m)
+        cout<<"Cz_m NAN"<<endl;
+        
+    nx_Cz_p=-(zsum_xp-zsum_xc)/p->DXP[IP];
+    if(nx_Cz_p!=nx_Cz_p)
+        cout<<"Cz_p NAN"<<endl;
+        
+    if(fabs(nx_Cz_m)>=fabs(nx_Cz_c) && fabs(nx_Cz_m)>=fabs(nx_Cz_p) && nx_Cz_m==nx_Cz_m)
+        nx_Cz=nx_Cz_m;
+    else if (fabs(nx_Cz_p)>=fabs(nx_Cz_c) && fabs(nx_Cz_p)>=fabs(nx_Cz_m) && nx_Cz_p==nx_Cz_p)
+        nx_Cz=nx_Cz_p;
+    else
+        nx_Cz=nx_Cz_c;
+    
+    nsum=sqrt(nx_Cz*nx_Cz+nz_Cz*nz_Cz);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cz"<<endl;
+    nx_Cz=nx_Cz/nsum;
+    nz_Cz=nz_Cz/nsum;
+    
+    //Candidate CC2 height function is x dimension
+    xsum_zm=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
+    xsum_zp=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
+    xsum_zc=voffield(i-1,j,k)*p->DXN[IM1]+voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1];
+    vofsumup=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1] ;
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+        
+    nx_Cx=1.0*sign;
+    
+    nz_Cx_c=-(xsum_zp-xsum_zm)/(p->DZP[KM1]+p->DZP[KP]);
+    if(nz_Cx_c!=nz_Cx_c)
+        cout<<"Cx_c NAN"<<endl;
+       
+    nz_Cx_m=-(xsum_zc-xsum_zm)/p->DZP[KM1];
+    if(nz_Cx_m!=nz_Cx_m)
+        cout<<"Cx_m NAN"<<endl;
+        
+    nz_Cx_p=-(xsum_zp-xsum_zc)/p->DZP[KP];
+    if(nz_Cx_p!=nz_Cx_p)
+        cout<<"Cx_p NAN"<<endl;
+      
+    if(fabs(nz_Cx_m)>=fabs(nz_Cx_c) && fabs(nz_Cx_m)>=fabs(nz_Cx_p) && nz_Cx_m==nz_Cx_m)
+        nz_Cx=nz_Cx_m;
+    else if (fabs(nz_Cx_p)>=fabs(nz_Cx_c) && fabs(nz_Cx_p)>=fabs(nz_Cx_m) && nz_Cx_m==nz_Cx_p)
+        nz_Cx=nz_Cx_p;
+    else
+        nz_Cx=nz_Cx_c;
+    
+    nsum=sqrt(nx_Cx*nx_Cx+nz_Cx*nz_Cx);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cx"<<endl;
+    nx_Cx=nx_Cx/nsum;
+    nz_Cx=nz_Cx/nsum;
+    
+    //Third Candidate by Youngs as average of all 4 cell corners 1=i+1,k+1 2=i+1,k-1, 3=i-1,k-1, 4=i-1,k+1
+    
+    double nx1,nz1,nx2,nz2,nx3,nz3,nx4,nz4;
+    double nx_CY, nz_CY;
+    
+    nx1=-((voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1])/2.0
+            -(voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1])/2.0)
+            /p->DXP[IP];
+            
+    nz1=-((voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1))*p->DXN[IP1]/2.0
+            -(voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1])/2.0)
+            /p->DZP[IP];
+            
+    nx2=-((voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k-1)*p->DZN[KM1])/2.0
+            -(voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k-1)*p->DZN[KM1])/2.0)
+            /p->DXP[IP];
+            
+    nz2=-((voffield(i,j,k)*p->DXN[IP]+voffield(i+1,j,k)*p->DXN[IP1])/2.0
+            -(voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1])/2.0)
+            /p->DZP[KM1];
+            
+    nx3=-((voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k-1)*p->DZN[KM1])/2.0
+            -(voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k-1)*p->DZN[KM1])/2.0)
+            /p->DXP[IM1];
+            
+    nz3=-((voffield(i,j,k)*p->DXN[IP]+voffield(i-1,j,k)*p->DXN[IM1])/2.0
+            -(voffield(i,j,k-1)*p->DXN[IP]+voffield(i-1,j,k-1)*p->DXN[IM1])/2.0)
+            /p->DZP[KM1];
+            
+    nx4=-((voffield(i,j,k)*p->DZN[KP]+voffield(i,j,k+1)*p->DZN[KP1])/2.0
+            -(voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1])/2.0)
+            /p->DXP[IM1];
+            
+    nz4=-((voffield(i,j,k+1)*p->DXN[IP]+voffield(i-1,j,k+1)*p->DXN[IM1])/2.0
+            -(voffield(i,j,k)*p->DXN[IP]+voffield(i-1,j,k)*p->DXN[IM1])/2.0)
+            /p->DZP[KP];
+            
+    nsum=sqrt(nx1*nx1+nz1*nz1);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n1"<<endl;
+        
+    nx1=nx1/nsum;
+    nz1=nz1/nsum;
+    
+    nsum=sqrt(nx2*nx2+nz2*nz2);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n2"<<endl;
+       
+    nx2=nx2/nsum;
+    nz2=nz2/nsum;
+    
+    nsum=sqrt(nx3*nx3+nz3*nz3);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n3"<<endl;
+       
+    nx3=nx3/nsum;
+    nz3=nz3/nsum;
+    
+    nsum=sqrt(nx4*nx4+nz4*nz4);
+    if(nsum!=nsum)
+        cout<<"nsumNAN n4"<<endl;
+       
+    nx4=nx4/nsum;
+    nz4=nz4/nsum;
+    
+    //zcomp
+ /*   vofsumup=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
+    
+    if(vofsumup>vofsumdown)
+        nz_CY=-fabs(nz_CY);
+    else
+        nz_CY=fabs(nz_CY);
+    
+    //xcomp
+    vofsumup=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
+    vofsumdown=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
+    
+    if(vofsumup>vofsumdown)
+        nx_CY=-fabs(nx_CY);
+    else
+        nx_CY=fabs(nx_CY);*/
+        
+// figure out which CC Candidate is used and inside compare tou Young
+    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    {
+        nx_CC=nx_Cz;
+        nz_CC=nz_Cz;
+        
+        if(fabs(nz1)<=fabs(nz2) && fabs(nz1)<=fabs(nz3) && fabs(nz1)<=fabs(nz4) && nz1==nz1)
+        {
+            nz_CY=nz1;
+            nx_CY=nx1;
+        }
+        else if(fabs(nz2)<=fabs(nz1) && fabs(nz2)<=fabs(nz3) && fabs(nz2)<=fabs(nz4) && nz2==nz2)
+        {
+            nz_CY=nz2;
+            nx_CY=nx2;
+        }
+         else if(fabs(nz3)<=fabs(nz1) && fabs(nz3)<=fabs(nz2) && fabs(nz3)<=fabs(nz4) && nz3==nz3)
+        {
+            nz_CY=nz3;
+            nx_CY=nx3;
+        }
+        else
+        {
+            nz_CY=nz4;
+            nx_CY=nz4;
+        }
+        
+        if(fabs(nz_CC)<fabs(nz_CY) || nz_CY!=nz_CY)
+        {
+            nx(i,j,k)=nx_CC;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CC;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cz"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cz"<<endl;
+        }
+        else
+        {
+            nx(i,j,k)=nx_CY;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CY;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_CY"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_CY"<<endl;
+        }
+    }
+    else if(nx_Cx==nx_Cx)
+    {
+        nx_CC=nx_Cx;
+        nz_CC=nz_Cx;
+        
+        if(fabs(nx1)<=fabs(nx2) && fabs(nx1)<=fabs(nx3) && fabs(nx1)<=fabs(nx4) && nx1==nx1)
+        {
+            nz_CY=nz1;
+            nx_CY=nx1;
+        }
+        else if(fabs(nx2)<=fabs(nx1) && fabs(nx2)<=fabs(nx3) && fabs(nx2)<=fabs(nx4) && nx2==nx2)
+        {
+            nz_CY=nz2;
+            nx_CY=nx2;
+        }
+         else if(fabs(nx3)<=fabs(nx1) && fabs(nx3)<=fabs(nx2) && fabs(nx3)<=fabs(nx4) && nx3==nx3)
+        {
+            nz_CY=nz3;
+            nx_CY=nx3;
+        }
+        else
+        {
+            nz_CY=nz4;
+            nx_CY=nz4;
+        }
+        
+        if(fabs(nx_CC)<fabs(nx_CY) || nx_CY!=nx_CY)
+        {
+            nx(i,j,k)=nx_CC;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CC;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cx"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cx"<<endl;
+        }
+        else
+        {
+            nx(i,j,k)=nx_CY;
+            ny(i,j,k)=0.0;
+            nz(i,j,k)=nz_CY;
+            
+            if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_CY"<<endl;
+                
+            if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_CY"<<endl;
+        }
+    }
+    else
+    {
+        cout<<"All normal options NAN!";
+        nx(i,j,k)=0.0;
+        ny(i,j,k)=0.0;
+        nz(i,j,k)=1.0;
+    }
+    return;
 }
