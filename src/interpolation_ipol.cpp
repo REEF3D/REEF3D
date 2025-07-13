@@ -333,7 +333,6 @@ double interpolation::ipol4( field& b)
     {
     jj=j;
     j=0;
-    pip=4;
     if(p->flag4[IJK]>0)
     v1=b(i,j,k);
     if(p->flag4[Ip1JK]>0)
@@ -342,7 +341,6 @@ double interpolation::ipol4( field& b)
     v3=b(i,j,k+1);
     if(p->flag4[Ip1JKp1]>0)
     v4=b(i+1,j,k+1);
-    pip=0;
     j=jj;
     
     value=0.25*(v1+v2+v3+v4);
@@ -544,7 +542,12 @@ double interpolation::ipol4phi(fdm *a, field& b)
 double interpolation::ipol4_a( field& b)
 {
     if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
     value=0.25*(b(i,j,k)+b(i+1,j,k)+b(i,j,k+1)+b(i+1,j,k+1));
+    j=jj;
+    }
                  
                  
     if(p->j_dir==1)

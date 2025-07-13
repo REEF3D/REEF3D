@@ -804,7 +804,6 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	TPLOOP
 	{
     ffn=float(p->ipol4_a(a->topo));
-    //ffn = float(-a->bed(i,j)+p->ZN[KP1]);
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}
