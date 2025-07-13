@@ -56,7 +56,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 	double psi, phival_sf;
     double dirac;
     
-    if(p->B20==2)
+    if(p->B21==0)
     {
         
     ULOOP
@@ -109,7 +109,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     }
 
 // Construct solid heaviside function
-    if(p->B20==1)
+    if(p->B21==1)
     {
         
     ULOOP
