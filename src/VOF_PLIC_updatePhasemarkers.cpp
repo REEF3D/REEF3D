@@ -115,9 +115,7 @@ void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,f
                 case 12:
                     calcNormalMYC2D_V3(a,p,voffield);
                     break;
-                case 13:
-                    calcNormalMYC2D_V4(a,p,voffield);
-                    break;
+                
             }
             /*if(fabs(nz(i,j,k))>=fabs(nx(i,j,k)))
             {

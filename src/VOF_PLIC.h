@@ -95,7 +95,6 @@ private:
     void calcNormalMYC2D(fdm*,lexer*, field&);
     void calcNormalMYC2D_V2(fdm*,lexer*, field&);
     void calcNormalMYC2D_V3(fdm*,lexer*, field&);
-    void calcNormalMYC2D_V4(fdm*,lexer*, field&);
     int searchMarkerInVicinity(lexer*,fdm*,int,double,int,int,int);
     int searchMarkerAlongDims(lexer*,fdm*,int,double,int,int,int);
     double twoStepVel(lexer*,fdm*,double,double,double);
