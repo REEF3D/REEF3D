@@ -140,34 +140,25 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
 		ny /= norm > 1.0e-20 ? norm : 1.0e20;
 		nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
+
 		H = Hsolidface(p,a,1,0,0);
 	    Ht = Hsolidface_t(p,a,1,0,0);
 	
-	   //cout<<"Htx: "<<Ht<<endl;
-		
+    
 		// Level set function
 		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+1,j,k));	
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-		if (phival_fb < 0)
-		{
-			fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt); 
-		}
-		else if (phival_fb >0 && phival_fb<psi )
-		{
-            if(p->X14==2)
-			fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
+		if(phival_fb<=0.0)
+		fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt); 
+
+		if(phival_fb>0.0)
+		fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
             
-            if(p->X14==3)
-			fx(i,j,k) +=   (fabs(nx)*H + ((1.0-fabs(nx))*Ht))*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
-		}
-		else
-		{
-			fx(i,j,k) += 0;
-		}
-	
+
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
+    
     VLOOP
     {
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
@@ -195,23 +186,13 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
 		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i,j+1,k));
 	  
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-	    if (phival_fb < 0)
-		{
-			fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt); 
-		}
-		else if (phival_fb >0 && phival_fb<psi )
-		{
-            if(p->X14==2)
-            fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
-            
-            if(p->X14==3)
-            fy(i,j,k) +=   (fabs(ny)*H + ((1.0-fabs(ny))*Ht))*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
-		}
-		else
-		{
-			fy(i,j,k) += 0;
-		}
-	  
+	    if(phival_fb<=0.0)
+		fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt); 
+
+		if(phival_fb>0.0)
+		fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+
+
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H , 1.0); 
     }
 	
@@ -243,23 +224,13 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 
-		if (phival_fb < 0)
-		{
-			fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt); 
-		}
-		else if (phival_fb >0 && phival_fb<psi )
-		{
-            if(p->X14==2)
-            fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
-            
-            if(p->X14==3)
-            fz(i,j,k) +=   (fabs(nz)*H + ((1.0-fabs(nz))*Ht))*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
-		}
-		else
-		{
-			fz(i,j,k) += 0;
-		}
-	
+		if(phival_fb<=0.0)
+		fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt); 
+
+		if(phival_fb>0.0)
+		fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+
+
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H , 1.0); 
     }
     
