@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"resize.h"
 #include"increment.h"
 
+
 class fdm;
 class lexer;
 class ghostcell;

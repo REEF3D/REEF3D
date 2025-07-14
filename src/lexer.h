@@ -414,7 +414,6 @@ public:
 	double F57_1,F57_2,F57_3,F57_4;
 	double F58_1,F58_2,F58_3,F58_4;
     double F59_xm, F59_ym, F59_zs, F59_ze, F59_r;
-
     double F60,F61,F62,F63;
     int F64;
     int F70;
@@ -425,7 +424,16 @@ public:
     double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
     int F80,F85;
     double F84;
+    int F88,F89,F90;
+    double F91;
+    int F92;
+    double F93, F94, F95;
+    int F96;
+    double F96_xs,F96_xe;
+    int F97;
+    double F97_ys,F97_ye;
     int F112;
+
     double *F112_xs,*F112_xe,*F112_ys,*F112_ye,*F112_zs,*F112_ze;
     int F113;
     double *F113_xs,*F113_xe,*F113_ys,*F113_ye,*F113_zs,*F113_ze;
@@ -433,7 +441,7 @@ public:
     double *F114_xs,*F114_xe,*F114_ys,*F114_ye,*F114_zs,*F114_ze;
     int F115;
     double *F115_xs,*F115_xe,*F115_ys,*F115_ye,*F115_zs,*F115_ze;
-    
+
     int F300,F305,F310,F350;
 	double F321,F322,F323,F360,F361,F362;
 	int F369,F370,F371,F374,F375,F378,F379;

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
+ #include"driver.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -74,7 +74,7 @@ void driver::loop_cfd(fdm* a)
         
         pflow->wavegen_precalc(p,pgc);
 
-        
+		    
             pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
