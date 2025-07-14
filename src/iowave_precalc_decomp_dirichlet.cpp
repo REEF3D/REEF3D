@@ -126,6 +126,21 @@ int qn;
         
     // LS
         lsval[count] = eta(i,j) + p->phimean - p->pos_z();
+        
+    // VOF
+        if(p->F80==4)
+        {
+            if(eta(i,j)+p->phimean>=p->pos_z()+0.5*p->DZN[KP])
+                vofval[count]=1.0;
+            else if(eta(i,j)+p->phimean<=p->pos_z()-0.5*p->DZN[KP])
+                vofval[count]=0.0;
+            else
+            {
+                vofval[count]=(eta(i,j)+p->phimean - p->pos_z()-0.5*p->DZN[KP])/p->DZN[KP];
+                if(vofval[count]>1.0 || vofval[count]<0.0)
+                    cout<<"dirichlet decomp vof error, vof:"<<vofval[count]<<endl;
+            }
+        }
 
         ++count;
         }

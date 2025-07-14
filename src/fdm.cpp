@@ -31,9 +31,9 @@ fdm::fdm(lexer *p) :
             Fi(p),
             eddyv(p),
             L(p),
-            ro(p),visc(p),
-            dro(p),
-            phi(p),vof(p),
+            ro(p),dro(p),visc(p),
+            phi(p),
+            vof(p),vof_nt(p),vof_nb(p),vof_st(p),vof_sb(p),phasemarker(p),
             conc(p),
             topo(p),solid(p),
             test(p),
@@ -44,7 +44,8 @@ fdm::fdm(lexer *p) :
             eta(p),eta_n(p),depth(p),
             Fifsf(p),K(p),
             P(p),Q(p),bed(p),
-            rhsvec(p),M(p)
+            rhsvec(p),M(p),
+            nX(p),nY(p),nZ(p),Alpha(p)
             
 {
 	maxF=0.0;

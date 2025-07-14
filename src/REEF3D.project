@@ -715,6 +715,7 @@
         <File Name="weno_flux.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff2_PLIC_2D.h"/>
         <File Name="idiff2_CN.h"/>
         <File Name="idiff2_FS_2D.h"/>
         <File Name="diff_void.h"/>
@@ -817,6 +818,7 @@
         <File Name="VOF_AB.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
+        <File Name="VOF_void.h"/>
         <File Name="VOF_PLIC.h"/>
       </VirtualDirectory>
       <File Name="freesurface.h"/>
@@ -984,6 +986,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK3_PLIC.h"/>
+      <File Name="momentum_FCC3_PLIC.h"/>
+      <File Name="momentum_FC3_PLIC.h"/>
       <File Name="momentum_RK3CN.h"/>
       <File Name="momentum_RKLS3.h"/>
       <File Name="momentum_FC2.h"/>
@@ -2228,6 +2233,10 @@
         <File Name="weno_flux.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff_PLIC_2D-scalar.cpp"/>
+        <File Name="idiff2_PLIC_2Dw.cpp"/>
+        <File Name="idiff2_PLIC_2Dv.cpp"/>
+        <File Name="idiff2_PLIC_2Du.cpp"/>
         <File Name="idiff2_CNw.cpp"/>
         <File Name="idiff2_CNv.cpp"/>
         <File Name="idiff2_CNu.cpp"/>
@@ -2373,12 +2382,22 @@
         <File Name="VOF_AB.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
+        <File Name="VOF_void.cpp"/>
+        <VirtualDirectory Name="FCRK3_functions">
+          <File Name="VOF_PLIC_updatePlaneData.cpp"/>
+          <File Name="VOF_PLIC_surfaceTension.cpp"/>
+          <File Name="VOF_PLIC_calculateSubFracions.cpp"/>
+          <File Name="VOF_PLIC_updatePhasemarkers.cpp"/>
+          <File Name="VOF_PLIC_RK_transportVOF.cpp"/>
+          <File Name="VOF_PLIC_RK_advection.cpp"/>
+          <File Name="VOF_PLIC_RK_schemefuncs.cpp"/>
+          <File Name="VOF_PLIC_RK_redistance.cpp"/>
+          <File Name="VOF_PLIC_RKcalcL.cpp"/>
+        </VirtualDirectory>
+        <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
+        <File Name="VOF_PLIC_reconstruction_alt.cpp"/>
         <File Name="VOF_PLIC_inilsVOF.cpp"/>
-        <File Name="VOF_PLIC_updateVol.cpp"/>
-        <File Name="VOF_PLIC_redistance.cpp"/>
-        <File Name="VOF_PLIC_reconstruction.cpp"/>
         <File Name="VOF_PLIC_normalVector.cpp"/>
-        <File Name="VOF_PLIC_advection.cpp"/>
         <File Name="VOF_PLIC.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -2757,6 +2776,9 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_RK3_PLIC.cpp"/>
+      <File Name="momentum_FCC3_PLIC.cpp"/>
+      <File Name="momentum_FC3_PLIC.cpp"/>
       <File Name="momentum_RK3CN.cpp"/>
       <File Name="momentum_FC2.cpp"/>
       <VirtualDirectory Name="Forcing">
@@ -2768,6 +2790,7 @@
       <File Name="momentum_FCC3.cpp"/>
       <File Name="momentum_FC3.cpp"/>
       <VirtualDirectory Name="BC">
+        <File Name="bcmomPLIC.cpp"/>
         <File Name="bcmom.cpp"/>
       </VirtualDirectory>
       <File Name="momentum_RK3.cpp"/>
@@ -2974,6 +2997,7 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_PLICcalc.cpp"/>
           <File Name="iowave_probes.cpp"/>
           <File Name="iowave_timeseries.cpp"/>
           <File Name="iowave_precalc_decomp_space_dirichlet.cpp"/>

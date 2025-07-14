@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Tobias Martin, Fabian Knoblauch
 --------------------------------------------------------------------*/
 
 #include"VOF_PLIC.h"
@@ -36,6 +36,9 @@ Author: Tobias Martin
 #include"hires.h"
 #include"weno_hj.h"
 #include"hric.h"
+#include"interpolation.h"
+#include"picard_f.h"
+
 
 VOF_PLIC::VOF_PLIC
 (
@@ -43,7 +46,8 @@ VOF_PLIC::VOF_PLIC
     fdm *a,
     ghostcell* pgc,
     heat *pheat
-):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p)
+):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p),phival(p),V_w_p(p),V_w_m(p),alphastore(p),phistep(p),phiS0(p),phiS1(p),phiS2(p),vofstep(p),vofS0(p),vofS1(p),vofS2(p),
+    phiaux(p),Vx_p(p),Vx_m(p),Vz_p(p),Vz_m(p),Vn_p(p),Vn_m(p),F_x(p),F_z(p),F_n(p),F_new(p),Flux_x(p),Flux_z(p),Crossflux_xz(p),Crossflux_zx(p),curv(p),compressvol(p),VoF(p),vof_rk1(p),vof_rk2(p)
 {
     if(p->F50==1)
     gcval_frac=71;
@@ -59,11 +63,52 @@ VOF_PLIC::VOF_PLIC
 
     pupdate = new fluid_update_vof(p,a,pgc);
 
-    reini_ = new reini_RK3(p,1);
+    preini = new reini_RK3(p,1);
+    
+    ppicard = new picard_f(p);
+    
+    ipol = new interpolation(p);
+    
+    if(p->j_dir>0)
+        Sweepdim=3;
+    else
+        Sweepdim=2;
 
     sSweep = -1;
-
+    
     ininorVecLS(p);
+    
+    S_S[0][0]=0;
+    S_S[0][1]=1;
+    S_S[0][2]=2;
+    S_S[1][0]=2;
+    S_S[1][1]=1;
+    S_S[1][2]=0;
+    S_S[2][0]=1;
+    S_S[2][1]=0;
+    S_S[2][2]=2;
+    S_S[3][0]=0;
+    S_S[3][1]=2;
+    S_S[3][2]=1;
+    S_S[4][0]=2;
+    S_S[4][1]=0;
+    S_S[4][2]=1;
+    S_S[5][0]=1;
+    S_S[5][1]=2;
+    S_S[5][1]=0;
+    
+    S_2D[0][0]=0;
+    S_2D[0][1]=2;
+    S_2D[1][0]=2;
+    S_2D[1][1]=0;
+    
+    a_thres=p->F93;
+    w_thres=p->F94;
+    corr_thres=p->F95;
+    gcval_vof=1;
+    gcval_ro=1;
+    gcval_visc=1;
+    gcval_phi=gcval_frac;
 }
 
 VOF_PLIC::~VOF_PLIC()
@@ -71,132 +116,9 @@ VOF_PLIC::~VOF_PLIC()
 }
 
 
-void VOF_PLIC::start
-(
-    fdm* a,
-    lexer* p,
-    convection* pconvec,
-    solver* psolv,
-    ghostcell* pgc,
-    ioflow* pflow,
-    reini* preini,
-    particle_corr* ppls,
-    field &F
-)
-{
-    pflow->fsfinflow(p,a,pgc);
-
-    starttime=pgc->timer();
-
-    int sweep = 0;
-    if (sSweep < 2)
-    {
-        sSweep++;
-        sweep = sSweep;
-    }
-    else
-    {
-        sSweep = 0;
-    }
-
-    double Q1, Q2;
-
-    // x-sweep (0), y-sweep (1), z-sweep (2)
-    for (int nSweep = 0; nSweep < 3; nSweep++)
-    {
-        LOOP
-        {
-            //- Calculate left and right fluxes Q1 and Q2
-            calcFlux(a, p, Q1, Q2, sweep);
-
-
-            //- PLIC loop
-            vof1(i, j, k) = 0.0;
-            vof2(i, j, k) = 0.0;
-            vof3(i, j, k) = 0.0;
-
-            if (a->vof(i, j, k) >= 0.999)
-            {
-                // Fluxes leave and enter cell in a straight manner
-                vof1(i, j, k) = max(-Q1, 0.0);
-                vof2(i, j, k) = 1.0 - max(Q1, 0.0) + min(Q2, 0.0);
-                vof3(i, j, k) = max(Q2, 0.0);
-            }
-            else
-            {
-                // Reconstruct plane in cell
-                reconstructPlane(a, p);
-
-                // Advect interface using Lagrangian approach
-                advectPlane(a, p, Q1, Q2, sweep);
-
-                // Update volume fraction
-                updateVolumeFraction(a, p, Q1, Q2, sweep);
-            }
-        }
-
-
-        //- Distribute volume fractions
-        pgc->start4(p,vof1,gcval_frac);
-        pgc->start4(p,vof2,gcval_frac);
-        pgc->start4(p,vof3,gcval_frac);
-
-
-        //- Calculate updated vof from volume fractions and distribute
-        updateVOF(a, p, sweep);
-        pgc->start4(p,a->vof,gcval_frac);
-
-
-        //- Change sweep
-        if (sweep < 2)
-        {
-            sweep++;
-        }
-        else
-        {
-            sweep = 0;
-        }
-    }
-
-    //- Redistance distance function from updated plane equations
-    //redistance(a, p, pdisc, pgc, pflow, 20);
-    //- Distribute ls function
-    //pgc->start4(p,a->phi,gcval_frac);
-
-    pflow->vof_relax(p,pgc,a->vof);
-	pgc->start4(p,a->vof,gcval_frac);
-    pupdate->start(p,a,pgc);
-
-    p->lsmtime=pgc->timer()-starttime;
-
-    if(p->mpirank==0)
-    cout<<"vofplictime: "<<setprecision(3)<<p->lsmtime<<endl;
-
-    
-    pgc->start4(p,a->vof,50);
-    
-    LOOP
-    a->phi(i,j,k) = a->vof(i,j,k);
-    
-    pgc->start4(p,a->phi,50);
-    
-    for (int tt = 0; tt < 2; tt++)
-    {
-    LOOP
-    a->phi(i,j,k) = (1.0/7.0)*(a->phi(i,j,k) + a->phi(i+1,j,k) + a->phi(i-1,j,k) + a->phi(i,j-1,k) + a->phi(i,j+1,k) + a->phi(i,j,k-1) + a->phi(i,j,k+1));
-    
-    pgc->start4(p,a->phi,50);
-    }
-    /*
-    for (int tt = 0; tt < 10; tt++)
-    {
-        reini_->start(a,p,a->phi,pgc,pflow);
-    }*/
-
-}
-
 void VOF_PLIC::update
 (
+
     lexer *p,
     fdm *a,
     ghostcell *pgc,
@@ -204,4 +126,170 @@ void VOF_PLIC::update
 )
 {
     pupdate->start(p,a,pgc);
+}
+
+void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &ls)
+{	
+    
+//********************************************************
+//Step 1
+//********************************************************
+    // get vectorized face density from density_f
+    
+    //-------------------------------------------
+    // FSF
+    LOOP
+    {
+	a->L(i,j,k)=0.0;
+    VoF(i,j,k)=a->vof(i,j,k);
+    }
+/*
+	RKcalcL(a,p,pgc,a->u,a->v,a->w);
+	
+	LOOP
+    {
+        vof_rk1(i,j,k) = VoF(i,j,k) + a->L(i,j,k);
+        
+        if(vof_rk1(i,j,k)<0.0)
+            vof_rk1(i,j,k)=0.0;
+        if(vof_rk1(i,j,k)>1.0)
+            vof_rk1(i,j,k)=1.0;
+    }
+    
+    pgc->start4(p,vof_rk1,gcval_vof);
+    updatePlaneData(p,a,pgc,vof_rk1);
+	pflow->vof_relax(p,a,pgc,vof_rk1);
+	pgc->start4(p,vof_rk1,gcval_vof);
+    
+    LOOP
+    {
+     a->vof(i,j,k) = vof_rk1(i,j,k);
+     a->L(i,j,k)=0.0;
+    }
+    pgc->start4(p,a->vof,gcval_vof); 
+    
+    //!no update yet -> update after diffusion!
+    
+    if(p->F92==1)
+    {
+        RK_redistance(a,p,pgc);
+        pgc->start4(p,a->phi,gcval_phi);
+        
+        p->F44=3;
+        preini->start(a,p,a->phi, pgc, pflow);
+        ppicard->correct_ls(p,a,pgc,a->phi);
+    }
+    
+    //-------------------------------------------
+    
+    updatePhasemarkersCompression(p,a,pgc,vof_rk1);
+    pgc->start4(p,vof_rk1,gcval_vof);
+//********************************************************
+//Step 2
+//********************************************************
+
+    //-------------------------------------------
+    // FSF
+    
+   RKcalcL(a,p,pgc,a->u,a->v,a->w);
+	
+	LOOP
+    {
+        vof_rk2(i,j,k) = 0.75*VoF(i,j,k) + 0.25*vof_rk1(i,j,k)+0.25*a->L(i,j,k);
+        
+        if(vof_rk2(i,j,k)<0.0)
+            vof_rk2(i,j,k)=0.0;
+        if(vof_rk2(i,j,k)>1.0)
+            vof_rk2(i,j,k)=1.0;
+    }
+    
+    updatePlaneData(p,a,pgc,vof_rk2);
+	pflow->vof_relax(p,a,pgc,vof_rk2);
+    pgc->start4(p,vof_rk2,gcval_vof);
+    
+    LOOP
+    {
+        a->vof(i,j,k) = vof_rk2(i,j,k);
+        a->L(i,j,k)=0.0;
+    }
+    pgc->start4(p,a->vof,gcval_vof);
+    
+     if(p->F92==1)
+    {
+        RK_redistance(a,p,pgc);
+        pgc->start4(p,a->phi,gcval_phi);
+        
+        p->F44=3;
+        preini->start(a,p,a->phi, pgc, pflow);
+        ppicard->correct_ls(p,a,pgc,a->phi);
+    }
+    
+    updatePhasemarkersCompression(p,a,pgc,vof_rk2);
+    pgc->start4(p,vof_rk2,gcval_vof);
+    
+//********************************************************
+//Step 3
+//********************************************************
+    //-------------------------------------------
+    // FSF
+    */
+    RKcalcL(a,p,pgc,a->u,a->v,a->w);
+	
+	LOOP
+    {
+        a->vof(i,j,k) = VoF(i,j,k) + a->L(i,j,k);
+        
+        if(a->vof(i,j,k)<0.0)
+            a->vof(i,j,k)=0.0;
+        if(a->vof(i,j,k)>1.0)
+            a->vof(i,j,k)=1.0;
+    }
+    
+    //updatePlaneData(p,a,pgc,a->vof);
+    pflow->vof_relax(p,a,pgc,a->vof);
+    pgc->start4(p,a->vof,gcval_vof);
+    
+    LOOP
+        a->L(i,j,k)=0.0;
+    
+    if(p->F92==1)
+    {
+        RK_redistance(a,p,pgc);
+        pgc->start4(p,a->phi,gcval_phi);
+        
+        p->F44=4;
+        preini->start(a,p,a->phi, pgc, pflow);
+        ppicard->correct_ls(p,a,pgc,a->phi);
+    }
+    
+    //-------------------------------------------
+        
+    updatePhasemarkersCorrection(p,a,pgc,a->vof);
+    pgc->start4(p,a->vof,gcval_vof);
+    //updatePlaneData(p,a,pgc,a->vof);
+    
+    if(p->F92==3)
+        calculateSubFractions(p,a,pgc,a->vof);
+    pupdate->start(p,a,pgc);
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->visc,gcval_visc);
+    
+    LOOP
+    {
+        if(a->vof(i,j,k)>p->F94)
+            a->phi(i,j,k)=1.0;
+        else if(a->vof(i,j,k)<p->F93)
+            a->phi(i,j,k)=-1.0;
+        else
+            a->phi(i,j,k)=(a->vof(i,j,k)-0.5)*p->DZN[KP];
+    }
+    pgc->start4(p,a->phi,1);
+    
+    
+    double vofchecksum;
+    vofchecksum=0.0;
+    LOOP
+        vofchecksum+=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+    vofchecksum=pgc->globalsum(vofchecksum);
+    cout<<"Total water volume:"<<vofchecksum<<endl;
 }
