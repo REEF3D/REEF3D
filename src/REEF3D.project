@@ -134,7 +134,6 @@
           <File Name="sflow_fsf.h"/>
           <File Name="sflow_eta.h"/>
           <VirtualDirectory Name="Discretization">
-            <File Name="sflow_hxy_hires.h"/>
             <File Name="sflow_hxy_weno.h"/>
             <File Name="sflow_hxy_fou.h"/>
             <File Name="sflow_hxy_disc.h"/>
@@ -187,12 +186,6 @@
             <File Name="sflow_voidconv.h"/>
             <File Name="sflow_iweno_hj.h"/>
             <File Name="sflow_fou.h"/>
-            <VirtualDirectory Name="Limiter">
-              <File Name="sflow_fluxlim_vanleer.h"/>
-              <File Name="sflow_fluxlim_smart.h"/>
-              <File Name="sflow_fluxlim_minmod.h"/>
-              <File Name="sflow_fluxlim.h"/>
-            </VirtualDirectory>
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>
@@ -1258,7 +1251,6 @@
           <File Name="sflow_eta_breaking.cpp"/>
           <File Name="sflow_eta.cpp"/>
           <VirtualDirectory Name="Discretization">
-            <File Name="sflow_hxy_hires.cpp"/>
             <File Name="sflow_hxy_weno.cpp"/>
             <File Name="sflow_hxy_fou.cpp"/>
             <File Name="sflow_hxy_cds.cpp"/>
@@ -1304,11 +1296,6 @@
             <File Name="sflow_voidconv.cpp"/>
             <File Name="sflow_iweno_hj.cpp"/>
             <File Name="sflow_fou.cpp"/>
-            <VirtualDirectory Name="Limiter">
-              <File Name="sflow_limiter_vanleer.cpp"/>
-              <File Name="sflow_limiter_smart.cpp"/>
-              <File Name="sflow_limiter_minmod.cpp"/>
-            </VirtualDirectory>
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>

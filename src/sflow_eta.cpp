@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"sflow_hxy_weno.h"
-#include"sflow_hxy_hires.h"
 #include"sflow_hxy_cds.h"
 #include"sflow_hxy_fou.h"
 #include"patchBC_interface.h"

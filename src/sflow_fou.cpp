@@ -47,11 +47,6 @@ void sflow_fou::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel, slice
     if(ipol==4)
     SLICELOOP4
     b->L(i,j)+=aij(p,b,f,4,uvel,vvel);
-
-    if(ipol==5)
-    SLICELOOP4
-    b->L(i,j)+=aij(p,b,f,5,uvel,vvel);
-
 }
 
 double sflow_fou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
