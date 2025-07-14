@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef VRANS_HEADER_H_
@@ -27,6 +27,5 @@ Author: Tobias Martin
 #include"vrans_v.h"
 #include"vrans_f.h"
 #include"vrans_veg.h"
-#include"vrans_net.h"
 
 #endif

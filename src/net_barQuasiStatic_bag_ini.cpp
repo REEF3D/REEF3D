@@ -26,7 +26,7 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 
-void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
+void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
 {
     // Input data
  
@@ -147,18 +147,24 @@ void net_barQuasiStatic::bag_ini(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
     {
         char str[1000];
+        
+        if(p->A10==5)
+        sprintf(str,"./REEF3D_NHFLOW_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
+        
+        if(p->A10==6)
         sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
+        
         eTout.open(str);
         eTout<<"time \t Tmax \t Fx \t Fy \t Fz"<<endl;
     }		
     printtime = 0.0;
 
     // Initialise communication 
-    ini_parallel(p, a, pgc);
+    ini_parallel(p, pgc);
 }
 
 
-void net_barQuasiStatic::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
+void net_barQuasiStatic::ini_parallel(lexer *p, ghostcell *pgc)
 {
     p->Darray(xstart, p->mpi_size);
     p->Darray(xend, p->mpi_size);

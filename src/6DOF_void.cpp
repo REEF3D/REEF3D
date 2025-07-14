@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2023 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -23,7 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"vrans.h"
+#include"net_interface.h"
 #include<sys/stat.h>
 
 #include"mooring_void.h"
@@ -31,16 +31,54 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
 #include"mooring_dynamic.h"
-#include"net.h"
-#include"net_void.h"
-#include"net_barDyn.h"
-#include"net_barQuasiStatic.h"
-#include"net_sheet.h"
     
 sixdof_void::sixdof_void(lexer *p, ghostcell *pgc)
 {
     if(p->mpirank==0)
     mkdir("./REEF3D_CFD_6DOF",0777);
+    
+    pnetinter = new net_interface(p,pgc);
+    
+    alpha[0] = 8.0/15.0;
+    alpha[1] = 2.0/15.0;
+    alpha[2] = 2.0/6.0;
+    
+    gamma[0] = 8.0/15.0;
+    gamma[1] = 5.0/12.0;
+    gamma[2] = 3.0/4.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = -17.0/60.0;
+    zeta[2] = -5.0/12.0;
+    
+    if(((p->N40==3 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2)) 
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 0.25;
+    alpha[2] = 2.0/3.0;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
+    
+    if(((p->N40==2 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2)) 
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 0.5;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
 }
 
 sixdof_void::~sixdof_void()
@@ -51,10 +89,10 @@ void sixdof_void::ini(lexer *p, ghostcell *pgc)
 {
 }
 
-void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
+void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
 
-    if (p->X310 > 0)
+    if(p->X310>0)
     {
         for (int i=0; i<p->mooring_count; i++)
         {
@@ -62,29 +100,16 @@ void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, vec
         }
     }
     
-    if (p->X320 > 0)
+    if(p->X320>0)
     {
-        for (int ii = 0; ii < p->net_count; ii++)
-        {
-            pnet[ii]->start(p, a, pgc, 1.0, quatRotMat);
-            pvrans->start(p, a, pgc, pnet[ii], ii);
-
-            // Forces on rigid body
-            pnet[ii]->netForces(p,Xne[ii],Yne[ii],Zne[ii],Kne[ii],Mne[ii],Nne[ii]);
-
-            if( p->mpirank == 0)
-            {
-                cout<<"Xne"<< ii <<" : "<<Xne[ii]<<" Yne"<< ii <<" : "<<Yne[ii]<<" Zne"<< ii <<" : "<<Zne[ii]
-                <<" Kne"<< ii <<" : "<<Kne[ii]<<" Mne"<< ii <<" : "<<Mne[ii]<<" Nne"<< ii <<" : "<<Nne[ii]<<endl;		
-            }
-        }
+        pnetinter->netForces_cfd(p,a,pgc,alpha[iter],quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
     }
     
     ++p->printcount_sixdof;
 }
 
 
-void sixdof_void::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
+void sixdof_void::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter, 
                                         double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
 }

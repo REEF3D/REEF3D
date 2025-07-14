@@ -24,8 +24,6 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"reinidisc_fsf.h"
-#include"vrans.h"
 
 
 Eigen::Vector3d net_barQuasiStatic::screenForce

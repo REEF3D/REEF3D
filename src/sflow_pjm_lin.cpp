@@ -93,6 +93,7 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
 void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha)
 {	
 	SLICELOOP1
+    WETDRY1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) += -alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)))
            
@@ -103,6 +104,7 @@ void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha
 void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha)
 {	
 	SLICELOOP2
+    WETDRY2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) += -alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)))
                 
@@ -113,6 +115,7 @@ void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha
 void sflow_pjm_lin::wcorr(lexer* p, fdm2D* b, double alpha, slice &P, slice &Q, slice &ws)
 {	    
     SLICELOOP4
+    WETDRY
     if(b->breaking(i,j)==0)
 	ws(i,j) += p->dt*alpha*(2.0*b->press(i,j)/(HP*p->W1));
 }
@@ -214,7 +217,7 @@ void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, double alpha)
     n=0;
     SLICELOOP4
 	{
-        if(p->wet[IJ]==0|| p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 || b->breaking(i,j)==1)
+        if(p->wet[IJ]==0 || p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 || b->breaking(i,j)==1)
         {
         b->M.p[n]  = 1.0;
 

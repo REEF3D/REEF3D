@@ -126,10 +126,16 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     p->wet[IJ]=1;
     
     SLICELOOP1
+    {
     b->wet1(i,j)=1;
+    b->deep1(i,j)=1;
+    }
     
     SLICELOOP2
+    {
     b->wet2(i,j)=1;
+    b->deep2(i,j)=1;
+    }
     
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start1int(p,b->wet1,50);
@@ -150,15 +156,12 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
 	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
 
-     pflow->ini2D(p,b,pgc);
+    pflow->ini2D(p,b,pgc);
       
      
      // P,Q ini
 	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
 	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
-
-	pgc->gcsl_start1(p,b->P,10);
-	pgc->gcsl_start2(p,b->Q,11);
 
 	pgc->gcsl_start1(p,b->P,10);
 	pgc->gcsl_start2(p,b->Q,11);
@@ -171,6 +174,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pflow->ini2D(p,b,pgc);
     // potential flow ini
     potflow->start(p,b,ppoissonsolv,pgc);
+    
+    pgc->gcsl_start1(p,b->P,10);
+	pgc->gcsl_start2(p,b->Q,11);
+
     
     // FSF ini
     ini_fsf_2(p,b,pgc);
@@ -187,7 +194,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     psed->ini_sflow(p,b,pgc);
 
     //6DOF ini
-    p6dof->initialize(p, b, pgc, pnet);
+    p6dof->initialize(p, b, pgc);
 
     // print
     log_ini(p);
@@ -218,9 +225,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     // eta slope
     if(p->A251==1)
     SLICELOOP4
-    {
     b->eta(i,j)= -p->A251_val*(p->XP[IP]-p->global_xmin);
-    }
 
     // eta box area
     for(int qn=0;qn<p->F72;++qn)
@@ -240,10 +245,10 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     
     // ini hxy
     SLICELOOP1
-    b->hx(i,j) = MAX(0.5*(b->eta(i+1,j)+b->eta(i,j)) + p->wd - b->bed(i,j),0.0);
+    b->hx(i,j) = MAX(0.5*(b->eta(i+1,j)+b->eta(i,j)) + p->wd - 0.5*(b->bed(i+1,j)+b->bed(i,j)),0.0);
     
     SLICELOOP2
-    b->hy(i,j) = MAX(0.5*(b->eta(i,j+1)+b->eta(i,j)) + p->wd - b->bed(i,j),0.0);
+    b->hy(i,j) = MAX(0.5*(b->eta(i,j+1)+b->eta(i,j)) + p->wd - 0.5*(b->bed(i,j+1)+b->bed(i,j)),0.0);
 
         // fix inflow fsf
         for(n=0;n<p->gcslin_count;n++)
@@ -397,6 +402,23 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     }
       
 	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    
+    int gcval_eta;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
+    pgc->gcsl_start1(p,b->hx,gcval_eta);    
+	pgc->gcsl_start2(p,b->hy,gcval_eta);  
 
 }
 

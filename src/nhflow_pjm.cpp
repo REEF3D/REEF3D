@@ -130,7 +130,7 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     double dWdz;
     
     n=0;
-    FLOOP
+    FBASELOOP
     {
 	d->rhsvec.V[n]=0.0;
     ++n;

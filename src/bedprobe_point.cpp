@@ -22,12 +22,12 @@ Author: Hans Bihs
 
 #include"bedprobe_point.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"sediment_fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-bedprobe_point::bedprobe_point(lexer *p, fdm* a, ghostcell *pgc)
+bedprobe_point::bedprobe_point(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     p->Iarray(iloc,p->P121);
 	p->Iarray(jloc,p->P121);
@@ -35,12 +35,25 @@ bedprobe_point::bedprobe_point(lexer *p, fdm* a, ghostcell *pgc)
 	p->Darray(wsf,p->P121);
 	
 	// Create Folder
-	if(p->mpirank==0)
+	if(p->mpirank==0 && p->A10==2)
+	mkdir("./REEF3D_SFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==5)
+	mkdir("./REEF3D_NHFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==6)
 	mkdir("./REEF3D_CFD_Sediment",0777);
 	
     if(p->mpirank==0 && p->P121>0)
     {
     // open file
+    if(p->A10==2)
+	wsfout.open("./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Point.dat");
+    
+    if(p->A10==5)
+	wsfout.open("./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Point.dat");
+    
+    if(p->A10==6)
 	wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
 
     wsfout<<"number of gauges:  "<<p->P121<<endl<<endl;
@@ -57,7 +70,7 @@ bedprobe_point::bedprobe_point(lexer *p, fdm* a, ghostcell *pgc)
     wsfout<<endl<<endl;
     }
 
-    ini_location(p,a,pgc);
+    ini_location(p,pgc,s);
 }
 
 bedprobe_point::~bedprobe_point()
@@ -65,7 +78,7 @@ bedprobe_point::~bedprobe_point()
     wsfout.close();
 }
 
-void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_point::bed_gauge(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double zval=0.0;
 
@@ -81,14 +94,7 @@ void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
     i=iloc[n];
     j=jloc[n];
 	
-	//cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
-
-        KLOOP
-        PBASECHECK
-        {
-            if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
-            wsf[n]=MAX(wsf[n],-(a->topo(i,j,k)*p->DXM)/(a->topo(i,j,k+1)-a->topo(i,j,k)) + p->pos_z());
-        }
+    wsf[n] = MAX(wsf[n],s->bedzh(i,j));
     }
 	
     for(n=0;n<p->P121;++n)
@@ -104,18 +110,18 @@ void bedprobe_point::bed_gauge(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
-void bedprobe_point::write(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_point::write(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 }
 
-void bedprobe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
+void bedprobe_point::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     int check;
 
     for(n=0;n<p->P121;++n)
     {
-    iloc[n]=conv((p->P121_x[n]-p->originx)/p->DXM);
-    jloc[n]=conv((p->P121_y[n]-p->originy)/p->DXM);
+    iloc[n] = p->posc_i(p->P121_x[n]);
+    jloc[n] = p->posc_j(p->P121_y[n]);
 
     check=ij_boundcheck(p,iloc[n],jloc[n],0);
 

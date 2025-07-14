@@ -48,6 +48,7 @@ public:
 private:
     
     void wetdry_nb(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+    void wetdrydeep(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
     
 	
 	

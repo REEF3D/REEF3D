@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef NET_BARDYN_H_
@@ -47,9 +47,13 @@ public:
 	net_barDyn(int, lexer*);
 	virtual ~net_barDyn();
     
-	virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d);
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d);
+    
+	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);
+    virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);
 	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&);
+    
     virtual const EigenMat& getLagrangePoints(){return lagrangePoints;} 
     virtual const EigenMat& getLagrangeForces(){return lagrangeForces;} 
     virtual const EigenMat& getCollarVel(){return collarVel;} 
@@ -57,7 +61,26 @@ public:
 
     
 private:
-
+    
+    // -------------------------------
+	// Runtime
+	void startLoop(lexer*, ghostcell*, int&);
+    void update_velocity_cfd(lexer*, fdm*, ghostcell*);
+    void update_velocity_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    
+    void updateField_cfd(lexer*, fdm*, ghostcell*, int);
+    void updateField_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
+    
+    void coupling_dlm_cfd(lexer*, fdm*, ghostcell*);
+    void coupling_dlm_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    
+    // -------------------------------
+    
+    // Preprocessing
+    void cone_ini(lexer*, ghostcell*); 
+    void cyl_ini(lexer*, ghostcell*); 
+    void wall_ini(lexer*, ghostcell*); 
+    
     typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
     typedef Eigen::Matrix<double, 1, Eigen::Dynamic> VectorXd;
     typedef Eigen::Matrix<double, 3, 3> Matrix3d;
@@ -66,16 +89,6 @@ private:
     typedef vector<vector<double> > MatrixVd;
     typedef vector<vector<int> > MatrixVi;
     
-    
-    // Preprocessing
-    void cone_ini(lexer*, fdm*, ghostcell*); 
-    void cyl_ini(lexer*, fdm*, ghostcell*); 
-    void wall_ini(lexer*, fdm*, ghostcell*); 
-    
-	// Runtime
-	void startLoop(lexer*, fdm*, ghostcell*, int&);
-    void updateField(lexer*, fdm*, ghostcell*, int);
-    
     void print(lexer*);
     
 	void buildNet_cyl(lexer*);
@@ -83,12 +96,12 @@ private:
     
     Eigen::VectorXd timeWeight(lexer*);
     
-    void updateAcc(lexer*, fdm*, ghostcell*);  
+    void updateAcc(lexer*, ghostcell*);  
     void updateTopAcc(lexer*);  
-    void fillLinSystem(lexer*, fdm*, ghostcell*);
-    void fillLinRhs(lexer*, fdm*, ghostcell*);  
-    void fillNonLinSystem(lexer*, fdm*, ghostcell*);
-    void fillNonLinRhs(lexer*, fdm*, ghostcell*);
+    void fillLinSystem(lexer*, ghostcell*);
+    void fillLinRhs(lexer*, ghostcell*);  
+    void fillNonLinSystem(lexer*, ghostcell*);
+    void fillNonLinRhs(lexer*, ghostcell*);
     void limitTension();    
     
     void getForces(lexer*);
@@ -98,8 +111,8 @@ private:
     Eigen::Vector3d screenForce(lexer*, const double&, const Vector3d&, const Vector3d&, const double&, const int, const int);
     void screenForceCoeff(lexer*,double&, double&, const double&, const double&, const double&);
     
-    void vransCoupling(lexer*, fdm*, ghostcell*);
-    void triangulation(lexer*, fdm*, ghostcell*);
+    
+    void triangulation(lexer*, ghostcell*);
     void create_triangle
         (
             MatrixVd&, MatrixVd&, MatrixVd&,

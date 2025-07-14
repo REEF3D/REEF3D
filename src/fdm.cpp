@@ -24,9 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 
 fdm::fdm(lexer *p) :
-            u(p),F(p),
-            v(p),G(p),
-            w(p),H(p),
+            u(p),F(p),Fext(p),
+            v(p),G(p),Gext(p),
+            w(p),H(p),Hext(p),
             press(p),
             Fi(p),
             eddyv(p),

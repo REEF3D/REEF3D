@@ -29,10 +29,10 @@ void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool final
 {
     // Calculate new position
     update_Euler_angles(p,pgc);
-    
+
     // Update STL mesh
     update_trimesh_3D(p,a,pgc,finalize);
-
+    
     // Update angular velocities 
     omega_B = I_.inverse()*h_;
     omega_I = R_*omega_B;
@@ -42,6 +42,7 @@ void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool final
         cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
         cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
     }
+
 }
 
 void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc)
@@ -81,7 +82,7 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
             tri_z[n][q] = point(2) + c_(2);
         }
 	}
-    
+
     // Update floating level set function
 	ray_cast(p,a,pgc);
 	reini_RK2(p,a,pgc,a->fb);

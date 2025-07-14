@@ -302,6 +302,8 @@ void lexer::ctrlsend()
 	dd++;
     ictrl[ii] = A594;
 	ii++;
+    ictrl[ii] = A599;
+	ii++;
 	
     ictrl[ii] = B10;
     ii++;
@@ -803,18 +805,12 @@ void lexer::ctrlsend()
     dd++;
     ictrl[ii] = F112;
     ii++;
-    dctrl[dd] = F112_xs;
-    dd++;
-    dctrl[dd] = F112_xe;
-    dd++;
-    dctrl[dd] = F112_ys;
-    dd++;
-    dctrl[dd] = F112_ye;
-    dd++;
-    dctrl[dd] = F112_zs;
-    dd++;
-    dctrl[dd] = F112_ze;
-    dd++;
+    ictrl[ii] = F113;
+    ii++;
+    ictrl[ii] = F114;
+    ii++;
+    ictrl[ii] = F115;
+    ii++;
     ictrl[ii] = F150;
 	ii++;
 	ictrl[ii] = F151;
@@ -1263,6 +1259,8 @@ void lexer::ctrlsend()
 	ii++;
 	dctrl[dd] = P182;
 	dd++;
+    dctrl[dd] = P183;
+	dd++;
     ictrl[ii] = P184;
 	ii++;
     ictrl[ii] = P185;
@@ -1371,7 +1369,9 @@ void lexer::ctrlsend()
 	ii++;
     ictrl[ii] = S17;
 	ii++;
-	dctrl[dd] = S19;
+	dctrl[dd] = S18;
+	dd++;
+    dctrl[dd] = S19;
 	dd++;
     dctrl[dd] = S20;
 	dd++;
@@ -2570,6 +2570,70 @@ void lexer::ctrlsend()
     dctrl[dd] = F72_h[n];
 	dd++;
     }
+    
+    for(n=0;n<F112;++n)
+    {
+    dctrl[dd] = F112_xs[n];
+    dd++;
+    dctrl[dd] = F112_xe[n];
+    dd++;
+    dctrl[dd] = F112_ys[n];
+    dd++;
+    dctrl[dd] = F112_ye[n];
+    dd++;
+    dctrl[dd] = F112_zs[n];
+    dd++;
+    dctrl[dd] = F112_ze[n];
+    dd++;
+    }
+
+    for(n=0;n<F113;++n)
+    {
+    dctrl[dd] = F113_xs[n];
+    dd++;
+    dctrl[dd] = F113_xe[n];
+    dd++;
+    dctrl[dd] = F113_ys[n];
+    dd++;
+    dctrl[dd] = F113_ye[n];
+    dd++;
+    dctrl[dd] = F113_zs[n];
+    dd++;
+    dctrl[dd] = F113_ze[n];
+    dd++;
+    }
+
+    for(n=0;n<F114;++n)
+    {
+    dctrl[dd] = F114_xs[n];
+    dd++;
+    dctrl[dd] = F114_xe[n];
+    dd++;
+    dctrl[dd] = F114_ys[n];
+    dd++;
+    dctrl[dd] = F114_ye[n];
+    dd++;
+    dctrl[dd] = F114_zs[n];
+    dd++;
+    dctrl[dd] = F114_ze[n];
+    dd++;
+    }
+
+    for(n=0;n<F115;++n)
+    {
+    dctrl[dd] = F115_xs[n];
+    dd++;
+    dctrl[dd] = F115_xe[n];
+    dd++;
+    dctrl[dd] = F115_ys[n];
+    dd++;
+    dctrl[dd] = F115_ye[n];
+    dd++;
+    dctrl[dd] = F115_zs[n];
+    dd++;
+    dctrl[dd] = F115_ze[n];
+    dd++;
+    }
 
     for(n=0;n<F369;++n)
     {
@@ -3126,8 +3190,6 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = X102_w[n];
     dd++;
-    ictrl[ii] = X102_objID[n];
-    ii++;
     }
 
     for(n=0;n<X110;++n)
@@ -3144,8 +3206,6 @@ void lexer::ctrlsend()
     dd++;
     dctrl[dd] = X110_ze[n];
     dd++;
-    ictrl[ii] = X110_objID[n];
-    ii++;
     }
     
     for(n=0;n<X163;++n)

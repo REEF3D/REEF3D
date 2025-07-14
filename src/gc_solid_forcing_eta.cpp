@@ -26,32 +26,64 @@ Authors: Hans Bihs
 
 void ghostcell::solid_forcing_eta(lexer *p, slice &f)
 {
-    
-    //if(p->X48==1)
-    GCSLDF4LOOP
+    GCSLDFETA4LOOP
     {
-    i=p->gcsldf4[n][0];
-    j=p->gcsldf4[n][1];
+    i=p->gcsldfeta4[n][0];
+    j=p->gcsldfeta4[n][1];
 
-        if(p->gcsldf4[n][3]==1)
+        if(p->gcsldfeta4[n][3]==1)
+        {
+        f(i-1,j)=f(i,j);
+        //f(i-2,j)=f(i,j);
+        }
+
+        if(p->gcsldfeta4[n][3]==4)
+        {
+        f(i+1,j)=f(i,j);
+        //f(i+2,j)=f(i,j);
+        }
+
+        if(p->gcsldfeta4[n][3]==3)
+        {
+        f(i,j-1)=f(i,j);
+        //f(i,j-2)=f(i,j);
+        }
+
+        if(p->gcsldfeta4[n][3]==2)
+        {
+        f(i,j+1)=f(i,j);
+        //f(i,j+2)=f(i,j);
+        }
+
+	}
+}
+
+void ghostcell::solid_forcing_bed(lexer *p, slice &f)
+{
+    GCSLDFBED4LOOP
+    {
+    i=p->gcsldfbed4[n][0];
+    j=p->gcsldfbed4[n][1];
+
+        if(p->gcsldfbed4[n][3]==1)
         {
         f(i-1,j)=f(i,j);
         f(i-2,j)=f(i,j);
         }
 
-        if(p->gcsldf4[n][3]==4)
+        if(p->gcsldfbed4[n][3]==4)
         {
         f(i+1,j)=f(i,j);
         f(i+2,j)=f(i,j);
         }
 
-        if(p->gcsldf4[n][3]==3)
+        if(p->gcsldfbed4[n][3]==3)
         {
         f(i,j-1)=f(i,j);
         f(i,j-2)=f(i,j);
         }
 
-        if(p->gcsldf4[n][3]==2)
+        if(p->gcsldfbed4[n][3]==2)
         {
         f(i,j+1)=f(i,j);
         f(i,j+2)=f(i,j);

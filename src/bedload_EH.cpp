@@ -53,11 +53,10 @@ void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
         Ts = s->shields_crit(i,j);
 	    Tb = s->tau_eff(i,j);
 
-        if(Tb>Ts)
-        if(s->active(i,j)==1)
-        qb =  (0.1/fh)*pow((s->tau_eff(i,j)*rhowat)/(g*d50*(rhosed-rhowat)),2.5);
+        if(s->active(i,j)==1 && Tb>=Ts)
+        qb = (0.1/fh)*pow((s->tau_eff(i,j)*rhowat)/(g*d50*(rhosed-rhowat)),2.5);
 
-        if(Tb<=Ts || s->active(i,j)==0)
+        if(s->active(i,j)==0 || Tb<Ts)
         qb=0.0;
 	
         s->qbe(i,j) = qb;

@@ -24,11 +24,8 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"reinidisc_fsf.h"	
-#include"vrans.h"
 
-
-void net_barDyn::fillNonLinSystem(lexer *p, fdm *a, ghostcell *pgc)
+void net_barDyn::fillNonLinSystem(lexer *p, ghostcell *pgc)
 {
     bool foundOwner, foundNeigh;
     int ownerKnot, neighKnot, otherKnot;
@@ -269,7 +266,7 @@ void net_barDyn::fillNonLinSystem(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void net_barDyn::fillNonLinRhs(lexer *p, fdm *a, ghostcell *pgc)
+void net_barDyn::fillNonLinRhs(lexer *p, ghostcell *pgc)
 {
     bool foundOwner, foundNeigh;
     int ownerKnot, neighKnot, otherKnot;

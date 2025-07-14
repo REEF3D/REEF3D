@@ -91,6 +91,9 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     // update cfd  --------
     update_cfd(p,a,pgc,pflow,preto);
     
+    // sediment print
+    print_probes(p,pgc,s,pflow);
+    
     // sediment log
     sedimentlog(p);
     

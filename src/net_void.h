@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef NET_VOID_H_
@@ -41,9 +41,13 @@ class net_void : public net
 {
 public:
 
-	virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d);
+    
+	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);
+    virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);
 	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&);
+    
     virtual const EigenMat& getLagrangePoints(){return lagrangePoints;} 
     virtual const EigenMat& getLagrangeForces(){return lagrangeForces;} 
     virtual const EigenMat& getCollarVel(){return collarVel;} 

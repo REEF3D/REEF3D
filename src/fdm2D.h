@@ -73,8 +73,8 @@ public:
     sliceint4 breaking; 
     slice4 breaking_print;
     
-    sliceint1 wet1;
-    sliceint2 wet2;
+    sliceint1 wet1,deep1;
+    sliceint2 wet2,deep2;
     
     slice4 ks;
 	

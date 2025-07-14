@@ -17,58 +17,23 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"net_barQuasiStatic.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"ghostcell.h"
-#include"reinidisc_fsf.h"	
-#include"vrans.h"
+#include"ghostcell.h"	
 
-net_barQuasiStatic::net_barQuasiStatic(int number, lexer *p):nNet(number),f_(p),dt(p),frk1(p),frk2(p),L_(p), cutl(p), cutr(p){}
-
-net_barQuasiStatic::~net_barQuasiStatic(){}
-
-
-void net_barQuasiStatic::initialize(lexer *p, fdm *a, ghostcell *pgc)
+net_barQuasiStatic::net_barQuasiStatic(int number, lexer *p):nNet(number),f_(p),dt(p),frk1(p),frk2(p),L_(p), cutl(p), cutr(p)
 {
-    prdisc = new reinidisc_fsf(p);    
-   
-    //- Initialise net model
-    if (p->X320_type[nNet]==1)
-    {
-        bag_ini(p,a,pgc);
-        
-        buildNet_bag(p);
-    }
-    else if (p->X320_type[nNet]==2)   
-    {
-        cyl_ini(p,a,pgc);
-        
-        buildNet_cyl(p); 
-    }
-    else if (p->X320_type[nNet]==3)   
-    {
-        wall_ini(p,a,pgc);
-        
-        buildNet_wall(p);    
-    }  
-    
-    //- Update porous zone
-    vransCoupling(p,a,pgc);
 }
 
+net_barQuasiStatic::~net_barQuasiStatic()
+{    
+}
 
-void net_barQuasiStatic::start
-(
-	lexer *p, 
-	fdm *a, 
-	ghostcell *pgc,
-    double alpha,
-    Eigen::Matrix3d quatRotMat 
-)
+void net_barQuasiStatic::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
 {
     double starttime1=pgc->timer();     
     
@@ -76,18 +41,14 @@ void net_barQuasiStatic::start
     int iter = 1;
    
     //- Get velocities at knots
-    
-    updateField(p, a, pgc, 0);
-    updateField(p, a, pgc, 1);	
-    updateField(p, a, pgc, 2);
+    updateField_cfd(p,a,pgc,0);
+    updateField_cfd(p,a,pgc,1);	
+    updateField_cfd(p,a,pgc,2);
     
     //- Get density at knots
-    
-    updateField(p, a, pgc, 3);
-    
+    updateField_cfd(p,a,pgc,3);
 
 	//- Solving the system of equations
-   
 	while(iter < 200)
 	{
         //- Fill right-hand side Bh with gravity and hydrodynamic forces
@@ -123,34 +84,100 @@ void net_barQuasiStatic::start
 		}	
 
         //- Check convergence
-		if (error < 1e-2)
-        {
-            break;
-        }
+        if (error < 1e-2)
+        break;
+
         else
-        {
-            iter++;
-        }
+        iter++;
 
 		//- Correct length of bars
         updateLength();
 	}
    
     if (p->mpirank==0)
-    {
-        cout<<"Number of iterations = "<<iter<<setprecision(5)<<" with error = "<<error<<endl;
-    }
-    
+    cout<<"Number of iterations = "<<iter<<setprecision(5)<<" with error = "<<error<<endl;
     
 	//- Build and save net	
-  
 	print(p);	
  
     
     //- Update porous zone and coefficients
+    coupling_dlm_cfd(p,a,pgc);
+
+    double endtime1 = pgc->timer()-starttime1; 
+    if (p->mpirank==0) cout<<"Net time: "<<endtime1<<endl;    
+}
+
+void net_barQuasiStatic::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
+{
+    double starttime1=pgc->timer();     
     
-    vransCoupling(p,a,pgc);
+    double norm, error;
+    int iter = 1;
+   
+    //- Get velocities at knots
+    updateField_nhflow(p,d,pgc,0);
+    updateField_nhflow(p,d,pgc,1);
+    updateField_nhflow(p,d,pgc,2);
     
+    //- Get density at knots
+    updateField_nhflow(p,d,pgc,3);
+
+	//- Solving the system of equations
+	while(iter < 200)
+	{
+        //- Fill right-hand side Bh with gravity and hydrodynamic forces
+        if (p->X320_type[nNet]==1)
+        {
+            fillRhs_bag(p);
+        }
+        else
+        {
+            // fillRhs_Morison(p);  
+            fillRhs_Screen(p);
+        }
+		
+        //- Solve the system A * fi = Bh
+        // fi = A.lu().solve(Bh); 
+
+		//-  Correct system such that length of normal vectors equals one
+		error = 0.0;
+		for (int j = 0; j < nf; j++)
+		{
+            norm = fi.row(j).norm();
+
+            fi(j,0) /= norm;
+            fi(j,1) /= norm;
+            fi(j,2) /= norm;
+        
+			for (int k = 0; k < niK; k++) 
+			{
+				A(k,j) *= norm;
+			}
+            
+            error = max(error,fabs(norm-1.0));
+		}	
+
+        //- Check convergence
+        if (error < 1e-2)
+        break;
+
+        else
+        iter++;
+
+		//- Correct length of bars
+        updateLength();
+	}
+   
+    if (p->mpirank==0)
+    cout<<"Number of iterations = "<<iter<<setprecision(5)<<" with error = "<<error<<endl;
+    
+	//- Build and save net	
+	print(p);	
+ 
+    
+    //- Update porous zone and coefficients
+    coupling_dlm_nhflow(p,d,pgc);
 
     double endtime1 = pgc->timer()-starttime1; 
     if (p->mpirank==0) cout<<"Net time: "<<endtime1<<endl;    

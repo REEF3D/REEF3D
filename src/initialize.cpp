@@ -35,12 +35,10 @@ initialize::~initialize()
 }
 
 void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
-{
-	deltax=p->DXM;
-	
-	inifdm(a,p,pgc);
-	nodecalc(a,p);
-	maxcoor(a,p,pgc);
+{	
+	inifdm(p,a,pgc);
+	nodecalc(p,a);
+	maxcoor(p,a,pgc);
 	paraini(p,a,pgc);
     
     
@@ -52,7 +50,7 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
 
 	
 	if(p->F40>0)
-	iniphi(a,p,pgc);
+	iniphi(p,a,pgc);
 
 	if(p->F80>0 && p->F80<4)
 	inivof(a,p,pgc);
@@ -60,15 +58,8 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
 	if(p->F80==4)
 	inivofPLIC(a,p,pgc);  
 
-	if((p->F70>0 || p->F71>0 ||p->F72>0) && p->F40>0)
-	iniphi_box(p,a,pgc);
-
 	if(p->F70>0 && p->F80>0 && p->F80<4)
 	inivof_box(p,a,pgc);
-    
-    
-    	
-	//iniphi_surfarea(p,a,pgc);
 
 	if(p->S10>0 || p->toporead==1)
 	topoini(p,a,pgc);
@@ -76,7 +67,7 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
 	pgc->flagbase(p,a);
 }
 
-void initialize::inifdm(fdm* a, lexer* p, ghostcell* pgc)
+void initialize::inifdm(lexer* p, fdm* a, ghostcell* pgc)
 {	
 		ULOOP
 		a->u(i,j,k)=0.0;
@@ -125,7 +116,7 @@ void initialize::inifdm(fdm* a, lexer* p, ghostcell* pgc)
     pgc->start4(p,a->phi,50);
 }
 
-void initialize::nodecalc(fdm* a, lexer* p)
+void initialize::nodecalc(lexer* p, fdm* a)
 {
 	int count=0;
 	p->pointnum=0;
@@ -156,7 +147,7 @@ void initialize::nodecalc(fdm* a, lexer* p)
     }
 }
 
-void initialize::maxcoor(fdm* a, lexer* p, ghostcell* pgc)
+void initialize::maxcoor(lexer* p, fdm* a, ghostcell* pgc)
 {
 p->maxlength=-1.0e9;
 p->xcoormax=-1.0e9;

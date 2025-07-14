@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"sliceint.h"
 
 
-bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4), taueff_loc(p), taucrit_loc(p)
+bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4)
 {
     tau=0.0;
     tauc=0.0;
@@ -56,12 +56,12 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	yip= p->YP[JP];
     dist = p->DZN[KP];
 		
-    density = a->ro(i,j,k);
+    density = p->W1;
     
 	
     if(p->S16==1)
     {
-    zval = s->bedzh(i,j) + 2.1*p->DZN[KP];
+    zval = s->bedzh(i,j) + 1.6*p->DZN[KP];
     
         if(p->S33==1)
         {
@@ -156,7 +156,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	xip = p->XP[IP];
 	yip = p->YP[JP];
 
-    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
+    zval = s->bedzh(i,j) + 0.6*p->DZN[KP];
 	
         if(p->S33==1)
         {
@@ -318,15 +318,15 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
     }
     
-    s->tau_eff(i,j) = taueff_loc(i,j) = tau;
-    s->shearvel_eff(i,j) = sqrt(tau/p->W1);
-    s->shields_eff(i,j) = tau/(p->W1*((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+    s->tau_eff(i,j) = tau;
+    s->shearvel_eff(i,j) = sqrt(tau/density);
+    s->shields_eff(i,j) = tau/((p->S22-density)*fabs(p->W22)*p->S20);
     }
 }
 
 void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
-	double r,density;
+	double density = p->W1;
     
     SLICELOOP4
     {
@@ -336,18 +336,11 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     tauc = (p->S30*fabs(p->W22)*(p->S22-density))*p->S20*s->reduce(i,j);
   
-    s->tau_crit(i,j) = taucrit_loc(i,j) = tauc;
+    s->tau_crit(i,j) = tauc;
     s->shearvel_crit(i,j) = sqrt(tauc/density);
-    s->shields_crit(i,j) = tauc/(density*((p->S22-density)/density)*fabs(p->W22)*p->S20);
+    s->shields_crit(i,j) = tauc/((p->S22-density)*fabs(p->W22)*p->S20);
+    
+    s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
     }
 }
 
-void bedshear::taubed(lexer*, fdm*, ghostcell*, double &tau_eff)
-{
-    tau_eff = taueff_loc(i,j);
-}
-
-void bedshear::taucritbed(lexer*, fdm*, ghostcell*, double &tau_crit)
-{
-    tau_crit = taucrit_loc(i,j);
-}

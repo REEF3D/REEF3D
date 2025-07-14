@@ -55,7 +55,7 @@ void driver::logic_nhflow()
     pnhf=new nhflow_f(p,d,pgc);
     
 // forcing
-    pnhfdf=new nhflow_forcing(p);
+    pnhfdf=new nhflow_forcing(p,d,pgc);
     
 // FSF
     pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
@@ -167,9 +167,7 @@ void driver::logic_nhflow()
 	if(p->P150>0)
 	pdata = new data_f(p,a,pgc);
     
-    if(p->P10==2)
-    pnhfprint = new nhflow_vts3D(p,d,pgc);
-    else
+    if(p->P10>0)
     pnhfprint = new nhflow_vtu3D(p,d,pgc);
     
 //VRANS
@@ -181,9 +179,6 @@ void driver::logic_nhflow()
 
     if(p->B269==2)
 	pvrans = new vrans_veg(p,pgc);
-
-    if(p->B269==3)
-	pvrans = new vrans_net(p,pgc);
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
@@ -221,9 +216,9 @@ void driver::logic_nhflow()
     
 //Momentum
     if(p->A510==2)
-	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pvrans,pnhfdf);
     
     if(p->A510==3)
-	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pvrans,pnet,pnhfdf);    
+	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pvrans,pnhfdf);    
     
 }

@@ -38,7 +38,7 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     {
         H = Hsolidface(p,d,0,0,0);
         
-        
+        /*
         efc = 0.0;
         
         if(d->SOLID[IJK]<0.0)
@@ -62,7 +62,7 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
             
             if(d->SOLID[IJKp1]>0.0)    
             efc+=1.0;
-        }
+        }*/
         
         //if(efc>0.1)
         //{
@@ -120,7 +120,6 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     if(efc<0.1)
     ef = d->depth(i,j);
-    
     }
     
     //if(efc>0.1 && d->SOLID[IJK]<0.0)

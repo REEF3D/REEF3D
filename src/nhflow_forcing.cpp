@@ -27,11 +27,12 @@ Author: Hans Bihs
 #include"6DOF.h"
 #include"nhflow_reinidisc_fsf.h"
 
-nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6), fe(p)
+nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : epsi(1.6), fe(p)
 {
     forcing_flag=0;
     solid_flag=0;
     floating_flag=0;
+    dlm_flag=0;
     
     if(p->A581>0 || p->A583>0 || p->A584>0   || p->A585>0  || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0)
     {
@@ -44,7 +45,16 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6), fe(p)
     forcing_flag=1;
     floating_flag=1;
     }
-        
+    
+    if(p->A599==1)
+    {
+    dlm_flag=1;
+    forcing_flag=0;
+    solid_flag=0;
+    floating_flag=0;
+    }
+    
+    // ----
     if(forcing_flag==1)
     {
     p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
@@ -54,27 +64,49 @@ nhflow_forcing::nhflow_forcing(lexer *p) : epsi(1.6), fe(p)
     p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(dt,p->imax*p->jmax*(p->kmax+2));
     p->Darray(L,p->imax*p->jmax*(p->kmax+2));
+
+    prdisc = new nhflow_reinidisc_fsf(p);
+    }
     
     p->Darray(FX,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FY,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FZ,p->imax*p->jmax*(p->kmax+2));
     
-    prdisc = new nhflow_reinidisc_fsf(p);
-    }
+    if(dlm_flag==1)
+    dlm_forcing_ini(p,pgc);
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
+    gcval_u=10;
+	gcval_v=11;
+	gcval_w=12;
+    
+    gcval_uh=14;
+	gcval_vh=15;
+	gcval_wh=16;
 }
 
 nhflow_forcing::~nhflow_forcing()
 {
 }
 
-void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, vrans* pvrans, vector<net*>& pnet, 
+void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, 
                              int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
 {
     starttime=pgc->timer();
     
     // ini forcing terms
     reset(p,d,pgc);
-    
     
     if(solid_flag==1)
     {
@@ -87,7 +119,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     }
     
     // 6DOF forcing
-    p6dof->start_nhflow(p,d,pgc,pvrans,pnet,iter,d->U,d->V,d->W,FX,FY,FZ,WL,fe,finalize);
+    p6dof->start_nhflow(p,d,pgc,iter,d->U,d->V,d->W,FX,FY,FZ,WL,fe,finalize);
 
 
     if(forcing_flag==1)
@@ -95,38 +127,23 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     // add forcing term to RHS
     LOOP
     {
-        UH[IJK] += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
+        UH[IJK]   += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
         
         d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
-        
-        /*if(p->count<10)
-        d->maxF = MAX(fabs(alpha*CPORNH*d->FX[IJK]), d->maxF);
-        
-        p->fbmax = MAX(fabs(alpha*CPORNH*d->FX[IJK]), p->fbmax);*/
     }
     
     LOOP
     {
-        VH[IJK] += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
+        VH[IJK]   += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
         
         d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
-        
-        /*if(p->count<10)
-        d->maxG = MAX(fabs(alpha*CPORNH*d->FY[IJK]), d->maxG);
-        
-        p->fbmax = MAX(fabs(alpha*CPORNH*d->FY[IJK]), p->fbmax);*/
     }
     
     LOOP
     {
-        WH[IJK] += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
+        WH[IJK]   += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
         
         d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
-        
-        /*if(p->count<10)
-        d->maxH = MAX(fabs(alpha*CPORNH*d->FZ[IJK]), d->maxH);
-        
-        p->fbmax = MAX(fabs(alpha*CPORNH*d FZ[IJK]), p->fbmax);*/
     }
     
     /*
@@ -150,78 +167,56 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     if(d->FB[IJK]<0.0)
     p->DF[IJK]=-1;
     
+    pgc->startintV(p,p->DF,1);
+    
     // DFSL slice
     pgc->gcsldf_update(p);
     pgc->solid_forcing_eta(p,WL);
     pgc->solid_forcing_eta(p,d->eta);
+    pgc->solid_forcing_bed(p,d->bed);
+    }
+
+    // DLM
+    if(dlm_flag==1)
+    {
+        dlm_forcecalc(p,d,pgc,alpha,d->U,d->V,d->W,WL);
+        dlm_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
+        
+        LOOP
+        {
+            UH[IJK] += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
+            
+            d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
+        }
+        
+        LOOP
+        {
+            VH[IJK] += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
+            
+            d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
+        }
+        
+        LOOP
+        {
+            WH[IJK] += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
+            
+            d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
+        }
     }
     
-    pgc->startintV(p,p->DF,1);
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
+    pgc->gcsl_start4(p,WL,gcval_eta);
+    pgc->gcsl_start4(p,d->bed,1);
     
+    pgc->start4V(p,d->U,gcval_u);
+    pgc->start4V(p,d->V,gcval_v);
+    pgc->start4V(p,d->W,gcval_w);
+    
+    pgc->start4V(p,UH,gcval_uh);
+    pgc->start4V(p,VH,gcval_vh);
+    pgc->start4V(p,WH,gcval_wh);
     
     pgc->gciobc_update(p,d);
     
     p->dftime+=pgc->timer()-starttime;
-}
-
-void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    if(forcing_flag==1)
-    {
-    LOOP
-    {
-    FX[IJK] = 0.0;   
-    FY[IJK] = 0.0;   
-    FZ[IJK] = 0.0;   
-    d->FHB[IJK] = 0.0;
-    }
-
-    SLICELOOP4
-    fe(i,j) = 0.0;
-    }
-    
-}
-
-void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    if(solid_flag==1)
-    {
-    if(p->mpirank==0)
-    cout<<"Forcing ini "<<endl;
-    
-    LOOP
-    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
-    
-    pgc->start5V(p,p->ZSP,1);
-    
-    objects_create(p, pgc);
-    
-    ray_cast(p, d, pgc);
-    
-    reini_RK2(p, d, pgc, d->SOLID);
-    
-    
-    SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
-    }
-    
-    // --------------
-    // DF
-    LOOP
-    p->DF[IJK]=1;
-    
-    if(solid_flag==1)
-    LOOP
-    if(d->SOLID[IJK]<0.0)
-    p->DF[IJK]=-1;
-
-    if(floating_flag==1)
-    LOOP
-    if(d->FB[IJK]<0.0)
-    p->DF[IJK]=-1;
-    
-    // DFSL slice
-    pgc->gcsldf_update(p);
-    pgc->solid_forcing_eta(p,d->WL);
-    pgc->solid_forcing_eta(p,d->eta);
 }

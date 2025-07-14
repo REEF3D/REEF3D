@@ -97,7 +97,7 @@ void driver::loop_cfd_sf(fdm* a)
         pfsf->update(p,a,pgc,a->phi);
 	
         // Momentum 
-        pmom_sf->starti(p,a,pgc,p6dof,pvrans,pnet,pfsi);
+        pmom_sf->starti(p,a,pgc,p6dof,pvrans,pfsi);
 
         // Save previous timestep
         pflow->veltimesave(p,a,pgc,pvrans);

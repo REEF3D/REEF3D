@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"vrans_v.h"
 #include"vrans_f.h"
 
-void sediment_f::bedlevel(lexer *p, fdm *a, ghostcell *pgc)
+void sediment_f::bedlevel(lexer *p, ghostcell *pgc)
 {
     p->bedmin=1.0e15;
     p->bedmax=-1.0e15;

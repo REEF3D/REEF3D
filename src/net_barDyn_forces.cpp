@@ -24,8 +24,6 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"reinidisc_fsf.h"
-#include"vrans.h"
 
 void net_barDyn::getForces(lexer *p)
 {
@@ -189,16 +187,8 @@ void net_barDyn::dragForce(lexer *p)
 }
 
 
-Eigen::Vector3d net_barDyn::screenForce
-(
-    lexer *p,
-    const double& rho,
-    const Vector3d& v_rel,
-    const Vector3d& n_d,
-    const double& v_mag,
-    const int b1,
-    const int b2
-)
+Eigen::Vector3d net_barDyn::screenForce(lexer *p, const double& rho, const Vector3d& v_rel, const Vector3d& n_d,
+                                        const double& v_mag, const int b1, const int b2)
 {
     //- Normal vector of screen n_s
     
@@ -366,12 +356,7 @@ void net_barDyn::screenForceCoeff
     }
 }
 
-void net_barDyn::netForces
-(
-    lexer *p,
-	double& Xne, double& Yne, double& Zne,
-	double& Kne, double& Mne, double& Nne
-)
+void net_barDyn::netForces(lexer *p, double& Xne, double& Yne, double& Zne, double& Kne, double& Mne, double& Nne)
 {
     Xne = 0.0;
 	Yne = 0.0;

@@ -51,7 +51,6 @@ class sediment;
 class turbulence;
 class patchBC_interface;
 class sixdof;
-class net;
 
 using namespace std;
 
@@ -94,7 +93,6 @@ private:
     sflow_turbulence *pturb;
     sediment *psed;
     sflow_potential *potflow;
-    vector<net*> pnet;
     
     fdm *aa;
     turbulence *pturbcfd;

@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef NET_H_
@@ -28,6 +28,7 @@ Author: Tobias Martin
 
 class lexer;
 class fdm;
+class fdm_nhf;
 class ghostcell;
 class sixdof;
 
@@ -39,8 +40,11 @@ public:
     
     typedef vector<Eigen::Vector3d> EigenMat;
         
-	virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
-	virtual void initialize(lexer*, fdm*, ghostcell*)=0;	
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d)=0;
+    
+	virtual void initialize_cfd(lexer*, fdm*, ghostcell*)=0;
+    virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*)=0;
 	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&)=0;
     
     virtual const EigenMat& getLagrangePoints()=0;

@@ -39,7 +39,7 @@ momentum_forcing::~momentum_forcing()
 {
 }
 
-void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, sixdof* p6dof, vrans* pvrans, vector<net*>& pnet, fsi* pfsi,
+void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, sixdof* p6dof, fsi* pfsi,
                                               field &u, field &v, field &w, field &fx, field &fy, field &fz, int iter, double alpha, bool final)
 {
 
@@ -61,7 +61,7 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
          
         pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);         
         
-        p6dof->start_cfd(p,a,pgc,pvrans,pnet,iter,u,v,w,fx,fy,fz,final);
+        p6dof->start_cfd(p,a,pgc,iter,u,v,w,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
  

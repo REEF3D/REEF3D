@@ -42,7 +42,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     psi = -p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]); 
     
     
-    if( (a->solid(i,j,k)>psi || p->solidread==0) && (a->topo(i,j,k)>psi || p->toporead==0))
+    if( (a->solid(i,j,k)>=psi || p->solidread==0) && (a->topo(i,j,k)>=psi || p->toporead==0))
     p->flag4[IJK]=10;
     
     if( (a->solid(i,j,k)<psi && p->solidread==1) || (a->topo(i,j,k)<psi && p->toporead==1))

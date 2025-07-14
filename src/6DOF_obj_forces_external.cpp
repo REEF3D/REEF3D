@@ -25,41 +25,33 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 #include"mooring.h"
-#include"net.h"
-#include"vrans.h"
+#include"net_interface.h"
 
-void sixdof_obj::externalForces(lexer *p,fdm* a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
+void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
+{
+    Xext = Yext = Zext = Kext = Mext = Next = 0.0;
+    
+    // Mooring forces
+	if (p->X310>0)
+	mooringForces(p,pgc,alpha);
+
+    // Net forces
+	if (p->X320>0)
+	netForces_cfd(p,a,pgc,alpha);
+}
+
+void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, double alpha)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
 
     // Mooring forces
 	if (p->X310>0)
-	{
-		mooringForces(p,pgc,alpha);
-	} 
+	mooringForces(p,pgc,alpha);
+
 	
     // Net forces
 	if (p->X320>0)
-	{
-		netForces(p,a,pgc,alpha,pvrans,pnet);
-	}
-}
-
-void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
-{
-    Xext = Yext = Zext = Kext = Mext = Next = 0.0;
-
-    // Mooring forces
-	if (p->X310>0)
-	{
-		mooringForces(p,pgc,alpha);
-	} 
-	
-    // Net forces
-	/*if (p->X320 > 0)
-	{
-		netForces(p,a,pgc,alpha,pvrans,pnet);
-	}*/
+	netForces_nhflow(p,d,pgc,alpha);
 }
 
 void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
@@ -105,31 +97,35 @@ void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
     }
 }
 
-void sixdof_obj::netForces(lexer *p, fdm* a, ghostcell *pgc, double alpha, vrans *pvrans, vector<net*>& pnet)
-{
-    for (int ii = 0; ii < p->net_count; ii++)
-    {
-        pnet[ii]->start(p, a, pgc, alpha, quatRotMat);
-        pvrans->start(p, a, pgc, pnet[ii], ii);
+void sixdof_obj::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
+{    
+    pnetinter->netForces_cfd(p,a,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
     
-        // Forces on rigid body
-        pnet[ii]->netForces(p,Xne[ii],Yne[ii],Zne[ii],Kne[ii],Mne[ii],Nne[ii]);
-        
-        // Distribute forces and moments to all processors
-        MPI_Bcast(&Xne[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Yne[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Zne[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Kne[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Mne[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Nne[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);	
-        
-        // Add to external forces
-        Xext += Xne[ii];
-        Yext += Yne[ii];
-        Zext += Zne[ii];
-        Kext += Kne[ii];
-        Mext += Mne[ii];
-        Next += Nne[ii];
+    NETLOOP
+    {
+    // Add to external forces
+        Xext += Xne[n];
+        Yext += Yne[n];
+        Zext += Zne[n];
+        Kext += Kne[n];
+        Mext += Mne[n];
+        Next += Nne[n];
+    }
+}
+
+void sixdof_obj::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha)
+{
+    pnetinter->netForces_nhflow(p,d,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
+    
+    NETLOOP
+    {
+    // Add to external forces
+        Xext += Xne[n];
+        Yext += Yne[n];
+        Zext += Zne[n];
+        Kext += Kne[n];
+        Mext += Mne[n];
+        Next += Nne[n];
     }
 }	
 

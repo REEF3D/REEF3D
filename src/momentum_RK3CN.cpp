@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Elyas Larkermani
+Authors: Elyas Larkermani, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"momentum_RK3CN.h"
@@ -67,7 +67,7 @@ momentum_RK3CN::~momentum_RK3CN()
 {
 }
 
-void momentum_RK3CN::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, vector<net*>& pnet)
+void momentum_RK3CN::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
 {	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -127,7 +127,7 @@ void momentum_RK3CN::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
         pgc->start3(p,wrk1,gcval_w);
 
     
-    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
     pflow->pressure_io(p,a,pgc);
@@ -205,7 +205,7 @@ void momentum_RK3CN::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
 	pgc->start2(p,vrk2,gcval_v);
             pgc->start3(p,wrk2,gcval_w);
 
-    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
     pflow->pressure_io(p,a,pgc);
@@ -283,7 +283,7 @@ void momentum_RK3CN::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
 
-    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pnet, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
 	pflow->pressure_io(p,a,pgc);
@@ -313,8 +313,10 @@ void momentum_RK3CN::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uve
         else {
             dens = 1.0;
         }
-	a->F(i,j,k) += (a->rhsvec.V[n] + a->gi*dens + p->W29_x)*PORVAL1;
-	a->rhsvec.V[n]=0.0;
+	a->F(i,j,k) += (a->rhsvec.V[n] + a->gi*dens + p->W29_x + a->Fext(i,j,k))*PORVAL1;
+    
+	a->rhsvec.V[n] = 0.0;
+    a->Fext(i,j,k) = 0.0;
 	++n;
 	}
 }
@@ -342,8 +344,10 @@ void momentum_RK3CN::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uve
         else {
             dens = 1.0;
         }
-	a->G(i,j,k) += (a->rhsvec.V[n] + a->gj*dens + p->W29_y)*PORVAL2;
-	a->rhsvec.V[n]=0.0;
+	a->G(i,j,k) += (a->rhsvec.V[n] + a->gj*dens + p->W29_y + a->Gext(i,j,k))*PORVAL2;
+    
+	a->rhsvec.V[n] = 0.0;
+    a->Gext(i,j,k) = 0.0;
 	++n;
 	}
 }
@@ -371,8 +375,10 @@ void momentum_RK3CN::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uve
         else {
             dens = 1.0;
         }
-	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk*dens + p->W29_z)*PORVAL3;
-	a->rhsvec.V[n]=0.0;
+	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk*dens + p->W29_z + a->Hext(i,j,k))*PORVAL3;
+    
+	a->rhsvec.V[n] = 0.0;
+    a->Hext(i,j,k) = 0.0;
 	++n;
 	}
 }

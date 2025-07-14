@@ -67,8 +67,6 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     pflux->start_U(p,d,pgc);
     HLL(p,d,d->UHs,d->UHn,d->UHe,d->UHw);
     
-    //wetdry_fluxes(p,d,ipol);
-    
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,10);
     pgc->start3V(p,d->Fz,10);
@@ -88,8 +86,6 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     pflux->start_V(p,d,pgc);
     HLL(p,d,d->VHs,d->VHn,d->VHe,d->VHw);
     
-    //wetdry_fluxes(p,d,ipol);
-
     pgc->start1V(p,d->Fx,11);
     pgc->start2V(p,d->Fy,11);
     pgc->start3V(p,d->Fz,11);
@@ -233,38 +229,4 @@ void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
         d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
         }
     }
-}
-
-void nhflow_HLL::wetdry_fluxes(lexer *&p, fdm_nhf *&d, int ipol)
-{
-    BASELOOP
-    {
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
-        {
-        //cout<<"d->Fx[IJK] : "<<d->Fx[IJK] <<endl;
-        d->Fx[IJK] = 0.0;0.5*fabs(p->W22)*d->eta(i+2,j)*d->eta(i+2,j) + fabs(p->W22)*d->eta(i+2,j)*d->dfx(i+1,j);
-        
-        }
-        
-        if(p->wet[IJ]==1 && p->wet[Im1J]==0)
-        {
-        d->Fx[Im1JK] = 0.0;
-        }
-    }
-    
-    VLOOP
-    {
-        if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-        {
-        d->Fy[IJK] = 0.0;
-        }
-        
-        if(p->wet[IJ]==1 && p->wet[IJm1]==0)
-        {
-        d->Fy[IJm1K] = 0.0;
-        }
-    }
-
-    
-    
 }

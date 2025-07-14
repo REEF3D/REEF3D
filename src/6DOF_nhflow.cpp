@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"vrans.h"
    
 sixdof_nhflow::sixdof_nhflow(lexer *p, ghostcell *pgc) : press(p)
 {
@@ -42,13 +41,13 @@ sixdof_nhflow::~sixdof_nhflow()
 {
 }
 
-void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
+void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
                                  double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
     starttime = pgc->timer();
     
     if(p->X10==1)
-    start_twoway(p,d,pgc,pvrans,pnet,iter,FX,FY,FZ,WL,fe,finalize);
+    start_twoway(p,d,pgc,iter,FX,FY,FZ,WL,fe,finalize);
     
     if(p->X10==2)
     start_oneway(p,d,pgc,iter,FX,FY,FZ,WL,fe,finalize);
@@ -59,7 +58,7 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
     p->fbtime+=pgc->timer()-starttime;
 }
 
-void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pvrans, vector<net*>& pnet, int iter, 
+void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
                                 double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
     for (int nb=0; nb<number6DOF;++nb)
@@ -68,7 +67,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans* pv
         fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,finalize);
         
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,pvrans,pnet);
+        fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);

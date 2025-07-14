@@ -32,8 +32,6 @@ class fdm;
 class fdm_nhf;
 class fdm2D;
 class ghostcell;
-class vrans;
-class net;
 class field;
 
 using namespace std;

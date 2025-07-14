@@ -130,17 +130,11 @@ void VOF_AB::compression(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec, 
     nx=di/(dnorm>1.0e-15?dnorm:1.0e20);
 	
 	
-		pip=1;
         uvel=a->u(i,j,k);
-        pip=0;
 
-        pip=2;
         vvel=0.25*(a->v(i,j,k) + a->v(i+1,j,k) + a->v(i,j-1,k) + a->v(i+1,j-1,k));
-        pip=0;
 
-        pip=3;
         wvel=0.25*(a->w(i,j,k) + a->w(i+1,j,k) + a->w(i+1,j,k-1) + a->w(i,j,k-1));
-        pip=0;
 		
 	uabs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 	
@@ -159,17 +153,12 @@ void VOF_AB::compression(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec, 
     ny=dj/(dnorm>1.0e-15?dnorm:1.0e20);
 	
 	
-		pip=1;
         uvel=0.25*(a->u(i,j,k) + a->u(i,j+1,k) + a->u(i-1,j,k) + a->u(i-1,j+1,k));
-        pip=0;
 
-        pip=2;
         vvel=a->v(i,j,k);
-        pip=0;
 
-        pip=3;
         wvel=0.25*(a->w(i,j,k) + a->w(i+1,j,k) + a->w(i+1,j,k-1) + a->w(i,j,k-1));
-        pip=0;
+
 		
 	uabs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 	
@@ -189,17 +178,11 @@ void VOF_AB::compression(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec, 
     nz=dk/(dnorm>1.0e-15?dnorm:1.0e20);
 	
 	
-		pip=1;
         uvel=0.25*(a->u(i,j,k) + a->u(i,j,k+1) + a->u(i-1,j,k) + a->u(i-1,j,k+1));
-        pip=0;
 
-        pip=2;
         vvel=0.25*(a->v(i,j,k) + a->v(i,j,k+1) + a->v(i,j-1,k) + a->v(i,j-1,k+1));
-        pip=0;
 
-        pip=3;
         wvel=a->w(i,j,k);
-        pip=0;
 		
 	uabs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 	

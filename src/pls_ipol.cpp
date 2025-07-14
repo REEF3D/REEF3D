@@ -164,7 +164,6 @@ double particle_pls::wpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
 
 double particle_pls::lint(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
-pip=4;
 
     x1 = wa*f(i,j,k)   + (1.0-wa)*f(i+1,j,k);
     x2 = wa*f(i,j+1,k) + (1.0-wa)*f(i+1,j+1,k);
@@ -177,7 +176,6 @@ pip=4;
 
     value = wc*y1 +(1.0-wc)*y2;
 
-pip=0;
  return value;
 
 }
@@ -210,7 +208,6 @@ return x1;
 
 double particle_pls::tricubic(lexer *p,fdm* a,field& f, int& i,int& j, int& k, double wx, double wy, double wz)
 {
-pip=4;
     i0=j0=k0=1;
     i3=j3=k3=2;
 
@@ -252,7 +249,6 @@ pip=4;
                               f(i+1,j+1,k+k3),f(i+1,j+j3,k+k3)),
                               cint(wy, f(i+i3,j-j0,k+k3),f(i+i3,j,k+k3),
                               f(i+i3,j+1,k+k3),f(i+i3,j+j3,k+k3)) ) );
-pip=0;
 
     return value;
 }

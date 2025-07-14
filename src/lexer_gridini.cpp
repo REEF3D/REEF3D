@@ -109,9 +109,9 @@ void lexer::flagini()
     Iarray(gcdf4,gcdf4_count,6);
     
     // gcsldf
-    gcsldf4_count=1;
+    gcsldfeta4_count=1;
     
-    Iarray(gcsldf4,gcsldf4_count,6);
+    Iarray(gcsldfeta4,gcsldfeta4_count,6);
 }
 
 void lexer::gridini_patchBC()

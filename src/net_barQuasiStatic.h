@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef NET_BARQUASISTATIC_H_
@@ -47,9 +47,13 @@ public:
 	net_barQuasiStatic(int, lexer*);
 	virtual ~net_barQuasiStatic();
     
-	virtual void start(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
-	virtual void initialize(lexer*, fdm*, ghostcell*);
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d);
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d);
+    
+	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);
+    virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);
 	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&);
+    
     virtual const EigenMat& getLagrangePoints(){return lagrangePoints;} 
     virtual const EigenMat& getLagrangeForces(){return lagrangeForces;} 
     virtual const EigenMat& getCollarVel(){return collarVel;} 
@@ -57,7 +61,35 @@ public:
    
 
 private:
-
+    
+    // -------------------------------
+	// Runtime
+	void startLoop(lexer*, ghostcell*, int&);
+    void update_velocity_cfd(lexer*, fdm*, ghostcell*);
+    void update_velocity_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    
+    void updateField_cfd(lexer*, fdm*, ghostcell*, int);
+    void updateField_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
+    
+    void coupling_dlm_cfd(lexer*, fdm*, ghostcell*);
+    void coupling_dlm_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    
+    void updateLength();
+    // -------------------------------
+    
+    // Preprocessing
+    void bag_ini(lexer*, ghostcell*);
+    void cyl_ini(lexer*, ghostcell*); 
+    void wall_ini(lexer*, ghostcell*); 
+    void genericNet();
+    void iniInnerKnots();
+    void iniBoundaryKnots();  
+    void stretch();
+    void iniLSE(lexer*);
+	void ini_parallel(lexer*, ghostcell*);
+    
+    
+    
     typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
     typedef Eigen::Matrix<double, 3, 3> Matrix3d;
     typedef Eigen::Matrix<double, 1, 3> Vector3d;
@@ -71,21 +103,6 @@ private:
     vector<Eigen::Vector3d> collarVel;    
     vector<Eigen::Vector3d> collarPoints;    
     
-    
-    // Preprocessing
-    void bag_ini(lexer*, fdm*, ghostcell*);
-    void cyl_ini(lexer*, fdm*, ghostcell*); 
-    void wall_ini(lexer*, fdm*, ghostcell*); 
-    void genericNet();
-    void iniInnerKnots();
-    void iniBoundaryKnots();  
-    void stretch();
-    void iniLSE(lexer*);
-	void ini_parallel(lexer*, fdm*, ghostcell*);
-    
-	// Runtime
-    void updateField(lexer*, fdm*, ghostcell*, int);
-	void updateLength();
     
     void print(lexer*);
     
@@ -102,8 +119,7 @@ private:
     Eigen::Vector3d screenForce(lexer*, const double&, const Vector3d&, const Vector3d&, const double&, const int, const int);
     void screenForceCoeff(lexer*,double&, double&, const double&, const double&, const double&);
     
-    void vransCoupling(lexer*, fdm*, ghostcell*);
-    void triangulation(lexer*, fdm*, ghostcell*);
+    void triangulation(lexer*, ghostcell*);
     void create_triangle
         (
             MatrixVd&, MatrixVd&, MatrixVd&,
@@ -146,7 +162,6 @@ private:
     int tend;  
 	
     // Reini
-	reinidisc *prdisc;
 	vec f_,frk1,frk2,L_, dt;
 	int reiniter;
 	double xmin,xplus,ymin,yplus,zmin,zplus;

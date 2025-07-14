@@ -58,7 +58,8 @@ sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) :
 		pout[n]<<endl<<endl;
 		
 		pout[n]<<"t \t Um \t Vm \t Wm \t Pm \t eta"<<endl;
-		}
+        pout[n].close();
+        }
     }
 	
     ini_location(p,b,pgc);
@@ -66,14 +67,12 @@ sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) :
 
 sflow_print_probe_da::~sflow_print_probe_da()
 {
-	for(n=0;n<probenum;++n)
-    pout[n].close();
 }
 
 void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	double xp,yp;
-	
+    // find values and write
 	for(n=0;n<probenum;++n)
 	{
 	uval=vval=wval=pval=eval=-1.0e20;
@@ -96,10 +95,14 @@ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 	pval=pgc->globalmax(pval);
     eval=pgc->globalmax(eval);
 	
-	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<endl;
-	}
-			
+        if(p->mpirank==0)
+        {
+            sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
+            pout[n].open(name, std::ofstream::out | std::ofstream::app);
+            pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<endl;
+            pout[n].close();
+        }
+    }
 }
 
 void sflow_print_probe_da::write(lexer *p, fdm2D *b, ghostcell *pgc)

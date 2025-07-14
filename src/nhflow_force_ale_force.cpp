@@ -31,6 +31,7 @@ void nhflow_force_ale::force_ale_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
     double ztot=0; // check for strip total
     
     double uvel,vvel,wvel;
+    double axrk;
 
 	Fx=Fy=0;
 	
@@ -40,20 +41,24 @@ void nhflow_force_ale::force_ale_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
         vvel = d->V[IJK];
         wvel = d->W[IJK];
         
-        dudsig_= dudsig(p,d,pgc); 
-        dvdsig_= dvdsig(p,d,pgc); 
+        dudsig = dudsig_f(p,d,pgc); 
+        dvdsig = dvdsig_f(p,d,pgc); 
         
         // Term 1 from eqn (9) of Pakozdi et al (2021) MS
         ax1= (uvel - un[k])/(p->dt);  
+        
+        
+        ax1= (uvel - un[k])/(p->dt); 
+
         ay1= (vvel - vn[k])/ (p->dt);
         
         // Term 2
-        ax2 = uvel*(dudxi(p,d,pgc) + (dudsig_*p->sigx[FIJK]));
-        ay2 = vvel*(dvdxi(p,d,pgc) + (dvdsig_*p->sigy[FIJK]));
+        ax2 = uvel*(dudxi(p,d,pgc) + (dudsig*p->sigx[FIJK]));
+        ay2 = vvel*(dvdxi(p,d,pgc) + (dvdsig*p->sigy[FIJK]));
         
         // Term 3
-        ax3 = (wvel - (p->sig[FIJK]*dndt(p,d,pgc)))* dudsig_*p->sigz[IJ];
-        ay3 = (wvel - (p->sig[FIJK]*dndt(p,d,pgc)))* dvdsig_*p->sigz[IJ];
+        ax3 = (wvel - (p->sig[FIJK]*dndt_f(p,d,pgc)))* dudsig*p->sigz[IJ];
+        ay3 = (wvel - (p->sig[FIJK]*dndt_f(p,d,pgc)))* dvdsig*p->sigz[IJ];
       
         // Sum up acceleration
         ax = ax1 + ax2 + ax3;
@@ -69,46 +74,60 @@ void nhflow_force_ale::force_ale_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
         ztot += p->DZN[KP]; // checking total dz=1
         
         // Storing current time step information for next time step gradient calculation
-        un[k] = uvel; 
+        unn[k] = un[k];
+        un[k] = uvel;
+ 
+        vnn[k] = vn[k];
         vn[k] = vvel;
 	}
 	
-	etan=d->eta(i,j);
+	eta_nn = eta_n;
+    eta_n = d->eta(i,j);
+    
+    simtime_nn = simtime_n;
+    simtime_n = p->simtime;
 }
 
-double nhflow_force_ale::dndt(lexer *p, fdm_nhf *d, ghostcell *pgc) 
+double nhflow_force_ale::dndt_f(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
-    double dndt = (d->eta(i,j) - etan)/ p->dt;
-		 
+    dndt = (d->eta(i,j) - eta_n)/ p->dt;
+    
+    //dndt = (-1.5*d->eta(i,j) + 2.0*eta_n - 0.5*eta_nn)/(-1.5*p->simtime + 2.0*simtime_n - 0.5*simtime_nn);
+    
     return dndt;
 }
 
-double nhflow_force_ale::dudsig(lexer *p, fdm_nhf *d, ghostcell *pgc) 	
+double nhflow_force_ale::dudsig_f(lexer *p, fdm_nhf *d, ghostcell *pgc) 	
 {
-    double dudsig_ = 0;
-    
-    dudsig_ = (d->U[IJKp1] - d->U[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
+  
+    dudsig = (d->U[IJKp1] - d->U[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
 
-	return dudsig_;        
+	return dudsig;        
 }
 
-double nhflow_force_ale::dvdsig(lexer *p, fdm_nhf *d, ghostcell *pgc) 	
+double nhflow_force_ale::dvdsig_f(lexer *p, fdm_nhf *d, ghostcell *pgc) 	
 {
-	double dvdsig_ = 0;
+	double dvdsig = 0;
 
-    dvdsig_ = (d->V[IJKp1] - d->V[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
+    dvdsig = (d->V[IJKp1] - d->V[IJKm1])/(p->DZN[KP]+p->DZN[KM1]);
 
-	return dvdsig_;        
+	return dvdsig;        
 }
 
 double nhflow_force_ale::dudxi(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
-    return (d->U[Ip1JK] - d->U[Im1JK])/(p->DXN[IP1] + p->DXN[IM1]); 
+    grad = (d->U[Ip1JK] - d->U[Im1JK])/(p->DXN[IP1] + p->DXN[IM1]); 
+    
+    //grad = dwenox(d->U, d->U[IJK]);
+    
+    return grad;
 }
 
 double nhflow_force_ale::dvdxi(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
-    return (d->V[IJp1K] - d->V[IJm1K])/(p->DYN[JP1] + p->DYN[JM1]); 
+    grad = (d->V[IJp1K] - d->V[IJm1K])/(p->DYN[JP1] + p->DYN[JM1]); 
+    
+    return grad;
 }
 
 

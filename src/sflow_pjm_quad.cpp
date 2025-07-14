@@ -106,10 +106,12 @@ void sflow_pjm_quad::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, 
 void sflow_pjm_quad::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha)
 {	
 	SLICELOOP1
+    WETDRY1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) -= alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)));
           
     SLICELOOP1
+    WETDRY1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) += alpha*p->dt*(0.75*(b->press(i+1,j)+b->press(i,j))*((b->depth(i+1,j)-b->depth(i,j))
                             /(p->DXM*HPXP*p->W1))
@@ -120,10 +122,12 @@ void sflow_pjm_quad::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alph
 void sflow_pjm_quad::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha)
 {	
 	SLICELOOP2
+    WETDRY2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) -= alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)));
                 
     SLICELOOP2
+    WETDRY2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) += alpha*p->dt*(0.75*(b->press(i,j+1)+b->press(i,j))*((b->depth(i,j+1)-b->depth(i,j))
                             /(p->DXM*HPYP*p->W1))
@@ -134,6 +138,7 @@ void sflow_pjm_quad::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alph
 void sflow_pjm_quad::wcorr(lexer* p, fdm2D* b, double alpha, slice &P, slice &Q, slice &ws)
 {	    
     SLICELOOP4
+    WETDRY
     if(b->breaking(i,j)==0)
 	 ws(i,j) += p->dt*alpha*(1.5*b->press(i,j)/(HP*p->W1)  +  0.25*phi4(i,j));
 }
@@ -331,7 +336,7 @@ void sflow_pjm_quad::quad_calc(lexer *p,fdm2D *b,slice &P, slice &Q, slice &Pn, 
                                     + Qval*((Q(i,j-1)-Q(i,j))/p->DXM))
                                             
                                                           
-                - pow(Pval,2.0)*((b->depth(i+1,j) - 2.0*b->depth(i,j) + b->depth(i-1,j))/(p->DXM*p->DXM));
+                - pow(Pval,2.0)*((b->depth(i+1,j) - 2.0*b->depth(i,j) + b->depth(i-1,j))/(p->DXM*p->DXM))
                 
                 - pow(Qval,2.0)*((b->depth(i,j+1) - 2.0*b->depth(i,j) + b->depth(i,j-1))/(p->DXM*p->DXM));
        

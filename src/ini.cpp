@@ -34,18 +34,18 @@ void lexer::ini_default()
     A212=0;		  // int diffusion treatment for SLOW velocities
     A214=1;      // int convection for vertical velocity
     A215=0;      // int 
-    A216=2;      // int convection velocity
+    A216=0;      // int
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
     A220=2;		  // int non-hydrostatic pressure scheme for SFLOW
-    A221=1;		  // int 
+    A221=1;		  // int non-hydrostatic pressure in very shallow regions
     A223=0.5;    // double blending factor hydrostatic pressure gradient
     A230=0;      // int turn on Boussinesq wave model
     A240=1;      // int FSF algorithm SFLOW
-    A241=1;          // int discretization of water level SFLOW
+    A241=0;          // int
     A242=0;          // int non-hydostatic pressure for shallow areas
-    A243=1;      // int turn on wetting-drying
+    A243=2;      // int turn on wetting-drying
     A244=0.001; // double absolute wetting criterion value
     A246=1;      // int turn on breaking
     A247=0.6;    // double breaking parameter alpha
@@ -106,7 +106,6 @@ void lexer::ini_default()
     A511=1;		// int NHFLOW HLL scheme
     A512=0;		// int NHFLOW diffusion
     A514=4;		// int NHFLOW reconstruction 
-    
     A515=1;      // int Dirichlet wave BC type
     A516=3;      // int
     A517=3;      // int 
@@ -137,7 +136,7 @@ void lexer::ini_default()
     A568=0;      // int 
     A569=0;      // int 
     
-    A570=0;      // int wind modle
+    A570=0;      // int wind model
     A571_u=0.0;  // double wind velocity
     A571_dir=0.0;  // double wind direction
     A573=1;      // int wind forcing region
@@ -159,7 +158,7 @@ void lexer::ini_default()
     A593=0;
     A593_x=A593_y=A593_z=A593_phi=A593_theta=A593_psi=0.0;
     A594=0;     // int invert STL
-    
+    A599=0;     // use dlm instead of df
 
     // Boundary Conditions
 	B10=0;			// int wall function velocities on/off
@@ -406,6 +405,10 @@ void lexer::ini_default()
     F97_ys=-1.0e20;
     F97_ye=-1.0e20;
     
+    F112=0;            // int wedge x-dir
+    F113=0;            // int wedge y-dir
+    F114=0;            // int inv. wedge x-dir
+    F115=0;            // int inv. wedge y-dir
     F150=0;         // int benchmark
     F151=0;         // int benchmark inverse sign of level set
     F300=0;             // int multiphase flow level set
@@ -437,7 +440,7 @@ void lexer::ini_default()
 
     // Grid
     G2=0;            // int sigma grid
-    G5=1;             // int turn of topo and solid cells
+    G5=0;             // int turn of topo and solid cells
 	G10=3;			// int xmargin inflow
 	G11=3;			// int ymargin right
 	G12=3;			// int zmargin bottom
@@ -602,7 +605,7 @@ void lexer::ini_default()
 	P101=0;			  // int print sloshing forces
     P110=0;           // int print significant wave height
     P111=0.0;         // double start averging after transients
-    P120=1;          // int sediment log print out
+    P120=1;          // int
 	P121=0;             // int bed level gages
 	P122=0;             // int max bed level gages
 	P123=0;             // int topoline in x-direction
@@ -622,8 +625,9 @@ void lexer::ini_default()
 	P167=0;			  // int discharge gages in x-direction
     P168=0;			  // int discharge gages in x-direction
 	P180=0;			  // int print fsf
-	P181=-10;		  // int ith iteration fsf printed
-	P182=-1.0;       // double time between fsf file printout in seconds
+	P181=-10;		  // int ith iteration vtp (fsf, bed) printed
+	P182=-1.0;       // double time between vtp (fsf, bed) file printout in seconds
+    P183=-1.0;       // double time between vtp (fsf, bed) file printout in seconds for sediment time
     P184=0;       // int time between file printout in iterations
 	P185=0;        	// int time between file printout in seconds
     P190=0;			  // int print topo
@@ -680,6 +684,7 @@ void lexer::ini_default()
 	S15=0;                  // int synchronize sediment time step with main solver
 	S16=1;                  // int bed shear stress formulation
     S17=0;                  // int non-equillibrium bedload 
+    S18=0.823;                // double mu_d
 	S19=1.0e+19; 			// double total time sediment
 	S20=0.001;          // double sediment d50
 	S21=3.0;          // double factor for d50 for calculation of ks in bedshear routine
@@ -920,7 +925,7 @@ void lexer::ini_default()
     Y4=0;
     Y5=0;
     Y40=3;
-    Y50=5;
+    Y50=0;
 	Y60=1;  // int require
     Y71=0;  // int turn on/off solid gcparax
     Y72=0;  // int turn on/off solid gcparax

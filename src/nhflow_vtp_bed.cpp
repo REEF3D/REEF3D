@@ -230,6 +230,8 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     //  Test
     if(p->P23==1)
     {
+    pgc->gcsl_start4(p,d->test2D,1);
+    
 	iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
     TPSLICELOOP

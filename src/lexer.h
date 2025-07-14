@@ -134,8 +134,8 @@ public:
     
     int gcdf1_count,gcdf2_count,gcdf3_count,gcdf4_count;
     int **gcdf1,**gcdf2,**gcdf3,**gcdf4;
-    int gcsldf4_count;
-    int **gcsldf4;
+    int gcsldfeta4_count,gcsldfbed4_count;
+    int **gcsldfeta4,**gcsldfbed4;
 
 	int gcwall_count, gcin_count, gcout_count, gcpress_count, gcfsf_count, gcbed_count;
     int gcin6_count, gcout6_count;
@@ -308,7 +308,7 @@ public:
     int A589;
     double *A589_xs,*A589_xe,*A589_ys,*A589_ye,*A589_zs,*A589_ze;
     
-    int A590,A591,A592,A593,A594;
+    int A590,A591,A592,A593,A594,A599;
     double A591_x,A591_y,A591_z;
     double A592_x,A592_y,A592_z;
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
@@ -433,7 +433,15 @@ public:
     int F97;
     double F97_ys,F97_ye;
     int F112;
-    double F112_xs,F112_xe,F112_ys,F112_ye,F112_zs,F112_ze;
+
+    double *F112_xs,*F112_xe,*F112_ys,*F112_ye,*F112_zs,*F112_ze;
+    int F113;
+    double *F113_xs,*F113_xe,*F113_ys,*F113_ye,*F113_zs,*F113_ze;
+    int F114;
+    double *F114_xs,*F114_xe,*F114_ys,*F114_ye,*F114_zs,*F114_ze;
+    int F115;
+    double *F115_xs,*F115_xe,*F115_ys,*F115_ye,*F115_zs,*F115_ze;
+
     int F300,F305,F310,F350;
 	double F321,F322,F323,F360,F361,F362;
 	int F369,F370,F371,F374,F375,F378,F379;
@@ -524,7 +532,7 @@ public:
     double *P167_x;
     double P141;
     double *P168_x,*P168_zs,*P168_ze;
-	double P182;
+	double P182,P183;
     int *P184_its,*P184_ite,*P184_dit;
     double *P185_ts,*P185_te,*P185_dt;
     double P192;
@@ -581,7 +589,7 @@ public:
 
 	// Sediment Transport
 	int S10,S11,S12,S15,S16,S17,S25,S27,S31,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S77,S78,S79,S80,S83,S84,S85,S90,S91,S100,S101;
-	double S13,S14,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
+	double S13,S14,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
 
@@ -642,10 +650,8 @@ public:
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;
     double *X102_u, *X102_v, *X102_w;
-    int *X102_objID;
     double X103_p, X103_q, X103_r;
     double *X110_xs,*X110_xe,*X110_ys,*X110_ye,*X110_zs,*X110_ze;
-    int *X110_objID;
     double X120_rad,X120_xc,X120_yc,X120_zc;
     double X131_rad,X131_h,X131_xc,X131_yc,X131_zc;
     double X132_rad,X132_h,X132_xc,X132_yc,X132_zc;
@@ -728,7 +734,7 @@ public:
 	double dtsed,sedtime,slidecells;
 	double bedmax,bedmin;
 	double field4time;
-    double printtime, sedprinttime,fsfprinttime,probeprinttime,stateprinttime,exportprinttime;
+    double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
     double partprinttime;
     double wavetime;
     double RK_alpha;

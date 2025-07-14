@@ -42,8 +42,6 @@ Author: Hans Bihs
 #include"nhflow_turbulence.h"
 #include"nhflow_force.h"
 #include"nhflow_force_ale.h"
-#include"bedshear_probe.h"
-#include"bedshear_max.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -54,6 +52,7 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
 	p->printtime=0.0;
 	p->sedprinttime=0.0;
 	p->fsfprinttime=0.0;
+    p->fsfsedprinttime=0.0;
 	p->probeprinttime=0.0;
 	p->stateprinttime=0.0;
     p->exportprinttime=0.0;
@@ -129,14 +128,7 @@ nhflow_vtu3D::nhflow_vtu3D(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->P180==1)
 	pfsf = new nhflow_vtp_fsf(p,d,pgc);
 
-    pbed = new nhflow_vtp_bed(p,d,pgc);
-
-    if(p->P125>0)
-    pbedshear = new bedshear_probe(p,pgc);
-
-    if(p->P126==1)
-    pbedshearmax = new bedshear_max(p,pgc);
-    
+    pbed = new nhflow_vtp_bed(p,d,pgc);    
 }
 
 nhflow_vtu3D::~nhflow_vtu3D()
@@ -182,6 +174,15 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         
         p->printtime+=p->P30;
         }
+        
+        // Print out based on sediment time
+        if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0 && p->P10==1) || (p->count==0 &&  p->P34>0.0))
+        {
+        print_vtu(p,d,pgc,pnhfturb,psed);
+
+        p->sedprinttime+=p->P34;
+        }
+
 
 		// Print out based on time interval
 		if(p->P10==1 && p->P35>0)
@@ -193,8 +194,8 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
 		printtime_wT[qn]+=p->P35_dt[qn];
 		}
 
-        // Print FSF
-		if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
+        // Print FSF + Bed
+		if(((p->count%p->P181==0 && p->P182<0.0 && p->P183<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
         {
 		pfsf->start(p,d,pgc,psed);
         
@@ -203,7 +204,7 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         }
 
 
-		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
+		if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P183<0.0 && p->P180==1) || (p->count==0 && p->P182>0.0))
         {
         pfsf->start(p,d,pgc,psed);
         
@@ -211,6 +212,16 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
         pbed->start(p,d,pgc,psed);
         
         p->fsfprinttime+=p->P182;
+        }
+        
+        if((p->sedtime>p->fsfsedprinttime && p->P182<0.0 && p->P183>0.0 && p->P180==1) || (p->count==0 && p->P183>0.0))
+        {
+        pfsf->start(p,d,pgc,psed);
+        
+        if(p->S10>0)
+        pbed->start(p,d,pgc,psed);
+        
+        p->fsfsedprinttime+=p->P183;
         }
 
         if(p->P180==1 && p->P184>0)
@@ -285,13 +296,6 @@ void nhflow_vtu3D::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nh
     
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
     p->probeprinttime+=p->P55;
-
-    // sediment probes
-    if(p->P125>0)
-	pbedshear->bedshear_gauge(p,pgc,psed);
-
-    if(p->P126==1)
-    pbedshearmax->bedshear_maxval(p,pgc,psed);
 }
 
 void nhflow_vtu3D::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)

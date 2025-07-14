@@ -105,7 +105,7 @@ void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj
 		
         uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
 
-	tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+	tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
 	
 	a->M.p[id] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;
 	a->rhsvec.V[id] += (tau*u_abs)/dist;
@@ -298,10 +298,10 @@ void komega_bc::vrans_wall_law_kin(lexer *p,fdm *a,field &kin,field &eps)
         if(a->porosity(i+1,j,k)<0.99)
         ks=fac*a->porpart(i+1,j,k);
         
-        if(fac*a->porosity(i,j-1,k)<0.99)
-        ks=a->porpart(i,j-1,k);
+        if(a->porosity(i,j-1,k)<0.99 && p->j_dir==1)
+        ks=fac*a->porpart(i,j-1,k);
         
-        if(a->porosity(i,j+1,k)<0.99)
+        if(a->porosity(i,j+1,k)<0.99 && p->j_dir==1)
         ks=fac*a->porpart(i,j+1,k);
         
         if(a->porosity(i,j,k-1)<0.99)

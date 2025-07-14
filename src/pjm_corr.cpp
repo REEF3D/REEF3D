@@ -152,9 +152,7 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     pcorr(i,j,k)=0.0;
     
     pgc->start4(p,pcorr,1);
-	
-    pip=p->Y50;
-    
+
     count=0;
     LOOP
     {
@@ -164,8 +162,6 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
                            
     ++count;
     }
-    
-    pip=0;
 }
  
 void pjm_corr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)

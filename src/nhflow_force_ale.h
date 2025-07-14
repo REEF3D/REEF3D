@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef NHFLOW_FORCE_ALE_H_
 #define NHFLOW_FORCE_ALE_H_
 
-#include"increment.h"
+#include"nhflow_gradient.h"
 #include"fieldint5.h"
 #include"field5.h"
 #include<iostream>
@@ -35,7 +35,7 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_force_ale :  public increment
+class nhflow_force_ale :  public nhflow_gradient
 {
 
 public:
@@ -49,16 +49,20 @@ private:
     void force_ale_force(lexer*,fdm_nhf*,ghostcell*);
 	void print_force_ale(lexer*,fdm_nhf*,ghostcell*);
     void print_ini(lexer*,fdm_nhf*,ghostcell*);
-	double dndt(lexer*, fdm_nhf*, ghostcell*);
-	double dudsig(lexer*, fdm_nhf*, ghostcell*);
-	double dvdsig(lexer*, fdm_nhf*, ghostcell*);
+	double dndt_f(lexer*, fdm_nhf*, ghostcell*);
+	double dudsig_f(lexer*, fdm_nhf*, ghostcell*);
+	double dvdsig_f(lexer*, fdm_nhf*, ghostcell*);
 	double dudxi(lexer*, fdm_nhf*, ghostcell*);
 	double dvdxi(lexer*, fdm_nhf*, ghostcell*);
 	
     // force ale variabes
-    double Fx1,Fy1,Fx,Fy,xc,yc,rc,cd,cm,etan,dtn,eta2n,ax1,ay1,ax2,ay2,ax3,ay3,dudsig_,dvdsig_,ax,ay;
-	double *un, *u2n, *vn;
+    double Fx1,Fy1,Fx,Fy,xc,yc,rc,cd,cm,dtn,eta2n,ax1,ay1,ax2,ay2,ax3,ay3,ax,ay;
+	double *un, *unn, *vn,*vnn;
     const int ID;
+    
+    double grad,dndt,dudsig,dvdsig;
+    double simtime_n,simtime_nn;
+    double eta_n,eta_nn;
     
     // printing
     char name[100],pname[100],epsvar[100];

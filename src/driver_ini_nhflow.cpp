@@ -127,7 +127,7 @@ void driver::driver_ini_nhflow()
     psed->ini_nhflow(p,d,pgc);
     
     //6DOF ini
-    p6dof->initialize(p, d, pgc, pnet);
+    p6dof->initialize(p, d, pgc);
     
     pnhfprint->start(p,d,pgc,pflow,pnhfturb,psed);
 

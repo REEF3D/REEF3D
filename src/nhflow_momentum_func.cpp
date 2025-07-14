@@ -153,32 +153,30 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
 
 void nhflow_momentum_func::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    /*
-	n=0;
 	LOOP
 	{
-    d->maxF=MAX(fabs(d->rhsvec.V[n]),d->maxF);
-	d->F[IJK] += (d->rhsvec.V[n])*PORVALNH;
-	d->rhsvec.V[n]=0.0;
-	++n;
-	}*/
+	d->F[IJK] += (d->Fext[IJK])*PORVALNH;
+    d->test[IJK] = d->Fext[IJK];
+	d->Fext[IJK]=0.0;
+	}
 }
 
 void nhflow_momentum_func::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    /*
-	n=0;
-	VLOOP
+    LOOP
 	{
-    a->maxG=MAX(fabs(a->rhsvec.V[n]),a->maxG);
-	a->G[IJK] += (a->rhsvec.V[n])*PORVAL2;
-	a->rhsvec.V[n]=0.0;
-	++n;
-	}*/
+	d->G[IJK] += (d->Gext[IJK])*PORVALNH;
+	d->Gext[IJK]=0.0;
+	}
 }
 
 void nhflow_momentum_func::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    LOOP
+	{
+	d->H[IJK] += (d->Hext[IJK])*PORVALNH;
+	d->Hext[IJK]=0.0;
+	}
 }
 
 void nhflow_momentum_func::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)

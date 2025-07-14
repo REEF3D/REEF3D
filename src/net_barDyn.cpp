@@ -23,64 +23,18 @@ Author: Tobias Martin
 #include"net_barDyn.h"
 #include"lexer.h"
 #include"fdm.h"
-#include"ghostcell.h"
-#include"reinidisc_fsf.h"	
+#include"fdm_nhf.h"
+#include"ghostcell.h"	
 
-net_barDyn::net_barDyn(int number, lexer *p):nNet(number){}
-
-net_barDyn::~net_barDyn(){}
-
-
-void net_barDyn::initialize(lexer *p, fdm *a, ghostcell *pgc)
-{    
-    //- Initialise net model
-    if (p->X320_type[nNet]==12)   
-    {
-        cyl_ini(p,a,pgc);
- 
-        buildNet_cyl(p); 
-    }
-    else if (p->X320_type[nNet]==13)   
-    {
-        wall_ini(p,a,pgc);
-        
-        buildNet_wall(p);    
-    } 
-    else if (p->X320_type[nNet]==14)   
-    {
-        cone_ini(p,a,pgc);
-        
-        buildNet_wall(p);    
-    } 
-
-    //- Initialise old variables   
-    xnn_ = x_;    
-    xn_ = x_;
-    xdotnn_ = xdot_;    
-    xdotn_ = xdot_;
-    
-    if (p->X325_dt==0.0)
-    {   
-        dtnn_ = p->dt;
-        dtn_ = p->dt;
-        dt_ = p->dt;
-    }
-    else
-    {
-        dtnn_ = p->X325_dt;
-        dtn_ = p->X325_dt;
-        dt_ = p->X325_dt;
-    }
-    t_net_n = 0.0;
-    t_net = 0.0;
-
-    //- Initialise printing
-    printtime = 0.0;
-    print(p);
+net_barDyn::net_barDyn(int number, lexer *p):nNet(number)
+{
 }
 
+net_barDyn::~net_barDyn()
+{
+}
 
-void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
+void net_barDyn::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
 {
     double starttime1 = pgc->timer();    
 
@@ -102,57 +56,56 @@ void net_barDyn::start(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Ma
     for (int loop = 0; loop < loops; loop++)
     {
         convIt(loop) = loop;
-
-        startLoop(p,a,pgc,convIt(loop));
+        
+        update_velocity_cfd(p,a,pgc);
+        startLoop(p,pgc,convIt(loop));
     }
 
     //- Coupling forces for vrans model
-    vransCoupling(p,a,pgc);
+    coupling_dlm_cfd(p,a,pgc);
 
 	//- Build and save net
 	print(p);	
+}
+
+void net_barDyn::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
+{
+    double starttime1 = pgc->timer();    
+
+	//- Set net time step
+	double phi = 0.0;
+	t_net_n = t_net;
+	t_net = phi*p->simtime + (1.0 - phi)*(p->simtime + alpha*p->dt);
+	double dtm = t_net - t_net_n;
+	
+    dt_ = p->X325_dt > 0.0 ? min(dtm, p->X325_dt) : dtm;
+
+	//- Start loop
+    int loops = ceil(dtm/dt_);
+    if (dt_==0.0) loops = 0;
+    dt_ = dtm/loops;
+
+	Eigen::VectorXi convIt(loops);
     
-    //if (p->mpirank==0)
-    //cout<<"convIt.maxCoeff(): "<<convIt.maxCoeff();
+    for (int loop = 0; loop < loops; loop++)
+    {
+        convIt(loop) = loop;
         
-/*
-    //- Print output
-    double endtime1 = pgc->timer() - starttime1; 
-    if (p->mpirank==0 && convIt.maxCoeff() < 10)
-    {
-        cout<<"Net converged within "<<convIt.maxCoeff()<<" iterations max, "<<loops<<" steps and "<<endtime1<<" s"<<endl;
+        update_velocity_nhflow(p,d,pgc);
+        startLoop(p,pgc,convIt(loop));
     }
-    if (p->mpirank==0 && convIt.maxCoeff() >= 10)
-    {
-        cout<<"Net diverged. Adjust X 325 accordingly!"<<endl; 
-    }*/
+
+    //- Coupling forces for vrans model
+    coupling_dlm_nhflow(p,d,pgc);
+
+	//- Build and save net
+	print(p);	
 }
 
 
-void net_barDyn::startLoop
-(
-	lexer *p, 
-	fdm *a, 
-	ghostcell *pgc,
-    int& iter
-)
+void net_barDyn::startLoop(lexer *p, ghostcell *pgc, int& iter)
 {
-    //- Store old velocities
-    for (int i = 0; i < nK; i++)
-    {
-        coupledFieldn[i][0] = coupledField[i][0];
-        coupledFieldn[i][1] = coupledField[i][1];
-        coupledFieldn[i][2] = coupledField[i][2];
-    }
-
-    //- Get velocities at knots
-    updateField(p, a, pgc, 0);
-    updateField(p, a, pgc, 1);	
-    updateField(p, a, pgc, 2);
-    
-    //- Get density at knots
-    updateField(p, a, pgc, 3);        
-
+          
     //- Get time weights for finite differences
     coeffs_ = timeWeight(p);
 
@@ -165,10 +118,10 @@ void net_barDyn::startLoop
         //- Solve linear system
         
         // Fill system of equations in A_
-        fillLinSystem(p, a, pgc);
+        fillLinSystem(p, pgc);
 
         // Fill RHS in B_
-        fillLinRhs(p, a, pgc);
+        fillLinRhs(p, pgc);
 
         // Solve system for tension forces
         T_ = A_.partialPivLu().solve(B_.transpose());
@@ -188,12 +141,12 @@ void net_barDyn::startLoop
         for (int it = 0; it < 10; it++)
         {
             // Fill Jacobian and invert
-            fillNonLinSystem(p, a, pgc); 
+            fillNonLinSystem(p, pgc); 
 
             Eigen::PartialPivLU<MatrixXd> inv(A_);
             
             // Fill non-linear function
-            fillNonLinRhs(p, a, pgc);
+            fillNonLinRhs(p, pgc);
 
 	        // Store tension forces
 	        T_old = T_;
@@ -203,7 +156,7 @@ void net_barDyn::startLoop
 	        limitTension();
 
 	        // Accelerated Newton step
-	        fillNonLinRhs(p, a, pgc);
+	        fillNonLinRhs(p, pgc);
 	        
             T_ -= inv.solve(B_.transpose());
             limitTension();
@@ -226,7 +179,7 @@ void net_barDyn::startLoop
     }
     
     //- Calculate accelerations
-    updateAcc(p, a, pgc); 
+    updateAcc(p, pgc); 
 
 
     //- Advance velocitie
@@ -292,258 +245,6 @@ void net_barDyn::limitTension()
         T_(barI) = max(T_(barI), 0.0);
     }
 }
-
-
-void net_barDyn::updateAcc(lexer *p, fdm *a, ghostcell *pgc)
-{
-    Vector3d T_knot, x_ij;
-    int knotJ, barI;
-    double l_ij;
-
-    // Move top as rigid body
-    updateTopAcc(p);
-
-    // Calculate acceleration from tension forces
-    for (int knotI = 0; knotI < nK; knotI++)
-    {
-        T_knot << 0.0, 0.0, 0.0;
-        
-        if (knotI >= nfK[0][0]) // then inner knot
-        {
-            xdotdot_.row(knotI) *= 0.0; 
-            
-            for (int k = 1; k < 5; k++)
-            {
-                barI = nfK[knotI - nfK[0][0]][k];
-
-                if (barI!=-1)
-                {
-                    // Find bar vector
-                    if (Pi[barI]==knotI)
-                    {
-                        knotJ = Ni[barI];
-                    }
-                    else
-                    {
-                        knotJ = Pi[barI];
-                    }
-
-                    x_ij = x_.row(knotJ) - x_.row(knotI);
-
-                    l_ij = x_ij.norm();
-
-                    T_knot += T_(barI)*x_ij/l_ij; 
-                }
-            }
-
-            xdotdot_.row(knotI) = 
-                (forces_knot.row(knotI) + T_knot)
-                /
-                (mass_knot(knotI) + added_mass(knotI));
-        }
-        else    // rigid motion of top knots
-        {
-            xdotdot_.row(knotI) = top_xdotdot_.row(knotI);
-        }
-    } 
-}
-
-
-void net_barDyn::updateTopAcc(lexer *p)
-{
-    // Update top knot velocities
-    for (int i = 0; i < nbK; i++)
-    {
-        top_xdot_(i,0) = p->ufbi + (x_(i,2) - p->zg)*p->qfbi - (x_(i,1) - p->yg)*p->rfbi;
-        top_xdot_(i,1) = p->vfbi + (x_(i,0) - p->xg)*p->rfbi - (x_(i,2) - p->zg)*p->pfbi;
-        top_xdot_(i,2) = p->wfbi + (x_(i,1) - p->yg)*p->pfbi - (x_(i,0) - p->xg)*p->qfbi;
-    }
-
-    // Calculate top knot acceleration
-    top_xdotdot_ = 
-          coeffs_(0)*top_xdot_ + coeffs_(1)*xdot_.block(0,0,nbK,3)
-        + coeffs_(2)*xdotn_.block(0,0,nbK,3) + coeffs_(3)*xdotnn_.block(0,0,nbK,3);
-}
-
-
-void net_barDyn::updateField(lexer *p, fdm *a, ghostcell *pgc, int cmp)
-{
-	int *recField, *count;
-
-	p->Iarray(count,p->mpi_size);
-	p->Iarray(recField, nK);
-	
-	// Get velocities on own processor
-	for (int i = 0; i < nK; i++)
-	{	
-		if 
-		(
-			x_(i,0) >= xstart[p->mpirank] && x_(i,0) < xend[p->mpirank] &&
-			x_(i,1) >= ystart[p->mpirank] && x_(i,1) < yend[p->mpirank] &&
-			x_(i,2) >= zstart[p->mpirank] && x_(i,2) < zend[p->mpirank]
-		)
-		{
-			if (cmp==0)
-			{
-				coupledField[i][cmp] = p->ccipol1_a(a->u,x_(i,0),x_(i,1),x_(i,2));
-			}
-			else if (cmp==1)
-			{
-				coupledField[i][cmp] = p->ccipol2_a(a->v,x_(i,0),x_(i,1),x_(i,2));
-			}
-			else if (cmp==2)
-			{
-				coupledField[i][cmp] = p->ccipol3_a(a->w,x_(i,0),x_(i,1),x_(i,2));
-			}
-			else if (cmp==3)
-			{
-				coupledField[i][cmp] = p->ccipol4a(a->phi,x_(i,0),x_(i,1),x_(i,2));
-                
-                if (coupledField[i][cmp] >= 0.0) // water
-                {
-                    coupledField[i][cmp] = p->W1;
-                }
-                else    // air
-                {
-                    coupledField[i][cmp] = p->W3;
-		}
-			}
-            
-			recField[i] = -1;
-			count[p->mpirank]++;
-		}
-		else
-		{
-			for (int j = 0; j < p->mpi_size; j++)
-			{	
-				if 
-				(
-					x_(i,0) >= xstart[j] && x_(i,0) < xend[j] &&
-					x_(i,1) >= ystart[j] && x_(i,1) < yend[j] &&
-					x_(i,2) >= zstart[j] && x_(i,2) < zend[j]
-				)
-				{
-					recField[i] = j;
-					count[j]++;
-					break;
-				}
-				else
-				{
-					recField[i] = -2;
-				}
-			}			
-		}
-	}
-
-	
-	// Fill array for sending
-	double *sendField;
-	p->Darray(sendField, count[p->mpirank]);
-	
-	int counts = 0;
-	for (int i = 0; i < nK; i++)
-	{
-		if (recField[i]==-1)
-		{
-			sendField[counts] = coupledField[i][cmp];
-			counts++;
-		}
-	}
-
-
-	// Prepare arrays for receiving
-	double **recvField;
-
-	recvField = new double*[p->mpi_size];
-
-	for (int n = 0; n < p->mpi_size; ++n)
-	{
-		recvField[n] = new double[count[n]];
-		
-		for (int m = 0; m < count[n]; ++m)
-		recvField[n][m] = 0.0;
-	}
-
-	
-	// Send and receive
-	vector<MPI_Request> sreq(p->mpi_size, MPI_REQUEST_NULL);
-	vector<MPI_Request> rreq(p->mpi_size, MPI_REQUEST_NULL);
-	MPI_Status status;
-	
-	for (int j = 0; j < p->mpi_size; j++)
-	{
-		if (j!=p->mpirank)
-		{
-			if (count[p->mpirank] > 0)
-			{
-			//	cout<<"Processor "<<p->mpirank<<" sends "<<count[p->mpirank]<<" elements to processor "<<j<<endl;
-				
-				MPI_Isend(sendField,count[p->mpirank],MPI_DOUBLE,j,1,pgc->mpi_comm,&sreq[j]);
-			}
-			
-			if (count[j] > 0)
-			{
-			//	cout<<"Processor "<<p->mpirank<<" receives "<<count[j]<<" elements from processor "<<j<<endl;					
-		
-				MPI_Irecv(recvField[j],count[j],MPI_DOUBLE,j,1,pgc->mpi_comm,&rreq[j]);
-			}
-		}
-	}
-
-	// Wait until transmitted
-	for (int j = 0; j < p->mpi_size; j++)
-	{
-		MPI_Wait(&sreq[j],&status);
-		MPI_Wait(&rreq[j],&status);
-	}
-	
-	
-	// Fill velocity vector
-	for (int j = 0; j < p->mpi_size; j++)
-	{
-		if (j!=p->mpirank)
-		{
-			count[j] = 0;
-		}
-	}
-		
-	for (int i = 0; i < nK; i++)
-	{
-		for (int j = 0; j < p->mpi_size; j++)
-		{			
-			if (recField[i]==j)
-			{		
-				coupledField[i][cmp] = recvField[j][count[j]];
-				count[j]++;
-			}
-		}
-	}
-	
-	for (int i = 0; i < nK; i++)
-	{	 
-		coupledField[i][cmp] += 1e-10;
-	}	
-
-
-	// Delete arrays
-	if (count[p->mpirank] > 0)
-	{
-		p->del_Darray(sendField, count[p->mpirank]);
-	}
-
-    for(int i = 0; i < p->mpi_size; ++i)
-	{
-		if (count[i] > 0)
-		{
-			delete [ ] recvField[i];
-		}
-	}
-	delete [ ] recvField;
-	
-	p->del_Iarray(count,p->mpi_size);
-	p->del_Iarray(recField, nK);
-}
-
 
 Eigen::VectorXd net_barDyn::timeWeight(lexer* p)
 {	

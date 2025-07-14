@@ -34,7 +34,7 @@ Author: Hans Bihs
 #define SLICELOOP2 IVLOOP JVLOOP  PSLICECHECK2
 
 #define PSLICECHECK4  if(p->flagslice4[IJ]>0)
-#define SSLICECHECK4  if(p->flagslice4[IJ]<=0)
+#define SSLICECHECK4  if(p->flagslice4[IJ]<0)
 #define SLICELOOP4 ILOOP JLOOP  PSLICECHECK4
 
 #define SLICEBASELOOP ILOOP JLOOP
@@ -66,10 +66,12 @@ Author: Hans Bihs
 #define SLICEFLEXCHECK  if(flagslice[IJ]>0)
 #define SLICEFLEXLOOP IFLEXLOOP JFLEXLOOP SLICEFLEXCHECK
     
-#define SSLICECHECK4  if(p->flagslice4[IJ]<0)
+
 
 #define WETDRY1 if(b->wet1(i,j)==1)
 #define WETDRY2 if(b->wet2(i,j)==1)    
+#define WETDRYDEEP1 if(b->wet1(i,j)==1 && b->deep1(i,j)==1)
+#define WETDRYDEEP2 if(b->wet2(i,j)==1 && b->deep2(i,j)==1)    
 #define WETDRY if(p->wet[IJ]==1)
 #define WETDRYDEEP if(p->wet[IJ]==1 && p->deep[IJ]==1)
 #define WETDRYDEEPBREAK if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
@@ -161,8 +163,12 @@ Author: Hans Bihs
 #define QQGCSLB4ACHECK if(p->gcbsl4a[qq][3]>0)
 #define QQGCSL4ALOOP QQGCSLB4A QQGCSLB4ACHECK
 
-#define GCSLDF4 for(n=0;n<p->gcsldf4_count;++n)
-#define GCSLDF4CHECK if(p->gcsldf4[n][3]>0)
-#define GCSLDF4LOOP GCSLDF4 GCSLDF4CHECK
+#define GCSLDFETA4 for(n=0;n<p->gcsldfeta4_count;++n)
+#define GCSLDFETA4CHECK if(p->gcsldfeta4[n][3]>0)
+#define GCSLDFETA4LOOP GCSLDFETA4 GCSLDFETA4CHECK
+
+#define GCSLDFBED4 for(n=0;n<p->gcsldfbed4_count;++n)
+#define GCSLDFBED4CHECK if(p->gcsldfbed4[n][3]>0)
+#define GCSLDFBED4LOOP GCSLDFBED4 GCSLDFBED4CHECK
 
 #endif

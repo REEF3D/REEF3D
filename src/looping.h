@@ -334,9 +334,13 @@ Author: Hans Bihs
 #define QGC6LOOP  for(q=0;q<p->gcb_fix;++q)
 #define QQGC6LOOP  for(qq=0;qq<p->gcb_fix;++qq)
 #define GGC6LOOP  for(g=0;g<p->gcb_fix;++g)
+    
+#define NETLOOP for (int n=0; n<p->net_count; ++n)
 
 
 #define DT p->dt
 #define NDT p->dt_old
+
+
 
 #endif

@@ -345,7 +345,6 @@ void ghostcell::flagx(lexer* p, int *flag)
     gcwait(p);
 
 //  FILL RECEIVE
-    //pip=4;
     for(q=0;q<p->gcparaco1_count;++q)
     {
     i=p->gcparaco1[q][0];

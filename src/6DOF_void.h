@@ -34,7 +34,7 @@ class fdm;
 class fdm_nhf;
 class ghostcell;
 class mooring;
-class net;
+class net_interface;
 
 using namespace std;
 
@@ -44,15 +44,15 @@ public:
 	sixdof_void(lexer*,ghostcell*);
 	virtual ~sixdof_void();
     
-    virtual void start_cfd(lexer*,fdm*,ghostcell*,vrans*,vector<net*>&,int,field&,field&,field&,field&,field&,field&,bool);
-    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*,vector<net*>&,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool);
+    virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool);
+    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool);
     
     virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
     
 	virtual void ini(lexer*,ghostcell*);
-    virtual void initialize(lexer*, fdm*, ghostcell*, vector<net*>&);
-    virtual void initialize(lexer*, fdm2D*, ghostcell*, vector<net*>&);
-    virtual void initialize(lexer*, fdm_nhf*, ghostcell*, vector<net*>&);
+    virtual void initialize(lexer*, fdm*, ghostcell*);
+    virtual void initialize(lexer*, fdm2D*, ghostcell*);
+    virtual void initialize(lexer*, fdm_nhf*, ghostcell*);
 
     
     virtual void isource(lexer*,fdm*,ghostcell*);
@@ -67,12 +67,18 @@ public:
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
     
 private:
+    net_interface *pnetinter;
+    
     Eigen::Matrix3d quatRotMat;
 
-    vector<mooring*> pmooring;
-
+    // Mooring
+	vector<double> X311_xen, X311_yen, X311_zen;
+	vector<mooring*> pmooring;
+    
 	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
 	vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
+    
+    double alpha[3],gamma[3],zeta[3];
 };
 
 #endif

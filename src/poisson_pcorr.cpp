@@ -67,6 +67,23 @@ poisson_pcorr::~poisson_pcorr()
 
 void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 {	
+    n=0;
+    BASELOOP
+    {
+    a->M.p[n]  =  1.0;
+
+        a->M.n[n] = 0.0;
+        a->M.s[n] = 0.0;
+
+        a->M.w[n] = 0.0;
+        a->M.e[n] = 0.0;
+        
+        a->M.t[n] = 0.0;
+        a->M.b[n] = 0.0;
+        
+    ++n;
+    }
+    
 	n=0;
     LOOP
 	{

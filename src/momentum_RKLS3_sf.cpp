@@ -78,11 +78,11 @@ momentum_RKLS3_sf::~momentum_RKLS3_sf()
 {
 }
 
-void momentum_RKLS3_sf::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof *p6dof, vector<net*>& pnet)
+void momentum_RKLS3_sf::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof *p6dof)
 {
 }
 
-void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, vrans* pvrans, vector<net*>& pnet, fsi* pfsi)
+void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, vrans* pvrans, fsi* pfsi)
 {	
     // Set inflow 
     double udisctime=0.0;
@@ -262,86 +262,50 @@ void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
 void momentum_RKLS3_sf::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
-	if(p->D20<3)
-    {
+
         ULOOP
         {
             a->maxF = MAX(fabs(a->rhsvec.V[n] + a->gi), a->maxF);
             
-            a->F(i,j,k) += (a->rhsvec.V[n] + a->gi + p->W29_x)*PORVAL1;
+            a->F(i,j,k) += (a->rhsvec.V[n] + a->gi + p->W29_x+ a->Fext(i,j,k))*PORVAL1;
             
             a->rhsvec.V[n] = 0.0;
+            a->Fext(i,j,k) = 0.0;
             
             ++n;
         }
-    }
-	
-	n=0;
-	if(p->D20==3)
-    {
-        ULOOP
-        {
-            a->rhsvec.V[n] += a->gi;
-            
-            ++n;
-        }
-    }
 }
 
 void momentum_RKLS3_sf::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
-	if(p->D20<3)
-    {
+
         VLOOP
         {
             a->maxG = MAX(fabs(a->rhsvec.V[n] + a->gj), a->maxG);
             
-            a->G(i,j,k) += (a->rhsvec.V[n] + a->gj + p->W29_y)*PORVAL2;
+            a->G(i,j,k) += (a->rhsvec.V[n] + a->gj + p->W29_y + a->Gext(i,j,k))*PORVAL2;
             
-            a->rhsvec.V[n]=0.0;
-            
-            ++n;
-        }
-    }
-	
-	n=0;
-	if(p->D20==3)
-    {
-        VLOOP
-        {
-            a->rhsvec.V[n] += a->gj;
+            a->rhsvec.V[n] = 0.0;
+            a->Gext(i,j,k) = 0.0;
             
             ++n;
         }
-    }
 }
 
 void momentum_RKLS3_sf::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
-	if(p->D20<3)
-    {
+
         WLOOP
         {
             a->maxH = MAX(fabs(a->rhsvec.V[n] + a->gk), a->maxH);
             
-            a->H(i,j,k) += (a->rhsvec.V[n] + a->gk + p->W29_z)*PORVAL3;
+            a->H(i,j,k) += (a->rhsvec.V[n] + a->gk + p->W29_z + a->Hext(i,j,k))*PORVAL3;
             
-            a->rhsvec.V[n]=0.0;
-            
-            ++n;
-        }
-    }
-	
-	n=0;
-	if(p->D20==3)
-    {
-        WLOOP
-        {
-            a->rhsvec.V[n] += a->gk;
+            a->rhsvec.V[n] = 0.0;
+            a->Hext(i,j,k) = 0.0;
             
             ++n;
         }
-    }
 }

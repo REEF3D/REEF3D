@@ -45,9 +45,6 @@ public:
 	virtual void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
 	virtual void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);
     
-    virtual void taubed(lexer*, fdm*, ghostcell*, double&);
-    virtual void taucritbed(lexer*, fdm*, ghostcell*, double&);
-    
     virtual void taubed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);
     virtual void taucritbed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);
     
@@ -56,7 +53,6 @@ public:
 
 	const double ks,kappa;
     
-    slice4 taueff_loc,taucrit_loc;
 
 private:
     turbulence *pturb;

@@ -37,6 +37,7 @@ bedload_EF::bedload_EF(lexer *p)
     ks=p->S21*d50;
     Rstar=(rhosed-rhowat)/rhowat;
     Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
+    mu_d = p->S18;
 }
 
 bedload_EF::~bedload_EF()
@@ -51,16 +52,17 @@ void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     {
         Ts = s->shields_crit(i,j);
 	    Tb = s->shields_eff(i,j);
+        
 
-        if(Tb>Ts)
-        if(s->active(i,j)==1)
-        qb =  d50*sqrt((rhosed/rhowat-1.0)*g*d50) * 11.6* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
-
-        if(Tb<=Ts || s->active(i,j)==0)
+        if(s->active(i,j)==1 && Tb>=Ts)
+        qb = d50*sqrt((rhosed/rhowat-1.0)*g*d50) * (30.0/(PI*mu_d))* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
+    
+        if(s->active(i,j)==0 || Tb<Ts)
         qb=0.0;
 	
         s->qbe(i,j) = qb;
 	}
+    
     
     pgc->gcsl_start4(p,s->qbe,1);
 }

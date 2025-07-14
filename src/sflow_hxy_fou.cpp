@@ -32,13 +32,8 @@ Author: Hans Bihs
 sflow_hxy_fou::sflow_hxy_fou(lexer* p, patchBC_interface *ppBC) 
 {
     pBC = ppBC;
-    
-    if(p->A216==1)
-    pflux = new sflow_flux_face_FOU(p);
-        
-    if(p->A216>=2)
-    pflux = new sflow_flux_face_CDS(p);
 
+    pflux = new sflow_flux_face_CDS(p);
 }
 
 sflow_hxy_fou::~sflow_hxy_fou()

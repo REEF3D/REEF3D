@@ -56,7 +56,7 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     // bedshear stress -------
 	pbedshear->taubed(p,d,pgc,s);
     pbedshear->taucritbed(p,d,pgc,s);
-
+    
     // bedload *******
     pbed->start(p,pgc,s);
     
@@ -83,8 +83,12 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     // update sflow  --------
     update_nhflow(p,d,pgc,pflow);
     
+    // sediment print
+    print_probes(p,pgc,s,pflow);
+    
     // sediment log
     sedimentlog(p);
+    
     
     if(p->mpirank==0 && p->count>0)
     cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
@@ -93,6 +97,10 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
 }
 
+void sediment_f::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv)
+{
+    //psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
+}
 
 
 

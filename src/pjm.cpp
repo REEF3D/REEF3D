@@ -147,8 +147,6 @@ void pjm::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
  
 void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
-    pip=p->Y50;
-    
     count=0;
     LOOP
     {
@@ -158,7 +156,6 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
     
     ++count;
     }
-    pip=0;
 }
  
 void pjm::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w,double alpha)
