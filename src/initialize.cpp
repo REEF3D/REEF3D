@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 
-initialize::initialize(lexer* p):smallnum(1.0e-20)
+initialize::initialize(lexer* p)
 {
 }
 

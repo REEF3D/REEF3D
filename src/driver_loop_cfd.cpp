@@ -86,10 +86,7 @@ void driver::loop_cfd(fdm* a)
         pflow->u_relax(p,a,pgc,a->u);
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
-        if(p->F80!=4)
-        {
-            pfsf->update(p,a,pgc,a->phi);
-        }
+        pfsf->update(p,a,pgc,a->phi);
         pmom->start(p,a,pgc,pvrans,p6dof,pnet); 
         pbench->start(p,a,pgc,pconvec);
 		

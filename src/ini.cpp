@@ -405,13 +405,7 @@ void lexer::ini_default()
     F97=0;           // PLIC density softening from superfine to fine y direction start & end
     F97_ys=-1.0e20;
     F97_ye=-1.0e20;
-    F112=0;            // int tilted wedge
-    F112_xs=-1.0e20;            // double i-dir zero level set start
-    F112_xe=-1.0e20;            // double j-dir zero level set start
-    F112_ys=-1.0e20;            // double k-dir zero level set start
-    F112_ye=1.0e20;        // double i-dir zero level set end
-    F112_zs=1.0e20;        // double j-dir zero level set end
-    F112_ze=1.0e20;        // double k-dir zero level set end
+    
     F150=0;         // int benchmark
     F151=0;         // int benchmark inverse sign of level set
     F300=0;             // int multiphase flow level set

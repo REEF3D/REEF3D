@@ -2650,8 +2650,6 @@
           <File Name="vts3D_pvts.cpp"/>
         </VirtualDirectory>
         <File Name="vtu3D.cpp"/>
-        <File Name="vtr3D.cpp"/>
-        <File Name="vts3D.cpp"/>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.cpp"/>
           <File Name="probe_vel.cpp"/>
