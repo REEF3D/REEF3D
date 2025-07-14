@@ -249,7 +249,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
-    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
     pflow->pressure_io(p,a,pgc);
@@ -403,7 +403,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
-    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
     pflow->pressure_io(p,a,pgc);
@@ -553,7 +553,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
-    momentum_forcing_start(a, p, pgc, p6dof, pvrans, pfsi,
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
 	pflow->pressure_io(p,a,pgc);
