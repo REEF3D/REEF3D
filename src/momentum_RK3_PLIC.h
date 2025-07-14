@@ -52,7 +52,7 @@ public:
 	momentum_RK3_PLIC(lexer*, fdm*,ghostcell*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*,heat*&,concentration*&,fsi*);
 	virtual ~momentum_RK3_PLIC();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*);
 
     field1 udiff,urk1,urk2,fx;
 	field2 vdiff,vrk1,vrk2,fy;

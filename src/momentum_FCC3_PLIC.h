@@ -56,7 +56,7 @@ public:
 	momentum_FCC3_PLIC(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_FCC3_PLIC();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*,vector<net*>&);
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*);
     virtual void utimesave(lexer*, fdm*, ghostcell*);
     virtual void vtimesave(lexer*, fdm*, ghostcell*);
     virtual void wtimesave(lexer*, fdm*, ghostcell*);
