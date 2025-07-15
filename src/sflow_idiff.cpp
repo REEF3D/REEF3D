@@ -263,25 +263,26 @@ void sflow_idiff::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psol
 
     sqd = (1.0/(p->DXM*p->DXM));
 
+
 	SLICELOOP4
 	{
 	ev_ij=b->eddyv(i,j);
 	visc_ij=p->W2;
 
-	b->M.p[count]  +=   0.5*sqd*(vft*visc_ij+b->eddyv(i+1,j)/sig + vft*visc_ij+ev_ij/sig)
+	b->M.p[count]  +=   0.5*sqd*(visc_ij+b->eddyv(i+1,j)/sig + visc_ij+ev_ij/sig)
     
-					+   0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i-1,j)/sig)
+					+   0.5*sqd*(visc_ij+ev_ij/sig + visc_ij+b->eddyv(i-1,j)/sig)
                     
-					+   0.5*sqd*(vft*visc_ij+b->eddyv(i,j+1)/sig + vft*visc_ij+ev_ij/sig)*p->y_dir
+					+   0.5*sqd*(visc_ij+b->eddyv(i,j+1)/sig + visc_ij+ev_ij/sig)*p->y_dir
                     
-					+   0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i,j-1)/sig)*p->y_dir;
+					+   0.5*sqd*(visc_ij+ev_ij/sig + visc_ij+b->eddyv(i,j-1)/sig)*p->y_dir;
 
 	 
-	 b->M.s[count] -= 0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i-1,j)/sig);
-	 b->M.n[count] -= 0.5*sqd*(vft*visc_ij+b->eddyv(i+1,j)/sig + vft*visc_ij+ev_ij/sig);
+	 b->M.s[count] -= 0.5*sqd*(visc_ij+ev_ij/sig + visc_ij+b->eddyv(i-1,j)/sig);
+	 b->M.n[count] -= 0.5*sqd*(visc_ij+b->eddyv(i+1,j)/sig + visc_ij+ev_ij/sig);
 	 
-	 b->M.e[count] -= 0.5*sqd*(vft*visc_ij+ev_ij/sig + vft*visc_ij+b->eddyv(i,j-1)/sig)*p->y_dir;
-	 b->M.w[count] -= 0.5*sqd*(vft*visc_ij+b->eddyv(i,j+1)/sig + vft*visc_ij+ev_ij/sig)*p->y_dir;
+	 b->M.e[count] -= 0.5*sqd*(visc_ij+ev_ij/sig + visc_ij+b->eddyv(i,j-1)/sig)*p->y_dir;
+	 b->M.w[count] -= 0.5*sqd*(visc_ij+b->eddyv(i,j+1)/sig + visc_ij+ev_ij/sig)*p->y_dir;
 
 	 ++count;
 	}

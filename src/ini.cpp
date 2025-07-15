@@ -56,6 +56,8 @@ void lexer::ini_default()
     A260=0;      // int turbulence model
     A261=0.267;  // double length scale factor
     A262=0.0667; // double parabolic turbulence model factor
+    A263=10.0;   // double eddyv limiter factor set to high
+    A263=2.7;   // double epsisolon coefficient ce_gamma
 
     // FNPF
     A310=3;		  // int time scheme for FNPF velocities

@@ -49,7 +49,7 @@ public:
     
 private:
     double epsi;
-	double dirac;
+	double dirac,dxm;
 };
 
 #endif

@@ -79,9 +79,6 @@ double sflow_fou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& v
 		
 		L = -dx-dy;
         
-        //if(ipol==2)
-        //L=0.0;
-
 		return L;
 }
 

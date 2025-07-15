@@ -214,5 +214,4 @@ void sflow_iweno_hj::weight_calc()
 	w1=alpha1/(alpha1+alpha2+alpha3);
 	w2=alpha2/(alpha1+alpha2+alpha3);
 	w3=alpha3/(alpha1+alpha2+alpha3);
-
 }

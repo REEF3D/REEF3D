@@ -32,14 +32,14 @@ Author: Hans Bihs
 #define HP (fabs(b->hp(i,j))>(p->A244)?b->hp(i,j):1.0e20)
 
 sflow_turb_ke_IM1::sflow_turb_ke_IM1(lexer* p) : sflow_turb_io(p), kn(p), en(p), Pk(p), S(p), ustar(p), cf(p),
-                                                 wallf(p),ce1(1.44),ce2(1.92),sigk(1.0),sige(1.3),ceg(1.8)
+                                                 wallf(p),ce1(1.44),ce2(1.92),sigk(1.0),sige(1.3),ceg(p->A264)
 {
     gcval_kin=20;
 	gcval_eps=30;
 
-    //pconvec = new sflow_iweno_hj(p);
+    pconvec = new sflow_iweno_hj(p);
     
-    pconvec = new sflow_ifou(p);
+    //pconvec = new sflow_ifou(p);
     
     pdiff = new sflow_idiff(p);
 }
@@ -107,7 +107,7 @@ void sflow_turb_ke_IM1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     b->eddyv(i,j) = p->cmu*MAX(MIN(MAX(kin(i,j)*kin(i,j)
-                        /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
+                        /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->A263*kin(i,j))/S(i,j)),
                         0.0001*p->W2);
                         
                         
@@ -196,10 +196,10 @@ void sflow_turb_ke_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     uvel=0.0;
     vvel=0.0;
     
-    if(b->wet1(i,j)==0 && b->wet1(i-1,j))
+    //if(b->wet1(i,j)==0 && b->wet1(i-1,j))
     uvel = 0.5*(b->P(i,j) + b->P(i-1,j));
     
-    if(b->wet2(i,j)==0 && b->wet2(i,j-1))
+    //if(b->wet2(i,j)==0 && b->wet2(i,j-1))
     vvel = 0.5*(b->Q(i,j) + b->Q(i,j-1));
 
     manning = pow(b->ks(i,j),1.0/6.0)/26.0;
@@ -244,12 +244,21 @@ void sflow_turb_ke_IM1::timesource(lexer* p, fdm2D *b, slice &fn)
 
 void sflow_turb_ke_IM1::clearrhs(lexer* p, fdm2D *b)
 {
-    count=0;
+    n=0;
     SLICELOOP4
     {
-    b->rhsvec.V[count]=0.0;
+    b->M.p[n]  = 0.0;
+
+    b->M.n[n] = 0.0;
+    b->M.s[n] = 0.0;
+
+    b->M.w[n] = 0.0;
+    b->M.e[n] = 0.0;
+        
+    b->rhsvec.V[n]=0.0;
+    
 	b->L(i,j)=0.0;
-	++count;
+	++n;
     }
 }
 
@@ -262,7 +271,7 @@ void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
     double dist=0.5*p->DXM;
     double u_abs,uplus,tau,kappa;
     kappa=0.4;
-
+/*
     n=0;
 	SLICELOOP4
 	{
@@ -283,17 +292,17 @@ void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
 
         tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
 
-/*
+
 		WETDRY
        if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0 ||
        p->wet[Im1J]<0 || p->wet[Ip1J]<0 || p->wet[IJm1]<0 || p->wet[IJp1]<0)
        {
 		b->M.p[n] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j)),0.5)*uplus)/dist;
          b->rhsvec.V[n] += (tau*u_abs)/dist;
-		}*/
+		}
 
 	++n;
-	}
+	}*/
 
 
     n=0;

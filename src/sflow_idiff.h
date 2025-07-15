@@ -52,7 +52,6 @@ private:
     double visc;
     double starttime,time;
     
-    double vfm,vft;
     double ev_ij, visc_ij,sqd;
 
 };
