@@ -57,7 +57,7 @@ sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) :
 
 		pout[n]<<endl<<endl;
 		
-		pout[n]<<"t \t Um \t Vm \t Wm \t Pm \t eta"<<endl;
+		pout[n]<<"t \t Um \t Vm \t Wm \t Pm \t eta \t bed"<<endl;
         pout[n].close();
         }
     }
@@ -76,7 +76,7 @@ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 	for(n=0;n<probenum;++n)
 	{
 	uval=vval=wval=pval=eval=-1.0e20;
-	
+	double bval=-1.0e20;
 		if(flag[n]>0)
 		{
 		xp=p->P63_x[n];
@@ -86,7 +86,8 @@ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 		vval = p->ccslipol2(b->Q, xp, yp);
 		wval = p->ccslipol4(b->ws,xp,yp); 
 		pval = p->ccslipol4(b->press,xp,yp);
-        eval = p->ccslipol4(b->eta,xp,yp); 
+        eval = p->ccslipol4(b->eta,xp,yp);
+        bval = p->ccslipol4(b->bed,xp,yp); 
 		}
 	
 	uval=pgc->globalmax(uval);
@@ -94,12 +95,13 @@ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 	wval=pgc->globalmax(wval);
 	pval=pgc->globalmax(pval);
     eval=pgc->globalmax(eval);
+    bval=pgc->globalmax(bval);
 	
         if(p->mpirank==0)
         {
             sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
             pout[n].open(name, std::ofstream::out | std::ofstream::app);
-            pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<endl;
+            pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<" \t "<<bval<<endl;
             pout[n].close();
         }
     }
