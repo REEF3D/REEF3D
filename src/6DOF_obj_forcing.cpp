@@ -46,7 +46,7 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     
     H=Ht=0.0;
   
-    if(p->X14==1)
+    if(p->X14==0)
     {
     ULOOP
     {
@@ -119,7 +119,7 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
 
 
 // Construct solid heaviside function	
-    if(p->X14>=2)
+    if(p->X14>=1)
     {
         
     ULOOP
