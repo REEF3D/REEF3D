@@ -50,6 +50,7 @@ public:
 private:
     double epsi;
 	double dirac;
+    double dxm,f;
 };
 
 #endif

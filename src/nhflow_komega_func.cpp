@@ -110,9 +110,31 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 						  0.00001*d->VISC[IJK]);
 		}
 	
+    // URANS
 	if(p->A560==22)
 	LOOP
-	d->EV0[IJK] = MIN(d->EV0[IJK], p->DXM*p->cmu*pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
+    {
+    if(p->j_dir==0)
+    dxm = pow(p->DXN[IP]*p->DZN[KP]*d->WL(i,j), (1.0/2.0));
+    
+    if(p->j_dir==1)
+    dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
+    
+	f = MIN(1.0, dxm*p->cmu*EPS[IJK]/   pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
+    
+    
+    
+        if(p->A564==0)
+		d->EV0[IJK] = MAX(MAX(KIN[IJK]
+						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
+						  0.00001*d->VISC[IJK]);
+                          
+        if(p->A564==1)
+		d->EV0[IJK] = MAX(MIN(MAX(KIN[IJK]
+						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
+						  0.00001*d->VISC[IJK]);
+                          
+    }
     
     // stabilization
     if(p->A565==0)
