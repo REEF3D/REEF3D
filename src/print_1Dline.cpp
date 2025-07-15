@@ -68,7 +68,7 @@ print_1Dline::~print_1Dline()
 }
 
 void print_1Dline::height_gauge(lexer *p, fdm *a, ghostcell *pgc)
-{
+{   
     double zval=0.0;
 
     for(n=0;n<p->P51;++n)

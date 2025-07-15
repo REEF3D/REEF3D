@@ -232,9 +232,12 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 	if(p->P50>0)
 	pwsf_theory->height_gauge(p,a,pgc,pflow,a->phi);
 
-	if(p->P51>0)
+	if(p->P51>0 && p->F80!=4)
 	pwsf->height_gauge(p,a,pgc,a->phi);
-
+    
+    if(p->P51>0 && p->F80==4)
+    pwsf->height_gauge(p,a,pgc,a->vof);
+    
 	if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
 	pwsfline_x->wsfline(p,a,pgc,pflow);
 
@@ -520,6 +523,13 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
 	}
+    
+     // VOF_C
+	if(p->P72==1)
+	{
+	offset[n]=offset[n-1]+4*(p->cellnum)+4;
+	++n;
+	}
 		// end scalars
 
 	// Points
@@ -650,6 +660,13 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
     ++n;
 	}
     result<<"</PointData>"<<endl;
+    result<<"<CellData>"<<endl;
+    if(p->P72==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"VOF_C\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	}
+    result<<"</CellData>"<<endl;
 
     result<<"<Points>"<<endl;
     result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
@@ -877,6 +894,18 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(a->walld));
+	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+    
+    //  VOF_C
+    if(p->P72==1)
+	{
+    iin=4*(p->cellnum);
+    result.write((char*)&iin, sizeof (int));
+	BASEREVLOOP
+	{
+	ffn=float(a->vof(i,j,k));
 	result.write((char*)&ffn, sizeof (float));
 	}
 	}

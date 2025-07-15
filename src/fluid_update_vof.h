@@ -23,8 +23,8 @@ Author: Hans Bihs
 
 
 
-#ifndef FLUID_UPDATE_FSF_H_
-#define FLUID_UPDATE_FSF_H_
+#ifndef FLUID_UPDATE_VOF_H_
+#define FLUID_UPDATE_VOF_H_
 
 #include"fluid_update.h"
 #include"increment.h"
@@ -32,6 +32,7 @@ Author: Hans Bihs
 class fdm;
 class lexer;
 class ghostcell;
+class density;
 
 using namespace std;
 
@@ -48,6 +49,7 @@ private:
     int gcval_ro,gcval_visc;
 	const double dx,visc_air,visc_water,ro_air,ro_water,visc_body;
     double epsi;
+    density *pd;
 
 };
 

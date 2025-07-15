@@ -47,6 +47,7 @@ Author: Hans Bihs
 #include"idiff2_FS.h"
 #include"idiff2_CN.h"
 #include"idiff2_FS_2D.h"
+#include"idiff2_PLIC_2D.h"
 
 #include"hires.h"
 

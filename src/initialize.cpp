@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
+
 initialize::initialize(lexer* p)
 {
 }
@@ -57,7 +58,7 @@ void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
 	if(p->F80==4)
 	inivofPLIC(a,p,pgc);  
 
-	if(p->F70>0 && p->F80>0)
+	if(p->F70>0 && p->F80>0 && p->F80<4)
 	inivof_box(p,a,pgc);
 
 	if(p->S10>0 || p->toporead==1)
@@ -91,6 +92,7 @@ void initialize::inifdm(lexer* p, fdm* a, ghostcell* pgc)
 		a->visc(i,j,k)=p->W2;
 		a->eddyv(i,j,k)=0.0;
 		a->phi(i,j,k)=1.0;
+        a->vof(i,j,k)=1.0;
 
 		a->conc(i,j,k)=0.0;
 	}

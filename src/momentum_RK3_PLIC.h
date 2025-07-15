@@ -1,0 +1,85 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2025 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Author: Fabian Knoblauch
+--------------------------------------------------------------------*/
+
+#ifndef MOMENTUM_RK3_PLIC_H_
+#define MOMENTUM_RK3_PLIC_H_
+
+#include"momentum.h"
+#include"momentum_forcing.h"
+#include"bcmom.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
+
+class convection;
+class diffusion;
+class pressure;
+class turbulence;
+class solver;
+class poisson;
+class fluid_update;
+class nhflow;
+class sixdof;
+class fsi;
+class heat;
+class concentration;
+class VOF_PLIC;
+
+using namespace std;
+
+class momentum_RK3_PLIC : public momentum, public momentum_forcing, public bcmom
+{
+public:
+	momentum_RK3_PLIC(lexer*, fdm*,ghostcell*, convection*, diffusion*, pressure*, poisson*, 
+                turbulence*, solver*, solver*, ioflow*,heat*&,concentration*&,fsi*);
+	virtual ~momentum_RK3_PLIC();
+	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*);
+
+    field1 udiff,urk1,urk2,fx;
+	field2 vdiff,vrk1,vrk2,fy;
+	field3 wdiff,wrk1,wrk2,fz;
+
+private:
+    fluid_update *pupdate;
+    
+	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void clear_FGH(lexer*,fdm*);
+    
+	int gcval_u, gcval_v, gcval_w;
+	double starttime;
+
+	convection *pconvec;
+	diffusion *pdiff;
+	pressure *ppress;
+	poisson *ppois;
+	turbulence *pturb;
+	solver *psolv;
+    solver *ppoissonsolv;
+	ioflow *pflow;
+    nhflow *pnh;
+    fsi *pfsi;
+    VOF_PLIC *pplic;
+};
+
+#endif
