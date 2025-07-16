@@ -35,6 +35,7 @@ Author: Tobias Martin, Fabian Knoblauch
 #include"weno_hj.h"
 #include"hric.h"
 
+#include<algorithm>
 
 void VOF_PLIC::calcNormalFO(fdm* a, lexer* p, field& voffield)
 {   double nsum;
