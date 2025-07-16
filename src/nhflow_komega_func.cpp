@@ -120,7 +120,7 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
     if(p->j_dir==1)
     dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
     
-	f = MIN(1.0, dxm*p->T23*p->cmu*EPS[IJK]/   pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
+	f = MIN(1.0, dxm*p->A568*p->cmu*EPS[IJK]/   pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
     
     
     

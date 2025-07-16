@@ -135,7 +135,7 @@ void lexer::ini_default()
     A565=0;      // int stabilization
     A566=0;      // int buoyancy
     A567=0;      // int fsf eps
-    A568=0;      // double URANS C3 coefficient
+    A568=1.0;      // double URANS C3 coefficient
     A569=0;      // int 
     
     A570=0;      // int wind model
