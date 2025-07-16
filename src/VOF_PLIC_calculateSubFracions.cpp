@@ -61,7 +61,7 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
             {
                 
                     
-                if((nx(i,j,k)>0.0 && nz(i,j,k)<0.0) || (nx(i,j,k)<0.0 && nz(i,j,k)>0.0))
+                if((nx(i,j,k)>0.0 && nz(i,j,k)<0.0) || (nx(i,j,k)<0.0 && nz(i,j,k)>0.0))
                 {
                     if(alpha(i,j,k)>0.0)
                         a->vof_nt(i,j,k)=1.0;
