@@ -2016,7 +2016,10 @@ void lexer::read_control()
                 case 21: control>>T21;
 						 clear(c,numint);
 						 break;
-                case 31: control>>T31;
+                case 23: control>>T23;
+						 clear(c,numint);
+						 break;
+                 case 31: control>>T31;
 						 clear(c,numint);
 						 break;
 				case 32: control>>T32;

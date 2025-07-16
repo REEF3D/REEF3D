@@ -135,7 +135,7 @@ void lexer::ini_default()
     A565=0;      // int stabilization
     A566=0;      // int buoyancy
     A567=0;      // int fsf eps
-    A568=0;      // int 
+    A568=0;      // double URANS C3 coefficient
     A569=0;      // int 
     
     A570=0;      // int wind model
@@ -740,6 +740,7 @@ void lexer::ini_default()
 	T10=0;			    // int turbulence model
 	T12=5;              // int convection scheme
     T21=0;              // int type of LES filter
+    T23=1.0;            // double URANS C3 coefficient
 	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
 	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
     T33=0;               // int kin source

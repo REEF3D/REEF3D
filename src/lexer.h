@@ -286,9 +286,9 @@ public:
     double A541,A542,A544,A545;
     int A550,A551,A552,A553;
     int A560;
-    int A564,A565,A566,A567,A568,A569;
+    int A564,A565,A566,A567,A569;
     int A570,A573;
-    double A571_u,A571_dir;
+    double A568,A571_u,A571_dir;
     int A580;
     double A580_xs,A580_xe,A580_ys,A580_ye;
     int A581;
@@ -595,7 +595,7 @@ public:
 
 	// Turbulence
 	int T10,T12,T21,T33,T36,T39,T41,T45;
-	double T31,T32,T35,T37,T38,T42,T43,T44;
+	double T23,T31,T32,T35,T37,T38,T42,T43,T44;
 
 	// Waterflow
 	double W1,W2,W3,W4,W5,W6,W7,W10,W_fb;
