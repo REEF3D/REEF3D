@@ -35,6 +35,7 @@ Author: Tobias Martin, Fabian Knoblauch
 #include"weno_hj.h"
 #include"hric.h"
 
+#include<algorithm>
 
 void VOF_PLIC::calcNormalFO(fdm* a, lexer* p, field& voffield)
 {   double nsum;
@@ -703,7 +704,7 @@ void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p, field& voffield)
   //  }
     
     
-    if(baseswitch==-1 || baseswitch==1)
+    if(baseswitch==-1 || baseswitch==1)
     {
         n_x=1.0;
         pcc=voffield(i-1,j,k)+voffield(i,j,k)+voffield(i+1,j,k);
@@ -1480,7 +1481,7 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);*/
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
@@ -1721,7 +1722,7 @@ void VOF_PLIC::calcNormalMYC2D_V2(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);*/
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
@@ -1962,7 +1963,7 @@ void VOF_PLIC::calcNormalMYC2D_V3(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);*/
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
