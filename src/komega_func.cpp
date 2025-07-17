@@ -142,7 +142,12 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     if(p->j_dir==1)
     dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP], (1.0/3.0));
     
-
+    if(p->T34==0)
+    eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*eps(i,j,k)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
+    
+                * MAX(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0), 0.0001*a->visc(i,j,k));
+                          
+    if(p->T34==1)
     eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*eps(i,j,k)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
     
                 * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T35*kin(i,j,k))/strainterm(p,a)),
