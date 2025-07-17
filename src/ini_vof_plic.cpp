@@ -77,7 +77,6 @@ if(p->F58_4>1E-20)
 
 if(p->F60>-1.0e20)
 {   p->phimean=p->F60;
-    cout<<"a"<<endl;
     LOOP
     {
         if(p->pos_z()+0.5*p->DZN[KP]<p->F60)
@@ -85,7 +84,6 @@ if(p->F60>-1.0e20)
         else if(p->pos_z()-0.5*p->DZN[KP]>p->F60)
         {
             a->vof(i,j,k)=0.0;
-            cout<<"b"<<endl;
         }
         else
         {
