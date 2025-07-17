@@ -245,7 +245,7 @@ void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,fi
     LOOP
     {
         if(a->phasemarker(i,j,k)>9.9 && a->phasemarker(i,j,k)<10.1)
-        if(searchMarkerInVicinity(p,a,6,6.0,i,j,k)>=1)
+        if(searchMarkerInVicinity(p,a,3,6.0,i,j,k)>=1)
         {
             a->phasemarker(i,j,k)=4.0;
         }
