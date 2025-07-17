@@ -19,19 +19,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include"bc_ikepsilon.h"
+#include"kepsilon_bc.h"
 #include"fdm.h"
 #include"lexer.h"
 
-bc_ikepsilon::bc_ikepsilon(lexer* p):roughness(p),kappa(0.4)
+kepsilon_bc::kepsilon_bc(lexer* p):roughness(p),kappa(0.4)
 {
 }
 
-bc_ikepsilon::~bc_ikepsilon()
+kepsilon_bc::~kepsilon_bc()
 {
 }
 
-void bc_ikepsilon::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
+void kepsilon_bc::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 {
 	int q;
 
@@ -138,7 +138,7 @@ void bc_ikepsilon::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 // ****************************
 // WALL KIN
 // ****************************
-void bc_ikepsilon::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
+void kepsilon_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
 {
     double uvel,vvel,wvel;
     double zval;
@@ -179,7 +179,7 @@ void bc_ikepsilon::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int
 
 }
 
-void bc_ikepsilon::wall_law_eps(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
+void kepsilon_bc::wall_law_eps(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
 {
 	i=ii;
 	j=jj;

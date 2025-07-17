@@ -744,6 +744,7 @@ void lexer::ini_default()
 	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
 	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
     T33=0;               // int kin source
+    T34=1;               // int eddyv limiter
 	T35=0.212; 			// double factor for limiter for eddy limiter near wall
 	T36=0;				// int explciti free surface dampong through dissipation
 	T37=0.07;		    // int damping coefficient for T36

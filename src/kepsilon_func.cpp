@@ -20,27 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ikepsilon.h"
+#include"kepsilon_func.h"
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"vrans.h"
 
-ikepsilon::ikepsilon(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a), bc_ikepsilon(p)
+kepsilon_func::kepsilon_func(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a), kepsilon_bc(p)
 {
 }
 
-ikepsilon::~ikepsilon()
+kepsilon_func::~kepsilon_func()
 {
 }
 
-void  ikepsilon::clearfield(lexer *p, fdm*  a, field& b)
+void  kepsilon_func::clearfield(lexer *p, fdm*  a, field& b)
 {
 	LOOP
 	b(i,j,k)=0.0;
 }
 
-void ikepsilon::isource(lexer *p, fdm* a)
+void kepsilon_func::isource(lexer *p, fdm* a)
 {
     if(p->T33==0)
 	ULOOP
@@ -51,7 +51,7 @@ void ikepsilon::isource(lexer *p, fdm* a)
 	a->F(i,j,k) = (2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
 }
 
-void ikepsilon::jsource(lexer *p, fdm* a)
+void kepsilon_func::jsource(lexer *p, fdm* a)
 {
     if(p->T33==0)
 	VLOOP
@@ -62,7 +62,7 @@ void ikepsilon::jsource(lexer *p, fdm* a)
 	a->G(i,j,k) = (2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
 }
 
-void ikepsilon::ksource(lexer *p, fdm* a)
+void kepsilon_func::ksource(lexer *p, fdm* a)
 {
     if(p->T33==0)
 	WLOOP
@@ -73,7 +73,7 @@ void ikepsilon::ksource(lexer *p, fdm* a)
 	a->H(i,j,k) = (2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
 }
 
-void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
+void  kepsilon_func::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 {
 	double H;
 	double factor,epsi;
@@ -111,7 +111,7 @@ void  ikepsilon::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 	pgc->start4(p,a->eddyv,24);
 }
 
-void  ikepsilon::kinsource(lexer *p, fdm* a, vrans* pvrans)
+void  kepsilon_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
 {
     count=0;
 
@@ -127,7 +127,7 @@ void  ikepsilon::kinsource(lexer *p, fdm* a, vrans* pvrans)
     pvrans->ke_source(p,a,kin);
 }
 
-void  ikepsilon::epssource(lexer *p, fdm* a, vrans* pvrans)
+void  kepsilon_func::epssource(lexer *p, fdm* a, vrans* pvrans)
 {
 	double epsi = 1.6*p->dx;
 	double dirac;
@@ -145,7 +145,7 @@ void  ikepsilon::epssource(lexer *p, fdm* a, vrans* pvrans)
     pvrans->eps_source(p,a,kin,eps);
 }
 
-void  ikepsilon::epsfsf(lexer *p, fdm* a,ghostcell *pgc)
+void  kepsilon_func::epsfsf(lexer *p, fdm* a,ghostcell *pgc)
 {
 	double epsi;
 	double dirac;

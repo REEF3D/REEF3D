@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef BC_IKEPSILON_H_
-#define BC_IKEPSILON_H_
+#ifndef KEPSILON_BC_H_
+#define KEPSILON_BC_H_
 
 #include"increment.h"
 #include"roughness.h"
@@ -31,11 +31,11 @@ class field;
 
 using namespace std;
 
-class bc_ikepsilon : public increment, public roughness
+class kepsilon_bc : public increment, public roughness
 {
 public:
-	bc_ikepsilon(lexer*);
-	virtual ~bc_ikepsilon();
+	kepsilon_bc(lexer*);
+	virtual ~kepsilon_bc();
 	void bckeps_start(fdm*,lexer*,field&,field&, int);
 	void wall_law_kin(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
 	void wall_law_eps(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);

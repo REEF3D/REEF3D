@@ -1056,10 +1056,10 @@
         <File Name="rans_io.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Kepsilon">
-        <File Name="ikepsilon.h"/>
+        <File Name="kepsilon_bc.h"/>
+        <File Name="kepsilon_func.h"/>
         <File Name="kepsilon_IM1.h"/>
         <File Name="kepsilon_void.h"/>
-        <File Name="bc_ikepsilon.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Komega">
         <File Name="komega_func.h"/>
@@ -2897,19 +2897,15 @@
         <File Name="rans_io.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Kepsilon">
-        <File Name="ikepsilon.cpp"/>
+        <File Name="kepsilon_bc.cpp"/>
+        <File Name="kepsilon_func.cpp"/>
         <File Name="kepsilon_IM1.cpp"/>
         <File Name="kepsilon_void.cpp"/>
-        <VirtualDirectory Name="BC">
-          <File Name="bc_ikepsilon.cpp"/>
-        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Komega">
-        <File Name="ikomega.cpp"/>
+        <File Name="komega_bc.cpp"/>
+        <File Name="komega_func.cpp"/>
         <File Name="komega_IM1.cpp"/>
-        <VirtualDirectory Name="BC">
-          <File Name="komega_bc.cpp"/>
-        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="LES">
         <VirtualDirectory Name="Filter">

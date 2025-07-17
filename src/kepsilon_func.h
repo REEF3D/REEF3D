@@ -24,16 +24,16 @@ Author: Hans Bihs
 #define IKEPSILON_H_
 
 #include"rans_io.h"
-#include"bc_ikepsilon.h"
+#include"kepsilon_bc.h"
 #include"vrans.h"
 
 using namespace std;
 
-class ikepsilon : public rans_io, public bc_ikepsilon
+class kepsilon_func : public rans_io, public kepsilon_bc
 {
 public:
-	ikepsilon(lexer*,fdm*,ghostcell*);
-	virtual ~ikepsilon();
+	kepsilon_func(lexer*,fdm*,ghostcell*);
+	virtual ~kepsilon_func();
 	virtual void isource(lexer*,fdm*);
 	virtual void jsource(lexer*,fdm*);
 	virtual void ksource(lexer*,fdm*);

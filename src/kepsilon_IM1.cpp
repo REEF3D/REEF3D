@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"convection.h"
 
-kepsilon_IM1::kepsilon_IM1(lexer* p, fdm* a, ghostcell *pgc) : ikepsilon(p,a,pgc),kn(p),en(p)
+kepsilon_IM1::kepsilon_IM1(lexer* p, fdm* a, ghostcell *pgc) : kepsilon_func(p,a,pgc),kn(p),en(p)
 {
 	gcval_kin=20;
 	gcval_eps=30;

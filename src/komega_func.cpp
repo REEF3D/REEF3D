@@ -84,6 +84,17 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 	double H;
 	int n;
 	
+        
+        if(p->T34==0)
+		LOOP
+		{
+		eddyv0(i,j,k) = MAX(MAX(kin(i,j,k)
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),
+						  0.0001*a->visc(i,j,k));
+		}
+        
+        
+        if(p->T34==1)
 		LOOP
 		{
             epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
@@ -107,6 +118,7 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 						  0.0001*a->visc(i,j,k));
 		}
 		
+        if(p->T34==1)
 		GC4LOOP
 		if(p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5)
 		{

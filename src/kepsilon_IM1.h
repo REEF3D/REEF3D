@@ -23,12 +23,12 @@ Author: Hans Bihs
 #ifndef KEPSILON_IM1_H_
 #define KEPSILON_IM1_H_
 
-#include"ikepsilon.h"
+#include"kepsilon_func.h"
 #include"field4.h"
 
 using namespace std;
 
-class kepsilon_IM1 : public ikepsilon
+class kepsilon_IM1 : public kepsilon_func
 {
 public:
 	kepsilon_IM1(lexer*,fdm*,ghostcell*);
