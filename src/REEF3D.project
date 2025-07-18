@@ -2143,7 +2143,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="FDM">
-      <VirtualDirectory Name="Geometry"/>
       <VirtualDirectory Name="Functions">
         <File Name="linear_regression_cont.cpp"/>
       </VirtualDirectory>
