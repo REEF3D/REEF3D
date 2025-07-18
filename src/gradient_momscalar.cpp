@@ -38,6 +38,7 @@ double gradient::pudy(lexer *p, fdm* a)
 {
     f1 = f2 = 0.5;
     
+    /*
     if(p->flag1[IJK]<0 && p->flag1[IJm1K]<0 && p->flag1[IJp1K]<0)
     {
     f2 = 0.0;
@@ -48,7 +49,7 @@ double gradient::pudy(lexer *p, fdm* a)
     {
     f2 = 1.0;
     f1 = 0.0;
-    }
+    }*/
     
 	grad = ((f2*a->u(i,j+1,k)+f1*a->u(i-1,j+1,k)) - (f2*a->u(i,j-1,k)+f1*a->u(i-1,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
 
