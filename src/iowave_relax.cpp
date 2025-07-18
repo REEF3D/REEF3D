@@ -499,8 +499,7 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
         {
             // Zone 1
             if(dg<1.0e20)
-            f(i,j,k) = relax4_wg(i,j)*f(i,j,k) + (1.0-H)*f(i,j,k);
-
+            f(i,j,k) = relax4_wg(i,j)*f(i,j,k);// + (1.0-H)*f(i,j,k);
 		}
     }
     

@@ -59,6 +59,7 @@ void lexer::ini_default()
     A263=10.0;   // double eddyv limiter factor set to high
     A263=2.7;   // double epsisolon coefficient ce_gamma
 
+
     // FNPF
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities
@@ -161,6 +162,7 @@ void lexer::ini_default()
     A593_x=A593_y=A593_z=A593_phi=A593_theta=A593_psi=0.0;
     A594=0;     // int invert STL
     A599=0;     // use dlm instead of df
+
 
     // Boundary Conditions
 	B10=0;			// int wall function velocities on/off
