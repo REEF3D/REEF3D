@@ -202,10 +202,8 @@
             <File Name="nhflow_LES_Smagorinsky.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
+            <File Name="nhflow_komega_bc.h"/>
             <File Name="nhflow_komega_func.h"/>
-            <VirtualDirectory Name="BC">
-              <File Name="nhflow_komega_bc.h"/>
-            </VirtualDirectory>
             <File Name="nhflow_komega_void.h"/>
             <File Name="nhflow_komega_IM1.h"/>
           </VirtualDirectory>
@@ -1356,10 +1354,8 @@
             <File Name="nhflow_LES_Smagorinsky.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
+            <File Name="nhflow_komega_bc.cpp"/>
             <File Name="nhflow_komega_func.cpp"/>
-            <VirtualDirectory Name="BC">
-              <File Name="nhflow_komega_bc.cpp"/>
-            </VirtualDirectory>
             <File Name="nhflow_komega_void.cpp"/>
             <File Name="nhflow_komega_IM1.cpp"/>
           </VirtualDirectory>
