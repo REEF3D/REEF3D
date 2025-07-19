@@ -236,8 +236,6 @@ void komega_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
         a->rhsvec.V[count]  += pk(p,a,a->eddyv);
         }
         
-        a->test(i,j,k) =pk(p,a,a->eddyv);
-        
 	++count;
     }
     
