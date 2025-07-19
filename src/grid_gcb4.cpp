@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,53 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef GRID_H_
-#define GRID_H_
+#include"grid.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fieldint4.h"
 
-#include"increment.h"
-
-class lexer;
-
-using namespace std;
-
-class grid :  public increment
+void grid::fillgcb4_wall(lexer *p)
 {
-public:
+    int q,n;
+    
+    
+    fieldint4 cval(p);
+    
+    int count=0;
 
-	grid (lexer *);
-	virtual ~grid();
+    BASELOOP
+	{
+    cval(i,j,k)=count;
     
-    // gcb
-    void fillgcb1(lexer*);
-    void fillgcb2(lexer*);
-    void fillgcb3(lexer*);
-    void fillgcb4a(lexer*);
+    ++count;
+	}
     
-    void fillgcb4_wall(lexer*);
-
-    // dgc
-    void make_dgc(lexer*);
-    void unmake_dgc(lexer*);
-    void fill_dgc1(lexer*);
-    void fill_dgc2(lexer*);
-    void fill_dgc3(lexer*);
-    void fill_dgc4(lexer*);
-    
-    int imin,imax,jmax,jmin,kmin,kmax;
-    
-private:
-	int di,dj,dk;
-	int qn;
-    
-    int *hgc;
+    GC4LOOP
+    {
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+	p->gcb4[n][5]=cval(i,j,k);
+	}
 	
-};
-
-#endif
-
-
-
-
-
-
-
+}

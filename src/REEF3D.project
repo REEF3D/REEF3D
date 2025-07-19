@@ -2559,6 +2559,7 @@
           <File Name="boundary.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grid">
+          <File Name="grid_gcb4.cpp"/>
           <File Name="grid_gcb4a.cpp"/>
           <File Name="grid_gcb3.cpp"/>
           <File Name="grid_gcb2.cpp"/>
