@@ -28,7 +28,9 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"topo.h"
 #include"reinitopo.h"
-#include"suspended.h"
+#include"nhflow_suspended.h"
+#include"nhflow_diffusion.h"
+#include"nhflow_scalar_convection.h"
 #include"bedload.h"
 #include"bedconc_VR.h"
 #include"bedshear.h"
@@ -62,6 +64,9 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // bedload_direction *******
     pbeddir->start(p,pgc,s);
+    
+    // suspended load -------
+    pcbed->start(p,pgc,s);
 	
     // relax *******
 	prelax->start(p,pgc,s);
@@ -99,7 +104,7 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
 
 void sediment_f::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {
-    //psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
+    pnhfsusp->start(p,d,pgc,pnhfsuspdisc,pnhfsuspdiff,psolv,pflow,s);
 }
 
 

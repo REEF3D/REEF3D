@@ -41,6 +41,8 @@ class bedslope;
 class bedshear_reduction;
 class suspended;
 class nhflow_suspended;
+class nhflow_scalar_convection;
+class nhflow_diffusion;
 class diffusion;
 class convection;
 class patchBC_interface;
@@ -166,6 +168,9 @@ private:
     topo *ptopo;
     suspended *psusp;
     nhflow_suspended *pnhfsusp;
+    nhflow_scalar_convection *pnhfsuspdisc;
+    nhflow_diffusion *pnhfsuspdiff;
+    
     diffusion *psuspdiff;
     convection *psuspdisc;
 	bedshear *pbedshear;

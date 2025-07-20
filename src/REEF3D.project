@@ -215,6 +215,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_void.h"/>
             <File Name="nhflow_scalar_ifou.h"/>
             <File Name="nhflow_scalar_advec_CDS2.h"/>
             <File Name="nhflow_scalar_advec.h"/>
@@ -1367,6 +1368,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_void.cpp"/>
             <File Name="nhflow_scalar_ifou.cpp"/>
             <File Name="nhflow_scalar_advec_CDS2.cpp"/>
             <File Name="nhflow_scalar_iweno.cpp"/>

@@ -31,7 +31,7 @@ using namespace std;
 class nhflow_suspended_IM1 : public nhflow_suspended, public increment
 {
 public:
-	nhflow_suspended_IM1(lexer *, fdm_nhf*);
+	nhflow_suspended_IM1(lexer *);
 	virtual ~nhflow_suspended_IM1();
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*);
 	virtual void ctimesave(lexer*, fdm_nhf*);

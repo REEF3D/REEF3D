@@ -71,26 +71,9 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     adist = 0.5*p->DZP[KP];
     
     s->cbe(i,j) = f * (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
-    
-    if(s->cbe(i,j)<0.0)
-    cout<<"C_BE: "<<f<<" "<<Ti<<" "<<Ds<<" "<<endl;
     }
     
     pgc->gcsl_start4(p,s->qbe,1);
-    
-    // cb at first cell center
-    /*SLICELOOP4
-    {
-        k=s->bedk(i,j);
-        
-        zdist = (p->ZP[KP]-s->bedzh(i,j));
-        
-        
-        s->cb(i,j) = s->cbe(i,j)*pow(((s->waterlevel(i,j)-zdist)/zdist)*(adist/(s->waterlevel(i,j)-adist)),1.0);
-
-        //if(s->cb(i,j)>1.0)
-        //cout<<"!! CB: "<<s->cbe(i,j)<<" "<<s->cb(i,j)<<" "<<zdist<<" "<<adist<<" "<<s->waterlevel(i,j)<<endl;
-    }*/
 }
 
 

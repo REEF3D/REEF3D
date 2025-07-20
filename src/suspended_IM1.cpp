@@ -97,8 +97,6 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     {
 	if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
     {
-    //zdist = 2.0*(p->ZP[KP]-s->bedzh(i,j));
-    
     zdist = 0.5*p->DZP[KP];
     
 	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
@@ -111,21 +109,6 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {
     double cval;
-    
-    /*
-    GCDF4LOOP
-    {
-        i=p->gcdf4[n][0];
-        j=p->gcdf4[n][1];
-        k=p->gcdf4[n][2];
-        
-        cval = s->cb(i,j);
-        
-        conc(i,j,k)   =  cval;
-        conc(i,j,k-1) =  cval;
-        conc(i,j,k-2) =  cval;
-        conc(i,j,k-3) =  cval;
-    }*/
     
         n=0;
         LOOP
@@ -170,9 +153,6 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         }
         
         
-    // turn off inside direct forcing body
-    //if(p->X10==1)
-    //{
         n=0;
         BASELOOP
         {
@@ -193,7 +173,6 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
             }
         ++n;
         }
-    //}
 }
 
 void suspended_IM1::fillconc(lexer* p, fdm* a, ghostcell *pgc, sediment_fdm *s)
@@ -212,39 +191,11 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, ghostcell *pgc, sediment_fdm *s)
         j=p->gcdf4[n][1];
         k=p->gcdf4[n][2];
         
-        //s->conc(i,j) = a->conc(i,j,k+1);
-        
-        //dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
-        
-        //s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
-        
-        //s->conc(i,j)=concn(i,j,k+1);
-
-        //s->conc(i,j) = (a->visc(i,j,k)+a->eddyv(i,j,k))*(a->conc(i,j,k+1) - a->conc(i,j,k))/p->DZP[KP];
-        
         s->cb(i,j) = a->conc(i,j,k);
     }
     
-    /*
-    GCDF4LOOP
-    {
-        i=p->gcdf4[n][0];
-        j=p->gcdf4[n][1];
-        k=p->gcdf4[n][2];
-        
-        //s->conc(i,j) = a->conc(i,j,k+1);
-        
-        dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
-        
-        s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
-        
-        //s->conc(i,j)=concn(i,j,k+1);
-        
-        s->conc(i,j) = (a->visc(i,j,k)+a->eddyv(i,j,k))*(a->conc(i,j,k+1) - a->conc(i,j,k))/p->DZP[KP];
-    }*/
-    
-    pgc->gcsl_start4(p,s->cb,1);
 
+    pgc->gcsl_start4(p,s->cb,1);
 }
 
 void suspended_IM1::sedfsf(lexer* p,fdm* a,field& conc)

@@ -412,6 +412,13 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
 	++n;
 	}
     
+    // ST_conc
+    if(p->P26==1)
+	{
+	offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    }
+    
     // floating
     if(p->P28==1)
 	{
@@ -490,6 +497,12 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
     result<<"<DataArray type=\"Float32\" Name=\"Heaviside\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 	}
+    
+    if(p->P26==1)
+	{
+    result<<"<DataArray type=\"Float32\" Name=\"ST_conc\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    }
     
     if(p->P28==1)
 	{
@@ -700,6 +713,29 @@ void nhflow_vtu3D::print_vtu(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbul
                   +  d->FHB[IJKp1]+d->FHB[Ip1JKp1]+d->FHB[IJp1Kp1]+d->FHB[Ip1Jp1Kp1]));
     
 	result.write((char*)&ffn, sizeof (float));
+	}
+	}
+    
+//  ST_conc
+    if(p->P26==1)
+	{
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+	TPLOOP
+	{
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.25*(d->CONC[IJK]+d->CONC[Ip1JK]+d->CONC[IJKp1]+d->CONC[Ip1JKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+    ffn=float(0.125*(d->CONC[IJK]+d->CONC[Ip1JK]+d->CONC[IJp1K]+d->CONC[Ip1Jp1K]
+                  +  d->CONC[IJKp1]+d->CONC[Ip1JKp1]+d->CONC[IJp1Kp1]+d->CONC[Ip1Jp1Kp1]));
+                  
+    result.write((char*)&ffn, sizeof (float));
 	}
 	}
     
