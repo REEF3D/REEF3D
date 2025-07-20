@@ -207,11 +207,23 @@ void suspended_IM1::sedfsf(lexer* p,fdm* a,field& conc)
 
 void suspended_IM1::clearrhs(lexer* p, fdm* a)
 {
-    count=0;
+    n=0;
     LOOP
     {
-    a->rhsvec.V[count]=0.0;
+    a->M.p[n] = 0.0;
+
+    a->M.n[n] = 0.0;
+    a->M.s[n] = 0.0;
+
+    a->M.w[n] = 0.0;
+    a->M.e[n] = 0.0;
+
+    a->M.t[n] = 0.0;
+    a->M.b[n] = 0.0;
+            
+    a->rhsvec.V[n] = 0.0;
     a->L(i,j,k)=0.0;
-	++count;
+    
+	++n;
     }
 }
