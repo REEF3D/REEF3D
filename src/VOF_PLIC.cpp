@@ -114,7 +114,7 @@ VOF_PLIC::VOF_PLIC
     S_S[4][2]=1;
     S_S[5][0]=1;
     S_S[5][1]=2;
-    S_S[5][1]=0;
+    S_S[5][2]=0;
     
     S_2D[0][0]=0;
     S_2D[0][1]=2;
@@ -305,10 +305,10 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     pgc->start4(p,a->phi,1);
     
     
-    /*double vofchecksum;
+    double vofchecksum;
     vofchecksum=0.0;
     LOOP
         vofchecksum+=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
     vofchecksum=pgc->globalsum(vofchecksum);
-    cout<<"Total water volume:"<<vofchecksum<<endl;*/
+    cout<<"Total water volume:"<<vofchecksum<<endl;
 }

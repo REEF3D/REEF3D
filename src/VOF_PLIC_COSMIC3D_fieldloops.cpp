@@ -158,7 +158,7 @@ void VOF_PLIC::fieldloop_yx
         }
         pgc->start4(p,V_p,1);
         pgc->start4(p,V_m,1);
-        get_Fyx_and_Flux(a,p,pgc,uvel);
+        get_Fyx_and_Flux(a,p,pgc,vvel);
         swtch_yx=1;
         //F_yx and Flux_yx done
 }
@@ -203,7 +203,7 @@ void VOF_PLIC::fieldloop_yz
         }
         pgc->start4(p,V_p,1);
         pgc->start4(p,V_m,1);
-        get_Fyz_and_Flux(a,p,pgc,uvel);
+        get_Fyz_and_Flux(a,p,pgc,vvel);
         swtch_yz=1;
         //F_yz and Flux_yz done
 }
@@ -248,7 +248,7 @@ void VOF_PLIC::fieldloop_zx
         }
         pgc->start4(p,V_p,1);
         pgc->start4(p,V_m,1);
-        get_Fzx_and_Flux(a,p,pgc,uvel);
+        get_Fzx_and_Flux(a,p,pgc,wvel);
         swtch_zx=1;
         //F_zx and Flux_zx done
 }
@@ -293,7 +293,7 @@ void VOF_PLIC::fieldloop_zy
         }
         pgc->start4(p,V_p,1);
         pgc->start4(p,V_m,1);
-        get_Fzy_and_Flux(a,p,pgc,uvel);
+        get_Fzy_and_Flux(a,p,pgc,wvel);
         swtch_zy=1;
         //F_zy and Flux_zy done
 }
@@ -428,7 +428,7 @@ void VOF_PLIC::fieldloop_yxz
         }
         pgc->start4(p,V_p,1);
         pgc->start4(p,V_m,1);
-        get_Flux_yxz(a,p,pgc,uvel);
+        get_Flux_yxz(a,p,pgc,vvel);
         swtch_yxz=1;
         //Flux_yxz done
 }
@@ -473,7 +473,7 @@ void VOF_PLIC::fieldloop_yzx
         }
         pgc->start4(p,V_p,1);
         pgc->start4(p,V_m,1);
-        get_Flux_yzx(a,p,pgc,uvel);
+        get_Flux_yzx(a,p,pgc,vvel);
         swtch_yzx=1;
         //Flux_yzx done
 }
@@ -518,7 +518,7 @@ void VOF_PLIC::fieldloop_zxy
         }
         pgc->start4(p,V_p,1);
         pgc->start4(p,V_m,1);
-        get_Flux_zxy(a,p,pgc,uvel);
+        get_Flux_zxy(a,p,pgc,wvel);
         swtch_zxy=1;
         //Flux_zxy done
 }
@@ -563,7 +563,7 @@ void VOF_PLIC::fieldloop_zyx
         }
         pgc->start4(p,V_p,1);
         pgc->start4(p,V_m,1);
-        get_Flux_zyx(a,p,pgc,uvel);
+        get_Flux_zyx(a,p,pgc,wvel);
         swtch_zyx=1;
         //Flux_zyx done
 }

@@ -54,7 +54,7 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
     }
     pgc->start4(p,F_n,1);
     
-    for(int nSweep=0; nSweep<Sweepdim; nSweep++)
+    for(int nSweep=0; nSweep<2; nSweep++)
     {
         sweep=S_2D[sSweep][nSweep];
         
@@ -258,7 +258,7 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
     pgc->start4(p,F_n,1);
         
     
-    for(int nSweep=0; nSweep<Sweepdim; nSweep++)
+    for(int nSweep=0; nSweep<3; nSweep++)
     {
         
         sweep=S_S[sSweep][nSweep];
@@ -377,7 +377,7 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
         }
         
     }
-    for(int nSweep=0; nSweep<Sweepdim; nSweep++)
+    for(int nSweep=0; nSweep<3; nSweep++)
     {
         sweep=S_S[sSweep][nSweep];
         
@@ -451,15 +451,58 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
         if(swtch_zyx==0)
             fieldloop_zyx(a,p,pgc,uvel,vvel,wvel);
     }
+ //   cout<<"sweep:"<<sweep<<endl;
     
     int swtchsum;
-    swtchsum = swtch_x+swtch_y+swtch_z+swtch_xy+swtch_xz+swtch_yx+swtch_yz+swtch_zx+swtch_zy+swtch_zx+swtch_zy
+    swtchsum = swtch_x+swtch_y+swtch_z+swtch_xy+swtch_xz+swtch_yx+swtch_yz+swtch_zx+swtch_zy
                 +swtch_xyz+swtch_xzy+swtch_yxz+swtch_yzx+swtch_zxy+swtch_zyx;
                 
     if(swtchsum < 15)
         cout<<"not all switches activated!!!"<<endl;
-                    
+    
+   /* cout<<"x:"<<swtch_x<<" y:"<<swtch_y<<" z:"<<swtch_z<<endl;
+    cout<<"xy:"<<swtch_xy<<" xz:"<<swtch_xz<<" yx:"<<swtch_yx<<" yz:"<<swtch_yz<<" zx:"<<swtch_zx<<" zy:"<<swtch_zy<<endl;
+    cout<<"xyz:"<<swtch_xyz<<" xzy:"<<swtch_xzy<<endl;
+    cout<<"yxz:"<<swtch_yxz<<" yzx:"<<swtch_yzx<<endl;
+    cout<<"zxy:"<<swtch_zxy<<" zyx:"<<swtch_zyx<<endl;*/
+    
+    /*double maxFlux_x,maxFlux_y,maxFlux_z;
+    double maxFlux_yx,maxFlux_yz;
+    double maxFlux_yxz,maxFlux_yzx;
+    maxFlux_x=0.0;
+    maxFlux_y=0.0;
+    maxFlux_z=0.0;
+    maxFlux_yx=0.0;
+    maxFlux_yz=0.0;
+    maxFlux_yxz=0.0;
+    maxFlux_yzx=0.0;
+    LOOP
+    {
+        if(Flux_x(i,j,k)>maxFlux_x)
+            maxFlux_x=Flux_x(i,j,k);
+            
+        if(Flux_y(i,j,k)>maxFlux_y)
+            maxFlux_y=Flux_y(i,j,k);
+            
+        if(Flux_z(i,j,k)>maxFlux_z)
+            maxFlux_z=Flux_z(i,j,k);
+            
+        if(Flux_yx(i,j,k)>maxFlux_yx)
+            maxFlux_yx=Flux_yx(i,j,k);
         
+        if(Flux_yz(i,j,k)>maxFlux_yz)
+            maxFlux_yz=Flux_yz(i,j,k);
+            
+        if(Flux_yxz(i,j,k)>maxFlux_yxz)
+            maxFlux_yxz=Flux_yxz(i,j,k);
+            
+        if(Flux_yzx(i,j,k)>maxFlux_yzx)
+            maxFlux_yzx=Flux_yzx(i,j,k);
+    }
+    
+   cout<<"x:"<<maxFlux_x<<" y:"<<maxFlux_y<<" z:"<<maxFlux_z<<endl;
+   cout<<"yx:"<<maxFlux_yx<<" yz:"<<maxFlux_yz<<endl;
+   cout<<"yxz:"<<maxFlux_yxz<<" yxz:"<<maxFlux_yzx<<endl;*/
    
     LOOP
     {
