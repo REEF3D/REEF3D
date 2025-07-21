@@ -291,9 +291,6 @@
 /Users/fk/Codefiles/REEF3D/src/nhflow_timestep.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_forcing_dlm_kernel.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_gradient.h
-/Users/fk/Codefiles/REEF3D/src/print_wsfline_y.h
-/Users/fk/Codefiles/REEF3D/src/wave_lib_cnoidal_5th.h
-/Users/fk/Codefiles/REEF3D/src/nhflow_sigma.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_print_wsf_theory.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_print_wsfline_y.h
 /Users/fk/Codefiles/REEF3D/src/nhflow_vtp_fsf.h
@@ -521,6 +518,7 @@
 /Users/fk/Codefiles/REEF3D/src/VOF_PLIC_RK_schemefuncs.cpp
 /Users/fk/Codefiles/REEF3D/src/bedslope.cpp
 /Users/fk/Codefiles/REEF3D/src/VOF_PLIC_updatePhasemarkers.cpp
+/Users/fk/Codefiles/REEF3D/src/VOF_PLIC_COSMIC3D_fieldloops.cpp
 /Users/fk/Codefiles/REEF3D/src/6DOF_void.h
 /Users/fk/Codefiles/REEF3D/src/picard_void.cpp
 /Users/fk/Codefiles/REEF3D/src/fieldint2.cpp
@@ -1696,6 +1694,9 @@
 /Users/fk/Codefiles/REEF3D/src/reinidisc_f.cpp
 /Users/fk/Codefiles/REEF3D/src/6DOF_obj_forces_stl.cpp
 /Users/fk/Codefiles/REEF3D/src/nhflow_momentum.h
+/Users/fk/Codefiles/REEF3D/src/nhflow_sigma.h
+/Users/fk/Codefiles/REEF3D/src/print_wsfline_y.h
+/Users/fk/Codefiles/REEF3D/src/wave_lib_cnoidal_5th.h
 /Users/fk/Codefiles/REEF3D/src/wave_lib_cnoidal_1st.h
 /Users/fk/Codefiles/REEF3D/src/bedshear_sflow.cpp
 /Users/fk/Codefiles/REEF3D/src/wave_lib_irregular_2nd_b.h
