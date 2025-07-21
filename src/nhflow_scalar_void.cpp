@@ -20,22 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_SUSPENDED_VOID_H_
-#define NHFLOW_SUSPENDED_VOID_H_
+#include"nhflow_scalar_void.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
 
-#include"nhflow_suspended.h"
-#include"increment.h"
-
-using namespace std;
-
-class nhflow_suspended_void : public nhflow_suspended, public increment
+nhflow_scalar_void::nhflow_scalar_void(lexer *p)
 {
-public:
-	nhflow_suspended_void(lexer *);
-	virtual ~nhflow_suspended_void();
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*);
-	virtual void ctimesave(lexer*, fdm_nhf*);
+}
 
-};
+nhflow_scalar_void::~nhflow_scalar_void()
+{
+}
 
-#endif
+void nhflow_scalar_void::start(lexer* p, fdm_nhf *d, double *F, int ipol, double *U, double *V, double *W)
+{
+}

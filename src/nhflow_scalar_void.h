@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,22 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_SUSPENDED_VOID_H_
-#define NHFLOW_SUSPENDED_VOID_H_
+#ifndef NHFLOW_SCALAR_VOID_H_
+#define NHFLOW_SCALAR_VOID_H_
 
-#include"nhflow_suspended.h"
+#include"nhflow_scalar_convection.h"
 #include"increment.h"
+
+class nhflow_scalar_advec;
 
 using namespace std;
 
-class nhflow_suspended_void : public nhflow_suspended, public increment
+class nhflow_scalar_void : public nhflow_scalar_convection, public increment
 {
 public:
-	nhflow_suspended_void(lexer *);
-	virtual ~nhflow_suspended_void();
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*);
-	virtual void ctimesave(lexer*, fdm_nhf*);
+	nhflow_scalar_void (lexer*);
+	virtual ~nhflow_scalar_void();
 
+	virtual void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
+
+    
 };
 
 #endif

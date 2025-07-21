@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment_fdm.h"
 
-nhflow_suspended_IM1::nhflow_suspended_IM1(lexer* p, fdm_nhf* d) 
+nhflow_suspended_IM1::nhflow_suspended_IM1(lexer* p) 
 {
 	gcval_susp=60;
     
@@ -96,12 +96,14 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
     
     count=0;
     LOOP
-    {    
-    zdist = 0.5*p->DZP[KP]*d->WL(i,j);
-    
-	d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
+    {   
 
-	
+        if(k==0)
+        {
+        zdist = 0.5*p->DZP[KP]*d->WL(i,j);
+        d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
+        }
+
 	++count;
     }
 }

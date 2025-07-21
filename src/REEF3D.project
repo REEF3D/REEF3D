@@ -215,6 +215,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_void.h"/>
             <File Name="nhflow_scalar_ifou.h"/>
             <File Name="nhflow_scalar_advec_CDS2.h"/>
             <File Name="nhflow_scalar_advec.h"/>
@@ -394,6 +395,7 @@
           <File Name="fnpf_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
+          <File Name="fnpf_fsfbc_sc.h"/>
           <File Name="fnpf_fsfbc_wd.h"/>
           <File Name="fnpf_fsfbc.h"/>
           <File Name="fnpf_fsf.h"/>
@@ -1367,6 +1369,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <VirtualDirectory Name="Scalar">
+            <File Name="nhflow_scalar_void.cpp"/>
             <File Name="nhflow_scalar_ifou.cpp"/>
             <File Name="nhflow_scalar_advec_CDS2.cpp"/>
             <File Name="nhflow_scalar_iweno.cpp"/>
@@ -1612,6 +1615,7 @@
           <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
+          <File Name="fnpf_fsfbc_sc.cpp"/>
           <File Name="fnpf_fsfbc_wd_breaking0.cpp"/>
           <File Name="fnpf_fsfbc_wd_coastline.cpp"/>
           <File Name="fnpf_fsfbc_breaking.cpp"/>

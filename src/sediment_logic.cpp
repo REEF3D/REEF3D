@@ -76,6 +76,11 @@ Author: Hans Bihs
 #include"nhflow_idiff_2D.h"
 #include"nhflow_scalar_iweno.h"
 #include"nhflow_scalar_ifou.h"
+#include"nhflow_scalar_void.h"
+#include"nhflow_suspended_void.h"
+#include"nhflow_suspended_IM1.h"
+#include"nhflow_idiff.h"
+#include"nhflow_idiff_2D.h"
 #include"bedprobe_point.h"
 #include"bedprobe_max.h"
 #include"bedshear_probe.h"
@@ -163,18 +168,46 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     
     ptopo = new sediment_exner(p,pgc);
     
-    // susepended diff
-    if(p->S60==0 || p->A10!=6)
+    // Suspended Sediments
+    // Suspended NHFLOW
+    if(p->A10==5)
+    {  
+    if(p->S60==0)
+	pnhfsuspdiff=new nhflow_diff_void(p);
+    
+    if(p->S60==0)
+    pnhfsusp = new nhflow_suspended_void(p);
+    
+    if(p->S60==0)
+	pnhfsuspdisc=new nhflow_scalar_void(p);
+	
+    
+    if(p->S60>0 && p->j_dir==1)
+    pnhfsuspdiff = new nhflow_idiff(p);
+        
+    if(p->S60>0 && p->j_dir==0)
+    pnhfsuspdiff = new nhflow_idiff_2D(p);
+    
+	if(p->S60>0)
+	pnhfsuspdisc= new nhflow_scalar_iweno(p);
+    
+    if(p->S60>0)
+    pnhfsusp = new nhflow_suspended_IM1(p);
+    }
+    
+    // Suspended CFD
+    if(p->A10==6)
+    {  
+    if(p->S60==0)
 	psuspdiff=new diff_void();
     
-    if(p->S60==0 || p->A10!=6)
+    if(p->S60==0)
     psusp = new suspended_void();
     
-    if(p->S60==0 || p->A10!=6)
+    if(p->S60==0)
 	psuspdisc=new convection_void(p);
     
-    if(p->A10==6)
-    {    
+    
     if(p->S60<11 && p->S60>0 && p->j_dir==0)
 	psuspdiff=new idiff2_FS_2D(p);
     
