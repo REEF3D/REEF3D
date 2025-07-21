@@ -841,6 +841,9 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Geocontainer">
+          <File Name="geocontainer.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Geometry">
           <File Name="geometry_objects.h"/>
         </VirtualDirectory>
@@ -2544,6 +2547,9 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="Geocontainer">
+          <File Name="geocontainer.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Geometry">
           <File Name="geometry_objects_jacketmember.cpp"/>
           <File Name="geometry_objects_cylinder_y.cpp"/>

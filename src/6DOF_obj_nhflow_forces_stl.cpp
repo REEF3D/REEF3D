@@ -291,7 +291,6 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             
             pval = (1.0/4.0)*(p0 + p1 + p2 + pc);*/
             
-          
 
             // pressure
             pval   = p->ccipol7P(d->P, d->WL, d->bed, xp, yp, zp);// - p->pressgage;

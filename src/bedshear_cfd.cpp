@@ -86,7 +86,37 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
     tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     }
-	
+    
+    
+    if(p->S16==2)
+    {
+    zval = s->bedzh(i,j) + 1.6*p->DZN[KP];
+    
+        if(p->S33==1)
+        {
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        wvel=p->ccipol3(a->w,xip,yip,zval);
+        }
+        
+        if(p->S33==2)
+        {
+        uvel=p->ccipol1_a(a->u,xip,yip,zval);
+        vvel=p->ccipol2_a(a->v,xip,yip,zval);
+        wvel=p->ccipol3_a(a->w,xip,yip,zval);
+        }
+        
+        
+    u_abs = sqrt(uvel*uvel + vvel*vvel  + wvel*wvel);
+
+    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+    
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
+
+    tau=MAX(density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0), density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3);
+    }
+
+    /*
 	if(p->S16==2)
     {
     double E,B,dB,ustar,y_plus,visc,ks_plus,tau0;
@@ -140,16 +170,13 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         u_plus = (1.0/kappa)*log(MAX(E*y_plus,1.0));
         
         if(y_plus<=11.53)
-        {
         u_plus = u_abs/(y_plus>1.0e-10?y_plus:1.0e20);
-        //cout<<"y_plus: "<<y_plus<<" ustar: "<<ustar<<" u_plus: "<<u_plus<<" u_abs: "<<u_abs<<" tau: "<<density*(u_abs*u_abs)/pow((u_plus>1.0e-10?u_plus:1.0e20),2.0)<<endl;
-        }
         
         tau=MIN(density*(u_abs*u_abs)/pow((u_plus>1.0e-4?u_plus:1.0e20),2.0), tau0*3.5);
 
         ustar=sqrt(tau/density);
         }
-    }
+    }*/
     
     if(p->S16==3)
     {

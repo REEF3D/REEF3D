@@ -136,8 +136,7 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             sgny = (d->SOLID[IJp1K] - d->SOLID[IJm1K])/(p->DYP[JM1] + p->DYP[JP]);
             sgnz = (d->SOLID[IJKp1] - d->SOLID[IJKm1])/(p->DZP[KM1] + p->DZP[KP])*p->sigz[IJ];
             
-            //cout<<"NX: "<<nx<<" sgnx: "<<sgnx<<" "<<(d->SOLID[Ip1JK])<<endl;
-            
+
             nx = nx*sgnx/fabs(fabs(sgnx)>1.0e-20?sgnx:1.0e20);
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
             nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
@@ -151,28 +150,16 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             ylocvel = yc + ny*p->DYP[JP];
             zlocvel = zc + nz*p->DZP[KP]*d->WL(i,j);
             
-            /*uval = p->ccipol4V(d->U, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
-            vval = p->ccipol4V(d->V, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
-            wval = p->ccipol4V(d->W, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
-            
-            du = uval/p->DXN[IP];
-            dv = vval/p->DYN[JP];
-            dw = wval/(p->DZN[KP]*d->WL(i,j));*/
-            
             density =   p->ccipol4V(d->RO, d->WL, d->bed,xloc,yloc,zloc);
             viscosity = p->ccipol4V(d->VISC, d->WL, d->bed,xloc,yloc,zloc);
             if(p->P82==1)
             viscosity += p->ccipol4V(d->EV, d->WL, d->bed,xloc,yloc,zloc);
             
             // pressure
-            pval   = p->ccipol7P(d->P, d->WL, d->bed, xc, yc, zc);// - p->pressgage;
+            pval   = p->ccipol7P(d->P, d->WL, d->bed, xc, yc, zc);
             etaval = p->ccslipol4(d->eta,xc,yc);  
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
             
-            
-            /*pval   = p->ccipol4V(d->P, d->WL, d->bed,xc,yc,zc);// - p->pressgage;
-            etaval = p->ccslipol4(d->eta,xc,yc);    
-            hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);*/
             
             // Force
             Fx += -(pval + hspval)*A*nx;
