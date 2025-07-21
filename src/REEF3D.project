@@ -1484,24 +1484,25 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Free Surface">
           <VirtualDirectory Name="VOF PLIC">
-            <File Name="VOF_void.cpp"/>
-            <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
-            <File Name="VOF_PLIC_reconstruction_alt.cpp"/>
-            <File Name="VOF_PLIC_normalVector.cpp"/>
-            <File Name="VOF_PLIC_inilsVOF.cpp"/>
-            <File Name="VOF_PLIC.cpp"/>
-            <VirtualDirectory Name="FCRK3_functions">
-              <File Name="VOF_PLIC_updatePlaneData.cpp"/>
-              <File Name="VOF_PLIC_updatePhasemarkers.cpp"/>
-              <File Name="VOF_PLIC_surfaceTension.cpp"/>
-              <File Name="VOF_PLIC_RKcalcL.cpp"/>
-              <File Name="VOF_PLIC_RK_transportVOF.cpp"/>
-              <File Name="VOF_PLIC_RK_schemefuncs.cpp"/>
-              <File Name="VOF_PLIC_RK_redistance.cpp"/>
-              <File Name="VOF_PLIC_RK_advection.cpp"/>
-              <File Name="VOF_PLIC_calculateSubFracions.cpp"/>
-            </VirtualDirectory>
-          </VirtualDirectory>
+        <File Name="VOF_void.cpp"/>
+        <VirtualDirectory Name="FCRK3_functions">
+          <File Name="VOF_PLIC_COSMIC3D_fieldloops.cpp"/>
+          <File Name="VOF_PLIC_updatePlaneData.cpp"/>
+          <File Name="VOF_PLIC_surfaceTension.cpp"/>
+          <File Name="VOF_PLIC_calculateSubFracions.cpp"/>
+          <File Name="VOF_PLIC_updatePhasemarkers.cpp"/>
+          <File Name="VOF_PLIC_RK_transportVOF.cpp"/>
+          <File Name="VOF_PLIC_RK_advection.cpp"/>
+          <File Name="VOF_PLIC_RK_schemefuncs.cpp"/>
+          <File Name="VOF_PLIC_RK_redistance.cpp"/>
+          <File Name="VOF_PLIC_RKcalcL.cpp"/>
+        </VirtualDirectory>
+        <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
+        <File Name="VOF_PLIC_reconstruction_alt.cpp"/>
+        <File Name="VOF_PLIC_inilsVOF.cpp"/>
+        <File Name="VOF_PLIC_normalVector.cpp"/>
+        <File Name="VOF_PLIC.cpp"/>
+      </VirtualDirectory>
           <VirtualDirectory Name="VOF Algebraic">
             <File Name="VOF_RK3.cpp"/>
             <File Name="VOF_AB.cpp"/>

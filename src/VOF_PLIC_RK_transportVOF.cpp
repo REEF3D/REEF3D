@@ -35,10 +35,12 @@ Author: Fabian Knoblauch
 #include"weno_hj.h"
 #include"hric.h"
 
+// in 2D scheme one function is used for Fields
 void VOF_PLIC::vof_transport_COSMIC2D_RK
 (
     fdm* a,
     lexer* p,
+    ghostcell* pgc,
     int nSweep,
     int sweep,
     field& uvel,
@@ -55,12 +57,14 @@ void VOF_PLIC::vof_transport_COSMIC2D_RK
             F_x(i,j,k)=F_n(i,j,k)
                         -Flux_x(i,j,k)
                         +p->dt*F_n(i,j,k)*(uvel(i,j,k)-uvel(i-1,j,k))/p->DXN[IP];
-                    
-            if(nSweep==1)
-            {
-                Crossflux_zx(i,j,k)=(Vz_p(i,j,k)-Vz_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
-            }
         }
+        pgc->start4(p,F_x,1);
+        if(nSweep==1)
+            LOOP
+            {
+                Flux_xz(i,j,k)=(Vz_p(i,j,k)-Vz_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+            }
+        
     }
     
     if(nSweep<2 && sweep==2)
@@ -72,12 +76,13 @@ void VOF_PLIC::vof_transport_COSMIC2D_RK
             F_z(i,j,k)=F_n(i,j,k)
                         -Flux_z(i,j,k)
                         +p->dt*F_n(i,j,k)*(wvel(i,j,k)-wvel(i,j,k-1))/p->DZN[KP];
-                    
-            if(nSweep==1)
-            {
-                Crossflux_xz(i,j,k)=(Vx_p(i,j,k)-Vx_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
-            }
         }
+        pgc->start4(p,F_z,1);
+        if(nSweep==1)
+            LOOP
+            {
+                Flux_zx(i,j,k)=(Vx_p(i,j,k)-Vx_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+            }
     }
     
     if(nSweep==2)
@@ -86,15 +91,259 @@ void VOF_PLIC::vof_transport_COSMIC2D_RK
         {
             if(sweep==0)
             {
-                Crossflux_xz(i,j,k)=(Vx_p(i,j,k)-Vx_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+                Flux_zx(i,j,k)=(Vx_p(i,j,k)-Vx_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
             }
             else if(sweep==2)
             {
-                Crossflux_zx(i,j,k)=(Vz_p(i,j,k)-Vz_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+                Flux_xz(i,j,k)=(Vz_p(i,j,k)-Vz_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
             }
         
-            F_new(i,j,k)=F_n(i,j,k)-0.5*(Flux_x(i,j,k)+Crossflux_zx(i,j,k)+Flux_z(i,j,k)+Crossflux_xz(i,j,k));
         }               
     }
     
+}
+
+//in 3D too many Fields are present -> individual functions for individual fields and fluxes
+
+void VOF_PLIC::get_Fx_and_Flux
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& uvel
+)
+{
+    LOOP
+    {
+        Flux_x(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        F_x(i,j,k)=F_n(i,j,k)
+                    -Flux_x(i,j,k)
+                    +p->dt*F_n(i,j,k)*(uvel(i,j,k)-uvel(i-1,j,k))/p->DXN[IP];
+    }
+    pgc->start4(p,F_x,1);
+}
+
+void VOF_PLIC::get_Fy_and_Flux
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& vvel
+)
+{
+    LOOP
+    {
+        Flux_y(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        F_y(i,j,k)=F_n(i,j,k)
+                    -Flux_y(i,j,k)
+                    +p->dt*F_n(i,j,k)*(vvel(i,j,k)-vvel(i,j-1,k))/p->DYN[JP];
+    }
+    pgc->start4(p,F_y,1);
+}
+
+void VOF_PLIC::get_Fz_and_Flux
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& wvel
+)
+{
+    LOOP
+    {
+        Flux_z(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        F_z(i,j,k)=F_n(i,j,k)
+                    -Flux_z(i,j,k)
+                    +p->dt*F_n(i,j,k)*(wvel(i,j,k)-wvel(i,j,k-1))/p->DZN[KP];
+    }
+    pgc->start4(p,F_z,1);
+}
+
+void VOF_PLIC::get_Fxy_and_Flux
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& uvel
+)
+{
+    LOOP
+    {
+        Flux_xy(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        F_xy(i,j,k)=F_y(i,j,k)
+                    -Flux_xy(i,j,k)
+                    +p->dt*F_y(i,j,k)*(uvel(i,j,k)-uvel(i-1,j,k))/p->DXN[IP];
+    }
+    pgc->start4(p,F_xy,1);
+}
+
+void VOF_PLIC::get_Fxz_and_Flux
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& uvel
+)
+{
+    LOOP
+    {
+        Flux_xz(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        F_xz(i,j,k)=F_z(i,j,k)
+                    -Flux_xz(i,j,k)
+                    +p->dt*F_z(i,j,k)*(uvel(i,j,k)-uvel(i-1,j,k))/p->DXN[IP];
+    }
+    pgc->start4(p,F_xz,1);
+}
+
+void VOF_PLIC::get_Fyx_and_Flux
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& vvel
+)
+{
+    LOOP
+    {
+        Flux_yx(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        F_yx(i,j,k)=F_x(i,j,k)
+                    -Flux_yx(i,j,k)
+                    +p->dt*F_x(i,j,k)*(vvel(i,j,k)-vvel(i,j-1,k))/p->DYN[JP];
+    }
+    pgc->start4(p,F_yx,1);
+}
+
+void VOF_PLIC::get_Fyz_and_Flux
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& vvel
+)
+{
+    LOOP
+    {
+        Flux_yz(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        F_yz(i,j,k)=F_z(i,j,k)
+                    -Flux_yz(i,j,k)
+                    +p->dt*F_z(i,j,k)*(vvel(i,j,k)-vvel(i,j-1,k))/p->DYN[JP];
+    }
+    pgc->start4(p,F_yz,1);
+}
+
+void VOF_PLIC::get_Fzx_and_Flux
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& wvel
+)
+{
+    LOOP
+    {
+        Flux_zx(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        F_zx(i,j,k)=F_x(i,j,k)
+                    -Flux_zx(i,j,k)
+                    +p->dt*F_x(i,j,k)*(wvel(i,j,k)-wvel(i,j,k-1))/p->DZN[KP];
+    }
+    pgc->start4(p,F_zx,1);
+}
+
+void VOF_PLIC::get_Fzy_and_Flux
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& wvel
+)
+{
+    LOOP
+    {
+        Flux_zy(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        F_zy(i,j,k)=F_y(i,j,k)
+                    -Flux_zy(i,j,k)
+                    +p->dt*F_y(i,j,k)*(wvel(i,j,k)-wvel(i,j,k-1))/p->DZN[KP];
+    }
+    pgc->start4(p,F_zy,1);
+}
+
+void VOF_PLIC::get_Flux_xzy
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& uvel
+)
+{
+    LOOP
+        Flux_xzy(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+}
+
+void VOF_PLIC::get_Flux_xyz
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& uvel
+)
+{
+    LOOP
+        Flux_xyz(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+}
+
+void VOF_PLIC::get_Flux_yxz
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& vvel
+)
+{
+    LOOP
+        Flux_yxz(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+}
+
+void VOF_PLIC::get_Flux_yzx
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& vvel
+)
+{
+    LOOP
+        Flux_yzx(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+}
+
+void VOF_PLIC::get_Flux_zxy
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& wvel
+)
+{
+    LOOP
+        Flux_zxy(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+}
+
+void VOF_PLIC::get_Flux_zyx
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& wvel
+)
+{
+    LOOP
+        Flux_zyx(i,j,k)=(V_p(i,j,k)-V_m(i,j,k))/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
 }
