@@ -115,6 +115,9 @@ void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,f
                 case 12:
                     calcNormalMYC2D_V3(a,p,voffield);
                     break;
+                case 13:
+                    calcNormalMYC3D(a,p,voffield);
+                    break;
                 
             }
             /*if(fabs(nz(i,j,k))>=fabs(nx(i,j,k)))
@@ -245,7 +248,7 @@ void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,fi
     LOOP
     {
         if(a->phasemarker(i,j,k)>9.9 && a->phasemarker(i,j,k)<10.1)
-        if(searchMarkerInVicinity(p,a,2,6.0,i,j,k)>=1)
+        if(searchMarkerInVicinity(p,a,6,6.0,i,j,k)>=1)
         {
             a->phasemarker(i,j,k)=4.0;
         }

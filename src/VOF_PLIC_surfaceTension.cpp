@@ -37,7 +37,7 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
         {
             if(a->vof(i,j,k)<=w_thres && a->vof(i,j,k)>=a_thres)
             {
-                calcNormalMYC2D(a,p,a->vof);
+                calcNormalMYC3D(a,p,a->vof);
                 if(nx(i,j,k)!=nx(i,j,k))
                     cout<<"nxNAN"<<endl;
                 if(nz(i,j,k)!=nz(i,j,k))
@@ -115,7 +115,7 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
         {
             if(a->vof(i,j,k)<=w_thres && a->vof(i,j,k)>=a_thres)
             {
-                calcNormalMYC2D(a,p,a->vof);
+                calcNormalMYC3D(a,p,a->vof);
                 if(fabs(nz(i,j,k))>=fabs(nx(i,j,k)))
                 {
                     dHp=((a->vof(i+1,j,k-1)*p->DZN[KM1]+a->vof(i+1,j,k)*p->DZN[KP]+a->vof(i+1,j,k+1)*p->DZN[KP1])

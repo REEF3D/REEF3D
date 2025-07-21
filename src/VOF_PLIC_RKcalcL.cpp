@@ -41,20 +41,20 @@ void VOF_PLIC::RKcalcL
     pgc->start2(p,vvel,11);
     pgc->start3(p,wvel,12);
     starttime=pgc->timer();
-    if(p->j_dir>0)
+    //if(p->j_dir>0)
     {
         if(sSweep<5)
             sSweep++;
         else
             sSweep=0;
     }
-    else
-    {
+   // else
+   /* {
         if(sSweep<1)
             sSweep++;
         else
             sSweep=0;
-    }
-    symmetric_scheme2D_FCRK3(a,p,pgc,uvel,vvel,wvel);
+    }*/
+    symmetric_scheme3D_FCRK3(a,p,pgc,uvel,vvel,wvel);
     
 }
