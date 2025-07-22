@@ -133,7 +133,6 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 		}
         
         GCDF4LOOP
-		if(p->gcdf4[n][4]==21 || p->gcdf4[n][4]==22 || p->gcdf4[n][4]==5)
 		{
 		i = p->gcdf4[n][0];
 		j = p->gcdf4[n][1];
