@@ -2924,6 +2924,7 @@
         <File Name="LES_smagorinsky.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Strain">
+        <File Name="strain_rotation.cpp"/>
         <File Name="strain_Pk.cpp"/>
         <File Name="strain.cpp"/>
       </VirtualDirectory>

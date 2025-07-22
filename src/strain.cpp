@@ -57,7 +57,6 @@ void strain::wallf_update(lexer *p, fdm *a, ghostcell *pgc, fieldint &wallf)
     }
 }
 
-
 double strain::sij(lexer *p, fdm *a, int ii, int jj)
 {
 	double s=0.0;
@@ -83,33 +82,15 @@ double strain::sij(lexer *p, fdm *a, int ii, int jj)
 	return 0.5*s;
 }
 
+double strain::Sij2(lexer *p, fdm *a)
+{    
+    symmetricStrainRateTensor(p,a->u,a->v,a->w);
+    
+    double s = sqrt(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
+    
+    s = s*s;
 
-double strain::qij(lexer *p, fdm *a, int ii, int jj)
-{
-	double q=0.0;
-
-    if((ii==1 && jj==1) || (ii==2 && jj==2) || (ii==3 && jj==3))
-        q = 0.0;
-
-    if(ii==1 && jj==2)
-        q = pudy(p,a) - pvdx(p,a);
-
-    if(ii==2 && jj==1)
-        q = -pudy(p,a) + pvdx(p,a);
-
-    if(ii==1 && jj==3)
-        q = pudz(p,a) - pwdx(p,a);
-
-    if(ii==3 && jj==1)
-        q = -pudz(p,a) + pwdx(p,a);
-
-    if(ii==2 && jj==3)
-        q = pvdz(p,a) - pwdy(p,a);
-
-    if(ii==3 && jj==2)
-        q = -pvdz(p,a) + pwdy(p,a);
-
-	return q;
+	return s;
 }
 
 double strain::strainterm(lexer *p, fdm *a)
@@ -117,14 +98,11 @@ double strain::strainterm(lexer *p, fdm *a)
     return strainterm(p,a->u,a->v,a->w);
 }
 
-
 double strain::strainterm(lexer *p, field &u, field &v, field &w)
 {    
     symmetricStrainRateTensor(p,u,v,w);
     
-    double s = sqrt(s11*s11 + s22*s22 + s33*s33 + 0.5*s12*s12 + 0.5*s13*s13 + 0.5*s23*s23);
-
-    //double s = sqrt(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
+    double s = sqrt(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
 
 	return s;
 }
@@ -152,20 +130,6 @@ void strain::symmetricStrainRateTensor(lexer *p, field &u, field &v, field &w)
     }
 }
 
-double strain::rotationterm(lexer *p, fdm *a)
-{
-    return rotationterm(p,a->u,a->v,a->w);
-}
-
-double strain::rotationterm(lexer *p, field &u, field &v, field &w)
-{    
-    skewSymmetricStrainRateTensor(p,u,v,w);
-
-    double r = sqrt(2.0*r11*r11 + 2.0*r22*r22 + 2.0*r33*r33 + r12*r12 + r13*r13 + r23*r23);
-
-	return r;
-}
-
 void strain::skewSymmetricStrainRateTensor(lexer *p, field &u, field &v, field &w)
 {
     if(p->j_dir==1)
@@ -184,7 +148,7 @@ void strain::skewSymmetricStrainRateTensor(lexer *p, field &u, field &v, field &
         r22 = 0.0;
         r33 = 0.0;
         r12 = 0.0;
-        r13 = (pudz(p,u) - pwdx(p,w));
+        r13 = (pudz(p,u) - pwdx(p,w)); 
         r23 = 0.0;
     }
 }
