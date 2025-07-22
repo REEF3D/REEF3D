@@ -54,7 +54,7 @@ void komega_bc::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 	if(gcval==30)
 	{
 		QGC4LOOP
-		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43 || p->gcb4[q][4]==8  || (p->gcb4[q][4]==3 && p->gcb4[q][3]==6))
+		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43  || (p->gcb4[q][4]==3 && p->gcb4[q][3]==6))
 		wall_law_omega(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
         QGCDF4LOOP
