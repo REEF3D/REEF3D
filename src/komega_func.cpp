@@ -119,6 +119,7 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 		}
 		
         if(p->T34==1)
+        {
 		GC4LOOP
 		if(p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5)
 		{
@@ -130,6 +131,19 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T35*kin(i,j,k))/strainterm(p,a)),
 						  0.0001*a->visc(i,j,k));
 		}
+        
+        GCDF4LOOP
+		if(p->gcdf4[n][4]==21 || p->gcdf4[n][4]==22 || p->gcdf4[n][4]==5)
+		{
+		i = p->gcdf4[n][0];
+		j = p->gcdf4[n][1];
+		k = p->gcdf4[n][2];
+		
+		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T35*kin(i,j,k))/strainterm(p,a)),
+						  0.0001*a->visc(i,j,k));
+		}
+        }
 	
     
     // URANS
