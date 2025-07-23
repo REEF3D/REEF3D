@@ -43,6 +43,7 @@ using namespace std;
 class ioflow
 {
 public:
+    // cfd
     virtual void gcio_update(lexer*,fdm*,ghostcell*)=0;
     virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
 	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*)=0;
@@ -102,6 +103,9 @@ public:
 	virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*)=0;
     
     virtual void ini(lexer*,fdm*,ghostcell*)=0;
+    
+    virtual void waterlevel_update(lexer*,fdm*,ghostcell*)=0;
+    
     
     // fnpf
     virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*)=0;

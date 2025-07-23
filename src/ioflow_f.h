@@ -116,6 +116,10 @@ public:
 	virtual int iozonecheck(lexer*,fdm*);
     
     virtual void ini(lexer*,fdm*,ghostcell*);
+    
+    virtual void waterlevel_update(lexer*,fdm*,ghostcell*){};
+    
+    // fnpf
     virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*){};
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);

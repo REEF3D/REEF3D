@@ -62,3 +62,24 @@ void iowave::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
     }
 }
 
+void iowave::waterlevel_update(lexer *p,fdm *a,ghostcell *pgc)
+{
+    double zval;
+    
+	ILOOP
+    JLOOP
+	{
+    zval=-1e20;
+	
+        KLOOP
+        PCHECK
+        {
+            if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+            zval=MAX(zval,-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
+        }
+    
+    a->WL(i,j) = zval - a->bed(i,j);
+    
+    
+    }
+}

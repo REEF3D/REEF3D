@@ -2682,7 +2682,7 @@
         <VirtualDirectory Name="1D Print">
           <File Name="print_1Dline.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Print WSF">
+        <VirtualDirectory Name="WSF">
           <File Name="print_wsfline_x.cpp"/>
           <File Name="print_wsf.cpp"/>
           <File Name="print_wsfline_y.cpp"/>

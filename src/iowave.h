@@ -154,6 +154,8 @@ public:
 	void awa_ini(lexer*,fdm*,ghostcell*);
 	void awa_update(lexer*,fdm*,ghostcell*);
 	void gen_ini(lexer*,fdm*,ghostcell*);
+    
+    virtual void waterlevel_update(lexer*,fdm*,ghostcell*);
 	
 	
     // precalc

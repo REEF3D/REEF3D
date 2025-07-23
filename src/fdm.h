@@ -92,7 +92,7 @@ public:
     field4 nX,nY,nZ,Alpha;
     
     // PTF
-    slice4 eta,eta_n,depth;
+    slice4 eta,eta_n,depth,WL;
     slice4 Fifsf;
     slice4 K;
     sliceint4 etaloc;
