@@ -44,6 +44,8 @@ public:
 	double sij(lexer*,fdm_nhf*,int,int);
 	double qij(lexer*,fdm_nhf*,int,int);
 	double pk(lexer*,fdm_nhf*);
+    double Sij2(lexer*,fdm_nhf*);
+    double Qij2(lexer*,fdm_nhf*);
 	void Pk_update(lexer*,fdm_nhf*,ghostcell*);
     void Pk_b_update(lexer*,fdm_nhf*,ghostcell*);
 	void wallf_update(lexer*,fdm_nhf*,ghostcell*,int*);

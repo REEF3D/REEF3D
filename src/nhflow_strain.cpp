@@ -225,6 +225,24 @@ double nhflow_strain::strainterm(lexer *p, double *U, double *V, double *W)
 	return s;
 }
 
+double nhflow_strain::Sij2(lexer *p, fdm_nhf *d)
+{
+    double s = strainterm(p,d);
+    
+    s = s*s;
+    
+    return s;
+}
+
+double nhflow_strain::Qij2(lexer *p, fdm_nhf *d)
+{
+    double q = rotationterm(p,d);
+    
+    q = q*q;
+    
+    return q;
+}
+
 double nhflow_strain::rotationterm(lexer *p, fdm_nhf *d)
 {
 	double r=0.0;
