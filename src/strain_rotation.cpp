@@ -78,3 +78,27 @@ double strain::rotationterm(lexer *p, field &u, field &v, field &w)
 
 	return r;
 }
+
+void strain::skewSymmetricStrainRateTensor(lexer *p, field &u, field &v, field &w)
+{
+    if(p->j_dir==1)
+    {
+        r11 = 0.0;
+        r22 = 0.0;
+        r33 = 0.0;
+        r12 = (pudy(p,u) - pvdx(p,v));
+        r13 = (pudz(p,u) - pwdx(p,w));
+        r23 = (pvdz(p,v) - pwdy(p,w));
+    }
+    
+    if(p->j_dir==0)
+    {
+        r11 = 0.0;
+        r22 = 0.0;
+        r33 = 0.0;
+        r12 = 0.0;
+        r13 = (pudz(p,u) - pwdx(p,w)); 
+        r23 = 0.0;
+    }
+}
+
