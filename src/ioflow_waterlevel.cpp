@@ -209,3 +209,25 @@ double ioflow_f::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double 
 
     return val;
 }
+
+void ioflow_f::waterlevel_update(lexer *p,fdm *a,ghostcell *pgc)
+{
+    double zval;
+    
+	ILOOP
+    JLOOP
+	{
+    zval=-1e20;
+	
+        KLOOP
+        PCHECK
+        {
+            if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+            zval=MAX(zval,-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
+        }
+    
+    a->WL(i,j) = zval - a->bed(i,j);
+    
+    a->WL(i,j) = MAX(0.0001,a->WL(i,j));
+    }
+}

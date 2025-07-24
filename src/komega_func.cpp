@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"ioflow.h"
 #include"vrans.h"
 
 komega_func::komega_func(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a),komega_bc(p)
@@ -281,8 +282,10 @@ void komega_func::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
     pvrans->omega_source(p,a,kin,eps);
 }
 
-void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
+void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc, ioflow *pflow)
 {
+    pflow->waterlevel_update(p,a,pgc);
+    
 	if(p->T36>0)
 	LOOP
 	{
@@ -302,6 +305,9 @@ void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc)
 
 	if(dirac>0.0 && p->T36==2)
 	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
+    
+    if(dirac>0.0 && p->T36==3)
+	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/(p->T37*a->WL(i,j)));
 	}
 }
 

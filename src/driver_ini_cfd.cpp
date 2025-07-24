@@ -85,6 +85,9 @@ void driver::driver_ini_cfd()
     gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
     
+    SLICELOOP4
+	a->bed(i,j) = p->bed[IJ];
+    
     // Solid Forcing
     if(p->mpirank==0)
     cout<<"driver solid forcing initialize"<<endl;

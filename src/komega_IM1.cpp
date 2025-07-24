@@ -71,7 +71,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
     bckomega_start(a,p,kin,eps,gcval_eps);
     bcomega_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,eps,a->rhsvec,4);
-	epsfsf(p,a,pgc);
+	epsfsf(p,a,pgc,pflow);
 	pgc->start4(p,eps,gcval_eps);
     pgc->solid_forcing_lsm(p,a,eps);
 	p->epstime=pgc->timer()-starttime;

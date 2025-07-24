@@ -40,7 +40,7 @@ public:
 	virtual void ksource(lexer*,fdm*);
 	virtual void kinsource(lexer*,fdm*,vrans*);
 	virtual void epssource(lexer*,fdm*,vrans*,field&);
-	virtual void epsfsf(lexer*,fdm*,ghostcell*);
+	virtual void epsfsf(lexer*,fdm*,ghostcell*,ioflow*);
 	virtual void eddyvisc(lexer*,fdm*,ghostcell*,vrans*);
 	virtual void clearfield(lexer*,fdm*,field&);
 

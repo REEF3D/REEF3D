@@ -80,6 +80,6 @@ void iowave::waterlevel_update(lexer *p,fdm *a,ghostcell *pgc)
     
     a->WL(i,j) = zval - a->bed(i,j);
     
-    
+    a->WL(i,j) = MAX(0.0001,a->WL(i,j));
     }
 }

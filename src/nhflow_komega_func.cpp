@@ -201,7 +201,6 @@ void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
 
 void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-	
 	if(p->A567==1)
 	LOOP
 	{

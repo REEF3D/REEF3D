@@ -117,7 +117,7 @@ public:
     
     virtual void ini(lexer*,fdm*,ghostcell*);
     
-    virtual void waterlevel_update(lexer*,fdm*,ghostcell*){};
+    virtual void waterlevel_update(lexer*,fdm*,ghostcell*);
     
     // fnpf
     virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*){};
