@@ -93,7 +93,7 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
 void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha)
 {	
 	SLICELOOP1
-    WETDRY1
+    WETDRYDEEP1
     if(b->breaking(i,j)==0 && b->breaking(i+1,j)==0)
 	P(i,j) += -alpha*p->dt*(((b->press(i+1,j)-b->press(i,j))/(p->DXM*p->W1)))
            
@@ -104,7 +104,7 @@ void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice& P, slice &eta, double alpha
 void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha)
 {	
 	SLICELOOP2
-    WETDRY2
+    WETDRYDEEP2
     if(b->breaking(i,j)==0 && b->breaking(i,j+1)==0)
 	Q(i,j) += -alpha*p->dt*(((b->press(i,j+1)-b->press(i,j))/(p->DXM*p->W1)))
                 
@@ -115,7 +115,7 @@ void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice& Q, slice &eta, double alpha
 void sflow_pjm_lin::wcorr(lexer* p, fdm2D* b, double alpha, slice &P, slice &Q, slice &ws)
 {	    
     SLICELOOP4
-    WETDRY
+    WETDRYDEEP
     if(b->breaking(i,j)==0)
 	ws(i,j) += p->dt*alpha*(2.0*b->press(i,j)/(HP*p->W1));
 }
@@ -237,7 +237,7 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
 
     SLICELOOP1
-    WETDRY1
+    WETDRYDEEP1
     b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
 
@@ -248,7 +248,7 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         i=p->gcslout[n][0]-1;
         j=p->gcslout[n][1];
         
-        WETDRY1
+        WETDRYDEEP1
         {
         b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
                                      - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
@@ -266,7 +266,7 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
 {
         SLICELOOP2
-        WETDRY2
+        WETDRYDEEP2
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
                                  - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM); 
                                  
