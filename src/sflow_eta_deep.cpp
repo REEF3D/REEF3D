@@ -68,7 +68,8 @@ void sflow_eta::wetdrydeep(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
         b->deep2(i,j)=0;
     }
     
-
+    SLICELOOP4
+    b->test(i,j) = p->deep[IJ];
 
     pgc->gcsl_start4Vint(p,p->deep,50);
     
