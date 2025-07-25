@@ -820,6 +820,20 @@
       <File Name="ghostcell.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <VirtualDirectory Name="Geometry">
+        <VirtualDirectory Name="Geo_Func">
+          <File Name="geo_func.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Geo_Container">
+          <File Name="geo_container.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Geo_Interface">
+          <File Name="geo_interface.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Geo_Create">
+          <File Name="geo_create.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <File Name="sediment_part.h"/>
       <VirtualDirectory Name="Driver">
         <File Name="nhflow_header.h"/>
@@ -841,12 +855,6 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Geocontainer">
-          <File Name="geocontainer.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Geometry">
-          <File Name="geometry_objects.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Boundary">
           <File Name="boundary.h"/>
         </VirtualDirectory>
@@ -2530,6 +2538,27 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <VirtualDirectory Name="Geometry">
+        <VirtualDirectory Name="Geo_Container">
+          <File Name="geo_container.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Geo_Interface"/>
+        <VirtualDirectory Name="Geo_Create">
+          <File Name="geo_create_wedge_z.cpp"/>
+          <File Name="geo_create_wedge_y.cpp"/>
+          <File Name="geo_create_wedge_x.cpp"/>
+          <File Name="geo_create_stl.cpp"/>
+          <File Name="geo_create_sphere.cpp"/>
+          <File Name="geo_create_rotation.cpp"/>
+          <File Name="geo_create_refinement.cpp"/>
+          <File Name="geo_create_jacketmember.cpp"/>
+          <File Name="geo_create_cylinder_z.cpp"/>
+          <File Name="geo_create_cylinder_y.cpp"/>
+          <File Name="geo_create_box.cpp"/>
+          <File Name="geo_create.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Geo_Func"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Ini">
         <File Name="driver_ini_sflow.cpp"/>
         <File Name="driver_ini_ptf.cpp"/>
@@ -2547,23 +2576,6 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Geocontainer">
-          <File Name="geocontainer.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Geometry">
-          <File Name="geometry_objects_jacketmember.cpp"/>
-          <File Name="geometry_objects_cylinder_y.cpp"/>
-          <File Name="geometry_objects_cylinder_z.cpp"/>
-          <File Name="geometry_objects_refinement.cpp"/>
-          <File Name="geometry_objects_rotation.cpp"/>
-          <File Name="geometry_objects_stl.cpp"/>
-          <File Name="geometry_objects_sphere.cpp"/>
-          <File Name="geometry_objects_wedge_z.cpp"/>
-          <File Name="geometry_objects_wedge_y.cpp"/>
-          <File Name="geometry_objects_wedge_x.cpp"/>
-          <File Name="geometry_objects_box.cpp"/>
-          <File Name="geometry_objects.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Boundary">
           <File Name="boundary_update_nhflow.cpp"/>
           <File Name="boundary.cpp"/>
