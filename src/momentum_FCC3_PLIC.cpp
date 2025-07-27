@@ -341,18 +341,20 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     clear_FGH(p,a);
     
-    //pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk1);
-    pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk1);
-    pgc->start4(p,vof_rk1,gcval_vof);
-    LOOP
-        a->vof(i,j,k)=vof_rk1(i,j,k);
-    pgc->start4(p,a->vof,gcval_vof);
-    if(p->F92==3)
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-	
+    if(p->F98==1)
+    {
+        //pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk1);
+        pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk1);
+        pgc->start4(p,vof_rk1,gcval_vof);
+        LOOP
+            a->vof(i,j,k)=vof_rk1(i,j,k);
+        pgc->start4(p,a->vof,gcval_vof);
+        if(p->F92==3)
+            pplic->calculateSubFractions(p,a,pgc,a->vof);
+        pupdate->start(p,a,pgc);
+        pgc->start4(p,a->ro,gcval_ro);
+        pgc->start4(p,a->visc,gcval_visc);
+    }
 //********************************************************
 //Step 2
 //********************************************************
@@ -558,20 +560,22 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	pgc->start3(p,wrk2,gcval_w);
     clear_FGH(p,a);
     
-   // pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
-    pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk2);
-    pgc->start4(p,vof_rk2,gcval_vof);
-    LOOP
-        a->vof(i,j,k)=vof_rk2(i,j,k);
-    pgc->start4(p,a->vof,gcval_vof);
-    if(p->F92==3)
+    if(p->F98==1)
     {
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
+        // pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
+        pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk2);
+        pgc->start4(p,vof_rk2,gcval_vof);
+        LOOP
+            a->vof(i,j,k)=vof_rk2(i,j,k);
+        pgc->start4(p,a->vof,gcval_vof);
+        if(p->F92==3)
+        {
+            pplic->calculateSubFractions(p,a,pgc,a->vof);
+        }
+        pupdate->start(p,a,pgc);
+        pgc->start4(p,a->ro,gcval_ro);
+        pgc->start4(p,a->visc,gcval_visc);
     }
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
 
 //********************************************************
 //Step 3
@@ -775,13 +779,15 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     clear_FGH(p,a);
     
-   // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
-    pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
-    pgc->start4(p,a->vof,gcval_vof);
-    pupdate->start(p,a,pgc);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
+    if(p->F98==1)
+    {
+        // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
+        pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
+        pgc->start4(p,a->vof,gcval_vof);
+        pupdate->start(p,a,pgc);
+        pgc->start4(p,a->ro,gcval_ro);
+        pgc->start4(p,a->visc,gcval_visc);
+    }
     LOOP
     {
         if(a->vof(i,j,k)>p->F94)
