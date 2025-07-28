@@ -100,7 +100,7 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
                 +0.5*p->DYN[JM1]*(a->vof(i+aa,j+bb,k+cc)*p->W1+(1.0-a->vof(i+aa,j+bb,k+cc))*p->W3)
                 )/p->DYP[JM1];
             else
-                cout<<"density case missing"<<endl;
+                cout<<"density case missing, aa:"<<aa<<" bb:"<<bb<<" cc:"<<cc<<endl;
             }
     }
     else if(p->F92==3)
@@ -145,7 +145,7 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
                         +0.5*p->DYN[JM1]*(a->vof(i+aa,j+bb,k+cc)*p->W1+(1.0-a->vof(i+aa,j+bb,k+cc))*p->W3)
                         )/p->DYP[JM1];
                     else
-                        cout<<"density case missing"<<endl;
+                        cout<<"density case missing aa:"<<aa<<" bb:"<<bb<<" cc:"<<cc<<" exepcheck 1"<<endl;
                 }
             }
         }
@@ -168,7 +168,7 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
                 else if(cc==-1)
                     H=(0.25*p->DZN[KP]*a->vof_nb(i,j,k)+0.25*p->DZN[KP]*a->vof_sb(i,j,k)+0.25*p->DZN[KM1]*a->vof_nt(i,j,k-1)+0.25*p->DZN[KM1]*a->vof_st(i,j,k-1))/p->DZP[KM1];
                 else
-                    cout<<"density case missing"<<endl;
+                    cout<<"density case missing 2D, aa:"<<aa<<" bb:"<<bb<<" cc:"<<cc<<" exepcheck 0"<<endl;;
             }
             else
             {
@@ -209,7 +209,7 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
                         )/p->DZP[KM1];
                 }
                 else
-                    cout<<"density case missing"<<endl;
+                    cout<<"density case missing 3D aa:"<<aa<<" bb:"<<bb<<" cc:"<<cc<<" exepcheck 0"<<endl;
             }
         }
         roval=roval = p->W1*H + p->W3*(1.0-H);
