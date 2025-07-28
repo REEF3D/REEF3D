@@ -592,7 +592,7 @@ void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p, field& voffield)
         vof_max=voffield(i-1,j,k);
         baseswitch=-1;
     }
-    if(voffield(i+1,j,k)>voffield(i-1,j,k)-1E-06 && voffield(i+1,j,k)<voffield(i-1,j,k)+1E-06 && (baseswitch==1 || baseswitch==-1))
+    if(voffield(i+1,j,k)>voffield(i-1,j,k)-1E-06 && voffield(i+1,j,k)<voffield(i-1,j,k)+1E-06 && (baseswitch==1 ||baseswitch==-1))
     {
         vof_max=voffield(i+1,j,k);
         baseswitch=10;
@@ -642,7 +642,7 @@ void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p, field& voffield)
             vof_max=voffield(i,j-1,k);
             baseswitch=-2;
         }
-        if(voffield(i,j+1,k)>voffield(i,j-1,k)-1E-06 && voffield(i,j+1,k)<voffield(i,j-1,k)+1E-06 && (baseswitch==2 || baseswitch==-2))
+        if(voffield(i,j+1,k)>voffield(i,j-1,k)-1E-06 && voffield(i,j+1,k)<voffield(i,j-1,k)+1E-06 && (baseswitch==2 ||baseswitch==-2))
         {
             vof_max=voffield(i,j+1,k);
             baseswitch=20;
@@ -703,7 +703,7 @@ void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p, field& voffield)
   //  }
     
     
-    if(baseswitch==-1 || baseswitch==1)
+    if(baseswitch==-1 ||baseswitch==1)
     {
         n_x=1.0;
         pcc=voffield(i-1,j,k)+voffield(i,j,k)+voffield(i+1,j,k);
@@ -755,7 +755,7 @@ void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p, field& voffield)
             n_x=-n_x;
         }
     }
-    else if(baseswitch==3 || baseswitch==-3)
+    else if(baseswitch==3 ||baseswitch==-3)
     {
         n_z=1.0;
         pcc=voffield(i,j,k-1)+voffield(i,j,k)+voffield(i,j,k+1);
@@ -809,7 +809,7 @@ void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p, field& voffield)
         }
         
     }
-    else if(baseswitch==2 || baseswitch==-2)
+    else if(baseswitch==2 ||baseswitch==-2)
     {
         n_y=1.0;
         pcc=voffield(i,j-1,k)+voffield(i,j,k)+voffield(i,j+1,k);
@@ -1543,7 +1543,7 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);*/
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) ||nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
@@ -1784,12 +1784,12 @@ void VOF_PLIC::calcNormalMYC2D_V2(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);*/
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) ||nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
         
-        if((fabs(nz_CC)<fabs(nz_CY) || nz_CY!=nz_CY) || divN<3.5)
+        if((fabs(nz_CC)<fabs(nz_CY) ||nz_CY!=nz_CY) ||divN<3.5)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
@@ -1819,7 +1819,7 @@ void VOF_PLIC::calcNormalMYC2D_V2(fdm* a,lexer* p, field& voffield)
         nx_CC=nx_Cx;
         nz_CC=nz_Cx;
         
-        if((fabs(nx_CC)<fabs(nx_CY) || nx_CY!=nx_CY) || divN<3.5)
+        if((fabs(nx_CC)<fabs(nx_CY) ||nx_CY!=nx_CY) ||divN<3.5)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
@@ -2025,12 +2025,12 @@ void VOF_PLIC::calcNormalMYC2D_V3(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);*/
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) ||nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
         
-        if(fabs(nz_CC)<fabs(nz_CY) || nz_CY!=nz_CY)
+        if(fabs(nz_CC)<fabs(nz_CY) ||nz_CY!=nz_CY)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
@@ -2060,7 +2060,7 @@ void VOF_PLIC::calcNormalMYC2D_V3(fdm* a,lexer* p, field& voffield)
         nx_CC=nx_Cx;
         nz_CC=nz_Cx;
         
-        if(fabs(nx_CC)<fabs(nx_CY) || nx_CY!=nx_CY)
+        if(fabs(nx_CC)<fabs(nx_CY) ||nx_CY!=nx_CY)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
