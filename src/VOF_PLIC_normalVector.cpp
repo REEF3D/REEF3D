@@ -984,7 +984,7 @@ void VOF_PLIC::calcNormalMYC3D(fdm* a,lexer* p, field& voffield)
 
     
 // figure out which CC Candidate is used and inside compare tou Young
-    if(((fabs(nz_Cz)>=fabs(nx_Cx) && fabs(nz_Cz)>=fabs(ny_Cy)) || (nx_Cx!=nx_Cx && ny_Cy!=ny_Cy)) && nz_Cz==nz_Cz)
+    if(((fabs(nz_Cz)>=fabs(nx_Cx) && fabs(nz_Cz)>=fabs(ny_Cy)) ||(nx_Cx!=nx_Cx && ny_Cy!=ny_Cy)) && nz_Cz==nz_Cz)
     {
         nx(i,j,k)=nx_Cz;
         ny(i,j,k)=ny_Cz;
@@ -998,7 +998,7 @@ void VOF_PLIC::calcNormalMYC3D(fdm* a,lexer* p, field& voffield)
                 cout<<"NAN nz_Cz"<<endl;
                 
     }
-    else if(((fabs(nx_Cx)>=fabs(nz_Cz) && fabs(nx_Cx)>=fabs(ny_Cy)) || (nz_Cz!=nz_Cz && ny_Cy!=nz_Cy)) && nx_Cx==nx_Cx)
+    else if(((fabs(nx_Cx)>=fabs(nz_Cz) && fabs(nx_Cx)>=fabs(ny_Cy)) ||(nz_Cz!=nz_Cz && ny_Cy!=nz_Cy)) && nx_Cx==nx_Cx)
     {
         nx(i,j,k)=nx_Cx;
         ny(i,j,k)=ny_Cx;
