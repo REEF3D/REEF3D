@@ -214,6 +214,8 @@ double density_vof::roface(lexer *p, fdm *a, int d_i, int d_j, int d_k)
         }
         roval=roval = p->W1*H + p->W3*(1.0-H);
     }
+    
+    return roval;
 }
 
 
