@@ -1,4 +1,38 @@
 
+25.07
+x added water level influence on free surface turbulence damping (CFD)
+x updated wetting and drying for non-hydrostastic pressure (SFLOW)
+x updated turbulence stabilization (CFD)
+x added suspended sediment transport (NHFLOW)
+x fixed eddy viscosity wave generation zone relaxation (CFD)
+x fixed k-omega outer boundary conditions (CFD)
+x updated roughness for sediment transport (NHFLOW)
+x updated convection and fixed minor weno_flux problem (SFLOW)
+x updated depth-averaged k-epsilon model (SFLOW)
+x updated URANS filter (NHFLOW, CFD)
+x added bed values to da point probes printout (SFLOW)
+x added VOF PLIC (CFD)
+x updated conservative and consistent momentum treatment (CFD)
+x updated tangential velocity for solid and topo forcing (CFD)
+x fixed topo print out in vtu files for 2D cases (CFD)
+x fixed parallel forcing issue (NHFLOW)
+x updated LES WALE to avoid divide by zero (CFD)
+x updated level set ini (CFD)
+x added DLM forcing for thin structures (NHFLOW)
+x added net models to NHFLOW
+x redesigned net classes
+x fixed potential flow ini boundaries (SFLOW)
+x bug fix for vertical k-omega convection (NHFLOW)
+x bug fix for quadratic pressure correction term in y-direction (SFLOW)
+x added sediment time based vtu and vtp print out (NHFLOW)
+x removed threshold function for bedload formulations
+x added nu_d option to Engelund and Fredsøe bedload transport
+x added velocity/viscosity based bed shear stress (NHFLOW)
+x fixed VRANS turbulence wall for 2D cases (CFD)
+x added free surface ini y-dir wedge (CFD) 
+x added sediment probes for SFLOW and NHFLOW
+x fixed a density vtu print out problem (CFD)
+x removed vts and vtr paraview print out
 x fixed pjm wetdrydeep bug (SFLOW)
 
 25.05
