@@ -2542,7 +2542,9 @@
         <VirtualDirectory Name="Geo_Container">
           <File Name="geo_container.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Interface"/>
+        <VirtualDirectory Name="Geo_Interface">
+          <File Name="geo_interface.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Geo_Create">
           <File Name="geo_create_wedge_z.cpp"/>
           <File Name="geo_create_wedge_y.cpp"/>
@@ -2557,7 +2559,9 @@
           <File Name="geo_create_box.cpp"/>
           <File Name="geo_create.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Func"/>
+        <VirtualDirectory Name="Geo_Func">
+          <File Name="geo_func.cpp"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Ini">
         <File Name="driver_ini_sflow.cpp"/>

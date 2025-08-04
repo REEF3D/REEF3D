@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef GEOCONTAINER_H_
-#ifndef GEOCONTAINER_H_
+#ifndef GEO_CONTAINER_H_
+#define GEOCONTAINER_H_
 
 #include"increment.h"
 
@@ -30,21 +30,20 @@ class ghostcell;
 
 using namespace std;
 
-class geocontainer : increment
+class geo_container : increment
 {
 public:
-	geocontainer(lexer*);
-	virtual ~geocontainer();
+	geo_container(lexer*);
+	virtual ~geo_container();
     
-    void create_obj(lexer*, int ID, int type);
+    void create_obj(lexer*, int, int , int);
     
     void delete_obj(lexer*, int ID);
 
     
 private:
-    double ***tri;
-    
-    int tricount;
+    double **tri;
+    int trinum;
     int ID;
     int type;
     double xs,xe,ys,ye,zs,ze;
