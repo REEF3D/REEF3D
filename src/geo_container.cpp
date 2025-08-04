@@ -42,6 +42,5 @@ void geo_container::create_obj(lexer *p, int in_ID, int in_type, int in_trinum)
 
 void geo_container::delete_obj(lexer *p, int ID)
 {
-    //p->Del_Iarray(tri,trinum,3);
-
+    p->del_Darray(tri,trinum,3);
 }
