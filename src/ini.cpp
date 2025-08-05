@@ -843,10 +843,10 @@ void lexer::ini_default()
     X24=0;        // int prescribe moments of inertia
     X25_Cp=X25_Cq=X25_Cr=0.0;    // double damping rotation
     X26_Cu=X26_Cv=X26_Cw=0.0;    // double damping translational
-    X31=4;        // int boundary conditions for parallel velocity on floating body
-    X32=1;        // int boundary conditions for orthogonal velocity on floating body
-    X33=1;        // int boundary conditions for pressure on floating body
-    X34=0;        // int boundary treatment for new solid velocity cells
+    X31=4;        // int
+    X32=1;        // int 
+    X33=1;        // int 
+    X34=0;        // int 
     X39=0;       // int type of viscous force calculation
     X40=3;		// int type of force calculation
 	X41=0.6;    // double eps for continuous forcing heaviside

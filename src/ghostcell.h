@@ -351,9 +351,6 @@ public:
     void imagepoint(lexer*,field&, double&, double&,double,int);
 	void atmosphere(lexer*,field&,int,int,int);
     void heatbc(lexer*,field&,int,int,int);
-	void fbvel1(lexer*,field&,double,int,int,int);
-	void fbvel2(lexer*,field&,double,int,int,int);
-	void fbvel3(lexer*,field&,double,int,int,int);
 	void gravity_press(lexer*,field&,double,int,int,int);
     void nhpress(lexer*,field&,double,int,int,int);
     void kinematic_bed(lexer*,field&,double,int,int,int);
