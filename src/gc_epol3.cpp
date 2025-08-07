@@ -178,10 +178,7 @@ void ghostcell::gcdistro3(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
     
     if(bc_label==8)
 	kinematic_bed(p,f,dist,gcv,bc,cs);
-    
-	if(bc_label==9)
-	fbvel3(p,f,dist,gcv,bc,cs);
-    
+
     if(bc_label==11)
 	dirichlet_ortho_reflect(p,f,dist,gcv,bc,cs);
 

@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef GEO_CONTAINER_H_
-#define GEOCONTAINER_H_
+#define GEO_CONTAINER_H_
 
 #include"increment.h"
 

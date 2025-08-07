@@ -822,6 +822,9 @@
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Geometry">
         <VirtualDirectory Name="Geo_Func">
+          <File Name="geo_func_sflow.h"/>
+          <File Name="geo_func_nhflow.h"/>
+          <File Name="geo_func_cfd.h"/>
           <File Name="geo_func.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geo_Container">
@@ -2450,7 +2453,6 @@
         <File Name="gc_start.cpp"/>
         <File Name="gc_atmosphere.cpp"/>
         <File Name="gc_outflow.cpp"/>
-        <File Name="gc_fbvel.cpp"/>
         <File Name="gc_gravity_press.cpp"/>
         <File Name="gc_lsm.cpp"/>
         <File Name="gc_neumann.cpp"/>
@@ -2560,6 +2562,31 @@
           <File Name="geo_create.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geo_Func">
+          <VirtualDirectory Name="Geo_Func_SFLOW">
+            <File Name="geo_func_sflow_raycast_y.cpp"/>
+            <File Name="geo_func_sflow_raycast_x.cpp"/>
+            <File Name="geo_func_sflow_raycast_io.cpp"/>
+            <File Name="geo_func_sflow_raycast.cpp"/>
+            <File Name="geo_func_sflow.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Geo_Func_NHFLOW">
+            <File Name="geo_func_nhflow_reini_RK2.cpp"/>
+            <File Name="geo_func_nhflow_raycast_z.cpp"/>
+            <File Name="geo_func_nhflow_raycast_y.cpp"/>
+            <File Name="geo_func_nhflow_raycast_x.cpp"/>
+            <File Name="geo_func_nhflow_raycast_io.cpp"/>
+            <File Name="geo_func_nhflow_raycast.cpp"/>
+            <File Name="geo_func_nhflow.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Geo_Func_CFD">
+            <File Name="geo_func_cfd_reini_RK2.cpp"/>
+            <File Name="geo_func_cfd_raycast_z.cpp"/>
+            <File Name="geo_func_cfd_raycast_y.cpp"/>
+            <File Name="geo_func_cfd_raycast_x.cpp"/>
+            <File Name="geo_func_cfd_raycast_io.cpp"/>
+            <File Name="geo_func_cfd_raycast.cpp"/>
+            <File Name="geo_func_cfd.cpp"/>
+          </VirtualDirectory>
           <File Name="geo_func.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
