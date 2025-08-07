@@ -42,8 +42,8 @@ double wave_lib_spectrum::TMA(lexer *p, double w)
     double wdt_tma;
     wdt_tma=p->F60;
     if(p->B94==1)
-    wdt_tma=p->P94_wdt;
-        
+    wdt_tma=p->B94_wdt;
+
     double phi_tma;
     if(w*sqrt(wdt_tma/9.81)<1)
     phi_tma=0.5*pow(w*sqrt(wdt_tma/9.81),2);
