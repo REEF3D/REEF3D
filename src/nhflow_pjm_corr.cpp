@@ -117,6 +117,8 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     ++n;
     }
     
+    pgc->start7P(p,PCORR,gcval_press);
+    
     n=0;
     LOOP
     {

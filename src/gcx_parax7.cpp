@@ -35,8 +35,6 @@ void ghostcell::gcparax7(lexer* p,double *&f,int gcv)
     i=p->gcx7[0][q][0];
     j=p->gcx7[0][q][1];
     k=p->gcx7[0][q][2];
-    
-    //cout<<p->mpirank<<" GCX7: "<<i<<" "<<j<<" "<<k<<" | "<<q<<endl;
 
         send1[count] = f[FIJK];  
         ++count;
