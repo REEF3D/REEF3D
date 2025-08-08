@@ -432,6 +432,7 @@ public:
     double F96_xs,F96_xe;
     int F97;
     double F97_ys,F97_ye;
+    int F98;
     int F112;
 
     double *F112_xs,*F112_xe,*F112_ys,*F112_ye,*F112_zs,*F112_ze;

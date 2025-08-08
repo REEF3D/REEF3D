@@ -35,11 +35,14 @@ double r;
 double vofdiff, xdiff;
 
     LOOP
+    {
 	a->vof(i,j,k)=0.0;
     a->nZ(i,j,k)=1E06;
     a->nY(i,j,k)=1E06;
     a->nZ(i,j,k)=1E06;
     a->Alpha(i,j,k)=1E06;
+    
+    }
     
     pgc->start4(p,a->vof,1);
 
@@ -79,7 +82,9 @@ if(p->F60>-1.0e20)
         if(p->pos_z()+0.5*p->DZN[KP]<p->F60)
             a->vof(i,j,k)=1.0;
         else if(p->pos_z()-0.5*p->DZN[KP]>p->F60)
+        {
             a->vof(i,j,k)=0.0;
+        }
         else
         {
             a->vof(i,j,k)=(p->F60-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];

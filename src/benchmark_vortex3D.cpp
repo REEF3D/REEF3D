@@ -37,13 +37,13 @@ benchmark_vortex3D::benchmark_vortex3D(lexer *p, fdm *a)
     radius = 0.15;
 
     LOOP
-    a->phi(i,j,k)=-1.0;
+    a->vof(i,j,k)=0.0;
 
 	LOOP
 	{
     r = sqrt( pow(p->pos_x()-xc,2.0) + pow(p->pos_y()-yc,2.0) + pow(p->pos_z()-zc,2.0));
 	if(r<=radius)
-	a->phi(i,j,k)=1.0;
+	a->vof(i,j,k)=1.0;
 	}
 
 	
@@ -53,14 +53,7 @@ benchmark_vortex3D::benchmark_vortex3D(lexer *p, fdm *a)
 	
     LOOP
 	{
-		if(a->phi(i,j,k)>=p->F45*p->DXM)
-		H=1.0;
-
-		if(a->phi(i,j,k)<-p->F45*p->DXM)
-		H=0.0;
-
-		if(fabs(a->phi(i,j,k))<=p->F45*p->DXM)
-		H=0.5*(1.0 + a->phi(i,j,k)/p->F45*p->DXM + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->F45*p->DXM));
+		H=a->vof(i,j,k);
 
 		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
