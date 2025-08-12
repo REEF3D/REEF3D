@@ -109,7 +109,11 @@ private:
 	double w1,w2,w3;
 	double q1,q2,q3,q4,q5;
 	double gradx, grady, gradz;
+
 	double f1,f2,f3,f4;
+    
+    double X1,X2,X3,X4,X0;
+    double Y1,Y2,Y3,Y4,Y0;
     
     void is();
 	void alpha();
