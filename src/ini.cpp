@@ -111,11 +111,11 @@ void lexer::ini_default()
     A514=4;		// int NHFLOW reconstruction 
     A515=1;      // int Dirichlet wave BC type
     A516=3;      // int
-    A517=3;      // int 
+    A517=1;      // int preserve tangential velocities for forcing
     A518=2;      // int NHFLOW bed BC
     A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=1;		// int preserve tangential velocities for forcing
+    A521=1;		// int
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Froude number limiter
