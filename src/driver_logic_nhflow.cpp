@@ -91,7 +91,10 @@ void driver::logic_nhflow()
     pnhfdiff = new nhflow_idiff_2D(p);
     
 // reconstruction
-    if(p->A514<=3)
+    if(p->A514==0)
+    precon = new nhflow_reconstruct_void(p,pBC);
+    
+    if(p->A514>0 && p->A514<=3)
     precon = new nhflow_reconstruct_hires(p,pBC);
     
     if(p->A514==4)

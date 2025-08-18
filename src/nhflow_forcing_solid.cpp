@@ -34,7 +34,7 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     uf=vf=wf=0.0;
     
-     if(p->A517==0)
+    if(p->A517==0)
     LOOP
     {
         H = Hsolidface(p,d,0,0,0);
@@ -46,7 +46,7 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
         d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
     }
     
-     if(p->A517==1)
+    if(p->A517==1)
     LOOP
     {
         H = Hsolidface(p,d,0,0,0);

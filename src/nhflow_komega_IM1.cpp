@@ -74,10 +74,11 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	pdiff->diff_scalar(p,d,pgc,psolv,EPS,kw_sigma_w,1.0);
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
+    //bckomega_start(p,d,KIN,EPS,gcval_eps);
     bcomega_matrix(p,d,KIN,EPS);
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
 	epsfsf(p,d,pgc);
-	bckomega_start(p,d,KIN,EPS,gcval_eps);
+    bckomega_start(p,d,KIN,EPS,gcval_eps);
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;

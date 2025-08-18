@@ -69,12 +69,14 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     }
     
     else
-    if(p->wet[IJ]==0 && p->wet[Ip1J]==0)
+    if((p->wet[IJ]==0 && p->wet[Ip1J]==0) )
     {
     d->Ss[IJK] = 0.0;
     d->Sn[IJK] = 0.0;
     d->SSx[IJK] = 0.0;
     }
+    
+    d->test[IJK] = d->Sn[IJK];
     }
     
     // signal speed y-dir
