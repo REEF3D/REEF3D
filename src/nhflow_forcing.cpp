@@ -161,7 +161,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     if(floating_flag==1)
     LOOP
     if(d->FB[IJK]<0.0)
-    p->DF[IJK]=-1;
+    p->DF[IJK]=-2;
     
     pgc->startintV(p,p->DF,1);
     
