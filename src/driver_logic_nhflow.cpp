@@ -90,18 +90,12 @@ void driver::logic_nhflow()
     if(p->A512==2 && p->j_dir==0)
     pnhfdiff = new nhflow_idiff_2D(p);
     
-// reconstruction
-    if(p->A514==0)
-    precon = new nhflow_reconstruct_void(p,pBC);
-    
-    if(p->A514>0 && p->A514<=3)
+// reconstruction    
+    if(p->A514<=3)
     precon = new nhflow_reconstruct_hires(p,pBC);
     
     if(p->A514==4)
     precon = new nhflow_reconstruct_weno(p,pBC);
-    
-    if(p->A514==5)
-    precon = new nhflow_reconstruct_wenograd(p,pBC);
     
 //pressure scheme
     if(p->A520==0)

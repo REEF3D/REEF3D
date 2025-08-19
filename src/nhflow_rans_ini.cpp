@@ -78,6 +78,13 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     pgc->start20V(p,KIN,20);
     pgc->start30V(p,EPS,30);
     pgc->start24V(p,d->EV,24);
+    
+    LOOP
+    if(p->DF[IJK]<0)
+    {
+    KIN[IJK] = 0.0;
+    EPS[IJK] = 0.0;
+    }
 }
 
 void nhflow_rans_io::tau_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)

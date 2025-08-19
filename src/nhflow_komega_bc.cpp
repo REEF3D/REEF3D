@@ -206,17 +206,6 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
     if(p->B60==1)
     outflow=2;
     
-    // turn off inside direct forcing body
-        n=0;
-        if(p->B11==0)
-        LOOP
-        {
-            if(p->DF[IJK]<0)
-            {
-            KIN[IJK] = 0.0;
-            }
-            ++n;
-        }
         
         n=0;
         LOOP
@@ -266,7 +255,9 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
         LOOP
         {
             if(p->DF[IJK]<0)
-            {            
+            {   
+            KIN[IJK] = 0.0;
+            
             d->M.p[n]  =   1.0;
 
             d->M.n[n] = 0.0;
@@ -299,16 +290,6 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
     if(p->B60==1)
     outflow=2;
     
-        n=0;
-        if(p->B11==0)
-        LOOP
-        {
-            if(p->DF[IJK]<0)
-            {
-            EPS[IJK] = 0.0;
-            }
-            ++n;
-        }
     
         n=0;
         LOOP
@@ -404,8 +385,7 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
         {
             if(p->DF[IJK]<0)
             {
-            //if(p->B11==0)
-            //EPS[IJK] = 1.0;
+            EPS[IJK] = 0.0;
             
             d->M.p[n]  =   1.0;
 

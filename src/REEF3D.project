@@ -229,9 +229,7 @@
             <File Name="nhflow_signal_speed.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Reconstruct">
-            <File Name="nhflow_reconstruct_void.h"/>
             <File Name="nhflow_reconstruct_weno.h"/>
-            <File Name="nhflow_reconstruct_wenograd.h"/>
             <File Name="nhflow_reconstruct.h"/>
             <File Name="nhflow_reconstruct_hires.h"/>
           </VirtualDirectory>
@@ -1395,9 +1393,7 @@
             <File Name="nhflow_signal_speed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Reconstruct">
-            <File Name="nhflow_reconstruct_void.cpp"/>
             <File Name="nhflow_reconstruct_weno.cpp"/>
-            <File Name="nhflow_reconstruct_wenograd.cpp"/>
             <File Name="nhflow_reconstruct_hires.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_HLL.cpp"/>
