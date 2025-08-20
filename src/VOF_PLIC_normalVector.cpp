@@ -902,7 +902,7 @@ void VOF_PLIC::calcNormalMYC3D(fdm* a,lexer* p, field& voffield)
     double xsum_zm, xsum_zp, xsum_yp, xsum_ym;
     double ysum_xm, ysum_xp, ysum_zm, ysum_zp;
     double vofsumup,vofsumdown,sign;
-    double nx_Cz, ny_Cz, nz_Cz, nx_Cx, ny_Cx, nz_Cx, nx_Cy, ny_Cy, nz_Cy, nx_CC, nz_CC;
+    double nx_Cz, ny_Cz, nz_Cz, nx_Cx, ny_Cx, nz_Cx, nx_Cy, ny_Cy, nz_Cy;
     double nsum;
     
     //Candidate CC1 height function is z dimension
@@ -928,7 +928,7 @@ void VOF_PLIC::calcNormalMYC3D(fdm* a,lexer* p, field& voffield)
         cout<<"nsumNAN Cz"<<endl;
     nz_Cz=nz_Cz/nsum;
     nx_Cz=nx_Cz/nsum;
-    ny_Cz=nz_Cz/nsum;
+    ny_Cz=ny_Cz/nsum;
     
     
     //Candidate CC2 height function is x dimension
@@ -999,7 +999,7 @@ void VOF_PLIC::calcNormalMYC3D(fdm* a,lexer* p, field& voffield)
                 cout<<"NAN nz_Cz"<<endl;
                 
     }
-    else if(((fabs(nx_Cx)>=fabs(nz_Cz) && fabs(nx_Cx)>=fabs(ny_Cy)) ||(nz_Cz!=nz_Cz && ny_Cy!=nz_Cy)) && nx_Cx==nx_Cx)
+    else if(((fabs(nx_Cx)>=fabs(nz_Cz) && fabs(nx_Cx)>=fabs(ny_Cy)) ||(nz_Cz!=nz_Cz && ny_Cy!=ny_Cy)) && nx_Cx==nx_Cx)
     {
         nx(i,j,k)=nx_Cx;
         ny(i,j,k)=ny_Cx;
@@ -1012,7 +1012,7 @@ void VOF_PLIC::calcNormalMYC3D(fdm* a,lexer* p, field& voffield)
         if(nz(i,j,k)!=nz(i,j,k))
             cout<<"NAN nz_Cx"<<endl;
     }
-    else if(ny_Cy==ny_Cy)
+    else if(((fabs(ny_Cy)>=fabs(nx_Cx) && fabs(ny_Cy)>=fabs(nz_Cz)) ||(nz_Cz!=nz_Cz && nx_Cx!=nx_Cx)) && ny_Cy==ny_Cy)
     {
         nx(i,j,k)=nx_Cy;
         ny(i,j,k)=ny_Cy;

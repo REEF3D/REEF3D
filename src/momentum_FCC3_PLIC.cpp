@@ -784,9 +784,11 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
         // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
         pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
         pgc->start4(p,a->vof,gcval_vof);
+        if(p->F92==3)
+            pplic->calculateSubFractions(p,a,pgc,a->vof);
         pupdate->start(p,a,pgc);
         pgc->start4(p,a->ro,gcval_ro);
-        pgc->start4(p,a->visc,gcval_visc);
+        pgc->start4(p,a->visc,gcval_visc); 
     }
     LOOP
     {
