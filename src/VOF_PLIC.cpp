@@ -282,13 +282,18 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     }
     
     //-------------------------------------------
-        
-    updatePhasemarkersCorrection(p,a,pgc,a->vof);
-    pgc->start4(p,a->vof,gcval_vof);
+    
+    
+    
+    if(p->F98==1)
+    {
+        updatePhasemarkersCorrection(p,a,pgc,a->vof);
+        pgc->start4(p,a->vof,gcval_vof);
     //updatePlaneData(p,a,pgc,a->vof);
+    }
     
     if(p->F92==3)
-        calculateSubFractions(p,a,pgc,a->vof);
+            calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);

@@ -581,6 +581,8 @@
         <File Name="heat_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Benchmarks">
+        <File Name="benchmark_disk_xy.h"/>
+        <File Name="benchmark_disk_yz.h"/>
         <File Name="benchmark_TaylorGreen.h"/>
         <File Name="benchmark.h"/>
         <File Name="benchmark_disk.h"/>
@@ -1772,6 +1774,8 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Benchmarks">
+        <File Name="benchmark_disk_xy.cpp"/>
+        <File Name="benchmark_disk_yz.cpp"/>
         <File Name="benchmark_TaylorGreen.cpp"/>
         <File Name="benchmark_disk.cpp"/>
         <File Name="benchmark_void.cpp"/>

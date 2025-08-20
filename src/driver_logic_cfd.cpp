@@ -528,6 +528,12 @@ void driver::logic_cfd()
 
 	if(p->F150==2)
     pbench = new benchmark_disk(p,a);
+    
+    if(p->F150==21)
+    pbench = new benchmark_disk_yz(p,a);
+    
+    if(p->F150==22)
+    pbench = new benchmark_disk_xy(p,a);
 
 	if(p->F150==3)
     pbench = new benchmark_vortex3D(p,a);

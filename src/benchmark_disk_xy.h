@@ -17,20 +17,32 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#ifndef BENCHMARK_HEADER_H_
-#define BENCHMARK_HEADER_H_
+#ifndef BENCHMARK_DISK_XY_H_
+#define BENCHMARK_DISK_XY_H_
 
 #include"benchmark.h"
-#include"benchmark_void.h"
-#include"benchmark_vortex.h"
-#include"benchmark_disk.h"
-#include"benchmark_disk_xy.h"
-#include"benchmark_disk_yz.h"
-#include"benchmark_vortex3D.h"
-#include"benchmark_convection.h"
-#include"benchmark_TaylorGreen.h"
+#include"increment.h"
+
+class fdm;
+class lexer;
+class convection;
+class ghostcell;
+
+using namespace std;
+
+class benchmark_disk_xy : public benchmark, public increment
+{
+
+public:
+    benchmark_disk_xy(lexer*,fdm*);
+	virtual ~benchmark_disk_xy();
+
+	virtual void start(lexer*, fdm*, ghostcell*, convection*);
+
+
+};
 
 #endif

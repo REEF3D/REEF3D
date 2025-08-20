@@ -157,7 +157,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk1);
     
-    pupdate->start(p,a,pgc);
+   // pupdate->start(p,a,pgc); after velocity calculation, before PJM
 
 	// U
 	starttime=pgc->timer();
@@ -214,6 +214,8 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,vrk1,gcval_v);
     pgc->start3(p,wrk1,gcval_w);
     
+    pupdate->start(p,a,pgc); // here after vicosity contributed to velocities, otherwise nu entering velocities is from a different timme step
+    
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
@@ -258,7 +260,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk2);
     
-    pupdate->start(p,a,pgc);
+  //  pupdate->start(p,a,pgc);
     
 	// U
 	starttime=pgc->timer();
@@ -315,6 +317,8 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,vrk2,gcval_v);
     pgc->start3(p,wrk2,gcval_w);
     
+    pupdate->start(p,a,pgc);
+    
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
@@ -358,7 +362,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,a->phi);
 
-    pupdate->start(p,a,pgc);
+  //  pupdate->start(p,a,pgc);
     
     
 	// U
@@ -415,6 +419,8 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
+    
+    pupdate->start(p,a,pgc);
     
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
