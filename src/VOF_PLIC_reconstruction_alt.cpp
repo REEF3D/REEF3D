@@ -85,6 +85,9 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p, field& voffield)
         case 13:
                 calcNormalMYC3D(a,p,voffield);
                 break;
+        case 14:
+                calcNormalMYC3D_V2(a,p,voffield);
+                break;
     }
     //normalise normal vector (to be sure)
     
@@ -338,6 +341,10 @@ double VOF_PLIC::return_alpha_reconstructPlane_alt(fdm* a, lexer* p, field& voff
                 break;
         case 13:
                 calcNormalMYC3D(a,p,voffield);
+                break;
+        case 14:
+                calcNormalMYC3D_V2(a,p,voffield);
+                break;
     }
     //normalise normal vector (to be sure)
     
