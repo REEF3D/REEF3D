@@ -106,6 +106,35 @@ void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,f
         {
             switch(p->F88)
             {
+                case 0:
+                    break;
+                    
+                case 1:
+                    break;
+                case 2:     
+                    calcNormalWeymouth(a,p,voffield);
+                    break;
+                case 3:
+                    calcNormalWang(a,p);
+                    break;
+                case 4:
+                    calcNormalFO(a,p,voffield);
+                    break;
+                case 5:
+                    calcNormalLS(a,p,voffield);
+                    break;
+                case 6:
+                    calcNormalWENO(a,p,voffield);
+                    break;
+                case 7:
+                    calcNormalPhi(a,p);
+                    break;
+                case 8:
+                    calcNormalMassCentre(a,p,voffield);
+                    break;
+                case 9:
+                    calcNormalELVIRA2D(a,p,voffield);
+                    break;
                 case 10:
                     calcNormalMYC2D(a,p,voffield);
                     break;
@@ -118,8 +147,10 @@ void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,f
                 case 13:
                     calcNormalMYC3D(a,p,voffield);
                     break;
-                
-            }
+                case 14:
+                    calcNormalMYC3D_V2(a,p,voffield);
+                    break;
+            }   
             /*if(fabs(nz(i,j,k))>=fabs(nx(i,j,k)))
             {
                 if(nz(i,j,k)>=0.0)
