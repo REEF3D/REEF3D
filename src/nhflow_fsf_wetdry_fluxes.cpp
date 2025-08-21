@@ -233,19 +233,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     {
         if((p->DF[IJK]==1 && p->DF[Ip1JK]==-1))
         {
-        //d->Un[IJK] = 0.0;
+        d->Un[IJK] = 0.0;
         d->Vn[IJK] = 0.0;
         d->Wn[IJK] = 0.0;
     
-        //d->UHn[IJK] = 0.0;
+        d->UHn[IJK] = 0.0;
         d->VHn[IJK] = 0.0;
         d->WHn[IJK] = 0.0;
         
-        //d->Us[IJK] = 0.0;
+        d->Us[IJK] = 0.0;
         d->Vs[IJK] = 0.0;
         d->Ws[IJK] = 0.0;
         
-        //d->UHs[IJK] = 0.0;
+        d->UHs[IJK] = 0.0;
         d->VHs[IJK] = 0.0;
         d->WHs[IJK] = 0.0;
         }
@@ -253,19 +253,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         else
         if((p->DF[IJK]==-1 && p->DF[Ip1JK]==1))
         {
-        //d->Un[IJK] = 0.0;
+        d->Un[IJK] = 0.0;
         d->Vn[IJK] = 0.0;
         d->Wn[IJK] = 0.0;
     
-        //d->UHn[IJK] = 0.0;
+        d->UHn[IJK] = 0.0;
         d->VHn[IJK] = 0.0;
         d->WHn[IJK] = 0.0;
         
-        //d->Us[IJK] = 0.0;
+        d->Us[IJK] = 0.0;
         d->Vs[IJK] = 0.0;
         d->Ws[IJK] = 0.0;
         
-        //d->UHs[IJK] = 0.0;
+        d->UHs[IJK] = 0.0;
         d->VHs[IJK] = 0.0;
         d->WHs[IJK] = 0.0;
         }
@@ -273,19 +273,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         else
         if((p->DF[IJK]==-1 && p->DF[Ip1JK]==-1))
         {
-        //d->Un[IJK] = 0.0;
+        d->Un[IJK] = 0.0;
         d->Vn[IJK] = 0.0;
         d->Wn[IJK] = 0.0;
         
-        //d->UHn[IJK] = 0.0;
+        d->UHn[IJK] = 0.0;
         d->VHn[IJK] = 0.0;
         d->WHn[IJK] = 0.0;
         
-        //d->Us[IJK] = 0.0;
+        d->Us[IJK] = 0.0;
         d->Vs[IJK] = 0.0;
         d->Ws[IJK] = 0.0;
         
-        //d->UHs[IJK] = 0.0;
+        d->UHs[IJK] = 0.0;
         d->VHs[IJK] = 0.0;
         d->WHs[IJK] = 0.0;
         }
@@ -297,19 +297,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         if((p->DF[IJK]==1 && p->DF[IJp1K]==-1))
         {
         d->Uw[IJK] = 0.0;
-        //d->Vw[IJK] = 0.0;
+        d->Vw[IJK] = 0.0;
         d->Ww[IJK] = 0.0;
     
         d->UHw[IJK] = 0.0;
-        //d->VHw[IJK] = 0.0;
+        d->VHw[IJK] = 0.0;
         d->WHw[IJK] = 0.0;
         
         d->Ue[IJK] = 0.0;
-        //d->Ve[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
         d->We[IJK] = 0.0;
         
         d->UHe[IJK] = 0.0;
-        //d->VHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
         d->WHe[IJK] = 0.0;
         }
         
@@ -317,19 +317,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         if((p->DF[IJK]==-1 && p->DF[IJp1K]==1))
         {
         d->Uw[IJK] = 0.0;
-        //d->Vw[IJK] = 0.0;
+        d->Vw[IJK] = 0.0;
         d->Ww[IJK] = 0.0;
     
         d->UHw[IJK] = 0.0;
-        //d->VHw[IJK] = 0.0;
+        d->VHw[IJK] = 0.0;
         d->WHw[IJK] = 0.0;
         
         d->Ue[IJK] = 0.0;
-        //d->Ve[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
         d->We[IJK] = 0.0;
         
         d->UHe[IJK] = 0.0;
-        //d->VHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
         d->WHe[IJK] = 0.0;
         }
         
@@ -337,19 +337,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         if((p->DF[IJK]==-1 && p->DF[IJp1K]==-1))
         {
         d->Uw[IJK] = 0.0;
-        //d->Vw[IJK] = 0.0;
+        d->Vw[IJK] = 0.0;
         d->Ww[IJK] = 0.0;
         
         d->UHw[IJK] = 0.0;
-        //d->VHw[IJK] = 0.0;
+        d->VHw[IJK] = 0.0;
         d->WHw[IJK] = 0.0;
         
         d->Ue[IJK] = 0.0;
-        //d->Ve[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
         d->We[IJK] = 0.0;
         
         d->UHe[IJK] = 0.0;
-        //d->VHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
         d->WHe[IJK] = 0.0;
         }
     }
@@ -361,19 +361,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         {
         d->Ut[IJK] = 0.0;
         d->Vt[IJK] = 0.0;
-        //d->Wt[IJK] = 0.0;
+        d->Wt[IJK] = 0.0;
     
         d->UHt[IJK] = 0.0;
         d->VHt[IJK] = 0.0;
-        //d->WHt[IJK] = 0.0;
+        d->WHt[IJK] = 0.0;
         
         d->Ub[IJK] = 0.0;
         d->Vb[IJK] = 0.0;
-        //d->Wb[IJK] = 0.0;
+        d->Wb[IJK] = 0.0;
         
         d->UHb[IJK] = 0.0;
         d->VHb[IJK] = 0.0;
-        //d->WHb[IJK] = 0.0;
+        d->WHb[IJK] = 0.0;
         }
         
         else
@@ -381,19 +381,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         {
         d->Ut[IJK] = 0.0;
         d->Vt[IJK] = 0.0;
-        //d->Wt[IJK] = 0.0;
+        d->Wt[IJK] = 0.0;
     
         d->UHt[IJK] = 0.0;
         d->VHt[IJK] = 0.0;
-        //d->WHt[IJK] = 0.0;
+        d->WHt[IJK] = 0.0;
         
         d->Ub[IJK] = 0.0;
         d->Vb[IJK] = 0.0;
-        //d->Wb[IJK] = 0.0;
+        d->Wb[IJK] = 0.0;
         
         d->UHb[IJK] = 0.0;
         d->VHb[IJK] = 0.0;
-        //d->WHb[IJK] = 0.0;
+        d->WHb[IJK] = 0.0;
         }
         
         else
@@ -401,19 +401,19 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         {
         d->Ut[IJK] = 0.0;
         d->Vt[IJK] = 0.0;
-        //d->Wt[IJK] = 0.0;
+        d->Wt[IJK] = 0.0;
         
         d->UHt[IJK] = 0.0;
         d->VHt[IJK] = 0.0;
-        //d->WHt[IJK] = 0.0;
+        d->WHt[IJK] = 0.0;
         
         d->Ub[IJK] = 0.0;
         d->Vb[IJK] = 0.0;
-        //d->Wb[IJK] = 0.0;
+        d->Wb[IJK] = 0.0;
         
         d->UHb[IJK] = 0.0;
         d->VHb[IJK] = 0.0;
-        //d->WHb[IJK] = 0.0;
+        d->WHb[IJK] = 0.0;
         }
     }
     
