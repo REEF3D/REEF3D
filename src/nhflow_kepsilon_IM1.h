@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,34 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_KEPSILON_BC_H_
-#define NHFLOW_KEPSILON_BC_H_
+#ifndef NHFLOW_KEPSILON_IM1_H_
+#define NHFLOW_KEPSILON_IM1_H_
 
-#include"increment.h"
-#include"roughness.h"
-class fdm_nhf;
-class lexer;
+#include"nhflow_kepsilon_func.h"
 
 using namespace std;
 
-class nhflow_kepsilon_bc : public roughness
+class nhflow_kepsilon_IM1 : public nhflow_kepsilon_func
 {
 public:
-	nhflow_kepsilon_bc(lexer*);
-	virtual ~nhflow_kepsilon_bc();
-	void bckepsilon_start(lexer*,fdm_nhf*,double*,double*, int);
-    void bckin_matrix(lexer*,fdm_nhf*,double*,double*);
-    void bcomega_matrix(lexer*,fdm_nhf*,double*,double*);
-	void wall_law_kin(lexer*,fdm_nhf*,double*,double*);
-	void wall_law_omega(lexer*,fdm_nhf*,double*,double*);
+	nhflow_kepsilon_IM1(lexer *, fdm_nhf*, ghostcell*);
+	virtual ~nhflow_kepsilon_IM1();
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*);
+	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*);
+	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*);
+	void timesource(lexer*,fdm_nhf*,double*);
+    void kinupdate(lexer*, fdm_nhf*, ghostcell*);
+	void clearrhs(lexer*,fdm_nhf*);
+
+	double  *KN,*EN;
+
 
 private:
-	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
-	int ii,jj,kk;
-	int count,q;
-	double fac,value;
-	double kappa;
-
+    int gcval_kin, gcval_eps;
+    int count,q;
+    double aii;
 };
+
 #endif
 

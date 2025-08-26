@@ -111,6 +111,17 @@ void driver::logic_nhflow()
     if(p->A560==0)
 	pnhfturb = new nhflow_komega_func_void(p,d,pgc);
     
+    if(p->A560==1 || p->A560==21)
+    {
+	pnhfturb = new nhflow_kepsilon_IM1(p,d,pgc);
+    
+        if(p->j_dir==1)
+        pnhfturbdiff = new nhflow_idiff(p);
+        
+        if(p->j_dir==0)
+        pnhfturbdiff = new nhflow_idiff_2D(p);
+    }
+    
     if(p->A560==2 || p->A560==22)
     {
 	pnhfturb = new nhflow_komega_IM1(p,d,pgc);

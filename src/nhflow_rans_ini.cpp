@@ -67,7 +67,10 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     if(p->B11==0)
     EPS[IJK] = 1.0;
     
-    if(p->B11>0)
+    if(p->B11>0 && (p->A560==1 || p->A560==21))
+    EPS[IJK] = p->cmu*KIN[IJK]*KIN[IJK]/d->EV[IJK];
+    
+    if(p->B11>0 && (p->A560==2 || p->A560==22))
     EPS[IJK] = KIN[IJK]/d->EV[IJK];
     }
     

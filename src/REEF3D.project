@@ -195,6 +195,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
           <VirtualDirectory Name="Kepsilon">
+            <File Name="nhflow_kepsilon_IM1.h"/>
             <File Name="nhflow_kepsilon_func.h"/>
             <File Name="nhflow_kepsilon_bc.h"/>
           </VirtualDirectory>
