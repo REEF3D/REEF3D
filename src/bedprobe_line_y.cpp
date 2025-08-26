@@ -151,8 +151,8 @@ void bedprobe_line_y::start(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow *p
         {
         i=iloc[q];
 
-        wsf[q][n] = MAX(wsf[q][n], s->bedzh(i,j));
-        yloc[q][j]=p->DYP[JP];
+        wsf[q][j] = MAX(wsf[q][j], s->bedzh(i,j));
+        yloc[q][j]=p->YP[JP];
         }
     }
 	
