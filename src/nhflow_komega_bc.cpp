@@ -56,9 +56,7 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             
             if(p->DF[IJK]>0)
             {
-            //if(k==0)
-            //check=1;
-        
+                
             if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && i+p->origin_i != 0)
             {
             dist = 0.5*p->DXN[IP];
@@ -71,19 +69,19 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             check=1;
             }
 
-            if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0) && p->j_dir==1 && p->B11==1)
+            if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
             check=1;
             }
                 
-            if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0) && p->j_dir==1 && p->B11==1)
+            if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
             check=1;
             }
                 
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0 || k==0)
             {
             dist = 0.5*p->DZN[KP]*d->WL(i,j);
             check=1;
@@ -154,13 +152,13 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
             check=1;
             }
 
-            if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0) && p->j_dir==1 && p->B11==1)
+            if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
             check=1;
             }
                 
-            if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0) && p->j_dir==1 && p->B11==1)
+            if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
             check=1;
@@ -182,10 +180,10 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
             {
             eps_star = pow((KIN[IJK]>(0.0)?(KIN[IJK]):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
 
-            //EPS[IJK] = eps_star;
+            EPS[IJK] = eps_star;
             
-            d->M.p[count] += 1.0e20;
-            d->rhsvec.V[count] += eps_star*1.0e20;
+            //d->M.p[count] += 1.0e20;
+            //d->rhsvec.V[count] += eps_star*1.0e20;
             }
             
         

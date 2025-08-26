@@ -165,8 +165,6 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
         d->M.p[count] += p->cmu * MAX(EPS[IJK],0.0);
 
         d->rhsvec.V[count] += PK[IJK];
-        
-        //d->rhsvec.V[count] += MIN(PK[IJK], 10.0*p->cmu*((fabs(KIN[IJK]))>(1.0e-20)?(KIN[IJK]):(1.0e20))*((fabs(EPS[IJK]))>(1.0e-20)?(EPS[IJK]):(1.0e20)));
         }
 	++count;
     }

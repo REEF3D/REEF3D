@@ -194,6 +194,10 @@
           <File Name="nhflow_forcing.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="Kepsilon">
+            <File Name="nhflow_kepsilon_func.h"/>
+            <File Name="nhflow_kepsilon_bc.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="SST"/>
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.h"/>
@@ -202,10 +206,10 @@
             <File Name="nhflow_LES_Smagorinsky.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
+            <File Name="nhflow_komega_IM1.h"/>
             <File Name="nhflow_komega_bc.h"/>
             <File Name="nhflow_komega_func.h"/>
             <File Name="nhflow_komega_void.h"/>
-            <File Name="nhflow_komega_IM1.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="IO">
             <File Name="nhflow_rans_io.h"/>
@@ -1361,6 +1365,11 @@
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="Kepsilon">
+            <File Name="nhflow_kepsilon_IM1.cpp"/>
+            <File Name="nhflow_kepsilon_func.cpp"/>
+            <File Name="nhflow_kepsilon_bc.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="SST"/>
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.cpp"/>
