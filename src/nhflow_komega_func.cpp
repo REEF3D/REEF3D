@@ -87,9 +87,9 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
         
         if(p->A564==0)
         LOOP
-		d->EV0[IJK] = MAX(MAX(KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
-						  0.00001*d->VISC[IJK]);
+		d->EV0[IJK] = MAX(KIN[IJK]
+						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0);
+						  
                           
         if(p->A564==1)
 		LOOP
@@ -97,7 +97,8 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
 						  0.00001*d->VISC[IJK]);
 
-		
+		/*
+        if(p->A564==1)
 		GC4LOOP
 		if(p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5)
 		{
@@ -108,7 +109,7 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 		d->EV0[IJK] = MAX(MIN(MAX(KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T35*KIN[IJK])/strainterm(p,d)),
 						  0.00001*d->VISC[IJK]);
-		}
+		}*/
 	
     // URANS
 	if(p->A560==22)
@@ -160,7 +161,7 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 
     LOOP
     {
-        if(WALLF[IJK]==0)
+        //if(WALLF[IJK]==0)
         {
         d->M.p[count] += p->cmu * MAX(EPS[IJK],0.0);
 

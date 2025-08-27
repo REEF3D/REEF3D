@@ -67,8 +67,8 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             d->M.p[n]  =   2.0*visc/(p->DXP[IP]*p->DXN[IP])
                         + 2.0*visc/(p->DXP[IM1]*p->DXN[IP])
                         
+                        + (visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP])
                         + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
-                        + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1])
                         
                         + CPORNH/(alpha*p->dt);
             
@@ -77,7 +77,6 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             d->M.s[n] = -2.0*visc/(p->DXP[IM1]*p->DXN[IP]);
 
             d->M.t[n] = -(visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP]);
-                        
             d->M.b[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP]);
             
             

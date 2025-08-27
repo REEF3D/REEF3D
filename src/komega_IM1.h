@@ -38,7 +38,8 @@ public:
 	virtual void etimesave(lexer*, fdm*, ghostcell*);
 	void timesource(lexer*,fdm*,field&);
 	void clearrhs(lexer*,fdm*);
-
+    field4 kn,en;
+    
 private:
     int gcval_kin, gcval_eps;
     int count,q;

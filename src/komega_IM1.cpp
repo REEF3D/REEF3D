@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"convection.h"
 
-komega_IM1::komega_IM1(lexer* p, fdm* a, ghostcell *pgc) : komega_func(p,a,pgc)
+komega_IM1::komega_IM1(lexer* p, fdm* a, ghostcell *pgc) : komega_func(p,a,pgc),kn(p),en(p)
 {
 	gcval_kin=20;
 	gcval_eps=30;
@@ -50,7 +50,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
     pconvec->start(p,a,kin,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,kin,eddyv0,kw_sigma_k,1.0);
 	kinsource(p,a,pvrans);
-	timesource(p,a,kin);
+	timesource(p,a,kn);
     bckomega_start(a,p,kin,eps,gcval_kin);
     bckin_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,kin,a->rhsvec,4);
@@ -67,7 +67,7 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
     pconvec->start(p,a,eps,4,a->u,a->v,a->w);
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,eddyv0,kw_sigma_w,1.0);
 	epssource(p,a,pvrans,kin);
-	timesource(p,a,eps);
+	timesource(p,a,en);
     bckomega_start(a,p,kin,eps,gcval_eps);
     bcomega_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,eps,a->rhsvec,4);
@@ -86,12 +86,15 @@ void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,s
 
 void komega_IM1::ktimesave(lexer *p, fdm* a, ghostcell *pgc)
 {
+    LOOP
+    kn(i,j,k)=kin(i,j,k);
 
 }
 
 void komega_IM1::etimesave(lexer *p, fdm* a, ghostcell *pgc)
 {
- 
+    LOOP
+    en(i,j,k)=eps(i,j,k);
 }
 
 void komega_IM1::timesource(lexer* p, fdm* a, field& fn)

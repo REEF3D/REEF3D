@@ -53,8 +53,8 @@ void nhflow_idiff_2D::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             d->M.p[n]  =  visc/(p->DXP[IP]*p->DXN[IP])
                         + visc/(p->DXP[IM1]*p->DXN[IP])
                         
+                        + 2.0*(visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP])
                         + 2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
-                        + 2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1])
                         
                         + CPORNH/(alpha*p->dt);
 
@@ -65,8 +65,8 @@ void nhflow_idiff_2D::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             d->M.t[n] = -2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])     
                         - 0.0*2.0*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
                         
-            d->M.b[n] = -2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1]) 
-                        + 0.0*2.0*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+            d->M.b[n] = -2.0*(visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP]) 
+                        + 0.0*2.0*p->sigxx[FIJK]/((p->DZN[KM1]+p->DZN[KP]));
             
             
             d->rhsvec.V[n] = visc*((UH[Ip1JKp1]-UH[Ip1JKm1]) - (UH[Im1JKp1]-UH[Im1JKm1]))/((p->DZN[KP]+p->DZN[KM1])*(p->DXP[IP]+p->DXP[IM1]))

@@ -97,7 +97,7 @@ void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans*
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
 						  0.00001*d->VISC[IJK]);
 
-		
+		if(p->A564==1)
 		GC4LOOP
 		if(p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5)
 		{
@@ -181,8 +181,7 @@ void nhflow_kepsilon_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
 {
     count=0;
-    double dirac;
-
+    
         LOOP
         {
 		d->M.p[count] += ke_c_2e * MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20));
@@ -192,7 +191,6 @@ void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
         ++count;
         }
         
-    
     //pvrans->omega_source(p,a,kin,eps);
 }
 

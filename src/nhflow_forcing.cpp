@@ -130,8 +130,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
         UH[IJK]   += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
         
         d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
-        
-        d->test[IJK] = FX[IJK];
     }
     
     LOOP

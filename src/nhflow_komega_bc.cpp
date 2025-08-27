@@ -110,7 +110,7 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
                 if(30.0*dist<ks)
                 dist=ks/30.0;
                 
-                uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
+                uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
                 //tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
                 

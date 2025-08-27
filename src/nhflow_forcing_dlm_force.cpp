@@ -63,8 +63,6 @@ void nhflow_forcing::dlm_forcecalc(lexer *p, fdm_nhf *d, ghostcell *pgc,
                         
             EL_FX[n][q] -= U[IJK]*D;
             
-            //d->test[IJK] -= U[IJK]*D;
-            
 
             dist = (p->XP[IP] - EL_X[n][q])/dx;
             D = kernel(dist);

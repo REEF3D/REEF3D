@@ -54,7 +54,6 @@ void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==1)
     VLOOP
     {
-    //d->test[IJK] = d->UHw[IJK];
     d->Fe[IJK] = d->Ve[IJK]*d->UHe[IJK];
     
     d->Fw[IJK] = d->Vw[IJK]*d->UHw[IJK];

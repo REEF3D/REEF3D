@@ -661,7 +661,7 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
         }
 
         // bed
-        if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0 && p->B11==1)   || (k==0 && p->B11==2))
+        if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0 && p->B11==1)   || (k==0 && p->B11==1))
         {
             if(p->B11>=1)
             {
@@ -875,7 +875,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
         }
 
         // bed
-        if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0))
+        if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0) || k==0)
         {
         f[IJKm1] = f[IJK];
         f[IJKm2] = f[IJK];
