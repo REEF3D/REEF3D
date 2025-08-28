@@ -42,7 +42,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     n=0;
     LOOP
 	{
-        if(p->wet[IJ]==1)
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
             visc = d->VISC[IJK] + d->EV[IJK];
             
@@ -83,7 +83,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        if(p->wet[IJ]==0 || p->flag4[IJK]<0)
+        if(p->wet[IJ]==0 || p->flag4[IJK]<0 || p->DF[IJK]<0)
         {
         d->M.p[n]  =  1.0;
 
@@ -107,39 +107,39 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     n=0;
 	LOOP
 	{
-        if(p->wet[IJ]==1)
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
-            if(p->flag4[Im1JK]<0)
+            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)
             {
             d->rhsvec.V[n] -= d->M.s[n]*VH[IJK];
             d->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0)
+            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0)
             {
             d->rhsvec.V[n] -= d->M.n[n]*VH[IJK];
             d->M.n[n] = 0.0;
             }
             
-            if(p->flag4[IJm1K]<0)
+            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
             {
             d->rhsvec.V[n] -= d->M.e[n]*VH[IJK]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJp1K]<0)
+            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
             {
             d->rhsvec.V[n] -= d->M.w[n]*VH[IJK]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0)
+            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
             d->rhsvec.V[n] -= d->M.b[n]*VH[IJK];
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0)
+            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
             {
             d->rhsvec.V[n] -= d->M.t[n]*VH[IJK];
             d->M.t[n] = 0.0;
