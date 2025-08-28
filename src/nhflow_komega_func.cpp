@@ -161,7 +161,7 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 
     LOOP
     {
-        if(WALLF[IJK]==0)
+        //if(WALLF[IJK]==0)
         {
         d->M.p[count] += p->cmu * MAX(EPS[IJK],0.0);
 
