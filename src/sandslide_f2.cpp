@@ -75,6 +75,7 @@ void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         
         // fill back
         SLICELOOP4
+        if(s->dfs(i,j)>0)
         {
         s->slideflag(i,j)+=fh(i,j);
         s->bedzh(i,j)+=fh(i,j);
