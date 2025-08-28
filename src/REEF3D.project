@@ -1381,10 +1381,10 @@
           <VirtualDirectory Name="Komega">
             <File Name="nhflow_komega_bc.cpp"/>
             <File Name="nhflow_komega_func.cpp"/>
-            <File Name="nhflow_komega_void.cpp"/>
             <File Name="nhflow_komega_IM1.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="IO">
+            <File Name="nhflow_komega_void.cpp"/>
             <File Name="nhflow_rans_ini.cpp"/>
             <File Name="nhflow_les_io.cpp"/>
             <File Name="nhflow_rans_io.cpp"/>

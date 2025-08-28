@@ -73,6 +73,9 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
     // Exner equations
         s->vz(i,j) =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
+        
+        if(s->dfs(i,j)<0)
+        s->vz(i,j) = 0.0;
 	}
     
     pgc->gcsl_start4(p,s->vz,1);
@@ -113,6 +116,7 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
 	
 
     SLICELOOP4
+    
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
 	{						
         ux1=s->P(i-1,j);
