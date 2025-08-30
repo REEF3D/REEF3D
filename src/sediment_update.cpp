@@ -48,7 +48,10 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     
     
     if(p->S10==1)
+    {
+    pgc->solid_forcing_flag_update(p,a);
     pgc->gcdf_update(p,a);
+    }
     
     if(p->S10==2)
     pvrans->sed_update(p,a,pgc);
