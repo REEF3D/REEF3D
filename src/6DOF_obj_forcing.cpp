@@ -32,6 +32,20 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     LOOP
     p->DF[IJK]=1;
     
+    if(p->solidread>0)
+    LOOP
+    if(a->solid(i,j,k)<0.0)
+    p->DF[IJK]=-1;
+    
+    if(p->toporead>0)
+    LOOP
+    if(a->topo(i,j,k)<0.0)
+    p->DF[IJK]=-1;
+    
+    LOOP
+    if(a->fb(i,j,k)<0.0)
+    p->DF[IJK]=-1;
+    
     pgc->startintV(p,p->DF,1);
     
     
