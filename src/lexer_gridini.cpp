@@ -63,6 +63,9 @@ void lexer::flagini()
     Iarray(IO,imax*jmax*kmax);
     Iarray(IOSL,imax*jmax);
     Iarray(DF,imax*jmax*kmax);
+    Iarray(DF1,imax*jmax*kmax);
+    Iarray(DF2,imax*jmax*kmax);
+    Iarray(DF3,imax*jmax*kmax);
     
     // flag
 	makeflag(flag1);
