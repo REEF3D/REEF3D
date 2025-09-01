@@ -73,7 +73,7 @@ void heat_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
     bcheat_start(p,a,pgc,T);
 	pgc->start4(p,T,gcval_heat);
 
-	pupdate->start(p,a,pgc);
+	pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
 	p->heattime=pgc->timer()-starttime;
 

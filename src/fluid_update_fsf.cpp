@@ -36,7 +36,7 @@ fluid_update_fsf::~fluid_update_fsf()
 {
 }
 
-void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
+void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
 	double H=0.0;
     double H_fb=0.0;

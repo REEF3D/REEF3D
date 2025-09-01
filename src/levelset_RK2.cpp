@@ -143,7 +143,7 @@ void levelset_RK2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     ppicard->correct_ls(p,a,pgc,ls);
 	ppls->picardmove(p,a,pgc);
 
-	pupdate->start(p,a,pgc);
+	pupdate->start(p,a,pgc,a->u,a->v,a->w);
 	
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"lsmtime: "<<setprecision(3)<<p->lsmtime<<endl;
@@ -151,5 +151,5 @@ void levelset_RK2::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 
 void levelset_RK2::update(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }

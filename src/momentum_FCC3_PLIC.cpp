@@ -320,7 +320,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     //update rho(vof) after diffusion but before pressure
     if(p->F92==3)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc); 
     
@@ -349,7 +349,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     pgc->start4(p,a->vof,gcval_vof);
     if(p->F92==3)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
 	
@@ -538,7 +538,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     {
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     }
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
@@ -568,7 +568,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     {
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     }
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
@@ -754,7 +754,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     if(p->F92==3)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
@@ -778,7 +778,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
    // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
     pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     

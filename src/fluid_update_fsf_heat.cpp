@@ -47,7 +47,7 @@ fluid_update_fsf_heat::~fluid_update_fsf_heat()
 {
 }
 
-void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc)
+void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
 	double H=0.0;
 	double temp;

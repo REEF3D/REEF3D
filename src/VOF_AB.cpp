@@ -90,7 +90,7 @@ void VOF_AB::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell
 	pgc->start4(p,a->phi,gcval_frac);
 
 
-	pupdate->start(p,a,pgc);
+	pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
 
 	p->lsmtime=pgc->timer()-starttime;
@@ -102,7 +102,7 @@ void VOF_AB::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell
 
 void VOF_AB::update(lexer *p, fdm *a, ghostcell *pgc, field &F)
 {
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }
 
 void VOF_AB::compression(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec, field &f, double alpha)

@@ -154,7 +154,7 @@ void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk1);
     
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
 	// U
 	starttime=pgc->timer();
@@ -226,7 +226,7 @@ void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,vrk1,gcval_v);
 	pgc->start3(p,wrk1,gcval_w);
     
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 	
 
 //Step 2
@@ -255,7 +255,7 @@ void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,a->phi);
 
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     
     
 	// U
@@ -328,7 +328,7 @@ void momentum_FC2::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
     
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }
 
 void momentum_FC2::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

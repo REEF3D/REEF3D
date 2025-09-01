@@ -45,7 +45,7 @@ fluid_update_rheology::~fluid_update_rheology()
     delete prheo;
 }
 
-void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc)
+void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
 
     const int gcval_ro = 1;
