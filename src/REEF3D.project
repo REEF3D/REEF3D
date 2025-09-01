@@ -1065,6 +1065,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
+      <VirtualDirectory Name="Komega_PLIC">
+        <File Name="komega_func_PLIC.h"/>
+        <File Name="komega_IM1_PLIC.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="EARSM">
         <File Name="EARSM_kw_IM1.h"/>
         <File Name="EARSM.h"/>
@@ -2946,6 +2950,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
+      <VirtualDirectory Name="Komega_PLIC">
+        <File Name="komega_func_PLIC.cpp"/>
+        <File Name="komega_IM1_PLIC.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="EARSM">
         <File Name="EARSM_kw_IM1.cpp"/>
         <File Name="EARSM.cpp"/>

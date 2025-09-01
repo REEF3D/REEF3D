@@ -240,8 +240,12 @@ void driver::logic_cfd()
 	pturb = new kepsilon_IM1(p,a,pgc);
 
     //kw
-	if(p->T10==2 || p->T10==22)
+	if((p->T10==2 || p->T10==22) && p->F80!=4)
 	pturb = new komega_IM1(p,a,pgc);
+    
+    //kw PLIC
+    if((p->T10==2 || p->T10==22) && p->F80==4)
+    pturb = new komega_IM1_PLIC(p,a,pgc);
 
     //EARSM
 	if(p->T10==12)
