@@ -37,7 +37,7 @@ public:
     fluid_update_rheology(lexer*);
     virtual ~fluid_update_rheology();
 
-    void start(lexer*, fdm*, ghostcell*) override;
+    void start(lexer*, fdm*, ghostcell*);
 
 private:
     rheology *prheo;

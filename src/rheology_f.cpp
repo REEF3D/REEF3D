@@ -38,7 +38,7 @@ double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc)
     switch(p->W90)
     {
     case 1:
-        val = 0.1;//Herschel_Bulkley(p,a,pgc);
+        val = Herschel_Bulkley(p,a,pgc);
         break;
     case 2:
         val = Mohr_Coulomb_and_Herschel_Bulkley(p,a,pgc);
