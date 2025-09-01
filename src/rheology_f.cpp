@@ -33,12 +33,12 @@ rheology_f::rheology_f(lexer *p) : strain(p), tau_x(p), tau_y(p), tau_z(p), epsi
     tanphi=tan(fabs(p->W102_phi)*(M_PI/180.0));
 }
 
-double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc)
+double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
     switch(p->W90)
     {
     case 1:
-        val = Herschel_Bulkley(p,a,pgc);
+        val = Herschel_Bulkley(p,a,pgc,u,v,w);
         break;
     case 2:
         val = Mohr_Coulomb_and_Herschel_Bulkley(p,a,pgc);

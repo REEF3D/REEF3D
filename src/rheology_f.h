@@ -35,7 +35,7 @@ public:
     rheology_f(lexer*);
     virtual ~rheology_f()=default;
 
-    double viscosity(lexer*,fdm*,ghostcell*);
+    double viscosity(lexer*,fdm*,ghostcell*, field&, field&, field&);
     
     void u_source(lexer*,fdm*);
     void v_source(lexer*,fdm*);
@@ -44,7 +44,7 @@ public:
     void filltau(lexer*,fdm*,ghostcell*);
 
 private:
-    double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
+    double Herschel_Bulkley(lexer*,fdm*,ghostcell*, field&, field&, field&);
     double Mohr_Coulomb_and_Herschel_Bulkley(lexer*,fdm*,ghostcell*);
     double heaviside(int);
     double yield_stress(lexer*,fdm*);

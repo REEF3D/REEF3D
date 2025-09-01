@@ -34,7 +34,7 @@ public:
     virtual ~rheology_v();
 
 
-    double viscosity(lexer*,fdm*,ghostcell*);
+    double viscosity(lexer*,fdm*,ghostcell*, field&, field&, field&);
     
     void u_source(lexer*,fdm*);
     void v_source(lexer*,fdm*);

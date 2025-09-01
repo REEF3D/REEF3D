@@ -26,9 +26,9 @@ Author: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include<algorithm>
 
-double rheology_f::Herschel_Bulkley(lexer *p, fdm *a, ghostcell *pgc)
+double rheology_f::Herschel_Bulkley(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-	gamma = strainterm(p,a); 
+	gamma = strainterm(p,u,v,w); 
     
     tau0=val=0.0;
     pressureval = a->press(i,j,k)-p->pressgage;

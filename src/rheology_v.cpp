@@ -31,7 +31,7 @@ rheology_v::~rheology_v()
 {
 }
 
-double rheology_v::viscosity(lexer*, fdm*, ghostcell*)
+double rheology_v::viscosity(lexer*, fdm*, ghostcell*, field &u, field &v, field &w)
 {
     return 0.0;
 }
