@@ -36,11 +36,11 @@ void rheology_f::u_source(lexer *p, fdm *a)
     {
         pressurePhi(p,a,1,0,0);
         
-        yield_stress(p,a);
-        tau = tau0;
+        tau = yield_stress(p,a);
+
          
         if(p->W110==3)
-            tau += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
+        tau += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
         
         f = fabs(a->u(i,j,k))>1.0e-20?(a->u(i,j,k)/fabs(a->u(i,j,k))):0.0;
 
@@ -126,7 +126,7 @@ void rheology_f::v_source(lexer *p, fdm *a)
     {
         pressurePhi(p,a,0,1,0);
         
-        yield_stress(p,a);
+        tau0 = yield_stress(p,a);
         
         if(p->W110==5)
             tau0 += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
@@ -178,7 +178,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
     {
         pressurePhi(p,a,0,0,1);
         
-        yield_stress(p,a);
+        tau0 = yield_stress(p,a);
             
         if(p->W110==3)
             tau0 += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);

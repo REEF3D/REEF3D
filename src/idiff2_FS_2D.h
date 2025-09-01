@@ -26,10 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"diffusion.h"
 
-class rheology;
-
 using namespace std;
-
 
 class idiff2_FS_2D : public diffusion, public increment
 {
@@ -48,8 +45,7 @@ public:
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
 
 private:
-    rheology *prheo;
-    
+
 	double D;
 	double time,starttime,endtime;
 	int count,q;

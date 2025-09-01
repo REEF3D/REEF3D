@@ -360,8 +360,7 @@ void ghostcell::gcini(lexer* p)
 	
 	
 	p->colnum = new int[p->M10+1];
-	
-	pdens = new density_f(p);
+
 }
 
 void ghostcell::fdm2D_update(fdm2D *bb)

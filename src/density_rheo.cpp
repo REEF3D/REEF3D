@@ -34,7 +34,6 @@ density_rheo::~density_rheo()
 
 double density_rheo::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
     if(phival>p->psi)

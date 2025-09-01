@@ -26,8 +26,6 @@ Author: Elyas Larkermani
 #include"increment.h"
 #include"diffusion.h"
 
-class rheology;
-
 using namespace std;
 
 
@@ -47,9 +45,7 @@ public:
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
 	
-private:
-    rheology *prheo;
-    
+private:    
 	double D;
         double alphaCN;
 	double time,starttime,endtime;

@@ -34,13 +34,13 @@ double rheology_f::Herschel_Bulkley(lexer *p, fdm *a, ghostcell *pgc)
     pressureval = a->press(i,j,k)-p->pressgage;
     
     if(p->W110==1)
-        yield_stress(p,a);
+    tau0 = yield_stress(p,a);
     
     if(p->W110!=3 && p->W110!=5)
     {
         val =  (tau0/(gamma>1.0e-20?gamma:1.0e-20) + (p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
         
-        val = std::min(val,p->W95);
+        val = MIN(val,p->W95);
     }
 	
     return val;

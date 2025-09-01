@@ -396,8 +396,6 @@ private:
 	double **dsend,**drecv;
 	double *trecv;
 
-	density_f *pdens;
-
     double originx,originy,originz;
 
 // PARALLEL

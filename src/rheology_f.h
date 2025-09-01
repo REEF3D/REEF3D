@@ -47,7 +47,7 @@ private:
     double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
     double Mohr_Coulomb_and_Herschel_Bulkley(lexer*,fdm*,ghostcell*);
     double heaviside(int);
-    void yield_stress(lexer*,fdm*);
+    double yield_stress(lexer*,fdm*);
     void yieldStressGradient(lexer*,fdm*,int,int,int);
     void pressurePhi(lexer*,fdm*,int,int,int,bool=false);
     void pressurePhiGradient(lexer*,fdm*,int,int,int);
