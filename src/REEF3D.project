@@ -710,6 +710,7 @@
         <File Name="weno_flux.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff2_PLIC.h"/>
         <File Name="idiff2_PLIC_2D.h"/>
         <File Name="idiff2_CN.h"/>
         <File Name="idiff2_FS_2D.h"/>
@@ -2237,6 +2238,10 @@
         <File Name="weno_flux.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff2_PLIC-scalar.cpp"/>
+        <File Name="idiff2_PLICw.cpp"/>
+        <File Name="idiff2_PLICv.cpp"/>
+        <File Name="idiff2_PLICu.cpp"/>
         <File Name="idiff_PLIC_2D-scalar.cpp"/>
         <File Name="idiff2_PLIC_2Dw.cpp"/>
         <File Name="idiff2_PLIC_2Dv.cpp"/>

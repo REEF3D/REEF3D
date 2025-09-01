@@ -20,6 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
+#ifndef IDIFF2_PLIC_H_
+#define IDIFF2_PLIC_H_
+
 #include"increment.h"
 #include"diffusion.h"
 
@@ -27,26 +30,23 @@ class rheology;
 
 using namespace std;
 
-#ifndef IDIFF2_PLIC_2D_H_
-#define IDIFF2_PLIC_2D_H_
 
-
-class idiff2_PLIC_2D : public diffusion, public increment
+class idiff2_PLIC : public diffusion, public increment
 {
 
 public:
 
-	idiff2_PLIC_2D(lexer*);
-	virtual ~idiff2_PLIC_2D();
+	idiff2_PLIC(lexer*);
+	virtual ~idiff2_PLIC();
 
+	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double);
+	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double);
+    virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
+	
     virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
 	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double);
-    
-    virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double);
-	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double);
-    virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
-
+	
 private:
     rheology *prheo;
     
@@ -61,3 +61,4 @@ private:
 	
 };
 #endif
+

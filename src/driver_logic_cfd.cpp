@@ -339,6 +339,9 @@ void driver::logic_cfd()
     
     if((p->D20==2 && p->j_dir==0) && (p->F80==4))
     pdiff=new idiff2_PLIC_2D(p);
+    
+    if((p->D20==2 && p->j_dir==1) && (p->F80==4))
+    pdiff=new idiff2_PLIC(p);
 
 	// turbulence
 	if(p->D20==0 || p->T10==0)

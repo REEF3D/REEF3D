@@ -20,82 +20,86 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#include"idiff2_PLIC_2D.h"
+#include"idiff2_PLIC.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver.h"
 
-idiff2_PLIC_2D::idiff2_PLIC_2D(lexer* p)
+idiff2_PLIC::idiff2_PLIC(lexer* p)
 {
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
 }
 
-idiff2_PLIC_2D::~idiff2_PLIC_2D()
+idiff2_PLIC::~idiff2_PLIC()
 {
 }
 
-void idiff2_PLIC_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u_in, field &u, field &v, field &w, double alpha)
+void idiff2_PLIC::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u_in, field &u, field &v, field &w, double alpha)
 {
 	starttime=pgc->timer();
-	double visc_ddz_p,visc_ddz_m, H_ddz_p, H_ddz_m;
+	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
     
     ULOOP
     diff(i,j,k) = u_in(i,j,k);
     
     pgc->start1(p,diff,gcval_u);
 
+    count=0;
 
-	count=0;
     if(p->i_dir==1)
     {
-	ULOOP
+	ULOOP // 
 	{
 	ev_ijk=a->eddyv(i,j,k);
 	ev_ip_j_k=a->eddyv(i+1,j,k);
+	ev_i_jm_k=a->eddyv(i,j-1,k);
+	ev_i_jp_k=a->eddyv(i,j+1,k);
 	ev_i_j_km=a->eddyv(i,j,k-1);
 	ev_i_j_kp=a->eddyv(i,j,k+1);
 	
 	visc_ijk=a->visc(i,j,k);
 	visc_ip_j_k=a->visc(i+1,j,k);
+	visc_i_jm_k=a->visc(i,j-1,k);
+	visc_i_jp_k=a->visc(i,j+1,k);
 	visc_i_j_km=a->visc(i,j,k-1);
 	visc_i_j_kp=a->visc(i,j,k+1);
-    
-    if(p->F92==3)
-    {
-        H_ddz_p=(a->vof_nt(i,j,k)+a->vof_st(i+1,j,k)+a->vof_nb(i,j,k+1)+a->vof_sb(i+1,j,k+1))*0.25;
-        H_ddz_m=(a->vof_nb(i,j,k)+a->vof_sb(i+1,j,k)+a->vof_nt(i,j,k-1)+a->vof_st(i+1,j,k-1))*0.25;
 	
-        visc_ddz_p = H_ddz_p*p->W2+(1.0-H_ddz_p)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_j_kp+a->eddyv(i+1,j,k+1))*0.25;
-        visc_ddz_m = H_ddz_m*p->W2+(1.0-H_ddz_m)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_j_km+a->eddyv(i+1,j,k-1))*0.25;
-	}
-    else
-    {
-        visc_ddz_p = (visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k + visc_i_j_kp+ev_i_j_kp + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1))*0.25;
-        visc_ddz_m = (a->visc(i,j,k-1)+a->eddyv(i,j,k-1) + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k)*0.25;
-    }
-        
-	a->M.p[count] =  2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
+	visc_ddy_p = 0.25*(visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k + visc_i_jp_k+ev_i_jp_k + a->visc(i+1,j+1,k)+a->eddyv(i+1,j+1,k));    
+    
+	visc_ddy_m = 0.25*(visc_i_jm_k+ev_i_jm_k  +a->visc(i+1,j-1,k)+a->eddyv(i+1,j-1,k) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
+    
+	visc_ddz_p = 0.25*(visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k + visc_i_j_kp+ev_i_j_kp + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1));
+    
+	visc_ddz_m = 0.25*(visc_i_j_km+ev_i_j_km + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
+
+	a->M.p[count] =   2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
 				   + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP])
+				   + visc_ddy_p/(p->DYP[JP]*p->DYN[JP])
+				   + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
 				   + visc_ddz_p/(p->DZP[KP]*p->DZN[KP])
 				   + visc_ddz_m/(p->DZP[KM1]*p->DZN[KP])
 				   + CPOR1/(alpha*p->dt);
 				  
-	a->rhsvec.V[count] += ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
+	a->rhsvec.V[count] +=  ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
+						 + ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
 
 						 + (CPOR1*u_in(i,j,k))/(alpha*p->dt);
-
+                         
 	 
 	 a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP]);
 	 a->M.n[count] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP]);
 	 
+	 a->M.e[count] = -visc_ddy_m/(p->DYP[JM1]*p->DYN[JP]);
+	 a->M.w[count] = -visc_ddy_p/(p->DYP[JP]*p->DYN[JP]);
+	 
 	 a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
 	 a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
 	 
-	 ++count;
-	}
+     ++count;
+	 }
     
     n=0;
 	ULOOP
@@ -110,6 +114,18 @@ void idiff2_PLIC_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 		{
 		a->rhsvec.V[n] -= a->M.n[n]*u(i+1,j,k);
 		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag1[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*u(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag1[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*u(i,j+1,k);
+		a->M.w[n] = 0.0;
 		}
 		
 		if(p->flag1[IJKm1]<0)
@@ -131,12 +147,10 @@ void idiff2_PLIC_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
     }
 	
     pgc->start1(p,diff,gcval_u);
-
+    
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
-	if(p->mpirank==0 && p->D21==1 && p->count%p->P12==0)
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
 }
-
-
