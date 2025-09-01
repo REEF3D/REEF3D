@@ -38,10 +38,17 @@ double rheology_f::Herschel_Bulkley(lexer *p, fdm *a, ghostcell *pgc, field &u, 
     
     if(p->W110!=3 && p->W110!=5)
     {
-        val =  (tau0/(gamma>1.0e-20?gamma:1.0e-20) + (p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
+        val =  (tau0/(gamma>1.0e-20?gamma:1.0e20) + (p->W97)*pow((gamma>1.0e-20?gamma:1.0e-6),p->W98-1.0))/a->ro(i,j,k);
+        
+        //cout<<val<<endl;
         
         val = MIN(val,p->W95);
+        
+        
     }
 	
+    //if(p->count<=1)
+    //val=0.1;
+    
     return val;
 }
