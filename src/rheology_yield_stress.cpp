@@ -41,7 +41,11 @@ double rheology_f::yield_stress(lexer* p, fdm* a)
         tau0=p->W96;
         break;
 
-    case 1:  // Yield stress from viscoplastic fluid (bingham) Druker-Prager - tanphi*pressureval valid in 2D - W102_c is cohesion
+    case 1:  // Mohr-Coulomb
+        tau0 = MAX(0.0,tanphi*pressureval + p->W102_c);
+        break;
+        
+    case 2:  // Yield stress from viscoplastic fluid (bingham) Druker-Prager - tanphi*pressureval valid in 2D - W102_c is cohesion
         tau0 = (tanphi*pressureval + p->W102_c)*(1.0-exp(-p->W103*gamma));
         break;
         
@@ -74,7 +78,12 @@ void rheology_f::yieldStressGradient(lexer* p, fdm* a, int ii, int jj, int kk)
         tau02=p->W96;
         break;
 
-    case 1:  // Yield stress from viscoplastic fluid (bingham) Druker-Prager - tanphi*pressureval valid in 2D - W102_c is cohesion
+    case 1:  // Mohr-Coulomb
+        tau01 = (tanphi*pressureval1 + p->W102_c);
+        tau02 = (tanphi*pressureval2 + p->W102_c);
+        break;
+        
+    case 2:  // Yield stress from viscoplastic fluid (bingham) Druker-Prager - tanphi*pressureval valid in 2D - W102_c is cohesion
         tau01 = (tanphi*pressureval1 + p->W102_c)*(1.0-exp(-p->W103*gamma));
         tau02 = (tanphi*pressureval2 + p->W102_c)*(1.0-exp(-p->W103*gamma));
         break;

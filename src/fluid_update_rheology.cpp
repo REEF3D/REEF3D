@@ -47,7 +47,6 @@ fluid_update_rheology::~fluid_update_rheology()
 
 void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
-
     const int gcval_ro = 1;
     const int gcval_visc = 1;
 
@@ -56,24 +55,22 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
     p->volume2=0.0;
     
     if(p->count>iter)
-        iocheck = true;
+    iocheck = 0;
+    
     iter=p->count;
 
     // density, viscosity & volumes
     LOOP
     {  
         if(a->phi(i,j,k)>epsi)
-        {
-            H_phi=1.0;
-        }
+        H_phi=1.0;
+        
         else if(a->phi(i,j,k)<-epsi)
-        {
-            H_phi=0.0;
-        }
+        H_phi=0.0;
+
         else
-        {
-            H_phi=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-        }
+        H_phi=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+        
 
         a->ro(i,j,k) = ro1*H_phi + ro2*(1.0-H_phi);
 
@@ -93,10 +90,11 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
     p->volume2 = pgc->globalsum(p->volume2);
 
     
-    if(p->mpirank==0 && iocheck && (p->count%p->P12==0))
+    if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))
     {
         cout<<"Volume 1: "<<p->volume1<<endl;
         cout<<"Volume 2: "<<p->volume2<<endl;
     }
-    iocheck = false;
+    
+    ++iocheck;
 }

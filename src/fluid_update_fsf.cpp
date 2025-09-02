@@ -69,9 +69,9 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
 		if(fabs(a->phi(i,j,k))<=(p->psi*factor))
 		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));
 
-        // Construct floating body heaviside function if used
-            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
-            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
+
+        a->ro(i,j,k)   = ro_water*H +   ro_air*(1.0-H);
+        a->visc(i,j,k) = visc_water*H + visc_air*(1.0-H);
             
             if(p->flagsf4[IJK]>0)
             {
