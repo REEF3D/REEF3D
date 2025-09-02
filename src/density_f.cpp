@@ -26,7 +26,6 @@ Author: Hans Bihs
 
 density_f::density_f(lexer* p)
 { 
-    cout<<"DENSITY_F"<<endl;
 }
 
 density_f::~density_f()
