@@ -82,7 +82,7 @@ private:
     sliceint4 bx,by;
     sliceint4 wetcoast;
     int count_n;
-    
+    int coastline_count;
 };
 
 #endif

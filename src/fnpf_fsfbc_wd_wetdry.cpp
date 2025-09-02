@@ -127,8 +127,11 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
           eta(i,j) = MAX(eta(i,j),c->wd_criterion-c->depth(i,j));
       }*/
       
+      if(coastline_count==0)
+      {
       pcoast->start(p,c,pgc,c->coastline,p->wet,c->wet_n);
-      
+      ++coastline_count;
+      }
       
     
     // check

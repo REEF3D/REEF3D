@@ -79,7 +79,10 @@ void driver::logic_fnpf()
 	if(p->N10==0)
 	plapsolv = new solver_void(p,a,pgc);
 
-	if(p->N10==1)
+	if(p->N10==1 && p->j_dir==0)
+	plapsolv = new bicgstab_ijk(p,a,pgc);
+    
+    if(p->N10==1 && p->j_dir==1)
 	plapsolv = new bicgstab_ijk(p,a,pgc);
 	
 	#ifdef HYPRE_COMPILATION

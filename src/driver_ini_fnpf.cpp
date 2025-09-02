@@ -209,9 +209,6 @@ void driver::driver_ini_fnpf()
 	p->wavecalctime=0.0;
 	p->field4time=0.0;
 
-    
-     if(p->mpirank==0)
-    cout<<"starting mainloop.FNPF"<<endl;
 }
 
 

@@ -104,6 +104,8 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     
     c->wd_criterion=0.00005;
     
+    coastline_count = 0;
+    
     if(p->A344==1)
     c->wd_criterion=p->A344_val;
     
@@ -144,8 +146,6 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     gcval_eta = 155;
     gcval_fifsf = 160;
     }
-    
-    
 }
 
 fnpf_fsfbc_wd::~fnpf_fsfbc_wd()

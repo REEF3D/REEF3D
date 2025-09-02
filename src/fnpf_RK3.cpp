@@ -106,14 +106,12 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     sigma_update(p,c,pgc,pf,erk1);
   
     // Set Boundary Conditions Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk1,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,frk1);
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
 
@@ -151,14 +149,12 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     sigma_update(p,c,pgc,pf,erk2);
     
     // Set Boundary Conditions Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk2,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,frk2);
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
 
@@ -196,14 +192,12 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     sigma_update(p,c,pgc,pf,c->eta);
     
     // Set Boundary Conditions Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     
@@ -263,7 +257,6 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     }
