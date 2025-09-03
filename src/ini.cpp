@@ -855,7 +855,7 @@ void lexer::ini_default()
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
     X46=0;      // int density smoothing inside fb
-    X48=1;      // int solid forcing level set
+    X48=0;      // int solid forcing level set
     X49=0;
     X50=1;      // int type of print out format for 6DOF structure
     X60=1;      // int type of print of force calculation

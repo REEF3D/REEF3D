@@ -51,6 +51,8 @@ void driver::logic_cfd()
 
 	if(p->mpirank==0)
     cout<<"creating objects"<<endl;
+    
+    
 
     
 // time stepping
@@ -361,11 +363,11 @@ void driver::logic_cfd()
 // Free Surface
     if(((p->F30==0) || (p->N40==2||p->N40==3||p->N40==22||p->N40==23||p->N40==33)) && p->F80==0)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
-
-	if(p->F30==2 && (p->N40==12||p->N40==23))
+    
+	if(p->F30==2 && (p->N40==4||p->N40==12||p->N40==13))
 	pfsf = new levelset_RK2(p,a,pgc,pheat,pconc);
 
-	if(p->F30==3  &&  (p->N40==22||p->N40==23))
+	if(p->F30==3  &&  (p->N40==4||p->N40==12||p->N40==13))
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
 
 
