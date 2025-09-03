@@ -1034,10 +1034,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
-      <VirtualDirectory Name="HYPRE FNPF">
-        <File Name="hypre_sstruct_fnpf.h"/>
-        <File Name="hypre_struct_fnpf.h"/>
-      </VirtualDirectory>
       <File Name="solver_fnpf.h"/>
       <VirtualDirectory Name="CG">
         <File Name="bicgstab_ijk_2D.h"/>
@@ -2829,22 +2825,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
-      <VirtualDirectory Name="HYPRE SStruct FNPF">
-        <File Name="hypre_sstruct_fnpf_solve.cpp"/>
-        <File Name="hypre_sstruct_fnpf_grid.cpp"/>
-        <File Name="hypre_sstruct_fnpf_fill_2D.cpp"/>
-        <File Name="hypre_sstruct_fnpf_fill.cpp"/>
-        <File Name="hypre_sstruct_fnpf_createsolvers.cpp"/>
-        <File Name="hypre_sstruct_fnpf.cpp"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="HYPRE Struct FNPF">
-        <File Name="hypre_struct_fnpf_fill_2D.cpp"/>
-        <File Name="hypre_struct_fnpf_grid.cpp"/>
-        <File Name="hypre_struct_fnpf_solve.cpp"/>
-        <File Name="hypre_struct_fnpf_createsolvers.cpp"/>
-        <File Name="hypre_struct_fnpf_fill.cpp"/>
-        <File Name="hypre_struct_fnpf.cpp"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="HYPRE SStruct">
         <File Name="hypre_sstruct_fillM.cpp"/>
         <File Name="hypre_sstruct_solve.cpp"/>
