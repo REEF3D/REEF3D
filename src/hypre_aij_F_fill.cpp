@@ -34,59 +34,42 @@ void hypre_aij::fill_matrix_F_7p(lexer* p, ghostcell* pgc, matrix_diag &M, doubl
     p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
     
     pgc->rownum7_update(p,rownum7);
-    pgc->flagx7(p,rownum7);
+    pgc->flagx(p,rownum7);
 
 	n=0;
-	FLOOP
+	LOOP
 	{
 	count=0;
 	val[count] = M.p[n];	
-	col[count] = rownum7[FIJK];
-	rownum = rownum7[FIJK];
+	col[count] = rownum7[IJK];
+	rownum = rownum7[IJK];
 	++count;
 
 	
-    if(p->flag7[FIm1JK]>0)
-	{
 	val[count] = M.s[n];
-	col[count] = rownum7[FIm1JK];
+	col[count] = rownum7[Im1JK];
 	++count;
-	}
     
-    if(p->flag7[FIp1JK]>0)
-	{
 	val[count] = M.n[n];
-	col[count] = rownum7[FIp1JK];
+	col[count] = rownum7[Ip1JK];
 	++count;
-	}
-    
-    if(p->flag7[FIJm1K]>0)
-	{
+
 	val[count] = M.e[n];
-	col[count] = rownum7[FIJm1K];
+	col[count] = rownum7[IJm1K];
 	++count;
-	}
-    
-    if(p->flag7[FIJp1K]>0)
-	{
+ 
 	val[count] = M.w[n];
-	col[count] = rownum7[FIJp1K];
+	col[count] = rownum7[IJp1K];
 	++count;
-	}
-    
-    if(p->flag7[FIJKm1]>0)
-	{
+
 	val[count] = M.b[n];
-	col[count] = rownum7[FIJKm1];
+	col[count] = rownum7[IJKm1];
 	++count;
-	}
-    
-    if(p->flag7[FIJKp1]>0)
-	{
+
 	val[count] = M.t[n];
-	col[count] = rownum7[FIJKp1];
+	col[count] = rownum7[IJKp1];
 	++count;
-	}
+
 	
 	HYPRE_IJMatrixSetValues(A, 1, &count, &rownum, col, val);
 	
@@ -99,10 +82,10 @@ void hypre_aij::fill_matrix_F_7p(lexer* p, ghostcell* pgc, matrix_diag &M, doubl
 	
     // vec
 	n=0;
-	FLOOP
+	LOOP
 	{
 		xvec[n] = f[FIJK];
-		rows[n] = rownum7[FIJK];
+		rows[n] = rownum7[IJK];
 	++n;
 	}
 
