@@ -555,7 +555,6 @@
             <File Name="reinitopo.h"/>
             <File Name="reinitopo_RK3.h"/>
             <File Name="reinitopo_void.h"/>
-            <File Name="reinitopo_AB2.h"/>
           </VirtualDirectory>
           <File Name="topo.h"/>
           <VirtualDirectory Name="Relaxation">
@@ -791,7 +790,6 @@
           <File Name="picard_void.h"/>
         </VirtualDirectory>
         <File Name="levelset_RK2.h"/>
-        <File Name="levelset_AB2.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <File Name="particle_corr.h"/>
@@ -1866,7 +1864,6 @@
           <VirtualDirectory Name="Reinitialization">
             <File Name="reinitopo_RK3.cpp"/>
             <File Name="reinitopo_void.cpp"/>
-            <File Name="reinitopo_AB2.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.cpp"/>
@@ -2017,7 +2014,6 @@
             </VirtualDirectory>
             <VirtualDirectory Name="Reini 3D">
               <File Name="6DOF_obj_reini_RK2.cpp"/>
-              <File Name="6DOF_obj_reini_AB2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast 3D">
               <File Name="6DOF_obj_ray3D_direct.cpp"/>
@@ -2351,7 +2347,6 @@
         </VirtualDirectory>
         <File Name="levelset_void.cpp"/>
         <File Name="levelset_RK2.cpp"/>
-        <File Name="levelset_AB2.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <File Name="particle.cpp"/>

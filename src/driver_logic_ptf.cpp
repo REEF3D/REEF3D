@@ -75,10 +75,7 @@ void driver::logic_ptf()
     if(p->G40==0)
     preto = new reinitopo_void();
     
-    if(p->G40==1)
-    preto = new reinitopo_AB2(p);
-    
-    if(p->G40==3)
+    if(p->G40>0)
     preto = new reinitopo_RK3(p);
     }
     
