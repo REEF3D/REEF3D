@@ -168,7 +168,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
 	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
 	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
-	HYPRE_StructPFMGSetNumPostRelax(precond, 1);
+	HYPRE_StructPFMGSetNumPostRelax(precond, 2);
 	HYPRE_StructPFMGSetSkipRelax(precond, 1);  // now: 0; before: 1
 	HYPRE_StructPFMGSetPrintLevel(precond, 1);
 	HYPRE_StructPFMGSetLogging(precond, 0);
