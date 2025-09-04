@@ -85,7 +85,7 @@ public:
     void startintV(lexer*,int*,int);
 
 
-	void final();
+	void final(bool error=false);
 	double globalsum(double);
 	int globalisum(int);
 	double globalmax(double);

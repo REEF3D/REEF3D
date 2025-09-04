@@ -59,8 +59,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 
      pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
      
-     //pgc->final();
-     //exit(0);
+     //pgc->final(true);
     }
     }
         
@@ -79,8 +78,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     if(p->A10==5)
     pnhfprint->print_stop(p,d,pgc,pflow,pnhfturb,psed);
      
-     pgc->final();
-     exit(0);
+     pgc->final(true);
     }
     
     // Solver Status
@@ -97,7 +95,6 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
      if(p->A10==4 || p->A10==5 || p->A10==6)
      pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
     
-    pgc->final();
-    exit(0);
+    pgc->final(true);
     }*/
 }
