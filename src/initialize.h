@@ -64,6 +64,7 @@ private:
 	void paraini(lexer*, fdm*,ghostcell*);
 	void pressini(lexer*,fdm*,ghostcell*);
 	void topoini(lexer*,fdm*,ghostcell*);
+    double VforPLIC(double,double,double,double,double,double,double);
 
 	int conv(double);
 

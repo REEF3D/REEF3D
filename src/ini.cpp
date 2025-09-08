@@ -411,6 +411,13 @@ void lexer::ini_default()
     F97_ye=-1.0e20;
     F98=1; // Spray deletion algorithm
     
+    F100=0; // Csaba's Similiarity runup case setup
+    F101_nx=0.0; //vof ini for Csaba's similiarity runup case
+    F101_ny=0.0;
+    F101_nz=0.0;
+    F101_s=0.0;
+    F101_e=0.0;
+    
     F112=0;            // int wedge x-dir
     F113=0;            // int wedge y-dir
     F114=0;            // int inv. wedge x-dir
