@@ -45,13 +45,33 @@ void idiff2_PLIC::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
     {
     WLOOP
     {
-
-	ev_ijk=a->eddyv(i,j,k);
-	ev_im_j_k=a->eddyv(i-1,j,k);
-	ev_ip_j_k=a->eddyv(i+1,j,k);
-	ev_i_jm_k=a->eddyv(i,j-1,k);
-	ev_i_jp_k=a->eddyv(i,j+1,k);
-	ev_i_j_kp=a->eddyv(i,j,k+1);
+    
+    if(p->F92==22||p->F92==32)
+    {
+        ev_ijk=a->vof(i,j,k)*a->eddyv(i,j,k);
+        ev_im_j_k=a->vof(i-1,j,k)*a->eddyv(i-1,j,k);
+        ev_ip_j_k=a->vof(i+1,j,k)*a->eddyv(i+1,j,k);
+        ev_i_jm_k=a->vof(i,j-1,k)*a->eddyv(i,j-1,k);
+        ev_i_jp_k=a->vof(i,j+1,k)*a->eddyv(i,j+1,k);
+        ev_i_j_kp=a->vof(i,j,k+1)*a->eddyv(i,j,k+1);
+        ev_ip_j_kp=a->vof(i+1,j,k+1)*a->eddyv(i+1,j,k+1);
+        ev_im_j_kp=a->vof(i-1,j,k+1)*a->eddyv(i-1,j,k+1);
+        ev_i_jp_kp=a->vof(i,j+1,k+1)*a->eddyv(i,j+1,k+1);
+        ev_i_jm_kp=a->vof(i,j-1,k+1)*a->eddyv(i,j-1,k+1);
+    }
+    else
+    {
+        ev_ijk=a->eddyv(i,j,k);
+        ev_im_j_k=a->eddyv(i-1,j,k);
+        ev_ip_j_k=a->eddyv(i+1,j,k);
+        ev_i_jm_k=a->eddyv(i,j-1,k);
+        ev_i_jp_k=a->eddyv(i,j+1,k);
+        ev_i_j_kp=a->eddyv(i,j,k+1);
+        ev_ip_j_kp=a->eddyv(i+1,j,k+1);
+        ev_im_j_kp=a->eddyv(i-1,j,k+1);
+        ev_i_jp_kp=a->eddyv(i,j+1,k+1);
+        ev_i_jm_kp=a->eddyv(i,j-1,k+1);
+    }
 	
 	visc_ijk=a->visc(i,j,k);
 	visc_im_j_k=a->visc(i-1,j,k);
@@ -68,21 +88,21 @@ void idiff2_PLIC::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
         H_ddy_p=(a->vof_ntw(i,j,k)+a->vof_stw(i,j,k)+a->vof_nte(i,j+1,k)+a->vof_ste(i,j+1,k)+a->vof_nbw(i,j,k+1)+a->vof_sbw(i,j,k+1)+a->vof_nbe(i,j+1,k+1)+a->vof_sbe(i,j+1,k+1))*0.125;
         H_ddy_m=(a->vof_nte(i,j,k)+a->vof_ste(i,j,k)+a->vof_ntw(i,j-1,k)+a->vof_stw(i,j-1,k)+a->vof_nbe(i,j,k+1)+a->vof_sbe(i,j,k+1)+a->vof_nbw(i,j-1,k+1)+a->vof_sbw(i,j-1,k+1))*0.125;
     
-        visc_ddx_p=H_ddx_p*p->W2+(1.0-H_ddx_p)*p->W4+(ev_ijk+ev_i_j_kp+ev_ip_j_k+a->eddyv(i+1,j,k+1))*0.25;
-        visc_ddx_m=H_ddx_m*p->W2+(1.0-H_ddx_m)*p->W4+(ev_ijk+ev_i_j_kp+ev_im_j_k+a->eddyv(i-1,j,k+1))*0.25;
+        visc_ddx_p=H_ddx_p*p->W2+(1.0-H_ddx_p)*p->W4+(ev_ijk+ev_i_j_kp+ev_ip_j_k+ev_ip_j_kp)*0.25;
+        visc_ddx_m=H_ddx_m*p->W2+(1.0-H_ddx_m)*p->W4+(ev_ijk+ev_i_j_kp+ev_im_j_k+ev_im_j_kp)*0.25;
         
-        visc_ddy_p=H_ddy_p*p->W2+(1.0-H_ddy_p)*p->W4+(ev_ijk+ev_i_j_kp+ev_i_jp_k+a->eddyv(i,j+1,k+1))*0.25;
-        visc_ddy_m=H_ddy_m*p->W2+(1.0-H_ddy_m)*p->W4+(ev_ijk+ev_i_j_kp+ev_i_jm_k+a->eddyv(i,j-1,k+1))*0.25;
+        visc_ddy_p=H_ddy_p*p->W2+(1.0-H_ddy_p)*p->W4+(ev_ijk+ev_i_j_kp+ev_i_jp_k+ev_i_jp_kp)*0.25;
+        visc_ddy_m=H_ddy_m*p->W2+(1.0-H_ddy_m)*p->W4+(ev_ijk+ev_i_j_kp+ev_i_jm_k+ev_i_jm_kp)*0.25;
     }
     else
     {
-        visc_ddx_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1));
+        visc_ddx_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + a->visc(i+1,j,k+1)+ev_ip_j_kp);
     
-        visc_ddx_m = 0.25*(visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k+1)+a->eddyv(i-1,j,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
+        visc_ddx_m = 0.25*(visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k+1)+ev_im_j_kp + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
     
-        visc_ddy_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_i_jp_k+ev_i_jp_k + a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1));
+        visc_ddy_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_i_jp_k+ev_i_jp_k + a->visc(i,j+1,k+1)+ev_i_jp_kp);
     
-        visc_ddy_m = 0.25*(visc_i_jm_k+ev_i_jm_k + a->visc(i,j-1,k+1)+a->eddyv(i,j-1,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
+        visc_ddy_m = 0.25*(visc_i_jm_k+ev_i_jm_k + a->visc(i,j-1,k+1)+ev_i_jm_kp + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
     }
 	a->M.p[count] = 2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP])
 				  + 2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP])
