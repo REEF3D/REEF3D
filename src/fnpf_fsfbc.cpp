@@ -74,6 +74,7 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(
     {
     pconvec = new fnpf_weno5(p);
     pconeta = new fnpf_weno5(p);
+    cout<<"WENO"<<endl;
     }
     
     pdf = new fnpf_wenoflux(p);
