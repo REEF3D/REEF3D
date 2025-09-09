@@ -159,18 +159,66 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructJacobiSetMaxIter(precond,1);
     }
     
-    if(precon_type==11)
+    // FNPF
+    if(precon_type==11 && p->A10==3)
     {
     HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &precond);
 	HYPRE_StructPFMGSetMaxIter(precond, 1);
 	HYPRE_StructPFMGSetTol(precond, 1.0e-06);
-	HYPRE_StructPFMGSetZeroGuess(precond);		
+	HYPRE_StructPFMGSetNonZeroGuess(precond);		
 	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
 	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
 	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
 	HYPRE_StructPFMGSetNumPostRelax(precond, 2);
 	HYPRE_StructPFMGSetSkipRelax(precond, 1);  // 0/1
-	HYPRE_StructPFMGSetPrintLevel(precond, 1);
+	HYPRE_StructPFMGSetPrintLevel(precond, 0);
+	HYPRE_StructPFMGSetLogging(precond, 0);
+    }
+    
+    // NHFLOW
+    if(precon_type==11 && p->A10==5)
+    {
+    HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &precond);
+	HYPRE_StructPFMGSetMaxIter(precond, 1);
+	HYPRE_StructPFMGSetTol(precond, 1.0e-03);
+	HYPRE_StructPFMGSetZeroGuess(precond);		
+	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
+	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
+	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
+	HYPRE_StructPFMGSetNumPostRelax(precond, 2);
+	HYPRE_StructPFMGSetSkipRelax(precond, 0);  // now: 0; before: 0
+	HYPRE_StructPFMGSetPrintLevel(precond, 0);
+	HYPRE_StructPFMGSetLogging(precond, 0);
+    }
+    
+    // CFD
+    if(precon_type==11 && p->A10==6)
+    {
+    HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &precond);
+	HYPRE_StructPFMGSetMaxIter(precond, 1);
+	HYPRE_StructPFMGSetTol(precond, 0.0);
+	HYPRE_StructPFMGSetZeroGuess(precond);		
+	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
+	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
+	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
+	HYPRE_StructPFMGSetNumPostRelax(precond, 1);
+	HYPRE_StructPFMGSetSkipRelax(precond, 0);  // now: 0; before: 0
+	HYPRE_StructPFMGSetPrintLevel(precond, 0);
+	HYPRE_StructPFMGSetLogging(precond, 0);
+    }
+    
+    if(precon_type==11 && p->A10!=3 && p->A10!=5 && p->A10!=6)
+    {
+    HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &precond);
+	HYPRE_StructPFMGSetMaxIter(precond, 1);
+	HYPRE_StructPFMGSetTol(precond, 0.0);
+	HYPRE_StructPFMGSetZeroGuess(precond);		
+	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
+	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
+	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
+	HYPRE_StructPFMGSetNumPostRelax(precond, 1);
+	HYPRE_StructPFMGSetSkipRelax(precond, 0);  // now: 0; before: 0
+	HYPRE_StructPFMGSetPrintLevel(precond, 0);
 	HYPRE_StructPFMGSetLogging(precond, 0);
     }
     
@@ -180,7 +228,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructSMGSetMemoryUse(precond,0);
     HYPRE_StructSMGSetMaxIter(precond,1);
     HYPRE_StructSMGSetTol(precond, 1.0e-06);
-    HYPRE_StructSMGSetNonZeroGuess(precond);
+    HYPRE_StructSMGSetZeroGuess(precond);
     HYPRE_StructSMGSetNumPreRelax(precond,1);
     HYPRE_StructSMGSetNumPostRelax(precond,1);
     }
