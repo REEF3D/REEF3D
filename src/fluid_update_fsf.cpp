@@ -40,7 +40,6 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
 {
 	double H=0.0;
     double H_fb=0.0;
-    double factor=1.0;
 	p->volume1=0.0;
 	p->volume2=0.0;
     
@@ -49,25 +48,15 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
 	iter=p->count;
     
 	BASELOOP
-	{
-        factor = 1.0;
-        
-        if(p->j_dir==0 && p->X46==1) 
-        if(a->fb(i,j,k) <- 0.5*(1.0/2.0)*(p->DRM+p->DTM))
-        factor = 2.0;
-        
-        if(p->j_dir==1 && p->X46==1)  
-        if(a->fb(i,j,k) <- 0.5*(1.0/3.0)*(p->DRM+p->DSM+p->DTM))
-        factor = 2.0;
-    
-		if(a->phi(i,j,k)>(p->psi*factor))
+	{    
+		if(a->phi(i,j,k)>p->psi)
 		H=1.0;
 
-		if(a->phi(i,j,k)<-(p->psi*factor))
+		if(a->phi(i,j,k)<-p->psi)
 		H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=(p->psi*factor))
-		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));
+		if(fabs(a->phi(i,j,k))<=p->psi)
+		H=0.5*(1.0 + a->phi(i,j,k)/p->psi + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->psi));
 
 
         a->ro(i,j,k)   = ro_water*H +   ro_air*(1.0-H);

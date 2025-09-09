@@ -58,7 +58,6 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     update_cfd(p,a,pgc,pflow,preto);
 
 
-
     /// print out
 	//print_particles(p);
 /*

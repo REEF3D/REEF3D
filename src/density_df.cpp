@@ -34,27 +34,17 @@ density_df::~density_df()
 }
 
 double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
-{ 
-    double factor = 1.0;
-    
-    if(p->j_dir==0 && p->X46==1) 
-    if(0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc)) <- 0.5*(1.0/2.0)*(p->DRM+p->DTM))
-    factor = 2.0;
-    
-    if(p->j_dir==1 && p->X46==1) 
-    if(0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc)) <- 0.5*(1.0/3.0)*(p->DRM+p->DSM+p->DTM))
-    factor = 2.0;
-    
+{     
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-    if(phival>factor*p->psi)
+    if(phival>p->psi)
     H=1.0;
 
-    if(phival<-factor*p->psi)
+    if(phival<-p->psi)
     H=0.0;
 
-    if(fabs(phival)<=factor*p->psi)
-    H=0.5*(1.0 + phival/(factor*p->psi) + (1.0/PI)*sin((PI*phival)/(factor*p->psi)));
+    if(fabs(phival)<=p->psi)
+    H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
     
     
     roval = p->W1*H + p->W3*(1.0-H);
