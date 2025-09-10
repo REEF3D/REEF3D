@@ -103,7 +103,8 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
 	++n;
 	}
     
-    
+    if(p->A513==1)
+    {
     n=0;
 	LOOP
 	{
@@ -147,6 +148,54 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
         }
 	++n;
 	}
+    }
+    
+    if(p->A513==2)
+    {
+    n=0;
+	LOOP
+	{
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
+        {
+            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)
+            {
+            d->rhsvec.V[n] -= d->M.s[n]*VH[Im1JK];
+            d->M.s[n] = 0.0;
+            }
+            
+            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0)
+            {
+            d->rhsvec.V[n] -= d->M.n[n]*VH[Ip1JK];
+            d->M.n[n] = 0.0;
+            }
+            
+            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
+            {
+            d->rhsvec.V[n] -= d->M.e[n]*VH[IJm1K]*p->y_dir;
+            d->M.e[n] = 0.0;
+            }
+            
+            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
+            {
+            d->rhsvec.V[n] -= d->M.w[n]*VH[IJp1K]*p->y_dir;
+            d->M.w[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            {
+            d->rhsvec.V[n] -= d->M.b[n]*VH[IJKm1];
+            d->M.b[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+            {
+            d->rhsvec.V[n] -= d->M.t[n]*VH[IJKp1];
+            d->M.t[n] = 0.0;
+            }
+        }
+	++n;
+	}
+    }
 	
     psolv->startV(p,pgc,VHdiff,d->rhsvec,d->M,4);
     
