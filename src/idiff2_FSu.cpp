@@ -115,6 +115,8 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
      ++n;
 	 }
     
+    if(p->D22==1)
+    {
     n=0;
 	ULOOP
 	{
@@ -161,6 +163,57 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 
 	++n;
 	}
+    }
+    
+    if(p->D22==2)
+    {
+    n=0;
+	ULOOP
+	{
+        if(p->DF1[IJK]>0)
+        {
+            
+		if(p->flag1[Im1JK]<0 || p->DF1[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*u(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag1[Ip1JK]<0 || p->DF1[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*u(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag1[IJm1K]<0 || p->DF1[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*u(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag1[IJp1K]<0 || p->DF1[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*u(i,j+1,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if(p->flag1[IJKm1]<0 || p->DF1[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*u(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag1[IJKp1]<0 || p->DF1[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*u(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+        
+        }
+
+	++n;
+	}
+    }
 	
 	psolv->start(p,a,pgc,diff,a->rhsvec,1);
     

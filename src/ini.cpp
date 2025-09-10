@@ -341,6 +341,7 @@ void lexer::ini_default()
 	D11=2;			// int convection velocity scheme
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
+    D22=1;            // int diffusion wall boundary condition
 	D30=1;			// int pressure scheme
     D31=0;			// int normalize pressure to free surface
     D33=0;			// int corner cells sigma grid Poisson matrix
