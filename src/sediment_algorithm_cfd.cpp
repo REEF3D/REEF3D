@@ -75,6 +75,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     ptopo->start(p,pgc,s);
     
     // sandslide ********
+    if(p->sediter%p->S94==0)
     pslide->start(p,pgc,s);
     
     // control time step ********

@@ -737,6 +737,7 @@ void lexer::ini_default()
     S91=1;                  // int number of sandslide iterations
     S92=1.0;                // double sandslide correction factor
     S93=0.0;				// double delta phi for sandlide correciton
+    S94=1;                // int sandslide intervall
 	S100=0;					// int number of bed filter outer iterations
     S101=0;					// int number of bed filter inner iterations
 
