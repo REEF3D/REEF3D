@@ -69,7 +69,7 @@ void concentration_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &re
 {
 }
 
-void concentration_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void concentration_void::offset_vtu(lexer *p, int *offset, int &n)
 {
 }
 

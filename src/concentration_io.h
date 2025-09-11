@@ -47,7 +47,7 @@ public:
 
     virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu(lexer*, int*, int &);
 
     field4 C;
 	fluid_update *pupdate;
