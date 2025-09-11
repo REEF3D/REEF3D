@@ -50,6 +50,8 @@ void net_barQuasiStatic::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     //- Update porous zone
     coupling_dlm_cfd(p,a,pgc);
+
+    print(p);
 }
 
 void net_barQuasiStatic::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -76,5 +78,6 @@ void net_barQuasiStatic::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     //- Update porous zone
     coupling_dlm_nhflow(p,d,pgc);
-}
 
+    print(p);
+}
