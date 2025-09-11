@@ -36,7 +36,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     double U,V,W;
     
     k=0;
-    SLICELOOP4
+    SEDSLICELOOP
     {
         
         if(p->S16==1)
@@ -125,7 +125,7 @@ void bedshear::taucritbed(lexer *p, fdm_nhf* d, ghostcell *pgc, sediment_fdm *s)
 {
     double density = p->W1;
     
-    SLICELOOP4
+    SEDSLICELOOP
     {
     k = s->bedk(i,j);
     

@@ -65,7 +65,7 @@ void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         pgc->gcsl_start4(p,fh,1);
         
         // slide loop
-        SLICELOOP4
+        SEDSLICELOOP
         if(s->dfs(i,j)>0)
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
@@ -74,7 +74,7 @@ void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         pgc->gcslparax_fh(p,fh,4);
         
         // fill back
-        SLICELOOP4
+        SEDSLICELOOP
         if(s->dfs(i,j)>0)
         {
         s->slideflag(i,j)+=fh(i,j);

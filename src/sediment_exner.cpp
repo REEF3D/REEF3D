@@ -84,7 +84,7 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
     // eq.
     if(p->S17==0)
-    SLICELOOP4
+    SEDSLICELOOP
     s->qb(i,j)=s->qbe(i,j);
     
     // non-eq.
@@ -105,13 +105,13 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     // Bedch
     timestep(p,pgc,s);
 	
-	SLICELOOP4
+	SEDSLICELOOP
     WETDRY
     if(s->dfs(i,j)>0)
     s->bedzh(i,j) += p->dtsed*s->vz(i,j);
 
     
-    SLICELOOP4
+    SEDSLICELOOP
     s->dh(i,j)=s->vz(i,j);
 
 	pgc->gcsl_start4(p,s->bedzh,1);

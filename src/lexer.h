@@ -110,6 +110,7 @@ public:
     // boundary conditions
     int *IO,*IOSL;
     int *DF,*DF1,*DF2,*DF3;
+    int *DFBED;
     
     // flag
 	int*mgflag;

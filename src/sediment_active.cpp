@@ -57,6 +57,8 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     SLICELOOP4
     s->active(i,j)=1;
+    
+    
 }
 
 void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
