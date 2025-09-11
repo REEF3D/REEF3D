@@ -92,7 +92,7 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
     double u_abs,signx,signy;
     double uvel,vvel;
     
-    SLICELOOP4
+    SEDSLICELOOP
     {
         pip=1;
         uvel=0.5*(s->P(i,j)+s->P(i-1,j));
@@ -115,8 +115,7 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
 	
 
-    SLICELOOP4
-    
+    SEDSLICELOOP
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
 	{						
         ux1=s->P(i-1,j);

@@ -41,7 +41,7 @@ void bedload_direction_f::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     double uvel,vvel,u_abs;
     double bx0,by0;
     
-	SLICELOOP4
+	SEDSLICELOOP
     {
         uvel=0.5*(s->P(i,j)+s->P(i-1,j));
         vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));

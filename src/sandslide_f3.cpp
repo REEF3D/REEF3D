@@ -51,7 +51,7 @@ sandslide_f3::~sandslide_f3()
 
 void sandslide_f3::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    SLICELOOP4
+    SEDSLICELOOP
     s->slideflag(i,j)=0.0;
     
     if(p->mpirank==0)

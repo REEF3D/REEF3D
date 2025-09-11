@@ -47,7 +47,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	int count;
 	double zval,fac,topoval,taukin,tauvel,density;
     
-    SLICELOOP4
+    SEDSLICELOOP
     {
     
     k = s->bedk(i,j);
@@ -349,7 +349,7 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	double density = p->W1;
     
-    SLICELOOP4
+    SEDSLICELOOP
     {
     k = s->bedk(i,j);
     

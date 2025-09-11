@@ -31,7 +31,7 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
 	maxvz=maxdh=0.0;
     
     
-    SLICELOOP4
+    SEDSLICELOOP
     {
     if(p->j_dir==1 && p->knoy>1)
     dx = MIN(p->DXN[IP],p->DYN[JP]);
@@ -40,7 +40,7 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     dx = p->DXN[IP];
     }
     
-	SLICELOOP4
+	SEDSLICELOOP
 	maxvz = MAX(fabs(s->vz(i,j)),maxvz);
 
 	maxvz=pgc->globalmax(maxvz);

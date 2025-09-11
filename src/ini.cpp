@@ -108,7 +108,7 @@ void lexer::ini_default()
     A510=2;      // int NFHLOW time scheme
     A511=1;		// int NHFLOW HLL scheme
     A512=0;		// int NHFLOW diffusion
-    A513=1;		// int NHFLOW diffusion
+    A513=1;		// int NHFLOW wall diffusion
     A514=4;		// int NHFLOW reconstruction 
     A515=1;      // int Dirichlet wave BC type
     A516=3;      // int

@@ -50,7 +50,7 @@ sandslide_f::~sandslide_f()
 
 void sandslide_f::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    SLICELOOP4
+    SEDSLICELOOP
     s->slideflag(i,j)=0.0;
     
     // mainloop
@@ -59,7 +59,7 @@ void sandslide_f::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         count=0;
         
         // fill
-        SLICELOOP4
+        SEDSLICELOOP
         fh(i,j)=0.0;
         
         pgc->gcsl_start4(p,fh,1);

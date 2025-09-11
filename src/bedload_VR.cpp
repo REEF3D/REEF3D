@@ -48,7 +48,7 @@ void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     double Ti,r,f,Ts,Tb;
 	double qb;
 	
-	SLICELOOP4
+	SEDSLICELOOP
     {
         Ts = s->shields_crit(i,j);
 	    Tb = s->shields_eff(i,j);

@@ -46,7 +46,7 @@ void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     double qb,Ts,Tb;
 
-	SLICELOOP4
+	SEDSLICELOOP
     {
         Ts = s->shields_crit(i,j);
 	    Tb = s->shields_eff(i,j);

@@ -41,7 +41,7 @@ void reduction_parker::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     double r=1.0;
 	double r1,r2;
     
-    SLICELOOP4
+    SEDSLICELOOP
     {
 	alphaval = s->alpha(i,j);
     tetaval = s->teta(i,j);
