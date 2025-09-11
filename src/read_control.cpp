@@ -35,7 +35,7 @@ void lexer::read_control()
 	if(!control)
 	{
 		cout<<endl<<("no 'ctrl.txt' file found")<<endl<<endl;
-		exit(0);
+		exit(1);
 	}
 
 	if(mpirank==0)
@@ -539,7 +539,7 @@ void lexer::read_control()
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 91 !!!"<<endl<<endl;
                                 cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-                                exit(0);
+                                exit(1);
                             }
                             B91=1;
 						    clear(c,numint);
@@ -563,7 +563,7 @@ void lexer::read_control()
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 93 !!!"<<endl<<endl;
                                 cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-                                exit(0);
+                                exit(1);
                             }
                             B93=1;
 						    clear(c,numint);
@@ -588,7 +588,7 @@ void lexer::read_control()
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 96 !!!"<<endl<<endl;
                                 cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-                                exit(0);
+                                exit(1);
                             }
 						    clear(c,numint);
 						    break;
@@ -2499,7 +2499,7 @@ void lexer::read_control()
         cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
         cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
 
-        exit(0);
+        exit(1);
         }
 	}
 	control.close();
@@ -3875,7 +3875,7 @@ void lexer::read_control()
         cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
         cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
 
-        exit(0);
+        exit(1);
         }
 	}
 

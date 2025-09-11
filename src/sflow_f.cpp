@@ -191,8 +191,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         
         pprint->print2D(p,b,pgc,pturb,psed);
     
-    pgc->final();
-    exit(0);
+    pgc->final(true);
     }
 	}
 
