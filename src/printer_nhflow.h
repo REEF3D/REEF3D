@@ -58,17 +58,17 @@ class printer_nhflow : public nhflow_printer, public increment
 
 public:
     printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
-    virtual ~printer_nhflow();
-    virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
-    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
-    
+    virtual ~printer_nhflow() = default;
+    void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override;
+    void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
+    void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override;
+
 private:
     void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
 
     vtk3D *outputFormat;
 
-    char name[200],pname[200];
+    char name[200];
     int n,iin,offset[200];
     float ffn;
     int jj;
@@ -76,11 +76,9 @@ private:
     double *printtime_wT;
     double *printfsftime_wT;
     int *printfsfiter_wI;
-    double phase;
-    double zcoor;
-    
+
     int printcount;
-    
+
     nhflow_print_wsf *pwsf;
     nhflow_print_wsf_theory *pwsf_theory;
     nhflow_print_wsfline *pwsfline;
@@ -97,8 +95,7 @@ private:
     nhflow_print_Hs *phs;
     nhflow_force **pforce;
     nhflow_force_ale **pforce_ale;
-    
+
 };
 
 #endif
-
