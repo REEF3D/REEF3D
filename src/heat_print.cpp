@@ -60,7 +60,7 @@ void heat_print::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"T\"/>"<<endl;
 }
 
-void heat_print::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void heat_print::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"T\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;

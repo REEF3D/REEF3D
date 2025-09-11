@@ -57,7 +57,7 @@ public:
 	virtual void gcupdate(lexer*, fdm_nhf*, ghostcell*);
 	
     virtual void name_pvtu(lexer*, fdm_nhf*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_ParaView(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_ParaView(lexer*, int*, int &);
     
     virtual void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&){};

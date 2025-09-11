@@ -107,7 +107,7 @@ void multiphase_v::name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)
 	
 }
 
-void multiphase_v::name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
+void multiphase_v::name_ParaView(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
 {
 	
 }
