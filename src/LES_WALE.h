@@ -38,9 +38,9 @@ class LES_WALE : public LES
 public:
 	LES_WALE(lexer *, fdm*);
 	virtual ~LES_WALE();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
+	void ktimesave(lexer*, fdm*, ghostcell*) override;
+	void etimesave(lexer*, fdm*, ghostcell*) override;
 
 private:
 	int gcval_sgs;

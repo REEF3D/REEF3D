@@ -35,15 +35,15 @@ public:
 	pressure_void(lexer* p);
 	virtual ~pressure_void();
 
-	virtual void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double);
-    virtual void ini(lexer*,fdm*,ghostcell*);
-	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void ucorr(lexer*p,fdm*,field&,double);
-	virtual void vcorr(lexer*p,fdm*,field&,double);
-	virtual void wcorr(lexer*p,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
-	virtual void wpgrad(lexer*,fdm*,slice&,slice&);
+	void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double) override;
+    void ini(lexer*,fdm*,ghostcell*) override;
+	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double) override;
+	void ucorr(lexer*p,fdm*,field&,double) override;
+	void vcorr(lexer*p,fdm*,field&,double) override;
+	void wcorr(lexer*p,fdm*,field&,double) override;
+	void upgrad(lexer*,fdm*,slice&,slice&) override;
+	void vpgrad(lexer*,fdm*,slice&,slice&) override;
+	void wpgrad(lexer*,fdm*,slice&,slice&) override;
 };
 
 #endif

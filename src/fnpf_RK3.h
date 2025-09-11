@@ -40,9 +40,9 @@ public:
 	fnpf_RK3(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_RK3();
     
-    virtual void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*);
-    virtual void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*);
-    virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*);
+    void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override;
+    void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override;
+    void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override;
     
 private:
     void reference_gage(lexer*, fdm_fnpf*, ghostcell*, slice&);

@@ -43,11 +43,11 @@ public:
 	hypre_struct(lexer*,ghostcell*,int,int);
 	virtual ~hypre_struct();
     
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
-    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
-    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
+	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
     
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver4f(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
@@ -94,15 +94,15 @@ public:
     void fill_matrix9(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix9_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
 
-    virtual void fillbackvec1(lexer*,field&,int);
-    virtual void fillbackvec2(lexer*,field&,int);
-    virtual void fillbackvec3(lexer*,field&,int);
-    virtual void fillbackvec4(lexer*,field&,int);
-    virtual void fillbackvec4V(lexer*,double*,int);
+    void fillbackvec1(lexer*,field&,int) override;
+    void fillbackvec2(lexer*,field&,int) override;
+    void fillbackvec3(lexer*,field&,int) override;
+    void fillbackvec4(lexer*,field&,int) override;
+    void fillbackvec4V(lexer*,double*,int) override;
     
-    virtual void fillbackvec7(lexer*,double*,int);
-    virtual void fillbackvec8(lexer*,double*,int);
-    virtual void fillbackvec9(lexer*,double*,int);
+    void fillbackvec7(lexer*,double*,int) override;
+    void fillbackvec8(lexer*,double*,int) override;
+    void fillbackvec9(lexer*,double*,int) override;
 	
 	void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);

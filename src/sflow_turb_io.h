@@ -41,18 +41,18 @@ public:
     sflow_turb_io(lexer*);
 	virtual ~sflow_turb_io();
     
-    virtual void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&);
+    void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&) override;
     
-    virtual void kinget(int,int,double);
-    virtual void epsget(int,int,double);
+    void kinget(int,int,double) override;
+    void epsget(int,int,double) override;
     
-    virtual double kinval(int,int);
-    virtual double epsval(int,int);
+    double kinval(int,int) override;
+    double epsval(int,int) override;
     
-	virtual void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&);
-    virtual void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &);
+	void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&) override;
+    void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &) override;
     
-    virtual void offset_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &);
+    void offset_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &) override;
     
     slice4 kin, eps;
     

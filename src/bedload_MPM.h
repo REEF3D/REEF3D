@@ -36,7 +36,7 @@ public:
 
     bedload_MPM(lexer*);
 	virtual ~bedload_MPM();
-	virtual void start(lexer*, ghostcell*, sediment_fdm*);
+	void start(lexer*, ghostcell*, sediment_fdm*) override;
 
 private:
     double rhosed,rhowat;

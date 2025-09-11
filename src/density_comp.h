@@ -39,7 +39,7 @@ public:
     density_comp(lexer*);
 	virtual ~density_comp();
 
-	virtual double roface(lexer*,fdm*,int,int,int);
+	double roface(lexer*,fdm*,int,int,int) override;
 	
 	double H,roval,phival;
 	int ii,jj,kk;

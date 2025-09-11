@@ -40,7 +40,7 @@ class topo_vtp :  public increment
 public:
 	topo_vtp(lexer*,fdm*,ghostcell*);
 	virtual ~topo_vtp();
-	virtual void start(lexer*,fdm*,ghostcell*,sediment*);
+	void start(lexer*,fdm*,ghostcell*,sediment*) override;
 
 private:
 	void print(lexer*,fdm*,ghostcell*,sediment*);

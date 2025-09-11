@@ -36,7 +36,7 @@ public:
 	sflow_hxy_cds(lexer*,patchBC_interface*);
 	virtual ~sflow_hxy_cds();
 
-	virtual void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&);
+	void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override;
 
 private:
 

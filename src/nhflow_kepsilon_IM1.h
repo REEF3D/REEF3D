@@ -32,9 +32,9 @@ class nhflow_kepsilon_IM1 : public nhflow_kepsilon_func
 public:
 	nhflow_kepsilon_IM1(lexer *, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_kepsilon_IM1();
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*);
-	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*);
+	void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*) override;
+	void ktimesave(lexer*, fdm_nhf*, ghostcell*) override;
+	void etimesave(lexer*, fdm_nhf*, ghostcell*) override;
 	void timesource(lexer*,fdm_nhf*,double*);
     void kinupdate(lexer*, fdm_nhf*, ghostcell*);
 	void clearrhs(lexer*,fdm_nhf*);

@@ -37,9 +37,9 @@ public:
     heat_RK2(lexer *, fdm*, ghostcell*,heat*&);
 	virtual ~heat_RK2();
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
-	virtual void ttimesave(lexer*, fdm*);
-    virtual void diff_update(lexer*, fdm*, ghostcell*);
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
+	void ttimesave(lexer*, fdm*) override;
+    void diff_update(lexer*, fdm*, ghostcell*) override;
     
     field4 thermdiff;
 

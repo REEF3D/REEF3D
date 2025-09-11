@@ -53,7 +53,7 @@ public:
 
 	momentum_RKLS3(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RKLS3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*);
+	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override;
     
 private:
 

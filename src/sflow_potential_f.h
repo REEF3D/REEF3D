@@ -38,7 +38,7 @@ public:
 	sflow_potential_f(lexer*);
 	virtual ~sflow_potential_f();
 
-	virtual void start(lexer*,fdm2D*, solver2D*, ghostcell*);
+	void start(lexer*,fdm2D*, solver2D*, ghostcell*) override;
 
 
 private:

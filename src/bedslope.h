@@ -39,8 +39,8 @@ public:
     bedslope(lexer*);
     virtual ~bedslope();
 
-	virtual void slope_weno(lexer*, ghostcell*,sediment_fdm*,field&);
-    virtual void slope_cds(lexer*,ghostcell*,sediment_fdm*);
+	void slope_weno(lexer*, ghostcell*,sediment_fdm*,field&) override;
+    void slope_cds(lexer*,ghostcell*,sediment_fdm*) override;
 
 private:
 

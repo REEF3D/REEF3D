@@ -37,7 +37,7 @@ public:
     roughness(lexer*);
 	virtual ~roughness();
 
-	virtual double ks_val(lexer*, fdm*,int,int,int,int,int);
+	double ks_val(lexer*, fdm*,int,int,int,int,int) override;
 
 private:
 	double ks;

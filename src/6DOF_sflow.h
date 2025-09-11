@@ -44,31 +44,31 @@ public:
     sixdof_sflow(lexer*, ghostcell*);
     virtual ~sixdof_sflow();
     
-    virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool);
-    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool);
+    void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool) override;
+    void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override;
     
-    virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
+    void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool) override;
     
     void start_oneway(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
     void start_shipwave(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,bool);
 
     
-	virtual void ini(lexer*,ghostcell*);
-    virtual void initialize(lexer*, fdm*, ghostcell*);
-    virtual void initialize(lexer*, fdm2D*, ghostcell*);
-    virtual void initialize(lexer*, fdm_nhf*, ghostcell*);
+	void ini(lexer*,ghostcell*) override;
+    void initialize(lexer*, fdm*, ghostcell*) override;
+    void initialize(lexer*, fdm2D*, ghostcell*) override;
+    void initialize(lexer*, fdm_nhf*, ghostcell*) override;
 	
     
-    virtual void isource(lexer*,fdm*,ghostcell*);
-    virtual void jsource(lexer*,fdm*,ghostcell*);
-    virtual void ksource(lexer*,fdm*,ghostcell*);
+    void isource(lexer*,fdm*,ghostcell*) override;
+    void jsource(lexer*,fdm*,ghostcell*) override;
+    void ksource(lexer*,fdm*,ghostcell*) override;
     
-    virtual void isource(lexer*,fdm_nhf*,ghostcell*,slice&);
-    virtual void jsource(lexer*,fdm_nhf*,ghostcell*,slice&);
-    virtual void ksource(lexer*,fdm_nhf*,ghostcell*,slice&);
+    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override;
+    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override;
+    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override;
     
-    virtual void isource2D(lexer*,fdm2D*,ghostcell*);
-    virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
+    void isource2D(lexer*,fdm2D*,ghostcell*) override;
+    void jsource2D(lexer*,fdm2D*,ghostcell*) override;
     
 private:
 	

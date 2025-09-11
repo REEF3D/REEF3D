@@ -34,7 +34,7 @@ public:
     potential_v();
 	virtual ~potential_v();
 
-	virtual void start(lexer*,fdm*, solver*, ghostcell* pgc);
+	void start(lexer*,fdm*, solver*, ghostcell* pgc) override;
 
 };
 

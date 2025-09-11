@@ -39,7 +39,7 @@ public:
 	ihires (lexer*,int);
 	virtual ~ihires();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
     double ul,ur,vl,vr,wl,wr;

@@ -33,7 +33,7 @@ public:
     nhflow_potential_v();
 	virtual ~nhflow_potential_v();
 
-	virtual void start(lexer*, fdm_nhf*, solver*, ghostcell* pgc);
+	void start(lexer*, fdm_nhf*, solver*, ghostcell* pgc) override;
 
 };
 

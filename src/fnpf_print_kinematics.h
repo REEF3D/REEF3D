@@ -41,8 +41,8 @@ class fnpf_print_kinematics :  public increment
 public:
 	fnpf_print_kinematics(lexer*,fdm_fnpf*,ghostcell*,int);
 	virtual ~fnpf_print_kinematics();
-	virtual void start(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void ini(lexer*,fdm_fnpf*,ghostcell*);
+	void start(lexer*,fdm_fnpf*,ghostcell*) override;
+    void ini(lexer*,fdm_fnpf*,ghostcell*) override;
 
 private:	
     void kinematics_calc(lexer*,fdm_fnpf*,ghostcell*);

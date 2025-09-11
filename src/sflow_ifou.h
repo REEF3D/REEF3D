@@ -36,7 +36,7 @@ public:
 	sflow_ifou(lexer*);
 	virtual ~sflow_ifou();
 
-	virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&);
+	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override;
 
 private:
     void aij(lexer*, fdm2D*, slice&, int, slice&, slice&);

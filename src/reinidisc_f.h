@@ -37,7 +37,7 @@ class reinidisc_f : public reinidisc, public ddweno_nug_sf
 public:
 	reinidisc_f(lexer* p);
 	virtual ~reinidisc_f();
-	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, int);
+	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override;
 	
 private:
 	void disc(lexer*, fdm*, ghostcell*, field&, field&);

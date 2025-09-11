@@ -37,14 +37,14 @@ public:
 	weno_hj(lexer*);
 	virtual ~weno_hj();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
-	virtual double ddx(lexer*, fdm*, field&);
-	virtual double ddy(lexer*, fdm*, field&);
-	virtual double ddz(lexer*, fdm*, field&);
+	double ddx(lexer*, fdm*, field&) override;
+	double ddy(lexer*, fdm*, field&) override;
+	double ddz(lexer*, fdm*, field&) override;
 	void iqmin(field&, double, double*);
 	void jqmin(field&, double, double*);
 	void kqmin(field&, double, double*);

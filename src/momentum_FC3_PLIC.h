@@ -56,10 +56,10 @@ public:
 	momentum_FC3_PLIC(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_FC3_PLIC();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*);
-    virtual void utimesave(lexer*, fdm*, ghostcell*);
-    virtual void vtimesave(lexer*, fdm*, ghostcell*);
-    virtual void wtimesave(lexer*, fdm*, ghostcell*);
+	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override;
+    void utimesave(lexer*, fdm*, ghostcell*) override;
+    void vtimesave(lexer*, fdm*, ghostcell*) override;
+    void wtimesave(lexer*, fdm*, ghostcell*) override;
 
     field1 udiff,urk1,urk2,fx;
 	field2 vdiff,vrk1,vrk2,fy;

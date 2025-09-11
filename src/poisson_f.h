@@ -40,7 +40,7 @@ public:
 	poisson_f (lexer*, heat*&, concentration*&);
 	virtual ~poisson_f();
 
-	virtual void start(lexer *,fdm*,field&);
+	void start(lexer *,fdm*,field&) override;
 
 private:
 

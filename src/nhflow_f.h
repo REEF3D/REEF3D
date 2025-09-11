@@ -34,7 +34,7 @@ public:
     nhflow_f(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_f();
 
-    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*);
+    void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
     
 private:
     int q,margin;

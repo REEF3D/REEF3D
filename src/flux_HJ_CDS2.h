@@ -36,9 +36,9 @@ public:
 	flux_HJ_CDS2 (lexer *p);
 	virtual ~flux_HJ_CDS2();
 
-	virtual void u_flux(fdm* a,int,field&,double&,double&);
-	virtual void v_flux(fdm* a,int,field&,double&,double&);
-	virtual void w_flux(fdm* a,int,field&,double&,double&);
+	void u_flux(fdm* a,int,field&,double&,double&) override;
+	void v_flux(fdm* a,int,field&,double&,double&) override;
+	void w_flux(fdm* a,int,field&,double&,double&) override;
 
 };
 

@@ -38,7 +38,7 @@ public:
 	quick (lexer *);
 	virtual ~quick();
 
-	virtual void start(lexer*,fdm*, field&,int,field&,field&,field&);
+	void start(lexer*,fdm*, field&,int,field&,field&,field&) override;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&);

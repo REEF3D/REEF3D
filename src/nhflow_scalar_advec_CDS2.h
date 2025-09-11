@@ -37,9 +37,9 @@ public:
     nhflow_scalar_advec_CDS2 (lexer *p);
 	virtual ~nhflow_scalar_advec_CDS2();
 
-    virtual void uadvec(int,double*,double&,double&);
-	virtual void vadvec(int,double*,double&,double&);
-	virtual void wadvec(int,double*,double&,double&);
+    void uadvec(int,double*,double&,double&) override;
+	void vadvec(int,double*,double&,double&) override;
+	void wadvec(int,double*,double&,double&) override;
     
 private:
     lexer *p;

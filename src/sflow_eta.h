@@ -38,13 +38,13 @@ public:
 	sflow_eta(lexer*, fdm2D*, ghostcell*,patchBC_interface*);
 	virtual ~sflow_eta();
 	
-    virtual void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double);
-	virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*);
-	virtual void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
-    virtual void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
-    virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
-    virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double);
-	virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
+    void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double) override;
+	void ini(lexer*, fdm2D*, ghostcell*, ioflow*) override;
+	void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override;
+    void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override;
+    void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override;
+    void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override;
+	void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override;
 private:
     
     void wetdry_nb(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);

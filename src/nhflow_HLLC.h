@@ -43,8 +43,8 @@ public:
 	nhflow_HLLC (lexer*,ghostcell*,patchBC_interface*);
 	virtual ~nhflow_HLLC();
 
-    virtual void start(lexer*&, fdm_nhf*&, int, slice&);
-    virtual void precalc(lexer*, fdm_nhf*, int, slice&);
+    void start(lexer*&, fdm_nhf*&, int, slice&) override;
+    void precalc(lexer*, fdm_nhf*, int, slice&) override;
 
 private:
 

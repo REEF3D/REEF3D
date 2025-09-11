@@ -40,7 +40,7 @@ public:
     benchmark_disk(lexer*,fdm*);
 	virtual ~benchmark_disk();
 
-	virtual void start(lexer*, fdm*, ghostcell*, convection*);
+	void start(lexer*, fdm*, ghostcell*, convection*) override;
 
 
 };

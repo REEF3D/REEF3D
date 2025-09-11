@@ -43,8 +43,8 @@ public:
     fnpf_bed_update(lexer*);
 	virtual ~fnpf_bed_update();
     
-    virtual void bedbc_sig(lexer*, fdm_fnpf*, ghostcell*,double*,fnpf_fsf*);
-    virtual void waterdepth(lexer*, fdm_fnpf*, ghostcell*);
+    void bedbc_sig(lexer*, fdm_fnpf*, ghostcell*,double*,fnpf_fsf*) override;
+    void waterdepth(lexer*, fdm_fnpf*, ghostcell*) override;
 
 private: 
     

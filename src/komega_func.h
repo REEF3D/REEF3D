@@ -35,14 +35,14 @@ class komega_func : public rans_io, public komega_bc
 public:
 	komega_func(lexer *, fdm*, ghostcell*);
 	virtual ~komega_func();
-	virtual void isource(lexer*,fdm*);
-	virtual void jsource(lexer*,fdm*);
-	virtual void ksource(lexer*,fdm*);
-	virtual void kinsource(lexer*,fdm*,vrans*);
-	virtual void epssource(lexer*,fdm*,vrans*,field&);
-	virtual void epsfsf(lexer*,fdm*,ghostcell*,ioflow*);
-	virtual void eddyvisc(lexer*,fdm*,ghostcell*,vrans*);
-	virtual void clearfield(lexer*,fdm*,field&);
+	void isource(lexer*,fdm*) override;
+	void jsource(lexer*,fdm*) override;
+	void ksource(lexer*,fdm*) override;
+	void kinsource(lexer*,fdm*,vrans*) override;
+	void epssource(lexer*,fdm*,vrans*,field&) override;
+	void epsfsf(lexer*,fdm*,ghostcell*,ioflow*) override;
+	void eddyvisc(lexer*,fdm*,ghostcell*,vrans*) override;
+	void clearfield(lexer*,fdm*,field&) override;
 
 	int count,q;
 	double starttime;

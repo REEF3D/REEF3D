@@ -35,9 +35,9 @@ public:
     picard_f(lexer *p);
     virtual ~picard_f();
 
-    virtual void volcalc(lexer*, fdm*, ghostcell*, field&);
-    virtual void volcalc2(lexer*, fdm*, ghostcell*, field&);
-    virtual void correct_ls(lexer*, fdm*, ghostcell*, field&);
+    void volcalc(lexer*, fdm*, ghostcell*, field&) override;
+    void volcalc2(lexer*, fdm*, ghostcell*, field&) override;
+    void correct_ls(lexer*, fdm*, ghostcell*, field&) override;
 
     double vol1,vol2;
 

@@ -34,23 +34,23 @@ public:
 	vrans_v(lexer*, ghostcell*);
 	virtual ~vrans_v();
 
-	virtual void initialize_cfd(lexer*, fdm*, ghostcell*);	
-	virtual void start(lexer*, fdm*, ghostcell*, int){};
-    virtual void sed_update(lexer*, fdm*, ghostcell*);
-    virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&){};
+	void initialize_cfd(lexer*, fdm*, ghostcell*) override;	
+	void start(lexer*, fdm*, ghostcell*, int) override {};
+    void sed_update(lexer*, fdm*, ghostcell*) override;
+    void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&) override {};
 	
-	virtual void u_source(lexer*, fdm*);
-	virtual void v_source(lexer*, fdm*);
-	virtual void w_source(lexer*, fdm*);
+	void u_source(lexer*, fdm*) override;
+	void v_source(lexer*, fdm*) override;
+	void w_source(lexer*, fdm*) override;
     
-    virtual void ke_source(lexer*, fdm*, field&);
-    virtual void kw_source(lexer*, fdm*, field&);
-    virtual void eps_source(lexer*, fdm*, field&, field&);
-    virtual void omega_source(lexer*, fdm*, field&, field&);
+    void ke_source(lexer*, fdm*, field&) override;
+    void kw_source(lexer*, fdm*, field&) override;
+    void eps_source(lexer*, fdm*, field&, field&) override;
+    void omega_source(lexer*, fdm*, field&, field&) override;
     
-    virtual void eddyv_func(lexer*, fdm*);
+    void eddyv_func(lexer*, fdm*) override;
     
-    virtual void veltimesave(lexer*,fdm*,ghostcell*);
+    void veltimesave(lexer*,fdm*,ghostcell*) override;
 };
 
 #endif

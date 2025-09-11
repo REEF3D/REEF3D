@@ -34,8 +34,8 @@ public:
     sflow_gradient_weno(lexer*);
 	virtual ~sflow_gradient_weno();
 
-    virtual double ddx(lexer*,fdm2D*,slice&,int,double);
-    virtual double ddy(lexer*,fdm2D*,slice&,int,double);
+    double ddx(lexer*,fdm2D*,slice&,int,double) override;
+    double ddy(lexer*,fdm2D*,slice&,int,double) override;
 
 private:
 

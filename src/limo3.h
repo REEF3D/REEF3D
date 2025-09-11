@@ -36,9 +36,9 @@ public:
 	limo3 (lexer *);
 	virtual ~limo3();
 
-	virtual double iphi(field&,int,int,int,int);
-	virtual double jphi(field&,int,int,int,int);
-	virtual double kphi(field&,int,int,int,int);
+	double iphi(field&,int,int,int,int) override;
+	double jphi(field&,int,int,int,int) override;
+	double kphi(field&,int,int,int,int) override;
 
 private:
 	
