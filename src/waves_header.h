@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include"ptf_RK4.h"
 #include"fnpf_RK3.h"
 #include"fnpf_RK4.h"
-#include"fnpf_printer.h"
 #include"printer_fnpf.h"
 #include"fnpf_timestep.h"
 

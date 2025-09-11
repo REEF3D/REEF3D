@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include"nhflow_fsf_f.h"
 #include"nhflow_fsf_v.h"
 
-#include"nhflow_printer.h"
 #include"printer_nhflow.h"
 #include"nhflow_timestep.h"
 #include"nhflow_momentum.h"
