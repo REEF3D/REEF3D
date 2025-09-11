@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef FNPF_VTU3D_H_
-#define FNPF_VTU3D_H_
+#ifndef PRINTER_FNPF_H_
+#define PRINTER_FNPF_H_
 
 #include"fnpf_printer.h"
 #include"increment.h"
@@ -46,27 +46,26 @@ class fnpf_print_kinematics;
 
 using namespace std;
 
-class fnpf_vtu3D : public fnpf_printer, public increment
+class printer_fnpf : public fnpf_printer, public increment
 {
 
 public:
-	fnpf_vtu3D(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_vtu3D();
-	virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
+    printer_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+    virtual ~printer_fnpf();
+    virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
     virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*);
     virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
     
 private:
     void pvtu(lexer*,ghostcell*);
-    void name_iter(lexer*,ghostcell*);
-    void name_time(lexer*,ghostcell*);
+    void name_iter(lexer*);
     void piecename(lexer*,ghostcell*, int);
 
     char name[200],pname[200],epsvar[200];
     int n,iin,offset[200];
     float ffn;
     int gcval_phi,gcval_phiext;
-	double *printtime_wT;
+    double *printtime_wT;
     double *printfsftime_wT;
     int *printfsfiter_wI;
     double phase;
@@ -83,7 +82,7 @@ private:
     fnpf_vtp_bed *pbed;
     fnpf_state *pstate;
     fnpf_breaking_log *pbreaklog;
-	fnpf_force_ale **pforce_ale;
+    fnpf_force_ale **pforce_ale;
     fnpf_runup **prunup;
     fnpf_print_Hs *phs;
     fnpf_vel_probe *pvel;
