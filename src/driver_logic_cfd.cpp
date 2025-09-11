@@ -538,8 +538,7 @@ void driver::logic_cfd()
     pbench = new benchmark_convection(p,a);
 
 // Printer
-	if(p->P10>0)
-	pprint = new vtu3D(p,a,pgc);
+    pprint = new printer_CFD(p,a,pgc);
 
     if(p->P150==0)
 	pdata = new expdata_void(p,a,pgc);

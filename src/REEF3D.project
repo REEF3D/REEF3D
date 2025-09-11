@@ -1009,8 +1009,8 @@
         <VirtualDirectory Name="Porous Geometry">
           <File Name="print_porous.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="VTU">
-          <File Name="vtu3D.h"/>
+        <VirtualDirectory Name="Printer CFD">
+          <File Name="printer_CFD.h"/>
         </VirtualDirectory>
         <File Name="print_interface.h"/>
         <VirtualDirectory Name="Force">
@@ -2781,11 +2781,10 @@
           <File Name="vorticity_f.cpp"/>
           <File Name="vorticity_void.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="VTU">
-          <File Name="vtu3D_header.cpp"/>
-          <File Name="vtu3D_pvtu.cpp"/>
+        <VirtualDirectory Name="Printer CFD">
+          <File Name="printer_CFD_parallel.cpp"/>
+          <File Name="printer_CFD.cpp"/>
         </VirtualDirectory>
-        <File Name="vtu3D.cpp"/>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.cpp"/>
           <File Name="probe_vel.cpp"/>
