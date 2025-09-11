@@ -35,29 +35,29 @@ public:
 	kepsilon_void(lexer *,fdm*,ghostcell*);
 	virtual ~kepsilon_void();
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
+	void ktimesave(lexer*, fdm*, ghostcell*) override;
+	void etimesave(lexer*, fdm*, ghostcell*) override;
 
-	virtual void isource(lexer*, fdm*);
-	virtual void jsource(lexer*, fdm*);
-	virtual void ksource(lexer*, fdm*);
+	void isource(lexer*, fdm*) override;
+	void jsource(lexer*, fdm*) override;
+	void ksource(lexer*, fdm*) override;
 
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void ini(lexer*, fdm*, ghostcell*);
-    virtual double kinval(int,int,int);
-    virtual double epsval(int,int,int);
-	virtual double ccipol_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_epsval(lexer*,ghostcell*,double,double,double);
-    virtual double ccipol_a_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_a_epsval(lexer*,ghostcell*,double,double,double);
-    virtual void kinget(int,int,int,double);
-    virtual void epsget(int,int,int,double);
-	virtual void gcupdate(lexer*, fdm*, ghostcell*);
+	void print_3D(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void ini(lexer*, fdm*, ghostcell*) override;
+    double kinval(int,int,int) override;
+    double epsval(int,int,int) override;
+	double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
+	double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_a_kinval(lexer*,ghostcell*,double,double,double) override;
+	double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
+    void kinget(int,int,int,double) override;
+    void epsget(int,int,int,double) override;
+	void gcupdate(lexer*, fdm*, ghostcell*) override;
 	
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
+    void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
 };
 
 #endif

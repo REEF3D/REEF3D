@@ -35,7 +35,7 @@ void ptf_void::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection
 	
 }
 
-void ptf_void::ini(lexer *p, fdm *a, ghostcell *pgc,ioflow *pflow, reini *preini, convection *pconvec)
+void ptf_void::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini)
 {	
 }
 

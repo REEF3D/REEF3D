@@ -46,27 +46,27 @@ class iowave : public ioflow, public wave_interface, public increment, public fl
 public:
 	iowave(lexer*, ghostcell*,patchBC_interface*);
 	virtual ~iowave();
-	virtual void gcio_update(lexer*,fdm*,ghostcell*);
-    virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*);
-	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*);
-	virtual void fsfinflow(lexer*,fdm*,ghostcell*);
-	virtual void discharge(lexer*,fdm*,ghostcell*);
-	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    virtual void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
-	virtual void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
-	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&);
-	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&);
-	virtual void iogcb_update(lexer*,fdm*,ghostcell*);
-	virtual void isource(lexer*,fdm*,ghostcell*,vrans*);
-    virtual void jsource(lexer*,fdm*,ghostcell*,vrans*);
-    virtual void ksource(lexer*,fdm*,ghostcell*,vrans*);
-    virtual void pressure_io(lexer*,fdm*,ghostcell*);
-    virtual void turbulence_io(lexer*,fdm*,ghostcell*);
-    virtual void veltimesave(lexer*,fdm*,ghostcell*,vrans*);
-    virtual void Qin(lexer*,fdm*,ghostcell*);
-	virtual void Qout(lexer*,fdm*,ghostcell*);
+	void gcio_update(lexer*,fdm*,ghostcell*) override;
+    void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
+	void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*) override;
+	void fsfinflow(lexer*,fdm*,ghostcell*) override;
+	void discharge(lexer*,fdm*,ghostcell*) override;
+	void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
+    void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
+	void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override;
+	void fsfrkin(lexer*,fdm*,ghostcell*,field&) override;
+	void fsfrkout(lexer*,fdm*,ghostcell*,field&) override;
+	void iogcb_update(lexer*,fdm*,ghostcell*) override;
+	void isource(lexer*,fdm*,ghostcell*,vrans*) override;
+    void jsource(lexer*,fdm*,ghostcell*,vrans*) override;
+    void ksource(lexer*,fdm*,ghostcell*,vrans*) override;
+    void pressure_io(lexer*,fdm*,ghostcell*) override;
+    void turbulence_io(lexer*,fdm*,ghostcell*) override;
+    void veltimesave(lexer*,fdm*,ghostcell*,vrans*) override;
+    void Qin(lexer*,fdm*,ghostcell*);
+	void Qout(lexer*,fdm*,ghostcell*);
     
-    virtual void flowfile(lexer*,fdm*,ghostcell*,turbulence*);
+    void flowfile(lexer*,fdm*,ghostcell*,turbulence*) override;
     
     void hydrograph_in_read(lexer*,fdm*,ghostcell*);
 	void hydrograph_out_read(lexer*,fdm*,ghostcell*);
@@ -79,70 +79,70 @@ public:
     void wavegen_precalc_decomp_relax(lexer*,ghostcell*);
     void wavegen_precalc_decomp_dirichlet(lexer*,ghostcell*);
     
-    virtual void u_relax(lexer*,fdm*,ghostcell*,field&);
-    virtual void v_relax(lexer*,fdm*,ghostcell*,field&);
-    virtual void w_relax(lexer*,fdm*,ghostcell*,field&);
-    virtual void p_relax(lexer*,fdm*,ghostcell*,field&);
-	virtual void phi_relax(lexer*,ghostcell*,field&);
-    virtual void vof_relax(lexer*,fdm*,ghostcell*,field&);
-    virtual void turb_relax(lexer*,fdm*,ghostcell*,field&);
-    virtual void U_relax(lexer*,ghostcell*,double*,double*);
-    virtual void V_relax(lexer*,ghostcell*,double*,double*);
-    virtual void W_relax(lexer*,ghostcell*,double*,double*);
-    virtual void P_relax(lexer*,ghostcell*,double*);
-    virtual void WL_relax(lexer*,ghostcell*,slice&,slice&);
-    virtual void fi_relax(lexer*,ghostcell*,field&,field&);
-    virtual void fivec_relax(lexer*, ghostcell*, double*);
-    virtual void fifsf_relax(lexer*, ghostcell*, slice&);
-    virtual void visc_relax(lexer*, ghostcell*, slice&);
-    virtual void eta_relax(lexer*,ghostcell*,slice&);
-    virtual void um_relax(lexer*,ghostcell*,slice&,slice&,slice&);
-    virtual void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&);
-	virtual void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&);
-    virtual void ws_relax(lexer*,ghostcell*,slice&,slice&,slice&);
-	virtual void pm_relax(lexer*,ghostcell*,slice&);
+    void u_relax(lexer*,fdm*,ghostcell*,field&) override;
+    void v_relax(lexer*,fdm*,ghostcell*,field&) override;
+    void w_relax(lexer*,fdm*,ghostcell*,field&) override;
+    void p_relax(lexer*,fdm*,ghostcell*,field&) override;
+	void phi_relax(lexer*,ghostcell*,field&) override;
+    void vof_relax(lexer*,fdm*,ghostcell*,field&) override;
+    void turb_relax(lexer*,fdm*,ghostcell*,field&) override;
+    void U_relax(lexer*,ghostcell*,double*,double*) override;
+    void V_relax(lexer*,ghostcell*,double*,double*) override;
+    void W_relax(lexer*,ghostcell*,double*,double*) override;
+    void P_relax(lexer*,ghostcell*,double*) override;
+    void WL_relax(lexer*,ghostcell*,slice&,slice&) override;
+    void fi_relax(lexer*,ghostcell*,field&,field&) override;
+    void fivec_relax(lexer*, ghostcell*, double*) override;
+    void fifsf_relax(lexer*, ghostcell*, slice&) override;
+    void visc_relax(lexer*, ghostcell*, slice&) override;
+    void eta_relax(lexer*,ghostcell*,slice&) override;
+    void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+    void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+	void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+    void ws_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+	void pm_relax(lexer*,ghostcell*,slice&) override;
     
     
     // 2D
-    virtual void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*);
-    virtual void wavegen_2D_precalc_ini(lexer*,ghostcell*);
+    void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*) override;
+    void wavegen_2D_precalc_ini(lexer*,ghostcell*) override;
     
     
-    virtual void discharge2D(lexer*,fdm2D*,ghostcell*);
-    virtual void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&);
-    virtual void Qin2D(lexer*,fdm2D*,ghostcell*);
-	virtual void Qout2D(lexer*,fdm2D*,ghostcell*);
-    virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
-	virtual void rkinflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
-	virtual void isource2D(lexer*,fdm2D*,ghostcell*);
-    virtual void jsource2D(lexer*,fdm2D*,ghostcell*);
-	virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*);
+    void discharge2D(lexer*,fdm2D*,ghostcell*) override;
+    void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&) override;
+    void Qin2D(lexer*,fdm2D*,ghostcell*) override;
+	void Qout2D(lexer*,fdm2D*,ghostcell*) override;
+    void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&) override;
+	void rkinflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&) override;
+	void isource2D(lexer*,fdm2D*,ghostcell*) override;
+    void jsource2D(lexer*,fdm2D*,ghostcell*) override;
+	void full_initialize2D(lexer*,fdm2D*,ghostcell*) override;
     
     void wavegen2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
     void active_beach2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
     void inflow2D_plain(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&);
     
 	
-    virtual double wave_fsf(lexer*,ghostcell*,double);
-    virtual double wave_xvel(lexer*,ghostcell*,double,double,double);
-    virtual double wave_yvel(lexer*,ghostcell*,double,double,double);
-    virtual double wave_zvel(lexer*,ghostcell*,double,double,double);
+    double wave_fsf(lexer*,ghostcell*,double) override;
+    double wave_xvel(lexer*,ghostcell*,double,double,double) override;
+    double wave_yvel(lexer*,ghostcell*,double,double,double) override;
+    double wave_zvel(lexer*,ghostcell*,double,double,double) override;
     
-	virtual int iozonecheck(lexer*,fdm*);
-	virtual void full_initialize(lexer*,fdm*,ghostcell*);
+	int iozonecheck(lexer*,fdm*) override;
+	void full_initialize(lexer*,fdm*,ghostcell*);
     void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     void full_initialize_ptf(lexer*,fdm*,ghostcell*);
-	virtual void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
-	virtual void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
-	virtual void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
+	void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
+	void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
+	void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
     
-    virtual void ini(lexer*,fdm*,ghostcell*);
-    virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
-    virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void ini2D(lexer*,fdm2D*,ghostcell*);
-    virtual void ini_ptf(lexer*,fdm*,ghostcell*);
+    void ini(lexer*,fdm*,ghostcell*) override;
+    void ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
+    void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*) override;
+    void ini2D(lexer*,fdm2D*,ghostcell*) override;
+    void ini_ptf(lexer*,fdm*,ghostcell*) override;
     
-    virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*);
+    void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*) override;
 
     void velini(lexer*,fdm*,ghostcell*);
     void pressure_outlet(lexer*,fdm*,ghostcell*);
@@ -155,12 +155,12 @@ public:
 	void awa_update(lexer*,fdm*,ghostcell*);
 	void gen_ini(lexer*,fdm*,ghostcell*);
     
-    virtual void waterlevel_update(lexer*,fdm*,ghostcell*);
+    void waterlevel_update(lexer*,fdm*,ghostcell*) override;
 	
 	
     // precalc
-	virtual void wavegen_precalc(lexer*,ghostcell*);
-    virtual void wavegen_precalc_ini(lexer*,ghostcell*);
+	void wavegen_precalc(lexer*,ghostcell*) override;
+    void wavegen_precalc_ini(lexer*,ghostcell*) override;
     
     
     void wavegen_precalc_relax(lexer*,ghostcell*);
@@ -174,9 +174,9 @@ public:
     
     
     // FNPF
-    virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
-    virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*) override;
+    void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&) override;
+    void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
     void fnpf_precalc_relax(lexer*,ghostcell*);
     void fnpf_precalc_relax_ini(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet(lexer*,ghostcell*);
@@ -191,17 +191,17 @@ public:
     void wavegen_precalc_decomp_dirichlet_fnpf(lexer*,ghostcell*);
     
     // NHFLOW
-    virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*);
-    virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
-    virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
-    virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*);
-    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
-    virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*);
-    virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
-    virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
-    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*);
-    virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&);
-    virtual void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*);
+    void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
+    void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
+    void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*) override;
+    void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
+    void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*) override;
+    void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*) override;
+    void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*) override;
+    void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*) override;
+    void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*) override;
+    void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&) override;
+    void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*) override;
     
     void nhflow_precalc_relax(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_precalc_relax_ini(lexer*,fdm_nhf*,ghostcell*);

@@ -41,10 +41,10 @@ public:
 	sflow_idiff(lexer*);
 	virtual ~sflow_idiff();
 
-	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
-	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double);
-    virtual void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, double);
-    virtual void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double);
+	void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override;
+	void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override;
+    void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, double) override;
+    void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double) override;
     
 private:
     int count;

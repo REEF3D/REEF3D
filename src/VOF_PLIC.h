@@ -44,9 +44,9 @@ class VOF_PLIC : public freesurface, gradient, norm_vec
 public:
 	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_PLIC();
-	virtual void update(lexer*,fdm*,ghostcell*,field&);
+	void update(lexer*,fdm*,ghostcell*,field&) override;
     
-    virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&);
+    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
     void RKcalcL(fdm*,lexer*,ghostcell*, field&, field&, field&);
     void RK_redistance(fdm*,lexer*,ghostcell*);
     void updatePhasemarkers(lexer*,fdm*,ghostcell*,field&);

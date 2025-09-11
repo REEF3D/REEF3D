@@ -43,10 +43,10 @@ public:
 
 	hypre_aij(lexer*,fdm*,ghostcell*);
 	virtual ~hypre_aij();
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
-    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
-    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
-    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
     
 	void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&);
 
@@ -69,7 +69,7 @@ public:
     void delete_solvers(lexer*,ghostcell*);
     
     // FNPF Laplace solver 
-    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
     void make_grid_F(lexer*, ghostcell*);
     void fill_matrix_F_7p(lexer*,ghostcell*, matrix_diag&,double*,double*,vec&);
 

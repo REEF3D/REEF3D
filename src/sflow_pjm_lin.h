@@ -35,15 +35,15 @@ public:
     sflow_pjm_lin(lexer*, fdm2D*,patchBC_interface*);
 	virtual ~sflow_pjm_lin();
     
-	virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double);
-	virtual void upgrad(lexer*, fdm2D*, slice&, slice&);
-	virtual void vpgrad(lexer*, fdm2D*, slice&, slice&);
-    virtual void wpgrad(lexer*, fdm2D*, slice&, slice&);
+	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override;
+	void upgrad(lexer*, fdm2D*, slice&, slice&) override;
+	void vpgrad(lexer*, fdm2D*, slice&, slice&) override;
+    void wpgrad(lexer*, fdm2D*, slice&, slice&) override;
     
-    virtual void ucorr(lexer*,fdm2D*,slice&,slice&,double);
-	virtual void vcorr(lexer*,fdm2D*,slice&,slice&,double);
-	virtual void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&);
-    virtual void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&);
+    void ucorr(lexer*,fdm2D*,slice&,slice&,double) override;
+	void vcorr(lexer*,fdm2D*,slice&,slice&,double) override;
+	void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
+    void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
     
     void rhs(lexer*, fdm2D*, slice&, slice&, slice&, double);
     
