@@ -46,8 +46,8 @@ public:
 	
     fsi_strip(lexer*,int);
 	virtual ~fsi_strip();
-	void start(lexer*,fdm*,ghostcell*,double) override;
-	void initialize(lexer*,fdm*,ghostcell*,turbulence*) override;
+	void start(lexer*,fdm*,ghostcell*,double);
+	void initialize(lexer*,fdm*,ghostcell*,turbulence*);
     
     void interpolate_vel(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void update_points();

@@ -40,8 +40,8 @@ public:
 	fnpf_sigma(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_sigma();
     
-    void sigma_ini(lexer*, fdm_fnpf*, ghostcell*, fnpf_fsf*, slice&) override;
-    void sigma_update(lexer*, fdm_fnpf*, ghostcell*, fnpf_fsf*, slice&) override;
+    void sigma_ini(lexer*, fdm_fnpf*, ghostcell*, fnpf_fsf*, slice&);
+    void sigma_update(lexer*, fdm_fnpf*, ghostcell*, fnpf_fsf*, slice&);
         
 private:
 

@@ -94,15 +94,15 @@ public:
     void fill_matrix9(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix9_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
 
-    void fillbackvec1(lexer*,field&,int) override;
-    void fillbackvec2(lexer*,field&,int) override;
-    void fillbackvec3(lexer*,field&,int) override;
-    void fillbackvec4(lexer*,field&,int) override;
-    void fillbackvec4V(lexer*,double*,int) override;
+    void fillbackvec1(lexer*,field&,int);
+    void fillbackvec2(lexer*,field&,int);
+    void fillbackvec3(lexer*,field&,int);
+    void fillbackvec4(lexer*,field&,int);
+    void fillbackvec4V(lexer*,double*,int);
     
-    void fillbackvec7(lexer*,double*,int) override;
-    void fillbackvec8(lexer*,double*,int) override;
-    void fillbackvec9(lexer*,double*,int) override;
+    void fillbackvec7(lexer*,double*,int);
+    void fillbackvec8(lexer*,double*,int);
+    void fillbackvec9(lexer*,double*,int);
 	
 	void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);

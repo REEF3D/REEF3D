@@ -39,7 +39,7 @@ class solid : public increment
 public:
 	solid(lexer*, fdm*, ghostcell*);
 	virtual ~solid();
-	void start(lexer*, fdm*, ghostcell*, ioflow*, convection*, reinitopo*) override;
+	void start(lexer*, fdm*, ghostcell*, ioflow*, convection*, reinitopo*);
 
 private:
 

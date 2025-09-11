@@ -38,7 +38,7 @@ class nhflow_bcmom : public roughness
 public:
 	nhflow_bcmom(lexer*);
 	virtual ~nhflow_bcmom();
-	void nhflow_bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int) override;
+	void nhflow_bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
 	void roughness_u(lexer*, fdm_nhf*, double*, double*, slice&);
 	void roughness_v(lexer*, fdm_nhf*, double*, double*, slice&);
 	void roughness_w(lexer*, fdm_nhf*, double*, double*, slice&);

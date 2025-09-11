@@ -41,8 +41,8 @@ class fnpf_force_ale :  public increment
 public:
 	fnpf_force_ale(lexer*,fdm_fnpf*,ghostcell*,int);
 	virtual ~fnpf_force_ale();
-	void start(lexer*,fdm_fnpf*,ghostcell*) override;
-    void ini(lexer*,fdm_fnpf*,ghostcell*) override;
+	void start(lexer*,fdm_fnpf*,ghostcell*);
+    void ini(lexer*,fdm_fnpf*,ghostcell*);
 
 private:	
 	

@@ -41,8 +41,8 @@ class force :  public increment
 public:
 	force(lexer*,fdm*,ghostcell*,int);
 	virtual ~force();
-	void start(lexer*,fdm*,ghostcell*) override;
-    void ini(lexer*,fdm*,ghostcell*) override;
+	void start(lexer*,fdm*,ghostcell*);
+    void ini(lexer*,fdm*,ghostcell*);
 
 private:
 	void triangulation(lexer*, fdm*, ghostcell*, field&);

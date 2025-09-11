@@ -40,8 +40,8 @@ class fnpf_runup :  public increment
 public:
 	fnpf_runup(lexer*,fdm_fnpf*,ghostcell*,int);
 	virtual ~fnpf_runup();
-	void start(lexer*,fdm_fnpf*,ghostcell*) override;
-    void ini(lexer*,fdm_fnpf*,ghostcell*) override;
+	void start(lexer*,fdm_fnpf*,ghostcell*);
+    void ini(lexer*,fdm_fnpf*,ghostcell*);
 
 private:	
 	

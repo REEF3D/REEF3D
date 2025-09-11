@@ -42,9 +42,9 @@ public:
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
-	double ddx(lexer*, fdm*, field&) override;
-	double ddy(lexer*, fdm*, field&) override;
-	double ddz(lexer*, fdm*, field&) override;
+	double ddx(lexer*, fdm*, field&);
+	double ddy(lexer*, fdm*, field&);
+	double ddz(lexer*, fdm*, field&);
 	void iqmin(field&, double, double*);
 	void jqmin(field&, double, double*);
 	void kqmin(field&, double, double*);

@@ -37,8 +37,8 @@ public:
 	EARSM_kw_IM1(lexer *,fdm*,ghostcell*);
 	virtual ~EARSM_kw_IM1();
 	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
-	void aniso(fdm*) override;
-	double tau(fdm*) override;
+	void aniso(fdm*);
+	double tau(fdm*);
     
 private:
 	int gcval_earsm;

@@ -38,11 +38,11 @@ public:
 	void isource(lexer*,fdm*) override;
 	void jsource(lexer*,fdm*) override;
 	void ksource(lexer*,fdm*) override;
-	void kinsource(lexer*,fdm*,vrans*) override;
-	void epssource(lexer*,fdm*,vrans*,field&) override;
-	void epsfsf(lexer*,fdm*,ghostcell*,ioflow*) override;
-	void eddyvisc(lexer*,fdm*,ghostcell*,vrans*) override;
-	void clearfield(lexer*,fdm*,field&) override;
+	void kinsource(lexer*,fdm*,vrans*);
+	void epssource(lexer*,fdm*,vrans*,field&);
+	void epsfsf(lexer*,fdm*,ghostcell*,ioflow*);
+	void eddyvisc(lexer*,fdm*,ghostcell*,vrans*);
+	void clearfield(lexer*,fdm*,field&);
 
 	int count,q;
 	double starttime;

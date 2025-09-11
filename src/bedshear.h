@@ -42,14 +42,17 @@ public:
     bedshear(lexer*,turbulence*);
     virtual ~bedshear();
 
-	void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*) override;
-	void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*) override;
+	void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
+	void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);
     
-    void taubed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*) override;
-    void taucritbed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*) override;
+    void taubed(lexer*, fdm*, ghostcell*, double&);
+    void taucritbed(lexer*, fdm*, ghostcell*, double&);
     
-    void taubed(lexer*, fdm2D*,ghostcell*,sediment_fdm*) override;
-    void taucritbed(lexer*, fdm2D*,ghostcell*,sediment_fdm*) override;
+    void taubed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);
+    void taucritbed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);
+    
+    void taubed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);
+    void taucritbed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);
 
 	const double ks,kappa;
     

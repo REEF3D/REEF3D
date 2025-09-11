@@ -39,8 +39,8 @@ public:
 	nhflow_vtp_bed(lexer*,fdm_nhf*,ghostcell*);
 	virtual ~nhflow_vtp_bed();
 	
-    void start(lexer*,fdm_nhf*,ghostcell*,sediment*) override;
-    void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*) override;
+    void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
 	
 private:
 	

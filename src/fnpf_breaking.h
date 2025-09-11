@@ -42,7 +42,7 @@ public:
 	fnpf_breaking(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_breaking();
     
-    void breaking_algorithm(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override;
+    void breaking_algorithm(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
 
     
     

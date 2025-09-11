@@ -35,10 +35,10 @@ public:
 	virtual ~wave_lib_Stokes_5th();
     
     double wave_horzvel(lexer*,double,double,double);
-    double wave_horzvel_space_sin(lexer*,double,double,double,int) override;
-    double wave_horzvel_space_cos(lexer*,double,double,double,int) override;
-    double wave_horzvel_time_sin(lexer*,int) override;
-    double wave_horzvel_time_cos(lexer*,int) override;
+    double wave_horzvel_space_sin(lexer*,double,double,double,int);
+    double wave_horzvel_space_cos(lexer*,double,double,double,int);
+    double wave_horzvel_time_sin(lexer*,int);
+    double wave_horzvel_time_cos(lexer*,int);
     
     double wave_u(lexer*,double,double,double) override;
     double wave_u_space_sin(lexer*,double,double,double,int) override;
@@ -65,16 +65,16 @@ public:
     double wave_eta_time_cos(lexer*,int) override;
     
     double wave_fi(lexer*,double,double,double) override;
-    void wave_fi_precalc_xy_ini(lexer*,int) override;
-    void wave_fi_precalc_xy(lexer*,double,double,int) override;
-    void wave_fi_precalc_n(lexer*) override;
+    void wave_fi_precalc_xy_ini(lexer*,int);
+    void wave_fi_precalc_xy(lexer*,double,double,int);
+    void wave_fi_precalc_n(lexer*);
     double wave_fi_space_sin(lexer*,double,double,double,int) override;
     double wave_fi_space_cos(lexer*,double,double,double,int) override;
     double wave_fi_time_sin(lexer*,int) override;
     double wave_fi_time_cos(lexer*,int) override;
     
     
-    void wave_parameters(lexer*,ghostcell*) override;
+    void wave_parameters(lexer*,ghostcell*);
     void parameters(lexer*,ghostcell*) override;
     void wave_prestep(lexer*,ghostcell*) override;
     

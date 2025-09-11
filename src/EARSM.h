@@ -34,13 +34,13 @@ class EARSM : private strain
 public:
 	EARSM(lexer *,fdm*);
 	virtual ~EARSM();
-	void sq(lexer*,fdm*) override;
-	void invar() override;
-	void beta(fdm*) override;
-	void terms() override;
-	void isource(lexer*, fdm*) override;
-	void jsource(lexer*, fdm*) override;
-	void ksource(lexer*, fdm*) override;
+	void sq(lexer*,fdm*);
+	void invar();
+	void beta(fdm*);
+	void terms();
+	void isource(lexer*, fdm*);
+	void jsource(lexer*, fdm*);
+	void ksource(lexer*, fdm*);
 	double tk;
 
     field4 rs11, rs22, rs33, rs12, rs13, rs23;

@@ -101,8 +101,8 @@ public:
     
     // ---
 
-    void ini_parameters(lexer*, ghostcell*) override;
-    void ini_guard(lexer*, ghostcell*) override;
+    void ini_parameters(lexer*, ghostcell*);
+    void ini_guard(lexer*, ghostcell*);
 	
     void relax(lexer*,ghostcell*) override;
 	double bedshear_point(lexer*,ghostcell*) override;

@@ -43,7 +43,7 @@ public:
 	nhflow_poisson (lexer *);
 	virtual ~nhflow_poisson();
 
-	void start(lexer *,fdm_nhf*,double*) override;
+	void start(lexer *,fdm_nhf*,double*);
 
 private:
 

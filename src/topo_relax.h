@@ -39,8 +39,8 @@ public:
     topo_relax(lexer*);
     virtual ~topo_relax();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
-    double rf(lexer*,ghostcell*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*);
+    double rf(lexer*,ghostcell*);
 
 private:
 	double distcalc(lexer*, double, double, double);

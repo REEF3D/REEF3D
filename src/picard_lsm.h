@@ -36,7 +36,7 @@ public:
     virtual ~picard_lsm();
 
     void volcalc(lexer*, fdm*, ghostcell*, field&) override;
-    void volcalc2(lexer*, fdm*, ghostcell*, field&) override;
+    void volcalc2(lexer*, fdm*, ghostcell*, field&);
     void correct_ls(lexer*, fdm*, ghostcell*, field&) override;
 
 private:

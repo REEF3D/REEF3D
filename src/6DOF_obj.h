@@ -60,7 +60,7 @@ public:
     sixdof_obj(lexer*, ghostcell*, int);
 	virtual ~sixdof_obj();
 	
-	void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int) override;
+	void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int);
     
 	void initialize_cfd(lexer*,fdm*,ghostcell*);
     void initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);
@@ -80,7 +80,7 @@ public:
     void solve_eqmotion_oneway_onestep(lexer*,ghostcell*);
     
     // NHFLOW
-    void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int) override;
+    void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int);
     void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     
