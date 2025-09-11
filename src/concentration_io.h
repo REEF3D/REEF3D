@@ -45,7 +45,7 @@ public:
     virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration);
     virtual double val(int,int,int);
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_ParaView_parallel(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void name_ParaView(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
     virtual void offset_ParaView(lexer*, int*, int &);
 

@@ -84,7 +84,7 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void vorticity_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void vorticity_f::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"vorticity x\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"vorticity y\"/>"<<endl;

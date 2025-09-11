@@ -312,7 +312,7 @@ void nhflow_rans_io::offset_vtp(lexer *p, int *offset, int &n)
 	++n;
 }
 
-void nhflow_rans_io::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_rans_io::name_ParaView_parallel(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
     
