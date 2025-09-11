@@ -56,9 +56,9 @@ public:
     virtual ~printer_fnpf() = default;
     void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override;
     void print_stop(lexer*,fdm_fnpf*,ghostcell*) override;
-    virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
 
 private:
+    void print(lexer*,fdm_fnpf*,ghostcell*);
     void parallel(lexer*,ghostcell*);
 
     vtk3D *outputFormat;
