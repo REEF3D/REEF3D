@@ -305,9 +305,7 @@
             <File Name="nhflow_print_wsf.h"/>
           </VirtualDirectory>
           <File Name="nhflow_printer.h"/>
-          <VirtualDirectory Name="VTU">
-            <File Name="nhflow_vtu3D.h"/>
-          </VirtualDirectory>
+          <File Name="printer_nhflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Geometry">
@@ -1520,10 +1518,9 @@
             <File Name="nhflow_print_wsf_theory.cpp"/>
             <File Name="nhflow_print_wsf.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="VTU">
-            <File Name="nhflow_vtu3D.cpp"/>
-            <File Name="nhflow_vtu3D_pvtu.cpp"/>
-            <File Name="nhflow_vtu3D_header.cpp"/>
+          <VirtualDirectory Name="Printer">
+            <File Name="printer_nhflow.cpp"/>
+            <File Name="printer_nhflow_parallel.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">

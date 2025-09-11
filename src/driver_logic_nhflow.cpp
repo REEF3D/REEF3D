@@ -175,8 +175,7 @@ void driver::logic_nhflow()
 	if(p->P150>0)
 	pdata = new expdata_f(p,a,pgc);
     
-    if(p->P10>0)
-    pnhfprint = new nhflow_vtu3D(p,d,pgc);
+    pnhfprint = new printer_nhflow(p,d,pgc);
     
 //VRANS
     if(p->B269==0)
