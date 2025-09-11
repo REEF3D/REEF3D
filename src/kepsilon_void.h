@@ -55,9 +55,9 @@ public:
     virtual void epsget(int,int,int,double);
 	virtual void gcupdate(lexer*, fdm*, ghostcell*);
 	
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_ParaView_parallel(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void name_ParaView(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_ParaView(lexer*, int*, int &);
 };
 
 #endif

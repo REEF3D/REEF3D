@@ -302,7 +302,7 @@ void nhflow_rans_io::name_vtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &re
     ++n;
 }
 
-void nhflow_rans_io::offset_vtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_rans_io::offset_vtp(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
@@ -312,7 +312,7 @@ void nhflow_rans_io::offset_vtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &
 	++n;
 }
 
-void nhflow_rans_io::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_rans_io::name_ParaView_parallel(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
     
@@ -324,7 +324,7 @@ void nhflow_rans_io::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &r
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>"<<endl;
 }
 
-void nhflow_rans_io::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_rans_io::name_ParaView(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"eddyv\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
@@ -337,7 +337,7 @@ void nhflow_rans_io::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &re
     ++n;
 }
 
-void nhflow_rans_io::offset_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_rans_io::offset_ParaView(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

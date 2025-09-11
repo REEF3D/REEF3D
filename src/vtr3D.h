@@ -20,32 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#ifndef VTU3D_H_
-#define VTU3D_H_
+#ifndef VTR3D_H_
+#define VTR3D_H_
 
 #include "vtk3D.h"
 #include "increment.h"
 
-class vtu3D : public vtk3D , increment
+class vtr3D : public vtk3D , increment
 {
     public:
         void folder(const char*) override;
         void fileName(char*, const unsigned int, const char*, const int, const int) override;
         void parallelFileName(char*, const unsigned int, const char*, const int) override;
+        void extent(lexer* ,ghostcell*) override;
 
         void offset(lexer*, int*, int&) override;
-        
         void beginning(lexer*, std::ofstream&) override;
         void beginningParallel(lexer*, std::ofstream&) override;
         void ending(std::ofstream&, const int*, int&) override;
         void endingParallel(std::ofstream&, const char*, const int, const int) override;
 
         void structureWrite(lexer*, fdm*, std::ofstream&) override;
-        void structureWrite(lexer*, fdm_fnpf*, std::ofstream&) override;
-        void structureWrite(lexer*, fdm_nhf*, std::ofstream&) override;
     private:
-        void structureWriteEnd(lexer*, std::ofstream&);
+        int *piextent;
         char pname[50];
+        char pextent[200];
 };
 
 #endif
