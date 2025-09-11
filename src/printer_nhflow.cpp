@@ -384,7 +384,7 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
         ++n;
 
         // k and eps
-        pnhfturb->offset_vtu(p,offset,n);
+        pnhfturb->offset_ParaView(p,offset,n);
 
         // omega_sig
         if(p->P74==1)

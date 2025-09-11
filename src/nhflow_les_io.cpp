@@ -137,7 +137,7 @@ void nhflow_les_io::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &res
     ++n;
 }
 
-void nhflow_les_io::offset_vtu(lexer *p, int *offset, int &n)
+void nhflow_les_io::offset_ParaView(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
