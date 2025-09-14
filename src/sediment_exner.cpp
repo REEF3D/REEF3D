@@ -112,7 +112,7 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
     
     SEDSLICELOOP
-    s->dh(i,j)=s->vz(i,j);
+    s->dh(i,j)=p->dtsed*s->vz(i,j);
 
 	pgc->gcsl_start4(p,s->bedzh,1);
 }
