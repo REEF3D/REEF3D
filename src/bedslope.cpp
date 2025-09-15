@@ -140,8 +140,21 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     s->gamma(i,j)=0.0;
 
     s->gamma(i,j) = atan(sqrt(bx0*bx0 + by0*by0));// * s->teta(i,j)/(fabs(s->teta(i,j))>1.0e-10?fabs(s->teta(i,j)):1.0e10);
+    
+    // -----
+    double u0,v0,uvel,vvel,uabs,fx,fy;
+    u0=0.5*(s->P(i,j)+s->P(i-1,j));
+    v0=0.5*(s->Q(i,j)+s->Q(i,j-1));
+    
+    uvel = (cos(s->beta(i,j))*u0-sin(s->beta(i,j))*v0);
+	vvel = (sin(s->beta(i,j))*u0+cos(s->beta(i,j))*v0);
+    
+    uabs=sqrt(uvel*uvel + vvel*vvel);
+    
+    fx = fabs(uvel)/(fabs(uabs)>1.0e-10?uabs:1.0e10);
+    fy = fabs(vvel)/(fabs(uabs)>1.0e-10?uabs:1.0e10);
 
-    s->phi(i,j) = midphi + MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
+    s->phi(i,j) = midphi + fx*MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
     }
 }
 
