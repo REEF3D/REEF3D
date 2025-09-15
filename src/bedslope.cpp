@@ -154,7 +154,7 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     fx = fabs(uvel)/(fabs(uabs)>1.0e-10?uabs:1.0e10);
     fy = fabs(vvel)/(fabs(uabs)>1.0e-10?uabs:1.0e10);
 
-    s->phi(i,j) = midphi + fx*MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
+    s->phi(i,j) = midphi + MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
     }
 }
 
