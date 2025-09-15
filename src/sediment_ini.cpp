@@ -32,6 +32,9 @@ Author: Hans Bihs
 void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
 	double h,h1;
+    
+    SLICELOOP4
+    s->reduce(i,j) = 1.0;
 
 	ILOOP
     JLOOP
@@ -63,6 +66,9 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    SLICELOOP4
+    s->reduce(i,j) = 1.0;
+    
     SLICELOOP4
     {
     s->ks(i,j) = p->S21*p->S20;
