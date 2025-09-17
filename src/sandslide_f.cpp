@@ -66,7 +66,6 @@ void sandslide_f::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         
         // slide loop
         SEDSLICELOOP
-        if(s->dfs(i,j)>0)
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
             slide(p,pgc,s);

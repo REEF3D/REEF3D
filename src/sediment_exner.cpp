@@ -107,9 +107,7 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 	
 	SEDSLICELOOP
     WETDRY
-    if(s->dfs(i,j)>0)
     s->bedzh(i,j) += p->dtsed*s->vz(i,j);
-
     
     SEDSLICELOOP
     s->dh(i,j)=p->dtsed*s->vz(i,j);

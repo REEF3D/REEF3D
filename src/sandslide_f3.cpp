@@ -70,7 +70,6 @@ void sandslide_f3::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         
         // slide loop
         SLICELOOP4
-        if(s->dfs(i,j)>0)
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
             slide(p,pgc,s);
@@ -94,10 +93,10 @@ void sandslide_f3::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
 void sandslide_f3::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {   
-        
         double dzp=0.0;
         int Iup=0;
         int id[8];
+        
 		k = s->bedk(i,j);
         
         

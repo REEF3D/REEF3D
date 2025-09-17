@@ -60,5 +60,5 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     maxdh=p->dtsed*maxvz;
 	
 	if(p->mpirank==0)
-	cout<<p->mpirank<<" maxvz: "<<setprecision(4)<<maxvz<<" maxdh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
+	cout<<p->mpirank<<" max_vz: "<<setprecision(4)<<maxvz<<" max_dh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
 }
