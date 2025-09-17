@@ -47,9 +47,11 @@ void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
     }
     
     // assign gcsldfeta entries
-    k=p->knoz-1;
+
     SLICELOOP4
     {
+    k = s->bedk(i,j);
+    
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
     
@@ -64,9 +66,10 @@ void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     s->active(i,j)=1;
     
     // assign gcsldfeta entries
-    k=p->knoz-1;
     SLICELOOP4
     {
+    k = s->bedk(i,j);
+    
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
     

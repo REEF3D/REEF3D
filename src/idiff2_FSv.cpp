@@ -31,6 +31,7 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 	starttime=pgc->timer();
 	
 	double visc_ddx_p,visc_ddx_m,visc_ddz_p,visc_ddz_m;
+    int n;
     
     VLOOP
     diff(i,j,k) = v_in(i,j,k);
@@ -87,7 +88,7 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 	 a->M.b[n] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
 	 a->M.t[n] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
      
-     if(p->DF2[IJK]<0)
+     if(p->DF2[IJK]<0 && p->D22==1)
      {
         a->M.p[n]  =  1.0;
 
@@ -162,40 +163,40 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     n=0;
 	VLOOP
 	{
-        if(p->DF2[IJK]>0)
+        //if(p->DF2[IJK]>0)
         {
             
-		if(p->flag2[Im1JK]<0 || p->DF2[Im1JK]<0)
+		if(p->flag2[Im1JK]<0)// || p->DF2[Im1JK]<0)
 		{
 		a->rhsvec.V[n] -= a->M.s[n]*v(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag2[Ip1JK]<0 || p->DF2[Ip1JK]<0)
+		if(p->flag2[Ip1JK]<0)// || p->DF2[Ip1JK]<0)
 		{
 		a->rhsvec.V[n] -= a->M.n[n]*v(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->flag2[IJm1K]<0 || p->DF2[IJm1K]<0)
+		if(p->flag2[IJm1K]<0)// || p->DF2[IJm1K]<0)
 		{
 		a->rhsvec.V[n] -= a->M.e[n]*v(i,j-1,k);
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->flag2[IJp1K]<0 || p->DF2[IJp1K]<0)
+		if(p->flag2[IJp1K]<0)// || p->DF2[IJp1K]<0)
 		{
 		a->rhsvec.V[n] -= a->M.w[n]*v(i,j+1,k);
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->flag2[IJKm1]<0 || p->DF2[IJKm1]<0)
+		if(p->flag2[IJKm1]<0)// || p->DF2[IJKm1]<0)
 		{
 		a->rhsvec.V[n] -= a->M.b[n]*v(i,j,k-1);
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag2[IJKp1]<0 || p->DF2[IJKp1]<0)
+		if(p->flag2[IJKp1]<0)// || p->DF2[IJKp1]<0)
 		{
 		a->rhsvec.V[n] -= a->M.t[n]*v(i,j,k+1);
 		a->M.t[n] = 0.0;
@@ -218,6 +219,5 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
 	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
 }
-
 
 

@@ -35,6 +35,9 @@ void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
     if(a->solid(i,j,k)<0.0)
     p->DF[IJK]=-1;
     
+    
+    if(p->D22==1)
+    {
     if(p->toporead>0)
     LOOP
     if(a->topo(i,j,k)<0.0)
@@ -71,4 +74,6 @@ void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
     gcparaxintV(p, p->DF1, 1);
     gcparaxintV(p, p->DF2, 1);
     gcparaxintV(p, p->DF3, 1);
+    
+    }
 }
