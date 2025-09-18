@@ -33,7 +33,6 @@ void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
     SLICELOOP4
     s->active(i,j)=0;
     
-    // #define ALOOP ILOOP JLOOP KLOOP PSOLIDCHECK
     ILOOP
     JLOOP
     {
@@ -47,8 +46,7 @@ void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
     }
     
     // assign gcsldfeta entries
-
-    SLICELOOP4
+    SLICEBASELOOP
     {
     k = s->bedk(i,j);
     
@@ -58,6 +56,9 @@ void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
+    
+    ALOOP
+    a->test(i,j,k) = p->DFBED[IJ];
 }
 
 void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
