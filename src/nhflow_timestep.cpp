@@ -121,7 +121,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==1 )
     cv = MIN(cv, dx/(p->vmax + sqrt(9.81*depthmax)));
     
-    cw = MIN(cw, 1.0/((fabs(p->wmax)/dz)));
+    cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     
     //co = MIN(co, 1.0/((fabs(p->omegamax)/dz)));
     }

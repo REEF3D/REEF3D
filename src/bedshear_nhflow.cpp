@@ -35,6 +35,13 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     double density=p->W1;
     double U,V,W;
     
+    SLICEBASELOOP
+    {
+    s->tau_eff(i,j) = 0.0;
+    s->tau_crit(i,j) = 0.0;
+    s->MOB(i,j) = 0.0;
+    }
+    
     k=0;
     SEDSLICELOOP
     {
