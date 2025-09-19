@@ -18,7 +18,7 @@ DEPENDENCIES := $(OBJECTS:.o=.d)
 all: CXXFLAGS += -O3 -w
 all: build
 
-release: CXXFLAGS += -O3 -DNDEBUG -march=native -flto -w
+release: CXXFLAGS += -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -flto -w
 release: LDFLAGS += -flto
 release: build
 
