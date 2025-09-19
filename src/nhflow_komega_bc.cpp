@@ -112,9 +112,9 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
                 
                 uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
-                tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+                //tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
                 
-                //tau = pow(p->cmu,0.25)*pow(fabs(KIN[IJK]),0.5)*(u_abs/(uplus>0.0?uplus:(1.0e20)));
+                tau = pow(p->cmu,0.25)*pow(fabs(KIN[IJK]),0.5)*(u_abs/(uplus>0.0?uplus:(1.0e20)));
             
             d->M.p[count] += (pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),0.5)*uplus)/dist;
             d->rhsvec.V[count] += (tau*u_abs)/dist;
