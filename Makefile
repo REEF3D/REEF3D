@@ -13,10 +13,14 @@ SRC          := $(wildcard src/*.cpp)
 OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
-.PHONY: all build clean debug dev info
+.PHONY: all build clean debug dev info release
 
 all: CXXFLAGS += -O3 -w
 all: build
+
+release: CXXFLAGS += -O3 -DNDEBUG -march=native -flto -w
+release: LDFLAGS += -flto
+release: build
 
 dev: CXXFLAGS += -O3 -Wall -pedantic
 dev: build
