@@ -114,7 +114,7 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     LOOP
-    d->test2D(i,j) = p->DFBED[IJ];
+    d->test2D(i,j) = s->active(i,j);
 }
 
 void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)

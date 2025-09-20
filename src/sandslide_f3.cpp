@@ -52,7 +52,7 @@ sandslide_f3::~sandslide_f3()
 void sandslide_f3::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     SEDSLICELOOP
-    s->slideflag(i,j)=0.0;
+    s->slide_fh(i,j)=0.0;
     
     if(p->mpirank==0)
     cout<<"sandslide_f3"<<endl;
@@ -274,6 +274,6 @@ void sandslide_f3::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         s->bedzh(i+1,j+1) += dzp + s->bedzh(i,j) - s->bedzh(i+1,j+1) + tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]) -tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
         
         s->bedzh(i,j) += dzp;
-        s->slideflag(i,j) += dzp;
+        s->slide_fh(i,j) += dzp;
         
 }

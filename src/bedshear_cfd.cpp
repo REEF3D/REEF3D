@@ -107,68 +107,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
     tau=MAX(density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0), density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3);
     }
-
-    /*
-	if(p->S16==2)
-    {
-    double E,B,dB,ustar,y_plus,visc,ks_plus,tau0;
-    
-    visc=p->W2;
-    
-    zval = s->bedzh(i,j) + 1.6*p->DZN[KP];
-    
-        if(p->S33==1)
-        {
-        uvel=p->ccipol1(a->u,xip,yip,zval);
-        vvel=p->ccipol2(a->v,xip,yip,zval);
-        wvel=p->ccipol3(a->w,xip,yip,zval);
-        }
-        
-        if(p->S33==2)
-        {
-        uvel=p->ccipol1_a(a->u,xip,yip,zval);
-        vvel=p->ccipol2_a(a->v,xip,yip,zval);
-        wvel=p->ccipol3_a(a->w,xip,yip,zval);
-        }
-        
-    // predictor    
-    u_abs = sqrt(uvel*uvel + vvel*vvel);
-    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
-    tau0=tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
-    ustar=sqrt(tau/density);
-    
-    
-        // corrector
-        for(int qn=0; qn<5;++qn)
-        {
-        y_plus = dist*ustar/visc;
-        
-        ks_plus = ks*ustar/visc;
-        
-        B = 5.2;
-        
-        if(ks_plus<2.25)
-        dB = 0.0;
-        
-        if(ks_plus>=2.25 && ks_plus<90.0)
-        dB = B - 8.5 + (1.0/kappa)*log(ks_plus)*sin(0.4258*(log(ks_plus)-0.811));
-        
-        if(ks_plus>=90.0)
-        dB = B - 8.5 + (1.0/kappa)*log(ks_plus);
-
-        E = exp(kappa*(B-dB));
-
-        if(y_plus>11.53)
-        u_plus = (1.0/kappa)*log(MAX(E*y_plus,1.0));
-        
-        if(y_plus<=11.53)
-        u_plus = u_abs/(y_plus>1.0e-10?y_plus:1.0e20);
-        
-        tau=MIN(density*(u_abs*u_abs)/pow((u_plus>1.0e-4?u_plus:1.0e20),2.0), tau0*3.5);
-
-        ustar=sqrt(tau/density);
-        }
-    }*/
     
     if(p->S16==3)
     {

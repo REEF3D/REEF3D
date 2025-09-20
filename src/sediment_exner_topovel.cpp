@@ -153,7 +153,53 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
         s->vz(i,j) =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
 	}
     
+    
+    //filter(p,pgc,s->vz,1,3);
+    
+    SEDSLICELOOP
+    vztemp(i,j) = s->vz(i,j);
+    
+    pgc->gcsl_start4(p,vztemp,1);
+    
+    SEDSLICELOOP
+    s->vz(i,j) = 0.5*vztemp(i,j) + 0.125*(vztemp(i-1,j)+vztemp(i+1,j)+vztemp(i,j-1)+vztemp(i,j+1));
+    
     pgc->gcsl_start4(p,s->vz,1);
 }
 
 
+void sediment_exner::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
+{
+    slice4 h(p),dh(p); 
+	
+	for(int qn=0;qn<outer_iter;++qn)
+	{
+		SLICELOOP4
+        if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+		h(i,j) = f(i,j);
+		
+		pgc->gcsl_start4(p,h,1);
+	
+        // predictor
+		SLICELOOP4
+        if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+		f(i,j) = 0.5*h(i,j) + 0.125*(h(i-1,j) + h(i+1,j) + h(i,j-1) + h(i,j+1));
+		
+        // corrector
+		for(int qqn=0;qqn<inner_iter;++qqn)
+		{
+            SLICELOOP4
+            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+            dh(i,j) = h(i,j) - f(i,j);
+            
+            
+            SLICELOOP4
+            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+            dh(i,j) = 0.5*dh(i,j) + 0.125*(dh(i-1,j) + dh(i+1,j) + dh(i,j-1) + dh(i,j+1));
+            
+            SLICELOOP4
+            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+            f(i,j) += dh(i,j);
+		}
+    }
+}

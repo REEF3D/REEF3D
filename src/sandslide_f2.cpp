@@ -51,7 +51,7 @@ sandslide_f2::~sandslide_f2()
 void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     SEDSLICELOOP
-    s->slideflag(i,j)=0.0;
+    s->slide_fh(i,j)=0.0;
     
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
@@ -75,7 +75,7 @@ void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         // fill back
         SEDSLICELOOP
         {
-        s->slideflag(i,j)+=fh(i,j);
+        s->slide_fh(i,j)+=fh(i,j);
         s->bedzh(i,j)+=fh(i,j);
         }
 

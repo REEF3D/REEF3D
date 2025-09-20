@@ -54,7 +54,7 @@ public:
     
     
     sliceint4 bedk;
-    slice4 slideflag;
+    slice4 slide_fh;
     
     slice4 qb,qbe;
     slice4 cbe,cb,cbn,conc;

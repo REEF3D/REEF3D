@@ -51,6 +51,8 @@ private:
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
     
+    void filter(lexer*,ghostcell*,slice&,int,int);
+    
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;
@@ -58,11 +60,12 @@ private:
     vec2D xvec,rhsvec;
 
 	matrix2D M;
-    slice4 qbx,qby;
+    slice4 qbx,qby,vztemp;
     
 	int gcval_topo;
 	double starttime;
-    double maxdh,maxvz;
+    double maxdh,maxvz,maxdhnet,maxvznet;
+    double dtsed0;
 	double vz;
 	double vzmax;
     double rhosed, rhowat, g, d50;
