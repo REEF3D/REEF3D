@@ -53,8 +53,26 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
 
     
     pgc->gcsl_start4(p,c->WL,50);
-      
     
+    
+    //----
+    SLICELOOP4
+    {
+          if(c->WL(i,j) >= c->wd_criterion)
+          p->wet[IJ]=1;
+              
+          if(c->WL(i,j) < c->wd_criterion)
+          {
+           p->wet[IJ]=0;
+          }
+    }
+    
+    
+    
+    
+    //----
+      
+    /*
     SLICELOOP4
     {
     p->wet_n[IJ] = p->wet[IJ];
@@ -89,7 +107,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     
     SLICELOOP4
     if(wetcoast(i,j)==1)
-    p->wet[IJ] = temp[IJ];
+    p->wet[IJ] = temp[IJ];*/
     
 
     pgc->gcsl_start4Vint(p,p->wet,50);
