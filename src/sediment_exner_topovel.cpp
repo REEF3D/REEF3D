@@ -154,7 +154,7 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
 	}
     
     
-    //filter(p,pgc,s->vz,1,3);
+    
     
     SEDSLICELOOP
     vztemp(i,j) = s->vz(i,j);
@@ -163,6 +163,8 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     SEDSLICELOOP
     s->vz(i,j) = 0.5*vztemp(i,j) + 0.125*(vztemp(i-1,j)+vztemp(i+1,j)+vztemp(i,j-1)+vztemp(i,j+1));
+    
+    filter(p,pgc,s->vz,3,5);
     
     pgc->gcsl_start4(p,s->vz,1);
 }
