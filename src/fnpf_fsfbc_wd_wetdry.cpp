@@ -193,7 +193,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     {
     c->test2D(i,j) = double(p->deep[IJ]);
     
-    cout<<p->deep[IJ]<<endl;
+    //cout<<p->deep[IJ]<<endl;
     }
     
 }
