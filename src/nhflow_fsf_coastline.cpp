@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_coastline.h"
-/*
+
 void nhflow_fsf_f::coastline_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f) 
 {
     double fac=1.0;
@@ -36,24 +36,24 @@ void nhflow_fsf_f::coastline_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     if(p->I30==1 && p->count==0)
     fac=20.0;
     
-        if(c->coastline(i,j)>=0.0)
+        if(d->coastline(i,j)>=0.0)
         {
-            db = c->coastline(i,j);
+            db = d->coastline(i,j);
             
             if(db<fac*dist3)
             {
             f(i,j) = rb3(p,db)*f(i,j);
             
-            c->Bx(i,j) = rb3(p,db)*c->Bx(i,j);
-            c->By(i,j) = rb3(p,db)*c->By(i,j);
+            d->Bx(i,j) = rb3(p,db)*d->Bx(i,j);
+            d->By(i,j) = rb3(p,db)*d->By(i,j);
             }
         }
         
-        if(c->coastline(i,j)<0.0 && p->A343==1)
+        if(d->coastline(i,j)<0.0 && p->A343==1)
         f(i,j)=0.0;
         
         if(p->A343>=1 && p->wet[IJ]==1)
-        f(i,j) = MAX(f(i,j), c->bed(i,j) - p->wd);
+        f(i,j) = MAX(f(i,j), d->bed(i,j) - p->wd);
     }
 }
 
@@ -68,9 +68,9 @@ void nhflow_fsf_f::coastline_fi(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     if(p->I30==1 && p->count==0)
     fac=20.0;
     
-        if(c->coastline(i,j)>=0.0)
+        if(d->coastline(i,j)>=0.0)
         {
-            db = c->coastline(i,j);
+            db = d->coastline(i,j);
             
             if(db<fac*dist4)
             {
@@ -79,7 +79,7 @@ void nhflow_fsf_f::coastline_fi(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
             }
         }
         
-        if(c->coastline(i,j)<0.0 && p->A343==1)
+        if(d->coastline(i,j)<0.0 && p->A343==1)
         f(i,j)=0.0;
     }
 }
@@ -117,4 +117,3 @@ double nhflow_fsf_f::rb4(lexer *p, double x)
 
 	return r;
 }
-*/

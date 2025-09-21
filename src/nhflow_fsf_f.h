@@ -64,12 +64,20 @@ public:
     
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     
+    virtual void coastline_eta(lexer*,fdm_nhf*,ghostcell*,slice&);
+    virtual void coastline_fi(lexer*,fdm_nhf*,ghostcell*,slice&);
+    
 private: 
     void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
     
     void fsf_guard(lexer*, fdm_nhf*, ghostcell*, slice&, slice&);
     
     double limiter(double, double);
+    
+    double rb3(lexer*,double);
+    double rb4(lexer*,double);
+    
+    double dist3,dist4,expinverse,db;
     
     patchBC_interface *pBC;
     
