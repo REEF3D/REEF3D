@@ -115,7 +115,7 @@ double fnpf_weno5_wd::sz(lexer *p, double *f)
     grad=0.0;
     
 
-    if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->flag7[FIJKm2]>0 && p->flag7[FIJKm3] && p->flag7[FIJKm4]>0 && p->flag7[FIJKm5])
+    if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->flag7[FIJKm2]>0 && p->flag7[FIJKm3] && p->flag7[FIJKm4]>0 && p->flag7[FIJKm5] && p->deep[IJ]==1)
     {
         grad = (-(49.0/20.0)*f[FIJK] + 6.0*f[FIJKm1] - 7.5*f[FIJKm2] + (20.0/3.0)*f[FIJKm3] - (15.0/4.0)*f[FIJKm4] + (6.0/5.0)*f[FIJKm5] - (1.0/6.0)*f[FIJKm6])
           /(-(49.0/20.0)*p->ZN[KP] + 6.0*p->ZN[KM1] - 7.5*p->ZN[KM2] + (20.0/3.0)*p->ZN[KM3] - (15.0/4.0)*p->ZN[KM4] + (6.0/5.0)*p->ZN[KM5] - (1.0/6.0)*p->ZN[KM6]);
@@ -124,7 +124,7 @@ double fnpf_weno5_wd::sz(lexer *p, double *f)
     }
     
     else
-    if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->flag7[FIJKm2]>0 && p->flag7[FIJKm3]>0)
+    if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->flag7[FIJKm2]>0 && p->flag7[FIJKm3]>0 && p->deep[IJ]==1)
     {
         grad = (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])
               /(-(25.0/12.0)*p->ZN[KP] + 4.0*p->ZN[KM1] - 3.0*p->ZN[KM2] + (4.0/3.0)*p->ZN[KM3] - 0.25*p->ZN[KM4]);
@@ -133,7 +133,7 @@ double fnpf_weno5_wd::sz(lexer *p, double *f)
     }
     
     else
-    if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0)
+    if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->deep[IJ]==1)
     {
         grad = (-1.5*f[FIJK] + 2.0*f[FIJKm1] - 0.5*f[FIJKm2])/(-1.5*p->ZN[KP] + 2.0*p->ZN[KM1] - 0.5*p->ZN[KM2]);
         
