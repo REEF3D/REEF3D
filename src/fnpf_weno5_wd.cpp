@@ -133,7 +133,7 @@ double fnpf_weno5_wd::sz(lexer *p, double *f)
     }
     
     else
-    if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->deep[IJ]==1)
+    if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0)
     {
         grad = (-1.5*f[FIJK] + 2.0*f[FIJKm1] - 0.5*f[FIJKm2])/(-1.5*p->ZN[KP] + 2.0*p->ZN[KM1] - 0.5*p->ZN[KM2]);
         
