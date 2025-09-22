@@ -232,32 +232,19 @@ void fnpf_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
 void fnpf_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     SLICELOOP4
-    {
-    if(p->deep[IJ]==0)
-    c->K(i,j) =  c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
-                 
-                 
-    if(p->deep[IJ]==1)
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
-    }
 }
 
 void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 { 
     SLICELOOP4
-    {
-    if(p->deep[IJ]==0)
-    c->K(i,j) =   - fabs(p->W22)*eta(i,j);
-    
-    if(p->deep[IJ]==1)
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
-    }
-}
 
+}
 
 void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
@@ -267,55 +254,6 @@ void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice
     
     pgc->gcsl_start4Vint(p,p->wet,50);
     
-    /*
-
-    SLICELOOP4
-    c->WL(i,j) = eta(i,j) + p->wd - c->bed(i,j);
-
-    
-    pgc->gcsl_start4(p,c->WL,50);
-      
-    
-    SLICELOOP4
-    {
-    p->wet_n[IJ] = p->wet[IJ];
-    temp[IJ] = p->wet[IJ];
-    }
-     
-    SLICELOOP4
-    {
-        if(p->wet[IJ]==0)
-        {
-            if(p->wet[Ip1J]==1 && eta(i,j)<eta(i+1,j) && c->WL(i+1,j)>c->wd_criterion+eps)
-            temp[IJ]=1;
-            
-            if(p->wet[Im1J]==1 && eta(i,j)<eta(i-1,j) && c->WL(i-1,j)>c->wd_criterion+eps)
-            temp[IJ]=1;
-            
-            if(p->wet[IJp1]==1 && eta(i,j)<eta(i,j+1) && c->WL(i,j+1)>c->wd_criterion+eps && p->j_dir==1)
-            temp[IJ]=1;
-            
-            if(p->wet[IJm1]==1 && eta(i,j)<eta(i,j-1) && c->WL(i,j-1)>c->wd_criterion+eps && p->j_dir==1)
-            temp[IJ]=1;
-        }
-        
-        else              
-        if(c->WL(i,j)<=c->wd_criterion)
-        {
-        temp[IJ]=0;
-        eta(i,j) = c->wd_criterion - c->depth(i,j);
-        c->WL(i,j) = eta(i,j) + c->depth(i,j);
-        }
-    }
-    
-    SLICELOOP4
-    p->wet[IJ] = temp[IJ];
-    
-
-    pgc->gcsl_start4Vint(p,p->wet,50);
-    pgc->gcsl_start4(p,eta,gcval_eta);
-    pgc->gcsl_start4(p,c->WL,gcval_eta);*/
-      
     SLICELOOP4
     c->test2D(i,j) = double (p->wet[IJ]);
 }

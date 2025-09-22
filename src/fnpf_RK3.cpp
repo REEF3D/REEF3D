@@ -54,10 +54,8 @@ fnpf_RK3::fnpf_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     gcval_fifsf = 160;
     }
     
-    
     plap = new fnpf_laplace_cds2(p);
         
-    
     if(p->A343==0)
     pf = new fnpf_fsfbc(p,c,pgc);
     
