@@ -47,7 +47,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     }
     
     
-    /*
+    
     if(p->count>2)
     {
     SLICELOOP4
@@ -114,13 +114,20 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
           }
     }
     //----
+    if(p->A343==3)
+    if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
+    {
+        eta(i,j) = c->wd_criterion - c->depth(i,j);
+        c->WL(i,j) = eta(i,j) + c->depth(i,j);
+
+    }
     
 
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start4(p,eta,gcval_eta);
     pgc->gcsl_start4(p,c->WL,gcval_eta);
     }
-    */
+    
       
       pgc->gcsl_start4Vint(p,p->wet,50);
       

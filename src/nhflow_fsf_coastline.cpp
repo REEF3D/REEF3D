@@ -49,7 +49,7 @@ void nhflow_fsf_f::coastline_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
             }
         }
         
-        if(d->coastline(i,j)<0.0 && p->A343==1)
+        if(d->coastline(i,j)<0.0 && p->A343>=1)
         f(i,j)=0.0;
         
         if(p->A343>=1 && p->wet[IJ]==1)
