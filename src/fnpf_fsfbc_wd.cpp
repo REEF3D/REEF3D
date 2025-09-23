@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include"fnpf_wenoflux.h"
 #include"fnpf_ddx_cds2_wd.h"
 #include"fnpf_ddx_cds4_wd.h"
+#include"fnpf_hires.h"
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 #include"fnpf_coastline.h"
@@ -83,7 +84,7 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     if(p->A312==2)
     {
     pddx = new fnpf_ddx_cds2(p);
-    pdx = new fnpf_cds2(p);
+    pdx = new fnpf_hires(p,c);
     }
     
     if(p->A312==3)

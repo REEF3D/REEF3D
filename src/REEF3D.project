@@ -423,6 +423,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_hires.h"/>
           <File Name="fnpf_weno5_wd.h"/>
           <File Name="fnpf_weno5.h"/>
           <File Name="fnpf_weno3.h"/>
@@ -1553,10 +1554,11 @@
           <File Name="fnpf_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
+          <File Name="fnpf_sigma.cpp"/>
+          <File Name="fnpf_sigma_update.cpp"/>
           <File Name="fnpf_vel_update.cpp"/>
           <File Name="fnpf_bed_update.cpp"/>
           <File Name="fnpf_fsf_update.cpp"/>
-          <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Kinematics">
@@ -1663,6 +1665,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_hires.cpp"/>
           <File Name="fnpf_weno5_wd.cpp"/>
           <File Name="fnpf_weno5.cpp"/>
           <File Name="fnpf_weno3.cpp"/>
