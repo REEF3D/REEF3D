@@ -49,7 +49,7 @@ void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
             }
         }
         /*
-        if(c->coastline(i,j)<0.0 && p->A343==1)
+        if(c->coastline(i,j)<0.0 && p->A343>=1)
         f(i,j)=0.0;
         
         if(p->A343>=1 && p->wet[IJ]==1)
@@ -79,7 +79,30 @@ void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
             }
         }
         
-        if(c->coastline(i,j)<0.0 && p->A343==1)
+        if(c->coastline(i,j)<0.0 && p->A343>=1)
+        f(i,j)=0.0;
+    }
+}
+
+void fnpf_fsfbc_wd::coastline_Fz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+{
+    double fac=1.0;
+    
+    SLICELOOP4
+    {
+    
+        if(c->coastline(i,j)>=0.0)
+        {
+            db = c->coastline(i,j);
+            
+            if(db<fac*dist4)
+            {
+            f(i,j) = rb4(p,db)*f(i,j);
+        
+            }
+        }
+        
+        if(c->coastline(i,j)<0.0 && p->A343>=1)
         f(i,j)=0.0;
     }
 }

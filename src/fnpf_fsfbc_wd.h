@@ -54,6 +54,7 @@ public:
     virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&);
     virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double);
     
+    void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
     
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 

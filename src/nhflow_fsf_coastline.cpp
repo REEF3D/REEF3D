@@ -79,7 +79,7 @@ void nhflow_fsf_f::coastline_fi(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
             }
         }
         
-        if(d->coastline(i,j)<0.0 && p->A343==1)
+        if(d->coastline(i,j)<0.0 && p->A343>=1)
         f(i,j)=0.0;
     }
 }
