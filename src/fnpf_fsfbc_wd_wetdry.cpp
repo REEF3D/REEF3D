@@ -56,7 +56,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     
     pgc->gcsl_start4(p,c->WL,50);
     
-    
+    /*
     if(p->A343==1)
     {
     
@@ -112,9 +112,9 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
            p->wet[IJ]=0;
            Fifsf(i,j) = 0.0;
           }
-    }
+    }*/
     //----
-    if(p->A343==3)
+    if(p->A343>=1)
     if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
     {
         eta(i,j) = c->wd_criterion - c->depth(i,j);
