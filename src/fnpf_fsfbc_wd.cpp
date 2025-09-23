@@ -232,8 +232,13 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 {
     // fi
     FFILOOP4
-    WETDRY
+    {
+    if(p->wet[IJ]==1)
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
+    
+    if(p->wet[IJ]==0)
+    c->Fz(i,j) = 0.0;
+    }
     
     coastline_Fz(p,c,pgc,c->Fz);
 }
