@@ -187,8 +187,8 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
    
 
  
-    SLICELOOP4
-    c->test2D(i,j) = double(p->deep[IJ]);
+    //SLICELOOP4
+    //c->test2D(i,j) = double(p->deep[IJ]);
 
 }
 
