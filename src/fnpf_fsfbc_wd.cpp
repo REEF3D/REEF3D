@@ -127,6 +127,8 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     
     dist4=1.0*dist3;
     
+    dist5=2.0*dist4;
+    
     expinverse = 1.0/(exp(1.0)-1.0);
     
     if(p->A350==1)
@@ -162,6 +164,7 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
     FFILOOP4
+    WETDRY
     {
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
@@ -182,6 +185,7 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // 2D
     if(p->i_dir==1 && p->j_dir==0)
     FFILOOP4
+    WETDRY
     {
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     
@@ -203,6 +207,14 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     
     c->Bxx(i,j) = pddx->sxx(p,c->depth);
     c->Byy(i,j) = pddx->syy(p,c->depth);
+    
+    c->Ex(i,j) = 0.0;
+    c->Ey(i,j) = 0.0;
+    
+    c->Fx(i,j) = 0.0;
+    c->Fy(i,j) = 0.0;
+    
+    c->K(i,j) = 0.0;
     }
     
     pgc->gcsl_start4(p,c->Bx,1);
@@ -219,12 +231,8 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 {
     // fi
     FFILOOP4
-    {
+    WETDRY
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
-
-    if(p->wet[IJ]==0)
-    c->Fz(i,j) = 0.0;
-    }
     
     coastline_Fz(p,c,pgc,c->Fz);
 }
@@ -232,6 +240,7 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {    
     SLICELOOP4
+    WETDRY
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
@@ -240,6 +249,7 @@ void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 void fnpf_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 {  
     SLICELOOP4
+    WETDRY
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);

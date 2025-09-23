@@ -71,8 +71,9 @@ public:
 private:
     double rb3(lexer*,double);
     double rb4(lexer*,double);
+    double rb5(lexer*,double);
     
-    double dist3,dist4,expinverse,db;
+    double dist3,dist4,dist5,expinverse,db;
     
     double visc;
     
