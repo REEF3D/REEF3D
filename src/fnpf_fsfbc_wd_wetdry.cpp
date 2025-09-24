@@ -117,9 +117,9 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     if(p->A343>=1)
     if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
     {
-        eta(i,j) = c->wd_criterion - c->depth(i,j);
+        eta(i,j) = 1.1*c->wd_criterion - c->depth(i,j);
         c->WL(i,j) = eta(i,j) + c->depth(i,j);
-
+        Fifsf(i,j) = 0.0;
     }
     
 
