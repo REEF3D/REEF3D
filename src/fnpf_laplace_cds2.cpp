@@ -105,6 +105,33 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
 	{
             if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
             {
+            
+            // KBEDBC
+            if(p->flag7[FIJKm1]<0)
+            {
+            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            
+            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
+            
+            denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
+
+                    //if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
+                    {
+                    c->M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
+                    }
+                    
+                    //if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
+                    {
+                    c->M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
+                    c->M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
+                    }
+
+                c->M.t[n] += ab;
+                c->M.b[n] = 0.0;
+            }
+            
+            
             // south
             if((p->flag7[FIm1JK]<0) && (c->bc(i-1,j)==0 || k==0))
             {
@@ -206,30 +233,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             c->M.t[n] = 0.0;
             }
  
-            // KBEDBC
-            if(p->flag7[FIJKm1]<0)
-            {
-            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
-            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
-            
-            denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
-
-                    //if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
-                    {
-                    c->M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    }
-                    
-                    //if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
-                    {
-                    c->M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-                    c->M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-                    }
-
-                c->M.t[n] += ab;
-                c->M.b[n] = 0.0;
-            }
             }
 	++n;
 	}
