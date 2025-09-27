@@ -32,7 +32,7 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
     i=p->gcslpara1[n][0];
     j=p->gcslpara1[n][1];
 
-        isend1[count]=flag[(i-p->imin)*p->jmax + (j-p->jmin)];
+        isend1[count]=flag[IJ];
         ++count;
     }
 
@@ -42,7 +42,7 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
     i=p->gcslpara2[n][0];
     j=p->gcslpara2[n][1];
 
-        isend2[count]=flag[(i-p->imin)*p->jmax + (j-p->jmin)];
+        isend2[count]=flag[IJ];
         ++count;
     }
 
@@ -52,7 +52,7 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
     i=p->gcslpara3[n][0];
     j=p->gcslpara3[n][1];
 
-        isend3[count]=flag[(i-p->imin)*p->jmax + (j-p->jmin)];
+        isend3[count]=flag[IJ];
         ++count;
     }
 
@@ -62,7 +62,7 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
     i=p->gcslpara4[n][0];
     j=p->gcslpara4[n][1];
 
-        isend4[count]=flag[(i-p->imin)*p->jmax + (j-p->jmin)];
+        isend4[count]=flag[IJ];
         ++count;
     }
 
@@ -105,7 +105,7 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
     j=p->gcslpara1[n][1];
     k=p->gcslpara1[n][2];
 
-        flag[(i-p->imin-1)*p->jmax + (j-p->jmin)]=irecv1[count];
+        flag[Im1J]=irecv1[count];
         ++count;
     }
 
@@ -116,7 +116,7 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
     j=p->gcslpara2[n][1];
     k=p->gcslpara2[n][2];
 
-        flag[(i-p->imin)*p->jmax + (j-p->jmin+1)]=irecv2[count];
+        flag[IJp1]=irecv2[count];
         ++count;
     }
 
@@ -127,7 +127,7 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
     j=p->gcslpara3[n][1];
     k=p->gcslpara3[n][2];
 
-        flag[(i-p->imin)*p->jmax + (j-p->jmin-1)]=irecv3[count];
+        flag[IJm1]=irecv3[count];
         ++count;
     }
 
@@ -138,7 +138,7 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
     j=p->gcslpara4[n][1];
     k=p->gcslpara4[n][2];
 
-        flag[(i-p->imin+1)*p->jmax + (j-p->jmin)]=irecv4[count];
+        flag[Ip1J]=irecv4[count];
         ++count;
     }
 }
