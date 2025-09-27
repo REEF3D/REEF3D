@@ -29,7 +29,7 @@ void geotopo::dat(lexer* p, fdm* a, ghostcell* pgc)
 {
     if(p->toporead>0)
     BASELOOP
-    a->topo(i,j,k) = p->flag_topo[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin];
+    a->topo(i,j,k) = p->flag_topo[IJK];
     
     if(p->S57>-1.0e20)
     ALOOP
