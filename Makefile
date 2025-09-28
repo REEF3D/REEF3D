@@ -1,6 +1,7 @@
 OBJ_DIR      := ./build
 APP_DIR      := ./bin
 TARGET       := REEF3D
+APP		     := $(APP_DIR)/$(TARGET)
 CXX          := mpicxx
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_VERSION  := "$(shell git describe --dirty --always --tags)"
@@ -13,30 +14,28 @@ SRC          := $(wildcard src/*.cpp)
 OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
-.PHONY: all build clean debug dev info release
+.PHONY: all clean debug dev info release
 
 .DEFAULT_GOAL := all
 
 all: CXXFLAGS += -O3 -w
-all: build
+all: $(APP)
 
 release: CXXFLAGS += -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -flto -w
 release: LDFLAGS += -flto
-release: build
+release: $(APP)
 
 dev: CXXFLAGS += -O3 -Wall -pedantic
-dev: build
+dev: $(APP)
 
 debug: CXXFLAGS += -O0 -g -g3 -Wall
-debug: build
-
-build: $(APP_DIR)/$(TARGET)
+debug: $(APP)
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -c $< -o $@
 
-$(APP_DIR)/$(TARGET): $(OBJECTS)
+$(APP): $(OBJECTS)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
