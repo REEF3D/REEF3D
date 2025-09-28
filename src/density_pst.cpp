@@ -20,36 +20,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef FLUID_UPDATE_FSF_H_
-#define FLUID_UPDATE_FSF_H_
+#include"density_pst.h"
+#include"lexer.h"
+#include"fdm.h"
 
-#include"fluid_update.h"
-#include"increment.h"
+density_pst::density_pst(lexer* p)
+{ 
+}
 
-class fdm;
-class lexer;
-class ghostcell;
-
-using namespace std;
-
-class fluid_update_fsf : public fluid_update, increment
+density_pst::~density_pst()
 {
-public:
-    fluid_update_fsf(lexer*, fdm*, ghostcell*);
-	virtual ~fluid_update_fsf();
+}
 
-	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, field&);
+double density_pst::roface(lexer *p, fdm *a, int aa, int bb, int cc)
+{
+    phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-private:
-    static int iocheck,iter;
-    int gcval_ro,gcval_visc;
-	int n;
-	const double dx,visc_air,visc_water,visc_body,ro_air,ro_water;
-    const double visc_sed, ro_sed;
-    double epsi,chi;
+    if(phival>p->psi)
+    H=1.0;
 
-};
+    if(phival<-p->psi)
+    H=0.0;
 
-#endif
+    if(fabs(phival)<=p->psi)
+    H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
+    
+    roval = p->W1*H + p->W3*(1.0-H);
+    
+    
+    // ----
+    topoval = 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc));
+
+    if(topoval>p->psi)
+    H=1.0;
+
+    if(topoval<-p->psi)
+    H=0.0;
+
+    if(fabs(topoval)<=p->psi)
+    H=0.5*(1.0 + topoval/p->psi + (1.0/PI)*sin((PI*topoval)/p->psi));
+    
+    roval = roval*H + p->S22*(1.0-H);
+
+	return roval;	
+}
+
+
 
 

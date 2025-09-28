@@ -1028,6 +1028,7 @@
       <File Name="pressure_void.h"/>
       <File Name="pjm.h"/>
       <VirtualDirectory Name="Density">
+        <File Name="density_pst.h"/>
         <File Name="density_sf.h"/>
         <File Name="density_df.h"/>
         <File Name="density_rheo.h"/>
@@ -1711,6 +1712,8 @@
           <File Name="partres_advec_mppic.cpp"/>
           <File Name="partres.cpp"/>
           <VirtualDirectory Name="Print">
+            <File Name="partres_print_inactive_pvtp.cpp"/>
+            <File Name="partres_print_inactive_vtp.cpp"/>
             <File Name="partres_printvtp.cpp"/>
             <File Name="partres_printpvtp.cpp"/>
           </VirtualDirectory>
@@ -2853,6 +2856,7 @@
       <File Name="pressure_void.cpp"/>
       <File Name="pjm.cpp"/>
       <VirtualDirectory Name="Density">
+        <File Name="density_pst.cpp"/>
         <File Name="density_sf.cpp"/>
         <File Name="density_df.cpp"/>
         <File Name="density_rheo.cpp"/>

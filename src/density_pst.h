@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,36 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef FLUID_UPDATE_FSF_H_
-#define FLUID_UPDATE_FSF_H_
+#ifndef DENSITY_PST_H_
+#define DENSITY_PST_H_
 
-#include"fluid_update.h"
+#include"density.h"
 #include"increment.h"
 
 class fdm;
 class lexer;
-class ghostcell;
+
 
 using namespace std;
 
-class fluid_update_fsf : public fluid_update, increment
+class density_pst : public density, virtual public increment
 {
+
 public:
-    fluid_update_fsf(lexer*, fdm*, ghostcell*);
-	virtual ~fluid_update_fsf();
+    density_pst(lexer*);
+	virtual ~density_pst();
 
-	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, field&);
-
-private:
-    static int iocheck,iter;
-    int gcval_ro,gcval_visc;
-	int n;
-	const double dx,visc_air,visc_water,visc_body,ro_air,ro_water;
-    const double visc_sed, ro_sed;
-    double epsi,chi;
+	virtual double roface(lexer*,fdm*,int,int,int);
+	
+	double H,H_fb,roval,phival;
+	int ii,jj,kk;
+    double r,s;
+    double topoval;
 
 };
 
 #endif
+
+
 
 

@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 fluid_update_fsf::fluid_update_fsf(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM),visc_air(p->W4),visc_water(p->W2),visc_body(p->X44),
-                                                                      ro_air(p->W3),ro_water(p->W1)
+                                                                      ro_air(p->W3),ro_water(p->W1),visc_sed(p->W2),ro_sed(p->S22)
 {
     gcval_ro=1;
 	gcval_visc=1;
@@ -69,8 +69,6 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
             }
 	}
     
-	pgc->start4(p,a->ro,gcval_ro);
-	pgc->start4(p,a->visc,gcval_visc);
 
 	p->volume1 = pgc->globalsum(p->volume1);
 	p->volume2 = pgc->globalsum(p->volume2);
@@ -81,6 +79,28 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
 	cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
+    
+    // sediment
+    if(p->Q10==1)
+    BASELOOP
+	{    
+		if(a->topo(i,j,k)>p->psi)
+		H=1.0;
+
+		if(a->topo(i,j,k)<-p->psi)
+		H=0.0;
+
+		if(fabs(a->topo(i,j,k))<=p->psi)
+		H=0.5*(1.0 + a->topo(i,j,k)/p->psi + (1.0/PI)*sin((PI*a->topo(i,j,k))/p->psi));
+
+
+        a->ro(i,j,k)   = a->ro(i,j,k)*H +   ro_sed*(1.0-H);
+        a->visc(i,j,k) = a->visc(i,j,k)*H + visc_sed*(1.0-H);
+	}
+    
+    
+    pgc->start4(p,a->ro,gcval_ro);
+	pgc->start4(p,a->visc,gcval_visc);
 }
 
 int fluid_update_fsf::iocheck;

@@ -39,7 +39,6 @@ class vec;
 class vec2D;
 class cpt;
 class cpt2D;
-class density_f;
 class reini;
 class convection;
 class ioflow;
