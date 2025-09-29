@@ -25,7 +25,7 @@ Author: Hans Bihs
 void lexer::ini_default()
 {
     // Hydrodynamic Models
-    A10=6;       // int turn on wave models
+    A10=6;       // int hydrodynamic models
     
     // SFLOW
     A209=1;      // int interpolation sweeps for bed
