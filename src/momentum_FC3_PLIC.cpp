@@ -243,7 +243,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     clear_FGH(p,a);
     
     //update rho(vof) after diffusion but before pressure
-    if(p->F92==3)
+    if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc);
     pgc->start4(p,a->ro,gcval_ro);
@@ -274,7 +274,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         pgc->start4(p,a->vof,gcval_vof);
         pgc->start4(p,vof_rk1,gcval_vof);
     
-        if(p->F92==3)
+        if(p->F92==3||p->F92==32)
             pplic->calculateSubFractions(p,a,pgc,a->vof);
         pupdate->start(p,a,pgc);
         pgc->start4(p,a->ro,gcval_ro);
@@ -399,7 +399,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     pgc->start3(p,wrk2,gcval_w);
     clear_FGH(p,a);
     
-    if(p->F92==3)
+    if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc);
     pgc->start4(p,a->ro,gcval_ro);
@@ -429,7 +429,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         pgc->start4(p,a->vof,gcval_vof);
         pgc->start4(p,vof_rk1,gcval_vof);
     
-        if(p->F92==3)
+        if(p->F92==3||p->F92==32)
             pplic->calculateSubFractions(p,a,pgc,a->vof);
         pupdate->start(p,a,pgc);
         pgc->start4(p,a->ro,gcval_ro);
@@ -551,7 +551,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	pgc->start3(p,a->w,gcval_w);
     clear_FGH(p,a);
     
-    if(p->F92==3)
+    if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc);
     pgc->start4(p,a->ro,gcval_ro);
@@ -578,7 +578,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
         pgc->start4(p,a->vof,gcval_vof);
         
-        if(p->F92==3)
+        if(p->F92==3||p->F92==33)
             pplic->calculateSubFractions(p,a,pgc,a->vof);
         pupdate->start(p,a,pgc);
         pgc->start4(p,a->ro,gcval_ro);

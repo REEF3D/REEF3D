@@ -106,7 +106,7 @@ if(p->F100>0)
     double FSpos_pp,FSpos_pm,FSpos_mp,FSpos_mm,FSpos_c;
     double C_p,C_m;
     double No_z,No_y,No_x,St_loc,R_0,nsum,R_m;
-    St_loc=p->F101_s;
+    St_loc=p->F101_e;
     No_x=p->F101_nx;
     No_y=p->F101_ny;
     No_z=p->F101_nz;

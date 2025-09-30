@@ -81,7 +81,7 @@ void idiff2_PLIC::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
 	visc_i_j_km=a->visc(i,j,k-1);
 	visc_i_j_kp=a->visc(i,j,k+1);
     
-	if(p->F92==3)
+	if(p->F92==3||p->F92==32)
     {
         H_ddx_p=(a->vof_ntw(i,j,k)+a->vof_nbw(i,j,k)+a->vof_stw(i+1,j,k)+a->vof_sbw(i+1,j,k)+a->vof_nte(i,j+1,k)+a->vof_nbe(i,j+1,k)+a->vof_ste(i+1,j+1,k)+a->vof_sbe(i+1,j+1,k))*0.125;
         H_ddx_m=(a->vof_stw(i,j,k)+a->vof_sbw(i,j,k)+a->vof_ntw(i-1,j,k)+a->vof_nbw(i-1,j,k)+a->vof_ste(i,j+1,k)+a->vof_sbe(i,j+1,k)+a->vof_nte(i-1,j+1,k)+a->vof_nbe(i-1,j+1,k))*0.125;
