@@ -292,7 +292,7 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     //updatePlaneData(p,a,pgc,a->vof);
     }
     
-    if(p->F92==3)
+    if(p->F92==3||p->F92==32)
             calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc);
     pgc->start4(p,a->ro,gcval_ro);

@@ -87,7 +87,7 @@ void idiff2_PLIC::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
 	visc_i_jp_k=a->visc(i,j+1,k);
 	visc_i_j_km=a->visc(i,j,k-1);
 	visc_i_j_kp=a->visc(i,j,k+1);
-	if(p->F92==3)
+	if(p->F92==3||p->F92==32)
     {
         H_ddy_p=(a->vof_ntw(i,j,k)+a->vof_nbw(i,j,k)+a->vof_stw(i+1,j,k)+a->vof_sbw(i+1,j,k)+a->vof_nte(i,j+1,k)+a->vof_nbe(i,j+1,k)+a->vof_ste(i+1,j+1,k)+a->vof_sbe(i+1,j+1,k))*0.125;
         H_ddy_m=(a->vof_nte(i,j,k)+a->vof_nbe(i,j,k)+a->vof_ste(i+1,j,k)+a->vof_sbe(i+1,j,k)+a->vof_ntw(i,j-1,k)+a->vof_nbw(i,j-1,k)+a->vof_stw(i+1,j-1,k)+a->vof_sbw(i+1,j-1,k))*0.125;
@@ -100,8 +100,6 @@ void idiff2_PLIC::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
         
         visc_ddz_p=H_ddz_p*p->W2+(1.0-H_ddz_p)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_j_kp+ev_ip_j_kp)*0.25;
         visc_ddz_m=H_ddz_m*p->W2+(1.0-H_ddz_m)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_j_km+ev_ip_j_km)*0.25;
-        
-        
     }
     else
     {

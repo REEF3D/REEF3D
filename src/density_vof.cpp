@@ -67,7 +67,7 @@ double density_vof::roface(lexer *p, fdm *a, int d_i, int d_j, int d_k)
         roval = p->W1*H + p->W3*(1.0-H);
     }
     
-    else if(p->F92==2)
+    else if(p->F92==2||p->F92==22)
     {
             if(a->vof(i,j,k)>p->F94 && a->vof(i+d_i,j+d_j,k+d_k)>p->F94)
                 roval=p->W1;
@@ -103,7 +103,7 @@ double density_vof::roface(lexer *p, fdm *a, int d_i, int d_j, int d_k)
                 cout<<"density case missing, d_i:"<<d_i<<" d_j:"<<d_j<<" d_k:"<<d_k<<endl;
             }
     }
-    else if(p->F92==3)
+    else if(p->F92==3||p->F92==32)
     {
         double H;
         int excepcheck;
