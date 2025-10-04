@@ -33,6 +33,8 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
 {
     double uabs,cf,manning,tau;
     double density=p->W1;
+    double visc=p->W2;
+    double us, usn;
     double U,V,W;
     
     SLICEBASELOOP
@@ -45,8 +47,34 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     k=0;
     SEDSLICELOOP
     {
+        if(p->S16==1 && p->B22==1)
+        {
+        U = d->U[IJK];
+        V = d->V[IJK];
+        W = d->W[IJK];
         
-        if(p->S16==1)
+        dist = 0.5*p->DZN[KP]*d->WL(i,j);
+        
+        uabs = sqrt(U*U + V*V + W*W);
+        
+        u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+
+        tau=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        
+        us = 1.0e-6;
+        
+        for(int qn=0; qn<10; ++qn)
+        {
+        usn = us;
+        
+        us = uabs/((1.0/kappa) * log(dist*us/visc) + 5.5);
+        
+        us += 0.5*(usn - us);
+        }
+        tau = density * us * us;
+        }
+        
+        if(p->S16==1 && p->B22==2)
         {
         U = d->U[IJK];
         V = d->V[IJK];

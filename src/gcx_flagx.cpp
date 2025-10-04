@@ -79,9 +79,9 @@ void ghostcell::flagx(lexer* p, int *flag)
 
         isend4[count]=flag[IJK];
         ++count;
-        isend4[count]=flag[IJm1K];
+        isend4[count]=flag[Im1JK];
         ++count;
-        isend4[count]=flag[IJm2K];
+        isend4[count]=flag[Im2JK];
         ++count;
     }
 
@@ -211,9 +211,9 @@ void ghostcell::flagx(lexer* p, int *flag)
 
         flag[Ip1JK]=irecv4[count];
         ++count;
-        flag[IJp2K]=irecv4[count];
+        flag[Ip2JK]=irecv4[count];
         ++count;
-        flag[IJp3K]=irecv4[count];
+        flag[Ip3JK]=irecv4[count];
         ++count;
     }
 

@@ -170,6 +170,7 @@ void lexer::ini_default()
     B11=1;			// int wall function turbulence on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity
     B21=1;            // int preserve tangential velocities for forcing
+    B22=2;            // int smooth vs rough wall law
     B23=1;            // int ghostcell extrapolation or refective
 	B29=0.5;		// double gamma for gc image point
 	B30=0;			// int type of pressure reference point

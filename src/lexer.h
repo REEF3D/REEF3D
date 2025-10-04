@@ -315,7 +315,7 @@ public:
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
     
 	// boundary conditions
-	int B10,B11,B20,B21,B23;
+	int B10,B11,B20,B21,B22,B23;
     int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;    
     int B60,B61,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;

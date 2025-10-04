@@ -316,6 +316,8 @@ void lexer::ctrlrecv()
 	ii++;
     B21 = ictrl[ii];
 	ii++;
+    B22 = ictrl[ii];
+	ii++;
     B23 = ictrl[ii];
 	ii++;
 	B29 = dctrl[dd];
