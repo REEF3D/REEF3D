@@ -4451,4 +4451,7 @@ void lexer::ctrlrecv()
     Z11_n[n] = dctrl[dd];
     dd++;
     }
+    
+    ii_recv=ii;
+    dd_recv=dd;
 }

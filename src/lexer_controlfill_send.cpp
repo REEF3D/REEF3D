@@ -3475,6 +3475,9 @@ void lexer::ctrlsend()
     dctrl[dd] = Z11_n[n];
     dd++;
     }
+    
+    ii_send=ii;
+    dd_send=dd;
 }
 
 

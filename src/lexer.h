@@ -827,6 +827,9 @@ public:
 private:
 	void clear(char&, int&);
     
+    int dd_send,dd_recv;
+    int ii_send,ii_recv;
+    
 };
 
 #endif
