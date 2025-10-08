@@ -64,7 +64,7 @@ void mooring_barQuasiStatic::initialize(lexer *p, ghostcell *pgc)
         
         if(p->A10==5)
         {
-		sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_NHFLOW_mooring_force_%i.dat",line);
+		sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
 		}
         
         if(p->A10==6)
