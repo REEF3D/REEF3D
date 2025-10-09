@@ -23,7 +23,7 @@ Author: Alexander Hanke
 #include"ghostcell.h"
 #include"lexer.h"
 
-void ghostcell::Sendrecv6_double(int count1, int count2, int count3, int count4, int count5, int count6)
+void ghostcell::Sendrecv_double(int count1, int count2, int count3, int count4, int count5, int count6)
 {
     if(cart_comm == MPI_COMM_NULL)
     {

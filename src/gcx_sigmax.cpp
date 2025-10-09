@@ -114,7 +114,7 @@ void ghostcell::sigmax(lexer* p, fdm* a, double *f)
 
 //  Communication
 
-    Sendrecv6_double(p->gcpara1_count,p->gcpara2_count,p->gcpara3_count,p->gcpara4_count,p->gcpara5_count,p->gcpara6_count);
+    Sendrecv_double(p->gcpara1_count,p->gcpara2_count,p->gcpara3_count,p->gcpara4_count,p->gcpara5_count,p->gcpara6_count);
 
 //  Unpack
 

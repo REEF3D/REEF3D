@@ -136,7 +136,7 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
         }
 	}
 
-    Sendrecv6_double((p->gcpara1_count-p->periodicX1)*paramargin,
+    Sendrecv_double((p->gcpara1_count-p->periodicX1)*paramargin,
                      (p->gcpara2_count-p->periodicX2)*paramargin,
                      (p->gcpara3_count-p->periodicX3)*paramargin,
                      (p->gcpara4_count-p->periodicX4)*paramargin,

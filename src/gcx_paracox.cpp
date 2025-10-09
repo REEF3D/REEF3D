@@ -77,7 +77,7 @@ void ghostcell::gcparacox(lexer* p,field& f,int gcv)
 	}
 
 
-    Sendrecv6_double(p->gcparaco1_count,p->gcparaco2_count,p->gcparaco3_count,p->gcparaco4_count,p->gcparaco5_count,p->gcparaco6_count);
+    Sendrecv_double(p->gcparaco1_count,p->gcparaco2_count,p->gcparaco3_count,p->gcparaco4_count,p->gcparaco5_count,p->gcparaco6_count);
 
 //  FILL RECEIVE
     //pip=4;

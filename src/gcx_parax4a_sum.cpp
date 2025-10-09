@@ -96,7 +96,7 @@ void ghostcell::gcparax4a_sum(lexer* p,field& f,int gcv)
         ++count;
 	}
 
-    Sendrecv6_double(p->gcpara1_count,p->gcpara2_count,p->gcpara3_count,p->gcpara4_count,p->gcpara5_count,p->gcpara6_count);
+    Sendrecv_double(p->gcpara1_count,p->gcpara2_count,p->gcpara3_count,p->gcpara4_count,p->gcpara5_count,p->gcpara6_count);
 
 //  FILL RECEIVE
 

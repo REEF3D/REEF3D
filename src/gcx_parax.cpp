@@ -120,7 +120,7 @@ void ghostcell::gcparax(lexer* p,field& f,int gcv)
 	}
     
     
-    Sendrecv6_double(p->gcpara1_count*paramargin,p->gcpara2_count*paramargin,p->gcpara3_count*paramargin,p->gcpara4_count*paramargin,p->gcpara5_count*paramargin,p->gcpara6_count*paramargin);
+    Sendrecv_double(p->gcpara1_count*paramargin,p->gcpara2_count*paramargin,p->gcpara3_count*paramargin,p->gcpara4_count*paramargin,p->gcpara5_count*paramargin,p->gcpara6_count*paramargin);
 
 //  FILL RECEIVE
 
