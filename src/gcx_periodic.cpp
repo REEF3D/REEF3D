@@ -136,47 +136,12 @@ void ghostcell::gcperiodicx(lexer* p,field& f,int gcv)
         }
 	}
 
-//  SEND / RECEIVE
-
-    if(p->gcpara1_count>0)
-    {
-	MPI_Isend(send1,(p->gcpara1_count-p->periodicX1)*paramargin,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(recv1,(p->gcpara1_count-p->periodicX1)*paramargin,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
-    }
-
-    if(p->gcpara4_count>0)
-    {
-	MPI_Isend(send4,(p->gcpara4_count-p->periodicX4)*paramargin,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(recv4,(p->gcpara4_count-p->periodicX4)*paramargin,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
-    }
-
-    if(p->gcpara3_count>0)
-    {
-	MPI_Isend(send3,(p->gcpara3_count-p->periodicX3)*paramargin,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(recv3,(p->gcpara3_count-p->periodicX3)*paramargin,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
-    }
-
-    if(p->gcpara2_count>0)
-    {
-	MPI_Isend(send2,(p->gcpara2_count-p->periodicX2)*paramargin,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(recv2,(p->gcpara2_count-p->periodicX2)*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
-    }
-
-    if(p->gcpara5_count>0)
-    {
-	MPI_Isend(send5,(p->gcpara5_count-p->periodicX5)*paramargin,MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
-	MPI_Irecv(recv5,(p->gcpara5_count-p->periodicX5)*paramargin,MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
-    }
-
-    if(p->gcpara6_count>0)
-    {
-	MPI_Isend(send6,(p->gcpara6_count-p->periodicX6)*paramargin,MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
-	MPI_Irecv(recv6,(p->gcpara6_count-p->periodicX6)*paramargin,MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
-    }
-
-//  WAIT
-
-    gcwait(p);
+    Sendrecv6_double((p->gcpara1_count-p->periodicX1)*paramargin,
+                     (p->gcpara2_count-p->periodicX2)*paramargin,
+                     (p->gcpara3_count-p->periodicX3)*paramargin,
+                     (p->gcpara4_count-p->periodicX4)*paramargin,
+                     (p->gcpara5_count-p->periodicX5)*paramargin,
+                     (p->gcpara6_count-p->periodicX6)*paramargin);
 
 //  FILL RECEIVE
 

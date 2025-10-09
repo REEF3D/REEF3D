@@ -114,43 +114,7 @@ void ghostcell::sigmax(lexer* p, fdm* a, double *f)
 
 //  Communication
 
-    if(p->gcpara1_count>0)
-    {
-	MPI_Isend(send1,p->gcpara1_count,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(recv1,p->gcpara1_count,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
-    }
-
-    if(p->gcpara2_count>0)
-    {
-	MPI_Isend(send2,p->gcpara2_count,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(recv2,p->gcpara2_count,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
-    }
-
-    if(p->gcpara3_count>0)
-    {
-	MPI_Isend(send3,p->gcpara3_count,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(recv3,p->gcpara3_count,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
-    }
-
-    if(p->gcpara4_count>0)
-    {
-	MPI_Isend(send4,p->gcpara4_count,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(recv4,p->gcpara4_count,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
-    }
-
-    if(p->gcpara5_count>0)
-    {
-	MPI_Isend(send5,p->gcpara5_count,MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
-	MPI_Irecv(recv5,p->gcpara5_count,MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
-    }
-
-    if(p->gcpara6_count>0)
-    {
-	MPI_Isend(send6,p->gcpara6_count,MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
-	MPI_Irecv(recv6,p->gcpara6_count,MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
-    }
-
-    gcwait(p);
+    Sendrecv6_double(p->gcpara1_count,p->gcpara2_count,p->gcpara3_count,p->gcpara4_count,p->gcpara5_count,p->gcpara6_count);
 
 //  Unpack
 
