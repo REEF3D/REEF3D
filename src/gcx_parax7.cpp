@@ -91,34 +91,7 @@ void ghostcell::gcparax7(lexer* p,double *&f,int gcv)
 	}
 
 
-//  SEND / RECEIVE
-
-    if(p->gcx7_count[0]>0)
-    {
-	MPI_Isend(send1,p->gcx7_count[0]*paramargin,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(recv1,p->gcx7_count[0]*paramargin,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
-    }
-
-    if(p->gcx7_count[3]>0)
-    {
-	MPI_Isend(send4,p->gcx7_count[3]*paramargin,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(recv4,p->gcx7_count[3]*paramargin,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
-    }
-
-    if(p->gcx7_count[2]>0)
-    {
-	MPI_Isend(send3,p->gcx7_count[2]*paramargin,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(recv3,p->gcx7_count[2]*paramargin,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
-    }
-
-    if(p->gcx7_count[1]>0)
-    {
-	MPI_Isend(send2,p->gcx7_count[1]*paramargin,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(recv2,p->gcx7_count[1]*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
-    }
-
-//  WAIT
-    gcwait7(p);
+    Sendrecv_double(p->gcx7_count[0]*paramargin,p->gcx7_count[1]*paramargin,p->gcx7_count[2]*paramargin,p->gcx7_count[3]*paramargin,0,0);
 
 //  FILL RECEIVE
 

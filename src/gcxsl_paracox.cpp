@@ -55,34 +55,7 @@ void ghostcell::gcslparacox(lexer* p,slice& f,int gcv)
 	send2[q]=f(i,j);
 	}
 
-
-//  SEND / RECEIVE
-    if(p->gcslparaco1_count>0)
-    {
-	MPI_Isend(send1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&sreq1);
-	MPI_Irecv(recv1,p->gcslparaco1_count,MPI_DOUBLE,p->nb1,tag,mpi_comm,&rreq1);
-    }
-
-    if(p->gcslparaco4_count>0)
-    {
-	MPI_Isend(send4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&sreq4);
-	MPI_Irecv(recv4,p->gcslparaco4_count,MPI_DOUBLE,p->nb4,tag,mpi_comm,&rreq4);
-    }
-
-    if(p->gcslparaco3_count>0)
-    {
-	MPI_Isend(send3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&sreq3);
-	MPI_Irecv(recv3,p->gcslparaco3_count,MPI_DOUBLE,p->nb3,tag,mpi_comm,&rreq3);
-    }
-
-    if(p->gcslparaco2_count>0)
-    {
-	MPI_Isend(send2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&sreq2);
-	MPI_Irecv(recv2,p->gcslparaco2_count,MPI_DOUBLE,p->nb2,tag,mpi_comm,&rreq2);
-    }
-
-//  WAIT
-    gcslwait(p);
+    Sendrecv_double(p->gcslparaco1_count,p->gcslparaco2_count,p->gcslparaco3_count,p->gcslparaco4_count,0,0);
 
 //  FILL RECEIVE
     for(q=0;q<p->gcslparaco1_count;++q)
