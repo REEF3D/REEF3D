@@ -2566,7 +2566,6 @@
         <File Name="gcx_facenbx.cpp"/>
         <File Name="gcx_rownum.cpp"/>
         <File Name="gcx_parax_test.cpp"/>
-        <File Name="gcx_verticalsum.cpp"/>
         <File Name="gcx_internal.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid">

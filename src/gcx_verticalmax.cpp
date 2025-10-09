@@ -58,32 +58,7 @@ void ghostcell::verticalmax(lexer *p, fdm* a, double **vmax)
 	}
 
 
-//  SEND / RECEIVE
-    if(p->gcpara5_count>0)
-    {
-	MPI_Isend(send5,p->gcpara5_count,MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
-	MPI_Irecv(recv5,p->gcpara5_count,MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
-    }
-
-    if(p->gcpara6_count>0)
-    {
-	MPI_Isend(send6,p->gcpara6_count,MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
-	MPI_Irecv(recv6,p->gcpara6_count,MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
-    }
-
-//  WAIT
-
-    if(p->gcpara5_count>0)
-    {
-    MPI_Wait(&sreq5,&status);
-	MPI_Wait(&rreq5,&status);
-    }
-
-    if(p->gcpara6_count>0)
-    {
-    MPI_Wait(&sreq6,&status);
-	MPI_Wait(&rreq6,&status);
-    }
+    Sendrecv_double(0,0,0,0,p->gcpara5_count,p->gcpara6_count);
 
 //  FILL RECEIVE
 
