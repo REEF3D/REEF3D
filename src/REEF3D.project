@@ -2569,6 +2569,7 @@
         <File Name="gcx_rownum.cpp"/>
         <File Name="gcx_parax_test.cpp"/>
         <File Name="gcx_verticalsum.cpp"/>
+        <File Name="gcx_internal.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid">
         <File Name="gc_sizeM_update.cpp"/>

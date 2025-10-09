@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"fdm_fnpf.h"
 #include"fdm_nhf.h"
+#include<sstream>
 
 ghostcell::ghostcell(int& argc, char **argv,lexer *pp):size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6),eps(1.0e-10),
 														gcx(1)
@@ -360,6 +361,58 @@ void ghostcell::gcini(lexer* p)
 	
 	p->colnum = new int[p->M10+1];
 
+
+    int dims[3] = {p->mx, p->my, p->mz};
+    for(int d=0; d<3; ++d)
+    {
+        if(dims[d] <= 0)
+        dims[d] = 0;
+    }
+
+    MPI_Dims_create(p->mpi_size, 3, dims);
+    int periods[3] = {0,0,0};
+
+    if(cart_comm != MPI_COMM_NULL)
+    {
+        MPI_Comm_free(&cart_comm);
+    }
+
+    MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, false, &cart_comm);
+
+    int cart_nb[6] = {MPI_PROC_NULL};
+    int cart_neg = MPI_PROC_NULL;
+    int cart_pos = MPI_PROC_NULL;
+
+    MPI_Cart_shift(cart_comm, 0, 1, &cart_neg, &cart_pos);
+    cart_nb[0] = cart_neg;
+    cart_nb[3] = cart_pos;
+
+    MPI_Cart_shift(cart_comm, 1, 1, &cart_neg, &cart_pos);
+    cart_nb[2] = cart_neg;
+    cart_nb[1] = cart_pos;
+
+    MPI_Cart_shift(cart_comm, 2, 1, &cart_neg, &cart_pos);
+    cart_nb[5] = cart_neg;
+    cart_nb[4] = cart_pos;
+
+    bool error = false;
+    for (int dir = 0; dir < 6; ++dir) {
+        const int expected = (nb[dir] == -2) ? MPI_PROC_NULL : nb[dir];
+        if (cart_nb[dir] != expected) {
+            error = true;
+            std::ostringstream msg;
+            msg << "Rank " << p->mpirank << " mismatch dir " << dir
+                << " cart=" << cart_nb[dir] << " nb=" << expected;
+            std::cerr << msg.str() << std::endl;
+        }
+    }
+    if(error)
+    {
+        if(p->mpirank==0)
+            std::cerr << "MPI Cartesian topology does not match user-specified neighbours. Exiting." << std::endl;
+        final();
+        exit(1);
+    }
 }
 
 void ghostcell::fdm2D_update(fdm2D *bb)
@@ -386,6 +439,10 @@ void ghostcell::fdm_update(fdm *aa)
 
 void ghostcell::final(bool error)
 {
+    if(cart_comm != MPI_COMM_NULL)
+    {
+        MPI_Comm_free(&cart_comm);
+    }
        MPI_Finalize();
        exit(error);
 }

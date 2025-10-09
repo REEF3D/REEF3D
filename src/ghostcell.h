@@ -366,6 +366,11 @@ public:
     
 
 private:
+
+    void Sendrecv6_double(int,int,int,int,int,int);
+
+    MPI_Comm cart_comm = MPI_COMM_NULL;
+
     const int size;
     const int tag1,tag2,tag3,tag4,tag5,tag6;
 	int margin, paramargin;
