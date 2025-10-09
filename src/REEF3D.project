@@ -2550,7 +2550,6 @@
         <File Name="gcx_flagx7.cpp"/>
         <File Name="gcx_parax7co.cpp"/>
         <File Name="gcx_parax7.cpp"/>
-        <File Name="gcx_paraxco_generic.cpp"/>
         <File Name="gcx_sigmax.cpp"/>
         <File Name="gcx_collective.cpp"/>
         <File Name="gcx_flagx.cpp"/>
@@ -2563,7 +2562,6 @@
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
         <File Name="gcx_verticalmax.cpp"/>
-        <File Name="gcx_parax_generic.cpp"/>
         <File Name="gcx_crs.cpp"/>
         <File Name="gcx_facenbx.cpp"/>
         <File Name="gcx_rownum.cpp"/>
