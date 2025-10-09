@@ -2589,7 +2589,6 @@
         <File Name="gcsl_start.cpp"/>
         <File Name="gcxsl_parax.cpp"/>
         <File Name="gcxsl_paracox.cpp"/>
-        <File Name="gcxsl_wait.cpp"/>
         <File Name="gcsl_epol1.cpp"/>
         <File Name="gcsl_epol2.cpp"/>
         <File Name="gcsl_epol3.cpp"/>

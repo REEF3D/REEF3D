@@ -281,7 +281,6 @@ public:
     void gcslparacox(lexer*, slice&, int);
     void gcslparacox_int(lexer*, sliceint&, int);
     void gcslparacoxV_int(lexer*, int*, int);
-    void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
     void gcxslupdate(lexer*);
     void gcslparaxijk(lexer*, double*, int);
