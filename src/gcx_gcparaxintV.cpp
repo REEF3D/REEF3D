@@ -136,49 +136,8 @@ void ghostcell::gcparaxintV(lexer* p, int *f,int gcv)
         ++count;
         }
 	}
-    
-    
-//  SEND / RECEIVE
 
-    if(p->gcpara1_count>0)
-    {
-	MPI_Isend(isend1,p->gcpara1_count*paramargin,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(irecv1,p->gcpara1_count*paramargin,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
-    }
-
-    if(p->gcpara4_count>0)
-    {
-	MPI_Isend(isend4,p->gcpara4_count*paramargin,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(irecv4,p->gcpara4_count*paramargin,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
-    }
-
-    if(p->gcpara3_count>0)
-    {
-	MPI_Isend(isend3,p->gcpara3_count*paramargin,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(irecv3,p->gcpara3_count*paramargin,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
-    }
-
-    if(p->gcpara2_count>0)
-    {
-	MPI_Isend(isend2,p->gcpara2_count*paramargin,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(irecv2,p->gcpara2_count*paramargin,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
-    }
-
-    if(p->gcpara5_count>0)
-    {
-	MPI_Isend(isend5,p->gcpara5_count*paramargin,MPI_INT,p->nb5,tag5,mpi_comm,&sreq5);
-	MPI_Irecv(irecv5,p->gcpara5_count*paramargin,MPI_INT,p->nb5,tag6,mpi_comm,&rreq5);
-    }
-
-    if(p->gcpara6_count>0)
-    {
-	MPI_Isend(isend6,p->gcpara6_count*paramargin,MPI_INT,p->nb6,tag6,mpi_comm,&sreq6);
-	MPI_Irecv(irecv6,p->gcpara6_count*paramargin,MPI_INT,p->nb6,tag5,mpi_comm,&rreq6);
-    }
-
-//  WAIT
-
-    gcwait(p);
+    Sendrecv_int(p->gcpara1_count*paramargin,p->gcpara2_count*paramargin,p->gcpara3_count*paramargin,p->gcpara4_count*paramargin,p->gcpara5_count*paramargin,p->gcpara6_count*paramargin);
 
 //  FILL RECEIVE
 
