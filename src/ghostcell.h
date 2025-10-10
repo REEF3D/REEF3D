@@ -205,7 +205,7 @@ public:
     void allgatherv_int(int *, int, int *, int*, int*);
     void gatherv_double(double *, int, double *, int*, int*);
     void bcast_int(int*, int);
-    void bcast_double(double *, int);
+    void bcast_double(double *, int, int=0);
     //Utilities
     void walldistance(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*,field&);
 	void walld_inflow(lexer*,fdm*,ghostcell*,double*);
