@@ -114,11 +114,11 @@ void mooring_dynamic::ini_parallel(lexer *p, ghostcell *pgc)
 	
 	for (int i = 0; i < p->mpi_size; i++)
 	{
-		MPI_Bcast(&xstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&xend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&ystart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&yend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&zstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+		pgc->bcast_double(&xstart[i],1,i);
+		pgc->bcast_double(&xend[i],1,i);
+		pgc->bcast_double(&ystart[i],1,i);
+		pgc->bcast_double(&yend[i],1,i);
+		pgc->bcast_double(&zstart[i],1,i);
+		pgc->bcast_double(&zend[i],1,i);
 	}
 }
