@@ -194,11 +194,6 @@ void ghostcell::dgcslini2(lexer* p)
     		
 }
 
-void ghostcell::dgcslini3(lexer* p)
-{
-		
-}
-
 void ghostcell::dgcslini4(lexer* p)
 {
     count=0;

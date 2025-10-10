@@ -62,35 +62,7 @@ void ghostcell::gcwait(lexer* p)
     }
 }
 
-void ghostcell::gcwait7(lexer* p)
-{
-	if(p->gcx7_count[0]>0)
-    {
-    MPI_Wait(&sreq1,&status);
-	MPI_Wait(&rreq1,&status);
-    }
-
-    if(p->gcx7_count[3]>0)
-    {
-    MPI_Wait(&sreq4,&status);
-	MPI_Wait(&rreq4,&status);
-    }
-
-    if(p->gcx7_count[2]>0)
-    {
-	MPI_Wait(&sreq3,&status);
-	MPI_Wait(&rreq3,&status);
-    }
-
-    if(p->gcx7_count[1]>0)
-    {
-    MPI_Wait(&sreq2,&status);
-	MPI_Wait(&rreq2,&status);
-    }
-
-}
-
 void ghostcell::gcsync()
 {
-     MPI_Barrier(mpi_comm);
+    MPI_Barrier(mpi_comm);
 }

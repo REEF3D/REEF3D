@@ -40,10 +40,6 @@ ghostcell::ghostcell(int& argc, char **argv,lexer *pp):size(15),tag1(1),tag2(2),
 	mpi_comm = MPI_COMM_WORLD;
 }
 
-ghostcell::~ghostcell()
-{
-}
-
 void ghostcell::mpi_check(lexer* p)
 {
     int check=1;

@@ -80,32 +80,6 @@ void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
     f.ggcpol(p);
 }
 
-void ghostcell::gcsl_start3(lexer *p, slice &f, int gcv)
-{
-    starttime=timer();
-    QQGCSL3LOOP
-	gcsldistro3(p,f,p->gcbsl3[qq][0], p->gcbsl3[qq][1], p->gcbsl3[qq][5], p->gcdsl3[qq], gcv, p->gcbsl3[qq][4], p->gcbsl3[qq][3]);
-	endtime=timer();
-	p->gctime+=endtime-starttime;
-
-	//  MPI Boundary Swap
-    if(p->M10>0)
-    {
-    starttime=timer();
-	gcslparax(p,f,3);
-	gcslparacox(p,f,gcv);
-	gcslparacox(p,f,gcv);
-	endtime=timer();
-	p->xtime+=endtime-starttime;
-    }
-
-    if(p->Y40==1  || p->Y40==3)
-    dgcslpol4(p,f);
-
-    if(p->Y40==2  || p->Y40==3)
-    f.ggcpol(p);
-}
-
 void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
 {
 	starttime=timer();

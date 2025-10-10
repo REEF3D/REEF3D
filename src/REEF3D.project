@@ -2492,9 +2492,7 @@
         <File Name="gc_startV.cpp"/>
         <File Name="gc_dirichlet-para-reflect.cpp"/>
         <File Name="gc_dirichlet-ortho-reflect.cpp"/>
-        <File Name="gc_kinematic_fsf.cpp"/>
         <File Name="gc_nhpress.cpp"/>
-        <File Name="gc_patchBC.cpp"/>
         <File Name="gc_periodic.cpp"/>
         <File Name="gc_heat.cpp"/>
         <File Name="gc_debug.cpp"/>
@@ -2508,11 +2506,7 @@
         <File Name="gc_dirichlet-ortho.cpp"/>
         <File Name="gc_dirichlet-para.cpp"/>
         <File Name="gc_extend.cpp"/>
-        <File Name="gc_extend_all.cpp"/>
         <File Name="gc_imagepoint.cpp"/>
-        <File Name="gc_inflowbc.cpp"/>
-        <File Name="gc_largeval.cpp"/>
-        <File Name="gc_largevaladd.cpp"/>
         <File Name="gc_neumann_all.cpp"/>
         <File Name="gc_noslip.cpp"/>
         <File Name="gc_potential.cpp"/>
@@ -2522,11 +2516,6 @@
         <File Name="gc_gravity_press.cpp"/>
         <File Name="gc_lsm.cpp"/>
         <File Name="gc_neumann.cpp"/>
-        <File Name="gc_nse1.cpp"/>
-        <File Name="gc_nse2.cpp"/>
-        <File Name="gc_nse3.cpp"/>
-        <File Name="gc_nse4.cpp"/>
-        <File Name="gc_gcb_generic.cpp"/>
         <File Name="gc_sommerfeld.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flag">
@@ -2534,7 +2523,6 @@
         <File Name="gc_buildflag.cpp"/>
         <File Name="gc_flagbase.cpp"/>
         <File Name="gc_flagfield.cpp"/>
-        <File Name="gc_minmax.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
         <File Name="gcx_parax4a_sum.cpp"/>
@@ -2550,7 +2538,6 @@
         <File Name="gcx_flagx7.cpp"/>
         <File Name="gcx_parax7co.cpp"/>
         <File Name="gcx_parax7.cpp"/>
-        <File Name="gcx_sigmax.cpp"/>
         <File Name="gcx_collective.cpp"/>
         <File Name="gcx_flagx.cpp"/>
         <File Name="gcx_global.cpp"/>
@@ -2565,7 +2552,6 @@
         <File Name="gcx_crs.cpp"/>
         <File Name="gcx_facenbx.cpp"/>
         <File Name="gcx_rownum.cpp"/>
-        <File Name="gcx_parax_test.cpp"/>
         <File Name="gcx_internal.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid">
@@ -2591,7 +2577,6 @@
         <File Name="gcxsl_paracox.cpp"/>
         <File Name="gcsl_epol1.cpp"/>
         <File Name="gcsl_epol2.cpp"/>
-        <File Name="gcsl_epol3.cpp"/>
         <File Name="gcsl_epol4.cpp"/>
         <File Name="gcsl_epol4a.cpp"/>
         <File Name="gcxsl_flagx.cpp"/>
