@@ -294,21 +294,18 @@ private:
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
 
-    const int size;
     const int tag1,tag2,tag3,tag4,tag5,tag6;
 	int margin, paramargin;
-	double  y[15],dP[15], x[15],pos[15];
-	double val[10];
+	double y[15],x[15],pos[15];
 	int m,q,qq,qn,g;
 	int bc_label;
 	double wallvalue,x_ip,val_ip,gamma;
-	int orderdir,orderdir2,orderext,orderext2,orderpress;
-	double Qi,weight;
+	int orderdir,orderdir2,orderext,orderext2;
+	double weight;
 	int close;
 	double dist;
     int count,check;
     double starttime,endtime;
-    const double eps;
     int offset,ys;
     int gcval_topodist;
 	int gclabel_outflow;
@@ -327,17 +324,13 @@ private:
 
 // PARALLEL
 
-
 	MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
 	MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
 
 	MPI_Request sreq[6],rreq[6];
 
-
 	MPI_Status status;
 
-
-	int tag;
 	double **send,**recv;
 	double *send1,*send2,*send3,*send4,*send5,*send6;
 	double *recv1,*recv2,*recv3,*recv4,*recv5,*recv6;
@@ -347,7 +340,6 @@ private:
 	double recvsum,recvmin,recvmax;
 	int recvisum,recvimin,recvimax;
 	int awa_lable,pressout_lable,pressin_lable;
-	const int gcx;
 	int gcx_count[6];
 
 

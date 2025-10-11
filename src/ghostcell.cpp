@@ -27,7 +27,7 @@ Author: Hans Bihs, Alexander Hanke
 #include"fdm_nhf.h"
 #include<sstream>
 
-ghostcell::ghostcell(int& argc, char **argv, lexer *p):size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6)
+ghostcell::ghostcell(int& argc, char **argv, lexer *p): tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6)
 {
     MPI_Init(&argc,&argv);
     MPI_Comm_dup(MPI_COMM_WORLD,&mpi_comm);
@@ -66,10 +66,8 @@ void ghostcell::gcini(lexer* p)
     margin=p->margin;
 	paramargin=p->margin;
     gamma=p->B29;
-    Qi=p->W10;
     orderext=2;
     orderext2=2;
-    orderpress=2;
     orderdir2=2;
     
     if(p->B23==1)
@@ -84,19 +82,12 @@ void ghostcell::gcini(lexer* p)
     jmax=p->jmax;
     kmin=p->kmin;
     kmax=p->kmax;
-    
-    originx=p->originx;
-    originy=p->originy;
-    originz=p->originz;
 	
-    for(m=0;m<size;m++)
-	{
-	y[m]=0.0;
-	x[m]=0.0;
-	}
-
-    tag=0;    
-	
+    for(m=0;m<15;m++)
+    {
+        y[m]=0.0;
+        x[m]=0.0;
+    }
 
 	gcx_count[0] = p->gcpara1_count*paramargin + p->gcparaco1_count*paramargin;
 	gcx_count[1] = p->gcpara2_count*paramargin + p->gcparaco2_count*paramargin;
@@ -287,11 +278,6 @@ void ghostcell::gcini(lexer* p)
     gclabel_u=5;
     gclabel_v=5;
     }
-    
-    
-	
-
-	margin=p->margin;
 	
 	nb[0] = p->nb1;
 	nb[1] = p->nb2;
@@ -360,7 +346,7 @@ void ghostcell::gcini(lexer* p)
     for(int d=0; d<3; ++d)
     {
         if(dims[d] <= 0)
-        dims[d] = 0;
+            dims[d] = 0;
     }
 
     MPI_Dims_create(p->mpi_size, 3, dims);
@@ -394,10 +380,8 @@ void ghostcell::gcini(lexer* p)
         const int expected = (nb[dir] == -2) ? MPI_PROC_NULL : nb[dir];
         if (cart_nb[dir] != expected) {
             error = true;
-            std::ostringstream msg;
-            msg << "Rank " << p->mpirank << " mismatch dir " << dir
-                << " cart=" << cart_nb[dir] << " nb=" << expected;
-            std::cerr << msg.str() << std::endl;
+            std::cerr << "Rank " << p->mpirank << " mismatch dir " << dir
+                      << " cart=" << cart_nb[dir] << " nb=" << expected << std::endl;
         }
     }
     if(error)
@@ -414,7 +398,6 @@ void ghostcell::fdm2D_update(fdm2D *bb)
     b=bb;
 }
 
-
 void ghostcell::fdm_fnpf_update(fdm_fnpf *cc)
 {
     c=cc;
@@ -429,7 +412,6 @@ void ghostcell::fdm_update(fdm *aa)
 {
     a=aa;
 }
-
 
 void ghostcell::final(bool error)
 {
