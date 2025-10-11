@@ -27,17 +27,15 @@ Author: Hans Bihs, Alexander Hanke
 #include"fdm_nhf.h"
 #include<sstream>
 
-ghostcell::ghostcell(int& argc, char **argv,lexer *pp):size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6),eps(1.0e-10),
-														gcx(1)
-{  
-    p=pp;
-    
-	MPI_Init(&argc,&argv);
-    
-    MPI_Comm_rank(MPI_COMM_WORLD,&p->mpirank);
-	MPI_Comm_size(MPI_COMM_WORLD,&p->mpi_size);	
-	
-	mpi_comm = MPI_COMM_WORLD;
+ghostcell::ghostcell(int& argc, char **argv, lexer *p):size(15),tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6)
+{
+    MPI_Init(&argc,&argv);
+    MPI_Comm_dup(MPI_COMM_WORLD,&mpi_comm);
+
+    MPI_Comm_rank(mpi_comm,&p->mpirank);
+    MPI_Comm_size(mpi_comm,&p->mpi_size);
+
+    ghostcell::p=p;
 }
 
 void ghostcell::mpi_check(lexer* p)
@@ -373,7 +371,7 @@ void ghostcell::gcini(lexer* p)
         MPI_Comm_free(&cart_comm);
     }
 
-    MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, false, &cart_comm);
+    MPI_Cart_create(mpi_comm, 3, dims, periods, false, &cart_comm);
 
     int cart_nb[6] = {MPI_PROC_NULL};
     int cart_neg = MPI_PROC_NULL;
@@ -436,9 +434,9 @@ void ghostcell::fdm_update(fdm *aa)
 void ghostcell::final(bool error)
 {
     if(cart_comm != MPI_COMM_NULL)
-    {
         MPI_Comm_free(&cart_comm);
-    }
-       MPI_Finalize();
-       exit(error);
+    if(mpi_comm != MPI_COMM_NULL)
+        MPI_Comm_free(&mpi_comm);
+    MPI_Finalize();
+    exit(error);
 }
