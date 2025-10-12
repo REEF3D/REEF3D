@@ -266,8 +266,6 @@ void ghostcell::gcini(lexer* p)
     p->Darray(dsend,6,p->gcpara_sum*9);
     p->Darray(drecv,6,p->gcpara_sum*9);
 
-    p->Darray(trecv,p->gcpara_sum*9*6);
-
     int dims[3] = {p->mx, p->my, p->mz};
     for(int d=0; d<3; ++d)
     {

@@ -313,7 +313,6 @@ private:
     const int stag[6],rtag[6];
 	int **isend,**irecv;
 	double **dsend,**drecv;
-	double *trecv;
 
 // PARALLEL
 
