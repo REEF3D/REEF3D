@@ -24,17 +24,10 @@ Author: Hans Bihs
 
 void ghostcell::gcpartnum(int sendnum[6], int recvnum[6])
 {
-    //  SEND / RECEIVE
-    for(int qn=0;qn<6;++qn)
-    {
-        MPI_Isend(&sendnum[qn],1,MPI_INT,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
-        MPI_Irecv(&recvnum[qn],1,MPI_INT,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
-    }
+    const void* send_ptrs[6] = {&(sendnum[0]), &(sendnum[1]), &(sendnum[2]), &(sendnum[3]), &(sendnum[4]), &(sendnum[5])};
+    void* recv_ptrs[6] = {&(recvnum[0]), &(recvnum[1]), &(recvnum[2]), &(recvnum[3]), &(recvnum[4]), &(recvnum[5])};
 
-    //  WAIT
-    for(int qn=0;qn<6;++qn)
-    {
-        MPI_Wait(&sreq[qn],&status);
-        MPI_Wait(&rreq[qn],&status);
-    }
+    int counts[6] = {1,1,1,1,1,1};
+
+    Sendrecv(send_ptrs, counts, recv_ptrs, counts, MPI_INT);
 }
