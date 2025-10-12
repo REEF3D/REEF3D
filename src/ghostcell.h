@@ -286,6 +286,7 @@ private:
 
     void Sendrecv_double(int,int,int,int,int,int);
     void Sendrecv_int(int,int,int,int,int,int);
+    void Sendrecv(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
 
