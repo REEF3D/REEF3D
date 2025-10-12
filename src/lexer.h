@@ -199,7 +199,6 @@ public:
 	int stencil;	
 
 	// Solver
-	int *colnum;
     int *range_col4,*range_row4,*range_col7,*range_row7;
 	int *sizeM1,*sizeM2,*sizeM3,*sizeM4,*sizeM4a,*sizeM6,*sizeM9;
     int *sizeS1,*sizeS2,*sizeS4; 

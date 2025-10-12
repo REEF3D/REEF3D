@@ -24,7 +24,7 @@ Author: Hans Bihs
 #define GHOSTCELL_H_
 
 #include<mpi.h>
-#include"boundarycheck.h"
+#include"increment.h"
 
 class fdm;
 class fdm2D;
@@ -37,17 +37,13 @@ class slice;
 class sliceint;
 class vec;
 class vec2D;
-class cpt;
-class cpt2D;
 class reini;
 class convection;
 class ioflow;
-class tracers_obj;
-class particles_obj;
 
 using namespace std;
 
-class ghostcell : public boundarycheck
+class ghostcell : public increment
 {
 public:
 	ghostcell(int&,char**,lexer*);
@@ -320,8 +316,6 @@ private:
 	double **dsend,**drecv;
 	double *trecv;
 
-    double originx,originy,originz;
-
 // PARALLEL
 
 	MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
@@ -331,7 +325,6 @@ private:
 
 	MPI_Status status;
 
-	double **send,**recv;
 	double *send1,*send2,*send3,*send4,*send5,*send6;
 	double *recv1,*recv2,*recv3,*recv4,*recv5,*recv6;
 	int *isend1,*isend2,*isend3,*isend4,*isend5,*isend6;
@@ -340,20 +333,12 @@ private:
 	double recvsum,recvmin,recvmax;
 	int recvisum,recvimin,recvimax;
 	int awa_lable,pressout_lable,pressin_lable;
-	int gcx_count[6];
 
 
     double v1,v2,v3,v4;
     double wa,wb;
     double x1,x2;
     double value;
-
-// 6DOF
-	int ***gcbfb,*gcbfb_count;
-	int ***gcxfb,*gcxfb_count;
-// Solid pressure
-    int ***gcbsd,*gcbsd_count;
-    int ***gcxsd,*gcxsd_count;
 
     lexer *p;
     fdm2D *b;
