@@ -85,8 +85,8 @@ public:
 
 // particle
 	void parapls(lexer*,double**,double**,int*,int*);
-    void gcpartnum(lexer*,int*,int*);
-    void gcpartx(lexer*,int*,int*,double**,double**);
+    void gcpartnum(int[6],int[6]);
+    void gcpartx(int[6],int[6],double*[6],double*[6]);
 
 //  Update
 	void facenbx(lexer*, fieldint&, int*);

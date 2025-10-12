@@ -21,21 +21,20 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
-#include"lexer.h"
 
-void ghostcell::gcpartnum(lexer *p, int *sendnum, int *recvnum)
+void ghostcell::gcpartnum(int sendnum[6], int recvnum[6])
 {
     //  SEND / RECEIVE
     for(int qn=0;qn<6;++qn)
-	{
-	MPI_Isend(&sendnum[qn],1,MPI_INT,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
-	MPI_Irecv(&recvnum[qn],1,MPI_INT,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
+    {
+        MPI_Isend(&sendnum[qn],1,MPI_INT,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
+        MPI_Irecv(&recvnum[qn],1,MPI_INT,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
     }
 
     //  WAIT
-	for(int qn=0;qn<6;++qn)
-	{
-    MPI_Wait(&sreq[qn],&status);
-	MPI_Wait(&rreq[qn],&status);
-	}
+    for(int qn=0;qn<6;++qn)
+    {
+        MPI_Wait(&sreq[qn],&status);
+        MPI_Wait(&rreq[qn],&status);
+    }
 }
