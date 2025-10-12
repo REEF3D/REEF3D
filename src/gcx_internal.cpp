@@ -30,38 +30,38 @@ void ghostcell::Sendrecv_double(int count1, int count2, int count3, int count4, 
         // Fallback to point-to-point exchanges if the cartesian communicator is unavailable.
         if(count1>0)
         {
-            MPI_Isend(send1,count1,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
-            MPI_Irecv(recv1,count1,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
+            MPI_Isend(send1,count1,MPI_DOUBLE,nb[0],stag[0],mpi_comm,&sreq1);
+            MPI_Irecv(recv1,count1,MPI_DOUBLE,nb[0],rtag[0],mpi_comm,&rreq1);
         }
 
         if(count4>0)
         {
-            MPI_Isend(send4,count4,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
-            MPI_Irecv(recv4,count4,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
+            MPI_Isend(send4,count4,MPI_DOUBLE,nb[3],stag[3],mpi_comm,&sreq4);
+            MPI_Irecv(recv4,count4,MPI_DOUBLE,nb[3],rtag[3],mpi_comm,&rreq4);
         }
 
         if(count3>0)
         {
-            MPI_Isend(send3,count3,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
-            MPI_Irecv(recv3,count3,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
+            MPI_Isend(send3,count3,MPI_DOUBLE,nb[2],stag[2],mpi_comm,&sreq3);
+            MPI_Irecv(recv3,count3,MPI_DOUBLE,nb[2],rtag[2],mpi_comm,&rreq3);
         }
 
         if(count2>0)
         {
-            MPI_Isend(send2,count2,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
-            MPI_Irecv(recv2,count2,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
+            MPI_Isend(send2,count2,MPI_DOUBLE,nb[1],stag[1],mpi_comm,&sreq2);
+            MPI_Irecv(recv2,count2,MPI_DOUBLE,nb[1],rtag[1],mpi_comm,&rreq2);
         }
 
         if(count5>0)
         {
-            MPI_Isend(send5,count5,MPI_DOUBLE,p->nb5,tag5,mpi_comm,&sreq5);
-            MPI_Irecv(recv5,count5,MPI_DOUBLE,p->nb5,tag6,mpi_comm,&rreq5);
+            MPI_Isend(send5,count5,MPI_DOUBLE,nb[4],stag[4],mpi_comm,&sreq5);
+            MPI_Irecv(recv5,count5,MPI_DOUBLE,nb[4],rtag[4],mpi_comm,&rreq5);
         }
 
         if(count6>0)
         {
-            MPI_Isend(send6,count6,MPI_DOUBLE,p->nb6,tag6,mpi_comm,&sreq6);
-            MPI_Irecv(recv6,count6,MPI_DOUBLE,p->nb6,tag5,mpi_comm,&rreq6);
+            MPI_Isend(send6,count6,MPI_DOUBLE,nb[5],stag[5],mpi_comm,&sreq6);
+            MPI_Irecv(recv6,count6,MPI_DOUBLE,nb[5],rtag[5],mpi_comm,&rreq6);
         }
 
         if(count1>0)
@@ -173,38 +173,38 @@ void ghostcell::Sendrecv_int(int count1, int count2, int count3, int count4, int
         // Fallback to point-to-point exchanges if the cartesian communicator is unavailable.
         if(count1>0)
         {
-            MPI_Isend(isend1,count1,MPI_INT,p->nb1,tag1,mpi_comm,&sreq1);
-            MPI_Irecv(irecv1,count1,MPI_INT,p->nb1,tag4,mpi_comm,&rreq1);
+            MPI_Isend(isend1,count1,MPI_INT,nb[0],stag[0],mpi_comm,&sreq1);
+            MPI_Irecv(irecv1,count1,MPI_INT,nb[0],rtag[0],mpi_comm,&rreq1);
         }
 
         if(count4>0)
         {
-            MPI_Isend(isend4,count4,MPI_INT,p->nb4,tag4,mpi_comm,&sreq4);
-            MPI_Irecv(irecv4,count4,MPI_INT,p->nb4,tag1,mpi_comm,&rreq4);
+            MPI_Isend(isend4,count4,MPI_INT,nb[3],stag[3],mpi_comm,&sreq4);
+            MPI_Irecv(irecv4,count4,MPI_INT,nb[3],rtag[3],mpi_comm,&rreq4);
         }
 
         if(count3>0)
         {
-            MPI_Isend(isend3,count3,MPI_INT,p->nb3,tag3,mpi_comm,&sreq3);
-            MPI_Irecv(irecv3,count3,MPI_INT,p->nb3,tag2,mpi_comm,&rreq3);
+            MPI_Isend(isend3,count3,MPI_INT,nb[2],stag[2],mpi_comm,&sreq3);
+            MPI_Irecv(irecv3,count3,MPI_INT,nb[2],rtag[2],mpi_comm,&rreq3);
         }
 
         if(count2>0)
         {
-            MPI_Isend(isend2,count2,MPI_INT,p->nb2,tag2,mpi_comm,&sreq2);
-            MPI_Irecv(irecv2,count2,MPI_INT,p->nb2,tag3,mpi_comm,&rreq2);
+            MPI_Isend(isend2,count2,MPI_INT,nb[1],stag[1],mpi_comm,&sreq2);
+            MPI_Irecv(irecv2,count2,MPI_INT,nb[1],rtag[1],mpi_comm,&rreq2);
         }
 
         if(count5>0)
         {
-            MPI_Isend(isend5,count5,MPI_INT,p->nb5,tag5,mpi_comm,&sreq5);
-            MPI_Irecv(irecv5,count5,MPI_INT,p->nb5,tag6,mpi_comm,&rreq5);
+            MPI_Isend(isend5,count5,MPI_INT,nb[4],stag[4],mpi_comm,&sreq5);
+            MPI_Irecv(irecv5,count5,MPI_INT,nb[4],rtag[4],mpi_comm,&rreq5);
         }
 
         if(count6>0)
         {
-            MPI_Isend(isend6,count6,MPI_INT,p->nb6,tag6,mpi_comm,&sreq6);
-            MPI_Irecv(irecv6,count6,MPI_INT,p->nb6,tag5,mpi_comm,&rreq6);
+            MPI_Isend(isend6,count6,MPI_INT,nb[5],stag[5],mpi_comm,&sreq6);
+            MPI_Irecv(irecv6,count6,MPI_INT,nb[5],rtag[5],mpi_comm,&rreq6);
         }
 
         if(count1>0)
