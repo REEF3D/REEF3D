@@ -25,84 +25,6 @@ Author: Alexander Hanke
 
 void ghostcell::Sendrecv_double(int count1, int count2, int count3, int count4, int count5, int count6)
 {
-    if(cart_comm == MPI_COMM_NULL)
-    {
-        // Fallback to point-to-point exchanges if the cartesian communicator is unavailable.
-        if(count1>0)
-        {
-            MPI_Isend(send1,count1,MPI_DOUBLE,nb[0],stag[0],mpi_comm,&sreq1);
-            MPI_Irecv(recv1,count1,MPI_DOUBLE,nb[0],rtag[0],mpi_comm,&rreq1);
-        }
-
-        if(count4>0)
-        {
-            MPI_Isend(send4,count4,MPI_DOUBLE,nb[3],stag[3],mpi_comm,&sreq4);
-            MPI_Irecv(recv4,count4,MPI_DOUBLE,nb[3],rtag[3],mpi_comm,&rreq4);
-        }
-
-        if(count3>0)
-        {
-            MPI_Isend(send3,count3,MPI_DOUBLE,nb[2],stag[2],mpi_comm,&sreq3);
-            MPI_Irecv(recv3,count3,MPI_DOUBLE,nb[2],rtag[2],mpi_comm,&rreq3);
-        }
-
-        if(count2>0)
-        {
-            MPI_Isend(send2,count2,MPI_DOUBLE,nb[1],stag[1],mpi_comm,&sreq2);
-            MPI_Irecv(recv2,count2,MPI_DOUBLE,nb[1],rtag[1],mpi_comm,&rreq2);
-        }
-
-        if(count5>0)
-        {
-            MPI_Isend(send5,count5,MPI_DOUBLE,nb[4],stag[4],mpi_comm,&sreq5);
-            MPI_Irecv(recv5,count5,MPI_DOUBLE,nb[4],rtag[4],mpi_comm,&rreq5);
-        }
-
-        if(count6>0)
-        {
-            MPI_Isend(send6,count6,MPI_DOUBLE,nb[5],stag[5],mpi_comm,&sreq6);
-            MPI_Irecv(recv6,count6,MPI_DOUBLE,nb[5],rtag[5],mpi_comm,&rreq6);
-        }
-
-        if(count1>0)
-        {
-            MPI_Wait(&sreq1,&status);
-            MPI_Wait(&rreq1,&status);
-        }
-
-        if(count4>0)
-        {
-            MPI_Wait(&sreq4,&status);
-            MPI_Wait(&rreq4,&status);
-        }
-
-        if(count3>0)
-        {
-            MPI_Wait(&sreq3,&status);
-            MPI_Wait(&rreq3,&status);
-        }
-
-        if(count2>0)
-        {
-            MPI_Wait(&sreq2,&status);
-            MPI_Wait(&rreq2,&status);
-        }
-
-        if(count5>0)
-        {
-            MPI_Wait(&sreq5,&status);
-            MPI_Wait(&rreq5,&status);
-        }
-
-        if(count6>0)
-        {
-            MPI_Wait(&sreq6,&status);
-            MPI_Wait(&rreq6,&status);
-        }
-
-        return;
-    }
-
     const double* send_ptrs[6] = {send1, send4, send3, send2, send5, send6};
     double* recv_ptrs[6] = {recv1, recv4, recv3, recv2, recv5, recv6};
 
@@ -123,6 +45,25 @@ void ghostcell::Sendrecv_double(int count1, int count2, int count3, int count4, 
         count5,
         count6
     };
+
+    if(cart_comm == MPI_COMM_NULL)
+    {
+        for(int qn=0; qn<6; ++qn)
+            if(sendcounts[qn]>0)
+            {
+                MPI_Isend(send_ptrs[qn],sendcounts[qn],MPI_DOUBLE,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
+                MPI_Irecv(recv_ptrs[qn],recvcounts[qn],MPI_DOUBLE,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
+            }
+
+        for(int qn=0;qn<6;++qn)
+            if(sendcounts[qn]>0)
+            {
+                MPI_Wait(&sreq[qn],&status);
+                MPI_Wait(&rreq[qn],&status);
+            }
+
+        return;
+    }
 
     int neighbors[6] = {MPI_PROC_NULL};
     int cart_neg = MPI_PROC_NULL;
@@ -168,84 +109,6 @@ void ghostcell::Sendrecv_double(int count1, int count2, int count3, int count4, 
 
 void ghostcell::Sendrecv_int(int count1, int count2, int count3, int count4, int count5, int count6)
 {
-    if(cart_comm == MPI_COMM_NULL)
-    {
-        // Fallback to point-to-point exchanges if the cartesian communicator is unavailable.
-        if(count1>0)
-        {
-            MPI_Isend(isend1,count1,MPI_INT,nb[0],stag[0],mpi_comm,&sreq1);
-            MPI_Irecv(irecv1,count1,MPI_INT,nb[0],rtag[0],mpi_comm,&rreq1);
-        }
-
-        if(count4>0)
-        {
-            MPI_Isend(isend4,count4,MPI_INT,nb[3],stag[3],mpi_comm,&sreq4);
-            MPI_Irecv(irecv4,count4,MPI_INT,nb[3],rtag[3],mpi_comm,&rreq4);
-        }
-
-        if(count3>0)
-        {
-            MPI_Isend(isend3,count3,MPI_INT,nb[2],stag[2],mpi_comm,&sreq3);
-            MPI_Irecv(irecv3,count3,MPI_INT,nb[2],rtag[2],mpi_comm,&rreq3);
-        }
-
-        if(count2>0)
-        {
-            MPI_Isend(isend2,count2,MPI_INT,nb[1],stag[1],mpi_comm,&sreq2);
-            MPI_Irecv(irecv2,count2,MPI_INT,nb[1],rtag[1],mpi_comm,&rreq2);
-        }
-
-        if(count5>0)
-        {
-            MPI_Isend(isend5,count5,MPI_INT,nb[4],stag[4],mpi_comm,&sreq5);
-            MPI_Irecv(irecv5,count5,MPI_INT,nb[4],rtag[4],mpi_comm,&rreq5);
-        }
-
-        if(count6>0)
-        {
-            MPI_Isend(isend6,count6,MPI_INT,nb[5],stag[5],mpi_comm,&sreq6);
-            MPI_Irecv(irecv6,count6,MPI_INT,nb[5],rtag[5],mpi_comm,&rreq6);
-        }
-
-        if(count1>0)
-        {
-            MPI_Wait(&sreq1,&status);
-            MPI_Wait(&rreq1,&status);
-        }
-
-        if(count4>0)
-        {
-            MPI_Wait(&sreq4,&status);
-            MPI_Wait(&rreq4,&status);
-        }
-
-        if(count3>0)
-        {
-            MPI_Wait(&sreq3,&status);
-            MPI_Wait(&rreq3,&status);
-        }
-
-        if(count2>0)
-        {
-            MPI_Wait(&sreq2,&status);
-            MPI_Wait(&rreq2,&status);
-        }
-
-        if(count5>0)
-        {
-            MPI_Wait(&sreq5,&status);
-            MPI_Wait(&rreq5,&status);
-        }
-
-        if(count6>0)
-        {
-            MPI_Wait(&sreq6,&status);
-            MPI_Wait(&rreq6,&status);
-        }
-
-        return;
-    }
-
     const int* send_ptrs[6] = {isend1, isend4, isend3, isend2, isend5, isend6};
     int* recv_ptrs[6] = {irecv1, irecv4, irecv3, irecv2, irecv5, irecv6};
 
@@ -266,6 +129,25 @@ void ghostcell::Sendrecv_int(int count1, int count2, int count3, int count4, int
         count5,
         count6
     };
+
+    if(cart_comm == MPI_COMM_NULL)
+    {
+        for(int qn=0; qn<6; ++qn)
+            if(sendcounts[qn]>0)
+            {
+                MPI_Isend(send_ptrs[qn],sendcounts[qn],MPI_INT,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
+                MPI_Irecv(recv_ptrs[qn],recvcounts[qn],MPI_INT,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
+            }
+
+        for(int qn=0;qn<6;++qn)
+            if(sendcounts[qn]>0)
+            {
+                MPI_Wait(&sreq[qn],&status);
+                MPI_Wait(&rreq[qn],&status);
+            }
+
+        return;
+    }
 
     int neighbors[6] = {MPI_PROC_NULL};
     int cart_neg = MPI_PROC_NULL;
