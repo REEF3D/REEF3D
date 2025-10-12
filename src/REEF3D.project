@@ -2546,7 +2546,6 @@
         <File Name="gcx_parax4a.cpp"/>
         <File Name="gcx_pls.cpp"/>
         <File Name="gcx_update.cpp"/>
-        <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
         <File Name="gcx_verticalmax.cpp"/>
         <File Name="gcx_crs.cpp"/>

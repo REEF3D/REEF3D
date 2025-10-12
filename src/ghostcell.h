@@ -165,7 +165,6 @@ public:
     int globalimin(int);
     double timesync(double);
     void globalctrl(lexer*);
-    void gcwait(lexer*);
     //Utilities
     void walldistance(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*,field&);
 
