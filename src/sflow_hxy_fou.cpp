@@ -100,7 +100,7 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
         hx(i,j) = eta(i,j) + depth(i,j);
         
         if(ivel1<-eps)
-        hx(i,j) = eta(i+1,j) + depth(i,j+1);
+        hx(i,j) = eta(i+1,j) + depth(i+1,j);
         
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
