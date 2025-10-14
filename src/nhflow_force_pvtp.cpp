@@ -21,19 +21,10 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_force.h"
-#include<string>
 #include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
 
-void nhflow_force::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_force::pvtp(lexer *p, int num)
 {
-    int num=0;
-    if(p->P15==1)
-        num = forceprintcount;
-    if(p->P15==2)
-        num = p->count;
-
     sprintf(name,"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i.pvtp",ID,num);
 
     ofstream result;
@@ -58,9 +49,10 @@ void nhflow_force::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc)
     result<<"<DataArray type=\"Int32\" Name=\"offsets\"/>\n";
     result<<"</Polys>\n";
 
+    char pname[100];
     for(n=0; n<p->M10; ++n)
     {
-        piecename(p,d,pgc,n);
+        sprintf(pname,"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 
@@ -68,15 +60,4 @@ void nhflow_force::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc)
     result<<"</VTKFile>\n";
 
     result.close();
-}
-
-void nhflow_force::piecename(lexer* p, fdm_nhf *d,  ghostcell* pgc, int n)
-{
-    int num=0;
-    if(p->P15==1)
-        num = forceprintcount;
-    if(p->P15==2)
-        num = p->count;
-
-    sprintf(pname,"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
 }
