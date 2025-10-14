@@ -100,83 +100,83 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
 
     //  XYZ
     iin=sizeof(float)*vertice_num*3;
-    result.write((char*)&iin, sizeof (int));
+    result.write((char*)&iin, sizeof(int));
     for(n=0;n<vertice_num;++n)
     {
         ffn=ccpt[n][0];
-        result.write((char*)&ffn, sizeof (float));
+        result.write((char*)&ffn, sizeof(float));
 
         ffn=ccpt[n][1];
-        result.write((char*)&ffn, sizeof (float));
+        result.write((char*)&ffn, sizeof(float));
 
         ffn=ccpt[n][2];
-        result.write((char*)&ffn, sizeof (float));
+        result.write((char*)&ffn, sizeof(float));
     }
 
     //  Velocity
     iin=sizeof(float)*vertice_num*3;
-    result.write((char*)&iin, sizeof (int));
+    result.write((char*)&iin, sizeof(int));
     for(n=0;n<vertice_num;++n)
     {
         ffn=float(p->ccipol1(a->u,ccpt[n][0],ccpt[n][1],ccpt[n][2]));
-        result.write((char*)&ffn, sizeof (float));
+        result.write((char*)&ffn, sizeof(float));
 
         ffn=float(p->ccipol2(a->v,ccpt[n][0],ccpt[n][1],ccpt[n][2]));
-        result.write((char*)&ffn, sizeof (float));
+        result.write((char*)&ffn, sizeof(float));
 
         ffn=float(p->ccipol3(a->w,ccpt[n][0],ccpt[n][1],ccpt[n][2]));
-        result.write((char*)&ffn, sizeof (float));
+        result.write((char*)&ffn, sizeof(float));
     }
 
     //  Pressure
     iin=sizeof(float)*vertice_num;
-    result.write((char*)&iin, sizeof (int));
+    result.write((char*)&iin, sizeof(int));
     for(n=0;n<vertice_num;++n)
     {
         ffn=float(p->ccipol4(a->press,ccpt[n][0],ccpt[n][1],ccpt[n][2]) - p->pressgage);
-        result.write((char*)&ffn, sizeof (float));
+        result.write((char*)&ffn, sizeof(float));
     }
 
     //  Connectivity POLYGON
     iin=sizeof(int)*polygon_sum;
-    result.write((char*)&iin, sizeof (int));
+    result.write((char*)&iin, sizeof(int));
     for(n=0;n<polygon_num;++n)
     {
         if(numpt[n]==3)
         {
             iin=facet[n][0];
-            result.write((char*)&iin, sizeof (int));
+            result.write((char*)&iin, sizeof(int));
 
             iin=facet[n][1];
-            result.write((char*)&iin, sizeof (int));
+            result.write((char*)&iin, sizeof(int));
 
             iin=facet[n][2];
-            result.write((char*)&iin, sizeof (int));
+            result.write((char*)&iin, sizeof(int));
         }
         else if(numpt[n]==4)
         {
             iin=facet[n][0];
-            result.write((char*)&iin, sizeof (int));
+            result.write((char*)&iin, sizeof(int));
 
             iin=facet[n][1];
-            result.write((char*)&iin, sizeof (int));
+            result.write((char*)&iin, sizeof(int));
 
             iin=facet[n][3];
-            result.write((char*)&iin, sizeof (int));
+            result.write((char*)&iin, sizeof(int));
 
             iin=facet[n][2];
-            result.write((char*)&iin, sizeof (int));
+            result.write((char*)&iin, sizeof(int));
         }
     }
 
     //  Offset of Connectivity
     iin=sizeof(int)*polygon_num;
-    result.write((char*)&iin, sizeof (int));
+    result.write((char*)&iin, sizeof(int));
     iin=0;
     for(n=0;n<polygon_num;++n)
     {
         iin+= numpt[n];
-        result.write((char*)&iin, sizeof (int));
+        result.write((char*)&iin, sizeof(int));
     }
 
     result<<"\n</AppendedData>\n";
