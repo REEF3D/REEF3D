@@ -54,7 +54,7 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
 
-	phxy = new sflow_hxy_weno(p,pBC);
+	phxy = new sflow_hxy_fou(p,pBC);
     
     wd_criterion=p->A244;
     
