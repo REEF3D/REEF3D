@@ -173,7 +173,6 @@ double sflow_weno_flux::fy(lexer *p,fdm2D *b, slice& f, int ipol, double advec)
 	return grad;
 }
 
-
 void sflow_weno_flux::iqmin(lexer *p,fdm2D *b, slice& f, int ipol)
 {	
 	q1 = f(i-2,j);
