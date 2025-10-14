@@ -25,7 +25,7 @@ Author: Hans Bihs
 
 void force::pvtp(lexer* p, int num)
 {
-    sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-%08i-%06i.pvtp",num,ID);
+    sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-%08i-%08i.pvtp",num,ID);
 
     ofstream result;
     result.open(name);
@@ -51,7 +51,7 @@ void force::pvtp(lexer* p, int num)
     char pname[100];
     for(int n=0; n<p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-SOLID-%08i-%i-%06i.vtp",num,ID,n+1);
+        sprintf(pname,"REEF3D-SOLID-%08i-%08i-%06i.vtp",num,ID,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 

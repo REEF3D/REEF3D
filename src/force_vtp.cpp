@@ -62,7 +62,7 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
     if(p->mpirank==0)
         pvtp(p,num);
 
-    sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-00000%i-%08i-%06i.vtp",num,ID,p->mpirank+1);
+    sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-%08i-%08i-%06i.vtp",num,ID,p->mpirank+1);
 
     ofstream result;
     result.open(name, ios::binary);
