@@ -67,44 +67,40 @@ void nhflow_force::print_vtp(lexer* p, fdm_nhf *d, ghostcell *pgc)
     ++n;
     offset[n]=offset[n-1] + 4*polygon_num+ 4;
     ++n;
-    offset[n]=offset[n-1] + 4*polygon_num+ 4;
-    ++n;
     //---------------------------------------------
 
-    //cout<<p->mpirank<<" <Piece NumberOfPoints=\""<<vertice_num<<"\" NumberOfPolys=\""<<polygon_num<<"\">"<<endl;
+    //cout<<p->mpirank<<" <Piece NumberOfPoints=\""<<vertice_num<<"\" NumberOfPolys=\""<<polygon_num<<"\">\n";
 
-    result<<"<?xml version=\"1.0\"?>"<<endl;
-    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-    result<<"<PolyData>"<<endl;
-    result<<"<Piece NumberOfPoints=\""<<vertice_num<<"\" NumberOfPolys=\""<<polygon_num<<"\">"<<endl;
+    result<<"<?xml version=\"1.0\"?>\n";
+    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    result<<"<PolyData>\n";
+    result<<"<Piece NumberOfPoints=\""<<vertice_num<<"\" NumberOfPolys=\""<<polygon_num<<"\">\n";
 
     n=0;
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Points>\n";
+    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"</Points>"<<endl;
+    result<<"</Points>\n";
 
-    result<<"<PointData >"<<endl;
-    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<PointData >\n";
+    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"pressure\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"pressure\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"</PointData>"<<endl;
+    result<<"</PointData>\n";
 
-    result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Polys>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    result<<"</Polys>"<<endl;
+    result<<"</Polys>\n";
 
-    result<<"</Piece>"<<endl;
-    result<<"</PolyData>"<<endl;
+    result<<"</Piece>\n";
+    result<<"</PolyData>\n";
+    result<<"<AppendedData encoding=\"raw\">\n_";
 
     //----------------------------------------------------------------------------
-
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
 
     //  XYZ
     iin=4*vertice_num*3;
@@ -189,17 +185,8 @@ void nhflow_force::print_vtp(lexer* p, fdm_nhf *d, ghostcell *pgc)
         result.write((char*)&iin, sizeof (int));
     }
 
-    //  Cell types
-    iin=4*polygon_num;
-    result.write((char*)&iin, sizeof (int));
-    for(n=0;n<polygon_num;++n)
-    {
-        iin=7;
-        result.write((char*)&iin, sizeof (int));
-    }
-
-    result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
+    result<<"\n</AppendedData>\n";
+    result<<"</VTKFile>\n";
 
     result.close();
 
