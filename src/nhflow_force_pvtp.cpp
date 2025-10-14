@@ -29,64 +29,57 @@ Author: Hans Bihs
 void nhflow_force::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     int num=0;
-
     if(p->P15==1)
-    num = forceprintcount;
-
+        num = forceprintcount;
     if(p->P15==2)
-    num = p->count;
-	
-	sprintf(name,"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i.pvtp",ID,num);
+        num = p->count;
 
-	ofstream result;
-	result.open(name);
+    sprintf(name,"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i.pvtp",ID,num);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
+    ofstream result;
+    result.open(name);
+
+    result<<"<?xml version=\"1.0\"?>"<<endl;
+    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+    result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
 
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
-	
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
-	
-	result<<"<Polys>"<<endl;
+    result<<"<PPoints>"<<endl;
+    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
+    result<<"</PPoints>"<<endl;
+
+    result<<"<PPointData>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+    result<<"</PPointData>"<<endl;
+
+    result<<"<Polys>"<<endl;
     result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"/>"<<endl;
-	++n;
+    result<<"<DataArray type=\"Int32\"  Name=\"offsets\"/>"<<endl;
+    ++n;
     result<<"<DataArray type=\"Int32\"  Name=\"types\"/>"<<endl;
-	result<<"</Polys>"<<endl;
+    result<<"</Polys>"<<endl;
 
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(p,d,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
-	}
+    for(n=0; n<p->M10; ++n)
+    {
+        piecename(p,d,pgc,n);
+        result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+    }
 
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
+    result<<"</PPolyData>"<<endl;
+    result<<"</VTKFile>"<<endl;
 
-	result.close();
+    result.close();
 }
 
 void nhflow_force::piecename(lexer* p, fdm_nhf *d,  ghostcell* pgc, int n)
 {
     int num=0;
-
-
     if(p->P15==1)
-    num = forceprintcount;
-
+        num = forceprintcount;
     if(p->P15==2)
-    num = p->count;
+        num = p->count;
 
-	sprintf(pname,"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
+    sprintf(pname,"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
 }
-
-
