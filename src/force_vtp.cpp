@@ -27,29 +27,11 @@ Author: Hans Bihs
 
 void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
 {
-    int polygon_num3,polygon_sum3;
-    if(p->mpirank==0)
-        pvtp(p,a,pgc);
-
-    name_iter(p,a,pgc);
-
-    ofstream result;
-    result.open(name, ios::binary);
-    //---------------------------------------------
-
     polygon_num=facount;
 
     polygon_sum=0;
     for(n=0;n<polygon_num;++n)
         polygon_sum+=numpt[n];
-
-    polygon_sum3=polygon_num3=0;
-    for(n=0;n<polygon_num;++n)
-        if(numpt[n]==4)
-        {
-            polygon_sum3+=numpt[n];
-            ++polygon_num3;
-        }
 
     vertice_num = ccptcount;
 
@@ -57,19 +39,33 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
     n=0;
     offset[n]=0;
     ++n;
-    offset[n]=offset[n-1] + 4*(vertice_num)*3 + 4;
+    offset[n]=offset[n-1] + sizeof(float)*vertice_num*3 + sizeof(int);
     ++n;
     //Data
-    offset[n]=offset[n-1] + 4*vertice_num*3+ 4;
+    offset[n]=offset[n-1] + sizeof(float)*vertice_num*3 + sizeof(int);
     ++n;
-    offset[n]=offset[n-1] + 4*vertice_num+ 4;
+    offset[n]=offset[n-1] + sizeof(float)*vertice_num + sizeof(int);
     ++n;
     //End Data
-    offset[n]=offset[n-1] + 4*polygon_sum + 4;
+    offset[n]=offset[n-1] + sizeof(int)*polygon_sum + sizeof(int);
     ++n;
-    offset[n]=offset[n-1] + 4*polygon_num+ 4;
+    offset[n]=offset[n-1] + sizeof(int)*polygon_num + sizeof(int);
     ++n;
     //---------------------------------------------
+
+    int num=0;
+    if(p->P15==1)
+        num = forceprintcount;
+    else if(p->P15==2)
+        num = p->count;
+
+    if(p->mpirank==0)
+        pvtp(p,num);
+
+    sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-00000%i-%08i-%06i.vtp",num,ID,p->mpirank+1);
+
+    ofstream result;
+    result.open(name, ios::binary);
 
     result<<"<?xml version=\"1.0\"?>\n";
     result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
@@ -103,7 +99,7 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
     //----------------------------------------------------------------------------
 
     //  XYZ
-    iin=4*vertice_num*3;
+    iin=sizeof(float)*vertice_num*3;
     result.write((char*)&iin, sizeof (int));
     for(n=0;n<vertice_num;++n)
     {
@@ -118,7 +114,7 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
     }
 
     //  Velocity
-    iin=4*vertice_num*3;
+    iin=sizeof(float)*vertice_num*3;
     result.write((char*)&iin, sizeof (int));
     for(n=0;n<vertice_num;++n)
     {
@@ -133,7 +129,7 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
     }
 
     //  Pressure
-    iin=4*vertice_num;
+    iin=sizeof(float)*vertice_num;
     result.write((char*)&iin, sizeof (int));
     for(n=0;n<vertice_num;++n)
     {
@@ -142,7 +138,7 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
     }
 
     //  Connectivity POLYGON
-    iin=4*polygon_sum;
+    iin=sizeof(int)*polygon_sum;
     result.write((char*)&iin, sizeof (int));
     for(n=0;n<polygon_num;++n)
     {
@@ -157,7 +153,7 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
             iin=facet[n][2];
             result.write((char*)&iin, sizeof (int));
         }
-        if(numpt[n]==4)
+        else if(numpt[n]==4)
         {
             iin=facet[n][0];
             result.write((char*)&iin, sizeof (int));
@@ -174,7 +170,7 @@ void force::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
     }
 
     //  Offset of Connectivity
-    iin=4*polygon_num;
+    iin=sizeof(int)*polygon_num;
     result.write((char*)&iin, sizeof (int));
     iin=0;
     for(n=0;n<polygon_num;++n)

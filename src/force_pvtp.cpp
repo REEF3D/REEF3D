@@ -21,19 +21,10 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"force.h"
-#include<string>
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 
-void force::pvtp(lexer* p, fdm* a, ghostcell* pgc)
+void force::pvtp(lexer* p, int num)
 {
-    int num=0;
-    if(p->P15==1)
-        num = forceprintcount;
-    if(p->P15==2)
-        num = p->count;
-
     sprintf(name,"./REEF3D_SOLID/REEF3D-SOLID-%08i-%06i.pvtp",num,ID);
 
     ofstream result;
@@ -57,9 +48,10 @@ void force::pvtp(lexer* p, fdm* a, ghostcell* pgc)
     result<<"<DataArray type=\"Int32\" /Name=\"offsets\"/>\n";
     result<<"</Polys>\n";
 
+    char pname[100];
     for(int n=0; n<p->M10; ++n)
     {
-        piecename(p,a,pgc,n);
+        sprintf(pname,"REEF3D-SOLID-%08i-%i-%06i.vtp",num,ID,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 
@@ -67,15 +59,4 @@ void force::pvtp(lexer* p, fdm* a, ghostcell* pgc)
     result<<"</VTKFile>\n";
 
     result.close();
-}
-
-void force::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)
-{
-    int num=0;
-    if(p->P15==1)
-        num = forceprintcount;
-    if(p->P15==2)
-        num = p->count;
-
-    sprintf(pname,"REEF3D-SOLID-%08i-%i-%06i.vtp",num,ID,n+1);
 }
