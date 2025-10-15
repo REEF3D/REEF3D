@@ -54,7 +54,7 @@ void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
     
     DragCoeff = 0.5;
     
-    // particle force
+
     // acceleration
     Fd = p->W1 * DragCoeff * PI/8.0 * pow(P.d50,2)  * pow(Uabs_rel,2.0);
     
@@ -68,7 +68,8 @@ void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
     
     F_tot = MAX(F_tot,0.0);
     
-    //cout<<"Fd: "<<Fd<<" Fs: "<<Fs<<" F_tot: "<<F_tot<<" "<<P.d50<<" "<<DragCoeff<<endl;
+    //if(F_tot>1.0e-10);
+    //cout<<"Fd: "<<Fd<<" Fs: "<<Fs<<" F_tot: "<<F_tot<<" Uabs_rel: "<<Uabs_rel<<endl;
 
 
 // particle force

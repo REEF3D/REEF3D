@@ -37,7 +37,9 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
                                     reinitopo* preto, turbulence *pturb)
 {
     double starttime=pgc->timer();
-
+    
+    ++p->sediter;
+    
     // sediment 
     fill_PQ_cfd(p,a,pgc);
     pslope->slope_cds(p,pgc,s);
@@ -56,7 +58,6 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
         
     /// topo update
     update_cfd(p,a,pgc,pflow,preto);
-
 
     /// print out
 	//print_particles(p);

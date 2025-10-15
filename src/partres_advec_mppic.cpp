@@ -32,9 +32,9 @@ void partres::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
                         double &F, double &G, double &H, double alpha)
 {
     // find cell IJK
-    i=p->posc_i(PX[n]);
+    /*i=p->posc_i(PX[n]);
     j=p->posc_j(PY[n]);
-    k=p->posc_k(PZ[n]);
+    k=p->posc_k(PZ[n]);*/
     
     // pressure gradient
     dPx_val = p->ccipol4a(dPx,PX[n],PY[n],PZ[n]);
@@ -73,13 +73,13 @@ void partres::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
     Dpz=drag_model(p,P.D[n],P.RO[n],Wrel,Tsval);
     
 // particle force
-    F = Dpx*Urel - dPx_val/P.RO[n] + Bx - dTx_val/P.RO[n];
-    G = Dpy*Vrel - dPy_val/P.RO[n] + By - dTy_val/P.RO[n];
-    H = Dpz*Wrel - dPz_val/P.RO[n] + Bz - dTz_val/P.RO[n];
+    F = Dpx*Urel - dPx_val/P.RO[n] + Bx - dTx_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
+    G = Dpy*Vrel - dPy_val/P.RO[n] + By - dTy_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
+    H = Dpz*Wrel - dPz_val/P.RO[n] + Bz - dTz_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
     
     // solid forcing
     double fx,fy,fz;
-    if(p->S10==222)
+    if(p->S10==2)
     {
     fx = p->ccipol1c(a->fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
     fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
@@ -95,12 +95,6 @@ void partres::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
     G *= rf(p,PX[n],PY[n]);
     H *= rf(p,PX[n],PY[n]);
     
-    //if(PX[n]<1.9)
-    //F=G=H=0.0;
-    
-    /*F=0.5;
-    G=0.0;
-    H=0.0;*/
     
     P.Test[n] = dTz_val/P.RO[n];
     
