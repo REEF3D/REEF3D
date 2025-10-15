@@ -41,7 +41,7 @@ void partres::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
     dPy_val = p->ccipol4a(dPy,PX[n],PY[n],PZ[n]);
     dPz_val = p->ccipol4a(dPz,PX[n],PY[n],PZ[n]);
    
-    // buouancy
+    // gravity
     Bx = p->W20;
     By = p->W21;
     Bz = p->W22;
@@ -79,7 +79,7 @@ void partres::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
     
     // solid forcing
     double fx,fy,fz;
-    if(p->S10==2)
+    if(p->S10==222)
     {
     fx = p->ccipol1c(a->fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
     fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 

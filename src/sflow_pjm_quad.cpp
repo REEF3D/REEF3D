@@ -266,7 +266,7 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)
         SLICELOOP1
         WETDRY1
         b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
-                                     - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
+                                 - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
         
         if(p->B77==10)
         for(n=0;n<p->gcslout_count;n++)
@@ -357,6 +357,24 @@ void sflow_pjm_quad::quad_prep(lexer *p,fdm2D *b,ghostcell *pgc,slice &P, slice 
     
     pgc->gcsl_start1(p,Ps,10);
 	pgc->gcsl_start2(p,Qs,11);
+    
+    
+    n=0;
+    SLICELOOP4
+	{
+
+        b->M.p[n]  = 1.0;
+
+        b->M.n[n] = 0.0;
+        b->M.s[n] = 0.0;
+
+        b->M.w[n] = 0.0;
+        b->M.e[n] = 0.0;
+        
+        b->rhsvec.V[n]=0.0;
+
+	++n;
+	}
 }
 
 void sflow_pjm_quad::wpgrad(lexer*p, fdm2D* b, slice &eta, slice &eta_n)

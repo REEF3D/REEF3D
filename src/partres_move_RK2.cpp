@@ -66,7 +66,7 @@ void partres::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbul
     cellSum_full_update(p,pgc,s,1);
     
     ALOOP
-    a->test(i,j,k) = Tau(i,j,k);
+    a->test(i,j,k) = Ts(i,j,k);
     
     boundcheck(p,a,pgc,s,1);
     bedchange_update(p,pgc,s,1);

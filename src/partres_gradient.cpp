@@ -30,9 +30,9 @@ void partres::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     ALOOP
     {
-    dTx(i,j,k) = ((Tau(i+1,j,k) - Tau(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]))/((Tsval>1.0e-6?Tsval:1.0e10));
-    dTy(i,j,k) = ((Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]))/((Tsval>1.0e-6?Tsval:1.0e10));
-    dTz(i,j,k) = ((Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]))/((Tsval>1.0e-6?Tsval:1.0e10));
+    dTx(i,j,k) = ((Tau(i+1,j,k) - Tau(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]))/((Ts(i,j,k)>1.0e-6?Ts(i,j,k):1.0e10));
+    dTy(i,j,k) = ((Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]))/((Ts(i,j,k)>1.0e-6?Ts(i,j,k):1.0e10));
+    dTz(i,j,k) = ((Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]))/((Ts(i,j,k)>1.0e-6?Ts(i,j,k):1.0e10));
     }
     
     pgc->start4a(p,dTx,1);
