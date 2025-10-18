@@ -1253,6 +1253,9 @@
           <File Name="sflow_hydrostatic.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="Func">
+            <File Name="sflow_momentum_func.cpp"/>
+          </VirtualDirectory>
           <File Name="sflow_momentum_RK3.cpp"/>
           <File Name="sflow_momentum_RK2.cpp"/>
           <VirtualDirectory Name="Roughness">

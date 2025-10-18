@@ -24,7 +24,8 @@ Author: Hans Bihs
 #include"lexer.h"
 
 fdm2D::fdm2D(lexer *p)
-			:eta(p),eta_n(p),
+			: u(p),v(p),w(p),uh(p),vh(p),wh(p),
+            eta(p),eta_n(p),
             P(p),Pn(p),Q(p),Qn(p),
             F(p),G(p),L(p),
             ws(p),
