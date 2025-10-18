@@ -50,6 +50,8 @@ public:
 
 	double gi,gj,gk;
     
+    slice4 u,v,w,uh,vh,wh;
+    
     slice4 eta,eta_n;
     slice1 P,Pn,F;
     slice2 Q,Qn,G;
