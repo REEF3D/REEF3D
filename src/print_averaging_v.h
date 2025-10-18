@@ -39,12 +39,12 @@ public:
     print_averaging_v(lexer*,fdm*,ghostcell*);
 	virtual ~print_averaging_v();
     
-    virtual void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*);
+    void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*) override;
     
-    virtual void name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result);
-    virtual void name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n);
-    virtual void offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n);
-    virtual void print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result);
+    void name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result) override;
+    void name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n) override;
+    void offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n) override;
+    void print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result) override;
 
 
 private:

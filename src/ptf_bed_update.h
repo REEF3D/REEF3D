@@ -38,8 +38,8 @@ public:
     ptf_bed_update(lexer*, fdm*, ghostcell*);
 	virtual ~ptf_bed_update();
     
-	virtual void bedbc(lexer*, fdm*, ghostcell*,field&);
-    virtual void waterdepth(lexer*, fdm*, ghostcell*);
+	void bedbc(lexer*, fdm*, ghostcell*,field&);
+    void waterdepth(lexer*, fdm*, ghostcell*);
 
 private: 
     

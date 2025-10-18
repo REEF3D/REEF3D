@@ -36,8 +36,8 @@ public:
     sflow_rough_void(lexer*);
 	virtual ~sflow_rough_void();
     
-	virtual void u_source(lexer*, fdm2D*, slice&);
-    virtual void v_source(lexer*, fdm2D*, slice&);
+	void u_source(lexer*, fdm2D*, slice&) override;
+    void v_source(lexer*, fdm2D*, slice&) override;
 
 };
 

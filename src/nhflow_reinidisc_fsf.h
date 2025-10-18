@@ -37,7 +37,7 @@ public:
 	nhflow_reinidisc_fsf(lexer* p);
 	virtual ~nhflow_reinidisc_fsf();
     
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, double*, double*);
+	void start(lexer*, fdm_nhf*, ghostcell*, double*, double*);
 	
 private:
 

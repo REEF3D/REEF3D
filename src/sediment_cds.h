@@ -35,8 +35,8 @@ public:
 	sediment_cds(lexer*);
 	virtual ~sediment_cds();
 
-    virtual double sx(lexer*, slice&, double, double);
-	virtual double sy(lexer*, slice&, double, double);
+    double sx(lexer*, slice&, double, double) override;
+	double sy(lexer*, slice&, double, double) override;
 
 private:
 

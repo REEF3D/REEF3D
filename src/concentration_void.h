@@ -34,17 +34,17 @@ public:
     concentration_void(lexer *, fdm*, ghostcell*);
 	virtual ~concentration_void();
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*);
-	virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration);
-	virtual void ttimesave(lexer*, fdm*);
+	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override;
+	void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration) override;
+	void ttimesave(lexer*, fdm*) override;
 
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void concentration_ini(lexer*, fdm*, ghostcell*,concentration*);
-    virtual double val(int,int,int);
+	void print_3D(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void concentration_ini(lexer*, fdm*, ghostcell*,concentration*);
+    double val(int,int,int) override;
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
+    void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
 };
 
 #endif

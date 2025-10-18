@@ -41,7 +41,7 @@ public:
     benchmark_TaylorGreen(lexer*,fdm*);
 	virtual ~benchmark_TaylorGreen();
 
-	virtual void start(lexer*, fdm*, ghostcell*, convection*);
+	void start(lexer*, fdm*, ghostcell*, convection*) override;
 private:
 	
 	field4 vx,vy,vz;

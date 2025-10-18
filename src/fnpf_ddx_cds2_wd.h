@@ -36,8 +36,8 @@ public:
     fnpf_ddx_cds2_wd(lexer*,fdm_fnpf*);
 	virtual ~fnpf_ddx_cds2_wd();
 
-    virtual double sxx(lexer*, slice&);
-	virtual double syy(lexer*, slice&);
+    double sxx(lexer*, slice&) override;
+	double syy(lexer*, slice&) override;
     
 private:
     fdm_fnpf *c;

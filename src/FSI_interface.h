@@ -41,27 +41,27 @@ public:
 	virtual ~FSI_interface();
     
     // Generic
-	virtual void FSI_logic(lexer*,ghostcell*);
-    virtual void start(lexer*,ghostcell*);
+	void FSI_logic(lexer*,ghostcell*);
+    void start(lexer*,ghostcell*);
     
-	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*){};
-    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool){};
+	void initialize(lexer*,fdm*,ghostcell*,turbulence*) {};
+    void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) {};
     
     
     // CFD
-    virtual void isource(lexer*,fdm*,vrans*){};
-    virtual void jsource(lexer*,fdm*,vrans*){};
-    virtual void ksource(lexer*,fdm*,vrans*){};
+    void isource(lexer*,fdm*,vrans*) {};
+    void jsource(lexer*,fdm*,vrans*) {};
+    void ksource(lexer*,fdm*,vrans*) {};
     
     // NHFLOW
-    virtual void isource(lexer*,fdm_nhf*,vrans*){};
-    virtual void jsource(lexer*,fdm_nhf*,vrans*){};
-    virtual void ksource(lexer*,fdm_nhf*,vrans*){};
+    void isource(lexer*,fdm_nhf*,vrans*) {};
+    void jsource(lexer*,fdm_nhf*,vrans*) {};
+    void ksource(lexer*,fdm_nhf*,vrans*) {};
     
     // SFLOW
-    virtual void isource(lexer*,fdm2D*,vrans*){};
-    virtual void jsource(lexer*,fdm2D*,vrans*){};
-    virtual void ksource(lexer*,fdm2D*,vrans*){};
+    void isource(lexer*,fdm2D*,vrans*) {};
+    void jsource(lexer*,fdm2D*,vrans*) {};
+    void ksource(lexer*,fdm2D*,vrans*) {};
     
 private:
 };

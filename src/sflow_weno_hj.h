@@ -36,13 +36,13 @@ public:
 	sflow_weno_hj(lexer*);
 	virtual ~sflow_weno_hj();
 
-	virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&);
+	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override;
 
 private:
     double aij(lexer*, fdm2D*, slice&, int, slice&, slice&);
 
-	virtual double fx(lexer*, fdm2D*, slice&, int, double);
-	virtual double fy(lexer*, fdm2D*, slice&, int, double);
+	double fx(lexer*, fdm2D*, slice&, int, double);
+	double fy(lexer*, fdm2D*, slice&, int, double);
 	void iqmin(lexer*, fdm2D*, slice&, int);
 	void jqmin(lexer*, fdm2D*, slice&, int);
 	void iqmax(lexer*, fdm2D*, slice&, int);

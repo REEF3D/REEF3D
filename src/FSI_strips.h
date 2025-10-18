@@ -43,9 +43,9 @@ public:
 	
     fsi_strips(lexer*,ghostcell*);
 	virtual ~fsi_strips();
-	virtual void start(lexer*,fdm*,ghostcell*);
-	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*);
-    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool);
+	void start(lexer*,fdm*,ghostcell*) override;
+	void initialize(lexer*,fdm*,ghostcell*,turbulence*) override;
+    void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) override;
     
     
 private:

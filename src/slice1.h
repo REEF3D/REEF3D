@@ -35,11 +35,11 @@ public:
 	slice1 (lexer*);
 	virtual ~slice1();
 
-    virtual double& operator()(int, int);
+    double& operator()(int, int) override;
 	double& operator[](int);
-    virtual void ggcpol(lexer*);
-    virtual void resize(lexer*);
-    virtual void dealloc(lexer*);
+    void ggcpol(lexer*) override;
+    void resize(lexer*) override;
+    void dealloc(lexer*) override;
     
 	int di,dj;
 	int imin,imax,jmax,jmin;

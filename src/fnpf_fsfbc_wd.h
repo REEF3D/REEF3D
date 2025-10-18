@@ -42,17 +42,17 @@ public:
 	fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_fsfbc_wd();
     
-    virtual void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
-    virtual void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
-    virtual void kfsfbc(lexer*,fdm_fnpf*,ghostcell*);
-    virtual void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&);
-    virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
-    virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
-    virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
-    virtual void breaking0(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
-    virtual void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&);
-    virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&);
-    virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double);
+    void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
+    void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
+    void kfsfbc(lexer*,fdm_fnpf*,ghostcell*) override;
+    void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&) override;
+    void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
+    void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
+    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override;
+    void breaking0(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override;
+    void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override;
+    void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override;
+    void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override;
     
     void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
     

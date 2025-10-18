@@ -34,9 +34,9 @@ public:
     sflow_turb_parabolic(lexer*);
 	virtual ~sflow_turb_parabolic();
     
-	virtual void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*);
-	virtual void ktimesave(lexer*, fdm2D*, ghostcell*);
-	virtual void etimesave(lexer*, fdm2D*, ghostcell*);
+	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override;
+	void ktimesave(lexer*, fdm2D*, ghostcell*) override;
+	void etimesave(lexer*, fdm2D*, ghostcell*) override;
 	
 };
 

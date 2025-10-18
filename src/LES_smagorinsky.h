@@ -35,9 +35,9 @@ class LES_smagorinsky : public LES
 public:
 	LES_smagorinsky(lexer *, fdm*);
 	virtual ~LES_smagorinsky();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
+	void ktimesave(lexer*, fdm*, ghostcell*) override;
+	void etimesave(lexer*, fdm*, ghostcell*) override;
 
 private:
 	int gcval_sgs;

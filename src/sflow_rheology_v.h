@@ -36,8 +36,8 @@ public:
     sflow_rheology_v(lexer*);
 	virtual ~sflow_rheology_v();
     
-	virtual void u_source(lexer*, fdm2D*, slice&, slice&);
-    virtual void v_source(lexer*, fdm2D*, slice&, slice&);
+	void u_source(lexer*, fdm2D*, slice&, slice&) override;
+    void v_source(lexer*, fdm2D*, slice&, slice&) override;
 
 private:
     

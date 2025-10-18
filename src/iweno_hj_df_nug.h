@@ -36,7 +36,7 @@ public:
 	iweno_hj_df_nug (lexer*);
 	virtual ~iweno_hj_df_nug();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
     void wenoloop1(lexer*,fdm*,field&,int,field&,field&,field&);

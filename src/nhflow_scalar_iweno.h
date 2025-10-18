@@ -36,7 +36,7 @@ public:
 	nhflow_scalar_iweno (lexer*);
 	virtual ~nhflow_scalar_iweno();
 
-	virtual void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
+	void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override;
 
 private:
 

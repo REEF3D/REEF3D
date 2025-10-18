@@ -38,7 +38,7 @@ public:
 	potential_water(lexer* p);
 	virtual ~potential_water();
 
-	virtual void start(lexer*,fdm*, solver*, ghostcell* pgc);
+	void start(lexer*,fdm*, solver*, ghostcell* pgc) override;
 
 
 private:

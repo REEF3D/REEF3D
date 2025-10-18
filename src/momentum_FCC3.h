@@ -55,7 +55,7 @@ public:
 	momentum_FCC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_FCC3();
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*);
+	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override;
 
     field1 ur,udiff,urk1,urk2,fx;
 	field2 vr,vdiff,vrk1,vrk2,fy;

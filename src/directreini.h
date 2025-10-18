@@ -41,13 +41,13 @@ class directreini : public reini, gradient, public resize_class
 public:
 	directreini(lexer* p, fdm *a);
 	virtual ~directreini();
-	virtual void start(fdm*,lexer*,field&, ghostcell*,ioflow*);
-    virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
+	void start(fdm*,lexer*,field&, ghostcell*,ioflow*) override;
+    void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 	
-	virtual void vtp(lexer*,fdm*,ghostcell*);
-	virtual void name_iter(lexer*,fdm*,ghostcell*);
-	virtual void pvtp(lexer*,fdm*,ghostcell*);
-	virtual void piecename(lexer*,fdm*,ghostcell*,int);
+	void vtp(lexer*,fdm*,ghostcell*);
+	void name_iter(lexer*,fdm*,ghostcell*);
+	void pvtp(lexer*,fdm*,ghostcell*);
+	void piecename(lexer*,fdm*,ghostcell*,int);
 
 	double dstx, dsty, dstz, dnorm, sign;
 	double sx,sy,sz,snorm,op;

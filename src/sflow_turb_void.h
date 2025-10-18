@@ -35,18 +35,18 @@ public:
     sflow_turb_void(lexer*);
 	virtual ~sflow_turb_void();
     
-	virtual void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*);
-	virtual void ktimesave(lexer*, fdm2D*, ghostcell*);
-	virtual void etimesave(lexer*, fdm2D*, ghostcell*);
+	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override;
+	void ktimesave(lexer*, fdm2D*, ghostcell*) override;
+	void etimesave(lexer*, fdm2D*, ghostcell*) override;
     
-    virtual void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&);
-    virtual void kinget(int,int,double);
-    virtual void epsget(int,int,double);
-    virtual double kinval(int,int);
-    virtual double epsval(int,int);
-	virtual void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&);
-    virtual void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &);
+    void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&) override;
+    void kinget(int,int,double) override;
+    void epsget(int,int,double) override;
+    double kinval(int,int) override;
+    double epsval(int,int) override;
+	void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&) override;
+    void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &) override;
+    void offset_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &) override;
     
 private:
     double val;

@@ -41,13 +41,13 @@ public:
     concentration_io(lexer*,fdm*);
 	virtual ~concentration_io();
 
-    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration);
-    virtual double val(int,int,int);
+    void print_3D(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration) override;
+    double val(int,int,int) override;
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&) override;
+    void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
+    void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &) override;
 
     field4 C;
 	fluid_update *pupdate;

@@ -38,7 +38,7 @@ public:
 	ifou (lexer *);
 	virtual ~ifou();
 
-	virtual void start(lexer*,fdm*,field&,int,field&,field&,field&);
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
     double udir,vdir,wdir;
