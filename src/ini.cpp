@@ -145,7 +145,7 @@ void lexer::ini_default()
     A571_dir=0.0;  // double wind direction
     A573=1;      // int wind forcing region
     
-    A580=0;      // int block eta
+    A580=0;      // int 
     A581=0;      // int solid box
     A583=0;      // int solid cylinder y
     A584=0;      // int solid cylinder z

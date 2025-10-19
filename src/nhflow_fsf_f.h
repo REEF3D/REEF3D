@@ -54,9 +54,7 @@ public:
     
     virtual void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
     virtual void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*);
-    
-    virtual void breaking(lexer*, fdm_nhf*, ghostcell*,slice&, slice&, double);
-    
+
     virtual void ucorr(lexer*, fdm_nhf*, double*, slice&, double);
     virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double);
     
@@ -68,10 +66,6 @@ public:
     virtual void coastline_fi(lexer*,fdm_nhf*,ghostcell*,slice&);
     
 private: 
-    void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
-    
-    void fsf_guard(lexer*, fdm_nhf*, ghostcell*, slice&, slice&);
-    
     double limiter(double, double);
     
     double rb3(lexer*,double);
@@ -94,7 +88,6 @@ private:
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     double detadx,detady;
     
-    int guard_is,guard_ie,guard_js,guard_je;
     
     const double eps;
 

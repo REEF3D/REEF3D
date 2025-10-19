@@ -20,104 +20,104 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_HLL.h"
+#include"sflow_HLL.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm2D.h"
 #include"slice.h"
 #include"patchBC_interface.h"
-#include"nhflow_reconstruct_hires.h"
-#include"nhflow_signal_speed.h"
-#include"nhflow_flux_build_f.h"
+#include"sflow_reconstruct_hires.h"
+#include"sflow_signal_speed.h"
+#include"sflow_flux_build_f.h"
 
-nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
+sflow_HLL::sflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
     pgc = ppgc;
     pBC = ppBC;
     
-    pflux = new nhflow_flux_build_f(p,pgc,pBC);
+    pflux = new sflow_flux_build_f(p,pgc,pBC);
 }
 
-nhflow_HLL::~nhflow_HLL()
+sflow_HLL::~sflow_HLL()
 {
 }
 
-void nhflow_HLL::precalc(lexer* p, fdm2D *b, int ipolL, slice &eta)
+void sflow_HLL::precalc(lexer* p, fdm2D *b, int ipolL, slice &eta)
 {
 }
 
-void nhflow_HLL::start(lexer *&p, fdm2D *&b, int ipol, slice &eta)
+void sflow_HLL::start(lexer *&p, fdm2D *&b, int ipol, slice &eta)
 {
     if(ipol==1)
-    aij_U(p,d,1);
+    aij_U(p,b,1);
 
     if(ipol==2 && p->j_dir==1)
-    aij_V(p,d,2);
+    aij_V(p,b,2);
 
     if(ipol==3)
-    aij_W(p,d,3);
+    aij_W(p,b,3);
     
     if(ipol==4)
-    aij_E(p,d,4);
+    aij_E(p,b,4);
 }
 
-void nhflow_HLL::aij_U(lexer *&p,fdm2D *&b, int ipol)
+void sflow_HLL::aij_U(lexer *&p,fdm2D *&b, int ipol)
 {
     // HLL flux 
-    pflux->start_U(p,d,pgc);
-    HLL(p,d,b->UHs,b->UHn,b->UHe,b->UHw);
+    pflux->start_U(p,b,pgc);
+    HLL(p,b,b->UHs,b->UHn,b->UHe,b->UHw);
     
-    pgc->start1V(p,b->Fx,10);
-    pgc->start2V(p,b->Fy,10);
+    //pgc->start1V(p,b->Fx,10);
+    //pgc->start2V(p,b->Fy,10);
     
     LOOP
     WETDRY
     {
     b->F(i,j) -= ((b->Fx(i,j) - b->Fx[Im1JK])/p->DXN[IP] 
-                + (b->Fy(i,j) - b->Fy[IJm1K])/p->DYN[JP]*p->y_dir;
+                + (b->Fy(i,j) - b->Fy[IJm1K])/p->DYN[JP])*p->y_dir;
     }    
 }
 
-void nhflow_HLL::aij_V(lexer *&p, fdm2D *&b, int ipol)
+void sflow_HLL::aij_V(lexer *&p, fdm2D *&b, int ipol)
 {
     // HLL flux 
-    pflux->start_V(p,d,pgc);
-    HLL(p,d,b->VHs,b->VHn,b->VHe,b->VHw);
+    pflux->start_V(p,b,pgc);
+    HLL(p,b,b->VHs,b->VHn,b->VHe,b->VHw);
     
-    pgc->start1V(p,b->Fx,11);
-    pgc->start2V(p,b->Fy,11);
+    //pgc->start1V(p,b->Fx,11);
+    //pgc->start2V(p,b->Fy,11);
     
     LOOP
     WETDRY
     {
     b->G(i,j) -= ((b->Fx(i,j) - b->Fx[Im1JK])/p->DXN[IP] 
-                + (b->Fy(i,j) - b->Fy[IJm1K])/p->DYN[JP]*p->y_dir;
+                + (b->Fy(i,j) - b->Fy[IJm1K])/p->DYN[JP])*p->y_dir;
     }    
 }
 
-void nhflow_HLL::aij_W(lexer *&p,fdm2D *&b, int ipol)
+void sflow_HLL::aij_W(lexer *&p,fdm2D *&b, int ipol)
 {
     // HLL flux 
-    pflux->start_W(p,d,pgc);
-    HLL(p,d,b->WHs,b->WHn,b->WHe,b->WHw);
+    pflux->start_W(p,b,pgc);
+    HLL(p,b,b->WHs,b->WHn,b->WHe,b->WHw);
     
-    pgc->start1V(p,b->Fx,12);
-    pgc->start2V(p,b->Fy,12);
+    //pgc->start1V(p,b->Fx,12);
+    //pgc->start2V(p,b->Fy,12);
     
     LOOP
     WETDRY
     {
     b->H(i,j) -= ((b->Fx(i,j) - b->Fx[Im1JK])/p->DXN[IP] 
-                + (b->Fy(i,j) - b->Fy[IJm1K])/p->DYN[JP]*p->y_dir;
+                + (b->Fy(i,j) - b->Fy[IJm1K])/p->DYN[JP])*p->y_dir;
     }    
 }
 
-void nhflow_HLL::aij_E(lexer *&p, fdm2D *&b, int ipol)
+void sflow_HLL::aij_E(lexer *&p, fdm2D *&b, int ipol)
 {
     // HLL flux 
-    pflux->start_E(p,d,pgc);
+    pflux->start_E(p,b,pgc);
     
-    HLL_E(p,d);  // -----
+    HLL_E(p,b);  // -----
     
     LOOP
     WETDRY
@@ -135,11 +135,11 @@ void nhflow_HLL::aij_E(lexer *&p, fdm2D *&b, int ipol)
     b->Fy[IJm1K] = 0.0;
     }
     
-    pgc->start1V(p,b->Fx,14);
-    pgc->start2V(p,b->Fy,14); 
+    //pgc->start1V(p,b->Fx,14);
+    //pgc->start2V(p,b->Fy,14); 
 }
 
-void nhflow_HLL::HLL(lexer *&p,fdm2D *&b, double *Us, double *Un, double *Ue, double *Uw)
+void sflow_HLL::HLL(lexer *&p,fdm2D *&b, slice &Us, slice &Un, slice &Ue, slice &Uw)
 {    
     // HLL flux
     ULOOP
@@ -183,7 +183,7 @@ void nhflow_HLL::HLL(lexer *&p,fdm2D *&b, double *Us, double *Un, double *Ue, do
     }
 }
 
-void nhflow_HLL::HLL_E(lexer *&p, fdm2D *&b)
+void sflow_HLL::HLL_E(lexer *&p, fdm2D *&b)
 {
     // HLL flux
     ULOOP

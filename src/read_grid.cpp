@@ -330,8 +330,7 @@ void lexer::read_grid()
     Iarray(flagslice1,imax*jmax);
     Iarray(flagslice2,imax*jmax);
     Iarray(flagslice4,imax*jmax);
-    Iarray(flagfsf,imax*jmax);
-    
+
 	for(i=0;i<imax*jmax*kmax;++i)
 	flag4[i]=-1;
 	

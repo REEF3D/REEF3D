@@ -20,32 +20,52 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SFLOW_SIGNAL_SPEED_H_
-#define SFLOW_SIGNAL_SPEED_H_
+#ifndef SFLOW_HLL_H_
+#define SFLOW_HLL_H_
 
-#include"increment.h"
+#include"sflow_convection.h"
 #include"slice1.h"
 #include"slice2.h"
-#include"slice4.h"
+#include"increment.h"
 
-class lexer;
-class ghostcell;
-class fdm2D;
-class slice;
+class sflow_flux_build;
+
 class patchBC_interface;
+class ghostcell;
 
 using namespace std;
 
-class sflow_signal_speed : public increment
+class sflow_HLL : public sflow_convection, public increment
 {
-public:
-	sflow_signal_speed(lexer*);
-	virtual ~sflow_signal_speed();
 
-    virtual void signal_speed_update(lexer*,ghostcell*,fdm2D*,slice&, slice&, slice&, slice&,slice&, slice&, slice&, slice&);
+public:
+
+	sflow_HLL (lexer*,ghostcell*,patchBC_interface*);
+	virtual ~sflow_HLL();
+
+    virtual void start(lexer*&, fdm2D*&, int, slice&);
+    virtual void precalc(lexer*, fdm2D*, int, slice&);
 
 private:
-    double USx,DSx,USy,DSy;
+
+    void aij_U(lexer*&, fdm2D*&, int);
+    void aij_V(lexer*&, fdm2D*&, int);
+    void aij_W(lexer*&, fdm2D*&, int);
+    void aij_E(lexer*&, fdm2D*&, int);
+    
+    void HLL(lexer*&, fdm2D*&, slice &, slice &, slice &, slice &);
+    void HLL_E(lexer*&, fdm2D*&);
+    
+	double dx,dy,dz;
+	double udir,vdir,wdir;
+	double L;
+    double denom;
+
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+
+    ghostcell *pgc;
+    patchBC_interface *pBC;
+    sflow_flux_build *pflux;
 };
 
 #endif

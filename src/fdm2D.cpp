@@ -43,13 +43,20 @@ fdm2D::fdm2D(lexer *p)
             UHn(p),UHs(p),
             UHe(p),UHw(p),
     
-            VHn(p),VHs(p);
+            VHn(p),VHs(p),
             VHe(p),VHw(p),
     
             WHn(p),WHs(p),
             WHe(p),WHw(p), 
             
             WL(p),
+            ETAs(p),ETAn(p),
+            ETAe(p),ETAw(p),
+            
+            Ds(p),Dn(p),
+            De(p),Dw(p),
+            
+            dfx(p),dfy(p),
     
     
             eta(p),eta_n(p),

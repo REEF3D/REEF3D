@@ -93,7 +93,7 @@ public:
     slice1 P,Pn,F;
     slice2 Q,Qn,G;
     slice4 H,L;
-    slice4 Fext(p),Gext(p),Hext(p),
+    slice4 Fext,Gext,Hext;
     slice4 ws;
     slice4 press;
     slice4 eddyv,kin,eps;

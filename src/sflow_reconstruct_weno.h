@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 class lexer;
 class ghostcell;
-class fdm_nhf;
+class fdm2D;
 class slice;
 class patchBC_interface;
 
@@ -41,9 +41,9 @@ public:
 	sflow_reconstruct_weno(lexer*,patchBC_interface*);
 	virtual ~sflow_reconstruct_weno();
 
-    virtual void reconstruct_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
-    virtual void reconstruct_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
-    virtual void reconstruct_WL(lexer*,ghostcell*,fdm_nhf*);
+    virtual void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&);
+    virtual void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&);
+    virtual void reconstruct_WL(lexer*,ghostcell*,fdm2D*);
     
     slice4 dfdx,dfdy;
 

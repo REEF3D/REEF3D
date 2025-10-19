@@ -20,43 +20,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SFLOW_MOMENTUM_FUNC_H_
-#define SFLOW_MOMENTUM_FUNC_H_
+#ifndef BCMOM_SFLOW_H_
+#define BCMOM_SFLOW_H_
 
-#include"sflow_momentum.h"
-#include"sflow_bcmom.h"
-
-class sflow_fsf;
-class sflow_signal_speed;
-class sflow_reconstruct;
-class sflow_fsf_reconstruct;
+#include"surftens.h"
+#include"roughness.h"
+class lexer;
+class fdm2D;
+class ghostcell;
+class field;
+class turbulence;
 
 using namespace std;
 
-class sflow_momentum_func : public sflow_momentum, public sflow_bcmom
+class sflow_bcmom : public roughness
 {
 public:
-	sflow_momentum_func(lexer*, fdm2D*, ghostcell*);
-	virtual ~sflow_momentum_func();
-    
+	sflow_bcmom(lexer*);
+	virtual ~sflow_bcmom();
+	virtual void sflow_bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
+	void roughness_u(lexer*, fdm2D*, slice&, slice&, slice&);
+	void roughness_v(lexer*, fdm2D*, slice&, slice&, slice&);
+	void roughness_w(lexer*, fdm2D*, slice&, slice&, slice&);
 
-    virtual void inidisc(lexer*, fdm2D*, ghostcell*, sflow_fsf*);
-    void reconstruct(lexer*, fdm2D*, ghostcell*, sflow_fsf*, sflow_signal_speed*, sflow_reconstruct*,slice&,slice&,slice&,slice&,slice&,slice&,slice&);
-    void velcalc(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
-    
-	void irhs(lexer*,fdm2D*,ghostcell*);
-	void jrhs(lexer*,fdm2D*,ghostcell*);
-	void krhs(lexer*,fdm2D*,ghostcell*);
-    
-    void clearrhs(lexer*,fdm2D*,ghostcell*);
-	
-    
-
-	int gcval_u, gcval_v, gcval_w;
-    int gcval_uh, gcval_vh, gcval_wh;
-    
-    double starttime;
-
+private:
+	const double kappa;
+	double uplus,ks_plus,dist,ks,ustar;
+	int ii,jj,kk;
+	double value;
+	int gcval_phi, bckin, wallfunc_type;
 };
-
 #endif

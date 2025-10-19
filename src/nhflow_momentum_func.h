@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"nhflow_momentum.h"
 #include"nhflow_bcmom.h"
+#include"nhflow_sigma.h"
 
 class nhflow_fsf;
 class nhflow_signal_speed;
@@ -33,7 +34,7 @@ class nhflow_fsf_reconstruct;
 
 using namespace std;
 
-class nhflow_momentum_func : public nhflow_momentum, public nhflow_bcmom
+class nhflow_momentum_func : public nhflow_momentum, public nhflow_bcmom, public nhflow_sigma
 {
 public:
 	nhflow_momentum_func(lexer*, fdm_nhf*, ghostcell*);

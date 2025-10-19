@@ -37,7 +37,7 @@ sflow_reconstruct_weno::~sflow_reconstruct_weno()
 {
 }
 
-void sflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm2D*, slice& f, slice &fs, slice &fn)
+void sflow_reconstruct_weno::reconstruct_x(lexer* p, ghostcell *pgc, fdm2D*, slice& f, slice &fs, slice &fn)
 {
     uf=1;
     vf=0;
@@ -72,7 +72,7 @@ void sflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm2D*, 
     pgc->gcsl_start1(p,fn,1);
 }
 
-void sflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm2D*, slice& f, slice &fe, slice &fw)
+void sflow_reconstruct_weno::reconstruct_y(lexer* p, ghostcell *pgc, fdm2D*, slice& f, slice &fe, slice &fw)
 {
     uf=0;
     vf=1;
@@ -106,7 +106,7 @@ void sflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm2D*, 
     pgc->gcsl_start2(p,fw,1);
 }
 
-void sflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm2D *b)
+void sflow_reconstruct_weno::reconstruct_WL(lexer* p, ghostcell *pgc, fdm2D *b)
 {
     // water level  
     SLICELOOP1

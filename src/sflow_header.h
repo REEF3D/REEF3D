@@ -60,7 +60,6 @@ Author: Hans Bihs
 #include"sflow_idiff.h"
 #include"sflow_pjm_lin.h"
 #include"sflow_pjm_quad.h"
-#include"sflow_pjm_sw.h"
 #include"sflow_pjm_corr_lin.h"
 #include"sflow_filter.h"
 

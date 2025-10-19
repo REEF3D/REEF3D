@@ -65,7 +65,16 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Pressure SC">
+          <File Name="sflow_pressure_SC.h"/>
+          <File Name="sflow_pjm_lin_SC.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FSF SC">
+          <File Name="sflow_fsf_f.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="sflow_HLL.h"/>
+          <File Name="sflow_flux_build.h"/>
           <File Name="sflow_flux_build_f.h"/>
           <File Name="sflow_convection_SC.h"/>
           <VirtualDirectory Name="Scalar"/>
@@ -122,7 +131,6 @@
         <VirtualDirectory Name="Pressure">
           <File Name="sflow_pjm_corr_lin.h"/>
           <File Name="sflow_pressure.h"/>
-          <File Name="sflow_pjm_sw.h"/>
           <File Name="sflow_pjm_quad.h"/>
           <File Name="sflow_pjm_lin.h"/>
           <File Name="sflow_hydrostatic.h"/>
@@ -136,6 +144,7 @@
           <File Name="sflow_momentum_RK2.h"/>
           <File Name="sflow_momentum.h"/>
           <VirtualDirectory Name="BC">
+            <File Name="sflow_bcmom.h"/>
             <File Name="sflow_roughness.h"/>
             <File Name="sflow_rough_void.h"/>
             <File Name="sflow_rough_manning.h"/>
@@ -1193,6 +1202,18 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Pressure SC">
+          <File Name="sflow_pjm_quad_SC.cpp"/>
+          <File Name="sflow_pjm_SC.cpp"/>
+          <File Name="sflow_pjm_lin_SC.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FSF SC">
+          <File Name="sflow_fsf_ini.cpp"/>
+          <File Name="sflow_fsf_wetdry_fluxes.cpp"/>
+          <File Name="sflow_fsf_wetdry.cpp"/>
+          <File Name="sflow_fsf_rk2.cpp"/>
+          <File Name="sflow_fsf_f.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.cpp"/>
           <File Name="sflow_flux_build_f.cpp"/>
@@ -1277,7 +1298,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
           <File Name="sflow_pjm_corr_lin.cpp"/>
-          <File Name="sflow_pjm_sw.cpp"/>
           <File Name="sflow_pjm_quad.cpp"/>
           <File Name="sflow_pjm_lin.cpp"/>
           <File Name="sflow_hydrostatic.cpp"/>
@@ -1285,6 +1305,7 @@
         <VirtualDirectory Name="Momentum">
           <File Name="sflow_momentum_RK2_SC.cpp"/>
           <VirtualDirectory Name="Func">
+            <File Name="sflow_bcmom.cpp"/>
             <File Name="sflow_momentum_func.cpp"/>
           </VirtualDirectory>
           <File Name="sflow_momentum_RK3.cpp"/>
@@ -1554,13 +1575,11 @@
           <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>
           <File Name="nhflow_fsf_update.cpp"/>
-          <File Name="nhflow_fsf_guard.cpp"/>
           <File Name="nhflow_fsf_kbedbc.cpp"/>
           <File Name="nhflow_fsf_ucorr.cpp"/>
           <File Name="nhflow_fsf_wetdry.cpp"/>
           <File Name="nhflow_fsf_kfsfbc.cpp"/>
           <File Name="nhflow_fsf_ini.cpp"/>
-          <File Name="nhflow_fsf_breaking.cpp"/>
           <File Name="nhflow_fsf_rk3.cpp"/>
           <File Name="nhflow_fsf_rk2.cpp"/>
           <VirtualDirectory Name="Void">
