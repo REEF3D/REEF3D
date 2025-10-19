@@ -46,10 +46,10 @@ public:
 	virtual ~sflow_momentum_RK2_SC();
 	virtual void start(lexer*, fdm2D*, ghostcell*);
 
-    slice4 urk1;
-	slice4 vrk1;
-    slice4 wrk1;
-    slice4 etark1;
+    slice4 UHRK1;
+	slice4 VHRK1;
+    slice4 WHRK1;
+    slice4 WLRK1;
 
 private:
 	void irhs(lexer*,fdm2D*,ghostcell*,slice&,double);

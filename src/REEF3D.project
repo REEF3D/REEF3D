@@ -66,7 +66,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Convect">
-          <File Name="sflow_HLL.h"/>
           <File Name="sflow_flux_build_f.h"/>
           <File Name="sflow_convection_SC.h"/>
           <VirtualDirectory Name="Scalar"/>
@@ -129,6 +128,9 @@
           <File Name="sflow_hydrostatic.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="Func">
+            <File Name="sflow_momentum_func.h"/>
+          </VirtualDirectory>
           <File Name="sflow_momentum_RK2_SC.h"/>
           <File Name="sflow_momentum_RK3.h"/>
           <File Name="sflow_momentum_RK2.h"/>
@@ -1192,6 +1194,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Convect">
+          <File Name="sflow_HLL.cpp"/>
           <File Name="sflow_flux_build_f.cpp"/>
           <File Name="sflow_convection_SC.cpp"/>
           <VirtualDirectory Name="Signal Speed">

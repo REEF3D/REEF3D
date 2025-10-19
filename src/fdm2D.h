@@ -50,12 +50,50 @@ public:
 
 	double gi,gj,gk;
     
-    slice4 u,v,w,uh,vh,wh;
+    slice4 U,V,W,UH,VH,WH;
     
+    slice1 Fx,Fs,Fn;
+    slice2 Fy,Fe,Fw;
+    
+    slice1 Ss,Sn,SSx;
+    slice2 Se,Sw,SSy;
+    
+    slice1 Un,Us;
+    slice2 Ue,Uw;
+    
+    slice1 Vn,Vs;
+    slice2 Ve,Vw;
+    
+    slice1 Wn,Ws;
+    slice2 We,Ww;
+    
+    slice1 UHn,UHs;
+    slice2 UHe,UHw;
+    
+    slice1 VHn,VHs;
+    slice2 VHe,VHw;
+    
+    slice1 WHn,WHs;
+    slice2 WHe,WHw;   
+    
+
+    slice1 ETAs,ETAn;
+    slice2 ETAe,ETAw;
+    slice1 Ds,Dn;
+    slice2 De,Dw;
+    slice1 dfx;
+    slice2 dfy;
+    
+    slice4 WL;
+    
+    
+    
+    // ---------------------
     slice4 eta,eta_n;
     slice1 P,Pn,F;
     slice2 Q,Qn,G;
-    slice4 L;
+    slice4 H,L;
+    slice4 Fext(p),Gext(p),Hext(p),
     slice4 ws;
     slice4 press;
     slice4 eddyv,kin,eps;

@@ -20,28 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_MOMENTUM_FUNC_H_
-#define NHFLOW_MOMENTUM_FUNC_H_
+#ifndef SFLOW_MOMENTUM_FUNC_H_
+#define SFLOW_MOMENTUM_FUNC_H_
 
-#include"nhflow_momentum.h"
-#include"nhflow_bcmom.h"
+#include"sflow_momentum.h"
+#include"sflow_bcmom.h"
+#include"sflow_sigma.h"
 
-class nhflow_fsf;
-class nhflow_signal_speed;
-class nhflow_reconstruct;
-class nhflow_fsf_reconstruct;
+class sflow_fsf;
+class sflow_signal_speed;
+class sflow_reconstruct;
+class sflow_fsf_reconstruct;
 
 using namespace std;
 
-class nhflow_momentum_func : public nhflow_momentum, public nhflow_bcmom
+class sflow_momentum_func : public sflow_momentum, public sflow_bcmom, public sflow_sigma
 {
 public:
-	nhflow_momentum_func(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_momentum_func();
+	sflow_momentum_func(lexer*, fdm_nhf*, ghostcell*);
+	virtual ~sflow_momentum_func();
     
 
-    virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
-    void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*, nhflow_signal_speed*, nhflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);
+    virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, sflow_fsf*);
+    void reconstruct(lexer*, fdm_nhf*, ghostcell*, sflow_fsf*, sflow_signal_speed*, sflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);
     void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&);
     
 	void irhs(lexer*,fdm_nhf*,ghostcell*);
