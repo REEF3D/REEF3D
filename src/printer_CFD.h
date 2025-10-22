@@ -40,7 +40,6 @@ class print_wsfline_x;
 class print_wsfline_y;
 class force;
 class vorticity;
-class solver;
 class probe_point;
 class probe_pressure;
 class probe_line;
@@ -65,12 +64,12 @@ class printer_CFD : public printer, public increment
 public:
     printer_CFD(lexer*,fdm*,ghostcell*);
     virtual ~printer_CFD() = default;
-    void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*) override;
-    void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*) override;
+    void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override;
+    void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override;
 
 private:
-    void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,expdata*,concentration*,multiphase*,sediment*);
-    void parallel(fdm*,lexer*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);
+    void print3D(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);
+    void parallel(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);
 
     vtk3D *outputFormat;
 

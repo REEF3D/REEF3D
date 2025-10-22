@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"turbulence.h"
 #include"heat.h"
-#include"solver.h"
 #include"print_wsf.h"
 #include"print_wsf_theory.h"
 #include"print_wsfline_x.h"
@@ -162,7 +161,7 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
         outputFormat->folder("CFD");
 }
 
-void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     pgc->gcparax4a(p,a->phi,5);
 
@@ -171,13 +170,13 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
     {
-        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+        print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
     }
 
     // Print out based on time
     if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0) || (p->count==0 &&  p->P30>0.0))
     {
-        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+        print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
         p->printtime+=p->P30;
     }
@@ -185,7 +184,7 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
     // Print out based on sediment time
     if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0) || (p->count==0 &&  p->P34>0.0))
     {
-        print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+        print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
         p->sedprinttime+=p->P34;
     }
@@ -195,7 +194,7 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
         for(int qn=0; qn<p->P35; ++qn)
             if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
             {
-                print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+                print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
                 printtime_wT[qn]+=p->P35_dt[qn];
             }
@@ -334,15 +333,15 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
 
 }
 
-void printer_CFD::print_stop(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printer_CFD::print_stop(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     if(p->P180==1)
         pfsf->start(p,a,pgc);
 
-    print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
+    print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 }
 
-void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     if(p->P10!=vtk3D::type::none)
     {
@@ -359,7 +358,7 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
 
         outputFormat->extent(p,pgc);
         if(p->mpirank==0)
-                parallel(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+            parallel(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
         int num=0;
         if(p->P15==1)
