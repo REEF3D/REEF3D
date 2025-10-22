@@ -55,12 +55,12 @@ double heat_print::val(int ii, int jj, int kk)
     return val;
 }
 
-void heat_print::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void heat_print::name_ParaView_parallel(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"T\"/>\n";
 }
 
-void heat_print::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void heat_print::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"T\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

@@ -103,7 +103,7 @@ void sediment_void::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
 {
 }
 
-void sediment_void::name_ParaView_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_bedload(lexer *p, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -127,7 +127,7 @@ void sediment_void::name_ParaView_parallel_bedshear(lexer *p, ofstream &result)
 {
 }
 
-void sediment_void::name_ParaView_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_bedshear(lexer *p, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -151,7 +151,7 @@ void sediment_void::name_ParaView_parallel_parameter1(lexer *p, ofstream &result
 {
 }
 
-void sediment_void::name_ParaView_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_parameter1(lexer *p, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -175,7 +175,7 @@ void sediment_void::name_ParaView_parallel_parameter2(lexer *p, ofstream &result
 {
 }
 
-void sediment_void::name_ParaView_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_parameter2(lexer *p, ofstream &result, int *offset, int &n)
 {
 }
 

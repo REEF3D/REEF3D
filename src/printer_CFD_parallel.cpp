@@ -47,25 +47,25 @@ void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, 
 
     result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
 
-    pmean->name_ParaView_parallel(p,a,pgc,result);
+    pmean->name_ParaView_parallel(p,result);
 
     result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
 
-    pturb->name_ParaView_parallel(p,a,pgc,result);
+    pturb->name_ParaView_parallel(p,result);
 
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
 
     result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
 
-    pheat->name_ParaView_parallel(p,a,pgc,result);
+    pheat->name_ParaView_parallel(p,result);
 
-    pmp->name_ParaView_parallel(p,a,pgc,result);
+    pmp->name_ParaView_parallel(p,result);
 
-    pvort->name_ParaView_parallel(p,a,pgc,result);
+    pvort->name_ParaView_parallel(p,result);
 
-    pdata->name_ParaView_parallel(p,a,pgc,result);
+    pdata->name_ParaView_parallel(p,result);
 
-    pconc->name_ParaView_parallel(p,a,pgc,result);
+    pconc->name_ParaView_parallel(p,result);
 
     if(p->P24==1 && p->F300==0)
         result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";

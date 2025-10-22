@@ -61,8 +61,8 @@ public:
     virtual void ls1get(int,int,int,double);
     virtual void ls2get(int,int,int,double);
 
-    virtual void name_ParaView_parallel(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_ParaView(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_ParaView_parallel(lexer*, ofstream&);
+    virtual void name_ParaView(lexer*, ofstream&, int*, int &);
     virtual void offset_ParaView(lexer*, int*, int &);
     
     void logic(lexer*,fdm*,ghostcell*);

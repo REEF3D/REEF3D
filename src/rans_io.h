@@ -55,8 +55,8 @@ public:
     virtual void kinget(int,int,int,double);
     virtual void epsget(int,int,int,double);
 
-    virtual void name_ParaView_parallel(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_ParaView(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_ParaView_parallel(lexer*, ofstream&);
+    virtual void name_ParaView(lexer*, ofstream&, int*, int &);
     virtual void offset_ParaView(lexer*, int*, int &);
     
     field4 kin,eps,eddyv0;

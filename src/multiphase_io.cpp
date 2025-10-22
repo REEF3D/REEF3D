@@ -132,14 +132,14 @@ void multiphase_f::ls2get(int ii, int jj, int kk, double val)
     ls2(i,j,k)=val;
 }
 
-void multiphase_f::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void multiphase_f::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 	result<<"<PDataArray type=\"Float32\" Name=\"ls1\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"ls2\"/>\n";
 	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
 }
 
-void multiphase_f::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void multiphase_f::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
 	result<<"<DataArray type=\"Float32\" Name=\"ls1\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

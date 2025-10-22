@@ -131,7 +131,7 @@ void rans_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)
 	pgc->start4(p,eps,30);
 }
 
-void rans_io::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void rans_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>\n";
 	
@@ -141,7 +141,7 @@ void rans_io::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream 
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
-void rans_io::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void rans_io::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

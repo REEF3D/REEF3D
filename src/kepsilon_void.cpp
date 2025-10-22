@@ -137,11 +137,11 @@ void kepsilon_void::ini(lexer* p, fdm*a, ghostcell* pgc)
 {
 }
 
-void kepsilon_void::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void kepsilon_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void kepsilon_void::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void kepsilon_void::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
 }
 

@@ -126,12 +126,12 @@ void nhflow_les_io::gcupdate(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
-void nhflow_les_io::name_ParaView_parallel(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_les_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
 }
 
-void nhflow_les_io::name_ParaView(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_les_io::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

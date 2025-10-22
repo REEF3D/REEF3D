@@ -102,12 +102,12 @@ void multiphase_v::ls2get(int,int,int,double)
 }
 
 
-void multiphase_v::name_ParaView_parallel(lexer*, fdm*, ghostcell*,ofstream&)
+void multiphase_v::name_ParaView_parallel(lexer*, ofstream&)
 {
 	
 }
 
-void multiphase_v::name_ParaView(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
+void multiphase_v::name_ParaView(lexer*, ofstream&, int*, int &)
 {
 	
 }

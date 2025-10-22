@@ -136,11 +136,11 @@ void nhflow_komega_func_void::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
 }
 
-void nhflow_komega_func_void::name_ParaView_parallel(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_komega_func_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void nhflow_komega_func_void::name_ParaView(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_komega_func_void::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
 }
 

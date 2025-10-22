@@ -58,8 +58,8 @@ public:
 	virtual void jsource(lexer*,fdm_nhf*);
 	virtual void ksource(lexer*,fdm_nhf*);
 
-    virtual void name_ParaView_parallel(lexer*, fdm_nhf*, ghostcell*,ofstream&);
-    virtual void name_ParaView(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_ParaView_parallel(lexer*, ofstream&);
+    virtual void name_ParaView(lexer*, ofstream&, int*, int &);
     virtual void offset_ParaView(lexer*, int*, int &);
     
     virtual void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&){};

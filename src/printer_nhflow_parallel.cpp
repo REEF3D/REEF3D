@@ -39,7 +39,7 @@ void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbu
     result<<"<PPointData>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
-    pnhfturb->name_ParaView_parallel(p,d,pgc,result);
+    pnhfturb->name_ParaView_parallel(p,result);
     if(p->P74==1)
         result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";

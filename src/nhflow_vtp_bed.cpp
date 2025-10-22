@@ -110,13 +110,13 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     result<<"<DataArray type=\"Float32\" Name=\"depth\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     if(p->P76==1)
-        psed->name_ParaView_bedload(p,pgc,result,offset,n);
+        psed->name_ParaView_bedload(p,result,offset,n);
     if(p->P77==1)
-        psed->name_ParaView_parameter1(p,pgc,result,offset,n);
+        psed->name_ParaView_parameter1(p,result,offset,n);
     if(p->P78==1)
-        psed->name_ParaView_parameter2(p,pgc,result,offset,n);
+        psed->name_ParaView_parameter2(p,result,offset,n);
     if(p->P79>=1)
-        psed->name_ParaView_bedshear(p,pgc,result,offset,n);
+        psed->name_ParaView_bedshear(p,result,offset,n);
     if(p->P23==1)
     {
         result<<"<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";

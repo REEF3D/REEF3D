@@ -453,7 +453,7 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
         result<<"<DataArray type=\"Float32\" Name=\"pressure\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
 
-        pnhfturb->name_ParaView(p,d,pgc,result,offset,n);
+        pnhfturb->name_ParaView(p,result,offset,n);
 
         if(p->P74==1)
         {

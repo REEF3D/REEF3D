@@ -64,13 +64,13 @@ double concentration_io::val(int ii, int jj, int kk)
     return val;
 }
 
-void concentration_io::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void concentration_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"C\"/>\n";
 	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
 }
 
-void concentration_io::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void concentration_io::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"C\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

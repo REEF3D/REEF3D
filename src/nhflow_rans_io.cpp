@@ -312,7 +312,7 @@ void nhflow_rans_io::offset_ParaView_2D(lexer *p, int *offset, int &n)
 	++n;
 }
 
-void nhflow_rans_io::name_ParaView_parallel(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_rans_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
     
@@ -324,7 +324,7 @@ void nhflow_rans_io::name_ParaView_parallel(lexer *p, fdm_nhf *d, ghostcell *pgc
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
-void nhflow_rans_io::name_ParaView(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_rans_io::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

@@ -34,11 +34,11 @@ void vorticity_void::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result
 {
 }
 
-void vorticity_void::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void vorticity_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void vorticity_void::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void vorticity_void::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
 }
 

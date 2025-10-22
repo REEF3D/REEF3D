@@ -65,11 +65,11 @@ void heat_void::heat_ini(lexer* p, fdm *a, ghostcell* pgc, heat *pheat)
 {
 }
 
-void heat_void::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void heat_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void heat_void::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void heat_void::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
 {
 }
 

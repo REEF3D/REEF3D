@@ -93,15 +93,15 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
     ++n;
 
     if(p->P76==1)
-    psed->name_ParaView_bedload(p,pgc,result,offset,n);
+    psed->name_ParaView_bedload(p,result,offset,n);
 
     if(p->P77==1)
-    psed->name_ParaView_parameter1(p,pgc,result,offset,n);
+    psed->name_ParaView_parameter1(p,result,offset,n);
 
     if(p->P78==1)
-    psed->name_ParaView_parameter2(p,pgc,result,offset,n);
+    psed->name_ParaView_parameter2(p,result,offset,n);
     if(p->P79>=1)
-        psed->name_ParaView_bedshear(p,pgc,result,offset,n);
+        psed->name_ParaView_bedshear(p,result,offset,n);
     result<<"</PointData>\n";
 
     vtp3D::polys(result,offset,n);
