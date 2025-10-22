@@ -115,6 +115,6 @@ void les_io::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *o
 {
 }
 
-void les_io::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void les_io::offset_vtu(lexer *p, int *offset, int &n)
 {
 }

@@ -49,7 +49,7 @@ void expdata_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, 
 {
 }
 
-void expdata_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void expdata_void::offset_vtu(lexer *p, int *offset, int &n)
 {
 }
 

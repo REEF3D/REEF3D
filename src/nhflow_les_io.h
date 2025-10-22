@@ -60,12 +60,11 @@ public:
 
     virtual void name_pvtu(lexer*, fdm_nhf*, ghostcell*,ofstream&);
     virtual void name_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_vtu(lexer*, int*, int &);
     
     virtual void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&){};
     virtual void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &){};
-	
+    virtual void offset_vtp(lexer*, int*, int &){};
 
 private:
     void tau_calc(fdm_nhf*, lexer*, double);

@@ -78,7 +78,7 @@ void print_averaging_f::averaging(lexer *p, fdm *a, ghostcell *pgc, heat *pheat)
     }
 }
 
-void print_averaging_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void print_averaging_f::offset_vtu(lexer *p, int *offset, int &n)
 {
     // velocity
 	offset[n]=offset[n-1]+4*(p->pointnum)*3+4;

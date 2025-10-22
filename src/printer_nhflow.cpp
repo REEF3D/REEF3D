@@ -383,6 +383,16 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
         offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
         ++n;
 
+        // k and eps
+        pnhfturb->offset_vtu(p,offset,n);
+
+        // omega_sig
+        if(p->P74==1)
+        {
+            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+            ++n;
+        }
+
         // elevation
         offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
         ++n;

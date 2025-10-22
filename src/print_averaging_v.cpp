@@ -45,7 +45,7 @@ void print_averaging_v::averaging(lexer *p, fdm *a, ghostcell *pgc, heat *pheat)
 
 }
 
-void print_averaging_v::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void print_averaging_v::offset_vtu(lexer *p, int *offset, int &n)
 {
         
 }

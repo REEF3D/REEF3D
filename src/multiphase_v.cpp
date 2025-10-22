@@ -112,7 +112,7 @@ void multiphase_v::name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
 	
 }
 
-void multiphase_v::offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
+void multiphase_v::offset_vtu(lexer*, int*, int &)
 {
 	
 }
