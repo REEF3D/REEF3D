@@ -21,72 +21,37 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_force.h"
-#include<string>
 #include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
 
-void nhflow_force::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_force::pvtp(lexer *p, int num)
 {
-    int num=0;
+    sprintf(name,"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i.pvtp",ID,num);
 
-    if(p->P15==1)
-    num = forceprintcount;
+    ofstream result;
+    result.open(name);
 
-    if(p->P15==2)
-    num = p->count;
-	
-	sprintf(name,"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i.pvtp",ID,num);
+    result<<"<?xml version=\"1.0\"?>\n";
+    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    result<<"<PPolyData GhostLevel=\"0\">\n";
 
-	ofstream result;
-	result.open(name);
+    result<<"<PPoints>\n";
+    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+    result<<"</PPoints>\n";
 
-	result<<"<?xml version=\"1.0\"?>\n";
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-	result<<"<PPolyData GhostLevel=\"0\">\n";
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
+    result<<"</PPointData>\n";
 
+    char pname[100];
+    for(n=0; n<p->M10; ++n)
+    {
+        sprintf(pname,"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
+        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+    }
 
-	result<<"<PPoints>\n";
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-	result<<"</PPoints>\n";
-	
-	result<<"<PPointData>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
-	result<<"</PPointData>\n";
-	
-	result<<"<Polys>\n";
-    result<<"<DataArray type=\"Int32\" Name=\"connectivity\"/>\n";
-    ++n;
-	result<<"<DataArray type=\"Int32\" Name=\"offsets\"/>\n";
-	++n;
-    result<<"<DataArray type=\"Int32\" Name=\"types\"/>\n";
-	result<<"</Polys>\n";
+    result<<"</PPolyData>\n";
+    result<<"</VTKFile>\n";
 
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(p,d,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>\n";
-	}
-
-	result<<"</PPolyData>\n";
-	result<<"</VTKFile>\n";
-
-	result.close();
+    result.close();
 }
-
-void nhflow_force::piecename(lexer* p, fdm_nhf *d,  ghostcell* pgc, int n)
-{
-    int num=0;
-
-
-    if(p->P15==1)
-    num = forceprintcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-	sprintf(pname,"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
-}
-
-

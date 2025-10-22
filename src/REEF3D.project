@@ -1474,7 +1474,6 @@
             <File Name="nhflow_force_allocate.cpp"/>
             <File Name="nhflow_force_print.cpp"/>
             <VirtualDirectory Name="Print VTP">
-              <File Name="nhflow_force_header.cpp"/>
               <File Name="nhflow_force_vtp.cpp"/>
               <File Name="nhflow_force_pvtp.cpp"/>
             </VirtualDirectory>
