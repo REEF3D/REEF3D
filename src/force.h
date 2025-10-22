@@ -70,13 +70,9 @@ private:
 	void print_force(lexer*,fdm*,ghostcell*);
     void print_ini(lexer*,fdm*,ghostcell*);
     void print_vtp(lexer*,fdm*,ghostcell*);
-    void pvtp(lexer*,fdm*,ghostcell*);
-    void header(lexer*,fdm*,ghostcell*);
-    void name_iter(lexer*,fdm*,ghostcell*);
-    void name_time(lexer*,fdm*,ghostcell*);
-    void piecename(lexer*,fdm*,ghostcell*,int);
+    void pvtp(lexer*,int);
 
-    char name[100],pname[100],epsvar[100];
+    char name[100];
     int iin,offset[100];
     float ffn;
     int gcval_phi;
