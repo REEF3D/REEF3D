@@ -33,17 +33,7 @@ void partres::pvtp(lexer* p, int num)
     std::ofstream result;
     result.open(name);
 
-    result<<"<?xml version=\"1.0\"?>\n";
-    result<<"<VTKFile type=\"PPolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
-    result<<"<PPolyData GhostLevel=\"0\">\n";
-
-    result<<"<FieldData>\n";
-    if(p->P16==1)
-    {
-        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime;
-        result<<"</DataArray>\n";
-    }
-    result<<"</FieldData>\n";
+    vtp3D::beginningParallel(p,result);
 
     result<<"<PPointData>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"Flag\"/>\n";
@@ -55,9 +45,7 @@ void partres::pvtp(lexer* p, int num)
     result<<"<PDataArray type=\"Float32\" Name=\"bedChange\"/>\n";
     result<<"</PPointData>\n";
 
-    result<<"<PPoints>\n";
-    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-    result<<"</PPoints>\n";
+    vtp3D::pointsParallel(result);
 
     char pname[100];
     for(int n=0; n<p->M10; ++n)
@@ -66,8 +54,7 @@ void partres::pvtp(lexer* p, int num)
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 
-    result<<"</PPolyData>\n";
-    result<<"</VTKFile>"<<std::flush;
+    vtp3D::endingParallel(result);
 
     result.close();
 }

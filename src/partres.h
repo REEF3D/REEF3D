@@ -28,6 +28,7 @@ Authora: Hans Bihs, Alexander Hanke
 #include"slice4.h"
 #include"field4a.h"
 #include"boundarycheck.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm;
@@ -39,7 +40,7 @@ class vrans;
 
 using namespace std;
 
-class partres : public increment
+class partres : public increment, private vtp3D
 {
 public:
     partres(lexer*, ghostcell*);
