@@ -31,21 +31,9 @@ void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
     ofstream result;
     result.open(name);
 
-    result<<"<?xml version=\"1.0\"?>\n";
-    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    result<<"<PPolyData GhostLevel=\"0\">\n";
+    vtp3D::beginningParallel(p,result);
 
-    if(p->P16==1)
-    {
-        result<<"<FieldData>\n";
-        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-        result<<"</DataArray>\n";
-        result<<"</FieldData>\n";
-    }
-
-    result<<"<PPoints>\n";
-    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-    result<<"</PPoints>\n";
+    vtp3D::pointsParallel(result);
 
     result<<"<PPointData>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
@@ -62,11 +50,6 @@ void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
         result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
     result<<"</PPointData>\n";
 
-    result<<"<Polys>\n";
-    result<<"<DataArray type=\"Int32\" Name=\"connectivity\"/>\n";
-    result<<"<DataArray type=\"Int32\" Name=\"offsets\"/>\n";
-    result<<"</Polys>\n";
-
     char pname[200];
     for(n=0; n<p->M10; ++n)
     {
@@ -74,8 +57,7 @@ void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 
-    result<<"</PPolyData>\n";
-    result<<"</VTKFile>\n";
+    vtp3D::endingParallel(result);
 
     result.close();
 }
