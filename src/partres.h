@@ -93,7 +93,7 @@ private:
     double distcalc(lexer*, double , double, double , double, double);
 
     void print_vtp(lexer*,sediment_fdm*);
-    void pvtp(lexer*);
+    void pvtp(lexer*,int);
 
     boundarycheck boundaries;
 

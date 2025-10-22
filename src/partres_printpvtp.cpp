@@ -25,10 +25,10 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void partres::pvtp(lexer* p)
+void partres::pvtp(lexer* p, int num)
 {
     char name[100];
-    sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i.pvtp",printcount);
+    sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i.pvtp",num);
 
     std::ofstream result;
     result.open(name);

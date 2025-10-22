@@ -55,8 +55,10 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
     if(P.Flag[n]>0)
         numpt++;
 
+    int num = printcount;
+
     if(p->mpirank==0)
-        pvtp(p);
+        pvtp(p,num);
 
     int n=0;
     int offset[100];
