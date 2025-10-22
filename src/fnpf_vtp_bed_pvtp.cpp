@@ -29,21 +29,9 @@ void fnpf_vtp_bed::pvtp(lexer *p, int num)
     sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%08i.pvtp",num);
     result.open(name);
 
-    result<<"<?xml version=\"1.0\"?>\n";
-    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    result<<"<PPolyData GhostLevel=\"0\">\n";
+    vtp3D::beginningParallel(p,result);
 
-    if(p->P16==1)
-    {
-        result<<"<FieldData>\n";
-        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-        result<<"</DataArray>\n";
-        result<<"</FieldData>\n";
-    }
-
-    result<<"<PPoints>\n";
-    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-    result<<"</PPoints>\n";
+    vtp3D::pointsParallel(result);
 
     result<<"<PPointData>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
@@ -57,8 +45,7 @@ void fnpf_vtp_bed::pvtp(lexer *p, int num)
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 
-    result<<"</PPolyData>\n";
-    result<<"</VTKFile>\n";
+    vtp3D::endingParallel(result);
 
     result.close();
 }

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define FNPF_VTP_BED_H_
 
 #include"increment.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm_fnpf;
@@ -32,7 +33,7 @@ class ioflow;
 
 using namespace std;
 
-class fnpf_vtp_bed : public increment
+class fnpf_vtp_bed : public increment, private vtp3D
 {
 public:
     fnpf_vtp_bed(lexer*,fdm_fnpf*,ghostcell*);
