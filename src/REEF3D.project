@@ -1012,6 +1012,7 @@
           <File Name="vtu3D.h"/>
           <File Name="vtr3D.h"/>
           <File Name="vts3D.h"/>
+          <File Name="vtp3D.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Force">
           <File Name="force.h"/>
@@ -2785,6 +2786,7 @@
           <File Name="vtu3D.cpp"/>
           <File Name="vtr3D.cpp"/>
           <File Name="vts3D.cpp"/>
+          <File Name="vtp3D.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.cpp"/>
