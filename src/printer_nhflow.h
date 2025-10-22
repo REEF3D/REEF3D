@@ -67,6 +67,8 @@ private:
     void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*,int);
 
     vtk3D *outputFormat;
+    bool initial_print = true;
+    size_t file_offset = 0;
 
     char name[200];
     int n,iin,offset[200];

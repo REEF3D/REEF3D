@@ -72,6 +72,8 @@ private:
     void parallel(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*,int);
 
     vtk3D *outputFormat;
+    bool initial_print = true;
+    size_t file_offset = 0;
 
     char name[200];
     int n,iin,offset[300];

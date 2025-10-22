@@ -23,6 +23,9 @@ Author: Hans Bihs
 #ifndef PRINTER_H_
 #define PRINTER_H_
 
+#include<vector>
+#include<cstddef>
+
 class lexer;
 class fdm;
 class fdm_nhf;
@@ -49,6 +52,10 @@ public:
     // FNPF
     virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*){};
     virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*){};
+protected:
+    void writeFile(const char*, const size_t);
+
+    std::vector<char> buffer;
 };
 
 #endif

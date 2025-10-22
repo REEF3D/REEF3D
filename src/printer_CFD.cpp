@@ -56,6 +56,9 @@ Author: Hans Bihs
 #include"print_averaging_v.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include<sstream>
+#include<cstdio>
+#include<cstring>
 
 printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
 {
@@ -368,133 +371,132 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->mpirank==0)
             parallel(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed,num);
 
-        outputFormat->fileName(name,sizeof(name),"CFD",num,p->mpirank+1);
+        if(initial_print)
+        {
+            n=0;
+            offset[n]=0;
+            ++n;
 
-        // Open File
-        ofstream result;
-        result.open(name, ios::binary);
+            // velocity
+            offset[n]=offset[n-1]+sizeof(float)*p->pointnum*3+sizeof(int);
+            ++n;
 
-        n=0;
+            pmean->offset_ParaView(p,offset,n);
 
-        offset[n]=0;
-        ++n;
+            // scalars
 
-        // velocity
-        offset[n]=offset[n-1]+sizeof(float)*p->pointnum*3+sizeof(int);
-        ++n;
+            // pressure
+            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+            ++n;
+            // k and eps
+            pturb->offset_ParaView(p,offset,n);
+            // eddyv
+            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+            ++n;
+            // phi
+            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+            ++n;
+            // T
+            pheat->offset_ParaView(p,offset,n);
+            // Multiphase
+            pmp->offset_ParaView(p,offset,n);
+            // vorticity
+            pvort->offset_ParaView(p,offset,n);
+            // data
+            pdata->offset_ParaView(p,offset,n);
+            // concentration
+            pconc->offset_ParaView(p,offset,n);
+            // rho
+            if(p->P24==1 && p->F300==0)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            // viscosity
+            if(p->P71==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            // VOF
+            if(p->P72==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            // Fi
+            if(p->A10==4)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            // conc
+            if(p->P26==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            // topo
+            if(p->P27==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            // sediment bedlaod
+            if(p->P76==1)
+                psed->offset_ParaView_bedload(p,offset,n);
+            // sediment parameters 1
+            if(p->P77==1)
+                psed->offset_ParaView_parameter1(p,offset,n);
+            // sediment parameters 2
+            if(p->P78==1)
+                psed->offset_ParaView_parameter2(p,offset,n);
+            // bed shear stress
+            if(p->P79>=1)
+                psed->offset_ParaView_bedshear(p,offset,n);
+            // test
+            if(p->P23==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            // elevation
+            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+            ++n;
+            // solid
+            if(p->P25==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            // floating
+            if(p->P28==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            // walldist
+            if(p->P29==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+            ++n;
+            }
+            // end point data
+            // VOF_C
+            if(p->P72==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->cellnum+sizeof(int);
+                ++n;
+            }
+            // end scalars
 
-        pmean->offset_ParaView(p,offset,n);
+            // Format specific structure
+            outputFormat->offset(p,offset,n);
 
-        // scalars
-
-        // pressure
-        offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-        ++n;
-        // k and eps
-        pturb->offset_ParaView(p,offset,n);
-        // eddyv
-        offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-        ++n;
-        // phi
-        offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-        ++n;
-        // T
-        pheat->offset_ParaView(p,offset,n);
-        // Multiphase
-        pmp->offset_ParaView(p,offset,n);
-        // vorticity
-        pvort->offset_ParaView(p,offset,n);
-        // data
-        pdata->offset_ParaView(p,offset,n);
-        // concentration
-        pconc->offset_ParaView(p,offset,n);
-        // rho
-        if(p->P24==1 && p->F300==0)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-            ++n;
+            initial_print=false;
         }
-        // viscosity
-        if(p->P71==1)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-            ++n;
-        }
-        // VOF
-        if(p->P72==1)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-            ++n;
-        }
-        // Fi
-        if(p->A10==4)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-            ++n;
-        }
-        // conc
-        if(p->P26==1)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-            ++n;
-        }
-        // topo
-        if(p->P27==1)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-            ++n;
-        }
-        // sediment bedlaod
-        if(p->P76==1)
-            psed->offset_ParaView_bedload(p,offset,n);
-        // sediment parameters 1
-        if(p->P77==1)
-            psed->offset_ParaView_parameter1(p,offset,n);
-        // sediment parameters 2
-        if(p->P78==1)
-            psed->offset_ParaView_parameter2(p,offset,n);
-        // bed shear stress
-        if(p->P79>=1)
-            psed->offset_ParaView_bedshear(p,offset,n);
-        // test
-        if(p->P23==1)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-            ++n;
-        }
-        // elevation
-        offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-        ++n;
-        // solid
-        if(p->P25==1)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-            ++n;
-        }
-        // floating
-        if(p->P28==1)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-            ++n;
-        }
-        // walldist
-        if(p->P29==1)
-        {
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-        ++n;
-        }
-        // end point data
-        // VOF_C
-        if(p->P72==1)
-        {
-            offset[n]=offset[n-1]+4*(p->cellnum)+4;
-            ++n;
-        }
-        // end scalars
-
-        // Format specific structure
-        outputFormat->offset(p,offset,n);
         //---------------------------------------------
+        std::stringstream result;
 
         outputFormat->beginning(p,result);
 
@@ -610,81 +612,96 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 
         outputFormat->ending(result,offset,n);
 
+        file_offset = result.str().length();
+        const size_t total_size = file_offset + offset[n] + 27;
+        buffer.resize(total_size);
+        std::memcpy(&buffer[0], result.str().data(), file_offset);
         //----------------------------------------------------------------------------
-
 
         //  Velocities
         iin=3*sizeof(int)*p->pointnum;
-        result.write((char*)&iin, sizeof (int));
+        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->ipol1(a->u));
-            result.write((char*)&ffn, sizeof (float));
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
 
             ffn=float(p->ipol2(a->v));
-            result.write((char*)&ffn, sizeof (float));
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
 
             ffn=float(p->ipol3(a->w));
-            result.write((char*)&ffn, sizeof (float));
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
         }
 
         //  time average flow parameters
-        pmean->print_3D(p,a,pgc,result);
+        pmean->print_3D(p,a,pgc,buffer,file_offset);
 
         //  Pressure
         iin=sizeof(float)*p->pointnum;
-        result.write((char*)&iin, sizeof (int));
+        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->ipol4press(a->press)-p->pressgage);
-            result.write((char*)&ffn, sizeof (float));
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
         }
 
         //  turbulence
-        pturb->print_3D(p,a,pgc,result);
+        pturb->print_3D(p,a,pgc,buffer,file_offset);
 
         //  eddyv
         iin=sizeof(float)*p->pointnum;
-        result.write((char*)&iin, sizeof (int));
+        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->ipol4_a(a->eddyv));
-            result.write((char*)&ffn, sizeof (float));
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
         }
 
         //  phi
         iin=sizeof(float)*p->pointnum;
-        result.write((char*)&iin, sizeof (int));
+        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->ipol4phi(a,a->phi));
-            result.write((char*)&ffn, sizeof (float));
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
         }
 
         //  T
-        pheat->print_3D(p,a,pgc,result);
+        pheat->print_3D(p,a,pgc,buffer,file_offset);
 
         //  Multiphase
-        pmp->print_3D(p,a,pgc,result);
+        pmp->print_3D(p,a,pgc,buffer,file_offset);
 
         //  Vorticity
-        pvort->print_3D(p,a,pgc,result);
+        pvort->print_3D(p,a,pgc,buffer,file_offset);
 
         //  Data
-        pdata->print_3D(p,a,pgc,result);
+        pdata->print_3D(p,a,pgc,buffer,file_offset);
 
         //  Concentration
-        pconc->print_3D(p,a,pgc,result);
+        pconc->print_3D(p,a,pgc,buffer,file_offset);
 
         //  density
         if(p->P24==1 && p->F300==0)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->ro));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
@@ -692,11 +709,13 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P71==1)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4(a->visc));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
@@ -704,11 +723,13 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P72==1)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4(a->vof));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
@@ -716,11 +737,13 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->A10==4)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4press(a->Fi));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
@@ -728,11 +751,13 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P26==1)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4(a->conc));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
@@ -740,60 +765,68 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P27==1)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->topo));
-                            result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
         //  sediment bedload
         if(p->P76==1)
-            psed->print_3D_bedload(p,pgc,result);
+            psed->print_3D_bedload(p,pgc,buffer,file_offset);
 
         //  sediment parameter 1
         if(p->P77==1)
-            psed->print_3D_parameter1(p,pgc,result);
+            psed->print_3D_parameter1(p,pgc,buffer,file_offset);
 
         //  sediment parameter 2
         if(p->P78==1)
-            psed->print_3D_parameter2(p,pgc,result);
+            psed->print_3D_parameter2(p,pgc,buffer,file_offset);
 
         //  bed shear stress
         if(p->P79>=1)
-            psed->print_3D_bedshear(p,pgc,result);
+            psed->print_3D_bedshear(p,pgc,buffer,file_offset);
 
         //  test
         if(p->P23==1)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->test));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
         //  elevation
         iin=sizeof(float)*p->pointnum*3;
-        result.write((char*)&iin, sizeof (int));
+        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->pos_z()+0.5*p->DZN[KP]);
-            result.write((char*)&ffn, sizeof (float));
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
         }
 
         //  solid
         if(p->P25==1)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->solid));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
@@ -801,11 +834,13 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P28==1)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->fb));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
@@ -813,11 +848,13 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P29==1)
         {
             iin=sizeof(float)*p->pointnum;
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->walld));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
@@ -825,17 +862,21 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P72==1)
         {
             iin=4*(p->cellnum);
-            result.write((char*)&iin, sizeof (int));
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
             BASEREVLOOP
             {
                 ffn=float(a->vof(i,j,k));
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
             }
         }
 
-        outputFormat->structureWrite(p,a,result);
+        outputFormat->structureWrite(p,a,buffer,file_offset);
 
-        result.close();
+        outputFormat->fileName(name,sizeof(name),"CFD",num,p->mpirank+1);
+
+        writeFile(name, total_size);
 
         ++p->printcount;
 

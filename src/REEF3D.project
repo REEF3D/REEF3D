@@ -2773,6 +2773,7 @@
           <File Name="printer_CFD_parallel.cpp"/>
           <File Name="printer_CFD.cpp"/>
         </VirtualDirectory>
+        <File Name="printer.cpp"/>
         <VirtualDirectory Name="ParaView">
           <File Name="vtu3D.cpp"/>
           <File Name="vtr3D.cpp"/>
