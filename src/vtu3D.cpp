@@ -123,7 +123,7 @@ void vtu3D::endingParallel(std::ostream &result, const char *A10, const int M10,
     result<<"</VTKFile>"<<flush;
 }
 
-void vtu3D::structureWrite(lexer *p, fdm *a, std::ostream &result)
+void vtu3D::structureWrite(lexer *p, fdm *a, std::vector<char> &buffer, size_t &m)
 {
     float ffn;
     int iin;
@@ -138,7 +138,8 @@ void vtu3D::structureWrite(lexer *p, fdm *a, std::ostream &result)
         phase = omega_y*p->simtime;
 
     iin=3*sizeof(float)*p->pointnum;
-    result.write((char*)&iin, sizeof(int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     TPLOOP
     {
 
@@ -146,52 +147,64 @@ void vtu3D::structureWrite(lexer *p, fdm *a, std::ostream &result)
 
         ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3 
                     + p->B181_1*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3));
-        result.write((char*)&ffn, sizeof(float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
 
         ffn=float(p->YN[JP1]) + p->B182_1*std::sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3);
-        result.write((char*)&ffn, sizeof(float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
         
 
         ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4
                     + p->B183_1*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3));
-        result.write((char*)&ffn, sizeof(float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
 
     //  Connectivity
     iin=8*sizeof(int)*p->tpcellnum;
-    result.write((char*)&iin, sizeof(int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     BASEREVLOOP
         if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
         {
             iin=int(a->nodeval(i-1,j-1,k-1)-1);
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(a->nodeval(i,j-1,k-1))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin= int(a->nodeval(i,j,k-1))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(a->nodeval(i-1,j,k-1))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(a->nodeval(i-1,j-1,k))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(a->nodeval(i,j-1,k))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(a->nodeval(i,j,k))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(a->nodeval(i-1,j,k))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
         }
 
-    structureWriteEnd(p,result);
+    structureWriteEnd(p,buffer,m);
 }
 
-void vtu3D::structureWrite(lexer *p, fdm_fnpf *c, std::ostream &result)
+void vtu3D::structureWrite(lexer *p, fdm_fnpf *c, std::vector<char> &buffer, size_t &m)
 {
     float ffn;
     int iin;
@@ -207,7 +220,8 @@ void vtu3D::structureWrite(lexer *p, fdm_fnpf *c, std::ostream &result)
         phase = omega_y*p->simtime;
 
     iin=3*sizeof(float)*p->pointnum;
-    result.write((char*)&iin, sizeof(int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     TPLOOP
     {
         waterlevel = p->sl_ipol4eta(p->wet,c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
@@ -222,50 +236,62 @@ void vtu3D::structureWrite(lexer *p, fdm_fnpf *c, std::ostream &result)
         zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j);
 
         ffn=float((p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
-        result.write((char*)&ffn, sizeof(float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
 
         ffn=float(p->YN[JP1]);
-        result.write((char*)&ffn, sizeof(float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
 
         ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
-        result.write((char*)&ffn, sizeof(float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
 
     //  Connectivity
     iin=8*sizeof(int)*p->tpcellnum;
-    result.write((char*)&iin, sizeof(int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     BASELOOP
         if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
         {
             iin=int(c->nodeval(i-1,j-1,k-1)-1);
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(c->nodeval(i,j-1,k-1))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin= int(c->nodeval(i,j,k-1))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(c->nodeval(i-1,j,k-1))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(c->nodeval(i-1,j-1,k))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(c->nodeval(i,j-1,k))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(c->nodeval(i,j,k))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(c->nodeval(i-1,j,k))-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
         }
 
-    structureWriteEnd(p,result);
+    structureWriteEnd(p,buffer,m);
 }
 
-void vtu3D::structureWrite(lexer *p, fdm_nhf *d, std::ostream &result)
+void vtu3D::structureWrite(lexer *p, fdm_nhf *d, std::vector<char> &buffer, size_t &m)
 {
     float ffn;
     int iin;
@@ -273,7 +299,8 @@ void vtu3D::structureWrite(lexer *p, fdm_nhf *d, std::ostream &result)
 
     //  XYZ
     iin=3*sizeof(float)*p->pointnum;
-    result.write((char*)&iin, sizeof(int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     TPLOOP
     {
         zcoor = p->ZN[KP1]*p->sl_ipol4(d->WL) + p->sl_ipol4(d->bed);
@@ -286,71 +313,86 @@ void vtu3D::structureWrite(lexer *p, fdm_nhf *d, std::ostream &result)
 
         // -- 
         ffn=float(p->XN[IP1]);
-        result.write((char*)&ffn, sizeof(float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
 
         ffn=float(p->YN[JP1]);
-        result.write((char*)&ffn, sizeof(float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
 
         ffn=float(zcoor);
-        result.write((char*)&ffn, sizeof(float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
     
     //  Connectivity
     iin=8*sizeof(int)*p->tpcellnum;
-    result.write((char*)&iin, sizeof(int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     BASELOOP
         if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
         {
             iin=int(d->NODEVAL[Im1Jm1Km1])-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(d->NODEVAL[IJm1Km1])-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin= int(d->NODEVAL[IJKm1])-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(d->NODEVAL[Im1JKm1])-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(d->NODEVAL[Im1Jm1K])-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(d->NODEVAL[IJm1K])-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(d->NODEVAL[IJK])-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
 
             iin=int(d->NODEVAL[Im1JK])-1;
-            result.write((char*)&iin, sizeof(int));
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
         }
 
-    structureWriteEnd(p,result);
+    structureWriteEnd(p,buffer,m);
 }
 
-void vtu3D::structureWriteEnd(lexer *p, std::ostream &result)
+void vtu3D::structureWriteEnd(lexer *p, std::vector<char> &buffer, size_t &m)
 {
     int iin;
 
     // Offset of Connectivity
     iin=4*p->tpcellnum;
-    result.write((char*)&iin, sizeof(int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     for(n=0;n<p->tpcellnum;++n)
     {
         iin=(n+1)*8;
-        result.write((char*)&iin, sizeof(int));
+        std::memcpy(&buffer[m],&iin,sizeof(int));
+        m+=sizeof(int);
     }
 
     //  Cell types
     iin=4*p->tpcellnum;
-    result.write((char*)&iin, sizeof(int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     for(n=0;n<p->tpcellnum;++n)
     {
         iin=12;
-        result.write((char*)&iin, sizeof(int));
+        std::memcpy(&buffer[m],&iin,sizeof(int));
+        m+=sizeof(int);
     }
 
-    result<<"\n</AppendedData>\n";
-    result<<"</VTKFile>"<<flush;
+    vtk3D::structureWriteEnd(buffer,m);
 }

@@ -34,17 +34,17 @@ class vtu3D : public vtk3D , increment
         void parallelFileName(char*, const unsigned int, const char*, const int) override;
 
         void offset(lexer*, int*, int&) override;
-        
+
         void beginning(lexer*, std::ostream&) override;
         void beginningParallel(lexer*, std::ostream&) override;
         void ending(std::ostream&, const int*, int&) override;
         void endingParallel(std::ostream&, const char*, const int, const int) override;
 
-        void structureWrite(lexer*, fdm*, std::ostream&) override;
-        void structureWrite(lexer*, fdm_fnpf*, std::ostream&) override;
-        void structureWrite(lexer*, fdm_nhf*, std::ostream&) override;
+        void structureWrite(lexer*, fdm*, std::vector<char>&, size_t&) override;
+        void structureWrite(lexer*, fdm_fnpf*, std::vector<char>&, size_t&) override;
+        void structureWrite(lexer*, fdm_nhf*, std::vector<char>&, size_t&) override;
     private:
-        void structureWriteEnd(lexer*, std::ostream&);
+        void structureWriteEnd(lexer*, std::vector<char>&, size_t&);
         char pname[50];
 };
 

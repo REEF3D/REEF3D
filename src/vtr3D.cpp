@@ -125,7 +125,7 @@ void vtr3D::endingParallel(std::ostream &result, const char *A10, const int M10,
     result<<"</VTKFile>"<<flush;
 }
 
-void vtr3D::structureWrite(lexer *p, fdm*, std::ostream &result)
+void vtr3D::structureWrite(lexer *p, fdm*, std::vector<char> &buffer, size_t &m)
 {
     float ffn;
     int iin;
@@ -133,29 +133,34 @@ void vtr3D::structureWrite(lexer *p, fdm*, std::ostream &result)
     // Coordinates
     // x
     iin=sizeof(float)*(p->knox+1);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     ITLOOP
     {
         ffn=float(p->XN[IP]);
-        result.write((char*)&ffn, sizeof (float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
     // y
     iin=sizeof(float)*(p->knoy+1);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     JTLOOP
     {
         ffn=float(p->YN[JP]);
-        result.write((char*)&ffn, sizeof (float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
     // z
     iin=sizeof(float)*(p->knoz+1);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     KTLOOP
     {
         ffn=float(p->ZN[KP]);
-        result.write((char*)&ffn, sizeof (float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
 
-    result<<"\n</AppendedData>\n";
-    result<<"</VTKFile>"<<flush;
+    vtk3D::structureWriteEnd(buffer,m);
 }

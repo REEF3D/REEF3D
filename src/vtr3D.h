@@ -40,7 +40,7 @@ class vtr3D : public vtk3D , increment
         void ending(std::ostream&, const int*, int&) override;
         void endingParallel(std::ostream&, const char*, const int, const int) override;
 
-        void structureWrite(lexer*, fdm*, std::ostream&) override;
+        void structureWrite(lexer*, fdm*, std::vector<char>&, size_t&) override;
     private:
         int *piextent;
         char pname[50];

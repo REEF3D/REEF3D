@@ -24,6 +24,9 @@ Author: Alexander Hanke
 #define VTK3D_H_
 
 #include <ostream>
+#include <sstream>
+#include <vector>
+#include <cstring>
 #include <iomanip>
 
 class lexer;
@@ -46,14 +49,18 @@ class vtk3D
         virtual void ending(std::ostream&, const int*, int&){};
         virtual void endingParallel(std::ostream&, const char*, const int, const int){};
 
-        virtual void structureWrite(lexer*, fdm*, std::ostream&){};
-        virtual void structureWrite(lexer*, fdm_fnpf*, std::ostream&){};
-        virtual void structureWrite(lexer*, fdm_nhf*, std::ostream&){};
+        virtual void structureWrite(lexer*, fdm*, std::vector<char>&, size_t&){};
+        virtual void structureWrite(lexer*, fdm_fnpf*, std::vector<char>&, size_t&){};
+        virtual void structureWrite(lexer*, fdm_nhf*, std::vector<char>&, size_t&){};
     protected:
         void xmlVersion(std::ostream &result){result<<"<?xml version=\"1.0\"?>\n";};
         void vtkVersion(std::ostream &result){result<<"version=\"1.0\" byte_order=\"LittleEndian\">\n";}; // header_type=\"UInt32\"
         void timeValue(std::ostream &result, const double time){result<<"<FieldData>\n<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<std::setprecision(7)<<time<<"\n</DataArray>\n</FieldData>\n";};
         void appendData(std::ostream &result){result<<"<AppendedData encoding=\"raw\">\n_";};
+        void structureWriteEnd(std::vector<char> &buffer, size_t &m){
+            std::stringstream result;
+            result<<"\n</AppendedData>\n</VTKFile>"<<std::flush;
+            std::memcpy(&buffer[m],result.str().data(),result.str().size());};
     public:
         enum type {none, vtu, vts, vtr};
 };

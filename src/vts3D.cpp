@@ -115,7 +115,7 @@ void vts3D::endingParallel(std::ostream &result, const char *A10, const int M10,
     result<<"</VTKFile>"<<flush;
 }
 
-void vts3D::structureWrite(lexer *p, fdm*, std::ostream &result)
+void vts3D::structureWrite(lexer *p, fdm*, std::vector<char> &buffer, size_t &m)
 {
     float ffn;
     int iin;
@@ -123,26 +123,29 @@ void vts3D::structureWrite(lexer *p, fdm*, std::ostream &result)
     // Coordinates
     // points
     iin=3*sizeof(float)*p->pointnum;
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     KTLOOP
         JTLOOP
             ITLOOP
             {
                 ffn=float(p->XN[IP]);
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[m],&ffn,sizeof(float));
+                m+=sizeof(float);
 
                 ffn=float(p->YN[JP]);
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[m],&ffn,sizeof(float));
+                m+=sizeof(float);
 
                 ffn=float(p->ZN[KP]);
-                result.write((char*)&ffn, sizeof (float));
+                std::memcpy(&buffer[m],&ffn,sizeof(float));
+                m+=sizeof(float);
             }
 
-    result<<"\n</AppendedData>\n";
-    result<<"</VTKFile>"<<flush;
+    vtk3D::structureWriteEnd(buffer,m);
 }
 
-void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::ostream &result)
+void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::vector<char> &buffer, size_t &m)
 {
     float ffn;
     int iin;
@@ -151,7 +154,8 @@ void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::ostream &result)
 
     //  XYZ
     iin=3*sizeof(float)*p->pointnum;
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
     double theta_y = p->B192_1*(PI/180.0);
     double omega_y = 2.0*PI*p->B192_2;
@@ -174,20 +178,22 @@ void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::ostream &result)
 
 
         ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
-        result.write((char*)&ffn, sizeof (float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
 
         ffn=float(p->YN[JP1]);
-        result.write((char*)&ffn, sizeof (float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
 
         ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
-        result.write((char*)&ffn, sizeof (float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
 
-    result<<"\n</AppendedData>\n";
-    result<<"</VTKFile>"<<flush;
+    vtk3D::structureWriteEnd(buffer,m);
 }
 
-void vts3D::structureWrite(lexer *p, fdm_nhf *d, std::ostream &result)
+void vts3D::structureWrite(lexer *p, fdm_nhf *d, std::vector<char> &buffer, size_t &m)
 {
     float ffn;
     int iin;
@@ -195,7 +201,8 @@ void vts3D::structureWrite(lexer *p, fdm_nhf *d, std::ostream &result)
 
     //  XYZ
     iin=3*sizeof(float)*p->pointnum;
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     TPLOOP
     {
         zcoor = p->ZN[KP1]*p->sl_ipol4(d->WL) + p->sl_ipol4(d->bed);
@@ -208,15 +215,17 @@ void vts3D::structureWrite(lexer *p, fdm_nhf *d, std::ostream &result)
 
         // -- 
         ffn=float(p->XN[IP1]);
-        result.write((char*)&ffn, sizeof (float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
 
         ffn=float(p->YN[JP1]);
-        result.write((char*)&ffn, sizeof (float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
 
         ffn=float(zcoor);
-        result.write((char*)&ffn, sizeof (float));
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
 
-    result<<"\n</AppendedData>\n";
-    result<<"</VTKFile>"<<flush;
+    vtk3D::structureWriteEnd(buffer,m);
 }
