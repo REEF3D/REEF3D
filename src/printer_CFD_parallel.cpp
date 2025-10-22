@@ -39,7 +39,7 @@ void printer_CFD::parallel(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, 
     int num=0;
     if(p->P15==1)
         num = p->printcount;
-    if(p->P15==2)
+    else if(p->P15==2)
         num = p->count;
 
     outputFormat->parallelFileName(name,sizeof(name),"CFD",num);
@@ -49,21 +49,23 @@ void printer_CFD::parallel(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, 
 
     outputFormat->beginningParallel(p,result);
 
-    result<<"<PPointData>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-    
+    result<<"<PPointData>\n";
+
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+
     pmean->name_pvtu(p,a,pgc,result);
 
-    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
 
     pturb->name_pvtu(p,a,pgc,result);
 
-    result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
+
+    result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
 
     pheat->name_pvtu(p,a,pgc,result);
-    
-    pmp->name_vtu(p,a,pgc,result,offset,n);
+
+    pmp->name_pvtu(p,a,pgc,result);
 
     pvort->name_pvtu(p,a,pgc,result);
 
@@ -72,59 +74,57 @@ void printer_CFD::parallel(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, 
     pconc->name_pvtu(p,a,pgc,result);
 
     if(p->P24==1 && p->F300==0)
-    result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
 
     if(p->P71==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"viscosity\"/>"<<endl;
-    
+        result<<"<PDataArray type=\"Float32\" Name=\"viscosity\"/>\n";
+
     if(p->P72==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"VOF\"/>"<<endl;
-    
+        result<<"<PDataArray type=\"Float32\" Name=\"VOF\"/>\n";
+
     if(p->A10==4)
-    result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>\n";
 
     if(p->P26==1)
-    {
-    result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>"<<endl;
-    }
+        result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
 
     if(p->P27==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>"<<endl;
-    
+        result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>\n";
+
     if(p->P76==1)
-    psed->name_pvtu_bedload(p,pgc,result);
-    
+        psed->name_pvtu_bedload(p,pgc,result);
+
     if(p->P77==1)
-    psed->name_pvtu_parameter1(p,pgc,result);
+        psed->name_pvtu_parameter1(p,pgc,result);
 
     if(p->P78==1)
-    psed->name_pvtu_parameter2(p,pgc,result);
+        psed->name_pvtu_parameter2(p,pgc,result);
 
     if(p->P79>=1)
-    psed->name_pvtu_bedshear(p,pgc,result);
+        psed->name_pvtu_bedshear(p,pgc,result);
 
     if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
 
-    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
 
     if(p->P25==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
 
     if(p->P28==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
 
     if(p->P29==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"walldist\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"walldist\"/>\n";
 
-    result<<"</PPointData>"<<endl;
+    result<<"</PPointData>\n";
 
-    result<<"<PCellData>"<<endl;
+    result<<"<PCellData>\n";
 
     if(p->P72==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"VOF_C\"/>"<<endl;
-    
-    result<<"</PCellData>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"VOF_C\"/>\n";
+
+    result<<"</PCellData>\n";
 
     outputFormat->endingParallel(result,"CFD",p->M10,num);
 

@@ -64,11 +64,9 @@ class printer_CFD : public printer, public increment
 
 public:
     printer_CFD(lexer*,fdm*,ghostcell*);
-    virtual ~printer_CFD();
-    virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*);
-    virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*);
-    virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*);
-    virtual void ini(lexer*,fdm*,ghostcell*);
+    virtual ~printer_CFD() = default;
+    void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*) override;
+    void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*) override;
 
 private:
     void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,expdata*,concentration*,multiphase*,sediment*);
@@ -79,14 +77,8 @@ private:
     char name[200];
     int n,iin,offset[300];
     float ffn;
-    int gcval_phi,gcval_phiext;
     double *printtime_wT;
     double *printfsftime_wT;
-    int *printfsfiter_wI;
-    double phase;
-    double zcoor;
-    
-    field5 eta;
 
     print_wsf *pwsf;
     print_wsf_theory *pwsf_theory;
@@ -114,4 +106,3 @@ private:
 };
 
 #endif
-
