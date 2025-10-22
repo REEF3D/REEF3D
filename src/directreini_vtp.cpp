@@ -79,8 +79,6 @@ void directreini::vtp(lexer* p)
     ++n;
     result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Int32\" Name=\"types\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-
     result<<"</Polys>\n";
 
     result<<"</Piece>\n";

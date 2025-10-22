@@ -21,59 +21,32 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"directreini.h"
-#include<string>
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 
-void directreini::pvtp(lexer* p, fdm* a, ghostcell* pgc)
+void directreini::pvtp(lexer* p, int num)
 {
-    int num=0;
+    sprintf(name,"./REEF3D_FSF/REEF3D-FSF-%08i.vtp",num);
 
-    if(p->P15==1)
-    num = p->printcount;
+    ofstream result;
+    result.open(name);
 
-    if(p->P15==2)
-    num = p->count;
-	
-	sprintf(name,"./REEF3D_FSF/REEF3D-FSF-%08i.vtp",num);
+    result<<"<?xml version=\"1.0\"?>\n";
+    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    result<<"<PPolyData GhostLevel=\"0\">\n";
 
-	ofstream result;
-	result.open(name);
+    result<<"<PPoints>\n";
+    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+    result<<"</PPoints>\n";
 
-	result<<"<?xml version=\"1.0\"?>\n";
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
+    char pname[200];
+    for(n=0; n<p->M10; ++n)
+    {
+        sprintf(pname,"REEF3D-FSF-%08i-%06i.vtp",num,n+1);
+        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+    }
 
+    result<<"</PPolyData>\n";
+    result<<"</VTKFile>\n";
 
-	result<<"<PPoints>\n";
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-	result<<"</PPoints>\n";
-
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(p,a,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>\n";
-	}
-
-	result<<"</PPolyData>\n";
-	result<<"</VTKFile>\n";
-
-	result.close();
-}
-
-void directreini::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)
-{
-    int num=0;
-
-
-    if(p->P15==1)
-    num = p->printcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-
-    sprintf(pname,"REEF3D-FSF-%08i-%06i.vtp",num,n+1);
-
+    result.close();
 }
