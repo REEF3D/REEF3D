@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"fnpf_printer.h"
 #include"increment.h"
 
+#include"vtks.h"
+
 class fdm_fnpf;
 class fnpf_force_ale;
 class potentialfile_out;
@@ -57,11 +59,11 @@ public:
     virtual void print_vtu(lexer*,fdm_fnpf*,ghostcell*);
     
 private:
-    void pvtu(lexer*,ghostcell*);
-    void name_iter(lexer*);
-    void piecename(lexer*,ghostcell*, int);
+    void parallel(lexer*,ghostcell*);
 
-    char name[200],pname[200],epsvar[200];
+    vtk3D *outputFormat;
+
+    char name[200];
     int n,iin,offset[200];
     float ffn;
     int gcval_phi,gcval_phiext;
