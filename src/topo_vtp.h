@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define TOPO_VTP_H_
 
 #include"increment.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm;
@@ -32,7 +33,7 @@ class sediment;
 
 using namespace std;
 
-class topo_vtp : public increment
+class topo_vtp : public increment, private vtp3D
 {
 public:
     topo_vtp(lexer*);
