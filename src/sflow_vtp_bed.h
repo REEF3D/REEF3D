@@ -28,7 +28,6 @@ Author: Hans Bihs
 class lexer;
 class fdm2D;
 class ghostcell;
-class sflow_print_wsf;
 class sediment;
 
 using namespace std;
@@ -36,30 +35,18 @@ using namespace std;
 class sflow_vtp_bed : public increment
 {
 public:
-	sflow_vtp_bed(lexer*,fdm2D*);
-	virtual ~sflow_vtp_bed();
-	
-    virtual void start(lexer*,fdm2D*,ghostcell*,sediment*);
-	
+    sflow_vtp_bed(lexer*);
+    virtual ~sflow_vtp_bed() = default;
+    void start(lexer*,fdm2D*,ghostcell*,sediment*);
+
 private:
-	void print2D(lexer*,fdm2D*,ghostcell*,sediment*);
-	void etend(lexer*,fdm2D*,ghostcell*);
-	void pvtu(lexer*,fdm2D*,ghostcell*,sediment*);
-	void name_iter(lexer*,fdm2D*,ghostcell*);
-    void piecename(lexer*,fdm2D*,ghostcell*,int);
-	
-	
-	char name[200],pname[200];
+    void print2D(lexer*,fdm2D*,ghostcell*,sediment*);
+    void pvtp(lexer*,sediment*,int);
+
+    char name[200];
     int n,iin,offset[200];
     float ffn;
-    double ddn;
-	
-	double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
-	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
-	
-	sflow_print_wsf *pwsf;
-	int printbedcount;
-	double printbedtime;
+    int printbedcount;
+    double printbedtime;
 };
-
 #endif

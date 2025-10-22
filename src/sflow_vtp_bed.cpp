@@ -24,172 +24,162 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"sflow_print_wsf.h"
 #include"sediment.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-sflow_vtp_bed::sflow_vtp_bed(lexer *p, fdm2D *b)
+sflow_vtp_bed::sflow_vtp_bed(lexer *p)
 {
-	if(p->I40==0)
-    {
-	printbedtime=0.0;
-    }
-	
-	printbedcount=0;
-	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_SFLOW_VTP_BED",0777);
-}
+    if(p->I40==0)
+        printbedtime=0.0;
 
-sflow_vtp_bed::~sflow_vtp_bed()
-{
+    printbedcount=0;
+
+    // Create Folder
+    if(p->mpirank==0)
+        mkdir("./REEF3D_SFLOW_VTP_BED",0777);
 }
 
 void sflow_vtp_bed::start(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
-{	
-	pgc->gcsl_start4(p,b->depth,50);
-	pgc->gcsl_start4(p,b->bed,50);
-    pgc->gcsl_start4(p,b->test,50);
-	
-	// Print out based on iteration
+{
+    // Print out based on iteration
     if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))
     {
-    print2D(p,b,pgc,psed);
+        print2D(p,b,pgc,psed);
     }
-		
+
     // Print out based on time
     if((p->simtime>printbedtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
     {
-    print2D(p,b,pgc,psed);
-		
-    printbedtime+=p->P30;
+        print2D(p,b,pgc,psed);
+
+        printbedtime+=p->P30;
     }
 }
 
 void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
-{	
-	if(p->mpirank==0)
-    pvtu(p,b,pgc,psed);
-    
-	name_iter(p,b,pgc);
-    
+{
+    int num=0;
+    if(p->P15==1)
+        num = printbedcount;
+    if(p->P15==2)
+        num = p->count;
+
+    if(p->mpirank==0)
+        pvtp(p,psed,num);
+
+    pgc->gcsl_start4(p,b->depth,50);
+    pgc->gcsl_start4(p,b->bed,50);
+    pgc->gcsl_start4(p,b->test,50);
+
     // bednode upate
     TPSLICELOOP
     {
-    pip=4;
-    
-    b->bednode(i,j) = 0.25*(b->bed(i,j) + b->bed(i+1,j) + b->bed(i,j+1) + b->bed(i,j));
+        b->bednode(i,j) = 0.25*(b->bed(i,j) + b->bed(i+1,j) + b->bed(i,j+1) + b->bed(i,j));
 
-    if(p->flagslice4[Im1Jm1]<0 && p->flagslice4[Im1J]>0 && p->flagslice4[IJm1]>0 && p->flagslice4[IJ]>0)
-    b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j) + b->bed(i,j+1) + b->bed(i,j));
-    
-    if(p->flagslice4[Im1Jm1]>0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJm1]>0 && p->flagslice4[IJ]>0)
-    b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j+1) + b->bed(i,j+1) + b->bed(i,j));
-    
-    if(p->flagslice4[Im1Jm1]>0 && p->flagslice4[Im1J]>0 && p->flagslice4[IJm1]<0 && p->flagslice4[IJ]>0)
-    b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j+1) + b->bed(i+1,j) + b->bed(i,j));
-    
-    if(p->flagslice4[Im1Jm1]>0 && p->flagslice4[Im1J]>0 && p->flagslice4[IJm1]>0 && p->flagslice4[IJ]<0)
-    b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j+1) + b->bed(i+1,j) + b->bed(i,j+1));
-    
-    pip=0;
-    } 
-    
+        if(p->flagslice4[Im1Jm1]<0 && p->flagslice4[Im1J]>0 && p->flagslice4[IJm1]>0 && p->flagslice4[IJ]>0)
+            b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j) + b->bed(i,j+1) + b->bed(i,j));
+
+        if(p->flagslice4[Im1Jm1]>0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJm1]>0 && p->flagslice4[IJ]>0)
+            b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j+1) + b->bed(i,j+1) + b->bed(i,j));
+
+        if(p->flagslice4[Im1Jm1]>0 && p->flagslice4[Im1J]>0 && p->flagslice4[IJm1]<0 && p->flagslice4[IJ]>0)
+            b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j+1) + b->bed(i+1,j) + b->bed(i,j));
+
+        if(p->flagslice4[Im1Jm1]>0 && p->flagslice4[Im1J]>0 && p->flagslice4[IJm1]>0 && p->flagslice4[IJ]<0)
+            b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j+1) + b->bed(i+1,j) + b->bed(i,j+1));
+    }
+
     i=-1;
     j=-1;
-	b->bednode(i,j) = b->bed(i+1,j+1);
-    
+    b->bednode(i,j) = b->bed(i+1,j+1);
+
     i=p->knox-1;
     j=-1;
-	b->bednode(i,j) = b->bed(i,j+1);
-    
+    b->bednode(i,j) = b->bed(i,j+1);
+
     i=p->knox-1;
     j=p->knoy-1;
-	b->bednode(i,j) = b->bed(i,j);
-    
+    b->bednode(i,j) = b->bed(i,j);
+
     i=-1;
     j=p->knoy-1;
-	b->bednode(i,j) = b->bed(i+1,j);
-	
-	// Open File
-	ofstream result;
-	result.open(name, ios::binary);
-    
+    b->bednode(i,j) = b->bed(i+1,j);
+
     // offsets
     n=0;
-	offset[n]=0;
-	++n;
-	
-	// Points
-    offset[n]=offset[n-1]+8*(p->pointnum2D)*3+4;
+    offset[n]=0;
     ++n;
-	
-	// velocity
-	offset[n]=offset[n-1]+4*(p->pointnum2D)*3+4;
-	++n;
-	
+
+    // Points
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D*3+sizeof(int);
+    ++n;
+
+    // velocity
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D*3+sizeof(int);
+    ++n;
+
     // pressure
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-    
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
+    ++n;
+
     // elevation
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-    
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
+    ++n;
+
     // sediment bedlaod
-	if(p->P76==1)
-	psed->offset_ParaView_2D_bedload(p,offset,n);
+    if(p->P76==1)
+        psed->offset_ParaView_2D_bedload(p,offset,n);
 
     // sediment parameters 1
-	if(p->P77==1)
-	psed->offset_ParaView_2D_parameter1(p,offset,n);
+    if(p->P77==1)
+        psed->offset_ParaView_2D_parameter1(p,offset,n);
 
     // sediment parameters 2
-	if(p->P78==1)
-	psed->offset_ParaView_2D_parameter2(p,offset,n);
+    if(p->P78==1)
+        psed->offset_ParaView_2D_parameter2(p,offset,n);
 
     // bed shear stress
-	if(p->P79>=1)
-	psed->offset_ParaView_2D_bedshear(p,offset,n);
-    
+    if(p->P79>=1)
+        psed->offset_ParaView_2D_bedshear(p,offset,n);
+
     // test
     if(p->P23==1)
     {
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+        offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
+        ++n;
     }
-	
-	// Cells
-    offset[n]=offset[n-1] + 4*p->polygon_sum*3+4;
+
+    // Cells
+    offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum*3+sizeof(int);
     ++n;
-    offset[n]=offset[n-1] + 4*p->polygon_sum+4;
+    offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum+sizeof(int);
     ++n;
-	offset[n]=offset[n-1] + 4*p->polygon_sum+4;
-    ++n;
-	
-	
-	result<<"<?xml version=\"1.0\"?>\n";
-	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-	result<<"<PolyData>\n";
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">\n";
-    
+
+    // Open File
+    sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-%08i-%06i.vtp",num,p->mpirank+1);
+    ofstream result;
+    result.open(name, ios::binary);
+
+    result<<"<?xml version=\"1.0\"?>\n";
+    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    result<<"<PolyData>\n";
+    result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">\n";
+
     if(p->P16==1)
     {
-    result<<"<FieldData>\n";
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>\n";
-    result<<"</FieldData>\n";
+        result<<"<FieldData>\n";
+        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+        result<<"</DataArray>\n";
+        result<<"</FieldData>\n";
     }
-    
+
     n=0;
-	result<<"<Points>\n";
+    result<<"<Points>\n";
     result<<"<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     result<<"</Points>\n";
-	
-	
+
     result<<"<PointData>\n";
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
@@ -197,174 +187,150 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    
     if(p->P76==1)
-	psed->name_ParaView_bedload(p,pgc,result,offset,n);
-    
+        psed->name_ParaView_bedload(p,pgc,result,offset,n);
     if(p->P77==1)
-	psed->name_ParaView_parameter1(p,pgc,result,offset,n);
-
+        psed->name_ParaView_parameter1(p,pgc,result,offset,n);
     if(p->P78==1)
-	psed->name_ParaView_parameter2(p,pgc,result,offset,n);
-
-	if(p->P79>=1)
-	psed->name_ParaView_bedshear(p,pgc,result,offset,n);
-    
+        psed->name_ParaView_parameter2(p,pgc,result,offset,n);
+    if(p->P79>=1)
+        psed->name_ParaView_bedshear(p,pgc,result,offset,n);
     if(p->P23==1)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
+        result<<"<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+        ++n;
     }
     result<<"</PointData>\n";
-
-    
 
     result<<"<Polys>\n";
     result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-	++n;
-    result<<"<DataArray type=\"Int32\" Name=\"types\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"</Polys>\n";
+    result<<"</Polys>\n";
 
     result<<"</Piece>\n";
     result<<"</PolyData>\n";
-    
-    
-    //----------------------------------------------------------------------------
     result<<"<AppendedData encoding=\"raw\">\n_";
-	
-	//  XYZ
-	iin=8*(p->pointnum2D)*3;
-	result.write((char*)&iin, sizeof (int));
+
+    //----------------------------------------------------------------------------
+
+    //  XYZ
+    iin=sizeof(float)*p->pointnum2D*3;
+    result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
-	{
-	ddn=p->XN[IP1];
-	result.write((char*)&ddn, sizeof (double));
+    {
+        ffn=p->XN[IP1];
+        result.write((char*)&ffn, sizeof(float));
 
-	ddn=p->YN[JP1];
-	result.write((char*)&ddn, sizeof (double));
+        ffn=p->YN[JP1];
+        result.write((char*)&ffn, sizeof(float));
 
-	ddn=b->bednode(i,j);
-	result.write((char*)&ddn, sizeof (double));
-	}
-	
+        ffn=b->bednode(i,j);
+        result.write((char*)&ffn, sizeof(float));
+    }
+
     //  Velocities
-    iin=4*(p->pointnum2D)*3;
-	result.write((char*)&iin, sizeof (int));
+    iin=sizeof(float)*p->pointnum2D*3;
+    result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol1a(b->P));
-	result.write((char*)&ffn, sizeof (float));
+    {
+        ffn=float(p->sl_ipol1a(b->P));
+        result.write((char*)&ffn, sizeof(float));
 
-	ffn=float(p->sl_ipol2a(b->Q));
-	result.write((char*)&ffn, sizeof (float));
+        ffn=float(p->sl_ipol2a(b->Q));
+        result.write((char*)&ffn, sizeof(float));
 
-	ffn=float(p->sl_ipol4(b->ws));
-	result.write((char*)&ffn, sizeof (float));
-	}
+        ffn=float(p->sl_ipol4(b->ws));
+        result.write((char*)&ffn, sizeof(float));
+    }
 
-	//  Pressure
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-	TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(b->press));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
+    //  Pressure
+    iin=sizeof(float)*p->pointnum2D;
+    result.write((char*)&iin, sizeof(int));
+    TPSLICELOOP
+    {
+        ffn=float(p->sl_ipol4(b->press));
+        result.write((char*)&ffn, sizeof(float));
+    }
+
     //  Elevation
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
+    iin=sizeof(float)*p->pointnum2D;
+    result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(b->bed));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
+    {
+        ffn=float(p->sl_ipol4(b->bed));
+        result.write((char*)&ffn, sizeof(float));
+    }
+
     //  sediment bedload
-	if(p->P76==1)
-    psed->print_2D_bedload(p,pgc,result);
-    
+    if(p->P76==1)
+        psed->print_2D_bedload(p,pgc,result);
+
     //  sediment parameter 1
-	if(p->P77==1)
-    psed->print_2D_parameter1(p,pgc,result);
+    if(p->P77==1)
+        psed->print_2D_parameter1(p,pgc,result);
 
     //  sediment parameter 2
-	if(p->P78==1)
-    psed->print_2D_parameter2(p,pgc,result);
+    if(p->P78==1)
+        psed->print_2D_parameter2(p,pgc,result);
 
     //  bed shear stress
-	if(p->P79>=1)
-    psed->print_2D_bedshear(p,pgc,result);
-	
-    
+    if(p->P79>=1)
+        psed->print_2D_bedshear(p,pgc,result);
+
     //  Test
     if(p->P23==1)
     {
-	iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-    TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(b->test));
-	result.write((char*)&ffn, sizeof (float));
-	}
+        iin=sizeof(float)*p->pointnum2D;
+        result.write((char*)&iin, sizeof(int));
+        TPSLICELOOP
+        {
+            ffn=float(p->sl_ipol4(b->test));
+            result.write((char*)&ffn, sizeof(float));
+        }
     }
 
     //  Connectivity
-    iin=4*(p->polygon_sum)*3;
-    result.write((char*)&iin, sizeof (int));
+    iin=sizeof(int)*(p->polygon_sum)*3;
+    result.write((char*)&iin, sizeof(int));
     SLICEBASELOOP
-	{
-	// Triangle 1
-	iin=int(b->nodeval(i-1,j-1))-1;
-	result.write((char*)&iin, sizeof (int));
+    {
+        // Triangle 1
+        iin=int(b->nodeval(i-1,j-1))-1;
+        result.write((char*)&iin, sizeof(int));
 
-	iin=int(b->nodeval(i,j-1))-1;
-	result.write((char*)&iin, sizeof (int));
+        iin=int(b->nodeval(i,j-1))-1;
+        result.write((char*)&iin, sizeof(int));
 
-	iin=int(b->nodeval(i,j))-1;
-	result.write((char*)&iin, sizeof (int));
-	
-	
-	// Triangle 2
-	iin=int(b->nodeval(i-1,j-1))-1;
-	result.write((char*)&iin, sizeof (int));
+        iin=int(b->nodeval(i,j))-1;
+        result.write((char*)&iin, sizeof(int));
 
-	iin=int(b->nodeval(i,j))-1;
-	result.write((char*)&iin, sizeof (int));
+        // Triangle 2
+        iin=int(b->nodeval(i-1,j-1))-1;
+        result.write((char*)&iin, sizeof(int));
 
-	iin=int(b->nodeval(i-1,j))-1;
-	result.write((char*)&iin, sizeof (int));
-	}
-    
-    
+        iin=int(b->nodeval(i,j))-1;
+        result.write((char*)&iin, sizeof(int));
+
+        iin=int(b->nodeval(i-1,j))-1;
+        result.write((char*)&iin, sizeof(int));
+    }
+
+
     //  Offset of Connectivity
-    iin=4*(p->polygon_sum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->polygon_sum;++n)
-	{
-	iin=(n+1)*3;
-	result.write((char*)&iin, sizeof (int));
-	}
-    
-//  Cell types
-    iin=4*(p->polygon_sum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->polygon_sum;++n)
-	{
-	iin=7;
-	result.write((char*)&iin, sizeof (int));
-	}
+    iin=sizeof(int)*(p->polygon_sum);
+    result.write((char*)&iin, sizeof(int));
+    for(n=0;n<p->polygon_sum;++n)
+    {
+        iin=(n+1)*3;
+        result.write((char*)&iin, sizeof(int));
+    }
 
     result<<"\n</AppendedData>\n";
     result<<"</VTKFile>\n";
 
-	result.close();
-	
-	++printbedcount;
+    result.close();
 
+    ++printbedcount;
 }
-
-

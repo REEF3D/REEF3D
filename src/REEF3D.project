@@ -1285,7 +1285,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="VTP Bed">
             <File Name="sflow_vtp_bed_pvtp.cpp"/>
-            <File Name="sflow_vtp_bed_header.cpp"/>
             <File Name="sflow_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
