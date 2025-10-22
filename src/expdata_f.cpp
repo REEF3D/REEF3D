@@ -73,12 +73,12 @@ void expdata_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 
 void expdata_f::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-    result<<"<PDataArray type=\"Float32\" Name=\"data\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"data\"/>\n";
 }
 
 void expdata_f::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-    result<<"<DataArray type=\"Float32\" Name=\"data\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"data\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
 

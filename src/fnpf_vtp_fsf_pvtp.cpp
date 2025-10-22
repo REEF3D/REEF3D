@@ -42,49 +42,49 @@ void fnpf_vtp_fsf::pvtu(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 	ofstream result;
 	result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+	result<<"<PPolyData GhostLevel=\"0\">\n";
     
     if(p->P16==1)
     {
-    result<<"<FieldData>"<<endl;
+    result<<"<FieldData>\n";
     result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
+    result<<"</DataArray>\n";
+    result<<"</FieldData>\n";
     }
 	
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
+	result<<"<PPoints>\n";
+	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+	result<<"</PPoints>\n";
 	
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"Fifsf\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>"<<endl;
+	result<<"<PPointData>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"Fifsf\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>\n";
     if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
     if(p->P110==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
+	result<<"</PPointData>\n";
 	
-	result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
-	result<<"</Polys>"<<endl;
+	result<<"<Polys>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"connectivity\"/>\n";
+	result<<"<DataArray type=\"Int32\" Name=\"offsets\"/>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"types\"/>\n";
+	result<<"</Polys>\n";
 
 	for(n=0; n<p->M10; ++n)
 	{
     piecename(p,c,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+    result<<"<Piece Source=\""<<pname<<"\"/>\n";
 	}
 
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
+	result<<"</PPolyData>\n";
+	result<<"</VTKFile>\n";
 
 	result.close();
 

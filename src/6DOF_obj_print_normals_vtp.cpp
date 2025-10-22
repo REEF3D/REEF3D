@@ -76,31 +76,31 @@ void sixdof_obj::print_normals_vtp(lexer *p, ghostcell *pgc)
     ++n;
 	//---------------------------------------------
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PolyData>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<tricount*2<<"\" NumberOfPolys=\""<<tricount<<"\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+	result<<"<PolyData>\n";
+	result<<"<Piece NumberOfPoints=\""<<tricount*2<<"\" NumberOfPolys=\""<<tricount<<"\">\n";
 
     n=0;
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Points>\n";
+    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"</Points>"<<endl;
+    result<<"</Points>\n";
 
-    result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Polys>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Int32\" Name=\"types\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 
-	result<<"</Polys>"<<endl;
+	result<<"</Polys>\n";
 
-    result<<"</Piece>"<<endl;
-    result<<"</PolyData>"<<endl;
+    result<<"</Piece>\n";
+    result<<"</PolyData>\n";
 
 //----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+    result<<"<AppendedData encoding=\"raw\">\n_";
 
 
 //  XYZ
@@ -197,8 +197,8 @@ void sixdof_obj::print_normals_vtp(lexer *p, ghostcell *pgc)
 	result.write((char*)&iin, sizeof (int));
 	}
 
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
+	result<<"\n</AppendedData>\n";
+    result<<"</VTKFile>\n";
 
 	result.close();	
     

@@ -171,83 +171,83 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     ++n;
 	
 	
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PolyData>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+	result<<"<PolyData>\n";
+	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">\n";
     
     if(p->P16==1)
     {
-    result<<"<FieldData>"<<endl;
+    result<<"<FieldData>\n";
     result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
+    result<<"</DataArray>\n";
+    result<<"</FieldData>\n";
     }
     
     n=0;
-	result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float64\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<Points>\n";
+    result<<"<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"</Points>"<<endl;
+    result<<"</Points>\n";
 	
 	
-    result<<"<PointData >"<<endl;
-    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<PointData>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"eta\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"eta\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"WL\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"WL\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"breaking\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"breaking\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"coastline\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"coastline\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"wetdry\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"wetdry\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     
     if(p->P23==1)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"test\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     }
     
     if(p->P28==1)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"fb\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"fb\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     }
     
     if(p->P110==1)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"Hs\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"Hs\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     }
     
     if(p->P131==1)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"wetdry_max\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"wetdry_max\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     }
     
-    result<<"</PointData>"<<endl;
+    result<<"</PointData>\n";
 
     
 
-    result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Polys>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Int32\" Name=\"types\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"</Polys>"<<endl;
+	result<<"</Polys>\n";
 
-    result<<"</Piece>"<<endl;
-    result<<"</PolyData>"<<endl;
+    result<<"</Piece>\n";
+    result<<"</PolyData>\n";
     
     
     //----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+    result<<"<AppendedData encoding=\"raw\">\n_";
 	
 	//  XYZ
 	iin=8*(p->pointnum2D)*3;
@@ -460,8 +460,8 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
 	result.write((char*)&iin, sizeof (int));
 	}
 
-    result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
+    result<<"\n</AppendedData>\n";
+    result<<"</VTKFile>\n";
 
 	result.close();
 	

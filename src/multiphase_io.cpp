@@ -134,18 +134,18 @@ void multiphase_f::ls2get(int ii, int jj, int kk, double val)
 
 void multiphase_f::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-	result<<"<PDataArray type=\"Float32\" Name=\"ls1\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"ls2\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"ls1\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"ls2\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
 }
 
 void multiphase_f::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-	result<<"<DataArray type=\"Float32\" Name=\"ls1\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"ls1\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"ls2\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"ls2\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"rho\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"rho\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
 

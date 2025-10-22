@@ -44,18 +44,18 @@ void topo_vtp::pvtp(lexer* p, fdm* a, ghostcell* pgc, sediment *psed)
 	ofstream result;
 	result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+	result<<"<PPolyData GhostLevel=\"0\">\n";
 
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
+	result<<"<PPoints>\n";
+	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>\n";
+	result<<"</PPoints>\n";
 	
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+	result<<"<PPointData>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     
     if(p->P76==1)
 	psed->name_ParaView_parallel_bedload(p,pgc,result);
@@ -69,24 +69,24 @@ void topo_vtp::pvtp(lexer* p, fdm* a, ghostcell* pgc, sediment *psed)
 	if(p->P79>=1)
 	psed->name_ParaView_parallel_bedshear(p,pgc,result);
     
-	result<<"</PPointData>"<<endl;
+	result<<"</PPointData>\n";
 	
-	result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
+	result<<"<Polys>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"connectivity\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"/>"<<endl;
+	result<<"<DataArray type=\"Int32\" Name=\"offsets\"/>\n";
 	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"/>"<<endl;
-	result<<"</Polys>"<<endl;
+    result<<"<DataArray type=\"Int32\" Name=\"types\"/>\n";
+	result<<"</Polys>\n";
 
 	for(n=0; n<p->M10; ++n)
 	{
     piecename(p,a,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+    result<<"<Piece Source=\""<<pname<<"\"/>\n";
 	}
 
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
+	result<<"</PPolyData>\n";
+	result<<"</VTKFile>\n";
 
 	result.close();
 }

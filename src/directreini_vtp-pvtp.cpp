@@ -41,23 +41,23 @@ void directreini::pvtp(lexer* p, fdm* a, ghostcell* pgc)
 	ofstream result;
 	result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+	result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
 
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
+	result<<"<PPoints>\n";
+	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+	result<<"</PPoints>\n";
 
 	for(n=0; n<p->M10; ++n)
 	{
     piecename(p,a,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+    result<<"<Piece Source=\""<<pname<<"\"/>\n";
 	}
 
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
+	result<<"</PPolyData>\n";
+	result<<"</VTKFile>\n";
 
 	result.close();
 }

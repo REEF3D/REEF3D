@@ -79,21 +79,21 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
 	
 	
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PolyData>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<polygon_sum<<"\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+	result<<"<PolyData>\n";
+	result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<polygon_sum<<"\">\n";
 
     n=0;
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float64\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Points>\n";
+    result<<"<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"</Points>"<<endl;
+    result<<"</Points>\n";
 	
-    result<<"<PointData >"<<endl;
-    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<PointData>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"elevation\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     
     if(p->P76==1)
@@ -107,23 +107,23 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
 
 	if(p->P79>=1)
 	psed->name_ParaView_bedshear(p,pgc,result,offset,n);
-    result<<"</PointData>"<<endl;
+    result<<"</PointData>\n";
 
-    result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Polys>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	result<<"</Polys>"<<endl;
+    result<<"<DataArray type=\"Int32\" Name=\"types\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+	result<<"</Polys>\n";
 	
 
-    result<<"</Piece>"<<endl;
-    result<<"</PolyData>"<<endl;
+    result<<"</Piece>\n";
+    result<<"</PolyData>\n";
 
 //----------------------------------------------------------------------------
 
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+    result<<"<AppendedData encoding=\"raw\">\n_";
 
 //  XYZ
 	iin=8*(p->pointnum2D)*3;
@@ -227,8 +227,8 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
 	result.write((char*)&iin, sizeof (int));
 	}
 
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
+	result<<"\n</AppendedData>\n";
+    result<<"</VTKFile>\n";
 
 	result.close();	
 }

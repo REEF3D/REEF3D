@@ -97,26 +97,26 @@ void print_averaging_f::offset_ParaView(lexer *p, int *offset, int &n)
 
 void print_averaging_f::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
-    result<<"<DataArray type=\"Float32\" Name=\"velocity_mean\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"velocity_mean\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     
-	result<<"<DataArray type=\"Float32\" Name=\"pressure_mean\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"pressure_mean\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     
 	if(p->H10>0)
     {
-    result<<"<DataArray type=\"Float32\" Name=\"T_mean\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"T_mean\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     }
 }
 
 void print_averaging_f::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity_mean\" NumberOfComponents=\"3\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"pressure_mean\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity_mean\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"pressure_mean\"/>\n";
     
     if(p->H10>0)
-    result<<"<PDataArray type=\"Float32\" Name=\"T_mean\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"T_mean\"/>\n";
 }
 
 void print_averaging_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)

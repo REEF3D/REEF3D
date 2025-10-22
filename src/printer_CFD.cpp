@@ -600,7 +600,7 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         result<<"<CellData>\n";
         if(p->P72==1)
         {
-            result<<"<DataArray type=\"Float32\" Name=\"VOF_C\"  format=\"appended\" offset=\""<<offset[n]<<"\" />\n";
+            result<<"<DataArray type=\"Float32\" Name=\"VOF_C\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
             ++n;
         }
         result<<"</CellData>\n";

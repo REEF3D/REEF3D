@@ -138,6 +138,8 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
     result<<"</PolyData>\n";
     result<<"<AppendedData encoding=\"raw\">\n_";
 
+    //----------------------------------------------------------------------------
+
     size_t m=result.str().length();
 
     const size_t total_size = m + offset[n] + 27;
