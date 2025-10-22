@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define SFLOW_VTP_BED_H_
 
 #include"increment.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm2D;
@@ -32,7 +33,7 @@ class sediment;
 
 using namespace std;
 
-class sflow_vtp_bed : public increment
+class sflow_vtp_bed : public increment, public vtp3D
 {
 public:
     sflow_vtp_bed(lexer*);

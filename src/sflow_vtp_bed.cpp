@@ -161,24 +161,10 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     ofstream result;
     result.open(name, ios::binary);
 
-    result<<"<?xml version=\"1.0\"?>\n";
-    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    result<<"<PolyData>\n";
-    result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">\n";
-
-    if(p->P16==1)
-    {
-        result<<"<FieldData>\n";
-        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-        result<<"</DataArray>\n";
-        result<<"</FieldData>\n";
-    }
+    vtp3D::beginning(p,result,p->pointnum2D,0,0,0,p->polygon_sum);
 
     n=0;
-    result<<"<Points>\n";
-    result<<"<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Points>\n";
+    vtp3D::points(result,offset,n);
 
     result<<"<PointData>\n";
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -202,16 +188,9 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     }
     result<<"</PointData>\n";
 
-    result<<"<Polys>\n";
-    result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Polys>\n";
+    vtp3D::polys(result,offset,n);
 
-    result<<"</Piece>\n";
-    result<<"</PolyData>\n";
-    result<<"<AppendedData encoding=\"raw\">\n_";
+    vtp3D::ending(result);
 
     //----------------------------------------------------------------------------
 
@@ -327,8 +306,7 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
         result.write((char*)&iin, sizeof(int));
     }
 
-    result<<"\n</AppendedData>\n";
-    result<<"</VTKFile>\n";
+    vtp3D::footer(result);
 
     result.close();
 
