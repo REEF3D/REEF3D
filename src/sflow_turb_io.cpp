@@ -102,7 +102,7 @@ void sflow_turb_io::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result
     ++n;
 }
     
-void sflow_turb_io::offset_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
+void sflow_turb_io::offset_ParaView_2D(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;

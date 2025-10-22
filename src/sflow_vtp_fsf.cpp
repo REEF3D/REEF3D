@@ -200,7 +200,7 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
 	++n;
     
     // k and eps
-	pturb->offset_vtp(p,b,pgc,result,offset,n);
+	pturb->offset_ParaView_2D(p,b,pgc,result,offset,n);
     
     // eta
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;

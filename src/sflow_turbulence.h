@@ -51,7 +51,7 @@ public:
     virtual double epsval(int,int)=0;
 	virtual void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&)=0;
     virtual void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void offset_ParaView_2D(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &)=0;
 	
 };
 

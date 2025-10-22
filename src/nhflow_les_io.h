@@ -64,7 +64,7 @@ public:
     
     virtual void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&){};
     virtual void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &){};
-    virtual void offset_vtp(lexer*, int*, int &){};
+    virtual void offset_ParaView_2D(lexer*, int*, int &){};
 
 private:
     void tau_calc(fdm_nhf*, lexer*, double);

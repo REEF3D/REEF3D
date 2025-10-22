@@ -66,7 +66,7 @@ public:
 
     virtual void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&)=0;
     virtual void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtp(lexer*, int*, int &)=0;
+    virtual void offset_ParaView_2D(lexer*, int*, int &)=0;
 
     double uref;
 };

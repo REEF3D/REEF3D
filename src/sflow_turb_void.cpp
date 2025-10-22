@@ -79,6 +79,6 @@ void sflow_turb_void::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &resu
 {
 }
     
-void sflow_turb_void::offset_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
+void sflow_turb_void::offset_ParaView_2D(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
 {
 }

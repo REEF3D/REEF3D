@@ -53,19 +53,19 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
     
     // sediment bedlaod
 	if(p->P76==1)
-	psed->offset_vtp_bedload(p,pgc,result,offset,n);
+	psed->offset_ParaView_2D_bedload(p,pgc,result,offset,n);
 
     // sediment parameters 1
 	if(p->P77==1)
-	psed->offset_vtp_parameter1(p,pgc,result,offset,n);
+	psed->offset_ParaView_2D_parameter1(p,pgc,result,offset,n);
 
     // sediment parameters 2
 	if(p->P78==1)
-	psed->offset_vtp_parameter2(p,pgc,result,offset,n);
+	psed->offset_ParaView_2D_parameter2(p,pgc,result,offset,n);
 
     // bed shear stress
 	if(p->P79>=1)
-	psed->offset_vtp_bedshear(p,pgc,result,offset,n);
+	psed->offset_ParaView_2D_bedshear(p,pgc,result,offset,n);
     
 	//End Data
     

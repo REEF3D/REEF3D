@@ -52,7 +52,7 @@ public:
 	virtual void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&);
     virtual void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &);
     
-    virtual void offset_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &);
+    virtual void offset_ParaView_2D(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &);
     
     slice4 kin, eps;
     
