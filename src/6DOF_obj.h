@@ -33,6 +33,7 @@ Author: Hans Bihs, Tobias Martin
 #include"fieldint5.h"
 #include"slice4.h"
 #include"sliceint5.h"
+#include"vtp3D.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -51,7 +52,7 @@ class sixdof_motionext;
  
 using namespace std;
 
-class sixdof_obj : public ddweno_f_nug
+class sixdof_obj : public ddweno_f_nug, private vtp3D
 {
 public:
     
