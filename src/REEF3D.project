@@ -1657,7 +1657,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="fnpf_vtp_bed_pvtp.cpp"/>
-            <File Name="fnpf_vtp_bed_header.cpp"/>
             <File Name="fnpf_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
