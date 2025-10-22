@@ -149,8 +149,9 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
 
     if(p->B270>0 || p->B274>0 || p->B281>0 || p->B282>0 || p->B291>0 || p->B310>0 || p->B321>0 || p->B322>0 || p->B311>0)
     {
-        ppor = new print_porous(p,a,pgc);
-        ppor->start(p,a,pgc);
+        ppor = new print_porous(p);
+        ppor->start(p);
+        delete ppor;
     }
 
     if(p->P230>0)

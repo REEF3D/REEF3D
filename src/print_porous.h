@@ -26,45 +26,35 @@ Author: Hans Bihs
 #include"increment.h"
 
 class lexer;
-class fdm;
-class ghostcell;
 
 using namespace std;
 
-class print_porous :  public increment
+class print_porous : public increment
 {
 
 public:
-	print_porous(lexer*,fdm*,ghostcell*);
-	virtual ~print_porous();
-	virtual void start(lexer*,fdm*,ghostcell*);
-    virtual void print_vtp(lexer*,fdm*,ghostcell*);
-	virtual void objects(lexer*,fdm*,ghostcell*);
-	
-    void box(lexer*,fdm*,ghostcell*,int);
-    void cylinder_z(lexer*,fdm*,ghostcell*,int);
-	void wedge_x(lexer*,fdm*,ghostcell*,int);
-    void wedge_y(lexer*,fdm*,ghostcell*,int);
-    void plate_x(lexer*,fdm*,ghostcell*,int);
-    
-    void box_veg(lexer*,fdm*,ghostcell*,int);
-    void wedge_x_veg(lexer*,fdm*,ghostcell*,int);
-    void wedge_y_veg(lexer*,fdm*,ghostcell*,int);
+    print_porous(lexer*);
+    virtual ~print_porous() = default;
+    void start(lexer*);
 
 private:
-    char name[100];
-    int offset[200];
-	int **polygon,*numvert;
+    void objects(lexer*);
+    void box(lexer*,int);
+    void cylinder_z(lexer*,int);
+    void wedge_x(lexer*,int);
+    void wedge_y(lexer*,int);
+    void plate_x(lexer*,int);
+    void box_veg(lexer*,int);
+    void wedge_x_veg(lexer*,int);
+    void wedge_y_veg(lexer*,int);
+
+    void print_vtp(lexer*);
+
+    int **polygon,*numvert;
     double **vertice;
-	
-    float ffn;
-    int polygon_num,vertice_num,polygon_sum ,iin,q;
-	double xs,xe,ys,ye,zs,ze;
-	int vertice_alloc, polygon_alloc;
 
-
+    int polygon_num,vertice_num,polygon_sum;
+    int vertice_alloc, polygon_alloc;
 };
 
 #endif
-
-
