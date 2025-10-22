@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include<vector>
 #include"slice4.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm_nhf;
@@ -38,7 +39,7 @@ class nhflow_reinidisc_fsf;
 
 using namespace std;
 
-class nhflow_forcing : public increment
+class nhflow_forcing : public increment, private vtp3D
 {
 public:
 	nhflow_forcing(lexer*, fdm_nhf*, ghostcell*);
