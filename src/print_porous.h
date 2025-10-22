@@ -24,12 +24,13 @@ Author: Hans Bihs
 #define PRINT_POROUS_H_
 
 #include"increment.h"
+#include"vtp3D.h"
 
 class lexer;
 
 using namespace std;
 
-class print_porous : public increment
+class print_porous : public increment, private vtp3D
 {
 
 public:
