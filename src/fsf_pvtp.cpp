@@ -21,78 +21,45 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fsf_vtp.h"
-#include<string>
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 
-void fsf_vtp::pvtp(lexer* p, fdm* a, ghostcell* pgc)
+void fsf_vtp::pvtp(lexer* p, int num)
 {
-    int num=0;
+    sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i.pvtp",num);
 
-    if(p->P15==1)
-    num = fsfprintcount;
+    ofstream result;
+    result.open(name);
 
-    if(p->P15==2)
-    num = p->count;
-	
-	sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i.pvtp",num);
+    result<<"<?xml version=\"1.0\"?>\n";
+    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    result<<"<PPolyData GhostLevel=\"0\">\n";
 
-	ofstream result;
-	result.open(name);
-
-	result<<"<?xml version=\"1.0\"?>\n";
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-	result<<"<PPolyData GhostLevel=\"0\">\n";
-    
     if(p->P16==1)
     {
-    result<<"<FieldData>\n";
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>\n";
-    result<<"</FieldData>\n";
+        result<<"<FieldData>\n";
+        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+        result<<"</DataArray>\n";
+        result<<"</FieldData>\n";
     }
 
-	result<<"<PPoints>\n";
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-	result<<"</PPoints>\n";
-	
-	result<<"<PPointData>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
-	result<<"</PPointData>\n";
-	
-	result<<"<Polys>\n";
-    result<<"<DataArray type=\"Int32\" Name=\"connectivity\"/>\n";
-    ++n;
-	result<<"<DataArray type=\"Int32\" Name=\"offsets\"/>\n";
-	++n;
-    result<<"<DataArray type=\"Int32\" Name=\"types\"/>\n";
-	result<<"</Polys>\n";
+    result<<"<PPoints>\n";
+    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+    result<<"</PPoints>\n";
 
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(p,a,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>\n";
-	}
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+    result<<"</PPointData>\n";
 
-	result<<"</PPolyData>\n";
-	result<<"</VTKFile>\n";
+    char pname[100];
+    for(n=0; n<p->M10; ++n)
+    {
+        sprintf(pname,"REEF3D-CFD-FSF-%08i-%06i.vtp",num,n+1);
+        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+    }
 
-	result.close();
-}
+    result<<"</PPolyData>\n";
+    result<<"</VTKFile>\n";
 
-void fsf_vtp::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)
-{
-    int num=0;
-
-
-    if(p->P15==1)
-    num = fsfprintcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-	sprintf(pname,"REEF3D-CFD-FSF-%08i-%06i.vtp",num,n+1);
-
+    result.close();
 }

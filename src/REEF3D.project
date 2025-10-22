@@ -2801,7 +2801,6 @@
         <VirtualDirectory Name="FSF">
           <File Name="fsf_vtp.cpp"/>
           <File Name="fsf_pvtp.cpp"/>
-          <File Name="fsf_header.cpp"/>
           <File Name="fsf_triangulation.cpp"/>
           <File Name="fsf_reconstruct.cpp"/>
           <File Name="fsf_vtp_print.cpp"/>
