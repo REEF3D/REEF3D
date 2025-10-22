@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"bedshear.h"
 
-void sediment_f::name_ParaView_parallel_bedload(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"ST_qbe\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"ST_qb\"/>\n";
@@ -181,7 +181,7 @@ void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
     
 }
 
-void sediment_f::name_ParaView_parallel_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::name_ParaView_parallel_bedshear(lexer *p, ofstream &result)
 {
     if(p->P79==1)
     {
@@ -575,7 +575,7 @@ void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void sediment_f::name_ParaView_parallel_parameter1(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::name_ParaView_parallel_parameter1(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"ST_alpha\"/>\n";
     
@@ -793,7 +793,7 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void sediment_f::name_ParaView_parallel_parameter2(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::name_ParaView_parallel_parameter2(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"ST_dh\"/>\n";
     

@@ -65,16 +65,16 @@ void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     
     if(p->P76==1)
-	psed->name_ParaView_parallel_bedload(p,pgc,result);
+	psed->name_ParaView_parallel_bedload(p,result);
     
     if(p->P77==1)
-	psed->name_ParaView_parallel_parameter1(p,pgc,result);
+	psed->name_ParaView_parallel_parameter1(p,result);
 
     if(p->P78==1)
-	psed->name_ParaView_parallel_parameter2(p,pgc,result);
+	psed->name_ParaView_parallel_parameter2(p,result);
 
 	if(p->P79>=1)
-	psed->name_ParaView_parallel_bedshear(p,pgc,result);
+	psed->name_ParaView_parallel_bedshear(p,result);
     
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";

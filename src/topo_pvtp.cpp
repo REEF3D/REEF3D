@@ -58,16 +58,16 @@ void topo_vtp::pvtp(lexer* p, fdm* a, ghostcell* pgc, sediment *psed)
 	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     
     if(p->P76==1)
-	psed->name_ParaView_parallel_bedload(p,pgc,result);
+	psed->name_ParaView_parallel_bedload(p,result);
     
     if(p->P77==1)
-	psed->name_ParaView_parallel_parameter1(p,pgc,result);
+	psed->name_ParaView_parallel_parameter1(p,result);
 
     if(p->P78==1)
-	psed->name_ParaView_parallel_parameter2(p,pgc,result);
+	psed->name_ParaView_parallel_parameter2(p,result);
 
 	if(p->P79>=1)
-	psed->name_ParaView_parallel_bedshear(p,pgc,result);
+	psed->name_ParaView_parallel_bedshear(p,result);
     
 	result<<"</PPointData>\n";
 	
