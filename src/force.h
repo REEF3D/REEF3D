@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fieldint5.h"
 #include"field5.h"
 #include"increment.h"
+#include"vtp3D.h"
 #include<iostream>
 #include<fstream>
 
@@ -35,7 +36,7 @@ class ghostcell;
 
 using namespace std;
 
-class force :  public increment
+class force :  public increment, private vtp3D
 {
 
 public:
