@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define SFLOW_VTP_FSF_H_
 
 #include"increment.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm2D;
@@ -41,7 +42,7 @@ class fnpf_print_Hs;
 
 using namespace std;
 
-class sflow_vtp_fsf : public increment
+class sflow_vtp_fsf : public increment, private vtp3D
 {
 public:
     sflow_vtp_fsf(lexer*,fdm2D*,ghostcell*);
