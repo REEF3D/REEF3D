@@ -63,27 +63,14 @@ void directreini::vtp(lexer* p)
     ++n;
     //---------------------------------------------
 
-    result<<"<?xml version=\"1.0\"?>\n";
-    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    result<<"<PolyData>\n";
-    result<<"<Piece NumberOfPoints=\""<<vertice_num<<"\" NumberOfPolys=\""<<polygon_num<<"\">\n";
+    vtp3D::beginning(p, result, vertice_num, 0, 0, 0, polygon_num);
 
     n=0;
-    result<<"<Points>\n";
-    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Points>\n";
+    vtp3D::points(result, offset, n);
 
-    result<<"<Polys>\n";
-    result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Polys>\n";
+    vtp3D::polys(result, offset, n);
 
-    result<<"</Piece>\n";
-    result<<"</PolyData>\n";
-    result<<"<AppendedData encoding=\"raw\">\n_";
+    vtp3D::ending(result);
 
     //----------------------------------------------------------------------------
 
@@ -124,8 +111,7 @@ void directreini::vtp(lexer* p)
         result.write((char*)&iin, sizeof (int));
     }
 
-    result<<"\n</AppendedData>\n";
-    result<<"</VTKFile>\n";
+    vtp3D::footer(result);
 
     result.close();
 }

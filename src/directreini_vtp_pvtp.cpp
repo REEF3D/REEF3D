@@ -30,13 +30,9 @@ void directreini::pvtp(lexer* p, int num)
     ofstream result;
     result.open(name);
 
-    result<<"<?xml version=\"1.0\"?>\n";
-    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    result<<"<PPolyData GhostLevel=\"0\">\n";
+    vtp3D::beginningParallel(p,result);
 
-    result<<"<PPoints>\n";
-    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-    result<<"</PPoints>\n";
+    vtp3D::pointsParallel(result);
 
     char pname[200];
     for(n=0; n<p->M10; ++n)
@@ -45,8 +41,7 @@ void directreini::pvtp(lexer* p, int num)
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 
-    result<<"</PPolyData>\n";
-    result<<"</VTKFile>\n";
+    vtp3D::endingParallel(result);
 
     result.close();
 }

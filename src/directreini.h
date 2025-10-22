@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"fieldint4.h"
 #include"fieldint5.h"
 #include"field4.h"
+#include"vtp3D.h"
 
 class picard;
 class fieldint;
@@ -36,7 +37,7 @@ class vec;
 
 using namespace std;
 
-class directreini : public reini, gradient, public resize_class
+class directreini : public reini, gradient, public resize_class, private vtp3D
 {
 public:
     directreini(lexer* p, fdm *a);
