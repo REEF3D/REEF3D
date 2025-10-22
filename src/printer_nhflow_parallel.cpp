@@ -27,14 +27,8 @@ Author: Hans Bihs
 #include"sediment.h"
 #include"nhflow_turbulence.h"
 
-void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
+void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed, int num)
 {
-    int num=0;
-    if(p->P15==1)
-        num = printcount;
-    else if(p->P15==2)
-        num = p->count;
-
     outputFormat->parallelFileName(name,sizeof(name),"NHFLOW",num);
 
     ofstream result;

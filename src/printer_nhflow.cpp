@@ -354,14 +354,16 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
         //----------
 
         outputFormat->extent(p,pgc);
-        if(p->mpirank==0)
-            parallel(p,d,pgc,pnhfturb,psed);
 
         int num=0;
         if(p->P15==1)
             num = printcount;
         else if(p->P15==2)
             num = p->count;
+
+        if(p->mpirank==0)
+            parallel(p,d,pgc,pnhfturb,psed,num);
+
         outputFormat->fileName(name,sizeof(name),"NHFLOW",num,p->mpirank+1);
 
         // Open File
