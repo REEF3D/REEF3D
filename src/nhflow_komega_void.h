@@ -44,7 +44,7 @@ public:
 	virtual void ksource(lexer*, fdm_nhf*);
 
     virtual void print_2D(lexer*, fdm_nhf*, ghostcell*,ofstream&,int){};
-	virtual void print_3D(lexer*, fdm_nhf*, ghostcell*,ofstream&);
+	virtual void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&);
     virtual void ini(lexer*, fdm_nhf*, ghostcell*);
     virtual double kinval(int,int,int);
     virtual double epsval(int,int,int);
@@ -57,7 +57,7 @@ public:
 	virtual void gcupdate(lexer*, fdm_nhf*, ghostcell*);
 	
     virtual void name_ParaView_parallel(lexer*, ofstream&);
-    virtual void name_ParaView(lexer*, ofstream&, int*, int &);
+    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &);
     virtual void offset_ParaView(lexer*, int*, int &);
     
     virtual void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&){};

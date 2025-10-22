@@ -46,7 +46,7 @@ void concentration_void::ttimesave(lexer *p, fdm* a)
 {
 }
 
-void concentration_void::print_3D(lexer *p, fdm *a, ghostcell *pgc, ofstream& r)
+void concentration_void::print_3D(lexer *p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
 }
 
@@ -65,7 +65,7 @@ void concentration_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void concentration_void::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
+void concentration_void::name_ParaView(lexer *p, ostream &result, int *offset, int &n)
 {
 }
 

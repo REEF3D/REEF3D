@@ -31,6 +31,9 @@ class solver;
 class ghostcell;
 class ioflow;
 #include<iostream>
+#include<fstream>
+#include<sstream>
+#include<vector>
 
 using namespace std;
 
@@ -43,12 +46,12 @@ public:
     
     virtual void diff_update(lexer*, fdm*, ghostcell *pgc)=0;
 
-	virtual void print_3D(lexer*, fdm*, ghostcell *pgc, ofstream&)=0;
+	virtual void print_3D(lexer*, fdm*, ghostcell *pgc,  std::vector<char>&, size_t&)=0;
 	virtual void heat_ini(lexer*, fdm*, ghostcell*,heat*)=0;
 	virtual double val(int,int,int)=0;
 
     virtual void name_ParaView_parallel(lexer*, ofstream&)=0;
-    virtual void name_ParaView(lexer*, ofstream&, int*, int &)=0;
+    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &)=0;
     virtual void offset_ParaView(lexer*, int*, int &)=0;
 };
 

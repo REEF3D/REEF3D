@@ -27,36 +27,43 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"reini.h"
 #include"print_wsf.h"
+#include<cstring>
 	
-void multiphase_f::print_3D(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void multiphase_f::print_3D(lexer *p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
     iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
     TPLOOP
 	{
 	ffn=float(p->ipol4(ls1));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 
 
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
 	TPLOOP
 	{
 	ffn=float(p->ipol4(ls2));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 
 	
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(a->ro));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 	
 }
@@ -139,7 +146,7 @@ void multiphase_f::name_ParaView_parallel(lexer *p, ofstream &result)
 	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
 }
 
-void multiphase_f::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
+void multiphase_f::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
 	result<<"<DataArray type=\"Float32\" Name=\"ls1\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

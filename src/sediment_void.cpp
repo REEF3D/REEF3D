@@ -95,7 +95,7 @@ void sediment_void::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
 {	
 }
 
-void sediment_void::print_3D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_void::print_3D_bedload(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {	
 }
 
@@ -103,7 +103,7 @@ void sediment_void::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
 {
 }
 
-void sediment_void::name_ParaView_bedload(lexer *p, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_bedload(lexer *p, ostream &result, int *offset, int &n)
 {
 }
 
@@ -119,7 +119,7 @@ void sediment_void::print_2D_bedshear(lexer* p, ghostcell *pgc, ofstream &result
 {	
 }
 
-void sediment_void::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_void::print_3D_bedshear(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {	
 }
 
@@ -127,7 +127,7 @@ void sediment_void::name_ParaView_parallel_bedshear(lexer *p, ofstream &result)
 {
 }
 
-void sediment_void::name_ParaView_bedshear(lexer *p, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_bedshear(lexer *p, ostream &result, int *offset, int &n)
 {
 }
 
@@ -143,7 +143,7 @@ void sediment_void::print_2D_parameter1(lexer* p, ghostcell *pgc, ofstream &resu
 {	
 }
 
-void sediment_void::print_3D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_void::print_3D_parameter1(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {	
 }
 
@@ -151,7 +151,7 @@ void sediment_void::name_ParaView_parallel_parameter1(lexer *p, ofstream &result
 {
 }
 
-void sediment_void::name_ParaView_parameter1(lexer *p, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_parameter1(lexer *p, ostream &result, int *offset, int &n)
 {
 }
 
@@ -167,7 +167,7 @@ void sediment_void::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &resu
 {	
 }
 
-void sediment_void::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_void::print_3D_parameter2(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {	
 }
 
@@ -175,7 +175,7 @@ void sediment_void::name_ParaView_parallel_parameter2(lexer *p, ofstream &result
 {
 }
 
-void sediment_void::name_ParaView_parameter2(lexer *p, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_parameter2(lexer *p, ostream &result, int *offset, int &n)
 {
 }
 

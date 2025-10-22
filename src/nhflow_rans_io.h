@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"nhflow_turbulence.h"
 #include"nhflow_strain.h"
 #include<fstream>
+#include<sstream>
 
 class lexer;
 class fdm_nhf;
@@ -40,7 +41,7 @@ public:
 	virtual ~nhflow_rans_io();
     
     virtual void print_2D(lexer*, fdm_nhf*, ghostcell*,ofstream&,int);
-    virtual void print_3D(lexer*, fdm_nhf*, ghostcell*,ofstream&);
+    virtual void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&);
     virtual void ini(lexer*, fdm_nhf*, ghostcell*);
     virtual void plain_wallfunc(lexer*, fdm_nhf*, ghostcell*);
     virtual void inflow(lexer*, fdm_nhf*, ghostcell*);
@@ -55,7 +56,7 @@ public:
     virtual void epsget(int,int,int,double);
 
     virtual void name_ParaView_parallel(lexer*, ofstream&);
-    virtual void name_ParaView(lexer*,ofstream&, int*, int &);
+    virtual void name_ParaView(lexer*,stringstream&, int*, int &);
     virtual void offset_ParaView(lexer*, int*, int &);
     
     virtual void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&);

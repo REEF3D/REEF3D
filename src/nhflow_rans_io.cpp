@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include<cstring>
 
 nhflow_rans_io::nhflow_rans_io(lexer *p, fdm_nhf *d) : nhflow_strain(p,d),
 									 ke_c_1e(1.44), ke_c_2e(1.92),ke_sigma_k(1.0),ke_sigma_e(1.3),
@@ -132,71 +133,70 @@ void nhflow_rans_io::print_2D(lexer* p, fdm_nhf *d, ghostcell *pgc, ofstream &re
 
 }
 
-void nhflow_rans_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_rans_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {
-    
     // eddyv
     iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
     TPLOOP
-	{
-	if(p->j_dir==0)
     {
-    jj=j;
-    j=0;
-	ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
-    j=jj;
+        if(p->j_dir==0)
+        {
+            jj=j;
+            j=0;
+            ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
+            j=jj;
+        }
+        else if(p->j_dir==1)
+            ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1])); 
+            
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
-    
-    if(p->j_dir==1)
-	ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
-        
-        
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
+
     // kin
     iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
     TPLOOP
-	{
-	if(p->j_dir==0)
     {
-    jj=j;
-    j=0;
-	ffn=float(0.5*(KIN[IJK]+KIN[IJKp1]));
-    j=jj;
+        if(p->j_dir==0)
+        {
+            jj=j;
+            j=0;
+            ffn=float(0.5*(KIN[IJK]+KIN[IJKp1]));
+            j=jj;
+        }
+        else if(p->j_dir==1)
+            ffn=float(0.25*(KIN[IJK]+KIN[IJKp1]+KIN[IJp1K]+KIN[IJp1Kp1]));
+
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
     }
-    
-    if(p->j_dir==1)
-	ffn=float(0.25*(KIN[IJK]+KIN[IJKp1]+KIN[IJp1K]+KIN[IJp1Kp1]));
-        
-        
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
+
     // eps
-	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    iin=4*(p->pointnum);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
-	TPLOOP
-	{
-	if(p->j_dir==0)
+    TPLOOP
     {
-    jj=j;
-    j=0;
-	ffn=float(0.5*(EPS[IJK]+EPS[IJKp1]));
-    j=jj;
-    }
-    
-    if(p->j_dir==1)
-	ffn=float(0.25*(EPS[IJK]+EPS[IJKp1]+EPS[IJp1K]+EPS[IJp1Kp1]));
-    
-	result.write((char*)&ffn, sizeof (float));
-	}
+        if(p->j_dir==0)
+        {
+            jj=j;
+            j=0;
+            ffn=float(0.5*(EPS[IJK]+EPS[IJKp1]));
+            j=jj;
+        }
+        else if(p->j_dir==1)
+            ffn=float(0.25*(EPS[IJK]+EPS[IJKp1]+EPS[IJp1K]+EPS[IJp1Kp1]));
 
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
+    }
 }
 
 double nhflow_rans_io::ccipol_kinval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
@@ -324,7 +324,7 @@ void nhflow_rans_io::name_ParaView_parallel(lexer *p, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
-void nhflow_rans_io::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
+void nhflow_rans_io::name_ParaView(lexer *p, stringstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

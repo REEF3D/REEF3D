@@ -64,7 +64,7 @@ void kepsilon_void::etimesave(lexer *p, fdm* a, ghostcell *pgc)
 {
 }
 
-void kepsilon_void::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void kepsilon_void::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
 
 }
@@ -141,7 +141,7 @@ void kepsilon_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void kepsilon_void::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
+void kepsilon_void::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
 }
 

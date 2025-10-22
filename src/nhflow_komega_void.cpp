@@ -63,7 +63,7 @@ void nhflow_komega_func_void::etimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
 {
 }
 
-void nhflow_komega_func_void::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_komega_func_void::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
 
 }
@@ -140,7 +140,7 @@ void nhflow_komega_func_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void nhflow_komega_func_void::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
+void nhflow_komega_func_void::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
 }
 

@@ -37,7 +37,7 @@ void expdata_void::start(lexer* p, fdm* a, ghostcell* pgc)
 {
 }
 
-void expdata_void::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void expdata_void::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
 }
 
@@ -45,7 +45,7 @@ void expdata_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void expdata_void::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
+void expdata_void::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
 }
 

@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"bedshear.h"
+#include<cstring>
 
 void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
 {
@@ -35,7 +36,7 @@ void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"ST_cb\"/>\n";
 }
 
-void sediment_f::name_ParaView_bedload(lexer *p, ofstream &result, int *offset, int &n)
+void sediment_f::name_ParaView_bedload(lexer *p, ostream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"ST_qbe\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
@@ -71,7 +72,7 @@ void sediment_f::offset_ParaView_bedload(lexer *p, int *offset, int &n)
 	++n;
 }
 
-void sediment_f::print_3D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_3D_bedload(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {	
 	float ffn;
 	int iin;
@@ -80,48 +81,56 @@ void sediment_f::print_3D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
     pgc->gcsl_start4(p,s->qbe,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->qbe));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // qb
     pgc->gcsl_start4(p,s->qb,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->qb));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // cbe
     pgc->gcsl_start4(p,s->cbe,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->cbe));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // cb
     pgc->gcsl_start4(p,s->cbe,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->cb));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
 }
@@ -202,7 +211,7 @@ void sediment_f::name_ParaView_parallel_bedshear(lexer *p, ofstream &result)
     }
 }
 
-void sediment_f::name_ParaView_bedshear(lexer *p, ofstream &result, int *offset, int &n)
+void sediment_f::name_ParaView_bedshear(lexer *p, ostream &result, int *offset, int &n)
 {
     if(p->P79==1)
     {
@@ -338,7 +347,7 @@ void sediment_f::print_2D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     }
 }
 
-void sediment_f::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_3D_bedshear(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {	
 	float ffn;
 	int iin;
@@ -352,24 +361,28 @@ void sediment_f::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     pgc->gcsl_start4(p,s->tau_eff,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->tau_eff));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // tau_crit
     pgc->gcsl_start4(p,s->tau_crit,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->tau_crit));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     }
     
@@ -380,24 +393,28 @@ void sediment_f::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     pgc->gcsl_start4(p,s->shearvel_eff,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->shearvel_eff));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // shearvel_crit
     pgc->gcsl_start4(p,s->shearvel_crit,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->shearvel_crit));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     }
     
@@ -408,24 +425,28 @@ void sediment_f::print_3D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
     pgc->gcsl_start4(p,s->shields_eff,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->shields_eff));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // shields_crit
     pgc->gcsl_start4(p,s->shields_crit,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->shields_crit));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     }
@@ -503,7 +524,7 @@ void sediment_f::print_2D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {	
 	float ffn;
 	int iin;
@@ -512,13 +533,15 @@ void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
     pgc->gcsl_start4(p,s->alpha,1);
 	
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->alpha));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     
@@ -526,52 +549,60 @@ void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
     pgc->gcsl_start4(p,s->teta,1);
 	
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->teta));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // gamma
     pgc->gcsl_start4(p,s->gamma,1);
 	
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->gamma));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // beta
     pgc->gcsl_start4(p,s->beta,1);
 	
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->beta));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // phi
     pgc->gcsl_start4(p,s->phi,1);
 	
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->phi));
     ffn*=(180.0/PI);
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 }
 
@@ -588,7 +619,7 @@ void sediment_f::name_ParaView_parallel_parameter1(lexer *p, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"ST_phi\"/>\n";
 }
 
-void sediment_f::name_ParaView_parameter1(lexer *p, ofstream &result, int *offset, int &n)
+void sediment_f::name_ParaView_parameter1(lexer *p, ostream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"ST_alpha\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
@@ -712,7 +743,7 @@ void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {	
 	float ffn;
 	int iin;
@@ -723,41 +754,48 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
     pgc->gcsl_start4(p,s->vz,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->dtsed*p->sl_ipol4(s->vz));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // bedchange
     pgc->gcsl_start4(p,s->bedch,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->dtsed*p->sl_ipol4(s->bedch));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // reduce
     pgc->gcsl_start4(p,s->reduce,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->reduce));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // threshold
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
@@ -765,31 +803,36 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
     
     if(s->tau_eff(i,j)>s->tau_crit(i,j))
     ffn=1.0;
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // MOB
     pgc->gcsl_start4(p,s->MOB,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->MOB));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
     // slide_fh
     pgc->gcsl_start4(p,s->slide_fh,1);
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->slide_fh));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 }
 
@@ -808,7 +851,7 @@ void sediment_f::name_ParaView_parallel_parameter2(lexer *p, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"ST_slide_fh\"/>\n";
 }
 
-void sediment_f::name_ParaView_parameter2(lexer *p, ofstream &result, int *offset, int &n)
+void sediment_f::name_ParaView_parameter2(lexer *p, ostream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"ST_dh\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

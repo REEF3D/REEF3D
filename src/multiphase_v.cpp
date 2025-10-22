@@ -55,7 +55,7 @@ void multiphase_v::update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void multiphase_v::print_3D(lexer*, fdm*, ghostcell*,ofstream&)
+void multiphase_v::print_3D(lexer*, fdm*, ghostcell*, std::vector<char> &buffer, size_t &m)
 {	
 }
 
@@ -107,7 +107,7 @@ void multiphase_v::name_ParaView_parallel(lexer*, ofstream&)
 	
 }
 
-void multiphase_v::name_ParaView(lexer*, ofstream&, int*, int &)
+void multiphase_v::name_ParaView(lexer*, std::stringstream&, int*, int &)
 {
 	
 }

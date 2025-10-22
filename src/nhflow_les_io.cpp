@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include<cstring>
 
 nhflow_les_io::nhflow_les_io(lexer *p, fdm_nhf *d) : nhflow_strain(p,d)
 {
@@ -34,12 +35,13 @@ nhflow_les_io::~nhflow_les_io()
 {
 }
 
-void nhflow_les_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+void nhflow_les_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
     
     // eddyv
     iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
     TPLOOP
 	{
@@ -55,7 +57,8 @@ void nhflow_les_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, ofstream &res
 	ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
         
         
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 
 }
@@ -131,7 +134,7 @@ void nhflow_les_io::name_ParaView_parallel(lexer *p, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
 }
 
-void nhflow_les_io::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
+void nhflow_les_io::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

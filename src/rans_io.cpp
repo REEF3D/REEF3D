@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<cstring>
 
 rans_io::rans_io(lexer *p, fdm *a) : strain(p), eps(p), kin(p), eddyv0(p), wallf(p),
                                      ke_c_1e(1.44), ke_c_2e(1.92),ke_sigma_k(1.0),ke_sigma_e(1.3),
@@ -37,26 +38,30 @@ rans_io::~rans_io()
 {
 }
 
-void rans_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void rans_io::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
     iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     
     //gcupdate(p,a,pgc);
     
     TPLOOP
 	{
 	ffn=float(p->ipol4_a(kin));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(eps));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 
 }
@@ -141,7 +146,7 @@ void rans_io::name_ParaView_parallel(lexer *p, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
-void rans_io::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
+void rans_io::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

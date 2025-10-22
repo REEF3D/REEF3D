@@ -41,7 +41,7 @@ public:
     rans_io(lexer*,fdm*);
 	virtual ~rans_io();
 
-    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
     virtual void ini(lexer*, fdm*, ghostcell*);
     virtual void plain_wallfunc(lexer*, fdm*, ghostcell*);
     virtual void inflow(lexer*, fdm*, ghostcell*);
@@ -56,7 +56,7 @@ public:
     virtual void epsget(int,int,int,double);
 
     virtual void name_ParaView_parallel(lexer*, ofstream&);
-    virtual void name_ParaView(lexer*, ofstream&, int*, int &);
+    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &);
     virtual void offset_ParaView(lexer*, int*, int &);
     
     field4 kin,eps,eddyv0;

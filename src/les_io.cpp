@@ -33,7 +33,7 @@ les_io::~les_io()
 {
 }
 
-void les_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void les_io::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
 
 }
@@ -111,7 +111,7 @@ void les_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void les_io::name_ParaView(lexer *p, ofstream &result, int *offset, int &n)
+void les_io::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
 }
 

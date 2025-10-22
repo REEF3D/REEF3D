@@ -282,7 +282,7 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
         }
 
     std::stringstream footer;
-    footer<<"\n</AppendedData>\n</VTKFile>"<<std::flush;
+    vtp3D::footer(footer);
     std::memcpy(&buffer[m],footer.str().data(),footer.str().size());
 
     char filename[200];
