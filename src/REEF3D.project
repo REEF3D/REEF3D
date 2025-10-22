@@ -1509,7 +1509,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="nhflow_vtp_fsf_pvtp.cpp"/>
-            <File Name="nhflow_vtp_fsf_header.cpp"/>
             <File Name="nhflow_vtp_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
