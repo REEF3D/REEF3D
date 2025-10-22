@@ -57,7 +57,7 @@ public:
 
     virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
     virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, int*, int &);
+    virtual void offset_ParaView(lexer*, int*, int &);
     
     field1 uprime;
     field2 vprime;

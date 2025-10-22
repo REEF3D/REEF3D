@@ -36,7 +36,7 @@ public:
 	virtual void print_3D(lexer*, fdm*, ghostcell*, std::ofstream&)=0;
     virtual void name_pvtu(lexer*, fdm*, ghostcell*, std::ofstream&)=0;
     virtual void name_vtu(lexer*, fdm*, ghostcell*, std::ofstream&, int*, int &)=0;
-    virtual void offset_vtu(lexer*, int*, int &)=0;
+    virtual void offset_ParaView(lexer*, int*, int &)=0;
 
 };
 

@@ -115,28 +115,28 @@ private:
     void name_pvtu_bedload(lexer*, ghostcell*, ofstream&) override {};
     void name_vtu_bedload(lexer*, ghostcell*, ofstream&, int*, int &) override {};
     void offset_vtp_bedload(lexer*, ghostcell*, ofstream&, int*, int &) override {};
-    void offset_vtu_bedload(lexer*, int*, int &) override {};
+    void offset_ParaView_bedload(lexer*, int*, int &) override {};
 
     void print_2D_bedshear(lexer*, ghostcell*, ofstream&) override {};
     void print_3D_bedshear(lexer*, ghostcell*, ofstream&) override {};
     void name_pvtu_bedshear(lexer*, ghostcell*, ofstream&) override {};
     void name_vtu_bedshear(lexer*, ghostcell*, ofstream&, int*, int &) override {};
     void offset_vtp_bedshear(lexer*, ghostcell*, ofstream&, int*, int &) override {};
-    void offset_vtu_bedshear(lexer*, int*, int &) override {};
+    void offset_ParaView_bedshear(lexer*, int*, int &) override {};
 
     void print_2D_parameter1(lexer*, ghostcell*, ofstream&) override {};
     void print_3D_parameter1(lexer*, ghostcell*, ofstream&) override {};
     void name_pvtu_parameter1(lexer*, ghostcell*, ofstream&) override {};
     void name_vtu_parameter1(lexer*, ghostcell*, ofstream&, int*, int &) override {};
     void offset_vtp_parameter1(lexer*, ghostcell*, ofstream&, int*, int &) override {};
-    void offset_vtu_parameter1(lexer*, int*, int &) override {};
+    void offset_ParaView_parameter1(lexer*, int*, int &) override {};
 
     void print_2D_parameter2(lexer*, ghostcell*, ofstream&) override {};
     void print_3D_parameter2(lexer*, ghostcell*, ofstream&) override {};
     void name_pvtu_parameter2(lexer*, ghostcell*, ofstream&) override {};
     void name_vtu_parameter2(lexer*, ghostcell*, ofstream&, int*, int &) override {};
     void offset_vtp_parameter2(lexer*, ghostcell*, ofstream&, int*, int &) override {};
-    void offset_vtu_parameter2(lexer*, int*, int &) override {};
+    void offset_ParaView_parameter2(lexer*, int*, int &) override {};
 
     void log_ini(lexer*) {};
     void sedimentlog(lexer*) {};

@@ -381,7 +381,7 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
         offset[n]=offset[n-1]+sizeof(float)*p->pointnum*3+sizeof(int);
         ++n;
 
-        pmean->offset_vtu(p,offset,n);
+        pmean->offset_ParaView(p,offset,n);
 
         // scalars
 
@@ -389,7 +389,7 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
         offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
         ++n;
         // k and eps
-        pturb->offset_vtu(p,offset,n);
+        pturb->offset_ParaView(p,offset,n);
         // eddyv
         offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
         ++n;
@@ -397,15 +397,15 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
         offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
         ++n;
         // T
-        pheat->offset_vtu(p,offset,n);
+        pheat->offset_ParaView(p,offset,n);
         // Multiphase
-        pmp->offset_vtu(p,offset,n);
+        pmp->offset_ParaView(p,offset,n);
         // vorticity
-        pvort->offset_vtu(p,offset,n);
+        pvort->offset_ParaView(p,offset,n);
         // data
-        pdata->offset_vtu(p,offset,n);
+        pdata->offset_ParaView(p,offset,n);
         // concentration
-        pconc->offset_vtu(p,offset,n);
+        pconc->offset_ParaView(p,offset,n);
         // rho
         if(p->P24==1 && p->F300==0)
         {
@@ -444,16 +444,16 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
         }
         // sediment bedlaod
         if(p->P76==1)
-            psed->offset_vtu_bedload(p,offset,n);
+            psed->offset_ParaView_bedload(p,offset,n);
         // sediment parameters 1
         if(p->P77==1)
-            psed->offset_vtu_parameter1(p,offset,n);
+            psed->offset_ParaView_parameter1(p,offset,n);
         // sediment parameters 2
         if(p->P78==1)
-            psed->offset_vtu_parameter2(p,offset,n);
+            psed->offset_ParaView_parameter2(p,offset,n);
         // bed shear stress
         if(p->P79>=1)
-            psed->offset_vtu_bedshear(p,offset,n);
+            psed->offset_ParaView_bedshear(p,offset,n);
         // test
         if(p->P23==1)
         {
