@@ -27,6 +27,8 @@ Author: Hans Bihs
 #include"increment.h"
 #include"field5.h"
 
+#include"vtks.h"
+
 class turbulence;
 class heat;
 class suspended;
@@ -71,10 +73,10 @@ public:
 private:
     void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,expdata*,concentration*,multiphase*,sediment*);
     void parallel(fdm*,lexer*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);
-    void piecename(fdm*,lexer*,ghostcell*, int);
-    void name_iter(lexer*);
 
-    char name[200],pname[200];
+    vtk3D *outputFormat;
+
+    char name[200];
     int n,iin,offset[300];
     float ffn;
     int gcval_phi,gcval_phiext;

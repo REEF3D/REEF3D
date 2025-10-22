@@ -60,29 +60,21 @@ Author: Hans Bihs
 
 printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 {
-    if(p->F50==1)
-	gcval_phi=51;
-
-	if(p->F50==2)
-	gcval_phi=52;
-
-	if(p->F50==3)
-	gcval_phi=53;
-
-	if(p->F50==4)
-	gcval_phi=54;
-
-	if(p->F50==1)
-	gcval_phiext=61;
-
-	if(p->F50==2)
-	gcval_phiext=62;
-
-	if(p->F50==3)
-	gcval_phiext=63;
-
-	if(p->F50==4)
-	gcval_phiext=64;
+    switch (p->P10)
+    {
+        case vtk3D::type::none:
+            outputFormat = new vtk3D();
+            break;
+        case vtk3D::type::vtu: default:
+            outputFormat = new vtu3D();
+            break;
+        case vtk3D::type::vts:
+            outputFormat = new vts3D();
+            break;
+        case vtk3D::type::vtr:
+            outputFormat = new vtr3D();
+            break;
+    }
 
     if(p->I40==0)
     {
@@ -173,7 +165,7 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc) : eta(p)
 
     // Create Folder
     if(p->mpirank==0)
-    mkdir("./REEF3D_CFD_VTU",0777);
+        outputFormat->folder("CFD");
 }
 
 printer_CFD::~printer_CFD()
@@ -191,13 +183,13 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
 	pmean->averaging(p,a,pgc,pheat);
 
 	// Print out based on iteration
-	if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)
+	if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
 	{
 	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 	}
 
 	// Print out based on time
-	if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
+	if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0) || (p->count==0 &&  p->P30>0.0))
 	{
 	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
@@ -205,7 +197,7 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
 	}
 
 	// Print out based on sediment time
-	if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0 && p->P10==1) || (p->count==0 &&  p->P34>0.0))
+	if((p->sedtime>p->sedprinttime && p->P34>0.0 && p->P30<0.0) || (p->count==0 &&  p->P34>0.0))
 	{
 	print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 
@@ -213,7 +205,7 @@ void printer_CFD::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat 
 	}
 
 	// Print out based on time interval
-	if(p->P10==1 && p->P35>0)
+	if(p->P35>0)
 	for(int qn=0; qn<p->P35; ++qn)
 	if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
 	{
@@ -374,6 +366,8 @@ void printer_CFD::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, h
 
 void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
+    if(p->P10!=vtk3D::type::none)
+{
     pgc->start4a(p,a->test,1);
     pgc->start1(p,a->u,110);
     pgc->start2(p,a->v,111);
@@ -385,11 +379,16 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
 
      pgc->gcperiodicx(p,a->press,4);
 
+    outputFormat->extent(p,pgc);
     if(p->mpirank==0)
-    parallel(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+        parallel(a,p,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
-
-    name_iter(p);
+    int num=0;
+    if(p->P15==1)
+        num = p->printcount;
+    if(p->P15==2)
+        num = p->count;
+    outputFormat->fileName(name,sizeof(name),"CFD",num,p->mpirank+1);
 
 	// Open File
 	ofstream result;
@@ -525,31 +524,11 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
 	}
 		// end scalars
 
-	// Points
-    offset[n]=offset[n-1]+4*(p->pointnum)*3+4;
-    ++n;
-
-	// Cells
-    offset[n]=offset[n-1] + 4*p->tpcellnum*8 + 4;
-    ++n;
-    offset[n]=offset[n-1] + 4*(p->tpcellnum) + 4;
-    ++n;
-	offset[n]=offset[n-1] + 4*(p->tpcellnum) + 4;
-    ++n;
+        // Format specific structure
+        outputFormat->offset(p,offset,n);
 	//---------------------------------------------
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">"<<endl;
-    
-    if(p->P16==1)
-    {
-	result<<"<FieldData>"<<endl;
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
-    }
+        outputFormat->beginning(p,result);
 
     n=0;
     result<<"<PointData >"<<endl;
@@ -661,25 +640,9 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
 	}
     result<<"</CellData>"<<endl;
 
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"</Points>"<<endl;
-
-    result<<"<Cells>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"</Cells>"<<endl;
-
-    result<<"</Piece>"<<endl;
-    result<<"</UnstructuredGrid>"<<endl;
+        outputFormat->ending(result,offset,n);
 
 //----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
 
 
 //  Velocities
@@ -903,85 +866,7 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
 	}
 	}
 
-//  XYZ
-	double theta_y = p->B192_1*(PI/180.0);
-	double omega_y = 2.0*PI*p->B192_2;
-
-    if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
-    phase = omega_y*p->simtime;
-
-
-	iin=4*(p->pointnum)*3;
-	result.write((char*)&iin, sizeof (int));
-    TPLOOP
-	{
- 
-    zcoor=p->ZN[KP1];
-
-    ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3 
-                + p->B181_1*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3));
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float(p->YN[JP1]) + p->B182_1*sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3);
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4
-                + p->B183_1*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3));
-	result.write((char*)&ffn, sizeof (float));
-	}
-
-//  Connectivity
-    iin=4*(p->tpcellnum)*8;
-    result.write((char*)&iin, sizeof (int));
-    BASEREVLOOP
-    if(p->flag5[IJK]!=-20 && p->flag5[IJK]!=-30)
-	{
-	iin=int(a->nodeval(i-1,j-1,k-1)-1);
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i,j-1,k-1))-1;
-	result.write((char*)&iin, sizeof (int));
-
-    iin= int(a->nodeval(i,j,k-1))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i-1,j,k-1))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i-1,j-1,k))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i,j-1,k))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i,j,k))-1;
-	result.write((char*)&iin, sizeof (int));
-
-	iin=int(a->nodeval(i-1,j,k))-1;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-//  Offset of Connectivity
-    iin=4*(p->tpcellnum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->tpcellnum;++n)
-	{
-	iin=(n+1)*8;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-
-//  Cell types
-    iin=4*(p->tpcellnum);
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<p->tpcellnum;++n)
-	{
-	iin=12;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
+        outputFormat->structureWrite(p,a,result);
 
 	result.close();
 
@@ -992,4 +877,5 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
 	pgc->start3(p,a->w,116);
 
     pgc->start4a(p,a->topo,150);
+    }
 }
