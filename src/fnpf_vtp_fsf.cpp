@@ -137,24 +137,10 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%08i-%06i.vtp",num,p->mpirank+1);
     result.open(name, ios::binary);
 
-    result<<"<?xml version=\"1.0\"?>\n";
-    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    result<<"<PolyData>\n";
-    result<<"<Piece NumberOfPoints=\""<<p->pointnum2D<<"\" NumberOfPolys=\""<<p->polygon_sum<<"\">\n";
-
-    if(p->P16==1)
-    {
-        result<<"<FieldData>\n";
-        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-        result<<"</DataArray>\n";
-        result<<"</FieldData>\n";
-    }
+    vtp3D::beginning(p,result,p->pointnum2D,0,0,0,p->polygon_sum);
 
     n=0;
-    result<<"<Points>\n";
-    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Points>\n";
+    vtp3D::points(result, offset, n);
 
     result<<"<PointData>\n";
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -181,16 +167,9 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     }
     result<<"</PointData>\n";
 
-    result<<"<Polys>\n";
-    result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Polys>\n";
+    vtp3D::polys(result, offset, n);
 
-    result<<"</Piece>\n";
-    result<<"</PolyData>\n";
-    result<<"<AppendedData encoding=\"raw\">\n_";
+    vtp3D::ending(result);
 
     //----------------------------------------------------------------------------
 
@@ -338,8 +317,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
         result.write((char*)&iin, sizeof(int));
     }
 
-    result<<"\n</AppendedData>\n";
-    result<<"</VTKFile>\n";
+    vtp3D::footer(result);
 
     result.close();
 
