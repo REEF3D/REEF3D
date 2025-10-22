@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"fieldint5.h"
 #include"field5.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm;
@@ -33,7 +34,7 @@ class ghostcell;
 
 using namespace std;
 
-class fsf_vtp : public increment
+class fsf_vtp : public increment, private vtp3D
 {
 
 public:

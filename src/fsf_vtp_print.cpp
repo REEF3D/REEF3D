@@ -67,24 +67,10 @@ void fsf_vtp::print(lexer* p, fdm* a)
     sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i-%06i.vtp",num,p->mpirank+1);
     result.open(name, ios::binary);
 
-    result<<"<?xml version=\"1.0\"?>\n";
-    result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    result<<"<PolyData>\n";
-    result<<"<Piece NumberOfPoints=\""<<vertice_num<<"\" NumberOfPolys=\""<<polygon_num<<"\">\n";
-
-    if(p->P16==1)
-    {
-        result<<"<FieldData>\n";
-        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-        result<<"</DataArray>\n";
-        result<<"</FieldData>\n";
-    }
+    vtp3D::beginning(p,result,vertice_num,0,0,0,polygon_num);
 
     n=0;
-    result<<"<Points>\n";
-    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Points>\n";
+    vtp3D::points(result,offset,n);
 
     result<<"<PointData>\n";
     result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -93,16 +79,9 @@ void fsf_vtp::print(lexer* p, fdm* a)
     ++n;
     result<<"</PointData>\n";
 
-    result<<"<Polys>\n";
-    result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Polys>\n";
+    vtp3D::polys(result, offset, n);
 
-    result<<"</Piece>\n";
-    result<<"</PolyData>\n";
-    result<<"<AppendedData encoding=\"raw\">\n_";
+    vtp3D::ending(result);
 
     //----------------------------------------------------------------------------
 
