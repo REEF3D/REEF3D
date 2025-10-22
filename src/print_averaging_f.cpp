@@ -110,7 +110,7 @@ void print_averaging_f::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream
     }
 }
 
-void print_averaging_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void print_averaging_f::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"velocity_mean\" NumberOfComponents=\"3\"/>"<<endl;
     result<<"<PDataArray type=\"Float32\" Name=\"pressure_mean\"/>"<<endl;

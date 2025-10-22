@@ -107,7 +107,7 @@ void les_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 {
 }
 
-void les_io::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void les_io::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 

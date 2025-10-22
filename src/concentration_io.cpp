@@ -64,7 +64,7 @@ double concentration_io::val(int ii, int jj, int kk)
     return val;
 }
 
-void concentration_io::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void concentration_io::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"C\"/>"<<endl;
 	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;

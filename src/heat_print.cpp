@@ -55,7 +55,7 @@ double heat_print::val(int ii, int jj, int kk)
     return val;
 }
 
-void heat_print::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void heat_print::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"T\"/>"<<endl;
 }

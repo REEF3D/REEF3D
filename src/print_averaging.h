@@ -37,7 +37,7 @@ class print_averaging
 public:
     virtual void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*)=0;
     
-    virtual void name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)=0;
+    virtual void name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)=0;
     virtual void name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)=0;
     virtual void offset_ParaView(lexer *p, int *offset, int &n)=0;
     virtual void print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)=0;

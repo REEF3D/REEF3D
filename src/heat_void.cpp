@@ -65,7 +65,7 @@ void heat_void::heat_ini(lexer* p, fdm *a, ghostcell* pgc, heat *pheat)
 {
 }
 
-void heat_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void heat_void::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 

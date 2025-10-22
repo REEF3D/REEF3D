@@ -63,16 +63,16 @@ void nhflow_vtp_bed::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>"<<endl;
     
     if(p->P76==1)
-	psed->name_pvtu_bedload(p,pgc,result);
+	psed->name_ParaView_parallel_bedload(p,pgc,result);
     
     if(p->P77==1)
-	psed->name_pvtu_parameter1(p,pgc,result);
+	psed->name_ParaView_parallel_parameter1(p,pgc,result);
 
     if(p->P78==1)
-	psed->name_pvtu_parameter2(p,pgc,result);
+	psed->name_ParaView_parallel_parameter2(p,pgc,result);
 
 	if(p->P79>=1)
-	psed->name_pvtu_bedshear(p,pgc,result);
+	psed->name_ParaView_parallel_bedshear(p,pgc,result);
     
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;

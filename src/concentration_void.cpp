@@ -61,7 +61,7 @@ void concentration_void::concentration_ini(lexer* p, fdm *a, ghostcell* pgc, con
 {
 }
 
-void concentration_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void concentration_void::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 

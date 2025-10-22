@@ -41,7 +41,7 @@ void expdata_void::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 
-void expdata_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void expdata_void::name_ParaView_parallel(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 

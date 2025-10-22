@@ -53,25 +53,25 @@ void printer_CFD::parallel(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, 
 
     result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
 
-    pmean->name_pvtu(p,a,pgc,result);
+    pmean->name_ParaView_parallel(p,a,pgc,result);
 
     result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
 
-    pturb->name_pvtu(p,a,pgc,result);
+    pturb->name_ParaView_parallel(p,a,pgc,result);
 
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
 
     result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
 
-    pheat->name_pvtu(p,a,pgc,result);
+    pheat->name_ParaView_parallel(p,a,pgc,result);
 
-    pmp->name_pvtu(p,a,pgc,result);
+    pmp->name_ParaView_parallel(p,a,pgc,result);
 
-    pvort->name_pvtu(p,a,pgc,result);
+    pvort->name_ParaView_parallel(p,a,pgc,result);
 
-    pdata->name_pvtu(p,a,pgc,result);
+    pdata->name_ParaView_parallel(p,a,pgc,result);
 
-    pconc->name_pvtu(p,a,pgc,result);
+    pconc->name_ParaView_parallel(p,a,pgc,result);
 
     if(p->P24==1 && p->F300==0)
         result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
@@ -92,16 +92,16 @@ void printer_CFD::parallel(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, 
         result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>\n";
 
     if(p->P76==1)
-        psed->name_pvtu_bedload(p,pgc,result);
+        psed->name_ParaView_parallel_bedload(p,pgc,result);
 
     if(p->P77==1)
-        psed->name_pvtu_parameter1(p,pgc,result);
+        psed->name_ParaView_parallel_parameter1(p,pgc,result);
 
     if(p->P78==1)
-        psed->name_pvtu_parameter2(p,pgc,result);
+        psed->name_ParaView_parallel_parameter2(p,pgc,result);
 
     if(p->P79>=1)
-        psed->name_pvtu_bedshear(p,pgc,result);
+        psed->name_ParaView_parallel_bedshear(p,pgc,result);
 
     if(p->P23==1)
         result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";

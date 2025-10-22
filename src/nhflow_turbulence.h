@@ -60,7 +60,7 @@ public:
     virtual void kinget(int,int,int,double)=0;
     virtual void epsget(int,int,int,double)=0;
 
-    virtual void name_pvtu(lexer*, fdm_nhf*, ghostcell*,ofstream&)=0;
+    virtual void name_ParaView_parallel(lexer*, fdm_nhf*, ghostcell*,ofstream&)=0;
     virtual void name_ParaView(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &)=0;
     virtual void offset_ParaView(lexer*, int*, int &)=0;
 
