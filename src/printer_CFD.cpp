@@ -358,14 +358,16 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         pgc->gcperiodicx(p,a->press,4);
 
         outputFormat->extent(p,pgc);
-        if(p->mpirank==0)
-            parallel(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
         int num=0;
         if(p->P15==1)
             num = p->printcount;
         else if(p->P15==2)
             num = p->count;
+
+        if(p->mpirank==0)
+            parallel(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed,num);
+
         outputFormat->fileName(name,sizeof(name),"CFD",num,p->mpirank+1);
 
         // Open File

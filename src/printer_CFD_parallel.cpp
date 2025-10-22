@@ -34,14 +34,8 @@ Author: Hans Bihs
 #include"sediment.h"
 #include"print_averaging.h"
 
-void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed, int num)
 {
-    int num=0;
-    if(p->P15==1)
-        num = p->printcount;
-    else if(p->P15==2)
-        num = p->count;
-
     outputFormat->parallelFileName(name,sizeof(name),"CFD",num);
 
     ofstream result;
