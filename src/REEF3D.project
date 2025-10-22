@@ -304,7 +304,6 @@
             <File Name="nhflow_print_wsf_theory.h"/>
             <File Name="nhflow_print_wsf.h"/>
           </VirtualDirectory>
-          <File Name="nhflow_printer.h"/>
           <File Name="printer_nhflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -408,7 +407,6 @@
           <VirtualDirectory Name="VTP FSF">
             <File Name="fnpf_vtp_fsf.h"/>
           </VirtualDirectory>
-          <File Name="fnpf_printer.h"/>
           <File Name="printer_fnpf.h"/>
           <VirtualDirectory Name="Probes">
             <File Name="fnpf_vel_probe.h"/>

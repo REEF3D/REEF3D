@@ -49,7 +49,7 @@ void driver::logic_fnpf()
 	pftstep=new fnpf_timestep(p);
     
 // Printer
-    pfprint = new printer_fnpf(p,c,pgc);
+    pprint = new printer_fnpf(p,c,pgc);
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )
