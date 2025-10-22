@@ -30,7 +30,6 @@ class solver;
 class ghostcell;
 class ioflow;
 class reini;
-class printer;
 class field;
 
 #include"multiphase.h"
@@ -43,8 +42,8 @@ class multiphase_v : public multiphase
 public:
 	multiphase_v();
 	virtual ~multiphase_v();
-	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*);
-	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*);
+	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*);
+	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*);
 	virtual void update(lexer*,fdm*,ghostcell*);
 	
 	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
