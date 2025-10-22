@@ -140,7 +140,7 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->P180==1)
         pfsf = new nhflow_vtp_fsf(p,d,pgc);
 
-    pbed = new nhflow_vtp_bed(p,d,pgc);
+    pbed = new nhflow_vtp_bed(p);
 }
 
 void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
