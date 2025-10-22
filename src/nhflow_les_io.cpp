@@ -131,7 +131,7 @@ void nhflow_les_io::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &re
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
 }
 
-void nhflow_les_io::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_les_io::name_ParaView(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"eddyv\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;

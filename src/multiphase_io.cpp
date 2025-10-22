@@ -139,7 +139,7 @@ void multiphase_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
 }
 
-void multiphase_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void multiphase_f::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 	result<<"<DataArray type=\"Float32\" Name=\"ls1\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;

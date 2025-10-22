@@ -103,7 +103,7 @@ void sediment_void::name_pvtu_bedload(lexer *p, ghostcell *pgc, ofstream &result
 {
 }
 
-void sediment_void::name_vtu_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_bedload(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -127,7 +127,7 @@ void sediment_void::name_pvtu_bedshear(lexer *p, ghostcell *pgc, ofstream &resul
 {
 }
 
-void sediment_void::name_vtu_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_bedshear(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -151,7 +151,7 @@ void sediment_void::name_pvtu_parameter1(lexer *p, ghostcell *pgc, ofstream &res
 {
 }
 
-void sediment_void::name_vtu_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_parameter1(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
@@ -175,7 +175,7 @@ void sediment_void::name_pvtu_parameter2(lexer *p, ghostcell *pgc, ofstream &res
 {
 }
 
-void sediment_void::name_vtu_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void sediment_void::name_ParaView_parameter2(lexer *p, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 

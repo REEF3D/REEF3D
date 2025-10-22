@@ -501,27 +501,27 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
         result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
 
-        pmean->name_vtu(p,a,pgc,result,offset,n);
+        pmean->name_ParaView(p,a,pgc,result,offset,n);
 
         result<<"<DataArray type=\"Float32\" Name=\"pressure\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
 
-        pturb->name_vtu(p,a,pgc,result,offset,n);
+        pturb->name_ParaView(p,a,pgc,result,offset,n);
 
         result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
         result<<"<DataArray type=\"Float32\" Name=\"phi\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
 
-        pheat->name_vtu(p,a,pgc,result,offset,n);
+        pheat->name_ParaView(p,a,pgc,result,offset,n);
 
-        pmp->name_vtu(p,a,pgc,result,offset,n);
+        pmp->name_ParaView(p,a,pgc,result,offset,n);
 
-        pvort->name_vtu(p,a,pgc,result,offset,n);
+        pvort->name_ParaView(p,a,pgc,result,offset,n);
 
-        pdata->name_vtu(p,a,pgc,result,offset,n);
+        pdata->name_ParaView(p,a,pgc,result,offset,n);
 
-        pconc->name_vtu(p,a,pgc,result,offset,n);
+        pconc->name_ParaView(p,a,pgc,result,offset,n);
 
         if(p->P24==1 && p->F300==0)
         {
@@ -560,16 +560,16 @@ void printer_CFD::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, hea
         }
 
         if(p->P76==1)
-            psed->name_vtu_bedload(p,pgc,result,offset,n);
+            psed->name_ParaView_bedload(p,pgc,result,offset,n);
 
         if(p->P77==1)
-            psed->name_vtu_parameter1(p,pgc,result,offset,n);
+            psed->name_ParaView_parameter1(p,pgc,result,offset,n);
 
         if(p->P78==1)
-            psed->name_vtu_parameter2(p,pgc,result,offset,n);
+            psed->name_ParaView_parameter2(p,pgc,result,offset,n);
 
         if(p->P79>=1)
-            psed->name_vtu_bedshear(p,pgc,result,offset,n);
+            psed->name_ParaView_bedshear(p,pgc,result,offset,n);
 
         if(p->P23==1)
         {

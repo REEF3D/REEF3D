@@ -140,7 +140,7 @@ void nhflow_komega_func_void::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, of
 {
 }
 
-void nhflow_komega_func_void::name_vtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_komega_func_void::name_ParaView(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 

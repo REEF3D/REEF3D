@@ -45,7 +45,7 @@ void expdata_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 
-void expdata_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void expdata_void::name_ParaView(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
