@@ -88,7 +88,7 @@ void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
     }
     
     if(p->mpirank==0)
-    print_vtp(p,pgc);
+    print_vtp(p);
 
     if(p->mpirank==0)
 	cout<<"Surface triangles: "<<tricount<<endl;

@@ -99,7 +99,7 @@ private:
     
     void angle_calc(double,double,double,double&,double&,double&);
     
-    void print_vtp(lexer *p, ghostcell *pgc);
+    void print_vtp(lexer*);
     
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
@@ -135,11 +135,6 @@ private:
     
     double phi,theta,psi;
     double xrot,yrot,zrot;
-    
-    int q,iin;
-    float ffn;
-    int offset[100];
-    
     
     // DLM
     double *EL_L,*EL_dx;
