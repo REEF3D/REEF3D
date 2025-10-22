@@ -165,12 +165,7 @@ private:
     void print_force(lexer*,fdm*,ghostcell*);
     void print_ini(lexer*,fdm*,ghostcell*);
     void print_vtp(lexer*,fdm*,ghostcell*);
-    void pvtp(lexer*,fdm*,ghostcell*);
-    void header(lexer*,fdm*,ghostcell*);
-    void name_iter(lexer*,fdm*,ghostcell*);
-    void name_time(lexer*,fdm*,ghostcell*);
-    void piecename(lexer*,fdm*,ghostcell*,int);
-    
+    void pvtp(lexer*,int);
     
     void iniPosition_RBM(lexer*, ghostcell*);
     void update_Euler_angles(lexer*, ghostcell*);
@@ -332,7 +327,7 @@ private:
     double uval,vval,wval,pval,viscosity,density,phival;
     double du,dv,dw;
     double at,bt,ct,st;
-    char name[100],pname[100];
+    char name[100];
 	
 	fieldint5 vertice, nodeflag;
     field5 eta;
