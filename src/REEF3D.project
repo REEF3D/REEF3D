@@ -2754,7 +2754,6 @@
         <VirtualDirectory Name="Topo">
           <File Name="topo_vtp_print.cpp"/>
           <File Name="topo_pvtp.cpp"/>
-          <File Name="topo_header.cpp"/>
           <File Name="topo_vtp.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FlowFile Out">

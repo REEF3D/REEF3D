@@ -21,87 +21,51 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"topo_vtp.h"
-#include<string>
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 #include"sediment.h"
 
-void topo_vtp::pvtp(lexer* p, fdm* a, ghostcell* pgc, sediment *psed)
+void topo_vtp::pvtp(lexer* p, sediment *psed, int num)
 {
-    int num=0;
+    sprintf(name,"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i.pvtp",num);
 
-    if(p->P15==1)
-    num = topoprintcount;
+    ofstream result;
+    result.open(name);
 
-    if(p->P15==2)
-    num = p->count;
-	
+    result<<"<?xml version=\"1.0\"?>\n";
+    result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    result<<"<PPolyData GhostLevel=\"0\">\n";
 
-	sprintf(name,"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i.pvtp",num);
+    result<<"<PPoints>\n";
+    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+    result<<"</PPoints>\n";
 
-
-	ofstream result;
-	result.open(name);
-
-	result<<"<?xml version=\"1.0\"?>\n";
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-	result<<"<PPolyData GhostLevel=\"0\">\n";
-
-
-	result<<"<PPoints>\n";
-	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>\n";
-	result<<"</PPoints>\n";
-	
-	result<<"<PPointData>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
-    
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     if(p->P76==1)
-	psed->name_ParaView_parallel_bedload(p,result);
-    
+        psed->name_ParaView_parallel_bedload(p,result);
     if(p->P77==1)
-	psed->name_ParaView_parallel_parameter1(p,result);
-
+        psed->name_ParaView_parallel_parameter1(p,result);
     if(p->P78==1)
-	psed->name_ParaView_parallel_parameter2(p,result);
+        psed->name_ParaView_parallel_parameter2(p,result);
+    if(p->P79>=1)
+        psed->name_ParaView_parallel_bedshear(p,result);
+    result<<"</PPointData>\n";
 
-	if(p->P79>=1)
-	psed->name_ParaView_parallel_bedshear(p,result);
-    
-	result<<"</PPointData>\n";
-	
-	result<<"<Polys>\n";
+    result<<"<Polys>\n";
     result<<"<DataArray type=\"Int32\" Name=\"connectivity\"/>\n";
-    ++n;
-	result<<"<DataArray type=\"Int32\" Name=\"offsets\"/>\n";
-	++n;
-    result<<"<DataArray type=\"Int32\" Name=\"types\"/>\n";
-	result<<"</Polys>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"offsets\"/>\n";
+    result<<"</Polys>\n";
 
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(p,a,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>\n";
-	}
+    char pname[100];
+    for(n=0; n<p->M10; ++n)
+    {
+        sprintf(pname,"REEF3D-CFD-Topo-%08i-%06i.vtp",num,n+1);
+        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+    }
 
-	result<<"</PPolyData>\n";
-	result<<"</VTKFile>\n";
+    result<<"</PPolyData>\n";
+    result<<"</VTKFile>\n";
 
-	result.close();
-}
-
-void topo_vtp::piecename(lexer* p, fdm* a,  ghostcell* pgc, int n)
-{
-    int num=0;
-
-
-    if(p->P15==1)
-    num = topoprintcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-	sprintf(pname,"REEF3D-CFD-Topo-%08i-%06i.vtp",num,n+1);
-
+    result.close();
 }

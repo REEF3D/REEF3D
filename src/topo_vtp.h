@@ -24,8 +24,6 @@ Author: Hans Bihs
 #define TOPO_VTP_H_
 
 #include"increment.h"
-#include"fieldint5.h"
-#include"field5.h"
 
 class lexer;
 class fdm;
@@ -34,34 +32,20 @@ class sediment;
 
 using namespace std;
 
-class topo_vtp :  public increment
+class topo_vtp : public increment
 {
-
 public:
-	topo_vtp(lexer*,fdm*,ghostcell*);
-	virtual ~topo_vtp();
-	virtual void start(lexer*,fdm*,ghostcell*,sediment*);
-
+    topo_vtp(lexer*);
+    virtual ~topo_vtp() = default;
+    void start(lexer*,fdm*,ghostcell*,sediment*);
 private:
-	void print(lexer*,fdm*,ghostcell*,sediment*);
-    void pvtp(lexer*,fdm*,ghostcell*,sediment*);
-    void header(lexer*,fdm*,ghostcell*);
-    
-    void name_iter(lexer*,fdm*,ghostcell*);
-    void name_time(lexer*,fdm*,ghostcell*);
-    void piecename(lexer*,fdm*,ghostcell*,int);
+    void print(lexer*,fdm*,ghostcell*,sediment*);
+    void pvtp(lexer*,sediment*,int);
 
-    char name[100],pname[100],epsvar[100];
+    char name[100];
     int iin,offset[100];
     float ffn;
-    double ddn;
-    int gcval_phi;
-    double printtime,printtime2;
-	int topoprintcount;
-	int polygon_sum,polygon_num;
-
+    int topoprintcount;
+    int polygon_sum;
 };
-
 #endif
-
-

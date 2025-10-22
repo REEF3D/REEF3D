@@ -116,7 +116,7 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
         pfsf = new fsf_vtp(p,a,pgc);
 
     if(p->P190==1)
-        ptopo = new topo_vtp(p,a,pgc);
+        ptopo = new topo_vtp(p);
 
     if(p->P65>0)
         pvel = new probe_vel(p,a);
