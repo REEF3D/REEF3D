@@ -22,17 +22,9 @@ Author: Hans Bihs
 
 #include"printer_fnpf.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
 
-void printer_fnpf::parallel(lexer *p, ghostcell* pgc)
+void printer_fnpf::parallel(lexer *p, int num)
 {
-    int num=0;
-    if(p->P15==1)
-        num = printcount;
-    else if(p->P15==2)
-        num = p->count;
-
     outputFormat->parallelFileName(name,sizeof(name),"FNPF",num);
 
     ofstream result;

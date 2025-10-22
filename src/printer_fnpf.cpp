@@ -305,16 +305,17 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
         //----------
 
         outputFormat->extent(p,pgc);
-        if(p->mpirank==0)
-            parallel(p,pgc);
 
         int num=0;
         if(p->P15==1)
             num = printcount;
         else if(p->P15==2)
             num = p->count;
-        int rank = p->mpirank+1;
-        outputFormat->fileName(name,sizeof(name),"FNPF",num,rank);
+
+        if(p->mpirank==0)
+            parallel(p,num);
+
+        outputFormat->fileName(name,sizeof(name),"FNPF",num,p->mpirank+1);
 
         // Open File
         ofstream result;

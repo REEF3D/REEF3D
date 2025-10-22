@@ -59,7 +59,7 @@ public:
 
 private:
     void print(lexer*,fdm_fnpf*,ghostcell*);
-    void parallel(lexer*,ghostcell*);
+    void parallel(lexer*,int);
 
     vtk3D *outputFormat;
 
