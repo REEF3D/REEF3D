@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define NHFLOW_VTP_FSF_H_
 
 #include"increment.h"
+#include"vtp3D.h"
 #include<fstream>
 
 class lexer;
@@ -33,7 +34,7 @@ class sediment;
 
 using namespace std;
 
-class nhflow_vtp_fsf : public increment
+class nhflow_vtp_fsf : public increment, private vtp3D
 {
 public:
     nhflow_vtp_fsf(lexer*,fdm_nhf*,ghostcell*);
