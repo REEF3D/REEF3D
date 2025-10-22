@@ -2386,8 +2386,7 @@
         <File Name="directreini_triangulation.cpp"/>
         <File Name="directreini.cpp"/>
         <File Name="directreini_vtp.cpp"/>
-        <File Name="directreini_vtp-header.cpp"/>
-        <File Name="directreini_vtp-pvtp.cpp"/>
+        <File Name="directreini_vtp_pvtp.cpp"/>
         <File Name="directreini_constraint.cpp"/>
         <File Name="directreini_correction.cpp"/>
       </VirtualDirectory>
