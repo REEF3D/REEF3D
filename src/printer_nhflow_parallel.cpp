@@ -30,42 +30,38 @@ Author: Hans Bihs
 void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
     int num=0;
-    
     if(p->P15==1)
-    num = printcount;
-
-    if(p->P15==2)
-    num = p->count;
-    
+        num = printcount;
+    else if(p->P15==2)
+        num = p->count;
 
     outputFormat->parallelFileName(name,sizeof(name),"NHFLOW",num);
-
 
     ofstream result;
     result.open(name);
 
     outputFormat->beginningParallel(p,result);
-    
-    result<<"<PPointData>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
+
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
     pnhfturb->name_pvtu(p,d,pgc,result);
     if(p->P74==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
     if(p->P110==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
     if(p->P25==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
     if(p->P25==1 || p->P28==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"Heaviside\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"Heaviside\"/>\n";
     if(p->P26==1)
-	result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
     if(p->P28==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>"<<endl;
-    result<<"</PPointData>"<<endl;
+        result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
+    result<<"</PPointData>\n";
 
     outputFormat->endingParallel(result,"NHFLOW",p->M10,num);
 
