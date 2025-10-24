@@ -289,6 +289,8 @@ private:
     void Sendrecv(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
+    int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
+                        MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
 
 	int margin, paramargin;
 	double y[15],x[15],pos[15];
@@ -310,19 +312,8 @@ private:
     int gclabel_u_in,gclabel_v_in,gclabel_w_in,gclabel_press_in,gclabel_lsm_in;
 	int gclabel_u_out, gclabel_v_out, gclabel_w_out;
 	int gclabel_vel;
-	int nb[6];
-    const int stag[6],rtag[6];
-	int **isend,**irecv;
-	double **dsend,**drecv;
 
 // PARALLEL
-
-	MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
-	MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
-
-	MPI_Request sreq[6],rreq[6];
-
-	MPI_Status status;
 
 	double *send1,*send2,*send3,*send4,*send5,*send6;
 	double *recv1,*recv2,*recv3,*recv4,*recv5,*recv6;

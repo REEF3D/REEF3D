@@ -27,7 +27,7 @@ Author: Hans Bihs, Alexander Hanke
 #include"fdm_nhf.h"
 #include<sstream>
 
-ghostcell::ghostcell(int& argc, char **argv, lexer *p): stag{1,2,3,4,5,6},rtag{4,3,2,1,6,5}
+ghostcell::ghostcell(int& argc, char **argv, lexer *p)
 {
     MPI_Init(&argc,&argv);
     MPI_Comm_dup(MPI_COMM_WORLD,&mpi_comm);
@@ -216,13 +216,6 @@ void ghostcell::gcini(lexer* p)
         y[m]=0.0;
         x[m]=0.0;
     }
-
-    nb[0] = p->nb1;
-    nb[1] = p->nb2;
-    nb[2] = p->nb3;
-    nb[3] = p->nb4;
-    nb[4] = p->nb5;
-    nb[5] = p->nb6;
     
     int gcx_count[6];
     gcx_count[0] = (p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin;
@@ -260,59 +253,48 @@ void ghostcell::gcini(lexer* p)
     p->Iarray(irecv5,gcx_count[4]);
     p->Iarray(irecv6,gcx_count[5]);
 
-    p->Iarray(isend,6,p->gcpara_sum*9);
-    p->Iarray(irecv,6,p->gcpara_sum*9);
-
-    p->Darray(dsend,6,p->gcpara_sum*9);
-    p->Darray(drecv,6,p->gcpara_sum*9);
+    if(cart_comm != MPI_COMM_NULL)
+        MPI_Comm_free(&cart_comm);
 
     int dims[3] = {p->mx, p->my, p->mz};
-    for(int d=0; d<3; ++d)
-    {
-        if(dims[d] <= 0)
-            dims[d] = 0;
-    }
-
     MPI_Dims_create(p->mpi_size, 3, dims);
-    int periods[3] = {0,0,0};
 
-    if(cart_comm != MPI_COMM_NULL)
-    {
-        MPI_Comm_free(&cart_comm);
-    }
-
+    int periods[3] = {p->periodic1,p->periodic2,p->periodic3};
     MPI_Cart_create(mpi_comm, 3, dims, periods, false, &cart_comm);
 
-    int cart_nb[6] = {MPI_PROC_NULL};
     int cart_neg = MPI_PROC_NULL;
     int cart_pos = MPI_PROC_NULL;
 
     MPI_Cart_shift(cart_comm, 0, 1, &cart_neg, &cart_pos);
-    cart_nb[0] = cart_neg;
-    cart_nb[3] = cart_pos;
+    neighbors[0] = cart_neg;
+    neighbors[1] = cart_pos;
 
     MPI_Cart_shift(cart_comm, 1, 1, &cart_neg, &cart_pos);
-    cart_nb[2] = cart_neg;
-    cart_nb[1] = cart_pos;
+    neighbors[2] = cart_neg;
+    neighbors[3] = cart_pos;
 
     MPI_Cart_shift(cart_comm, 2, 1, &cart_neg, &cart_pos);
-    cart_nb[5] = cart_neg;
-    cart_nb[4] = cart_pos;
+    neighbors[4] = cart_neg;
+    neighbors[5] = cart_pos;
 
     bool error = false;
-    for (int dir = 0; dir < 6; ++dir) {
+    const int nb[6] = {p->nb1, p->nb4, p->nb3, p->nb2, p->nb5, p->nb6};
+
+    for (int dir = 0; dir < 6; ++dir)
+    {
         const int expected = (nb[dir] == -2) ? MPI_PROC_NULL : nb[dir];
-        if (cart_nb[dir] != expected) {
+        if (neighbors[dir] != expected) {
             error = true;
             std::cerr << "Rank " << p->mpirank << " mismatch dir " << dir
-                      << " cart=" << cart_nb[dir] << " nb=" << expected << std::endl;
+                      << " cart=" << neighbors[dir] << " nb=" << expected << std::endl;
         }
     }
+    if(cart_comm == MPI_COMM_NULL)
+        error = true;
+
     if(error)
     {
-        if(p->mpirank==0)
-            std::cerr << "MPI Cartesian topology does not match user-specified neighbours. Exiting." << std::endl;
-        final();
+        std::cerr << "MPI Cartesian topology does not match user-specified neighbours or doesn't exist. Exiting." << std::endl;
         exit(1);
     }
 }

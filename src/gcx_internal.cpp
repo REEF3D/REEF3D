@@ -47,43 +47,8 @@ void ghostcell::Sendrecv_int(int count1, int count2, int count3, int count4, int
 
 void ghostcell::Sendrecv(const void* send_ptrs[6], int sendcounts[6], void* recv_ptrs[6], int recvcounts[6], MPI_Datatype datatype)
 {
-    if(cart_comm == MPI_COMM_NULL)
-    {
-        for(int qn=0; qn<6; ++qn)
-            if(sendcounts[qn]>0)
-            {
-                MPI_Isend(send_ptrs[qn],sendcounts[qn],datatype,nb[qn],stag[qn],mpi_comm,&sreq[qn]);
-                MPI_Irecv(recv_ptrs[qn],recvcounts[qn],datatype,nb[qn],rtag[qn],mpi_comm,&rreq[qn]);
-            }
-
-        for(int qn=0;qn<6;++qn)
-            if(sendcounts[qn]>0)
-            {
-                MPI_Wait(&sreq[qn],&status);
-                MPI_Wait(&rreq[qn],&status);
-            }
-
-        return;
-    }
-
-    int neighbors[6] = {MPI_PROC_NULL};
-    int cart_neg = MPI_PROC_NULL;
-    int cart_pos = MPI_PROC_NULL;
-
-    MPI_Cart_shift(cart_comm, 0, 1, &cart_neg, &cart_pos);
-    neighbors[0] = cart_neg;
-    neighbors[1] = cart_pos;
-
-    MPI_Cart_shift(cart_comm, 1, 1, &cart_neg, &cart_pos);
-    neighbors[2] = cart_neg;
-    neighbors[3] = cart_pos;
-
-    MPI_Cart_shift(cart_comm, 2, 1, &cart_neg, &cart_pos);
-    neighbors[4] = cart_neg;
-    neighbors[5] = cart_pos;
-
-    MPI_Datatype sendtypes[6];
-    MPI_Datatype recvtypes[6];
+    MPI_Datatype sendtypes[6] = {datatype, datatype, datatype, datatype, datatype, datatype};
+    MPI_Datatype recvtypes[6] = {datatype, datatype, datatype, datatype, datatype, datatype};
     MPI_Aint sdispls[6];
     MPI_Aint rdispls[6];
 
@@ -95,8 +60,6 @@ void ghostcell::Sendrecv(const void* send_ptrs[6], int sendcounts[6], void* recv
             recvcounts[dir] = 0;
         }
 
-        sendtypes[dir] = datatype;
-        recvtypes[dir] = datatype;
         MPI_Get_address(send_ptrs[dir], &sdispls[dir]);
         MPI_Get_address(recv_ptrs[dir], &rdispls[dir]);
     }
