@@ -27,10 +27,6 @@ Authors: Hans Bihs, Tobias Martin, Ahmet Soydan
 void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field &vvel, field& wvel,
                               field& fx, field &fy, field &fz)
 {
-    // ghostcell update
-    solid_forcing_flag_update(p,a);
-    gcdf_update(p,a);
-    gcb_velflagio(p,a);
     
      // Reset heaviside field
     ULOOP
