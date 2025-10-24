@@ -123,6 +123,43 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	++n;
 	}
     }
+    
+    
+    if(p->D22==2)
+    {
+    n=0;
+    WLOOP
+	{      
+		if(p->flag3[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*w(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag3[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*w(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+
+		if(p->flag3[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*w(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag3[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*w(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+        
+
+	++n;
+	}
+    }
+    
+    
     /*
     if(p->D22==2)
     {
