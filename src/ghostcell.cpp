@@ -53,21 +53,11 @@ void ghostcell::gcini(lexer* p)
     margin=p->margin;
     paramargin=p->margin;
     gamma=p->B29;
-    orderext=2;
-    orderext2=2;
-    orderdir2=2;
 
     if(p->B23==1)
         orderdir=2;
     else if(p->B23==2)
         orderdir=3;
-
-    imin=p->imin;
-    imax=p->imax;
-    jmin=p->jmin;
-    jmax=p->jmax;
-    kmin=p->kmin;
-    kmax=p->kmax;
 
     if(p->B20==1)
     {

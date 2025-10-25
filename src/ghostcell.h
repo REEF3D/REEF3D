@@ -236,17 +236,11 @@ public:
     void gcslparaxijk(lexer*, double*, int);
     void gcslparaxijk_single(lexer*, double*, int);
 
-    int ii,jj,kk;
-    int ic,jc,kc;
-
-
-    int imin,imax,jmax,jmin,kmin,kmax;
-
-	void gcdistro1(lexer *p,field&,int, int, int, int, double, int, int, int);
-	void gcdistro2(lexer *p,field&,int, int, int, int, double, int, int, int);
-	void gcdistro3(lexer *p,field&,int, int, int, int, double, int, int, int);
-	void gcdistro4(lexer *p,field&,int, int, int, int, double, int, int, int);
-	void gcdistro4a(lexer *p,field&,int, int, int, int, double, int, int, int);
+	void gcdistro1(lexer*, field&, int, int, int, int, double, int, int, int);
+	void gcdistro2(lexer*, field&, int, int, int, int, double, int, int, int);
+	void gcdistro3(lexer*, field&, int, int, int, int, double, int, int, int);
+	void gcdistro4(lexer*, field&, int, int, int, int, double, int, int, int);
+	void gcdistro4a(lexer*, field&, int, int, int, int, double, int, int, int);
     
 	int gceval1(lexer*,int,int,int);
 	int gceval2(lexer*,int,int,int);
@@ -297,13 +291,11 @@ private:
 	int m,q,qq,qn,g;
 	int bc_label;
 	double wallvalue,x_ip,val_ip,gamma;
-	int orderdir,orderdir2,orderext,orderext2;
+	int orderdir;
 	double weight;
-	int close;
-	double dist;
-    int count,check;
+    int count;
     double starttime,endtime;
-    int offset,ys;
+    int ys;
     int gcval_topodist;
 	int gclabel_outflow;
     int gclabel_u, gclabel_v, gclabel_w, gclabel_k, gclabel_e;
@@ -319,11 +311,9 @@ private:
 	double *recv1,*recv2,*recv3,*recv4,*recv5,*recv6;
 	int *isend1,*isend2,*isend3,*isend4,*isend5,*isend6;
 	int *irecv1,*irecv2,*irecv3,*irecv4,*irecv5,*irecv6;
-	int precv[6];
 	double recvsum,recvmin,recvmax;
 	int recvisum,recvimin,recvimax;
 	int awa_lable,pressout_lable,pressin_lable;
-
 
     double v1,v2,v3,v4;
     double wa,wb;
@@ -331,9 +321,9 @@ private:
     double value;
 
     lexer *p;
+    fdm *a;
     fdm2D *b;
     fdm_fnpf *c;
     fdm_nhf *d;
-    fdm *a;
 };
 #endif

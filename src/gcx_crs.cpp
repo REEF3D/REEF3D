@@ -29,9 +29,8 @@ void ghostcell::rangex(lexer* p, int* range, int cellcount)
     int *colnum;
     
     p->Iarray(colnum, p->M10+1);
-    offset = cellcount;
 	
-    MPI_Allgather(&offset,1,MPI_INT,colnum,1,MPI_INT,mpi_comm);
+    MPI_Allgather(&cellcount,1,MPI_INT,colnum,1,MPI_INT,mpi_comm);
 
     range[0]=0;
 
