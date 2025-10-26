@@ -19,16 +19,20 @@ DEPENDENCIES := $(OBJECTS:.o=.d)
 .DEFAULT_GOAL := all
 
 all: CXXFLAGS += -O3 -w
+all: CXXFLAGS += -DBUILD=\"all\"
 all: $(APP)
 
 release: CXXFLAGS += -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -flto -w
+release: CXXFLAGS += -DBUILD=\"release\"
 release: LDFLAGS += -flto
 release: $(APP)
 
 dev: CXXFLAGS += -O3 -Wall -pedantic -Wpedantic -Wextra -Wshadow -Wcast-align -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -Wformat=2 #-Wold-style-cast 
+dev: CXXFLAGS += -DBUILD=\"dev\"
 dev: $(APP)
 
 debug: CXXFLAGS += -O0 -g -g3 -Wall
+debug: CXXFLAGS += -DBUILD=\"debug\"
 debug: $(APP)
 
 $(OBJ_DIR)/%.o: %.cpp
