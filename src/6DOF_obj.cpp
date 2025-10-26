@@ -62,7 +62,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     zeta[1] = -17.0/60.0;
     zeta[2] = -5.0/12.0;
     
-    if(((p->N40==3 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2)) 
+    if(((p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2)) 
     {
     alpha[0] = 1.0;
     alpha[1] = 0.25;
@@ -77,7 +77,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     zeta[2] = 0.0;
     }
     
-    if(((p->N40==2 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2)) 
+    if(((p->N40==2 || p->N40==12 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2)) 
     {
     alpha[0] = 1.0;
     alpha[1] = 0.5;

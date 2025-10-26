@@ -32,10 +32,10 @@ void sixdof_obj::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter)
     
     update_forces(p);
     
-    if(p->N40==2 || p->N40==22)
+    if(p->N40==2 || p->N40==12 || p->N40==22)
     rk2(p,pgc,iter);
     
-    if(p->N40==3 || p->N40==23 || p->N40==33)
+    if(p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33)
     rk3(p,pgc,iter);
    
     if(p->N40==4)
