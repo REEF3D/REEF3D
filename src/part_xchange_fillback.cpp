@@ -28,49 +28,45 @@ Author: Hans Bihs
 void part::xchange_fillback(lexer *p, ghostcell *pgc, double *F)
 {
     index_empty = index_empty0;
-    
+
     // fill recv into F
     for(n=0;n<6;++n)
     for(q=0;q<recvnum[n];++q)
     {
-    F[Empty[index_empty]] = recv[n][q]; 
-    --index_empty;
+        F[Empty[index_empty]] = recv[n][q];
+        --index_empty;
     }
 }
 
 void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mode)
 {
     index_empty = index_empty0;
-    
+
     // fill recv into F
     n=0;
     for(int qn=0;qn<6;++qn)
     for(q=0;q<recvnum[qn];++q)
     {
-    n=Empty[index_empty];
-    
-    // flag
-    Flag[n] = ACTIVE; 
-    
-    // bedch
-    if(mode==1)
-    {
-    i=p->posc_i(XRK1[n]);
-    j=p->posc_j(YRK1[n]);
-    }
-            
-    if(mode==2)
-    {
-    i=p->posc_i(X[n]);
-    j=p->posc_j(Y[n]);
-    }
-            
-    bedch(i,j) += ParcelFactor;
-    
-    --index_empty;
-    ++n;
+        n=Empty[index_empty];
+
+        // flag
+        Flag[n] = ACTIVE;
+
+        // bedch
+        if(mode==1)
+        {
+            i=p->posc_i(XRK1[n]);
+            j=p->posc_j(YRK1[n]);
+        }
+        else if(mode==2)
+        {
+            i=p->posc_i(X[n]);
+            j=p->posc_j(Y[n]);
+        }
+
+        bedch(i,j) += ParcelFactor;
+
+        --index_empty;
+        ++n;
     }
 }
-
-
-

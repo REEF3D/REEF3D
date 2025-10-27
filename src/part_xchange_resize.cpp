@@ -28,40 +28,34 @@ void part::xchange_resize(lexer *p, ghostcell *pgc)
 {
     // check send / recv size
     maxnum=0;
-    
+
     for(q=0;q<6;++q)
     {
-    maxnum = MAX(maxnum,sendnum[q]);
-    maxnum = MAX(maxnum,recvnum[q]);
+        maxnum = MAX(maxnum,sendnum[q]);
+        maxnum = MAX(maxnum,recvnum[q]);
     }
-    
+
     if(maxnum>capacity_para)
     {
-    p->Dresize(send,6,6,capacity_para,maxnum);
-    p->Dresize(recv,6,6,capacity_para,maxnum);
-    
-    p->Iresize(sendid,6,6,capacity_para,maxnum);
-    
-    capacity_para = maxnum;
+        p->Dresize(send,6,6,capacity_para,maxnum);
+        p->Dresize(recv,6,6,capacity_para,maxnum);
+
+        p->Iresize(sendid,6,6,capacity_para,maxnum);
+
+        capacity_para = maxnum;
     }
-    
+
     // check arrays
     maxnum=0;
-    
+
     for(q=0;q<6;++q)
-    {
-    maxnum += recvnum[q];
-    }
-    
+        maxnum += recvnum[q];
+
     int diff = index_empty - maxnum;
-    
-    //cout<<p->mpirank<<" index_empty: "<<index_empty<<" maxnum: "<<maxnum<<" diff: "<<diff<<endl;
 
     if(diff<0)
     {
-    resize(p,capacity + 2*fabs(diff));
-    index_empty0 = index_empty;
+        resize(p,capacity + 2*fabs(diff));
+        index_empty0 = index_empty;
     }
 }
-
-
