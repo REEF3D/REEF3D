@@ -94,24 +94,18 @@ public:
     
     // print
     void print_particles(lexer*,sediment_fdm*);
+private:
     void print_vtp(lexer*,sediment_fdm *);
     void pvtp(lexer*);
-    void piecename_pos(lexer*, int);
-    void header_pos(lexer*);
-        
-        
-private:
-    
+
     boundarycheck boundaries;
     
     const int irand;
-	const double drand;
-    
-    int num, printcount;
+    const double drand;
+
+    int printcount;
     double printtime;
-    char name[100];
-    char pname[100];
-    
+
     int particle_count,empty_count,active_count;
     
     
