@@ -36,6 +36,9 @@ ghostcell::ghostcell(int& argc, char **argv, lexer *p)
     MPI_Comm_size(mpi_comm,&p->mpi_size);
 
     ghostcell::p=p;
+
+    if(p->mpi_size==1)
+        do_comms = false;
 }
 
 void ghostcell::mpi_check(lexer* p)

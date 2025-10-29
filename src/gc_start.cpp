@@ -27,7 +27,7 @@ Author: Hans Bihs
 void ghostcell::start1(lexer *p, field& f, int gcv)
 {
     //  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
         starttime=timer();
         gcparax(p,f,1);
@@ -61,14 +61,14 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
     if(p->Y40==1  || p->Y40==3)
         dgcpol1(p,f,gcv);
 
-    if(p->M10>0)
+    if(do_comms)
         gcparacox(p,f,gcv);
 }
 
 void ghostcell::start2(lexer *p, field& f, int gcv)
 {
     //  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
         starttime=timer();
         gcparax(p,f,2);
@@ -105,14 +105,14 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     if(p->Y40==1  || p->Y40==3)
         dgcpol2(p,f,gcv);
 
-    if(p->M10>0)
+    if(do_comms)
         gcparacox(p,f,gcv);
 }
 
 void ghostcell::start3(lexer *p, field& f, int gcv)
 {
     //  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
         starttime=timer();
         gcparax(p,f,3);
@@ -145,14 +145,14 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
     if(p->Y40==1  || p->Y40==3)
         dgcpol3(p,f,gcv);
 
-    if(p->M10>0)
+    if(do_comms)
         gcparacox(p,f,gcv);
 }
 
 void ghostcell::start4(lexer *p, field &f, int gcv)
 {
     //  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
         starttime=timer();
         gcparax(p,f,4);
@@ -186,14 +186,14 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
     if(p->Y40==1  || p->Y40==3)
         dgcpol4(p,f,gcv);
 
-    if(p->M10>0)
+    if(do_comms)
         gcparacox(p,f,gcv);
 }
 
 void ghostcell::start4a(lexer *p, field& f, int gcv)
 {
     //  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
         starttime=timer();
         gcparax4a(p,f,5);
@@ -222,14 +222,14 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
     if(p->periodic3==1)
         gc_periodic(p, f, 4, 3);
 
-    if(p->M10>0)
+    if(do_comms)
         gcparacox(p,f,gcv);
 }
 
 void ghostcell::start4a_sum(lexer *p, field& f, int gcv)
 {
     //  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
         starttime=timer();
         gcparax4a_sum(p,f,5);
@@ -255,6 +255,6 @@ void ghostcell::start4a_sum(lexer *p, field& f, int gcv)
     if(p->periodic3==1)
         gc_periodic(p, f, 4, 3);
 
-    if(p->M10>0)
+    if(do_comms)
         gcparacox(p,f,gcv);
 }

@@ -35,7 +35,7 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
 	p->gctime+=endtime-starttime;
 
 	//  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcslparax(p,f,1);
@@ -63,7 +63,7 @@ void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
 	p->gctime+=endtime-starttime;
 
 	//  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcslparax(p,f,2);
@@ -89,7 +89,7 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
 	p->gctime+=endtime-starttime;
 
 	//  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcslparax(p,f,4);
@@ -115,7 +115,7 @@ void ghostcell::gcsl_start1int(lexer *p, sliceint &f, int gcv)
 	p->gctime+=endtime-starttime;
 
 	//  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcslparax_int(p,f,1);
@@ -135,7 +135,7 @@ void ghostcell::gcsl_start2int(lexer *p, sliceint &f, int gcv)
 	p->gctime+=endtime-starttime;
 
 	//  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcslparax_int(p,f,1);
@@ -155,7 +155,7 @@ void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
 	p->gctime+=endtime-starttime;
 
 	//  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcslparax_int(p,f,4);
@@ -191,7 +191,7 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
     }
 
 	//  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcslparaxV_int(p,f,4);
@@ -211,7 +211,7 @@ void ghostcell::gcsl_start4a(lexer *p, slice &f, int gcv)
 	p->gctime+=endtime-starttime;
 
 	//  MPI Boundary Swap
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcslparax(p,f,4);

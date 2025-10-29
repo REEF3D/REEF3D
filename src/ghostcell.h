@@ -285,6 +285,7 @@ private:
     MPI_Comm cart_comm = MPI_COMM_NULL;
     int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
                         MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
+    bool do_comms = true;
 
 	int margin, paramargin;
 	double y[15],x[15],pos[15];

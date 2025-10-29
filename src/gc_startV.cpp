@@ -958,7 +958,7 @@ void ghostcell::startintV(lexer *p, int *f, int gcv)
 
 void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
 {
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcparax7(p,f,7);
@@ -1005,7 +1005,7 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
         f[FIJKp1] = 0.0;
     }
     
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcparax7(p,f,7);
@@ -1039,7 +1039,7 @@ void ghostcell::start7S(lexer *p, double *f, int gcv)
         f[FIJKp1] = f[FIJK];
     }
     
-    if(p->M10>0)
+    if(do_comms)
     {
     starttime=timer();
 	gcparax7(p,f,7);
