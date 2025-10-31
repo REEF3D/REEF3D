@@ -25,129 +25,123 @@ Author: Hans Bihs
 
 void ghostcell::gcxslupdate(lexer* p)
 {
-    //cout<<p->mpirank<<" . "<<p->knox<<" "<<p->origin_i<<" "<<p->gknox<<endl;
-
     for(n=0;n<p->gcslpara1_count;++n)
     {
-    i=p->gcslpara1[n][0];
-    j=p->gcslpara1[n][1];
+        i=p->gcslpara1[n][0];
+        j=p->gcslpara1[n][1];
 
         // 1
         p->gcslpara1[n][3]=1;
-        
-        //if(i + p->origin_i >= p->gknox-1)
-        //p->gcslpara1[n][3]=0;
-        
+
+        // if(i + p->origin_i >= p->gknox-1)
+        //     p->gcslpara1[n][3]=0;
+
         if(p->flagslice1[Im1J]<0 || p->flagslice1[IJ]<0)
-        p->gcslpara1[n][3]=p->Y71;
-        
+            p->gcslpara1[n][3]=p->Y71;
+
         // 2
         p->gcslpara1[n][4]=1;
-        
+
         if(j + p->origin_j >= p->gknoy-1)
-        p->gcslpara1[n][4]=0;
-        
+            p->gcslpara1[n][4]=0;
+
         if(p->flagslice2[Im1J]<0 || p->flagslice2[IJ]<0)
-        p->gcslpara1[n][4]=p->Y72;
-        
+            p->gcslpara1[n][4]=p->Y72;
+
         // 4
         p->gcslpara1[n][6]=1;
-        
+
         if(p->flagslice4[Im1J]<0 || p->flagslice4[IJ]<0)
-        p->gcslpara1[n][6]=p->Y74;
+            p->gcslpara1[n][6]=p->Y74;
     }
 
     for(n=0;n<p->gcslpara2_count;++n)
     {
-    i=p->gcslpara2[n][0];
-    j=p->gcslpara2[n][1];
-        
+        i=p->gcslpara2[n][0];
+        j=p->gcslpara2[n][1];
+
         // 1
         p->gcslpara2[n][3]=1;
-        
+
         if(i + p->origin_i >= p->gknox-1)
-        p->gcslpara2[n][3]=0;
-        
+            p->gcslpara2[n][3]=0;
+
         if(p->flagslice1[IJp1]<0 || p->flagslice1[IJ]<0)
-        p->gcslpara2[n][3]=p->Y71;
-        
+            p->gcslpara2[n][3]=p->Y71;
+
         // 2
         p->gcslpara2[n][4]=1;
-        
-        //if(j + p->origin_j >= p->gknoy-1)
-        //p->gcslpara2[n][4]=0;
-        
+
+        // if(j + p->origin_j >= p->gknoy-1)
+        //     p->gcslpara2[n][4]=0;
+
         if(p->flagslice2[IJp1]<0 || p->flagslice2[IJ]<0)
-        p->gcslpara2[n][4]=p->Y71;
-        
+            p->gcslpara2[n][4]=p->Y71;
+
         // 4
         p->gcslpara2[n][6]=1;
-        
+
         if(p->flagslice4[IJp1]<0 || p->flagslice4[IJ]<0)
-        p->gcslpara2[n][6]=p->Y74;
+            p->gcslpara2[n][6]=p->Y74;
     }
 
     for(n=0;n<p->gcslpara3_count;++n)
     {
-    i=p->gcslpara3[n][0];
-    j=p->gcslpara3[n][1];
+        i=p->gcslpara3[n][0];
+        j=p->gcslpara3[n][1];
 
         // 1
         p->gcslpara3[n][3]=1;
-        
+
         if(i + p->origin_i >= p->gknox-1)
-        p->gcslpara3[n][3]=0;
-        
+            p->gcslpara3[n][3]=0;
+
         if(p->flagslice1[Im1J]<0 || p->flagslice1[IJ]<0)
-        p->gcslpara3[n][3]=p->Y71;
-        
+            p->gcslpara3[n][3]=p->Y71;
+
         // 2
         p->gcslpara3[n][4]=1;
-        
-        //if(j + p->origin_j >= p->gknoy-1)
-        //p->gcslpara3[n][4]=0;
-        
+
+        // if(j + p->origin_j >= p->gknoy-1)
+        //     p->gcslpara3[n][4]=0;
+
         if(p->flagslice2[IJm1]<0 || p->flagslice2[IJ]<0)
-        p->gcslpara3[n][4]=p->Y71;
-        
+            p->gcslpara3[n][4]=p->Y71;
+
         // 4
         p->gcslpara3[n][6]=1;
-        
+
         if(p->flagslice4[IJm1]<0 || p->flagslice4[IJ]<0)
-        p->gcslpara3[n][6]=p->Y74;
-    }    
-    
+            p->gcslpara3[n][6]=p->Y74;
+    }
+
     for(n=0;n<p->gcslpara4_count;++n)
     {
-    i=p->gcslpara4[n][0];
-    j=p->gcslpara4[n][1];
+        i=p->gcslpara4[n][0];
+        j=p->gcslpara4[n][1];
 
         // 1
         p->gcslpara4[n][3]=1;
-        
-        //if(i + p->origin_i >= p->gknox-1)
-        //p->gcslpara4[n][3]=0;
-        
+
+        // if(i + p->origin_i >= p->gknox-1)
+        //     p->gcslpara4[n][3]=0;
+
         if(p->flagslice1[Ip1J]<0 || p->flagslice1[IJ]<0)
-        p->gcslpara4[n][3]=p->Y71;
-        
+            p->gcslpara4[n][3]=p->Y71;
+
         // 2
         p->gcslpara4[n][4]=1;
-        
+
         if(j + p->origin_j >= p->gknoy-1)
-        p->gcslpara4[n][4]=0;
-        
+            p->gcslpara4[n][4]=0;
+
         if(p->flagslice2[Ip1J]<0 || p->flagslice2[IJ]<0)
-        p->gcslpara4[n][4]=p->Y71;
-        
+            p->gcslpara4[n][4]=p->Y71;
+
         // 4
         p->gcslpara4[n][6]=1;
-        
+
         if(p->flagslice4[Ip1J]<0 || p->flagslice4[IJ]<0)
-        p->gcslpara4[n][6]=p->Y74;
-        
+            p->gcslpara4[n][6]=p->Y74;
     }
-
-   
 }
-

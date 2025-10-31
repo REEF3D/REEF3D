@@ -22,86 +22,82 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
 
 void ghostcell::flagx7(lexer* p,int *f)
 {
     paramargin=margin;
 
-//  FILL SEND
+    //  FILL SEND
     count=0;
     for(q=0;q<p->gcx7_count[0];++q)
     {
-    i=p->gcx7[0][q][0];
-    j=p->gcx7[0][q][1];
-    k=p->gcx7[0][q][2];
-        
+        i=p->gcx7[0][q][0];
+        j=p->gcx7[0][q][1];
+        k=p->gcx7[0][q][2];
 
-        isend1[count] = f[FIJK];  
+        isend1[count] = f[FIJK];
         ++count;
-        isend1[count] = f[FIp1JK];  
+        isend1[count] = f[FIp1JK];
         ++count;
-        isend1[count] = f[FIp2JK];  
+        isend1[count] = f[FIp2JK];
         ++count;
-
     }
 
     count=0;
     for(q=0;q<p->gcx7_count[2];++q)
     {
-    i=p->gcx7[2][q][0];
-    j=p->gcx7[2][q][1];
-    k=p->gcx7[2][q][2];
-        
-        isend3[count] = f[FIJK];  
+        i=p->gcx7[2][q][0];
+        j=p->gcx7[2][q][1];
+        k=p->gcx7[2][q][2];
+
+        isend3[count] = f[FIJK];
         ++count;
-        isend3[count] = f[FIJp1K];  
+        isend3[count] = f[FIJp1K];
         ++count;
-        isend3[count] = f[FIJp2K];  
+        isend3[count] = f[FIJp2K];
         ++count;
     }
 
     count=0;
-	for(q=0;q<p->gcx7_count[3];++q)
-	{
-    i=p->gcx7[3][q][0];
-    j=p->gcx7[3][q][1];
-    k=p->gcx7[3][q][2];
-        
-        isend4[count] = f[FIJK];  
+    for(q=0;q<p->gcx7_count[3];++q)
+    {
+        i=p->gcx7[3][q][0];
+        j=p->gcx7[3][q][1];
+        k=p->gcx7[3][q][2];
+
+        isend4[count] = f[FIJK];
         ++count;
-        isend4[count] = f[FIm1JK];  
+        isend4[count] = f[FIm1JK];
         ++count;
-        isend4[count] = f[FIm2JK];  
+        isend4[count] = f[FIm2JK];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcx7_count[1];++q)
-	{
-    i=p->gcx7[1][q][0];
-    j=p->gcx7[1][q][1];
-    k=p->gcx7[1][q][2];
-        
-        isend2[count] = f[FIJK];  
+    for(q=0;q<p->gcx7_count[1];++q)
+    {
+        i=p->gcx7[1][q][0];
+        j=p->gcx7[1][q][1];
+        k=p->gcx7[1][q][2];
+
+        isend2[count] = f[FIJK];
         ++count;
-        isend2[count] = f[FIJm1K];  
+        isend2[count] = f[FIJm1K];
         ++count;
-        isend2[count] = f[FIJm2K];  
+        isend2[count] = f[FIJm2K];
         ++count;
-	}
+    }
 
     Sendrecv_int(p->gcx7_count[0]*paramargin,p->gcx7_count[1]*paramargin,p->gcx7_count[2]*paramargin,p->gcx7_count[3]*paramargin,0,0);
 
-//  FILL RECEIVE
+    //  FILL RECEIVE
 
     count=0;
     for(q=0;q<p->gcx7_count[0];++q)
     {
-    i=p->gcx7[0][q][0];
-    j=p->gcx7[0][q][1];
-    k=p->gcx7[0][q][2];
-        
+        i=p->gcx7[0][q][0];
+        j=p->gcx7[0][q][1];
+        k=p->gcx7[0][q][2];
 
         f[FIm1JK] = irecv1[count];
         ++count;
@@ -109,53 +105,50 @@ void ghostcell::flagx7(lexer* p,int *f)
         ++count;
         f[FIm3JK] = irecv1[count];
         ++count;
-        
     }
 
     count=0;
-	for(q=0;q<p->gcx7_count[2];++q)
-	{
-    i=p->gcx7[2][q][0];
-    j=p->gcx7[2][q][1];
-    k=p->gcx7[2][q][2];
-        
+    for(q=0;q<p->gcx7_count[2];++q)
+    {
+        i=p->gcx7[2][q][0];
+        j=p->gcx7[2][q][1];
+        k=p->gcx7[2][q][2];
+
         f[FIJm1K] = irecv3[count];
         ++count;
         f[FIJm2K] = irecv3[count];
         ++count;
         f[FIJm3K] = irecv3[count];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcx7_count[3];++q)
-	{
-    i=p->gcx7[3][q][0];
-    j=p->gcx7[3][q][1];
-    k=p->gcx7[3][q][2];
-        
+    for(q=0;q<p->gcx7_count[3];++q)
+    {
+        i=p->gcx7[3][q][0];
+        j=p->gcx7[3][q][1];
+        k=p->gcx7[3][q][2];
+
         f[FIp1JK] = irecv4[count];
         ++count;
         f[FIp2JK] = irecv4[count];
         ++count;
         f[FIp3JK] = irecv4[count];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcx7_count[1];++q)
-	{
-    i=p->gcx7[1][q][0];
-    j=p->gcx7[1][q][1];
-    k=p->gcx7[1][q][2];
-        
+    for(q=0;q<p->gcx7_count[1];++q)
+    {
+        i=p->gcx7[1][q][0];
+        j=p->gcx7[1][q][1];
+        k=p->gcx7[1][q][2];
+
         f[FIJp1K] = irecv2[count];
         ++count;
         f[FIJp2K] = irecv2[count];
         ++count;
         f[FIJp3K] = irecv2[count];
         ++count;
-	}
-
+    }
 }
-

@@ -24,38 +24,38 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fieldint.h"
 
-void ghostcell::rownum4_update(lexer* p,fieldint &rownum4)
+void ghostcell::rownum4_update(lexer* p, fieldint &rownum4)
 {
-	p->N4_row=0;
-	p->N4_col=0;
+    p->N4_row=0;
+    p->N4_col=0;
 
     LOOP
-	{
-    rownum4(i,j,k)=p->N4_row;
-    ++p->N4_row;
-	++p->N4_col;
-	}
+    {
+        rownum4(i,j,k)=p->N4_row;
+        ++p->N4_row;
+        ++p->N4_col;
+    }
 
     rangex(p,p->range_row4,p->N4_row);
 
-	LOOP
-    rownum4(i,j,k)+=p->range_row4[p->mpirank];
+    LOOP
+        rownum4(i,j,k)+=p->range_row4[p->mpirank];
 }
 
 void ghostcell::rownum7_update(lexer* p, int *rownum7)
 {
-	p->N7_row=0;
-	p->N7_col=0;
+    p->N7_row=0;
+    p->N7_col=0;
 
     LOOP
-	{
-    rownum7[IJK]=p->N7_row;
-    ++p->N7_row;
-	++p->N7_col;
-	}
+    {
+        rownum7[IJK]=p->N7_row;
+        ++p->N7_row;
+        ++p->N7_col;
+    }
 
     rangex(p,p->range_row7,p->N7_row);
 
-	LOOP
-    rownum7[IJK]+=p->range_row7[p->mpirank];
+    LOOP
+        rownum7[IJK]+=p->range_row7[p->mpirank];
 }

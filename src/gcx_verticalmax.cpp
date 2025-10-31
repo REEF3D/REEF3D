@@ -22,69 +22,64 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"time.h"
 
 void ghostcell::verticalmax(lexer *p, fdm* a, double **vmax)
 {
-		
-//  FILL SEND
-   
+    //  FILL SEND
     count=0;
-	for(q=0;q<p->gcpara5_count;++q)
-	{
-    i=p->gcpara5[q][0];
-    j=p->gcpara5[q][1];
+    for(q=0;q<p->gcpara5_count;++q)
+    {
+        i=p->gcpara5[q][0];
+        j=p->gcpara5[q][1];
 
 
         if(p->gcpara5[q][5]==1)
-		{
-        send5[count]=vmax[i][j];
-        ++count;
-		}
+        {
+            send5[count]=vmax[i][j];
+            ++count;
+        }
 
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcpara6_count;++q)
-	{
-	i=p->gcpara6[q][0];
-    j=p->gcpara6[q][1];
+    for(q=0;q<p->gcpara6_count;++q)
+    {
+        i=p->gcpara6[q][0];
+        j=p->gcpara6[q][1];
 
         if(p->gcpara6[q][5]==1)
-		{
-        send6[count]=vmax[i][j];
-        ++count;
+        {
+            send6[count]=vmax[i][j];
+            ++count;
         }
-	}
-
+    }
 
     Sendrecv_double(0,0,0,0,p->gcpara5_count,p->gcpara6_count);
 
-//  FILL RECEIVE
-
-	count=0;
+    //  FILL RECEIVE
+    count=0;
     for(q=0;q<p->gcpara5_count;++q)
     {
-    i=p->gcpara5[q][0];
-    j=p->gcpara5[q][1];
+        i=p->gcpara5[q][0];
+        j=p->gcpara5[q][1];
 
         if(p->gcpara5[q][5]==1)
-		{
-        vmax[i][j]=MAX(vmax[i][j],recv5[count]);
-        ++count;
+        {
+            vmax[i][j]=MAX(vmax[i][j],recv5[count]);
+            ++count;
         }
     }
 
     count=0;
-	for(q=0;q<p->gcpara6_count;++q)
-	{
-    i=p->gcpara6[q][0];
-    j=p->gcpara6[q][1];
+    for(q=0;q<p->gcpara6_count;++q)
+    {
+        i=p->gcpara6[q][0];
+        j=p->gcpara6[q][1];
 
         if(p->gcpara6[q][5]==1)
-		{
-        vmax[i][j]=MAX(vmax[i][j],recv6[count]);
-        ++count;
+        {
+            vmax[i][j]=MAX(vmax[i][j],recv6[count]);
+            ++count;
         }
-	}
+    }
 }

@@ -24,14 +24,14 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fieldint.h"
 
-void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
+void ghostcell::facenbx(lexer* p, fieldint& cv, int* range)
 {
     count=0;
     for(n=0;n<p->gcpara1_count;++n)
     {
-    i=p->gcpara1[n][0];
-    j=p->gcpara1[n][1];
-    k=p->gcpara1[n][2];
+        i=p->gcpara1[n][0];
+        j=p->gcpara1[n][1];
+        k=p->gcpara1[n][2];
 
         isend1[count]=cv(i,j,k);
         ++count;
@@ -40,10 +40,10 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara2_count;++n)
     {
-    i=p->gcpara2[n][0];
-    j=p->gcpara2[n][1];
-    k=p->gcpara2[n][2];
-    
+        i=p->gcpara2[n][0];
+        j=p->gcpara2[n][1];
+        k=p->gcpara2[n][2];
+
         isend2[count]=cv(i,j,k);
         ++count;
     }
@@ -51,9 +51,9 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara3_count;++n)
     {
-    i=p->gcpara3[n][0];
-    j=p->gcpara3[n][1];
-    k=p->gcpara3[n][2];
+        i=p->gcpara3[n][0];
+        j=p->gcpara3[n][1];
+        k=p->gcpara3[n][2];
 
         isend3[count]=cv(i,j,k);
         ++count;
@@ -62,9 +62,9 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara4_count;++n)
     {
-    i=p->gcpara4[n][0];
-    j=p->gcpara4[n][1];
-    k=p->gcpara4[n][2];
+        i=p->gcpara4[n][0];
+        j=p->gcpara4[n][1];
+        k=p->gcpara4[n][2];
 
         isend4[count]=cv(i,j,k);
         ++count;
@@ -73,9 +73,9 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara5_count;++n)
     {
-    i=p->gcpara5[n][0];
-    j=p->gcpara5[n][1];
-    k=p->gcpara5[n][2];
+        i=p->gcpara5[n][0];
+        j=p->gcpara5[n][1];
+        k=p->gcpara5[n][2];
 
         isend5[count]=cv(i,j,k);
         ++count;
@@ -84,9 +84,9 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara6_count;++n)
     {
-    i=p->gcpara6[n][0];
-    j=p->gcpara6[n][1];
-    k=p->gcpara6[n][2];
+        i=p->gcpara6[n][0];
+        j=p->gcpara6[n][1];
+        k=p->gcpara6[n][2];
 
         isend6[count]=cv(i,j,k);
         ++count;
@@ -94,14 +94,14 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
 
     Sendrecv_int(p->gcpara1_count,p->gcpara2_count,p->gcpara3_count,p->gcpara4_count,p->gcpara5_count,p->gcpara6_count);
 
-//  Unpack
+    //  Unpack
 
     count=0;
     for(n=0;n<p->gcpara1_count;++n)
     {
-    i=p->gcpara1[n][0];
-    j=p->gcpara1[n][1];
-    k=p->gcpara1[n][2];
+        i=p->gcpara1[n][0];
+        j=p->gcpara1[n][1];
+        k=p->gcpara1[n][2];
 
         cv(i-1,j,k)=irecv1[count];
         ++count;
@@ -110,9 +110,9 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara2_count;++n)
     {
-    i=p->gcpara2[n][0];
-    j=p->gcpara2[n][1];
-    k=p->gcpara2[n][2];
+        i=p->gcpara2[n][0];
+        j=p->gcpara2[n][1];
+        k=p->gcpara2[n][2];
 
         cv(i,j+1,k)=irecv2[count];
         ++count;
@@ -121,9 +121,9 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara3_count;++n)
     {
-    i=p->gcpara3[n][0];
-    j=p->gcpara3[n][1];
-    k=p->gcpara3[n][2];
+        i=p->gcpara3[n][0];
+        j=p->gcpara3[n][1];
+        k=p->gcpara3[n][2];
 
         cv(i,j-1,k)=irecv3[count];
         ++count;
@@ -132,9 +132,9 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara4_count;++n)
     {
-    i=p->gcpara4[n][0];
-    j=p->gcpara4[n][1];
-    k=p->gcpara4[n][2];
+        i=p->gcpara4[n][0];
+        j=p->gcpara4[n][1];
+        k=p->gcpara4[n][2];
 
         cv(i+1,j,k)=irecv4[count];
         ++count;
@@ -143,9 +143,9 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara5_count;++n)
     {
-    i=p->gcpara5[n][0];
-    j=p->gcpara5[n][1];
-    k=p->gcpara5[n][2];
+        i=p->gcpara5[n][0];
+        j=p->gcpara5[n][1];
+        k=p->gcpara5[n][2];
 
         cv(i,j,k-1)=irecv5[count];
         ++count;
@@ -154,12 +154,11 @@ void ghostcell::facenbx(lexer* p,fieldint& cv, int* range)
     count=0;
     for(n=0;n<p->gcpara6_count;++n)
     {
-    i=p->gcpara6[n][0];
-    j=p->gcpara6[n][1];
-    k=p->gcpara6[n][2];
+        i=p->gcpara6[n][0];
+        j=p->gcpara6[n][1];
+        k=p->gcpara6[n][2];
 
         cv(i,j,k+1)=irecv6[count];
         ++count;
     }
-
 }

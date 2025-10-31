@@ -22,151 +22,148 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
 
 void ghostcell::gcparaxijk_single(lexer* p, double *f, int gcv)
 {
-	starttime=timer();
-	
+    starttime=timer();
+
     paramargin=1;
-	
-//  FILL SEND
+
+    //  FILL SEND
     count=0;
     for(q=0;q<p->gcpara1_count;++q)
     {
-    i=p->gcpara1[q][0];
-    j=p->gcpara1[q][1];
-    k=p->gcpara1[q][2];
-    
+        i=p->gcpara1[q][0];
+        j=p->gcpara1[q][1];
+        k=p->gcpara1[q][2];
+
         send1[count]=f[IJK];
         ++count;
     }
-	
-	count=0;
-	for(q=0;q<p->gcpara2_count;++q)
-	{
-    i=p->gcpara2[q][0];
-    j=p->gcpara2[q][1];
-    k=p->gcpara2[q][2];
-    
+
+    count=0;
+    for(q=0;q<p->gcpara2_count;++q)
+    {
+        i=p->gcpara2[q][0];
+        j=p->gcpara2[q][1];
+        k=p->gcpara2[q][2];
+
         send2[count]=f[IJK];
         ++count;
-	}
+    }
 
     count=0;
     for(q=0;q<p->gcpara3_count;++q)
     {
-    i=p->gcpara3[q][0];
-    j=p->gcpara3[q][1];
-    k=p->gcpara3[q][2];
-    
+        i=p->gcpara3[q][0];
+        j=p->gcpara3[q][1];
+        k=p->gcpara3[q][2];
+
         send3[count]=f[IJK];
         ++count;
     }
-	
-	count=0;
-	for(q=0;q<p->gcpara4_count;++q)
-	{
-    i=p->gcpara4[q][0];
-    j=p->gcpara4[q][1];
-    k=p->gcpara4[q][2];
-    
+
+    count=0;
+    for(q=0;q<p->gcpara4_count;++q)
+    {
+        i=p->gcpara4[q][0];
+        j=p->gcpara4[q][1];
+        k=p->gcpara4[q][2];
+
         send4[count]=f[IJK];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcpara5_count;++q)
-	{
-    i=p->gcpara5[q][0];
-    j=p->gcpara5[q][1];
-    k=p->gcpara5[q][2];
-    
+    for(q=0;q<p->gcpara5_count;++q)
+    {
+        i=p->gcpara5[q][0];
+        j=p->gcpara5[q][1];
+        k=p->gcpara5[q][2];
+
         send5[count]=f[IJK];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcpara6_count;++q)
-	{
-    i=p->gcpara6[q][0];
-    j=p->gcpara6[q][1];
-    k=p->gcpara6[q][2];
-    
+    for(q=0;q<p->gcpara6_count;++q)
+    {
+        i=p->gcpara6[q][0];
+        j=p->gcpara6[q][1];
+        k=p->gcpara6[q][2];
+
         send6[count]=f[IJK];
         ++count;
-	}
+    }
 
     Sendrecv_double(p->gcpara1_count,p->gcpara2_count,p->gcpara3_count,p->gcpara4_count,p->gcpara5_count,p->gcpara6_count);
 
-//  FILL RECEIVE
-
+    //  FILL RECEIVE
     count=0;
     for(q=0;q<p->gcpara1_count;++q)
     {
-    i=p->gcpara1[q][0];
-    j=p->gcpara1[q][1];
-    k=p->gcpara1[q][2];
-    
+        i=p->gcpara1[q][0];
+        j=p->gcpara1[q][1];
+        k=p->gcpara1[q][2];
+
         f[Im1JK]=recv1[count];
         ++count;
     }
 
     count=0;
-	for(q=0;q<p->gcpara2_count;++q)
-	{
-    i=p->gcpara2[q][0];
-    j=p->gcpara2[q][1];
-    k=p->gcpara2[q][2];
-    
+    for(q=0;q<p->gcpara2_count;++q)
+    {
+        i=p->gcpara2[q][0];
+        j=p->gcpara2[q][1];
+        k=p->gcpara2[q][2];
+
         f[IJp1K]=recv2[count];
         ++count;
-	}	
-	
-	count=0;
-	for(q=0;q<p->gcpara3_count;++q)
-	{
-    i=p->gcpara3[q][0];
-    j=p->gcpara3[q][1];
-    k=p->gcpara3[q][2];
-    
-        f[IJm1K]=recv3[count];
-        ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcpara4_count;++q)
-	{
-    i=p->gcpara4[q][0];
-    j=p->gcpara4[q][1];
-    k=p->gcpara4[q][2];
-    
+    for(q=0;q<p->gcpara3_count;++q)
+    {
+        i=p->gcpara3[q][0];
+        j=p->gcpara3[q][1];
+        k=p->gcpara3[q][2];
+
+        f[IJm1K]=recv3[count];
+        ++count;
+    }
+
+    count=0;
+    for(q=0;q<p->gcpara4_count;++q)
+    {
+        i=p->gcpara4[q][0];
+        j=p->gcpara4[q][1];
+        k=p->gcpara4[q][2];
+
         f[Ip1JK]=recv4[count];
         ++count;
-	}
-	
-	count=0;
+    }
+
+    count=0;
     for(q=0;q<p->gcpara5_count;++q)
     {
-    i=p->gcpara5[q][0];
-    j=p->gcpara5[q][1];
-    k=p->gcpara5[q][2];
-    
+        i=p->gcpara5[q][0];
+        j=p->gcpara5[q][1];
+        k=p->gcpara5[q][2];
+
         f[IJKm1]=recv5[count];
         ++count;
     }
 
     count=0;
-	for(q=0;q<p->gcpara6_count;++q)
-	{
-    i=p->gcpara6[q][0];
-    j=p->gcpara6[q][1];
-    k=p->gcpara6[q][2];
-    
+    for(q=0;q<p->gcpara6_count;++q)
+    {
+        i=p->gcpara6[q][0];
+        j=p->gcpara6[q][1];
+        k=p->gcpara6[q][2];
+
         f[IJKp1]=recv6[count];
         ++count;
-	}
-	endtime=timer();
-	p->xtime+=endtime-starttime;
+    }
+    endtime=timer();
+    p->xtime+=endtime-starttime;
 }
-
