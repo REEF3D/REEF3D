@@ -2565,7 +2565,6 @@
         <File Name="gcxsl_paraxijk_single.cpp"/>
         <File Name="gcxsl_paraxijk.cpp"/>
         <File Name="gcxsl_parax_fh.cpp"/>
-        <File Name="gcxsl_update.cpp"/>
         <File Name="gcxsl_paracox_int.cpp"/>
         <File Name="gcsl_outflow.cpp"/>
         <File Name="gcsl_sommerfeld.cpp"/>

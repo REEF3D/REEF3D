@@ -80,6 +80,4 @@ void driver::makegrid2D_cds(lexer *p, ghostcell *pgc, fdm2D *b)
     p->gridini2D();	
 
     pgc->sizeS_update(p);
-    
-    pgc->gcxslupdate(p); 
 }
