@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"reini.h"
 #include"reini_walld.h"
 
-void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc, reini *preini, ioflow *pflow,  field& walldist)
+void ghostcell::walldistance(lexer *p, fdm *a, convection *pdisc, reini *preini, ioflow *pflow,  field& walldist)
 {
     int ic,jc,kc;
     double xc,yc,zc;
@@ -38,7 +38,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
     LOOP
         walldist(i,j,k)=1.0e9;
 
-    pgc->gcparax(p,walldist,4);
+    gcparax(p,walldist,4);
 
     GC4LOOP
     {
@@ -191,7 +191,7 @@ void ghostcell::walldistance(lexer *p, fdm *a, ghostcell *pgc, convection *pdisc
 
     reini_walld reini(p,a);
 
-    reini.start(a,p,walldist,pgc,pflow);
+    reini.start(a,p,walldist,this,pflow);
 
     gcparax(p,walldist,4);
     gcparacox(p,walldist,4);
