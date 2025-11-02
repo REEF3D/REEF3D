@@ -380,12 +380,12 @@ void lexer::read_grid()
     Iarray(gcpara5, gcpara5_count,16);
     Iarray(gcpara6, gcpara6_count,16);
 
-    Iarray(gcparaco1, gcparaco1_count,6);
-    Iarray(gcparaco2, gcparaco2_count,6);
-    Iarray(gcparaco3, gcparaco3_count,6);
-    Iarray(gcparaco4, gcparaco4_count,6);
-    Iarray(gcparaco5, gcparaco5_count,6);
-    Iarray(gcparaco6, gcparaco6_count,6);
+    Iarray(gcparaco1, gcparaco1_count,3);
+    Iarray(gcparaco2, gcparaco2_count,3);
+    Iarray(gcparaco3, gcparaco3_count,3);
+    Iarray(gcparaco4, gcparaco4_count,3);
+    Iarray(gcparaco5, gcparaco5_count,3);
+    Iarray(gcparaco6, gcparaco6_count,3);
     
     
     // Slice allocation
@@ -697,9 +697,6 @@ void lexer::read_grid()
 			gcparaco1[i][0]=isurf;
 			gcparaco1[i][1]=jsurf;
 			gcparaco1[i][2]=ksurf;
-			gcparaco1[i][3]=side1;
-			gcparaco1[i][4]=side2;
-			gcparaco1[i][5]=paraconum;
 	}
 
 	for(i=0; i<gcparaco2_count; ++i)
@@ -725,9 +722,6 @@ void lexer::read_grid()
 			gcparaco2[i][0]=isurf;
 			gcparaco2[i][1]=jsurf;
 			gcparaco2[i][2]=ksurf;
-			gcparaco2[i][3]=side1;
-			gcparaco2[i][4]=side2;
-			gcparaco2[i][5]=paraconum;
 	}
 
 	for(i=0; i<gcparaco3_count; ++i)
@@ -753,9 +747,6 @@ void lexer::read_grid()
 			gcparaco3[i][0]=isurf;
 			gcparaco3[i][1]=jsurf;
 			gcparaco3[i][2]=ksurf;
-			gcparaco3[i][3]=side1;
-			gcparaco3[i][4]=side2;
-			gcparaco3[i][5]=paraconum;
 	}
 
 	for(i=0; i<gcparaco4_count; ++i)
@@ -781,9 +772,6 @@ void lexer::read_grid()
 			gcparaco4[i][0]=isurf;
 			gcparaco4[i][1]=jsurf;
 			gcparaco4[i][2]=ksurf;
-			gcparaco4[i][3]=side1;
-			gcparaco4[i][4]=side2;
-			gcparaco4[i][5]=paraconum;
 	}
 
 	for(i=0; i<gcparaco5_count; ++i)
@@ -809,9 +797,6 @@ void lexer::read_grid()
 			gcparaco5[i][0]=isurf;
 			gcparaco5[i][1]=jsurf;
 			gcparaco5[i][2]=ksurf;
-			gcparaco5[i][3]=side1;
-			gcparaco5[i][4]=side2;
-			gcparaco5[i][5]=paraconum;
 	}
 
 	for(i=0; i<gcparaco6_count; ++i)
@@ -837,9 +822,6 @@ void lexer::read_grid()
 			gcparaco6[i][0]=isurf;
 			gcparaco6[i][1]=jsurf;
 			gcparaco6[i][2]=ksurf;
-			gcparaco6[i][3]=side1;
-			gcparaco6[i][4]=side2;
-			gcparaco6[i][5]=paraconum;
 	}
 
 	for(i=0; i<knox; ++i)
