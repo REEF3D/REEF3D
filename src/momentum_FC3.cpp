@@ -417,7 +417,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
     
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    //pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }
 
 void momentum_FC3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
