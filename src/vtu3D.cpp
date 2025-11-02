@@ -382,12 +382,8 @@ void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *phe
 	pgc->start3(p,a->w,112);    
 
     pgc->gcparacox(p,a->phi,50);
-	pgc->gcparacox(p,a->phi,50);
 
 	pgc->gcparacox(p,a->topo,150);
-	pgc->gcparacox(p,a->topo,150);
-    
-    //pgc->start4a(p,a->topo,159);
 
      pgc->gcperiodicx(p,a->press,4);
 
