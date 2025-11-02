@@ -57,23 +57,8 @@ void lexer::read_grid()
     gcparaco6_count=0;
     surf_tot=0;
 
-    if(mpirank<9)
-        sprintf(name,"grid-00000%i.dat",mpirank+1);
-
-    if(mpirank<99&&mpirank>8)
-        sprintf(name,"grid-0000%i.dat",mpirank+1);
-
-    if(mpirank<999&&mpirank>98)
-        sprintf(name,"grid-000%i.dat",mpirank+1);
-
-    if(mpirank<9999&&mpirank>998)
-        sprintf(name,"grid-00%i.dat",mpirank+1);
-
-    if(mpirank<99999&&mpirank>9998)
-        sprintf(name,"grid-0%i.dat",mpirank+1);
-
-    if(mpirank>99998)
-        sprintf(name,"grid-%i.dat",mpirank+1);
+    const int padding = 6;
+    sprintf(name,"grid-%0*i.dat",padding,mpirank+1);
 
     // open file------------
     ifstream grid(name, ios_base::binary);
