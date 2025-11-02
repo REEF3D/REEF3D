@@ -39,8 +39,6 @@ void lexer::read_grid()
     gcwall_count=0;
     gcin_count=0;
     gcout_count=0;
-    gcin6_count=0;
-    gcout6_count=0;
     gcfsf_count=0;
     gcbed_count=0;
     gcpara1_count=0;
@@ -519,38 +517,11 @@ void lexer::read_grid()
     gcin4a_count=gcin_count;
     gcout4a_count=gcout_count;
 
-    gcin6_count=gcin_count;
-    gcout6_count=gcout_count;
-
     Iarray(gcin, gcin_count,6);
     Iarray(gcout, gcout_count,6);
 
     Iarray(gcin4a, gcin_count,6);
     Iarray(gcout4a, gcout_count,6);
-
-    Iarray(gcin6, gcin6_count,6);
-    Iarray(gcout6, gcout6_count,6);
-
-    int count1=0;
-    int count2=0;
-    for(i=0; i<gcb4_count; ++i)
-    {
-        if(gcb4[i][4]==1 || gcb4[i][4]==6)
-        {
-            gcin6[count1][0] = gcb4[i][0];
-            gcin6[count1][1] = gcb4[i][1];
-            gcin6[count1][2] = gcb4[i][2];
-            ++count1;
-        }
-
-        if(gcb4[i][4]==2 || gcb4[i][4]==7 || gcb4[i][4]==8)
-        {
-            gcout6[count2][0] = gcb4[i][0];
-            gcout6[count2][1] = gcb4[i][1];
-            gcout6[count2][2] = gcb4[i][2];
-            ++count2;
-        }
-    }
 
 //  Para Surfaces
     for(i=0; i<gcpara1_count; ++i)
