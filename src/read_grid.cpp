@@ -380,12 +380,6 @@ void lexer::read_grid()
     Iarray(gcslin, gcin_count,6);
     Iarray(gcslout, gcout_count,6);
 
-    Darray(gcdsl1, gcbsl1_count);
-    Darray(gcdsl2, gcbsl2_count);
-    Darray(gcdsl3, gcbsl3_count);
-    Darray(gcdsl4, gcbsl4_count);
-    Darray(gcdsl4a, gcbsl4a_count);
-
     Iarray(gcslpara1, gcslpara1_count,2);
     Iarray(gcslpara2, gcslpara2_count,2);
     Iarray(gcslpara3, gcslpara3_count,2);

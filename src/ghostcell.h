@@ -182,15 +182,15 @@ public:
     void gcsl_start4int(lexer*,sliceint&, int);
     void gcsl_start4Vint(lexer*,int*, int);
 
-    void gcsldistro1(lexer*, slice&,int, int, int, double, int, int, int);
-	void gcsldistro2(lexer*, slice&,int, int, int, double, int, int, int);
-	void gcsldistro4(lexer*, slice&,int, int, int, double, int, int, int);
-	void gcsldistro4a(lexer*, slice&,int, int, int, double, int, int, int);
+    void gcsldistro1(lexer*, slice&,int, int, int, int, int, int);
+	void gcsldistro2(lexer*, slice&,int, int, int, int, int, int);
+	void gcsldistro4(lexer*, slice&,int, int, int, int, int, int);
+	void gcsldistro4a(lexer*, slice&,int, int, int, int, int, int);
 
-    void gcsldistro1int(lexer*, sliceint&,int, int, int, double, int, int, int);
-    void gcsldistro2int(lexer*, sliceint&,int, int, int, double, int, int, int);
-    void gcsldistro4int(lexer*, sliceint&,int, int, int, double, int, int, int);
-    void gcsldistro4Vint(lexer*, int*,int, int, int, double, int, int, int);
+    void gcsldistro1int(lexer*, sliceint&,int, int, int, int, int, int);
+    void gcsldistro2int(lexer*, sliceint&,int, int, int, int, int, int);
+    void gcsldistro4int(lexer*, sliceint&,int, int, int, int, int, int);
+    void gcsldistro4Vint(lexer*, int*,int, int, int, int, int, int);
 
     int gcsleval1(lexer*,int,int,int);
 	int gcsleval2(lexer*,int,int,int);

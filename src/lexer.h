@@ -226,7 +226,6 @@ public:
     int **gcbsl1,**gcbsl2,**gcbsl3,**gcbsl4,**gcbsl4a;
 	int **gcslin, **gcslout;
     int **gcslawa1, **gcslawa2;
-	double *gcdsl1,*gcdsl2,*gcdsl3,*gcdsl4,*gcdsl4a;
 
     int gcsl_extra1,gcsl_extra2,gcsl_extra3,gcsl_extra4,gcsl_extra4a;
 
