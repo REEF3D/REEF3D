@@ -38,35 +38,67 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
 
-        if(phival>=-psi)
-		{
-		H=1.0;
-		G=1.0;
-		}
+            if(phival>=-psi)
+            {
+                H=1.0;
+                G=1.0;
+            }
 
-		if(phival<-epsi)
-		{
-		H=0.0;
-		G=0.0;
-		}
+            if(phival<-epsi)
+            {
+                H=0.0;
+                G=0.0;
+            }
 
-		if(phival>=-epsi && phival<-psi)
-		{
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-		G=H;
-		}
+            if(phival>=-epsi && phival<-psi)
+            {
+                H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+                G=H;
+            }
         
-        if(phival>=0.0)
-        {
-        if(p->pos_z()<=p->phimean)
-        z=-(fabs(p->phimean-p->pos_z()));
+            if(phival>=0.0)
+            {
+                if(p->pos_z()<=p->phimean)
+                    z=-(fabs(p->phimean-p->pos_z()));
 		
-		if(p->pos_z()>p->phimean)
-        z=(fabs(p->phimean-p->pos_z()));
+                if(p->pos_z()>p->phimean)
+                    z=(fabs(p->phimean-p->pos_z()));
+            }
+        
+            if(phival<0.0)
+                z = 0.5*(eta(i,j)+eta(i+1,j));
         }
         
-        if(phival<0.0)
-        z = 0.5*(eta(i,j)+eta(i+1,j));
+        //PLIC version
+        /*else if(p->F80==4)
+        {
+            if(p->F92==3||p->F92==32)
+            {
+                if(p->j_dir>0)
+                    H=(0.5*p->DXN[IP]*(0.25*a->vof_nte(i,j,k)+0.25*a->vof_ntw(i,j,k)+0.25*a->vof_nbe(i,j,k)+0.25*a->vof_nbw(i,j,k))
+                        +0.5*p->DXN[IP1]*(0.25*a->vof_ste(i+1,j,k)+0.25*a->vof_stw(i+1,j,k)+0.25*a->vof_sbe(i+1,j,k)+0.25*a->vof_sbw(i+1,j,k))
+                        )/p->DXP[IP];
+                else
+                    H=(0.25*p->DXN[IP]*a->vof_nt(i,j,k)+0.25*p->DXN[IP]*a->vof_nb(i,j,k)+0.25*p->DXN[IP1]*a->vof_st(i+1,j,k)+0.25*p->DXN[IP1]*a->vof_sb(i+1,j,k))/p->DXP[IP];
+
+            }
+            else
+                H=(0.5*a->vof(i+1,j,k)*p->DXN[IP1]+0.5*a->vof(i,j,k)*p->DXN[IP])/p->DXP[IP];
+        
+            G=H;
+        
+            if(H>=0.5)
+            {
+                if(p->pos_z()<=p->phimean)
+                    z=-(fabs(p->phimean-p->pos_z()));
+		
+                if(p->pos_z()>p->phimean)
+                    z=(fabs(p->phimean-p->pos_z()));
+            }
+        
+            if(H<0.0)
+                z = 0.5*(eta(i,j)+eta(i+1,j));
+        }*/
 		
 		// Wave Generation
 		if(p->B98==2 && u_switch==1)
@@ -104,36 +136,65 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
 
-        if(phival>=-psi)
-		{
-		H=1.0;
-		G=1.0;
-		}
+            if(phival>=-psi)
+            {
+                H=1.0;
+                G=1.0;
+            }
 
-		if(phival<-epsi)
-		{
-		H=0.0;
-		G=0.0;
-		}
+            if(phival<-epsi)
+            {
+                H=0.0;
+                G=0.0;
+            }
 
-		if(phival>=-epsi && phival<-psi)
-		{
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-		G=H;
-		}
+            if(phival>=-epsi && phival<-psi)
+            {
+                H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+                G=H;
+            }
 		
-        if(phival>=0.0)
-        {
-        if(p->pos_z()<=p->phimean)
-        z=-(fabs(p->phimean-p->pos_z()));
+            if(phival>=0.0)
+            {
+                if(p->pos_z()<=p->phimean)
+                    z=-(fabs(p->phimean-p->pos_z()));
 		
-		if(p->pos_z()>p->phimean)
-        z=(fabs(p->phimean-p->pos_z()));
-        }
+                if(p->pos_z()>p->phimean)
+                    z=(fabs(p->phimean-p->pos_z()));
+            }
         
-        if(phival<0.0)
-        z = 0.5*(eta(i,j)+eta(i,j+1));
+            if(phival<0.0)
+                z = 0.5*(eta(i,j)+eta(i,j+1));
+        }
+        /*else if(p->F80==4)
+        {
+            if(p->F92==3||p->F92==32)
+            {
+                if(p->j_dir>0)
+                    H=(0.5*p->DXN[IP]*(0.25*a->vof_nte(i,j,k)+0.25*a->vof_ntw(i,j,k)+0.25*a->vof_nbe(i,j,k)+0.25*a->vof_nbw(i,j,k))
+                        +0.5*p->DXN[IP1]*(0.25*a->vof_ste(i+1,j,k)+0.25*a->vof_stw(i+1,j,k)+0.25*a->vof_sbe(i+1,j,k)+0.25*a->vof_sbw(i+1,j,k))
+                        )/p->DXP[IP];
+                else
+                    H=(0.25*p->DXN[IP]*a->vof_nt(i,j,k)+0.25*p->DXN[IP]*a->vof_nb(i,j,k)+0.25*p->DXN[IP1]*a->vof_st(i+1,j,k)+0.25*p->DXN[IP1]*a->vof_sb(i+1,j,k))/p->DXP[IP];
 
+            }
+            else
+                H=(0.5*a->vof(i+1,j,k)*p->DXN[IP1]+0.5*a->vof(i,j,k)*p->DXN[IP])/p->DXP[IP];
+        
+            G=H;
+        
+            if(H>=0.5)
+            {
+                if(p->pos_z()<=p->phimean)
+                    z=-(fabs(p->phimean-p->pos_z()));
+		
+                if(p->pos_z()>p->phimean)
+                    z=(fabs(p->phimean-p->pos_z()));
+            }
+        
+            if(H<0.0)
+                z = 0.5*(eta(i,j)+eta(i+1,j));
+        }*/
 		// Wave Generation
 		if(p->B98==2 && v_switch==1)
         {
@@ -175,30 +236,58 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 		G=1.0;
 		}
 
-		if(phival<-epsi)
-		{
-		H=0.0;
-		G=0.0;
-		}
+            if(phival<-epsi)
+            {
+                H=0.0;
+                G=0.0;
+            }
 		
 
-		if(phival>=-epsi && phival<-psi)
-		{
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
-		G=H;
-		}
+            if(phival>=-epsi && phival<-psi)
+            {
+                H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+                G=H;
+            }
 		
-        if(phival>=0.0)
-        {
-        if(p->pos_z()<=p->phimean)
-        z=-(fabs(p->phimean-p->pos3_z()));
+            if(phival>=0.0)
+            {
+                if(p->pos_z()<=p->phimean)
+                    z=-(fabs(p->phimean-p->pos3_z()));
 		
-		if(p->pos_z()>p->phimean)
-        z=(fabs(p->phimean-p->pos3_z()));
-        }
+                if(p->pos_z()>p->phimean)
+                    z=(fabs(p->phimean-p->pos3_z()));
+            }
         
-        if(phival<0.0)
-        z = eta(i,j);
+            if(phival<0.0)
+                z = eta(i,j);
+        }
+     /*   else if(p->F80==4)
+        {
+            if(p->F92==3||p->F92==32)
+            {
+                if(p->j_dir>0)
+                    H=(0.5*p->DZN[KP]*(0.25*a->vof_nte(i,j,k)+0.25*a->vof_ntw(i,j,k)+0.25*a->vof_ste(i,j,k)+0.25*a->vof_stw(i,j,k))
+                        +0.5*p->DZN[KP1]*(0.25*a->vof_nbe(i,j,k+1)+0.25*a->vof_nbw(i,j,k+1)+0.25*a->vof_sbe(i,j,k+1)+0.25*a->vof_sbw(i,j,k+1))
+                        )/p->DZP[KP];
+                else
+                    H=(0.25*p->DZN[KP]*a->vof_nt(i,j,k)+0.25*p->DZN[KP]*a->vof_st(i,j,k)+0.25*p->DZN[KP1]*a->vof_nb(i,j,k+1)+0.25*p->DZN[KP1]*a->vof_sb(i,j,k+1))/p->DZP[KP];
+
+            }
+            else
+                H=(0.5*a->vof(i,j,k+1)*p->DZN[KP1]+0.5*a->vof(i,j,k)*p->DZN[KP])/p->DZP[KP];
+            
+            if(H>=0.5)
+            {
+                if(p->pos_z()<=p->phimean)
+                    z=-(fabs(p->phimean-p->pos3_z()));
+		
+                if(p->pos_z()>p->phimean)
+                    z=(fabs(p->phimean-p->pos3_z()));
+            }
+        
+            if(H<0.5)
+                z = eta(i,j);
+        }*/
 
 		// Wave Generation
 		if(p->B98==2 && w_switch==1)
@@ -297,29 +386,6 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
         KLOOP
         {   
             vofheight(i,j)+=f(i,j,k)*p->DZN[KP];
-            
-           /* if(f(i,j,k)>p->F94 && f(i,j,k+1)<p->F93)
-                vofheight(i,j)=MAX(vofheight(i,j),p->pos_z()+0.5*p->DZN[KP]);
-            else if(f(i,j,k)<=p->F94 && f(i,j,k)>=p->F93)
-            {
-                if((a->nZ(i,j,k)>1E-06 || a->nZ(i,j,k)<-1E-06) && a->Alpha(i,j,k)<1E05)
-                {
-                    if(fabs(a->Alpha(i,j,k)/a->nZ(i,j,k))<0.5*p->DZN[KP])
-                        vofheight(i,j)=MAX(vofheight(i,j),p->pos_z()+a->Alpha(i,j,k)/a->nZ(i,j,k));
-                    else
-                    {
-                        if(a->nZ(i,j,k)>0.0)
-                            vofheight(i,j)=MAX(vofheight(i,j),p->pos_z()-0.5*p->DZN[KP]);
-                        else
-                            vofheight(i,j)=MAX(vofheight(i,j),p->pos_z()+0.5*p->DZN[KP]);
-                    }
-                }
-                else
-                {
-                    cout<<"surface cell in relax func does not have a plane"<<endl;
-                    vofheight(i,j)=MAX(vofheight(i,j),(p->pos_z()-0.5*p->DZN[KP])+f(i,j,k)*p->DZN[KP]);
-                }
-            }*/
         }
     }
     count=0;
@@ -343,9 +409,6 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
         dg = distgen(p);
         db = distbeach(p);
 
-            
-            
-        
         // Wave Generation
         if(p->B98==2 && h_switch==1)
         {
@@ -358,97 +421,9 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
                 f(i,j,k)=0.0;
             else
             {
-               /* double nx_eta,ny_eta,nz_eta,alpha_eta,nsum_eta;
-                double nx_vof,ny_vof,nz_vof,alpha_vof,nsum_vof;
-                
-                nz_vof=1.0;
-                nx_vof=-((genheight(i+1,j))-(genheight(i-1,j)))/(p->DXP[IP]+p->DXP[IM1]);
-                ny_vof=0.0;
-                nsum_vof=sqrt(nx_vof*nx_vof+ny_vof*ny_vof+nz_vof*nz_vof);
-                nx_vof=nx_vof/nsum_vof;
-                ny_vof=ny_vof/nsum_vof;
-                nz_vof=nz_vof/nsum_vof;
-                alpha_vof=(genheight(i,j)-p->pos_z())*nz_vof;*/
-                
-                /*nz_eta=1.0;
-                nx_eta=((eta(i+1,j))-(eta(i-1,j)))/(p->DXP[IP]+p->DXP[IM1]);
-                ny_eta=((eta(i,j+1))-(eta(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-                nsum_eta=sqrt(nx_eta*nx_eta+ny_eta*ny_eta+nz_eta*nz_eta);
-                nx_eta=nx_eta/nsum_eta;
-                ny_eta=ny_eta/nsum_eta;
-                nz_eta=nz_eta/nsum_eta;
-                if(fabs(eta(i,j)+p->phimean-p->pos_z())<=0.5*p->DZN[KP])
-                    alpha_eta=(eta(i,j)+p->phimean-p->pos_z())*nz_eta;
-                else if(((eta(i,j)+p->phimean)>p->pos_z()+0.5*p->DZN[KP]) && ((eta(i,j)+p->phimean)<=p->pos_z()+0.5*p->DZN[KP]+p->DZN[KP1]))
-                    alpha_eta=(eta(i,j)+p->phimean-(p->pos_z()+p->DZP[KP]))*nz_eta;
-                else if(((eta(i,j)+p->phimean)<p->pos_z()-0.5*p->DZN[KP]) && ((eta(i,j)+p->phimean)>=p->pos_z()-0.5*p->DZN[KP]-p->DZN[KM1]))
-                    alpha_eta=(eta(i,j)+p->phimean-(p->pos_z()-p->DZP[KM1]))*nz_eta;
-                else
-                {
-                    //cout<<"eta out of relax normal bounds"<<endl;
-                    alpha_eta=1E06;
-                }
-                
-                if(a->Alpha(i,j,k)<1E05)
-                {
-                    nx_vof=a->nX(i,j,k);
-                    ny_vof=a->nY(i,j,k);
-                    nz_vof=a->nZ(i,j,k);
-                    alpha_vof=a->Alpha(i,j,k);
-                }
-                else if(a->Alpha(i,j,k+1)<1E05)
-                {
-                    nx_vof=a->nX(i,j,k+1);
-                    ny_vof=a->nY(i,j,k+1);
-                    nz_vof=a->nZ(i,j,k+1);
-                    alpha_vof=a->Alpha(i,j,k+1);
-                }
-                else if(a->Alpha(i,j,k-1)<1E05)
-                {
-                    nx_vof=a->nX(i,j,k-1);
-                    ny_vof=a->nY(i,j,k-1);
-                    nz_vof=a->nZ(i,j,k-1);
-                    alpha_vof=a->Alpha(i,j,k-1);
-                }
-                else
-                {
-                    cout<<"vofheight out of relax normal bounds"<<endl;
-                    alpha_vof=1E06;
-                }
-    
-                if(alpha_vof<1E05 && alpha_eta<1E05)
-                {
-                    nx_vof = (1.0-relax4_wg(i,j))*ramp(p) * nx_eta + relax4_wg(i,j)*nx_vof;
-                    ny_vof = (1.0-relax4_wg(i,j))*ramp(p) * ny_eta + relax4_wg(i,j)*ny_vof;
-                    nz_vof = (1.0-relax4_wg(i,j))*ramp(p) * nz_eta + relax4_wg(i,j)*nz_vof;
-                    alpha_vof = (1.0-relax4_wg(i,j))*ramp(p) * alpha_eta + relax4_wg(i,j)*alpha_vof;
-                    nsum_vof=sqrt(nx_vof*nx_vof+ny_vof*ny_vof+nz_vof*nz_vof);
-                    nx_vof=nx_vof/nsum_vof;
-                    ny_vof=ny_vof/nsum_vof;
-                    nz_vof=nz_vof/nsum_vof;
-                }
-                else if(alpha_eta<1E05)
-                {
-                    nx_vof=nx_eta;
-                    ny_vof=ny_eta;
-                    nz_vof=nz_eta;
-                    alpha_vof=alpha_eta;
-                }
-                */
-                
-              /*  if(alpha_vof<1E05)
-                {
-                    f(i,j,k)=V0Calc_PLIC(p,a,nx_vof,ny_vof,nz_vof,alpha_vof);
-                }
-                else*/
-                //{
-                    //cout<<"both eta and vof out of relax normal bounds"<<endl;
                     f(i,j,k)=(genheight(i,j)-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
-               // }
-                
             }
-            //    f(i,j,k)=(localheight-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
-           // f(i,j,k) = (1.0-relax4_wg(i,j))*ramp(p) * vofgen(i,j,k) + relax4_wg(i,j)*f(i,j,k);
+            
             ++count;
             }
         }
@@ -482,18 +457,26 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
     {
         dg = distgen(p);    
         db = distbeach(p);
+        
+      //  if(p->F80!=4)
+        {
+            phival = 0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
 
         phival = -a->phi(i,j,k);
 
         if(phival>=-psi)
 		 H=1.0;
          
-		if(phival<-epsi)
-		H=0.0;
+            if(phival<-epsi)
+                H=0.0;
 
-		if(phival>=-epsi && phival<-psi)
-		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));        
-        
+            if(phival>=-epsi && phival<-psi)
+                H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));        
+        }
+     /*   else if(p->F80==4)
+        {
+            H=a->vof(i,j,k);
+        }*/
 		// Wave Generation
 		if(p->B98==2 && u_switch==1)
         {

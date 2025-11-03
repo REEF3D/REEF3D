@@ -611,6 +611,8 @@
         <File Name="heat_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Benchmarks">
+        <File Name="benchmark_disk_xy.h"/>
+        <File Name="benchmark_disk_yz.h"/>
         <File Name="benchmark_TaylorGreen.h"/>
         <File Name="benchmark.h"/>
         <File Name="benchmark_disk.h"/>
@@ -738,6 +740,7 @@
         <File Name="weno_flux.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff2_PLIC.h"/>
         <File Name="idiff2_PLIC_2D.h"/>
         <File Name="idiff2_CN.h"/>
         <File Name="idiff2_FS_2D.h"/>
@@ -1088,6 +1091,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
+      <VirtualDirectory Name="Komega_PLIC">
+        <File Name="komega_func_PLIC.h"/>
+        <File Name="komega_IM1_PLIC.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="EARSM">
         <File Name="EARSM_kw_IM1.h"/>
         <File Name="EARSM.h"/>
@@ -1834,6 +1841,8 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Benchmarks">
+        <File Name="benchmark_disk_xy.cpp"/>
+        <File Name="benchmark_disk_yz.cpp"/>
         <File Name="benchmark_TaylorGreen.cpp"/>
         <File Name="benchmark_disk.cpp"/>
         <File Name="benchmark_void.cpp"/>
@@ -2294,6 +2303,10 @@
         <File Name="weno_flux.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Diffusion">
+        <File Name="idiff2_PLIC-scalar.cpp"/>
+        <File Name="idiff2_PLICw.cpp"/>
+        <File Name="idiff2_PLICv.cpp"/>
+        <File Name="idiff2_PLICu.cpp"/>
         <File Name="idiff_PLIC_2D-scalar.cpp"/>
         <File Name="idiff2_PLIC_2Dw.cpp"/>
         <File Name="idiff2_PLIC_2Dv.cpp"/>
@@ -2444,6 +2457,7 @@
       <VirtualDirectory Name="VOF PLIC">
         <File Name="VOF_void.cpp"/>
         <VirtualDirectory Name="FCRK3_functions">
+          <File Name="VOF_PLIC_COSMIC3D_fieldloops.cpp"/>
           <File Name="VOF_PLIC_updatePlaneData.cpp"/>
           <File Name="VOF_PLIC_surfaceTension.cpp"/>
           <File Name="VOF_PLIC_calculateSubFracions.cpp"/>
@@ -2981,6 +2995,10 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Turbulence">
+      <VirtualDirectory Name="Komega_PLIC">
+        <File Name="komega_func_PLIC.cpp"/>
+        <File Name="komega_IM1_PLIC.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="EARSM">
         <File Name="EARSM_kw_IM1.cpp"/>
         <File Name="EARSM.cpp"/>

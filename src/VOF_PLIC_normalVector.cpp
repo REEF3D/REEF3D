@@ -525,428 +525,12 @@ void VOF_PLIC::calcNormalPhi(fdm* a, lexer* p)
 
 void VOF_PLIC:: calcNormalWeymouth(fdm* a, lexer* p, field& voffield)
 {
-    int dimswitch;
-    int baseswitch;
-    double n_max=0.0;
-    double vof_max;
-    double nsum;
-    double n1m, n1c, n1p, n2m, n2c, n2p, n1_max, n2_max;
-    double p1m, pcc, p1p, p2m, p2p;
-    double n_x,n_y,n_z;
-    
-    //z-dir different schemes -> n_z=1.0)
-    if(voffield(i,j,k+1)>voffield(i,j,k-1))
-    {
-        baseswitch=3;
-        vof_max=voffield(i,j,k+1);
-    }
-    else if(voffield(i,j,k-1)>voffield(i,j,k-1))
-    {
-        baseswitch=-3;
-        vof_max=voffield(i,j,k-1);
-    }
-    else
-    {
-        baseswitch=30;
-        vof_max=voffield(i,j,k+1);
-    }
-    
-    pcc=voffield(i,j,k-1)+voffield(i,j,k)+voffield(i,j,k+1);
-    p1m=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
-    p1p=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
-    n1m=-(pcc-p1m)/(p->DXP[IM1]);
-    n1c=-(p1p-p1m)/(p->DXP[IM1]+p->DXP[IP]);
-    n1p=-(p1p-pcc)/(p->DXP[IP]);
-    n1_max=max({fabs(n1m),fabs(n1c),fabs(n1p)});
-    
-    if(p->j_dir>0)
-    {   
-        p2m=voffield(i,j-1,k-1)+voffield(i,j-1,k)+voffield(i,j-1,k+1);
-        p2p=voffield(i,j+1,k-1)+voffield(i,j+1,k)+voffield(i,j+1,k+1);
-        n2m=-(pcc-p2m)/(p->DYP[JM1]);
-        n2c=-(p2p-p2m)/(p->DYP[JM1]+p->DYP[JP]);
-        n2p=-(p2p-pcc)/(p->DYP[JP]);
-        n2_max=max({fabs(n2m),fabs(n2c),fabs(n2p)});
-    }
-    else
-        n2_max=0.0;
-    
-    if(n1_max>=n2_max)
-    {
-        n_max=n1_max;
-        dimswitch=1;
-    }
-    else
-    {
-        n_max=n2_max;
-        dimswitch=2;
-    }
-    
-    //x-dir different schemes -> n_x=1.0)
-    if(voffield(i+1,j,k)>vof_max)
-    {
-        vof_max=voffield(i+1,j,k);
-        baseswitch=1;
-    }
-    if(voffield(i-1,j,k)>vof_max)
-    {
-        vof_max=voffield(i-1,j,k);
-        baseswitch=-1;
-    }
-    if(voffield(i+1,j,k)>voffield(i-1,j,k)-1E-06 && voffield(i+1,j,k)<voffield(i-1,j,k)+1E-06 && (baseswitch==1 || baseswitch==-1))
-    {
-        vof_max=voffield(i+1,j,k);
-        baseswitch=10;
-    }
-    
-    pcc=voffield(i-1,j,k)+voffield(i,j,k)+voffield(i+1,j,k);
-    p1m=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
-    p1p=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
-    n1m=-(pcc-p1m)/(p->DZP[KM1]);
-    n1c=-(p1p-p1m)/(p->DZP[KM1]+p->DZP[KP]);
-    n1p=-(p1p-pcc)/(p->DZP[KP]);
-    n1_max=max({fabs(n1m),fabs(n1c),fabs(n1p)});
-    
-    if(p->j_dir>0)
-    {
-        p2m=voffield(i-1,j-1,k)+voffield(i,j-1,k)+voffield(i+1,j-1,k);
-        p2p=voffield(i-1,j+1,k)+voffield(i,j+1,k)+voffield(i+1,j+1,k);
-        n2m=-(pcc-p2m)/(p->DYP[JM1]);
-        n2c=-(p2p-p2m)/(p->DYP[JM1]+p->DYP[JP]);
-        n2p=-(p2p-pcc)/(p->DYP[JP]);
-        n2_max=max({fabs(n2m),fabs(n2c),fabs(n2p)});
-    }
-    else
-        n2_max=0.0;
-        
-    if(n1_max>n_max)
-    {
-        n_max=n1_max;
-        dimswitch=3;
-    }
-    
-    if(n2_max>n_max)
-    {
-        n_max=n2_max;
-        dimswitch=2;
-    }
-    
-    if(p->j_dir>0)
-    {   
-        if(voffield(i,j+1,k)>vof_max)
-        {
-            vof_max=voffield(i,j+1,k);
-            baseswitch=2;
-        }
-        if(voffield(i,j-1,k)>vof_max)
-        {
-            vof_max=voffield(i,j-1,k);
-            baseswitch=-2;
-        }
-        if(voffield(i,j+1,k)>voffield(i,j-1,k)-1E-06 && voffield(i,j+1,k)<voffield(i,j-1,k)+1E-06 && (baseswitch==2 || baseswitch==-2))
-        {
-            vof_max=voffield(i,j+1,k);
-            baseswitch=20;
-        }
-        
-        pcc=voffield(i,j-1,k)+voffield(i,j,k)+voffield(i,j+1,k);
-        p1m=voffield(i-1,j-1,k)+voffield(i-1,j,k)+voffield(i-1,j+1,k);
-        p1p=voffield(i+1,j-1,k)+voffield(i+1,j,k)+voffield(i+1,j+1,k);
-        p2m=voffield(i,j-1,k-1)+voffield(i,j,k-1)+voffield(i,j+1,k-1);
-        p2p=voffield(i,j-1,k+1)+voffield(i,j,k+1)+voffield(i,j+1,k+1);
-        n1m=-(pcc-p1m)/(p->DXP[IM1]);
-        n1c=-(p1p-p1m)/(p->DXP[IM1]+p->DXP[IP]);
-        n1p=-(p1p-pcc)/(p->DXP[IP]);
-        n2m=-(pcc-p2m)/(p->DZP[KM1]);
-        n2c=-(p2p-p2m)/(p->DZP[KM1]+p->DZP[KP]);
-        n2p=-(p2p-pcc)/(p->DZP[KP]);
-        n1_max=max({fabs(n1m),fabs(n1c),fabs(n1p)});
-        n2_max=max({fabs(n2m),fabs(n2c),fabs(n2p)});
-        
-        if(n1_max>n_max)
-        {
-            n_max=n1_max;
-            dimswitch=1;
-        }
-        if(n2_max>n_max)
-        {
-            n_max=n2_max;
-            dimswitch=3;
-        }
-    }
-    
-    //if(baseswitch==10 || baseswitch==20 || baseswitch==30)
-  //  {
-        if(dimswitch==1)
-        {
-            if(voffield(i-1,j,k)>=voffield(i+1,j,k))
-                baseswitch=-1;
-            else
-                baseswitch=1;
-        }
-        else if(dimswitch==2)
-        {
-            if(voffield(i,j-1,k)>=voffield(i,j+1,k))
-                baseswitch=-2;
-            else
-                baseswitch=2;
-        }
-        else if(dimswitch==3)
-        {
-            if(voffield(i,j,k-1)>=voffield(i,j,k+1))
-                baseswitch=-3;
-            else
-                baseswitch=3;
-        }
-        else
-            cout<<"dimswitch fail"<<endl;
-        
-  //  }
-    
-    
-    if(baseswitch==-1 || baseswitch==1)
-    {
-        n_x=1.0;
-        pcc=voffield(i-1,j,k)+voffield(i,j,k)+voffield(i+1,j,k);
-        p1m=voffield(i-1,j,k-1)+voffield(i,j,k-1)+voffield(i+1,j,k-1);
-        p1p=voffield(i-1,j,k+1)+voffield(i,j,k+1)+voffield(i+1,j,k+1);
-        /*if(voffield(i,j,k)>=0.5)
-        {
-            if(p1p>=p1m)
-                n_z=-(p1p-pcc)/(p->DZP[KP]);
-            else
-                n_z=-(pcc-p1m)/(p->DZP[KM1]);
-        }
-        else
-        {
-            if(p1m<=p1p)
-                n_z=-(pcc-p1m)/(p->DZP[KM1]);
-            else
-                n_z=-(p1p-pcc)/(p->DZP[KP]);
-        }*/
-        n_z=-(p1p-p1m)/(p->DZP[KP]+p->DZP[KM1]);
-        
-        if(p->j_dir>0)
-        {   
-            p2m=voffield(i-1,j-1,k)+voffield(i,j-1,k)+voffield(i+1,j-1,k);
-            p2p=voffield(i-1,j+1,k)+voffield(i,j+1,k)+voffield(i+1,j+1,k);
-           /* if(voffield(i,j,k)>=0.5)
-            {
-                if(p2p>=p2m)
-                    n_y=-(p2p-pcc)/(p->DYP[JP]);
-                else
-                    n_y=-(pcc-p2m)/(p->DYP[JM1]);
-            }
-            else
-            {
-                if(p2m<=p2p)
-                    n_y=-(pcc-p2m)/(p->DYP[JM1]);
-                else
-                    n_y=-(p2p-pcc)/(p->DYP[JP]);
-            }*/
-            n_y=-(p2p-p2m)/(p->DYP[JP]+p->DYP[IM1]);
-        }
-        else
-            n_y=0.0;
-        
-        if(baseswitch==1)
-        {
-            n_z=-n_z;
-            n_y=-n_y;
-            n_x=-n_x;
-        }
-    }
-    else if(baseswitch==3 || baseswitch==-3)
-    {
-        n_z=1.0;
-        pcc=voffield(i,j,k-1)+voffield(i,j,k)+voffield(i,j,k+1);
-        p1m=voffield(i-1,j,k-1)+voffield(i-1,j,k)+voffield(i-1,j,k+1);
-        p1p=voffield(i+1,j,k-1)+voffield(i+1,j,k)+voffield(i+1,j,k+1);
-       /* if(voffield(i,j,k)>=0.5)
-        {
-            if(p1p>=p1m)
-                n_x=-(p1p-pcc)/(p->DXP[IP]);
-            else
-                n_x=-(pcc-p1m)/(p->DXP[IM1]);
-        }
-        else
-        {
-            if(p1m<=p1p)
-                n_x=-(pcc-p1m)/(p->DXP[IM1]);
-            else
-                n_x=-(p1p-pcc)/(p->DXP[IP]);
-        }
-        */
-        n_x=-(p1p-p1m)/(p->DXP[IP]+p->DXP[IM1]);
-        
-        if(p->j_dir>0)
-        {
-            p2m=voffield(i,j-1,k-1)+voffield(i,j-1,k)+voffield(i,j-1,k+1);
-            p2p=voffield(i,j+1,k-1)+voffield(i,j+1,k)+voffield(i,j+1,k+1);
-            /*if(voffield(i,j,k)>=0.5)
-            {
-                if(p2p>=p2m)
-                    n_y=-(p2p-pcc)/(p->DYP[JP]);
-                else
-                    n_y=-(pcc-p2m)/(p->DYP[JM1]);
-            }
-            else
-            {
-                if(p2m<=p2p)
-                    n_y=-(pcc-p2m)/(p->DYP[JM1]);
-                else
-                    n_y=-(p2p-pcc)/(p->DYP[JP]);
-            }*/
-            n_y=-(p2p-p2m)/(p->DYP[JP]+p->DYP[JM1]);
-        }
-        else
-            n_y=0.0;
-            
-        if(baseswitch==3)
-        {
-            n_z=-n_z;
-            n_y=-n_y;
-            n_x=-n_x;
-        }
-        
-    }
-    else if(baseswitch==2 || baseswitch==-2)
-    {
-        n_y=1.0;
-        pcc=voffield(i,j-1,k)+voffield(i,j,k)+voffield(i,j+1,k);
-        p1m=voffield(i-1,j-1,k)+voffield(i-1,j,k)+voffield(i-1,j+1,k);
-        p1p=voffield(i+1,j-1,k)+voffield(i+1,j,k)+voffield(i+1,j+1,k);
-        p2m=voffield(i,j-1,k-1)+voffield(i,j,k-1)+voffield(i,j+1,k-1);
-        p2p=voffield(i,j-1,k+1)+voffield(i,j,k+1)+voffield(i,j+1,k+1);
-        /*if(voffield(i,j,k)>=0.5)
-        {
-            if(p1p>=p1m)
-                n_x=-(p1p-pcc)/(p->DXP[IP]);
-            else
-                n_x=-(pcc-p1m)/(p->DXP[IM1]);
-                
-            if(p2p>=p2m)
-                n_z=-(p2p-pcc)/(p->DZP[KP]);
-            else
-                n_z=-(pcc-p2m)/(p->DZP[KM1]);
-        }
-        
-        n_z=-(p1p-p1m)/(p->DZP[KP]+p->DZP[KM1]);
-        else
-        {
-            if(p1m<=p1p)
-                n_x=-(pcc-p1m)/(p->DXP[IM1]);
-            else
-                n_x=-(p1p-pcc)/(p->DXP[IP]);
-                
-            if(p2m<=p2p)
-                n_z=-(pcc-p2m)/(p->DZP[KM1]);
-            else
-                n_z=-(p2p-pcc)/(p->DZP[KP]);
-        }*/
-        
-        n_x=-(p1p-p1m)/(p->DXP[IP]+p->DXP[IM1]);
-        n_z=-(p2p-p2m)/(p->DZP[KP]+p->DZP[KM1]);
-        
-        
-        if(baseswitch==2)
-        {
-            n_y=-n_y;
-            n_x=-n_x;
-            n_z=-n_z;
-        }
-    }
-    
-    nsum=sqrt(n_x*n_x+n_y*n_y+n_z*n_z);
-    nx(i,j,k)=n_x/nsum;
-    ny(i,j,k)=n_y/nsum;
-    nz(i,j,k)=n_z/nsum;
-    
-    
     
 }
 
 void VOF_PLIC::calcNormalWang(fdm* a, lexer* p)
 {
-    double mx,my,mz;
-    double mx_save,my_save,mz_save;
-    double msum, nsum;
-    double mincheck=1E06;
-    
-    for(int iloop=0; iloop<2;iloop++)
-    {
-        for(int jloop=0; jloop<2; jloop++)
-        {
-            for(int kloop=0; kloop<2; kloop++)
-            {
-                switch(iloop)
-                {
-                    case 0:
-                        mx=(phistep(i,j,k)-phistep(i-1,j,k))/p->DXP[IM1];
-                        break;
-                    
-                    case 1:
-                        mx=(phistep(i+1,j,k)-phistep(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
-                        break;
-                        
-                    case 2:
-                        mx=(phistep(i+1,j,k)-phistep(i,j,k))/p->DXP[IP];
-                        break;
-                }
-                
-                if(p->j_dir>0)
-                {
-                    switch(jloop)
-                    {
-                        case 0:
-                            my=(phistep(i,j,k)-phistep(i,j-1,k))/p->DYP[JM1];
-                            break;
-                        
-                        case 1:
-                            my=(phistep(i,j+1,k)-phistep(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
-                            break;
-                        
-                        case 2:
-                            my=(phistep(i,j+1,k)-phistep(i,j,k))/p->DYP[JP];
-                            break;
-                    }
-                }
-                else
-                    my=0.0;
-                
-                switch(kloop)
-                {
-                    case 0:
-                        mz=(phistep(i,j,k)-phistep(i,j,k-1))/p->DZP[KM1];
-                        break;
-                        
-                    case 1:
-                        mz=(phistep(i,j,k+1)-phistep(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
-                        break;
-                        
-                    case 2:
-                        mz=(phistep(i,j,k+1)-phistep(i,j,k))/p->DZP[KP];
-                        break;
-                }
-                
-                msum=sqrt(mx*mx+my*my+mz*mz);
-                if(fabs(msum-1.0)<mincheck)
-                {
-                    mincheck=fabs(msum-1.0);
-                    mx_save=mx;
-                    my_save=my;
-                    mz_save=mz;
-                }
-                
-                
-            }
-        }
-    }
-    
-    nsum=sqrt(mx_save*mx_save+my_save*my_save+mz_save*mz_save);
-    nx(i,j,k)=-mx_save/nsum;
-    ny(i,j,k)=-my_save/nsum;
-    nz(i,j,k)=-mz_save/nsum;
+
 }
 
 /*
@@ -1310,6 +894,333 @@ double VOF_PLIC::calcL2vofError2D(fdm* a, lexer* p, field& voffield, double n_x,
     return ret;
 }
 
+void VOF_PLIC::calcNormalMYC3D(fdm* a,lexer* p, field& voffield)
+{
+    //First two Candidates by Centred Columns Scheme
+    
+    double zsum_xm, zsum_xp, zsum_yp, zsum_ym; 
+    double xsum_zm, xsum_zp, xsum_yp, xsum_ym;
+    double ysum_xm, ysum_xp, ysum_zm, ysum_zp;
+    double vofsumup,vofsumdown,sign;
+    double nx_Cz, ny_Cz, nz_Cz, nx_Cx, ny_Cx, nz_Cx, nx_Cy, ny_Cy, nz_Cy;
+    double nsum;
+    
+    //Candidate CC1 height function is z dimension
+    zsum_xm=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1];
+    zsum_xp=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1];
+    zsum_ym=voffield(i,j-1,k-1)*p->DZN[KM1]+voffield(i,j-1,k)*p->DZN[KP]+voffield(i,j-1,k+1)*p->DZN[KP1];
+    zsum_yp=voffield(i,j+1,k-1)*p->DZN[KM1]+voffield(i,j+1,k)*p->DZN[KP]+voffield(i,j+1,k+1)*p->DZN[KP1];
+    vofsumup=voffield(i-1,j,k+1)*p->DXN[IM1]*p->DYN[JP]+voffield(i,j,k+1)*p->DXN[IP]*p->DYN[JP]+voffield(i+1,j,k+1)*p->DXN[IP1]*p->DYN[JP]
+            +voffield(i,j-1,k+1)*p->DXN[IP]*p->DYN[JM1]+voffield(i,j+1,k+1)*p->DXN[IP]*p->DYN[JP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DXN[IM1]*p->DYN[JP]+voffield(i,j,k-1)*p->DXN[IP]*p->DYN[JP]+voffield(i+1,j,k-1)*p->DXN[IP1]*p->DYN[JP]
+            +voffield(i,j-1,k-1)*p->DXN[IP]*p->DYN[JM1]+voffield(i,j+1,k-1)*p->DXN[IP]*p->DYN[JP1];
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+    
+    nz_Cz=1.0*sign;
+    nx_Cz=-(zsum_xp-zsum_xm)/(p->DXP[IM1]+p->DXP[IP]);
+    ny_Cz=-(zsum_yp-zsum_ym)/(p->DYP[JM1]+p->DYP[JP]);
+    nsum=sqrt(nx_Cz*nx_Cz+ny_Cz*ny_Cz+nz_Cz*nz_Cz);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cz"<<endl;
+    nz_Cz=nz_Cz/nsum;
+    nx_Cz=nx_Cz/nsum;
+    ny_Cz=ny_Cz/nsum;
+    
+    
+    //Candidate CC2 height function is x dimension
+    xsum_zm=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1];
+    xsum_zp=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1];
+    xsum_yp=voffield(i-1,j+1,k)*p->DXN[IM1]+voffield(i,j+1,k)*p->DXN[IP]+voffield(i+1,j+1,k)*p->DXN[IP1];
+    xsum_ym=voffield(i-1,j-1,k)*p->DXN[IM1]+voffield(i,j-1,k)*p->DXN[IP]+voffield(i+1,j-1,k)*p->DXN[IP1];
+    vofsumup=voffield(i+1,j,k-1)*p->DZN[KM1]*p->DYN[JP]+voffield(i+1,j,k)*p->DZN[KP]*p->DYN[JP]+voffield(i+1,j,k+1)*p->DZN[KP1]*p->DYN[JP]
+            +voffield(i+1,j-1,k)*p->DZN[KP]*p->DYN[JM1]+voffield(i+1,j+1,k)*p->DZN[KP]*p->DYN[JP1];
+    vofsumdown=voffield(i-1,j,k-1)*p->DZN[KM1]*p->DYN[JP]+voffield(i-1,j,k)*p->DZN[KP]*p->DYN[JP]+voffield(i-1,j,k+1)*p->DZN[KP1]*p->DYN[JP]
+            +voffield(i-1,j-1,k)*p->DZN[KP]*p->DYN[JM1]+voffield(i-1,j+1,k)*p->DZN[KP]*p->DYN[JP1];
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+        
+    nx_Cx=1.0*sign;
+    nz_Cx=-(xsum_zp-xsum_zm)/(p->DZP[KM1]+p->DZP[KP]);
+    ny_Cx=-(xsum_yp-xsum_ym)/(p->DYP[JM1]+p->DYP[JP]);
+    nsum=sqrt(nx_Cx*nx_Cx+ny_Cx*ny_Cx+nz_Cx*nz_Cx);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cx"<<endl;
+    
+    nx_Cx=nx_Cx/nsum;
+    nz_Cx=nz_Cx/nsum;
+    ny_Cx=ny_Cx/nsum;
+    
+    //Candidate CC3 height function is y dimension
+    ysum_zm=voffield(i,j-1,k-1)*p->DYN[JM1]+voffield(i,j,k-1)*p->DYN[JP]+voffield(i,j+1,k-1)*p->DYN[JP1];
+    ysum_zp=voffield(i,j-1,k+1)*p->DYN[JM1]+voffield(i,j,k+1)*p->DYN[JP]+voffield(i,j+1,k+1)*p->DYN[JP1];
+    ysum_xm=voffield(i-1,j-1,k)*p->DYN[JM1]+voffield(i-1,j,k)*p->DYN[JP]+voffield(i-1,j+1,k)*p->DYN[JP1];
+    ysum_xp=voffield(i+1,j-1,k)*p->DYN[JM1]+voffield(i+1,j,k)*p->DYN[JP]+voffield(i+1,j+1,k)*p->DYN[JP1];
+    vofsumup=voffield(i,j+1,k)*p->DXN[IP]*p->DZN[KP]+voffield(i-1,j+1,k)*p->DXN[IM1]*p->DZN[KP]+voffield(i+1,j+1,k)*p->DXN[IP1]*p->DZN[KP]
+            +voffield(i,j+1,k-1)*p->DXN[IP]*p->DZN[KM1]+voffield(i,j+1,k+1)*p->DXN[IP]*p->DZN[KP1];
+    vofsumdown=voffield(i,j-1,k)*p->DXN[IP]*p->DZN[KP]+voffield(i-1,j-1,k)*p->DXN[IM1]*p->DZN[KP]+voffield(i+1,j-1,k)*p->DXN[IP1]*p->DZN[KP]
+            +voffield(i,j-1,k-1)*p->DXN[IP]*p->DZN[KM1]+voffield(i,j-1,k+1)*p->DXN[IP]*p->DZN[KP1];
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+    
+    ny_Cy=1.0*sign;
+    nx_Cy=-(ysum_xp-ysum_xm)/(p->DXP[IM1]+p->DXP[IP]);
+    nz_Cy=-(ysum_zp-ysum_zm)/(p->DZP[KM1]+p->DZP[KP]);
+    nsum=sqrt(nx_Cy*nx_Cy+ny_Cy*ny_Cy+nz_Cy*nz_Cy);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cy"<<endl;
+        
+    nx_Cy=nx_Cy/nsum;
+    nz_Cy=nz_Cy/nsum;
+    ny_Cy=ny_Cy/nsum;
+
+    
+// figure out which CC Candidate is used and inside compare tou Young
+    if(((fabs(nz_Cz)>=fabs(nx_Cx) && fabs(nz_Cz)>=fabs(ny_Cy)) ||(nx_Cx!=nx_Cx && ny_Cy!=ny_Cy)) && nz_Cz==nz_Cz)
+    {
+        nx(i,j,k)=nx_Cz;
+        ny(i,j,k)=ny_Cz;
+        nz(i,j,k)=nz_Cz;
+            
+        if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cz"<<endl;
+        if(ny(i,j,k)!=ny(i,j,k))
+                cout<<"NAN ny_Cz"<<endl;
+        if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cz"<<endl;
+                
+    }
+    else if(((fabs(nx_Cx)>=fabs(nz_Cz) && fabs(nx_Cx)>=fabs(ny_Cy)) ||(nz_Cz!=nz_Cz && ny_Cy!=ny_Cy)) && nx_Cx==nx_Cx)
+    {
+        nx(i,j,k)=nx_Cx;
+        ny(i,j,k)=ny_Cx;
+        nz(i,j,k)=nz_Cx;
+            
+        if(nx(i,j,k)!=nx(i,j,k))
+            cout<<"NAN nx_Cx"<<endl;
+        if(ny(i,j,k)!=ny(i,j,k))
+            cout<<"NAN ny_Cx"<<endl;
+        if(nz(i,j,k)!=nz(i,j,k))
+            cout<<"NAN nz_Cx"<<endl;
+    }
+    else if(((fabs(ny_Cy)>=fabs(nx_Cx) && fabs(ny_Cy)>=fabs(nz_Cz)) ||(nz_Cz!=nz_Cz && nx_Cx!=nx_Cx)) && ny_Cy==ny_Cy)
+    {
+        nx(i,j,k)=nx_Cy;
+        ny(i,j,k)=ny_Cy;
+        nz(i,j,k)=nz_Cy;
+            
+        if(nx(i,j,k)!=nx(i,j,k))
+            cout<<"NAN nx_Cy"<<endl;
+        if(ny(i,j,k)!=ny(i,j,k))
+            cout<<"NAN ny_Cy"<<endl;
+        if(nz(i,j,k)!=nz(i,j,k))
+            cout<<"NAN nz_Cy"<<endl;
+    }
+    else
+    {
+        cout<<"All normal options NAN!";
+        nx(i,j,k)=0.0;
+        ny(i,j,k)=0.0;
+        nz(i,j,k)=1.0;
+    }
+    return;
+}
+
+void VOF_PLIC::calcNormalMYC3D_V2(fdm* a,lexer* p, field& voffield)
+{
+    //First two Candidates by Centred Columns Scheme
+    
+    double zsum_xm, zsum_xp, zsum_yp, zsum_ym; 
+    double xsum_zm, xsum_zp, xsum_yp, xsum_ym;
+    double ysum_xm, ysum_xp, ysum_zm, ysum_zp;
+    double vofsumup,vofsumdown,sign;
+    double nx_Cz, ny_Cz, nz_Cz, nx_Cx, ny_Cx, nz_Cx, nx_Cy, ny_Cy, nz_Cy;
+    double nsum;
+    
+    //Candidate CC1 height function is z dimension
+    zsum_xm=voffield(i-1,j,k-1)*p->DZN[KM1]+voffield(i-1,j,k)*p->DZN[KP]+voffield(i-1,j,k+1)*p->DZN[KP1]
+           +voffield(i-1,j-1,k-1)*p->DZN[KM1]+voffield(i-1,j-1,k)*p->DZN[KP]+voffield(i-1,j-1,k+1)*p->DZN[KP1]
+           +voffield(i-1,j+1,k-1)*p->DZN[KM1]+voffield(i-1,j+1,k)*p->DZN[KP]+voffield(i-1,j+1,k+1)*p->DZN[KP1];
+           
+    zsum_xp=voffield(i+1,j,k-1)*p->DZN[KM1]+voffield(i+1,j,k)*p->DZN[KP]+voffield(i+1,j,k+1)*p->DZN[KP1]
+           +voffield(i+1,j-1,k-1)*p->DZN[KM1]+voffield(i+1,j-1,k)*p->DZN[KP]+voffield(i+1,j-1,k+1)*p->DZN[KP1]
+           +voffield(i+1,j+1,k-1)*p->DZN[KM1]+voffield(i+1,j+1,k)*p->DZN[KP]+voffield(i+1,j+1,k+1)*p->DZN[KP1];
+           
+    zsum_ym=voffield(i,j-1,k-1)*p->DZN[KM1]+voffield(i,j-1,k)*p->DZN[KP]+voffield(i,j-1,k+1)*p->DZN[KP1]
+           +voffield(i-1,j-1,k-1)*p->DZN[KM1]+voffield(i-1,j-1,k)*p->DZN[KP]+voffield(i-1,j-1,k+1)*p->DZN[KP1]
+           +voffield(i+1,j-1,k-1)*p->DZN[KM1]+voffield(i+1,j-1,k)*p->DZN[KP]+voffield(i+1,j-1,k+1)*p->DZN[KP1];
+           
+    zsum_yp=voffield(i,j+1,k-1)*p->DZN[KM1]+voffield(i,j+1,k)*p->DZN[KP]+voffield(i,j+1,k+1)*p->DZN[KP1];
+           +voffield(i-1,j+1,k-1)*p->DZN[KM1]+voffield(i-1,j+1,k)*p->DZN[KP]+voffield(i-1,j+1,k+1)*p->DZN[KP1]
+           +voffield(i+1,j+1,k-1)*p->DZN[KM1]+voffield(i+1,j+1,k)*p->DZN[KP]+voffield(i+1,j+1,k+1)*p->DZN[KP1];
+           
+    vofsumup=voffield(i-1,j,k+1)*p->DXN[IM1]*p->DYN[JP]+voffield(i,j,k+1)*p->DXN[IP]*p->DYN[JP]+voffield(i+1,j,k+1)*p->DXN[IP1]*p->DYN[JP]
+            +voffield(i-1,j-1,k+1)*p->DXN[IM1]*p->DYN[JM1]+voffield(i,j-1,k+1)*p->DXN[IP]*p->DYN[JM1]+voffield(i+1,j-1,k+1)*p->DXN[IP1]*p->DYN[JM1]
+            +voffield(i-1,j+1,k+1)*p->DXN[IM1]*p->DYN[JP1]+voffield(i,j+1,k+1)*p->DXN[IP]*p->DYN[JP1]+voffield(i+1,j+1,k+1)*p->DXN[IP1]*p->DYN[JP1];
+            
+    vofsumdown=voffield(i-1,j,k-1)*p->DXN[IM1]*p->DYN[JP]+voffield(i,j,k-1)*p->DXN[IP]*p->DYN[JP]+voffield(i+1,j,k-1)*p->DXN[IP1]*p->DYN[JP]
+            +voffield(i-1,j-1,k-1)*p->DXN[IM1]*p->DYN[JM1]+voffield(i,j-1,k-1)*p->DXN[IP]*p->DYN[JM1]+voffield(i+1,j-1,k-1)*p->DXN[IP1]*p->DYN[JM1]
+            +voffield(i-1,j+1,k-1)*p->DXN[IM1]*p->DYN[JP1]+voffield(i,j+1,k-1)*p->DXN[IP]*p->DYN[JP1]+voffield(i+1,j+1,k-1)*p->DXN[IP1]*p->DYN[JP1];
+            
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+    
+    nz_Cz=1.0*sign;
+    nx_Cz=-(zsum_xp-zsum_xm)/(p->DXP[IM1]+p->DXP[IP]);
+    ny_Cz=-(zsum_yp-zsum_ym)/(p->DYP[JM1]+p->DYP[JP]);
+    nsum=sqrt(nx_Cz*nx_Cz+ny_Cz*ny_Cz+nz_Cz*nz_Cz);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cz"<<endl;
+    nz_Cz=nz_Cz/nsum;
+    nx_Cz=nx_Cz/nsum;
+    ny_Cz=ny_Cz/nsum;
+    
+    
+    //Candidate CC2 height function is x dimension
+    xsum_zm=voffield(i-1,j,k-1)*p->DXN[IM1]+voffield(i,j,k-1)*p->DXN[IP]+voffield(i+1,j,k-1)*p->DXN[IP1]
+           +voffield(i-1,j-1,k-1)*p->DXN[IM1]+voffield(i,j-1,k-1)*p->DXN[IP]+voffield(i+1,j-1,k-1)*p->DXN[IP1]
+           +voffield(i-1,j+1,k-1)*p->DXN[IM1]+voffield(i,j+1,k-1)*p->DXN[IP]+voffield(i+1,j+1,k-1)*p->DXN[IP1];
+    
+    xsum_zp=voffield(i-1,j,k+1)*p->DXN[IM1]+voffield(i,j,k+1)*p->DXN[IP]+voffield(i+1,j,k+1)*p->DXN[IP1]
+           +voffield(i-1,j-1,k+1)*p->DXN[IM1]+voffield(i,j-1,k+1)*p->DXN[IP]+voffield(i+1,j-1,k+1)*p->DXN[IP1]
+           +voffield(i-1,j+1,k+1)*p->DXN[IM1]+voffield(i,j+1,k+1)*p->DXN[IP]+voffield(i+1,j+1,k+1)*p->DXN[IP1];
+    
+    xsum_yp=voffield(i-1,j+1,k)*p->DXN[IM1]+voffield(i,j+1,k)*p->DXN[IP]+voffield(i+1,j+1,k)*p->DXN[IP1]
+           +voffield(i-1,j+1,k-1)*p->DXN[IM1]+voffield(i,j+1,k-1)*p->DXN[IP]+voffield(i+1,j+1,k-1)*p->DXN[IP1]
+           +voffield(i-1,j+1,k+1)*p->DXN[IM1]+voffield(i,j+1,k+1)*p->DXN[IP]+voffield(i+1,j+1,k+1)*p->DXN[IP1];
+    
+    xsum_ym=voffield(i-1,j-1,k)*p->DXN[IM1]+voffield(i,j-1,k)*p->DXN[IP]+voffield(i+1,j-1,k)*p->DXN[IP1]
+           +voffield(i-1,j-1,k-1)*p->DXN[IM1]+voffield(i,j-1,k-1)*p->DXN[IP]+voffield(i+1,j-1,k-1)*p->DXN[IP1]
+           +voffield(i-1,j-1,k+1)*p->DXN[IM1]+voffield(i,j-1,k+1)*p->DXN[IP]+voffield(i+1,j-1,k+1)*p->DXN[IP1];
+    
+    vofsumup=voffield(i+1,j,k-1)*p->DZN[KM1]*p->DYN[JP]+voffield(i+1,j,k)*p->DZN[KP]*p->DYN[JP]+voffield(i+1,j,k+1)*p->DZN[KP1]*p->DYN[JP]
+            +voffield(i+1,j-1,k-1)*p->DZN[KM1]*p->DYN[JM1]+voffield(i+1,j-1,k)*p->DZN[KP]*p->DYN[JM1]+voffield(i+1,j-1,k+1)*p->DZN[KP1]*p->DYN[JM1]
+            +voffield(i+1,j+1,k-1)*p->DZN[KM1]*p->DYN[JP1]+voffield(i+1,j+1,k)*p->DZN[KP]*p->DYN[JP1]+voffield(i+1,j+1,k+1)*p->DZN[KP1]*p->DYN[JP1];
+            
+    vofsumdown=voffield(i-1,j,k-1)*p->DZN[KM1]*p->DYN[JP]+voffield(i-1,j,k)*p->DZN[KP]*p->DYN[JP]+voffield(i-1,j,k+1)*p->DZN[KP1]*p->DYN[JP]
+              +voffield(i-1,j-1,k-1)*p->DZN[KM1]*p->DYN[JM1]+voffield(i-1,j-1,k)*p->DZN[KP]*p->DYN[JM1]+voffield(i-1,j-1,k+1)*p->DZN[KP1]*p->DYN[JM1]
+              +voffield(i-1,j+1,k-1)*p->DZN[KM1]*p->DYN[JP1]+voffield(i-1,j+1,k)*p->DZN[KP]*p->DYN[JP1]+voffield(i-1,j+1,k+1)*p->DZN[KP1]*p->DYN[JP1];
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+        
+    nx_Cx=1.0*sign;
+    nz_Cx=-(xsum_zp-xsum_zm)/(p->DZP[KM1]+p->DZP[KP]);
+    ny_Cx=-(xsum_yp-xsum_ym)/(p->DYP[JM1]+p->DYP[JP]);
+    nsum=sqrt(nx_Cx*nx_Cx+ny_Cx*ny_Cx+nz_Cx*nz_Cx);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cx"<<endl;
+    
+    nx_Cx=nx_Cx/nsum;
+    nz_Cx=nz_Cx/nsum;
+    ny_Cx=ny_Cx/nsum;
+    
+    //Candidate CC3 height function is y dimension
+    ysum_zm=voffield(i,j-1,k-1)*p->DYN[JM1]+voffield(i,j,k-1)*p->DYN[JP]+voffield(i,j+1,k-1)*p->DYN[JP1]
+           +voffield(i-1,j-1,k-1)*p->DYN[JM1]+voffield(i-1,j,k-1)*p->DYN[JP]+voffield(i-1,j+1,k-1)*p->DYN[JP1]
+           +voffield(i+1,j-1,k-1)*p->DYN[JM1]+voffield(i+1,j,k-1)*p->DYN[JP]+voffield(i+1,j+1,k-1)*p->DYN[JP1];
+
+    ysum_zp=voffield(i,j-1,k+1)*p->DYN[JM1]+voffield(i,j,k+1)*p->DYN[JP]+voffield(i,j+1,k+1)*p->DYN[JP1]
+           +voffield(i-1,j-1,k+1)*p->DYN[JM1]+voffield(i-1,j,k+1)*p->DYN[JP]+voffield(i-1,j+1,k+1)*p->DYN[JP1]
+           +voffield(i+1,j-1,k+1)*p->DYN[JM1]+voffield(i+1,j,k+1)*p->DYN[JP]+voffield(i+1,j+1,k+1)*p->DYN[JP1];
+    
+    ysum_xm=voffield(i-1,j-1,k)*p->DYN[JM1]+voffield(i-1,j,k)*p->DYN[JP]+voffield(i-1,j+1,k)*p->DYN[JP1]
+           +voffield(i-1,j-1,k-1)*p->DYN[JM1]+voffield(i-1,j,k-1)*p->DYN[JP]+voffield(i-1,j+1,k-1)*p->DYN[JP1]
+           +voffield(i-1,j-1,k+1)*p->DYN[JM1]+voffield(i-1,j,k+1)*p->DYN[JP]+voffield(i-1,j+1,k+1)*p->DYN[JP1];
+    
+    ysum_xp=voffield(i+1,j-1,k)*p->DYN[JM1]+voffield(i+1,j,k)*p->DYN[JP]+voffield(i+1,j+1,k)*p->DYN[JP1]
+           +voffield(i+1,j-1,k-1)*p->DYN[JM1]+voffield(i+1,j,k-1)*p->DYN[JP]+voffield(i+1,j+1,k-1)*p->DYN[JP1]
+           +voffield(i+1,j-1,k+1)*p->DYN[JM1]+voffield(i+1,j,k+1)*p->DYN[JP]+voffield(i+1,j+1,k+1)*p->DYN[JP1];
+    
+    vofsumup=voffield(i-1,j+1,k)*p->DXN[IM1]*p->DZN[KP]+voffield(i,j+1,k)*p->DXN[IP]*p->DZN[KP]+voffield(i+1,j+1,k)*p->DXN[IP1]*p->DZN[KP]
+            +voffield(i-1,j+1,k-1)*p->DXN[IM1]*p->DZN[KM1]+voffield(i,j+1,k-1)*p->DXN[IP]*p->DZN[KM1]+voffield(i+1,j+1,k-1)*p->DXN[IP1]*p->DZN[KM1]
+            +voffield(i-1,j+1,k+1)*p->DXN[IM1]*p->DZN[KP1]+voffield(i,j+1,k+1)*p->DXN[IP]*p->DZN[KP1]+voffield(i+1,j+1,k+1)*p->DXN[IP1]*p->DZN[KP1];
+            
+    vofsumdown=voffield(i-1,j-1,k)*p->DXN[IM1]*p->DZN[KP]+voffield(i,j-1,k)*p->DXN[IP]*p->DZN[KP]+voffield(i+1,j-1,k)*p->DXN[IP1]*p->DZN[KP]
+              +voffield(i-1,j-1,k-1)*p->DXN[IM1]*p->DZN[KM1]+voffield(i,j-1,k-1)*p->DXN[IP]*p->DZN[KM1]+voffield(i+1,j-1,k-1)*p->DXN[IP1]*p->DZN[KM1]
+              +voffield(i-1,j-1,k+1)*p->DXN[IM1]*p->DZN[KP1]+voffield(i,j-1,k+1)*p->DXN[IP]*p->DZN[KP1]+voffield(i+1,j-1,k+1)*p->DXN[IP1]*p->DZN[KP1];
+    
+    if(vofsumup>vofsumdown)
+        sign=-1.0;
+    else
+        sign=1.0;
+    
+    ny_Cy=1.0*sign;
+    nx_Cy=-(ysum_xp-ysum_xm)/(p->DXP[IM1]+p->DXP[IP]);
+    nz_Cy=-(ysum_zp-ysum_zm)/(p->DZP[KM1]+p->DZP[KP]);
+    nsum=sqrt(nx_Cy*nx_Cy+ny_Cy*ny_Cy+nz_Cy*nz_Cy);
+    if(nsum!=nsum)
+        cout<<"nsumNAN Cy"<<endl;
+        
+    nx_Cy=nx_Cy/nsum;
+    nz_Cy=nz_Cy/nsum;
+    ny_Cy=ny_Cy/nsum;
+
+    
+// figure out which CC Candidate is used and inside compare tou Young
+    if(((fabs(nz_Cz)>=fabs(nx_Cx) && fabs(nz_Cz)>=fabs(ny_Cy)) ||(nx_Cx!=nx_Cx && ny_Cy!=ny_Cy)) && nz_Cz==nz_Cz)
+    {
+        nx(i,j,k)=nx_Cz;
+        ny(i,j,k)=ny_Cz;
+        nz(i,j,k)=nz_Cz;
+            
+        if(nx(i,j,k)!=nx(i,j,k))
+                cout<<"NAN nx_Cz"<<endl;
+        if(ny(i,j,k)!=ny(i,j,k))
+                cout<<"NAN ny_Cz"<<endl;
+        if(nz(i,j,k)!=nz(i,j,k))
+                cout<<"NAN nz_Cz"<<endl;
+                
+    }
+    else if(((fabs(nx_Cx)>=fabs(nz_Cz) && fabs(nx_Cx)>=fabs(ny_Cy)) ||(nz_Cz!=nz_Cz && ny_Cy!=ny_Cy)) && nx_Cx==nx_Cx)
+    {
+        nx(i,j,k)=nx_Cx;
+        ny(i,j,k)=ny_Cx;
+        nz(i,j,k)=nz_Cx;
+            
+        if(nx(i,j,k)!=nx(i,j,k))
+            cout<<"NAN nx_Cx"<<endl;
+        if(ny(i,j,k)!=ny(i,j,k))
+            cout<<"NAN ny_Cx"<<endl;
+        if(nz(i,j,k)!=nz(i,j,k))
+            cout<<"NAN nz_Cx"<<endl;
+    }
+    else if(((fabs(ny_Cy)>=fabs(nx_Cx) && fabs(ny_Cy)>=fabs(nz_Cz)) ||(nz_Cz!=nz_Cz && nx_Cx!=nx_Cx)) && ny_Cy==ny_Cy)
+    {
+        nx(i,j,k)=nx_Cy;
+        ny(i,j,k)=ny_Cy;
+        nz(i,j,k)=nz_Cy;
+            
+        if(nx(i,j,k)!=nx(i,j,k))
+            cout<<"NAN nx_Cy"<<endl;
+        if(ny(i,j,k)!=ny(i,j,k))
+            cout<<"NAN ny_Cy"<<endl;
+        if(nz(i,j,k)!=nz(i,j,k))
+            cout<<"NAN nz_Cy"<<endl;
+    }
+    else
+    {
+        cout<<"All normal options NAN!";
+        nx(i,j,k)=0.0;
+        ny(i,j,k)=0.0;
+        nz(i,j,k)=1.0;
+    }
+    return;
+}
+
 void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
 {
     //First two Candidates by Centred Columns Scheme
@@ -1481,7 +1392,7 @@ void VOF_PLIC::calcNormalMYC2D(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);*/
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) ||nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
@@ -1722,12 +1633,12 @@ void VOF_PLIC::calcNormalMYC2D_V2(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);*/
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) ||nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
         
-        if((fabs(nz_CC)<fabs(nz_CY) || nz_CY!=nz_CY) || divN<3.5)
+        if((fabs(nz_CC)<fabs(nz_CY) ||nz_CY!=nz_CY) ||divN<3.5)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
@@ -1757,7 +1668,7 @@ void VOF_PLIC::calcNormalMYC2D_V2(fdm* a,lexer* p, field& voffield)
         nx_CC=nx_Cx;
         nz_CC=nz_Cx;
         
-        if((fabs(nx_CC)<fabs(nx_CY) || nx_CY!=nx_CY) || divN<3.5)
+        if((fabs(nx_CC)<fabs(nx_CY) ||nx_CY!=nx_CY) ||divN<3.5)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
@@ -1963,12 +1874,12 @@ void VOF_PLIC::calcNormalMYC2D_V3(fdm* a,lexer* p, field& voffield)
         nx_CY=fabs(nx_CY);*/
         
 // figure out which CC Candidate is used and inside compare tou Young
-    if((fabs(nz_Cz)>=fabs(nx_Cx) || nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
+    if((fabs(nz_Cz)>=fabs(nx_Cx) ||nx_Cx!=nx_Cx) && nz_Cz==nz_Cz)
     {
         nx_CC=nx_Cz;
         nz_CC=nz_Cz;
         
-        if(fabs(nz_CC)<fabs(nz_CY) || nz_CY!=nz_CY)
+        if(fabs(nz_CC)<fabs(nz_CY) ||nz_CY!=nz_CY)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;
@@ -1998,7 +1909,7 @@ void VOF_PLIC::calcNormalMYC2D_V3(fdm* a,lexer* p, field& voffield)
         nx_CC=nx_Cx;
         nz_CC=nz_Cx;
         
-        if(fabs(nx_CC)<fabs(nx_CY) || nx_CY!=nx_CY)
+        if(fabs(nx_CC)<fabs(nx_CY) ||nx_CY!=nx_CY)
         {
             nx(i,j,k)=nx_CC;
             ny(i,j,k)=0.0;

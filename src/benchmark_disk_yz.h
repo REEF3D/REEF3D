@@ -17,19 +17,36 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#ifndef TURBULENCE_HEADER_H_
-#define TURBULENCE_HEADER_H_
+#ifndef BENCHMARK_DISK_YZ_H_
+#define BENCHMARK_DISK_YZ_H_
 
-#include"komega_IM1.h"
-#include"komega_IM1_PLIC.h"
-#include"EARSM_kw_IM1.h"
-#include"kepsilon_IM1.h"
-#include"kepsilon_void.h"
+#include"benchmark.h"
+#include"increment.h"
 
-#include"LES_smagorinsky.h"
-#include"LES_WALE.h"
+class fdm;
+class lexer;
+class convection;
+class ghostcell;
+
+using namespace std;
+
+class benchmark_disk_yz : public benchmark, public increment
+{
+
+public:
+    benchmark_disk_yz(lexer*,fdm*);
+	virtual ~benchmark_disk_yz();
+
+	virtual void start(lexer*, fdm*, ghostcell*, convection*);
+
+
+};
 
 #endif
+
+
+
+

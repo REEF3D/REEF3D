@@ -302,10 +302,6 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vr,gcval_v);
 	pgc->start3(p,wr,gcval_w);
     
-    
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
     //-------------------------------------------
 	// U
 	starttime=pgc->timer();
@@ -360,6 +356,8 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     pgc->start1(p,urk1,gcval_u);
 	pgc->start2(p,vrk1,gcval_v);
     pgc->start3(p,wrk1,gcval_w);
+    
+    pupdate->start(p,a,pgc);
     
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
@@ -508,10 +506,6 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vr,gcval_v);
 	pgc->start3(p,wr,gcval_w);
     
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
     //-------------------------------------------
 	// U
 	starttime=pgc->timer();
@@ -566,6 +560,8 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     pgc->start1(p,urk2,gcval_u);
 	pgc->start2(p,vrk2,gcval_v);
     pgc->start3(p,wrk2,gcval_w);
+    
+    pupdate->start(p,a,pgc);
     
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
@@ -713,10 +709,6 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vr,gcval_v);
 	pgc->start3(p,wr,gcval_w);
     
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
     //-------------------------------------------
 	// U
 	starttime=pgc->timer();
@@ -771,6 +763,8 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
+    
+    pupdate->start(p,a,pgc);
     
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);

@@ -85,7 +85,7 @@ momentum_FCC3_PLIC::momentum_FCC3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convect
     preini=ppreini;
     pfsi=ppfsi;
     pplic= new VOF_PLIC(p,a,pgc,pheat);
-    pupdate = new fluid_update_vof(p,a,pgc);
+    pupdate = new fluid_update_vof(p,a,pgc,a->u,a->v,a->w);
 	pd = new density_vof(p);
     
 	if(p->F46==2)
@@ -116,7 +116,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 //********************************************************
     // get vectorized face density from density_f
     pgc->start4(p,a->ro,gcval_ro);
-    if(p->F92==3)
+    if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     face_density(p,a,pgc,rox,roy,roz);
     
@@ -318,7 +318,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     clear_FGH(p,a);
     
     //update rho(vof) after diffusion but before pressure
-    if(p->F92==3)
+    if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
@@ -341,18 +341,20 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     clear_FGH(p,a);
     
-    //pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk1);
-    pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk1);
-    pgc->start4(p,vof_rk1,gcval_vof);
-    LOOP
-        a->vof(i,j,k)=vof_rk1(i,j,k);
-    pgc->start4(p,a->vof,gcval_vof);
-    if(p->F92==3)
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-	
+    if(p->F98==1)
+    {
+        //pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk1);
+        pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk1);
+        pgc->start4(p,vof_rk1,gcval_vof);
+        LOOP
+            a->vof(i,j,k)=vof_rk1(i,j,k);
+        pgc->start4(p,a->vof,gcval_vof);
+        if(p->F92==3||p->F92==32)
+            pplic->calculateSubFractions(p,a,pgc,a->vof);
+        pupdate->start(p,a,pgc,a->u,a->v,a->w);
+        pgc->start4(p,a->ro,gcval_ro);
+        pgc->start4(p,a->visc,gcval_visc);
+    }
 //********************************************************
 //Step 2
 //********************************************************
@@ -534,7 +536,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     pgc->start3(p,wrk2,gcval_w);
     clear_FGH(p,a);
     
-    if(p->F92==3)
+    if(p->F92==3||p->F92==32)
     {
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     }
@@ -558,20 +560,22 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	pgc->start3(p,wrk2,gcval_w);
     clear_FGH(p,a);
     
-   // pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
-    pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk2);
-    pgc->start4(p,vof_rk2,gcval_vof);
-    LOOP
-        a->vof(i,j,k)=vof_rk2(i,j,k);
-    pgc->start4(p,a->vof,gcval_vof);
-    if(p->F92==3)
+    if(p->F98==1)
     {
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
+        // pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
+        pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk2);
+        pgc->start4(p,vof_rk2,gcval_vof);
+        LOOP
+            a->vof(i,j,k)=vof_rk2(i,j,k);
+        pgc->start4(p,a->vof,gcval_vof);
+        if(p->F92==3||p->F92==32)
+        {
+            pplic->calculateSubFractions(p,a,pgc,a->vof);
+        }
+        pupdate->start(p,a,pgc,a->u,a->v,a->w);
+        pgc->start4(p,a->ro,gcval_ro);
+        pgc->start4(p,a->visc,gcval_visc);
     }
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
 
 //********************************************************
 //Step 3
@@ -752,7 +756,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	pgc->start3(p,a->w,gcval_w);
     clear_FGH(p,a);
     
-    if(p->F92==3)
+    if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
@@ -775,13 +779,17 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     clear_FGH(p,a);
     
-   // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
-    pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
-    pgc->start4(p,a->vof,gcval_vof);
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
+    if(p->F98==1)
+    {
+        // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
+        pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
+        pgc->start4(p,a->vof,gcval_vof);
+        if(p->F92==3||p->F92==32)
+            pplic->calculateSubFractions(p,a,pgc,a->vof);
+        pupdate->start(p,a,pgc,a->u,a->v,a->w);
+        pgc->start4(p,a->ro,gcval_ro);
+        pgc->start4(p,a->visc,gcval_visc); 
+    }
     LOOP
     {
         if(a->vof(i,j,k)>p->F94)
@@ -793,12 +801,12 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     }
     pgc->start4(p,a->phi,1);
     
-    double vofchecksum;
+    /*double vofchecksum;
     vofchecksum=0.0;
     LOOP
         vofchecksum+=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
     vofchecksum=pgc->globalsum(vofchecksum);
-    cout<<"Total water volume:"<<vofchecksum<<endl;
+    cout<<"Total water volume:"<<vofchecksum<<endl;*/
         
     
 }

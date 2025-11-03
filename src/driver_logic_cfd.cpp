@@ -242,8 +242,12 @@ void driver::logic_cfd()
 	pturb = new kepsilon_IM1(p,a,pgc);
 
     //kw
-	if(p->T10==2 || p->T10==22)
+	if((p->T10==2 || p->T10==22) && p->F80!=4)
 	pturb = new komega_IM1(p,a,pgc);
+    
+    //kw PLIC
+    if((p->T10==2 || p->T10==22) && p->F80==4)
+    pturb = new komega_IM1_PLIC(p,a,pgc);
 
     //EARSM
 	if(p->T10==12)
@@ -341,6 +345,9 @@ void driver::logic_cfd()
     
     if((p->D20==2 && p->j_dir==0) && (p->F80==4))
     pdiff=new idiff2_PLIC_2D(p);
+    
+    if((p->D20==2 && p->j_dir==1) && (p->F80==4))
+    pdiff=new idiff2_PLIC(p);
 
 	// turbulence
 	if(p->D20==0 || p->T10==0)
@@ -527,6 +534,12 @@ void driver::logic_cfd()
 
 	if(p->F150==2)
     pbench = new benchmark_disk(p,a);
+    
+    if(p->F150==21)
+    pbench = new benchmark_disk_yz(p,a);
+    
+    if(p->F150==22)
+    pbench = new benchmark_disk_xy(p,a);
 
 	if(p->F150==3)
     pbench = new benchmark_vortex3D(p,a);

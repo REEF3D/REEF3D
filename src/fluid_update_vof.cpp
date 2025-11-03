@@ -38,7 +38,8 @@ fluid_update_vof::~fluid_update_vof()
 {
 }
 
-void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
+
+void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc,field& uvel, field& vvel, field& wvel)
 {
 	double H=0.0, Hro=0.0;
     double H_fb=0.0;

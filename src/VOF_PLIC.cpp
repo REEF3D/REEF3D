@@ -46,8 +46,11 @@ VOF_PLIC::VOF_PLIC
     fdm *a,
     ghostcell* pgc,
     heat *pheat
-):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),vof1(p),vof2(p),vof3(p),phival(p),V_w_p(p),V_w_m(p),alphastore(p),phistep(p),phiS0(p),phiS1(p),phiS2(p),vofstep(p),vofS0(p),vofS1(p),vofS2(p),
-    phiaux(p),Vx_p(p),Vx_m(p),Vz_p(p),Vz_m(p),Vn_p(p),Vn_m(p),F_x(p),F_z(p),F_n(p),F_new(p),Flux_x(p),Flux_z(p),Crossflux_xz(p),Crossflux_zx(p),curv(p),compressvol(p),VoF(p),vof_rk1(p),vof_rk2(p)
+):gradient(p),norm_vec(p),alpha(p),nx(p),ny(p),nz(p),phiaux(p),curv(p),compressvol(p),VoF(p),vof_rk1(p),vof_rk2(p),phistep(p),
+    F_n(p),F_x(p),F_y(p),F_z(p),Vn_p(p),Vn_m(p),Flux_x(p),Flux_y(p),Flux_z(p),F_xy(p),F_xz(p),F_yx(p),F_yz(p),
+    F_zx(p),F_zy(p),Vx_p(p),Vx_m(p),Vz_p(p),Vz_m(p),Flux_xy(p),Flux_xz(p),Flux_yx(p),Flux_yz(p),
+    Flux_zx(p),Flux_zy(p),Flux_xyz(p),Flux_xzy(p),Flux_yxz(p),Flux_yzx(p),Flux_zxy(p),Flux_zyx(p),V_p(p),V_m(p)
+            
 {
     if(p->F50==1)
     gcval_frac=71;
@@ -78,6 +81,22 @@ VOF_PLIC::VOF_PLIC
     
     ininorVecLS(p);
     
+    swtch_x=0;
+    swtch_y=0;
+    swtch_z=0;
+    swtch_xy=0;
+    swtch_xz=0;
+    swtch_yx=0;
+    swtch_yz=0;
+    swtch_zx=0;
+    swtch_zy=0;
+    swtch_xyz=0;
+    swtch_xzy=0;
+    swtch_yxz=0;
+    swtch_yzx=0;
+    swtch_zxy=0;
+    swtch_zyx=0;
+    
     S_S[0][0]=0;
     S_S[0][1]=1;
     S_S[0][2]=2;
@@ -95,7 +114,7 @@ VOF_PLIC::VOF_PLIC
     S_S[4][2]=1;
     S_S[5][0]=1;
     S_S[5][1]=2;
-    S_S[5][1]=0;
+    S_S[5][2]=0;
     
     S_2D[0][0]=0;
     S_2D[0][1]=2;
@@ -263,13 +282,19 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     }
     
     //-------------------------------------------
-        
-    updatePhasemarkersCorrection(p,a,pgc,a->vof);
-    pgc->start4(p,a->vof,gcval_vof);
-    //updatePlaneData(p,a,pgc,a->vof);
     
-    if(p->F92==3)
-        calculateSubFractions(p,a,pgc,a->vof);
+    
+    
+    if(p->F98==1)
+    {
+        updatePhasemarkersCorrection(p,a,pgc,a->vof);
+        pgc->start4(p,a->vof,gcval_vof);
+    //updatePlaneData(p,a,pgc,a->vof);
+    }
+    
+
+    if(p->F92==3||p->F92==32)
+            calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);

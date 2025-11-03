@@ -20,16 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef TURBULENCE_HEADER_H_
-#define TURBULENCE_HEADER_H_
+#ifndef KOMEGA_FUNC_PLIC_H_
+#define KOMEGA_FUNC_PLIC_H_
 
-#include"komega_IM1.h"
-#include"komega_IM1_PLIC.h"
-#include"EARSM_kw_IM1.h"
-#include"kepsilon_IM1.h"
-#include"kepsilon_void.h"
+#include"rans_io.h"
+#include"komega_bc.h"
+#include"ghostcell.h"
+#include"vrans.h"
 
-#include"LES_smagorinsky.h"
-#include"LES_WALE.h"
+using namespace std;
+
+class komega_func_PLIC : public rans_io, public komega_bc
+{
+public:
+	komega_func_PLIC(lexer *, fdm*, ghostcell*);
+	virtual ~komega_func_PLIC();
+	virtual void isource(lexer*,fdm*);
+	virtual void jsource(lexer*,fdm*);
+	virtual void ksource(lexer*,fdm*);
+	virtual void kinsource(lexer*,fdm*,vrans*);
+	virtual void epssource(lexer*,fdm*,vrans*,field&);
+	virtual void epsfsf(lexer*,fdm*,ghostcell*,ioflow*);
+	virtual void eddyvisc(lexer*,fdm*,ghostcell*,vrans*);
+	virtual void clearfield(lexer*,fdm*,field&);
+
+	int count,q;
+	double starttime;
+    
+private:
+    double epsi;
+	double dirac,dxm;
+};
 
 #endif
+
+

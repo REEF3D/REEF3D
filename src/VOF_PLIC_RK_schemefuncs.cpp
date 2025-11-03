@@ -51,25 +51,12 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
     LOOP
     {
         F_n(i,j,k)=a->vof(i,j,k);
-        F_x(i,j,k)=0.0;
-        F_z(i,j,k)=0.0;
-        F_new(i,j,k)=0.0;
-        Crossflux_xz(i,j,k)=0.0;
-        Crossflux_zx(i,j,k)=0.0;
     }
     pgc->start4(p,F_n,1);
-    pgc->start4(p,F_x,1);
-    pgc->start4(p,F_z,1);
-    pgc->start4(p,F_new,1);
-    pgc->start4(p,Crossflux_xz,1);
-    pgc->start4(p,Crossflux_zx,1);
     
-    for(int nSweep=0; nSweep<Sweepdim; nSweep++)
+    for(int nSweep=0; nSweep<2; nSweep++)
     {
-        if(p->j_dir>0)
-            sweep=S_S[sSweep][nSweep];
-        else
-            sweep=S_2D[sSweep][nSweep];
+        sweep=S_2D[sSweep][nSweep];
         
         LOOP
         {   
@@ -169,7 +156,7 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
             pgc->start4(p,Vx_m,1);
         }
                     
-        vof_transport_COSMIC2D_RK(a,p,nSweep,sweep,uvel,vvel,wvel);
+        vof_transport_COSMIC2D_RK(a,p,pgc,nSweep,sweep,uvel,vvel,wvel);
     }
     
     if(sweep==0)
@@ -227,14 +214,301 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
            
     }
     
-    vof_transport_COSMIC2D_RK(a,p,2,sweep,uvel,vvel,wvel);
+    vof_transport_COSMIC2D_RK(a,p,pgc,2,sweep,uvel,vvel,wvel);
    // cout<<"F_n:"<<F_n(5,0,5)<<" ;F_x:"<<F_x(5,0,5)<<" ;F_z:"<<F_z(5,0,5)<<endl;
-   // cout<<"Flux_x:"<<Flux_x(5,0,5)<<" ;Flux_z:"<<Flux_z(5,0,5)<<" ;Crossflux_xz:"<<Crossflux_xz(5,0,5)<<" ;Crossflux_zx:"<<Crossflux_zx(5,0,5)<<endl;
+   // cout<<"Flux_x:"<<Flux_x(5,0,5)<<" ;Flux_z:"<<Flux_z(5,0,5)<<" ;Flux_xz:"<<Flux_xz(5,0,5)<<" ;Flux_zx:"<<Flux_zx(5,0,5)<<endl;
    // cout<<"F_new:"<<F_new(5,0,5)<<endl;
     
     LOOP
     {
-        a->L(i,j,k)=-0.5*(Flux_x(i,j,k)+Crossflux_zx(i,j,k)+Flux_z(i,j,k)+Crossflux_xz(i,j,k));
+        a->L(i,j,k)=-0.5*(Flux_x(i,j,k)+Flux_zx(i,j,k)+Flux_z(i,j,k)+Flux_xz(i,j,k));
+    }
+    pgc->start4(p,a->L,1);
+   // cout<<"vofstep:"<<vofstep(5,0,5)<<endl;
+}
+
+void VOF_PLIC::symmetric_scheme3D_FCRK3
+(
+    fdm* a,
+    lexer* p,
+    ghostcell* pgc,
+    field& uvel,
+    field& vvel,
+    field& wvel
+)
+{
+    swtch_x=0;
+    swtch_y=0;
+    swtch_z=0;
+    swtch_xy=0;
+    swtch_xz=0;
+    swtch_yx=0;
+    swtch_yz=0;
+    swtch_zx=0;
+    swtch_zy=0;
+    swtch_xyz=0;
+    swtch_xzy=0;
+    swtch_yxz=0;
+    swtch_yzx=0;
+    swtch_zxy=0;
+    swtch_zyx=0;
+    
+    LOOP
+        F_n(i,j,k)=a->vof(i,j,k);
+    pgc->start4(p,F_n,1);
+        
+    
+    for(int nSweep=0; nSweep<3; nSweep++)
+    {
+        
+        sweep=S_S[sSweep][nSweep];
+        LOOP
+        {   
+            V_p(i,j,k)=0.0;
+            V_m(i,j,k)=0.0;
+        }
+        pgc->start4(p,V_p,1);
+        pgc->start4(p,V_m,1);
+        
+        LOOP
+        {
+            if(F_n(i,j,k)>=a_thres && F_n(i,j,k)<=w_thres)
+            {
+                reconstructPlane_alt(a,p,F_n);
+                advectPlane_forCOSMIC3D_RK(a,p,sweep,uvel,vvel,wvel);
+            }
+            else if(F_n(i,j,k)>w_thres)
+                advectWater_forCOSMIC3D_RK(a,p,sweep,uvel,vvel,wvel);
+        }
+        
+        pgc->start4(p,V_p,1);
+        pgc->start4(p,V_m,1);
+        
+        if(sweep==0)
+        {
+            LOOP
+            {
+                if(V_p(i-1,j,k)>0.0)
+                    V_m(i,j,k)=V_p(i-1,j,k);
+                    
+                if(V_m(i+1,j,k)<0.0)
+                    V_p(i,j,k)=V_m(i+1,j,k);
+            }
+            pgc->start4(p,V_p,1);
+            pgc->start4(p,V_m,1);
+            get_Fx_and_Flux(a,p,pgc,uvel);
+            swtch_x=1;
+            //F_x and Flux_x done
+        }
+        else if(sweep==1)
+        {
+            LOOP
+            {
+                if(V_p(i,j-1,k)>0.0)
+                    V_m(i,j,k)=V_p(i,j-1,k);
+                    
+                if(V_m(i,j+1,k)<0.0)
+                    V_p(i,j,k)=V_m(i,j+1,k);
+            }
+            pgc->start4(p,V_p,1);
+            pgc->start4(p,V_m,1);
+            get_Fy_and_Flux(a,p,pgc,vvel);
+            swtch_y=1;
+            //F_y and Flux_y done
+        }
+        else if(sweep==2)
+        {
+            LOOP
+            {
+                if(V_p(i,j,k-1)>0.0)
+                    V_m(i,j,k)=V_p(i,j,k-1);
+                    
+                if(V_m(i,j,k+1)<0.0)
+                    V_p(i,j,k)=V_m(i,j,k+1);
+            }        
+            pgc->start4(p,V_p,1);
+            pgc->start4(p,V_m,1);
+            get_Fz_and_Flux(a,p,pgc,wvel);
+            swtch_z=1;
+            //F_z and Flux_z done
+        }
+        
+        if(sweep==0)
+        {
+            if(swtch_y==1)
+                fieldloop_xy(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_z==1)
+                fieldloop_xz(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_yz==1)
+                fieldloop_xyz(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_zy==1)
+                fieldloop_xzy(a,p,pgc,uvel,vvel,wvel);
+        }
+        else if(sweep==1)
+        {
+            if(swtch_x==1)
+                fieldloop_yx(a,p,pgc,uvel,vvel,wvel);
+            
+            if(swtch_z==1)
+                fieldloop_yz(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_xz==1)
+                fieldloop_yxz(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_zx==1)
+                fieldloop_yzx(a,p,pgc,uvel,vvel,wvel);
+        }
+        else if(sweep==2)
+        {
+            if(swtch_x==1)
+                fieldloop_zx(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_y==1)
+                fieldloop_zy(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_xy==1)
+                fieldloop_zxy(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_yx==1)
+                fieldloop_zyx(a,p,pgc,uvel,vvel,wvel);
+        }
+        
+    }
+    for(int nSweep=0; nSweep<3; nSweep++)
+    {
+        sweep=S_S[sSweep][nSweep];
+        
+        if(sweep==0)
+        {
+            if(swtch_xy==0)
+                fieldloop_xy(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_xz==0)
+                fieldloop_xz(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_yz==1)
+                fieldloop_xyz(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_zy==1)
+                fieldloop_xzy(a,p,pgc,uvel,vvel,wvel);
+        }
+        else if (sweep==1)
+        {
+            if(swtch_yx==0)
+                fieldloop_yx(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_yz==0)
+                fieldloop_yz(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_xz==1)
+                fieldloop_yxz(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_zx==1)
+                fieldloop_yzx(a,p,pgc,uvel,vvel,wvel);
+        }
+        else if (sweep==2)
+        {
+            if(swtch_zx==0)
+                fieldloop_zx(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_zy==0)
+                fieldloop_zy(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_xy==1)
+                fieldloop_zxy(a,p,pgc,uvel,vvel,wvel);
+                
+            if(swtch_yx==1)
+                fieldloop_zyx(a,p,pgc,uvel,vvel,wvel);
+        }
+    }
+    
+    sweep=S_S[sSweep][0];
+    
+    if(sweep==0)
+    {
+        if(swtch_xyz==0)
+            fieldloop_xyz(a,p,pgc,uvel,vvel,wvel);
+            
+        if(swtch_xzy==0)
+            fieldloop_xzy(a,p,pgc,uvel,vvel,wvel);
+    }
+    else if(sweep==1)
+    {
+        if(swtch_yxz==0)
+            fieldloop_yxz(a,p,pgc,uvel,vvel,wvel);
+            
+        if(swtch_yzx==0)
+            fieldloop_yzx(a,p,pgc,uvel,vvel,wvel);
+    }
+    else if(sweep==2)
+    {
+        if(swtch_zxy==0)
+            fieldloop_zxy(a,p,pgc,uvel,vvel,wvel);
+            
+        if(swtch_zyx==0)
+            fieldloop_zyx(a,p,pgc,uvel,vvel,wvel);
+    }
+ //   cout<<"sweep:"<<sweep<<endl;
+    
+    int swtchsum;
+    swtchsum = swtch_x+swtch_y+swtch_z+swtch_xy+swtch_xz+swtch_yx+swtch_yz+swtch_zx+swtch_zy
+                +swtch_xyz+swtch_xzy+swtch_yxz+swtch_yzx+swtch_zxy+swtch_zyx;
+                
+    if(swtchsum < 15)
+        cout<<"not all switches activated!!!"<<endl;
+    
+   /* cout<<"x:"<<swtch_x<<" y:"<<swtch_y<<" z:"<<swtch_z<<endl;
+    cout<<"xy:"<<swtch_xy<<" xz:"<<swtch_xz<<" yx:"<<swtch_yx<<" yz:"<<swtch_yz<<" zx:"<<swtch_zx<<" zy:"<<swtch_zy<<endl;
+    cout<<"xyz:"<<swtch_xyz<<" xzy:"<<swtch_xzy<<endl;
+    cout<<"yxz:"<<swtch_yxz<<" yzx:"<<swtch_yzx<<endl;
+    cout<<"zxy:"<<swtch_zxy<<" zyx:"<<swtch_zyx<<endl;*/
+    
+    /*double maxFlux_x,maxFlux_y,maxFlux_z;
+    double maxFlux_yx,maxFlux_yz;
+    double maxFlux_yxz,maxFlux_yzx;
+    maxFlux_x=0.0;
+    maxFlux_y=0.0;
+    maxFlux_z=0.0;
+    maxFlux_yx=0.0;
+    maxFlux_yz=0.0;
+    maxFlux_yxz=0.0;
+    maxFlux_yzx=0.0;
+    LOOP
+    {
+        if(Flux_x(i,j,k)>maxFlux_x)
+            maxFlux_x=Flux_x(i,j,k);
+            
+        if(Flux_y(i,j,k)>maxFlux_y)
+            maxFlux_y=Flux_y(i,j,k);
+            
+        if(Flux_z(i,j,k)>maxFlux_z)
+            maxFlux_z=Flux_z(i,j,k);
+            
+        if(Flux_yx(i,j,k)>maxFlux_yx)
+            maxFlux_yx=Flux_yx(i,j,k);
+        
+        if(Flux_yz(i,j,k)>maxFlux_yz)
+            maxFlux_yz=Flux_yz(i,j,k);
+            
+        if(Flux_yxz(i,j,k)>maxFlux_yxz)
+            maxFlux_yxz=Flux_yxz(i,j,k);
+            
+        if(Flux_yzx(i,j,k)>maxFlux_yzx)
+            maxFlux_yzx=Flux_yzx(i,j,k);
+    }
+    
+   cout<<"x:"<<maxFlux_x<<" y:"<<maxFlux_y<<" z:"<<maxFlux_z<<endl;
+   cout<<"yx:"<<maxFlux_yx<<" yz:"<<maxFlux_yz<<endl;
+   cout<<"yxz:"<<maxFlux_yxz<<" yxz:"<<maxFlux_yzx<<endl;*/
+   
+    LOOP
+    {
+        a->L(i,j,k)=-1.0/6.0*(2.0*Flux_x(i,j,k)+Flux_xy(i,j,k)+Flux_xz(i,j,k)+Flux_xyz(i,j,k)+Flux_xzy(i,j,k)
+                             +2.0*Flux_y(i,j,k)+Flux_yx(i,j,k)+Flux_yz(i,j,k)+Flux_yxz(i,j,k)+Flux_yzx(i,j,k)
+                             +2.0*Flux_z(i,j,k)+Flux_zx(i,j,k)+Flux_zy(i,j,k)+Flux_zxy(i,j,k)+Flux_zyx(i,j,k));
     }
     pgc->start4(p,a->L,1);
    // cout<<"vofstep:"<<vofstep(5,0,5)<<endl;

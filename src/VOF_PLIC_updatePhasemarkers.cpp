@@ -106,6 +106,35 @@ void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,f
         {
             switch(p->F88)
             {
+                case 0:
+                    break;
+                    
+                case 1:
+                    break;
+                case 2:     
+                    calcNormalWeymouth(a,p,voffield);
+                    break;
+                case 3:
+                    calcNormalWang(a,p);
+                    break;
+                case 4:
+                    calcNormalFO(a,p,voffield);
+                    break;
+                case 5:
+                    calcNormalLS(a,p,voffield);
+                    break;
+                case 6:
+                    calcNormalWENO(a,p,voffield);
+                    break;
+                case 7:
+                    calcNormalPhi(a,p);
+                    break;
+                case 8:
+                    calcNormalMassCentre(a,p,voffield);
+                    break;
+                case 9:
+                    calcNormalELVIRA2D(a,p,voffield);
+                    break;
                 case 10:
                     calcNormalMYC2D(a,p,voffield);
                     break;
@@ -115,8 +144,13 @@ void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,f
                 case 12:
                     calcNormalMYC2D_V3(a,p,voffield);
                     break;
-                
-            }
+                case 13:
+                    calcNormalMYC3D(a,p,voffield);
+                    break;
+                case 14:
+                    calcNormalMYC3D_V2(a,p,voffield);
+                    break;
+            }   
             /*if(fabs(nz(i,j,k))>=fabs(nx(i,j,k)))
             {
                 if(nz(i,j,k)>=0.0)
@@ -218,23 +252,27 @@ void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,f
 void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,field& voffield)
 {
     LOOP
-        a->phasemarker(i,j,k)=0.0;
+        a->phasemarker(i,j,k)=-1.0;
         
     LOOP
     {
-        if(voffield(i,j,k)>corr_thres)
+        if(voffield(i,j,k)>p->F95)
         {
             a->phasemarker(i,j,k)=10.0;
+        }
+        else if(voffield(i,j,k)<p->F93)
+        {
+            a->phasemarker(i,j,k)=0.0;
         }
     }
     
     pgc->start4(p,a->phasemarker,1);
-    
+
     LOOP
     {
         if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
         {   
-            if(searchMarkerInVicinity(p,a,12,10.0,i,j,k)>=1)
+            if(searchMarkerInVicinity(p,a,3,10.0,i,j,k)>=1)
             {
                 a->phasemarker(i,j,k)=6.0;
             }
@@ -245,11 +283,12 @@ void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,fi
     LOOP
     {
         if(a->phasemarker(i,j,k)>9.9 && a->phasemarker(i,j,k)<10.1)
-        if(searchMarkerInVicinity(p,a,6,6.0,i,j,k)>=1)
         {
-            a->phasemarker(i,j,k)=4.0;
+            if(searchMarkerInVicinity(p,a,3,6.0,i,j,k)>=1)
+            {
+                a->phasemarker(i,j,k)=4.0;
+            }
         }
-        
     }
     pgc->start4(p,a->phasemarker,1);
     
@@ -273,6 +312,7 @@ void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,fi
             
         if((a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1))
             voffield(i,j,k)=0.0;
+            
     }
     
     pgc->start4(p,voffield,1); 
