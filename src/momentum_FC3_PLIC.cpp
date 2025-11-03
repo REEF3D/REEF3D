@@ -350,7 +350,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,urk1,vrk1,wrk1,1.0);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,urk1,vrk1,wrk1,0.25);
 
 	ULOOP
 	urk2(i,j,k) = udiff(i,j,k)
@@ -367,7 +367,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk2,urk1,vrk1,wrk1,1.0);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk2,urk1,vrk1,wrk1,0.25);
 
 	VLOOP
 	vrk2(i,j,k) = vdiff(i,j,k)
@@ -384,7 +384,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk2,urk1,vrk1,wrk1,1.0);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk2,urk1,vrk1,wrk1,0.25);
 
 	WLOOP
 	wrk2(i,j,k) = wdiff(i,j,k)
@@ -500,7 +500,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,urk2,vrk2,wrk2,1.0);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,urk2,vrk2,wrk2,2.0/3.0);
 
 	ULOOP
 	a->u(i,j,k) = udiff(i,j,k)
@@ -517,7 +517,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,a->v,urk2,vrk2,wrk2,1.0);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,a->v,urk2,vrk2,wrk2,2.0/3.0);
 
 	VLOOP
 	a->v(i,j,k) = vdiff(i,j,k)
@@ -534,7 +534,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,a->w,urk2,vrk2,wrk2,1.0);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,a->w,urk2,vrk2,wrk2,2.0/3.0);
 
 	WLOOP
 	a->w(i,j,k) = wdiff(i,j,k)

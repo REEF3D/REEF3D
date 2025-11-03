@@ -203,7 +203,9 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         pgc->start2(p,fy,11);
         pgc->start3(p,fz,12);           
         
-
+        
+        pgc->solid_forcing(p,a,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz); 
+        
         p6dof->start_cfd(p,a,pgc,loop,urk,vrk,wrk,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,2.0*alpha(loop),urk,vrk,wrk,fx,fy,fz,final);
