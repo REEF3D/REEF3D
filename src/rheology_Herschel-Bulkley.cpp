@@ -26,22 +26,28 @@ Author: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include<algorithm>
 
-double rheology_f::Herschel_Bulkley(lexer *p, fdm *a, ghostcell *pgc)
+double rheology_f::Herschel_Bulkley(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-	gamma = strainterm(p,a); 
+	gamma = strainterm(p,u,v,w); 
     
     tau0=val=0.0;
     pressureval = a->press(i,j,k)-p->pressgage;
     
     if(p->W110==1)
-        yield_stress(p,a);
+    tau0 = yield_stress(p,a);
     
     if(p->W110!=3 && p->W110!=5)
     {
-        val =  (tau0/(gamma>1.0e-20?gamma:1.0e-20) + (p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
+        //val =  (tau0/(gamma>1.0e-20?gamma:1.0e20) + (p->W97)*pow((gamma>1.0e-20?gamma:1.0e-6),p->W98-1.0))/a->ro(i,j,k);
         
-        val = std::min(val,p->W95);
+        val =  (tau0/gamma+ (p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
+        
+        if(val!=val)
+        val=p->W95;
+        
+        val = MIN(val,p->W95);
     }
-	
+
+    
     return val;
 }

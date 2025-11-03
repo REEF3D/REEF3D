@@ -42,11 +42,11 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     n=0;
     LOOP
 	{
-        if(p->wet[IJ]==1)
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
             visc = d->VISC[IJK] + d->EV[IJK];
             
-            sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
+            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             
             d->M.p[n]  =  visc/(p->DXP[IP]*p->DXN[IP])
@@ -55,8 +55,8 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
                         + 2.0*visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir
                         + 2.0*visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
+                        + (visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP])
                         + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
-                        + (visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1])
                         
                         + CPORNH/(alpha*p->dt);
 
@@ -67,8 +67,8 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             d->M.w[n] = -2.0*visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
             d->M.e[n] = -2.0*visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP]);
-            d->M.b[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KM1]);
+            d->M.t[n] = -(visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP]);
+            d->M.b[n] = -(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP]);
             
             
             d->rhsvec.V[n] =  visc*((UH[Ip1Jp1K]-UH[Ip1Jm1K]) - (UH[Im1Jp1K]-UH[Im1Jm1K]))/((p->DYN[JP]+p->DYN[JM1])*(p->DXP[IP]+p->DXP[IM1]))
@@ -83,7 +83,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
         }
         
-        if(p->wet[IJ]==0 || p->flag4[IJK]<0)
+        if(p->wet[IJ]==0 || p->flag4[IJK]<0 || p->DF[IJK]<0)
         {
         d->M.p[n]  =  1.0;
 
@@ -103,43 +103,91 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
 	++n;
 	}
     
-    
+    if(p->A513==1)
+    {
     n=0;
 	LOOP
 	{
-        if(p->wet[IJ]==1)
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
-            if(p->flag4[Im1JK]<0)
+            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)
+            {
+            d->rhsvec.V[n] -= d->M.s[n]*VH[IJK];
+            d->M.s[n] = 0.0;
+            }
+            
+            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0)
+            {
+            d->rhsvec.V[n] -= d->M.n[n]*VH[IJK];
+            d->M.n[n] = 0.0;
+            }
+            
+            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
+            {
+            d->rhsvec.V[n] -= d->M.e[n]*VH[IJK]*p->y_dir;
+            d->M.e[n] = 0.0;
+            }
+            
+            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
+            {
+            d->rhsvec.V[n] -= d->M.w[n]*VH[IJK]*p->y_dir;
+            d->M.w[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            {
+            d->rhsvec.V[n] -= d->M.b[n]*VH[IJK];
+            d->M.b[n] = 0.0;
+            }
+            
+            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+            {
+            d->rhsvec.V[n] -= d->M.t[n]*VH[IJK];
+            d->M.t[n] = 0.0;
+            }
+        }
+	++n;
+	}
+    }
+    
+    if(p->A513==2)
+    {
+    n=0;
+	LOOP
+	{
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
+        {
+            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)
             {
             d->rhsvec.V[n] -= d->M.s[n]*VH[Im1JK];
             d->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0)
+            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0)
             {
             d->rhsvec.V[n] -= d->M.n[n]*VH[Ip1JK];
             d->M.n[n] = 0.0;
             }
             
-            if(p->flag4[IJm1K]<0)
+            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
             {
             d->rhsvec.V[n] -= d->M.e[n]*VH[IJm1K]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJp1K]<0)
+            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
             {
             d->rhsvec.V[n] -= d->M.w[n]*VH[IJp1K]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0)
+            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
             d->rhsvec.V[n] -= d->M.b[n]*VH[IJKm1];
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 && p->flag4[IJKp1]>0)
+            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
             {
             d->rhsvec.V[n] -= d->M.t[n]*VH[IJKp1];
             d->M.t[n] = 0.0;
@@ -147,6 +195,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
         }
 	++n;
 	}
+    }
 	
     psolv->startV(p,pgc,VHdiff,d->rhsvec,d->M,4);
     

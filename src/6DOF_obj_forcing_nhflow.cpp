@@ -32,7 +32,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     double H, uf, vf, wf;
     double ef,efc;
     
-    if(p->X14==0)
+    //if(p->X14==0)
     LOOP
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
@@ -48,6 +48,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
     }
     
+    /*
     if(p->X14==1)
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
@@ -85,7 +86,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         }
     
     }
-   
+   */
 
     pgc->start5V(p,d->FHB,50);
     

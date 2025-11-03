@@ -39,9 +39,7 @@ void sediment_f::fill_bedk(lexer *p, fdm *a,ghostcell *pgc)
     SLICELOOP4
     s->bedk(i,j)=0;
     
-    SLICELOOP4
-    KLOOP
-    PBASECHECK
+    LOOP
     if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
     s->bedk(i,j)=k+1;
 }

@@ -50,8 +50,8 @@ sandslide_f2::~sandslide_f2()
 
 void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    SLICELOOP4
-    s->slideflag(i,j)=0.0;
+    SEDSLICELOOP
+    s->slide_fh(i,j)=0.0;
     
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
@@ -59,14 +59,13 @@ void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         count=0;
         
         // fill
-        SLICELOOP4
+        SEDSLICELOOP
         fh(i,j)=0.0;
         
         pgc->gcsl_start4(p,fh,1);
         
         // slide loop
-        SLICELOOP4
-        if(s->dfs(i,j)>0)
+        SEDSLICELOOP
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
             slide(p,pgc,s);
@@ -74,9 +73,9 @@ void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         pgc->gcslparax_fh(p,fh,4);
         
         // fill back
-        SLICELOOP4
+        SEDSLICELOOP
         {
-        s->slideflag(i,j)+=fh(i,j);
+        s->slide_fh(i,j)+=fh(i,j);
         s->bedzh(i,j)+=fh(i,j);
         }
 
@@ -105,6 +104,7 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         maxdh = tan(s->phi(i,j))*p->DXP[IM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
+        if(p->DFBED[Im1J]>0)
 		{
             dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[IM1];
             
@@ -120,6 +120,7 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         maxdh = tan(s->phi(i,j))*p->DXP[IP];
 		
         if(dh>maxdh && fabs(dh)<1.0e15)
+        if(p->DFBED[Ip1J]>0)
 		{
 			dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[IP];
             
@@ -136,6 +137,7 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         maxdh = tan(s->phi(i,j))*p->DYP[JM1];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
+        if(p->DFBED[IJm1]>0)
 		{          
             dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DYP[JM1];
             
@@ -152,6 +154,7 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         maxdh = tan(s->phi(i,j))*p->DYP[JP];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
+        if(p->DFBED[IJp1]>0)
 		{
             dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DYP[JP];
             
@@ -168,6 +171,7 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
+        if(p->DFBED[Im1Jm1]>0)
         {
             dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
             
@@ -184,6 +188,7 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
+        if(p->DFBED[Im1Jp1]>0)
 		{   
             dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);         
             
@@ -199,6 +204,7 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
         
         if(dh>maxdhs && fabs(dh)<1.0e15)
+        if(p->DFBED[Ip1Jm1]>0)
 		{
             dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
             
@@ -214,6 +220,7 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         maxdhs = tan(s->phi(i,j))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);
 
         if(dh>maxdhs && fabs(dh)<1.0e15)
+        if(p->DFBED[Ip1Jp1]>0)
 		{   
             dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);   
       

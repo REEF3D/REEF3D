@@ -37,6 +37,7 @@ idiff2_PLIC_2D::~idiff2_PLIC_2D()
 {
 }
 
+
 void idiff2_PLIC_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u_in, field &u, field &v, field &w, double alpha)
 {
 	starttime=pgc->timer();

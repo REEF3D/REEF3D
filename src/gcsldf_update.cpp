@@ -55,10 +55,9 @@ void ghostcell::gcsldf_update(lexer *p)
     p->gcsldfeta4_count=count;
     }
     
-    // assign gcsldfeta entries
+    
     
     count=0;
-    
     k=p->knoz-1;
     SLICELOOP4
     if(p->DF[IJK]==1)

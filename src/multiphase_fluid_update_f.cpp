@@ -40,7 +40,7 @@ multiphase_fluid_update_f::~multiphase_fluid_update_f()
 {
 }
 
-void multiphase_fluid_update_f::start(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2)
+void multiphase_fluid_update_f::start(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2, field &u, field &v, field &w)
 {
 	double H1=0.0;
 	double H2=0.0;

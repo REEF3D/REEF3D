@@ -140,7 +140,7 @@ void nhflow_u_profile::ini_location(lexer *p, fdm_nhf *d)
     if(jj>=0 && jj<p->knoy)
     check=1;
     
-    cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
+    //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
     if(check==1)
     flag[n]=1;
     }

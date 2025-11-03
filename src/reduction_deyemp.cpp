@@ -38,7 +38,7 @@ void reduction_deyemp::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     double r=1.0;
     
 
-    SLICELOOP4
+    SEDSLICELOOP
     {
 	s->alpha(i,j) = fabs(s->alpha(i,j));
 

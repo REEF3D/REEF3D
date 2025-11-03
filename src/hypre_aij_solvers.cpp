@@ -30,6 +30,7 @@ Author: Hans Bihs
 
 void hypre_aij::create_solvers(lexer* p, ghostcell* pgc)
 {
+    // solver
     if(p->N10==21)
     {
     HYPRE_ParCSRPCGCreate(pgc->mpi_comm, &solver);
@@ -81,6 +82,7 @@ void hypre_aij::create_solvers(lexer* p, ghostcell* pgc)
     HYPRE_BoomerAMGSetMaxIter(solver, p->N46); 
     }
 
+    // precon
     if(p->N11==21)
     {
     HYPRE_BoomerAMGCreate(&precond);

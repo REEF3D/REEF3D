@@ -84,7 +84,6 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
     
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-	//pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
 		
     bool final = false;
 

@@ -83,16 +83,12 @@ void kepsilon_IM1::ktimesave(lexer *p, fdm* a, ghostcell *pgc)
 {
     LOOP
     kn(i,j,k)=kin(i,j,k);
-	
-	pgc->start4(p,kn,1);
 }
 
 void kepsilon_IM1::etimesave(lexer *p, fdm* a, ghostcell *pgc)
 {
     LOOP
     en(i,j,k)=eps(i,j,k);
-	
-	pgc->start4(p,en,1);
 }
 
 void kepsilon_IM1::timesource(lexer* p, fdm* a, field& fn)

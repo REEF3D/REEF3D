@@ -75,6 +75,8 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s
 	pgc->start4a(p,a->topo,150);
     
     pgc->gcsl_start4(p,a->bed,50);
+    
+    fill_bedk(p,a,pgc);
 }
 
 void sediment_f::bedchange_update(lexer *p, ghostcell *pgc)

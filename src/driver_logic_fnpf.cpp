@@ -59,27 +59,14 @@ void driver::logic_fnpf()
 	if(p->B90>=1)
 	pflow= new iowave(p,pgc,pBC);
     
-// Geodat
-    if(p->G1==0)
-    preto = new reinitopo_void();
-
-    if(p->G1==1)
-    {
-    if(p->G40==0)
-    preto = new reinitopo_void();
-    
-    if(p->G40==1)
-    preto = new reinitopo_AB2(p);
-    
-    if(p->G40==3)
-    preto = new reinitopo_RK3(p);
-    }
-    
 //  Laplace Solver	
 	if(p->N10==0)
 	plapsolv = new solver_void(p,a,pgc);
 
-	if(p->N10==1)
+	if(p->N10==1 && p->j_dir==0)
+	plapsolv = new bicgstab_ijk(p,a,pgc);
+    
+    if(p->N10==1 && p->j_dir==1)
 	plapsolv = new bicgstab_ijk(p,a,pgc);
 	
 	#ifdef HYPRE_COMPILATION

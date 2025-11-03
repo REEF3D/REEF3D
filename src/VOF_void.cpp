@@ -63,7 +63,7 @@ void VOF_void::update
     field &F
 )
 {
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }
 
 void VOF_void::start
@@ -79,5 +79,5 @@ void VOF_void::start
     field &F
 )
 {
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }

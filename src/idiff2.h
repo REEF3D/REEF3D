@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 using namespace std;
 
-class rheology;
-
 
 class idiff2 : public diffusion, public gradient
 {
@@ -48,8 +46,7 @@ public:
 	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double){};
 
 private:
-    rheology *prheo;
-    
+
 	double D;
 	int count,n;
 	double b_ijk,ev_ijk,visc_ijk;

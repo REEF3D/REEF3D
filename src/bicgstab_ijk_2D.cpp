@@ -104,6 +104,18 @@ void bicgstab_ijk_2D::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, d
 
 void bicgstab_ijk_2D::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
 {
+    p->preconiter=0;
+    
+    flag = p->flag4;
+    ulast=0;
+    vlast=0;
+    wlast=0;
+    stop_crit=p->N43;
+    
+    fillxvecV(p,f,rhsvec);
+	solve(p,pgc,rhsvec,M,var,p->solveriter,p->N46,stop_crit);
+	
+	finalizeV(p,f); 
 }
 
 void bicgstab_ijk_2D::startV(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
@@ -386,5 +398,24 @@ void bicgstab_ijk_2D::finalizeV(lexer *p, double *f)
 {  
     FLEXLOOP
     f[IJK]=x[IJK];
+}
+
+void bicgstab_ijk_2D::fillxvecF(lexer* p, double *f, vec &rhsvec)
+{
+    n=0;
+	FLEXLOOP
+	{
+	x[IJK] = f[FIJK];
+    
+    rhs[IJK] = rhsvec.V[n];
+
+    ++n;
+    }
+}
+
+void bicgstab_ijk_2D::finalizeF(lexer *p, double *f)
+{  
+    FLEXLOOP
+    f[FIJK]=x[IJK];
 }
 

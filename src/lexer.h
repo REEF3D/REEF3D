@@ -109,7 +109,8 @@ public:
     
     // boundary conditions
     int *IO,*IOSL;
-    int *DF;
+    int *DF,*DF1,*DF2,*DF3;
+    int *DFBED;
     
     // flag
 	int*mgflag;
@@ -212,7 +213,6 @@ public:
     
     //SLICE
     int *flagslice1,*flagslice2,*flagslice4;
-    int *flagfsf;
     int *mgcsl1,*mgcsl2,*mgcsl3,*mgcsl4,*mgcsl4a;
     int ***gcslorig1,***gcslorig2,***gcslorig3,***gcslorig4,***gcslorig4a;
 	int gcsldirsize1,gcsldirsize2,gcsldirsize3,gcsldirsize4,gcsldirsize4a;
@@ -278,7 +278,7 @@ public:
     double A440;
     
     // NHFLOW
-    int A501,A509,A510,A511,A512,A514,A515,A516,A517,A518,A519;
+    int A501,A509,A510,A511,A512,A513,A514,A515,A516,A517,A518,A519;
     int A520,A521;
     double A522,A523;
     double A531;
@@ -314,7 +314,7 @@ public:
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
     
 	// boundary conditions
-	int B10,B11,B20,B21,B23;
+	int B10,B11,B20,B21,B22,B23;
     int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;    
     int B60,B61,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
@@ -404,7 +404,7 @@ public:
 	double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
 	// discretization
-	int D10,D11,D20,D21,D30,D31,D33,D37;
+	int D10,D11,D20,D21,D22,D30,D31,D33,D37;
 
 	// Free Surface
 	int F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
@@ -592,7 +592,7 @@ public:
     
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S17,S25,S27,S31,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S77,S78,S79,S80,S83,S84,S85,S90,S91,S100,S101;
+	int S10,S11,S12,S15,S16,S17,S25,S27,S31,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S77,S78,S79,S80,S83,S84,S85,S90,S91,S94,S100,S101;
 	double S13,S14,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double S77_xs,S77_xe;
@@ -829,6 +829,9 @@ public:
     
 private:
 	void clear(char&, int&);
+    
+    int dd_send,dd_recv;
+    int ii_send,ii_recv;
     
 };
 

@@ -23,8 +23,6 @@ Author: Fabian Knoblauch
 #include"increment.h"
 #include"diffusion.h"
 
-class rheology;
-
 using namespace std;
 
 #ifndef IDIFF2_PLIC_2D_H_
@@ -47,9 +45,7 @@ public:
 	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double);
     virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double);
 
-private:
-    rheology *prheo;
-    
+private:    
 	double D;
 	double time,starttime,endtime;
 	int count,q;

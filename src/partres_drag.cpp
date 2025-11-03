@@ -29,19 +29,18 @@ Author: Hans Bihs
 
 double partres::drag_model(lexer *p, double d50, double rhoS, double vel, double Ts)
 {    
-        Tf = 1.0-Ts;
+    Tf = 1.0-Ts;
         
-        vel = fabs(vel);
+    vel = fabs(vel);
 
-        Rep = vel*d50/p->W2;
+    Rep = vel*d50/p->W2;
 
-        Cd = (24.0/Rep)*(pow(Tf,-2.65) + (1.0/6.0)*pow(Rep,2.0/3.0)*pow(Tf,-1.78));
+    Cd = (24.0/Rep)*(pow(Tf,-2.65) + (1.0/6.0)*pow(Rep,2.0/3.0)*pow(Tf,-1.78));
         
-        Cd = MIN(Cd,10.0);
-        Cd = MAX(Cd,0.0);
+    Cd = MIN(Cd,10.0);
+    Cd = MAX(Cd,0.0);
         
-        Dp = Cd*(3.0/8.0)*(p->W1/rhoS)*(vel/(0.5*d50));
+    Dp = Cd*(3.0/8.0)*(p->W1/rhoS)*(vel/(0.5*d50));
         
-        return Dp;
-    
+    return Dp;
 }

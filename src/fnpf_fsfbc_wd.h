@@ -54,6 +54,7 @@ public:
     virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&);
     virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double);
     
+    void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
     
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
@@ -70,8 +71,9 @@ public:
 private:
     double rb3(lexer*,double);
     double rb4(lexer*,double);
+    double rb5(lexer*,double);
     
-    double dist3,dist4,expinverse,db;
+    double dist3,dist4,dist5,expinverse,db;
     
     double visc;
     
@@ -82,7 +84,7 @@ private:
     sliceint4 bx,by;
     sliceint4 wetcoast;
     int count_n;
-    
+    int coastline_count;
 };
 
 #endif

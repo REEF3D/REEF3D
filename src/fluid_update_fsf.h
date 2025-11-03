@@ -38,13 +38,14 @@ public:
     fluid_update_fsf(lexer*, fdm*, ghostcell*);
 	virtual ~fluid_update_fsf();
 
-	virtual void start(lexer*, fdm*, ghostcell*);
+	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, field&);
 
 private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
 	int n;
 	const double dx,visc_air,visc_water,visc_body,ro_air,ro_water;
+    const double visc_sed, ro_sed;
     double epsi,chi;
 
 };

@@ -108,11 +108,14 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         i=p->gcout[n][0];
         j=p->gcout[n][1];
         k=p->gcout[n][2];
-
+        
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
+        {
         area=p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
 
         Ao+=area;
         p->Qo+=area*d->U[IJK];
+        }
     }
     
     Ao=pgc->globalsum(Ao);

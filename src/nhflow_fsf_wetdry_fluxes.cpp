@@ -27,6 +27,7 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
+    // wetdry fluxes
    if(p->A540==1)
    { 
     // eta + WL
@@ -118,7 +119,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         }
         
         else
-        if(p->wet[IJ]==0 && p->wet[Ip1J]==1)
+        if(p->wet[IJ]==0 && p->wet[Ip1J]==1) 
         {
         d->Un[IJK] = 0.0;
         d->Vn[IJK] = 0.0;
@@ -160,6 +161,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     
     VLOOP
     {
+
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {
         d->Uw[IJK] = 0.0;
@@ -220,5 +222,205 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         }
     }
    }
+   
+   
+   
+   
+   
+   // Forcing Fluxes
+   // U,UH
+    ULOOP
+    {
+        if((p->DF[IJK]==1 && p->DF[Ip1JK]==-1))
+        {
+        d->Un[IJK] = 0.0;
+        d->Vn[IJK] = 0.0;
+        d->Wn[IJK] = 0.0;
+    
+        d->UHn[IJK] = 0.0;
+        d->VHn[IJK] = 0.0;
+        d->WHn[IJK] = 0.0;
+        
+        d->Us[IJK] = 0.0;
+        d->Vs[IJK] = 0.0;
+        d->Ws[IJK] = 0.0;
+        
+        d->UHs[IJK] = 0.0;
+        d->VHs[IJK] = 0.0;
+        d->WHs[IJK] = 0.0;
+        }
+        
+        else
+        if((p->DF[IJK]==-1 && p->DF[Ip1JK]==1))
+        {
+        d->Un[IJK] = 0.0;
+        d->Vn[IJK] = 0.0;
+        d->Wn[IJK] = 0.0;
+    
+        d->UHn[IJK] = 0.0;
+        d->VHn[IJK] = 0.0;
+        d->WHn[IJK] = 0.0;
+        
+        d->Us[IJK] = 0.0;
+        d->Vs[IJK] = 0.0;
+        d->Ws[IJK] = 0.0;
+        
+        d->UHs[IJK] = 0.0;
+        d->VHs[IJK] = 0.0;
+        d->WHs[IJK] = 0.0;
+        }
+
+        else
+        if((p->DF[IJK]==-1 && p->DF[Ip1JK]==-1))
+        {
+        d->Un[IJK] = 0.0;
+        d->Vn[IJK] = 0.0;
+        d->Wn[IJK] = 0.0;
+        
+        d->UHn[IJK] = 0.0;
+        d->VHn[IJK] = 0.0;
+        d->WHn[IJK] = 0.0;
+        
+        d->Us[IJK] = 0.0;
+        d->Vs[IJK] = 0.0;
+        d->Ws[IJK] = 0.0;
+        
+        d->UHs[IJK] = 0.0;
+        d->VHs[IJK] = 0.0;
+        d->WHs[IJK] = 0.0;
+        }
+    }
+    
+    VLOOP
+    {
+
+        if((p->DF[IJK]==1 && p->DF[IJp1K]==-1))
+        {
+        d->Uw[IJK] = 0.0;
+        d->Vw[IJK] = 0.0;
+        d->Ww[IJK] = 0.0;
+    
+        d->UHw[IJK] = 0.0;
+        d->VHw[IJK] = 0.0;
+        d->WHw[IJK] = 0.0;
+        
+        d->Ue[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
+        d->We[IJK] = 0.0;
+        
+        d->UHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
+        d->WHe[IJK] = 0.0;
+        }
+        
+        else
+        if((p->DF[IJK]==-1 && p->DF[IJp1K]==1))
+        {
+        d->Uw[IJK] = 0.0;
+        d->Vw[IJK] = 0.0;
+        d->Ww[IJK] = 0.0;
+    
+        d->UHw[IJK] = 0.0;
+        d->VHw[IJK] = 0.0;
+        d->WHw[IJK] = 0.0;
+        
+        d->Ue[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
+        d->We[IJK] = 0.0;
+        
+        d->UHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
+        d->WHe[IJK] = 0.0;
+        }
+        
+        else
+        if((p->DF[IJK]==-1 && p->DF[IJp1K]==-1))
+        {
+        d->Uw[IJK] = 0.0;
+        d->Vw[IJK] = 0.0;
+        d->Ww[IJK] = 0.0;
+        
+        d->UHw[IJK] = 0.0;
+        d->VHw[IJK] = 0.0;
+        d->WHw[IJK] = 0.0;
+        
+        d->Ue[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
+        d->We[IJK] = 0.0;
+        
+        d->UHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
+        d->WHe[IJK] = 0.0;
+        }
+    }
+    
+    WLOOP
+    {
+
+        if((p->DF[IJK]==1 && p->DF[IJKp1]==-1))
+        {
+        d->Ut[IJK] = 0.0;
+        d->Vt[IJK] = 0.0;
+        d->Wt[IJK] = 0.0;
+    
+        d->UHt[IJK] = 0.0;
+        d->VHt[IJK] = 0.0;
+        d->WHt[IJK] = 0.0;
+        
+        d->Ub[IJK] = 0.0;
+        d->Vb[IJK] = 0.0;
+        d->Wb[IJK] = 0.0;
+        
+        d->UHb[IJK] = 0.0;
+        d->VHb[IJK] = 0.0;
+        d->WHb[IJK] = 0.0;
+        }
+        
+        else
+        if((p->DF[IJK]==-1 && p->DF[IJKp1]==1))
+        {
+        d->Ut[IJK] = 0.0;
+        d->Vt[IJK] = 0.0;
+        d->Wt[IJK] = 0.0;
+    
+        d->UHt[IJK] = 0.0;
+        d->VHt[IJK] = 0.0;
+        d->WHt[IJK] = 0.0;
+        
+        d->Ub[IJK] = 0.0;
+        d->Vb[IJK] = 0.0;
+        d->Wb[IJK] = 0.0;
+        
+        d->UHb[IJK] = 0.0;
+        d->VHb[IJK] = 0.0;
+        d->WHb[IJK] = 0.0;
+        }
+        
+        else
+        if((p->DF[IJK]==-1 && p->DF[IJKp1]==-1))
+        {
+        d->Ut[IJK] = 0.0;
+        d->Vt[IJK] = 0.0;
+        d->Wt[IJK] = 0.0;
+        
+        d->UHt[IJK] = 0.0;
+        d->VHt[IJK] = 0.0;
+        d->WHt[IJK] = 0.0;
+        
+        d->Ub[IJK] = 0.0;
+        d->Vb[IJK] = 0.0;
+        d->Wb[IJK] = 0.0;
+        
+        d->UHb[IJK] = 0.0;
+        d->VHb[IJK] = 0.0;
+        d->WHb[IJK] = 0.0;
+        }
+    }
+    
+   /* 
+    uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
+    vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
+    wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+*/
     
 }

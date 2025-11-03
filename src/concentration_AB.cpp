@@ -63,7 +63,7 @@ void concentration_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* p
     bc_concentration_start(p,a,pgc,C);
 	pgc->start4(p,C,gcval_concentration);
 
-	pupdate->start(p,a,pgc);
+	pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
 	p->concentrationtime=pgc->timer()-starttime;
 }

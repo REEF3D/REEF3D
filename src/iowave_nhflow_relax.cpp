@@ -110,7 +110,7 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
     if(p->j_dir==1)
     LOOP
     {
-        dg = distgen(p);
+         dg = distgen(p);
 		db = distbeach(p);
         
 		// Wave Generation

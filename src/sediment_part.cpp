@@ -75,7 +75,6 @@ void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, r
 	{
 		sediment_algorithm_cfd(p,a,pgc,pflow,preto,pturb);
 		
-    
     sedcalc=1;
 	}
     

@@ -55,14 +55,14 @@ void ioflow_f::inflow_plain_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *
     j=p->gcin[n][1];
     k=p->gcin[n][2];
         
-        if(p->wet[IJ]==1)
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
         U[Im1JK]=p->Ui;
         U[Im2JK]=p->Ui;
         U[Im3JK]=p->Ui;
         }
         
-        if(p->wet[IJ]==0)
+        if(p->wet[IJ]==0 || p->DF[IJK]<0)
         {
         U[Im1JK]=0.0;
         U[Im2JK]=0.0;
@@ -77,14 +77,14 @@ void ioflow_f::inflow_plain_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *
         W[Im2JK]=0.0;
         W[Im3JK]=0.0;
         
-        if(p->wet[IJ]==1)
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
         UH[Im1JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
         UH[Im2JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
         UH[Im3JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
         }
         
-        if(p->wet[IJ]==0)
+        if(p->wet[IJ]==0 || p->DF[IJK]<0)
         {
         UH[Im1JK]=0.0;
         UH[Im2JK]=0.0;
@@ -156,8 +156,12 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
         
         //cout<<"zcoor: "<<MAX(30.0*MIN(zcoor,dmax)/ks,1.0)<<endl;
         //cout<<"Uvel: "<<shearvel*2.5*log(MAX(30.0*MIN(zcoor,hmax)/ks,1.0))<<endl;
-
+            
+            if(p->wet[IJ]==1 && p->DF[IJK]>0)
             U[Im1JK]=U[Im2JK]=U[Im3JK] = shearvel*2.5*log(MAX(30.0*MIN(zcoor,hmax)/ks,1.0));
+            
+            if(p->wet[IJ]==0 || p->DF[IJK]<0)
+            U[Im1JK]=U[Im2JK]=U[Im3JK] = 0.0;
             
         }
 
@@ -205,10 +209,20 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
         W[Im1JK]=0.0;
         W[Im2JK]=0.0;
         W[Im3JK]=0.0;
-    
+        
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
+        {
         UH[Im1JK] = U[Im1JK]*d->WL(i,j);
         UH[Im2JK] = U[Im2JK]*d->WL(i,j);
         UH[Im3JK] = U[Im3JK]*d->WL(i,j);
+        }
+        
+        if(p->wet[IJ]==0 || p->DF[IJK]<0)
+        {
+        UH[Im1JK]=0.0;
+        UH[Im2JK]=0.0;
+        UH[Im3JK]=0.0;
+        }
         
         VH[Im1JK]=0.0;
         VH[Im2JK]=0.0;

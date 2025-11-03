@@ -28,16 +28,6 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
     
-    // Update DF
-    LOOP
-    p->DF[IJK]=1;
-    
-    LOOP
-    if(a->fb(i,j,k)<0.0)
-    p->DF[IJK]=-1;
-    
-    pgc->startintV(p,p->DF,1);
-    
 // Calculate forcing fields
     double H,Ht, uf, vf, wf;
 	double nx, ny, nz,norm ;

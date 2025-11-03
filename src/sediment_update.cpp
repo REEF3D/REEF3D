@@ -48,7 +48,12 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     
     
     if(p->S10==1)
+    {
+    if(p->D22==1)
+    pgc->solid_forcing_flag_update(p,a);
+    
     pgc->gcdf_update(p,a);
+    }
     
     if(p->S10==2)
     pvrans->sed_update(p,a,pgc);
@@ -58,18 +63,6 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     bedlevel(p,pgc); 
     
     active_cfd(p,a,pgc);
-    
-    SLICELOOP4
-    s->dfs(i,j) = 1;
-    
-    
-    SLICELOOP4
-    {
-    k=s->bedk(i,j);
-    s->dfs(i,j) = p->DF[IJK];
-    }
-    
-    pgc->gcsl_start4int(p,s->dfs,50);
 	
 	pgc->start4(p,a->conc,40);
 }
@@ -83,13 +76,6 @@ void sediment_f::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pfl
     
     pgc->gcsl_start4(p,d->bed,50);
     pgc->solid_forcing_bed(p,s->bedzh);
-    
-    k=0;
-    SLICELOOP4
-    s->dfs(i,j) = p->DF[IJK];
-    
-    pgc->gcsl_start4int(p,s->dfs,50);
-    
     
     bedchange_update(p,pgc);
     
@@ -108,12 +94,6 @@ void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
     
     pgc->gcsl_start4(p,b->bed,50);
     pgc->gcsl_start4(p,b->topobed,50);
-    
-    k=0;
-    SLICELOOP4
-    s->dfs(i,j) = 1;
-    
-    pgc->gcsl_start4int(p,s->dfs,50);
     
     bedchange_update(p,pgc);
     

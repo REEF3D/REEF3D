@@ -90,7 +90,7 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
 	psed->offset_vtp_parameter1(p,pgc,result,offset,n);
 
     // sediment parameters 2
-	if(p->P78==1)
+    if(p->P78==1)
 	psed->offset_vtp_parameter2(p,pgc,result,offset,n);
 
     // bed shear stress
@@ -240,6 +240,9 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
 	result.write((char*)&ffn, sizeof (float));
 	}
     }
+    
+    //  kin and eps
+    //pnhfturb->print_2D(p,d,pgc,result,1);
 
     //  Connectivity
     iin=4*(p->polygon_sum)*3;

@@ -51,7 +51,7 @@ sandslide_nz::~sandslide_nz()
 void sandslide_nz::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     SLICELOOP4
-    s->slideflag(i,j)=0.0;
+    s->slide_fh(i,j)=0.0;
     
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
@@ -66,7 +66,6 @@ void sandslide_nz::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         
         // slide loop
         SLICELOOP4
-        if(s->dfs(i,j)>0)
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
             slide(p,pgc,s);
@@ -77,7 +76,7 @@ void sandslide_nz::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         // fill back
         SLICELOOP4
         {
-        s->slideflag(i,j)+=fh(i,j);
+        s->slide_fh(i,j)+=fh(i,j);
         s->bedzh(i,j)+=fh(i,j);
         }
         

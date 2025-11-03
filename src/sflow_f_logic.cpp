@@ -80,9 +80,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220==3)
 	ppress = new sflow_pjm_corr_lin(p,b,pBC);
     
-    if(p->A220==5)
-	ppress = new sflow_pjm_sw(p,b,pBC);
-    
     // diffusion
 	if(p->A260==0)
 	pturb =  new sflow_turb_void(p);

@@ -24,23 +24,59 @@ Author: Hans Bihs
 #include"lexer.h"
 
 fdm2D::fdm2D(lexer *p)
-			:eta(p),eta_n(p),
+			: U(p),V(p),W(p),UH(p),VH(p),WH(p),
+            Fx(p),Fs(p),Fn(p),
+            Fy(p),Fe(p),Fw(p),
+    
+            Ss(p),Sn(p),SSx(p),
+            Se(p),Sw(p),SSy(p),
+    
+            Un(p),Us(p),
+            Ue(p),Uw(p),
+    
+            Vn(p),Vs(p),
+            Ve(p),Vw(p),
+    
+            Wn(p),Ws(p),
+            We(p),Ww(p),
+    
+            UHn(p),UHs(p),
+            UHe(p),UHw(p),
+    
+            VHn(p),VHs(p),
+            VHe(p),VHw(p),
+    
+            WHn(p),WHs(p),
+            WHe(p),WHw(p), 
+            
+            WL(p),
+            ETAs(p),ETAn(p),
+            ETAe(p),ETAw(p),
+            
+            Ds(p),Dn(p),
+            De(p),Dw(p),
+            
+            dfx(p),dfy(p),
+    
+    
+            eta(p),eta_n(p),
             P(p),Pn(p),Q(p),Qn(p),
-            F(p),G(p),L(p),
+            F(p),G(p),H(p),L(p),
+            Fext(p),Gext(p),Hext(p),
             ws(p),
             press(p),
             eddyv(p),kin(p),eps(p),
             bed(p),bed0(p),depth(p),
             solidbed(p),topobed(p),
             bednode(p),
-			 hx(p),hy(p),hp(p),
-			 xvec(p),rhsvec(p),M(p),
+            hx(p),hy(p),hp(p),
+            xvec(p),rhsvec(p),M(p),
             dpx(p),dpy(p),test(p),Hs(p),fs(p),
             fx(p),fy(p),fz(p),
             breaking(p),breaking_print(p),
             wet1(p),deep1(p),wet2(p),deep2(p),
-			 nodeval(p),
-			 cmu(0.09),
+            nodeval(p),
+            cmu(0.09),
             ks(p)
 {
 

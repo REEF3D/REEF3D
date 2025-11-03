@@ -54,10 +54,8 @@ fnpf_RK3::fnpf_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     gcval_fifsf = 160;
     }
     
-    
     plap = new fnpf_laplace_cds2(p);
         
-    
     if(p->A343==0)
     pf = new fnpf_fsfbc(p,c,pgc);
     
@@ -97,23 +95,18 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     
     // fsfdisc and sigma update
-    if(p->A358==1)
     pf->breaking(p, c, pgc, erk1, c->eta, frk1,1.0);
-    if(p->A358==2)
-    pf->breaking0(p, c, pgc, erk1, c->eta, frk1,1.0);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);
     pf->fsfdisc(p,c,pgc,erk1,frk1);
     sigma_update(p,c,pgc,pf,erk1);
   
     // Set Boundary Conditions Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk1,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,frk1);
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk1,frk1);
 
@@ -142,23 +135,18 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     
     // fsfdisc and sigma update
-    if(p->A358==1)
     pf->breaking(p, c, pgc, erk2, erk1, frk2, 0.25);
-    if(p->A358==2)
-    pf->breaking0(p, c, pgc, erk2, erk1, frk2, 0.25);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk2,erk2);
     pf->fsfdisc(p,c,pgc,erk2,frk2);
     sigma_update(p,c,pgc,pf,erk2);
     
     // Set Boundary Conditions Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,frk2,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,frk2);
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk2,frk2);
 
@@ -187,23 +175,18 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     
     // fsfdisc and sigma update
-    if(p->A358==1)
     pf->breaking(p, c, pgc, c->eta, erk2,c->Fifsf,2.0/3.0);
-    if(p->A358==2)
-    pf->breaking0(p, c, pgc, c->eta, erk2,c->Fifsf,2.0/3.0);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     
     // Set Boundary Conditions Fi
-    pflow->fivec_relax(p,pgc,c->Fi);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     
@@ -263,7 +246,6 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
-    pflow->fivec_relax(p,pgc,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     }

@@ -36,17 +36,17 @@ void rheology_f::u_source(lexer *p, fdm *a)
     {
         pressurePhi(p,a,1,0,0);
         
-        yield_stress(p,a);
-        tau = tau0;
+        tau = yield_stress(p,a);
+
          
         if(p->W110==3)
-            tau += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
+        tau += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
         
         f = fabs(a->u(i,j,k))>1.0e-20?(a->u(i,j,k)/fabs(a->u(i,j,k))):0.0;
 
         H = heaviside(phival);
         
-        a->rhsvec.V[count] -= H*f*(tau/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))));
+        a->rhsvec.V[count] -= H*f*(tau/(p->DZN[KP]*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))));
 
         ++count;
     }
@@ -75,7 +75,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
 
         H = heaviside(phival);
         
-        a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)))); // *f ?
+        a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXN[IP]*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)))); // *f ?
 
         ++count;
 	}
@@ -121,12 +121,12 @@ void rheology_f::v_source(lexer *p, fdm *a)
     double dpdx,dpdy,dpdz;
     
     count=0;
-    if(p->W110>=2 && p->W110<=5)
+    if(p->W110==2 || p->W110==3)
     VLOOP
     {
         pressurePhi(p,a,0,1,0);
         
-        yield_stress(p,a);
+        tau0 = yield_stress(p,a);
         
         if(p->W110==5)
             tau0 += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
@@ -135,7 +135,7 @@ void rheology_f::v_source(lexer *p, fdm *a)
         
         H = heaviside(phival);
         
-        a->rhsvec.V[count] -= H*(tau0/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))))*f;
+        a->rhsvec.V[count] -= H*f*(tau0/(p->DYN[JP]*0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))));
         
         ++count;
     }
@@ -178,7 +178,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
     {
         pressurePhi(p,a,0,0,1);
         
-        yield_stress(p,a);
+        tau0 = yield_stress(p,a);
             
         if(p->W110==3)
             tau0 += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
@@ -187,7 +187,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
 
         H = heaviside(phival);
         
-        a->rhsvec.V[count] -= H*(tau0/(0.5*(p->DXM*a->ro(i,j,k)+a->ro(i,j,k+1))))*f;
+        a->rhsvec.V[count] -= H*f*(tau0/(0.5*(p->DZN[KP]*a->ro(i,j,k)+a->ro(i,j,k+1))));
 
         ++count;
 	}

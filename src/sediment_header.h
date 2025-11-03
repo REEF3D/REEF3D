@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 #include"sediment_exner.h"
 
-#include"reinitopo_AB2.h"
 #include"reinitopo_RK3.h"
 #include"reinitopo_void.h"
 

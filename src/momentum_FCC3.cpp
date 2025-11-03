@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MEFCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -201,7 +201,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk1);
     
- //   pupdate->start(p,a,pgc);
+ //   pupdate->start(p,a,pgc,a->u,a->v,a->w);
     
     //-------------------------------------------
     // get vectorized face density from density_f
@@ -376,7 +376,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     
     clear_FGH(p,a);
     
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 	
 //********************************************************
 //Step 2
@@ -410,7 +410,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk2);
     
-   // pupdate->start(p,a,pgc);
+   // pupdate->start(p,a,pgc,a->u,a->v,a->w);
     
     //-------------------------------------------
     
@@ -580,7 +580,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 
 
     clear_FGH(p,a);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
 //********************************************************
 //Step 3
@@ -612,7 +612,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,a->phi);
 
-   // pupdate->start(p,a,pgc);
+   // pupdate->start(p,a,pgc,a->u,a->v,a->w);
     
     //-------------------------------------------
     
@@ -783,7 +783,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     
     clear_FGH(p,a);
     
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }
 
 void momentum_FCC3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

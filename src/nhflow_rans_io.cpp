@@ -40,6 +40,98 @@ nhflow_rans_io::~nhflow_rans_io()
 {
 }
 
+void nhflow_rans_io::print_2D(lexer* p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int mode)
+{
+    
+    // eddyv
+    iin=4*(p->pointnum);
+    result.write((char*)&iin, sizeof (int));
+
+    TPLOOP
+	{
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
+        
+        
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    if(mode==0)
+    k=0;
+    
+    if(mode==1)
+    k=1;
+    
+    // eddyv
+	iin=4*(p->pointnum2D);
+	result.write((char*)&iin, sizeof (int));
+    
+	TPSLICELOOP
+	{
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
+	}
+    
+    
+    // kin
+    iin=4*(p->pointnum2D);
+    result.write((char*)&iin, sizeof (int));
+
+    TPSLICELOOP
+	{
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(KIN[IJK]+KIN[IJKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+	ffn=float(0.25*(KIN[IJK]+KIN[IJKp1]+KIN[IJp1K]+KIN[IJp1Kp1]));
+        
+        
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // eps
+	iin=4*(p->pointnum2D);
+    result.write((char*)&iin, sizeof (int));
+
+	TPSLICELOOP
+	{
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(EPS[IJK]+EPS[IJKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+	ffn=float(0.25*(EPS[IJK]+EPS[IJKp1]+EPS[IJp1K]+EPS[IJp1Kp1]));
+    
+	result.write((char*)&ffn, sizeof (float));
+	}
+
+}
+
 void nhflow_rans_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
 {
     
@@ -183,6 +275,41 @@ void nhflow_rans_io::gcupdate(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     pgc->start4V(p,KIN,20);
     pgc->start4V(p,EPS,30);
+}
+
+void nhflow_rans_io::name_pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)
+{
+    result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>"<<endl;
+    
+    result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>"<<endl;
+	
+	if(p->A560==1)
+	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>"<<endl;
+	if(p->A560==2 || p->A560==22)
+    result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>"<<endl;
+}
+
+void nhflow_rans_io::name_vtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+    result<<"<DataArray type=\"Float32\" Name=\"eddyv\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"kin\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+	if(p->A560==1)
+	result<<"<DataArray type=\"Float32\" Name=\"epsilon\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	if(p->A560==2 || p->A560==22)
+    result<<"<DataArray type=\"Float32\" Name=\"omega\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    ++n;
+}
+
+void nhflow_rans_io::offset_vtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+{
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
 }
 
 void nhflow_rans_io::name_pvtu(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result)

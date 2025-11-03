@@ -35,19 +35,19 @@ public:
     rheology_f(lexer*);
     virtual ~rheology_f()=default;
 
-    double viscosity(lexer*,fdm*,ghostcell*) override;
+    double viscosity(lexer*,fdm*,ghostcell*, field&, field&, field&);
     
-    void u_source(lexer*,fdm*) override;
-    void v_source(lexer*,fdm*) override;
-    void w_source(lexer*,fdm*) override;
+    void u_source(lexer*,fdm*);
+    void v_source(lexer*,fdm*);
+    void w_source(lexer*,fdm*);
     
-    void filltau(lexer*,fdm*,ghostcell*) override;
+    void filltau(lexer*,fdm*,ghostcell*);
 
 private:
-    double Herschel_Bulkley(lexer*,fdm*,ghostcell*);
+    double Herschel_Bulkley(lexer*,fdm*,ghostcell*, field&, field&, field&);
     double Mohr_Coulomb_and_Herschel_Bulkley(lexer*,fdm*,ghostcell*);
     double heaviside(int);
-    void yield_stress(lexer*,fdm*);
+    double yield_stress(lexer*,fdm*);
     void yieldStressGradient(lexer*,fdm*,int,int,int);
     void pressurePhi(lexer*,fdm*,int,int,int,bool=false);
     void pressurePhiGradient(lexer*,fdm*,int,int,int);

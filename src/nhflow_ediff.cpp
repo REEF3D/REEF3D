@@ -61,7 +61,7 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
     
 
-    d->F[IJK] =  2.0*visc*((UH[Ip1JK]-UH[IJK])/p->DXP[IP] - (UH[IJK]-UH[Im1JK])/p->DXP[IP])/p->DXN[IP]
+    d->F[IJK] +=  2.0*visc*((UH[Ip1JK]-UH[IJK])/p->DXP[IP] - (UH[IJK]-UH[Im1JK])/p->DXP[IP])/p->DXN[IP]
     
                    + visc*((UH[IJp1K]-UH[IJK])/p->DYP[JP] - (UH[IJK]-UH[IJm1K])/p->DYP[JP])/p->DYN[JP]*p->y_dir
                    
