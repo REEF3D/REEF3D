@@ -85,7 +85,7 @@ momentum_FCC3_PLIC::momentum_FCC3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convect
     preini=ppreini;
     pfsi=ppfsi;
     pplic= new VOF_PLIC(p,a,pgc,pheat);
-    pupdate = new fluid_update_vof(p,a,pgc,a->u,a->v,a->w);
+    pupdate = new fluid_update_vof(p,a,pgc);
 	pd = new density_vof(p);
     
 	if(p->F46==2)
