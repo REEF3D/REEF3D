@@ -119,7 +119,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
             if(db<1.0e19)
             uvel(i,j,k) = relax1_nb(i,j)*uvel(i,j,k);
         }
-    }
+    
     
     p->wavecalctime+=pgc->timer()-starttime;
 }
@@ -213,7 +213,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
             if(db<1.0e20)
             vvel(i,j,k) = relax2_nb(i,j)*vvel(i,j,k);
         }
-    }
+    
     
     p->wavecalctime+=pgc->timer()-starttime;
 }
@@ -308,7 +308,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
             if(db<1.0e20)
             wvel(i,j,k) = relax4_nb(i,j)*wvel(i,j,k);
         }
-    }
+    
     
     p->wavecalctime+=pgc->timer()-starttime;
 }
