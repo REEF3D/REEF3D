@@ -85,7 +85,7 @@ momentum_FCC3_PLIC::momentum_FCC3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convect
     preini=ppreini;
     pfsi=ppfsi;
     pplic= new VOF_PLIC(p,a,pgc,pheat);
-    pupdate = new fluid_update_vof(p,a,pgc);
+    pupdate = new fluid_update_vof(p,a,pgc,a->u,a->v,a->w);
 	pd = new density_vof(p);
     
 	if(p->F46==2)
@@ -320,7 +320,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     //update rho(vof) after diffusion but before pressure
     if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc); 
     
@@ -351,7 +351,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
         pgc->start4(p,a->vof,gcval_vof);
         if(p->F92==3||p->F92==32)
             pplic->calculateSubFractions(p,a,pgc,a->vof);
-        pupdate->start(p,a,pgc);
+        pupdate->start(p,a,pgc,a->u,a->v,a->w);
         pgc->start4(p,a->ro,gcval_ro);
         pgc->start4(p,a->visc,gcval_visc);
     }
@@ -540,7 +540,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     {
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     }
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
@@ -572,7 +572,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
         {
             pplic->calculateSubFractions(p,a,pgc,a->vof);
         }
-        pupdate->start(p,a,pgc);
+        pupdate->start(p,a,pgc,a->u,a->v,a->w);
         pgc->start4(p,a->ro,gcval_ro);
         pgc->start4(p,a->visc,gcval_visc);
     }
@@ -758,7 +758,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
@@ -786,7 +786,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
         pgc->start4(p,a->vof,gcval_vof);
         if(p->F92==3||p->F92==32)
             pplic->calculateSubFractions(p,a,pgc,a->vof);
-        pupdate->start(p,a,pgc);
+        pupdate->start(p,a,pgc,a->u,a->v,a->w);
         pgc->start4(p,a->ro,gcval_ro);
         pgc->start4(p,a->visc,gcval_visc); 
     }
