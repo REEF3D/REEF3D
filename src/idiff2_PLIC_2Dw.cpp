@@ -37,9 +37,9 @@ void idiff2_PLIC_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
     diff(i,j,k) = w_in(i,j,k);
     
 	pgc->start3(p,diff,gcval_w);
+    pgc->start4(p,a->eddyv,1);
 
 	count=0;
-
 
     WLOOP
     {
@@ -62,6 +62,7 @@ void idiff2_PLIC_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
         ev_ip_j_kp=a->eddyv(i+1,j,k+1);
         ev_im_j_kp=a->eddyv(i-1,j,k+1);
 	}
+    
 	visc_ijk=a->visc(i,j,k);
 	visc_im_j_k=a->visc(i-1,j,k);
 	visc_ip_j_k=a->visc(i+1,j,k);
@@ -70,16 +71,19 @@ void idiff2_PLIC_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
     if(p->F92==3||p->F92==32)
     {
         H_ddx_p=(a->vof_nt(i,j,k)+a->vof_st(i+1,j,k)+a->vof_nb(i,j,k+1)+a->vof_sb(i+1,j,k+1))*0.25;
-        H_ddx_m=(a->vof_st(i,j,k)+a->vof_nt(i-1,j,k)+a->vof_sb(i,j,k+1)+a->vof_nb(i-1,k,k+1))*0.25;
+        H_ddx_m=(a->vof_st(i,j,k)+a->vof_nt(i-1,j,k)+a->vof_sb(i,j,k+1)+a->vof_nb(i-1,j,k+1))*0.25;
 	
         visc_ddx_p = H_ddx_p*p->W2+(1.0-H_ddx_p)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_j_kp+ev_ip_j_kp)*0.25;
         visc_ddx_m = H_ddx_m*p->W2+(1.0-H_ddx_m)*p->W4+(ev_ijk+ev_im_j_k+ev_i_j_kp+ev_im_j_kp)*0.25;
+
     }
     else
     {
         visc_ddx_p = (visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + a->visc(i+1,j,k+1)+ev_ip_j_kp)*0.25;
         visc_ddx_m = (visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k+1)+ev_im_j_kp + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp)*0.25;
     }
+    
+    
 	a->M.p[count] = 2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP])
 				  + 2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP])
 				  + visc_ddx_p/(p->DXP[IP]*p->DXN[IP])
@@ -98,7 +102,6 @@ void idiff2_PLIC_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 	 
 	 ++count;
 	}
-    
     n=0;
     WLOOP
 	{
@@ -128,10 +131,8 @@ void idiff2_PLIC_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 
 	++n;
 	}
-    
 	
 	psolv->start(p,a,pgc,diff,a->rhsvec,3);
-
     
 	pgc->start3(p,diff,gcval_w);
 	

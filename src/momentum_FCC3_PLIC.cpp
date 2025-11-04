@@ -292,13 +292,12 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	VLOOP
 	vrk1(i,j,k) = vdiff(i,j,k)
 				+ p->dt*CPOR2*a->G(i,j,k);
-
+    
     p->vtime=pgc->timer()-starttime;
     
     //-------------------------------------------
 	// W
 	starttime=pgc->timer();
-
 	pturb->ksource(p,a);
 	pflow->ksource(p,a,pgc,pvrans);
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->w,gcval_w);
@@ -309,17 +308,17 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	WLOOP
 	wrk1(i,j,k) = wdiff(i,j,k)
 				+ p->dt*CPOR3*a->H(i,j,k);
-	
+
     p->wtime=pgc->timer()-starttime;
     
     pgc->start1(p,urk1,gcval_u);
 	pgc->start2(p,vrk1,gcval_v);
     pgc->start3(p,wrk1,gcval_w);
     clear_FGH(p,a);
-    
     //update rho(vof) after diffusion but before pressure
     if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
+    
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc); 
@@ -355,10 +354,11 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
         pgc->start4(p,a->ro,gcval_ro);
         pgc->start4(p,a->visc,gcval_visc);
     }
+    
 //********************************************************
 //Step 2
 //********************************************************
-   // face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1); 
+    face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1); 
     //-------------------------------------------
     // FSF
     
