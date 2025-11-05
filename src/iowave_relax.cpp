@@ -67,7 +67,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
         
             if(phival<0.0)
                 z = 0.5*(eta(i,j)+eta(i+1,j));
-        }
+        
         
         //PLIC version
         /*else if(p->F80==4)
@@ -165,7 +165,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
         
             if(phival<0.0)
                 z = 0.5*(eta(i,j)+eta(i,j+1));
-        }
+        
         /*else if(p->F80==4)
         {
             if(p->F92==3||p->F92==32)
@@ -260,7 +260,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
         
             if(phival<0.0)
                 z = eta(i,j);
-        }
+        
      /*   else if(p->F80==4)
         {
             if(p->F92==3||p->F92==32)
@@ -390,7 +390,7 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
     }
     count=0;
     
-    LOOP
+    SLICELOOP4
     {
     dg = distgen(p);
     db = distbeach(p);
