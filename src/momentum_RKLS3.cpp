@@ -84,7 +84,6 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
     
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-	//pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
 		
     bool final = false;
 
@@ -185,7 +184,7 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
 
 
         momentum_forcing_start(a, p, pgc, p6dof, pfsi,
-                           urk,vrk,wrk, fx, fy, fz, 2, 2.0*alpha(loop), final);
+                           urk,vrk,wrk, fx, fy, fz, loop, 2.0*alpha(loop), final);
                            
         // ------
         ULOOP

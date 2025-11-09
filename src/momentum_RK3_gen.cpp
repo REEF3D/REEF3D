@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"momentum_RK3.h"
+#include"momentum_RK3_gen.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -36,11 +36,11 @@ Author: Hans Bihs
 #include"fluid_update_void.h"
 #include"nhflow.h"
 
-momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_RK3_gen::momentum_RK3_gen(lexer *p, fdm *a, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, 
                                                     ioflow *pioflow, fsi *ppfsi)
-                                                    :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),
-                                                    vrk2(p),wrk1(p),wrk2(p),fx(p),fy(p),fz(p)
+                                                    :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),urk(p),urk1(p),urk2(p),vrk(p),vrk1(p),
+                                                    vrk2(p),wrk(p),wrk1(p),wrk2(p),fx(p),fy(p),fz(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -62,7 +62,7 @@ momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion 
     if(p->W90>0 && p->F300==0)
     pupdate = new fluid_update_rheology(p);
     
-    /*
+    
     alpha[0] = 8.0/15.0;
     alpha[1] = 1.0/15.0;
     alpha[2] = 1.0/6.0;
@@ -70,22 +70,22 @@ momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion 
     beta[0] = 8.0/15.0;
     beta[1] = 1.0/15.0;
     beta[2] = 1.0/6.0;
-    */
     
+    /*
     alpha[0] = 1.0;
     alpha[1] = 0.25;
     alpha[2] = 2.0/3.0;
     
     beta[0] = 1.0;
     beta[1] = 0.75;
-    beta[2] = 1.0/3.0;
+    beta[2] = 1.0/3.0;*/
 }
 
-momentum_RK3::~momentum_RK3()
+momentum_RK3_gen::~momentum_RK3_gen()
 {
 }
 
-void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
+void momentum_RK3_gen::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
 {	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -105,11 +105,15 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,alpha[loop]);
 	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,a->u,a->v,a->w,alpha[loop]);
+	pdiff->diff_u(p,a,pgc,psolv,urk,a->u,a->u,a->v,a->w,alpha[loop]);
 
 	ULOOP
-	urk1(i,j,k) = beta[loop]*udiff(i,j,k)
+    {
+    urk1(i,j,k) = a->F(i,j,k);
+                
+	urk(i,j,k) = beta[loop]*urk(i,j,k)
 				+ p->dt*alpha[loop]*CPOR1*a->F(i,j,k);
+    }
 
     p->utime=pgc->timer()-starttime;
 
@@ -122,11 +126,15 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,alpha[loop]);
 	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,a->v,a->u,a->v,a->w,alpha[loop]);
+	pdiff->diff_v(p,a,pgc,psolv,vrk,a->v,a->u,a->v,a->w,alpha[loop]);
 
 	VLOOP
-	vrk1(i,j,k) = beta[loop]*vdiff(i,j,k)
+    {
+	vrk1(i,j,k) = a->G(i,j,k);
+                
+    vrk(i,j,k) = beta[loop]*vrk(i,j,k)
 				+ p->dt*alpha[loop]*CPOR2*a->G(i,j,k);
+    }
 
     p->vtime=pgc->timer()-starttime;
 
@@ -139,11 +147,15 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,alpha[loop]);
 	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,a->w,a->u,a->v,a->w,alpha[loop]);
+	pdiff->diff_w(p,a,pgc,psolv,wrk,a->w,a->u,a->v,a->w,alpha[loop]);
 
 	WLOOP
-	wrk1(i,j,k) = beta[loop]*wdiff(i,j,k)
+    {
+	wrk1(i,j,k) = a->H(i,j,k);
+                
+    wrk(i,j,k) = beta[loop]*wrk(i,j,k)
 				+ p->dt*alpha[loop]*CPOR3*a->H(i,j,k);
+    }
 	
     p->wtime=pgc->timer()-starttime;
     
@@ -175,11 +187,15 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,alpha[loop]);
 	pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,urk1,urk1,vrk1,wrk1,alpha[loop]);
+	pdiff->diff_u(p,a,pgc,psolv,urk,a->u,urk1,vrk1,wrk1,alpha[loop]);
 
 	ULOOP
-	urk2(i,j,k) = beta[loop]*a->u(i,j,k) + alpha[loop]*udiff(i,j,k)
+    {
+	urk2(i,j,k) = a->F(i,j,k);
+                
+    urk(i,j,k) = beta[loop]*a->u(i,j,k) + alpha[loop]*udiff(i,j,k)
 				+ alpha[loop]*p->dt*CPOR1*a->F(i,j,k);
+    }
                 
     p->utime+=pgc->timer()-starttime;
 	
@@ -192,7 +208,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,alpha[loop]);
 	pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk1,urk1,vrk1,wrk1,alpha[loop]);
+	pdiff->diff_v(p,a,pgc,psolv,vrk,a->v,urk1,vrk1,wrk1,alpha[loop]);
 
 	VLOOP
 	vrk2(i,j,k) = beta[loop]*a->v(i,j,k) + alpha[loop]*vdiff(i,j,k)
@@ -209,7 +225,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,alpha[loop]);
 	pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk1,urk1,vrk1,wrk1,alpha[loop]);
+	pdiff->diff_w(p,a,pgc,psolv,wrk,a->w,urk1,vrk1,wrk1,alpha[loop]);
 
 	WLOOP
 	wrk2(i,j,k) = beta[loop]*a->w(i,j,k) + alpha[loop]*wdiff(i,j,k)
@@ -245,7 +261,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,alpha[loop]);
 	pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,urk2,vrk2,wrk2,alpha[loop]);
+	pdiff->diff_u(p,a,pgc,psolv,urk,a->u,urk2,vrk2,wrk2,alpha[loop]);
 
 	ULOOP
 	a->u(i,j,k) = beta[loop]*a->u(i,j,k) + alpha[loop]*udiff(i,j,k)
@@ -262,7 +278,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,alpha[loop]);
 	pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk2,urk2,vrk2,wrk2,alpha[loop]);
+	pdiff->diff_v(p,a,pgc,psolv,vrk,a->v,urk2,vrk2,wrk2,alpha[loop]);
 
 	VLOOP
 	a->v(i,j,k) = beta[loop]*a->v(i,j,k) + alpha[loop]*vdiff(i,j,k)
@@ -279,7 +295,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,alpha[loop]);
 	pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk2,urk2,vrk2,wrk2,alpha[loop]);
+	pdiff->diff_w(p,a,pgc,psolv,wrk,a->w,urk2,vrk2,wrk2,alpha[loop]);
 
 	WLOOP
 	a->w(i,j,k) = beta[loop]*a->w(i,j,k) + alpha[loop]*wdiff(i,j,k)
@@ -303,7 +319,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start3(p,a->w,gcval_w);
 }
 
-void momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_RK3_gen::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	ULOOP
@@ -317,7 +333,7 @@ void momentum_RK3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	}
 }
 
-void momentum_RK3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_RK3_gen::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	VLOOP
@@ -331,7 +347,7 @@ void momentum_RK3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
 	}
 }
 
-void momentum_RK3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_RK3_gen::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	WLOOP

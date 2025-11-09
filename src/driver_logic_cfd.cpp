@@ -364,10 +364,10 @@ void driver::logic_cfd()
     if(((p->F30==0) || (p->N40==2||p->N40==3||p->N40==22||p->N40==23||p->N40==33)) && p->F80==0)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
     
-	if(p->F30==2 && (p->N40==4||p->N40==12||p->N40==13))
+	if(p->F30==2 && (p->N40==4||p->N40==44||p->N40==12||p->N40==13))
 	pfsf = new levelset_RK2(p,a,pgc,pheat,pconc);
 
-	if(p->F30==3  &&  (p->N40==4||p->N40==12||p->N40==13))
+	if(p->F30==3  &&  (p->N40==4||p->N40==44||p->N40==12||p->N40==13))
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
 
 
@@ -622,8 +622,8 @@ void driver::logic_cfd()
     pmom = new momentum_FCC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
     
-
-	
+    if(p->N40==44)
+    pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi); 
     
     
     if(p->N40==4 && (p->X10==0 && p->Z10==0))
