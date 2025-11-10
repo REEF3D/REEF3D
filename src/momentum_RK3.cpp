@@ -61,24 +61,6 @@ momentum_RK3::momentum_RK3(lexer *p, fdm *a, convection *pconvection, diffusion 
     
     if(p->W90>0 && p->F300==0)
     pupdate = new fluid_update_rheology(p);
-    
-    /*
-    alpha[0] = 8.0/15.0;
-    alpha[1] = 1.0/15.0;
-    alpha[2] = 1.0/6.0;
-    
-    beta[0] = 8.0/15.0;
-    beta[1] = 1.0/15.0;
-    beta[2] = 1.0/6.0;
-    */
-    
-    alpha[0] = 1.0;
-    alpha[1] = 0.25;
-    alpha[2] = 2.0/3.0;
-    
-    beta[0] = 1.0;
-    beta[1] = 0.75;
-    beta[2] = 1.0/3.0;
 }
 
 momentum_RK3::~momentum_RK3()
@@ -94,8 +76,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 		
 //Step 1
 //--------------------------------------------------------
-    
-    loop=0;
+
 	// U
 	starttime=pgc->timer();
 
@@ -103,13 +84,13 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->isource(p,a,pgc,pvrans); 
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
-	irhs(p,a,pgc,a->u,a->u,a->v,a->w,alpha[loop]);
+	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,a->u,a->v,a->w,alpha[loop]);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,a->u,a->v,a->w,1.0);
 
 	ULOOP
-	urk1(i,j,k) = beta[loop]*udiff(i,j,k)
-				+ p->dt*alpha[loop]*CPOR1*a->F(i,j,k);
+	urk1(i,j,k) = udiff(i,j,k)
+				+ p->dt*CPOR1*a->F(i,j,k);
 
     p->utime=pgc->timer()-starttime;
 
@@ -120,13 +101,13 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
-	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,alpha[loop]);
+	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,a->v,a->u,a->v,a->w,alpha[loop]);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,a->v,a->u,a->v,a->w,1.0);
 
 	VLOOP
-	vrk1(i,j,k) = beta[loop]*vdiff(i,j,k)
-				+ p->dt*alpha[loop]*CPOR2*a->G(i,j,k);
+	vrk1(i,j,k) = vdiff(i,j,k)
+				+ p->dt*CPOR2*a->G(i,j,k);
 
     p->vtime=pgc->timer()-starttime;
 
@@ -137,21 +118,21 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
-	krhs(p,a,pgc,a->w,a->u,a->v,a->w,alpha[loop]);
+	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,a->w,a->u,a->v,a->w,alpha[loop]);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,a->w,a->u,a->v,a->w,1.0);
 
 	WLOOP
-	wrk1(i,j,k) = beta[loop]*wdiff(i,j,k)
-				+ p->dt*alpha[loop]*CPOR3*a->H(i,j,k);
+	wrk1(i,j,k) = wdiff(i,j,k)
+				+ p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime=pgc->timer()-starttime;
     
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
-                           urk1, vrk1, wrk1, fx, fy, fz, 0, alpha[loop], false);
+                           urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
     pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1, alpha[loop]);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1, 1.0);
 	
 	pflow->u_relax(p,a,pgc,urk1);
 	pflow->v_relax(p,a,pgc,vrk1);
@@ -165,7 +146,6 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 //Step 2
 //--------------------------------------------------------
 	
-    loop=1;
 	// U
 	starttime=pgc->timer();
 
@@ -173,13 +153,13 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
-	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,alpha[loop]);
+	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
 	pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,urk1,urk1,vrk1,wrk1,alpha[loop]);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,urk1,urk1,vrk1,wrk1,0.25);
 
 	ULOOP
-	urk2(i,j,k) = beta[loop]*a->u(i,j,k) + alpha[loop]*udiff(i,j,k)
-				+ alpha[loop]*p->dt*CPOR1*a->F(i,j,k);
+	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*udiff(i,j,k)
+				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
                 
     p->utime+=pgc->timer()-starttime;
 	
@@ -190,13 +170,13 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
-	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,alpha[loop]);
+	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
 	pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk1,urk1,vrk1,wrk1,alpha[loop]);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk1,urk1,vrk1,wrk1,0.25);
 
 	VLOOP
-	vrk2(i,j,k) = beta[loop]*a->v(i,j,k) + alpha[loop]*vdiff(i,j,k)
-				+ alpha[loop]*p->dt*CPOR2*a->G(i,j,k);
+	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vdiff(i,j,k)
+				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime+=pgc->timer()-starttime;
 
@@ -207,21 +187,21 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
-	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,alpha[loop]);
+	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
 	pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk1,urk1,vrk1,wrk1,alpha[loop]);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk1,urk1,vrk1,wrk1,0.25);
 
 	WLOOP
-	wrk2(i,j,k) = beta[loop]*a->w(i,j,k) + alpha[loop]*wdiff(i,j,k)
-				+ alpha[loop]*p->dt*CPOR3*a->H(i,j,k);
+	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wdiff(i,j,k)
+				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
 
     p->wtime+=pgc->timer()-starttime;
 
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
-                           urk2, vrk2, wrk2, fx, fy, fz, 1, alpha[loop], false);
+                           urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
     pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2, alpha[loop]);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2, 0.25);
 	
 	pflow->u_relax(p,a,pgc,urk2);
 	pflow->v_relax(p,a,pgc,vrk2);
@@ -234,8 +214,7 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 
 //Step 3
 //--------------------------------------------------------
-    
-    loop=2;
+
 	// U
 	starttime=pgc->timer();
 
@@ -243,13 +222,13 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->isource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
-	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,alpha[loop]);
+	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
 	pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,urk2,vrk2,wrk2,alpha[loop]);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,urk2,vrk2,wrk2,2.0/3.0);
 
 	ULOOP
-	a->u(i,j,k) = beta[loop]*a->u(i,j,k) + alpha[loop]*udiff(i,j,k)
-				+ alpha[loop]*p->dt*CPOR1*a->F(i,j,k);
+	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*udiff(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
 	
     p->utime+=pgc->timer()-starttime;
 
@@ -260,13 +239,13 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
-	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,alpha[loop]);
+	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
 	pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk2,urk2,vrk2,wrk2,alpha[loop]);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk2,urk2,vrk2,wrk2,2.0/3.0);
 
 	VLOOP
-	a->v(i,j,k) = beta[loop]*a->v(i,j,k) + alpha[loop]*vdiff(i,j,k)
-				+ alpha[loop]*p->dt*CPOR2*a->G(i,j,k);
+	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vdiff(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime+=pgc->timer()-starttime;
 
@@ -277,21 +256,21 @@ void momentum_RK3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->ksource(p,a,pgc,pvrans);
 	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
-	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,alpha[loop]);
+	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
 	pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk2,urk2,vrk2,wrk2,alpha[loop]);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk2,urk2,vrk2,wrk2,2.0/3.0);
 
 	WLOOP
-	a->w(i,j,k) = beta[loop]*a->w(i,j,k) + alpha[loop]*wdiff(i,j,k)
-				+ alpha[loop]*p->dt*CPOR3*a->H(i,j,k);
+	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wdiff(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime+=pgc->timer()-starttime;
 
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
-                           a->u, a->v, a->w, fx, fy, fz, 2, alpha[loop], true);
+                           a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
 	pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow,a->u,a->v,a->w,alpha[loop]);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow,a->u,a->v,a->w,2.0/3.0);
 	
 	pflow->u_relax(p,a,pgc,a->u);
 	pflow->v_relax(p,a,pgc,a->v);
