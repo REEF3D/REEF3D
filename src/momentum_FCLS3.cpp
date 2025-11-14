@@ -20,7 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"momentum_RKLS3.h"
+#include"momentum_FCLS3.h"
+#include"momentum_FCLS3.h"
 #include"vrans.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -30,6 +31,10 @@ Author: Tobias Martin, Hans Bihs
 #include"diffusion.h"
 #include"density.h"
 #include"ediff2.h"
+#include"reini.h"
+#include"picard_f.h"
+#include"picard_lsm.h"
+#include"picard_void.h"
 #include"pressure.h"
 #include"poisson.h"
 #include"ioflow.h"
@@ -37,28 +42,45 @@ Author: Tobias Martin, Hans Bihs
 #include"solver.h"
 #include"6DOF.h"
 #include"FSI.h"
+#include"picard.h"
+#include"fluid_update_fsf.h"
+#include"fluid_update_fsf_heat.h"
+#include"fluid_update_fsf_heat_Bouss.h"
+#include"fluid_update_fsf_comp.h"
+#include"fluid_update_void.h"
+#include"fluid_update_fsf_concentration.h"
+#include"fluid_update_rheology.h"
+#include"picard_f.h"
+#include"picard_lsm.h"
+#include"picard_void.h"
+#include"heat.h"
 
-momentum_RKLS3::momentum_RKLS3
-(
-    lexer *p, 
-    fdm *a, 
-    ghostcell *pgc, 
-    convection *pconvection, 
-    diffusion *pdiffusion, 
-    pressure* ppressure, 
-    poisson* ppoisson,
-    turbulence *pturbulence, 
-    solver *psolver, 
-    solver *ppoissonsolver, 
-    ioflow *pioflow,
-    fsi *ppfsi
-):momentum_forcing(p),bcmom(p),urk(p),vrk(p),wrk(p),Cu(p),Cv(p),Cw(p),Du(p),Dv(p),Dw(p),fx(p),fy(p),fz(p)
+momentum_FCLS3::momentum_FCLS3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+                                                    turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
+                                                    heat *&pheat, concentration *&pconc, reini *ppreini,
+                                                    fsi *ppfsi) :
+                                                    momentum_forcing(p),bcmom(p),urk(p),vrk(p),wrk(p),
+                                                    Cu(p),Cv(p),Cw(p),Cf(p),fx(p),fy(p),fz(p)
 {
+    
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
+    
+    if(p->F50==1)
+	gcval_phi=51;
+
+	if(p->F50==2)
+	gcval_phi=52;
+
+	if(p->F50==3)
+	gcval_phi=53;
+
+	if(p->F50==4)
+	gcval_phi=54;
 	
 	pconvec=pconvection;
+    pfsfdisc=ppfsfdisc;
 	pdiff=pdiffusion;
 	ppress=ppressure;
 	ppois=ppoisson;
@@ -66,18 +88,50 @@ momentum_RKLS3::momentum_RKLS3
 	psolv=psolver;
     ppoissonsolv=ppoissonsolver;
 	pflow=pioflow;
+    preini=ppreini;
     pfsi=ppfsi;
+    
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
+	pupdate = new fluid_update_fsf(p,a,pgc);
+	
+	if(p->F30>0 && p->H10==0 && p->W30==1 && p->F300==0 && p->W90==0)
+	pupdate = new fluid_update_fsf_comp(p,a,pgc);
+	
+	if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==1)
+	pupdate = new fluid_update_fsf_heat(p,a,pgc,pheat);
+    
+    if(p->F30>0 && p->H10>0 && p->W90==0 && p->F300==0 && p->H3==2)
+    pupdate = new fluid_update_fsf_heat_Bouss(p,a,pgc,pheat);
+    
+    if(p->F30>0 && p->C10>0 && p->W90==0 && p->F300==0)
+    pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconc);
+    
+    if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
+    pupdate = new fluid_update_rheology(p);
+    
+    if(p->F300>0)
+	pupdate = new fluid_update_void();
+
+	if(p->F46==2)
+	ppicard = new picard_f(p);
+
+	if(p->F46==3)
+	ppicard = new picard_lsm(p);
+
+	if(p->F46!=2 && p->F46!=3)
+	ppicard = new picard_void(p);
 
     alpha << 4.0/15.0, 1.0/15.0, 1.0/6.0;
     gamma << 8.0/15.0, 5.0/12.0, 3.0/4.0;
     zeta << 0.0, -17.0/60.0, -5.0/12.0;
 }
 
-momentum_RKLS3::~momentum_RKLS3(){}
+momentum_FCLS3::~momentum_FCLS3(){}
 
 
-void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof *p6dof)
+void momentum_FCLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof *p6dof)
 {	
+
     // Set inflow 
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
@@ -89,6 +143,27 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
         if (loop==2) final = true;
         
         pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
+        
+        // FSF
+        pfsfdisc->start(p,a,a->phi,4,a->u,a->v,a->w);
+        
+        LOOP
+        a->phi(i,j,k) += gamma(loop)*p->dt*CPOR1*a->L(i,j,k) + zeta(loop)*p->dt*CPOR1*Cf(i,j,k);
+                    
+        LOOP
+        Cf(i,j,k)=a->L(i,j,k);
+        
+        pflow->phi_relax(p,pgc,a->phi);
+        
+        pgc->start4(p,a->phi,gcval_phi);
+        
+        
+        p->F44=2;
+        preini->start(a,p,a->phi, pgc, pflow);
+        ppicard->correct_ls(p,a,pgc,a->phi);
+        
+        pupdate->start(p,a,pgc,a->u,a->v,a->w);
+        
         
     // -------------------
         // U
@@ -227,7 +302,7 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
     }
 }
 
-void momentum_RKLS3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_FCLS3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 
@@ -243,7 +318,7 @@ void momentum_RKLS3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uve
         
 }
 
-void momentum_RKLS3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_FCLS3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
     
@@ -256,10 +331,9 @@ void momentum_RKLS3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uve
             a->Gext(i,j,k) = 0.0;
             ++n;
         }
-	
 }
 
-void momentum_RKLS3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_FCLS3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 

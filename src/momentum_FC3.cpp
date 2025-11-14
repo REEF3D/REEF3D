@@ -44,7 +44,6 @@ Author: Hans Bihs
 #include"picard_f.h"
 #include"picard_lsm.h"
 #include"picard_void.h"
-#include"nhflow.h"
 #include"heat.h"
 #include"concentration.h"
 

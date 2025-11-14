@@ -218,11 +218,11 @@ void driver::cfd_driver()
     driver_ini_cfd();
 
     // Start MAINLOOP
-    if(p->X10==0 && p->Z10==0 && p->N40==4)
+    if(p->X10==0 && p->Z10==0 && p->N40==14)
     loop_cfd_sf(a);
 
     else
-    if((p->X10==1  || p->Z10!=0) && (p->N40==4))
+    if((p->X10==1  || p->Z10!=0) && (p->N40==14))
     loop_cfd_df(a);
 
     else
