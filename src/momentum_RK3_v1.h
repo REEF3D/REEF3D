@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef MOMENTUM_RK3_GEN_H_
-#define MOMENTUM_RK3_GEN_H_
+#ifndef MOMENTUM_RK3_V1_H_
+#define MOMENTUM_RK3_V1_H_
 
 #include"momentum.h"
 #include"momentum_forcing.h"
@@ -43,17 +43,17 @@ class fsi;
 
 using namespace std;
 
-class momentum_RK3_gen : public momentum, public momentum_forcing, public bcmom
+class momentum_RK3_v1 : public momentum, public momentum_forcing, public bcmom
 {
 public:
-	momentum_RK3_gen(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, 
+	momentum_RK3_v1(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*, fsi*);
-	virtual ~momentum_RK3_gen();
+	virtual ~momentum_RK3_v1();
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*);
 
-    field1 udiff,urk,urk1,urk2,fx;
-	field2 vdiff,vrk,vrk1,vrk2,fy;
-	field3 wdiff,wrk,wrk1,wrk2,fz;
+    field1 udiff,urk,fx;
+	field2 vdiff,vrk,fy;
+	field3 wdiff,wrk,fz;
 
 private:
     fluid_update *pupdate;

@@ -25,6 +25,8 @@ Author: Hans Bihs
 
 #include"momentum_RK2.h"
 #include"momentum_RK3.h"
+#include"momentum_RK3_v1.h"
+#include"momentum_RK3_v2.h"
 #include"momentum_RK3_PLIC.h"
 #include"momentum_RK3CN.h"
 #include"momentum_RKLS3.h"
