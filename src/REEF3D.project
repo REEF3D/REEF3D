@@ -66,6 +66,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Pressure SC">
+          <File Name="sflow_pjm_quad_SC.h"/>
+          <File Name="sflow_pjm_hs_SC.h"/>
           <File Name="sflow_pressure_SC.h"/>
           <File Name="sflow_pjm_lin_SC.h"/>
         </VirtualDirectory>
@@ -1206,6 +1208,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Pressure SC">
+          <File Name="sflow_pjm_hs_SC.cpp"/>
           <File Name="sflow_pjm_quad_SC.cpp"/>
           <File Name="sflow_pjm_SC.cpp"/>
           <File Name="sflow_pjm_lin_SC.cpp"/>

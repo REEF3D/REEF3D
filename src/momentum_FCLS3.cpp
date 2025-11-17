@@ -148,7 +148,7 @@ void momentum_FCLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
         pfsfdisc->start(p,a,a->phi,4,a->u,a->v,a->w);
         
         LOOP
-        a->phi(i,j,k) += gamma(loop)*p->dt*CPOR1*a->L(i,j,k) + zeta(loop)*p->dt*CPOR1*Cf(i,j,k);
+        a->phi(i,j,k) += gamma(loop)*p->dt*a->L(i,j,k) + zeta(loop)*p->dt*Cf(i,j,k);
                     
         LOOP
         Cf(i,j,k)=a->L(i,j,k);
@@ -157,8 +157,11 @@ void momentum_FCLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
         
         pgc->start4(p,a->phi,gcval_phi);
         
-        
         p->F44=2;
+        
+        if(loop==2)
+        p->F44=3;
+        
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
         
