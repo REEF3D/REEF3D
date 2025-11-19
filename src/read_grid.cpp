@@ -205,11 +205,8 @@ void lexer::read_grid()
     mz=iin;
 
     grid.read((char*)&iin, sizeof (int));
-    mi=iin;
     grid.read((char*)&iin, sizeof (int));
-    mj=iin;
     grid.read((char*)&iin, sizeof (int));
-    mk=iin;
 
     grid.read((char*)&iin, sizeof (int));
     bcside1=iin;
@@ -298,7 +295,6 @@ void lexer::read_grid()
     //if(toporead==1)
     Darray(flag_topo,imax*jmax*kmax);
 
-    Iarray(mgflag,imax*jmax*kmax);
     Darray(solidbed,imax*jmax);
     Darray(topobed,imax*jmax);
     Darray(bed,imax*jmax);
@@ -331,26 +327,12 @@ void lexer::read_grid()
         Iarray(gcb3, gcb3_count,6);
         Iarray(gcb4, gcb4_count,6);
         Iarray(gcb4a, gcb4a_count,6);
-        Iarray(gcb6, gcb4_count);
 
         Darray(gcd1, gcb1_count);
         Darray(gcd2, gcb2_count);
         Darray(gcd3, gcb3_count);
         Darray(gcd4, gcb4_count);
         Darray(gcd4a, gcb4a_count);
-    }
-
-    if(periodic1==1||periodic2==1||periodic3==1)
-    {
-        gc4periodic_maxcount = 0;
-        gc4periodic_maxcount = MAX(knox*knoy,knox*knoz);
-        gc4periodic_maxcount = MAX(gc4periodic_maxcount,knoy*knoz);
-
-        Iarray(gc4periodic_count,6);
-        Iarray(gc4aperiodic_count,6);
-
-        Iarray(gc4periodic,6,gc4periodic_maxcount);
-        Iarray(gc4aperiodic,6,gc4periodic_maxcount);
     }
 
     Iarray(gcpara1, gcpara1_count,16);
@@ -410,9 +392,6 @@ void lexer::read_grid()
         grid.read((char*)&iin, sizeof (int));
         flag4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=iin;
     }
-
-    for(i=0;i<imax*jmax*kmax;++i)
-        mgflag[i]=flag4[i];
 
     // Nodes XYZ
     for(i=-marge;i<knox+1+marge;++i)

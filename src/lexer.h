@@ -113,7 +113,6 @@ public:
     int *DFBED;
     
     // flag
-	int*mgflag;
     double *flag_solid,*flag_topo;
     double *data;
 	double *topobed,*solidbed,*bed,*depth;
@@ -126,7 +125,7 @@ public:
 
 
     //GHOSTCELL
-	int **gcb1,**gcb2,**gcb3,**gcb4,**gcb4a,*gcb6;
+	int **gcb1,**gcb2,**gcb3,**gcb4,**gcb4a;
 	int **gcin, **gcout, **gcpress;
 	int **gcin4a, **gcout4a;
 	double *gcd1,*gcd2,*gcd3,*gcd4,*gcd4a;
@@ -149,12 +148,6 @@ public:
     // serial periodic BC
     int periodic1,periodic2,periodic3;
     int periodicX1,periodicX2,periodicX3,periodicX4,periodicX5,periodicX6;
-    
-    int **gc4periodic;
-    int **gc4aperiodic;
-    int *gc4periodic_count;
-    int *gc4aperiodic_count;
-    int gc4periodic_maxcount;
     
     int **dgc1,**dgc2,**dgc3,**dgc4;
     int dgc1_count,dgc2_count,dgc3_count,dgc4_count;
@@ -186,7 +179,6 @@ public:
 	int maxpara;
 	int nb1,nb2,nb3,nb4,nb5,nb6;
 	int mx,my,mz;
-    int mi,mj,mk;
 	int mpi_edgenum,mpi_nodes,mpi_size;
 	int *mpi_index, *mpi_edges;
 	
