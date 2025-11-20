@@ -1,44 +1,52 @@
-BUILD    := ./build
-BIN    	 := ./bin
-TARGET   := REEF3D
-CXX      := mpicxx
-GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-GIT_VERSION := "$(shell git describe --abbrev=8 --dirty --always --tags)"
-OBJ_DIR   := $(BUILD)
-APP_DIR   := $(BIN)
-HYPRE_DIR := /usr/local/hypre
-EIGEN_DIR := ThirdParty/eigen-3.3.8 
-CXXFLAGS := -w -std=c++11 -O3 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
-LDFLAGS  := -L ${HYPRE_DIR}/lib/ -lHYPRE
-INCLUDE  := -I ${HYPRE_DIR}/include -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
-SRC      := $(wildcard src/*.cpp)
-OBJECTS  := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
+OBJ_DIR      := ./build
+APP_DIR      := ./bin
+TARGET       := REEF3D
+APP		     := $(APP_DIR)/$(TARGET)
+CXX          := mpicxx
+GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
+GIT_VERSION  := "$(shell git describe --dirty --always --tags)"
+HYPRE_DIR    := /usr/local/hypre
+EIGEN_DIR    := ThirdParty/eigen-3.3.8 
+CXXFLAGS     := -std=c++11 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
+LDFLAGS      := -L ${HYPRE_DIR}/lib/ -lHYPRE
+INCLUDE      := -I ${HYPRE_DIR}/include -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
+SRC          := $(wildcard src/*.cpp)
+OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
-.PHONY: all build clean debug info
+.PHONY: all clean debug dev info release
 
-all: build $(APP_DIR)/$(TARGET)
+.DEFAULT_GOAL := all
+
+all: CXXFLAGS += -O3 -w
+all: CXXFLAGS += -DBUILD=\"all\"
+all: $(APP)
+
+release: CXXFLAGS += -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -flto -w
+release: CXXFLAGS += -DBUILD=\"release\"
+release: LDFLAGS += -flto
+release: $(APP)
+
+dev: CXXFLAGS += -O3 -Wall -pedantic -Wpedantic -Wextra -Wshadow -Wcast-align -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -Wformat=2 #-Wold-style-cast 
+dev: CXXFLAGS += -DBUILD=\"dev\"
+dev: $(APP)
+
+debug: CXXFLAGS += -O0 -g -g3 -Wall
+debug: CXXFLAGS += -DBUILD=\"debug\"
+debug: $(APP)
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -c $< -o $@
 
-$(APP_DIR)/$(TARGET): $(OBJECTS)
+$(APP): $(OBJECTS)
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/$(TARGET) $^ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 -include $(DEPENDENCIES)
 
-build:
-	@mkdir -p $(APP_DIR)
-	@mkdir -p $(OBJ_DIR)
-
-debug: CXXFLAGS = -O0 -w -g -g3 -std=c++11 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
-debug: all
-
 clean:
-	-@rm -rvf $(OBJ_DIR)/*
-	-@rm -rvf $(APP_DIR)/*
+	-@rm -rvf $(APP_DIR) $(OBJ_DIR)
 
 info:
 	@echo "[*] Application dir: ${APP_DIR}     "
