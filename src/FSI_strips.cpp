@@ -28,7 +28,7 @@ Authors: Tobias Martin, Hans Bihs
 
 fsi_strips::fsi_strips(lexer *p, ghostcell *pgc)
 {
-	MPI_Bcast(&p->FSI_count,1,MPI_DOUBLE,0,pgc->mpi_comm);
+	pgc->bcast_int(&p->FSI_count,1);
     numberStrips = p->FSI_count;
 
     pstrip.reserve(numberStrips);

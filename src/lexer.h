@@ -113,7 +113,6 @@ public:
     int *DFBED;
     
     // flag
-	int*mgflag;
     double *flag_solid,*flag_topo;
     double *data;
 	double *topobed,*solidbed,*bed,*depth;
@@ -126,8 +125,8 @@ public:
 
 
     //GHOSTCELL
-	int **gcb1,**gcb2,**gcb3,**gcb4,**gcb4a,*gcb6;
-	int **gcin, **gcout, **gcpress,**gcin6, **gcout6;
+	int **gcb1,**gcb2,**gcb3,**gcb4,**gcb4a;
+	int **gcin, **gcout, **gcpress;
 	int **gcin4a, **gcout4a;
 	double *gcd1,*gcd2,*gcd3,*gcd4,*gcd4a;
 	double **gcn;
@@ -139,7 +138,6 @@ public:
     int **gcsldfeta4,**gcsldfbed4;
 
 	int gcwall_count, gcin_count, gcout_count, gcpress_count, gcfsf_count, gcbed_count;
-    int gcin6_count, gcout6_count;
 	int gcin4a_count, gcout4a_count;
 	int gcb1_count,gcb2_count,gcb3_count,gcb4_count,gcb4a_count;
 	int gcpara_sum, gcparaco_sum;
@@ -150,12 +148,6 @@ public:
     // serial periodic BC
     int periodic1,periodic2,periodic3;
     int periodicX1,periodicX2,periodicX3,periodicX4,periodicX5,periodicX6;
-    
-    int **gc4periodic;
-    int **gc4aperiodic;
-    int *gc4periodic_count;
-    int *gc4aperiodic_count;
-    int gc4periodic_maxcount;
     
     int **dgc1,**dgc2,**dgc3,**dgc4;
     int dgc1_count,dgc2_count,dgc3_count,dgc4_count;
@@ -187,7 +179,6 @@ public:
 	int maxpara;
 	int nb1,nb2,nb3,nb4,nb5,nb6;
 	int mx,my,mz;
-    int mi,mj,mk;
 	int mpi_edgenum,mpi_nodes,mpi_size;
 	int *mpi_index, *mpi_edges;
 	
@@ -199,7 +190,6 @@ public:
 	int stencil;	
 
 	// Solver
-	int *colnum;
     int *range_col4,*range_row4,*range_col7,*range_row7;
 	int *sizeM1,*sizeM2,*sizeM3,*sizeM4,*sizeM4a,*sizeM6,*sizeM9;
     int *sizeS1,*sizeS2,*sizeS4; 
@@ -228,7 +218,6 @@ public:
     int **gcbsl1,**gcbsl2,**gcbsl3,**gcbsl4,**gcbsl4a;
 	int **gcslin, **gcslout;
     int **gcslawa1, **gcslawa2;
-	double *gcdsl1,*gcdsl2,*gcdsl3,*gcdsl4,*gcdsl4a;
 
     int gcsl_extra1,gcsl_extra2,gcsl_extra3,gcsl_extra4,gcsl_extra4a;
 
@@ -812,8 +801,6 @@ public:
     double DX,DY,DZ;
     double *DRDXN,*DSDYN,*DTDZN;
     double *DRDXP,*DSDYP,*DTDZP;
-    double *DDRDDXN,*DDSDDYN,*DDTDDZN;
-    double *DDRDDXP,*DDSDDYP,*DDTDDZP;
     
     weno_nug_func *wenofunc;
     

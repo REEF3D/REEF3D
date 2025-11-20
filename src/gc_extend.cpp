@@ -42,7 +42,7 @@ void ghostcell::extend(lexer *p,field& f,double dist,int gcv, int bc, int cs)
     dx = p->DZP[KP];
 
 //fill pos[]
-    orderext=orderext2;
+    int orderext=2;
 
     if(bc_label==35)
     orderext=2;

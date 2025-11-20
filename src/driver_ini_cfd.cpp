@@ -130,7 +130,7 @@ void driver::driver_ini_cfd()
     
 	starttime=pgc->timer();
     if(p->B60>0 || p->T36==2)
-	pgc->walldistance(p,a,pgc,pconvec,preini,pflow,a->walld);
+	pgc->walldistance(p,a,pconvec,preini,pflow,a->walld);
 	
 	pflow->inflow_walldist(p,a,pgc,pconvec,preini,pflow);
 	

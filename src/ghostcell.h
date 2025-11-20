@@ -24,7 +24,7 @@ Author: Hans Bihs
 #define GHOSTCELL_H_
 
 #include<mpi.h>
-#include"boundarycheck.h"
+#include"increment.h"
 
 class fdm;
 class fdm2D;
@@ -37,24 +37,21 @@ class slice;
 class sliceint;
 class vec;
 class vec2D;
-class cpt;
-class cpt2D;
 class reini;
 class convection;
 class ioflow;
-class tracers_obj;
-class particles_obj;
 
 using namespace std;
 
-class ghostcell : public boundarycheck
+class ghostcell : public increment
 {
 public:
 	ghostcell(int&,char**,lexer*);
-	virtual ~ghostcell();
+	virtual ~ghostcell() = default;
 
-	void gcini(lexer* p);
-    void mpi_check(lexer* p);
+    void final(bool error=false);
+	void gcini(lexer*);
+    void mpi_check(lexer*);
 
 	void start1(lexer*,field&, int);
 	void start2(lexer*,field&, int);
@@ -68,8 +65,6 @@ public:
     void start3V(lexer*,double*,int);
     void start4V(lexer*,double*,int);
     void start4V_par(lexer*,double*,int);
-    void start4S(lexer*,double*,int);
-    void start4P(lexer*,double*,int);
     void start5V(lexer*,double*,int);
     
     void start20V(lexer*,double*,int);
@@ -82,17 +77,6 @@ public:
     void start7P(lexer*,double*, int);
     
     void startintV(lexer*,int*,int);
-
-
-	void final(bool error=false);
-	double globalsum(double);
-	int globalisum(int);
-	double globalmax(double);
-	double globalmin(double);
-	int globalimax(int);
-	int globalimin(int);
-	double timesync(double);
-	void globalctrl(lexer*);
     
     void dgcpol1(lexer*,field&, int);
     void dgcpol2(lexer*,field&, int);
@@ -101,14 +85,13 @@ public:
 
 // particle
 	void parapls(lexer*,double**,double**,int*,int*);
-    void gcpartnum(lexer*,int*,int*);
-    void gcpartx(lexer*,int*,int*,double**,double**);
+    void gcpartnum(int[6],int[6]);
+    void gcpartx(int[6],int[6],double*[6],double*[6]);
 
 //  Update
 	void facenbx(lexer*, fieldint&, int*);
 	void flagx(lexer*,int*);
     void flagx7(lexer*,int*);
-    void sigmax(lexer*,fdm*,double*);
     void rangex(lexer*,int*,int);
 	void gcxupdate(lexer*);
 
@@ -138,55 +121,21 @@ public:
     double Hsolidface(lexer*, fdm*, int,int,int);
 	double Hsolidface_t(lexer*, fdm*, int,int,int);
 
-// solid update
-	void solid_update(lexer*,fdm*);
-	void gcsolid_gcb_remove(lexer*,fdm*);
-	void gcsolid_gcb_seed(lexer*,fdm*);
-	void gcsolid_gcb_dist(lexer*,fdm*);
-	void gcsolid_buildflag(lexer*,fdm*, int&);
-	void gcsolid_velflag1(lexer*,fdm*, int&);
-	void gcsolid_velflag2(lexer*,fdm*, int&);
-	void gcsolid_velflag3(lexer*,fdm*, int&);
-    void gcxsd_seed(lexer*,fdm*);
-    void gcxsd_update(lexer*,fdm*,field&);
-    void gcbsd_seed(lexer*,fdm*);
-    void gcbsd_update(lexer*,fdm*,field&);
-    void gcb_generic(lexer* p,field& f,int *gcb_count, int ***gcb);
-
-// topo update
-	void gcb_remove(lexer*,fdm*);
-	void gcb_seed(lexer*,fdm*);
-	void gcb_distbed(lexer*,fdm*);
-	void gcb_buildflag(lexer*,fdm*, int**, int&);
-	void gcb_velflag1(lexer*,fdm*, int **, int&);
-	void gcb_velflag2(lexer*,fdm*, int **, int&);
-	void gcb_velflag3(lexer*,fdm*, int **, int&);
-
-	void velcell_update(lexer*, fdm*, int **, int ,double, double, double, int);
-	void gctopo_pressureupdate(lexer*, fdm*, int **, int, field&);
-	void gctopo_scalarupdate(lexer*, fdm*, int **, int, field&);
-
 // 6DOF update gcdf
 	void gcdf_update(lexer*,fdm*);
     void gcsldf_update(lexer*);
-    
 
 // IBM
     void flagfield(lexer*);
-    void flagfield_topo(lexer*);
     void flagbase(lexer*,fdm*);
 
 // PARALLEL
     void gcparax(lexer*, field&, int);
     void gcparaxint(lexer*, fieldint&, int);
-    void gcparax_test(lexer*, int);
-    void gcparax_generic(lexer*, field&, int*, int***);
-    void gcparacox_generic(lexer*, field&, int*, int***);
     void gcparaxijk(lexer*, double*, int);
     void gcparaxijk_single(lexer*, double*, int);
     void gcparax7(lexer*, double*&, int);
     void gcparax7co(lexer*, double*, int);
-	void gcparaxvec_sr(lexer*, vec&,cpt&,int);
     void gcparax4a(lexer*, field&, int);
     void gcparax4a_sum(lexer*, field&, int);
     void gcparaxV(lexer*, double*, int);
@@ -198,31 +147,33 @@ public:
     void gcperiodicx(lexer*, field&, int);
     void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
-    void verticalsum(lexer*,fdm*,double**);
     double timer();
     //Collective Communication
     void gather_int(int *, int, int *, int);
+    void gatherv_int(int*, int, int*, int*, int*);
     void allgather_int(int *, int, int *, int);
-    void gather_double(double *, int, double *, int);
-	void gatherv_int(int*, int, int*, int*, int*);
     void allgatherv_int(int *, int, int *, int*, int*);
+    void gather_double(double *, int, double *, int);
     void gatherv_double(double *, int, double *, int*, int*);
     void bcast_int(int*, int);
-    void bcast_double(double *, int);
+    void bcast_double(double *, int, int=0);
+    double globalsum(double);
+    int globalisum(int);
+    double globalmax(double);
+    double globalmin(double);
+    int globalimax(int);
+    int globalimin(int);
+    double timesync(double);
+    void globalctrl(lexer*);
     //Utilities
-    void walldistance(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*,field&);
-	void walld_inflow(lexer*,fdm*,ghostcell*,double*);
-	void walld_outflow(lexer*,fdm*,ghostcell*,double*);
-    void gcwait(lexer*);
-    void gcwait7(lexer*);
+    void walldistance(lexer*,fdm*,convection*,reini*,ioflow*,field&);
 
-    MPI_Comm mpi_comm;
+    MPI_Comm mpi_comm = MPI_COMM_NULL;
 
 // Slice
     // epol
     void gcsl_start1(lexer*,slice&, int);
 	void gcsl_start2(lexer*,slice&, int);
-	void gcsl_start3(lexer*,slice&, int);
 	void gcsl_start4(lexer*,slice&, int);
 	void gcsl_start4a(lexer*,slice&, int);
 
@@ -231,22 +182,19 @@ public:
     void gcsl_start4int(lexer*,sliceint&, int);
     void gcsl_start4Vint(lexer*,int*, int);
 
-    void gcsldistro1(lexer*, slice&,int, int, int, double, int, int, int);
-	void gcsldistro2(lexer*, slice&,int, int, int, double, int, int, int);
-	void gcsldistro3(lexer*, slice&,int, int, int, double, int, int, int);
-	void gcsldistro4(lexer*, slice&,int, int, int, double, int, int, int);
-	void gcsldistro4a(lexer*, slice&,int, int, int, double, int, int, int);
+    void gcsldistro1(lexer*, slice&,int, int, int, int, int, int);
+	void gcsldistro2(lexer*, slice&,int, int, int, int, int, int);
+	void gcsldistro4(lexer*, slice&,int, int, int, int, int, int);
+	void gcsldistro4a(lexer*, slice&,int, int, int, int, int, int);
 
-    void gcsldistro1int(lexer*, sliceint&,int, int, int, double, int, int, int);
-    void gcsldistro2int(lexer*, sliceint&,int, int, int, double, int, int, int);
-    void gcsldistro4int(lexer*, sliceint&,int, int, int, double, int, int, int);
-    void gcsldistro4Vint(lexer*, int*,int, int, int, double, int, int, int);
+    void gcsldistro1int(lexer*, sliceint&,int, int, int, int, int, int);
+    void gcsldistro2int(lexer*, sliceint&,int, int, int, int, int, int);
+    void gcsldistro4int(lexer*, sliceint&,int, int, int, int, int, int);
+    void gcsldistro4Vint(lexer*, int*,int, int, int, int, int, int);
 
     int gcsleval1(lexer*,int,int,int);
 	int gcsleval2(lexer*,int,int,int);
-	int gcsleval3(lexer*,int,int,int);
 	int gcsleval4(lexer*,int,int,int);
-	int gcsleval4a(lexer*,int,int,int);
 
     void gcsl_setbc1(lexer*);
     void gcsl_setbc2(lexer*);
@@ -255,7 +203,6 @@ public:
     
     void dgcslini1(lexer*);
     void dgcslini2(lexer*);
-	void dgcslini3(lexer*);
 	void dgcslini4(lexer*);
     
     void dgcslpol(lexer*, slice&, int**,int, int);
@@ -284,51 +231,21 @@ public:
     void gcslparacox(lexer*, slice&, int);
     void gcslparacox_int(lexer*, sliceint&, int);
     void gcslparacoxV_int(lexer*, int*, int);
-    void gcslwait(lexer*);
     void gcslflagx(lexer*, int*);
-    void gcxslupdate(lexer*);
     void gcslparaxijk(lexer*, double*, int);
     void gcslparaxijk_single(lexer*, double*, int);
 
-
-    double mini1(fdm*,lexer*, field&);
-    double maxi1(fdm*,lexer*, field&);
-
-    double mini2(fdm*,lexer*, field&);
-    double maxi2(fdm*,lexer*, field&);
-
-    double mini3(fdm*,lexer*, field&);
-    double maxi3(fdm*,lexer*, field&);
-
-    double mini4(fdm*,lexer*, field&);
-    double maxi4(fdm*,lexer*, field&);
-
-    int ii,jj,kk;
-    int ic,jc,kc;
-
-
-    int imin,imax,jmax,jmin,kmin,kmax;
-
-	void gcdistro1(lexer *p,field&,int, int, int, int, double, int, int, int);
-	void gcdistro2(lexer *p,field&,int, int, int, int, double, int, int, int);
-	void gcdistro3(lexer *p,field&,int, int, int, int, double, int, int, int);
-	void gcdistro4(lexer *p,field&,int, int, int, int, double, int, int, int);
-	void gcdistro4a(lexer *p,field&,int, int, int, int, double, int, int, int);
+	void gcdistro1(lexer*, field&, int, int, int, int, double, int, int, int);
+	void gcdistro2(lexer*, field&, int, int, int, int, double, int, int, int);
+	void gcdistro3(lexer*, field&, int, int, int, int, double, int, int, int);
+	void gcdistro4(lexer*, field&, int, int, int, int, double, int, int, int);
+	void gcdistro4a(lexer*, field&, int, int, int, int, double, int, int, int);
     
 	int gceval1(lexer*,int,int,int);
 	int gceval2(lexer*,int,int,int);
 	int gceval3(lexer*,int,int,int);
 	int gceval4(lexer*,int,int,int);
 	int gceval4a(lexer*,int,int,int);
-
-    void nse1(lexer*, fdm*, field&, int);
-    void nse2(lexer*, fdm*, field&, int);
-    void nse3(lexer*, fdm*, field&, int);
-    void nse4(lexer*, fdm*, field&, int);
-
-    void nse1_conv(lexer*, fdm*, field&, int, double);
-    void nse2_conv(lexer*, fdm*, field&, int, double);
-    void nse3_conv(lexer*, fdm*, field&, int, double);
 
 	void dirichlet_para(lexer*,field&,double,int,int,int);
 	void dirichlet_ortho(lexer*,field&,double,int,int,int);
@@ -337,14 +254,10 @@ public:
 	void neumann(field&,int,int,int);
     void gcb_debug(field&,int,int,int);
 	void extend(lexer*,field&,double,int,int,int);
-	void largeval(field&,double,int,int,int);
-	void largevaladd(field&,double,int,int,int);
 	void outflow(lexer*,field&,int,int,int);
     void sommerfeld(lexer*,field&,int,int,int);
-	void inflowbc(field&,double,int,int,int);
     void potentialbc(lexer*,field&,int,int);
     void neumann_all(field&,int,int,int);
-    void extend_all(lexer*,field&,double,int,int,int);
     void lsm(lexer*,field&,double,int,int,int);
     void noslip(field&,double,int,int,int);
     void imagepoint(lexer*,field&, double&, double&,double,int);
@@ -353,35 +266,36 @@ public:
 	void gravity_press(lexer*,field&,double,int,int,int);
     void nhpress(lexer*,field&,double,int,int,int);
     void kinematic_bed(lexer*,field&,double,int,int,int);
-    void kinematic_fsf(lexer*,field&,double,int,int,int);
     void fivec(lexer*,double*,sliceint&);
     void fivec2D(lexer*,double*,sliceint&);
     void fivec_vel(lexer*,double*,sliceint&);
     void fivec2D_vel(lexer*,double*,sliceint&);
     void gc_periodic(lexer*,field&,int,int);
-    void patchBC(lexer*,field&,double,int,int,int);
     
     //NHFLOW
     void gciobc_update(lexer*, fdm_nhf*);
-    
 
 private:
-    const int size;
-    const int tag1,tag2,tag3,tag4,tag5,tag6;
+
+    void Sendrecv_double(int,int,int,int,int,int);
+    void Sendrecv_int(int,int,int,int,int,int);
+    void Sendrecv(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+
+    MPI_Comm cart_comm = MPI_COMM_NULL;
+    int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
+                        MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
+    bool do_comms = true;
+
 	int margin, paramargin;
-	double  y[15],dP[15], x[15],pos[15];
-	double val[10];
+	double y[15],x[15],pos[15];
 	int m,q,qq,qn,g;
 	int bc_label;
 	double wallvalue,x_ip,val_ip,gamma;
-	int orderdir,orderdir2,orderext,orderext2,orderpress;
-	double Qi,weight;
-	int close;
-	double dist;
-    int count,check;
+	int orderdir;
+	double weight;
+    int count;
     double starttime,endtime;
-    const double eps;
-    int offset,ys;
+    int ys;
     int gcval_topodist;
 	int gclabel_outflow;
     int gclabel_u, gclabel_v, gclabel_w, gclabel_k, gclabel_e;
@@ -390,55 +304,26 @@ private:
     int gclabel_u_in,gclabel_v_in,gclabel_w_in,gclabel_press_in,gclabel_lsm_in;
 	int gclabel_u_out, gclabel_v_out, gclabel_w_out;
 	int gclabel_vel;
-	int nb[6],stag[6],rtag[6];
-	int **isend,**irecv;
-	double **dsend,**drecv;
-	double *trecv;
-
-    double originx,originy,originz;
 
 // PARALLEL
 
-
-	MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
-	MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
-
-	MPI_Request sreq[6],rreq[6];
-
-
-	MPI_Status status;
-
-
-	int tag;
-	double **send,**recv;
 	double *send1,*send2,*send3,*send4,*send5,*send6;
 	double *recv1,*recv2,*recv3,*recv4,*recv5,*recv6;
 	int *isend1,*isend2,*isend3,*isend4,*isend5,*isend6;
 	int *irecv1,*irecv2,*irecv3,*irecv4,*irecv5,*irecv6;
-	int precv[6];
 	double recvsum,recvmin,recvmax;
 	int recvisum,recvimin,recvimax;
 	int awa_lable,pressout_lable,pressin_lable;
-	const int gcx;
-	int gcx_count[6];
-
 
     double v1,v2,v3,v4;
     double wa,wb;
     double x1,x2;
     double value;
 
-// 6DOF
-	int ***gcbfb,*gcbfb_count;
-	int ***gcxfb,*gcxfb_count;
-// Solid pressure
-    int ***gcbsd,*gcbsd_count;
-    int ***gcxsd,*gcxsd_count;
-
     lexer *p;
+    fdm *a;
     fdm2D *b;
     fdm_fnpf *c;
     fdm_nhf *d;
-    fdm *a;
 };
 #endif

@@ -175,7 +175,7 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     return -1;
 }
 
-void ghostcell::gcsldistro4(lexer *p, slice &f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
+void ghostcell::gcsldistro4(lexer *p, slice &f, int ii, int jj, int nn, int gcv, int bc, int cs)
 {
     i=ii;
 	j=jj;
@@ -200,7 +200,7 @@ void ghostcell::gcsldistro4(lexer *p, slice &f, int ii, int jj, int nn, double d
 }
 
 
-void ghostcell::gcsldistro4int(lexer *p, sliceint &f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
+void ghostcell::gcsldistro4int(lexer *p, sliceint &f, int ii, int jj, int nn, int gcv, int bc, int cs)
 {
     i=ii;
 	j=jj;
@@ -209,7 +209,7 @@ void ghostcell::gcsldistro4int(lexer *p, sliceint &f, int ii, int jj, int nn, do
 	gcsl_neumann_int(f,gcv,bc,cs);    
 }
 
-void ghostcell::gcsldistro4Vint(lexer *p, int *f, int ii, int jj, int nn, double dist,  int gcv, int bc, int cs)
+void ghostcell::gcsldistro4Vint(lexer *p, int *f, int ii, int jj, int nn, int gcv, int bc, int cs)
 {
     i=ii;
 	j=jj;
