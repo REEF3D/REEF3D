@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef EXPDATA_VOID_H_
 #define EXPDATA_VOID_H_
 
-#include"data.h"
+#include"expdata.h"
 
 class lexer;
 class fdm;

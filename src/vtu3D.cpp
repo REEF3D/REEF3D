@@ -38,7 +38,7 @@ Author: Hans Bihs
 #include"probe_pressure.h"
 #include"probe_line.h"
 #include"ioflow.h"
-#include"data.h"
+#include"expdata.h"
 #include"concentration.h"
 #include"gage_discharge_x.h"
 #include"gage_discharge_window_x.h"

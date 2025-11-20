@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef EXPDATA_F_H_
 #define EXPDATA_F_H_
 
-#include"data.h"
+#include"expdata.h"
 #include"increment.h"
 #include"field4.h"
 
