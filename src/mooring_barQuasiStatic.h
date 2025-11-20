@@ -49,16 +49,10 @@ public:
 	virtual void initialize(lexer*, ghostcell*);
 	virtual void mooringForces(double&, double&, double&);
 	
-private:
-
-	// Preprocessing
-	void ini_parallel(lexer*, ghostcell*);
-	
+private:	
 	// Runtime
 	vector< vector<double> > solveGauss(vector< vector<double> >, vector< vector<double> >);
-    void updateVel(lexer*, ghostcell*, int);
- 	void getVel(lexer*, ghostcell*);
-        vector<double> getC(double);
+    vector<double> getC(double);
     void print(lexer*,ghostcell*);
     void buildLine(lexer*,ghostcell*);
     void checkBottom(lexer*,ghostcell*);
@@ -67,7 +61,6 @@ private:
 	
 	// Parallelisation
 	int line;
-	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
 	
 	// Material constants
 	double w, EA, L, rho_c, d_c;
@@ -79,7 +72,7 @@ private:
 	double *x, *y, *z;
 	
 	// Fields
-        vector< vector<double> > u_, v_, w_, A, B, f, R, v;
+    vector< vector<double> > u_, v_, w_, A, B, f, R, v;
 	
 	// Forces
 	double *T, *Fb;

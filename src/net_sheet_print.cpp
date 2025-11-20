@@ -32,7 +32,7 @@ void net_sheet::print(lexer *p)
 	int num=0;
 	
 	if(p->P15==1)
-    num = p->printcount_sixdof-1;
+    num = p->printcount_sixdof;
 
     if(p->P15==2)
     num = p->count;
