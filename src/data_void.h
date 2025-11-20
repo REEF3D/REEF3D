@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef DATA_VOID_H_
-#define DATA_VOID_H_
+#ifndef EXPDATA_VOID_H_
+#define EXPDATA_VOID_H_
 
 #include"data.h"
 
@@ -31,11 +31,11 @@ class ghostcell;
 
 using namespace std;
 
-class data_void : public data
+class expdata_void : public expdata
 {
 public:
-	data_void(lexer*, fdm*, ghostcell*);
-	virtual ~data_void();
+	expdata_void(lexer*, fdm*, ghostcell*);
+	virtual ~expdata_void();
 	virtual void start(lexer*, fdm*, ghostcell*);
 	
 	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);

@@ -25,15 +25,15 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-data_f::data_f(lexer* p, fdm *a, ghostcell* pgc) : data(p)
+expdata_f::expdata_f(lexer* p, fdm *a, ghostcell* pgc) : data(p)
 {
 }
 
-data_f::~data_f()
+expdata_f::~expdata_f()
 {
 }
 
-void data_f::start(lexer* p, fdm* a, ghostcell* pgc)
+void expdata_f::start(lexer* p, fdm* a, ghostcell* pgc)
 {
 	cout<<"DATA "<<p->P150<<endl;
 	
@@ -59,7 +59,7 @@ void data_f::start(lexer* p, fdm* a, ghostcell* pgc)
 }
 
 
-void data_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void expdata_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     iin=4*(p->pointnum);
     result.write((char*)&iin, sizeof (int));
@@ -71,18 +71,18 @@ void data_f::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 	}
 }
 
-void data_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void expdata_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"data\"/>"<<endl;
 }
 
-void data_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void expdata_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"data\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
     ++n;
 }
 
-void data_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void expdata_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

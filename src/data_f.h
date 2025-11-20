@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef DATA_F_H_
-#define DATA_F_H_
+#ifndef EXPDATA_F_H_
+#define EXPDATA_F_H_
 
 #include"data.h"
 #include"increment.h"
@@ -33,11 +33,11 @@ class ghostcell;
 
 using namespace std;
 
-class data_f : public data, public increment
+class expdata_f : public expdata, public increment
 {
 public:
-	data_f(lexer*, fdm*, ghostcell*);
-	virtual ~data_f();
+	expdata_f(lexer*, fdm*, ghostcell*);
+	virtual ~expdata_f();
 	virtual void start(lexer*, fdm*, ghostcell*);
 	
 	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);

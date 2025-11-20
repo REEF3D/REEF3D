@@ -186,7 +186,7 @@ void vtu3D::ini(lexer* p, fdm* a, ghostcell* pgc)
 {
 }
 
-void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
 	pgc->gcparax4a(p,a->phi,5);
 	
@@ -360,13 +360,13 @@ void vtu3D::start(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat
 
 }
 
-void vtu3D::print_stop(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtu3D::print_stop(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
     
 }
 
-void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, solver *psolv, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     if(p->P180==1)
 	pfsf->start(p,a,pgc);
@@ -374,7 +374,7 @@ void vtu3D::print_vtu(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *p
     print3D(a,p,pgc,pturb,pheat,psolv,pdata,pconc,pmp,psed);
 }
 
-void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtu3D::print3D(fdm* a,lexer* p,ghostcell* pgc, turbulence *pturb, heat *pheat, solver *psolv, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     pgc->start4a(p,a->test,1);
     pgc->start1(p,a->u,110);

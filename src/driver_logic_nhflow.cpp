@@ -170,10 +170,10 @@ void driver::logic_nhflow()
     
 //Printer
     if(p->P150==0)
-	pdata = new data_void(p,a,pgc);
+	pdata = new expdata_void(p,a,pgc);
 
 	if(p->P150>0)
-	pdata = new data_f(p,a,pgc);
+	pdata = new expdata_f(p,a,pgc);
     
     if(p->P10>0)
     pnhfprint = new nhflow_vtu3D(p,d,pgc);

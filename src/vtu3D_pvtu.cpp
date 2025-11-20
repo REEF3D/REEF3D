@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include"sediment.h"
 #include"print_averaging.h"
 
-void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     int num=0;
 

@@ -87,7 +87,7 @@ void driver::logic_fnpf()
 //  Voids
 	pturb = new kepsilon_void(p,a,pgc);
     
-    pdata = new data_void(p,a,pgc);
+    pdata = new expdata_void(p,a,pgc);
     
     pconc = new concentration_void(p,a,pgc);
     

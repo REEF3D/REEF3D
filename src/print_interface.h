@@ -58,12 +58,12 @@ class print_interface : public printer, public increment
 public:
 	print_interface(lexer*,fdm*,ghostcell*);
 	virtual ~print_interface();
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,data*,concentration*,sediment*);
+	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,sediment*);
 	
 
 private:
-    void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,data*,concentration*,sediment*);
-    void pvtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,data*,concentration*,sediment*);
+    void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,expdata*,concentration*,sediment*);
+    void pvtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,expdata*,concentration*,sediment*);
     void header(fdm*,lexer*,ghostcell*);
     void name_iter(fdm*,lexer*,ghostcell*);
     void name_time(fdm*,lexer*,ghostcell*);
