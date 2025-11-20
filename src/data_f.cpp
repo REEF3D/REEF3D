@@ -39,11 +39,11 @@ void data_f::start(lexer* p, fdm* a, ghostcell* pgc)
 	
 	if(p->P151==1)
     LOOP
-    data(i,j,k)=p->data[(i-p->imin)*p->jmax + (j-p->jmin)];
+    data(i,j,k)=p->data[IJ];
 	
 	if(p->P151==2)
 	LOOP
-	data(i,j,k)=-p->data[(i-p->imin)*p->jmax + (j-p->jmin)]+p->pos_z();
+	data(i,j,k)=-p->data[IJ]+p->pos_z();
 	
 	if(p->P152==1)
 	pgc->start4(p,data,101);
