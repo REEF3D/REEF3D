@@ -735,7 +735,6 @@ public:
 	double bedmax,bedmin;
 	double field4time;
     double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
-    double partprinttime;
     double wavetime;
     double RK_alpha;
 

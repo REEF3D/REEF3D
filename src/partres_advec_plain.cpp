@@ -27,85 +27,69 @@ Authors: Alexander Hanke, Hans Bihs
 #include"sediment_fdm.h"
 #include"ghostcell.h"
 
-void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb, 
+void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {
-    // find cell IJK
-    i=p->posc_i(PX[n]);
-    j=p->posc_j(PY[n]);
-    k=p->posc_k(PZ[n]);
-   
     // velocity
-    uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
-    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
-    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
-    
-    // relative velocity
-    Urel = uf-PU[n];
-    Vrel = vf-PV[n];
-    Wrel = wf-PW[n];
-    
-    Uabs_rel=sqrt(Urel*Urel + Vrel*Vrel);
+    double uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
+    double vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
+    double wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
 
-    P.Uf[n]=uf;
-    P.Vf[n]=vf;
-    P.Wf[n]=wf;
-    
-    DragCoeff = 0.5;
-    
+    // relative velocity
+    double Urel = uf-PU[n];
+    double Vrel = vf-PV[n];
+    double Wrel = wf-PW[n];
+
+    double Uabs_rel = sqrt(Urel*Urel + Vrel*Vrel);
+
+    P.Uf[n] = uf;
+    P.Vf[n] = vf;
+    P.Wf[n] = wf;
+
+    double DragCoeff = 0.5;
 
     // acceleration
-    Fd = p->W1 * DragCoeff * PI/8.0 * pow(P.d50,2)  * pow(Uabs_rel,2.0);
-    
+    double Fd = p->W1 * DragCoeff * PI/8.0 * pow(P.d50,2)  * pow(Uabs_rel,2.0);
+
     // relax
     Fd *= rf(p,PX[n],PY[n]);
-    
+
     // resistance force
-    Fs = p->Q30*(p->S22-p->W1)*fabs(p->W22)*PI*pow(P.d50, 3.0)/6.0;
-     
-    F_tot = Fd-Fs;//*s.reduce(i,j);
-    
+    double Fs = p->Q30*(p->S22-p->W1)*fabs(p->W22)*PI*pow(P.d50, 3.0)/6.0;
+
+    double F_tot = Fd-Fs;//*s.reduce(i,j);
+
     F_tot = MAX(F_tot,0.0);
-    
-    //if(F_tot>1.0e-10);
-    //cout<<"Fd: "<<Fd<<" Fs: "<<Fs<<" F_tot: "<<F_tot<<" Uabs_rel: "<<Uabs_rel<<endl;
 
-
-// particle force
+    // particle force
     F = F_tot /(p->S22*PI*pow(P.d50,3.0)/6.0) * Urel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
     G = F_tot /(p->S22*PI*pow(P.d50,3.0)/12.0) * Vrel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
     H = 0.0;
-    
+
     // solid forcing
-    double fx,fy,fz;
     if(p->S10==2)
     {
-    fx = p->ccipol1c(a->fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed); 
-    fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed); 
-    fz = p->ccipol3c(a->fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed); 
-    
-    F += fx;
-    G += fy;
-    H += fz;
+        double fx,fy,fz;
+        fx = p->ccipol1c(a->fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed);
+        fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed);
+        fz = p->ccipol3c(a->fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed);
+
+        F += fx;
+        G += fy;
+        H += fz;
     }
-    
+
     // relax
     F *= rf(p,PX[n],PY[n]);
     G *= rf(p,PX[n],PY[n]);
     H *= rf(p,PX[n],PY[n]);
-    
-    if(PX[n]<1.9)
-    F=G=H=0.0;
-    
-    Umax = MAX(Umax,sqrt(PU[n]*PU[n] + PV[n]*PV[n]));
-    
+
     // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {
-    cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<Dp<<"\nTs: "<<Tsval<<endl;
-    cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
-    cout<<"dTx: "<<dTx_val<<" dTy: "<<dTy_val<<" dTz: "<<dTz_val<<endl;
-    exit(1);
-    }    
+        cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<DragCoeff<<endl;
+        cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
+        exit(1);
+    }
 }
