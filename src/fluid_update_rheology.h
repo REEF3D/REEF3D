@@ -48,7 +48,7 @@ private:
     double visc1;
     double epsi;
 
-    bool iocheck;
+    int iocheck;
 
 };
 

@@ -20,27 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef DATA_H_
-#define DATA_H_
+#ifndef EXPDATA_H_
+#define EXPDATA_H_
 
-class fdm;
 class lexer;
+class fdm;
 class ghostcell;
 
 #include<fstream>
 
-using namespace std;
-
-class data
+class expdata
 {
-
 public:
-	virtual void start(lexer*, fdm*, ghostcell*)=0;
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&)=0;
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)=0;
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
-
+    virtual void start(lexer*, fdm*, ghostcell*)=0;
+    virtual void print_3D(lexer*, fdm*, ghostcell*,std::ofstream&)=0;
+    virtual void name_pvtu(lexer*, fdm*, ghostcell*,std::ofstream&)=0;
+    virtual void name_vtu(lexer*, fdm*, ghostcell*,std::ofstream&, int*, int &)=0;
+    virtual void offset_vtu(lexer*, fdm*, ghostcell*,std::ofstream&, int*, int &)=0;
 };
 
 #endif

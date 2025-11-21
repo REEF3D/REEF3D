@@ -7,7 +7,7 @@ GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_VERSION  := "$(shell git describe --dirty --always --tags)"
 HYPRE_DIR    := /usr/local/hypre
 EIGEN_DIR    := ThirdParty/eigen-3.3.8 
-CXXFLAGS     := -std=c++11 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
+CXXFLAGS     := -std=c++17 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
 LDFLAGS      := -L ${HYPRE_DIR}/lib/ -lHYPRE
 INCLUDE      := -I ${HYPRE_DIR}/include -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
 SRC          := $(wildcard src/*.cpp)

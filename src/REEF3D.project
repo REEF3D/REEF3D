@@ -989,9 +989,9 @@
           <File Name="probe_line.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Data">
-          <File Name="data_f.h"/>
-          <File Name="data.h"/>
-          <File Name="data_void.h"/>
+          <File Name="expdata_f.h"/>
+          <File Name="expdata.h"/>
+          <File Name="expdata_void.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
           <File Name="gage_discharge_window_x.h"/>
@@ -2794,8 +2794,8 @@
           <File Name="probe_point.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Data">
-          <File Name="data_f.cpp"/>
-          <File Name="data_void.cpp"/>
+          <File Name="expdata_f.cpp"/>
+          <File Name="expdata_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
           <File Name="gage_discharge-window_x.cpp"/>
@@ -3244,7 +3244,7 @@
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
-      <Compiler Options="-std=c++11; -DVERSION=\&quot;$(shell git describe --abbrev=8 --dirty --always --tags)\&quot;; -DBRANCH=\&quot;$(shell git rev-parse --abbrev-ref HEAD)\&quot;" C_Options="" Assembler="">
+      <Compiler Options="-std=c++17; -DVERSION=\&quot;$(shell git describe --abbrev=8 --dirty --always --tags)\&quot;; -DBRANCH=\&quot;$(shell git rev-parse --abbrev-ref HEAD)\&quot;" C_Options="" Assembler="">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="-lm">

@@ -28,13 +28,13 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include"heat.h"
 #include"vorticity.h"
-#include"data.h"
+#include"expdata.h"
 #include"concentration.h"
 #include"multiphase.h"
 #include"sediment.h"
 #include"print_averaging.h"
 
-void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, data *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+void vtu3D::pvtu(fdm* a, lexer* p, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     int num=0;
 

@@ -20,36 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"data_void.h"
+#include"expdata_void.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-data_void::data_void(lexer* p, fdm *a, ghostcell* pgc)
+expdata_void::expdata_void(lexer* p, fdm *a, ghostcell* pgc)
 {
 }
 
-data_void::~data_void()
+expdata_void::~expdata_void()
 {
 }
 
-void data_void::start(lexer* p, fdm* a, ghostcell* pgc)
+void expdata_void::start(lexer* p, fdm* a, ghostcell* pgc)
 {
 }
 
-void data_void::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void expdata_void::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 
-void data_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void expdata_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
 {
 }
 
-void data_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void expdata_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 
-void data_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void expdata_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
 {
 }
 

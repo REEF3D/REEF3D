@@ -55,7 +55,7 @@ class benchmark;
 class sixdof;
 class fsi;
 class vrans;
-class data;
+class expdata;
 class concentration;
 class ptf;
 class fnpf;
@@ -184,7 +184,7 @@ public:
 	benchmark* pbench;
 	fsi* pfsi;
 	vrans* pvrans;
-	data *pdata;
+	expdata *pdata;
 	concentration *pconc;
     fnpf *ppfsg;
     ptf *pptf;
