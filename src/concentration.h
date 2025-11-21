@@ -32,6 +32,9 @@ class ghostcell;
 class ioflow;
 class turbulence;
 #include<iostream>
+#include<fstream>
+#include<sstream>
+#include<vector>
 
 using namespace std;
 
@@ -43,12 +46,12 @@ public:
 	virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration)=0;
 	virtual void ttimesave(lexer*, fdm*)=0;
 
-	virtual void print_3D(lexer*, fdm*, ghostcell *pgc, ofstream&)=0;
+	virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&)=0;
 	virtual double val(int,int,int)=0;
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)=0;
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)=0;
+    virtual void name_ParaView_parallel(lexer*, ofstream&)=0;
+    virtual void name_ParaView(lexer*, ostream&, int*, int &)=0;
+    virtual void offset_ParaView(lexer*, int*, int &)=0;
 };
 
 #endif

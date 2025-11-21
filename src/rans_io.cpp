@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<cstring>
 
 rans_io::rans_io(lexer *p, fdm *a) : strain(p), eps(p), kin(p), eddyv0(p), wallf(p),
                                      ke_c_1e(1.44), ke_c_2e(1.92),ke_sigma_k(1.0),ke_sigma_e(1.3),
@@ -37,26 +38,30 @@ rans_io::~rans_io()
 {
 }
 
-void rans_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void rans_io::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
     iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
     
     //gcupdate(p,a,pgc);
     
     TPLOOP
 	{
 	ffn=float(p->ipol4_a(kin));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
     
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(eps));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 
 }
@@ -131,28 +136,28 @@ void rans_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)
 	pgc->start4(p,eps,30);
 }
 
-void rans_io::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void rans_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
-    result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>\n";
 	
 	if(p->T10==1||p->T10==11 || p->T10==21 ||p->T10==0 || p->T10>30)
-	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>\n";
 	if(p->T10==2||p->T10==12 || p->T10==22||p->T10==3||p->T10==13)
-    result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
-void rans_io::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void rans_io::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
-    result<<"<DataArray type=\"Float32\" Name=\"kin\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 	if(p->T10==1||p->T10==11 || p->T10==21 ||p->T10==0 || p->T10>30)
-	result<<"<DataArray type=\"Float32\" Name=\"epsilon\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"epsilon\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 	if(p->T10==2||p->T10==12 || p->T10==22||p->T10==3||p->T10==13)
-    result<<"<DataArray type=\"Float32\" Name=\"omega\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"omega\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
 
-void rans_io::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void rans_io::offset_ParaView(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

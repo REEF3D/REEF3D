@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include<vector>
 #include"slice4.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm_nhf;
@@ -38,7 +39,7 @@ class nhflow_reinidisc_fsf;
 
 using namespace std;
 
-class nhflow_forcing : public increment
+class nhflow_forcing : public increment, private vtp3D
 {
 public:
 	nhflow_forcing(lexer*, fdm_nhf*, ghostcell*);
@@ -99,7 +100,7 @@ private:
     
     void angle_calc(double,double,double,double&,double&,double&);
     
-    void print_vtp(lexer *p, ghostcell *pgc);
+    void print_vtp(lexer*);
     
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
@@ -135,11 +136,6 @@ private:
     
     double phi,theta,psi;
     double xrot,yrot,zrot;
-    
-    int q,iin;
-    float ffn;
-    int offset[100];
-    
     
     // DLM
     double *EL_L,*EL_dx;

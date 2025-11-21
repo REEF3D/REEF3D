@@ -40,11 +40,11 @@ public:
     vorticity_f(lexer*,fdm*);
 	virtual ~vorticity_f();
 
-    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_ParaView_parallel(lexer*, ofstream&);
+    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &);
+    virtual void offset_ParaView(lexer*, int*, int &);
 
 private:
     field4 omega1,omega2,omega3;

@@ -66,21 +66,16 @@ void mooring_Spring::print(lexer *p)
 		
 		result << "# vtk DataFile Version 2.0" << endl;
 		result << "Mooring line " << line << endl;
-		result << "ASCII \nDATASET UNSTRUCTURED_GRID" << endl;
+		result << "ASCII \nDATASET POLYDATA" << endl;
 		result << "POINTS " << 2 << " float" <<endl;
 
         result<<p->X311_xs[line]<<" "<<p->X311_ys[line]<<" "<<p->X311_zs[line]<<endl;
         result<<p->X311_xe[line]<<" "<<p->X311_ye[line]<<" "<<p->X311_ze[line]<<endl;
         
 		
-		result << "\nCELLS " << 1 << " " << 3 <<endl;	
+		result << "\nLINES " << 1 << " " << 3 <<endl;	
         
         result<<"2 "<< 0 << " " << 1 << endl;
-
-		
-		result << "\nCELL_TYPES " << 1 << endl;	
-
-        result<<"3"<<endl;
 
 
 		result<<"\nPOINT_DATA " << 2 <<endl;

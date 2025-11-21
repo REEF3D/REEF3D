@@ -43,28 +43,28 @@ void particle_pls::pvtu_pos(fdm* a, lexer* p, ghostcell* pgc)
 	ofstream result;
 	result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+	result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
 
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"correction\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
+	result<<"<PPointData>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"correction\"/>\n";
+	result<<"</PPointData>\n";
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
+	result<<"<PPoints>\n";
+	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+	result<<"</PPoints>\n";
 
 	for(n=0; n<p->M10; ++n)
 	{
     piecename_pos(a,p,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+    result<<"<Piece Source=\""<<pname<<"\"/>\n";
 	}
 
-	result<<"</PUnstructuredGrid>"<<endl;
-	result<<"</VTKFile>"<<endl;
+	result<<"</PUnstructuredGrid>\n";
+	result<<"</VTKFile>\n";
 
 	result.close();
 }
@@ -85,28 +85,28 @@ void particle_pls::pvtu_neg(fdm* a, lexer* p, ghostcell* pgc)
 	ofstream result;
 	result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+	result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
 
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"correction\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
+	result<<"<PPointData>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"correction\"/>\n";
+	result<<"</PPointData>\n";
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
+	result<<"<PPoints>\n";
+	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+	result<<"</PPoints>\n";
 
 	for(n=0; n<p->M10; ++n)
 	{
     piecename_neg(a,p,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
+    result<<"<Piece Source=\""<<pname<<"\"/>\n";
 	}
 
-	result<<"</PUnstructuredGrid>"<<endl;
-	result<<"</VTKFile>"<<endl;
+	result<<"</PUnstructuredGrid>\n";
+	result<<"</VTKFile>\n";
 
 	result.close();
 }

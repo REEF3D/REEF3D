@@ -41,13 +41,13 @@ public:
     heat_print(lexer*,fdm*);
 	virtual ~heat_print();
 
-    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
     virtual void heat_ini(lexer*, fdm*, ghostcell*, heat*);
     virtual double val(int,int,int);
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_ParaView_parallel(lexer*, ofstream&);
+    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &);
+    virtual void offset_ParaView(lexer*, int*, int &);
 
     field4 T;
 	fluid_update *pupdate;

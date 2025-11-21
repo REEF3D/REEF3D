@@ -20,119 +20,88 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include<sys/stat.h>
-#include<iostream>
-#include<fstream>
 #include"nhflow_forcing.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include<sys/stat.h>
+#include<fstream>
 
-void nhflow_forcing::print_vtp(lexer *p, ghostcell *pgc)
+void nhflow_forcing::print_vtp(lexer *p)
 {
-
-        char path[300];
-        
-        mkdir("./REEF3D_NHFLOW_FORCING_VTP", 0777);
-        
-        sprintf(path,"./REEF3D_NHFLOW_FORCING_VTP/REEF3D-NHFLOW-FORCING.vtp");
-
-        ofstream result;
-        result.open(path, ios::binary);
-
-    // ---------------------------------------------------
-    n=0;
-
-	offset[n]=0;
-	++n;
-
-    offset[n]=offset[n-1]+4*tricount*3*3 + 4;
+    int offset[100];
+    int n=0;
+    offset[n]=0;
     ++n;
-    offset[n]=offset[n-1]+4*tricount*3 + 4;
+    offset[n]=offset[n-1]+sizeof(float)*tricount*3*3 + sizeof(int);
     ++n;
-    offset[n]=offset[n-1]+4*tricount + 4;
+    offset[n]=offset[n-1]+sizeof(int)*tricount*3 + sizeof(int);
     ++n;
-	//---------------------------------------------
+    //---------------------------------------------
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PolyData>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<tricount*3<<"\" NumberOfPolys=\""<<tricount<<"\">"<<endl;
+    mkdir("./REEF3D_NHFLOW_FORCING_VTP", 0777);
+
+    char path[300];
+    sprintf(path,"./REEF3D_NHFLOW_FORCING_VTP/REEF3D-NHFLOW-FORCING.vtp");
+
+    std::ofstream result;
+    result.open(path, std::ios::binary);
+
+    //---------------------------------------------
+
+    vtp3D::beginning(p, result, tricount*3, 0, 0, 0, tricount);
 
     n=0;
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Points>\n";
+    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"</Points>"<<endl;
+    result<<"</Points>\n";
 
-    result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    vtp3D::polys(result, offset, n);
 
-	result<<"</Polys>"<<endl;
+    vtp3D::ending(result);
 
-    result<<"</Piece>"<<endl;
-    result<<"</PolyData>"<<endl;
+    //----------------------------------------------------------------------------
+    int q,iin,m;
+    float ffn;
 
-//----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+    //  XYZ
+    iin=4*tricount*3*3;
+    result.write((char*)&iin, sizeof(int));
+    for(m=0;m<tricount;++m)
+    for(q=0;q<3;++q)
+    {
+        ffn=tri_x[m][q];
+        result.write((char*)&ffn, sizeof(float));
 
+        ffn=tri_y[m][q];
+        result.write((char*)&ffn, sizeof(float));
 
-//  XYZ
-	iin=4*tricount*3*3;
-	result.write((char*)&iin, sizeof (int));
-    for(n=0;n<tricount;++n)
-	for(q=0;q<3;++q)
-	{
-	ffn=tri_x[n][q];
-	result.write((char*)&ffn, sizeof (float));
+        ffn=tri_z[m][q];
+        result.write((char*)&ffn, sizeof(float));
+    }
 
-	ffn=tri_y[n][q];
-	result.write((char*)&ffn, sizeof (float));
-
-	ffn=tri_z[n][q];
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-//  Connectivity POLYGON
-	int count=0;
+    //  Connectivity POLYGON
+    int count=0;
     iin=4*tricount*3;
-    result.write((char*)&iin, sizeof (int));
-    for(n=0;n<tricount;++n)
-	for(q=0;q<3;++q)
-	{
-	iin=count;
-	result.write((char*)&iin, sizeof (int));
-	++count;
-	}
+    result.write((char*)&iin, sizeof(int));
+    for(m=0;m<tricount;++m)
+    for(q=0;q<3;++q)
+    {
+        iin=count;
+        result.write((char*)&iin, sizeof(int));
+        ++count;
+    }
 
-//  Offset of Connectivity
+    //  Offset of Connectivity
     iin=4*tricount;
-    result.write((char*)&iin, sizeof (int));
-	iin=0;
-	for(n=0;n<tricount;++n)
-	{
-	iin+= 3;
-	result.write((char*)&iin, sizeof (int));
-	}
+    result.write((char*)&iin, sizeof(int));
+    iin=0;
+    for(m=0;m<tricount;++m)
+    {
+        iin+= 3;
+        result.write((char*)&iin, sizeof(int));
+    }
 
-//  Cell types
-    iin=4*tricount;
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<tricount;++n)
-	{
-	iin=7;
-	result.write((char*)&iin, sizeof (int));
-	}
+    vtp3D::footer(result);
 
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
-
-	result.close();	
+    result.close();
 }
-
-
-

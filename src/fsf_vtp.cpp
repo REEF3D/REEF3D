@@ -46,7 +46,7 @@ void fsf_vtp::start(lexer *p, fdm *a, ghostcell *pgc)
 	triangulation(p,a,pgc,a->phi);
 	reconstruct(p,a,a->phi);
 	
-	print(p,a,pgc);
+	print(p,a);
 	++fsfprintcount;
 	
 	finalize(p,a);

@@ -20,11 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_VTU3D_H_
-#define NHFLOW_VTU3D_H_
+#ifndef PRINTER_NHFLOW_H_
+#define PRINTER_NHFLOW_H_
 
-#include"nhflow_printer.h"
+#include"printer.h"
 #include"increment.h"
+
+#include"vtks.h"
 
 class fdm_nhf;
 class ioflow;
@@ -51,35 +53,34 @@ class bedshear_max;
 
 using namespace std;
 
-class nhflow_vtu3D : public nhflow_printer, public increment
+class printer_nhflow : public printer, public increment
 {
 
 public:
-	nhflow_vtu3D(lexer*,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_vtu3D();
-	virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
-    virtual void print_vtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
-    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*);
-    
-private:
-    void pvtu(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
-    void name_iter(lexer*,ghostcell*);
-    void name_time(lexer*,ghostcell*);
-    void piecename(lexer*,ghostcell*, int);
+    printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    virtual ~printer_nhflow() = default;
+    void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override;
+    void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override;
 
-    char name[200],pname[200],epsvar[200];
+private:
+    void print(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
+    void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*,int);
+
+    vtk3D *outputFormat;
+    bool initial_print = true;
+    size_t file_offset = 0;
+
+    char name[200];
     int n,iin,offset[200];
     float ffn;
     int jj;
     int gcval_phi,gcval_phiext;
-	double *printtime_wT;
+    double *printtime_wT;
     double *printfsftime_wT;
     int *printfsfiter_wI;
-    double phase;
-    double zcoor;
-    
+
     int printcount;
-    
+
     nhflow_print_wsf *pwsf;
     nhflow_print_wsf_theory *pwsf_theory;
     nhflow_print_wsfline *pwsfline;
@@ -96,8 +97,7 @@ private:
     nhflow_print_Hs *phs;
     nhflow_force **pforce;
     nhflow_force_ale **pforce_ale;
-    
+
 };
 
 #endif
-

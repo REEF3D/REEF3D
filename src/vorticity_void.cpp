@@ -30,19 +30,19 @@ vorticity_void::~vorticity_void()
 {
 }
 
-void vorticity_void::print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result)
+void vorticity_void::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
 }
 
-void vorticity_void::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void vorticity_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }
 
-void vorticity_void::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void vorticity_void::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
 }
 
-void vorticity_void::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void vorticity_void::offset_ParaView(lexer *p, int *offset, int &n)
 {
 }
 

@@ -23,30 +23,39 @@ Author: Hans Bihs
 #ifndef PRINTER_H_
 #define PRINTER_H_
 
-class fdm;
+#include<vector>
+#include<cstddef>
+
 class lexer;
+class fdm;
+class fdm_nhf;
+class fdm_fnpf;
 class ghostcell;
-class field;
 class turbulence;
+class nhflow_turbulence;
 class heat;
 class ioflow;
-class solver;
 class expdata;
 class concentration;
 class multiphase;
 class sediment;
 
-using namespace std;
-
 class printer
 {
 public:
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*)=0;
-    
-    virtual void print_vtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*)=0;
-    
-    virtual void print_stop(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,multiphase*,sediment*)=0;
+    // CFD
+    virtual void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*){};
+    virtual void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*){};
+    // NHFLOW
+    virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*){};
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*){};
+    // FNPF
+    virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*){};
+    virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*){};
+protected:
+    void writeFile(const char*, const size_t);
 
+    std::vector<char> buffer;
 };
 
 #endif

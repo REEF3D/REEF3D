@@ -30,7 +30,6 @@ class solver;
 class ghostcell;
 class ioflow;
 class reini;
-class printer;
 class field;
 
 #include"multiphase.h"
@@ -43,11 +42,11 @@ class multiphase_v : public multiphase
 public:
 	multiphase_v();
 	virtual ~multiphase_v();
-	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*,printer*);
-	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,printer*,convection*,solver*);
+	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*);
+	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*);
 	virtual void update(lexer*,fdm*,ghostcell*);
 	
-	virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+	virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
 	virtual void print_file(lexer*, fdm*, ghostcell*);
     virtual double ls1val(int,int,int);
     virtual double ls2val(int,int,int);
@@ -56,9 +55,9 @@ public:
     virtual void ls1get(int,int,int,double);
     virtual void ls2get(int,int,int,double);
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_ParaView_parallel(lexer*, ofstream&);
+    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &);
+    virtual void offset_ParaView(lexer*, int*, int &);
 };
 
 #endif

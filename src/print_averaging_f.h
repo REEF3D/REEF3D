@@ -41,10 +41,10 @@ public:
     
     virtual void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*);
     
-    virtual void name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result);
-    virtual void name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n);
-    virtual void offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n);
-    virtual void print_3D(lexer* p, fdm *a, ghostcell *pgc, ofstream &result);
+    virtual void name_ParaView_parallel(lexer *p, ofstream &result);
+    virtual void name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n);
+    virtual void offset_ParaView(lexer *p, int *offset, int &n);
+    virtual void print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char>&, size_t&);
 
 
 private:

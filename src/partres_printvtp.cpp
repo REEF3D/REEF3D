@@ -55,8 +55,10 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
     if(P.Flag[n]>0)
         numpt++;
 
+    int num = printcount;
+
     if(p->mpirank==0)
-        pvtp(p);
+        pvtp(p,num);
 
     int n=0;
     int offset[100];
@@ -122,21 +124,13 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
     ++n;
     result<<"</PointData>\n";
 
-    result<<"<Points>\n";
-    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Points>\n";
+    vtp3D::points(result,offset,n);
 
-    result<<"<Verts>\n";
-    result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-    ++n;
-    result<<"</Verts>\n";
+    vtp3D::verts(result,offset,n);
 
-    result<<"</Piece>\n";
-    result<<"</PolyData>\n";
-    result<<"<AppendedData encoding=\"raw\">\n_";
+    vtp3D::ending(result);
+
+    //----------------------------------------------------------------------------
 
     size_t m=result.str().length();
 
@@ -288,7 +282,7 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
         }
 
     std::stringstream footer;
-    footer<<"\n</AppendedData>\n</VTKFile>"<<std::flush;
+    vtp3D::footer(footer);
     std::memcpy(&buffer[m],footer.str().data(),footer.str().size());
 
     char filename[200];

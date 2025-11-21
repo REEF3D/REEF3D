@@ -20,24 +20,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_vtp_fsf.h"
+#include"directreini.h"
 #include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include<string>
 
-void nhflow_vtp_fsf::name_iter(lexer *p, fdm_nhf *d, ghostcell* pgc)
-{	
-    int num=0;
+void directreini::pvtp(lexer* p, int num)
+{
+    sprintf(name,"./REEF3D_FSF/REEF3D-FSF-%08i.vtp",num);
 
-    if(p->P15==1)
-    num = printcount;
+    ofstream result;
+    result.open(name);
 
-    if(p->P15==2)
-    num = p->count;
+    vtp3D::beginningParallel(p,result);
 
+    vtp3D::pointsParallel(result);
 
-    sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,p->mpirank+1);
+    char pname[200];
+    for(n=0; n<p->M10; ++n)
+    {
+        sprintf(pname,"REEF3D-FSF-%08i-%06i.vtp",num,n+1);
+        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+    }
 
+    vtp3D::endingParallel(result);
+
+    result.close();
 }
-

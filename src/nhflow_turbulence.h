@@ -33,6 +33,8 @@ class ioflow;
 class vrans;
 
 #include<fstream>
+#include<sstream>
+#include<vector>
 
 using namespace std;
 
@@ -48,7 +50,7 @@ public:
 	virtual void ksource(lexer*,fdm_nhf*)=0;
 
 	virtual void print_2D(lexer*, fdm_nhf*, ghostcell*,ofstream&,int)=0;
-    virtual void print_3D(lexer*, fdm_nhf*, ghostcell*,ofstream&)=0;
+    virtual void print_3D(lexer*, fdm_nhf*, ghostcell*,std::vector<char>&, size_t&)=0;
     virtual void ini(lexer*, fdm_nhf*, ghostcell*)=0;
     virtual double kinval(int,int,int)=0;
     virtual double epsval(int,int,int)=0;
@@ -60,15 +62,15 @@ public:
     virtual void kinget(int,int,int,double)=0;
     virtual void epsget(int,int,int,double)=0;
 
-    virtual void name_pvtu(lexer*, fdm_nhf*, ghostcell*,ofstream&)=0;
-    virtual void name_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtu(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &)=0;
-    
+    virtual void name_ParaView_parallel(lexer*, ofstream&)=0;
+    virtual void name_ParaView(lexer*, stringstream&, int*, int &)=0;
+    virtual void offset_ParaView(lexer*, int*, int &)=0;
+
     virtual void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&)=0;
     virtual void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &)=0;
-    virtual void offset_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &)=0;
-	
-	double uref;
+    virtual void offset_ParaView_2D(lexer*, int*, int &)=0;
+
+    double uref;
 };
 
 #endif

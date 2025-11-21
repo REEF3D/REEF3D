@@ -20,12 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef PRINT_INTERFACE_H_
-#define PRINT_INTERFACE_H_
+#ifndef PRINTER_CFD_H_
+#define PRINTER_CFD_H_
 
 #include"printer.h"
 #include"increment.h"
 #include"field5.h"
+
+#include"vtks.h"
 
 class turbulence;
 class heat;
@@ -38,64 +40,70 @@ class print_wsfline_x;
 class print_wsfline_y;
 class force;
 class vorticity;
-class solver;
 class probe_point;
+class probe_pressure;
 class probe_line;
-class bedprobe_point;
-class bedprobe_max;
 class gage_discharge_x;
+class gage_discharge_window_x;
 class fsf_vtp;
-class state;
-class bedshear_probe;
+class topo_vtp;
+class cfd_state;
 class sloshing_force;
 class print_porous;
+class probe_vel;
+class probe_vel_theory;
+class exportfile;
+class flowfile_out;
+class print_averaging;
 
 using namespace std;
 
-class print_interface : public printer, public increment
+class printer_CFD : public printer, public increment
 {
 
 public:
-	print_interface(lexer*,fdm*,ghostcell*);
-	virtual ~print_interface();
-	virtual void start(fdm*,lexer*,ghostcell*,turbulence*,heat*,ioflow*,solver*,expdata*,concentration*,sediment*);
-	
+    printer_CFD(lexer*,fdm*,ghostcell*);
+    virtual ~printer_CFD() = default;
+    void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override;
+    void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override;
 
 private:
-    void print3D(fdm*,lexer*,ghostcell*,turbulence*,heat*,solver*,expdata*,concentration*,sediment*);
-    void pvtu(fdm*,lexer*,ghostcell*,turbulence*,heat*,expdata*,concentration*,sediment*);
-    void header(fdm*,lexer*,ghostcell*);
-    void name_iter(fdm*,lexer*,ghostcell*);
-    void name_time(fdm*,lexer*,ghostcell*);
-    void piecename(fdm*,lexer*,ghostcell*, int);
-	void ggcfacet_fill(lexer*,fdm*,ghostcell*,field&);
+    void print3D(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);
+    void parallel(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*,int);
 
-    char name[200],pname[200],epsvar[200];
-    int n,iin,offset[200];
+    vtk3D *outputFormat;
+    bool initial_print = true;
+    size_t file_offset = 0;
+
+    char name[200];
+    int n,iin,offset[300];
     float ffn;
-    int gcval_phi,gcval_phiext;
-	double *printtime_wT;
-    double phase;
-	
-	field5 eta;
+    double *printtime_wT;
+    double *printfsftime_wT;
 
     print_wsf *pwsf;
-	print_wsf_theory *pwsf_theory;
+    print_wsf_theory *pwsf_theory;
     print_wsfline_x *pwsfline_x;
-	print_wsfline_y *pwsfline_y;
-
+    print_wsfline_y *pwsfline_y;
+    force **pforce;
     vorticity *pvort;
-	probe_point *pprobe;
+    probe_point *pprobe;
+    probe_pressure *ppressprobe;
 	probe_line *pline;
-	bedprobe_point *pbedpt;
-	bedprobe_max *pbedmax;
-	bedshear_probe *pbedshear;
+	
 	gage_discharge_x *pq;
-	fsf_vtp *pfsf;
-	state *pstate;
+    gage_discharge_window_x *pqw;
+    fsf_vtp *pfsf;
+    topo_vtp *ptopo;
+    cfd_state *pstate;
+    cfd_state *pstate_restart;
     sloshing_force *pslosh;
-	print_porous *ppor;
+    print_porous *ppor;
+    exportfile *pexport;
+    flowfile_out *pflowfile;
+    print_averaging *pmean;
+    probe_vel *pvel;
+    probe_vel_theory *pveltheo;
 };
 
 #endif
-

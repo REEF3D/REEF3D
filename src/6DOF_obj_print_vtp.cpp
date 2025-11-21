@@ -20,160 +20,119 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include<sys/stat.h>
-#include<iostream>
 #include<fstream>
 #include"6DOF_obj.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 {
     // print normals
-    //print_normals_vtp(p,pgc);
-    
-    
-	int num=0;
-    int printflag=0;
-	
-	if(p->P15==1)
-    num = p->printcount_sixdof;
+    // print_normals_vtp(p,pgc);
 
-    if(p->P15==2)
-    num = p->count;
-	
-	if(num<0)
-	num=0;
+    bool printflag=false;
 
-    if(((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || (p->count==0 && p->P35==0))
-    printflag=1;
-    
+    if(((p->count%p->P20==0) && p->P30<0.0) || (p->simtime>printtime && p->P30>0.0) || (p->count==0 && p->P35==0))
+        printflag=true;
+
     if(p->P35>0)
     for(int qn=0; qn<p->P35; ++qn)
     if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
     {
-    printflag=1;
-    
-    printtime_wT[qn]+=p->P35_dt[qn];
+        printflag=true;
+
+        printtime_wT[qn]+=p->P35_dt[qn];
     }
-    
-    if(p->mpirank==0 && printflag==1)
+
+    if(p->mpirank==0 && printflag)
     {
         printtime+=p->P30;
-        
-        char path[300];
-        
-        if(p->A10==2)
-        sprintf(path,"./REEF3D_SFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
-        
-        if(p->A10==5)
-        sprintf(path,"./REEF3D_NHFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
-        
-        if(p->A10==6)
-        sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
-        
 
+        int num=0;
+        if(p->P15==1)
+            num = p->printcount_sixdof;
+        if(p->P15==2)
+            num = p->count;
+        if(num<0)
+            num=0;
+
+        char path[300];
+        if(p->A10==2)
+            sprintf(path,"./REEF3D_SFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
+        else if(p->A10==5)
+            sprintf(path,"./REEF3D_NHFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
+        else if(p->A10==6)
+            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
 
         ofstream result;
         result.open(path, ios::binary);
 
-    // ---------------------------------------------------
-    n=0;
+        // ---------------------------------------------------
+        n=0;
+        offset[n]=0;
+        ++n;
 
-	offset[n]=0;
-	++n;
+        offset[n]=offset[n-1]+sizeof(float)*tricount*3*3 + sizeof(int);
+        ++n;
+        offset[n]=offset[n-1]+sizeof(int)*tricount*3 + sizeof(int);
+        ++n;
+        offset[n]=offset[n-1]+sizeof(int)*tricount + sizeof(int);
+        ++n;
+        //---------------------------------------------
 
-    offset[n]=offset[n-1]+4*tricount*3*3 + 4;
-    ++n;
-    offset[n]=offset[n-1]+4*tricount*3 + 4;
-    ++n;
-    offset[n]=offset[n-1]+4*tricount + 4;
-    ++n;
-	//---------------------------------------------
+        vtp3D::beginning(p, result, tricount*3, 0, 0, 0, tricount);
 
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PolyData>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<tricount*3<<"\" NumberOfPolys=\""<<tricount<<"\">"<<endl;
+        n=0;
+        vtp3D::points(result, offset, n);
 
-    n=0;
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-    result<<"</Points>"<<endl;
+        vtp3D::polys(result, offset, n);
 
-    result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-    ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
-	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+        vtp3D::ending(result);
 
-	result<<"</Polys>"<<endl;
+        //----------------------------------------------------------------------------
 
-    result<<"</Piece>"<<endl;
-    result<<"</PolyData>"<<endl;
+        //  XYZ
+        iin=sizeof(float)*tricount*3*3;
+        result.write((char*)&iin, sizeof(int));
+        for(n=0;n<tricount;++n)
+        for(q=0;q<3;++q)
+        {
+            ffn=tri_x[n][q];
+            result.write((char*)&ffn, sizeof(float));
 
-//----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+            ffn=tri_y[n][q];
+            result.write((char*)&ffn, sizeof(float));
 
+            ffn=tri_z[n][q];
+            result.write((char*)&ffn, sizeof(float));
+        }
 
-//  XYZ
-	iin=4*tricount*3*3;
-	result.write((char*)&iin, sizeof (int));
-    for(n=0;n<tricount;++n)
-	for(q=0;q<3;++q)
-	{
-	ffn=tri_x[n][q];
-	result.write((char*)&ffn, sizeof (float));
+        //  Connectivity POLYGON
+        int count=0;
+        iin=sizeof(int)*tricount*3;
+        result.write((char*)&iin, sizeof(int));
+        for(n=0;n<tricount;++n)
+        for(q=0;q<3;++q)
+        {
+            iin=count;
+            result.write((char*)&iin, sizeof(int));
+            ++count;
+        }
 
-	ffn=tri_y[n][q];
-	result.write((char*)&ffn, sizeof (float));
+        //  Offset of Connectivity
+        iin=sizeof(int)*tricount;
+        result.write((char*)&iin, sizeof(int));
+        iin=0;
+        for(n=0;n<tricount;++n)
+        {
+            iin+= 3;
+            result.write((char*)&iin, sizeof(int));
+        }
 
-	ffn=tri_z[n][q];
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-//  Connectivity POLYGON
-	int count=0;
-    iin=4*tricount*3;
-    result.write((char*)&iin, sizeof (int));
-    for(n=0;n<tricount;++n)
-	for(q=0;q<3;++q)
-	{
-	iin=count;
-	result.write((char*)&iin, sizeof (int));
-	++count;
-	}
+        vtp3D::footer(result);
 
-//  Offset of Connectivity
-    iin=4*tricount;
-    result.write((char*)&iin, sizeof (int));
-	iin=0;
-	for(n=0;n<tricount;++n)
-	{
-	iin+= 3;
-	result.write((char*)&iin, sizeof (int));
-	}
+        result.close();
 
-//  Cell types
-    iin=4*tricount;
-    result.write((char*)&iin, sizeof (int));
-	for(n=0;n<tricount;++n)
-	{
-	iin=7;
-	result.write((char*)&iin, sizeof (int));
-	}
-
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
-
-	result.close();	
-
-        ++p->printcount_sixdof;	
+        ++p->printcount_sixdof;
     }
 }
-
-
-

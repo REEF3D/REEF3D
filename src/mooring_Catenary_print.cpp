@@ -64,7 +64,7 @@ void mooring_Catenary::print(lexer *p)
 		
 		result << "# vtk DataFile Version 2.0" << endl;
 		result << "Mooring line " << line << endl;
-		result << "ASCII \nDATASET UNSTRUCTURED_GRID" << endl;
+		result << "ASCII \nDATASET POLYDATA" << endl;
 		result << "POINTS " << H << " float" <<endl;
 
 		for (int n = 0; n < H; ++n)
@@ -72,19 +72,12 @@ void mooring_Catenary::print(lexer *p)
 			result<<x[n]<<" "<<y[n]<<" "<<z[n]<<endl;
 		}
 		
-		result << "\nCELLS " << H-1 << " " << (H-1)*3 <<endl;	
+		result << "\nLINES " << H-1 << " " << (H-1)*3 <<endl;	
 		
 		for(int n = 0; n < (H-1); ++n)
 		{
 			result<<"2 "<< n << " " << n+1 << endl;
 		}
-		
-		result << "\nCELL_TYPES " << H-1 << endl;	
-		
-		for(int n = 0; n < (H-1); ++n)
-		{
-			result<<"3"<<endl;
-		}	
 
 		result<<"\nPOINT_DATA " << H <<endl;
 		result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;

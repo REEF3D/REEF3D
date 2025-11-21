@@ -22,92 +22,42 @@ Author: Hans Bihs
 
 #include"nhflow_vtp_bed.h"
 #include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
 #include"sediment.h"
 
-void nhflow_vtp_bed::pvtu(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
-{	
-	int num=0;
-
-    if(p->P15==1)
-    num = printcount;
-
-    if(p->P15==2)
-    num = p->count;
-	
-	sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%08i.pvtp",num);
-
-
-	ofstream result;
-	result.open(name);
-
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
-    
-    if(p->P16==1)
-    {
-    result<<"<FieldData>"<<endl;
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
-    }
-	
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
-	
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>"<<endl;
-    
-    if(p->P76==1)
-	psed->name_pvtu_bedload(p,pgc,result);
-    
-    if(p->P77==1)
-	psed->name_pvtu_parameter1(p,pgc,result);
-
-    if(p->P78==1)
-	psed->name_pvtu_parameter2(p,pgc,result);
-
-	if(p->P79>=1)
-	psed->name_pvtu_bedshear(p,pgc,result);
-    
-    if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
-	
-	result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
-	result<<"</Polys>"<<endl;
-
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(p,d,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
-	}
-
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
-
-	result.close();
-
-}
-
-void nhflow_vtp_bed::piecename(lexer *p, fdm_nhf *d, ghostcell *pgc, int n)
+void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
 {
-    int num=0;
+    sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%08i.pvtp",num);
 
+    ofstream result;
+    result.open(name);
 
-    if(p->P15==1)
-    num = printcount;
+    vtp3D::beginningParallel(p,result);
 
-    if(p->P15==2)
-    num = p->count;
+    vtp3D::pointsParallel(result);
 
-	sprintf(pname,"REEF3D-NHFLOW-BED-%08i-%06i.vtp",num,n+1);
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>\n";
+    if(p->P76==1)
+        psed->name_ParaView_parallel_bedload(p,result);
+    if(p->P77==1)
+        psed->name_ParaView_parallel_parameter1(p,result);
+    if(p->P78==1)
+        psed->name_ParaView_parallel_parameter2(p,result);
+    if(p->P79>=1)
+        psed->name_ParaView_parallel_bedshear(p,result);
+    if(p->P23==1)
+        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    result<<"</PPointData>\n";
 
+    char pname[200];
+    for(n=0; n<p->M10; ++n)
+    {
+        sprintf(pname,"REEF3D-NHFLOW-BED-%08i-%06i.vtp",num,n+1);
+        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+    }
+
+    vtp3D::endingParallel(result);
+
+    result.close();
 }

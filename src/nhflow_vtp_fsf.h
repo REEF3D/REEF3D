@@ -24,51 +24,37 @@ Author: Hans Bihs
 #define NHFLOW_VTP_FSF_H_
 
 #include"increment.h"
+#include"vtp3D.h"
 #include<fstream>
 
 class lexer;
 class fdm_nhf;
 class ghostcell;
-class ioflow;
 class sediment;
 
 using namespace std;
 
-class nhflow_vtp_fsf : public increment
+class nhflow_vtp_fsf : public increment, private vtp3D
 {
 public:
-	nhflow_vtp_fsf(lexer*,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_vtp_fsf();
-	
-    virtual void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
-    virtual void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    nhflow_vtp_fsf(lexer*,fdm_nhf*,ghostcell*);
+    virtual ~nhflow_vtp_fsf() = default;
+
+    void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
     void preproc(lexer*,fdm_nhf*,ghostcell*);
-	
+
 private:
-	
-	void etend(lexer*,fdm_nhf*,ghostcell*);
-	void pvtu(lexer*,fdm_nhf*,ghostcell*,sediment*);
-	void name_iter(lexer*,fdm_nhf*,ghostcell*);
-    void piecename(lexer*,fdm_nhf*,ghostcell*,int);
-	
-	
-	char name[200],pname[200];
-    int n,iin,offset[200];
-    float ffn;
-	double ddn;
-    
-	double xs_local,ys_local,zs_local,xe_local,ye_local,ze_local;
-	double xs_global,ys_global,zs_global,xe_global,ye_global,ze_global;
-    
+    void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    void pvtp(lexer*,int);
+
+    char name[200];
+    int n,offset[200];
+
     int gcval_eta, gcval_fifsf;
     int printcount;
     int jj;
-    
-    int *wetmax;
-    
-    ofstream pvdout;
-	
 
+    int *wetmax;
 };
 
 #endif

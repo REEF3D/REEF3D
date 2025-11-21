@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"fieldint4.h"
 #include"fieldint5.h"
 #include"field4.h"
+#include"vtp3D.h"
 
 class picard;
 class fieldint;
@@ -36,73 +37,68 @@ class vec;
 
 using namespace std;
 
-class directreini : public reini, gradient, public resize_class
+class directreini : public reini, gradient, public resize_class, private vtp3D
 {
 public:
-	directreini(lexer* p, fdm *a);
-	virtual ~directreini();
-	virtual void start(fdm*,lexer*,field&, ghostcell*,ioflow*);
+    directreini(lexer* p, fdm *a);
+    virtual ~directreini();
+    virtual void start(fdm*,lexer*,field&, ghostcell*,ioflow*);
     virtual void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
-	
-	virtual void vtp(lexer*,fdm*,ghostcell*);
-	virtual void name_iter(lexer*,fdm*,ghostcell*);
-	virtual void pvtp(lexer*,fdm*,ghostcell*);
-	virtual void piecename(lexer*,fdm*,ghostcell*,int);
 
-	double dstx, dsty, dstz, dnorm, sign;
-	double sx,sy,sz,snorm,op;
-	
-	char name[200],pname[200],epsvar[200];
-    int iin,offset[200];
-    float ffn;
+    double dstx, dsty, dstz, dnorm, sign;
+    double sx,sy,sz,snorm,op;
 
 private:
+    void vtp(lexer*);
+    void pvtp(lexer*,int);
+    char name[200];
+    int offset[200];
     fieldint5 vertice, nodeflag;
-	
-	field4 d0;
-	fieldint4 wallf;
+
+    field4 d0;
+    fieldint4 wallf;
 
     picard *ppicard;
     reini *ppreini;
 
-	void triangulation(lexer*, fdm*, field&, fieldint&, fieldint&);
-	void reconstruct(lexer*, fdm*, field&, fieldint&, fieldint&);
-	void reini(lexer*, fdm*, ghostcell*, field&, fieldint&, fieldint&);
-	void finalize(lexer *p, fdm*);
-	void debug(lexer*,fdm*);
-	
-	void constraint(lexer *p, fdm*, ghostcell*, field&);
-	void correction(lexer *p, fdm*, ghostcell*, field&);
+    void triangulation(lexer*, fdm*, field&, fieldint&, fieldint&);
+    void reconstruct(lexer*, fdm*, field&, fieldint&, fieldint&);
+    void reini(lexer*, fdm*, ghostcell*, field&, fieldint&, fieldint&);
+    void finalize(lexer *p, fdm*);
+    void debug(lexer*,fdm*);
 
-	
-	double determinant(double,double,double,double,double,double,double,double,double,
+    void constraint(lexer *p, fdm*, ghostcell*, field&);
+    void correction(lexer *p, fdm*, ghostcell*, field&);
+
+
+    double determinant(double,double,double,double,double,double,double,double,double,
                         double,double,double,double,double,double,double);
 
 
-	double sg(double);
+    double sg(double);
 
-	void addpoint(lexer*,fdm*,int,int);
+    void addpoint(lexer*,fdm*,int,int);
 
-	double starttime,endtime;
+    double starttime,endtime;
 
-	int **tri, **facet, *confac, *numfac, **ijk, *reiniflag;
-	double **ccpt, **pt, *ls, *lsfac,*lsvert;
-	double  *ls1,*ls0, dV1,dV2,C1,C2,mi,eta;
-	int numtri,numvert, numtri_mem, numvert_mem;
-	int count,countM,n,nn,q;
+    int **tri, **facet, *confac, *numfac, **ijk, *reiniflag;
+    double **ccpt, **pt, *ls, *lsfac,*lsvert;
+    double  *ls1,*ls0, dV1,dV2,C1,C2,mi,eta;
+    int numtri,numvert, numtri_mem, numvert_mem;
+    int count,countM,n,nn,q;
 
-	int ccptcount,facount,check;
-	
-	int polygon_sum,polygon_num,vertice_num;
+    int ccptcount,facount,check;
 
-	int gcval_phi,gcval_ro,gcval_iniphi,reiniter;
-	const double epsi,zero;
-	
-	double H,H0,grad,dT,dirac;
-	double lambda1,lambda2,dV,dval,Cs;
-	void wallf_update(lexer*,fdm*,ghostcell*);
-	
-	double dx,dy,dz;
+    int polygon_sum,polygon_num,vertice_num;
+
+    int gcval_phi,gcval_ro,gcval_iniphi,reiniter;
+    const double epsi,zero;
+
+    double H,H0,grad,dT,dirac;
+    double lambda1,lambda2,dV,dval,Cs;
+    void wallf_update(lexer*,fdm*,ghostcell*);
+
+    double dx,dy,dz;
 };
 
 #endif
