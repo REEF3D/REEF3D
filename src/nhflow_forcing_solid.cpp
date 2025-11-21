@@ -34,95 +34,52 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     uf=vf=wf=0.0;
     
+    if(p->A517==0)
     LOOP
     {
         H = Hsolidface(p,d,0,0,0);
-        
-        /*
-        efc = 0.0;
-        
-        if(d->SOLID[IJK]<0.0)
-        {
-            efc = 0.0;
-            
-            if(d->SOLID[Im1JK]>0.0)   
-            efc+=1.0;
-            
-            if(d->SOLID[Ip1JK]>0.0)    
-            efc+=1.0;
-
-            if(d->SOLID[IJm1K]>0.0 && p->j_dir==1) 
-            efc+=1.0;
-            
-            if(d->SOLID[IJp1K]>0.0 && p->j_dir==1)    
-            efc+=1.0;
-            
-            if(d->SOLID[IJKm1]>0.0)   
-            efc+=1.0;
-            
-            if(d->SOLID[IJKp1]>0.0)    
-            efc+=1.0;
-        }*/
-        
-        //if(efc>0.1)
-        //{
+       
         FX[IJK] += H*(uf - U[IJK])/(alpha*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha*p->dt);
         
         d->FHB[IJK] = min(d->FHB[IJK] + H, 1.0); 
-        //}
+    }
+    
+    if(p->A517==1)
+    LOOP
+    {
+        H = Hsolidface(p,d,0,0,0);
+        
+        d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
+        
+    // Normal vectors calculation 
+		nx = -(d->SOLID[Ip1JK] - d->SOLID[Im1JK])/(p->DXN[IP] + p->DXN[IM1]);
+		ny = -(d->SOLID[IJp1K] - d->SOLID[IJm1K])/(p->DYN[JP] + p->DYN[JM1]);
+		nz = -(d->SOLID[IJKp1] - d->SOLID[IJKm1])/(p->DZN[KP]*WL(i,j) + p->DZN[KM1]*WL(i,j));
+
+		norm = sqrt(nx*nx + ny*ny + nz*nz);
+                
+		nx /= norm > 1.0e-20 ? norm : 1.0e20;
+		ny /= norm > 1.0e-20 ? norm : 1.0e20;
+		nz /= norm > 1.0e-20 ? norm : 1.0e20;
+        
+        
+        if(d->SOLID[IJK]<=0.0)
+        {
+        FX[IJK] += H*(uf - U[IJK])/(alpha*p->dt);
+        FY[IJK] += H*(vf - V[IJK])/(alpha*p->dt);
+        FZ[IJK] += H*(wf - W[IJK])/(alpha*p->dt);
+        }
+
+        if(d->SOLID[IJK]>0.0)
+        {
+        FX[IJK] += fabs(nx)*H*(uf - U[IJK])/(alpha*p->dt);
+        FY[IJK] += fabs(ny)*H*(vf - V[IJK])/(alpha*p->dt);
+        FZ[IJK] += fabs(nz)*H*(wf - W[IJK])/(alpha*p->dt);
+        }
+    
     }
     
     pgc->start5V(p,d->FHB,50);
-    
-    
-    k=p->knoz-1;
-    /*
-    SLICELOOP4
-    {
-    H = Hsolidface(p,d,0,0,0);
-    
-    ef = d->depth(i,j);
-    
-    
-    if(d->SOLID[IJK]<0.0)
-    {
-        ef = 0.0;
-        efc = 0.0;
-        
-        if(d->SOLID[Im1JK]>0.0)   
-        {
-        ef += WL(i-1,j);
-        efc+=1.0;
-        }
-        
-        if(d->SOLID[Ip1JK]>0.0)    
-        {
-        ef += WL(i+1,j);
-        efc+=1.0;
-        }
-
-        if(d->SOLID[IJm1K]>0.0 && p->j_dir==1) 
-        {
-        ef += WL(i,j-1);
-        efc+=1.0;
-        }
-        
-        if(d->SOLID[IJp1K]>0.0 && p->j_dir==1)    
-        {
-        ef += WL(i,j+1);
-        efc+=1.0;
-        }
-        
-    if(efc>0.1)
-    ef = ef/efc;
-    
-    if(efc<0.1)
-    ef = d->depth(i,j);
-    }
-    
-    //if(efc>0.1 && d->SOLID[IJK]<0.0)
-    fe(i,j) += H*(ef - WL(i,j))/(alpha*p->dt);
-    }*/
 }

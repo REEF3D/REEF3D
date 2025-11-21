@@ -95,22 +95,14 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
      pgc->start3(p,a->fbh3,12);
      pgc->start4(p,a->fbh4,40);
 
-    // Print initial body 
-    if(p->X50==1)
-    print_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_stl(p,pgc);
-
 	// Mooring
 	if(p->X310==0)
 	{
 		pmooring.push_back(new mooring_void());
 	}
-    
 	else
 	{
-		MPI_Bcast(&p->mooring_count,1,MPI_DOUBLE,0,pgc->mpi_comm);	
+		pgc->bcast_int(&p->mooring_count,1);	
 
 		Xme.resize(p->mooring_count);
 		Yme.resize(p->mooring_count);
@@ -166,6 +158,12 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     Mne.resize(p->net_count);
     Nne.resize(p->net_count);
     }
+
+    // Print initial body 
+    if(p->X50==1)
+        print_vtp(p,pgc);
+    else if(p->X50==2)
+        print_stl(p,pgc);
     
     // ghostcell update
     pgc->gcdf_update(p,a);
@@ -189,12 +187,12 @@ void sixdof_obj::ini_parallel(lexer *p, ghostcell *pgc)
     
     for (int i = 0; i < p->mpi_size; i++)
     {
-        MPI_Bcast(&xstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&xend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&ystart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&yend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&zstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-        MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
+        pgc->bcast_double(&xstart[i],1,i);
+        pgc->bcast_double(&xend[i],1,i);
+        pgc->bcast_double(&ystart[i],1,i);
+        pgc->bcast_double(&yend[i],1,i);
+        pgc->bcast_double(&zstart[i],1,i);
+        pgc->bcast_double(&zend[i],1,i);
     }
 }    
 

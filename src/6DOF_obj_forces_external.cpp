@@ -79,12 +79,12 @@ void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
         Nme[ii] = (p->X311_xe[ii] - c_(0))*Yme[ii] - (p->X311_ye[ii] - c_(1))*Xme[ii];
             
         // Distribute forces and moments to all processors
-        MPI_Bcast(&Xme[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Yme[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Zme[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Kme[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Mme[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);
-        MPI_Bcast(&Nme[ii],1,MPI_DOUBLE,0,pgc->mpi_comm);	
+        pgc->bcast_double(&Xme[ii],1);
+        pgc->bcast_double(&Yme[ii],1);
+        pgc->bcast_double(&Zme[ii],1);
+        pgc->bcast_double(&Kme[ii],1);
+        pgc->bcast_double(&Mme[ii],1);
+        pgc->bcast_double(&Nme[ii],1);	
         
         // Add to external forces
         Xext += Xme[ii];

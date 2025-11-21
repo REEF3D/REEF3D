@@ -76,7 +76,7 @@ void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
 		
 		result << "# vtk DataFile Version 2.0" << endl;
 		result << "Mooring line " << line << endl;
-		result << "ASCII \nDATASET UNSTRUCTURED_GRID" << endl;
+		result << "ASCII \nDATASET POLYDATA" << endl;
 		result << "POINTS " << sigma+2 << " float" <<endl;
 		
 		for(int n=0; n<sigma+2; ++n)
@@ -84,18 +84,11 @@ void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
 			result<<x[n]<<" "<<y[n]<<" "<<z[n]<<endl;
 		}
 		
-		result << "\nCELLS " << sigma+1 << " " << (sigma+1)*3 <<endl;	
+		result << "\nLINES " << sigma+1 << " " << (sigma+1)*3 <<endl;	
 		
 		for(int n=0; n<sigma+1; ++n)
 		{
 			result<<"2 "<< n << " " << n+1 << endl;
-		}
-		
-		result << "\nCELL_TYPES " << sigma+1 << endl;	
-		
-		for(int n=0; n<sigma+1; ++n)
-		{
-			result<<"3"<<endl;
 		}	
 
 		result<<"\nPOINT_DATA " << sigma+2 <<endl;

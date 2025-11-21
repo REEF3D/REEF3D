@@ -26,13 +26,14 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class field;
 
 class rheology 
 {
 
 public:
     virtual ~rheology() = default;
-    virtual double viscosity(lexer*,fdm*,ghostcell*)=0;
+    virtual double viscosity(lexer*,fdm*,ghostcell*, field&, field&, field&)=0;
     
     virtual void u_source(lexer*,fdm*)=0;
     virtual void v_source(lexer*,fdm*)=0;

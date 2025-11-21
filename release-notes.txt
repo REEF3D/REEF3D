@@ -1,4 +1,34 @@
 
+25.11
+x optimized paraview file printing
+x added multiple build tragets
+x moved grid files to folder
+x upgraded to C++17
+x added optimized parallel grid communication
+x updated makefile for optimized linking 
+x updated docker file
+x fixed mooring forces output (NHFLOW)
+x fixed initial print for mooring lines & nets
+x added momentum_FCLS3 (CFD)
+x updated coastline algorithm (FNPF)
+x updated wetting and drying (FNPF)
+x updated sediment transport algorithm (CFD)
+x fixed a wave relaxation bug (CFD)
+x optimized solver setups (FNPF, NHFLOW, CFD)
+x updated vertical velocity calculation (FNPF)
+x changed default to momentum-free surface coupled RK (CFD)
+x removed all Adams-Bashforth schemes (CFD)
+x optimized coastline initialization (FNPF)
+x updated rheology (CFD)
+x updated fluid update (CFD)
+x added ke-epsilon turbulence model (NHFLOW)
+x updated implicit diffusion (NHFLOW)
+x updated implicit diffusion (CFD)
+x updated TMA wave spectrum
+x fixed explicit diffusion (NHFLOW)
+x updated pressure correction method (NHFLOW)
+x updated direct forcing (NHFLOW)
+
 25.07
 x added water level influence on free surface turbulence damping (CFD)
 x updated wetting and drying for non-hydrostastic pressure (SFLOW)

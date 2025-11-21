@@ -40,6 +40,10 @@ nhflow_reconstruct_weno::~nhflow_reconstruct_weno()
 
 void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
 {
+    uf=1;
+    vf=0;
+    wf=0;
+    
     SLICELOOP1
     {
     // left
@@ -104,6 +108,10 @@ void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf
 
 void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
 {
+    uf=0;
+    vf=1;
+    wf=0;
+    
     if(p->j_dir==1)
     SLICELOOP2
 	{
@@ -165,6 +173,10 @@ void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nh
 
 void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
 {
+    uf=1;
+    vf=0;
+    wf=0;
+    
     ULOOP
     {
     // left
@@ -232,6 +244,10 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
 
 void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
 {
+    uf=0;
+    vf=1;
+    wf=0;
+    
     if(p->j_dir==1)
     VLOOP
 	{

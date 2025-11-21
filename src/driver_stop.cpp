@@ -57,10 +57,9 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
         if(p->mpirank==0)
         cout<<endl<<"EMERGENCY STOP  --  solver breaking down - NAN values"<<endl<<endl;
 
-     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+     pprint->print_stop(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
      
-     //pgc->final();
-     //exit(0);
+     //pgc->final(true);
     }
     }
         
@@ -70,17 +69,16 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
         if(p->mpirank==0)
         cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
     
-     if(p->A10==3)
-     pfprint->print_stop(p,c,pgc);
-    
-     if(p->A10==4 || p->A10==6)
-     pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
-    
-    if(p->A10==5)
-    pnhfprint->print_stop(p,d,pgc,pflow,pnhfturb,psed);
-     
-     pgc->final();
-     exit(0);
+        if(p->A10==3)
+        pprint->print_stop(p,c,pgc);
+        
+        if(p->A10==4 || p->A10==6)
+        pprint->print_stop(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
+        
+        if(p->A10==5)
+        pprint->print_stop(p,d,pgc,pflow,pnhfturb,psed);
+        
+        pgc->final(true);
     }
     
     // Solver Status
@@ -88,16 +86,18 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     /*
     if(p->solver_status>=1)
     {
-    if(p->mpirank==0)
-    cout<<endl<<" HYPRE solver broke down! Emergency Stop! "<<p->solver_status<<endl<<endl;
-    
-    if(p->A10==3)
-     pfprint->print_vtu(p,c,pgc);
-    
-     if(p->A10==4 || p->A10==5 || p->A10==6)
-     pprint->print_vtu(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
-    
-    pgc->final();
-    exit(0);
+        if(p->mpirank==0)
+        cout<<endl<<" HYPRE solver broke down! Emergency Stop! "<<p->solver_status<<endl<<endl;
+        
+        if(p->A10==3)
+        pprint->print_stop(p,c,pgc);
+        
+        if(p->A10==4 || p->A10==5 || p->A10==6)
+        pprint->print_stop(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,psed);
+
+        if(p->A10==5)
+        pprint->print_stop(p,d,pgc,pflow,pnhfturb,psed);
+        
+        pgc->final(true);
     }*/
 }

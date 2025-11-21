@@ -28,19 +28,18 @@ Authors: Hans Bihs, Alexander Hanke
 
 void partres::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
+    const double Ps = 10.0;
+    const double beta = 2.0;
+    const double epsilon = 1.0e-7;
+    const double Tc = (1.0-p->S24)+0.05;
+
     ALOOP
     {
-    Ps = 100.0;
-    beta = 3.0;
-    epsilon = 0.1;
-    Tc = p->S24 + 0.3;
-    
-    Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
-    
-    Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
+        Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+
+        Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
     }
-    
+
     pgc->start4a(p,Tau,1);
     pgc->start4a(p,Ts,1);
 }
-

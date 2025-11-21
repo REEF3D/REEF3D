@@ -24,147 +24,115 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"slice.h"
 
-void ghostcell::gcslparax_fh(lexer* p,slice& f,int gcv)
+void ghostcell::gcslparax_fh(lexer* p, slice& f, int gcv)
 {
     paramargin=margin;
 
-//  FILL SEND
+    //  FILL SEND
     count=0;
     for(q=0;q<p->gcslpara1_count;++q)
     {
-    i=p->gcslpara1[q][0];
-    j=p->gcslpara1[q][1];
-        
+        i=p->gcslpara1[q][0];
+        j=p->gcslpara1[q][1];
+
         for(n=0;n<paramargin;++n)
         {
-        send1[count]=f(i-n-1,j);
-        ++count;
+            send1[count]=f(i-n-1,j);
+            ++count;
         }
     }
 
     count=0;
     for(q=0;q<p->gcslpara3_count;++q)
     {
-    i=p->gcslpara3[q][0];
-    j=p->gcslpara3[q][1];
-        
+        i=p->gcslpara3[q][0];
+        j=p->gcslpara3[q][1];
+
         for(n=0;n<paramargin;++n)
         {
-        send3[count]=f(i,j-n-1);
-        ++count;
+            send3[count]=f(i,j-n-1);
+            ++count;
         }
     }
 
     count=0;
-	for(q=0;q<p->gcslpara4_count;++q)
-	{
-    i=p->gcslpara4[q][0];
-    j=p->gcslpara4[q][1];
-        
+    for(q=0;q<p->gcslpara4_count;++q)
+    {
+        i=p->gcslpara4[q][0];
+        j=p->gcslpara4[q][1];
+
         for(n=0;n<paramargin;++n)
         {
-        send4[count]=f(i+n+1,j);
-        ++count;
+            send4[count]=f(i+n+1,j);
+            ++count;
         }
-	}
-    
+    }
+
     count=0;
-	for(q=0;q<p->gcslpara2_count;++q)
-	{
-    i=p->gcslpara2[q][0];
-    j=p->gcslpara2[q][1];
-        
+    for(q=0;q<p->gcslpara2_count;++q)
+    {
+        i=p->gcslpara2[q][0];
+        j=p->gcslpara2[q][1];
+
         for(n=0;n<paramargin;++n)
         {
-        send2[count]=f(i,j+n+1);
-        ++count;
+            send2[count]=f(i,j+n+1);
+            ++count;
         }
-	}
-
-//  SEND / RECEIVE
-
-    if(p->gcslpara1_count>0)
-    {
-	MPI_Isend(send1,p->gcslpara1_count*paramargin,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(recv1,p->gcslpara1_count*paramargin,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
     }
 
-    if(p->gcslpara4_count>0)
-    {
-	MPI_Isend(send4,p->gcslpara4_count*paramargin,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(recv4,p->gcslpara4_count*paramargin,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
-    }
+    Sendrecv_double(p->gcslpara1_count*paramargin,p->gcslpara2_count*paramargin,p->gcslpara3_count*paramargin,p->gcslpara4_count*paramargin,0,0);
 
-    if(p->gcslpara3_count>0)
-    {
-	MPI_Isend(send3,p->gcslpara3_count*paramargin,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(recv3,p->gcslpara3_count*paramargin,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
-    }
-
-    if(p->gcslpara2_count>0)
-    {
-	MPI_Isend(send2,p->gcslpara2_count*paramargin,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(recv2,p->gcslpara2_count*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
-    }
-
-
-//  WAIT
-
-    gcslwait(p);
-
-//  FILL RECEIVE
-
+    //  FILL RECEIVE
     count=0;
     for(q=0;q<p->gcslpara1_count;++q)
     {
-    i=p->gcslpara1[q][0];
-    j=p->gcslpara1[q][1];
-        
+        i=p->gcslpara1[q][0];
+        j=p->gcslpara1[q][1];
+
         for(n=0;n<paramargin;++n)
         {
-        f(i+n,j)+=recv1[count];
-        ++count;
+            f(i+n,j)+=recv1[count];
+            ++count;
         }
     }
 
     count=0;
-	for(q=0;q<p->gcslpara3_count;++q)
-	{
-    i=p->gcslpara3[q][0];
-    j=p->gcslpara3[q][1];
-        
+    for(q=0;q<p->gcslpara3_count;++q)
+    {
+        i=p->gcslpara3[q][0];
+        j=p->gcslpara3[q][1];
+
         for(n=0;n<paramargin;++n)
         {
-        f(i,j+n)+=recv3[count];
-        ++count;
+            f(i,j+n)+=recv3[count];
+            ++count;
         }
-	}
-
-
-    count=0;
-	for(q=0;q<p->gcslpara4_count;++q)
-	{
-    i=p->gcslpara4[q][0];
-    j=p->gcslpara4[q][1];
-        
-        for(n=0;n<paramargin;++n)
-        {
-        f(i-n,j)+=recv4[count];
-        ++count;
-        }
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcslpara2_count;++q)
-	{
-    i=p->gcslpara2[q][0];
-    j=p->gcslpara2[q][1];
-        
+    for(q=0;q<p->gcslpara4_count;++q)
+    {
+        i=p->gcslpara4[q][0];
+        j=p->gcslpara4[q][1];
+
         for(n=0;n<paramargin;++n)
         {
-        f(i,j-n)+=recv2[count];
-        ++count;
+            f(i-n,j)+=recv4[count];
+            ++count;
         }
-	}
+    }
+
+    count=0;
+    for(q=0;q<p->gcslpara2_count;++q)
+    {
+        i=p->gcslpara2[q][0];
+        j=p->gcslpara2[q][1];
+
+        for(n=0;n<paramargin;++n)
+        {
+            f(i,j-n)+=recv2[count];
+            ++count;
+        }
+    }
 }
-

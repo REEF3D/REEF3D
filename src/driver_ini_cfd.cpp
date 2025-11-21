@@ -130,7 +130,7 @@ void driver::driver_ini_cfd()
     
 	starttime=pgc->timer();
     if(p->B60>0 || p->T36==2)
-	pgc->walldistance(p,a,pgc,pconvec,preini,pflow,a->walld);
+	pgc->walldistance(p,a,pconvec,preini,pflow,a->walld);
 	
 	pflow->inflow_walldist(p,a,pgc,pconvec,preini,pflow);
 	
@@ -143,7 +143,7 @@ void driver::driver_ini_cfd()
     
 
     pheat->heat_ini(p,a,pgc,pheat);
-    pmp->ini(p,a,pgc,pflow,pprint,pconvec,psolv);
+    pmp->ini(p,a,pgc,pflow,pconvec,psolv);
 	pconc->ini(p,a,pgc,pconc);
 
     ptstep->ini(a,p,pgc);
@@ -203,7 +203,7 @@ void driver::driver_ini_cfd()
 
 	pgc->start4(p,a->press,40);
     
-    pprint->start(a,p,pgc,pturb,pheat,pflow,psolv,pdata,pconc,pmp,psed);
+    pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
 
 // ini variables
     for(int qn=0; qn<2; ++qn)

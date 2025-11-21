@@ -265,13 +265,11 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             dir = uval/(fabs(uval)>0.0?uval:1.0e20);
   
             Fv_x =  dir*fabs(sqrt(ny*ny + nz*nz)*A_triang*rho_int*(uval*uval)/pow((uplus>0.0?uplus:1.0e20),2.0));
-            
-            //cout<<"Fv_x: "<<Fv_x<<" ustar: "<<ustar<<" nx: "<<nx<<" uplus: "<<uplus<<" dist: "<<dist<<" value: "<<value<<" log(value): "<<log(value)<<endl;
-            
+
         // y-dir
             vplus = (1.0/kappa)*log(30.0*(dist/ks));
             
-            dir = vval/(fabs(vval)>0.0?uval:1.0e20);
+            dir = vval/(fabs(vval)>0.0?vval:1.0e20);
   
             Fv_y =  dir*fabs(sqrt(nx*nx + nz*nz)*A_triang*rho_int*(vval*vval)/pow((vplus>0.0?vplus:1.0e20),2.0));
             

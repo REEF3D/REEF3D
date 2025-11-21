@@ -92,7 +92,6 @@ void hypre_struct::make_grid_2Dvert(lexer* p,ghostcell* pgc)
     // periodic BC
     periodic[0]=0;
     periodic[1]=0;
-    periodic[2]=0;
     
     if(p->periodic1>0)
     periodic[0]=p->gknox;

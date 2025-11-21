@@ -127,7 +127,7 @@ void sflow_turb_ke_IM1::kin_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    if(wallf(i,j)==0)
+    //if(wallf(i,j)==0)
 	b->rhsvec.V[count]  += Pk(i,j)
 
                         + (1.0/sqrt(fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20))*pow(ustar(i,j),3.0)/HP

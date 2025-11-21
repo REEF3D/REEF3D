@@ -25,7 +25,7 @@ Author: Hans Bihs
 void lexer::ini_default()
 {
     // Hydrodynamic Models
-    A10=6;       // int turn on wave models
+    A10=6;       // int hydrodynamic models
     
     // SFLOW
     A209=1;      // int interpolation sweeps for bed
@@ -108,14 +108,15 @@ void lexer::ini_default()
     A510=2;      // int NFHLOW time scheme
     A511=1;		// int NHFLOW HLL scheme
     A512=0;		// int NHFLOW diffusion
+    A513=1;		// int NHFLOW wall diffusion
     A514=4;		// int NHFLOW reconstruction 
     A515=1;      // int Dirichlet wave BC type
     A516=3;      // int
-    A517=3;      // int 
+    A517=1;      // int preserve tangential velocities for forcing
     A518=2;      // int NHFLOW bed BC
     A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=0;		// int
+    A521=1;		// int
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Froude number limiter
@@ -144,7 +145,7 @@ void lexer::ini_default()
     A571_dir=0.0;  // double wind direction
     A573=1;      // int wind forcing region
     
-    A580=0;      // int block eta
+    A580=0;      // int 
     A581=0;      // int solid box
     A583=0;      // int solid cylinder y
     A584=0;      // int solid cylinder z
@@ -169,6 +170,7 @@ void lexer::ini_default()
     B11=1;			// int wall function turbulence on/off
 	B20=2;			// int slip or no-slip boundary condition for velocity
     B21=1;            // int preserve tangential velocities for forcing
+    B22=2;            // int smooth vs rough wall law
     B23=1;            // int ghostcell extrapolation or refective
 	B29=0.5;		// double gamma for gc image point
 	B30=0;			// int type of pressure reference point
@@ -341,6 +343,7 @@ void lexer::ini_default()
 	D11=2;			// int convection velocity scheme
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
+    D22=1;            // int diffusion wall boundary condition
 	D30=1;			// int pressure scheme
     D31=0;			// int normalize pressure to free surface
     D33=0;			// int corner cells sigma grid Poisson matrix
@@ -735,6 +738,7 @@ void lexer::ini_default()
     S91=1;                  // int number of sandslide iterations
     S92=1.0;                // double sandslide correction factor
     S93=0.0;				// double delta phi for sandlide correciton
+    S94=1;                // int sandslide intervall
 	S100=0;					// int number of bed filter outer iterations
     S101=0;					// int number of bed filter inner iterations
 
@@ -843,10 +847,10 @@ void lexer::ini_default()
     X24=0;        // int prescribe moments of inertia
     X25_Cp=X25_Cq=X25_Cr=0.0;    // double damping rotation
     X26_Cu=X26_Cv=X26_Cw=0.0;    // double damping translational
-    X31=4;        // int boundary conditions for parallel velocity on floating body
-    X32=1;        // int boundary conditions for orthogonal velocity on floating body
-    X33=1;        // int boundary conditions for pressure on floating body
-    X34=0;        // int boundary treatment for new solid velocity cells
+    X31=4;        // int
+    X32=1;        // int 
+    X33=1;        // int 
+    X34=0;        // int 
     X39=0;       // int type of viscous force calculation
     X40=3;		// int type of force calculation
 	X41=0.6;    // double eps for continuous forcing heaviside
@@ -854,8 +858,8 @@ void lexer::ini_default()
 	X43=1.0;    // double distance for shear stress evaluation
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
-    X46=0;      // int density smoothing inside fb
-    X48=1;      // int solid forcing level set
+    X46=0;      // int 
+    X48=0;      // int solid forcing level set
     X49=0;
     X50=1;      // int type of print out format for 6DOF structure
     X60=1;      // int type of print of force calculation

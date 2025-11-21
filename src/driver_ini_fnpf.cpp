@@ -200,18 +200,15 @@ void driver::driver_ini_fnpf()
     pgc->start7V(p,c->Fi,c->bc,250);
     
     pftstep->ini(c,p,pgc);
-	
-	pfprint->start(p,c,pgc,pflow);
-	
     
-	p->gctime=0.0;
+    pprint->start(p,c,pgc,pflow);
+    
+    
+    p->gctime=0.0;
     p->xtime=0.0;
 	p->wavecalctime=0.0;
 	p->field4time=0.0;
 
-    
-     if(p->mpirank==0)
-    cout<<"starting mainloop.FNPF"<<endl;
 }
 
 

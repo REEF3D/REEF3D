@@ -43,7 +43,7 @@ fluid_update_fsf_concentration::~fluid_update_fsf_concentration()
 {
 }
 
-void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc)
+void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
 	double H=0.0;
 	double conc;

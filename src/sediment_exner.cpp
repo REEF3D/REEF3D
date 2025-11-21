@@ -33,7 +33,7 @@ Author: Hans Bihs
 #include"sflow_bicgstab.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),vztemp(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -84,7 +84,7 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
     // eq.
     if(p->S17==0)
-    SLICELOOP4
+    SEDSLICELOOP
     s->qb(i,j)=s->qbe(i,j);
     
     // non-eq.
@@ -105,13 +105,12 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     // Bedch
     timestep(p,pgc,s);
 	
-	SLICELOOP4
+	SEDSLICELOOP
     WETDRY
     s->bedzh(i,j) += p->dtsed*s->vz(i,j);
-
     
-    SLICELOOP4
-    s->dh(i,j)=s->vz(i,j);
+    SEDSLICELOOP
+    s->dh(i,j)=p->dtsed*s->vz(i,j);
 
 	pgc->gcsl_start4(p,s->bedzh,1);
 }

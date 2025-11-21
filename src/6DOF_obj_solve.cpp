@@ -32,13 +32,13 @@ void sixdof_obj::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter)
     
     update_forces(p);
     
-    if(p->N40==2 || p->N40==22)
+    if(p->N40==2 || p->N40==12 || p->N40==22)
     rk2(p,pgc,iter);
     
-    if(p->N40==3 || p->N40==23 || p->N40==33)
+    if(p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33)
     rk3(p,pgc,iter);
    
-    if(p->N40==4)
+    if(p->N40==4 || p->N40==44)
     rkls3(p,pgc,iter);
 }
 
@@ -86,8 +86,8 @@ void sixdof_obj::solve_eqmotion_oneway_sflow(lexer *p, ghostcell *pgc, int iter)
     
 void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
 {   
-    get_trans(p,pgc, dp_, dc_, p_, c_);    
-    get_rot(p,dh_, de_, h_, e_);
+    get_trans(p, pgc, dp_, dc_, p_, c_);    
+    get_rot(p, dh_, de_, h_, e_);
         
     if(iter==0)
     {

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MEFCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -320,7 +320,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     //update rho(vof) after diffusion but before pressure
     if(p->F92==3)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc); 
     
@@ -349,7 +349,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     pgc->start4(p,a->vof,gcval_vof);
     if(p->F92==3)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
 	
@@ -487,7 +487,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk1,vrk1,wrk1,1.0);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk1,vrk1,wrk1,0.25);
 
 	ULOOP
 	urk2(i,j,k) = udiff(i,j,k)
@@ -504,7 +504,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk1,vrk1,wrk1,1.0);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk1,vrk1,wrk1,0.25);
 
 	VLOOP
 	vrk2(i,j,k) = vdiff(i,j,k)
@@ -521,7 +521,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk1,vrk1,wrk1,1.0);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk1,vrk1,wrk1,0.25);
 
 	WLOOP
 	wrk2(i,j,k) = wdiff(i,j,k)
@@ -538,7 +538,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     {
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     }
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
@@ -568,7 +568,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     {
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     }
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
@@ -705,7 +705,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk2,vrk2,wrk2,1.0);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk2,vrk2,wrk2,2.0/3.0);
 
 	ULOOP
 	a->u(i,j,k) = udiff(i,j,k)
@@ -722,7 +722,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk2,vrk2,wrk2,1.0);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk2,vrk2,wrk2,2.0/3.0);
 
 	VLOOP
 	a->v(i,j,k) = vdiff(i,j,k)
@@ -739,7 +739,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk2,vrk2,wrk2,1.0);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk2,vrk2,wrk2,2.0/3.0);
 
 	WLOOP
 	a->w(i,j,k) = wdiff(i,j,k)
@@ -754,7 +754,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     if(p->F92==3)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
@@ -778,7 +778,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
    // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
     pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
-    pupdate->start(p,a,pgc);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     

@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 fluid_update_fsf::fluid_update_fsf(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM),visc_air(p->W4),visc_water(p->W2),visc_body(p->X44),
-                                                                      ro_air(p->W3),ro_water(p->W1)
+                                                                      ro_air(p->W3),ro_water(p->W1),visc_sed(p->W2),ro_sed(p->S22)
 {
     gcval_ro=1;
 	gcval_visc=1;
@@ -36,11 +36,10 @@ fluid_update_fsf::~fluid_update_fsf()
 {
 }
 
-void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
+void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
 	double H=0.0;
     double H_fb=0.0;
-    double factor=1.0;
 	p->volume1=0.0;
 	p->volume2=0.0;
     
@@ -49,29 +48,19 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 	iter=p->count;
     
 	BASELOOP
-	{
-        factor = 1.0;
-        
-        if(p->j_dir==0 && p->X46==1) 
-        if(a->fb(i,j,k) <- 0.5*(1.0/2.0)*(p->DRM+p->DTM))
-        factor = 2.0;
-        
-        if(p->j_dir==1 && p->X46==1)  
-        if(a->fb(i,j,k) <- 0.5*(1.0/3.0)*(p->DRM+p->DSM+p->DTM))
-        factor = 2.0;
-    
-		if(a->phi(i,j,k)>(p->psi*factor))
+	{    
+		if(a->phi(i,j,k)>p->psi)
 		H=1.0;
 
-		if(a->phi(i,j,k)<-(p->psi*factor))
+		if(a->phi(i,j,k)<-p->psi)
 		H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=(p->psi*factor))
-		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi*factor) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi*factor)));
+		if(fabs(a->phi(i,j,k))<=p->psi)
+		H=0.5*(1.0 + a->phi(i,j,k)/p->psi + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->psi));
 
-        // Construct floating body heaviside function if used
-            a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
-            a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
+
+        a->ro(i,j,k)   = ro_water*H +   ro_air*(1.0-H);
+        a->visc(i,j,k) = visc_water*H + visc_air*(1.0-H);
             
             if(p->flagsf4[IJK]>0)
             {
@@ -80,8 +69,6 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
             }
 	}
     
-	pgc->start4(p,a->ro,gcval_ro);
-	pgc->start4(p,a->visc,gcval_visc);
 
 	p->volume1 = pgc->globalsum(p->volume1);
 	p->volume2 = pgc->globalsum(p->volume2);
@@ -92,6 +79,28 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc)
 	cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
+    
+    // sediment
+    if(p->Q10==1)
+    BASELOOP
+	{    
+		if(a->topo(i,j,k)>p->psi)
+		H=1.0;
+
+		if(a->topo(i,j,k)<-p->psi)
+		H=0.0;
+
+		if(fabs(a->topo(i,j,k))<=p->psi)
+		H=0.5*(1.0 + a->topo(i,j,k)/p->psi + (1.0/PI)*sin((PI*a->topo(i,j,k))/p->psi));
+
+
+        a->ro(i,j,k)   = a->ro(i,j,k)*H +   ro_sed*(1.0-H);
+        a->visc(i,j,k) = a->visc(i,j,k)*H + visc_sed*(1.0-H);
+	}
+    
+    
+    pgc->start4(p,a->ro,gcval_ro);
+	pgc->start4(p,a->visc,gcval_visc);
 }
 
 int fluid_update_fsf::iocheck;

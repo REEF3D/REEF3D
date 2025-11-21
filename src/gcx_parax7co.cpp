@@ -22,135 +22,101 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
 
-void ghostcell::gcparax7co(lexer* p,double *f,int gcv)
+void ghostcell::gcparax7co(lexer* p, double *f, int gcv)
 {
     paramargin=1;
 
-//  FILL SEND
+    //  FILL SEND
     count=0;
     for(q=0;q<p->gcxco7_count[0];++q)
     {
-    i=p->gcxco7[0][q][0];
-    j=p->gcxco7[0][q][1];
-    k=p->gcxco7[0][q][2];
+        i=p->gcxco7[0][q][0];
+        j=p->gcxco7[0][q][1];
+        k=p->gcxco7[0][q][2];
 
-        send1[count] = f[FIJK];  
+        send1[count] = f[FIJK];
         ++count;
     }
 
     count=0;
     for(q=0;q<p->gcxco7_count[2];++q)
     {
-    i=p->gcxco7[2][q][0];
-    j=p->gcxco7[2][q][1];
-    k=p->gcxco7[2][q][2];
-        
-        send3[count] = f[FIJK];  
+        i=p->gcxco7[2][q][0];
+        j=p->gcxco7[2][q][1];
+        k=p->gcxco7[2][q][2];
+
+        send3[count] = f[FIJK];
         ++count;
     }
 
     count=0;
-	for(q=0;q<p->gcxco7_count[3];++q)
-	{
-    i=p->gcxco7[3][q][0];
-    j=p->gcxco7[3][q][1];
-    k=p->gcxco7[3][q][2];
-        
-        send4[count] = f[FIJK];  
+    for(q=0;q<p->gcxco7_count[3];++q)
+    {
+        i=p->gcxco7[3][q][0];
+        j=p->gcxco7[3][q][1];
+        k=p->gcxco7[3][q][2];
+
+        send4[count] = f[FIJK];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcxco7_count[1];++q)
-	{
-    i=p->gcxco7[1][q][0];
-    j=p->gcxco7[1][q][1];
-    k=p->gcxco7[1][q][2];
-        
-        send2[count] = f[FIJK];  
+    for(q=0;q<p->gcxco7_count[1];++q)
+    {
+        i=p->gcxco7[1][q][0];
+        j=p->gcxco7[1][q][1];
+        k=p->gcxco7[1][q][2];
+
+        send2[count] = f[FIJK];
         ++count;
-	}
-
-
-//  SEND / RECEIVE
-
-    if(p->gcxco7_count[0]>0)
-    {
-	MPI_Isend(send1,p->gcxco7_count[0]*paramargin,MPI_DOUBLE,p->nb1,tag1,mpi_comm,&sreq1);
-	MPI_Irecv(recv1,p->gcxco7_count[0]*paramargin,MPI_DOUBLE,p->nb1,tag4,mpi_comm,&rreq1);
     }
 
-    if(p->gcxco7_count[3]>0)
-    {
-	MPI_Isend(send4,p->gcxco7_count[3]*paramargin,MPI_DOUBLE,p->nb4,tag4,mpi_comm,&sreq4);
-	MPI_Irecv(recv4,p->gcxco7_count[3]*paramargin,MPI_DOUBLE,p->nb4,tag1,mpi_comm,&rreq4);
-    }
+    Sendrecv_double(p->gcxco7_count[0]*paramargin,p->gcxco7_count[1]*paramargin,p->gcxco7_count[2]*paramargin,p->gcxco7_count[3]*paramargin,0,0);
 
-    if(p->gcxco7_count[2]>0)
-    {
-	MPI_Isend(send3,p->gcxco7_count[2]*paramargin,MPI_DOUBLE,p->nb3,tag3,mpi_comm,&sreq3);
-	MPI_Irecv(recv3,p->gcxco7_count[2]*paramargin,MPI_DOUBLE,p->nb3,tag2,mpi_comm,&rreq3);
-    }
-
-    if(p->gcxco7_count[1]>0)
-    {
-	MPI_Isend(send2,p->gcxco7_count[1]*paramargin,MPI_DOUBLE,p->nb2,tag2,mpi_comm,&sreq2);
-	MPI_Irecv(recv2,p->gcxco7_count[1]*paramargin,MPI_DOUBLE,p->nb2,tag3,mpi_comm,&rreq2);
-    }
-
-
-//  WAIT
-
-    gcwait7(p);
-
-//  FILL RECEIVE
-
+    //  FILL RECEIVE
     count=0;
     for(q=0;q<p->gcxco7_count[0];++q)
     {
-    i=p->gcxco7[0][q][0];
-    j=p->gcxco7[0][q][1];
-    k=p->gcxco7[0][q][2];
+        i=p->gcxco7[0][q][0];
+        j=p->gcxco7[0][q][1];
+        k=p->gcxco7[0][q][2];
 
         f[FIm1JK] = recv1[count];
         ++count;
-        
+
     }
 
     count=0;
-	for(q=0;q<p->gcxco7_count[2];++q)
-	{
-    i=p->gcxco7[2][q][0];
-    j=p->gcxco7[2][q][1];
-    k=p->gcxco7[2][q][2];
-        
+    for(q=0;q<p->gcxco7_count[2];++q)
+    {
+        i=p->gcxco7[2][q][0];
+        j=p->gcxco7[2][q][1];
+        k=p->gcxco7[2][q][2];
+
         f[FIJm1K] = recv3[count];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcxco7_count[3];++q)
-	{
-    i=p->gcxco7[3][q][0];
-    j=p->gcxco7[3][q][1];
-    k=p->gcxco7[3][q][2];
-        
+    for(q=0;q<p->gcxco7_count[3];++q)
+    {
+        i=p->gcxco7[3][q][0];
+        j=p->gcxco7[3][q][1];
+        k=p->gcxco7[3][q][2];
+
         f[FIp1JK] = recv4[count];
         ++count;
-	}
+    }
 
     count=0;
-	for(q=0;q<p->gcxco7_count[1];++q)
-	{
-    i=p->gcxco7[1][q][0];
-    j=p->gcxco7[1][q][1];
-    k=p->gcxco7[1][q][2];
-        
+    for(q=0;q<p->gcxco7_count[1];++q)
+    {
+        i=p->gcxco7[1][q][0];
+        j=p->gcxco7[1][q][1];
+        k=p->gcxco7[1][q][2];
+
         f[FIJp1K] = recv2[count];
         ++count;
-	}
-
+    }
 }
-

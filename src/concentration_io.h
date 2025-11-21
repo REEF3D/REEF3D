@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"field4.h"
 #include"fluid_update.h"
-#include<fstream>
 
 class lexer;
 class fdm;
@@ -41,13 +40,13 @@ public:
     concentration_io(lexer*,fdm*);
 	virtual ~concentration_io();
 
-    virtual void print_3D(lexer*, fdm*, ghostcell*,ofstream&);
+    virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
     virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration);
     virtual double val(int,int,int);
 
-    virtual void name_pvtu(lexer*, fdm*, ghostcell*,ofstream&);
-    virtual void name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
-    virtual void offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &);
+    virtual void name_ParaView_parallel(lexer*, ofstream&);
+    virtual void name_ParaView(lexer*, ostream&, int*, int &);
+    virtual void offset_ParaView(lexer*, int*, int &);
 
     field4 C;
 	fluid_update *pupdate;

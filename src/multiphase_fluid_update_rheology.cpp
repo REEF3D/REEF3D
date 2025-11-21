@@ -44,7 +44,7 @@ multiphase_fluid_update_rheology::~multiphase_fluid_update_rheology()
     delete prheo;
 }
 
-void multiphase_fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2)
+void multiphase_fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &ls1, field &ls2, field &u, field &v, field &w)
 {
 	double H1=0.0;
 	double H2=0.0;
@@ -71,7 +71,7 @@ void multiphase_fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, f
 		if(ls1(i,j,k)>epsi)
 		{
 		H1=1.0;
-        visc1 = prheo->viscosity(p,a,pgc);
+        visc1 = prheo->viscosity(p,a,pgc,u,v,w);
 		H2=0.0;
 		H3=0.0;
 		}
@@ -79,7 +79,7 @@ void multiphase_fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, f
 		if(fabs(ls1(i,j,k))<=epsi)
 		{
 		H1=0.5*(1.0 + ls1(i,j,k)/epsi + (1.0/PI)*sin((PI*ls1(i,j,k))/epsi));
-        visc1 = prheo->viscosity(p,a,pgc);
+        visc1 = prheo->viscosity(p,a,pgc,u,v,w);
 		
 			
 			// water-oil

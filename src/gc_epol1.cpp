@@ -150,9 +150,6 @@ void ghostcell::gcdistro1(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
     if(bc_label==7)
 	sommerfeld(p,f,gcv,bc,cs);
 	
-	if(bc_label==9)
-	fbvel1(p,f,dist,gcv,bc,cs);
-    
     if(bc_label==11)
 	dirichlet_ortho_reflect(p,f,dist,gcv,bc,cs);
 

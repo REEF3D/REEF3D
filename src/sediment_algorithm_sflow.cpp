@@ -71,6 +71,7 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     p->sedtime+=p->dtsed;
     
     // sandslide ********
+    if(p->sediter%p->S94==0)
     pslide->start(p,pgc,s);
     
     // relax *******

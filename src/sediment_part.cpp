@@ -17,72 +17,62 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"sediment_part.h"
-#include"sediment_fdm.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"convection.h"
-#include"ioflow.h"
-#include"topo.h"
 #include"bedshear.h"
-#include"patchBC_interface.h"
-#include"bedslope.h"
-#include <sys/stat.h>
+#include<sys/stat.h>
 
 sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb, patchBC_interface *ppBC) : por(p), d50(p)
 {
     pBC = ppBC;
     pturb = ppturb;
-    
-    sediment_logic(p,a,pgc,pturb);
 
-	p->gcin4a_count=p->gcin_count;
-	p->gcout4a_count=p->gcout_count;
-	
-    
-    volume_token=0;
-    
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
-    
+    sediment_logic(p,pgc);
+
     // Create Folder
-	if(p->mpirank==0 && p->Q180>0 && (p->Q181>0||p->Q182>0))
-    mkdir("./REEF3D_CFD_SedPart",0777);
+    if(p->mpirank==0 && p->Q180>0 && (p->Q181>0||p->Q182>0))
+        mkdir("./REEF3D_CFD_SedPart",0777);
 }
 
 sediment_part::~sediment_part()
 {
+    delete pst;
+    delete s;
+    delete pbed;
+    delete pvrans;
+    delete pcbed;
+    delete pslide;
+    delete prelax;
+    delete preduce;
+    delete ptopo;
+    delete psusp;
+    delete psuspdiff;
+    delete psuspdisc;
+    delete pbedshear;
+    delete pBC;
+    delete pbeddir;
+    delete pslope;
+    delete pturb;
 }
 
 void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
-    sedcalc=0;
-    
-	if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
-	{
-		sediment_algorithm_cfd(p,a,pgc,pflow,preto,pturb);
-		
-    
-    sedcalc=1;
-	}
-    
-    if(sedcalc==0)
+    bool sedcalc = true;
+
+    if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
     {
-    fill_bedk(p,a,pgc);
-    waterlevel(p,a,pgc);
-    pbedshear->taubed(p,a,pgc,s);
+        sediment_algorithm_cfd(p,a,pgc,pflow,preto);
+
+        sedcalc = false;
+    }
+
+    if(sedcalc)
+    {
+        fill_bedk(p,a,pgc);
+        waterlevel(p,a,pgc);
+        pbedshear->taubed(p,a,pgc,s);
     }
 }

@@ -46,7 +46,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
     double sgx1,sgx2,sgy1,sgy2;
     double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
     
-    /*SLICELOOP4
+    /*SEDSLICELOOP
     s->qb(i,j) = s->qbe(i,j);
     
     pgc->gcsl_start4(p,s->qb,1);*/
@@ -54,12 +54,12 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
     for(int qn=0;qn<1;++qn)
     {
     
-    SLICELOOP4
+    SEDSLICELOOP
     q0(i,j) = s->qb(i,j);
     
     pgc->gcsl_start4(p,q0,1);
     
-    SLICELOOP4
+    SEDSLICELOOP
     {
         ux1=s->P(i-1,j);
         vx1=0.25*(s->Q(i,j)+s->Q(i-1,j)+s->Q(i,j-1)+s->Q(i-1,j-1)); 

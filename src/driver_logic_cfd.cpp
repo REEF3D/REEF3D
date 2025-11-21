@@ -51,6 +51,8 @@ void driver::logic_cfd()
 
 	if(p->mpirank==0)
     cout<<"creating objects"<<endl;
+    
+    
 
     
 // time stepping
@@ -359,16 +361,13 @@ void driver::logic_cfd()
 
    
 // Free Surface
-    if(((p->F30==0) || (p->N40==22||p->N40==23||p->N40==33)) && p->F80==0)
+    if(((p->F30==0) || (p->N40==2||p->N40==3||p->N40==4||p->N40==22||p->N40==23||p->N40==24||p->N40==33)) && p->F80==0)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
-
-	if(p->F30==1  && p->N40!=22 && p->N40!=23 && p->N40!=33)
-	pfsf = new levelset_AB2(p,a,pgc,pheat,pconc);
-
-	if(p->F30==2  && p->N40!=22 && p->N40!=23 && p->N40!=33)
+    
+	if(p->F30==2 && (p->N40==44||p->N40==12||p->N40==13||p->N40==14))
 	pfsf = new levelset_RK2(p,a,pgc,pheat,pconc);
 
-	if(p->F30==3  && p->N40!=22 && p->N40!=23 && p->N40!=33)
+	if(p->F30==3  &&  (p->N40==44||p->N40==12||p->N40==13||p->N40==14))
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
 
 
@@ -395,10 +394,10 @@ void driver::logic_cfd()
 	if(p->F80==3)
 	pfsf = new VOF_RK3(p,a,pgc,pheat);
     
-    if(p->F80>0 && (p->N40==22||p->N40==23||p->N40==33))
+    if(p->F80>0 && (p->N40==2||p->N40==3||p->N40==22||p->N40==23||p->N40==33))
     pfsf = new VOF_void(p,a,pgc,pheat);
 
-	if(p->F80==4 && p->N40!=22 && p->N40!=23 && p->N40!=33)
+	if(p->F80==4 &&  (p->N40==12||p->N40==13))
 	pfsf = new VOF_PLIC(p,a,pgc,pheat);
     
     
@@ -539,14 +538,13 @@ void driver::logic_cfd()
     pbench = new benchmark_convection(p,a);
 
 // Printer
-	if(p->P10>0)
-	pprint = new vtu3D(p,a,pgc);
+    pprint = new printer_CFD(p,a,pgc);
 
     if(p->P150==0)
-	pdata = new data_void(p,a,pgc);
+	pdata = new expdata_void(p,a,pgc);
 
 	if(p->P150>0)
-	pdata = new data_f(p,a,pgc);
+	pdata = new expdata_f(p,a,pgc);
 
 // Sediment
     if(p->S10>0)
@@ -565,11 +563,8 @@ void driver::logic_cfd()
     {
     if(p->G40==0)
     preto = new reinitopo_void();
-
-    if(p->G40==1)
-    preto = new reinitopo_AB2(p);
-
-    if(p->G40==3)
+    
+    if(p->G40>0)
     preto = new reinitopo_RK3(p);
     }
 
@@ -597,23 +592,49 @@ void driver::logic_cfd()
 // Velocities
 	if(p->N40==0)
 	pmom = new momentum_void();
-
-	if(p->N40==2)
+    
+    if(p->N40==2 || p->N40==22)
+	pmom = new momentum_FC2(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    if((p->N40==3 || p->N40==23) && p->F80!=4)
+	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    if((p->N40==3 || p->N40==23) && p->F80==4)
+    pmom = new momentum_FC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    if((p->N40==4 || p->N40==24) && p->F80!=4)
+	pmom = new momentum_FCLS3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    
+    if(p->N40==12)
 	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
-    if(p->N40==3 && p->F80!=4)
+    if(p->N40==13 && p->F80!=4)
     pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
     
-    if(p->N40==3 && p->F80==4)
+    if(p->N40==13 && p->F80==4)
     pmom = new momentum_RK3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pfsi);
     
-    if(p->N40==4 && (p->X10==0 && p->Z10==0))
+    
+    
+    if(p->N40==33 && p->F80!=4)
+	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    if(p->N40==33 && p->F80==4)
+    pmom = new momentum_FCC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    
+    
+    if(p->N40==44)
+    pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi); 
+    
+    
+    if(p->N40==14 && (p->X10==0 && p->Z10==0))
     {
     pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
     pmom = new momentum_void();
     }
     
-    if(p->N40==4 && (p->X10==1 || p->Z10>0))
+    if(p->N40==14 && (p->X10==1 || p->Z10>0))
     {
     pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
     pmom = new momentum_void();
@@ -621,21 +642,6 @@ void driver::logic_cfd()
 
 	if(p->N40==5)
 	pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
-
-    if(p->N40==22)
-	pmom = new momentum_FC2(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
-    if(p->N40==23 && p->F80!=4)
-	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
-    if(p->N40==23 && p->F80==4)
-    pmom = new momentum_FC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
-    if(p->N40==33 && p->F80!=4)
-	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
-    if(p->N40==33 && p->F80==4)
-    pmom = new momentum_FCC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
 
 }
 

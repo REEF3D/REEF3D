@@ -22,43 +22,33 @@ Authors: Hans Bihs, Alexander Hanke
 
 #include"partres.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
 
-void partres::boundcheck(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int mode)
+void partres::boundcheck(lexer *p, int mode)
 {
-    int inBounds;
-    
+    bool inBounds;
+
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
-    {  
-            if(mode==1)
-            {
+    {
+        if(mode==1)
+        {
             i=p->posc_i(P.XRK1[n]);
             j=p->posc_j(P.YRK1[n]);
             k=p->posc_k(P.ZRK1[n]);
-            }
-            
-            if(mode==2)
-            {
+        }
+        else if(mode==2)
+        {
             i=p->posc_i(P.X[n]);
             j=p->posc_j(P.Y[n]);
             k=p->posc_k(P.Z[n]);
-            }
+        }
 
         inBounds=boundaries.globalminboundcheck(p,i,j,k);
-        if (inBounds)
-        inBounds=boundaries.globalmaxboundcheck(p,i,j,k);
+        if(inBounds)
+            inBounds=boundaries.globalmaxboundcheck(p,i,j,k);
 
         // remove out of bounds particles
         if(inBounds==0)
-        {
-            //remove(p,PP,n);
-            P.Flag[n]=EMPTY;
-            P.Empty[P.index_empty]=n;
-            ++P.index_empty;
-        }
+            P.remove(n);
     }
-    
 }

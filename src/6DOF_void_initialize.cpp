@@ -47,7 +47,7 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc)
 	}
 	else
 	{
-		MPI_Bcast(&p->mooring_count,1,MPI_DOUBLE,0,pgc->mpi_comm);	
+		pgc->bcast_int(&p->mooring_count,1);	
         
         Xme.resize(p->mooring_count);
 		Yme.resize(p->mooring_count);
@@ -110,7 +110,7 @@ void sixdof_void::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
 	else
 	{
-		MPI_Bcast(&p->mooring_count,1,MPI_DOUBLE,0,pgc->mpi_comm);	
+		pgc->bcast_int(&p->mooring_count,1);	
 
 		Xme.resize(p->mooring_count);
 		Yme.resize(p->mooring_count);

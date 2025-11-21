@@ -39,7 +39,7 @@ void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_
     make_grid_F(p,pgc);
     
     if(var==8||var==10||var==12)
-    make_grid(p,pgc);
+    make_grid_F(p,pgc);
     
     create_solvers(p,pgc);
     
@@ -113,7 +113,7 @@ void hypre_aij::fillbackvec_F(lexer *p, double *f, double *xvec, int var)
 	HYPRE_IJVectorGetValues(x, p->N7_row, rows, xvec);
 	
         n=0;
-        FLOOP
+        LOOP
         {
         f[FIJK]=xvec[n];
         ++n;

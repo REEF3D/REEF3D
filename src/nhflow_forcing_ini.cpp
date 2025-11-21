@@ -85,8 +85,6 @@ void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
     FY[IJK] = 0.0;   
     FZ[IJK] = 0.0;   
     d->FHB[IJK] = 0.0;
-    
-    d->test[IJK] = 0.0;
     }
 
     SLICELOOP4

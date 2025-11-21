@@ -66,6 +66,9 @@ public:
     virtual void vcorr(lexer*, fdm_nhf*, double*, slice&, double)=0;
     
     virtual void depth_update(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
+    
+    virtual void coastline_eta(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
+    virtual void coastline_fi(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
 
 };
 

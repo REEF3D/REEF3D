@@ -45,7 +45,7 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         n=0;
         SLICELOOP4
         {
-            if(p->wet[IJ]==1 || p->A343==2)
+            if(p->wet[IJ]==1 || p->A343>=1)
             {
              visc = c->vb(i,j);
                 
@@ -65,7 +65,7 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
              c->N.w[n] = -visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
             }
 
-            if(p->wet[IJ]==0 && p->A343==1)
+            if(p->wet[IJ]==0 && p->A343>=1)
             {
              c->N.p[n] =  1.0;
             
@@ -85,27 +85,27 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         n=0;
         SLICELOOP4
         {
-            if(p->wet[IJ]==1 || p->A343==2)
+            if(p->wet[IJ]==1 || p->A343>=1)
             {
-                if(p->flagslice4[Im1J]<0 || (p->wet[Im1J]==0 && p->A343==1))
+                if(p->flagslice4[Im1J]<0 || (p->wet[Im1J]==0 && p->A343>=1))
                 {
                 c->rvec.V[n] -= c->N.s[n]*f(i,j);
                 c->N.s[n] = 0.0;
                 }
                 
-                if(p->flagslice4[Ip1J]<0 || (p->wet[Ip1J]==0 && p->A343==1))
+                if(p->flagslice4[Ip1J]<0 || (p->wet[Ip1J]==0 && p->A343>=1))
                 {
                 c->rvec.V[n] -= c->N.n[n]*f(i,j);
                 c->N.n[n] = 0.0;
                 }
                 
-                if(p->flagslice4[IJm1]<0 || (p->wet[IJm1]==0 && p->A343==1))
+                if(p->flagslice4[IJm1]<0 || (p->wet[IJm1]==0 && p->A343>=1))
                 {
                 c->rvec.V[n] -= c->N.e[n]*f(i,j);
                 c->N.e[n] = 0.0;
                 }
                 
-                if(p->flagslice4[IJp1]<0 || (p->wet[IJp1]==0 && p->A343==1))
+                if(p->flagslice4[IJp1]<0 || (p->wet[IJp1]==0 && p->A343>=1))
                 {
                 c->rvec.V[n] -= c->N.w[n]*f(i,j);
                 c->N.w[n] = 0.0;

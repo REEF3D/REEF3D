@@ -23,11 +23,13 @@ Authors: Hans Bihs, Alexander Hanke
 #ifndef PART_H_
 #define PART_H_
 
-#define EMPTY  -1
-#define PASSIVE 1
-#define ACTIVE 10
-#define MOVING 20
-
+enum
+{
+    EMPTY = -1,
+    PASSIVE = 1,
+    ACTIVE = 10,
+    MOVING = 20
+};
 
 #include"increment.h"
 
@@ -39,21 +41,18 @@ class part : public increment
 {
 public:
     part(lexer*, ghostcell *);
-    ~part();
-    
-// functions
-    // ini
-    void ini_storage(lexer*,ghostcell*);
-    
+    virtual ~part();
+
+    // functions
     // add
     void add(lexer*,ghostcell*,double,double,double,double,double);
-    
+
     void resize(lexer*,int);
 
     // remove
     void remove(int);
     void erase_all();
-    
+
     // parallel
     void xchange(lexer*, ghostcell*,slice&,int);
     void xchange_count(lexer*, ghostcell*,int);
@@ -63,41 +62,38 @@ public:
     void xchange_fillback(lexer*, ghostcell*, double*);
     void xchange_fillback_flag(lexer*, ghostcell*,slice&,int);
     void xchange_resize(lexer*, ghostcell*);
-    
-    
-// data arrays
+
+    // data arrays
     double *U,*V,*W;
     double *URK1,*VRK1,*WRK1;
-    
+
     double *X,*Y,*Z;
     double *XRK1,*YRK1,*ZRK1;
-    
+
     double *Uf,*Vf,*Wf;
 
     double *D,*RO;
-    
+
     double *Test;
-    
+
     int *Empty,*Flag;
-    
+
     double d50,rhosed;
     double ParcelFactor;
-    
-// iterators
+
+    // iterators
     int index; // replace loopindex
     int index_empty,index_empty0; //
     int numactive,numempty;   // number of active particles
     int capacity; // length of allocated array
     int capacity_para,maxnum;
-    
+
     int n,q;
-    
 private:
     int sendnum[6],recvnum[6];
     int sendcount[6],recvcount[6];
     int **sendid;
     double **send,**recv;
-    
 };
 
 #endif

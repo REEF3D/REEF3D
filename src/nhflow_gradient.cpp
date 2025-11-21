@@ -65,6 +65,9 @@ double nhflow_gradient::dudz(double *U)
 {
 	grad = p->sigz[IJ]*(U[IJKp1] - U[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
     
+    if(k==0)
+    grad = p->sigz[IJ]*(U[IJK] - U[IJKm1])/(p->DZP[KM1]);
+    
     //if(k==p->knoz-1)
     //grad = p->sigz[IJ]*(U[IJK] - U[IJKm1])/(p->DZP[KM1]);
 

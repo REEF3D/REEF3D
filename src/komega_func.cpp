@@ -244,7 +244,7 @@ void komega_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
 
     LOOP
     {
-        if(wallf(i,j,k)==0)
+        if(wallf(i,j,k)==0 || p->D22==1)
         {
         a->M.p[count] += p->cmu * MAX(eps(i,j,k),0.0);
         a->rhsvec.V[count]  += pk(p,a,a->eddyv);

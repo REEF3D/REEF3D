@@ -34,12 +34,11 @@ driver::driver(int& argc, char **argv)
 {
 	p = new lexer;
 	pgc = new ghostcell(argc,argv,p);
-    //cout<<fixed;
 
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2025 Hans Bihs"<<endl;
-    sprintf(version,"v_250727");
+    sprintf(version,"v_251121");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
@@ -219,11 +218,11 @@ void driver::cfd_driver()
     driver_ini_cfd();
 
     // Start MAINLOOP
-    if(p->X10==0 && p->Z10==0 && p->N40==4)
+    if(p->X10==0 && p->Z10==0 && p->N40==14)
     loop_cfd_sf(a);
 
     else
-    if((p->X10==1  || p->Z10!=0) && (p->N40==4))
+    if((p->X10==1  || p->Z10!=0) && (p->N40==14))
     loop_cfd_df(a);
 
     else

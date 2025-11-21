@@ -83,26 +83,26 @@ double sflow_turb_io::epsval(int ii, int jj)
     
 void sflow_turb_io::name_pvtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result)
 {
-    result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>\n";
 	
 	if(p->A260==1)
-	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>\n";
 	if(p->A260==2 || p->A260==5)
-    result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>"<<endl;
+    result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
 void sflow_turb_io::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
 {
-    result<<"<DataArray type=\"Float32\" Name=\"kin\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 	if(p->A260==1)
-	result<<"<DataArray type=\"Float32\" Name=\"epsilon\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"epsilon\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 	if(p->A260==2 || p->A260==5)
-    result<<"<DataArray type=\"Float32\" Name=\"omega\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"omega\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
     
-void sflow_turb_io::offset_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
+void sflow_turb_io::offset_ParaView_2D(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;

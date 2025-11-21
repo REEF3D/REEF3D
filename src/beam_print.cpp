@@ -54,7 +54,7 @@ void beam::print(lexer *p)
 		
 		result << "# vtk DataFile Version 2.0" << endl;
 		result << "Beam " << nBeam << endl;
-		result << "ASCII \nDATASET UNSTRUCTURED_GRID" << endl;
+		result << "ASCII \nDATASET POLYDATA" << endl;
 		result << "POINTS " << Ne + 1 << " float" <<endl;
 		
 		for(int n=0; n<Ne+1; ++n)
@@ -62,19 +62,12 @@ void beam::print(lexer *p)
 			result<<c(0,n)<<" "<<c(1,n)<<" "<<c(2,n)<<endl;
 		}
 		
-		result << "\nCELLS " << Ne << " " << (Ne)*3 <<endl;	
+		result << "\nLINES " << Ne << " " << (Ne)*3 <<endl;	
 		
 		for(int n=0; n<Ne; ++n)
 		{
 			result<<"2 "<< n << " " << n+1 << endl;
 		}
-		
-		result << "\nCELL_TYPES " << Ne << endl;	
-		
-		for(int n=0; n<Ne; ++n)
-		{
-			result<<"3"<<endl;
-		}	
 
 		result<<"\nPOINT_DATA " << Ne + 1 <<endl;
 		result<<"VECTORS tensLoc double"<<endl;

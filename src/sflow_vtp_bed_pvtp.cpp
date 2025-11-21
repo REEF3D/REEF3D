@@ -22,93 +22,43 @@ Author: Hans Bihs
 
 #include"sflow_vtp_bed.h"
 #include"lexer.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
 #include"sediment.h"
 
-void sflow_vtp_bed::pvtu(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
-{	
-	int num=0;
+void sflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
+{
+    sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-%08i.pvtp",num);
 
-    if(p->P15==1)
-    num = printbedcount;
+    ofstream result;
+    result.open(name);
 
-    if(p->P15==2)
-    num = p->count;
-	
+    vtp3D::beginningParallel(p,result);
 
-	sprintf(name,"./REEF3D_SFLOW_VTP_BED/REEF3D-SFLOW-BED-%08i.pvtp",num);
+    vtp3D::pointsParallel(result);
 
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+    if(p->P76==1)
+        psed->name_ParaView_parallel_bedload(p,result);
+    if(p->P77==1)
+        psed->name_ParaView_parallel_parameter1(p,result);
+    if(p->P78==1)
+        psed->name_ParaView_parallel_parameter2(p,result);
+    if(p->P79>=1)
+        psed->name_ParaView_parallel_bedshear(p,result);
+    if(p->P23==1)
+        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    result<<"</PPointData>\n";
 
-	ofstream result;
-	result.open(name);
-
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<PPolyData  GhostLevel=\"0\">"<<endl;
-    
-    if(p->P16==1)
+    char pname[200];
+    for(n=0; n<p->M10; ++n)
     {
-    result<<"<FieldData>"<<endl;
-    result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
-    result<<"</DataArray>"<<endl;
-    result<<"</FieldData>"<<endl;
+        sprintf(pname,"REEF3D-SFLOW-BED-%08i-%06i.vtp",num,n+1);
+        result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 
-	result<<"<PPoints>"<<endl;
-	result<<"<PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"</PPoints>"<<endl;
-	
-	result<<"<PPointData>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>"<<endl;
-    
-    if(p->P76==1)
-	psed->name_pvtu_bedload(p,pgc,result);
-    
-    if(p->P77==1)
-	psed->name_pvtu_parameter1(p,pgc,result);
+    vtp3D::endingParallel(result);
 
-    if(p->P78==1)
-	psed->name_pvtu_parameter2(p,pgc,result);
-
-	if(p->P79>=1)
-	psed->name_pvtu_bedshear(p,pgc,result);
-    
-    if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>"<<endl;
-	result<<"</PPointData>"<<endl;
-	
-	result<<"<Polys>"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"/>"<<endl;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\" />"<<endl;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\" />"<<endl;
-	result<<"</Polys>"<<endl;
-
-	for(n=0; n<p->M10; ++n)
-	{
-    piecename(p,b,pgc,n);
-    result<<"<Piece Source=\""<<pname<<"\"/>"<<endl;
-	}
-
-	result<<"</PPolyData>"<<endl;
-	result<<"</VTKFile>"<<endl;
-
-	result.close();
-
-}
-
-void sflow_vtp_bed::piecename(lexer *p, fdm2D *b, ghostcell *pgc, int n)
-{
-    int num=0;
-
-
-    if(p->P15==1)
-    num = printbedcount;
-
-    if(p->P15==2)
-    num = p->count;
-
-	sprintf(pname,"REEF3D-SFLOW-BED-%08i-%06i.vtp",num,n+1);
+    result.close();
 }

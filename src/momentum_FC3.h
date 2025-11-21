@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MEFCHANTABILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -38,7 +38,6 @@ class turbulence;
 class solver;
 class poisson;
 class fluid_update;
-class nhflow;
 class reini;
 class picard;
 class heat;
@@ -62,9 +61,6 @@ public:
     field4 ls,frk1,frk2;
 
 private:
-    fluid_update *pupdate;
-    picard *ppicard;
-    
 	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
 	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
@@ -82,10 +78,11 @@ private:
 	solver *psolv;
     solver *ppoissonsolv;
 	ioflow *pflow;
-    nhflow *pnh;
     reini *preini;
     sixdof *p6dof;
     fsi *pfsi;
+    fluid_update *pupdate;
+    picard *ppicard;
     
 };
 

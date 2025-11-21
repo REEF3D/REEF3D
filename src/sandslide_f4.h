@@ -40,9 +40,9 @@ public:
 
 private:
 
-    void slide(lexer*,ghostcell*, sediment_fdm*);
+    void slide(lexer*,ghostcell*, sediment_fdm*,slice&);
 
-    slice4 fh;
+    slice4 fh,fhtot,bedzh0;
     
     int gcval_topo,count;
 

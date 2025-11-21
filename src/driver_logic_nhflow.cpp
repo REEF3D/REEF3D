@@ -90,15 +90,12 @@ void driver::logic_nhflow()
     if(p->A512==2 && p->j_dir==0)
     pnhfdiff = new nhflow_idiff_2D(p);
     
-// reconstruction
+// reconstruction    
     if(p->A514<=3)
     precon = new nhflow_reconstruct_hires(p,pBC);
     
     if(p->A514==4)
     precon = new nhflow_reconstruct_weno(p,pBC);
-    
-    if(p->A514==5)
-    precon = new nhflow_reconstruct_wenograd(p,pBC);
     
 //pressure scheme
     if(p->A520==0)
@@ -113,6 +110,17 @@ void driver::logic_nhflow()
 //Turbulence
     if(p->A560==0)
 	pnhfturb = new nhflow_komega_func_void(p,d,pgc);
+    
+    if(p->A560==1 || p->A560==21)
+    {
+	pnhfturb = new nhflow_kepsilon_IM1(p,d,pgc);
+    
+        if(p->j_dir==1)
+        pnhfturbdiff = new nhflow_idiff(p);
+        
+        if(p->j_dir==0)
+        pnhfturbdiff = new nhflow_idiff_2D(p);
+    }
     
     if(p->A560==2 || p->A560==22)
     {
@@ -162,13 +170,12 @@ void driver::logic_nhflow()
     
 //Printer
     if(p->P150==0)
-	pdata = new data_void(p,a,pgc);
+	pdata = new expdata_void(p,a,pgc);
 
 	if(p->P150>0)
-	pdata = new data_f(p,a,pgc);
+	pdata = new expdata_f(p,a,pgc);
     
-    if(p->P10>0)
-    pnhfprint = new nhflow_vtu3D(p,d,pgc);
+    pprint = new printer_nhflow(p,d,pgc);
     
 //VRANS
     if(p->B269==0)

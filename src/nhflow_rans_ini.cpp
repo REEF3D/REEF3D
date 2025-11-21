@@ -67,7 +67,10 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     if(p->B11==0)
     EPS[IJK] = 1.0;
     
-    if(p->B11>0)
+    if(p->B11>0 && (p->A560==1 || p->A560==21))
+    EPS[IJK] = p->cmu*KIN[IJK]*KIN[IJK]/d->EV[IJK];
+    
+    if(p->B11>0 && (p->A560==2 || p->A560==22))
     EPS[IJK] = KIN[IJK]/d->EV[IJK];
     }
     
@@ -78,6 +81,13 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     pgc->start20V(p,KIN,20);
     pgc->start30V(p,EPS,30);
     pgc->start24V(p,d->EV,24);
+    
+    LOOP
+    if(p->DF[IJK]<0)
+    {
+    KIN[IJK] = 0.0;
+    EPS[IJK] = 0.0;
+    }
 }
 
 void nhflow_rans_io::tau_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)

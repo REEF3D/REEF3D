@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef FDM_HEADER_H_
 #define FDM_HEADER_H_
 
-#include"vtu3D.h"
+#include"printer_CFD.h"
 
 #include"ioflow.h"
 #include"ioflow_void.h"
@@ -38,8 +38,8 @@ Author: Hans Bihs
 
 #include"geotopo.h"
 #include"solid.h"
-#include"data_f.h"
-#include"data_void.h"
+#include"expdata_f.h"
+#include"expdata_void.h"
 
 #include"patchBC.h"
 #include"patchBC_2D.h"

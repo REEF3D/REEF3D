@@ -37,7 +37,7 @@ void reduction_FD::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
     
-    SLICELOOP4
+    SEDSLICELOOP
     {
     r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j))/tan(s->phi(i,j)));
     

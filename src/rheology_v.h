@@ -34,13 +34,13 @@ public:
     virtual ~rheology_v();
 
 
-    double viscosity(lexer*,fdm*,ghostcell*) override;
+    double viscosity(lexer*,fdm*,ghostcell*, field&, field&, field&);
     
-    void u_source(lexer*,fdm*) override;
-    void v_source(lexer*,fdm*) override;
-    void w_source(lexer*,fdm*) override;
+    void u_source(lexer*,fdm*);
+    void v_source(lexer*,fdm*);
+    void w_source(lexer*,fdm*);
     
-    void filltau(lexer*,fdm*,ghostcell*) override;
+    void filltau(lexer*,fdm*,ghostcell*);
 
 };
 #endif

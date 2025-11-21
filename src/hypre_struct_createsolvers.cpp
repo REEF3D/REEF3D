@@ -30,13 +30,13 @@ Author: Hans Bihs
 void hypre_struct::create_solver1234(lexer* p,ghostcell* pgc)
 {
     // solver for velocities and other scalar variables, e.g. turbulence
-    HYPRE_StructBiCGSTABCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructBiCGSTABCreate(pgc->mpi_comm, &solver);
     HYPRE_StructBiCGSTABSetMaxIter(solver, p->N46);
     HYPRE_StructBiCGSTABSetTol(solver, p->N43);
     HYPRE_StructBiCGSTABSetPrintLevel(solver, 0 ); 
     HYPRE_StructBiCGSTABSetLogging(solver, 1);
     
-    HYPRE_StructJacobiCreate(MPI_COMM_WORLD, &precond);
+    HYPRE_StructJacobiCreate(pgc->mpi_comm, &precond);
     HYPRE_StructJacobiSetMaxIter(precond,1);
 
     
@@ -56,7 +56,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     
     if(solve_type==11)
     {
-    HYPRE_StructPCGCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructPCGCreate(pgc->mpi_comm, &solver);
     HYPRE_StructPCGSetMaxIter(solver, p->N46 );
     HYPRE_StructPCGSetTol(solver, p->N44 );
     HYPRE_StructPCGSetTwoNorm(solver, 1 );
@@ -67,7 +67,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     
     if(solve_type==12)
     {
-    HYPRE_StructGMRESCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructGMRESCreate(pgc->mpi_comm, &solver);
     HYPRE_StructGMRESSetMaxIter(solver, p->N46);
     HYPRE_StructGMRESSetKDim(solver,30);
     HYPRE_StructGMRESSetTol(solver, p->N44);
@@ -77,7 +77,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     
     if(solve_type==13)
     {
-    HYPRE_StructLGMRESCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructLGMRESCreate(pgc->mpi_comm, &solver);
     HYPRE_StructLGMRESSetMaxIter(solver, p->N46);
     HYPRE_StructLGMRESSetKDim(solver,30);
     HYPRE_StructLGMRESSetTol(solver, p->N44);
@@ -87,7 +87,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     
     if(solve_type==14)
     {
-    HYPRE_StructBiCGSTABCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructBiCGSTABCreate(pgc->mpi_comm, &solver);
     HYPRE_StructBiCGSTABSetMaxIter(solver, p->N46);
     HYPRE_StructBiCGSTABSetTol(solver, p->N44);
     HYPRE_StructBiCGSTABSetPrintLevel(solver, 0 ); 
@@ -96,7 +96,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 	
 	if(solve_type==15)
     {
-    HYPRE_StructHybridCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructHybridCreate(pgc->mpi_comm, &solver);
 	HYPRE_StructHybridSetSolverType(solver,0);
     HYPRE_StructHybridSetPCGMaxIter(solver, p->N46);
 	HYPRE_StructHybridSetDSCGMaxIter(solver,1);
@@ -107,7 +107,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 	
 	if(solve_type==16)
     {
-    HYPRE_StructHybridCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructHybridCreate(pgc->mpi_comm, &solver);
 	HYPRE_StructHybridSetSolverType(solver,1);
     HYPRE_StructHybridSetPCGMaxIter(solver, p->N46);
 	HYPRE_StructHybridSetDSCGMaxIter(solver,1);
@@ -118,7 +118,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
 	
 	if(solve_type==17)
     {
-    HYPRE_StructHybridCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructHybridCreate(pgc->mpi_comm, &solver);
 	HYPRE_StructHybridSetSolverType(solver,2);
     HYPRE_StructHybridSetPCGMaxIter(solver, p->N46);
 	HYPRE_StructHybridSetDSCGMaxIter(solver,1);
@@ -129,7 +129,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     
     if(solve_type==18)
     {
-    HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructPFMGCreate(pgc->mpi_comm, &solver);
 	HYPRE_StructPFMGSetMaxIter(solver, p->N46);
 	HYPRE_StructPFMGSetTol(solver, p->N44);
 	HYPRE_StructPFMGSetZeroGuess(solver);		
@@ -144,7 +144,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     
     if(solve_type==19)
     {
-    HYPRE_StructSMGCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructSMGCreate(pgc->mpi_comm, &solver);
     HYPRE_StructSMGSetMemoryUse(solver,0);
     HYPRE_StructSMGSetMaxIter(solver,p->N46);
     HYPRE_StructSMGSetTol(solver, p->N44);
@@ -155,13 +155,61 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     
     if(precon_type==10)
     {
-    HYPRE_StructJacobiCreate(MPI_COMM_WORLD, &precond);
+    HYPRE_StructJacobiCreate(pgc->mpi_comm, &precond);
     HYPRE_StructJacobiSetMaxIter(precond,1);
     }
     
-    if(precon_type==11)
+    // FNPF
+    if(precon_type==11 && p->A10==3)
     {
-    HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &precond);
+    HYPRE_StructPFMGCreate(pgc->mpi_comm, &precond);
+	HYPRE_StructPFMGSetMaxIter(precond, 1);
+	HYPRE_StructPFMGSetTol(precond, 1.0e-06);
+	HYPRE_StructPFMGSetNonZeroGuess(precond);		
+	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
+	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
+	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
+	HYPRE_StructPFMGSetNumPostRelax(precond, 2);
+	HYPRE_StructPFMGSetSkipRelax(precond, 1);  // 0/1
+	HYPRE_StructPFMGSetPrintLevel(precond, 0);
+	HYPRE_StructPFMGSetLogging(precond, 0);
+    }
+    
+    // NHFLOW
+    if(precon_type==11 && p->A10==5)
+    {
+    HYPRE_StructPFMGCreate(pgc->mpi_comm, &precond);
+	HYPRE_StructPFMGSetMaxIter(precond, 1);
+	HYPRE_StructPFMGSetTol(precond, 1.0e-03);
+	HYPRE_StructPFMGSetZeroGuess(precond);		
+	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
+	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
+	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
+	HYPRE_StructPFMGSetNumPostRelax(precond, 2);
+	HYPRE_StructPFMGSetSkipRelax(precond, 0);  // now: 0; before: 0
+	HYPRE_StructPFMGSetPrintLevel(precond, 0);
+	HYPRE_StructPFMGSetLogging(precond, 0);
+    }
+    
+    // CFD
+    if(precon_type==11 && p->A10==6)
+    {
+    HYPRE_StructPFMGCreate(pgc->mpi_comm, &precond);
+	HYPRE_StructPFMGSetMaxIter(precond, 1);
+	HYPRE_StructPFMGSetTol(precond, 0.0);
+	HYPRE_StructPFMGSetZeroGuess(precond);		
+	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
+	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
+	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
+	HYPRE_StructPFMGSetNumPostRelax(precond, 1);
+	HYPRE_StructPFMGSetSkipRelax(precond, 0);  // now: 0; before: 0
+	HYPRE_StructPFMGSetPrintLevel(precond, 0);
+	HYPRE_StructPFMGSetLogging(precond, 0);
+    }
+    
+    if(precon_type==11 && p->A10!=3 && p->A10!=5 && p->A10!=6)
+    {
+    HYPRE_StructPFMGCreate(pgc->mpi_comm, &precond);
 	HYPRE_StructPFMGSetMaxIter(precond, 1);
 	HYPRE_StructPFMGSetTol(precond, 0.0);
 	HYPRE_StructPFMGSetZeroGuess(precond);		
@@ -176,10 +224,10 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     
     if(precon_type==12)
     {
-    HYPRE_StructSMGCreate(MPI_COMM_WORLD, &precond);
+    HYPRE_StructSMGCreate(pgc->mpi_comm, &precond);
     HYPRE_StructSMGSetMemoryUse(precond,0);
     HYPRE_StructSMGSetMaxIter(precond,1);
-    HYPRE_StructSMGSetTol(precond, 0.0);
+    HYPRE_StructSMGSetTol(precond, 1.0e-06);
     HYPRE_StructSMGSetZeroGuess(precond);
     HYPRE_StructSMGSetNumPreRelax(precond,1);
     HYPRE_StructSMGSetNumPostRelax(precond,1);
@@ -264,7 +312,7 @@ void hypre_struct::delete_solver5(lexer* p,ghostcell* pgc)
 
 void hypre_struct::create_solver44(lexer* p,ghostcell* pgc)
 {
-    HYPRE_StructGMRESCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructGMRESCreate(pgc->mpi_comm, &solver);
     HYPRE_StructGMRESSetMaxIter(solver, p->N46);
     HYPRE_StructGMRESSetKDim(solver,30);
     HYPRE_StructGMRESSetTol(solver, p->N44);
@@ -272,7 +320,7 @@ void hypre_struct::create_solver44(lexer* p,ghostcell* pgc)
     HYPRE_StructGMRESSetLogging(solver, 1);
     
 
-    HYPRE_StructSMGCreate(MPI_COMM_WORLD, &precond);
+    HYPRE_StructSMGCreate(pgc->mpi_comm, &precond);
     HYPRE_StructSMGSetMemoryUse(precond,0);
     HYPRE_StructSMGSetMaxIter(precond,1);
     HYPRE_StructSMGSetTol(precond, 0.0);

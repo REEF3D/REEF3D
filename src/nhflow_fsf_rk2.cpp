@@ -44,11 +44,6 @@ nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, 
     
     if(p->F50==4)
 	gcval_eta = 54;
-
-    SLICELOOP4
-    p->flagfsf[IJ]=1;
-    
-    pgc->gcslflagx(p,p->flagfsf);
 }
 
 nhflow_fsf_f::~nhflow_fsf_f()

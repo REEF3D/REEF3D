@@ -38,7 +38,7 @@ void reduction_deyana::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     double r=1.0;
     eta = 0.85;
     
-    SLICELOOP4
+    SEDSLICELOOP
     {
     
     alphaval = s->alpha(i,j);

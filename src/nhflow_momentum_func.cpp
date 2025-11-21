@@ -156,7 +156,6 @@ void nhflow_momentum_func::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	LOOP
 	{
 	d->F[IJK] += (d->Fext[IJK])*PORVALNH;
-    d->test[IJK] = d->Fext[IJK];
 	d->Fext[IJK]=0.0;
 	}
 }

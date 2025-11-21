@@ -45,9 +45,7 @@ void sediment_f::prep_cfd(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::prep_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
 {    
-    
     fill_PQ_nhflow(p,d,pgc);
-        
 }
 
 void sediment_f::prep_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q)

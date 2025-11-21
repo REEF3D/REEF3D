@@ -136,7 +136,7 @@ void concentration_io::ini(lexer* p, fdm *a, ghostcell* pgc,concentration *pconc
 		}
 
     pgc->start4(p,C,80);
-	pupdate->start(p,a,pgc);
+	pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
 }
 

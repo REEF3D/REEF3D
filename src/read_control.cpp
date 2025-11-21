@@ -35,7 +35,7 @@ void lexer::read_control()
 	if(!control)
 	{
 		cout<<endl<<("no 'ctrl.txt' file found")<<endl<<endl;
-		exit(0);
+		exit(1);
 	}
 
 	if(mpirank==0)
@@ -273,6 +273,9 @@ void lexer::read_control()
                case 512: control>>A512;
                         clear(c,numint);
                         break;
+               case 513: control>>A513;
+                        clear(c,numint);
+                        break;
                case 514: control>>A514;
                         clear(c,numint);
                         break;
@@ -431,6 +434,9 @@ void lexer::read_control()
                  case 21: control>>B21;
 						 clear(c,numint);
 						 break;
+                 case 22: control>>B22;
+						 clear(c,numint);
+						 break;
                  case 23: control>>B23;
 						 clear(c,numint);
 						 break;
@@ -536,7 +542,7 @@ void lexer::read_control()
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 91 !!!"<<endl<<endl;
                                 cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-                                exit(0);
+                                exit(1);
                             }
                             B91=1;
 						    clear(c,numint);
@@ -560,7 +566,7 @@ void lexer::read_control()
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 93 !!!"<<endl<<endl;
                                 cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-                                exit(0);
+                                exit(1);
                             }
                             B93=1;
 						    clear(c,numint);
@@ -585,7 +591,7 @@ void lexer::read_control()
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 96 !!!"<<endl<<endl;
                                 cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-                                exit(0);
+                                exit(1);
                             }
 						    clear(c,numint);
 						    break;
@@ -895,6 +901,9 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
 				case 21: control>>D21;
+						 clear(c,numint);
+						 break;
+                 case 22: control>>D22;
 						 clear(c,numint);
 						 break;
 				case 30: control>>D30;
@@ -1995,6 +2004,9 @@ void lexer::read_control()
                 case 93: control>>S93;
 						 clear(c,numint);
 						 break;
+                case 94: control>>S94;
+						 clear(c,numint);
+						 break;
 				case 100: control>>S100;
 						 clear(c,numint);
 						 break;
@@ -2490,7 +2502,7 @@ void lexer::read_control()
         cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
         cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
 
-        exit(0);
+        exit(1);
         }
 	}
 	control.close();
@@ -3866,7 +3878,7 @@ void lexer::read_control()
         cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
         cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
 
-        exit(0);
+        exit(1);
         }
 	}
 

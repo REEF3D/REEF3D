@@ -22,29 +22,19 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
 
 void ghostcell::rangex(lexer* p, int* range, int cellcount)
 {
-
     int *colnum;
-    
+
     p->Iarray(colnum, p->M10+1);
-    offset = cellcount;
-    
-    for(n=0;n<=p->M10;++n)
-    p->colnum[n]=0;
-	
-    MPI_Allgather(&offset,1,MPI_INT,colnum,1,MPI_INT,mpi_comm);
+
+    MPI_Allgather(&cellcount,1,MPI_INT,colnum,1,MPI_INT,mpi_comm);
 
     range[0]=0;
 
     for(n=0;n<p->M10;++n)
-    range[n+1]=range[n]+colnum[n];
-    
+        range[n+1]=range[n]+colnum[n];
+
     p->del_Iarray(colnum, p->M10+1);
-
 }
-
-
-

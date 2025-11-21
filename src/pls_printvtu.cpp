@@ -82,45 +82,45 @@ void particle_pls::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *fl
 
 	//---------------------------------------------
 	n=0;
-	result<<"<?xml version=\"1.0\"?>"<<endl;
-	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
-	result<<"<UnstructuredGrid>"<<endl;
-	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfCells=\""<<numpt<<"\">"<<endl;
+	result<<"<?xml version=\"1.0\"?>\n";
+	result<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+	result<<"<UnstructuredGrid>\n";
+	result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfCells=\""<<numpt<<"\">\n";
 	
 	
-	result<<"<PointData >"<<endl;
-	result<<"<DataArray type=\"Float32\" Name=\"phi\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<PointData>\n";
+	result<<"<DataArray type=\"Float32\" Name=\"phi\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"radius\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Float32\" Name=\"radius\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"correction\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"correction\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"</PointData>"<<endl;
+	result<<"</PointData>\n";
 	
 	
 	
 
-    result<<"<Points>"<<endl;
-    result<<"<DataArray type=\"Float32\"  NumberOfComponents=\"3\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Points>\n";
+    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"</Points>"<<endl;
+    result<<"</Points>\n";
 	
 	
 
-    result<<"<Cells>"<<endl;
-	result<<"<DataArray type=\"Int32\"  Name=\"connectivity\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<Cells>\n";
+	result<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Int32\"  Name=\"offsets\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 	++n;
-    result<<"<DataArray type=\"Int32\"  Name=\"types\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+    result<<"<DataArray type=\"Int32\" Name=\"types\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"</Cells>"<<endl;
+	result<<"</Cells>\n";
 
-    result<<"</Piece>"<<endl;
-    result<<"</UnstructuredGrid>"<<endl;
+    result<<"</Piece>\n";
+    result<<"</UnstructuredGrid>\n";
 
 //----------------------------------------------------------------------------
-    result<<"<AppendedData encoding=\"raw\">"<<endl<<"_";
+    result<<"<AppendedData encoding=\"raw\">\n_";
 	
 
 //  lsv
@@ -224,8 +224,8 @@ void particle_pls::print_vtu(lexer* p, fdm* a, ghostcell* pgc,double** f,int *fl
 	result.write((char*)&iin, sizeof (int));
 	}
 
-	result<<endl<<"</AppendedData>"<<endl;
-    result<<"</VTKFile>"<<endl;
+	result<<"\n</AppendedData>\n";
+    result<<"</VTKFile>\n";
 
 	result.close();
 }

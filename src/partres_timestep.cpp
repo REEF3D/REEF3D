@@ -22,61 +22,57 @@ Author: Alexander Hanke
 
 #include"partres.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 void partres::timestep(lexer *p, ghostcell *pgc)
 {
-    double maxVelU=.00,maxVelV=0.0,maxVelW=0.0;
+    double maxVelU=0.0, maxVelV=0.0, maxVelW=0.0;
     double maxvz=0.0;
-    
+
     for(size_t n=0;n<P.index;n++)
     {
         if(P.Flag[n]>=0)
         {
-                maxVelU = MAX(maxVelU,fabs(P.U[n]));
-                maxVelV = MAX(maxVelV,fabs(P.V[n]));
-                maxVelW = MAX(maxVelW,fabs(P.W[n]));
+            maxVelU = MAX(maxVelU,fabs(P.U[n]));
+            maxVelV = MAX(maxVelV,fabs(P.V[n]));
+            maxVelW = MAX(maxVelW,fabs(P.W[n]));
         }
     }
-    
-    
+
     maxvz = MAX(maxVelU,maxVelV);
     maxvz = MAX(maxvz,maxVelV);
-    
+
     maxvz = pgc->globalmax(maxvz);
-    
+
     maxVelU = pgc->globalmax(maxVelU);
     maxVelV = pgc->globalmax(maxVelV);
     maxVelW = pgc->globalmax(maxVelW);
-    
-    if(timestep_ini==0)
-    {
-    maxvz = 1000.0;
-    timestep_ini=1;
-    }
-    
-    
-    if(p->S15==0)
-    p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
 
-    if(p->S15==1)
-    p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
-    
-    if(p->S15==2)
-    p->dtsed=p->S13;
+    if(timestep_ini)
+    {
+        maxvz = 1000.0;
+        timestep_ini = false;
+    }
+
+    if(p->S15==0)
+        p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
+    else if(p->S15==1)
+        p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
+    else if(p->S15==2)
+        p->dtsed=p->S13;
 
     p->dtsed=pgc->timesync(p->dtsed);
-    
+
     //
-	
-	if(p->mpirank==0)
+
+    p->sedtime+=p->dtsed;
+
+    if(p->mpirank==0)
     {
-	cout<<p->mpirank<<" maxvz: "<<setprecision(4)<<maxvz<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
-    cout<<"Up_max: "<<maxVelU<<endl;
-    cout<<"Vp_max: "<<maxVelV<<endl;
-    cout<<"Wp_max: "<<maxVelW<<endl;
+        cout<<p->mpirank<<" maxvz: "<<setprecision(4)<<maxvz<<" Sediment Timestep: "<<setprecision(4)<<p->dtsed<<endl;
+        cout<<"Sediment Iter: "<<p->sediter<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;
+        cout<<"Up_max: "<<maxVelU<<endl;
+        cout<<"Vp_max: "<<maxVelV<<endl;
+        cout<<"Wp_max: "<<maxVelW<<endl;
     }
-    
-    
 }

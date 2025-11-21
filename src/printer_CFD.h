@@ -1,0 +1,109 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2025 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Author: Hans Bihs
+--------------------------------------------------------------------*/
+
+#ifndef PRINTER_CFD_H_
+#define PRINTER_CFD_H_
+
+#include"printer.h"
+#include"increment.h"
+#include"field5.h"
+
+#include"vtks.h"
+
+class turbulence;
+class heat;
+class suspended;
+class bedload;
+class topo;
+class print_wsf;
+class print_wsf_theory;
+class print_wsfline_x;
+class print_wsfline_y;
+class force;
+class vorticity;
+class probe_point;
+class probe_pressure;
+class probe_line;
+class gage_discharge_x;
+class gage_discharge_window_x;
+class fsf_vtp;
+class topo_vtp;
+class cfd_state;
+class sloshing_force;
+class print_porous;
+class probe_vel;
+class probe_vel_theory;
+class exportfile;
+class flowfile_out;
+class print_averaging;
+
+using namespace std;
+
+class printer_CFD : public printer, public increment
+{
+
+public:
+    printer_CFD(lexer*,fdm*,ghostcell*);
+    virtual ~printer_CFD() = default;
+    void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override;
+    void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override;
+
+private:
+    void print3D(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);
+    void parallel(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*,int);
+
+    vtk3D *outputFormat;
+    bool initial_print = true;
+    size_t file_offset = 0;
+
+    char name[200];
+    int n,iin,offset[300];
+    float ffn;
+    double *printtime_wT;
+    double *printfsftime_wT;
+
+    print_wsf *pwsf;
+    print_wsf_theory *pwsf_theory;
+    print_wsfline_x *pwsfline_x;
+    print_wsfline_y *pwsfline_y;
+    force **pforce;
+    vorticity *pvort;
+    probe_point *pprobe;
+    probe_pressure *ppressprobe;
+	probe_line *pline;
+	
+	gage_discharge_x *pq;
+    gage_discharge_window_x *pqw;
+    fsf_vtp *pfsf;
+    topo_vtp *ptopo;
+    cfd_state *pstate;
+    cfd_state *pstate_restart;
+    sloshing_force *pslosh;
+    print_porous *ppor;
+    exportfile *pexport;
+    flowfile_out *pflowfile;
+    print_averaging *pmean;
+    probe_vel *pvel;
+    probe_vel_theory *pveltheo;
+};
+
+#endif

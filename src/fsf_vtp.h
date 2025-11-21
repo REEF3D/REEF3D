@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"fieldint5.h"
 #include"field5.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm;
@@ -33,50 +34,40 @@ class ghostcell;
 
 using namespace std;
 
-class fsf_vtp :  public increment
+class fsf_vtp : public increment, private vtp3D
 {
 
 public:
-	fsf_vtp(lexer*,fdm*,ghostcell*);
-	virtual ~fsf_vtp();
-	virtual void start(lexer*,fdm*,ghostcell*);
+    fsf_vtp(lexer*,fdm*,ghostcell*);
+    virtual ~fsf_vtp();
+    virtual void start(lexer*,fdm*,ghostcell*);
 
 private:
-	void triangulation(lexer*, fdm*, ghostcell*, field&);
-	void reconstruct(lexer*, fdm*, field&);
-	void addpoint(lexer*,fdm*,int,int);
-	void finalize(lexer*,fdm*);
-	
-	int **tri, **facet, *confac, *numfac,*numpt;
-	double **ccpt, **pt, *ls;
-	double   dV1,dV2,C1,C2,mi;
-	int numtri,numvert, numtri_mem, numvert_mem;
-	int count,countM,n,nn,q;
-	int ccptcount,facount,check;
-	int polygon_sum,polygon_num,vertice_num;
-	const double zero,interfac;
+    void triangulation(lexer*, fdm*, ghostcell*, field&);
+    void reconstruct(lexer*, fdm*, field&);
+    void addpoint(lexer*,fdm*,int,int);
+    void finalize(lexer*,fdm*);
+
+    int **tri, **facet, *confac, *numfac,*numpt;
+    double **ccpt, **pt, *ls;
+    double   dV1,dV2,C1,C2,mi;
+    int numtri,numvert, numtri_mem, numvert_mem;
+    int count,countM,n,nn,q;
+    int ccptcount,facount,check;
+    int polygon_sum,polygon_num,vertice_num;
+    const double zero,interfac;
     double epsi;
-	
-	fieldint5 vertice, nodeflag;
-	field5 eta;
-	
-	void print(lexer*,fdm*,ghostcell*);
-    void pvtp(lexer*,fdm*,ghostcell*);
-    void header(lexer*,fdm*,ghostcell*);
-    void name_iter(lexer*,fdm*,ghostcell*);
-    void name_time(lexer*,fdm*,ghostcell*);
-    void piecename(lexer*,fdm*,ghostcell*, int);
 
-    char name[100],pname[100],epsvar[100];
-    int iin,offset[100];
-    float ffn;
-    int gcval_phi;
-    double printtime,printtime2;
-	int fsfprintcount;
-	
+    fieldint5 vertice, nodeflag;
+    field5 eta;
 
+    void print(lexer*,fdm*);
+    void pvtp(lexer*,int);
+
+    char name[100];
+    int offset[100];
+
+    int fsfprintcount;
 };
 
 #endif
-
-

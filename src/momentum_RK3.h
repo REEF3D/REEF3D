@@ -64,6 +64,10 @@ private:
     
 	int gcval_u, gcval_v, gcval_w;
 	double starttime;
+    
+    double alpha[3];
+    double beta[3];
+    int loop;
 
 	convection *pconvec;
 	diffusion *pdiff;

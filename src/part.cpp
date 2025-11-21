@@ -22,59 +22,58 @@ Authors: Hans Bihs, Alexander Hanke
 
 #include"part.h"
 #include"lexer.h"
-#include <cstdint>
-#include <cstring>
+#include<cstdint>
+#include<cstring>
 #include<iostream>
 
 part::part(lexer *p, ghostcell *pgc)
-{	
+{
     capacity=1;
     index=1;
     index_empty=capacity;
-    ParcelFactor = p->Q41;
+    //ParcelFactor = p->Q41;
     d50 = p->S20;
     rhosed = p->S22;
-    
-    
-    ParcelFactor = p->S24*((p->DXM*p->DXM*p->DXM)/(p->Q24*(1.0/6.0)*pow(p->S20,3.0)*PI));
-    
+
+    ParcelFactor = (1.0-p->S24)*((p->DXM*p->DXM*p->DXM)/(p->Q24*(1.0/6.0)*pow(p->S20,3.0)*PI));
+
     if(p->mpirank==0)
-    cout<<"ParcelFactor: "<<ParcelFactor<<" DXM: "<<p->DXM<<endl;
-    
-    // 
+        cout<<"ParcelFactor: "<<ParcelFactor<<" DXM: "<<p->DXM<<endl;
+
+    //
     p->Darray(U,capacity);
     p->Darray(V,capacity);
     p->Darray(W,capacity);
-    
+
     p->Darray(URK1,capacity);
     p->Darray(VRK1,capacity);
-    p->Darray(WRK1,capacity); 
+    p->Darray(WRK1,capacity);
 
     p->Darray(X,capacity);
     p->Darray(Y,capacity);
     p->Darray(Z,capacity);
-    
+
     p->Darray(XRK1,capacity);
     p->Darray(YRK1,capacity);
-    p->Darray(ZRK1,capacity);  
-    
+    p->Darray(ZRK1,capacity);
+
     p->Darray(Uf,capacity);
     p->Darray(Vf,capacity);
     p->Darray(Wf,capacity);
-    
+
     p->Darray(D,capacity);
     p->Darray(RO,capacity);
-    
+
     p->Darray(Test,capacity);
-  
+
     p->Iarray(Flag,capacity);
     p->Iarray(Empty,capacity);
-    
+
     // parallel
     capacity_para=1000;
-    
+
     p->Iarray(sendid,6,capacity_para);
-    
+
     p->Darray(send,6,capacity_para);
     p->Darray(recv,6,capacity_para);
 }
@@ -87,7 +86,7 @@ part::~part()
     V=nullptr;
     delete[] W;
     W=nullptr;
-        
+
     delete[] URK1;
     URK1=nullptr;
     delete[] VRK1;
@@ -101,33 +100,31 @@ part::~part()
     Y=nullptr;
     delete[] Z;
     Z=nullptr;
-        
+
     delete[] XRK1;
     XRK1=nullptr;
     delete[] YRK1;
     YRK1=nullptr;
     delete[] ZRK1;
     ZRK1=nullptr;
-        
+
     delete[] Uf;
     Uf=nullptr;
     delete[] Vf;
     Vf=nullptr;
     delete[] Wf;
     Wf=nullptr;
-    
+
     delete[] D;
     D=nullptr;
     delete[] RO;
     RO=nullptr;
-    
+
     delete[] Test;
     Test=nullptr;
-    
+
     delete[] Empty;
     Empty=nullptr;
     delete[] Flag;
     Flag=nullptr;
 }
-
-

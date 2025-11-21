@@ -43,11 +43,11 @@ multiphase_v::~multiphase_v()
 {
 }
 
-void multiphase_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer *pprint, convection *pconvec, solver *psolv)
+void multiphase_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, convection *pconvec, solver *psolv)
 {
 }
 
-void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, solver *psolv, ioflow *pflow, reini* preini, particle_corr* ppls, printer *pprint)
+void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, solver *psolv, ioflow *pflow, reini* preini, particle_corr* ppls)
 {
 }
 
@@ -55,7 +55,7 @@ void multiphase_v::update(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void multiphase_v::print_3D(lexer*, fdm*, ghostcell*,ofstream&)
+void multiphase_v::print_3D(lexer*, fdm*, ghostcell*, std::vector<char> &buffer, size_t &m)
 {	
 }
 
@@ -102,17 +102,17 @@ void multiphase_v::ls2get(int,int,int,double)
 }
 
 
-void multiphase_v::name_pvtu(lexer*, fdm*, ghostcell*,ofstream&)
+void multiphase_v::name_ParaView_parallel(lexer*, ofstream&)
 {
 	
 }
 
-void multiphase_v::name_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
+void multiphase_v::name_ParaView(lexer*, std::stringstream&, int*, int &)
 {
 	
 }
 
-void multiphase_v::offset_vtu(lexer*, fdm*, ghostcell*,ofstream&, int*, int &)
+void multiphase_v::offset_ParaView(lexer*, int*, int &)
 {
 	
 }

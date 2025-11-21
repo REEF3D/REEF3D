@@ -29,7 +29,7 @@ void mooring_barQuasiStatic::initialize(lexer *p, ghostcell *pgc)
 {		
 	sigma = p->X311_H[line];
 
-	double rho_f =1000.0;
+	double rho_f = p->W1;
 
 	rho_c = p->X311_rho_c[line];
 	w = p->X311_w[line]*9.81*(rho_c - rho_f)/rho_c;
@@ -61,7 +61,17 @@ void mooring_barQuasiStatic::initialize(lexer *p, ghostcell *pgc)
 	if(p->mpirank==0)
 	{
 		char str[1000];
+        
+        if(p->A10==5)
+        {
+		sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
+		}
+        
+        if(p->A10==6)
+        {
 		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
+        }
+        
 		eTout.open(str);
 		eTout<<"time \t T"<<endl;
 	}		
@@ -107,9 +117,6 @@ void mooring_barQuasiStatic::initialize(lexer *p, ghostcell *pgc)
 		f[j][1] = dy/magDist;	
 		f[j][2] = dz/magDist;			
 	}
-	
-	// Initialise communication 
-	ini_parallel(p, pgc);
 
     // Initialise catenary
 	pcatenary = new mooring_Catenary(line);
@@ -119,32 +126,6 @@ void mooring_barQuasiStatic::initialize(lexer *p, ghostcell *pgc)
     curr_time = 0.0;
     breakTension = p->X314 > 0 ? p->X314_T[line]: 0.0;
     breakTime = p->X315 > 0 ? p->X315_t[line]: 0.0;
-}
 
-
-void mooring_barQuasiStatic::ini_parallel(lexer *p, ghostcell *pgc)
-{
-	p->Darray(xstart, p->mpi_size);
-	p->Darray(xend, p->mpi_size);
-	p->Darray(ystart, p->mpi_size);
-	p->Darray(yend, p->mpi_size);
-	p->Darray(zstart, p->mpi_size);
-	p->Darray(zend, p->mpi_size);
-	
-	xstart[p->mpirank] = p->originx;
-	ystart[p->mpirank] = p->originy;
-	zstart[p->mpirank] = p->originz;
-	xend[p->mpirank] = p->endx;
-	yend[p->mpirank] = p->endy;
-	zend[p->mpirank] = p->endz;
-	
-	for (int i = 0; i < p->mpi_size; i++)
-	{
-		MPI_Bcast(&xstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&xend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&ystart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&yend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&zstart[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-		MPI_Bcast(&zend[i],1,MPI_DOUBLE,i,pgc->mpi_comm);
-	}
+    print(p,pgc);
 }

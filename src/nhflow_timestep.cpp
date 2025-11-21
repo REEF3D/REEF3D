@@ -123,7 +123,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     
-    //co = MIN(co, 1.0/((fabs(p->omegamax)/dx)));
+    //co = MIN(co, 1.0/((fabs(p->omegamax)/dz)));
     }
     
     cu = pgc->globalmin(cu);
@@ -134,8 +134,6 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cu = MIN(cu,cv);
     
     cu = MIN(cu,cw);
-    
-    
     
     //cu = MIN(cu,co);
     

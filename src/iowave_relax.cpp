@@ -36,7 +36,7 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
         dg = distgen(p);    
         db = distbeach(p);
         
-        phival = 0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
 
         if(phival>=-psi)
 		{
@@ -102,7 +102,7 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
         dg = distgen(p);    
         db = distbeach(p);
         
-        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j-1,k));
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
 
         if(phival>=-psi)
 		{
@@ -167,7 +167,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
         dg = distgen(p);    
         db = distbeach(p);
         
-        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k-1));
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
 
         if(phival>=-psi)
 		{
@@ -483,7 +483,7 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
         dg = distgen(p);    
         db = distbeach(p);
 
-        phival = -0.5*(a->phi(i,j,k)+a->phi(i-1,j,k));
+        phival = -a->phi(i,j,k);
 
         if(phival>=-psi)
 		 H=1.0;

@@ -42,7 +42,7 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
     
     if(p->N10==12)
     {
-    HYPRE_StructGMRESCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructGMRESCreate(pgc->mpi_comm, &solver);
     HYPRE_StructGMRESSetMaxIter(solver, p->N46);
     HYPRE_StructGMRESSetKDim(solver,30);
     HYPRE_StructGMRESSetTol(solver, p->N44);
@@ -52,7 +52,7 @@ void hypre_struct2D::create_solvers(lexer* p, ghostcell* pgc)
     
     if(p->N10==13)
     {
-    HYPRE_StructLGMRESCreate(MPI_COMM_WORLD, &solver);
+    HYPRE_StructLGMRESCreate(pgc->mpi_comm, &solver);
     HYPRE_StructLGMRESSetMaxIter(solver, p->N46);
     HYPRE_StructLGMRESSetKDim(solver,30);
     HYPRE_StructLGMRESSetTol(solver, p->N44);

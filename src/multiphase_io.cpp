@@ -27,36 +27,43 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"reini.h"
 #include"print_wsf.h"
+#include<cstring>
 	
-void multiphase_f::print_3D(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void multiphase_f::print_3D(lexer *p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
     iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
     TPLOOP
 	{
 	ffn=float(p->ipol4(ls1));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 
 
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
 	TPLOOP
 	{
 	ffn=float(p->ipol4(ls2));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 
 	
 	iin=4*(p->pointnum);
-    result.write((char*)&iin, sizeof (int));
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
 
 	TPLOOP
 	{
 	ffn=float(p->ipol4_a(a->ro));
-	result.write((char*)&ffn, sizeof (float));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
 	}
 	
 }
@@ -132,24 +139,24 @@ void multiphase_f::ls2get(int ii, int jj, int kk, double val)
     ls2(i,j,k)=val;
 }
 
-void multiphase_f::name_pvtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result)
+void multiphase_f::name_ParaView_parallel(lexer *p, ofstream &result)
 {
-	result<<"<PDataArray type=\"Float32\" Name=\"ls1\"/>"<<endl;
-    result<<"<PDataArray type=\"Float32\" Name=\"ls2\"/>"<<endl;
-	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>"<<endl;
+	result<<"<PDataArray type=\"Float32\" Name=\"ls1\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"ls2\"/>\n";
+	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
 }
 
-void multiphase_f::name_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void multiphase_f::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
-	result<<"<DataArray type=\"Float32\" Name=\"ls1\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"ls1\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"ls2\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"ls2\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"rho\"  format=\"appended\" offset=\""<<offset[n]<<"\" />"<<endl;
+	result<<"<DataArray type=\"Float32\" Name=\"rho\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
 
-void multiphase_f::offset_vtu(lexer *p, fdm *a, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void multiphase_f::offset_ParaView(lexer *p, int *offset, int &n)
 {
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;

@@ -89,10 +89,9 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	{
 		pmooring.push_back(new mooring_void());
 	}
-    
 	else
 	{
-		MPI_Bcast(&p->mooring_count,1,MPI_DOUBLE,0,pgc->mpi_comm);	
+		pgc->bcast_int(&p->mooring_count,1);	
 
 		Xme.resize(p->mooring_count);
 		Yme.resize(p->mooring_count);

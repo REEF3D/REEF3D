@@ -99,7 +99,7 @@ void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         print_force(p,d,pgc);
         }
         
-    print_vtp(p,d,pgc);
+    //print_vtp(p,d,pgc);
     
     deallocate(p,d,pgc);
 } 

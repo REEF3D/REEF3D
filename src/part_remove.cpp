@@ -25,14 +25,12 @@ Author: Hans Bihs, Alexander Hanke
 
 void part::remove(int n)
 {
-    Flag[n] = -1;
-    
+    Flag[n] = EMPTY;
+
     Empty[index_empty] = n;
     ++index_empty;
-
 }
 
 void part::erase_all()
 {
-
 }

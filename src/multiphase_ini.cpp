@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"reini.h"
 
-void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, printer *pprint, convection *pconvec, solver *psolv)
+void multiphase_f::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, convection *pconvec, solver *psolv)
 {	
 	int istart, iend, jstart, jend, kstart, kend;
     int qn;

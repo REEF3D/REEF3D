@@ -49,8 +49,7 @@ void driver::logic_fnpf()
 	pftstep=new fnpf_timestep(p);
     
 // Printer
-    if(p->P10>0)
-    pfprint = new fnpf_vtu3D(p,c,pgc);
+    pprint = new printer_fnpf(p,c,pgc);
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )
@@ -59,27 +58,14 @@ void driver::logic_fnpf()
 	if(p->B90>=1)
 	pflow= new iowave(p,pgc,pBC);
     
-// Geodat
-    if(p->G1==0)
-    preto = new reinitopo_void();
-
-    if(p->G1==1)
-    {
-    if(p->G40==0)
-    preto = new reinitopo_void();
-    
-    if(p->G40==1)
-    preto = new reinitopo_AB2(p);
-    
-    if(p->G40==3)
-    preto = new reinitopo_RK3(p);
-    }
-    
 //  Laplace Solver	
 	if(p->N10==0)
 	plapsolv = new solver_void(p,a,pgc);
 
-	if(p->N10==1)
+	if(p->N10==1 && p->j_dir==0)
+	plapsolv = new bicgstab_ijk(p,a,pgc);
+    
+    if(p->N10==1 && p->j_dir==1)
 	plapsolv = new bicgstab_ijk(p,a,pgc);
 	
 	#ifdef HYPRE_COMPILATION
@@ -100,7 +86,7 @@ void driver::logic_fnpf()
 //  Voids
 	pturb = new kepsilon_void(p,a,pgc);
     
-    pdata = new data_void(p,a,pgc);
+    pdata = new expdata_void(p,a,pgc);
     
     pconc = new concentration_void(p,a,pgc);
     

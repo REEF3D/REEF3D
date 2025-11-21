@@ -57,7 +57,7 @@ void driver::logic_ptf()
 	ptstep=new pftimestep(p);
     
 // Printer
-	pprint = new vtu3D(p,a,pgc);
+    pprint = new printer_CFD(p,a,pgc);
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0 )
@@ -75,10 +75,7 @@ void driver::logic_ptf()
     if(p->G40==0)
     preto = new reinitopo_void();
     
-    if(p->G40==1)
-    preto = new reinitopo_AB2(p);
-    
-    if(p->G40==3)
+    if(p->G40>0)
     preto = new reinitopo_RK3(p);
     }
     
@@ -102,7 +99,7 @@ void driver::logic_ptf()
 //  Voids
 	pturb = new kepsilon_void(p,a,pgc);
     
-    pdata = new data_void(p,a,pgc);
+    pdata = new expdata_void(p,a,pgc);
     
     pconc = new concentration_void(p,a,pgc);
     

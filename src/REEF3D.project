@@ -65,6 +65,30 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Pressure SC">
+          <File Name="sflow_pjm_quad_SC.h"/>
+          <File Name="sflow_pjm_hs_SC.h"/>
+          <File Name="sflow_pressure_SC.h"/>
+          <File Name="sflow_pjm_lin_SC.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FSF SC">
+          <File Name="sflow_fsf_f.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Convect">
+          <File Name="sflow_HLL.h"/>
+          <File Name="sflow_flux_build.h"/>
+          <File Name="sflow_flux_build_f.h"/>
+          <File Name="sflow_convection_SC.h"/>
+          <VirtualDirectory Name="Scalar"/>
+          <VirtualDirectory Name="Signal Speed">
+            <File Name="sflow_signal_speed.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Reconstruct">
+            <File Name="sflow_reconstruct_weno.h"/>
+            <File Name="sflow_reconstruct_hires.h"/>
+            <File Name="sflow_reconstruct.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
           <File Name="sflow_forcing.h"/>
         </VirtualDirectory>
@@ -109,16 +133,20 @@
         <VirtualDirectory Name="Pressure">
           <File Name="sflow_pjm_corr_lin.h"/>
           <File Name="sflow_pressure.h"/>
-          <File Name="sflow_pjm_sw.h"/>
           <File Name="sflow_pjm_quad.h"/>
           <File Name="sflow_pjm_lin.h"/>
           <File Name="sflow_hydrostatic.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <VirtualDirectory Name="Func">
+            <File Name="sflow_momentum_func.h"/>
+          </VirtualDirectory>
+          <File Name="sflow_momentum_RK2_SC.h"/>
           <File Name="sflow_momentum_RK3.h"/>
           <File Name="sflow_momentum_RK2.h"/>
           <File Name="sflow_momentum.h"/>
           <VirtualDirectory Name="BC">
+            <File Name="sflow_bcmom.h"/>
             <File Name="sflow_roughness.h"/>
             <File Name="sflow_rough_void.h"/>
             <File Name="sflow_rough_manning.h"/>
@@ -194,6 +222,11 @@
           <File Name="nhflow_forcing.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="Kepsilon">
+            <File Name="nhflow_kepsilon_IM1.h"/>
+            <File Name="nhflow_kepsilon_func.h"/>
+            <File Name="nhflow_kepsilon_bc.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="SST"/>
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.h"/>
@@ -202,10 +235,10 @@
             <File Name="nhflow_LES_Smagorinsky.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Komega">
+            <File Name="nhflow_komega_IM1.h"/>
             <File Name="nhflow_komega_bc.h"/>
             <File Name="nhflow_komega_func.h"/>
             <File Name="nhflow_komega_void.h"/>
-            <File Name="nhflow_komega_IM1.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="IO">
             <File Name="nhflow_rans_io.h"/>
@@ -230,7 +263,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Reconstruct">
             <File Name="nhflow_reconstruct_weno.h"/>
-            <File Name="nhflow_reconstruct_wenograd.h"/>
             <File Name="nhflow_reconstruct.h"/>
             <File Name="nhflow_reconstruct_hires.h"/>
           </VirtualDirectory>
@@ -272,10 +304,7 @@
             <File Name="nhflow_print_wsf_theory.h"/>
             <File Name="nhflow_print_wsf.h"/>
           </VirtualDirectory>
-          <File Name="nhflow_printer.h"/>
-          <VirtualDirectory Name="VTU">
-            <File Name="nhflow_vtu3D.h"/>
-          </VirtualDirectory>
+          <File Name="printer_nhflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Geometry">
@@ -378,10 +407,7 @@
           <VirtualDirectory Name="VTP FSF">
             <File Name="fnpf_vtp_fsf.h"/>
           </VirtualDirectory>
-          <File Name="fnpf_printer.h"/>
-          <VirtualDirectory Name="VTU">
-            <File Name="fnpf_vtu3D.h"/>
-          </VirtualDirectory>
+          <File Name="printer_fnpf.h"/>
           <VirtualDirectory Name="Probes">
             <File Name="fnpf_vel_probe.h"/>
             <File Name="fnpf_vel_probe_theory.h"/>
@@ -419,6 +445,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_hires.h"/>
           <File Name="fnpf_weno5_wd.h"/>
           <File Name="fnpf_weno5.h"/>
           <File Name="fnpf_weno3.h"/>
@@ -551,7 +578,6 @@
             <File Name="reinitopo.h"/>
             <File Name="reinitopo_RK3.h"/>
             <File Name="reinitopo_void.h"/>
-            <File Name="reinitopo_AB2.h"/>
           </VirtualDirectory>
           <File Name="topo.h"/>
           <VirtualDirectory Name="Relaxation">
@@ -787,7 +813,6 @@
           <File Name="picard_void.h"/>
         </VirtualDirectory>
         <File Name="levelset_RK2.h"/>
-        <File Name="levelset_AB2.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <File Name="particle_corr.h"/>
@@ -822,6 +847,9 @@
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Geometry">
         <VirtualDirectory Name="Geo_Func">
+          <File Name="geo_func_sflow.h"/>
+          <File Name="geo_func_nhflow.h"/>
+          <File Name="geo_func_cfd.h"/>
           <File Name="geo_func.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geo_Container">
@@ -955,9 +983,9 @@
           <File Name="probe_line.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Data">
-          <File Name="data_f.h"/>
-          <File Name="data.h"/>
-          <File Name="data_void.h"/>
+          <File Name="expdata_f.h"/>
+          <File Name="expdata.h"/>
+          <File Name="expdata_void.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
           <File Name="gage_discharge_window_x.h"/>
@@ -975,10 +1003,17 @@
         <VirtualDirectory Name="Porous Geometry">
           <File Name="print_porous.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="VTU">
-          <File Name="vtu3D.h"/>
+        <VirtualDirectory Name="Printer CFD">
+          <File Name="printer_CFD.h"/>
         </VirtualDirectory>
-        <File Name="print_interface.h"/>
+        <VirtualDirectory Name="ParaView">
+          <File Name="vtks.h"/>
+          <File Name="vtk3D.h"/>
+          <File Name="vtu3D.h"/>
+          <File Name="vtr3D.h"/>
+          <File Name="vts3D.h"/>
+          <File Name="vtp3D.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Force">
           <File Name="force.h"/>
         </VirtualDirectory>
@@ -990,6 +1025,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FCLS3.h"/>
+      <File Name="momentum_RK3_v2.h"/>
+      <File Name="momentum_RK3_v1.h"/>
       <File Name="momentum_RK3_PLIC.h"/>
       <File Name="momentum_FCC3_PLIC.h"/>
       <File Name="momentum_FC3_PLIC.h"/>
@@ -1022,6 +1060,7 @@
       <File Name="pressure_void.h"/>
       <File Name="pjm.h"/>
       <VirtualDirectory Name="Density">
+        <File Name="density_pst.h"/>
         <File Name="density_sf.h"/>
         <File Name="density_df.h"/>
         <File Name="density_rheo.h"/>
@@ -1034,10 +1073,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
-      <VirtualDirectory Name="HYPRE FNPF">
-        <File Name="hypre_sstruct_fnpf.h"/>
-        <File Name="hypre_struct_fnpf.h"/>
-      </VirtualDirectory>
       <File Name="solver_fnpf.h"/>
       <VirtualDirectory Name="CG">
         <File Name="bicgstab_ijk_2D.h"/>
@@ -1173,6 +1208,32 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Pressure SC">
+          <File Name="sflow_pjm_hs_SC.cpp"/>
+          <File Name="sflow_pjm_quad_SC.cpp"/>
+          <File Name="sflow_pjm_SC.cpp"/>
+          <File Name="sflow_pjm_lin_SC.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="FSF SC">
+          <File Name="sflow_fsf_ini.cpp"/>
+          <File Name="sflow_fsf_wetdry_fluxes.cpp"/>
+          <File Name="sflow_fsf_wetdry.cpp"/>
+          <File Name="sflow_fsf_rk2.cpp"/>
+          <File Name="sflow_fsf_f.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Convect">
+          <File Name="sflow_HLL.cpp"/>
+          <File Name="sflow_flux_build_f.cpp"/>
+          <File Name="sflow_convection_SC.cpp"/>
+          <VirtualDirectory Name="Signal Speed">
+            <File Name="sflow_signal_speed.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Scalar"/>
+          <VirtualDirectory Name="Reconstruct">
+            <File Name="sflow_reconstruct_weno.cpp"/>
+            <File Name="sflow_reconstruct_hires.cpp"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
           <File Name="sflow_forcing.cpp"/>
         </VirtualDirectory>
@@ -1224,12 +1285,10 @@
           </VirtualDirectory>
           <VirtualDirectory Name="VTP Bed">
             <File Name="sflow_vtp_bed_pvtp.cpp"/>
-            <File Name="sflow_vtp_bed_header.cpp"/>
             <File Name="sflow_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="sflow_vtp_fsf_pvtp.cpp"/>
-            <File Name="sflow_vtp_fsf_header.cpp"/>
             <File Name="sflow_vtp_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
@@ -1244,12 +1303,16 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
           <File Name="sflow_pjm_corr_lin.cpp"/>
-          <File Name="sflow_pjm_sw.cpp"/>
           <File Name="sflow_pjm_quad.cpp"/>
           <File Name="sflow_pjm_lin.cpp"/>
           <File Name="sflow_hydrostatic.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="sflow_momentum_RK2_SC.cpp"/>
+          <VirtualDirectory Name="Func">
+            <File Name="sflow_bcmom.cpp"/>
+            <File Name="sflow_momentum_func.cpp"/>
+          </VirtualDirectory>
           <File Name="sflow_momentum_RK3.cpp"/>
           <File Name="sflow_momentum_RK2.cpp"/>
           <VirtualDirectory Name="Roughness">
@@ -1359,6 +1422,11 @@
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="Kepsilon">
+            <File Name="nhflow_kepsilon_IM1.cpp"/>
+            <File Name="nhflow_kepsilon_func.cpp"/>
+            <File Name="nhflow_kepsilon_bc.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="SST"/>
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.cpp"/>
@@ -1369,10 +1437,10 @@
           <VirtualDirectory Name="Komega">
             <File Name="nhflow_komega_bc.cpp"/>
             <File Name="nhflow_komega_func.cpp"/>
-            <File Name="nhflow_komega_void.cpp"/>
             <File Name="nhflow_komega_IM1.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="IO">
+            <File Name="nhflow_komega_void.cpp"/>
             <File Name="nhflow_rans_ini.cpp"/>
             <File Name="nhflow_les_io.cpp"/>
             <File Name="nhflow_rans_io.cpp"/>
@@ -1392,7 +1460,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Reconstruct">
             <File Name="nhflow_reconstruct_weno.cpp"/>
-            <File Name="nhflow_reconstruct_wenograd.cpp"/>
             <File Name="nhflow_reconstruct_hires.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_HLL.cpp"/>
@@ -1407,7 +1474,6 @@
             <File Name="nhflow_force_allocate.cpp"/>
             <File Name="nhflow_force_print.cpp"/>
             <VirtualDirectory Name="Print VTP">
-              <File Name="nhflow_force_header.cpp"/>
               <File Name="nhflow_force_vtp.cpp"/>
               <File Name="nhflow_force_pvtp.cpp"/>
             </VirtualDirectory>
@@ -1438,12 +1504,10 @@
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="nhflow_vtp_bed_pvtp.cpp"/>
-            <File Name="nhflow_vtp_bed_header.cpp"/>
             <File Name="nhflow_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="nhflow_vtp_fsf_pvtp.cpp"/>
-            <File Name="nhflow_vtp_fsf_header.cpp"/>
             <File Name="nhflow_vtp_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
@@ -1452,10 +1516,9 @@
             <File Name="nhflow_print_wsf_theory.cpp"/>
             <File Name="nhflow_print_wsf.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="VTU">
-            <File Name="nhflow_vtu3D.cpp"/>
-            <File Name="nhflow_vtu3D_pvtu.cpp"/>
-            <File Name="nhflow_vtu3D_header.cpp"/>
+          <VirtualDirectory Name="Printer">
+            <File Name="printer_nhflow.cpp"/>
+            <File Name="printer_nhflow_parallel.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -1510,15 +1573,14 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>
           <File Name="nhflow_fsf_update.cpp"/>
-          <File Name="nhflow_fsf_guard.cpp"/>
           <File Name="nhflow_fsf_kbedbc.cpp"/>
           <File Name="nhflow_fsf_ucorr.cpp"/>
           <File Name="nhflow_fsf_wetdry.cpp"/>
           <File Name="nhflow_fsf_kfsfbc.cpp"/>
           <File Name="nhflow_fsf_ini.cpp"/>
-          <File Name="nhflow_fsf_breaking.cpp"/>
           <File Name="nhflow_fsf_rk3.cpp"/>
           <File Name="nhflow_fsf_rk2.cpp"/>
           <VirtualDirectory Name="Void">
@@ -1547,10 +1609,11 @@
           <File Name="fnpf_breaking.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
+          <File Name="fnpf_sigma.cpp"/>
+          <File Name="fnpf_sigma_update.cpp"/>
           <File Name="fnpf_vel_update.cpp"/>
           <File Name="fnpf_bed_update.cpp"/>
           <File Name="fnpf_fsf_update.cpp"/>
-          <File Name="fnpf_sigma.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Kinematics">
@@ -1579,25 +1642,20 @@
             <File Name="fnpf_breaking_log_filename.cpp"/>
             <File Name="fnpf_breaking_log.cpp"/>
           </VirtualDirectory>
-          <File Name="fnpf_vtu3D.cpp"/>
+          <File Name="printer_fnpf.cpp"/>
+          <File Name="printer_fnpf_parallel.cpp"/>
           <VirtualDirectory Name="WSF">
             <File Name="fnpf_print_wsfline_y.cpp"/>
             <File Name="fnpf_print_wsfline.cpp"/>
             <File Name="fnpf_print_wsf_theory.cpp"/>
             <File Name="fnpf_print_wsf.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="VTU">
-            <File Name="fnpf_vtu3D_pvtu.cpp"/>
-            <File Name="fnpf_vtu3D_header.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="fnpf_vtp_fsf_pvtp.cpp"/>
-            <File Name="fnpf_vtp_fsf_header.cpp"/>
             <File Name="fnpf_vtp_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="fnpf_vtp_bed_pvtp.cpp"/>
-            <File Name="fnpf_vtp_bed_header.cpp"/>
             <File Name="fnpf_vtp_bed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
@@ -1657,6 +1715,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_hires.cpp"/>
           <File Name="fnpf_weno5_wd.cpp"/>
           <File Name="fnpf_weno5.cpp"/>
           <File Name="fnpf_weno3.cpp"/>
@@ -1702,6 +1761,8 @@
           <File Name="partres_advec_mppic.cpp"/>
           <File Name="partres.cpp"/>
           <VirtualDirectory Name="Print">
+            <File Name="partres_print_inactive_pvtp.cpp"/>
+            <File Name="partres_print_inactive_vtp.cpp"/>
             <File Name="partres_printvtp.cpp"/>
             <File Name="partres_printpvtp.cpp"/>
           </VirtualDirectory>
@@ -1855,7 +1916,6 @@
           <VirtualDirectory Name="Reinitialization">
             <File Name="reinitopo_RK3.cpp"/>
             <File Name="reinitopo_void.cpp"/>
-            <File Name="reinitopo_AB2.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Relaxation">
             <File Name="topo_relax.cpp"/>
@@ -2006,7 +2066,6 @@
             </VirtualDirectory>
             <VirtualDirectory Name="Reini 3D">
               <File Name="6DOF_obj_reini_RK2.cpp"/>
-              <File Name="6DOF_obj_reini_AB2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast 3D">
               <File Name="6DOF_obj_ray3D_direct.cpp"/>
@@ -2145,6 +2204,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Rheology">
+        <File Name="rheology_yield_stress.cpp"/>
         <File Name="rheology_filltau.cpp"/>
         <File Name="rheology_Herschel-Bulkley.cpp"/>
         <File Name="rheology_Mohr_Coulomb_and_Herschel_Bulkley.cpp"/>
@@ -2325,8 +2385,7 @@
         <File Name="directreini_triangulation.cpp"/>
         <File Name="directreini.cpp"/>
         <File Name="directreini_vtp.cpp"/>
-        <File Name="directreini_vtp-header.cpp"/>
-        <File Name="directreini_vtp-pvtp.cpp"/>
+        <File Name="directreini_vtp_pvtp.cpp"/>
         <File Name="directreini_constraint.cpp"/>
         <File Name="directreini_correction.cpp"/>
       </VirtualDirectory>
@@ -2339,7 +2398,6 @@
         </VirtualDirectory>
         <File Name="levelset_void.cpp"/>
         <File Name="levelset_RK2.cpp"/>
-        <File Name="levelset_AB2.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Particle">
         <File Name="particle.cpp"/>
@@ -2423,9 +2481,7 @@
         <File Name="gc_startV.cpp"/>
         <File Name="gc_dirichlet-para-reflect.cpp"/>
         <File Name="gc_dirichlet-ortho-reflect.cpp"/>
-        <File Name="gc_kinematic_fsf.cpp"/>
         <File Name="gc_nhpress.cpp"/>
-        <File Name="gc_patchBC.cpp"/>
         <File Name="gc_periodic.cpp"/>
         <File Name="gc_heat.cpp"/>
         <File Name="gc_debug.cpp"/>
@@ -2439,26 +2495,16 @@
         <File Name="gc_dirichlet-ortho.cpp"/>
         <File Name="gc_dirichlet-para.cpp"/>
         <File Name="gc_extend.cpp"/>
-        <File Name="gc_extend_all.cpp"/>
         <File Name="gc_imagepoint.cpp"/>
-        <File Name="gc_inflowbc.cpp"/>
-        <File Name="gc_largeval.cpp"/>
-        <File Name="gc_largevaladd.cpp"/>
         <File Name="gc_neumann_all.cpp"/>
         <File Name="gc_noslip.cpp"/>
         <File Name="gc_potential.cpp"/>
         <File Name="gc_start.cpp"/>
         <File Name="gc_atmosphere.cpp"/>
         <File Name="gc_outflow.cpp"/>
-        <File Name="gc_fbvel.cpp"/>
         <File Name="gc_gravity_press.cpp"/>
         <File Name="gc_lsm.cpp"/>
         <File Name="gc_neumann.cpp"/>
-        <File Name="gc_nse1.cpp"/>
-        <File Name="gc_nse2.cpp"/>
-        <File Name="gc_nse3.cpp"/>
-        <File Name="gc_nse4.cpp"/>
-        <File Name="gc_gcb_generic.cpp"/>
         <File Name="gc_sommerfeld.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flag">
@@ -2466,7 +2512,6 @@
         <File Name="gc_buildflag.cpp"/>
         <File Name="gc_flagbase.cpp"/>
         <File Name="gc_flagfield.cpp"/>
-        <File Name="gc_minmax.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
         <File Name="gcx_parax4a_sum.cpp"/>
@@ -2482,8 +2527,6 @@
         <File Name="gcx_flagx7.cpp"/>
         <File Name="gcx_parax7co.cpp"/>
         <File Name="gcx_parax7.cpp"/>
-        <File Name="gcx_paraxco_generic.cpp"/>
-        <File Name="gcx_sigmax.cpp"/>
         <File Name="gcx_collective.cpp"/>
         <File Name="gcx_flagx.cpp"/>
         <File Name="gcx_global.cpp"/>
@@ -2492,15 +2535,12 @@
         <File Name="gcx_parax4a.cpp"/>
         <File Name="gcx_pls.cpp"/>
         <File Name="gcx_update.cpp"/>
-        <File Name="gcx_wait.cpp"/>
         <File Name="gcx_walldist.cpp"/>
         <File Name="gcx_verticalmax.cpp"/>
-        <File Name="gcx_parax_generic.cpp"/>
         <File Name="gcx_crs.cpp"/>
         <File Name="gcx_facenbx.cpp"/>
         <File Name="gcx_rownum.cpp"/>
-        <File Name="gcx_parax_test.cpp"/>
-        <File Name="gcx_verticalsum.cpp"/>
+        <File Name="gcx_internal.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid">
         <File Name="gc_sizeM_update.cpp"/>
@@ -2514,7 +2554,6 @@
         <File Name="gcxsl_paraxijk_single.cpp"/>
         <File Name="gcxsl_paraxijk.cpp"/>
         <File Name="gcxsl_parax_fh.cpp"/>
-        <File Name="gcxsl_update.cpp"/>
         <File Name="gcxsl_paracox_int.cpp"/>
         <File Name="gcsl_outflow.cpp"/>
         <File Name="gcsl_sommerfeld.cpp"/>
@@ -2523,10 +2562,8 @@
         <File Name="gcsl_start.cpp"/>
         <File Name="gcxsl_parax.cpp"/>
         <File Name="gcxsl_paracox.cpp"/>
-        <File Name="gcxsl_wait.cpp"/>
         <File Name="gcsl_epol1.cpp"/>
         <File Name="gcsl_epol2.cpp"/>
-        <File Name="gcsl_epol3.cpp"/>
         <File Name="gcsl_epol4.cpp"/>
         <File Name="gcsl_epol4a.cpp"/>
         <File Name="gcxsl_flagx.cpp"/>
@@ -2542,7 +2579,9 @@
         <VirtualDirectory Name="Geo_Container">
           <File Name="geo_container.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Interface"/>
+        <VirtualDirectory Name="Geo_Interface">
+          <File Name="geo_interface.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Geo_Create">
           <File Name="geo_create_wedge_z.cpp"/>
           <File Name="geo_create_wedge_y.cpp"/>
@@ -2557,7 +2596,34 @@
           <File Name="geo_create_box.cpp"/>
           <File Name="geo_create.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Func"/>
+        <VirtualDirectory Name="Geo_Func">
+          <VirtualDirectory Name="Geo_Func_SFLOW">
+            <File Name="geo_func_sflow_raycast_y.cpp"/>
+            <File Name="geo_func_sflow_raycast_x.cpp"/>
+            <File Name="geo_func_sflow_raycast_io.cpp"/>
+            <File Name="geo_func_sflow_raycast.cpp"/>
+            <File Name="geo_func_sflow.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Geo_Func_NHFLOW">
+            <File Name="geo_func_nhflow_reini_RK2.cpp"/>
+            <File Name="geo_func_nhflow_raycast_z.cpp"/>
+            <File Name="geo_func_nhflow_raycast_y.cpp"/>
+            <File Name="geo_func_nhflow_raycast_x.cpp"/>
+            <File Name="geo_func_nhflow_raycast_io.cpp"/>
+            <File Name="geo_func_nhflow_raycast.cpp"/>
+            <File Name="geo_func_nhflow.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Geo_Func_CFD">
+            <File Name="geo_func_cfd_reini_RK2.cpp"/>
+            <File Name="geo_func_cfd_raycast_z.cpp"/>
+            <File Name="geo_func_cfd_raycast_y.cpp"/>
+            <File Name="geo_func_cfd_raycast_x.cpp"/>
+            <File Name="geo_func_cfd_raycast_io.cpp"/>
+            <File Name="geo_func_cfd_raycast.cpp"/>
+            <File Name="geo_func_cfd.cpp"/>
+          </VirtualDirectory>
+          <File Name="geo_func.cpp"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Ini">
         <File Name="driver_ini_sflow.cpp"/>
@@ -2681,7 +2747,6 @@
         <VirtualDirectory Name="Topo">
           <File Name="topo_vtp_print.cpp"/>
           <File Name="topo_pvtp.cpp"/>
-          <File Name="topo_header.cpp"/>
           <File Name="topo_vtp.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FlowFile Out">
@@ -2704,11 +2769,17 @@
           <File Name="vorticity_f.cpp"/>
           <File Name="vorticity_void.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="VTU">
-          <File Name="vtu3D_header.cpp"/>
-          <File Name="vtu3D_pvtu.cpp"/>
+        <VirtualDirectory Name="Printer CFD">
+          <File Name="printer_CFD_parallel.cpp"/>
+          <File Name="printer_CFD.cpp"/>
         </VirtualDirectory>
-        <File Name="vtu3D.cpp"/>
+        <File Name="printer.cpp"/>
+        <VirtualDirectory Name="ParaView">
+          <File Name="vtu3D.cpp"/>
+          <File Name="vtr3D.cpp"/>
+          <File Name="vts3D.cpp"/>
+          <File Name="vtp3D.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Probes">
           <File Name="probe_vel_theory.cpp"/>
           <File Name="probe_vel.cpp"/>
@@ -2717,8 +2788,8 @@
           <File Name="probe_point.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Data">
-          <File Name="data_f.cpp"/>
-          <File Name="data_void.cpp"/>
+          <File Name="expdata_f.cpp"/>
+          <File Name="expdata_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Discharge">
           <File Name="gage_discharge-window_x.cpp"/>
@@ -2727,7 +2798,6 @@
         <VirtualDirectory Name="FSF">
           <File Name="fsf_vtp.cpp"/>
           <File Name="fsf_pvtp.cpp"/>
-          <File Name="fsf_header.cpp"/>
           <File Name="fsf_triangulation.cpp"/>
           <File Name="fsf_reconstruct.cpp"/>
           <File Name="fsf_vtp_print.cpp"/>
@@ -2755,7 +2825,6 @@
           <File Name="force_reconstruction.cpp"/>
           <File Name="force_pvtp.cpp"/>
           <File Name="force_print.cpp"/>
-          <File Name="force_header.cpp"/>
           <File Name="force_force.cpp"/>
           <File Name="force_finalize.cpp"/>
           <File Name="force.cpp"/>
@@ -2781,6 +2850,9 @@
       <File Name="ini.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Momentum">
+      <File Name="momentum_FCLS3.cpp"/>
+      <File Name="momentum_RK3_v2.cpp"/>
+      <File Name="momentum_RK3_v1.cpp"/>
       <File Name="momentum_RK3_PLIC.cpp"/>
       <File Name="momentum_FCC3_PLIC.cpp"/>
       <File Name="momentum_FC3_PLIC.cpp"/>
@@ -2818,6 +2890,7 @@
       <File Name="pressure_void.cpp"/>
       <File Name="pjm.cpp"/>
       <VirtualDirectory Name="Density">
+        <File Name="density_pst.cpp"/>
         <File Name="density_sf.cpp"/>
         <File Name="density_df.cpp"/>
         <File Name="density_rheo.cpp"/>
@@ -2829,22 +2902,6 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
-      <VirtualDirectory Name="HYPRE SStruct FNPF">
-        <File Name="hypre_sstruct_fnpf_solve.cpp"/>
-        <File Name="hypre_sstruct_fnpf_grid.cpp"/>
-        <File Name="hypre_sstruct_fnpf_fill_2D.cpp"/>
-        <File Name="hypre_sstruct_fnpf_fill.cpp"/>
-        <File Name="hypre_sstruct_fnpf_createsolvers.cpp"/>
-        <File Name="hypre_sstruct_fnpf.cpp"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="HYPRE Struct FNPF">
-        <File Name="hypre_struct_fnpf_fill_2D.cpp"/>
-        <File Name="hypre_struct_fnpf_grid.cpp"/>
-        <File Name="hypre_struct_fnpf_solve.cpp"/>
-        <File Name="hypre_struct_fnpf_createsolvers.cpp"/>
-        <File Name="hypre_struct_fnpf_fill.cpp"/>
-        <File Name="hypre_struct_fnpf.cpp"/>
-      </VirtualDirectory>
       <VirtualDirectory Name="HYPRE SStruct">
         <File Name="hypre_sstruct_fillM.cpp"/>
         <File Name="hypre_sstruct_solve.cpp"/>
@@ -3179,21 +3236,57 @@
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
-      <Compiler Options="" C_Options="" Assembler="">
+      <Compiler Options="-std=c++17; -DVERSION=\&quot;$(shell git describe --abbrev=8 --dirty --always --tags)\&quot;; -DBRANCH=\&quot;$(shell git rev-parse --abbrev-ref HEAD)\&quot;" C_Options="" Assembler="">
         <IncludePath Value="."/>
       </Compiler>
-      <Linker Options="">
-        <LibraryPath Value="."/>
+      <Linker Options="-lm">
+        <LibraryPath Value="/usr/local/hypre/lib"/>
+        <Library Value="HYPRE"/>
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
-    <Configuration Name="Debug" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="overwrite" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O0;-g;-g3;-w" C_Options="-O3;-w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+    <Configuration Name="All" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O3; -w; " C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="./All/REEF3D" IntermediateDirectory="./obj" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Debug" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O0;-g;-g3;-Wall;" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
       </Compiler>
-      <Linker Options="-L /usr/local/hypre/lib -lHYPRE -lm" Required="yes">
-        <Library Value="HYPRE"/>
-      </Linker>
+      <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="./Debug/REEF3D" IntermediateDirectory="./obj/Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
@@ -3228,12 +3321,46 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="overwrite" BuildLnkWithGlobalSettings="overwrite" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3; -w; -std=c++11; -DVERSION=\&quot;$(shell git describe --abbrev=8 --dirty --always --tags)\&quot;; -DBRANCH=\&quot;$(shell git rev-parse --abbrev-ref HEAD)\&quot;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
-      <Linker Options="-lm" Required="yes">
-        <LibraryPath Value="/usr/local/hypre/lib"/>
-        <Library Value="HYPRE"/>
-      </Linker>
+    <Configuration Name="Dev" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O3; -Wall; -pedantic; -Wpedantic; -Wextra; -Wshadow; -Wcast-align; -Wconversion; -Wsign-conversion; -Wnull-dereference; -Wdouble-promotion; -Wformat=2;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="./Dev/REEF3D" IntermediateDirectory="./obj" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O3; -w; -DNDEBUG; -DEIGEN_NO_DEBUG; -march=native; -flto;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Linker Options="-flto" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="./Release/REEF3D" IntermediateDirectory="./obj" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>

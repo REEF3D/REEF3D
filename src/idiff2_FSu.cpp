@@ -41,16 +41,15 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 {
 	starttime=pgc->timer();
 	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
+    int n;
     
     ULOOP
     diff(i,j,k) = u_in(i,j,k);
     
     pgc->start1(p,diff,gcval_u);
 
-    count=0;
+    n=0;
 
-    if(p->i_dir==1)
-    {
 	ULOOP // 
 	{
 	ev_ijk=a->eddyv(i,j,k);
@@ -75,7 +74,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     
 	visc_ddz_m = 0.25*(visc_i_j_km+ev_i_j_km + a->visc(i+1,j,k-1)+a->eddyv(i+1,j,k-1) + visc_ijk+ev_ijk + visc_ip_j_k+ev_ip_j_k);
 
-	a->M.p[count] =   2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
+	a->M.p[n] =   2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP])
 				   + 2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP])
 				   + visc_ddy_p/(p->DYP[JP]*p->DYN[JP])
 				   + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
@@ -83,24 +82,94 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 				   + visc_ddz_m/(p->DZP[KM1]*p->DZN[KP])
 				   + CPOR1/(alpha*p->dt);
 				  
-	a->rhsvec.V[count] +=  ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
+	a->rhsvec.V[n] +=  ((v(i+1,j,k)-v(i,j,k))*visc_ddy_p - (v(i+1,j-1,k)-v(i,j-1,k))*visc_ddy_m)/(p->DXP[IP]*p->DYN[JP])
 						 + ((w(i+1,j,k)-w(i,j,k))*visc_ddz_p - (w(i+1,j,k-1)-w(i,j,k-1))*visc_ddz_m)/(p->DXP[IP]*p->DZN[KP])
 
 						 + (CPOR1*u_in(i,j,k))/(alpha*p->dt);
                          
 	 
-	 a->M.s[count] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP]);
-	 a->M.n[count] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP]);
+	 a->M.s[n] = -2.0*(visc_ijk+ev_ijk)/(p->DXN[IP]*p->DXP[IP]);
+	 a->M.n[n] = -2.0*(visc_ip_j_k+ev_ip_j_k)/(p->DXN[IP1]*p->DXP[IP]);
 	 
-	 a->M.e[count] = -visc_ddy_m/(p->DYP[JM1]*p->DYN[JP]);
-	 a->M.w[count] = -visc_ddy_p/(p->DYP[JP]*p->DYN[JP]);
+	 a->M.e[n] = -visc_ddy_m/(p->DYP[JM1]*p->DYN[JP]);
+	 a->M.w[n] = -visc_ddy_p/(p->DYP[JP]*p->DYN[JP]);
 	 
-	 a->M.b[count] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
-	 a->M.t[count] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
+	 a->M.b[n] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
+	 a->M.t[n] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
+     
+     if(p->DF1[IJK]<0 && p->D22==1)
+     {
+        a->M.p[n]  =  1.0;
+
+        a->M.n[n] = 0.0;
+        a->M.s[n] = 0.0;
+
+        a->M.w[n] = 0.0;
+        a->M.e[n] = 0.0;
+
+        a->M.t[n] = 0.0;
+        a->M.b[n] = 0.0;
+        
+        a->rhsvec.V[n] =  0.0;
+     }
 	 
-     ++count;
+     ++n;
 	 }
     
+    if(p->D22==1)
+    {
+    n=0;
+	ULOOP
+	{
+        if(p->DF1[IJK]>0)
+        {
+            
+		if(p->flag1[Im1JK]<0 || p->DF1[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*u(i,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag1[Ip1JK]<0 || p->DF1[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*u(i,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag1[IJm1K]<0 || p->DF1[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*u(i,j,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag1[IJp1K]<0 || p->DF1[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*u(i,j,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if(p->flag1[IJKm1]<0 || p->DF1[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*u(i,j,k);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag1[IJKp1]<0 || p->DF1[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*u(i,j,k);
+		a->M.t[n] = 0.0;
+		}
+        
+        }
+
+	++n;
+	}
+    }
+    
+    
+    
+    if(p->D22==2)
+    {
     n=0;
 	ULOOP
 	{
@@ -139,12 +208,65 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 		a->rhsvec.V[n] -= a->M.t[n]*u(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}
+        }
+        
+
+	++n;
+    }
+    
+    /*
+    if(p->D22==2)
+    {
+    n=0;
+	ULOOP
+	{
+        if(p->DF1[IJK]>0)
+        {
+            
+		if(p->flag1[Im1JK]<0 || p->DF1[Im1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.s[n]*u(i-1,j,k);
+		a->M.s[n] = 0.0;
+		}
+		
+		if(p->flag1[Ip1JK]<0 || p->DF1[Ip1JK]<0)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*u(i+1,j,k);
+		a->M.n[n] = 0.0;
+		}
+		
+		if(p->flag1[IJm1K]<0 || p->DF1[IJm1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.e[n]*u(i,j-1,k);
+		a->M.e[n] = 0.0;
+		}
+		
+		if(p->flag1[IJp1K]<0 || p->DF1[IJp1K]<0)
+		{
+		a->rhsvec.V[n] -= a->M.w[n]*u(i,j+1,k);
+		a->M.w[n] = 0.0;
+		}
+		
+		if(p->flag1[IJKm1]<0 || p->DF1[IJKm1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.b[n]*u(i,j,k-1);
+		a->M.b[n] = 0.0;
+		}
+		
+		if(p->flag1[IJKp1]<0 || p->DF1[IJKp1]<0)
+		{
+		a->rhsvec.V[n] -= a->M.t[n]*u(i,j,k+1);
+		a->M.t[n] = 0.0;
+		}
+        }
+        
 
 	++n;
 	}
+    }*/
 	
 	psolv->start(p,a,pgc,diff,a->rhsvec,1);
-    }
+    
 	
     pgc->start1(p,diff,gcval_u);
     

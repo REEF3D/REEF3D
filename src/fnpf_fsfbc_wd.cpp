@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include"fnpf_wenoflux.h"
 #include"fnpf_ddx_cds2_wd.h"
 #include"fnpf_ddx_cds4_wd.h"
+#include"fnpf_hires.h"
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 #include"fnpf_coastline.h"
@@ -104,6 +105,8 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     
     c->wd_criterion=0.00005;
     
+    coastline_count = 0;
+    
     if(p->A344==1)
     c->wd_criterion=p->A344_val;
     
@@ -125,6 +128,8 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     
     dist4=1.0*dist3;
     
+    dist5=3.0*dist4;
+    
     expinverse = 1.0/(exp(1.0)-1.0);
     
     if(p->A350==1)
@@ -144,8 +149,6 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p
     gcval_eta = 155;
     gcval_fifsf = 160;
     }
-    
-    
 }
 
 fnpf_fsfbc_wd::~fnpf_fsfbc_wd()
@@ -162,6 +165,7 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
     FFILOOP4
+    WETDRY
     {
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
@@ -182,6 +186,7 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // 2D
     if(p->i_dir==1 && p->j_dir==0)
     FFILOOP4
+    WETDRY
     {
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     
@@ -203,6 +208,14 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     
     c->Bxx(i,j) = pddx->sxx(p,c->depth);
     c->Byy(i,j) = pddx->syy(p,c->depth);
+    
+    c->Ex(i,j) = 0.0;
+    c->Ey(i,j) = 0.0;
+    
+    c->Fx(i,j) = 0.0;
+    c->Fy(i,j) = 0.0;
+    
+    c->K(i,j) = 0.0;
     }
     
     pgc->gcsl_start4(p,c->Bx,1);
@@ -220,25 +233,27 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // fi
     FFILOOP4
     {
+    if(p->wet[IJ]==1)
     c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
-
+    
     if(p->wet[IJ]==0)
     c->Fz(i,j) = 0.0;
     }
     
-    coastline_fi(p,c,pgc,c->Fz);
+    coastline_Fz(p,c,pgc,c->Fz);
 }
 
 void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {    
     SLICELOOP4
     {
+    if(p->wet[IJ]==1)
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
     
                  + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
-    
+                 
     if(p->wet[IJ]==0)
-    c->K(i,j)=0.0;
+    c->K(i,j) = 0.0;
     }
 }
 
@@ -246,13 +261,13 @@ void fnpf_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 {  
     SLICELOOP4
     {
+    if(p->wet[IJ]==1)
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     
-                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);   
-
-      
+                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
+                 
     if(p->wet[IJ]==0)
-    c->K(i,j)=0.0;
+    c->K(i,j) = 0.0;
     }
 }
 
