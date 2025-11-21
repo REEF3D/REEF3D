@@ -6,6 +6,14 @@
       <Environment/>
       <Project Name="REEF3D" ConfigName="Debug"/>
     </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Dev">
+      <Environment/>
+      <Project Name="REEF3D" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="All">
+      <Environment/>
+      <Project Name="REEF3D" ConfigName="All"/>
+    </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release">
       <Environment/>
       <Project Name="REEF3D" ConfigName="Release"/>
