@@ -61,6 +61,17 @@ void lexer::read_grid()
     // open file------------
     ifstream grid(name, ios_base::binary);
 
+    if(!grid)
+    {
+        if(mpirank==0)
+        {
+            cout<<endl;
+            cout<<"!!! Could not open DIVEMesh grid file: "<<name<<" !"<<endl;
+            cout<<"!!! please check the manual!"<<endl<<endl<<endl<<endl;
+        }
+        exit(1);
+    }
+
     // read grid file-------------
 
     grid.read((char*)&iin, sizeof (int));
