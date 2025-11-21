@@ -56,7 +56,7 @@ void lexer::read_grid()
     surf_tot=0;
 
     const int padding = 6;
-    sprintf(name,"grid-%0*i.dat",padding,mpirank+1);
+    sprintf(name,"DIVEMesh_Grid/grid-%0*i.dat",padding,mpirank+1);
 
     // open file------------
     ifstream grid(name, ios_base::binary);
