@@ -98,7 +98,7 @@ void nhflow_forcing::angle_calc(double dX, double dY, double dZ, double &alpha, 
     if(dY>eps && dZ<-eps)
     alpha = -atan(fabs(dZ/ddY));
 
-   // beta
+    // beta
     if(dX>eps && dZ>eps)
     beta = -atan(fabs(dZ/ddX));
 

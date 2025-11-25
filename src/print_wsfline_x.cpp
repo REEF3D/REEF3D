@@ -241,43 +241,42 @@ void print_wsfline_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     }
 }
 
- void print_wsfline_x::sort(double *a, double *b, int *c, int left, int right)
- {
+void print_wsfline_x::sort(double *a, double *b, int *c, int left, int right)
+{
+    if (left < right)
+    {
 
-  if (left < right)
-  {
+        double pivot = a[right];
+        int l = left;
+        int r = right;
 
-    double pivot = a[right];
-    int l = left;
-    int r = right;
+        do {
+        while (a[l] < pivot) l++;
 
-    do {
-      while (a[l] < pivot) l++;
+        while (a[r] > pivot) r--;
 
-      while (a[r] > pivot) r--;
+        if (l <= r) {
+            double swap = a[l];
+            double swapd = b[l];
+            int swapc = c[l];
 
-      if (l <= r) {
-          double swap = a[l];
-          double swapd = b[l];
-          int swapc = c[l];
+            a[l] = a[r];
+            a[r] = swap;
 
-          a[l] = a[r];
-          a[r] = swap;
+            b[l] = b[r];
+            b[r] = swapd;
 
-          b[l] = b[r];
-          b[r] = swapd;
+            c[l] = c[r];
+            c[r] = swapc;
 
-          c[l] = c[r];
-          c[r] = swapc;
+            l++;
+            r--;
+        }
+        } while (l <= r);
 
-          l++;
-          r--;
-      }
-    } while (l <= r);
-
-    sort(a,b,c, left, r);
-    sort(a,b,c, l, right);
-  }
+        sort(a,b,c, left, r);
+        sort(a,b,c, l, right);
+    }
 }
 
 void print_wsfline_x::remove_multientry(lexer *p, double* b, double* c, int *d, int& num)

@@ -90,7 +90,7 @@ void flowfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     }
 }
 
- void flowfile_in::read1(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void flowfile_in::read1(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {
     // read ff1
     for(j=0;j<Nj;++j)

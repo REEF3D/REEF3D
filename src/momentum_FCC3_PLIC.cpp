@@ -97,7 +97,7 @@ momentum_FCC3_PLIC::momentum_FCC3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convect
     if(p->F46!=2 && p->F46!=3)
     ppicard = new picard_void(p);
 
-   ro_threshold = p->F91*p->W1 + p->W3;
+    ro_threshold = p->F91*p->W1 + p->W3;
 }
 
 momentum_FCC3_PLIC::~momentum_FCC3_PLIC()
@@ -140,7 +140,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             vof_rk1(i,j,k)=1.0;
     }
 
-   // pplic->updatePlaneData(p,a,pgc,vof_rk1);
+    // pplic->updatePlaneData(p,a,pgc,vof_rk1);
     pflow->vof_relax(p,a,pgc,vof_rk1);
     pgc->start4(p,vof_rk1,gcval_vof);
 
@@ -356,7 +356,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 //********************************************************
 //Step 2
 //********************************************************
-   // face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1);
+    // face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1);
     //-------------------------------------------
     // FSF
 
@@ -372,7 +372,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             vof_rk2(i,j,k)=1.0;
     }
 
-   // pplic->updatePlaneData(p,a,pgc,vof_rk2);
+    // pplic->updatePlaneData(p,a,pgc,vof_rk2);
     pflow->vof_relax(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
 
@@ -558,7 +558,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     pgc->start3(p,wrk2,gcval_w);
     clear_FGH(p,a);
 
-   // pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
+    // pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
     pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
     LOOP
@@ -577,7 +577,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 //Step 3
 //********************************************************
 
-   // face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2);
+    // face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2);
     //-------------------------------------------
     // FSF
     pplic->RKcalcL(a,p,pgc,urk2,vrk2,wrk2);
@@ -594,7 +594,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             a->vof(i,j,k)=1.0;
     }
 
-   // pplic->updatePlaneData(p,a,pgc,a->vof);
+    // pplic->updatePlaneData(p,a,pgc,a->vof);
     pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
 
@@ -775,7 +775,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     clear_FGH(p,a);
 
-   // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
+    // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
     pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     pupdate->start(p,a,pgc,a->u,a->v,a->w);

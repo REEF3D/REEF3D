@@ -130,8 +130,7 @@ void bicgstab_ijk::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &M, 
     // -----------------
     precon_setup(p,pgc,M);
     // -----------------
-
- restart:
+    restart:
     r_j=norm_r0=0.0;
     pgc->gcparaxijk_single(p,x,var);
 

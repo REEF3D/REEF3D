@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2025 Hans Bihs
- *
+
 This file is part of REEF3D.
 
 REEF3D is free software; you can redistribute it and/or modify it

@@ -70,7 +70,7 @@ void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
     phi = 0.0;
     theta = 0*PI/180;
     psi = 0.0;
- */
+    */
 
 
     if (2*nd*al < (D / sin(atan(D/L))))
@@ -355,7 +355,7 @@ void net_barQuasiStatic::iniInnerKnots()
 
 void net_barQuasiStatic::iniBoundaryKnots()
 {
-   int index;
+    int index;
 
     for (int i = 0; i < nd; i++)
     {

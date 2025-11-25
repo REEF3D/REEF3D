@@ -61,7 +61,7 @@ public:
     void jsource2D(lexer*,fdm2D*,ghostcell*) override;
 
 private:
-   void setup(lexer*,fdm*,ghostcell*);
+    void setup(lexer*,fdm*,ghostcell*);
 
     int number6DOF;
     vector<sixdof_obj*> fb_obj;

@@ -28,8 +28,8 @@ Author: Hans Bihs
 void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     // wetdry fluxes
-   if(p->A540==1)
-   {
+    if(p->A540==1)
+    {
     // eta + WL
     SLICELOOP1
     {
@@ -221,14 +221,14 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->WHe[IJK] = 0.0;
         }
     }
-   }
+    }
 
 
 
 
 
-   // Forcing Fluxes
-   // U,UH
+    // Forcing Fluxes
+    // U,UH
     ULOOP
     {
         if((p->DF[IJK]==1 && p->DF[Ip1JK]==-1))
@@ -417,7 +417,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         }
     }
 
-   /*
+    /*
     uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
     vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
     wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));

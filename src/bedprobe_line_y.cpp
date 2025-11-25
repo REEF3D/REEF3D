@@ -248,41 +248,39 @@ void bedprobe_line_y::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
 void bedprobe_line_y::sort(double *a, double *b, int *c, int left, int right)
 {
+    if (left < right)
+    {
+        double pivot = a[right];
+        int l = left;
+        int r = right;
 
-  if (left < right)
-  {
+        do {
+            while (a[l] < pivot) l++;
 
-    double pivot = a[right];
-    int l = left;
-    int r = right;
+            while (a[r] > pivot) r--;
 
-    do {
-      while (a[l] < pivot) l++;
+            if (l <= r) {
+                double swap = a[l];
+                double swapd = b[l];
+                int swapc = c[l];
 
-      while (a[r] > pivot) r--;
+                a[l] = a[r];
+                a[r] = swap;
 
-      if (l <= r) {
-          double swap = a[l];
-          double swapd = b[l];
-          int swapc = c[l];
+                b[l] = b[r];
+                b[r] = swapd;
 
-          a[l] = a[r];
-          a[r] = swap;
+                c[l] = c[r];
+                c[r] = swapc;
 
-          b[l] = b[r];
-          b[r] = swapd;
+                l++;
+                r--;
+            }
+        } while (l <= r);
 
-          c[l] = c[r];
-          c[r] = swapc;
-
-          l++;
-          r--;
-      }
-    } while (l <= r);
-
-    sort(a,b,c, left, r);
-    sort(a,b,c, l, right);
-  }
+        sort(a,b,c, left, r);
+        sort(a,b,c, l, right);
+    }
 }
 
 void bedprobe_line_y::remove_multientry(lexer *p, double* b, double* c, int *d, int& num)

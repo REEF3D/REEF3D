@@ -76,7 +76,7 @@ void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc, field 
     if(p->j_dir==1)
     epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 
-   //
+    //
     LOOP
     {
         temp = pheat->val(i,j,k) + 273.0;

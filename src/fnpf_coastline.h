@@ -39,19 +39,19 @@ public:
     fnpf_coastline(lexer*);
     virtual ~fnpf_coastline();
 
-   void start(lexer*,fdm_fnpf*,ghostcell*,slice&,int*,sliceint&);
+    void start(lexer*,fdm_fnpf*,ghostcell*,slice&,int*,sliceint&);
 
 private:
-   void reini(lexer*,ghostcell*,slice&);
-   void disc(lexer*,ghostcell*,slice&);
+    void reini(lexer*,ghostcell*,slice&);
+    void disc(lexer*,ghostcell*,slice&);
 
-   void step(lexer*);
-   void time_preproc(lexer*);
+    void step(lexer*);
+    void time_preproc(lexer*);
 
-   slice4 frk1,frk2,L,dt,wet_n;
+    slice4 frk1,frk2,L,dt,wet_n;
 
 
-   int reiniter,change;
+    int reiniter,change;
 
 
 };

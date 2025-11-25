@@ -27,10 +27,9 @@ Author: Hans Bihs
 
 void initialize::inivofPLIC(fdm*a, lexer* p, ghostcell* pgc)
 {
-
-double dx=p->DXM;
-double r;
-double vofdiff, xdiff;
+    double dx=p->DXM;
+    double r;
+    double vofdiff, xdiff;
 
     LOOP
     a->vof(i,j,k)=0.0;
@@ -52,40 +51,40 @@ double vofdiff, xdiff;
         }
     }
 
-if(p->F57_1>1E-20||p->F57_2>1E-20||p->F57_3>1E-20||p->F57_4>1E-20)
-{
-    LOOP
-    if(p->F57_1*p->XP[IP]+ p->F57_2*p->YP[JP]+ p->F57_3*p->ZP[KP] < p->F57_4)
-        a->vof(i,j,k)=1.0;
-}
-
-if(p->F58_4>1E-20)
-{
-    LOOP
-        {
-        r = sqrt( pow(p->XP[IP]-p->F58_1,2.0)+pow(p->YP[JP]-p->F58_2,2.0)+pow(p->ZP[KP]-p->F58_3,2.0));
-
-        if(r<=p->F58_4)
-        a->vof(i,j,k)=1.0;
-        }
-}
-
-if(p->F60>-1.0e20)
-{   p->phimean=p->F60;
-    LOOP
+    if(p->F57_1>1E-20||p->F57_2>1E-20||p->F57_3>1E-20||p->F57_4>1E-20)
     {
-        if(p->pos_z()+0.5*p->DZN[KP]<p->F60)
+        LOOP
+        if(p->F57_1*p->XP[IP]+ p->F57_2*p->YP[JP]+ p->F57_3*p->ZP[KP] < p->F57_4)
             a->vof(i,j,k)=1.0;
-        else if(p->pos_z()-0.5*p->DZN[KP]>p->F60)
-            a->vof(i,j,k)=0.0;
-        else
+    }
+
+    if(p->F58_4>1E-20)
+    {
+        LOOP
+            {
+            r = sqrt( pow(p->XP[IP]-p->F58_1,2.0)+pow(p->YP[JP]-p->F58_2,2.0)+pow(p->ZP[KP]-p->F58_3,2.0));
+
+            if(r<=p->F58_4)
+            a->vof(i,j,k)=1.0;
+            }
+    }
+
+    if(p->F60>-1.0e20)
+    {   p->phimean=p->F60;
+        LOOP
         {
-            a->vof(i,j,k)=(p->F60-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+            if(p->pos_z()+0.5*p->DZN[KP]<p->F60)
+                a->vof(i,j,k)=1.0;
+            else if(p->pos_z()-0.5*p->DZN[KP]>p->F60)
+                a->vof(i,j,k)=0.0;
+            else
+            {
+                a->vof(i,j,k)=(p->F60-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+            }
         }
     }
-}
 
-  /*  if((p->F60>-1.0e20 || p->F56>-1.0e20) && p->F62>-1.0e-20&& p->F63>-1.0e-20  )
+    /*if((p->F60>-1.0e20 || p->F56>-1.0e20) && p->F62>-1.0e-20&& p->F63>-1.0e-20  )
     {
         vofdiff=p->F62-p->phimean;
         xdiff=p->xcoormax-p->F63;
@@ -112,7 +111,7 @@ if(p->F60>-1.0e20)
     //a->phi(i,j,k) = a->vof(i,j,k);
 
     pgc->start4(p,a->vof,50);
-   // pgc->start4(p,a->phi,50);
+    // pgc->start4(p,a->phi,50);
     pgc->start4(p,a->ro,1);
     pgc->start4(p,a->visc,1);
 }

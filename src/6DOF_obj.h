@@ -188,7 +188,7 @@ private:
 
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
 
-   // ray cast 3D
+    // ray cast 3D
     void ray_cast(lexer*, fdm*, ghostcell*);
     void ray_cast_io_x(lexer*, fdm*, ghostcell*,int,int);
     void ray_cast_io_ycorr(lexer*, fdm*, ghostcell*,int,int);

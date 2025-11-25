@@ -228,14 +228,14 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
     }
 
     vof_transport_COSMIC2D_RK(a,p,2,sweep,uvel,vvel,wvel);
-   // cout<<"F_n:"<<F_n(5,0,5)<<" ;F_x:"<<F_x(5,0,5)<<" ;F_z:"<<F_z(5,0,5)<<endl;
-   // cout<<"Flux_x:"<<Flux_x(5,0,5)<<" ;Flux_z:"<<Flux_z(5,0,5)<<" ;Crossflux_xz:"<<Crossflux_xz(5,0,5)<<" ;Crossflux_zx:"<<Crossflux_zx(5,0,5)<<endl;
-   // cout<<"F_new:"<<F_new(5,0,5)<<endl;
+    // cout<<"F_n:"<<F_n(5,0,5)<<" ;F_x:"<<F_x(5,0,5)<<" ;F_z:"<<F_z(5,0,5)<<endl;
+    // cout<<"Flux_x:"<<Flux_x(5,0,5)<<" ;Flux_z:"<<Flux_z(5,0,5)<<" ;Crossflux_xz:"<<Crossflux_xz(5,0,5)<<" ;Crossflux_zx:"<<Crossflux_zx(5,0,5)<<endl;
+    // cout<<"F_new:"<<F_new(5,0,5)<<endl;
 
     LOOP
     {
         a->L(i,j,k)=-0.5*(Flux_x(i,j,k)+Crossflux_zx(i,j,k)+Flux_z(i,j,k)+Crossflux_xz(i,j,k));
     }
     pgc->start4(p,a->L,1);
-   // cout<<"vofstep:"<<vofstep(5,0,5)<<endl;
+    // cout<<"vofstep:"<<vofstep(5,0,5)<<endl;
 }

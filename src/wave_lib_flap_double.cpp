@@ -49,7 +49,7 @@ wave_lib_flap_double::~wave_lib_flap_double()
 
 double wave_lib_flap_double::wave_u(lexer *p, double x, double y, double z)
 {
-   double vel;
+    double vel;
 
     vel = wave_horzvel(p,x,y,z);
 

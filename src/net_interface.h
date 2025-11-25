@@ -64,7 +64,7 @@ private:
 
     double *KX,*KY,*KZ;
 
-   double kernel_peskin(const double&);
+    double kernel_peskin(const double&);
 
 };
 

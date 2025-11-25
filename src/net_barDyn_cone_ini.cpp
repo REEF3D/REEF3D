@@ -54,7 +54,7 @@ void net_barDyn::cone_ini(lexer *p, ghostcell *pgc)
     knot_d = p->X321_dk[nNet];  // Knot diameter
 
 
- /*---------------------------------------*/
+    /*---------------------------------------*/
 
     //- Initialise values
 
@@ -231,7 +231,7 @@ void net_barDyn::cone_ini(lexer *p, ghostcell *pgc)
     }
 
 
-   // List of knots in each mesh
+    // List of knots in each mesh
     index = 0;
 
     vector<double> v1(3,0.0), v2(3,0.0), v3(3,0.0), v4(3,0.0);

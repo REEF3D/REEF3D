@@ -201,7 +201,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk1);
 
- //   pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    // pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
     //-------------------------------------------
     // get vectorized face density from density_f
@@ -412,7 +412,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk2);
 
-   // pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    // pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
     //-------------------------------------------
 
@@ -616,7 +616,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,a->phi);
 
-   // pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    // pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
     //-------------------------------------------
 

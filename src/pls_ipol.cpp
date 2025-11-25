@@ -164,7 +164,6 @@ double particle_pls::wpol(lexer *p,fdm* a, double& xp, double& yp, double& zp)
 
 double particle_pls::lint(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
-
     x1 = wa*f(i,j,k)   + (1.0-wa)*f(i+1,j,k);
     x2 = wa*f(i,j+1,k) + (1.0-wa)*f(i+1,j+1,k);
 
@@ -176,8 +175,7 @@ double particle_pls::lint(field& f, int& i,int& j, int& k, double wa, double wb,
 
     value = wc*y1 +(1.0-wc)*y2;
 
- return value;
-
+    return value;
 }
 
 double particle_pls::cint(double wx, double f0, double f1, double f2, double f3)

@@ -86,7 +86,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         }
 
     }
-   */
+    */
 
     pgc->start5V(p,d->FHB,50);
 

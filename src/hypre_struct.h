@@ -119,14 +119,14 @@ public:
 private:
 
 // HYPRE
-   HYPRE_StructGrid     grid;
-   HYPRE_StructStencil  stencil;
-   HYPRE_SStructGraph   graph;
-   HYPRE_StructMatrix   A;
-   HYPRE_StructVector   b;
-   HYPRE_StructVector   x;
-   HYPRE_StructSolver   solver;
-   HYPRE_StructSolver   precond;
+    HYPRE_StructGrid     grid;
+    HYPRE_StructStencil  stencil;
+    HYPRE_SStructGraph   graph;
+    HYPRE_StructMatrix   A;
+    HYPRE_StructVector   b;
+    HYPRE_StructVector   x;
+    HYPRE_StructSolver   solver;
+    HYPRE_StructSolver   precond;
 
 
     int *ilower,*iupper;

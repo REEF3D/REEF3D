@@ -111,7 +111,7 @@ void ghostcell::dgcslini1(lexer* p)
 
 void ghostcell::dgcslini2(lexer* p)
 {
-   count=0;
+    count=0;
     SLICELOOP2
     {
         if(p->flagslice2[Im1J]<0

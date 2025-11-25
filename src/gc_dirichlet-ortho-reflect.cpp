@@ -157,16 +157,15 @@ void ghostcell::dirichlet_ortho_reflect(lexer *p,field& f,double dist,int gcv, i
     for(q=0;q<margin;++q)
     f(i,j,k+q+1) = y[orderdir+q-1+ys];
 
-/*
+    /*
     if(p->mpirank==0)
     if(cs==1 && gcv==10)
     {
     cout<<"U: "<<f(i,j,k)<<" . ";
     for(q=0;q<margin;++q)
     cout<<y[orderdir+q-1+ys]<<" ";
- cout<<ys<<" ";
+    cout<<ys<<" ";
 
     cout<<endl;
     }*/
-
 }

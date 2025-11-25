@@ -191,7 +191,7 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     //-------------------------------------------
     // FSF
 
-   RKcalcL(a,p,pgc,a->u,a->v,a->w);
+    RKcalcL(a,p,pgc,a->u,a->v,a->w);
 
     LOOP
     {

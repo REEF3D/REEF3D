@@ -438,7 +438,7 @@ void net_barQuasiStatic::cyl_ini(lexer *p, ghostcell *pgc)
 
     for (int i = 0; i < nd; i++)
     {
- //       B(index_,2) += 0.008*9.81/nd;
+        // B(index_,2) += 0.008*9.81/nd;
 
         index_--;
     }

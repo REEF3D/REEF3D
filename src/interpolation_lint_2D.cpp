@@ -59,7 +59,7 @@ double interpolation::lint2_2D(field& b, int& i,int& j, int& k, double wa, doubl
     jj=j;
     j=0;
 
-pip=4;
+    pip=4;
     if(p->flag2[IJK]>TOPO_FLAG)
     v1=b(i,j,k);
     if(p->flag2[IJKp1]>TOPO_FLAG)
@@ -68,7 +68,7 @@ pip=4;
     v3=b(i+1,j,k);
     if(p->flag2[Ip1JKp1]>TOPO_FLAG)
     v4=b(i+1,j,k+1);
-pip=0;
+    pip=0;
     j=jj;
 
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -76,7 +76,7 @@ pip=0;
 
     value = wc*x1 +(1.0-wc)*x2;
 
- return value;
+    return value;
 }
 
 double interpolation::lint3_2D(field& b, int& i,int& j, int& k, double wa, double wb, double wc)

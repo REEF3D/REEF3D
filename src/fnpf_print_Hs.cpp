@@ -88,7 +88,7 @@ void fnpf_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
 
     }
 
-   }
+    }
 
-   pgc->gcsl_start4(p,Hs,1);
+    pgc->gcsl_start4(p,Hs,1);
 }

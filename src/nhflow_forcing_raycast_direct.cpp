@@ -104,8 +104,8 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
     ks = p->posc_sig(is+margin,js+margin,zs)-margin;
     ke = p->posc_sig(is+margin,js+margin,ze)+margin;
 
-   // ks=0;
-   // ke=p->knoz;
+    // ks=0;
+    // ke=p->knoz;
 
     is = MAX(is,0);
     ie = MIN(ie,p->knox);
