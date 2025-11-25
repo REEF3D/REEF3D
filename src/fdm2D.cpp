@@ -24,41 +24,41 @@ Author: Hans Bihs
 #include"lexer.h"
 
 fdm2D::fdm2D(lexer *p)
-			: U(p),V(p),W(p),UH(p),VH(p),WH(p),
+            : U(p),V(p),W(p),UH(p),VH(p),WH(p),
             Fx(p),Fs(p),Fn(p),
             Fy(p),Fe(p),Fw(p),
-    
+
             Ss(p),Sn(p),SSx(p),
             Se(p),Sw(p),SSy(p),
-    
+
             Un(p),Us(p),
             Ue(p),Uw(p),
-    
+
             Vn(p),Vs(p),
             Ve(p),Vw(p),
-    
+
             Wn(p),Ws(p),
             We(p),Ww(p),
-    
+
             UHn(p),UHs(p),
             UHe(p),UHw(p),
-    
+
             VHn(p),VHs(p),
             VHe(p),VHw(p),
-    
+
             WHn(p),WHs(p),
-            WHe(p),WHw(p), 
-            
+            WHe(p),WHw(p),
+
             WL(p),
             ETAs(p),ETAn(p),
             ETAe(p),ETAw(p),
-            
+
             Ds(p),Dn(p),
             De(p),Dw(p),
-            
+
             dfx(p),dfy(p),
-    
-    
+
+
             eta(p),eta_n(p),
             P(p),Pn(p),Q(p),Qn(p),
             F(p),G(p),H(p),L(p),
@@ -80,36 +80,18 @@ fdm2D::fdm2D(lexer *p)
             ks(p)
 {
 
-	inverse=1.0/p->DXM;
+    inverse=1.0/p->DXM;
 
-	maxF=0.0;
-	maxG=0.0; 
-	maxK=0.0;
-	maxE=0.0;
+    maxF=0.0;
+    maxG=0.0;
+    maxK=0.0;
+    maxE=0.0;
 
-	sigT=0.9;
+    sigT=0.9;
 
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
+    gi=p->W20;
+    gj=p->W21;
+    gk=p->W22;
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

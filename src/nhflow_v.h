@@ -29,13 +29,13 @@ using namespace std;
 
 class nhflow_v : public nhflow
 {
-public: 
+public:
 
     nhflow_v(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_v();
+    virtual ~nhflow_v();
 
     void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
-     
+
 
 };
 

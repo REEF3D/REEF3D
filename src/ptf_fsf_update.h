@@ -38,18 +38,18 @@ class ptf_fsf_update : public increment
 {
 public:
     ptf_fsf_update(lexer*, fdm*, ghostcell*);
-	virtual ~ptf_fsf_update();
-    
+    virtual ~ptf_fsf_update();
+
     void fsfepol(lexer*, fdm*, ghostcell*,slice&,field&);
-	void fsfupdate(lexer*, fdm*, ghostcell*,ioflow*,slice&);
+    void fsfupdate(lexer*, fdm*, ghostcell*,ioflow*,slice&);
     void etaloc(lexer*, fdm*, ghostcell*);
     void fsfbc(lexer*, fdm*, ghostcell*,slice&,field&);
     void fsfbc0(lexer*, fdm*, ghostcell*,slice&,field&);
     void fsfbc1(lexer*, fdm*, ghostcell*,slice&,field&);
-    
+
     void velcalc(lexer*, fdm*, ghostcell *pgc, field&);
-    
-private: 
+
+private:
     int gcval,gcval_u,gcval_v,gcval_w;
 
 };

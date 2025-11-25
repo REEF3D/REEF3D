@@ -33,25 +33,23 @@ using namespace std;
 class komega_func : public rans_io, public komega_bc
 {
 public:
-	komega_func(lexer *, fdm*, ghostcell*);
-	virtual ~komega_func();
-	void isource(lexer*,fdm*) override;
-	void jsource(lexer*,fdm*) override;
-	void ksource(lexer*,fdm*) override;
-	void kinsource(lexer*,fdm*,vrans*);
-	void epssource(lexer*,fdm*,vrans*,field&);
-	void epsfsf(lexer*,fdm*,ghostcell*,ioflow*);
-	void eddyvisc(lexer*,fdm*,ghostcell*,vrans*);
-	void clearfield(lexer*,fdm*,field&);
+    komega_func(lexer *, fdm*, ghostcell*);
+    virtual ~komega_func();
+    void isource(lexer*,fdm*) override;
+    void jsource(lexer*,fdm*) override;
+    void ksource(lexer*,fdm*) override;
+    void kinsource(lexer*,fdm*,vrans*);
+    void epssource(lexer*,fdm*,vrans*,field&);
+    void epsfsf(lexer*,fdm*,ghostcell*,ioflow*);
+    void eddyvisc(lexer*,fdm*,ghostcell*,vrans*);
+    void clearfield(lexer*,fdm*,field&);
 
-	int count,q;
-	double starttime;
-    
+    int count,q;
+    double starttime;
+
 private:
     double epsi;
-	double dirac,dxm;
+    double dirac,dxm;
 };
 
 #endif
-
-

@@ -29,7 +29,7 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_flux_build 
+class nhflow_flux_build
 {
 
 public:

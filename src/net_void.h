@@ -41,23 +41,23 @@ class net_void : public net
 {
 public:
 
-	void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d) override;
+    void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d) override;
     void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d) override;
-    
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override;
+
+    void initialize_cfd(lexer*, fdm*, ghostcell*) override;
     void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override;
-	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
-    
+    void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
+
     const EigenMat& getLagrangePoints() override {return lagrangePoints;}
     const EigenMat& getLagrangeForces() override {return lagrangeForces;}
     const EigenMat& getCollarVel() override {return collarVel;}
     const EigenMat& getCollarPoints() override {return collarPoints;}
- 
+
 
 private:
-  
-    vector<Eigen::Vector3d> lagrangePoints;    
-    vector<Eigen::Vector3d> lagrangeForces;    
+
+    vector<Eigen::Vector3d> lagrangePoints;
+    vector<Eigen::Vector3d> lagrangeForces;
     vector<Eigen::Vector3d> collarVel;
     vector<Eigen::Vector3d> collarPoints;
 };

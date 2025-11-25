@@ -30,23 +30,23 @@ cpt::cpt()
 cpt::~cpt()
 {
     delete [] n;
-	delete [] s;
-	delete [] w;
-	delete [] e;
-	delete [] t;
-	delete [] b;
-	delete [] p;
+    delete [] s;
+    delete [] w;
+    delete [] e;
+    delete [] t;
+    delete [] b;
+    delete [] p;
 }
 
 void cpt::allocate(lexer *pp)
 {
     pp->Iarray(n,pp->veclength);
-	pp->Iarray(s,pp->veclength);
-	pp->Iarray(e,pp->veclength);
-	pp->Iarray(w,pp->veclength);
-	pp->Iarray(t,pp->veclength);
-	pp->Iarray(b,pp->veclength);
-	pp->Iarray(p,pp->veclength);
+    pp->Iarray(s,pp->veclength);
+    pp->Iarray(e,pp->veclength);
+    pp->Iarray(w,pp->veclength);
+    pp->Iarray(t,pp->veclength);
+    pp->Iarray(b,pp->veclength);
+    pp->Iarray(p,pp->veclength);
 }
 
 void cpt::resize(lexer *pp, int size_old, int size_new)
@@ -59,4 +59,3 @@ void cpt::resize(lexer *pp, int size_old, int size_new)
     pp->Iresize(b,size_old,size_new);
     pp->Iresize(p,size_old,size_new);
 }
-

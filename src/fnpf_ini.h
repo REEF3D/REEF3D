@@ -41,30 +41,30 @@ using namespace std;
 class fnpf_ini : public fnpf, public increment, public fnpf_fsf_update, public fnpf_bed_update
 {
 public:
-	fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_ini();
-    
+    fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
+    virtual ~fnpf_ini();
+
     void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*) override;
-    
+
     void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
-    
+
     void fnpf_restart(lexer*, fdm_fnpf*, ghostcell *pgc);
     void fnpf_restart_mainheader(lexer*, fdm_fnpf*, ghostcell *pgc);
     void fnpf_restart_read(lexer*, fdm_fnpf*, ghostcell *pgc);
     void filename(lexer*, fdm_fnpf*, ghostcell *pgc,int);
-    
+
 private:
 
     void lsm_ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*);
 
     int gcval,gcval_u,gcval_v,gcval_w;
-    
+
     char name[500];
-    
+
     int iin,file_type;
     float ffn;
-	double ddn;
-	int printcount;
+    double ddn;
+    int printcount;
     ifstream result;
 
 };

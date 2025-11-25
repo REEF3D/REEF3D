@@ -33,7 +33,7 @@ void wind_f::wind_forcing_drag_coeff(lexer *p)
     {
     if(p->A571_u<7.5)
     Cd = 1.2875e-3;
-    
+
     if(p->A571_u>=7.5)
     Cd = (0.8 + 0.065*p->A571_u)*1.0e-3;
     }

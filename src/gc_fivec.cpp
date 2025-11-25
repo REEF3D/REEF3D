@@ -26,9 +26,9 @@ Author: Hans Bihs
 #include"sliceint.h"
 
 void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
-{	
+{
     FLOOP
-    {  
+    {
         if(p->B98!=3||bc(i-1,j)==0)
         if(p->flag7[FIm1JK]<0)
         {
@@ -36,7 +36,7 @@ void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
         f[FIm2JK] = f[FIJK];
         f[FIm3JK] = f[FIJK];
         }
-          
+
         if(p->B99!=3||bc(i+1,j)==0)
         if(p->flag7[FIp1JK]<0)
         {
@@ -44,14 +44,14 @@ void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
         f[FIp2JK] = f[FIJK];
         f[FIp3JK] = f[FIJK];
         }
-        
+
         if(p->flag7[FIJm1K]<0)
         {
         f[FIJm1K] = f[FIJK];
         f[FIJm2K] = f[FIJK];
         f[FIJm3K] = f[FIJK];
         }
-        
+
         if(p->flag7[FIJp1K]<0)
         {
         f[FIJp1K] = f[FIJK];
@@ -62,7 +62,7 @@ void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
 }
 
 void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
-{	
+{
     FLOOP
     {
         if(p->B98!=3||bc(i-1,j)==0)
@@ -72,7 +72,7 @@ void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
         f[FIm2JK] = f[FIJK];
         f[FIm3JK] = f[FIJK];
         }
-        
+
         if(p->B98==3&&bc(i-1,j)==1)
         if(p->flag7[FIm1JK]<0)
         {
@@ -80,7 +80,7 @@ void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
         f[FIm2JK] = f[FIJK]-c->Uin[FIm1JK]*2.0*p->DXP[IM1];
         f[FIm3JK] = f[FIJK]-c->Uin[FIm1JK]*3.0*p->DXP[IM1];
         }
-        
+
         if(p->B99!=3||bc(i+1,j)==0)
         if(p->flag7[FIp1JK]<0)
         {
@@ -88,7 +88,7 @@ void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
         f[FIp2JK] = f[FIJK];
         f[FIp3JK] = f[FIJK];
         }
-        
+
         if(p->B99==3||bc(i+1,j)==2)
         if(p->flag7[FIp1JK]<0)
         {
@@ -101,30 +101,30 @@ void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
 
 
 void ghostcell::fivec_vel(lexer *p, double *f, sliceint &bc)
-{	
+{
     FLOOP
-    {  
+    {
         if(p->flag7[FIm1JK]<0)
         {
         f[FIm1JK] = f[FIJK];
         f[FIm2JK] = f[FIJK];
         f[FIm3JK] = f[FIJK];
         }
-          
+
         if(p->flag7[FIp1JK]<0)
         {
         f[FIp1JK] = f[FIJK];
         f[FIp2JK] = f[FIJK];
         f[FIp3JK] = f[FIJK];
         }
-        
+
         if(p->flag7[FIJm1K]<0)
         {
         f[FIJm1K] = f[FIJK];
         f[FIJm2K] = f[FIJK];
         f[FIJm3K] = f[FIJK];
         }
-        
+
         if(p->flag7[FIJp1K]<0)
         {
         f[FIJp1K] = f[FIJK];
@@ -135,7 +135,7 @@ void ghostcell::fivec_vel(lexer *p, double *f, sliceint &bc)
 }
 
 void ghostcell::fivec2D_vel(lexer *p, double *f, sliceint &bc)
-{	
+{
     FLOOP
     {
         if(p->flag7[FIm1JK]<0)
@@ -144,7 +144,7 @@ void ghostcell::fivec2D_vel(lexer *p, double *f, sliceint &bc)
         f[FIm2JK] = f[FIJK];
         f[FIm3JK] = f[FIJK];
         }
-        
+
         if(p->flag7[FIp1JK]<0)
         {
         f[FIp1JK] = f[FIJK];
@@ -153,5 +153,3 @@ void ghostcell::fivec2D_vel(lexer *p, double *f, sliceint &bc)
         }
     }
 }
-
-

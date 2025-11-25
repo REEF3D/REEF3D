@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-vrans_v::vrans_v(lexer *p, ghostcell *pgc) 
+vrans_v::vrans_v(lexer *p, ghostcell *pgc)
 {
 }
 

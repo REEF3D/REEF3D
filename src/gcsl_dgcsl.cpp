@@ -35,13 +35,13 @@ void ghostcell::dgcslpol1(lexer* p,slice& f)
 
     if(p->dgcsl1[n][2]==1)
     f(i-1,j-1) = f(i,j);
-    
+
     if(p->dgcsl1[n][2]==2)
     f(i+1,j-1) = f(i,j);
-    
+
     if(p->dgcsl1[n][2]==3)
     f(i+1,j+1) = f(i,j);
-    
+
     if(p->dgcsl1[n][2]==4)
     f(i-1,j+1) = f(i,j);
     }
@@ -58,13 +58,13 @@ void ghostcell::dgcslpol2(lexer* p,slice& f)
 
     if(p->dgcsl2[n][2]==1)
     f(i-1,j-1) = f(i,j);
-    
+
     if(p->dgcsl2[n][2]==2)
     f(i+1,j-1) = f(i,j);
-    
+
     if(p->dgcsl2[n][2]==3)
     f(i+1,j+1) = f(i,j);
-    
+
     if(p->dgcsl2[n][2]==4)
     f(i-1,j+1) = f(i,j);
     }
@@ -81,13 +81,13 @@ void ghostcell::dgcslpol4(lexer* p,slice& f)
 
     if(p->dgcsl4[n][2]==1)
     f(i-1,j-1) = f(i,j);
-    
+
     if(p->dgcsl4[n][2]==2)
     f(i+1,j-1) = f(i,j);
-    
+
     if(p->dgcsl4[n][2]==3)
     f(i+1,j+1) = f(i,j);
-    
+
     if(p->dgcsl4[n][2]==4)
     f(i-1,j+1) = f(i,j);
     }

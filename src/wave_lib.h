@@ -33,38 +33,38 @@ using namespace std;
 class wave_lib
 {
 public:
-    
+
     virtual double wave_u(lexer*,double,double,double)=0;
     virtual double wave_u_space_sin(lexer*,double,double,double,int)=0;
     virtual double wave_u_space_cos(lexer*,double,double,double,int)=0;
     virtual double wave_u_time_sin(lexer*,int)=0;
     virtual double wave_u_time_cos(lexer*,int)=0;
-    
+
     virtual double wave_v(lexer*,double,double,double)=0;
     virtual double wave_v_space_sin(lexer*,double,double,double,int)=0;
     virtual double wave_v_space_cos(lexer*,double,double,double,int)=0;
     virtual double wave_v_time_sin(lexer*,int)=0;
     virtual double wave_v_time_cos(lexer*,int)=0;
-    
+
     virtual double wave_w(lexer*,double,double,double)=0;
     virtual double wave_w_space_sin(lexer*,double,double,double,int)=0;
     virtual double wave_w_space_cos(lexer*,double,double,double,int)=0;
     virtual double wave_w_time_sin(lexer*,int)=0;
     virtual double wave_w_time_cos(lexer*,int)=0;
-    
+
     virtual double wave_eta(lexer*,double,double)=0;
     virtual double wave_eta_space_sin(lexer*,double,double,int)=0;
     virtual double wave_eta_space_cos(lexer*,double,double,int)=0;
     virtual double wave_eta_time_sin(lexer*,int)=0;
     virtual double wave_eta_time_cos(lexer*,int)=0;
-    
+
     virtual double wave_fi(lexer*,double,double,double)=0;
     virtual double wave_fi_space_sin(lexer*,double,double,double,int)=0;
     virtual double wave_fi_space_cos(lexer*,double,double,double,int)=0;
     virtual double wave_fi_time_sin(lexer*,int)=0;
     virtual double wave_fi_time_cos(lexer*,int)=0;
-    
-    
+
+
     virtual void parameters(lexer*,ghostcell*)=0;
     virtual void wave_prestep(lexer*,ghostcell*)=0;
 

@@ -27,21 +27,21 @@ Author: Hans Bihs
 void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
 {
     p->wavetime = p->simtime;
-    
+
     // prestep
     wave_prestep(p,pgc);
-    
+
     if(p->A10!=3 && p->A10!=5)
     {
         if(p->B89==0 )
         {
             if(p->B98==2)
             wavegen_precalc_relax(p,pgc);
-            
+
             if(p->B98==3 || p->B98==4)
             wavegen_precalc_dirichlet(p,pgc);
         }
-        
+
         if(p->B89==1)
         {
             if(p->B98==2)
@@ -49,23 +49,23 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
             wavegen_precalc_time(p,pgc);
             wavegen_precalc_decomp_relax(p,pgc);
             }
-            
+
             if(p->B98==3 || p->B98==4)
             wavegen_precalc_dirichlet(p,pgc);
         }
     }
-    
+
     if(p->A10==3)
     {
         if(p->B89==0 )
         {
             if(p->B98==2)
             fnpf_precalc_relax(p,pgc);
-            
+
             if(p->B98==3 || p->B98==4)
             fnpf_precalc_dirichlet(p,pgc);
         }
-        
+
         if(p->B89==1)
         {
             if(p->B98==2)
@@ -73,7 +73,7 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
             wavegen_precalc_decomp_time_fnpf(p,pgc);
             wavegen_precalc_decomp_relax_fnpf(p,pgc);
             }
-            
+
             if(p->B98==3 || p->B98==4)
             {
             wavegen_precalc_decomp_time_fnpf(p,pgc);
@@ -81,8 +81,7 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
             }
         }
     }
-    
-    
-    
+
+
+
 }
-    

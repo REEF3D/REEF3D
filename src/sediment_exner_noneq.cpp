@@ -40,82 +40,82 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
     double Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     double Ti;
     double time,starttime;
-    
+
     double dqx,dqy;
     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
     double sgx1,sgx2,sgy1,sgy2;
     double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
-    
+
     /*SEDSLICELOOP
     s->qb(i,j) = s->qbe(i,j);
-    
+
     pgc->gcsl_start4(p,s->qb,1);*/
-    
+
     for(int qn=0;qn<1;++qn)
     {
-    
+
     SEDSLICELOOP
     q0(i,j) = s->qb(i,j);
-    
+
     pgc->gcsl_start4(p,q0,1);
-    
+
     SEDSLICELOOP
     {
         ux1=s->P(i-1,j);
-        vx1=0.25*(s->Q(i,j)+s->Q(i-1,j)+s->Q(i,j-1)+s->Q(i-1,j-1)); 
-        
+        vx1=0.25*(s->Q(i,j)+s->Q(i-1,j)+s->Q(i,j-1)+s->Q(i-1,j-1));
+
         ux2=s->P(i,j);
-        vx2=0.25*(s->Q(i,j)+s->Q(i+1,j)+s->Q(i,j-1)+s->Q(i+1,j-1)); 
-        
-        
+        vx2=0.25*(s->Q(i,j)+s->Q(i+1,j)+s->Q(i,j-1)+s->Q(i+1,j-1));
+
+
         uy1=0.25*(s->P(i,j-1)+s->P(i,j)+s->P(i-1,j-1)+s->P(i-1,j));
-        vy1=s->Q(i,j-1); 
-        
+        vy1=s->Q(i,j-1);
+
         uy2=0.25*(s->P(i,j)+s->P(i,j+1)+s->P(i-1,j)+s->P(i-1,j+1));
-        vy2=s->Q(i,j); 
-        
-        
+        vy2=s->Q(i,j);
+
+
         ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
         ux2_abs = sqrt(ux2*ux2 + vx2*vx2);
-        
+
         uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
         uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
-            
+
         sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
         sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
-        
+
         sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
         sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
 
         // complete q
         dqx = pdx->sx(p,q0,sgx1,sgx2);
         dqy = pdx->sy(p,q0,sgy1,sgy2);
-        
+
     Ti=MAX((s->shearvel_eff(i,j)*s->shearvel_eff(i,j)-s->shearvel_crit(i,j)*s->shearvel_crit(i,j))/(s->shearvel_crit(i,j)*s->shearvel_crit(i,j)),0.0);
-        
+
     //Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
-    
+
     //Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
-    
+
     //Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(s->P(i,j)+s->P(i+1,j)),2.0) +  pow(0.5*(s->Q(i,j)+s->Q(i,j+1)),2.0));
-    
+
     Ls = MAX(Ls,0.0);
     Ls = MIN(Ls,1.0);
-    
-    //Ls = 100.0*p->S20; 
-    
+
+    //Ls = 100.0*p->S20;
+
     Ls = 0.1;
-    
+
     //if(p->mpirank==0)
     //cout<<"LS: "<<Ls<<endl;
 
     s->qb(i,j) = 0.5*s->qb(i,j) + 0.5*(s->qbe(i,j) - Ls*(dqx + dqy));
     }
     pgc->gcsl_start4(p,s->qb,1);
-    
+
     }
-    
-    
+
+
 // Implicit Solution
 
 /*
@@ -123,61 +123,61 @@ starttime=pgc->timer();
 
     n=0;
     SLICELOOP4
-	{
+    {
     Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 1.0e-6)*d50;
-    
-	M.p[n]  =  1.0;     
-               
 
-   	M.n[n] = Ls/(p->DXP[IP]+p->DXP[IM1]);
-	M.s[n] = -Ls/(p->DXP[IP]+p->DXP[IM1]);
+    M.p[n]  =  1.0;
 
-	M.w[n] = Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
-	M.e[n] = -Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
-    
+
+       M.n[n] = Ls/(p->DXP[IP]+p->DXP[IM1]);
+    M.s[n] = -Ls/(p->DXP[IP]+p->DXP[IM1]);
+
+    M.w[n] = Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
+    M.e[n] = -Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
+
     rhsvec.V[n] = s->qbe(i,j);
     s->qb(i,j)  = s->qbe(i,j);
-    
-	++n;
-	}
-	
-	
+
+    ++n;
+    }
+
+
     n=0;
-	SLICELOOP4
-	{
-		if(p->flagslice4[Im1J]<0)
-		{
-		rhsvec.V[n] -= M.s[n]*s->qb(i-1,j);
-		M.s[n] = 0.0;
-		}
-		
-		if(p->flagslice4[Ip1J]<0)
-		{
-		rhsvec.V[n] -= M.n[n]*s->qb(i+1,j);
-		M.n[n] = 0.0;
-		}
-		
-		if(p->flagslice4[IJm1]<0)
-		{
-		rhsvec.V[n] -= M.e[n]*s->qb(i,j-1);
-		M.e[n] = 0.0;
-		}
-		
-		if(p->flagslice4[IJp1]<0)
-		{
-		rhsvec.V[n] -= M.w[n]*s->qb(i,j+1);
-		M.w[n] = 0.0;
-		}
-		
-	++n;
-	}
-    
+    SLICELOOP4
+    {
+        if(p->flagslice4[Im1J]<0)
+        {
+        rhsvec.V[n] -= M.s[n]*s->qb(i-1,j);
+        M.s[n] = 0.0;
+        }
+
+        if(p->flagslice4[Ip1J]<0)
+        {
+        rhsvec.V[n] -= M.n[n]*s->qb(i+1,j);
+        M.n[n] = 0.0;
+        }
+
+        if(p->flagslice4[IJm1]<0)
+        {
+        rhsvec.V[n] -= M.e[n]*s->qb(i,j-1);
+        M.e[n] = 0.0;
+        }
+
+        if(p->flagslice4[IJp1]<0)
+        {
+        rhsvec.V[n] -= M.w[n]*s->qb(i,j+1);
+        M.w[n] = 0.0;
+        }
+
+    ++n;
+    }
+
     psolv->start(p,pgc,qb,M,xvec,rhsvec,4);
-    
+
     pgc->gcsl_start4(p,qb,1);
-    
-	time=pgc->timer()-starttime;
-	p->uiter=p->solveriter;
-	if(p->mpirank==0 && p->count%p->P12==0)
-	cout<<"qb_iter: "<<p->uiter<<"  qb_time: "<<setprecision(3)<<time<<endl;*/
+
+    time=pgc->timer()-starttime;
+    p->uiter=p->solveriter;
+    if(p->mpirank==0 && p->count%p->P12==0)
+    cout<<"qb_iter: "<<p->uiter<<"  qb_time: "<<setprecision(3)<<time<<endl;*/
 }

@@ -25,14 +25,14 @@ Author: Hans Bihs
 
 matrix_diag::matrix_diag(lexer *pp)
 {
-	pp->Darray(n,pp->veclength);
-	pp->Darray(s,pp->veclength);
-	pp->Darray(e,pp->veclength);
-	pp->Darray(w,pp->veclength);
-	pp->Darray(t,pp->veclength);
-	pp->Darray(b,pp->veclength);
-	pp->Darray(p,pp->veclength);
-    
+    pp->Darray(n,pp->veclength);
+    pp->Darray(s,pp->veclength);
+    pp->Darray(e,pp->veclength);
+    pp->Darray(w,pp->veclength);
+    pp->Darray(t,pp->veclength);
+    pp->Darray(b,pp->veclength);
+    pp->Darray(p,pp->veclength);
+
     if(pp->D33==1)
     {
     pp->Darray(sb,pp->veclength);
@@ -44,26 +44,26 @@ matrix_diag::matrix_diag(lexer *pp)
     pp->Darray(wb,pp->veclength);
     pp->Darray(wt,pp->veclength);
     }
-    
+
 }
 
 matrix_diag::~matrix_diag()
 {
     delete [] n;
-	delete [] s;
-	delete [] w;
-	delete [] e;
-	delete [] t;
-	delete [] b;
-	delete [] p;
-    
+    delete [] s;
+    delete [] w;
+    delete [] e;
+    delete [] t;
+    delete [] b;
+    delete [] p;
+
     delete [] sb;
-	delete [] st;
-	delete [] nb;
-	delete [] nt;
-	delete [] eb;
-	delete [] et;
-	delete [] wb;
+    delete [] st;
+    delete [] nb;
+    delete [] nt;
+    delete [] eb;
+    delete [] et;
+    delete [] wb;
     delete [] wt;
 }
 
@@ -76,7 +76,7 @@ void matrix_diag::resize(lexer *pp, int size_old, int size_new)
     pp->Dresize(t,size_old,size_new);
     pp->Dresize(b,size_old,size_new);
     pp->Dresize(p,size_old,size_new);
-    
+
     if(pp->D33==1)
     {
     pp->Dresize(sb,size_old,size_new);

@@ -35,17 +35,17 @@ class fou : public convection, public increment
 
 public:
 
-	fou (lexer *);
-	virtual ~fou();
+    fou (lexer *);
+    virtual ~fou();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+    void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
 
-	double dx,dy,dz;
-	double udir,vdir,wdir;
-	double L;
+    double dx,dy,dz;
+    double udir,vdir,wdir;
+    double L;
 
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 

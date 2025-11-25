@@ -34,12 +34,12 @@ class flux_face_FOU_vrans : public flux, public increment
 {
 public:
 
-	flux_face_FOU_vrans (lexer *p);
-	virtual ~flux_face_FOU_vrans();
+    flux_face_FOU_vrans (lexer *p);
+    virtual ~flux_face_FOU_vrans();
 
-	void u_flux(fdm* a,int,field&,double&,double&) override;
-	void v_flux(fdm* a,int,field&,double&,double&) override;
-	void w_flux(fdm* a,int,field&,double&,double&) override;
+    void u_flux(fdm* a,int,field&,double&,double&) override;
+    void v_flux(fdm* a,int,field&,double&,double&) override;
+    void w_flux(fdm* a,int,field&,double&,double&) override;
 
 private:
     lexer *p;

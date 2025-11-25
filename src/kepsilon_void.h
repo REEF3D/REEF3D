@@ -32,29 +32,29 @@ class kepsilon_void : public turbulence, public increment
 {
 
 public:
-	kepsilon_void(lexer *,fdm*,ghostcell*);
-	virtual ~kepsilon_void();
+    kepsilon_void(lexer *,fdm*,ghostcell*);
+    virtual ~kepsilon_void();
 
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
-	void ktimesave(lexer*, fdm*, ghostcell*) override;
-	void etimesave(lexer*, fdm*, ghostcell*) override;
+    void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
+    void ktimesave(lexer*, fdm*, ghostcell*) override;
+    void etimesave(lexer*, fdm*, ghostcell*) override;
 
-	void isource(lexer*, fdm*) override;
-	void jsource(lexer*, fdm*) override;
-	void ksource(lexer*, fdm*) override;
+    void isource(lexer*, fdm*) override;
+    void jsource(lexer*, fdm*) override;
+    void ksource(lexer*, fdm*) override;
 
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
     void ini(lexer*, fdm*, ghostcell*) override;
     double kinval(int,int,int) override;
     double epsval(int,int,int) override;
-	double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
     double ccipol_a_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
     void kinget(int,int,int,double) override;
     void epsget(int,int,int,double) override;
-	void gcupdate(lexer*, fdm*, ghostcell*) override;
-	
+    void gcupdate(lexer*, fdm*, ghostcell*) override;
+
     void name_ParaView_parallel(lexer*, ofstream&) override;
     void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
     void offset_ParaView(lexer*, int*, int &) override;

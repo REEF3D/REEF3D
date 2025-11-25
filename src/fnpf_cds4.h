@@ -31,19 +31,19 @@ using namespace std;
 class fnpf_cds4 : public fnpf_convection, public increment
 {
 public:
-	fnpf_cds4(lexer*);
-	virtual ~fnpf_cds4();
+    fnpf_cds4(lexer*);
+    virtual ~fnpf_cds4();
 
     double fx(lexer*, field&, double, double) override;
-	double fy(lexer*, field&, double, double) override;
-	double fz(lexer*, field&, double, double) override;
-    
+    double fy(lexer*, field&, double, double) override;
+    double fz(lexer*, field&, double, double) override;
+
     double sx(lexer*, slice&, double) override;
-	double sy(lexer*, slice&, double) override;
+    double sy(lexer*, slice&, double) override;
     double sz(lexer*, double*) override;
 
 private:
-	
+
 
 };
 

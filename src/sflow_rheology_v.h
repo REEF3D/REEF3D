@@ -34,13 +34,13 @@ class sflow_rheology_v : public sflow_rheology, public increment
 
 public:
     sflow_rheology_v(lexer*);
-	virtual ~sflow_rheology_v();
-    
-	void u_source(lexer*, fdm2D*, slice&, slice&) override;
+    virtual ~sflow_rheology_v();
+
+    void u_source(lexer*, fdm2D*, slice&, slice&) override;
     void v_source(lexer*, fdm2D*, slice&, slice&) override;
 
 private:
-    
+
 
 };
 

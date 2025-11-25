@@ -28,7 +28,7 @@ Authors: Hans Bihs
 sixdof_motionext_void::sixdof_motionext_void(lexer *p, ghostcell *pgc)
 {
 }
-    
+
 sixdof_motionext_void::~sixdof_motionext_void()
 {
 }
@@ -44,4 +44,3 @@ void sixdof_motionext_void::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
 void sixdof_motionext_void::motionext_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector3d& h, Eigen::Vector4d& de, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
 }
-

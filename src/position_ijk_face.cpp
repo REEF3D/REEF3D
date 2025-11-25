@@ -29,137 +29,137 @@ int position::posf_i(double xs)
 
     is = 0;
     ie = p->knox;
-    
-    
+
+
     count=0;
     do{
     iloc = ihalf(is,ie);
-    
+
     if(count%3==0)
     iloc+=1;
-    
+
         // matching criterion
         if(xs<p->XP[iloc+marge] && xs>=p->XP[iloc-1+marge])
         {
             ii = iloc;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(xs>=p->XP[iloc+marge] && xs<p->XP[iloc+1+marge])
         {
             ii = iloc+1;
-   
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(xs<p->XP[0+marge])
         {
             ii = -1;
 
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(xs>p->XP[p->knox-1+marge])
         {
             ii = p->knox+1;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // further division
         if(xs<p->XP[iloc+marge] && xs<p->XP[iloc-1+marge])
         ie=iloc;
-        
+
         if(xs>p->XP[iloc+marge] && xs>p->XP[iloc+1+marge])
         is=iloc;
-        
+
         ++count;
     }while(stop==0 && count<1000);
-    
+
     ii=MAX(ii,0);
     ii=MIN(ii,p->knox);
-    
+
     return ii;
 }
 
 int position::posf_j(double ys)
 {
     stop=0;
-    
+
     js = 0;
     je = p->knoy;
-    
+
     count=0;
     do{
     jloc = ihalf(js,je);
-    
+
     if(count%3==0)
     jloc+=1;
-    
+
         // out of bounds
         if(ys<p->YP[0+marge])
         {
             jj = -1;
-            
+
             //cout<<"EXIT 0m"<<endl;
-   
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(ys>p->YP[p->knoy-1+marge])
         {
             jj = p->knoy+1;
-            
+
             //cout<<"EXIT 0p  "<<p->YP[p->knoy-1]<<endl;
-   
+
          stop=1;
-         break;   
+         break;
         }
-    
+
         // matching criterion
         if(ys<p->YP[jloc+marge] && ys>=p->YP[jloc-1+marge])
         {
             jj = jloc;
-            
+
             //cout<<"EXIT 1"<<endl;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(ys>=p->YP[jloc+marge] && ys<p->YP[jloc+1+marge])
         {
             jj = jloc+1;
-            
+
             //cout<<"EXIT 2"<<endl;
-   
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // further divjsion
         if(ys<p->YP[jloc+marge] && ys<p->YP[jloc-1+marge])
         je=jloc;
-        
+
         if(ys>p->YP[jloc+marge] && ys>p->YP[jloc+1+marge])
         js=jloc;
-        
-        
+
+
         ++count;
     }while(stop==0 && count<1000);
-    
+
     jj=MAX(jj,0);
     jj=MIN(jj,p->knoy);
-    
+
     return jj;
 }
 
@@ -171,210 +171,209 @@ int position::posf_k(double zs)
 
     ks = 0;
     ke = p->knoz;
-    
+
     count=0;
     do{
     kloc = ihalf(ks,ke);
-    
+
     if(count%3==0)
     kloc+=1;
-    
+
         // out of bounds
         if(zs<p->ZP[0+marge])
         {
             kk = -1;
-   
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(zs>p->ZP[p->knoz-1+marge])
         {
             kk = p->knoz+1;
 
          stop=1;
-         break;   
+         break;
         }
-    
+
         // matching criterion
         if(zs<p->ZP[kloc+marge] && zs>=p->ZP[kloc-1+marge])
         {
             kk = kloc;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(zs>=p->ZP[kloc+marge] && zs<p->ZP[kloc+1+marge])
         {
             kk = kloc+1;
 
          stop=1;
-         break;   
+         break;
         }
-        
+
         // further divksion
         if(zs<p->ZP[kloc+marge] && zs<p->ZP[kloc-1+marge])
         ke=kloc;
-        
+
         if(zs>p->ZP[kloc+marge] && zs>p->ZP[kloc+1+marge])
         ks=kloc;
-        
-        
+
+
         ++count;
     }while(stop==0 && count<1000);
-    
+
     kk=MAX(kk,0);
     kk=MIN(kk,p->knoz);
     }
-    
+
     if(p->G2==1)
     {
     stop=0;
 
     ks = 0;
     ke = p->knoz;
-    
+
     count=0;
     do{
     kloc = ihalf(ks,ke);
-    
+
     if(count%3==0)
     kloc+=1;
-    
+
         // out of bounds
         if(zs<p->ZSP[0+marge])
         {
             kk = -1;
-   
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(zs>p->ZSP[p->knoz-1+marge])
         {
             kk = p->knoz+1;
 
          stop=1;
-         break;   
+         break;
         }
-    
+
         // matching criterion
         if(zs<p->ZSP[kloc+marge] && zs>=p->ZSP[kloc-1+marge])
         {
             kk = kloc;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(zs>=p->ZSP[kloc+marge] && zs<p->ZSP[kloc+1+marge])
         {
             kk = kloc+1;
 
          stop=1;
-         break;   
+         break;
         }
-        
+
         // further divksion
         if(zs<p->ZSP[kloc+marge] && zs<p->ZSP[kloc-1+marge])
         ke=kloc;
-        
+
         if(zs>p->ZSP[kloc+marge] && zs>p->ZSP[kloc+1+marge])
         ks=kloc;
-        
-        
+
+
         ++count;
     }while(stop==0 && count<1000);
-    
+
     kk=MAX(kk,0);
     kk=MIN(kk,p->knoz);
-        
+
     }
-    
+
     return kk;
 }
 
 
 int position::posf_sig(int ii, int jj, double zs)
 {
-    
+
     i = ii;
     j = jj;
-    
+
     k = 0;
     int IJK_start = IJK;
-    
+
     k = p->knoz-1;
     int IJK_end = IJK;
-    
-    
+
+
     stop=0;
 
     ks = 0;
     ke = p->knoz;
-    
+
     count=0;
     do{
     kloc = ihalf(ks,ke);
-    
+
     if(count%3==0)
     kloc+=1;
-    
+
     k=kloc;
-    
+
         // out of bounds
         if(zs<p->ZSP[IJK_start])
         {
             kk = -1;
-   
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(zs>p->ZSP[IJK_end])
         {
             kk = p->knoz+1;
 
          stop=1;
-         break;   
+         break;
         }
-    
+
         // matching criterion
         if(zs<p->ZSP[IJK] && zs>=p->ZSP[IJKm1])
         {
             kk = kloc;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(zs>=p->ZSP[IJK] && zs<p->ZSP[IJKp1])
         {
             kk = kloc+1;
 
          stop=1;
-         break;   
+         break;
         }
-        
+
         // further divksion
         if(zs<p->ZSP[IJK] && zs<p->ZSP[IJKm1])
         ke=kloc;
-        
+
         if(zs>p->ZSP[IJK] && zs>p->ZSP[IJKp1])
         ks=kloc;
-        
-        
+
+
         ++count;
     }while(stop==0 && count<1000);
-    
+
     kk=MAX(kk,0);
     kk=MIN(kk,p->knoz);
-        
-    
+
+
     return kk;
 }
-

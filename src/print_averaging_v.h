@@ -37,10 +37,10 @@ class print_averaging_v : public print_averaging, public increment
 {
 public:
     print_averaging_v(lexer*,fdm*,ghostcell*);
-	virtual ~print_averaging_v();
-    
+    virtual ~print_averaging_v();
+
     void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*) override;
-    
+
     void name_ParaView_parallel(lexer *p, ofstream &result) override;
     void name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n) override;
     void offset_ParaView(lexer *p, int *offset, int &n) override;

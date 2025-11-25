@@ -36,18 +36,18 @@ using namespace std;
 class sflow_bcmom : public roughness
 {
 public:
-	sflow_bcmom(lexer*);
-	virtual ~sflow_bcmom();
-	void sflow_bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
-	void roughness_u(lexer*, fdm2D*, slice&, slice&, slice&);
-	void roughness_v(lexer*, fdm2D*, slice&, slice&, slice&);
-	void roughness_w(lexer*, fdm2D*, slice&, slice&, slice&);
+    sflow_bcmom(lexer*);
+    virtual ~sflow_bcmom();
+    void sflow_bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
+    void roughness_u(lexer*, fdm2D*, slice&, slice&, slice&);
+    void roughness_v(lexer*, fdm2D*, slice&, slice&, slice&);
+    void roughness_w(lexer*, fdm2D*, slice&, slice&, slice&);
 
 private:
-	const double kappa;
-	double uplus,ks_plus,dist,ks,ustar;
-	int ii,jj,kk;
-	double value;
-	int gcval_phi, bckin, wallfunc_type;
+    const double kappa;
+    double uplus,ks_plus,dist,ks,ustar;
+    int ii,jj,kk;
+    double value;
+    int gcval_phi, bckin, wallfunc_type;
 };
 #endif

@@ -35,22 +35,22 @@ using namespace std;
 class reinidisc_fsf : public reinidisc, public ddweno_nug
 {
 public:
-	reinidisc_fsf(lexer* p);
-	virtual ~reinidisc_fsf();
-	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override;
-	
+    reinidisc_fsf(lexer* p);
+    virtual ~reinidisc_fsf();
+    void start(lexer*, fdm*, ghostcell*, field&, field&, int) override;
+
 private:
-	void disc(lexer*, fdm*, ghostcell*, field&, field&);
-	
-	double xmin,xplus,ymin,yplus,zmin,zplus;
-	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
-	double uwx,uwy,uwz,ddt;
-	double lsv,dv,lsSig;
-	
-	double dx, dy, dz, dnorm, sign;
-	double sx,sy,sz,snorm,op;
-	
-	double deltax,denom;
+    void disc(lexer*, fdm*, ghostcell*, field&, field&);
+
+    double xmin,xplus,ymin,yplus,zmin,zplus;
+    double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
+    double uwx,uwy,uwz,ddt;
+    double lsv,dv,lsSig;
+
+    double dx, dy, dz, dnorm, sign;
+    double sx,sy,sz,snorm,op;
+
+    double deltax,denom;
 };
 
 #endif

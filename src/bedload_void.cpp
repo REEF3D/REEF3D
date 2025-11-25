@@ -35,4 +35,3 @@ bedload_void::~bedload_void()
 void bedload_void::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 }
-

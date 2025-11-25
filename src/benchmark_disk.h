@@ -38,15 +38,11 @@ class benchmark_disk : public benchmark, public increment
 
 public:
     benchmark_disk(lexer*,fdm*);
-	virtual ~benchmark_disk();
+    virtual ~benchmark_disk();
 
-	void start(lexer*, fdm*, ghostcell*, convection*) override;
+    void start(lexer*, fdm*, ghostcell*, convection*) override;
 
 
 };
 
 #endif
-
-
-
-

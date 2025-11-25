@@ -46,26 +46,26 @@ Author: Hans Bihs
 
 void driver::driver_ini_nhflow()
 {
-    
+
     pnhf->ini(p,d,pgc,pflow);
 
-	log_ini();
-    
+    log_ini();
+
     if(p->mpirank==0)
     cout<<"starting driver_ini_NHFLOW"<<endl;
-    
+
 
     // sigma ini
     pnhfmom->inidisc(p,d,pgc,pnhfsf);
-    
-    
+
+
     //ioflow ini
     pflow->ini_nhflow(p,d,pgc);
-    pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL); 
-    
+    pnhfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
+
     // sigma ini
     pnhfmom->inidisc(p,d,pgc,pnhfsf);
-    
+
     for(int qn=0;qn<20;++qn)
     {
     pflow->eta_relax(p,pgc,d->eta);
@@ -74,65 +74,65 @@ void driver::driver_ini_nhflow()
     pgc->gcsl_start4(p,d->eta,50);
 
     pnhfstep->ini(p,d,pgc);
- 
-	pflow->gcio_update_nhflow(p,d,pgc); 
+
+    pflow->gcio_update_nhflow(p,d,pgc);
 
     // inflow ini
-	pflow->discharge_nhflow(p,d,pgc);
+    pflow->discharge_nhflow(p,d,pgc);
     pflow->wavegen_precalc_nhflow(p,d,pgc);
-    
+
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
-    
+
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
-    
+
     LOOP
     {
     d->RO[IJK] = p->W1;
     d->VISC[IJK] = p->W2;
     }
-    
+
     SLICELOOP4
     d->ks(i,j) = p->B50;
-    
+
     if(p->S10>0)
     SLICELOOP4
     d->ks(i,j) = p->S21*p->S20;
-    
+
     pgc->gcsl_start4(p,d->ks,50);
-    
+
     pgc->start4V(p,d->RO,1);
     pgc->start4V(p,d->VISC,1);
 
-	pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
     pgc->start4V(p,d->W,12);
     pgc->start5V(p,d->P,540);
-    
+
     // forcing ini
     pnhfdf->forcing_ini(p,d,pgc);
 
     pnhfsf->ini(p,d,pgc,pflow,d->U,d->V,d->W);
     pnhfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    
-    pflow->gcio_update_nhflow(p,d,pgc); 
-    
+
+    pflow->gcio_update_nhflow(p,d,pgc);
+
     // potential ini
     pnhfpot->start(p,d,ppoissonsolv,pgc);
-    
+
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
-    
+
     // turbulence ini
     pnhfturb->ini(p, d, pgc);
-    
+
     //sediment ini
     psed->ini_nhflow(p,d,pgc);
-    
+
     //6DOF ini
     p6dof->initialize(p, d, pgc);
-    
+
     pprint->start(p,d,pgc,pflow,pnhfturb,psed);
 
 // ini variables
@@ -144,11 +144,7 @@ void driver::driver_ini_nhflow()
 
     p->gctime=0.0;
     p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-	p->field4time=0.0;
+    p->reinitime=0.0;
+    p->wavecalctime=0.0;
+    p->field4time=0.0;
 }
-
-
-
-

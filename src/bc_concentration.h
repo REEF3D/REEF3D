@@ -35,14 +35,12 @@ using namespace std;
 class bc_concentration : public increment
 {
 public:
-	bc_concentration(lexer*);
-	virtual ~bc_concentration();
-	void bc_concentration_start(lexer*,fdm*,ghostcell*,field&);
+    bc_concentration(lexer*);
+    virtual ~bc_concentration();
+    void bc_concentration_start(lexer*,fdm*,ghostcell*,field&);
 
 private:
 
 
 };
 #endif
-
-

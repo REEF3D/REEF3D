@@ -25,13 +25,13 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
                              double alpha, double *U, double *V, double *W, slice &WL)
 {
     /*
     LOOP
     eps0(i,j,k) = 0.0;
-    
+
     pgc->start4(p,eps0,30);*/
 
     for(int n=0; n<p->A584; ++n)
@@ -51,18 +51,18 @@ void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
         for (j = jj - 2; j <= jj + 2; ++j)
         for (k = kk - 2; k <= kk + 2; ++k)
         {
-                       
+
             dist = (p->XP[IP] - EL_X[n][q])/dx;
             D = kernel(dist);
             dist = (p->YP[JP] - EL_Y[n][q])/dy;
             D *= kernel(dist);
             dist = (p->ZSP[IJK] - EL_Z[n][q])/dz;
             D *= kernel(dist);
-                        
+
             FX[IJK] += EL_FX[n][q]*D*EL_V[n][q]/(dx*dy*dz);
-            
+
             //d->test[IJK] += D;
-      
+
 
             dist = (p->XP[IP] - EL_X[n][q])/dx;
             D = kernel(dist);
@@ -70,9 +70,9 @@ void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
             D *= kernel(dist);
             dist = (p->ZSP[IJK] - EL_Z[n][q])/dz;
             D *= kernel(dist);
-                        
+
             FY[IJK] += EL_FY[n][q]*D*EL_V[n][q]/(dx*dy*dz);
-                
+
 
             dist = (p->XP[IP] - EL_X[n][q])/dx;
             D = kernel(dist);
@@ -80,10 +80,10 @@ void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
             D *= kernel(dist);
             dist = (p->ZSP[IJK] - EL_Z[n][q])/dz;
             D *= kernel(dist);
-                        
+
             FZ[IJK] += EL_FZ[n][q]*D*EL_V[n][q]/(dx*dy*dz);
-                        
-                        
+
+
             // RANS turbulence forcing
             /*if(p->A560==2)
             if(i_it>=0 && j_it>=0 && k_it>=0 && i_it<p->knox && j_it<p->knoy && k_it<p->knoz)
@@ -94,16 +94,16 @@ void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
             D *= kernel(dist);
             dist = (p->ZN[KP] - EL_Z[n][q])/dz;
             D *= kernel(dist);
-                        
+
             kin = pturb->kinval(i_it,j_it,k_it);
             eps_star = turb_force_fac*D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
-                        
+
             eps0(i_it,j_it,k_it) += eps_star;
             }*/
 
-        }     
+        }
     }
-    
+
 
     /*
     if(p->T10==2)
@@ -113,5 +113,5 @@ void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     eps_star = eps0(i,j,k);
     pturb->epsget(i,j,k,eps_star);
     }*/
-    
+
 }

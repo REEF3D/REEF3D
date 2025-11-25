@@ -23,8 +23,8 @@ Author: Hans Bihs
 #include"position.h"
 #include"lexer.h"
 
-position::position(lexer *pp) 
-{	
+position::position(lexer *pp)
+{
     p=pp;
 }
 

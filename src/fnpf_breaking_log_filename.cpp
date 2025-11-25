@@ -27,6 +27,3 @@ void fnpf_breaking_log::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     sprintf(name,"./REEF3D_FNPF_Breaking_Log/REEF3D_FNPF-Breaking-Log-%06i.r3d",p->mpirank+1);
 }
-
-
-

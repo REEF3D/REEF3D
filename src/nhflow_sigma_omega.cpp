@@ -31,62 +31,58 @@ Author: Hans Bihs
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
 
 void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *U, double *V, double *W)
-{ 
+{
     double wval,Pval,Qval,Rval,fac;
-    
+
 
         FLOOP
         d->omegaF[FIJK] = 0.0;
-        
-        
+
+
         LOOP
         {
         d->omegaF[FIJKp1] =   d->omegaF[FIJK]
-                            
-                            - p->DZN[KP]*(d->detadt(i,j) 
-                            
+
+                            - p->DZN[KP]*(d->detadt(i,j)
+
                             + (d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
         }
-    
-      
+
+
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
-    
+
         k+=1;
         d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKp1] =  0.0;
         d->omegaF[FIJKp2] =  0.0;
         d->omegaF[FIJKp3] =  0.0;
-        
+
     }
-    
+
     GC4LOOP
     if(p->gcb4[n][3]==5 && p->gcb4[n][4]==21)
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
-        
+
         d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKm1] =  0.0;
         d->omegaF[FIJKm2] =  0.0;
         d->omegaF[FIJKm3] =  0.0;
-        
+
     }
-    
+
 
     FLOOP
     if(p->wet[IJ]==0)
     d->omegaF[FIJK] = 0.0;
-    
+
     pgc->start7S(p,d->omegaF,17);
-    
+
 }
-
-
-
-

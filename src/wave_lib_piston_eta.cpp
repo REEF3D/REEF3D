@@ -26,19 +26,19 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<fstream>
 
-wave_lib_piston_eta::wave_lib_piston_eta(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
-{ 
+wave_lib_piston_eta::wave_lib_piston_eta(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc)
+{
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: piston_eta wavemaker theory";
     }
-	
-	timecount=0;
-	
-	read(p,pgc);
-    
+
+    timecount=0;
+
+    read(p,pgc);
+
     singamma = sin((p->B105_1)*(PI/180.0));
-    cosgamma = cos((p->B105_1)*(PI/180.0));	
+    cosgamma = cos((p->B105_1)*(PI/180.0));
 }
 
 wave_lib_piston_eta::~wave_lib_piston_eta()
@@ -68,17 +68,17 @@ double wave_lib_piston_eta::wave_horzvel(lexer *p, double x, double y, double z)
     double vel;
 
     if(p->wavetime<ts || p->wavetime>te || timecount>=ptnum-1)
-	return 0.0;
-	
-	if(p->wavetime>eta[timecount+1][0])
-	++timecount;
-	
-	vel = sqrt(9.81/wdt) * wave_eta(p,x,y);
-    
+    return 0.0;
+
+    if(p->wavetime>eta[timecount+1][0])
+    ++timecount;
+
+    vel = sqrt(9.81/wdt) * wave_eta(p,x,y);
+
     if(p->B110==1)
     {
     z+=p->wd;
-    
+
     if(z<p->B110_zs || z>p->B110_ze)
     vel=0.0;
     }
@@ -89,7 +89,7 @@ double wave_lib_piston_eta::wave_horzvel(lexer *p, double x, double y, double z)
 double wave_lib_piston_eta::wave_w(lexer *p, double x, double y, double z)
 {
     double vel;
-    
+
     vel = 0.0;
 
     return vel;
@@ -98,79 +98,78 @@ double wave_lib_piston_eta::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_piston_eta::wave_eta(lexer *p, double x, double y)
 {
     double val=0.0;
-    
+
     if(p->wavetime<ts || p->wavetime>te || timecount>=ptnum-1)
-	return 0.0;
-    
+    return 0.0;
+
     val =  ((eta[timecount+1][1]-eta[timecount][1])/(eta[timecount+1][0]-eta[timecount][0]))
             *((p->wavetime)-eta[timecount][0]) + eta[timecount][1];
-	
+
     return val;
 }
 
 double wave_lib_piston_eta::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
-    
+
     return fi;
 }
 
 void wave_lib_piston_eta::parameters(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void wave_lib_piston_eta::read(lexer *p, ghostcell* pgc)
 {
-	char name[100];
-	double val,val0,val1;
-	int count;
-	
-	sprintf(name,"wavemaker_eta.dat");
+    char name[100];
+    double val,val0,val1;
+    int count;
+
+    sprintf(name,"wavemaker_eta.dat");
 
 // open file------------
-	ifstream file(name, ios_base::in);
-	
-	if(!file)
-	{
-		cout<<endl<<("no 'wavemaker_eta.dat' file found")<<endl<<endl;
+    ifstream file(name, ios_base::in);
 
-	}
-	
-	count=0;
-	while(!file.eof())
-	{
-	file>>val0>>val1;
-	if(val0>=p->B117)
-	++count;
-	}
-	
-	file.close();
+    if(!file)
+    {
+        cout<<endl<<("no 'wavemaker_eta.dat' file found")<<endl<<endl;
 
-    
+    }
+
+    count=0;
+    while(!file.eof())
+    {
+    file>>val0>>val1;
+    if(val0>=p->B117)
+    ++count;
+    }
+
+    file.close();
+
+
     ptnum=count;
-	
-	p->Darray(eta,ptnum,2);
-	
-	file.open ("wavemaker_eta.dat", ios_base::in);
-	
-	count=0;
-	while(!file.eof())
-	{
-	
-	file>>val0>>val1;
-	
-	if(val0>=p->B117)
-	{
-	eta[count][0] = val0-p->B117;
-	eta[count][1] = val1;
-	++count;
-	}
-	}
-	
-	ts = eta[0][0];
-	te = eta[ptnum-1][0];
-	
+
+    p->Darray(eta,ptnum,2);
+
+    file.open ("wavemaker_eta.dat", ios_base::in);
+
+    count=0;
+    while(!file.eof())
+    {
+
+    file>>val0>>val1;
+
+    if(val0>=p->B117)
+    {
+    eta[count][0] = val0-p->B117;
+    eta[count][1] = val1;
+    ++count;
+    }
+    }
+
+    ts = eta[0][0];
+    te = eta[ptnum-1][0];
+
 }
 
 void wave_lib_piston_eta::wave_prestep(lexer *p, ghostcell *pgc)

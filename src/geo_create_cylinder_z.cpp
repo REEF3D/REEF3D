@@ -30,91 +30,91 @@ void nhflow_forcing::cylinder_z(lexer *p, ghostcell *pgc, int &ts, int &te, int 
                 double xm,double ym,double z1,double z2,double r1)
 {
     double U,ds,phi;
-	double r1,z1,z2;
+    double r1,z1,z2;
     double xm,ym;
-	int snum;
-	
+    int snum;
 
-	U = 2.0 * PI * r1;
-	
-	ds = 0.75*(U*p->DXM);
-	
-	snum = int(U/ds);
-	
 
-// Vertices	
-	ds = (2.0*PI)/double(snum);
-	
-	phi=0.0;
-	
-	tstart[entity_count]=tricount;
-	
+    U = 2.0 * PI * r1;
 
-	for(n=0;n<snum;++n)
-	{
-	//bottom circle	
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = ym;
-	tri_z[tricount][0] = z1;
-	
-	tri_x[tricount][1] = xm + r1*cos(phi);
-	tri_y[tricount][1] = ym + r1*sin(phi);
-	tri_z[tricount][1] = z1;
-	
-	tri_x[tricount][2] = xm + r1*cos(phi+ds);
-	tri_y[tricount][2] = ym + r1*sin(phi+ds);
-	tri_z[tricount][2] = z1;
-	++tricount;
-		
-	//top circle
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = ym;
-	tri_z[tricount][0] = z2;
-	
-	tri_x[tricount][1] = xm + r1*cos(phi);
-	tri_y[tricount][1] = ym + r1*sin(phi);
-	tri_z[tricount][1] = z2;
-	
-	tri_x[tricount][2] = xm + r1*cos(phi+ds);
-	tri_y[tricount][2] = ym + r1*sin(phi+ds);
-	tri_z[tricount][2] = z2;
-	++tricount;
-	
-	//side		
-	// 1st triangle
-	tri_x[tricount][0] = xm + r1*cos(phi);
-	tri_y[tricount][0] = ym + r1*sin(phi);
-	tri_z[tricount][0] = z1;
-	
-	tri_x[tricount][1] = xm + r1*cos(phi+ds);
-	tri_y[tricount][1] = ym + r1*sin(phi+ds);
-	tri_z[tricount][1] = z2;
-	
-	tri_x[tricount][2] = xm + r1*cos(phi+ds);
-	tri_y[tricount][2] = ym + r1*sin(phi+ds);
-	tri_z[tricount][2] = z1;
+    ds = 0.75*(U*p->DXM);
 
-	++tricount;
-	
-	// 2nd triangle
-	tri_x[tricount][0] = xm + r1*cos(phi);
-	tri_y[tricount][0] = ym + r1*sin(phi);
-	tri_z[tricount][0] = z1;
-	
-	tri_x[tricount][1] = xm + r1*cos(phi+ds);
-	tri_y[tricount][1] = ym + r1*sin(phi+ds);
-	tri_z[tricount][1] = z2;
-	
-	tri_x[tricount][2] = xm + r1*cos(phi);
-	tri_y[tricount][2] = ym + r1*sin(phi);
-	tri_z[tricount][2] = z2;
-	
-	++tricount;
-		
-	phi+=ds;
-	}
-		
-	
-	tend[entity_count]=tricount;
-    
+    snum = int(U/ds);
+
+
+// Vertices
+    ds = (2.0*PI)/double(snum);
+
+    phi=0.0;
+
+    tstart[entity_count]=tricount;
+
+
+    for(n=0;n<snum;++n)
+    {
+    //bottom circle
+    tri_x[tricount][0] = xm;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = z1;
+
+    tri_x[tricount][1] = xm + r1*cos(phi);
+    tri_y[tricount][1] = ym + r1*sin(phi);
+    tri_z[tricount][1] = z1;
+
+    tri_x[tricount][2] = xm + r1*cos(phi+ds);
+    tri_y[tricount][2] = ym + r1*sin(phi+ds);
+    tri_z[tricount][2] = z1;
+    ++tricount;
+
+    //top circle
+    tri_x[tricount][0] = xm;
+    tri_y[tricount][0] = ym;
+    tri_z[tricount][0] = z2;
+
+    tri_x[tricount][1] = xm + r1*cos(phi);
+    tri_y[tricount][1] = ym + r1*sin(phi);
+    tri_z[tricount][1] = z2;
+
+    tri_x[tricount][2] = xm + r1*cos(phi+ds);
+    tri_y[tricount][2] = ym + r1*sin(phi+ds);
+    tri_z[tricount][2] = z2;
+    ++tricount;
+
+    //side
+    // 1st triangle
+    tri_x[tricount][0] = xm + r1*cos(phi);
+    tri_y[tricount][0] = ym + r1*sin(phi);
+    tri_z[tricount][0] = z1;
+
+    tri_x[tricount][1] = xm + r1*cos(phi+ds);
+    tri_y[tricount][1] = ym + r1*sin(phi+ds);
+    tri_z[tricount][1] = z2;
+
+    tri_x[tricount][2] = xm + r1*cos(phi+ds);
+    tri_y[tricount][2] = ym + r1*sin(phi+ds);
+    tri_z[tricount][2] = z1;
+
+    ++tricount;
+
+    // 2nd triangle
+    tri_x[tricount][0] = xm + r1*cos(phi);
+    tri_y[tricount][0] = ym + r1*sin(phi);
+    tri_z[tricount][0] = z1;
+
+    tri_x[tricount][1] = xm + r1*cos(phi+ds);
+    tri_y[tricount][1] = ym + r1*sin(phi+ds);
+    tri_z[tricount][1] = z2;
+
+    tri_x[tricount][2] = xm + r1*cos(phi);
+    tri_y[tricount][2] = ym + r1*sin(phi);
+    tri_z[tricount][2] = z2;
+
+    ++tricount;
+
+    phi+=ds;
+    }
+
+
+    tend[entity_count]=tricount;
+
 }*/

@@ -32,11 +32,11 @@ class fnpf_ddx_cds4_wd : public fnpf_ddx, public increment
 {
 public:
     fnpf_ddx_cds4_wd(lexer*);
-	virtual ~fnpf_ddx_cds4_wd();
+    virtual ~fnpf_ddx_cds4_wd();
 
     double sxx(lexer*, slice&) override;
-	double syy(lexer*, slice&) override;
-    
+    double syy(lexer*, slice&) override;
+
 private:
     double X1,X2,X3,X4,X0;
     double Y1,Y2,Y3,Y4,Y0;

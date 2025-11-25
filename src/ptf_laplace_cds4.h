@@ -32,12 +32,12 @@ class ptf_laplace_cds4 : public ptf_laplace, public increment
 {
 public:
     ptf_laplace_cds4 ();
-	virtual ~ptf_laplace_cds4();
+    virtual ~ptf_laplace_cds4();
 
     void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&) override;
-    
+
 private:
-    
+
     double X1,X2,X3,X4,X0;
     double Y1,Y2,Y3,Y4,Y0;
     double Z1,Z2,Z3,Z4,Z0;

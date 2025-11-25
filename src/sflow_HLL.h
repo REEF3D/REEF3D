@@ -40,8 +40,8 @@ class sflow_HLL : public sflow_convection, public increment
 
 public:
 
-	sflow_HLL (lexer*,ghostcell*,patchBC_interface*);
-	virtual ~sflow_HLL();
+    sflow_HLL (lexer*,ghostcell*,patchBC_interface*);
+    virtual ~sflow_HLL();
 
     void start(lexer*&, fdm2D*&, int, slice&); // override, but different number of parameters
     void precalc(lexer*, fdm2D*, int, slice&);
@@ -52,13 +52,13 @@ private:
     void aij_V(lexer*&, fdm2D*&, int);
     void aij_W(lexer*&, fdm2D*&, int);
     void aij_E(lexer*&, fdm2D*&, int);
-    
+
     void HLL(lexer*&, fdm2D*&, slice &, slice &, slice &, slice &);
     void HLL_E(lexer*&, fdm2D*&);
-    
-	double dx,dy,dz;
-	double udir,vdir,wdir;
-	double L;
+
+    double dx,dy,dz;
+    double udir,vdir,wdir;
+    double L;
     double denom;
 
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;

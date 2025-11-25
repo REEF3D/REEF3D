@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 
-density_rheo::density_rheo(lexer* p) 
+density_rheo::density_rheo(lexer* p)
 {
 }
 
@@ -44,13 +44,9 @@ double density_rheo::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 
     if(fabs(phival)<=p->psi)
     H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
-    
+
     roval = p->W1*H + p->W3*(1.0-H);
 
-    return roval;          
+    return roval;
 
 }
-
-
-
-

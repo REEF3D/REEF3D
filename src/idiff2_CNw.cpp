@@ -29,14 +29,14 @@ Author: Elyas Larkermani
 void idiff2_CN::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &w_in, field &u, field &v, field &w, double alpha)
 {
     starttime=pgc->timer();
-	
+
     double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
     double visctermp, viscterms, visctermn, viscterme;
     double visctermw, visctermb, visctermt;
-    
+
     WLOOP
     diff(i,j,k) = w_in(i,j,k);
-    
+
     pgc->start3(p,diff,gcval_w);
 
     count=0;
@@ -45,27 +45,27 @@ void idiff2_CN::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     WLOOP
     {
 
-	ev_ijk=a->eddyv(i,j,k);
-	ev_im_j_k=a->eddyv(i-1,j,k);
-	ev_ip_j_k=a->eddyv(i+1,j,k);
-	ev_i_jm_k=a->eddyv(i,j-1,k);
-	ev_i_jp_k=a->eddyv(i,j+1,k);
-	ev_i_j_kp=a->eddyv(i,j,k+1);
-	
-	visc_ijk=a->visc(i,j,k);
-	visc_im_j_k=a->visc(i-1,j,k);
-	visc_ip_j_k=a->visc(i+1,j,k);
-	visc_i_jm_k=a->visc(i,j-1,k);
-	visc_i_jp_k=a->visc(i,j+1,k);
-	visc_i_j_kp=a->visc(i,j,k+1);
-	
-	visc_ddx_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1));
-    
-	visc_ddx_m = 0.25*(visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k+1)+a->eddyv(i-1,j,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
-    
-	visc_ddy_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_i_jp_k+ev_i_jp_k + a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1));
-    
-	visc_ddy_m = 0.25*(visc_i_jm_k+ev_i_jm_k + a->visc(i,j-1,k+1)+a->eddyv(i,j-1,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
+    ev_ijk=a->eddyv(i,j,k);
+    ev_im_j_k=a->eddyv(i-1,j,k);
+    ev_ip_j_k=a->eddyv(i+1,j,k);
+    ev_i_jm_k=a->eddyv(i,j-1,k);
+    ev_i_jp_k=a->eddyv(i,j+1,k);
+    ev_i_j_kp=a->eddyv(i,j,k+1);
+
+    visc_ijk=a->visc(i,j,k);
+    visc_im_j_k=a->visc(i-1,j,k);
+    visc_ip_j_k=a->visc(i+1,j,k);
+    visc_i_jm_k=a->visc(i,j-1,k);
+    visc_i_jp_k=a->visc(i,j+1,k);
+    visc_i_j_kp=a->visc(i,j,k+1);
+
+    visc_ddx_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1));
+
+    visc_ddx_m = 0.25*(visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k+1)+a->eddyv(i-1,j,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
+
+    visc_ddy_p = 0.25*(visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_i_jp_k+ev_i_jp_k + a->visc(i,j+1,k+1)+a->eddyv(i,j+1,k+1));
+
+    visc_ddy_m = 0.25*(visc_i_jm_k+ev_i_jm_k + a->visc(i,j-1,k+1)+a->eddyv(i,j-1,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp);
 
         visctermp = 2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP])
                                   + 2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP])
@@ -96,65 +96,64 @@ void idiff2_CN::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
         a->M.b[count] = alphaCN*visctermb;
         a->M.t[count] = alphaCN*visctermt;
 
-        a->rhsvec.V[count] -= (1.0-alphaCN)*(viscterms*w(i-1,j,k) + visctermn*w(i+1,j,k) + viscterme*w(i,j-1,k) + visctermw*w(i,j+1,k) + visctermb*w(i,j,k-1) + visctermt*w(i,j,k+1));    
+        a->rhsvec.V[count] -= (1.0-alphaCN)*(viscterms*w(i-1,j,k) + visctermn*w(i+1,j,k) + viscterme*w(i,j-1,k) + visctermw*w(i,j+1,k) + visctermb*w(i,j,k-1) + visctermt*w(i,j,k+1));
 
-	 ++count;
-	}
-    
+     ++count;
+    }
+
     n=0;
     WLOOP
-	{
-		if(p->flag3[Im1JK]<0)
-		{
-		a->rhsvec.V[n] -= a->M.s[n]*w(i-1,j,k);
-		a->M.s[n] = 0.0;
-		}
-		
-		if(p->flag3[Ip1JK]<0)
-		{
-		a->rhsvec.V[n] -= a->M.n[n]*w(i+1,j,k);
-		a->M.n[n] = 0.0;
-		}
-		
-		if(p->flag3[IJm1K]<0)
-		{
-		a->rhsvec.V[n] -= a->M.e[n]*w(i,j-1,k);
-		a->M.e[n] = 0.0;
-		}
-		
-		if(p->flag3[IJp1K]<0)
-		{
-		a->rhsvec.V[n] -= a->M.w[n]*w(i,j+1,k);
-		a->M.w[n] = 0.0;
-		}
-		
-		if(p->flag3[IJKm1]<0)
-		{
-		a->rhsvec.V[n] -= a->M.b[n]*w(i,j,k-1);
-		a->M.b[n] = 0.0;
-		}
-		
-		if(p->flag3[IJKp1]<0)
-		{
-		a->rhsvec.V[n] -= a->M.t[n]*w(i,j,k+1);
-		a->M.t[n] = 0.0;
-		}
+    {
+        if(p->flag3[Im1JK]<0)
+        {
+        a->rhsvec.V[n] -= a->M.s[n]*w(i-1,j,k);
+        a->M.s[n] = 0.0;
+        }
 
-	++n;
-	}
-    
-	
-	psolv->start(p,a,pgc,diff,a->rhsvec,3);
+        if(p->flag3[Ip1JK]<0)
+        {
+        a->rhsvec.V[n] -= a->M.n[n]*w(i+1,j,k);
+        a->M.n[n] = 0.0;
+        }
+
+        if(p->flag3[IJm1K]<0)
+        {
+        a->rhsvec.V[n] -= a->M.e[n]*w(i,j-1,k);
+        a->M.e[n] = 0.0;
+        }
+
+        if(p->flag3[IJp1K]<0)
+        {
+        a->rhsvec.V[n] -= a->M.w[n]*w(i,j+1,k);
+        a->M.w[n] = 0.0;
+        }
+
+        if(p->flag3[IJKm1]<0)
+        {
+        a->rhsvec.V[n] -= a->M.b[n]*w(i,j,k-1);
+        a->M.b[n] = 0.0;
+        }
+
+        if(p->flag3[IJKp1]<0)
+        {
+        a->rhsvec.V[n] -= a->M.t[n]*w(i,j,k+1);
+        a->M.t[n] = 0.0;
+        }
+
+    ++n;
     }
-    
+
+
+    psolv->start(p,a,pgc,diff,a->rhsvec,3);
+    }
+
     pgc->start3(p,diff,gcval_w);
     pgc->start1(p,u,gcval_u);
-	pgc->start2(p,v,gcval_v);
-	pgc->start3(p,w,gcval_w);
-	
-	time=pgc->timer()-starttime;
-	p->witer=p->solveriter;
-	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"wdiffiter (CN): "<<p->witer<<"  wdifftime (CN): "<<setprecision(3)<<time<<endl;
-}
+    pgc->start2(p,v,gcval_v);
+    pgc->start3(p,w,gcval_w);
 
+    time=pgc->timer()-starttime;
+    p->witer=p->solveriter;
+    if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
+    cout<<"wdiffiter (CN): "<<p->witer<<"  wdifftime (CN): "<<setprecision(3)<<time<<endl;
+}

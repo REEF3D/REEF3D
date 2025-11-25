@@ -35,14 +35,12 @@ using namespace std;
 class bcheat : public increment
 {
 public:
-	bcheat(lexer*);
-	virtual ~bcheat();
-	void bcheat_start(lexer*,fdm*,ghostcell*,field&);
+    bcheat(lexer*);
+    virtual ~bcheat();
+    void bcheat_start(lexer*,fdm*,ghostcell*,field&);
 
 private:
 
 
 };
 #endif
-
-

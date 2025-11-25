@@ -24,30 +24,24 @@ Author: Hans Bihs
 
 particle_pls_void::particle_pls_void()
 {
-
 }
 
 particle_pls_void::~particle_pls_void()
 {
-
 }
 
 void particle_pls_void::start(lexer *p, fdm *a, ghostcell * pgc, ioflow *pflow)
 {
-
 }
 
 void particle_pls_void::setup(lexer *p, fdm *a, ghostcell * pgc)
 {
-
 }
 
 void particle_pls_void::correct(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
 {
-
 }
 
 void particle_pls_void::picardmove(lexer *p, fdm *a, ghostcell *pgc)
 {
-
 }

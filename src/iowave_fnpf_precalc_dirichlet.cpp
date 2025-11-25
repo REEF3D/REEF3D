@@ -27,45 +27,45 @@ Author: Hans Bihs
 void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
     p->wavetime = p->simtime;
-    
+
         count=0;
-		for(n=0;n<p->gcslin_count;n++)
+        for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
-        
+
         xg=xgen(p);
         yg=ygen(p);
         x1=xgen1(p);
         y2=ygen2(p);
-        
+
         eta(i,j) = wave_eta(p,pgc,xg,yg);
-        
+
         z = eta(i,j);
-        
+
         time_1=time_0;
         time_0=p->simtime;
         time_n=p->simtime+p->dt;
         Fifsfval1[count] = Fifsfval0[count];
         Fifsfval0[count] = Fifsfval[count];
-        
+
         Fifsfval[count] = wave_u(p,pgc,xg,yg,z);
         ++count;
         }
-        
-        
+
+
         // Uin
         count=0;
-		for(n=0;n<p->gcslin_count;n++)
+        for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
-        
+
         xg=xgen(p);
         yg=ygen(p);
         x1=xgen1(p);
         y2=ygen2(p);
-        
+
             FKLOOP
             FPCHECK
             {
@@ -75,19 +75,19 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             ++count;
             }
         }
-        
-        
+
+
     count=0;
-    FILOOP 
-    FJLOOP 
+    FILOOP
+    FJLOOP
     {
 
-		db = distbeach(p);
-        
-        FKLOOP 
+        db = distbeach(p);
+
+        FKLOOP
         FPCHECK
         {
-                    
+
             if(p->B99==1||p->B99==2)
             {
                 // Zone 2
@@ -99,7 +99,5 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             }
         }
     }
-        
+
 }
-
-

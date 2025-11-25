@@ -36,7 +36,7 @@ class vorticity_void : public vorticity
 {
 public:
     vorticity_void(lexer*,fdm*);
-	virtual ~vorticity_void();
+    virtual ~vorticity_void();
 
     void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
 
@@ -47,7 +47,3 @@ public:
 };
 
 #endif
-
-
-
-

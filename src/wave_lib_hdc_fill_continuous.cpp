@@ -29,12 +29,12 @@ void wave_lib_hdc::fill_result_continuous(lexer *p, ghostcell *pgc)
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     E1[i][j]=E2[i][j];
-    
+
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
     U1[i][j][k]=U2[i][j][k];
-    
+
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
@@ -44,9 +44,6 @@ void wave_lib_hdc::fill_result_continuous(lexer *p, ghostcell *pgc)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
     W1[i][j][k]=W2[i][j][k];
-    
-    
+
+
 }
-
-
-        

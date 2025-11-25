@@ -35,7 +35,7 @@ public:
     bedload_VR(lexer*);
     virtual ~bedload_VR();
 
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+    void start(lexer*, ghostcell*, sediment_fdm*) override;
 
 private:
     double rhosed,rhowat,Rstar,Ds;
@@ -47,5 +47,3 @@ private:
 };
 
 #endif
-
-

@@ -78,5 +78,3 @@ double ghostcell::timer()
     t=MPI_Wtime();
     return t;
 }
-
-

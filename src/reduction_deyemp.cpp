@@ -36,23 +36,23 @@ reduction_deyemp::~reduction_deyemp()
 void reduction_deyemp::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
-    
+
 
     SEDSLICELOOP
     {
-	s->alpha(i,j) = fabs(s->alpha(i,j));
+    s->alpha(i,j) = fabs(s->alpha(i,j));
 
-	r = 0.954*pow(1.0-s->teta(i,j)/s->phi(i,j), 0.745)*pow(1.0-s->alpha(i,j)/s->phi(i,j),0.372);
+    r = 0.954*pow(1.0-s->teta(i,j)/s->phi(i,j), 0.745)*pow(1.0-s->alpha(i,j)/s->phi(i,j),0.372);
 
     // limiter
-	if( 1.0-s->teta(i,j)/s->phi(i,j) < 0.0 || 1.0-s->alpha(i,j)/s->phi(i,j)< 0.0)
+    if( 1.0-s->teta(i,j)/s->phi(i,j) < 0.0 || 1.0-s->alpha(i,j)/s->phi(i,j)< 0.0)
     {
         if(p->S84==1)
         {
         r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j)/tan(s->phi(i,j))));
         r*= cos(s->alpha(i,j))*(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0));
         }
-        
+
         if(p->S84==2)
         r = 0.1/(fabs(s->gamma(i,j)) + 0.0000001)+0.1;
     }
@@ -61,16 +61,12 @@ void reduction_deyemp::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     r=MAX(r,0.01);
     r=MIN(r,1.5);
 
-	if(p->pos_x()<p->S71)
-	r=1.0;
+    if(p->pos_x()<p->S71)
+    r=1.0;
 
-	if(p->pos_x()>p->S72)
-	r=10.0;
-	
+    if(p->pos_x()>p->S72)
+    r=10.0;
+
     s->reduce(i,j)=r;
     }
 }
-
-
-
-

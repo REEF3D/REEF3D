@@ -38,32 +38,32 @@ using namespace std;
 class nhflow_reconstruct_weno : public nhflow_reconstruct, public weno_nug_func
 {
 public:
-	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
-	virtual ~nhflow_reconstruct_weno();
+    nhflow_reconstruct_weno(lexer*,patchBC_interface*);
+    virtual ~nhflow_reconstruct_weno();
 
     void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
     void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
     void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override;
-    
+
     void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
     void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
     void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
-    
+
     slice4 dfdx,dfdy;
 
 private:
     void iqmin(lexer*, double*);
-	void jqmin(lexer*, double*);
-	void kqmin(lexer*, double*);
-	void iqmax(lexer*, double*);
-	void jqmax(lexer*, double*);
-	void kqmax(lexer*, double*);
-    
+    void jqmin(lexer*, double*);
+    void kqmin(lexer*, double*);
+    void iqmax(lexer*, double*);
+    void jqmax(lexer*, double*);
+    void kqmax(lexer*, double*);
+
     void iqmin_sl(lexer*, slice&);
     void iqmax_sl(lexer*, slice&);
     void jqmin_sl(lexer*, slice&);
     void jqmax_sl(lexer*, slice&);
-    
+
     double limiter(double, double);
 
     double ivel1,ivel2,jvel1,jvel2;
@@ -71,9 +71,9 @@ private:
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
     int qq;
     double r, phi,minphi;
-    
+
     double *DFDX;
-    
+
     patchBC_interface *pBC;
 };
 

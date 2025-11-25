@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 nhflow_coastline::nhflow_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
 {
-    time_preproc(p); 
+    time_preproc(p);
 }
 
 nhflow_coastline::~nhflow_coastline()
@@ -43,15 +43,11 @@ void nhflow_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, int *we
         {
             if(wet[IJ]==0)
             coastline(i,j)=-1.0;
-            
+
             if(wet[IJ]==1)
             coastline(i,j)=1.0;
-   
+
         }
         reini(p,pgc,coastline);
     }
 }
-
-
-
-

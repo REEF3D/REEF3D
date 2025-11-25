@@ -31,9 +31,9 @@ using namespace std;
 class reini_void : public reini
 {
 public:
-	reini_void(lexer* p);
-	virtual ~reini_void();
-	void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override;
+    reini_void(lexer* p);
+    virtual ~reini_void();
+    void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override;
 };
 
 #endif

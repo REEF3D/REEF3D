@@ -28,9 +28,9 @@ Author: Hans Bihs
 double iowave::wave_fsf(lexer *p, ghostcell *pgc, double x)
 {
     double val=0.0;
-    
+
     p->wavetime = p->simtime;
-    
+
     val = wave_h(p,pgc,x,0.0,0.0);
 
     return val;
@@ -39,11 +39,11 @@ double iowave::wave_fsf(lexer *p, ghostcell *pgc, double x)
 double iowave::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
     double val=0.0;
-    
+
     p->wavetime = p->simtime;
-    
+
     z -= p->phimean;
-    
+
     val = wave_u(p,pgc,x,y,z);
 
     return val;
@@ -52,11 +52,11 @@ double iowave::wave_xvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 double iowave::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
     double val=0.0;
-    
+
     p->wavetime = p->simtime;
-    
+
     z -= p->phimean;
-    
+
     val = wave_v(p,pgc,x,y,z);
 
     return val;
@@ -65,13 +65,12 @@ double iowave::wave_yvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 double iowave::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 {
     double val=0.0;
-    
+
     p->wavetime = p->simtime;
-    
+
     z -= p->phimean;
-    
+
     val = wave_w(p,pgc,x,y,z);
 
     return val;
 }
-

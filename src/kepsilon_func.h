@@ -32,22 +32,19 @@ using namespace std;
 class kepsilon_func : public rans_io, public kepsilon_bc
 {
 public:
-	kepsilon_func(lexer*,fdm*,ghostcell*);
-	virtual ~kepsilon_func();
-	void isource(lexer*,fdm*) override;
-	void jsource(lexer*,fdm*) override;
-	void ksource(lexer*,fdm*) override;
-	void kinsource(lexer*,fdm*,vrans*);
-	void epssource(lexer*,fdm*,vrans*);
-	void epsfsf(lexer*,fdm*,ghostcell*);
-	void eddyvisc(fdm*,lexer*,ghostcell*,vrans*);
-	void clearfield(lexer*,fdm*,field&);
+    kepsilon_func(lexer*,fdm*,ghostcell*);
+    virtual ~kepsilon_func();
+    void isource(lexer*,fdm*) override;
+    void jsource(lexer*,fdm*) override;
+    void ksource(lexer*,fdm*) override;
+    void kinsource(lexer*,fdm*,vrans*);
+    void epssource(lexer*,fdm*,vrans*);
+    void epsfsf(lexer*,fdm*,ghostcell*);
+    void eddyvisc(fdm*,lexer*,ghostcell*,vrans*);
+    void clearfield(lexer*,fdm*,field&);
 
-	int count,q;
-	double starttime;
+    int count,q;
+    double starttime;
 };
 
 #endif
-
-
-

@@ -35,10 +35,10 @@ using namespace std;
 class ptf_fsfbc : public increment
 {
 public:
-	ptf_fsfbc(lexer*, fdm*, ghostcell*);
-	virtual ~ptf_fsfbc();
-    
-    
+    ptf_fsfbc(lexer*, fdm*, ghostcell*);
+    virtual ~ptf_fsfbc();
+
+
     void fsfdisc(lexer*,fdm*,ghostcell*,slice&,slice&,field&);
     void kfsfbc(lexer*,fdm*,ghostcell*);
     void dfsfbc(lexer*,fdm*,ghostcell*,slice&);
@@ -48,10 +48,10 @@ public:
     fnpf_convection *pconvec;
 
     double ivel,jvel,kvel;
-    
+
     slice4 Fx,Fy,Fz;
     slice4 Ex,Ey;
-    
+
     double grad, teta;
 
 };

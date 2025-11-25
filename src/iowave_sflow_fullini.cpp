@@ -27,67 +27,67 @@ Author: Hans Bihs
 
 void iowave::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-	 double uval,vval;
+     double uval,vval;
     double deltaz;
-    
+
     SLICELOOP1
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-        
+        dg = distgen(p);
+        db = distbeach(p);
 
-        
+
+
         deltaz = (0.5*(b->eta(i,j)+b->eta(i+1,j)) + p->wd - 0.5*(b->bed(i,j)+b->bed(i+1,j)))/(double(p->B160));
-        
+
         uval=0.0;
         z=-p->wd;
         for(int qn=0;qn<p->B160;++qn)
         {
         uval += wave_u(p,pgc,xg,yg,z);
-        
+
         z+=deltaz;
         }
         uval/=double(p->B160);
-        
 
-		b->P(i,j) = uval;
-	}
-	
-    
+
+        b->P(i,j) = uval;
+    }
+
+
     SLICELOOP2
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);
+        db = distbeach(p);
 
 
         deltaz = (0.5*(b->eta(i,j)+b->eta(i,j+1)) + p->wd - 0.5*(b->bed(i,j)+b->bed(i,j+1)))/(double(p->B160));
-        
+
         vval=0.0;
         z=-p->wd;
         for(int qn=0;qn<p->B160;++qn)
         {
         vval += wave_v(p,pgc,xg,yg,z);
-        
+
         z+=deltaz;
         }
         vval/=double(p->B160);
-        
+
         b->Q(i,j) = vval;
-	}
-	
-	// eta
-	SLICELOOP4
+    }
+
+    // eta
+    SLICELOOP4
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);
+        db = distbeach(p);
 
-		b->eta(i,j) = wave_eta(p,pgc,xg,yg);
+        b->eta(i,j) = wave_eta(p,pgc,xg,yg);
 
     }
 }

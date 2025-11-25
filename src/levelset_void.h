@@ -34,9 +34,9 @@ using namespace std;
 class levelset_void : public freesurface
 {
 public:
-	levelset_void(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~levelset_void();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
+    levelset_void(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
+    virtual ~levelset_void();
+    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
     void update(lexer*,fdm*,ghostcell*,field&) override;
 
 private:

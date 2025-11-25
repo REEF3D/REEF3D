@@ -26,9 +26,8 @@ Author: Hans Bihs
 #include"vec.h"
 #include"fnpf_discrete_weights.h"
 
-sediment_cds_hj::sediment_cds_hj(lexer* p) 
+sediment_cds_hj::sediment_cds_hj(lexer* p)
 {
-
 }
 
 sediment_cds_hj::~sediment_cds_hj()
@@ -36,16 +35,15 @@ sediment_cds_hj::~sediment_cds_hj()
 }
 
 double sediment_cds_hj::sx(lexer *p, slice &f, double ivel1, double ivel2)
-{   
+{
     grad = 0.5*(ivel1+ivel2)*(f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-        
+
     return grad;
 }
 
 double sediment_cds_hj::sy(lexer *p, slice &f, double jvel1, double jvel2)
 {
     grad = 0.5*(jvel1+jvel2)*(f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-			  
-    return grad;  
-}
 
+    return grad;
+}

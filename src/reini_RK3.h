@@ -35,25 +35,25 @@ using namespace std;
 class reini_RK3 : public reini, public increment
 {
 public:
-	reini_RK3(lexer* p,int);
-	virtual ~reini_RK3();
-	void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override;
+    reini_RK3(lexer* p,int);
+    virtual ~reini_RK3();
+    void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override;
 
-	int *sizeM;
-	field4 frk1,frk2,dt;
+    int *sizeM;
+    field4 frk1,frk2,dt;
 
 private:
     picard *ppicard;
-	reinidisc *prdisc;
+    reinidisc *prdisc;
 
-	void step(lexer*, fdm*);
+    void step(lexer*, fdm*);
     void time_preproc(lexer*);
 
-	
-	double starttime,endtime;
 
-	int gcval_phi,gcval_ro,gcval_iniphi,reiniter,n, gcval;
-	const double epsi;
+    double starttime,endtime;
+
+    int gcval_phi,gcval_ro,gcval_iniphi,reiniter,n, gcval;
+    const double epsi;
 };
 
 #endif

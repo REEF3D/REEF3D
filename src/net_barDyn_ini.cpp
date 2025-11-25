@@ -24,38 +24,38 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_nhf.h"
-#include"ghostcell.h"	
+#include"ghostcell.h"
 
 void net_barDyn::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
-{    
+{
     //- Initialise net model
-    if (p->X320_type[nNet]==12)   
+    if (p->X320_type[nNet]==12)
     {
         cyl_ini(p,pgc);
- 
-        buildNet_cyl(p); 
+
+        buildNet_cyl(p);
     }
-    else if (p->X320_type[nNet]==13)   
+    else if (p->X320_type[nNet]==13)
     {
         wall_ini(p,pgc);
-        
-        buildNet_wall(p);    
-    } 
-    else if (p->X320_type[nNet]==14)   
+
+        buildNet_wall(p);
+    }
+    else if (p->X320_type[nNet]==14)
     {
         cone_ini(p,pgc);
-        
-        buildNet_wall(p);    
-    } 
 
-    //- Initialise old variables   
-    xnn_ = x_;    
+        buildNet_wall(p);
+    }
+
+    //- Initialise old variables
+    xnn_ = x_;
     xn_ = x_;
-    xdotnn_ = xdot_;    
+    xdotnn_ = xdot_;
     xdotn_ = xdot_;
-    
+
     if (p->X325_dt==0.0)
-    {   
+    {
         dtnn_ = p->dt;
         dtn_ = p->dt;
         dt_ = p->dt;
@@ -72,42 +72,42 @@ void net_barDyn::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     //- Initialise printing
     printtime = 0.0;
     print(p);
-    
+
     //- Update porous zone
     coupling_dlm_cfd(p,a,pgc);
 }
 
 
 void net_barDyn::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{    
+{
     //- Initialise net model
-    if (p->X320_type[nNet]==12)   
+    if (p->X320_type[nNet]==12)
     {
         cyl_ini(p,pgc);
- 
-        buildNet_cyl(p); 
+
+        buildNet_cyl(p);
     }
-    else if (p->X320_type[nNet]==13)   
+    else if (p->X320_type[nNet]==13)
     {
         wall_ini(p,pgc);
-        
-        buildNet_wall(p);    
-    } 
-    else if (p->X320_type[nNet]==14)   
+
+        buildNet_wall(p);
+    }
+    else if (p->X320_type[nNet]==14)
     {
         cone_ini(p,pgc);
-        
-        buildNet_wall(p);    
-    } 
 
-    //- Initialise old variables   
-    xnn_ = x_;    
+        buildNet_wall(p);
+    }
+
+    //- Initialise old variables
+    xnn_ = x_;
     xn_ = x_;
-    xdotnn_ = xdot_;    
+    xdotnn_ = xdot_;
     xdotn_ = xdot_;
-    
+
     if (p->X325_dt==0.0)
-    {   
+    {
         dtnn_ = p->dt;
         dtn_ = p->dt;
         dt_ = p->dt;
@@ -124,7 +124,7 @@ void net_barDyn::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //- Initialise printing
     printtime = 0.0;
     print(p);
-    
+
     //- Update porous zone
     coupling_dlm_nhflow(p,d,pgc);
 }

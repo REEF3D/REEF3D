@@ -40,31 +40,31 @@ Author: Hans Bihs
 sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc)
                                                     : sflow_bcmom(p)
 {
-	gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
-    
+    gcval_u=10;
+    gcval_v=11;
+    gcval_w=12;
+
     gcval_uh=14;
-	gcval_vh=15;
-	gcval_wh=16;
-   
+    gcval_vh=15;
+    gcval_wh=16;
+
 }
 
 sflow_momentum_func::~sflow_momentum_func()
 {
 }
 
-void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, sflow_fsf *pfsf, sflow_signal_speed *pss, 
+void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, sflow_fsf *pfsf, sflow_signal_speed *pss,
                                      sflow_reconstruct *precon, slice &WL, slice &U, slice &V, slice &W, slice &UH, slice &VH, slice &WH)
 {
     /*starttime=pgc->timer();
-    
+
     // reconstruct eta
     precon->reconstruct_x(p, pgc, b, b->eta, b->ETAs, b->ETAn);
     precon->reconstruct_y(p, pgc, b, b->eta, b->ETAe, b->ETAw);
     precon->reconstruct_WL(p, pgc, d);
 
-    // reconstruct U 
+    // reconstruct U
     precon->reconstruct_x(p, pgc, b, U, b->Us, b->Un);
     precon->reconstruct_y(p, pgc, b, U, b->Ue, b->Uw);
 
@@ -75,24 +75,24 @@ void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, sflow_
     // reconstruct  W
     precon->reconstruct_x(p, pgc, b, W, b->Ws, b->Wn);
     precon->reconstruct_y(p, pgc, b, W, b->We, b->Ww);
-    
+
     // reconstruct UH
     precon->reconstruct_x(p, pgc, b, UH, b->UHs, b->UHn);
     precon->reconstruct_y(p, pgc, b, UH, b->UHe, b->UHw);
-    
+
     // reconstruct  VH
     precon->reconstruct_x(p, pgc, b, VH, b->VHs, b->VHn);
     precon->reconstruct_y(p, pgc, b, VH, b->VHe, b->VHw);
-    
+
     // reconstruct  WH
     precon->reconstruct_x(p, pgc, b, WH, b->WHs, b->WHn);
     precon->reconstruct_y(p, pgc, b, WH, b->WHe, b->WHw);
-    
+
     // wetdry
     pfsf->wetdry_fluxes(p,d,pgc,WL,U,V,W,UH,VH,WH);
-    
+
     pss->signal_speed_update(p, pgc, b, b->Us, b->Un, b->Ve, b->Vw, b->Ds, b->Dn, b->De, b->Dw);
-    
+
     p->recontime+=pgc->timer()-starttime;*/
 }
 
@@ -104,36 +104,36 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
     {
     UH(i,j) = MIN(UH(i,j), p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
     VH(i,j) = MIN(VH(i,j), p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH(i,j) = MIN(WH(i,j), p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
-    
+    WH(i,j) = MIN(WH(i,j), p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+
     UH(i,j) = MAX(UH(i,j), -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
     VH(i,j) = MAX(VH(i,j), -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH(i,j) = MAX(WH(i,j), -p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
+    WH(i,j) = MAX(WH(i,j), -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
     }
-    
-    
+
+
     if(p->B60==1)
     SLICELOOP4
     if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0 || p->deep[IJ]==0)
     {
     UH(i,j) = MIN(UH(i,j), 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
     VH(i,j) = MIN(VH(i,j), 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH(i,j) = MIN(WH(i,j), 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
-    
+    WH(i,j) = MIN(WH(i,j), 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
+
     UH(i,j) = MAX(UH(i,j), -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
     VH(i,j) = MAX(VH(i,j), -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH(i,j) = MAX(WH(i,j), -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
+    WH(i,j) = MAX(WH(i,j), -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
     }
-    
-    
+
+
     SLICELOOP4
     WETDRY
     {
     b->U(i,j) = UH(i,j)/WLVL;
     b->V(i,j) = VH(i,j)/WLVL;
-    b->W(i,j) = WH(i,j)/WLVL;       
+    b->W(i,j) = WH(i,j)/WLVL;
     }
-    
+
 
     SLICELOOP4
     if(p->wet[IJ]==0)
@@ -142,7 +142,7 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
     b->V(i,j) = 0.0;
     b->W(i,j) = 0.0;
     }
-    
+
     pgc->gcsl_start4(p,UH,gcval_u);
     pgc->gcsl_start4(p,VH,gcval_u);
     pgc->gcsl_start4(p,WH,gcval_u);
@@ -150,39 +150,39 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
 
 void sflow_momentum_func::irhs(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-	SLICELOOP4
-	{
-	b->F(i,j) += (b->Fext(i,j));//*PORVALNH;
-	b->Fext(i,j)=0.0;
-	}
+    SLICELOOP4
+    {
+    b->F(i,j) += (b->Fext(i,j));//*PORVALNH;
+    b->Fext(i,j)=0.0;
+    }
 }
 
 void sflow_momentum_func::jrhs(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
-	{
-	b->G(i,j) += (b->Gext(i,j));//*PORVALNH;
-	b->Gext(i,j)=0.0;
-	}
+    {
+    b->G(i,j) += (b->Gext(i,j));//*PORVALNH;
+    b->Gext(i,j)=0.0;
+    }
 }
 
 void sflow_momentum_func::krhs(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
-	{
-	b->H(i,j) += (b->Hext(i,j));//*PORVALNH;
-	b->Hext(i,j)=0.0;
-	}
+    {
+    b->H(i,j) += (b->Hext(i,j));//*PORVALNH;
+    b->Hext(i,j)=0.0;
+    }
 }
 
 void sflow_momentum_func::clearrhs(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-	n=0;
-	SLICELOOP4
-	{
-	b->rhsvec.V[n]=0.0;
-	++n;
-	}
+    n=0;
+    SLICELOOP4
+    {
+    b->rhsvec.V[n]=0.0;
+    ++n;
+    }
 }
 
 void sflow_momentum_func::inidisc(lexer *p, fdm2D *b, ghostcell *pgc, sflow_fsf *pfsf)
@@ -194,7 +194,3 @@ void sflow_momentum_func::inidisc(lexer *p, fdm2D *b, ghostcell *pgc, sflow_fsf 
     pfsf->kinematic_bed(p,d,b->U,b->V,b->W);
     velcalc(p,d,pgc,b->UH,b->VH,b->WH,b->WL);*/
 }
-     
-
-
-

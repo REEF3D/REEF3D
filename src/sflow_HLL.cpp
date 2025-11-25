@@ -30,11 +30,11 @@ Author: Hans Bihs
 #include"sflow_signal_speed.h"
 #include"sflow_flux_build_f.h"
 
-sflow_HLL::sflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
+sflow_HLL::sflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
 {
     pgc = ppgc;
     pBC = ppBC;
-    
+
     pflux = new sflow_flux_build_f(p,pgc,pBC);
 }
 
@@ -56,110 +56,110 @@ void sflow_HLL::start(lexer *&p, fdm2D *&b, int ipol, slice &eta)
 
     if(ipol==3)
     aij_W(p,b,3);
-    
+
     if(ipol==4)
     aij_E(p,b,4);
 }
 
 void sflow_HLL::aij_U(lexer *&p,fdm2D *&b, int ipol)
 {
-    // HLL flux 
+    // HLL flux
     pflux->start_U(p,b,pgc);
     HLL(p,b,b->UHs,b->UHn,b->UHe,b->UHw);
-    
+
     //pgc->start1V(p,b->Fx,10);
     //pgc->start2V(p,b->Fy,10);
-    
+
     LOOP
     WETDRY
     {
-    b->F(i,j) -= ((b->Fx(i,j) - b->Fx[Im1JK])/p->DXN[IP] 
+    b->F(i,j) -= ((b->Fx(i,j) - b->Fx[Im1JK])/p->DXN[IP]
                 + (b->Fy(i,j) - b->Fy[IJm1K])/p->DYN[JP])*p->y_dir;
-    }    
+    }
 }
 
 void sflow_HLL::aij_V(lexer *&p, fdm2D *&b, int ipol)
 {
-    // HLL flux 
+    // HLL flux
     pflux->start_V(p,b,pgc);
     HLL(p,b,b->VHs,b->VHn,b->VHe,b->VHw);
-    
+
     //pgc->start1V(p,b->Fx,11);
     //pgc->start2V(p,b->Fy,11);
-    
+
     LOOP
     WETDRY
     {
-    b->G(i,j) -= ((b->Fx(i,j) - b->Fx[Im1JK])/p->DXN[IP] 
+    b->G(i,j) -= ((b->Fx(i,j) - b->Fx[Im1JK])/p->DXN[IP]
                 + (b->Fy(i,j) - b->Fy[IJm1K])/p->DYN[JP])*p->y_dir;
-    }    
+    }
 }
 
 void sflow_HLL::aij_W(lexer *&p,fdm2D *&b, int ipol)
 {
-    // HLL flux 
+    // HLL flux
     pflux->start_W(p,b,pgc);
     HLL(p,b,b->WHs,b->WHn,b->WHe,b->WHw);
-    
+
     //pgc->start1V(p,b->Fx,12);
     //pgc->start2V(p,b->Fy,12);
-    
+
     LOOP
     WETDRY
     {
-    b->H(i,j) -= ((b->Fx(i,j) - b->Fx[Im1JK])/p->DXN[IP] 
+    b->H(i,j) -= ((b->Fx(i,j) - b->Fx[Im1JK])/p->DXN[IP]
                 + (b->Fy(i,j) - b->Fy[IJm1K])/p->DYN[JP])*p->y_dir;
-    }    
+    }
 }
 
 void sflow_HLL::aij_E(lexer *&p, fdm2D *&b, int ipol)
 {
-    // HLL flux 
+    // HLL flux
     pflux->start_E(p,b,pgc);
-    
+
     HLL_E(p,b);  // -----
-    
+
     LOOP
     WETDRY
     {
     if(p->wet[Ip1J]==0)
     b->Fx(i,j) = 0.0;
-    
+
     if(p->wet[Im1J]==0)
     b->Fx[Im1JK] = 0.0;
-    
+
     if(p->wet[IJp1]==0)
     b->Fy(i,j) = 0.0;
-    
+
     if(p->wet[IJm1]==0)
     b->Fy[IJm1K] = 0.0;
     }
-    
+
     //pgc->start1V(p,b->Fx,14);
-    //pgc->start2V(p,b->Fy,14); 
+    //pgc->start2V(p,b->Fy,14);
 }
 
 void sflow_HLL::HLL(lexer *&p,fdm2D *&b, slice &Us, slice &Un, slice &Ue, slice &Uw)
-{    
+{
     // HLL flux
     ULOOP
     {
         if(b->Ss(i,j)>=0.0)
         b->Fx(i,j) = b->Fs(i,j);
-        
+
         else
         if(b->Sn(i,j)<=0.0)
         b->Fx(i,j) = b->Fn(i,j);
-        
+
         else
         {
         denom = b->Sn(i,j)-b->Ss(i,j);
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
+
         b->Fx(i,j) = (b->Sn(i,j)*b->Fs(i,j) - b->Ss(i,j)*b->Fn(i,j) + b->Sn(i,j)*b->Ss(i,j)*(Un(i,j) - Us(i,j)))/denom;
         }
     }
-    
+
     // HLL flux y-dir
     if(p->j_dir==1)
     {
@@ -167,16 +167,16 @@ void sflow_HLL::HLL(lexer *&p,fdm2D *&b, slice &Us, slice &Un, slice &Ue, slice 
     {
         if(b->Se(i,j)>=0.0)
         b->Fy(i,j) = b->Fe(i,j);
-        
+
         else
         if(b->Sw(i,j)<=0.0)
         b->Fy(i,j) = b->Fw(i,j);
-        
+
         else
         {
         denom = b->Sw(i,j)-b->Se(i,j);
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
+
         b->Fy(i,j) = (b->Sw(i,j)*b->Fe(i,j) - b->Se(i,j)*b->Fw(i,j) + b->Sw(i,j)*b->Se(i,j)*(Uw(i,j) - Ue(i,j)))/denom;
         }
     }
@@ -190,36 +190,36 @@ void sflow_HLL::HLL_E(lexer *&p, fdm2D *&b)
     {
         if(b->Ss(i,j)>=0.0)
         b->Fx(i,j) = b->Fs(i,j);
-        
+
         else
         if(b->Sn(i,j)<=0.0)
         b->Fx(i,j) = b->Fn(i,j);
-        
+
         else
         {
         denom = b->Sn(i,j)-b->Ss(i,j);
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
+
         b->Fx(i,j) = (b->Sn(i,j)*b->Fs(i,j) - b->Ss(i,j)*b->Fn(i,j) + b->Sn(i,j)*b->Ss(i,j)*(b->Dn(i,j) - b->Ds(i,j)))/denom;
         }
     }
-    
+
     // HLL flux y-dir
     if(p->j_dir==1)
     VLOOP
     {
         if(b->Se(i,j)>=0.0)
         b->Fy(i,j) = b->Fe(i,j);
-        
+
         else
         if(b->Sw(i,j)<=0.0)
         b->Fy(i,j) = b->Fw(i,j);
-        
+
         else
         {
         denom = b->Sw(i,j)-b->Se(i,j);
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
+
         b->Fy(i,j) = (b->Sw(i,j)*b->Fe(i,j) - b->Se(i,j)*b->Fw(i,j) + b->Sw(i,j)*b->Se(i,j)*(b->Dw(i,j) - b->De(i,j)))/denom;
         }
     }

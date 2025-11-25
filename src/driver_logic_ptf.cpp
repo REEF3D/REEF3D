@@ -39,33 +39,33 @@ Author: Hans Bihs
 #include"waves_header.h"
 
 void driver::logic_ptf()
-{    
+{
     if(p->mpirank==0)
     cout<<"creating objects"<<endl;
-    
+
     pini = new initialize(p);
 
     if(p->mpirank==0)
-	cout<<"starting ini"<<endl;
-	pini->start(a,p,pgc);
+    cout<<"starting ini"<<endl;
+    pini->start(a,p,pgc);
 
 // time stepping
     if(p->N48==0)
-	ptstep=new fixtimestep(p);
+    ptstep=new fixtimestep(p);
 
-	if(p->N48==1)
-	ptstep=new pftimestep(p);
-    
+    if(p->N48==1)
+    ptstep=new pftimestep(p);
+
 // Printer
     pprint = new printer_CFD(p,a,pgc);
-    
-//IOFlow
-	if(p->B60==0 && p->B90==0 && p->B180==0 )
-	pflow = new ioflow_v(p,pgc,pBC);
 
-	if(p->B90>=1)
-	pflow= new iowave(p,pgc,pBC);
-    
+//IOFlow
+    if(p->B60==0 && p->B90==0 && p->B180==0 )
+    pflow = new ioflow_v(p,pgc,pBC);
+
+    if(p->B90>=1)
+    pflow= new iowave(p,pgc,pBC);
+
 // Geodat
     if(p->G1==0)
     preto = new reinitopo_void();
@@ -74,50 +74,50 @@ void driver::logic_ptf()
     {
     if(p->G40==0)
     preto = new reinitopo_void();
-    
+
     if(p->G40>0)
     preto = new reinitopo_RK3(p);
     }
-    
-//  Laplace Solver	
-	if(p->N10==0)
-	plapsolv = new solver_void(p,a,pgc);
-	
-	if(p->N10==1)
-	plapsolv = new bicgstab_ijk(p,a,pgc);
-	
-	#ifdef HYPRE_COMPILATION
-	if(p->N10>10 && p->N10<=20)
+
+//  Laplace Solver
+    if(p->N10==0)
+    plapsolv = new solver_void(p,a,pgc);
+
+    if(p->N10==1)
+    plapsolv = new bicgstab_ijk(p,a,pgc);
+
+    #ifdef HYPRE_COMPILATION
+    if(p->N10>10 && p->N10<=20)
     plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     #endif
-    
+
     #ifdef HYPRE_COMPILATION
-	if(p->N10>20 && p->N10<=30)
-	plapsolv = new hypre_aij(p,a,pgc);
-	#endif
-    
+    if(p->N10>20 && p->N10<=30)
+    plapsolv = new hypre_aij(p,a,pgc);
+    #endif
+
 //  Voids
-	pturb = new kepsilon_void(p,a,pgc);
-    
+    pturb = new kepsilon_void(p,a,pgc);
+
     pdata = new expdata_void(p,a,pgc);
-    
+
     pconc = new concentration_void(p,a,pgc);
-    
+
     pheat = new heat_void(p,a,pgc);
-    
+
     psed = new sediment_void();
-    
+
     preini = new reini_void(p);
-    
+
     pfsfdisc=new convection_void(p);
-    
+
     pmp = new multiphase_v();
-    
+
 //  Wave Models
     if(p->A310==3)
     pptf = new ptf_RK3(p,a,pgc);
-        
+
     if(p->A310==4)
     pptf = new ptf_RK4(p,a,pgc);
-    
+
 }

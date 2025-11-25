@@ -27,68 +27,68 @@ Author: Hans Bihs
 
 void ghostcell::gcsl_neumann(slice& f, int gcv, int bc, int cs)
 {
-	if(cs==1)
-	for(q=0;q<margin;++q)
-	f(i-q-1,j)=f(i,j);
+    if(cs==1)
+    for(q=0;q<margin;++q)
+    f(i-q-1,j)=f(i,j);
 
-	if(cs==2)
-	for(q=0;q<margin;++q)
-	f(i,j+q+1)=f(i,j);
+    if(cs==2)
+    for(q=0;q<margin;++q)
+    f(i,j+q+1)=f(i,j);
 
-	if(cs==3)
-	for(q=0;q<margin;++q)
-	f(i,j-q-1)=f(i,j);
+    if(cs==3)
+    for(q=0;q<margin;++q)
+    f(i,j-q-1)=f(i,j);
 
-	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j)=f(i,j);
+    if(cs==4)
+    for(q=0;q<margin;++q)
+    f(i+q+1,j)=f(i,j);
 }
 
 void ghostcell::gcsl_neumann_x(slice& f, int gcv, int bc, int cs)
 {
-	if(cs==1)
-	for(q=0;q<margin;++q)
-	f(i-q-1,j)=f(i,j);
+    if(cs==1)
+    for(q=0;q<margin;++q)
+    f(i-q-1,j)=f(i,j);
 
-	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j)=f(i,j);
+    if(cs==4)
+    for(q=0;q<margin;++q)
+    f(i+q+1,j)=f(i,j);
 }
 
 void ghostcell::gcsl_neumann_hx(slice& f, int gcv, int bc, int cs)
 {
-	if(cs==1)
-	for(q=0;q<margin-1;++q)
-	f(i-q-2,j)=f(i,j);
+    if(cs==1)
+    for(q=0;q<margin-1;++q)
+    f(i-q-2,j)=f(i,j);
 
-	if(cs==2)
-	for(q=0;q<margin;++q)
-	f(i,j+q+1)=f(i,j);
+    if(cs==2)
+    for(q=0;q<margin;++q)
+    f(i,j+q+1)=f(i,j);
 
-	if(cs==3)
-	for(q=0;q<margin;++q)
-	f(i,j-q-1)=f(i,j);
+    if(cs==3)
+    for(q=0;q<margin;++q)
+    f(i,j-q-1)=f(i,j);
 
-	if(cs==4)
-	for(q=0;q<margin-1;++q)
-	f(i+q+2,j)=f(i,j);
+    if(cs==4)
+    for(q=0;q<margin-1;++q)
+    f(i+q+2,j)=f(i,j);
 }
 
 void ghostcell::gcsl_neumann_hy(slice& f, int gcv, int bc, int cs)
 {
-	if(cs==1)
-	for(q=0;q<margin-1;++q)
-	f(i-q-1,j)=f(i,j);
+    if(cs==1)
+    for(q=0;q<margin-1;++q)
+    f(i-q-1,j)=f(i,j);
 
-	if(cs==2)
-	for(q=0;q<margin-1;++q)
-	f(i,j+q+2)=f(i,j);
+    if(cs==2)
+    for(q=0;q<margin-1;++q)
+    f(i,j+q+2)=f(i,j);
 
-	if(cs==3)
-	for(q=0;q<margin-1;++q)
-	f(i,j-q-2)=f(i,j);
+    if(cs==3)
+    for(q=0;q<margin-1;++q)
+    f(i,j-q-2)=f(i,j);
 
-	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j)=f(i,j);
+    if(cs==4)
+    for(q=0;q<margin;++q)
+    f(i+q+1,j)=f(i,j);
 }

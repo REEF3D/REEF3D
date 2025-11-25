@@ -38,13 +38,13 @@ using namespace std;
 class sflow_reconstruct_weno : public sflow_reconstruct, public weno_nug_func
 {
 public:
-	sflow_reconstruct_weno(lexer*,patchBC_interface*);
-	virtual ~sflow_reconstruct_weno();
+    sflow_reconstruct_weno(lexer*,patchBC_interface*);
+    virtual ~sflow_reconstruct_weno();
 
     void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override;
     void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override;
     void reconstruct_WL(lexer*,ghostcell*,fdm2D*) override;
-    
+
     slice4 dfdx,dfdy;
 
 private:
@@ -52,12 +52,12 @@ private:
     void iqmax(lexer*, slice&);
     void jqmin(lexer*, slice&);
     void jqmax(lexer*, slice&);
-    
+
     double limiter(double, double);
 
     double ivel1,ivel2,jvel1,jvel2;
     int qq;
-    
+
     patchBC_interface *pBC;
 };
 

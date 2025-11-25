@@ -28,7 +28,7 @@ Author: Hans Bihs
 sediment_weno_hj::sediment_weno_hj(lexer* p) :  ddweno_f_nug(p)
 {
     p->Darray(ckz,p->knoz+1+4*marge,5);
-    
+
     fnpf_discrete_weights dw(p);
 
     dw.ck_weights(p, ckz, p->ZN, p->knoz+1, 1, 4, 6);
@@ -40,31 +40,29 @@ sediment_weno_hj::~sediment_weno_hj()
 double sediment_weno_hj::sx(lexer *p, slice &f, double ivel1, double ivel2)
 {
     grad=0.0;
-    
+
     ivel = 0.5*(ivel1+ivel2);
-    
+
     if(ivel>0.0)
     grad=dswenox(f,1.0)*ivel;
-    
+
     if(ivel<0.0)
     grad=dswenox(f,-1.0)*ivel;
-    
+
     return grad;
 }
 
 double sediment_weno_hj::sy(lexer *p, slice &f, double jvel1, double jvel2)
 {
     grad=0.0;
-    
+
     jvel = 0.5*(jvel1+jvel2);
-    
+
     if(jvel>0.0)
     grad=dswenoy(f,1.0)*jvel;
-    
+
     if(jvel<0.0)
     grad=dswenoy(f,-1.0)*jvel;
-    
-    return grad;   
+
+    return grad;
 }
-
-

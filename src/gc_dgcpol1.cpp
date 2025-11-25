@@ -27,25 +27,25 @@ Author: Hans Bihs
 void ghostcell::dgcpol1(lexer* p,field& f,int gcv)
 {
     int di,dj,dk,bc;
-    
+
     for(n=0;n<p->dgc1_count;++n)
     {
         i=p->dgc1[n][0];
         j=p->dgc1[n][1];
         k=p->dgc1[n][2];
-        
-        
+
+
         di=p->dgc1[n][3];
         dj=p->dgc1[n][4];
         dk=p->dgc1[n][5];
-        
+
         bc=p->dgc1[n][6];
-        
+
         if(bc==1)
-        f(i+di,j+dj,k+dk) = f(i,j,k);  
+        f(i+di,j+dj,k+dk) = f(i,j,k);
 
         if(bc==2)
-        f(i+di,j+dj,k+dk) = 0.0;        
-        
+        f(i+di,j+dj,k+dk) = 0.0;
+
     }
 }

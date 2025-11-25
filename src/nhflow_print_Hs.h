@@ -39,18 +39,18 @@ class nhflow_print_Hs : public increment
 {
 public:
     nhflow_print_Hs(lexer*,slice&);
-	virtual ~nhflow_print_Hs();
+    virtual ~nhflow_print_Hs();
 
-	void start(lexer*,ghostcell*,slice&,slice&);
-    
+    void start(lexer*,ghostcell*,slice&,slice&);
+
     slice4 ETAsum, ETAmean; //DKAF
     slice4 ETA2sum, ETAvar; //DKAF
 
 private:
-    int NumDT1;      
+    int NumDT1;
     double T_INTV_mean; // Averaging time for sig wave height
-    double T_sum,dT_sum; 
-    int wfcall;      
+    double T_sum,dT_sum;
+    int wfcall;
     double wtime;
     double stime;        // Start avreging after transients
 

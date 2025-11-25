@@ -28,20 +28,20 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void hypre_sstruct::fill_matrixM(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
-{  
+{
     nentries=15;
-    
+
     for (j=0; j< nentries; j++)
     stencil_indices[j] = j;
 
-	// M
+    // M
     HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, M);
     HYPRE_SStructMatrixAssemble(A);
-    
+
     // x
     HYPRE_SStructVectorSetBoxValues(x, part, ilower, iupper, variable, f);
     HYPRE_SStructVectorAssemble(x);
-    
+
     // b
     HYPRE_SStructVectorSetBoxValues(b, part, ilower, iupper, variable, rhs);
     HYPRE_SStructVectorAssemble(b);
@@ -50,14 +50,14 @@ void hypre_sstruct::fill_matrixM(lexer* p, ghostcell* pgc, double *f, double *rh
 void hypre_sstruct::fill_matrixM_2Dvert(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
     nentries=9;
-    
+
     for (j=0; j< nentries; j++)
     stencil_indices[j] = j;
 
     // M
     HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, M);
     HYPRE_SStructMatrixAssemble(A);
-    
+
     // x
     HYPRE_SStructVectorSetBoxValues(x, part, ilower, iupper, variable, f);
     HYPRE_SStructVectorAssemble(x);
@@ -69,7 +69,7 @@ void hypre_sstruct::fill_matrixM_2Dvert(lexer* p, ghostcell* pgc, double *f, dou
 
 void hypre_sstruct::fillbackvecM(lexer *p, double *f)
 {
-	HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, f);
+    HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, f);
 }
 
 #endif

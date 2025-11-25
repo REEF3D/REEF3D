@@ -25,7 +25,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"fdm.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-   
+
 void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
 {
 }
@@ -45,12 +45,12 @@ void sixdof_sflow::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
 }
 
 
-void sixdof_sflow::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, 
+void sixdof_sflow::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter,
                                 field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
 }
 
-void sixdof_sflow::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter, 
+void sixdof_sflow::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter,
                                         double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
 }

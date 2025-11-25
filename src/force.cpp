@@ -31,39 +31,39 @@ Author: Hans Bihs
 
 force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
 {
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_SOLID",0777);
-	
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_SOLID",0777);
+
     forceprintcount=0;
-    
-    
+
+
     // open files
     print_ini(p,a,pgc);
-    
+
     is = p->posc_i(p->P81_xs[ID]);
     ie = p->posc_i(p->P81_xe[ID]);
-    
+
     js = p->posc_j(p->P81_ys[ID]);
     je = p->posc_j(p->P81_ye[ID]);
-    
+
     ks = p->posc_k(p->P81_zs[ID]);
     ke = p->posc_k(p->P81_ze[ID]);
-	
-	xs = p->P81_xs[ID];
-	xe = p->P81_xe[ID];
-	
-	ys = p->P81_ys[ID];
-	ye = p->P81_ye[ID];
-	
-	zs = p->P81_zs[ID];
-	ze = p->P81_ze[ID];
-	
-	xm = xs + (xe-xs)*0.5;
-	ym = ys + (ye-ys)*0.5;
-	zm = zs + (ze-zs)*0.5;
-	
-    gcval_press=40;  
+
+    xs = p->P81_xs[ID];
+    xe = p->P81_xe[ID];
+
+    ys = p->P81_ys[ID];
+    ye = p->P81_ye[ID];
+
+    zs = p->P81_zs[ID];
+    ze = p->P81_ze[ID];
+
+    xm = xs + (xe-xs)*0.5;
+    ym = ys + (ye-ys)*0.5;
+    zm = zs + (ze-zs)*0.5;
+
+    gcval_press=40;
 }
 
 force::~force()
@@ -73,28 +73,27 @@ force::~force()
 void force::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     triangulation(p,a,pgc,a->phi);
-	reconstruct(p,a,a->phi);
-	
-	print_vtp(p,a,pgc);
-} 
+    reconstruct(p,a,a->phi);
+
+    print_vtp(p,a,pgc);
+}
 
 void force::start(lexer *p, fdm *a, ghostcell *pgc)
 {
     pgc->start4(p,a->press,gcval_press);
 
-	// forcecalc
+    // forcecalc
     force_calc(p,a,pgc);
-    
+
         if(p->mpirank==0)
         {
         if(p->count==2)
-        cout<<"Atot_solid: "<<A_tot<<endl;  
-        
+        cout<<"Atot_solid: "<<A_tot<<endl;
+
         cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
 
         print_force(p,a,pgc);
         }
-    
-    pgc->start4(p,a->press,gcval_press);
-} 
 
+    pgc->start4(p,a->press,gcval_press);
+}

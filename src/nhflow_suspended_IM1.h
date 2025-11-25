@@ -31,26 +31,26 @@ using namespace std;
 class nhflow_suspended_IM1 : public nhflow_suspended, public increment
 {
 public:
-	nhflow_suspended_IM1(lexer *);
-	virtual ~nhflow_suspended_IM1();
-	void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*) override;
-	void ctimesave(lexer*, fdm_nhf*) override;
-    
+    nhflow_suspended_IM1(lexer *);
+    virtual ~nhflow_suspended_IM1();
+    void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*) override;
+    void ctimesave(lexer*, fdm_nhf*) override;
+
     void suspsource(lexer*,fdm_nhf*,double*,sediment_fdm*);
     void bcsusp_start(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*,double*);
-	void clearrhs(lexer*,fdm_nhf*);
+    void clearrhs(lexer*,fdm_nhf*);
     void fillconc(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*);
 
-	int gcval_susp;
+    int gcval_susp;
 
-	double *CONCN;
+    double *CONCN;
 
 private:
     void timesource(lexer*, fdm_nhf*, double*);
     double starttime;
-    void fill_wvel(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*); 
+    void fill_wvel(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*);
     double *WVEL;
-    
+
     int count,q;
 };
 

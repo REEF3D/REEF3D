@@ -30,7 +30,7 @@ Author: Hans Bihs
 void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
     int q;
-    
+
     if(p->B60>0 || p->count==0)
     {
         if(p->B61==1)
@@ -56,7 +56,7 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
             if(p->B60==3||p->B60==4)
             outflow_water(p,a,pgc,u,v,w);
         }
-        
+
         if(p->B75==3)
         outflow_corresponding(p,a,pgc,u,v,w);\
 
@@ -72,9 +72,9 @@ void ioflow_f::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, fiel
         a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
         }
         pgc->start4(p,a->eddyv,24);
-        
+
     }
-    
+
     pBC->patchBC_ioflow(p,a,pgc,u,v,w);
 
 }
@@ -86,21 +86,21 @@ void ioflow_f::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-    
+
         if(a->topo(i,j,k)>0.0)
         {
         u(i-1,j,k)=p->Ui;
         u(i-2,j,k)=p->Ui;
         u(i-3,j,k)=p->Ui;
-		
-		v(i-1,j,k)=0.0;
+
+        v(i-1,j,k)=0.0;
         v(i-2,j,k)=0.0;
         v(i-3,j,k)=0.0;
-		
-		w(i-1,j,k)=0.0;
+
+        w(i-1,j,k)=0.0;
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
-        
+
             // Air inflow
             if(p->W50_air==1 && a->phi(i,j,k)<-0.6*p->DXM)
             {
@@ -109,7 +109,7 @@ void ioflow_f::inflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
             u(i-3,j,k)+=p->W50;
             }
         }
-        
+
         if(a->topo(i,j,k)<=0.0)
         u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)=0.0;
     }
@@ -132,7 +132,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
-        
+
         if(a->phi(i,j,k)>0.0)
         {
         hmin=MIN(hmin,p->ZN[KP]);
@@ -146,34 +146,34 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 
 
     depth=hmax-hmin;
-    
+
     // bed shear stress and bed shear velocity
         if(p->S10==0)
         ks=p->B50;
-        
+
         if(p->S10>0)
         ks=p->S20*p->S21;
-        
+
         H=B=depth;
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Ui/(M*pow(H,(2.0/3.0))),2.0);
         tau=(9.81*H*I*1000.0);
-		
-		if(p->mpirank==0 && p->count==0)
-		cout<<"I   "<<I<<endl;
-		
-		shearvel = p->Ui/(2.5*log((11.0*H/ks)));
+
+        if(p->mpirank==0 && p->count==0)
+        cout<<"I   "<<I<<endl;
+
+        shearvel = p->Ui/(2.5*log((11.0*H/ks)));
 
         for(n=0;n<p->gcin_count;n++)
         {
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
-        
+
             if(a->topo(i,j,k)>0.0)
             {
             u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)= shearvel*2.5*log(MAX(30.0*MIN(walldin[n],dmax)/ks,1.0));
-            
+
                 // Air inflow
                 if(p->W50_air==1 && a->phi(i,j,k)<-0.6*p->DXM)
                 {
@@ -182,7 +182,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
                 u(i-3,j,k)+=p->W50;
                 }
             }
-            
+
             if(a->topo(i,j,k)<=0.0)
             u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)=0.0;
         }
@@ -193,14 +193,14 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
     {
     Qin(p,a,pgc);
 
-	if(p->B60==1)
+    if(p->B60==1)
     ratio = p->W10/p->Qi;
-	
-	if(p->B60==2||p->B60==4)
-	ratio = hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/p->Qi;
 
-	if(fabs(p->Qi)<1.0e-20)
-	ratio=1.0;
+    if(p->B60==2||p->B60==4)
+    ratio = hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/p->Qi;
+
+    if(fabs(p->Qi)<1.0e-20)
+    ratio=1.0;
 
 
         for(n=0;n<p->gcin_count;++n)
@@ -208,7 +208,7 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
-        
+
         if(a->topo(i,j,k)>0.0)
         {
         u(i-1,j,k)*=ratio;
@@ -224,8 +224,8 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-	
-		if(a->phi(i-1,j,k)<-epsi1*p->DXM && a->phi(i-1,j,k)>=-epsi2*p->DXM && a->topo(i,j,k)>0.0)
+
+        if(a->phi(i-1,j,k)<-epsi1*p->DXM && a->phi(i-1,j,k)>=-epsi2*p->DXM && a->topo(i,j,k)>0.0)
         {
         fac=1.0 - fabs(a->phi(i-1,j,k))/((epsi2-epsi1)*p->DXM);
         u(i-1,j,k)=u(i-1,j,k)*fac;
@@ -242,20 +242,20 @@ void ioflow_f::inflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, 
 
         if(a->phi(i,j,k)<-epsi2*p->DXM)
         pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
-		
+
     }
-	
-	for(n=0;n<p->gcin_count;n++)
+
+    for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-		
-		v(i-1,j,k)=0.0;
+
+        v(i-1,j,k)=0.0;
         v(i-2,j,k)=0.0;
         v(i-3,j,k)=0.0;
-		
-		w(i-1,j,k)=0.0;
+
+        w(i-1,j,k)=0.0;
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
     }
@@ -291,7 +291,7 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         u(i-2,j,k)=0.0;
         u(i-3,j,k)=0.0;
         }
-        
+
         // Air inflow
         if(p->W50_air==1 && a->phi(i,j,k)<-0.6*p->DXM)
         {
@@ -299,25 +299,25 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         u(i-2,j,k)+=p->W50;
         u(i-3,j,k)+=p->W50;
         }
-        
+
         if(a->topo(i,j,k)<=0.0)
         u(i-1,j,k)=u(i-2,j,k)=u(i-3,j,k)=0.0;
 
         if(a->phi(i-1,j,k)<-epsi2*p->DXM)
         pgc->dirichlet_ortho(p,u,p->DXM,10,1,1);
     }
-	
-	for(n=0;n<p->gcin_count;n++)
+
+    for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-		
-		v(i-1,j,k)=0.0;
+
+        v(i-1,j,k)=0.0;
         v(i-2,j,k)=0.0;
         v(i-3,j,k)=0.0;
-		
-		w(i-1,j,k)=0.0;
+
+        w(i-1,j,k)=0.0;
         w(i-2,j,k)=0.0;
         w(i-3,j,k)=0.0;
     }
@@ -326,22 +326,22 @@ void ioflow_f::inflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 void ioflow_f::rkinflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
     //inflow(p,a,pgc,u,v,w);
-    
+
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];
     j=p->gcin[n][1];
     k=p->gcin[n][2];
-    
+
     u(i-1,j,k) = u(i-2,j,k) = u(i-3,j,k) = a->u(i-1,j,k);
     v(i-1,j,k) = v(i-2,j,k) = v(i-3,j,k) = a->v(i-1,j,k);
     w(i-1,j,k) = w(i-2,j,k) = w(i-3,j,k) = a->w(i-1,j,k);
-    
+
     //u(i-1,j,k) = u(i-2,j,k) = u(i-3,j,k) = u(i,j,k);
     //v(i-1,j,k) = v(i-2,j,k) = v(i-3,j,k) = v(i,j,k);
     //w(i-1,j,k) = w(i-2,j,k) = w(i-3,j,k) = w(i,j,k);
     }
-    
+
     pBC->patchBC_rkioflow(p,a,pgc,u,v,w);
 }
 
@@ -351,10 +351,8 @@ void ioflow_f::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
 
 void ioflow_f::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
-
 }
 
 void ioflow_f::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
 {
-    
 }

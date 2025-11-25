@@ -42,32 +42,32 @@ void sflow_reconstruct_weno::reconstruct_x(lexer* p, ghostcell *pgc, fdm2D*, sli
     uf=1;
     vf=0;
     wf=0;
-    
+
     SLICELOOP1
     {
     // left
-	iqmin(p,f);
-	is_min_x();
-	weight_min_x();
+    iqmin(p,f);
+    is_min_x();
+    weight_min_x();
 
-	fs(i,j) = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
-    
+    fs(i,j) = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
+
             + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
-          
+
             + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
-	
+
     // right
-	iqmax(p,f);
-	is_max_x();
-	weight_max_x();
-    
-	fn(i,j) = w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
-    
+    iqmax(p,f);
+    is_max_x();
+    weight_max_x();
+
+    fn(i,j) = w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
+
             + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
-          
+
             + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
-	}
-    
+    }
+
     pgc->gcsl_start1(p,fs,1);
     pgc->gcsl_start1(p,fn,1);
 }
@@ -77,60 +77,60 @@ void sflow_reconstruct_weno::reconstruct_y(lexer* p, ghostcell *pgc, fdm2D*, sli
     uf=0;
     vf=1;
     wf=0;
-    
+
     if(p->j_dir==1)
     SLICELOOP2
-	{
-	jqmin(p,f);
-	is_min_y();
-	weight_min_y();
-	
-	fe(i,j) = w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
-    
+    {
+    jqmin(p,f);
+    is_min_y();
+    weight_min_y();
+
+    fe(i,j) = w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
+
             + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
-          
+
             + w3y*(q2 + qfy[JP][vf][2][0]*(q1-q2) + qfy[JP][vf][2][1]*(q3-q2));
 
-	jqmax(p,f);
-	is_max_y();
-	weight_max_y();
-	
-	fw(i,j) = w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
-    
+    jqmax(p,f);
+    is_max_y();
+    weight_max_y();
+
+    fw(i,j) = w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
+
             + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
-          
+
             + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2));
-	}
-    
+    }
+
     pgc->gcsl_start2(p,fe,1);
     pgc->gcsl_start2(p,fw,1);
 }
 
 void sflow_reconstruct_weno::reconstruct_WL(lexer* p, ghostcell *pgc, fdm2D *b)
 {
-    // water level  
+    // water level
     SLICELOOP1
     b->dfx(i,j) = 0.5*(b->depth(i+1,j)+b->depth(i,j));
-    
+
     SLICELOOP2
     b->dfy(i,j) = 0.5*(b->depth(i,j+1)+b->depth(i,j));
-    
+
     pgc->gcsl_start1(p,b->dfx,1);
     pgc->gcsl_start2(p,b->dfy,1);
 
-    
+
     SLICELOOP1
     {
     b->Ds(i,j) = MAX(b->ETAs(i,j) + 0.5*(b->depth(i+1,j)+b->depth(i,j)), p->A544);
     b->Dn(i,j) = MAX(b->ETAn(i,j) + 0.5*(b->depth(i+1,j)+b->depth(i,j)), p->A544);
     }
-    
+
     SLICELOOP2
     {
     b->De(i,j) = MAX(b->ETAe(i,j)  + 0.5*(b->depth(i,j+1)+b->depth(i,j)), p->A544);
     b->Dw(i,j) = MAX(b->ETAw(i,j)  + 0.5*(b->depth(i,j+1)+b->depth(i,j)), p->A544);
     }
-    
+
     pgc->gcsl_start1(p,b->Ds,1);
     pgc->gcsl_start1(p,b->Dn,1);
     pgc->gcsl_start2(p,b->De,1);
@@ -138,38 +138,37 @@ void sflow_reconstruct_weno::reconstruct_WL(lexer* p, ghostcell *pgc, fdm2D *b)
 }
 
 inline void sflow_reconstruct_weno::iqmin(lexer *p, slice& f)
-{	
-	q1 = f(i-2,j);
-	q2 = f(i-1,j);
-	q3 = f(i,j);
-	q4 = f(i+1,j);
-	q5 = f(i+2,j);
+{
+    q1 = f(i-2,j);
+    q2 = f(i-1,j);
+    q3 = f(i,j);
+    q4 = f(i+1,j);
+    q5 = f(i+2,j);
 }
 
 inline void sflow_reconstruct_weno::jqmin(lexer *p, slice& f)
 {
-	q1 = f(i,j-2);
-	q2 = f(i,j-1);
-	q3 = f(i,j);
-	q4 = f(i,j+1);
-	q5 = f(i,j+2);
+    q1 = f(i,j-2);
+    q2 = f(i,j-1);
+    q3 = f(i,j);
+    q4 = f(i,j+1);
+    q5 = f(i,j+2);
 }
 
 inline void sflow_reconstruct_weno::iqmax(lexer *p, slice& f)
 {
-	q1 = f(i-1,j);
-	q2 = f(i,j);
-	q3 = f(i+1,j);
-	q4 = f(i+2,j);
-	q5 = f(i+3,j);
+    q1 = f(i-1,j);
+    q2 = f(i,j);
+    q3 = f(i+1,j);
+    q4 = f(i+2,j);
+    q5 = f(i+3,j);
 }
 
 inline void sflow_reconstruct_weno::jqmax(lexer *p, slice& f)
 {
-	q1 = f(i,j-1);
-	q2 = f(i,j);
-	q3 = f(i,j+1);
-	q4 = f(i,j+2);
-	q5 = f(i,j+3);
+    q1 = f(i,j-1);
+    q2 = f(i,j);
+    q3 = f(i,j+1);
+    q4 = f(i,j+2);
+    q5 = f(i,j+3);
 }
-

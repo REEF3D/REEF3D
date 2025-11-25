@@ -33,27 +33,26 @@ class limo3 : public fluxlim, public increment
 
 public:
 
-	limo3 (lexer *);
-	virtual ~limo3();
+    limo3 (lexer *);
+    virtual ~limo3();
 
-	double iphi(field&,int,int,int,int) override;
-	double jphi(field&,int,int,int,int) override;
-	double kphi(field&,int,int,int,int) override;
+    double iphi(field&,int,int,int,int) override;
+    double jphi(field&,int,int,int,int) override;
+    double kphi(field&,int,int,int,int) override;
 
 private:
-	
-	double max(double,double,double);
-	double max(double,double);
-	double min(double,double,double);
-	double min(double,double);
+
+    double max(double,double,double);
+    double max(double,double);
+    double min(double,double,double);
+    double min(double,double);
 
     double ul,ur,vl,vr,wl,wr;
     double r, phi;
-	double eta,phihat,d1,d2;
-	double dx,dy,dz;
-	const double delta,radius,eps;
-	double L;
+    double eta,phihat,d1,d2;
+    double dx,dy,dz;
+    const double delta,radius,eps;
+    double L;
 };
 
 #endif
-

@@ -25,16 +25,16 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"concentration.h"
 
-density_conc::density_conc(lexer* p, concentration *& ppconc) 
+density_conc::density_conc(lexer* p, concentration *& ppconc)
 {
         pconc = ppconc;
-    
-        if(p->j_dir==0)        
+
+        if(p->j_dir==0)
         psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
-        
+
         if(p->j_dir==1)
         psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
-        
+
         H=0.0;
 }
 
@@ -47,9 +47,9 @@ double density_conc::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     double concval;
 
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
-        
+
         concval = 0.5*(pconc->val(i,j,k) + pconc->val(i+aa,j+bb,k+cc));
-        
+
 
         if(phival>psi)
         H=1.0;
@@ -59,14 +59,10 @@ double density_conc::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 
         if(fabs(phival)<=psi)
         H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
-        
+
         roval = (p->W1+concval*p->C1)*H + (p->W3+concval*p->C3)*(1.0-H);
-    
 
-	
-	return roval;		
+
+
+    return roval;
 }
-
-
-
-

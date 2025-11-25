@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 nhflow_les_io::nhflow_les_io(lexer *p, fdm_nhf *d) : nhflow_strain(p,d)
 {
-
 }
 
 nhflow_les_io::~nhflow_les_io()
@@ -37,29 +36,29 @@ nhflow_les_io::~nhflow_les_io()
 
 void nhflow_les_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
-    
+
     // eddyv
     iin=4*(p->pointnum);
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 
     TPLOOP
-	{
-	if(p->j_dir==0)
+    {
+    if(p->j_dir==0)
     {
     jj=j;
     j=0;
-	ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
+    ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
     j=jj;
     }
-    
+
     if(p->j_dir==1)
-	ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
-        
-        
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
-	m+=sizeof(float);
-	}
+    ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
+
+
+    std::memcpy(&buffer[m],&ffn,sizeof(float));
+    m+=sizeof(float);
+    }
 
 }
 
@@ -143,7 +142,7 @@ void nhflow_les_io::name_ParaView(lexer *p, std::stringstream &result, int *offs
 void nhflow_les_io::offset_ParaView(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
 }
 
 
@@ -166,18 +165,18 @@ void nhflow_les_io::tau_calc(fdm_nhf *d, lexer* p, double maxwdist)
 
 void nhflow_les_io::isource(lexer *p, fdm_nhf *d)
 {
-	LOOP
-	d->F[IJK]=0.0;
+    LOOP
+    d->F[IJK]=0.0;
 }
 
 void nhflow_les_io::jsource(lexer *p, fdm_nhf *d)
 {
-	LOOP
-	d->G[IJK]=0.0;
+    LOOP
+    d->G[IJK]=0.0;
 }
 
 void nhflow_les_io::ksource(lexer *p, fdm_nhf *d)
 {
-	LOOP
-	d->H[IJK]=0.0;
+    LOOP
+    d->H[IJK]=0.0;
 }

@@ -37,10 +37,10 @@ class print_averaging_f : public print_averaging, public increment
 {
 public:
     print_averaging_f(lexer*,fdm*,ghostcell*);
-	virtual ~print_averaging_f();
-    
+    virtual ~print_averaging_f();
+
     void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*) override;
-    
+
     void name_ParaView_parallel(lexer *p, ofstream &result) override;
     void name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n) override;
     void offset_ParaView(lexer *p, int *offset, int &n) override;
@@ -50,10 +50,10 @@ public:
 private:
     double stime;
     int Tswitch;
-    
+
     float ffn;
-	int q,iin;
-    
+    int q,iin;
+
     field1 um;
     field2 vm;
     field3 wm;

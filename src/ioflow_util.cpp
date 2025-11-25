@@ -31,23 +31,23 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     int count1,count2;
 
-	count1=0;
+    count1=0;
     count2=0;
     GC4LOOP
     {
     i = p->gcb4[n][0];
     j = p->gcb4[n][1];
     k = p->gcb4[n][2];
-        
+
         if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->flagsf4[IJK]>0)
         ++count1;
 
         if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->flagsf4[IJK]>0)
         ++count2;
     }
-	
-	p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
-	p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
+
+    p->Iresize(p->gcin,p->gcin_count, count1, 6, 6);
+    p->Iresize(p->gcout,p->gcout_count, count2, 6, 6);
 
     count1=0;
     count2=0;
@@ -56,7 +56,7 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     i = p->gcb4[n][0];
     j = p->gcb4[n][1];
     k = p->gcb4[n][2];
-    
+
         if(p->gcb4[n][4]==1 && p->flagsf4[IJK]>0)
         {
         p->gcin[count1][0]=p->gcb4[n][0];
@@ -80,12 +80,12 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
     p->gcin_count=count1;
     p->gcout_count=count2;
-    
+
     if(p->I10==1 && p->count==0)
     velini(p,a,pgc);
-    
+
     // 4a ---------------
-    
+
     count1=0;
     count2=0;
     GC4ALOOP
@@ -96,11 +96,11 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         if(p->gcb4a[n][4]==2 || p->gcb4a[n][4]==7 || p->gcb4a[n][4]==8)
         ++count2;
     }
-    
-    p->Iresize(p->gcin4a,p->gcin4a_count, count1, 6, 6); 
-	p->Iresize(p->gcout4a,p->gcout4a_count, count2, 6, 6); 
-	
-	count1=0;
+
+    p->Iresize(p->gcin4a,p->gcin4a_count, count1, 6, 6);
+    p->Iresize(p->gcout4a,p->gcout4a_count, count2, 6, 6);
+
+    count1=0;
     count2=0;
     GC4ALOOP
     {
@@ -127,11 +127,11 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 
     p->gcin4a_count=count1;
     p->gcout4a_count=count2;
-    
-    
+
+
     // IO update
-    
-    
+
+
     GC4LOOP
     {
         if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
@@ -139,25 +139,25 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         i = p->gcb4[n][0];
         j = p->gcb4[n][1];
         k = p->gcb4[n][2];
-        
+
             if(p->flagsf4[IJK]>0)
             {
             // inflow
             if(p->gcb4[n][3]==1)
             p->IO[Im1JK] = 1;
-            
+
             if(p->gcb4[n][3]==4)
             p->IO[Ip1JK] = 1;
-            
+
             if(p->gcb4[n][3]==3)
             p->IO[IJm1K] = 1;
-            
+
             if(p->gcb4[n][3]==2)
             p->IO[IJp1K] = 1;
-            
+
             if(p->gcb4[n][3]==5)
             p->IO[IJKm1] = 1;
-            
+
             if(p->gcb4[n][3]==6)
             p->IO[IJKp1] = 1;
             }
@@ -168,50 +168,50 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
         i = p->gcb4[n][0];
         j = p->gcb4[n][1];
         k = p->gcb4[n][2];
-        
+
             if(p->flagsf4[IJK]>0)
             {
             // outflow
             if(p->gcb4[n][3]==1)
             p->IO[Im1JK] = 2;
-            
+
             if(p->gcb4[n][3]==4)
             p->IO[Ip1JK] = 2;
 
             if(p->gcb4[n][3]==3)
             p->IO[IJm1K] = 2;
-            
+
             if(p->gcb4[n][3]==2)
             p->IO[IJp1K] = 2;
-            
+
             if(p->gcb4[n][3]==5)
             p->IO[IJKm1] = 2;
-            
+
             if(p->gcb4[n][3]==6)
             p->IO[IJKp1] = 2;
             }
         }
     }
-       
+
     for(int qq=0;qq<pBC->obj_count;++qq)
     for(n=0;n<pBC->patch[qq]->gcb_count;++n)
     {
-    
+
     if(pBC->patch[qq]->gcb[n][3]==1)
     p->IO[Im1JK] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==4)
     p->IO[Ip1JK] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==3)
     p->IO[IJm1K] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==2)
     p->IO[IJp1K] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==5)
     p->IO[IJKm1] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==6)
     p->IO[IJKp1] = 1;
     }
@@ -222,26 +222,6 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     int count1,count2;
-	
-	count1=0;
-    count2=0;
-    GC4LOOP
-    {
-    i = p->gcb4[n][0];
-    j = p->gcb4[n][1];
-    k = p->gcb4[n][2];
-         
-        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->DF[IJK]>0 && p->wet[IJ]==1)
-        ++count1;
-
-        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->DF[IJK]>0)
-        ++count2;
-    }
-	
-	//cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
-	
-	p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
-	p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
 
     count1=0;
     count2=0;
@@ -250,7 +230,27 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     i = p->gcb4[n][0];
     j = p->gcb4[n][1];
     k = p->gcb4[n][2];
-    
+
+        if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->DF[IJK]>0 && p->wet[IJ]==1)
+        ++count1;
+
+        if((p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8) && p->DF[IJK]>0)
+        ++count2;
+    }
+
+    //cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
+
+    p->Iresize(p->gcin,p->gcin_count, count1, 6, 6);
+    p->Iresize(p->gcout,p->gcout_count, count2, 6, 6);
+
+    count1=0;
+    count2=0;
+    GC4LOOP
+    {
+    i = p->gcb4[n][0];
+    j = p->gcb4[n][1];
+    k = p->gcb4[n][2];
+
         if((p->gcb4[n][4]==1 || p->gcb4[n][4]==6) && p->DF[IJK]>0 && p->wet[IJ]==1)
         {
         p->gcin[count1][0]=p->gcb4[n][0];
@@ -274,17 +274,17 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     p->gcin_count=count1;
     p->gcout_count=count2;
-    
-    
+
+
 
     //if(p->I10==1)
     //velini(p,a,pgc);
-	    
-    
+
+
     // IO update
     MALOOP
     p->IO[IJK] = 0;
-    
+
     GC4LOOP
     {
         if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
@@ -292,25 +292,25 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         i = p->gcb4[n][0];
         j = p->gcb4[n][1];
         k = p->gcb4[n][2];
-        
+
             if(p->DF[IJK]>0)
             {
             // inflow
             if(p->gcb4[n][3]==1)
             p->IO[Im1JK] = 1;
-            
+
             if(p->gcb4[n][3]==4)
             p->IO[Ip1JK] = 1;
-            
+
             if(p->gcb4[n][3]==3)
             p->IO[IJm1K] = 1;
-            
+
             if(p->gcb4[n][3]==2)
             p->IO[IJp1K] = 1;
-            
+
             if(p->gcb4[n][3]==5)
             p->IO[IJKm1] = 1;
-            
+
             if(p->gcb4[n][3]==6)
             p->IO[IJKp1] = 1;
             }
@@ -321,51 +321,51 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         i = p->gcb4[n][0];
         j = p->gcb4[n][1];
         k = p->gcb4[n][2];
-        
+
             if(p->DF[IJK]>0)
             {
-        
+
             // outflow
             if(p->gcb4[n][3]==1)
             p->IO[Im1JK] = 2;
-            
+
             if(p->gcb4[n][3]==4)
             p->IO[Ip1JK] = 2;
 
             if(p->gcb4[n][3]==3)
             p->IO[IJm1K] = 2;
-            
+
             if(p->gcb4[n][3]==2)
             p->IO[IJp1K] = 2;
-            
+
             if(p->gcb4[n][3]==5)
             p->IO[IJKm1] = 2;
-            
+
             if(p->gcb4[n][3]==6)
             p->IO[IJKp1] = 2;
             }
         }
     }
-       
+
     for(int qq=0;qq<pBC->obj_count;++qq)
     for(n=0;n<pBC->patch[qq]->gcb_count;++n)
     {
-    
+
     if(pBC->patch[qq]->gcb[n][3]==1)
     p->IO[Im1JK] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==4)
     p->IO[Ip1JK] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==3)
     p->IO[IJm1K] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==2)
     p->IO[IJp1K] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==5)
     p->IO[IJKm1] = 1;
-    
+
     if(pBC->patch[qq]->gcb[n][3]==6)
     p->IO[IJKp1] = 1;
     }
@@ -374,13 +374,13 @@ void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void ioflow_f::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 
-	p->del_Darray(walldin, walldin_size);
-	p->del_Darray(walldout, walldout_size);
-	
-	walldin_size=p->gcin_count;
-	walldout_size=p->gcout_count;
-	
-	p->Darray(walldin, walldin_size);
+    p->del_Darray(walldin, walldin_size);
+    p->del_Darray(walldout, walldout_size);
+
+    walldin_size=p->gcin_count;
+    walldout_size=p->gcout_count;
+
+    p->Darray(walldin, walldin_size);
     p->Darray(walldout, walldout_size);
 
 
@@ -413,7 +413,7 @@ void ioflow_f::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
         i = p->gcb4[n][0];
         j = p->gcb4[n][1];
         k = p->gcb4[n][2];
-        
+
         if(p->gcb4[n][4]==1 && p->flagsf4[IJK]>0)
         {
         p->gcin[count1][0]=p->gcb4[n][0];
@@ -437,8 +437,8 @@ void ioflow_f::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
 
     p->gcin_count=count1;
     p->gcout_count=count2;
-    
-    
+
+
 }
 
 void ioflow_f::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
@@ -450,5 +450,3 @@ void ioflow_f::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc, vrans *pvrans)
 {
     pvrans->sed_update(p,a,pgc);
 }
-
-

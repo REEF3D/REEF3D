@@ -30,94 +30,94 @@ int wave_lib_hdc::pos_i(lexer *p, double xs)
     int count=0;
     int ii;
     double XM1,XP,XP1,Xstart,Xend;
-    
+
     is = 0;
     ie = Nx;
-    
-    
+
+
     count=0;
     do{
     iloc = ihalf(is,ie);
-    
+
     if(count%3==0)
     iloc+=1;
-    
+
     Xstart =  X[0];
     Xend   =  X[Nx-1];
-    
-    
+
+
     XM1 = 0.5*(X[iloc] + X[iloc-1]);
     XP  = 0.5*(X[iloc] + X[iloc+1]);
     XP1 = 0.5*(X[iloc+1] + X[iloc+2]);
-    
-    
+
+
     //if(p->mpirank==0 && xs>9.99)
     //cout<<"POS_x: "<<xs<<" Nx: "<<Nx<<" Xmax: "<<X[Nx-1]<<" iloc: "<<iloc<<" XM1: "<<XM1<<" XP: "<<XP<<" XP1: "<<XP1<<endl;
-    
+
         // matching criterion
         if(xs<XP && xs>=XM1)
         {
             ii = iloc;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(xs>=XP && xs<XP1)
         {
             ii = iloc+1;
-   
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(xs<Xstart)
         {
             ii = 0;
 
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(xs>Xend)
         {
             ii = Nx-1;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(iloc<=0)
         {
             ii = 0;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(iloc>=Nx-1)
         {
             ii = Nx-1;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // further division
         if(xs<XP && xs<XM1)
         ie=iloc;
-        
+
         if(xs>XP && xs>XP1)
         is=iloc;
-        
+
         ++count;
     }while(stop==0 && count<1000);
-  
+
     ii=MAX(ii,0);
     ii=MIN(ii,Nx-1);
-    
+
     return ii;
 }
 
@@ -128,98 +128,98 @@ int wave_lib_hdc::pos_j(lexer *p, double ys)
     int count=0;
     int jj;
     double YM1,YP,YP1,Ystart,Yend;
-    
+
     js = 0;
     je = Ny;
-    
-    
+
+
     count=0;
     if(jdir==1)
     do{
     jloc = ihalf(js,je);
-    
+
     if(count%3==0)
     jloc+=1;
-    
+
 
     Ystart = Y[0];
     Yend   = Y[Ny-1];
-    
+
     YM1 = 0.5*(Y[jloc] + Y[jloc-1]);
     YP  = 0.5*(Y[jloc] + Y[jloc+1]);
     YP1 = 0.5*(Y[jloc+1] + Y[jloc+2]);
-    
+
     //cout<<"ys: "<<ys<<" YM1: "<<YM1<<" YP: "<<YP<<" YP1: "<<YP1<<endl;
-    
+
         // matching criterion
         if(ys<YP && ys>=YM1)
         {
             jj = jloc;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(ys>=YP && ys<YP1)
         {
             jj = jloc+1;
-   
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(ys<Ystart)
         {
             jj = 0;
 
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(ys>Yend)
         {
             jj = Ny-1;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(jloc<=0)
         {
             jj = 0;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(jloc>=Ny-1)
         {
             jj = Ny-1;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // further divjsion
         if(ys<YP && ys<YM1)
         je=jloc;
-        
+
         if(ys>YP && ys>YP1)
         js=jloc;
-        
+
         ++count;
     }while(stop==0 && count<1000);
-    
+
     jj=MAX(jj,0);
     jj=MIN(jj,Ny-1);
-    
-    
+
+
     if(jdir==0)
     jj=0;
-    
-    return jj;    
+
+    return jj;
 }
 
 int wave_lib_hdc::pos_k(lexer *p, double zs, int i, int k)
@@ -228,86 +228,86 @@ int wave_lib_hdc::pos_k(lexer *p, double zs, int i, int k)
     int stop=0;
     int count=0;
     int kk;
-    
+
     ks = 0;
     ke = Nz;
-    
-    
+
+
     count=0;
     do{
     kloc = ihalf(ks,ke);
-    
+
     if(count%3==0)
     kloc+=1;
-        
+
         // out of bounds
         if(zs<Z[i][k][0])
         {
             kk = 0;
 
          stop=1;
-         break;   
+         break;
         }
-        
+
         // out of bounds
         if(zs>Z[i][k][Nz-1])
         {
             kk = Nz-1;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // matching criterion
         if(zs<Z[i][k][kloc] && zs>=Z[i][k][kloc-1] && stop==0)
         {
             kk = kloc-1;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(zs>=Z[i][k][kloc] && zs<Z[i][k][kloc+1] && stop==0)
         {
             kk = kloc;
 
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(kloc<=0)
         {
             kk = 0;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         if(kloc>=Nz-1)
         {
             kk = Nz-1;
-            
+
          stop=1;
-         break;   
+         break;
         }
-        
+
         // further divsion
         if(zs<Z[i][k][kloc] && zs<Z[i][k][kloc-1])
         ke=kloc;
-        
+
         if(zs>Z[i][k][kloc] && zs>Z[i][k][kloc+1])
         ks=kloc;
-        
-        
+
+
         ++count;
     }while(stop==0 && count<1000);
-    
+
     //cout<<" kk: "<<kk<<endl;
-    
+
     kk=MAX(kk,0);
     kk=MIN(kk,Nz);
-    
-    
+
+
     return kk;
 }
 
@@ -318,11 +318,11 @@ int wave_lib_hdc::ihalf(int a, int b)
     double d,diff;
 
     c = b-a;
-    
+
     d = double(c)*0.5;
 
     c = int(d) + a;
-    
+
 
     return c;
 }

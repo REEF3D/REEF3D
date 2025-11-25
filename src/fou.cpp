@@ -40,37 +40,37 @@ fou::fou (lexer *p)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_2D(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_2D(p);
     }
-    
+
     if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans_2D(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans_2D(p);
     }
     }
-    
+
     if(p->j_dir==1)
     {
     if(p->B269==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2(p);
     }
-    
+
     if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
     }
@@ -86,7 +86,7 @@ void fou::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, 
     if(ipol==1)
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
-    
+
     if(p->j_dir==1)
     if(ipol==2)
     VLOOP
@@ -99,7 +99,7 @@ void fou::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, 
     if(ipol==4)
     LOOP
     a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
-    
+
     if(ipol==5)
     LOOP
     a->L(i,j,k)+=aij(p,a,b,5,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
@@ -109,44 +109,43 @@ double fou::aij(lexer* p,fdm* a,field& f,int ipol, field& uvel, field& vvel, fie
 {
     udir=vdir=wdir=0.0;
     dx=dy=dz=0.0;
-    
+
     pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
     pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
     pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
 
-        
+
     // x-dir
     if(0.5*(ivel1+ivel2)>=0.0)
     udir=1.0;
-    
-    dx =     udir*(ivel2*f(i,j,k)- ivel1*f(i-1,j,k))/DX[IM1] 
-    
-    +   (1.0-udir)*(ivel2*f(i+1,j,k)- ivel1*f(i,j,k))/DX[IP]; 
-    
-    
+
+    dx =     udir*(ivel2*f(i,j,k)- ivel1*f(i-1,j,k))/DX[IM1]
+
+    +   (1.0-udir)*(ivel2*f(i+1,j,k)- ivel1*f(i,j,k))/DX[IP];
+
+
     // y-dir
     if(p->j_dir==1)
     {
     if(0.5*(jvel1+jvel2)>=0.0)
     vdir=1.0;
-    
-    dy =     vdir*(jvel2*f(i,j,k)- jvel1*f(i,j-1,k))/DY[JM1] 
-    
-    +   (1.0-vdir)*(jvel2*f(i,j+1,k)- jvel1*f(i,j,k))/DY[JP]; 
+
+    dy =     vdir*(jvel2*f(i,j,k)- jvel1*f(i,j-1,k))/DY[JM1]
+
+    +   (1.0-vdir)*(jvel2*f(i,j+1,k)- jvel1*f(i,j,k))/DY[JP];
     }
-    
-    
+
+
     // z-dir
     if(0.5*(kvel1+kvel2)>=0.0)
     wdir=1.0;
-    
-    dz =     wdir*(kvel2*f(i,j,k)- kvel1*f(i,j,k-1))/DZ[KM1] 
-    
-    +   (1.0-wdir)*(kvel2*f(i,j,k+1)- kvel1*f(i,j,k))/DZ[KP]; 
-    
-    
+
+    dz =     wdir*(kvel2*f(i,j,k)- kvel1*f(i,j,k-1))/DZ[KM1]
+
+    +   (1.0-wdir)*(kvel2*f(i,j,k+1)- kvel1*f(i,j,k))/DZ[KP];
+
+
     L = -dx-dy-dz;
-    
+
     return L;
 }
-

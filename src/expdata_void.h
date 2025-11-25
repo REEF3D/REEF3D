@@ -34,12 +34,12 @@ using namespace std;
 class expdata_void : public expdata
 {
 public:
-	expdata_void(lexer*, fdm*, ghostcell*);
-	virtual ~expdata_void();
-	void start(lexer*, fdm*, ghostcell*) override;
-	
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
-	void name_ParaView_parallel(lexer*, ofstream&) override;
+    expdata_void(lexer*, fdm*, ghostcell*);
+    virtual ~expdata_void();
+    void start(lexer*, fdm*, ghostcell*) override;
+
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void name_ParaView_parallel(lexer*, ofstream&) override;
     void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
     void offset_ParaView(lexer*, int*, int &) override;
 };

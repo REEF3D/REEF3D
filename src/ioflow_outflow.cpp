@@ -32,7 +32,7 @@ void ioflow_f::outflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
     i=p->gcout[n][0]-1;
     j=p->gcout[n][1];
     k=p->gcout[n][2];
-    
+
         u(i+1,j,k)=p->Uo;
         u(i+2,j,k)=p->Uo;
         u(i+3,j,k)=p->Uo;
@@ -56,7 +56,7 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
         i=p->gcout[n][0]-1;
         j=p->gcout[n][1];
         k=p->gcout[n][2];
-        
+
         if(a->phi(i,j,k)>0.0)
         {
         hmin=MIN(hmin,p->ZN[KP]);
@@ -73,10 +73,10 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
     // bed shear stress and bed shear velocity
         if(p->S10==0)
         ks=p->B50;
-        
+
         if(p->S10>0)
         ks=p->S20*p->S21;
-        
+
         H=B=depth;
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Uo/(M*pow(H,(2.0/3.0))),2.0);
@@ -101,12 +101,12 @@ void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v,
 
     if(p->B60==1)
     ratio = p->W10/p->Qo;
-	
-	if(p->B60==2)
-	ratio = hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/p->Qi;
-	
-	if(p->B60==3||p->B60==4)
-	ratio = hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/p->Qo;
+
+    if(p->B60==2)
+    ratio = hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/p->Qi;
+
+    if(p->B60==3||p->B60==4)
+    ratio = hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/p->Qo;
 
         for(n=0;n<p->gcout_count;++n)
         {
@@ -171,23 +171,23 @@ void ioflow_f::outflow_water(lexer *p, fdm* a, ghostcell* pgc, field& u, field& 
 void ioflow_f::outflow_corresponding(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
     double factor=1.0,uout;
-    
+
     for(n=0;n<p->gcout_count;n++)
     {
     i=p->gcout[n][0]-1;
     j=p->gcout[n][1];
     k=p->gcout[n][2];
-    
+
     factor = p->W10/p->Qo;
-    
+
     factor = MIN(factor, 2.0);
-    
+
     factor = MAX(factor, 0.1);
-    
+
     uout=u(i,j,k)*factor;
-    
+
     uout=MAX(uout,0.0);
-    
+
 
         if(a->phi(i,j,k)>=-epsi1*p->DXM)
         {
@@ -213,6 +213,3 @@ void ioflow_f::outflow_corresponding(lexer *p, fdm* a, ghostcell* pgc, field& u,
         }
     }
 }
-
-
-

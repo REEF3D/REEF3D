@@ -39,13 +39,13 @@ double superbee::iphi(field& b,int n1, int n2, int q1, int q2)
 
     if(r<0.0)
     phi = 0.0;
-    
+
     if(r>=0.0 && r<0.5)
     phi = 2.0*r;
-    
+
     if(r>=0.5 && r<1.0)
     phi = 1.0;
-    
+
     if(r>=1.0)
     phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
 
@@ -59,13 +59,13 @@ double superbee::jphi(field& b,int n1, int n2, int q1, int q2)
 
     if(r<0.0)
     phi = 0.0;
-    
+
     if(r>=0.0 && r<0.5)
     phi = 2.0*r;
-    
+
     if(r>=0.5 && r<1.0)
     phi = 1.0;
-    
+
     if(r>=1.0)
     phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
 
@@ -79,13 +79,13 @@ double superbee::kphi(field& b,int n1, int n2, int q1, int q2)
 
     if(r<0.0)
     phi = 0.0;
-    
+
     if(r>=0.0 && r<0.5)
     phi = 2.0*r;
-    
+
     if(r>=0.5 && r<1.0)
     phi = 1.0;
-    
+
     if(r>=1.0)
     phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
 

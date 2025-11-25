@@ -33,10 +33,9 @@ using namespace std;
 class sflow_potential
 {
 public:
-	virtual void start(lexer*,fdm2D*, solver2D*, ghostcell* pgc)=0;
+    virtual void start(lexer*,fdm2D*, solver2D*, ghostcell* pgc)=0;
 
 
 };
 
 #endif
-

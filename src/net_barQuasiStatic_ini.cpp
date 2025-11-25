@@ -24,7 +24,7 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_nhf.h"
-#include"ghostcell.h"	
+#include"ghostcell.h"
 
 void net_barQuasiStatic::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -32,22 +32,22 @@ void net_barQuasiStatic::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     if (p->X320_type[nNet]==1)
     {
         bag_ini(p,pgc);
-        
+
         buildNet_bag(p);
     }
-    else if (p->X320_type[nNet]==2)   
+    else if (p->X320_type[nNet]==2)
     {
         cyl_ini(p,pgc);
-        
-        buildNet_cyl(p); 
+
+        buildNet_cyl(p);
     }
-    else if (p->X320_type[nNet]==3)   
+    else if (p->X320_type[nNet]==3)
     {
         wall_ini(p,pgc);
-        
-        buildNet_wall(p);    
-    }  
-    
+
+        buildNet_wall(p);
+    }
+
     //- Update porous zone
     coupling_dlm_cfd(p,a,pgc);
 
@@ -60,22 +60,22 @@ void net_barQuasiStatic::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if (p->X320_type[nNet]==1)
     {
         bag_ini(p,pgc);
-        
+
         buildNet_bag(p);
     }
-    else if (p->X320_type[nNet]==2)   
+    else if (p->X320_type[nNet]==2)
     {
         cyl_ini(p,pgc);
-        
-        buildNet_cyl(p); 
+
+        buildNet_cyl(p);
     }
-    else if (p->X320_type[nNet]==3)   
+    else if (p->X320_type[nNet]==3)
     {
         wall_ini(p,pgc);
-        
-        buildNet_wall(p);    
-    }  
-    
+
+        buildNet_wall(p);
+    }
+
     //- Update porous zone
     coupling_dlm_nhflow(p,d,pgc);
 

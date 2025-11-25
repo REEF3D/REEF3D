@@ -33,16 +33,16 @@ using namespace std;
 
 class sflow_fsf
 {
-public:    
+public:
     virtual void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double)=0;
-	virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*)=0;
-	virtual void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
+    virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*)=0;
+    virtual void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
     virtual void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
     virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double)=0;
     virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double)=0;
     virtual void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&)=0;
-    
-        
+
+
 
 };
 

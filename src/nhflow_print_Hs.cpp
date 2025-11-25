@@ -30,19 +30,19 @@ Authors: Dave Kelly, Hans Bihs
 nhflow_print_Hs::nhflow_print_Hs(lexer *p, slice &Hs) : ETAsum(p), ETAmean(p), //DKAF
                                                     ETA2sum(p), ETAvar(p)
 {
-    NumDT1=0;      
+    NumDT1=0;
     T_INTV_mean = 3600.5; // Averaging time for sig wave height
-    dT_sum=0; 
-    wfcall=0;     
+    dT_sum=0;
+    wfcall=0;
     //T_INTV_mean = 3600.0; // Averaging time for sig. wave height
     wtime=0.0;
     stime = p->P111;        // Start avreging after transients
-    
+
     // Initialise
     wtime  = 0.0;
     T_sum  = 0.0;
     NumDT1 = 0.0;
-    
+
     SLICELOOP4
     {
     ETAsum(i,j)        = 0.0;
@@ -66,33 +66,31 @@ void nhflow_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
     {
     T_sum  += p->dt; //DKAF
     NumDT1++;    //DKAF
-    
-    
+
+
     SLICELOOP4
     WETDRY
     {
-	 // Here we do the wave-averaging NB: c->eta(i,j) is the FS
-	 // variance equation with etamean initially unknown
-      
+     // Here we do the wave-averaging NB: c->eta(i,j) is the FS
+     // variance equation with etamean initially unknown
+
     ETAsum(i,j)      += eta(i,j)*p->dt;
     ETAmean(i,j)      = ETAsum(i,j)/(fabs(T_sum)>1.0e-10?T_sum:1.0e20);
     ETA2sum(i,j)     += eta(i,j)*eta(i,j);
-    
+
     //cout <<" NumDT1 " << NumDT1 <<" T_sum " << T_sum << " wtim " << wtime<<endl;
-    //cin.get();  
-    
+    //cin.get();
+
     if(NumDT1>1)
-    { 
-	    ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1.0));
+    {
+        ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1.0));
         //cout<<ETAvar(i,j)<<endl;
-	    Hs(i,j)         = 4.0*sqrt(MAX(ETAvar(i,j),0.0));
+        Hs(i,j)         = 4.0*sqrt(MAX(ETAvar(i,j),0.0));
     }
-	  
+
     }
-    
-   }
-   
-   pgc->gcsl_start4(p,Hs,1);
+
+    }
+
+    pgc->gcsl_start4(p,Hs,1);
 }
-
-

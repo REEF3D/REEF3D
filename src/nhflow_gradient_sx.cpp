@@ -29,15 +29,15 @@ double nhflow_gradient::sx(slice &f)
 {/*
     grad = (f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
-	return grad;
-    
-    
+    return grad;
+
+
 */
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-    
+
     grad = limiter(dfdx_plus,dfdx_min);
-    
+
     return grad;
 }
 
@@ -46,23 +46,23 @@ double nhflow_gradient::sy(slice &f)
     /*
     grad = (f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
 
-	return grad;*/
-    
+    return grad;*/
+
     dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
     dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
-    
+
     grad = limiter(dfdy_plus,dfdy_min);
-    
+
     return grad;
 }
 
 double nhflow_gradient::limiter(double v1, double v2)
 {
     denom = fabs(v1) + fabs(v2);
-    
+
     denom = fabs(denom)>1.0e-10?denom:1.0e10;
-    
+
     val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
 
-    return val;	
+    return val;
 }

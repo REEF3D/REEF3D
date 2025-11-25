@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-nhflow_suspended_void::nhflow_suspended_void(lexer* p) 
+nhflow_suspended_void::nhflow_suspended_void(lexer* p)
 {
 }
 

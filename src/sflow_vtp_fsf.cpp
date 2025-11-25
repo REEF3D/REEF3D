@@ -138,7 +138,7 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
         num = p->printcount;
     else if(p->P15==2)
         num = p->count;
-    
+
     if(p->mpirank==0)
         pvtp(p,b,pgc,pturb,psed,num);
 

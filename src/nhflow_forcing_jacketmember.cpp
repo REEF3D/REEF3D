@@ -27,9 +27,9 @@ Author: Hans Bihs
 void nhflow_forcing::jacketmember(lexer *p, ghostcell *pgc, int id)
 {
     double U,ds,eta;
-	double rmax;
-	int snum;
-	int vertice_mem, center1_num,center2_num;
+    double rmax;
+    int snum;
+    int vertice_mem, center1_num,center2_num;
     double alpha,beta,gamma;
     double dX,dY,dZ,ddX,ddY,ddZ;
     double length;
@@ -40,17 +40,17 @@ void nhflow_forcing::jacketmember(lexer *p, ghostcell *pgc, int id)
     double a1,b1,c1;
     double a2,b2,c2;
     double xm1,ym1,zm1,r1,xm2,ym2,zm2,r2;
-    
+
     xrot=0.0;
-	yrot=0.0;
-	zrot=0.0;
-    
-    
+    yrot=0.0;
+    zrot=0.0;
+
+
     xm1 = p->A585_xm1[id];
     ym1 = p->A585_ym1[id];
     zm1 = p->A585_zm1[id];
     r1  = p->A585_r1[id];
-    
+
     xm2 = p->A585_xm2[id];
     ym2 = p->A585_ym2[id];
     zm2 = p->A585_zm2[id];
@@ -61,7 +61,7 @@ void nhflow_forcing::jacketmember(lexer *p, ghostcell *pgc, int id)
     dZ = zm2-zm1;
 
     length = sqrt(dX*dX + dY*dY + dZ*dZ);
-    
+
     alpha=beta=gamma=0.0;
     phi=theta=psi=0.0;
 
@@ -74,7 +74,7 @@ void nhflow_forcing::jacketmember(lexer *p, ghostcell *pgc, int id)
     a2=0.0;
     b2=0.0;
     c2=0.0;
- 
+
     double ee=1.0e-4;
     int count=0;
     do
@@ -94,7 +94,7 @@ void nhflow_forcing::jacketmember(lexer *p, ghostcell *pgc, int id)
 
       if(c2>gamma+ee || c2<gamma-ee)
       c1 = c1 - 0.1*(c2-gamma);
-    
+
 
       if(a2<=alpha+ee && a2>=alpha-ee)
       if(b2<=beta+ee  && b2>=beta-ee)
@@ -103,7 +103,7 @@ void nhflow_forcing::jacketmember(lexer *p, ghostcell *pgc, int id)
 
      ++count;
     }while(count<2500);
-    
+
     if(p->mpirank==0)
     {
     cout<<"ID: "<<id<<endl;
@@ -116,93 +116,93 @@ void nhflow_forcing::jacketmember(lexer *p, ghostcell *pgc, int id)
     cout<<"length: "<<length<<endl<<endl;
     }
 
-	rmax = MAX(p->A585_r1[id],p->A585_r2[id]);
+    rmax = MAX(p->A585_r1[id],p->A585_r2[id]);
 
-	U = 2.0 * PI * rmax;
-	ds = 0.75*(U*p->DXM);
-	snum = int(U/ds);
+    U = 2.0 * PI * rmax;
+    ds = 0.75*(U*p->DXM);
+    snum = int(U/ds);
 
     dX = xm2-xm1;
     dY = ym2-ym1;
     dZ = zm2-zm1;
-    
+
     xm2=xm1+length;
     ym2=ym1;
     zm2=zm1;
 
 // Vertices
-	ds = (2.0*PI)/double(snum);
-	eta=0.0;
-    
+    ds = (2.0*PI)/double(snum);
+    eta=0.0;
+
     tstart[entity_count]=tricount;
 
-	for(n=0;n<snum;++n)
-	{
-	//bottom circle
-	tri_x[tricount][0] = xm1;
-	tri_y[tricount][0] = ym1;
-	tri_z[tricount][0] = zm1;
+    for(n=0;n<snum;++n)
+    {
+    //bottom circle
+    tri_x[tricount][0] = xm1;
+    tri_y[tricount][0] = ym1;
+    tri_z[tricount][0] = zm1;
 
-	tri_x[tricount][1] = xm1;
-	tri_y[tricount][1] = ym1 + r1*sin(eta);
-	tri_z[tricount][1] = zm1 + r1*cos(eta);
+    tri_x[tricount][1] = xm1;
+    tri_y[tricount][1] = ym1 + r1*sin(eta);
+    tri_z[tricount][1] = zm1 + r1*cos(eta);
 
-	tri_x[tricount][2] = xm1;
-	tri_y[tricount][2] = ym1 + r1*sin(eta+ds);
-	tri_z[tricount][2] = zm1 + r1*cos(eta+ds);
-	++tricount;
+    tri_x[tricount][2] = xm1;
+    tri_y[tricount][2] = ym1 + r1*sin(eta+ds);
+    tri_z[tricount][2] = zm1 + r1*cos(eta+ds);
+    ++tricount;
 
-	//top circle
-	tri_x[tricount][0] = xm2;
-	tri_y[tricount][0] = ym2;
-	tri_z[tricount][0] = zm2;
+    //top circle
+    tri_x[tricount][0] = xm2;
+    tri_y[tricount][0] = ym2;
+    tri_z[tricount][0] = zm2;
 
-	tri_x[tricount][1] = xm2;
-	tri_y[tricount][1] = ym2 + r2*sin(eta);
-	tri_z[tricount][1] = zm2 + r2*cos(eta);
+    tri_x[tricount][1] = xm2;
+    tri_y[tricount][1] = ym2 + r2*sin(eta);
+    tri_z[tricount][1] = zm2 + r2*cos(eta);
 
-	tri_x[tricount][2] = xm2;
-	tri_y[tricount][2] = ym2 + r2*sin(eta+ds);
-	tri_z[tricount][2] = zm2 + r2*cos(eta+ds);
-	++tricount;
+    tri_x[tricount][2] = xm2;
+    tri_y[tricount][2] = ym2 + r2*sin(eta+ds);
+    tri_z[tricount][2] = zm2 + r2*cos(eta+ds);
+    ++tricount;
 
-	//side
-	// 1st triangle
-	tri_x[tricount][0] = xm1;
-	tri_y[tricount][0] = ym1 + r1*sin(eta);
-	tri_z[tricount][0] = zm1 + r1*cos(eta);
+    //side
+    // 1st triangle
+    tri_x[tricount][0] = xm1;
+    tri_y[tricount][0] = ym1 + r1*sin(eta);
+    tri_z[tricount][0] = zm1 + r1*cos(eta);
 
-	tri_x[tricount][1] = xm2;
-	tri_y[tricount][1] = ym2 + r2*sin(eta+ds);
-	tri_z[tricount][1] = zm2 + r2*cos(eta+ds);
+    tri_x[tricount][1] = xm2;
+    tri_y[tricount][1] = ym2 + r2*sin(eta+ds);
+    tri_z[tricount][1] = zm2 + r2*cos(eta+ds);
 
-	tri_x[tricount][2] = xm1;
-	tri_y[tricount][2] = ym1 + r1*sin(eta+ds);
-	tri_z[tricount][2] = zm1 + r1*cos(eta+ds);
-	++tricount;
+    tri_x[tricount][2] = xm1;
+    tri_y[tricount][2] = ym1 + r1*sin(eta+ds);
+    tri_z[tricount][2] = zm1 + r1*cos(eta+ds);
+    ++tricount;
 
-	// 2nd triangle
-	tri_x[tricount][0] = xm1;
-	tri_y[tricount][0] = ym1 + r1*sin(eta);
-	tri_z[tricount][0] = zm1 + r1*cos(eta);
+    // 2nd triangle
+    tri_x[tricount][0] = xm1;
+    tri_y[tricount][0] = ym1 + r1*sin(eta);
+    tri_z[tricount][0] = zm1 + r1*cos(eta);
 
-	tri_x[tricount][1] = xm2;
-	tri_y[tricount][1] = ym2 + r2*sin(eta+ds);
-	tri_z[tricount][1] = zm2 + r2*cos(eta+ds);
+    tri_x[tricount][1] = xm2;
+    tri_y[tricount][1] = ym2 + r2*sin(eta+ds);
+    tri_z[tricount][1] = zm2 + r2*cos(eta+ds);
 
-	tri_x[tricount][2] = xm2;
-	tri_y[tricount][2] = ym2 + r2*sin(eta);
-	tri_z[tricount][2] = zm2 + r2*cos(eta);
-	++tricount;
+    tri_x[tricount][2] = xm2;
+    tri_y[tricount][2] = ym2 + r2*sin(eta);
+    tri_z[tricount][2] = zm2 + r2*cos(eta);
+    ++tricount;
 
-	eta+=ds;
-	}
+    eta+=ds;
+    }
     tend[entity_count]=tricount;
 
 
     xrot=xm1;
-	yrot=ym1;
-	zrot=zm1;
+    yrot=ym1;
+    zrot=zm1;
 
     psi=c1;
     theta=b1;

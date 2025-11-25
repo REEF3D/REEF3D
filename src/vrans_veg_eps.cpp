@@ -27,27 +27,27 @@ Author: Hans Bihs
 
 void vrans_veg::eps_source(lexer *p, fdm *a, field &kin, field &eps)
 {
-	int count;
+    int count;
     double uvel,vvel,wvel,uu;
     double ew;
     double Cep=3.5;
-    
+
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
     if(a->porosity(i,j,k)<1.0)
     {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
         vvel = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel = 0.5*(a->w(i,j,k)+a->w(i,j,k-1));
-        
+
         uu = uvel*uvel + vvel*vvel + wvel*wvel;
-        
+
         ew = Cep*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*eps(i,j,k));
 
         a->rhsvec.V[count] += ew;
-    
-        ++count;  
+
+        ++count;
     }
 
 }

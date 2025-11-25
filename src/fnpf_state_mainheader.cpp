@@ -32,9 +32,9 @@ Author: Hans Bihs
 void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     ofstream mainout;
-    
+
     // open file
-	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
+    mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary);
 
 
     // ini write
@@ -55,16 +55,16 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     iin=file_version;
     mainout.write((char*)&iin, sizeof (int));
-    
+
     iin=file_type;
     mainout.write((char*)&iin, sizeof (int));
-    
+
     ddn=p->wd;
     mainout.write((char*)&ddn, sizeof (double));
-    
+
     ddn=0.0;
     mainout.write((char*)&ddn, sizeof (double));
-    
+
     ddn=0.0;
     mainout.write((char*)&ddn, sizeof (double));
 
@@ -81,14 +81,14 @@ void fnpf_state::ini_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 void fnpf_state::write_mainheader(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     ofstream mainout;
-    
+
     // open file
-	mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
+    mainout.open("./REEF3D_FNPF_STATE/REEF3D-FNPF_State_Mainheader.r3d", ios::binary | ios::app);
 
     iin=p->count;
     mainout.write((char*)&iin, sizeof (int));
 
-	ddn=p->simtime;
+    ddn=p->simtime;
     mainout.write((char*)&ddn, sizeof (double));
 
     mainout.close();

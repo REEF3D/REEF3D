@@ -34,19 +34,18 @@ using namespace std;
 class kepsilon_bc : public increment, public roughness
 {
 public:
-	kepsilon_bc(lexer*);
-	virtual ~kepsilon_bc();
-	void bckeps_start(fdm*,lexer*,field&,field&, int);
-	void wall_law_kin(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
-	void wall_law_eps(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
+    kepsilon_bc(lexer*);
+    virtual ~kepsilon_bc();
+    void bckeps_start(fdm*,lexer*,field&,field&, int);
+    void wall_law_kin(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
+    void wall_law_eps(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
 
 private:
-	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
-	int ii,jj,kk;
-	int count,q;
-	double fac,value;
-	const double kappa;
+    double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
+    int ii,jj,kk;
+    int count,q;
+    double fac,value;
+    const double kappa;
 
 };
 #endif
-

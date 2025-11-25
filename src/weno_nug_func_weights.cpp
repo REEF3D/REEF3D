@@ -70,4 +70,3 @@ void weno_nug_func::weight_max_z()
     w2z = cfz[KP][wf][4]/(epsilon + pow(is2z+psi,2.0)*(cfz[KP][wf][3]/pow(is1z+psi,2.0) + cfz[KP][wf][4]/pow(is2z+psi,2.0) + cfz[KP][wf][5]/pow(is3z+psi,2.0)));
     w3z = cfz[KP][wf][5]/(epsilon + pow(is3z+psi,2.0)*(cfz[KP][wf][3]/pow(is1z+psi,2.0) + cfz[KP][wf][4]/pow(is2z+psi,2.0) + cfz[KP][wf][5]/pow(is3z+psi,2.0)));
 }
-

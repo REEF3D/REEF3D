@@ -34,10 +34,10 @@ class fnpf_etadisc;
 
 using namespace std;
 
-class fnpf_fsf 
+class fnpf_fsf
 {
 public:
-   
+
     virtual void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
     virtual void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
     virtual void kfsfbc(lexer*,fdm_fnpf*,ghostcell*)=0;
@@ -49,7 +49,7 @@ public:
     virtual void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
     virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
     virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double)=0;
-    
+
 };
 
 #endif

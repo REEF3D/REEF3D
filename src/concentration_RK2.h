@@ -35,17 +35,17 @@ class concentration_RK2 :public bc_concentration, public concentration_io
 {
 public:
     concentration_RK2(lexer *, fdm*, ghostcell*);
-	virtual ~concentration_RK2();
+    virtual ~concentration_RK2();
 
-	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
+    void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override;
+    void ttimesave(lexer*, fdm*) override;
 
 
 private:
     void clearrhs(lexer*,fdm*,ghostcell*);
-    
-	int gcval_concentration;
-	double starttime, endtime;
+
+    int gcval_concentration;
+    double starttime, endtime;
 };
 
 #endif

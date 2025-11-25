@@ -30,7 +30,7 @@ void sixdof_obj::hydrodynamic_forces_cfd(lexer* p, fdm *a, ghostcell *pgc,field&
 {
     if(p->X60==1)
     forces_stl(p,a,pgc,uvel,vvel,wvel,iter,finalize);
-    
+
     if(p->X60==2)
     forces_lsm(p,a,pgc,uvel,vvel,wvel,iter,finalize);
 }
@@ -42,41 +42,41 @@ void sixdof_obj::update_forces(lexer *p)
     Mfb_ << 0.0, 0.0, 0.0;
 
     if(p->X11_u==1)
-    Ffb_(0) = Xext + Xe - p->X26_Cu*p_(0)/Mass_fb; 
-    
+    Ffb_(0) = Xext + Xe - p->X26_Cu*p_(0)/Mass_fb;
+
     if(p->X11_v==1)
     Ffb_(1) = Yext + Ye - p->X26_Cv*p_(1)/Mass_fb;
-    
+
     if(p->X11_w==1)
     Ffb_(2) = Zext + Ze - p->X26_Cw*p_(2)/Mass_fb;
- 
-    
+
+
     if(p->X11_p==1)
-    Mfb_(0) = Kext + Ke - p->X25_Cp*omega_I(0); 
-    
+    Mfb_(0) = Kext + Ke - p->X25_Cp*omega_I(0);
+
     if(p->X11_q==1)
     Mfb_(1) = Mext + Me - p->X25_Cq*omega_I(1);
-    
+
     if(p->X11_r==1)
     Mfb_(2) = Next + Ne - p->X25_Cr*omega_I(2);
-    
-    
+
+
     if(Ffb_(0)!=Ffb_(0))
     cout<<"Ffb_(0)....###"<<endl;
-    
+
     if(Ffb_(1)!=Ffb_(1))
     cout<<"Ffb_(1)....###"<<endl;
-    
+
     if(Ffb_(2)!=Ffb_(2))
     cout<<"Ffb_(2)....###"<<endl;
-    
-    
+
+
     if(Mfb_(0)!=Mfb_(0))
     cout<<"Mfb_(0)....###"<<endl;
-    
+
     if(Mfb_(1)!=Mfb_(1))
     cout<<"Mfb_(1)....###"<<endl;
-    
+
     if(Mfb_(2)!=Mfb_(2))
     cout<<"Mfb_(2)....###"<<endl;
 }

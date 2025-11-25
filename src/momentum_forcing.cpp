@@ -31,8 +31,8 @@ Author: Hans Bihs
 momentum_forcing::momentum_forcing(lexer* p)
 {
     gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
+    gcval_v=11;
+    gcval_w=12;
 }
 
 momentum_forcing::~momentum_forcing()
@@ -43,65 +43,63 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
                                               field &u, field &v, field &w, field &fx, field &fy, field &fz, int iter, double alpha, bool final)
 {
 
-	starttime=pgc->timer();
-    
+    starttime=pgc->timer();
+
         // Forcing
         ULOOP
         fx(i,j,k) = 0.0;
-       
+
         VLOOP
         fy(i,j,k) = 0.0;
-      
+
         WLOOP
         fz(i,j,k) = 0.0;
-        
+
         pgc->start1(p,fx,10);
         pgc->start2(p,fy,11);
-        pgc->start3(p,fz,12); 
-         
-        pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);         
-        
+        pgc->start3(p,fz,12);
+
+        pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);
+
         p6dof->start_cfd(p,a,pgc,iter,u,v,w,fx,fy,fz,final);
-        
+
         pfsi->forcing(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
- 
+
         ULOOP
         {
         u(i,j,k) += alpha*p->dt*CPOR1*fx(i,j,k);
-        
+
         if(p->count<10)
         a->maxF = MAX(fabs(alpha*CPOR1*fx(i,j,k)), a->maxF);
-        
+
         p->fbmax = MAX(fabs(alpha*CPOR1*fx(i,j,k)), p->fbmax);
         }
-        
+
         VLOOP
         {
         v(i,j,k) += alpha*p->dt*CPOR2*fy(i,j,k);
-        
+
         if(p->count<10)
         a->maxG = MAX(fabs(alpha*CPOR2*fy(i,j,k)), a->maxG);
-        
+
         p->fbmax = MAX(fabs(alpha*CPOR2*fy(i,j,k)), p->fbmax);
         }
-        
+
         WLOOP
         {
         w(i,j,k) += alpha*p->dt*CPOR3*fz(i,j,k);
-        
+
         if(p->count<10)
         a->maxH = MAX(fabs(alpha*CPOR3*fz(i,j,k)), a->maxH);
-        
+
         p->fbmax = MAX(fabs(alpha*CPOR3*fz(i,j,k)), p->fbmax);
         }
-        
+
         p->fbtime+=pgc->timer()-starttime;
-        
-        
+
+
     // ghostcell update
     pgc->solid_forcing_flag_update(p,a);
     pgc->gcdf_update(p,a);
     pgc->gcb_velflagio(p,a);
 }
-
-

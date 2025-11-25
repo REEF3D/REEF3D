@@ -37,32 +37,32 @@ using namespace std;
 class FSI_interface
 {
 public:
-	FSI_interface(lexer*,ghostcell*);
-	virtual ~FSI_interface();
-    
+    FSI_interface(lexer*,ghostcell*);
+    virtual ~FSI_interface();
+
     // Generic
-	void FSI_logic(lexer*,ghostcell*);
+    void FSI_logic(lexer*,ghostcell*);
     void start(lexer*,ghostcell*);
-    
-	void initialize(lexer*,fdm*,ghostcell*,turbulence*) {};
+
+    void initialize(lexer*,fdm*,ghostcell*,turbulence*) {};
     void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) {};
-    
-    
+
+
     // CFD
     void isource(lexer*,fdm*,vrans*) {};
     void jsource(lexer*,fdm*,vrans*) {};
     void ksource(lexer*,fdm*,vrans*) {};
-    
+
     // NHFLOW
     void isource(lexer*,fdm_nhf*,vrans*) {};
     void jsource(lexer*,fdm_nhf*,vrans*) {};
     void ksource(lexer*,fdm_nhf*,vrans*) {};
-    
+
     // SFLOW
     void isource(lexer*,fdm2D*,vrans*) {};
     void jsource(lexer*,fdm2D*,vrans*) {};
     void ksource(lexer*,fdm2D*,vrans*) {};
-    
+
 private:
 };
 

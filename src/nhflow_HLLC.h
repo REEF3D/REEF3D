@@ -40,8 +40,8 @@ class nhflow_HLLC : public nhflow_convection, public increment
 
 public:
 
-	nhflow_HLLC (lexer*,ghostcell*,patchBC_interface*);
-	virtual ~nhflow_HLLC();
+    nhflow_HLLC (lexer*,ghostcell*,patchBC_interface*);
+    virtual ~nhflow_HLLC();
 
     void start(lexer*&, fdm_nhf*&, int, slice&) override;
     void precalc(lexer*, fdm_nhf*, int, slice&) override;
@@ -52,18 +52,18 @@ private:
     void aij_V(lexer*, fdm_nhf*, int);
     void aij_W(lexer*, fdm_nhf*, int);
     void aij_E(lexer*, fdm_nhf*, int);
-    
+
     void HLLC(lexer*, fdm_nhf*, double*, double*, double*, double*, double*, double*, double*, double*);
     void HLLC_E(lexer*, fdm_nhf*);
-    
+
     void HLL(lexer*, fdm_nhf*&, double*, double*, double*, double*);
-    
-	double dx,dy,dz;
-	double udir,vdir,wdir;
-	double L;
+
+    double dx,dy,dz;
+    double udir,vdir,wdir;
+    double L;
     double denom;
 
-    
+
     double FsS,FnS,FeS,FwS;
 
     ghostcell *pgc;

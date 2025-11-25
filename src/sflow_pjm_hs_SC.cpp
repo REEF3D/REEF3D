@@ -22,7 +22,7 @@ Author: Hans Bihs
 /*
 #include"sflow_pjm_hs.h"
 #include"lexer.h"
-#include"fdm2D.h" 
+#include"fdm2D.h"
 #include"ghostcell.h"
 #include"sflow_poisson.h"
 #include"solver.h"
@@ -36,14 +36,14 @@ Author: Hans Bihs
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
 #define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
 #define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0e20)
- 
+
 sflow_pjm_hs::sflow_pjm_hs(lexer* p, fdm2D *b, patchBC_interface *ppBC) : sflow_gradient(p)
 {
     pBC = ppBC;
-    
-	pd = new density_f(p);
 
-    gcval_press=540;  
+    pd = new density_f(p);
+
+    gcval_press=540;
 }
 
 sflow_pjm_hs::~sflow_pjm_hs()
@@ -55,17 +55,17 @@ void sflow_pjm_hs::start(lexer*p, fdm2D *b, solver* psolv, ghostcell* pgc, ioflo
 }
 
 void sflow_pjm_hs::ucorr(lexer* p, fdm2D *b, slice &WL, double *U, double *P, double alpha)
-{	
+{
 }
 
 void sflow_pjm_hs::vcorr(lexer* p, fdm2D *b, slice &WL, double *V, double *P, double alpha)
-{	 
+{
 }
 
 void sflow_pjm_hs::wcorr(lexer* p, fdm2D *b, slice &WL, double *W, double *P, double alpha)
 {
 }
- 
+
 void sflow_pjm_hs::rhs(lexer *p, fdm2D *b, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
 }
@@ -86,7 +86,7 @@ void sflow_pjm_hs::vpgrad(lexer*p, fdm2D *b, slice &WL)
 {
     LOOP
     WETDRY
-	d->G[IJK] += PORVALNH*0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
+    d->G[IJK] += PORVALNH*0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
 }
 

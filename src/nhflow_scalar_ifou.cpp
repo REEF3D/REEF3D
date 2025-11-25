@@ -42,45 +42,45 @@ void nhflow_scalar_ifou::start(lexer* p, fdm_nhf *d, double *F, int ipol, double
     LOOP
     {
     udir=vdir=wdir=0.0;
-    
+
     padvec->uadvec(ipol,U,ivel1,ivel2);
     padvec->vadvec(ipol,V,jvel1,jvel2);
     padvec->wadvec(ipol,W,kvel1,kvel2);
 
-	if(0.5*(ivel1+ivel2)>=0.0)
+    if(0.5*(ivel1+ivel2)>=0.0)
     udir=1.0;
-    
+
     if(0.5*(jvel1+jvel2)>=0.0)
     vdir=1.0;
-    
+
     if(0.5*(kvel1+kvel2)>=0.0)
     wdir=1.0;
 
-	 
-	 d->M.p[count] = udir*ivel2/p->DXN[IM1] - (1.0-udir)*ivel1/p->DXN[IP]
-					+ (vdir*jvel2/p->DYN[JM1] - (1.0-vdir)*jvel1/p->DYN[JP])*p->y_dir
-					+ wdir*kvel2/p->DZN[KM1] - (1.0-wdir)*kvel1/p->DZN[KP];
-	 
-	 d->M.s[count] = -udir*ivel1/p->DXN[IM1];
-	 d->M.n[count] =  (1.0-udir)*ivel2/p->DXN[IP];
-	 
-	 d->M.e[count] = -vdir*jvel1/p->DYN[JM1]*p->y_dir;
-	 d->M.w[count] =  (1.0-vdir)*jvel2/p->DYN[JP]*p->y_dir;
-	 
-	 d->M.b[count] = -wdir*kvel1/p->DZN[KM1];
-	 d->M.t[count] =  (1.0-wdir)*kvel2/p->DZN[KP];
-     
+
+     d->M.p[count] = udir*ivel2/p->DXN[IM1] - (1.0-udir)*ivel1/p->DXN[IP]
+                    + (vdir*jvel2/p->DYN[JM1] - (1.0-vdir)*jvel1/p->DYN[JP])*p->y_dir
+                    + wdir*kvel2/p->DZN[KM1] - (1.0-wdir)*kvel1/p->DZN[KP];
+
+     d->M.s[count] = -udir*ivel1/p->DXN[IM1];
+     d->M.n[count] =  (1.0-udir)*ivel2/p->DXN[IP];
+
+     d->M.e[count] = -vdir*jvel1/p->DYN[JM1]*p->y_dir;
+     d->M.w[count] =  (1.0-vdir)*jvel2/p->DYN[JP]*p->y_dir;
+
+     d->M.b[count] = -wdir*kvel1/p->DZN[KM1];
+     d->M.t[count] =  (1.0-wdir)*kvel2/p->DZN[KP];
+
      /*d->M.p[count] = 0.0;
-	 
-	 d->M.s[count] = 0.0;
-	 d->M.n[count] =  0.0;
-	 
-	 d->M.e[count] = 0.0;
-	 d->M.w[count] =  0.0;
-	 
-	 d->M.b[count] = 0.0;
-	 d->M.t[count] =  0.0;*/
-     
-	 ++count;
+
+     d->M.s[count] = 0.0;
+     d->M.n[count] =  0.0;
+
+     d->M.e[count] = 0.0;
+     d->M.w[count] =  0.0;
+
+     d->M.b[count] = 0.0;
+     d->M.t[count] =  0.0;*/
+
+     ++count;
     }
 }

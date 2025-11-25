@@ -38,21 +38,21 @@ using namespace std;
 class fsi_strips : public fsi
 {
 public:
-	
+
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-	
+
     fsi_strips(lexer*,ghostcell*);
-	virtual ~fsi_strips();
-	void start(lexer*,fdm*,ghostcell*) override;
-	void initialize(lexer*,fdm*,ghostcell*,turbulence*) override;
+    virtual ~fsi_strips();
+    void start(lexer*,fdm*,ghostcell*) override;
+    void initialize(lexer*,fdm*,ghostcell*,turbulence*) override;
     void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) override;
-    
-    
+
+
 private:
     int numberStrips;
     double starttime, endtime;
     double starttime0;
-	
+
     vector<fsi_strip*> pstrip;
 };
 

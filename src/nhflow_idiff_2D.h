@@ -32,19 +32,19 @@ class nhflow_idiff_2D : public nhflow_diffusion, public increment
 {
 public:
     nhflow_idiff_2D(lexer*);
-	virtual ~nhflow_idiff_2D();
+    virtual ~nhflow_idiff_2D();
 
     void diff_u(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double) override;
     void diff_v(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double) override;
     void diff_w(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double) override;
     void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double, double) override;
-    
+
 private:
     int gcval_u,gcval_v,gcval_w;
     int gcval_uh,gcval_vh,gcval_wh;
-    
+
     double time,starttime,endtime;
-    
+
     double visc;
     double sigxyz2;
 

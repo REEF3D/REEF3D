@@ -42,4 +42,3 @@ net_interface::net_interface(lexer *p, ghostcell *pgc) : kernel_x(p),kernel_y(p)
 net_interface::~net_interface()
 {
 }
-

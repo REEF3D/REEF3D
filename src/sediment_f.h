@@ -60,14 +60,14 @@ class sediment_f : public sediment, public increment
 {
 public:
     sediment_f(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
-	virtual ~sediment_f();
-    
+    virtual ~sediment_f();
+
     // CFD interface
     void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override;
     void ini_cfd(lexer*,fdm*,ghostcell*) override;
     void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*) override;
     void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*) override;
-    
+
     void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
     void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
     void prep_cfd(lexer*,fdm*,ghostcell*);
@@ -75,19 +75,19 @@ public:
     void active_cfd(lexer*,fdm*,ghostcell*);
     void active_ini_cfd(lexer*,fdm*,ghostcell*);
     void bedchange_update(lexer*, ghostcell*);
-    
+
     // NHFLOW interface
     void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
     void ini_nhflow(lexer*, fdm_nhf*, ghostcell*) override;
     void start_susp_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*) override;
     void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override;
-    
+
     void sediment_algorithm_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     void prep_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void fill_PQ_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void active_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void active_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    
+
     // SFLOW interface
     void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override;
     void ini_sflow(lexer*, fdm2D*, ghostcell*) override;
@@ -97,68 +97,68 @@ public:
     void fill_PQ_sflow(lexer*,fdm2D*,ghostcell*,slice&,slice&);
     void active_sflow(lexer*, fdm2D*, ghostcell*);
     void active_ini_sflow(lexer*, fdm2D*, ghostcell*);
-    
-    
+
+
     // ---
 
     void ini_parameters(lexer*, ghostcell*);
     void ini_guard(lexer*, ghostcell*);
-	
+
     void relax(lexer*,ghostcell*) override;
-	double bedshear_point(lexer*,ghostcell*) override;
-    
+    double bedshear_point(lexer*,ghostcell*) override;
+
     double qbeval(int,int) override;
     void qbeget(int,int,double) override;
 
     double bedzhval(int,int) override;
 
     void ctimesave(lexer*, fdm*) override;
-    
+
     void fill_bedk(lexer*,fdm*,ghostcell*);
-	void bedlevel(lexer*,ghostcell*);
+    void bedlevel(lexer*,ghostcell*);
     void waterlevel(lexer*,fdm*,ghostcell*);
-	void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
+    void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
     void volume_calc(lexer*,fdm*,ghostcell*);
-	void filter(lexer*,ghostcell*,slice&,int,int);
-    
+    void filter(lexer*,ghostcell*,slice&,int,int);
+
     // print
     void print_probes(lexer*, ghostcell*,sediment_fdm*, ioflow*) override;
-    
+
     void print_2D_bedload(lexer*, ghostcell*,ofstream&) override;
     void print_3D_bedload(lexer*, ghostcell*, std::vector<char>&, size_t&) override;
-	void name_ParaView_parallel_bedload(lexer*,ofstream&) override;
+    void name_ParaView_parallel_bedload(lexer*,ofstream&) override;
     void name_ParaView_bedload(lexer*, ostream&, int*, int &) override;
     void offset_ParaView_2D_bedload(lexer*, int*, int &) override;
     void offset_ParaView_bedload(lexer*, int*, int &) override;
-    
-	void print_2D_bedshear(lexer*, ghostcell*,ofstream&) override;
+
+    void print_2D_bedshear(lexer*, ghostcell*,ofstream&) override;
     void print_3D_bedshear(lexer*, ghostcell*, std::vector<char>&, size_t&) override;
-	void name_ParaView_parallel_bedshear(lexer*,ofstream&) override;
+    void name_ParaView_parallel_bedshear(lexer*,ofstream&) override;
     void name_ParaView_bedshear(lexer*, ostream&, int*, int &) override;
     void offset_ParaView_2D_bedshear(lexer*, int*, int &) override;
     void offset_ParaView_bedshear(lexer*, int*, int &) override;
-    
+
     void print_2D_parameter1(lexer*, ghostcell*,ofstream&) override;
     void print_3D_parameter1(lexer*, ghostcell*, std::vector<char>&, size_t&) override;
-	void name_ParaView_parallel_parameter1(lexer*,ofstream&) override;
+    void name_ParaView_parallel_parameter1(lexer*,ofstream&) override;
     void name_ParaView_parameter1(lexer*, ostream&, int*, int &) override;
     void offset_ParaView_2D_parameter1(lexer*, int*, int &) override;
     void offset_ParaView_parameter1(lexer*, int*, int &) override;
-    
+
     void print_2D_parameter2(lexer*, ghostcell*,ofstream&) override;
     void print_3D_parameter2(lexer*, ghostcell*, std::vector<char>&, size_t&) override;
-	void name_ParaView_parallel_parameter2(lexer*,ofstream&) override;
+    void name_ParaView_parallel_parameter2(lexer*,ofstream&) override;
     void name_ParaView_parameter2(lexer*, ostream&, int*, int &) override;
     void offset_ParaView_2D_parameter2(lexer*, int*, int &) override;
     void offset_ParaView_parameter2(lexer*, int*, int &) override;
-    
+
 
 private:
-    
+
     void log_ini(lexer*);
     void sedimentlog(lexer*);
     sediment_fdm *s;
-    bedload *pbed;  
+    bedload *pbed;
     bedconc *pcbed;
     sandslide *pslide;
     topo_relax *prelax;
@@ -170,27 +170,27 @@ private:
     nhflow_suspended *pnhfsusp;
     nhflow_scalar_convection *pnhfsuspdisc;
     nhflow_diffusion *pnhfsuspdiff;
-    
+
     diffusion *psuspdiff;
     convection *psuspdisc;
-	bedshear *pbedshear;
+    bedshear *pbedshear;
     patchBC_interface *pBC;
     bedload_direction *pbeddir;
     bedprobe_point *pbedpt;
-	bedprobe_line_x *pbedlinex;
-	bedprobe_line_y *pbedliney;
-	bedprobe_max *pbedmax;
-	bedshear_probe *pbedshearprobe;
-	bedshear_max *pbedshearmax;
+    bedprobe_line_x *pbedlinex;
+    bedprobe_line_y *pbedliney;
+    bedprobe_max *pbedmax;
+    bedshear_probe *pbedshearprobe;
+    bedshear_max *pbedshearmax;
     sediment_f *psed;
     ofstream sedlogout;
-    
+
     double starttime;
-    
+
     int volume_token,sedcalc;
     int gcval_eta;
     double volume0;
-	
+
 };
 
 #endif

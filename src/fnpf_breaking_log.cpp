@@ -30,14 +30,14 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 fnpf_breaking_log::fnpf_breaking_log(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
-	// Create Folder
-	mkdir("./REEF3D_FNPF_Breaking_Log",0777);
-	
-	// result file
+{
+    // Create Folder
+    mkdir("./REEF3D_FNPF_Breaking_Log",0777);
+
+    // result file
     filename(p,c,pgc);
-	
-	result.open(name);
+
+    result.open(name);
 }
 
 fnpf_breaking_log::~fnpf_breaking_log()
@@ -47,14 +47,14 @@ fnpf_breaking_log::~fnpf_breaking_log()
 
 void fnpf_breaking_log::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    
+
     // result section
     SLICELOOP4
     if(c->breaklog(i,j)>0)
     {
     result<<p->simtime<<" "<<p->XP[IP]<<" "<<p->YP[JP]<<endl;
     //cout<<p->simtime<<" "<<p->XP[IP]<<" "<<p->YP[JP]<<endl;
-    } 
+    }
 
 
 }

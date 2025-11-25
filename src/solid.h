@@ -37,9 +37,9 @@ using namespace std;
 class solid : public increment
 {
 public:
-	solid(lexer*, fdm*, ghostcell*);
-	virtual ~solid();
-	void start(lexer*, fdm*, ghostcell*, ioflow*, convection*, reinitopo*);
+    solid(lexer*, fdm*, ghostcell*);
+    virtual ~solid();
+    void start(lexer*, fdm*, ghostcell*, ioflow*, convection*, reinitopo*);
 
 private:
 
@@ -53,5 +53,3 @@ private:
 };
 
 #endif
-
-

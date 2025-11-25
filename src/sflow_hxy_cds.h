@@ -33,17 +33,17 @@ using namespace std;
 class sflow_hxy_cds : public sflow_hxy_disc, public increment
 {
 public:
-	sflow_hxy_cds(lexer*,patchBC_interface*);
-	virtual ~sflow_hxy_cds();
+    sflow_hxy_cds(lexer*,patchBC_interface*);
+    virtual ~sflow_hxy_cds();
 
-	void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override;
+    void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override;
 
 private:
 
     sflow_flux *pflux;
     double ivel1,ivel2,jvel1,jvel2;
     int qq;
-    
+
     patchBC_interface *pBC;
 
 };

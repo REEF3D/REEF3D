@@ -33,10 +33,10 @@ public:
 
     vec2D(lexer*);
     virtual ~vec2D();
-    
+
     void resize(lexer*,int,int);
-    
-	double *V;
+
+    double *V;
 
 };
 

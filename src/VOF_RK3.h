@@ -39,25 +39,24 @@ using namespace std;
 class VOF_RK3 : public freesurface, gradient
 {
 public:
-	VOF_RK3(lexer*, fdm*, ghostcell*,heat*);
-	virtual ~VOF_RK3();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
-	void update(lexer*,fdm*,ghostcell*,field&) override;
+    VOF_RK3(lexer*, fdm*, ghostcell*,heat*);
+    virtual ~VOF_RK3();
+    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
+    void update(lexer*,fdm*,ghostcell*,field&) override;
 
-	void compression(lexer*,fdm*,ghostcell*,convection*,field&,double);
+    void compression(lexer*,fdm*,ghostcell*,convection*,field&,double);
 
 private:
     fluid_update *pupdate;
-	
-	field1 uc;
-	field2 vc;
-	field3 wc;
+
+    field1 uc;
+    field2 vc;
+    field3 wc;
     field4 F;
 
-	int gcval_frac;
-	double starttime;
-	
-	convection *ppconvec;
+    int gcval_frac;
+    double starttime;
+
+    convection *ppconvec;
 };
 #endif
-

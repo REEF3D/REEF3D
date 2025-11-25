@@ -33,27 +33,27 @@ using namespace std;
 class suspended_IM1 : public suspended, public increment
 {
 public:
-	suspended_IM1(lexer *, fdm*);
-	virtual ~suspended_IM1();
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override;
-	void ctimesave(lexer*, fdm*) override;
-    
+    suspended_IM1(lexer *, fdm*);
+    virtual ~suspended_IM1();
+    void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override;
+    void ctimesave(lexer*, fdm*) override;
+
     void suspsource(lexer*,fdm*,field&,sediment_fdm*);
     void bcsusp_start(lexer*,fdm*,ghostcell*,sediment_fdm*,field&);
-	void sedfsf(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
+    void sedfsf(lexer*,fdm*,field&);
+    void clearrhs(lexer*,fdm*);
     void fillconc(lexer*,fdm*,ghostcell*,sediment_fdm*);
 
-	int gcval_susp;
+    int gcval_susp;
 
-	field4 concn;
+    field4 concn;
 
 private:
     void timesource(lexer* p, fdm* a, field& fn);
     double starttime;
-    void fill_wvel(lexer*,fdm*,ghostcell*,sediment_fdm*); 
+    void fill_wvel(lexer*,fdm*,ghostcell*,sediment_fdm*);
     field3 wvel;
-    
+
     int count,q;
 
 };

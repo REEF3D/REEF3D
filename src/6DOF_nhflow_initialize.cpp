@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-   
+
 void sixdof_nhflow::ini(lexer *p, ghostcell *pgc)
 {
 }
@@ -35,7 +35,7 @@ void sixdof_nhflow::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->X10==1 || p->X10==2)
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_nhflow(p, d, pgc);
-    
+
     if(p->X10==3)
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_shipwave(p,pgc,d->eta,d->WL);
@@ -56,4 +56,3 @@ void sixdof_nhflow::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, sl
 void sixdof_nhflow::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
 }
-

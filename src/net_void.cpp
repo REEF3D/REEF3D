@@ -23,11 +23,11 @@ Author: Tobias Martin
 #include"net_void.h"
 
 void net_void::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
-{	
+{
 }
 
 void net_void::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
-{	
+{
 }
 
 void net_void::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
@@ -41,14 +41,14 @@ void net_void::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void net_void::netForces
 (
     lexer *p,
-	double& Xne, double& Yne, double& Zne,
-	double& Kne, double& Mne, double& Nne
+    double& Xne, double& Yne, double& Zne,
+    double& Kne, double& Mne, double& Nne
 )
 {
-	Xne = 0.0;
-	Yne = 0.0;
-	Zne = 0.0;
-	Kne = 0.0;
-	Mne = 0.0;
-	Nne = 0.0;
+    Xne = 0.0;
+    Yne = 0.0;
+    Zne = 0.0;
+    Kne = 0.0;
+    Mne = 0.0;
+    Nne = 0.0;
 }

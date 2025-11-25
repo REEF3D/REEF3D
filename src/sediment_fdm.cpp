@@ -35,21 +35,8 @@ sediment_fdm::sediment_fdm(lexer *p) : P(p),Q(p),
                                        cbe(p),cb(p),cbn(p),conc(p),
                                        waterlevel(p),guard(p),MOB(p)
 {
-
 }
 
 sediment_fdm::~sediment_fdm()
 {
 }
-
-
-
-
-
-
-
-
-
-
-
-

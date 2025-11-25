@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 /*
     Reference:
-    Bengt Fornberg, Generation of Finite Difference Formulas on Arbitrarily Spaced Grids, 
+    Bengt Fornberg, Generation of Finite Difference Formulas on Arbitrarily Spaced Grids,
     Mathematics of Compuation, 51, 184, 1988, pp. 699-706
 */
 
@@ -37,23 +37,14 @@ using namespace std;
 class fnpf_discrete_weights : public increment
 {
 public:
-	fnpf_discrete_weights(lexer*);
-	virtual ~fnpf_discrete_weights();
+    fnpf_discrete_weights(lexer*);
+    virtual ~fnpf_discrete_weights();
 
     void ck_weights(lexer*, double**, double *, int, int, int, int);
 
 private:
-    
+
 
 };
 
 #endif
-
-
-
-
-
-
-
-
-

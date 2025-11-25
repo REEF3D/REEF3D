@@ -28,27 +28,27 @@ Author: Hans Bihs
 void ghostcell::gcsl_sommerfeld(lexer *p, slice& f, int gcv, int bc, int cs)
 {
     double dfx1,dfx4,dfy2,dfy3;
-    
+
     dfx1 = (f(i+1,j)-f(i,j))/p->DXM;
     dfx4 = (f(i,j)-f(i-1,j))/p->DXM;
     dfy2 = (f(i,j)-f(i,j-1))/p->DXM;
     dfy3 = (f(i,j+1)-f(i,j))/p->DXM;
 
-            
-	if(cs==1)
-	for(q=0;q<margin;++q)
-	f(i-q-1,j) = f(i,j) - p->dt*sqrt(9.81*(p->wd+f(i,j)))*dfx1;
 
-	if(cs==2)
-	for(q=0;q<margin;++q)
-	f(i,j+q+1) = f(i,j) - p->dt*sqrt(9.81*(p->wd+f(i,j)))*dfy2;
+    if(cs==1)
+    for(q=0;q<margin;++q)
+    f(i-q-1,j) = f(i,j) - p->dt*sqrt(9.81*(p->wd+f(i,j)))*dfx1;
 
-	if(cs==3)
-	for(q=0;q<margin;++q)
-	f(i,j-q-1) = f(i,j) - p->dt*sqrt(9.81*(p->wd+f(i,j)))*dfy3;
+    if(cs==2)
+    for(q=0;q<margin;++q)
+    f(i,j+q+1) = f(i,j) - p->dt*sqrt(9.81*(p->wd+f(i,j)))*dfy2;
 
-	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j) = f(i,j) - p->dt*sqrt(9.81*(p->wd+f(i,j)))*dfx4;
+    if(cs==3)
+    for(q=0;q<margin;++q)
+    f(i,j-q-1) = f(i,j) - p->dt*sqrt(9.81*(p->wd+f(i,j)))*dfy3;
+
+    if(cs==4)
+    for(q=0;q<margin;++q)
+    f(i+q+1,j) = f(i,j) - p->dt*sqrt(9.81*(p->wd+f(i,j)))*dfx4;
 
 }

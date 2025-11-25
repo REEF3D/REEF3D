@@ -40,38 +40,38 @@ class nhflow_force :  public increment, private vtp3D
 {
 
 public:
-	nhflow_force(lexer*,fdm_nhf*,ghostcell*,int);
-	virtual ~nhflow_force();
-	void start(lexer*,fdm_nhf*,ghostcell*);
+    nhflow_force(lexer*,fdm_nhf*,ghostcell*,int);
+    virtual ~nhflow_force();
+    void start(lexer*,fdm_nhf*,ghostcell*);
     void ini(lexer*,fdm_nhf*,ghostcell*);
 
 private:
-	void triangulation(lexer*, fdm_nhf*, ghostcell*);
-	void reconstruct(lexer*, fdm_nhf*);
-	void addpoint(lexer*,fdm_nhf*,int,int);
-	void finalize(lexer*,fdm_nhf*);
-    
+    void triangulation(lexer*, fdm_nhf*, ghostcell*);
+    void reconstruct(lexer*, fdm_nhf*);
+    void addpoint(lexer*,fdm_nhf*,int,int);
+    void finalize(lexer*,fdm_nhf*);
+
     void allocate(lexer*,fdm_nhf*,ghostcell*);
     void deallocate(lexer*,fdm_nhf*,ghostcell*);
 
     int *vertice,*nodeflag;
     double *eta;
-	
-	int **tri, **facet, *confac, *numfac,*numpt;
-	double **ccpt, **pt, *ls;
-	double   dV1,dV2,C1,C2,mi;
-	int numtri,numvert, numtri_mem, numvert_mem;
-	int count,countM,n,nn,q;
-	int ccptcount,facount,check;
-	int polygon_sum,polygon_num,vertice_num;
-	const double zero,interfac;
+
+    int **tri, **facet, *confac, *numfac,*numpt;
+    double **ccpt, **pt, *ls;
+    double   dV1,dV2,C1,C2,mi;
+    int numtri,numvert, numtri_mem, numvert_mem;
+    int count,countM,n,nn,q;
+    int ccptcount,facount,check;
+    int polygon_sum,polygon_num,vertice_num;
+    const double zero,interfac;
     double epsi;
-	
-	
+
+
     void force_calc(lexer*,fdm_nhf*,ghostcell*);
-    
-    
-	void print_force(lexer*,fdm_nhf*,ghostcell*);
+
+
+    void print_force(lexer*,fdm_nhf*,ghostcell*);
     void print_ini(lexer*,fdm_nhf*,ghostcell*);
     void print_vtp(lexer*,fdm_nhf*,ghostcell*);
     void pvtp(lexer*,int);
@@ -81,13 +81,13 @@ private:
     float ffn;
     int gcval_phi;
     double printtime,printtime2;
-	int forceprintcount;
+    int forceprintcount;
     int gcval_press;
-    
+
     // force
     double Fx,Fy,Fz;
     double A_tot,A;
-    
+
     double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4;
     double xc,yc,zc;
     double nx,ny,nz,norm;
@@ -96,17 +96,17 @@ private:
     double etaval,hspval;
     double du,dv,dw;
     double at,bt,ct,st;
-    
+
     ofstream fout;
-    
+
     double xs,xe,ys,ye,zs,ze;
     double xm,ym,zm;
-	int is,ie,js,je,ks,ke;
+    int is,ie,js,je,ks,ke;
     const int ID;
-	
+
     double ux,vy,wz,vel,pressure;
     double xloc,yloc,zloc;
-	double xlocvel,ylocvel,zlocvel;
+    double xlocvel,ylocvel,zlocvel;
     double sgnx,sgny,sgnz;
     double Ax;
     double Ay;
@@ -116,5 +116,3 @@ private:
 };
 
 #endif
-
-

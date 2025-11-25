@@ -57,23 +57,23 @@ void ioflow_f::velini(lexer *p, fdm *a, ghostcell *pgc)
 
     if(p->B60==1)
     {
-    p->Ua=p->Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20); 
+    p->Ua=p->Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20);
     p->Qi=p->W10;
     }
-    
+
     if(p->B60==2||p->B60==4)
     {
-    p->Ua=p->Ui=hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/(Ai>1.0e-20?Ai:1.0e20); 
+    p->Ua=p->Ui=hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)/(Ai>1.0e-20?Ai:1.0e20);
     p->Qi=hydrograph_ipol(p,pgc,hydro_in,hydro_in_count);
     }
-	
-	if(p->B60==3||p->B60==4)
+
+    if(p->B60==3||p->B60==4)
     {
-    p->Uo=p->Ui=hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20); 
+    p->Uo=p->Ui=hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)/(Ao>1.0e-20?Ao:1.0e20);
     p->Qo=hydrograph_ipol(p,pgc,hydro_out,hydro_out_count);
     }
-    
-    
+
+
     ULOOP
     a->u(i,j,k)=p->Ui;
 
@@ -98,4 +98,3 @@ void ioflow_f::velini(lexer *p, fdm *a, ghostcell *pgc)
     }
 
 }
-

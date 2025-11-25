@@ -31,23 +31,23 @@ void vrans_veg::kw_source(lexer *p, fdm *a, field &kin)
     double uvel,vvel,wvel,uu;
     double kw;
     double Ckp=1.0;
-    
+
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
     if(a->porosity(i,j,k)<1.0)
     {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
         vvel = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel = 0.5*(a->w(i,j,k)+a->w(i,j,k-1));
-        
+
         uu = uvel*uvel + vvel*vvel + wvel*wvel;
-        
+
         kw = Ckp*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*kin(i,j,k));
 
         a->rhsvec.V[count] += kw;
-    
-        ++count;  
+
+        ++count;
     }
 }
 
@@ -57,22 +57,22 @@ void vrans_veg::ke_source(lexer *p, fdm *a, field &kin)
     double uvel,vvel,wvel,uu;
     double kw;
     double Ckp=1.0;
-    
+
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
     if(a->porosity(i,j,k)<1.0)
     {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
         vvel = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel = 0.5*(a->w(i,j,k)+a->w(i,j,k-1));
-        
+
         uu = uvel*uvel + vvel*vvel + wvel*wvel;
-        
+
         kw = Ckp*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*kin(i,j,k));
 
         a->rhsvec.V[count] += kw;
-    
-        ++count;  
+
+        ++count;
     }
 }

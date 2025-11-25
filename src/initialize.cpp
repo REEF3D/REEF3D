@@ -35,114 +35,114 @@ initialize::~initialize()
 }
 
 void initialize::start(fdm* a, lexer* p, ghostcell* pgc)
-{	
-	inifdm(p,a,pgc);
-	nodecalc(p,a);
-	maxcoor(p,a,pgc);
-	paraini(p,a,pgc);
-    
-    
+{
+    inifdm(p,a,pgc);
+    nodecalc(p,a);
+    maxcoor(p,a,pgc);
+    paraini(p,a,pgc);
+
+
     p->phimean=p->F56;
-    
+
     if(p->F60>-1.0e20)
     p->phimean=p->F60;
-        
 
-	
-	if(p->F40>0)
-	iniphi(p,a,pgc);
 
-	if(p->F80>0 && p->F80<4)
-	inivof(a,p,pgc);
-    
-	if(p->F80==4)
-	inivofPLIC(a,p,pgc);  
 
-	if(p->F70>0 && p->F80>0 && p->F80<4)
-	inivof_box(p,a,pgc);
+    if(p->F40>0)
+    iniphi(p,a,pgc);
 
-	if(p->S10>0 || p->toporead==1)
-	topoini(p,a,pgc);
-	
-	pgc->flagbase(p,a);
+    if(p->F80>0 && p->F80<4)
+    inivof(a,p,pgc);
+
+    if(p->F80==4)
+    inivofPLIC(a,p,pgc);
+
+    if(p->F70>0 && p->F80>0 && p->F80<4)
+    inivof_box(p,a,pgc);
+
+    if(p->S10>0 || p->toporead==1)
+    topoini(p,a,pgc);
+
+    pgc->flagbase(p,a);
 }
 
 void initialize::inifdm(lexer* p, fdm* a, ghostcell* pgc)
-{	
-		ULOOP
-		a->u(i,j,k)=0.0;
+{
+        ULOOP
+        a->u(i,j,k)=0.0;
 
-		VLOOP
-		a->v(i,j,k)=0.0;
+        VLOOP
+        a->v(i,j,k)=0.0;
 
-		WLOOP
+        WLOOP
         a->w(i,j,k)=0.0;
 
-	LOOP
-	{
-		a->F(i,j,k)=0.0;
-		a->G(i,j,k)=0.0;
-		a->H(i,j,k)=0.0;
+    LOOP
+    {
+        a->F(i,j,k)=0.0;
+        a->G(i,j,k)=0.0;
+        a->H(i,j,k)=0.0;
 
-		a->press(i,j,k)=p->I55;
-        
+        a->press(i,j,k)=p->I55;
+
         a->Fi(i,j,k)=0.0;
 
-		a->ro(i,j,k)=p->W1;
-		a->visc(i,j,k)=p->W2;
-		a->eddyv(i,j,k)=0.0;
-		a->phi(i,j,k)=1.0;
+        a->ro(i,j,k)=p->W1;
+        a->visc(i,j,k)=p->W2;
+        a->eddyv(i,j,k)=0.0;
+        a->phi(i,j,k)=1.0;
         a->vof(i,j,k)=1.0;
 
-		a->conc(i,j,k)=0.0;
-	}
+        a->conc(i,j,k)=0.0;
+    }
 
-	ALOOP
+    ALOOP
     {
-	a->fb(i,j,k)=1.0;
+    a->fb(i,j,k)=1.0;
     a->topo(i,j,k)=1.0;
     a->porosity(i,j,k)=1.0;
     }
 
-	pgc->start4(p,a->ro,1);
     pgc->start4(p,a->ro,1);
-	pgc->start4(p,a->visc,1);
-	pgc->start4(p,a->eddyv,1);
+    pgc->start4(p,a->ro,1);
+    pgc->start4(p,a->visc,1);
+    pgc->start4(p,a->eddyv,1);
     pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,a->press,1);
-	pgc->start4a(p,a->fb,150);
-	pgc->start4a(p,a->topo,150);
+    pgc->start4a(p,a->press,1);
+    pgc->start4a(p,a->fb,150);
+    pgc->start4a(p,a->topo,150);
     pgc->start4(p,a->phi,50);
 }
 
 void initialize::nodecalc(lexer* p, fdm* a)
 {
-	int count=0;
-	p->pointnum=0;
-	p->cellnum=0;
-	i=0;
-    
-    // 3D
-	TPLOOP
-	{
-	++count;
-	++p->pointnum;
-	a->nodeval(i,j,k)=count;
-	}
+    int count=0;
+    p->pointnum=0;
+    p->cellnum=0;
+    i=0;
 
-	LOOP
-	++p->cellnum;
-    
+    // 3D
+    TPLOOP
+    {
+    ++count;
+    ++p->pointnum;
+    a->nodeval(i,j,k)=count;
+    }
+
+    LOOP
+    ++p->cellnum;
+
     LOOP
     ++p->tpcellnum;
-    
+
     // 2D
     count=0;
     TPSLICELOOP
-	{
-	++count;
-	++p->pointnum2D;
-	a->nodeval2D(i,j)=count;
+    {
+    ++count;
+    ++p->pointnum2D;
+    a->nodeval2D(i,j)=count;
     }
 }
 
@@ -171,39 +171,38 @@ p->zcoormin=1.0e9;
      p->maxlength=MAX(p->maxlength,p->zcoormax-p->zcoormin);
 
      p->maxlength=pgc->globalmax(p->maxlength);
-	 
-	 p->xcoormax=pgc->globalmax(p->xcoormax);
-	 p->ycoormax=pgc->globalmax(p->ycoormax);
-	 p->zcoormax=pgc->globalmax(p->zcoormax);
-	 
-	 p->xcoormin=pgc->globalmin(p->xcoormin);
-	 p->ycoormin=pgc->globalmin(p->ycoormin);
-	 p->zcoormin=pgc->globalmin(p->zcoormin);
-	 
-	 if(p->F42>=0.0)
-	 p->maxlength = p->F42;
+
+     p->xcoormax=pgc->globalmax(p->xcoormax);
+     p->ycoormax=pgc->globalmax(p->ycoormax);
+     p->zcoormax=pgc->globalmax(p->zcoormax);
+
+     p->xcoormin=pgc->globalmin(p->xcoormin);
+     p->ycoormin=pgc->globalmin(p->ycoormin);
+     p->zcoormin=pgc->globalmin(p->zcoormin);
+
+     if(p->F42>=0.0)
+     p->maxlength = p->F42;
 }
 
 int initialize::conv(double a)
 {
 
-	int b,c;
-	double d,diff;
+    int b,c;
+    double d,diff;
 
-	c= int( a);
-	d=double(c);
-	diff=a-d;
+    c= int( a);
+    d=double(c);
+    diff=a-d;
 
-	b=c;
+    b=c;
 
-	if(diff>0.5)
-	b=c+1;
+    if(diff>0.5)
+    b=c+1;
 
-	if(diff<=-0.5)
-	b=c-1;
+    if(diff<=-0.5)
+    b=c-1;
 
 
-	return b;
+    return b;
 
 }
-

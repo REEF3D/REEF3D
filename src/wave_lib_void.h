@@ -33,7 +33,7 @@ class wave_lib_void : public wave_lib_precalc, public wave_lib_parameters, publi
 {
 public:
     wave_lib_void(lexer*, ghostcell*);
-	virtual ~wave_lib_void();
+    virtual ~wave_lib_void();
 
     double wave_u(lexer*,double,double,double) override;
     double wave_v(lexer*,double,double,double) override;
@@ -43,7 +43,7 @@ public:
 
     void parameters(lexer*,ghostcell*) override;
     void wave_prestep(lexer*,ghostcell*) override;
-    
+
 private:
     double singamma,cosgamma;
 };

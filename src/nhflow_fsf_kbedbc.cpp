@@ -30,7 +30,7 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
     double wval,w_n;
     double Pval,Qval;
     double fac;
-  
+
     // Kinematic Bed BC
     GC4LOOP
     if(p->gcb4[n][3]==5 && p->gcb4[n][4]==21)
@@ -38,27 +38,27 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
-    
+
     Pval = U[IJK];
     Qval = V[IJK];
-    
-    wval=0.0;    
-    
+
+    wval=0.0;
+
         dfdx_plus = (d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP];
         dfdx_min  = (d->depth(i,j)-d->depth(i-1,j))/p->DXP[IM1];
-    
+
         detadx = limiter(dfdx_plus,dfdx_min);
-        
+
         dfdy_plus = (d->depth(i,j+1)-d->depth(i,j))/p->DYP[JP];
         dfdy_min  = (d->depth(i,j)-d->depth(i,j-1))/p->DYP[JM1];
-    
+
         detady = limiter(dfdy_plus,dfdy_min);
-        
-        
+
+
         wval = - Pval*detadx
 
                - Qval*detady;
-    
+
     if(p->wet[IJ]==0)
     wval=0.0;
 
@@ -69,7 +69,6 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->Wt[IJKm1] = wval;
         d->Wt[IJKm2] = wval;
         d->Wt[IJKm3] = wval;
-        
+
     }
 }
-

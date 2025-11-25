@@ -40,9 +40,9 @@ class print_wsfline_x : public boundarycheck
 {
 public:
     print_wsfline_x(lexer*,fdm*,ghostcell*);
-	virtual ~print_wsfline_x();
+    virtual ~print_wsfline_x();
 
-	void wsfline(lexer*, fdm*, ghostcell*,ioflow*);
+    void wsfline(lexer*, fdm*, ghostcell*,ioflow*);
 
 
 private:
@@ -58,12 +58,11 @@ private:
     ofstream wsfout;
 
     double xcoor;
-	
-	wave_theory *pwave;
+
+    wave_theory *pwave;
 
     int maxknox,sumknox;
 
 };
 
 #endif
-

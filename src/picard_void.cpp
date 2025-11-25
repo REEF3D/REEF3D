@@ -37,4 +37,3 @@ void picard_void::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
 void picard_void::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field& b)
 {
 }
-

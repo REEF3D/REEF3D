@@ -38,7 +38,7 @@ class nhflow_suspended
 {
 public:
 
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*)=0;
+    virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*)=0;
     virtual void ctimesave(lexer*, fdm_nhf*)=0;
 };
 

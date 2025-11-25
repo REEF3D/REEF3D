@@ -28,37 +28,37 @@ Author: Hans Bihs
 void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
     double dx;
-	maxvz=maxdh=0.0;
-    
-    
+    maxvz=maxdh=0.0;
+
+
     SEDSLICELOOP
     {
     if(p->j_dir==1 && p->knoy>1)
     dx = MIN(p->DXN[IP],p->DYN[JP]);
-    
+
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     }
-    
-	SEDSLICELOOP
-	maxvz = MAX(fabs(s->vz(i,j)),maxvz);
 
-	maxvz=pgc->globalmax(maxvz);
-	
-	if(p->S15==0)
+    SEDSLICELOOP
+    maxvz = MAX(fabs(s->vz(i,j)),maxvz);
+
+    maxvz=pgc->globalmax(maxvz);
+
+    if(p->S15==0)
     p->dtsed=MIN(p->S13, (p->S14*dx)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
 
     if(p->S15==1)
     p->dtsed=MIN(p->dt, (p->S14*dx)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
-    
+
     if(p->S15==2)
     p->dtsed=p->S13;
 
     p->dtsed=pgc->timesync(p->dtsed);
-    
+
     //
     maxdh=p->dtsed*maxvz;
-	
-	if(p->mpirank==0)
-	cout<<p->mpirank<<" max_vz: "<<setprecision(4)<<maxvz<<" max_dh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
+
+    if(p->mpirank==0)
+    cout<<p->mpirank<<" max_vz: "<<setprecision(4)<<maxvz<<" max_dh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
 }

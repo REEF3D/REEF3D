@@ -30,11 +30,9 @@ using namespace std;
 class reinitopo_void : public reinitopo
 {
 public:
-	reinitopo_void();
-	virtual ~reinitopo_void();
-	void start(lexer*,fdm*,ghostcell*,field&) override;
+    reinitopo_void();
+    virtual ~reinitopo_void();
+    void start(lexer*,fdm*,ghostcell*,field&) override;
 };
 
 #endif
-
-

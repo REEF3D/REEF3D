@@ -26,7 +26,6 @@ Author: Hans Bihs
 
 flux_HJ_CDS2_vrans_2D::flux_HJ_CDS2_vrans_2D(lexer *p)
 {
-
 }
 
 flux_HJ_CDS2_vrans_2D::~flux_HJ_CDS2_vrans_2D()
@@ -35,64 +34,64 @@ flux_HJ_CDS2_vrans_2D::~flux_HJ_CDS2_vrans_2D()
 
 void flux_HJ_CDS2_vrans_2D::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double &uflux2)
 {
-	if(ipol==1)
-	{
-	uflux1 = uvel(i,j,k);
-	}
+    if(ipol==1)
+    {
+    uflux1 = uvel(i,j,k);
+    }
 
-	if(ipol==2)
-	{
-	pip=1;
-	uflux1 = 0.5*(uvel(i,j,k) + uvel(i-1,j,k));
-	pip=0;
-	}
-
-	if(ipol==3)
-	{
-	pip=1;
-	uflux1 = 0.25*(uvel(i,j,k) + uvel(i,j,k+1) + uvel(i-1,j,k) + uvel(i-1,j,k+1));
-	pip=0;
-	}
-
-	if(ipol==4)
-	{
+    if(ipol==2)
+    {
     pip=1;
-	uflux1 = 0.5*(uvel(i,j,k) + uvel(i-1,j,k))*(1.0/a->porosity(i,j,k));
-	pip=0;
-	}
+    uflux1 = 0.5*(uvel(i,j,k) + uvel(i-1,j,k));
+    pip=0;
+    }
+
+    if(ipol==3)
+    {
+    pip=1;
+    uflux1 = 0.25*(uvel(i,j,k) + uvel(i,j,k+1) + uvel(i-1,j,k) + uvel(i-1,j,k+1));
+    pip=0;
+    }
+
+    if(ipol==4)
+    {
+    pip=1;
+    uflux1 = 0.5*(uvel(i,j,k) + uvel(i-1,j,k))*(1.0/a->porosity(i,j,k));
+    pip=0;
+    }
 }
 
 void flux_HJ_CDS2_vrans_2D::v_flux(fdm* a,int ipol,field&vvel, double &vflux1, double &vflux2)
 {
-	vflux1 = 0.0;
+    vflux1 = 0.0;
 }
 
 void flux_HJ_CDS2_vrans_2D::w_flux(fdm* a,int ipol,field& wvel, double &wflux1, double &wflux2)
 {
 
-	if(ipol==1)
-	{
-	pip=3;
-	wflux1 = 0.25*(wvel(i,j,k) + wvel(i+1,j,k) + wvel(i+1,j,k-1) + wvel(i,j,k-1));
-	pip=0;
-	}
-
-	if(ipol==2)
-	{
-	pip=3;
-	wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j+1,k-1));
-	pip=0;
-	}
-
-	if(ipol==3)
-	{
-	wflux1 = wvel(i,j,k);
-	}
-
-	if(ipol==4)
-	{
+    if(ipol==1)
+    {
     pip=3;
-	wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j,k-1))*(1.0/a->porosity(i,j,k));
+    wflux1 = 0.25*(wvel(i,j,k) + wvel(i+1,j,k) + wvel(i+1,j,k-1) + wvel(i,j,k-1));
     pip=0;
-	}
+    }
+
+    if(ipol==2)
+    {
+    pip=3;
+    wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j+1,k-1));
+    pip=0;
+    }
+
+    if(ipol==3)
+    {
+    wflux1 = wvel(i,j,k);
+    }
+
+    if(ipol==4)
+    {
+    pip=3;
+    wflux1 = 0.5*(wvel(i,j,k) + wvel(i,j,k-1))*(1.0/a->porosity(i,j,k));
+    pip=0;
+    }
 }

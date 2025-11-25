@@ -35,26 +35,25 @@ class ifou : public convection,  public increment
 
 public:
 
-	ifou (lexer *);
-	virtual ~ifou();
+    ifou (lexer *);
+    virtual ~ifou();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+    void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
     double udir,vdir,wdir;
     double r, phi,denom;
-	double dx,dy,dz;
-	double L;
-	int count,rocount,countN,coliN;
-	int *range;
-    
+    double dx,dy,dz;
+    double L;
+    int count,rocount,countN,coliN;
+    int *range;
+
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 
-	void aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
+    void aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
 
     flux *pflux;
 
 };
 
 #endif
-

@@ -45,10 +45,10 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
             a->vof_sb(i,j,k)=1.0;
         }
         else
-        {   
+        {
             double r0xz,scaledVol,recheck;
             reconstructPlane_alt(a,p,voffield);
-            
+
             //NT
             r0xz=-(nx(i,j,k)*(0.25*p->DXN[IP])+nz(i,j,k)*(0.25*p->DZN[KP])-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*0.5*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*0.5*p->DZN[KP])-fabs(r0xz);
@@ -59,8 +59,8 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
             }
             else
             {
-                
-                    
+
+
                 if((nx(i,j,k)>0.0 && nz(i,j,k)<0.0) || (nx(i,j,k)<0.0 && nz(i,j,k)>0.0))
                 {
                     if(alpha(i,j,k)>0.0)
@@ -73,7 +73,7 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                 else
                     a->vof_nt(i,j,k)=1.0;
             }
-            
+
             //NB
             r0xz=-(nx(i,j,k)*(0.25*p->DXN[IP])+nz(i,j,k)*(-0.25*p->DZN[KP])-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*0.5*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*0.5*p->DZN[KP])-fabs(r0xz);
@@ -96,7 +96,7 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                 else
                     a->vof_nb(i,j,k)=1.0;
             }
-            
+
             //ST
             r0xz=-(nx(i,j,k)*(-0.25*p->DXN[IP])+nz(i,j,k)*(0.25*p->DZN[KP])-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*0.5*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*0.5*p->DZN[KP])-fabs(r0xz);
@@ -119,7 +119,7 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                 else
                     a->vof_st(i,j,k)=1.0;
             }
-            
+
             //SB
             r0xz=-(nx(i,j,k)*(-0.25*p->DXN[IP])+nz(i,j,k)*(-0.25*p->DZN[KP])-alpha(i,j,k));
             recheck=0.5*(fabs(nx(i,j,k))*0.5*p->DXN[IP]+fabs(ny(i,j,k))*p->DYN[JP]+fabs(nz(i,j,k))*0.5*p->DZN[KP])-fabs(r0xz);
@@ -148,6 +148,6 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
     pgc->start4(p,a->vof_nb,1);
     pgc->start4(p,a->vof_st,1);
     pgc->start4(p,a->vof_sb,1);
-    
+
     return;
 }

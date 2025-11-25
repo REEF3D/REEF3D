@@ -100,7 +100,7 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     vtp3D::ending(result);
 
     //----------------------------------------------------------------------------
-    
+
     float ffn;
     int iin;
     //  XYZ

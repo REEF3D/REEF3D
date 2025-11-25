@@ -29,5 +29,4 @@ Author: Hans Bihs
 
 void iowave::waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
 {
-    
 }

@@ -27,33 +27,32 @@ Author: Hans Bihs
 
 void ghostcell::gcsl_outflow(lexer *p, slice& f, int gcv, int bc, int cs)
 {
-	if(cs==1)
-	for(q=0;q<margin;++q)
-	f(i-q-1,j)=f(i,j);
+    if(cs==1)
+    for(q=0;q<margin;++q)
+    f(i-q-1,j)=f(i,j);
 
-	if(cs==2)
-	for(q=0;q<margin;++q)
-	f(i,j+q+1)=f(i,j);
+    if(cs==2)
+    for(q=0;q<margin;++q)
+    f(i,j+q+1)=f(i,j);
 
-	if(cs==3)
-	for(q=0;q<margin;++q)
-	f(i,j-q-1)=f(i,j);
+    if(cs==3)
+    for(q=0;q<margin;++q)
+    f(i,j-q-1)=f(i,j);
 
-	if(cs==4)
+    if(cs==4)
     {
-	f(i+1,j) = MAX(0.0, f(i,j));//MAX(0.0, f(i+1,j) - (p->dt/p->dx)*sqrt(9.81*b->hp(i,j))*(f(i+1,j)-f(i,j)));
-    
+    f(i+1,j) = MAX(0.0, f(i,j));//MAX(0.0, f(i+1,j) - (p->dt/p->dx)*sqrt(9.81*b->hp(i,j))*(f(i+1,j)-f(i,j)));
+
     f(i+2,j) = f(i+1,j);
     f(i+3,j) = f(i+1,j);
     }
-    
+
 }
 
 void ghostcell::gcsl_outflow_fsf(lexer *p, slice& f, int gcv, int bc, int cs)
 {
-	// hx outflow
-	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+2,j)=f(i+1,j);
+    // hx outflow
+    if(cs==4)
+    for(q=0;q<margin;++q)
+    f(i+q+2,j)=f(i+1,j);
 }
-

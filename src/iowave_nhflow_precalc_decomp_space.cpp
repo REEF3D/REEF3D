@@ -34,10 +34,10 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
+        dg = distgen(p);
+        db = distbeach(p);
+
+        // Wave Generation
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
@@ -50,22 +50,22 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
                 }
             ++count;
             }
-		}
+        }
     }
     pgc->gcsl_start4(p,eta,50);
-    
+
 // U
     count=0;
     LOOP
     {
-		xg = xgen(p);
+        xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-        
+
         z=p->ZSP[IJK]-p->phimean;
 
-		// Wave Generation
-		if(p->B98==2 && u_switch==1)
+        // Wave Generation
+        if(p->B98==2 && u_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -77,21 +77,21 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
                 }
             ++count;
             }
-		}
+        }
     }
 
 // V
-    count=0;    
+    count=0;
     LOOP
     {
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-        
+
         z=p->ZSP[IJK]-p->phimean;
-        
-		// Wave Generation		
-		if(p->B98==2 && v_switch==1)
+
+        // Wave Generation
+        if(p->B98==2 && v_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -103,7 +103,7 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
                 }
             ++count;
             }
-		}
+        }
     }
 
 // W
@@ -113,11 +113,11 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-        
+
         z=p->ZSP[IJK]-p->phimean;
-        
-		// Wave Generation
-		if(p->B98==2 && w_switch==1)
+
+        // Wave Generation
+        if(p->B98==2 && w_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -129,6 +129,6 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
                 }
             ++count;
             }
-		}
-    }	
+        }
+    }
 }

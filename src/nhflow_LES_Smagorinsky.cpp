@@ -41,12 +41,12 @@ nhflow_LES_Smagorinsky::~nhflow_LES_Smagorinsky()
 
 void nhflow_LES_Smagorinsky::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans *pvrans)
 {
-	LOOP
+    LOOP
     d->EV[IJK] = pow(c_sgs,2.0) * pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j),2.0/3.0) * strainterm(p,d);
-    
-    
+
+
     double s11,s22,s33,s12,s13,s23;
-    
+
     LOOP
     {
         s11 = dudx(d->U);
@@ -55,7 +55,7 @@ void nhflow_LES_Smagorinsky::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_
         s12 = (dudy(d->U) + dvdx(d->V));
         s13 = (dudz(d->U) + dwdx(d->W));
         s23 = (dvdz(d->V) + dwdy(d->W));
-        
+
     d->test[IJK]=s11;
     }
 

@@ -39,20 +39,20 @@ void picard_f::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
     vol1=0.0;
 
     LOOP
-	{
-		if(b(i,j,k)>epsi)
-		H=1.0;
+    {
+        if(b(i,j,k)>epsi)
+        H=1.0;
 
-		if(b(i,j,k)<-epsi)
-		H=0.0;
+        if(b(i,j,k)<-epsi)
+        H=0.0;
 
-		if(fabs(b(i,j,k))<=epsi)
-		H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
+        if(fabs(b(i,j,k))<=epsi)
+        H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
 
-		vol1+=pow(p->DXM, 3.0)*H;
-	}
+        vol1+=pow(p->DXM, 3.0)*H;
+    }
 
-	vol1 = pgc->globalsum(vol1);
+    vol1 = pgc->globalsum(vol1);
 }
 
 void picard_f::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field& b)
@@ -61,20 +61,20 @@ void picard_f::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field& b)
     vol2=0.0;
 
     LOOP
-	{
-		if(b(i,j,k)>epsi)
-		H=1.0;
+    {
+        if(b(i,j,k)>epsi)
+        H=1.0;
 
-		if(b(i,j,k)<-epsi)
-		H=0.0;
+        if(b(i,j,k)<-epsi)
+        H=0.0;
 
-		if(fabs(b(i,j,k))<=epsi)
-		H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
+        if(fabs(b(i,j,k))<=epsi)
+        H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
 
-		vol2+=pow(p->DXM, 3.0)*H;
-	}
+        vol2+=pow(p->DXM, 3.0)*H;
+    }
 
-	vol2 = pgc->globalsum(vol2);
+    vol2 = pgc->globalsum(vol2);
 
 }
 
@@ -92,8 +92,8 @@ void picard_f::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field& b)
 
     volcalc2(p,a,pgc,b);
 
-	r1=pow((0.75/PI)*vol1,1.0/3.0);
-	r2=pow((0.75/PI)*vol2,1.0/3.0);
+    r1=pow((0.75/PI)*vol1,1.0/3.0);
+    r2=pow((0.75/PI)*vol2,1.0/3.0);
 
     w=r1-r2;
 

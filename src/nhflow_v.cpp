@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-nhflow_v::nhflow_v(lexer *p, fdm_nhf *d, ghostcell *pgc) 
+nhflow_v::nhflow_v(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
@@ -36,8 +36,4 @@ nhflow_v::~nhflow_v()
 
 void nhflow_v::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
-
 }
-
-
-

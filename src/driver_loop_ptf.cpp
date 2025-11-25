@@ -42,11 +42,11 @@ void driver::loop_ptf(fdm* a)
 {
     if(p->mpirank==0)
     cout<<"starting mainloop.PTF"<<endl;
-    
+
 //-----------MAINLOOP PTF----------------------------
-    
-	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
-	{
+
+    while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
+    {
         ++p->count;
         starttime=pgc->timer();
 
@@ -54,27 +54,27 @@ void driver::loop_ptf(fdm* a)
         {
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
-        
+
         cout<<"simtime: "<<p->simtime<<endl;
-		cout<<"timestep: "<<p->dt<<endl;
-        
-		if(p->B90>0 && p->B92<=11)
-		cout<<"t/T: "<<p->simtime/p->wT<<endl;
-        
+        cout<<"timestep: "<<p->dt<<endl;
+
+        if(p->B90>0 && p->B92<=11)
+        cout<<"t/T: "<<p->simtime/p->wT<<endl;
+
         if(p->B90>0 && p->B92>11)
-		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
+        cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
-        
+
         pflow->wavegen_precalc(p,pgc);
 
         // PFLOW
-		pptf->start(p,a,pgc,plapsolv,pfsfdisc,pflow,preini);
-    
+        pptf->start(p,a,pgc,plapsolv,pfsfdisc,pflow,preini);
+
         //timestep control
         p->simtime+=p->dt;
         ptstep->start(a,p,pgc,pturb);
-        
-        
+
+
         // printer
         pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
 
@@ -82,27 +82,27 @@ void driver::loop_ptf(fdm* a)
         if(p->mpirank==0)
         {
         endtime=pgc->timer();
-        
-		p->itertime=endtime-starttime;
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
-		
-		if(p->B90>0)
+
+        p->itertime=endtime-starttime;
+        p->totaltime+=p->itertime;
+        p->gctotaltime+=p->gctime;
+        p->Xtotaltime+=p->xtime;
+        p->meantime=(p->totaltime/double(p->count));
+        p->gcmeantime=(p->gctotaltime/double(p->count));
+        p->Xmeantime=(p->Xtotaltime/double(p->count));
+
+        if(p->B90>0)
         if(p->count%p->P12==0)
         {
-		cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
-		
-		cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
+        cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
+
+        cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;
+        cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
         cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
         }
-        
+
         // Write log files
         mainlog(p);
         maxlog(p);
@@ -110,24 +110,24 @@ void driver::loop_ptf(fdm* a)
         }
     p->gctime=0.0;
     p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-    
+    p->reinitime=0.0;
+    p->wavecalctime=0.0;
+
     stop(p,a,pgc);
-	}
+    }
 
-	if(p->mpirank==0)
-	{
-	cout<<endl<<"******************************"<<endl<<endl;
+    if(p->mpirank==0)
+    {
+    cout<<endl<<"******************************"<<endl<<endl;
 
-	cout<<"modelled time: "<<p->simtime<<endl;
-	cout << endl;
+    cout<<"modelled time: "<<p->simtime<<endl;
+    cout << endl;
 
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-	}
+    }
 
     pgc->final();
-    
+
 }

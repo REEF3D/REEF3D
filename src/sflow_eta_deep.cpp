@@ -30,47 +30,47 @@ void sflow_eta::wetdrydeep(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice
     //
     SLICELOOP4
     p->deep[IJ]=p->wet[IJ];
-    
+
     SLICELOOP4
     {
     if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0 || p->wet[Im1J]==0 || p->wet[Im2J]==0)
     p->deep[IJ]=0;
-    
-    
+
+
     if(p->j_dir==1)
     if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJp3]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0 || p->wet[IJm3]==0)
     p->deep[IJ]=0;
-    
+
     if(p->j_dir==1)
     if(p->wet[Ip1Jp1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Im1Jm1]==0)
     p->deep[IJ]=0;
     }
-    
+
     SLICELOOP4
     if(b->hp(i,j)<=10.0*wd_criterion)
     p->deep[IJ]=0;
-    
+
     SLICELOOP1
     {
         if(p->deep[IJ]==1 && p->deep[Ip1J]==1)
         b->deep1(i,j)=1;
-        
+
         if(p->deep[IJ]==0 || p->deep[Ip1J]==0)
         b->deep1(i,j)=0;
     }
-    
+
     SLICELOOP2
     {
         if(p->deep[IJ]==1 && p->deep[IJp1]==1)
         b->deep2(i,j)=1;
-        
+
         if(p->deep[IJ]==0 || p->deep[IJp1]==0)
         b->deep2(i,j)=0;
     }
-    
+
     SLICELOOP4
     b->test(i,j) = p->deep[IJ];
 
     pgc->gcsl_start4Vint(p,p->deep,50);
-    
+
 }

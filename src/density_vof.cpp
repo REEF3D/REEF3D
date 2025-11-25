@@ -28,18 +28,18 @@ Author: Fabian Knoblauch
 
 density_vof::density_vof(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
-    
-    
+
+
     double psim;
     int count;
-    
-    if(p->j_dir==0)        
+
+    if(p->j_dir==0)
     p->psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
-        
+
     if(p->j_dir==1)
     p->psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
-    
-    
+
+
     p->psi0=p->psi;
 }
 
@@ -48,13 +48,13 @@ density_vof::~density_vof()
 }
 
 double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
-{  
-    if(p->F92==1)   
+{
+    if(p->F92==1)
     {
         double phival, psiro;
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
         psiro = p->psi;
-        
+
         if(phival>psiro)
             H=1.0;
 
@@ -63,10 +63,10 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 
         if(fabs(phival)<=psiro)
             H=0.5*(1.0 + phival/(psiro) + (1.0/PI)*sin((PI*phival)/(psiro)));
-    
+
         roval = p->W1*H + p->W3*(1.0-H);
     }
-    
+
     if(p->F92==2)
     {
         if(a->vof(i,j,k)>p->F94 && a->vof(i+aa,j+bb,k+cc)>p->F94)
@@ -103,7 +103,7 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
                 cout<<"density case missing"<<endl;
         }
     }
-    
+
     if(p->F92==3)
     {
         double H;
@@ -114,7 +114,7 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
             if(p->pos_x()>=p->F96_xs && p->pos_x()<=p->F96_xe)
             {
                 excepcheck=1;
-                
+
                 if(a->vof(i,j,k)>p->F94 && a->vof(i+aa,j+bb,k+cc)>p->F94)
                     roval=p->W1;
                 else if(a->vof(i,j,k)<p->F93 && a->vof(i+aa,j+bb,k+cc)<p->F93)
@@ -150,7 +150,7 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
                 }
             }
         }
-                
+
 
         if(excepcheck==0)
         {
@@ -172,10 +172,6 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         roval=roval = p->W1*H + p->W3*(1.0-H);
     }
 
-	return roval;
-	
+    return roval;
+
 }
-
-
-
-

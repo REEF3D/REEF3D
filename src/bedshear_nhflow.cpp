@@ -36,14 +36,14 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     double visc=p->W2;
     double us, usn;
     double U,V,W;
-    
+
     SLICEBASELOOP
     {
     s->tau_eff(i,j) = 0.0;
     s->tau_crit(i,j) = 0.0;
     s->MOB(i,j) = 0.0;
     }
-    
+
     k=0;
     SEDSLICELOOP
     {
@@ -52,58 +52,58 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         U = d->U[IJK];
         V = d->V[IJK];
         W = d->W[IJK];
-        
+
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
-        
+
         uabs = sqrt(U*U + V*V + W*W);
-        
+
         u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
         tau=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
-        
+
         us = 1.0e-6;
-        
+
         for(int qn=0; qn<10; ++qn)
         {
         usn = us;
-        
+
         us = uabs/((1.0/kappa) * log(dist*us/visc) + 5.5);
-        
+
         us += 0.5*(usn - us);
         }
         tau = density * us * us;
         }
-        
+
         if(p->S16==1 && p->B22==2)
         {
         U = d->U[IJK];
         V = d->V[IJK];
         W = d->W[IJK];
-        
+
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
-        
+
         uabs = sqrt(U*U + V*V + W*W);
-        
+
         u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
         tau=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
         }
-        
+
         if(p->S16==2)
         {
         U = d->U[IJK];
         V = d->V[IJK];
         W = d->W[IJK];
-        
+
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
-        
+
         uabs = sqrt(U*U + V*V + W*W);
-        
+
         u_plus = (1.0/kappa)*log(30.0*(dist/ks));
 
         tau = MAX(density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0), density*d->KIN[IJK]*0.3);
         }
-        
+
         if(p->S16==3)
         {
         double v_t,v_d;
@@ -111,20 +111,20 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         U = d->U[IJK];
         V = d->V[IJK];
         W = d->W[IJK];
-        
+
         v_d = d->VISC[IJK];
         v_t = d->EV[IJK];
-        
+
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
-        
+
         uabs = sqrt(U*U + V*V + W*W);
-    
+
         tau=density*(v_d + v_t)*(uabs/dist);
         }
-        
+
         if(p->S16==4)
         tau=density*d->KIN[IJK]*0.3;
-        
+
         if(p->S16==6)
         {
         double Cval,wh;
@@ -146,7 +146,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         Cval=18.0*log10((12.0*wh)/ks);
 
         u_abs = sqrt(U*U + V*V);
-	
+
         tau = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
         }
 
@@ -159,17 +159,17 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
 void bedshear::taucritbed(lexer *p, fdm_nhf* d, ghostcell *pgc, sediment_fdm *s)
 {
     double density = p->W1;
-    
+
     SEDSLICELOOP
     {
     k = s->bedk(i,j);
-    
+
     tauc = (p->S30*fabs(p->W22)*(p->S22-density))*p->S20*s->reduce(i,j);
-  
+
     s->tau_crit(i,j) = tauc;
     s->shearvel_crit(i,j) = sqrt(tauc/density);
     s->shields_crit(i,j) = tauc/((p->S22-density)*fabs(p->W22)*p->S20);
-    
+
     s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
     }
 }

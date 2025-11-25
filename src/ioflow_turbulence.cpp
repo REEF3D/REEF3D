@@ -50,5 +50,3 @@ void ioflow_f::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)
         }
     }
 }
-
-

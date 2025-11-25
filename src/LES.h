@@ -31,16 +31,14 @@ using namespace std;
 class LES : public les_io
 {
 public:
-	LES(lexer *, fdm*);
-	virtual ~LES();
-	void isource(lexer*, fdm*) override;
-	void jsource(lexer*, fdm*) override;
-	void ksource(lexer*, fdm*) override;
+    LES(lexer *, fdm*);
+    virtual ~LES();
+    void isource(lexer*, fdm*) override;
+    void jsource(lexer*, fdm*) override;
+    void ksource(lexer*, fdm*) override;
 
-	double starttime;
+    double starttime;
 
 };
 
 #endif
-
-

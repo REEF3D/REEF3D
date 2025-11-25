@@ -31,50 +31,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
 #include"mooring_dynamic.h"
-    
+
 sixdof_void::sixdof_void(lexer *p, ghostcell *pgc)
 {
     if(p->mpirank==0)
     mkdir("./REEF3D_CFD_6DOF",0777);
-    
+
     pnetinter = new net_interface(p,pgc);
-    
+
     alpha[0] = 8.0/15.0;
     alpha[1] = 2.0/15.0;
     alpha[2] = 2.0/6.0;
-    
+
     gamma[0] = 8.0/15.0;
     gamma[1] = 5.0/12.0;
     gamma[2] = 3.0/4.0;
-    
+
     zeta[0] = 0.0;
     zeta[1] = -17.0/60.0;
     zeta[2] = -5.0/12.0;
-    
-    if(((p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2)) 
+
+    if(((p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2))
     {
     alpha[0] = 1.0;
     alpha[1] = 0.25;
     alpha[2] = 2.0/3.0;
-    
+
     gamma[0] = 0.0;
     gamma[1] = 0.0;
     gamma[2] = 0.0;
-    
+
     zeta[0] = 0.0;
     zeta[1] = 0.0;
     zeta[2] = 0.0;
     }
-    
-    if(((p->N40==2 || p->N40==12 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2)) 
+
+    if(((p->N40==2 || p->N40==12 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2))
     {
     alpha[0] = 1.0;
     alpha[1] = 0.5;
-    
+
     gamma[0] = 0.0;
     gamma[1] = 0.0;
     gamma[2] = 0.0;
-    
+
     zeta[0] = 0.0;
     zeta[1] = 0.0;
     zeta[2] = 0.0;
@@ -99,24 +99,23 @@ void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &u
             pmooring[i]->start(p, pgc);
         }
     }
-    
+
     if(p->X320>0)
     {
         pnetinter->netForces_cfd(p,a,pgc,alpha[iter],quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
     }
-    
+
     ++p->printcount_sixdof;
 }
 
 
-void sixdof_void::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter, 
+void sixdof_void::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter,
                                         double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
 }
 
 void sixdof_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
-    
 }
 
 void sixdof_void::isource(lexer *p, fdm *a, ghostcell *pgc)

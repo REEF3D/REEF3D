@@ -35,21 +35,21 @@ class heat_AB :public bcheat, public heat_print
 {
 public:
     heat_AB(lexer *, fdm*, ghostcell*,heat*&);
-	virtual ~heat_AB();
+    virtual ~heat_AB();
 
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
+    void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
+    void ttimesave(lexer*, fdm*) override;
     void diff_update(lexer*, fdm*, ghostcell*) override;
-    
+
     field4 thermdiff;
 private:
     void clearrhs(lexer*,fdm*,ghostcell*);
-    
-	field4 tab;
+
+    field4 tab;
     fluid_update *pupdate;
 
-	int gcval_heat;
-	double starttime, endtime;
+    int gcval_heat;
+    double starttime, endtime;
 };
 
 #endif

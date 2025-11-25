@@ -33,13 +33,12 @@ using namespace std;
 class fixtimestep : public timestep, public increment
 {
 public:
-	fixtimestep(lexer*);
-	virtual ~fixtimestep();
-	void start(fdm*,lexer*,ghostcell*,turbulence*) override;
-	void ini(fdm*,lexer*,ghostcell*) override;
+    fixtimestep(lexer*);
+    virtual ~fixtimestep();
+    void start(fdm*,lexer*,ghostcell*,turbulence*) override;
+    void ini(fdm*,lexer*,ghostcell*) override;
 
 
 };
 
 #endif
-

@@ -26,13 +26,11 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void potentialfile_out::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
-	int num;
+{
+    int num;
 
     num = p->count;
 
     // open file
     sprintf(name,"./REEF3D_PotentialFile/REEF3D-potentialfile-%i-%08i.r3d",n+1,num);
 }
-
-

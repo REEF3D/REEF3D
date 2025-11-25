@@ -28,6 +28,6 @@ double wave_lib_spectrum::PM(lexer *p, double w)
 {
     // PM
     Sval = (5.0/16.0)*pow(p->wHs,2.0)*pow(p->wwp,4.0)*pow(w,-5.0)*exp(-(5.0/4.0)*pow(w/p->wwp,-4.0));
-     
+
     return Sval;
 }

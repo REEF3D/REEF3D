@@ -28,7 +28,7 @@ Author: Hans Bihs
 void ghostcell::gcsldf_update(lexer *p)
 {
     count=0;
-    
+
     // eta
     k=p->knoz-1;
     SLICELOOP4
@@ -36,27 +36,27 @@ void ghostcell::gcsldf_update(lexer *p)
     {
         if(p->DF[Im1JK]<0)
         ++count;
-        
+
         if(p->DF[Ip1JK]<0)
         ++count;
-        
+
         if(p->DF[IJm1K]<0)
         ++count;
-        
+
         if(p->DF[IJp1K]<0)
         ++count;
     }
-    
-    
+
+
     if(p->gcsldfeta4_count!=count)
     {
     p->Iresize(p->gcsldfeta4,p->gcsldfeta4_count,count,6,6);
-    
+
     p->gcsldfeta4_count=count;
     }
-    
-    
-    
+
+
+
     count=0;
     k=p->knoz-1;
     SLICELOOP4
@@ -70,16 +70,16 @@ void ghostcell::gcsldf_update(lexer *p)
         p->gcsldfeta4[count][4]=48;
         ++count;
         }
-        
+
         if(p->DF[Ip1JK]<0)
         {
         p->gcsldfeta4[count][0]=i;
         p->gcsldfeta4[count][1]=j;
-        p->gcsldfeta4[count][3]=4;      
+        p->gcsldfeta4[count][3]=4;
         p->gcsldfeta4[count][4]=48;
         ++count;
         }
-        
+
         if(p->DF[IJm1K]<0)
         {
         p->gcsldfeta4[count][0]=i;
@@ -88,7 +88,7 @@ void ghostcell::gcsldf_update(lexer *p)
         p->gcsldfeta4[count][4]=48;
         ++count;
         }
-        
+
         if(p->DF[IJp1K]<0)
         {
         p->gcsldfeta4[count][0]=i;
@@ -98,7 +98,7 @@ void ghostcell::gcsldf_update(lexer *p)
         ++count;
         }
     }
-    
+
     // -------------------------
     // bed
     k=0;
@@ -107,30 +107,30 @@ void ghostcell::gcsldf_update(lexer *p)
     {
         if(p->DF[Im1JK]<0)
         ++count;
-        
+
         if(p->DF[Ip1JK]<0)
         ++count;
-        
+
         if(p->DF[IJm1K]<0)
         ++count;
-        
+
         if(p->DF[IJp1K]<0)
         ++count;
     }
-    
-    
+
+
     if(p->gcsldfbed4_count!=count)
     {
     p->Iresize(p->gcsldfbed4,p->gcsldfbed4_count,count,6,6);
-    
+
     p->gcsldfbed4_count=count;
     }
-    
-    
+
+
     // assign gcsldfbed entries
-    
+
     count=0;
-    
+
     k=0;
     SLICELOOP4
     if(p->DF[IJK]==1)
@@ -143,16 +143,16 @@ void ghostcell::gcsldf_update(lexer *p)
         p->gcsldfbed4[count][4]=48;
         ++count;
         }
-        
+
         if(p->DF[Ip1JK]<0)
         {
         p->gcsldfbed4[count][0]=i;
         p->gcsldfbed4[count][1]=j;
-        p->gcsldfbed4[count][3]=4;      
+        p->gcsldfbed4[count][3]=4;
         p->gcsldfbed4[count][4]=48;
         ++count;
         }
-        
+
         if(p->DF[IJm1K]<0)
         {
         p->gcsldfbed4[count][0]=i;
@@ -161,7 +161,7 @@ void ghostcell::gcsldf_update(lexer *p)
         p->gcsldfbed4[count][4]=48;
         ++count;
         }
-        
+
         if(p->DF[IJp1K]<0)
         {
         p->gcsldfbed4[count][0]=i;
@@ -171,8 +171,8 @@ void ghostcell::gcsldf_update(lexer *p)
         ++count;
         }
     }
-    
-    
-    
-    
+
+
+
+
 }

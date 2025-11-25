@@ -38,16 +38,16 @@ class gage_discharge_window_x : public boundarycheck
 {
 public:
     gage_discharge_window_x(lexer*,fdm*,ghostcell*);
-	virtual ~gage_discharge_window_x();
+    virtual ~gage_discharge_window_x();
 
-	void start(lexer*, fdm*, ghostcell*);
+    void start(lexer*, fdm*, ghostcell*);
 
 private:
     void ini_location(lexer*, fdm*, ghostcell*);
 
     int *iloc,*flag;
     double *q;
-	double area,Ai;
+    double area,Ai;
     int n;
     ofstream qout;
 

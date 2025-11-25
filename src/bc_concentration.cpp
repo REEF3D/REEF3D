@@ -26,7 +26,6 @@ Author: Hans Bihs
 
 bc_concentration::bc_concentration(lexer* p)
 {
-
 }
 
 bc_concentration::~bc_concentration()
@@ -40,4 +39,3 @@ void bc_concentration::bc_concentration_start(lexer* p,fdm* a,ghostcell *pgc, fi
     C(i,j,k)=0.0;
 
 }
-

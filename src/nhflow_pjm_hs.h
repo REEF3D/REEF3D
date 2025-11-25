@@ -37,30 +37,30 @@ class nhflow_pjm_hs : public nhflow_pressure, public nhflow_gradient
 
 public:
 
-	nhflow_pjm_hs(lexer* p, fdm_nhf*,patchBC_interface*);
-	virtual ~nhflow_pjm_hs();
+    nhflow_pjm_hs(lexer* p, fdm_nhf*,patchBC_interface*);
+    virtual ~nhflow_pjm_hs();
 
-	void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override;
-	void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
-	void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
-	void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
-	void upgrad(lexer*,fdm_nhf*,slice&) override;
-	void vpgrad(lexer*,fdm_nhf*,slice&) override;
+    void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override;
+    void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
+    void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
+    void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
+    void upgrad(lexer*,fdm_nhf*,slice&) override;
+    void vpgrad(lexer*,fdm_nhf*,slice&) override;
     void wpgrad(lexer*,fdm_nhf*,slice&) override;
-    
-	void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+
+    void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 
 private:
 
-	double starttime,endtime;
-	int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
+    double starttime,endtime;
+    int count, gcval_press;
+    int gcval_u, gcval_v, gcval_w;
     double val, denom;
-    
-    
+
+
     density *pd;
     patchBC_interface *pBC;
 };
@@ -68,4 +68,3 @@ private:
 
 
 #endif
-

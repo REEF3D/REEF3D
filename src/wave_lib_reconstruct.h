@@ -32,19 +32,19 @@ class wave_lib_reconstruct : public wave_lib_precalc,  public increment
 {
 public:
     wave_lib_reconstruct(lexer*, ghostcell*);
-	virtual ~wave_lib_reconstruct();
+    virtual ~wave_lib_reconstruct();
 
     double wave_u(lexer*,double,double,double) override;
     double wave_v(lexer*,double,double,double) override;
     double wave_w(lexer*,double,double,double) override;
     double wave_eta(lexer*,double,double) override;
     double wave_fi(lexer*,double,double,double) override;
-        
+
     void parameters(lexer*,ghostcell*) override;
     void wave_prestep(lexer*,ghostcell*) override;
-    
+
 private:
-	wave_lib *ppwave;
+    wave_lib *ppwave;
     double singamma,cosgamma;
 };
 

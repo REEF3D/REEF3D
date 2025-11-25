@@ -38,15 +38,11 @@ class benchmark_vortex3D : public benchmark, public increment
 
 public:
     benchmark_vortex3D(lexer*,fdm*);
-	virtual ~benchmark_vortex3D();
+    virtual ~benchmark_vortex3D();
 
-	void start(lexer*, fdm*, ghostcell*, convection*) override;
+    void start(lexer*, fdm*, ghostcell*, convection*) override;
 
 
 };
 
 #endif
-
-
-
-

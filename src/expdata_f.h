@@ -36,20 +36,20 @@ using namespace std;
 class expdata_f : public expdata, public increment
 {
 public:
-	expdata_f(lexer*, fdm*, ghostcell*);
-	virtual ~expdata_f();
-	void start(lexer*, fdm*, ghostcell*) override;
-	
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
-	void name_ParaView_parallel(lexer*, ofstream&) override;
+    expdata_f(lexer*, fdm*, ghostcell*);
+    virtual ~expdata_f();
+    void start(lexer*, fdm*, ghostcell*) override;
+
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void name_ParaView_parallel(lexer*, ofstream&) override;
     void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
     void offset_ParaView(lexer*, int*, int &) override;
 
 private:
-	
-	field4 data;
-	float ffn;
-	int n,q,iin;
+
+    field4 data;
+    float ffn;
+    int n,q,iin;
 
 };
 

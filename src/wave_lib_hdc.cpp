@@ -25,12 +25,12 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
-{ 
+wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc)
+{
     // read header
     read_header(p,pgc);
     allocate(p,pgc);
-    
+
     // time_interpol
     if(p->mpirank==0)
     {
@@ -40,7 +40,7 @@ wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     cout<<" HDC numiter: "<<numiter<<" t_start: "<<t_start<<" t_end: "<<t_end<<endl;
     cout<<" HDC simtime[0]: "<<simtime[0]<<" simtime[numiter-1]: "<<simtime[numiter-1]<<endl;
     }
-    
+
     startup=0;
     endseries=0;
 }
@@ -52,23 +52,23 @@ wave_lib_hdc::~wave_lib_hdc()
 double wave_lib_hdc::wave_u(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
-    
+
     if(p->B125==1)
     y=p->B125_y;
-    
+
     if(endseries==0)
     vel = space_interpol(p,U,x,y,z);
-    
+
     return vel;
 }
 
 double wave_lib_hdc::wave_v(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
-    
+
     if(p->B125==1)
     y=p->B125_y;
-    
+
     if(endseries==0 && p->B125==0 && p->B127==0)
     vel = space_interpol(p,V,x,y,z);
 
@@ -78,10 +78,10 @@ double wave_lib_hdc::wave_v(lexer *p, double x, double y, double z)
 double wave_lib_hdc::wave_w(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
-    
+
     if(p->B125==1)
     y=p->B125_y;
-    
+
     if(endseries==0)
     vel = space_interpol(p,W,x,y,z);
 
@@ -91,20 +91,20 @@ double wave_lib_hdc::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_hdc::wave_eta(lexer *p, double x, double y)
 {
     double eta=0.0;
-    
+
     if(p->B125==1)
     y=p->B125_y;
-    
+
     if(endseries==0)
     eta = plane_interpol(p,E,x,y);
-    
+
     return eta;
 }
 
 double wave_lib_hdc::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi=0.0;
-    
+
     return fi;
 }
 
@@ -118,69 +118,69 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     if(startup==0)
     {
         deltaT = simtime[1]-simtime[0];
-        
+
         deltaT = deltaT>0.0?deltaT:1.0e20;
-        
+
         t1 = (simtime[1]-(p->wavetime+p->I241))/deltaT;
         t2 = ((p->wavetime+p->I241)-simtime[0])/deltaT;
-        
+
         q1 = diter;
         q2 = diter+1;
-        
+
         if(file_type==2)
         {
         filename_continuous(p,pgc);
         result.open(name, ios::binary);
         }
-    
+
         read_result(p,pgc,E1,U1,V1,W1,q1);
         read_result(p,pgc,E2,U2,V2,W2,q2);
         startup=1;
-        
-        
+
+
         // find q1
         while(simtime[q1+1-diter]<=p->wavetime+p->I241)
         {
         ++q1;
-        
+
         if(file_type==2)
         read_result_continuous(p,pgc,E1,U1,V1,W1,q1);
         }
-            
+
         // find q2
         while(simtime[q2-diter]<p->wavetime+p->I241)
         {
         ++q2;
-        
+
         if(file_type==2 )
         read_result_continuous(p,pgc,E2,U2,V2,W2,q2);
         }
     }
-    
+
     q1n=q1;
     q2n=q2;
-    
+
     // check: open next timestep
-           
+
     // find q1
     while(simtime[q1+1-diter]<=p->wavetime+p->I241)
     ++q1;
-        
+
     // find q2
     while(simtime[q2-diter]<p->wavetime+p->I241)
     ++q2;
-    
+
     if(q2>=numiter+diter)
     endseries=1;
-        
+
     q1=MIN(q1,numiter+diter);
     q2=MIN(q2,numiter+diter);
-    
+
     if(q1==q2)
     ++q2;
-    
-    
-    // single file read 
+
+
+    // single file read
     if(file_type==1)
     {
         if(q1!=q1n)
@@ -189,7 +189,7 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         filename_single(p,pgc,q1);
         read_result(p,pgc,E1,U1,V1,W1,q1);
         }
-        
+
         if(q2!=q2n)
         {
         // Open File 2
@@ -197,29 +197,29 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         read_result(p,pgc,E2,U2,V2,W2,q2);
         }
     }
-        
+
     // contiuous file read
     if(file_type==2)
     {
         if(q1!=q1n)
         fill_result_continuous(p,pgc);
-        
+
         if(q2!=q2n)
         read_result_continuous(p,pgc,E2,U2,V2,W2,q2);
     }
-        
+
 
         deltaT = simtime[q2-diter]-simtime[q1-diter];
-        
+
         if(p->mpirank==0)
         cout<<"HDC  q1: "<<q1<<" q2: "<<q2<<" t1: "<<t1<<" t2: "<<t2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1-diter]<<" simtime[q2]: "<<simtime[q2-diter]<<endl;
 
         t1 = (simtime[q2-diter]-(p->wavetime+p->I241))/deltaT;
         t2 = ((p->wavetime+p->I241)-simtime[q1-diter])/deltaT;
-        
-        
+
+
     // time interpolation
     //if(q1!=q1n || q2!=q2n)
     time_interpol(p);
-    
+
 }

@@ -25,6 +25,3 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
-
-
-

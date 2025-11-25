@@ -35,63 +35,61 @@ flux_face_CDS2_2D::~flux_face_CDS2_2D()
 
 void flux_face_CDS2_2D::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, double &uflux2)
 {
-	if(ipol==1)
-	{
-	uflux1= 0.5*(uvel(i,j,k)+uvel(i-1,j,k));
-	uflux2= 0.5*(uvel(i,j,k)+uvel(i+1,j,k));
-	}
+    if(ipol==1)
+    {
+    uflux1= 0.5*(uvel(i,j,k)+uvel(i-1,j,k));
+    uflux2= 0.5*(uvel(i,j,k)+uvel(i+1,j,k));
+    }
 
-	if(ipol==2)
-	{
-	uflux1= uvel(i-1,j,k);
-	uflux2= uvel(i,j,k);
-	}
+    if(ipol==2)
+    {
+    uflux1= uvel(i-1,j,k);
+    uflux2= uvel(i,j,k);
+    }
 
-	if(ipol==3)
-	{
-	uflux1= 0.5*(uvel(i-1,j,k)+uvel(i-1,j,k+1));
-	uflux2= 0.5*(uvel(i,j,k)+uvel(i,j,k+1));
-	}
+    if(ipol==3)
+    {
+    uflux1= 0.5*(uvel(i-1,j,k)+uvel(i-1,j,k+1));
+    uflux2= 0.5*(uvel(i,j,k)+uvel(i,j,k+1));
+    }
 
-	if(ipol==4)
-	{
-	uflux1= uvel(i-1,j,k);
-	uflux2= uvel(i,j,k);
-	}
+    if(ipol==4)
+    {
+    uflux1= uvel(i-1,j,k);
+    uflux2= uvel(i,j,k);
+    }
 }
 
 void flux_face_CDS2_2D::v_flux(fdm* a, int ipol, field& vvel, double &vflux1, double &vflux2)
 {
-	vflux1= 0.0;
-	vflux2= 0.0;
+    vflux1= 0.0;
+    vflux2= 0.0;
 }
 
 void flux_face_CDS2_2D::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, double &wflux2)
 {
 
-	if(ipol==1)
-	{
-	wflux1= 0.5*(wvel(i,j,k-1)+wvel(i+1,j,k-1));
-	wflux2= 0.5*(wvel(i,j,k)+wvel(i+1,j,k));
-	}
+    if(ipol==1)
+    {
+    wflux1= 0.5*(wvel(i,j,k-1)+wvel(i+1,j,k-1));
+    wflux2= 0.5*(wvel(i,j,k)+wvel(i+1,j,k));
+    }
 
-	if(ipol==2)
-	{
-	wflux1= wvel(i,j,k-1);
-	wflux2= wvel(i,j,k);
-	}
+    if(ipol==2)
+    {
+    wflux1= wvel(i,j,k-1);
+    wflux2= wvel(i,j,k);
+    }
 
-	if(ipol==3)
-	{
-	wflux1= 0.5*(wvel(i,j,k)+wvel(i,j,k-1));
-	wflux2= 0.5*(wvel(i,j,k)+wvel(i,j,k+1));
-	}
+    if(ipol==3)
+    {
+    wflux1= 0.5*(wvel(i,j,k)+wvel(i,j,k-1));
+    wflux2= 0.5*(wvel(i,j,k)+wvel(i,j,k+1));
+    }
 
-	if(ipol==4)
-	{
-	wflux1= wvel(i,j,k-1);
-	wflux2= wvel(i,j,k);
-	}
+    if(ipol==4)
+    {
+    wflux1= wvel(i,j,k-1);
+    wflux2= wvel(i,j,k);
+    }
 }
-
-

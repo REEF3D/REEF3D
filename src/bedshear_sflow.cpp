@@ -37,42 +37,42 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     double uabs,cf,manning,tau;
     double density=p->W1;
     double U,V;
-    
+
     SEDSLICELOOP
     {
     U = 0.5*(s->P(i,j) + s->P(i-1,j));
     V = 0.5*(s->Q(i,j) + s->Q(i,j-1));
 
     uabs = sqrt(U*U + V*V);
-    
+
     manning = pow(s->ks(i,j),1.0/6.0)/20.0;
-    
+
     if(p->S16==1)
     {
     cf = pow(manning,2.0)/pow(HP,1.0/3.0);
-    
-    tau = p->W1*9.81*cf*uabs*uabs; 
+
+    tau = p->W1*9.81*cf*uabs*uabs;
     }
-    
+
     if(p->S16==2)
-    {    
+    {
     cf = 2.5*log(12.0*b->hp(i,j)/(s->ks(i,j)));
-    
-    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
+
+    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20);
     }
-    
+
     if(p->S16==3)
-    {    
+    {
     cf = 2.5*log(12.0*b->hp(i,j)/(s->ks(i,j)));
-    
-    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
+
+    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20);
     }
-    
+
     if(p->S16==4)
     {
     tau=p->W1*b->kin(i,j)*0.3;
     }
-    
+
     s->tau_eff(i,j) = tau;
     s->shearvel_eff(i,j) = sqrt(tau/density);
     s->shields_eff(i,j) = tau/((p->S22-density)*fabs(p->W22)*p->S20);
@@ -81,16 +81,16 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 
 void bedshear::taucritbed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
-	double density = p->W1;
-    
+    double density = p->W1;
+
     SEDSLICELOOP
     {
     tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->reduce(i,j);
-  
+
     s->tau_crit(i,j) = tauc;
     s->shearvel_crit(i,j) = sqrt(tauc/density);
     s->shields_crit(i,j) = tauc/((p->S22-density)*fabs(p->W22)*p->S20);
-    
+
     s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
     }
 }

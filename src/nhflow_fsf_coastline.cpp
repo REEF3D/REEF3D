@@ -26,59 +26,59 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_coastline.h"
 
-void nhflow_fsf_f::coastline_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f) 
+void nhflow_fsf_f::coastline_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 {
     double fac=1.0;
-    
+
     if(p->A347==1 || p->A347==2)
     SLICELOOP4
     {
     if(p->I30==1 && p->count==0)
     fac=20.0;
-    
+
         if(d->coastline(i,j)>=0.0)
         {
             db = d->coastline(i,j);
-            
+
             if(db<fac*dist3)
             {
             f(i,j) = rb3(p,db)*f(i,j);
-            
+
             d->Bx(i,j) = rb3(p,db)*d->Bx(i,j);
             d->By(i,j) = rb3(p,db)*d->By(i,j);
             }
         }
-        
+
         if(d->coastline(i,j)<0.0 && p->A343>=1)
         f(i,j)=0.0;
-        
+
         if(p->A343>=1 && p->wet[IJ]==1)
         f(i,j) = MAX(f(i,j), d->bed(i,j) - p->wd);
     }
 }
 
-void nhflow_fsf_f::coastline_fi(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f) 
+void nhflow_fsf_f::coastline_fi(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 {
     double fac=1.0;
-    
+
     if(p->A347==1 || p->A347==3)
     SLICELOOP4
     {
-    
+
     if(p->I30==1 && p->count==0)
     fac=20.0;
-    
+
         if(d->coastline(i,j)>=0.0)
         {
             db = d->coastline(i,j);
-            
+
             if(db<fac*dist4)
             {
             f(i,j) = rb4(p,db)*f(i,j);
-        
+
             }
         }
-        
+
         if(d->coastline(i,j)<0.0 && p->A343>=1)
         f(i,j)=0.0;
     }
@@ -88,32 +88,32 @@ double nhflow_fsf_f::rb3(lexer *p, double x)
 {
     double r=0.0;
     double fac=1.0;
-    
-    
+
+
     if(p->I30==1 && p->count==0)
     fac=20.0;
 
     x=(fac*dist3-fabs(x))/(fac*dist3);
     x=MAX(x,0.0);
-    
+
     r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 
-	return r;
+    return r;
 }
 
 double nhflow_fsf_f::rb4(lexer *p, double x)
 {
     double r=0.0;
     double fac=1.0;
-    
-    
+
+
     if(p->I30==1 && p->count==0)
     fac=20.0;
 
     x=(fac*dist4-fabs(x))/(fac*dist4);
     x=MAX(x,0.0);
-    
+
     r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 
-	return r;
+    return r;
 }

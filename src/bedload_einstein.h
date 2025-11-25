@@ -35,8 +35,8 @@ class bedload_einstein : public bedload, public increment
 public:
 
     bedload_einstein(lexer*);
-	virtual ~bedload_einstein();
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+    virtual ~bedload_einstein();
+    void start(lexer*, ghostcell*, sediment_fdm*) override;
 
 private:
     double rhosed,rhowat;
@@ -49,4 +49,3 @@ private:
 };
 
 #endif
-

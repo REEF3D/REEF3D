@@ -27,86 +27,86 @@ Author: Hans Bihs
 
 void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
-		double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
-		double posx,posy,posz,uvel,vvel,uabs,fx,fy,pval,fp;
+        double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
+        double posx,posy,posz,uvel,vvel,uabs,fx,fy,pval,fp;
         double fxdir,fydir;
-		double x=0.0;
-		double z=0.0;
-		double fac1,fac,multiplier;
-		int aa,bb,ii,jj;
+        double x=0.0;
+        double z=0.0;
+        double fac1,fac,multiplier;
+        int aa,bb,ii,jj;
         double H,epsi;
-        
+
         // get the fsf elevation
         LOOP
-		wsfmax[i][j]=-1.0e20;
+        wsfmax[i][j]=-1.0e20;
 
-		LOOP
-		if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
-		wsfmax[i][j]=MAX(wsfmax[i][j],-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
+        LOOP
+        if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+        wsfmax[i][j]=MAX(wsfmax[i][j],-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
 
         for(int qn=0; qn<p->mz;++qn)
-		pgc->verticalmax(p,a,wsfmax);
-        
-		
-		// UVEL
-		for(n=0;n<p->gcslawa1_count;++n)
-		{
-		i=p->gcslawa1[n][0];
-		j=p->gcslawa1[n][1];
-		
-		ii=0;
-		if(p->gcslawa1[n][2]==4)
-		ii=1;
-		
-		wsf=wsfmax[i+ii][j];
-        
-		
-		eta_T = 0.0;
-		eta_M = wsf-p->wd; 
-		eta_R = eta_M-eta_T;
-        
-         if(eta_R>=0.0)
-		fac1=1.0;
-		
-		if(eta_R<0.0)
-		fac1=0.0;
-        
-		
-         aa=bb=0;
-		if(p->gcslawa1[n][2]==1)
-		aa=-1;
+        pgc->verticalmax(p,a,wsfmax);
 
-		if(p->gcslawa1[n][2]==4)
-		aa=1;
-		
-		if(p->gcslawa1[n][2]==3)
-		bb=-1;
- 
-		if(p->gcslawa1[n][2]==2)
-		bb=1;
-        
+
+        // UVEL
+        for(n=0;n<p->gcslawa1_count;++n)
+        {
+        i=p->gcslawa1[n][0];
+        j=p->gcslawa1[n][1];
+
+        ii=0;
+        if(p->gcslawa1[n][2]==4)
+        ii=1;
+
+        wsf=wsfmax[i+ii][j];
+
+
+        eta_T = 0.0;
+        eta_M = wsf-p->wd;
+        eta_R = eta_M-eta_T;
+
+         if(eta_R>=0.0)
+        fac1=1.0;
+
+        if(eta_R<0.0)
+        fac1=0.0;
+
+
+         aa=bb=0;
+        if(p->gcslawa1[n][2]==1)
+        aa=-1;
+
+        if(p->gcslawa1[n][2]==4)
+        aa=1;
+
+        if(p->gcslawa1[n][2]==3)
+        bb=-1;
+
+        if(p->gcslawa1[n][2]==2)
+        bb=1;
+
         if(p->B99==3)
         Uc = eta_R*sqrt(9.81/p->wd);
-				
-        
-        
+
+
+
         //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   wsf: "<<wsf<<"   Uc: "<<Uc<<endl;
 
-			if(wsf>-1.0e19)
-			KLOOP 
+            if(wsf>-1.0e19)
+            KLOOP
              PCHECK
              if(p->flagsf4[IJK]>0)
-			{
+            {
 
-				if(p->pos_z()<=p->phimean)
-				z=-(fabs(p->phimean-p->pos_z()));
-				
-				if(p->pos_z()>p->phimean)
-				z=(fabs(p->phimean-p->pos_z()));
-				
+                if(p->pos_z()<=p->phimean)
+                z=-(fabs(p->phimean-p->pos_z()));
+
+                if(p->pos_z()>p->phimean)
+                z=(fabs(p->phimean-p->pos_z()));
+
                 if(p->B99==4)
                 Uc = eta_R*p->ww*(cosh(p->wk*(p->wd+z))/sinh(p->wk*p->wd));
-				                
+
                 if(p->B99==5)
                 {
                    if(p->pos_z()>p->B123)
@@ -115,14 +115,14 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                    multiplier = 2.0*((wsf)/(wsf-p->B123));
                    Uc =   multiplier*fac*eta_R*sqrt(9.81/p->wd);
                    }
-                   
+
                    if(p->pos_z()<=p->B123)
                    Uc=0.0;
                 }
-               
+
                 // inteface H
                 epsi = p->F45*p->DZN[KP];
-        
+
                 if(a->phi(i,j,k)>epsi)
                 H=1.0;
 
@@ -131,7 +131,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 
                 if(fabs(a->phi(i,j,k))<=epsi)
                 H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-                
+
                  if(fabs(p->W10)<1.0e-10)
                  {
                     if(z<=eta_M)
@@ -155,8 +155,8 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                     u(i+3*aa,j+3*bb,k) = 0.0;
                     }
                  }
-                 
-                
+
+
                  if(p->W10>1.0e-10)
                  {
                      if(z<=eta_M)
@@ -180,90 +180,90 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                     u(i+3*aa,j+3*bb,k) = u(i,j,k);
                     }
                  }
-			}
-            
+            }
+
             if(wsf<-1.0e19 && fabs(p->W10)<1.0e-10)
             KLOOP
-            PCHECK 
+            PCHECK
             if(p->flagsf4[IJK]>0)
             {
             u(i+1*aa,j+1*bb,k) = 0.0;
             u(i+2*aa,j+2*bb,k) = 0.0;
             u(i+3*aa,j+3*bb,k) = 0.0;
             }
-            
+
             if(wsf<-1.0e19 && p->W10>1.0e-10)
             KLOOP
-            PCHECK 
+            PCHECK
             if(p->flagsf4[IJK]>0)
             {
             u(i+1*aa,j+1*bb,k) = u(i,j,k);
             u(i+2*aa,j+2*bb,k) = u(i,j,k);
             u(i+3*aa,j+3*bb,k) = u(i,j,k);
             }
-		}
-//-----------------------------------------------		
-		// VVEL
-		
-		for(n=0;n<p->gcslawa2_count;++n)
-		{
-		i=p->gcslawa2[n][0];
-		j=p->gcslawa2[n][1];
-		
-		
-		jj=0;
-		if(p->gcslawa2[n][3]==2)
-		jj=1;
-		
-		wsf=wsfmax[i][j+jj];
+        }
+//-----------------------------------------------
+        // VVEL
 
-		eta_T = 0.0;
-		eta_M = wsf-p->wd; 
-		eta_R = eta_M-eta_T;
-        
+        for(n=0;n<p->gcslawa2_count;++n)
+        {
+        i=p->gcslawa2[n][0];
+        j=p->gcslawa2[n][1];
+
+
+        jj=0;
+        if(p->gcslawa2[n][3]==2)
+        jj=1;
+
+        wsf=wsfmax[i][j+jj];
+
+        eta_T = 0.0;
+        eta_M = wsf-p->wd;
+        eta_R = eta_M-eta_T;
+
         if(eta_R>=0.0)
-		fac1=1.0;
-		
-		if(eta_R<0.0)
-		fac1=0.0;
-		
-		
-        
-        aa=bb=0;
-		if(p->gcslawa2[n][2]==1)
-		aa=-1;
-		
-		if(p->gcslawa2[n][2]==4)
-		aa=1;
-		
-		if(p->gcslawa2[n][2]==3)
-		bb=-1;
-		
-		if(p->gcslawa2[n][2]==2)
-		bb=1;
- 
-        
-        fy=0.0; // !
- 
+        fac1=1.0;
 
-			if(wsf>-1.0e19)
-			KLOOP
+        if(eta_R<0.0)
+        fac1=0.0;
+
+
+
+        aa=bb=0;
+        if(p->gcslawa2[n][2]==1)
+        aa=-1;
+
+        if(p->gcslawa2[n][2]==4)
+        aa=1;
+
+        if(p->gcslawa2[n][2]==3)
+        bb=-1;
+
+        if(p->gcslawa2[n][2]==2)
+        bb=1;
+
+
+        fy=0.0; // !
+
+
+            if(wsf>-1.0e19)
+            KLOOP
              PCHECK
              if(p->flagsf4[IJK]>0)
-			{
-				if(p->pos_z()<=p->phimean)
-				z=-(fabs(p->phimean-p->pos_z()));
-				
-				if(p->pos_z()>p->phimean)
-				z=(fabs(p->phimean-p->pos_z()));
-				
-				
-				if(p->B99==3)
-				Uc=eta_R*sqrt(9.81/p->wd);
-				
-				if(p->B99==4)
-				Uc=eta_R*p->ww*( cosh(p->wk*(p->wd+z))/sinh(p->wk*p->wd));
-                
+            {
+                if(p->pos_z()<=p->phimean)
+                z=-(fabs(p->phimean-p->pos_z()));
+
+                if(p->pos_z()>p->phimean)
+                z=(fabs(p->phimean-p->pos_z()));
+
+
+                if(p->B99==3)
+                Uc=eta_R*sqrt(9.81/p->wd);
+
+                if(p->B99==4)
+                Uc=eta_R*p->ww*( cosh(p->wk*(p->wd+z))/sinh(p->wk*p->wd));
+
                if(p->B99==5)
                {
                    if(p->pos_z()>p->B123)
@@ -272,14 +272,14 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                    multiplier = 2.0*((wsf)/(wsf-p->B123));
                    Uc =   multiplier*fac*eta_R*sqrt(9.81/p->wd);
                    }
-                   
+
                    if(p->pos_z()<=p->B123)
                     Uc=0.0;
                }
-               
+
                // inteface H
                 epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
-        
+
                 if(a->phi(i,j,k)>epsi)
                 H=1.0;
 
@@ -288,101 +288,101 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
 
                 if(fabs(a->phi(i,j,k))<=epsi)
                 H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-                
-			
-				if(z<=eta_M)
-				{
-				v(i+1*aa,j+1*bb,k)=Uc*fy;
-				v(i+2*aa,j+2*bb,k)=Uc*fy;
-				v(i+3*aa,j+3*bb,k)=Uc*fy;
-				}
 
-				if(z>=eta_M && z<eta_M+epsi)
-				{
-				v(i+1*aa,j+1*bb,k)=Uc*fy*H*fac1;
-				v(i+2*aa,j+2*bb,k)=Uc*fy*H*fac1;
-				v(i+3*aa,j+3*bb,k)=Uc*fy*H*fac1;
-				}
 
-				if(z>=eta_M+epsi)
-				{
-				v(i+1*aa,j+1*bb,k)=0.0;
-				v(i+2*aa,j+2*bb,k)=0.0;
-				v(i+3*aa,j+3*bb,k)=0.0;
-				}
-			}
-            
+                if(z<=eta_M)
+                {
+                v(i+1*aa,j+1*bb,k)=Uc*fy;
+                v(i+2*aa,j+2*bb,k)=Uc*fy;
+                v(i+3*aa,j+3*bb,k)=Uc*fy;
+                }
+
+                if(z>=eta_M && z<eta_M+epsi)
+                {
+                v(i+1*aa,j+1*bb,k)=Uc*fy*H*fac1;
+                v(i+2*aa,j+2*bb,k)=Uc*fy*H*fac1;
+                v(i+3*aa,j+3*bb,k)=Uc*fy*H*fac1;
+                }
+
+                if(z>=eta_M+epsi)
+                {
+                v(i+1*aa,j+1*bb,k)=0.0;
+                v(i+2*aa,j+2*bb,k)=0.0;
+                v(i+3*aa,j+3*bb,k)=0.0;
+                }
+            }
+
             if(wsf>-1.0e19)
-			KLOOP
+            KLOOP
             if(p->flagsf4[IJK]>0)
-			{
+            {
             v(i+1*aa,j+1*bb,k)=0.0;
             v(i+2*aa,j+2*bb,k)=0.0;
             v(i+3*aa,j+3*bb,k)=0.0;
             }
-		}
-		
-		//-----------------------------------------------		
-		// PRESSURE
-		for(n=0;n<p->gcslout_count;n++)
-		{
-		i=p->gcslout[n][0];
-		j=p->gcslout[n][1];
-		
-		aa=bb=0;
-		
-		if(p->gcslout[n][3]==1)
-		aa=-1;
-		
-		if(p->gcslout[n][3]==4)
-		aa=1;
-		
-		if(p->gcslout[n][3]==3)
-		bb=-1;
-		
-		if(p->gcslout[n][3]==2)
-		bb=1;
-				
-		wsf=wsfmax[i][j];
-        
+        }
+
+        //-----------------------------------------------
+        // PRESSURE
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0];
+        j=p->gcslout[n][1];
+
+        aa=bb=0;
+
+        if(p->gcslout[n][3]==1)
+        aa=-1;
+
+        if(p->gcslout[n][3]==4)
+        aa=1;
+
+        if(p->gcslout[n][3]==3)
+        bb=-1;
+
+        if(p->gcslout[n][3]==2)
+        bb=1;
+
+        wsf=wsfmax[i][j];
+
         p->fsfout=wsf;
-        
-        
+
+
         eta_T = 0.0;
-        eta_M = wsf-p->wd; 
+        eta_M = wsf-p->wd;
         eta_R = fabs(eta_M-eta_T);
-        
+
         double r=0.0;
-        
+
         double wH=0.25*p->wH;
-    
+
         if(p->B92>30)
         wH=0.25*p->wHs;
-        
+
         wH=MAX(wH,0.5*p->DXM);
 
         x=fabs(eta_R/(fabs(wH)>1.0e-20?wH:1.0e20));
         x=MIN(x,1.0);
-        
+
         H = -2.0*x*x*x + 3.0*x*x;
-        	
+
             if(wsf>-1.0e19)
-			KLOOP 
+            KLOOP
              PCHECK
              if(p->flagsf4[IJK]>0)
-			{
-			pval = (wsf - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-            
+            {
+            pval = (wsf - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
+
              a->press(i+1*aa,j+1*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
-			a->press(i+2*aa,j+2*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
-			a->press(i+3*aa,j+3*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
-            
+            a->press(i+2*aa,j+2*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
+            a->press(i+3*aa,j+3*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
+
             //cout<<"PVAL: "<<pval<<" WSF: "<<wsf<<" PHI: "<<a->phi(i+1,j,k)<<" PRESS: "<<a->press(i+1,j,k)<<endl;
-            
-			w(i+1*aa,j+1*bb,k)=0.0;
-			w(i+2*aa,j+2*bb,k)=0.0;
-			w(i+3*aa,j+3*bb,k)=0.0;
-			}	
-            
-		}
+
+            w(i+1*aa,j+1*bb,k)=0.0;
+            w(i+2*aa,j+2*bb,k)=0.0;
+            w(i+3*aa,j+3*bb,k)=0.0;
+            }
+
+        }
 }

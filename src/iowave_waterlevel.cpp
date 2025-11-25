@@ -30,14 +30,14 @@ void iowave::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->I230>0)
     ff_waterlevel(p,a,pgc,a->phi);
-        
+
     pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
 void iowave::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
-	for(n=0;n<p->gcout_count;++n)
-	{
+    for(n=0;n<p->gcout_count;++n)
+    {
         i=p->gcout[n][0];
         j=p->gcout[n][1];
         k=p->gcout[n][2];
@@ -45,17 +45,17 @@ void iowave::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
         f(i+1,j,k)=a->phi(i+1,j,k);
         f(i+2,j,k)=a->phi(i+2,j,k);
         f(i+3,j,k)=a->phi(i+3,j,k);
-	}
+    }
 }
 
 void iowave::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
 {
-	for(n=0;n<p->gcin_count;++n)
-	{
+    for(n=0;n<p->gcin_count;++n)
+    {
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
-		
+
         f(i-1,j,k)=a->phi(i-1,j,k);
         f(i-2,j,k)=a->phi(i-2,j,k);
         f(i-3,j,k)=a->phi(i-3,j,k);
@@ -65,21 +65,21 @@ void iowave::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
 void iowave::waterlevel_update(lexer *p,fdm *a,ghostcell *pgc)
 {
     double zval;
-    
-	ILOOP
+
+    ILOOP
     JLOOP
-	{
+    {
     zval=-1e20;
-	
+
         KLOOP
         PCHECK
         {
             if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
             zval=MAX(zval,-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
         }
-    
+
     a->WL(i,j) = zval - a->bed(i,j);
-    
+
     a->WL(i,j) = MAX(0.0001,a->WL(i,j));
     }
 }

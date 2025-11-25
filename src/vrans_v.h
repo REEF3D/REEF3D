@@ -31,25 +31,25 @@ using namespace std;
 class vrans_v : public vrans, public increment
 {
 public:
-	vrans_v(lexer*, ghostcell*);
-	virtual ~vrans_v();
+    vrans_v(lexer*, ghostcell*);
+    virtual ~vrans_v();
 
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override;	
-	void start(lexer*, fdm*, ghostcell*, int) override {};
+    void initialize_cfd(lexer*, fdm*, ghostcell*) override;
+    void start(lexer*, fdm*, ghostcell*, int) override {};
     void sed_update(lexer*, fdm*, ghostcell*) override;
     void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&) override {};
-	
-	void u_source(lexer*, fdm*) override;
-	void v_source(lexer*, fdm*) override;
-	void w_source(lexer*, fdm*) override;
-    
+
+    void u_source(lexer*, fdm*) override;
+    void v_source(lexer*, fdm*) override;
+    void w_source(lexer*, fdm*) override;
+
     void ke_source(lexer*, fdm*, field&) override;
     void kw_source(lexer*, fdm*, field&) override;
     void eps_source(lexer*, fdm*, field&, field&) override;
     void omega_source(lexer*, fdm*, field&, field&) override;
-    
+
     void eddyv_func(lexer*, fdm*) override;
-    
+
     void veltimesave(lexer*,fdm*,ghostcell*) override;
 };
 

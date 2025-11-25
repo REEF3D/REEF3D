@@ -28,10 +28,10 @@ Author Fabian Knoblauch
 void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
 {
     double calccurv, dHp, dHm, nx_loc, nz_loc;
-    
-	n=0;
-	
-	if(gcval==10 && p->W5>1.0e-10)
+
+    n=0;
+
+    if(gcval==10 && p->W5>1.0e-10)
     {
         ULOOP
         {
@@ -41,17 +41,17 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
                 if(nx(i,j,k)!=nx(i,j,k))
                     cout<<"nxNAN"<<endl;
                 if(nz(i,j,k)!=nz(i,j,k))
-                    cout<<"nzNAN"<<endl;    
+                    cout<<"nzNAN"<<endl;
                 if(fabs(nz(i,j,k))>=fabs(nx(i,j,k)))
                 {
                     dHp=((a->vof(i+1,j,k-1)*p->DZN[KM1]+a->vof(i+1,j,k)*p->DZN[KP]+a->vof(i+1,j,k+1)*p->DZN[KP1])
                         - (a->vof(i,j,k-1)*p->DZN[KM1]+a->vof(i,j,k)*p->DZN[KP]+a->vof(i,j,k+1)*p->DZN[KP1]))
                         /p->DXP[IP];
-                        
+
                     dHm=((a->vof(i,j,k-1)*p->DZN[KM1]+a->vof(i,j,k)*p->DZN[KP]+a->vof(i,j,k+1)*p->DZN[KP1])
                         - (a->vof(i-1,j,k-1)*p->DZN[KM1]+a->vof(i-1,j,k)*p->DZN[KP]+a->vof(i-1,j,k+1)*p->DZN[KP1]))
                         /p->DXP[IM1];
-                    
+
                     curv(i,j,k)=1.0/p->DXN[IP]*( dHp/pow((1.0+dHp*dHp),(3.0/2.0)) - dHm/pow((1.0+dHm*dHm),(3.0/2.0) ));
                 }
                 else
@@ -59,11 +59,11 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
                     dHp=((a->vof(i-1,j,k+1)*p->DXN[IM1]+a->vof(i,j,k+1)*p->DXN[IP]+a->vof(i+1,j,k+1)*p->DXN[IP1])
                        - (a->vof(i-1,j,k)*p->DXN[IM1]+a->vof(i,j,k)*p->DXN[IP]+a->vof(i+1,j,k)*p->DXN[IP1]))
                        /p->DZP[KP];
-                       
+
                     dHm=((a->vof(i-1,j,k)*p->DXN[IM1]+a->vof(i,j,k)*p->DXN[IP]+a->vof(i+1,j,k)*p->DXN[IP1])
                         - (a->vof(i-1,j,k-1)*p->DXN[IM1]+a->vof(i,j,k-1)*p->DXN[IP]+a->vof(i+1,j,k-1)*p->DXN[IP1]))
                         /p->DZP[KM1];
-                    
+
                     curv(i,j,k)=1.0/p->DZN[KP]*( dHp/pow((1.0+dHp*dHp),(3.0/2.0)) - dHm/pow((1.0+dHm*dHm),(3.0/2.0) ));
                 }
             }
@@ -104,12 +104,12 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
         }
     }
 
-	if(gcval==11 && p->W5>1.0e-10)
+    if(gcval==11 && p->W5>1.0e-10)
     {
-       
+
     }
 
-	if(gcval==12 && p->W5>1.0e-10)
+    if(gcval==12 && p->W5>1.0e-10)
     {
         WLOOP
         {
@@ -121,11 +121,11 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
                     dHp=((a->vof(i+1,j,k-1)*p->DZN[KM1]+a->vof(i+1,j,k)*p->DZN[KP]+a->vof(i+1,j,k+1)*p->DZN[KP1])
                         - (a->vof(i,j,k-1)*p->DZN[KM1]+a->vof(i,j,k)*p->DZN[KP]+a->vof(i,j,k+1)*p->DZN[KP1]))
                         /p->DXP[IP];
-                        
+
                     dHm=((a->vof(i,j,k-1)*p->DZN[KM1]+a->vof(i,j,k)*p->DZN[KP]+a->vof(i,j,k+1)*p->DZN[KP1])
                         - (a->vof(i-1,j,k-1)*p->DZN[KM1]+a->vof(i-1,j,k)*p->DZN[KP]+a->vof(i-1,j,k+1)*p->DZN[KP1]))
                         /p->DXP[IM1];
-                    
+
                     curv(i,j,k)=1.0/p->DXN[IP]*( dHp/pow((1.0+dHp*dHp),(3.0/2.0)) - dHm/pow((1.0+dHm*dHm),(3.0/2.0) ));
                 }
                 else
@@ -133,11 +133,11 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
                     dHp=((a->vof(i-1,j,k+1)*p->DXN[IM1]+a->vof(i,j,k+1)*p->DXN[IP]+a->vof(i+1,j,k+1)*p->DXN[IP1])
                        - (a->vof(i-1,j,k)*p->DXN[IM1]+a->vof(i,j,k)*p->DXN[IP]+a->vof(i+1,j,k)*p->DXN[IP1]))
                        /p->DZP[KP];
-                       
+
                     dHm=((a->vof(i-1,j,k)*p->DXN[IM1]+a->vof(i,j,k)*p->DXN[IP]+a->vof(i+1,j,k)*p->DXN[IP1])
                         - (a->vof(i-1,j,k-1)*p->DXN[IM1]+a->vof(i,j,k-1)*p->DXN[IP]+a->vof(i+1,j,k-1)*p->DXN[IP1]))
                         /p->DZP[KM1];
-                        
+
                     curv(i,j,k)=1.0/p->DZN[KP]*( dHp/pow((1.0+dHp*dHp),(3.0/2.0)) - dHm/pow((1.0+dHm*dHm),(3.0/2.0) ));
                 }
             }
@@ -177,4 +177,3 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
     }
 
 }
-

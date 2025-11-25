@@ -48,8 +48,8 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> 
     }
 
     pgc->start4(p,omega1,1);
-	pgc->start4(p,omega2,1);
-	pgc->start4(p,omega3,1);
+    pgc->start4(p,omega2,1);
+    pgc->start4(p,omega3,1);
 
     // --
     iin=4*(p->pointnum);
@@ -57,67 +57,63 @@ void vorticity_f::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> 
     m+=sizeof(int);
 
     TPLOOP
-	{
+    {
     ffn=float(p->ipol4(omega1));
 
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
-	m+=sizeof(float);
-	}
-	
-	// --
+    std::memcpy(&buffer[m],&ffn,sizeof(float));
+    m+=sizeof(float);
+    }
+
+    // --
     iin=4*(p->pointnum);
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 
     TPLOOP
-	{
+    {
     ffn=float(p->ipol4(omega2));
 
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
-	m+=sizeof(float);
-	}
-	
-	// --
+    std::memcpy(&buffer[m],&ffn,sizeof(float));
+    m+=sizeof(float);
+    }
+
+    // --
     iin=4*(p->pointnum);
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 
     TPLOOP
-	{
+    {
     ffn=float(p->ipol4(omega3));
 
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
-	m+=sizeof(float);
-	}
+    std::memcpy(&buffer[m],&ffn,sizeof(float));
+    m+=sizeof(float);
+    }
 }
 
 void vorticity_f::name_ParaView_parallel(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"vorticity x\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"vorticity y\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"vorticity z\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"vorticity y\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"vorticity z\"/>\n";
 }
 
 void vorticity_f::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"vorticity x\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"vorticity y\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"vorticity y\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"vorticity z\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"vorticity z\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
 
 void vorticity_f::offset_ParaView(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
 }
-
-
-
-

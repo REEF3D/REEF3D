@@ -36,12 +36,12 @@ class solver2D;
 
 using namespace std;
 
-class fnpf_fsfbc_wd : public fnpf_fsf, public increment 
+class fnpf_fsfbc_wd : public fnpf_fsf, public increment
 {
 public:
-	fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_fsfbc_wd();
-    
+    fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
+    virtual ~fnpf_fsfbc_wd();
+
     void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
     void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
     void kfsfbc(lexer*,fdm_fnpf*,ghostcell*) override;
@@ -53,9 +53,9 @@ public:
     void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override;
     void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override;
     void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override;
-    
+
     void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
-    
+
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
     fnpf_convection *pconvec;
@@ -67,20 +67,20 @@ public:
     solver2D *psolv;
 
     double ivel,jvel,kvel;
-    
+
 private:
     double rb3(lexer*,double);
     double rb4(lexer*,double);
     double rb5(lexer*,double);
-    
+
     double dist3,dist4,dist5,expinverse,db;
-    
+
     double visc;
-    
+
     int *temp;
     int gcval_eta,gcval_fifsf;
     const double eps;
-    
+
     sliceint4 bx,by;
     sliceint4 wetcoast;
     int count_n;

@@ -36,31 +36,31 @@ class solver2D;
 
 using namespace std;
 
-class fnpf_breaking : public fnpf_fsf, public increment 
+class fnpf_breaking : public fnpf_fsf, public increment
 {
 public:
-	fnpf_breaking(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_breaking();
-    
+    fnpf_breaking(lexer*, fdm_fnpf*, ghostcell*);
+    virtual ~fnpf_breaking();
+
     void breaking_algorithm(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
 
-    
-    
+
+
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
     double ivel,jvel,kvel;
-    
+
 private:
     double rb3(lexer*,double);
     double rb4(lexer*,double);
-    
+
     double dist3,dist4,db;
-    
+
     double visc;
-    
+
     sliceint4 bx,by;
     int count_n;
-    
+
 };
 
 #endif

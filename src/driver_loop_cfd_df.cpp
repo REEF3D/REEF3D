@@ -45,8 +45,8 @@ void driver::loop_cfd_df(fdm* a)
     cout<<"starting mainloop.CFD_DF"<<endl;
 
 //-----------MAINLOOP CFD FSI----------------------------
-	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
-	{
+    while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
+    {
         ++p->count;
         starttime=pgc->timer();
 
@@ -58,15 +58,15 @@ void driver::loop_cfd_df(fdm* a)
             cout<<"simtime: "<<p->simtime<<endl;
             cout<<setprecision(5)<<"timestep: "<<p->dt<<endl;
             cout<<"fbtimestep: "<<p->fbdt<<" fbmax: "<<p->fbmax<<endl;
-            
+
 
             if(p->B90>0 && p->B92<=11)
             cout<<"t/T: "<<p->simtime/p->wT<<endl;
-            
+
             if(p->B90>0 && p->B92>11)
             cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
-        
+
         p->fbmax=0.0;
 
         pflow->flowfile(p,a,pgc,pturb);
@@ -77,16 +77,16 @@ void driver::loop_cfd_df(fdm* a)
         pbench->start(p,a,pgc,pconvec);
 
         pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
-        
+
         // Turbulence computation
         pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
-        
+
         // Heat computation
         pheat->start(a,p,pconvec,pdiff,psolv,pgc,pflow);
-        
+
         // Concentration computation
         pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-        
+
         // Sediment computation
         psed->start_cfd(p,a,pgc,pflow,preto,psolv);
 
@@ -94,7 +94,7 @@ void driver::loop_cfd_df(fdm* a)
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
-	
+
         // Momentum and 6DOF motion
         pmom_df->starti(p,a,pgc,p6dof,pvrans,pfsi);
 
@@ -115,13 +115,13 @@ void driver::loop_cfd_df(fdm* a)
         {
         endtime=pgc->timer();
 
-		p->itertime=endtime-starttime;
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
+        p->itertime=endtime-starttime;
+        p->totaltime+=p->itertime;
+        p->gctotaltime+=p->gctime;
+        p->Xtotaltime+=p->xtime;
+        p->meantime=(p->totaltime/double(p->count));
+        p->gcmeantime=(p->gctotaltime/double(p->count));
+        p->Xmeantime=(p->Xtotaltime/double(p->count));
 
             if( (p->count%p->P12==0))
             {
@@ -134,7 +134,7 @@ void driver::loop_cfd_df(fdm* a)
             cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
             cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
             }
-            
+
         // Write log files
         mainlog(p);
         maxlog(p);
@@ -143,27 +143,26 @@ void driver::loop_cfd_df(fdm* a)
     p->utime=p->vtime=p->wtime=0.0;
     p->gctime=0.0;
     p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-	p->field4time=0.0;
+    p->reinitime=0.0;
+    p->wavecalctime=0.0;
+    p->field4time=0.0;
     p->fsitime=0.0;
     p->fbtime=0.0;
 
     stop(p,a,pgc);
-	}
+    }
 
-	if(p->mpirank==0)
-	{
-	cout<<endl<<"******************************"<<endl<<endl;
+    if(p->mpirank==0)
+    {
+    cout<<endl<<"******************************"<<endl<<endl;
 
-	cout<<"modelled time: "<<p->simtime<<endl;
-	cout << endl;
+    cout<<"modelled time: "<<p->simtime<<endl;
+    cout << endl;
 
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-	}
+    }
 
     pgc->final();
 }
-

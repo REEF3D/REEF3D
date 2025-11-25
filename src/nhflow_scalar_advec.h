@@ -33,8 +33,8 @@ class nhflow_scalar_advec
 public:
 
     virtual void uadvec(int,double*,double&,double&)=0;
-	virtual void vadvec(int,double*,double&,double&)=0;
-	virtual void wadvec(int,double*,double&,double&)=0;
+    virtual void vadvec(int,double*,double&,double&)=0;
+    virtual void wadvec(int,double*,double&,double&)=0;
 
 };
 

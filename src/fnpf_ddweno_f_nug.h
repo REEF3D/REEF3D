@@ -40,39 +40,39 @@ class fnpf_ddweno_f_nug : public weno_nug_func
 {
 public:
 
-	 fnpf_ddweno_f_nug(lexer*,fdm_fnpf*);
-	 ~fnpf_ddweno_f_nug();
-    
+     fnpf_ddweno_f_nug(lexer*,fdm_fnpf*);
+     ~fnpf_ddweno_f_nug();
+
     // field
     double ddwenox(field&, double);
     double ddwenoy(field&, double);
     double ddwenoz(field&, double);
-     
+
     void iqmin(field&);
     void jqmin(field&);
     void kqmin(field&);
-	void iqmax(field&);
-	void jqmax(field&);
-	void kqmax(field&);
-     
+    void iqmax(field&);
+    void jqmax(field&);
+    void kqmax(field&);
+
     // slice
     double dswenox(slice&, double);
     double dswenoy(slice&, double);
 
     void isqmin(slice&);
-	void jsqmin(slice&);
-	void isqmax(slice&);
-	void jsqmax(slice&);
-    
+    void jsqmin(slice&);
+    void isqmax(slice&);
+    void jsqmax(slice&);
+
     void is_wd_x_min();
     void is_wd_x_max();
     void is_wd_y_min();
     void is_wd_y_max();
 
-    
+
     double grad;
     double *DX,*DY,*DZ;
-    
+
 private:
     lexer *p;
     fdm_fnpf *c;

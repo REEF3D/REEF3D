@@ -37,13 +37,13 @@ class density_comp : public density, virtual public increment
 
 public:
     density_comp(lexer*);
-	virtual ~density_comp();
+    virtual ~density_comp();
 
-	double roface(lexer*,fdm*,int,int,int) override;
-	
-	double H,roval,phival;
-	int ii,jj,kk;
-	double ro_air,psi;
+    double roface(lexer*,fdm*,int,int,int) override;
+
+    double H,roval,phival;
+    int ii,jj,kk;
+    double ro_air,psi;
 
 };
 

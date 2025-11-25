@@ -38,11 +38,11 @@ using namespace std;
 class sflow_ediff : public sflow_diffusion, public increment
 {
 public:
-	sflow_ediff(lexer*);
-	virtual ~sflow_ediff();
+    sflow_ediff(lexer*);
+    virtual ~sflow_ediff();
 
-	void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override;
-	void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override;
+    void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override;
+    void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override;
     void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, double) override;
     void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double) override;
 

@@ -40,26 +40,26 @@ class sixdof_motionext_wavemaker : public sixdof_motionext
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    
+
     void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&) override;
     void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&) override;
 
     void ini(lexer*,ghostcell*) override;
-    
-    
-    
+
+
+
     sixdof_motionext_wavemaker(lexer*, ghostcell*);
-	virtual ~sixdof_motionext_wavemaker();
-    
+    virtual ~sixdof_motionext_wavemaker();
+
 private:
     double ramp_vel(lexer*);
     double ramp_draft(lexer*);
-    
+
     void read_format_1(lexer*,ghostcell*);
     void read_format_2(lexer*,ghostcell*);
-    
+
     Eigen::Vector3d omega_;
-    
+
     ofstream file;
     char name[200];
     int qn,count,ptnum;
@@ -69,7 +69,7 @@ private:
     double **data;
     double ts,te;
     int timecount,timecount_old;
-    
+
     double Uext, Vext, Wext, Pext, Qext, Rext;
 };
 

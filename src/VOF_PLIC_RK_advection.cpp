@@ -45,7 +45,7 @@ double VOF_PLIC::calculateVolume(double n_a, double n_b, double n_c, double d_a,
     n_a=n_a/vecsum;
     n_b=n_b/vecsum;
     n_c=n_c/vecsum;
-    
+
     if(n_b*d_b>=n_a*d_a)
     {
         n_1=n_a;
@@ -60,7 +60,7 @@ double VOF_PLIC::calculateVolume(double n_a, double n_b, double n_c, double d_a,
         n_2=n_a;
         d_2=d_a;
     }
-    
+
     if(n_c*d_c>=n_2*d_2)
     {
         n_3=n_c;
@@ -82,8 +82,8 @@ double VOF_PLIC::calculateVolume(double n_a, double n_b, double n_c, double d_a,
         n_2=n_c;
         d_2=d_c;
     }
-    
-    
+
+
     r=0.5*(n_1*d_1+n_2*d_2+n_3*d_3)-fabs(r0);
     if(r<=0.0) //case 0
     {
@@ -119,12 +119,12 @@ double VOF_PLIC::calculateVolume(double n_a, double n_b, double n_c, double d_a,
     {
         V0=-(0.5-V)+0.5;
     }
-    
+
     if(V0<0.0)
         cout<<"neg VO output"<<endl;
     if(V0>1.0)
         cout<<"too hight V0 output"<<endl;
-        
+
     return V0;
 }
 
@@ -139,7 +139,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
     field& wvel
 )
 {
-  
+
     if(sweep==0)
     {
         if(uvel(i,j,k)>0.0)
@@ -169,7 +169,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
                                 Vz_p(i,j,k)=Vol;
                                 break;
                 }
-                
+
             }
             else if(nx(i,j,k)<0.0)
             {
@@ -186,10 +186,10 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
                                 Vz_p(i,j,k)=Vol;
                                 break;
                 }
-                
+
             }
         }
-        
+
         if(uvel(i-1,j,k)<0.0)
         {
             double dsx, scaledVol, Vol, r0x, recheck;
@@ -233,10 +233,10 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
                                 Vz_m(i,j,k)=-Vol;
                                 break;
                 }
-                
+
             }
         }
-        
+
     }
     else if(sweep==2)
     {
@@ -285,7 +285,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
                 }
             }
         }
-        
+
         if(wvel(i,j,k-1)<0.0)
         {
             double dsz, scaledVol, Vol, r0z, recheck;
@@ -331,7 +331,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
                 }
             }
         }
-        
+
     }
 }
 
@@ -371,7 +371,7 @@ void VOF_PLIC::advectWater_forCOSMIC2D_RK
                             break;
             }
         }
-        
+
         if(uvel(i-1,j,k)<0.0)
         {
             double dsx, Vol;
@@ -421,7 +421,7 @@ void VOF_PLIC::advectWater_forCOSMIC2D_RK
                             break;
             }
         }
-        
+
         if(wvel(i,j,k-1)<0.0)
         {
             double dsz,Vol;
@@ -455,6 +455,6 @@ double VOF_PLIC::twoStepVel(lexer* p, fdm* a,double uin1,double uin2,double delt
     u12=(uin2-uin1)/deltax * dx1+uin1;
     dx2=0.5*p->dt*u12;
     dx_ret=dx1+dx2;
-    
+
     return dx_ret;
 }

@@ -32,90 +32,88 @@ Author: Hans Bihs
 void cfd_state::write_header(lexer *p, fdm *a, ghostcell *pgc)
 {
     ofstream headout;
-    
-    
+
+
     // file name
     filename_header(p,a,pgc);
-    
+
     // open file
-	headout.open(name, ios::binary);
-    
-    // ijk origin    
+    headout.open(name, ios::binary);
+
+    // ijk origin
     iin=p->origin_i-is_global;
-    
+
     if(is_flag==1)
     iin=0;
-    
+
     headout.write((char*)&iin, sizeof (int));
-    
-    
+
+
     iin=p->origin_j-js_global;
-    
+
     if(js_flag==1)
     iin=0;
-    
+
     headout.write((char*)&iin, sizeof (int));
-    
-    
+
+
     iin=p->origin_k;
     headout.write((char*)&iin, sizeof (int));
 
     // xyz origin
     ddn=p->originx;
     headout.write((char*)&ddn, sizeof (double));
-    
+
     ddn=p->originy;
     headout.write((char*)&ddn, sizeof (double));
-    
+
     ddn=p->originz;
     headout.write((char*)&ddn, sizeof (double));
-  
+
     // ijk length
     iin=ie-is;
     headout.write((char*)&iin, sizeof (int));
-    
+
     iin=je-js;
     headout.write((char*)&iin, sizeof (int));
-    
-    
+
+
     iin=p->knoz;
     headout.write((char*)&iin, sizeof (int));
-    
+
     // parallel neihbors
     iin=p->nb1;
     headout.write((char*)&iin, sizeof (int));
-    
+
     iin=p->nb2;
     headout.write((char*)&iin, sizeof (int));
-    
+
     iin=p->nb3;
     headout.write((char*)&iin, sizeof (int));
-    
+
     iin=p->nb4;
     headout.write((char*)&iin, sizeof (int));
-    
-    
+
+
     // grid coordinates
     for(i=is;i<=ie;++i)
     {
     ddn=p->XN[IP];
     headout.write((char*)&ddn, sizeof (double));
-    } 
-    
+    }
+
     for(j=js;j<=je;++j)
     {
     ddn=p->YN[JP];
     headout.write((char*)&ddn, sizeof (double));
-    } 
-    
+    }
+
     FKLOOP
     {
     ddn=p->ZN[KP];
     headout.write((char*)&ddn, sizeof (double));
-    } 
+    }
 
-    
+
     headout.close();
 }
-
-

@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"sflow_flux_HJ_CDS.h"
 #include"patchBC_interface.h"
 
-sflow_hxy_fou::sflow_hxy_fou(lexer* p, patchBC_interface *ppBC) 
+sflow_hxy_fou::sflow_hxy_fou(lexer* p, patchBC_interface *ppBC)
 {
     pBC = ppBC;
 
@@ -42,28 +42,28 @@ sflow_hxy_fou::~sflow_hxy_fou()
 
 void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet, slice& eta, slice &P, slice &Q)
 {
-	double eps=1.0e-7;
-	
+    double eps=1.0e-7;
+
     SLICELOOP1
-	{
+    {
     ivel1 = P(i,j);
 
-	if(ivel1>eps)
+    if(ivel1>eps)
     hx(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i+1,j));
-	
-	if(ivel1<-eps)
+
+    if(ivel1<-eps)
     hx(i,j) = eta(i+1,j) + 0.5*(depth(i,j)+depth(i+1,j));
 
-	if(fabs(ivel1)<=eps)
+    if(fabs(ivel1)<=eps)
     hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
-	}
-    
+    }
+
     if(p->F50==1 || p->F50==4)
     for(n=0;n<p->gcslout_count;n++)
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
-    
+
 
         if(wet[IJ]==1)
         {
@@ -71,16 +71,16 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
 
         if(ivel1>eps)
         hx(i,j) = eta(i,j)  + MIN(depth(i,j), depth(i+1,j));
-        
+
         if(ivel1<-eps)
         hx(i,j) = eta(i+1,j) + MIN(depth(i,j), depth(i+1,j));
-        
+
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
     }
-     
-    int qq;    
+
+    int qq;
     for(qq=0;qq<pBC->obj_count;++qq)
     if(pBC->patch[qq]->waterlevel_flag==0)
     for(n=0;n<pBC->patch[qq]->gcb_count;++n)
@@ -88,67 +88,65 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
     {
     if(pBC->patch[qq]->gcb[n][3]==1)
     i=pBC->patch[qq]->gcb[n][0]-1;
-    
+
     j=pBC->patch[qq]->gcb[n][1];
 
-        
+
         if(wet[IJ]==1)
         {
         ivel1 = P(i,j);
 
         if(ivel1>eps)
         hx(i,j) = eta(i,j) + depth(i,j);
-        
+
         if(ivel1<-eps)
         hx(i,j) = eta(i+1,j) + depth(i+1,j);
-        
+
         if(fabs(ivel1)<=eps)
         hx(i,j) = MAX(eta(i,j),eta(i+1,j)) + MIN(depth(i,j), depth(i+1,j));
         }
     }
-	
-	SLICELOOP2
-	{
+
+    SLICELOOP2
+    {
     jvel1 = Q(i,j);
-	
-	if(jvel1>eps)
+
+    if(jvel1>eps)
     hy(i,j) = eta(i,j) + 0.5*(depth(i,j)+depth(i,j+1));
-	
-	if(jvel1<-eps)
+
+    if(jvel1<-eps)
     hy(i,j) = eta(i,j+1) + 0.5*(depth(i,j)+depth(i,j+1));
-	
-	if(fabs(jvel1)<=eps)
+
+    if(fabs(jvel1)<=eps)
     hy(i,j) = MAX(eta(i,j),eta(i,j+1)) + MIN(depth(i,j), depth(i,j+1));
-	}
-    
-      
+    }
+
+
     for(qq=0;qq<pBC->obj_count;++qq)
     if(pBC->patch[qq]->waterlevel_flag==0)
     for(n=0;n<pBC->patch[qq]->gcb_count;++n)
     if(pBC->patch[qq]->gcb[n][3]==3 || pBC->patch[qq]->gcb[n][3]==2)
     {
-    
+
     i=pBC->patch[qq]->gcb[n][0];
-    
+
     if(pBC->patch[qq]->gcb[n][3]==3)
     j=pBC->patch[qq]->gcb[n][1]-1;
 
-        
+
         if(wet[IJ]==1)
         {
         jvel1 = Q(i,j);
-	
+
         if(jvel1>eps)
         hy(i,j) = eta(i,j) + depth(i,j);
-        
+
         if(jvel1<-eps)
         hy(i,j) = eta(i,j+1) + depth(i,j+1);
-        
+
         if(fabs(jvel1)<=eps)
         hy(i,j) = MAX(eta(i,j),eta(i,j+1)) + MIN(depth(i,j), depth(i,j+1));
-        }        
+        }
     }
-	
+
 }
-
-

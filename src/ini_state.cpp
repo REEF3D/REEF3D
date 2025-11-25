@@ -31,14 +31,14 @@ Author: Hans Bihs
 void initialize::stateini(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
     int state_restart=0;
-    
+
     if(p->I40==1)
     state_restart=0;
-    
+
     if(p->I40==2)
     state_restart=0;
-    
-	cfd_state state_ini(p,a,pgc,state_restart);
-	
-	state_ini.read(p,a,pgc,pturb,psed);
+
+    cfd_state state_ini(p,a,pgc,state_restart);
+
+    state_ini.read(p,a,pgc,pturb,psed);
 }

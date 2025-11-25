@@ -33,35 +33,35 @@ class sflow_pjm_corr_lin : public sflow_pressure, public increment
 {
 public:
     sflow_pjm_corr_lin(lexer*, fdm2D*,patchBC_interface*);
-	virtual ~sflow_pjm_corr_lin();
-    
-	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override;
-	void upgrad(lexer*, fdm2D*, slice&, slice&) override;
-	void vpgrad(lexer*, fdm2D*, slice&, slice&) override;
+    virtual ~sflow_pjm_corr_lin();
+
+    void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override;
+    void upgrad(lexer*, fdm2D*, slice&, slice&) override;
+    void vpgrad(lexer*, fdm2D*, slice&, slice&) override;
     void wpgrad(lexer*, fdm2D*, slice&, slice&) override;
-    
+
     void ucorr(lexer*,fdm2D*,slice&,slice&,double) override;
-	void vcorr(lexer*,fdm2D*,slice&,slice&,double) override;
-	void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
+    void vcorr(lexer*,fdm2D*,slice&,slice&,double) override;
+    void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
     void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
-    
+
     void rhs(lexer*, fdm2D*, slice&, slice&, slice&, double);
-    
+
     void presscorr(lexer*,fdm2D*);
-    
+
     void poisson(lexer*,fdm2D*,double);
-    
+
 private:
     slice4 pcorr;
-	double starttime,endtime;
+    double starttime,endtime;
     int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
-    
+    int gcval_u, gcval_v, gcval_w;
+
     double sqd;
-	double theta;
-	double solvtime,ptime;
+    double theta;
+    double solvtime,ptime;
     double wd_criterion;
-    
+
     patchBC_interface *pBC;
 
 };

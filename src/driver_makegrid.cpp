@@ -27,44 +27,43 @@ Author: Hans Bihs
 #include"grid.h"
 
 void driver::makegrid(lexer *p, ghostcell *pgc)
-{	
+{
     // flag
     pgc->flagx(p,p->flagsf1);
     pgc->flagx(p,p->flagsf2);
     pgc->flagx(p,p->flagsf3);
     pgc->flagx(p,p->flagsf4);
-    
+
     pgc->flagx(p,p->flag1);
     pgc->flagx(p,p->flag2);
     pgc->flagx(p,p->flag3);
     pgc->flagx(p,p->flag4);
     pgc->flagx(p,p->flag);
-	pgc->gcxupdate(p);
-    
+    pgc->gcxupdate(p);
+
     p->vecsize(pgc);
-    
+
     // grid
     grid gridgen(p);
-    
+
     gridgen.fillgcb1(p);
     gridgen.fillgcb2(p);
     gridgen.fillgcb3(p);
     gridgen.fillgcb4a(p);
-    
+
     gridgen.fillgcb4_wall(p);
-    
+
     gridgen.make_dgc(p);
-    
+
     gridgen.fill_dgc1(p);
     gridgen.fill_dgc2(p);
     gridgen.fill_dgc3(p);
     gridgen.fill_dgc4(p);
-    
+
     gridgen.unmake_dgc(p);
 }
-	
+
 void driver::makegrid_cds()
-{	
-	pgc->sizeM_update(p,a);
+{
+    pgc->sizeM_update(p,a);
 }
-	

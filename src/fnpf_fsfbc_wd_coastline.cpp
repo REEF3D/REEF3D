@@ -26,20 +26,20 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fnpf_coastline.h"
 
-void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
     double fac=1.0;
-    
+
     if(p->A347==1 || p->A347==2)
     SLICELOOP4
     {
     if(p->I30==1 && p->count==0)
     fac=20.0;
-    
+
         if(c->coastline(i,j)>=0.0)
         {
             db = c->coastline(i,j);
-            
+
             if(db<fac*dist3)
             {
             f(i,j) = rb3(p,db)*f(i,j);
@@ -49,51 +49,51 @@ void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
     }
 }
 
-void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
     double fac=1.0;
-    
+
     if(p->A347==1 || p->A347==3)
     SLICELOOP4
     {
-    
+
     if(p->I30==1 && p->count==0)
     fac=20.0;
-    
+
         if(c->coastline(i,j)>=0.0)
         {
             db = c->coastline(i,j);
-            
+
             if(db<fac*dist4)
             {
             f(i,j) = rb4(p,db)*f(i,j);
             }
         }
-        
+
         if(c->coastline(i,j)<0.0 && p->A343>=1)
         f(i,j)=0.0;
     }
 }
 
-void fnpf_fsfbc_wd::coastline_Fz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+void fnpf_fsfbc_wd::coastline_Fz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
     SLICELOOP4
     c->test2D(i,j) = 0.0;
 
     SLICELOOP4
     {
-    
+
         if(c->coastline(i,j)>=0.0)
         {
             db = c->coastline(i,j);
-            
+
             if(db<dist5)
             {
             f(i,j) = rb5(p,db)*f(i,j);
             c->test2D(i,j)=rb5(p,db);
             }
         }
-        
+
         if(c->coastline(i,j)<0.0 && p->A343>=1)
         f(i,j)=0.0;
     }
@@ -103,34 +103,34 @@ double fnpf_fsfbc_wd::rb3(lexer *p, double x)
 {
     double r=0.0;
     double fac=1.0;
-    
-    
+
+
     if(p->I30==1 && p->count==0)
     fac=20.0;
 
     x=(fac*dist3-fabs(x))/(fac*dist3);
     x=MAX(x,0.0);
-    
+
     r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 
-	return r;
+    return r;
 }
 
 double fnpf_fsfbc_wd::rb4(lexer *p, double x)
 {
     double r=0.0;
     double fac=1.0;
-    
-    
+
+
     if(p->I30==1 && p->count==0)
     fac=20.0;
 
     x=(fac*dist4-fabs(x))/(fac*dist4);
     x=MAX(x,0.0);
-    
+
     r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 
-	return r;
+    return r;
 }
 
 double fnpf_fsfbc_wd::rb5(lexer *p, double x)
@@ -141,8 +141,8 @@ double fnpf_fsfbc_wd::rb5(lexer *p, double x)
 
     x=(fac*dist5-fabs(x))/(fac*dist5);
     x=MAX(x,0.0);
-    
+
     r = 1.0 - (exp(pow(x,1.5))-1.0)/(EE-1.0);
 
-	return r;
+    return r;
 }

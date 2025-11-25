@@ -36,28 +36,28 @@ concentration_io::~concentration_io()
 
 void concentration_io::print_3D(lexer* p, fdm *a, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {
-	
-	iin=4*(p->pointnum);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
-    m+=sizeof(int);
-	
-	TPLOOP
-	{
-	ffn=float(p->ipol4(C));
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
-	m+=sizeof(float);
-	}	
-	
-	iin=4*(p->pointnum);
+
+    iin=4*(p->pointnum);
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 
-	TPLOOP
-	{
-	ffn=float(p->ipol4(a->ro));
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
-	m+=sizeof(float);
-	}
+    TPLOOP
+    {
+    ffn=float(p->ipol4(C));
+    std::memcpy(&buffer[m],&ffn,sizeof(float));
+    m+=sizeof(float);
+    }
+
+    iin=4*(p->pointnum);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+
+    TPLOOP
+    {
+    ffn=float(p->ipol4(a->ro));
+    std::memcpy(&buffer[m],&ffn,sizeof(float));
+    m+=sizeof(float);
+    }
 }
 
 double concentration_io::val(int ii, int jj, int kk)
@@ -72,21 +72,21 @@ double concentration_io::val(int ii, int jj, int kk)
 void concentration_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"C\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
 }
 
 void concentration_io::name_ParaView(lexer *p, ostream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"C\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	result<<"<DataArray type=\"Float32\" Name=\"rho\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"rho\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
 
 void concentration_io::offset_ParaView(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+    ++n;
 }

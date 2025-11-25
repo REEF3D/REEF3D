@@ -28,38 +28,31 @@ void lexer::lexer_read(ghostcell *pgc)
 
     ii_recv=ii_send=0;
     dd_recv=dd_send=0;
-    
-    if(mpirank==0)
-	read_control();
 
-	ctrlsize=22500;
-	
+    if(mpirank==0)
+    read_control();
+
+    ctrlsize=22500;
+
     Iarray(ictrl,ctrlsize);
     Darray(dctrl,ctrlsize);
-    
-		if(mpirank==0)
-		ctrlsend();
-		
-		pgc->globalctrl(this);
-		
-		if(mpirank>0)
-		ctrlrecv();
-        
-        
+
+        if(mpirank==0)
+        ctrlsend();
+
+        pgc->globalctrl(this);
+
+        if(mpirank>0)
+        ctrlrecv();
+
+
     //cout<<mpirank<<" ii_send: "<<ii_send<<" ii_recv: "<<ii_recv<<endl;
     //cout<<mpirank<<" dd_send: "<<dd_send<<" dd_recv: "<<dd_recv<<endl;
-    
+
     del_Iarray(ictrl,ctrlsize);
     del_Darray(dctrl,ctrlsize);
 
-	read_grid();
-	
-	lexer_ini();
+    read_grid();
+
+    lexer_ini();
 }
-
-
-
-
-
-
-

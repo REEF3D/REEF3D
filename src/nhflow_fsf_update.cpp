@@ -29,13 +29,13 @@ Author: Hans Bihs
 void nhflow_fsf_f::depth_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
 {
     SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
-    
+    d->depth(i,j) = p->wd - d->bed(i,j);
+
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
-    
+
     pgc->gcsl_start4(p,d->depth,50);
-    pgc->gcsl_start4(p,d->WL,gcval_eta);   
-    
-    wetdry(p,d,pgc,d->U,d->V,d->W,d->WL); 
+    pgc->gcsl_start4(p,d->WL,gcval_eta);
+
+    wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
 }

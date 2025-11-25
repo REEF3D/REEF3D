@@ -71,17 +71,17 @@ void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen
 
     if(p->X11_p==2)
     omega_(0) = Pext*ramp_vel(p);
-    
+
     if(p->X11_q==2)
     omega_(1) = Qext*ramp_vel(p);
-    
+
     if(p->X11_r==2)
     omega_(2) = Rext*ramp_vel(p);
-    
+
     h_ = I_*omega_;
-    
+
     dh_ << 0.0,0.0,0.0;
-    
+
     de_ = 0.5*G_.transpose()*I_.inverse()*h_;
 }
 

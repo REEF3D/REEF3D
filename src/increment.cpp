@@ -26,7 +26,7 @@ Author: Hans Bihs
 
 increment::increment()
 {
-	pip=0;
+    pip=0;
     marge=5;
 }
 

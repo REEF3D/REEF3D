@@ -76,6 +76,3 @@ void heat_void::name_ParaView(lexer *p, std::stringstream &result, int *offset, 
 void heat_void::offset_ParaView(lexer *p, int *offset, int &n)
 {
 }
-
-
-

@@ -46,7 +46,7 @@ public:
     virtual ~VOF_void();
     void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
     void update(lexer*,fdm*,ghostcell*,field&) override;
-    
+
 private:
     fluid_update *pupdate;
 };

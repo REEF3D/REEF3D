@@ -36,33 +36,33 @@ class sediment_fdm
 {
 public:
     sediment_fdm(lexer*);
-	virtual ~sediment_fdm();
-    
+    virtual ~sediment_fdm();
+
     slice1 P;
     slice2 Q;
-    
+
     slice4 bedzh,bedzh0,bedch,bedsole;
     slice4 vz,dh,reduce;
     slice4 ks;
-    
+
     slice4 tau_eff,tau_crit;
     slice4 shearvel_eff,shearvel_crit;
     slice4 shields_eff, shields_crit;
-    
+
     slice4 alpha,teta,gamma,beta,phi;
     slice4 active;
-    
-    
+
+
     sliceint4 bedk;
     slice4 slide_fh;
-    
+
     slice4 qb,qbe;
     slice4 cbe,cb,cbn,conc;
-    
+
     slice4 waterlevel;
     slice4 guard;
     slice4 MOB;
-    
+
     double ws;
 
 };

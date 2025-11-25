@@ -35,7 +35,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
     double wl,sigval;
     double bx,by,ex,ey;
-    
+
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
@@ -43,29 +43,29 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     {
     d->Ex(i,j) = sx(d->eta);
     d->Ey(i,j) = sy(d->eta);
-    
+
     d->Exx(i,j) = sxx(d->eta);
     d->Eyy(i,j) = syy(d->eta);
     }
-    
+
     // 2D
     if(p->j_dir==0)
     SLICELOOP4
     {
-    d->Ex(i,j) = sx(d->eta);    
+    d->Ex(i,j) = sx(d->eta);
     d->Exx(i,j) = sxx(d->eta);
     }
-    
+
     SLICELOOP4
     if(p->wet[IJ]==0)
     {
     d->Ex(i,j)=0.0;
     d->Ey(i,j)=0.0;
     }
-        
+
     pgc->gcsl_start4(p,d->Ex,1);
     pgc->gcsl_start4(p,d->Ey,1);
-    
+
     // calculate: Bx,By,Bxx,Byy
     // 3D
     if(p->j_dir==1)
@@ -73,7 +73,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     {
     d->Bx(i,j) = sx(d->depth);
     d->By(i,j) = sy(d->depth);
-    
+
     d->Bxx(i,j) = sxx(d->depth);
     d->Byy(i,j) = syy(d->depth);
     }
@@ -82,10 +82,10 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     if(p->j_dir==0 && p->A312!=1)
     SLICELOOP4
     {
-    d->Bx(i,j) = sx(d->depth);    
+    d->Bx(i,j) = sx(d->depth);
     d->Bxx(i,j) = sxx(d->depth);
     }
-    
+
     SLICELOOP4
     if(p->wet[IJ]==0)
     {
@@ -95,35 +95,35 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 
     pgc->gcsl_start4(p,d->Bx,1);
     pgc->gcsl_start4(p,d->By,1);
-    
+
     // -----------------------------------------------------
-    
+
     // sigx
     FLOOP
     {
     if(p->wet[IJ]==0)
     p->sigx[FIJK] = 0.0;
-    
+
     if(p->wet[IJ]==1)
     p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(d->Bx(i,j)/WLVL) - p->sig[FIJK]*(d->Ex(i,j)/WLVL);
     }
-    
+
     // sigy
     FLOOP
     {
     if(p->wet[IJ]==0)
     p->sigy[FIJK] = 0.0;
-    
+
     if(p->wet[IJ]==1)
     p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(d->By(i,j)/WLVL) - p->sig[FIJK]*(d->Ey(i,j)/WLVL);
-    }    
-    
+    }
+
     // sigz
     SLICELOOP4
     {
     if(p->wet[IJ]==0)
     p->sigz[IJ] = 0.0;
-    
+
     if(p->wet[IJ]==1)
     p->sigz[IJ] = 1.0/WLVL;
     }
@@ -137,27 +137,27 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     if(p->wet[IJ]==1)
     {
         p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(d->Bxx(i,j) - pow(d->Bx(i,j),2.0)/WLVL) // xx
-        
+
                       - (p->sig[FIJK]/WLVL)*(d->Exx(i,j) - pow(d->Ex(i,j),2.0)/WLVL)
-                      
+
                       - (p->sigx[FIJK]/WLVL)*(d->Bx(i,j) + d->Ex(i,j))
-                      
+
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->Bx(i,j)*d->Ex(i,j))
-                      
-                      
+
+
                       + ((1.0 - p->sig[FIJK])/WLVL)*(d->Byy(i,j) - pow(d->By(i,j),2.0)/WLVL) // yy
-        
+
                       - (p->sig[FIJK]/WLVL)*(d->Eyy(i,j) - pow(d->Ey(i,j),2.0)/WLVL)
-                      
+
                       - (p->sigy[FIJK]/WLVL)*(d->By(i,j) + d->Ey(i,j))
-                      
+
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
     }
-    
+
     FLOOP
     if(p->wet[IJ]==0)
     p->sigxx[FIJK]=0.0;
-    
+
     // sig BC
     SLICELOOP4
     {
@@ -168,16 +168,16 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->sigx[FIJKm2] = p->sigx[FIJK];
             p->sigx[FIJKm3] = p->sigx[FIJK];
         }
-        
+
         k=p->knoz;
         if(p->nb6==-2)
         {
             p->sigx[FIJKp1] = p->sigx[FIJK];
             p->sigx[FIJKp2] = p->sigx[FIJK];
             p->sigx[FIJKp3] = p->sigx[FIJK];
-        } 
+        }
     }
-    
+
     SLICELOOP4
     {
         k=0;
@@ -187,16 +187,16 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->sigy[FIJKm2] = p->sigy[FIJK];
             p->sigy[FIJKm3] = p->sigy[FIJK];
         }
-        
+
         k=p->knoz;
         if(p->nb6==-2)
         {
             p->sigy[FIJKp1] = p->sigy[FIJK];
             p->sigy[FIJKp2] = p->sigy[FIJK];
             p->sigy[FIJKp3] = p->sigy[FIJK];
-        } 
+        }
     }
-    
+
     SLICELOOP4
     {
         k=0;
@@ -206,23 +206,23 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->sigxx[FIJKm2] = p->sigxx[FIJK];
             p->sigxx[FIJKm3] = p->sigxx[FIJK];
         }
-        
+
         k=p->knoz;
         if(p->nb6==-2)
         {
             p->sigxx[FIJKp1] = p->sigxx[FIJK];
             p->sigxx[FIJKp2] = p->sigxx[FIJK];
             p->sigxx[FIJKp3] = p->sigxx[FIJK];
-        } 
+        }
     }
-    
-    
+
+
     FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*WL(i,j) + d->bed(i,j);
-    
+
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*WL(i,j) + d->bed(i,j);
-    
+
     pgc->start7S(p,p->sigx,1);
     pgc->start7S(p,p->sigy,1);
     pgc->start7S(p,p->sigxx,1);
@@ -230,8 +230,8 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     pgc->start7S(p,p->ZSN,1);
     pgc->start5V(p,p->ZSP,1);
     pgc->gcslparaxijk(p, p->sigz, 1);
-    
-    
+
+
     SLICELOOP4
     {
         k=0;
@@ -239,15 +239,15 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->ZSN[FIJKm1] = p->ZN[KM1]*WL(i,j) + d->bed(i,j);
             p->ZSN[FIJKm2] = p->ZN[KM2]*WL(i,j) + d->bed(i,j);
             p->ZSN[FIJKm3] = p->ZN[KM3]*WL(i,j) + d->bed(i,j);
-        
+
         k=p->knoz;
 
             p->ZSN[FIJKp1] = p->ZN[KP1]*WL(i,j) + d->bed(i,j);
             p->ZSN[FIJKp2] = p->ZN[KP2]*WL(i,j) + d->bed(i,j);
             p->ZSN[FIJKp3] = p->ZN[KP3]*WL(i,j) + d->bed(i,j);
     }
-    
-    
+
+
     SLICELOOP4
     {
         k=0;
@@ -255,7 +255,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->ZSP[IJKm1] = p->ZP[KM1]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKm2] = p->ZP[KM2]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKm3] = p->ZP[KM3]*WL(i,j) + d->bed(i,j);
-        
+
         k=p->knoz-1;
 
             p->ZSP[IJKp1] = p->ZP[KP1]*WL(i,j) + d->bed(i,j);
@@ -263,4 +263,3 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
     }
 }
-

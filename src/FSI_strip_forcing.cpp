@@ -60,12 +60,12 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     double eps_star;
     double kin;
     double turb_force_fac = 50.0;
-    
+
     pip=4;
-    
+
     LOOP
     eps0(i,j,k) = 0.0;
-    
+
     pgc->start4(p,eps0,30);
 
     for (int eI = 0; eI < Ne; eI++)
@@ -98,9 +98,9 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         D *= kernel_roma(dist);
                         dist = (p->ZP[k_it + marge] - coordI(2))/dz;
                         D *= kernel_roma(dist);
-                        
+
                         fx(i_it,j_it,k_it) += forceI(0)*D*dV/(dx*dy*dz);
-      
+
 
                         dist = (p->XP[i_it + marge] - coordI(0))/dx;
                         D = kernel_roma(dist);
@@ -108,9 +108,9 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         D *= kernel_roma(dist);
                         dist = (p->ZP[k_it + marge] - coordI(2))/dz;
                         D *= kernel_roma(dist);
-                        
+
                         fy(i_it,j_it,k_it) += forceI(1)*D*dV/(dx*dy*dz);
-                
+
 
                         dist = (p->XP[i_it + marge] - coordI(0))/dx;
                         D = kernel_roma(dist);
@@ -118,10 +118,10 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         D *= kernel_roma(dist);
                         dist = (p->ZN[k_it + 1 + marge] - coordI(2))/dz;
                         D *= kernel_roma(dist);
-                        
+
                         fz(i_it,j_it,k_it) += forceI(2)*D*dV/(dx*dy*dz);
-                        
-                        
+
+
                         // RANS turbulence forcing
                         if(p->T10==2)
                         if(i_it>=0 && j_it>=0 && k_it>=0 && i_it<p->knox && j_it<p->knoy && k_it<p->knoz)
@@ -132,21 +132,21 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
                         D *= kernel_roma(dist);
                         dist = (p->ZN[k_it + marge] - coordI(2))/dz;
                         D *= kernel_roma(dist);
-                        
+
                         kin = pturb->kinval(i_it,j_it,k_it);
                         eps_star = turb_force_fac*D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
-                        
+
                         eps0(i_it,j_it,k_it) += eps_star;
                         }
                     }
                 }
-            }     
+            }
         }
     }
-    
-    
+
+
     pip=0;
-    
+
     if(p->T10==2)
     LOOP
     if(eps0(i,j,k)>1.0e-8)
@@ -154,7 +154,7 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     eps_star = eps0(i,j,k);
     pturb->epsget(i,j,k,eps_star);
     }
-    
+
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);

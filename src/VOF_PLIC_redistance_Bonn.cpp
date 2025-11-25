@@ -50,7 +50,7 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
     double phitemp;
     double dd=-alpha(i,j,k);
     int ip, jp, kp;
-    
+
     for(int ii=-bandWidth;ii<bandWidth+1;ii++)
     {
         for(int jj=-jjbandWidth;jj<jjbandWidth+1;jj++)
@@ -58,11 +58,11 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
             for(int kk=-bandWidth;kk<bandWidth+1;kk++)
             {
                         ip = i + ii;
-						jp = j + jj;
-						kp = k + kk;
-  
-						if (ip >= 0 && jp >= 0 && kp >= 0 && ip < p->knox && jp < p->knoy && kp < p->knoz)
-						{
+                        jp = j + jj;
+                        kp = k + kk;
+
+                        if (ip >= 0 && jp >= 0 && kp >= 0 && ip < p->knox && jp < p->knoy && kp < p->knoz)
+                        {
                                 if(ii==0 && jj==0 && kk==0)
                                 {
                                     if(a->vof(i,j,k)>0.0001 && a->vof(i,j,k)<0.9999)
@@ -73,7 +73,7 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                     }
                                 }
                                 else
-                                {   
+                                {
                                     phitemp=ShortestDistanceOnBoundaryCandidate(a,p,ii,jj,kk,dd);
                                     if(fabs(phitemp)<1E05)
                                     {
@@ -81,13 +81,13 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                             phiaux(ip,jp,kp)=copysign(phitemp,a->vof(ip,jp,kp)-0.5);
                                     }
                                     else
-                                    {   
+                                    {
                                         phitemp=ProjectionPointCandidate(a,p,ii,jj,kk,dd);
                                         if(fabs(phitemp)<1E05)
                                         {
                                             if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
                                                 phiaux(ip,jp,kp)=copysign(phitemp,a->vof(ip,jp,kp)-0.5);
-                                        }   
+                                        }
                                         else
                                         {
                                             phitemp=IntersectionPointCandidate(a,p,ii,jj,kk,dd);
@@ -106,12 +106,12 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                         }
                                     }
                                 }
-                        }       
-            }          
+                        }
+            }
         }
     }
 }
-    
+
 
 
 double VOF_PLIC::ShortestDistanceOnBoundaryCandidate
@@ -125,7 +125,7 @@ double VOF_PLIC::ShortestDistanceOnBoundaryCandidate
 )
 {
     // NOT ADAPTED FOR STRETCHED GRID YET !!!
-    
+
     double xvx, xvy,xvz,dist,ret;
     xvx=0.5*p->DXN[IP]*max(-1,min(1,ii));
     xvy=0.5*p->DYN[JP]*max(-1,min(1,jj));
@@ -133,11 +133,11 @@ double VOF_PLIC::ShortestDistanceOnBoundaryCandidate
     dist=nx(i,j,k)*xvx+ny(i,j,k)*xvy+nz(i,j,k)*xvz+dd;
     if(-dist*(phistep(i+ii,j+jj,k+kk))<0.0)
         ret=copysign(sqrt(xvx*xvx+xvy*xvy+xvz*xvz),(a->vof(i+ii,j+jj,k+kk)-0.5));
-    else 
+    else
         ret=1E06;
-        
+
     return ret;
-        
+
 }
 
 double VOF_PLIC::ProjectionPointCandidate
@@ -151,7 +151,7 @@ double VOF_PLIC::ProjectionPointCandidate
 )
 {
     // NOT ADAPTED FOR STRETCHED GRID YET !!!
-    
+
     double xpx, xpy,xpz, dist, ret;
     dist=nx(i,j,k)*(p->DXN[IP]*ii)+ny(i,j,k)*(p->DYN[JP]*jj)+nz(i,j,k)*(p->DZN[KP]*kk)+dd;
     xpx=(p->DXN[IP]*ii)-dist*nx(i,j,k);
@@ -167,7 +167,7 @@ double VOF_PLIC::ProjectionPointCandidate
     }
     else
         ret=1E06;
-        
+
     return ret;
 }
 
@@ -201,7 +201,7 @@ double VOF_PLIC::IntersectionPointCandidate
     n_x=nx(i,j,k);
     n_y=ny(i,j,k);
     n_z=nz(i,j,k);
-    
+
     //interate through all 12 lines of a cube
     for(int cubeline=1; cubeline<13; cubeline++)
     {
@@ -209,7 +209,7 @@ double VOF_PLIC::IntersectionPointCandidate
         {
             p1x=-0.5*dxn;
             p2x=-0.5*dxn;
-            
+
         }
         else if(cubeline <=8)
         {
@@ -222,7 +222,7 @@ double VOF_PLIC::IntersectionPointCandidate
             p1x=0.5*dxn;
             p2x=0.5*dxn;
         }
-        
+
         if(cubeline==1 || cubeline==3 || cubeline==9 || cubeline==11)
         {
             p1y=-0.5*dyn;
@@ -239,7 +239,7 @@ double VOF_PLIC::IntersectionPointCandidate
             p1y=0.5*dyn;
             p2y=0.5*dyn;
         }
-        
+
         if(cubeline==2 || cubeline==4 || cubeline==10 || cubeline==12)
         {
             p1z=-0.5*dzn;
@@ -256,15 +256,15 @@ double VOF_PLIC::IntersectionPointCandidate
             p1z=0.5*dzn;
             p2z=0.5*dzn;
         }
-        
+
         Dp1=n_x*p1x+n_y*p1y+n_z*p1z-r0;
         Dp2=n_x*p2x+n_y*p2y+n_z*p2z-r0;
-        
+
         if(Dp1*Dp2<0.0)
         {
             double dx,dy,dz;
             if(dimchange==1)
-            {   
+            {
                 //würfelkante entlang x
                 pisy=p1y;
                 pisz=p1z;
@@ -288,10 +288,10 @@ double VOF_PLIC::IntersectionPointCandidate
             dy=x_y-pisy;
             dz=x_z-pisz;
             mindist=min(sqrt(dx*dx+dy*dy+dz*dz),mindist);
-            
+
             if(dimchange==1)
             {   // x=change
-            
+
                 //1. y festhalten
                 nxl1=n_x/sqrt(n_x*n_x+n_z*n_z);
                 nzl1=n_z/sqrt(n_x*n_x+n_z*n_z);
@@ -300,7 +300,7 @@ double VOF_PLIC::IntersectionPointCandidate
                 ppr1x=x_x-distl1*nxl1;
                 ppr1y=pisy;
                 ppr1z=x_z-distl1*nzl1;
-                
+
                 //2, z festhalten
                 nxl2=n_x/sqrt(n_x*n_x+n_y*n_y);
                 nyl2=n_y/sqrt(n_x*n_x+n_y*n_y);
@@ -313,7 +313,7 @@ double VOF_PLIC::IntersectionPointCandidate
             else if(dimchange==2)
             {
                 // y=change
-                
+
                 // 1. x festhalten
                 nyl1=n_y/sqrt(n_y*n_y+n_z*n_z);
                 nzl1=n_z/sqrt(n_y*n_y+n_z*n_z);
@@ -322,7 +322,7 @@ double VOF_PLIC::IntersectionPointCandidate
                 ppr1x=pisx;
                 ppr1y=x_y-distl1*nyl1;
                 ppr1z=x_z-distl1*nzl1;
-                
+
                 // 2. z festhalten
                 nxl2=n_x/sqrt(n_x*n_x+n_y*n_y);
                 nyl2=n_y/sqrt(n_x*n_x+n_y*n_y);
@@ -335,7 +335,7 @@ double VOF_PLIC::IntersectionPointCandidate
             else
             {
                 //z=change
-                
+
                 //1. x festhalten
                 nyl1=n_y/sqrt(n_y*n_y+n_z*n_z);
                 nzl1=n_z/sqrt(n_y*n_y+n_z*n_z);
@@ -344,7 +344,7 @@ double VOF_PLIC::IntersectionPointCandidate
                 ppr1x=pisx;
                 ppr1y=x_y-distl1*nyl1;
                 ppr1z=x_z-distl1*nzl1;
-                
+
                 //2. y festhalten
                 nxl2=n_x/sqrt(n_x*n_x+n_z*n_z);
                 nzl2=n_z/sqrt(n_x*n_x+n_z*n_z);
@@ -354,7 +354,7 @@ double VOF_PLIC::IntersectionPointCandidate
                 ppr2y=pisy;
                 ppr2z=x_z-distl2*nzl2;
             }
-            
+
             if(fabs(ppr1x)<=0.5*dxn+1E-04*dxn && fabs(ppr1y)<=0.5*dyn+1E-04*dyn && fabs(ppr1z)<=0.5*dzn+1E-04*dzn)
             {
                 dx=x_x-ppr1x;
@@ -362,7 +362,7 @@ double VOF_PLIC::IntersectionPointCandidate
                 dz=x_z-ppr1z;
                 mindist=min(sqrt(dx*dx+dy*dy+dz*dz),mindist);
             }
-            
+
             if(fabs(ppr2x)<=0.5*dxn+1E-04*dxn && fabs(ppr2y)<=0.5*dyn+1E-04*dyn && fabs(ppr2z)<=0.5*dzn+1E-04*dzn)
             {
                 dx=x_x-ppr2x;
@@ -370,11 +370,10 @@ double VOF_PLIC::IntersectionPointCandidate
                 dz=x_z-ppr2z;
                 mindist=min(sqrt(dx*dx+dy*dy+dz*dz),mindist);
             }
-            
-            
+
+
         }
     }
-    
+
     return mindist;
 }
-

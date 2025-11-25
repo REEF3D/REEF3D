@@ -40,5 +40,3 @@ virtual double ddy(lexer*,fdm2D*,slice&,int,double)=0;
 };
 
 #endif
-
-

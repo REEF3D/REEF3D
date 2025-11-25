@@ -47,25 +47,25 @@ void driver::driver_ini_fnpf()
 {
     // count cells
     int count=0;
-	p->pointnum=0;
-	p->cellnum=0;
-	p->tpcellnum=0;
+    p->pointnum=0;
+    p->cellnum=0;
+    p->tpcellnum=0;
 
-	TPLOOP
-	{
-	++count;
-	++p->pointnum;
+    TPLOOP
+    {
+    ++count;
+    ++p->pointnum;
     c->nodeval(i,j,k)=count;
-	}
+    }
 
-	LOOP
-	++p->cellnum;
-    
+    LOOP
+    ++p->cellnum;
+
     PLAINLOOP
     ++p->tpcellnum;
-    
+
     p->count=0;
-    
+
 // --
     p->cellnumtot=pgc->globalisum(p->cellnum);
     p->pointnumtot=pgc->globalisum(p->pointnum);
@@ -73,8 +73,8 @@ void driver::driver_ini_fnpf()
 
     if(p->mpirank==0)
     cout<<"number of cells: "<<p->cellnumtot<<endl;
-    
-    
+
+
     // maxcoor
     p->maxlength=-1.0e9;
     p->xcoormax=-1.0e9;
@@ -99,31 +99,31 @@ void driver::driver_ini_fnpf()
      p->maxlength=MAX(p->maxlength,p->zcoormax-p->zcoormin);
 
      p->maxlength=pgc->globalmax(p->maxlength);
-	 
-	 p->xcoormax=pgc->globalmax(p->xcoormax);
-	 p->ycoormax=pgc->globalmax(p->ycoormax);
-	 p->zcoormax=pgc->globalmax(p->zcoormax);
-	 
-	 p->xcoormin=pgc->globalmin(p->xcoormin);
-	 p->ycoormin=pgc->globalmin(p->ycoormin);
-	 p->zcoormin=pgc->globalmin(p->zcoormin);
-     
+
+     p->xcoormax=pgc->globalmax(p->xcoormax);
+     p->ycoormax=pgc->globalmax(p->ycoormax);
+     p->zcoormax=pgc->globalmax(p->zcoormax);
+
+     p->xcoormin=pgc->globalmin(p->xcoormin);
+     p->ycoormin=pgc->globalmin(p->ycoormin);
+     p->zcoormin=pgc->globalmin(p->zcoormin);
+
     if(p->mpirank==0)
     cout<<"starting driver_ini_FNPF"<<endl;
 
-	
+
     // bed ini
     SLICELOOP4
-	c->bed(i,j) = p->bed[IJ];
-    
+    c->bed(i,j) = p->bed[IJ];
+
     pgc->gcsl_start4(p,c->bed,50);
-    
+
     // bc ini
     SLICELOOP4
-	c->bc(i,j) = 0;
-    
+    c->bc(i,j) = 0;
+
     pgc->gcsl_start4int(p,c->bc,50);
-   
+
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];
@@ -131,86 +131,82 @@ void driver::driver_ini_fnpf()
 
     c->bc(i-1,j) = 1;
     }
-    
+
     for(n=0;n<p->gcslout_count;n++)
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
-    
+
     c->bc(i+1,j) = 2;
     }
-   
+
     // 2D mesh
     count=0;
-	p->pointnum2D=0;
-	p->cellnum2D=0;
-	p->polygon_sum=0;
-    
-   
-    TPSLICELOOP  
-	{
-	++count;
-	++p->pointnum2D;
-	c->nodeval2D(i,j)=count;
-    }
-	
-	SLICEBASELOOP
-	++p->polygon_sum;
-	
-	p->polygon_sum *=2;
+    p->pointnum2D=0;
+    p->cellnum2D=0;
+    p->polygon_sum=0;
 
-	SLICELOOP4
-	++p->cellnum2D;
-    
+
+    TPSLICELOOP
+    {
+    ++count;
+    ++p->pointnum2D;
+    c->nodeval2D(i,j)=count;
+    }
+
+    SLICEBASELOOP
+    ++p->polygon_sum;
+
+    p->polygon_sum *=2;
+
     SLICELOOP4
-	++p->cellnum2D;
+    ++p->cellnum2D;
+
+    SLICELOOP4
+    ++p->cellnum2D;
 
     p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
-    
-    
+
+
     // eta ini
-	SLICELOOP4
-	c->eta(i,j) = 0.0;
+    SLICELOOP4
+    c->eta(i,j) = 0.0;
 
     pgc->gcsl_start4(p,c->eta,50);
-    
+
      SLICELOOP4
     c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
-    
-    
-    
+
+
+
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;
-    
+
     ppfsg->ini_wetdry(p,c,pgc);    // ini wetdry and coastline
-    
+
     pflow->gcio_update(p,a,pgc);
     pflow->ini_fnpf(p,c,pgc);  // including fullini
 
-    ppfsg->ini(p,c,pgc,pflow,preini);  // --- 
-    
+    ppfsg->ini(p,c,pgc,pflow,preini);  // ---
+
     pgc->start7V(p,c->Fi,c->bc,250);
     ppfsg->inidisc(p,c,pgc,pflow,psolv);    // ini wetdry and coastline
-    
+
     pflow->eta_relax(p,pgc,c->eta);
     pflow->fivec_relax(p,pgc,c->Fi);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,50);
     pgc->gcsl_start4(p,c->Fifsf,50);
     pgc->start7V(p,c->Fi,c->bc,250);
-    
+
     pftstep->ini(c,p,pgc);
-    
+
     pprint->start(p,c,pgc,pflow);
-    
-    
+
+
     p->gctime=0.0;
     p->xtime=0.0;
-	p->wavecalctime=0.0;
-	p->field4time=0.0;
+    p->wavecalctime=0.0;
+    p->field4time=0.0;
 
 }
-
-
-
-

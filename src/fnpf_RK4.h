@@ -37,13 +37,13 @@ using namespace std;
 class fnpf_RK4 : public fnpf_ini, public fnpf_sigma
 {
 public:
-	fnpf_RK4(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_RK4();
-    
+    fnpf_RK4(lexer*, fdm_fnpf*, ghostcell*);
+    virtual ~fnpf_RK4();
+
     void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override;
     void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override;
     void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override;
-    
+
 private:
 
     int gcval,gcval_u,gcval_v,gcval_w;

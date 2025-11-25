@@ -27,71 +27,71 @@ Author: Hans Bihs
 void iowave::wavegen_precalc_decomp_dirichlet_fnpf(lexer *p, ghostcell *pgc)
 {
     int qn;
-        
+
         // eta and Fifsfval
         count=0;
-		for(n=0;n<p->gcslin_count;n++)
+        for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
 
         eta(i,j) = 0.0;
-            
+
         for(qn=0;qn<wave_comp;++qn)
         {
         eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
         }
-        
+
         z = eta(i,j);
-        
+
         time_1=time_0;
         time_0=p->simtime;
         time_n=p->simtime+p->dt;
         Fifsfval1[count] = Fifsfval0[count];
         Fifsfval0[count] = Fifsfval[count];
-        
-        
+
+
         Fifsfval[count]=0.0;
-        
-        
+
+
         for(qn=0;qn<wave_comp;++qn)
         Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_cos[qn] - Fifsfval_S_sin[count][qn]*Fifsfval_T_sin[qn];
-        
+
         ++count;
         }
-        
+
         // Uin
         count=0;
-		for(n=0;n<p->gcslin_count;n++)
+        for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
-        
+
             Uinval[count]=0.0;
-        
+
             FKLOOP
             FPCHECK
             {
             for(qn=0;qn<wave_comp;++qn)
             Uinval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
-            
+
             ++count;
             }
         }
-        
-    
+
+
     // beach
     count=0;
-    FILOOP 
-    FJLOOP 
+    FILOOP
+    FJLOOP
     {
 
-		db = distbeach(p);
-        
-        FKLOOP 
+        db = distbeach(p);
+
+        FKLOOP
         FPCHECK
         {
-                    
+
             if(p->B99==1||p->B99==2)
             {
                 // Zone 2
@@ -103,6 +103,6 @@ void iowave::wavegen_precalc_decomp_dirichlet_fnpf(lexer *p, ghostcell *pgc)
             }
         }
     }
-   
+
 
 }

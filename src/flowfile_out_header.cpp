@@ -34,15 +34,15 @@ void flowfile_out::header_file_ini(lexer *p, fdm *a, ghostcell *pgc)
     {
     // open file
     sprintf(headername,"./REEF3D_FlowFile/REEF3D-flowheader-%i.r3d",n+1);
-		
+
     // openfile
     headerout[n].open(headername, ios::binary);
     }
-    
+
      // header
     if(p->mpirank==0)
     for(n=0;n<p->P230;++n)
-    {  
+    {
         // xs,xe,ys,ye,zs,ze
         ddn=p->global_xmin;
         headerout[n].write((char*)&ddn, sizeof (double));
@@ -56,11 +56,11 @@ void flowfile_out::header_file_ini(lexer *p, fdm *a, ghostcell *pgc)
         headerout[n].write((char*)&ddn, sizeof (double));
         ddn=p->global_zmax;
         headerout[n].write((char*)&ddn, sizeof (double));
-        
+
         // dx
         ddn=p->DXM;
         headerout[n].write((char*)&ddn, sizeof (double));
-   
+
         // Ni,Nj,Nk | Ni*Nj*Nk = elnum_all
         iin=Ni;
         headerout[n].write((char*)&iin, sizeof (int));
@@ -68,21 +68,20 @@ void flowfile_out::header_file_ini(lexer *p, fdm *a, ghostcell *pgc)
         headerout[n].write((char*)&iin, sizeof (int));
         iin=Nk;
         headerout[n].write((char*)&iin, sizeof (int));
-        
+
     headerout[n].close();
     }
 }
 
 void flowfile_out::header_file(lexer *p, fdm *a, ghostcell *pgc)
-{   
+{
     headerout[n].open(headername, ios::binary | ios::app);
-    
+
     iin=p->count;
     headerout[n].write((char*)&iin, sizeof (int));
-        
+
     ddn = p->simtime;
     headerout[n].write((char*)&ddn, sizeof (double));
-    
+
     headerout[n].close();
 }
-

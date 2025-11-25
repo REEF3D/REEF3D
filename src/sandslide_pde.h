@@ -36,7 +36,7 @@ public:
     sandslide_pde(lexer*);
     virtual ~sandslide_pde();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+    void start(lexer*,ghostcell*,sediment_fdm*) override;
 
 private:
 
@@ -44,14 +44,13 @@ private:
     void diff_update(lexer*,ghostcell*,sediment_fdm*);
 
     slice4 fh,ci;
-    
+
     int gcval_topo,count;
 
     double fac1, fac2;
     double dh,maxdh,maxdhs,dxs,dh_corr;
     double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
-}; 
+    double teta, alpha, beta, gamma;
+};
 
 #endif
-

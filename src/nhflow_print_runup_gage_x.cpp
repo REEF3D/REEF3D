@@ -31,47 +31,47 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 nhflow_print_runup_gage_x::nhflow_print_runup_gage_x(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{	
-	p->Iarray(jloc,p->P133);
+{
+    p->Iarray(jloc,p->P133);
 
 
     p->Darray(xloc,p->P133+1);
     p->Darray(yloc,p->P133+1);
     p->Darray(zloc,p->P133+1);
-    
+
     p->Darray(xloc_all,p->P133+1,p->M10+1);
     p->Darray(zloc_all,p->P133+1,p->M10+1);
 
     ini_location(p,d,pgc);
-	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_NHFLOW_RUNUP",0777);
-    
-    
+
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_NHFLOW_RUNUP",0777);
+
+
     if(p->mpirank==0)
     {
-		// open file
-		sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-x.dat");
+        // open file
+        sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-x.dat");
 
-		wsfout.open(name);
+        wsfout.open(name);
 
-		wsfout<<"number of runup-probes:  "<<p->P133<<endl<<endl;
-		wsfout<<"line_No     y_coord"<<endl;
-		for(q=0;q<p->P133;++q)
-		wsfout<<q+1<<"\t "<<p->P133_y[q]<<endl;
+        wsfout<<"number of runup-probes:  "<<p->P133<<endl<<endl;
+        wsfout<<"line_No     y_coord"<<endl;
+        for(q=0;q<p->P133;++q)
+        wsfout<<q+1<<"\t "<<p->P133_y[q]<<endl;
 
 
-		wsfout<<endl<<endl;
+        wsfout<<endl<<endl;
 
-		
-		for(q=0;q<p->P133;++q)
-		{
-		wsfout<<"X "<<q+1;
-		wsfout<<"\t P "<<q+1<<" \t \t ";
-		}
 
-		wsfout<<endl<<endl;
+        for(q=0;q<p->P133;++q)
+        {
+        wsfout<<"X "<<q+1;
+        wsfout<<"\t P "<<q+1<<" \t \t ";
+        }
+
+        wsfout<<endl<<endl;
     }
 }
 
@@ -92,7 +92,7 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
     xloc[q] = -1.0e20;
     zloc[q] = -1.0e20;
     }
-    
+
     for(q=0;q<p->P133;++q)
     for(n=0;n<p->M10;++n)
     {
@@ -103,7 +103,7 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
     for(q=0;q<p->P133;++q)
     {
         j=jloc[q];
-        
+
         ILOOP
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
@@ -116,15 +116,15 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
             }
         }
     }
-	
-	
+
+
     // gather
     for(q=0;q<p->P133;++q)
     {
     pgc->gather_double(&xloc[q],1,xloc_all[q],1);
     pgc->gather_double(&zloc[q],1,zloc_all[q],1);
     }
-    
+
     if(p->mpirank==0)
     {
         for(q=0;q<p->P133;++q)
@@ -139,8 +139,8 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
         }
         }
     }
-    
-	
+
+
     // write to file
     if(p->mpirank==0)
     {
@@ -154,17 +154,17 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
 void nhflow_print_runup_gage_x::ini_location(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     int check,count;
-    
-    
+
+
     for(q=0;q<p->P133;++q)
     {
         count=0;
         ILOOP
         {
-        
+
         if(p->j_dir==0)
         jloc[q]=0;
-        
+
         if(p->j_dir==1)
         jloc[q]=p->posc_j(p->P133_y[q]);
 
@@ -172,4 +172,3 @@ void nhflow_print_runup_gage_x::ini_location(lexer *p, fdm_nhf *d, ghostcell *pg
         }
     }
 }
-

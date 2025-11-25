@@ -42,7 +42,7 @@ class vorticity
 
 public:
 
-	virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&)=0;
+    virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&)=0;
 
 
     virtual void name_ParaView_parallel(lexer*, ofstream&)=0;
@@ -51,5 +51,3 @@ public:
 };
 
 #endif
-
-

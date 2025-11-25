@@ -34,6 +34,6 @@ double net_interface::kernel_peskin(const double& dist)
     {
         D = 0.25*(1.0 + cos(PI*dist/2.0));
     }
-    
+
     return D;
 }

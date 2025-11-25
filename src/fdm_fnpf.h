@@ -46,16 +46,16 @@ class fdm_fnpf : public increment
 public:
 
     fdm_fnpf(lexer*);
-   
+
     field5 press,test;
     fieldint5 nodeval;
-    
+
     slice4 eta,eta_n,WL;
     slice4 bed,depth;
     slice4 Fifsf,Fibed,Fz;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc;
-    
+
     slice4 Fx,Fy;
     slice4 Ex,Ey;
     slice4 Exx,Eyy;
@@ -66,17 +66,17 @@ public:
     slice4 vb;
     slice4 test2D;
     slice4 Hs;
-    
+
     sliceint5 nodeval2D;
     slice4 breaking_print;
-	
+
     vec rhsvec;
     vec2D xvec,rvec;
     double *Fi,*Uin,*Uout,*U,*V,*W;
 
     matrix2D N;
-	matrix_diag M;    
-    
+    matrix_diag M;
+
     double gi,gj,gk;
     double wd_criterion;
 };

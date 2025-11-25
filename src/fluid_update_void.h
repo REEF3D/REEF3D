@@ -36,11 +36,9 @@ class fluid_update_void : public fluid_update, increment
 {
 public:
     fluid_update_void();
-	virtual ~fluid_update_void();
+    virtual ~fluid_update_void();
 
-	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
+    void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
 };
 
 #endif
-
-

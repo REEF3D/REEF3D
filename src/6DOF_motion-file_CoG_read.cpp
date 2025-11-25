@@ -28,71 +28,71 @@ Authors: Hans Bihs
 void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
 {
     char name[100];
-	double val,val0,val1;
+    double val,val0,val1;
     double sign,beta,s;
-	int count;
-	
-	sprintf(name,"6DOF_motion.dat");
+    int count;
+
+    sprintf(name,"6DOF_motion.dat");
 
 // open file and count
-	ifstream file(name, ios_base::in);
-	
-	if(!file)
-	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+    ifstream file(name, ios_base::in);
 
-    
+    if(!file)
+    cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+
+
     count=0;
-	while(!file.eof())
-	{
+    while(!file.eof())
+    {
         for(qn=0;qn<colnum;++qn)
         file>>val;
-	++count;
-	}
-	ptnum=count;
-    
-	file.close();
-    
-// allocate
-    p->Darray(data,ptnum,colnum);
-    
+    ++count;
+    }
+    ptnum=count;
 
-// re.open file
+    file.close();
+
+    // allocate
+    p->Darray(data,ptnum,colnum);
+
+
+    // re.open file
     file.open (name, ios_base::in);
-	
-	if(!file)
-	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
-    
- // read file   
+
+    if(!file)
+    cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+
+    // read file
     rowcount=colcount=0;
-	while(!file.eof())
-	{
+    while(!file.eof())
+    {
         for(qn=0;qn<colnum;++qn)
         file>>data[rowcount][qn];
-        
+
         ++rowcount;
-	}
-    
+    }
+
     ts = data[0][0];
     te = data[ptnum-1][0];
-    
+
     // newline check
     while(te<1.0e-10 && ptnum>0)
     {
     --ptnum;
     te = data[ptnum-1][0];
     }
-    
+
     if(p->mpirank==0)
     cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<" ptnum: "<<ptnum<<endl;
-    
+
 // add deltas
     for(qn=0;qn<ptnum;++qn)
     data[qn][0] += p->X241;
-    
+
 // convert rotation
     for(qn=0;qn<ptnum;++qn)
     {
     data[qn][3] = (90.0-data[qn][3])*(PI/180.0);
     }
-    
+
 }

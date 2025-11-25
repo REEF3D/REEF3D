@@ -42,10 +42,10 @@ using namespace std;
 class VOF_PLIC : public freesurface, gradient, norm_vec
 {
 public:
-	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
-	virtual ~VOF_PLIC();
-	void update(lexer*,fdm*,ghostcell*,field&) override;
-    
+    VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
+    virtual ~VOF_PLIC();
+    void update(lexer*,fdm*,ghostcell*,field&) override;
+
     void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
     void RKcalcL(fdm*,lexer*,ghostcell*, field&, field&, field&);
     void RK_redistance(fdm*,lexer*,ghostcell*);
@@ -56,24 +56,24 @@ public:
     void surface_tension2D(lexer*,fdm*,ghostcell*,int);
     void updatePlaneData(lexer*,fdm*,ghostcell*,field&);
     double return_alpha_reconstructPlane_alt(fdm*, lexer*,field&,int,int,int);
-    
-	
-private:	
+
+
+private:
     void iniphi(fdm*, lexer*,ghostcell*);
-	void iniphi_io(fdm*, lexer*,ghostcell*);
+    void iniphi_io(fdm*, lexer*,ghostcell*);
     void iniphi_box(lexer*,fdm*,ghostcell*);
     void iniphi_surfarea(lexer*,fdm*,ghostcell*);
     int conv(double);
-	
-	void reconstructPlane(fdm*, lexer*);
-	double calcAlpha(fdm*, double&,  double&,  double&);
 
-	void ininorVecLS(lexer*);
-	void calcNormalFO(fdm*, lexer*, field&);
-	void calcNormalLS(fdm*, lexer*, field&);
+    void reconstructPlane(fdm*, lexer*);
+    double calcAlpha(fdm*, double&,  double&,  double&);
+
+    void ininorVecLS(lexer*);
+    void calcNormalFO(fdm*, lexer*, field&);
+    void calcNormalLS(fdm*, lexer*, field&);
     void calcNormalWENO(fdm*, lexer*, field&);
     void calcNormalPhi(fdm*, lexer*);
-		
+
     //Alternative version by Fabian
     void calcNormalWeymouth(fdm*, lexer*, field&);
     void calcNormalWang(fdm*, lexer*);
@@ -98,8 +98,8 @@ private:
     int searchMarkerInVicinity(lexer*,fdm*,int,double,int,int,int);
     int searchMarkerAlongDims(lexer*,fdm*,int,double,int,int,int);
     double twoStepVel(lexer*,fdm*,double,double,double);
-    
-   
+
+
     field4 V_w_p;
     field4 V_w_m;
     field4 Vx_p; // Vx_+1/2
@@ -132,40 +132,40 @@ private:
     reini *preini;
     interpolation *ipol;
     field4 compressvol;
-    
+
     field4 VoF,vof_rk1,vof_rk2;
     int gcval_vof, gcval_ro, gcval_visc;
     int gcval_phi;
 
-	int gcval_frac;
-	double starttime; 
-   
-	//- Sweep tracker for alternating starting point
-	int sSweep;
+    int gcval_frac;
+    double starttime;
+
+    //- Sweep tracker for alternating starting point
+    int sSweep;
     int Sweepdim;
     int sweep;
-   
+
     //- Interface normal vector
     field4 nx;
     field4 ny;
     field4 nz;
-    
-	double ****nxCoeff, ****nyCoeff, ****nzCoeff;
-    
+
+    double ****nxCoeff, ****nyCoeff, ****nzCoeff;
+
     double w_thres, a_thres, corr_thres;
-    
+
     //- Plane distance coefficient
     field4 alpha;
-    
+
     //- Volume fractions in the cell and its neighbours
     field4 vof1;
     field4 vof2;
     field4 vof3;
-    
+
     int S_S[6][3];
     int S_2D[2][2];
-    
+
     picard_f *ppicard;
-    
+
 };
 #endif

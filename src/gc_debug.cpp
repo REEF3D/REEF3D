@@ -27,27 +27,27 @@ Author: Hans Bihs
 
 void ghostcell::gcb_debug(field& f, int gcv, int bc, int cs)
 {
-	if(cs==1)
-	for(q=0;q<margin;++q)
-	f(i-q-1,j,k)=1.0;
+    if(cs==1)
+    for(q=0;q<margin;++q)
+    f(i-q-1,j,k)=1.0;
 
-	if(cs==2)
-	for(q=0;q<margin;++q)
-	f(i,j+q+1,k)=1.0;
+    if(cs==2)
+    for(q=0;q<margin;++q)
+    f(i,j+q+1,k)=1.0;
 
-	if(cs==3)
-	for(q=0;q<margin;++q)
-	f(i,j-q-1,k)=1.0;
+    if(cs==3)
+    for(q=0;q<margin;++q)
+    f(i,j-q-1,k)=1.0;
 
-	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j,k)=1.0;
+    if(cs==4)
+    for(q=0;q<margin;++q)
+    f(i+q+1,j,k)=1.0;
 
-	if(cs==5)
-	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)=1.0;
+    if(cs==5)
+    for(q=0;q<margin;++q)
+    f(i,j,k-q-1)=1.0;
 
-	if(cs==6)
-	for(q=0;q<margin;++q)
-	f(i,j,k+q+1)=1.0;
+    if(cs==6)
+    for(q=0;q<margin;++q)
+    f(i,j,k+q+1)=1.0;
 }

@@ -30,7 +30,6 @@ smart::smart (lexer *p)
 
 smart::~smart()
 {
-
 }
 
 double smart::iphi(field& b,int n1, int n2, int q1, int q2)
@@ -40,7 +39,7 @@ double smart::iphi(field& b,int n1, int n2, int q1, int q2)
 
     minphi = MIN(2.0*r, 0.25+0.75*r);
     minphi = MIN(4.0, minphi);
-	
+
     phi =    MAX(minphi, 0.0);
 
     return phi;
@@ -53,7 +52,7 @@ double smart::jphi(field& b,int n1, int n2, int q1, int q2)
 
     minphi = MIN(2.0*r, 0.25+0.75*r);
     minphi = MIN(4.0, minphi);
-	
+
     phi =    MAX(minphi, 0.0);
 
     return phi;
@@ -66,7 +65,7 @@ double smart::kphi(field& b,int n1, int n2, int q1, int q2)
 
     minphi = MIN(2.0*r, 0.25+0.75*r);
     minphi = MIN(4.0, minphi);
-	
+
     phi =    MAX(minphi, 0.0);
 
     return phi;

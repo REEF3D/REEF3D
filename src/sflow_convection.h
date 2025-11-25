@@ -39,6 +39,3 @@ virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&)=0;
 };
 
 #endif
-
-
-

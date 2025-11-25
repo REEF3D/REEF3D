@@ -33,20 +33,20 @@ using namespace std;
 class fnpf_cds2_wd : public fnpf_convection, public increment
 {
 public:
-	fnpf_cds2_wd(lexer*,fdm_fnpf*);
-	virtual ~fnpf_cds2_wd();
+    fnpf_cds2_wd(lexer*,fdm_fnpf*);
+    virtual ~fnpf_cds2_wd();
 
     double fx(lexer*, field&, double, double) override;
-	double fy(lexer*, field&, double, double) override;
-	double fz(lexer*, field&, double, double) override;
-    
+    double fy(lexer*, field&, double, double) override;
+    double fz(lexer*, field&, double, double) override;
+
     double sx(lexer*, slice&, double) override;
-	double sy(lexer*, slice&, double) override;
+    double sy(lexer*, slice&, double) override;
     double sz(lexer*, double*) override;
 
 private:
     fdm_fnpf *c;
-   
+
 
 };
 

@@ -37,20 +37,20 @@ using namespace std;
 class levelset_RK3 : public freesurface, gradient
 {
 public:
-	levelset_RK3(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~levelset_RK3();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
+    levelset_RK3(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
+    virtual ~levelset_RK3();
+    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
     void update(lexer*,fdm*,ghostcell*,field&) override;
 
 private:
     fluid_update *pupdate;
     picard *ppicard;
-    
+
     field4 ark1,ark2;
 
-	int gcval_phi;
+    int gcval_phi;
     int gcval_u,gcval_v,gcval_w;
     int gcval_uls,gcval_vls,gcval_wls;
-	double starttime;
+    double starttime;
 };
 #endif

@@ -36,16 +36,13 @@ class fnpf_convection
 public:
 
     virtual double fx(lexer*, field&, double, double)=0;
-	virtual double fy(lexer*, field&, double, double)=0;
-	virtual double fz(lexer*, field&, double, double)=0;
-    
+    virtual double fy(lexer*, field&, double, double)=0;
+    virtual double fz(lexer*, field&, double, double)=0;
+
     virtual double sx(lexer*, slice&, double)=0;
-	virtual double sy(lexer*, slice&, double)=0;
+    virtual double sy(lexer*, slice&, double)=0;
     virtual double sz(lexer*, double*)=0;
 
 };
 
 #endif
-
-
-

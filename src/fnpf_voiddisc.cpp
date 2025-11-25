@@ -49,12 +49,12 @@ double fnpf_voiddisc::fz(lexer *p, field &f, double kvel1, double kvel2)
 
 double fnpf_voiddisc::sx(lexer *p, slice &f, double ivel)
 {
-    return 0.0; 
+    return 0.0;
 }
 
 double fnpf_voiddisc::sy(lexer *p, slice &f, double jvel)
 {
-    return 0.0;  
+    return 0.0;
 }
 
 double fnpf_voiddisc::sz(lexer *p, double *f)

@@ -60,13 +60,13 @@ void vtr3D::extent(lexer *p, ghostcell *pgc)
 void vtr3D::offset(lexer *p, int *offset, int &n)
 {
     //x
-    offset[n]=offset[n-1]+sizeof(float)*(p->knox+1)+sizeof(int); 
+    offset[n]=offset[n-1]+sizeof(float)*(p->knox+1)+sizeof(int);
     ++n;
     //y
-    offset[n]=offset[n-1]+sizeof(float)*(p->knoy+1)+sizeof(int); 
+    offset[n]=offset[n-1]+sizeof(float)*(p->knoy+1)+sizeof(int);
     ++n;
     //z
-    offset[n]=offset[n-1]+sizeof(float)*(p->knoz+1)+sizeof(int); 
+    offset[n]=offset[n-1]+sizeof(float)*(p->knoz+1)+sizeof(int);
     ++n;
 }
 

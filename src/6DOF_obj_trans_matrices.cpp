@@ -28,48 +28,46 @@ Author: Tobias Martin
 
 void sixdof_obj::get_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_, Eigen::Vector3d& pp_, Eigen::Vector3d& c_)
 {
-    dp_ = Ffb_;  // forces 
+    dp_ = Ffb_;  // forces
     dc_ = pp_/Mass_fb; // moments
 
-	// External motions
-	pmotion->motionext_trans(p,pgc,dp_,dc_);
-} 
+    // External motions
+    pmotion->motionext_trans(p,pgc,dp_,dc_);
+}
 
 void sixdof_obj::get_rot(lexer *p, Eigen::Vector3d& dh, Eigen::Vector4d& de_, Eigen::Vector3d& h_, Eigen::Vector4d& e_)
 {
     // Update Euler parameter matrices
     quat_matrices(p);
-    
+
     // RHS of e
     de_ = 0.5*G_.transpose()*I_.inverse()*h_;
-    
+
     // RHS of h
     // Transforming torsion into body fixed system (Shivarama and Schwab)
     Gdot_ << -de_(1), de_(0), de_(3),-de_(2),
              -de_(2),-de_(3), de_(0), de_(1),
-             -de_(3), de_(2),-de_(1), de_(0); 
-   
+             -de_(3), de_(2),-de_(1), de_(0);
+
     dh_ = 2.0*Gdot_*G_.transpose()*h_ + Rinv_*Mfb_;
-    
+
     // External motions
     pmotion->motionext_rot(p,dh_,h_,de_,G_,I_);
-} 
+}
 
 void sixdof_obj::quat_matrices(lexer *p)
-{   
+{
     // Update transformation matrix (Shivarama PhD thesis, p. 19)
     E_ << -e_(1), e_(0), -e_(3), e_(2),
           -e_(2), e_(3), e_(0), -e_(1),
-          -e_(3), -e_(2), e_(1), e_(0); 
+          -e_(3), -e_(2), e_(1), e_(0);
 
     G_ << -e_(1), e_(0), e_(3), -e_(2),
           -e_(2), -e_(3), e_(0), e_(1),
-          -e_(3), e_(2), -e_(1), e_(0); 
+          -e_(3), e_(2), -e_(1), e_(0);
 
-    R_ = E_*G_.transpose(); 
+    R_ = E_*G_.transpose();
     Rinv_ = R_.inverse();
 
     quatRotMat = R_;
 }
-
-

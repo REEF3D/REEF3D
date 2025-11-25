@@ -40,9 +40,9 @@ class bedprobe_max : public boundarycheck
 {
 public:
     bedprobe_max(lexer*,ghostcell*,sediment_fdm*);
-	virtual ~bedprobe_max();
+    virtual ~bedprobe_max();
 
-	void bed_max(lexer*, ghostcell*, sediment_fdm*);
+    void bed_max(lexer*, ghostcell*, sediment_fdm*);
 
 
 private:

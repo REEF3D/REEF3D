@@ -48,34 +48,34 @@ public:
 
     fdm2D(lexer*);
 
-	double gi,gj,gk;
-    
+    double gi,gj,gk;
+
     slice4 U,V,W,UH,VH,WH;
-    
+
     slice1 Fx,Fs,Fn;
     slice2 Fy,Fe,Fw;
-    
+
     slice1 Ss,Sn,SSx;
     slice2 Se,Sw,SSy;
-    
+
     slice1 Un,Us;
     slice2 Ue,Uw;
-    
+
     slice1 Vn,Vs;
     slice2 Ve,Vw;
-    
+
     slice1 Wn,Ws;
     slice2 We,Ww;
-    
+
     slice1 UHn,UHs;
     slice2 UHe,UHw;
-    
+
     slice1 VHn,VHs;
     slice2 VHe,VHw;
-    
+
     slice1 WHn,WHs;
-    slice2 WHe,WHw;   
-    
+    slice2 WHe,WHw;
+
 
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
@@ -83,11 +83,11 @@ public:
     slice2 De,Dw;
     slice1 dfx;
     slice2 dfy;
-    
+
     slice4 WL;
-    
-    
-    
+
+
+
     // ---------------------
     slice4 eta,eta_n;
     slice1 P,Pn,F;
@@ -97,37 +97,37 @@ public:
     slice4 ws;
     slice4 press;
     slice4 eddyv,kin,eps;
-	slice1 hx;
-	slice2 hy;
-	slice4 hp,dpx,dpy;
+    slice1 hx;
+    slice2 hy;
+    slice4 hp,dpx,dpy;
     slice4 test;
     slice4 Hs,fs;
     slice1 fx;
     slice2 fy;
     slice4 fz;
-    
+
     slice4 bed,bed0,depth;
     slice4 solidbed,topobed;
     slice5 bednode;
     sliceint5 nodeval;
-    sliceint4 breaking; 
+    sliceint4 breaking;
     slice4 breaking_print;
-    
+
     sliceint1 wet1,deep1;
     sliceint2 wet2,deep2;
-    
-    slice4 ks;
-	
-	vec2D xvec,rhsvec;
 
-	matrix2D M;
+    slice4 ks;
+
+    vec2D xvec,rhsvec;
+
+    matrix2D M;
 
     double maxF,maxG,maxH,maxK,maxE;
-	double inverse,sigT,Ui,Ua,Uo;
-	const double cmu;
-	
-	double t1,t2,t3,t4,t5;
-    
+    double inverse,sigT,Ui,Ua,Uo;
+    const double cmu;
+
+    double t1,t2,t3,t4,t5;
+
     void gridsize(lexer*);
 };
 

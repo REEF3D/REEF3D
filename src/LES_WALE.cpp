@@ -1,4 +1,3 @@
-
 /*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2025 Hans Bihs
@@ -38,18 +37,18 @@ LES_WALE::LES_WALE(lexer* p, fdm* a) : LES(p,a)
 {
 
     gcval_u1=10;
-	gcval_v1=11;
-	gcval_w1=12;
+    gcval_v1=11;
+    gcval_w1=12;
 
-	gcval_sgs=24;
-	c_wale=0.6;
-    
+    gcval_sgs=24;
+    c_wale=0.6;
+
     if(p->T21==0)
     pfilter = new LES_filter_box(p,a);
-    
+
     if(p->T21==1)
     pfilter = new LES_filter_f1(p,a);
-    
+
     if(p->T21==2)
     pfilter = new LES_filter_f2(p,a);
 }
@@ -81,5 +80,3 @@ void LES_WALE::ktimesave(lexer* p, fdm* a, ghostcell *pgc)
 void LES_WALE::etimesave(lexer* p, fdm* a, ghostcell *pgc)
 {
 }
-
-

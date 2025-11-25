@@ -39,20 +39,20 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               rhsvec(p),rvec(p),xvec(p),N(p),M(p),
                               ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                               Ds(p),Dn(p),De(p),Dw(p),dfx(p),dfy(p)
-{    
+{
     p->Darray(p->sig, p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigz,p->imax*p->jmax);
     p->Darray(p->sigt,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+2));
-    
-    
+
+
     p->Darray(U,p->imax*p->jmax*(p->kmax+2));
     p->Darray(V,p->imax*p->jmax*(p->kmax+2));
     p->Darray(W,p->imax*p->jmax*(p->kmax+2));
     p->Darray(omegaF,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(UH,p->imax*p->jmax*(p->kmax+2));
     p->Darray(VH,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WH,p->imax*p->jmax*(p->kmax+2));
@@ -62,99 +62,86 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray(VISC,p->imax*p->jmax*(p->kmax+2));
     p->Darray(EV,p->imax*p->jmax*(p->kmax+2));
     p->Darray(EV0,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(F,p->imax*p->jmax*(p->kmax+2));
     p->Darray(G,p->imax*p->jmax*(p->kmax+2));
     p->Darray(H,p->imax*p->jmax*(p->kmax+2));
     p->Darray(L,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(Fext,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Gext,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Hext,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(porosity,p->imax*p->jmax*(p->kmax+2));
     p->Darray(test,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(KIN,p->imax*p->jmax*(p->kmax+2));
     p->Darray(CONC,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(SOLID,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FB,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FHB,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fz,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(Ss,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Sn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Se,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Sw,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(SSx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(SSy,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(Us,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Un,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Ue,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Uw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(Uw,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Ub,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Ut,p->imax*p->jmax*(p->kmax+2));  
-    
+    p->Darray(Ut,p->imax*p->jmax*(p->kmax+2));
+
     p->Darray(Vs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Vn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Ve,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Vb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Vt,p->imax*p->jmax*(p->kmax+2));  
-    
+    p->Darray(Vt,p->imax*p->jmax*(p->kmax+2));
+
     p->Darray(Ws,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Wn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(We,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Ww,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(Ww,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Wb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Wt,p->imax*p->jmax*(p->kmax+2)); 
+    p->Darray(Wt,p->imax*p->jmax*(p->kmax+2));
 
 
     p->Darray(UHs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(UHn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(UHe,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(UHw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(UHw,p->imax*p->jmax*(p->kmax+2));
     p->Darray(UHb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(UHt,p->imax*p->jmax*(p->kmax+2));  
-    
+    p->Darray(UHt,p->imax*p->jmax*(p->kmax+2));
+
     p->Darray(VHs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(VHn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(VHe,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(VHw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(VHw,p->imax*p->jmax*(p->kmax+2));
     p->Darray(VHb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(VHt,p->imax*p->jmax*(p->kmax+2));  
-    
+    p->Darray(VHt,p->imax*p->jmax*(p->kmax+2));
+
     p->Darray(WHs,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WHn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WHe,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(WHw,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray(WHw,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WHb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(WHt,p->imax*p->jmax*(p->kmax+2)); 
-    
+    p->Darray(WHt,p->imax*p->jmax*(p->kmax+2));
+
     p->Iarray(NODEVAL,p->imax*p->jmax*(p->kmax+3));
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

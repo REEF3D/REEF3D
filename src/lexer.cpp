@@ -27,8 +27,8 @@ Author: Hans Bihs
 lexer::lexer() : cmu(0.09), position(this), interpolation(this)
 {
     sigT=0.9;
-    
-	ini_default();
+
+    ini_default();
     mpirank=0;
 }
 
@@ -39,11 +39,3 @@ lexer::~lexer()
 int lexer::xmax,lexer::ymax,lexer::zmax;
 int lexer::knox,lexer::knoy,lexer::knoz;
 int lexer::margin;
-
-
-
-
-
-
-
-

@@ -34,11 +34,10 @@ class timestep
 {
 public:
     virtual void start(fdm*, lexer*,ghostcell*,turbulence*)=0;
-	virtual void ini(fdm*,lexer*,ghostcell*)=0;
+    virtual void ini(fdm*,lexer*,ghostcell*)=0;
 
 
 
 };
 
 #endif
-
