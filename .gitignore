@@ -3,7 +3,9 @@ src/Makefile*
 .codelite/.tern-port
 .codelite/REEF3D.tags
 .codelite/refactoring.db
+All
 Release
+Dev
 Debug
 bin
 obj
