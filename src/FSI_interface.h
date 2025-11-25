@@ -41,27 +41,27 @@ public:
 	virtual ~FSI_interface();
     
     // Generic
-	virtual void FSI_logic(lexer*,ghostcell*);
-    virtual void start(lexer*,ghostcell*);
+	void FSI_logic(lexer*,ghostcell*) override;
+    void start(lexer*,ghostcell*) override;
     
-	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*){};
-    virtual void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool){};
+	void initialize(lexer*,fdm*,ghostcell*,turbulence*) override {};
+    void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) override {};
     
     
     // CFD
-    virtual void isource(lexer*,fdm*,vrans*){};
-    virtual void jsource(lexer*,fdm*,vrans*){};
-    virtual void ksource(lexer*,fdm*,vrans*){};
+    void isource(lexer*,fdm*,vrans*) override {};
+    void jsource(lexer*,fdm*,vrans*) override {};
+    void ksource(lexer*,fdm*,vrans*) override {};
     
     // NHFLOW
-    virtual void isource(lexer*,fdm_nhf*,vrans*){};
-    virtual void jsource(lexer*,fdm_nhf*,vrans*){};
-    virtual void ksource(lexer*,fdm_nhf*,vrans*){};
+    void isource(lexer*,fdm_nhf*,vrans*) override {};
+    void jsource(lexer*,fdm_nhf*,vrans*) override {};
+    void ksource(lexer*,fdm_nhf*,vrans*) override {};
     
     // SFLOW
-    virtual void isource(lexer*,fdm2D*,vrans*){};
-    virtual void jsource(lexer*,fdm2D*,vrans*){};
-    virtual void ksource(lexer*,fdm2D*,vrans*){};
+    void isource(lexer*,fdm2D*,vrans*) override {};
+    void jsource(lexer*,fdm2D*,vrans*) override {};
+    void ksource(lexer*,fdm2D*,vrans*) override {};
     
 private:
 };

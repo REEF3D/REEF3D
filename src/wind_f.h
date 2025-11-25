@@ -39,10 +39,10 @@ public:
     wind_f(lexer*);
 	virtual ~wind_f();
     
-    virtual void wind_forcing_nhf_x(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&);
-    virtual void wind_forcing_nhf_y(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&);
+    void wind_forcing_nhf_x(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&) override;
+    void wind_forcing_nhf_y(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&) override;
 
-    virtual void wind_forcing_ini(lexer*, ghostcell*);
+    void wind_forcing_ini(lexer*, ghostcell*) override;
     
 private:
     void wind_forcing_drag_coeff(lexer*);

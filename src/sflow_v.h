@@ -37,7 +37,7 @@ public:
 	sflow_v(lexer*, fdm2D*);
 	virtual ~sflow_v();
 
-	virtual void start(lexer*, fdm2D*, ghostcell*);
+	void start(lexer*, fdm2D*, ghostcell*) override;
 };
 
 #endif

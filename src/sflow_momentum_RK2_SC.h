@@ -44,7 +44,7 @@ public:
 	sflow_momentum_RK2_SC(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 
                         solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
 	virtual ~sflow_momentum_RK2_SC();
-	virtual void start(lexer*, fdm2D*, ghostcell*);
+	void start(lexer*, fdm2D*, ghostcell*) override;
 
     slice4 UHRK1;
 	slice4 VHRK1;

@@ -36,13 +36,13 @@ public:
 
 	virtual ~bicgstab_ijk_2D();
 
-	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int);
-    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
-    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
-    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int);
+	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
     
-	virtual void solve(lexer*, ghostcell*, vec&, matrix_diag&, int, int&,int,double);
+	void solve(lexer*, ghostcell*, vec&, matrix_diag&, int, int&,int,double) override;
 	
 	void fillxvec(lexer*,fdm*,field&,vec&);
 	void finalize(lexer*,fdm*,field&);

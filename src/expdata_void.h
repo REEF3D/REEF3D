@@ -36,12 +36,12 @@ class expdata_void : public expdata
 public:
 	expdata_void(lexer*, fdm*, ghostcell*);
 	virtual ~expdata_void();
-	virtual void start(lexer*, fdm*, ghostcell*);
+	void start(lexer*, fdm*, ghostcell*) override;
 	
-	virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
-	virtual void name_ParaView_parallel(lexer*, ofstream&);
-    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &);
-    virtual void offset_ParaView(lexer*, int*, int &);
+	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+	void name_ParaView_parallel(lexer*, ofstream&) override;
+    void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
+    void offset_ParaView(lexer*, int*, int &) override;
 };
 
 #endif

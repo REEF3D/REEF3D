@@ -39,18 +39,18 @@ public:
 	net_interface(lexer*, ghostcell*);
 	virtual ~net_interface();
 
-    virtual void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d){};
-    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d){};
+    void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d) override {};
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d) override {};
 
-    virtual void netForces_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>);
-    virtual void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>);
+    void netForces_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>) override;
+    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>) override;
     
 
     void dlm_cfd(lexer*, fdm*, ghostcell*, int);
     void dlm_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
     
-    virtual void initialize_cfd(lexer*, fdm*, ghostcell*);
-    virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void initialize_cfd(lexer*, fdm*, ghostcell*) override;
+    void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override;
     
     typedef vector<Eigen::Vector3d> EigenMat;
     

@@ -40,7 +40,7 @@ public:
 	virtual ~sflow_momentum_func();
     
 
-    virtual void inidisc(lexer*, fdm2D*, ghostcell*, sflow_fsf*);
+    void inidisc(lexer*, fdm2D*, ghostcell*, sflow_fsf*) override;
     void reconstruct(lexer*, fdm2D*, ghostcell*, sflow_fsf*, sflow_signal_speed*, sflow_reconstruct*,slice&,slice&,slice&,slice&,slice&,slice&,slice&);
     void velcalc(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
     

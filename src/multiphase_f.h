@@ -48,22 +48,22 @@ class multiphase_f : public multiphase, public increment
 public:
 	multiphase_f(lexer*, fdm*, ghostcell*);
 	virtual ~multiphase_f();
-	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*);
-	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*);
-	virtual void update(lexer*,fdm*,ghostcell*);
+	void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*) override;
+	void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*) override;
+	void update(lexer*,fdm*,ghostcell*) override;
 	
-	virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
-	virtual void print_file(lexer*, fdm*, ghostcell*);
-    virtual double ls1val(int,int,int);
-    virtual double ls2val(int,int,int);
-	virtual double ccipol_ls1val(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_ls2val(lexer*,ghostcell*,double,double,double);
-    virtual void ls1get(int,int,int,double);
-    virtual void ls2get(int,int,int,double);
+	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+	void print_file(lexer*, fdm*, ghostcell*) override;
+    double ls1val(int,int,int) override;
+    double ls2val(int,int,int) override;
+	double ccipol_ls1val(lexer*,ghostcell*,double,double,double) override;
+	double ccipol_ls2val(lexer*,ghostcell*,double,double,double) override;
+    void ls1get(int,int,int,double) override;
+    void ls2get(int,int,int,double) override;
 
-    virtual void name_ParaView_parallel(lexer*, ofstream&);
-    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &);
-    virtual void offset_ParaView(lexer*, int*, int &);
+    void name_ParaView_parallel(lexer*, ofstream&) override;
+    void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
+    void offset_ParaView(lexer*, int*, int &) override;
     
     void logic(lexer*,fdm*,ghostcell*);
     

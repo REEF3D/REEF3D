@@ -38,20 +38,20 @@ class ghostcell;
 class vtk3D
 {
     public:
-        virtual void folder(const char*){};
-        virtual void fileName(char*, const unsigned int, const char*, const int, const int){};
-        virtual void parallelFileName(char*, const unsigned int, const char*, const int){};
-        virtual void extent(lexer*,ghostcell*){};
+        void folder(const char*) override {};
+        void fileName(char*, const unsigned int, const char*, const int, const int) override {};
+        void parallelFileName(char*, const unsigned int, const char*, const int) override {};
+        void extent(lexer*,ghostcell*) override {};
 
-        virtual void offset(lexer*,int*,int&){};
-        virtual void beginning(lexer*, std::ostream&){};
-        virtual void beginningParallel(lexer*, std::ostream&){};
-        virtual void ending(std::ostream&, const int*, int&){};
-        virtual void endingParallel(std::ostream&, const char*, const int, const int){};
+        void offset(lexer*,int*,int&) override {};
+        void beginning(lexer*, std::ostream&) override {};
+        void beginningParallel(lexer*, std::ostream&) override {};
+        void ending(std::ostream&, const int*, int&) override {};
+        void endingParallel(std::ostream&, const char*, const int, const int) override {};
 
-        virtual void structureWrite(lexer*, fdm*, std::vector<char>&, size_t&){};
-        virtual void structureWrite(lexer*, fdm_fnpf*, std::vector<char>&, size_t&){};
-        virtual void structureWrite(lexer*, fdm_nhf*, std::vector<char>&, size_t&){};
+        void structureWrite(lexer*, fdm*, std::vector<char>&, size_t&) override {};
+        void structureWrite(lexer*, fdm_fnpf*, std::vector<char>&, size_t&) override {};
+        void structureWrite(lexer*, fdm_nhf*, std::vector<char>&, size_t&) override {};
     protected:
         void xmlVersion(std::ostream &result){result<<"<?xml version=\"1.0\"?>\n";};
         void vtkVersion(std::ostream &result){result<<"version=\"1.0\" byte_order=\"LittleEndian\">\n";}; // header_type=\"UInt32\"

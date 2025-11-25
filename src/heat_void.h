@@ -34,18 +34,18 @@ public:
     heat_void(lexer *, fdm*, ghostcell*);
 	virtual ~heat_void();
 
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*);
-	virtual void ttimesave(lexer*, fdm*);
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
+	void ttimesave(lexer*, fdm*) override;
     
-    virtual void diff_update(lexer*, fdm*, ghostcell*);
+    void diff_update(lexer*, fdm*, ghostcell*) override;
 
-	virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
-    virtual void heat_ini(lexer*, fdm*, ghostcell*,heat*);
-    virtual double val(int,int,int);
+	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void heat_ini(lexer*, fdm*, ghostcell*,heat*) override;
+    double val(int,int,int) override;
 
-    virtual void name_ParaView_parallel(lexer*, ofstream&);
-    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &);
-    virtual void offset_ParaView(lexer*, int*, int &);
+    void name_ParaView_parallel(lexer*, ofstream&) override;
+    void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
+    void offset_ParaView(lexer*, int*, int &) override;
 };
 
 #endif

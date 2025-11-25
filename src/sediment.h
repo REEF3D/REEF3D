@@ -69,48 +69,48 @@ public:
     
     
     //
-    virtual void relax(lexer*,ghostcell*){};
-	virtual double bedshear_point(lexer*,ghostcell*){};
+    void relax(lexer*,ghostcell*) override {};
+	double bedshear_point(lexer*,ghostcell*) override {};
     
-    virtual double qbeval(int,int){};
-    virtual void qbeget(int,int,double){};
+    double qbeval(int,int) override {};
+    void qbeget(int,int,double) override {};
     
-    virtual double bedzhval(int,int){};
+    double bedzhval(int,int) override {};
 
-    virtual void write_state_particles(lexer *, ofstream&){};
-    virtual void read_state_particles(lexer *, ifstream&){};
+    void write_state_particles(lexer *, ofstream&) override {};
+    void read_state_particles(lexer *, ifstream&) override {};
     
-    virtual void ctimesave(lexer*, fdm*){};
+    void ctimesave(lexer*, fdm*) override {};
     
     virtual void print_probes(lexer*, ghostcell*,sediment_fdm*, ioflow*)=0;
     
-    virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&){};
-    virtual void print_3D_bedload(lexer*, ghostcell*,std::vector<char>&, size_t&){};
-	virtual void name_ParaView_parallel_bedload(lexer*,ofstream&){};
-    virtual void name_ParaView_bedload(lexer*, ostream&, int*, int &){};
-    virtual void offset_ParaView_2D_bedload(lexer*, int*, int &){};
-    virtual void offset_ParaView_bedload(lexer*, int*, int &){};
+    void print_2D_bedload(lexer*, ghostcell*,ofstream&) override {};
+    void print_3D_bedload(lexer*, ghostcell*,std::vector<char>&, size_t&) override {};
+	void name_ParaView_parallel_bedload(lexer*,ofstream&) override {};
+    void name_ParaView_bedload(lexer*, ostream&, int*, int &) override {};
+    void offset_ParaView_2D_bedload(lexer*, int*, int &) override {};
+    void offset_ParaView_bedload(lexer*, int*, int &) override {};
     
-	virtual void print_2D_bedshear(lexer*, ghostcell*,ofstream&){};
-    virtual void print_3D_bedshear(lexer*, ghostcell*,std::vector<char>&, size_t&){};
-	virtual void name_ParaView_parallel_bedshear(lexer*,ofstream&){};
-    virtual void name_ParaView_bedshear(lexer*, ostream&, int*, int &){};
-    virtual void offset_ParaView_2D_bedshear(lexer*, int*, int &){};
-    virtual void offset_ParaView_bedshear(lexer*, int*, int &){};
+	void print_2D_bedshear(lexer*, ghostcell*,ofstream&) override {};
+    void print_3D_bedshear(lexer*, ghostcell*,std::vector<char>&, size_t&) override {};
+	void name_ParaView_parallel_bedshear(lexer*,ofstream&) override {};
+    void name_ParaView_bedshear(lexer*, ostream&, int*, int &) override {};
+    void offset_ParaView_2D_bedshear(lexer*, int*, int &) override {};
+    void offset_ParaView_bedshear(lexer*, int*, int &) override {};
     
-    virtual void print_2D_parameter1(lexer*, ghostcell*,ofstream&){};
-    virtual void print_3D_parameter1(lexer*, ghostcell*,std::vector<char>&, size_t&){};
-	virtual void name_ParaView_parallel_parameter1(lexer*,ofstream&){};
-    virtual void name_ParaView_parameter1(lexer*, ostream&, int*, int &){};
-    virtual void offset_ParaView_2D_parameter1(lexer*, int*, int &){};
-    virtual void offset_ParaView_parameter1(lexer*, int*, int &){};
+    void print_2D_parameter1(lexer*, ghostcell*,ofstream&) override {};
+    void print_3D_parameter1(lexer*, ghostcell*,std::vector<char>&, size_t&) override {};
+	void name_ParaView_parallel_parameter1(lexer*,ofstream&) override {};
+    void name_ParaView_parameter1(lexer*, ostream&, int*, int &) override {};
+    void offset_ParaView_2D_parameter1(lexer*, int*, int &) override {};
+    void offset_ParaView_parameter1(lexer*, int*, int &) override {};
     
-    virtual void print_2D_parameter2(lexer*, ghostcell*,ofstream&){};
-    virtual void print_3D_parameter2(lexer*, ghostcell*,std::vector<char>&, size_t&){};
-	virtual void name_ParaView_parallel_parameter2(lexer*,ofstream&){};
-    virtual void name_ParaView_parameter2(lexer*, ostream&, int*, int &){};
-    virtual void offset_ParaView_2D_parameter2(lexer*, int*, int &){};
-    virtual void offset_ParaView_parameter2(lexer*, int*, int &){};
+    void print_2D_parameter2(lexer*, ghostcell*,ofstream&) override {};
+    void print_3D_parameter2(lexer*, ghostcell*,std::vector<char>&, size_t&) override {};
+	void name_ParaView_parallel_parameter2(lexer*,ofstream&) override {};
+    void name_ParaView_parameter2(lexer*, ostream&, int*, int &) override {};
+    void offset_ParaView_2D_parameter2(lexer*, int*, int &) override {};
+    void offset_ParaView_parameter2(lexer*, int*, int &) override {};
 
 };
 

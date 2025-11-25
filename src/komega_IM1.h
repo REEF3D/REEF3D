@@ -33,9 +33,9 @@ class komega_IM1 : public komega_func
 public:
 	komega_IM1(lexer *, fdm*, ghostcell*);
 	virtual ~komega_IM1();
-	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
-	virtual void ktimesave(lexer*, fdm*, ghostcell*);
-	virtual void etimesave(lexer*, fdm*, ghostcell*);
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
+	void ktimesave(lexer*, fdm*, ghostcell*) override;
+	void etimesave(lexer*, fdm*, ghostcell*) override;
 	void timesource(lexer*,fdm*,field&);
 	void clearrhs(lexer*,fdm*);
     field4 kn,en;

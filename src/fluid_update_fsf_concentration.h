@@ -39,7 +39,7 @@ public:
     fluid_update_fsf_concentration(lexer*, fdm*, ghostcell*, concentration*&);
 	virtual ~fluid_update_fsf_concentration();
 
-	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, field&);
+	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
 
 private:
 

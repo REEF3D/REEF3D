@@ -35,14 +35,14 @@ public:
     wave_lib_void(lexer*, ghostcell*);
 	virtual ~wave_lib_void();
 
-    virtual double wave_u(lexer*,double,double,double);
-    virtual double wave_v(lexer*,double,double,double);
-    virtual double wave_w(lexer*,double,double,double);
-    virtual double wave_eta(lexer*,double,double);
-    virtual double wave_fi(lexer*,double,double,double);
+    double wave_u(lexer*,double,double,double) override;
+    double wave_v(lexer*,double,double,double) override;
+    double wave_w(lexer*,double,double,double) override;
+    double wave_eta(lexer*,double,double) override;
+    double wave_fi(lexer*,double,double,double) override;
 
-    virtual void parameters(lexer*,ghostcell*);
-    virtual void wave_prestep(lexer*,ghostcell*);
+    void parameters(lexer*,ghostcell*) override;
+    void wave_prestep(lexer*,ghostcell*) override;
     
 private:
     double singamma,cosgamma;

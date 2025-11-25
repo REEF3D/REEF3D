@@ -38,7 +38,7 @@ public:
 	LES_filter_box(lexer *, fdm*);
 	virtual ~LES_filter_box();
     
-	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&,int);
+	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,int) override;
 
 };
 

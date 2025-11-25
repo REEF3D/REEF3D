@@ -40,13 +40,13 @@ public:
     concentration_io(lexer*,fdm*);
 	virtual ~concentration_io();
 
-    virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
-    virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration);
-    virtual double val(int,int,int);
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration) override;
+    double val(int,int,int) override;
 
-    virtual void name_ParaView_parallel(lexer*, ofstream&);
-    virtual void name_ParaView(lexer*, ostream&, int*, int &);
-    virtual void offset_ParaView(lexer*, int*, int &);
+    void name_ParaView_parallel(lexer*, ofstream&) override;
+    void name_ParaView(lexer*, ostream&, int*, int &) override;
+    void offset_ParaView(lexer*, int*, int &) override;
 
     field4 C;
 	fluid_update *pupdate;

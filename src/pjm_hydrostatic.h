@@ -40,16 +40,16 @@ public:
 	pjm_hydrostatic(lexer* p, fdm *a, heat*&, concentration*&);
 	virtual ~pjm_hydrostatic();
 
-	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double);
-    virtual void ini(lexer*,fdm*,ghostcell*);
-	virtual void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	virtual void ucorr(lexer*,fdm*,field&,double);
-	virtual void vcorr(lexer*,fdm*,field&,double);
-	virtual void wcorr(lexer*,fdm*,field&,double);
-	virtual void upgrad(lexer*,fdm*,slice&,slice&);
-	virtual void vpgrad(lexer*,fdm*,slice&,slice&);
-    virtual void wpgrad(lexer*,fdm*,slice&,slice&);
+	void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double) override;
+    void ini(lexer*,fdm*,ghostcell*) override;
+	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double) override;
+	void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double) override;
+	void ucorr(lexer*,fdm*,field&,double) override;
+	void vcorr(lexer*,fdm*,field&,double) override;
+	void wcorr(lexer*,fdm*,field&,double) override;
+	void upgrad(lexer*,fdm*,slice&,slice&) override;
+	void vpgrad(lexer*,fdm*,slice&,slice&) override;
+    void wpgrad(lexer*,fdm*,slice&,slice&) override;
 
 private:    
     void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);

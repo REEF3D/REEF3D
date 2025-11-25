@@ -49,12 +49,12 @@ public:
 	void Pk_update(lexer*,fdm_nhf*,ghostcell*);
     void Pk_b_update(lexer*,fdm_nhf*,ghostcell*);
 	void wallf_update(lexer*,fdm_nhf*,ghostcell*,int*);
-	virtual double strainterm(lexer*,fdm_nhf*);
-    virtual double strainterm(lexer*,double*,double*,double*);
-	virtual double rotationterm(lexer*,fdm_nhf*);
-    virtual double rotationterm(lexer*,double*,double*,double*);
-	virtual double magSqrSd(lexer*,fdm_nhf*);
-    virtual double magSqrSd(lexer*,double*,double*,double*);
+	double strainterm(lexer*,fdm_nhf*) override;
+    double strainterm(lexer*,double*,double*,double*) override;
+	double rotationterm(lexer*,fdm_nhf*) override;
+    double rotationterm(lexer*,double*,double*,double*) override;
+	double magSqrSd(lexer*,fdm_nhf*) override;
+    double magSqrSd(lexer*,double*,double*,double*) override;
 	double strainplain(lexer*,fdm_nhf*);
     
 	double *PK,*PK0,*PK_b;

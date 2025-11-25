@@ -37,7 +37,7 @@ public:
 	sflow_voidconv(lexer*);
 	virtual ~sflow_voidconv();
 
-	virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&);
+	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override;
 
 
 
