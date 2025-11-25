@@ -50,7 +50,7 @@ wave_lib_piston::~wave_lib_piston()
 double wave_lib_piston::wave_u(lexer *p, double x, double y, double z)
 {
     double vel;
-
+    
     vel = wave_horzvel(p,x,y,z);
 
     return cosgamma*vel;

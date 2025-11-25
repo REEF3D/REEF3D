@@ -233,6 +233,7 @@ void lexer::ini_default()
     B115=0;         // int activate vertical velocity component for flap wavemaker theory
     B116=1;         // int x or beta input for flap wavemaker theories
     B117=0.0;		  // double starting time shift for timeseries input
+    B118=1.0;        // double wavemaker correction factor for NHFLOW
     B120=-90.0;       // doubel delta t for wave generation
     B122=1.0;        // int air velocity on/off for active wave generation
     B123=0.0;       // double flap AWA hinge location
