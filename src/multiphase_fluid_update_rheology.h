@@ -36,7 +36,7 @@ public:
     multiphase_fluid_update_rheology(lexer*);
     virtual ~multiphase_fluid_update_rheology();
 
-	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&);
+	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&) override;
 
 private:
     rheology *prheo;

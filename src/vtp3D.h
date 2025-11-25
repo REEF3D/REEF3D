@@ -30,7 +30,7 @@ class lexer;
 class vtp3D : public vtk3D
 {
     protected:
-        void beginning(lexer*, std::ostream&, int, int, int, int, int);
+        void beginning(lexer*, std::ostream&, int, int, int, int, int) override;
         void beginningParallel(lexer*, std::ostream&) override;
 
         void points(std::ostream&, const int*, int&);
@@ -38,9 +38,9 @@ class vtp3D : public vtk3D
         void verts(std::ostream&, const int*, int&);
         void polys(std::ostream&, const int*, int&);
 
-        void ending(std::ostream&);
-        void endingParallel(std::ostream&);
-        void footer(std::ostream& result);
+        void ending(std::ostream&) override;
+        void endingParallel(std::ostream&) override;
+        void footer(std::ostream&);
 };
 
 #endif

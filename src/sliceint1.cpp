@@ -47,11 +47,6 @@ void sliceint1::fieldalloc(lexer* p)
 	p->Iarray(V,gridsize);
 }
 
-void sliceint1::dealloc(lexer* p)
-{
-	delete [ ] V;
-}
-
 void sliceint1::resize(lexer* p)
 {
 }

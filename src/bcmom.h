@@ -39,8 +39,8 @@ class bcmom : public surftens, public roughness
 public:
 	bcmom(lexer*);
 	virtual ~bcmom();
-	virtual void bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
-    virtual void bcmomPLIC_start(fdm*,lexer*,ghostcell*,turbulence*,VOF_PLIC*,field&,int);
+	void bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
+    void bcmomPLIC_start(fdm*,lexer*,ghostcell*,turbulence*,VOF_PLIC*,field&,int);
 	void wall_law_u(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
 	void wall_law_v(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
 	void wall_law_w(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);

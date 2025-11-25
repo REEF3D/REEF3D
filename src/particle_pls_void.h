@@ -33,10 +33,10 @@ public:
     particle_pls_void();
 	virtual ~particle_pls_void();
 
-    virtual void start(lexer*,fdm*,ghostcell*,ioflow*);
-	virtual void setup(lexer*,fdm*,ghostcell*);
-	virtual void correct(lexer*, fdm*, ghostcell*,ioflow*);
-	virtual void picardmove(lexer*, fdm*, ghostcell*);
+    void start(lexer*,fdm*,ghostcell*,ioflow*) override;
+	void setup(lexer*,fdm*,ghostcell*) override;
+	void correct(lexer*, fdm*, ghostcell*,ioflow*) override;
+	void picardmove(lexer*, fdm*, ghostcell*) override;
 };
 
 #endif

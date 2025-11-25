@@ -40,7 +40,7 @@ public:
     density_conc(lexer*,concentration*&);
 	virtual ~density_conc();
 
-	virtual double roface(lexer*,fdm*,int,int,int);
+	double roface(lexer*,fdm*,int,int,int) override;
 	
 private:
 	double H,roval,phival;

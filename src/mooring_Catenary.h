@@ -44,9 +44,9 @@ public:
 	mooring_Catenary(int);
 	virtual ~mooring_Catenary();
 	
-	virtual void start(lexer*, ghostcell*);
-	virtual void initialize(lexer*, ghostcell*);
-	virtual void mooringForces(double&, double&, double&);
+	void start(lexer*, ghostcell*) override;
+	void initialize(lexer*, ghostcell*) override;
+	void mooringForces(double&, double&, double&) override;
 	
 	void getForce(lexer*, ghostcell*, double&, double&);
 	void getShape(lexer*, ghostcell*, double*&, double*&, double*&, double*&);

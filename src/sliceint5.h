@@ -35,10 +35,9 @@ public:
 	sliceint5 (lexer*);
 	virtual ~sliceint5();
 
-    virtual int& operator()(int, int);
+    int& operator()(int, int) override;
 
-    virtual void resize(lexer*);
-    virtual void dealloc(lexer*);
+    void resize(lexer*) override;
     
 	int di,dj;
 	int imin,imax,jmax,jmin;

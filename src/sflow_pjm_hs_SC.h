@@ -40,13 +40,13 @@ public:
 	sflow_pjm_hs(lexer* p, fdm2D*,patchBC_interface*);
 	virtual ~sflow_pjm_hs();
 
-	virtual void start(lexer*,fdm2D*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double);
-	virtual void ucorr(lexer*p,fdm2D*,slice&,double*,double*,double);
-	virtual void vcorr(lexer*p,fdm2D*,slice&,double*,double*,double);
-	virtual void wcorr(lexer*p,fdm2D*,slice&,double*,double*,double);
-	virtual void upgrad(lexer*,fdm2D*,slice&);
-	virtual void vpgrad(lexer*,fdm2D*,slice&);
-    virtual void wpgrad(lexer*,fdm2D*,slice&);
+	void start(lexer*,fdm2D*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override;
+	void ucorr(lexer*p,fdm2D*,slice&,double*,double*,double) override;
+	void vcorr(lexer*p,fdm2D*,slice&,double*,double*,double) override;
+	void wcorr(lexer*p,fdm2D*,slice&,double*,double*,double) override;
+	void upgrad(lexer*,fdm2D*,slice&) override;
+	void vpgrad(lexer*,fdm2D*,slice&) override;
+    void wpgrad(lexer*,fdm2D*,slice&) override;
     
 	void rhs(lexer*,fdm2D*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm2D*,ghostcell*,double*,double*,double*,double);

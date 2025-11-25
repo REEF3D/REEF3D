@@ -41,13 +41,13 @@ public:
 	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
 	virtual ~nhflow_reconstruct_weno();
 
-    virtual void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
-    virtual void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&);
-    virtual void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*);
+    void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
+    void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
+    void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override;
     
-    virtual void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
-    virtual void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
-    virtual void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*);
+    void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
+    void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
+    void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
     
     slice4 dfdx,dfdy;
 

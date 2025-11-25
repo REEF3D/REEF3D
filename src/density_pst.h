@@ -39,7 +39,7 @@ public:
     density_pst(lexer*);
 	virtual ~density_pst();
 
-	virtual double roface(lexer*,fdm*,int,int,int);
+	double roface(lexer*,fdm*,int,int,int) override;
 	
 	double H,H_fb,roval,phival;
 	int ii,jj,kk;

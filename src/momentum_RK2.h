@@ -47,7 +47,7 @@ public:
 	momentum_RK2(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, 
                 solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK2();
-	virtual void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*);
+	void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*) override;
 
     field1 udiff, urk1, fx;
 	field2 vdiff, vrk1, fy;

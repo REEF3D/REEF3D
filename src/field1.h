@@ -35,10 +35,10 @@ public:
 	field1 (lexer*);
 	virtual ~field1();
 
-    double& operator()(int, int , int);
-	double& operator[](int);
-    virtual void resize(lexer*);
-    virtual void dealloc(lexer*);
+    double& operator()(int, int , int) override;
+	double& operator[](int) override;
+    void resize(lexer*) override;
+    void dealloc(lexer*) override;
 
 	int di,dj,dk;
 	int imin,imax,jmax,jmin,kmin,kmax;

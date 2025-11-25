@@ -39,7 +39,7 @@ class geotopo : public increment
 public:
 	geotopo(lexer*, fdm*, ghostcell*);
 	virtual ~geotopo();
-	virtual void start(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, vrans*);
+	void start(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, vrans*);
 
 private:
     void dat(lexer*,fdm*,ghostcell*);

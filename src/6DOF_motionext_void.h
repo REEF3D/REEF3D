@@ -40,10 +40,10 @@ class sixdof_motionext_void : public sixdof_motionext
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     
-    virtual void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
-    virtual void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&);
+    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&) override;
+    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&) override;
 
-    virtual void ini(lexer*,ghostcell*);
+    void ini(lexer*,ghostcell*) override;
     
     sixdof_motionext_void(lexer*, ghostcell*);
 	virtual ~sixdof_motionext_void();

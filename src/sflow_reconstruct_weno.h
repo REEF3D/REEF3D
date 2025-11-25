@@ -41,9 +41,9 @@ public:
 	sflow_reconstruct_weno(lexer*,patchBC_interface*);
 	virtual ~sflow_reconstruct_weno();
 
-    virtual void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&);
-    virtual void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&);
-    virtual void reconstruct_WL(lexer*,ghostcell*,fdm2D*);
+    void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override;
+    void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override;
+    void reconstruct_WL(lexer*,ghostcell*,fdm2D*) override;
     
     slice4 dfdx,dfdy;
 

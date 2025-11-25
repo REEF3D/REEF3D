@@ -41,23 +41,23 @@ public:
     rans_io(lexer*,fdm*);
 	virtual ~rans_io();
 
-    virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&);
-    virtual void ini(lexer*, fdm*, ghostcell*);
-    virtual void plain_wallfunc(lexer*, fdm*, ghostcell*);
-    virtual void inflow(lexer*, fdm*, ghostcell*);
-    virtual double kinval(int,int,int);
-    virtual double epsval(int,int,int);
-	virtual void gcupdate(lexer*, fdm*, ghostcell*);
-	virtual double ccipol_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_epsval(lexer*,ghostcell*,double,double,double);
-    virtual double ccipol_a_kinval(lexer*,ghostcell*,double,double,double);
-	virtual double ccipol_a_epsval(lexer*,ghostcell*,double,double,double);
-    virtual void kinget(int,int,int,double);
-    virtual void epsget(int,int,int,double);
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void ini(lexer*, fdm*, ghostcell*) override;
+    void plain_wallfunc(lexer*, fdm*, ghostcell*);
+    void inflow(lexer*, fdm*, ghostcell*);
+    double kinval(int,int,int) override;
+    double epsval(int,int,int) override;
+	void gcupdate(lexer*, fdm*, ghostcell*) override;
+	double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
+	double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_a_kinval(lexer*,ghostcell*,double,double,double) override;
+	double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
+    void kinget(int,int,int,double) override;
+    void epsget(int,int,int,double) override;
 
-    virtual void name_ParaView_parallel(lexer*, ofstream&);
-    virtual void name_ParaView(lexer*, std::stringstream&, int*, int &);
-    virtual void offset_ParaView(lexer*, int*, int &);
+    void name_ParaView_parallel(lexer*, ofstream&) override;
+    void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
+    void offset_ParaView(lexer*, int*, int &) override;
     
     field4 kin,eps,eddyv0;
 	fieldint4 wallf;

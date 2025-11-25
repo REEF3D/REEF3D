@@ -44,14 +44,14 @@ class printer
 {
 public:
     // CFD
-    virtual void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*){};
-    virtual void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*){};
+    virtual void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
+    virtual void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
     // NHFLOW
-    virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*){};
-    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*){};
+    virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) {};
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) {};
     // FNPF
-    virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*){};
-    virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*){};
+    virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) {};
+    virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*) {};
 protected:
     void writeFile(const char*, const size_t);
 

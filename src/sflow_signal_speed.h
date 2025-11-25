@@ -42,7 +42,7 @@ public:
 	sflow_signal_speed(lexer*);
 	virtual ~sflow_signal_speed();
 
-    virtual void signal_speed_update(lexer*,ghostcell*,fdm2D*,slice&, slice&, slice&, slice&,slice&, slice&, slice&, slice&);
+    void signal_speed_update(lexer*,ghostcell*,fdm2D*,slice&, slice&, slice&, slice&,slice&, slice&, slice&, slice&);
 
 private:
     double USx,DSx,USy,DSy;

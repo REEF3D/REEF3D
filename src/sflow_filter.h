@@ -44,10 +44,10 @@ public:
 	sflow_filter(lexer*);
 	virtual ~sflow_filter();
 
-    virtual void filter(lexer*, fdm2D*, ghostcell*);
-	virtual void filter1(lexer*, fdm2D*, ghostcell*);
-	virtual void filter2(lexer*, fdm2D*, ghostcell*);
-    virtual void filter4(lexer*, fdm2D*, ghostcell*);
+    void filter(lexer*, fdm2D*, ghostcell*);
+	void filter1(lexer*, fdm2D*, ghostcell*);
+	void filter2(lexer*, fdm2D*, ghostcell*);
+    void filter4(lexer*, fdm2D*, ghostcell*);
     
     slice1 f1x,f1y;
     slice2 f2x,f2y;

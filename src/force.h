@@ -42,8 +42,8 @@ class force :  public increment, private vtp3D
 public:
 	force(lexer*,fdm*,ghostcell*,int);
 	virtual ~force();
-	virtual void start(lexer*,fdm*,ghostcell*);
-    virtual void ini(lexer*,fdm*,ghostcell*);
+	void start(lexer*,fdm*,ghostcell*);
+    void ini(lexer*,fdm*,ghostcell*);
 
 private:
 	void triangulation(lexer*, fdm*, ghostcell*, field&);

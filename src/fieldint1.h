@@ -35,9 +35,9 @@ public:
 	fieldint1 (lexer *);
 	virtual ~fieldint1();
 
-    int& operator()(int, int , int);
+    int& operator()(int, int , int) override;
     
-    virtual void resize(lexer*);
+    void resize(lexer*) override;
     
     
     void gcdebug(lexer*);

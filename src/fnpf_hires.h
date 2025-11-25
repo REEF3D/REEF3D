@@ -36,13 +36,13 @@ public:
     fnpf_hires(lexer*,fdm_fnpf*);
 	virtual ~fnpf_hires();
 
-    virtual double fx(lexer*, field&, double, double){};
-	virtual double fy(lexer*, field&, double, double){};
-	virtual double fz(lexer*, field&, double, double){};
+    double fx(lexer*, field&, double, double) override {return 0.0;};
+	double fy(lexer*, field&, double, double) override {return 0.0;};
+	double fz(lexer*, field&, double, double) override {return 0.0;};
     
-    virtual double sx(lexer*, slice&, double);
-	virtual double sy(lexer*, slice&, double);
-    virtual double sz(lexer*, double*){};
+    double sx(lexer*, slice&, double) override;
+	double sy(lexer*, slice&, double) override;
+    double sz(lexer*, double*) override {return 0.0;};
     
 private:
     fdm_fnpf *c;

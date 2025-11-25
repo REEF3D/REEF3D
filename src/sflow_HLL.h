@@ -43,8 +43,8 @@ public:
 	sflow_HLL (lexer*,ghostcell*,patchBC_interface*);
 	virtual ~sflow_HLL();
 
-    virtual void start(lexer*&, fdm2D*&, int, slice&);
-    virtual void precalc(lexer*, fdm2D*, int, slice&);
+    void start(lexer*&, fdm2D*&, int, slice&); // override, but different number of parameters
+    void precalc(lexer*, fdm2D*, int, slice&);
 
 private:
 
