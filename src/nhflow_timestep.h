@@ -37,8 +37,8 @@ class nhflow_timestep : public increment
 public:
 	nhflow_timestep(lexer*);
 	virtual ~nhflow_timestep();
-	void start(lexer*,fdm_nhf*,ghostcell*) override;
-	void ini(lexer*,fdm_nhf*,ghostcell*) override;
+	void start(lexer*,fdm_nhf*,ghostcell*);
+	void ini(lexer*,fdm_nhf*,ghostcell*);
 
 
 private:

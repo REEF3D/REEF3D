@@ -43,7 +43,7 @@ public:
     directreini(lexer* p, fdm *a);
     virtual ~directreini();
     void start(fdm*,lexer*,field&, ghostcell*,ioflow*) override;
-    void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*) override;
+    void startV(fdm*,lexer*,vec&,ghostcell*,ioflow*);
 
     double dstx, dsty, dstz, dnorm, sign;
     double sx,sy,sz,snorm,op;

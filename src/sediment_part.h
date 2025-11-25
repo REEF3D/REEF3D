@@ -91,12 +91,12 @@ private:
     void active_ini_sflow(lexer*, fdm2D*, ghostcell*) {};
 
     void relax(lexer*, ghostcell*) override {};
-    double bedshear_point(lexer*, ghostcell*) override {};
+    double bedshear_point(lexer*, ghostcell*) override {return 0.0;};
 
-    double qbeval(int, int) override {};
+    double qbeval(int, int) override {return 0.0;};
     void qbeget(int, int, double) override {};
 
-    double bedzhval(int, int) override {};
+    double bedzhval(int, int) override {return 0.0;};
 
     void ctimesave(lexer*, fdm*) override {};
 

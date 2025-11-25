@@ -41,9 +41,9 @@ public:
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     
-	double fx(lexer*, fdm*, field&, field&, int, double) override;
-	double fy(lexer*, fdm*, field&, field&, int, double) override;
-	double fz(lexer*, fdm*, field&, field&, int, double) override;
+	double fx(lexer*, fdm*, field&, field&, int, double);
+	double fy(lexer*, fdm*, field&, field&, int, double);
+	double fz(lexer*, fdm*, field&, field&, int, double);
 	void iqmin(lexer*, field&, field&, int);
 	void jqmin(lexer*, field&, field&, int);
 	void kqmin(lexer*, field&, field&, int);

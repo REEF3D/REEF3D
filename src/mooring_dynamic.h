@@ -53,8 +53,8 @@ public:
 	void initialize(lexer*, ghostcell*) override;
 	void mooringForces(double&, double&, double&) override;
     
-    void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
-    void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
+    void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&) override;
+    void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int) override;
     
 private:
 

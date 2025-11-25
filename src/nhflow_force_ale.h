@@ -41,8 +41,8 @@ class nhflow_force_ale :  public nhflow_gradient
 public:
 	nhflow_force_ale(lexer*,fdm_nhf*,ghostcell*,int);
 	virtual ~nhflow_force_ale();
-	void start(lexer*,fdm_nhf*,ghostcell*) override;
-    void ini(lexer*,fdm_nhf*,ghostcell*) override;
+	void start(lexer*,fdm_nhf*,ghostcell*);
+    void ini(lexer*,fdm_nhf*,ghostcell*);
 
 private:	
 	

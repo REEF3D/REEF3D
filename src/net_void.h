@@ -48,10 +48,10 @@ public:
     void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override;
 	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
     
-    virtual const EigenMat& getLagrangePoints(){return lagrangePoints;} 
-    virtual const EigenMat& getLagrangeForces(){return lagrangeForces;} 
-    virtual const EigenMat& getCollarVel(){return collarVel;} 
-    virtual const EigenMat& getCollarPoints(){return collarPoints;} 
+    const EigenMat& getLagrangePoints() override {return lagrangePoints;}
+    const EigenMat& getLagrangeForces() override {return lagrangeForces;}
+    const EigenMat& getCollarVel() override {return collarVel;}
+    const EigenMat& getCollarPoints() override {return collarPoints;}
  
 
 private:

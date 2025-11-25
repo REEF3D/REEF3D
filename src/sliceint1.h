@@ -39,7 +39,6 @@ public:
     int& operator()(int, int) override;
 
     void resize(lexer*) override;
-    void dealloc(lexer*) override;
     
 	int di,dj;
 	int imin,imax,jmax,jmin;

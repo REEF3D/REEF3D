@@ -35,8 +35,8 @@ public:
 	field4a (lexer*);
 	virtual ~field4a();
 
-    double& operator()(int, int , int);
-	double& operator[](int);
+    double& operator()(int, int , int) override;
+	double& operator[](int) override;
     void resize(lexer*) override;
     void dealloc(lexer*) override;
 

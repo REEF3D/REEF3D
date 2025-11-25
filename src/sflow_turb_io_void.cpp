@@ -51,12 +51,12 @@ void sflow_turb_io_void::epsget(int ii, int jj, double val)
     
 double sflow_turb_io_void::kinval(int ii, int jj)
 {
-
+    return 0.0;
 }
     
 double sflow_turb_io_void::epsval(int ii, int jj)
 {
-
+    return 0.0;
 }
     
 void sflow_turb_io_void::name_pvtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result)

@@ -38,7 +38,7 @@ class sflow_bcmom : public roughness
 public:
 	sflow_bcmom(lexer*);
 	virtual ~sflow_bcmom();
-	void sflow_bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int) override;
+	void sflow_bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
 	void roughness_u(lexer*, fdm2D*, slice&, slice&, slice&);
 	void roughness_v(lexer*, fdm2D*, slice&, slice&, slice&);
 	void roughness_w(lexer*, fdm2D*, slice&, slice&, slice&);

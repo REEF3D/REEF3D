@@ -52,13 +52,13 @@ public:
     beam(int);
     ~beam();
     
-    void iniMaterial() override;
-    void meshBeam(const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::Vector3d&) override;
-    void meshBeam(double, double, double, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&) override;
-    void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&) override;
-    void setVariableLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&, const double) override;
-    void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int) override;
-    void print(lexer *p) override;
+    void iniMaterial();
+    void meshBeam(const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::Vector3d&);
+    void meshBeam(double, double, double, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
+    virtual void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
+    virtual void setVariableLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&, const double);
+    virtual void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
+    void print(lexer *p);
 
     void iniDamping(double, double, double, double, double, double, bool);
     void iniBeam(double, double, double, double, double, double, double, double, double);
