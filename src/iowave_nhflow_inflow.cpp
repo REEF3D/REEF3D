@@ -75,7 +75,6 @@ void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *F, dou
 
 void iowave::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)

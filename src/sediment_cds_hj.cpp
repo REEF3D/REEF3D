@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 sediment_cds_hj::sediment_cds_hj(lexer* p)
 {
-
 }
 
 sediment_cds_hj::~sediment_cds_hj()

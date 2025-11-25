@@ -79,7 +79,6 @@ quick::quick (lexer *p)
 
 quick::~quick()
 {
-
 }
 
 void quick::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, field& wvel)

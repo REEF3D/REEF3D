@@ -122,7 +122,6 @@ double wave_lib_piston::wave_fi(lexer *p, double x, double y, double z)
 
 void wave_lib_piston::parameters(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void wave_lib_piston::read(lexer *p, ghostcell* pgc)

@@ -35,7 +35,6 @@ les_io::~les_io()
 
 void les_io::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
-
 }
 
 double les_io::kinval(int ii, int jj, int kk)
@@ -90,17 +89,14 @@ double les_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, d
 
 void les_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)
 {
-
 }
 
 void les_io::kinget(int ii, int jj, int kk,double val)
 {
-
 }
 
 void les_io::epsget(int ii, int jj, int kk,double val)
 {
-
 }
 
 void les_io::ini(lexer* p, fdm*a, ghostcell* pgc)

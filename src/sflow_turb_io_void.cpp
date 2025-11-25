@@ -27,7 +27,6 @@ Author: Hans Bihs
 
 sflow_turb_io_void::sflow_turb_io_void(lexer* p)
 {
-
 }
 
 sflow_turb_io_void::~sflow_turb_io_void()
@@ -36,17 +35,14 @@ sflow_turb_io_void::~sflow_turb_io_void()
 
 void sflow_turb_io_void::print_2D(lexer *p, fdm2D *b, ghostcell *pgc, ofstream &result)
 {
-
 }
 
 void sflow_turb_io_void::kinget(int ii, int jj, double val)
 {
-
 }
 
 void sflow_turb_io_void::epsget(int ii, int jj, double val)
 {
-
 }
 
 double sflow_turb_io_void::kinval(int ii, int jj)
@@ -61,15 +57,12 @@ double sflow_turb_io_void::epsval(int ii, int jj)
 
 void sflow_turb_io_void::name_pvtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result)
 {
-
 }
 
 void sflow_turb_io_void::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
 {
-
 }
 
 void sflow_turb_io_void::offset_ParaView_2D(lexer *p, int *offset, int &n)
 {
-
 }

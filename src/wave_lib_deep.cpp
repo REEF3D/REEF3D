@@ -108,7 +108,6 @@ double wave_lib_deep::wave_fi(lexer *p, double x, double y, double z)
 
 void wave_lib_deep::parameters(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void wave_lib_deep::wave_prestep(lexer *p, ghostcell *pgc)

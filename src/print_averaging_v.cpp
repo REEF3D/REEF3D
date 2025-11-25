@@ -32,36 +32,29 @@ Author: Hans Bihs
 
 print_averaging_v::print_averaging_v(lexer *p, fdm* a, ghostcell *pgc)
 {
-
 }
 
 print_averaging_v::~print_averaging_v()
 {
-
 }
 
 void print_averaging_v::averaging(lexer *p, fdm *a, ghostcell *pgc, heat *pheat)
 {
-
 }
 
 void print_averaging_v::offset_ParaView(lexer *p, int *offset, int &n)
 {
-
 }
 
 void print_averaging_v::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
-
 }
 
 void print_averaging_v::name_ParaView_parallel(lexer *p, ofstream &result)
 {
-
 }
 
 void print_averaging_v::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
-
 }
 

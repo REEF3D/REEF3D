@@ -632,7 +632,6 @@ void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
 
 void ioflow_v::w_relax(lexer *p, fdm *a, ghostcell *pgc, field &wvel)
 {
-
 }
 
 void ioflow_v::p_relax(lexer *p, fdm *a, ghostcell *pgc, field &press)
@@ -853,22 +852,18 @@ void ioflow_v::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
 
 void ioflow_v::wavegen_precalc(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void ioflow_v::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void ioflow_v::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-
 }
 
 void ioflow_v::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void ioflow_v::ini2D(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -881,17 +876,14 @@ void ioflow_v::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void ioflow_v::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
 {
-
 }
 
 void ioflow_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-
 }
 
 void ioflow_v::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
-
 }
 
 void ioflow_v::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
@@ -905,32 +897,26 @@ void ioflow_v::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc,vrans *pvrans)
 
 void ioflow_v::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void ioflow_v::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void ioflow_v::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-
 }
 
 void ioflow_v::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-
 }
 
 void ioflow_v::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void ioflow_v::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void ioflow_v::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
@@ -940,5 +926,4 @@ void ioflow_v::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
 
 void ioflow_v::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
 {
-
 }

@@ -108,9 +108,4 @@ void lexer::vecsize(ghostcell *pgc)
 
 void lexer::gcbextra_est(ghostcell *pgc)
 {
-
-
-
-
-
 }

@@ -95,7 +95,6 @@ void bicgstab_ijk_2D::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsv
 
 void bicgstab_ijk_2D::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
 {
-
 }
 
 void bicgstab_ijk_2D::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)

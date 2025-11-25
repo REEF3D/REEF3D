@@ -93,27 +93,22 @@ double multiphase_v::ccipol_ls2val(lexer*,ghostcell*,double,double,double)
 
 void multiphase_v::ls1get(int,int,int,double)
 {
-
 }
 
 void multiphase_v::ls2get(int,int,int,double)
 {
-
 }
 
 
 void multiphase_v::name_ParaView_parallel(lexer*, ofstream&)
 {
-
 }
 
 void multiphase_v::name_ParaView(lexer*, std::stringstream&, int*, int &)
 {
-
 }
 
 void multiphase_v::offset_ParaView(lexer*, int*, int &)
 {
-
 }
 

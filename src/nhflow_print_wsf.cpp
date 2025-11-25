@@ -122,12 +122,10 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 
 void nhflow_print_wsf::fill_deta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 {
-
 }
 
 void nhflow_print_wsf::fill_Uhorz(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 {
-
 }
 
 

@@ -256,15 +256,10 @@ void patchBC_2D::patchBC_rkioflow2D(lexer *p, ghostcell *pgc, slice &P, slice &Q
 
 void patchBC_2D::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-
-
-
-
 }
 
 void patchBC_2D::patchBC_rkioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-
 }
 
 

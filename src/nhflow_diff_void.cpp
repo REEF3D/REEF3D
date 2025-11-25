@@ -68,5 +68,4 @@ void nhflow_diff_void::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflo
 
 void nhflow_diff_void::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double sig, double alpha)
 {
-
 }

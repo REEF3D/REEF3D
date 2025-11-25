@@ -30,7 +30,6 @@ smart::smart (lexer *p)
 
 smart::~smart()
 {
-
 }
 
 double smart::iphi(field& b,int n1, int n2, int q1, int q2)

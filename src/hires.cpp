@@ -112,7 +112,6 @@ hires::hires (lexer *p, int limiter)
 
 hires::~hires()
 {
-
 }
 
 void hires::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, field& wvel)

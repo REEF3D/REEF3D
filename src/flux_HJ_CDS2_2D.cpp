@@ -26,7 +26,6 @@ Author: Hans Bihs
 
 flux_HJ_CDS2_2D::flux_HJ_CDS2_2D(lexer *p)
 {
-
 }
 
 flux_HJ_CDS2_2D::~flux_HJ_CDS2_2D()

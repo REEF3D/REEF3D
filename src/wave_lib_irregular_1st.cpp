@@ -341,7 +341,6 @@ double wave_lib_irregular_1st::wave_fi_time_cos(lexer *p, int n)
 
 void wave_lib_irregular_1st::parameters(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void wave_lib_irregular_1st::wave_prestep(lexer *p, ghostcell *pgc)

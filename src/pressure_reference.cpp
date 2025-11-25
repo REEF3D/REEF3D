@@ -27,7 +27,6 @@ Author: Hans Bihs
 
 pressure_reference::pressure_reference(lexer* p)
 {
-
 }
 
 pressure_reference::~pressure_reference()

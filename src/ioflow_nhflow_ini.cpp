@@ -27,5 +27,4 @@ Author: Hans Bihs
 
 void ioflow_f::ini_nhflow(lexer *p,fdm_nhf *d,ghostcell *pgc)
 {
-
 }

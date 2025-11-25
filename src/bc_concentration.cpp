@@ -26,7 +26,6 @@ Author: Hans Bihs
 
 bc_concentration::bc_concentration(lexer* p)
 {
-
 }
 
 bc_concentration::~bc_concentration()

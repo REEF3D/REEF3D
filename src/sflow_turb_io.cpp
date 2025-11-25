@@ -27,7 +27,6 @@ Author: Hans Bihs
 
 sflow_turb_io::sflow_turb_io(lexer* p) : kin(p), eps(p)
 {
-
 }
 
 sflow_turb_io::~sflow_turb_io()

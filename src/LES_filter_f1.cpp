@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 LES_filter_f1::LES_filter_f1(lexer* p, fdm* a) : strain(p), ubar(p), vbar(p), wbar(p), etta_u1(p), etta_v1(p), etta_w1(p), etta_u2(p), etta_v2(p), etta_w2(p)
 {
-
 }
 
 LES_filter_f1::~LES_filter_f1()

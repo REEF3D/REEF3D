@@ -64,10 +64,8 @@ void sflow_turb_prandtl::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convect
 
 void sflow_turb_prandtl::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 {
-
 }
 
 void sflow_turb_prandtl::etimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 {
-
 }

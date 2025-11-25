@@ -113,7 +113,6 @@ double wave_lib_flap_eta::wave_fi(lexer *p, double x, double y, double z)
 
 void wave_lib_flap_eta::parameters(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void wave_lib_flap_eta::read(lexer *p, ghostcell* pgc)

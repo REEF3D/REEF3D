@@ -189,20 +189,16 @@ int ioflow_f::iozonecheck(lexer *p, fdm*a)
 
 void ioflow_f::wavegen_precalc(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void ioflow_f::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void ioflow_f::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-
 }
 
 void ioflow_f::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 {
-
 }

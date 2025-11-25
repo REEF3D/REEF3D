@@ -30,7 +30,6 @@ limo3::limo3 (lexer *p) : delta(p->DXM), radius (0.1), eps(1.0e-9*p->DXM)
 
 limo3::~limo3()
 {
-
 }
 
 double limo3::iphi(field& b,int n1, int n2, int q1, int q2)

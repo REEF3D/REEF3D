@@ -28,7 +28,6 @@ Author: Elyas Larkermani
 
 void idiff2_CN::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field& visc, double sig, double alpha)
 {
-
 }
 
 void idiff2_CN::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field& visc, field &eddyv, double sig, double alpha)

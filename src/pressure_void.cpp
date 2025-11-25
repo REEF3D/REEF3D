@@ -31,7 +31,6 @@ Author: Hans Bihs
 
 pressure_void::pressure_void(lexer* p)
 {
-
 }
 
 

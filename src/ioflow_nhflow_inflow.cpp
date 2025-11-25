@@ -269,10 +269,8 @@ void ioflow_f::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *F, d
 
 void ioflow_f::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void ioflow_f::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }

@@ -26,7 +26,6 @@ Author: Hans Bihs
 
 flux_face_CDS2_vrans::flux_face_CDS2_vrans(lexer *p)
 {
-
 }
 
 flux_face_CDS2_vrans::~flux_face_CDS2_vrans()

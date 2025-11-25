@@ -483,7 +483,6 @@ void ioflow_gravity::ini(lexer *p, fdm* a, ghostcell* pgc)
 
 void ioflow_gravity::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
@@ -492,22 +491,18 @@ void ioflow_gravity::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *ptur
 
 void ioflow_gravity::wavegen_precalc(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -516,22 +511,18 @@ void ioflow_gravity::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void ioflow_gravity::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
 {
-
 }
 
 void ioflow_gravity::ini2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-
 }
 
 void ioflow_gravity::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
-
 }
 
 void ioflow_gravity::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
@@ -540,45 +531,36 @@ void ioflow_gravity::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &f
 
 void ioflow_gravity::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc, vrans *pvrans)
 {
-
 }
 
 void ioflow_gravity::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-
 }
 
 void ioflow_gravity::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-
 }
 
 void ioflow_gravity::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
 }
 
 void ioflow_gravity::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
 {
-
 }
 
 void ioflow_gravity::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
 {
-
 }

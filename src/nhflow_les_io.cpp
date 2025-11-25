@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 nhflow_les_io::nhflow_les_io(lexer *p, fdm_nhf *d) : nhflow_strain(p,d)
 {
-
 }
 
 nhflow_les_io::~nhflow_les_io()

@@ -29,7 +29,6 @@ Author: Hans Bihs
 
 fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p)
 {
-
 }
 
 fnpf_laplace_cds2::~fnpf_laplace_cds2()

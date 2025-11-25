@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 LES_filter_box::LES_filter_box(lexer* p, fdm* a) : strain(p)
 {
-
 }
 
 LES_filter_box::~LES_filter_box()

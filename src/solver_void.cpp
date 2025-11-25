@@ -36,7 +36,6 @@ void solver_void::start(lexer* p,fdm* a, ghostcell* pgc, field& xfield, vec& rhs
 
 void solver_void::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_diag &M, int var)
 {
-
 }
 
 void solver_void::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
@@ -45,7 +44,6 @@ void solver_void::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matri
 
 void solver_void::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
-
 }
 
 void solver_void::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)

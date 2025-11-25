@@ -24,12 +24,10 @@ Author: Hans Bihs
 
 sediment_void::sediment_void()
 {
-
 }
 
 sediment_void::~sediment_void()
 {
-
 }
 
 void sediment_void::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
@@ -202,5 +200,4 @@ void sediment_void::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
 
 void sediment_void::ctimesave(lexer *p, fdm* a)
 {
-
 }

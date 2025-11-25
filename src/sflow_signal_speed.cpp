@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 sflow_signal_speed::sflow_signal_speed(lexer* p)
 {
-
 }
 
 sflow_signal_speed::~sflow_signal_speed()

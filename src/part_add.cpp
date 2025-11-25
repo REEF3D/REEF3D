@@ -26,6 +26,5 @@ Author: Hans Bihs, Alexander Hanke
 
 void part::add(lexer *p, ghostcell *pgc, double xp, double yp, double zp, double d, double ro)
 {
-
 }
 

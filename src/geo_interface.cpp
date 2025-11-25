@@ -33,10 +33,8 @@ geo_interface::~geo_interface()
 
 void geo_interface::create_geometry(lexer *p)
 {
-
 }
 
 void geo_interface::delete_geometry(lexer *p)
 {
-
 }

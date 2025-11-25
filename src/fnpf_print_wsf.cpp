@@ -167,12 +167,10 @@ void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 
 void fnpf_print_wsf::fill_deta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
-
 }
 
 void fnpf_print_wsf::fill_Uhorz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
-
 }
 
 

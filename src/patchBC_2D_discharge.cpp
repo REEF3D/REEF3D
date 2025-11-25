@@ -127,5 +127,4 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D* b, ghostcell *pgc, slice &
 
 void patchBC_2D::patchBC_discharge(lexer *p, fdm* a, ghostcell *pgc)
 {
-
 }

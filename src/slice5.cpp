@@ -61,7 +61,6 @@ void slice5::resize(lexer* p)
 
 void slice5::fieldgcalloc(lexer* p)
 {
-
 }
 
 double & slice5::operator[](int n)

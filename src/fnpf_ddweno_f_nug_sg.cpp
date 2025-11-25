@@ -229,20 +229,16 @@ void fnpf_ddweno_f_nug::jsqmax(slice& f)
 
 void fnpf_ddweno_f_nug::is_wd_x_min()
 {
-
 }
 
 void fnpf_ddweno_f_nug::is_wd_x_max()
 {
-
 }
 
 void fnpf_ddweno_f_nug::is_wd_y_min()
 {
-
 }
 
 void fnpf_ddweno_f_nug::is_wd_y_max()
 {
-
 }

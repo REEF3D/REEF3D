@@ -28,5 +28,4 @@ Author: Hans Bihs
 
 void FSI_interface::FSI_logic(lexer *p, ghostcell *pgc)
 {
-
 }

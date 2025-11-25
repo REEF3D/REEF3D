@@ -32,6 +32,5 @@ benchmark_void::~benchmark_void()
 
 void benchmark_void::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec )
 {
-
 }
 

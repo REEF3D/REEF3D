@@ -135,7 +135,6 @@ double wave_lib_flap::wave_fi(lexer *p, double x, double y, double z)
 
 void wave_lib_flap::parameters(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void wave_lib_flap::read(lexer *p, ghostcell* pgc)

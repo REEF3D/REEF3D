@@ -45,7 +45,6 @@ sflow_hydrostatic::~sflow_hydrostatic()
 
 void sflow_hydrostatic::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, ioflow *pflow, slice &P, slice &Q, slice &Pn, slice &Qn, slice &ws, slice &eta, double alpha)
 {
-
 }
 
 void sflow_hydrostatic::ucorr(lexer* p, fdm2D* b, slice& uvel, slice &eta,double alpha)

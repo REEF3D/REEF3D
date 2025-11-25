@@ -66,7 +66,6 @@ void kepsilon_void::etimesave(lexer *p, fdm* a, ghostcell *pgc)
 
 void kepsilon_void::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
-
 }
 
 double kepsilon_void::kinval(int ii, int jj, int kk)
@@ -121,12 +120,10 @@ double kepsilon_void::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, doubl
 
 void kepsilon_void::kinget(int ii, int jj, int kk,double val)
 {
-
 }
 
 void kepsilon_void::epsget(int ii, int jj, int kk,double val)
 {
-
 }
 
 void kepsilon_void::gcupdate(lexer *p, fdm *a, ghostcell *pgc)

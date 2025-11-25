@@ -36,7 +36,6 @@ ptf_fsf_update::ptf_fsf_update(lexer *p, fdm *a, ghostcell *pgc)
 
 ptf_fsf_update::~ptf_fsf_update()
 {
-
 }
 
 void ptf_fsf_update::fsfupdate(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, slice &eta)

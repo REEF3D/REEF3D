@@ -27,7 +27,4 @@ Authors: Hans Bihs, Alexander Hanke
 
 void boundary::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-
-
-
 }

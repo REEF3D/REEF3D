@@ -80,5 +80,4 @@ void sflow_ediff::diff_w(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 
 void sflow_ediff::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double sig, double alpha)
 {
-
 }

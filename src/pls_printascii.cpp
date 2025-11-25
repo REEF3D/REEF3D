@@ -30,7 +30,6 @@ Author: Hans Bihs
 
 void particle_pls::print(lexer* p, fdm* a, ghostcell* pgc)
 {
-
 }
 
 void particle_pls::print_ascii(lexer* p, fdm* a, ghostcell* pgc)

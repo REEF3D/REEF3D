@@ -59,10 +59,8 @@ void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_conve
 
 void sflow_turb_parabolic::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 {
-
 }
 
 void sflow_turb_parabolic::etimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 {
-
 }

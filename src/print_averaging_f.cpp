@@ -53,7 +53,6 @@ print_averaging_f::print_averaging_f(lexer *p, fdm* a, ghostcell *pgc) : um(p),v
 
 print_averaging_f::~print_averaging_f()
 {
-
 }
 
 void print_averaging_f::averaging(lexer *p, fdm *a, ghostcell *pgc, heat *pheat)

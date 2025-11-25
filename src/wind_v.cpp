@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 wind_v::wind_v(lexer *p)
 {
-
 }
 
 wind_v::~wind_v()
@@ -37,15 +36,12 @@ wind_v::~wind_v()
 
 void wind_v::wind_forcing_ini(lexer *p, ghostcell *pgc)
 {
-
 }
 
 void wind_v::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *F, slice &WL, slice &eta)
 {
-
 }
 
 void wind_v::wind_forcing_nhf_y(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *G, slice &WL, slice &eta)
 {
-
 }
