@@ -56,4 +56,3 @@ int & fieldint3::operator()(int ii, int jj, int kk)
 {
     return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
 }
-

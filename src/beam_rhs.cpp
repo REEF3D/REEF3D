@@ -234,4 +234,3 @@ Eigen::Vector3d beam::rotVec(const Eigen::Vector3d& vec_, const Eigen::Vector4d&
 {
     return R(qI)*vec_;
 }
-

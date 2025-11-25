@@ -41,4 +41,3 @@ void ptf_void::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *prein
 void ptf_void::inidisc(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
-

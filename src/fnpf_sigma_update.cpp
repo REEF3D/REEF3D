@@ -127,7 +127,3 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*c->WL(i,j) + c->bed(i,j);
 }
-
-
-
-

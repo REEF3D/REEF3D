@@ -159,4 +159,3 @@ void driver::loop_cfd(fdm* a)
 
     pgc->final();
 }
-

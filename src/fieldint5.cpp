@@ -57,4 +57,3 @@ int & fieldint5::operator()(int ii, int jj, int kk)
     iter=(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin;
     return feld[iter];
 }
-

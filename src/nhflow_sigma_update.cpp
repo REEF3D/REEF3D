@@ -263,4 +263,3 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
     }
 }
-

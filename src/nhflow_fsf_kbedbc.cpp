@@ -72,4 +72,3 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
 
     }
 }
-

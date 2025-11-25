@@ -132,4 +132,3 @@ double cds4::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, fi
 
         return L;
 }
-

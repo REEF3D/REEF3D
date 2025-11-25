@@ -66,9 +66,3 @@ void bcmom::bcmomPLIC_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb, 
     pplic->surface_tension2D(p,a,pgc,gcval);
     //
 }
-
-
-
-
-
-

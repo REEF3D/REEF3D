@@ -123,6 +123,3 @@ void pressure_reference::reference_ini(lexer*p, fdm* a, ghostcell *pgc)
     }
 
 }
-
-
-

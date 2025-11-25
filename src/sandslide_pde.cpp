@@ -152,5 +152,3 @@ void sandslide_pde::diff_update(lexer *p, ghostcell *pgc, sediment_fdm *s)
             ci(i,j) = 0.0;
 
 }
-
-

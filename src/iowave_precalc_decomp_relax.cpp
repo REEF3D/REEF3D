@@ -298,4 +298,3 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     }
 
 }
-

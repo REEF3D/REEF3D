@@ -195,5 +195,3 @@ void net_sheet::updateField_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int cmp
     p->del_Iarray(count,p->mpi_size);
     p->del_Iarray(recField, nK);
 }
-
-

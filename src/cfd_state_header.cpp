@@ -117,5 +117,3 @@ void cfd_state::write_header(lexer *p, fdm *a, ghostcell *pgc)
 
     headout.close();
 }
-
-

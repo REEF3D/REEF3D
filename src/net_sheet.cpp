@@ -218,6 +218,3 @@ void net_sheet::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
         cout<<"Net time: "<<endtime1<<endl;
     }
 }
-
-
-

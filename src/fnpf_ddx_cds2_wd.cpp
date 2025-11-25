@@ -51,6 +51,3 @@ double fnpf_ddx_cds2_wd::syy(lexer *p, slice &f)
     else
     return 0.0;
 }
-
-
-

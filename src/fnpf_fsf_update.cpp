@@ -79,4 +79,3 @@ void fnpf_fsf_update::fsfepol(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
 void fnpf_fsf_update::velcalc(lexer *p, fdm_fnpf *c, ghostcell *pgc, field &f)
 {
 }
-

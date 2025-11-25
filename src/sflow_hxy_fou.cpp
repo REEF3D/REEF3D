@@ -150,5 +150,3 @@ void sflow_hxy_fou::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
     }
 
 }
-
-

@@ -64,5 +64,3 @@ double fnpf_hires::limiter(double v1, double v2)
 
     return val;
 }
-
-

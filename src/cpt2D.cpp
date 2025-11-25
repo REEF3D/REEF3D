@@ -53,4 +53,3 @@ void cpt2D::resize(lexer *pp, int size_old, int size_new)
     pp->Iresize(w,size_old,size_new);
     pp->Iresize(p,size_old,size_new);
 }
-

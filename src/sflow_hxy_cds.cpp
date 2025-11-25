@@ -93,5 +93,3 @@ void sflow_hxy_cds::start(lexer* p, slice& hx, slice& hy, slice& depth, int *wet
     }
 
 }
-
-

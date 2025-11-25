@@ -71,5 +71,3 @@ void sixdof_obj::quat_matrices(lexer *p)
 
     quatRotMat = R_;
 }
-
-

@@ -40,6 +40,3 @@ public:
 };
 
 #endif
-
-
-

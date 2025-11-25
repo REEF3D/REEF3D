@@ -153,5 +153,3 @@ void ghostcell::fivec2D_vel(lexer *p, double *f, sliceint &bc)
         }
     }
 }
-
-

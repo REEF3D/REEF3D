@@ -48,7 +48,3 @@ public:
 };
 
 #endif
-
-
-
-

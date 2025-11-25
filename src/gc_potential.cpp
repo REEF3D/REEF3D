@@ -32,4 +32,3 @@ void ghostcell::potentialbc(lexer *p, field& f, int bc, int cs)
     if(cs==4)
     f(i+1,j,k) =  p->Uo*p->DXP[IP] + f(i,j,k);
 }
-

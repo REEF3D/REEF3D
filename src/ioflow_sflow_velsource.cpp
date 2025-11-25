@@ -37,5 +37,3 @@ void ioflow_f::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP2
     b->G(i,j)=0.0;
 }
-
-

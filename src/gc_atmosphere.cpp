@@ -34,4 +34,3 @@ void ghostcell::atmosphere(lexer *p, field& f, int gcv, int bc, int cs)
     for(q=0;q<margin;++q)
     f(i,j,k+q+1)=f(i,j,k);
 }
-

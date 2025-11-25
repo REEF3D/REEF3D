@@ -205,5 +205,3 @@ double wave_lib_hdc::ccpol3D(lexer *p, double ***F, double xp, double yp, double
 
     return val;
 }
-
-

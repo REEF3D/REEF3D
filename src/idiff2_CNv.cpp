@@ -158,5 +158,3 @@ void idiff2_CN::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
     cout<<"vdiffiter (CN): "<<p->viter<<"  vdifftime (CN): "<<setprecision(3)<<time<<endl;
 }
-
-

@@ -117,5 +117,3 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
 
     wetdry(p,d,pgc,U,V,W,d->WL);
 }
-
-

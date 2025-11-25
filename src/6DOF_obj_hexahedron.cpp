@@ -241,4 +241,3 @@ void sixdof_obj::hexahedron(lexer *p, ghostcell *pgc, int id)
     tend[entity_count]=tricount;
 
 }
-

@@ -47,6 +47,3 @@ void wave_lib_hdc::fill_result_continuous(lexer *p, ghostcell *pgc)
 
 
 }
-
-
-

@@ -63,4 +63,3 @@ void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
     if(p->I30==1)
     full_initialize_ptf(p,a,pgc);
 }
-

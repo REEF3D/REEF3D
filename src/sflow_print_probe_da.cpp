@@ -144,5 +144,3 @@ void sflow_print_probe_da::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
     flag[n]=1;
     }
 }
-
-

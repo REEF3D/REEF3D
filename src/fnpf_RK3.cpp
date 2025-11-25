@@ -281,4 +281,3 @@ void fnpf_RK3::reference_gage(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fifs
         Fifsf(i,j) -= (gageval);
     }
 }
-

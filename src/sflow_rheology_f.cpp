@@ -62,4 +62,3 @@ void sflow_rheology_f::v_source(lexer *p, fdm2D *b, slice &u, slice &v)
     b->G(i,j) -= tau_zy/(HYIJ*p->W1);
     }
 }
-

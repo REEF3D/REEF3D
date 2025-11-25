@@ -275,4 +275,3 @@ void sflow_momentum_RK2_SC::jrhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &f, d
     ++n;
     }
 }
-

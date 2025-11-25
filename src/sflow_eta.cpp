@@ -154,4 +154,3 @@ void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)
 
     pgc->gcsl_start4(p,b->eta,gcval_eta);
 }
-

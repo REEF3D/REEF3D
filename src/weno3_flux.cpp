@@ -285,8 +285,3 @@ void weno3_flux::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
     q2 = f(i,j,k+1);
     q3 = f(i,j,k+2);
 }
-
-
-
-
-

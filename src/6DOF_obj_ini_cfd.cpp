@@ -195,4 +195,3 @@ void sixdof_obj::ini_parallel(lexer *p, ghostcell *pgc)
         pgc->bcast_double(&zend[i],1,i);
     }
 }
-

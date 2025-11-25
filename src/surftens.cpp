@@ -103,5 +103,3 @@ void surftens::surface_tension(fdm* a,lexer*p,field& surf,int gcval)
     ++n;
     }
 }
-
-

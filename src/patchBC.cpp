@@ -49,4 +49,3 @@ void patchBC::patchBC_ini(lexer *p, ghostcell *pgc)
     patchBC_fillobj(p,pgc);
     patchBC_gcb_convert(p,pgc);
 }
-

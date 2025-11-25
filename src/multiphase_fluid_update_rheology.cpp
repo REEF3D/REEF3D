@@ -166,5 +166,3 @@ void multiphase_fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, f
 
 int multiphase_fluid_update_rheology::iocheck;
 int multiphase_fluid_update_rheology::iter;
-
-

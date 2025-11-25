@@ -443,4 +443,3 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     start2(p,fy,11);
     start3(p,fz,12);
 }
-

@@ -196,7 +196,3 @@ void nhflow_momentum_func::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
 }
-
-
-
-

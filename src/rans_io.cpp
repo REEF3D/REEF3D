@@ -164,4 +164,3 @@ void rans_io::offset_ParaView(lexer *p, int *offset, int &n)
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
     ++n;
 }
-

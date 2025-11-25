@@ -252,4 +252,3 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->recontime=0.0;
     p->fsftime=0.0;
 }
-

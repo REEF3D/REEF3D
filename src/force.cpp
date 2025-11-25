@@ -97,4 +97,3 @@ void force::start(lexer *p, fdm *a, ghostcell *pgc)
 
     pgc->start4(p,a->press,gcval_press);
 }
-

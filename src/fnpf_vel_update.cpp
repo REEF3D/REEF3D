@@ -139,4 +139,3 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     pgc->gcsl_start4(p,c->eta_n,1);
 
 }
-

@@ -342,4 +342,3 @@ int VOF_PLIC::searchMarkerAlongDims(lexer* p, fdm* a, int dist, double markernum
 
     return returnnum;
 }
-

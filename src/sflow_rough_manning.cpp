@@ -58,4 +58,3 @@ void sflow_rough_manning::v_source(lexer *p, fdm2D *b, slice &v)
     b->G(i,j) -= cf*v(i,j)*fabs(v(i,j))*(1.0/HYIJ);
     }
 }
-

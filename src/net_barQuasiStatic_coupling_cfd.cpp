@@ -359,5 +359,3 @@ void net_barQuasiStatic::create_triangle
     tri_y_.push_back(tri_y_new);
     tri_z_.push_back(tri_z_new);
 }
-
-

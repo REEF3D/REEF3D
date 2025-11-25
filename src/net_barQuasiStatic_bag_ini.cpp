@@ -620,4 +620,3 @@ void net_barQuasiStatic::iniLSE(lexer *p)
 
     p->del_Iarray(knotID,5);
 }
-

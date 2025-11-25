@@ -148,7 +148,3 @@ void driver::driver_ini_nhflow()
     p->wavecalctime=0.0;
     p->field4time=0.0;
 }
-
-
-
-

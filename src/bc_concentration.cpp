@@ -39,4 +39,3 @@ void bc_concentration::bc_concentration_start(lexer* p,fdm* a,ghostcell *pgc, fi
     C(i,j,k)=0.0;
 
 }
-

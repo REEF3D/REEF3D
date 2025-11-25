@@ -89,8 +89,3 @@ void sixdof_obj::ray_cast_2D(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,fs,50);
     pgc->gcsl_start4(p,draft,50);
 }
-
-
-
-
-

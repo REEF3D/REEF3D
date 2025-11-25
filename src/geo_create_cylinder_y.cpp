@@ -112,4 +112,3 @@ void geometry_objects::cylinder_y(lexer *p, ghostcell *pgc, int &ts, int &te, in
     tend[entity_count]=tricount;
 }
 */
-

@@ -132,4 +132,3 @@ double interpolation::cint4a(double wx, double f0, double f1, double f2, double 
 
 return x1;
 }
-

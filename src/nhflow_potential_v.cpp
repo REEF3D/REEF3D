@@ -33,7 +33,3 @@ nhflow_potential_v::~nhflow_potential_v()
 void nhflow_potential_v::start(lexer *p, fdm_nhf *d, solver *psolv, ghostcell *pgc)
 {
 }
-
-
-
-

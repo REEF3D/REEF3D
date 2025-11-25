@@ -49,7 +49,3 @@ void solver_void::startV(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_d
 void solver_void::startM(lexer* p, ghostcell* pgc, double *x, double *rhs, double *M, int var)
 {
 }
-
-
-
-

@@ -64,5 +64,3 @@ void net_sheet::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
 }
-
-

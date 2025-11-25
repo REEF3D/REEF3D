@@ -47,4 +47,3 @@ void ioflow_f::ini2D(lexer *p, fdm2D* b, ghostcell* pgc)
 void ioflow_f::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 }
-

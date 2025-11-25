@@ -384,4 +384,3 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 }
-

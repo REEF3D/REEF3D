@@ -183,4 +183,3 @@ void mgcslice4::gcdirfill(lexer* p)
         }
     }
 }
-

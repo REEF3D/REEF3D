@@ -75,7 +75,3 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
     pgc->gcsl_start4(p,s->qbe,1);
 }
-
-
-
-

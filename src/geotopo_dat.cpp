@@ -40,9 +40,3 @@ void geotopo::dat(lexer* p, fdm* a, ghostcell* pgc)
     p->del_Darray(p->flag_topo,p->imax*p->jmax*p->kmax);
 
 }
-
-
-
-
-
-

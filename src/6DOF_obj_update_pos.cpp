@@ -89,4 +89,3 @@ void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finali
 
     pgc->start4a(p,a->fb,50);
 }
-

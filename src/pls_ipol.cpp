@@ -252,5 +252,3 @@ double particle_pls::tricubic(lexer *p,fdm* a,field& f, int& i,int& j, int& k, d
 
     return value;
 }
-
-

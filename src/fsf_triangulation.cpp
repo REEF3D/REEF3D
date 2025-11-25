@@ -164,4 +164,3 @@ void fsf_vtp::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 
     numtri=count;
 }
-

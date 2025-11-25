@@ -262,5 +262,3 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
 }
 
 #endif
-
-

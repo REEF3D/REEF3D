@@ -58,4 +58,3 @@ void linear_regression_cont::linreg_cont_func(lexer*,ghostcell*,double xval, dou
 
     b0 = (ysum/num)  - b1*(xsum/num);
 }
-

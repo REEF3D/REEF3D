@@ -229,4 +229,3 @@ void net_barQuasiStatic::netForces
     Mne = 0.0;
     Nne = 0.0;
 }
-

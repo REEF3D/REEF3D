@@ -266,5 +266,3 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
     ++n;
     }
 }
-
-

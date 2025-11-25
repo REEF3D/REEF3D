@@ -212,5 +212,3 @@ double nhflow_gradient::dwdzz(double *W)
 
     return grad;
 }
-
-

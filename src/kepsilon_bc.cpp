@@ -198,6 +198,3 @@ void kepsilon_bc::wall_law_eps(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
 
     eps(i,j,k) = eps_star;
 }
-
-
-

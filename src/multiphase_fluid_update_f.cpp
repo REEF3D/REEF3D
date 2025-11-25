@@ -160,5 +160,3 @@ void multiphase_fluid_update_f::start(lexer *p, fdm* a, ghostcell* pgc, field &l
 
 int multiphase_fluid_update_f::iocheck;
 int multiphase_fluid_update_f::iter;
-
-

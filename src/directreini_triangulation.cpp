@@ -228,4 +228,3 @@ void directreini::triangulation(lexer *p,fdm* a, field& b, fieldint& nodeflag, f
     numtri=count;
     //cout<<p->mpirank<<"  COUNTnumtri:  "<<count<<endl;
 }
-

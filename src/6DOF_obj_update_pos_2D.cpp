@@ -74,4 +74,3 @@ void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
 
     pgc->gcsl_start4(p,fs,50);
 }
-

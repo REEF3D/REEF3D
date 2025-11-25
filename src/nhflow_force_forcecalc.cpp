@@ -187,8 +187,3 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Az = pgc->globalsum(Az);
     A_tot = pgc->globalsum(A_tot);
 }
-
-
-
-
-

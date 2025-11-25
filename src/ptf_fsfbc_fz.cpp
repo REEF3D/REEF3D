@@ -83,5 +83,3 @@ double ptf_fsfbc::fz(lexer *p, fdm *a, field &f, slice &Fifsf)
         return grad;
     }
 }
-
-

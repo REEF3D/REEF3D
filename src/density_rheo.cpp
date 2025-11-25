@@ -50,7 +50,3 @@ double density_rheo::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     return roval;
 
 }
-
-
-
-

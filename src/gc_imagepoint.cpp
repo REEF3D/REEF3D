@@ -65,4 +65,3 @@ void ghostcell::imagepoint(lexer *p, field& f,double &x_ip, double& val_ip, doub
 
     val_ip= (1.0-gamma)*y0  + gamma*y1;
 }
-

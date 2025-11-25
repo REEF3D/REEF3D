@@ -194,7 +194,3 @@ void sflow_momentum_func::inidisc(lexer *p, fdm2D *b, ghostcell *pgc, sflow_fsf 
     pfsf->kinematic_bed(p,d,b->U,b->V,b->W);
     velcalc(p,d,pgc,b->UH,b->VH,b->WH,b->WL);*/
 }
-
-
-
-

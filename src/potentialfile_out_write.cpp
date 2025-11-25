@@ -62,11 +62,3 @@ void potentialfile_out::write_data(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     }*/
 
 }
-
-
-
-
-
-
-
-

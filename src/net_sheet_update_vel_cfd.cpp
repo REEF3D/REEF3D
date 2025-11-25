@@ -205,5 +205,3 @@ void net_sheet::updateField_cfd(lexer *p, fdm *a, ghostcell *pgc, int cmp)
     p->del_Iarray(count,p->mpi_size);
     p->del_Iarray(recField, nK);
 }
-
-

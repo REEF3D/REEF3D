@@ -188,4 +188,3 @@ double iowave::distbeach(lexer *p)
 
     return dist;
 }
-

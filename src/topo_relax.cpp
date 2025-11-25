@@ -175,7 +175,3 @@ double topo_relax::distcalc(lexer *p ,double x0, double y0, double tan_beta)
 
     return dist;
 }
-
-
-
-

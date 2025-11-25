@@ -114,21 +114,3 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
     pgc->gcsl_start4(p,s->bedzh,1);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

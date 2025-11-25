@@ -288,4 +288,3 @@ double wave_lib_irregular_2nd_a::wave_F(double w1, double w2, double k1, double 
 void wave_lib_irregular_2nd_a::wave_prestep(lexer *p, ghostcell *pgc)
 {
 }
-

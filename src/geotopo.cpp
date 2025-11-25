@@ -44,6 +44,3 @@ void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, reinitopo* 
     if(p->S10==2)
     pflow->vrans_sed_update(p,a,pgc,pvrans);
 }
-
-
-

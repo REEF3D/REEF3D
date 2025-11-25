@@ -52,7 +52,3 @@ void fnpf_coastline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &coastli
         reini(p,pgc,coastline);
     }
 }
-
-
-
-

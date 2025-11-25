@@ -186,4 +186,3 @@ void net_barDyn::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
 }
-

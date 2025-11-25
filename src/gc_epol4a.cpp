@@ -113,5 +113,3 @@ void ghostcell::gcdistro4a(lexer *p,field& f, int ii, int jj, int kk, int nn, do
     if(bc_label==79)
     extend(p,f,dist,gcv,bc,cs);
 }
-
-

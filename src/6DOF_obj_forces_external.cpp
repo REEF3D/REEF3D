@@ -128,4 +128,3 @@ void sixdof_obj::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
         Next += Nne[n];
     }
 }
-

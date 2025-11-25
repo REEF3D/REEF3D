@@ -445,4 +445,3 @@ inline double nhflow_reconstruct_weno::limiter(double v1, double v2)
 
     return val;
 }
-

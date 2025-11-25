@@ -225,4 +225,3 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     cout<<"dmax: "<<setprecision(3)<<depthmax<<endl;
     }
 }
-

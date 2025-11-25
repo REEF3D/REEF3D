@@ -66,8 +66,3 @@ void sixdof_obj::nhflow_reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *
         pgc->start5V(p,F,1);
     }
 }
-
-
-
-
-

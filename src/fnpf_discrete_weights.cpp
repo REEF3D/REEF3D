@@ -198,7 +198,3 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
 
 
 }
-
-
-
-

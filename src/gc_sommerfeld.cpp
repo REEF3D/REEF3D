@@ -51,4 +51,3 @@ void ghostcell::sommerfeld(lexer *p, field& f, int gcv, int bc, int cs)
     for(q=0;q<margin;++q)
     f(i,j,k+q+1)=f(i,j,k) - (DT/p->DXM)*sqrt(9.81*p->F60)*(f(i,j,k)-f(i,j,k-1));
 }
-

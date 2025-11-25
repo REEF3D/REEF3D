@@ -433,4 +433,3 @@ void momentum_RK3_PLIC::clear_FGH(lexer *p, fdm *a)
     WLOOP
     a->H(i,j,k) = 0.0;
 }
-

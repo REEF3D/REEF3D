@@ -184,4 +184,3 @@ void potentialfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
     LS0[j][k]=double(ffn);
     }*/
 }
-

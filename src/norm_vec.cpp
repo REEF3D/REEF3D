@@ -123,4 +123,3 @@ double norm_vec::normvec_z(fdm *a, field &f)
     return nz;
 
 }
-

@@ -181,4 +181,3 @@ void nhflow_print_runup_max_gage_x::ini_location(lexer *p, fdm_nhf *d, ghostcell
         }
     }
 }
-

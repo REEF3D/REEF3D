@@ -51,4 +51,3 @@ void fsf_vtp::start(lexer *p, fdm *a, ghostcell *pgc)
 
     finalize(p,a);
 }
-

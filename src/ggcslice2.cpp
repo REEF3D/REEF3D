@@ -143,5 +143,3 @@ void mgcslice2::fill_ggc(lexer* p)
 
     p->del_Iarray(p->ggcslmem2,imax*jmax);
 }
-
-

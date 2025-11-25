@@ -63,5 +63,3 @@ boundary::~boundary()
     ks=nullptr;
 
 }
-
-

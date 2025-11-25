@@ -320,7 +320,3 @@ void weno_nug_func::precalc_qf(lexer* p)
     }
 
 }
-
-
-
-

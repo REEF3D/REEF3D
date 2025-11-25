@@ -97,5 +97,3 @@ void sixdof_obj::print_stl(lexer *p, ghostcell *pgc)
         ++p->printcount_sixdof;
     }
 }
-
-

@@ -223,4 +223,3 @@ double iowave::local_fsf(lexer *p, fdm *a, ghostcell *pgc)
 
     return wsf;
 }
-

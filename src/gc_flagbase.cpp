@@ -227,4 +227,3 @@ void ghostcell::flagbase(lexer *p, fdm *a)
         p->flag5[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin+1+q]=-6;
     }
 }
-

@@ -252,5 +252,3 @@ double wave_lib_hdc::ccpol2DM(lexer *p, double ***F, double x, double y)
 
     return val;
 }
-
-

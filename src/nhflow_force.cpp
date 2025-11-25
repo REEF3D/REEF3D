@@ -103,4 +103,3 @@ void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     deallocate(p,d,pgc);
 }
-

@@ -73,7 +73,3 @@ void LES_filter_box::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, fiel
     }
 
 }
-
-
-
-

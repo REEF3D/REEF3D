@@ -392,4 +392,3 @@ void bicgstab_ijk::finalizeV(lexer *p, double *f)
     FLEXLOOP
     f[IJK]=x[IJK];
 }
-

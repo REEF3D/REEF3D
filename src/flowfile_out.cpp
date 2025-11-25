@@ -75,5 +75,3 @@ void flowfile_out::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 
     ++filecount;
 }
-
-

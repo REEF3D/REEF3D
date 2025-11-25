@@ -48,5 +48,3 @@ void particle_pls::setup(lexer* p, fdm* a, ghostcell* pgc)
     ++printcount;
     }
 }
-
-

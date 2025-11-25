@@ -119,6 +119,3 @@ double sixdof_obj::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb, int c
 
     return H;
 }
-
-
-

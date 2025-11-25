@@ -262,4 +262,3 @@ void fnpf_fsfbc_sc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     c->K(i,j)=0.0;
     }
 }
-

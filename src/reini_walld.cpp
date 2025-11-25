@@ -206,7 +206,3 @@ void reini_walld::start(fdm* a,lexer* p, field &f, ghostcell* pgc,ioflow* pflow)
 void reini_walld::step(fdm* a, lexer *p)
 {
 }
-
-
-
-

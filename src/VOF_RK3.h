@@ -60,4 +60,3 @@ private:
     convection *ppconvec;
 };
 #endif
-

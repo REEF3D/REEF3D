@@ -166,5 +166,3 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
 }
 
 */
-
-

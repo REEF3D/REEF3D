@@ -226,4 +226,3 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &WL)
 void nhflow_pjm::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
 }
-

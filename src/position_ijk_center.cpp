@@ -329,6 +329,3 @@ int position::posc_sig(int ii, int jj, double zs)
 
     return kk;
 }
-
-
-

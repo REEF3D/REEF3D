@@ -150,5 +150,3 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
         rotation_tri(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->X183_x,p->X183_y,p->X183_z);
     }
 }
-
-

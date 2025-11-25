@@ -268,5 +268,3 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
     cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
 }
-
-

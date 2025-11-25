@@ -61,4 +61,3 @@ double tvdvof::kphi(field& b,int n1, int n2, int q1, int q2)
 
     return phi;
 }
-

@@ -61,5 +61,3 @@ void lexer::gridini2D()
     IOSL[(i-imin)*jmax + j-jmin] = 0;
 
 }
-
-

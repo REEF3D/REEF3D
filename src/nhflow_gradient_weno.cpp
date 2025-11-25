@@ -118,5 +118,3 @@ void nhflow_gradient::jqmax(double *F, double delta)
     q4 = (F[IJK]    - F[IJm1K])/delta;
     q5 = (F[IJm1K]  - F[IJm2K])/delta;
 }
-
-

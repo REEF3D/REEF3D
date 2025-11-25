@@ -113,4 +113,3 @@ void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
     // Initialise rotation matrices
     quat_matrices(p);
 }
-

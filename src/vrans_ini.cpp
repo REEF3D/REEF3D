@@ -184,4 +184,3 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     if(p->S10==2)
     sed_update(p,a,pgc);
 }
-

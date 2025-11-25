@@ -330,4 +330,3 @@ void sixdof_obj::cylinder_z(lexer *p, ghostcell *pgc, int id)
 
     tend[entity_count]=tricount;
 }
-

@@ -49,4 +49,3 @@ void patchBC_2D::patchBC_ini(lexer *p, ghostcell *pgc)
     patchBC_gcb_count(p,pgc);
     patchBC_fillobj(p,pgc);
 }
-

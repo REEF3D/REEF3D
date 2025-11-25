@@ -1913,4 +1913,3 @@ void beam::Jacobian(double x, double *y, double **J)
 
 void beam::Mass(double **M)
 {} // Explicit problem: Mass matrix is identity matrix
-

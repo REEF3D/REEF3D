@@ -137,8 +137,3 @@ void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)
     d->Fw[IJK] = d->VHw[IJK];
     }
 }
-
-
-
-
-

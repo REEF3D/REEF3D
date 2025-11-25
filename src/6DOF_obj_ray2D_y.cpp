@@ -202,4 +202,3 @@ void sixdof_obj::ray_cast_2D_y(lexer *p, ghostcell *pgc, int ts, int te)
     }
 
 }
-

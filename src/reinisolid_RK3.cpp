@@ -126,5 +126,3 @@ void reinisolid_RK3::time_preproc(lexer* p)
     ++n;
     }
 }
-
-

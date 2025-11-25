@@ -95,6 +95,3 @@ void net_barDyn::updateTopAcc(lexer *p)
           coeffs_(0)*top_xdot_ + coeffs_(1)*xdot_.block(0,0,nbK,3)
         + coeffs_(2)*xdotn_.block(0,0,nbK,3) + coeffs_(3)*xdotnn_.block(0,0,nbK,3);
 }
-
-
-

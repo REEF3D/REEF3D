@@ -126,4 +126,3 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
 }
-

@@ -86,4 +86,3 @@ void force::addpoint(lexer *p, fdm *a, int q1, int q2)
 
     ++ccptcount;
 }
-

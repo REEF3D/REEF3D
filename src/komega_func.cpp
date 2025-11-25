@@ -310,7 +310,3 @@ void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc, ioflow *pflow)
     eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/(p->T37*a->WL(i,j)));
     }
 }
-
-
-
-

@@ -84,7 +84,3 @@ void print_wsf_theory::height_gauge(lexer *p, fdm *a, ghostcell *pgc, ioflow *pf
     wsfout<<endl;
     }
 }
-
-
-
-

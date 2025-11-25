@@ -334,4 +334,3 @@ void bedprobe_line_x::remove_multientry(lexer *p, double* b, double* c, int *d, 
     num=count;
 
 }
-

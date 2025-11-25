@@ -74,8 +74,3 @@ void initialize::hydrostatic(lexer *p, fdm *a, ghostcell *pgc)
 
 
 }
-
-
-
-
-

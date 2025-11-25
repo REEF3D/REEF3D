@@ -231,4 +231,3 @@ void weno3_hj::kqmax(lexer *p,fdm *a, field& f, field& wvel, int ipol)
     q2 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
     q3 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 }
-

@@ -172,4 +172,3 @@ void sixdof_obj::wedge(lexer *p, ghostcell *pgc, int id)
     tend[entity_count]=tricount;
 
 }
-

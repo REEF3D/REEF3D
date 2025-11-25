@@ -172,4 +172,3 @@ inline void sflow_reconstruct_weno::jqmax(lexer *p, slice& f)
     q4 = f(i,j+2);
     q5 = f(i,j+3);
 }
-

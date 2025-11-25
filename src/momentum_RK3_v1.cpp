@@ -348,4 +348,3 @@ void momentum_RK3_v1::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uv
     ++n;
     }
 }
-

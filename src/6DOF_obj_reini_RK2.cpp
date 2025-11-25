@@ -68,8 +68,3 @@ void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field &f)
     }
 
 }
-
-
-
-
-

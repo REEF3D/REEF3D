@@ -197,4 +197,3 @@ void sixdof_obj::ray_cast_2D_io_ycorr(lexer* p, ghostcell* pgc, int ts, int te)
     fsio(i,j)=-1;
 
 }
-

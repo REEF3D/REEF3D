@@ -49,7 +49,3 @@ public:
 };
 
 #endif
-
-
-
-

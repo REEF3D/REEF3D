@@ -185,4 +185,3 @@ void net_barDyn::coupling_dlm_cfd(lexer *p, fdm *a, ghostcell *pgc)
     }
 
 }
-

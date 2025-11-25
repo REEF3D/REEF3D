@@ -84,4 +84,3 @@ void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start4a(p,alpha,1);
     pgc->start4a(p,beta,1);
 }
-

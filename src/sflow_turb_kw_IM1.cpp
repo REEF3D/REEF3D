@@ -334,15 +334,3 @@ void sflow_turb_kw_IM1::wall_law_omega(lexer* p, fdm2D *b)
     ++n;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

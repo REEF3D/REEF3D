@@ -168,5 +168,3 @@ double interpolation::ccslipol4(slice& f, double xp, double yp)
 
     return value;
 }
-
-

@@ -144,4 +144,3 @@ void nhflow_komega_func_void::name_ParaView(lexer *p, std::stringstream &result,
 void nhflow_komega_func_void::offset_ParaView(lexer *p, int *offset, int &n)
 {
 }
-

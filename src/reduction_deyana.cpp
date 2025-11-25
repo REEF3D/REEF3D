@@ -79,7 +79,3 @@ void reduction_deyana::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     s->reduce(i,j)=r;
     }
 }
-
-
-
-

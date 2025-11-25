@@ -224,4 +224,3 @@ void print_averaging_f::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<
     }
 
 }
-

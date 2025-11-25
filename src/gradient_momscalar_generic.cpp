@@ -199,4 +199,3 @@ double gradient::pwdz(lexer *p, field &w)
 
     return grad;
 }
-

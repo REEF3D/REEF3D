@@ -136,4 +136,3 @@ double hcds6::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
 
         return L;
 }
-

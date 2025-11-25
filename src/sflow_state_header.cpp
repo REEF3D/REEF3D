@@ -121,5 +121,3 @@ void sflow_state::write_header(lexer *p, fdm2D *b, ghostcell *pgc)
 
     headout.close();
 }
-
-

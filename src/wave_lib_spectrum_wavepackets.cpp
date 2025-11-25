@@ -202,9 +202,3 @@ void wave_lib_spectrum::print_amplitude_spectrum(lexer *p)
 
     result.close();
 }
-
-
-
-
-
-

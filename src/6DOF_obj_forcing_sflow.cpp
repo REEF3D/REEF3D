@@ -71,6 +71,3 @@ void sixdof_obj::update_forcing_sflow(lexer *p, ghostcell *pgc,
 
 
 }
-
-
-

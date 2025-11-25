@@ -440,4 +440,3 @@ double wave_lib_irregular_2nd_b::wave_F_minus(double w1, double w2, double k1, d
 void wave_lib_irregular_2nd_b::wave_prestep(lexer *p, ghostcell *pgc)
 {
 }
-

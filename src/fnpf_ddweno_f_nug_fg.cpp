@@ -199,4 +199,3 @@ void fnpf_ddweno_f_nug::kqmax(field& f)
     q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
     q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }
-

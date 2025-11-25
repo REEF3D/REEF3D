@@ -3483,5 +3483,3 @@ void lexer::ctrlsend()
     ii_send=ii;
     dd_send=dd;
 }
-
-

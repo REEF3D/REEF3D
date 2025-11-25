@@ -87,4 +87,3 @@ void vrans_veg::w_source(lexer *p, fdm *a)
     ++count;
     }
 }
-

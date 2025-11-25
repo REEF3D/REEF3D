@@ -88,4 +88,3 @@ void sixdof_obj::addpoint(lexer *p, fdm_nhf *d, int q1, int q2)
 
     ++ccptcount;
 }
-

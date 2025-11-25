@@ -114,5 +114,3 @@ void flux_face_CDS2::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, doubl
     wflux2= wvel(i,j,k);
     }
 }
-
-

@@ -213,6 +213,3 @@ void ioflow_f::outflow_corresponding(lexer *p, fdm* a, ghostcell* pgc, field& u,
         }
     }
 }
-
-
-

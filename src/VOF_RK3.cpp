@@ -268,5 +268,3 @@ void VOF_RK3::compression(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec,
 
 
 }
-
-

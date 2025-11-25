@@ -119,8 +119,3 @@ void driver::solverlog(lexer* p)
      solvlogout<<p->F44<<" \t "<<setprecision(4)<<p->reinitime<<" \t "<<endl;
      }
 }
-
-
-
-
-

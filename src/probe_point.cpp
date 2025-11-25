@@ -139,5 +139,3 @@ void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     flag[n]=1;
     }
 }
-
-

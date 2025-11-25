@@ -137,4 +137,3 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
 void patchBC_2D::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
 }
-

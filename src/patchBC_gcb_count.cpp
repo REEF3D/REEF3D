@@ -157,4 +157,3 @@ void patchBC::patchBC_gcb_count(lexer *p, ghostcell *pgc)
 
 
 }
-

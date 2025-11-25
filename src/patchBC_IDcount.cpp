@@ -106,4 +106,3 @@ void patchBC::patchBC_IDcount(lexer *p, ghostcell *pgc)
     obj_count=count;
 
 }
-

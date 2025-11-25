@@ -211,7 +211,3 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     //if(p->mpirank==0)
     //cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
 }
-
-
-
-

@@ -129,8 +129,3 @@ double nhflow_force_ale::dvdxi(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     return grad;
 }
-
-
-
-
-

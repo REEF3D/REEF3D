@@ -158,5 +158,3 @@ void reini_RK3::time_preproc(lexer* p)
     dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
     }
 }
-
-

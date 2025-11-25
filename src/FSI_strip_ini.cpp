@@ -207,4 +207,3 @@ void fsi_strip::get_cellsize(lexer *p, fdm *a, ghostcell *pgc)
 
     dx_body = pgc->globalsum(dx_body);
 }
-

@@ -57,4 +57,3 @@ void print_averaging_v::name_ParaView_parallel(lexer *p, ofstream &result)
 void print_averaging_v::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
 }
-

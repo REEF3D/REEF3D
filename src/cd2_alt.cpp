@@ -82,4 +82,3 @@ double cds2_alt::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel
 
         return L;
 }
-

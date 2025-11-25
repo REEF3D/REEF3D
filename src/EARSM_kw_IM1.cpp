@@ -86,8 +86,3 @@ double EARSM_kw_IM1::tau(fdm* a)
 
     return t;
 }
-
-
-
-
-

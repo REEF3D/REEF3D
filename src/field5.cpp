@@ -66,5 +66,3 @@ double & field5::operator()(int ii, int jj, int kk)
     return V[iter];
 
 }
-
-

@@ -302,4 +302,3 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     s->MOB(i,j) = s->tau_eff(i,j)/(fabs(s->tau_crit(i,j))>1.0e-10?s->tau_crit(i,j):1.0e10);
     }
 }
-

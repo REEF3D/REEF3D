@@ -376,6 +376,3 @@ void patchBC::patchBC_fillobj(lexer *p, ghostcell *pgc)
     }
 
 }
-
-
-

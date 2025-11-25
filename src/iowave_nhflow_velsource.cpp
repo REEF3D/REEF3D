@@ -113,6 +113,3 @@ void iowave::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
     //VRANS
     //pvrans->w_source(p,a);
 }
-
-
-

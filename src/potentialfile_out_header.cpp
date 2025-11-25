@@ -60,4 +60,3 @@ void potentialfile_out::header_file_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 void potentialfile_out::header_file(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
-

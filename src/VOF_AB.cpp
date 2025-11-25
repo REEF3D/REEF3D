@@ -238,5 +238,3 @@ void VOF_AB::compression(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec, 
     }
 
 }
-
-

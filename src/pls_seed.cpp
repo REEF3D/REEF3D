@@ -289,4 +289,3 @@ int particle_pls::negseed(lexer* p, fdm* a, ghostcell* pgc, double factor)
 
     return success;
 }
-

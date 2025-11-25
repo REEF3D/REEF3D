@@ -51,4 +51,3 @@ void ghostcell::noslip(field& f, double dist, int gcv, int bc, int cs)
     f(i,j,k+q+1)=0.0;
 
 }
-

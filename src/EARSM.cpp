@@ -192,8 +192,3 @@ void EARSM::ksource(lexer *p, fdm* a)
     a->maxH=MAX(fabs(a->H(i,j,k)),a->maxH);
     }
 }
-
-
-
-
-

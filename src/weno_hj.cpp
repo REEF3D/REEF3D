@@ -284,4 +284,3 @@ void weno_hj::weight()
     w2=alpha2/(alpha1+alpha2+alpha3);
     w3=alpha3/(alpha1+alpha2+alpha3);
 }
-

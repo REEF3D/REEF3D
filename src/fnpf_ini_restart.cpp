@@ -90,4 +90,3 @@ void fnpf_ini::fnpf_restart(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 
 }
-

@@ -85,4 +85,3 @@ void fnpf_coastline::time_preproc(lexer* p)
     ++n;
     }
 }
-

@@ -129,4 +129,3 @@ void patchBC_2D::patchBC_pressure2D_vgrad(lexer *p, fdm2D *b, slice &eta, slice 
 void patchBC_2D::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
 }
-

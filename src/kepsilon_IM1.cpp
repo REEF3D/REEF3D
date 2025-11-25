@@ -114,4 +114,3 @@ void kepsilon_IM1::clearrhs(lexer* p, fdm* a)
     ++count;
     }
 }
-

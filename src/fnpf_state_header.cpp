@@ -125,5 +125,3 @@ void fnpf_state::write_header(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     headout.close();
 }
-
-

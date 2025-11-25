@@ -377,4 +377,3 @@ int position::posf_sig(int ii, int jj, double zs)
 
     return kk;
 }
-

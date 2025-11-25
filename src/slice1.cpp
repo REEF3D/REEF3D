@@ -217,4 +217,3 @@ double & slice1::operator()(int ii, int jj)
     return V[iter];
 
 }
-

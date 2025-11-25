@@ -101,4 +101,3 @@ void strain::skewSymmetricStrainRateTensor(lexer *p, field &u, field &v, field &
         r23 = 0.0;
     }
 }
-

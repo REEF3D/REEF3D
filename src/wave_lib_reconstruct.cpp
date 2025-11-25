@@ -105,4 +105,3 @@ void wave_lib_reconstruct::parameters(lexer *p, ghostcell *pgc)
 void wave_lib_reconstruct::wave_prestep(lexer *p, ghostcell *pgc)
 {
 }
-

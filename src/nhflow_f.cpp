@@ -157,4 +157,3 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 
     pgc->gcsl_start4(p,d->WL,50);
 }
-

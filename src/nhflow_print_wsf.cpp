@@ -150,5 +150,3 @@ void nhflow_print_wsf::ini_location(lexer *p, fdm_nhf *d)
         flag[n]=1;
     }
 }
-
-

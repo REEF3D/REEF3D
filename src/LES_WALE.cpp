@@ -80,5 +80,3 @@ void LES_WALE::ktimesave(lexer* p, fdm* a, ghostcell *pgc)
 void LES_WALE::etimesave(lexer* p, fdm* a, ghostcell *pgc)
 {
 }
-
-

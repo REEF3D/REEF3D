@@ -155,4 +155,3 @@ void nhflow_forcing::rotation_tri(lexer *p,double phi_,double theta_,double psi_
     yvec += y0;
     zvec += z0;
 }
-

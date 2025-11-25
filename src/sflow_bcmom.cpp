@@ -90,7 +90,3 @@ void sflow_bcmom::roughness_v(lexer* p, fdm2D *b, slice &V, slice &G, slice &WL)
 void sflow_bcmom::roughness_w(lexer* p, fdm2D *b, slice &W, slice &H, slice &WL)
 {
 }
-
-
-
-

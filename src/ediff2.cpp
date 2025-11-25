@@ -187,4 +187,3 @@ void ediff2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
 
     pgc->start3(p,diff,gcval_w);
 }
-

@@ -61,7 +61,3 @@ void reduction_FD::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     s->reduce(i,j)=r;
     }
 }
-
-
-
-

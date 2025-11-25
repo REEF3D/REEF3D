@@ -162,4 +162,3 @@ void net_barQuasiStatic::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pg
     }
 
 }
-

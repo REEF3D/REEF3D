@@ -33,5 +33,3 @@ void flowfile_in::filename(lexer *p, fdm *a, ghostcell *pgc, char *name, int num
             sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%08i-%08i.r3d",p->I230,num);
         }
 }
-
-

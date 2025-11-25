@@ -145,4 +145,3 @@ void kepsilon_void::name_ParaView(lexer *p, std::stringstream &result, int *offs
 void kepsilon_void::offset_ParaView(lexer *p, int *offset, int &n)
 {
 }
-

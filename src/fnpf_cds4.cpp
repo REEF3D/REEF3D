@@ -74,6 +74,3 @@ double fnpf_cds4::sz(lexer *p, double *f)
 
 
 }
-
-
-

@@ -38,7 +38,3 @@ void reduction_void::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     SEDSLICELOOP
     s->reduce(i,j)=1.0;
 }
-
-
-
-

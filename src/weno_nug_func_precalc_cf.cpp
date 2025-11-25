@@ -186,7 +186,3 @@ void weno_nug_func::precalc_cf(lexer* p)
                   * ((p->ZP[KP4]-p->ZP[KP1])/(p->ZP[KP3]-p->ZP[KM1]));
     }
 }
-
-
-
-

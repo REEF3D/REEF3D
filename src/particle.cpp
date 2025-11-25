@@ -112,9 +112,3 @@ void particle_pls::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow)
     cout<<"CORR: *"<<gcorrected<<"* rem: "<<gremoved<<" res: "<<greseeded<<" X: "<<gxchange<<" | plstime: "<<p->plstime<<endl;
     }
 }
-
-
-
-
-
-

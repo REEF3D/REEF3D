@@ -188,4 +188,3 @@ void ghostcell::gcdistro3(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
     if(bc_label==99)
     gcb_debug(f,gcv,bc,cs);
 }
-

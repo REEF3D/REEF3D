@@ -107,7 +107,3 @@ void pressure_reference::fsf_normalize(lexer*p, fdm* a, ghostcell *pgc)
     */
 
 }
-
-
-
-

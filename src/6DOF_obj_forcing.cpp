@@ -312,6 +312,3 @@ double sixdof_obj::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 
     return H;
 }
-
-
-

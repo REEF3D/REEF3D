@@ -149,4 +149,3 @@ double fou::aij(lexer* p,fdm* a,field& f,int ipol, field& uvel, field& vvel, fie
 
     return L;
 }
-

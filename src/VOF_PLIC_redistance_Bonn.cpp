@@ -377,4 +377,3 @@ double VOF_PLIC::IntersectionPointCandidate
 
     return mindist;
 }
-

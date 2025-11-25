@@ -125,5 +125,3 @@ void nhflow_state::write_header(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     headout.close();
 }
-
-

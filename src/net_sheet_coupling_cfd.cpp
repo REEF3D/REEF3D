@@ -64,5 +64,3 @@ void net_sheet::coupling_dlm_cfd(lexer *p, fdm *a, ghostcell *pgc)
     }
 
 }
-
-

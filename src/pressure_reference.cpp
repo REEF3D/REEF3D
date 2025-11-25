@@ -45,7 +45,3 @@ void pressure_reference::reference_start(lexer*p, fdm* a, ghostcell *pgc)
     fsf_normalize(p,a,pgc);
 
 }
-
-
-
-

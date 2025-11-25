@@ -260,4 +260,3 @@ void sflow_f::mainlog(lexer *p)
      mainlogout<<endl;
      }
 }
-

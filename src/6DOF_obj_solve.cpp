@@ -182,6 +182,3 @@ void sixdof_obj::solve_eqmotion_oneway_onestep(lexer *p, ghostcell *pgc)
         h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dh_;
         e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;
 }
-
-
-

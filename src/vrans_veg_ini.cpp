@@ -154,4 +154,3 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
 
 }
-

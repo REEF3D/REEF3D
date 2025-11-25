@@ -293,5 +293,3 @@ void particle_pls::particlex(lexer* p, fdm* a, ghostcell* pgc)
         break;
     }
 }
-
-

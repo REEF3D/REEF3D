@@ -172,4 +172,3 @@ void nhflow_print_runup_gage_x::ini_location(lexer *p, fdm_nhf *d, ghostcell *pg
         }
     }
 }
-

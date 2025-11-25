@@ -97,4 +97,3 @@ void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof,
     WL(i,j) = MAX(eta(i,j) + p->wd - p->bed[IJ],0.0);*/
     }
 }
-

@@ -70,6 +70,3 @@ int lexer::maxparacount()
 
         return maxpara;
 }
-
-
-

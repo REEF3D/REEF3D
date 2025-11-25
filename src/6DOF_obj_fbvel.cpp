@@ -156,4 +156,3 @@ void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
         p->wfbmax = MAX(p->wfbmax, fabs(wvel));
     }
 }
-

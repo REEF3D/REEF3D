@@ -450,5 +450,3 @@ void ioflow_f::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc, vrans *pvrans)
 {
     pvrans->sed_update(p,a,pgc);
 }
-
-

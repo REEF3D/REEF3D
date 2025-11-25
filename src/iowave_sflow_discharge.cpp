@@ -169,5 +169,3 @@ void iowave::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
     */
 }
-
-

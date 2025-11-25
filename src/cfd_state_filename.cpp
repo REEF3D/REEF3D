@@ -42,6 +42,3 @@ void cfd_state::filename_header(lexer *p, fdm *a, ghostcell *pgc)
 {
     sprintf(name,"./REEF3D_CFD_STATE/REEF3D-CFD-State-Header-%06i.r3d",p->mpirank+1);
 }
-
-
-

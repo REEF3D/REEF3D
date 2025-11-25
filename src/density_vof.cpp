@@ -175,7 +175,3 @@ double density_vof::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     return roval;
 
 }
-
-
-
-

@@ -159,9 +159,3 @@ double fnpf_runup::dvdxi(lexer *p, fdm_fnpf *c, ghostcell *pgc)     // getting d
 {
     return (c->V[FIJp1K] - c->V[FIJm1K])/(p->DYN[JP1] + p->DYN[JM1]);
 }
-
-
-
-
-
-

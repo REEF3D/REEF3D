@@ -556,4 +556,3 @@ double wave_lib_ssgw::modulo(double a, double b)
     double m = fmod(a, b);
     return m + b * (m < 0.f);
 }
-

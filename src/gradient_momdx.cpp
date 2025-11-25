@@ -199,5 +199,3 @@ double gradient::wdzz(fdm* a)
 
     return grad;
 }
-
-

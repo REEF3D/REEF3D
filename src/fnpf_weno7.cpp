@@ -278,4 +278,3 @@ void fnpf_weno7::weight()
     w3=alpha3/(alpha1+alpha2+alpha3+alpha4);
     w4=alpha4/(alpha1+alpha2+alpha3+alpha4);
 }
-

@@ -52,6 +52,3 @@ void nhflow_sigma::sigma_coord_ini(lexer *p)
     p->ZN[KP] = (p->ZN[KP]-ZN0temp)/L;
     }
 }
-
-
-

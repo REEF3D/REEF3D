@@ -242,5 +242,3 @@ void nhflow_rans_io::plain_wallfunc(lexer* p, fdm_nhf *d, ghostcell* pgc)
     pgc->start4(p,a->eddyv,24);*/
 
 }
-
-

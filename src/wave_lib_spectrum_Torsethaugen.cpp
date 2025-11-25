@@ -120,7 +120,3 @@ double wave_lib_spectrum::Torsethaugen(lexer *p, double w)
 
     return Sval;
 }
-
-
-
-

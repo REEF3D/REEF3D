@@ -69,7 +69,3 @@ void ptf_bed_update::waterdepth(lexer *p, fdm *a, ghostcell *pgc)
     SLICELOOP4
     a->depth(i,j) = p->wd - a->bed(i,j);
 }
-
-
-
-

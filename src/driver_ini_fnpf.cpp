@@ -210,7 +210,3 @@ void driver::driver_ini_fnpf()
     p->field4time=0.0;
 
 }
-
-
-
-

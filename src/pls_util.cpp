@@ -44,5 +44,3 @@ void particle_pls::vel_setback(lexer* p,fdm* a,ghostcell* pgc)
     pgc->start2(p,a->v,11);
     pgc->start3(p,a->w,12);*/
 }
-
-

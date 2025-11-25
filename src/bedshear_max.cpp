@@ -87,5 +87,3 @@ void bedshear_max::bedshear_maxval(lexer *p, ghostcell *pgc, sediment *psed)
     bsgout<<maxval<<endl;
     }
 }
-
-

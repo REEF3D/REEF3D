@@ -314,4 +314,3 @@ void print_wsfline_y::remove_multientry(lexer *p, double* b, double* c, int *d, 
 
     num=count;
 }
-

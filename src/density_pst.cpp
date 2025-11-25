@@ -64,7 +64,3 @@ double density_pst::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 
     return roval;
 }
-
-
-
-

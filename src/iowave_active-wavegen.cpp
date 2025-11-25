@@ -222,4 +222,3 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
         pgc->start4(p,a->eddyv,24);
         }
 }
-

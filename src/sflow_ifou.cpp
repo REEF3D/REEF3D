@@ -87,4 +87,3 @@ void sflow_ifou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vv
 
      ++count;
 }
-

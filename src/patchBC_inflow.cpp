@@ -461,5 +461,3 @@ void patchBC::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, sli
 void patchBC::patchBC_rkioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
 {
 }
-
-

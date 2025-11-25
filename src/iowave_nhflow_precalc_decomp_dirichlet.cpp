@@ -66,7 +66,3 @@ void iowave::nhflow_wavegen_precalc_decomp_dirichlet(lexer *p, ghostcell *pgc)
         ++count;
         }
 }
-
-
-
-

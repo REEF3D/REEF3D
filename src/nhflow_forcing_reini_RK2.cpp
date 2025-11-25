@@ -66,8 +66,3 @@ void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
         pgc->start5V(p,F,1);
     }
 }
-
-
-
-
-

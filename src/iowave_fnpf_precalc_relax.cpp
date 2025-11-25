@@ -120,4 +120,3 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     }
 
 }
-

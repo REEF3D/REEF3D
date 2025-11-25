@@ -56,4 +56,3 @@ void sixdof_nhflow::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, sl
 void sixdof_nhflow::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
 }
-

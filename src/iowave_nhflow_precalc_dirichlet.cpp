@@ -84,7 +84,3 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ++count;
         }
 }
-
-
-
-

@@ -56,4 +56,3 @@ int & sliceint5::operator()(int ii, int jj)
 {
     return V[(ii-imin)*jmax + (jj-jmin)];
 }
-

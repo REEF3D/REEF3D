@@ -148,5 +148,3 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)<<endl;
 }
-
-

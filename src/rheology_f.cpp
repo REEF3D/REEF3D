@@ -64,4 +64,3 @@ double rheology_f::heaviside(int phival)
 
     return H;
 }
-

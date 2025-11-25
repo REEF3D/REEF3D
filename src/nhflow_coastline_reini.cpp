@@ -85,4 +85,3 @@ void nhflow_coastline::time_preproc(lexer* p)
     ++n;
     }
 }
-

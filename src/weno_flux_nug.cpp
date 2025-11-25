@@ -311,5 +311,3 @@ void weno_flux_nug::kqmax(lexer *p, field& f, field& wvel, int ipol)
     q4 = f.V[IJKp2];
     q5 = f.V[IJKp3];
 }
-
-

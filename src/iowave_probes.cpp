@@ -74,4 +74,3 @@ double iowave::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double z)
 
     return val;
 }
-

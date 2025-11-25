@@ -393,4 +393,3 @@ void momentum_RK3CN::addkrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
        ++n;
        }
 }
-

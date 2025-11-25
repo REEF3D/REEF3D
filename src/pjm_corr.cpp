@@ -205,7 +205,3 @@ void pjm_corr::ini(lexer*p,fdm* a, ghostcell *pgc)
 {
     reference_ini(p,a,pgc);
 }
-
-
-
-

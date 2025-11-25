@@ -87,6 +87,3 @@ void iowave::velini(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 }
-
-
-

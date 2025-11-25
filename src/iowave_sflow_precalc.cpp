@@ -153,4 +153,3 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     p->wavecalctime+=pgc->timer()-starttime;
 }
-

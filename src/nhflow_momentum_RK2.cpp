@@ -277,4 +277,3 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
     clearrhs(p,d,pgc);
 }
-

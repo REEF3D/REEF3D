@@ -39,11 +39,3 @@ lexer::~lexer()
 int lexer::xmax,lexer::ymax,lexer::zmax;
 int lexer::knox,lexer::knoy,lexer::knoz;
 int lexer::margin;
-
-
-
-
-
-
-
-

@@ -139,5 +139,3 @@ void mooring_dynamic::setFieldBC(Matrix3Xd& c_, Matrix3Xd& cdot_, Matrix4Xd& q_,
         rhs_cdot_.col(Ne) = Eigen::Vector3d::Zero(3);
     }
 }
-
-

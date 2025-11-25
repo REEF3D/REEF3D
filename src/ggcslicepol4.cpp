@@ -78,12 +78,3 @@ void slice4::ggcpol(lexer* p)
 
      }
 }
-
-
-
-
-
-
-
-
-

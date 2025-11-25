@@ -59,7 +59,3 @@ private:
 };
 
 #endif
-
-
-
-

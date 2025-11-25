@@ -104,4 +104,3 @@ void sloshing_force::force(lexer *p, fdm *a, ghostcell *pgc)
     Fz = pgc->globalsum(Fz);
     M = pgc->globalsum(M);
 }
-

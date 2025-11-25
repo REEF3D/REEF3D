@@ -85,4 +85,3 @@ void flowfile_out::ini_location(lexer *p, fdm *a, ghostcell *pgc)
         flag[n][k]=1;
     }
 }
-

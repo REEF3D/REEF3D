@@ -59,4 +59,3 @@ void iowave::wavegen_precalc_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     p->wavecalctime+=pgc->timer()-starttime;
 }
-

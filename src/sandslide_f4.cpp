@@ -252,4 +252,3 @@ void sandslide_f4::slide(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &bedzh
         }
 
 }
-

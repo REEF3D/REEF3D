@@ -36,4 +36,3 @@ sflow_voidconv::~sflow_voidconv()
 void sflow_voidconv::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel, slice& vvel)
 {
 }
-

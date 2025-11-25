@@ -158,4 +158,3 @@ void gage_discharge_window_x::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     flag[n]=1;
     }
 }
-

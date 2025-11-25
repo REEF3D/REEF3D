@@ -63,6 +63,3 @@ double fnpf_ddx_cds4_wd::syy(lexer *p, slice &f)
 
     return grad;
 }
-
-
-

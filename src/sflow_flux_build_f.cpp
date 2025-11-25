@@ -125,8 +125,3 @@ void sflow_flux_build_f::start_E(lexer* p, fdm2D *b, ghostcell *pgc)
     b->Fw(i,j) = b->VHw(i,j);
     }
 }
-
-
-
-
-

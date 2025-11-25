@@ -459,4 +459,3 @@ void momentum_FC3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel,
     ++n;
     }
 }
-

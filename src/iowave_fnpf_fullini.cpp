@@ -82,4 +82,3 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->WL(i,j) = c->eta(i,j) + p->wd - c->bed(i,j);
 
 }
-

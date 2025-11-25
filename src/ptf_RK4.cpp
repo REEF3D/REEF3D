@@ -271,5 +271,3 @@ void ptf_RK4::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini
 void ptf_RK4::inidisc(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
-
-

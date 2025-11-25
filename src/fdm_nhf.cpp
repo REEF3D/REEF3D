@@ -145,16 +145,3 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Iarray(NODEVAL,p->imax*p->jmax*(p->kmax+3));
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -109,7 +109,3 @@ void sediment_f::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, sol
 {
     psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
 }
-
-
-
-

@@ -149,5 +149,3 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
 }
-
-

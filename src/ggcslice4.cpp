@@ -144,5 +144,3 @@ void mgcslice4::fill_ggc(lexer* p)
     //cout<<p->mpirank<<"  ggcslcount: "<<p->ggcslcount4<<endl;
     p->del_Iarray(p->ggcslmem4,imax*jmax);
 }
-
-

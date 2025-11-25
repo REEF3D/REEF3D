@@ -80,4 +80,3 @@ void sflow_filter::filter4(lexer* p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4(p,b->eta,50);
 
 }
-

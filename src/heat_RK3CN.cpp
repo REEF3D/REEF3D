@@ -144,7 +144,3 @@ void heat_RK3CN::addrhs(lexer *p, fdm *a, ghostcell *pgc,double alpha)
     ++n;
     }
 }
-
-
-
-

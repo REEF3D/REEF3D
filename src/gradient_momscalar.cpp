@@ -187,4 +187,3 @@ double gradient::pwdz(lexer *p, fdm* a)
 
     return grad;
 }
-

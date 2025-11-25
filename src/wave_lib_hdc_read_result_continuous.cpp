@@ -65,6 +65,3 @@ void wave_lib_hdc::read_result_continuous(lexer *p, ghostcell *pgc, double **E0,
         W0[i][j][k]=double(ffn);
     }
 }
-
-
-

@@ -177,4 +177,3 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
     }
 
 }
-

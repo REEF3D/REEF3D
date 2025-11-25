@@ -79,5 +79,3 @@ void LES_smagorinsky::ktimesave(lexer* p, fdm* a, ghostcell *pgc)
 void LES_smagorinsky::etimesave(lexer* p, fdm* a, ghostcell *pgc)
 {
 }
-
-

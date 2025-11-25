@@ -27,7 +27,3 @@ void fnpf_ini::filename(lexer *p, fdm_fnpf *c, ghostcell *pgc, int num)
 {
     sprintf(name,"./REEF3D_FNPF_STATE/REEF3D_FNPF-State-%08i-%06i.r3d",num,p->mpirank+1);
 }
-
-
-
-

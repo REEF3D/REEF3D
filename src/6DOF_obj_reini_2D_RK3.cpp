@@ -139,4 +139,3 @@ void sixdof_obj::time_preproc_2D(lexer* p)
     ++n;
     }
 }
-

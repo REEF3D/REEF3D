@@ -64,4 +64,3 @@ void patchBC_2D::patchBC_gcb_count(lexer *p, ghostcell *pgc)
     patch[q]->patch_obj_gcb_generate(p,pgc);
 
 }
-

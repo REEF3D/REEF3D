@@ -51,4 +51,3 @@ void ghostcell::lsm(lexer *p,field& f,double dist,int gcv, int bc, int cs)
     for(q=1;q<=margin;++q)
     f(i,j,k+q) = double(q+1)*f(i,j,k) - double(q)*f(i,j,k-1);
 }
-

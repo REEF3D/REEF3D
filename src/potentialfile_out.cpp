@@ -66,5 +66,3 @@ void potentialfile_out::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, turbulence 
 
     ++filecount;
 }
-
-

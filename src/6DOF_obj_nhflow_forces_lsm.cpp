@@ -302,4 +302,3 @@ void sixdof_obj::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
     p->del_Iarray(numpt,numtri);
     p->del_Darray(ccpt,numtri*4,3);
 }
-

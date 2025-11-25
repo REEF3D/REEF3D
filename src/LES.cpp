@@ -49,10 +49,3 @@ void LES::ksource(lexer* p, fdm* a)
     WLOOP
     a->H(i,j,k)=0.0;
 }
-
-
-
-
-
-
-

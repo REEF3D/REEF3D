@@ -190,11 +190,3 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
 
     result.close();
 }
-
-
-
-
-
-
-
-

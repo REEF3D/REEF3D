@@ -213,4 +213,3 @@ void sixdof_obj::box(lexer *p, ghostcell *pgc, int id)
 
     tend[entity_count]=tricount;
 }
-

@@ -107,7 +107,3 @@ void sediment_f::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow 
 {
     pnhfsusp->start(p,d,pgc,pnhfsuspdisc,pnhfsuspdiff,psolv,pflow,s);
 }
-
-
-
-

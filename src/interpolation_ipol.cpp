@@ -587,5 +587,3 @@ double interpolation::ipol4topo(fdm *a, field& b)
     return value;
 
 }
-
-

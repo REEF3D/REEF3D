@@ -51,7 +51,3 @@ void nhflow_coastline::start(lexer *p, ghostcell *pgc, slice &coastline, int *we
         reini(p,pgc,coastline);
     }
 }
-
-
-
-

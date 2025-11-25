@@ -82,6 +82,3 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;
 }
-
-
-

@@ -76,6 +76,3 @@ void wave_lib_hdc::read_result(lexer *p, ghostcell *pgc, double **E0, double ***
     result.close();
 
 }
-
-
-

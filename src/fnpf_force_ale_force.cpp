@@ -110,8 +110,3 @@ double fnpf_force_ale::dvdxi(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     return (0.5*(c->V[FIJp1K]+c->V[FIJm1Kp1]) - 0.5*(c->V[FIJm1K]+c->V[FIJm1Kp1]))/(p->DYN[JP1] + p->DYN[JM1]);
 }
-
-
-
-
-
