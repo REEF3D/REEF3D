@@ -37,7 +37,7 @@ sflow_ifou::~sflow_ifou()
 void sflow_ifou::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel, slice& vvel)
 {
     count=0;
-    
+
     if(ipol==1)
     SLICELOOP1
     aij(p,b,f,1,uvel,vvel);
@@ -45,7 +45,7 @@ void sflow_ifou::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel, slic
     if(ipol==2)
     SLICELOOP2
     aij(p,b,f,2,uvel,vvel);
-    
+
     if(ipol==4)
     SLICELOOP4
     aij(p,b,f,4,uvel,vvel);
@@ -54,18 +54,18 @@ void sflow_ifou::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel, slic
 void sflow_ifou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
 {
     udir=vdir=0.0;
-    
+
     pflux->u_flux(ipol,uvel,iadvec,ivel2);
     pflux->v_flux(ipol,vvel,jadvec,jvel2);
 
 
-	// X-dir
+    // X-dir
     if(ivel1>=0.0)
     ul=1.0;
 
     if(ivel2>=0.0)
     ur=1.0;
-    
+
     // Y-dir
     if(jvel1>=0.0)
     vl=1.0;
@@ -73,18 +73,18 @@ void sflow_ifou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vv
     if(jvel2>=0.0)
     vr=1.0;
 
-	 
-	 b->M.p[count] = ur*ivel2/p->DXM - (1.0-ul)*ivel1/p->DXM
+
+     b->M.p[count] = ur*ivel2/p->DXM - (1.0-ul)*ivel1/p->DXM
                    + (vr*jvel2/p->DXM - (1.0-vl)*jvel1/p->DXM)*p->y_dir;
 
-	 
-	 b->M.s[count] = -ul*ivel1/p->DXM;
-	 b->M.n[count] =  (1.0-ur)*ivel2/p->DXM;
-	 
-	 b->M.e[count] = -vl*jvel1/p->DXM*p->y_dir;
-	 b->M.w[count] =  (1.0-vr)*jvel2/p->DXM*p->y_dir;
-     
-	 
-	 ++count;
+
+     b->M.s[count] = -ul*ivel1/p->DXM;
+     b->M.n[count] =  (1.0-ur)*ivel2/p->DXM;
+
+     b->M.e[count] = -vl*jvel1/p->DXM*p->y_dir;
+     b->M.w[count] =  (1.0-vr)*jvel2/p->DXM*p->y_dir;
+
+
+     ++count;
 }
 

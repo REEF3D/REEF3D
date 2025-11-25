@@ -39,16 +39,16 @@ using namespace std;
 class fsi_strip : public beam, public increment
 {
 public:
-	
+
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    
+
     typedef Eigen::Matrix<double,3,Eigen::Dynamic> Matrix3Xd;
-	
+
     fsi_strip(lexer*,int);
-	virtual ~fsi_strip();
-	void start(lexer*,fdm*,ghostcell*,double);
-	void initialize(lexer*,fdm*,ghostcell*,turbulence*);
-    
+    virtual ~fsi_strip();
+    void start(lexer*,fdm*,ghostcell*,double);
+    void initialize(lexer*,fdm*,ghostcell*,turbulence*);
+
     void interpolate_vel(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void update_points();
     void coupling_vel();
@@ -58,7 +58,7 @@ public:
     void print_ini(lexer *p);
     void print_stl(lexer*,fdm*,ghostcell*);
     void print_parameter(lexer*,fdm*,ghostcell*);
-    
+
     void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
     void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
     void setVariableLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&, const double);
@@ -73,11 +73,11 @@ private:
 
     // Parallelisation
     int nstrip;
-	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+    double *xstart, *xend, *ystart, *yend, *zstart, *zend;
 
     // Strip
     int Ne;
-    vector<Matrix3Xd> Xil, Xil_0, lagrangePoints, lagrangeVel, lagrangeVelCoup, lagrangeForceCoup; 
+    vector<Matrix3Xd> Xil, Xil_0, lagrangePoints, lagrangeVel, lagrangeVelCoup, lagrangeForceCoup;
     Matrix3Xd x_el, xdot_el, F_el, P_el, P_el_n, M_el, I_el, I_el_n;
     Matrix4Xd q_el, qdot_el;
     vector<Eigen::VectorXd> lagrangeArea;
@@ -87,11 +87,11 @@ private:
 
     // Print
     int printcount_fsi;
-	double printtime;
+    double printtime;
     Matrix3Xd tri_x, tri_y, tri_z;
-    
+
     double starttime, endtime;
-    
+
     turbulence *pturb;
     field4 eps0;
 };

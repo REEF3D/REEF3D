@@ -37,24 +37,24 @@ sflow_turb_io::~sflow_turb_io()
 void sflow_turb_io::print_2D(lexer *p, fdm2D *b, ghostcell *pgc, ofstream &result)
 {
     iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-    
-	TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(kin));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
-    
+    result.write((char*)&iin, sizeof (int));
+
+    TPSLICELOOP
+    {
+    ffn=float(p->sl_ipol4(kin));
+    result.write((char*)&ffn, sizeof (float));
+    }
+
+
     iin=4*(p->pointnum2D);
-	result.write((char*)&iin, sizeof (int));
-    
-	TPSLICELOOP
-	{
-	ffn=float(p->sl_ipol4(eps));
-	result.write((char*)&ffn, sizeof (float));
-	}
-    
+    result.write((char*)&iin, sizeof (int));
+
+    TPSLICELOOP
+    {
+    ffn=float(p->sl_ipol4(eps));
+    result.write((char*)&ffn, sizeof (float));
+    }
+
 }
 
 void sflow_turb_io::kinget(int ii, int jj, double val)
@@ -66,28 +66,28 @@ void sflow_turb_io::epsget(int ii, int jj, double val)
 {
     eps(ii,jj)=val;
 }
-    
+
 double sflow_turb_io::kinval(int ii, int jj)
 {
     val=kin(ii,jj);
 
     return val;
 }
-    
+
 double sflow_turb_io::epsval(int ii, int jj)
 {
     val=eps(ii,jj);
 
     return val;
 }
-    
+
 void sflow_turb_io::name_pvtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>\n";
-	
-	if(p->A260==1)
-	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>\n";
-	if(p->A260==2 || p->A260==5)
+
+    if(p->A260==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>\n";
+    if(p->A260==2 || p->A260==5)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
@@ -95,17 +95,17 @@ void sflow_turb_io::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result
 {
     result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	if(p->A260==1)
-	result<<"<DataArray type=\"Float32\" Name=\"epsilon\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-	if(p->A260==2 || p->A260==5)
+    if(p->A260==1)
+    result<<"<DataArray type=\"Float32\" Name=\"epsilon\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    if(p->A260==2 || p->A260==5)
     result<<"<DataArray type=\"Float32\" Name=\"omega\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
-    
+
 void sflow_turb_io::offset_ParaView_2D(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
-	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
-	++n;
+    ++n;
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+    ++n;
 }

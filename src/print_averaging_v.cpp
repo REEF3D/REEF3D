@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-print_averaging_v::print_averaging_v(lexer *p, fdm* a, ghostcell *pgc) 
+print_averaging_v::print_averaging_v(lexer *p, fdm* a, ghostcell *pgc)
 {
 
 }
@@ -47,7 +47,7 @@ void print_averaging_v::averaging(lexer *p, fdm *a, ghostcell *pgc, heat *pheat)
 
 void print_averaging_v::offset_ParaView(lexer *p, int *offset, int &n)
 {
-        
+
 }
 
 void print_averaging_v::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)

@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef FNPF_DDX_H_
 #define FNPF_DDX_H_
 
-class lexer;  
+class lexer;
 class field;
 class slice;
 class sliceint;
@@ -35,7 +35,7 @@ class fnpf_ddx
 public:
 
     virtual double sxx(lexer*, slice&)=0;
-	virtual double syy(lexer*, slice&)=0;
+    virtual double syy(lexer*, slice&)=0;
 
 };
 

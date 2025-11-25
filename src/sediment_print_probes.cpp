@@ -36,21 +36,21 @@ void sediment_f::print_probes(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow 
 {
 
 // sediment probes
-	if(p->P121>0)
-	pbedpt->bed_gauge(p,pgc,s);
+    if(p->P121>0)
+    pbedpt->bed_gauge(p,pgc,s);
 
-	if(p->P122>0)
-	pbedmax->bed_max(p,pgc,s);
+    if(p->P122>0)
+    pbedmax->bed_max(p,pgc,s);
 
-	if(p->P123>0)
-	pbedlinex->start(p,pgc,s,pflow);
+    if(p->P123>0)
+    pbedlinex->start(p,pgc,s,pflow);
 
-	if(p->P124>0)
-	pbedliney->start(p,pgc,s,pflow);
+    if(p->P124>0)
+    pbedliney->start(p,pgc,s,pflow);
 
-	if(p->P125>0)
-	pbedshearprobe->bedshear_gauge(p,pgc,psed);
+    if(p->P125>0)
+    pbedshearprobe->bedshear_gauge(p,pgc,psed);
 
-	if(p->P126>0)
-	pbedshearmax->bedshear_maxval(p,pgc,psed);    
+    if(p->P126>0)
+    pbedshearmax->bedshear_maxval(p,pgc,psed);
 }

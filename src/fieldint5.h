@@ -34,26 +34,26 @@ class fieldint5 :  public fieldint, public increment
 {
 public:
 
-	fieldint5 (lexer *);
-	virtual ~fieldint5();
+    fieldint5 (lexer *);
+    virtual ~fieldint5();
 
     int& operator()(int, int , int) override;
-    
+
     void resize(lexer*) override;
 
 private:
 
-	int di,dj,dk;
-	void fieldalloc(lexer *);
-	void fieldlength(lexer *);
-	void fieldgcalloc(lexer*);
+    int di,dj,dk;
+    void fieldalloc(lexer *);
+    void fieldlength(lexer *);
+    void fieldgcalloc(lexer*);
 
-	int* feld;
-	int iter;
+    int* feld;
+    int iter;
 
-	int imin,imax,jmax,jmin,kmin,kmax;
-	
-	lexer *pp;
+    int imin,imax,jmax,jmin,kmin,kmax;
+
+    lexer *pp;
 
 };
 

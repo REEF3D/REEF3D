@@ -41,21 +41,21 @@ void patchBC_2D::patchBC_pressure2D(lexer*, ghostcell*, slice &press)
         press(i-2,j) =  patch[qq]->pressure;
         press(i-3,j) =  patch[qq]->pressure;
         }
-        
+
         if(patch[qq]->gcb[n][3]==2)
         {
         press(i,j+1) =  patch[qq]->pressure;
         press(i,j+2) =  patch[qq]->pressure;
         press(i,j+3) =  patch[qq]->pressure;
         }
-        
+
         if(patch[qq]->gcb[n][3]==3)
         {
         press(i,j-1) =  patch[qq]->pressure;
         press(i,j-2) =  patch[qq]->pressure;
         press(i,j-3) =  patch[qq]->pressure;
         }
-        
+
         if(patch[qq]->gcb[n][3]==4)
         {
         press(i+1,j) =  patch[qq]->pressure;
@@ -73,22 +73,22 @@ void patchBC_2D::patchBC_pressure2D_ugrad(lexer *p, fdm2D *b, slice &eta, slice 
     {
     i=patch[qq]->gcb[n][0];
     j=patch[qq]->gcb[n][1];
-    
+
         if(patch[qq]->gcb[n][3]==4)
         {
         i-=1;
-        b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
+        b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j)
                                          - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
-                                         
+
         b->F(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
                                          - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
         }
-        
+
         if(patch[qq]->gcb[n][3]==1)
         {
-        b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j) 
+        b->F(i,j) += fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i+1,j)
                                          - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
-                                         
+
         b->F(i,j) -= fabs(p->W22)*(p->A223*eta(i+1,j) + (1.0-p->A223)*eta_n(i,j)
                                          - p->A223*(b->bed(i,j)-p->wd) - (1.0-p->A223)*(b->bed(i,j)-p->wd) )/(p->DXM);
         }
@@ -103,23 +103,23 @@ void patchBC_2D::patchBC_pressure2D_vgrad(lexer *p, fdm2D *b, slice &eta, slice 
     {
     i=patch[qq]->gcb[n][0];
     j=patch[qq]->gcb[n][1];
-    
-    
+
+
         if(patch[qq]->gcb[n][3]==2)
         {
         j-=1;
-        b->G(i,j) += fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
+        b->G(i,j) += fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1)
                                          - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
-                                         
+
         b->G(i,j) -= fabs(p->W22)*(p->A223*(b->bed(i,j)-p->wd) + (1.0-p->A223)*(b->bed(i,j)-p->wd)
                                          - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
         }
-        
+
         if(patch[qq]->gcb[n][3]==3)
         {
-        b->G(i,j) += fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1) 
+        b->G(i,j) += fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1)
                                          - p->A223*eta(i,j) - (1.0-p->A223)*eta_n(i,j) )/(p->DXM);
-                                         
+
         b->G(i,j) -= fabs(p->W22)*(p->A223*eta(i,j+1) + (1.0-p->A223)*eta_n(i,j+1)
                                          - p->A223*(b->bed(i,j)-p->wd) - (1.0-p->A223)*(b->bed(i,j)-p->wd) )/(p->DXM);
         }
@@ -129,7 +129,7 @@ void patchBC_2D::patchBC_pressure2D_vgrad(lexer *p, fdm2D *b, slice &eta, slice 
 void patchBC_2D::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
 
-        
-    
-} 
+
+
+}
 

@@ -64,20 +64,20 @@ VOF_PLIC::VOF_PLIC
     pupdate = new fluid_update_vof(p,a,pgc);
 
     preini = new reini_RK3(p,1);
-    
+
     ppicard = new picard_f(p);
-    
+
     ipol = new interpolation(p);
-    
+
     if(p->j_dir>0)
         Sweepdim=3;
     else
         Sweepdim=2;
 
     sSweep = -1;
-    
+
     ininorVecLS(p);
-    
+
     S_S[0][0]=0;
     S_S[0][1]=1;
     S_S[0][2]=2;
@@ -96,12 +96,12 @@ VOF_PLIC::VOF_PLIC
     S_S[5][0]=1;
     S_S[5][1]=2;
     S_S[5][1]=0;
-    
+
     S_2D[0][0]=0;
     S_2D[0][1]=2;
     S_2D[1][0]=2;
     S_2D[1][1]=0;
-    
+
     a_thres=p->F93;
     w_thres=p->F94;
     corr_thres=p->F95;
@@ -129,59 +129,59 @@ void VOF_PLIC::update
 }
 
 void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &ls)
-{	
-    
+{
+
 //********************************************************
 //Step 1
 //********************************************************
     // get vectorized face density from density_f
-    
+
     //-------------------------------------------
     // FSF
     LOOP
     {
-	a->L(i,j,k)=0.0;
+    a->L(i,j,k)=0.0;
     VoF(i,j,k)=a->vof(i,j,k);
     }
 /*
-	RKcalcL(a,p,pgc,a->u,a->v,a->w);
-	
-	LOOP
+    RKcalcL(a,p,pgc,a->u,a->v,a->w);
+
+    LOOP
     {
         vof_rk1(i,j,k) = VoF(i,j,k) + a->L(i,j,k);
-        
+
         if(vof_rk1(i,j,k)<0.0)
             vof_rk1(i,j,k)=0.0;
         if(vof_rk1(i,j,k)>1.0)
             vof_rk1(i,j,k)=1.0;
     }
-    
+
     pgc->start4(p,vof_rk1,gcval_vof);
     updatePlaneData(p,a,pgc,vof_rk1);
-	pflow->vof_relax(p,a,pgc,vof_rk1);
-	pgc->start4(p,vof_rk1,gcval_vof);
-    
+    pflow->vof_relax(p,a,pgc,vof_rk1);
+    pgc->start4(p,vof_rk1,gcval_vof);
+
     LOOP
     {
      a->vof(i,j,k) = vof_rk1(i,j,k);
      a->L(i,j,k)=0.0;
     }
-    pgc->start4(p,a->vof,gcval_vof); 
-    
+    pgc->start4(p,a->vof,gcval_vof);
+
     //!no update yet -> update after diffusion!
-    
+
     if(p->F92==1)
     {
         RK_redistance(a,p,pgc);
         pgc->start4(p,a->phi,gcval_phi);
-        
+
         p->F44=3;
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
     }
-    
+
     //-------------------------------------------
-    
+
     updatePhasemarkersCompression(p,a,pgc,vof_rk1);
     pgc->start4(p,vof_rk1,gcval_vof);
 //********************************************************
@@ -190,43 +190,43 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
 
     //-------------------------------------------
     // FSF
-    
+
    RKcalcL(a,p,pgc,a->u,a->v,a->w);
-	
-	LOOP
+
+    LOOP
     {
         vof_rk2(i,j,k) = 0.75*VoF(i,j,k) + 0.25*vof_rk1(i,j,k)+0.25*a->L(i,j,k);
-        
+
         if(vof_rk2(i,j,k)<0.0)
             vof_rk2(i,j,k)=0.0;
         if(vof_rk2(i,j,k)>1.0)
             vof_rk2(i,j,k)=1.0;
     }
-    
+
     updatePlaneData(p,a,pgc,vof_rk2);
-	pflow->vof_relax(p,a,pgc,vof_rk2);
+    pflow->vof_relax(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
-    
+
     LOOP
     {
         a->vof(i,j,k) = vof_rk2(i,j,k);
         a->L(i,j,k)=0.0;
     }
     pgc->start4(p,a->vof,gcval_vof);
-    
+
      if(p->F92==1)
     {
         RK_redistance(a,p,pgc);
         pgc->start4(p,a->phi,gcval_phi);
-        
+
         p->F44=3;
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
     }
-    
+
     updatePhasemarkersCompression(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
-    
+
 //********************************************************
 //Step 3
 //********************************************************
@@ -234,46 +234,46 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     // FSF
     */
     RKcalcL(a,p,pgc,a->u,a->v,a->w);
-	
-	LOOP
+
+    LOOP
     {
         a->vof(i,j,k) = VoF(i,j,k) + a->L(i,j,k);
-        
+
         if(a->vof(i,j,k)<0.0)
             a->vof(i,j,k)=0.0;
         if(a->vof(i,j,k)>1.0)
             a->vof(i,j,k)=1.0;
     }
-    
+
     //updatePlaneData(p,a,pgc,a->vof);
     pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
-    
+
     LOOP
         a->L(i,j,k)=0.0;
-    
+
     if(p->F92==1)
     {
         RK_redistance(a,p,pgc);
         pgc->start4(p,a->phi,gcval_phi);
-        
+
         p->F44=4;
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
     }
-    
+
     //-------------------------------------------
-        
+
     updatePhasemarkersCorrection(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     //updatePlaneData(p,a,pgc,a->vof);
-    
+
     if(p->F92==3)
         calculateSubFractions(p,a,pgc,a->vof);
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
-    
+
     LOOP
     {
         if(a->vof(i,j,k)>p->F94)
@@ -284,8 +284,8 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
             a->phi(i,j,k)=(a->vof(i,j,k)-0.5)*p->DZN[KP];
     }
     pgc->start4(p,a->phi,1);
-    
-    
+
+
     double vofchecksum;
     vofchecksum=0.0;
     LOOP

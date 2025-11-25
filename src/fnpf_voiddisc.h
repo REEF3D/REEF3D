@@ -31,24 +31,24 @@ using namespace std;
 class fnpf_voiddisc : public fnpf_convection, public increment
 {
 public:
-	fnpf_voiddisc(lexer*);
-	virtual ~fnpf_voiddisc();
+    fnpf_voiddisc(lexer*);
+    virtual ~fnpf_voiddisc();
 
     double fx(lexer*, field&, double, double) override;
-	double fy(lexer*, field&, double, double) override;
-	double fz(lexer*, field&, double, double) override;
-    
+    double fy(lexer*, field&, double, double) override;
+    double fz(lexer*, field&, double, double) override;
+
     double sx(lexer*, slice&, double) override;
-	double sy(lexer*, slice&, double) override;
+    double sy(lexer*, slice&, double) override;
     double sz(lexer*, double*) override;
 
 private:
-   
 
-	double L,grad;
-	
-	double gradx, grady, gradz;
-	double fu1,fv1,fw1,fu2,fv2,fw2;
+
+    double L,grad;
+
+    double gradx, grady, gradz;
+    double fu1,fv1,fw1,fu2,fv2,fw2;
 
 };
 

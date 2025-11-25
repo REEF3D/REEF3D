@@ -31,57 +31,57 @@ Author: Hans Bihs
 #include<sys/types.h>
 
 void flowfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
-{    
-    
+{
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile0.read((char*)&ffn, sizeof (float));
     X0[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile0.read((char*)&ffn, sizeof (float));
     Y0[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile0.read((char*)&ffn, sizeof (float));
     Z0[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile0.read((char*)&ffn, sizeof (float));
     U0[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile0.read((char*)&ffn, sizeof (float));
     V0[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile0.read((char*)&ffn, sizeof (float));
     W0[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile0.read((char*)&ffn, sizeof (float));
     P0[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
@@ -89,9 +89,9 @@ void flowfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     LS0[j][k]=double(ffn);
     }
 }
-    
+
  void flowfile_in::read1(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
-{      
+{
     // read ff1
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
@@ -99,49 +99,49 @@ void flowfile_in::read0(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     flowfile1.read((char*)&ffn, sizeof (float));
     X1[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile1.read((char*)&ffn, sizeof (float));
     Y1[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile1.read((char*)&ffn, sizeof (float));
     Z1[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile1.read((char*)&ffn, sizeof (float));
     U1[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile1.read((char*)&ffn, sizeof (float));
     V1[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile1.read((char*)&ffn, sizeof (float));
     W1[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {
     flowfile1.read((char*)&ffn, sizeof (float));
     P1[j][k]=double(ffn);
     }
-    
+
     for(j=0;j<Nj;++j)
     for(k=0;k<Nk;++k)
     {

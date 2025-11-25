@@ -41,31 +41,31 @@ using namespace std;
 class sflow_momentum_RK2_SC : public sflow_momentum, public increment
 {
 public:
-	sflow_momentum_RK2_SC(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 
+    sflow_momentum_RK2_SC(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*,
                         solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
-	virtual ~sflow_momentum_RK2_SC();
-	void start(lexer*, fdm2D*, ghostcell*) override;
+    virtual ~sflow_momentum_RK2_SC();
+    void start(lexer*, fdm2D*, ghostcell*) override;
 
     slice4 UHRK1;
-	slice4 VHRK1;
+    slice4 VHRK1;
     slice4 WHRK1;
     slice4 WLRK1;
 
 private:
-	void irhs(lexer*,fdm2D*,ghostcell*,slice&,double);
-	void jrhs(lexer*,fdm2D*,ghostcell*,slice&,double);
-	
-	int gcval_u, gcval_v,gcval_w;
-    int gcval_eta, gcval_erk;
-	double starttime;
+    void irhs(lexer*,fdm2D*,ghostcell*,slice&,double);
+    void jrhs(lexer*,fdm2D*,ghostcell*,slice&,double);
 
-	sflow_convection *pconvec;
-	sflow_diffusion *pdiff;
-	sflow_pressure *ppress;
-	solver2D *psolv;
+    int gcval_u, gcval_v,gcval_w;
+    int gcval_eta, gcval_erk;
+    double starttime;
+
+    sflow_convection *pconvec;
+    sflow_diffusion *pdiff;
+    sflow_pressure *ppress;
+    solver2D *psolv;
     solver2D *ppoissonsolv;
-	ioflow *pflow;
-	sflow_fsf *pfsf;
+    ioflow *pflow;
+    sflow_fsf *pfsf;
     sflow_roughness *prough;
     sflow_rheology *prheo;
     sflow_forcing *psfdf;

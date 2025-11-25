@@ -31,15 +31,15 @@ void hypre_struct2D::make_grid(lexer* p, ghostcell* pgc)
     // grid
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_j;
-    
+
     iupper[0] = p->knox+p->origin_i-1;
     iupper[1] = p->knoy+p->origin_j-1;
-    
+
     HYPRE_StructGridCreate(pgc->mpi_comm, 2, &grid);
     HYPRE_StructGridSetExtents(grid, ilower, iupper);
     HYPRE_StructGridAssemble(grid);
-    
-    
+
+
     // stencil
     HYPRE_StructStencilCreate(2, 5, &stencil);
 
@@ -48,11 +48,11 @@ void hypre_struct2D::make_grid(lexer* p, ghostcell* pgc)
 
     for (entry=0; entry<5; ++entry)
     HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
-    
+
     // matrix
     HYPRE_StructMatrixCreate(pgc->mpi_comm, grid, stencil, &A);
     HYPRE_StructMatrixInitialize(A);
-    
+
     // vec
     HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &rhs);
     HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &x);

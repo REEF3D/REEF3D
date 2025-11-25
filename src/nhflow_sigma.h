@@ -38,21 +38,21 @@ using namespace std;
 class nhflow_sigma : public nhflow_gradient
 {
 public:
-	nhflow_sigma(lexer*);
-	virtual ~nhflow_sigma();
-    
+    nhflow_sigma(lexer*);
+    virtual ~nhflow_sigma();
+
     void sigma_coord_ini(lexer*);
     void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
     void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&);
-    
+
     void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
 
-        
+
 private:
-    
+
     void disc_bed(lexer*, fdm_nhf*, ghostcell*);
     void disc_eta(lexer*, fdm_nhf*, ghostcell*);
-    
+
     double sig;
 };
 

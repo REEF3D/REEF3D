@@ -32,38 +32,38 @@ class wave_lib_Stokes_5th : public wave_lib, public increment
 {
 public:
     wave_lib_Stokes_5th(lexer*, ghostcell*);
-	virtual ~wave_lib_Stokes_5th();
-    
+    virtual ~wave_lib_Stokes_5th();
+
     double wave_horzvel(lexer*,double,double,double);
     double wave_horzvel_space_sin(lexer*,double,double,double,int);
     double wave_horzvel_space_cos(lexer*,double,double,double,int);
     double wave_horzvel_time_sin(lexer*,int);
     double wave_horzvel_time_cos(lexer*,int);
-    
+
     double wave_u(lexer*,double,double,double) override;
     double wave_u_space_sin(lexer*,double,double,double,int) override;
     double wave_u_space_cos(lexer*,double,double,double,int) override;
     double wave_u_time_sin(lexer*,int) override;
     double wave_u_time_cos(lexer*,int) override;
-    
+
     double wave_v(lexer*,double,double,double) override;
     double wave_v_space_sin(lexer*,double,double,double,int) override;
     double wave_v_space_cos(lexer*,double,double,double,int) override;
     double wave_v_time_sin(lexer*,int) override;
     double wave_v_time_cos(lexer*,int) override;
-    
+
     double wave_w(lexer*,double,double,double) override;
     double wave_w_space_sin(lexer*,double,double,double,int) override;
     double wave_w_space_cos(lexer*,double,double,double,int) override;
     double wave_w_time_sin(lexer*,int) override;
     double wave_w_time_cos(lexer*,int) override;
-    
+
     double wave_eta(lexer*,double,double) override;
     double wave_eta_space_sin(lexer*,double,double,int) override;
     double wave_eta_space_cos(lexer*,double,double,int) override;
     double wave_eta_time_sin(lexer*,int) override;
     double wave_eta_time_cos(lexer*,int) override;
-    
+
     double wave_fi(lexer*,double,double,double) override;
     void wave_fi_precalc_xy_ini(lexer*,int);
     void wave_fi_precalc_xy(lexer*,double,double,int);
@@ -72,33 +72,33 @@ public:
     double wave_fi_space_cos(lexer*,double,double,double,int) override;
     double wave_fi_time_sin(lexer*,int) override;
     double wave_fi_time_cos(lexer*,int) override;
-    
-    
+
+
     void wave_parameters(lexer*,ghostcell*);
     void parameters(lexer*,ghostcell*) override;
     void wave_prestep(lexer*,ghostcell*) override;
-    
+
 private:
     double a11,a22,a31,a33,a42,a44,a51,a53,a55;
     double b22,b31,b42,b44,b53,b55;
     double e2,e4;
     double singamma,cosgamma;
     double vel,eta,fi,T;
-    
+
     int wtype;
     double diff;
     double teta;
     double wk,ww,wdt,wa,wH,wL,wf,wT,wL0,k0,S0;
     double wk_temp,ww_temp,wL_temp,wT_temp,wT_test,wf_temp;
-    
-    
-    double eps,c0,c2,c4; 
+
+
+    double eps,c0,c2,c4;
     double S,C;
     double wC,ubar;
     double wS;
-    
+
     double X0;
-	
+
     const double pshift;
 };
 

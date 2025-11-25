@@ -36,15 +36,15 @@ class fluid_update_fsf : public fluid_update, increment
 {
 public:
     fluid_update_fsf(lexer*, fdm*, ghostcell*);
-	virtual ~fluid_update_fsf();
+    virtual ~fluid_update_fsf();
 
-	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
+    void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
 
 private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	int n;
-	const double dx,visc_air,visc_water,visc_body,ro_air,ro_water;
+    int n;
+    const double dx,visc_air,visc_water,visc_body,ro_air,ro_water;
     const double visc_sed, ro_sed;
     double epsi,chi;
 

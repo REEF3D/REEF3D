@@ -35,15 +35,15 @@ class sflow_flux_face_HJ : public sflow_flux, public increment
 {
 public:
 
-	sflow_flux_face_HJ (lexer *p);
-	virtual ~sflow_flux_face_HJ();
+    sflow_flux_face_HJ (lexer *p);
+    virtual ~sflow_flux_face_HJ();
 
-	void u_flux(int,slice&,double&,double&) override;
-	void v_flux(int,slice&,double&,double&) override;
+    void u_flux(int,slice&,double&,double&) override;
+    void v_flux(int,slice&,double&,double&) override;
 
 private:
     lexer *p;
-    
+
 };
 
 #endif

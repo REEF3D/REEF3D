@@ -36,28 +36,28 @@ using namespace std;
 class geo_interface : increment
 {
 public:
-	geo_interface(lexer*);
-	virtual ~geo_interface();
-    
+    geo_interface(lexer*);
+    virtual ~geo_interface();
+
     void create_geometry(lexer*);
-    
+
     void delete_geometry(lexer*);
-    
+
     // CFD
     void solid_update_cfd(lexer*,fdm*);
     void fb_update_cfd(lexer*,fdm*);
     void topo_update_cfd(lexer*,fdm*);
     void por_update_cfd(lexer*,fdm*);
 
-    
+
 private:
     double **tri;
     int trinum;
     int ID;
     int type;
     double xs,xe,ys,ye,zs,ze;
-   
-   
+
+
     int q,iin;
     float ffn;
     int offset[100];

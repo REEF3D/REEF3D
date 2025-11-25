@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 #define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e20)
 
-fnpf_fsf_update::fnpf_fsf_update(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
+fnpf_fsf_update::fnpf_fsf_update(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     gcval_u = 10;
     gcval_v = 11;
@@ -38,7 +38,7 @@ fnpf_fsf_update::fnpf_fsf_update(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 fnpf_fsf_update::~fnpf_fsf_update()
 {
-    
+
 }
 
 void fnpf_fsf_update::fsfupdate(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, slice &eta)
@@ -54,7 +54,7 @@ void fnpf_fsf_update::etaloc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // find k location for eta
     SLICELOOP4
     c->etaloc(i,j) = p->knoz;
-    
+
     pgc->gcsl_start4int(p,c->etaloc,50);
 }
 
@@ -64,7 +64,7 @@ void fnpf_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fi
     {
         Fi[FIJK]   = Fifsf(i,j);
         Fi[FIJKp1] = Fifsf(i,j);
-        Fi[FIJKp2] = Fifsf(i,j);  
+        Fi[FIJKp2] = Fifsf(i,j);
         Fi[FIJKp3] = Fifsf(i,j);
     }
 }

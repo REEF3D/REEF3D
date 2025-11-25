@@ -35,13 +35,13 @@ using namespace std;
 class patch_obj : public increment
 {
 public:
-	patch_obj(lexer*,int);
-	virtual ~patch_obj();
-    
+    patch_obj(lexer*,int);
+    virtual ~patch_obj();
+
     void patch_obj_ini(lexer *p, ghostcell *pgc);
-    
+
     void patch_obj_gcb_generate(lexer *p, ghostcell *pgc);
-    
+
     // Patch DATA 3D
     int ID;
     int IO;
@@ -50,7 +50,7 @@ public:
     int gcb_flag;
     int gcb_uflag, gcb_pressflag, gcb_phiflag;
     int counter;
-    
+
     /*
     B211=0;        // int patchBC discharge
     B212=0;        // int patchBC pressure BC
@@ -60,42 +60,42 @@ public:
     B216=0;        // int patchBC horizontal inflow angle
     B217=0;        // int patchBC inflow normals
     */
-    
+
     int Q_flag;
     double Q, Uq;
-    
+
     int velocity_flag;
     double velocity;
-    
+
     int pressure_flag;
     double pressure;
-    
+
     int waterlevel_flag;
     double waterlevel;
-    
+
     int Uio_flag;
     double Uio;
-    
+
     int velcomp_flag;
     double U,V,W;
-    
+
     int flowangle_flag;
     double alpha;
     double sinalpha,cosalpha;
-    
+
     int flownormal_flag;
     double Nx,Ny,Nz;
-    
+
     int pio_flag;
-    
+
     int hydroQ_flag;
     double **hydroQ;
     int hydroQ_count,hydroQ_iter;
-    
+
     int hydroFSF_flag;
     double **hydroFSF;
     int hydroFSF_count,hydroFSF_iter;
-    
+
     // measurement
     double Q0,U0,A0,h0;
 

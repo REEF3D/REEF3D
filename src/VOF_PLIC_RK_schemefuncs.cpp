@@ -63,16 +63,16 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
     pgc->start4(p,F_new,1);
     pgc->start4(p,Crossflux_xz,1);
     pgc->start4(p,Crossflux_zx,1);
-    
+
     for(int nSweep=0; nSweep<Sweepdim; nSweep++)
     {
         if(p->j_dir>0)
             sweep=S_S[sSweep][nSweep];
         else
             sweep=S_2D[sSweep][nSweep];
-        
+
         LOOP
-        {   
+        {
             Vn_p(i,j,k)=0.0;
             Vn_m(i,j,k)=0.0;
             Vx_p(i,j,k)=0.0;
@@ -86,7 +86,7 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
         pgc->start4(p,Vx_m,1);
         pgc->start4(p,Vz_p,1);
         pgc->start4(p,Vz_m,1);
-        
+
         LOOP
         {
             if(F_n(i,j,k)>=a_thres && F_n(i,j,k)<=w_thres)
@@ -96,7 +96,7 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
             }
             else if(F_n(i,j,k)>w_thres)
                 advectWater_forCOSMIC2D_RK(a,p,sweep,-1,uvel,vvel,wvel);
-                
+
             if(nSweep==1 && sweep==0)
             {
                 if(F_z(i,j,k)>=a_thres && F_z(i,j,k)<=w_thres)
@@ -118,27 +118,27 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
                     advectWater_forCOSMIC2D_RK(a,p,sweep,0,uvel,vvel,wvel);
             }
         }
-        
+
         pgc->start4(p,Vn_p,1);
         pgc->start4(p,Vn_m,1);
         pgc->start4(p,Vx_p,1);
         pgc->start4(p,Vx_m,1);
         pgc->start4(p,Vz_p,1);
         pgc->start4(p,Vz_m,1);
-        
+
         if(sweep==0)
         {
             LOOP
             {
                 if(Vn_p(i-1,j,k)>0.0)
                     Vn_m(i,j,k)=Vn_p(i-1,j,k);
-                    
+
                 if(Vn_m(i+1,j,k)<0.0)
                     Vn_p(i,j,k)=Vn_m(i+1,j,k);
-                    
+
                 if(Vz_p(i-1,j,k)>0.0)
                     Vz_m(i,j,k)=Vz_p(i-1,j,k);
-                    
+
                 if(Vz_m(i+1,j,k)<0.0)
                     Vz_p(i,j,k)=Vz_m(i+1,j,k);
             }
@@ -153,25 +153,25 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
             {
                 if(Vn_p(i,j,k-1)>0.0)
                     Vn_m(i,j,k)=Vn_p(i,j,k-1);
-                    
+
                 if(Vn_m(i,j,k+1)<0.0)
                     Vn_p(i,j,k)=Vn_m(i,j,k+1);
-            
+
                 if(Vx_p(i,j,k-1)>0.0)
                     Vx_m(i,j,k)=Vx_p(i,j,k-1);
-                    
+
                 if(Vx_m(i,j,k+1)<0.0)
                     Vx_p(i,j,k)=Vx_m(i,j,k+1);
-            }        
+            }
             pgc->start4(p,Vn_p,1);
             pgc->start4(p,Vn_m,1);
             pgc->start4(p,Vx_p,1);
             pgc->start4(p,Vx_m,1);
         }
-                    
+
         vof_transport_COSMIC2D_RK(a,p,nSweep,sweep,uvel,vvel,wvel);
     }
-    
+
     if(sweep==0)
     {
             LOOP
@@ -184,20 +184,20 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
                 else if(F_x(i,j,k)>w_thres)
                     advectWater_forCOSMIC2D_RK(a,p,2,0,uvel,vvel,wvel);
             }
-            
+
             pgc->start4(p,Vx_p,1);
             pgc->start4(p,Vx_m,1);
             LOOP
             {
                 if(Vx_p(i,j,k-1)>0.0)
                     Vx_m(i,j,k)=Vx_p(i,j,k-1);
-                    
+
                 if(Vx_m(i,j,k+1)<0.0)
                     Vx_p(i,j,k)=Vx_m(i,j,k+1);
             }
             pgc->start4(p,Vx_p,1);
             pgc->start4(p,Vx_m,1);
-         
+
     }
     else if(sweep==2)
     {
@@ -217,21 +217,21 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
             {
                 if(Vz_p(i-1,j,k)>0.0)
                     Vz_m(i,j,k)=Vz_p(i-1,j,k);
-                    
+
                 if(Vz_m(i+1,j,k)<0.0)
                     Vz_p(i,j,k)=Vz_m(i+1,j,k);
             }
             pgc->start4(p,Vz_p,1);
             pgc->start4(p,Vz_m,1);
-            
-           
+
+
     }
-    
+
     vof_transport_COSMIC2D_RK(a,p,2,sweep,uvel,vvel,wvel);
    // cout<<"F_n:"<<F_n(5,0,5)<<" ;F_x:"<<F_x(5,0,5)<<" ;F_z:"<<F_z(5,0,5)<<endl;
    // cout<<"Flux_x:"<<Flux_x(5,0,5)<<" ;Flux_z:"<<Flux_z(5,0,5)<<" ;Crossflux_xz:"<<Crossflux_xz(5,0,5)<<" ;Crossflux_zx:"<<Crossflux_zx(5,0,5)<<endl;
    // cout<<"F_new:"<<F_new(5,0,5)<<endl;
-    
+
     LOOP
     {
         a->L(i,j,k)=-0.5*(Flux_x(i,j,k)+Crossflux_zx(i,j,k)+Flux_z(i,j,k)+Crossflux_xz(i,j,k));

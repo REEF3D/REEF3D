@@ -28,16 +28,16 @@ Authors: Tobias Martin, Hans Bihs
 
 fsi_strips::fsi_strips(lexer *p, ghostcell *pgc)
 {
-	pgc->bcast_int(&p->FSI_count,1);
+    pgc->bcast_int(&p->FSI_count,1);
     numberStrips = p->FSI_count;
 
     pstrip.reserve(numberStrips);
     for (int num = 0; num < numberStrips; num++)
-	{
+    {
         pstrip.push_back(new fsi_strip(p,num));
     }
 }
-    
+
 fsi_strips::~fsi_strips(){}
 
 void fsi_strips::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
@@ -47,7 +47,7 @@ void fsi_strips::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
     for (int num = 0; num < numberStrips; num++)
     {
         pstrip[num]->initialize(p, a, pgc, pturb);
-        
+
         pstrip[num]->print_stl(p,a,pgc);
         pstrip[num]->print_parameter(p, a, pgc);
     }
@@ -59,7 +59,7 @@ void fsi_strips::start(lexer*,fdm*,ghostcell*){}
 void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
     starttime0=pgc->timer();
-    
+
     for (int num = 0; num < numberStrips; num++)
     {
         // Get velocity at Lagrangian points
@@ -67,17 +67,17 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
 
         // Advance strip in time
         pstrip[num]->start(p,a,pgc,alpha);     // main time consumer
-        
+
         // Get coupling velocities at Lagrangian points
         pstrip[num]->coupling_vel();
 
         // Get coupling forces at Lagrangian points
         pstrip[num]->coupling_force(p,alpha);
-        
-        // Distribute coupling forces on Eulerian grid 
+
+        // Distribute coupling forces on Eulerian grid
         pstrip[num]->distribute_forces(p,a,pgc,fx,fy,fz);
-        
-        // Update Lagrangian points 
+
+        // Update Lagrangian points
         pstrip[num]->update_points();
 
         // Store variables
@@ -90,7 +90,7 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
             pstrip[num]->print_parameter(p, a, pgc);
         }
     }
-    
+
 
     if(p->mpirank==0)
     cout<<"FSI time: "<<pgc->timer()-starttime0<<endl;

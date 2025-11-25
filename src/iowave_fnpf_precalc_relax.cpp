@@ -28,60 +28,60 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
     int dbcount;
-    
+
     p->wavetime = p->simtime;
-    
+
     // pre-calc every iteration
     // eta
     SLICELOOP4
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
+        dg = distgen(p);
+        db = distbeach(p);
+
+        // Wave Generation
         if(p->B98==2)
         {
             // Zone 1
             if(dg<1.0e20)
             eta(i,j) = wave_eta(p,pgc,xg,yg);
-		}
+        }
     }
     pgc->gcsl_start4(p,eta,50);
-    
-    
+
+
     // Fi
     count=0;
     dbcount=0;
 
-    FILOOP 
-    FJLOOP 
+    FILOOP
+    FJLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-		db = distbeach(p);
-        
-        FKLOOP 
+        db = distbeach(p);
+
+        FKLOOP
         FPCHECK
         {
-        
+
             z=p->ZSN[FIJK]-p->phimean;
 
-            
+
             // Wave Generation
             if(p->B98==2 && f_switch==1)
             {
                 // Zone 1
                 if(dg<1.0e19)
-                { 
+                {
                 //Fival[count] = wave_fi(p,pgc,xg,yg,z);
                 rb1val[count] = rb1(p,dg);
                 ++count;
                 }
             }
-            
+
             if(p->B99==1||p->B99==2)
             {
                 // Zone 2
@@ -98,26 +98,26 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     count=0;
     SLICELOOP4
     {
-		
+
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-		db = distbeach(p);
-        
+        db = distbeach(p);
+
         z = eta(i,j);
-		
-		// Wave Generation
-		if(p->B98==2 && f_switch==1)
+
+        // Wave Generation
+        if(p->B98==2 && f_switch==1)
         {
             // Zone 1
             if(dg<1.0e19)
-            { 
+            {
             Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
-            
+
             ++count;
             }
-		}
+        }
     }
-    
+
 }
-    
+

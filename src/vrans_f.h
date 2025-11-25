@@ -32,40 +32,40 @@ using namespace std;
 class vrans_f : public vrans, public increment
 {
 public:
-	vrans_f(lexer*, ghostcell*);
-	virtual ~vrans_f();
+    vrans_f(lexer*, ghostcell*);
+    virtual ~vrans_f();
 
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override;	
-	void start(lexer*, fdm*, ghostcell*, int) override {};
-    void sed_update(lexer*, fdm*, ghostcell*) override;	
+    void initialize_cfd(lexer*, fdm*, ghostcell*) override;
+    void start(lexer*, fdm*, ghostcell*, int) override {};
+    void sed_update(lexer*, fdm*, ghostcell*) override;
     void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&) override;
-	
-	void u_source(lexer*, fdm*) override;
-	void v_source(lexer*, fdm*) override;
-	void w_source(lexer*, fdm*) override;
-    
+
+    void u_source(lexer*, fdm*) override;
+    void v_source(lexer*, fdm*) override;
+    void w_source(lexer*, fdm*) override;
+
     void ke_source(lexer*, fdm*, field&) override;
     void kw_source(lexer*, fdm*, field&) override;
     void eps_source(lexer*, fdm*, field&, field&) override;
     void omega_source(lexer*, fdm*, field&, field&) override;
-    
+
     void eddyv_func(lexer*, fdm*) override;
-    
+
     void veltimesave(lexer*,fdm*,ghostcell*) override;
-	
+
 private:
-	
-	field4a alpha,beta;
-	
-	double Apor(double,double,double,double);
-	double Bpor(double,double,double);
-	
-	int count;
-    
+
+    field4a alpha,beta;
+
+    double Apor(double,double,double,double);
+    double Bpor(double,double,double);
+
+    int count;
+
     double Aporval,Bporval,porval,partval,alphaval,betaval,viscval;
-	double val;
-	double porousterm;
-	const double Cval;
+    double val;
+    double porousterm;
+    const double Cval;
 };
 
 #endif

@@ -34,13 +34,13 @@ void iowave::wavegen_precalc_decomp_space_dirichlet_fnpf(lexer *p, ghostcell *pg
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
-    
+
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
+        dg = distgen(p);
+        db = distbeach(p);
+
+        // Wave Generation
         if(p->B98==3 && h_switch==1)
         {
             // Zone 1
@@ -50,25 +50,25 @@ void iowave::wavegen_precalc_decomp_space_dirichlet_fnpf(lexer *p, ghostcell *pg
                 etaval_S_cos[count][qn] = wave_eta_space_cos(p,pgc,xg,yg,qn);
                 }
             ++count;
-		}
+        }
     }
     pgc->gcsl_start4(p,eta,50);
-    
+
     // Fifsf
     count=0;
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
-    
+
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-        
+        dg = distgen(p);
+        db = distbeach(p);
+
         z = eta(i,j);
-		
-		// Wave Generation
+
+        // Wave Generation
         if(p->B98==3 && h_switch==1)
         {
             // Zone 1
@@ -81,22 +81,22 @@ void iowave::wavegen_precalc_decomp_space_dirichlet_fnpf(lexer *p, ghostcell *pg
                 }
             ++count;
             }
-		}
+        }
     }
-    
-    
+
+
     // Uin
         count=0;
-		for(n=0;n<p->gcslin_count;n++)
+        for(n=0;n<p->gcslin_count;n++)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
-        
+
         xg=xgen(p);
         yg=ygen(p);
         x1=xgen1(p);
         y2=ygen2(p);
-        
+
             FKLOOP
             FPCHECK
             {

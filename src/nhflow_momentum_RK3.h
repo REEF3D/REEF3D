@@ -35,27 +35,27 @@ using namespace std;
 class nhflow_momentum_RK3 : public nhflow_momentum_func
 {
 public:
-	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans*, nhflow_forcing*);
-	virtual ~nhflow_momentum_RK3();
-    
-	void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*) override;
+    nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans*, nhflow_forcing*);
+    virtual ~nhflow_momentum_RK3();
+
+    void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*) override;
 
     double *UHDIFF;
     double *VHDIFF;
     double *WHDIFF;
-    
+
     double *UHRK1,*UHRK2;
     double *VHRK1,*VHRK2;
     double *WHRK1,*WHRK2;
-    
+
     slice4 WLRK1,WLRK2;
 
 private:
-	
-	int gcval_u, gcval_v, gcval_w;
+
+    int gcval_u, gcval_v, gcval_w;
     int gcval_uh, gcval_vh, gcval_wh;
-	double starttime;
-    
+    double starttime;
+
     sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;

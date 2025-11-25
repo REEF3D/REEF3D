@@ -46,13 +46,13 @@ public:
     // cfd
     virtual void gcio_update(lexer*,fdm*,ghostcell*)=0;
     virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
-	virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*)=0;
-	virtual void discharge(lexer*,fdm*,ghostcell*)=0;
-	virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;
-	virtual void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;
-	virtual void fsfinflow(lexer*,fdm*,ghostcell*)=0;
-	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&)=0;
-	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&)=0;
+    virtual void inflow_walldist(lexer*,fdm*,ghostcell*,convection*,reini*,ioflow*)=0;
+    virtual void discharge(lexer*,fdm*,ghostcell*)=0;
+    virtual void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;
+    virtual void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&)=0;
+    virtual void fsfinflow(lexer*,fdm*,ghostcell*)=0;
+    virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&)=0;
+    virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void iogcb_update(lexer*,fdm*,ghostcell*)=0;
     virtual void isource(lexer*,fdm*,ghostcell*,vrans*)=0;
     virtual void jsource(lexer*,fdm*,ghostcell*,vrans*)=0;
@@ -60,17 +60,17 @@ public:
     virtual void pressure_io(lexer*,fdm*,ghostcell*)=0;
     virtual void turbulence_io(lexer*,fdm*,ghostcell*)=0;
     virtual void veltimesave(lexer*,fdm*,ghostcell*,vrans*)=0;
-    
+
     virtual void flowfile(lexer*,fdm*,ghostcell*,turbulence*)=0;
-    
-    
+
+
     virtual void wavegen_precalc(lexer*,ghostcell*)=0;
     virtual void wavegen_precalc_ini(lexer*,ghostcell*)=0;
     virtual void u_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void v_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void w_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void p_relax(lexer*,fdm*,ghostcell*,field&)=0;
-	virtual void phi_relax(lexer*,ghostcell*,field&)=0;
+    virtual void phi_relax(lexer*,ghostcell*,field&)=0;
     virtual void vof_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void turb_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void U_relax(lexer*,ghostcell*,double*,double*)=0;
@@ -85,36 +85,36 @@ public:
     virtual void eta_relax(lexer*,ghostcell*,slice&)=0;
     virtual void um_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
     virtual void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
-	virtual void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
+    virtual void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
     virtual void ws_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
-	virtual void pm_relax(lexer*,ghostcell*,slice&)=0;
-    
+    virtual void pm_relax(lexer*,ghostcell*,slice&)=0;
+
     virtual void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*)=0;
     virtual void wavegen_2D_precalc_ini(lexer*,ghostcell*)=0;
-    
+
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&)=0;
     virtual void Qin2D(lexer*,fdm2D*,ghostcell*)=0;
-	virtual void Qout2D(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void Qout2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&)=0;
-	virtual void rkinflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&)=0;
-	virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void rkinflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&)=0;
+    virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
-	virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*)=0;
-    
+    virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*)=0;
+
     virtual void ini(lexer*,fdm*,ghostcell*)=0;
-    
+
     virtual void waterlevel_update(lexer*,fdm*,ghostcell*)=0;
-    
-    
+
+
     // fnpf
     virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*)=0;
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*)=0;
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&)=0;
     virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
-    
+
     virtual void ini_ptf(lexer*,fdm*,ghostcell*)=0;
-    
+
     // nhflow
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
@@ -136,11 +136,11 @@ public:
     virtual double wave_xvel(lexer*,ghostcell*,double,double,double)=0;
     virtual double wave_yvel(lexer*,ghostcell*,double,double,double)=0;
     virtual double wave_zvel(lexer*,ghostcell*,double,double,double)=0;
-	
-	virtual int iozonecheck(lexer*,fdm*)=0;
-    
+
+    virtual int iozonecheck(lexer*,fdm*)=0;
+
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*)=0;
-	
+
 };
 
 #endif

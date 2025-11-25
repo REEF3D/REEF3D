@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"patchBC_interface.h"
 
-nhflow_signal_speed::nhflow_signal_speed(lexer* p) 
+nhflow_signal_speed::nhflow_signal_speed(lexer* p)
 {
 
 }
@@ -35,8 +35,8 @@ nhflow_signal_speed::~nhflow_signal_speed()
 {
 }
 
-void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf *d, 
-                                        double *Us, double *Un, double *Ve, double *Vw, 
+void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf *d,
+                                        double *Us, double *Un, double *Ve, double *Vw,
                                         slice &Ds,slice &Dn, slice &De, slice &Dw)
 {
     // signal speed x-dir
@@ -44,14 +44,14 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     {
     USx = 0.5*(Us[IJK]+Un[IJK]) + sqrt(9.81*Ds(i,j)) - sqrt(9.81*Dn(i,j));
     DSx = 0.5*(sqrt(9.81*Ds(i,j)) + sqrt(9.81*Dn(i,j))) + 0.25*(Us[IJK] - Un[IJK]);
-    
+
     if((p->wet[IJ]==1 && p->wet[Ip1J]==1) && (p->DF[IJK]==1 && p->DF[Ip1JK]==1))
     {
     d->Ss[IJK] = MIN(Us[IJK] - sqrt(9.81*Ds(i,j)), USx - DSx);
     d->Sn[IJK] = MAX(Un[IJK] + sqrt(9.81*Dn(i,j)), USx + DSx);
     d->SSx[IJK] = USx;
     }
-    
+
     else
     if((p->wet[IJ]==0 && p->wet[Ip1J]==1) || (p->DF[IJK]<0 && p->DF[Ip1JK]==1))  // left dry
     {
@@ -59,7 +59,7 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     d->Sn[IJK] = Un[IJK] + sqrt(9.81*Dn(i,j));
     d->SSx[IJK] = d->Ss[IJK];
     }
-    
+
     else
     if((p->wet[IJ]==1 && p->wet[Ip1J]==0) || (p->DF[IJK]==1 && p->DF[Ip1JK]<0)) // right dry
     {
@@ -67,7 +67,7 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     d->Sn[IJK] = Us[IJK] + 2.0*sqrt(9.81*Ds(i,j));
     d->SSx[IJK] = d->Sn[IJK];
     }
-    
+
     else
     if((p->wet[IJ]==0 && p->wet[Ip1J]==0)  || (p->DF[IJK]<0 && p->DF[Ip1JK]<0))
     {
@@ -76,14 +76,14 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     d->SSx[IJK] = 0.0;
     }
     }
-    
+
     // signal speed y-dir
     if(p->j_dir==1)
     VLOOP
     {
     USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De(i,j)) - sqrt(9.81*Dw(i,j));
     DSy = 0.5*(sqrt(9.81*De(i,j)) + sqrt(9.81*Dw(i,j))) + 0.25*(Ve[IJK] - Vw[IJK]);
-    
+
     if((p->wet[IJ]==1 && p->wet[IJp1]==1) && (p->DF[IJK]==1 && p->DF[IJp1K]==1))
     {
     d->Se[IJK] = MIN(Ve[IJK] - sqrt(9.81*De(i,j)), USy - DSy);
@@ -98,7 +98,7 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     d->Sw[IJK] = Vw[IJK] + sqrt(9.81*Dw(i,j));
     d->SSy[IJK] = d->Se[IJK];
     }
-    
+
     else
     if((p->wet[IJ]==1 && p->wet[IJp1]==0) || (p->DF[IJK]==1 && p->DF[IJp1K]<0))
     {
@@ -106,7 +106,7 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     d->Sw[IJK] = Ve[IJK] + 2.0*sqrt(9.81*De(i,j));
     d->SSy[IJK] = d->Sw[IJK];
     }
-    
+
     else
     if((p->wet[IJ]==0 && p->wet[IJp1]==0) || (p->DF[IJK]<0 && p->DF[IJp1K]<0))
     {
@@ -114,6 +114,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     d->Sw[IJK] = 0.0;
     d->SSy[IJK] = 0.0;
     }
-    
+
     }
 }

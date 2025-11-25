@@ -29,12 +29,12 @@ int position::ihalf(int a, int b)
     double d,diff;
 
     c = b-a;
-    
+
     d = double(c)*0.5;
 
     c = int(d) + a;
-    
 
-    
+
+
     return c;
 }

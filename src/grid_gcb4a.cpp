@@ -27,17 +27,17 @@ Author: Hans Bihs
 void grid::fillgcb4a(lexer *p)
 {
     int q;
-    
+
     p->Iresize(p->gcb4a,p->gcb4a_count, p->gcb4_count, 6, 6);
-    p->Dresize(p->gcd4a,p->gcb4a_count, p->gcb4_count); 
-    
+    p->Dresize(p->gcd4a,p->gcb4a_count, p->gcb4_count);
+
     p->gcb4a_count=p->gcb4_count;
 
     QGCB4
-	{
-	for(n=0;n<5;++n)
-	p->gcb4a[q][n]=p->gcb4[q][n];
-    
+    {
+    for(n=0;n<5;++n)
+    p->gcb4a[q][n]=p->gcb4[q][n];
+
     p->gcd4a[q]=p->gcd4[q];
-	}
+    }
 }

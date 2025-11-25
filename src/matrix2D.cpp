@@ -25,20 +25,20 @@ Author: Hans Bihs
 
 matrix2D::matrix2D(lexer *pp)
 {
-	pp->Darray(n,pp->vec2Dlength);
-	pp->Darray(s,pp->vec2Dlength);
-	pp->Darray(e,pp->vec2Dlength);
-	pp->Darray(w,pp->vec2Dlength);
-	pp->Darray(p,pp->vec2Dlength);
+    pp->Darray(n,pp->vec2Dlength);
+    pp->Darray(s,pp->vec2Dlength);
+    pp->Darray(e,pp->vec2Dlength);
+    pp->Darray(w,pp->vec2Dlength);
+    pp->Darray(p,pp->vec2Dlength);
 }
 
 matrix2D::~matrix2D()
 {
     delete [] n;
-	delete [] s;
-	delete [] w;
-	delete [] e;
-	delete [] p;
+    delete [] s;
+    delete [] w;
+    delete [] e;
+    delete [] p;
 }
 
 void matrix2D::resize(lexer *pp, int size_old, int size_new)

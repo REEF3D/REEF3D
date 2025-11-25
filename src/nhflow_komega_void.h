@@ -32,34 +32,34 @@ class nhflow_komega_func_void : public nhflow_turbulence, public increment
 {
 
 public:
-	nhflow_komega_func_void(lexer *,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_komega_func_void();
+    nhflow_komega_func_void(lexer *,fdm_nhf*,ghostcell*);
+    virtual ~nhflow_komega_func_void();
 
-	void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*) override;
-	void ktimesave(lexer*, fdm_nhf*, ghostcell*) override;
-	void etimesave(lexer*, fdm_nhf*, ghostcell*) override;
+    void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*) override;
+    void ktimesave(lexer*, fdm_nhf*, ghostcell*) override;
+    void etimesave(lexer*, fdm_nhf*, ghostcell*) override;
 
-	void isource(lexer*, fdm_nhf*) override;
-	void jsource(lexer*, fdm_nhf*) override;
-	void ksource(lexer*, fdm_nhf*) override;
+    void isource(lexer*, fdm_nhf*) override;
+    void jsource(lexer*, fdm_nhf*) override;
+    void ksource(lexer*, fdm_nhf*) override;
 
     void print_2D(lexer*, fdm_nhf*, ghostcell*,ofstream&,int) override {};
-	void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&) override;
+    void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&) override;
     void ini(lexer*, fdm_nhf*, ghostcell*) override;
     double kinval(int,int,int) override;
     double epsval(int,int,int) override;
-	double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
     double ccipol_a_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
     void kinget(int,int,int,double) override;
     void epsget(int,int,int,double) override;
-	void gcupdate(lexer*, fdm_nhf*, ghostcell*) override;
-	
+    void gcupdate(lexer*, fdm_nhf*, ghostcell*) override;
+
     void name_ParaView_parallel(lexer*, ofstream&) override;
     void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
     void offset_ParaView(lexer*, int*, int &) override;
-    
+
     void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&) override {};
     void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &) override {};
     void offset_ParaView_2D(lexer*, int*, int &) override {};

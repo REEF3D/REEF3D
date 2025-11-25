@@ -33,34 +33,34 @@ void iowave::ini(lexer *p, fdm* a, ghostcell* pgc)
     {
     wavegen_precalc_ini(p,pgc);
     wavegen_precalc_relax_func(p,pgc);
-    
+
     if(p->B89==1 && p->B98==2)
     wavegen_precalc_space(p,pgc);
-    
+
     if(p->B89==1 && p->B98>=3)
     wavegen_precalc_space_dirichlet(p,pgc);
-    
+
     wavegen_precalc(p,pgc);
     u_relax(p,a,pgc,a->u);
-	v_relax(p,a,pgc,a->v);
-	w_relax(p,a,pgc,a->w);
+    v_relax(p,a,pgc,a->v);
+    w_relax(p,a,pgc,a->w);
     }
-    
+
     if(p->I30==1)
-	full_initialize(p,a,pgc);
+    full_initialize(p,a,pgc);
 }
 
 void iowave::ini_ptf(lexer *p, fdm *a, ghostcell *pgc)
 {
     wavegen_precalc_ini(p,pgc);
     wavegen_precalc_relax_func_nhflow(p,pgc);
-    
+
     //if(p->B89==1 && p->B98==2)
     //wavegen_precalc_decomp_space_fnpf(p,pgc);
 
     wavegen_precalc(p,pgc);
-    
+
     if(p->I30==1)
-	full_initialize_ptf(p,a,pgc);
+    full_initialize_ptf(p,a,pgc);
 }
 

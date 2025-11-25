@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 fnpf_coastline::fnpf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
 {
-    time_preproc(p); 
+    time_preproc(p);
 }
 
 fnpf_coastline::~fnpf_coastline()
@@ -44,10 +44,10 @@ void fnpf_coastline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &coastli
         {
 
             coastline(i,j)=1.0;
-            
+
             if(p->wd - c->bed(i,j) < c->wd_criterion)
             coastline(i,j)=-1.0;
-   
+
         }
         reini(p,pgc,coastline);
     }

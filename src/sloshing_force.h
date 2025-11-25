@@ -38,15 +38,15 @@ class sloshing_force : public increment
 {
 public:
     sloshing_force(lexer*,fdm*,ghostcell*);
-	virtual ~sloshing_force();
+    virtual ~sloshing_force();
 
-	void start(lexer*, fdm*, ghostcell*);
+    void start(lexer*, fdm*, ghostcell*);
     void force(lexer*, fdm*, ghostcell*);
 
 
 private:
     void write(lexer*, fdm*, ghostcell*);
-    
+
     double Fx_l,Fx_r,Fz,M;
 
     ofstream result;

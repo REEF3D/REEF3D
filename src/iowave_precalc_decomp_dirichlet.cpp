@@ -26,85 +26,85 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_decomp_dirichlet(lexer *p, ghostcell *pgc)
 {
-    
+
 double fsfloc;
 int qn;
 
         count=0;
-		for(n=0;n<p->gcin_count;n++)
-		{
-		i=p->gcin[n][0];
-		j=p->gcin[n][1];
-        
+        for(n=0;n<p->gcin_count;n++)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+
         x=xgen(p);
         y=ygen(p);
         x1=xgen1(p);
         y2=ygen2(p);
-        
+
 
     // ETA
         eta(i,j) = 0.0;
-            
+
             for(qn=0;qn<wave_comp;++qn)
             eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-            
+
         ++count;
         }
-    
+
         count=0;
-		for(n=0;n<p->gcin_count;n++)
-		{
-		i=p->gcin[n][0];
-		j=p->gcin[n][1];
-		k=p->gcin[n][2];
-        
+        for(n=0;n<p->gcin_count;n++)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+
         x=xgen(p);
         y=ygen(p);
         x1=xgen1(p);
         y2=ygen2(p);
-        
 
-            
+
+
         zloc3 = p->pos3_z();
         zloc4 = p->pos_z();
-        
+
         fsfloc = eta(i,j) + p->phimean;
-    
+
         // Z3
         if(zloc3<=fsfloc)
         {
         if(zloc3<=p->phimean)
         z3 = -(fabs(p->phimean-zloc3));
-		
-		if(zloc3>p->phimean)
+
+        if(zloc3>p->phimean)
         z3 = (fabs(p->phimean-zloc3));
         }
-        
+
         if(zloc3>fsfloc)
         z3 = eta(i,j);
-        
+
         // Z
         if(zloc4<=fsfloc)
         {
         if(zloc4<=p->phimean)
         z=-(fabs(p->phimean-zloc4));
-		
-		if(zloc4>p->phimean)
+
+        if(zloc4>p->phimean)
         z=(fabs(p->phimean-zloc4));
         }
-        
+
         if(zloc4>fsfloc)
         z = eta(i,j);
-        
+
         uval[count] = 0.0;
         vval[count] = 0.0;
         wval[count] = 0.0;
-        
+
     // U
         if(zloc4<=fsfloc+epsi)
         for(qn=0;qn<wave_comp;++qn)
         uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
-            
+
         if(zloc4>fsfloc+epsi)
         uval[count] = 0.0;
 
@@ -112,21 +112,21 @@ int qn;
         if(zloc4<=fsfloc+epsi)
         for(qn=0;qn<wave_comp;++qn)
             vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
-            
+
         if(zloc4>fsfloc+epsi)
         vval[count] = 0.0;
-        
+
     // W
         if(zloc4<=fsfloc+epsi)
         for(qn=0;qn<wave_comp;++qn)
         wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
-            
+
         if(zloc4>fsfloc+epsi)
         wval[count] = 0.0;
-        
+
     // LS
         lsval[count] = eta(i,j) + p->phimean - p->pos_z();
-        
+
     // VOF
         if(p->F80==4)
         {

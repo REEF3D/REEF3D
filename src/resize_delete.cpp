@@ -99,7 +99,7 @@ void resize_class::del_Darray(double****& field, int numi, int numj, int numk, i
 
 
 void resize_class::del_Iarray(int*& field, int numi)
-{    
+{
     if(numi > 0)
     {
         delete [] field;
@@ -110,11 +110,11 @@ void resize_class::del_Iarray(int*& field, int numi)
 void resize_class::del_Iarray(int**& field, int numi, int numj)
 {
     int i;
-    
+
     if(numj>0)
     for(i=0;i<numi;++i)
     delete [] field[i];
-    
+
     if(numi>0)
     delete [] field;
 }

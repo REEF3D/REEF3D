@@ -31,9 +31,9 @@ class solver_void : public solver
 {
 public:
 
-	solver_void(lexer*,fdm*,ghostcell*);
-	virtual ~solver_void();
-	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
+    solver_void(lexer*,fdm*,ghostcell*);
+    virtual ~solver_void();
+    void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
     void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
     void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
     void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;

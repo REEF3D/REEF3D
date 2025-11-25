@@ -33,11 +33,11 @@ class sixdof;
 
 using namespace std;
 
-class sflow_momentum 
+class sflow_momentum
 {
 public:
 
-	virtual void start(lexer*, fdm2D*, ghostcell*)=0;
+    virtual void start(lexer*, fdm2D*, ghostcell*)=0;
 };
 
 #endif

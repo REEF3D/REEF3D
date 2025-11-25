@@ -27,15 +27,15 @@ Author: Hans Bihs
 void iowave::nhflow_wavegen_precalc_decomp_time(lexer *p, ghostcell *pgc)
 {
     int qn;
-    
+
     p->wavetime = p->simtime;
-    
+
     for(qn=0;qn<wave_comp;++qn)
     {
     etaval_T_sin[qn] = wave_eta_time_sin(p,pgc,qn);
     etaval_T_cos[qn] = wave_eta_time_cos(p,pgc,qn);
     }
-    
+
     for(qn=0;qn<wave_comp;++qn)
     {
     uval_T_sin[qn] = wave_u_time_sin(p,pgc,qn);

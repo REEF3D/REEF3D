@@ -35,7 +35,7 @@ void sediment_f::log_ini(lexer *p)
     sedlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
     sedlogout<<"#iteration \t #simtime  \t #dtsed \t| #sedtime \t #sediter \t #slidecells \t| #bedmin \t #bedmax \t|"<<endl;
     }
-    
+
 }
 
 void sediment_f::sedimentlog(lexer *p)
@@ -52,5 +52,5 @@ void sediment_f::sedimentlog(lexer *p)
     sedlogout<<setprecision(4)<<p->bedmin<<" \t ";
     sedlogout<<setprecision(4)<<p->bedmax<<" \t "<<endl;
     }
-    
+
 }

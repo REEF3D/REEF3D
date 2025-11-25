@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 
 density_pst::density_pst(lexer* p)
-{ 
+{
 }
 
 density_pst::~density_pst()
@@ -44,10 +44,10 @@ double density_pst::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 
     if(fabs(phival)<=p->psi)
     H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
-    
+
     roval = p->W1*H + p->W3*(1.0-H);
-    
-    
+
+
     // ----
     topoval = 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc));
 
@@ -59,10 +59,10 @@ double density_pst::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 
     if(fabs(topoval)<=p->psi)
     H=0.5*(1.0 + topoval/p->psi + (1.0/PI)*sin((PI*topoval)/p->psi));
-    
+
     roval = roval*H + p->S22*(1.0-H);
 
-	return roval;	
+    return roval;
 }
 
 

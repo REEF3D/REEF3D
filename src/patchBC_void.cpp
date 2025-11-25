@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"patch_obj.h"
 
-patchBC_void::patchBC_void(lexer *p) 
+patchBC_void::patchBC_void(lexer *p)
 {
     obj_count=0;
 }
@@ -37,27 +37,27 @@ patchBC_void::~patchBC_void()
 
 void patchBC_void::patchBC_ini(lexer *p, ghostcell *pgc)
 {
-} 
+}
 
 void patchBC_void::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-} 
+}
 
 void patchBC_void::patchBC_rkioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-} 
+}
 
 void patchBC_void::patchBC_discharge(lexer *p, fdm *a, ghostcell *pgc)
 {
-} 
+}
 
 void patchBC_void::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
-} 
+}
 
 void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
-} 
+}
 
 void patchBC_void::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
 {

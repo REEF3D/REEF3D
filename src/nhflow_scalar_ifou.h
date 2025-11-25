@@ -33,20 +33,20 @@ using namespace std;
 class nhflow_scalar_ifou : public nhflow_scalar_convection, public increment
 {
 public:
-	nhflow_scalar_ifou (lexer*);
-	virtual ~nhflow_scalar_ifou();
+    nhflow_scalar_ifou (lexer*);
+    virtual ~nhflow_scalar_ifou();
 
-	void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override;
+    void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override;
 
 private:
 
-	int count;
-    
+    int count;
+
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
     double udir,vdir,wdir;
-    
+
     nhflow_scalar_advec *padvec;
-    
+
 };
 
 #endif

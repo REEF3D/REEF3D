@@ -38,9 +38,9 @@ class benchmark_void : public benchmark
 
 public:
     benchmark_void();
-	virtual ~benchmark_void();
+    virtual ~benchmark_void();
 
-	void start(lexer*, fdm*, ghostcell*, convection*) override;
+    void start(lexer*, fdm*, ghostcell*, convection*) override;
 
 
 };

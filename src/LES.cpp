@@ -34,20 +34,20 @@ LES::~LES()
 
 void LES::isource(lexer* p, fdm* a)
 {
-	ULOOP
-	a->F(i,j,k)=0.0;
+    ULOOP
+    a->F(i,j,k)=0.0;
 }
 
 void LES::jsource(lexer* p, fdm* a)
 {
-	VLOOP
-	a->G(i,j,k)=0.0;
+    VLOOP
+    a->G(i,j,k)=0.0;
 }
 
 void LES::ksource(lexer* p, fdm* a)
 {
-	WLOOP
-	a->H(i,j,k)=0.0;
+    WLOOP
+    a->H(i,j,k)=0.0;
 }
 
 

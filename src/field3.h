@@ -32,28 +32,28 @@ class field3 : public field, public increment
 {
 public:
 
-	field3 (lexer*);
-	virtual ~field3();
+    field3 (lexer*);
+    virtual ~field3();
 
     double& operator()(int, int , int) override;
-	double& operator[](int) override;
+    double& operator[](int) override;
     void resize(lexer*) override;
     void dealloc(lexer*) override;
 
-	int di,dj,dk;
-	int imin,imax,jmax,jmin,kmin,kmax;
+    int di,dj,dk;
+    int imin,imax,jmax,jmin,kmin,kmax;
 
 private:
 
-	void fieldalloc(lexer *);
-	void fieldlength(lexer *);
+    void fieldalloc(lexer *);
+    void fieldlength(lexer *);
 
-	int iter;
-	int feldsize;
-	
-	int rank, gcextra;
-	
-	lexer *pp;
+    int iter;
+    int feldsize;
+
+    int rank, gcextra;
+
+    lexer *pp;
 };
 
 #endif

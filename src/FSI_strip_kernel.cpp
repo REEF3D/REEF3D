@@ -25,7 +25,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
-    
+
 double fsi_strip::kernel_roma(const double& dist)
 {
     double D = 0.0;
@@ -35,9 +35,9 @@ double fsi_strip::kernel_roma(const double& dist)
         D = 1.0/3.0*(1.0 + sqrt(-3*dist*dist + 1));
     }
     else if (fabs(dist) <= 1.5)
-    {    
+    {
         D = 1.0/6.0*(5.0 - 3.0*fabs(dist) - sqrt(-3*(1 - fabs(dist))*(1 - fabs(dist)) + 1));
     }
-    
+
     return D;
 }

@@ -36,20 +36,20 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     {
         i=p->gcslout[n][0];
         j=p->gcslout[n][1];
-        
+
         p->phiout+=d->eta(i,j);
-        
+
         ++count;
     }
-    
+
     p->phiout=pgc->globalsum(p->phiout);
     count=pgc->globalisum(count);
-    
+
     p->phiout=p->phiout/(int(count)>0?int(count):1.0e20);
-    
+
     p->phiout += p->phimean;
-    
-    
+
+
     // -------------------------------------
     // Find Hi
     double eta_in;
@@ -67,11 +67,11 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
 
     count=pgc->globalisum(count);
     zval=pgc->globalsum(zval);
-    
+
     eta_in=zval/double(count);
-    
+
     p->Hi = p->wd+eta_in;
-    
+
     // -------------------------------------
     // set fsf  inflow
     for(n=0;n<p->gcslin_count;n++)
@@ -85,60 +85,60 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
         WL(i-1,j) = p->Hi - d->bed(i,j);
         WL(i-2,j) = p->Hi - d->bed(i,j);
         WL(i-3,j) = p->Hi - d->bed(i,j);
-        
+
         //cout<<"WL(i-1,j): "<<WL(i-1,j)<<endl;
-        
+
         d->eta(i-1,j) = WL(i-1,j) - d->depth(i,j);
         d->eta(i-2,j) = WL(i-2,j) - d->depth(i,j);
         d->eta(i-3,j) = WL(i-3,j) - d->depth(i,j);
         }
     }
-    
+
     // -------------------------------------
     // set fsf  outflow
     double wsfout=p->phimean;
     double f=1.0;
-    
+
     if(p->F62>1.0e-20)
     {
         if(p->F64==0)
         wsfout=p->F62;
-        
+
         if(p->F64>0)
         {
         if(p->count<p->F64)
         f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
-        
+
         if(p->count>=p->F64)
         f = 1.0;
-        
+
         wsfout = f*p->F62 + (1.0-f)*p->F60;
         //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
         }
     }
-    
+
     //cout<<"wsfout: "<<wsfout<<" phiout: "<< p->phiout<<endl;
-    
+
     for(n=0;n<p->gcslout_count;n++)
     {
         i=p->gcslout[n][0];
         j=p->gcslout[n][1];
-        
+
         if(p->F50==2 || p->F50==4)
         if(p->wet[IJ]==1)
         {
-        
+
     //cout<<"wsfout: "<<wsfout<<" phiout: "<< wsfout-d->bed(i,j)<<endl;
         WL(i,j)   = wsfout - d->bed(i,j);
         WL(i+1,j) = wsfout - d->bed(i,j);
         WL(i+2,j) = wsfout - d->bed(i,j);
         WL(i+3,j) = wsfout - d->bed(i,j);
-        
+
         d->eta(i,j)   = WL(i,j)   - d->depth(i,j);
         d->eta(i+1,j) = WL(i+1,j) - d->depth(i,j);
         d->eta(i+2,j) = WL(i+2,j) - d->depth(i,j);
         d->eta(i+3,j) = WL(i+3,j) - d->depth(i,j);
         }
-        
+
     }
 }

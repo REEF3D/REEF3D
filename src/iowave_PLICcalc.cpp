@@ -27,7 +27,7 @@ Author: Fabian Knoblauch
 #include"ghostcell.h"
 
 double iowave::V0Calc_PLIC(lexer* p, fdm* a, double n_a, double n_b, double n_c, double r0)
-{   
+{
     double d_a, d_b, d_c;
     d_a=p->DXN[IP];
     d_b=p->DYN[JP];
@@ -40,7 +40,7 @@ double iowave::V0Calc_PLIC(lexer* p, fdm* a, double n_a, double n_b, double n_c,
     n_a=n_a/vecsum;
     n_b=n_b/vecsum;
     n_c=n_c/vecsum;
-    
+
     if(n_b*d_b>=n_a*d_a)
     {
         n_1=n_a;
@@ -55,7 +55,7 @@ double iowave::V0Calc_PLIC(lexer* p, fdm* a, double n_a, double n_b, double n_c,
         n_2=n_a;
         d_2=d_a;
     }
-    
+
     if(n_c*d_c>=n_2*d_2)
     {
         n_3=n_c;
@@ -77,8 +77,8 @@ double iowave::V0Calc_PLIC(lexer* p, fdm* a, double n_a, double n_b, double n_c,
         n_2=n_c;
         d_2=d_c;
     }
-    
-    
+
+
     r=0.5*(n_1*d_1+n_2*d_2+n_3*d_3)-fabs(r0);
     if(r<=0.0) //case 0
     {
@@ -104,7 +104,7 @@ double iowave::V0Calc_PLIC(lexer* p, fdm* a, double n_a, double n_b, double n_c,
                 -fdim(r,n_3*d_3)*fdim(r,n_3*d_3)*fdim(r,n_3*d_3)    )
             /(6*n_1*d_1*n_2*d_2*n_3*d_3);
     }
-    
+
     if(r0>=0)
     {
         V0=(0.5-V)+0.5;
@@ -113,7 +113,7 @@ double iowave::V0Calc_PLIC(lexer* p, fdm* a, double n_a, double n_b, double n_c,
     {
         V0=-(0.5-V)+0.5;
     }
-    
+
     if(V0<0.0)
     {
         cout<<"neg VO output"<<endl;
@@ -124,6 +124,6 @@ double iowave::V0Calc_PLIC(lexer* p, fdm* a, double n_a, double n_b, double n_c,
         cout<<"too hight V0 output"<<endl;
         V0=1.0;
     }
-        
+
     return V0;
 }

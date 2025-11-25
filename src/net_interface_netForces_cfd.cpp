@@ -31,18 +31,18 @@ Author: Hans Bihs
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
 
-void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat, 
+void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat,
                             vector<double> Xne, vector<double> Yne, vector<double> Zne, vector<double> Kne, vector<double> Mne, vector<double> Nne)
 {
     NETLOOP
     {
         pnet[n]->start_cfd(p, a, pgc, alpha, quatRotMat);
-        
+
         dlm_cfd(p, a, pgc, n);
-        
+
         // Forces on rigid body
         pnet[n]->netForces(p,Xne[n],Yne[n],Zne[n],Kne[n],Mne[n],Nne[n]);
-        
+
         // Distribute forces and moments to all processor
         pgc->bcast_double(&Xne[n],1);
         pgc->bcast_double(&Yne[n],1);
@@ -51,5 +51,5 @@ void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha
         pgc->bcast_double(&Mne[n],1);
         pgc->bcast_double(&Nne[n],1);
     }
-    
+
 }

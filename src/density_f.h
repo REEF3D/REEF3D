@@ -37,12 +37,12 @@ class density_f : public density, virtual public increment
 
 public:
     density_f(lexer*);
-	virtual ~density_f();
+    virtual ~density_f();
 
-	double roface(lexer*,fdm*,int,int,int) override;
-	
-	double H,H_fb,roval,phival;
-	int ii,jj,kk;
+    double roface(lexer*,fdm*,int,int,int) override;
+
+    double H,H_fb,roval,phival;
+    int ii,jj,kk;
     double r,s;
 
 };

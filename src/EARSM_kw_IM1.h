@@ -34,14 +34,14 @@ class EARSM_kw_IM1 : public komega_IM1, public EARSM
 {
 
 public:
-	EARSM_kw_IM1(lexer *,fdm*,ghostcell*);
-	virtual ~EARSM_kw_IM1();
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
-	void aniso(fdm*);
-	double tau(fdm*);
-    
+    EARSM_kw_IM1(lexer *,fdm*,ghostcell*);
+    virtual ~EARSM_kw_IM1();
+    void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
+    void aniso(fdm*);
+    double tau(fdm*);
+
 private:
-	int gcval_earsm;
+    int gcval_earsm;
     const double cmu;
 };
 

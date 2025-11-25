@@ -27,13 +27,13 @@ Author: Hans Bihs
 
 void flowfile_out::filename(lexer *p, fdm *a, ghostcell *pgc)
 {
-	int num;
-	
+    int num;
+
     num = p->count;
 
     // open file
     sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%08i-%06i.r3d",n+1,num);
-  
+
 }
 
 

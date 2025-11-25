@@ -41,13 +41,13 @@ class fnpf_bed_update : public increment
 {
 public:
     fnpf_bed_update(lexer*);
-	virtual ~fnpf_bed_update();
-    
+    virtual ~fnpf_bed_update();
+
     void bedbc_sig(lexer*, fdm_fnpf*, ghostcell*,double*,fnpf_fsf*);
     void waterdepth(lexer*, fdm_fnpf*, ghostcell*);
 
-private: 
-    
+private:
+
     fnpf_convection *pconvec;
     fnpf_ddx *pddx;
 };

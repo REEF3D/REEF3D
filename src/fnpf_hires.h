@@ -34,21 +34,21 @@ class fnpf_hires : public fnpf_convection, public increment
 {
 public:
     fnpf_hires(lexer*,fdm_fnpf*);
-	virtual ~fnpf_hires();
+    virtual ~fnpf_hires();
 
     double fx(lexer*, field&, double, double) override {return 0.0;};
-	double fy(lexer*, field&, double, double) override {return 0.0;};
-	double fz(lexer*, field&, double, double) override {return 0.0;};
-    
+    double fy(lexer*, field&, double, double) override {return 0.0;};
+    double fz(lexer*, field&, double, double) override {return 0.0;};
+
     double sx(lexer*, slice&, double) override;
-	double sy(lexer*, slice&, double) override;
+    double sy(lexer*, slice&, double) override;
     double sz(lexer*, double*) override {return 0.0;};
-    
+
 private:
     fdm_fnpf *c;
-    
+
     double limiter(double v1, double v2);
-    
+
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
     double denom,val,grad;
 

@@ -52,5 +52,5 @@ void sflow_diffusion_void::diff_w(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *
 
 void sflow_diffusion_void::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double sig, double alpha)
 {
-    
+
 }

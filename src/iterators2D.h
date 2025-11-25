@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef ITERATORS2D_H_
 #define ITERATORS2D_H_
 
-#define IJ  (i-p->imin)*p->jmax + (j-p->jmin) 
+#define IJ  (i-p->imin)*p->jmax + (j-p->jmin)
 
 #define Im1J  (i-p->imin-1)*p->jmax + (j-p->jmin)
 #define Ip1J  (i-p->imin+1)*p->jmax + (j-p->jmin)

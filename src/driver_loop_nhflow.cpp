@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"sediment_header.h"
 #include"heat_header.h"
 #include"concentration_header.h"
-#include"benchmark_header.h"    
+#include"benchmark_header.h"
 #include"convection_header.h"
 #include"solver_header.h"
 #include"field_header.h"
@@ -43,10 +43,10 @@ void driver::loop_nhflow()
 {
     if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;
-    
+
 //-----------MAINLOOP NSEWAVE----------------------------
-	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
-	{		
+    while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
+    {
         ++p->count;
         starttime=pgc->timer();
 
@@ -54,39 +54,39 @@ void driver::loop_nhflow()
         {
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
-        
+
         cout<<"simtime: "<<p->simtime<<endl;
         cout<<"timestep: "<<p->dt<<endl;
-        
-		if(p->B90>0 && p->B92<=11)
-		cout<<"t/T: "<<p->simtime/p->wT<<endl;
-        
+
+        if(p->B90>0 && p->B92<=11)
+        cout<<"t/T: "<<p->simtime/p->wT<<endl;
+
         if(p->B90>0 && p->B92>11)
-		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
+        cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
-        
+
         pflow->flowfile(p,a,pgc,pturb);
         pflow->wavegen_precalc_nhflow(p,d,pgc);
-			
-        pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pvrans);        
-        
-		// Sediment Computation
+
+        pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pvrans);
+
+        // Sediment Computation
         psed->start_susp_nhflow(p,d,pgc,pflow,psolv);
         psed->start_nhflow(p,d,pgc,pflow);
         pnhfsf->depth_update(p,d,pgc,pflow);
-        
+
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
-                       pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans); 
+                       pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pvrans);
 
         //save previous timestep
         pnhfturb->ktimesave(p,d,pgc);
         pnhfturb->etimesave(p,d,pgc);
         //pflow->veltimesave(p,a,pgc,pvrans);
-        
+
         //timestep control
         p->simtime+=p->dt;
         pnhfstep->start(p,d,pgc);
-        
+
         // printer
         pprint->start(p,d,pgc,pflow,pnhfturb,psed);
 
@@ -94,25 +94,25 @@ void driver::loop_nhflow()
         if(p->mpirank==0)
         {
         endtime=pgc->timer();
-        
-		p->itertime=endtime-starttime;
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
-		
-		
+
+        p->itertime=endtime-starttime;
+        p->totaltime+=p->itertime;
+        p->gctotaltime+=p->gctime;
+        p->Xtotaltime+=p->xtime;
+        p->meantime=(p->totaltime/double(p->count));
+        p->gcmeantime=(p->gctotaltime/double(p->count));
+        p->Xmeantime=(p->Xtotaltime/double(p->count));
+
+
         if(p->count%p->P12==0)
         {
         if(p->B90>0)
-		cout<<"wavegentime: "<<setprecision(5)<<p->wavecalctime<<endl;
-		if(p->X10>0)
+        cout<<"wavegentime: "<<setprecision(5)<<p->wavecalctime<<endl;
+        if(p->X10>0)
         cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;
+        cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
         cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
         }
 
@@ -123,25 +123,25 @@ void driver::loop_nhflow()
         }
     p->gctime=0.0;
     p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-	p->field4time=0.0;
+    p->reinitime=0.0;
+    p->wavecalctime=0.0;
+    p->field4time=0.0;
     p->fbtime=0.0;
-	
+
     stop(p,a,pgc);
-	}
+    }
 
-	if(p->mpirank==0)
-	{
-	cout<<endl<<"******************************"<<endl<<endl;
+    if(p->mpirank==0)
+    {
+    cout<<endl<<"******************************"<<endl<<endl;
 
-	cout<<"modelled time: "<<p->simtime<<endl;
-	cout<<endl;
+    cout<<"modelled time: "<<p->simtime<<endl;
+    cout<<endl;
 
     mainlogout.close();
     maxlogout.close();
     solvlogout.close();
-	}
+    }
 
     pgc->final();
 }

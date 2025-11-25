@@ -28,5 +28,5 @@ Author: Hans Bihs
 
 void patchBC::patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&)
 {
-    
+
 }

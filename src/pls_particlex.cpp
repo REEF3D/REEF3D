@@ -200,7 +200,7 @@ void particle_pls::particlex(lexer* p, fdm* a, ghostcell* pgc)
 // FILL
 // ---------------------------------------------------
 
-	//pos
+    //pos
     q=0;
     while(pcount>0)
     {
@@ -211,7 +211,7 @@ void particle_pls::particlex(lexer* p, fdm* a, ghostcell* pgc)
         pos[posmem[pcount]][2]=posxr[q][pxr[q]-3]-p->originz;
         pos[posmem[pcount]][3]=posxr[q][pxr[q]-2];
         pos[posmem[pcount]][4]=posxr[q][pxr[q]-1];
-		--pcount;
+        --pcount;
         posflag[posmem[pcount]]=3;
         pxr[q]-=5;
         }
@@ -259,7 +259,7 @@ void particle_pls::particlex(lexer* p, fdm* a, ghostcell* pgc)
         neg[negmem[ncount]][3]=negxr[q][nxr[q]-2];
         neg[negmem[ncount]][4]=negxr[q][nxr[q]-1];
         negflag[negmem[ncount]]=3;
-		--ncount;
+        --ncount;
         nxr[q]-=5;
         }
 

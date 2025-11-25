@@ -41,20 +41,20 @@ public:
     virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool)=0;
     virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
     virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool)=0;
-    
+
     virtual void ini(lexer*,ghostcell*)=0;
     virtual void initialize(lexer*, fdm*, ghostcell*)=0;
     virtual void initialize(lexer*, fdm2D*, ghostcell*)=0;
     virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;
-	
+
     virtual void isource(lexer*,fdm*,ghostcell*)=0;
     virtual void jsource(lexer*,fdm*,ghostcell*)=0;
     virtual void ksource(lexer*,fdm*,ghostcell*)=0;
-    
+
     virtual void isource(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
     virtual void jsource(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
     virtual void ksource(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
-    
+
     virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
 };

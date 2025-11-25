@@ -37,107 +37,107 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;
-    
+
     if(p->mpirank==0)
     mkdir("./REEF3D_NHFLOW_6DOF",0777);
-    
+
     // Initialise folder structure
     if(p->X50==1)
-	print_ini_vtp(p,pgc);
-    
+    print_ini_vtp(p,pgc);
+
     if(p->X50==2)
     print_ini_stl(p,pgc);
- 
+
     // Initialise processor boundaries
     ini_parallel(p,pgc);
-    
+
     // Initialise objects
-	objects_create(p,pgc);
-    
+    objects_create(p,pgc);
+
     // Initialise fbvel
-	ini_fbvel(p,pgc);
-    
+    ini_fbvel(p,pgc);
+
     // Level Set for floating body
     ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
-    
+    nhflow_reini_RK2(p,d,pgc,d->FB);
+
     // Calculate geometrical properties
     geometry_parameters_nhflow(p,d,pgc);
-    
+
     // Initialise position of bodies
     iniPosition_RBM(p,pgc);
-	
-	// Recalculate distances
-	ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
-    
-    // Initialise global variables
-	update_fbvel(p,pgc);
 
-    // Print initial body 
+    // Recalculate distances
+    ray_cast(p,d,pgc);
+    nhflow_reini_RK2(p,d,pgc,d->FB);
+
+    // Initialise global variables
+    update_fbvel(p,pgc);
+
+    // Print initial body
     if(p->X50==1)
     print_vtp(p,pgc);
-    
+
     if(p->X50==2)
     print_stl(p,pgc);
 
 
 
 
-	// Mooring
-	if(p->X310==0)
-	{
-		pmooring.push_back(new mooring_void());
-	}
-	else
-	{
-		pgc->bcast_int(&p->mooring_count,1);	
+    // Mooring
+    if(p->X310==0)
+    {
+        pmooring.push_back(new mooring_void());
+    }
+    else
+    {
+        pgc->bcast_int(&p->mooring_count,1);
 
-		Xme.resize(p->mooring_count);
-		Yme.resize(p->mooring_count);
-		Zme.resize(p->mooring_count);
-		Kme.resize(p->mooring_count);
-		Mme.resize(p->mooring_count);
-		Nme.resize(p->mooring_count);
+        Xme.resize(p->mooring_count);
+        Yme.resize(p->mooring_count);
+        Zme.resize(p->mooring_count);
+        Kme.resize(p->mooring_count);
+        Mme.resize(p->mooring_count);
+        Nme.resize(p->mooring_count);
 
-		if(p->mpirank==0)
-		mkdir("./REEF3D_NHFLOW_6DOF_Mooring",0777);	
+        if(p->mpirank==0)
+        mkdir("./REEF3D_NHFLOW_6DOF_Mooring",0777);
 
-		pmooring.reserve(p->mooring_count);
-		X311_xen.resize(p->mooring_count,0.0);
-		X311_yen.resize(p->mooring_count,0.0);
-		X311_zen.resize(p->mooring_count,0.0);
-			
-		for (int i=0; i < p->mooring_count; i++)
-		{
-			if(p->X310==1)
-			{
-				pmooring.push_back(new mooring_Catenary(i));
-			}	
-			else if(p->X310==2)
-			{
-				pmooring.push_back(new mooring_barQuasiStatic(i)); 
-			}	
-			else if(p->X310==3)
-			{
+        pmooring.reserve(p->mooring_count);
+        X311_xen.resize(p->mooring_count,0.0);
+        X311_yen.resize(p->mooring_count,0.0);
+        X311_zen.resize(p->mooring_count,0.0);
+
+        for (int i=0; i < p->mooring_count; i++)
+        {
+            if(p->X310==1)
+            {
+                pmooring.push_back(new mooring_Catenary(i));
+            }
+            else if(p->X310==2)
+            {
+                pmooring.push_back(new mooring_barQuasiStatic(i));
+            }
+            else if(p->X310==3)
+            {
                 pmooring.push_back(new mooring_dynamic(i));
-			}
-			else if(p->X310==4)
-			{
-				pmooring.push_back(new mooring_Spring(i));
-			}
-		
-			X311_xen[i] = p->X311_xe[i] - p->xg;
-			X311_yen[i] = p->X311_ye[i] - p->yg;
-			X311_zen[i] = p->X311_ze[i] - p->zg;
-		
-			pmooring[i]->initialize(p,pgc);
-		}
-	}	
+            }
+            else if(p->X310==4)
+            {
+                pmooring.push_back(new mooring_Spring(i));
+            }
+
+            X311_xen[i] = p->X311_xe[i] - p->xg;
+            X311_yen[i] = p->X311_ye[i] - p->yg;
+            X311_zen[i] = p->X311_ze[i] - p->zg;
+
+            pmooring[i]->initialize(p,pgc);
+        }
+    }
 
     // Net
     pnetinter->initialize_nhflow(p,d,pgc);
-    
+
     if(p->X320>0)
     {
     Xne.resize(p->net_count);
@@ -147,7 +147,7 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     Mne.resize(p->net_count);
     Nne.resize(p->net_count);
     }
-    
+
 }
 
 

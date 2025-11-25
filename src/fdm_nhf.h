@@ -44,38 +44,38 @@ class fdm_nhf : public increment
 public:
 
     fdm_nhf(lexer*);
-   
+
     int *NODEVAL;
-    
+
     slice4 eta,eta_n,WL,detadt,detadt_n;
     slice4 bed,depth;
     slice4 solidbed,topobed;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;
-    
+
     slice4 Ex,Ey;
     slice4 Exx,Eyy;
     slice4 Bx,By;
     slice4 Bxx,Byy;
-    
+
     slice4 hx,hy;
     slice4 ks;
     slice4 coastline;
     slice4 vb;
     slice4 test2D;
     slice4 fs;
-    
+
     slice4 breaking_print,Hs;
-    
+
     // NHFLOW
-    
+
     vec rhsvec;
     vec2D xvec,rvec;
-    
+
     // 3D array
     double *U,*V,*W,*omegaF;
     double *UH,*VH,*WH;
-    
+
     double *P,*RO,*VISC,*EV,*EV0;
     double *F,*G,*H,*L;
     double *Fext,*Gext,*Hext;
@@ -83,22 +83,22 @@ public:
     double *test;
     double *KIN;
     double *CONC;
-    
+
     double *SOLID,*FB,*FHB;
-    
+
     double *Fx,*Fy,*Fz;
     double *Fs,*Fn,*Fe,*Fw;
     double *Ss,*Sn,*Se,*Sw;
     double *SSx,*SSy;
-    
+
     double *Un,*Us,*Ue,*Uw,*Ub,*Ut;
     double *Vn,*Vs,*Ve,*Vw,*Vb,*Vt;
     double *Wn,*Ws,*We,*Ww,*Wb,*Wt;
-    
+
     double *UHn,*UHs,*UHe,*UHw,*UHb,*UHt;
     double *VHn,*VHs,*VHe,*VHw,*VHb,*VHt;
     double *WHn,*WHs,*WHe,*WHw,*WHb,*WHt;
-    
+
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
     slice1 Ds,Dn;
@@ -107,12 +107,12 @@ public:
     slice2 dfy;
 
     matrix2D N;
-	matrix_diag M;    
-    
+    matrix_diag M;
+
     double gi,gj,gk;
     double maxF,maxG,maxH;
     double wd_criterion;
-    
+
 };
 
 #endif

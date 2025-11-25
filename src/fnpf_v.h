@@ -30,13 +30,13 @@ using namespace std;
 class fnpf_void : public fnpf
 {
 public:
-	fnpf_void();
-	virtual ~fnpf_void();
-    
+    fnpf_void();
+    virtual ~fnpf_void();
+
     void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override;
     void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override;
     void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override;
-    
+
 
 };
 

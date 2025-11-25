@@ -39,7 +39,7 @@ class rans_io : public turbulence, public strain
 {
 public:
     rans_io(lexer*,fdm*);
-	virtual ~rans_io();
+    virtual ~rans_io();
 
     void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
     void ini(lexer*, fdm*, ghostcell*) override;
@@ -47,36 +47,36 @@ public:
     void inflow(lexer*, fdm*, ghostcell*);
     double kinval(int,int,int) override;
     double epsval(int,int,int) override;
-	void gcupdate(lexer*, fdm*, ghostcell*) override;
-	double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
+    void gcupdate(lexer*, fdm*, ghostcell*) override;
+    double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
     double ccipol_a_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
     void kinget(int,int,int,double) override;
     void epsget(int,int,int,double) override;
 
     void name_ParaView_parallel(lexer*, ofstream&) override;
     void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
     void offset_ParaView(lexer*, int*, int &) override;
-    
+
     field4 kin,eps,eddyv0;
-	fieldint4 wallf;
-	
-	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
-	double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
-	double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
+    fieldint4 wallf;
+
+    double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
+    double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
+    double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
 
 private:
     void tau_calc(fdm*, lexer*, double);
     void kepsini_default(lexer*,fdm*,ghostcell*);
 
-	float ffn;
-	int q,iin;
-	int gcval_kin,gcval_eps,gcval_edv;
+    float ffn;
+    int q,iin;
+    int gcval_kin,gcval_eps,gcval_edv;
 
-	double M,I,tau,H,B,ks,kinbed,uvel,refwalldist,fc;
-	double kinw,epsw;
-	double walld,ddn,depth;
+    double M,I,tau,H,B,ks,kinbed,uvel,refwalldist,fc;
+    double kinw,epsw;
+    double walld,ddn,depth;
 };
 
 #endif

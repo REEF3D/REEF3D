@@ -43,41 +43,41 @@ class hypre_sstruct : public solver, public increment
 {
 public:
 
-	hypre_sstruct(lexer*,fdm*,ghostcell*);
-	virtual ~hypre_sstruct();
-    
-	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
+    hypre_sstruct(lexer*,fdm*,ghostcell*);
+    virtual ~hypre_sstruct();
+
+    void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
     void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
     void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
     void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
     void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
-    
+
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, int);
     void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solverM(lexer*, ghostcell*, double*, double*, double*);
-    
+
     void solve(lexer*);
     void solve1234(lexer*);
-    
-	void fillxvec1(lexer*,fdm*,field&);
+
+    void fillxvec1(lexer*,fdm*,field&);
     void fillxvec2(lexer*,fdm*,field&);
     void fillxvec3(lexer*,fdm*,field&);
     void fillxvec4(lexer*,fdm*,field&);
-    
+
     void make_grid_7p(lexer*,fdm*, ghostcell*);
     void make_grid_13p(lexer*,fdm*, ghostcell*);
     void make_grid_15p(lexer*,fdm*, ghostcell*);
     void make_grid_2Dvert_9p(lexer*,fdm*, ghostcell*);
-    
+
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix2(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix3(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix4(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
      void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
-    
+
     void fill_matrixM(lexer*, ghostcell*,double*, double*, double*);
     void fill_matrixM_2Dvert(lexer*, ghostcell*,double*, double*, double*);
 
@@ -88,21 +88,21 @@ public:
 
     void fillbackvec7(lexer*,double*,int);
     void fillbackvec8(lexer*,double*,int);
-    
+
     void fillbackvecM(lexer*,double*);
-    
-    
-	
-	void create_solver1234(lexer*,ghostcell*);
+
+
+
+    void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);
 
     void create_solver5(lexer*,ghostcell*);
     void delete_solver5(lexer*,ghostcell*);
-    
+
 
 private:
-    
-//  HYPRE 
+
+//  HYPRE
     HYPRE_SStructGrid     grid;
     HYPRE_SStructGraph    graph;
     HYPRE_SStructStencil  stencil;
@@ -113,11 +113,11 @@ private:
     HYPRE_SStructSolver   precond;
     HYPRE_Solver solver_csr, precond_csr;
     HYPRE_SStructVariable vartypes[1];
-    
+
     HYPRE_ParCSRMatrix    par_A;
     HYPRE_ParVector       par_b;
     HYPRE_ParVector       par_x;
-   
+
     int kend;
     int numparts;
     int part;
@@ -125,16 +125,16 @@ private:
     int variable;
     int numvar;
     int object_type;
-   
 
-	int *ilower,*iupper;
+
+    int *ilower,*iupper;
     double *values;
     int num_iterations;
     double final_res_norm;
-	int stencil_indices[15];
-	int nentries;
-   
-	int numiter,count,q;
+    int stencil_indices[15];
+    int nentries;
+
+    int numiter,count,q;
 
 };
 

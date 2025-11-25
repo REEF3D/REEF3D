@@ -33,18 +33,18 @@ class sflow_hydrostatic : public sflow_pressure, public increment
 {
 public:
     sflow_hydrostatic(lexer*, fdm2D*,patchBC_interface*);
-	virtual ~sflow_hydrostatic();
-    
-	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override;
-	void upgrad(lexer*, fdm2D*, slice&, slice&) override;
-	void vpgrad(lexer*, fdm2D*, slice&, slice&) override;
+    virtual ~sflow_hydrostatic();
+
+    void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override;
+    void upgrad(lexer*, fdm2D*, slice&, slice&) override;
+    void vpgrad(lexer*, fdm2D*, slice&, slice&) override;
     void wpgrad(lexer*, fdm2D*, slice&, slice&) override;
-    
+
     void ucorr(lexer*,fdm2D*,slice&,slice&,double) override;
-	void vcorr(lexer*,fdm2D*,slice&,slice&,double) override;
-	void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
+    void vcorr(lexer*,fdm2D*,slice&,slice&,double) override;
+    void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
     void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
-    
+
 private:
     patchBC_interface *pBC;
 

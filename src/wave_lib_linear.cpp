@@ -25,17 +25,17 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-wave_lib_linear::wave_lib_linear(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
-{ 
+wave_lib_linear::wave_lib_linear(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc)
+{
     parameters(p,pgc);
-    
+
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: linear waves "<<endl;
     cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
     cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
-    
+
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
 }
@@ -65,8 +65,8 @@ double wave_lib_linear::wave_v(lexer *p, double x, double y, double z)
 double wave_lib_linear::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
-	
-	teta = wk*x-ww*(p->wavetime) + pshift;
+
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*( cosh(wk*(wdt+z))/sinh(wk*wdt) ) * cos(teta);
 
@@ -76,8 +76,8 @@ double wave_lib_linear::wave_horzvel(lexer *p, double x, double y, double z)
 double wave_lib_linear::wave_w(lexer *p, double x, double y, double z)
 {
     double vel=0.0;
-	
-	teta = wk*x-ww*(p->wavetime) + pshift;
+
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*( sinh(wk*(wdt+z))/sinh(wk*wdt) ) * sin(teta);
 
@@ -88,7 +88,7 @@ double wave_lib_linear::wave_eta(lexer *p, double x, double y)
 {
     double eta=0.0;
 
-	teta = wk*x-ww*(p->wavetime) + pshift;
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     eta =  wa * cos(teta);
 
@@ -98,13 +98,13 @@ double wave_lib_linear::wave_eta(lexer *p, double x, double y)
 double wave_lib_linear::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
-    
+
     teta = wk*x-ww*(p->wavetime) + pshift;
-    
+
     fi = ((ww*0.5*wH)/(wk))*( cosh(wk*(wdt+z))/sinh(wk*wdt) ) * sin(teta);
-    
+
     vel = ww*wa*( cosh(wk*(wdt+z))/sinh(wk*wdt) ) * cos(teta);
-    
+
     return fi;
 }
 

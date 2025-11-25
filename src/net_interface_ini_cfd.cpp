@@ -40,20 +40,20 @@ void net_interface::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     else
     {
         pgc->bcast_int(&p->net_count, 1);
-        
+
         if(p->mpirank==0)
-        mkdir("./REEF3D_CFD_6DOF_Net",0777);	
+        mkdir("./REEF3D_CFD_6DOF_Net",0777);
 
         else
         p->X320_type = new int[p->net_count];
 
-        pnet.reserve(p->net_count);	
-  
-		NETLOOP
-		{
-    
+        pnet.reserve(p->net_count);
+
+        NETLOOP
+        {
+
             pgc->bcast_int(&p->X320_type[n], 1);
-			
+
             if(p->X320_type[n]>10)
             pnet.push_back(new net_barDyn(n,p));
 
@@ -63,9 +63,9 @@ void net_interface::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
             else
             pnet.push_back(new net_sheet(n,p));
 
-			
+
             pnet[n]->initialize_cfd(p,a,pgc);
-		}
+        }
     }
 
 }

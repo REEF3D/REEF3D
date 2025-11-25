@@ -53,9 +53,9 @@ void vts3D::extent(lexer *p, ghostcell *pgc)
     iextent[3]=p->origin_j+p->knoy;
     iextent[4]=p->origin_k;
     iextent[5]=p->origin_k+p->knoz;
-    
+
     if(p->mpirank == 0)
-        piextent = (int *)malloc(p->mpi_size*6*sizeof(int)); 
+        piextent = (int *)malloc(p->mpi_size*6*sizeof(int));
     pgc->gather_int(iextent,6,piextent,6);
 }
 
@@ -209,11 +209,11 @@ void vts3D::structureWrite(lexer *p, fdm_nhf *d, std::vector<char> &buffer, size
 
         if(p->wet[IJ]==0)
             zcoor=p->sl_ipol4(d->bed);
-        
+
         if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
             zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
 
-        // -- 
+        // --
         ffn=float(p->XN[IP1]);
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);

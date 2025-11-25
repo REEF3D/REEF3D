@@ -29,7 +29,7 @@ class ghostcell;
 
 using namespace std;
 
-class sflow_flux_build 
+class sflow_flux_build
 {
 
 public:

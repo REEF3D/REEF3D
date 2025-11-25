@@ -34,15 +34,15 @@ class sflow_flux_face_CDS : public sflow_flux, public increment
 {
 public:
 
-	sflow_flux_face_CDS (lexer *p);
-	virtual ~sflow_flux_face_CDS();
+    sflow_flux_face_CDS (lexer *p);
+    virtual ~sflow_flux_face_CDS();
 
-	void u_flux(int,slice&,double&,double&) override;
-	void v_flux(int,slice&,double&,double&) override;
+    void u_flux(int,slice&,double&,double&) override;
+    void v_flux(int,slice&,double&,double&) override;
 
 private:
     lexer *p;
-    
+
 };
 
 #endif

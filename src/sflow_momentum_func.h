@@ -36,25 +36,25 @@ using namespace std;
 class sflow_momentum_func : public sflow_momentum, public sflow_bcmom
 {
 public:
-	sflow_momentum_func(lexer*, fdm2D*, ghostcell*);
-	virtual ~sflow_momentum_func();
-    
+    sflow_momentum_func(lexer*, fdm2D*, ghostcell*);
+    virtual ~sflow_momentum_func();
+
 
     void inidisc(lexer*, fdm2D*, ghostcell*, sflow_fsf*);
     void reconstruct(lexer*, fdm2D*, ghostcell*, sflow_fsf*, sflow_signal_speed*, sflow_reconstruct*,slice&,slice&,slice&,slice&,slice&,slice&,slice&);
     void velcalc(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
-    
-	void irhs(lexer*,fdm2D*,ghostcell*);
-	void jrhs(lexer*,fdm2D*,ghostcell*);
-	void krhs(lexer*,fdm2D*,ghostcell*);
-    
-    void clearrhs(lexer*,fdm2D*,ghostcell*);
-	
-    
 
-	int gcval_u, gcval_v, gcval_w;
+    void irhs(lexer*,fdm2D*,ghostcell*);
+    void jrhs(lexer*,fdm2D*,ghostcell*);
+    void krhs(lexer*,fdm2D*,ghostcell*);
+
+    void clearrhs(lexer*,fdm2D*,ghostcell*);
+
+
+
+    int gcval_u, gcval_v, gcval_w;
     int gcval_uh, gcval_vh, gcval_wh;
-    
+
     double starttime;
 
 };

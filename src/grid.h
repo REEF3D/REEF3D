@@ -33,15 +33,15 @@ class grid :  public increment
 {
 public:
 
-	grid (lexer *);
-	virtual ~grid();
-    
+    grid (lexer *);
+    virtual ~grid();
+
     // gcb
     void fillgcb1(lexer*);
     void fillgcb2(lexer*);
     void fillgcb3(lexer*);
     void fillgcb4a(lexer*);
-    
+
     void fillgcb4_wall(lexer*);
 
     // dgc
@@ -51,15 +51,15 @@ public:
     void fill_dgc2(lexer*);
     void fill_dgc3(lexer*);
     void fill_dgc4(lexer*);
-    
+
     int imin,imax,jmax,jmin,kmin,kmax;
-    
+
 private:
-	int di,dj,dk;
-	int qn;
-    
+    int di,dj,dk;
+    int qn;
+
     int *hgc;
-	
+
 };
 
 #endif

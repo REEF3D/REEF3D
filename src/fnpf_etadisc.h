@@ -36,7 +36,7 @@ class fnpf_etadisc
 public:
 
     virtual double sx(lexer*, slice&, slice&)=0;
-	virtual double sy(lexer*, slice&, slice&)=0;
+    virtual double sy(lexer*, slice&, slice&)=0;
 
 };
 

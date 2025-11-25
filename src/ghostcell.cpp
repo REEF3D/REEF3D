@@ -109,7 +109,7 @@ void ghostcell::gcini(lexer* p)
     gclabel_u_orth=1;
     gclabel_v_orth=1;
     gclabel_w_orth=1;
-    gclabel_vel=5;    
+    gclabel_vel=5;
 
     // for reflective BC
     if(p->B23==2)
@@ -209,7 +209,7 @@ void ghostcell::gcini(lexer* p)
         y[m]=0.0;
         x[m]=0.0;
     }
-    
+
     int gcx_count[6];
     gcx_count[0] = (p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin;
     gcx_count[1] = (p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin;

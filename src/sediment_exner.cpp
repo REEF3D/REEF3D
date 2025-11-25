@@ -35,44 +35,44 @@ Author: Hans Bihs
 
 sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),vztemp(p)
 {
-	if(p->S50==1)
-	gcval_topo=151;
+    if(p->S50==1)
+    gcval_topo=151;
 
-	if(p->S50==2)
-	gcval_topo=152;
+    if(p->S50==2)
+    gcval_topo=152;
 
-	if(p->S50==3)
-	gcval_topo=153;
-	
-	if(p->S50==4)
-	gcval_topo=154;
-    
-    
+    if(p->S50==3)
+    gcval_topo=153;
+
+    if(p->S50==4)
+    gcval_topo=154;
+
+
     rhosed=p->S22;
     rhowat=p->W1;
     g=9.81;
     d50=p->S20;
-    
+
     Ls = p->S20;
-    
-    
+
+
     prelax = new topo_relax(p);
-    
+
     if(p->S32==1)
     pdx = new sediment_fou(p);
-    
+
     if(p->S32==2)
     pdx = new sediment_cds(p);
-    
+
     if(p->S32==3)
     pdx = new sediment_cds_hj(p);
-    
+
     if(p->S32==4)
     pdx = new sediment_wenoflux(p);
-    
+
     if(p->S32==5)
     pdx = new sediment_weno_hj(p);
-    
+
     psolv = new sflow_bicgstab(p,pgc);
 }
 
@@ -81,38 +81,38 @@ sediment_exner::~sediment_exner()
 }
 
 void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
-{   
+{
     // eq.
     if(p->S17==0)
     SEDSLICELOOP
     s->qb(i,j)=s->qbe(i,j);
-    
+
     // non-eq.
     if(p->S17==1)
-    non_equillibrium_solve(p,pgc,s); 
-    
+    non_equillibrium_solve(p,pgc,s);
+
     pgc->gcsl_start4(p,s->qb,1);
-    
-    
+
+
     // Exner
     if(p->S31==1)
     topovel1(p,pgc,s);
-    
+
     if(p->S31==2)
     topovel2(p,pgc,s);
 
-	
+
     // Bedch
     timestep(p,pgc,s);
-	
-	SEDSLICELOOP
+
+    SEDSLICELOOP
     WETDRY
     s->bedzh(i,j) += p->dtsed*s->vz(i,j);
-    
+
     SEDSLICELOOP
     s->dh(i,j)=p->dtsed*s->vz(i,j);
 
-	pgc->gcsl_start4(p,s->bedzh,1);
+    pgc->gcsl_start4(p,s->bedzh,1);
 }
 
 

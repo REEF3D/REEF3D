@@ -26,16 +26,16 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 wave_lib_Stokes_2nd::wave_lib_Stokes_2nd(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc)
-{ 
+{
     parameters(p,pgc);
-    
+
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: 2nd-order Stokes waves "<<endl;
     cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
     cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
-    
+
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
 }
@@ -47,17 +47,17 @@ wave_lib_Stokes_2nd::~wave_lib_Stokes_2nd()
 double wave_lib_Stokes_2nd::wave_u(lexer *p, double x, double y, double z)
 {
     double vel;
-	
-	vel = wave_horzvel(p,x,y,z);
-    
+
+    vel = wave_horzvel(p,x,y,z);
+
     return cosgamma*vel;
 }
 
 double wave_lib_Stokes_2nd::wave_v(lexer *p, double x, double y, double z)
 {
     double vel;
-	
-	vel = wave_horzvel(p,x,y,z);
+
+    vel = wave_horzvel(p,x,y,z);
 
     return singamma*vel;
 }
@@ -65,8 +65,8 @@ double wave_lib_Stokes_2nd::wave_v(lexer *p, double x, double y, double z)
 double wave_lib_Stokes_2nd::wave_w(lexer *p, double x, double y, double z)
 {
     double vel;
-	
-	teta = wk*x-ww*(p->wavetime) + pshift;
+
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*( sinh(wk*(wdt+z))/sinh(wk*(wdt)) ) * sin(teta)
          + 0.75*wk*ww*wa*wa*( sinh(2.0*wk*(wdt+z))/pow(sinh(wk*(wdt)),4.0) ) * sin(2.0*teta);
@@ -77,8 +77,8 @@ double wave_lib_Stokes_2nd::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_Stokes_2nd::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
-	
-	teta = wk*x-ww*(p->wavetime) + pshift;
+
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*( cosh(wk*(wdt+z))/sinh(wk*(wdt)) ) * cos(teta)
          + 0.75*wk*ww*wa*wa*( cosh(2.0*wk*(wdt+z))/pow(sinh(wk*(wdt)),4.0) ) * cos(2.0*teta);
@@ -89,8 +89,8 @@ double wave_lib_Stokes_2nd::wave_horzvel(lexer *p, double x, double y, double z)
 double wave_lib_Stokes_2nd::wave_eta(lexer *p, double x, double y)
 {
     double eta;
-	
-	teta = wk*x-ww*(p->wavetime) + pshift;
+
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     eta =  wa*cos(teta) + 0.25*wk*wa*wa*(cosh(wk*wdt)/pow(sinh(wk*wdt),3.0)) * (2.0 + cosh(2.0*wk*wdt)) * cos(2.0*teta);
 
@@ -100,11 +100,11 @@ double wave_lib_Stokes_2nd::wave_eta(lexer *p, double x, double y)
 double wave_lib_Stokes_2nd::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
-    
-	teta = wk*x-ww*(p->wavetime) + pshift;
+
+    teta = wk*x-ww*(p->wavetime) + pshift;
 
     fi = ((ww*wa)/wk)*( cosh(wk*(wdt+z))/sinh(wk*(wdt)) ) * sin(teta)
-    
+
          + (3.0/8.0)*ww*wa*wa*( cosh(2.0*wk*(wdt+z))/pow(sinh(wk*(wdt)),4.0) ) * sin(2.0*teta);
 
 
@@ -113,7 +113,7 @@ double wave_lib_Stokes_2nd::wave_fi(lexer *p, double x, double y, double z)
 
 void wave_lib_Stokes_2nd::parameters(lexer *p, ghostcell *pgc)
 {
-    
+
 }
 
 void wave_lib_Stokes_2nd::wave_prestep(lexer *p, ghostcell *pgc)

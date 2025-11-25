@@ -31,11 +31,11 @@ void directreini::finalize(lexer *p,fdm* a)
     del_Darray(pt,numvert_mem,3);
     del_Iarray(ijk,numvert_mem,3);
     del_Darray(ls,numvert_mem);
-	del_Darray(ls0,numvert_mem);
-	del_Darray(ls1,numvert_mem);
-	del_Darray(lsvert,numvert_mem);
-	del_Darray(lsfac,numvert_mem);
-	del_Iarray(reiniflag,numvert_mem);
+    del_Darray(ls0,numvert_mem);
+    del_Darray(ls1,numvert_mem);
+    del_Darray(lsvert,numvert_mem);
+    del_Darray(lsfac,numvert_mem);
+    del_Iarray(reiniflag,numvert_mem);
 
     del_Iarray(facet,numtri_mem,4);
     del_Iarray(confac,numtri_mem);

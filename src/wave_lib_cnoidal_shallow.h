@@ -35,17 +35,17 @@ class wave_lib_cnoidal_shallow : public wave_lib_precalc, public wave_lib_parame
 {
 public:
     wave_lib_cnoidal_shallow(lexer*, ghostcell*);
-	virtual ~wave_lib_cnoidal_shallow();
+    virtual ~wave_lib_cnoidal_shallow();
 
     double wave_horzvel(lexer*,double,double,double);
-    
+
     double wave_u(lexer*,double,double,double) override;
     double wave_v(lexer*,double,double,double) override;
     double wave_w(lexer*,double,double,double) override;
     double wave_eta(lexer*,double,double) override;
     double wave_fi(lexer*,double,double,double) override;
-    
-    
+
+
     void parameters(lexer*,ghostcell*) override;
     void wave_prestep(lexer*,ghostcell*) override;
 

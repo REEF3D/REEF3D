@@ -23,8 +23,8 @@ Author: Hans Bihs
 #include"interpolation.h"
 #include"lexer.h"
 
-interpolation::interpolation(lexer *pp) 
-{	
+interpolation::interpolation(lexer *pp)
+{
     p=pp;
 }
 

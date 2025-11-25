@@ -24,14 +24,14 @@ Authors: Hans Bihs, Tobias Martin
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-   
+
 sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc) : press(p)
 {
     if(p->mpirank==0)
     cout<<"6DOF startup ..."<<endl;
-    
+
     number6DOF = 1;
-    
+
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj.push_back(new sixdof_obj(p,pgc,nb));
 }
@@ -43,13 +43,13 @@ sixdof_sflow::~sixdof_sflow()
 void sixdof_sflow::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &eta, bool finalize)
 {
     starttime = pgc->timer();
-    
+
     if(p->X10==2)
     start_oneway(p,pgc,iter,fsglobal,P,Q,w,fx,fy,eta,finalize);
-    
+
     if(p->X10==3)
     start_shipwave(p,pgc,iter,fsglobal,P,Q,fx,fy,eta,finalize);
-    
+
     p->fbtime+=pgc->timer()-starttime;
 }
 
@@ -59,30 +59,30 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
     {
         // Advance body in time
         fb_obj[nb]->solve_eqmotion_oneway_sflow(p,pgc,iter);
-        
+
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
-        
+
         // Update position and trimesh
-        fb_obj[nb]->update_position_2D(p,pgc,fsglobal);  
-        
+        fb_obj[nb]->update_position_2D(p,pgc,fsglobal);
+
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
-        
+
         // Update forcing terms
         fb_obj[nb]->update_forcing_sflow(p,pgc,P,Q,w,fx,fy,eta,iter);
-        
+
             // Print
         if(finalize==true)
         {
             fb_obj[nb]->saveTimeStep(p,iter);
-            
+
             if(p->X50==1)
             fb_obj[nb]->print_vtp(p,pgc);
-            
+
             if(p->X50==2)
             fb_obj[nb]->print_stl(p,pgc);
-            
+
             fb_obj[nb]->print_parameter(p,pgc);
         }
     }
@@ -95,33 +95,33 @@ void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsg
     {
         // Advance body in time
         fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
-        
+
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
-        
+
         // Update position and trimesh
-        fb_obj[nb]->update_position_2D(p,pgc,fsglobal);  
-        
+        fb_obj[nb]->update_position_2D(p,pgc,fsglobal);
+
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
-        
+
         // Update forcing terms
         if(p->X400==2)
         fb_obj[nb]->updateForcing_box(p,pgc,press);
-        
+
         if(p->X400==3)
         fb_obj[nb]->updateForcing_oned(p,pgc,press);
-        
+
         if(p->X400==10)
         fb_obj[nb]->updateForcing_stl(p,pgc,press,eta);
-        
+
             // Print
             if(p->X50==1)
             fb_obj[nb]->print_vtp(p,pgc);
-            
+
             if(p->X50==2)
             fb_obj[nb]->print_stl(p,pgc);
-            
+
             fb_obj[nb]->print_parameter(p,pgc);
     }
 }

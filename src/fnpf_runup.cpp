@@ -41,35 +41,35 @@ void fnpf_runup::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     // Read cylinder force input - xc,yc,rc
     xc = p->P140_x[ID];
-	yc = p->P140_y[ID];
+    yc = p->P140_y[ID];
     rc = p->P141; //Edgar: Assign a varibale the radius of the cylinder
 
     // Open files
     print_ini(p,c,pgc);
 
     // Ini arrays
-	//p->Darray(un, p->knoz);
-	//p->Darray(vn, p->knoz);
+    //p->Darray(un, p->knoz);
+    //p->Darray(vn, p->knoz);
 
     // Ini eta
-	etan = p->wd;
+    etan = p->wd;
 
     // Ini processor boundaries
-	xstart = p->originx;
-	ystart = p->originy;
-	xend = p->endx;
-	yend = p->endy;
+    xstart = p->originx;
+    ystart = p->originy;
+    xend = p->endx;
+    yend = p->endy;
 }
 
 void fnpf_runup::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     R1=R2=R3=R4=R5=R6=0.0;
-    
+
     if (xc >= xstart && xc < xend && yc >= ystart && yc < yend) // cylinder in processor
     {
         i = p->posc_i(xc);
         j = p->posc_j(yc);
-        
+
         cout<<"Run-up "<<i<<" "<<j<<endl;
 
         // Calculate runup

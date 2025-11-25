@@ -37,28 +37,28 @@ class pjm_hydrostatic : public pressure, public increment
 
 public:
 
-	pjm_hydrostatic(lexer* p, fdm *a, heat*&, concentration*&);
-	virtual ~pjm_hydrostatic();
+    pjm_hydrostatic(lexer* p, fdm *a, heat*&, concentration*&);
+    virtual ~pjm_hydrostatic();
 
-	void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double) override;
+    void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double) override;
     void ini(lexer*,fdm*,ghostcell*) override;
-	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	void ucorr(lexer*,fdm*,field&,double) override;
-	void vcorr(lexer*,fdm*,field&,double) override;
-	void wcorr(lexer*,fdm*,field&,double) override;
-	void upgrad(lexer*,fdm*,slice&,slice&) override;
-	void vpgrad(lexer*,fdm*,slice&,slice&) override;
+    void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    void ucorr(lexer*,fdm*,field&,double) override;
+    void vcorr(lexer*,fdm*,field&,double) override;
+    void wcorr(lexer*,fdm*,field&,double) override;
+    void upgrad(lexer*,fdm*,slice&,slice&) override;
+    void vpgrad(lexer*,fdm*,slice&,slice&) override;
     void wpgrad(lexer*,fdm*,slice&,slice&) override;
 
-private:    
+private:
     void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	double starttime,endtime;
-	int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
-    
+    double starttime,endtime;
+    int count, gcval_press;
+    int gcval_u, gcval_v, gcval_w;
+
     density *pd;
-	
+
     concentration *pconc;
 };
 

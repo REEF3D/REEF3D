@@ -41,7 +41,7 @@ double position::pos_z()
 {
     if(p->G2==0)
     pos = p->ZP[KP];
-    
+
     if(p->G2==1)
     pos = p->ZSP[IJK];
 
@@ -66,7 +66,7 @@ double position::pos1_z()
 {
     if(p->G2==0)
     pos = p->ZP[KP];
-    
+
     if(p->G2==1)
     pos = p->ZSP[IJK];
 
@@ -91,10 +91,10 @@ double position::pos2_z()
 {
     if(p->G2==0)
     pos = p->ZP[KP];
-    
+
     if(p->G2==1)
     pos = p->ZSP[IJK];
-    
+
     return pos;
 }
 
@@ -116,10 +116,10 @@ double position::pos3_z()
 {
     if(p->G2==0)
     pos = p->ZN[KP1];
-    
+
     if(p->G2==1)
     pos = p->ZSN[FIJKp1];
-    
+
     return pos;
 }
 
@@ -142,7 +142,7 @@ double position::posnode_z()
 {
     if(p->G2==0)
     pos = p->ZN[KP1];
-    
+
     if(p->G2==1)
     pos = p->ZSN[FIJKp1];
 

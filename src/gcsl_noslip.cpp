@@ -28,20 +28,20 @@ Author: Hans Bihs
 
 void ghostcell::gcsl_noslip(slice &f, int gcv, int bc, int cs)
 {
-	if(cs==1)
-	for(q=0;q<margin;++q)
-	f(i-q-1,j)=0.0;
+    if(cs==1)
+    for(q=0;q<margin;++q)
+    f(i-q-1,j)=0.0;
 
-	if(cs==2)
-	for(q=0;q<margin;++q)
-	f(i,j+q+1)=0.0;
+    if(cs==2)
+    for(q=0;q<margin;++q)
+    f(i,j+q+1)=0.0;
 
-	if(cs==3)
-	for(q=0;q<margin;++q)
-	f(i,j-q-1)=0.0;
+    if(cs==3)
+    for(q=0;q<margin;++q)
+    f(i,j-q-1)=0.0;
 
-	if(cs==4)
-	for(q=0;q<margin;++q)
-	f(i+q+1,j)=0.0;
+    if(cs==4)
+    for(q=0;q<margin;++q)
+    f(i+q+1,j)=0.0;
 }
 

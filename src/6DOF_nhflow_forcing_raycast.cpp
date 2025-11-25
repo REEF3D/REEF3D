@@ -27,23 +27,23 @@ Author: Hans Bihs
 #define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
 
 void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{    
+{
     zmin = 1.0e1;
     zmax = -1.0e8;
-    
+
     LOOP
     WETDRY
     {
     zmin = MIN(zmin, p->ZSP[IJK]);
     zmax = MAX(zmax, p->ZSP[IJK]);
     }
-    
+
     LOOP
-	{
+    {
     IO[IJK]=1;
-	d->FB[IJK]=1.0e8;
-	}
-    	
+    d->FB[IJK]=1.0e8;
+    }
+
     for(int rayiter=0; rayiter<2; ++rayiter)
     {
         for(int qn=0;qn<entity_sum;++qn)
@@ -54,7 +54,7 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(rayiter==1)
             {
             pgc->gcparaxintV(p,IO,1);
-     
+
             ray_cast_x(p,d,pgc,tstart[qn],tend[qn]);
             if(p->j_dir==1)
             ray_cast_y(p,d,pgc,tstart[qn],tend[qn]);
@@ -62,31 +62,31 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             }
         }
     }
-    
+
     LOOP
     WETDRY
     {
         if(IO[IJK]==-1)
         d->FB[IJK]=-fabs(d->FB[IJK]);
-        
+
         if(IO[IJK]==1)
         d->FB[IJK]=fabs(d->FB[IJK]);
     }
-	
-	LOOP
+
+    LOOP
     WETDRY
-	{
-		if(d->FB[IJK]>100.0*p->DXM)
-		d->FB[IJK]=100.0*p->DXM;
-		
-		if(d->FB[IJK]<-100.0*p->DXM)
-		d->FB[IJK]=-100.0*p->DXM;
-	}
-    
+    {
+        if(d->FB[IJK]>100.0*p->DXM)
+        d->FB[IJK]=100.0*p->DXM;
+
+        if(d->FB[IJK]<-100.0*p->DXM)
+        d->FB[IJK]=-100.0*p->DXM;
+    }
+
     LOOP
     if(p->wet[IJ]==0)
     d->FB[IJK]=100.0*p->DXM;
-    
-        
-	pgc->start5V(p,d->FB,1); 
+
+
+    pgc->start5V(p,d->FB,1);
 }

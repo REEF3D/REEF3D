@@ -29,13 +29,13 @@ class lexer;
 
 using namespace std;
 
-class fluxlim 
+class fluxlim
 {
 public:
 
-	virtual double iphi(field&,int,int,int,int)=0;
-	virtual double jphi(field&,int,int,int,int)=0;
-	virtual double kphi(field&,int,int,int,int)=0;
+    virtual double iphi(field&,int,int,int,int)=0;
+    virtual double jphi(field&,int,int,int,int)=0;
+    virtual double kphi(field&,int,int,int,int)=0;
 };
 
 #endif

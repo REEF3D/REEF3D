@@ -33,19 +33,19 @@ class wave_lib_linear : public wave_lib_precalc, public wave_lib_parameters, pub
 {
 public:
     wave_lib_linear(lexer*, ghostcell*);
-	virtual ~wave_lib_linear();
-    
+    virtual ~wave_lib_linear();
+
     double wave_horzvel(lexer*,double,double,double);
-    
+
     double wave_u(lexer*,double,double,double) override;
     double wave_v(lexer*,double,double,double) override;
     double wave_w(lexer*,double,double,double) override;
     double wave_eta(lexer*,double,double) override;
     double wave_fi(lexer*,double,double,double) override;
-    
+
     void parameters(lexer*,ghostcell*) override;
     void wave_prestep(lexer*,ghostcell*) override;
-    
+
 private:
     double singamma,cosgamma;
 };

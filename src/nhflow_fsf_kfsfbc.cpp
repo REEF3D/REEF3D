@@ -29,33 +29,33 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
 {
     double wval,w_n;
     double Pval,Qval;
-    
+
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
     i=p->gcb4[n][0];
     j=p->gcb4[n][1];
     k=p->gcb4[n][2];
-    
+
     wval = 0.0;
-    
+
     Pval = d->Ub[IJK];
     Qval = d->Vb[IJK];
-    
+
 
         dfdx_plus = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
         dfdx_min  = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
-    
+
         detadx = limiter(dfdx_plus,dfdx_min);
-        
+
         dfdy_plus = (eta(i,j+1)-eta(i,j))/p->DYP[JP];
         dfdy_min  = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];
-    
+
         detady = limiter(dfdy_plus,dfdy_min);
-        
-        
+
+
         wval = d->detadt(i,j)
-        
+
              + Pval*detadx
 
              + Qval*detady;
@@ -63,20 +63,20 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
         d->Wb[IJK] = wval;
         d->Wb[IJKp1] = wval;
         d->Wb[IJKp2] = wval;
-        
+
         d->Wt[IJK] = wval;
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
     }
-}   
+}
 
 double nhflow_fsf_f::limiter(double v1, double v2)
 {
     denom = fabs(v1) + fabs(v2);
-    
+
     denom = fabs(denom)>1.0e-10?denom:1.0e10;
-    
+
     val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
 
-    return val;	
+    return val;
 }

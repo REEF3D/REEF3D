@@ -30,19 +30,19 @@ cpt2D::cpt2D()
 cpt2D::~cpt2D()
 {
     delete [] n;
-	delete [] s;
-	delete [] w;
-	delete [] e;
-	delete [] p;
+    delete [] s;
+    delete [] w;
+    delete [] e;
+    delete [] p;
 }
 
 void cpt2D::allocate(lexer *pp)
 {
     pp->Iarray(n,pp->vec2Dlength);
-	pp->Iarray(s,pp->vec2Dlength);
-	pp->Iarray(e,pp->vec2Dlength);
-	pp->Iarray(w,pp->vec2Dlength);
-	pp->Iarray(p,pp->vec2Dlength);
+    pp->Iarray(s,pp->vec2Dlength);
+    pp->Iarray(e,pp->vec2Dlength);
+    pp->Iarray(w,pp->vec2Dlength);
+    pp->Iarray(p,pp->vec2Dlength);
 }
 
 void cpt2D::resize(lexer *pp, int size_old, int size_new)

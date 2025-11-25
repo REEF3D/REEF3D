@@ -33,17 +33,17 @@ class ptf_laplace_cds2 : public ptf_laplace, public increment
 {
 public:
     ptf_laplace_cds2(lexer*,fdm*,ghostcell*);
-	virtual ~ptf_laplace_cds2();
+    virtual ~ptf_laplace_cds2();
 
     void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&) override;
-    
+
 private:
-    
+
     double Bx,By;
     double ab,denom;
     double teta;
-    
-    
+
+
     sliceint4 bc;
 
 };

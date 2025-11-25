@@ -89,9 +89,9 @@ private:
     vorticity *pvort;
     probe_point *pprobe;
     probe_pressure *ppressprobe;
-	probe_line *pline;
-	
-	gage_discharge_x *pq;
+    probe_line *pline;
+
+    gage_discharge_x *pq;
     gage_discharge_window_x *pqw;
     fsf_vtp *pfsf;
     topo_vtp *ptopo;

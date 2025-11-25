@@ -33,23 +33,23 @@ using namespace std;
 class nhflow_komega_func : public nhflow_rans_io, public nhflow_komega_bc
 {
 public:
-	nhflow_komega_func(lexer *, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_komega_func();
-	void isource(lexer*,fdm_nhf*) override;
-	void jsource(lexer*,fdm_nhf*) override;
-	void ksource(lexer*,fdm_nhf*) override;
-	void kinsource(lexer*,fdm_nhf*,vrans*);
-	void epssource(lexer*,fdm_nhf*,vrans*);
-	void epsfsf(lexer*,fdm_nhf*,ghostcell*);
-	void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans*);
-	void clearfield(lexer*,fdm_nhf*,double*);
+    nhflow_komega_func(lexer *, fdm_nhf*, ghostcell*);
+    virtual ~nhflow_komega_func();
+    void isource(lexer*,fdm_nhf*) override;
+    void jsource(lexer*,fdm_nhf*) override;
+    void ksource(lexer*,fdm_nhf*) override;
+    void kinsource(lexer*,fdm_nhf*,vrans*);
+    void epssource(lexer*,fdm_nhf*,vrans*);
+    void epsfsf(lexer*,fdm_nhf*,ghostcell*);
+    void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans*);
+    void clearfield(lexer*,fdm_nhf*,double*);
 
-	int count,q;
-	double starttime;
-    
+    int count,q;
+    double starttime;
+
 private:
     double epsi;
-	double dirac;
+    double dirac;
     double dxm,f;
 };
 

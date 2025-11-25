@@ -35,39 +35,39 @@ class wave_lib_parameters : public increment
 {
 public:
     wave_lib_parameters(lexer*, ghostcell*);
-	virtual ~wave_lib_parameters();
-    
+    virtual ~wave_lib_parameters();
+
     double sinhfunc(double);
     double coshfunc(double);
-    
+
     double sinfunc(double);
     double cosfunc(double);
-    
+
     double teta;
     double wk,ww,wdt,wa,wH,wL,wf,wT,wL0,k0,S0;
     double wk_temp,ww_temp,wL_temp,wT_temp,wf_temp;
-    
-    
-    double eps,c0,c2,c4; 
+
+
+    double eps,c0,c2,c4;
     double S,C;
     double wC,ubar;
     double wS;
-    
-    double X0;
-	
-    const double pshift;
-	
-    
-private: 
 
-	
+    double X0;
+
+    const double pshift;
+
+
+private:
+
+
     int wtype;
     double diff;
-    
+
     double f,r,s;
     int factorial,q;
     const int order;
-    
+
     double *factcos;
 
 };

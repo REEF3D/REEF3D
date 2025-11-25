@@ -104,28 +104,28 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
     p->phiout=zval/double(count);
     p->phiout=pgc->globalmax(p->phiout);
     }
-    
-    // set outflow fsf 
+
+    // set outflow fsf
     double wsfout=p->phimean;
     double f;
-    
+
     if(p->F62>1.0e-20)
     {
         if(p->F64==0)
         wsfout=p->F62;
-        
+
         if(p->F64>0)
         {
         if(p->count<p->F64)
         f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
-        
+
         if(p->count>=p->F64)
         f = 1.0;
-        
+
         wsfout = f*p->F62 + (1.0-f)*p->F60;
         }
     }
-    
+
     if(p->F62>-1.0e20 && p->B77==2)
     for(n=0;n<p->gcout_count;++n)
     {
@@ -137,7 +137,7 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
         a->phi(i+2,j,k)=wsfout-p->pos_z();
         a->phi(i+3,j,k)=wsfout-p->pos_z();
     }
-    
+
     pBC->patchBC_waterlevel(p,a,pgc,a->phi);
 }
 
@@ -154,7 +154,7 @@ void ioflow_f::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
         f(i+2,j,k)=a->phi(i+2,j,k);
         f(i+3,j,k)=a->phi(i+3,j,k);
         }
-        
+
         if(p->F62>-1.0e20 && p->B77==2)
         for(n=0;n<p->gcout_count;++n)
         {
@@ -213,21 +213,21 @@ double ioflow_f::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double 
 void ioflow_f::waterlevel_update(lexer *p,fdm *a,ghostcell *pgc)
 {
     double zval;
-    
-	ILOOP
+
+    ILOOP
     JLOOP
-	{
+    {
     zval=-1e20;
-	
+
         KLOOP
         PCHECK
         {
             if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
             zval=MAX(zval,-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
         }
-    
+
     a->WL(i,j) = zval - a->bed(i,j);
-    
+
     a->WL(i,j) = MAX(0.0001,a->WL(i,j));
     }
 }

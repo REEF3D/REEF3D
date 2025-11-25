@@ -28,7 +28,7 @@ Author: Hans Bihs
 void directreini::debug(lexer* p,fdm* a)
 {
 
-	double xp[6],yp[6],zp[6];
+    double xp[6],yp[6],zp[6];
     double nx,ny,nz;
     double nl;
     double d,t0,d_old;
@@ -36,8 +36,8 @@ void directreini::debug(lexer* p,fdm* a)
 
     char name[100];
     sprintf(name,"directreini_debug-%i.dat",p->mpirank+1);
-	ofstream result;
-	result.open(name);
+    ofstream result;
+    result.open(name);
     count=0;
 /*
     for(n=0;n<numtri; ++n)
@@ -98,7 +98,7 @@ void directreini::debug(lexer* p,fdm* a)
     x0 = pt[tri[n][q]][0] + t0*nx;
     y0 = pt[tri[n][q]][1] + t0*ny;
     z0 = pt[tri[n][q]][2] + t0*nz;
-    
+
     result<<"x: "<<x0<<" "<<y0<<" "<<z0<<endl;
     result<<"nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<" d: "<<d<<" nl: "<<nl<<endl;
     result<<"b: "<<xp[0]<<" "<<yp[0]<<" "<<zp[0]<<"   c: "<<xp[1]<<" "<<yp[1]<<" "<<zp[1]<<endl;

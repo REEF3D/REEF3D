@@ -26,9 +26,9 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"net.h"
 
-FSI_interface::FSI_interface(lexer *p, ghostcell *pgc) 
+FSI_interface::FSI_interface(lexer *p, ghostcell *pgc)
 {
-    
+
 }
 
 FSI_interface::~FSI_interface()
@@ -36,6 +36,6 @@ FSI_interface::~FSI_interface()
 }
 
 void FSI_interface::start(lexer *p, ghostcell *pgc)
-{ 
-    
+{
+
 }

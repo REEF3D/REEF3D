@@ -57,44 +57,44 @@ public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-	momentum_FCLS3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 
+    momentum_FCLS3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*,
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
-	virtual ~momentum_FCLS3();
-	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override;
-    
+    virtual ~momentum_FCLS3();
+    void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override;
+
 private:
 
     void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);    
-    
+    void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+
     field1 urk, Cu, fx;
-	field2 vrk, Cv, fy;
-	field3 wrk, Cw,  fz;
-    
+    field2 vrk, Cv, fy;
+    field3 wrk, Cw,  fz;
+
     field4 Cf;
 
-	convection *pconvec;
+    convection *pconvec;
     convection *pfsfdisc;
-	diffusion *pdiff;
-	diffusion *pdiff_e;
-	pressure *ppress;
-	poisson *ppois;
-	density *pdensity;
+    diffusion *pdiff;
+    diffusion *pdiff_e;
+    pressure *ppress;
+    poisson *ppois;
+    density *pdensity;
     turbulence *pturb;
-	solver *psolv;
+    solver *psolv;
     solver *ppoissonsolv;
      reini *preini;
-	ioflow *pflow; 
-    fsi *pfsi;   
+    ioflow *pflow;
+    fsi *pfsi;
     fluid_update *pupdate;
     picard *ppicard;
-    
-	int gcval_u, gcval_v, gcval_w, gcval_phi;
+
+    int gcval_u, gcval_v, gcval_w, gcval_phi;
 
     Eigen::Vector3d alpha, gamma, zeta;
 
-	double starttime;
+    double starttime;
 };
 
 #endif

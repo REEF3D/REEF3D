@@ -37,30 +37,30 @@ class sflow_pjm_hs : public sflow_pressure, public sflow_gradient
 
 public:
 
-	sflow_pjm_hs(lexer* p, fdm2D*,patchBC_interface*);
-	virtual ~sflow_pjm_hs();
+    sflow_pjm_hs(lexer* p, fdm2D*,patchBC_interface*);
+    virtual ~sflow_pjm_hs();
 
-	void start(lexer*,fdm2D*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override;
-	void ucorr(lexer*p,fdm2D*,slice&,double*,double*,double) override;
-	void vcorr(lexer*p,fdm2D*,slice&,double*,double*,double) override;
-	void wcorr(lexer*p,fdm2D*,slice&,double*,double*,double) override;
-	void upgrad(lexer*,fdm2D*,slice&) override;
-	void vpgrad(lexer*,fdm2D*,slice&) override;
+    void start(lexer*,fdm2D*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override;
+    void ucorr(lexer*p,fdm2D*,slice&,double*,double*,double) override;
+    void vcorr(lexer*p,fdm2D*,slice&,double*,double*,double) override;
+    void wcorr(lexer*p,fdm2D*,slice&,double*,double*,double) override;
+    void upgrad(lexer*,fdm2D*,slice&) override;
+    void vpgrad(lexer*,fdm2D*,slice&) override;
     void wpgrad(lexer*,fdm2D*,slice&) override;
-    
-	void rhs(lexer*,fdm2D*,ghostcell*,double*,double*,double*,double);
-	void vel_setup(lexer*,fdm2D*,ghostcell*,double*,double*,double*,double);
+
+    void rhs(lexer*,fdm2D*,ghostcell*,double*,double*,double*,double);
+    void vel_setup(lexer*,fdm2D*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm2D*,ghostcell*,double*,double*,double*,double);
 
 
 private:
 
-	double starttime,endtime;
-	int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
+    double starttime,endtime;
+    int count, gcval_press;
+    int gcval_u, gcval_v, gcval_w;
     double val, denom;
-    
-    
+
+
     density *pd;
     patchBC_interface *pBC;
 };

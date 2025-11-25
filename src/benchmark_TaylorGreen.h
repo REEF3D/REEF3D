@@ -39,12 +39,12 @@ class benchmark_TaylorGreen : public benchmark, public increment, public gradien
 
 public:
     benchmark_TaylorGreen(lexer*,fdm*);
-	virtual ~benchmark_TaylorGreen();
+    virtual ~benchmark_TaylorGreen();
 
-	void start(lexer*, fdm*, ghostcell*, convection*) override;
+    void start(lexer*, fdm*, ghostcell*, convection*) override;
 private:
-	
-	field4 vx,vy,vz;
+
+    field4 vx,vy,vz;
 };
 
 #endif

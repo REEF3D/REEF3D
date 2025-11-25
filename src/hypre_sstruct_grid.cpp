@@ -36,26 +36,26 @@ void hypre_sstruct::make_grid_7p(lexer* p,fdm* a, ghostcell* pgc)
     variable = 0;
     numvar = 1;
     object_type = HYPRE_SSTRUCT;
-    
+
     if(p->A10==3)
     kend=0;
-    
+
     // grid
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_j;
     ilower[2] = p->origin_k;
-    
+
     iupper[0] = p->knox+p->origin_i-1;
     iupper[1] = p->knoy+p->origin_j-1;
     iupper[2] = p->knoz+p->origin_k-1+kend;
-    
+
     vartypes[0] = HYPRE_SSTRUCT_VARIABLE_CELL;
-    
+
     HYPRE_SStructGridCreate(pgc->mpi_comm, dimensions, numparts, &grid);
     HYPRE_SStructGridSetExtents(grid, part, ilower, iupper);
     HYPRE_SStructGridSetVariables(grid, part, numvar, vartypes);
     HYPRE_SStructGridAssemble(grid);
-    
+
     // stencil
     HYPRE_SStructStencilCreate(3, 7, &stencil);
 
@@ -74,11 +74,11 @@ void hypre_sstruct::make_grid_7p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructMatrixCreate(pgc->mpi_comm, graph, &A);
     HYPRE_SStructMatrixSetObjectType(A, object_type);
     HYPRE_SStructMatrixInitialize(A);
-    
+
     // vec
     HYPRE_SStructVectorCreate(pgc->mpi_comm, grid, &b);
     HYPRE_SStructVectorCreate(pgc->mpi_comm, grid, &x);
-    
+
     HYPRE_SStructVectorSetObjectType(b, object_type);
     HYPRE_SStructVectorSetObjectType(x, object_type);
 
@@ -96,38 +96,38 @@ void hypre_sstruct::make_grid_13p(lexer* p,fdm* a, ghostcell* pgc)
     variable = 0;
     numvar = 1;
     object_type = HYPRE_PARCSR;
-    
+
     if(p->A10==3)
     kend=0;
-    
+
     // grid
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_j;
     ilower[2] = p->origin_k;
-    
+
     iupper[0] = p->knox+p->origin_i-1;
     iupper[1] = p->knoy+p->origin_j-1;
     iupper[2] = p->knoz+p->origin_k-1+kend;
-    
+
     vartypes[0] = HYPRE_SSTRUCT_VARIABLE_CELL;
-    
+
     HYPRE_SStructGridCreate(pgc->mpi_comm, dimensions, numparts, &grid);
     HYPRE_SStructGridSetExtents(grid, part, ilower, iupper);
     HYPRE_SStructGridSetVariables(grid, part, numvar, vartypes);
     HYPRE_SStructGridAssemble(grid);
-    
-    
+
+
     // stencil
     HYPRE_SStructStencilCreate(3, 13, &stencil);
 
     int entry;
-    
+
     int offsets[13][3] = {{0,0,0}, {-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}, {0,0,-1}, {0,0,1},
                                  {-2,0,0}, {2,0,0}, {0,-2,0}, {0,2,0}, {0,0,-2}, {0,0,2}};
 
     for (entry=0; entry<13; ++entry)
     HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
-    
+
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
     HYPRE_SStructGraphSetStencil(graph, part, variable, stencil);
@@ -137,11 +137,11 @@ void hypre_sstruct::make_grid_13p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructMatrixCreate(pgc->mpi_comm, graph, &A);
     HYPRE_SStructMatrixSetObjectType(A, object_type);
     HYPRE_SStructMatrixInitialize(A);
-    
+
     // vec
     HYPRE_SStructVectorCreate(pgc->mpi_comm, grid, &b);
     HYPRE_SStructVectorCreate(pgc->mpi_comm, grid, &x);
-    
+
     HYPRE_SStructVectorSetObjectType(b, object_type);
     HYPRE_SStructVectorSetObjectType(x, object_type);
 
@@ -158,24 +158,24 @@ void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
     variable = 0;
     numvar = 1;
     object_type = HYPRE_SSTRUCT;
-    
+
     // grid
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_j;
     ilower[2] = p->origin_k;
-    
+
     iupper[0] = p->knox+p->origin_i-1;
     iupper[1] = p->knoy+p->origin_j-1;
     iupper[2] = p->knoz+p->origin_k-1+kend;
-    
+
     vartypes[0] = HYPRE_SSTRUCT_VARIABLE_CELL;
-    
+
     HYPRE_SStructGridCreate(pgc->mpi_comm, dimensions, numparts, &grid);
     HYPRE_SStructGridSetExtents(grid, part, ilower, iupper);
     HYPRE_SStructGridSetVariables(grid, part, numvar, vartypes);
     HYPRE_SStructGridAssemble(grid);
-    
-    
+
+
     // stencil
     HYPRE_SStructStencilCreate(3, 15, &stencil);
 
@@ -185,7 +185,7 @@ void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
 
     for (entry=0; entry<15; ++entry)
     HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
-    
+
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
     HYPRE_SStructGraphSetStencil(graph, part, variable, stencil);
@@ -195,11 +195,11 @@ void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructMatrixCreate(pgc->mpi_comm, graph, &A);
     HYPRE_SStructMatrixSetObjectType(A, object_type);
     HYPRE_SStructMatrixInitialize(A);
-    
+
     // vec
     HYPRE_SStructVectorCreate(pgc->mpi_comm, grid, &b);
     HYPRE_SStructVectorCreate(pgc->mpi_comm, grid, &x);
-    
+
     HYPRE_SStructVectorSetObjectType(b, object_type);
     HYPRE_SStructVectorSetObjectType(x, object_type);
 
@@ -208,7 +208,7 @@ void hypre_sstruct::make_grid_15p(lexer* p,fdm* a, ghostcell* pgc)
 }
 
 void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
-{ 
+{
     kend=0;
     numparts=1;
     part=0;
@@ -216,21 +216,21 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
     variable = 0;
     numvar = 1;
     object_type = HYPRE_SSTRUCT;
-     
+
     // grid
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_k;
-    
+
     iupper[0] = p->knox+p->origin_i-1;
     iupper[1] = p->knoz+p->origin_k-1+kend;
-    
+
     vartypes[0] = HYPRE_SSTRUCT_VARIABLE_CELL;
-    
+
     HYPRE_SStructGridCreate(pgc->mpi_comm, dimensions, numparts, &grid);
     HYPRE_SStructGridSetExtents(grid, part, ilower, iupper);
     HYPRE_SStructGridSetVariables(grid, part, numvar, vartypes);
     HYPRE_SStructGridAssemble(grid);
-    
+
     // stencil
     HYPRE_SStructStencilCreate(2, 9, &stencil);
 
@@ -239,7 +239,7 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
 
     for (entry=0; entry<9; ++entry)
     HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
-    
+
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
     HYPRE_SStructGraphSetStencil(graph, part, variable, stencil);
@@ -249,11 +249,11 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer* p,fdm* a, ghostcell* pgc)
     HYPRE_SStructMatrixCreate(pgc->mpi_comm, graph, &A);
     HYPRE_SStructMatrixSetObjectType(A, object_type);
     HYPRE_SStructMatrixInitialize(A);
-    
+
     // vec
     HYPRE_SStructVectorCreate(pgc->mpi_comm, grid, &b);
     HYPRE_SStructVectorCreate(pgc->mpi_comm, grid, &x);
-    
+
     HYPRE_SStructVectorSetObjectType(b, object_type);
     HYPRE_SStructVectorSetObjectType(x, object_type);
 

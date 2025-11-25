@@ -41,16 +41,16 @@ using namespace std;
 class momentum_forcing : public increment
 {
 public:
-	momentum_forcing(lexer*);
-	virtual ~momentum_forcing();
-	void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof*, fsi*,
+    momentum_forcing(lexer*);
+    virtual ~momentum_forcing();
+    void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof*, fsi*,
                                 field&,field&,field&,field&,field&,field&,int,double,bool);
 
 private:
-	double uplus,ks_plus,dist,ks,ustar;
-	int ii,jj,kk;
-	double value;
-	int gcval_u,gcval_v,gcval_w;
+    double uplus,ks_plus,dist,ks,ustar;
+    int ii,jj,kk;
+    double value;
+    int gcval_u,gcval_v,gcval_w;
     double starttime, endtime;
 };
 #endif

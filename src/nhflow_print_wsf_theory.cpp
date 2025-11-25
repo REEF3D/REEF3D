@@ -30,20 +30,20 @@ Author: Hans Bihs
 
 nhflow_print_wsf_theory::nhflow_print_wsf_theory(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-	gauge_num = p->P50;
-	x = p->P50_x;
-	y = p->P50_y;
+    gauge_num = p->P50;
+    x = p->P50_x;
+    y = p->P50_y;
 
     if(p->P50>0)
-	{
-	gauge_num = p->P50;
-	x = p->P50_x;
-	y = p->P50_y;
-	}
+    {
+    gauge_num = p->P50;
+    x = p->P50_x;
+    y = p->P50_y;
+    }
 
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_NHFLOW_WSF",0777);
+    // Create Folder
+    if(p->mpirank==0)
+    mkdir("./REEF3D_NHFLOW_WSF",0777);
 
     if(p->mpirank==0 && p->P50>0)
     {

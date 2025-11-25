@@ -33,10 +33,10 @@ class convection_void : public convection, public increment
 
 public:
 
-	convection_void (lexer *);
-	virtual ~convection_void();
+    convection_void (lexer *);
+    virtual ~convection_void();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+    void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
 

@@ -30,7 +30,7 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
         /*
         a: space
         b: time
-        
+
         sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
         cos(a + b) = cos(a) cos(b) - sin(a) sin(b)
         */
@@ -49,7 +49,7 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
     count=0;
     SLICELOOP4
     {
-		dg = distgen(p);
+        dg = distgen(p);
 
         if(p->B98==2 && h_switch==1)
         {
@@ -57,42 +57,42 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
             if(dg<1.0e20)
             {
                 eta(i,j) = 0.0;
-                
+
                 for(qn=0;qn<wave_comp;++qn)
                 eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
 
             ++count;
             }
-		}
+        }
     }
     pgc->gcsl_start4(p,eta,50);
 
-    
+
     int dbcount=0;
-    
+
 // U
     count=0;
     LOOP
     {
         dg = distgen(p);
-		
-		// Wave Generation
-		if(p->B98==2 && u_switch==1)
+
+        // Wave Generation
+        if(p->B98==2 && u_switch==1)
         {
-            
+
             // Zone 1
             if(dg<1.0e20)
             {
             uval[count]=0.0;
-            
+
             for(qn=0;qn<wave_comp;++qn)
             uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
-            
+
             UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
-            
+
             ++count;
             }
-		}
+        }
     }
 
 
@@ -100,23 +100,23 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
     LOOP
     {
         dg = distgen(p);
-        
-		// Wave Generation
-		if(p->B98==2 && v_switch==1)
+
+        // Wave Generation
+        if(p->B98==2 && v_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
             {
             vval[count]=0.0;
-            
+
             for(qn=0;qn<wave_comp;++qn)
             vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
-            
+
             VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
-            
+
             ++count;
             }
-		}
+        }
     }
 
 
@@ -125,8 +125,8 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
     {
         dg = distgen(p);
 
-		// Wave Generation
-		if(p->B98==2 && w_switch==1)
+        // Wave Generation
+        if(p->B98==2 && w_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -135,16 +135,16 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
 
             for(qn=0;qn<wave_comp;++qn)
             wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
-            
+
             WHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
 
             ++count;
             }
-		}
-    }	
-    
+        }
+    }
 
 
-    
+
+
 }
-    
+

@@ -49,19 +49,19 @@ void ghostcell::flagbase(lexer *p, fdm *a)
 
     if(p->gcb4[n][4]==5)
     bc=5;
-	
-	if(p->gcb4[n][4]==6)
+
+    if(p->gcb4[n][4]==6)
     bc=6;
-	
-	if(p->gcb4[n][4]==7)
+
+    if(p->gcb4[n][4]==7)
     bc=7;
-	
-	if(p->gcb4[n][4]==8)
+
+    if(p->gcb4[n][4]==8)
     bc=7;
 
     if(p->gcb4[n][4]==21)
     bc=21;
-    
+
     if(p->gcb4[n][4]==22)
     bc=21;
 

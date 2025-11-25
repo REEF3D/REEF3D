@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 sflow_voidconv::sflow_voidconv(lexer* p8)
 {
-    
+
 }
 
 sflow_voidconv::~sflow_voidconv()

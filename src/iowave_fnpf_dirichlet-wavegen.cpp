@@ -29,14 +29,14 @@ Author: Hans Bihs
 void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &etaf)
 {
     double etax;
-    
-    // 
+
+    //
     count=0;
     for(n=0;n<p->gcslin_count;n++)
     {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
-        
+
         if(h_switch==1)
         {
         etaf(i,j)   = eta(i,j);
@@ -44,13 +44,13 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         etaf(i-2,j) = eta(i,j);
         etaf(i-3,j) = eta(i,j);
         }
-        
-        
+
+
         if(h_switch==0)
         {
         if(p->A329==1 || p->count<=2)
         etax = -(1.0/9.81) * (Fifsfval[count]-Fifsfval0[count])/p->dt;
-        
+
         if(p->A329==2 && p->count>2)
         etax = -(1.0/9.81) * (-1.5*Fifsfval[count] + 2.0*Fifsfval0[count] - 0.5*Fifsfval1[count])/(-1.5*time_n + 2.0*time_0 - 0.5*time_1);
 
@@ -58,57 +58,57 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         etaf(i-2,j) = etaf(i,j) + etax*2.0*p->DXP[IM1];
         etaf(i-3,j) = etaf(i,j) + etax*3.0*p->DXP[IM1];
         }
-        
+
         if(p->A329==1)
         {
         Fifsf(i-1,j) = Fifsf(i,j) - Fifsfval[count]*1.0*p->DXP[IM1];
         Fifsf(i-2,j) = Fifsf(i,j) - Fifsfval[count]*2.0*p->DXP[IM1];
         Fifsf(i-3,j) = Fifsf(i,j) - Fifsfval[count]*3.0*p->DXP[IM1];
         }
-        
+
         if(p->A329>=2)
         {
         Fifsf(i-1,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i+1,j) - (2.0/3.0)*Fifsfval[count]*(-1.5*p->XP[IM1] + 2.0*p->XP[IP] - 0.5*p->XP[IP1]);
         Fifsf(i-2,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i+1,j) - (2.0/3.0)*Fifsfval[count]*(-1.5*p->XP[IM2] + 2.0*p->XP[IP] - 0.5*p->XP[IP1]);
         Fifsf(i-3,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i+1,j) - (2.0/3.0)*Fifsfval[count]*(-1.5*p->XP[IM3] + 2.0*p->XP[IP] - 0.5*p->XP[IP1]);
         }
-    
+
         ++count;
     }
-    
-    
+
+
     count=0;
     for(n=0;n<p->gcslin_count;n++)
     {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
-        
+
         FKLOOP
         FPCHECK
         {
         Fi[FIm1JK] = Fi[FIJK] - Uinval[count]*1.0*p->DXP[IM1];
         Fi[FIm2JK] = Fi[FIJK] - Uinval[count]*2.0*p->DXP[IM1];
         Fi[FIm3JK] = Fi[FIJK] - Uinval[count]*3.0*p->DXP[IM1];
-        
+
         ++count;
         }
-        
-        
-        
+
+
+
     }
-    
+
     // Uin
     count=0;
     for(n=0;n<p->gcslin_count;n++)
     {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
-        
+
         FKLOOP
         FPCHECK
         {// add eta guard
-        Uin[FIm1JK] = Uinval[count]; 
-        
+        Uin[FIm1JK] = Uinval[count];
+
         ++count;
         }
     }

@@ -39,9 +39,9 @@ class flowfile_in : public increment
 {
 
 public:
-	flowfile_in(lexer*,ghostcell*);
-	virtual ~flowfile_in();
-    
+    flowfile_in(lexer*,ghostcell*);
+    virtual ~flowfile_in();
+
     void flowfile_start(lexer*,fdm*,ghostcell*,turbulence*);
     void ff_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
 
@@ -55,7 +55,7 @@ private:
      double ccipol4(lexer*,double**,double,double,double);
      double lint4(double**,int&,int&,int&,double,double,double);
      int conv(double);
-     
+
      ifstream headerfile;
      ifstream flowfile0;
      ifstream flowfile1;
@@ -65,9 +65,9 @@ private:
     char name1[400];
     int startup;
     float ffn;
-	int iin;
-	double ddn;
-	int printcount,entrycount;
+    int iin;
+    double ddn;
+    int printcount,entrycount;
     int q, count;
     int q0,q1;
     double t0,t1,tn;
@@ -75,10 +75,10 @@ private:
     double deltaT;
     double deltax;
     int dk,maxk;
-    
+
     int Ni,Nj,Nk;
     double xs,xe,ys,ye,zs,ze;
-    
+
     //data
     int *iter;
     double *simtime;
@@ -86,8 +86,8 @@ private:
     double **X1,**Y1,**Z1;
     double **U0,**V0,**W0,**P0,**LS0;
     double **U1,**V1,**W1,**P1,**LS1;
-     
-    
+
+
 };
 
 #endif

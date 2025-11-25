@@ -33,23 +33,23 @@ using namespace std;
 class sflow_ifou : public sflow_convection, public increment
 {
 public:
-	sflow_ifou(lexer*);
-	virtual ~sflow_ifou();
+    sflow_ifou(lexer*);
+    virtual ~sflow_ifou();
 
-	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override;
+    void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override;
 
 private:
     void aij(lexer*, fdm2D*, slice&, int, slice&, slice&);
-	
-	double dx,dy,L;
-	double ul,ur,vl,vr;
-    
+
+    double dx,dy,L;
+    double ul,ur,vl,vr;
+
     sflow_flux *pflux;
-    
+
     double ivel1,ivel2,jvel1,jvel2;
     double udir,vdir;
     double iadvec,jadvec;
-    
+
     int count;
 
 };

@@ -33,25 +33,25 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     if(p->mpirank==0)
     cout<<"Forcing ini "<<endl;
-    
+
     LOOP
     p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
-    
+
     pgc->start5V(p,p->ZSP,1);
-    
+
     objects_create(p, pgc);
     ray_cast(p, d, pgc);
     reini_RK2(p, d, pgc, d->SOLID);
-    
+
     SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
+    d->depth(i,j) = p->wd - d->bed(i,j);
     }
-    
+
     // --------------
     // DF
     LOOP
     p->DF[IJK]=1;
-    
+
     if(solid_flag==1)
     LOOP
     if(d->SOLID[IJK]<0.0)
@@ -61,13 +61,13 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     LOOP
     if(d->FB[IJK]<0.0)
     p->DF[IJK]=-1;
-    
+
     pgc->startintV(p,p->DF,1);
-    
+
     // -------------
     if(dlm_flag==1)
     objects_create(p, pgc);
-    
+
     // DFSL slice
     pgc->gcsldf_update(p);
     pgc->solid_forcing_eta(p,d->WL);
@@ -81,9 +81,9 @@ void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     LOOP
     {
-    FX[IJK] = 0.0;   
-    FY[IJK] = 0.0;   
-    FZ[IJK] = 0.0;   
+    FX[IJK] = 0.0;
+    FY[IJK] = 0.0;
+    FZ[IJK] = 0.0;
     d->FHB[IJK] = 0.0;
     }
 

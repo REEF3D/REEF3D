@@ -29,24 +29,24 @@ class ghostcell;
 
 using namespace std;
 
-class wave_lib_elliptic 
+class wave_lib_elliptic
 {
 public:
     wave_lib_elliptic();
-	virtual ~wave_lib_elliptic();
-    
+    virtual ~wave_lib_elliptic();
+
     void elliptic(lexer*,double,double&,double&,double&);
-	double K_elliptic_1(double);
-	double E_elliptic_1(double);
-	double K_elliptic_5(double);
-	double E_elliptic_5(double);
-	double K_elliptic(double);
-	double E_elliptic(double);
-    
+    double K_elliptic_1(double);
+    double E_elliptic_1(double);
+    double K_elliptic_5(double);
+    double E_elliptic_5(double);
+    double K_elliptic(double);
+    double E_elliptic(double);
+
     double Km,Em,ell,eta2;
     const double epsi;
     double modulus;
-    
+
 
 };
 

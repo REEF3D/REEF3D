@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef ITERATORS1D_H_
 #define ITERATORS1D_H_
 
-#define IP (i + marge) 
+#define IP (i + marge)
 #define IP1 (i + 1 + marge)
 #define IP2 (i + 2 + marge)
 #define IP3 (i + 3 + marge)

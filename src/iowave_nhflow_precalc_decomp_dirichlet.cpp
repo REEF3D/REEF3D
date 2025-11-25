@@ -27,7 +27,7 @@ Author: Hans Bihs
 void iowave::nhflow_wavegen_precalc_decomp_dirichlet(lexer *p, ghostcell *pgc)
 {
     int qn;
-        
+
     // ETA
         count=0;
         for(n=0;n<p->gcslin_count;n++)
@@ -36,13 +36,13 @@ void iowave::nhflow_wavegen_precalc_decomp_dirichlet(lexer *p, ghostcell *pgc)
         j=p->gcslin[n][1];
 
         eta(i,j) = 0.0;
-            
+
         for(qn=0;qn<wave_comp;++qn)
         eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-        
+
         ++count;
         }
-        
+
     // -------------
         count=0;
         for(n=0;n<p->gcin_count;n++)
@@ -58,11 +58,11 @@ void iowave::nhflow_wavegen_precalc_decomp_dirichlet(lexer *p, ghostcell *pgc)
     // V
         for(qn=0;qn<wave_comp;++qn)
         vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
-                    
+
     // W
         for(qn=0;qn<wave_comp;++qn)
         wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
-        
+
         ++count;
         }
 }

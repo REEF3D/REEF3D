@@ -40,14 +40,14 @@ class fluid_update_vof : public fluid_update, increment
 {
 public:
     fluid_update_vof(lexer*, fdm*, ghostcell*);
-	virtual ~fluid_update_vof();
+    virtual ~fluid_update_vof();
 
-	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
+    void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
 
 private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	const double dx,visc_air,visc_water,ro_air,ro_water,visc_body;
+    const double dx,visc_air,visc_water,ro_air,ro_water,visc_body;
     double epsi;
     density *pd;
 

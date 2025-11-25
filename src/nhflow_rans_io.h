@@ -38,8 +38,8 @@ class nhflow_rans_io : public nhflow_turbulence, public nhflow_strain
 {
 public:
     nhflow_rans_io(lexer*,fdm_nhf*);
-	virtual ~nhflow_rans_io();
-    
+    virtual ~nhflow_rans_io();
+
     void print_2D(lexer*, fdm_nhf*, ghostcell*,ofstream&,int) override;
     void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&) override;
     void ini(lexer*, fdm_nhf*, ghostcell*) override;
@@ -47,28 +47,28 @@ public:
     void inflow(lexer*, fdm_nhf*, ghostcell*);
     double kinval(int,int,int) override;
     double epsval(int,int,int) override;
-	void gcupdate(lexer*, fdm_nhf*, ghostcell*) override;
-	double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
+    void gcupdate(lexer*, fdm_nhf*, ghostcell*) override;
+    double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
     double ccipol_a_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
     void kinget(int,int,int,double) override;
     void epsget(int,int,int,double) override;
 
     void name_ParaView_parallel(lexer*, ofstream&) override;
     void name_ParaView(lexer*,stringstream&, int*, int &) override;
     void offset_ParaView(lexer*, int*, int &) override;
-    
+
     void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&) override;
     void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &) override;
     void offset_ParaView_2D(lexer*, int*, int &) override;
-    
+
     double *KIN,*EPS;
     int *WALLF;
-	
-	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
-	double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
-	double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
+
+    double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
+    double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
+    double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
 
 private:
     void tau_calc(lexer*,fdm_nhf*,ghostcell*);
@@ -76,15 +76,15 @@ private:
     void kepsini_default(lexer*,fdm_nhf*,ghostcell*);
     void flowdepth_inflow(lexer*, fdm_nhf*, ghostcell*);
 
-	float ffn;
-	int q,iin,ii,jj,kk;
-	int gcval_kin,gcval_eps,gcval_edv;
+    float ffn;
+    int q,iin,ii,jj,kk;
+    int gcval_kin,gcval_eps,gcval_edv;
 
-	double M,I,tau,H,B,ks,shearvel,kinbed,epsbed,omegabed;
+    double M,I,tau,H,B,ks,shearvel,kinbed,epsbed,omegabed;
     double uvel,refwalldist,fc,ev_fac, beddist, dist;
-	double kinw,epsw;
-	double walld,ddn,depth,depth_inflow;
-    
+    double kinw,epsw;
+    double walld,ddn,depth,depth_inflow;
+
 };
 
 #endif

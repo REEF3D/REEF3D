@@ -31,11 +31,11 @@ class sliceint;
 
 using namespace std;
 
-class sandslide  
+class sandslide
 {
 public:
 
-	virtual void start(lexer*,ghostcell*,sediment_fdm*)=0;
+    virtual void start(lexer*,ghostcell*,sediment_fdm*)=0;
 };
 
 #endif

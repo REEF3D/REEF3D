@@ -31,29 +31,29 @@ class wave_lib_precalc : public wave_lib
 {
 public:
     wave_lib_precalc();
-	virtual ~wave_lib_precalc();
-    
+    virtual ~wave_lib_precalc();
+
 
     double wave_u_space_sin(lexer*,double,double,double,int) override;
     double wave_u_space_cos(lexer*,double,double,double,int) override;
     double wave_u_time_sin(lexer*,int) override;
     double wave_u_time_cos(lexer*,int) override;
-    
+
     double wave_v_space_sin(lexer*,double,double,double,int) override;
     double wave_v_space_cos(lexer*,double,double,double,int) override;
     double wave_v_time_sin(lexer*,int) override;
     double wave_v_time_cos(lexer*,int) override;
-    
+
     double wave_w_space_sin(lexer*,double,double,double,int) override;
     double wave_w_space_cos(lexer*,double,double,double,int) override;
     double wave_w_time_sin(lexer*,int) override;
     double wave_w_time_cos(lexer*,int) override;
-    
+
     double wave_eta_space_sin(lexer*,double,double,int) override;
     double wave_eta_space_cos(lexer*,double,double,int) override;
     double wave_eta_time_sin(lexer*,int) override;
     double wave_eta_time_cos(lexer*,int) override;
-    
+
     void wave_fi_precalc_xy_ini(lexer*,int);
     void wave_fi_precalc_xy(lexer*,double,double,int);
     void wave_fi_precalc_n(lexer*);
@@ -61,7 +61,7 @@ public:
     double wave_fi_space_cos(lexer*,double,double,double,int) override;
     double wave_fi_time_sin(lexer*,int) override;
     double wave_fi_time_cos(lexer*,int) override;
-    
+
     double vel,T,eta,fi;
 };
 

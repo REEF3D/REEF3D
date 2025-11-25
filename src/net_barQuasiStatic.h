@@ -44,81 +44,81 @@ using namespace std;
 class net_barQuasiStatic : public net, public boundarycheck
 {
 public:
-	net_barQuasiStatic(int, lexer*);
-	virtual ~net_barQuasiStatic();
-    
-	void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d) override;
+    net_barQuasiStatic(int, lexer*);
+    virtual ~net_barQuasiStatic();
+
+    void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d) override;
     void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d) override;
-    
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override;
+
+    void initialize_cfd(lexer*, fdm*, ghostcell*) override;
     void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override;
-	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
-    
+    void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
+
     const EigenMat& getLagrangePoints() override {return lagrangePoints;}
     const EigenMat& getLagrangeForces() override {return lagrangeForces;}
     const EigenMat& getCollarVel() override {return collarVel;}
     const EigenMat& getCollarPoints() override {return collarPoints;}
-   
+
 
 private:
-    
+
     // -------------------------------
-	// Runtime
-	void startLoop(lexer*, ghostcell*, int&);
+    // Runtime
+    void startLoop(lexer*, ghostcell*, int&);
     void update_velocity_cfd(lexer*, fdm*, ghostcell*);
     void update_velocity_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    
+
     void updateField_cfd(lexer*, fdm*, ghostcell*, int);
     void updateField_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
-    
+
     void coupling_dlm_cfd(lexer*, fdm*, ghostcell*);
     void coupling_dlm_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    
+
     void updateLength();
     // -------------------------------
-    
+
     // Preprocessing
     void bag_ini(lexer*, ghostcell*);
-    void cyl_ini(lexer*, ghostcell*); 
-    void wall_ini(lexer*, ghostcell*); 
+    void cyl_ini(lexer*, ghostcell*);
+    void wall_ini(lexer*, ghostcell*);
     void genericNet();
     void iniInnerKnots();
-    void iniBoundaryKnots();  
+    void iniBoundaryKnots();
     void stretch();
     void iniLSE(lexer*);
-	void ini_parallel(lexer*, ghostcell*);
-    
-    
-    
+    void ini_parallel(lexer*, ghostcell*);
+
+
+
     typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
     typedef Eigen::Matrix<double, 3, 3> Matrix3d;
     typedef Eigen::Matrix<double, 1, 3> Vector3d;
-    
+
     typedef vector<vector<double> > MatrixVd;
     typedef vector<vector<int> > MatrixVi;
-    
-    
-    vector<Eigen::Vector3d> lagrangePoints;    
-    vector<Eigen::Vector3d> lagrangeForces;    
-    vector<Eigen::Vector3d> collarVel;    
-    vector<Eigen::Vector3d> collarPoints;    
-    
-    
+
+
+    vector<Eigen::Vector3d> lagrangePoints;
+    vector<Eigen::Vector3d> lagrangeForces;
+    vector<Eigen::Vector3d> collarVel;
+    vector<Eigen::Vector3d> collarPoints;
+
+
     void print(lexer*);
-    
+
     void buildNet_bag(lexer*);
-	void buildNet_cyl(lexer*);
+    void buildNet_cyl(lexer*);
     void buildNet_wall(lexer*);
-    
+
     void fillRhs_bag(lexer*);
-    
+
     void fillRhs_Morison(lexer*);
-    void morisonForceCoeff(double&, double&, const double&); 
- 
-    void fillRhs_Screen(lexer*);  
+    void morisonForceCoeff(double&, double&, const double&);
+
+    void fillRhs_Screen(lexer*);
     Eigen::Vector3d screenForce(lexer*, const double&, const Vector3d&, const Vector3d&, const double&, const int, const int);
     void screenForceCoeff(lexer*,double&, double&, const double&, const double&, const double&);
-    
+
     void triangulation(lexer*, ghostcell*);
     void create_triangle
         (
@@ -128,55 +128,55 @@ private:
             const double&,const double&,const double&,const double&,
             const double&
         );
-    
-	// ------ 
-	
-	// Parallelisation
-	int nNet;
-	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
-	
-	// Material constants
-	double EA, w, rho_c, l_c, d_c;
-	
-	// Mesh
-	double origin_x, origin_y, origin_z, phi, theta, psi;
-	double *l0, *l;
-    double L, D, al, ad, Fg, beta, gamma; 
+
+    // ------
+
+    // Parallelisation
+    int nNet;
+    double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+
+    // Material constants
+    double EA, w, rho_c, l_c, d_c;
+
+    // Mesh
+    double origin_x, origin_y, origin_z, phi, theta, psi;
+    double *l0, *l;
+    double L, D, al, ad, Fg, beta, gamma;
     int nd, nl, niK, nbK, nK, nf;
     MatrixXd fi, A, B, Bh;
     double **fb, **K, **K_;
     int *Pb, *Nb, *Pi, *Ni;
     vector<vector<int> > meshID;
-    
+
     // Net mesh
-    
+
     vector<double> meshPoints;
     vector<int> meshSide;
     vector<double> tetVol;
     MatrixVd tri_x, tri_y, tri_z, tri_vel, tetC;
     MatrixVi tetMesh;
-    
+
     // Raytracing
     fieldint5 cutl,cutr;
     double xs,xe,ys,ye,zs,ze;
-    int tend;  
-	
+    int tend;
+
     // Reini
-	vec f_,frk1,frk2,L_, dt;
-	int reiniter;
-	double xmin,xplus,ymin,yplus,zmin,zplus;
-	double dstx,dsty,dstz,lsSig,dnorm,op,lsv,sign;
+    vec f_,frk1,frk2,L_, dt;
+    int reiniter;
+    double xmin,xplus,ymin,yplus,zmin,zplus;
+    double dstx,dsty,dstz,lsSig,dnorm,op,lsv,sign;
 
-	// Forces
+    // Forces
     double Fx,Fy,Fz;
-	double **coupledField, **v_t, **v_n;
-	int **nfK;
+    double **coupledField, **v_t, **v_n;
+    int **nfK;
 
-	// Print
-	double *x, *y, *z, *T;
-	char name[100];
-	ofstream eTout;
-	double printtime;
+    // Print
+    double *x, *y, *z, *T;
+    char name[100];
+    ofstream eTout;
+    double printtime;
 };
 
 #endif

@@ -30,34 +30,34 @@ Author: Hans Bihs
 
 void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
-    
+
     SLICELOOP4
     s->active(i,j)=0;
-    
+
     ILOOP
     JLOOP
     {
         KWLOOP
         PSOLIDCHECK
         {
-            
+
         if(a->topo(i,j,k)<0.0 && a->topo(i,j,k+1)>=0.0)
         s->active(i,j)=1;
         }
     }
-    
+
     // assign gcsldfbed entries
     SLICEBASELOOP
     {
     k = s->bedk(i,j);
-    
+
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
-    
+
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
-    
+
     ALOOP
     a->test(i,j,k) = p->DFBED[IJ];
 }
@@ -66,15 +66,15 @@ void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
     SLICELOOP4
     s->active(i,j)=1;
-    
+
     // assign gcsldfbed entries
     SLICELOOP4
     {
     k = s->bedk(i,j);
-    
+
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
-    
+
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
@@ -84,14 +84,14 @@ void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     SLICELOOP4
     s->active(i,j)=1;
-    
+
     // assign gcsldfbed entries
     k=0;
     SLICELOOP4
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
-    
+
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
@@ -101,18 +101,18 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     SLICELOOP4
     s->active(i,j)=1;
-    
+
     // assign gcsldfbed entries
     k=0;
     SLICELOOP4
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
-    
+
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
-    
+
     LOOP
     d->test2D(i,j) = s->active(i,j);
 }
@@ -121,38 +121,38 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     s->active(i,j)=1;
-    
+
     SLICELOOP4
     if(b->solidbed(i,j) >= s->bedzh(i,j))
     {
     s->active(i,j)=0;
     }
-    
+
     // assign gcsldfeta entries
     k=p->knoz-1;
     SLICELOOP4
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
-    
+
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
-    
+
 }
 
 void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     s->active(i,j)=1;
-    
+
     // assign gcsldfeta entries
     k=p->knoz-1;
     SLICELOOP4
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
-    
+
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }

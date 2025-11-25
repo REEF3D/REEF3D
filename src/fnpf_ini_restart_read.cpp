@@ -31,55 +31,55 @@ void fnpf_ini::fnpf_restart_read(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 // head section
     result.read((char*)&iin, sizeof (int));
-    
+
     result.read((char*)&iin, sizeof (int));
-	p->count=p->count_statestart=iin;
-	
+    p->count=p->count_statestart=iin;
+
     result.read((char*)&iin, sizeof (int));
-	p->printcount=iin;
-	
+    p->printcount=iin;
+
     result.read((char*)&ddn, sizeof (double));
-	p->simtime=ddn;
-    
+    p->simtime=ddn;
+
     result.read((char*)&ddn, sizeof (double));
-	p->printtime=ddn;
-    
+    p->printtime=ddn;
+
     result.read((char*)&ddn, sizeof (double));
-	p->sedprinttime=ddn;
-    
+    p->sedprinttime=ddn;
+
     result.read((char*)&ddn, sizeof (double));
-	p->fsfprinttime=ddn;
-    
+    p->fsfprinttime=ddn;
+
     result.read((char*)&ddn, sizeof (double));
-	p->probeprinttime=ddn;
-    
+    p->probeprinttime=ddn;
+
     result.read((char*)&ddn, sizeof (double));
-	p->stateprinttime=ddn;
-    
+    p->stateprinttime=ddn;
+
     // result section
     SLICELOOP4
     {
     result.read((char*)&ffn, sizeof (float));
     c->eta(i,j)=double(ffn);
-    } 
-    
+    }
+
     SLICELOOP4
     {
     result.read((char*)&ffn, sizeof (float));
     c->Fifsf(i,j)=double(ffn);
-    } 
-    
+    }
+
     FLOOP
     result.read((char*)&ffn, sizeof (float));
-    
+
     FLOOP
     result.read((char*)&ffn, sizeof (float));
-    
+
     FLOOP
     result.read((char*)&ffn, sizeof (float));
-    
+
     if(p->I44==1)
     FLOOP
     result.read((char*)&ffn, sizeof (float));
-    
+
 }

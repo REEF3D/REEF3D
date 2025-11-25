@@ -31,30 +31,30 @@ double potentialfile_in::ccipol4(lexer *p, double**F, double xp, double yp, doub
 {
     int ii,jj,kk;
     double wa,wb,wc,value;
-    
+
     ii=i;
     jj=j;
     kk=k;
-    
+
     xp -= p->originx;
     yp -= p->originy;
     zp -= p->originz;
 
     i=0;
     j=0;
-    
+
     k=int((zp-zs)/deltax-0.5);
-	
+
 
     k=MAX(k,0);
     k=MIN(k,Nk);
-    
+
 
 
     wa=((double(i) + 1.5)-xp/deltax);
     wb=((double(j) + 1.5)-yp/deltax);
     wc=((double(k) + 1.5)-zp/deltax);
-	
+
 
     value =  lint4(F,i,j,k,wa,wb,wc);
 
@@ -77,12 +77,12 @@ double potentialfile_in::lint4(double **F, int& i,int& j, int& k, double wa, dou
 
     y1 = wb*x1 +(1.0-wb)*x2;
     y2 = wb*x3 +(1.0-wb)*x4;*/
-    
+
     y1 = F[0][k];
     y2 = F[0][k+1];
 
     value = wc*y1 +(1.0-wc)*y2;
-	
-    
+
+
     return value;
 }

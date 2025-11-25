@@ -33,7 +33,7 @@ public:
 
     cpt();
     virtual ~cpt();
-    
+
     void allocate(lexer*);
     void resize(lexer*,int,int);
 

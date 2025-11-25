@@ -32,12 +32,12 @@ class sflow_turb_parabolic : public sflow_turb_io_void
 
 public:
     sflow_turb_parabolic(lexer*);
-	virtual ~sflow_turb_parabolic();
-    
-	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override;
-	void ktimesave(lexer*, fdm2D*, ghostcell*) override;
-	void etimesave(lexer*, fdm2D*, ghostcell*) override;
-	
+    virtual ~sflow_turb_parabolic();
+
+    void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override;
+    void ktimesave(lexer*, fdm2D*, ghostcell*) override;
+    void etimesave(lexer*, fdm2D*, ghostcell*) override;
+
 };
 
 #endif

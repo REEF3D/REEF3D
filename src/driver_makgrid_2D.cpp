@@ -29,14 +29,14 @@ Author: Hans Bihs
 #include"mgcslice4.h"
 
 void driver::makegrid2D(lexer *p, ghostcell *pgc)
-{   
+{
     pgc->gcslflagx(p,p->flagslice4);
-    
+
     mgcslice1 m1(p);
-	mgcslice2 m2(p);
-	mgcslice4 m4(p);
-	
-	m1.makemgc(p);
+    mgcslice2 m2(p);
+    mgcslice4 m4(p);
+
+    m1.makemgc(p);
     pgc->gcslflagx(p,p->flagslice1);
     m1.gcb_seed(p);
     m1.mgcsetup(p);
@@ -55,29 +55,29 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
     m4.mgcsetup(p);
     m4.fillmgc(p);
     m4.gcdirfill(p);
-	
-	m1.make_ggc(p);
+
+    m1.make_ggc(p);
     m1.fill_ggc(p);
-	m2.make_ggc(p);
+    m2.make_ggc(p);
     m2.fill_ggc(p);
     m4.make_ggc(p);
     m4.fill_ggc(p);
-    
+
     pgc->gcsl_setbc1(p);
     pgc->gcsl_setbc2(p);
     pgc->gcsl_setbc4(p);
-    
+
     pgc->gcsl_setbcio(p);
-    
+
     pgc->dgcslini1(p);
-	pgc->dgcslini2(p);
-	pgc->dgcslini4(p);
+    pgc->dgcslini2(p);
+    pgc->dgcslini4(p);
 }
- 
+
 void driver::makegrid2D_cds(lexer *p, ghostcell *pgc, fdm2D *b)
-{      
+{
     p->flagini2D();
-    p->gridini2D();	
+    p->gridini2D();
 
     pgc->sizeS_update(p);
 }

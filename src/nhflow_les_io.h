@@ -37,8 +37,8 @@ class nhflow_les_io : public nhflow_turbulence, public nhflow_strain
 {
 public:
     nhflow_les_io(lexer*,fdm_nhf*);
-	virtual ~nhflow_les_io();
-    
+    virtual ~nhflow_les_io();
+
     void print_2D(lexer*, fdm_nhf*, ghostcell*,ofstream&,int) override {};
     void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&) override;
     void ini(lexer*, fdm_nhf*, ghostcell*) override;
@@ -46,22 +46,22 @@ public:
     void inflow(lexer*, fdm_nhf*, ghostcell*);
     double kinval(int,int,int) override;
     double epsval(int,int,int) override;
-	void gcupdate(lexer*, fdm_nhf*, ghostcell*) override;
-	double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
+    void gcupdate(lexer*, fdm_nhf*, ghostcell*) override;
+    double ccipol_kinval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_epsval(lexer*,ghostcell*,double,double,double) override;
     double ccipol_a_kinval(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override;
     void kinget(int,int,int,double) override;
     void epsget(int,int,int,double) override;
-    
+
     void isource(lexer*,fdm_nhf*) override;
-	void jsource(lexer*,fdm_nhf*) override;
-	void ksource(lexer*,fdm_nhf*) override;
+    void jsource(lexer*,fdm_nhf*) override;
+    void ksource(lexer*,fdm_nhf*) override;
 
     void name_ParaView_parallel(lexer*, ofstream&) override;
     void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
     void offset_ParaView(lexer*, int*, int &) override;
-    
+
     void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&) override {};
     void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &) override {};
     void offset_ParaView_2D(lexer*, int*, int &) override {};
@@ -70,8 +70,8 @@ private:
     void tau_calc(fdm_nhf*, lexer*, double);
     void kepsini_default(lexer*,fdm_nhf*,ghostcell*);
 
-	float ffn;
-	int n,iin;
+    float ffn;
+    int n,iin;
     int ii,jj,kk;
 };
 

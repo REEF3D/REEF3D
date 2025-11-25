@@ -61,14 +61,14 @@ double fnpf_cds6_wd::sx(lexer *p, slice &f, double ivel)
 double fnpf_cds6_wd::sy(lexer *p, slice &f, double jvel)
 {
     return (f(i,j+3) - 9.0*f(i,j+2) + 45.0*f(i,j+1) - 45.0*f(i,j-1) + 9.0*f(i,j-2) - f(i,j-3))
-          /(p->YP[JP3] - 9.0*p->YP[JP3] + 45.0*p->YP[JP1] - 45.0*p->YP[JM1] + 9.0*p->YP[JM2] - p->YP[JM3]);  
+          /(p->YP[JP3] - 9.0*p->YP[JP3] + 45.0*p->YP[JP1] - 45.0*p->YP[JM1] + 9.0*p->YP[JM2] - p->YP[JM3]);
 }
 
 double fnpf_cds6_wd::sz(lexer *p, double *f)
 {
     return (-(49.0/20.0)*f[FIJK] + 6.0*f[FIJKm1] - 7.5*f[FIJKm2] + (20.0/3.0)*f[FIJKm3] - 3.75*f[FIJKm4] + (6.0/5.0)*f[FIJKm5] - (1.0/6.0)*f[FIJKm6])
           /(-(49.0/20.0)*p->ZN[KP] + 6.0*p->ZN[KM1] - 7.5*p->ZN[KM2] + (20.0/3.0)*p->ZN[KM3] - 3.75*p->ZN[KM4] + (6.0/5.0)*p->ZN[KM5] - (1.0/6.0)*p->ZN[KM6]);
-     /*     
+     /*
     return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])
           /(-(25.0/12.0)*p->ZN[KP] + 4.0*p->ZN[KM1] - 3.0*p->ZN[KM2] + (4.0/3.0)*p->ZN[KM3] - 0.25*p->ZN[KM4]);*/
 }

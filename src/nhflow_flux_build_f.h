@@ -35,8 +35,8 @@ class nhflow_flux_build_f : public nhflow_flux_build, public increment
 
 public:
 
-	nhflow_flux_build_f(lexer*,ghostcell*,patchBC_interface*);
-	virtual ~nhflow_flux_build_f();
+    nhflow_flux_build_f(lexer*,ghostcell*,patchBC_interface*);
+    virtual ~nhflow_flux_build_f();
 
     void start_E(lexer*, fdm_nhf*, ghostcell*) override;
     void start_U(lexer*, fdm_nhf*, ghostcell*) override;

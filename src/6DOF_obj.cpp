@@ -34,8 +34,8 @@ Author: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_void.h"
 #include"net_interface.h"
 
-sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), dt(p), L(p), 
-                                                                                f(p), frk1(p), cutl(p), cutr(p), 
+sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), dt(p), L(p),
+                                                                                f(p), frk1(p), cutl(p), cutr(p),
                                                                                 fbio(p),n6DOF(number),
                                                                                 epsifb(1.6*p->DXM), epsi(1.6),vertice(p),
                                                                                 nodeflag(p),interfac(1.6),zero(0.0),eta(p),
@@ -44,84 +44,84 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
                                                                                 Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),draft(p),press(p)
 {
     prdisc = new reinidisc_fsf(p);
-    
+
     pnetinter = new net_interface(p,pgc);
-    
+
     triangle_token=0;
     printnormal_count=0;
-    
+
     alpha[0] = 8.0/15.0;
     alpha[1] = 2.0/15.0;
     alpha[2] = 2.0/6.0;
-    
+
     gamma[0] = 8.0/15.0;
     gamma[1] = 5.0/12.0;
     gamma[2] = 3.0/4.0;
-    
+
     zeta[0] = 0.0;
     zeta[1] = -17.0/60.0;
     zeta[2] = -5.0/12.0;
-    
-    if(((p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2)) 
+
+    if(((p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2))
     {
     alpha[0] = 1.0;
     alpha[1] = 0.25;
     alpha[2] = 2.0/3.0;
-    
+
     gamma[0] = 0.0;
     gamma[1] = 0.0;
     gamma[2] = 0.0;
-    
+
     zeta[0] = 0.0;
     zeta[1] = 0.0;
     zeta[2] = 0.0;
     }
-    
-    if(((p->N40==2 || p->N40==12 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2)) 
+
+    if(((p->N40==2 || p->N40==12 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2))
     {
     alpha[0] = 1.0;
     alpha[1] = 0.5;
-    
+
     gamma[0] = 0.0;
     gamma[1] = 0.0;
     gamma[2] = 0.0;
-    
+
     zeta[0] = 0.0;
     zeta[1] = 0.0;
     zeta[2] = 0.0;
     }
-    
-    
+
+
     if(p->X210==0 && p->X211==0)
     pmotion = new sixdof_motionext_void(p,pgc);
-    
+
     if((p->X210==1 || p->X211==1) && p->X240==0)
     pmotion = new sixdof_motionext_fixed(p,pgc);
-    
+
     if(p->X240==1)
     pmotion = new sixdof_motionext_file(p,pgc);
-    
+
     if(p->X240==11)
     pmotion = new sixdof_motionext_file_CoG(p,pgc);
-    
+
     if(p->X240==21)
     pmotion = new sixdof_motionext_wavemaker(p,pgc);
-    
+
     Mass_fb =  Rfb = Vfb = 1.0;
-    
-    
+
+
     if(p->A10==5)
     {
     pnhfrdisc = new nhflow_reinidisc_fsf(p);
-    
+
     p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
     p->Darray(DTT,p->imax*p->jmax*(p->kmax+2));
     p->Darray(LL,p->imax*p->jmax*(p->kmax+2));
-    
+
     p->Darray(fsf,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(vert,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(nflag,p->imax*p->jmax*(p->kmax+2));
@@ -131,4 +131,4 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
 sixdof_obj::~sixdof_obj()
 {
 }
-    
+

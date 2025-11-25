@@ -35,11 +35,11 @@ public:
 
 
     double viscosity(lexer*,fdm*,ghostcell*, field&, field&, field&);
-    
+
     void u_source(lexer*,fdm*);
     void v_source(lexer*,fdm*);
     void w_source(lexer*,fdm*);
-    
+
     void filltau(lexer*,fdm*,ghostcell*);
 
 };

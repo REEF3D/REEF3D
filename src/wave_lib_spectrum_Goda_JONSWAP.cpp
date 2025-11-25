@@ -24,7 +24,7 @@ Author: Widar W. Wang
 #include"lexer.h"
 #include"ghostcell.h"
 
-double wave_lib_spectrum::Goda_JONSWAP(lexer* p, double w) 
+double wave_lib_spectrum::Goda_JONSWAP(lexer* p, double w)
 {
     beta_J = 0.06238 / (0.230 + 0.0336 * p->B88 - 0.185 * pow((1.9 + p->B88), -1.0)) * (1.094 - 0.01915 * log(p->B88));
 

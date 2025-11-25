@@ -36,7 +36,7 @@ void geo_container::create_obj(lexer *p, int in_ID, int in_type, int in_trinum)
     ID = in_ID;
     type = in_type;
     trinum = in_trinum;
-    
+
     p->Darray(tri,trinum,3);
 }
 

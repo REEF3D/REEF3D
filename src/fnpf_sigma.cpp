@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 #define WLVLDRY (0.01*c->wd_criterion)
 
-fnpf_sigma::fnpf_sigma(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
+fnpf_sigma::fnpf_sigma(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
@@ -39,46 +39,46 @@ fnpf_sigma::~fnpf_sigma()
 }
 
 void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, slice &eta)
-{	
-    
-    
+{
+
+
     FLOOP
     p->sig[FIJK] =  p->ZN[KP];
-    
+
     // bc
     SLICELOOP4
     {
         k=0;
-    
+
             p->sig[FIJKm1] = p->ZN[KM1];
             p->sig[FIJKm2] = p->ZN[KM2];
             p->sig[FIJKm3] = p->ZN[KM3];
-        
+
         k=p->knoz;
 
             p->sig[FIJKp1] = p->ZN[KP1];
             p->sig[FIJKp2] = p->ZN[KP2];
             p->sig[FIJKp3] = p->ZN[KP3];
     }
-    
-    
+
+
     SLICELOOP4
-	c->bed(i,j) = p->bed[IJ];
-    
+    c->bed(i,j) = p->bed[IJ];
+
     SLICELOOP4
     c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
-    
+
     SLICEBASELOOP
     {
     PSLICECHECK4
-	c->depth(i,j) = p->wd - c->bed(i,j);
-    
+    c->depth(i,j) = p->wd - c->bed(i,j);
+
     SSLICECHECK4
-	c->depth(i,j) = p->wd - p->bed[IJ];
+    c->depth(i,j) = p->wd - p->bed[IJ];
     }
-    
+
     pgc->gcsl_start4(p,c->depth,50);
-    
+
     SLICELOOP4
     p->sigz[IJ] = 1.0/WLVL;
 }

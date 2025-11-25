@@ -32,11 +32,11 @@ using namespace std;
 class sediment_cds_hj : public sediment_exnerdisc, public increment
 {
 public:
-	sediment_cds_hj(lexer*);
-	virtual ~sediment_cds_hj();
+    sediment_cds_hj(lexer*);
+    virtual ~sediment_cds_hj();
 
     double sx(lexer*, slice&, double, double) override;
-	double sy(lexer*, slice&, double, double) override;
+    double sy(lexer*, slice&, double, double) override;
 
 private:
 

@@ -40,37 +40,37 @@ cds2::cds2(lexer *p)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_2D(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_2D(p);
     }
-    
+
     if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans_2D(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans_2D(p);
     }
     }
-    
+
     if(p->j_dir==1)
     {
     if(p->B269==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2(p);
     }
-    
+
     if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
     }
@@ -99,7 +99,7 @@ void cds2::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
     if(ipol==4)
     LOOP
     a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
-    
+
     if(ipol==5)
     LOOP
     a->L(i,j,k)+=aij(p,a,b,5,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
@@ -107,23 +107,23 @@ void cds2::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
 }
 
 double cds2::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
-{		
-		dx=dy=dz=0.0;
+{
+        dx=dy=dz=0.0;
 
         pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
-        pflux->w_flux(a,ipol,wvel,kvel1,kvel2);		
-		
-		dx = (ivel2*0.5*(b(i,j,k) + b(i+1,j,k))  -  ivel1*0.5*(b(i-1,j,k) +  b(i,j,k)))/DX[IP];
-		
-		if(p->j_dir==1)
-		dy = (jvel2*0.5*(b(i,j,k) + b(i,j+1,k))  -  jvel1*0.5*(b(i,j-1,k) +  b(i,j,k)))/DY[JP];
-		
-	
-		dz = (kvel2*0.5*(b(i,j,k) + b(i,j,k+1))  -  kvel1*0.5*(b(i,j,k-1) +  b(i,j,k)))/DZ[KP];
+        pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
 
-		L = -dx-dy-dz;
+        dx = (ivel2*0.5*(b(i,j,k) + b(i+1,j,k))  -  ivel1*0.5*(b(i-1,j,k) +  b(i,j,k)))/DX[IP];
 
-		return L;
+        if(p->j_dir==1)
+        dy = (jvel2*0.5*(b(i,j,k) + b(i,j+1,k))  -  jvel1*0.5*(b(i,j-1,k) +  b(i,j,k)))/DY[JP];
+
+
+        dz = (kvel2*0.5*(b(i,j,k) + b(i,j,k+1))  -  kvel1*0.5*(b(i,j,k-1) +  b(i,j,k)))/DZ[KP];
+
+        L = -dx-dy-dz;
+
+        return L;
 }
 

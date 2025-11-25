@@ -32,13 +32,13 @@ class concentration_void : public concentration
 {
 public:
     concentration_void(lexer *, fdm*, ghostcell*);
-	virtual ~concentration_void();
+    virtual ~concentration_void();
 
-	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override;
-	void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration) override;
-	void ttimesave(lexer*, fdm*) override;
+    void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override;
+    void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration) override;
+    void ttimesave(lexer*, fdm*) override;
 
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
     void concentration_ini(lexer*, fdm*, ghostcell*,concentration*);
     double val(int,int,int) override;
 

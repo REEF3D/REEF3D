@@ -38,9 +38,9 @@ geotopo::~geotopo()
 void geotopo::start(lexer* p, fdm* a, ghostcell* pgc, ioflow *pflow, reinitopo* preto, vrans* pvrans)
 {
     dat(p,a,pgc);
-    
+
     preto->start(p,a,pgc,a->topo);
-    
+
     if(p->S10==2)
     pflow->vrans_sed_update(p,a,pgc,pvrans);
 }

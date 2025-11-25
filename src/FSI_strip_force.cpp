@@ -33,13 +33,13 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
 
     for (int eI = 0; eI < Ne; eI++)
     {
-        lagrangeVel[eI] = Eigen::MatrixXd::Zero(3,lagrangePoints[eI].cols());   
-    
+        lagrangeVel[eI] = Eigen::MatrixXd::Zero(3,lagrangePoints[eI].cols());
+
         for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
         {
             const Eigen::Vector3d& coordI = lagrangePoints[eI].col(pI);
 
-            if 
+            if
             (
                 coordI(0) >= xstart[p->mpirank] && coordI(0) < xend[p->mpirank] &&
                 coordI(1) >= ystart[p->mpirank] && coordI(1) < yend[p->mpirank] &&
@@ -49,7 +49,7 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
                 ii = p->posc_i(coordI(0));
                 jj = p->posc_j(coordI(1));
                 kk = p->posc_k(coordI(2));
-                
+
                 dx = p->DXN[ii + marge];
                 dy = p->DYN[jj + marge];
                 dz = p->DZN[kk + marge];
@@ -66,7 +66,7 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
                             D *= kernel_roma(dist);
                             dist = (p->ZP[k_it + marge] - coordI(2))/dz;
                             D *= kernel_roma(dist);
-                            
+
                             lagrangeVel[eI](0,pI) += uvel(i_it,j_it,k_it)*D;
 
                             dist = (p->XP[i_it + marge] - coordI(0))/dx;
@@ -75,16 +75,16 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
                             D *= kernel_roma(dist);
                             dist = (p->ZP[k_it + marge] - coordI(2))/dz;
                             D *= kernel_roma(dist);
-                                
+
                             lagrangeVel[eI](1,pI) += vvel(i_it,j_it,k_it)*D;
-                            
+
                             dist = (p->XP[i_it + marge] - coordI(0))/dx;
                             D = kernel_roma(dist);
                             dist = (p->YP[j_it + marge] - coordI(1))/dy;
                             D *= kernel_roma(dist);
                             dist = (p->ZN[k_it + 1 + marge] - coordI(2))/dz;
                             D *= kernel_roma(dist);
-                             
+
                             lagrangeVel[eI](2,pI) += wvel(i_it,j_it,k_it)*D;
                         }
                     }
@@ -92,7 +92,7 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
             }
         }
     }
-    
+
     starttime=pgc->timer();
     for (int eI = 0; eI < Ne; eI++)
     {
@@ -101,7 +101,7 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
             lagrangeVel[eI].col(pI) << pgc->globalsum(lagrangeVel[eI](0,pI)), pgc->globalsum(lagrangeVel[eI](1,pI)), pgc->globalsum(lagrangeVel[eI](2,pI));
         }
     }
-    
+
     if(p->mpirank==0)
     cout<<"FSI_sync time: "<<pgc->timer()-starttime<<endl;
 }

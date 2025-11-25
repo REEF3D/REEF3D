@@ -37,27 +37,27 @@ class pjm : public pressure, public pressure_reference
 
 public:
 
-	pjm(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~pjm();
+    pjm(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
+    virtual ~pjm();
 
-	void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double) override;
+    void start(fdm*,lexer*, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double) override;
     void ini(lexer*,fdm*,ghostcell*) override;
-	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	void ucorr(lexer*,fdm*,field&,double) override;
-	void vcorr(lexer*,fdm*,field&,double) override;
-	void wcorr(lexer*,fdm*,field&,double) override;
-	void upgrad(lexer*,fdm*,slice&,slice&) override;
-	void vpgrad(lexer*,fdm*,slice&,slice&) override;
+    void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    void ucorr(lexer*,fdm*,field&,double) override;
+    void vcorr(lexer*,fdm*,field&,double) override;
+    void wcorr(lexer*,fdm*,field&,double) override;
+    void upgrad(lexer*,fdm*,slice&,slice&) override;
+    void vpgrad(lexer*,fdm*,slice&,slice&) override;
     void wpgrad(lexer*,fdm*,slice&,slice&) override;
 
-private:    
-	double starttime,endtime;
-	int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
-    
+private:
+    double starttime,endtime;
+    int count, gcval_press;
+    int gcval_u, gcval_v, gcval_w;
+
     density *pd;
-	
+
     concentration *pconc;
 };
 

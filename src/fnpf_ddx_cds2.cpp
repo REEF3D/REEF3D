@@ -39,7 +39,7 @@ double fnpf_ddx_cds2::sxx(lexer *p, slice &f)
 
 double fnpf_ddx_cds2::syy(lexer *p, slice &f)
 {
-    return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];    
+    return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];
 }
 
 

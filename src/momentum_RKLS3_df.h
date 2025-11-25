@@ -52,38 +52,38 @@ public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-	momentum_RKLS3_df(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
-	virtual ~momentum_RKLS3_df();
-	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override;
+    momentum_RKLS3_df(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*);
+    virtual ~momentum_RKLS3_df();
+    void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override;
 
-	void starti(lexer*, fdm*, ghostcell*, sixdof*, vrans*, fsi*);
+    void starti(lexer*, fdm*, ghostcell*, sixdof*, vrans*, fsi*);
 
 private:
 
     double Hsolidface(lexer*, fdm*, int, int, int);
-	
-    void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);    
-    
-    field1 urk, Cu, Du, fx;
-	field2 vrk, Cv, Dv, fy;
-	field3 wrk, Cw, Dw, fz;
 
-	convection *pconvec;
-	diffusion *pdiff;
-	pressure *ppress;
-	poisson *ppois;
+    void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+    void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
+
+    field1 urk, Cu, Du, fx;
+    field2 vrk, Cv, Dv, fy;
+    field3 wrk, Cw, Dw, fz;
+
+    convection *pconvec;
+    diffusion *pdiff;
+    pressure *ppress;
+    poisson *ppois;
     turbulence *pturb;
-	solver *psolv;
+    solver *psolv;
     solver *ppoissonsolv;
-	ioflow *pflow;    
-    
-	int gcval_u, gcval_v, gcval_w;
+    ioflow *pflow;
+
+    int gcval_u, gcval_v, gcval_w;
 
     Eigen::Vector3d alpha, gamma, zeta;
 
-	double starttime;
+    double starttime;
 };
 
 #endif

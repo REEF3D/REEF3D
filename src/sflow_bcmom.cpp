@@ -42,22 +42,22 @@ void sflow_bcmom::roughness_u(lexer* p, fdm2D *b, slice &U, slice &F, slice &WL)
 {
     if(p->A519>=1)
     {
-	k=0;
-    
+    k=0;
+
     SLICELOOP4
     {
     dist=p->DZN[KP]*WL(i,j);
-	
-	ks=b->ks(i,j);
+
+    ks=b->ks(i,j);
 
 
-		if(30.0*dist<ks)
-		dist=ks/30.0;
+        if(30.0*dist<ks)
+        dist=ks/30.0;
 
-		uplus = (1.0/kappa)*log(30.0*(dist/ks));
+        uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
-	
-	F(i,j) -= (fabs(U(i,j))*U(i,j)*WL(i,j))/(uplus*uplus*dist);
+
+    F(i,j) -= (fabs(U(i,j))*U(i,j)*WL(i,j))/(uplus*uplus*dist);
     }
     }
 }
@@ -67,24 +67,24 @@ void sflow_bcmom::roughness_v(lexer* p, fdm2D *b, slice &V, slice &G, slice &WL)
     if(p->A519>=1)
     {
     k=0;
-    
+
     SLICELOOP4
     {
     dist=p->DZN[KP]*WL(i,j);
-	
-	ks=b->ks(i,j);
+
+    ks=b->ks(i,j);
 
 
-		if(30.0*dist<ks)
-		dist=ks/30.0;
+        if(30.0*dist<ks)
+        dist=ks/30.0;
 
-		uplus = (1.0/kappa)*log(30.0*(dist/ks));
+        uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
-	
-	G(i,j) -= (fabs(V(i,j))*V(i,j)*WL(i,j))/(uplus*uplus*dist);
+
+    G(i,j) -= (fabs(V(i,j))*V(i,j)*WL(i,j))/(uplus*uplus*dist);
     }
     }
-	
+
 }
 
 void sflow_bcmom::roughness_w(lexer* p, fdm2D *b, slice &W, slice &H, slice &WL)

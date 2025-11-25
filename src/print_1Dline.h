@@ -38,9 +38,9 @@ class print_1Dline : public boundarycheck
 {
 public:
     print_1Dline(lexer*,fdm*,ghostcell*);
-	virtual ~print_1Dline();
+    virtual ~print_1Dline();
 
-	void height_gauge(lexer*, fdm*, ghostcell*);
+    void height_gauge(lexer*, fdm*, ghostcell*);
 
 private:
     void ini_location(lexer*, fdm*, ghostcell*);

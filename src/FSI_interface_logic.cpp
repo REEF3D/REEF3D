@@ -27,6 +27,6 @@ Author: Hans Bihs
 #include"net.h"
 
 void FSI_interface::FSI_logic(lexer *p, ghostcell *pgc)
-{ 
-    
+{
+
 }

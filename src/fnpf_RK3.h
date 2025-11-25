@@ -37,16 +37,16 @@ using namespace std;
 class fnpf_RK3 : public fnpf_ini, public fnpf_sigma
 {
 public:
-	fnpf_RK3(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_RK3();
-    
+    fnpf_RK3(lexer*, fdm_fnpf*, ghostcell*);
+    virtual ~fnpf_RK3();
+
     void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override;
     void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override;
     void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override;
-    
+
 private:
     void reference_gage(lexer*, fdm_fnpf*, ghostcell*, slice&);
-    
+
     int gcval,gcval_u,gcval_v,gcval_w;
     int gcval_eta,gcval_fifsf;
     int hypre_type;
@@ -57,7 +57,7 @@ private:
 
     fnpf_laplace *plap;
     fnpf_fsf *pf;
-    
+
     int gcval_sl;
     double t0;
 

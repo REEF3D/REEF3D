@@ -41,7 +41,7 @@ public:
     virtual void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&)=0;
     virtual void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&)=0;
     virtual void reconstruct_WL(lexer*,ghostcell*,fdm2D*)=0;
-    
+
 
 };
 

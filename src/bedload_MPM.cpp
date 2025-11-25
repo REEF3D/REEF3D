@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-bedload_MPM::bedload_MPM(lexer* p) 
+bedload_MPM::bedload_MPM(lexer* p)
 {
     rhosed=p->S22;
     rhowat=p->W1;
@@ -46,19 +46,19 @@ void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     double qb,Ts,Tb;
 
-	SEDSLICELOOP
+    SEDSLICELOOP
     {
         Ts = s->shields_crit(i,j);
-	    Tb = s->shields_eff(i,j);
+        Tb = s->shields_eff(i,j);
 
         if(s->active(i,j)==1 && Tb>=Ts)
         qb = 8.0*pow(MAX(Tb - Ts,0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
 
         if(s->active(i,j)==0 || Tb<Ts)
         qb=0.0;
-		
+
         s->qbe(i,j) = qb;
-	}
-    
+    }
+
     pgc->gcsl_start4(p,s->qbe,1);
 }

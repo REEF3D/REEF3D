@@ -30,13 +30,13 @@ void rheology_f::filltau(lexer *p, fdm *a, ghostcell *pgc)
     LOOP
     {
         pressurePhi(p,a,1,0,0,true);
-        
+
         // Yield Stress
         tau0 = yield_stress(p,a);
-         
+
         if(p->W110==7)
-        tau0 += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);   
-        
+        tau0 += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
+
         tau_x(i,j,k) = tau0;
         tau_y(i,j,k) = tau0;
         tau_z(i,j,k) = tau0;

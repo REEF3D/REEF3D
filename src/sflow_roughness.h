@@ -29,12 +29,12 @@ class slice;
 
 using namespace std;
 
-class sflow_roughness 
+class sflow_roughness
 {
 
 public:
 
-	virtual void u_source(lexer*, fdm2D*, slice&)=0;
+    virtual void u_source(lexer*, fdm2D*, slice&)=0;
     virtual void v_source(lexer*, fdm2D*, slice&)=0;
 
 };

@@ -33,26 +33,26 @@ void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, 
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
-    
+
         if(p->wet[IJ]==1)
         {
         P(i-1,j)=p->Ui;
         P(i-2,j)=p->Ui;
         P(i-3,j)=p->Ui;
         }
-        
+
         if(p->wet[IJ]==0)// || p->gcslin[n][5]==0)
         {
         P(i-1,j)=0.0;
         P(i-2,j)=0.0;
         P(i-3,j)=0.0;
         }
-		
-		Q(i-1,j)=0.0;
+
+        Q(i-1,j)=0.0;
         Q(i-2,j)=0.0;
         Q(i-3,j)=0.0;
     }
-    
+
     pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
 
@@ -72,6 +72,6 @@ void ioflow_f::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q
         Q(i-2,j)=V(i-2,j);
         Q(i-3,j)=V(i-3,j);
     }
-    
+
     pBC->patchBC_rkioflow2D(p,pgc,P,Q,U,V);
 }

@@ -36,17 +36,17 @@ heat_print::~heat_print()
 
 void heat_print::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
 {
-	
-	iin=4*(p->pointnum);
+
+    iin=4*(p->pointnum);
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
-	
-	TPLOOP
-	{
-	ffn=float(p->ipol4_a(T));
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
-	m+=sizeof(float);
-	}
+
+    TPLOOP
+    {
+    ffn=float(p->ipol4_a(T));
+    std::memcpy(&buffer[m],&ffn,sizeof(float));
+    m+=sizeof(float);
+    }
 }
 
 double heat_print::val(int ii, int jj, int kk)
@@ -72,5 +72,5 @@ void heat_print::name_ParaView(lexer *p, std::stringstream &result, int *offset,
 void heat_print::offset_ParaView(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    ++n;
 }

@@ -26,8 +26,8 @@ Authors: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 
 void boundary::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{	
-    
-    
-    
+{
+
+
+
 }

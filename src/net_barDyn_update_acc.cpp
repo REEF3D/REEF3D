@@ -38,11 +38,11 @@ void net_barDyn::updateAcc(lexer *p, ghostcell *pgc)
     for (int knotI = 0; knotI < nK; knotI++)
     {
         T_knot << 0.0, 0.0, 0.0;
-        
+
         if (knotI >= nfK[0][0]) // then inner knot
         {
-            xdotdot_.row(knotI) *= 0.0; 
-            
+            xdotdot_.row(knotI) *= 0.0;
+
             for (int k = 1; k < 5; k++)
             {
                 barI = nfK[knotI - nfK[0][0]][k];
@@ -63,11 +63,11 @@ void net_barDyn::updateAcc(lexer *p, ghostcell *pgc)
 
                     l_ij = x_ij.norm();
 
-                    T_knot += T_(barI)*x_ij/l_ij; 
+                    T_knot += T_(barI)*x_ij/l_ij;
                 }
             }
 
-            xdotdot_.row(knotI) = 
+            xdotdot_.row(knotI) =
                 (forces_knot.row(knotI) + T_knot)
                 /
                 (mass_knot(knotI) + added_mass(knotI));
@@ -76,7 +76,7 @@ void net_barDyn::updateAcc(lexer *p, ghostcell *pgc)
         {
             xdotdot_.row(knotI) = top_xdotdot_.row(knotI);
         }
-    } 
+    }
 }
 
 
@@ -91,7 +91,7 @@ void net_barDyn::updateTopAcc(lexer *p)
     }
 
     // Calculate top knot acceleration
-    top_xdotdot_ = 
+    top_xdotdot_ =
           coeffs_(0)*top_xdot_ + coeffs_(1)*xdot_.block(0,0,nbK,3)
         + coeffs_(2)*xdotn_.block(0,0,nbK,3) + coeffs_(3)*xdotnn_.block(0,0,nbK,3);
 }

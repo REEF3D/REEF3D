@@ -39,17 +39,17 @@ using namespace std;
 class patchBC_interface
 {
 public:
-    
+
     virtual void patchBC_ini(lexer*, ghostcell*)=0;
-    
+
     // BC update
     virtual void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&)=0;
     virtual void patchBC_rkioflow(lexer*, fdm*, ghostcell*, field&,field&,field&)=0;
     virtual void patchBC_discharge(lexer*, fdm*, ghostcell*)=0;
     virtual void patchBC_pressure(lexer*, fdm*, ghostcell*, field&)=0;
     virtual void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&)=0;
-    
-    
+
+
     virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&)=0;
     virtual void patchBC_rkioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&)=0;
     virtual void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&)=0;
@@ -57,12 +57,12 @@ public:
     virtual void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&, slice&)=0;
     virtual void patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&)=0;
     virtual void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)=0;
-    
+
     virtual void patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&)=0;
-    
+
     patch_obj **patch;
     int obj_count;
-    
+
 };
 
 #endif

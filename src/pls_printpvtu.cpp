@@ -37,36 +37,36 @@ void particle_pls::pvtu_pos(fdm* a, lexer* p, ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(name,"./REEF3D_PLS/XPLS-POS-%08i.pvtu",num);
+    sprintf(name,"./REEF3D_PLS/XPLS-POS-%08i.pvtu",num);
 
 
-	ofstream result;
-	result.open(name);
+    ofstream result;
+    result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>\n";
-	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
+    result<<"<?xml version=\"1.0\"?>\n";
+    result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
 
-	result<<"<PPointData>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"correction\"/>\n";
-	result<<"</PPointData>\n";
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"correction\"/>\n";
+    result<<"</PPointData>\n";
 
-	result<<"<PPoints>\n";
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-	result<<"</PPoints>\n";
+    result<<"<PPoints>\n";
+    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+    result<<"</PPoints>\n";
 
-	for(n=0; n<p->M10; ++n)
-	{
+    for(n=0; n<p->M10; ++n)
+    {
     piecename_pos(a,p,pgc,n);
     result<<"<Piece Source=\""<<pname<<"\"/>\n";
-	}
+    }
 
-	result<<"</PUnstructuredGrid>\n";
-	result<<"</VTKFile>\n";
+    result<<"</PUnstructuredGrid>\n";
+    result<<"</VTKFile>\n";
 
-	result.close();
+    result.close();
 }
 
 
@@ -79,36 +79,36 @@ void particle_pls::pvtu_neg(fdm* a, lexer* p, ghostcell* pgc)
 
     if(p->P15==2)
     num = p->count;
-	
-	sprintf(name,"./REEF3D_PLS/XPLS-NEG-%08i.pvtu",num);
-	
-	ofstream result;
-	result.open(name);
 
-	result<<"<?xml version=\"1.0\"?>\n";
-	result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-	result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
+    sprintf(name,"./REEF3D_PLS/XPLS-NEG-%08i.pvtu",num);
 
-	result<<"<PPointData>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
-	result<<"<PDataArray type=\"Float32\" Name=\"correction\"/>\n";
-	result<<"</PPointData>\n";
+    ofstream result;
+    result.open(name);
 
-	result<<"<PPoints>\n";
-	result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-	result<<"</PPoints>\n";
+    result<<"<?xml version=\"1.0\"?>\n";
+    result<<"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
 
-	for(n=0; n<p->M10; ++n)
-	{
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"correction\"/>\n";
+    result<<"</PPointData>\n";
+
+    result<<"<PPoints>\n";
+    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+    result<<"</PPoints>\n";
+
+    for(n=0; n<p->M10; ++n)
+    {
     piecename_neg(a,p,pgc,n);
     result<<"<Piece Source=\""<<pname<<"\"/>\n";
-	}
+    }
 
-	result<<"</PUnstructuredGrid>\n";
-	result<<"</VTKFile>\n";
+    result<<"</PUnstructuredGrid>\n";
+    result<<"</VTKFile>\n";
 
-	result.close();
+    result.close();
 }
 
 void particle_pls::piecename_pos(fdm* a, lexer* p, ghostcell* pgc, int n)
@@ -138,7 +138,7 @@ void particle_pls::piecename_neg(fdm* a, lexer* p, ghostcell* pgc, int n)
     if(p->P15==2)
     num = p->count;
 
-	sprintf(pname,"XPLS-NEG-%08i-%08i.vtu",num,n+1);
+    sprintf(pname,"XPLS-NEG-%08i-%08i.vtu",num,n+1);
 }
 
 void particle_pls::header_pos(fdm* a,lexer* p,ghostcell* pgc)
@@ -151,7 +151,7 @@ void particle_pls::header_pos(fdm* a,lexer* p,ghostcell* pgc)
     if(p->P15==2)
     num = p->count;
 
-    
+
     sprintf(name,"./REEF3D_PLS/XPLS-POS-%08i-%06i.vtp",num,p->mpirank+1);
 
 }

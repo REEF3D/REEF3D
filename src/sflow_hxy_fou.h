@@ -27,24 +27,24 @@ Author: Hans Bihs
 #include"sflow_hxy_disc.h"
 #include"increment.h"
 
-class sflow_flux;  
+class sflow_flux;
 
 using namespace std;
 
 class sflow_hxy_fou : public sflow_hxy_disc, public increment
 {
 public:
-	sflow_hxy_fou(lexer*,patchBC_interface*);
-	virtual ~sflow_hxy_fou();
+    sflow_hxy_fou(lexer*,patchBC_interface*);
+    virtual ~sflow_hxy_fou();
 
-	void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override;
+    void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override;
 
 private:
 
     sflow_flux *pflux;
     double ivel1,ivel2,jvel1,jvel2;
     int qq;
-    
+
     patchBC_interface *pBC;
 };
 

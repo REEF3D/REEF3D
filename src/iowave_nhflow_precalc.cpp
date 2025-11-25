@@ -28,18 +28,18 @@ Author: Hans Bihs
 void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     starttime=pgc->timer();
-    
+
     wave_prestep(p,pgc);
-    
+
     if(p->B89==0)
     {
         if(p->B98==2)
         nhflow_precalc_relax(p,d,pgc);
-                
+
         if(p->B98==3 || p->B98==4)
         nhflow_precalc_dirichlet(p,d,pgc);
     }
-    
+
     if(p->B89==1)
     {
         if(p->B98==2)
@@ -47,24 +47,24 @@ void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         nhflow_wavegen_precalc_decomp_time(p,pgc);
         nhflow_wavegen_precalc_decomp_relax(p,d,pgc);
         }
-            
+
         if(p->B98==3 || p->B98==4)
         {
         nhflow_wavegen_precalc_decomp_time(p,pgc);
         nhflow_wavegen_precalc_decomp_dirichlet(p,pgc);
         }
     }
-    
+
     p->wavecalctime+=pgc->timer()-starttime;
 }
 
 void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     wave_prestep(p,pgc);
-    
+
     if(p->B98==2)
     nhflow_precalc_relax_ini(p,d,pgc);
-        
+
     if(p->B98==3 || p->B98==4)
     nhflow_precalc_dirichlet_ini(p,d,pgc);
 }

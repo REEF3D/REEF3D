@@ -38,39 +38,39 @@ class hypre_struct2D : public solver2D, public increment
 {
 public:
 
-	hypre_struct2D(lexer*,ghostcell*);
-	virtual ~hypre_struct2D();
-	void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override;
+    hypre_struct2D(lexer*,ghostcell*);
+    virtual ~hypre_struct2D();
+    void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override;
 
-	void fillbackvec(lexer*,slice&,vec2D&,int);
-    
+    void fillbackvec(lexer*,slice&,vec2D&,int);
+
     void make_grid(lexer*, ghostcell*);
-	void fill_matrix(lexer*, ghostcell*, matrix2D&, slice&, vec2D&);
-	
+    void fill_matrix(lexer*, ghostcell*, matrix2D&, slice&, vec2D&);
+
     void solve(lexer*, ghostcell*);
-    
-	void create_solvers(lexer*,ghostcell*);
+
+    void create_solvers(lexer*,ghostcell*);
     void delete_solvers(lexer*,ghostcell*);
 
 private:
-    
-// HYPRE 
-	HYPRE_StructGrid     grid;
-	HYPRE_StructStencil  stencil;
-	HYPRE_StructMatrix   A;
-	HYPRE_StructVector   rhs;
-	HYPRE_StructVector   x;
-	HYPRE_StructSolver   solver;
-	HYPRE_StructSolver   precond;
 
-	int *ilower,*iupper;
+// HYPRE
+    HYPRE_StructGrid     grid;
+    HYPRE_StructStencil  stencil;
+    HYPRE_StructMatrix   A;
+    HYPRE_StructVector   rhs;
+    HYPRE_StructVector   x;
+    HYPRE_StructSolver   solver;
+    HYPRE_StructSolver   precond;
+
+    int *ilower,*iupper;
     double *values;
     int num_iterations;
     double final_res_norm;
-	int stencil_indices[7];
-	int nentries;
-   
-	int numiter,count,q;
+    int stencil_indices[7];
+    int nentries;
+
+    int numiter,count,q;
 
 };
 

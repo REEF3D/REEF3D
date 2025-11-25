@@ -42,41 +42,41 @@ using namespace std;
 class nhflow_forcing : public increment, private vtp3D
 {
 public:
-	nhflow_forcing(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_forcing();
-    
-    void forcing(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, 
+    nhflow_forcing(lexer*, fdm_nhf*, ghostcell*);
+    virtual ~nhflow_forcing();
+
+    void forcing(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof,
                  int, double, double*, double*, double*, slice&, bool);
-                 
-    void forcing_update(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, 
+
+    void forcing_update(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof,
                  int, double, double*, double*, double*, slice&, bool);
-    
+
     void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
-        
+
     void reset(lexer*, fdm_nhf*, ghostcell*);
-    
+
     double Hsolidface(lexer*, fdm_nhf*, int, int, int);
-    
+
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
     void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*,int,int);
-    
+
     void objects_create(lexer*, ghostcell*);
     void objects_allocate(lexer*, ghostcell*);
-    
+
     void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
-    
-    
+
+
     // DLM
     void dlm_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void dlm_forcecalc(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void dlm_forcing_ini(lexer*, ghostcell*);
     double kernel(const double&);
-    
+
 private:
     void box(lexer*, ghostcell*, int);
     void cylinder_y(lexer*, ghostcell*, int);
@@ -86,69 +86,69 @@ private:
     void wedge_x(lexer*, ghostcell*, int);
     void wedge_y(lexer*, ghostcell*, int);
     void wedge_z(lexer*, ghostcell*, int);
-    
+
     void read_stl(lexer*, ghostcell*);
-    
+
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
     void geometry_refinement(lexer*, ghostcell*);
     void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
-    
+
     void rotation(double&,double&,double&,double,double,double);
-    
-	void rotate_triangle(lexer*,int,int);
+
+    void rotate_triangle(lexer*,int,int);
     void rotation_ellipsoid(lexer*,int,double&,double&,double&,double,double,double);
-    
+
     void angle_calc(double,double,double,double&,double&,double&);
-    
+
     void print_vtp(lexer*);
-    
+
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
     double *FX,*FY,*FZ;
     slice4 fe;
-    
+
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
     vector<vector<double> > tri_x_r;
-	vector<vector<double> > tri_y_r;
-	vector<vector<double> > tri_z_r;
-    
+    vector<vector<double> > tri_y_r;
+    vector<vector<double> > tri_z_r;
+
     int *tstart,*tend;
     int tricount;
     int entity_count, entity_sum;
     double xs,xe,ys,ye,zs,ze;
     double zmin,zmax;
     double starttime;
-    
+
     int reiniter;
     int forcing_flag,solid_flag,floating_flag;
     int dlm_flag;
-    
+
     const double epsi;
-    
+
     nhflow_reinidisc_fsf *prdisc;
 
-    
+
     double H,Ht, uf, vf, wf, ef;
     double efc;
-	double nx, ny, nz,norm ;
-	double phival_sf;
+    double nx, ny, nz,norm ;
+    double phival_sf;
     double dirac;
-    
+
     double phi,theta,psi;
     double xrot,yrot,zrot;
-    
+
     // DLM
     double *EL_L,*EL_dx;
     double **EL_X,**EL_Y,**EL_Z,**EL_V;
     double **EL_FX,**EL_FY,**EL_FZ;
     int **EL_f;
-    
+
     int Ne,Np;
     int ii,jj,kk;
     int gcval_eta;
     double dx,dy,dz;
     double D,dist;
-    
+
     int gcval_u, gcval_v, gcval_w;
     int gcval_uh, gcval_vh, gcval_wh;
 };

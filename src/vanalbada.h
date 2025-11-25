@@ -31,17 +31,17 @@ using namespace std;
 class vanalbada : public fluxlim, public increment
 {
 public:
-	vanalbada (lexer *);
-	virtual ~vanalbada();
+    vanalbada (lexer *);
+    virtual ~vanalbada();
 
-	double iphi(field&,int,int,int,int) override;
-	double jphi(field&,int,int,int,int) override;
-	double kphi(field&,int,int,int,int) override;
+    double iphi(field&,int,int,int,int) override;
+    double jphi(field&,int,int,int,int) override;
+    double kphi(field&,int,int,int,int) override;
 
 private:
     double r, phi,denom;
-	double dx,dy,dz;
-	double L;
+    double dx,dy,dz;
+    double L;
 };
 
 #endif

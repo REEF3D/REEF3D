@@ -33,22 +33,22 @@ class ediff2 : public diffusion, public gradient
 
 public:
 
-	ediff2(lexer*);
-	virtual ~ediff2();
+    ediff2(lexer*);
+    virtual ~ediff2();
 
-	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double) override;
-	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double) override;
+    void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double) override;
+    void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double) override;
     void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double) override;
-    
+
     void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
-	void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
-	void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
+    void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
+    void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
 
 private:
-    
-	int gcval_u,gcval_v,gcval_w,gcval_scalar;
-	double D;
-	double ga;
-	double u_ijk,v_ijk,w_ijk,ev_ijk,visc_ijk;
+
+    int gcval_u,gcval_v,gcval_w,gcval_scalar;
+    double D;
+    double ga;
+    double u_ijk,v_ijk,w_ijk,ev_ijk,visc_ijk;
 };
 #endif

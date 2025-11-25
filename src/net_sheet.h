@@ -42,59 +42,59 @@ using namespace std;
 class net_sheet : public net, public boundarycheck
 {
 public:
-	net_sheet(int, lexer*);
-	virtual ~net_sheet();
-    
-	void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d) override;
+    net_sheet(int, lexer*);
+    virtual ~net_sheet();
+
+    void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d) override;
     void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d) override;
-    
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override;
+
+    void initialize_cfd(lexer*, fdm*, ghostcell*) override;
     void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override;
-	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
-    
+    void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
+
     const EigenMat& getLagrangePoints() override {return lagrangePoints;}
     const EigenMat& getLagrangeForces() override {return lagrangeForces;}
     const EigenMat& getCollarVel() override {return collarVel;}
     const EigenMat& getCollarPoints() override {return collarPoints;}
 
-    
+
 private:
-    
+
     // -------------------------------
-	// Runtime
-	void startLoop(lexer*, ghostcell*, int&);
+    // Runtime
+    void startLoop(lexer*, ghostcell*, int&);
     void update_velocity_cfd(lexer*, fdm*, ghostcell*);
     void update_velocity_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    
+
     void updateField_cfd(lexer*, fdm*, ghostcell*, int);
     void updateField_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
-    
+
     void coupling_dlm_cfd(lexer*, fdm*, ghostcell*);
     void coupling_dlm_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    
+
     // -------------------------------
-    
+
     // Preprocessing
-    void ini(lexer*, ghostcell*); 
+    void ini(lexer*, ghostcell*);
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
-    
+
 
     typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
     typedef Eigen::Matrix<double, 1, Eigen::Dynamic> VectorXd;
     typedef Eigen::Matrix<double, 3, 3> Matrix3d;
     typedef Eigen::Matrix<double, 1, 3> Vector3d;
-    
+
     typedef vector<vector<double> > MatrixVd;
     typedef vector<vector<int> > MatrixVi;
-    
-    
+
+
     void print(lexer*);
     Eigen::VectorXd timeWeight(lexer*);
     void gravityForce(lexer*);
     void dragForce(lexer*);
     void inertiaForce(lexer*);
     void screenForceCoeff(lexer*,double&, double&, const double&, const double&, const double&);
-   
+
 
 
     void triangulation(lexer*, ghostcell*);
@@ -106,36 +106,36 @@ private:
             const double&,const double&,const double&,const double&,
             const double&
         );
-    
-    
-	// ------ 
-	
-    
-	// Parallelisation
-	int nNet;
-	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
-	
-	// Material constants
-	double rho_c, l_c, d_c;
-	
-	// Mesh
+
+
+    // ------
+
+
+    // Parallelisation
+    int nNet;
+    double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+
+    // Material constants
+    double rho_c, l_c, d_c;
+
+    // Mesh
     int nK;
     MatrixXd x0_, x_, xdot_;
-    double dt_; 
+    double dt_;
     VectorXd mass_knot, weight_knot, added_mass;
     MatrixXd forces_knot;
     double **coupledField, **coupledFieldn;
-    
+
     // Net mesh
-    int tend;  
+    int tend;
     MatrixVd tri_x, tri_y, tri_z;
     MatrixVd tri_x0, tri_y0, tri_z0;
-    vector<Eigen::Vector3d> lagrangePoints;    
-    vector<Eigen::Vector3d> lagrangeForces;  
-    vector<Eigen::Vector3d> collarVel;    
-    vector<Eigen::Vector3d> collarPoints;    
+    vector<Eigen::Vector3d> lagrangePoints;
+    vector<Eigen::Vector3d> lagrangeForces;
+    vector<Eigen::Vector3d> collarVel;
+    vector<Eigen::Vector3d> collarPoints;
 
-	// Forces
+    // Forces
     double Fx,Fy,Fz;
 
     // Knots
@@ -144,9 +144,9 @@ private:
     // Probe Points
     Eigen::VectorXi probeKnot;
 
-	// Print
-	char name[100];
-	double printtime;
+    // Print
+    char name[100];
+    double printtime;
 };
 
 #endif

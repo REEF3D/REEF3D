@@ -31,10 +31,10 @@ using namespace std;
 class nhflow_suspended_void : public nhflow_suspended, public increment
 {
 public:
-	nhflow_suspended_void(lexer *);
-	virtual ~nhflow_suspended_void();
-	void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*) override;
-	void ctimesave(lexer*, fdm_nhf*) override;
+    nhflow_suspended_void(lexer *);
+    virtual ~nhflow_suspended_void();
+    void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*) override;
+    void ctimesave(lexer*, fdm_nhf*) override;
 
 };
 

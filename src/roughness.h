@@ -35,12 +35,12 @@ class roughness : virtual public increment
 {
 public:
     roughness(lexer*);
-	virtual ~roughness();
+    virtual ~roughness();
 
-	double ks_val(lexer*, fdm*,int,int,int,int,int);
+    double ks_val(lexer*, fdm*,int,int,int,int,int);
 
 private:
-	double ks;
+    double ks;
 
 };
 

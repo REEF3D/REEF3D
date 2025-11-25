@@ -37,12 +37,12 @@ class density_pst : public density, virtual public increment
 
 public:
     density_pst(lexer*);
-	virtual ~density_pst();
+    virtual ~density_pst();
 
-	double roface(lexer*,fdm*,int,int,int) override;
-	
-	double H,H_fb,roval,phival;
-	int ii,jj,kk;
+    double roface(lexer*,fdm*,int,int,int) override;
+
+    double H,H_fb,roval,phival;
+    int ii,jj,kk;
     double r,s;
     double topoval;
 

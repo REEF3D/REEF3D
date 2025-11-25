@@ -37,6 +37,6 @@ void sflow_rheology_v::u_source(lexer *p, fdm2D *b, slice &u, slice &v)
 }
 
 void sflow_rheology_v::v_source(lexer *p, fdm2D *b, slice &u, slice &v)
-{  
+{
 }
 

@@ -33,20 +33,20 @@ class wave_lib_Stokes_2nd : public wave_lib_precalc, public wave_lib_parameters,
 {
 public:
     wave_lib_Stokes_2nd(lexer*, ghostcell*);
-	virtual ~wave_lib_Stokes_2nd();
-    
+    virtual ~wave_lib_Stokes_2nd();
+
     double wave_horzvel(lexer*,double,double,double);
-    
+
     double wave_u(lexer*,double,double,double) override;
     double wave_v(lexer*,double,double,double) override;
     double wave_w(lexer*,double,double,double) override;
     double wave_eta(lexer*,double,double) override;
     double wave_fi(lexer*,double,double,double) override;
-    
+
     void parameters(lexer*,ghostcell*) override;
     void wave_prestep(lexer*,ghostcell*) override;
-    
-    
+
+
 private:
     double singamma,cosgamma;
 };

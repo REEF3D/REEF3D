@@ -33,12 +33,12 @@ void VOF_PLIC::RK_redistance
     lexer* p,
     ghostcell* pgc
 )
-{   
+{
     LOOP
     {
         if(a->vof(i,j,k)>0.001 && a->vof(i,j,k)<0.999)
             reconstructPlane_alt(a,p,a->vof);
-    
+
         else
         {
             nx(i,j,k)=2.0;

@@ -32,14 +32,14 @@ class heat_void : public heat
 {
 public:
     heat_void(lexer *, fdm*, ghostcell*);
-	virtual ~heat_void();
+    virtual ~heat_void();
 
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
-    
+    void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
+    void ttimesave(lexer*, fdm*) override;
+
     void diff_update(lexer*, fdm*, ghostcell*) override;
 
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
     void heat_ini(lexer*, fdm*, ghostcell*,heat*) override;
     double val(int,int,int) override;
 

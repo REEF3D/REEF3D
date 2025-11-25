@@ -40,18 +40,18 @@ using namespace std;
 class multiphase_v : public multiphase
 {
 public:
-	multiphase_v();
-	virtual ~multiphase_v();
-	void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*) override;
-	void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*) override;
-	void update(lexer*,fdm*,ghostcell*) override;
-	
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
-	void print_file(lexer*, fdm*, ghostcell*) override;
+    multiphase_v();
+    virtual ~multiphase_v();
+    void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*) override;
+    void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*) override;
+    void update(lexer*,fdm*,ghostcell*) override;
+
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void print_file(lexer*, fdm*, ghostcell*) override;
     double ls1val(int,int,int) override;
     double ls2val(int,int,int) override;
-	double ccipol_ls1val(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_ls2val(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_ls1val(lexer*,ghostcell*,double,double,double) override;
+    double ccipol_ls2val(lexer*,ghostcell*,double,double,double) override;
     void ls1get(int,int,int,double) override;
     void ls2get(int,int,int,double) override;
 

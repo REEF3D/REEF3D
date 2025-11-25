@@ -26,16 +26,16 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 wave_lib_deep::wave_lib_deep(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc)
-{ 
+{
     parameters(p,pgc);
-    
+
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: deep water waves"<<endl;
     cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
     cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
-    
+
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
 }
@@ -65,7 +65,7 @@ double wave_lib_deep::wave_v(lexer *p, double x, double y, double z)
 double wave_lib_deep::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
-    
+
     teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*exp(wk*z) * cos(teta);
@@ -76,7 +76,7 @@ double wave_lib_deep::wave_horzvel(lexer *p, double x, double y, double z)
 double wave_lib_deep::wave_w(lexer *p, double x, double y, double z)
 {
     double vel;
-    
+
     teta = wk*x-ww*(p->wavetime) + pshift;
 
     vel = ww*wa*exp(wk*z) * sin(teta);
@@ -87,7 +87,7 @@ double wave_lib_deep::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_deep::wave_eta(lexer *p, double x, double y)
 {
     double eta;
-    
+
     teta = wk*x-ww*(p->wavetime) + pshift;
 
     eta =  wa * cos(teta);
@@ -98,17 +98,17 @@ double wave_lib_deep::wave_eta(lexer *p, double x, double y)
 double wave_lib_deep::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
-    
+
     teta = wk*x-ww*(p->wavetime) + pshift;
 
     fi = PI*wH/(wk*wT)*exp(wk*z) * sin(teta);
-    
+
     return fi;
 }
 
 void wave_lib_deep::parameters(lexer *p, ghostcell *pgc)
-{    
-    
+{
+
 }
 
 void wave_lib_deep::wave_prestep(lexer *p, ghostcell *pgc)

@@ -40,37 +40,37 @@ cds4::cds4 (lexer *p)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_2D(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_2D(p);
     }
-    
+
     if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans_2D(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans_2D(p);
     }
     }
-    
+
     if(p->j_dir==1)
     {
     if(p->B269==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2(p);
     }
-    
+
     if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
     }
@@ -86,7 +86,7 @@ void cds4::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
     if(ipol==1)
     ULOOP
     a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel);
-    
+
     if(p->j_dir==1)
     if(ipol==2)
     VLOOP
@@ -107,29 +107,29 @@ void cds4::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
 }
 
 double cds4::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel)
-{		
-		dx=dy=dz=0.0;
-		
-		pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
+{
+        dx=dy=dz=0.0;
+
+        pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
         pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
         pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
-        
-		
-		dx= (ivel2*(27.0*b(i,j,k) + 27.0*b(i+1,j,k) - 3.0*b(i+2,j,k) - 3.0*b(i-1,j,k))  
-		 -  ivel1* (27.0*b(i,j,k) + 27.0*b(i-1,j,k) - 3.0*b(i-2,j,k) - 3.0*b(i+1,j,k)))/(48.0*p->DXM);
-
-		
-		if(p->j_dir==1)
-		dy= (jvel2*(27.0*b(i,j,k) + 27.0*b(i,j+1,k) - 3.0*b(i,j+2,k) - 3.0*b(i,j-1,k))  
-		 -  jvel1* (27.0*b(i,j,k) + 27.0*b(i,j-1,k) - 3.0*b(i,j-2,k) - 3.0*b(i,j+1,k)))/(48.0*p->DXM);
 
 
-		
-		dz= (kvel2*(27.0*b(i,j,k) + 27.0*b(i,j,k+1) - 3.0*b(i,j,k+2) - 3.0*b(i,j,k-1))  
-		 -  kvel1* (27.0*b(i,j,k) + 27.0*b(i,j,k-1) - 3.0*b(i,j,k-2) - 3.0*b(i,j,k+1)))/(48.0*p->DXM);
-		
-		L = -dx-dy-dz;
+        dx= (ivel2*(27.0*b(i,j,k) + 27.0*b(i+1,j,k) - 3.0*b(i+2,j,k) - 3.0*b(i-1,j,k))
+         -  ivel1* (27.0*b(i,j,k) + 27.0*b(i-1,j,k) - 3.0*b(i-2,j,k) - 3.0*b(i+1,j,k)))/(48.0*p->DXM);
 
-		return L;
+
+        if(p->j_dir==1)
+        dy= (jvel2*(27.0*b(i,j,k) + 27.0*b(i,j+1,k) - 3.0*b(i,j+2,k) - 3.0*b(i,j-1,k))
+         -  jvel1* (27.0*b(i,j,k) + 27.0*b(i,j-1,k) - 3.0*b(i,j-2,k) - 3.0*b(i,j+1,k)))/(48.0*p->DXM);
+
+
+
+        dz= (kvel2*(27.0*b(i,j,k) + 27.0*b(i,j,k+1) - 3.0*b(i,j,k+2) - 3.0*b(i,j,k-1))
+         -  kvel1* (27.0*b(i,j,k) + 27.0*b(i,j,k-1) - 3.0*b(i,j,k-2) - 3.0*b(i,j,k+1)))/(48.0*p->DXM);
+
+        L = -dx-dy-dz;
+
+        return L;
 }
 

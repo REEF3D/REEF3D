@@ -33,34 +33,34 @@ Author: Hans Bihs
 #include"ptf_fsf_update.h"
 #include"ptf_bed_update.h"
 
-ptf_RK4::ptf_RK4(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),   
+ptf_RK4::ptf_RK4(lexer *p, fdm *a, ghostcell *pgc) : ptf_fsfbc(p,a,pgc),
                                                       erk1(p),erk2(p),erk3(p),erk(p),
                                                       frk1(p),frk2(p),frk3(p),frk(p)
 {
     gcval=250;
     gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
-    
+    gcval_v=11;
+    gcval_w=12;
+
     if(p->F50==1)
-	gcval_eta = 51;
-    
+    gcval_eta = 51;
+
     if(p->F50==2)
-	gcval_eta = 52;
-    
+    gcval_eta = 52;
+
     if(p->F50==3)
-	gcval_eta = 53;
-    
+    gcval_eta = 53;
+
     if(p->F50==4)
-	gcval_eta = 54;
-    
+    gcval_eta = 54;
+
     gcval_eta = 50;
     gcval_fifsf = 50;
 
     plap = new ptf_laplace_cds2(p,a,pgc);
-    
+
     pfsfupdate = new ptf_fsf_update(p,a,pgc);
-    
+
     pbedupdate = new ptf_bed_update(p,a,pgc);
 
 }
@@ -70,7 +70,7 @@ ptf_RK4::~ptf_RK4()
 }
 
 void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
-{	
+{
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 
 // Step 1
@@ -80,10 +80,10 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
 
     SLICELOOP4
     {
-	erk1(i,j) = a->K(i,j);
+    erk1(i,j) = a->K(i,j);
     erk(i,j)  = a->eta(i,j) + 0.5*p->dt*erk1(i,j);
     }
-    
+
     pgc->gcsl_start4(p,erk,gcval_eta);
 
     // fsf Fi
@@ -91,13 +91,13 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
 
     SLICELOOP4
     {
-	frk1(i,j) = a->K(i,j);
+    frk1(i,j) = a->K(i,j);
     frk(i,j)  = a->Fifsf(i,j) + 0.5*p->dt*frk1(i,j);
     }
-    
+
     pgc->gcsl_start4(p,frk,gcval_fifsf);
-    
-    // Set Boundary Conditions    
+
+    // Set Boundary Conditions
     pflow->eta_relax(p,pgc,erk);
     pflow->fifsf_relax(p,pgc,frk);
     pfsfupdate->fsfupdate(p,a,pgc,pflow,erk);
@@ -105,10 +105,10 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->fsfbc(p,a,pgc,frk,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
-    
+
     // fsfdisc
     fsfdisc(p,a,pgc,erk,frk,a->Fi);
-    
+
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
@@ -116,31 +116,31 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->fsfbc(p,a,pgc,frk,a->Fi);
     pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,erk,frk);
-     
+
 // Step 2
-    
+
     // fsf eta
     kfsfbc(p,a,pgc);
-    
+
     SLICELOOP4
     {
-	erk2(i,j) = a->K(i,j);
+    erk2(i,j) = a->K(i,j);
     erk(i,j)  = a->eta(i,j) + 0.5*p->dt*erk2(i,j);
     }
-    
+
     pgc->gcsl_start4(p,erk,gcval_eta);
-    
+
     // fsf Fi
     dfsfbc(p,a,pgc,erk);
-    
+
     SLICELOOP4
     {
-	frk2(i,j) = a->K(i,j);
+    frk2(i,j) = a->K(i,j);
     frk(i,j)  = a->Fifsf(i,j) + 0.5*p->dt*frk2(i,j);
     }
-    
+
     pgc->gcsl_start4(p,frk,gcval_fifsf);
-    
+
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,erk);
     pflow->fifsf_relax(p,pgc,frk);
@@ -149,10 +149,10 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->fsfbc(p,a,pgc,frk,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
-    
+
     // fsfdisc
     fsfdisc(p,a,pgc,erk,frk,a->Fi);
-    
+
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
@@ -160,31 +160,31 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->fsfbc(p,a,pgc,frk,a->Fi);
     pgc->start4(p,a->Fi,gcval);
     fsfwvel(p,a,pgc,erk,frk);
-   
+
 // Step 3
-    
+
     // fsf eta
     kfsfbc(p,a,pgc);
-    
+
     SLICELOOP4
     {
-	erk3(i,j) = a->K(i,j);
+    erk3(i,j) = a->K(i,j);
     erk(i,j)  = a->eta(i,j) + p->dt*erk3(i,j);
     }
-    
+
     pgc->gcsl_start4(p,erk,gcval_eta);
-    
+
     // fsf Fi
     dfsfbc(p,a,pgc,erk);
-    
+
     SLICELOOP4
     {
-	frk3(i,j) = a->K(i,j);
+    frk3(i,j) = a->K(i,j);
     frk(i,j)  = a->Fifsf(i,j) + p->dt*frk3(i,j);
     }
-    
+
     pgc->gcsl_start4(p,frk,gcval_fifsf);
-    
+
     // Set Boundary Conditions
     pflow->eta_relax(p,pgc,erk);
     pflow->fifsf_relax(p,pgc,frk);
@@ -193,10 +193,10 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->fsfbc(p,a,pgc,frk,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
-    
+
     // fsfdisc
     fsfdisc(p,a,pgc,erk,frk,a->Fi);
-    
+
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
@@ -206,21 +206,21 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     fsfwvel(p,a,pgc,erk,frk);
 
 // Step 4
-    
+
     // fsf eta
     kfsfbc(p,a,pgc);
-    
+
     SLICELOOP4
     a->eta(i,j) = a->eta(i,j) + (1.0/6.0)*p->dt*(erk1(i,j) + 2.0*erk2(i,j) + 2.0*erk3(i,j) + a->K(i,j));
-    
+
     pgc->gcsl_start4(p,a->eta,gcval_eta);
-    
+
     // fsf Fi
     dfsfbc(p,a,pgc,erk);
-    
+
     SLICELOOP4
-	a->Fifsf(i,j) = a->Fifsf(i,j) + (1.0/6.0)*p->dt*(frk1(i,j) + 2.0*frk2(i,j) + 2.0*frk3(i,j) + a->K(i,j));
-    
+    a->Fifsf(i,j) = a->Fifsf(i,j) + (1.0/6.0)*p->dt*(frk1(i,j) + 2.0*frk2(i,j) + 2.0*frk3(i,j) + a->K(i,j));
+
     pgc->gcsl_start4(p,a->Fifsf,gcval_fifsf);
 
     // Set Boundary Conditions
@@ -231,10 +231,10 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
     pbedupdate->waterdepth(p,a,pgc);
     pbedupdate->bedbc(p,a,pgc,a->Fi);
-    
+
     // fsfdisc
     fsfdisc(p,a,pgc,a->eta,a->Fifsf,a->Fi);
-    
+
     // solve Fi
     pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pgc->start4(p,a->Fi,gcval);
@@ -247,29 +247,29 @@ void ptf_RK4::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv, convection 
 }
 
 void ptf_RK4::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reini *preini)
-{	
+{
     pfsfupdate->fsfupdate(p,a,pgc,pflow,a->eta);
     pfsfupdate->etaloc(p,a,pgc);
-    
+
     pbedupdate->waterdepth(p,a,pgc);
-    
+
     // potential ini
     //pflow->fi_relax(p,pgc,a->Fi,a->phi);
     pflow->fifsf_relax(p,pgc,a->Fifsf);
     pgc->start4(p,a->Fi,250);
     pgc->gcsl_start4(p,a->Fifsf,50);
-    
+
     pfsfupdate->fsfbc(p,a,pgc,a->Fifsf,a->Fi);
-    
+
     pfsfupdate->fsfepol(p,a,pgc,a->eta,a->Fi);
-    
+
     pgc->gcsl_start4(p,a->eta,50);
 
     pfsfupdate->velcalc(p,a,pgc,a->Fi);
 }
 
 void ptf_RK4::inidisc(lexer *p, fdm *a, ghostcell *pgc)
-{	
+{
 }
 
 

@@ -31,7 +31,7 @@ void resize_class::Darray(double*& field, int numi)
 }
 
 void resize_class::Darray(double**& field, int numi, int numj)
-{    
+{
     if(numi > 0)
     {
         field = new double*[numi];
@@ -54,7 +54,7 @@ void resize_class::Darray(double***& field, int numi, int numj, int numk)
             for(int n = 0; n < numi; ++n)
             {
                 field[n] = new double*[numj];
-                
+
                 if(numk > 0)
                     for(int m = 0; m < numj; ++m)
                     {
@@ -79,7 +79,7 @@ void resize_class::Darray(double****& field, int numi, int numj, int numk, int n
                     for(int m = 0; m < numj; ++m)
                     {
                         field[n][m] = new double*[numk];
-                        
+
                         if(numl > 0)
                             for(int q = 0; q < numk; ++q)
                             {
@@ -136,7 +136,7 @@ void resize_class::Iarray(int***& field, int numi, int numj, int numk)
             for(int n = 0; n < numi; ++n)
             {
                 field[n] = new int*[numj];
-                
+
                 if(numk > 0)
                     for(int m = 0; m < numj; ++m)
                     {
@@ -161,7 +161,7 @@ void resize_class::Iarray(int****& field, int numi, int numj, int numk, int numl
                     for(int m = 0; m < numj; ++m)
                     {
                         field[n][m] = new int*[numk];
-                        
+
                         if(numl > 0)
                             for(int q = 0; q < numk; ++q)
                             {
@@ -187,12 +187,12 @@ void resize_class::Iarray(int*****& field, int numi, int numj, int numk, int num
                     for(int m = 0; m < numj; ++m)
                     {
                         field[n][m] = new int**[numk];
-                        
+
                         if(numl > 0)
                             for(int q = 0; q < numk; ++q)
                             {
                                 field[n][m][q] = new int*[numl];
-                                
+
                                 if(numh > 0)
                                     for(int r = 0; r < numl; ++r)
                                     {
@@ -219,11 +219,11 @@ void resize_class::Iarray(int**& field, int numi, int* numj)
 }
 
 void resize_class::Iarray(int***& field, int numi, int* numj, int numk)
-{    
+{
     if(numi > 0)
     {
         field = new int**[numi];
-        
+
         for(int n = 0; n < numi; ++n)
             if(numj[n] > 0)
             {

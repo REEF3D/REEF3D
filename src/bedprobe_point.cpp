@@ -30,31 +30,31 @@ Author: Hans Bihs
 bedprobe_point::bedprobe_point(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     p->Iarray(iloc,p->P121);
-	p->Iarray(jloc,p->P121);
-	p->Iarray(flag,p->P121);
-	p->Darray(wsf,p->P121);
-	
-	// Create Folder
-	if(p->mpirank==0 && p->A10==2)
-	mkdir("./REEF3D_SFLOW_Sediment",0777);
-    
+    p->Iarray(jloc,p->P121);
+    p->Iarray(flag,p->P121);
+    p->Darray(wsf,p->P121);
+
+    // Create Folder
+    if(p->mpirank==0 && p->A10==2)
+    mkdir("./REEF3D_SFLOW_Sediment",0777);
+
     if(p->mpirank==0 && p->A10==5)
-	mkdir("./REEF3D_NHFLOW_Sediment",0777);
-    
+    mkdir("./REEF3D_NHFLOW_Sediment",0777);
+
     if(p->mpirank==0 && p->A10==6)
-	mkdir("./REEF3D_CFD_Sediment",0777);
-	
+    mkdir("./REEF3D_CFD_Sediment",0777);
+
     if(p->mpirank==0 && p->P121>0)
     {
     // open file
     if(p->A10==2)
-	wsfout.open("./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Point.dat");
-    
+    wsfout.open("./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Point.dat");
+
     if(p->A10==5)
-	wsfout.open("./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Point.dat");
-    
+    wsfout.open("./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Point.dat");
+
     if(p->A10==6)
-	wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
+    wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
 
     wsfout<<"number of gauges:  "<<p->P121<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
@@ -85,7 +85,7 @@ void bedprobe_point::bed_gauge(lexer *p, ghostcell *pgc, sediment_fdm *s)
     for(n=0;n<p->P121;++n)
     wsf[n]=-1.0e20;
 
-	
+
     for(n=0;n<p->P121;++n)
     if(flag[n]>0)
     {
@@ -93,10 +93,10 @@ void bedprobe_point::bed_gauge(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
     i=iloc[n];
     j=jloc[n];
-	
+
     wsf[n] = MAX(wsf[n],s->bedzh(i,j));
     }
-	
+
     for(n=0;n<p->P121;++n)
     wsf[n]=pgc->globalmax(wsf[n]);
 
@@ -127,8 +127,8 @@ void bedprobe_point::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
     if(check==1)
     flag[n]=1;
-	
-	//cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
+
+    //cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
     }
 }
 

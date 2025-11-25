@@ -29,42 +29,42 @@ void wave_lib_hdc::read_result_continuous(lexer *p, ghostcell *pgc, double **E0,
     // read file_iter
     result.read((char*)&iin, sizeof (int));
     file_iter=iin;
-    
+
     if(p->mpirank==0)
     cout<<"HDC file_iter: "<<file_iter<<endl;
-    
+
     // read
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     {
         result.read((char*)&ffn, sizeof (float));
         E0[i][j]=double(ffn);
-    } 
-    
+    }
+
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
     {
-        result.read((char*)&ffn, sizeof (float)); 
+        result.read((char*)&ffn, sizeof (float));
         U0[i][j][k]=double(ffn);
-    } 
-    
+    }
+
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
     {
-        result.read((char*)&ffn, sizeof (float)); 
+        result.read((char*)&ffn, sizeof (float));
         V0[i][j][k]=double(ffn);
-    } 
-    
+    }
+
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
     {
-        result.read((char*)&ffn, sizeof (float)); 
+        result.read((char*)&ffn, sizeof (float));
         W0[i][j][k]=double(ffn);
-    }  
+    }
 }
 
 
-        
+

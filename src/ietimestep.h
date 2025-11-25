@@ -33,26 +33,26 @@ using namespace std;
 class ietimestep : public timestep, public increment
 {
 public:
-	ietimestep(lexer*);
-	virtual ~ietimestep();
-	void start(fdm*,lexer*,ghostcell*,turbulence*) override;
-	void ini(fdm*,lexer*,ghostcell*) override;
+    ietimestep(lexer*);
+    virtual ~ietimestep();
+    void start(fdm*,lexer*,ghostcell*,turbulence*) override;
+    void ini(fdm*,lexer*,ghostcell*) override;
 
 
 private:
-	double max(double,double,double);
-	double max(double,double);
-	double min(double,double,double);
-	double min(double,double);
+    double max(double,double,double);
+    double max(double,double);
+    double min(double,double,double);
+    double min(double,double);
 
-	double visccrit,sqd,wallu,wallv,wallw;
-	double uplus;
-	double cu,cv,cw,ck,ce,cb;
-	double velmax;
-	const double epsi;
-	double isor,jsor,ksor;
-	double irsm,jrsm,krsm;
-	const double c0_orig;
+    double visccrit,sqd,wallu,wallv,wallw;
+    double uplus;
+    double cu,cv,cw,ck,ce,cb;
+    double velmax;
+    const double epsi;
+    double isor,jsor,ksor;
+    double irsm,jrsm,krsm;
+    const double c0_orig;
     double dx;
 
 

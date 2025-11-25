@@ -39,71 +39,71 @@ Author: Hans Bihs
 #include"waves_header.h"
 
 void driver::logic_fnpf()
-{    
+{
     if(p->mpirank==0)
     cout<<"creating objects"<<endl;
-    
+
     p->phimean = p->F60;
 
 // time stepping
-	pftstep=new fnpf_timestep(p);
-    
+    pftstep=new fnpf_timestep(p);
+
 // Printer
     pprint = new printer_fnpf(p,c,pgc);
-    
+
 //IOFlow
-	if(p->B60==0 && p->B90==0 && p->B180==0 )
-	pflow = new ioflow_v(p,pgc,pBC);
+    if(p->B60==0 && p->B90==0 && p->B180==0 )
+    pflow = new ioflow_v(p,pgc,pBC);
 
-	if(p->B90>=1)
-	pflow= new iowave(p,pgc,pBC);
-    
-//  Laplace Solver	
-	if(p->N10==0)
-	plapsolv = new solver_void(p,a,pgc);
+    if(p->B90>=1)
+    pflow= new iowave(p,pgc,pBC);
 
-	if(p->N10==1 && p->j_dir==0)
-	plapsolv = new bicgstab_ijk(p,a,pgc);
-    
+//  Laplace Solver
+    if(p->N10==0)
+    plapsolv = new solver_void(p,a,pgc);
+
+    if(p->N10==1 && p->j_dir==0)
+    plapsolv = new bicgstab_ijk(p,a,pgc);
+
     if(p->N10==1 && p->j_dir==1)
-	plapsolv = new bicgstab_ijk(p,a,pgc);
-	
-	#ifdef HYPRE_COMPILATION
-	if(p->N10>=10 && p->N10<20)
+    plapsolv = new bicgstab_ijk(p,a,pgc);
+
+    #ifdef HYPRE_COMPILATION
+    if(p->N10>=10 && p->N10<20)
     plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     #endif
-    
+
     #ifdef HYPRE_COMPILATION
-	if(p->N10>=20 && p->N10<30)
-	plapsolv = new hypre_aij(p,a,pgc);
-	#endif
-    
+    if(p->N10>=20 && p->N10<30)
+    plapsolv = new hypre_aij(p,a,pgc);
+    #endif
+
     #ifdef HYPRE_COMPILATION
-	if(p->N10>=30 && p->N10<40)
-	plapsolv = new hypre_sstruct(p,a,pgc);
-	#endif
-    
+    if(p->N10>=30 && p->N10<40)
+    plapsolv = new hypre_sstruct(p,a,pgc);
+    #endif
+
 //  Voids
-	pturb = new kepsilon_void(p,a,pgc);
-    
+    pturb = new kepsilon_void(p,a,pgc);
+
     pdata = new expdata_void(p,a,pgc);
-    
+
     pconc = new concentration_void(p,a,pgc);
-    
+
     pheat = new heat_void(p,a,pgc);
-    
+
     psed = new sediment_void();
-    
+
     preini = new reini_void(p);
-    
+
     pfsfdisc=new convection_void(p);
-    
+
 //  Wave Models
 
     if(p->A310==3)
     ppfsg = new fnpf_RK3(p,c,pgc);
-        
+
     if(p->A310==4)
     ppfsg = new fnpf_RK4(p,c,pgc);
-    
+
 }

@@ -24,31 +24,31 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void lexer::gridini(ghostcell *pgc)
-{        
+{
     if(G2==1)
     sigma_coord_ini();
-    
+
     lexer_gridspacing(pgc);
-	parse();	
+    parse();
     gcd_ini(pgc);
 }
 
 void lexer::flagini()
 {
     control_calc();
-	gridsize();
-	
-	Iarray(flag1,imax*jmax*kmax);
-	Iarray(flag2,imax*jmax*kmax);
-	Iarray(flag3,imax*jmax*kmax);
+    gridsize();
+
+    Iarray(flag1,imax*jmax*kmax);
+    Iarray(flag2,imax*jmax*kmax);
+    Iarray(flag3,imax*jmax*kmax);
     Iarray(flag5,imax*jmax*kmax);
     Iarray(flag,imax*jmax*kmax);
-    
+
     Iarray(flagsf1,imax*jmax*kmax);
-	Iarray(flagsf2,imax*jmax*kmax);
-	Iarray(flagsf3,imax*jmax*kmax);
-	Iarray(flagsf4,imax*jmax*kmax);
-    
+    Iarray(flagsf2,imax*jmax*kmax);
+    Iarray(flagsf3,imax*jmax*kmax);
+    Iarray(flagsf4,imax*jmax*kmax);
+
     for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     for(k=0; k<knoz; ++k)
@@ -58,7 +58,7 @@ void lexer::flagini()
     flagsf3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
     flagsf4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
     }
-    
+
     // boundary conditions
     Iarray(IO,imax*jmax*kmax);
     Iarray(IOSL,imax*jmax);
@@ -66,60 +66,60 @@ void lexer::flagini()
     Iarray(DF1,imax*jmax*kmax);
     Iarray(DF2,imax*jmax*kmax);
     Iarray(DF3,imax*jmax*kmax);
-    
+
     Iarray(DFBED,imax*jmax);
-    
+
     for(i=-margin; i<knox+margin; ++i)
     for(j=-margin; j<knoy+margin; ++j)
     DFBED[(i-imin)*jmax + j-jmin] = 1;
-    
+
     // flag
-	makeflag(flag1);
-	makeflag(flag2);
-	makeflag(flag3);
-    
+    makeflag(flag1);
+    makeflag(flag2);
+    makeflag(flag3);
+
     for(i=-margin; i<knox+margin; ++i)
     for(j=-margin; j<knoy+margin; ++j)
     for(k=-margin; k<knoz+margin; ++k)
     IO[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 0;
-    
+
     for(i=-margin; i<knox+margin; ++i)
     for(j=-margin; j<knoy+margin; ++j)
     IOSL[(i-imin)*jmax + j-jmin] = 0;
-    
+
     for(i=-margin; i<knox+margin; ++i)
     for(j=-margin; j<knoy+margin; ++j)
     for(k=-margin; k<knoz+margin; ++k)
     DF[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 1;
-	
-	x_dir=y_dir=z_dir=1.0;
-	
-	if(i_dir==0)
-	x_dir=0.0;
-	
-	if(j_dir==0)
-	y_dir=0.0;
-	
-	if(k_dir==0)
-	z_dir=0.0;
-	
-	
-	if(B98>=3)
-	for(n=0;n<gcb4_count;++n)
-	if(gcb4[n][4]==6)
-	gcb4[n][4]=1;	
-    
+
+    x_dir=y_dir=z_dir=1.0;
+
+    if(i_dir==0)
+    x_dir=0.0;
+
+    if(j_dir==0)
+    y_dir=0.0;
+
+    if(k_dir==0)
+    z_dir=0.0;
+
+
+    if(B98>=3)
+    for(n=0;n<gcb4_count;++n)
+    if(gcb4[n][4]==6)
+    gcb4[n][4]=1;
+
     // gcdf
     gcdf1_count=gcdf2_count=gcdf3_count=gcdf4_count=1;
-    
+
     Iarray(gcdf1,gcdf1_count,6);
     Iarray(gcdf2,gcdf2_count,6);
     Iarray(gcdf3,gcdf3_count,6);
     Iarray(gcdf4,gcdf4_count,6);
-    
+
     // gcsldf
     gcsldfeta4_count=1;
-    
+
     Iarray(gcsldfeta4,gcsldfeta4_count,6);
 }
 
@@ -129,51 +129,51 @@ void lexer::gridini_patchBC()
 
 int lexer::conv(double a)
 {
-	int b,c;
-	double d,diff;
+    int b,c;
+    double d,diff;
 
-	c= int( a);
-	d=double(c);
-	diff=a-d;
+    c= int( a);
+    d=double(c);
+    diff=a-d;
 
-	b=c;
+    b=c;
 
-	if(diff>0.5)
-	b=c+1;
+    if(diff>0.5)
+    b=c+1;
 
-	if(diff<=-0.5)
-	b=c-1;
+    if(diff<=-0.5)
+    b=c-1;
 
-	return b;
+    return b;
 }
 
 void lexer::gcd_ini(ghostcell *pgc)
-{  
+{
     for(int q=0;q<gcb4_count;++q)
-	{
+    {
         i=gcb4[q][0];
-		j=gcb4[q][1];
-		k=gcb4[q][2];
-	
+        j=gcb4[q][1];
+        k=gcb4[q][2];
+
     if(gcb4[q][3]==1 || gcb4[q][3]==4)
     gcd4[q] = 0.5*DXP[IP];
-    
+
     if(gcb4[q][3]==2 || gcb4[q][3]==3)
     gcd4[q] = 0.5*DYP[JP];
-    
+
     if(gcb4[q][3]==5 || gcb4[q][3]==6)
     gcd4[q] = 0.5*DZP[KP];
-	}
+    }
 }
 
 void lexer::sigma_coord_ini()
 {
     double L, ZN0temp;
-    
+
     L = ZN[knoz+marge] - ZN[0+marge];
-    
+
     ZN0temp = ZN[0+marge];
-    
+
     for(k=-marge;k<knoz+marge;++k)
     ZN[KP] = (ZN[KP]-ZN0temp)/L;
 }

@@ -26,14 +26,14 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 wave_lib_void::wave_lib_void(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc)
-{ 
+{
     parameters(p,pgc);
-    
+
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: no wave specified; "<<endl;
     }
-    
+
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
 }
@@ -78,7 +78,7 @@ double wave_lib_void::wave_eta(lexer *p, double x, double y)
 double wave_lib_void::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi=0.0;
-    
+
     return fi;
 }
 

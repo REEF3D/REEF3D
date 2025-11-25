@@ -28,20 +28,20 @@ Author: Hans Bihs
 void iowave::wavegen_precalc_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     starttime=pgc->timer();
-    
+
     // prestep
     wave_prestep(p,pgc);
-    
+
 
         if(p->B89==0 )
         {
             if(p->B98==2)
             fnpf_precalc_relax(p,pgc);
-            
+
             if(p->B98==3 || p->B98==4)
             fnpf_precalc_dirichlet(p,pgc);
         }
-        
+
         if(p->B89==1)
         {
             if(p->B98==2)
@@ -49,7 +49,7 @@ void iowave::wavegen_precalc_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             wavegen_precalc_decomp_time_fnpf(p,pgc);
             wavegen_precalc_decomp_relax_fnpf(p,pgc);
             }
-            
+
             if(p->B98==3 || p->B98==4)
             {
             wavegen_precalc_decomp_time_fnpf(p,pgc);
@@ -59,4 +59,4 @@ void iowave::wavegen_precalc_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     p->wavecalctime+=pgc->timer()-starttime;
 }
-    
+

@@ -19,7 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Elyas Larkermani
 
-Source: Nicoud, F., Ducros, F. Subgrid-Scale Stress Modelling Based on the Square of the Velocity Gradient Tensor. 
+Source: Nicoud, F., Ducros, F. Subgrid-Scale Stress Modelling Based on the Square of the Velocity Gradient Tensor.
 Flow, Turbulence and Combustion 62, 183–200 (1999). https://doi.org/10.1023/A:1009995426001
 --------------------------------------------------------------------*/
 
@@ -36,18 +36,18 @@ using namespace std;
 class LES_WALE : public LES
 {
 public:
-	LES_WALE(lexer *, fdm*);
-	virtual ~LES_WALE();
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
-	void ktimesave(lexer*, fdm*, ghostcell*) override;
-	void etimesave(lexer*, fdm*, ghostcell*) override;
+    LES_WALE(lexer *, fdm*);
+    virtual ~LES_WALE();
+    void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
+    void ktimesave(lexer*, fdm*, ghostcell*) override;
+    void etimesave(lexer*, fdm*, ghostcell*) override;
 
 private:
-	int gcval_sgs;
-	double c_wale;
-	int gcval_u1, gcval_v1, gcval_w1;
-	int gcval_u2, gcval_v2, gcval_w2;
-    
+    int gcval_sgs;
+    double c_wale;
+    int gcval_u1, gcval_v1, gcval_w1;
+    int gcval_u2, gcval_v2, gcval_w2;
+
     LES_filter *pfilter;
 
 };

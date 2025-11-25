@@ -39,12 +39,12 @@ double fnpf_ddx_cds4::sxx(lexer *p, slice &f)
     X2 = (-p->XP[IP2] + 27.0*p->XP[IP1] -27.0*p->XP[IP] + p->XP[IM1])*X0;
     X3 = (-p->XP[IP1] + 27.0*p->XP[IP] -27.0*p->XP[IM1] + p->XP[IM2])*X0;
     X4 = (-p->XP[IP] + 27.0*p->XP[IM1] -27.0*p->XP[IM2] + p->XP[IM3])*X0;
-    
+
     grad = (      f(i+3,j) - 27.0*f(i+2,j) + 27.0*f(i+1,j) - f(i,j))/X1
          + (-27.0*f(i+2,j) + 729.0*f(i+1,j) - 729.0*f(i,j) + 27.0*f(i-1,j))/X2
          + ( 27.0*f(i+1,j) - 729.0*f(i,j) + 729.0*f(i-1,j) - 27.0*f(i-2,j))/X3
          + (-f(i,j) + 27.0*f(i-1,j) - 27.0*f(i-2,j) + f(i-3,j))/X4;
-    
+
     return grad;
 }
 
@@ -55,13 +55,13 @@ double fnpf_ddx_cds4::syy(lexer *p, slice &f)
     Y2 = (-p->YP[JP2] + 27.0*p->YP[JP1] -27.0*p->YP[JP] + p->YP[JM1])*Y0;
     Y3 = (-p->YP[JP1] + 27.0*p->YP[JP] -27.0*p->YP[JM1] + p->YP[JM2])*Y0;
     Y4 = (-p->YP[JP] + 27.0*p->YP[JM1] -27.0*p->YP[JM2] + p->YP[JM3])*Y0;
-    
+
     grad = (      f(i,j+3) - 27.0*f(i,j+2) + 27.0*f(i,j+1) - f(i,j))/Y1
          + (-27.0*f(i,j+2) + 729.0*f(i,j+1) - 729.0*f(i,j) + 27.0*f(i,j-1))/Y2
          + ( 27.0*f(i,j+1) - 729.0*f(i,j) + 729.0*f(i,j-1) - 27.0*f(i,j-2))/Y3
          + (-f(i,j) + 27.0*f(i,j-1) - 27.0*f(i,j-2) + f(i,j-3))/Y4;
-    
-    return grad;    
+
+    return grad;
 }
 
 

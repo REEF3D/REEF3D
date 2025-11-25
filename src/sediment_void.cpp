@@ -56,7 +56,7 @@ void sediment_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow*, sli
 void sediment_void::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 }
-    
+
 void sediment_void::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo*)
 {
 }
@@ -92,11 +92,11 @@ double sediment_void::bedzhval(int ii, int jj)
 }
 
 void sediment_void::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
-{	
+{
 }
 
 void sediment_void::print_3D_bedload(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
-{	
+{
 }
 
 void sediment_void::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
@@ -116,11 +116,11 @@ void sediment_void::offset_ParaView_bedload(lexer *p, int *offset, int &n)
 }
 
 void sediment_void::print_2D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
-{	
+{
 }
 
 void sediment_void::print_3D_bedshear(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
-{	
+{
 }
 
 void sediment_void::name_ParaView_parallel_bedshear(lexer *p, ofstream &result)
@@ -140,11 +140,11 @@ void sediment_void::offset_ParaView_bedshear(lexer *p, int *offset, int &n)
 }
 
 void sediment_void::print_2D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
-{	
+{
 }
 
 void sediment_void::print_3D_parameter1(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
-{	
+{
 }
 
 void sediment_void::name_ParaView_parallel_parameter1(lexer *p, ofstream &result)
@@ -164,11 +164,11 @@ void sediment_void::offset_ParaView_parameter1(lexer *p, int *offset, int &n)
 }
 
 void sediment_void::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
-{	
+{
 }
 
 void sediment_void::print_3D_parameter2(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
-{	
+{
 }
 
 void sediment_void::name_ParaView_parallel_parameter2(lexer *p, ofstream &result)
@@ -189,7 +189,7 @@ void sediment_void::offset_ParaView_parameter2(lexer *p, int *offset, int &n)
 
 double sediment_void::bedshear_point(lexer *p, ghostcell *pgc)
 {
-	return 0.0;
+    return 0.0;
 }
 
 void sediment_void::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)

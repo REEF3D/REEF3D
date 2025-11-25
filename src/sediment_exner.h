@@ -39,9 +39,9 @@ using namespace std;
 class sediment_exner : public topo, public increment
 {
 public:
-	sediment_exner(lexer*, ghostcell*);
-	virtual ~sediment_exner();
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+    sediment_exner(lexer*, ghostcell*);
+    virtual ~sediment_exner();
+    void start(lexer*, ghostcell*, sediment_fdm*) override;
 
 
 private:
@@ -50,29 +50,29 @@ private:
     void  timestep(lexer*,ghostcell*,sediment_fdm*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
-    
+
     void filter(lexer*,ghostcell*,slice&,int,int);
-    
+
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;
-    
+
     vec2D xvec,rhsvec;
 
-	matrix2D M;
+    matrix2D M;
     slice4 qbx,qby,vztemp;
-    
-	int gcval_topo;
-	double starttime;
+
+    int gcval_topo;
+    double starttime;
     double maxdh,maxvz,maxdhnet,maxvznet;
     double dtsed0;
-	double vz;
-	double vzmax;
+    double vz;
+    double vzmax;
     double rhosed, rhowat, g, d50;
     double Ls;
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
-    
+
     slice4 q0;
 };
 

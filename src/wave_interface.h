@@ -30,62 +30,62 @@ class wave_lib;
 
 using namespace std;
 
-class wave_interface 
+class wave_interface
 {
 
 public:
-	wave_interface(lexer*, ghostcell*);
-	virtual ~wave_interface();
-	
+    wave_interface(lexer*, ghostcell*);
+    virtual ~wave_interface();
 
-	double wave_u(lexer*,ghostcell*,double,double,double);
-	double wave_v(lexer*,ghostcell*,double,double,double);
+
+    double wave_u(lexer*,ghostcell*,double,double,double);
+    double wave_v(lexer*,ghostcell*,double,double,double);
     double wave_w(lexer*,ghostcell*,double,double,double);
     double wave_h(lexer*,ghostcell*,double,double,double);
     double wave_fi(lexer*,ghostcell*,double,double,double);
     double wave_eta(lexer*,ghostcell*,double,double);
     double wave_um(lexer*,ghostcell*,double,double);
     double wave_vm(lexer*,ghostcell*,double,double);
-    
-    
+
+
     // decomp
     double wave_u_space_sin(lexer*,ghostcell*,double,double,double,int);
     double wave_u_space_cos(lexer*,ghostcell*,double,double,double,int);
     double wave_u_time_sin(lexer*,ghostcell*,int);
     double wave_u_time_cos(lexer*,ghostcell*,int);
-    
+
     double wave_v_space_sin(lexer*,ghostcell*,double,double,double,int);
     double wave_v_space_cos(lexer*,ghostcell*,double,double,double,int);
     double wave_v_time_sin(lexer*,ghostcell*,int);
     double wave_v_time_cos(lexer*,ghostcell*,int);
-    
+
     double wave_w_space_sin(lexer*,ghostcell*,double,double,double,int);
     double wave_w_space_cos(lexer*,ghostcell*,double,double,double,int);
     double wave_w_time_sin(lexer*,ghostcell*,int);
     double wave_w_time_cos(lexer*,ghostcell*,int);
-    
+
     double wave_eta_space_sin(lexer*,ghostcell*,double,double,int);
     double wave_eta_space_cos(lexer*,ghostcell*,double,double,int);
     double wave_eta_time_sin(lexer*,ghostcell*,int);
     double wave_eta_time_cos(lexer*,ghostcell*,int);
-    
+
     double wave_fi_space_sin(lexer*,ghostcell*,double,double,double,int);
     double wave_fi_space_cos(lexer*,ghostcell*,double,double,double,int);
     double wave_fi_time_sin(lexer*,ghostcell*,int);
     double wave_fi_time_cos(lexer*,ghostcell*,int);
-    
+
     void wave_prestep(lexer*,ghostcell*);
 
 
 private:
     wave_lib *pwave;
-    
-    
+
+
     int n,m,count;
     int wtype;
     double wD;
 
-	double starttime,endtime;
+    double starttime,endtime;
     static int printcheck;
 
 };

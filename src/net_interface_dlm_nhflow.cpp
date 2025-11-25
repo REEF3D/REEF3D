@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include <Eigen/Dense>
 
 void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
-{ 
+{
     // Distribute net forces on surrounding cells
     int ii, jj, kk;
     double dist, D, dx, dy, dz;
@@ -46,12 +46,12 @@ void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
 
     LOOP
     kernel_z(i,j,k) = 0.0;
-    
+
 
     for (int pI = 0; pI < lagrangePoints.size(); pI++)
     {
         const Eigen::Vector3d& forcesI = lagrangeForces[pI];
-        
+
         if (forcesI.norm()!=0.0)
         {
             const Eigen::Vector3d& coordI = lagrangePoints[pI];
@@ -73,14 +73,14 @@ void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
                         i = i_it;
                         j = j_it;
                         k = k_it;
-                        
+
                         dist = sqrt(pow(p->XP[IP] - coordI(0), 2.0))/dx;
                         D = kernel_peskin(dist);
                         dist = sqrt(pow(p->YP[JP] - coordI(1), 2.0))/dy;
                         D *= kernel_peskin(dist);
                         dist = sqrt(pow(p->ZSP[IJK] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
-                        
+
                         test = forcesI(0)*D/(dx*dy*dz);
                         d->Fext[IJK] -= test;
 
@@ -90,27 +90,27 @@ void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
                         D *= kernel_peskin(dist);
                         dist = sqrt(pow(p->ZSP[IJK] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
-                            
+
                         test = forcesI(1)*D/(dx*dy*dz);
                         d->Gext[IJK] -= test;
-                        
+
                         dist = sqrt(pow(p->XP[IP] - coordI(0), 2.0))/dx;
                         D = kernel_peskin(dist);
                         dist = sqrt(pow(p->YP[JP] - coordI(1), 2.0))/dy;
                         D *= kernel_peskin(dist);
                         dist = sqrt(pow(p->ZSP[IJK] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
-                         
+
                         test = forcesI(2)*D/(dx*dy*dz);
                         d->Hext[IJK] -= test;
-                        
+
                     }
                 }
             }
         }
-    } 
-    
-    pgc->start4V(p,d->Fext,10); 
-    pgc->start4V(p,d->Gext,11); 
-    pgc->start4V(p,d->Hext,12); 
+    }
+
+    pgc->start4V(p,d->Fext,10);
+    pgc->start4V(p,d->Gext,11);
+    pgc->start4V(p,d->Hext,12);
 }

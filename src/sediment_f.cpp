@@ -35,27 +35,27 @@ sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patc
 {
 
     pBC = ppBC;
-    
+
     sediment_logic(p,a,pgc,pturb);
 
-	p->gcin4a_count=p->gcin_count;
-	p->gcout4a_count=p->gcout_count;
-	
-    
+    p->gcin4a_count=p->gcin_count;
+    p->gcout4a_count=p->gcout_count;
+
+
     volume_token=0;
-    
+
     if(p->F50==1)
-	gcval_eta = 51;
-    
+    gcval_eta = 51;
+
     if(p->F50==2)
-	gcval_eta = 52;
-    
+    gcval_eta = 52;
+
     if(p->F50==3)
-	gcval_eta = 53;
-    
+    gcval_eta = 53;
+
     if(p->F50==4)
-	gcval_eta = 54;
-    
+    gcval_eta = 54;
+
     psed = this;
 }
 
@@ -66,27 +66,27 @@ sediment_f::~sediment_f()
 void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
     sedcalc=0;
-    
-	if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
-	{
-		if(p->S42==1 && p->count%p->S44==0)
-		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
-		
-		if(p->S42==2 && p->simtime>=p->sedsimtime)
-		{
-		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
-		p->sedsimtime = p->simtime + p->S46;
-		}
-		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
-		{            
-		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
-		p->sedwavetime = p->simtime/p->wT + p->S48;
-		}
-    
+
+    if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
+    {
+        if(p->S42==1 && p->count%p->S44==0)
+        sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
+
+        if(p->S42==2 && p->simtime>=p->sedsimtime)
+        {
+        sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
+        p->sedsimtime = p->simtime + p->S46;
+        }
+
+        if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
+        {
+        sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
+        p->sedwavetime = p->simtime/p->wT + p->S48;
+        }
+
     sedcalc=1;
-	}
-    
+    }
+
     if(sedcalc==0)
     {
     fill_bedk(p,a,pgc);
@@ -98,43 +98,43 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, rein
 void sediment_f::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
     if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47 && p->count>0))
-	{
-		if(p->S42==1 && p->count%p->S44==0)
-		sediment_algorithm_nhflow(p,d,pgc,pflow);
-		
-		if(p->S42==2 && p->simtime>=p->sedsimtime)
-		{
-		sediment_algorithm_nhflow(p,d,pgc,pflow);
-		p->sedsimtime = p->simtime + p->S46;
-		}
-		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime )
-		{
-		sediment_algorithm_nhflow(p,d,pgc,pflow);
-		p->sedwavetime = p->simtime/p->wT + p->S48;
-		}
-	}
+    {
+        if(p->S42==1 && p->count%p->S44==0)
+        sediment_algorithm_nhflow(p,d,pgc,pflow);
+
+        if(p->S42==2 && p->simtime>=p->sedsimtime)
+        {
+        sediment_algorithm_nhflow(p,d,pgc,pflow);
+        p->sedsimtime = p->simtime + p->S46;
+        }
+
+        if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime )
+        {
+        sediment_algorithm_nhflow(p,d,pgc,pflow);
+        p->sedwavetime = p->simtime/p->wT + p->S48;
+        }
+    }
 }
 
 void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
 {
     if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47 && p->count>0))
-	{
-		if(p->S42==1 && p->count%p->S44==0)
-		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
-		
-		if(p->S42==2 && p->simtime>=p->sedsimtime)
-		{
-		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
-		p->sedsimtime = p->simtime + p->S46;
-		}
-		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime )
-		{
-		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
-		p->sedwavetime = p->simtime/p->wT + p->S48;
-		}
-	}
+    {
+        if(p->S42==1 && p->count%p->S44==0)
+        sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
+
+        if(p->S42==2 && p->simtime>=p->sedsimtime)
+        {
+        sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
+        p->sedsimtime = p->simtime + p->S46;
+        }
+
+        if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime )
+        {
+        sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
+        p->sedwavetime = p->simtime/p->wT + p->S48;
+        }
+    }
 }
 
 

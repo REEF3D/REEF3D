@@ -32,7 +32,7 @@ Author: Tobias Martin
 void fsi_strip::print_ini(lexer *p)
 {
     // Ini print stl
-	if(p->mpirank==0)
+    if(p->mpirank==0)
     {
         mkdir("./REEF3D_CFD_Beam_STL", 0777);
     }
@@ -42,13 +42,13 @@ void fsi_strip::print_ini(lexer *p)
     char str[1000];
     sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
     print.open(str);
-	print<<"time \t x [m] \t y [m] \t z [m]"<<endl;
-	print.close();
-    
+    print<<"time \t x [m] \t y [m] \t z [m]"<<endl;
+    print.close();
+
     sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
     print.open(str);
-	print<<"time \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
-	print.close();
+    print<<"time \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
+    print.close();
 
     // Ini triangulised strip
     tri_x = Matrix3Xd::Zero(3,2*Ne);
@@ -56,7 +56,7 @@ void fsi_strip::print_ini(lexer *p)
     tri_z = Matrix3Xd::Zero(3,2*Ne);
 
     // Ini print time
-	printtime = 0.0;
+    printtime = 0.0;
     printcount_fsi = 0;
 }
 
@@ -68,9 +68,9 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0))
     {
         printtime+=p->P30;
-        
+
         char path[300];
-        
+
         if(num<10)
         sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-00000%i.stl",nstrip,num);
 
@@ -93,11 +93,11 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 
         ofstream result;
         result.open(path, ios::binary);
-        
+
         result<<"solid"<<" "<<"ascii"<<endl;
-        
+
         double zero=0.0;
-        
+
         for(n=0; n<2*Ne; ++n)
         {
         result<<" facet normal "<<zero<<" "<<zero<<" "<<zero<<endl;
@@ -108,7 +108,7 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
         result<<"  endloop"<<endl;
         result<<" endfacet"<<endl;
         }
-        
+
         result<<"endsolid"<<endl;
         result.close();
 
@@ -129,42 +129,42 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
 
         if(num>99999)
         sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-%i.csv",nstrip,num);
-        
+
         result.open(path, ios::binary);
 
-	    result<<"X \t Y \t Z \t U \t V \t W"<<endl;
+        result<<"X \t Y \t Z \t U \t V \t W"<<endl;
         for (int eI = 0; eI < Ne; eI++)
         {
             for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
             {
                 const Eigen::Vector3d& coordI = lagrangePoints[eI].col(pI);
                 const Eigen::Vector3d& velI = lagrangeVel[eI].col(pI);
-            
+
                 result<<coordI(0)<<","<<coordI(1)<<","<<coordI(2)<<","<<velI(0)<<","<<velI(1)<<","<<velI(2)<<endl;
             }
         }
         result.close();
 
-        printcount_fsi++;	
+        printcount_fsi++;
     }
 }
 
 void fsi_strip::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
 {
-	if(p->mpirank==0 && p->count%p->X19==0)
+    if(p->mpirank==0 && p->count%p->X19==0)
     {
         ofstream print;
         char str[1000];
-        
+
         sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
         print.open(str, std::ofstream::out | std::ofstream::app);
-        
+
         for (int eI = 0; eI < Ne+1; eI++)
         {
             print<<p->simtime<<" \t "<<x_el.col(eI).transpose()<<endl;
         }
         print.close();
-        
+
         sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
         print.open(str, std::ofstream::out | std::ofstream::app);
         Eigen::Vector3d sum = Eigen::Vector3d::Zero();
@@ -187,7 +187,7 @@ void fsi_strip::build_strip()
         tri_x.col(ind) << x_el(0,eI), x_el(0,eI+1), x_el(0,eI+1);
         tri_y.col(ind) << x_el(1,eI)-W_el/2, x_el(1,eI)-W_el/2, x_el(1,eI)+W_el/2;
         tri_z.col(ind) << x_el(2,eI), x_el(2,eI+1), x_el(2,eI+1);
-       
+
         ind++;
 
         // Triangle 2

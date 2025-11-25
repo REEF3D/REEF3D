@@ -29,58 +29,58 @@ void fnpf_breaking::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
 {
     double he,hw,hn,hs,hp;
     double dhe, dhw, dhn, dhs,dhp;
-    
+
     int outer_iter = p->A361;
     int inner_iter = p->A362;
-    
+
     if(p->j_dir==0)
-	for(int qn=0;qn<outer_iter;++qn)
-	{
-		hp = f(i,j);
+    for(int qn=0;qn<outer_iter;++qn)
+    {
+        hp = f(i,j);
         hs = f(i-1,j);
         hn = f(i+1,j);
 
         // predictor
 
-		f(i,j) = 0.5*hp + 0.25*(hs + hn);
-		
+        f(i,j) = 0.5*hp + 0.25*(hs + hn);
+
         // corrector
-		for(int qqn=0;qqn<inner_iter;++qqn)
-		{
+        for(int qqn=0;qqn<inner_iter;++qqn)
+        {
             dhp = hp - f(i,j);
             dhs = hs - f(i-1,j);
             dhn = hn - f(i+1,j);
-            
+
             dhp = 0.5*dhp+ 0.25*(dhs + dhn);
             f(i,j) += dhp;
-		}
+        }
     }
-    
-    
+
+
     if(p->j_dir==1)
-	for(int qn=0;qn<outer_iter;++qn)
-	{
-		hp = f(i,j);
+    for(int qn=0;qn<outer_iter;++qn)
+    {
+        hp = f(i,j);
         hs = f(i-1,j);
         hn = f(i+1,j);
         he = f(i,j-1);
         hw = f(i,j+1);
-		
+
         // predictor
 
-		f(i,j) = 0.5*hp + 0.125*(hs + hn + he + hw);
-		
+        f(i,j) = 0.5*hp + 0.125*(hs + hn + he + hw);
+
         // corrector
-		for(int qqn=0;qqn<inner_iter;++qqn)
-		{
+        for(int qqn=0;qqn<inner_iter;++qqn)
+        {
             dhp = hp - f(i,j);
             dhs = hs - f(i-1,j);
             dhn = hn - f(i+1,j);
             dhe = he - f(i,j-1);
             dhw = hw - f(i,j+1);
-            
+
             dhp = 0.5*dhp+ 0.125*(dhs + dhn + dhe + dhw);
             f(i,j) += dhp;
-		}
+        }
     }
 }

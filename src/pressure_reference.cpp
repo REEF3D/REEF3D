@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-pressure_reference::pressure_reference(lexer* p) 
+pressure_reference::pressure_reference(lexer* p)
 {
 
 }
@@ -38,13 +38,13 @@ void pressure_reference::reference_start(lexer*p, fdm* a, ghostcell *pgc)
 {
     if(p->B30==1)
     gage_fixed(p,a,pgc);
-    
+
     if(p->B30==2)
     gage_fsf(p,a,pgc);
-    
+
     if(p->B30==4)
     fsf_normalize(p,a,pgc);
-    
+
 }
 
 

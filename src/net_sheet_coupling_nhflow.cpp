@@ -33,14 +33,14 @@ void net_sheet::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for (int knotI = 0; knotI < nK; knotI++)
     {
         lagrangePoints[knotI] << x_.row(knotI).transpose();
-        
+
         // Forces
         const Eigen::Vector3d& coordI = lagrangePoints[knotI];
-            
-        // Density 
+
+        // Density
         rho = coupledField[knotI][3];
-        
-        if 
+
+        if
         (
             coordI(0) >= xstart[p->mpirank] && coordI(0) < xend[p->mpirank] &&
             coordI(1) >= ystart[p->mpirank] && coordI(1) < yend[p->mpirank] &&
@@ -49,14 +49,14 @@ void net_sheet::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         )
         {
             // Divide by rho since multiplied in vrans
-            lagrangeForces[knotI] = forces_knot.row(knotI)/rho; 
+            lagrangeForces[knotI] = forces_knot.row(knotI)/rho;
         }
         else
         {
-            lagrangeForces[knotI] << 0.0, 0.0, 0.0;   
+            lagrangeForces[knotI] << 0.0, 0.0, 0.0;
         }
-    }   
-    
+    }
+
     for (int pI = 0; pI < nK; pI++)
     {
         Eigen::Vector3d& forceI = lagrangeForces[pI];

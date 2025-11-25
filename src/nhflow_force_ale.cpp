@@ -39,32 +39,32 @@ void nhflow_force_ale::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     // Read cylinder force input - xc,yc,rc,cd,cm
     xc = p->P85_x[ID];
-	yc = p->P85_y[ID];
+    yc = p->P85_y[ID];
     rc = p->P85_r[ID];
-	cd = p->P85_cd[ID];
-	cm = p->P85_cm[ID];
+    cd = p->P85_cd[ID];
+    cm = p->P85_cm[ID];
 
     // Open files
     print_ini(p,d,pgc);
 
     // Ini arrays
-	p->Darray(un, p->knoz);
+    p->Darray(un, p->knoz);
     p->Darray(unn, p->knoz);
-	//p->Darray(u2n, p->knoz);
-	p->Darray(vn, p->knoz);
+    //p->Darray(u2n, p->knoz);
+    p->Darray(vn, p->knoz);
     p->Darray(vnn, p->knoz);
 
     // Ini eta
-	eta_n=0.0;
+    eta_n=0.0;
 
     // Ini time
     //dtn=0;
 
     // Ini processor boundaries
-	xstart = p->originx;
-	ystart = p->originy;
-	xend = p->endx;
-	yend = p->endy;
+    xstart = p->originx;
+    ystart = p->originy;
+    xend = p->endx;
+    yend = p->endy;
 }
 
 void nhflow_force_ale::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -77,7 +77,7 @@ void nhflow_force_ale::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         // Calculate force
         force_ale_force(p,d,pgc);
     }
-    
+
     else
     {
         Fx = Fy = 0.0;

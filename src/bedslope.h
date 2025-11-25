@@ -39,7 +39,7 @@ public:
     bedslope(lexer*);
     virtual ~bedslope();
 
-	void slope_weno(lexer*, ghostcell*,sediment_fdm*,field&);
+    void slope_weno(lexer*, ghostcell*,sediment_fdm*,field&);
     void slope_cds(lexer*,ghostcell*,sediment_fdm*);
 
 private:
@@ -48,7 +48,7 @@ private:
     double uvel, vvel;
     double midphi,delta,beta;
     double alpha0, teta0;
-    
+
     ddweno_f_nug *pdx;
 };
 

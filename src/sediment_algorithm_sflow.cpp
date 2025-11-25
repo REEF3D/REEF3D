@@ -41,59 +41,59 @@ Author: Hans Bihs
 void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
 {
     starttime=pgc->timer();
-    
+
     ++p->sediter;
-    
+
     // prep SFLOW -------
     prep_sflow(p,b,pgc,P,Q);
-    
+
     // bedslope cds ******
     pslope->slope_cds(p,pgc,s);
-    
+
     // bedslope reduction ******
     preduce->start(p,pgc,s);
-    
+
     // bedshear stress -------
-	pbedshear->taubed(p,b,pgc,s);
+    pbedshear->taubed(p,b,pgc,s);
     pbedshear->taucritbed(p,b,pgc,s);
 
     // bedload *******
     pbed->start(p,pgc,s);
-    
+
     // bedload_direction *******
     pbeddir->start(p,pgc,s);
-	
+
     // relax *******
-	prelax->start(p,pgc,s);
-    
+    prelax->start(p,pgc,s);
+
     // Exner *******
     ptopo->start(p,pgc,s);
     p->sedtime+=p->dtsed;
-    
+
     // sandslide ********
     if(p->sediter%p->S94==0)
     pslide->start(p,pgc,s);
-    
+
     // relax *******
-	prelax->start(p,pgc,s);
-	
+    prelax->start(p,pgc,s);
+
     // filter bedzh *******
-	if(p->S100>0)
-	filter(p,pgc,s->bedzh,p->S100,p->S101);
-    
+    if(p->S100>0)
+    filter(p,pgc,s->bedzh,p->S100,p->S101);
+
     // update sflow  --------
     update_sflow(p,b,pgc,pflow);
-    
+
     // sediment print
     print_probes(p,pgc,s,pflow);
-    
+
     // sediment log
     sedimentlog(p);
-    
+
     if(p->mpirank==0 && p->count>0)
     cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
 
-	if(p->mpirank==0)
+    if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
 
 }

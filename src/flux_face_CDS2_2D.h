@@ -32,14 +32,14 @@ class flux_face_CDS2_2D : public flux, public increment
 {
 public:
 
-	flux_face_CDS2_2D (lexer *p);
-	virtual ~flux_face_CDS2_2D();
+    flux_face_CDS2_2D (lexer *p);
+    virtual ~flux_face_CDS2_2D();
 
-	void u_flux(fdm* a,int,field&,double&,double&) override;
-	void v_flux(fdm* a,int,field&,double&,double&) override;
-	void w_flux(fdm* a,int,field&,double&,double&) override;
+    void u_flux(fdm* a,int,field&,double&,double&) override;
+    void v_flux(fdm* a,int,field&,double&,double&) override;
+    void w_flux(fdm* a,int,field&,double&,double&) override;
 
-    
+
 private:
     lexer *p;
 

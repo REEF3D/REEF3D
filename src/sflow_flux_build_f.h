@@ -35,8 +35,8 @@ class sflow_flux_build_f : public sflow_flux_build, public increment
 
 public:
 
-	sflow_flux_build_f(lexer*,ghostcell*,patchBC_interface*);
-	virtual ~sflow_flux_build_f();
+    sflow_flux_build_f(lexer*,ghostcell*,patchBC_interface*);
+    virtual ~sflow_flux_build_f();
 
     void start_E(lexer*, fdm2D*, ghostcell*) override;
     void start_U(lexer*, fdm2D*, ghostcell*) override;

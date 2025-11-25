@@ -30,46 +30,46 @@ Author: Hans Bihs
 void potentialfile_out::initialize(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     filecount=0;
-    
-    if(p->mpirank==0)
-	mkdir("./REEF3D_PotentialFile",0777);
-	
-	if(p->mpirank==0 && p->P240>0)
-	cout<<"PotentialFile: "<<probenum<<endl;
 
-	fileout = new ofstream[p->P240];
-    
+    if(p->mpirank==0)
+    mkdir("./REEF3D_PotentialFile",0777);
+
+    if(p->mpirank==0 && p->P240>0)
+    cout<<"PotentialFile: "<<probenum<<endl;
+
+    fileout = new ofstream[p->P240];
+
     p->Iarray(iloc,p->P240);
-    
+
     for(n=0;n<p->P240;++n)
     iloc[n] = p->posf_i(p->P240_x[n]);
-    
-    
+
+
     // filename
         filename(p,c,pgc);
         fileout[n].open(name, ios::binary);
-        
+
     // start file
     i=iloc[n];
     j=0;
-    
+
     for(n=0;n<p->P240;++n)
     if(p->P240_x[n]>=p->originx && p->P240_x[n]<p->endx)
-	{
+    {
 
         ffn = float(c->bed(i,j));
         fileout[n].write((char*)&ffn, sizeof (float));
-        
+
         iin=p->knoz;
         fileout[n].write((char*)&iin, sizeof (int));
-        
+
         for(qn=0;qn<p->knoz+1;++qn)
         {
         ffn = float(p->ZN[KP]);
         fileout[n].write((char*)&ffn, sizeof (float));
         }
     }
-    
+
 }
 
 void potentialfile_out::ini_location(lexer *p, fdm_fnpf *c, ghostcell *pgc)

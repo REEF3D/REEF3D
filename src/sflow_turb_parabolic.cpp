@@ -40,20 +40,20 @@ void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_conve
     double dudx,dvdy,dudy,dvdx;
     double alpha_t,Ustar;
     double manning,cf;
-    
+
     alpha_t = p->A262;
-    
-	SLICELOOP4
+
+    SLICELOOP4
     {
     manning = pow(b->ks(i,j),1.0/6.0)/26.0;
-    
+
     cf = pow(manning,2.0)*9.81/pow(HPIJ,1.0/3.0);
-    
+
     Ustar = sqrt(cf*(b->P(i,j)*b->P(i,j) + b->Q(i,j)*b->Q(i,j)));
-    
+
     b->eddyv(i,j) = alpha_t*Ustar*b->hp(i,j);
     }
-    
+
     pgc->gcsl_start4(p,b->eddyv,24);
 }
 

@@ -40,32 +40,32 @@ Author: Tobias Martin, Hans Bihs
 
 momentum_RKLS3::momentum_RKLS3
 (
-    lexer *p, 
-    fdm *a, 
-    ghostcell *pgc, 
-    convection *pconvection, 
-    diffusion *pdiffusion, 
-    pressure* ppressure, 
+    lexer *p,
+    fdm *a,
+    ghostcell *pgc,
+    convection *pconvection,
+    diffusion *pdiffusion,
+    pressure* ppressure,
     poisson* ppoisson,
-    turbulence *pturbulence, 
-    solver *psolver, 
-    solver *ppoissonsolver, 
+    turbulence *pturbulence,
+    solver *psolver,
+    solver *ppoissonsolver,
     ioflow *pioflow,
     fsi *ppfsi
 ):momentum_forcing(p),bcmom(p),urk(p),vrk(p),wrk(p),Cu(p),Cv(p),Cw(p),Du(p),Dv(p),Dw(p),fx(p),fy(p),fz(p)
 {
-	gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
-	
-	pconvec=pconvection;
-	pdiff=pdiffusion;
-	ppress=ppressure;
-	ppois=ppoisson;
-	pturb=pturbulence;
-	psolv=psolver;
+    gcval_u=10;
+    gcval_v=11;
+    gcval_w=12;
+
+    pconvec=pconvection;
+    pdiff=pdiffusion;
+    ppress=ppressure;
+    ppois=ppoisson;
+    pturb=pturbulence;
+    psolv=psolver;
     ppoissonsolv=ppoissonsolver;
-	pflow=pioflow;
+    pflow=pioflow;
     pfsi=ppfsi;
 
     alpha << 4.0/15.0, 1.0/15.0, 1.0/6.0;
@@ -77,26 +77,26 @@ momentum_RKLS3::~momentum_RKLS3(){}
 
 
 void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixdof *p6dof)
-{	
-    // Set inflow 
+{
+    // Set inflow
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
-		
+
     bool final = false;
 
     for (int loop=0; loop<3; loop++)
     {
         if (loop==2) final = true;
-        
+
         pflow->rkinflow(p,a,pgc,urk,vrk,wrk);
-        
+
     // -------------------
         // U
         starttime=pgc->timer();
 
         // Fill F
         pturb->isource(p,a);
-        pflow->isource(p,a,pgc,pvrans); 
+        pflow->isource(p,a,pgc,pvrans);
         bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
         ppress->upgrad(p,a,a->eta,a->eta_n);
         irhs(p,a,pgc,a->u,a->u,a->v,a->w,2.0*alpha(loop));
@@ -113,12 +113,12 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
 
         ULOOP
         urk(i,j,k) += gamma(loop)*p->dt*CPOR1*a->F(i,j,k) + zeta(loop)*p->dt*CPOR1*Cu(i,j,k);
-        
+
         ULOOP
         Cu(i,j,k)=a->F(i,j,k);
 
         p->utime+=pgc->timer()-starttime;
-        
+
     // -------------------
         // V
         starttime=pgc->timer();
@@ -130,7 +130,7 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
         ppress->vpgrad(p,a,a->eta,a->eta_n);
         jrhs(p,a,pgc,a->v,a->u,a->v,a->w,2.0*alpha(loop));
         pdiff->diff_v(p,a,pgc,psolv,vrk,a->v,a->u,a->v,a->w,2.0*alpha(loop));
-        
+
         VLOOP
         vrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR2*a->G(i,j,k);
 
@@ -139,10 +139,10 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
         a->G(i,j,k)=0.0;
 
         pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
-        
+
         VLOOP
         vrk(i,j,k) += gamma(loop)*p->dt*CPOR2*a->G(i,j,k) + zeta(loop)*p->dt*CPOR2*Cv(i,j,k);
-        
+
         VLOOP
         Cv(i,j,k)=a->G(i,j,k);
 
@@ -162,16 +162,16 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
 
         WLOOP
         wrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR3*a->H(i,j,k);
-        
+
         // Add convection
         WLOOP
         a->H(i,j,k)=0.0;
 
         pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
-        
+
         WLOOP
         wrk(i,j,k) += gamma(loop)*p->dt*CPOR3*a->H(i,j,k) + zeta(loop)*p->dt*CPOR3*Cw(i,j,k);
-        
+
         WLOOP
         Cw(i,j,k)=a->H(i,j,k);
 
@@ -180,42 +180,42 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
         // Forcing
         momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk,vrk,wrk, fx, fy, fz, loop, 2.0*alpha(loop), final);
-                           
+
         // Direct Forcing
         ULOOP
         {
         a->u(i,j,k) = urk(i,j,k);
-        
+
         if(p->count<10)
         a->maxF = MAX(fabs(2.0*alpha(loop)*CPOR1*fx(i,j,k)), a->maxF);
-        
+
         p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR1*fx(i,j,k)), p->sfmax);
         }
-        
+
         VLOOP
         {
         a->v(i,j,k) = vrk(i,j,k);
-        
+
         if(p->count<10)
         a->maxG = MAX(fabs(2.0*alpha(loop)*CPOR2*fy(i,j,k)), a->maxG);
-        
+
         p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR2*fy(i,j,k)), p->sfmax);
         }
-        
+
         WLOOP
         {
         a->w(i,j,k) = wrk(i,j,k);
-        
+
         if(p->count<10)
         a->maxH = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), a->maxH);
-        
+
         p->sfmax = MAX(fabs(2.0*alpha(loop)*CPOR3*fz(i,j,k)), p->sfmax);
         }
 
         // Pressure
         pflow->pressure_io(p,a,pgc);
         ppress->start(a,p,ppois,ppoissonsolv,pgc, pflow, a->u, a->v, a->w, 2.0*alpha(loop));
-        
+
         pflow->u_relax(p,a,pgc,a->u);
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
@@ -229,45 +229,45 @@ void momentum_RKLS3::start(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans, sixd
 
 void momentum_RKLS3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
-	n=0;
+    n=0;
 
         ULOOP
         {
             a->maxF = MAX(fabs(a->rhsvec.V[n] + a->gi), a->maxF);
             a->F(i,j,k) += (a->rhsvec.V[n] + a->gi + p->W29_x + a->Fext(i,j,k))*PORVAL1;
-            
+
             a->rhsvec.V[n] = 0.0;
             a->Fext(i,j,k) = 0.0;
             ++n;
         }
-        
+
 }
 
 void momentum_RKLS3::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
-	n=0;
-    
+    n=0;
+
         VLOOP
         {
             a->maxG = MAX(fabs(a->rhsvec.V[n] + a->gj), a->maxG);
             a->G(i,j,k) += (a->rhsvec.V[n] + a->gj + p->W29_y + a->Gext(i,j,k))*PORVAL2;
-            
+
             a->rhsvec.V[n] = 0.0;
             a->Gext(i,j,k) = 0.0;
             ++n;
         }
-	
+
 }
 
 void momentum_RKLS3::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
-	n=0;
+    n=0;
 
         WLOOP
         {
             a->maxH = MAX(fabs(a->rhsvec.V[n] + a->gk), a->maxH);
             a->H(i,j,k) += (a->rhsvec.V[n] + a->gk + p->W29_z + a->Hext(i,j,k))*PORVAL3;
-            
+
             a->rhsvec.V[n] = 0.0;
             a->Hext(i,j,k) = 0.0;
             ++n;

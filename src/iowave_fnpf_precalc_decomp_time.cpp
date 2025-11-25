@@ -27,11 +27,11 @@ Author: Hans Bihs
 void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
 {
     starttime=pgc->timer();
-    
+
     p->wavetime = p->simtime;
-    
+
     int qn;
-    
+
     for(qn=0;qn<wave_comp;++qn)
     {
     etaval_T_sin[qn] = wave_eta_time_sin(p,pgc,qn);
@@ -43,18 +43,18 @@ void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
     Fival_T_sin[qn] = wave_fi_time_sin(p,pgc,qn);
     Fival_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
     }
-    
+
     for(qn=0;qn<wave_comp;++qn)
     {
     uval_T_sin[qn] = wave_u_time_sin(p,pgc,qn);
     uval_T_cos[qn] = wave_u_time_cos(p,pgc,qn);
     }
-    
+
     for(qn=0;qn<wave_comp;++qn)
     {
     Fifsfval_T_sin[qn] = wave_fi_time_sin(p,pgc,qn);
     Fifsfval_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
     }
-    
+
     p->wavecalctime+=pgc->timer()-starttime;
 }

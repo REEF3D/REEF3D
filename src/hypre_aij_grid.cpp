@@ -30,24 +30,24 @@ Author: Hans Bihs
 void hypre_aij::make_grid(lexer* p,ghostcell* pgc)
 {
     fieldint4 rownum4(p);
-    
+
     pgc->rownum4_update(p,rownum4);
     pgc->gcparaxint(p,rownum4,4);
-        
+
      p->range_col4[0]=0;
     for(n=1;n<=p->M10;++n)
     p->range_col4[n]=p->range_row4[n]-1;
-    
-        
-    HYPRE_IJMatrixCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &A);
-	HYPRE_IJMatrixSetObjectType(A, HYPRE_PARCSR);
-	HYPRE_IJMatrixInitialize(A);
 
-	HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &b);
+
+    HYPRE_IJMatrixCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &A);
+    HYPRE_IJMatrixSetObjectType(A, HYPRE_PARCSR);
+    HYPRE_IJMatrixInitialize(A);
+
+    HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &b);
     HYPRE_IJVectorSetObjectType(b, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(b);
-	
-	HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &x);
+
+    HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
 }

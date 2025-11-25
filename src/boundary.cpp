@@ -24,44 +24,44 @@ Authors: Hans Bihs, Alexander Hanke
 #include"lexer.h"
 
 boundary::boundary(lexer *p, ghostcell *pgc)
-{	
+{
     capacity=1;
     index=1;
     index_empty=capacity;
 
 
-    // 
+    //
     p->Iarray(iloc,capacity);
     p->Iarray(jloc,capacity);
     p->Iarray(kloc,capacity);
-    
+
     p->Iarray(cellside,capacity);
     p->Iarray(bc_type,capacity);
-    
+
     p->Darray(ks,capacity);
-  
+
 }
 
 boundary::~boundary()
 {
     delete[] iloc;
     iloc=nullptr;
-    
+
     delete[] jloc;
     jloc=nullptr;
-    
+
     delete[] kloc;
     kloc=nullptr;
-    
+
     delete[] cellside;
     cellside=nullptr;
-    
+
     delete[] bc_type;
     bc_type=nullptr;
-    
+
     delete[] ks;
     ks=nullptr;
-    
+
 }
 
 

@@ -32,34 +32,34 @@ class slice5 : public slice, increment
 {
 public:
 
-	slice5 (lexer*);
-	virtual ~slice5();
+    slice5 (lexer*);
+    virtual ~slice5();
 
     double& operator()(int, int) override;
-	double& operator[](int) override;
+    double& operator[](int) override;
     void ggcpol(lexer*) override;
     void resize(lexer*) override;
     void dealloc(lexer*) override;
-    
-	int di,dj;
-	int imin,imax,jmax,jmin;
+
+    int di,dj;
+    int imin,imax,jmax,jmin;
 
 
 
 private:
 
-	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
-	void fieldlength(lexer *);
+    void fieldalloc(lexer *);
+    void fieldgcalloc(lexer*);
+    void fieldlength(lexer *);
 
     int iter;
-	int gcfeldsize,feldsize;
-	
-	int rank, gcsl_extra;
-	
-	double starttime;
-	
-	lexer *pp;
+    int gcfeldsize,feldsize;
+
+    int rank, gcsl_extra;
+
+    double starttime;
+
+    lexer *pp;
 
 };
 

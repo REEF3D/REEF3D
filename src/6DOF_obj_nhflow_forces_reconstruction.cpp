@@ -52,15 +52,15 @@ void sixdof_obj::reconstruct(lexer *p, fdm_nhf *d)
         if((ls[tri[n][2]] >= -zero && ls[tri[n][3]] < zero)  ||  (ls[tri[n][2]] < zero && ls[tri[n][3]] >= -zero))
         addpoint(p,d,tri[n][2],tri[n][3]);
     }
-    
+
     polygon_num=facount;
 }
 
 void sixdof_obj::addpoint(lexer *p, fdm_nhf *d, int q1, int q2)
 {
-	// p. 917
+    // p. 917
     double dist,xd,dnom;
-    
+
     dnom=ls[q2]-ls[q1];
     dnom=fabs(dnom)>1.0e-20?dnom:1.0e-20;
 
@@ -69,11 +69,11 @@ void sixdof_obj::addpoint(lexer *p, fdm_nhf *d, int q1, int q2)
     ccpt[ccptcount][0] = (pt[q2][0]-pt[q1][0])*xd + pt[q1][0];
     ccpt[ccptcount][1] = (pt[q2][1]-pt[q1][1])*xd + pt[q1][1];
     ccpt[ccptcount][2] = (pt[q2][2]-pt[q1][2])*xd + pt[q1][2];
-    
+
     // add to existing facet
     if(confac[n]>-1)
     nn=confac[n];
-    
+
     // new facet
     if(confac[n]==-1)
     {
@@ -83,7 +83,7 @@ void sixdof_obj::addpoint(lexer *p, fdm_nhf *d, int q1, int q2)
     }
 
     facet[nn][numpt[nn]] = ccptcount;
-	++numpt[nn];
+    ++numpt[nn];
     ++numfac[n];
 
     ++ccptcount;

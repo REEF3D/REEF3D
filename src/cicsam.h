@@ -35,21 +35,21 @@ class cicsam : public convection,  public increment
 
 public:
 
-	cicsam (lexer *);
-	virtual ~cicsam();
+    cicsam (lexer *);
+    virtual ~cicsam();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+    void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&);
-	
-	double cface(lexer*,fdm*,field&,int,int,double);
 
-	double dx,dy,dz;
+    double cface(lexer*,fdm*,field&,int,int,double);
+
+    double dx,dy,dz;
     double fx2,fy2,fz2;
     double fx1,fy1,fz1;
-	double ul,ur,vl,vr,wl,wr;
-	double L,phi;
+    double ul,ur,vl,vr,wl,wr;
+    double L,phi;
 
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 

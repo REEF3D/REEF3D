@@ -29,7 +29,7 @@ Authors: Tobias Martin, Hans Bihs
 #include <Eigen/Dense>
 
 void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
-{ 
+{
     // Distribute net forces on surrounding cells
     int ii, jj, kk;
     double dist, D, dx, dy, dz;
@@ -46,12 +46,12 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
 
     WLOOP
     kernel_z(i,j,k) = 0.0;
-    
+
 
     for (int pI = 0; pI < lagrangePoints.size(); pI++)
     {
         const Eigen::Vector3d& forcesI = lagrangeForces[pI];
-        
+
         if (forcesI.norm()!=0.0)
         {
             const Eigen::Vector3d& coordI = lagrangePoints[pI];
@@ -76,7 +76,7 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
                         D *= kernel_peskin(dist);
                         dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
-                        
+
                         test = forcesI(0)*D/(dx*dy*dz);
                         a->Fext(i_it,j_it,k_it) -= test;
 
@@ -86,27 +86,27 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
                         D *= kernel_peskin(dist);
                         dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
-                            
+
                         test = forcesI(1)*D/(dx*dy*dz);
                         a->Gext(i_it,j_it,k_it) -= test;
-                        
+
                         dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0))/dx;
                         D = kernel_peskin(dist);
                         dist = sqrt(pow(p->YP[j_it + marge] - coordI(1), 2.0))/dy;
                         D *= kernel_peskin(dist);
                         dist = sqrt(pow(p->ZN[k_it + 1 + marge] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
-                         
+
                         test = forcesI(2)*D/(dx*dy*dz);
                         a->Hext(i_it,j_it,k_it) -= test;
-                        
+
                     }
                 }
             }
         }
-    } 
-    
-    pgc->start1(p,a->Fext,10); 
-    pgc->start2(p,a->Gext,11); 
-    pgc->start3(p,a->Hext,12); 
+    }
+
+    pgc->start1(p,a->Fext,10);
+    pgc->start2(p,a->Gext,11);
+    pgc->start3(p,a->Hext,12);
 }

@@ -36,67 +36,67 @@ void sediment_f::update_cfd(lexer *p, fdm *a,ghostcell *pgc, ioflow *pflow, rein
     topo_zh_update(p,a,pgc,s);
     preto->start(p,a,pgc,a->topo);
     bedchange_update(p, pgc);
-    
+
     volume_calc(p,a,pgc);
-    
+
     pgc->start1(p,a->u,10);
-	pgc->start2(p,a->v,11);
-	pgc->start3(p,a->w,12);
-    
+    pgc->start2(p,a->v,11);
+    pgc->start3(p,a->w,12);
+
     if(p->mpirank==0)
     cout<<"Topo: update grid..."<<endl;
-    
-    
+
+
     if(p->S10==1)
     {
     if(p->D22==1)
     pgc->solid_forcing_flag_update(p,a);
-    
+
     pgc->gcdf_update(p,a);
     }
-    
+
     if(p->S10==2)
     pvrans->sed_update(p,a,pgc);
-    
+
     pflow->gcio_update(p,a,pgc);
-    
-    bedlevel(p,pgc); 
-    
+
+    bedlevel(p,pgc);
+
     active_cfd(p,a,pgc);
-	
-	pgc->start4(p,a->conc,40);
+
+    pgc->start4(p,a->conc,40);
 }
 
 void sediment_f::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
-    bedlevel(p,pgc); 
-    
+    bedlevel(p,pgc);
+
     SLICELOOP4
-	d->bed(i,j) = s->bedzh(i,j);
-    
+    d->bed(i,j) = s->bedzh(i,j);
+
     pgc->gcsl_start4(p,d->bed,50);
     pgc->solid_forcing_bed(p,s->bedzh);
-    
+
     bedchange_update(p,pgc);
-    
+
     active_nhflow(p,d,pgc);
 }
 
 void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 {
-    bedlevel(p,pgc); 
-    
+    bedlevel(p,pgc);
+
     SLICELOOP4
     b->topobed(i,j) = s->bedzh(i,j);
-    
+
     SLICELOOP4
     b->bed(i,j) = MAX(b->topobed(i,j),b->solidbed(i,j));
-    
+
     pgc->gcsl_start4(p,b->bed,50);
     pgc->gcsl_start4(p,b->topobed,50);
-    
+
     bedchange_update(p,pgc);
-    
+
     active_sflow(p,b,pgc);
-    
+
 }

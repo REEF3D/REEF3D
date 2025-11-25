@@ -33,7 +33,7 @@ public:
 
     cpt2D();
     virtual ~cpt2D();
-    
+
     void allocate(lexer*);
     void resize(lexer*,int,int);
 

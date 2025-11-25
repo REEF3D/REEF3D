@@ -34,13 +34,13 @@ class sflow_rough_manning : public sflow_roughness, public increment
 
 public:
     sflow_rough_manning(lexer*);
-	virtual ~sflow_rough_manning();
-    
-	void u_source(lexer*, fdm2D*, slice&) override;
+    virtual ~sflow_rough_manning();
+
+    void u_source(lexer*, fdm2D*, slice&) override;
     void v_source(lexer*, fdm2D*, slice&) override;
 
 private:
-    
+
     double cf,manning;
 };
 

@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"patchBC_interface.h"
 
-sflow_signal_speed::sflow_signal_speed(lexer* p) 
+sflow_signal_speed::sflow_signal_speed(lexer* p)
 {
 
 }
@@ -35,8 +35,8 @@ sflow_signal_speed::~sflow_signal_speed()
 {
 }
 
-void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b, 
-                                        slice &Us, slice &Un, slice &Ve, slice &Vw, 
+void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
+                                        slice &Us, slice &Un, slice &Ve, slice &Vw,
                                         slice &Ds, slice &Dn, slice &De, slice &Dw)
 {
     // signal speed x-dir
@@ -44,14 +44,14 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
     {
     USx = 0.5*(Us(i,j)+Un(i,j)) + sqrt(9.81*Ds(i,j)) - sqrt(9.81*Dn(i,j));
     DSx = 0.5*(sqrt(9.81*Ds(i,j)) + sqrt(9.81*Dn(i,j))) + 0.25*(Us(i,j) - Un(i,j));
-    
+
     if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
     {
     b->Ss(i,j) = MIN(Us(i,j) - sqrt(9.81*Ds(i,j)), USx - DSx);
     b->Sn(i,j) = MAX(Un(i,j) + sqrt(9.81*Dn(i,j)), USx + DSx);
     b->SSx(i,j) = USx;
     }
-    
+
     else
     if(p->wet[IJ]==0 && p->wet[Ip1J]==1) // left dry
     {
@@ -59,7 +59,7 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
     b->Sn(i,j) = Un(i,j) + sqrt(9.81*Dn(i,j));
     b->SSx(i,j) = b->Ss(i,j);
     }
-    
+
     else
     if(p->wet[IJ]==1 && p->wet[Ip1J]==0)// right dry
     {
@@ -67,23 +67,23 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
     b->Sn(i,j) = Us(i,j) + 2.0*sqrt(9.81*Ds(i,j));
     b->SSx(i,j) = b->Sn(i,j);
     }
-    
+
     else
-    if(p->wet[IJ]==0 && p->wet[Ip1J]==0) 
+    if(p->wet[IJ]==0 && p->wet[Ip1J]==0)
     {
     b->Ss(i,j) = 0.0;
     b->Sn(i,j) = 0.0;
     b->SSx(i,j) = 0.0;
     }
     }
-    
+
     // signal speed y-dir
     if(p->j_dir==1)
     SLICELOOP2
     {
     USy = 0.5*(Ve(i,j)+Vw(i,j)) + sqrt(9.81*De(i,j)) - sqrt(9.81*Dw(i,j));
     DSy = 0.5*(sqrt(9.81*De(i,j)) + sqrt(9.81*Dw(i,j))) + 0.25*(Ve(i,j) - Vw(i,j));
-    
+
     if(p->wet[IJ]==1 && p->wet[IJp1]==1)
     {
     b->Se(i,j) = MIN(Ve(i,j) - sqrt(9.81*De(i,j)), USy - DSy);
@@ -98,7 +98,7 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
     b->Sw(i,j) = Vw(i,j) + sqrt(9.81*Dw(i,j));
     b->SSy(i,j) = b->Se(i,j);
     }
-    
+
     else
     if(p->wet[IJ]==1 && p->wet[IJp1]==0)
     {
@@ -106,7 +106,7 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
     b->Sw(i,j) = Ve(i,j) + 2.0*sqrt(9.81*De(i,j));
     b->SSy(i,j) = b->Sw(i,j);
     }
-    
+
     else
     if(p->wet[IJ]==0 && p->wet[IJp1]==0)
     {
@@ -114,6 +114,6 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
     b->Sw(i,j) = 0.0;
     b->SSy(i,j) = 0.0;
     }
-    
+
     }
 }

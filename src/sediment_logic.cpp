@@ -91,8 +91,8 @@ Author: Hans Bihs
 void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
 {
     s = new sediment_fdm(p);
-    
-    
+
+
     if(p->S11==0)
     pbed = new bedload_void();
 
@@ -101,53 +101,53 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 
     if(p->S11==2)
     pbed = new bedload_MPM(p);
-	
-	if(p->S11==3)
+
+    if(p->S11==3)
     pbed = new bedload_EF(p);
-    
+
     if(p->S11==4)
     pbed = new bedload_EH(p);
-    
+
     if(p->S11==5)
     pbed = new bedload_einstein(p);
-    
+
     if(p->S12==0)
     pcbed = new bedconc_void(p);
-    
+
     if(p->S12==1)
     pcbed = new bedconc_VR(p);
-    
-    
+
+
     if(p->S90==0)
-    pslide=new sandslide_v(p);   
-    
+    pslide=new sandslide_v(p);
+
     if(p->S90==1)
     pslide=new sandslide_f(p);
-    
+
     if(p->S90==2)
     pslide=new sandslide_f2(p);
-    
+
     if(p->S90==3)
     pslide=new sandslide_f3(p);
-    
+
     if(p->S90==4)
     pslide=new sandslide_f4(p);
-    
+
     if(p->S90==5)
     pslide=new sandslide_nz(p);
-    
+
     if(p->S90==6)
     pslide=new sandslide_pde(p);
-    
+
     if(p->S10!=2 && p->A10==6)
-	pvrans = new vrans_v(p,pgc);
-	
-	if(p->S10==2 && p->A10==6)
-	pvrans = new vrans_f(p,pgc);
-    
-    
+    pvrans = new vrans_v(p,pgc);
+
+    if(p->S10==2 && p->A10==6)
+    pvrans = new vrans_f(p,pgc);
+
+
     pslope = new bedslope(p);
-    
+
     if(p->S80==0)
     preduce=new reduction_void(p);
 
@@ -159,71 +159,71 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 
     if(p->S80==3)
     preduce=new reduction_deyana(p);
-	
-	if(p->S80==4)
+
+    if(p->S80==4)
     preduce=new reduction_FD(p);
-    
+
     if(p->S80==5)
     preduce=new reduction_FD_gamma(p);
-    
+
     ptopo = new sediment_exner(p,pgc);
-    
+
     // Suspended Sediments
     // Suspended NHFLOW
     if(p->A10==5)
-    {  
+    {
     if(p->S60==0)
-	pnhfsuspdiff=new nhflow_diff_void(p);
-    
+    pnhfsuspdiff=new nhflow_diff_void(p);
+
     if(p->S60==0)
     pnhfsusp = new nhflow_suspended_void(p);
-    
+
     if(p->S60==0)
-	pnhfsuspdisc=new nhflow_scalar_void(p);
-	
-    
+    pnhfsuspdisc=new nhflow_scalar_void(p);
+
+
     if(p->S60>0 && p->j_dir==1)
     pnhfsuspdiff = new nhflow_idiff(p);
-        
+
     if(p->S60>0 && p->j_dir==0)
     pnhfsuspdiff = new nhflow_idiff_2D(p);
-    
-	if(p->S60>0)
-	pnhfsuspdisc= new nhflow_scalar_iweno(p);
-    
+
+    if(p->S60>0)
+    pnhfsuspdisc= new nhflow_scalar_iweno(p);
+
     if(p->S60>0)
     pnhfsusp = new nhflow_suspended_IM1(p);
     }
-    
+
     // Suspended CFD
     if(p->A10==6)
-    {  
+    {
     if(p->S60==0)
-	psuspdiff=new diff_void();
-    
+    psuspdiff=new diff_void();
+
     if(p->S60==0)
     psusp = new suspended_void();
-    
+
     if(p->S60==0)
-	psuspdisc=new convection_void(p);
-    
-    
+    psuspdisc=new convection_void(p);
+
+
     if(p->S60<11 && p->S60>0 && p->j_dir==0)
-	psuspdiff=new idiff2_FS_2D(p);
-    
+    psuspdiff=new idiff2_FS_2D(p);
+
     if(p->S60<11 && p->S60>0 && p->j_dir==1)
-	psuspdiff=new idiff2_FS(p);
-	
-	if(p->S60>10)
-	psuspdiff=new idiff2(p);
-    
+    psuspdiff=new idiff2_FS(p);
+
+    if(p->S60>10)
+    psuspdiff=new idiff2(p);
+
     // suspended conv
-	if(p->S60<11 && p->S60>0)
-	psuspdisc=new weno_hj_nug(p);
-    
+    if(p->S60<11 && p->S60>0)
+    psuspdisc=new weno_hj_nug(p);
+
     if(p->S60>10 && p->S60>0)
-	psuspdisc=new iweno_hj_nug(p);
-    
+    psuspdisc=new iweno_hj_nug(p);
+
 
     if(p->S60==2)
     psusp = new suspended_RK2(p,a);
@@ -234,44 +234,44 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     if(p->S60==11)
     psusp = new suspended_IM1(p,a);
     }
-    
+
     if(p->S85==0)
     pbeddir = new bedload_direction_v(p);
-    
+
     if(p->S85==1)
     pbeddir = new bedload_direction_f(p);
-    
-	
-	p->gcin4a_count=p->gcin_count;
-	p->gcout4a_count=p->gcout_count;
-	
-    
+
+
+    p->gcin4a_count=p->gcin_count;
+    p->gcout4a_count=p->gcout_count;
+
+
     prelax = new topo_relax(p);
-    
+
     pbedshear  = new bedshear(p,pturb);
-	
-    
+
+
     volume_token=0;
-    
-    
+
+
     if(p->P121>0)
-	pbedpt = new bedprobe_point(p,pgc,s);
+    pbedpt = new bedprobe_point(p,pgc,s);
 
-	if(p->P122>0)
-	pbedmax = new bedprobe_max(p,pgc,s);
+    if(p->P122>0)
+    pbedmax = new bedprobe_max(p,pgc,s);
 
-	if(p->P123>0)
-	pbedlinex=new bedprobe_line_x(p,pgc,s);
+    if(p->P123>0)
+    pbedlinex=new bedprobe_line_x(p,pgc,s);
 
-	if(p->P124>0)
-	pbedliney=new bedprobe_line_y(p,pgc,s);
+    if(p->P124>0)
+    pbedliney=new bedprobe_line_y(p,pgc,s);
 
-	if(p->P125>0)
-	pbedshearprobe = new bedshear_probe(p,pgc);
+    if(p->P125>0)
+    pbedshearprobe = new bedshear_probe(p,pgc);
 
-	if(p->P126>0)
-	pbedshearmax = new bedshear_max(p,pgc);
-    
-    
-    
+    if(p->P126>0)
+    pbedshearmax = new bedshear_max(p,pgc);
+
+
+
 }

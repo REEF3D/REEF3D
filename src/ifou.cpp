@@ -40,37 +40,37 @@ ifou::ifou (lexer *p)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_2D(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_2D(p);
     }
-    
+
     if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans_2D(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans_2D(p);
     }
     }
-    
+
     if(p->j_dir==1)
     {
     if(p->B269==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2(p);
     }
-    
+
     if(p->B269>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);
-        
+
         if(p->D11==2)
         pflux = new flux_face_CDS2_vrans(p);
     }
@@ -88,7 +88,7 @@ void ifou::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
     if(ipol==1)
     ULOOP
     aij(p,a,b,1,uvel,vvel,wvel,p->DXP,p->DYN,p->DZN);
-    
+
     if(p->j_dir==1)
     if(ipol==2)
     VLOOP
@@ -109,36 +109,36 @@ void ifou::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel,
 
 void ifou::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
 {
-	udir=vdir=wdir=0.0;
-    
+    udir=vdir=wdir=0.0;
+
     pflux->u_flux(a,ipol,uvel,ivel1,ivel2);
     pflux->v_flux(a,ipol,vvel,jvel1,jvel2);
     pflux->w_flux(a,ipol,wvel,kvel1,kvel2);
 
-	if(0.5*(ivel1+ivel2)>=0.0)
+    if(0.5*(ivel1+ivel2)>=0.0)
     udir=1.0;
-    
+
     if(0.5*(jvel1+jvel2)>=0.0)
     vdir=1.0;
-    
+
     if(0.5*(kvel1+kvel2)>=0.0)
     wdir=1.0;
 
-	 
-	 a->M.p[count] = udir*ivel2/DX[IM1] - (1.0-udir)*ivel1/DX[IP]
-					+ (vdir*jvel2/DY[JM1] - (1.0-vdir)*jvel1/DY[JP])*p->y_dir
-					+ wdir*kvel2/DZ[KM1] - (1.0-wdir)*kvel1/DZ[KP];
-	 
-	 a->M.s[count] = -udir*ivel1/DX[IM1];
-	 a->M.n[count] =  (1.0-udir)*ivel2/DX[IP];
-	 
-	 a->M.e[count] = -vdir*jvel1/DY[JM1]*p->y_dir;
-	 a->M.w[count] =  (1.0-vdir)*jvel2/DY[JP]*p->y_dir;
-	 
-	 a->M.b[count] = -wdir*kvel1/DZ[KM1];
-	 a->M.t[count] =  (1.0-wdir)*kvel2/DZ[KP];
-     
-	 ++count;
+
+     a->M.p[count] = udir*ivel2/DX[IM1] - (1.0-udir)*ivel1/DX[IP]
+                    + (vdir*jvel2/DY[JM1] - (1.0-vdir)*jvel1/DY[JP])*p->y_dir
+                    + wdir*kvel2/DZ[KM1] - (1.0-wdir)*kvel1/DZ[KP];
+
+     a->M.s[count] = -udir*ivel1/DX[IM1];
+     a->M.n[count] =  (1.0-udir)*ivel2/DX[IP];
+
+     a->M.e[count] = -vdir*jvel1/DY[JM1]*p->y_dir;
+     a->M.w[count] =  (1.0-vdir)*jvel2/DY[JP]*p->y_dir;
+
+     a->M.b[count] = -wdir*kvel1/DZ[KM1];
+     a->M.t[count] =  (1.0-wdir)*kvel2/DZ[KP];
+
+     ++count;
 }
 
 

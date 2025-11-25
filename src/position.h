@@ -35,51 +35,51 @@ class position : virtual public increment
 {
 public:
     position(lexer*);
-	virtual ~position();
-    
+    virtual ~position();
+
     // xyz
     double pos_x();
-	double pos_y();
-	double pos_z();
-	
-	double pos1_x();
-	double pos1_y();
-	double pos1_z();
-	
-	double pos2_x();
-	double pos2_y();
-	double pos2_z();
-	
-	double pos3_x();
-	double pos3_y();
-	double pos3_z();
-	
-	double posnode_x();
-	double posnode_y();
-	double posnode_z();
-    
+    double pos_y();
+    double pos_z();
+
+    double pos1_x();
+    double pos1_y();
+    double pos1_z();
+
+    double pos2_x();
+    double pos2_y();
+    double pos2_z();
+
+    double pos3_x();
+    double pos3_y();
+    double pos3_z();
+
+    double posnode_x();
+    double posnode_y();
+    double posnode_z();
+
     // ijk
     int posf_i(double);
     int posf_j(double);
     int posf_k(double);
     int posf_sig(int,int,double);
-    
+
     int posc_i(double);
     int posc_j(double);
     int posc_k(double);
     int posc_sig(int,int,double);
-    
+
     int ihalf(int,int);
-    
+
     int conv(double);
-    
+
 private:
     lexer *p;
-    
+
     double pos;
     int stop,count;
     int ii,jj,kk;
-    
+
     int is,ie,iloc;
     int js,je,jloc;
     int ks,ke,kloc;

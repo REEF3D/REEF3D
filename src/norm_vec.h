@@ -30,8 +30,8 @@ using namespace std;
 class norm_vec : public ddweno_f_nug
 {
 public:
-	norm_vec(lexer*);
-	virtual ~norm_vec();
+    norm_vec(lexer*);
+    virtual ~norm_vec();
 
     double  normvec_x(fdm*, field&);
     double  normvec_y(fdm*, field&);
