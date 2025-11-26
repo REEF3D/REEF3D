@@ -121,8 +121,8 @@ public:
     void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
     void ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
     void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
-    void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*) override;
-    void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*) override;
+    void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override;
+    void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override;
     void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*) override {};
     void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*) override;
     void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*) override;

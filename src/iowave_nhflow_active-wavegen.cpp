@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
     double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
         
@@ -47,6 +47,10 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         d->eta(i-1,j) = etaval;
         d->eta(i-2,j) = etaval;
         d->eta(i-3,j) = etaval;
+        
+        WL(i-1,j) = etaval + d->depth(i,j);
+        WL(i-2,j) = etaval + d->depth(i,j);
+        WL(i-3,j) = etaval + d->depth(i,j);
         }
         
         // wave maker

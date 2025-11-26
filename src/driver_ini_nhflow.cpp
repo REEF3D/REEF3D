@@ -122,7 +122,7 @@ void driver::driver_ini_nhflow()
     pnhfpot->start(p,d,ppoissonsolv,pgc);
     
     pflow->discharge_nhflow(p,d,pgc);
-    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH);
+    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
     
     // turbulence ini
     pnhfturb->ini(p, d, pgc);

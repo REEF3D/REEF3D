@@ -53,7 +53,7 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     pgc->start4V(p,UHdiff,gcval_uh);
     
     pflow->rkinflow_nhflow(p,d,pgc,UHdiff,UHin);
-    
+
     LOOP
     {
     visc = d->VISC[IJK] + d->EV[IJK];

@@ -25,22 +25,22 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
  
-void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
     if(p->B98==0)
     nhflow_inflow_plain(p,d,pgc,U,V,W,UH,VH,WH);
     
 	if(p->B98==3)
-	nhflow_dirichlet_wavegen(p,d,pgc,U,V,W,UH,VH,WH);
+	nhflow_dirichlet_wavegen(p,d,pgc,U,V,W,UH,VH,WH,WL);
 	
 	if(p->B98==4)
-	nhflow_active_wavegen(p,d,pgc,U,V,W,UH,VH,WH);
+	nhflow_active_wavegen(p,d,pgc,U,V,W,UH,VH,WH,WL);
     
 	if(p->B99==3||p->B99==4||p->B99==5)
 	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
 }
 
-void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
     for(n=0;n<p->gcin_count;n++)
     {

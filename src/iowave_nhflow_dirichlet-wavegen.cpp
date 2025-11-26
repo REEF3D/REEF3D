@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
         double etaval=0.0;
         
@@ -66,6 +66,10 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         d->eta(i-1,j) = etaval;
         d->eta(i-2,j) = etaval;
         d->eta(i-3,j) = etaval;
+        
+        WL(i-1,j) = etaval + d->depth(i,j);
+        WL(i-2,j) = etaval + d->depth(i,j);
+        WL(i-3,j) = etaval + d->depth(i,j);
         }
         
          count=0;
