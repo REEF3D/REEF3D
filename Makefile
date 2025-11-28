@@ -16,7 +16,7 @@ DEPENDENCIES := $(OBJECTS:.o=.d)
 
 .PHONY: all clean debug dev info release
 
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := release
 
 all: CXXFLAGS += -O3 -w
 all: CXXFLAGS += -DBUILD=\"all\"
