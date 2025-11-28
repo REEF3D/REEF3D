@@ -1,7 +1,7 @@
 OBJ_DIR      := ./build
 APP_DIR      := ./bin
 TARGET       := REEF3D
-APP		     := $(APP_DIR)/$(TARGET)
+APP          := $(APP_DIR)/$(TARGET)
 CXX          := mpicxx
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_VERSION  := "$(shell git describe --dirty --always --tags)"
