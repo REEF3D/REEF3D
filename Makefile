@@ -24,7 +24,7 @@ all: $(APP)
 
 release: CXXFLAGS += -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -flto -w
 release: CXXFLAGS += -DBUILD=\"release\"
-release: LDFLAGS += -flto
+release: LDFLAGS += -flto=auto
 release: $(APP)
 
 dev: CXXFLAGS += -O3 -Wall -pedantic -Wpedantic -Wextra -Wshadow -Wcast-align -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -Wformat=2 #-Wold-style-cast 
