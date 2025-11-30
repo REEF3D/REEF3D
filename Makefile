@@ -1,7 +1,7 @@
 OBJ_DIR      := ./build
 APP_DIR      := ./bin
 TARGET       := REEF3D
-APP		     := $(APP_DIR)/$(TARGET)
+APP          := $(APP_DIR)/$(TARGET)
 CXX          := mpicxx
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_VERSION  := "$(shell git describe --dirty --always --tags)"
@@ -16,7 +16,7 @@ DEPENDENCIES := $(OBJECTS:.o=.d)
 
 .PHONY: all clean debug dev info release
 
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := release
 
 all: CXXFLAGS += -O3 -w
 all: CXXFLAGS += -DBUILD=\"all\"
@@ -24,7 +24,7 @@ all: $(APP)
 
 release: CXXFLAGS += -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -flto -w
 release: CXXFLAGS += -DBUILD=\"release\"
-release: LDFLAGS += -flto
+release: LDFLAGS += -flto=auto
 release: $(APP)
 
 dev: CXXFLAGS += -O3 -Wall -pedantic -Wpedantic -Wextra -Wshadow -Wcast-align -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -Wformat=2 #-Wold-style-cast 
