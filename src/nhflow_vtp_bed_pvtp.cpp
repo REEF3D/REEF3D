@@ -36,6 +36,7 @@ void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
     vtp3D::pointsParallel(result);
 
     result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>\n";
     if(p->P76==1)

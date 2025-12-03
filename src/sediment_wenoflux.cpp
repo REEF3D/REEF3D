@@ -75,7 +75,7 @@ double sediment_wenoflux::sx(lexer *p, slice &f, double ivel1, double ivel2)
         if(p->S31==1)
         grad = ((fu2*ivel2-fu1*ivel1)/p->DXN[IP]);
         
-        if(p->S31==2)
+        if(p->S31>=2)
         grad = ((fu2-fu1)/p->DXN[IP]);
         
     return grad;
@@ -114,7 +114,7 @@ double sediment_wenoflux::sy(lexer *p, slice &f, double jvel1, double jvel2)
         if(p->S31==1)
         grad = ((fv2*jvel2-fv1*jvel1)/p->DYN[JP]);
         
-        if(p->S31==2)
+        if(p->S31>=2)
         grad = ((fv2-fv1)/p->DYN[JP]);
 			  
     return grad;  

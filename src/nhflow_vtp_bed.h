@@ -48,6 +48,7 @@ private:
     char name[200];
     int n,iin,offset[200];
     float ffn;
+    int jj;
 
     int printcount;
 };

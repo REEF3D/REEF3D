@@ -63,6 +63,9 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     // Points
     offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D*3+sizeof(int);
     ++n;
+    // velocity
+    offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)*3+sizeof(int);
+    ++n;
     // elevation
     offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
@@ -105,6 +108,8 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     vtp3D::points(result,offset,n);
 
     result<<"<PointData>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
     result<<"<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"depth\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -142,6 +147,50 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         result.write((char*)&ffn, sizeof(float));
 
         ffn=float(p->sl_ipol4(d->bed));
+        result.write((char*)&ffn, sizeof(float));
+    }
+    
+    //  Velocities
+    iin=sizeof(float)*p->pointnum2D*3;
+    result.write((char*)&iin, sizeof(int));
+    TPSLICELOOP
+    {
+        k = 0;
+
+        if(p->j_dir==0)
+        {
+            jj=j;
+            j=0;
+            ffn=float(d->U[IJK]);
+            j=jj;
+        }
+        else if(p->j_dir==1)
+            ffn=float(0.5*(d->U[IJK]+d->U[IJp1K]));
+
+        result.write((char*)&ffn, sizeof(float));
+
+        if(p->j_dir==0)
+        {
+            jj=j;
+            j=0;
+            ffn=float(d->V[IJK]);
+            j=jj;
+        }
+        else if(p->j_dir==1)
+            ffn=float(0.5*(d->V[IJK]+d->V[IJp1K]));
+
+        result.write((char*)&ffn, sizeof(float));
+
+        if(p->j_dir==0)
+        {
+            jj=j;
+            j=0;
+            ffn=float(d->W[IJK]);
+            j=jj;
+        }
+        else if(p->j_dir==1)
+            ffn=float(0.5*(d->W[IJK]+d->W[IJp1K]));
+
         result.write((char*)&ffn, sizeof(float));
     }
 

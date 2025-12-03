@@ -100,15 +100,6 @@ void sandslide_f4::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(p->mpirank==0)
         cout<<"sandslide_f4 corrections: "<<p->slidecells<<endl;
     }
-    /*
-    SEDSLICELOOP
-    {
-    if(fhtot(i,j)>0.0)
-    s->bedzh(i,j) = s->bedzh(i,j) + MIN(fhtot(i,j), -0.95*s->dh(i,j));
-    
-    if(fhtot(i,j)<0.0)
-    s->bedzh(i,j) = s->bedzh(i,j) + MAX(fhtot(i,j), -0.95*s->dh(i,j));
-    }*/
     
     SEDSLICELOOP
     s->bedzh(i,j) = s->bedzh(i,j) + fhtot(i,j);

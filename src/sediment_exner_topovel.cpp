@@ -169,6 +169,37 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
     pgc->gcsl_start4(p,s->vz,1);
 }
 
+void sediment_exner::topovel3(lexer* p, ghostcell *pgc, sediment_fdm *s)
+{
+	double dqx,dqy;
+    double signx,signy;
+    double uvel,vvel,u_abs;
+	
+
+    SLICELOOP4
+	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
+	{						
+        uvel=0.5*(s->P(i,j)+s->P(i-1,j));
+        vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
+		
+		u_abs = sqrt(uvel*uvel + vvel*vvel);
+        
+		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+        
+        // complete q
+        dqx = pdx->sx(p,s->qb,signx,signx);
+        dqy = pdx->sy(p,s->qb,signy,signy);
+
+        // Exner equations
+        s->vz(i,j) =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy + susp_qb(p,pgc,s));
+        
+        if(p->DFBED[IJ]<0)
+        s->vz(i,j) = 0.0;
+	}
+    
+    pgc->gcsl_start4(p,s->vz,1);
+}
 
 void sediment_exner::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
 {
