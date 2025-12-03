@@ -112,9 +112,6 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
-    
-    LOOP
-    d->test2D(i,j) = s->active(i,j);
 }
 
 void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)

@@ -46,18 +46,26 @@ bedload_EF::~bedload_EF()
 
 void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-	double qb,qbx,qby,Ts,Tb;
+	double qb,qbx,qby,Ts,Tb,p_EF,Ub;
 	
 	SEDSLICELOOP
     {
         Ts = s->shields_crit(i,j);
         Tb = s->shields_eff(i,j);
         
-
-        if(s->active(i,j)==1 && Tb>=Ts)
-        qb = d50*sqrt((rhosed/rhowat-1.0)*g*d50) * (30.0/(PI*mu_d))* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
+        if(s->active(i,j)==1 && Tb>Ts)
+        {
+        //qb = d50*sqrt((rhosed/rhowat-1.0)*g*d50) * (30.0/(PI*mu_d))* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
+        Ub = (1.0 - 0.7*sqrt(Ts/Tb)) * 10.0*s->shearvel_eff(i,j);
+        
+        p_EF = pow(1.0 + pow((1.0/6.0)*PI*mu_d/(Tb-Ts),4.0), -1.0/4.0);
+        
+        qb = 1.0/6.0 * PI * d50 * p_EF * Ub;
+        }
+        
+        
     
-        if(s->active(i,j)==0 || Tb<Ts)
+        if(s->active(i,j)==0 || Tb<=Ts)
         qb=0.0;
 	
         s->qbe(i,j) = qb;

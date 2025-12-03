@@ -85,6 +85,8 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     s->bedzh0(i,j)=d->bed(i,j);
     }
     
+    active_ini_nhflow(p,d,pgc);
+    
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
     log_ini(p);
