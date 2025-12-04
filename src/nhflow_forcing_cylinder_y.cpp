@@ -40,9 +40,9 @@ void nhflow_forcing::cylinder_y(lexer *p, ghostcell *pgc, int id)
 	
     r1=p->A583_r[id];
 
-	U = 2.0 * PI * r1;	
-	ds = 0.75*(U*p->DXM);
-	snum = int(U/ds);
+	U = 2.0*PI*r1;
+	ds = 0.85*(DSM);
+    snum = MAX(int(U/ds), 20);
 
 // Vertices	
 	ds = (2.0*PI)/double(snum);

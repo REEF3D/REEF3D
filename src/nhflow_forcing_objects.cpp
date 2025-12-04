@@ -110,8 +110,8 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
 	{
 	r = p->A583_r[n];
 	U = 2.0*PI*r;
-	ds = 0.75*(U*p->DXM);
-	snum = int(U/ds);
+	ds = 0.85*(DSM);
+    snum = MAX(int(U/ds), 20);
 	trisum+=6*snum;
 	}
     
@@ -120,8 +120,8 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
 	{
 	r = p->A584_r[n];
 	U = 2.0*PI*r;
-	ds = 0.75*(U*p->DXM);
-	snum = int(U/ds);
+	ds = 0.85*(DSM);
+    snum = MAX(int(U/ds), 20);
 	trisum+=6*snum;
 	}
     
@@ -130,8 +130,8 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
 	{
 	r = MAX(p->A585_r1[n],p->A585_r2[n]);
 	U = 2.0*PI*r;
-	ds = 0.75*(U*p->DXM);
-	snum = int(U/ds);
+	ds = 0.85*(DSM);
+    snum = MAX(int(U/ds), 20);
 	trisum+=6*snum;
 	}
     
@@ -140,8 +140,8 @@ void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
     {
 	r = p->A586_r[n];
 	U = 2.0*PI*r;
-	ds = 0.75*(U*p->DXM);
-	snum = int(U/ds);
+	ds = 0.85*(DSM);
+    snum = MAX(int(U/ds), 40);
     trisum+=snum*snum*2;
     }
     

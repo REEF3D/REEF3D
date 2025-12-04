@@ -37,9 +37,9 @@ void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
     r=p->A586_r[id];
 
 
-	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->DXM);
-	snum = int(U/ds);
+	U = 2.0*PI*r;
+	ds = 0.85*(DSM);
+    snum = MAX(int(U/ds), 40);
 
 
 // Vertices

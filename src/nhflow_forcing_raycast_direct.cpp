@@ -45,7 +45,7 @@ void nhflow_forcing::ray_cast_direct(lexer *p, fdm_nhf *d, ghostcell *pgc, int t
 	double u,v,w;
 	double denom;	
 	int checkin;
-	double psi = 1.0e-8*p->DXM;
+	double psi = 1.0e-8*DSM;
     int margin = 5;
     double dist;
 

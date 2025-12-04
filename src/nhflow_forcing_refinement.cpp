@@ -87,7 +87,7 @@ void nhflow_forcing::geometry_refinement(lexer *p, ghostcell *pgc)
 	}
 	
 	
-	double critL = p->DXM*p->X186;
+	double critL = DSM*p->X186;
     
     double dxmin=1.0e10;
     
@@ -122,7 +122,7 @@ void nhflow_forcing::geometry_refinement(lexer *p, ghostcell *pgc)
 		ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));   
         
         if(p->X185==1)
-        critL = p->DXM*1.6;
+        critL = DSM*1.6;
         
         if(p->X185==2)
         critL = dxmin*p->X186;

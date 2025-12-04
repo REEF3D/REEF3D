@@ -137,6 +137,8 @@ private:
     double phi,theta,psi;
     double xrot,yrot,zrot;
     
+    double DSM;
+    
     // DLM
     double *EL_L,*EL_dx;
     double **EL_X,**EL_Y,**EL_Z,**EL_V;

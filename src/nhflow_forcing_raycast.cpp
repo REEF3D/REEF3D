@@ -81,16 +81,16 @@ void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	LOOP
     WETDRY
 	{
-		if(d->SOLID[IJK]>100.0*p->DXM)
-		d->SOLID[IJK]=100.0*p->DXM;
+		if(d->SOLID[IJK]>100.0*DSM)
+		d->SOLID[IJK]=100.0*DSM;
 		
-		if(d->SOLID[IJK]<-100.0*p->DXM)
-		d->SOLID[IJK]=-100.0*p->DXM;
+		if(d->SOLID[IJK]<-100.0*DSM)
+		d->SOLID[IJK]=-100.0*DSM;
 	}
     
     LOOP
     if(p->wet[IJ]==0)
-    d->SOLID[IJK]=100.0*p->DXM;
+    d->SOLID[IJK]=100.0*DSM;
     
     
 	pgc->start5V(p,d->SOLID,1); 

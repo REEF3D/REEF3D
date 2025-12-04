@@ -31,7 +31,7 @@ void nhflow_forcing::print_vtp(lexer *p)
     int n=0;
     offset[n]=0;
     ++n;
-    offset[n]=offset[n-1]+sizeof(float)*tricount*3*3 + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(double)*tricount*3*3 + sizeof(int);
     ++n;
     offset[n]=offset[n-1]+sizeof(int)*tricount*3 + sizeof(int);
     ++n;
@@ -51,7 +51,7 @@ void nhflow_forcing::print_vtp(lexer *p)
 
     n=0;
     result<<"<Points>\n";
-    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result<<"<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     result<<"</Points>\n";
 
@@ -62,21 +62,22 @@ void nhflow_forcing::print_vtp(lexer *p)
     //----------------------------------------------------------------------------
     int q,iin,m;
     float ffn;
+    double ddn;
 
     //  XYZ
-    iin=4*tricount*3*3;
+    iin=sizeof(double)*tricount*3*3;
     result.write((char*)&iin, sizeof(int));
     for(m=0;m<tricount;++m)
     for(q=0;q<3;++q)
     {
-        ffn=tri_x[m][q];
-        result.write((char*)&ffn, sizeof(float));
+        ddn=tri_x[m][q];
+        result.write((char*)&ddn, sizeof(double));
 
-        ffn=tri_y[m][q];
-        result.write((char*)&ffn, sizeof(float));
+        ddn=tri_y[m][q];
+        result.write((char*)&ddn, sizeof(double));
 
-        ffn=tri_z[m][q];
-        result.write((char*)&ffn, sizeof(float));
+        ddn=tri_z[m][q];
+        result.write((char*)&ddn, sizeof(double));
     }
 
     //  Connectivity POLYGON

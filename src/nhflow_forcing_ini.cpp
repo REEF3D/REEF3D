@@ -39,6 +39,35 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     pgc->start5V(p,p->ZSP,1);
     
+    
+    //DSM
+    int num=0;
+    DSM=0.0;
+    
+    if(p->j_dir==0)
+    SLICELOOP4
+    {
+    DSM += p->DXN[IP];
+        
+    ++num;
+    }
+    
+    if(p->j_dir==1)
+    SLICELOOP4
+    {
+    DSM += 0.5*(p->DXN[IP] + p->DYN[JP]);
+        
+    ++num;
+    }
+    
+    pgc->globalsum(DSM);
+    pgc->globalisum(num);
+    
+    DSM = DSM/double(num);
+    
+    cout<<"DSM: "<<DSM<<endl;
+    
+    // start raycast
     objects_create(p, pgc);
     ray_cast(p, d, pgc);
     reini_RK2(p, d, pgc, d->SOLID);
@@ -73,6 +102,10 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->solid_forcing_eta(p,d->WL);
     pgc->solid_forcing_eta(p,d->eta);
     pgc->solid_forcing_bed(p,d->bed);
+    
+    
+    
+    
 }
 
 void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)

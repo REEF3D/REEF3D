@@ -45,7 +45,7 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
     int i_zs,i_ze,j_zs,j_ze;
 	double u,v,w;
 	double denom;
-	double psi = 1.0e-8*p->DXM;
+	double psi = 1.0e-8*DSM;
     int margin=3;
     
 	for(n=ts; n<te; ++n)
@@ -191,22 +191,22 @@ void nhflow_forcing::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, in
         
         if(IO[IJK] != IO[Ip1JK])
         {
-		Px = p->global_xmin-10.0*p->DXM;
+		Px = p->global_xmin-10.0*DSM;
 		Py = p->YP[JP]-psi;
 		Pz = p->ZSP[IJK]+psi;
 		
-		Qx = p->global_xmax+10.0*p->DXM;
+		Qx = p->global_xmax+10.0*DSM;
 		Qy = p->YP[JP]+psi;
 		Qz = p->ZSP[Ip1JK]-psi;
         }
         
         if(IO[IJK] != IO[Im1JK])
         {
-		Px = p->global_xmax+10.0*p->DXM;
+		Px = p->global_xmax+10.0*DSM;
 		Py = p->YP[JP]-psi;
 		Pz = p->ZSP[IJK]+psi;
 		
-		Qx = p->global_xmin-10.0*p->DXM;
+		Qx = p->global_xmin-10.0*DSM;
 		Qy = p->YP[JP]+psi;
 		Qz = p->ZSP[Im1JK]-psi;
         }

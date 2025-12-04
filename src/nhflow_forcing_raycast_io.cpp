@@ -44,8 +44,8 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
     int checkin;
 	double u,v,w;
 	double denom;
-	double psi = 1.0e-8*p->DXM;
-    double margin = 2.0*p->DXM;
+	double psi = 1.0e-8*DSM;
+    double margin = 2.0*DSM;
     
     LOOP
 	{
@@ -126,11 +126,11 @@ void nhflow_forcing::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
 		{
 		Px = p->XP[IP]-psi;
 		Py = p->YP[JP]+psi;
-		Pz = zmin-10.0*p->DXM ;
+		Pz = zmin-10.0*DSM ;
 		
 		Qx = p->XP[IP]+psi;
 		Qy = p->YP[JP]-psi;
-		Qz = zmax+10.0*p->DXM ;
+		Qz = zmax+10.0*DSM ;
 		
 		PQx = Qx-Px;
 		PQy = Qy-Py;
