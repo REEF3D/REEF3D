@@ -65,7 +65,7 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     DSM = DSM/double(num);
     
-    cout<<"DSM: "<<DSM<<endl;
+    //cout<<"DSM: "<<DSM<<endl;
     
     // start raycast
     objects_create(p, pgc);
