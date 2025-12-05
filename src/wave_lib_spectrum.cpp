@@ -626,7 +626,7 @@ void wave_lib_spectrum::print_spreading(lexer *p)
     result.open("./REEF3D_Log-Wave/REEF3D_spreading-function.dat");
 
 
-	for(int n=0;n<p->B133;++n)
+	for(int n=0;n<numcomp;++n)
 	{
 		// xval+=dbeta[n];
 		result<<beta_n[n]<<" "<<Di_n[n]<<endl;
