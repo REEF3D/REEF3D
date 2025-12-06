@@ -366,10 +366,11 @@ void lexer::read_control()
                case 571: control>>A571_u>>A571_dir;
                         clear(c,numint);
                         break;
-               case 573: control>>A573;
+               case 572: control>>A572_xs>>A572_xe>>A572_ys>>A572_ye;
+                        A572=1;
                         clear(c,numint);
                         break;
-               case 580: control>>A580_xs>>A580_xe>>A580_ys>>A580_ye;
+               case 573: control>>A573;
                         clear(c,numint);
                         break;
                case 581: ++A581;

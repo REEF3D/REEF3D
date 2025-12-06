@@ -278,8 +278,8 @@ public:
     int A564,A565,A566,A567,A569;
     int A570,A573;
     double A568,A571_u,A571_dir;
-    int A580;
-    double A580_xs,A580_xe,A580_ys,A580_ye;
+    int A572;
+    double A572_xs,A572_xe,A572_ys,A572_ye;
     int A581;
     double *A581_xs,*A581_xe,*A581_ys,*A581_ye,*A581_zs,*A581_ze;
     int A583;
