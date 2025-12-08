@@ -34,7 +34,7 @@ void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
     SLICELOOP4
     {
     if(p->I30==1 && p->count==0)
-    fac=20.0;
+    fac=p->A349;
     
         if(c->coastline(i,j)>=0.0)
         {

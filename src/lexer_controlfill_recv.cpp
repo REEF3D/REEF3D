@@ -134,6 +134,8 @@ void lexer::ctrlrecv()
 	ii++;
     A348 = ictrl[ii];
 	ii++;
+    A349 = dctrl[dd];
+	dd++;
     A350 = ictrl[ii];
 	ii++;
     A351 = ictrl[ii];

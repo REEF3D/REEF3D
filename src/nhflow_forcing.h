@@ -47,9 +47,6 @@ public:
     
     void forcing(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, 
                  int, double, double*, double*, double*, slice&, bool);
-                 
-    void forcing_update(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, 
-                 int, double, double*, double*, double*, slice&, bool);
     
     void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);

@@ -81,6 +81,7 @@ void lexer::ini_default()
     A346=1.86;    // double viscosity damping within the coastline
     A347=2;     // int coastline relaxation for Fi and eta
     A348=1;     // int beach relaxation for Fi and eta
+    A349=20.0;   // double initial coastline damping distance factor for dxm
     A350=0;      // int turn on breaking (which method)
     A351=0;      // int type of breaking detection (deep / shallow)
     A352=1;      // int additional filtering to viscosity based breaking
