@@ -52,6 +52,9 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
             }
 		}
     }
+    
+    //cout<<p->mpirank<<"  ETA_count: "<<count<<endl;
+    
     pgc->gcsl_start4(p,eta,50);
     
 // U
@@ -79,6 +82,8 @@ void iowave::nhflow_wavegen_precalc_decomp_space(lexer *p, ghostcell *pgc)
             }
 		}
     }
+    
+    //cout<<p->mpirank<<"  U_count: "<<count<<endl;
 
 // V
     count=0;    

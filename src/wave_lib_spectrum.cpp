@@ -164,6 +164,8 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     numcomp=p->wN;
     }
 
+    //cout<<p->mpirank<<"  numcomp: "<<numcomp<<endl;
+
     p->Darray(Si,numcomp);
     p->Darray(Sn,numcomp);
     p->Darray(Di,numcomp);

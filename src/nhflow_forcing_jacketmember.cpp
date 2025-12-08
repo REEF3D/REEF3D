@@ -119,8 +119,8 @@ void nhflow_forcing::jacketmember(lexer *p, ghostcell *pgc, int id)
 	rmax = MAX(p->A585_r1[id],p->A585_r2[id]);
 
 	U = 2.0*PI*r1;
-	ds = 0.85*(DSM);
-    snum = MAX(int(U/ds), 20);
+	ds = 0.5*(DSM);
+    snum = MAX(int(U/ds), 40);
 
     dX = xm2-xm1;
     dY = ym2-ym1;

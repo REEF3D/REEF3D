@@ -38,7 +38,7 @@ void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
 
 
 	U = 2.0*PI*r;
-	ds = 0.85*(DSM);
+	ds = 0.5*(DSM);
     snum = MAX(int(U/ds), 40);
 
 
