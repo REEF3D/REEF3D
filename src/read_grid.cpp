@@ -378,10 +378,10 @@ void lexer::read_grid()
     Iarray(gcslpara3, gcslpara3_count,2);
     Iarray(gcslpara4, gcslpara4_count,2);
 
-    Iarray(gcslparaco1, gcslparaco1_count,2);
-    Iarray(gcslparaco2, gcslparaco2_count,2);
-    Iarray(gcslparaco3, gcslparaco3_count,2);
-    Iarray(gcslparaco4, gcslparaco4_count,2);
+    Iarray(gcslparaco1, gcslparaco1_count,4);
+    Iarray(gcslparaco2, gcslparaco2_count,4);
+    Iarray(gcslparaco3, gcslparaco3_count,4);
+    Iarray(gcslparaco4, gcslparaco4_count,4);
 
     Darray(XN,knox+1+4*marge);
     Darray(YN,knoy+1+4*marge);
