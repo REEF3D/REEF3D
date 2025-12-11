@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
+void iowave::fnpf_precalc_parallel_relax(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
     int dbcount;

@@ -3052,6 +3052,7 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_precalc_parallel_relax.cpp"/>
           <File Name="iowave_PLICcalc.cpp"/>
           <File Name="iowave_probes.cpp"/>
           <File Name="iowave_timeseries.cpp"/>
@@ -3116,6 +3117,7 @@
             <File Name="iowave_nhflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FNPF">
+            <File Name="iowave_fnpf_precalc_parallel_relax.cpp"/>
             <File Name="iowave_fnpf_relax.cpp"/>
             <File Name="iowave_fnpf_precalc.cpp"/>
             <File Name="iowave_fnpf_ini.cpp"/>
