@@ -95,7 +95,7 @@ void lexer::ini_default()
     A362=2;      // int breaking filter inner iter
     A363=1;      // int breaking filter width
     A365=1.86;   // double viscosity breaking wave
-    A368=0;      // int breaking waves in numerical beach
+    A368=0;      // int
 
     
     // PTF

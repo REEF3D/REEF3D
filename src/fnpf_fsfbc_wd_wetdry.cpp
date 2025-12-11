@@ -56,8 +56,8 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     
     pgc->gcsl_start4(p,c->WL,50);
     
-    /*
-    if(p->A343==1)
+    
+    if(p->A343==2)
     {
     
     SLICELOOP4
@@ -97,11 +97,8 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     if(wetcoast(i,j)==1)
     p->wet[IJ] = temp[IJ];
     
-    }
     
-    
-    //----
-    if(p->A343==2)
+    /*
     SLICELOOP4
     {
           if(c->WL(i,j) >= c->wd_criterion)
@@ -113,8 +110,14 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
            Fifsf(i,j) = 0.0;
           }
     }*/
+    }
+    
     //----
-    if(p->A343>=1)
+    //----
+    
+    
+    if(p->A343==1)
+    SLICELOOP4
     if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
     {
         eta(i,j) = 1.1*c->wd_criterion - c->depth(i,j);
@@ -122,6 +125,8 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
         Fifsf(i,j) = 0.0;
     }
     
+    //----
+    //----
 
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start4(p,eta,gcval_eta);
@@ -160,35 +165,5 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     
     
     
-    //
-    SLICELOOP4
-    p->deep[IJ]=p->wet[IJ];
-    
-    SLICELOOP4
-    {
-    if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0 || p->wet[Im1J]==0 || p->wet[Im2J]==0)
-    p->deep[IJ]=0;
-    
-    
-    if(p->j_dir==1)
-    if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJp3]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0 || p->wet[IJm3]==0)
-    p->deep[IJ]=0;
-    
-    if(p->j_dir==1)
-    if(p->wet[Ip1Jp1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Im1Jm1]==0)
-    p->deep[IJ]=0;
-    }
-    
-    SLICELOOP4
-    if(c->WL(i,j)<=10.0*c->wd_criterion)
-    p->deep[IJ]=0;
-
-    pgc->gcsl_start4Vint(p,p->deep,50);
-   
-
- 
-    //SLICELOOP4
-    //c->test2D(i,j) = double(p->deep[IJ]);
-
 }
 
