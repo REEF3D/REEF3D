@@ -1,4 +1,24 @@
 
+25.12
+x fixed wavegentime calculation
+x fixed a wetdry issuse (FNPF)
+x added 6DOF tangential velocity (NHFLOW)
+x fixed a memory allocation issuse when reading the grid
+x added fnpf initial coastline option (FNPF)
+x added wind forcing area (NHFLOW)
+x updated wavemaker and Dirichlet wave generation (NHFLOW)
+x updated suspended sediment transport (NHFLOW, CFD)
+x fixed cylinder on large domain (NHFLOW)
+x fixed vtp print out for large coordinates (NHFLOW)
+x updated Engelund-Fredsøe bedload 
+x fixed Engelund-Hansen bedload
+x added velocity to bed vtp (NHFLOW)
+x fixed a parallel communication bug 
+x fixed ini sediment (NHFLOW)
+x updated makefile
+x added correction factor for Dirichlet/active/wavemaker wave generation (NHFLOW)
+x updated virtual keyword to override keyword
+
 25.11
 x optimized paraview file printing
 x added multiple build tragets

@@ -71,6 +71,7 @@ public:
     void start24V(lexer*,double*,int);
     void start30V(lexer*,double*,int);
     void start49V(lexer*,double*,int);
+    void start60V(lexer*,double*,int);
     
     void start7V(lexer*,double*,sliceint&, int);
     void start7S(lexer*,double*, int);

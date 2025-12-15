@@ -110,26 +110,20 @@ void suspended_RK3::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 
 void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 {
-    LOOP
-    a->L(i,j,k)=0.0;
+    double zdist;
     
+    count=0;
     LOOP
-    if(p->flagsf4[IJK]<0)
-    conc(i,j,k) = 0.0;
-        
-    GCDF4LOOP
     {
-            i=p->gcdf4[n][0];
-            j=p->gcdf4[n][1];
-            k=p->gcdf4[n][2];
+	if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
+    {
+    zdist = p->DZN[KP];
     
-        if(s->cbe(i,j)>=conc(i,j,k))
-        a->L(i,j,k) += s->ws/p->DZN[KP]*(s->cbe(i,j)-conc(i,j,k));
-        
-       //if(s->cbe(i,j)<conc(i,j,k))
-        //a->L(i,j,k) += s->ws/p->DZN[KP]*s->cbe(i,j);
-        
-        s->cb(i,j)=conc(i,j,k);
+	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
+    //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
+    }
+	
+	++count;
     }
 
 }

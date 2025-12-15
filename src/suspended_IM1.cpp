@@ -68,7 +68,7 @@ void suspended_IM1::timesource(lexer* p, fdm* a, field& fn)
     {
         a->M.p[count]+= 1.0/DT;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + concn(i,j,k)/DT;
+        a->rhsvec.V[count] += a->L(i,j,k) + a->conc(i,j,k)/DT;
 
 	++count;
     }
@@ -97,9 +97,10 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     {
 	if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
     {
-    zdist = 0.5*p->DZP[KP];
+    zdist = p->DZN[KP];
     
 	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
+    //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
     }
 	
 	++count;

@@ -53,7 +53,7 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
 	timesource(p,d,d->CONC);
     bcsusp_start(p,d,pgc,s,d->CONC);
     psolv->startV(p,pgc,d->CONC,d->rhsvec,d->M,4);
-	pgc->start4V(p,d->CONC,gcval_susp);
+	pgc->start60V(p,d->CONC,gcval_susp);
     fillconc(p,d,pgc,s);
 	p->susptime=pgc->timer()-starttime;
 	p->suspiter=p->solveriter;
@@ -70,7 +70,7 @@ void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
     {
         d->M.p[count]+= 1.0/DT;
 
-        d->rhsvec.V[count] += d->L[IJK] + CONCN[IJK]/DT;
+        d->rhsvec.V[count] += d->L[IJK] + d->CONC[IJK]/DT;
 
 	++count;
     }
@@ -100,8 +100,10 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
 
         if(k==0)
         {
-        zdist = 0.5*p->DZP[KP]*d->WL(i,j);
+        zdist = p->DZN[KP]*d->WL(i,j);
         d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
+        
+        //d->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
         }
 
 	++count;
@@ -143,7 +145,7 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             
             if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJKm1];
+            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJK];
             d->M.b[n] = 0.0;
             }
             
@@ -185,15 +187,10 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
 
 void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 {
-    GCDF4LOOP
-    {
-        i=p->gcdf4[n][0];
-        j=p->gcdf4[n][1];
-        k=p->gcdf4[n][2];
-        
-        s->cb(i,j) = d->CONC[IJK];
-    }
-    
+    k=0;
+    SLICELOOP4
+    s->cb(i,j) = d->CONC[IJK];
+
     pgc->gcsl_start4(p,s->cb,1);
 }
 
