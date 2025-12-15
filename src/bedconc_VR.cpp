@@ -46,7 +46,7 @@ bedconc_VR::~bedconc_VR()
 
 void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-    double Ts,Tb,f;
+    double Ts,Tb;
     
     SLICELOOP4
     s->cbn(i,j) = s->cbe(i,j);
@@ -61,8 +61,7 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     Ti=MAX((Tb-Ts)/(Ts),0.0);
         
-    f = MAX(MIN(2.0*Tb/Ts-1.0,1.0),0.0);    
-        
+
 
     Ds = d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     
@@ -70,7 +69,7 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     adist = 0.5*p->DZP[KP];
     
-    s->cbe(i,j) = f * (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
+    s->cbe(i,j) =  MIN( (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.1);
     }
     
     pgc->gcsl_start4(p,s->qbe,1);

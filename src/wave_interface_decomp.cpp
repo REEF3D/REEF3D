@@ -214,7 +214,6 @@ double wave_interface::wave_fi_space_cos(lexer *p, ghostcell *pgc, double x, dou
     return uvel;
 }
 
-
 double wave_interface::wave_fi_time_sin(lexer *p, ghostcell *pgc, int n)
 {
     double uvel=0.0;
