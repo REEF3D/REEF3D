@@ -164,11 +164,13 @@ void bedshear::taucritbed(lexer *p, fdm_nhf* d, ghostcell *pgc, sediment_fdm *s)
     {
     k = s->bedk(i,j);
     
-    tauc = (p->S30*fabs(p->W22)*(p->S22-density))*p->S20*s->reduce(i,j);
+    tauc = s->reduce(i,j) * (p->S30*fabs(p->W22)*(p->S22-density))*p->S20;
   
     s->tau_crit(i,j) = tauc;
     s->shearvel_crit(i,j) = sqrt(tauc/density);
-    s->shields_crit(i,j) = tauc/((p->S22-density)*fabs(p->W22)*p->S20);
+    s->shields_crit(i,j) = p->S30*s->reduce(i,j);
+    
+    
     
     s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
     }

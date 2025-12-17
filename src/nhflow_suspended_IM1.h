@@ -43,8 +43,6 @@ public:
 
 	int gcval_susp;
 
-	double *CONCN;
-
 private:
     void timesource(lexer*, fdm_nhf*, double*);
     double starttime;

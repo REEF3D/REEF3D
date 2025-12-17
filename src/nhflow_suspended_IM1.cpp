@@ -33,8 +33,7 @@ Author: Hans Bihs
 nhflow_suspended_IM1::nhflow_suspended_IM1(lexer* p) 
 {
 	gcval_susp=60;
-    
-    p->Darray(CONCN,p->imax*p->jmax*(p->kmax+2));
+
     p->Darray(WVEL,p->imax*p->jmax*(p->kmax+2));
 }
 
@@ -78,8 +77,6 @@ void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
 
 void nhflow_suspended_IM1::ctimesave(lexer *p, fdm_nhf *d)
 {
-    LOOP
-    CONCN[IJK] = d->CONC[IJK];
 }
 
 void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
@@ -145,7 +142,7 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             
             if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJK];
+            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJKm1];
             d->M.b[n] = 0.0;
             }
             
@@ -160,8 +157,6 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
         
         
     // turn off inside direct forcing body
-    //if(p->X10==1)
-    //{
         n=0;
         LOOP
         {
@@ -182,7 +177,6 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             }
         ++n;
         }
-    //}
 }
 
 void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
@@ -196,11 +190,11 @@ void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sedime
 
 void nhflow_suspended_IM1::clearrhs(lexer* p, fdm_nhf *d)
 {
-    count=0;
+    n=0;
     LOOP
-    {
-    d->rhsvec.V[count]=0.0;
+    {    
+    d->rhsvec.V[n]=0.0;
     d->L[IJK]=0.0;
-	++count;
+	++n;
     }
 }

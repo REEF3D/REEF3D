@@ -106,7 +106,12 @@ void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 	KJILOOP
 	{
 		FPWDCHECK
+        {
 		values[count] = f[FIJK];
+        
+        if(values[count] != values[count])
+        p->solver_error=1;
+        }
 		
 		FSWDCHECK
 		values[count] = 0.0;
@@ -125,6 +130,9 @@ void hypre_struct::fill_matrix8(lexer* p, ghostcell* pgc, double *f, vec &rhs, m
 		{
 		n=CVAL4[IJK];
 		values[count] = rhs.V[n];
+        
+        if(values[count] != values[count])
+        p->solver_error=1;
 		}
 		
 		FSWDCHECK

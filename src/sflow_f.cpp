@@ -182,6 +182,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP2
     b->Qn(i,j) = b->Q(i,j);
     
+    p->solver_error = pgc->globalimax(p->solver_error);
     
     if(p->umax>p->N61 || p->vmax>p->N61 || p->umax!=p->umax || p->vmax!=p->vmax)
     {
@@ -193,6 +194,17 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     pgc->final(true);
     }
+    
+    if(p->solver_error>=1)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! EMERGENCY STOP  --  HYPRE solver broke down!  !!!     "<<p->solver_error<<endl<<endl;
+        
+        pprint->print2D(p,b,pgc,pturb,psed);
+    
+    pgc->final(true);
+    }
+    
 	}
 
 	if(p->mpirank==0)

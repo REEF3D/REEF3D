@@ -95,7 +95,12 @@ void hypre_struct2D::fill_matrix(lexer* p, ghostcell* pgc, matrix2D &M, slice &f
 	JILOOP
 	{
 		PSLICECHECK4
+        {
 		values[count] = f(i,j);
+        
+        if(values[count] != values[count])
+        p->solver_error=1;
+        }
 		
 		SSLICECHECK4
 		values[count] = 0.0;
@@ -114,6 +119,9 @@ void hypre_struct2D::fill_matrix(lexer* p, ghostcell* pgc, matrix2D &M, slice &f
 		{
 		n=cval4(i,j);
 		values[count] = rhsvec.V[n];
+        
+        if(values[count] != values[count])
+        p->solver_error=1;
 		}
 		
 		SSLICECHECK4

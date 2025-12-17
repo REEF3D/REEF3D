@@ -62,14 +62,15 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     Ti=MAX((Tb-Ts)/(Ts),0.0);
         
 
-
     Ds = d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     
     Ds = Ds>1.0e-10?Ds:1.0e10;
     
     adist = 0.5*p->DZP[KP];
     
-    s->cbe(i,j) =  MIN( (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.1);
+    s->cbe(i,j) =  MIN( (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.25);
+    
+    //s->cbe(i,j) =  (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
     }
     
     pgc->gcsl_start4(p,s->qbe,1);

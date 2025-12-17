@@ -105,7 +105,12 @@ void hypre_struct::fill_matrix3(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	KJILOOP
 	{
 		WCHECK
+        {
 		values[count] = f(i,j,k);
+        
+        if(values[count] != values[count])
+        p->solver_error=1;
+        }
 		
 		WSCHECK
 		values[count] = 0.0;
@@ -124,6 +129,9 @@ void hypre_struct::fill_matrix3(lexer* p,fdm* a, ghostcell* pgc, field &f)
 		{
 		n=CVAL4[IJK];
 		values[count] = a->rhsvec.V[n];
+        
+        if(values[count] != values[count])
+        p->solver_error=1;
 		}
 		
 		WSCHECK

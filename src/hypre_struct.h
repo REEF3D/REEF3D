@@ -136,6 +136,7 @@ private:
 	int stencil_indices[15];
     int periodic[3];
 	int nentries;
+    int error_flag;
     
     double starttime, hypretime;
    

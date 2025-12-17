@@ -42,7 +42,6 @@ void hypre_struct::solve1234(lexer* p)
     HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
 	HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     
-    
     p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 }
@@ -118,6 +117,13 @@ void hypre_struct::solve(lexer* p, ghostcell *pgc)
     
 	p->solveriter=num_iterations;
     p->final_res = final_res_norm;
+    
+    
+    
+    error_flag = HYPRE_GetError();
+    
+    //if(p->mpirank==0)
+    //cout<<"HYPRE error_flag: "<<error_flag<<" HYPRE p->solver_status: "<<p->solver_status<<" "<<HYPRE_ERROR_ARG<<endl;
     
 }
 

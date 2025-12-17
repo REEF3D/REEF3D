@@ -172,66 +172,69 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     // Suspended NHFLOW
     if(p->A10==5)
     {  
-    if(p->S60==0)
+    if(p->S12==0)
 	pnhfsuspdiff=new nhflow_diff_void(p);
     
-    if(p->S60==0)
+    if(p->S12==0)
     pnhfsusp = new nhflow_suspended_void(p);
     
-    if(p->S60==0)
+    if(p->S12==0)
 	pnhfsuspdisc=new nhflow_scalar_void(p);
 	
     
-    if(p->S60>0 && p->j_dir==1)
+    if(p->S12>0 && p->j_dir==1)
     pnhfsuspdiff = new nhflow_idiff(p);
         
-    if(p->S60>0 && p->j_dir==0)
+    if(p->S12>0 && p->j_dir==0)
     pnhfsuspdiff = new nhflow_idiff_2D(p);
     
-	if(p->S60>0)
+	if(p->S12>0)
 	pnhfsuspdisc= new nhflow_scalar_iweno(p);
     
-    if(p->S60>0)
+    if(p->S12>0)
     pnhfsusp = new nhflow_suspended_IM1(p);
     }
     
     // Suspended CFD
     if(p->A10==6)
     {  
-    if(p->S60==0)
+    if(p->S12==0)
 	psuspdiff=new diff_void();
     
-    if(p->S60==0)
+    if(p->S12==0)
     psusp = new suspended_void();
     
-    if(p->S60==0)
+    if(p->S12==0)
 	psuspdisc=new convection_void(p);
     
     
-    if(p->S60<11 && p->S60>0 && p->j_dir==0)
+    /*if(p->S60<11 && p->S60>0 && p->j_dir==0)
 	psuspdiff=new idiff2_FS_2D(p);
     
     if(p->S60<11 && p->S60>0 && p->j_dir==1)
 	psuspdiff=new idiff2_FS(p);
 	
 	if(p->S60>10)
-	psuspdiff=new idiff2(p);
+	
     
     // suspended conv
 	if(p->S60<11 && p->S60>0)
-	psuspdisc=new weno_hj_nug(p);
+	psuspdisc=new weno_hj_nug(p);*/
     
-    if(p->S60>10 && p->S60>0)
+    if(p->S12>=1)
+    psuspdiff=new idiff2(p);
+    
+    
 	psuspdisc=new iweno_hj_nug(p);
     
-
+    /*
     if(p->S60==2)
     psusp = new suspended_RK2(p,a);
 
     if(p->S60==3)
-    psusp = new suspended_RK3(p,a);
+    psusp = new suspended_RK3(p,a);*/
 
-    if(p->S60==11)
+    if(p->S12>=1)
     psusp = new suspended_IM1(p,a);
     }
     

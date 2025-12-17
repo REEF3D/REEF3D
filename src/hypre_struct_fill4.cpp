@@ -114,7 +114,12 @@ void hypre_struct::fill_matrix4(lexer* p,fdm* a, ghostcell* pgc, field &f)
 	KJILOOP
 	{
 		PFLUIDCHECK
+        {
 		values[count] = f(i,j,k);
+        
+        if(values[count] != values[count])
+        p->solver_error=1;
+        }
 		
 		SFLUIDCHECK
 		values[count] = 0.0;
@@ -133,6 +138,9 @@ void hypre_struct::fill_matrix4(lexer* p,fdm* a, ghostcell* pgc, field &f)
 		{
 		n=CVAL4[IJK];
 		values[count] = a->rhsvec.V[n];
+        
+        if(values[count] != values[count])
+        p->solver_error=1;
 		}
 		
 		SFLUIDCHECK
