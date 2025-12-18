@@ -115,7 +115,6 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
 {
-    // Fredsøe, p.199
     double rhosed=p->S22;
     double rhowat=p->W1;
     double g=9.81;
@@ -125,17 +124,24 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     double cd = 1.5;
     double R = rhosed/rhowat-1.0;
     
+    // van Rijn / USACE
     if(p->S25==0)
     s->ws = p->S23;
     
     if(p->S25==1)
-    s->ws=1.6*sqrt(g*d50*(rhosed/rhowat-1.0));
-    //s->ws=1.1*(rhosed/rhowat-1.0)*g*d50*d50;
+    {
+    if(d50<0.0001)
+    s->ws = (rhosed/rhowat-1.0)*g*d50*d50/(18.0*visc);
     
-
+    if(d50>=0.0001 && d50<0.001)
+    s->ws = (10.0*visc/d50)*(sqrt(1.0 + 0.01*g*d50*d50*d50*(rhosed/rhowat-1.0)/(visc*visc)) - 1.0);   
+        
+    if(d50>=0.001)
+    s->ws = 1.1*sqrt(g*d50*(rhosed/rhowat-1.0));
+    }
     
     if(p->mpirank==0)
-    cout<<"fall velocity ws: "<<s->ws<<endl;
+    cout<<"sediment fall velocity ws: "<<s->ws<<endl;
 }
 
 void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
