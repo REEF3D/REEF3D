@@ -43,7 +43,10 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     double fbxm,fbxp,fbym,fbyp;
     p->poissoniter=0;
     p->poissontime=0.0;
-
+    double starttime,endtime;
+    
+    starttime=pgc->timer();
+    
 	n=0;
     LOOP
 	{
@@ -115,17 +118,11 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
 
-                    //if(p->wet[Ip1J]==1 && p->wet[Im1J]==1)
-                    {
                     c->M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
                     c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    }
-                    
-                    //if(p->wet[IJp1]==1 && p->wet[IJm1]==1)
-                    {
+      
                     c->M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
                     c->M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-                    }
 
                 c->M.t[n] += ab;
                 c->M.b[n] = 0.0;
@@ -238,9 +235,13 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
 	++n;
 	}
     
-    double starttime=pgc->timer();
+    endtime=pgc->timer();
+    //if(p->mpirank==0 && (p->count%p->P12==0))
+	//cout<<"LAPLCE_time: "<<endtime-starttime<<endl;
+    
+    starttime=pgc->timer();
     psolv->startF(p,pgc,f,c->rhsvec,c->M,8);
-    double endtime=pgc->timer();
+    endtime=pgc->timer();
     
     p->poissoniter+=p->solveriter;
     p->poissontime+=endtime-starttime;
