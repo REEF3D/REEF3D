@@ -189,7 +189,7 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     pnhfsuspdiff = new nhflow_idiff_2D(p);
     
 	if(p->S12>0)
-	pnhfsuspdisc= new nhflow_scalar_iweno(p);
+	pnhfsuspdisc= new nhflow_scalar_ifou(p);
     
     if(p->S12>0)
     pnhfsusp = new nhflow_suspended_IM1(p);
