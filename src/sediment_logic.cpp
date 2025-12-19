@@ -224,7 +224,7 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     if(p->S12>=1)
     psuspdiff=new idiff2(p);
     
-    
+    if(p->S12>=1)
 	psuspdisc=new iweno_hj_nug(p);
     
     /*

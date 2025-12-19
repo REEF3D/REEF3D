@@ -226,11 +226,11 @@ void driver::logic_cfd()
 	if(p->C15>=40 && p->C15<50)
 	pconcdisc=new hires(p,p->C15);
 
-	if(p->S60==11 || p->S60==12)
+	if(p->S12>=1)
 	pconcdisc=new iweno_hj(p);
 
-	if(p->S60>0&&p->S60<10)
-	pconcdisc=new weno_hj(p);
+	//if(p->S60>0&&p->S60<10)
+	//pconcdisc=new weno_hj(p);
     
   
 //turbulence model
