@@ -30,6 +30,7 @@ void lexer::read_control()
 	char c;
 	int numint;
     int count=0;
+    int count2=0;
 
 	ifstream control("ctrl.txt", ios_base::in);
 	if(!control)
@@ -1492,6 +1493,7 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 35: ++P35;
+                        cout<<"P35: "<<P35<<endl;
 						 clear(c,numint);
 						 break;
                 case 37: control>>P37;
@@ -1744,6 +1746,8 @@ void lexer::read_control()
 				case 352: ++P352;
 						 clear(c,numint);
 						 break;
+                         
+                
 				}
 				break;
                 
@@ -2504,8 +2508,7 @@ void lexer::read_control()
 		}
 
         ++count;
-
-	}
+        
         if(count>1e7)
         {
         cout<<endl;
@@ -2514,11 +2517,14 @@ void lexer::read_control()
 
         exit(1);
         }
+
+	}
+        
 	}
 	control.close();
 	control.clear();
 
-
+    cout<<"!!! PART 2 !!!"<<endl<<endl<<endl<<endl;
     // re-read
     
     // A
@@ -3354,6 +3360,9 @@ void lexer::read_control()
     int countX322=0;
 	int countX324=0;
 	int countZ11=0;
+    
+    
+    count=0;
 
 	control.open("ctrl.txt", ios_base::in);
 	while(!control.eof())
@@ -3617,7 +3626,7 @@ void lexer::read_control()
 				{
 				 case 35: control>>P35_ts[countP35]>>P35_te[countP35]>>P35_dt[countP35];
                         ++countP35;
-						 clear(c,numint);
+                          clear(c,numint);
 						 break;
                 case 50: control>>P50_x[countP50]>>P50_y[countP50];
                         ++countP50;
@@ -3880,16 +3889,23 @@ void lexer::read_control()
 						 break;
 				}
 				break;
-			}
-		}
-        if(count>1e7)
-        {
-        cout<<endl;
-        cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
-        cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
+                
+                
+            ++count;
+            
+            if(count>1e7)
+            {
+            cout<<endl;
+            cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
+            cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
 
-        exit(1);
-        }
+            exit(1);
+            }
+                
+			}
+        
+		}
+
 	}
 
 	control.close();
