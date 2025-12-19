@@ -193,8 +193,8 @@ void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     if(p->i_dir==1 && p->j_dir==1)
     FFILOOP4
     {
-    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
-    c->By(i,j) = pdx->sy(p,c->depth,1.0);
+    c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);
+    c->By(i,j) = pconvec->sy(p,c->depth,1.0);
     
     c->Bxx(i,j) = pddx->sxx(p,c->depth);
     c->Byy(i,j) = pddx->syy(p,c->depth);
@@ -204,7 +204,7 @@ void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     if(p->i_dir==1 && p->j_dir==0)
     FFILOOP4
     {
-    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);    
+    c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);    
     c->Bxx(i,j) = pddx->sxx(p,c->depth);
     }
     
