@@ -31,7 +31,11 @@ void wind_f::wind_forcing_drag_coeff(lexer *p)
     // Garratt
     if(p->A570==1)
     {
+    if(p->A571_u<41.0)
     Cd = 0.001 * (0.75+0.067*p->A571_u);
+    
+    if(p->A571_u>=41.0)
+    Cd = 0.001 * (3.5*p->A571_u);
     }
 
     // Wu

@@ -66,7 +66,7 @@ void wind_f::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     WETDRY
     if( p->XP[IP]>xs && p->XP[IP]<xe)
     if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    if(p->A574==1 || eta(i,j)>0.0)
+    if(p->A573==1 || eta(i,j)>0.0)
     F[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
 }
 
@@ -78,7 +78,7 @@ void wind_f::wind_forcing_nhf_y(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     WETDRY
     if( p->XP[IP]>xs && p->XP[IP]<xe)
     if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    if(p->A574==1 || eta(i,j)>0.0)
+    if(p->A573==1 || eta(i,j)>0.0)
     G[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*sina;
 }
 
