@@ -147,6 +147,7 @@ void lexer::ini_default()
     A572=0;      // int wind forcing area
     A572_xs=A572_xe=A572_ys=A572_ye=0.0; // double wind forcing area
     A573=1;      // int wind forcing region
+    A574=1;      // int wind forcing crest+trough or crest
     
     A581=0;      // int solid box
     A583=0;      // int solid cylinder y

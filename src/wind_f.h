@@ -50,6 +50,8 @@ private:
     double Cd;
     double cosa,sina;
     double xs,xe,ys,ye;
+    
+    double Uref;
 
 };
 

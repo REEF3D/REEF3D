@@ -28,6 +28,12 @@ Author: Hans Bihs
 
 void wind_f::wind_forcing_drag_coeff(lexer *p)
 {
+    // Garratt
+    if(p->A570==1)
+    {
+    Cd = 0.001 * (0.75+0.067*p->A571_u);
+    }
+
     // Wu
     if(p->A570==2)
     {
@@ -35,6 +41,18 @@ void wind_f::wind_forcing_drag_coeff(lexer *p)
     Cd = 1.2875e-3;
     
     if(p->A571_u>=7.5)
-    Cd = (0.8 + 0.065*p->A571_u)*1.0e-3;
+    Cd = 0.001 * (0.8 + 0.065*p->A571_u);
+    }
+    
+    // Smith and Banke
+    if(p->A570==3)
+    {
+    Cd = 0.001 * (0.63+0.066*p->A571_u);
+    }
+    
+    // Zijlema
+    if(p->A570==4)
+    {     
+    Cd = 0.001 * (0.55 + 2.97*(p->A571_u/Uref) - 1.49*pow(p->A571_u/Uref,2.0));
     }
 }

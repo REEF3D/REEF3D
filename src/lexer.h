@@ -276,7 +276,7 @@ public:
     int A550,A551,A552,A553;
     int A560;
     int A564,A565,A566,A567,A569;
-    int A570,A573;
+    int A570,A573,A574;
     double A568,A571_u,A571_dir;
     int A572;
     double A572_xs,A572_xe,A572_ys,A572_ye;
