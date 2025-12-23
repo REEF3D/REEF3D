@@ -2527,7 +2527,7 @@ void lexer::read_control()
 	control.close();
 	control.clear();
 
-    cout<<"!!! PART 2 !!!"<<endl<<endl<<endl<<endl;
+    //cout<<"!!! PART 2 !!!"<<endl<<endl<<endl<<endl;
     // re-read
     
     // A
