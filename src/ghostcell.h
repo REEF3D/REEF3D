@@ -315,6 +315,11 @@ private:
 	double recvsum,recvmin,recvmax;
 	int recvisum,recvimin,recvimax;
 	int awa_lable,pressout_lable,pressin_lable;
+    
+    int nb0[6],stag[6],rtag[6];
+    
+    MPI_Request sreq[6],rreq[6];
+    MPI_Status status;
 
     double v1,v2,v3,v4;
     double wa,wb;

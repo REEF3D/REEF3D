@@ -49,8 +49,8 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
 
         // Velocity update 1
         P.URK1[n] = (P.U[n] + p->dtsed*F)/(1.0 + p->dtsed*Dpx);
-        P.VRK1[n] = (P.V[n] + p->dtsed*G)/(1.0 + p->dtsed*Dpx);
-        P.WRK1[n] = (P.W[n] + p->dtsed*H)/(1.0 + p->dtsed*Dpx);
+        P.VRK1[n] = (P.V[n] + p->dtsed*G)/(1.0 + p->dtsed*Dpy);
+        P.WRK1[n] = (P.W[n] + p->dtsed*H)/(1.0 + p->dtsed*Dpz);
 
         
         // advec 2

@@ -290,6 +290,29 @@ void ghostcell::gcini(lexer* p)
         std::cerr << "MPI Cartesian topology does not match user-specified neighbours or doesn't exist. Exiting." << std::endl;
         exit(1);
     }
+    
+    
+    // nb
+    nb0[0] = p->nb1;
+	nb0[1] = p->nb2;
+	nb0[2] = p->nb3;
+	nb0[3] = p->nb4;
+	nb0[4] = p->nb5;
+	nb0[5] = p->nb6;
+    
+    stag[0] = 1;
+	stag[1] = 2;
+	stag[2] = 3;
+	stag[3] = 4;
+	stag[4] = 5;
+	stag[5] = 6;
+	
+	rtag[0] = 4;
+	rtag[1] = 3;
+	rtag[2] = 2;
+	rtag[3] = 1;
+	rtag[4] = 6;
+	rtag[5] = 5;
 }
 
 void ghostcell::fdm2D_update(fdm2D *bb)
