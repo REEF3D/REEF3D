@@ -53,7 +53,7 @@ void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
 {
     double fac=1.0;
     
-    if(p->A347==1 || p->A347==3)
+    if(p->A347==1 || p->A347==3 || (p->I30==1 && p->count==0))
     SLICELOOP4
     {
     

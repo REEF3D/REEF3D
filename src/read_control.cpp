@@ -1493,7 +1493,6 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 35: ++P35;
-                        cout<<"P35: "<<P35<<endl;
 						 clear(c,numint);
 						 break;
                 case 37: control>>P37;
@@ -2524,7 +2523,6 @@ void lexer::read_control()
 	control.close();
 	control.clear();
 
-    cout<<"!!! PART 2 !!!"<<endl<<endl<<endl<<endl;
     // re-read
     
     // A
