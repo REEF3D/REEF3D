@@ -147,6 +147,7 @@ void lexer::ini_default()
     A572=0;      // int wind forcing area
     A572_xs=A572_xe=A572_ys=A572_ye=0.0; // double wind forcing area
     A573=1;      // int wind forcing region
+    A574=1;      // int 
     
     A581=0;      // int solid box
     A583=0;      // int solid cylinder y
@@ -656,7 +657,7 @@ void lexer::ini_default()
     Q11=1;              // int move function
     Q12=0;              // int susp load
     Q13=0;              // int topo deformation
-    Q14=10;           // d continuum particle stress model parameter following Snider (2001) [Pressure]
+    Q14=10;             // d continuum particle stress model parameter following Snider (2001) [Pressure]
     Q15=3.5;            // d continuum particle stress model parameter following Snider (2001)
     Q16=10e-7;          // d continuum particle stress model parameter following Snider (2001)
     Q17=0.6;            // d critical solid volume fraction

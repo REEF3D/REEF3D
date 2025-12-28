@@ -1747,6 +1747,8 @@
         <File Name="sediment_part_cfd.cpp"/>
         <File Name="sediment_part.cpp"/>
         <VirtualDirectory Name="Partres">
+          <File Name="partres_RK2_plain.cpp"/>
+          <File Name="partres_RK2_mppic.cpp"/>
           <File Name="partres_update.cpp"/>
           <File Name="partres_stress_tensor.cpp"/>
           <File Name="partres_sandslide.cpp"/>
