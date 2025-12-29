@@ -78,8 +78,7 @@ private:
     void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
-    void cellSum_update(lexer*, ghostcell*, sediment_fdm*, int);
-    void cellSum_full_update(lexer*, ghostcell*, sediment_fdm*, int);
+    void cellSum_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*);
 
     void bedchange(lexer*, fdm*, ghostcell*, sediment_fdm*, int);
     void bedchange_update(lexer*, ghostcell*, int);

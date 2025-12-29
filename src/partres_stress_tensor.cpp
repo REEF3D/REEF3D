@@ -39,7 +39,7 @@ void partres::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
         Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
         
-        Tau(i,j,k) = MIN(Tau(i,j,k), 1000.0);
+        //Tau(i,j,k) = MIN(Tau(i,j,k), 1000.0);
         
         //cout<<"Tau: "<<Tau(i,j,k)<<" Ts: "<<Ts(i,j,k)<<" MAXfunc: "<<MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)))<<endl;
     }

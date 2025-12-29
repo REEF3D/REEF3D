@@ -61,7 +61,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         H = Hsolidface(p,a,1,0,0);
        
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt);   
-        a->test(i,j,k) = a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
+        a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
     
     VLOOP

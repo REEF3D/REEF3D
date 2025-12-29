@@ -32,14 +32,14 @@ void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
                         double &F, double &G, double &H, double alpha)
 {
     // velocity
-    uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
-    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
-    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
+    uf = p->ccipol1c(a->u,PX[n],PY[n],PZ[n]);
+    vf = p->ccipol2c(a->v,PX[n],PY[n],PZ[n]);
+    wf = p->ccipol3c(a->w,PX[n],PY[n],PZ[n]);
     
     
-    uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]+0.01);
-    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]+0.01);
-    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]+0.01);
+    uf = p->ccipol1c(a->u,PX[n],PY[n],PZ[n]+0.01);
+    vf = p->ccipol2c(a->v,PX[n],PY[n],PZ[n]+0.01);
+    wf = p->ccipol3c(a->w,PX[n],PY[n],PZ[n]+0.01);
     
     
 

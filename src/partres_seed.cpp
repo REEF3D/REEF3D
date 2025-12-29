@@ -146,5 +146,5 @@ void partres::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             P.remove(n);
     }
 
-    cellSum_full_update(p,pgc,s,2);
+    cellSum_update(p,pgc,s,P.X,P.Y,P.Z);
 }

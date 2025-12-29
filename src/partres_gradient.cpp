@@ -40,7 +40,7 @@ void partres::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     pgc->start4a(p,dTz,1);
     
     // Smoothing
-    ALOOP
+    /*ALOOP
     {
         dTx(i,j,k) = 0.5* dTx(i,j,k) + (1.0/12.0)*(dTx(i-1,j,k)+dTx(i+1,j,k)+dTx(i,j-1,k)+dTx(i,j+1,k)+dTx(i,j,k-1)+dTx(i,j,k+1));
         dTy(i,j,k) = 0.5* dTx(i,j,k) + (1.0/12.0)*(dTy(i-1,j,k)+dTy(i+1,j,k)+dTy(i,j-1,k)+dTy(i,j+1,k)+dTy(i,j,k-1)+dTy(i,j,k+1));
@@ -49,7 +49,7 @@ void partres::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 
     pgc->start4a(p,dTx,1);
     pgc->start4a(p,dTy,1);
-    pgc->start4a(p,dTz,1);
+    pgc->start4a(p,dTz,1);*/
 }
 
 void partres::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)

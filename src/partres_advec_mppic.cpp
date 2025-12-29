@@ -42,9 +42,9 @@ void partres::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
     Bz = p->W22;
 
     // velocity
-    uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
-    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
-    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
+    uf = p->ccipol1c(a->u,PX[n],PY[n],PZ[n]);
+    vf = p->ccipol2c(a->v,PX[n],PY[n],PZ[n]);
+    wf = p->ccipol3c(a->w,PX[n],PY[n],PZ[n]);
     
     // velocity
     /*uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]+0.01);
@@ -59,7 +59,9 @@ void partres::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
     P.Uf[n] = uf;
     P.Vf[n] = vf;
     P.Wf[n] = wf;
-
+    
+    Tsval = p->ccipol4a(Ts,PX[n],PY[n],PZ[n]);
+    
     // drag coefficient
     Dpx = drag_model(p,P.D[n],P.RO[n],Urel,Tsval);
     Dpy = drag_model(p,P.D[n],P.RO[n],Vrel,Tsval);
@@ -71,8 +73,8 @@ void partres::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
     H = Dpz*Wrel - dPz_val/P.RO[n] + Bz;
 
     // solid forcing
-    if(p->S10==2)
-    {
+    //if(p->S10==2)
+    //{
         double fx,fy,fz;
         fx = p->ccipol1c(a->fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed);
         fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed);
@@ -81,7 +83,7 @@ void partres::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
         F += fx;
         G += fy;
         H += fz;
-    }
+    //}
 
     // relax
     F *= rf(p,PX[n],PY[n]);
@@ -120,8 +122,8 @@ void partres::advec_mppic_step2(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
     H = - dTz_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
 
     // solid forcing
-    if(p->S10==2)
-    {
+    //if(p->S10==2)
+    //{
         double fx,fy,fz;
         fx = p->ccipol1c(a->fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed);
         fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed);
@@ -130,7 +132,7 @@ void partres::advec_mppic_step2(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
         F += fx;
         G += fy;
         H += fz;
-    }
+    //}
 
     // relax
     F *= rf(p,PX[n],PY[n]);

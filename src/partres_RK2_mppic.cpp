@@ -35,8 +35,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
     // ------------------------
     // RK step 1
-    stress_tensor(p,pgc,s);
-    stress_gradient(p,a,pgc,s);
+    
 
     double F,G,H;
 
@@ -52,7 +51,21 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.URK1[n] = (P.U[n] + p->dtsed*F)/(1.0 + p->dtsed*Dpx);
         P.VRK1[n] = (P.V[n] + p->dtsed*G)/(1.0 + p->dtsed*Dpy);
         P.WRK1[n] = (P.W[n] + p->dtsed*H)/(1.0 + p->dtsed*Dpz);
-
+        
+        // Position update 
+        P.XRK1[n] = P.X[n] + p->dtsed*P.URK1[n];
+        P.YRK1[n] = P.Y[n] + p->dtsed*P.VRK1[n];
+        P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
+    }
+    
+    // stress and cellSum update
+    cellSum_update(p,pgc,s,P.XRK1,P.YRK1,P.ZRK1);
+    stress_tensor(p,pgc,s);
+    stress_gradient(p,a,pgc,s);
+    
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    {
         // advec 2
         advec_mppic_step2(p, a, P, s, pturb,
                     P.X, P.Y, P.Z, P.URK1, P.VRK1, P.WRK1,
@@ -66,13 +79,12 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.WRK1[n] += p->dtsed*H;
 
         // Position update 
-        P.XRK1[n] = P.X[n] + p->dtsed*P.URK1[n];
-        P.YRK1[n] = P.Y[n] + p->dtsed*P.VRK1[n];
-        P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
+        P.XRK1[n] += p->dtsed*p->dtsed*F;
+        P.YRK1[n] += p->dtsed*p->dtsed*G;
+        P.ZRK1[n] += p->dtsed*p->dtsed*H;
     }
 
-    // cellSum update
-    cellSum_full_update(p,pgc,s,2);
+    
 
     boundcheck(p,1);
     bedchange_update(p,pgc,1);
@@ -87,7 +99,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     stress_gradient(p,a,pgc,s);
     
     ALOOP
-    a->test(i,j,k) = Tau(i,j,k);
+    a->test(i,j,k) = Ts(i,j,k);
 
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
@@ -102,6 +114,21 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.V[n] = (0.5*P.V[n] + 0.5*P.VRK1[n] + 0.5*p->dtsed*G)/(1.0 + 0.5*p->dtsed*Dpy);
         P.W[n] = (0.5*P.W[n] + 0.5*P.WRK1[n] + 0.5*p->dtsed*H)/(1.0 + 0.5*p->dtsed*Dpz);
         
+        // Position update
+        P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
+        P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
+        P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
+    }
+    
+    // stress and cellSum update
+    cellSum_update(p,pgc,s,P.X,P.Y,P.Z);
+    stress_tensor(p,pgc,s);
+    stress_gradient(p,a,pgc,s);
+    
+        
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    {
         // advec 2
         advec_mppic_step2(p, a, P, s, pturb,
                     P.XRK1, P.YRK1, P.ZRK1, P.U, P.V, P.W,
@@ -115,13 +142,10 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.W[n] += 0.5*p->dtsed*H;
 
         // Position update
-        P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
-        P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
-        P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
+        P.X[n] += 0.5*p->dtsed*p->dtsed*F;
+        P.Y[n] += 0.5*p->dtsed*p->dtsed*G;
+        P.Z[n] += 0.5*p->dtsed*p->dtsed*H;
     }
-
-    // cellSum update
-    cellSum_full_update(p,pgc,s,2);
 
     boundcheck(p,2);
     bedchange_update(p,pgc,2);

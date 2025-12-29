@@ -54,7 +54,7 @@ void partres::RK2_plain(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     }
 
     // cellSum update
-    cellSum_full_update(p,pgc,s,2);
+    cellSum_update(p,pgc,s,P.XRK1,P.YRK1,P.ZRK1);
 
 
     boundcheck(p,1);
@@ -84,7 +84,7 @@ void partres::RK2_plain(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     }
 
     // cellSum update
-    cellSum_full_update(p,pgc,s,2);
+    cellSum_update(p,pgc,s,P.X,P.Y,P.Z);
 
     boundcheck(p,2);
     bedchange_update(p,pgc,2);
