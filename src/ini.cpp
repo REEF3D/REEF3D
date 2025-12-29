@@ -657,7 +657,7 @@ void lexer::ini_default()
     Q11=1;              // int move function
     Q12=0;              // int susp load
     Q13=0;              // int topo deformation
-    Q14=10;           // d continuum particle stress model parameter following Snider (2001) [Pressure]
+    Q14=10;             // d continuum particle stress model parameter following Snider (2001) [Pressure]
     Q15=3.5;            // d continuum particle stress model parameter following Snider (2001)
     Q16=10e-7;          // d continuum particle stress model parameter following Snider (2001)
     Q17=0.6;            // d critical solid volume fraction

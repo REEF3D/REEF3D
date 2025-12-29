@@ -47,6 +47,9 @@ public:
     virtual ~partres() = default;
 
     void move_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    
+    void RK2_mppic(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    void RK2_plain(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
 
     void update(lexer*, fdm*, ghostcell*, sediment_fdm*, field&, field&);
 
@@ -59,7 +62,11 @@ private:
     void advec_plain(lexer*, fdm*, part&, sediment_fdm*, turbulence*,
                         double*, double*, double*, double*, double*, double*,
                         double&, double&, double&, double);
-    void advec_mppic(lexer*, fdm*, part&, sediment_fdm*, turbulence*,
+    void advec_mppic_step1(lexer*, fdm*, part&, sediment_fdm*, turbulence*,
+                        double*, double*, double*, double*, double*, double*,
+                        double&, double&, double&, double);
+                        
+    void advec_mppic_step2(lexer*, fdm*, part&, sediment_fdm*, turbulence*,
                         double*, double*, double*, double*, double*, double*,
                         double&, double&, double&, double);
 
@@ -107,6 +114,16 @@ private:
     double *tan_betaQ73,*betaQ73,*dist_Q73;
 
     bool timestep_ini = true;
+    
+    // parameters
+    double Dpx,Dpy,Dpz;
+    double dPx_val,dPy_val,dPz_val;
+    double Bx,By,Bz;
+    double uf,vf,wf;
+    double Urel,Vrel,Wrel;
+    double Tsval;
+    double dTx_val,dTy_val,dTz_val;
+    double DragCoeff,Fd;
 };
 
 #endif

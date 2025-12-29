@@ -32,25 +32,34 @@ void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
                         double &F, double &G, double &H, double alpha)
 {
     // velocity
-    double uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
-    double vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
-    double wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
+    uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
+    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
+    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
+    
+    
 
     // relative velocity
-    double Urel = uf-PU[n];
-    double Vrel = vf-PV[n];
-    double Wrel = wf-PW[n];
+    Urel = uf;//-PU[n];
+    Vrel = vf;//-PV[n];
+    Wrel = wf;//-PW[n];
 
     double Uabs_rel = sqrt(Urel*Urel + Vrel*Vrel);
 
     P.Uf[n] = uf;
     P.Vf[n] = vf;
     P.Wf[n] = wf;
+    
+    Tsval = p->ccipol4a(Ts,PX[n],PY[n],PZ[n]);
 
-    double DragCoeff = 0.5;
+    DragCoeff = 0.5;
 
     // acceleration
-    double Fd = p->W1 * DragCoeff * PI/8.0 * pow(P.d50,2)  * pow(Uabs_rel,2.0);
+    Fd = p->W1 * DragCoeff * PI/8.0 * pow(P.d50,2)  * pow(Uabs_rel,2.0);
+    
+    
+    Dpx = drag_model(p,P.D[n],P.RO[n],Urel,Tsval);
+    Dpy = drag_model(p,P.D[n],P.RO[n],Vrel,Tsval);
+    Dpz = drag_model(p,P.D[n],P.RO[n],Wrel,Tsval);
 
     // relax
     Fd *= rf(p,PX[n],PY[n]);
