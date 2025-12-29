@@ -27,6 +27,8 @@ Author: Hans Bihs
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include<string>
+#include<sstream>
 
 wave_lib_spectrum::wave_lib_spectrum()
 {
@@ -55,6 +57,9 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
 
     if(p->B85==10)
     Sval = spectrum_file(p,w);
+    
+    if(p->B85==11)
+    Sval = 0.0;  // For 2D spectrum, this function should not be called directly
 
     return Sval;
 }
@@ -67,22 +72,84 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     
 	if(p->B94==1)
 	wD=p->B94_wdt;
+    
+    wdt = wD; 
 
 	if(p->B85==10)
 	spectrum_file_read(p);
+    
+    if(p->B85==11)
+    {
+        spectrum_file_2d_read(p);
+        // For 2D spectrum, use file frequency range directly
+        ws = freq_2d[0];
+        we = freq_2d[ptnum_freq_2d-1];
+        // Find peak frequency from 2D spectrum
+        double maxS_2d = -1.0;
+        wp = ws;
+        
+        int peak_idx = 0;
+        for(int nf=0; nf<ptnum_freq_2d; ++nf)
+        {
+            double row_sum = 0.0;
+            for(int nd=0; nd<ptnum_dir_2d; ++nd)
+                row_sum += spectrum_2d[nf][nd];
+		
+            if(row_sum > maxS_2d)
+            {
+                maxS_2d = row_sum;
+                wp = freq_2d[nf];
+                peak_idx = nf;
+            }
+        }
 
+        // Extract directional spreading at peak frequency
+        // Allocate beta_n and Di_n for directional spreading
+        p->Darray(beta_n, ptnum_dir_2d);
+        p->Darray(Di_n, ptnum_dir_2d);
 
-  double maxS=-1.0;
-	double S,w,sigma;
-	int check_s,check_e;
-  int n;
+        // Normalize the spreading function
+        double S_sum = 0.0;
+        for(int nd=0; nd<ptnum_dir_2d; ++nd)
+            S_sum += spectrum_2d[peak_idx][nd];
+            
+        if(S_sum > 0.0)
+        {
+            for(int nd=0; nd<ptnum_dir_2d; ++nd)
+            {
+                beta_n[nd] = dir_2d[nd];
+                Di_n[nd] = spectrum_2d[peak_idx][nd] / S_sum;  // Normalized spreading
+            }
+        }
+        else
+        {
+            // Fallback: uniform spreading
+            for(int nd=0; nd<ptnum_dir_2d; ++nd)
+            {
+                beta_n[nd] = dir_2d[nd];
+                Di_n[nd] = 1.0 / double(ptnum_dir_2d);
+            }
+        }
+        
+        if(p->mpirank==0)
+        cout<<"2D Spectrum: wp: "<<wp<<" ws: "<<ws<<" we: "<<we<<endl;
+    }
 
-  p->wN = p->B86;
+    double maxS=-1.0;
+    double S,w,sigma;
+    int check_s,check_e;
+    int n;
 
+    p->wN = p->B86;
 	w=0.0;
-	wp=0.0;
 
 	// Find spectrum peak
+    if(p->B85!=11)
+	wp=0.0;
+    
+    // Find spectrum peak (skip for 2D spectrum file)
+	if(p->B85!=11)
+	{
 	do{
 	w+=0.01;
 
@@ -143,12 +210,13 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
 	}while(w<100.0);
 
-	if(p->B87==1)
-	{
+    if(p->B87==1)
+    {
         ws=p->B87_1;
         we=p->B87_2;
-	}
-
+    }
+    }  // End of if(p->B85!=11) block for peak finding
+    
 	if(p->B130==0)
     {
     numcomp=p->wN;
@@ -182,9 +250,60 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     p->Darray(cosbeta,numcomp);
     p->Darray(sinbeta,numcomp);
 
+ // For 2D spectrum file, setup frequency components
+    if(p->B85==11)
+    {
+        // Determine frequency discretization strategy
+        if(p->wN <= ptnum_freq_2d)
+        {
+            // Use subset of file frequencies
+            if(p->mpirank==0)
+                cout<<"Using "<<p->wN<<" frequencies from file ("<<ptnum_freq_2d<<" available)"<<endl;
+
+            // Uniform sampling from file frequencies
+            for(n=0; n<p->wN; ++n)
+            {
+                int idx = (int)((double)n * (ptnum_freq_2d-1) / (p->wN-1));
+                wi[n] = freq_2d[idx];
+            }
+
+            // Calculate dw based on actual spacing
+            for(n=0; n<p->wN; ++n)
+            {
+                if(n < p->wN-1)
+                    dw[n] = wi[n+1] - wi[n];
+                else
+                    dw[n] = dw[n-1];
+            }
+        }
+        else
+        {
+            // Interpolate to get more frequencies than in file
+            if(p->mpirank==0)
+                cout<<"Interpolating to "<<p->wN<<" frequencies (file has "<<ptnum_freq_2d<<")"<<endl;
+ 
+            double freq_min = freq_2d[0];
+            double freq_max = freq_2d[ptnum_freq_2d-1];
+            double delta_freq = (freq_max - freq_min) / (p->wN - 1);
+
+            for(n=0; n<p->wN; ++n)
+            {
+                wi[n] = freq_min + n * delta_freq;
+                dw[n] = delta_freq;
+            }
+        }    
+        // Initialize beta arrays (will be filled in directional spreading)
+        for(n=0;n<numcomp;++n)
+        {
+            beta[n]=0.0;
+            sinbeta[n]=0.0;
+            cosbeta[n]=1.0;
+        }
+    }
+
     // Peak Enhance Method
 
-    if(p->B84==1)
+    if(p->B84==1 && p->B85!=11)
     {
 
         for(n=0;n<numcomp;++n)
@@ -246,7 +365,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     }
 
 		// Equal Energy Method
-    if(p->B84==2)
+    if(p->B84==2 && p->B85!=11)
     {
         	double ddw, sum;
         	double cdf_s, cdf_e, w_low, w_high, cdf_low, cdf_high;
@@ -389,7 +508,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
                 wi[n]=(dee[n]-cdf_low)*(w_high-w_low)/(cdf_high-cdf_low)+w_low;
             }
             Si[n] = wave_spectrum(p,wi[n]);
-						Sn[n] = Si[n];
+            Sn[n] = Si[n];
             dw[n]=(cdf[NN-1]-cdf[0])/p->wN/Si[n];
         	}
 
@@ -399,7 +518,13 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         for(n=0;n<p->wN;++n)
         {
             w=wi[n];
-            Si[n] = wave_spectrum(p,w);
+            
+            // For 2D spectrum file, Si will be filled later with directional spreading
+            if(p->B85!=11)
+                Si[n] = wave_spectrum(p,w);
+            else
+                Si[n] = 0.0; // Will be filled in directional spreading
+
             wL0 = (2.0*PI*9.81)/pow(w,2.0);
             k0 = (2.0*PI)/wL0;
             S0 = sqrt(k0*wD) * (1.0 + (k0*wD)/6.0 + (k0*k0*wD*wD)/30.0);
@@ -415,7 +540,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
 
     // Uniform frequency distribution
-    if (p->B84==3)
+    if (p->B84==3 && p->B85!=11)
     {
         double F, dF, delta_w;
 
@@ -439,37 +564,57 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     }
 
 
+    // Print spectrum based on type
+    if(p->B85==11)
+        print_spectrum_2d(p);
+    else
         print_spectrum(p);
-        
-        // directional spreading
-        directional_spreading(p);
+            
+    // directional spreading
+    directional_spreading(p);
+    
+    if(p->B130>0)
         print_spreading(p);
-                
                 
     // peak wave speed
     double wdt,wL;
-    
-    if(p->B94==0)
-	wdt=p->phimean;
 
-	if(p->B94==1)
-	wdt=p->B94_wdt;
+    // already defined in line 70-74, and now wdt becomes a global public class member
+    // if(p->B94==0)
+    // wdt=p->phimean;
 
-		wL0 = (9.81/(2.0*PI))*p->wTp*p->wTp;
-		k0 = (2.0*PI)/wL0;
-		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+    // if(p->B94==1)
+    // wdt=p->B94_wdt;
 
-		wL = wL0*tanh(S0);
+    wL0 = (9.81/(2.0*PI))*p->wTp*p->wTp;
+    k0 = (2.0*PI)/wL0;
+    S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
 
-        for(int qn=0; qn<500; ++qn)
-        wL = wL0*tanh(2.0*PI*wdt/wL);
+    wL = wL0*tanh(S0);
 
-        p->wC = wL/p->wTp;
+    for(int qn=0; qn<500; ++qn)
+    wL = wL0*tanh(2.0*PI*wdt/wL);
+
+    p->wC = wL/p->wTp;
 }
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)
 {
-    if(p->B84==1 && p->B136!=4)
+    if(p->B85==11)
+    {
+        // Amplitudes for 2D spectrum file
+        // Si[n] already contains S(w,beta) from directional spreading
+        for(int n=0;n<p->wN;++n)
+        {
+            // For 2D spectrum, dw and dbeta are implicit in the discretization
+            if(p->B130>0 && p->B136!=4)
+                Ai[n] = sqrt(2.0*Si[n]*dw[n]*dbeta);
+            else
+                Ai[n] = sqrt(2.0*Si[n]*dw[n]);
+        }
+    }
+
+    else if(p->B84==1 && p->B136!=4)
     {
         // Amplitudes
         for(int n=0;n<p->wN;++n)
@@ -477,8 +622,7 @@ void wave_lib_spectrum::amplitudes_irregular(lexer *p)
             Ai[n] = sqrt(2.0*Si[n]*dw[n]*dbeta);
         }
     }
-
-    if(p->B84==2)
+    else if(p->B84==2)
     {
         // Amplitudes
         for(int n=0;n<p->wN;++n)
@@ -620,19 +764,88 @@ void wave_lib_spectrum::print_spreading(lexer *p)
 
 	// double xval=p->B132_s;
 
+    // Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_Log-Wave",0777);
+ 
+    if(p->mpirank==0)
+    {
+    result.open("./REEF3D_Log-Wave/REEF3D_spreading-function.dat");
+    // Set fixed decimal format
+    result.setf(ios::fixed);
+    result.precision(4);
+    
+    // For 2D spectrum file, use file direction count; otherwise use numcomp
+
+    int num_dirs = (p->B85==11) ? ptnum_dir_2d : numcomp;
+
+	for(int n=0; n<num_dirs; ++n)
+	{
+		result<<beta_n[n]<<" "<<Di_n[n]<<endl;
+	}
+    }
+    
+	result.close();
+}
+
+void wave_lib_spectrum::print_spectrum_2d(lexer *p)
+{
+	ofstream result;
+
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_Log-Wave",0777);
+    
+    if(p->mpirank==0)
+    {
+    result.open("./REEF3D_Log-Wave/REEF3D_wave-spectrum-2d.dat");
+
+    // Set fixed decimal format
+    result.setf(ios::fixed);
+    result.precision(4);
+
+	// Print header: frequencies in first column, directions across
+	result<<"fq_dir";
+	for(int m=0; m<ptnum_dir_2d; ++m)
+		result<<" "<<dir_2d[m];
+	result<<endl;
+
+	// Print 2D spectrum values
+	for(int n=0; n<ptnum_freq_2d; ++n)
+	{
+		result<<freq_2d[n];
+		for(int m=0; m<ptnum_dir_2d; ++m)
+			result<<" "<<spectrum_2d[n][m];
+		result<<endl;
+	}
+    }
+	result.close();
+}
+
+void wave_lib_spectrum::print_components_2d(lexer *p)
+{
+	ofstream result;
 	// Create Folder
 	if(p->mpirank==0)
 	mkdir("./REEF3D_Log-Wave",0777);
 
     if(p->mpirank==0)
-    result.open("./REEF3D_Log-Wave/REEF3D_spreading-function.dat");
+    {
 
+    result.open("./REEF3D_Log-Wave/REEF3D_wave-components-2d.dat");
 
-	for(int n=0;n<numcomp;++n)
+    // Set fixed decimal format
+    result.setf(ios::fixed);
+    result.precision(4);
+
+	// Print header
+	result<<"# Amplitude (m)  Frequency(rad/s)  Phase  Direction(rad)"<<endl;
+
+	for(int n=0;n<p->wN;++n)
 	{
-		// xval+=dbeta[n];
-		result<<beta_n[n]<<" "<<Di_n[n]<<endl;
+		result<<Ai[n]<<" "<<wi[n]<<" "<<ei[n]<<" "<<beta[n]<<endl;
 	}
-
+    }
+    
 	result.close();
 }

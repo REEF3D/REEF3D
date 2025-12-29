@@ -48,7 +48,113 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
         p->B131 *= PI / 180.0;
         p->B132_s *= PI / 180.0;
         p->B132_e *= PI / 180.0;
+         
+        if(p->B85==11)
+        {
+            // For 2D spectrum, use file direction range
+            double dir_min = dir_2d[0];
+            double dir_max = dir_2d[ptnum_dir_2d-1];
 
+            if(p->B133 <= ptnum_dir_2d)
+            {
+                // Use subset of file directions
+                dbeta = (dir_max - dir_min) / double(p->B133 - 1);
+
+                if(p->mpirank==0)
+                    cout<<"Using "<<p->B133<<" directions from file ("<<ptnum_dir_2d<<" available)"<<endl;
+            }
+            else
+            {
+                // Interpolate to more directions than in file
+                dbeta = (dir_max - dir_min) / double(p->B133 - 1);
+
+                if(p->mpirank==0)
+                    cout<<"Interpolating to "<<p->B133<<" directions (file has "<<ptnum_dir_2d<<")"<<endl;
+            }
+
+            // Setup beta array
+            count = 0;
+            for(n = 0; n < p->wN; ++n)
+            {
+                for(q = 0; q < p->B133; ++q)
+                {
+                    beta[count] = dir_min + dbeta * double(q);
+                    sinbeta[count] = sin(beta[count]);
+                    cosbeta[count] = cos(beta[count]);
+                    ++count;
+                }
+            }
+
+            // Setup wi array - expand frequencies
+            double* Si_temp;
+            p->Darray(Si_temp, p->wN);
+            
+            for(n = 0; n < p->wN; ++n)
+                Si_temp[n] = wi[n];
+
+            count = 0;
+            for(n = 0; n < p->wN; ++n)
+            {
+                for(q = 0; q < p->B133; ++q)
+                {
+                    wi[count] = Si_temp[n];
+                    ++count;
+                }
+            }
+
+            // Setup dw array - expand frequency intervals
+            for(n = 0; n < p->wN; ++n)
+                Si_temp[n] = dw[n];
+
+            count = 0;
+
+            for(n = 0; n < p->wN; ++n)
+            {
+                for(q = 0; q < p->B133; ++q)
+                {
+                    dw[count] = Si_temp[n];
+                    ++count;
+                }
+            }
+
+            // Setup ki array
+            for(n = 0; n < p->wN; ++n)
+                Si_temp[n] = ki[n];
+ 
+            count = 0;
+            for(n = 0; n < p->wN; ++n)
+            {
+                for(q = 0; q < p->B133; ++q)
+                {
+                    ki[count] = Si_temp[n];
+                    ++count;
+                }
+            }
+
+            // Get spectrum values via bilinear interpolation
+            for(n = 0; n < p->wN; ++n)
+                Si_temp[n] = Si[n];
+
+            count = 0;
+            for(n = 0; n < p->wN; ++n)
+            {
+                for(q = 0; q < p->B133; ++q)
+                {
+                    Di[count] = 1.0;
+                    Si[count] = spectrum_file_2d(p, wi[count], beta[count]);
+                    ++count;
+                }
+            }
+
+            p->del_Darray(Si_temp, p->wN);
+ 
+            // Update p->wN to total components
+            p->wN *= p->B133;
+
+            if(p->mpirank==0)
+                cout<<"2D Spectrum: dbeta = "<<dbeta<<" rad"<<endl;
+        }
+        
         if(p->B84==1)
         {
             dbeta = (p->B132_e - p->B132_s) / double(p->B133 - 1);
@@ -155,8 +261,16 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             {
                 for(q = 0; q < p->B133; ++q)
                 {
-                  Di[count]=spreading_function(p, beta[count], wi[count]);
-                  Si[count] = Si_temp[n] * Di[count];
+                  if(p->B85==11)// For 2D spectrum file, use direct lookup instead of spreading function
+                  {
+                      Di[count]=1.0; // Not needed for 2D spectrum
+                      Si[count] = spectrum_file_2d(p, wi[count], beta[count]);
+                  }
+                  else
+                  {
+                      Di[count]=spreading_function(p, beta[count], wi[count]);
+                      Si[count] = Si_temp[n] * Di[count];
+                  }
                   ++count;
                 }
             }
