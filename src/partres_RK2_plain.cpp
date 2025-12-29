@@ -54,10 +54,8 @@ void partres::RK2_plain(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     }
 
     // cellSum update
-    cellSum_full_update(p,pgc,s,1);
+    cellSum_full_update(p,pgc,s,2);
 
-    ALOOP
-        a->test(i,j,k) = Ts(i,j,k);
 
     boundcheck(p,1);
     bedchange_update(p,pgc,1);

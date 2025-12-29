@@ -31,7 +31,6 @@ void partres::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {
-
     // pressure gradient
     dPx_val = p->ccipol4a(dPx,PX[n],PY[n],PZ[n]);
     dPy_val = p->ccipol4a(dPy,PX[n],PY[n],PZ[n]);
@@ -46,6 +45,11 @@ void partres::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
     uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
     vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
     wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
+    
+    // velocity
+    /*uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]+0.01);
+    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]+0.01);
+    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]+0.01);*/
 
     // relative velocity
     Urel = uf;//-PU[n];
@@ -109,7 +113,7 @@ void partres::advec_mppic_step2(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
     dTy_val = p->ccipol4a(dTy,PX[n],PY[n],PZ[n]);
     dTz_val = p->ccipol4a(dTz,PX[n],PY[n],PZ[n]);
 
-   
+//cout<<"dTx_val: "<<dTx_val<<" dTy_val: "<<dTy_val<<" dTz_val: "<<dTz_val<<endl;
     // particle force
     F = - dTx_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
     G = - dTy_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));

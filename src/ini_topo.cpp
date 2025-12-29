@@ -42,10 +42,10 @@ void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
     
     p->toporead=1;
     p->topoforcing=1;
+    }
     
     if(p->S10==2)
     p->topoforcing=0;
-    }
 	
 	pgc->start4a(p,a->topo,150);
 

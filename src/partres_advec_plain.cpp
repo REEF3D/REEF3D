@@ -37,6 +37,11 @@ void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence
     wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
     
     
+    uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]+0.01);
+    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]+0.01);
+    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]+0.01);
+    
+    
 
     // relative velocity
     Urel = uf;//-PU[n];

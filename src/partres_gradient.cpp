@@ -34,6 +34,18 @@ void partres::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         dTy(i,j,k) = ((Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]));
         dTz(i,j,k) = ((Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]));
     }
+    
+    pgc->start4a(p,dTx,1);
+    pgc->start4a(p,dTy,1);
+    pgc->start4a(p,dTz,1);
+    
+    // Smoothing
+    ALOOP
+    {
+        dTx(i,j,k) = 0.5* dTx(i,j,k) + (1.0/12.0)*(dTx(i-1,j,k)+dTx(i+1,j,k)+dTx(i,j-1,k)+dTx(i,j+1,k)+dTx(i,j,k-1)+dTx(i,j,k+1));
+        dTy(i,j,k) = 0.5* dTx(i,j,k) + (1.0/12.0)*(dTy(i-1,j,k)+dTy(i+1,j,k)+dTy(i,j-1,k)+dTy(i,j+1,k)+dTy(i,j,k-1)+dTy(i,j,k+1));
+        dTz(i,j,k) = 0.5* dTx(i,j,k) + (1.0/12.0)*(dTz(i-1,j,k)+dTz(i+1,j,k)+dTz(i,j-1,k)+dTz(i,j+1,k)+dTz(i,j,k-1)+dTz(i,j,k+1));
+    }
 
     pgc->start4a(p,dTx,1);
     pgc->start4a(p,dTy,1);

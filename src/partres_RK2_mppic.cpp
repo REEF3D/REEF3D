@@ -32,7 +32,8 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     count_particles(p,a,pgc,s);
 
     pressure_gradient(p,a,pgc,s);
-
+    
+    // ------------------------
     // RK step 1
     stress_tensor(p,pgc,s);
     stress_gradient(p,a,pgc,s);
@@ -52,11 +53,12 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.VRK1[n] = (P.V[n] + p->dtsed*G)/(1.0 + p->dtsed*Dpy);
         P.WRK1[n] = (P.W[n] + p->dtsed*H)/(1.0 + p->dtsed*Dpz);
 
-        
         // advec 2
-        /*advec_mppic_step2(p, a, P, s, pturb,
+        advec_mppic_step2(p, a, P, s, pturb,
                     P.X, P.Y, P.Z, P.URK1, P.VRK1, P.WRK1,
-                    F, G, H, 1.0);*/
+                    F, G, H, 1.0);
+                    
+        //F=G=H=0.0;
 
         // Velocity update 2
         P.URK1[n] += p->dtsed*F;
@@ -70,10 +72,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     }
 
     // cellSum update
-    cellSum_full_update(p,pgc,s,1);
-
-    ALOOP
-        a->test(i,j,k) = Ts(i,j,k);
+    cellSum_full_update(p,pgc,s,2);
 
     boundcheck(p,1);
     bedchange_update(p,pgc,1);
@@ -82,9 +81,13 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     // parallel transfer
     P.xchange(p,pgc,bedch,1);
 
+    // ------------------------
     // RK step 2
     stress_tensor(p, pgc, s);
     stress_gradient(p,a,pgc,s);
+    
+    ALOOP
+    a->test(i,j,k) = Tau(i,j,k);
 
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
@@ -99,11 +102,12 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.V[n] = (0.5*P.V[n] + 0.5*P.VRK1[n] + 0.5*p->dtsed*G)/(1.0 + 0.5*p->dtsed*Dpy);
         P.W[n] = (0.5*P.W[n] + 0.5*P.WRK1[n] + 0.5*p->dtsed*H)/(1.0 + 0.5*p->dtsed*Dpz);
         
-        
         // advec 2
-        /*advec_mppic_step2(p, a, P, s, pturb,
+        advec_mppic_step2(p, a, P, s, pturb,
                     P.XRK1, P.YRK1, P.ZRK1, P.U, P.V, P.W,
-                    F, G, H, 0.5);*/
+                    F, G, H, 0.5);
+                    
+        //F=G=H=0.0;
 
         // Velocity update 2
         P.U[n] += 0.5*p->dtsed*F;

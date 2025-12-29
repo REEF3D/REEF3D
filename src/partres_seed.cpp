@@ -26,8 +26,11 @@ Author: Alexander Hanke, Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void partres::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
+    double spacing;
+    double particles_per_dim;
+    
     // estimate number particles
     int count=0;
     ALOOP
@@ -40,26 +43,92 @@ void partres::seed_topo(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     count *= p->Q24;
 
     P.resize(p,count);
-
-    // seed
+    
     const int irand(100000);
     const double drand(100000.0);
-    n=0;
-    ALOOP
-    if(a->topo(i,j,k)<=0)
+    
+    // seed equal spacing
+    if(p->Q29==1)
     {
-        for(int qn=0;qn<p->Q24;++qn)
+        n=0;
+        ALOOP
+        if(a->topo(i,j,k)<=0)
         {
-            n=P.Empty[P.index_empty];
-            P.X[n] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
-            P.Y[n] = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
-            P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+        int particles_per_cell = p->Q24;  
+        int particles_per_dim = int(pow(double(particles_per_cell), 1.0/3.0) + 0.5);
+        
+        spacing = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) / double(particles_per_dim);
 
-            P.D[n] = p->S20;
-            P.RO[n] = p->S22;
+            for(int ii = 0; ii < particles_per_dim; ++ii)
+            for(int jj = 0; jj < particles_per_dim; ++jj)
+            for(int kk = 0; kk < particles_per_dim; ++kk)
+            {
+                n=P.Empty[P.index_empty];
+                P.X[n] = p->XN[IP] + double(ii) * spacing ;
+                P.Y[n] = p->YN[JP] + double(jj) * spacing ;
+                P.Z[n] = p->ZN[KP] + double(kk) * spacing ;
 
-            P.Flag[n] = ACTIVE;
-            --P.index_empty;
+                P.D[n] = p->S20;
+                P.RO[n] = p->S22;
+
+                P.Flag[n] = ACTIVE;
+                --P.index_empty;
+            }
+        }
+    }
+    
+    // seed equal spacing with jitter
+    if(p->Q29==2)
+    {
+        n=0;
+        ALOOP
+        if(a->topo(i,j,k)<=0)
+        {
+        int particles_per_cell = p->Q24; 
+        int particles_per_dim = int(pow(double(particles_per_cell), 1.0/3.0) + 0.5);        
+        
+        spacing = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) / double(particles_per_dim);
+        
+        //cout<<"particles_per_dim: "<<particles_per_dim<<" spacing: "<<spacing<<endl;
+
+            for(int ii = 0; ii < particles_per_dim; ++ii)
+            for(int jj = 0; jj < particles_per_dim; ++jj)
+            for(int kk = 0; kk < particles_per_dim; ++kk)
+            {
+                n=P.Empty[P.index_empty];
+                P.X[n] = p->XN[IP] + double(ii) * spacing + 0.1*p->DXN[IP]*double(rand() % irand)/drand;
+                P.Y[n] = p->YN[JP] + double(jj) * spacing + 0.1*p->DYN[JP]*double(rand() % irand)/drand;
+                P.Z[n] = p->ZN[KP] + double(kk) * spacing + 0.1*p->DZN[KP]*double(rand() % irand)/drand;
+
+                P.D[n] = p->S20;
+                P.RO[n] = p->S22;
+
+                P.Flag[n] = ACTIVE;
+                --P.index_empty;
+            }
+        }
+    }
+    
+    // seed fully random
+    if(p->Q29==3)
+    {
+        n=0;
+        ALOOP
+        if(a->topo(i,j,k)<=0)
+        {
+            for(int qn=0;qn<p->Q24;++qn)
+            {
+                n=P.Empty[P.index_empty];
+                P.X[n] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+                P.Y[n] = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
+                P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+
+                P.D[n] = p->S20;
+                P.RO[n] = p->S22;
+
+                P.Flag[n] = ACTIVE;
+                --P.index_empty;
+            }
         }
     }
 

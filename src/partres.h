@@ -55,7 +55,7 @@ public:
 
     void timestep(lexer*, ghostcell*);
 
-    void seed_topo(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void seed_particles(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
     void print_particles(lexer*,sediment_fdm*);
 private:
