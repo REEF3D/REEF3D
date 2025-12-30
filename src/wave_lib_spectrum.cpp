@@ -86,14 +86,15 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 	if(p->B85==10)
 	spectrum_file_read(p);
 
+	// 2D spectrum file (B85==11): Read frequency-direction spectrum from file
+	// Uses spectrum-file-2d.dat with format: header line with directions,
+	// then rows of [frequency, S(f,dir1), S(f,dir2), ...]
 	if(p->B85==11)
 	{
 	spectrum_file_2d_read(p);
 
-	// Set p->wN from file data
+	// Override p->wN and p->B133 with actual dimensions from file
 	p->wN = ptnum_freq_2d;
-
-	// Set p->B133 from file data (needed for numcomp calculation later)
 	p->B133 = ptnum_dir_2d;
 
 	// For 2D spectrum, use file frequency range directly
@@ -234,9 +235,6 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 	}
 	}  // End of if(p->B85!=11) block for peak finding
 
-	if(p->B85==11 && p->mpirank==0)
-        cout<<"DEBUG: Before numcomp calculation: p->B130="<<p->B130<<" p->B136="<<p->B136<<" p->wN="<<p->wN<<" p->B133="<<p->B133<<endl;
-
 	if(p->B130==0)
     {
     numcomp=p->wN;
@@ -256,12 +254,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     if(p->B85==11)
     {
         numcomp=p->wN*p->B133;
-        if(p->mpirank==0)
-            cout<<"DEBUG: B85==11 override: setting numcomp="<<numcomp<<endl;
     }
-
-    if(p->B85==11 && p->mpirank==0)
-        cout<<"DEBUG: Allocating arrays with numcomp="<<numcomp<<" (p->wN="<<p->wN<<", p->B133="<<p->B133<<")"<<endl;
 
     p->Darray(Si,numcomp);
     p->Darray(Sn,numcomp);
@@ -279,13 +272,9 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     p->Darray(cosbeta,numcomp);
     p->Darray(sinbeta,numcomp);
 
-    // For 2D spectrum file, use frequencies directly from file (simplified approach)
+    // For 2D spectrum file, use frequencies directly from file
     if(p->B85==11)
     {
-        // p->wN already set from file at line 94
-        if(p->mpirank==0)
-            cout<<"Using "<<p->wN<<" frequencies directly from file"<<endl;
-
         // Copy frequency values from file
         for(n=0; n<p->wN; ++n)
         {
@@ -301,19 +290,12 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
                 dw[n] = dw[n-1];  // Last interval same as previous
         }
 
-        // Initialize beta arrays (will be filled in directional spreading)
-        if(p->mpirank==0)
-            cout<<"DEBUG: Initializing beta arrays for numcomp="<<numcomp<<endl;
-
         for(n=0;n<numcomp;++n)
         {
             beta[n]=0.0;
             sinbeta[n]=0.0;
             cosbeta[n]=1.0;
         }
-
-        if(p->mpirank==0)
-            cout<<"DEBUG: Finished initializing beta arrays"<<endl;
     }
 
     // Peak Enhance Method
@@ -530,9 +512,6 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
     }
 
         // Final step: fill Si and the corresponding values for Ai and ki
-        if(p->mpirank==0)
-            cout<<"DEBUG: Calculating ki for "<<p->wN<<" frequencies, wD="<<wD<<endl;
-
         for(n=0;n<p->wN;++n)
         {
             w=wi[n];
@@ -554,9 +533,6 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
             ki[n] = 2.0*PI/Li[n];
         }
-
-        if(p->mpirank==0)
-            cout<<"DEBUG: Finished calculating ki"<<endl;
 
 
     // Uniform frequency distribution
@@ -585,111 +561,52 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
 
         // Print spectrum based on type
-        // TEMPORARILY DISABLED to avoid bus errors during debugging
-        // if(p->B85==11)
-        //     print_spectrum_2d(p);
-        // else
-        //     print_spectrum(p);
+        if(p->B85==11)
+            print_spectrum_2d(p);
+        else
+            print_spectrum(p);
 
         // directional spreading
         directional_spreading(p);
 
-        if(p->mpirank==0)
-        {
-            cout<<"DEBUG: Finished directional_spreading, p->wN="<<p->wN<<endl;
-            if(p->B85==11)
-            {
-                cout<<"DEBUG: RIGHT after directional_spreading:"<<endl;
-                cout<<"  First 3 wi: "<<wi[0]<<" "<<wi[1]<<" "<<wi[2]<<endl;
-                cout<<"  Last 3 wi: "<<wi[p->wN-3]<<" "<<wi[p->wN-2]<<" "<<wi[p->wN-1]<<endl;
-            }
-        }
-
         // Print spreading function
         if(p->B130>0)
         {
-            if(p->mpirank==0)
-                cout<<"DEBUG: About to print spreading"<<endl;
             print_spreading(p);
-            if(p->mpirank==0)
-                cout<<"DEBUG: Finished print spreading"<<endl;
         }
 
 
     // peak wave speed
-    if(p->mpirank==0)
-        cout<<"DEBUG: Calculating peak wave speed"<<endl;
-        double wdt,wL;
-        
-        if(p->B94==0)
-        wdt=p->phimean;
-        
-        if(p->B94==1)
-        wdt=p->B94_wdt;
+    double wdt,wL;
 
-		wL0 = (9.81/(2.0*PI))*p->wTp*p->wTp;
-		k0 = (2.0*PI)/wL0;
-		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+    if(p->B94==0)
+    wdt=p->phimean;
 
-		wL = wL0*tanh(S0);
+    if(p->B94==1)
+    wdt=p->B94_wdt;
 
-        for(int qn=0; qn<500; ++qn)
-        wL = wL0*tanh(2.0*PI*wdt/wL);
+	wL0 = (9.81/(2.0*PI))*p->wTp*p->wTp;
+	k0 = (2.0*PI)/wL0;
+	S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
 
-        p->wC = wL/p->wTp;
+	wL = wL0*tanh(S0);
 
-    // Debug: Check if wi/dw/beta are still correct at end of irregular_parameters
-    if(p->B85==11 && p->mpirank==0)
-    {
-        cout<<"DEBUG: END of irregular_parameters - checking arrays:"<<endl;
-        cout<<"  First 3 wi: "<<wi[0]<<" "<<wi[1]<<" "<<wi[2]<<endl;
-        cout<<"  Last 3 wi: "<<wi[p->wN-3]<<" "<<wi[p->wN-2]<<" "<<wi[p->wN-1]<<endl;
-        cout<<"  First 3 dw: "<<dw[0]<<" "<<dw[1]<<" "<<dw[2]<<endl;
-        cout<<"  Last 3 dw: "<<dw[p->wN-3]<<" "<<dw[p->wN-2]<<" "<<dw[p->wN-1]<<endl;
-    }
+    for(int qn=0; qn<500; ++qn)
+    wL = wL0*tanh(2.0*PI*wdt/wL);
+
+    p->wC = wL/p->wTp;
 }
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)
 {
     if(p->B85==11)
     {
-        // Debug: Check arrays at START of amplitudes_irregular
-        if(p->mpirank==0)
-        {
-            cout<<"DEBUG: START of amplitudes_irregular - checking arrays:"<<endl;
-            cout<<"  First 3 wi: "<<wi[0]<<" "<<wi[1]<<" "<<wi[2]<<endl;
-            cout<<"  Last 3 wi: "<<wi[p->wN-3]<<" "<<wi[p->wN-2]<<" "<<wi[p->wN-1]<<endl;
-            cout<<"  First 3 dw: "<<dw[0]<<" "<<dw[1]<<" "<<dw[2]<<endl;
-            cout<<"  Last 3 dw: "<<dw[p->wN-3]<<" "<<dw[p->wN-2]<<" "<<dw[p->wN-1]<<endl;
-        }
-
         // Amplitudes for 2D spectrum file
         // Si[n] already contains S(w,beta) from directional spreading
         for(int n=0;n<p->wN;++n)
         {
             // Use absolute value of dbeta in case directions are in descending order
             Ai[n] = sqrt(2.0*Si[n]*dw[n]*fabs(dbeta));
-        }
-
-        // Debug: Print first 10 and last 5 components
-        if(p->mpirank==0)
-        {
-            cout<<"DEBUG: First 10 wave components:"<<endl;
-            int show_first = (p->wN < 10) ? p->wN : 10;
-            for(int n=0; n<show_first; ++n)
-            {
-                cout<<"  ["<<n<<"] Ai="<<Ai[n]<<" wi="<<wi[n]<<" beta="<<beta[n]
-                    <<" Si="<<Si[n]<<" dw="<<dw[n]<<endl;
-            }
-            if(p->wN > 10)
-            {
-                cout<<"DEBUG: Last 5 wave components:"<<endl;
-                for(int n=p->wN-5; n<p->wN; ++n)
-                {
-                    cout<<"  ["<<n<<"] Ai="<<Ai[n]<<" wi="<<wi[n]<<" beta="<<beta[n]
-                        <<" Si="<<Si[n]<<" dw="<<dw[n]<<endl;
-                }
-            }
         }
     }
     else if(p->B84==1 && p->B136!=4)
@@ -758,15 +675,6 @@ void wave_lib_spectrum::phases_irregular(lexer *p)
     // make phases
 	for(int n=0;n<p->wN;++n)
 	ei[n]  = double(rand() % 628)/100.0;
-
-    // Debug: Print first 10 phases
-    if(p->B85==11 && p->mpirank==0)
-    {
-        cout<<"DEBUG: First 10 phases (ei):"<<endl;
-        int show_first = (p->wN < 10) ? p->wN : 10;
-        for(int n=0; n<show_first; ++n)
-            cout<<"  ["<<n<<"] ei="<<ei[n]<<endl;
-    }
 }
 
 void wave_lib_spectrum::phases_focused(lexer *p)
@@ -881,16 +789,10 @@ void wave_lib_spectrum::print_spectrum_2d(lexer *p)
 
 	ofstream result;
 
-	cout<<"DEBUG: Entering print_spectrum_2d, ptnum_freq_2d="<<ptnum_freq_2d<<" ptnum_dir_2d="<<ptnum_dir_2d<<endl;
-
 	// Create Folder
 	mkdir("./REEF3D_Log-Wave",0777);
 
-	cout<<"DEBUG: Created folder"<<endl;
-
     result.open("./REEF3D_Log-Wave/REEF3D_wave-spectrum-2d.dat");
-
-	cout<<"DEBUG: Opened file"<<endl;
 
     // Set fixed decimal format
     result.setf(ios::fixed);
@@ -901,8 +803,6 @@ void wave_lib_spectrum::print_spectrum_2d(lexer *p)
 	for(int m=0; m<ptnum_dir_2d; ++m)
 		result<<" "<<dir_2d[m];
 	result<<endl;
-
-	cout<<"DEBUG: Printed header"<<endl;
 
 	// Print 2D spectrum values (using 1D indexing)
 	for(int n=0; n<ptnum_freq_2d; ++n)
@@ -916,11 +816,7 @@ void wave_lib_spectrum::print_spectrum_2d(lexer *p)
 		result<<endl;
 	}
 
-	cout<<"DEBUG: Printed spectrum values"<<endl;
-
 	result.close();
-
-	cout<<"DEBUG: Exiting print_spectrum_2d"<<endl;
 }
 
 void wave_lib_spectrum::print_components_2d(lexer *p)

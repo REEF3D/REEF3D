@@ -57,9 +57,6 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
         {
             // Use file directions directly (p->B133 already set in wave_lib_spectrum.cpp)
 
-            if(p->mpirank==0)
-                cout<<"Using "<<ptnum_dir_2d<<" directions directly from file"<<endl;
-
             // Setup beta array using file directions
             count = 0;
             for(n = 0; n < p->wN; ++n)
@@ -94,17 +91,6 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                     wi[count] = Si_temp[n];
                     ++count;
                 }
-            }
-
-            // Debug: Check wi expansion
-            if(p->mpirank==0)
-            {
-                cout<<"DEBUG: After wi expansion, first 10 wi values:"<<endl;
-                for(int i=0; i<10; ++i)
-                    cout<<"  wi["<<i<<"] = "<<wi[i]<<endl;
-                cout<<"DEBUG: Last 5 wi values:"<<endl;
-                for(int i=p->wN*p->B133-5; i<p->wN*p->B133; ++i)
-                    cout<<"  wi["<<i<<"] = "<<wi[i]<<endl;
             }
 
             // Setup dw array - expand frequency intervals
@@ -150,20 +136,6 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 }
             }
 
-            // Debug: Check first 10 Si values
-            if(p->mpirank==0)
-            {
-                cout<<"DEBUG: First 10 Si values from spectrum_2d_1d:"<<endl;
-                int show_first = (p->wN * p->B133 < 10) ? p->wN * p->B133 : 10;
-                for(int i=0; i<show_first; ++i)
-                {
-                    int freq_idx = i / p->B133;
-                    int dir_idx = i % p->B133;
-                    int array_idx = freq_idx * ptnum_dir_2d + dir_idx;
-                    cout<<"  Si["<<i<<"] = spectrum_2d_1d["<<array_idx<<"] = "<<Si[i]<<endl;
-                }
-            }
-
             p->del_Darray(Si_temp, p->wN);
 
             // Setup beta_n and Di_n arrays for print_spreading
@@ -174,11 +146,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             }
 
             // Update p->wN to total components
-            int old_wN = p->wN;
             p->wN *= p->B133;
-
-            if(p->mpirank==0)
-                cout<<"DEBUG: Updated p->wN from "<<old_wN<<" to "<<p->wN<<endl;
 
             if(p->mpirank==0)
                 cout<<"2D Spectrum: dbeta = "<<dbeta<<" rad"<<endl;

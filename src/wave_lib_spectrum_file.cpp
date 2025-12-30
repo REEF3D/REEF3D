@@ -200,24 +200,12 @@ void wave_lib_spectrum::spectrum_file_2d_read(lexer *p)
 
 	sprintf(name,"spectrum-file-2d.dat");
 
-	// ALL ranks read the file (MPI-parallel file I/O)
 	ifstream file(name, ios_base::in);
 
 	if(!file)
 	{
 		if(p->mpirank==0)
 			cout<<endl<<("no 'spectrum-file-2d.dat' file found")<<endl<<endl;
-		// Don't return - continue to ensure arrays are allocated
-	}
-
-	if(file.is_open())
-	{
-		if(p->mpirank==0)
-			cout<<"All ranks reading spectrum-file-2d.dat"<<endl;
-	}
-	else
-	{
-		cout<<"Rank "<<p->mpirank<<" FAILED to open spectrum-file-2d.dat"<<endl;
 	}
 
 	// Read header line to determine number of directions
@@ -255,16 +243,6 @@ void wave_lib_spectrum::spectrum_file_2d_read(lexer *p)
 		for(m = 0; m < ptnum_dir_2d; ++m)
 			iss2 >> dir_2d[m];
 
-		if(p->mpirank == 0)
-		{
-			cout<<"DEBUG: Read "<<ptnum_dir_2d<<" directions: ";
-			int show_count = (ptnum_dir_2d < 5) ? ptnum_dir_2d : 5;
-			for(m = 0; m < show_count; ++m)
-				cout<<dir_2d[m]<<" ";
-			if(ptnum_dir_2d > 5)
-				cout<<"... "<<dir_2d[ptnum_dir_2d-1];
-			cout<<endl;
-		}
 	}
 	else
 	{
@@ -350,13 +328,4 @@ void wave_lib_spectrum::spectrum_file_2d_read(lexer *p)
 	MPI_Bcast(freq_2d, ptnum_freq_2d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	MPI_Bcast(dir_2d, ptnum_dir_2d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	MPI_Bcast(spectrum_2d_1d, ptnum_freq_2d * ptnum_dir_2d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-	if(p->mpirank == 0)
-	{
-		cout << "MPI broadcast of spectrum data complete" << endl;
-		cout << "DEBUG: First 10 spectrum values after broadcast:" << endl;
-		int show_count = (ptnum_freq_2d * ptnum_dir_2d < 10) ? ptnum_freq_2d * ptnum_dir_2d : 10;
-		for(int i = 0; i < show_count; ++i)
-			cout << "  spectrum_2d_1d[" << i << "] = " << spectrum_2d_1d[i] << endl;
-	}
 }

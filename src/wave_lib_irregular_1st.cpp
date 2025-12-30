@@ -81,19 +81,10 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
 
-    if(p->mpirank==0)
-        cout<<"DEBUG: About to allocate sinhkd with p->wN="<<p->wN<<endl;
-
     p->Darray(sinhkd,p->wN);
-
-    if(p->mpirank==0)
-        cout<<"DEBUG: Calculating sinhkd for "<<p->wN<<" components, wdt="<<wdt<<endl;
 
     for(n=0;n<p->wN;++n)
     sinhkd[n] = sinh(ki[n]*wdt);
-
-    if(p->mpirank==0)
-        cout<<"DEBUG: Finished calculating sinhkd"<<endl;
 }
 
 wave_lib_irregular_1st::~wave_lib_irregular_1st()
