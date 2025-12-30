@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Alexander Hanke
+Author: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"partres.h"
@@ -26,31 +26,18 @@ Authors: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void partres::wallbc(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double Ps = 10.0;
-    double beta = 2.0;
-    double epsilon = 1.0e-4;
-    double Tc = 0.2;
-    double Tmax = 1.1*(1.0-p->S24) + 0.1;
-    
-    //double Tmax = (1.0-p->S24) + 0.0;
-    
-    double maxTau = 1.0e7;
-
-    ALOOP
-    {        
-        if(Ts(i,j,k)<=Tc)
-        Tau(i,j,k) = 0.0;
+    for(size_t n=0;n<P.index;n++)
+    if(P.Flag[n]==ACTIVE)
+    {
+        i=p->posc_i(P.X[n]);
+        j=p->posc_j(P.Y[n]);
+        k=p->posc_k(P.Z[n]);
+            
         
-        if(Ts(i,j,k)>Tc)
-        Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tmax-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
-        
-        Tau(i,j,k) = MIN(Tau(i,j,k), maxTau);
-        
-        //cout<<"Tau: "<<Tau(i,j,k)<<" Ts: "<<Ts(i,j,k)<<" MAXfunc: "<<MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)))<<endl;
+        if(k==0)
+        P.Flag[n]=BEDBC;
     }
-
-    pgc->start4a(p,Tau,1);
-    pgc->start4a(p,Ts,1);
+    
 }

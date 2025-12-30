@@ -75,4 +75,7 @@ void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, r
         waterlevel(p,a,pgc);
         pbedshear->taubed(p,a,pgc,s);
     }
+    
+    print_particles(p,s);
+    
 }

@@ -60,6 +60,7 @@ public:
     void ctimesave(lexer*, fdm*) override;
     
     void print_probes(lexer*, ghostcell*,sediment_fdm*, ioflow*) override {};
+    void print_particles(lexer*,sediment_fdm*) override {};
     
     void print_2D_bedload(lexer*, ghostcell*,ofstream&) override;
     void print_3D_bedload(lexer*, ghostcell*, std::vector<char>&, size_t&) override;

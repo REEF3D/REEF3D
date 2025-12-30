@@ -589,6 +589,7 @@
         <File Name="sediment_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
+        <File Name="sediment_part.h"/>
         <File Name="partres.h"/>
         <File Name="part.h"/>
       </VirtualDirectory>
@@ -862,7 +863,6 @@
           <File Name="geo_create.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
-      <File Name="sediment_part.h"/>
       <VirtualDirectory Name="Driver">
         <File Name="nhflow_header.h"/>
         <File Name="FSI_header.h"/>
@@ -1747,6 +1747,10 @@
         <File Name="sediment_part_cfd.cpp"/>
         <File Name="sediment_part.cpp"/>
         <VirtualDirectory Name="Partres">
+          <VirtualDirectory Name="Ini">
+            <File Name="partres_seed.cpp"/>
+          </VirtualDirectory>
+          <File Name="partres_wallbc.cpp"/>
           <File Name="partres_RK2_plain.cpp"/>
           <File Name="partres_RK2_mppic.cpp"/>
           <File Name="partres_update.cpp"/>
@@ -1768,7 +1772,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="FDM">
             <File Name="partres_timestep.cpp"/>
-            <File Name="partres_seed.cpp"/>
             <File Name="partres_relax.cpp"/>
             <File Name="partres_count.cpp"/>
             <File Name="partres_boundcheck.cpp"/>
@@ -2514,6 +2517,7 @@
         <File Name="gc_flagfield.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_paracox4a_sum.cpp"/>
         <File Name="gcx_parax4a_sum.cpp"/>
         <File Name="gcx_gcparaxintV.cpp"/>
         <File Name="gcx_paracoxV1.cpp"/>

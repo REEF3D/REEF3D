@@ -34,17 +34,21 @@ void partres::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *
     pgc->start4a(p,cellSum,1);
 
     double Sx,Sy,Sz;
+    
+    
+    //cout<<"POSF_-0.01: "<<p->posf_i(-0.01)<<" POSF_0.01: "<<p->posf_i(0.01)<<" POSF_0.028: "<<p->posf_i(0.028)<<" POSF_0.053: "<<p->posf_i(0.053)<<" POSF_0.076: "<<p->posf_i(0.076)<<" POSF_0.11: "<<p->posf_i(0.11)<<endl;
+    //cout<<"POSC_-0.01: "<<p->posc_i(-0.01)<<" POSC_0.01: "<<p->posc_i(0.01)<<" POSC_0.028: "<<p->posc_i(0.028)<<" POSC_0.053: "<<p->posc_i(0.053)<<" POSC_0.076: "<<p->posc_i(0.076)<<" POSC_0.11: "<<p->posc_i(0.11)<<endl;
 
     for(size_t n=0;n<P.index;n++)
-    if(P.Flag[n]==ACTIVE)
+    if(P.Flag[n]>=ACTIVE)
     {
-            i=p->posc_i(P.XRK1[n]);
-            j=p->posc_j(P.YRK1[n]);
-            k=p->posc_k(P.ZRK1[n]);
+        i=p->posf_i(P.XRK1[n]) - 1;
+        j=p->posf_j(P.YRK1[n]) - 1;
+        k=p->posf_k(P.ZRK1[n]) - 1;
 
-            Sx = (p->XN[IP1] - PX[n])/(p->XN[IP1] - p->XN[IP]);
-            Sy = (p->YN[JP1] - PY[n])/(p->YN[JP1] - p->YN[JP]);
-            Sz = (p->ZN[KP1] - PZ[n])/(p->ZN[KP1] - p->ZN[KP]);
+        Sx = (p->XP[IP1] - PX[n])/(p->XP[IP1] - p->XP[IP]);
+        Sy = (p->YP[JP1] - PY[n])/(p->YP[JP1] - p->YP[JP]);
+        Sz = (p->ZP[KP1] - PZ[n])/(p->ZP[KP1] - p->ZP[KP]);
 
 
         cellSum(i,j,k) += P.ParcelFactor * Sx*Sy*Sz;
@@ -56,7 +60,13 @@ void partres::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *
         cellSum(i+1,j+1,k+1) += P.ParcelFactor * (1.0-Sx)*(1.0-Sy)*(1.0-Sz);
         cellSum(i,j+1,k+1) += P.ParcelFactor * Sx*(1.0-Sy)*(1.0-Sz);
     }
+    
 
+    pgc->start4a(p,cellSum,1);
+    
     pgc->start4a_sum(p,cellSum,1);
+    
+    ALOOP
+    Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
 }
 

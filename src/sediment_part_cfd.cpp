@@ -45,7 +45,7 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     pst->timestep(p,pgc);
     pst->move_RK2(p,a,pgc,s,pturb);
     pst->update(p,a,pgc,s,por,d50);
-    pst->print_particles(p,s);
+    
 
     /// topo update
     update_cfd(p,a,pgc,pflow,preto);
@@ -53,4 +53,10 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     p->sedsimtime=pgc->timer()-starttime;
 
     ++p->sediter;
+}
+
+
+void sediment_part::print_particles(lexer* p, sediment_fdm *s)
+{
+    pst->print_particles(p,s);
 }

@@ -82,6 +82,8 @@ private:
 
     void bedchange(lexer*, fdm*, ghostcell*, sediment_fdm*, int);
     void bedchange_update(lexer*, ghostcell*, int);
+    
+    void wallbc(lexer*, ghostcell*, sediment_fdm*);
 
     void boundcheck(lexer*, int);
 

@@ -28,6 +28,7 @@ enum
     EMPTY = -1,
     PASSIVE = 1,
     ACTIVE = 10,
+    BEDBC = 11,
     MOVING = 20
 };
 

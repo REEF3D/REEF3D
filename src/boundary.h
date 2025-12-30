@@ -26,6 +26,7 @@ Authors: Hans Bihs, Alexander Hanke
 #define EMPTY  -1
 #define PASSIVE 1
 #define ACTIVE 10
+#define BEDBC  11
 #define MOVING 20
 
 
