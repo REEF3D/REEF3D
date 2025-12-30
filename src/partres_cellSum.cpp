@@ -26,7 +26,7 @@ Author: Alexander Hanke, Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *XS, double *YS, double *ZS)
+void partres::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, double *PY, double *PZ)
 {
     ALOOP
     cellSum(i,j,k) = 0.0;
@@ -42,9 +42,9 @@ void partres::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *
             j=p->posc_j(P.YRK1[n]);
             k=p->posc_k(P.ZRK1[n]);
 
-            Sx = (p->XN[IP1] - XS[n])/(p->XN[IP1] - p->XN[IP]);
-            Sy = (p->YN[JP1] - YS[n])/(p->YN[JP1] - p->YN[JP]);
-            Sz = (p->ZN[KP1] - ZS[n])/(p->ZN[KP1] - p->ZN[KP]);
+            Sx = (p->XN[IP1] - PX[n])/(p->XN[IP1] - p->XN[IP]);
+            Sy = (p->YN[JP1] - PY[n])/(p->YN[JP1] - p->YN[JP]);
+            Sz = (p->ZN[KP1] - PZ[n])/(p->ZN[KP1] - p->ZN[KP]);
 
 
         cellSum(i,j,k) += P.ParcelFactor * Sx*Sy*Sz;

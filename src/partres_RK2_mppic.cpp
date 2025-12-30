@@ -35,10 +35,6 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
     // ------------------------
     // RK step 1
-    
-
-    double F,G,H;
-
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
@@ -68,7 +64,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     {
         // advec 2
         advec_mppic_step2(p, a, P, s, pturb,
-                    P.X, P.Y, P.Z, P.URK1, P.VRK1, P.WRK1,
+                    P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
                     F, G, H, 1.0);
                     
         //F=G=H=0.0;
@@ -131,7 +127,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     {
         // advec 2
         advec_mppic_step2(p, a, P, s, pturb,
-                    P.XRK1, P.YRK1, P.ZRK1, P.U, P.V, P.W,
+                    P.X, P.Y, P.Z, P.U, P.V, P.W,
                     F, G, H, 0.5);
                     
         //F=G=H=0.0;

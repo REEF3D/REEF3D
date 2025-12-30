@@ -123,6 +123,7 @@ private:
     double Tsval;
     double dTx_val,dTy_val,dTz_val;
     double DragCoeff,Fd;
+    double F,G,H;
 };
 
 #endif
