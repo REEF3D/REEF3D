@@ -48,47 +48,41 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
         p->B131 *= PI / 180.0;
         p->B132_s *= PI / 180.0;
         p->B132_e *= PI / 180.0;
-         
+
+        // =================================================================
+        // Special handling for 2D spectrum file (B85==11)
+        // Use file frequencies and directions directly - no interpolation
+        // =================================================================
         if(p->B85==11)
         {
-            // For 2D spectrum, use file direction range
-            double dir_min = dir_2d[0];
-            double dir_max = dir_2d[ptnum_dir_2d-1];
+            // Use file directions directly (p->B133 already set in wave_lib_spectrum.cpp)
 
-            if(p->B133 <= ptnum_dir_2d)
-            {
-                // Use subset of file directions
-                dbeta = (dir_max - dir_min) / double(p->B133 - 1);
+            if(p->mpirank==0)
+                cout<<"Using "<<ptnum_dir_2d<<" directions directly from file"<<endl;
 
-                if(p->mpirank==0)
-                    cout<<"Using "<<p->B133<<" directions from file ("<<ptnum_dir_2d<<" available)"<<endl;
-            }
-            else
-            {
-                // Interpolate to more directions than in file
-                dbeta = (dir_max - dir_min) / double(p->B133 - 1);
-
-                if(p->mpirank==0)
-                    cout<<"Interpolating to "<<p->B133<<" directions (file has "<<ptnum_dir_2d<<")"<<endl;
-            }
-
-            // Setup beta array
+            // Setup beta array using file directions
             count = 0;
             for(n = 0; n < p->wN; ++n)
             {
                 for(q = 0; q < p->B133; ++q)
                 {
-                    beta[count] = dir_min + dbeta * double(q);
+                    beta[count] = dir_2d[q];
                     sinbeta[count] = sin(beta[count]);
                     cosbeta[count] = cos(beta[count]);
                     ++count;
                 }
             }
 
+            // Calculate dbeta (average directional spacing from file)
+            if(ptnum_dir_2d > 1)
+                dbeta = (dir_2d[ptnum_dir_2d-1] - dir_2d[0]) / double(ptnum_dir_2d - 1);
+            else
+                dbeta = 0.0;
+
             // Setup wi array - expand frequencies
             double* Si_temp;
             p->Darray(Si_temp, p->wN);
-            
+
             for(n = 0; n < p->wN; ++n)
                 Si_temp[n] = wi[n];
 
@@ -102,12 +96,22 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 }
             }
 
+            // Debug: Check wi expansion
+            if(p->mpirank==0)
+            {
+                cout<<"DEBUG: After wi expansion, first 10 wi values:"<<endl;
+                for(int i=0; i<10; ++i)
+                    cout<<"  wi["<<i<<"] = "<<wi[i]<<endl;
+                cout<<"DEBUG: Last 5 wi values:"<<endl;
+                for(int i=p->wN*p->B133-5; i<p->wN*p->B133; ++i)
+                    cout<<"  wi["<<i<<"] = "<<wi[i]<<endl;
+            }
+
             // Setup dw array - expand frequency intervals
             for(n = 0; n < p->wN; ++n)
                 Si_temp[n] = dw[n];
 
             count = 0;
-
             for(n = 0; n < p->wN; ++n)
             {
                 for(q = 0; q < p->B133; ++q)
@@ -117,10 +121,10 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 }
             }
 
-            // Setup ki array
+            // Setup ki array - expand to freq*dir components
             for(n = 0; n < p->wN; ++n)
                 Si_temp[n] = ki[n];
- 
+
             count = 0;
             for(n = 0; n < p->wN; ++n)
             {
@@ -131,31 +135,59 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 }
             }
 
-            // Get spectrum values via bilinear interpolation
-            for(n = 0; n < p->wN; ++n)
-                Si_temp[n] = Si[n];
-
+            // Get spectrum values directly from file data (no interpolation)
             count = 0;
             for(n = 0; n < p->wN; ++n)
             {
                 for(q = 0; q < p->B133; ++q)
                 {
                     Di[count] = 1.0;
-                    Si[count] = spectrum_file_2d(p, wi[count], beta[count]);
+
+                    // Direct indexing into spectrum_2d_1d array
+                    Si[count] = spectrum_2d_1d[n * ptnum_dir_2d + q];
+
                     ++count;
                 }
             }
 
+            // Debug: Check first 10 Si values
+            if(p->mpirank==0)
+            {
+                cout<<"DEBUG: First 10 Si values from spectrum_2d_1d:"<<endl;
+                int show_first = (p->wN * p->B133 < 10) ? p->wN * p->B133 : 10;
+                for(int i=0; i<show_first; ++i)
+                {
+                    int freq_idx = i / p->B133;
+                    int dir_idx = i % p->B133;
+                    int array_idx = freq_idx * ptnum_dir_2d + dir_idx;
+                    cout<<"  Si["<<i<<"] = spectrum_2d_1d["<<array_idx<<"] = "<<Si[i]<<endl;
+                }
+            }
+
             p->del_Darray(Si_temp, p->wN);
- 
+
+            // Setup beta_n and Di_n arrays for print_spreading
+            for(q = 0; q < p->B133; ++q)
+            {
+                beta_n[q] = dir_2d[q];
+                Di_n[q] = 1.0;  // Flat spreading since file already contains directional info
+            }
+
             // Update p->wN to total components
+            int old_wN = p->wN;
             p->wN *= p->B133;
+
+            if(p->mpirank==0)
+                cout<<"DEBUG: Updated p->wN from "<<old_wN<<" to "<<p->wN<<endl;
 
             if(p->mpirank==0)
                 cout<<"2D Spectrum: dbeta = "<<dbeta<<" rad"<<endl;
         }
-        
-        if(p->B84==1)
+        // =================================================================
+        // End of B85==11 special handling
+        // Below: Standard directional spreading (analytical methods)
+        // =================================================================
+        else if(p->B84==1)
         {
             dbeta = (p->B132_e - p->B132_s) / double(p->B133 - 1);
 
@@ -255,22 +287,14 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             for(n = 0; n < p->wN; ++n)
                 Si_temp[n] = Si[n];
 
-            // multiply S with D(beta), depending on spreading function
+            // multiply S with D(beta), using spreading function
             count = 0;
             for(n = 0; n < p->wN; ++n)
             {
                 for(q = 0; q < p->B133; ++q)
                 {
-                  if(p->B85==11)// For 2D spectrum file, use direct lookup instead of spreading function
-                  {
-                      Di[count]=1.0; // Not needed for 2D spectrum
-                      Si[count] = spectrum_file_2d(p, wi[count], beta[count]);
-                  }
-                  else
-                  {
-                      Di[count]=spreading_function(p, beta[count], wi[count]);
-                      Si[count] = Si_temp[n] * Di[count];
-                  }
+                  Di[count]=spreading_function(p, beta[count], wi[count]);
+                  Si[count] = Si_temp[n] * Di[count];
                   ++count;
                 }
             }

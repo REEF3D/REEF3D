@@ -27,7 +27,9 @@ Author: Hans Bihs
 #include<fstream>
 #include<string>
 #include<sstream>
+
 using namespace std;
+
 
 double wave_lib_spectrum::spectrum_file(lexer *p, double w)
 {
@@ -99,9 +101,7 @@ void wave_lib_spectrum::spectrum_file_read(lexer *p)
 }
 
 double wave_lib_spectrum::spectrum_file_2d(lexer *p, double w, double beta_in)
-
 {
-
 	Sval = 0.0;
 	int n, m;
 	double S_w1_b1, S_w1_b2, S_w2_b1, S_w2_b2;
@@ -132,15 +132,32 @@ double wave_lib_spectrum::spectrum_file_2d(lexer *p, double w, double beta_in)
 		}
 	}
 
+	// Debug first call
+	static int call_count = 0;
+	if(p->mpirank == 0 && call_count < 5)
+	{
+		cout<<"DEBUG spectrum_file_2d call "<<call_count<<": w="<<w<<" beta="<<beta_in<<endl;
+		cout<<"  w_idx="<<w_idx<<" b_idx="<<b_idx<<endl;
+		if(w_idx >= 0)
+			cout<<"  freq range: ["<<freq_2d[w_idx]<<", "<<freq_2d[w_idx+1]<<"]"<<endl;
+		if(b_idx >= 0)
+			cout<<"  dir range: ["<<dir_2d[b_idx]<<", "<<dir_2d[b_idx+1]<<"]"<<endl;
+		++call_count;
+	}
+
 	// If out of bounds, return 0
 	if(w_idx == -1 || b_idx == -1)
+	{
+		if(p->mpirank == 0 && call_count <= 5)
+			cout<<"  OUT OF BOUNDS - returning 0"<<endl;
 		return 0.0;
+	}
 
-	// Get the 4 corner values for bilinear interpolation
-	S_w1_b1 = spectrum_2d[w_idx][b_idx];
-	S_w1_b2 = spectrum_2d[w_idx][b_idx+1];
-	S_w2_b1 = spectrum_2d[w_idx+1][b_idx];
-	S_w2_b2 = spectrum_2d[w_idx+1][b_idx+1];
+	// Get the 4 corner values for bilinear interpolation (using 1D indexing)
+	S_w1_b1 = spectrum_2d_1d[w_idx * ptnum_dir_2d + b_idx];
+	S_w1_b2 = spectrum_2d_1d[w_idx * ptnum_dir_2d + (b_idx+1)];
+	S_w2_b1 = spectrum_2d_1d[(w_idx+1) * ptnum_dir_2d + b_idx];
+	S_w2_b2 = spectrum_2d_1d[(w_idx+1) * ptnum_dir_2d + (b_idx+1)];
 
 	// Bilinear interpolation
 	double dw = w2 - w1;
@@ -174,85 +191,172 @@ double wave_lib_spectrum::spectrum_file_2d(lexer *p, double w, double beta_in)
 	return Sval;
 }
 
- 
-
 void wave_lib_spectrum::spectrum_file_2d_read(lexer *p)
-
 {
 	char name[100];
 	int n, m;
 	double val;
 	string header;
-    
+
 	sprintf(name,"spectrum-file-2d.dat");
 
-	// open file
+	// ALL ranks read the file (MPI-parallel file I/O)
 	ifstream file(name, ios_base::in);
 
 	if(!file)
 	{
-		cout<<endl<<("no 'spectrum-file-2d.dat' file found")<<endl<<endl;
-		return;
+		if(p->mpirank==0)
+			cout<<endl<<("no 'spectrum-file-2d.dat' file found")<<endl<<endl;
+		// Don't return - continue to ensure arrays are allocated
+	}
+
+	if(file.is_open())
+	{
+		if(p->mpirank==0)
+			cout<<"All ranks reading spectrum-file-2d.dat"<<endl;
+	}
+	else
+	{
+		cout<<"Rank "<<p->mpirank<<" FAILED to open spectrum-file-2d.dat"<<endl;
 	}
 
 	// Read header line to determine number of directions
-	getline(file, header);
+	if(file.is_open())
+		getline(file, header);
+	else
+		header = "";
 	istringstream iss(header);
 	string temp;
 	iss >> temp; // Skip "fq_dir"
+
 	ptnum_dir_2d = 0;
+	if(file.is_open())
+	{
+		while(iss >> val)
+			++ptnum_dir_2d;
+	}
 
-	while(iss >> val)
-		++ptnum_dir_2d;
+	// Ensure minimum size even if file failed
+	if(ptnum_dir_2d == 0)
+		ptnum_dir_2d = 1;
 
-	// Allocate direction array
-	p->Darray(dir_2d, ptnum_dir_2d);
+	// Allocate direction array (use standard new[] to avoid Darray alignment issues)
+	dir_2d = new double[ptnum_dir_2d];
 
 	// Re-read header to get direction values
-	file.clear();
-	file.seekg(0, ios::beg);
-	getline(file, header);
-	istringstream iss2(header);
-	iss2 >> temp; // Skip "fq_dir"
- 
-	for(m = 0; m < ptnum_dir_2d; ++m)
-		iss2 >> dir_2d[m];
-        
+	if(file.is_open())
+	{
+		file.clear();
+		file.seekg(0, ios::beg);
+		getline(file, header);
+		istringstream iss2(header);
+		iss2 >> temp; // Skip "fq_dir"
+
+		for(m = 0; m < ptnum_dir_2d; ++m)
+			iss2 >> dir_2d[m];
+
+		if(p->mpirank == 0)
+		{
+			cout<<"DEBUG: Read "<<ptnum_dir_2d<<" directions: ";
+			int show_count = (ptnum_dir_2d < 5) ? ptnum_dir_2d : 5;
+			for(m = 0; m < show_count; ++m)
+				cout<<dir_2d[m]<<" ";
+			if(ptnum_dir_2d > 5)
+				cout<<"... "<<dir_2d[ptnum_dir_2d-1];
+			cout<<endl;
+		}
+	}
+	else
+	{
+		// Initialize with dummy values
+		for(m = 0; m < ptnum_dir_2d; ++m)
+			dir_2d[m] = 0.0;
+	}
+
 	// Count number of frequency lines
 	ptnum_freq_2d = 0;
-	while(!file.eof())
+	if(file.is_open())
 	{
-		getline(file, header);
-		if(header.length() > 0)
-			++ptnum_freq_2d;
+		while(!file.eof())
+		{
+			getline(file, header);
+			if(header.length() > 0)
+				++ptnum_freq_2d;
+		}
+		file.close();
 	}
-	file.close();
 
-	// Allocate arrays
-	p->Darray(freq_2d, ptnum_freq_2d);
-	p->Darray(spectrum_2d, ptnum_freq_2d, ptnum_dir_2d);
+	// Ensure minimum size even if file failed
+	if(ptnum_freq_2d == 0)
+		ptnum_freq_2d = 1;
+
+	// MPI: Broadcast dimensions from rank 0 to all other ranks
+	int temp_vals[2];
+	if(p->mpirank == 0)
+	{
+		temp_vals[0] = ptnum_freq_2d;
+		temp_vals[1] = ptnum_dir_2d;
+	}
+	MPI_Bcast(temp_vals, 2, MPI_INT, 0, MPI_COMM_WORLD);
+	ptnum_freq_2d = temp_vals[0];
+	ptnum_dir_2d = temp_vals[1];
+
+	// Allocate arrays (use standard new[] to avoid Darray alignment issues)
+	freq_2d = new double[ptnum_freq_2d];
+	spectrum_2d_1d = new double[ptnum_freq_2d * ptnum_dir_2d];
+
+	// Allocate direction array on all ranks (was only allocated on rank 0 before)
+	if(p->mpirank != 0)
+		dir_2d = new double[ptnum_dir_2d];
 
 	// Re-open and read data
 	file.open(name, ios_base::in);
-	getline(file, header); // Skip header line
 
-	n = 0;
-	while(n < ptnum_freq_2d && !file.eof())
+	if(file.is_open())
 	{
-		file >> freq_2d[n];
-		for(m = 0; m < ptnum_dir_2d; ++m)
-			file >> spectrum_2d[n][m];
-		++n;
+		getline(file, header); // Skip header line
+
+		n = 0;
+		while(n < ptnum_freq_2d && !file.eof())
+		{
+			file >> freq_2d[n];
+			for(m = 0; m < ptnum_dir_2d; ++m)
+				file >> spectrum_2d_1d[n * ptnum_dir_2d + m];  // 1D indexing
+			++n;
+		}
+
+		file.close();
+
+		if(p->mpirank == 0)
+		{
+			cout << "2D Spectrum file read successfully" << endl;
+			cout << "Frequencies: " << ptnum_freq_2d << " Directions: " << ptnum_dir_2d << endl;
+			cout << "Freq range: " << freq_2d[0] << " to " << freq_2d[ptnum_freq_2d-1] << endl;
+			cout << "Dir range: " << dir_2d[0] << " to " << dir_2d[ptnum_dir_2d-1] << endl;
+		}
+	}
+	else
+	{
+		// Initialize with dummy values if file couldn't be read
+		for(n = 0; n < ptnum_freq_2d; ++n)
+		{
+			freq_2d[n] = 0.0;
+			for(m = 0; m < ptnum_dir_2d; ++m)
+				spectrum_2d_1d[n * ptnum_dir_2d + m] = 0.0;  // 1D indexing
+		}
 	}
 
-	file.close();
- 
+	// MPI: Broadcast all data arrays from rank 0 to all other ranks
+	MPI_Bcast(freq_2d, ptnum_freq_2d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	MPI_Bcast(dir_2d, ptnum_dir_2d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	MPI_Bcast(spectrum_2d_1d, ptnum_freq_2d * ptnum_dir_2d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
 	if(p->mpirank == 0)
 	{
-		cout << "2D Spectrum file read successfully" << endl;
-		cout << "Frequencies: " << ptnum_freq_2d << " Directions: " << ptnum_dir_2d << endl;
-		cout << "Freq range: " << freq_2d[0] << " to " << freq_2d[ptnum_freq_2d-1] << endl;
-		cout << "Dir range: " << dir_2d[0] << " to " << dir_2d[ptnum_dir_2d-1] << endl;
+		cout << "MPI broadcast of spectrum data complete" << endl;
+		cout << "DEBUG: First 10 spectrum values after broadcast:" << endl;
+		int show_count = (ptnum_freq_2d * ptnum_dir_2d < 10) ? ptnum_freq_2d * ptnum_dir_2d : 10;
+		for(int i = 0; i < show_count; ++i)
+			cout << "  spectrum_2d_1d[" << i << "] = " << spectrum_2d_1d[i] << endl;
 	}
-
 }
