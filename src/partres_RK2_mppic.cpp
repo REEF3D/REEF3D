@@ -49,7 +49,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
                     F, G, H, 1.0);
                     
-        F=G=H=0.0;
+        //F=G=H=0.0;
 
         // Velocity update 1
         P.URK1[n] = (P.U[n] + p->dtsed*F)/(1.0 + p->dtsed*Dpx);
@@ -108,7 +108,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
                     P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
                     F, G, H, 0.5);
                     
-        F=G=H=0.0;
+        //F=G=H=0.0;
 
         // Velocity update 1
         P.U[n] = (0.5*P.U[n] + 0.5*P.URK1[n] + 0.5*p->dtsed*F)/(1.0 + 0.5*p->dtsed*Dpx);
@@ -124,7 +124,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
                     F, G, H, 0.5);
                     
-        //F=G=H=0.0;
+        F=G=H=0.0;
 
         // Velocity update 2
         P.U[n] += 0.5*p->dtsed*F;

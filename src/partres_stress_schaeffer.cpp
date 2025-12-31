@@ -28,7 +28,7 @@ Authors: Hans Bihs, Alexander Hanke
 
 void partres::stress_schaeffer(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double Ps = 10.0;
+    /*double Ps = 10.0;
     double beta = 2.0;
     double epsilon = 1.0e-4;
     double Tc = 0.2;
@@ -57,9 +57,9 @@ void partres::stress_schaeffer(lexer *p, ghostcell *pgc, sediment_fdm *s)
     }
 
     pgc->start4a(p,Tau,1);
-    pgc->start4a(p,Ts,1);
+    pgc->start4a(p,Ts,1);*/
 }
-
+/*
 
 // Schaeffer frictional stress
 double partres::compute_frictional_stress(double theta_p, double shear_rate) 
@@ -231,3 +231,4 @@ void partres::map_particles_to_grid_trilinear(Particle* particles, int n_particl
         }
     }
 }
+*/
