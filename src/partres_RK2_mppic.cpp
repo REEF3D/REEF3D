@@ -38,7 +38,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
     // stress and cellSum update
     cellSum_update(p,pgc,s,P.X,P.Y,P.Z);
-    stress_tensor(p,pgc,s);
+    stress_schaeffer(p,pgc,s);
     stress_gradient(p,a,pgc,s);
     
     for(n=0;n<P.index;++n)
@@ -94,7 +94,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
     // stress and cellSum update
     cellSum_update(p,pgc,s,P.XRK1,P.YRK1,P.ZRK1);
-    stress_tensor(p,pgc,s);
+    stress_schaeffer(p,pgc,s);
     stress_gradient(p,a,pgc,s);
     
     ALOOP
