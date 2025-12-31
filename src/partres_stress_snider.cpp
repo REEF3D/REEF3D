@@ -26,7 +26,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void partres::stress_snider(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double Ps = 10.0;
     double beta = 2.0;

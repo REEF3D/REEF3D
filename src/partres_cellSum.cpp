@@ -68,5 +68,7 @@ void partres::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *
     
     ALOOP
     Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
+    
+    pgc->start4a(p,Ts,1);
 }
 

@@ -75,7 +75,9 @@ private:
 
     void count_particles(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
-    void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
+    void stress_snider(lexer*, ghostcell*, sediment_fdm*);
+    void stress_schaeffer(lexer*, ghostcell*, sediment_fdm*);
+    
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void cellSum_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*);
