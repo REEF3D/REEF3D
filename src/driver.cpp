@@ -46,9 +46,13 @@ driver::driver(int& argc, char **argv)
     }
 
     pgc->mpi_check(p);
+    
 	p->lexer_read(pgc);
     p->vellast();
-	pgc->gcini(p);
+    
+	pgc->gc_ini(p);
+    pgc->gcx_ini(p);
+    
     p->gridini(pgc);
     patchBC_logic();
 

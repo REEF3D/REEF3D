@@ -50,7 +50,8 @@ public:
 	virtual ~ghostcell() = default;
 
     void final(bool error=false);
-	void gcini(lexer*);
+	void gc_ini(lexer*);
+    void gcx_ini(lexer*);
     void mpi_check(lexer*);
 
 	void start1(lexer*,field&, int);
