@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -37,8 +37,8 @@ driver::driver(int& argc, char **argv)
 
 	if(p->mpirank==0)
     {
-    cout<<endl<<"REEF3D (c) 2008-2025 Hans Bihs"<<endl;
-    sprintf(version,"v_251231");
+    cout<<endl<<"REEF3D (c) 2008-2026 Hans Bihs"<<endl;
+    sprintf(version,"v_260101");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
