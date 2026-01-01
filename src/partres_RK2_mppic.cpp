@@ -38,7 +38,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
     // stress and cellSum update
     cellSum_update(p,pgc,s,P.X,P.Y,P.Z);
-    stress_schaeffer(p,pgc,s);
+    stress_snider(p,pgc,s);
     stress_gradient(p,a,pgc,s);
     
     for(n=0;n<P.index;++n)
@@ -67,7 +67,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
                     P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
                     F, G, H, 1.0);
                     
-        F=G=H=0.0;
+        //F=G=H=0.0;
 
         // Velocity update 2
         P.URK1[n] += p->dtsed*F;
@@ -94,11 +94,11 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
     // stress and cellSum update
     cellSum_update(p,pgc,s,P.XRK1,P.YRK1,P.ZRK1);
-    stress_schaeffer(p,pgc,s);
+    stress_snider(p,pgc,s);
     stress_gradient(p,a,pgc,s);
     
     ALOOP
-    a->test(i,j,k) = dTz(i,j,k);
+    a->test(i,j,k) = Ts(i,j,k);
 
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
@@ -124,7 +124,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
                     F, G, H, 0.5);
                     
-        F=G=H=0.0;
+        //F=G=H=0.0;
 
         // Velocity update 2
         P.U[n] += 0.5*p->dtsed*F;

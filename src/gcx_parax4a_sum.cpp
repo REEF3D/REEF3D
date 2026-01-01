@@ -71,7 +71,6 @@ void ghostcell::gcparax4a_sum(lexer* p, field& f,int gcv)
 
         send4[count]=f(i+1,j,k);
         ++count;
-
     }
 
     count=0;

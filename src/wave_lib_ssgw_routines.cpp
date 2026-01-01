@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2021 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 Copyright 2020 SINTEF Ocean
 
 This file is part of REEF3D.
