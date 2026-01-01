@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke
+Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
@@ -31,7 +31,14 @@ void ghostcell::Sendrecv_double(int count1, int count2, int count3, int count4, 
     int sendcounts[6] = {count1, count4, count3, count2, count5, count6};
     int recvcounts[6] = {count1, count4, count3, count2, count5, count6};
 
-    Sendrecv(send_ptrs, sendcounts, recv_ptrs, recvcounts, MPI_DOUBLE);
+    if(ndims==1)
+    Sendrecv_1D(send_ptrs, sendcounts, recv_ptrs, recvcounts, MPI_DOUBLE);
+    
+    if(ndims==2)
+    Sendrecv_2D(send_ptrs, sendcounts, recv_ptrs, recvcounts, MPI_DOUBLE);
+    
+    if(ndims==3)
+    Sendrecv_3D(send_ptrs, sendcounts, recv_ptrs, recvcounts, MPI_DOUBLE);
 }
 
 void ghostcell::Sendrecv_int(int count1, int count2, int count3, int count4, int count5, int count6)
@@ -41,18 +48,77 @@ void ghostcell::Sendrecv_int(int count1, int count2, int count3, int count4, int
 
     int sendcounts[6] = {count1, count4, count3, count2, count5, count6};
     int recvcounts[6] = {count1, count4, count3, count2, count5, count6};
-
-    Sendrecv(send_ptrs, sendcounts, recv_ptrs, recvcounts, MPI_INT);
+    
+    if(ndims==1)
+    Sendrecv_1D(send_ptrs, sendcounts, recv_ptrs, recvcounts, MPI_INT);
+    
+    if(ndims==2)
+    Sendrecv_2D(send_ptrs, sendcounts, recv_ptrs, recvcounts, MPI_INT);
+    
+    if(ndims==3)
+    Sendrecv_3D(send_ptrs, sendcounts, recv_ptrs, recvcounts, MPI_INT);
 }
 
-void ghostcell::Sendrecv(const void* send_ptrs[6], int sendcounts[6], void* recv_ptrs[6], int recvcounts[6], MPI_Datatype datatype)
+void ghostcell::Sendrecv_1D(const void* send_ptrs[6], int sendcounts[6], void* recv_ptrs[6], int recvcounts[6], MPI_Datatype datatype)
+{
+    MPI_Datatype sendtypes[2] = {datatype, datatype};
+    MPI_Datatype recvtypes[2] = {datatype, datatype};
+    MPI_Aint sdispls[2];
+    MPI_Aint rdispls[2];
+
+    for(int dir=0; dir<ndims*2; ++dir)
+    {
+        if(neighbors[dir] == MPI_PROC_NULL)
+        {
+            sendcounts[dir] = 0;
+            recvcounts[dir] = 0;
+        }
+
+        MPI_Get_address(send_ptrs[dir], &sdispls[dir]);
+        MPI_Get_address(recv_ptrs[dir], &rdispls[dir]);
+    }
+
+    MPI_Neighbor_alltoallw(MPI_BOTTOM,
+                           sendcounts, sdispls, sendtypes,
+                           MPI_BOTTOM,
+                           recvcounts, rdispls, recvtypes,
+                           cart_comm);
+}
+
+void ghostcell::Sendrecv_2D(const void* send_ptrs[6], int sendcounts[6], void* recv_ptrs[6], int recvcounts[6], MPI_Datatype datatype)
+{
+    MPI_Datatype sendtypes[4] = {datatype, datatype, datatype, datatype};
+    MPI_Datatype recvtypes[4] = {datatype, datatype, datatype, datatype};
+    MPI_Aint sdispls[4];
+    MPI_Aint rdispls[4];
+
+    for(int dir=0; dir<ndims*2; ++dir)
+    {
+        if(neighbors[dir] == MPI_PROC_NULL)
+        {
+            sendcounts[dir] = 0;
+            recvcounts[dir] = 0;
+        }
+
+        MPI_Get_address(send_ptrs[dir], &sdispls[dir]);
+        MPI_Get_address(recv_ptrs[dir], &rdispls[dir]);
+    }
+
+    MPI_Neighbor_alltoallw(MPI_BOTTOM,
+                           sendcounts, sdispls, sendtypes,
+                           MPI_BOTTOM,
+                           recvcounts, rdispls, recvtypes,
+                           cart_comm);
+}
+
+void ghostcell::Sendrecv_3D(const void* send_ptrs[6], int sendcounts[6], void* recv_ptrs[6], int recvcounts[6], MPI_Datatype datatype)
 {
     MPI_Datatype sendtypes[6] = {datatype, datatype, datatype, datatype, datatype, datatype};
     MPI_Datatype recvtypes[6] = {datatype, datatype, datatype, datatype, datatype, datatype};
     MPI_Aint sdispls[6];
     MPI_Aint rdispls[6];
 
-    for(int dir=0; dir<6; ++dir)
+    for(int dir=0; dir<ndims*2; ++dir)
     {
         if(neighbors[dir] == MPI_PROC_NULL)
         {

@@ -52,6 +52,7 @@ public:
     void final(bool error=false);
 	void gc_ini(lexer*);
     void gcx_ini(lexer*);
+    void gcx_cart_topology(lexer*);
     void mpi_check(lexer*);
 
 	void start1(lexer*,field&, int);
@@ -280,15 +281,6 @@ public:
 
 private:
 
-    void Sendrecv_double(int,int,int,int,int,int);
-    void Sendrecv_int(int,int,int,int,int,int);
-    void Sendrecv(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
-
-    MPI_Comm cart_comm = MPI_COMM_NULL;
-    int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
-                        MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
-    bool do_comms = true;
-
 	int margin, paramargin;
 	double y[15],x[15],pos[15];
 	int m,q,qq,qn,g;
@@ -309,6 +301,18 @@ private:
 	int gclabel_vel;
 
 // PARALLEL
+    void Sendrecv_double(int,int,int,int,int,int);
+    void Sendrecv_int(int,int,int,int,int,int);
+    void Sendrecv_1D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+    void Sendrecv_2D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+    void Sendrecv_3D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+
+    MPI_Comm cart_comm = MPI_COMM_NULL;
+    int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
+                        MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
+    bool do_comms = true;
+    
+    int ndims;
 
 	double *send1,*send2,*send3,*send4,*send5,*send6;
 	double *recv1,*recv2,*recv3,*recv4,*recv5,*recv6;

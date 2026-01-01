@@ -76,30 +76,11 @@ void ghostcell::gcx_ini(lexer* p)
     p->Iarray(irecv5,gcx_count[4]);
     p->Iarray(irecv6,gcx_count[5]);
 
-    if(cart_comm != MPI_COMM_NULL)
-        MPI_Comm_free(&cart_comm);
+    // MPI_CART_TOPOLOGY
+    gcx_cart_topology(p);
 
-    int dims[3] = {p->mx, p->my, p->mz};
-    MPI_Dims_create(p->mpi_size, 3, dims);
 
-    int periods[3] = {p->periodic1,p->periodic2,p->periodic3};
-    MPI_Cart_create(mpi_comm, 3, dims, periods, false, &cart_comm);
-
-    int cart_neg = MPI_PROC_NULL;
-    int cart_pos = MPI_PROC_NULL;
-
-    MPI_Cart_shift(cart_comm, 0, 1, &cart_neg, &cart_pos);
-    neighbors[0] = cart_neg;
-    neighbors[1] = cart_pos;
-
-    MPI_Cart_shift(cart_comm, 1, 1, &cart_neg, &cart_pos);
-    neighbors[2] = cart_neg;
-    neighbors[3] = cart_pos;
-
-    MPI_Cart_shift(cart_comm, 2, 1, &cart_neg, &cart_pos);
-    neighbors[4] = cart_neg;
-    neighbors[5] = cart_pos;
-
+    // Topology Test
     bool error = false;
     const int nb[6] = {p->nb1, p->nb4, p->nb3, p->nb2, p->nb5, p->nb6};
 

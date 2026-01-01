@@ -2461,6 +2461,35 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
+      <VirtualDirectory Name="Parallel Comm">
+        <File Name="gcx_gcparaxintV.cpp"/>
+        <File Name="gcx_flagx7.cpp"/>
+        <File Name="gcx_flagx.cpp"/>
+        <File Name="gcx_facenbx.cpp"/>
+        <File Name="gcx_crs.cpp"/>
+        <File Name="gcx_collective.cpp"/>
+        <File Name="gcx_global.cpp"/>
+        <File Name="gcx_verticalmax.cpp"/>
+        <File Name="gcx_update.cpp"/>
+        <File Name="gcx_rownum.cpp"/>
+        <File Name="gcx_pls.cpp"/>
+        <File Name="gcx_periodic.cpp"/>
+        <File Name="gcx_paraxV1.cpp"/>
+        <File Name="gcx_paraxV.cpp"/>
+        <File Name="gcx_paraxint.cpp"/>
+        <File Name="gcx_paraxijk_single.cpp"/>
+        <File Name="gcx_paraxijk.cpp"/>
+        <File Name="gcx_parax7co.cpp"/>
+        <File Name="gcx_parax7.cpp"/>
+        <File Name="gcx_parax4a_sum.cpp"/>
+        <File Name="gcx_parax4a.cpp"/>
+        <File Name="gcx_parax.cpp"/>
+        <File Name="gcx_paracoxV1.cpp"/>
+        <File Name="gcx_paracoxV.cpp"/>
+        <File Name="gcx_paracox4a_sum.cpp"/>
+        <File Name="gcx_paracox.cpp"/>
+        <File Name="gcx_walldist.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="DGC">
         <File Name="gc_dgcpol4.cpp"/>
         <File Name="gc_dgcpol3.cpp"/>
@@ -2518,35 +2547,9 @@
         <File Name="gc_flagfield.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel">
+        <File Name="gcx_ini_cart_topology.cpp"/>
         <File Name="gcx_ini.cpp"/>
         <File Name="gcx_sendrecv.cpp"/>
-        <File Name="gcx_paracox4a_sum.cpp"/>
-        <File Name="gcx_parax4a_sum.cpp"/>
-        <File Name="gcx_gcparaxintV.cpp"/>
-        <File Name="gcx_paracoxV1.cpp"/>
-        <File Name="gcx_paraxV1.cpp"/>
-        <File Name="gcx_paracoxV.cpp"/>
-        <File Name="gcx_paraxV.cpp"/>
-        <File Name="gcx_periodic.cpp"/>
-        <File Name="gcx_paraxijk_single.cpp"/>
-        <File Name="gcx_paraxijk.cpp"/>
-        <File Name="gcx_paraxint.cpp"/>
-        <File Name="gcx_flagx7.cpp"/>
-        <File Name="gcx_parax7co.cpp"/>
-        <File Name="gcx_parax7.cpp"/>
-        <File Name="gcx_collective.cpp"/>
-        <File Name="gcx_flagx.cpp"/>
-        <File Name="gcx_global.cpp"/>
-        <File Name="gcx_paracox.cpp"/>
-        <File Name="gcx_parax.cpp"/>
-        <File Name="gcx_parax4a.cpp"/>
-        <File Name="gcx_pls.cpp"/>
-        <File Name="gcx_update.cpp"/>
-        <File Name="gcx_walldist.cpp"/>
-        <File Name="gcx_verticalmax.cpp"/>
-        <File Name="gcx_crs.cpp"/>
-        <File Name="gcx_facenbx.cpp"/>
-        <File Name="gcx_rownum.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CDS Grid">
         <File Name="gc_sizeM_update.cpp"/>
