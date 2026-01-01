@@ -87,7 +87,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     bedchange(p,a,pgc,s,1);
 
     // parallel transfer
-    P.xchange(p,pgc,bedch,1);
+    //P.xchange(p,pgc,bedch,1);
 
     // ------------------------
     // RK step 2
@@ -142,5 +142,5 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     bedchange(p,a,pgc,s,2);
 
     // parallel transfer
-    P.xchange(p, pgc,bedch,2);
+    //P.xchange(p, pgc,bedch,2);
 }

@@ -25,10 +25,10 @@ Authors: Hans Bihs, Alexander Hanke
 
 void partres::boundcheck(lexer *p, int mode)
 {
-    bool inBounds;
-
+    int inBounds;
+    
     for(n=0;n<P.index;++n)
-    if(P.Flag[n]==ACTIVE)
+    if(P.Flag[n]>=ACTIVE)
     {
         if(mode==1)
         {
@@ -36,6 +36,7 @@ void partres::boundcheck(lexer *p, int mode)
             j=p->posc_j(P.YRK1[n]);
             k=p->posc_k(P.ZRK1[n]);
         }
+        
         else if(mode==2)
         {
             i=p->posc_i(P.X[n]);
@@ -44,11 +45,12 @@ void partres::boundcheck(lexer *p, int mode)
         }
 
         inBounds=boundaries.globalminboundcheck(p,i,j,k);
-        if(inBounds)
-            inBounds=boundaries.globalmaxboundcheck(p,i,j,k);
+        
+        if(inBounds==1)
+        inBounds=boundaries.globalmaxboundcheck(p,i,j,k);
 
         // remove out of bounds particles
         if(inBounds==0)
-            P.remove(n);
+        P.remove(n);
     }
 }

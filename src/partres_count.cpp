@@ -36,8 +36,9 @@ void partres::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     {
         ++particle_count;
 
-        if(P.Flag[n]==ACTIVE)
+        if(P.Flag[n]>=ACTIVE)
             ++active_count;
+            
         else if(P.Flag[n]==EMPTY)
             ++empty_count;
     }
@@ -47,9 +48,9 @@ void partres::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     empty_count = pgc->globalsum(empty_count);
 
     if(p->mpirank==0)
-        cout<<"Particle_count_global: "<<particle_count<<" Active_count: "<<active_count<<" Empty_count: "<<empty_count<<endl;
+    cout<<"Particle_count_global: "<<particle_count<<" Active_count: "<<active_count<<" Empty_count: "<<empty_count<<endl;
 
     for(n=0;n<P.index_empty;++n)
     if(P.Empty[P.index_empty]<0)
-        cout<<p->mpirank<<"EMPTY_NEG: "<<P.Empty[P.index_empty]<<endl;
+    cout<<p->mpirank<<"EMPTY_NEG: "<<P.Empty[P.index_empty]<<endl;
 }

@@ -32,7 +32,7 @@ void partres::stress_snider(lexer *p, ghostcell *pgc, sediment_fdm *s)
     double beta = 2.0;
     double epsilon = 1.0e-4;
     double Tc = 0.2;
-    double Tmax = 1.1*(1.0-p->S24) + 0.1;
+    double Tmax = (1.0-p->S24) + 0.05;
     
     //double Tmax = (1.0-p->S24) + 0.0;
     

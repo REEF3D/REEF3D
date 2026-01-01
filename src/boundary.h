@@ -23,13 +23,6 @@ Authors: Hans Bihs, Alexander Hanke
 #ifndef BOUNDARY_H_
 #define BOUNDARY_H_
 
-#define EMPTY  -1
-#define PASSIVE 1
-#define ACTIVE 10
-#define BEDBC  11
-#define MOVING 20
-
-
 #include"increment.h"
 
 class lexer;

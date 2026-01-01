@@ -48,7 +48,7 @@ void partres::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int m
 void partres::bedchange_update(lexer *p, ghostcell *pgc, int mode)
 {
     for(n=0;n<P.index;++n)
-    if(P.Flag[n]==ACTIVE)
+    if(P.Flag[n]>=ACTIVE)
     {
         // step 1
         if(mode==1)
