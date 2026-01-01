@@ -116,7 +116,7 @@ private:
 
     double *tan_betaQ73,*betaQ73,*dist_Q73;
 
-    bool timestep_ini = true;
+    int timestep_ini = 0;
     
     // parameters
     double Dpx,Dpy,Dpz;

@@ -28,7 +28,7 @@ Authors: Hans Bihs, Alexander Hanke
 
 void partres::stress_snider(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double Ps = 10.0;
+    double Ps = 50.0;
     double beta = 2.0;
     double epsilon = 1.0e-4;
     double Tc = 0.2;
