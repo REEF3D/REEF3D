@@ -33,9 +33,19 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
 
     pressure_gradient(p,a,pgc,s);
     
+    MALOOP
+    a->test(i,j,k) = p->XN[IP1];
+    
+    
+    cout<<"a->test(0,0,0): "<<a->test(0,0,0)<<" a->test(1,0,0): "<<a->test(1,0,0)<<endl;
+    
+    cout<<"CCIPOL | 0.01: "<<p->ccipol1(a->test,0.01,0.2,0.2)<<" | 0.0126: "<<p->ccipol1(a->test,0.0126,0.2,0.2)
+    <<" | 0.026: "<<p->ccipol1(a->test,0.026,0.2,0.2)<<" | 0.126: "<<p->ccipol1(a->test,0.126,0.2,0.2)
+    <<" | 0.24809: "<<p->ccipol1(a->test,0.24809,0.2,0.2)<<endl;
+    
     // ------------------------
     // RK step 1
-    
+    /*
     // stress and cellSum update
     cellSum_update(p,pgc,s,P.X,P.Y,P.Z);
     stress_snider(p,pgc,s);
@@ -97,8 +107,8 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     stress_snider(p,pgc,s);
     stress_gradient(p,a,pgc,s);
     
-    ALOOP
-    a->test(i,j,k) = Ts(i,j,k);
+    //ALOOP
+    //a->test(i,j,k) = Ts(i,j,k);
 
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
@@ -142,5 +152,5 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     bedchange(p,a,pgc,s,2);
 
     // parallel transfer
-    //P.xchange(p, pgc,bedch,2);
+    //P.xchange(p, pgc,bedch,2);*/
 }

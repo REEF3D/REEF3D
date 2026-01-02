@@ -249,10 +249,10 @@ int position::posc_sig(int ii, int jj, double zs)
 	j = MIN(j,p->knoy-1);
     
     k = 0;
-    int IJK_start = IJK;
+    int FIJK_start = FIJK;
     
-    k = p->knoz-1;
-    int IJK_end = IJK;
+    k = p->knoz;
+    int FIJK_end = FIJK;
     
     stop=0;
     
@@ -270,7 +270,7 @@ int position::posc_sig(int ii, int jj, double zs)
     
         
         // out of bounds
-        if(zs<p->ZSP[IJK_start])
+        if(zs<p->ZSN[FIJK_start])
         {
             kk = -1;
             
@@ -281,7 +281,7 @@ int position::posc_sig(int ii, int jj, double zs)
         }
         
         // out of bounds
-        if(zs>p->ZSP[IJK_end])
+        if(zs>p->ZSN[FIJK_end])
         {
             kk = p->knoz+1;
             
@@ -292,7 +292,7 @@ int position::posc_sig(int ii, int jj, double zs)
         }
         
         // matching criterion
-        if(zs<p->ZSP[IJK] && zs>=p->ZSP[IJKm1] && stop==0)
+        if(zs<p->ZSN[FIJK] && zs>=p->ZSN[FIJKm1] && stop==0)
         {
             kk = kloc-1;
             
@@ -302,7 +302,7 @@ int position::posc_sig(int ii, int jj, double zs)
          break;   
         }
         
-        if(zs>=p->ZSP[IJK] && zs<p->ZSP[IJKp1] && stop==0)
+        if(zs>=p->ZSN[FIJK] && zs<p->ZSN[FIJKp1] && stop==0)
         {
             kk = kloc;
             
@@ -313,10 +313,10 @@ int position::posc_sig(int ii, int jj, double zs)
         }
         
         // further divksion
-        if(zs<p->ZSP[IJK] && zs<p->ZSP[IJKm1])
+        if(zs<p->ZSN[FIJK] && zs<p->ZSN[FIJKm1])
         ke=kloc;
         
-        if(zs>p->ZSP[IJK] && zs>p->ZSP[IJKp1])
+        if(zs>p->ZSN[FIJK] && zs>p->ZSN[FIJKp1])
         ks=kloc;
         
         
