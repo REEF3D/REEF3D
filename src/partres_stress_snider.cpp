@@ -28,10 +28,10 @@ Authors: Hans Bihs, Alexander Hanke
 
 void partres::stress_snider(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double Ps = 50.0;
+    double Ps = 5.0;
     double beta = 2.0;
     double epsilon = 1.0e-4;
-    double Tc = 0.2;
+    double Tc = 0.0002;
     double Tmax = (1.0-p->S24) + 0.05;
     
     //double Tmax = (1.0-p->S24) + 0.0;

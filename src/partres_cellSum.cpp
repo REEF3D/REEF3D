@@ -38,9 +38,9 @@ void partres::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *
     for(size_t n=0;n<P.index;n++)
     if(P.Flag[n]>=ACTIVE)
     {
-        i=p->posf_i(P.XRK1[n]);
-        j=p->posf_j(P.YRK1[n]);
-        k=p->posf_k(P.ZRK1[n]);
+        i = p->posf_i(PX[n]) - 1;
+        j = p->posf_j(PY[n]) - 1;
+        k = p->posf_k(PZ[n]) - 1;
 
         Sx = (p->XP[IP1] - PX[n])/p->DXP[IP];
         Sy = (p->YP[JP1] - PY[n])/p->DYP[JP];

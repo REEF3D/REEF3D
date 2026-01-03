@@ -33,17 +33,6 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
 
     pressure_gradient(p,a,pgc,s);
     
-    /*
-    MALOOP
-    a->test(i,j,k) = p->XN[IP1];
-    
-    
-    cout<<"a->test(0,0,0): "<<a->test(0,0,0)<<" a->test(1,0,0): "<<a->test(1,0,0)<<endl;
-    
-    cout<<"CCIPOL | 0.01: "<<p->ccipol1(a->test,0.01,0.2,0.2)<<" | 0.0126: "<<p->ccipol1(a->test,0.0126,0.2,0.2)
-    <<" | 0.026: "<<p->ccipol1(a->test,0.026,0.2,0.2)<<" | 0.126: "<<p->ccipol1(a->test,0.126,0.2,0.2)
-    <<" | 0.24809: "<<p->ccipol1(a->test,0.24809,0.2,0.2)<<endl;*/
-    
     // ------------------------
     // RK step 1
     
@@ -66,10 +55,15 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.URK1[n] = (P.U[n] + p->dtsed*F)/(1.0 + p->dtsed*Dpx);
         P.VRK1[n] = (P.V[n] + p->dtsed*G)/(1.0 + p->dtsed*Dpy);
         P.WRK1[n] = (P.W[n] + p->dtsed*H)/(1.0 + p->dtsed*Dpz);
+        
+        // Position update 
+        P.XRK1[n] = P.X[n] + p->dtsed*P.URK1[n];
+        P.YRK1[n] = P.Y[n] + p->dtsed*P.VRK1[n];
+        P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
     }
     
     
-    
+    /*
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
@@ -89,7 +83,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.XRK1[n] = P.X[n] + p->dtsed*P.URK1[n];
         P.YRK1[n] = P.Y[n] + p->dtsed*P.VRK1[n];
         P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
-    }
+    }*/
 
     
 
@@ -98,7 +92,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     bedchange(p,a,pgc,s,1);
 
     // parallel transfer
-    //P.xchange(p,pgc,bedch,1);
+    P.xchange(p,pgc,bedch,1);
 
     // ------------------------
     // RK step 2
@@ -109,7 +103,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     stress_gradient(p,a,pgc,s);
     
     ALOOP
-    a->test(i,j,k) = Ts(i,j,k);
+    a->test(i,j,k) = Tau(i,j,k);
 
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
@@ -125,8 +119,13 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.U[n] = (0.5*P.U[n] + 0.5*P.URK1[n] + 0.5*p->dtsed*F)/(1.0 + 0.5*p->dtsed*Dpx);
         P.V[n] = (0.5*P.V[n] + 0.5*P.VRK1[n] + 0.5*p->dtsed*G)/(1.0 + 0.5*p->dtsed*Dpy);
         P.W[n] = (0.5*P.W[n] + 0.5*P.WRK1[n] + 0.5*p->dtsed*H)/(1.0 + 0.5*p->dtsed*Dpz);
+        
+        // Position update
+        P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
+        P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
+        P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
     }
-    
+    /*
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
@@ -146,12 +145,12 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
         P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
         P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
-    }
+    }*/
 
     boundcheck(p,2);
     bedchange_update(p,pgc,2);
     bedchange(p,a,pgc,s,2);
 
     // parallel transfer
-    //P.xchange(p, pgc,bedch,2);
+    P.xchange(p, pgc,bedch,2);
 }
