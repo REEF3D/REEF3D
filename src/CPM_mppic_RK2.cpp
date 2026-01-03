@@ -27,7 +27,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
-void CPM::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
+void CPM::mppic_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
     count_particles(p,a,pgc,s);
 

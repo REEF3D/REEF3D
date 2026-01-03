@@ -30,8 +30,8 @@ Authors: Hans Bihs, Alexander Hanke
 void CPM::move_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
     if(p->Q11==1)
-    RK2_plain(p,a,pgc,s,pturb);
+    plain_RK2(p,a,pgc,s,pturb);
     
     if(p->Q11==2)
-    RK2_mppic(p,a,pgc,s,pturb);
+    mppic_RK2(p,a,pgc,s,pturb);
 }

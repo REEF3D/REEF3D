@@ -54,8 +54,10 @@ public:
 
     void move_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
     
-    void RK2_mppic(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
-    void RK2_plain(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    void mppic_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    void mppic_EE1(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    
+    void plain_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
 
     void update(lexer*, fdm*, ghostcell*, sediment_fdm*, field&, field&);
 
