@@ -286,7 +286,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],footer.str().data(),footer.str().size());
 
     char filename[200];
-    sprintf(filename,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i-%06i.vtp",printcount,p->mpirank+1);
+    sprintf(filename,"./REEF3D_CFD_CPM_Particle/REEF3D-Particle-%08i-%06i.vtp",printcount,p->mpirank+1);
 
     const size_t SMALL_FILE_THRESHOLD = 10 * 1024 * 1024;   // 10MB
 

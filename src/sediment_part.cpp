@@ -34,7 +34,7 @@ sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *pptur
 
     // Create Folder
     if(p->mpirank==0 && p->Q180>0 && (p->Q181>0||p->Q182>0))
-        mkdir("./REEF3D_CFD_SedPart",0777);
+        mkdir("./REEF3D_CFD_CPM_Particle",0777);
 }
 
 sediment_part::~sediment_part()
