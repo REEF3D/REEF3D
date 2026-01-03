@@ -278,7 +278,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             }
         }
 
-        if(p->B84==2 && p->B136==4)
+        else if(p->B84==2 && p->B136==4)
         {
             double DD, ddb, w, ddw, sum, Dcdf_s, Dcdf_e;
             double cdf_s, cdf_e, d_s, d_e, d_low, d_high, cdf_low, cdf_high;
