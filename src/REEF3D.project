@@ -1743,6 +1743,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="CPM">
+        <File Name="CPM_vollfrac.cpp"/>
+        <File Name="CPM_move.cpp"/>
         <File Name="CPM_mppic_EE1.cpp"/>
         <File Name="CPM_plain_advec.cpp"/>
         <File Name="CPM_mppic_advec.cpp"/>
@@ -1753,10 +1755,8 @@
         <File Name="CPM_stress_snider.cpp"/>
         <File Name="CPM_stress_schaeffer.cpp"/>
         <File Name="CPM_sandslide.cpp"/>
-        <File Name="CPM_move_RK2.cpp"/>
         <File Name="CPM_gradient.cpp"/>
         <File Name="CPM_drag.cpp"/>
-        <File Name="CPM_cellSum.cpp"/>
         <File Name="CPM_bedchange.cpp"/>
         <File Name="CPM.cpp"/>
         <VirtualDirectory Name="Print">

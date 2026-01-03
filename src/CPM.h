@@ -52,7 +52,7 @@ public:
     CPM(lexer*, ghostcell*);
     virtual ~CPM() = default;
 
-    void move_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    void move(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
     
     void mppic_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
     void mppic_EE1(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);

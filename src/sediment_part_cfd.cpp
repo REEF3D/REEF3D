@@ -43,7 +43,7 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     pgc->gcsl_start4(p,s->tau_crit,1);
 
     pst->timestep(p,pgc);
-    pst->move_RK2(p,a,pgc,s,pturb);
+    pst->move(p,a,pgc,s,pturb);
     pst->update(p,a,pgc,s,por,d50);
     
 

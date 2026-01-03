@@ -28,13 +28,11 @@ Authors: Hans Bihs, Alexander Hanke
 
 void CPM::stress_snider(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double Ps = 5.0;
-    double beta = 2.0;
-    double epsilon = 1.0e-4;
+    double Ps = 100.0;
+    double beta = 5.0;
+    double epsilon = 1.0e-7;
     double Tc = 0.0002;
     double Tmax = (1.0-p->S24) + 0.05;
-    
-    //double Tmax = (1.0-p->S24) + 0.0;
     
     double maxTau = 1.0e7;
 

@@ -46,11 +46,6 @@ void CPM::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulen
     uf = p->ccipol1c(a->u,PX[n],PY[n],PZ[n]);
     vf = p->ccipol2c(a->v,PX[n],PY[n],PZ[n]);
     wf = p->ccipol3c(a->w,PX[n],PY[n],PZ[n]);
-    
-    // velocity
-    /*uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]+0.01);
-    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]+0.01);
-    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]+0.01);*/
 
     // relative velocity
     Urel = uf;//-PU[n];
@@ -87,7 +82,6 @@ void CPM::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulen
     F -= dTx_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
     G -= dTy_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
     H -= dTz_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
-    
     
 
     // solid forcing
