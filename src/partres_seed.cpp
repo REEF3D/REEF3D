@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     double spacing;
     double particles_per_dim;
@@ -146,7 +146,7 @@ void partres::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             P.remove(n);
     }
 
-    cellSum_update(p,pgc,s,P.X,P.Y,P.Z);
+    volfrac_update(p,pgc,s,P.X,P.Y,P.Z);
     
     wallbc(p,pgc,s);
 }

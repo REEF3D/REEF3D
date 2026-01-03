@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void CPM::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     ALOOP
     {
@@ -52,7 +52,7 @@ void partres::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     pgc->start4a(p,dTz,1);*/
 }
 
-void partres::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void CPM::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     ALOOP
     {

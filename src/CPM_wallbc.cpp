@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::wallbc(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void CPM::wallbc(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     for(size_t n=0;n<P.index;n++)
     if(P.Flag[n]==ACTIVE)

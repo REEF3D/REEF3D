@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
-void partres::timestep(lexer *p, ghostcell *pgc)
+void CPM::timestep(lexer *p, ghostcell *pgc)
 {
     double maxVelU=0.0, maxVelV=0.0, maxVelW=0.0;
     double maxvz=0.0;

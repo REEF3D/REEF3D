@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::cellSum_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, double *PY, double *PZ)
+void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, double *PY, double *PZ)
 {
     ALOOP
     cellSum(i,j,k) = 0.0;

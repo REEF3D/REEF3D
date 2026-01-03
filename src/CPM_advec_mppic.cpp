@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"part.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
 
-void partres::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
+void CPM::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {
@@ -121,7 +121,7 @@ void partres::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turb
 }
 
 
-void partres::advec_mppic_step2(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
+void CPM::advec_mppic_step2(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {

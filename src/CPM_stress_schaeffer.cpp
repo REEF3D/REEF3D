@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::stress_schaeffer(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void CPM::stress_schaeffer(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     /*double Ps = 10.0;
     double beta = 2.0;
@@ -62,7 +62,7 @@ void partres::stress_schaeffer(lexer *p, ghostcell *pgc, sediment_fdm *s)
 /*
 
 // Schaeffer frictional stress
-double partres::compute_frictional_stress(double theta_p, double shear_rate) 
+double CPM::compute_frictional_stress(double theta_p, double shear_rate) 
 {
     double theta_p_critical = 0.50;  // transition to frictional regime
     double theta_p_max = 0.635;      // random close packing
@@ -90,7 +90,7 @@ double partres::compute_frictional_stress(double theta_p, double shear_rate)
 
 
 // Kinetic stress from granular kinetic theory
-double partres::compute_kinetic_stress(double theta_p, double Theta) 
+double CPM::compute_kinetic_stress(double theta_p, double Theta) 
 {
     // Theta = granular temperature (m²/s²)
     //       = 1/3 * <v'_i * v'_i> (mean square particle velocity fluctuation)
@@ -109,7 +109,7 @@ double partres::compute_kinetic_stress(double theta_p, double Theta)
 }
 
 // Radial distribution function (Carnahan-Starling)
-double partres::radial_distribution_function(double theta_p) {
+double CPM::radial_distribution_function(double theta_p) {
     double theta_p_max = 0.635;  // maximum packing
     
     // Original form
@@ -123,7 +123,7 @@ double partres::radial_distribution_function(double theta_p) {
 
 
 // Compute shear rate from PARTICLE velocity field
-double partres::compute_shear_rate_from_particles(Grid* grid, int i, int j, int k) {
+double CPM::compute_shear_rate_from_particles(Grid* grid, int i, int j, int k) {
     // Use mapped particle velocities (u_p, v_p, w_p)
     // NOT fluid velocities (u_f, v_f, w_f)
     
@@ -156,7 +156,7 @@ double partres::compute_shear_rate_from_particles(Grid* grid, int i, int j, int 
 
 
 // Trilinear mapping: particle distributes to 8 surrounding nodes
-void partres::map_particles_to_grid_trilinear(Particle* particles, int n_particles, 
+void CPM::map_particles_to_grid_trilinear(Particle* particles, int n_particles, 
                                      Grid* grid) {
     // Initialize
     for (int i = 0; i < grid->nnodes; i++) {

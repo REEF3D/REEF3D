@@ -17,30 +17,40 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"turbulence.h"
 
-double partres::drag_model(lexer *p, double d50, double rhoS, double vel, double Ts)
+void CPM::stress_snider(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double Tf = 1.0-Ts;
+    double Ps = 5.0;
+    double beta = 2.0;
+    double epsilon = 1.0e-4;
+    double Tc = 0.0002;
+    double Tmax = (1.0-p->S24) + 0.05;
+    
+    //double Tmax = (1.0-p->S24) + 0.0;
+    
+    double maxTau = 1.0e7;
 
-    vel = fabs(vel);
+    ALOOP
+    {        
+        if(Ts(i,j,k)<=Tc)
+        Tau(i,j,k) = 0.0;
+        
+        if(Ts(i,j,k)>Tc)
+        Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tmax-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
+        
+        Tau(i,j,k) = MIN(Tau(i,j,k), maxTau);
+        
+        //cout<<"Tau: "<<Tau(i,j,k)<<" Ts: "<<Ts(i,j,k)<<" MAXfunc: "<<MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)))<<endl;
+    }
 
-    double Rep = vel*d50/p->W2;
-
-    double Cd = (24.0/Rep)*(pow(Tf,-2.65) + (1.0/6.0)*pow(Rep,2.0/3.0)*pow(Tf,-1.78));
-
-    Cd = MIN(Cd,10.0);
-    Cd = MAX(Cd,0.0);
-
-    double Dp = Cd*(3.0/8.0)*(p->W1/rhoS)*(vel/(0.5*d50));
-
-    return Dp;
+    pgc->start4a(p,Tau,1);
+    pgc->start4a(p,Ts,1);
 }

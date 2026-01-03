@@ -17,40 +17,15 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Alexander Hanke
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
+#include"CPM.h"
 
-void partres::stress_snider(lexer *p, ghostcell *pgc, sediment_fdm *s)
+CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p), cellSum(p),
+                                               dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p)
 {
-    double Ps = 5.0;
-    double beta = 2.0;
-    double epsilon = 1.0e-4;
-    double Tc = 0.0002;
-    double Tmax = (1.0-p->S24) + 0.05;
-    
-    //double Tmax = (1.0-p->S24) + 0.0;
-    
-    double maxTau = 1.0e7;
+    relax_ini(p);
 
-    ALOOP
-    {        
-        if(Ts(i,j,k)<=Tc)
-        Tau(i,j,k) = 0.0;
-        
-        if(Ts(i,j,k)>Tc)
-        Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tmax-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
-        
-        Tau(i,j,k) = MIN(Tau(i,j,k), maxTau);
-        
-        //cout<<"Tau: "<<Tau(i,j,k)<<" Ts: "<<Ts(i,j,k)<<" MAXfunc: "<<MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)))<<endl;
-    }
-
-    pgc->start4a(p,Tau,1);
-    pgc->start4a(p,Ts,1);
+    printcount=0;
 }

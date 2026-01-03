@@ -21,7 +21,7 @@ Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"sediment_part.h"
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"bedshear.h"

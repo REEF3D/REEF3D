@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void partres::pvtp(lexer* p, int num)
+void CPM::pvtp(lexer* p, int num)
 {
     char name[100];
     sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i.pvtp",num);

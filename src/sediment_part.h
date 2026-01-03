@@ -42,7 +42,7 @@ class convection;
 class patchBC_interface;
 class bedload_direction;
 class bedslope;
-class partres;
+class CPM;
 
 using std::ofstream;
 
@@ -142,7 +142,7 @@ private:
     void log_ini(lexer*) {};
     void sedimentlog(lexer*) {};
 
-    partres *pst;
+    CPM *pst;
     sediment_fdm *s;
     bedload *pbed;
     vrans *pvrans;

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"part.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
 
-void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
+void CPM::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {

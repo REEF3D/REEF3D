@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 
-void partres::boundcheck(lexer *p, int mode)
+void CPM::boundcheck(lexer *p, int mode)
 {
     int inBounds;
     

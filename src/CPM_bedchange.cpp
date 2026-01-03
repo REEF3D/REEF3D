@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int mode)
+void CPM::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int mode)
 {
     // topo
     ALOOP
@@ -45,7 +45,7 @@ void partres::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int m
     }
 }
 
-void partres::bedchange_update(lexer *p, ghostcell *pgc, int mode)
+void CPM::bedchange_update(lexer *p, ghostcell *pgc, int mode)
 {
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE)

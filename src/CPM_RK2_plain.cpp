@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
-void partres::RK2_plain(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
+void CPM::RK2_plain(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
     count_particles(p,a,pgc,s);
 
@@ -54,7 +54,7 @@ void partres::RK2_plain(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     }
 
     // cellSum update
-    cellSum_update(p,pgc,s,P.XRK1,P.YRK1,P.ZRK1);
+    volfrac_update(p,pgc,s,P.XRK1,P.YRK1,P.ZRK1);
 
 
     boundcheck(p,1);
@@ -84,7 +84,7 @@ void partres::RK2_plain(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     }
 
     // cellSum update
-    cellSum_update(p,pgc,s,P.X,P.Y,P.Z);
+    volfrac_update(p,pgc,s,P.X,P.Y,P.Z);
 
     boundcheck(p,2);
     bedchange_update(p,pgc,2);

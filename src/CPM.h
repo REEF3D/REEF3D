@@ -18,10 +18,16 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Authora: Hans Bihs, Alexander Hanke
---------------------------------------------------------------------*/
+--------------------------------------------------------------------
 
-#ifndef PARTRES_H_
-#define PARTRES_H_
+--------------------------------------------------------------------
+CPM : Contiuum Particle Method
+--------------------------------------------------------------------
+
+*/
+
+#ifndef CPM_H_
+#define CPM_H_
 
 #include"increment.h"
 #include"part.h"
@@ -40,11 +46,11 @@ class vrans;
 
 using namespace std;
 
-class partres : public increment, private vtp3D
+class CPM : public increment, private vtp3D
 {
 public:
-    partres(lexer*, ghostcell*);
-    virtual ~partres() = default;
+    CPM(lexer*, ghostcell*);
+    virtual ~CPM() = default;
 
     void move_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
     
@@ -80,7 +86,7 @@ private:
     
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
-    void cellSum_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*);
+    void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*);
 
     void bedchange(lexer*, fdm*, ghostcell*, sediment_fdm*, int);
     void bedchange_update(lexer*, ghostcell*, int);
