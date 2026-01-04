@@ -35,7 +35,6 @@ void CPM::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulen
     dPx_val = p->ccipol4a(dPx,PX[n],PY[n],PZ[n]);
     dPy_val = p->ccipol4a(dPy,PX[n],PY[n],PZ[n]);
     dPz_val = p->ccipol4a(dPz,PX[n],PY[n],PZ[n]);
-    
 
     // gravity
     Bx = p->W20;
@@ -58,10 +57,17 @@ void CPM::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulen
     
     Tsval = p->ccipol4a(Ts,PX[n],PY[n],PZ[n]);
     
+    //double testval;
+    //testval = p->ccipol4a(test,PX[n],PY[n],PZ[n]);
+    
+    P.Test[n] = dPz_val;
+    
     // drag coefficient
     Dpx = drag_model(p,P.D[n],P.RO[n],Urel,Tsval);
     Dpy = drag_model(p,P.D[n],P.RO[n],Vrel,Tsval);
     Dpz = drag_model(p,P.D[n],P.RO[n],Wrel,Tsval);
+    
+    Dpx=Dpy=Dpz=0.0;
 
     // particle force
     F = Dpx*Urel - dPx_val/P.RO[n] + Bx;
@@ -78,10 +84,10 @@ void CPM::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulen
     
     //F=G=H=0.0;
 
-    // particle force
-    F -= dTx_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
+    // inter-partile stress
+    /*F -= dTx_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
     G -= dTy_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
-    H -= dTz_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
+    H -= dTz_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));*/
     
 
     // solid forcing
@@ -101,8 +107,6 @@ void CPM::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulen
     F *= rf(p,PX[n],PY[n]);
     G *= rf(p,PX[n],PY[n]);
     H *= rf(p,PX[n],PY[n]);
-
-    P.Test[n] = dTz_val/P.RO[n];
 
     // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
@@ -149,8 +153,6 @@ void CPM::advec_mppic_step2(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulen
     F *= rf(p,PX[n],PY[n]);
     G *= rf(p,PX[n],PY[n]);
     H *= rf(p,PX[n],PY[n]);
-
-    P.Test[n] = dTz_val/P.RO[n];
 
     // error call
     if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])

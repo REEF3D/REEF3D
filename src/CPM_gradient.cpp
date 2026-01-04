@@ -56,9 +56,14 @@ void CPM::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     ALOOP
     {
-        dPx(i,j,k) = (a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
-        dPy(i,j,k) = (a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
-        dPz(i,j,k) = (a->press(i,j,k+1) - a->press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
+        dPx(i,j,k) = 0.0*(a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]) 
+                   + 0.0*(press(i+1,j,k) - press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]); 
+                   
+        dPy(i,j,k) = 0.0*(a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP])
+                   + 0.0*(press(i,j+1,k) - press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
+                   
+        dPz(i,j,k) = 0.0*(a->press(i,j,k+1) - a->press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP])
+                   + (press(i,j,k+1) - press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
     }
 
     pgc->start4a(p,dPx,1);

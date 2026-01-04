@@ -30,11 +30,14 @@ Authors: Hans Bihs, Alexander Hanke
 void CPM::mppic_EE1(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
     count_particles(p,a,pgc,s);
-
-    pressure_gradient(p,a,pgc,s);
     
     press_lithostatic(p,a,pgc,s);
-
+    
+    pressure_gradient(p,a,pgc,s);
+    
+    ALOOP
+    test(i,j,k) = dPz(i,j,k);
+    
     // stress and cellSum update
     volfrac_update(p,pgc,s,P.X,P.Y,P.Z);
     stress_snider(p,pgc,s);
@@ -84,8 +87,8 @@ void CPM::mppic_EE1(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
     }*/
 
     boundcheck(p,2);
-    bedchange_update(p,pgc,2);
-    bedchange(p,a,pgc,s,2);
+    //bedchange_update(p,pgc,2);
+    //bedchange(p,a,pgc,s,2);
 
     // parallel transfer
     P.xchange(p, pgc,bedch,2);

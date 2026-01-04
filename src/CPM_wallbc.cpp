@@ -31,10 +31,12 @@ void CPM::wallbc(lexer *p, ghostcell *pgc, sediment_fdm *s)
     for(size_t n=0;n<P.index;n++)
     if(P.Flag[n]==ACTIVE)
     {
+        i=p->posc_i(P.X[n]);
+        j=p->posc_j(P.Y[n]);
         k=p->posc_k(P.Z[n]);
             
         
-        if(k<=2)
+        if(k==0 || i==0 || i==p->knox-1 || j==0 || j==p->knoy-1)
         {
         P.Flag[n]=BEDBC;
         
