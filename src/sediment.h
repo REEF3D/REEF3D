@@ -112,6 +112,11 @@ public:
     virtual void name_ParaView_parameter2(lexer*, ostream&, int*, int &){};
     virtual void offset_ParaView_2D_parameter2(lexer*, int*, int &){};
     virtual void offset_ParaView_parameter2(lexer*, int*, int &){};
+    
+    virtual void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&) {};
+    virtual void name_ParaView_parallel_CPM(lexer*, ofstream&) {};
+    virtual void name_ParaView_CPM(lexer*, ostream&, int*, int &) {};
+    virtual void offset_ParaView_CPM(lexer*, int*, int &) {};
 
 };
 

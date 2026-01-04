@@ -153,6 +153,11 @@ public:
     void offset_ParaView_2D_parameter2(lexer*, int*, int &) override;
     void offset_ParaView_parameter2(lexer*, int*, int &) override;
     
+    void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&) override {};
+    void name_ParaView_parallel_CPM(lexer*, ofstream&) override {};
+    void name_ParaView_CPM(lexer*, ostream&, int*, int &) override {};
+    void offset_ParaView_CPM(lexer*, int*, int &) override {};
+    
 
 private:
     

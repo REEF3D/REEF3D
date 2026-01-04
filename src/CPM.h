@@ -21,10 +21,8 @@ Authora: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------
 
 --------------------------------------------------------------------
-CPM : Contiuum Particle Method
---------------------------------------------------------------------
-
-*/
+CPM : Continuum Particle Method
+--------------------------------------------------------------------*/
 
 #ifndef CPM_H_
 #define CPM_H_
@@ -64,8 +62,15 @@ public:
     void timestep(lexer*, ghostcell*);
 
     void seed_particles(lexer*, fdm*, ghostcell*, sediment_fdm*);
-
+    
+    // print
     void print_particles(lexer*,sediment_fdm*);
+    void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&);
+    void name_ParaView_parallel_CPM(lexer*, ofstream&);
+    void name_ParaView_CPM(lexer*, ostream&, int*, int &);
+    void offset_ParaView_CPM(lexer*, int*, int &);
+    
+    
 private:
     void advec_plain(lexer*, fdm*, part&, sediment_fdm*, turbulence*,
                         double*, double*, double*, double*, double*, double*,
@@ -89,6 +94,8 @@ private:
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*);
+    
+    void press_lithostatic(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
     void bedchange(lexer*, fdm*, ghostcell*, sediment_fdm*, int);
     void bedchange_update(lexer*, ghostcell*, int);
@@ -101,7 +108,7 @@ private:
 
     slice4 bedch;
 
-    field4a Tau,Ts;
+    field4a Tau,Ts,press,test;
     field4a cellSum;
 
     // relax

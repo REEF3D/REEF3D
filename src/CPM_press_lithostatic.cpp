@@ -17,16 +17,37 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"CPM.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
 
-CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p), press(p), test(p),
-                                               cellSum(p),
-                                               dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p)
+void CPM::press_lithostatic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    relax_ini(p);
+    ALOOP
+    press(i,j,k) = 0.0;
+    
+    pgc->start4a(p,press,1);
+    
+    ILOOP
+    JLOOP
+    {    
+        KREVLOOP
+        {
+        if(a->topo(i,j,k)<0.0)
+        press(i,j,k) += Ts(i,j,k) * fabs(p->W22) * (p->S22 - a->ro(i,j,k)) * p->DZN[KP];
+            
+            
+            
+        }
+        
 
-    printcount=0;
+    }
+
+    
+    pgc->start4a(p,press,1);
 }

@@ -649,6 +649,7 @@ void lexer::ini_default()
 	P195=0;        	// int time between file printout in seconds
     P230=0;         // int print flowfile
     P240=0;         // int print potentialfile
+    P250=0;             // print CPM variables to vtu
 	P351=0;             // int print out wsf lsm1
 	P352=0;             // int print out wsf lsm2
     

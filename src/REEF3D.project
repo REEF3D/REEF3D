@@ -1743,6 +1743,13 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="CPM">
+        <VirtualDirectory Name="Pressure">
+          <File Name="CPM_press_lithostatic.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Stress">
+          <File Name="CPM_stress_snider.cpp"/>
+          <File Name="CPM_stress_schaeffer.cpp"/>
+        </VirtualDirectory>
         <File Name="CPM_vollfrac.cpp"/>
         <File Name="CPM_move.cpp"/>
         <File Name="CPM_mppic_EE1.cpp"/>
@@ -1752,16 +1759,15 @@
         <File Name="CPM_mppic_RK2.cpp"/>
         <File Name="CPM_wallbc.cpp"/>
         <File Name="CPM_update.cpp"/>
-        <File Name="CPM_stress_snider.cpp"/>
-        <File Name="CPM_stress_schaeffer.cpp"/>
         <File Name="CPM_sandslide.cpp"/>
         <File Name="CPM_gradient.cpp"/>
         <File Name="CPM_drag.cpp"/>
         <File Name="CPM_bedchange.cpp"/>
         <File Name="CPM.cpp"/>
         <VirtualDirectory Name="Print">
-          <File Name="CPM_printvtp.cpp"/>
-          <File Name="CPM_printpvtp.cpp"/>
+          <File Name="CPM_print_pvtp.cpp"/>
+          <File Name="CPM_print_vtp.cpp"/>
+          <File Name="CPM_print_vtu.cpp"/>
           <File Name="CPM_print_inactive_vtp.cpp"/>
           <File Name="CPM_print_inactive_pvtp.cpp"/>
         </VirtualDirectory>
@@ -1790,6 +1796,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment Particle">
+        <File Name="sediment_part_print_vtu.cpp"/>
         <File Name="sediment_part_update.cpp"/>
         <File Name="sediment_part_logic.cpp"/>
         <File Name="sediment_part_cfd_ini.cpp"/>

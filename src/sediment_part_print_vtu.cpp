@@ -17,16 +17,30 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
+#include"sediment_part.h"
+#include"lexer.h"
 #include"CPM.h"
+#include"sediment_fdm.h"
 
-CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p), press(p), test(p),
-                                               cellSum(p),
-                                               dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p)
+void sediment_part::name_ParaView_parallel_CPM(lexer *p, ofstream &result)
 {
-    relax_ini(p);
+    pst->name_ParaView_parallel_CPM(p,result);
+}
 
-    printcount=0;
+void sediment_part::name_ParaView_CPM(lexer *p, ostream &result, int *offset, int &n)
+{
+    pst->name_ParaView_CPM(p,result,offset,n);
+}
+
+void sediment_part::offset_ParaView_CPM(lexer *p, int *offset, int &n)
+{
+    pst->offset_ParaView_CPM(p,offset,n);
+}
+
+void sediment_part::print_3D_CPM(lexer* p, ghostcell *pgc, vector<char> &buffer, size_t &m)
+{	
+    pst->print_3D_CPM(p,pgc,buffer,m);
 }

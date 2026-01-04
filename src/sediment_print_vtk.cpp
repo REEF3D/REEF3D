@@ -533,30 +533,29 @@ void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, std::vector<char>
     pgc->gcsl_start4(p,s->alpha,1);
 	
 	iin=4*(p->pointnum);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
+    memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->alpha));
     ffn*=(180.0/PI);
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	memcpy(&buffer[m],&ffn,sizeof(float));
 	m+=sizeof(float);
 	}
-    
     
     // teta
     pgc->gcsl_start4(p,s->teta,1);
 	
 	iin=4*(p->pointnum);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
+    memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->teta));
     ffn*=(180.0/PI);
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	memcpy(&buffer[m],&ffn,sizeof(float));
 	m+=sizeof(float);
 	}
     
@@ -564,14 +563,14 @@ void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, std::vector<char>
     pgc->gcsl_start4(p,s->gamma,1);
 	
 	iin=4*(p->pointnum);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
+    memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->gamma));
     ffn*=(180.0/PI);
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	memcpy(&buffer[m],&ffn,sizeof(float));
 	m+=sizeof(float);
 	}
     
@@ -579,14 +578,14 @@ void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, std::vector<char>
     pgc->gcsl_start4(p,s->beta,1);
 	
 	iin=4*(p->pointnum);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
+    memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->beta));
     ffn*=(180.0/PI);
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	memcpy(&buffer[m],&ffn,sizeof(float));
 	m+=sizeof(float);
 	}
     
@@ -594,14 +593,14 @@ void sediment_f::print_3D_parameter1(lexer* p, ghostcell *pgc, std::vector<char>
     pgc->gcsl_start4(p,s->phi,1);
 	
 	iin=4*(p->pointnum);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
+    memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 	
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->phi));
     ffn*=(180.0/PI);
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	memcpy(&buffer[m],&ffn,sizeof(float));
 	m+=sizeof(float);
 	}
 }
