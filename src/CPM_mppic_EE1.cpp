@@ -32,6 +32,8 @@ void CPM::mppic_EE1(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
     count_particles(p,a,pgc,s);
 
     pressure_gradient(p,a,pgc,s);
+    
+    press_lithostatic(p,a,pgc,s);
 
     // stress and cellSum update
     volfrac_update(p,pgc,s,P.X,P.Y,P.Z);

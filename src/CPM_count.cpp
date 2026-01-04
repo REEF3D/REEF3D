@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke, Hans Bihs
+Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"CPM.h"
@@ -37,10 +37,10 @@ void CPM::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         ++particle_count;
 
         if(P.Flag[n]>=ACTIVE)
-            ++active_count;
+        ++active_count;
             
         else if(P.Flag[n]==EMPTY)
-            ++empty_count;
+        ++empty_count;
     }
 
     particle_count = pgc->globalsum(particle_count);

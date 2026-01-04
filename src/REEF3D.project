@@ -1743,6 +1743,21 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Extensions">
       <VirtualDirectory Name="CPM">
+        <VirtualDirectory Name="Drag">
+          <File Name="CPM_drag.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="BC">
+          <File Name="CPM_wallbc.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Update">
+          <File Name="CPM_sandslide.cpp"/>
+          <File Name="CPM_bedchange.cpp"/>
+          <File Name="CPM_update.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Advect">
+          <File Name="CPM_plain_advec.cpp"/>
+          <File Name="CPM_mppic_advec.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
           <File Name="CPM_press_lithostatic.cpp"/>
         </VirtualDirectory>
@@ -1750,19 +1765,10 @@
           <File Name="CPM_stress_snider.cpp"/>
           <File Name="CPM_stress_schaeffer.cpp"/>
         </VirtualDirectory>
-        <File Name="CPM_vollfrac.cpp"/>
         <File Name="CPM_move.cpp"/>
         <File Name="CPM_mppic_EE1.cpp"/>
-        <File Name="CPM_plain_advec.cpp"/>
-        <File Name="CPM_mppic_advec.cpp"/>
         <File Name="CPM_plain_RK2.cpp"/>
         <File Name="CPM_mppic_RK2.cpp"/>
-        <File Name="CPM_wallbc.cpp"/>
-        <File Name="CPM_update.cpp"/>
-        <File Name="CPM_sandslide.cpp"/>
-        <File Name="CPM_gradient.cpp"/>
-        <File Name="CPM_drag.cpp"/>
-        <File Name="CPM_bedchange.cpp"/>
         <File Name="CPM.cpp"/>
         <VirtualDirectory Name="Print">
           <File Name="CPM_print_pvtp.cpp"/>
@@ -1772,13 +1778,15 @@
           <File Name="CPM_print_inactive_pvtp.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Ini">
-          <File Name="partres_seed.cpp"/>
+          <File Name="CPM_seed.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
-          <File Name="partres_timestep.cpp"/>
-          <File Name="partres_relax.cpp"/>
-          <File Name="partres_count.cpp"/>
-          <File Name="partres_boundcheck.cpp"/>
+          <File Name="CPM_timestep.cpp"/>
+          <File Name="CPM_relax.cpp"/>
+          <File Name="CPM_count.cpp"/>
+          <File Name="CPM_boundcheck.cpp"/>
+          <File Name="CPM_gradient.cpp"/>
+          <File Name="CPM_vollfrac.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Part">
           <VirtualDirectory Name="Parallel">

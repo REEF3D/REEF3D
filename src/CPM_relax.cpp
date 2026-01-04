@@ -32,10 +32,10 @@ void CPM::relax_ini(lexer *p)
     p->Darray(dist_Q73,p->Q73);
 
     for(int qn=0;qn<p->Q73;++qn)
-        betaQ73[qn] = (p->Q73_b[qn]+90.0)*(PI/180.0);
+    betaQ73[qn] = (p->Q73_b[qn]+90.0)*(PI/180.0);
 
     for(int qn=0;qn<p->Q73;++qn)
-        tan_betaQ73[qn] = tan(betaQ73[qn]);
+    tan_betaQ73[qn] = tan(betaQ73[qn]);
 }
 
 void CPM::relax(lexer *p, ghostcell *pgc, sediment_fdm *s)
