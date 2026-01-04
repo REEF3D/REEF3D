@@ -1781,6 +1781,7 @@
           <File Name="CPM_seed.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="CPM_Heaviside.cpp"/>
           <File Name="CPM_timestep.cpp"/>
           <File Name="CPM_relax.cpp"/>
           <File Name="CPM_count.cpp"/>

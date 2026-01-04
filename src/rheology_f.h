@@ -46,7 +46,7 @@ public:
 private:
     double Herschel_Bulkley(lexer*,fdm*,ghostcell*, field&, field&, field&);
     double Mohr_Coulomb_and_Herschel_Bulkley(lexer*,fdm*,ghostcell*);
-    double heaviside(int);
+    double heaviside(double);
     double yield_stress(lexer*,fdm*);
     void yieldStressGradient(lexer*,fdm*,int,int,int);
     void pressurePhi(lexer*,fdm*,int,int,int,bool=false);
@@ -64,7 +64,7 @@ private:
     double pressureval1,pressureval2;
     double tau01,tau02;
     
-    const double epsi;
+    double epsi;
     const double gravity;
     const double density_interstitial_fluid;
     

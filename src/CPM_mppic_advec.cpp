@@ -66,8 +66,6 @@ void CPM::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulen
     Dpx = drag_model(p,P.D[n],P.RO[n],Urel,Tsval);
     Dpy = drag_model(p,P.D[n],P.RO[n],Vrel,Tsval);
     Dpz = drag_model(p,P.D[n],P.RO[n],Wrel,Tsval);
-    
-    Dpx=Dpy=Dpz=0.0;
 
     // particle force
     F = Dpx*Urel - dPx_val/P.RO[n] + Bx;
@@ -85,9 +83,9 @@ void CPM::advec_mppic_step1(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulen
     //F=G=H=0.0;
 
     // inter-partile stress
-    /*F -= dTx_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
+    F -= dTx_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
     G -= dTy_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
-    H -= dTz_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));*/
+    H -= dTz_val/(P.RO[n]*(Tsval>1.0e-6?Tsval:1.0e10));
     
 
     // solid forcing

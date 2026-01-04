@@ -30,9 +30,11 @@ void CPM::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     ALOOP
     {
-        dTx(i,j,k) = ((Tau(i+1,j,k) - Tau(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]));
-        dTy(i,j,k) = ((Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]));
-        dTz(i,j,k) = ((Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]));
+        HS = heaviside(a->topo(i,j,k));
+        
+        dTx(i,j,k) = HS*((Tau(i+1,j,k) - Tau(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]));
+        dTy(i,j,k) = HS*((Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]));
+        dTz(i,j,k) = HS*((Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]));
     }
     
     pgc->start4a(p,dTx,1);
@@ -56,13 +58,13 @@ void CPM::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     ALOOP
     {
-        dPx(i,j,k) = 0.0*(a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]) 
-                   + 0.0*(press(i+1,j,k) - press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]); 
+        dPx(i,j,k) = (a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]) 
+                   + (press(i+1,j,k) - press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]); 
                    
-        dPy(i,j,k) = 0.0*(a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP])
-                   + 0.0*(press(i,j+1,k) - press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
+        dPy(i,j,k) = (a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP])
+                   + (press(i,j+1,k) - press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
                    
-        dPz(i,j,k) = 0.0*(a->press(i,j,k+1) - a->press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP])
+        dPz(i,j,k) = (a->press(i,j,k+1) - a->press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP])
                    + (press(i,j,k+1) - press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
     }
 

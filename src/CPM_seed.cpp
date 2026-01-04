@@ -31,6 +31,8 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     double spacing;
     double particles_per_dim;
     
+    epsi = p->psi;
+    
     // estimate number particles
     int count=0;
     ALOOP

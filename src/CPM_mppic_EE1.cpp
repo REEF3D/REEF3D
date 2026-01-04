@@ -36,16 +36,13 @@ void CPM::mppic_EE1(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
     pressure_gradient(p,a,pgc,s);
     
     ALOOP
-    test(i,j,k) = dPz(i,j,k);
+    test(i,j,k) = dTz(i,j,k);
     
     // stress and cellSum update
     volfrac_update(p,pgc,s,P.X,P.Y,P.Z);
     stress_snider(p,pgc,s);
     stress_gradient(p,a,pgc,s);
     
-    ALOOP
-    a->test(i,j,k) = dTz(i,j,k);
-
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {

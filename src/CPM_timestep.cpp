@@ -70,7 +70,8 @@ void CPM::timestep(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     {
         cout<<p->mpirank<<" maxvz: "<<setprecision(4)<<maxvz<<" Sediment Timestep: "<<setprecision(4)<<p->dtsed<<endl;
-        cout<<"Sediment Iter: "<<p->sediter<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;
+        cout<<"Sediment Iter: "<<p->sediter<<"  Sediment Time: "<<setprecision(4)<<p->sedtime<<endl;
+        cout<<defaultfloat;
         cout<<"Up_max: "<<maxVelU<<endl;
         cout<<"Vp_max: "<<maxVelV<<endl;
         cout<<"Wp_max: "<<maxVelW<<endl;
