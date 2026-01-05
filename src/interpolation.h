@@ -85,7 +85,7 @@ public:
     double lint3c(field&,int&,int&,int&,double,double,double);
     double lint4(field&,int&,int&,int&,double,double,double);
     double lint4c(field&,int&,int&,int&,double,double,double);
-    double lint4V(double*,int&,int&,int&,double,double,double);
+    double lint4V(double*,int&,int&,int&,double,double,double,double,double,double);
     double lint7V(double*,int&,int&,int&,double,double,double);
     double lint4c(double*,int&,int&,int&,double,double,double);
     double lint4phi(fdm*,field&,int&,int&,int&,double,double,double);
@@ -97,7 +97,7 @@ public:
     double lint2_2D(field&,int&,int&,int&,double,double,double);
     double lint3_2D(field&,int&,int&,int&,double,double,double);
     double lint4_2D(field&,int&,int&,int&,double,double,double);
-    double lint4V_2D(double*,int&,int&,int&,double,double,double);
+    double lint4V_2D(double*,int&,int&,int&,double,double,double,double);
     double lint7V_2D(double*,int&,int&,int&,double,double,double);
     double lint_a_2D(field&,int&,int&,int&,double,double,double);
     double lint4phi_2D(fdm*,field&,int&,int&,int&,double,double,double);
@@ -135,6 +135,9 @@ private:
     int c1,c2,c3,c4;
     double wa,wb,wc,wx,wy,wz;
     double value;
+    
+    double z1,z2,z3,z4;
+    double wc1,wc2,wc3,wc4;
 
     
     int ii,jj,kk;

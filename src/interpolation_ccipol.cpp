@@ -190,6 +190,8 @@ double interpolation::ccipol4_c(field& f, double xp, double yp, double zp)
 
 double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
 {
+    double wc1,wc2;
+    
     ii=i;
     jj=j;
     kk=k;
@@ -217,7 +219,16 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
     j=0;
     
     //wc
-    wc = ((p->ZP[KP1]*WL(i,j) + bed(i,j))-zp)/(p->DZP[KP]*WL(i,j) + bed(i,j));
+    wc1 = ((p->ZSP[IJKp1]) - zp)/(p->ZSP[IJKp1]-p->ZSP[IJK]);
+    
+    wc2 = ((p->ZSP[Ip1JKp1]) - zp)/(p->ZSP[Ip1JKp1]-p->ZSP[Ip1JK]);
+    
+    if(p->j_dir==1)
+    {
+    wc3 = ((p->ZSP[IJp1Kp1]) - zp)/(p->ZSP[IJp1Kp1]-p->ZSP[IJK]);
+    
+    wc4 = ((p->ZSP[Ip1Jp1Kp1]) - zp)/(p->ZSP[Ip1Jp1Kp1]-p->ZSP[Ip1JK]);
+    }
         
     
     i = MAX(i,0);
@@ -227,17 +238,17 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
     j = MIN(j,p->knoy-1);
     
     k = MAX(k,0);
-    k = MIN(k,p->knoz);
+    k = MIN(k,p->knoz-1);
     
     
     wc = MAX(wc,0);
     wc = MIN(wc,1.0);
 
     if(p->j_dir==0)
-    value = lint4V_2D(f,i,j,k,wa,wb,wc);
+    value = lint4V_2D(f,i,j,k,wa,wb,wc1,wc2);
     
     if(p->j_dir==1)
-    value = lint4V(f,i,j,k,wa,wb,wc);
+    value = lint4V(f,i,j,k,wa,wb,wc1,wc2,wc3,wc4);
     
     if(value != value)
     cout<<i<<" 4V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
@@ -279,7 +290,7 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     j=0;
     
     //wc
-    wc = ((p->ZN[KP1]*WL(i,j) + bed(i,j))-zp)/(p->DZN[KP]*WL(i,j) + bed(i,j));
+    wc = ((p->ZSN[FIJKp1])-zp)/(p->DZN[KP]*WL(i,j));
     
     i = MAX(i,0);
     i = MIN(i,p->knox-1);
@@ -343,7 +354,7 @@ double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, doub
     j=0;
     
     //wc
-    wc = ((p->ZN[KP1]*WL(i,j) + bed(i,j))-zp)/(p->DZN[KP]*WL(i,j) + bed(i,j));
+    wc = ((p->ZSN[FIJKp1])-zp)/(p->DZN[KP]*WL(i,j) + bed(i,j));
     
     i = MAX(i,0);
     i = MIN(i,p->knox-1);
@@ -725,7 +736,7 @@ double interpolation::ccipol4c(double *f, double xp, double yp, double zp)
     wc = (p->ZP[KP1]-zp)/p->DZP[KP];
 
     if(p->j_dir==0)
-    value = lint4V(f,i,j,k,wa,wb,wc);
+    value = lint4c(f,i,j,k,wa,wb,wc);
     
     if(p->j_dir==1)
     value = lint4c(f,i,j,k,wa,wb,wc);

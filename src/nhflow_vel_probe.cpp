@@ -122,11 +122,16 @@ void nhflow_vel_probe::ini_location(lexer *p, fdm_nhf *d)
     if(p->j_dir==1)
     jloc[n]=p->posc_j(p->P65_y[n]);
     
-	kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P65_z[n]);
-
-    check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
+	//kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P65_z[n]);
+    //check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
+    
+    if(iloc[n]>=0 && iloc[n]<p->knox)
+    if((jloc[n]>=0 && jloc[n]<p->knoy) || p->j_dir==0)
+    check=1;
+    
     //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
     if(check==1)
     flag[n]=1;
     }
+    
 }
