@@ -41,6 +41,14 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="CFD">
+        <VirtualDirectory Name="Solver"/>
+        <VirtualDirectory Name="Turbulence"/>
+        <VirtualDirectory Name="Pressure"/>
+        <VirtualDirectory Name="Momentum"/>
+        <VirtualDirectory Name="Free Surface"/>
+        <VirtualDirectory Name="FDM"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Update">
           <File Name="ptf_fsf_update.h"/>
@@ -473,7 +481,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
     </VirtualDirectory>
-    <VirtualDirectory Name="Extensions">
+    <VirtualDirectory Name="Multiphysics">
       <VirtualDirectory Name="CPM">
         <File Name="CPM.h"/>
         <File Name="part.h"/>
@@ -1188,6 +1196,13 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="CFD">
+        <VirtualDirectory Name="Turbulence"/>
+        <VirtualDirectory Name="Solver"/>
+        <VirtualDirectory Name="Pressure"/>
+        <VirtualDirectory Name="Momentum"/>
+        <VirtualDirectory Name="Free Surface"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Breaking"/>
         <VirtualDirectory Name="Update">
@@ -1741,7 +1756,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
     </VirtualDirectory>
-    <VirtualDirectory Name="Extensions">
+    <VirtualDirectory Name="Multiphysics">
       <VirtualDirectory Name="CPM">
         <VirtualDirectory Name="Drag">
           <File Name="CPM_drag.cpp"/>
