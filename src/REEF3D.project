@@ -40,7 +40,7 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
-    <VirtualDirectory Name="Grid">
+    <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
@@ -2630,7 +2630,7 @@
         <File Name="rheology_velsource.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
-    <VirtualDirectory Name="Grid">
+    <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Parallel Comm">
         <File Name="gcx_gcparaxintV.cpp"/>
         <File Name="gcx_flagx7.cpp"/>
