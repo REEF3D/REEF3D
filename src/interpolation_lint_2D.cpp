@@ -200,10 +200,10 @@ double interpolation::lint4V_2D(double *f, int& i,int& j, int& k, double wa, dou
     j=jj;
     
 
-    z1 = wc1*v1 +(1.0-wc1)*v2;
-    z2 = wc1*v3 +(1.0-wc1)*v4;
+    z1 = wc1*v1 + (1.0-wc1)*v2;
+    z2 = wc2*v3 + (1.0-wc2)*v4;
     
-    value = wa*z1 +(1.0-wa)*z2;
+    value = wa*z1 + (1.0-wa)*z2;
 
     return value;
 }
