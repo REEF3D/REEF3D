@@ -34,7 +34,7 @@ Author: Hans Bihs
 
 void net_interface::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
-    if (p->X320 == 0)
+    if (p->X320==0)
     pnet.push_back(new net_void());
 
     else
