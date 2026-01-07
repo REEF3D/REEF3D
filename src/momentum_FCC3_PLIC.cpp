@@ -581,7 +581,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 //Step 3
 //********************************************************
     
-   // face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2); 
+    face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2); 
     //-------------------------------------------
     // FSF
     pplic->RKcalcL(a,p,pgc,urk2,vrk2,wrk2);
