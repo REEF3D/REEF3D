@@ -147,18 +147,17 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->phi_relax(p,pgc,frk1);
 	
 	pgc->start4(p,frk1,gcval_phi);
+    p->F44=2;
+    preini->start(a,p,frk1, pgc, pflow);
+    ppicard->correct_ls(p,a,pgc,frk1);
     
     LOOP
     a->phi(i,j,k) = frk1(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
     
-    p->F44=2;
-    preini->start(a,p,a->phi, pgc, pflow);
-    ppicard->correct_ls(p,a,pgc,frk1);
+    pupdate->start(p,a,pgc,urk1,vrk1,wrk1);
     
-   // pupdate->start(p,a,pgc); after velocity calculation, before PJM
-
 	// U
 	starttime=pgc->timer();
 
@@ -214,8 +213,6 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,vrk1,gcval_v);
     pgc->start3(p,wrk1,gcval_w);
     
-    pupdate->start(p,a,pgc,urk1,vrk1,wrk1); // here after vicosity contributed to velocities, otherwise nu entering velocities is from a different timme step
-    
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
@@ -231,7 +228,9 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,vrk1,gcval_v);
 	pgc->start3(p,wrk1,gcval_w);
     
-	
+    pupdate->start(p,a,pgc,urk1,vrk1,wrk1);
+
+    
 //Step 2
 //--------------------------------------------------------
 	
@@ -250,17 +249,17 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	
 	pgc->start4(p,frk2,gcval_phi);
     
+    p->F44=2;
+    preini->start(a,p,frk2, pgc, pflow);
+    ppicard->correct_ls(p,a,pgc,frk2);
+
     LOOP
     a->phi(i,j,k) =  frk2(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
     
-    p->F44=2;
-    preini->start(a,p,a->phi, pgc, pflow);
-    ppicard->correct_ls(p,a,pgc,frk2);
-    
-  //  pupdate->start(p,a,pgc);
-    
+    pupdate->start(p,a,pgc,urk2,vrk2,wrk2);
+        
 	// U
 	starttime=pgc->timer();
 
@@ -315,9 +314,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     pgc->start1(p,urk2,gcval_u);
 	pgc->start2(p,vrk2,gcval_v);
     pgc->start3(p,wrk2,gcval_w);
-    
-    pupdate->start(p,a,pgc,urk2,vrk1,wrk2);
-    
+        
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
@@ -332,8 +329,10 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start1(p,urk2,gcval_u);
 	pgc->start2(p,vrk2,gcval_v);
 	pgc->start3(p,wrk2,gcval_w);
+    
+    pupdate->start(p,a,pgc,urk2,vrk2,wrk2);
 
-
+    
 //Step 3
 //--------------------------------------------------------
     
@@ -349,7 +348,6 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
                 + (2.0/3.0)*p->dt*a->L(i,j,k);
 
     pflow->phi_relax(p,pgc,ls);
-	pgc->start4(p,a->phi,gcval_phi);
     
     LOOP
     a->phi(i,j,k) =  ls(i,j,k);
@@ -359,9 +357,9 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     p->F44=3;
     preini->start(a,p,a->phi, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,a->phi);
+    pgc->start4(p,a->phi,gcval_phi);
 
-  //  pupdate->start(p,a,pgc);
-    
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     
 	// U
 	starttime=pgc->timer();
@@ -417,9 +415,7 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
-    
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
-    
+        
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
@@ -435,7 +431,9 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
     
-    //pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
+
+
 }
 
 void momentum_FC3::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

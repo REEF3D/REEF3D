@@ -253,6 +253,9 @@ void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,fi
 {
     LOOP
         a->phasemarker(i,j,k)=-1.0;
+      
+    //LOOP
+        //a->phasemarker(i,j,k)=0.0;
         
     LOOP
     {

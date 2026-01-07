@@ -2451,12 +2451,12 @@
         <File Name="reini_walld.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF Algebraic">
-        <File Name="VOF_RK3.cpp"/>
         <File Name="VOF_AB.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VOF PLIC">
         <File Name="VOF_void.cpp"/>
         <VirtualDirectory Name="FCRK3_functions">
+          <File Name="VOF_RK3.cpp"/>
           <File Name="VOF_PLIC_COSMIC3D_fieldloops.cpp"/>
           <File Name="VOF_PLIC_updatePlaneData.cpp"/>
           <File Name="VOF_PLIC_surfaceTension.cpp"/>
