@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
  *
 This file is part of REEF3D.
 
@@ -649,24 +649,25 @@ void lexer::ini_default()
 	P195=0;        	// int time between file printout in seconds
     P230=0;         // int print flowfile
     P240=0;         // int print potentialfile
+    P250=0;             // print CPM variables to vtu
 	P351=0;             // int print out wsf lsm1
 	P352=0;             // int print out wsf lsm2
     
     // Particles
     Q10=0;              // int time scheme
-    Q11=1;              // int move function
-    Q12=0;              // int susp load
-    Q13=0;              // int topo deformation
-    Q14=10;             // d continuum particle stress model parameter following Snider (2001) [Pressure]
-    Q15=3.5;            // d continuum particle stress model parameter following Snider (2001)
-    Q16=10e-7;          // d continuum particle stress model parameter following Snider (2001)
-    Q17=0.6;            // d critical solid volume fraction
+    Q11=1;              // int tim
+    Q12=0;              // int 
+    Q13=0;              // int 
+    Q14=10;             // double continuum particle stress model parameter following Snider (2001) [Pressure]
+    Q15=3.5;            // double continuum particle stress model parameter following Snider (2001)
+    Q16=10e-7;          // double continuum particle stress model parameter following Snider (2001)
+    Q17=0.6;            // double critical solid volume fraction
     Q20=-1;             // int iterations between cleanup cycles
     Q22=1.0;            // double absolute spacing
     Q23=1.0;            // double relative spacing in terms of diameter
     Q24=0;              // int particles per cell
     Q25=1.25;           // double safety factor particle allocate
-    Q29=0;              // int seed number for random particle placement
+    Q29=1;              // int seed type
     Q30=0.58;           // double friction factor
     Q41=0;              // double default parcel factor
     Q43=0;              // int number of water iteration, before particle transport starts

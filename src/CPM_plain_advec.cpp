@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,24 +17,29 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Alexander Hanke, Hans Bihs
+Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"part.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
 
-void partres::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
+void CPM::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
                         double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
                         double &F, double &G, double &H, double alpha)
 {
     // velocity
-    uf = p->ccipol1(a->u,PX[n],PY[n],PZ[n]);
-    vf = p->ccipol2(a->v,PX[n],PY[n],PZ[n]);
-    wf = p->ccipol3(a->w,PX[n],PY[n],PZ[n]);
+    uf = p->ccipol1c(a->u,PX[n],PY[n],PZ[n]);
+    vf = p->ccipol2c(a->v,PX[n],PY[n],PZ[n]);
+    wf = p->ccipol3c(a->w,PX[n],PY[n],PZ[n]);
+    
+    
+    uf = p->ccipol1c(a->u,PX[n],PY[n],PZ[n]+0.01);
+    vf = p->ccipol2c(a->v,PX[n],PY[n],PZ[n]+0.01);
+    wf = p->ccipol3c(a->w,PX[n],PY[n],PZ[n]+0.01);
     
     
 

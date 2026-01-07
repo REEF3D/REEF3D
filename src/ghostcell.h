@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -50,7 +50,9 @@ public:
 	virtual ~ghostcell() = default;
 
     void final(bool error=false);
-	void gcini(lexer*);
+	void gc_ini(lexer*);
+    void gcx_ini(lexer*);
+    void gcx_cart_topology(lexer*);
     void mpi_check(lexer*);
 
 	void start1(lexer*,field&, int);
@@ -139,6 +141,7 @@ public:
     void gcparax7co(lexer*, double*, int);
     void gcparax4a(lexer*, field&, int);
     void gcparax4a_sum(lexer*, field&, int);
+    void gcparacox4a_sum(lexer*, field&, int);
     void gcparaxV(lexer*, double*, int);
     void gcparaxintV(lexer*, int*, int);
     void gcparaxV1(lexer*, double*, int);
@@ -278,15 +281,6 @@ public:
 
 private:
 
-    void Sendrecv_double(int,int,int,int,int,int);
-    void Sendrecv_int(int,int,int,int,int,int);
-    void Sendrecv(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
-
-    MPI_Comm cart_comm = MPI_COMM_NULL;
-    int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
-                        MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
-    bool do_comms = true;
-
 	int margin, paramargin;
 	double y[15],x[15],pos[15];
 	int m,q,qq,qn,g;
@@ -307,6 +301,18 @@ private:
 	int gclabel_vel;
 
 // PARALLEL
+    void Sendrecv_double(int,int,int,int,int,int);
+    void Sendrecv_int(int,int,int,int,int,int);
+    void Sendrecv_1D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+    void Sendrecv_2D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+    void Sendrecv_3D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+
+    MPI_Comm cart_comm = MPI_COMM_NULL;
+    int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
+                        MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
+    bool do_comms = true;
+    
+    int ndims;
 
 	double *send1,*send2,*send3,*send4,*send5,*send6;
 	double *recv1,*recv2,*recv3,*recv4,*recv5,*recv6;
@@ -315,6 +321,11 @@ private:
 	double recvsum,recvmin,recvmax;
 	int recvisum,recvimin,recvimax;
 	int awa_lable,pressout_lable,pressin_lable;
+    
+    int nb0[6],stag[6],rtag[6];
+    
+    MPI_Request sreq[6],rreq[6];
+    MPI_Status status;
 
     double v1,v2,v3,v4;
     double wa,wb;

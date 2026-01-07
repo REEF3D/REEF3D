@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"printer_CFD.h"
@@ -95,10 +95,10 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
     p->Darray(printfsftime_wT,p->P185);
 
     for(int qn=0; qn<p->P35; ++qn)
-        printtime_wT[qn] = p->P35_ts[qn];
+    printtime_wT[qn] = p->P35_ts[qn];
 
     for(int qn=0; qn<p->P185; ++qn)
-        printfsftime_wT[qn] = p->P185_ts[qn];
+    printfsftime_wT[qn] = p->P185_ts[qn];
 
     pwsf = new print_wsf(p,a,pgc,0);
     pwsf_theory = new print_wsf_theory(p,a,pgc,0);
@@ -111,27 +111,27 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
     pqw = new gage_discharge_window_x(p,a,pgc);
 
     if(p->P21==0)
-        pmean = new print_averaging_v(p,a,pgc);
+    pmean = new print_averaging_v(p,a,pgc);
     else if(p->P21==1)
-        pmean = new print_averaging_f(p,a,pgc);
+    pmean = new print_averaging_f(p,a,pgc);
 
     if(p->P180==1)
-        pfsf = new fsf_vtp(p,a,pgc);
+    pfsf = new fsf_vtp(p,a,pgc);
 
     if(p->P190==1)
-        ptopo = new topo_vtp(p);
+    ptopo = new topo_vtp(p);
 
     if(p->P65>0)
-        pvel = new probe_vel(p,a);
+    pvel = new probe_vel(p,a);
 
     if(p->P66>0)
-        pveltheo = new probe_vel_theory(p,a);
+    pveltheo = new probe_vel_theory(p,a);
 
     if(p->P75==0)
-        pvort = new vorticity_void(p,a);
+    pvort = new vorticity_void(p,a);
 
     if(p->P75==1)
-        pvort = new vorticity_f(p,a);
+    pvort = new vorticity_f(p,a);
 
     if(p->P81>0)
     {
@@ -195,74 +195,73 @@ void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, hea
 
     // Print out based on time interval
     if(p->P35>0)
-        for(int qn=0; qn<p->P35; ++qn)
-            if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
-            {
-                print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+    for(int qn=0; qn<p->P35; ++qn)
+    if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+    {
+        print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
-                printtime_wT[qn]+=p->P35_dt[qn];
-            }
+        printtime_wT[qn]+=p->P35_dt[qn];
+    }
 
 
     if((p->P62>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P62>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-        pline->start(p,a,pgc,pturb);
+    pline->start(p,a,pgc,pturb);
 
 
     if(p->P50>0)
-        pwsf_theory->height_gauge(p,a,pgc,pflow,a->phi);
+    pwsf_theory->height_gauge(p,a,pgc,pflow,a->phi);
 
     if(p->P51>0 && p->F80!=4)
-        pwsf->height_gauge(p,a,pgc,a->phi);
+    pwsf->height_gauge(p,a,pgc,a->phi);
 
     if(p->P51>0 && p->F80==4)
-        pwsf->height_gauge(p,a,pgc,a->vof);
+    pwsf->height_gauge(p,a,pgc,a->vof);
 
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-        pwsfline_x->wsfline(p,a,pgc,pflow);
+    pwsfline_x->wsfline(p,a,pgc,pflow);
 
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-        pwsfline_y->wsfline(p,a,pgc,pflow);
+    pwsfline_y->wsfline(p,a,pgc,pflow);
 
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
-    {
-        p->probeprinttime+=p->P55;
-    }
+    p->probeprinttime+=p->P55;
+
 
     if(p->P61>0)
-        pprobe->start(p,a,pgc,pturb);
+    pprobe->start(p,a,pgc,pturb);
 
     if(p->P64>0)
-        ppressprobe->start(p,a,pgc,pturb);
+    ppressprobe->start(p,a,pgc,pturb);
 
     if(p->P65>0)
-        pvel->start(p,a,pgc);
+    pvel->start(p,a,pgc);
 
     if(p->P66>0)
-        pveltheo->start(p,a,pgc,pflow);
+    pveltheo->start(p,a,pgc,pflow);
 
     if(p->P167>0)
-        pq->start(p,a,pgc);
+    pq->start(p,a,pgc);
 
     if(p->P168>0)
-        pqw->start(p,a,pgc);
+    pqw->start(p,a,pgc);
 
     if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
-        for(n=0;n<p->P81;++n)
-            pforce[n]->ini(p,a,pgc);
+    for(n=0;n<p->P81;++n)
+    pforce[n]->ini(p,a,pgc);
 
     if(p->count>1 && p->P81>0)
-        for(n=0;n<p->P81;++n)
-            pforce[n]->start(p,a,pgc);
+    for(n=0;n<p->P81;++n)
+    pforce[n]->start(p,a,pgc);
 
     if(p->P101>0)
-        pslosh->start(p,a,pgc);
+    pslosh->start(p,a,pgc);
 
     // Multiphase
     pmp->print_file(p,a,pgc);
 
     // Print FSF
     if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
-        pfsf->start(p,a,pgc);
+    pfsf->start(p,a,pgc);
 
     if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
     {
@@ -271,24 +270,24 @@ void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, hea
     }
 
     if(p->P180==1 && p->P184>0)
-        for(int qn=0; qn<p->P184; ++qn)
-            if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
-            {
-                pfsf->start(p,a,pgc);
-            }
+    for(int qn=0; qn<p->P184; ++qn)
+    if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
+    {
+        pfsf->start(p,a,pgc);
+    }
 
     if(p->P180==1 && p->P185>0)
-        for(int qn=0; qn<p->P185; ++qn)
-            if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
-            {
-                pfsf->start(p,a,pgc);
+    for(int qn=0; qn<p->P185; ++qn)
+    if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+    {
+        pfsf->start(p,a,pgc);
 
-                printfsftime_wT[qn]+=p->P185_dt[qn];
-            }
+        printfsftime_wT[qn]+=p->P185_dt[qn];
+    }
 
     // Print TOPO
     if(((p->count%p->P191==0 && p->P182<0.0 && p->P190==1 )|| (p->count==0 &&  p->P192<0.0 && p->P190==1)) && p->P191>0)
-        ptopo->start(p,a,pgc,psed);
+    ptopo->start(p,a,pgc,psed);
 
     if((p->simtime>p->fsfprinttime && p->P192>0.0 && p->P190==1) || (p->count==0 &&  p->P192>0.0))
     {
@@ -297,23 +296,23 @@ void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, hea
     }
 
     if(p->P190==1 && p->P194>0)
-        for(int qn=0; qn<p->P194; ++qn)
-            if(p->count%p->P194_dit[qn]==0 && p->count>=p->P194_its[qn] && p->count<=(p->P194_ite[qn]))
-            {
-                ptopo->start(p,a,pgc,psed);
-            }
+    for(int qn=0; qn<p->P194; ++qn)
+    if(p->count%p->P194_dit[qn]==0 && p->count>=p->P194_its[qn] && p->count<=(p->P194_ite[qn]))
+    {
+        ptopo->start(p,a,pgc,psed);
+    }
 
     if(p->P190==1 && p->P195>0)
-        for(int qn=0; qn<p->P195; ++qn)
-            if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P195_ts[qn] && p->simtime<=(p->P195_te[qn]+0.5*p->P195_dt[qn]))
-            {
-                ptopo->start(p,a,pgc,psed);
+    for(int qn=0; qn<p->P195; ++qn)
+    if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P195_ts[qn] && p->simtime<=(p->P195_te[qn]+0.5*p->P195_dt[qn]))
+    {
+        ptopo->start(p,a,pgc,psed);
 
-                printfsftime_wT[qn]+=p->P195_dt[qn];
-            }
+        printfsftime_wT[qn]+=p->P195_dt[qn];
+    }
 
     if(p->P230>0)
-        pflowfile->start(p,a,pgc,pturb);
+    pflowfile->start(p,a,pgc,pturb);
 
     // Print state out based on iteration
     if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && p->P41>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<<p->P46_ie)))
@@ -444,16 +443,24 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             }
             // sediment bedlaod
             if(p->P76==1)
-                psed->offset_ParaView_bedload(p,offset,n);
+            psed->offset_ParaView_bedload(p,offset,n);
+            
             // sediment parameters 1
             if(p->P77==1)
-                psed->offset_ParaView_parameter1(p,offset,n);
+            psed->offset_ParaView_parameter1(p,offset,n);
+            
             // sediment parameters 2
             if(p->P78==1)
-                psed->offset_ParaView_parameter2(p,offset,n);
+            psed->offset_ParaView_parameter2(p,offset,n);
+            
             // bed shear stress
             if(p->P79>=1)
-                psed->offset_ParaView_bedshear(p,offset,n);
+            psed->offset_ParaView_bedshear(p,offset,n);
+            
+            // CPM
+            if(p->P250==1)
+            psed->offset_ParaView_CPM(p,offset,n);
+            
             // test
             if(p->P23==1)
             {
@@ -496,7 +503,7 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             initial_print=false;
         }
         //---------------------------------------------
-        std::stringstream result;
+        stringstream result;
 
         outputFormat->beginning(p,result);
 
@@ -564,16 +571,19 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         }
 
         if(p->P76==1)
-            psed->name_ParaView_bedload(p,result,offset,n);
+        psed->name_ParaView_bedload(p,result,offset,n);
 
         if(p->P77==1)
-            psed->name_ParaView_parameter1(p,result,offset,n);
+        psed->name_ParaView_parameter1(p,result,offset,n);
 
         if(p->P78==1)
-            psed->name_ParaView_parameter2(p,result,offset,n);
+        psed->name_ParaView_parameter2(p,result,offset,n);
 
         if(p->P79>=1)
-            psed->name_ParaView_bedshear(p,result,offset,n);
+        psed->name_ParaView_bedshear(p,result,offset,n);
+        
+        if(p->P250==1)
+        psed->name_ParaView_CPM(p,result,offset,n);
 
         if(p->P23==1)
         {
@@ -615,25 +625,25 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         file_offset = result.str().length();
         const size_t total_size = file_offset + offset[n] + 27;
         buffer.resize(total_size);
-        std::memcpy(&buffer[0], result.str().data(), file_offset);
+        memcpy(&buffer[0], result.str().data(), file_offset);
         //----------------------------------------------------------------------------
 
         //  Velocities
         iin=3*sizeof(int)*p->pointnum;
-        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        memcpy(&buffer[file_offset],&iin,sizeof(int));
         file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->ipol1(a->u));
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
 
             ffn=float(p->ipol2(a->v));
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
 
             ffn=float(p->ipol3(a->w));
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
         }
 
@@ -642,12 +652,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 
         //  Pressure
         iin=sizeof(float)*p->pointnum;
-        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        memcpy(&buffer[file_offset],&iin,sizeof(int));
         file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->ipol4press(a->press)-p->pressgage);
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
         }
 
@@ -656,23 +666,23 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 
         //  eddyv
         iin=sizeof(float)*p->pointnum;
-        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        memcpy(&buffer[file_offset],&iin,sizeof(int));
         file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->ipol4_a(a->eddyv));
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
         }
 
         //  phi
         iin=sizeof(float)*p->pointnum;
-        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        memcpy(&buffer[file_offset],&iin,sizeof(int));
         file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->ipol4phi(a,a->phi));
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
         }
 
@@ -695,12 +705,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P24==1 && p->F300==0)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->ro));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
@@ -709,12 +719,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P71==1)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4(a->visc));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
@@ -723,12 +733,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P72==1)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4(a->vof));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
@@ -737,12 +747,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->A10==4)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4press(a->Fi));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
@@ -751,12 +761,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P26==1)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4(a->conc));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
@@ -765,54 +775,58 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P27==1)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->topo));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
 
         //  sediment bedload
         if(p->P76==1)
-            psed->print_3D_bedload(p,pgc,buffer,file_offset);
+        psed->print_3D_bedload(p,pgc,buffer,file_offset);
 
         //  sediment parameter 1
         if(p->P77==1)
-            psed->print_3D_parameter1(p,pgc,buffer,file_offset);
+        psed->print_3D_parameter1(p,pgc,buffer,file_offset);
 
         //  sediment parameter 2
         if(p->P78==1)
-            psed->print_3D_parameter2(p,pgc,buffer,file_offset);
+        psed->print_3D_parameter2(p,pgc,buffer,file_offset);
 
         //  bed shear stress
         if(p->P79>=1)
-            psed->print_3D_bedshear(p,pgc,buffer,file_offset);
+        psed->print_3D_bedshear(p,pgc,buffer,file_offset);
+            
+        //  CPM
+        if(p->P250==1)
+        psed->print_3D_CPM(p,pgc,buffer,file_offset);
 
         //  test
         if(p->P23==1)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->test));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
 
         //  elevation
         iin=sizeof(float)*p->pointnum*3;
-        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+        memcpy(&buffer[file_offset],&iin,sizeof(int));
         file_offset+=sizeof(int);
         TPLOOP
         {
             ffn=float(p->pos_z()+0.5*p->DZN[KP]);
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
         }
 
@@ -820,12 +834,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P25==1)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->solid));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
@@ -834,12 +848,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P28==1)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->fb));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
@@ -848,12 +862,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P29==1)
         {
             iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             TPLOOP
             {
                 ffn=float(p->ipol4_a(a->walld));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }
@@ -862,12 +876,12 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P72==1)
         {
             iin=4*(p->cellnum);
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            memcpy(&buffer[file_offset],&iin,sizeof(int));
             file_offset+=sizeof(int);
             BASEREVLOOP
             {
                 ffn=float(a->vof(i,j,k));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
         }

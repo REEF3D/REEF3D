@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -1296,6 +1296,8 @@ void lexer::ctrlsend()
     ictrl[ii] = P230;
 	ii++;
     ictrl[ii] = P240;
+	ii++;
+    ictrl[ii] = P250;
 	ii++;
 	ictrl[ii] = P351;
 	ii++;

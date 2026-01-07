@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -45,7 +45,7 @@ poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc)
         pd = new density_f(p);
         
         if(p->X10==0 && p->Q10==1)
-        pd = new density_pst(p);
+        pd = new density_f(p);
         
         if(p->X10==1)  
         pd = new density_df(p);        

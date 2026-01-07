@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,29 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
 
-void partres::relax_ini(lexer *p)
+void CPM::relax_ini(lexer *p)
 {
     p->Darray(betaQ73,p->Q73);
     p->Darray(tan_betaQ73,p->Q73);
     p->Darray(dist_Q73,p->Q73);
 
     for(int qn=0;qn<p->Q73;++qn)
-        betaQ73[qn] = (p->Q73_b[qn]+90.0)*(PI/180.0);
+    betaQ73[qn] = (p->Q73_b[qn]+90.0)*(PI/180.0);
 
     for(int qn=0;qn<p->Q73;++qn)
-        tan_betaQ73[qn] = tan(betaQ73[qn]);
+    tan_betaQ73[qn] = tan(betaQ73[qn]);
 }
 
-void partres::relax(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void CPM::relax(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
 }
 
-double partres::rf(lexer *p, double x1, double y1)
+double CPM::rf(lexer *p, double x1, double y1)
 {
     double relax,distot,distcount;
     double val=1.0;
@@ -77,7 +77,7 @@ double partres::rf(lexer *p, double x1, double y1)
     return val;
 }
 
-double partres::r1(lexer *p, double x, double threshold)
+double CPM::r1(lexer *p, double x, double threshold)
 {
     x = (threshold-fabs(x))/(fabs(threshold)>1.0e-10?threshold:1.0e20);
     x = MAX(x,0.0);
@@ -87,7 +87,7 @@ double partres::r1(lexer *p, double x, double threshold)
     return r;
 }
 
-double partres::distcalc(lexer *p ,double x0, double y0 ,double x1, double y1, double tan_beta)
+double CPM::distcalc(lexer *p ,double x0, double y0 ,double x1, double y1, double tan_beta)
 {
     double dist = fabs(y1 - tan_beta*x1 + tan_beta*x0 - y0)/sqrt(pow(tan_beta,2.0)+1.0);
 

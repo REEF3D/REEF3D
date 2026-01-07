@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -34,7 +34,7 @@ sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *pptur
 
     // Create Folder
     if(p->mpirank==0 && p->Q180>0 && (p->Q181>0||p->Q182>0))
-        mkdir("./REEF3D_CFD_SedPart",0777);
+        mkdir("./REEF3D_CFD_CPM_Particle",0777);
 }
 
 sediment_part::~sediment_part()
@@ -75,4 +75,7 @@ void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, r
         waterlevel(p,a,pgc);
         pbedshear->taubed(p,a,pgc,s);
     }
+    
+    print_particles(p,s);
+    
 }

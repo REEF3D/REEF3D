@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,15 +17,29 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
 
-partres::partres(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p), cellSum(p),
-                                               dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p)
+double CPM::heaviside(double phival)
 {
-    relax_ini(p);
 
-    printcount=0;
+double H;
+    
+    if(phival>epsi)
+    H=1.0;
+    
+    else if(phival<-epsi)
+    H=0.0;
+    
+    else
+    H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+
+    return H;
+    
 }

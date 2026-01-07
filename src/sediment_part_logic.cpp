@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -22,7 +22,7 @@ Author: Hans Bihs, Alexander Hanke
 
 #include"sediment_part.h"
 #include"lexer.h"
-#include"partres.h"
+#include"CPM.h"
 #include"sediment_fdm.h"
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
@@ -43,7 +43,7 @@ Author: Hans Bihs, Alexander Hanke
 
 void sediment_part::sediment_logic(lexer *p, ghostcell *pgc)
 {
-    pst = new partres(p,pgc);
+    pst = new CPM(p,pgc);
 
     s = new sediment_fdm(p);
 

@@ -1,7 +1,7 @@
 
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2018-2021 Tobias Martin
+Copyright 2018-2026 Tobias Martin
 
 This file is part of REEF3D.
 

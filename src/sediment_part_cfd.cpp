@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,11 +17,11 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Alexander Hanke, Hans Bihs
+Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"sediment_part.h"
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"bedshear.h"
@@ -43,9 +43,9 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     pgc->gcsl_start4(p,s->tau_crit,1);
 
     pst->timestep(p,pgc);
-    pst->move_RK2(p,a,pgc,s,pturb);
+    pst->move(p,a,pgc,s,pturb);
     pst->update(p,a,pgc,s,por,d50);
-    pst->print_particles(p,s);
+    
 
     /// topo update
     update_cfd(p,a,pgc,pflow,preto);
@@ -53,4 +53,10 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     p->sedsimtime=pgc->timer()-starttime;
 
     ++p->sediter;
+}
+
+
+void sediment_part::print_particles(lexer* p, sediment_fdm *s)
+{
+    pst->print_particles(p,s);
 }

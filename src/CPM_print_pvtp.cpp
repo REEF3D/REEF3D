@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void partres::pvtp(lexer* p, int num)
+void CPM::pvtp(lexer* p, int num)
 {
     char name[100];
-    sprintf(name,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i.pvtp",num);
+    sprintf(name,"./REEF3D_CFD_CPM_Particle/REEF3D-Particle-%08i.pvtp",num);
 
     std::ofstream result;
     result.open(name);
@@ -50,7 +50,7 @@ void partres::pvtp(lexer* p, int num)
     char pname[100];
     for(int n=0; n<p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-SedPart-%08i-%06i.vtp",printcount,n+1);
+        sprintf(pname,"REEF3D-Particle-%08i-%06i.vtp",printcount,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -182,7 +182,7 @@ double interpolation::lint_a_2D(field& f, int& i,int& j, int& k, double wa, doub
 
 }
 
-double interpolation::lint4V_2D(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+double interpolation::lint4V_2D(double *f, int& i,int& j, int& k, double wa, double wb, double wc1, double wc2)
 {
     v1=v2=v3=v4=0.0;
     
@@ -199,12 +199,11 @@ double interpolation::lint4V_2D(double *f, int& i,int& j, int& k, double wa, dou
 
     j=jj;
     
-    //cout<<" wa: "<<wa<<" wc: "<<wc<<endl;
 
-    x1 = wa*v1 + (1.0-wa)*v3;
-    x2 = wa*v2 + (1.0-wa)*v4;
+    z1 = wc1*v1 +(1.0-wc1)*v2;
+    z2 = wc1*v3 +(1.0-wc1)*v4;
     
-    value = wc*x1 +(1.0-wc)*x2;
+    value = wa*z1 +(1.0-wa)*z2;
 
     return value;
 }

@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,25 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
-void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
+void CPM::mppic_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
     count_particles(p,a,pgc,s);
 
     pressure_gradient(p,a,pgc,s);
-
+    
+    // ------------------------
     // RK step 1
-    stress_tensor(p,pgc,s);
+    
+    // stress and cellSum update
+    volfrac_update(p,pgc,s,P.X,P.Y,P.Z);
+    stress_snider(p,pgc,s);
     stress_gradient(p,a,pgc,s);
-
-    double F,G,H;
-
+    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
@@ -46,17 +48,31 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         advec_mppic_step1(p, a, P, s, pturb,
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
                     F, G, H, 1.0);
+                    
+        //F=G=H=0.0;
 
         // Velocity update 1
         P.URK1[n] = (P.U[n] + p->dtsed*F)/(1.0 + p->dtsed*Dpx);
-        P.VRK1[n] = (P.V[n] + p->dtsed*G)/(1.0 + p->dtsed*Dpx);
-        P.WRK1[n] = (P.W[n] + p->dtsed*H)/(1.0 + p->dtsed*Dpx);
-
+        P.VRK1[n] = (P.V[n] + p->dtsed*G)/(1.0 + p->dtsed*Dpy);
+        P.WRK1[n] = (P.W[n] + p->dtsed*H)/(1.0 + p->dtsed*Dpz);
         
+        // Position update 
+        P.XRK1[n] = P.X[n] + p->dtsed*P.URK1[n];
+        P.YRK1[n] = P.Y[n] + p->dtsed*P.VRK1[n];
+        P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
+    }
+    
+    
+    /*
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    {
         // advec 2
-        /*advec_mppic_step2(p, a, P, s, pturb,
-                    P.X, P.Y, P.Z, P.URK1, P.VRK1, P.WRK1,
-                    F, G, H, 1.0);*/
+        advec_mppic_step2(p, a, P, s, pturb,
+                    P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
+                    F, G, H, 1.0);
+                    
+        //F=G=H=0.0;
 
         // Velocity update 2
         P.URK1[n] += p->dtsed*F;
@@ -67,13 +83,9 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.XRK1[n] = P.X[n] + p->dtsed*P.URK1[n];
         P.YRK1[n] = P.Y[n] + p->dtsed*P.VRK1[n];
         P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
-    }
+    }*/
 
-    // cellSum update
-    cellSum_full_update(p,pgc,s,1);
-
-    ALOOP
-        a->test(i,j,k) = Ts(i,j,k);
+    
 
     boundcheck(p,1);
     bedchange_update(p,pgc,1);
@@ -82,9 +94,16 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     // parallel transfer
     P.xchange(p,pgc,bedch,1);
 
+    // ------------------------
     // RK step 2
-    stress_tensor(p, pgc, s);
+    
+    // stress and cellSum update
+    volfrac_update(p,pgc,s,P.XRK1,P.YRK1,P.ZRK1);
+    stress_snider(p,pgc,s);
     stress_gradient(p,a,pgc,s);
+    
+    ALOOP
+    a->test(i,j,k) = Tau(i,j,k);
 
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
@@ -93,17 +112,29 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         advec_mppic_step1(p, a, P, s, pturb,
                     P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
                     F, G, H, 0.5);
+                    
+        //F=G=H=0.0;
 
         // Velocity update 1
         P.U[n] = (0.5*P.U[n] + 0.5*P.URK1[n] + 0.5*p->dtsed*F)/(1.0 + 0.5*p->dtsed*Dpx);
         P.V[n] = (0.5*P.V[n] + 0.5*P.VRK1[n] + 0.5*p->dtsed*G)/(1.0 + 0.5*p->dtsed*Dpy);
         P.W[n] = (0.5*P.W[n] + 0.5*P.WRK1[n] + 0.5*p->dtsed*H)/(1.0 + 0.5*p->dtsed*Dpz);
         
-        
+        // Position update
+        P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
+        P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
+        P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
+    }
+    /*
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    {
         // advec 2
-        /*advec_mppic_step2(p, a, P, s, pturb,
-                    P.XRK1, P.YRK1, P.ZRK1, P.U, P.V, P.W,
-                    F, G, H, 0.5);*/
+        advec_mppic_step2(p, a, P, s, pturb,
+                    P.X, P.Y, P.Z, P.U, P.V, P.W,
+                    F, G, H, 0.5);
+                    
+        //F=G=H=0.0;
 
         // Velocity update 2
         P.U[n] += 0.5*p->dtsed*F;
@@ -114,10 +145,7 @@ void partres::RK2_mppic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
         P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
         P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
-    }
-
-    // cellSum update
-    cellSum_full_update(p,pgc,s,2);
+    }*/
 
     boundcheck(p,2);
     bedchange_update(p,pgc,2);

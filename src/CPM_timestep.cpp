@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
-void partres::timestep(lexer *p, ghostcell *pgc)
+void CPM::timestep(lexer *p, ghostcell *pgc)
 {
     double maxVelU=0.0, maxVelV=0.0, maxVelW=0.0;
     double maxvz=0.0;
@@ -48,10 +48,10 @@ void partres::timestep(lexer *p, ghostcell *pgc)
     maxVelV = pgc->globalmax(maxVelV);
     maxVelW = pgc->globalmax(maxVelW);
 
-    if(timestep_ini)
+    if(timestep_ini<5)
     {
         maxvz = 1000.0;
-        timestep_ini = false;
+        ++timestep_ini;
     }
 
     if(p->S15==0)
@@ -70,7 +70,8 @@ void partres::timestep(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     {
         cout<<p->mpirank<<" maxvz: "<<setprecision(4)<<maxvz<<" Sediment Timestep: "<<setprecision(4)<<p->dtsed<<endl;
-        cout<<"Sediment Iter: "<<p->sediter<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;
+        cout<<"Sediment Iter: "<<p->sediter<<"  Sediment Time: "<<setprecision(4)<<p->sedtime<<endl;
+        cout<<defaultfloat;
         cout<<"Up_max: "<<maxVelU<<endl;
         cout<<"Vp_max: "<<maxVelV<<endl;
         cout<<"Wp_max: "<<maxVelW<<endl;

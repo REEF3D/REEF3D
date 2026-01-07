@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -123,6 +123,7 @@ public:
     
     // print
     void print_probes(lexer*, ghostcell*,sediment_fdm*, ioflow*) override;
+    void print_particles(lexer*,sediment_fdm*) override {};
     
     void print_2D_bedload(lexer*, ghostcell*,ofstream&) override;
     void print_3D_bedload(lexer*, ghostcell*, std::vector<char>&, size_t&) override;
@@ -151,6 +152,11 @@ public:
     void name_ParaView_parameter2(lexer*, ostream&, int*, int &) override;
     void offset_ParaView_2D_parameter2(lexer*, int*, int &) override;
     void offset_ParaView_parameter2(lexer*, int*, int &) override;
+    
+    void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&) override {};
+    void name_ParaView_parallel_CPM(lexer*, ofstream&) override {};
+    void name_ParaView_CPM(lexer*, ostream&, int*, int &) override {};
+    void offset_ParaView_CPM(lexer*, int*, int &) override {};
     
 
 private:

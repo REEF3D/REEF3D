@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,39 +17,40 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Alexander Hanke
+Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void partres::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void CPM::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    ALOOP
+    int particle_count = 0;
+    int active_count = 0;
+    int empty_count = 0;
+
+    for(n=0;n<P.index;++n)
     {
-        dTx(i,j,k) = ((Tau(i+1,j,k) - Tau(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]));
-        dTy(i,j,k) = ((Tau(i,j+1,k) - Tau(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]));
-        dTz(i,j,k) = ((Tau(i,j,k+1) - Tau(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]));
+        ++particle_count;
+
+        if(P.Flag[n]>=ACTIVE)
+        ++active_count;
+            
+        else if(P.Flag[n]==EMPTY)
+        ++empty_count;
     }
 
-    pgc->start4a(p,dTx,1);
-    pgc->start4a(p,dTy,1);
-    pgc->start4a(p,dTz,1);
-}
+    particle_count = pgc->globalsum(particle_count);
+    active_count = pgc->globalsum(active_count);
+    empty_count = pgc->globalsum(empty_count);
 
-void partres::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
-{
-    ALOOP
-    {
-        dPx(i,j,k) = (a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
-        dPy(i,j,k) = (a->press(i,j+1,k) - a->press(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
-        dPz(i,j,k) = (a->press(i,j,k+1) - a->press(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
-    }
+    if(p->mpirank==0)
+    cout<<"Particle_count_global: "<<particle_count<<" Active_count: "<<active_count<<" Empty_count: "<<empty_count<<endl;
 
-    pgc->start4a(p,dPx,1);
-    pgc->start4a(p,dPy,1);
-    pgc->start4a(p,dPz,1);
+    for(n=0;n<P.index_empty;++n)
+    if(P.Empty[P.index_empty]<0)
+    cout<<p->mpirank<<"EMPTY_NEG: "<<P.Empty[P.index_empty]<<endl;
 }

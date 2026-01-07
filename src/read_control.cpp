@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -1741,6 +1741,9 @@ void lexer::read_control()
 						 clear(c,numint);
 						 break;
                 case 240: ++P240;
+						 clear(c,numint);
+						 break;
+                case 250: control>>P250;
 						 clear(c,numint);
 						 break;
 				case 351: ++P351;

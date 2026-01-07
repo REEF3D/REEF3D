@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
@@ -31,7 +31,7 @@ Author: Hans Bihs, Alexander Hanke
 #include<cstring>
 #include<vector>
 
-void partres::print_particles(lexer* p, sediment_fdm *s)
+void CPM::print_particles(lexer* p, sediment_fdm *s)
 {
     if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
     {
@@ -47,7 +47,7 @@ void partres::print_particles(lexer* p, sediment_fdm *s)
     }
 }
 
-void partres::print_vtp(lexer* p, sediment_fdm *s)
+void CPM::print_vtp(lexer* p, sediment_fdm *s)
 {
     int numpt=0;
 
@@ -286,7 +286,7 @@ void partres::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],footer.str().data(),footer.str().size());
 
     char filename[200];
-    sprintf(filename,"./REEF3D_CFD_SedPart/REEF3D-SedPart-%08i-%06i.vtp",printcount,p->mpirank+1);
+    sprintf(filename,"./REEF3D_CFD_CPM_Particle/REEF3D-Particle-%08i-%06i.vtp",printcount,p->mpirank+1);
 
     const size_t SMALL_FILE_THRESHOLD = 10 * 1024 * 1024;   // 10MB
 

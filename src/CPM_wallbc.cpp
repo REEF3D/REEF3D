@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,24 +17,33 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Alexander Hanke
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"vrans.h"
 #include"sediment_fdm.h"
 
-void partres::update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, field &por, field &d50)
+void CPM::wallbc(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    ALOOP
+    for(size_t n=0;n<P.index;n++)
+    if(P.Flag[n]==ACTIVE)
     {
-        por(i,j,k)=p->S24;
-        d50(i,j,k)=p->S20;
+        i=p->posc_i(P.X[n]);
+        j=p->posc_j(P.Y[n]);
+        k=p->posc_k(P.Z[n]);
+            
+        
+        if(k==0 || i==0 || i==p->knox-1 || j==0 || j==p->knoy-1)
+        {
+        P.Flag[n]=BEDBC;
+        
+        P.XRK1[n] = P.X[n];
+        P.YRK1[n] = P.Y[n];
+        P.ZRK1[n] = P.Z[n];
+        }
     }
-
-    pgc->start4a(p,por,1);
-    pgc->start4a(p,d50,1);
+    
 }

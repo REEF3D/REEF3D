@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -26,7 +26,7 @@ Author: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include<cmath>
 
-rheology_f::rheology_f(lexer *p) : strain(p), tau_x(p), tau_y(p), tau_z(p), epsi(p->F45*p->DXM), gravity(sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22)), density_interstitial_fluid(1000.0)
+rheology_f::rheology_f(lexer *p) : strain(p), tau_x(p), tau_y(p), tau_z(p), gravity(sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22)), density_interstitial_fluid(1000.0)
 {
     tanphi=0.0;
     if(p->W101>0)
@@ -40,9 +40,11 @@ double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
     case 1:
         val = Herschel_Bulkley(p,a,pgc,u,v,w);
         break;
+        
     case 2:
         val = Mohr_Coulomb_and_Herschel_Bulkley(p,a,pgc);
         break;
+        
     default:
         val=0.0;
         break;
@@ -51,16 +53,18 @@ double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
     return val;
 }
 
-double rheology_f::heaviside(int phival)
+double rheology_f::heaviside(double phival)
 {
     double H;
     
     if(phival>epsi)
-        H=1.0;
+    H=1.0;
+    
     else if(phival<-epsi)
-        H=0.0;
+    H=0.0;
+    
     else
-        H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+    H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
     return H;
 }

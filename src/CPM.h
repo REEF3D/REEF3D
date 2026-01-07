@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -18,10 +18,14 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Authora: Hans Bihs, Alexander Hanke
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+CPM : Continuum Particle Method
 --------------------------------------------------------------------*/
 
-#ifndef PARTRES_H_
-#define PARTRES_H_
+#ifndef CPM_H_
+#define CPM_H_
 
 #include"increment.h"
 #include"part.h"
@@ -40,24 +44,33 @@ class vrans;
 
 using namespace std;
 
-class partres : public increment, private vtp3D
+class CPM : public increment, private vtp3D
 {
 public:
-    partres(lexer*, ghostcell*);
-    virtual ~partres() = default;
+    CPM(lexer*, ghostcell*);
+    virtual ~CPM() = default;
 
-    void move_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    void move(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
     
-    void RK2_mppic(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
-    void RK2_plain(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    void mppic_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    void mppic_EE1(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    
+    void plain_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
 
     void update(lexer*, fdm*, ghostcell*, sediment_fdm*, field&, field&);
 
     void timestep(lexer*, ghostcell*);
 
-    void seed_topo(lexer*, fdm*, ghostcell*, sediment_fdm*);
-
+    void seed_particles(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    
+    // print
     void print_particles(lexer*,sediment_fdm*);
+    void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&);
+    void name_ParaView_parallel_CPM(lexer*, ofstream&);
+    void name_ParaView_CPM(lexer*, ostream&, int*, int &);
+    void offset_ParaView_CPM(lexer*, int*, int &);
+    
+    
 private:
     void advec_plain(lexer*, fdm*, part&, sediment_fdm*, turbulence*,
                         double*, double*, double*, double*, double*, double*,
@@ -75,14 +88,19 @@ private:
 
     void count_particles(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
-    void stress_tensor(lexer*, ghostcell*, sediment_fdm*);
+    void stress_snider(lexer*, ghostcell*, sediment_fdm*);
+    void stress_schaeffer(lexer*, ghostcell*, sediment_fdm*);
+    
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
-    void cellSum_update(lexer*, ghostcell*, sediment_fdm*, int);
-    void cellSum_full_update(lexer*, ghostcell*, sediment_fdm*, int);
+    void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*);
+    
+    void press_lithostatic(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
     void bedchange(lexer*, fdm*, ghostcell*, sediment_fdm*, int);
     void bedchange_update(lexer*, ghostcell*, int);
+    
+    void wallbc(lexer*, ghostcell*, sediment_fdm*);
 
     void boundcheck(lexer*, int);
 
@@ -90,7 +108,7 @@ private:
 
     slice4 bedch;
 
-    field4a Tau,Ts;
+    field4a Tau,Ts,press,test;
     field4a cellSum;
 
     // relax
@@ -99,6 +117,9 @@ private:
     double rf(lexer*, double, double);
     double r1(lexer*, double, double);
     double distcalc(lexer*, double , double, double , double, double);
+    
+    double heaviside(double);
+    double epsi,HS;
 
     void print_vtp(lexer*,sediment_fdm*);
     void pvtp(lexer*,int);
@@ -113,7 +134,7 @@ private:
 
     double *tan_betaQ73,*betaQ73,*dist_Q73;
 
-    bool timestep_ini = true;
+    int timestep_ini = 0;
     
     // parameters
     double Dpx,Dpy,Dpz;
@@ -124,6 +145,7 @@ private:
     double Tsval;
     double dTx_val,dTy_val,dTz_val;
     double DragCoeff,Fd;
+    double F,G,H;
 };
 
 #endif

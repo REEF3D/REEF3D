@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -40,15 +40,15 @@ void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>\n";
     if(p->P76==1)
-        psed->name_ParaView_parallel_bedload(p,result);
+    psed->name_ParaView_parallel_bedload(p,result);
     if(p->P77==1)
-        psed->name_ParaView_parallel_parameter1(p,result);
+    psed->name_ParaView_parallel_parameter1(p,result);
     if(p->P78==1)
-        psed->name_ParaView_parallel_parameter2(p,result);
+    psed->name_ParaView_parallel_parameter2(p,result);
     if(p->P79>=1)
-        psed->name_ParaView_parallel_bedshear(p,result);
+    psed->name_ParaView_parallel_bedshear(p,result);
     if(p->P23==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
     result<<"</PPointData>\n";
 
     char pname[200];

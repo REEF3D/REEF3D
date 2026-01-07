@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -29,7 +29,6 @@ double interpolation::lint1(field& b, int& i,int& j, int& k, double wa, double w
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-pip=4;
     if(p->flag1[IJK]>TOPO_FLAG)
     v1=b(i,j,k);
     if(p->flag1[IJp1K]>TOPO_FLAG)
@@ -46,7 +45,6 @@ pip=4;
     v7=b(i+1,j,k+1);
     if(p->flag1[Ip1Jp1Kp1]>TOPO_FLAG)
     v8=b(i+1,j+1,k+1);
-pip=0;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -66,7 +64,6 @@ double interpolation::lint1c(field& b, int& i,int& j, int& k, double wa, double 
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-pip=4;
     if(p->flag1[IJK]>OBJ_FLAG)
     v1=b(i,j,k);
     if(p->flag1[IJp1K]>OBJ_FLAG)
@@ -83,7 +80,6 @@ pip=4;
     v7=b(i+1,j,k+1);
     if(p->flag1[Ip1Jp1Kp1]>OBJ_FLAG)
     v8=b(i+1,j+1,k+1);
-pip=0;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -103,7 +99,6 @@ double interpolation::lint2(field& b, int& i,int& j, int& k, double wa, double w
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-pip=4;
     if(p->flag2[IJK]>TOPO_FLAG)
     v1=b(i,j,k);
     if(p->flag2[IJp1K]>TOPO_FLAG)
@@ -120,8 +115,6 @@ pip=4;
     v7=b(i+1,j,k+1);
     if(p->flag2[Ip1Jp1Kp1]>TOPO_FLAG)
     v8=b(i+1,j+1,k+1);
-pip=0;
-
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -141,7 +134,6 @@ double interpolation::lint2c(field& b, int& i,int& j, int& k, double wa, double 
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-pip=4;
     if(p->flag2[IJK]>OBJ_FLAG)
     v1=b(i,j,k);
     if(p->flag2[IJp1K]>OBJ_FLAG)
@@ -158,8 +150,6 @@ pip=4;
     v7=b(i+1,j,k+1);
     if(p->flag2[Ip1Jp1Kp1]>OBJ_FLAG)
     v8=b(i+1,j+1,k+1);
-pip=0;
-
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -179,7 +169,6 @@ double interpolation::lint3(field& b, int& i,int& j, int& k, double wa, double w
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-pip=4;
     if(p->flag3[IJK]>TOPO_FLAG)
     v1=b(i,j,k);
     if(p->flag3[IJp1K]>TOPO_FLAG)
@@ -196,7 +185,6 @@ pip=4;
     v7=b(i+1,j,k+1);
     if(p->flag3[Ip1Jp1Kp1]>TOPO_FLAG)
     v8=b(i+1,j+1,k+1);
-pip=0;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -216,7 +204,6 @@ double interpolation::lint3c(field& b, int& i,int& j, int& k, double wa, double 
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-pip=4;
     if(p->flag3[IJK]>OBJ_FLAG)
     v1=b(i,j,k);
     if(p->flag3[IJp1K]>OBJ_FLAG)
@@ -233,7 +220,6 @@ pip=4;
     v7=b(i+1,j,k+1);
     if(p->flag3[Ip1Jp1Kp1]>OBJ_FLAG)
     v8=b(i+1,j+1,k+1);
-pip=0;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -253,7 +239,6 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    pip=4;
     if(p->flag4[IJK]>TOPO_FLAG)
     v1=f(i,j,k);
     if(p->flag4[IJp1K]>TOPO_FLAG)
@@ -270,8 +255,6 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
     v7=f(i+1,j,k+1);
     if(p->flag4[Ip1Jp1Kp1]>TOPO_FLAG)
     v8=f(i+1,j+1,k+1);
-    pip=0;
-
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -285,7 +268,6 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
 
     value = wc*y1 +(1.0-wc)*y2;
 
-    pip=0;
  return value;
 
 }
@@ -293,7 +275,6 @@ double interpolation::lint4c(double *f, int& i,int& j, int& k, double wa, double
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    pip=4;
     if(p->flag4[IJK]>OBJ_FLAG)
     v1=f[IJK];
     if(p->flag4[IJp1K]>OBJ_FLAG)
@@ -310,7 +291,6 @@ double interpolation::lint4c(double *f, int& i,int& j, int& k, double wa, double
     v7=f[Ip1JKp1];
     if(p->flag4[Ip1Jp1Kp1]>OBJ_FLAG)
     v8=f[Ip1Jp1Kp1];
-    pip=0;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -324,7 +304,6 @@ double interpolation::lint4c(double *f, int& i,int& j, int& k, double wa, double
 
     value = wc*y1 +(1.0-wc)*y2;
 
-    pip=0;
  return value;
 
 }
@@ -333,7 +312,6 @@ double interpolation::lint4c(field& f, int& i,int& j, int& k, double wa, double 
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    pip=4;
     if(p->flag4[IJK]>OBJ_FLAG)
     v1=f(i,j,k);
     if(p->flag4[IJp1K]>OBJ_FLAG)
@@ -350,8 +328,6 @@ double interpolation::lint4c(field& f, int& i,int& j, int& k, double wa, double 
     v7=f(i+1,j,k+1);
     if(p->flag4[Ip1Jp1Kp1]>OBJ_FLAG)
     v8=f(i+1,j+1,k+1);
-    pip=0;
-
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -365,7 +341,6 @@ double interpolation::lint4c(field& f, int& i,int& j, int& k, double wa, double 
 
     value = wc*y1 +(1.0-wc)*y2;
 
-    pip=0;
     return value;
 }
 
@@ -375,7 +350,6 @@ double interpolation::lint4phi(fdm *a, field& b, int& i,int& j, int& k, double w
 	double epphi2=0.6*p->DXM;
     v1=v2=v3=v4=v5=v6=v7=v8= p->phimean-p->pos_z();
 
-	pip=4;
     if(a->topo(i,j,k)>-epphi && a->fb(i,j,k)>-epphi2)
     v1=b(i,j,k);
     if(a->topo(i,j+1,k)>-epphi && a->fb(i,j+1,k)>-epphi2)
@@ -392,7 +366,6 @@ double interpolation::lint4phi(fdm *a, field& b, int& i,int& j, int& k, double w
     v7=b(i+1,j,k+1);
     if(a->topo(i+1,j+1,k+1)>-epphi && a->fb(i+1,j+1,k+1)>-epphi2)
     v8=b(i+1,j+1,k+1);
-    pip=0;
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -412,8 +385,6 @@ double interpolation::lint4phi(fdm *a, field& b, int& i,int& j, int& k, double w
 
 double interpolation::lint_a(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
-pip=4;
-
     x1 = wa*f(i,j,k)   + (1.0-wa)*f(i+1,j,k);
     x2 = wa*f(i,j+1,k) + (1.0-wa)*f(i+1,j+1,k);
 
@@ -422,9 +393,8 @@ pip=4;
 
     y1 = wb*x1 +(1.0-wb)*x2;
     y2 = wb*x3 +(1.0-wb)*x4;
-pip=0;
 
-    value = wc*y1 +(1.0-wc)*y2;
+    value = wc*y1 + (1.0-wc)*y2;
 
  return value;
 
@@ -434,7 +404,6 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
 {
      v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    pip=4;
     if(p->flag4[IJK]>TOPO_FLAG)
     v1=f(i,j,k);
     if(p->flag4[IJp1K]>TOPO_FLAG)
@@ -457,10 +426,6 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
     v6=f(i,j+1,k+1);
     v7=f(i+1,j,k+1);
     v8=f(i+1,j+1,k+1);
-    
-    
-    
-    pip=0;
 
 
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -475,7 +440,6 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
 
     value = wc*y1 +(1.0-wc)*y2;
 
-    pip=0;
  return value;
 
 }
@@ -509,8 +473,6 @@ double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, doubl
     v7=f(i+1,j,k+2);
     if(p->flagsf4[Ip1Jp1Kp1]<0)
     v8=f(i+1,j+1,k+2);
-    pip=0;
-
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -528,7 +490,7 @@ double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, doubl
 
 }
 
-double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double wb, double wc1, double wc2, double wc3, double wc4)
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
@@ -536,22 +498,22 @@ double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double
     v2=f[IJp1K];
     v3=f[Ip1JK];
     v4=f[Ip1Jp1K];
+    
     v5=f[IJKp1];
     v6=f[IJp1Kp1];
     v7=f[Ip1JKp1];
     v8=f[Ip1Jp1Kp1];
   
-    x1 = wa*v1 + (1.0-wa)*v3;
-    x2 = wa*v2 + (1.0-wa)*v4;
 
-    x3 = wa*v5 + (1.0-wa)*v7;
-    x4 = wa*v6 + (1.0-wa)*v8;
-
-    y1 = wb*x1 +(1.0-wb)*x2;
-    y2 = wb*x3 +(1.0-wb)*x4;
-
-
-    value = wc*y1 +(1.0-wc)*y2;
+    z1 = wc1*v1 +(1.0-wc1)*v5;
+    z2 = wc2*v2 +(1.0-wc2)*v6;
+    z3 = wc3*v3 +(1.0-wc3)*v7;
+    z4 = wc4*v4 +(1.0-wc4)*v8;
+    
+    y1 = wb*z1 +(1.0-wb)*z2;
+    y2 = wb*z3 +(1.0-wb)*z4;
+    
+    value = wa*y1 +(1.0-wa)*y2;
 
 
     return value;
@@ -593,7 +555,6 @@ double interpolation::lint7V(double *f, int& i,int& j, int& k, double wa, double
 
     value = wc*y1 +(1.0-wc)*y2;
 
-    pip=0;
  return value;
 
 }

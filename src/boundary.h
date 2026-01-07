@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is boundary of REEF3D.
 
@@ -22,12 +22,6 @@ Authors: Hans Bihs, Alexander Hanke
 
 #ifndef BOUNDARY_H_
 #define BOUNDARY_H_
-
-#define EMPTY  -1
-#define PASSIVE 1
-#define ACTIVE 10
-#define MOVING 20
-
 
 #include"increment.h"
 

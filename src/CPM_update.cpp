@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,26 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"vrans.h"
 #include"sediment_fdm.h"
 
-void partres::stress_tensor(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void CPM::update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, field &por, field &d50)
 {
-    const double Ps = 10.0;
-    const double beta = 2.0;
-    const double epsilon = 1.0e-7;
-    const double Tc = (1.0-p->S24)+0.05;
-
     ALOOP
     {
-        Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
-
-        Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
+        por(i,j,k)=p->S24;
+        d50(i,j,k)=p->S20;
     }
 
-    pgc->start4a(p,Tau,1);
-    pgc->start4a(p,Ts,1);
+    pgc->start4a(p,por,1);
+    pgc->start4a(p,d50,1);
 }

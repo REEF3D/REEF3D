@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,16 +20,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
 
-void partres::boundcheck(lexer *p, int mode)
+void CPM::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int mode)
 {
-    bool inBounds;
+    // topo
+    ALOOP
+        a->topo(i,j,k) -= 0.1*(1.0/P.ParcelFactor)*bedch(i,j)*1.0/6.0*PI*pow(P.d50,3.0)/(p->DXN[IP]*p->DYN[JP]*p->S24);
 
-    for(n=0;n<P.index;++n)
-    if(P.Flag[n]==ACTIVE)
+    // bedzh
+    double h;
+    ILOOP
+    JLOOP
     {
+        KLOOP
+        PBASECHECK
+        if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
+            h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
+        s->bedzh(i,j)=h;
+    }
+}
+
+void CPM::bedchange_update(lexer *p, ghostcell *pgc, int mode)
+{
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]>=ACTIVE)
+    {
+        // step 1
+        if(mode==1)
+        {
+            i=p->posc_i(P.X[n]);
+            j=p->posc_j(P.Y[n]);
+            k=p->posc_k(P.Z[n]);
+        }
+        else if(mode==2)
+        {
+            i=p->posc_i(P.XRK1[n]);
+            j=p->posc_j(P.YRK1[n]);
+            k=p->posc_k(P.ZRK1[n]);
+        }
+
+        bedch(i,j) -= P.ParcelFactor;
+
+        // step 2
         if(mode==1)
         {
             i=p->posc_i(P.XRK1[n]);
@@ -43,12 +80,8 @@ void partres::boundcheck(lexer *p, int mode)
             k=p->posc_k(P.Z[n]);
         }
 
-        inBounds=boundaries.globalminboundcheck(p,i,j,k);
-        if(inBounds)
-            inBounds=boundaries.globalmaxboundcheck(p,i,j,k);
-
-        // remove out of bounds particles
-        if(inBounds==0)
-            P.remove(n);
+        bedch(i,j) += P.ParcelFactor;
     }
+
+    pgc->gcsl_start4(p,bedch,1);
 }

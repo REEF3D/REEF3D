@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -83,6 +83,7 @@ public:
     virtual void ctimesave(lexer*, fdm*){};
     
     virtual void print_probes(lexer*, ghostcell*,sediment_fdm*, ioflow*)=0;
+    virtual void print_particles(lexer*,sediment_fdm*)=0;
     
     virtual void print_2D_bedload(lexer*, ghostcell*,ofstream&){};
     virtual void print_3D_bedload(lexer*, ghostcell*,std::vector<char>&, size_t&){};
@@ -111,6 +112,11 @@ public:
     virtual void name_ParaView_parameter2(lexer*, ostream&, int*, int &){};
     virtual void offset_ParaView_2D_parameter2(lexer*, int*, int &){};
     virtual void offset_ParaView_parameter2(lexer*, int*, int &){};
+    
+    virtual void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&) {};
+    virtual void name_ParaView_parallel_CPM(lexer*, ofstream&) {};
+    virtual void name_ParaView_CPM(lexer*, ostream&, int*, int &) {};
+    virtual void offset_ParaView_CPM(lexer*, int*, int &) {};
 
 };
 

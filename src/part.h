@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -28,6 +28,7 @@ enum
     EMPTY = -1,
     PASSIVE = 1,
     ACTIVE = 10,
+    BEDBC = 11,
     MOVING = 20
 };
 

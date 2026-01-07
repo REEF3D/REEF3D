@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,11 +17,11 @@ for more details->
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke
+Author: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"sediment_part.h"
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm.h"
@@ -45,7 +45,7 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     pgc->gcsl_start4(p,s->bedzh0,50);
 
-    pst->seed_topo(p,a,pgc,s);
+    pst->seed_particles(p,a,pgc,s);
 
     fill_PQ_cfd(p,a,pgc);
 

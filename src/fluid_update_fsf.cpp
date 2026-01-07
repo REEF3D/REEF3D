@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -79,7 +79,7 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
 	cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
-    
+    /*
     // sediment
     if(p->Q10==1)
     BASELOOP
@@ -96,7 +96,7 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
 
         a->ro(i,j,k)   = a->ro(i,j,k)*H +   ro_sed*(1.0-H);
         a->visc(i,j,k) = a->visc(i,j,k)*H + visc_sed*(1.0-H);
-	}
+	}*/
     
     
     pgc->start4(p,a->ro,gcval_ro);

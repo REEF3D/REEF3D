@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -527,7 +527,7 @@ public:
     double P192;
     int *P194_its,*P194_ite,*P194_dit;
     double *P195_ts,*P195_te,*P195_dt;
-    int P230,P240;
+    int P230,P240,P250;
     double *P230_x,*P240_x;
 	double *P351_x,*P351_y;
 	double *P352_x,*P352_y;

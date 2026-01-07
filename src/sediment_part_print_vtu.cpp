@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,27 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"sediment_part.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include"CPM.h"
 #include"sediment_fdm.h"
-#include"turbulence.h"
 
-double partres::drag_model(lexer *p, double d50, double rhoS, double vel, double Ts)
+void sediment_part::name_ParaView_parallel_CPM(lexer *p, ofstream &result)
 {
-    double Tf = 1.0-Ts;
+    pst->name_ParaView_parallel_CPM(p,result);
+}
 
-    vel = fabs(vel);
+void sediment_part::name_ParaView_CPM(lexer *p, ostream &result, int *offset, int &n)
+{
+    pst->name_ParaView_CPM(p,result,offset,n);
+}
 
-    double Rep = vel*d50/p->W2;
+void sediment_part::offset_ParaView_CPM(lexer *p, int *offset, int &n)
+{
+    pst->offset_ParaView_CPM(p,offset,n);
+}
 
-    double Cd = (24.0/Rep)*(pow(Tf,-2.65) + (1.0/6.0)*pow(Rep,2.0/3.0)*pow(Tf,-1.78));
-
-    Cd = MIN(Cd,10.0);
-    Cd = MAX(Cd,0.0);
-
-    double Dp = Cd*(3.0/8.0)*(p->W1/rhoS)*(vel/(0.5*d50));
-
-    return Dp;
+void sediment_part::print_3D_CPM(lexer* p, ghostcell *pgc, vector<char> &buffer, size_t &m)
+{	
+    pst->print_3D_CPM(p,pgc,buffer,m);
 }

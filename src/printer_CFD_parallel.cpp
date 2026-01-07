@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"printer_CFD.h"
@@ -68,48 +68,51 @@ void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, 
     pconc->name_ParaView_parallel(p,result);
 
     if(p->P24==1 && p->F300==0)
-        result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
 
     if(p->P71==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"viscosity\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"viscosity\"/>\n";
 
     if(p->P72==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"VOF\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"VOF\"/>\n";
 
     if(p->A10==4)
-        result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>\n";
 
     if(p->P26==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
 
     if(p->P27==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>\n";
 
     if(p->P76==1)
-        psed->name_ParaView_parallel_bedload(p,result);
+    psed->name_ParaView_parallel_bedload(p,result);
 
     if(p->P77==1)
-        psed->name_ParaView_parallel_parameter1(p,result);
+    psed->name_ParaView_parallel_parameter1(p,result);
 
     if(p->P78==1)
-        psed->name_ParaView_parallel_parameter2(p,result);
+    psed->name_ParaView_parallel_parameter2(p,result);
 
     if(p->P79>=1)
-        psed->name_ParaView_parallel_bedshear(p,result);
+    psed->name_ParaView_parallel_bedshear(p,result);
+    
+    if(p->P250==1)
+    psed->name_ParaView_parallel_CPM(p,result);
 
     if(p->P23==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
 
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
 
     if(p->P25==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
 
     if(p->P28==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
 
     if(p->P29==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"walldist\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"walldist\"/>\n";
 
     result<<"</PPointData>\n";
 

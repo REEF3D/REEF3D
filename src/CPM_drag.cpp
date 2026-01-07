@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -17,39 +17,30 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke, Hans Bihs
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"partres.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
+#include"turbulence.h"
 
-void partres::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+double CPM::drag_model(lexer *p, double d50, double rhoS, double vel, double Ts)
 {
-    int particle_count = 0;
-    int active_count = 0;
-    int empty_count = 0;
+    double Tf = 1.0-Ts;
 
-    for(n=0;n<P.index;++n)
-    {
-        ++particle_count;
+    vel = fabs(vel);
 
-        if(P.Flag[n]==ACTIVE)
-            ++active_count;
-        else if(P.Flag[n]==EMPTY)
-            ++empty_count;
-    }
+    double Rep = vel*d50/p->W2;
 
-    particle_count = pgc->globalsum(particle_count);
-    active_count = pgc->globalsum(active_count);
-    empty_count = pgc->globalsum(empty_count);
+    double Cd = (24.0/Rep)*(pow(Tf,-2.65) + (1.0/6.0)*pow(Rep,2.0/3.0)*pow(Tf,-1.78));
 
-    if(p->mpirank==0)
-        cout<<"Particle_count_global: "<<particle_count<<" Active_count: "<<active_count<<" Empty_count: "<<empty_count<<endl;
+    Cd = MIN(Cd,10.0);
+    Cd = MAX(Cd,0.0);
 
-    for(n=0;n<P.index_empty;++n)
-    if(P.Empty[P.index_empty]<0)
-        cout<<p->mpirank<<"EMPTY_NEG: "<<P.Empty[P.index_empty]<<endl;
+    double Dp = Cd*(3.0/8.0)*(p->W1/rhoS)*(vel/(0.5*d50));
+
+    return Dp;
 }

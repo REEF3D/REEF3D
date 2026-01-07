@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -224,6 +224,7 @@ void ghostcell::start4a_sum(lexer *p, field& f, int gcv)
     {
         starttime=timer();
         gcparax4a_sum(p,f,5);
+        //gcparacox4a_sum(p,f,5);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
