@@ -84,6 +84,9 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 
     SLICELOOP4
 	frk1(i,j) = c->Fifsf(i,j) + p->dt*c->K(i,j);
+    
+    SLICELOOP4
+    c->test2D(i,j) = 0.0;
    
     pflow->eta_relax(p,pgc,erk1);
     pf->wetdry(p,c,pgc,erk1,frk1);
@@ -91,6 +94,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->coastline_eta(p,c,pgc,erk1);
     pf->coastline_fi(p,c,pgc,frk1);
     pflow->fifsf_relax(p,pgc,frk1);
+    pflow->test_relax(p,pgc,c->test2D);
     reference_gage(p,c,pgc,frk1);
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     

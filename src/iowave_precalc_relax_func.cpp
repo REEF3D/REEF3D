@@ -118,6 +118,7 @@ void iowave::wavegen_precalc_relax_func_fnpf(lexer *p, ghostcell *pgc)
         if(p->B98==2)
         {
                 relax4_wg(i,j) = rb1_ext(p,4);
+                wgflag(i,j) = rb1_flag(p,4);
 		}
         
         // Numerical Beach
@@ -128,6 +129,42 @@ void iowave::wavegen_precalc_relax_func_fnpf(lexer *p, ghostcell *pgc)
     }
     pgc->gcsl_start4(p,relax4_wg,50);
     pgc->gcsl_start4(p,relax4_nb,50);
+    
+    pgc->gcsl_start4int(p,wgflag,50);
+    
+    SLICELOOP4
+    if(wgflag(i,j)==1)
+    {
+        if(wgflag(i+1,j)==0)  
+        {
+        relax4_wg(i,j) = 1.0;
+        relax4_wg(i-1,j) = MAX(0.9,relax4_wg(i-1,j));
+        relax4_wg(i-2,j) = MAX(0.8,relax4_wg(i-2,j));
+        }
+        
+        if(wgflag(i-1,j)==0)  
+        {
+        relax4_wg(i,j) = 1.0;
+        relax4_wg(i+1,j) = MAX(0.9,relax4_wg(i+1,j));
+        relax4_wg(i+2,j) = MAX(0.8,relax4_wg(i+2,j));
+        }
+        
+        if(wgflag(i,j+1)==0)  
+        {
+        relax4_wg(i,j) = 1.0;
+        relax4_wg(i,j-1) = MAX(0.9,relax4_wg(i,j-1));
+        relax4_wg(i,j-2) = MAX(0.8,relax4_wg(i,j-2));
+        }
+        
+        if(wgflag(i,j-1)==0)  
+        {
+        relax4_wg(i,j) = 1.0;
+        relax4_wg(i,j+1) = MAX(0.9,relax4_wg(i,j+1));
+        relax4_wg(i,j+2) = MAX(0.8,relax4_wg(i,j+2));
+        }
+    }
+    
+    pgc->gcsl_start4(p,relax4_wg,50);
 }
 
 void iowave::wavegen_precalc_relax_func_nhflow(lexer *p, ghostcell *pgc)
@@ -146,15 +183,54 @@ void iowave::wavegen_precalc_relax_func_nhflow(lexer *p, ghostcell *pgc)
 		// Wave Generation
         if(p->B98==2)
         {
-                relax4_wg(i,j) = rb1_ext(p,4);
+        relax4_wg(i,j) = rb1_ext(p,4);
+        wgflag(i,j) = rb1_flag(p,4);
 		}
         
         // Numerical Beach
         if(p->B99==1 || p->B99==2 || p->B107>0)
         {
-                relax4_nb(i,j) = rb3_ext(p,4);
+        relax4_nb(i,j) = rb3_ext(p,4);
 		}
     }
     pgc->gcsl_start4(p,relax4_wg,50);
     pgc->gcsl_start4(p,relax4_nb,50);
+    
+    pgc->gcsl_start4int(p,wgflag,50);
+    
+    
+    SLICELOOP4
+    if(wgflag(i,j)==1)
+    {
+        if(wgflag(i+1,j)==0)  
+        {
+        relax4_wg(i,j) = 1.0;
+        relax4_wg(i-1,j) = MAX(0.9,relax4_wg(i-1,j));
+        relax4_wg(i-2,j) = MAX(0.8,relax4_wg(i-2,j));
+        }
+        
+        if(wgflag(i-1,j)==0)  
+        {
+        relax4_wg(i,j) = 1.0;
+        relax4_wg(i+1,j) = MAX(0.9,relax4_wg(i+1,j));
+        relax4_wg(i+2,j) = MAX(0.8,relax4_wg(i+2,j));
+        }
+        
+        if(wgflag(i,j+1)==0)  
+        {
+        relax4_wg(i,j) = 1.0;
+        relax4_wg(i,j-1) = MAX(0.9,relax4_wg(i,j-1));
+        relax4_wg(i,j-2) = MAX(0.8,relax4_wg(i,j-2));
+        }
+        
+        if(wgflag(i,j-1)==0)  
+        {
+        relax4_wg(i,j) = 1.0;
+        relax4_wg(i,j+1) = MAX(0.9,relax4_wg(i,j+1));
+        relax4_wg(i,j+2) = MAX(0.8,relax4_wg(i,j+2));
+        }
+    }
+    
+    pgc->gcsl_start4(p,relax4_wg,50);
+    
 }

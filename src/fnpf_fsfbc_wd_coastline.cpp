@@ -78,9 +78,6 @@ void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
 void fnpf_fsfbc_wd::coastline_Fz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
 {
     SLICELOOP4
-    c->test2D(i,j) = 0.0;
-
-    SLICELOOP4
     {
     
         if(c->coastline(i,j)>=0.0)
@@ -90,7 +87,6 @@ void fnpf_fsfbc_wd::coastline_Fz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
             if(db<dist5)
             {
             f(i,j) = rb5(p,db)*f(i,j);
-            c->test2D(i,j)=rb5(p,db);
             }
         }
         
