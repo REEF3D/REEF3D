@@ -137,30 +137,30 @@ void iowave::wavegen_precalc_relax_func_fnpf(lexer *p, ghostcell *pgc)
     {
         if(wgflag(i+1,j)==0)  
         {
-        relax4_wg(i,j) = 1.0;
-        relax4_wg(i-1,j) = MAX(0.9,relax4_wg(i-1,j));
-        relax4_wg(i-2,j) = MAX(0.8,relax4_wg(i-2,j));
+        relax4_wg(i,j)   = MAX(0.8,relax4_wg(i,j));
+        relax4_wg(i-1,j) = MAX(0.7,relax4_wg(i-1,j));
+        relax4_wg(i-2,j) = MAX(0.6,relax4_wg(i-2,j));
         }
         
         if(wgflag(i-1,j)==0)  
         {
-        relax4_wg(i,j) = 1.0;
-        relax4_wg(i+1,j) = MAX(0.9,relax4_wg(i+1,j));
-        relax4_wg(i+2,j) = MAX(0.8,relax4_wg(i+2,j));
+        relax4_wg(i,j)   = MAX(0.8,relax4_wg(i,j));
+        relax4_wg(i+1,j) = MAX(0.7,relax4_wg(i+1,j));
+        relax4_wg(i+2,j) = MAX(0.6,relax4_wg(i+2,j));
         }
         
         if(wgflag(i,j+1)==0)  
         {
-        relax4_wg(i,j) = 1.0;
-        relax4_wg(i,j-1) = MAX(0.9,relax4_wg(i,j-1));
-        relax4_wg(i,j-2) = MAX(0.8,relax4_wg(i,j-2));
+        relax4_wg(i,j)   = MAX(0.8,relax4_wg(i,j));
+        relax4_wg(i,j-1) = MAX(0.7,relax4_wg(i,j-1));
+        relax4_wg(i,j-2) = MAX(0.6,relax4_wg(i,j-2));
         }
         
         if(wgflag(i,j-1)==0)  
         {
-        relax4_wg(i,j) = 1.0;
-        relax4_wg(i,j+1) = MAX(0.9,relax4_wg(i,j+1));
-        relax4_wg(i,j+2) = MAX(0.8,relax4_wg(i,j+2));
+        relax4_wg(i,j)   = MAX(0.8,relax4_wg(i,j));
+        relax4_wg(i,j+1) = MAX(0.7,relax4_wg(i,j+1));
+        relax4_wg(i,j+2) = MAX(0.6,relax4_wg(i,j+2));
         }
     }
     
@@ -204,30 +204,30 @@ void iowave::wavegen_precalc_relax_func_nhflow(lexer *p, ghostcell *pgc)
     {
         if(wgflag(i+1,j)==0)  
         {
-        relax4_wg(i,j) = 1.0;
-        relax4_wg(i-1,j) = MAX(0.9,relax4_wg(i-1,j));
-        relax4_wg(i-2,j) = MAX(0.8,relax4_wg(i-2,j));
+        relax4_wg(i,j)   = MAX(0.8,relax4_wg(i,j));
+        relax4_wg(i-1,j) = MAX(0.7,relax4_wg(i-1,j));
+        relax4_wg(i-2,j) = MAX(0.6,relax4_wg(i-2,j));
         }
         
         if(wgflag(i-1,j)==0)  
         {
-        relax4_wg(i,j) = 1.0;
-        relax4_wg(i+1,j) = MAX(0.9,relax4_wg(i+1,j));
-        relax4_wg(i+2,j) = MAX(0.8,relax4_wg(i+2,j));
+        relax4_wg(i,j)   = MAX(0.8,relax4_wg(i,j));
+        relax4_wg(i+1,j) = MAX(0.7,relax4_wg(i+1,j));
+        relax4_wg(i+2,j) = MAX(0.6,relax4_wg(i+2,j));
         }
         
         if(wgflag(i,j+1)==0)  
         {
-        relax4_wg(i,j) = 1.0;
-        relax4_wg(i,j-1) = MAX(0.9,relax4_wg(i,j-1));
-        relax4_wg(i,j-2) = MAX(0.8,relax4_wg(i,j-2));
+        relax4_wg(i,j)   = MAX(0.8,relax4_wg(i,j));
+        relax4_wg(i,j-1) = MAX(0.7,relax4_wg(i,j-1));
+        relax4_wg(i,j-2) = MAX(0.6,relax4_wg(i,j-2));
         }
         
         if(wgflag(i,j-1)==0)  
         {
-        relax4_wg(i,j) = 1.0;
-        relax4_wg(i,j+1) = MAX(0.9,relax4_wg(i,j+1));
-        relax4_wg(i,j+2) = MAX(0.8,relax4_wg(i,j+2));
+        relax4_wg(i,j)   = MAX(0.8,relax4_wg(i,j));
+        relax4_wg(i,j+1) = MAX(0.7,relax4_wg(i,j+1));
+        relax4_wg(i,j+2) = MAX(0.6,relax4_wg(i,j+2));
         }
     }
     
