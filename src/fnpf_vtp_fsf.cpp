@@ -72,12 +72,13 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 
     int num=0;
     if(p->P15==1)
-        num = printcount;
+    num = printcount;
+    
     else if(p->P15==2)
-        num = p->count;
+    num = p->count;
 
     if(p->mpirank==0)
-        pvtp(p,num);
+    pvtp(p,num);
 
     // offsets
     n=0;

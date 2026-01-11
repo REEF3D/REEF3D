@@ -156,19 +156,19 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 {
     // Gages
     if(p->P51>0)
-        pwsf->height_gauge(p,c,pgc,c->eta);
+    pwsf->height_gauge(p,c,pgc,c->eta);
 
     if(p->P50>0)
-        pwsf_theory->height_gauge(p,c,pgc,pflow);
+    pwsf_theory->height_gauge(p,c,pgc,pflow);
 
     if(p->P110==1)
-        phs->start(p,pgc,c->eta,c->Hs);
+    phs->start(p,pgc,c->eta,c->Hs);
 
     if(p->P65>0)
-        pvel->start(p,c,pgc);
+    pvel->start(p,c,pgc);
 
     if(p->P66>0)
-        pveltheo->start(p,c,pgc,pflow);
+    pveltheo->start(p,c,pgc,pflow);
 
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
@@ -186,13 +186,13 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
     // Print out based on time interval
     if(p->P35>0)
-        for(int qn=0; qn<p->P35; ++qn)
-            if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
-            {
-                print(p,c,pgc);
+    for(int qn=0; qn<p->P35; ++qn)
+    if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+    {
+        print(p,c,pgc);
 
-                printtime_wT[qn]+=p->P35_dt[qn];
-            }
+        printtime_wT[qn]+=p->P35_dt[qn];
+    }
 
     // Print FSF
     if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
@@ -208,32 +208,32 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     }
 
     if(p->P180==1 && p->P184>0)
-        for(int qn=0; qn<p->P184; ++qn)
-            if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
-            {
-                pfsf->start(p,c,pgc);
-            }
+    for(int qn=0; qn<p->P184; ++qn)
+    if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
+    {
+        pfsf->start(p,c,pgc);
+    }
 
     if(p->P180==1 && p->P185>0)
-        for(int qn=0; qn<p->P185; ++qn)
-            if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
-            {
-                pfsf->start(p,c,pgc);
+    for(int qn=0; qn<p->P185; ++qn)
+    if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+    {
+        pfsf->start(p,c,pgc);
 
-                printfsftime_wT[qn]+=p->P185_dt[qn];
-            }
+        printfsftime_wT[qn]+=p->P185_dt[qn];
+    }
 
     // Print BED
     if(p->count==0)
-        pbed->start(p,c,pgc,pflow);
+    pbed->start(p,c,pgc,pflow);
 
 
     // Gages
     if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-        pwsfline->start(p,c,pgc,pflow,c->eta);
+    pwsfline->start(p,c,pgc,pflow,c->eta);
 
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-        pwsfline_y->start(p,c,pgc,pflow,c->eta);
+    pwsfline_y->start(p,c,pgc,pflow,c->eta);
 
 
     // Print state out based on iteration
@@ -251,31 +251,31 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     }
 
     if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
-        p->probeprinttime+=p->P55;
+    p->probeprinttime+=p->P55;
 
     if(p->P59==1)
-        pbreaklog->write(p,c,pgc);
+    pbreaklog->write(p,c,pgc);
 
     // ALE force
     if(p->count>0 && p->count%p->P80==0)
-        for(n=0;n<p->P85;++n)
-            pforce_ale[n]->start(p,c,pgc);
+    for(n=0;n<p->P85;++n)
+    pforce_ale[n]->start(p,c,pgc);
 
     // print kinematics
     if(p->count>0 && p->count%p->P80==0)
-        for(n=0;n<p->P88;++n)
-            pkin[n]->start(p,c,pgc);
+    for(n=0;n<p->P88;++n)
+    pkin[n]->start(p,c,pgc);
 
     // Runup
     if(p->count>0)
-        for(n=0;n<p->P140;++n)
-            prunup[n]->start(p,c,pgc);
+    for(n=0;n<p->P140;++n)
+    prunup[n]->start(p,c,pgc);
 }
 
 void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
     if(p->P180==1)
-        pfsf->start(p,c,pgc);
+    pfsf->start(p,c,pgc);
 
     print(p,c,pgc);
 }
