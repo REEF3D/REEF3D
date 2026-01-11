@@ -50,48 +50,6 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     }
     pgc->gcsl_start4(p,eta,50);
     
-    
-    // Fi
-    count=0;
-    dbcount=0;
-
-    FILOOP 
-    FJLOOP 
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
-        
-        FKLOOP 
-        FPCHECK
-        {
-        
-            z=p->ZSN[FIJK]-p->phimean;
-
-            
-            // Wave Generation
-            if(p->B98==2 && f_switch==1)
-            {
-                // Zone 1
-                if(dg<1.0e19)
-                { 
-                rb1val[count] = rb1(p,dg);
-                ++count;
-                }
-            }
-            
-            if(p->B99==1||p->B99==2)
-            {
-                // Zone 2
-                if(db<dist2)
-                {
-                rb3val[dbcount] = rb3(p,db);
-                ++dbcount;
-                }
-            }
-        }
-    }
 
 
     count=0;
@@ -101,7 +59,6 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-		db = distbeach(p);
         
         z = eta(i,j);
 		
@@ -109,7 +66,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
 		if(p->B98==2 && f_switch==1)
         {
             // Zone 1
-            if(dg<1.0e19)
+            if(dg<1.0e20)
             { 
             Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
             

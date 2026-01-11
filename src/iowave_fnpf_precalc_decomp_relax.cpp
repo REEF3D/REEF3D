@@ -71,51 +71,6 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
     pgc->gcsl_start4(p,eta,50);
 
     
-    count=0;
-    int dbcount=0;
-    
-    FILOOP 
-    FJLOOP 
-    {
-        dg = distgen(p);
-		db = distbeach(p);
-        
-        FKLOOP 
-        FPCHECK
-        {
-        
-        z=p->ZSN[FIJK]-p->phimean;
-
-		
-		if(p->B98==2 && f_switch==1)
-        {  
-            // Zone 1
-            if(dg<dist1)
-            {
-            Fival[count]=0.0;
-                        
-            for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_sin[qn] + Fival_S_sin[count][qn]*Fival_T_cos[qn];
-            
-            rb1val[count] = rb1(p,dg);
-            
-            ++count;
-            }
-		}
-        
-        if(p->B99==1||p->B99==2)
-        {
-                // Zone 2
-                if(db<dist2)
-                {
-                rb3val[dbcount] = rb3(p,db);
-                ++dbcount;
-                }
-        }
-            
-        }
-    }
-     
     
     // pre-calc every iteration
     count=0;

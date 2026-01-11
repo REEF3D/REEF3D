@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
+#include"sliceint4.h"
 #include"flowfile_in.h"
 
 class vec;
@@ -94,6 +95,7 @@ public:
     void fi_relax(lexer*,ghostcell*,field&,field&) override;
     void fivec_relax(lexer*, ghostcell*, double*) override;
     void fifsf_relax(lexer*, ghostcell*, slice&) override;
+    void test_relax(lexer*, ghostcell*, slice&)override;
     void visc_relax(lexer*, ghostcell*, slice&) override;
     void eta_relax(lexer*,ghostcell*,slice&) override;
     void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
@@ -231,12 +233,15 @@ private:
     slice1 relax1_wg, relax1_nb;
     slice2 relax2_wg, relax2_nb;
     slice4 relax4_wg, relax4_nb;
+    sliceint4 wgflag;
 	
 	double rb1(lexer*,double);
     double rb3(lexer*,double);
     
     double rb1_ext(lexer*,int);
     double rb3_ext(lexer*,int);
+    
+    int rb1_flag(lexer*,int);
 
     double ramp(lexer*);
 	
@@ -295,7 +300,6 @@ private:
     int wave_comp;
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
     double *uval,*vval,*wval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
-    double *rb1val,*rb3val;
     double *UHval,*VHval,*WHval;
     double *vofval;
 
