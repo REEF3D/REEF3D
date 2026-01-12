@@ -51,13 +51,13 @@ void iowave::wavegen_precalc_relax_func(lexer *p, ghostcell *pgc)
 		// Wave Generation
         if(p->B98==2)
         {
-                relax1_wg(i,j) = rb1_ext(p,1);
+            relax1_wg(i,j) = rb1_ext(p,1);
 		}
         
         // Numerical Beach
         if(p->B99==1 || p->B99==2 || p->B107>0)
         {
-                relax1_nb(i,j) = rb3_ext(p,1);
+            relax1_nb(i,j) = rb3_ext(p,1);
 		}
     }
     pgc->gcsl_start1(p,relax1_wg,50);
@@ -69,13 +69,13 @@ void iowave::wavegen_precalc_relax_func(lexer *p, ghostcell *pgc)
 		// Wave Generation
         if(p->B98==2)
         {
-                relax2_wg(i,j) = rb1_ext(p,2);
+            relax2_wg(i,j) = rb1_ext(p,2);
 		}
         
         // Numerical Beach
         if(p->B99==1 || p->B99==2 || p->B107>0)
         {
-                relax2_nb(i,j) = rb3_ext(p,2);
+            relax2_nb(i,j) = rb3_ext(p,2);
 		}
     }
     pgc->gcsl_start2(p,relax2_wg,50);
@@ -87,14 +87,14 @@ void iowave::wavegen_precalc_relax_func(lexer *p, ghostcell *pgc)
 		// Wave Generation
         if(p->B98==2)
         {
-                relax4_wg(i,j) = rb1_ext(p,4);
+            relax4_wg(i,j) = rb1_ext(p,4);
 		}
         
         // Numerical Beach
         if(p->B99==1 || p->B99==2 || p->B107>0)
         {
         
-                relax4_nb(i,j) = rb3_ext(p,4);
+            relax4_nb(i,j) = rb3_ext(p,4);
 		}
     }
     pgc->gcsl_start4(p,relax4_wg,50);
@@ -117,14 +117,14 @@ void iowave::wavegen_precalc_relax_func_fnpf(lexer *p, ghostcell *pgc)
 		// Wave Generation
         if(p->B98==2)
         {
-                relax4_wg(i,j) = rb1_ext(p,4);
-                wgflag(i,j) = rb1_flag(p,4);
+            relax4_wg(i,j) = rb1_ext(p,4);
+            wgflag(i,j) = rb1_flag(p,4);
 		}
         
         // Numerical Beach
         if(p->B99==1 || p->B99==2 || p->B107>0)
         {
-                relax4_nb(i,j) = rb3_ext(p,4);
+            relax4_nb(i,j) = rb3_ext(p,4);
 		}
     }
     pgc->gcsl_start4(p,relax4_wg,50);
