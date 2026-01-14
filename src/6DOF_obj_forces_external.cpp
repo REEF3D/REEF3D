@@ -48,7 +48,6 @@ void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, dou
 	if (p->X310>0)
 	mooringForces(p,pgc,alpha);
 
-	
     // Net forces
 	if (p->X320>0)
 	netForces_nhflow(p,d,pgc,alpha);

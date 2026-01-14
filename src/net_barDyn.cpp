@@ -102,7 +102,6 @@ void net_barDyn::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha
 	print(p);	
 }
 
-
 void net_barDyn::startLoop(lexer *p, ghostcell *pgc, int& iter)
 {
           

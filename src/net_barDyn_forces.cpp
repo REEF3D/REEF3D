@@ -55,7 +55,6 @@ void net_barDyn::gravityForce(lexer *p)
     }
 }
 
-
 void net_barDyn::inertiaForce(lexer *p)
 {   
     int index = 0;
@@ -76,10 +75,8 @@ void net_barDyn::inertiaForce(lexer *p)
     
             index++;
         }
-
     }
 }
-
 
 void net_barDyn::dragForce(lexer *p)
 {    

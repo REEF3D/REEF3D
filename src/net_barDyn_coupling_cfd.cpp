@@ -172,6 +172,7 @@ void net_barDyn::coupling_dlm_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
             //lagrangeForces[i] << tri_forces[i][0], tri_forces[i][1], tri_forces[i][2];
         }
+        
         else
         {
             lagrangeForces[i] << 0.0, 0.0, 0.0;   
