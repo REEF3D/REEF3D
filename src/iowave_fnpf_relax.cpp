@@ -72,7 +72,7 @@ void iowave::test_relax(lexer *p, ghostcell *pgc, slice& f)
         {
             if(dg<1.0e20)
             {
-            f(i,j) =   (relax4_wg(i,j));//  (1.0-relax4_wg(i,j))*ramp(p)*Fifsfval[count]  + relax4_wg(i,j)*f(i,j);
+            f(i,j) =  Fifsfval[count];// (relax4_wg(i,j));//  (1.0-relax4_wg(i,j))*ramp(p)*Fifsfval[count]  + relax4_wg(i,j)*f(i,j);
             ++count;
             }
 		}

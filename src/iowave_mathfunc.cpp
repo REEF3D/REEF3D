@@ -22,23 +22,26 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
+#include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
+double iowave::cosh_func(double x)
 {
-    p->wavetime = p->simtime;
-    
-    int qn;
-    
-    for(qn=0;qn<wave_comp;++qn)
+    if(x<3.0)
     {
-    etaval_T_sin[qn] = wave_eta_time_sin(p,pgc,qn);
-    etaval_T_cos[qn] = wave_eta_time_cos(p,pgc,qn);
+    double x2 = x * x;
+    double num = 1.0 + x2 * (115.0/252.0 + x2 * (313.0/15120.0));
+    double den = 1.0 + x2 * (-11.0/252.0 + x2 * (13.0/15120.0));
+    return num / den;
     }
     
-    for(qn=0;qn<wave_comp;++qn)
+    else if(x>=3.0 && x<20.0)
     {
-    Fifsfval_T_sin[qn] = wave_fi_time_sin(p,pgc,qn);
-    Fifsfval_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
+    double e = exp(x);
+    return 0.5 * (e + 1.0/e);
     }
+    
+    else if(x>20.0)
+    return 0.5 * exp(x);
 }

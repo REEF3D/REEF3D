@@ -2632,6 +2632,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Parallel Comm">
+        <File Name="gcx_wait.cpp"/>
         <File Name="gcx_gcparaxintV.cpp"/>
         <File Name="gcx_flagx7.cpp"/>
         <File Name="gcx_flagx.cpp"/>
@@ -3086,6 +3087,7 @@
           <File Name="ioflow_void.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_mathfunc.cpp"/>
           <File Name="iowave_precalc_parallel_relax.cpp"/>
           <File Name="iowave_PLICcalc.cpp"/>
           <File Name="iowave_probes.cpp"/>

@@ -336,6 +336,9 @@ private:
     
     linear_regression_cont *linreg;
     
+    
+    double cosh_func(double);
+    
 };
 
 #endif

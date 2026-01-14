@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2026 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,25 +20,49 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
 #include"ghostcell.h"
+#include"lexer.h"
 
-void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
+void ghostcell::gcsync()
 {
-    p->wavetime = p->simtime;
-    
-    int qn;
-    
-    for(qn=0;qn<wave_comp;++qn)
+    MPI_Barrier(mpi_comm);
+}
+
+void ghostcell::gcwait(lexer* p)
+{
+	if(p->gcpara1_count>0)
     {
-    etaval_T_sin[qn] = wave_eta_time_sin(p,pgc,qn);
-    etaval_T_cos[qn] = wave_eta_time_cos(p,pgc,qn);
+    MPI_Wait(&sreq1,&status);
+	MPI_Wait(&rreq1,&status);
     }
-    
-    for(qn=0;qn<wave_comp;++qn)
+
+    if(p->gcpara4_count>0)
     {
-    Fifsfval_T_sin[qn] = wave_fi_time_sin(p,pgc,qn);
-    Fifsfval_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
+    MPI_Wait(&sreq4,&status);
+	MPI_Wait(&rreq4,&status);
+    }
+
+    if(p->gcpara3_count>0)
+    {
+	MPI_Wait(&sreq3,&status);
+	MPI_Wait(&rreq3,&status);
+    }
+
+    if(p->gcpara2_count>0)
+    {
+    MPI_Wait(&sreq2,&status);
+	MPI_Wait(&rreq2,&status);
+    }
+
+    if(p->gcpara5_count>0)
+    {
+    MPI_Wait(&sreq5,&status);
+	MPI_Wait(&rreq5,&status);
+    }
+
+    if(p->gcpara6_count>0)
+    {
+    MPI_Wait(&sreq6,&status);
+	MPI_Wait(&rreq6,&status);
     }
 }

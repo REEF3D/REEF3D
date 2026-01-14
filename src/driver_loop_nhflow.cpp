@@ -91,6 +91,8 @@ void driver::loop_nhflow()
         pprint->start(p,d,pgc,pflow,pnhfturb,psed);
 
         // Shell-Printout
+        p->wavecalctime = pgc->globalmax(p->wavecalctime);
+        
         if(p->mpirank==0)
         {
         endtime=pgc->timer();
