@@ -36,10 +36,9 @@ void sixdof_void::initialize(lexer *p, fdm2D *b, ghostcell *pgc)
 }
 
 void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc)
-{
-    //if(p->mpirank==0)
-    //cout<<"6DOF: ini_CFD"<<endl;
-    
+{    
+    if(p->mpirank==0)
+    cout<<"6DOF: ini mooring/net"<<endl;
     
 	if(p->X310==0)
 	{
@@ -96,8 +95,6 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc)
     Kne.resize(p->net_count);
     Mne.resize(p->net_count);
     Nne.resize(p->net_count);
-    
-    cout<<"6DOF   NET"<<endl;
     }
     
     // ghostcell update
@@ -110,7 +107,6 @@ void sixdof_void::initialize(lexer *p, fdm *a, ghostcell *pgc)
 
     quatRotMat << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
 }
-
 
 void sixdof_void::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {

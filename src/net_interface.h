@@ -42,8 +42,8 @@ public:
     void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d) {};
     void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d) {};
 
-    void netForces_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>);
-    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>);
+    void netForces_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, vector<double>&, vector<double>&, vector<double>&, vector<double>&, vector<double>&, vector<double>&);
+    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, vector<double>&, vector<double>&, vector<double>&, vector<double>&, vector<double>&, vector<double>&);
     
 
     void dlm_cfd(lexer*, fdm*, ghostcell*, int);

@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"net_interface.h"
 #include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 
@@ -32,7 +33,7 @@ Author: Hans Bihs
 #include"net_sheet.h"
 
 void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat, 
-                            vector<double> Xne, vector<double> Yne, vector<double> Zne, vector<double> Kne, vector<double> Mne, vector<double> Nne)
+                            vector<double> &Xne, vector<double> &Yne, vector<double> &Zne, vector<double> &Kne, vector<double> &Mne, vector<double> &Nne)
 {
     NETLOOP
     {
@@ -51,5 +52,4 @@ void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha
         pgc->bcast_double(&Mne[n],1);
         pgc->bcast_double(&Nne[n],1);
     }
-    
 }

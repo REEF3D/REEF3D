@@ -32,7 +32,7 @@ Author: Hans Bihs
 #include"net_sheet.h"
 
 void net_interface::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat,
-                            vector<double> Xne, vector<double> Yne, vector<double> Zne, vector<double> Kne, vector<double> Mne, vector<double> Nne)
+                            vector<double> &Xne, vector<double> &Yne, vector<double> &Zne, vector<double> &Kne, vector<double> &Mne, vector<double> &Nne)
 {
     NETLOOP
     {
