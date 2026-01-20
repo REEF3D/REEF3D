@@ -95,7 +95,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->coastline_fi(p,c,pgc,frk1);
     pflow->fifsf_relax(p,pgc,frk1);
     pflow->test_relax(p,pgc,c->test2D);
-    reference_gage(p,c,pgc,frk1);
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     
     // fsfdisc and sigma update
@@ -135,7 +134,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->coastline_eta(p,c,pgc,erk2);
     pf->coastline_fi(p,c,pgc,frk2);
     pflow->fifsf_relax(p,pgc,frk2);
-    reference_gage(p,c,pgc,frk2);
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     
     // fsfdisc and sigma update
@@ -175,7 +173,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
-    reference_gage(p,c,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     
     // fsfdisc and sigma update
@@ -262,27 +259,5 @@ void fnpf_RK3::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
-}
-
-void fnpf_RK3::reference_gage(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fifsf)
-{	
-    double gageval = -1.0e20;
-    
-    if(p->B98==3 || p->B98==4)
-    {
-        if(p->mpirank==0)
-        {
-        i=0;
-        j=0;
-        gageval=Fifsf(i,j);
-        }
-
-        gageval = pgc->globalmax(gageval);
-        
-        
-        if(gageval>-0.9e20)
-        SLICELOOP4
-        Fifsf(i,j) -= (gageval);
-    }
 }
 
