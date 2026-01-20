@@ -75,9 +75,6 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             ++count;
             }
         }
-        
-        
-        
 }
 
 

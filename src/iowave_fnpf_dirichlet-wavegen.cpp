@@ -92,9 +92,6 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         
         ++count;
         }
-        
-        
-        
     }
     
     // Uin
