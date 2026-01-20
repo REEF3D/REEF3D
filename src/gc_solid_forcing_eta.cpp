@@ -54,7 +54,6 @@ void ghostcell::solid_forcing_eta(lexer *p, slice &f)
         f(i,j+1)=f(i,j);
         f(i,j+2)=f(i,j);
         }
-
 	}
 }
 
@@ -88,6 +87,5 @@ void ghostcell::solid_forcing_bed(lexer *p, slice &f)
         f(i,j+1)=f(i,j);
         f(i,j+2)=f(i,j);
         }
-
 	}
 }
