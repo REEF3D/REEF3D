@@ -147,10 +147,13 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
                                                         double& max_slope, double& dist_steep)
 {
     double z0 = zh(i,j);
+    double dx = 0.5*(p->DXN[IP] + p->DYN[JP]);
     max_slope = 0.0;
     i_steep = i;
     j_steep = j;
-    dist_steep = p->DXM;
+    dist_steep = dx;
+    
+    
     
 
     // 8-connectivity: check all surrounding cells
@@ -164,9 +167,9 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
             // Compute horizontal distance
             double dist;
             if(di != 0 && dj != 0)
-                dist = p->DXM * sqrt(2.0);  // Diagonal: dx * sqrt(2)
+                dist = dx * sqrt(2.0);  // Diagonal: dx * sqrt(2)
             else
-                dist = p->DXM;              // Cardinal: dx
+                dist = dx;              // Cardinal: dx
                 
             // Elevation difference (positive means neighbor is lower)
             double dz = z0 - zh(i+di, j+dj);
