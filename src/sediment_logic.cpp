@@ -46,6 +46,7 @@ Author: Hans Bihs
 #include"sandslide_nz.h"
 #include"sandslide_pde.h"
 #include"sandslide_steepest_descent.h"
+#include"sandslide_weighted_multidir.h"
 #include"sandslide_v.h"
 #include"topo_relax.h"
 #include"vrans_v.h"
@@ -142,6 +143,9 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     
     if(p->S90==7)
     pslide=new sandslide_steepest_descent(p);
+    
+    if(p->S90==8)
+    pslide=new sandslide_weighted_multidir(p);
     
     if(p->S10!=2 && p->A10==6)
 	pvrans = new vrans_v(p,pgc);

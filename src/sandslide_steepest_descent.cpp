@@ -153,16 +153,13 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
     j_steep = j;
     dist_steep = dx;
     
-    
-    
-
     // 8-connectivity: check all surrounding cells
     for(int di = -1; di <= 1; ++di)
     {
         for(int dj = -1; dj <= 1; ++dj)
         {
             if(di == 0 && dj == 0) 
-                continue;
+            continue;
                 
             // Compute horizontal distance
             double dist;

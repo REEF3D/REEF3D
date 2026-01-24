@@ -811,7 +811,7 @@
           <File Name="reduction_FD.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
-          <File Name="sandslide_weighted-multidir.h"/>
+          <File Name="sandslide_weighted_multidir.h"/>
           <File Name="sandslide_steepest_descent.h"/>
           <File Name="sandslide_f4.h"/>
           <File Name="sandslide_nz.h"/>
