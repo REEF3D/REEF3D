@@ -56,6 +56,8 @@ private:
     double slide_dh,slide_dhs;
 	double teta, alpha, beta, gamma;
     double phi;
+    
+    double relax;
 }; 
 
 #endif

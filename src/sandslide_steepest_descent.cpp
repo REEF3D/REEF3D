@@ -42,49 +42,13 @@ sandslide_steepest_descent::sandslide_steepest_descent(lexer *p) : norm_vec(p), 
 
 	fac1 = p->S92*(1.0/6.0);
 	fac2 = p->S92*(1.0/12.0);
+    
+    relax=0.5;
 }
 
 sandslide_steepest_descent::~sandslide_steepest_descent()
 {
 }
-
-/*
-ouble tan_phi = tan(angle_repose);
-    
-    for(int i = 1; i < nx-1; ++i)
-    for(int j = 1; j < ny-1; ++j)
-    {
-        double z0 = topo[IJ(i,j)];
-        double max_slope = 0.0;
-        int i_steep = i, j_steep = j;
-        double dist_steep = dx;
-        
-        // Find steepest neighbor
-        for(int di = -1; di <= 1; ++di)
-        for(int dj = -1; dj <= 1; ++dj)
-        {
-            if(di == 0 && dj == 0) continue;
-            
-            double dist = dx * sqrt(double(di*di + dj*dj));
-            double slope = (z0 - topo[IJ(i+di, j+dj)]) / dist;
-            
-            if(slope > max_slope)
-            {
-                max_slope = slope;
-                i_steep = i + di;
-                j_steep = j + dj;
-                dist_steep = dist;
-            }
-        }
-        
-        if(max_slope > tan_phi)
-        {
-            double dz = z0 - topo[IJ(i_steep, j_steep)];
-            double excess = 0.5 * (dz - tan_phi * dist_steep);
-            topo[IJ(i,j)] -= excess;
-            topo[IJ(i_steep, j_steep)] += excess;
-        }
-    }*/
 
 void sandslide_steepest_descent::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
@@ -122,21 +86,22 @@ void sandslide_steepest_descent::start(lexer *p, ghostcell *pgc, sediment_fdm *s
 
         p->slidecells=count;
         
-        if(p->slidecells==0)
-        break;
 
         if(p->mpirank==0)
         cout<<"sandslide_steepest_descent corrections: "<<p->slidecells<<endl;
+        
+        if(p->slidecells==0)
+        break;
     }
 }
 
 void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double tan_phi;
-    /*
-		 // Reset flux accumulator
+    
+        // Reset flux accumulator
     SEDSLICELOOP
-    flux(i,j) = 0.0;
+    fh(i,j) = 0.0;
     
     SEDSLICELOOP
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
@@ -147,13 +112,13 @@ void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s
         tan_phi = tan(s->phi(i,j));
         
         // Find the steepest downslope neighbor
-        find_steepest_neighbor(p, topo, i, j, i_steep, j_steep, max_slope, dist_steep);
+        find_steepest_neighbor(p, s->bedzh, i, j, i_steep, j_steep, max_slope, dist_steep);
         
         // Check if slope exceeds angle of repose
         if(max_slope > tan_phi)
         {
-            double z0 = topo(i,j);
-            double z1 = topo(i_steep, j_steep);
+            double z0 = s->bedzh(i,j);
+            double z1 = s->bedzh(i_steep, j_steep);
             double dz = z0 - z1;
             
             // Equilibrium elevation difference for this distance
@@ -168,18 +133,20 @@ void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s
             double transfer = relax * 0.5 * excess;
             
             // Accumulate flux (don't modify topo directly yet)
-            flux(i,j) -= transfer;
-            flux(i_steep, j_steep) += transfer;
+            fh(i,j) -= transfer;
+            fh(i_steep, j_steep) += transfer;
+            
+            ++count;
         }
-    }*/
+    }
         
 }
 
 
-void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& topo, int i, int j, int& i_steep, int& j_steep, 
+void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int i, int j, int& i_steep, int& j_steep, 
                                                         double& max_slope, double& dist_steep)
 {
-    double z0 = topo(i,j);
+    double z0 = zh(i,j);
     max_slope = 0.0;
     i_steep = i;
     j_steep = j;
@@ -202,7 +169,7 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& topo, i
                 dist = p->DXM;              // Cardinal: dx
                 
             // Elevation difference (positive means neighbor is lower)
-            double dz = z0 - topo(i+di, j+dj);
+            double dz = z0 - zh(i+di, j+dj);
                 
             // Slope in this direction
             double slope = dz / dist;
