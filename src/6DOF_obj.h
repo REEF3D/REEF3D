@@ -61,7 +61,7 @@ public:
     sixdof_obj(lexer*, ghostcell*, int);
 	virtual ~sixdof_obj();
 	
-	void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int);
+	void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int,bool);
     
 	void initialize_cfd(lexer*,fdm*,ghostcell*);
     void initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);
@@ -78,11 +78,11 @@ public:
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
     void update_position_2D(lexer*, ghostcell*,slice&);
     
-    void solve_eqmotion_oneway_onestep(lexer*,ghostcell*);
+    void solve_eqmotion_oneway_onestep(lexer*,ghostcell*,bool);
     
     // NHFLOW
-    void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int);
-    void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int);
+    void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,bool);
+    void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int,bool);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
@@ -105,8 +105,8 @@ public:
     
     void update_forcing_sflow(lexer*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, int);
     
-    void solve_eqmotion_sflow(lexer*,ghostcell*,int);
-    void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int);
+    void solve_eqmotion_sflow(lexer*,ghostcell*,int,bool);
+    void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int,bool);
     
     double Mass_fb, Vfb, Rfb;
 
@@ -116,11 +116,11 @@ private:
     void ini_fbvel(lexer*, ghostcell*);
     void maxvel(lexer*, ghostcell*);
     
-    void externalForces_cfd(lexer*, fdm*, ghostcell*, double);
-    void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
+    void externalForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
+    void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);
     void mooringForces(lexer*,  ghostcell*, double);
-    void netForces_cfd(lexer*, fdm*, ghostcell*, double);
-    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
+    void netForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
+    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);
     void update_forces(lexer*);
     
     double ramp_vel(lexer*);

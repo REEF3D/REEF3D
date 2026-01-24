@@ -79,6 +79,8 @@ private:
 	vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
     
     double alpha[3],gamma[3],zeta[3];
+    
+    double printtime;
 };
 
 #endif

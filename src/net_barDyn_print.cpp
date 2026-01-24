@@ -66,13 +66,8 @@ void net_barDyn::print(lexer *p)
         }
     }  
     
-	
-    if
-	(
-		p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
-		|| (p->simtime>printtime && p->P30>0.0)   
-		|| p->count==0)
-	)
+	// Print net.vtk
+    if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0))
 	{
 		printtime += p->P30;
 

@@ -51,7 +51,7 @@ void net_sheet::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     print(p);
 }
 
-void net_sheet::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat)
+void net_sheet::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
     double starttime1 = pgc->timer();    
     dt_ = alpha*p->dt;
@@ -125,6 +125,7 @@ void net_sheet::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen:
     coupling_dlm_cfd(p,a,pgc);
 	
     //- Build and save net
+    if(finalize==true)
 	print(p);	
 
     //- Print output
@@ -135,7 +136,7 @@ void net_sheet::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen:
     }
 }
 
-void net_sheet::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat)
+void net_sheet::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
     double starttime1 = pgc->timer();    
     dt_ = alpha*p->dt;
@@ -209,6 +210,7 @@ void net_sheet::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     coupling_dlm_nhflow(p,d,pgc);
 	
     //- Build and save net
+    if(finalize==true)
 	print(p);	
 
     //- Print output

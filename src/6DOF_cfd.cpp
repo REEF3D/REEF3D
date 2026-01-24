@@ -52,7 +52,7 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
         
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter);
+        fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter,finalize);
          
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);

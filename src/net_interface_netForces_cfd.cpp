@@ -33,11 +33,12 @@ Author: Hans Bihs
 #include"net_sheet.h"
 
 void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat, 
-                            vector<double> &Xne, vector<double> &Yne, vector<double> &Zne, vector<double> &Kne, vector<double> &Mne, vector<double> &Nne)
+                            vector<double> &Xne, vector<double> &Yne, vector<double> &Zne, vector<double> &Kne, 
+                            vector<double> &Mne, vector<double> &Nne, bool finalize)
 {
     NETLOOP
     {
-        pnet[n]->start_cfd(p, a, pgc, alpha, quatRotMat);
+        pnet[n]->start_cfd(p, a, pgc, alpha, quatRotMat, finalize);
         
         dlm_cfd(p, a, pgc, n);
         

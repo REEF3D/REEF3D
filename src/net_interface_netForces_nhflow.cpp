@@ -32,11 +32,12 @@ Author: Hans Bihs
 #include"net_sheet.h"
 
 void net_interface::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat,
-                            vector<double> &Xne, vector<double> &Yne, vector<double> &Zne, vector<double> &Kne, vector<double> &Mne, vector<double> &Nne)
+                            vector<double> &Xne, vector<double> &Yne, vector<double> &Zne, vector<double> &Kne, 
+                            vector<double> &Mne, vector<double> &Nne, bool finalize)
 {
     NETLOOP
     {
-        pnet[n]->start_nhflow(p, d, pgc, alpha, quatRotMat);
+        pnet[n]->start_nhflow(p, d, pgc, alpha, quatRotMat, finalize);
         dlm_nhflow(p, d, pgc, n);
     
         // Forces on rigid body
