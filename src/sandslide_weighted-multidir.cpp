@@ -49,7 +49,7 @@ sandslide_weighted_multidir::sandslide_weighted_multidir(lexer *p) : norm_vec(p)
     // 1 = linear (proportional to excess)
     // 2 = quadratic (smoother)
     // 3 = slope-based
-    weight_method = 1;
+    weight_method = 2;
     
 }
 
@@ -117,15 +117,18 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
         double excess[8];
         double dist[8];
         int ni[8], nj[8];
-        int count = 0;
         double total_weight = 0.0;
         double dx = 0.5*(p->DXN[IP] + p->DYN[JP]);
+        
+        int count = 0;
         
         // Check all 8 neighbors
         for(int k = 0; k < 8; ++k)
         {
             int di = di_arr[k];
             int dj = dj_arr[k];
+            
+            tan_phi = tan(s->phi(i,j));
             
             // Compute distance
             double d;
@@ -192,49 +195,6 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
     }
 }
 
-
-void sandslide_weighted_multidir::find_steepest_neighbor(lexer* p, slice& zh, int i, int j, int& i_steep, int& j_steep, 
-                                                        double& max_slope, double& dist_steep)
-{
-    double z0 = zh(i,j);
-    double dx = 0.5*(p->DXN[IP] + p->DYN[JP]);
-    max_slope = 0.0;
-    i_steep = i;
-    j_steep = j;
-    dist_steep = dx;
-    
-    // 8-connectivity: check all surrounding cells
-    for(int di = -1; di <= 1; ++di)
-    {
-        for(int dj = -1; dj <= 1; ++dj)
-        {
-            if(di == 0 && dj == 0) 
-            continue;
-                
-            // Compute horizontal distance
-            double dist;
-            if(di != 0 && dj != 0)
-                dist = dx * sqrt(2.0);  // Diagonal: dx * sqrt(2)
-            else
-                dist = dx;              // Cardinal: dx
-                
-            // Elevation difference (positive means neighbor is lower)
-            double dz = z0 - zh(i+di, j+dj);
-                
-            // Slope in this direction
-            double slope = dz / dist;
-                
-            // Track steepest downslope direction
-            if(slope > max_slope)
-            {
-                max_slope = slope;
-                i_steep = i + di;
-                j_steep = j + dj;
-                dist_steep = dist;
-            }
-        }
-    }
-}
 
 double sandslide_weighted_multidir::compute_weight(double excess_slope, int method)
 {
