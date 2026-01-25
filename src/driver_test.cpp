@@ -228,6 +228,27 @@ void driver::func_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	
 }
 
+void driver::pos_test(lexer *p, fdm *a, ghostcell *pgc)
+{	
+
+    if(p->mpirank==0)
+    {
+    cout<<"POS_C 0.001: "<<p->posc_i(0.001)<<endl;
+    cout<<"POS_C 0.008: "<<p->posc_i(0.008)<<endl;
+    cout<<"POS_C 0.012: "<<p->posc_i(0.012)<<endl;
+    cout<<"POS_C 0.018: "<<p->posc_i(0.018)<<endl;
+    cout<<"POS_C 0.022: "<<p->posc_i(0.022)<<endl;
+    cout<<"POS_C 0.722: "<<p->posc_i(0.722)<<endl;
+    
+    cout<<"POS_F 0.001: "<<p->posf_i(0.001)<<endl;
+    cout<<"POS_F 0.008: "<<p->posf_i(0.008)<<endl;
+    cout<<"POS_F 0.012: "<<p->posf_i(0.012)<<endl;
+    cout<<"POS_F 0.018: "<<p->posf_i(0.018)<<endl;
+    cout<<"POS_F 0.022: "<<p->posf_i(0.022)<<endl;
+    cout<<"POS_F 0.722: "<<p->posf_i(0.722)<<endl;
+    }
+}
+
 double driver::calc()
 {
 	

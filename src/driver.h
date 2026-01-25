@@ -140,6 +140,7 @@ public:
     
 	void vec_test(lexer*,fdm*,ghostcell*,field&);
 	void func_test(lexer*,fdm*,ghostcell*,field&);
+    void pos_test(lexer*,fdm*,ghostcell*);
 	double calc();
     
     void stop(lexer*,fdm*,ghostcell*);
