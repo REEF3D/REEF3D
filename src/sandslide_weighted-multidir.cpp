@@ -128,6 +128,9 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
             int di = di_arr[k];
             int dj = dj_arr[k];
             
+            if((di == 0 && dj == 0) || p->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0) 
+            continue;
+            
             tan_phi = tan(s->phi(i,j));
             
             // Compute distance
