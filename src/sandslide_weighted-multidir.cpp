@@ -65,7 +65,7 @@ void sandslide_weighted_multidir::start(lexer *p, ghostcell *pgc, sediment_fdm *
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
     {
-        count=0;
+        slidecount=0;
         
         // fill
         SEDSLICELOOP
@@ -89,9 +89,9 @@ void sandslide_weighted_multidir::start(lexer *p, ghostcell *pgc, sediment_fdm *
 
         pgc->gcsl_start4(p,s->bedzh,1);
 
-        count=pgc->globalimax(count);
+        slidecount=pgc->globalimax(slidecount);
 
-        p->slidecells=count;
+        p->slidecells=slidecount;
         
 
         if(p->mpirank==0)
@@ -160,7 +160,9 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
                 excess[count] = excess_height;
                 weights[count] = compute_weight(excess_slope, weight_method);
                 total_weight += weights[count];
-                count++;
+                ++count;
+                ++slidecount;
+                
             }
         }
         

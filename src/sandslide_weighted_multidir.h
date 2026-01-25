@@ -45,7 +45,7 @@ private:
 
     slice4 fh;
     
-    int gcval_topo,count;
+    int gcval_topo,slidecount;
 
     double fac1, fac2;
     double dh,maxdh,maxdhs,dh_corr;
