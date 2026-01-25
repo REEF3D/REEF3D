@@ -238,15 +238,94 @@ void driver::pos_test(lexer *p, fdm *a, ghostcell *pgc)
     cout<<"POS_C 0.012: "<<p->posc_i(0.012)<<endl;
     cout<<"POS_C 0.018: "<<p->posc_i(0.018)<<endl;
     cout<<"POS_C 0.022: "<<p->posc_i(0.022)<<endl;
-    cout<<"POS_C 0.722: "<<p->posc_i(0.722)<<endl;
+    cout<<"POS_C 0.222: "<<p->posc_i(0.222)<<endl;
     
     cout<<"POS_F 0.001: "<<p->posf_i(0.001)<<endl;
     cout<<"POS_F 0.008: "<<p->posf_i(0.008)<<endl;
     cout<<"POS_F 0.012: "<<p->posf_i(0.012)<<endl;
     cout<<"POS_F 0.018: "<<p->posf_i(0.018)<<endl;
     cout<<"POS_F 0.022: "<<p->posf_i(0.022)<<endl;
-    cout<<"POS_F 0.722: "<<p->posf_i(0.722)<<endl;
+    cout<<"POS_F 0.222: "<<p->posf_i(0.222)<<endl;
     }
+}
+
+void driver::ipol_test(lexer *p, fdm *a, ghostcell *pgc)
+{
+    
+    field1 g(p);
+    
+    LOOP
+    g(i,j,k) = p->XN[IP1];
+    
+    pgc->start1(p,g,1);
+    
+    if(p->mpirank==0)
+    ULOOP
+    if(j==1 && k==20)
+    cout<<"CCIPOL1_X: "<<" i: "<<i<<" "<<p->XN[IP1]+0.5*p->DXN[IP]<<" "<<p->ccipol1(g,p->XN[IP1]+0.5*p->DXN[IP],0.2,0.1)<<endl;
+    
+    
+    ULOOP
+    g(i,j,k) = p->YP[JP];
+    
+    pgc->start1(p,g,1);
+    
+    if(p->mpirank==0)
+    ULOOP
+    if(i==5 && k==20)
+    cout<<"CCIPOL1_Y: "<<p->YP[JP]+0.25*p->DYN[JP]<<" "<<p->ccipol1(g,0.2,p->YP[JP]+0.25*p->DYN[JP],0.1)<<endl;
+    
+    
+    
+    ULOOP
+    g(i,j,k) = p->ZP[KP];
+    
+    pgc->start1(p,g,1);
+    
+    if(p->mpirank==0)
+    ULOOP
+    if(i==5 && j==20)
+    cout<<"CCIPOL1_Z: "<<p->ZP[KP]+0.25*p->DZN[KP]<<" "<<p->ccipol1(g,0.2,0.1,p->ZP[KP]+0.25*p->DZN[KP])<<endl;
+    
+    // -------------------
+    cout<<endl<<endl;
+    
+    field4 f(p);
+    
+    LOOP
+    f(i,j,k) = p->XP[IP];
+    
+    pgc->start4(p,f,1);
+    
+    if(p->mpirank==0)
+    LOOP
+    if(j==1 && k==20)
+    cout<<"CCIPOL4_X: "<<" i: "<<i<<" "<<p->XN[IP1]+0.5*p->DXN[IP]<<" "<<p->ccipol4(f,p->XN[IP1]+0.5*p->DXN[IP],0.2,0.1)<<endl;
+    
+    
+    LOOP
+    f(i,j,k) = p->YP[JP];
+    
+    pgc->start4(p,f,1);
+    
+    if(p->mpirank==0)
+    LOOP
+    if(i==5 && k==20)
+    cout<<"CCIPOL4_Y: "<<p->YP[JP]+0.25*p->DYN[JP]<<" "<<p->ccipol4(f,0.2,p->YP[JP]+0.25*p->DYN[JP],0.1)<<endl;
+    
+    
+    
+    LOOP
+    f(i,j,k) = p->ZP[KP];
+    
+    pgc->start4(p,f,1);
+    
+    if(p->mpirank==0)
+    LOOP
+    if(i==5 && j==20)
+    cout<<"CCIPOL4_Z: "<<p->ZP[KP]+0.25*p->DZN[KP]<<" "<<p->ccipol4(f,0.2,0.1,p->ZP[KP]+0.25*p->DZN[KP])<<endl;
+
+    
 }
 
 double driver::calc()

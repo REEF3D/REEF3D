@@ -31,12 +31,12 @@ double interpolation::ccipol1(field& f, double xp, double yp, double zp)
     jj=j;
     kk=k;
     
-    i = p->posc_i(xp);
+    i = p->posc_i(xp)-1;
     j = p->posf_j(yp);
     k = p->posf_k(zp);
 
     // wa
-    wa = (p->XN[IP2]-xp)/p->DXN[IP1];
+    wa = (p->XN[IP2]-xp)/p->DXN[IP2];
     
     // wb
     wb = (p->YP[JP1]-yp)/p->DYP[JP];
@@ -49,6 +49,8 @@ double interpolation::ccipol1(field& f, double xp, double yp, double zp)
     
     if(p->j_dir==1)
     value = lint1(f,i,j,k,wa,wb,wc);
+    
+    cout<<" | i: "<<i<<" j: "<<j<<" k: "<<k<<" wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<" xp: "<<xp<<" f: "<<f(i,j,k)<<" | ";
 
     i=ii;
     j=jj;
@@ -64,14 +66,14 @@ double interpolation::ccipol2(field& f, double xp, double yp, double zp)
     kk=k;
     
     i = p->posf_i(xp);
-    j = p->posc_j(yp);
+    j = p->posc_j(yp)-1;
     k = p->posf_k(zp);
 		
     // wa
     wa = (p->XP[IP1]-xp)/p->DXP[IP];
     
     // wb
-    wb = (p->YN[JP2]-yp)/p->DYN[JP1];
+    wb = (p->YN[JP2]-yp)/p->DYN[JP2];
     
     //wc
     wc = (p->ZP[KP1]-zp)/p->DZP[KP];
@@ -97,7 +99,7 @@ double interpolation::ccipol3(field& f, double xp, double yp, double zp)
     
     i = p->posf_i(xp);
     j = p->posf_j(yp);
-    k = p->posc_k(zp);
+    k = p->posc_k(zp)-1;
 		
     // wa
     wa = (p->XP[IP1]-xp)/p->DXP[IP];
@@ -106,7 +108,7 @@ double interpolation::ccipol3(field& f, double xp, double yp, double zp)
     wb = (p->YP[JP1]-yp)/p->DYP[JP];
     
     //wc
-    wc = (p->ZN[KP2]-zp)/p->DZN[KP1];
+    wc = (p->ZN[KP2]-zp)/p->DZN[KP2];
     
 
     if(p->j_dir==0)
@@ -147,6 +149,8 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     
     if(p->j_dir==1)
     value = lint4(f,i,j,k,wa,wb,wc);
+    
+    cout<<" | i: "<<i<<" j: "<<j<<" k: "<<k<<" wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<" xp: "<<xp<<" f: "<<f(i,j,k)<<" | ";
 
     i=ii;
     j=jj;
@@ -451,12 +455,12 @@ double interpolation::ccipol1_a(field& f, double xp, double yp, double zp)
     jj=j;
     kk=k;
     
-    i = p->posc_i(xp);
+    i = p->posc_i(xp)+1;
     j = p->posf_j(yp);
     k = p->posf_k(zp);
 
     // wa
-    wa = (p->XN[IP2]-xp)/p->DXN[IP1];
+    wa = (p->XN[IP2]-xp)/p->DXN[IP2];
     
     // wb
     wb = (p->YP[JP1]-yp)/p->DYP[JP];
@@ -480,14 +484,14 @@ double interpolation::ccipol2_a(field& f, double xp, double yp, double zp)
     kk=k;
     
     i = p->posf_i(xp);
-    j = p->posc_j(yp);
+    j = p->posc_j(yp)-1;
     k = p->posf_k(zp);
 		
     // wa
     wa = (p->XP[IP1]-xp)/p->DXP[IP];
     
     // wb
-    wb = (p->YN[JP2]-yp)/p->DYN[JP1];
+    wb = (p->YN[JP2]-yp)/p->DYN[JP2];
     
     //wc
     wc = (p->ZP[KP1]-zp)/p->DZP[KP];
@@ -509,7 +513,7 @@ double interpolation::ccipol3_a(field& f, double xp, double yp, double zp)
     
     i = p->posf_i(xp);
     j = p->posf_j(yp);
-    k = p->posc_k(zp);
+    k = p->posc_k(zp)-1;
 		
     // wa
     wa = (p->XP[IP1]-xp)/p->DXP[IP];
@@ -518,7 +522,7 @@ double interpolation::ccipol3_a(field& f, double xp, double yp, double zp)
     wb = (p->YP[JP1]-yp)/p->DYP[JP];
     
     //wc
-    wc = (p->ZN[KP2]-zp)/p->DZN[KP1];
+    wc = (p->ZN[KP2]-zp)/p->DZN[KP2];
 
     value = lint_a(f,i,j,k,wa,wb,wc);
 
@@ -631,7 +635,7 @@ double interpolation::ccipol1c(field& f, double xp, double yp, double zp)
     k = p->posf_k(zp);
 
     // wa
-    wa = (p->XN[IP2]-xp)/p->DXN[IP1];
+    wa = (p->XN[IP1]-xp)/p->DXN[IP1];
     
     // wb
     wb = (p->YP[JP1]-yp)/p->DYP[JP];
@@ -666,7 +670,7 @@ double interpolation::ccipol2c(field& f, double xp, double yp, double zp)
     wa = (p->XP[IP1]-xp)/p->DXP[IP];
     
     // wb
-    wb = (p->YN[JP2]-yp)/p->DYN[JP1];
+    wb = (p->YN[JP1]-yp)/p->DYN[JP1];
     
     //wc
     wc = (p->ZP[KP1]-zp)/p->DZP[KP];
@@ -701,7 +705,7 @@ double interpolation::ccipol3c(field& f, double xp, double yp, double zp)
     wb = (p->YP[JP1]-yp)/p->DYP[JP];
     
     //wc
-    wc = (p->ZN[KP2]-zp)/p->DZN[KP1];
+    wc = (p->ZN[KP1]-zp)/p->DZN[KP1];
 
     if(p->j_dir==0)
     value = lint3_2D(f,i,j,k,wa,wb,wc);
