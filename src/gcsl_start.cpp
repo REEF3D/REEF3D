@@ -85,6 +85,8 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
         gcsldistro4(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
     endtime=timer();
     p->gctime+=endtime-starttime;
+    
+    solid_forcing_bed(p,f);
 
     //  MPI Boundary Swap
     if(do_comms)

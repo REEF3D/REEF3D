@@ -63,6 +63,8 @@ void ghostcell::solid_forcing_bed(lexer *p, slice &f)
     {
     i=p->gcsldfbed4[n][0];
     j=p->gcsldfbed4[n][1];
+    
+    
 
         if(p->gcsldfbed4[n][3]==1)
         {

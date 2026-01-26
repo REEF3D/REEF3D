@@ -31,7 +31,7 @@ Author: Hans Bihs
 void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
     
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=0;
     
     ILOOP
@@ -64,11 +64,11 @@ void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
-    SLICELOOP4
+   SLICEBASELOOP
     s->active(i,j)=1;
     
     // assign gcsldfbed entries
-    SLICELOOP4
+    SLICEBASELOOP
     {
     k = s->bedk(i,j);
     
@@ -82,12 +82,12 @@ void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=1;
     
     // assign gcsldfbed entries
     k=0;
-    SLICELOOP4
+    SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
@@ -99,12 +99,12 @@ void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=1;
     
     // assign gcsldfbed entries
     k=0;
-    SLICELOOP4
+    SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
@@ -116,10 +116,10 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=1;
     
-    SLICELOOP4
+    SLICEBASELOOP
     if(b->solidbed(i,j) >= s->bedzh(i,j))
     {
     s->active(i,j)=0;
@@ -127,7 +127,7 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     
     // assign gcsldfeta entries
     k=p->knoz-1;
-    SLICELOOP4
+    SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
@@ -140,12 +140,12 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=1;
     
     // assign gcsldfeta entries
     k=p->knoz-1;
-    SLICELOOP4
+    SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;

@@ -122,7 +122,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
 starttime=pgc->timer();
 
     n=0;
-    SLICELOOP4
+    SLICEBASELOOP
 	{
     Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 1.0e-6)*d50;
     
@@ -143,7 +143,7 @@ starttime=pgc->timer();
 	
 	
     n=0;
-	SLICELOOP4
+	SLICEBASELOOP
 	{
 		if(p->flagslice4[Im1J]<0)
 		{

@@ -168,6 +168,15 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     pgc->solid_forcing_eta(p,WL);
     pgc->solid_forcing_eta(p,d->eta);
     pgc->solid_forcing_bed(p,d->bed);
+    
+    GCSL4LOOP
+    {
+    i = p->gcbsl4[n][0];
+    j = p->gcbsl4[n][1];
+    
+    d->test2D(i,j);
+    }
+    
     }
 
     // DLM

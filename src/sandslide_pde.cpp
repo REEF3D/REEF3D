@@ -51,7 +51,7 @@ sandslide_pde::~sandslide_pde()
 void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     
-    SLICELOOP4
+    SLICEBASELOOP
     {
     s->slide_fh(i,j)=0.0;
     ci(i,j)=0.0;
@@ -63,7 +63,7 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         count=0;
         
         // fill
-        SLICELOOP4
+        SLICEBASELOOP
         {
         fh(i,j)=0.0;
         
@@ -76,7 +76,7 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
         
         // slide loop
-        SLICELOOP4
+        SLICEBASELOOP
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
             slide(p,pgc,s);
@@ -85,7 +85,7 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         pgc->gcslparax_fh(p,fh,4);
         
         // fill back
-        SLICELOOP4
+        SLICEBASELOOP
         {
         s->slide_fh(i,j)+=fh(i,j);
         s->bedzh(i,j)+=fh(i,j);
