@@ -142,6 +142,8 @@ public:
 	void func_test(lexer*,fdm*,ghostcell*,field&);
     void pos_test(lexer*,fdm*,ghostcell*);
     void ipol_test(lexer*,fdm*,ghostcell*);
+    void bedslope_test(lexer*,ghostcell*);
+    double bedslope_angle(lexer*,ghostcell*,double,double);
 	double calc();
     
     void stop(lexer*,fdm*,ghostcell*);

@@ -44,7 +44,9 @@ void driver::loop_nhflow()
     if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;
     
-//-----------MAINLOOP NSEWAVE----------------------------
+    //bedslope_test(p,pgc);
+    
+//-----------MAINLOOP NHFLOW----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{		
         ++p->count;

@@ -47,6 +47,7 @@ void driver::loop_cfd(fdm* a)
     //vec_test(p,a,pgc,a->test);
     //pos_test(p,a,pgc);
     //ipol_test(p,a,pgc);
+    //bedslope_test(p,pgc);
     
 //-----------MAINLOOP CFD----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)

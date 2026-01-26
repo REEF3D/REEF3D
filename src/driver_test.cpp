@@ -333,3 +333,63 @@ double driver::calc()
 	
 	return val;
 }
+
+void driver::bedslope_test(lexer *p, ghostcell *pgc)
+{
+    double uvel,vvel,beta;
+    
+    int num = 100;
+    
+    
+    if(p->mpirank==0)
+    {
+	beta = bedslope_angle(p,pgc,1.0,0.5);
+    beta = bedslope_angle(p,pgc,-1.0,0.5);
+    beta = bedslope_angle(p,pgc,-1.0,-0.5);
+    beta = bedslope_angle(p,pgc,1.0,-0.5);
+    }
+
+}
+
+
+double driver::bedslope_angle(lexer *p, ghostcell *pgc, double uvel, double vvel)
+{
+    double beta;
+    
+	// 1
+	if(uvel>0.0 && vvel>0.0 && fabs(uvel)>1.0e-10)
+	beta = atan(fabs(vvel/uvel));
+
+	// 2
+	if(uvel<0.0 && vvel>0.0 && fabs(vvel)>1.0e-10)
+	beta = PI*0.5 + atan(fabs(uvel/vvel));
+
+	// 3
+	if(uvel<0.0 && vvel<0.0 && fabs(uvel)>1.0e-10)
+	beta = PI + atan(fabs(vvel/uvel));
+
+	// 4
+	if(uvel>0.0 && vvel<0.0 && fabs(vvel)>1.0e-10)
+	beta = 1.5*PI + atan(fabs(uvel/vvel));
+
+	//------
+
+	if(uvel>0.0 && fabs(vvel)<=1.0e-10)
+	beta = 0.0;
+
+	if(fabs(uvel)<=1.0e-10 && vvel>0.0)
+	beta = PI*0.5;
+
+	if(uvel<0.0 && fabs(vvel)<=1.0e-10)
+	beta = PI;
+
+	if(fabs(uvel)<=1.0e-10 && vvel<0.0)
+	beta = PI*1.5;
+
+	if(fabs(uvel)<=1.0e-10 && fabs(vvel)<=1.0e-10)
+	beta = 0.0;
+    
+    cout<<"UVEL: "<<uvel<<" VVEL: "<<vvel<<" BETA: "<<180.0*beta/PI<<endl;
+   
+    return beta;
+}
