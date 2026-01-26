@@ -462,7 +462,7 @@ double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, doubl
     v7=f(i+1,j,k+1);
     v8=f(i+1,j+1,k+1);
 
-    /*
+    
     if(p->flagsf4[IJK]<0)
     v1=f(i,j,k+1);
     if(p->flagsf4[IJp1K]<0)
@@ -478,7 +478,7 @@ double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, doubl
     if(p->flagsf4[Ip1JKp1]<0)
     v7=f(i+1,j,k+2);
     if(p->flagsf4[Ip1Jp1Kp1]<0)
-    v8=f(i+1,j+1,k+2);*/
+    v8=f(i+1,j+1,k+2);
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
