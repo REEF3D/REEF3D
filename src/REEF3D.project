@@ -210,14 +210,8 @@
             <File Name="potential_f.h"/>
             <File Name="potential.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Position">
-            <File Name="position.h"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Normal Vector">
             <File Name="norm_vec.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Interpolation">
-            <File Name="interpolation.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Initialize">
             <File Name="initialize.h"/>
@@ -225,7 +219,6 @@
           <VirtualDirectory Name="Gradient">
             <File Name="gradient.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Geometry"/>
           <VirtualDirectory Name="Function">
             <File Name="linear_regression_cont.h"/>
           </VirtualDirectory>
@@ -951,6 +944,14 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <VirtualDirectory Name="Tools">
+        <VirtualDirectory Name="Position">
+          <File Name="position.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Interpolation">
+          <File Name="interpolation.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="Geometry">
         <VirtualDirectory Name="Geo_Func">
           <File Name="geo_func_sflow.h"/>
@@ -1209,27 +1210,8 @@
             <File Name="potential_v.cpp"/>
             <File Name="potential_f.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Position">
-            <File Name="position_xyz.cpp"/>
-            <File Name="position_ijk_face.cpp"/>
-            <File Name="position_ijk_center.cpp"/>
-            <File Name="position_ihalf.cpp"/>
-            <File Name="position_conv.cpp"/>
-            <File Name="position.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Normal Vector">
             <File Name="norm_vec.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Interpolation">
-            <File Name="interpolation_tricubic.cpp"/>
-            <File Name="interpolation_slipol.cpp"/>
-            <File Name="interpolation_lintsl.cpp"/>
-            <File Name="interpolation_lint_2D.cpp"/>
-            <File Name="interpolation_lint.cpp"/>
-            <File Name="interpolation_ipol.cpp"/>
-            <File Name="interpolation_ccslipol.cpp"/>
-            <File Name="interpolation_ccipol.cpp"/>
-            <File Name="interpolation.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Initialize">
             <File Name="initialize.cpp"/>
@@ -2753,6 +2735,27 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <VirtualDirectory Name="Tools">
+        <VirtualDirectory Name="Position">
+          <File Name="position_xyz.cpp"/>
+          <File Name="position_ijk_face.cpp"/>
+          <File Name="position_ijk_center.cpp"/>
+          <File Name="position_ihalf.cpp"/>
+          <File Name="position_conv.cpp"/>
+          <File Name="position.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Interpolation">
+          <File Name="interpolation_tricubic.cpp"/>
+          <File Name="interpolation_slipol.cpp"/>
+          <File Name="interpolation_lintsl.cpp"/>
+          <File Name="interpolation_lint_2D.cpp"/>
+          <File Name="interpolation_lint.cpp"/>
+          <File Name="interpolation_ipol.cpp"/>
+          <File Name="interpolation_ccslipol.cpp"/>
+          <File Name="interpolation_ccipol.cpp"/>
+          <File Name="interpolation.cpp"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="Geometry">
         <VirtualDirectory Name="Geo_Container">
           <File Name="geo_container.cpp"/>
