@@ -41,7 +41,7 @@ int position::posf_i(double xs)
         // matching criterion
         if(xs<p->XP[iloc+marge] && xs>=p->XP[iloc-1+marge])
         {
-            ii = iloc;
+            ii = iloc-1;
             
          stop=1;
          break;   
@@ -49,7 +49,7 @@ int position::posf_i(double xs)
         
         if(xs>=p->XP[iloc+marge] && xs<p->XP[iloc+1+marge])
         {
-            ii = iloc+1;
+            ii = iloc;
    
          stop=1;
          break;   
@@ -67,7 +67,7 @@ int position::posf_i(double xs)
         // out of bounds
         if(xs>p->XP[p->knox-1+marge])
         {
-            ii = p->knox+1;
+            ii = p->knox;
             
          stop=1;
          break;   
@@ -83,7 +83,7 @@ int position::posf_i(double xs)
         ++count;
     }while(stop==0 && count<1000);
     
-    ii=MAX(ii,0);
+    ii=MAX(ii,-1);
     ii=MIN(ii,p->knox);
     
     return ii;
@@ -117,7 +117,7 @@ int position::posf_j(double ys)
         // out of bounds
         if(ys>p->YP[p->knoy-1+marge])
         {
-            jj = p->knoy+1;
+            jj = p->knoy;
             
             //cout<<"EXIT 0p  "<<p->YP[p->knoy-1]<<endl;
    
@@ -128,7 +128,7 @@ int position::posf_j(double ys)
         // matching criterion
         if(ys<p->YP[jloc+marge] && ys>=p->YP[jloc-1+marge])
         {
-            jj = jloc;
+            jj = jloc-1;
             
             //cout<<"EXIT 1"<<endl;
             
@@ -138,7 +138,7 @@ int position::posf_j(double ys)
         
         if(ys>=p->YP[jloc+marge] && ys<p->YP[jloc+1+marge])
         {
-            jj = jloc+1;
+            jj = jloc;
             
             //cout<<"EXIT 2"<<endl;
    
@@ -157,7 +157,7 @@ int position::posf_j(double ys)
         ++count;
     }while(stop==0 && count<1000);
     
-    jj=MAX(jj,0);
+    jj=MAX(jj,-1);
     jj=MIN(jj,p->knoy);
     
     return jj;
@@ -191,7 +191,7 @@ int position::posf_k(double zs)
         // out of bounds
         if(zs>p->ZP[p->knoz-1+marge])
         {
-            kk = p->knoz+1;
+            kk = p->knoz;
 
          stop=1;
          break;   
@@ -200,7 +200,7 @@ int position::posf_k(double zs)
         // matching criterion
         if(zs<p->ZP[kloc+marge] && zs>=p->ZP[kloc-1+marge])
         {
-            kk = kloc;
+            kk = kloc-1;
             
          stop=1;
          break;   
@@ -208,7 +208,7 @@ int position::posf_k(double zs)
         
         if(zs>=p->ZP[kloc+marge] && zs<p->ZP[kloc+1+marge])
         {
-            kk = kloc+1;
+            kk = kloc;
 
          stop=1;
          break;   
@@ -255,7 +255,7 @@ int position::posf_k(double zs)
         // out of bounds
         if(zs>p->ZSP[p->knoz-1+marge])
         {
-            kk = p->knoz+1;
+            kk = p->knoz;
 
          stop=1;
          break;   
@@ -264,7 +264,7 @@ int position::posf_k(double zs)
         // matching criterion
         if(zs<p->ZSP[kloc+marge] && zs>=p->ZSP[kloc-1+marge])
         {
-            kk = kloc;
+            kk = kloc-1;
             
          stop=1;
          break;   
@@ -272,7 +272,7 @@ int position::posf_k(double zs)
         
         if(zs>=p->ZSP[kloc+marge] && zs<p->ZSP[kloc+1+marge])
         {
-            kk = kloc+1;
+            kk = kloc;
 
          stop=1;
          break;   
@@ -289,7 +289,7 @@ int position::posf_k(double zs)
         ++count;
     }while(stop==0 && count<1000);
     
-    kk=MAX(kk,0);
+    kk=MAX(kk,-1);
     kk=MIN(kk,p->knoz);
         
     }
@@ -337,7 +337,7 @@ int position::posf_sig(int ii, int jj, double zs)
         // out of bounds
         if(zs>p->ZSP[IJK_end])
         {
-            kk = p->knoz+1;
+            kk = p->knoz;
 
          stop=1;
          break;   
@@ -346,7 +346,7 @@ int position::posf_sig(int ii, int jj, double zs)
         // matching criterion
         if(zs<p->ZSP[IJK] && zs>=p->ZSP[IJKm1])
         {
-            kk = kloc;
+            kk = kloc-1;
             
          stop=1;
          break;   
@@ -354,7 +354,7 @@ int position::posf_sig(int ii, int jj, double zs)
         
         if(zs>=p->ZSP[IJK] && zs<p->ZSP[IJKp1])
         {
-            kk = kloc+1;
+            kk = kloc;
 
          stop=1;
          break;   
@@ -371,7 +371,7 @@ int position::posf_sig(int ii, int jj, double zs)
         ++count;
     }while(stop==0 && count<1000);
     
-    kk=MAX(kk,0);
+    kk=MAX(kk,-1);
     kk=MIN(kk,p->knoz);
         
     

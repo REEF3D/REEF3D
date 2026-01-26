@@ -50,7 +50,7 @@ double interpolation::ccipol1(field& f, double xp, double yp, double zp)
     if(p->j_dir==1)
     value = lint1(f,i,j,k,wa,wb,wc);
     
-    cout<<" | i: "<<i<<" j: "<<j<<" k: "<<k<<" wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<" xp: "<<xp<<" f: "<<f(i,j,k)<<" | ";
+    //cout<<" | i: "<<i<<" j: "<<j<<" k: "<<k<<" wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<" xp: "<<xp<<" f: "<<f(i,j,k)<<" | ";
 
     i=ii;
     j=jj;
@@ -150,7 +150,7 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     if(p->j_dir==1)
     value = lint4(f,i,j,k,wa,wb,wc);
     
-    cout<<" | i: "<<i<<" j: "<<j<<" k: "<<k<<" wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<" xp: "<<xp<<" f: "<<f(i,j,k)<<" | ";
+    //cout<<" | i: "<<i<<" j: "<<j<<" k: "<<k<<" wa: "<<wa<<" wb: "<<wb<<" wc: "<<wc<<" xp: "<<xp<<" yp: "<<yp<<" zp: "<<zp<<" | ";
 
     i=ii;
     j=jj;
