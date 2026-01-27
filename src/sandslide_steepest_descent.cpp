@@ -158,7 +158,7 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
     {
         for(int dj = -1; dj <= 1; ++dj)
         {
-            if((di == 0 && dj == 0) || p->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0) 
+            if((di == 0 && dj == 0)||p->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0) 
             continue;
                 
             // Compute horizontal distance
