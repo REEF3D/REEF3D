@@ -708,9 +708,10 @@ void lexer::ini_default()
     S26_a=650.0;          // double alpha for VRANS sediment
     S26_b=2.2;            // double beta for VRANS sediment
     S27=1;              // int number of inner iterations
+    S28=1;              // int use S21 in roughness BC
     S30=0.047;          // double Shields parameter
     S31=2;              // int type of Exner formulation
-    S32=4;              // int exner discretization
+    S32=1;              // int exner discretization
     S33=1;              // int type of near bead velocity interpolation
     S34=1;              // int type of suspedned load D and E calculation
 	S37=2;		        // int number reini time step

@@ -94,10 +94,10 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	k=kk;
     
     if(cs==2 || cs==3)
-    dist=p->DYN[JP];
+    dist=0.5*p->DYN[JP];
     
     if(cs==5 || cs==6)
-    dist=p->DZN[KP];
+    dist=0.5*p->DZN[KP];
 	
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
@@ -120,10 +120,10 @@ void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	k=kk;
     
     if(cs==1 || cs==4)
-    dist=p->DXN[IP];
+    dist=0.5*p->DXN[IP];
     
     if(cs==5 || cs==6)
-    dist=p->DZN[KP];
+    dist=0.5*p->DZN[KP];
     
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
@@ -142,10 +142,10 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	k=kk;
     
     if(cs==1 || cs==4)
-    dist=p->DXN[IP];
+    dist=0.5*p->DXN[IP];
     
     if(cs==2 || cs==3)
-    dist=p->DYN[JP];
+    dist=0.5*p->DYN[JP];
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 

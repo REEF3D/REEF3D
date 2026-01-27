@@ -46,7 +46,7 @@ void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice
     
     SLICELOOP4
     {
-    dist=p->DZN[KP]*WL(i,j);
+    dist=0.5*p->DZN[KP]*WL(i,j);
 	
 	ks=d->ks(i,j);
 
@@ -70,7 +70,7 @@ void nhflow_bcmom::roughness_v(lexer* p, fdm_nhf *d, double *V, double *G, slice
     
     SLICELOOP4
     {
-    dist=p->DZN[KP]*WL(i,j);
+    dist=0.5*p->DZN[KP]*WL(i,j);
 	
 	ks=d->ks(i,j);
 

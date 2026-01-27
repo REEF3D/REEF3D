@@ -96,7 +96,11 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->ks(i,j) = p->B50;
     
-    if(p->S10>0)
+    if(p->S10>0 && p->S28==0)
+    SLICELOOP4
+    d->ks(i,j) = p->S20;
+    
+    if(p->S10>0 && p->S28==1)
     SLICELOOP4
     d->ks(i,j) = p->S21*p->S20;
     
