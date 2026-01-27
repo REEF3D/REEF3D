@@ -95,14 +95,14 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     count=0;
     LOOP
     {
-	if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
-    {
-    zdist = 0.5*p->DZN[KP];
-    
-	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
-    //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
-    }
-	
+        if(p->DF[IJK]>0)
+        if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
+        {
+        zdist = 0.5*p->DZN[KP];
+        
+        a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
+        //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
+        }
 	++count;
     }
 }
@@ -120,31 +120,31 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
             a->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
+            if(p->flag4[Ip1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0))
             {
             a->rhsvec.V[n] -= a->M.n[n]*conc(i,j,k);
             a->M.n[n] = 0.0;
             }
             
-            if((p->flag4[IJm1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0)) && p->j_dir==1)
+            if((p->flag4[IJm1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1)
             {
             a->rhsvec.V[n] -= a->M.e[n]*conc(i,j,k);
             a->M.e[n] = 0.0;
             }
             
-            if((p->flag4[IJp1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0)) && p->j_dir==1)
+            if((p->flag4[IJp1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1)
             {
             a->rhsvec.V[n] -= a->M.w[n]*conc(i,j,k);
             a->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
+            if(p->flag4[IJKm1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0))
             {
             a->rhsvec.V[n] -= a->M.b[n]*conc(i,j,k);
             a->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
+            if(p->flag4[IJKp1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0))
             {
             a->rhsvec.V[n] -= a->M.t[n]*conc(i,j,k);
             a->M.t[n] = 0.0;
