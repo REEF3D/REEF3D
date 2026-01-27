@@ -103,7 +103,13 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
                 wvel=d->W[IJK];
 
                 if(k==0 && p->S10>0)
+                {
                 ks = p->S20*p->S21;
+                
+                uvel = 0.5*(d->U[IJK]+d->U[IJKp1]);
+                vvel = 0.5*(d->V[IJK]+d->V[IJKp1]);
+                wvel = 0.5*(d->W[IJK]+d->W[IJKp1]);
+                }
 
                 u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 
