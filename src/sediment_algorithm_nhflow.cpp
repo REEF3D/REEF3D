@@ -101,6 +101,10 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
+    
+    k=0;
+    SLICELOOP4
+    d->test2D(i,j) = d->KIN[IJK];
 }
 
 void sediment_f::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv)
