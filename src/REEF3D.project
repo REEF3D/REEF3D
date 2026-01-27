@@ -814,7 +814,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Suspended">
           <VirtualDirectory Name="NHFLOW">
-            <File Name="nhflow_suspended_RK2.h"/>
             <File Name="nhflow_suspended_IM1.h"/>
             <File Name="nhflow_suspended_void.h"/>
             <File Name="nhflow_suspended.h"/>
@@ -2283,7 +2282,6 @@
         <VirtualDirectory Name="Suspended">
           <VirtualDirectory Name="NHFLOW">
             <File Name="nhflow_suspended_void.cpp"/>
-            <File Name="nhflow_suspended_RK2.cpp"/>
             <File Name="nhflow_suspended_IM1.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="CFD">
