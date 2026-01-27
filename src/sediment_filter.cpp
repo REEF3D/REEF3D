@@ -40,7 +40,7 @@ void sediment_f::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int i
         // predictor
 		SLICEBASELOOP
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-		f(i,j) = 0.5*h(i,j) + 0.125*(h(i-1,j) + h(i+1,j) + h(i,j-1) + h(i,j+1));
+		f(i,j) = p->S102*h(i,j) + (1.0-p->S102)*0.25*(h(i-1,j) + h(i+1,j) + h(i,j-1) + h(i,j+1));
 		
         // corrector
 		for(int qqn=0;qqn<inner_iter;++qqn)
@@ -52,7 +52,7 @@ void sediment_f::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int i
             
             SLICEBASELOOP
             if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-            dh(i,j) = 0.5*dh(i,j) + 0.125*(dh(i-1,j) + dh(i+1,j) + dh(i,j-1) + dh(i,j+1));
+            dh(i,j) = p->S102*dh(i,j) + (1.0-p->S102)*0.25*(dh(i-1,j) + dh(i+1,j) + dh(i,j-1) + dh(i,j+1));
             
             SLICEBASELOOP
             if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
