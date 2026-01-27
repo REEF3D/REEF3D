@@ -97,7 +97,7 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
 
         if(k==0)
         {
-        zdist = p->DZN[KP]*d->WL(i,j);
+        zdist = 0.5*p->DZN[KP]*d->WL(i,j);
         d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
         
         //d->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
@@ -116,39 +116,39 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
         {
             if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))
             {
-            d->rhsvec.V[n] -= d->M.s[n]*CONC[Im1JK];
+            d->rhsvec.V[n] -= d->M.s[n]*CONC[IJK];
             d->M.s[n] = 0.0;
             }
             
             if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))
             {
-            d->rhsvec.V[n] -= d->M.n[n]*CONC[Ip1JK];
+            d->rhsvec.V[n] -= d->M.n[n]*CONC[IJK];
             d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0))
             {
-            d->rhsvec.V[n] -= d->M.e[n]*CONC[IJm1K];
+            d->rhsvec.V[n] -= d->M.e[n]*CONC[IJK];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0))
             {
-            d->rhsvec.V[n] -= d->M.w[n]*CONC[IJp1K];
+            d->rhsvec.V[n] -= d->M.w[n]*CONC[IJK];
             d->M.w[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJKm1];
+            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJK];
             d->M.b[n] = 0.0;
             }
             
             if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*CONC[IJKp1];
+            d->rhsvec.V[n] -= d->M.t[n]*CONC[IJK];
             d->M.t[n] = 0.0;
             }
 
