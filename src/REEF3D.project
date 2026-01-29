@@ -2296,6 +2296,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Exner">
+          <File Name="sediment_exner_filter.cpp"/>
           <File Name="sediment_exner_susp_qb.cpp"/>
           <File Name="sediment_exner_noneq.cpp"/>
           <File Name="sediment_exner_topovel.cpp"/>
