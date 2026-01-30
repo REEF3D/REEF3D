@@ -52,13 +52,11 @@ private:
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
     
-    void filter(lexer*,ghostcell*,slice&,int,int);
-    
+    void filter(lexer*,ghostcell*,slice&,int,int);   
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;
-    
-    vec2D xvec,rhsvec;
+        vec2D xvec,rhsvec;
 
 	matrix2D M;
     slice4 qbx,qby,vztemp,dh1,dh2;

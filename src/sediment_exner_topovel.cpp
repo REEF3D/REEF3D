@@ -200,39 +200,3 @@ void sediment_exner::topovel3(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     pgc->gcsl_start4(p,s->vz,1);
 }
-
-void sediment_exner::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
-{
-    slice4 h(p),dh(p); 
-	
-	for(int qn=0;qn<outer_iter;++qn)
-	{
-		SEDSLICELOOP
-        if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-		h(i,j) = f(i,j);
-		
-		pgc->gcsl_start4(p,h,1);
-	
-        // predictor
-		SEDSLICELOOP
-        if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-		f(i,j) = 0.5*h(i,j) + 0.125*(h(i-1,j) + h(i+1,j) + h(i,j-1) + h(i,j+1));
-		
-        // corrector
-		for(int qqn=0;qqn<inner_iter;++qqn)
-		{
-            SEDSLICELOOP
-            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-            dh(i,j) = h(i,j) - f(i,j);
-            
-            
-            SEDSLICELOOP
-            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-            dh(i,j) = 0.5*dh(i,j) + 0.125*(dh(i-1,j) + dh(i+1,j) + dh(i,j-1) + dh(i,j+1));
-            
-            SEDSLICELOOP
-            if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-            f(i,j) += dh(i,j);
-		}
-    }
-}

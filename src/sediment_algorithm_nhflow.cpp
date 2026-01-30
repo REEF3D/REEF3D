@@ -83,8 +83,8 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
 	prelax->start(p,pgc,s);
 	
     // filter bedzh *******
-	if(p->S100>0)
-	filter(p,pgc,s->bedzh,p->S100,p->S101);
+	//if(p->S100>0)
+	//filter(p,pgc,s->bedzh,p->S100,p->S101);
     
     // update sflow  --------
     update_nhflow(p,d,pgc,pflow);

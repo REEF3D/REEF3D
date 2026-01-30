@@ -103,6 +103,9 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     
     if(p->S31==3)
     topovel3(p,pgc,s);
+    
+    if(p->S100>0)
+	filter(p,pgc,s->vz,p->S100,p->S101);
 
 	
     // Bedch
