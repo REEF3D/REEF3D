@@ -86,8 +86,8 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
 	prelax->start(p,pgc,s);
 	
     // filter bedzh *******
-	if(p->S100>0)
-	filter(p,pgc,s->bedzh,p->S100,p->S101);
+	//if(p->S100>0)
+	//filter(p,pgc,s->bedzh,p->S100,p->S101);
     
     // update cfd  --------
     update_cfd(p,a,pgc,pflow,preto);
