@@ -1,4 +1,32 @@
 
+26.01
+x fixed a suspended sediment unstability (CFD)
+x updated sediment filter algorithm 
+x updated sediment bedshear stress calculation (CFD)
+x updated rough wall function (NHFLOW, CFD)
+x added steepest descent sandslide algorithm
+x added weighted multi-directional sandslide algorithm
+x fixed net print counter
+x fixed roughness boundary condition for shallow flow (NHFLOW)
+x updated wavemaker wave generation (FNPF)
+x updated space-time wave decomposition (FNPF)
+x fixed timestep calculation for dry subdomains (FNPF)
+x fixed dynamic net
+x fixed velocity probes (NHFLOW)
+x updated ccipol interplation
+x reorganized source code structure
+x added new CPM lithostatic pressure
+x added new CPM seeding
+x added new CPM timestepping
+x added CPM vtu print pout
+x fixed CPM volume fraction calculation
+x added Smith and Banke, Garratt and Zijlema wind drag coefficients (NHFLOW)
+x added option for wind forcing for wave crest only (NHFLOW)
+x improved full wave initialization (FNPF)
+x added emergency stop for hypre error
+x updated sediment settling velocity calculation
+x updated suspended sediment transport (NHFLOW, CFD)
+
 25.12
 x fixed wavegentime calculation
 x fixed a wetdry issuse (FNPF)
