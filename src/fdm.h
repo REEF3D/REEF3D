@@ -69,8 +69,6 @@ public:
 	field4 L;
 	field4 ro,dro,visc;
 	field4 phi;
-    field4 phasemarker;
-    field4 vof, vof_nt,vof_nb,vof_st,vof_sb;
 	field4 conc;
     field4 test;
 	field4a topo,solid;
@@ -90,6 +88,10 @@ public:
     
     //PLIC
     field4 nX,nY,nZ,Alpha;
+    field4 phasemarker;
+    field4 vof;
+    field4 vof_nt,vof_nb,vof_st,vof_sb; //2D
+    field4 vof_nte,vof_ntw,vof_nbe,vof_nbw,vof_ste,vof_stw,vof_sbe,vof_sbw; //3D
     
     // PTF
     slice4 eta,eta_n,depth,WL;
