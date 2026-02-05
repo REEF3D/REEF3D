@@ -67,6 +67,10 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="Komega_PLIC">
+            <File Name="komega_IM1_PLIC.h"/>
+            <File Name="komega_func_PLIC.h"/>
+          </VirtualDirectory>
           <File Name="turbulence.h"/>
           <VirtualDirectory Name="Strain">
             <File Name="strain.h"/>
@@ -249,6 +253,7 @@
             <File Name="fluid_update.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Diffusion">
+            <File Name="idiff2_PLIC.h"/>
             <File Name="idiff2_PLIC_2D.h"/>
             <File Name="idiff2_FS_2D.h"/>
             <File Name="idiff2_FS.h"/>
@@ -873,6 +878,8 @@
         <File Name="heat_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Benchmarks">
+        <File Name="benchmark_disk_xy.h"/>
+        <File Name="benchmark_disk_yz.h"/>
         <File Name="benchmark_TaylorGreen.h"/>
         <File Name="benchmark.h"/>
         <File Name="benchmark_disk.h"/>
@@ -1260,6 +1267,10 @@
             <File Name="fluid_update_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Diffusion">
+            <File Name="idiff2_PLIC-scalar.cpp"/>
+            <File Name="idiff2_PLICu.cpp"/>
+            <File Name="idiff2_PLICv.cpp"/>
+            <File Name="idiff2_PLICw.cpp"/>
             <File Name="idiff_PLIC_2D-scalar.cpp"/>
             <File Name="idiff_FS_2D-scalar.cpp"/>
             <File Name="idiff2_scalar.cpp"/>
@@ -1335,6 +1346,10 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
+          <VirtualDirectory Name="komega_PLIC">
+            <File Name="komega_IM1_PLIC.cpp"/>
+            <File Name="komega_func_PLIC.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Strain">
             <File Name="strain_rotation.cpp"/>
             <File Name="strain_Pk.cpp"/>
@@ -1484,22 +1499,23 @@
         <VirtualDirectory Name="Free Surface">
           <VirtualDirectory Name="VOF PLIC">
             <File Name="VOF_void.cpp"/>
-            <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
-            <File Name="VOF_PLIC_reconstruction_alt.cpp"/>
-            <File Name="VOF_PLIC_normalVector.cpp"/>
-            <File Name="VOF_PLIC_inilsVOF.cpp"/>
-            <File Name="VOF_PLIC.cpp"/>
             <VirtualDirectory Name="FCRK3_functions">
+              <File Name="VOF_PLIC_COSMIC3D_fieldloops.cpp"/>
               <File Name="VOF_PLIC_updatePlaneData.cpp"/>
-              <File Name="VOF_PLIC_updatePhasemarkers.cpp"/>
               <File Name="VOF_PLIC_surfaceTension.cpp"/>
-              <File Name="VOF_PLIC_RKcalcL.cpp"/>
+              <File Name="VOF_PLIC_calculateSubFracions.cpp"/>
+              <File Name="VOF_PLIC_updatePhasemarkers.cpp"/>
               <File Name="VOF_PLIC_RK_transportVOF.cpp"/>
+              <File Name="VOF_PLIC_RK_advection.cpp"/>
               <File Name="VOF_PLIC_RK_schemefuncs.cpp"/>
               <File Name="VOF_PLIC_RK_redistance.cpp"/>
-              <File Name="VOF_PLIC_RK_advection.cpp"/>
-              <File Name="VOF_PLIC_calculateSubFracions.cpp"/>
+              <File Name="VOF_PLIC_RKcalcL.cpp"/>
             </VirtualDirectory>
+            <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
+            <File Name="VOF_PLIC_reconstruction_alt.cpp"/>
+            <File Name="VOF_PLIC_inilsVOF.cpp"/>
+            <File Name="VOF_PLIC_normalVector.cpp"/>
+            <File Name="VOF_PLIC.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VOF Algebraic">
             <File Name="VOF_RK3.cpp"/>
@@ -2227,6 +2243,8 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Benchmarks">
+        <File Name="benchmark_disk_xy.cpp"/>
+        <File Name="benchmark_disk_yz.cpp"/>
         <File Name="benchmark_TaylorGreen.cpp"/>
         <File Name="benchmark_disk.cpp"/>
         <File Name="benchmark_void.cpp"/>

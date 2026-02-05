@@ -47,6 +47,8 @@ void VOF_PLIC::RKcalcL
             sSweep++;
         else
             sSweep=0;
+            
+    symmetric_scheme3D_FCRK3(a,p,pgc,uvel,vvel,wvel);
     }
     else
     {
@@ -54,7 +56,9 @@ void VOF_PLIC::RKcalcL
             sSweep++;
         else
             sSweep=0;
-    }
+            
     symmetric_scheme2D_FCRK3(a,p,pgc,uvel,vvel,wvel);
+    }
+    
     
 }

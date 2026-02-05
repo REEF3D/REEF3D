@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2026 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,40 +20,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef CONVECTION_HEADER_H_
-#define CONVECTION_HEADER_H_
+#ifndef KOMEGA_IM1_PLIC_H_
+#define KOMEGA_IM1_PLIC_H_
 
-#include"convection_void.h"
-#include"fou.h"
-#include"ifou.h"
-#include"cds2.h"
-#include"hcds6.h"
-#include"cds2_alt.h"
-#include"cds4.h"
-#include"quick.h"
-#include"weno_hj.h"
-#include"weno_hj_nug.h"
-#include"weno_hj_df_nug.h"
-#include"weno_flux.h"
-#include"weno_flux_nug.h"
-#include"iweno_hj.h"
-#include"iweno_hj_nug.h"
-#include"iweno_hj_df_nug.h"
-#include"weno3_hj.h"
-#include"weno3_flux.h"
-#include"diff_void.h"
-#include"ediff2.h"
-#include"idiff2.h"
-#include"idiff2_FS.h"
-#include"idiff2_CN.h"
-#include"idiff2_FS_2D.h"
-#include"idiff2_PLIC_2D.h"
-#include"idiff2_PLIC.h"
+#include"komega_func_PLIC.h"
+#include"field4.h"
 
-#include"hires.h"
+using namespace std;
 
-#include"hric.h"
-#include"hric_mod.h"
-#include"cicsam.h"
+class komega_IM1_PLIC : public komega_func_PLIC
+{
+public:
+	komega_IM1_PLIC(lexer *, fdm*, ghostcell*);
+	virtual ~komega_IM1_PLIC();
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
+	virtual void ktimesave(lexer*, fdm*, ghostcell*);
+	virtual void etimesave(lexer*, fdm*, ghostcell*);
+	void timesource(lexer*,fdm*,field&);
+	void clearrhs(lexer*,fdm*);
+
+private:
+    int gcval_kin, gcval_eps;
+    int count,q;
+    double aii;
+};
 
 #endif
+
