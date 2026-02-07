@@ -29,7 +29,6 @@ Author: Hans Bihs
 
 fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p) 
 {
-    
 }
 
 fnpf_laplace_cds2::~fnpf_laplace_cds2()
@@ -44,6 +43,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     p->poissoniter=0;
     p->poissontime=0.0;
     double starttime,endtime;
+
     
     starttime=pgc->timer();
     
@@ -245,6 +245,8 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     p->poissoniter+=p->solveriter;
     p->poissontime+=endtime-starttime;
+    p->laplacetime+=p->poissontime;
+    
     
     
 	if(p->mpirank==0 && (p->count%p->P12==0))

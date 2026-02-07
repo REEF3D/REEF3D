@@ -97,12 +97,13 @@ void driver::loop_fnpf()
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
 		
-		if(p->B90>0)
+		
         if(p->count%p->P12==0)
         {
+        if(p->B90>0)
 		cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
 		
-		cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
+		cout<<"laplacetime: "<<setprecision(3)<<p->laplacetime<<"   laplace cost: "<<100.0*p->laplacetime/p->itertime<<" %"<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
         cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
 		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
@@ -114,6 +115,7 @@ void driver::loop_fnpf()
     p->xtime=0.0;
 	p->reinitime=0.0;
 	p->wavecalctime=0.0;
+    p->laplacetime=0.0;
     
     stop(p,a,pgc);
 	}

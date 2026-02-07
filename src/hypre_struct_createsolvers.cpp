@@ -131,15 +131,22 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     {
     HYPRE_StructPFMGCreate(pgc->mpi_comm, &solver);
 	HYPRE_StructPFMGSetMaxIter(solver, p->N46);
-	HYPRE_StructPFMGSetTol(solver, p->N44);
-	HYPRE_StructPFMGSetZeroGuess(solver);		
-	HYPRE_StructPFMGSetRAPType(solver, 0);
-	HYPRE_StructPFMGSetRelaxType(solver, 1);
-	HYPRE_StructPFMGSetNumPreRelax(solver, 1);
-	HYPRE_StructPFMGSetNumPostRelax(solver, 1);
+	HYPRE_StructPFMGSetTol(solver, 1e-6);
+	HYPRE_StructPFMGSetNonZeroGuess(solver);		
+	//HYPRE_StructPFMGSetRAPType(solver, 0);
+	//HYPRE_StructPFMGSetRelaxType(solver, 1);
+	//HYPRE_StructPFMGSetNumPreRelax(solver, 1);
+	//HYPRE_StructPFMGSetNumPostRelax(solver, 1);
 	HYPRE_StructPFMGSetSkipRelax(solver, 0);
 	HYPRE_StructPFMGSetPrintLevel(solver, 0);
 	HYPRE_StructPFMGSetLogging(solver, 0);
+    
+    HYPRE_StructPFMGSetRelaxType(solver, 3); // Red-Black Gauss-Seidel
+    HYPRE_StructPFMGSetNumPreRelax(solver, 2);
+    HYPRE_StructPFMGSetNumPostRelax(solver, 2);
+    
+    HYPRE_StructPFMGSetMaxLevels(solver, 15); // More levels
+    HYPRE_StructPFMGSetRAPType(solver, 1); // Galerkin coarsening
     }
     
     if(solve_type==19)
@@ -147,8 +154,8 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     HYPRE_StructSMGCreate(pgc->mpi_comm, &solver);
     HYPRE_StructSMGSetMemoryUse(solver,0);
     HYPRE_StructSMGSetMaxIter(solver,p->N46);
-    HYPRE_StructSMGSetTol(solver, p->N44);
-    HYPRE_StructSMGSetZeroGuess(solver);
+    HYPRE_StructSMGSetTol(solver, 1e-6);
+    HYPRE_StructSMGSetNonZeroGuess(solver);
     HYPRE_StructSMGSetNumPreRelax(solver,1);
     HYPRE_StructSMGSetNumPostRelax(solver,1);
     }
