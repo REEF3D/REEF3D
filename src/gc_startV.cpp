@@ -936,22 +936,22 @@ void ghostcell::startintV(lexer *p, int *f, int gcv)
     LOOP
     {
         if(p->flag4[Im1JK]<0)
-            f[Im1JK] = f[IJK];
+        f[Im1JK] = f[IJK];
 
         if(p->flag4[Ip1JK]<0)
-            f[Ip1JK] = f[IJK];
+        f[Ip1JK] = f[IJK];
 
         if(p->flag4[IJm1K]<0)
-            f[IJm1K] = f[IJK];
+        f[IJm1K] = f[IJK];
 
         if(p->flag4[IJp1K]<0)
-            f[IJp1K] = f[IJK];
+        f[IJp1K] = f[IJK];
 
         if(p->flag4[IJKm1]<0)
-            f[IJKm1] = f[IJK];
+        f[IJKm1] = f[IJK];
 
         if(p->flag4[IJKp1]<0)
-            f[IJKp1] = f[IJK];
+        f[IJKp1] = f[IJK];
     }
 
     starttime=timer();
@@ -970,14 +970,19 @@ void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
     }
 
     starttime=timer();
+    
     if(gcv==250)
-        fivec(p,f,bc);
+    fivec(p,f,bc);
+        
     else if(gcv==150)
-        fivec2D(p,f,bc);
+    fivec2D(p,f,bc);
+        
     else if(gcv==210)
-        fivec_vel(p,f,bc);
+    fivec_vel(p,f,bc);
+        
     else if(gcv==110)
-        fivec2D_vel(p,f,bc);
+    fivec2D_vel(p,f,bc);
+    
     p->gctime+=timer()-starttime;
 }
 
@@ -986,22 +991,22 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
     FLOOP
     {
         if(p->flag7[FIm1JK]<0)
-            f[FIm1JK] = f[FIJK];
+        f[FIm1JK] = f[FIJK];
 
         if(p->flag7[FIp1JK]<0)
-            f[FIp1JK] = f[FIJK];
+        f[FIp1JK] = f[FIJK];
 
         if(p->flag7[FIJm1K]<0)
-            f[FIJm1K] = f[FIJK];
+        f[FIJm1K] = f[FIJK];
 
         if(p->flag7[FIJp1K]<0)
-            f[FIJp1K] = f[FIJK];
+        f[FIJp1K] = f[FIJK];
 
         if(p->flag7[FIJKm1]<0)
-            f[FIJKm1] = f[FIJK];
+        f[FIJKm1] = f[FIJK];
 
         if(p->flag7[FIJKp1]<0)
-            f[FIJKp1] = 0.0;
+        f[FIJKp1] = 0.0;
     }
 
     if(do_comms)
@@ -1018,22 +1023,22 @@ void ghostcell::start7S(lexer *p, double *f, int gcv)
     FLOOP
     {
         if(p->flag7[FIm1JK]<0)
-            f[FIm1JK] = f[FIJK];
+        f[FIm1JK] = f[FIJK];
 
         if(p->flag7[FIp1JK]<0)
-            f[FIp1JK] = f[FIJK];
+        f[FIp1JK] = f[FIJK];
 
         if(p->flag7[FIJm1K]<0)
-            f[FIJm1K] = f[FIJK];
+        f[FIJm1K] = f[FIJK];
 
         if(p->flag7[FIJp1K]<0)
-            f[FIJp1K] = f[FIJK];
+        f[FIJp1K] = f[FIJK];
 
         if(p->flag7[FIJKm1]<0)
-            f[FIJKm1] = f[FIJK];
+        f[FIJKm1] = f[FIJK];
 
         if(p->flag7[FIJKp1]<0)
-            f[FIJKp1] = f[FIJK];
+        f[FIJKp1] = f[FIJK];
     }
 
     if(do_comms)
