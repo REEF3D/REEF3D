@@ -40,32 +40,32 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
+    <VirtualDirectory Name="Solver">
+      <VirtualDirectory Name="Stationary">
+        <File Name="solver_void.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Sparse Matrix">
+        <File Name="vec.h"/>
+        <File Name="matrix_diag.h"/>
+        <File Name="cpt.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Hypre">
+        <File Name="hypre_struct.h"/>
+        <File Name="hypre_sstruct.h"/>
+        <File Name="hypre_aij.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="CG">
+        <File Name="bicgstab_ijk_2D.h"/>
+        <File Name="bicgstab_ijk.h"/>
+      </VirtualDirectory>
+      <File Name="solver_fnpf.h"/>
+      <File Name="solver.h"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="CFD">
-        <VirtualDirectory Name="Solver">
-          <File Name="solver_fnpf.h"/>
-          <File Name="solver.h"/>
-          <VirtualDirectory Name="Stationary">
-            <File Name="solver_void.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Sparse Matrix">
-            <File Name="vec.h"/>
-            <File Name="matrix_diag.h"/>
-            <File Name="cpt.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Hypre">
-            <File Name="hypre_struct.h"/>
-            <File Name="hypre_sstruct.h"/>
-            <File Name="hypre_aij.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="CG">
-            <File Name="bicgstab_ijk_2D.h"/>
-            <File Name="bicgstab_ijk.h"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
           <VirtualDirectory Name="Komega_PLIC">
             <File Name="komega_IM1_PLIC.h"/>
@@ -1195,6 +1195,66 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
+    <VirtualDirectory Name="Solver">
+      <VirtualDirectory Name="Stationary">
+        <File Name="solver_void.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Sparse Matrix">
+        <File Name="vec.cpp"/>
+        <File Name="matrix_diag.cpp"/>
+        <File Name="cpt.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Hypre SStruct">
+        <File Name="hypre_sstruct_solve.cpp"/>
+        <File Name="hypre_sstruct_grid.cpp"/>
+        <File Name="hypre_sstruct_fillM.cpp"/>
+        <File Name="hypre_sstruct_fill8.cpp"/>
+        <File Name="hypre_sstruct_fill7.cpp"/>
+        <File Name="hypre_sstruct_fill4.cpp"/>
+        <File Name="hypre_sstruct_fill3.cpp"/>
+        <File Name="hypre_sstruct_fill2.cpp"/>
+        <File Name="hypre_sstruct_fill1.cpp"/>
+        <File Name="hypre_sstruct_createsolvers.cpp"/>
+        <File Name="hypre_sstruct.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Hypre Struct">
+        <File Name="hypre_struct_solve.cpp"/>
+        <File Name="hypre_struct_grid.cpp"/>
+        <File Name="hypre_struct_fill9_2D.cpp"/>
+        <File Name="hypre_struct_fill9.cpp"/>
+        <File Name="hypre_struct_fill8_2D.cpp"/>
+        <File Name="hypre_struct_fill8.cpp"/>
+        <File Name="hypre_struct_fill7_2D.cpp"/>
+        <File Name="hypre_struct_fill7.cpp"/>
+        <File Name="hypre_struct_fill4V_2D.cpp"/>
+        <File Name="hypre_struct_fill4V.cpp"/>
+        <File Name="hypre_struct_fill4f_2D.cpp"/>
+        <File Name="hypre_struct_fill4f.cpp"/>
+        <File Name="hypre_struct_fill4_2D.cpp"/>
+        <File Name="hypre_struct_fill4.cpp"/>
+        <File Name="hypre_struct_fill3_2D.cpp"/>
+        <File Name="hypre_struct_fill3.cpp"/>
+        <File Name="hypre_struct_fill2_2D.cpp"/>
+        <File Name="hypre_struct_fill2.cpp"/>
+        <File Name="hypre_struct_fill1_2D.cpp"/>
+        <File Name="hypre_struct_fill1.cpp"/>
+        <File Name="hypre_struct_createsolvers.cpp"/>
+        <File Name="hypre_struct.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Hypre Aij">
+        <File Name="hypre_aij_solvers.cpp"/>
+        <File Name="hypre_aij_grid.cpp"/>
+        <File Name="hypre_aij_fill.cpp"/>
+        <File Name="hypre_aij_F_start.cpp"/>
+        <File Name="hypre_aij_F_grid.cpp"/>
+        <File Name="hypre_aij_F_fill.cpp"/>
+        <File Name="hypre_aij.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="CG">
+        <File Name="bicgstab_ijk_2D.cpp"/>
+        <File Name="bicgstab_ijk.cpp"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="FDM">
@@ -1384,66 +1444,6 @@
           <VirtualDirectory Name="EARSM">
             <File Name="EARSM_kw_IM1.cpp"/>
             <File Name="EARSM.cpp"/>
-          </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Solver">
-          <VirtualDirectory Name="Stationary">
-            <File Name="solver_void.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Sparse Matrix">
-            <File Name="vec.cpp"/>
-            <File Name="matrix_diag.cpp"/>
-            <File Name="cpt.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Hypre Struct">
-            <File Name="hypre_struct_grid.cpp"/>
-            <File Name="hypre_struct_fill9_2D.cpp"/>
-            <File Name="hypre_struct_fill9.cpp"/>
-            <File Name="hypre_struct_fill8_2D.cpp"/>
-            <File Name="hypre_struct_fill8.cpp"/>
-            <File Name="hypre_struct_fill7_2D.cpp"/>
-            <File Name="hypre_struct_fill7.cpp"/>
-            <File Name="hypre_struct_fill4V_2D.cpp"/>
-            <File Name="hypre_struct_fill4V.cpp"/>
-            <File Name="hypre_struct_fill4f_2D.cpp"/>
-            <File Name="hypre_struct_fill4f.cpp"/>
-            <File Name="hypre_struct_fill4_2D.cpp"/>
-            <File Name="hypre_struct_fill4.cpp"/>
-            <File Name="hypre_struct_fill3_2D.cpp"/>
-            <File Name="hypre_struct_fill3.cpp"/>
-            <File Name="hypre_struct_fill2_2D.cpp"/>
-            <File Name="hypre_struct_fill2.cpp"/>
-            <File Name="hypre_struct_fill1_2D.cpp"/>
-            <File Name="hypre_struct_fill1.cpp"/>
-            <File Name="hypre_struct_createsolvers.cpp"/>
-            <File Name="hypre_struct.cpp"/>
-            <File Name="hypre_struct_solve.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Hypre SStruct">
-            <File Name="hypre_sstruct_solve.cpp"/>
-            <File Name="hypre_sstruct_grid.cpp"/>
-            <File Name="hypre_sstruct_fillM.cpp"/>
-            <File Name="hypre_sstruct_fill8.cpp"/>
-            <File Name="hypre_sstruct_fill7.cpp"/>
-            <File Name="hypre_sstruct_fill4.cpp"/>
-            <File Name="hypre_sstruct_fill3.cpp"/>
-            <File Name="hypre_sstruct_fill2.cpp"/>
-            <File Name="hypre_sstruct_fill1.cpp"/>
-            <File Name="hypre_sstruct_createsolvers.cpp"/>
-            <File Name="hypre_sstruct.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Hypre Aij">
-            <File Name="hypre_aij_solvers.cpp"/>
-            <File Name="hypre_aij_grid.cpp"/>
-            <File Name="hypre_aij_fill.cpp"/>
-            <File Name="hypre_aij_F_start.cpp"/>
-            <File Name="hypre_aij_F_grid.cpp"/>
-            <File Name="hypre_aij_F_fill.cpp"/>
-            <File Name="hypre_aij.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="CG">
-            <File Name="bicgstab_ijk_2D.cpp"/>
-            <File Name="bicgstab_ijk.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
