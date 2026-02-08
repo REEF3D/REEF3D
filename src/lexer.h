@@ -763,7 +763,7 @@ public:
 
 	// wave coefficients
 	double wT,wV,wH,wA,wL,wd,ww,wk,wC;
-	double wHs,wAs,wwp,ww_s,ww_e,wTp;
+	double wHs,wAs,wwp,ww_s,ww_e,wTp,wLp;
 	int wN;
     double wts,wte;
     

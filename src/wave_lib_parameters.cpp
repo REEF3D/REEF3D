@@ -221,6 +221,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
          wT = p->B93_2;
          p->wT = wT;
          p->wwp = 2.0*PI/p->wTp;
+         p->wLp = p->wTp*sqrt(9.81*wdt);
        }
 	   }
 

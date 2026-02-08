@@ -104,17 +104,17 @@ void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 
     if((p->B92==31 || p->B92==41 || p->B92==51 ) && p->B89==1) 
     {
-    p->Darray(uval_S_sin,upt_count,p->wN);
-    p->Darray(vval_S_sin,vpt_count,p->wN);
-    p->Darray(wval_S_sin,wpt_count,p->wN);
+    p->Farray(uval_S_sin,upt_count,p->wN);
+    p->Farray(vval_S_sin,vpt_count,p->wN);
+    p->Farray(wval_S_sin,wpt_count,p->wN);
     p->Darray(etaval_S_sin,ept_count,p->wN);
-    p->Darray(Fival_S_sin,ppt_count,p->wN);
+    p->Farray(Fival_S_sin,ppt_count,p->wN);
     
-    p->Darray(uval_S_cos,upt_count,p->wN);
-    p->Darray(vval_S_cos,vpt_count,p->wN);
-    p->Darray(wval_S_cos,wpt_count,p->wN);
+    p->Farray(uval_S_cos,upt_count,p->wN);
+    p->Farray(vval_S_cos,vpt_count,p->wN);
+    p->Farray(wval_S_cos,wpt_count,p->wN);
     p->Darray(etaval_S_cos,ept_count,p->wN);
-    p->Darray(Fival_S_cos,ppt_count,p->wN);
+    p->Farray(Fival_S_cos,ppt_count,p->wN);
     
     p->Darray(uval_T_sin,p->wN);
     p->Darray(vval_T_sin,p->wN);

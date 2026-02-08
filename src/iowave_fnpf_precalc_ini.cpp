@@ -153,14 +153,14 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     if(p->B89==1) 
     {
     p->Darray(etaval_S_sin,ept_count,wave_comp);
-    p->Darray(Fival_S_sin,ppt_count,wave_comp);
+    p->Farray(Fival_S_sin,ppt_count,wave_comp);
     p->Darray(Fifsfval_S_sin,ept_count,wave_comp);
-    p->Darray(uval_S_sin,ppt_count,wave_comp);
+    p->Farray(uval_S_sin,ppt_count,wave_comp);
     
     p->Darray(etaval_S_cos,ept_count,wave_comp);
-    p->Darray(Fival_S_cos,ppt_count,wave_comp);
+    p->Farray(Fival_S_cos,ppt_count,wave_comp);
     p->Darray(Fifsfval_S_cos,ept_count,wave_comp);
-    p->Darray(uval_S_cos,ppt_count,wave_comp);
+    p->Farray(uval_S_cos,ppt_count,wave_comp);
     
     p->Darray(etaval_T_sin,wave_comp);
     p->Darray(Fival_T_sin,wave_comp);

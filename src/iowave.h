@@ -303,10 +303,13 @@ private:
     double *UHval,*VHval,*WHval;
     double *vofval;
 
+    // decomp space
+    double **etaval_S_sin,**Fifsfval_S_sin;
+    float **uval_S_sin,**vval_S_sin,**wval_S_sin,**Fival_S_sin;
+    double **etaval_S_cos,**Fifsfval_S_cos;
+    float **uval_S_cos,**vval_S_cos,**wval_S_cos,**Fival_S_cos;
     
-    double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin,**Fifsfval_S_sin;
-    double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos,**Fifsfval_S_cos;
-    
+    // decomp time
     double *uval_T_sin,*vval_T_sin,*wval_T_sin,*etaval_T_sin,*Fival_T_sin,*Fifsfval_T_sin;
     double *uval_T_cos,*vval_T_cos,*wval_T_cos,*etaval_T_cos,*Fival_T_cos,*Fifsfval_T_cos;
     
