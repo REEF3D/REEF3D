@@ -164,14 +164,13 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     pgc->startintV(p,p->DF,1);
     
     // WL and eta
-    k=p->knoz;
+    /*k=p->knoz;
     SLICELOOP4
     if(p->DF[IJK]<0 && (p->DF[Im1JK]<0 || p->flag4[Im1JK]<0) && (p->DF[Ip1JK]<0 || p->flag4[Ip1JK]<0)  && (p->j_dir==0 || ((p->DF[IJm1K]<0 || p->flag4[IJm1K]<0) && (p->DF[IJp1K]<0 || p->flag4[IJp1K]<0))))
     {
     d->eta(i,j) = 0.0;
     WL(i,j) = d->depth(i,j);
-    }
-    
+    }*/
     
     
     // DFSL slice
@@ -179,15 +178,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     pgc->solid_forcing_eta(p,WL);
     pgc->solid_forcing_eta(p,d->eta);
     pgc->solid_forcing_bed(p,d->bed);
-    
-    GCSL4LOOP
-    {
-    i = p->gcbsl4[n][0];
-    j = p->gcbsl4[n][1];
-    
-    d->test2D(i,j);
-    }
-    
     }
 
     // DLM
