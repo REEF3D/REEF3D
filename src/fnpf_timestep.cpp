@@ -141,7 +141,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 
 void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 {
-    double depthmax;
+    double depthmax,wdt;
     
 	p->umax = p->vmax = p->wmax = -1e19;
     depthmax = -1e19;
@@ -209,13 +209,19 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     p->dt=pgc->globalmin(p->dt);
 	p->dt_old=p->dt;
     
+    if(p->B94==0)
+	wdt=p->phimean;
+
+	if(p->B94==1)
+	wdt=p->B94_wdt;
+    
     
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
 	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
 	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
 	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
-    cout<<"dmax: "<<setprecision(3)<<depthmax<<endl;
+    cout<<"depth_max: "<<setprecision(3)<<depthmax<<" |  wave depth: "<<wdt<<endl;
     }
 }
 

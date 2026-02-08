@@ -34,7 +34,7 @@ wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B
 
   p->wd = p->phimean;
 
-  if(p->B94==0)
+   if(p->B94==0)
 	wdt=p->phimean;
 
 	if(p->B94==1)

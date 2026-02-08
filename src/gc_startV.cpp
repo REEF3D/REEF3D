@@ -433,22 +433,51 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
     LOOP
     {
         if(p->flag4[Im1JK]<0)
-            f[Im1JK] = f[IJK];
-
+        {
+        f[Im1JK] = f[IJK];
+        f[Im2JK] = f[IJK];
+        f[Im2JK] = f[IJK];
+        }
+        
+        else
         if(p->flag4[Ip1JK]<0)
-            f[Ip1JK] = f[IJK];
+        {
+        f[Ip1JK] = f[IJK];
+        f[Ip2JK] = f[IJK];
+        f[Ip3JK] = f[IJK];
+        }
+        
+        else
+        if(p->flag4[IJm1K]<0 && p->j_dir==1)
+        {
+        f[IJm1K] = f[IJK];
+        f[IJm2K] = f[IJK];
+        f[IJm3K] = f[IJK];
+        }
+        
+        else
+        if(p->flag4[IJp1K]<0 && p->j_dir==1)
+        {
+        f[IJp1K] = f[IJK];
+        f[IJp2K] = f[IJK];
+        f[IJp3K] = f[IJK];
+        }
 
-        if(p->flag4[IJm1K]<0)
-            f[IJm1K] = f[IJK];
-
-        if(p->flag4[IJp1K]<0)
-            f[IJp1K] = f[IJK];
-
+        else
         if(p->flag4[IJKm1]<0)
-            f[IJKm1] = f[IJK];
+        {
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
+        }
 
+        else
         if(p->flag4[IJKp1]<0)
-            f[IJKp1] = f[IJK];
+        {
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
+        }
     }
 
     gcparaxV(p, f, gcv);
@@ -464,13 +493,13 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
     int outflow=0;
 
     if(p->B98>=3 || p->B60==1)
-        inflow=1;
+    inflow=1;
 
     if(p->B99>=3)
-        outflow=1;
+    outflow=1;
 
     if(p->B60==1)
-        outflow=2;
+    outflow=2;
 
     starttime=timer();
     LOOP

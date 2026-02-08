@@ -323,12 +323,16 @@ void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 	p->solveriter=0;
 	
     create_solver5(p,pgc);
-
+    
+        starttime=pgc->timer();
+        
     if(p->j_dir==1)
     fill_matrix8(p,pgc,f,rhs,M);
     
     if(p->j_dir==0)
     fill_matrix8_2Dvert(p,pgc,f,rhs,M);
+    
+        p->matrixtime+=pgc->timer()-starttime;
 
     solve(p,pgc);
 

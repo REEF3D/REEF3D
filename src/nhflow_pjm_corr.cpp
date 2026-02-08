@@ -63,10 +63,15 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
+    
+        starttime=pgc->timer();
 
     rhs(p,d,pgc,d->U,d->V,d->W,alpha);
 
     ppois->start(p,d,PCORR);
+    
+        p->matrixtime+=pgc->timer()-starttime;
+
 
         starttime=pgc->timer();
 
@@ -85,10 +90,12 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
     p->poissoniter=p->solveriter;
 
-	p->poissontime=endtime-starttime;
+	p->ptime=endtime-starttime;
+    p->poissontime+=p->ptime;
+    
 
 	if(p->mpirank==0 && p->count%p->P12==0)
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->ptime<<endl;
 }
 
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, double *PCORR, double alpha)
@@ -96,6 +103,10 @@ void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, doub
 	FLOOP
     WETDRYDEEP
     P[FIJK] += PCORR[FIJK];
+    
+    LOOP
+    WETDRYDEEP
+    d->test[IJK] = PCORR[FIJK];
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
@@ -110,7 +121,7 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     double dWdz;
     
     n=0;
-     FBASELOOP
+    FBASELOOP
     {
 	d->rhsvec.V[n]=0.0;
     PCORR[FIJK]=0.0;

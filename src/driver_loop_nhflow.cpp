@@ -114,6 +114,7 @@ void driver::loop_nhflow()
 		cout<<"wavegentime: "<<setprecision(5)<<p->wavecalctime<<endl;
 		if(p->X10>0)
         cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
+        cout<<"poissontime: "<<setprecision(3)<<p->poissontime<<"   matrixtime: "<<setprecision(3)<<p->matrixtime<<"   poisson cost: "<<100.0*p->poissontime/p->itertime<<" %"<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
         cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
 		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
@@ -131,6 +132,8 @@ void driver::loop_nhflow()
 	p->wavecalctime=0.0;
 	p->field4time=0.0;
     p->fbtime=0.0;
+    p->matrixtime=0.0;
+    p->poissontime=0.0;
 	
     stop(p,a,pgc);
 	}

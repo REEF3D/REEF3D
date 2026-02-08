@@ -743,7 +743,7 @@ public:
     double recontime,fsftime;
     double dftime;
 	double kintime,epstime;
-	double poissontime, laplacetime;
+	double poissontime, laplacetime, matrixtime, ptime;
     double sftime,fbtime,fsitime;
     double fbdt,fbmax;
     double sfdt,sfmax;
