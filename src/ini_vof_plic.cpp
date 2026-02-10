@@ -83,7 +83,7 @@ if(p->F60>-1.0e20)
             a->vof(i,j,k)=1.0;
         else if(p->pos_z()-0.5*p->DZN[KP]>p->F60)
         {
-            a->vof(i,j,k)=0.0;
+          //  a->vof(i,j,k)=0.0;
         }
         else
         {
