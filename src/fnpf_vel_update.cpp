@@ -66,12 +66,19 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     c->U[FIJK] = (-c->Fi[FIp2JK] + 8.0*c->Fi[FIp1JK] - 8.0*c->Fi[FIm1JK] + c->Fi[FIm2JK])/(-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2])
     
                 + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZN[KP]+p->DZN[KM1]));
-                
-                
+
+                            
     if(k==p->knoz)
     c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1])
     
                 + p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
+                
+    if(i+p->origin_i<=2)
+    c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIJK])/(p->DXP[IP])
+    
+                + p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
+                
+    
      
     // V           
     if(k<p->knoz)
@@ -87,8 +94,9 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     // W
     c->W[FIJK] = ((-c->Fi[FIJKp2] + 8.0*c->Fi[FIJKp1] - 8.0*c->Fi[FIJKm1] + c->Fi[FIJKm2])/(-p->ZN[KP2] + 8.0*p->ZN[KP1] - 8.0*p->ZN[KM1] + p->ZN[KM2]))*p->sigz[IJ];
     }
-
+    
     /*
+    if(p->B98>=3)
     for(n=0;n<p->gcslin_count;n++)
     {
         i=p->gcslin[n][0];
