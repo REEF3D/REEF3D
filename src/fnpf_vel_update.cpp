@@ -141,12 +141,7 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     }
     
     
-    int gcval;
-    
-    if(p->j_dir==0)
-    int gcval=110;
-    
-    if(p->j_dir==1)
+
     int gcval=210;
     
     pgc->start7V(p,c->U,c->bc,gcval);
