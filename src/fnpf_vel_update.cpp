@@ -105,7 +105,6 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     FFILOOP4
     c->W[FIJK] = c->Fz(i,j);
     
-
     FLOOP
     {
         if(p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
@@ -117,30 +116,37 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
         c->W[FIJK]=0.0;
         }
         
-        if(i+p->origin_i==0)
+        if(i+p->origin_i<=5)
         {
         if(c->U[FIJK]<=-p->N61)
-        c->U[FIJK] = -0.99*p->N61;
+        c->U[FIJK] = -0.95*p->N61;
         
         if(c->U[FIJK]>=p->N61)
-        c->U[FIJK] = 0.99*p->N61;
+        c->U[FIJK] = 0.95*p->N61;
         
         
         if(c->V[FIJK]<=-p->N61)
-        c->V[FIJK] = -0.99*p->N61;
+        c->V[FIJK] = -0.95*p->N61;
         
         if(c->V[FIJK]>=p->N61)
-        c->V[FIJK] = 0.99*p->N61;
+        c->V[FIJK] = 0.95*p->N61;
         
             
         if(c->W[FIJK]<=-p->N61)
-        c->W[FIJK] = -0.99*p->N61;
+        c->W[FIJK] = -0.95*p->N61;
         
         if(c->W[FIJK]>=p->N61)
-        c->W[FIJK] = 0.99*p->N61;
+        c->W[FIJK] = 0.95*p->N61;
         }
     }
     
+    
+    int gcval;
+    
+    if(p->j_dir==0)
+    int gcval=110;
+    
+    if(p->j_dir==1)
     int gcval=210;
     
     pgc->start7V(p,c->U,c->bc,gcval);

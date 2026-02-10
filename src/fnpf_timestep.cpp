@@ -55,24 +55,17 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 	depthmax=pgc->globalmax(depthmax);
 
 	SLICELOOP4
+    if(i+p->origin_i<=5)
     {
 	p->umax=MAX(p->umax,fabs(c->U[FIJK]));
+    p->vmax=MAX(p->vmax,fabs(c->V[FIJK]));
+    p->wmax=MAX(p->wmax,fabs(c->W[FIJK]));
     }
 
 	p->umax=pgc->globalmax(p->umax);
+    p->vmax=pgc->globalmax(p->vmax);
+    p->wmax=pgc->globalmax(p->wmax);
 
-
-	SLICELOOP4
-	p->vmax=MAX(p->vmax,fabs(c->V[FIJK]));
-
-	p->vmax=pgc->globalmax(p->vmax);
-
-
-	SLICELOOP4
-	p->wmax=MAX(p->wmax,fabs(c->W[FIJK]));
-
-	p->wmax=pgc->globalmax(p->wmax);
-	
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
@@ -81,18 +74,8 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
     }
 	
-	p->umax=MAX(p->umax,p->ufbmax);
-	p->vmax=MAX(p->vmax,p->vfbmax);
-	p->wmax=MAX(p->wmax,p->wfbmax);
-
-
     cu=cv=cw=1.0e10;
     
-    
-    SLICELOOP4
-    p->wmax = MAX(fabs(c->Fz(i,j)),p->wmax);
-    
-    p->wmax=pgc->globalmax(p->wmax);
     
     
     // visc

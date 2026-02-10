@@ -73,7 +73,7 @@ void driver::loop_fnpf()
         c->breaklog(i,j)=0;
 
 
-        // PFLOW
+        // FNPF
 		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini);
         
         // printer
