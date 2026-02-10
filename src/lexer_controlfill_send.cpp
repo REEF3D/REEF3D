@@ -1467,6 +1467,8 @@ void lexer::ctrlsend()
 	dd++;
     ictrl[ii] = S73;
 	ii++;
+    ictrl[ii] = S74;
+	ii++;
     ictrl[ii] = S77;
 	ii++;
     dctrl[dd] = S77_xs;
@@ -3209,6 +3211,18 @@ void lexer::ctrlsend()
     dctrl[dd] = S73_x[n];
     dd++;
 	dctrl[dd] = S73_y[n];
+    dd++;
+    }
+    
+    for(n=0;n<S74;++n)
+    {
+    dctrl[dd] = S74_xs[n];
+    dd++;
+    dctrl[dd] = S74_xe[n];
+    dd++;
+    dctrl[dd] = S74_ys[n];
+    dd++;
+    dctrl[dd] = S74_ye[n];
     dd++;
     }
     

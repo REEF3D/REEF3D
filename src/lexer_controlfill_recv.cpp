@@ -1462,6 +1462,8 @@ void lexer::ctrlrecv()
 	dd++;
     S73 = ictrl[ii];
 	ii++;
+    S74 = ictrl[ii];
+	ii++;
     S77 = ictrl[ii];
 	ii++;
     S77_xs = dctrl[dd];
@@ -2833,6 +2835,14 @@ void lexer::ctrlrecv()
 	Darray(S73_y,S73);
 	}
     
+    if(S74>0)
+	{
+	Darray(S74_xs,S74);
+    Darray(S74_xe,S74);
+    Darray(S74_ys,S74);
+    Darray(S74_ye,S74);
+	}
+    
     if(W41>0)
     {
     Darray(W41_xc,W41);
@@ -4191,6 +4201,18 @@ void lexer::ctrlrecv()
     S73_x[n]  = dctrl[dd];
     dd++;
 	S73_y[n]  = dctrl[dd];
+    dd++;
+    }
+    
+    for(n=0;n<S74;++n)
+    {
+    S74_xs[n]  = dctrl[dd];
+    dd++;
+    S74_xe[n]  = dctrl[dd];
+    dd++;
+    S74_ys[n]  = dctrl[dd];
+    dd++;
+    S74_ye[n]  = dctrl[dd];
     dd++;
     }
     

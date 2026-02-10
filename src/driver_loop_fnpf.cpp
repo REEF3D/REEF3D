@@ -56,8 +56,8 @@ void driver::loop_fnpf()
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<p->simtime<<endl;
-		cout<<"timestep: "<<p->dt<<endl;
+        cout<<"simtime: "<<setprecision(6)<<p->simtime<<endl;
+        cout<<"timestep: "<<setprecision(4)<<p->dt<<endl;
         
 		if(p->B90>0 && p->B92<=11)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;

@@ -737,6 +737,7 @@ void lexer::ini_default()
     S71=-1.0e20;                 // int x start of erosion
     S72=1.0e20;          // int x end of erosion
     S73=0;       // double distance for use relaxation method for the sediment bed
+    S74=0;           // int no erosion zone
     S77=0;          // int active sediment domain in x-direction
     S77_xs=-1.0e20; // double active sediment domain x_start
     S77_xe= 1.0e20; // double active sediment domain x_end
