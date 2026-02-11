@@ -25,8 +25,17 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(p)
+fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(p), eta_t(p), t_break(p), B_coeff(p)
 {
+    // Default parameter values
+    eta_I    = 0.65;    // onset threshold coefficient
+    eta_F    = 0.15;    // cessation threshold coefficient
+    delta_b  = p->A365;     // mixing length coefficient
+    T_star   = 5.0;     // ramp-up time coefficient
+    alpha_eta = 0.0;    // KFSBC dissipation (0 = off)
+
+
+    ini_done = 0;
 }
 
 fnpf_breaking::~fnpf_breaking()
@@ -37,5 +46,8 @@ void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
 {
     if(p->A350==1)
     breaking_f(p, c, pgc, eta, eta_n, Fifsf, alpha);
+    
+    if(p->A350==2)
+    breaking_kennedy(p, c, pgc, eta, eta_n, Fifsf, alpha);
 }
 

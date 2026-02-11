@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"fnpf_fsf.h"
 #include"sliceint4.h"
+#include"slice4.h"
 
 class fnpf_laplace;
 class field;
@@ -45,6 +46,8 @@ public:
     void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     
     void breaking_f(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+    
+    void breaking_kennedy(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
 
     
     
@@ -61,7 +64,18 @@ private:
     double visc;
     
     sliceint4 bx,by;
+    
+    slice4 eta_t, t_break;
+    slice4 B_coeff;
+    
     int count_n;
+    
+    double eta_I;       // onset threshold coefficient
+    double eta_F;       // cessation threshold coefficient
+    double delta_b;     // mixing length coefficient
+    double T_star;      // ramp-up duration coefficient
+    double alpha_eta;   // KFSBC dissipation scaling (0 = off)
+    int ini_done;       // First call flag
     
 };
 
