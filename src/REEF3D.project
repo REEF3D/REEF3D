@@ -1992,9 +1992,9 @@
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <VirtualDirectory Name="Breaking">
-          <File Name="fnpf_breaking_v3.cpp"/>
-          <File Name="fnpf_breaking_v2.cpp"/>
-          <File Name="fnpf_breaking_v1.cpp"/>
+          <File Name="fnpf_breaking_relaxfunc.cpp"/>
+          <File Name="fnfp_breaking_kennedy.cpp"/>
+          <File Name="fnpf_breaking_f.cpp"/>
           <File Name="fnpf_breaking_filter.cpp"/>
           <File Name="fnpf_breaking.cpp"/>
         </VirtualDirectory>
@@ -2075,12 +2075,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
           <File Name="fnpf_fsfbc_sc.cpp"/>
-          <File Name="fnpf_fsfbc_wd_breaking0.cpp"/>
           <File Name="fnpf_fsfbc_wd_coastline.cpp"/>
-          <File Name="fnpf_fsfbc_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd_wetdry.cpp"/>
           <File Name="fnpf_fsfbc_wd_damping.cpp"/>
-          <File Name="fnpf_fsfbc_wd_breaking.cpp"/>
           <File Name="fnpf_fsfbc_wd.cpp"/>
           <File Name="fnpf_fsfbc_damping.cpp"/>
           <File Name="fnpf_fsfbc.cpp"/>

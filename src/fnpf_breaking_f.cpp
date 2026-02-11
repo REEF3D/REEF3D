@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_fsfbc.h"
+#include"fnpf_breaking.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
+void fnpf_breaking::breaking_f(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
     int ii,jj;
     int count;
@@ -289,7 +289,7 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
     
     
     
-    
+    // shallow water breaking
     if((p->A351==1 || p->A351==3) && p->count>1)
     SLICELOOP4
     {
@@ -298,13 +298,17 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
             {
 
                 c->breaking(i-1,j)=2;
+                c->breaking(i-2,j)=2;
                 c->breaking(i,j)=2;
                 c->breaking(i+1,j)=2;
+                c->breaking(i+2,j)=2;
                 
                 if(p->j_dir==1)
                 {
+                c->breaking(i,j-2)=2;
                 c->breaking(i,j-1)=2;
                 c->breaking(i,j+1)=2;
+                c->breaking(i,j+2)=2;
                 }
             }
     }
@@ -317,6 +321,22 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
         SLICELOOP4
         c->vb(i,j) = 0.0;
         
+        // coastline viscosity
+        SLICELOOP4
+        {
+            
+            if(c->coastline(i,j)>=0.0 && p->A346>0.0)
+            {
+                db = c->coastline(i,j);
+                
+                if(db<dist3)
+                {
+                c->vb(i,j) = rb3(p,db)*p->A346;
+            
+                }
+            }
+        }
+        // assign breaking wave viscosity
         if(p->j_dir==0)
         SLICELOOP4
         {   
@@ -406,63 +426,4 @@ void fnpf_fsfbc::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sli
     
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<"breaking: "<<count<<endl;
-}
-
-void fnpf_fsfbc::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
-{
-    double he,hw,hn,hs,hp;
-    double dhe, dhw, dhn, dhs,dhp;
-    
-    int outer_iter = p->A361;
-    int inner_iter = p->A362;
-    
-    if(p->j_dir==0)
-	for(int qn=0;qn<outer_iter;++qn)
-	{
-		hp = f(i,j);
-        hs = f(i-1,j);
-        hn = f(i+1,j);
-
-        // predictor
-		f(i,j) = 0.5*hp + 0.25*(hs + hn);
-		
-        // corrector
-		for(int qqn=0;qqn<inner_iter;++qqn)
-		{
-            dhp = hp - f(i,j);
-            dhs = hs - f(i-1,j);
-            dhn = hn - f(i+1,j);
-            
-            dhp = 0.5*dhp+ 0.25*(dhs + dhn);
-            f(i,j) += dhp;
-		}
-    }
-    
-    
-    if(p->j_dir==1)
-	for(int qn=0;qn<outer_iter;++qn)
-	{
-		hp = f(i,j);
-        hs = f(i-1,j);
-        hn = f(i+1,j);
-        he = f(i,j-1);
-        hw = f(i,j+1);
-		
-        // predictor
-
-		f(i,j) = 0.5*hp + 0.125*(hs + hn + he + hw);
-		
-        // corrector
-		for(int qqn=0;qqn<inner_iter;++qqn)
-		{
-            dhp = hp - f(i,j);
-            dhs = hs - f(i-1,j);
-            dhn = hn - f(i+1,j);
-            dhe = he - f(i,j-1);
-            dhw = hw - f(i,j+1);
-            
-            dhp = 0.5*dhp+ 0.125*(dhs + dhn + dhe + dhw);
-            f(i,j) += dhp;
-		}
-    }
 }

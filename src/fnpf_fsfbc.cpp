@@ -44,7 +44,7 @@ Author: Hans Bihs
 #include"sflow_bicgstab.h"
 #include"hypre_struct2D.h"
 
-fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(1.0e-6)
+fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),eps(1.0e-6)
 {    
     if(p->A311==0)
     {
