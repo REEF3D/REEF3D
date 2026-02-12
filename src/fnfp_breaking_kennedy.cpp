@@ -93,7 +93,7 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             // Using |eta_t| to ensure positive viscosity
             c->vb(i,j) = B_coeff(i, j) * delta_b * delta_b * c->WL(i,j) * fabs(eta_t(i, j));
             
-            cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  B_coeff(i, j): "<<B_coeff(i, j)<<" dt_break: "<<dt_break<<" t_break(i,j): "<<t_break(i,j)<<endl;
+            //cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  B_coeff(i, j): "<<B_coeff(i, j)<<" dt_break: "<<dt_break<<" t_break(i,j): "<<t_break(i,j)<<endl;
         }
         else
         {
