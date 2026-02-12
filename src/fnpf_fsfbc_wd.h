@@ -33,6 +33,7 @@ class fnpf_ddx;
 class fnpf_etadisc;
 class fnpf_coastline;
 class solver2D;
+class wind;
 
 using namespace std;
 
@@ -63,6 +64,7 @@ public:
     fnpf_ddx *pddx;
     fnpf_coastline *pcoast;
     solver2D *psolv;
+    wind *pwind;
 
     double ivel,jvel,kvel;
     

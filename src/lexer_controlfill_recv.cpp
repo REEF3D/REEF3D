@@ -164,6 +164,26 @@ void lexer::ctrlrecv()
 	dd++;
     A368 = ictrl[ii];
 	ii++;
+    A370 = ictrl[ii];
+	ii++;
+    A371_u = dctrl[dd];
+	dd++;
+    A371_dir = dctrl[dd];
+	dd++;
+    A372 = ictrl[ii];
+	ii++;
+    A372_xs = dctrl[dd];
+	dd++;
+    A372_xe = dctrl[dd];
+	dd++;
+    A372_ys = dctrl[dd];
+	dd++;
+    A372_ye = dctrl[dd];
+	dd++;
+    A373 = ictrl[ii];
+	ii++;
+    A374 = ictrl[ii];
+	ii++;
     
     A410 = ictrl[ii];
 	ii++;

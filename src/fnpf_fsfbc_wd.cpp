@@ -49,6 +49,8 @@ Author: Hans Bihs
 #include"fnpf_ddx_cds4.h"
 #include"fnpf_coastline.h"
 #include"sflow_bicgstab.h"
+#include"wind_f.h"
+#include"wind_v.h"
 
 fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),eps(1.0e-6)
 {    
@@ -149,6 +151,13 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     gcval_eta = 155;
     gcval_fifsf = 160;
     }
+    
+    // wind forcing
+    if(p->A370==0)
+    pwind = new wind_v(p);
+    
+    if(p->A370>0)
+    pwind = new wind_f(p);
 }
 
 fnpf_fsfbc_wd::~fnpf_fsfbc_wd()
@@ -269,5 +278,7 @@ void fnpf_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     if(p->wet[IJ]==0)
     c->K(i,j) = 0.0;
     }
+    
+    pwind->wind_forcing_fnpf(p,c,pgc,c->K,eta);
 }
 

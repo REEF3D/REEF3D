@@ -70,6 +70,7 @@ void lexer::ini_default()
     A322=5;      // int maxiter for 4th-order Laplace after 2nd-order solution
     A323=1;      // int PTF FSF extrapolation
     A329=1;      // int wave maker BC order
+    
     A340=1.0e20;    // double minimum water depth
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
@@ -82,6 +83,7 @@ void lexer::ini_default()
     A347=2;     // int coastline relaxation for Fi and eta
     A348=1;     // int beach relaxation for Fi and eta
     A349=20.0;   // double initial coastline damping distance factor for dxm
+    
     A350=0;      // int turn on breaking (which method)
     A351=0;      // int type of breaking detection (deep / shallow)
     A352=1;      // int additional filtering to viscosity based breaking
@@ -91,11 +93,19 @@ void lexer::ini_default()
     A356=0.1;   // double breaking parameter slope beta
     A357=1;     // int breaking for Fi and eta
     A358=1;     // int breaking algorithm version
+    
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter
     A363=1;      // int breaking filter width
     A365=1.86;   // double viscosity breaking wave
     A368=0;      // int
+    
+    A370=0;      // int wind model
+    A371_u=0.0;  // double wind velocity
+    A371_dir=0.0;  // double wind direction
+    A372=0;      // int wind forcing area
+    A372_xs=A372_xe=A372_ys=A372_ye=0.0; // double wind forcing area
+    A373=1;      // int wind forcing region
 
     
     // PTF

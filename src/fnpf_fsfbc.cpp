@@ -43,6 +43,8 @@ Author: Hans Bihs
 #include"fnpf_ddx_cds4.h"
 #include"sflow_bicgstab.h"
 #include"hypre_struct2D.h"
+#include"wind_f.h"
+#include"wind_v.h"
 
 fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),eps(1.0e-6)
 {    
@@ -140,6 +142,13 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,
     gcval_eta = 155;
     gcval_fifsf = 160;
     }
+    
+    // wind forcing
+    if(p->A370==0)
+    pwind = new wind_v(p);
+    
+    if(p->A370>0)
+    pwind = new wind_f(p);
 }
 
 fnpf_fsfbc::~fnpf_fsfbc()
@@ -243,7 +252,9 @@ void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
-
+                 
+    
+    pwind->wind_forcing_fnpf(p,c,pgc,c->K,eta);
 }
 
 void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 

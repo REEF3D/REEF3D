@@ -32,6 +32,7 @@ class fnpf_convection;
 class fnpf_ddx;
 class fnpf_etadisc;
 class solver2D;
+class wind;
 
 using namespace std;
 
@@ -60,6 +61,7 @@ public:
     fnpf_convection *pdx;
     fnpf_ddx *pddx;
     solver2D *psolv;
+    wind *pwind;
     
     
 private:

@@ -20,32 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wind_v.h"
+#include"wind_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"slice.h"
 
-wind_v::wind_v(lexer *p) 
+void wind_f::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *F, slice &WL, slice &eta)
 {
-
-}
-
-wind_v::~wind_v()
-{
-}
-
-void wind_v::wind_forcing_ini(lexer *p, ghostcell *pgc)
-{
+    k=p->knoz-1;
     
+    SLICELOOP4
+    WETDRY
+    if( p->XP[IP]>xs && p->XP[IP]<xe)
+    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
+    if(p->A573==1 || eta(i,j)>0.0)
+    F[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
 }
 
-void wind_v::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *F, slice &WL, slice &eta)
+void wind_f::wind_forcing_nhf_y(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *G, slice &WL, slice &eta)
 {
+    k=p->knoz-1;
     
+    SLICELOOP4
+    WETDRY
+    if( p->XP[IP]>xs && p->XP[IP]<xe)
+    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
+    if(p->A573==1 || eta(i,j)>0.0)
+    G[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*sina;
 }
 
-void wind_v::wind_forcing_nhf_y(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *G, slice &WL, slice &eta)
-{
-    
-}

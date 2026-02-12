@@ -20,42 +20,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef WIND_F_H_
-#define WIND_F_H_
+#include"wind_f.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"slice.h"
 
-#include"increment.h"
-#include"wind.h"
-
-class lexer;
-class fdm_nhf;
-class ghostcell;
-class slice;
-
-using namespace std;
-
-class wind_f : public wind, public increment
+void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, slice &eta)
 {
-public:
-    wind_f(lexer*);
-	virtual ~wind_f();
+    double windforce;
     
-    void wind_forcing_nhf_x(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&) override;
-    void wind_forcing_nhf_y(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&) override;
+    //cout<<p->mpirank<<"  WIND "<<p->A370<<endl;
     
-    void wind_forcing_fnpf(lexer*, fdm_fnpf*, ghostcell*,slice&,slice&) override;
+    SLICELOOP4
+    WETDRY
+    if( p->XP[IP]>xs && p->XP[IP]<xe)
+    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
+    if(p->A373==1 || eta(i,j)>0.0)
+    {
+        
+    windforce = (p->W3/p->W1)*Cd*p->A371_u*p->A371_u*(cosa*(p->XP[IP]-p->global_xmin) + sina*(p->YP[JP]-p->global_ymin));
+    
+    K(i,j) += windforce;
+    
+    c->test2D(i,j) = windforce;
+    
+    //cout<<p->mpirank<<" WIND  "<<windforce<<"    "<<p->global_xmin<<endl;
+    }
+}
 
-    void wind_forcing_ini(lexer*, ghostcell*) override;
-    
-private:
-    void wind_forcing_drag_coeff_fnpf(lexer*);
-    void wind_forcing_drag_coeff_nhflow(lexer*);
-    
-    double Cd;
-    double cosa,sina;
-    double xs,xe,ys,ye;
-    
-    double Uref;
-
-};
-
-#endif

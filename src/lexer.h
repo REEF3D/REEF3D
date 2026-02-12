@@ -261,6 +261,9 @@ public:
     double A340,A341,A342,A344_val,A345_val,A346,A349;
     int A350,A351,A352,A353,A357,A358,A361,A362,A363,A368;
     double A354,A355,A356,A365; 
+    int A370,A372,A373,A374;
+    double A371_u,A371_dir;
+    double A372_xs,A372_xe,A372_ys,A372_ye;
     
     // NSEWAVE
     int A410;

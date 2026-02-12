@@ -2200,9 +2200,10 @@
         <File Name="sediment_part.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wind">
-        <File Name="wind_f_drag_coeff.cpp"/>
-        <File Name="wind_v.cpp"/>
+        <File Name="wind_f_nhflow.cpp"/>
         <File Name="wind_f.cpp"/>
+        <File Name="wind_f_drag_coeff.cpp"/>
+        <File Name="wind_f_fnpf.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">

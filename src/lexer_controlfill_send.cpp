@@ -168,6 +168,26 @@ void lexer::ctrlsend()
 	dd++;
     ictrl[ii] = A368;
 	ii++;
+    ictrl[ii] = A370;
+	ii++;
+    dctrl[dd] = A371_u;
+    dd++;
+    dctrl[dd] = A371_dir;
+    dd++;
+    ictrl[ii] = A372;
+	ii++;
+    dctrl[dd] = A372_xs;
+    dd++;
+    dctrl[dd] = A372_xe;
+    dd++;
+    dctrl[dd] = A372_ys;
+    dd++;
+    dctrl[dd] = A372_ye;
+    dd++;
+    ictrl[ii] = A373;
+	ii++;
+    ictrl[ii] = A374;
+	ii++;
 
     ictrl[ii] = A410;
 	ii++;

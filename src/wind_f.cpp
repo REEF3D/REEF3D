@@ -28,23 +28,47 @@ Author: Hans Bihs
 
 wind_f::wind_f(lexer *p) 
 {
-    wind_forcing_drag_coeff(p);
     
-    cosa = cos(p->A571_dir*(PI/180.0));
-    sina = sin(p->A571_dir*(PI/180.0));
     
     xs = -1.0e10;
     xe =  1.0e10;
     ys = -1.0e10;
     ye =  1.0e10;
     
-    if(p->A572==1)
+    if(p->A10==3)
     {
-    xs = p->A572_xs;
-    xe = p->A572_xe;
-    ys = p->A572_ys;
-    ye = p->A572_ye;
+        wind_forcing_drag_coeff_fnpf(p);
+        
+        cosa = cos(p->A371_dir*(PI/180.0));
+        sina = sin(p->A371_dir*(PI/180.0));
+        
+        if(p->A372==1)
+        {
+        xs = p->A372_xs;
+        xe = p->A372_xe;
+        ys = p->A372_ys;
+        ye = p->A372_ye;
+        }
     }
+    
+    
+    if(p->A10==5)
+    {
+        wind_forcing_drag_coeff_nhflow(p);
+        
+        cosa = cos(p->A571_dir*(PI/180.0));
+        sina = sin(p->A571_dir*(PI/180.0));
+        
+        if(p->A372==1)
+        {
+        xs = p->A372_xs;
+        xe = p->A372_xe;
+        ys = p->A372_ys;
+        ye = p->A372_ye;
+        }
+    }
+    
+    
     
     Uref = 31.5;
 
@@ -58,27 +82,4 @@ void wind_f::wind_forcing_ini(lexer *p, ghostcell *pgc)
 {
 }
 
-void wind_f::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *F, slice &WL, slice &eta)
-{
-    k=p->knoz-1;
-    
-    SLICELOOP4
-    WETDRY
-    if( p->XP[IP]>xs && p->XP[IP]<xe)
-    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    if(p->A573==1 || eta(i,j)>0.0)
-    F[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
-}
-
-void wind_f::wind_forcing_nhf_y(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *G, slice &WL, slice &eta)
-{
-    k=p->knoz-1;
-    
-    SLICELOOP4
-    WETDRY
-    if( p->XP[IP]>xs && p->XP[IP]<xe)
-    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    if(p->A573==1 || eta(i,j)>0.0)
-    G[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*sina;
-}
 
