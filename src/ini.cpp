@@ -416,7 +416,7 @@ void lexer::ini_default()
     F97=0;           // PLIC density softening from superfine to fine y direction start & end
     F97_ys=-1.0e20;
     F97_ye=-1.0e20;
-    F98=1; // Spray deletion algorithm
+    F98=0; // Spray deletion algorithm
     
     F100=0; // Csaba's Similiarity runup case setup
     F101_nx=0.0; //vof ini for Csaba's similiarity runup case
