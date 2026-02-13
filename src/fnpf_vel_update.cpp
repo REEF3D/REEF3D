@@ -115,9 +115,6 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     c->W[FIJK] = c->Fz(i,j);
     
     FLOOP
-    c->test[IJK] = c->Fz(i,j);
-    
-    FLOOP
     {
         if(p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
         || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0)

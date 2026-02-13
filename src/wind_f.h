@@ -52,6 +52,7 @@ private:
     
     double Cd;
     double cosa,sina;
+    double Sx,Sy;
     double xs,xe,ys,ye;
     
     double Uref;

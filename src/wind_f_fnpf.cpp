@@ -28,10 +28,11 @@ Author: Hans Bihs
 
 void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, slice &eta)
 {
-    double windforce;
+    double windforce,facx,disty;
     
     //cout<<p->mpirank<<"  WIND "<<p->A370<<endl;
     
+    if(p->A373<3)
     SLICELOOP4
     WETDRY
     if( p->XP[IP]>xs && p->XP[IP]<xe)
@@ -47,5 +48,46 @@ void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, 
     
     //cout<<p->mpirank<<" WIND  "<<windforce<<"    "<<p->global_xmin<<endl;
     }
+    
+    
+    if(p->A373==3 || p->A373==4)
+    SLICELOOP4
+    WETDRY
+    if( p->XP[IP]>xs && p->XP[IP]<xe)
+    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
+    
+    {
+    Sx = c->Ex(i,j);
+    Sy = c->Ey(i,j);
+    
+    if(Sx*cosa>0.0)
+    Sx = 1.0;
+    
+    else
+    Sx = 0.0;
+    
+    
+    if(Sy*sina>0.0)
+    Sy = 1.0;
+    
+    else
+    Sy = 0.0;
+    
+    windforce = 0.0;
+    
+    if(p->A373==3 || eta(i,j)>0.0)
+    windforce = (p->W3/p->W1)*Cd*p->A371_u*p->A371_u*(cosa*(p->XP[IP]-p->global_xmin)*Sx + sina*(p->YP[JP]-p->global_ymin)*Sy);
+    
+    K(i,j) += windforce;
+    
+    c->test2D(i,j) = windforce;
+    
+    //cout<<p->mpirank<<" WIND  "<<windforce<<"    "<<p->global_xmin<<endl;
+    }
+    
+    LOOP
+    c->test[IJK] = c->test2D(i,j);
 }
+
+
 
