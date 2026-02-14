@@ -122,7 +122,7 @@ void lexer::ini_default()
     A513=1;		// int NHFLOW wall diffusion
     A514=4;		// int NHFLOW reconstruction 
     A515=1;      // int Dirichlet wave BC type
-    A516=3;      // int
+    A516=1;      // int forcing WL/eta treatment
     A517=1;      // int preserve tangential velocities for forcing
     A518=2;      // int NHFLOW bed BC
     A519=0;      // int turn on bed roughness
@@ -909,6 +909,12 @@ void lexer::ini_default()
     X153=0;        // int symmetric wedge
     X163=0;        // int wedge
     X164=0;        // int hexahedron
+    X170=0;        // int piston wavemaker
+    X170_xs=X170_xe=X170_ys=X170_ye=X170_zs=X170_ze=0.0;
+    X171=0;        // int flap wavemaker
+    X171_xs=X171_xe=X171_ys=X171_ye=X171_zs=X171_z1=X171_ze=0.0;
+    X172=0;        // int double-hinged flap wavemaker
+    X172_xs=X172_xe=X172_ys=X172_ye=X172_zs=X172_z1=X172_z2=X172_ze=0.0;
     X180=0;        // int read .stl file for floating body geometry
     X181=1.0;   // double scale .stl geometry
     X181=0;     // int scale .stl geometry on/off

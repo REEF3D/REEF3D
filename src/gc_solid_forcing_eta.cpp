@@ -25,7 +25,8 @@ Authors: Hans Bihs
 #include"fdm.h"
 
 void ghostcell::solid_forcing_eta(lexer *p, slice &f)
-{/*
+{
+    if(p->A516==3 || p->A516==4)
     GCSLDFETA4LOOP
     {
     i=p->gcsldfeta4[n][0];
@@ -54,11 +55,12 @@ void ghostcell::solid_forcing_eta(lexer *p, slice &f)
         f(i,j+1)=f(i,j);
         f(i,j+2)=f(i,j);
         }
-	}*/
+	}
 }
 
 void ghostcell::solid_forcing_bed(lexer *p, slice &f)
-{/*
+{   
+    if(p->A516==3 || p->A516==4)
     GCSLDFBED4LOOP
     {
     i=p->gcsldfbed4[n][0];
@@ -89,5 +91,5 @@ void ghostcell::solid_forcing_bed(lexer *p, slice &f)
         f(i,j+1)=f(i,j);
         f(i,j+2)=f(i,j);
         }
-	}*/
+	}
 }

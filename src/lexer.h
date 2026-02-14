@@ -635,7 +635,8 @@ public:
 	//Eigen::Matrix3d quatRotMat;	
     int X10,X12,X14,X15,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
     int X39,X40,X45,X46,X48,X49,X50,X60,X110,X120,X131,X132,X133;
-    int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
+    int X100,X101,X102,X103,X141,X142,X143,X153,X170,X171,X172;
+    int X180,X181,X182,X183,X210,X211;
     int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
     int X20;
     double X21_d,X22_m;
@@ -670,6 +671,9 @@ public:
     double *X164_x6,*X164_y6,*X164_z6;
     double *X164_x7,*X164_y7,*X164_z7;
     double *X164_x8,*X164_y8,*X164_z8;
+    double X170_xs,X170_xe,X170_ys,X170_ye,X170_zs,X170_ze;
+    double X171_xs,X171_xe,X171_ys,X171_ye,X171_zs,X171_z1,X171_ze;
+    double X172_xs,X172_xe,X172_ys,X172_ye,X172_zs,X172_z1,X172_z2,X172_ze;
     double X181_x,X181_y,X181_z;
     double X182_x,X182_y,X182_z;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;

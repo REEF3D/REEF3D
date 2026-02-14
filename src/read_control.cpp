@@ -2391,6 +2391,18 @@ void lexer::read_control()
                 case  164: ++X164;
 						 clear(c,numint);
 						 break;
+                case  170: control>>X170_xs>>X170_xe>>X170_ys>>X170_ye>>X170_zs>>X170_ze;
+                         X170=1;
+                         clear(c,numint);
+                         break;
+                case  171: control>>X171_xs>>X171_xe>>X171_ys>>X171_ye>>X171_zs>>X171_z1>>X171_ze;
+                         X171=1;
+                         clear(c,numint);
+                         break;
+                case  172: control>>X172_xs>>X172_xe>>X172_ys>>X172_ye>>X172_zs>>X172_z1>>X172_z2>>X172_ze;
+                         X172=1;
+                         clear(c,numint);
+                         break;
                 case  180: control>>X180;
 						 clear(c,numint);
 						 break;
