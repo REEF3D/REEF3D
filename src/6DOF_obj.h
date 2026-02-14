@@ -76,6 +76,7 @@ public:
     void quat_matrices(lexer*);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
+    void update_wavemaker_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
     void update_position_2D(lexer*, ghostcell*,slice&);
     
     void solve_eqmotion_oneway_onestep(lexer*,ghostcell*,bool);
@@ -84,6 +85,7 @@ public:
     void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,bool);
     void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int,bool);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
+    void update_forcing_nhflow_wavemaker(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
     
@@ -137,6 +139,9 @@ private:
 	void wedge_sym(lexer*, ghostcell*,int);
     void wedge(lexer*, ghostcell*,int);
     void hexahedron(lexer*, ghostcell*,int);
+    void piston(lexer*, ghostcell*,int);
+    void flap(lexer*, ghostcell*,int);
+    void flap_double(lexer*, ghostcell*,int);
     void read_stl(lexer*, ghostcell*);
     void triangle_switch_lsm(lexer*, ghostcell*);
     void triangle_switch_ray(lexer*, ghostcell*);
