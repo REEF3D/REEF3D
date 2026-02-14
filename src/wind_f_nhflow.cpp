@@ -75,7 +75,7 @@ void wind_f::wind_forcing_nhf_y(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     if(p->A573==1 || eta(i,j)>0.0)
     G[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*sina;
     
-    if(p->A573==3 || p->A573==3)
+    if(p->A573==3 || p->A573==3)
     SLICELOOP4
     WETDRY
     if( p->XP[IP]>xs && p->XP[IP]<xe)
