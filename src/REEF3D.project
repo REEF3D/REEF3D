@@ -1073,7 +1073,7 @@
           <File Name="boundary.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grid">
-          <File Name="grid.h"/>
+          <File Name="grid_helper.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="field.h"/>
@@ -2957,16 +2957,18 @@
           <File Name="boundary.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grid">
-          <File Name="grid_gcb4.cpp"/>
-          <File Name="grid_gcb4a.cpp"/>
-          <File Name="grid_gcb3.cpp"/>
-          <File Name="grid_gcb2.cpp"/>
-          <File Name="grid_gcb1.cpp"/>
-          <File Name="grid_dgc4.cpp"/>
-          <File Name="grid_dgc3.cpp"/>
-          <File Name="grid_dgc2.cpp"/>
-          <File Name="grid_dgc1.cpp"/>
-          <File Name="grid.cpp"/>
+          <VirtualDirectory Name="Grid Helper">
+            <File Name="grid_helper.cpp"/>
+            <File Name="grid_helper_dgc1.cpp"/>
+            <File Name="grid_helper_dgc2.cpp"/>
+            <File Name="grid_helper_dgc3.cpp"/>
+            <File Name="grid_helper_dgc4.cpp"/>
+            <File Name="grid_helper_gcb1.cpp"/>
+            <File Name="grid_helper_gcb2.cpp"/>
+            <File Name="grid_helper_gcb3.cpp"/>
+            <File Name="grid_helper_gcb4.cpp"/>
+            <File Name="grid_helper_gcb4a.cpp"/>
+          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="field1.cpp"/>

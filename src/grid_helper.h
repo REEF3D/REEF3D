@@ -20,33 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"grid.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"fieldint4.h"
+#ifndef GRID_HELPER_H_
+#define GRID_HELPER_H_
 
-void grid::fillgcb4_wall(lexer *p)
+#include"increment.h"
+
+class lexer;
+
+class grid_helper : public increment
 {
-    int q,n;
-    
-    
-    fieldint4 cval(p);
-    
-    int count=0;
+public:
+    grid_helper(lexer*);
+    virtual ~grid_helper();
 
-    BASELOOP
-	{
-    cval(i,j,k)=count;
-    
-    ++count;
-	}
-    
-    GC4LOOP
-    {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
-	p->gcb4[n][5]=cval(i,j,k);
-	}
-	
-}
+    // gcb
+    void fillgcb1(lexer*);
+    void fillgcb2(lexer*);
+    void fillgcb3(lexer*);
+    void fillgcb4a(lexer*);
+
+    void fillgcb4_wall(lexer*);
+
+    // dgc
+    void make_dgc(lexer*);
+    void fill_dgc1(lexer*);
+    void fill_dgc2(lexer*);
+    void fill_dgc3(lexer*);
+    void fill_dgc4(lexer*);
+
+private:
+    int imin,imax,jmax,jmin,kmin,kmax;
+
+    int *hgc;
+};
+
+#endif
