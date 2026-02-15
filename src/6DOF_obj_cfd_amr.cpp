@@ -32,7 +32,7 @@ Architect: Hans Bihs
 //  as ray_cast and reini_RK2, with the workspace of the patch grid and over the cells around the
 //  patch as well (the neighbours of the forcing at the patch edges).
 
-void sixdof_obj_cfd::ray_cast_amr(lexer *p, fdm *a, ghostcell *pgc, fieldint5 &io, fieldint5 &cl, fieldint5 &cr)
+void sixdof_obj_cfd::ray_cast_amr(lexer *p, fdm *a, ghostcell *pgc, fieldint4 &io, fieldint4 &cl, fieldint4 &cr)
 {
     const int m = p->margin;      // the cells around the grid (increment::marge is that of the node arrays)
     const int jm = (p->j_dir==1) ? m : 0;
