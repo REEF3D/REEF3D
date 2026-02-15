@@ -24,12 +24,6 @@ Authors: Tobias Martin, Hans Bihs
 #define NET_VOID_H_
 
 #include"net.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-#include"field5.h"
-#include"fieldint5.h"
 #include"vec.h"
 #include<fstream>
 #include<iostream>

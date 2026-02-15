@@ -1154,7 +1154,6 @@
           <File Name="field3.h"/>
           <File Name="field4.h"/>
           <File Name="field4a.h"/>
-          <File Name="field5.h"/>
           <File Name="field7.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
@@ -1165,7 +1164,6 @@
           <File Name="fieldint2.h"/>
           <File Name="fieldint3.h"/>
           <File Name="fieldint4.h"/>
-          <File Name="fieldint5.h"/>
           <File Name="fieldint7.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geotopo">
