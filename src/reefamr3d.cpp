@@ -764,9 +764,9 @@ void reefamr3d::build_lexer(r3patch &c)
     pp->Iarray(pp->gcslparaco1,0,4); pp->Iarray(pp->gcslparaco2,0,4); pp->Iarray(pp->gcslparaco3,0,4); pp->Iarray(pp->gcslparaco4,0,4);
 
     // nodes
-    pp->Darray(pp->XN,pp->knox+1+4*marge);
-    pp->Darray(pp->YN,pp->knoy+1+4*marge);
-    pp->Darray(pp->ZN,pp->knoz+1+4*marge);
+    pp->Darray(pp->XN,pp->knox+1+2*marge);
+    pp->Darray(pp->YN,pp->knoy+1+2*marge);
+    pp->Darray(pp->ZN,pp->knoz+1+2*marge);
     for(int ii=-marge; ii<pp->knox+1+marge; ++ii)
     pp->XN[ii+marge] = node(l,0,c.lo[0]+ii);
     for(int jj=-marge; jj<pp->knoy+1+marge; ++jj)

@@ -41,17 +41,17 @@ void weno3_nug_func::ini(lexer* p)
 {
     if(iniflag==0)
     {
-    p->Darray(qfx,p->knox+8,2,4,2);
-    p->Darray(qfy,p->knoy+8,2,4,2);
-    p->Darray(qfz,p->knoz+8,2,4,2);
+    p->Darray(qfx,p->knox+2*marge,2,4,2);
+    p->Darray(qfy,p->knoy+2*marge,2,4,2);
+    p->Darray(qfz,p->knoz+2*marge,2,4,2);
     
-    p->Darray(cfx,p->knox+8,2,4);
-    p->Darray(cfy,p->knoy+8,2,4);
-    p->Darray(cfz,p->knoz+8,2,4);
+    p->Darray(cfx,p->knox+2*marge,2,4);
+    p->Darray(cfy,p->knoy+2*marge,2,4);
+    p->Darray(cfz,p->knoz+2*marge,2,4);
     
-    p->Darray(isfx,p->knox+8,2,4);
-    p->Darray(isfy,p->knoy+8,2,4);
-    p->Darray(isfz,p->knoz+8,2,4);
+    p->Darray(isfx,p->knox+2*marge,2,4);
+    p->Darray(isfy,p->knoy+2*marge,2,4);
+    p->Darray(isfz,p->knoz+2*marge,2,4);
     
     precalc_qf(p);
     precalc_cf(p);
