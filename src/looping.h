@@ -31,8 +31,6 @@ Author: Hans Bihs
 #include"iterators2D.h"
 #include"iterators1D.h"
 
-#define PI 3.14159265359
-#define EE 2.71828182846
 
 #define ILOOP	for(i=0; i<p->knox; ++i)
 #define JLOOP	for(j=0; j<p->knoy; ++j)
