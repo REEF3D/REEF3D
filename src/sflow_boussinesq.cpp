@@ -909,8 +909,8 @@ void sflow_boussinesq::prepare_curv(lexer *p, fdm2D *b, ghostcell *pgc, slice &V
     
     for(int n=0; n<p->imax*p->jmax; ++n)
     {
-    ucart.V[n] = b->UA.V[n];
-    vcart.V[n] = b->VA.V[n];
+    ucart.data()[n] = b->UA.data()[n];
+    vcart.data()[n] = b->VA.data()[n];
     }
     
     for(int dir=0; dir<2; ++dir)
@@ -986,8 +986,8 @@ void sflow_boussinesq::set_curv(lexer *p, fdm2D *b, slice &xa, slice &xb, bool a
 {
     for(int n=0; n<p->imax*p->jmax; ++n)
     {
-    b->UA.V[n] = ucart.V[n];
-    b->VA.V[n] = vcart.V[n];
+    b->UA.data()[n] = ucart.data()[n];
+    b->VA.data()[n] = vcart.data()[n];
     }
     
     auto put = [&](int ii, int jj)
@@ -1103,8 +1103,8 @@ void sflow_boussinesq::solve_curv(lexer *p, fdm2D *b, ghostcell *pgc)
     // a, b of prepare_curv (UA, VA hold them): start and the lagged other component
     for(int n=0; n<p->imax*p->jmax; ++n)
     {
-    v(OA).V[n] = b->UA.V[n];
-    v(OB).V[n] = b->VA.V[n];
+    v(OA).data()[n] = b->UA.data()[n];
+    v(OB).data()[n] = b->VA.data()[n];
     }
     
     int itsum=0;
@@ -1125,8 +1125,8 @@ void sflow_boussinesq::solve_curv(lexer *p, fdm2D *b, ghostcell *pgc)
         
         for(int n=0; n<p->imax*p->jmax; ++n)
         {
-        v(X).V[n] = own.V[n];
-        v(T).V[n] = 0.0;
+        v(X).data()[n] = own.data()[n];
+        v(T).data()[n] = 0.0;
         }
         
         // constant part (in- and outflow ghost values), A x0 with the lagged other component
@@ -1146,11 +1146,11 @@ void sflow_boussinesq::solve_curv(lexer *p, fdm2D *b, ghostcell *pgc)
         
         // the linear part: own component alone, without the constant part
         for(int n=0; n<p->imax*p->jmax; ++n)
-        v(T).V[n] = 0.0;
+        v(T).data()[n] = 0.0;
         auto apply = [&](int kx, int ky)
         {
             for(int n=0; n<p->imax*p->jmax; ++n)
-            v(ZA).V[n] = v(ZB).V[n] = 0.0;
+            v(ZA).data()[n] = v(ZB).data()[n] = 0.0;
             if(dir==0)
             apply_curv(p,b,pgc,v(kx),v(ZA),v(ky),v(ZB),false);
             else
@@ -1210,7 +1210,7 @@ void sflow_boussinesq::solve_curv(lexer *p, fdm2D *b, ghostcell *pgc)
         // the solution of this component (the other solve keeps the old one: lagged)
         slice &res = v(dir==0 ? NA : NB);
         for(int n=0; n<p->imax*p->jmax; ++n)
-        res.V[n] = own.V[n];
+        res.data()[n] = own.data()[n];
         SLICELOOP4
         res(i,j) = (p->wet[IJ]==1) ? v(X)(i,j) : 0.0;
     }

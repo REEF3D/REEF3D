@@ -390,7 +390,7 @@ void cfd_amr::reference(lexer *p, ghostcell *pgc)
             const int jk = q->jmax*q->kmax;
             for(int qq : lq[g+1])
             {
-                const double ph = fa->phi.V[qq];
+                const double ph = fa->phi.data()[qq];
                 if(fabs(ph)>=epsi || ph>=0.0)
                 continue;
                 const double dirac = (0.5/epsi)*(1.0 + cos((PI*ph)/epsi));
@@ -399,7 +399,7 @@ void cfd_amr::reference(lexer *p, ghostcell *pgc)
                 const int i = qq/jk + q->imin, r2 = qq%jk;
                 const int j = r2/q->kmax + q->jmin, k = r2%q->kmax + q->kmin;
                 const double V = q->DXN[i+marge]*q->DYN[j+marge]*q->DZN[k+marge];
-                s[0] += dirac*V*fa->press.V[qq];
+                s[0] += dirac*V*fa->press.data()[qq];
                 s[1] += dirac*V;
             }
         }
@@ -423,7 +423,7 @@ void cfd_amr::reference(lexer *p, ghostcell *pgc)
             field &pr = gfd(g)->press;
             const size_t n = (size_t)q->imax*q->jmax*q->kmax;
             for(size_t m=0; m<n; ++m)
-            pr.V[m] -= shift;
+            pr.data()[m] -= shift;
         }
         pgc0->start4(p,a0->press,40);
     }

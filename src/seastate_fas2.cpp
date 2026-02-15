@@ -398,7 +398,7 @@ void seastate_fas2::build_fields(lexer *p, const vector<char> *fine_coast, const
     int tile = p->A704;
     for(int d=0; d<depth; ++d)
     tile = std::max(tile/2,2);
-    auto store = [&](int nb) {seastate_store *s = new seastate_store(pc->imin,pc->jmin,pc->imax,pc->jmax,nb,tile); s->build(ec->wet.V); s->fill(0.0f); return s;};
+    auto store = [&](int nb) {seastate_store *s = new seastate_store(pc->imin,pc->jmin,pc->imax,pc->jmax,nb,tile); s->build(ec->wet.data()); s->fill(0.0f); return s;};
 
     ec->N  = store(nbin);
     ec->kw = store(ec->grid->nsig);

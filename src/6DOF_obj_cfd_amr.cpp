@@ -57,26 +57,26 @@ void sixdof_obj_cfd::ray_cast_amr(lexer *p, fdm *a, ghostcell *pgc, fieldint5 &i
         {
             if(rayiter==0)
             {
-            georay.cart_io(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,cl.V,cr.V);
+            georay.cart_io(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),cl.data(),cr.data());
 
             if(p->j_dir==1)
-            georay.cart_io(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,cl.V,cr.V);
+            georay.cart_io(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),cl.data(),cr.data());
 
-            georay.cart_io(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,cl.V,cr.V);
+            georay.cart_io(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),cl.data(),cr.data());
             }
 
             if(rayiter==1 && p->X188==1)
             {
-            georay.cart_dist(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,a->fb.V);
+            georay.cart_dist(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),a->fb.data());
 
             if(p->j_dir==1)
-            georay.cart_dist(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,a->fb.V);
+            georay.cart_dist(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),a->fb.data());
 
-            georay.cart_dist(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,a->fb.V);
+            georay.cart_dist(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),a->fb.data());
             }
 
             if(rayiter==1 && p->X188==2)
-            georay.cart_vertexdist(p,tri_x,tri_y,tri_z,tstart[qn],tend[qn],a->fb.V);
+            georay.cart_vertexdist(p,tri_x,tri_y,tri_z,tstart[qn],tend[qn],a->fb.data());
         }
     }
 
@@ -119,29 +119,29 @@ void sixdof_obj_cfd::reini_amr(lexer *p, fdm *a, ghostcell *pgc, field &f, reini
     LOOP
     {
     if(p->j_dir==0)
-    dtt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
+    dtt.data()[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
 
     if(p->j_dir==1)
-	dtt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dtt.data()[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	}
 
     const int n = p->imax*p->jmax*p->kmax;
     for(int q=0; q<n; ++q)
-    frk.V[q] = f.V[q];
+    frk.data()[q] = f.data()[q];
 
     for(int q=0;q<5;++q)
 	{
 		prd->start(p,a,pgc,f,LL,5);
 
 		LOOP
-		frk.V[IJK] = f.V[IJK] + dtt.V[IJK]*LL.V[IJK];
+		frk.data()[IJK] = f.data()[IJK] + dtt.data()[IJK]*LL.data()[IJK];
 
         pgc->start4a(p,frk,50);
 
 		prd->start(p,a,pgc,frk,LL,5);
 
 		LOOP
-		f.V[IJK] = 0.5*f.V[IJK] + 0.5*frk.V[IJK] + 0.5*dtt.V[IJK]*LL.V[IJK];
+		f.data()[IJK] = 0.5*f.data()[IJK] + 0.5*frk.data()[IJK] + 0.5*dtt.data()[IJK]*LL.data()[IJK];
 
         pgc->start4a(p,f,50);
 	}

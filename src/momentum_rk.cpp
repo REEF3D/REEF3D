@@ -385,9 +385,9 @@ void momentum_rk::amr_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 // the direct forcing of solids and topography alone (as momentum_forcing_start)
 void momentum_rk::amr_solid_forcing(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
-    std::fill(fx.V, fx.V + p->imax*p->jmax*p->kmax, 0.0);
-    std::fill(fy.V, fy.V + p->imax*p->jmax*p->kmax, 0.0);
-    std::fill(fz.V, fz.V + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fx.data(), fx.data() + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fy.data(), fy.data() + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fz.data(), fz.data() + p->imax*p->jmax*p->kmax, 0.0);
 
     pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);
 
