@@ -49,7 +49,6 @@ public:
     }
 
     inline T& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
-    inline T& operator[](int n) noexcept {return V[n];};
 
     T *data() noexcept {return V;}
     const T *data() const noexcept {return V;}
