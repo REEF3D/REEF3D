@@ -86,10 +86,6 @@ Author: Hans Bihs
 #define GCSLB1CHECK if(p->gcbsl1[n][3]>0)
 #define GCSL1LOOP GCSLB1 GCSLB1CHECK
 
-#define GGCSLB1 for(g=0;g<p->gcbsl1_count;++g)
-#define GGCSLB1CHECK if(p->gcbsl1[g][3]>0)
-#define GGCSL1LOOP GGCSLB1 GGCSLB1CHECK
-
 #define QGCSLB1 for(q=0;q<p->gcbsl1_count;++q)
 #define QGCSLB1CHECK if(p->gcbsl1[q][3]>0)
 #define QGCSL1LOOP QGCSLB1 QGCSLB1CHECK
@@ -103,10 +99,6 @@ Author: Hans Bihs
 #define GCSLB2CHECK if(p->gcbsl2[n][3]>0)
 #define GCSL2LOOP GCSLB2 GCSLB2CHECK
 
-#define GGCSLB2 for(g=0;g<p->gcbsl2_count;++g)
-#define GGCSLB2CHECK if(p->gcbsl2[g][3]>0)
-#define GGCSL2LOOP GGCSLB2 GGCSLB2CHECK
-
 #define QGCSLB2 for(q=0;q<p->gcbsl2_count;++q)
 #define QGCSLB2CHECK if(p->gcbsl2[q][3]>0)
 #define QGCSL2LOOP QGCSLB2 QGCSLB2CHECK
@@ -116,30 +108,9 @@ Author: Hans Bihs
 #define QQGCSL2LOOP QQGCSLB2 QQGCSLB2CHECK
 
 
-#define GCSLB3 for(n=0;n<p->gcbsl3_count;++n)
-#define GCSLB3CHECK if(p->gcbsl3[n][3]>0)
-#define GCSL3LOOP GCSLB3 GCSLB3CHECK
-
-#define GGCSLB3 for(g=0;g<p->gcbsl3_count;++g)
-#define GGCSLB3CHECK if(p->gcbsl3[g][3]>0)
-#define GGCSL3LOOP GGCSLB3 GGCSLB3CHECK
-
-#define QGCSLB3 for(q=0;q<p->gcbsl3_count;++q)
-#define QGCSLB3CHECK if(p->gcbsl3[q][3]>0)
-#define QGCSL3LOOP QGCSLB3 QGCSLB3CHECK
-
-#define QQGCSLB3 for(qq=0;qq<p->gcbsl3_count;++qq)
-#define QQGCSLB3CHECK if(p->gcbsl3[qq][3]>0)
-#define QQGCSL3LOOP QQGCSLB3 QQGCSLB3CHECK
-
-
 #define GCSLB4 for(n=0;n<p->gcbsl4_count;++n)
 #define GCSLB4CHECK if(p->gcbsl4[n][3]>0)
 #define GCSL4LOOP GCSLB4 GCSLB4CHECK
-
-#define GGCSLB4 for(g=0;g<p->gcbsl4_count;++g)
-#define GGCSLB4CHECK if(p->gcbsl4[g][3]>0)
-#define GGCSL4LOOP GGCSLB4 GGCSLB4CHECK
 
 #define QGCSLB4 for(q=0;q<p->gcbsl4_count;++q)
 #define QGCSLB4CHECK if(p->gcbsl4[q][3]>0)
@@ -153,10 +124,6 @@ Author: Hans Bihs
 #define GCSLB4A for(n=0;n<p->gcbsl4a_count;++n)
 #define GCSLB4ACHECK if(p->gcbsl4a[n][3]>0)
 #define GCSL4ALOOP GCSLB4A GCSLB4ACHECK
-
-#define GGCSLB4A for(g=0;g<p->gcbsl4a_count;++g)
-#define GGCSLB4ACHECK if(p->gcbsl4a[g][3]>0)
-#define GGCSL4ALOOP GGCSLB4A GGCSLB4ACHECK
 
 #define QGCSLB4A for(q=0;q<p->gcbsl4a_count;++q)
 #define QGCSLB4ACHECK if(p->gcbsl4a[q][3]>0)
