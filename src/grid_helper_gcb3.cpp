@@ -28,28 +28,26 @@ void grid_helper::fillgcb3(lexer *p)
 {
     int q,n;
 
-    p->Iarray(p->fgc,imax*jmax*kmax,6);
-
-//  ------------
+    p->Iarray(fgc,imax*jmax*kmax,6);
 
     if(p->gcb3_count!=p->gcb4_count)
     {
-    p->Iresize(p->gcb3,p->gcb3_count, p->gcb4_count, 6, 6);
-    p->Dresize(p->gcd3,p->gcb3_count, p->gcb4_count);
+        p->Iresize(p->gcb3,p->gcb3_count, p->gcb4_count, 6, 6);
+        p->Dresize(p->gcd3,p->gcb3_count, p->gcb4_count);
 
-    p->gcb3_count=p->gcb4_count;
+        p->gcb3_count=p->gcb4_count;
     }
 
     QGCB4
     {
-    for(n=0;n<5;++n)
-    p->gcb3[q][n]=p->gcb4[q][n];
+        for(n=0;n<5;++n)
+        p->gcb3[q][n]=p->gcb4[q][n];
 
-    if(p->gcb3[q][3]==5 || p->gcb3[q][3]==6)
-    p->gcd3[q]=p->gcd4[q];
+        if(p->gcb3[q][3]==5 || p->gcb3[q][3]==6)
+        p->gcd3[q]=p->gcd4[q];
 
-    if(p->gcb3[q][3]!=5 && p->gcb3[q][3]!=6)
-    p->gcd3[q]=p->gcd4[q];
+        if(p->gcb3[q][3]!=5 && p->gcb3[q][3]!=6)
+        p->gcd3[q]=p->gcd4[q];
     }
 
     QGC3LOOP
@@ -61,19 +59,7 @@ void grid_helper::fillgcb3(lexer *p)
         if(p->gcb3[q][3]==5 || p->gcb3[q][3]==6)
         p->gcd3[q] += 0.5*p->DZP[KP];
 
-        p->fgc[IJK][p->gcb3[q][3]-1]=1;
-    }
-
-
-
-    QGC3LOOP
-    {
-        i=p->gcb3[q][0];
-        j=p->gcb3[q][1];
-        k=p->gcb3[q][2];
-
-            if(p->gcb3[q][3]==6 && (p->periodic3!=1 || k+p->origin_k<p->gknoz-1))
-            p->gcb3[q][2]-=1;
+        fgc[IJK][p->gcb3[q][3]-1]=1;
     }
 
     QGC3LOOP
@@ -82,7 +68,22 @@ void grid_helper::fillgcb3(lexer *p)
         j=p->gcb3[q][1];
         k=p->gcb3[q][2];
 
-            if(p->gcb3[q][3]!=6 && p->fgc[IJK][5]==1 && (p->periodic3!=1 || k+p->origin_k<p->gknoz-1))
-            p->gcb3[q][3]=-fabs(p->gcb3[q][3]);
+        if(p->gcb3[q][3]==6 && (p->periodic3!=1 || k+p->origin_k<p->gknoz-1))
+        p->gcb3[q][2]-=1;
     }
+
+    QGC3LOOP
+    {
+        i=p->gcb3[q][0];
+        j=p->gcb3[q][1];
+        k=p->gcb3[q][2];
+
+        if(p->gcb3[q][3]!=6 && fgc[IJK][5]==1 && (p->periodic3!=1 || k+p->origin_k<p->gknoz-1))
+        p->gcb3[q][3]=-fabs(p->gcb3[q][3]);
+    }
+
+    for(int n=0; n<imax*jmax*kmax;n++)
+    delete[] fgc[n];
+
+    delete[] fgc;
 }

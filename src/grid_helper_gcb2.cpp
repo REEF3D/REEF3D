@@ -28,28 +28,26 @@ void grid_helper::fillgcb2(lexer *p)
 {
     int q,n;
 
-    p->Iarray(p->fgc,imax*jmax*kmax,6);
-
-// ----
+    p->Iarray(fgc,imax*jmax*kmax,6);
 
     if(p->gcb2_count!=p->gcb4_count)
     {
-    p->Iresize(p->gcb2,p->gcb2_count, p->gcb4_count, 6, 6);
-    p->Dresize(p->gcd2,p->gcb2_count, p->gcb4_count);
+        p->Iresize(p->gcb2,p->gcb2_count, p->gcb4_count, 6, 6);
+        p->Dresize(p->gcd2,p->gcb2_count, p->gcb4_count);
 
-    p->gcb2_count=p->gcb4_count;
+        p->gcb2_count=p->gcb4_count;
     }
 
     QGCB4
     {
-    for(n=0;n<5;++n)
-    p->gcb2[q][n]=p->gcb4[q][n];
+        for(n=0;n<5;++n)
+        p->gcb2[q][n]=p->gcb4[q][n];
 
-    if(p->gcb2[q][3]==2 || p->gcb2[q][3]==3)
-    p->gcd2[q]=p->gcd4[q];
+        if(p->gcb2[q][3]==2 || p->gcb2[q][3]==3)
+        p->gcd2[q]=p->gcd4[q];
 
-    if(p->gcb2[q][3]!=2 && p->gcb2[q][3]!=3)
-    p->gcd2[q]=p->gcd4[q];
+        if(p->gcb2[q][3]!=2 && p->gcb2[q][3]!=3)
+        p->gcd2[q]=p->gcd4[q];
     }
 
     QGC2LOOP
@@ -61,19 +59,7 @@ void grid_helper::fillgcb2(lexer *p)
         if(p->gcb2[q][3]==2 || p->gcb2[q][3]==3)
         p->gcd2[q] += 0.5*p->DYP[JP];
 
-        p->fgc[IJK][p->gcb2[q][3]-1]=1;
-    }
-
-
-
-    QGC2LOOP
-    {
-        i=p->gcb2[q][0];
-        j=p->gcb2[q][1];
-        k=p->gcb2[q][2];
-
-            if(p->gcb2[q][3]==2 && (p->periodic2!=1 || j+p->origin_j<p->gknoy-1))
-            p->gcb2[q][1]-=1;
+        fgc[IJK][p->gcb2[q][3]-1]=1;
     }
 
     QGC2LOOP
@@ -82,7 +68,22 @@ void grid_helper::fillgcb2(lexer *p)
         j=p->gcb2[q][1];
         k=p->gcb2[q][2];
 
-            if(p->gcb2[q][3]!=2 && p->fgc[IJK][1]==1 && (p->periodic2!=1 || j+p->origin_j<p->gknoy-1))
-            p->gcb2[q][3]=-fabs(p->gcb2[q][3]);
+        if(p->gcb2[q][3]==2 && (p->periodic2!=1 || j+p->origin_j<p->gknoy-1))
+        p->gcb2[q][1]-=1;
     }
+
+    QGC2LOOP
+    {
+        i=p->gcb2[q][0];
+        j=p->gcb2[q][1];
+        k=p->gcb2[q][2];
+
+        if(p->gcb2[q][3]!=2 && fgc[IJK][1]==1 && (p->periodic2!=1 || j+p->origin_j<p->gknoy-1))
+        p->gcb2[q][3]=-fabs(p->gcb2[q][3]);
+    }
+
+    for(int n=0; n<imax*jmax*kmax;n++)
+    delete[] fgc[n];
+
+    delete[] fgc;
 }
