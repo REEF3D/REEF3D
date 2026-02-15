@@ -122,7 +122,6 @@ public:
     void driver_ini_nhflow();
     void driver_ini_fnpf();
     void driver_ini_ptf();
-    void driver_ini_sflow();
     
 	void log_ini();
 	void mainlog(lexer*);
